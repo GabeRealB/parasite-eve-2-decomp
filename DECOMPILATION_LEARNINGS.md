@@ -73969,3 +73969,76 @@ register with a live range ending at that call, a temp is hiding there. Naming
 *every* mention instead collapses the chain to a single load with the reads
 reusing it, which is a different object — the three separate reloads are what
 pin the temp to the first mention alone.
+
+## A reload that lands in a different `$sN` than the value it copies is a *second local*, not a second mention
+
+`func_actor_310100_80162414` sat at 99.138% with `stack=0 branch=0 regs=20
+reorder=0 insert=0 delete=0`, and the whole diff was a swap of two call-saved
+registers plus the register of one `u8`:
+
+```asm
+-sw    s1,0x1c(sp)        +sw    s0,0x18(sp)      ; arg1
+-move  s1,a1              +move  s0,a1
+-move  s0,v0              +move  s1,v0            ; Mem_Malloc result
+-sh    s1,0x508(s0)       +sh    s0,0x508(s1)
+```
+
+**Read the `.lreg` for the number of `set`s, not just the register.** Pseudo 82
+had two destinations — `(insn 27 … (set (reg/v:SI 82) (reg:SI 2 v0))`, the
+`Mem_Malloc` return, and `(insn 152 … (set (reg/v:SI 82) …)`, the loop
+preheader's `lw $s1,0x1C($s4)` — so it was one allocno with one register, and
+every use of "the work pointer" before and after the loop had to share it. The
+target writes `$s0` at the malloc and `$s1` at the reload, and those live ranges
+do not overlap, so they are two pseudos: the source held the reloaded pointer in
+its own variable.
+
+```c
+    work2  = (Actor310100Work*)task->idMap;
+    do {
+        work2->slots[i & 0xFFFF].field_9 = 0x10;
+        Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
+```
+
+99.914% on that one line (`regs` 20 → 2). The house style already does this —
+`Actor405800Work* work2;` appears eight times — so a second local is not an
+artefact here.
+
+**A near-identical sibling is not evidence about this function's source.**
+`func_actor_310100_801625E4` is the same body at a different display id and keeps
+both the malloc result and the reload in `$s1` (one pseudo, `sw $s1,0x1C($s4)` /
+`lw $s1,0x1C($s4)`); matching it against this target's register split is what
+identified the difference. Compare the two siblings' objects before concluding a
+shape is shared.
+
+**Writing the reload as a second mention does not merge.** The loop's other
+option — `((Actor310100Work*)task->idMap)->slots[…]` then
+`&((Actor310100Work*)task->idMap)->anim`, the form the `Mem_Set(task->idMap, …)`
+line above already uses — scored 6 branches and `regs=52`: the `sb` to `slots`
+sits between the two loads, CSE will not carry a memory value across a store it
+cannot prove disjoint, so each iteration loads the pointer twice.
+
+### The leftover `u8`: a low-priority local in a call-saved register is live across a call
+
+What remained was `move v1,s6 / andi v1,v1,0xff` against the target's
+`move s0,s6 / andi v1,s0,0xff`. A `u8` assigned from a `u16` is a QImode pseudo
+(see `TRULY_NOOP_TRUNCATION`), which ranks low enough that `$v0`/`$v1` — first in
+`REG_ALLOC_ORDER` — take it, unless it is live across a call, which rules every
+call-clobbered register out. `$v0` was already spoken for by the `0xFF` constant
+live through the search loop, so the first free call-saved register was `$s0`.
+
+The target's copy sits in the `beq` delay slot *after* the `Gp_GetNestedAreaRec`
+call, which reads as an assignment written after the call. It is not: `dbr` sinks
+a cheap, dependency-free copy into a delay slot from wherever sched2 left it, so
+the branch slot says nothing about source order. Moving the statement above the
+call instead —
+
+```c
+    id    = mode;
+    place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+```
+
+— makes the pseudo live across that call, forces the callee-saved register, and
+the same delay slot comes out of the scheduler: 100.000%. **When a low-priority
+local occupies a call-saved register nothing else appears to want, its live range
+must cross a call; move the assignment one statement earlier rather than reaching
+for a pin.**

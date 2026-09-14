@@ -10,6 +10,9 @@
 
 extern TaskDesc D_actor_310100_801798E4;
 extern TaskDesc D_actor_310100_801798F0;
+extern u32      D_actor_310100_80179754;
+extern u32      D_actor_310100_80179794;
+extern u32      D_actor_310100_801798B4;
 
 s32 func_actor_310100_80161E24(Task* task)
 {
@@ -57,7 +60,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162284);
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162414);
+void func_actor_310100_80161F80(Task* task);
+
+/// Spawns the display model for `D_actor_310100_801798FC`: allocates the 0x50C
+/// work block into `task->idMap`, hands it the view coordinate and the two TMD
+/// buffers, binds the animation set selected by the display id (0x6C or 0x6D),
+/// seeds its 18 slots, points `task->field_24` at `D_actor_310100_801798B4` and
+/// applies the nested area record matching that id through `Gp_SetTmdBytes`.
+void func_actor_310100_80162414(Task* task, s32 arg1)
+{
+    Actor310100Work* work;
+    Actor310100Work* work2;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    GpAreaPlace*     place;
+    u16              mode;
+    u16              active;
+    u8               id;
+    s32              i;
+
+    coord       = ((TmdObject*)task->extra)->field_8;
+    obj         = (TmdObject*)task->extra;
+    work        = (Actor310100Work*)Mem_Malloc(0x50C, false);
+    mode        = arg1;
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work->field_508 = arg1;
+    Mem_Set(task->idMap, 0U, 0x50CU);
+    work->field_4E8 = Game_GetPtrSlot(3);
+    coord->sub      = &Gfx_ViewCoord;
+    Tmd_AllocBuffers(obj);
+    obj->field_1C = &work->field_43C;
+    obj->field_20 = &work->field_45C;
+    obj->field_C  = 0;
+    if (mode == 0x6C) {
+        func_800B3F84(&work->anim, &D_actor_310100_80179754, (GpAnimObj*)obj, work->pad_30C,
+                      &work->slots[0]);
+    } else {
+        func_800B3F84(&work->anim, &D_actor_310100_80179794, (GpAnimObj*)obj, work->pad_30C,
+                      &work->slots[0]);
+    }
+    i      = 1;
+    active = task->spawnArg1;
+    work2  = (Actor310100Work*)task->idMap;
+    do {
+        work2->slots[i & 0xFFFF].field_9 = 0x10;
+        Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 0x13U);
+    func_actor_310100_80161F80(task);
+    task->field_24 = &D_actor_310100_801798B4;
+    id             = mode;
+    place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+    while (place->field_0 != 0xFF && place->field_0 != id) {
+        place++;
+    }
+    Gp_SetTmdBytes(obj, (s8)place->field_D, (s8)place->field_E);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_801625E4);
 
@@ -132,8 +194,6 @@ void func_actor_310100_80162F34(Task* task)
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void func_actor_310100_80161F80(Task* task);
-void func_actor_310100_80162414(Task* task, s32 arg1);
 void func_actor_310100_801625E4(Task* task, s32 arg1);
 
 /// Second state handler of the display model spawned from
