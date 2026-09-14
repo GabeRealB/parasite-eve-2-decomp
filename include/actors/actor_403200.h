@@ -51,18 +51,30 @@ typedef struct Actor403200Work {
     /// Cleared by the state-change reset to mark the work block as re-armed.
     /// Same slot and role as `Actor444000Work::field_7F3`.
     /* 0x7F3 */ u8   field_7F3;
-    /* 0x7F4 */ byte pad_7F4[0x6A2];
+    /* 0x7F4 */ byte pad_7F4[0x6A0];
+    /// Yaw the upkeep tick walks toward `field_E96` in steps of 0x32, snapping
+    /// once the two are within 0x33 of each other. Same slot and role as
+    /// `Actor444000Work::field_E94`.
+    /* 0xE94 */ s16 field_E94;
     /// Yaw target the re-arm path arms to 0xC80. Same slot and role as
     /// `Actor444000Work::field_E96`.
-    /* 0xE96 */ s16  field_E96;
-    /* 0xE98 */ byte pad_E98[0x14];
+    /* 0xE96 */ s16 field_E96;
+    /// Companion value handed to the follow helper alongside `field_E94`. Same
+    /// slot and role as `Actor444000Work::field_E98`.
+    /* 0xE98 */ s16  field_E98;
+    /* 0xE9A */ byte pad_E9A[0x12];
     /* 0xEAC */ s8   field_EAC;
     /* 0xEAD */ byte pad_EAD[0x1F];
     /// The escorts the state-change reset walks to push the host's
     /// `TmdObject::field_C` onto each escort's own model object; the same
     /// seven-slot run as `Actor444000Work::field_ECC`.
     /* 0xECC */ GpEnemy* field_ECC[7];
-    /* 0xEE8 */ byte     pad_EE8[0xC];
+    /// The two escorts the upkeep tick drops once their HP has run out, by
+    /// clearing the slot when `GpEnemy::field_40` is not positive. Same slots
+    /// and role as `Actor444000Work::field_EE8`.
+    /* 0xEE8 */ GpEnemy* field_EE8;
+    /* 0xEEC */ GpEnemy* field_EEC;
+    /* 0xEF0 */ byte     pad_EF0[0x4];
     /* 0xEF4 */ s16      field_EF4;
     /* 0xEF6 */ s16      field_EF6;
     /* 0xEF8 */ byte     pad_EF8[0x2];

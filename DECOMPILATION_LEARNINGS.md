@@ -74864,3 +74864,57 @@ register, one variable is doing both jobs in the source.
 Preprocessed SHA256:
 
 - `base_20.i`: `26ed7a002c47bf796866da27c9452c35c154267d361d22dc2e709443e848a488`
+
+## Actor403200_Fn0E6C: two loads of one halfword survive only when each read is written where it is used
+
+An angle-clamp block reads one `s16` field three times over — signed for the
+difference and the comparison, unsigned for the step arithmetic — and the target
+emits all four narrow loads separately:
+
+```
+lh    a2,0xe96(s0)     ; target
+lh    a1,0xe94(s0)
+lhu   a0,0xe96(s0)
+lhu   v1,0xe94(s0)
+subu  v0,a2,a1
+```
+
+Assigning m2c's temporaries up front (`temp_a1 = work->field_E94;` then
+`temp_v1 = (u16)work->field_E94;`) instead produced **one** `lhu v1,0xe94` plus
+an `sll v0,v1,0x10` / `sra a1,v0,0x10` sign-extension pair, and scheduled the
+`lhu` ahead of the other three loads — 93.6% with branch=5/reorder=1 and 4 extra
+instructions. GCC 2.8.1 merges the two modes when both reads are live at the same
+point, and the narrower read wins.
+
+Writing each read inline in the expression that consumes it reproduces the
+four-load sequence:
+
+```c
+        diff = work->field_E96 - work->field_E94;
+        ...
+            if (work->field_E94 < work->field_E96) {
+                work->field_E94 = (u16)work->field_E94 + 0x32;
+            } else {
+                work->field_E94 = (u16)work->field_E94 - 0x32;
+            }
+        } else {
+            work->field_E94 = (u16)work->field_E96;
+        }
+```
+
+The same function pinned down a second, independent effect: the value passed to
+the tail call after the branch (`arg0->spawnArg2`) has to be read into a local
+*before* the branch. Repeating the field expression at the tail instead let GCC
+reload it after the branch, which both dropped the `sw s3,0x2c(sp)` save and
+shrank the frame from 0x38 to 0x30 — so the whole function's `sp` adjustment,
+every saved-register store/restore and every branch displacement differed. The
+frame size is a cheap tell for this class: a local that the target keeps in a
+callee-saved register across a branch must be a named variable in the source.
+
+The field the clamp compares is `coord.t[0]` at 0x18 (not `t[1]`, 0x1c), and the
+target adds it as `selfCoord->coord.t[0] + work->field_E94` — operand order
+survives into `addu v1,v1,a0`, so the self coordinate is written first.
+
+base_2.c preprocessed SHA256: 78d9599b66e14c376538b9a6ff98c62e90350711ce9dfe0d6e086e21dbadf55a
+
+base_1.c preprocessed SHA256: 3a8867f42ae7ba717daa4f7e7131b00533fa34c6cd562278a74ac9e0cf22297d

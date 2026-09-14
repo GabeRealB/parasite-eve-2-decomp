@@ -13,6 +13,15 @@
 
 extern s16 D_actor_403200_80141C58;
 
+/// This overlay's three task states -- spawn/setup, per-frame tick and
+/// teardown -- dispatched through by state, the same shape as the sibling
+/// enemy actors' tables.
+extern GpEnemyTaskFuncTable3 D_actor_403200_801321B8;
+
+/// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
+/// and `arg3` the mode; takes the task, not the work block.
+void func_actor_403200_801408D8(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
+
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80137CCC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80137EB4);
@@ -118,4 +127,56 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_801408D8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80140E6C);
+/// The enemy's upkeep tick, run by the dispatcher through the same
+/// `D_actor_403200_801321B8` table the other tasks in this overlay use. It drops
+/// each of the two escort slots whose HP has run out, then walks the work
+/// block's `field_E94` toward `field_E96` by 0x32 a tick -- snapping once the
+/// two are within 0x33 -- calls the follow helper with the new value, and
+/// finally lifts the host's own X up to the escort's so the party never sinks
+/// below the enemy. The tick ends by dispatching on `state` through the local
+/// copy of the handler table.
+void func_actor_403200_80140E6C(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+    Actor403200Work*      work;
+    Task*                 player;
+    GpEnemy*              enemy;
+    s32                   diff;
+    s32                   y;
+    GsCOORDINATE2*        playerCoord;
+    GsCOORDINATE2*        selfCoord;
+
+    sp     = D_actor_403200_801321B8;
+    player = Game_GetPtrSlot(3);
+    work   = (Actor403200Work*)arg0->idMap;
+    enemy  = arg0->spawnArg2;
+    if (work != NULL) {
+        if (work->field_EE8 != NULL && work->field_EE8->field_40 <= 0) {
+            work->field_EE8 = NULL;
+        }
+        if (work->field_EEC != NULL && work->field_EEC->field_40 <= 0) {
+            work->field_EEC = NULL;
+        }
+        diff = work->field_E96 - work->field_E94;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff >= 0x33) {
+            if (work->field_E94 < work->field_E96) {
+                work->field_E94 = (u16)work->field_E94 + 0x32;
+            } else {
+                work->field_E94 = (u16)work->field_E94 - 0x32;
+            }
+        } else {
+            work->field_E94 = (u16)work->field_E96;
+        }
+        func_actor_403200_801408D8(arg0, work->field_E94, work->field_E98, 0);
+        playerCoord = ((TmdObject*)player->extra)->field_8;
+        selfCoord   = ((TmdObject*)arg0->extra)->field_8;
+        y           = selfCoord->coord.t[0] + work->field_E94;
+        if (playerCoord->coord.t[0] < y) {
+            playerCoord->coord.t[0] = y;
+        }
+    }
+    sp.funcs[arg0->state](enemy, arg0);
+}
