@@ -35,6 +35,11 @@ extern s32      D_actor_215100_8014D044;
 extern s32      D_actor_215100_80153ED4;
 extern s32      D_actor_215100_80153FDC;
 extern s32      D_actor_215100_801543E4;
+/// Glyph metrics table this overlay's caption metrics are read out of, the
+/// counterpart of gameplay's `Gp_CapGlyphs`. `func_actor_215100_8014B1B0`
+/// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
+/// `code & 0x3FF`.
+extern GlyphUvwh* D_actor_215100_8015E654;
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
 extern Actor215100Caption** D_actor_215100_8015E650;
@@ -430,7 +435,72 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C298);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C360);
+/// Height of the caption line the text stream `arg0` starts with, walking it
+/// the way gameplay's `func_800E6BB8` does — this overlay's caption system is
+/// a copy of that one, and the two functions compile to the same 0xB8 bytes
+/// with only the glyph table symbol differing.
+///
+/// The running maximum starts at 0 and each glyph code (non-negative, `& 0x3FF`
+/// indexing `D_actor_215100_8015E654`) raises it to that glyph's `h + 2`. Either
+/// terminator ends the scan: `-2` leaves the maximum as it stands, `-1` forces
+/// 0xD, and any other negative code is stepped over like a glyph without
+/// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
+/// comes back as 2.
+s32 func_actor_215100_8014C360(u16* arg0)
+{
+    s32                 height;
+    s32                 i;
+    s32                 cont;
+    u16                 code;
+    s32                 shifted;
+    volatile GlyphUvwh* glyph;
+    GlyphUvwh*          table;
+    s32                 next;
+    s32                 htmp;
+    s32                 v0tmp;
+
+    height  = 0;
+    i       = height;
+    cont    = 1;
+    code    = arg0[0];
+    table   = D_actor_215100_8015E654;
+    shifted = code << 16;
+    for (;;) {
+        shifted = shifted >> 16;
+        if (shifted == -2) {
+            cont = 0;
+        } else if (shifted == -1) {
+            cont   = 0;
+            height = 0xD;
+        } else {
+            if (shifted >= 0) {
+                glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+                if (height < glyph->h + 2) {
+                    htmp   = glyph->h;
+                    height = htmp + 2;
+                    goto do_inc;
+                }
+                next = i + 1;
+            } else {
+            do_inc:
+                next = i + 1;
+            }
+            i = next;
+            TOUCH_REG(next);
+            code = arg0[(s16)next];
+        }
+        v0tmp = cont;
+        TOUCH_REG(v0tmp);
+        if (v0tmp == 0) {
+            break;
+        }
+        shifted = code << 16;
+    }
+    if (height == 0) {
+        height = 2;
+    }
+    return height;
+}
 
 s32 func_actor_215100_8014C418(s32 arg0)
 {

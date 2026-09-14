@@ -72169,3 +72169,47 @@ Inputs: `base_2.i`
 `bb2ba0bccc1727bcf2dcb573a0cfa8ecbccea39a497a8b1be31a222b5b210510`,
 `base_3.i`
 `d1d87b02aa7527acbe02288a81a1d173b6e4db2276b4472cf523ecba430720d6`.
+
+## The brief's `Similar matched bodies` line can name a byte-identical twin in another family
+
+The brief ranks already-matched bodies resembling the target in four classes
+(`shape`, `fields`, `calls`, `cflow`) and stars the ones scoring in more than one
+— and it does not restrict that search to the overlay's own family. When a
+candidate comes back 1.00 in two or more classes, read its `.c` body before
+writing any C: the twin is often the *whole* function, not a resemblance.
+
+`func_actor_215100_8014C360` was starred against gameplay's `func_800E6BB8`
+(`shape` 1.00 + `fields` 1.00 + `cflow` 1.00). The two are the same 0xB8
+instruction stream at the same offsets; only the glyph-table symbol differs
+(`D_actor_215100_8015E654` against `Gp_CapGlyphs`), which is exactly why
+`overlay_dup_index.py find` does **not** group them — equality there is decided
+on disassembly *text*, and a twin that reads different data is not a copy. It
+reported the actor copy plus two room copies
+(`func_shelter_b3_dumping_hole_80182F18`, `func_shelter_b3_garbage_incinerator_80180E0C`)
+and nothing in gameplay. Confirm by diffing the streams with the overlay prefix
+and local labels normalised, as the `find` entry above describes; if the only
+difference left is a data symbol, the port is a rename.
+
+Two consequences worth knowing before planning around it:
+
+- **The port scores a true 100%, not the 99.9% a same-family twin gets.** That
+  99.9% is `dist.py` comparing relocation *names* where the port reaches the
+  byte through a struct the sibling used and the target names a raw splat
+  symbol. Here the port renames the symbol to the one the target `.s` already
+  names, so no relocation is left to differ: first build, 0 differences, all
+  penalties zero. Keep the sibling's struct type too — `GlyphUvwh::h` at offset
+  3 is the `lbu 0x3($v1)` the target wants, and `sizeof(GlyphUvwh)` is the `sll
+  $v0,$v0,2` in front of it.
+- **A cross-family twin never blocks promotion, and is never served by it.**
+  `promote` is family-scoped (`src/<family>/lib/` plus that family's manifest),
+  so it answers `only one copy in actors, nothing to share` here even though
+  `find` lists three carriers. The two rooms cannot be promoted together either:
+  the body references its own overlay's data (`D_shelter_*_8018F4B8`), which
+  `promote` refuses by design — the tooling gap recorded in its own docstring.
+
+The same caution as the `find` entries applies in reverse: a lone-copy answer
+from `find` says nothing about a twin in another family, and a starred
+multi-class line in the brief is the cheaper signal of the two.
+
+Inputs: `base_1.i`
+`f59fd66cf37fad91fe1472c365b14dceef81dfb29cea7d63117d06d4ddc3ffaa`.
