@@ -20,31 +20,36 @@ extern u8 D_801153F2;
 typedef struct Actor105700Work {
     /* 0x000 */ GpAnimCtx ctx;
     /* 0x014 */ byte      slots[19][0x28];
-    /* 0x30C */ byte      pad_30C[0x1D4];
-    /// Pose the state-0 branch of `func_actor_105700_80133138` parks: the
-    /// animation's own offset, -0xA7 or 0x109.
-    /* 0x4E0 */ s16  field_4E0;
-    /* 0x4E2 */ byte pad_4E2[6];
-    /// Frame count the state-0 branch parks alongside `field_4E0`.
-    /* 0x4E8 */ s16 field_4E8;
-    /// Flags whose bit 0x4000 the state-0 branch raises.
-    /* 0x4EA */ u16  field_4EA;
-    /* 0x4EC */ byte pad_4EC[0x96];
-    /// Flags whose bit 0x4000 the state-0 branch clears.
-    /* 0x582 */ u16  field_582;
-    /* 0x584 */ byte pad_584[0x78];
-    /// Object handed to the body by `Gp_PackPair` when `field_698` first
-    /// reaches the animation's 0x1C mark (`func_actor_105700_801341CC`).
-    /* 0x5FC */ s32  field_5FC;
-    /* 0x600 */ byte pad_600[2];
-    /// Bit 0x8000 is raised with `field_5FC` at the 0x1C mark and dropped
-    /// again at the 0x28 mark.
-    /* 0x602 */ u16  field_602;
-    /* 0x604 */ byte pad_604[0x90];
+    /* 0x30C */ byte      pad_30C[0x170];
+    /// First body object, handed to `Gp_UnlinkObj` by the teardown of
+    /// `func_actor_105700_80133878`; its `field_14` is the pose the state-0
+    /// branch of `func_actor_105700_80133138` parks (-0xA7 or 0x109) and its
+    /// `field_1C` the frame count parked alongside it.
+    /* 0x47C */ GpObj field_47C;
+    /* 0x49C */ byte  pad_49C[0x30];
+    /// Second body object; `field_14` is the pose the state-0 branch parks
+    /// (0x15E) and `flags` the bits whose 0x4000 it raises.
+    /* 0x4CC */ GpObj field_4CC;
+    /* 0x4EC */ byte  pad_4EC[0x78];
+    /// Third body object; `flags` is the field whose bit 0x4000 the state-0
+    /// branch clears.
+    /* 0x564 */ GpObj field_564;
+    /* 0x584 */ byte  pad_584[0x60];
+    /// Fourth body object: `field_18` is the object `Gp_PackPair` hands it when
+    /// `field_698` first reaches the animation's 0x1C mark and `flags` the
+    /// bits whose 0x8000 is raised with it and dropped at the 0x28 mark
+    /// (`func_actor_105700_801341CC`).
+    /* 0x5E4 */ GpObj field_5E4;
+    /* 0x604 */ byte  pad_604[0x18];
+    /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
+    /* 0x61C */ GpObj field_61C;
+    /* 0x63C */ byte  pad_63C[0x58];
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `func_actor_105700_80136AE0`'s state 0.
-    /* 0x694 */ s16  field_694;
-    /* 0x696 */ byte pad_696[2];
+    /* 0x694 */ s16 field_694;
+    /// Animation the playing clip was started from; when it differs from
+    /// `field_694` the frame counter is reset and the slots reseeded.
+    /* 0x696 */ s16  field_696;
     /* 0x698 */ s16  field_698; ///< current frame of the playing clip
     /* 0x69A */ byte pad_69A[2];
     /* 0x69C */ s16  field_69C; ///< dwell counter, cleared on state 0 entry
@@ -65,7 +70,12 @@ typedef struct Actor105700Work {
     /// State-0 branch selector: 1 picks the short dwell and animation 1,
     /// 2 the long dwell and animation 2.
     /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ byte pad_6BA[0x18];
+    /* 0x6BA */ byte pad_6BA[0x10];
+    /// Body variant select: `func_actor_105700_80133878` drops the fifth body
+    /// object for the two values 0x38 / 0x39 and hands the halfword to
+    /// `Gp_ReleaseStateF0Add`.
+    /* 0x6CA */ s16  field_6CA;
+    /* 0x6CC */ byte pad_6CC[6];
     /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
     /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
     /* 0x6D2 */ s16 field_6D2;

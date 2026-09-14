@@ -65644,3 +65644,46 @@ Inputs: `base_5.c` (`base_5.i`
 `1307478ff3caecfdb4a591979edc61205fbc4093e965d977035d75d7faa1df44`, 99.717%),
 `base_38.c` (`base_38.i`
 `e12a5f578d65e0552cf034f43b9b51cf1eac5ce2246cb6b222175a87fd4a0f7b`, 100%).
+
+## Source order against an unknown-pointer store decides whether CSE keeps a struct pointer: the original's reloads are the evidence
+
+`func_actor_105700_80133878` carves eight bytes off `G_SCRATCH_HEAD` and then
+reads `arg1->field_1C` and `arg1->field_2C->field_8`, storing the variant
+halfword and position through `field_2C` in two of its `D_801153F4` cases. The
+target reloads `field_2C` in both of those cases — `lw $v0, 0x2c($s3)` in case
+0, `lw $v1, 0x2c($s3)` in case 2, each followed by its load-delay `nop`, while
+the entry's own load of the same word dies after feeding `lw $s4, 8($v0)`. The
+same C written with the carve first compiles the entry load into a single
+pseudo that stays live into both cases and drops four instructions (240 vs 244,
+94.22% → with `stack=0 branch=10 regs=19 delete=4` left over).
+
+**Cause.** `*(u8**)G_SCRATCH_HEAD -= 8` is a store through a pointer of unknown
+provenance, so `cse.c` invalidates every memory equivalence it cannot prove
+disjoint — including `mem[arg1+0x2C]`, which is exactly the kind of
+constant-offset `mem/s` entry the neighbouring-field entry above describes.
+Placing the carve *between* the load and its later uses therefore leaves the
+cases with nothing to substitute and they re-issue the load. Writing the two
+deeper loads **before** the carve restores the target's shape:
+
+```c
+work    = arg1->field_1C;
+coord   = arg1->field_2C->field_8;
+scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+```
+
+Scheduling then reorders the block freely — the emitted order is still the
+carve first, because those ops are independent — so this is a CSE decision, not
+a scheduling one, and it is invisible in the `.s` order. Writing the loads
+first scored 100%.
+
+**Symptom to look for.** Extra `lw` of a pointer that an earlier block already
+loaded, in blocks reached by a compare chain from the same predecessor, with no
+call or store in between that obviously aliases. The original ordering usually
+had one: check whether the routine carves scratch (`G_SCRATCH_HEAD`), publishes
+a `Task`, or otherwise writes through a pointer before the later use. A
+`delete` penalty that is exactly the count of those reloads (plus their
+load-delay `nop`s) is the fingerprint.
+
+Inputs: `base_2.c` (`base_2.i`, 94.221%, 240 insns), `base_3.c` (`base_3.i`,
+100%, 244 insns) in
+`nonmatchings/func_actor_105700_80133878-vacuum/`.

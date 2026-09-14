@@ -38,6 +38,10 @@ extern Actor105700PlaceSrc D_actor_105700_80148F14;
 /// into its handover animation.
 extern s8 D_80115419;
 
+/// Nonzero skips the controller's state handler; the approach cycle's teardown
+/// switches on it to draw or park the body instead of running the states.
+extern u8 D_801153F4;
+
 /// LCG the approach-cycle ticks roll into the `field_6AE` frame budget.
 extern u32 Gp_LcgState;
 
@@ -237,8 +241,8 @@ void func_actor_105700_80133040(Actor105700* arg0)
 /// `Actor02000_Fn012E0` of `actor_102000` (see `overlay_dup_index.py find
 /// func_actor_105700_80133138`, which also lists five more actors carrying it).
 /// State 0 arms the cycle: `field_6AA` picks the dwell and animation, and the
-/// pose `field_4E0`, the flags `field_4EA` / `field_582`, the two counters and
-/// the step gate are all set before state 1 takes over. State 1 gates the
+/// pose `field_4CC.field_14`, the flags `field_4CC.flags` / `field_564.flags`
+/// and the step gate are all set before state 1 takes over. State 1 gates the
 /// handover once through `field_6DE`, plays the cue of the animation `field_6B8`
 /// selects at its 0x14 / 0x2C frame mark, and drops back to state 0 when the
 /// `field_6AE` frame budget runs out.
@@ -256,24 +260,24 @@ void func_actor_105700_80133138(Actor105700* arg0)
     switch (state) {
         case 0:
             if (work->field_6AA == 0) {
-                work->field_694 = 0x16;
-                work->field_6A8 = 1;
-                work->field_6B8 = 1;
-                work->field_6AE = 0x42;
-                work->field_4E0 = -0xA7;
+                work->field_694          = 0x16;
+                work->field_6A8          = 1;
+                work->field_6B8          = 1;
+                work->field_6AE          = 0x42;
+                work->field_4CC.field_14 = -0xA7;
             } else {
-                work->field_694 = 0x1A;
-                work->field_6A8 = 1;
-                work->field_6B8 = 2;
-                work->field_6AE = 0x31;
-                work->field_4E0 = 0x109;
+                work->field_694          = 0x1A;
+                work->field_6A8          = 1;
+                work->field_6B8          = 2;
+                work->field_6AE          = 0x31;
+                work->field_4CC.field_14 = 0x109;
             }
-            work->field_4E8          = 0x15E;
+            work->field_4CC.field_1C = 0x15E;
             work->field_69C          = 0;
             work->field_69E          = 0;
             work->field_6DE          = 1;
-            work->field_4EA         |= 0x4000;
-            work->field_582         &= 0xBFFF;
+            work->field_4CC.flags   |= 0x4000;
+            work->field_564.flags   &= 0xBFFF;
             arg0->field_20->field_4C = 0;
             work->field_6D4          = 1;
             break;
@@ -445,7 +449,130 @@ void func_actor_105700_801336FC(Actor105700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133878);
+void               Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+struct _GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+void               func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
+/// Teardown / effect tail of the approach cycle, the same body as
+/// `Actor02000_Fn01A20` of `actor_102000`. `D_801153F4` overrides the state
+/// machine: 0 clears the body position, 1 draws the ground quad and returns,
+/// 2 parks the body behind the actor. Otherwise state 0 unlinks all five body
+/// objects (the fifth only for the 0x38 / 0x39 variants), hands the variant
+/// halfword to `Gp_ReleaseStateF0Add`, selects animation 0x1D (0x19 for
+/// variant 1), saves the enemy pose and switches to state 1; state 1 spawns the
+/// ground effect every fourth frame. The tail then reseeds or ticks the
+/// nineteen animation slots and redraws the quad.
+void func_actor_105700_80133878(GpEnemy* arg0, Actor105700* arg1)
+{
+    Actor105700Work* work;
+    Actor105700Work* animWork;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    GsCOORDINATE2*   part;
+    SVECTOR*         scratch;
+    VECTOR3          pos;
+    s16              anim;
+    s16              duration;
+    s32              i;
+    u32              random;
+
+    work    = arg1->field_1C;
+    coord   = arg1->field_2C->field_8;
+    scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+    switch (D_801153F4) {
+        case 0:
+            arg1->field_2C->field_C = 0;
+            arg0->node.field_4      = 0;
+            break;
+        case 1:
+            coord->flg                     = 0;
+            arg1->field_2C->field_8[3].flg = 0;
+            Gp_UpdateCoord(coord);
+            root   = arg1->field_2C->field_8;
+            pos.vx = root->workm.t[0];
+            pos.vy = root->workm.t[1];
+            pos.vz = root->workm.t[2];
+            Gp_UpdateActorColor((GpEnemy*)arg1->field_20, (VECTOR*)&pos, 0, 0);
+            root   = arg1->field_2C->field_8;
+            part   = &root[3];
+            pos.vx = part->workm.t[0];
+            pos.vy = root->workm.t[1];
+            pos.vz = part->workm.t[2];
+            Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+            return;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            arg0->node.field_4      = 1;
+            return;
+    }
+    switch (work->field_6A8) {
+        case 0:
+            arg0->field_54 = 0;
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(&work->field_47C);
+            Gp_UnlinkObj(&work->field_564);
+            Gp_UnlinkObj(&work->field_4CC);
+            Gp_UnlinkObj(&work->field_5E4);
+            if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
+                Gp_UnlinkObj(&work->field_61C);
+            }
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, work->field_6CA);
+            anim = 0x1D;
+            if (work->field_6B8 == 1) {
+                anim = 0x19;
+            }
+            work->field_694 = anim;
+            work->field_6A8 = 1;
+            arg0->field_4B  = (u8)work->field_6B8;
+            Gp_SaveEnemyPose(arg0);
+            D_80115419 = 1;
+            break;
+        case 1:
+            if (!(work->field_698 & 3)) {
+                scratch->vx = 0;
+                scratch->vz = 0;
+                random      = (Gp_LcgState * 5) + 0x71357911;
+                scratch->vy = -((random >> 0x10) & 0x1FF);
+                Gp_LcgState = random;
+                Gp_SpawnEff(0x600E0, &arg1->field_2C->field_8[3], 0x400, scratch);
+            }
+            break;
+    }
+    animWork = arg1->field_1C;
+    i        = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0U;
+        duration            = D_actor_105700_801372EC[animWork->field_694];
+        do {
+            func_800B4114(&animWork->ctx, i, animWork->field_694, 0, (s32)duration);
+            i += 1;
+        } while (i < 0x13);
+        coord->flg = 0;
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)(animWork->field_698 + i);
+        do {
+            Gp_AnimTickIndex(&animWork->ctx, i);
+            i += 1;
+        } while (i < 0x13);
+        coord->flg = 0;
+    }
+    arg1->field_2C->field_8[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    root   = arg1->field_2C->field_8;
+    pos.vx = root->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, (VECTOR*)&pos, 0, 0);
+    root   = arg1->field_2C->field_8;
+    part   = &root[3];
+    pos.vx = part->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133C48);
 
@@ -474,10 +601,10 @@ void func_actor_105700_801341CC(Actor105700* arg0)
     anim                       = D_actor_105700_801372EC[work->field_694];
     self                       = arg0->field_2C->field_8;
     if (work->field_698 == anim + 0x1C) {
-        work->field_5FC  = Gp_PackPair(&D_actor_105700_80148F14.pair, 4);
-        work->field_602 |= 0x8000;
+        work->field_5E4.field_18 = Gp_PackPair(&D_actor_105700_80148F14.pair, 4);
+        work->field_5E4.flags   |= 0x8000;
     } else if (work->field_698 == anim + 0x28) {
-        work->field_602 &= 0x7FFF;
+        work->field_5E4.flags &= 0x7FFF;
     }
     anim = D_actor_105700_801372EC[work->field_694];
     if ((work->field_698 >= anim + 0x1C) && (anim + 0x1E >= work->field_698)) {
