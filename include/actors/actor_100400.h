@@ -90,7 +90,9 @@ typedef struct Actor100400Work {
     /* 0x65B */ u8                 field_65B;
     /* 0x65C */ byte               pad_65C[1];
     /* 0x65D */ u8                 field_65D;
-    /* 0x65E */ byte               pad_65E[6];
+    /* 0x65E */ byte               pad_65E[2];
+    /* 0x660 */ u8                 field_660;
+    /* 0x661 */ byte               pad_661[3];
     /* 0x664 */ u8                 field_664;
     /* 0x665 */ s8                 field_665;
 } Actor100400Work;
