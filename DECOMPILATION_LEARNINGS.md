@@ -77846,3 +77846,50 @@ Inputs: `base.i` (m2c seed, 99.605%, `regs=3`)
 `f0fe3d35b1dd0de703719b004963635b5a65e7e2cd721fbc78a08ccf5395a470`,
 `base_1.i` (named fields, 100.000%)
 `1a1b14c74693344f13ef69044a9652aaac708e8e26a2b736f72514e7f3b75c31`.
+## An unread parameter still occupies its argument register
+
+Argument registers are positional, so a body that never reads one of its
+parameters still has to declare it or every later one shifts down. m2c emits
+only the parameters the body uses, which is the wrong arity whenever the
+original ignored one.
+
+`func_actor_210600_8014B770` reads a payload pointer and four work-block
+fields; everything matched except that all four uses of the pointer were
+`$a1` where the target has `$a2` - `lhu $v0, 0($a1)` against
+`lhu $v0, 0($a2)`, `bne $a1, $v0` against `bne $a2, $v0`, `sh $a1, 0x882($a0)`
+against `sh $a2, 0x882($a0)`. Score 98.938%, `regs=3`, and `.diagnosis.json`
+reported `condition_registers_match: false` with one register off by exactly
+one slot. That signature - a single register displaced by one argument slot,
+nothing else - is arity, not allocation.
+
+The actor message handlers give the arity directly. They are installed in a
+`GpMsgEntry` table (`{ s32 id; GpMsgHandler handler; }`, terminator
+`0x7FFFFFFF`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
+`0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
+calls `entry->handler(arg0, arg1, arg2, arg3)`, so the handler's full
+signature is:
+
+    typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+
+Declare every parameter up to the last one the body reads, even when the body
+ignores the ones before it:
+
+    /* 98.938%, msg lands in $a1 */
+    s32 func(void* arg0, void* arg2) { ... }
+
+    /* 100.000%, msg lands in $a2 */
+    s32 func(Task* task, s32 msgId, Actor210600Msg* msg) { ... }
+
+The unused name costs nothing at -O2; leaving it out costs the payload
+register. `src/actors/actor_444000/actor_444000_6.c` shows the same 3-of-4
+handler shape written out in full.
+
+This is the mirror of the two entries above on `Room_Util18` and
+`Gp_UpdateActorColor`: those recover arity from a *caller* whose `$aN` set-up
+has to match, and this one from a *body* whose own parameter arrives in the
+wrong register.
+
+Inputs: `base.c` (two parameters, 98.938%)
+`1f599f50e8519b24ebcb4e7f8b1fbddeb1ffdb0fa6fa1c2e9e77fe336d76274a`,
+`base_1.c` (three parameters, 100.000%)
+`688e2e7590aa3ec2308edaee5390602ce65c59315ae1c939a697e71bb91d0d20`.
