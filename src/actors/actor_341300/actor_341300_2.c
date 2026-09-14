@@ -21,7 +21,14 @@ void func_actor_341300_8016241C(void)
     D_actor_341300_80165AA4 = Task_SpawnFromTable(&D_actor_341300_80165208, 0, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162450);
+void func_actor_341300_80162450(void)
+{
+    if (D_actor_341300_80165AA4 != NULL) {
+        D_actor_341300_80165AA4->state         = -1;
+        D_actor_341300_80165AA4->killCountdown = 0;
+        D_actor_341300_80165AA4                = NULL;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162478);
 
