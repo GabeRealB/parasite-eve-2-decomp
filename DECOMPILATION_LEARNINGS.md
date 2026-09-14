@@ -1317,6 +1317,43 @@ Rule: when the target shows one shared tail reached from two source branches,
 write the literals *in* each branch - do not merge them through a local - and
 let the cross-jumper build the tail. This is the same rule as the store entry
 above, extended to identical multi-instruction call blocks.
+## Duplicate a shared switch-case tail in the source; cross-jump keeps the *later* copy
+
+Two `case`s that end in the same statements do not need a `goto` to a shared
+label. Write the statements out in both cases and let the pre-regalloc
+cross-jump merge them:
+
+```c
+case 0:
+    if (Gp_CapBusy() != 0) break;
+    if (Gp_GetCapEventKey() == 2) {
+        Task_CallExit(D_8018E0C4);
+        arg0->state++;          /* same tail as case 1 */
+    } else {
+        Task_Kill(arg0);        /* same tail as case 2 */
+    }
+    break;
+case 1:
+    ...
+    arg0->state++;              /* the copy that survives */
+    break;
+case 2:
+    ...
+    Task_Kill(arg0);            /* the copy that survives */
+    break;
+```
+
+`func_actor_215100_8014A7C4` is the worked example. The surviving block is the
+one later in insn order: the increment ends up between case 1 and case 2, the
+`Task_Kill` after case 2, and the earlier case branches forward to it (`j` from
+case 0's success path, `bne` straight to the `Task_Kill` from its failure path).
+So the target's block order is the source's case order with each merged tail
+left where the *later* case put it — a `goto` reaches the same target but parks
+the block wherever the first user sits.
+
+`jump_optimize (insns, 1, 1, 0)` in `toplev.c` is the enabling call: cross-jump
+is on at `-O2` and runs *before* register allocation, so the merge happens on
+pseudos and does not by itself constrain the allocation.
 
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 

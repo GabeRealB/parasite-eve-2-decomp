@@ -20,6 +20,8 @@ void            func_80184954(void);
 extern TaskDesc D_80185384;
 extern TaskDesc D_801856B8;
 extern s8       D_8007216C;
+extern u8       D_80071085;
+extern Task*    D_8018E0C4;
 extern TaskDesc D_actor_215100_8014CF6C;
 extern TaskDesc D_actor_215100_8014E13C;
 extern TaskDesc D_actor_215100_801544FC;
@@ -65,7 +67,51 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A5C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A7C4);
+/// Watches the caption system while the actor waits to be talked to: state 0
+/// polls `Gp_CapBusy` / `Gp_GetCapEventKey`, and on key 2 hands the scene task
+/// `D_8018E0C4` its exit and steps to state 1, while any other key kills the
+/// task outright. State 1 starts the caption playback and steps to state 2,
+/// which commits the ending: it flags the save-slot session, plays the sound,
+/// clears the actor's own 0x97B, drops the story flag the sibling
+/// `func_actor_215100_8014A908` sets, and releases the display reference.
+void func_actor_215100_8014A7C4(Task* arg0)
+{
+    GameActor* actor;
+
+    actor = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    switch (arg0->state) {
+        case 0:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            if (Gp_GetCapEventKey() == 2) {
+                Task_CallExit(D_8018E0C4);
+                arg0->state++;
+            } else {
+                Task_Kill(arg0);
+            }
+            break;
+        case 1:
+            Gp_MsgPlayerWeapon(0);
+            D_8007216C = 8;
+            func_801811C0(0);
+            arg0->state++;
+            break;
+        case 2:
+            Game_Session->field_126 = 1;
+            Game_Session->field_69 |= 0x80;
+            SndEvt_EnqueueType2(0, 0x1E);
+            actor->field_97B        = 0;
+            D_actor_215100_8014D038 = 0;
+            Gp_MsgPlayerWeapon(1);
+            Gp_StateC08.field_6 &= 0xFD;
+            if (D_80071085 != 0) {
+                Display_ReleaseRef();
+            }
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 void func_actor_215100_8014A908(void)
 {
