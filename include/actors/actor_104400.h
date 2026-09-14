@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 /// Status flags at `Actor104400Work` + 0xEC, read through two widths.
@@ -39,7 +40,12 @@ typedef struct Actor104400Work {
     /* 0x088 */ s16              field_88; // x of the vector turned towards
     /* 0x08A */ s16              field_8A;
     /* 0x08C */ s16              field_8C; // z of the vector turned towards
-    /* 0x08E */ byte             pad_8E[0x5E];
+    /* 0x08E */ byte             pad_8E[0x12];
+    /* 0x0A0 */ GpAnimCtx        anim;
+    /// First of the nine `GpAnimSlot`s (0xB4..0x21C); the second overlaps
+    /// `flags_EC`, so only the first is spelled out.
+    /* 0x0B4 */ GpAnimSlot       slot_B4;
+    /* 0x0DC */ byte             pad_DC[0x10];
     /* 0x0EC */ Actor104400Flags flags_EC;
     /* 0x0F0 */ byte             pad_F0[0x1BC];
     /* 0x2AC */ GpObj            obj_2AC;
@@ -50,9 +56,9 @@ typedef struct Actor104400Work {
     /* 0x410 */ s16              field_410; // random 0..0x7FF drawn from `Gp_LcgState`
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
-    /* 0x416 */ byte             pad_416[0x2];
+    /* 0x416 */ s16              field_416; // animation id last applied to the slots
     /* 0x418 */ s16              field_418; // animation id
-    /* 0x41A */ byte             pad_41A[0x2];
+    /* 0x41A */ u16              field_41A; // frames since the animation was applied
     /* 0x41C */ s16              field_41C; // animation speed / step scale
     /* 0x41E */ s16              field_41E;
     /* 0x420 */ u16              field_420; // state index
