@@ -7,10 +7,13 @@
 #include "main/mem.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/D4.h"
 
 extern Task* D_actor_361100_80171BE0;
 
 extern TaskDesc D_actor_361100_80165C58;
+
+extern GpMsgEntry D_actor_361100_8016BAF0[];
 
 void func_actor_361100_80162B0C(void)
 {
@@ -21,7 +24,40 @@ INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162CBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162D28);
+void func_actor_361100_80162D28(Task* arg0)
+{
+    Actor361100Work*  work;
+    Actor361100Coord* coord;
+    GpEnemy*          enemy;
+
+    enemy = arg0->spawnArg2;
+    coord = (Actor361100Coord*)((TmdObject*)arg0->extra)->field_8;
+
+    work = (Actor361100Work*)Mem_Calloc(sizeof(Actor361100Work), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4A2 = -1;
+    work->field_480 = 0;
+    work->field_484 = 0;
+    work->field_488 = 0;
+
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    enemy->field_54 = 0;
+
+    func_actor_361100_80162E04(arg0);
+    TOUCH_REG(enemy);
+
+    arg0->field_24     = D_actor_361100_8016BAF0;
+    arg0->exitCallback = func_actor_361100_80162DE4;
+    arg0->state       += 1;
+}
 
 void func_actor_361100_80162DE4(Task* arg0)
 {

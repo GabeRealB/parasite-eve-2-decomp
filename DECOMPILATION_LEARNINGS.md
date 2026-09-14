@@ -75120,3 +75120,41 @@ an `s8`/`s16` argument that reaches the call through a merge.
 `func_actor_361100_80162A54` (`base.c` `s8` and `base_1.c` `s32` both 92.23%,
 `insert=2 delete=1`; `base_2.c` 100%; preprocessed
 `7b9d5275e6360359f5afbcb9abca5826494c838f7293606bddc3d6379495e2a7`).
+
+## A same-body sibling can be one non-emitting statement away: `TOUCH_REG` flips global-alloc's priority order
+
+**Problem.** `func_actor_361100_80162D28` scored 98.085% with `regs=18` and
+nothing else: 47/47 instructions, 4/4 blocks, same predicates, same order, same
+`jal`s. The only difference was that the seed put `arg0` in `$s0` and
+`Task::spawnArg2` in `$s1`, where the target has them the other way round.
+
+**Symptom.** A callee-saved pair swapped for no structural reason. Nothing in
+the object dump can explain it, because the statement that causes it emits no
+instruction at all.
+
+**Fix.** Read the *source* of the shape-`1.00` sibling BRIEF.md names, not its
+asm. The same body is matched in `actor_503500` as
+`func_actor_503500_8014642C`, and its C carries a statement ours was missing:
+
+```c
+    func_actor_361100_80162E04(arg0);
+    TOUCH_REG(enemy);
+```
+
+`global.c`'s `allocno_compare` ranks allocnos by
+`floor_log2(n_refs) * n_refs / live_length`, and the `.lreg` header prints both
+inputs directly (`Register 83 used 4 times across 18 insns`). Without the touch,
+`spawnArg2` is `2 * 4 / 18 * 10000 = 4444` against `arg0`'s `3 * 10 / 64 * 10000
+= 4687`, so `arg0` is allocated first and takes the lower callee-saved register.
+The `"+r"` touch adds a reference *and* stretches the range across the call,
+which inverts the two priorities and swaps the pair — 100.000%, all penalties
+zero, first build.
+
+**Generalisation.** `TOUCH_REG` is the one thing an asm diff cannot show, so a
+same-shape sibling is worth reading as C before iterating on the seed. Compute
+the two priorities from the `.lreg` header before reaching for a pin: if the
+loser is within ~10% of the winner, a touch, an extra use or a shorter local
+range is the lever, and the pin is not needed.
+
+`base_1.c` (100%; preprocessed
+`bd6699732e1c6af3ecf8054469340f5da0df121956e8ddbf016682d7f3130573`).

@@ -97,7 +97,15 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* place
 /// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
 /// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
 /// exits the task through its own `Task::exitCallback`.
-s32  func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
+s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
+/// Spawn callback: allocates the work block into `Task::idMap`, seeds the
+/// three -1 bytes, clears the first vector accumulator and arms the spawn
+/// argument `GpEnemy` with the coordinate's root matrix, then enters the
+/// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
+/// installed at `Task::field_24`. The task exits through
+/// `func_actor_361100_80162DE4` if the allocation fails.
+void func_actor_361100_80162D28(Task* arg0);
+void func_actor_361100_80162DE4(Task* arg0);
 void func_actor_361100_80162E04(Task* arg0);
 void func_actor_361100_801634B4(Task* arg0);
 void func_actor_361100_80163494(Task* arg0);
