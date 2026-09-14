@@ -13,10 +13,15 @@
 /// 0x30000 and `field_1C` to 0x100, zeroes the position triple and sets
 /// `flags` to 1. The exit callback `func_actor_113100_80132EF0` hands that
 /// node back to `Gp_UnlinkObj`.
+/// `field_53E` latches the `GameFlag_GetNibble(0xED)` result that
+/// `func_actor_113100_80132F40` uses, so the setup it triggers runs only on
+/// the edge where the flag turns positive and the latch is still clear.
 typedef struct Actor113100Work {
     /* 0x000 */ byte  pad_0[0x4B8];
     /* 0x4B8 */ GpObj obj;
-    /* 0x4D8 */ byte  pad_4D8[0x68];
+    /* 0x4D8 */ byte  pad_4D8[0x66];
+    /* 0x53E */ s8    field_53E;
+    /* 0x53F */ byte  pad_53F[1];
 } Actor113100Work;
 STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
 

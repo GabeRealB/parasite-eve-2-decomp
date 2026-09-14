@@ -83,6 +83,54 @@ if (enemy->field_40 <= 0) {
 Example: `Actor01900_Fn09BE8` — phi local 99.765% `regs=4`, else-if stores
 100%. Related to the `||` / `return K` delay-slot case, but the leftover
 is a store phi rather than a return.
+## m2c types a local from its only store, so a byte store puts an `sll` before the compare
+
+`GameFlag_GetNibble` returns `s32`, but its result is used twice: compared
+`> 0` and stored into the `s8` field at `+0x53E`. m2c infers the narrowest type
+that fits both uses and declares `s8 temp_v0`, which makes the compare a
+*sign-extended* SI compare. This port has no register-form `extendqisi2`, so
+expand emits the classic pair
+
+```
+(insn 20 (set (reg:SI 84) (ashift:SI (subreg:SI (reg/v:QI 81) 0) (const_int 24))))
+(insn 21 (set (reg:SI 83) (ashiftrt:SI (reg:SI 84) (const_int 24)))
+    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:QI 81)) (nil)))
+(jump_insn 23 (set (pc) (if_then_else (le:SI (reg:SI 83) (const_int 0)) ...)))
+```
+
+Combine then drops the `ashiftrt`, because the sign of `x << 24` is already the
+sign of the low byte that `blez` needs. What survives into the object is a bare
+`sll v0,s0,0x18` ahead of `blez v0` — one extra instruction, `branch=2 regs=1
+insert=1`, 96.43%.
+
+Note the *other* QI value in the same function, the `lb`-loaded `field_53E`,
+does not keep a shift: its sign extension folds into the `lb` itself
+(`extendqisi2_insn`), so only a value already in a register shows the artifact.
+That asymmetry is what makes the m2c typing look plausible — the store needs a
+byte, so the byte type seems right, and the shift reads as load-related.
+
+Declaring the local `s32` and removing the `s8` return type from the seed's
+own `extern` (take `main/gameflag.h` instead — if the extern still returns
+`s8`, the *assignment* sign-extends and nothing changes) gives `blez s0`
+directly and 100.000% with every penalty zero:
+
+```c
+s32 flag = GameFlag_GetNibble(0xED);
+if (flag > 0 && work->field_53E == 0) { ... }
+work->field_53E = flag;   /* sb: the store truncates, no cast needed */
+```
+
+`func_actor_113100_80132F40` (`base_1.c` 100%, one build after the 96.43%
+baseline; `base.c` is the raw m2c seed). General rule: when an m2c seed picks an
+`s8`/`s16`/`u16` local because of a truncating store, check what the *other* use
+of that value wants — the declared width, not the store, decides the compare.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `38c5b32303e08e99ce0c8264ee0871caaab40861f74b05be3e2c7cf9b92a2884`,
+base_1.i `b3998257ca8d945da974c1c3846649ac2488078deafb4ad264eda281efda0ffd`.
+Evidence: scratch `nonmatchings/func_actor_113100_80132F40-vacuum/`, the
+`.rtl` insns 20/21/23 above; no pins, no permuter, no tracer.
+`overlay_dup_index.py find` reports this body as its own only copy.
 
 ## Share one `return K` between the paths (`||`) so reorg threads `li v0,K` into both branch delays
 
