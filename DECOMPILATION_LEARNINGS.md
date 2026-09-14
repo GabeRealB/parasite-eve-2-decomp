@@ -189,6 +189,75 @@ a zero penalty mix. Inputs: `base_2.i`
 `base_3.i`
 `0292c0679115d3a19081352b35ec6837c99a913c9db53828b5b355f063bc45f0` (nested
 switch).
+## `do { } while (0)` reweights a *local-alloc quantity*, and there an exact tie still loses
+
+The loop-depth lever above is usually reached for through `global.c`'s allocno
+priority, but `local-alloc.c`'s `block_alloc` ranks its quantities with the same
+formula on the quantity's own reference count —
+
+```
+QTY_CMP_PRI (q) = floor_log2 (qty_n_refs[q]) * qty_n_refs[q] * qty_size[q]
+                  / (qty_death[q] - qty_birth[q]) * 10000        (local-alloc.c:1727)
+```
+
+— and `qty_n_refs` starts as `REG_N_REFS`, so a reference inside
+`do { } while (0)` counts twice there too. Positions are the block's non-NOTE
+insns after sched1: birth is `2 * insn_number`, death is
+`2 * insn_number + output_p`, so a quantity's span is fixed by the instruction
+sequence and only `n_refs` is reachable from the source.
+
+**Symptom.** `func_actor_323300_801634B0` (24 insns, one block) builds a
+three-link coordinate chain and sat at 96.04% with every register mirrored.
+Retail allocates the `{base, node}` quantity into `$v0`; the build allocated it
+*after* a band of five short-lived quantities, so it fell through to `$v1`. In
+`.lreg`:
+
+```
+Register 81 used 3 times across 3 insns   (base)    -- quantity {81,82}
+Register 82 used 3 times across 6 insns   (node)    -- refs 6, span 14 -> 34285
+Register 85 used 2 times across 4 insns   (extra1)  -- refs 2, span 2  -> 40000
+                       ... four more at exactly 40000 (base2, extra2, extra3, base3)
+```
+
+`$v0` is occupied over `[12,24)` once that band is placed, so `{81,82}` at
+`[4,18)` overlaps it. The only condition for the target is
+`pri({81,82}) > 40000`; nothing else in the allocation moves.
+
+**Fix.** Wrap exactly the statements whose references belong to the quantity that
+must win — here the four that define `base`/`node` and store through `node`:
+
+```c
+do {
+    base      = ((TmdObject*)arg0->extra)->field_8;
+    sub       = base + 3;
+    node      = base + 4;
+    node->sub = sub;
+} while (0);
+```
+
+`.lreg` then reads `81: 3 -> 6`, `82: 3 -> 5` (so `qty_n_refs` 6 -> 11,
+priority 34285 -> **94285**) and `extra1: 2 -> 4` (40000 -> 160000), while the
+four band members sit outside the wrapper and stay at 2 refs / 40000. `extra1`
+takes `$v0`, `{81,82}` takes `$v0` next, and the score is 0. Wrapping more would
+reweight the band as well.
+
+**Do not expect an exact tie to work.** `qty_compare_1` (`local-alloc.c:1749`)
+breaks a priority tie by *quantity number*, and quantity numbers run in birth
+order — so a quantity that merely reaches the band's priority still loses to
+whichever band member was born first (here `{85}`, born at the first `lw`). The
+wrapper has to lift it strictly above. Because the numerator goes through
+`floor_log2`, the added refs are worth less than they look: 6 -> 11 refs bought
+×2.75, whereas 6 -> 7 at the same span would have landed on exactly 40000 and
+lost. Five source spellings (m2c's, two variable-reuse forms, one typed form)
+could not move the number, because none of them changes `n_refs` or `span`.
+
+Inputs: parent `base_4.i`
+`f00cf96e24f7adbb74ad3ccea9f43f3c02f24aea98133a13c2cf40c5f84ba897` (96.875%),
+`base_5.i` `a6eb3075b44046ef084dc239d58c18c4878b227285d7f216deb07497cb0444ae`
+(0 differences), target
+`6718a70956c8fd08b41698305e55ec9e34b128de250f14f0b5696fceeda34d6f`. The
+permuter router found the wrapper; the mechanism was confirmed by the `.lreg`
+reference counts and `flow.c:1969`, `REG_N_REFS (regno) += loop_depth`.
 
 ## Share one `return K` between the paths (`||`) so reorg threads `li v0,K` into both branch delays
 

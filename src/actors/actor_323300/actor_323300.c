@@ -55,7 +55,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163188);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801634B0);
+void func_actor_323300_801634B0(Task* arg0)
+{
+    GsCOORDINATE2* base;
+    GsCOORDINATE2* node;
+    GsCOORDINATE2* sub;
+
+    do {
+        base      = ((TmdObject*)arg0->extra)->field_8;
+        sub       = base + 3;
+        node      = base + 4;
+        node->sub = sub;
+    } while (0);
+    sub                                       = ((TmdObject*)arg0->extra)->field_8 + 5;
+    sub->sub                                  = node;
+    ((TmdObject*)arg0->extra)->field_8[6].sub = sub;
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163510);
 
