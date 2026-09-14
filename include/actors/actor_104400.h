@@ -33,17 +33,17 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// its player. The three `GpObj` nodes are the display objects
 /// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`.
 typedef struct Actor104400Work {
-    /* 0x000 */ MATRIX           matrix_0; // model root coord, copied out on the kill path
-    /* 0x020 */ byte             pad_20[0x5A];
-    /* 0x07A */ s16              field_7A; // heading
-    /* 0x07C */ byte             pad_7C[0x4];
-    /* 0x080 */ u16              field_80; // spawn position handed to Actor04400_Fn06520
-    /* 0x082 */ byte             pad_82[0x6];
-    /* 0x088 */ s16              field_88; // x of the vector turned towards
-    /* 0x08A */ s16              field_8A;
-    /* 0x08C */ s16              field_8C; // z of the vector turned towards
-    /* 0x08E */ byte             pad_8E[0x12];
-    /* 0x0A0 */ GpAnimCtx        anim;
+    /* 0x000 */ MATRIX    matrix_0; // model root coord, copied out on the kill path
+    /* 0x020 */ byte      pad_20[0x5A];
+    /* 0x07A */ s16       field_7A; // heading
+    /* 0x07C */ byte      pad_7C[0x4];
+    /* 0x080 */ u16       field_80; // spawn position handed to Actor04400_Fn06520
+    /* 0x082 */ byte      pad_82[0x6];
+    /* 0x088 */ s16       field_88; // x of the vector turned towards
+    /* 0x08A */ s16       field_8A;
+    /* 0x08C */ s16       field_8C; // z of the vector turned towards
+    /* 0x08E */ byte      pad_8E[0x12];
+    /* 0x0A0 */ GpAnimCtx anim;
     /// First of the nine `GpAnimSlot`s (0xB4..0x21C); the second overlaps
     /// `flags_EC`, so only the first is spelled out.
     /* 0x0B4 */ GpAnimSlot       slot_B4;
