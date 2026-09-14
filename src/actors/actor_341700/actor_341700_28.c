@@ -16,7 +16,16 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_28", func_actor_341700_8016D130);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_28", func_actor_341700_8016D2B8);
+void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
+{
+    TmdObject* model;
+
+    if (((Actor341700SubWork*)arg1->idMap)->field_4 != 0) {
+        model              = (TmdObject*)arg1->extra;
+        arg0->node.field_4 = 1;
+        model->field_C     = 0x84;
+    }
+}
 
 void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
 {
