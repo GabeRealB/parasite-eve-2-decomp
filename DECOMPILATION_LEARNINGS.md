@@ -77138,3 +77138,55 @@ files from it, then re-split. splat will not rewrite an existing
 Example: `Actor04400_Fn03390` (scratch `base_1.c`, 100%; sibling
 `func_actor_342400_801664C4`). Compare `field_448` against the constant 1 so
 CSE keeps `field_44F` in `$a0`; `== work->field_44F` reloads the byte.
+
+## The chain's exit block sitting *between* two arms means the arms each carry the tail
+
+`func_actor_420700_80132478` (29 insns) dispatches on a step field three times
+and stores 3 into it on the first two paths. The target reads as an if/else-if
+chain whose second arm falls into the store, with the third test and its body
+*after* that store:
+
+```
+bne  v1,1,L2 ; jal A ; j STORE
+L2: bne v1,2,L3
+    jal B                        <- falls through
+STORE: lw v1,%lo(global)($s0) ; li v0,3 ; j EPILOGUE
+       sh v0,0x4B4(v1)
+L3: bne v1,3,EPILOGUE ; jal C
+EPILOGUE:
+```
+
+No one chain can emit that: a chain's exit label is emitted after *every* arm,
+so `field_4B4 = 3` would land past the third body (that is what the m2c-era
+`if/else if/else` seed does - it also leaves a `j` to the epilogue after the
+third body). It is not a three-case `switch` either, for the reason the
+`beq`/`slti low+1` entry gives: that roots the tree at 2, so the first test is
+`li v0,2` / `beq`, and the whole dispatch tree is emitted before the bodies.
+
+It is two *separate* `if`s, each written out with its own copy of the tail, and
+the pre-regalloc cross-jump merges them keeping the later copy:
+
+```c
+if (w->field_4B4 == 1) { func_actor_420700_801325C8(); w->field_4B4 = 3; return; }
+if (w->field_4B4 == 2) { ActorsShared80132538();       w->field_4B4 = 3; return; }
+if (w->field_4B4 == 3) { func_actor_420700_801324EC(); }
+```
+
+Two details follow from *where* the survivor lands, and both are visible in the
+target. Arm 1's `j` is redirected *forward* onto arm 2's copy - `jump.c` builds
+`jump_chain[target]` head-first in a forward scan, so the later jump is tried as
+the source first, not the earlier one - which is why arm 1 jumps to the store
+and arm 2 falls into it. And because the surviving tail is no longer adjacent to
+the epilogue, its `return` stays a real `j <return_label>` (the `j EPILOGUE`
+above, `sh` in its delay slot); writing the tail once behind a `goto` reaches
+the same block but parks it after the last user.
+
+The three `field_4B4` reads in the conditions are one `lh` before the arms: the
+three blocks are a single-pred chain, so the loaded value crosses the extended
+basic block. The global's *address* ends up in `$s0` (saved at 0x10(sp)) because
+it is needed on both sides of the two calls - do not read that as a local
+pointer variable, the store still reloads the pointer itself.
+
+Inputs: `base_2.i` (two independent `if`s, each with the tail spelled out,
+100.000% with all-zero penalties on the second build)
+`b5b01f73c0b461ef7addeb1befcfdf091c9da1059fa264a4bd35984b01642a72`.
