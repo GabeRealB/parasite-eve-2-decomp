@@ -77983,3 +77983,75 @@ Inputs: `base_2.i` (3-word local, 99.130%)
 `f875b51dee062167d0eca2801acbe6bdc9c54c47fa29597b73d0cf0f1d646d82`,
 `base_3.i` (20-byte destination, 100.000%)
 `4c842265f21b64869b305290726e0c5d35afb4b399ad0a4298f26487575c9c98`.
+
+## A zeroed vector needs one address-taken object, and its stores belong after the preceding call
+
+`func_actor_207000_801500C8` zeroes an 8-byte offset vector on the stack,
+passes its address to a spawn call, and passes `coord + 0x50` alongside. The
+target has three `sh $zero` at `0x14/0x12/0x10(sp)` and the `+0x50` addiu in
+the *first* `jal`'s delay slot:
+
+```
+lw    a0,8(v0)
+addiu a1,sp,0x18
+jal   func_actor_207000_8014E614
+addiu s1,a0,0x50
+...
+move  a3,zero
+sh    zero,0x14(sp)
+sh    zero,0x12(sp)
+jal   Task_SpawnFromTable
+sh    zero,0x10(sp)
+```
+
+Two separate failures, both in the m2c seed (81.361%, `delete=4 insert=2`,
+frame 0x28 against the target's 0x30):
+
+**1. One component escapes, so the other two stores are dead.** m2c splits a
+vector init into one local per component (`s16 sp10, sp12, sp14;`) and passes
+`&sp10`. Only `sp10` has its address taken, so `sp12`/`sp14` never escape and
+their `sh $zero` stores are eliminated — two stores and 8 bytes of frame short.
+Declare one addressable object and take its address as a whole:
+
+```c
+SVECTOR sp10;      /* include/psyq/libgte.h: {short vx, vy, vz, pad}, 8 bytes */
+...
+sp10.vz = 0;
+sp10.vy = 0;
+sp10.vx = 0;
+```
+
+**2. The stores are emitted on the wrong side of the first call.** With the
+vector fixed, `base_1.c` scored 93.333% with `reorder=4` and nothing else: the
+three `sh` came out *before* the first `jal` and `move a3,zero` took the second
+`jal`'s delay slot instead of `sh 0x10`. The stores had been written ahead of
+the distance call in the source. Giving that call its own statement first:
+
+```c
+coord = arg0->field_2C->field_8;
+dst   = coord + 1;
+arg2  = func_actor_207000_8014E614(coord, &sp18);
+sp10.vz = 0;
+sp10.vy = 0;
+sp10.vx = 0;
+spawned = Task_SpawnFromTable(&D_actor_207000_801575F0, 1, arg2, 0);
+```
+
+moved them to the block tail and gave the second `jal` the `sh 0x10` delay slot
+— 100.000%, byte-identical object. Two independent requirements, so fix them one
+at a time; `base_1.c` (order still wrong) is what shows the second one is not a
+register-allocation problem.
+
+`dst = coord + 1` as its own local is the same trick as
+"Reuse the extra pointer so `lw v0,8(v0)` feeds the `+ N` delay slot", read the
+other way round: keeping `+0x50` out of the use site lets the loaded coordinate
+die in `$a0` at the call (the `+0x50` copy takes `$s1`). With the `+0x50` inline
+at the `Gp_CopyCoordOffset` call the load lives across both calls in `$s1` and
+is copied to `$a0` (`lw s1,8(v0)` / `move a0,s1`), 14 register penalties.
+
+Inputs: `base.i` (m2c seed, 81.361%, `delete=4 insert=2`)
+`fd041b6e28677c83b867561cd00c036080ddcf3a440af7ac72df76413d2e6365`,
+`base_1.i` (vector fixed, stores still early, 93.333%, `reorder=4`)
+`b42c6026e7f296a8b4fe494bc35cf1cd74200bcd27223f42b0e219d007ba9555`,
+`base_3.i` (call hoisted, 100.000%)
+`de291a8798ddc4d65ae07cc95c0907e270e736349c048023cc828183c88f35ea`.
