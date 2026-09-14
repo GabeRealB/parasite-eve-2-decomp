@@ -2,6 +2,7 @@
 #include "actors/actor_104400.h"
 #include "actors/actors_shared_801639a8.h"
 #include "actors/actors_shared_8016945c.h"
+#include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -11,9 +12,13 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
+void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
 void Actor04400_Fn006A8(Task* arg0);
+void Actor04400_Fn022A8(Task* arg0, s16 arg1);
 /* Reads the caller's Task* from $a0; the call passes no argument. */
 void Actor04400_Fn02B8C();
+void Actor04400_Fn06520(Task* arg0, s16 arg1, u16* arg2);
+void Actor04400_Fn07360(Task* arg0);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -266,7 +271,64 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01B70);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01CA0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01E08);
+/// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
+/// taken off `G_SCRATCH_HEAD`; the same helper as `func_actor_342400_80164F3C`.
+static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
+{
+    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+
+    block->vx                 = coord->workm.t[0];
+    block->vy                 = coord->workm.t[1];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vz                 = coord->workm.t[2];
+    Gp_UpdateActorColor(enemy, block, 0, 0);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Same body as `func_actor_342400_80164F3C`. Per-frame callback with a
+/// one-entry handler table. `D_801153F4` 2 hides the model; 0 runs the state
+/// handler and the follow-up steps, then moves the task to state 4 when
+/// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
+/// it, run `Actor04400_Fn00220` for three part pairs and unhide it. The work
+/// block is reloaded through its own local for the state reset, as the
+/// original does.
+void Actor04400_Fn01E08(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GpEnemy*         enemy = arg0->spawnArg2;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFunc         sp[1] = { Actor04400_Fn07360 };
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            sp[(s16)work->field_420](arg0);
+            Actor04400_Fn022A8(arg0, 1);
+            if (work->field_41E != 0 && work->field_448 == 4 && enemy->field_40 <= 0) {
+                Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+                arg0->state  = work->field_448;
+                w->field_420 = 0;
+                w->field_422 = 0;
+            }
+            Actor04400_Fn02B8C(arg0);
+            if (work->field_432 == 1) {
+                Actor04400_Fn06520(arg0, 6, &work->field_80);
+            }
+            coord->flg = 0;
+        case 1:
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
+            Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
+            Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            obj->field_C &= ~0x80;
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn02008);
 

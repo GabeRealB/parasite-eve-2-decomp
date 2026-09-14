@@ -36,7 +36,9 @@ typedef struct Actor104400Work {
     /* 0x000 */ MATRIX           matrix_0; // model root coord, copied out on the kill path
     /* 0x020 */ byte             pad_20[0x5A];
     /* 0x07A */ s16              field_7A; // heading
-    /* 0x07C */ byte             pad_7C[0xC];
+    /* 0x07C */ byte             pad_7C[0x4];
+    /* 0x080 */ u16              field_80; // spawn position handed to Actor04400_Fn06520
+    /* 0x082 */ byte             pad_82[0x6];
     /* 0x088 */ s16              field_88; // x of the vector turned towards
     /* 0x08A */ s16              field_8A;
     /* 0x08C */ s16              field_8C; // z of the vector turned towards
@@ -67,13 +69,14 @@ typedef struct Actor104400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ byte             pad_428[0x8];
     /* 0x430 */ s16              field_430;
-    /* 0x432 */ byte             pad_432[0x4];
+    /* 0x432 */ s16              field_432; // 1 runs Actor04400_Fn06520 on the spawn position
+    /* 0x434 */ byte             pad_434[0x2];
     /* 0x436 */ s16              field_436; // step picked from `field_43A`'s distance band
     /* 0x438 */ s16              field_438; // 1 on the death path
     /* 0x43A */ s16              field_43A; // distance to the nearer player actor
     /* 0x43C */ byte             pad_43C[0x4];
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
-    /* 0x442 */ byte             pad_442[0x2];
+    /* 0x442 */ u16              field_442;
     /* 0x444 */ u16              field_444; // heading to the nearer player actor, relative to field_7A
     /* 0x446 */ s16              field_446; // randomised hold compared against field_412
     /* 0x448 */ s16              field_448;
@@ -85,5 +88,6 @@ typedef struct Actor104400Work {
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
 extern u8 Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
+extern u8 D_801153F4;          // absolute; nonzero skips the controller's state handler
 
 #endif
