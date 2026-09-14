@@ -393,7 +393,30 @@ void Actor01900_Fn0A914(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A9C0);
+void Actor01900_Fn0A9C0(Actor01900* arg0)
+{
+    Actor01900Work* work;
+    TmdObject*      obj;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_898        = 2;
+        work->field_8A2        = 0x12;
+        work->field_89E        = 0xD;
+        work->field_89A        = 0;
+        work->field_B48.flags &= 0x7FFF;
+        work->field_A08.flags &= 0xBFFF;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    Actor01900_Fn01C94(arg0);
+    if (work->field_68 & 0x100) {
+        work->field_0 = 7;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AA78);
 
