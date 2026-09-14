@@ -78543,3 +78543,55 @@ Inputs: `base_1.i` (both references spelled out, 72.417%, `regs=6 insert=2`)
 `e61b139d31f96e4437204acd5b853ba55ef9e0c089e3af1de849a1173262352a`,
 `base_2.i` (cached local, 100.000%)
 `d897007ded7e2b9185baae952874b1bfafb21593c71fbd2fc2d9ea0e5c29269f`.
+
+## A hand-written walking offset inverts the interleaved prologue; the indexed `slots[i]` form is what puts it right
+
+A loop that ticks an animation slot array can be written either with a walking
+byte offset (`off = 0x7C; … off += 0x28;`) or as the indexed access the original
+used, `&work->slots[i]`, which loop.c strength-reduces to the same walking
+offset. Both compile to the *same 22 instructions and the same registers*, and
+still score 87.727% with `reorder=1 insert=1 delete=1` — the diff is one swapped
+pair of `(sw $sN, li $sN)` in the interleaved prologue and nothing else.
+
+sched2 fills the block from its end backwards, so the emitted order is the
+reverse of its choice order, and each choice is the head of a ready list that is
+built by walking the block backwards — that is, the **reverse preheader order**
+of the insns with no dependents. The prologue saves are created in a fixed
+order (`subu $sp`, `sw $ra`, `sw $s2`, `sw $s1`, `sw $s0`) and only `sw $ra` ever
+reaches that ready list (the others are anti-dependence predecessors of their
+`li`), so the flip comes entirely from where the loop-invariant `lui` and the
+offset's `li` sit in the preheader:
+
+| source | preheader block order | ready list (T-1) | prologue pairs |
+|---|---|---|---|
+| `off = 0x7C` written out | `li i`, `li off`, `lui` | `lui li-off li-i sw-ra` | s1, **s0**, s2 |
+| `&slots[i]` indexed | `li i`, `lui`, `li off` | `li-off lui li-i sw-ra` | s1, s2, s0 |
+
+The `lui` (the `high` of the work-block global) is created inside the loop and
+hoisted by loop.c to the *end* of the preheader, so anything the source writes
+before the loop stays ahead of it. The indexed form's offset init is created by
+strength reduction *after* that hoist, which is what moves it behind.
+
+```c
+    i = 1;
+    do {
+        Gp_AnimTickSlot(&ActorsShared80131f9cWork->anim,
+                        &ActorsShared80131f9cWork->slots[i]);
+        i++;
+    } while (i < 0x13);
+```
+
+Read the explicit-offset version as a rewrite of GCC's own strength reduction,
+not as a reconstruction: when the target walks a pointer with a byte offset but
+the callee's first argument is a struct member, write the index form and let
+loop.c produce the walk. The family idiom agrees — `Actor143900Work` and
+`Actor151000Work` both put `GpAnimCtx` at 0x40 and the slots at 0x54, so
+`slots[1]` is the 0x7C the target's `addiu $s0,$zero,0x7C` starts at.
+
+The traces that settle it are the `;; ready list initially:` line of the
+`.sched2` dump: `61 12 9 70` (offset written out) versus `69 63 9 90` (indexed).
+
+Inputs: `base_1.i` (offset local, 87.727%)
+`3d0ff3e0ef9a4a2f4cc3590f2d52b8319a351a16a3247749559cf88aec8ad335`,
+`base_2.i` (indexed, 100.000%)
+`05e5ff4f12aa6248604d04675d9f4c9d57855be99d09145dba7da283af72c17e`.

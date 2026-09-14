@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor_202900.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
@@ -29,7 +30,17 @@ void func_actor_202900_8014A158(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A194);
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A208);
+/// Ticks animation slots 1..0x12 of the actor's animation context.
+void func_actor_202900_8014A208(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        Gp_AnimTickSlot(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i]);
+        i++;
+    } while (i < 0x13);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A260);
 
