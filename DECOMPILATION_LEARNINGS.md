@@ -67430,3 +67430,44 @@ assuming the seed's 100% carries over to a struct-style rewrite of it.
 Example: `func_actor_141000_80132E24` (scratch `base_1.c`; the `tmd`-local shape
 is the counter-example that failed the overlay checksum). Input `base_1.i`
 `6eebf6fc90486fed6cad608d91068483eab7f8a516ed9387d802fa52140a4597`.
+
+## A `Mem_Calloc` result parked in `Task::idMap` is a work block, not a `TaskIdMap`
+
+`task.h` types that slot `TaskIdMap*` (8 bytes), so m2c renders a work block
+stored there as byte arithmetic - and a plain `*temp_v0 = 0xFFF;` does not even
+compile, because `TaskIdMap` is a struct and the assignment is an incompatible
+type. Substituting `M2C_FIELD(temp_v0, s32 *, 0) = 0xFFF;` is the minimal edit
+that yields a baseline, and here it scored 100% - but it leaves the block
+untyped, and an untyped body is a seed, not a landing.
+
+Two things in the target give the real type, and neither is a guess:
+
+- **The allocation size is the struct size.** `work = Mem_Calloc(0x10, 0);`
+  makes the block a 0x10-byte struct, so its `STATIC_ASSERT_SIZEOF` is anchored
+  to the caller rather than to a hand count.
+- **The store width is the field type.** `sw` at 0 → `s32`; `sh` at
+  0x8/0xA/0xC/0xE → `u16`, with m2c's own `lhu` + `addiu` + `sh` increment
+  settling the signedness (see the `u16` entry above).
+
+Which task owns the block is the part that takes work, because `task->state` is
+shared by every task in the overlay: **two state tables keyed on `task->state`
+are two tasks**, so the nearest matched sibling is not evidence of ownership.
+Follow the dispatch chain: `D_actor_141000_80131E30` is
+`{80132C7C, 80132D3C, Task_Kill}` - the controller - and `80132D3C` dispatches
+`idMap + 0xC` through a *second* table, `D_actor_141000_80131E3C`, while the
+0x4CC `Actor141000Work` belongs to a third task whose table
+`D_actor_141000_80131E4C` = `{8013392C, …}` is entered from `801338C0` by
+`task->state` as well. The controller's 0x10 block is therefore a type of its
+own.
+
+The two already-matched handlers `func_actor_141000_80132E24` and
+`func_actor_141000_80132EB0` reach that same block as `(Actor141000Work*)`,
+because it shares `Actor141000Work`'s `scale`/`state`/`ticks` halfword triple at
+0xA/0xC/0xE. Record that in the new type's doc comment and leave them alone: a
+header addition is additive and cannot move a matched body, whereas editing the
+sibling's `.c` is one of the ways a matched function gets lost.
+
+`func_actor_141000_80132C7C 2 attempts` - the seed scored 100% in the first
+build and the typed port `base_1.c` reproduces it instruction for instruction.
+Input `base_1.i`
+`c2d57ad641bfa70893c2bc309bda211056623b43a70fa9d23b9f95fe321623ac`.

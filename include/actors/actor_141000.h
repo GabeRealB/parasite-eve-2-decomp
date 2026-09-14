@@ -54,6 +54,34 @@ typedef struct Actor141000Work {
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
 
+/// Work block of the overlay's controller task -- the one whose three `Task`
+/// states are `D_actor_141000_80131E30`, which spawns the actor and then drives
+/// its model through the four animation states at 0x80131E3C.
+///
+/// `func_actor_141000_80132C7C` allocates it with `Mem_Calloc(0x10, 0)` and
+/// parks it in that task's `Task::idMap` slot, so the size below is the
+/// allocation and not a guess; the slot is not a `TaskIdMap` here.
+///
+/// `field_0` is armed at 0xFFF by the spawn state, `frames` is the counter the
+/// state at 0x80132EF4 masks with 7 to pace the actor's spawns, `scale` is the
+/// Z scale the state at 0x80132E24 ramps by 0x100 a frame up to 0x1000, `state`
+/// is the index `func_actor_141000_80132D3C` dispatches through, and `ticks` is
+/// the per-state frame counter the state at 0x80132EB0 holds for 0x1F frames.
+///
+/// That head is the same `scale` / `state` / `ticks` halfword triple
+/// `Actor141000Work` declares at 0xA/0xC/0xE: the two states that touch only
+/// those three fields -- `func_actor_141000_80132E24` and
+/// `func_actor_141000_80132EB0` -- reach this block as `(Actor141000Work*)`.
+typedef struct Actor141000CtrlWork {
+    /* 0x0 */ s32  field_0; // armed at 0xFFF by the spawn state
+    /* 0x4 */ byte pad_4[0x4];
+    /* 0x8 */ u16  frames;
+    /* 0xA */ u16  scale;
+    /* 0xC */ u16  state;
+    /* 0xE */ u16  ticks;
+} Actor141000CtrlWork;
+STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
+
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`, whose
 /// halfword at 0x2 chooses the variant this handler latches.
