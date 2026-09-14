@@ -74343,3 +74343,54 @@ mentions shared one name and had to be *separated*. Both show up as a pure
 in both the fix is at the declaration, not at a pin: **when two branches of one
 `if` assign the same local, ask whether the target gives them the same home.** If
 it does not, they are two variables.
+## m2c's `ptr + K` scales by `sizeof`, so a byte offset in the `.s` lands in the wrong element
+
+**Problem.** `func_actor_323300_80163510` came back from m2c at 99.71% with the
+only difference two `addiu` immediates: the target had `addiu a0,s1,0x50` and
+`addiu a1,s1,0x88`, m2c had produced `addiu a0,s1,0x1900` and `addiu a1,s1,0x2A80`.
+
+m2c typed the local from `TmdObject::field_8`, which is a `GsCOORDINATE2*`, and
+then rendered the byte offsets the disassembly showed as *element* arithmetic:
+
+```c
+temp_s1 = temp_s0->field_8;
+Gp_UpdateCoord(temp_s1 + 0x50);                    /* 0x50 * sizeof(GsCOORDINATE2) */
+func_800D7A9C(temp_s0, temp_s1 + 0x88, 0, 3);      /* 0x88 * 0x50 = 0x2A80 */
+```
+
+`GsCOORDINATE2` is 0x50 bytes (`flg`, two `MATRIX`, `param`, `super`, `sub`), so
+both immediates scaled by 0x50. The instruction count, block structure and every
+other operand were already right, which is what makes this shape easy to
+misread as a register-allocation problem — the penalties line said `regs: 2`,
+not `stack` or `branch`.
+
+**Fix.** Read the two offsets against each other before trusting either. 0x50 is
+a multiple of 0x50 and 0x88 is not, so they cannot both be element indices: the
+target is indexing element 1 and then reaching a field inside it. Both fall out
+of the typed form exactly:
+
+```c
+coords[1].flg = 0;
+Gp_UpdateCoord(&coords[1]);
+func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+```
+
+`coords[1]` is 0x50, and `workm.t` is 0x50 + 0x38 = 0x88 — because `MATRIX` is
+`short m[3][3]` followed by `long t[3]`, and 18 bytes of `short` pad to 20, so
+`t` sits at 0x14 and not 0x10. Computing `workm.t` as `0x24 + 0x10` gives 0x84
+and a two-instruction diff that no amount of register work explains. The
+sibling `func_actor_323300_8016359C` walks the same array at 0xA0/0xF0/0x140/0x190
+(indices 2/3/4/5), which is what confirms the array reading over a struct of
+byte offsets.
+
+When a ported body has to keep the target's *base-relative* first store — here
+`sw v1,0x670(v0)` against `sw zero,4(a0)` for the rest — write the first store
+through the container (`work->light.ident.m00_m01`) and take the element pointer
+on the next statement. Assigning the pointer first makes GCC address every store
+off it and the displacement disappears from the encoding.
+
+The same overlay can carry more than one work block: `arg0->idMap` is the
+0x504 `Actor323300Work` in most of `actor_323300`, but the 0x6B0 block
+`func_actor_323300_80162BE4` allocates in this one. Check the `Mem_Calloc`
+argument at the allocation site before assuming a function's `idMap` is the
+overlay's named work struct.

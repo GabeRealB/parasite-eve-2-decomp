@@ -2,6 +2,8 @@
 
 #include "actors/actor_323300.h"
 
+#include "gameplay/gameplay.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161E78);
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161FE8);
@@ -73,7 +75,44 @@ void func_actor_323300_801634B0(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163510);
+/// Splats an identity light/colour pair into the `Mem_Calloc(0x6B0)` work block
+/// `func_actor_323300_80162BE4` parked in `Task::idMap`, republishes them onto
+/// `TmdObject::field_1C` / `field_20`, then re-derives model part 1's world
+/// matrix -- clearing its dirty flag, rebuilding it from its parent and
+/// rebinding the actor's shading to the part's translation.
+void func_actor_323300_80163510(Task* arg0)
+{
+    Actor323300MtxWork* work;
+    Actor323300Matrix*  light;
+    Actor323300Matrix*  color;
+    GsCOORDINATE2*      coords;
+    TmdObject*          extra;
+
+    extra  = arg0->extra;
+    work   = (Actor323300MtxWork*)arg0->idMap;
+    coords = extra->field_8;
+
+    work->light.ident.m00_m01 = 0x1000;
+    light                     = &work->light;
+    light->ident.m02_m10      = 0;
+    light->ident.m11_m12      = 0x1000;
+    light->ident.m20_m21      = 0;
+    light->ident.m22          = 0x1000;
+
+    work->color.ident.m00_m01 = 0x1000;
+    color                     = &work->color;
+    color->ident.m02_m10      = 0;
+    color->ident.m11_m12      = 0x1000;
+    color->ident.m20_m21      = 0;
+    color->ident.m22          = 0x1000;
+
+    extra->field_1C = &light->mat;
+    extra->field_20 = &color->mat;
+
+    coords[1].flg = 0;
+    Gp_UpdateCoord(&coords[1]);
+    func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8016359C);
 

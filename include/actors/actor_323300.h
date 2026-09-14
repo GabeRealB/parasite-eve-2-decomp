@@ -36,6 +36,37 @@ typedef struct Actor323300Work {
 } Actor323300Work;
 STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
 
+/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
+/// aligned stores instead of nine halfword ones, each word holding two adjacent
+/// `m[][]` entries. The same shape `Actor206100Matrix` and `Actor403100Matrix`
+/// have.
+typedef union Actor323300Matrix {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor323300Matrix;
+STATIC_ASSERT_SIZEOF(Actor323300Matrix, 0x20);
+
+/// The larger of the two work blocks this overlay parks in `Task::idMap`: the
+/// `Mem_Calloc(0x6B0)` that `func_actor_323300_80162BE4` allocates, as opposed
+/// to the 0x504 `Actor323300Work` `func_actor_323300_80161E78` allocates. The
+/// two are different allocations of different sizes, but both carry a
+/// light/colour `MATRIX` pair republished onto `TmdObject::field_1C` /
+/// `field_20` by the display path -- here at 0x670/0x690, so the trailing
+/// `color` ends flush with the allocation. Only that pair is spelled out;
+/// prefix fields are unreferenced by the bodies that write them.
+typedef struct Actor323300MtxWork {
+    /* 0x000 */ byte              pad_0[0x670];
+    /* 0x670 */ Actor323300Matrix light;
+    /* 0x690 */ Actor323300Matrix color;
+} Actor323300MtxWork;
+STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
+
 void func_actor_323300_801626D0(Task* arg0);
 
 #endif
