@@ -4,6 +4,7 @@
 
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/mem.h"
 
 #include "gameplay/1BC.h"
 
@@ -50,7 +51,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_801633A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80163410);
+extern u8 D_actor_361100_80171BB8[];
+
+void func_actor_361100_80163410(Task* arg0)
+{
+    Actor361100Work* work;
+
+    work = (Actor361100Work*)Mem_Calloc(sizeof(Actor361100Work), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4A2 = -1;
+    func_actor_361100_801634B4(arg0);
+    arg0->field_24     = D_actor_361100_80171BB8;
+    arg0->exitCallback = func_actor_361100_80163494;
+    arg0->state       += 1;
+}
 
 void func_actor_361100_80163494(Task* arg0)
 {

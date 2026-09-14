@@ -38,5 +38,6 @@ STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
 void func_actor_361100_80162E04(Task* arg0);
 void func_actor_361100_801634B4(Task* arg0);
+void func_actor_361100_80163494(Task* arg0);
 
 #endif
