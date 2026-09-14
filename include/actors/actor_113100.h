@@ -49,4 +49,7 @@ typedef struct Actor113100AnimPreset {
 } Actor113100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor113100AnimPreset, 0x14);
 
+/// The four main-body handlers, dispatched by `Actor113100Work::field_532`.
+extern TaskFuncTable4 D_actor_113100_80131E48;
+
 #endif
