@@ -29,6 +29,23 @@ typedef struct Actor402200Obj2C {
     /* 0x08 */ Actor402200Coord* field_8;
 } Actor402200Obj2C;
 
+/// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`. The scan
+/// `func_actor_402200_80132D78` reports the first entry whose `field_0` is 1 and
+/// whose box holds the player's world position `Wip_SysConfig.field_4`: the
+/// translation's x between `field_8` and `field_C`, and its z between `field_E`
+/// and `field_A`.
+typedef struct Actor402200Region {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+    /* 0x8 */ s16 field_8;
+    /* 0xA */ s16 field_A;
+    /* 0xC */ s16 field_C;
+    /* 0xE */ s16 field_E;
+} Actor402200Region;
+STATIC_ASSERT_SIZEOF(Actor402200Region, 0x10);
+
 /// Per-instance work block the overlay's setup `func_actor_402200_80137444`
 /// allocates with `Mem_Calloc(0x71C)` and parks in the 0x1C slot below (the
 /// task's `Task::idMap`, which is not a `TaskIdMap` here).
@@ -77,7 +94,11 @@ typedef struct Actor402200Work {
     /// block, and `func_actor_402200_80131F54` clears `field_6C6` as it raises
     /// it.
     /* 0x49A */ u16  field_49A;
-    /* 0x49C */ byte pad_49C[0x220];
+    /* 0x49C */ byte pad_49C[0x218];
+    /// Box table the scan `func_actor_402200_80132D78` walks, `field_6FA`
+    /// entries of 0x10 bytes each.
+    /* 0x6B4 */ Actor402200Region* field_6B4;
+    /* 0x6B8 */ byte               pad_6B8[4];
     /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
     /// overlay's cue word `D_actor_402200_80138468` with the `GpEnemy` work id's
     /// high nibble in bits 8-11, the same construction the cue body
@@ -145,7 +166,14 @@ typedef struct Actor402200Work {
     /* 0x6EC */ s16  field_6EC;
     /* 0x6EE */ byte pad_6EE[6];
     /* 0x6F4 */ s16  field_6F4;
-    /* 0x6F6 */ byte pad_6F6[0x1C];
+    /* 0x6F6 */ byte pad_6F6[4];
+    /// Entry count of the box table at `field_6B4`, read as a signed halfword;
+    /// a non-positive count disarms the scan.
+    /* 0x6FA */ s16  field_6FA;
+    /* 0x6FC */ byte pad_6FC[0xC];
+    /// Index of the box the scan last reported a hit on.
+    /* 0x708 */ s16  field_708;
+    /* 0x70A */ byte pad_70A[8];
     /* 0x712 */ s16  field_712;
     /* 0x714 */ byte pad_714[2];
     /// Damage amount the hit handlers OR into `field_494`; read as a signed

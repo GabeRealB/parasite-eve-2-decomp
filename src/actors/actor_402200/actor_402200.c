@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -27,7 +28,35 @@ INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_801329A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_80132D78);
+/// Reports whether the player is standing inside one of the actor's boxes:
+/// walks the `field_6FA`-entry table at `field_6B4` and, on the first entry
+/// whose `field_0` is 1 and whose box holds the player's world position
+/// (`Wip_SysConfig.field_4`, x between `field_8` and `field_C`, z between
+/// `field_E` and `field_A`), parks that entry's index in `field_708` and
+/// answers 1. A non-positive entry count, or no entry holding the position,
+/// answers 0.
+s32 func_actor_402200_80132D78(Actor402200* arg0)
+{
+    Actor402200Work* work;
+    s16              count;
+    s32              i;
+
+    work  = arg0->field_1C;
+    count = work->field_6FA;
+    for (i = 0; i < count; i++) {
+        if (work->field_6B4[i].field_0 == 1) {
+            if ((work->field_6B4[i].field_8 < Wip_SysConfig.field_4->t[0]) &&
+                (Wip_SysConfig.field_4->t[0] < work->field_6B4[i].field_C)) {
+                if ((Wip_SysConfig.field_4->t[2] < work->field_6B4[i].field_A) &&
+                    (work->field_6B4[i].field_E < Wip_SysConfig.field_4->t[2])) {
+                    work->field_708 = i;
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_80132E34);
 
