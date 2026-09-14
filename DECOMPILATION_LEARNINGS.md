@@ -70886,3 +70886,76 @@ whether the surviving value's only definition precedes the call and whether the
 original re-read it afterwards. A callee that can reallocate the block the
 pointer came from makes that re-read the natural source form, and it is what
 the register choice falls out of.
+
+## A duplicated load across a join moves the label the guard branch targets
+
+`func_actor_341900_80162708` reached 99.435% with `branch=1 reorder=1` and
+nothing else: topology, predicates and calls all matched, and the only
+difference was the last four instructions of the shared tail.
+
+```
+target   sw $v0,0x230($s0) / addu $a0,$s1,$zero / L2828: lw $s0,0x1C($s1) / jal
+base_1   sw $v0,0x230($s0) / L2828: lw $s0,0x1C($s1) / addu $a0,$s1,$zero / jal
+```
+
+The `bne` that guards the whole case-1 body targets L2828, and the switch's
+default `j` targets L282C, four bytes later. Both versions put the reload on
+the branch's target and the argument setup after it; the target has them the
+other way round, with the argument setup *inside* the case-1 block and the
+branch landing one instruction later, on the load.
+
+Writing the same assignment a second time -- once as the last statement of the
+case, and again after the `switch` -- is what moves it:
+
+```c
+case 1:
+    if (work->field_254 == arg0->state) {
+        ...
+        work->field_230 = work->field_66 & 0x3FF;
+    }
+    work = (Actor341900TaskWork*)arg0->idMap;   /* first definition */
+    break;
+}
+
+work = (Actor341900TaskWork*)arg0->idMap;       /* duplicate; CSE drops one */
+func_actor_341900_80161E58(arg0, 8);
+```
+
+The duplicate is not dead code in the RTL: `.jump2` shows the *first* load
+deleted (`note 142 ... NOTE_INSN_DELETED`), its block left with no insns and
+its label (`code_label 139`) gone. The surviving load is the one after the
+switch, because that is the one live on the path the dispatch's `j` takes into
+the tail; with the emptied block out of the way the guard branch ends up
+targeting that load, and the argument setup -- which `dbr` has already
+duplicated into the dispatch `beq`'s delay slot -- is emitted ahead of it.
+Final order is the target's, `.text` byte-identical. 99.435% -> 100%.
+
+Read the same swap as a *label placement* symptom, not a scheduling one: with
+`branch` and `reorder` both 1 and a guard branch whose target is exactly one
+instruction away from where it belongs, the question to ask is which side of
+that label the neighbouring load is defined on. A redundant second definition
+of the same expression is a legitimate lever -- the sibling entry above uses
+one to shorten a live range, this one to move a block boundary -- so reach for
+it before a scheduling barrier or a delay-slot trick.
+
+## `vacuum_permute.py` reports a miss when its rebuild of the seed cannot compile
+
+The router printed `PERMUTER_MISS=search finished without a discovery` and
+exited 0 in well under the budget, having never run a search. Its report named
+the reason per candidate:
+
+```
+base_1.c: setup failed: .../base_1.c:9:10: fatal error: m2c_macros.h: No such file or directory
+```
+
+`m2c_macros.h` lives in `tools/m2c`, which `build.sh` puts on its include path
+(`INCLUDE_FLAGS=... -I $PROJECT_ROOT/tools/m2c`); the router's normalized
+rebuild does not. A seed carried over from m2c keeps the include even after
+every `M2C_FIELD` macro has been replaced by struct access, so a seed that
+`./build.sh` scores happily can be unbuildable for the router.
+
+Read `PERMUTER.txt` (or `PERMUTER.json`), not just the exit line: `PERMUTER_MISS`
+covers both "searched and found nothing" and "never searched", and only the
+report distinguishes them. Drop the include when no `M2C_` macro remains, or
+keep a portable copy as a separate highest-scoring seed so the router has
+something it can build.

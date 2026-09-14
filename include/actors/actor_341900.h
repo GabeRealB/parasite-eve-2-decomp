@@ -101,13 +101,32 @@ extern Actor341900SpawnPos D_actor_341900_80163A98[6];
 /// by type. `field_248` is the task that spawned this actor, copied there from
 /// `Task::spawnArg2`; `func_actor_341900_801625B4` walks it to the spawner's
 /// model to inherit its spawn position and its colour flag.
+///
+/// `field_66` is the animation frame, masked to 10 bits, and
+/// `func_actor_341900_80162708` acts on two of its values: at 0x12 and 0x18 it
+/// reparents the actor to a freshly spawned script and clears its message
+/// state, recording each in `field_230` so a frame fires once rather than
+/// every tick it is current. That whole check runs behind `field_254`, which
+/// is matched against `Task::state` and so gates it to the one state the
+/// actor's dispatcher handles it in. `field_24C` and `field_250` are the
+/// actor's second and third child tasks, refreshed every tick alongside the
+/// model.
 typedef struct Actor341900TaskWork {
-    /* 0x000 */ byte  pad_0[0x248];
+    /* 0x000 */ byte  pad_0[0x66];
+    /* 0x066 */ u16   field_66;
+    /* 0x068 */ byte  pad_68[0x1C8];
+    /* 0x230 */ s32   field_230;
+    /* 0x234 */ byte  pad_234[0x14];
     /* 0x248 */ Task* field_248;
-    /* 0x24C */ byte  pad_24C[0xC];
+    /* 0x24C */ Task* field_24C;
+    /* 0x250 */ Task* field_250;
+    /* 0x254 */ u16   field_254;
+    /* 0x256 */ byte  pad_256[0x2];
 } Actor341900TaskWork;
 STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
 
 void func_actor_341900_80162330(Task* arg0);
+
+void func_actor_341900_80161E58(Task* arg0, s32 arg1);
 
 #endif

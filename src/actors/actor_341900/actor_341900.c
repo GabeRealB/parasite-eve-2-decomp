@@ -12,6 +12,10 @@
 
 extern GpMsgEntry D_actor_341900_80163A38[];
 
+extern void func_80143490(s32 arg0);
+extern s32  D_80144A74;
+extern s32  D_80144A7C;
+
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161E58);
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161FD0);
@@ -90,7 +94,56 @@ void func_actor_341900_801625B4(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80162708);
+/// Per-state body of the actor task. State 0 publishes the part's draw
+/// matrix, state 1 watches the work block's frame counter for the two frames
+/// that respawn the actor's script, and every state but 0 then refreshes the
+/// three child tasks and pushes the model's third coordinate, the actor's own
+/// world position, through the draw matrix.
+void func_actor_341900_80162708(Task* arg0)
+{
+    Actor341900TaskWork* work;
+    TmdObject*           mdl;
+    VECTOR               pos;
+    s32                  frame;
+
+    work = (Actor341900TaskWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            func_actor_341900_80162330(arg0);
+            ((TmdObject*)arg0->extra)->field_8->sub = &Gfx_ViewCoord;
+            arg0->state++;
+            return;
+        case 1:
+            if (work->field_254 == arg0->state) {
+                frame = work->field_66 & 0x3FF;
+                if ((frame == 0x12) && (work->field_230 != frame)) {
+                    Task_Reparent(arg0,
+                                  Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
+                    func_80143490(3);
+                }
+                frame = work->field_66 & 0x3FF;
+                if ((frame == 0x18) && (work->field_230 != frame)) {
+                    Task_Reparent(arg0,
+                                  Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
+                    func_80143490(3);
+                }
+                work->field_230 = work->field_66 & 0x3FF;
+            }
+            work = (Actor341900TaskWork*)arg0->idMap;
+            break;
+    }
+
+    work = (Actor341900TaskWork*)arg0->idMap;
+    func_actor_341900_80161E58(arg0, 8);
+    func_actor_341900_80161E58(work->field_24C, 4);
+    func_actor_341900_80161E58(work->field_250, 4);
+
+    mdl    = (TmdObject*)arg0->extra;
+    pos.vx = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    func_800D7A9C(mdl, &pos, 0, 3);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_341900/actor_341900", D_actor_341900_80161E20);
 
