@@ -75476,3 +75476,357 @@ Both already-matched siblings of this body, `ActorsShared801324c8` and
 the first thing to try on a `reorder=1` whose single differing line is a
 `move`/`addu` seeding an argument register, and it is worth checking a sibling's
 C before touching pins or barriers.
+
+## The `%hi` temp and a loaded index tie in local-alloc, and which takes `$v0` decides the branch's delay slot
+
+`func_actor_160900_801326EC` walks `T[work->field_64]` behind a guard on a
+pointer loaded just before it. The target's guard is `beqz a0,<epilogue>` with
+`li v0,1` **copied** into its delay slot (86 instructions); the 98.4% seed's was
+`beqz a0,<return block>` with the head's `lui v1` **moved** into it (85) — and
+the head's two temps were swapped (`lui v1`/`lhu v0` versus `lui v0`/`lhu v1`).
+One fact produces all of it.
+
+Both the loaded index and the `%hi` temp are single-use, so `QTY_CMP_PRI` is
+`floor_log2(1)*1*4/1 = 0` for each: local-alloc's priority sort is a **tie**,
+and the tie-break is quantity birth order — the identity-order `find_free_reg`
+scan hands `$v0` to whichever quantity local-alloc reached first. That order is
+the chain order local-alloc reads, i.e. sched1's output, which here preserves
+expand's emit order: `&T[i]` emits the index load first (`insn 27`), a base
+materialized into a local emits `%hi` first. sched2 orders the block
+`lui, lhu, addiu, sll, addu` either way, so the head's **first** instruction is
+the `lui`, holding `$v0` in one version and `$v1` in the other.
+
+reorg then fills the guard's delay slot from one of its two threads, and the
+accept test is `! insn_sets_resource_p (trial, &opposite_needed, 1)` against the
+live set at the *other* end — here the return path, where `$v0` is live (the
+return value) and `$v1` is not. A head starting with `lui v1` is accepted and
+moved; `lui v0` is rejected, so the fill falls to the return block, copies its
+`li v0,1` into the slot and redirects the branch through that block's `j` to the
+epilogue — the target, one instruction longer.
+
+```c
+    table  = D_actor_160900_8013F1CC;   /* %hi born first: takes $v0 */
+    entry = &table[work->field_64];
+```
+versus `entry = &D_actor_160900_8013F1CC[work->field_64];`, which emits the
+index load first and gives it `$v0`. The named pointer survives as the `reg/v`
+that becomes `$s1` (live across the two calls, so callee-saved), and the second
+table access reuses it with no `lui`/`addiu` at all.
+
+This is the same lever as `## lui %hi(table) in the delay slot before sll idx,2`
+above, pulled in the other direction: there the target wanted the index in the
+delay slot, so the fix was to drop the pointer local; here it wanted the copied
+constant, so the fix was to add one. Which register the head's first instruction
+sets is what reorg's accept test reads, and the `%hi`/index birth order is what
+sets it. Dumps: `base_9.i.sched` (chain order), `lregwalk.py base_9.i.lreg 89 90`
+(birth order), `base_9.i.dbr` (the guard as a filled sequence).
+
+## An instruction duplicated in a delay slot *and* after a call is one RTL insn
+
+`func_actor_160900_80134710` shows its loop increment twice:
+
+```
+    beqz  $a0, .L60
+     addiu $v0, $s1, 1      /* # 64 addsi3_internal */
+    jal   Task_Kill
+    nop
+    sw    $zero, 0xC($s0)
+    addiu $v0, $s1, 1       /* # 64 addsi3_internal */
+.L60:
+    addu  $s1, $v0, $zero
+```
+
+m2c reads the pair literally and writes the increment twice, the second copy
+inside the `if` (`var_v0 = var_s1 + 1;` / `if (...) { ...; var_v0 = var_s1 + 1; }`).
+That seed scored 77.78% with `regs=10 branch=1 reorder=1 insert=2 delete=4` on a
+matching topology, and the registers are swapped: `var_v0` is then live across
+the `Task_Kill` call, so it takes a callee-saved register (`$s1`) and the loop
+variable is demoted to `$v1`.
+
+The two `addiu`s carry the same `# 64 addsi3_internal` in this project's `-dp`
+assembly because they *are* one insn, emitted twice. `.loop` shows the rotation
+making a temp and a copy of it (`insn 64: tmp99 = i + 1`, `insn 66: i = tmp99`);
+`.greg` gives `tmp99` `$v0`, since its live range never crosses the call - that
+is the point of the temp; `.dbr` shows `reorg` adding the copy as an insn
+sequence in the `beqz` delay slot (`(insn/s 64 ...)`) with the original left at
+the loop bottom. The increment there is the last insn before the branch-target
+label, so the taken path needs its value, and the fall-through path reaches the
+same label only after a call that clobbers `$v0` - which is why the original
+cannot be moved into the slot and the computation appears twice.
+
+So the duplicate is not evidence that the source incremented twice; write the
+natural loop and let `.loop` and `.dbr` produce the pair:
+
+```c
+for (i = 0; i < 10; i++) {
+    task = work->field_C[i];
+    if (task != NULL) {
+        Task_Kill(task);
+        work->field_C[i] = NULL;
+    }
+}
+```
+
+That is the 100% form. The tell is the shared insn uid: an identical pair in
+the target may be one source statement, and the compiled `.s` will say so
+("A `move` duplicated in a delay slot *and* before the label" above is the
+`reorg` side of the same mechanism). The same seed also had m2c's guessed
+`TaskIdMap*` (8-byte) stride on the index - `sra $v0,$v0,0xb` against the
+target's `0xe` - which is the scaling error described earlier.
+
+## `sb`/`lbu` where the target has `sh`/`lhu` is a width m2c took from the truncated use
+
+A seed that matches topology, calls and predicates but scores ~70% with only
+`insert`/`delete` penalties is worth reading through `.diagnosis.json` first: its
+`opcode_delta` names the opcodes that differ, and opcodes 40/41 (`sb`/`sh`)
+against 36/37 (`lbu`/`lhu`) mean the field *width* is wrong, not the shape.
+
+`func_actor_160900_801343E4` is an 8-byte fade block whose three RGB halfwords are
+only ever *read* as bytes - the two `Fade_DrawOverlay` arguments - so m2c declared
+all three `u8` (`s16` stores in the zeroing path, `u8` everywhere else) and the
+seed emitted 4 `sb` and 7 `lbu` against the target's 9 `sh` and 6 `lhu`. The width
+is in the store block: the zeroing stores are halfword in the seed and the target
+alike, and a field written at that width is read at that width everywhere else.
+
+The casts then follow from the width, and each has a distinct load:
+
+| written | emits |
+|---|---|
+| `work->r += (u16)arg0->spawnArg1;` | `lhu` both sides, `addu`, `sh` |
+| `(s16)work->r >= 0x100`, `work->r` a `u16` | `lh` + `slti` - `sign_extend` of a `zero_extend` collapses to the narrower signed load |
+| `(u8)work->r` as a `u8` argument | `lbu`, the truncation folded into the load |
+| `(u16)arg0->spawnArg1`, `spawnArg1` an `s32` | `lhu` - a `subreg` of a word load narrows to the halfword at the same address |
+
+The sibling is the shortcut. `func_actor_560800_80135FA0` is the same fade task in
+another overlay, already matched, with the same `Mem_Malloc(8, 0)` into
+`Task::idMap`, the same `switch (arg0->state)`, and the same three casts; its
+`Actor560800FadeWork` is the struct to copy. Checking the family's other overlays
+for the shape costs one `grep`, and the `.diagnosis.json` opcode delta confirms the
+width before the first edit.
+
+## A call result that is NULL-checked and then kept needs *two* names, or the check reads the callee-saved home
+
+`func_actor_160900_80133F90` allocates a work block per child task, stores it in
+`Task::idMap` and bails out if the allocation failed — twice, and the target tests
+the raw return register both times, with the copy to `$s0` *after* the branch:
+
+```
+jal    Mem_Calloc
+move   a1, zero
+beqz   v0, .Lkill
+ sw    v0, 0x1C(s1)      /* allocator's home is still $v0 here */
+.Lkill:
+jal    Task_Kill
+...
+.Lcont:
+addu   s0, v0            /* the copy, in the continuation block */
+```
+
+One variable gives the other shape — `addu s0, v0` before the test, `beqz s0` —
+because `work` is then a single pseudo whose live range runs across every later
+call, so global-alloc hands it a callee-saved register and the NULL test reads
+that. Naming the result twice splits the range:
+
+```c
+alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+task->idMap = (TaskIdMap*)alloc;
+if (alloc == NULL) {
+    Task_Kill(task);
+    return;
+}
+work = alloc;            /* born after the branch, so the copy lands there */
+```
+
+The `.greg` header shows the split directly. In the single-variable form the
+pseudo is `used 16 times across 41 insns; crosses 1 call` and is disposed `in 16`
+(`$s0`). With the second name it is `used 8 times across 8 insns; dies in 2
+places`, carries `preferences: 2 4` — the call's return register `$v0` and `$a0` —
+and is disposed `in 2` (`$v0`): a block-local quantity that dies at the test, kept
+in the register the call already returned it in. `work` is the one that crosses
+the calls and takes `$s0`.
+
+Both shapes are already in the tree, so the target decides which to write:
+`func_actor_160900_801343E4` (same overlay) uses the two-name form and compiles to
+exactly this, and `func_actor_560800_80135BD8` uses one name and compiles to
+`addu s1, v0` before `bnez s1`. A single reused variable is *not* always the better
+guess — when the target tests `$v0` after a call whose result is stored and kept,
+count the names in the source.
+
+## Two identical `Task_Kill(t); return;` tails collapse into one block, placed where the second one was
+
+The same function spawns two children, and each of its null checks ends in the same
+`Task_Kill(task); return;`. The target has one kill block, sitting *between* the
+second calloc and the second half of the function: the first check branches forward
+to it (`beqz $v0, .Lkill`) and the second inverts to jump over it
+(`bnez $v0, .Lcont`), which reads like hand-written control flow.
+
+It is not hand-written. With the two checks written inline, cross-jumping merges the
+identical tails and the surviving block is the later one, so the shared tail keeps
+the second position and the first check's branch is retargeted to it. Rebuilding the
+source with one explicit shared label and a `goto` — the instinct when reading that
+layout — moves the block to the end of the function and costs the layout. Write the
+two inline checks and let the compiler place them: the first build of this function
+scored 91.79% with that single structural difference plus the register one above,
+and both inline checks scored 100%.
+
+## `grep` silently finds nothing in some `include/psyq` headers: add `-a`
+
+`include/psyq/libgte.h` is the only place `SVECTOR` and `MATRIX` are defined, but
+`grep -rn "SVECTOR" include/psyq/libgte.h` exits 1 and prints nothing, so the types
+look undefined and a search across `include/` turns up only their uses. `file` calls
+it "Non-ISO extended-ASCII text" — a stray high byte makes GNU grep treat the whole
+file as binary. `grep -a` finds all 44 `MATRIX` matches in it, and a Python
+`open()`/regex scan is the other way in. Other psyq headers are unaffected
+(`libgs.h` matches the same either way), so the tell is a header that matches
+nothing at all.
+
+## An m2c seed's shared `goto` label fixes the merged tail's address; duplicate tails let GCC place it
+
+`func_actor_160900_80133880` is 91.91% from the m2c seed and 100.00% from a
+first-build rewrite in the idiom of its already-matched sibling
+`func_actor_160900_80133F90` (same TU, same shape). Two source-shape effects,
+both visible in the object dump rather than in any pass dump:
+
+**The two `Task_Kill(task); return;` tails.** m2c emits one `Task_Kill` and
+reaches it from both allocation checks with `goto block_4;`. The target instead
+has two duplicate tails, which GCC cross-jumps itself, keeping the *second*
+one's position:
+
+```
+beqz  v0, .L...B90     # first check, jumps forward over the whole first half
+...
+bnez  v0, .L...BC0     # second check, inverted, falls into the shared block
+ sw   v0, 0x1C(s1)
+.L...B90: jal Task_Kill
+```
+
+Writing the two `if (alloc == NULL) { Task_Kill(task); return; }` out in full,
+as the sibling does, reproduces that polarity and placement. The seed's version
+leaves both branches `beqz` to a block placed after the second half, and the
+`branch`/`insert`/`delete` penalties come with it.
+
+**The temps.** m2c's per-call `temp_v0` / `temp_v0_2` and its `M2C_FIELD`
+writes test the copied pseudo (`beqz s0` / `sw s0, 0x1C(s1)`) where the target
+tests the call result directly (`beqz v0` / `sw v0, 0x1C(s1)` / `move s0, v0`),
+and the target hoists `0x3E8` -- written in four places, two of them either side
+of a `jal` -- into a callee-saved `$s2`, which costs the frame 8 bytes (`0x38`
+vs `0x30`) and shifts every register above it. Which of the two changes buys
+the hoist was not isolated; the sibling idiom is what has both.
+
+The general point is the one the brief already makes -- read the matched sibling
+before writing anything -- but here it is worth a first build rather than a
+late one: the m2c seed's ceiling was source shape, not allocation, and no pin or
+permuter pass would have reached it. Reach for the sibling when a seed plateaus
+with `branch`/`insert`/`delete` non-zero and the body has repeated tails.
+
+## A `break` whose `j` no cross-jump can manufacture is an explicit `goto`
+
+`func_actor_160900_801344D8` is a 5-case fade state machine whose draw code sits
+inside the last case, which puts the switch's exit label at the epilogue:
+
+```
+sltiu v0,v1,5
+beqz  v0, .Lepilogue      # range check -> switch exit
+case 0: ... j .Lincr      # 0x78, the case 1/2 label
+case 1: case 2:
+.Lincr: state += 1        # falls through into case 4
+```
+
+The natural translation — `arg0->state += 1; break;` in case 0 — scores 99.984%
+with a lone `branch=1`: GCC emits the increment inline in case 0 and a
+`j .Lepilogue`. Every jump.c merge path needs a partner. `find_cross_jump` on
+case 0's break walks the exit label's `jump_chain` (unconditional jumps to the
+same label, minimum 2) looking for another jump, and the only jump to the exit
+is the tail's `bgez`, whose two preceding insns (`sll`/`sra` of the sign
+extension) differ from the increment — a copy to `$a0` plus a call in one, a
+`lw`/`addiu`/`sw` in the other — so the backward match never reaches two. The
+`jump-around-jump` rule does not apply either: it needs the *predecessor of the
+jump being considered* to be a conditional, and here the break is reached by
+fallthrough from the increment block.
+
+So the ROM's `j 0x78` has to be written: give case 0 a `goto state_inc;` whose
+label sits on the `case 1: case 2:` fallthrough. 100.000%, 62/62 insns, all six
+penalties zero.
+
+The tell is a lone `branch=1` on an otherwise exact match — one jump whose target
+differs while the instruction count is already right. Before reaching for a
+barrier or a pin, check where the switch's exit label landed: moving the tail
+code into the last case is what removes every merge partner, so the leftover jump
+is source shape, not allocation.
+
+## The prepended package id in unit 1's `.rodata` shifts every jump table's `.align 3` by 4
+
+`func_actor_160900_801344D8` matched at 100.000% with all penalties zero and the
+overlay still failed its checksum: `build/USA/out/actor_160900` came out 56992
+bytes against the package's 56988, the first differing byte was offset `0x4`, and
+every pointer from there on was the target's plus 4. The generated 5-word table
+sat at `0x80` where the ROM has it at `0x7C`, with GCC's pad word at `0x7C`, and
+`.text` began at `0x94` instead of `0x90`.
+
+Neither of the two cuts above applies: the table is the *last* rodata symbol in
+the overlay (nothing after it to hand to a later unit) and it is not the first
+thing in the block either. The cause is the prepended package id. The original
+first translation unit's `.rodata` began at `0x4` — the id is packaging, not
+compiled — so GCC computed `.align 3` from a section-relative 0 sitting at
+absolute `0x4`, and the ROM's table at `0x7C` is `0x78` into that section:
+already 8-aligned, no padding. splat folds the id into unit 1 as
+`INCLUDE_RODATA(…, D_…_80131E20)`, which starts the object's `.rodata` at
+absolute `0x0`, so the same table lands at `0x7C` — 4 mod 8 — and picks up a pad
+word. Every table in the unit moves by the same 4.
+
+`rodata_head = "0x4"` moves exactly that one word into an asm-only `<name>_hdr`
+object, which puts unit 1's `.rodata` back at `0x4` and every table back at its
+original offset at once:
+
+```toml
+actor_160900 = { rodata_head = "0x4", shared = [...] }
+```
+
+No `units` cut, so no unit renumbering and no `src/` churn; the only source edit
+is deleting the now-dangling `INCLUDE_RODATA` line, because splat never rewrites
+an existing `.c`. `actor_146300` and `actor_161500` are the same shape, as are
+weapons `as12`/`m249`, which need only this key.
+
+Diagnose it by size, not by scoring the function: `cmp` the built overlay against
+`assets/USA/pe2pkg/<name>.pe2pkg` and read the first differing offset. A table at
+4 mod 8 belonging to the *first* unit is this; the same table later in the
+overlay is the `units` + `rodata` pair.
+
+## A `regs=1` residue on an unpaired `lui` is splat's rendering, not a codegen gap
+
+`func_actor_160900_80133A84` matched at 99.985% in the scratch harness with
+`regs=1` — distance exactly 5, which is `PENALTY_REGALLOC` — and nothing else:
+`topology match`, predicates, calls, condition registers and delay-slot words all
+in agreement, 323 instructions on both sides. The whole `.diff` was one line:
+
+```
+-lui    v1,0x8007                 /* target */
++lui    v1,%hi(Gfx_ViewCoord)     /* ours   */
+```
+
+That is the same instruction. splat renders a `lui` as `%hi(sym)` only when it can
+pair it with a `%lo` into the *same* register; this one is dead (`$v1` is written
+once in the entire function and never read), so splat fell back to a literal and
+wrote `(0x80070000 >> 16)` into the target `.s`. Assembling that literal leaves
+the target object with no relocation, while the compiler's own `lui` carries
+`R_MIPS_HI16` — and `objdump.py` renders a reloc as `%hi(sym)` while
+`normalize_asm.py` only rewrites jump tables, so the two lines can never compare
+equal:
+
+```
+target.o:  90: 3c038007  lui  v1,0x8007
+base_1.o:  90: 3c030000  lui  v1,0x0
+                            90: R_MIPS_HI16  Gfx_ViewCoord
+```
+
+Both encode `0x3c038007` after linking, because `(0x80070f10 + 0x8000) >> 16` is
+`0x8007`. `--only actors` and the unscoped build both checksum, which is the real
+verdict: the object is right and the *scorer* is comparing a linked-ROM
+disassembly against a relocatable object.
+
+Recognise it by the shape of the residue, not by the percentage: distance exactly
+5 (`regs=1`) with perfectly matching structure, and a single diff line that is a
+`lui`. Do not spend builds chasing it — the C is already byte-exact, and no source
+change can remove the reloc, since the only way to emit that word without one is
+a 32-bit constant, which GCC would split into `lui`/`ori`, not `lui`/`addiu`.
+Install the body and run `./tools/build-and-verify.sh`.

@@ -8,9 +8,7 @@
 #include "actors/actor_160900.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900_2", func_actor_160900_80134710);
-
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900_2", func_actor_160900_80134790);
-
 void func_actor_160900_801347B0(s16 arg0)
 {
     Actor160900Work* work;
@@ -20,8 +18,14 @@ void func_actor_160900_801347B0(s16 arg0)
     work->field_56 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900_2", func_actor_160900_801347D0);
+void func_actor_160900_801347D0(s16 arg0)
+{
+    Actor160900Work* work;
 
+    work           = (Actor160900Work*)D_actor_160900_8013FBB4->idMap;
+    work->field_5C = arg0;
+    work->field_5E = 0;
+}
 void func_actor_160900_801347F0(void)
 {
     Actor160900Work* work;
