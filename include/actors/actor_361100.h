@@ -75,9 +75,9 @@ STATIC_ASSERT_SIZEOF(Actor361100Placement, 0x18);
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
 /// same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. The overlay's
-/// 0x7DB handler, `func_actor_361100_80163750`, switches on the halfword at
-/// 0x2, as `func_actor_104600_80133D74` and `func_actor_342400_801626AC` do
-/// for theirs.
+/// 0x7DB handlers, `func_actor_361100_80163750` and `func_actor_361100_801630D4`,
+/// switch on the halfword at 0x2, as `func_actor_104600_80133D74` and
+/// `func_actor_342400_801626AC` do for theirs.
 typedef struct Actor361100Msg {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
@@ -120,6 +120,15 @@ STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
 /// world matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement);
+
+/// Message 0x7DB handler, listed in `D_actor_361100_8016BAF0` -- the table
+/// `func_actor_361100_80162D28` installs at `Task::field_24`, and the twin of
+/// `D_actor_361100_80171BB8` where `func_actor_361100_80163750` serves the same
+/// id. 0 parks the actor, clearing the work block's second vector accumulator;
+/// 1, 2 and 3 arm it with one of three preset vectors and the halfword at
+/// `field_4A0`; every other sub-command exits the task through its own
+/// `Task::exitCallback`.
+s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg);
 
 /// Message 0x7DB handler, listed in `D_actor_361100_80171BB8`, the table the
 /// task installs at `Task::field_24`. 0 parks the actor, clearing the work

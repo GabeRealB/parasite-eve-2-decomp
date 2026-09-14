@@ -75255,3 +75255,56 @@ address's other accesses in the function before retyping anything.
 
 `base_1.c` (100%; preprocessed
 `9e5ee47ad831fa9cfa8c8f60c0d1fad5557faa48b8f4181999a6453cc014023a`).
+
+## A shared switch tail is what cross-jumping derives, not a `goto` to reconstruct
+
+**Symptom.** `func_actor_361100_801630D4` has three cases ending in the same
+three stores. m2c reconstructs that as a `goto` whose label sits inside the
+first case carrying the tail, and the object comes out with the tail *there*:
+cases 2 and 3 jump **backwards** into case 1's block, and case 1 falls into it.
+The target is the other way round — cases 1 and 2 jump **forwards**, case 3
+falls through, and the shared block sits between case 3 and the `default`
+block. The goto form stalls at 56.1% with `insert`/`delete`/`branch` penalties
+even though every instruction in it is present.
+
+**Cause.** The shared block is not a source-level construct at all, it is
+jump.c's cross-jumping: the three case blocks end in the identical instruction
+suffix `sw $a0,0x490($a1)` / `sw $v1,0x494($a1)` / `sh $v0,0x4A0($a1)`
+(the constants differ but they are *different registers*, so the insns match),
+and the merge keeps the **last** copy in block order — which is why the tail
+lands after case 3. This is the same rule the cross-jumping entry above states
+from the other side ("deletes the earlier block and repoints … at the later
+one"); there it is a jump table that must *keep* two copies, here a switch that
+must *lose* two. The `goto` m2c emits is an artefact of reading the merged
+block back out of the binary, not the shape that produced it.
+
+**Fix.** Repeat the identical statements in every case and let the compiler
+re-derive the sharing. The store order matters: written
+`field_490; field_494; field_498; field_4A0` the suffix that survives the
+merge is the last three, leaving the `0x498` store inside each case and the
+`field_4A0` store in the tail's jump delay slot — exactly the target.
+
+```c
+case 1:
+    work->field_490 = 0xFFF6CCCD;
+    work->field_494 = 0xFEC13334;
+    work->field_498 = 0xB9999;
+    work->field_4A0 = 0x19;
+    break;
+```
+
+The rest of the m2c body was wrong in the same direction: it had dropped the
+unused third argument, so `$a2` became a `move` of `$a0` and the payload came
+out of `$a1`. The signature is `(Task* task, s32 arg1, Actor361100Msg* msg)`,
+and the `default` arm calls `task->exitCallback(task)` — `$a0` is never
+reloaded, which is what distinguishes it from the twin
+`func_actor_361100_80163750`, whose work pointer lives in `$v1` for the same
+reason (`$a1` is the switch value there).
+
+**Generalisation.** When several switch arms share a trailing statement
+sequence, write it out per arm; a `goto` into one arm is the shape m2c reads
+back, never the shape that compiles to it. Which arm *keeps* the block follows
+from block order, not from the source.
+
+`base_1.c` (100%; preprocessed
+`2080c3c04da416567d8cdd2507bce9049fc1581bda5717ced214c8d89e9a10f6`).
