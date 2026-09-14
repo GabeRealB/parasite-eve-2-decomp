@@ -1,7 +1,12 @@
 #include "common.h"
+
+#include "actors/actor_511000.h"
+
+#include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
+
 #include "main/task.h"
 #include "main/tmd.h"
-#include "gameplay/gameplay.h"
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -60,7 +65,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133760);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801337F0);
+/// Binds the task's TMD object to the work-block light/color matrices, clears
+/// the root coordinate flag, and rebuilds lighting from the world translation.
+void func_actor_511000_801337F0(Task* task)
+{
+    GsCOORDINATE2*   coord;
+    Actor511000Work* work;
+    TmdObject*       extra;
+
+    work            = (Actor511000Work*)task->idMap;
+    extra           = (TmdObject*)task->extra;
+    coord           = extra->field_8;
+    extra->field_1C = &work->light;
+    extra->field_20 = &work->color;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+}
 
 void func_actor_511000_80133850(Task* task)
 {
