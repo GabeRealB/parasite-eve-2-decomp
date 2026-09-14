@@ -22,6 +22,7 @@ void       func_800E2C78(Actor100400Obj* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 s32        func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 void       Gp_ClearRec18Occupied(GpRec18* arg0);
+void       Gp_SetLightMode(Actor100400Obj* arg0, s32 arg1);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -340,7 +341,15 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07C04);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07CC4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07DE0);
+void Actor00400_Fn07DE0(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    Gp_SetLightMode(arg0->field_20, 1);
+    work->field_636 = 0;
+    work->field_638 = (u16)work->field_638 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07E20);
 
