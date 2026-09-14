@@ -253,7 +253,97 @@ void Actor04400_Fn00B24(Task* arg0)
     work->field_84    = root->coord.t[2];
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00D3C);
+/// Variant of `Actor04400_Fn00B24`'s init: also destroys the enemy when bit 16
+/// of `spawnArg1` is set, sets bit 0x80 of the model's `field_C` for spawn
+/// kind 2, and enters state 6 with `field_451` set and the collision flags
+/// 0x8000 / 0x4000 cleared on `obj_2AC` / `obj_2CC`.
+///
+/// Same body as `func_actor_342400_80163E70`.
+///
+/// `two` is a variable for the same reason as `one` in the sibling: the ROM
+/// holds the constant in `$s5` across the calls. `kind` has to be its own
+/// variable too - masking `flags` in place reuses `$v1` for the result.
+void Actor04400_Fn00D3C(Task* arg0)
+{
+    TmdObject*       model;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   root;
+    Actor104400Work* work;
+    TmdObject*       obj;
+    Actor104400Work* w;
+    GpEnemy*         e;
+    GsCOORDINATE2*   coord;
+    Actor104400Work* w2;
+    Actor104400Work* w3;
+    GpEnemy*         e2;
+    s32              flags;
+    s32              kind;
+    s32              two;
+
+    model       = arg0->extra;
+    enemy       = arg0->spawnArg2;
+    root        = model->field_8;
+    arg0->idMap = Mem_Calloc(0x454, 0);
+    work        = (Actor104400Work*)arg0->idMap;
+    if (work == NULL) {
+        goto destroy;
+    }
+    Actor04400_Fn061B4();
+    flags = arg0->spawnArg1;
+    if ((flags >> 16) & 1) {
+    destroy:
+        Gp_DestroyEnemy(enemy, arg0);
+        return;
+    }
+    kind = flags & 0xF;
+    two  = 2;
+    if (kind == two) {
+        model->field_C |= 0x80;
+    }
+    obj                = arg0->extra;
+    w                  = (Actor104400Work*)arg0->idMap;
+    e                  = arg0->spawnArg2;
+    coord              = obj->field_8;
+    arg0->field_24     = Actor04400_D107CC;
+    obj->field_1C      = &w->lightMtx;
+    obj->field_20      = &w->colorMtx;
+    e->field_50        = &Actor04400_D0D318;
+    e->field_54        = (s32)w->rec_2EC;
+    w->eff_3FC.field_0 = &((TmdObject*)arg0->extra)->field_8[1];
+    w->eff_3FC.field_4 = 0x140;
+    w->eff_3FC.field_6 = two;
+    e->field_40 = e->field_42 = Actor04400_D0D318.field_4;
+    func_800B3F84(&w->anim, Actor04400_D10778, (GpAnimObj*)obj, w->field_21C, &w->slot_B4);
+    w2            = (Actor104400Work*)arg0->idMap;
+    w2->field_41C = 0x10;
+    w2->field_418 = 7;
+    w2->field_414 = two;
+    Actor04400_Fn02B8C(arg0);
+    coord->sub = &Gfx_ViewCoord;
+    Actor04400_Fn02D18(arg0);
+    w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    e2 = arg0->spawnArg2;
+    Gp_LinkNode(&e2->node);
+    e2->field_4          = &((TmdObject*)arg0->extra)->field_8->coord;
+    e2->field_48         = 0;
+    e2->field_1C.vx      = 0;
+    e2->field_1C.vy      = 0;
+    e2->field_1C.vz      = 0;
+    e2->field_18         = &((TmdObject*)arg0->extra)->field_8[1];
+    e2->node.field_4     = 1;
+    work->field_80       = root->coord.t[0];
+    root->coord.t[1]    -= 0x3C;
+    work->field_82       = root->coord.t[1];
+    work->field_84       = root->coord.t[2];
+    work->field_451      = 1;
+    work->obj_2AC.flags &= 0x7FFF;
+    work->obj_2CC.flags &= 0xBFFF;
+    w3                   = (Actor104400Work*)arg0->idMap;
+    arg0->state          = 6;
+    w3->field_420        = 0;
+    w3->field_422        = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00F7C);
 
