@@ -76543,3 +76543,31 @@ constant (0x9C4 vs 0x180), and `overlay_dup_index.py find` does *not* report it
 
 `base_1.c` (100%; preprocessed
 `87bfaa16da4b052d859d5adb52c8603d5f192199f2dbca60563a86d7a3ee9797`).
+## A signed field loaded as `lhu`: cast at the read, do not retype the shared field
+
+`Actor143000` declares `s16 field_2A`, yet the target opens
+`func_actor_143000_80133AC0` with `lhu $v0, 0x2A($a0)`. A plain read emits `lh`,
+so the m2c seed's unsigned read (`M2C_FIELD(arg0, u16 *, 0x2A)`) had to survive
+translation into struct syntax without changing the header.
+
+The same overlay's already-matched `func_actor_143000_80132A04` settles it: it
+reads that identical field both ways — `lh` at the four sites that test or
+switch on it, and `lhu` at one, `arg0->field_2A = (s16)((u16)arg0->field_2A + 1);`.
+So the cast belongs at the use site and the declared type stays signed; retyping
+the field to `u16` would have flipped four `lh` sites in matched code that shares
+the header.
+
+```c
+u16 count = (u16)arg0->field_2A - 1;
+
+arg0->field_2A = count;
+if ((s16)count <= 0) {
+    arg0->field_30 = 5;
+}
+```
+
+The `(s16)` on the u16 temp is what yields `sll $v0,$v0,16` + `bgtz`; an unsigned
+`== 0` test would have been `beqz`, and a genuinely signed field would have
+needed no `sll` at all. Generalisation: when a target's load width disagrees with
+the header's type, look for a matched sibling touching the same offset — which
+way *it* loads tells you whether the header is wrong or the source cast.

@@ -16,7 +16,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_801339CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133AC0);
+void func_actor_143000_80133AC0(Actor143000* arg0)
+{
+    u16 count = (u16)arg0->field_2A - 1;
+
+    arg0->field_2A = count;
+    if ((s16)count <= 0) {
+        arg0->field_30 = 5;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133AE8);
 
