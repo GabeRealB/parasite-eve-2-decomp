@@ -154,7 +154,189 @@ void func_actor_160900_80133880(void)
     work->field_18.vy                              = 0;
     work->field_18.vz                              = -0x3E8;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80133A84);
+void func_actor_160900_80133A84(void)
+{
+    Actor160900Work*      data;
+    Actor160900ChildWork* alloc;
+    Actor160900ChildWork* work;
+    Task*                 task;
+
+    data             = (Actor160900Work*)D_actor_160900_8013FBB4->idMap;
+    task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 5, 0);
+    data->field_C[0] = task;
+    if (task == NULL) {
+        return;
+    }
+    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work = alloc;
+    Mem_Set(work, 0, 0x20);
+    ((TmdObject*)task->extra)->field_8->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x1770;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = 0x1F4;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
+    work->field_0.vx                               = 0;
+    work->field_0.vy                               = -0x3E8;
+    work->field_0.vz                               = 0x1F4;
+    work->field_8.vx                               = 0;
+    work->field_8.vy                               = -0x3E8;
+    work->field_8.vz                               = -0x1F4;
+    work->field_10.vx                              = 0;
+    work->field_10.vy                              = 0;
+    work->field_10.vz                              = 0x1F4;
+    work->field_18.vx                              = 0;
+    work->field_18.vy                              = 0;
+    work->field_18.vz                              = -0x1F4;
+    task                                           = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 2, 0);
+    data->field_C[1]                               = task;
+    if (task == NULL) {
+        return;
+    }
+    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work = alloc;
+    Mem_Set(work, 0, 0x20);
+    ((TmdObject*)task->extra)->field_8->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x1770;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = 0x1F4;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
+    work->field_0.vx                               = 0;
+    work->field_0.vy                               = -0x3E8;
+    work->field_0.vz                               = 0x3E8;
+    work->field_8.vx                               = 0;
+    work->field_8.vy                               = -0x3E8;
+    work->field_8.vz                               = 0x1F4;
+    work->field_10.vx                              = 0;
+    work->field_10.vy                              = 0;
+    work->field_10.vz                              = 0x3E8;
+    work->field_18.vx                              = 0;
+    work->field_18.vy                              = 0;
+    work->field_18.vz                              = 0x1F4;
+    task                                           = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 3, 0);
+    data->field_C[2]                               = task;
+    if (task == NULL) {
+        return;
+    }
+    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work = alloc;
+    Mem_Set(work, 0, 0x20);
+    ((TmdObject*)task->extra)->field_8->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x1770;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = 0x1F4;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
+    work->field_0.vx                               = 0;
+    work->field_0.vy                               = -0x3E8;
+    work->field_0.vz                               = -0x1F4;
+    work->field_8.vx                               = 0;
+    work->field_8.vy                               = -0x3E8;
+    work->field_8.vz                               = -0x3E8;
+    work->field_10.vx                              = 0;
+    work->field_10.vy                              = 0;
+    work->field_10.vz                              = -0x1F4;
+    work->field_18.vx                              = 0;
+    work->field_18.vy                              = 0;
+    work->field_18.vz                              = -0x3E8;
+    task                                           = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 4, 0);
+    data->field_C[3]                               = task;
+    if (task == NULL) {
+        return;
+    }
+    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work = alloc;
+    Mem_Set(work, 0, 0x20);
+    ((TmdObject*)task->extra)->field_8->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x1770;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = -0x1F4;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
+    work->field_0.vx                               = 0;
+    work->field_0.vy                               = -0x3E8;
+    work->field_0.vz                               = 0x1F4;
+    work->field_8.vx                               = 0;
+    work->field_8.vy                               = -0x3E8;
+    work->field_8.vz                               = -0x1F4;
+    work->field_10.vx                              = 0;
+    work->field_10.vy                              = 0;
+    work->field_10.vz                              = 0x1F4;
+    work->field_18.vx                              = 0;
+    work->field_18.vy                              = 0;
+    work->field_18.vz                              = -0x1F4;
+    task                                           = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 0, 0);
+    data->field_C[4]                               = task;
+    if (task == NULL) {
+        return;
+    }
+    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work = alloc;
+    Mem_Set(work, 0, 0x20);
+    ((TmdObject*)task->extra)->field_8->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x1770;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = -0x1F4;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
+    work->field_0.vx                               = 0;
+    work->field_0.vy                               = -0x3E8;
+    work->field_0.vz                               = 0x3E8;
+    work->field_8.vx                               = 0;
+    work->field_8.vy                               = -0x3E8;
+    work->field_8.vz                               = 0x1F4;
+    work->field_10.vx                              = 0;
+    work->field_10.vy                              = 0;
+    work->field_10.vz                              = 0x3E8;
+    work->field_18.vx                              = 0;
+    work->field_18.vy                              = 0;
+    work->field_18.vz                              = 0x1F4;
+    task                                           = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 1, 0);
+    data->field_C[5]                               = task;
+    if (task == NULL) {
+        return;
+    }
+    alloc       = (Actor160900ChildWork*)Mem_Calloc(0x20, 0);
+    task->idMap = (TaskIdMap*)alloc;
+    if (alloc == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    work = alloc;
+    Mem_Set(work, 0, 0x20);
+    ((TmdObject*)task->extra)->field_8->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x1770;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = -0x1F4;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
+    work->field_0.vx                               = 0;
+    work->field_0.vy                               = -0x3E8;
+    work->field_0.vz                               = -0x1F4;
+    work->field_8.vx                               = 0;
+    work->field_8.vy                               = -0x3E8;
+    work->field_8.vz                               = -0x3E8;
+    work->field_10.vx                              = 0;
+    work->field_10.vy                              = 0;
+    work->field_10.vz                              = -0x1F4;
+    work->field_18.vx                              = 0;
+    work->field_18.vy                              = 0;
+    work->field_18.vz                              = -0x3E8;
+}
 void func_actor_160900_80133F90(void)
 {
     Actor160900Work*      data;
