@@ -9,7 +9,21 @@
 
 #include "actors/actor_342000.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000_3", func_actor_342000_801640C0);
+void func_actor_342000_801640C0(Task* arg0, s32 arg1, Actor342000Move* arg2)
+{
+    Actor342000Work* work;
+    GsCOORDINATE2*   coord;
+
+    work              = (Actor342000Work*)arg0->idMap;
+    coord             = &work->coord;
+    coord->coord.t[0] = arg2->field_0;
+    coord->coord.t[1] = arg2->field_4;
+    coord->coord.t[2] = arg2->field_8;
+    work->field_274   = arg2->field_10;
+    work->field_278   = arg2->field_12;
+    work->field_27C   = arg2->field_14;
+    work->coord.flg   = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000_3", func_actor_342000_80164110);
 

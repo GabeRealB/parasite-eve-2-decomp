@@ -5,6 +5,23 @@
 #include <psyq/libgs.h>
 #include "main/task.h"
 
+/// Position + rotation argument for the overlay's message handlers -- the
+/// `arg2` of the `GpMsgEntry` table `D_actor_342000_801648E8` (id 0x7D4,
+/// `func_actor_342000_801640C0`). `field_0` / `field_4` / `field_8` are copied
+/// onto the actor coordinate's `coord.t`; `field_10` / `field_12` / `field_14`
+/// are the euler angles its matrix is rebuilt from. Same shape as gameplay's
+/// `GpXformArg`.
+typedef struct _Actor342000Move {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte pad_C[4];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+} Actor342000Move;
+STATIC_ASSERT_SIZEOF(Actor342000Move, 0x18);
+
 /// Per-instance work block for the overlay's model actor.
 ///
 /// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
@@ -17,8 +34,20 @@
 /// `func_actor_342000_80162158` seeds it with `&Gfx_ViewCoord`, and the exit
 /// callback `func_actor_342000_80163F88` writes it back into
 /// `((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)->sub`.
+///
+/// `coord` is the actor's own rotation node. `func_actor_342000_801628C8`
+/// builds `coord.coord` from the euler angles below it (`Gfx_RotMatrixY` of
+/// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads)
+/// and clears `coord.flg`; `func_actor_342000_801640C0` writes all of it from
+/// an `Actor342000Move`.
 typedef struct Actor342000Work {
-    /* 0x000 */ byte           pad_0[0x2A4];
+    /* 0x000 */ byte           pad_0[0x214];
+    /* 0x214 */ GsCOORDINATE2  coord;
+    /* 0x264 */ VECTOR         field_264;
+    /* 0x274 */ s32            field_274;
+    /* 0x278 */ s32            field_278;
+    /* 0x27C */ s32            field_27C;
+    /* 0x280 */ byte           pad_280[0x24];
     /* 0x2A4 */ GsCOORDINATE2* field_2A4;
     /* 0x2A8 */ byte           pad_2A8[0x4];
 } Actor342000Work;
