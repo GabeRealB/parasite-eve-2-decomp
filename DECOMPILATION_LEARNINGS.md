@@ -70343,3 +70343,45 @@ The dispatch in that function is also a two-value instance of "Recovering a
 switch's `slti … → default` with one dummy case below the tree root": with real
 cases 1 and 2 the dummy is `case 0`, sharing the `default` body, and it is the
 arm's own state value rather than a pure dummy.
+
+## A mid-unit `shared` span strands the jump tables of the functions it leaves behind
+
+`migrate_rodata_to_functions: True` inlines a jump table into a function's `.s`
+only when the table and the function are in the **same subsegment**. A `shared`
+span that splits a carrier's *first* text unit in two puts the leading rodata run
+(and the tables in it) in unit 1 while the functions that reference them move to
+unit 2 — so splat writes each table out as a standalone `jtbl_<overlay>_<addr>.s`
+in the rodata owner's directory, and the referring `.s` names the symbol instead
+of reproducing its words.
+
+The regenerated unit 1 `.c` mentions none of those files, so they are never
+assembled and the link stops with `undefined reference to
+'jtbl_actor_402200_80131E84'` — five of them, one per table, out of *both*
+carriers of the promotion (`func_actor_402200_80132D78` → `actors_shared_80132d78`
+in `actor_402200` and `actor_403900`).
+
+The fix is the pattern already used in 77 places in `src/`: the rodata owner's C
+file `INCLUDE_RODATA`s each one, in address order, around the `INCLUDE_ASM` lines
+it already had.
+
+```c
+INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200", D_actor_402200_80131E20);
+
+INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200", func_actor_402200_80131F54);
+/* … the unit's remaining functions, in address order … */
+
+INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200", jtbl_actor_402200_80131E84);
+/* … 80131EA4, 80131EC4, 80131EDC, 80131F04, then the run's last object … */
+```
+
+Only the rodata lines contribute bytes here — each `INCLUDE_ASM` is a `.text`
+fragment — so the interleaving is free; what matters is that the rodata lines
+are in address order, because the run reaches the linker as one subsegment.
+
+Two things make this one cheap to live with. It fails **loudly** at link time,
+unlike the renumbering hazard beside it, which silently strands matched bodies —
+so a promotion that reaches the checksum has already proved the tables were
+placed. And it only ever bites for tables in the *leading* run: a table in a
+later unit's own rodata still pairs with its function and inlines as before. Add
+the includes as soon as the promotion's re-split is done, and expect them in both
+carriers.

@@ -29,11 +29,9 @@ typedef struct Actor402200Obj2C {
     /* 0x08 */ Actor402200Coord* field_8;
 } Actor402200Obj2C;
 
-/// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`. The scan
-/// `func_actor_402200_80132D78` reports the first entry whose `field_0` is 1 and
-/// whose box holds the player's world position `Wip_SysConfig.field_4`: the
-/// translation's x between `field_8` and `field_C`, and its z between `field_E`
-/// and `field_A`.
+/// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`, the same
+/// entry the shared scan `ActorsShared80132d78` walks as its own
+/// `ActorShared80132d78Region`.
 typedef struct Actor402200Region {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;
@@ -95,7 +93,7 @@ typedef struct Actor402200Work {
     /// it.
     /* 0x49A */ u16  field_49A;
     /* 0x49C */ byte pad_49C[0x218];
-    /// Box table the scan `func_actor_402200_80132D78` walks, `field_6FA`
+    /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
     /* 0x6B8 */ byte               pad_6B8[4];
