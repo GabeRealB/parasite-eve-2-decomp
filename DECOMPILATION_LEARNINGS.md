@@ -78192,3 +78192,32 @@ symbol-first order is what the inline form gives unaided.
 
 Inputs: `base_1.i` `def9903b4106f0a8ffc0d53b6ff641a881617f1f71edd5552431644a2ed9daa1`,
 `base_3.i` `77b8016ffd2057ac248c7ecd3ced827509f7e54ae71612dda597bc1631d39f86`.
+
+## A `promote` refusal parks the copy permanently - the vacuum skips it, and the refused class is the common one
+
+`overlay_dup_index.py promote` refuses any body that references its own
+overlay's code or data, and `cmd_promote`'s docstring says that is the rule and
+not the exception: of the 42 clusters behind the functions the vacuum parks as
+already-matched-elsewhere, 39 are refused for exactly this reason, one because
+every carrier holds it twice, two because they are already shared - "Not one was
+promotable." A refusal is therefore not a "later pass" item. The vacuum *skips*
+what `overlay_dup_index.py solved` lists, so the copy stays `INCLUDE_ASM` no
+matter how many lanes sweep its overlay: the parking and the refusal together
+are a permanent hole, and the remedy is the one the carried-twice case already
+prescribes - land the body as plain C in each carrier.
+
+`func_actor_403000_8013D564` / `func_actor_421600_8013E7F8` is the smallest
+instance of the shape: 14 instructions, identical modulo the `lui`/`addiu` pair
+naming `D_actor_403000_80158CE0` against `D_actor_421600_80151158`, both 8-byte
+`SVECTOR` runs in the overlay's trailing data. The second copy is a mechanical
+transcription of the first - declare the table `SVECTOR <name>[]` in the
+carrier's *own* header and index it with `(s16)arg1` - and the overlay checksum
+proves it byte-exact, so the cost is a two-line edit rather than the agent
+session the parking was protecting. Add `#include <psyq/libgte.h>` for the type:
+`common.h` does not pull it in, and the carrier header that compiles today may
+be getting `SVECTOR` only through another of its includes.
+
+Check two things before hand-landing one: the carrier's lane is free
+(`vacuum_orch.py status` - the copy belongs to another overlay, and the brief's
+`promote` path would have edited that overlay's config anyway), and the copy is
+not in `tools/difficult_functions`.

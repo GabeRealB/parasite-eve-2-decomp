@@ -15,7 +15,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E700);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E7F8);
+void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1)
+{
+    arg0->vx = D_actor_421600_80151158[(s16)arg1].vx;
+    arg0->vy = D_actor_421600_80151158[(s16)arg1].vy;
+    arg0->vz = D_actor_421600_80151158[(s16)arg1].vz;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E830);
 
