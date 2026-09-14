@@ -77540,3 +77540,86 @@ Inputs: `base.i` (flat table, 100.000%)
 `054dbfe148ba13cd47e41c371d612609d375448c30ecead7d5dbca0004c9a8a7`,
 `base_2.i` (2D retype, 83.710%)
 `bb418d0f3887f6e5d633cb258c958acc594c5898a434b3c74b6e98a604863221`.
+
+## A QI-mode constant store is invisible to an SImode compare; combine folds the narrow temp away again
+
+`func_actor_161500_80131F50` keeps a variable in `$a0` and the constant it is
+tested against in its own `$v0`:
+
+```
+lbu   v1,0x9(v0)
+addiu v0,zero,0x1      <- the compare's own constant
+bne   v1,v0,.L
+addiu a0,zero,0x1      <- the `var = 1` store, in the bne delay slot
+addiu a0,zero,0x2
+```
+
+The m2c seed reaches 91.852% with the compare folded onto the variable's own
+register (`bne v1,a0` and a single `li a0,1` serving both). Both constants are
+SImode, so cse hashes them into one equivalence class; the pruning loop
+(`cse.c:6851-6861`) drops the *later* constant set whose constant it already
+holds and makes it take that class's register — which is the variable's `$a0`.
+
+Store the constant through a **narrower** type than the variable and the two
+land in different classes. cse keys constants by mode
+(`mode = GET_MODE (src) == VOIDmode ? GET_MODE (dest) : GET_MODE (src)`), so a
+QImode `(const_int 1)` cannot be unified with the SImode one, and the compare
+materializes `li v0,1` for itself:
+
+```c
+void func_actor_161500_80131F50(s32 arg0)
+{
+    s8 capFile;
+
+    if (arg0 != 0) {
+        Gp_CapFile = 0;
+        if (arg0 <= 0) {
+            capFile = 1;
+            if (Game_Session->field_9 == 1) {
+                capFile = 2;
+            }
+            arg0 = capFile;   /* after the join — see below */
+        }
+        Gp_LoadCapFile(arg0);
+        func_800E6D4C(0x340, 0);
+        return;
+    }
+    Gp_ResetCap();
+}
+```
+
+100.000% on the next build, with no pins. `arg0 = capFile` needs a
+sign-extension, and combine — which runs *after* cse and cse2 — folds it away,
+so the QI store still emits the plain `li a0,1` the target has. Writing the
+constant into the variable's own type with a cast (`arg0 = (s32)1;`) does not
+work: the front end folds the cast back to the destination's type before RTL
+exists.
+
+**The copy back into the wide variable must sit after the join, not in the arm
+that stores the constant.** This fails:
+
+```c
+capFile = 1;
+arg0 = capFile;                 /* <- in the same arm */
+if (Game_Session->field_9 == 1) {
+    capFile = 2;
+    arg0 = capFile;
+}
+```
+
+cse2's `fold_rtx` folds `sign_extend` of a *known* QI constant into an SImode
+`(const_int 1)` before combine ever runs, recreating the collision — the build
+shows `li $4,1` again and `bne $2,$4`. With the copy after the join the QI temp
+has two definitions reaching it, so nothing is known-constant at cse2 and the
+extension survives to be folded by combine instead.
+
+This is "Constant CSE across differently-sized stores" (`[25]`) run backwards:
+there a wider temp is the device that *forces* the merge, here a narrower one is
+what *blocks* it. Same rule, same reason — cse can take a lowpart but cannot
+widen — so read `[25]` first and pick the direction from which register the
+target keeps the constant in.
+
+Inputs: `base.i` (m2c seed, 91.852%)
+`0285b980d39aca10c586ea2a4e25d5826f380aead36ba36397774679762e3034`,
+`base_3.i` (QI temp, copy after the join, 100.000%)
+`5220cc11ab7fd66e2998853d755b5b5fe1c6fcb0f1434710c6404bfeb4c961a8`.

@@ -56,7 +56,25 @@ void func_actor_161500_80131E38(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80131F50);
+void func_actor_161500_80131F50(s32 arg0)
+{
+    s8 capFile;
+
+    if (arg0 != 0) {
+        Gp_CapFile = 0;
+        if (arg0 <= 0) {
+            capFile = 1;
+            if (Game_Session->field_9 == 1) {
+                capFile = 2;
+            }
+            arg0 = capFile;
+        }
+        Gp_LoadCapFile(arg0);
+        func_800E6D4C(0x340, 0);
+        return;
+    }
+    Gp_ResetCap();
+}
 
 void func_actor_161500_80131FBC(void)
 {
