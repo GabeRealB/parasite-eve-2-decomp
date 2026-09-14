@@ -122,7 +122,69 @@ void func_actor_310100_801620FC(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162284);
+/// Second spawn tick of the actor task: states 1 and 2 — and state 0, which
+/// first parks `D_8007106B` at 2 — only step the state, and state 3 spawns the
+/// display model on the default list: `D_actor_310100_80179920` with display id
+/// 0x6D for `spawnArg1` 0, `D_actor_310100_801798FC` with 0x6C for 1, both at
+/// table index 2 with `arg2` 5 and 7. It then walks the nested area place list
+/// for the record carrying that id, drops the record's translation into the
+/// spawned model's root coordinate frame, yaws that frame to the record's
+/// `field_A`, parks the display work block's `field_4F0` at 0 and tears this
+/// task down.
+void func_actor_310100_80162284(Task* task)
+{
+    Actor310100Work* work;
+    Actor310100Work* display;
+    Task*            modelTask;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    GpAreaPlace*     place;
+    u8               mode;
+
+    work = (Actor310100Work*)((Task*)task->spawnArg2)->idMap;
+    switch (task->state) {
+        case 0:
+            D_8007106B = 2;
+            /* fallthrough */
+        case 1:
+        case 2:
+            task->state++;
+            return;
+        case 3:
+            if (task->spawnArg1 == 0) {
+                do {
+                    mode = 0x6D;
+                } while (0);
+                work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
+            } else if (task->spawnArg1 == 1) {
+                do {
+                    do {
+                        mode = 0x6C;
+                    } while (0);
+                } while (0);
+                work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
+            } else {
+                goto skip;
+            }
+        skip:
+            modelTask = work->field_4E4;
+            place     = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+            while (place->field_0 != 0xFF && place->field_0 != mode) {
+                place++;
+            }
+            obj               = (TmdObject*)modelTask->extra;
+            coord             = obj->field_8;
+            coord->coord.t[0] = place->field_4;
+            coord->coord.t[1] = place->field_6;
+            coord->coord.t[2] = place->field_8;
+            Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
+            display            = (Actor310100Work*)work->field_4E4->idMap;
+            display->field_4F0 = 0;
+            Task_Kill(task);
+            Display_ResetHeapWrapper();
+            break;
+    }
+}
 
 void func_actor_310100_80161F80(Task* task);
 

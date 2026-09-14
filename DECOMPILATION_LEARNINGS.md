@@ -804,6 +804,63 @@ allocation. Inputs: `base_1.i`
 `base_5.i` `d08384d08514d9bc7ca4a5e54c77e16792133d49505e94daa3db7dfe98601f6d`,
 `base_6.i` `76a841798330fe18ab10b003e7d8928217f63ab3281dbe3695735614264ab241`.
 
+### The same weighting, used the other way: promote a constant local to the first `$sN`
+
+`func_actor_310100_80162284` (second spawn tick of `actor_310100`) differed from
+its target in nothing but the **cyclic rotation** of its four callee-saved
+assignments:
+
+```
+target:  task=$s3  work=$s1  modelTask=$s2  mode=$s0
+built:   task=$s2  work=$s0  modelTask=$s1  mode=$s3
+```
+
+Every instruction, block and call matched; only the `$sN` numbers moved by one,
+because the allocno priority order (the `;; N regs to allocate:` line of `-dg`)
+came out `... 81 83 80 87` against the target's `... 87 81 83 80`. Read that
+ordering as `floor_log2(n_refs) * n_refs / live_length` (`global.c`
+`allocno_compare`; no size factor here - all four are 1-word QImode/SImode) and
+`mode` is simply short: 3 refs over 38 insns, 789 against `work`'s 5 refs over
+53, 1886. It sorts last and takes the last free register.
+
+The fix is the mirror image of the hoist above: **wrap the definition in
+`do { } while (0)`** so flow.c's `REG_N_REFS (regno) += loop_depth` weights it.
+The two arms sit at different depths, so they gain different amounts:
+
+```c
+if (task->spawnArg1 == 0) {
+    do {
+        mode = 0x6D;              /* depth 1: def counts 2 */
+    } while (0);
+    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
+} else if (task->spawnArg1 == 1) {
+    do {
+        do {
+            mode = 0x6C;          /* depth 2: def counts 3 */
+        } while (0);
+    } while (0);
+    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
+}
+```
+
+`mode` goes 3 refs -> 6 (2 + 3 + 1) at the *same* live length 38, so its
+priority goes 789 -> 3157 and lands between `113` (5000) and `110` (3000) in the
+order. It still cannot take a call-clobbered register (`mode` crosses three
+calls), so the first one it can use is now `$s0`, and the other three shift up
+one - the target's assignment exactly. **0 differences, no added instructions**:
+the `while (0)` is folded away and only the `REG_N_REFS` bookkeeping survives.
+
+Note the sibling `func_actor_310100_801620FC` already carried this shape (one
+wrapper in each arm - its `work` rival there has different refs), which is what
+gave the form away; the wrapper is load-bearing, not a decomp artifact.
+Diagnose the rotation first: when the penalised diff is a pure permutation of
+`$sN` with `Structure: match`, the `-dg` priority order names the change to
+make, and the lever is `n_refs`, not a register pin.
+
+Inputs: `base_1.i`
+`13cba8048ec365d3bf995c81fac59765db0c1378c55e5d444d47bd946e364212`,
+`base_2.i` `23b3a952b4703ad1ac1368b8dff6b0bfca9a16864cab8d81ccfec5883bceee6b`.
+
 ## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
 
 A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does
