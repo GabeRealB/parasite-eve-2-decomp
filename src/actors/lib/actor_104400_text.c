@@ -17,6 +17,8 @@ void Actor04400_Fn02B8C();
 s16  Actor04400_Fn06328(Task* arg0);
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
 s16  Actor04400_Fn06618(Task* arg0);
+void Actor04400_Fn08208(Task* arg0);
+void Actor04400_Fn0823C(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
 
@@ -665,7 +667,18 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07CF0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07D78);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07E00);
+void Actor04400_Fn07E00(Task* arg0)
+{
+    Actor104400Work* work                = (Actor104400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        Actor04400_Fn08208,
+        Actor04400_Fn0823C,
+    };
+
+    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
+        states[(s16)work->field_422](arg0);
+    }
+}
 
 extern TaskFuncTable3 Actor04400_D00168;
 
