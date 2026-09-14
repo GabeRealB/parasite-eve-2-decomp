@@ -69,7 +69,7 @@ typedef struct Actor104400Work {
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ byte             pad_442[0x2];
     /* 0x444 */ u16              field_444; // heading to the nearer player actor, relative to field_7A
-    /* 0x446 */ byte             pad_446[0x2];
+    /* 0x446 */ s16              field_446; // randomised hold compared against field_412
     /* 0x448 */ s16              field_448;
     /* 0x44A */ s16              field_44A;
     /* 0x44C */ byte             pad_44C[0x3];

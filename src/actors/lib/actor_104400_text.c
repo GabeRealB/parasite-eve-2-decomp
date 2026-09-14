@@ -925,7 +925,40 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07F04);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07F6C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07FD0);
+/// Same body as `ActorsShared8016b104`. This overlay's whole `.text` is already
+/// one shared span, so it cannot join that unit.
+void Actor04400_Fn07FD0(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    s16              dist;
+
+    if (work->field_446 < (s16)work->field_412++) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+            w->field_420 = 4;
+            w->field_422 = 0;
+        } else {
+            Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+            w->field_420 = 1;
+            w->field_422 = 0;
+        }
+        return;
+    }
+    dist = work->field_43A;
+    if (dist < 0xDAC) {
+        Actor104400Work* next = (Actor104400Work*)arg0->idMap;
+
+        next->field_420 = 3;
+        next->field_422 = 0;
+        return;
+    }
+    if (dist < 0x1388) {
+        work->field_422++;
+    }
+}
 
 void Actor04400_Fn08094(Task* arg0)
 {
