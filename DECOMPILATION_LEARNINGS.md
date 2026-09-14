@@ -43192,6 +43192,15 @@ whose *second* parameter is `$a2`, not `$a1` — the prologue diff was
 `move s1,a2` against our `move s1,a1`. Reading the two-argument signature as
 `($a0, $a1)` is the trap; the name is the only thing that says otherwise.
 
+The penalty label depends on whether the parameter is copied to a callee-saved
+register first. When the body uses the argument *directly* as an addressing
+base, there is no `move` to diff and the scorer reports the six displaced
+`lw`/`lhu` operands as `stack` instead of `regs` — `func_actor_361100_80162F58`
+scored 99.85% at `stack=6` with every other penalty zero, and the whole diff was
+`lw $v0, 0x0($a1)` against the target's `0x0($a2)`. A pure `stack` penalty with
+the frame and the local count otherwise identical is a base-register mismatch,
+not a spilled local: split no locals, count the gap in the `argN` names.
+
 ## m2c invents callee arguments from registers a previous inlined macro left live
 
 The mirror image of the "m2c drops leading params" entry above: when the

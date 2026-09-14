@@ -41,7 +41,29 @@ void func_actor_361100_80162E04(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162F58);
+s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement)
+{
+    Actor361100Coord* coord;
+    Actor361100Work*  work;
+
+    work              = (Actor361100Work*)task->idMap;
+    coord             = (Actor361100Coord*)((TmdObject*)task->extra)->field_8;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->rot.vx     = placement->rot.vx;
+    coord->rot.vy     = placement->rot.vy;
+    coord->rot.vz     = placement->rot.vz;
+    RotMatrixZYX(&coord->rot, &coord->coord);
+    coord->flg      = 0;
+    work->field_480 = 0;
+    work->field_484 = 0;
+    work->field_488 = 0;
+    work->field_490 = 0;
+    work->field_494 = 0;
+    work->field_498 = 0;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162FF4);
 
