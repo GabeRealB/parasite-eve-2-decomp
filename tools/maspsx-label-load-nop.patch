@@ -1,0 +1,36 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -673,6 +673,16 @@
+                 if is_label(label):
+                     res.append(label)
+                     self.skip_instructions = 1
++                    # GCC may give one destination several adjacent branch labels.
++                    # Keep all aliases on the load-delay nop, not just the first.
++                    while True:
++                        alias = self.get_next_instruction(
++                            skip=self.skip_instructions, ignore_nop=True, ignore_set=True
++                        )
++                        if not re.match(r"\$L\d+:$", alias):
++                            break
++                        res.append(alias)
++                        self.skip_instructions += 1
+                 res.append(f"nop # DEBUG: Reuse of '{r_dest}'. {reason}")
+         else:
+             res.append(
+--- a/tests/test_nop.py
++++ b/tests/test_nop.py
+@@ -9,4 +9,14 @@
+ class TestNop(unittest.TestCase):
++    def test_lw_adjacent_branch_labels(self):
++        lines = [
++            "lw\t$2,44($19)",
++            "$L47:", "$L48:", "$L49:", "$L50:", "$L51:",
++            "lw\t$2,8($2)",
++            "sw\t$0,0($2)",
++        ]
++        expected = lines[:6] + ["nop", lines[6], "nop", lines[7]]
++        self.assertEqual(expected, strip_comments(MaspsxProcessor(lines).process_lines()))
++
+     def test_nop_lw_div(self):
+         """
+         Ensure we place a nop betwen an lw/div pair that uses the same register

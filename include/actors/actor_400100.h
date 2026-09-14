@@ -22,11 +22,14 @@ typedef struct Actor00100Obj {
 STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
 
 typedef struct Actor00100Work {
-    /* 0x000 */ s16           field_0;
-    /* 0x002 */ byte          pad_2[2];
-    /* 0x004 */ s16           field_4;
-    /* 0x006 */ s16           field_6;
-    /* 0x008 */ byte          pad_8[0x52];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ byte pad_2[2];
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ union {
+        s16  field_8;
+        byte pad_8[0x52];
+    } state;
     /* 0x05A */ u16           field_5A;
     /* 0x05C */ byte          pad_5C[0xC];
     /* 0x068 */ u16           field_68;
@@ -142,7 +145,7 @@ void Actor00100_Fn09310(Actor00100* arg0);
 extern u32 Gp_LcgState;
 
 void Actor00100_Fn04270(Actor00100* argx);
-void Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
+s32  Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 void Actor00100_Fn02788(Actor00100* arg0);
 void Actor00100_Fn0B658(Actor00100* arg0);
 s32  Actor00100_Fn0B264(Task* task);

@@ -71141,3 +71141,18 @@ A permuter z temporary raised distance691 to326; controlled base_4 reproduced it
 Separately, a soft pointer helper inside the successor sank past calls and swapped s0/s1. A volatile helper there preserved the lifetime while letting dbr pull the preceding pointer copy into the entry branch delay. An entry-block asm prevents that search (reorg.c stop_search_p). This is a demonstrated placement/lifetime interaction, not a rule that volatile helpers always improve scheduling.
 
 Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Inputs base_3.i 4b50f3f299c2bd79084853a841bde75073483997086f6f4c04d99a9da06d0b76; base_4.i b4122c5f15b0e85e46c504c29a9dc71623c3908a58af8f15fa752188c936281c. Retained plans, dumps and notes: tools/permuter_findings/Actor00100_Fn06398/. Primary discovery supported; alternate seeds not investigated.
+
+## Adjacent branch labels must all precede an inserted load-delay nop (Actor00100_Fn06C10)
+
+The unpinned inline-helper reconstruction reached 99.987% with only four branch
+penalties. GCC's `.dbr` and `.s` placed `$L47` through `$L51` consecutively between
+`lw v0,44(s3)` and `lw v0,8(v0)`. maspsx moved only the first label before its
+inserted load-delay nop, leaving four aliases one instruction late. Keeping all
+adjacent branch aliases before the nop gives 100% without a C change. The fix and
+regression are retained in `tools/maspsx-label-load-nop.patch`; 138 maspsx tests
+passed. This is assembler expansion, not a reason to change GCC control flow.
+
+Evidence: `nonmatchings/Actor00100_Fn06C10-vacuum/base_3.{s,i.dbr}` (UIDs 688/690,
+labels 47–51), `base_3_diff`, and matching `base_4.c`. Preprocessed SHA256:
+`94ba33b3effcb329a20074a0f470bad44a94ce927b1dc64dbc953f8110b07476`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

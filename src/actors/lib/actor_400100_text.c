@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_400100.h"
+#include "actors/actor_400100_motion.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -73,14 +74,14 @@ void Actor00100_Fn02788(Actor00100* arg0)
             TOUCH_REG(seekWork);
             seekIndex = 1;
             table     = (u32)&Actor00100_D1B6D0;
-            seekSlot  = &work->pad_8[0x20];
+            seekSlot  = &work->state.pad_8[0x20];
             do {
                 seekSlotIndex  = seekIndex;
                 seekSlot[0x39] = (u8)seekWork->field_832;
                 animation      = (s16)seekWork->field_82E;
                 seekSlot      += 0x28;
                 index          = seekWork->field_82C * 0x19;
-                func_800B4114(&seekWork->pad_8[0x14], seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+                func_800B4114(&seekWork->state.pad_8[0x14], seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
             seekWork->field_82C = (s16)seekWork->field_82E;
@@ -92,12 +93,12 @@ void Actor00100_Fn02788(Actor00100* arg0)
         resetWork = work;
         TOUCH_REG(resetWork);
         resetIndex = 1;
-        resetSlot  = &work->pad_8[0x20];
+        resetSlot  = &work->state.pad_8[0x20];
         do {
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
             resetSlot      += 0x28;
-            Gp_AnimResetSlot((GpAnimCtx*)&resetWork->pad_8[0x14], resetSlotIndex, (s32)(s16)resetWork->field_82E);
+            Gp_AnimResetSlot((GpAnimCtx*)&resetWork->state.pad_8[0x14], resetSlotIndex, (s32)(s16)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
         resetWork->field_82C = (s16)resetWork->field_82E;
@@ -108,7 +109,7 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if (work->field_836 == 2) {
         secondaryWork  = arg0->field_1C;
         secondaryIndex = 1;
-        secondarySlot  = &secondaryWork->pad_8[0x20];
+        secondarySlot  = &secondaryWork->state.pad_8[0x20];
         do {
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
@@ -122,11 +123,11 @@ void Actor00100_Fn02788(Actor00100* arg0)
     if ((s16)work->field_82A == 0) {
         tickWork  = arg0->field_1C;
         tickIndex = 1;
-        tickSlot  = &tickWork->pad_8[0x20];
+        tickSlot  = &tickWork->state.pad_8[0x20];
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
-            Gp_AnimTickIndex((GpAnimCtx*)&tickWork->pad_8[0x14], tickSlotIndex);
+            Gp_AnimTickIndex((GpAnimCtx*)&tickWork->state.pad_8[0x14], tickSlotIndex);
             tickSlot  += 0x28;
             tickIndex += 1;
         } while (tickIndex < 0x12);
@@ -534,7 +535,59 @@ void Actor00100_Fn06398(Actor00100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn06654);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn06C10);
+void Actor00100_Fn06C10(Actor00100* arg0)
+{
+    Actor00100Work* work;
+    TmdObject*      obj;
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                      = arg0->field_2C;
+        arg0->field_20->field_14 = 0;
+        obj->field_C             = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 6;
+        work->field_82A        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+        work->field_6                  = 0;
+        work->state.field_8            = 0;
+        work->objs[3].field_20.field_C = -0x2D0;
+    }
+    work->field_6 += 1;
+    Actor00100_Fn02788(arg0);
+    if (work->field_68 & 0x100) {
+        work->field_0 = 0x26;
+    }
+    if (((u32)((work->field_5A & 0x3FF) - 6) < 8U) && (work->state.field_8 < 5)) {
+        if (Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5) != 0) {
+            work->state.field_8 = (s16)((u16)work->state.field_8 + 1);
+        }
+        switch (work->field_5A & 0x3FF) {
+            case 12:
+                Actor00100_MoveForward(arg0->field_2C->field_8, -60);
+                break;
+            case 13:
+                Actor00100_MoveForward(arg0->field_2C->field_8, -30);
+                break;
+            case 14:
+                Actor00100_MoveForward(arg0->field_2C->field_8, -15);
+                break;
+            default:
+                if (Actor00100_HasRecord10(arg0)) {
+                    Actor00100_MoveForward(arg0->field_2C->field_8, -85);
+                } else {
+                    Actor00100_MoveForward(arg0->field_2C->field_8, -120);
+                }
+                break;
+        }
+    } else {
+        Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5);
+    }
+    arg0->field_2C->field_8->flg = 0;
+}
 
 void Actor00100_Fn070DC(Actor00100* arg0)
 {

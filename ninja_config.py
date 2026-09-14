@@ -282,7 +282,23 @@ def _ensure_maspsx_patch() -> None:
         )
 
 
+def _ensure_maspsx_label_patch() -> None:
+    """Keep adjacent GCC branch labels together before a load-delay nop."""
+    import subprocess
+
+    sub = TOOLS_DIR / "maspsx"
+    patch = (TOOLS_DIR / "maspsx-label-load-nop.patch").resolve()
+    marker = sub / "maspsx" / "__init__.py"
+    if not patch.is_file() or not marker.is_file():
+        return
+    if "Keep all aliases on the load-delay nop" in marker.read_text():
+        return
+    subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
+    print(f"Applied {patch.name} to tools/maspsx")
+
+
 _ensure_maspsx_patch()
+_ensure_maspsx_label_patch()
 match PLATFORM:
     case Platform.Windows:
         BINUTILS_DIR = OS_DIR / "binutils"
