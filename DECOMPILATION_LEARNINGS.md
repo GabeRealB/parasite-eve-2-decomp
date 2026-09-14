@@ -71277,3 +71277,30 @@ base_7.i c4d1b2198f2caa3161378da1fbcf0a08969e485daaef3da0edb0ab94f5120888;
 base_9.i ee17c43fb2337afe32be0315f4f95a889a8d97ea8a4acfd7f02ec4f8ab7219b2.
 Retained evidence: tools/permuter_findings/Actor00100_Fn04864/, run
 25dd15a72c314f18, PERMUTER_ANALYSIS.md and controlled dumps.
+
+
+## Early signed-byte promotion preserves pan across the depth call (Actor00100_Fn09724)
+
+The permuter widened an s8 pan into an s32 temporary before Gp_GetObjDepth.
+A controlled normal-header variant reproduced the whole gain (distance
+1607 -> 1227) with just `s32 pan = (s8)Gp_GetObjPan(...)`; the winner's
+chained zero stores were unnecessary. The original s8 local was widened
+only in the later SndEvt_EnqueueType6 argument expression.
+
+base_2 .rtl UIDs 278/279 perform the left/right shifts into SI pseudo 102
+before depth call UID286. In .sched2 the shifts use s1, and .dbr puts the
+arithmetic right shift into that call's delay slot. This removes the raw
+result copy and late conversion. It is an expansion/use-timing change,
+not evidence that naming a temporary universally changes allocator rank.
+The signed-byte value passed to the sound call is preserved.
+
+An independent typed inline scale helper then reached 100%; its scratch
+MEM addresses remain absolute constants and the outer scratch-address
+pseudo loses its call crossings. This latter edit also changes MEM typing,
+so it does not isolate every scale-tail scheduling effect.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base_1.i `9cdbb7e1a00be921e04c88f840c9a70cec28a5d5c155c4710b8446898315629e`; base_2.i `7f649767cfaa657fbe7446b1bee52effdf2c4484d203911c93739ff3f6e0bf97`.
+Evidence: `tools/permuter_findings/Actor00100_Fn09724/`, session
+`7eaf305296e94245a8dfe921d38fa669`; controlled base_2 plan/build,
+`.rtl/.sched2/.dbr`, and `PERMUTER_ANALYSIS.md`.

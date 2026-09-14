@@ -1936,7 +1936,69 @@ void Actor00100_Fn09310(Actor00100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn09724);
+void Actor00100_Fn09724(Actor00100* arg0)
+{
+    Actor00100Ctx*  ctx;
+    Actor00100Work* work;
+    TmdObject*      obj;
+    s16             timer;
+    s16             state;
+    s32             sound;
+    s32             pan;
+
+    work                   = arg0->field_1C;
+    *(s32*)G_SCRATCH_HEAD -= 0x10;
+    ctx                    = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj           = arg0->field_2C;
+        ctx->field_14 = 0;
+        obj->field_C  = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 3;
+        work->field_82A        = 0;
+        work->field_6          = 0;
+        work->field_840        = 0;
+        work->field_844        = 0;
+        work->field_83E        = 0;
+        work->field_842        = 0;
+        work->objs[2].flags   &= 0xBFFF;
+        work->field_832        = work->field_834;
+        func_801811C4(0x7D0);
+    }
+    work->field_6 += 1;
+    Actor00100_Fn02788(arg0);
+    state = work->field_82E;
+    switch (state) {
+        case 3:
+            timer = (s16)work->field_6;
+            if (timer < 0x1E) {
+                Actor00100_ScaleTransform(&work->field_BA0, (timer << 12) / 30);
+            } else {
+                work->field_82E = 0xD;
+                work->field_828 = 1;
+                work->field_6   = 0;
+                sound           = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010010;
+                pan             = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+                SndEvt_EnqueueType6(sound, (s32)pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+            }
+            Actor00100_MoveForward(arg0->field_2C->field_8, 200);
+            break;
+        case 13:
+            if ((s16)work->field_6 <= ((s16)work->field_834 * 17) / 16) {
+                Actor00100_MoveForwardNonzero(arg0->field_2C->field_8, ((s16)work->field_834 * 2000) / 272);
+            } else if ((s16)work->field_6 <= ((s16)work->field_834 * 25) / 16) {
+                Actor00100_MoveForwardNonzero(arg0->field_2C->field_8, ((s16)work->field_834 * 1000) / 192);
+            }
+            if (work->field_68 & 0x100) {
+                work->field_0 = 0x26;
+            }
+            break;
+    }
+    *(s32*)G_SCRATCH_HEAD       += 0x10;
+    arg0->field_2C->field_8->flg = 0;
+}
 
 void Actor00100_Fn09CCC(Actor00100* arg0)
 {

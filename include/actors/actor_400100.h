@@ -72,7 +72,9 @@ typedef struct Actor00100Work {
     /* 0x8EA */ byte                   field_8EA;
     /* 0x8EB */ byte                   pad_8EB[0x1D];
     /* 0x908 */ Actor00100Obj          objs[4];
-    /* 0xB68 */ byte                   pad_B68[0x78];
+    /* 0xB68 */ byte                   pad_B68[0x38];
+    /* 0xBA0 */ MATRIX                 field_BA0;
+    /* 0xBC0 */ byte                   pad_BC0[0x20];
     /* 0xBE0 */ s16                    field_BE0;
     /* 0xBE2 */ byte                   pad_BE2[2];
     /* 0xBE4 */ u16                    field_BE4;
