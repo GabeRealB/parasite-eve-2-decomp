@@ -20,7 +20,28 @@ extern TaskDesc D_80182834;
 
 extern s8 D_8007272D;
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_3", func_actor_335800_80162E8C);
+void func_actor_335800_80162E8C(Task* task)
+{
+    Task*          parent;
+    s32            part;
+    TmdObject*     extra;
+    TmdObject*     parentExtra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* dest;
+
+    parent          = (Task*)task->spawnArg2;
+    part            = task->spawnArg1;
+    extra           = (TmdObject*)task->extra;
+    parentExtra     = (TmdObject*)parent->extra;
+    coord           = extra->field_8;
+    dest            = &parentExtra->field_8[part];
+    coord->flg      = 0;
+    coord->sub      = dest;
+    extra->field_1C = parentExtra->field_1C;
+    extra->field_20 = parentExtra->field_20;
+    Task_Reparent(parent, task);
+    task->state += 1;
+}
 
 void func_actor_335800_80162F08(void)
 {
