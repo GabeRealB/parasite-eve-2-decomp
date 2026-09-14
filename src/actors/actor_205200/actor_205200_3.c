@@ -2,7 +2,19 @@
 
 #include "actors/actor_205200.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_3", func_actor_205200_8014C8D4);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+void func_actor_205200_8014C8D4(Actor205200* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR3        vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x180, 0x80);
+}
 
 void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1)
 {

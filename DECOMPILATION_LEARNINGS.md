@@ -76461,3 +76461,63 @@ dispatcher `func_actor_335800_80163B78` copies the four-entry table
 twin with the overlay's *table* before writing the fields: the counter, the
 `VECTOR3 step` `ApplyMatrixLV` writes and the `SVECTOR limit` it opens are three
 offsets, and only the dispatcher says which is the state.
+
+## m2c's separate `s32 spN` locals for one aggregate lose every store but the address-taken one
+
+**Problem.** `func_actor_205200_8014C8D4` seeded at 67.750% with
+`regs=9 delete=6 stack=0`. m2c had read an aggregate local as three scalars —
+`s32 sp10; s32 sp14; s32 sp18;` with `Gp_DrawEffGroundQuad(&sp10, 0x180, 0x80)`
+— so the source had all three field reads and all three writes, and the target
+has all three. The object had one.
+
+**Symptom.** The frame is 0x20 where the target's is 0x28, and exactly the
+load/store pairs m2c wrote for the two members that are never read afterwards
+are missing:
+
+```
+target                              base (m2c seed)
+lw    v0,0x38(v1)                   lw    v0,0x38(v0)
+lw    v0,0x3c(v1)                   --
+lw    v0,0x40(v1)                   --
+sw    v0,0x10(sp)                   sw    v0,0x10(sp)
+sw    v0,0x14(sp)                   --
+sw    v0,0x18(sp)                   --
+```
+
+Nothing at C level is wrong; the seed compiles and the statement is there.
+
+**Why.** Before reload, a local whose *address is not taken* is still an SImode
+pseudo, and a store into a pseudo that no later insn reads is deleted by
+`flow.c`'s `insn_dead_p` (`local/gcc/gcc-2.8.1-psx/flow.c`): the `SET`'s
+destination is a `REG`, `REGNO_REG_SET_P (needed, regno)` is false, so the
+store goes — and the load feeding it with it. Only `sp10` was address-taken, so
+only `sp10` was a `MEM` from the start (`GET_CODE (r) == MEM` is not dead
+unless it repeats `last_mem_set`), and only its store survived. The frame then
+shrinks to hold the one slot that is left.
+
+**Fix.** Declare the aggregate the original declared and pass *its* address, so
+the escape covers every member at once:
+
+```c
+    GsCOORDINATE2* coord;
+    VECTOR3        vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x180, 0x80);
+```
+
+**Generalisation.** "The seed writes it and the object does not" is a real
+failure mode, not a diff artefact, and the cause is the *escape set*, not the
+statement list — an `s32 spN` m2c split is only equivalent to the original
+aggregate when every split member is read after the call. Read the shape-`1.00`
+sibling's C before editing: `func_actor_105100_80136524` in `actor_105100_2.c`
+is this body instruction for instruction, differing only in the `addiu a1`
+constant (0x9C4 vs 0x180), and `overlay_dup_index.py find` does *not* report it
+(equality is on disassembly text, and the immediate differs) — BRIEF.md's
+`shape`/`fields` list from `similar` is what surfaces it.
+
+`base_1.c` (100%; preprocessed
+`87bfaa16da4b052d859d5adb52c8603d5f192199f2dbca60563a86d7a3ee9797`).
