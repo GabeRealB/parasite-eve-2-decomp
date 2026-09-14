@@ -76571,3 +76571,59 @@ The `(s16)` on the u16 temp is what yields `sll $v0,$v0,16` + `bgtz`; an unsigne
 needed no `sll` at all. Generalisation: when a target's load width disagrees with
 the header's type, look for a matched sibling touching the same offset — which
 way *it* loads tells you whether the header is wrong or the source cast.
+
+## A literal stored into a narrow field cannot share the `switch` case constant's `li`
+
+`func_actor_800300_80162F24` sat at 96.633% with `branch=1 insert=1`: one extra
+`li v0,1` between the dispatch and the store, with topology, calls and
+predicates already matching. The dispatch's `1` and the stored `1` are the same
+value but not the same pseudo.
+
+```
+target                     base (m2c: `field_95E = 1`)
+beqz  v1,.L5C              beqz  v1,.L5C
+ addiu v0,zero,1            addiu v0,zero,1
+beq   v1,v0,.L70           beq   v1,v0,.L70
+j     .L88                 j     .L88
+.L5C:                      .L5C:
+sh    v0,0x95E(a0)         li    v0,1        <- extra
+                           sh    v0,0x95E(a0)
+```
+
+Storing the literal widens nothing: `= 1` into a `u16` field expands to a
+**HImode** constant (`(insn 26 (set (reg:HI 85) (const_int 1)))` in `.rtl`)
+feeding `(set (mem:HI) (reg:HI 85))`, while the case-1 comparison materialises
+its own **SImode** constant during expansion (`(insn 61 (set (reg:SI 89)
+(const_int 1)))`, right before the `beq`). Two pseudos of different modes never
+merge, so neither set can be deleted: `dbr` threads the compare's set into the
+`beqz` delay slot, and the arm's `li` survives next to the store.
+
+Store through an `s32` local instead — the idiom the already-matched gameplay
+sibling `Gp_PlayerMode2State7` uses for the same `field_95E`:
+
+```c
+s32 flag;
+...
+case 0:
+    flag             = 1;
+    actor->field_95E = flag;
+```
+
+The arm's set is now SImode and the store becomes
+`(set (mem/s:HI (...)) (subreg:HI (reg/v:SI 84) 0))` — the low half of the
+*same-width* pseudo as the compare's constant. Global-alloc homes both in
+`$v0` (`.greg`: `(reg:SI 2 v0)` and `(reg/v:SI 2 v0)`), and once `dbr` moves
+the compare's set into the `beqz` delay slot it dominates both uses, so the
+arm's copy is dead and the pass deletes it. 100% on the first build.
+
+The rule: a `li` that a delay slot already materialises is reusable only if the
+value's later user reads the same pseudo. Widening the *store* through an `s32`
+temp is the fix; a `u16` temp or the bare literal cannot be shared, and the
+penalty mix (`insert=1`, `regs=0`) does not hint at width. Related to the
+`else-if` store / delay-slot `li` entry above, which is the same reuse without
+the mode dimension.
+
+Inputs: `base.i` (literal `= 1`, 96.633%)
+`262e9d43f569f22439d7e49700730c031098cb8612d685c86e144ffc6511ac65`,
+`base_1.i` (`s32 flag`, 100.000%)
+`2652e4e220be62a919d6fb1ec5473af3172794600048b36183c5cd3c3677d15b`.
