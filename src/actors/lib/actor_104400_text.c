@@ -460,7 +460,18 @@ void Actor04400_Fn07878(Task* arg0)
     work->field_422 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07890);
+void Actor04400_Fn07890(Task* arg0)
+{
+    Actor104400Work* work;
+    u16              ticks;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 2) {
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 void Actor04400_Fn078D4(Task* arg0)
 {
