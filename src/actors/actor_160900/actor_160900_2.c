@@ -7,7 +7,21 @@
 
 #include "actors/actor_160900.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900_2", func_actor_160900_80134710);
+void func_actor_160900_80134710(void)
+{
+    Actor160900Work* work;
+    Task*            task;
+    s16              i;
+
+    work = (Actor160900Work*)D_actor_160900_8013FBB4->idMap;
+    for (i = 0; i < 10; i++) {
+        task = work->field_C[i];
+        if (task != NULL) {
+            Task_Kill(task);
+            work->field_C[i] = NULL;
+        }
+    }
+}
 void func_actor_160900_80134790(s16 arg0)
 {
     Actor160900Work* work;
