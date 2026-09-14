@@ -37128,6 +37128,15 @@ indexed: all 914 matched actor functions are present, `WeaponsShared*` names
 included. A `same body: 1 copies` answer means something narrower and more
 useful.
 
+Both counts include the queried function itself: `same_src` / `same_bytes` are
+the two classes the hit belongs to, and the loop marks the hit's own row `=`
+unconditionally. So the `1` in `same body: 1 copies` is the query, and
+`identical bytes: 1` with the only `=` on the queried name means *no other* copy
+is byte-identical. `func_actor_361100_80163670` printed `same body: 2 copies
+identical bytes: 1`, itself `=` and its twin - the immediately preceding match -
+`~` at a different link offset. The `~` row is the port: the twin's matched C
+body copied verbatim scored 100.00 with every penalty zero on the first build.
+
 Equivalence is exact disassembly *text*, so a twin that differs only in its data
 symbols is not a copy. `func_kyle_800102_80167A84` and `WeaponsShared8011d3a0`
 are both 215 instructions of the same routine on the same 0xA0 work block and
