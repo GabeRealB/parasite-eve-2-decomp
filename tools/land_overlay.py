@@ -114,6 +114,43 @@ def git(*args: str) -> str:
     return r.stdout
 
 
+def dirty_paths() -> set[str]:
+    """Every path git reports as changed, staged or not, tracked or not."""
+    return {l[3:].strip().strip('"')
+            for l in git("status", "--porcelain").splitlines() if l.strip()}
+
+
+def roll_back(before: set[str]) -> None:
+    """Undo everything this run wrote, leaving trunk as it found it.
+
+    A rewrite that dies partway used to leave its half-copied files sitting
+    uncommitted in trunk, and that debris blocks *every* lane, not just the one
+    that failed: this script refuses on a dirty src/include tree, and git
+    refuses to cherry-pick over it. So one bad landing stalled all landings
+    until a human cleaned up - which is how actor_400100_text, actor_215100 and
+    actor_136100 stranded 61 verified matches between them in one morning, the
+    last two purely because the first one's debris was still there.
+
+    Only paths this run introduced are touched; anything already dirty when we
+    started is left alone. Commits stage 2 already made are deliberately left
+    too - those are landed matches, not debris.
+    """
+    new = sorted(dirty_paths() - before)
+    if not new:
+        return
+    tracked, untracked = [], []
+    for rel in new:
+        (tracked if git("ls-files", "--", rel).strip() else untracked).append(rel)
+    if tracked:
+        git("checkout", "--", *tracked)
+    for rel in untracked:
+        f = ROOT / rel
+        if f.is_file():
+            f.unlink()
+    print(f"  rolled back {len(new)} path(s) written before the failure",
+          file=sys.stderr)
+
+
 def require_lease(overlay: str, skip: bool) -> None:
     """Refuse to land an overlay nobody holds the lease on.
 
@@ -180,10 +217,31 @@ def main() -> int:
     if git("status", "--porcelain", "--", "src", "include").strip():
         raise SystemExit("trunk has uncommitted src/include changes; refusing")
 
+    before = dirty_paths()
+    try:
+        return _apply(args, wt, funcs)
+    except BaseException:
+        roll_back(before)
+        raise
+
+
+def _apply(args, wt: Path, funcs: list[str]) -> int:
     base_rev = args.base
     extras = [e.strip() for e in args.extra.split(",") if e.strip()]
     for e in extras:
         src, dst = wt / e, ROOT / e
+        if not src.exists():
+            # The merged manifest can name a unit this worktree never
+            # materialised: splat only *creates* a unit file that is missing and
+            # never rewrites one that exists, so a second tree handed the same
+            # manifest does not follow. actor_215100's landing died here as a
+            # bare FileNotFoundError on actor_160700_5.c.
+            raise SystemExit(
+                f"{e}: not present in the worktree ({src}).\n"
+                "This is the segmentation mismatch CLAUDE.md describes - trunk "
+                "cannot be re-split to match a promotion's renumbered units. "
+                "Replay the worktree's own commits instead; see CAN_REPLAY in "
+                "vacuum_overlay.sh.")
         dst.parent.mkdir(parents=True, exist_ok=True)
         if dst.is_file() and e.endswith("difficult_functions"):
             # Line-based and append-only, like the learnings file: two overlay
@@ -256,8 +314,12 @@ def main() -> int:
         r = subprocess.run([sys.executable, "ninja_config.py", "--only", args.overlay],
                            cwd=ROOT, capture_output=True, text=True)
         if r.returncode != 0:
+            # ninja_config.py reports on stdout, so quoting only stderr printed
+            # a bare "re-split ... failed:" and nothing else - which is what
+            # made actor_400100_text's landing failure undiagnosable.
+            detail = (r.stdout + r.stderr).strip() or f"exit {r.returncode}, no output"
             raise SystemExit("re-split after the manifest merge failed:\n"
-                             + r.stderr[-2000:])
+                             + detail[-2000:])
 
     # Which trunk file holds each function, and where its final body lives.
     # A shared unit is named "<family>/lib/<unit>", but <unit> is a *file*

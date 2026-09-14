@@ -385,10 +385,17 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
         land_model="${VACUUM_LAND_MODEL-${VACUUM_MODEL:-}}"
         [[ -n "${VACUUM_LAND_LAUNCH:-}" ]] && land_model=""
         log "drift landing agent, model ${land_model:-default}"
-        "${land_cmd[@]}" -p ${land_model:+--model "$land_model"} \
+        # Cap it. The agent holds the global merge lock for its whole run, so
+        # one that stops converging stalls every other lane's landing behind it:
+        # actor_105700's held the lock 51 minutes with a queue behind it. The
+        # cap is generous because a legitimate 20-file reconcile is slow; it
+        # exists to bound a hang, not to hurry a working agent.
+        timeout --signal=TERM --kill-after=60 "${VACUUM_LAND_TIMEOUT:-5400}" \
+            "${land_cmd[@]}" -p ${land_model:+--model "$land_model"} \
             --verbose --output-format stream-json --dangerously-skip-permissions \
             "$port_prompt" >>"$LOG_FILE" 2>&1
         rc=$?
+        [[ $rc -eq 124 ]] && log "landing agent hit the ${VACUUM_LAND_TIMEOUT:-5400}s cap"
         log "port agent finished (rc=$rc)"
 
         # Do NOT re-verify here. The agent already ran an unscoped build while
@@ -466,12 +473,45 @@ if git merge-base --is-ancestor "$BASE" HEAD 2>/dev/null; then
     fi
 fi
 
+# Replay the branch, resolving the one conflict class that is not a real
+# disagreement. The manifest is one line per overlay and git resolves by hunk,
+# so a commit editing actor_400100 conflicts with a trunk that edited
+# actor_161500 two lines above it. Aborting there sent the landing to the file
+# rewrite, which is the path that cannot survive a promotion's renumbered units
+# - three overlays stranded 61 verified matches in one morning that way, and
+# every one of those conflicts was this shape. tools/resolve_manifest.py
+# decides each entry against the picked commit's own parent and refuses (exit 2)
+# only when both sides really changed the same overlay.
+replay_branch() {                       # $1 = range, returns 0 if fully replayed
+    local range="$1" rc
+    git cherry-pick "$range" >>"$LOG_FILE" 2>&1 && return 0
+    while :; do
+        local unmerged
+        unmerged=$(git diff --name-only --diff-filter=U)
+        if [[ "$unmerged" != "configs/USA/overlays.toml" ]]; then
+            [[ -n "$unmerged" ]] && log "replay conflict outside the manifest: $unmerged"
+            break
+        fi
+        python3 "$ROOT/tools/resolve_manifest.py" --root "$ROOT" >>"$LOG_FILE" 2>&1
+        rc=$?
+        if [[ $rc -ne 0 ]]; then
+            log "manifest conflict needs a human (resolve_manifest rc=$rc)"
+            break
+        fi
+        git add configs/USA/overlays.toml
+        if GIT_EDITOR=true git cherry-pick --continue >>"$LOG_FILE" 2>&1; then
+            return 0
+        fi
+    done
+    git cherry-pick --abort >/dev/null 2>&1 || true
+    return 1
+}
+
 if [[ "$CAN_REPLAY" == true ]]; then
     log "replaying $(git rev-list --count "$BASE".."$BRANCH_NAME") commit(s) from $BRANCH_NAME"
-    if git cherry-pick "$BASE".."$BRANCH_NAME" >>"$LOG_FILE" 2>&1; then
+    if replay_branch "$BASE".."$BRANCH_NAME"; then
         log "replayed cleanly"
     else
-        git cherry-pick --abort >/dev/null 2>&1 || true
         log "replay failed; falling back to the file rewrite"
         CAN_REPLAY=false
     fi
@@ -491,7 +531,7 @@ if [[ "$CAN_REPLAY" != true ]] \
     # promotion causes, and it keeps each commit's attempt count. If the picks
     # conflict it aborts and changes nothing.
     log "file rewrite failed; trying to replay $BRANCH_NAME"
-    if git cherry-pick "$BASE".."$BRANCH_NAME" >>"$LOG_FILE" 2>&1; then
+    if replay_branch "$BASE".."$BRANCH_NAME"; then
         log "replayed cleanly after the rewrite failed"
     else
         git cherry-pick --abort >/dev/null 2>&1 || true
