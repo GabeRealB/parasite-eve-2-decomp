@@ -71156,3 +71156,37 @@ Evidence: `nonmatchings/Actor00100_Fn06C10-vacuum/base_3.{s,i.dbr}` (UIDs 688/69
 labels 47–51), `base_3_diff`, and matching `base_4.c`. Preprocessed SHA256:
 `94ba33b3effcb329a20074a0f470bad44a94ce927b1dc64dbc953f8110b07476`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Actor00100_Fn061FC: cross-block constant initialization sinks before local allocation
+
+The literal radius argument in `Actor00100_OutsideRadius(&delta, 1000)` left
+its parameter in one basic block, with two references across eight instructions.
+The permuter introduced `s32 radius = 1000` before an earlier branch and passed
+that local to the helper. The normalized pair improved from distance 232 to 0.
+The existing position-delta and radius helpers remain unchanged.
+
+In the winning `.sched`, radius r81/UID14 is still in the entry block. In
+`.lreg`, UID232 defines it immediately before its single radius-store use,
+with refs/span 2/2. Patched GCC 2.8.1 `local-alloc.c:update_equiv_regs`
+(lines 1226–1268) attempts to substitute a single-use equivalent value; when
+substitution fails and the definition spans blocks outside a loop, it moves
+the definition immediately before the use and resets the live length to 2.
+The nonzero immediate cannot directly serve as the MIPS store's register operand.
+
+A controlled prediction moved the initialization to the block after the early
+return, still before the branch guarding the helper. Candidate base_6 retained
+the sink (UID80 in `.sched` becomes UID233 before store157 in `.lreg`) and
+scored 100%. The final homes were radius v1, scratch pointer a0, head a1,
+products v1/v1/a2, with the vector a2 and x delta a3 preserved. Header/style
+port base_7 also scored 100%. This establishes the sinking mechanism and its
+useful transformation here; actual local quantity rankings and reload-CSE
+choices were not traced and are not inferred from per-pseudo priority ratios.
+
+Evidence is retained under
+`tools/permuter_findings/Actor00100_Fn061FC/`; session
+`33ed54d3792d4c088c7e37494c0e3076`, search run `42813954b43746c8`.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+base_perm_42813954b43746c8.i SHA256: `996e3396b578910ce04089708f8d4709b4b13667a8b52724f11a7d410d0d5e01`.
+
+base_6.i SHA256: `a3c99af57dc06762d946df742867c8df18b8097702d162a5c438de9ad9c1a360`.

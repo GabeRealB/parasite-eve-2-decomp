@@ -255,7 +255,37 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn04864);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0503C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn061FC);
+void Actor00100_Fn061FC(Actor00100* arg0)
+{
+    s32             radius;
+    SVECTOR         delta;
+    Actor00100Work* work;
+    TmdObject*      obj;
+    s32             outside;
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                      = arg0->field_2C;
+        arg0->field_20->field_14 = 0;
+        obj->field_C             = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 4;
+        work->field_82A        = 0;
+        work->field_BE4        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+        return;
+    }
+    radius = 1000;
+    Actor00100_Fn02788(arg0);
+    Actor00100_PositionDelta(arg0->field_2C->field_8, &delta);
+    if (work->field_68 & 0x100) {
+        outside       = Actor00100_OutsideRadius(&delta, radius);
+        work->field_0 = outside == 0 ? 0x1F : 0x26;
+    }
+}
 
 void Actor00100_Fn06398(Actor00100* arg0)
 {
