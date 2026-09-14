@@ -41236,6 +41236,16 @@ const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
 `const` matters - a non-const initialised array lands in `.data`, not
 `.rodata`.
 
+Either fix leaves the old `.s` on disk, because splat emits `.s` under
+`nonmatchings/` only for functions the sources still pull in with `INCLUDE_ASM`,
+and it never rewrites a file that is already there. So replacing an
+`INCLUDE_ASM` with C leaves that function's `.s` behind at its old mtime - still
+carrying the migrated `.rodata` even after `force_not_migration` has given the
+block a file of its own - and the next split does not delete it. Nothing breaks,
+since an unreferenced `.s` is never assembled, but deleting it once brings the
+tree back to what a fresh split produces and removes a duplicate `dlabel` for a
+later `INCLUDE_ASM` to trip over.
+
 ## A compiler-generated jump table is `.align 3`, so it cannot follow other rodata in the same object
 
 GCC 2.8.1 emits `.rdata / .align 3` before a switch jump table. If the unit's

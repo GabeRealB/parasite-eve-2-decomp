@@ -3,13 +3,22 @@
 #include "actors/actor_141000.h"
 #include "actors/actors_shared_80162850.h"
 
+#include "gameplay/3CD8.h"
+
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern s32 D_80070F70;
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_141000_80131E30;
+
+/// The controller's four animation states, dispatched through by the
+/// controller work block's `state` halfword.
+extern TaskFuncTable4 D_actor_141000_80131E3C;
 
 /// The descriptor table the controller spawns from: index 1 is the task this
 /// state spawns and index 2 the model actor `func_actor_141000_80132EF4`
@@ -25,6 +34,8 @@ INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_8
 INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E30);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E3C);
 
 void func_actor_141000_80132C24(Task* task)
 {
@@ -65,4 +76,23 @@ void func_actor_141000_80132C7C(Task* task)
     task->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000", func_actor_141000_80132D3C);
+/// Per-frame state of the overlay's controller task: copies the four animation
+/// handlers onto the stack and runs the one the controller work block's `state`
+/// halfword selects, sign-extended. A pending effect bit spawns the controller's
+/// effect through the model's root coordinate, and the session's teardown flag
+/// kills the task instead of letting it tick again.
+void func_actor_141000_80132D3C(Task* task)
+{
+    Actor141000CtrlWork* work;
+    TaskFuncTable4       sp;
+
+    work = (Actor141000CtrlWork*)task->idMap;
+    sp   = D_actor_141000_80131E3C;
+    sp.funcs[(s16)work->state](task);
+    if (D_80070F70 & 1) {
+        Gp_SpawnEff(0x60070, (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8, 0x24200, NULL);
+    }
+    if (Game_Session->field_4D != 0) {
+        Task_Kill(task);
+    }
+}
