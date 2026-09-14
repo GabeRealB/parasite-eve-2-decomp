@@ -67,9 +67,12 @@ typedef struct Actor104400Work {
     /* 0x43A */ s16              field_43A; // distance to the nearer player actor
     /* 0x43C */ byte             pad_43C[0x4];
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
-    /* 0x442 */ byte             pad_442[0x6];
+    /* 0x442 */ byte             pad_442[0x2];
+    /* 0x444 */ u16              field_444; // heading to the nearer player actor, relative to field_7A
+    /* 0x446 */ byte             pad_446[0x2];
     /* 0x448 */ s16              field_448;
-    /* 0x44A */ byte             pad_44A[0x5];
+    /* 0x44A */ s16              field_44A;
+    /* 0x44C */ byte             pad_44C[0x3];
     /* 0x44F */ u8               field_44F;
     /* 0x450 */ byte             pad_450[0x4];
 } Actor104400Work;

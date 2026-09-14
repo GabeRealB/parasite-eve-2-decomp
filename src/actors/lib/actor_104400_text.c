@@ -16,7 +16,9 @@ void Actor04400_Fn006A8(Task* arg0);
 void Actor04400_Fn02B8C();
 s16  Actor04400_Fn06328(Task* arg0);
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
+s16  Actor04400_Fn065F4(Task* arg0, s32 arg1);
 s16  Actor04400_Fn06618(Task* arg0);
+void Actor04400_Fn067A0(Task* arg0, s32 step);
 void Actor04400_Fn08208(Task* arg0);
 void Actor04400_Fn0823C(Task* arg0);
 
@@ -152,7 +154,57 @@ void Actor04400_Fn01418(Task* arg0)
     work->field_436 = step;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01584);
+void Actor04400_Fn01584(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    s16              dist;
+    s16              limit;
+    s16              step;
+    s16              angle;
+    s16              speed;
+    s32              soundId;
+    s32              pan;
+
+    dist = work->field_43A;
+    if (dist < 1000) {
+        limit = 0x10;
+        step  = 0x10;
+    } else if (dist < 2000) {
+        step  = 0x12;
+        limit = 0x14;
+    } else if (dist < 3000) {
+        step  = 0x14;
+        limit = 0x18;
+    } else if (dist < 4000) {
+        step  = 0x16;
+        limit = 0x1C;
+    } else if (dist < 5000) {
+        limit = 0x20;
+        step  = 0x18;
+    } else {
+        limit = 0x40;
+        step  = 0x20;
+    }
+    if (work->field_41C < limit) {
+        work->field_41C = limit;
+        work->field_436 = step;
+    }
+    Actor04400_Fn067A0(arg0, work->field_436);
+    speed                                           = Actor04400_Fn065F4(arg0, -0x10);
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0001;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (work->field_43A < work->field_410 + 2000 && (work->field_43A < 1500 || work->field_44A == 0) &&
+        (u16)(((work->field_444 + 0x800) & 0xFFF) - 0x200) > 0xC00) {
+        work->field_422++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn017B0);
 
