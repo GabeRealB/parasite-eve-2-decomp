@@ -196,7 +196,39 @@ case1:
     ActorsShared80134700(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014D41C);
+/// Consumes the pending flag bits on the actor's spawn object once the actor
+/// has been set up. Bit 0x1 (the "flag 1" request) is cleared first; bit 0x2
+/// then re-arms the six helper slots - back to state 3 with slot id 1 at weight
+/// 9 and every frame counter reset - and clears itself; bits 0xC (the "flag 4"
+/// request) are cleared last. Nothing happens while the whole byte is zero.
+void func_actor_207200_8014D41C(Task* arg0)
+{
+    GpObj5D*         obj;
+    Actor207200Work* work;
+    u8               flags;
+
+    obj   = arg0->spawnArg2;
+    flags = obj->field_4C;
+    work  = arg0->idMap;
+    if (flags != 0) {
+        if (flags & 1) {
+            obj->field_4C = flags & 0xFE;
+        }
+        if (obj->field_4C & 2) {
+            obj->field_4C   = obj->field_4C & 0xFD;
+            work->field_486 = 3;
+            work->field_48E = 1;
+            work->field_48A = 0;
+            work->field_492 = 0;
+            work->field_48C = 9;
+            work->field_490 = 0;
+        }
+        flags = obj->field_4C;
+        if (flags & 0xC) {
+            obj->field_4C = flags & 0xF3;
+        }
+    }
+}
 
 /// Per-frame tick of the actor's six helper slots, driven by
 /// `work->field_486`. The kill countdown on the task is decremented first and
