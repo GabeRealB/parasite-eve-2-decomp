@@ -29,7 +29,48 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn02664);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn02A50);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03710);
+void Actor01900_Fn03710(Actor01900* arg0)
+{
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+    TmdObject*      obj;
+    s32             step;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        obj->field_C        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_898        = 2;
+        work->field_8A2        = 0x10;
+        work->field_89E        = 0x17;
+        work->field_A08.flags |= 0x4000;
+        do {
+            Actor01900_Fn01C94(arg0);
+        } while ((u32)(work->field_5A & 0x3FF) < 6U);
+        work->field_8A2 = 0x20;
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    step                         = (s16)work->field_8A2 / 2;
+    work->field_8A2              = (u16)step;
+    if (step == 1) {
+        work->field_8A2 = -0x10;
+    }
+    if ((s16)work->field_8A2 == -1) {
+        work->field_8A2 = 0x10;
+    }
+    Actor01900_Fn01C94(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+        enemy->field_4C &= 0xFD;
+        work->field_0    = 0x11;
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x11;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03854);
 
