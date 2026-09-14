@@ -191,7 +191,67 @@ INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200_2", func_actor_402200
 
 INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200_2", func_actor_402200_8013592C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200_2", func_actor_402200_80135A24);
+void func_actor_402200_80135A24(Actor402200* arg0)
+{
+    Actor402200Work*  work;
+    Actor402200Coord* coord;
+    s32               state;
+    s32               snd;
+    s32               pan;
+    s32               frames;
+    s16               timer;
+
+    work  = arg0->field_1C;
+    state = work->field_6CE;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            if (work->field_6D2 == 0) {
+                work->field_6C0 = 0xD;
+                work->field_6CE = 1;
+                work->field_6F0 = 1;
+                work->field_6D4 = 0x42;
+                work->field_490 = -0xA7;
+            } else {
+                work->field_6C0 = 0x11;
+                work->field_6CE = 1;
+                work->field_6F0 = 2;
+                work->field_6D4 = 0x31;
+                work->field_490 = 0x109;
+            }
+            work->field_498  = 0x15E;
+            work->field_714  = 1;
+            work->field_6DA  = 1;
+            work->field_6DC  = 0x14;
+            work->field_6DE  = 0xA;
+            work->field_6F2  = 2;
+            work->field_6C8  = 0;
+            work->field_49A |= 0x4000;
+            work->field_502 &= 0xBFFF;
+            break;
+        case 1:
+            if (work->field_714 == state) {
+                work->field_714 = 2;
+            }
+            frames = 0x19;
+            if (work->field_6F0 == state) {
+                frames = 0x2C;
+            }
+            if (work->field_6C4 == frames) {
+                snd = D_actor_402200_80138420[work->field_712 + 8] | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                arg0->field_30  = 2;
+                work->field_6CE = 0;
+                work->field_6F2 = 0;
+            }
+            break;
+    }
+}
 
 /// Fires the cue pair the work block's `field_712` selects: while the second
 /// animation slot carries `field_3` bit 0x20 or 0x10, a sound is queued on the

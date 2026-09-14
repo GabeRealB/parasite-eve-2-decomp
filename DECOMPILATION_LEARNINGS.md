@@ -1064,6 +1064,75 @@ if (copy.field_F >= 2) {
 
 `func_replay_bonus_80116EC0` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `save->field_92B = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
 
+## sched1 hoists a carried phi to the block head, which moves the cross-jump merge point
+
+The section above covers a phi that cannot be `$v0` at all. This is the other
+half: the phi allocates fine, but *where it sits in its block* decides which
+trailing store cross-jumping merges.
+
+`func_actor_402200_80135A24` state 0 picks one of two slot sets on `field_6D2`.
+Each arm ends with the same `field_6D4` store, and the arms choose between two
+values for a single shared store at the join:
+
+```c
+if (work->field_6D2 == 0) {
+    work->field_6D4 = 0x42;
+    pitch           = -0xA7;
+} else {
+    work->field_6D4 = 0x31;
+    pitch           = 0x109;
+}
+work->field_490 = pitch;
+```
+
+The target resolves the pair at the join, with the losing constant in the
+jump's delay slot:
+
+```
+li    v0, 0x42
+sh    v0, 0x6D4(s2)
+j     .LABC
+ li    v0, -0xA7
+.LABC:
+sh    v0, 0x490(s2)
+```
+
+`pitch` is written at the end of each arm and read at the join, so it has no
+dependence *inside* its arm - and sched1 (`-fschedule_insns`) hoists the
+assignment to the head of the block. `.combine` still shows it last, `.sched`
+already shows it first, and that is the earliest dump where the two differ. At
+the head it no longer separates the arm's trailing `sh v0, 0x6D4`, which now
+becomes the common tail, so the post-reload cross-jump merges *that* store and
+the phi lands in `$v1`:
+
+```
+j     .text+90
+ li    v0, 0x42
+...
+.text+90:
+sh    v0, 0x6D4(s2)
+```
+
+The object comes out two instructions short of the target (109 against 111) and
+the 0x490 store is left standing in the body. This is not a register-allocation
+symptom, so a pin cannot reach it: the diagnosis is the `.combine` -> `.sched`
+move, and the fix is to give each arm its own literal store so the two are the
+arms' last instructions and the cross-jump merges the right one:
+
+```c
+if (work->field_6D2 == 0) {
+    work->field_6D4 = 0x42;
+    work->field_490 = -0xA7;
+} else {
+    work->field_6D4 = 0x31;
+    work->field_490 = 0x109;
+}
+```
+
+This shape - two arms that store different constants to one field and then
+disagree again on a second field - is the actor sequence-body template, so the
+same fix applies wherever a sequence state picks a slot set.
+
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 
 A matched sibling (`func_replay_bonus_80117484`) does

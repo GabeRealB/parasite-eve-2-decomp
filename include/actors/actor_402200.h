@@ -79,20 +79,32 @@ STATIC_ASSERT_SIZEOF(Actor402200Region, 0x10);
 typedef struct Actor402200Work {
     /* 0x000 */ byte       pad_0[0x3C];
     /* 0x03C */ GpAnimSlot field_3C;
-    /* 0x064 */ byte       pad_64[0x430];
+    /* 0x064 */ byte       pad_64[0x42C];
+    /// Halfword the attack sequences park alongside the timers: state 0 stores
+    /// -0xA7 when `field_6D2` is clear and 0x109 when it is set. The branch
+    /// sequence `func_actor_402200_80135630` stores the same pair, so it is the
+    /// same slot set's vertical placement.
+    /* 0x490 */ s16  field_490;
+    /* 0x492 */ byte pad_492[2];
     /// Hit descriptor the flinch handler `func_actor_402200_80131F54` and the
     /// hurt states `func_actor_402200_80133AEC` / `func_actor_402200_80134194`
     /// store on the frame a hit lands: the damage amount `field_716` with the
     /// tag bits 0x30000 OR'd in.
-    /* 0x494 */ s32  field_494;
-    /* 0x498 */ byte pad_498[2];
+    /* 0x494 */ s32 field_494;
+    /// Halfword the attack sequences arm to 0x15E next to `field_490`.
+    /* 0x498 */ s16 field_498;
     /// Hit-pending flags, raised together with `field_494`: bit 0x8000 is the
     /// flag the hit handler clears when it consumes the descriptor. The shared
     /// body `ActorsShared80137a20` tests the same bit through its own work
     /// block, and `func_actor_402200_80131F54` clears `field_6C6` as it raises
     /// it.
     /* 0x49A */ u16  field_49A;
-    /* 0x49C */ byte pad_49C[0x218];
+    /* 0x49C */ byte pad_49C[0x66];
+    /// Flag word the attack sequences raise: bit 0x4000 is set by state 0 of
+    /// both `func_actor_402200_80135630` and `func_actor_402200_80135A24`,
+    /// alongside clearing bit 0x4000 of the 0x502 word below.
+    /* 0x502 */ u16  field_502;
+    /* 0x504 */ byte pad_504[0x1B0];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
@@ -162,7 +174,14 @@ typedef struct Actor402200Work {
     /// Sequence mode `func_actor_402200_8013539C` tests: the reseed arms the
     /// cue unless it is already 1, and a restart that finds it 1 flips it to 2.
     /* 0x6EC */ s16  field_6EC;
-    /* 0x6EE */ byte pad_6EE[6];
+    /* 0x6EE */ byte pad_6EE[2];
+    /// Latch the attack sequences park the slot set in: state 0 stores 1 or 2
+    /// next to `field_6C0`, and state 1 reads it back to pick the frame count
+    /// it waits for (0x2C for the 0x11 animation, 0x19 otherwise).
+    /* 0x6F0 */ s16 field_6F0;
+    /// Pair `func_actor_402200_80135A24` parks at 2 while it runs, cleared when
+    /// its countdown runs out.
+    /* 0x6F2 */ s16  field_6F2;
     /* 0x6F4 */ s16  field_6F4;
     /* 0x6F6 */ byte pad_6F6[4];
     /// Entry count of the box table at `field_6B4`, read as a signed halfword;
@@ -173,7 +192,10 @@ typedef struct Actor402200Work {
     /* 0x708 */ s16  field_708;
     /* 0x70A */ byte pad_70A[8];
     /* 0x712 */ s16  field_712;
-    /* 0x714 */ byte pad_714[2];
+    /// Second per-state latch, read and written as a signed halfword: the
+    /// attack sequences raise it to 1 in state 0 and state 1 bumps it to 2 on
+    /// the frame it still equals the state.
+    /* 0x714 */ s16 field_714;
     /// Damage amount the hit handlers OR into `field_494`; read as a signed
     /// halfword on the frame the hit lands.
     /* 0x716 */ s16 field_716;
@@ -192,6 +214,9 @@ typedef struct Actor402200 {
     /* 0x20 */ GpEnemy*          field_20;
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ Actor402200Obj2C* field_2C;
+    /// Sequence state the overlay's body parks for the frame dispatcher, the
+    /// same slot the other actor contexts keep at 0x30.
+    /* 0x30 */ s32 field_30;
 } Actor402200;
 
 /// 0x18-byte block `func_actor_402200_80138208` takes from `G_SCRATCH_HEAD`
