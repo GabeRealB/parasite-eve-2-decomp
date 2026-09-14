@@ -397,6 +397,46 @@ expression at each use site rather than reaching for a pin or a
 `SOFT_USE_REG`. This is the same CSE invalidation as "A store to a neighbouring
 field kills CSE's memory equivalence", seen from the other side: there a store
 had to sit *between* two reads, here the reads must not be merged into one.
+## Pure in-block order is a chain-order symptom: move the statement, never split it
+
+`func_actor_102400_80134DB4` scored 95.938% with `regs=4 reorder=4` and block
+topology, predicates, delay slots and call targets all already matching - two
+hunks of pure instruction order, one per block. Both were fixed by moving a C
+statement; no pin, no asm barrier:
+
+- the `field_DE &= 0x7FFF` store had to precede `field_140 = ++counter`
+  (target reads `lhu v1,0xDE` / `andi` / `sh v1,0xDE` before the `0x140` pair);
+- the whole LCG update `state = (Gp_LcgState * 5) + 0x71357911;` had to precede
+  the two flag stores `field_13C = 1; field_13E = 0;`, with `Gp_LcgState = state;`
+  left last. Target materialises `lui`/`ori` first, then `lui`/`lw` of
+  `Gp_LcgState`, then `li`/`sh`/`sh`, then `sll`/`addu`/`addu`/`sw`.
+
+The tempting alternative is refuted: giving the `Gp_LcgState` load its own temp
+live across the two stores spills (`stack=8 regs=22 insert=1 delete=1`, 95.0%).
+A single statement keeps the load in one register; splitting it does not.
+
+Why order survives: `.sched` for the matched block lists the RTL in chain order
+`168, 169, 116, 119, 131, 133, 136, 122, 124, 128, 141, 143, 146, 155, 150`,
+and `base_3.s` emits exactly that. The list-scheduler's picks run the other way
+(`T-1` = 158 … `T-18` = 168), i.e. **selection order is the chain order
+reversed**, which is what sched1's backward walk plus `rank_for_schedule`'s last
+key (`INSN_LUID (tmp) - INSN_LUID (tmp2)`) gives for equal-priority ready insns.
+Equal-priority groups therefore come out in chain order, and C statement order
+sets the chain. Note `INSN_UID` is *not* chain order: the `lui`/`ori` pair
+(168/169) sits ahead of `116` in the chain despite higher UIDs, having been
+inserted by an earlier pass.
+
+Where priorities differ sched1 does move insns - the dump shows
+`adjust_priority`'s `LAUNCH_PRIORITY` (`0x7f000001`) on a definition that just
+became ready, and `schedule_select` reordering (`;; insn 122 has a greater
+potential hazard, now 122 168 119`). So read `reorder` as "the chain order is
+wrong", check `.lreg`/`.sched` before blaming the scheduler, and steer it from
+C.
+
+Example: `func_actor_102400_80134DB4` (promoted to `ActorsShared80134db4`).
+Inputs: `base_1.i`
+`d3873519bd9ef1f1bb862eca66d93ee85a0ac033977ae51978f680869afe5a23`, `base_3.i`
+`9379ae23a5d5f920f7e15c402ec136c6c1cefd2248c5fe48c2838354f54d6d0f`.
 
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 
