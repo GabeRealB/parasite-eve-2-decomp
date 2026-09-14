@@ -8,9 +8,11 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -148,7 +150,48 @@ void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1)
     ScaleMatrix(&arg0->coord, &scale);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801330C0);
+/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
+/// actor, 2 hides it, anything else runs the normal per-frame chain.
+extern u8 D_801153F4;
+
+/// Callback of the model actor the controller's state 2 spawns every eighth
+/// frame -- index 2 of `D_actor_141000_801348D8`, pointed at the controller's
+/// own position. The first frame splats an identity matrix over the task's root
+/// coordinate and clears its `flg`: the rotation part only, so the translation
+/// the spawner copied in survives. Every frame then runs the 5-frame countdown
+/// in `killCountdown`, spawning effect 0x60070 from that same coordinate
+/// (spawn arg 0x14200, no offset vector) each time it completes. The countdown
+/// is held while the freeze byte is set, and a room change or a script event
+/// taking over kills the task outright.
+void func_actor_141000_801330C0(Task* arg0)
+{
+    GsCOORDINATE2*       coord;
+    Actor141000MatWords* words;
+    u16                  count;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (arg0->state == 0) {
+        words          = (Actor141000MatWords*)&coord->coord;
+        words->m00_m01 = 0x1000;
+        words->m02_m10 = 0;
+        words->m11_m12 = 0x1000;
+        words->m20_m21 = 0;
+        words->m22     = 0x1000;
+        coord->flg     = 0;
+        arg0->state   += 1;
+    }
+    if (D_801153F4 == 0) {
+        count               = arg0->killCountdown + 1;
+        arg0->killCountdown = count;
+        if ((s16)count >= 5) {
+            arg0->killCountdown = 0;
+            Gp_SpawnEff(0x60070, coord, 0x14200, NULL);
+        }
+    }
+    if ((Game_Session->field_4D != 0) || (Game_Session->field_5F != 0)) {
+        Task_Kill(arg0);
+    }
+}
 
 void func_actor_141000_801331AC(Task* task)
 {
