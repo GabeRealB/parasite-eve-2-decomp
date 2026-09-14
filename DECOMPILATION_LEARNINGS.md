@@ -74095,3 +74095,85 @@ twice does not produce the copy but a *second load*, and storing the variable
 99.076%. A near-identical sibling is not evidence here either —
 `func_actor_310100_80162414` has the same body at one fewer store and compiles to
 the plain `lhu` into `active`.
+
+## Two branches, two allocation requirements: a duplicated call ties the `%hi` scratch, nested `do{}while(0)` orders the `$sN`
+
+`func_actor_310100_801620FC` needed both halves of its register allocation changed
+at once, and each had its own lever. Retail (target): `$s0` = the display id
+`mode` (0x6D / 0x6C), `$s1` = the work pointer `work`, and the symbol addresses in
+the two spawn branches materialise as `lui $a0` + `addiu $a0,$a0` — the `%hi`
+scratch in the *same* register as the `lo_sum` destination:
+
+```asm
+0x36C lui   $a0,%hi(D_actor_310100_80179920)
+0x374 addiu $a0,$a0,%lo(D_actor_310100_80179920)
+0x384 lui   $a0,%hi(D_actor_310100_801798FC)
+0x388 addiu $a0,$a0,%lo(D_actor_310100_801798FC)
+```
+
+**The scratch register is decided by `combine_regs`, and it ties only a local
+destination.** `config/mips/mips.md`'s `movsi` expander emits the address as a
+fresh pseudo (`gen_reg_rtx`) feeding a `lo_sum`, and `local-alloc.c`'s
+`combine_regs (usedreg, setreg, …)` ties that pseudo to the `lo_sum` destination
+under its usual condition — the destination must be a *local* quantity. The
+guard is the one at ~line 1865: *"If UREG is a pseudo-register that hasn't
+already been assigned a quantity number, it means that it is not local to this
+block or dies more than once. In either event, we can't do anything with it."*
+
+| source form | RTL at `.lreg` | emitted |
+|---|---|---|
+| `desc = &D_…9920;` / `desc = &D_…98FC;` in each branch, one call at the join | `(set (reg 96) (high …))`, `(set (reg 4 a0) (lo_sum (reg 96) …))`, **no** `REG_DEAD (reg 96)` on the `lo_sum` | `lui $v0` / `addiu $a0,$v0` |
+| `Task_SpawnOnDefaultList(&D_…9920, …)` written **in each branch** (the call duplicated, `jump2` merges the identical tails afterwards) | same shape plus `REG_DEAD (reg:SI 96)` on the `lo_sum` | `lui $a0` / `addiu $a0,$a0` |
+
+An address assigned to a variable that is *used at the join* crosses a basic
+block, so `reg_qty` is -1 and nothing can be tied into it. Passing `&symbol`
+straight to a call keeps the whole address computation inside one block and it
+dies at that insn, so the tie succeeds. Read the `.lreg` `REG_DEAD` note on the
+`lo_sum` to tell the two cases apart — it is present exactly when the tie
+happened. Cross-jumping is late (`.rtl .jump .cse .addressof .loop .cse2 .bp
+.flow .combine .sched .lreg .greg .sched2 .jump2 .dbr`), so the duplicated calls
+are still duplicated when `local-alloc` runs, and the single merged `jal` in the
+target does not mean the source had one call either.
+
+**Nesting the wrapper adds loop depth, and the depth is the weight.** The
+duplicated-call form alone scored 99.592% with the `$s0`/`$s1` pair the wrong way
+round: `work` had 7 weighted refs over a live length of 53 (`2·7/53 = 0.2642`)
+and `mode` 4 over 38 (`2·4/38 = 0.2105`). `flow.c` adds `loop_depth`, not 1, so
+each extra constant-false loop around a single set is worth one more reference:
+
+```c
+if (task->spawnArg1 == 0) {
+    do { mode = 0x6D; } while (0);                                   /* depth 2 -> +2 */
+    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 1, work->field_506, 0);
+} else if (task->spawnArg1 == 1) {
+    do { do { mode = 0x6C; } while (0); } while (0);                 /* depth 3 -> +3 */
+    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 1, work->field_506, 0);
+} else {
+    goto skip;
+}
+```
+
+giving `mode` 2+3+1 = 6 refs, `2·6/38 = 0.3158 > 0.2642`. The prediction was
+checked against the dumps before the build was trusted: `.lreg` went `Register 87
+used 4 times across 38 insns` → `6 times across 38 insns` (live length unmoved)
+and `.greg` went from `;; 10 regs to allocate: 110 86 130 94 115 112 81 87 83 80`
+to `… 115 87 112 81 83 80` — `mode` ahead of `work`. `$s0`/`$s1` followed, and the
+function matched at 100.000% (distance 0).
+
+**The margin is measurable, so aim it.** A single wrapper in branch B (5 refs at
+the same 38) gives `2·5/38 = 0.26316`, which is *below* `work`'s 0.26415 — the
+permuter's first pass sat at 99.796% with only the two `lui` pairs left. When two
+allocnos are this close, compute both ratios from the `.lreg` "used N times
+across M insns" line (that count is already the loop-weighted `REG_N_REFS`, and M
+is the live length local-alloc prints) and pick the nesting depth that clears the
+threshold; one more level is `floor_log2` dependent, so a level that looks
+redundant can be the difference between 99.8% and 100%.
+
+Inputs: `base_3.i`
+`dcfc6c646e7219aa8ceaa92bd3441626f975c4f27228fa7a6e9d77cc4f9481f0` (98.724%),
+router best `base_perm_….i`
+`9dc48a682f99219c0251fb2ef340a647b752fd2685ea232219757b98c0421bfc` (99.796%),
+`base_6.i` `841d3e849a8d3fb2a688778076e8c998ec951eab502c5b929342a13e2b722e19`
+(99.592%, correct `%hi` scratch, wrong `$sN`), `base_7.i`
+`99e22b6181744039a34fcd03d25fbcbec01b8d4397cbbd7fc038a74d5c9865c6` (100.000%,
+assembly `967b21f7a862343fe04a0411f283e4165ce2fbf59f9d55f150fd2c53bf7636ed`).
