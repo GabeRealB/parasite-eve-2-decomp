@@ -19,21 +19,31 @@
 /// seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at 0x4C8 are set to
 /// -1, and the three words at 0x4A0..0x4A8 are cleared.
 typedef struct Actor317000Work {
-    /* 0x000 */ byte   pad_0[0x43D];
-    /* 0x43D */ s8     field_43D;
-    /* 0x43E */ s8     field_43E;
-    /* 0x43F */ byte   pad_43F[0x1];
-    /* 0x440 */ MATRIX light;
-    /* 0x460 */ MATRIX color;
-    /* 0x480 */ byte   pad_480[0x20];
-    /* 0x4A0 */ s32    field_4A0;
-    /* 0x4A4 */ s32    field_4A4;
-    /* 0x4A8 */ s32    field_4A8;
-    /* 0x4AC */ byte   pad_4AC[0x1C];
-    /* 0x4C8 */ s16    field_4C8;
-    /* 0x4CA */ byte   pad_4CA[0x2];
+    /* 0x000 */ byte    pad_0[0x43D];
+    /* 0x43D */ s8      field_43D;
+    /* 0x43E */ s8      field_43E;
+    /* 0x43F */ byte    pad_43F[0x1];
+    /* 0x440 */ MATRIX  light;
+    /* 0x460 */ MATRIX  color;
+    /* 0x480 */ byte    pad_480[0x10];
+    /* 0x490 */ VECTOR3 step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x49C */ byte    pad_49C[0x4];
+    /* 0x4A0 */ s32     field_4A0;
+    /* 0x4A4 */ s32     field_4A4;
+    /* 0x4A8 */ s32     field_4A8;
+    /* 0x4AC */ byte    pad_4AC[0x16];
+    /* 0x4C2 */ u16     field_4C2;
+    /* 0x4C4 */ u8      field_4C4;
+    /* 0x4C5 */ byte    pad_4C5[0x3];
+    /* 0x4C8 */ s16     field_4C8;
+    /* 0x4CA */ byte    pad_4CA[0x2];
 } Actor317000Work;
 STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
+
+/// The constant local-space offset `func_actor_317000_801628D8` rotates,
+/// `{ 0, 0xFF800000, 0x400000, 0 }`. The overlay keeps its own copy in
+/// `.rodata`, so the address comes from the per-overlay symbol map.
+extern VECTOR D_actor_317000_80161E40;
 
 void func_actor_317000_80162744(Task* arg0);
 
