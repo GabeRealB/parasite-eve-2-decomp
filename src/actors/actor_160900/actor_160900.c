@@ -17,7 +17,62 @@ extern TaskDesc ActorsShared80136280Desc;
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80131EB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801326EC);
+s32 func_actor_160900_801326EC(Task* arg0)
+{
+    Actor160900Work*     work;
+    Actor160900AnimStep* table;
+    Actor160900AnimStep* entry;
+    Actor160900AnimStep* entry2;
+    GpAnimArg            msg;
+    u16                  anim;
+    u16                  anim2;
+
+    work = (Actor160900Work*)arg0->idMap;
+    if (work->field_34 == NULL) {
+        return 1;
+    }
+    table = D_actor_160900_8013F1CC;
+    entry = &table[work->field_64];
+    if (entry->field_0 != 0) {
+        if ((s16)work->field_66 >= entry->field_0) {
+            if (entry->field_2 < 0) {
+                return 1;
+            }
+            anim           = entry->field_2;
+            msg.field_0    = D_actor_160900_8013F198;
+            work->field_64 = anim;
+            msg.field_4    = anim;
+            msg.field_8    = 1;
+            msg.field_C    = 0xA;
+            msg.field_10   = 1;
+            Gp_DispatchMsg(work->field_34, 0x3F4, (s32)&msg, 0);
+            work->field_66 = 0;
+        } else {
+            work->field_66 += 1;
+        }
+    } else {
+        if (Gp_DispatchMsg(work->field_34, 0x3ED, 0, 0) != 0) {
+            return 0;
+        }
+        entry2 = &D_actor_160900_8013F1CC[work->field_64];
+        if (entry2->field_2 < 0) {
+            return 1;
+        }
+        work = (Actor160900Work*)arg0->idMap;
+        if (work->field_34 != NULL) {
+            anim2          = entry2->field_2;
+            msg.field_0    = D_actor_160900_8013F198;
+            work->field_64 = anim2;
+            msg.field_4    = anim2;
+            msg.field_8    = 1;
+            msg.field_C    = 0xA;
+            msg.field_10   = 1;
+            Gp_DispatchMsg(work->field_34, 0x3F4, (s32)&msg, 0);
+            work->field_66 = 0;
+        }
+    }
+    return 0;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132844);
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132A14);
