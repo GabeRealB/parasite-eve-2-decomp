@@ -104,6 +104,36 @@ typedef struct Actor202600Work {
 } Actor202600Work;
 STATIC_ASSERT_SIZEOF(Actor202600Work, 0x3D4);
 
+/// The 0x28-byte scratch `func_actor_202600_8014C774` projects through
+/// `GsWSMATRIX`: `p[0]` holds the source position going in and the four
+/// projected corners coming out, `screen` is the single `SXY2` those come from
+/// and `depth` the `SZ3` that gates the draw.
+typedef struct Actor202600QuadScratch {
+    /* 0x00 */ SVECTOR p[4];
+    /* 0x20 */ s32     screen;
+    /* 0x24 */ s32     depth;
+} Actor202600QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor202600QuadScratch, 0x28);
+
+/// The parent actor's `field_2C` as the sprite path sees it: a texture object
+/// whose `field_24`/`field_25` are the raw tpage and clut halves.
+typedef struct Actor202600TextureObj {
+    /* 0x00 */ byte pad_0[0x24];
+    /* 0x24 */ s8   field_24;
+    /* 0x25 */ u8   field_25;
+} Actor202600TextureObj;
+
+/// One frame's 0x20x0x20 texture window inside the sprite atlas.
+typedef struct Actor202600Uv {
+    /* 0x00 */ u8 u;
+    /* 0x01 */ u8 pad_1;
+    /* 0x02 */ u8 v;
+    /* 0x03 */ u8 pad_3;
+} Actor202600Uv;
+
+extern Actor202600Uv D_actor_202600_80152898[];
+extern s16           D_actor_202600_801528B8[];
+
 /// The 0x38-byte scratch a push-back needs: `delta` is filled by the collision
 /// walk, `unit` is its normal and `local` the same vector in the grid's space;
 /// `rot` is the temporary `RotMatrix` source and `func_800FDB18` effect angle.

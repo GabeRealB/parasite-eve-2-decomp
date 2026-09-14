@@ -7,10 +7,12 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "psyq/inline_c.h"
 
-void func_actor_202600_8014C774(Actor202600* arg0, s16 arg1);
+void func_actor_202600_8014C774(Actor202600* arg0, s32 arg1);
 void func_actor_202600_8014DA6C(Actor202600* actor);
 void Actor05500_Fn03B60(Actor202600* arg0);
 
@@ -251,4 +253,94 @@ void func_actor_202600_8014C5A0(Actor202600Ctx* arg0, Actor202600* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600_3", func_actor_202600_8014C774);
+/// Projects one frame's sprite into the scratch quad and, when the depth
+/// clears the near plane, emits the semi-transparent `POLY_FT4` for it. The
+/// model whose texture is drawn is the *parent* task's (`Task::parent`), not
+/// this actor's, so the atlas and tpage come from whoever spawned it.
+void func_actor_202600_8014C774(Actor202600* actor, s32 frame)
+{
+    POLY_FT4*               poly;
+    GsCOORDINATE2*          coord;
+    s32                     depth;
+    s32                     screen;
+    s32                     y;
+    s32                     radius;
+    s32                     x;
+    s32                     bottom;
+    s32                     top;
+    s32                     left;
+    s32                     right;
+    Actor202600QuadScratch* scratchEnd;
+    Actor202600QuadScratch* s;
+    Actor202600TextureObj*  texture;
+    Actor202600Uv*          uv;
+    SVECTOR*                projection;
+
+    scratchEnd                     = (Actor202600QuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);
+    coord                          = actor->field_2C->field_8;
+    actor                          = (Actor202600*)((Task*)actor)->parent;
+    texture                        = (Actor202600TextureObj*)actor->field_2C;
+    scratchEnd[-1].p[0].vx         = (u16)coord->workm.t[0];
+    s                              = scratchEnd - 1;
+    s->p[0].vy                     = (u16)coord->workm.t[1];
+    *(u8**)PSX_SCRATCH_ADDR(0x3FC) = (u8*)s;
+    s->p[0].vz                     = (u16)coord->workm.t[2];
+    projection                     = &s->p[0];
+    SOFT_TOUCH_REG(projection);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_ldv0(projection);
+    __asm__ volatile("nop; nop; .word 0x4a180001");
+    gte_stsxy(&scratchEnd[-1].screen);
+    gte_stszotz(&scratchEnd[-1].depth);
+    depth = s->depth;
+    if (depth >= 0x14) {
+        radius                 = (s32)(D_actor_202600_801528B8[frame] * 0x300) / depth;
+        poly                   = Gpu_PrimCursor;
+        screen                 = s->screen;
+        Gpu_PrimCursor         = (u8*)poly + 0x28;
+        x                      = screen & 0xFFFF;
+        y                      = screen >> 0x10;
+        left                   = x - radius;
+        top                    = y - radius;
+        right                  = x + radius;
+        bottom                 = y + radius;
+        scratchEnd[-1].p[0].vx = left;
+        s->p[0].vy             = top;
+        s->p[0].vz             = 0;
+        s->p[1].vx             = right;
+        s->p[1].vy             = top;
+        s->p[1].vz             = 0;
+        s->p[2].vx             = left;
+        s->p[2].vy             = bottom;
+        s->p[2].vz             = 0;
+        s->p[3].vx             = right;
+        s->p[3].vy             = bottom;
+        s->p[3].vz             = 0;
+        setPolyFT4(poly);
+        setSemiTrans(poly, 1);
+        setRGB0(poly, 0x80, 0x80, 0x80);
+        setShadeTex(poly, 1);
+        poly->tpage = (s16)(((s32)(((texture->field_24 << 6) + 0x180) & 0x3FF) >> 6) | 0xB0);
+        poly->clut  = (s16)(((s32)(texture->field_25 << 0x18) >> 0x12) + 0x3D40);
+        uv          = &D_actor_202600_80152898[frame >> 1];
+        poly->u0    = (u8)uv->u;
+        poly->v0    = (u8)uv->v;
+        poly->u1    = (s8)(uv->u + 0x1F);
+        poly->v1    = (u8)uv->v;
+        poly->u2    = (u8)uv->u;
+        poly->v2    = (s8)(uv->v + 0x1F);
+        poly->u3    = (s8)(uv->u + 0x1F);
+        poly->v3    = (s8)(uv->v + 0x1F);
+        poly->x0    = (u16)scratchEnd[-1].p[0].vx;
+        poly->y0    = (u16)s->p[0].vy;
+        poly->x1    = (u16)s->p[1].vx;
+        poly->y1    = (u16)s->p[1].vy;
+        poly->x2    = (u16)s->p[2].vx;
+        poly->y2    = (u16)s->p[2].vy;
+        poly->x3    = (u16)s->p[3].vx;
+        poly->y3    = (u16)s->p[3].vy;
+        addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+    }
+    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += 0x28;
+}

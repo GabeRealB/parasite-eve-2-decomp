@@ -32843,6 +32843,19 @@ codegen changes — but re-verify the callers' TU after the change. Rule of thum
 an unexplained `sll/sra 16` (or `andi 0xFFFF`) on an incoming argument register is
 a statement about the *declared parameter type*, not about the expression using it.
 
+The widened value is also what the rest of the function gets allocated around, so
+the pair need not be a plain `16`/`16`: a shift that *scales* the argument comes
+out as `sll 16` / `sra 15` (`(s16)x * 2`), and it repeats at every use rather than
+sitting in one place. `func_actor_202600_8014C774` indexes a `s16[]` and a 4-byte
+struct array by the same frame number; with `s16 frame` GCC 2.8.1 re-derived the
+value from `$a1` at each of the two uses (`sll a2,a1,0x10` / `sra a2,a2,0xf`, and
+`sll a2,a2,0x11` / `sll a2,a2,0x4`), while the target copies once — `move t7,a1` —
+and keeps the extended frame live in `$t7` for the whole function. Declaring
+`s32 frame` is the whole fix: 94.42% with `regs=48 insert=4 delete=4` to 100.000%
+with every penalty zero, and structure already matching. The callers are again
+the evidence — the one call site passes `work->field_38`, a `s16` field, which is
+what made `s16` look right.
+
 ## An extra callee-saved copy of an argument means the parameter is `s32`, not `u8`
 
 The complement of the `sll/sra 0x10` entry above: here the widening is *invisible*,
