@@ -74439,3 +74439,48 @@ The three `nop`s are load-delay and call-delay fills sched2 declines to fill,
 not scheduler barriers — do not add empty asm to "restore" them. Reaching for
 the brief's `Similar matched bodies` list first is what makes this a
 one-attempt match; the m2c seed scored 59.76%.
+
+## A `GpAnimCtx` work block's slot array is real C - index `slots[i]`, do not overlay a stride
+
+The `Actor400500AnimStride` overlay above reproduces the target's `addiu 0x28` /
+`sb 0x1D` shape, but it is not needed: declare the block the way the sibling
+overlays already do and the same code falls out unaided.
+
+```c
+typedef struct {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[19];
+    ...
+} Actor323300Work;
+
+for (i = 1; i < 0x13; i++) {
+    work->slots[i].field_9 = 8;
+}
+```
+
+emits `addiu v1, s0, 0x28` / `sb a1, 0x1D(v1)` / `addiu v1, v1, 0x28`: the
+strength-reduced induction variable carries only `i*0x28` and the invariant
+`0x14 + 9` stays in the displacement, so `$v1` walks from the work base rather
+than from a `GpAnimSlot*` at `&slots[1]`. `func_actor_323300_80162748` is the
+example (`Actor503500Effect4CC` / `Actor503500WorkBoss` are the same shape
+already written this way). Input `base_1.i`
+`8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
+
+**Sizing the array.** Such a block hands `func_800B3F84` the block itself as its
+`GpAnimCtx`, the slot array as its `GpAnimSlot*`, and a `GpAnimMtxRec` table
+directly after it; those last two addresses bound the array, since
+`0x14 + N*0x28` is the table address. actor_323300 passes `+0x14` and `+0x30C`,
+so `N = 19`. The tick loops then walk indices 1..0x13 -- index 0 exists and is
+simply never touched, so a `slti` loop that starts at 1 is not evidence that the
+array starts at 0x28.
+
+**The call's first argument can be the caller's own.** m2c drops it: here the
+target fills `$a1`/`$a2`/`$a3` for a call whose `$a0` is left holding the
+function's own `Task*`, which reads as three arguments shifted by one. The
+callee `func_actor_323300_801628B8` opens with `lw $s1, 0x1C($a0)` and
+`lw $a2, 0x2C($a0)`, so its `$a0` is a task and the source is
+`f(arg0, 0x7D3, &D_..., 0)` -- passing `arg0` costs no instruction, and the two
+trailing arguments the callee never reads are invisible in its body. Check the
+callee's first `lw` off `$a0` before trusting m2c's argument split; the sibling
+`func_actor_323300_801627B4` spells the identical call with an explicit
+`addu $a0, $s1, $zero`.

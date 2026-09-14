@@ -50,7 +50,23 @@ void func_actor_323300_801626F4(Task* arg0)
     states[(s16)work->field_4FE](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162748);
+extern Actor323300AnimPreset D_actor_323300_801725C8;
+
+void func_actor_323300_80162748(Task* arg0)
+{
+    Actor323300Work* work;
+    s32              i;
+
+    work = (Actor323300Work*)arg0->idMap;
+    func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
+    for (i = 1; i < 0x13; i++) {
+        work->slots[i].field_9 = 8;
+    }
+    work->field_4CC = 0;
+    work->field_4D0 = 0;
+    work->field_4D4 = 0;
+    work->field_4FE++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801627B4);
 
