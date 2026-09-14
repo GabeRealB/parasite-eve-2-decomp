@@ -77721,3 +77721,33 @@ Inputs: `base_2.i` (read at the call, 88.800%)
 `ce1dd71fef6161cc1798963dc707044431e71d4452b345e51cc15d83d4b721f5`,
 `base_3.i` (read into a local, 100.000%)
 `b7723a9845dacbc01af01eaa288678f584abe0953a4b42e36a088ca6ce75accf`.
+
+## The bare `build-and-verify.sh` never prints the `SLUS_010.42: OK` line it is judged by
+
+The success criterion is `build/USA/out/SLUS_010.42: OK`, and the bare
+`./tools/build-and-verify.sh` cannot show it: on success the script sends
+ninja's stdout to a temp file and `rm`s it, so
+`✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors`
+(and `check_lost_matches.py`'s line above it) is the whole terminal output -
+two lines, whether the build relinked the image or did nothing at all. The
+`sha256sum` lines are also the *only* source of that text: a plain `ninja`
+builds just two targets, `postbuild` and `checksum`, the latter from
+`build/USA/out/checksum.ok`:
+
+    rule sha256sum
+      command = sha256sum --ignore-missing --check $in
+
+So to actually see it, run that target (or the command it wraps) yourself:
+
+    ninja build/USA/out/checksum.ok | grep SLUS_010.42
+    sha256sum --ignore-missing --check configs/USA/checksum.sha | grep -vc ': OK$'
+
+Both should print the one `OK` line and nothing else; the manifest holds 449
+entries and `sha256sum` exits 0.
+
+Do **not** delete `build/USA/out/SLUS_010.42` to "force" the line. The rule
+carries `--ignore-missing`, so an absent file is skipped instead of reported -
+`sha256sum` only fails when *nothing* was verified (`no file was verified`) -
+and the script swallows the output regardless, so the run still ends in
+`✅ BUILD SUCCEEDED` with the binary gone. Deleting a build output never makes
+the checksum stricter; `ninja` simply relinks it on the next run.
