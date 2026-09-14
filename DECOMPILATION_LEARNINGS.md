@@ -65518,3 +65518,54 @@ check the two sides of the span for a plain-unit remainder before assuming a
 promotion is expensive.
 
 Inputs: `func_actor_105700_80136C4C` promotion, six carriers, full build.
+
+## Reading a stored scratch value back out of the object adds the reference that flips `allocno_compare`
+
+`func_actor_105700_801341CC` sat at 99.717% with a single `$s1`/`$s2` swap: the
+scratch pointer `delta` (`VECTOR*`) wanted `$s1` and had `$s2`, the coordinate
+pointer `self` the reverse. Both are long-lived pointers with the same
+reference count, so `allocno_compare` (global.c) separates them only by live
+length:
+
+```
+;; 9 regs to allocate: 81 155 103 130 133 106 154 82 84
+;; Register dispositions:
+80 in 4  81 in 16  82 in 17  84 in 18  86 in 2  ...
+```
+
+`82 in 17` is `self`, `84 in 18` is `delta`, allocated in that order.
+
+`SOFT_TOUCH_REG(delta)` after its definition proved the lever — it took the
+swap to `regs=0` and introduced a scheduling barrier (`reorder=4`,
+`branch=1`), so the pseudo's reference count really is what orders the pair,
+but the helper is the wrong instrument. The natural form that supplies the
+extra reference is to *read the value back out of the object it was just
+stored into*, instead of reusing the local that was stored:
+
+```c
+dx        = Wip_SysConfig.field_4->t[0] - self->coord.t[0];
+delta->vx = dx;                                   /* stored ... */
+dz        = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+delta->vz = dz;
+distance  = SquareRoot0((delta->vx * delta->vx)   /* ... and read back */
+                      + (delta->vz * delta->vz)); /* instead of dx*dx+dz*dz */
+```
+
+This emits the identical instruction sequence — the loads are still merged
+with the stores, nothing is re-fetched — but `REG_N_REFS` sees two more uses
+of `delta`, and with `floor_log2` in the numerator that is a step change:
+`delta` overtakes `self` and takes `$s1`. No pin, no barrier, no extra
+instruction.
+
+Two cautions. The reads must survive into the RTL that `flow_analysis` counts
+(they do here because the store/load pair is not forwarded before
+`REG_N_REFS` is computed), and the helper this replaces — `TOUCH_REG` /
+`SOFT_TOUCH_REG` — is a scheduling boundary, so a reference gained that way is
+not the same experiment. When a low-reference-count pointer loses a register
+it has *earned* by live length, look for a store it performs whose value a
+later expression could legitimately read back through the object.
+
+Inputs: `base_5.c` (`base_5.i`
+`1307478ff3caecfdb4a591979edc61205fbc4093e965d977035d75d7faa1df44`, 99.717%),
+`base_38.c` (`base_38.i`
+`e12a5f578d65e0552cf034f43b9b51cf1eac5ce2246cb6b222175a87fd4a0f7b`, 100%).

@@ -20,7 +20,15 @@ extern u8 D_801153F2;
 typedef struct Actor105700Work {
     /* 0x000 */ GpAnimCtx ctx;
     /* 0x014 */ byte      slots[19][0x28];
-    /* 0x30C */ byte      pad_30C[0x388];
+    /* 0x30C */ byte      pad_30C[0x2F0];
+    /// Object handed to the body by `Gp_PackPair` when `field_698` first
+    /// reaches the animation's 0x1C mark (`func_actor_105700_801341CC`).
+    /* 0x5FC */ s32  field_5FC;
+    /* 0x600 */ byte pad_600[2];
+    /// Bit 0x8000 is raised with `field_5FC` at the 0x1C mark and dropped
+    /// again at the 0x28 mark.
+    /* 0x602 */ u16  field_602;
+    /* 0x604 */ byte pad_604[0x90];
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `func_actor_105700_80136AE0`'s state 0.
     /* 0x694 */ s16  field_694;

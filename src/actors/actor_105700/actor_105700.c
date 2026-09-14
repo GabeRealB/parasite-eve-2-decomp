@@ -27,6 +27,13 @@ extern GpEnemyTaskFuncTable3 D_actor_105700_80131EA0;
 /// (row `field_6D6` starts at the second word, the `- 1` in the body).
 extern s32 D_actor_105700_80149004[];
 
+/// Per-animation frame marks: row `field_694` holds the frame the 0x1C, 0x28
+/// and 0x7A marks of `func_actor_105700_801341CC` are measured from.
+extern s16 D_actor_105700_801372EC[];
+
+/// The body objects' variant flag comes from `D_actor_105700_80148F14`.
+extern Actor105700PlaceSrc D_actor_105700_80148F14;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_105700/actor_105700", D_actor_105700_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80131ED0);
@@ -223,7 +230,56 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105700/actor_105700", D_actor_105700_80131EA0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_801341CC);
+/// Runs the animation's mark events: measures `field_698` against the three
+/// frames `D_actor_105700_801372EC[field_694]` marks out. At the 0x1C mark the
+/// body object is packed from `D_actor_105700_80148F14` and bit 0x8000 raised,
+/// at 0x28 dropped; inside the 0x1C..0x1E window the player's distance decides
+/// whether `field_69C` parks at 0x64; and past 0x7A the actor hands over to
+/// animation 4. The delta the distance is taken from is left in the scratch
+/// vector it is accumulated in.
+void func_actor_105700_801341CC(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    GsCOORDINATE2*   self;
+    VECTOR*          delta;
+    s16              anim;
+    s32              dx;
+    s32              dz;
+    s32              distance;
+
+    *(VECTOR**)G_SCRATCH_HEAD -= 1;
+    delta                      = *(VECTOR**)G_SCRATCH_HEAD;
+    work                       = arg0->field_1C;
+    anim                       = D_actor_105700_801372EC[work->field_694];
+    self                       = arg0->field_2C->field_8;
+    if (work->field_698 == anim + 0x1C) {
+        work->field_5FC  = Gp_PackPair(&D_actor_105700_80148F14.pair, 4);
+        work->field_602 |= 0x8000;
+    } else if (work->field_698 == anim + 0x28) {
+        work->field_602 &= 0x7FFF;
+    }
+    anim = D_actor_105700_801372EC[work->field_694];
+    if ((work->field_698 >= anim + 0x1C) && (anim + 0x1E >= work->field_698)) {
+        dx        = Wip_SysConfig.field_4->t[0] - self->coord.t[0];
+        delta->vx = dx;
+        dz        = Wip_SysConfig.field_4->t[2] - self->coord.t[2];
+        delta->vz = dz;
+        distance  = SquareRoot0((delta->vx * delta->vx) + (delta->vz * delta->vz));
+        if (distance < 0x3E8) {
+            work->field_69C = 0;
+        } else {
+            work->field_69C = 0x64;
+        }
+    } else {
+        work->field_69C = 0;
+    }
+    if (work->field_698 >= D_actor_105700_801372EC[work->field_694] + 0x7A) {
+        work->field_6A6 = 2;
+        work->field_6A8 = 2;
+        work->field_694 = 4;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80134374);
 
@@ -235,9 +291,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 /// bodies and their `GpRec18` tables onto the model root and hands the light /
 /// colour matrices to its `TmdObject`. The sound cue that marks the placement
 /// packs the room/channel bits of the spawn context into `D_actor_105700_80149048`.
-/// The body objects' variant flag comes from `D_actor_105700_80148F14`.
-extern Actor105700PlaceSrc D_actor_105700_80148F14;
-extern s32                 D_actor_105700_80149048;
+extern s32 D_actor_105700_80149048;
 
 void func_actor_105700_80134FDC(GpEnemy* arg0, Task* arg1)
 {
