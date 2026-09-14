@@ -62,12 +62,16 @@ typedef struct Actor104400Work {
     /* 0x430 */ s16              field_430;
     /* 0x432 */ byte             pad_432[0x6];
     /* 0x438 */ s16              field_438; // 1 on the death path
-    /* 0x43A */ byte             pad_43A[0xE];
+    /* 0x43A */ byte             pad_43A[0x6];
+    /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
+    /* 0x442 */ byte             pad_442[0x6];
     /* 0x448 */ s16              field_448;
     /* 0x44A */ byte             pad_44A[0x5];
     /* 0x44F */ u8               field_44F;
     /* 0x450 */ byte             pad_450[0x4];
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
+
+extern u8 Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
 
 #endif

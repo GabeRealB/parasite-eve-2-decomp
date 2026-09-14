@@ -742,7 +742,37 @@ void Actor04400_Fn087E0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08870);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08908);
+/// Same body as `func_actor_342400_8016BA3C`.
+void Actor04400_Fn08908(Task* arg0)
+{
+    Actor104400Work* work;
+    s16              anim;
+    s16              next;
+
+    work = (Actor104400Work*)arg0->idMap;
+    anim = work->field_418;
+    if (anim == 8) {
+        if (work->field_440 == 0) {
+            work->field_426 = 4;
+            work->field_41C = 0x10;
+            work->field_418 = 5;
+            work->field_414 = 1;
+        } else {
+            work->field_426 = 4;
+            work->field_41C = 0x10;
+            work->field_418 = 6;
+            work->field_414 = 1;
+        }
+    } else {
+        next            = Actor04400_D10828[anim - 1];
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = next;
+        work->field_414 = 1;
+    }
+    Actor04400_Fn02B8C();
+    work->field_420++;
+}
 
 void Actor04400_Fn089C0(Task* arg0)
 {

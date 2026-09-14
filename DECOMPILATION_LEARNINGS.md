@@ -3,6 +3,22 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Delay-slot table `%hi` paired with a field `lh` is splat, not C
+
+When a `%hi(table)` sits in a branch delay slot and its `%lo` is only used on
+the not-taken path, splat cannot pair them and will attach the `%hi` to the
+next instruction if that instruction's displacement equals some other symbol's
+lo16. `Actor04400_Fn08908` is the worked example: `lh 0x440($s0)` is
+`work->field_440`, `Actor04400_D0E620` happens to be `0x80140440`, and
+`rel.actor_104400.txt` therefore names the delay-slot `lui` as `D0E620`. The
+`lui` belongs to `Actor04400_D10828` (same 64K page). GCC emits
+`lui %hi(table)` / `lh 0x440($s0)` / `addiu %lo(table)`. Scratch differ reports
+`regs=2` on the reloc names; the linked overlay words match. Do not fake the
+splat pair with pointer arithmetic through the coincidental symbol.
+
+`func_actor_342400_8016BA3C` is the same body without the false pair, because
+that overlay's table lo16 is not `0x440`.
+
 ## Duplicate the call for delay-slot `lui`; share the volatile-touch body
 
 Two switch arms that share a `jal` with a unique `addiu a1` in the jump delay
