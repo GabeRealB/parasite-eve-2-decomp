@@ -45,12 +45,26 @@ typedef struct Actor511000ParentWork {
 /// and parks in that task's `Task::idMap` slot. Distinct from
 /// `Actor511000Work`: this variant's light/color pair sits at 0x484 / 0x4A4
 /// and is republished onto model part 1, not the root coordinate.
+/// `func_actor_511000_80133DEC` treats the block as a `GpAnimCtx` at offset 0
+/// and reseeds slots from `field_47C`.
 typedef struct Actor511000Work2 {
-    /* 0x000 */ byte   pad_0[0x484];
+    /* 0x000 */ byte   pad_0[0x47C];
+    /* 0x47C */ s32    field_47C; ///< animation id handed to `Gp_AnimResetSlot`
+    /* 0x480 */ s16    field_480; ///< cleared after the slot reseed
+    /* 0x482 */ byte   pad_482[2];
     /* 0x484 */ MATRIX light;
     /* 0x4A4 */ MATRIX color;
     /* 0x4C4 */ byte   pad_4C4[0x10];
 } Actor511000Work2;
 STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
+
+/// Animation preset `func_actor_511000_80133DEC` takes as `arg2`. `field_4`
+/// is the animation id copied into `Actor511000Work2::field_47C`.
+typedef struct Actor511000AnimPreset {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+} Actor511000AnimPreset;
+
+s32 func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset);
 
 #endif // ACTOR_511000_H
