@@ -319,7 +319,20 @@ void Actor01900_Fn0A6CC(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A764);
+void Actor01900_Fn0A764(Actor01900* arg0)
+{
+    TmdObject*      obj;
+    Actor01900Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 1;
+        obj->field_C                 = (u16)(obj->field_C | 0x80);
+        work->field_B48.flags        = (u16)(work->field_B48.flags & 0x7FFF);
+        work->field_A08.flags        = (u16)(work->field_A08.flags & 0xBFFF);
+    }
+}
 
 void Actor01900_Fn0A7C0(Actor01900* arg0)
 {
