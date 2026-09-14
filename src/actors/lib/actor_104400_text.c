@@ -377,7 +377,18 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06F50);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07050);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0710C);
+void Actor04400_Fn0710C(Task* arg0)
+{
+    u16              ticks;
+    Actor104400Work* work;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    ticks           = work->field_412;
+    work->field_412 = ticks + 1;
+    if ((s16)ticks >= 0x51) {
+        work->field_422 = work->field_422 + 1;
+    }
+}
 
 void Actor04400_Fn0714C(Task* arg0)
 {
