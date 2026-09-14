@@ -1,6 +1,8 @@
 #include "common.h"
 
+#include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -22,7 +24,25 @@ extern TaskDesc   D_actor_150400_8013C8F4[];
 extern u8         D_actor_150400_8013C90C[];
 extern GpMsgEntry D_actor_150400_8013C8C4[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80131ECC);
+extern s16            D_80071076;
+extern GpAreaApplyRec D_80183BE0;
+
+void func_actor_150400_80131ECC(void)
+{
+    if (Mc_SaveData.field_23 != 9) {
+        SetDispMask(1);
+        GameFlag_SetNibble(0xE5, 1);
+        Gp_EnqueueConfigCd(1);
+        Gp_ApplyAreaRecs(&D_80183BE0);
+        Mc_SaveData.field_7 = 4;
+        Mc_SaveData.field_6 = 0x21;
+        Mc_SaveData.field_8 = 4;
+        Mc_SaveData.field_5 = 1;
+        D_80071076          = 1;
+        Task_Spawn(0, 0x11, 0, 0);
+        Gp_RestoreStreamRng();
+    }
+}
 
 void func_actor_150400_80131F6C(void)
 {
