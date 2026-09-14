@@ -72213,3 +72213,47 @@ multi-class line in the brief is the cheaper signal of the two.
 
 Inputs: `base_1.i`
 `f59fd66cf37fad91fe1472c365b14dceef81dfb29cea7d63117d06d4ddc3ffaa`.
+
+## A switch arm that reads the selector field again: check the constant first
+
+`func_actor_215100_8014A5C0` dispatches on `arg0->state`, and case 1 stores that
+state's value three times (`Mc_SaveData.field_5C5`, `Game_Session->field_68`,
+`D_80071076`) around two calls. Since the state *is* 1 in that arm, m2c reads the
+three stores as `arg0->state` and the target agrees byte for byte — but the
+target keeps the value in one register the whole arm while the C reloads it:
+
+```
+target:   jal  Gp_ClearInventory
+          sb   $s1, 0x5C5($s0)      /* and later sh $s1, %lo(D_80071076) */
+candidate:jal  Gp_ClearInventory
+          lbu  $v0, 0x30($s1)       /* a fresh load per store site */
+          sb   $v0, 0x5C5($s0)
+```
+
+A `mem` expression cannot survive that arm: the stores in between go through
+register bases (`$s0 = &Mc_SaveData`), which CSE cannot prove distinct from
+`arg0->state`, so each store invalidates it and the next use reloads. A constant
+cannot be invalidated at all. Writing the literal `1` in all three stores took
+the function from 92.97% to 100.00%.
+
+This is not a local peephole — it moves the whole prologue and every `$sN`
+reference. The long-lived constant needs a callee-saved home (`$s1` here), so the
+pointer argument is pushed from `$s1` to `$s2`, and the dispatch's own load of
+`arg0->state` then shares `$s1` because its live range (the two compares) is
+disjoint from the arm's. The `lreg` dumps show the swap directly: at 92.97% the
+argument is `Register 80 ... 13 times across 198 insns` and case 1 holds three
+separate one-byte loads (`131/134/138 ... 2 times across 6 insns`); at 100% the
+argument drops to 10 uses, those loads are gone, and a new `Register 157 used 6
+times across 31 insns; crosses 3 calls` carries all three stores.
+
+So when a switch arm's stores all land in one register in the target and your C
+re-reads the selector at each site, suspect the constant before you reach for a
+pin: a value that CSE keeps live across register-based stores is one the compiler
+cannot have read from memory. Corollary: case 0's `arg0->state += 1` *does*
+reload in the target (`lw $v0, 0x30($s2)` after `sb $s0, 0x126($v0)`), which is
+the same invalidation rule seen from the other side.
+
+Inputs: `base_2.i`
+`38d75bc3801c89169d60fe61b2c4a9dc473552f6bdd811eb9b3a19510b76b1fc`,
+`base_3.i`
+`ed67d8729866d1b865a946512e4b3e586e9545d174ec30fb70cd85954f5248c5`.

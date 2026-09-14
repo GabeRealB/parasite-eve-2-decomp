@@ -7,6 +7,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -25,6 +26,8 @@ extern u8       D_80071085;
 extern u8       D_80071075;
 extern Task*    D_8018E0C4;
 extern TaskDesc D_actor_215100_8014CF6C;
+extern s16      D_80071076;
+extern s8       D_80073BAE;
 extern TaskDesc D_actor_215100_8014E13C;
 extern TaskDesc D_actor_215100_801544FC;
 extern TaskDesc D_actor_215100_80154508;
@@ -142,7 +145,79 @@ void func_actor_215100_8014A398(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A5C0);
+/// Watches the caption system while the actor waits to be talked to.
+///
+/// State 0 first honours the spawn argument: `spawnArg1 == 2` means the actor
+/// was placed already committed, so it just steps to state 1, and only
+/// `spawnArg1 == 0` is the interactive case. Otherwise it waits for
+/// `Gp_CapBusy` to drop and switches on the key `Gp_GetCapEventKey` returns.
+/// Key 1 is the plain "talk to me" — it takes the player's weapon away and
+/// clears `D_801153F4`; every other key ends the encounter, and which ending
+/// depends on `spawnArg1`: non-zero plays caption command 0x17 behind story
+/// flag 0xED and steps to state 1, while zero starts the full ending from here
+/// (the caption system is stopped, the scene task `D_8018E0C4` gets its exit,
+/// the sound plays and the weapon is taken). All of those finish by killing
+/// this task.
+///
+/// State 1 commits the character to the save slot once the caption system is
+/// idle again: it copies `D_actor_215100_8015E678`'s appearance bytes into
+/// `Mc_SaveData`, clears the inventory, then spawns task 0x11 and kills itself.
+void func_actor_215100_8014A5C0(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            if (arg0->spawnArg1 == 2) {
+                arg0->state = 1;
+                break;
+            }
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            if (Gp_GetCapEventKey() == 1) {
+                Gp_MsgPlayerWeapon(1);
+                D_801153F4 = 0;
+                Task_Kill(arg0);
+                break;
+            }
+            if (arg0->spawnArg1 != 0) {
+                if (GameFlag_GetNibble(0xED) != 0) {
+                    Gp_RunCapCmd1(0x17);
+                }
+                Game_Session->field_126 = 1;
+                arg0->state            += 1;
+                break;
+            }
+            if (D_actor_215100_8015E670 == 3) {
+                Gp_StateC08.field_6 &= 0xFD;
+            }
+            D_actor_215100_8014D038 = 0;
+            func_80180390(1);
+            D_actor_215100_8014D03C = 1;
+            Task_CallExit(D_8018E0C4);
+            Game_Session->field_126 = 1;
+            Game_Session->field_69 |= 0x80;
+            SndEvt_EnqueueType2(0, 0x1E);
+            Gp_MsgPlayerWeapon(1);
+            D_801153F4 = 0;
+            Task_Kill(arg0);
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                D_80073BAE            = 3;
+                Mc_SaveData.field_5C5 = 1;
+                Gp_ClearInventory();
+                Game_Session->field_68 = 1;
+                SndEvt_EnqueueType6(0x51140005, 0, 0);
+                D_80071076          = 1;
+                Mc_SaveData.field_6 = D_actor_215100_8015E678.field_0;
+                Mc_SaveData.field_8 = D_actor_215100_8015E678.field_2;
+                Mc_SaveData.field_5 = D_actor_215100_8015E678.field_3;
+                Task_Spawn(0, 0x11, 0, 0);
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 /// Watches the caption system while the actor waits to be talked to: state 0
 /// polls `Gp_CapBusy` / `Gp_GetCapEventKey`, and on key 2 hands the scene task
