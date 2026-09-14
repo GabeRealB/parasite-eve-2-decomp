@@ -72110,3 +72110,16 @@ v0` followed by `addu s2, v1` means two. `ActorsShared80131e24Sub0` is the
 example, at 99.01% with one pointer and 100% with two. It is a property of the
 routine and not of the surrounding idiom: the sibling `actors_shared_80135c4c`
 allocates through the same `idMap` slot and emits the single `move`.
+
+The `lreg` dump of the 99.008% candidate shows the merge directly rather than
+by inference: the calloc result is a single pseudo (`reg/v:SI 82`) set from
+`$v0`, stored to the `idMap` slot, tested for NULL, stored to `0x4BC`, and
+still live for the late `0x4B8` / matrix / animation uses until its `REG_DEAD`
+at the end of the function. One live range spanning the whole body is one
+callee-saved home for the whole body; the split is what gives the second pseudo
+a range that ends at `0x4BC`.
+
+Inputs: `base_2.i`
+`0956b622e2538a86e065b92fe05fec6876f0c80e719032b35d07398afc30fdcf`,
+`base_3.i`
+`a7995d7cb7dc13bb4b3bfdf92e2b0ecaa0e084368532439feeb333f53c9ffcf5`.
