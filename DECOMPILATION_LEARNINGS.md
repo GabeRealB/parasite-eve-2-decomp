@@ -3,6 +3,47 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## m2c's split IV from a delay-slot `move a1,s0` floats `li s0,1` to the preheader head
+
+A loop that reseeds slots 1..N and returns, with the target preheader
+
+```
+lw    s1, 0x1C(a0)
+lw    v0, 4(a2)
+li    s0, 1
+sw    v0, 0x47C(s1)
+move  a1, s0
+```
+
+and `addiu s0,s0,1` at the top of the loop / `move a1,s0` in the back-edge
+delay slot, is one counter. m2c reconstructs two (`i += 1; call(..., slot);
+slot = i`). That emits two independent `const_int 1` inits. sched1 then
+picks the field store last (higher priority, feeds the loop reload), the
+`move a1` copy next, launches the two loads in front of it, and leaves
+`li s0,1` with no preheader dependent — so it lands first and `$s0` is
+saved before `$ra`/`$s1`.
+
+A single IV (`call(..., i); i++`) makes the a1 copy depend on `li s0,1`.
+The store still wins last-insn; the li sits between the loads and the
+store; dbr puts the increment at loop top. Same as the already-matched
+sibling minus its extra post-loop store.
+
+```c
+i = 1;
+do {
+    Gp_AnimResetSlot(&work->anim, i, work->field_47C);
+    i++;
+} while (i < 0x13);
+```
+
+`func_actor_110700_8013201C`. Distinct from "m2c's split counter + offset
+accumulator suppresses loop strength reduction" (that was a scaled index
+inside the body). Inputs: `base_1.i`
+`7b7f311b3d52a51a17b462e8cb4a47d1256ee44499aedabc6ef54610c5b961e0`
+(93.2%, `regs=6 reorder=2`), `base_2.i`
+`0aa104c3460180b680d051a0a0e02f85bb07e8f4063016edc911a60c202f50af`
+(100%).
+
 ## `(cond) << 1` as an array index folds to a branch; store-flag locals plus a pointer first
 
 A 4-byte table indexed by two comparisons:
