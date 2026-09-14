@@ -525,7 +525,25 @@ void Actor00400_Fn0909C(Actor100400* arg0)
     work->field_63A = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn090B4);
+void Actor00400_Fn090B4(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* state;
+    Actor100400Work* state2;
+
+    work                     = arg0->field_1C;
+    arg0->field_20->field_14 = 0;
+    Gp_IncStateF0Ref(0);
+    work->flags_62C.hi.field_62E = 0;
+    work->field_630              = 0x174B;
+    state                        = arg0->field_1C;
+    state->field_632             = 0x10;
+    state->field_628             = 2;
+    state->field_624             = 2;
+    state2                       = arg0->field_1C;
+    state2->field_638            = 1;
+    state2->field_63A            = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09124);
 

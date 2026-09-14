@@ -39,6 +39,10 @@ typedef struct Actor100400Record {
 typedef union Actor100400Flags {
     u32 word;
     u16 half;
+    struct {
+        u16 lo;
+        s16 field_62E;
+    } hi;
 } Actor100400Flags;
 
 typedef struct Actor100400Work {
@@ -71,7 +75,7 @@ typedef struct Actor100400Work {
     /* 0x628 */ s16                field_628;
     /* 0x62A */ byte               pad_62A[2];
     /* 0x62C */ Actor100400Flags   flags_62C;
-    /* 0x630 */ byte               pad_630[2];
+    /* 0x630 */ s16                field_630;
     /* 0x632 */ s16                field_632;
     /* 0x634 */ byte               pad_634[2];
     /* 0x636 */ s16                field_636;
