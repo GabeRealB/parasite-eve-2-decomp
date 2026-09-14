@@ -22,7 +22,13 @@
 /// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`.
 typedef struct Actor104400Work {
     /* 0x000 */ MATRIX matrix_0; // model root coord, copied out on the kill path
-    /* 0x020 */ byte   pad_20[0x28C];
+    /* 0x020 */ byte   pad_20[0x5A];
+    /* 0x07A */ s16    field_7A; // heading
+    /* 0x07C */ byte   pad_7C[0xC];
+    /* 0x088 */ s16    field_88; // x of the vector turned towards
+    /* 0x08A */ s16    field_8A;
+    /* 0x08C */ s16    field_8C; // z of the vector turned towards
+    /* 0x08E */ byte   pad_8E[0x21E];
     /* 0x2AC */ GpObj  obj_2AC;
     /* 0x2CC */ GpObj  obj_2CC;
     /* 0x2EC */ byte   pad_2EC[0xC0];

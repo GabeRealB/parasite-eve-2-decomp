@@ -250,7 +250,29 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn066DC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0674C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn067A0);
+/// Same body as `ActorsShared801698d4`. This overlay's whole `.text` is already
+/// one shared span, so it cannot join that unit.
+void Actor04400_Fn067A0(Task* arg0, s32 step)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    SVECTOR          vec;
+    s32              diff;
+    u16              angle;
+    s32              yaw;
+
+    vec.vx = work->field_88;
+    vec.vy = 0;
+    vec.vz = work->field_8C;
+    VectorNormalSS(&vec, &vec);
+    yaw   = ratan2(-vec.vx, -vec.vz);
+    angle = work->field_7A;
+    diff  = ((angle - yaw) << 20) >> 20;
+    if (diff > 0x100) {
+        work->field_7A = angle - step;
+    } else if (diff < -0x100) {
+        work->field_7A = angle + step;
+    }
+}
 
 void Actor04400_Fn06834(Task* arg0)
 {
