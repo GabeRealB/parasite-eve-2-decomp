@@ -1,11 +1,11 @@
 #include "common.h"
 
 #include "actors/actor_141000.h"
+#include "actors/actors_shared_80133a68.h"
 
 #include "main/task.h"
 #include "main/tmd.h"
 
-void func_actor_141000_80133A68(Task* arg0);
 void func_actor_141000_80133B28(Task* arg0);
 void func_actor_141000_80133490(Task* arg0);
 void func_actor_141000_80133BD8(Task* arg0);
@@ -14,11 +14,16 @@ void func_actor_141000_80133BD8(Task* arg0);
 /// `func_actor_141000_80133A00`. It opens this unit's .rodata, so a C
 /// definition lands at the address the split gave it.
 const TaskFuncTable4 D_actor_141000_80131E58 = { {
-    func_actor_141000_80133A68,
+    ActorsShared80133a68,
     func_actor_141000_80133B28,
     func_actor_141000_80133490,
     func_actor_141000_80133BD8,
 } };
+
+/// The scratch vector `func_actor_141000_80133B28` seeds from; its rodata run
+/// follows this unit's handler table, so it is included here rather than with
+/// the function, which the shared cut moved on to `actor_141000_4`.
+INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000_3", D_actor_141000_80131E68);
 
 void func_actor_141000_801339DC(Task* arg0)
 {
@@ -43,13 +48,5 @@ void func_actor_141000_80133A00(Task* arg0)
 
     work = (Actor141000Work*)arg0->idMap;
     sp   = D_actor_141000_80131E58;
-    sp.funcs[work->field_4C2](arg0);
+    sp.funcs[(s16)work->field_4C2](arg0);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_3", func_actor_141000_80133A68);
-
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_3", func_actor_141000_80133B28);
-
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_3", func_actor_141000_80133BD8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_3", func_actor_141000_80133CD8);

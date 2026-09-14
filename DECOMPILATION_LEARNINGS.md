@@ -5791,6 +5791,12 @@ A matched switch that also exists in another overlay of the family should be
 promoted, not landed twice. `overlay_dup_index.py promote` refuses the body
 while it is still `INCLUDE_ASM` if the copies are not byte-identical or if they
 jal overlay-local functions; match first, or write the `shared` span by hand.
+Matching cures only the first of those two: an overlay-local `jal` is refused
+after the body is C as well, because the copies name different callees
+(`func_actor_141000_80133CD8` against `func_actor_335800_80163E20` in the
+`func_actor_141000_80133BD8` / `func_actor_335800_80163D20` pair - otherwise the
+same 64 instructions, one `~` body), so the twin has to be matched in its own
+overlay with the local name.
 
 **"Same body" is not "same object" when the body loads its own overlay's
 table.** The dup index treats an overlay-local reference as a wildcard, so every
@@ -42197,6 +42203,16 @@ const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
 `const` matters - a non-const initialised array lands in `.data`, not
 `.rodata`.
 
+Either fix leaves the old `.s` on disk, because splat emits `.s` under
+`nonmatchings/` only for functions the sources still pull in with `INCLUDE_ASM`,
+and it never rewrites a file that is already there. So replacing an
+`INCLUDE_ASM` with C leaves that function's `.s` behind at its old mtime - still
+carrying the migrated `.rodata` even after `force_not_migration` has given the
+block a file of its own - and the next split does not delete it. Nothing breaks,
+since an unreferenced `.s` is never assembled, but deleting it once brings the
+tree back to what a fresh split produces and removes a duplicate `dlabel` for a
+later `INCLUDE_ASM` to trip over.
+
 ## A compiler-generated jump table is `.align 3`, so it cannot follow other rodata in the same object
 
 GCC 2.8.1 emits `.rdata / .align 3` before a switch jump table. If the unit's
@@ -42269,6 +42285,71 @@ Adding `default: return;` (or `default: break;`) to the same switch restores
 the `nop` and matched `func_dryfield_motel_balcony_80181628` exactly. The
 `default` arm emits nothing extra - it only changes what the delay-slot filler
 is allowed to reach.
+
+## The mirror case: a value-returning `switch` must *not* carry `default: return <value>;`
+
+Same decision, opposite answer, when the cases `break` and one trailing
+`return 0;` is shared by every path. An explicit `default: return 0;` gives the
+no-match path its own basic block, so the function ends in two `jr $ra` - one
+for that block and one for the epilogue - where the target has a single
+`jr $ra` reached by `j`:
+
+```
+beq   v1,v0,2c
+addu  v0,zero,zero     <- default's value, in the beq delay slot
+j     .LFA0            <- target: jumps *to the epilogue*
+nop
+```
+```
+beq   v1,v0,2c
+addu  v0,zero,zero     <- ours
+jr    ra               <- ours: a second return, delay slot `nop`
+nop
+```
+```
+30: addu v0,zero,zero  <- join, shared by the case paths
+34: .LFA0: jr ra
+```
+Dropping the `default` arm (`func_actor_141000_80133F6C`) matches exactly.
+`expand_end_case` still emits an unconditional jump for the no-match path, but
+to the break label, which it gives its own `code_label` directly in front of
+the switch-exit block - and that block starts with the trailing return's
+`set v0=0`, not with a `(return)`. So the jump survives both jump passes and
+`reorg` can later sink the join's `set v0=0` into the dispatch branch's delay
+slot and retarget the jump at the epilogue label. With an explicit `default:
+return`, the block's own `j return_label` is instead rewritten twice: `jump.c`'s
+use-before-jump optimization (`jump.c` 705) fires because
+`prev_nonnote_insn (JUMP_LABEL (insn))` is the *next* block's `barrier`, moving
+the `use v0` past that barrier and inventing a label for it; then, after reload,
+`next_active_insn` starts skipping `use` insns, so the second `jump_optimize`
+sees the epilogue's `(return)` behind that label and converts the jump into a
+`(return)` of its own. (The conversion cannot fire pre-reload: `redirect_jump`
+with a null label reaches `validate_change` -> `recog`, and the `return` insn
+requires `mips_can_use_return_insn`, which is 0 until `reload_completed`.)
+
+## Read the *tail* off a matched sibling by scanning `asm/` for the same shape
+
+When a function's body is already right and only the ending is wrong, the
+fastest way to the source shape is not more variants of the tail but a matched
+function with the same tail. Every instruction line in `asm/USA/**/matchings/`
+carries its address (`/* 2168 80133F88 E8CF0408 */  j …`), so a shape that
+involves *where a jump lands* is one pass over that text: record each `.L` label
+against the address of the next instruction, then ask whether any `j`'s target
+label is the address of the function's final `jr $ra`:
+
+```python
+insn = re.compile(r"^\s*/\*\s*([0-9A-Fa-f]+)\s+([0-9A-Fa-f]+)\s+([0-9A-Fa-f]{8})\s*\*/\s+(\S+)(.*)$")
+lab  = re.compile(r"^\s*\.L(\S+):")
+```
+
+(88 of 10999 matched functions have a `j` landing on the final `jr $ra`; the
+tail in question was shared with a sibling in the same family.) Grep alone will
+not do it - `--include='*.s'` plus `grep -A1 '^\.L'` misses the label because
+splat indents it and because the same label text appears in the `j` operand -
+and note the space in `/* 214C 80133F6C 01000524 */`, which a `\*/`-anchored
+pattern must allow for. Restrict to `matchings/` (a bare `"matchings" in path`
+also matches `nonmatchings/`), then read the sibling's body in `src/`: it is a
+matched body, so its shape is one GCC already reproduces exactly.
 
 ## Cross-jumping merges two identical call tails; `SOFT_BARRIER()` keeps both
 
@@ -57057,6 +57138,21 @@ go, and there is exactly one placement that works. Getting it wrong builds
 cleanly and fails the checksum at the overlay's first rodata byte, not at a
 function, so `diff.py` on every function will say everything matches.
 
+A promotion does the opposite damage to a `rodata` cut it crosses. The cut still
+names the unit the table used to belong to, but the span pushed the table's only
+reader past it, so the table is no longer migrated and becomes a standalone `.s`
+in the *old* unit — which the reader can never use, since a compiler-generated
+table has to start its own object's `.rodata`. `rodata_triage.py <overlay>`
+reports exactly this (`unit actor_141000_5: table owned by actor_141000_4`) and
+marks those functions BLOCKED. Point the cut's `unit` at the reader's unit
+instead. No `units` entry is needed — the `.text` cuts do not move — so this is
+not the destructive delete-and-re-split: splat migrates the table straight back
+into the reader's `.s`, and the `INCLUDE_RODATA` line disappears. Delete the
+stale `.s` the earlier split left behind; splat will not. A symbol that is plain
+data stays standalone either way, and its line belongs in the unit its cut
+names even when no code there mentions it — `actor_141000`'s
+`D_…80131E68` at `0x48` is owned by unit 3 and read only by unit 4.
+
 ## Two independent pointer locals: their assignment order decides whether `p + 4` fuses into `$a0`
 
 `ActorsShared80132920` loads two unrelated pointers out of its `Task*` and only
@@ -69862,6 +69958,50 @@ for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
         edge->state = 0;
     } else {
         edge->state = 1;
+## A halfword field widened into an `s32` local inside the branch: `sll`/`sra` at the assignment, and one shared load
+
+**Symptom.** The target steps a yaw by `+-0x40` on a *sign-extended* copy of the
+loaded halfword, computed once before the inner branch and used by both arms:
+
+```
+lhu   a0,0x12(sp)        /* vec.vy, loaded once for the whole function */
+...
+lhu   a2,0x4ba(s0)
+subu  v0,a2,a0
+sll   v0,v0,0x10
+sra   v1,v0,0x10         /* diff = (s16)(target - vy) */
+...
+li    a1,0x7d3
+sll   v0,a0,0x10         /* the widening, in the if-path */
+bgez  v1,L2
+sra   v0,v0,0x10         /* delay slot: v0 = (s32)vec.vy */
+addiu v0,v0,-0x40
+...
+L2: addiu v0,v0,0x40
+```
+
+The seed instead adds directly on the zero-extended load register
+(`addiu v0,v1,+0x40`), two instructions short per arm, with its own `lhu` per
+arm - `regs` plus `delete`, and the arms in the wrong order.
+
+**Why.** A halfword *field* used in an arithmetic expression is only
+*promoted*: `expand_expr` hands the SImode operation a `(subreg:SI (reg:HI v) 0)`,
+and `gen_lowpart_common`'s size guard is word-based ("MODE must occupy no more
+words than the mode of X"), so on MIPS a widening subreg is legal and costs
+nothing. Only an assignment into an `s32` *object* forces `convert_modes` ->
+`convert_move` -> `extendhisi2`; MIPS I has no `seh`, so that pattern expands to
+`ashlsi3`/`ashrsi3` - the `sll`/`sra` pair.
+
+**Fix.** Give the field an `s32` local assigned *inside* the branch, before the
+inner `if`, and add on that:
+
+```c
+if (ABS(diff) >= 0x41) {
+    vy = vec.vy;                     /* the conversion is an insn here, once */
+    if (diff < 0) {
+        vec.vy = vy - 0x40;
+    } else {
+        vec.vy = vy + 0x40;
     }
 }
 ```
@@ -73008,3 +73148,314 @@ one build, with no pins. `diff.py`-visible symptom is `instructions=37/38` in
 
 Input SHA256 (`base_1.i`, the matching candidate):
 `3a26e493bb048f371fef4c361121c9de3c7c71dbbec9f54cf98a13cf90cd6077`.
+Both arms then read one SImode pseudo, the pair lands in the dominator (delayed
+branch moves the `sra` into the `bgez` delay slot), and - because the assignment
+sits in the same extended basic block as the earlier `vec.vy` read, ahead of any
+store to the field - cse shares a single `lhu` with the yaw subtraction rather
+than emitting one per arm. 93.172% -> 100% on `func_actor_141000_80133BD8` from
+that one change: the register rotation it also fixed (`$a0`/`$v1` swapped) was a
+consequence of the shared load, not something to pin. This is the assignment-vs-
+use rule of the `s8`-cast entry above, and the mirror of "An in-place
+accumulator must be `s32`": there a *non*-widening value keeps its subreg, here
+the widening is the instruction the target wants.
+
+## A field read twice (once into a chain, once as a call arg) must stay two reads
+
+`func_actor_141000_80133204` chains the actor's root coordinate under its
+spawner's and then reparents the task:
+
+```
+lw    v0, 0x20(s0)     /* task->spawnArg2 */
+lw    v1, 0x2C(s0)     /* task->extra */
+lw    v0, 0x2C(v0)     /* spawnArg2->extra */
+lw    v1, 0x8(v1)
+lw    v0, 0x8(v0)
+sw    v0, 0x4C(v1)     /* ->field_8->sub */
+lw    a0, 0x20(s0)     /* spawnArg2 again, for the call */
+jal   Task_Reparent
+```
+
+The sibling shared helper `ActorsShared80132450` names every one of these in a
+local first, so writing the same shape here is the natural move - and it costs
+the match (100% -> 93.913%, `regs=8 delete=1`). Hoisting `parent =
+(Task*)task->spawnArg2;` gives the pointer a home that spans the store, so it
+takes `$a0` (the call's own argument register) and the second `lw` is *deleted*
+as redundant; the coordinate pointer is then pushed to `$a1`, which the target
+keeps in `$v1`.
+
+A `delete` penalty whose missing instruction is a **reload of something read
+twice** reads as a source-shape difference, not a scheduling one: the fix is to
+write the read out again where it is used, keeping the expression inline.
+
+```c
+((TmdObject*)task->extra)->field_8->sub = ((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8;
+Task_Reparent((Task*)task->spawnArg2, task);
+```
+
+Note the locals were introduced only to please the struct-usage style; the
+`M2C_FIELD` seed that scored 100% already had the two separate reads, so when a
+seed matches, the first rewrite has to preserve its *read count*, not just its
+expressions. Example: `func_actor_141000_80133204` (scratch `base_2.c`; the
+hoisted `base_1.c` is the counter-example). Input `base_2.i`
+`9b927762e546b3b14d340f093c1ca426c5fa7d5c055dec676e9da171d90780a2`.
+
+## A state index loaded `lh` at its dispatch table is still a `u16` field
+
+The handler-table dispatcher reads the index with `lh`:
+
+```
+lh    v0, 0xC(v1)
+sll   v0, v0, 2
+addu  v0, sp, v0
+lw    v0, 0x10(v0)
+jalr  v0
+```
+
+and the handler that advances the same field reads it with `lhu`:
+
+```
+lhu   v0, 0xC(v1)
+addiu v0, v0, 1
+sh    v0, 0xC(v1)
+```
+
+Declaring the field `s16` so the dispatcher's `lh` needs no cast also gives the
+increment an `lh`, and the match is gone. The field is `u16`; the dispatcher's
+signed load comes from an explicit `(s16)` at the index, which is how the
+already-matched siblings of this shape write it -
+`states[(s16)work->field_A06](arg0)` (`actor_400500_4.c:23`,
+`actor_400600_6.c:58`) over a `u16 field_A06`. Two loads of one field at
+different signedness are one *cast*, not a type conflict, and the `u16`
+increment is the half that must survive: `addiu` + `sh` compiled from it.
+
+Worked example: `Actor141000Work::field_C` is the state index
+`func_actor_141000_80132D3C` (still `INCLUDE_ASM`) dispatches through, and
+`field_E` the per-state frame counter, in
+`func_actor_141000_80132EB0`. Input `base_1.i`
+`279709c8584b488114b24c88d0c6f01e665d0269628f0f0da14500e489a27dca`.
+
+## A hoisted read also moves *which* value lives across the calls
+
+Same rule as the `delete` case above, observed a different way: putting a read
+in a local makes the **pointee** the value that must survive the calls, so it
+takes the callee-saved register and its load is scheduled to the top of the
+function. Keeping the read inline leaves the **base pointer** live instead.
+
+`func_actor_141000_80132E24` calls two helpers with
+`((TmdObject*)arg0->extra)->field_8`. Written with `tmd = (TmdObject*)arg0->extra;`
+first, the object opens
+
+```
+subu sp,sp,32
+sw   ra,24(sp)
+sw   s1,20(sp)          /* $17 */
+sw   s0,16(sp)
+lw   s0,28(a0)          /* idMap */
+lhu  v0,10(s0)
+lw   s1,44(a0)          /* extra - hoisted above the branch */
+```
+
+The target instead copies `arg0` itself into `$s1` (`addu s1,a0,zero`) and
+reloads `44(a0)` after the branch and again before each `jal`. Inlining the
+expression at both call sites - no `tmd` local - reproduces it, and that is what
+the 100% `M2C_FIELD` seed already did.
+
+A scratch score is evidence only about the C you actually scored. The port to
+the host file is a new candidate: score it in the scratch first rather than
+assuming the seed's 100% carries over to a struct-style rewrite of it.
+
+Example: `func_actor_141000_80132E24` (scratch `base_1.c`; the `tmd`-local shape
+is the counter-example that failed the overlay checksum). Input `base_1.i`
+`6eebf6fc90486fed6cad608d91068483eab7f8a516ed9387d802fa52140a4597`.
+
+## A `Mem_Calloc` result parked in `Task::idMap` is a work block, not a `TaskIdMap`
+
+`task.h` types that slot `TaskIdMap*` (8 bytes), so m2c renders a work block
+stored there as byte arithmetic - and a plain `*temp_v0 = 0xFFF;` does not even
+compile, because `TaskIdMap` is a struct and the assignment is an incompatible
+type. Substituting `M2C_FIELD(temp_v0, s32 *, 0) = 0xFFF;` is the minimal edit
+that yields a baseline, and here it scored 100% - but it leaves the block
+untyped, and an untyped body is a seed, not a landing.
+
+Two things in the target give the real type, and neither is a guess:
+
+- **The allocation size is the struct size.** `work = Mem_Calloc(0x10, 0);`
+  makes the block a 0x10-byte struct, so its `STATIC_ASSERT_SIZEOF` is anchored
+  to the caller rather than to a hand count.
+- **The store width is the field type.** `sw` at 0 → `s32`; `sh` at
+  0x8/0xA/0xC/0xE → `u16`, with m2c's own `lhu` + `addiu` + `sh` increment
+  settling the signedness (see the `u16` entry above).
+
+Which task owns the block is the part that takes work, because `task->state` is
+shared by every task in the overlay: **two state tables keyed on `task->state`
+are two tasks**, so the nearest matched sibling is not evidence of ownership.
+Follow the dispatch chain: `D_actor_141000_80131E30` is
+`{80132C7C, 80132D3C, Task_Kill}` - the controller - and `80132D3C` dispatches
+`idMap + 0xC` through a *second* table, `D_actor_141000_80131E3C`, while the
+0x4CC `Actor141000Work` belongs to a third task whose table
+`D_actor_141000_80131E4C` = `{8013392C, …}` is entered from `801338C0` by
+`task->state` as well. The controller's 0x10 block is therefore a type of its
+own.
+
+The two already-matched handlers `func_actor_141000_80132E24` and
+`func_actor_141000_80132EB0` reach that same block as `(Actor141000Work*)`,
+because it shares `Actor141000Work`'s `scale`/`state`/`ticks` halfword triple at
+0xA/0xC/0xE. Record that in the new type's doc comment and leave them alone: a
+header addition is additive and cannot move a matched body, whereas editing the
+sibling's `.c` is one of the ways a matched function gets lost.
+
+`func_actor_141000_80132C7C 2 attempts` - the seed scored 100% in the first
+build and the typed port `base_1.c` reproduces it instruction for instruction.
+Input `base_1.i`
+`c2d57ad641bfa70893c2bc309bda211056623b43a70fa9d23b9f95fe321623ac`.
+
+## A load that must precede a store needs the source to emit it before the store
+
+`func_actor_141000_80132EF4` opened at 96.98% with `branch=3 insert=1 reorder=1`:
+one instruction out of place. The target holds
+
+```
+lhu   a1,8(s0)          /* work->frames */
+lw    v0,0x2c(s1)       /* arg0->extra - sits in the lhu's load-delay slot */
+addiu a1,a1,1
+sh    a1,8(s0)
+```
+
+while the seed emitted `lw v0,0x2c(s1)` after the `sh`, leaving a `nop` where
+the target has the load. No priority could have fixed it: in `sched_analyze_1`
+a store depends on every pending read (`anti_dependence`), in `sched_analyze_2`
+a read depends on every pending write (`true_dependence`), and
+`memrefs_conflict_p` answers "may conflict" for two accesses off different base
+registers - it falls through to `return 1`. The `.sched` dump shows the
+constraint directly, `(insn 24 ... (insn_list 21 (nil)))`: with the store first
+in the RTL the load can never be hoisted above it, at any priority. The
+leftover is a **source-order** property, not a ranking one.
+
+Moving the read up fixes it: `obj = arg0->extra;` **before** the counter update
+generates `lw 0x2c(s1)` first, the link disappears, and sched1 spends the
+independent load in the `lhu` delay slot. 100% on that one edit.
+
+Two boundaries worth checking before concluding "scheduler":
+
+- **The hoisted load must die at the call.** The copy block here re-reads
+  `((TmdObject*)arg0->extra)->field_8`, so nothing lives across the `jal` - the
+  frame is `sp-0x20` saving `$ra`/`$s0`/`$s1` and has no spill slot. A local
+  kept live across the call is the opposite move (see the
+  `func_actor_141000_80132E24` entry above, where a `tmd` local broke the
+  match) and does not reproduce this shape.
+- **Hoist the pointer, not the load through it.** Reading
+  `coord = obj->field_8` early puts `lw 8(v0)` on the pending-read list first,
+  so the store then depends on *it* and the copy's own `lw a0,8(v0)` could not
+  stay below the `sh`.
+
+Example: `func_actor_141000_80132EF4` (scratch `base_2.c`, one edit off
+`base_1.c`). Input `base_2.i`
+`fa6277c80f6fa46964be9a9644a7882077475d57b473ce14c8f93d6354a30c57`.
+
+## One field, two signedness: `lh` in the dispatcher and `lhu` in the handler means `u16`
+
+A task's state index is read back through a sign-extending load by its
+dispatcher and incremented unsigned by its handler, so the same offset shows up
+as `lh` in one function of an overlay and `lhu` in another. Do not "fix" the
+field to `s16` to satisfy the sign-extending site -- that just moves the
+mismatch to the other function. The field is `u16` and the `lh` site is an
+explicit cast:
+
+```c
+/* dispatcher: lh, then sll 2 / addu / lw */
+sp.funcs[(s16)work->field_4C2](arg0);
+/* handler: lhu / addiu / sh */
+work->field_4C2 = work->field_4C2 + 1;
+```
+
+`Actor141000Work`'s 0x4C2 is the worked example: `func_actor_141000_80133A00`
+indexes `D_actor_141000_80131E58` with it while `func_actor_141000_80133B28`
+bumps it. Changing the field to `u16` and adding the cast in the dispatcher
+keeps both matching; `actor_341700` 0x422 and `actor_403100` 0x5FA are the same
+pair already in the tree. A scratch env that only ever compiles one of the two
+cannot see the conflict -- check the sibling functions' disassembly before
+touching the struct.
+
+Related: m2c reads a 16-byte `.rodata` struct as one scalar, so a seed that
+loads a single word where the target copies four is not a missing statement.
+Look for the shared-body header under `include/actors/` that describes the same
+work block -- `actors_shared_80132920.h` documents the sibling
+"rotate a constant local offset, then open the per-axis limit" handler this
+overlay's state-1 handler is a variant of, and supplies the field names, the
+`u16` state counter and the `(VECTOR*)&work->step` cast directly.
+
+Example: `func_actor_141000_80133B28` (scratch `base_1.c`, first distinct build,
+100%). Input `base_1.i`
+`28d9ecbc7256465d3a506a6b166343e890be5b2f5644e1e903735ab8ff018d88`.
+
+## A hard-register write reserves that register over its *scheduled* range, so a statement swap can move a local-alloc choice
+
+`func_actor_141000_80132FD0` sat at 90.745% with `regs=3`: the target keeps the
+`vy` load (`lh $v1,0x2($s0)`) in `$v1`, ours took `$v0`, and sched2 then
+interleaved the following `lw` into the load's delay slot where the target has a
+`nop` (`insert=1 delete=2`). Everything else in the function already matched --
+same blocks, same calls, same predicates.
+
+The sole `.lreg` difference is one line, `;; Register 103 in 3.` against
+`;; Register 103 in 2.`, and pseudo 103 is the `vy` load. `lregwalk.py` on that
+dump shows why: the return-value move `(set (reg/i:SI 2 v0) (reg/v:SI 85))`
+sits at block-3 index `#21` in the match and `#24` in the 90.745% build --
+between the `vy` load and its store, rather than after both.
+
+`local-alloc.c`'s `find_free_reg` picks the lowest free hard register in the
+class and then calls `post_mark_life (regno, mode, 1, born_index, dead_index)`,
+marking it live over `[birth, death)` in `regs_live_at`. `$v0` therefore belongs
+to the return value from that insn's scheduled position to the end of the block,
+and every quantity whose own range overlaps that span is denied it. Scheduling
+the move *earlier* is what costs the `vy` quantity its `$v0`: no data flow
+changed, only where the hard-register write landed.
+
+So the lever was a source reorder rather than a rewrite. Swapping the `t[0]`
+read-modify-write ahead of the independent `flg = 0` store (different fields of
+the same struct) changed the pre-sched1 emission order, which changed sched1's
+ready-list order at equal priority, which scheduled the return move between the
+load and its store. 90.745% -> 100.000%, every penalty zero. A `$v0`/`$v1`
+mismatch on a straight-line tail is worth reading as "whose hard-register range
+covers this span" before it is read as a `QTY_CMP_PRI` tie.
+
+Example: `func_actor_141000_80132FD0` (permuter `5a6291d8121741f4`, isolated as
+scratch `base_3.c`, 100%). Input `base_3.i`
+`ff5eb3bb586dde024affb7c730ec1cc70dbad86701feafb1ff8933b260e5961e`.
+
+## The merge starts *at* the call when two arms' tails differ only in the arguments
+
+"Duplicate a switch's shared tail" above says each duplicated copy merges with
+the last one and the merge stops at the differing `jal` in front of the tail.
+That is the case when the arms pass the *same* arguments. When they pass
+different ones, the call is the first insn that can merge, and it merges too --
+the surviving block contains the `jal` itself, and each arm is left holding
+only the address materialisation for its own argument:
+
+```
+case 1:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...D28C) ; j .text+0xac ; addiu a1,a1,%lo(D_...D28C)
+case 2:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...CE84) ; addiu a1,a1,%lo(D_...CE84)
+0xac:    jal Gp_LoadActorImage ; addiu a2,sp,0x10 ; lbu v0,0x4ca ; lhu v1,0x4c4 ; addiu v0,v0,1 ;
+         sh v1,0x4c6 ; j .text+0xf8 ; sb v0,0x4ca
+```
+
+So the shared block sits between the *second* arm's body and the next case, and
+nothing in the source has to say so: writing the three arms out honestly, each
+with its own full call, produces it (`func_actor_141000_801335D4` is the worked
+example; the third arm's tail differs -- it clears the step instead of bumping
+it -- so it is a block of its own). Both `goto` spellings score worse: a label
+in front of the call keeps the tail as one block but is also where the address
+has to be carried in a local, which costs the `lui`'s register (see "Locals
+holding a symbol address across a `goto` cost the `lui`'s register") --
+99.697% with `lui v0,%hi` / `addiu a1,v0,%lo` against the target's
+`lui a1,%hi` / `addiu a1,a1,%lo`. Dropping the variable *and* the `goto` is
+what puts the address straight into `$a1`.
+
+The same function's other two seed failures were already-documented shapes: the
+0x19x0x14 rect has to be one address-taken `RECT` (m2c's four scalar `s16`
+locals lose three dead stores), and the underflow test is the signed truncation
+of the decremented `u16` (`lhu / addiu -1 / sh / sll 16 / bgez`), not a bit test
+on an `s32` temp.
+
+Example: `func_actor_141000_801335D4` (scratch `base_2.c`, 100%; `base_1.c`,
+the `goto` spelling, 99.697%). Input `base_2.i`
+`1520622cbff766666797221e9862f0afe6034a224a669ab40fbf0c8da24c11c6`.

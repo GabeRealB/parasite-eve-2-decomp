@@ -435,6 +435,17 @@ takes a call-clobbered register and caller-save code is emitted around each
 call (same rule as §10.4); otherwise local allocation leaves it unassigned for global allocation and
 reload to handle.
 
+**"Free" includes hard-register writes, over their *scheduled* range.**
+`find_free_reg` ends with `post_mark_life (regno, mode, 1, born_index,
+dead_index)`, reserving the register it just handed out over `[birth, death)` in
+`regs_live_at`; a later quantity's `used` set is read from there. An insn that
+writes a hard register directly — the return-value move `(set (reg/i:SI 2 v0)
+…)`, a call's `$v0` — therefore denies that register to every quantity whose
+range overlaps the insn's *position*, which sched1 decides. Such an insn and a
+`QTY_CMP_PRI` tie look identical in a `$v0`/`$v1` mismatch; `lregwalk.py` tells
+them apart, because the reservation moves when the schedule does. §10.6's
+levers all change the quantity; this one changes its neighbour.
+
 ### 10.4 global-alloc: rank, two passes, preferences, and what "spill" means
 
 **Rank.** `;; N regs to allocate: ...` in `.greg` is the order, computed as
