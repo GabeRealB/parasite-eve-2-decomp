@@ -74973,3 +74973,49 @@ also works — the run comes back as a standalone `.s` with no `.align 3` — bu
 it costs a second manifest cut and moves one table into an unrelated unit.
 
 base_1.c preprocessed SHA256: d023351c7787cbb24aac0f599b75a4777baa8c2f5dbddf3b45b1ec2de5c87a7e
+
+## One-basic-block functions are scheduled as a whole, so a prologue reorder cannot be fixed by moving prologue statements
+
+`func_actor_403200_801408D8` reached 357/357 instructions with `stack=0
+branch=0` at 97.731% and then stopped: six instructions in the prologue were in
+a different order and nothing moved them. `.rtl`, `.cse`, `.cse2`, `.lreg`,
+`.greg` *and* `.sched` all carried the stores in source order
+(`0x20,0x22,0x24,0x26,0x28,0x2a`); only `.sched2` reordered them, hoisting the
+`sh a3,0x28` / `sh s8,0x2a` / `sh a3,0x38` / `sh s8,0x3a` stores and the
+`addiu a3,a3,1` to the top of the block and deferring the `sh v1,0x24` store.
+
+The reason statement order cannot fix it is that the function is **one basic
+block**: `diagnosis.json` reports `blocks=1/1`, so sched2 schedules the entire
+body as a single list and the prologue's position depends on every statement
+below it. `rank_for_schedule` ranks on `INSN_PRIORITY` first, then on the
+class-vs-`last_scheduled_insn` rule, and only then on `INSN_LUID`. The
+comparator log from `tools/trace_gcc.py <file>.i --uids 88 1352 47 164 41`
+shows every one of these being settled on `original RTL order` — i.e. a chain
+of LUID tie-breaks over equal priorities. LUIDs depend on the *set* of insns
+present, which is precisely the dimension a statement permuter does not vary:
+decomp-permuter ran 2000+ iterations from this seed and its best output was
+820 (worse than the seed's 810).
+
+Two further observations from the same trace:
+
+- The selection order is the **exact reverse** of the emitted order. The last
+  uid selected (41) is the block's first real instruction, and the first
+  selected (158) is near the end. `sched.c`'s `INSN_REF_COUNT` counts
+  *dependents*, so an insn is "ready" only once everything that reads it has
+  been scheduled — read the `.sched2` ready lists with that in mind, or the
+  comparator log looks like it is describing the wrong end of the function.
+- Allocation quality and schedule order fight each other. Moving the three
+  `Gp_GridParams` field loads below the face init gave the best allocation seen
+  (`regs=4`, against `regs=6` for the best seed) and simultaneously blew
+  `reorder` up to 20. Treat `regs` and `reorder` as a frontier, not as
+  independent dials, before concluding that a candidate is "close".
+
+Chasing a reorder in a single-block function by reordering the statements at
+the top is therefore wasted effort once the permuter has been over that space.
+The one lever left is to give the mis-scheduled instruction a **real
+dependency** on a chain that is released where the target releases it — for
+this function, making the `sh a3,0x28` store depend on the face2 vertex chain.
+That must not lengthen a live range across a call (`base_3.c` showed a pointer
+kept live across `VectorNormalSS` costing `regs=27`).
+
+base_4.c preprocessed SHA256: dad55059ca56621dddd3fdbc278826182e6bff9f636b0ba2adff41cbafbfd882
