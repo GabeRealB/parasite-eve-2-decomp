@@ -41,7 +41,11 @@ typedef struct Actor207200Work {
     /* 0x3AC */ Actor207200Obj field_3AC;
     /* 0x3E4 */ byte           pad_3E4[0x10];
     /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
-    /* 0x3FC */ byte           pad_3FC[0x68];
+    /* 0x3FC */ byte           pad_3FC[0x58];
+    /* 0x454 */ s32            field_454; // model position while the actor idles
+    /* 0x458 */ s32            field_458;
+    /* 0x45C */ s32            field_45C;
+    /* 0x460 */ byte           pad_460[4];
     /* 0x464 */ MATRIX         field_464; // last transform folded onto the model
     /* 0x484 */ byte           pad_484[2];
     /* 0x486 */ s16            field_486; // state the six helper slots are running

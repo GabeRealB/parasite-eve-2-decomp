@@ -198,7 +198,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014D49C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014D5C4);
+/// Walks the model's root part forward. While the actor is not idle
+/// (`work->field_4A6 == 0`) the part's current translation is remembered in the
+/// work area, and the part is then displaced along its own forward axis - the
+/// third basis column of its local matrix, scaled by `work->field_492` - and
+/// lifted by 0x80.
+void func_actor_207200_8014D5C4(Task* arg0)
+{
+    Actor207200Work* work;
+    GsCOORDINATE2*   coord;
+
+    work  = arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (work->field_4A6 == 0) {
+        work->field_454 = coord->coord.t[0];
+        work->field_458 = coord->coord.t[1];
+        work->field_45C = coord->coord.t[2];
+    }
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_492) >> 12;
+    coord->coord.t[1] += 0x80;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_492) >> 12;
+}
 
 /// Rebinds the work's animation id to its six helper slots. When the id has
 /// changed since the last frame the remembered id follows it, the frame counter

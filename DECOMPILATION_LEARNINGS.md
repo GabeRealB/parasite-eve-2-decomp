@@ -72939,3 +72939,51 @@ never tie, which is why the local form is not wrong in general, only here.
 
 Input SHA256 (`base_7.i`, the matching candidate):
 `4f1532f7c0170eebd4e3d38fc07d03296cf4428ee46b22fc0eaeea00bfe20c9c`.
+
+## Statement order picks which chain fills a `mult` delay slot, and that decides the instruction count
+
+`func_actor_207200_8014D5C4` ends with three independent updates to one
+coordinate: a `mult`-scaled change to `t[0]`, a constant `t[1] += 0x80`, and a
+second `mult`-scaled change to `t[2]`. m2c had emitted `t[1]` first, and the
+result scored 92.6% with `reorder=3 delete=1` — one instruction short.
+
+The missing instruction was a load-delay `nop`. Written `t[1]` first, sched1
+emits it as its own group and the `mult`'s delay slot gets `lw v0,0x18(a0)`, the
+`t[0]` load, whose own delay is then absorbed by the following `mflo`:
+
+```
+lw    v0,0x1c(a0)      # t[1] group, first in source
+lh    v1,8(a0)         # fills the lw delay -> no nop
+addiu v0,v0,0x80
+sw    v0,0x1c(a0)
+lh    v0,0x492(a1)
+nop                    # lh load delay
+mult  v1,v0
+lw    v0,0x18(a0)      # mult delay slot; mflo does not use v0 -> no nop
+```
+
+With the statements in the target's own `t[0]`, `t[1]`, `t[2]` order, sched1
+starts the `t[0]` `mult` chain first and drops the `t[1]` load into the `mult`
+slot, where its delay *cannot* be absorbed — `addiu v0,v0,0x80` uses the loaded
+register, so a `nop` appears and the count reaches 38:
+
+```
+lh    v1,8(a0)
+lh    v0,0x492(a1)
+nop
+mult  v1,v0
+lw    v0,0x1c(a0)      # mult delay slot
+nop                    # lw delay, now unavoidable
+addiu v0,v0,0x80
+sw    v0,0x1c(a0)
+```
+
+So the rule from "Statement order of independent increments fills load-delay
+slots" has a second form: when the slot being filled belongs to a multi-cycle
+op rather than a load, the choice of chain does not merely move a `nop` around,
+it adds or removes one. Preferring the target's own statement order fixed it in
+one build, with no pins. `diff.py`-visible symptom is `instructions=37/38` in
+`.diagnosis.json` with `delete=1` and topology already matching.
+
+Input SHA256 (`base_1.i`, the matching candidate):
+`3a26e493bb048f371fef4c361121c9de3c7c71dbbec9f54cf98a13cf90cd6077`.
