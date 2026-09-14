@@ -76215,3 +76215,89 @@ out of include the run *before* the first named field. A constant shift of every
 displacement with an otherwise identical body and matching topology is the
 signature; diff the object dump's displacements before reading the penalty mix
 as evidence about registers.
+## A byte store through a pointer evicts a cached scalar global pointer load: the duplicate `lw` is CSE's QImode rule
+
+`func_actor_335800_801620F0` loads `Game_Session` twice around its stores, and the
+second load is the whole match:
+
+```
+lui  $a1, %hi(Game_Session)
+lw   $v1, %lo(Game_Session)($a1)
+lui  $v0, %hi(D_8007216D)
+sb   $a0, %lo(D_8007216D)($v0)
+sb   $a0, 0x5($v1)
+lw   $v1, %lo(Game_Session)($a1)     <- not an m2c artefact, and not two source reads
+li   $v0, 1
+jr   $ra
+sh   $v0, 0x76($v1)
+```
+
+The obvious cleanup destroys the match. Hoisting the pointer into a local drops
+the reload and one instruction (81.111%, `delete=1`):
+
+```c
+GameSession* session = Game_Session;        /* 8 insns, one lw */
+session->field_5 = D_8007216D = arg0;
+session->field_76 = 1;
+
+Game_Session->field_5 = D_8007216D = arg0;  /* target: two dereferences, two lw */
+Game_Session->field_76 = 1;
+```
+
+But the reload is not simply "the source dereferences the global twice". Five
+one-build probes against this target isolate it:
+
+| probe | intervening store | `lw Game_Session` |
+|---|---|---|
+| `f5 = a; f76 = 1` (target shape) | `sb` to the byte field | 2 |
+| same, pointer hoisted into a local | `sb` to the byte field | 1 |
+| `a = f5; return a + f5;` | none | 1 |
+| `f76 = a; f5 = 1;` | `sh` to a halfword field | 1 |
+| `f5 = a; <word store to another global>; f76 = 1` | `sb` + `sw` | 2 |
+
+The discriminator is the *width* of the store in between, and `cse.c` says why.
+`invalidate_memory` (cse.c:1734) removes a hash entry for a memory load when
+
+```c
+	if (p->in_memory
+	    && (all
+		|| (nonscalar && p->in_struct)
+		|| cse_rtx_addr_varies_p (p->exp)))
+	  remove_from_table (p, i);
+```
+
+The cached `Game_Session` load is a scalar MEM at a *fixed* address, so it is
+`in_struct == 0` and `cse_rtx_addr_varies_p` is 0 — only `all` can evict it. And
+`note_mem_written` (cse.c:7742) sets `all` for every store at a varying address
+unless the store is in-struct or a `PLUS` *and* is not QImode:
+
+```c
+	  if (! ((MEM_IN_STRUCT_P (written)
+		  || GET_CODE (XEXP (written, 0)) == PLUS)
+		 && GET_MODE (written) != QImode
+		 && GET_CODE (XEXP (written, 0)) != AND))
+	    writes_ptr->all = 1;
+```
+
+with the comment "we must allow QImode aliasing of scalars, because the ANSI C
+standard allows character pointers to alias anything". So `sb $a0, 0x5($v1)` —
+a byte store through a pointer, `MEM_IN_STRUCT_P` set and all — sets `all`, the
+pointer load leaves the table, and the second dereference reloads. `sh`/`sw`
+through the same pointer keeps `all` clear and the load is forwarded, which is
+the `sh` row above. The store to `D_8007216D` is irrelevant either way: it is at
+a fixed address, so it never sets `all`, and the word-store row shows a scalar
+global store in between changes nothing.
+
+Practical shape: a duplicated `lw` of a global pointer with a **byte** store
+between the two uses is CSE's own behaviour, not a source artefact — reproduce
+it by writing the dereference out twice, and do not "tidy" it into a local. The
+inverse reading is the useful one when you are stuck: if the target has a single
+load where the source seems to demand two, the store in between is not a byte
+store, so look at the field's declared width (`u8` vs `s16`) rather than at the
+pointer expression.
+
+This is `cse.c`'s counterpart to "Struct-typing a body changes GCC 2.8.1's
+aliasing" and "A cast-pointer access drops `MEM_IN_STRUCT_P`": those are about
+`sched.c`'s `fixed_scalar_and_varying_struct_p` letting a *scheduler* move an
+access, this one is about a *load* being deleted from CSE's table, and it is the
+QImode arm that fires, not the in-struct arm.
