@@ -78447,3 +78447,50 @@ Inputs: `base.i` (m2c seed, 99.778%, `stack=2`)
 `243d1d0c5076d1b099fdcd905b0e9fa392b074b3524e09cd2d2e2c0edfb5aa5c`,
 `base_1.i` (arity restored, 100.000%)
 `552f83af72b8c2c995ffbbc6a0096e32b3b8ebe0139241b49bb5168f942db81f`.
+## m2c's `<= 0` early-return arm compiles to `blez`; a target `bgtz` wants the `> 0` form
+
+m2c decompiles a two-arm guard as the "clear then `return 0`, else `return 1`"
+shape:
+
+```c
+if (M2C_FIELD(a1, s16 *, 0x40) <= 0) {
+    M2C_FIELD(v1, s16 *, 0xBE4) = 0;
+    M2C_FIELD(a1, s8 *, 0x4C) = 0;
+    M2C_FIELD(v1, s16 *, 0xBE6) = 0;
+    return 0;
+}
+return 1;
+```
+
+That emits `blez` with the store arm as the branch *target*, and the `li v0,1`
+block ahead of it. The target had `bgtz` with the store arm falling through and
+the `li v0,1` block sunk to the end: `blocks`, `edges`, `condition_registers`
+and `calls` all matched, and the score sat at 73.333%
+(`reorder=2 insert=1 delete=1`) purely on the inverted predicate and the block
+order it implies.
+
+The fix is one edit and no restructuring — write the guard in the
+early-return direction:
+
+```c
+if (enemy->field_40 > 0) {
+    return 1;
+}
+work->field_BE4 = 0;
+enemy->field_4C = 0;
+work->field_BE6 = 0;
+return 0;
+```
+
+100.000%, every penalty zero (`func_actor_110600_80138538`, one build).
+
+This is the rule at "If/else branch polarity" — write the arm you want as
+fall-through as the test's *else* — but the tell is narrower and worth checking
+first: read `.diagnosis.json`'s `opcode_delta`. A lone `6:0` vs `7:0` pair
+(`blez`/`bgtz`, or `bgez`/`bltz`) with `blocks`, `edges` and
+`condition_registers` all equal is polarity, not scheduling, and needs no dumps.
+
+Inputs: `base.i` (m2c seed, 73.333%)
+`1d1850feaf1461eb57a724bdf9fdca749b624338bb869f7c1345938a1d301098`,
+`base_1.i` (inverted guard, 100.000%)
+`8cf8de67a5dafeab080f1b2dd45fbd55833f10b5c147e09e09663a646852e51f`.

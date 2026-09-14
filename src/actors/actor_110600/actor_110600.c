@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "actors/actor_110600.h"
+
+#include "gameplay/1BC.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801322CC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132470);
@@ -82,4 +86,18 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80138448);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80138538);
+s32 func_actor_110600_80138538(Task* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor110600Work*)arg0->idMap;
+    if (enemy->field_40 > 0) {
+        return 1;
+    }
+    work->field_BE4 = 0;
+    enemy->field_4C = 0;
+    work->field_BE6 = 0;
+    return 0;
+}
