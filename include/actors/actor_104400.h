@@ -60,7 +60,9 @@ typedef struct Actor104400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ byte             pad_428[0x8];
     /* 0x430 */ s16              field_430;
-    /* 0x432 */ byte             pad_432[0x16];
+    /* 0x432 */ byte             pad_432[0x6];
+    /* 0x438 */ s16              field_438; // 1 on the death path
+    /* 0x43A */ byte             pad_43A[0xE];
     /* 0x448 */ s16              field_448;
     /* 0x44A */ byte             pad_44A[0x5];
     /* 0x44F */ u8               field_44F;
