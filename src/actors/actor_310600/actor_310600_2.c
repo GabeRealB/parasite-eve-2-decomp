@@ -8,6 +8,10 @@
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_310600_80161E3C;
 
+/// The actor's later state handlers, dispatched through by `field_47E` rather
+/// than by `Task::state`.
+extern TaskFuncTable3 D_actor_310600_80161E48;
+
 void func_actor_310600_801629C4(void)
 {
 }
@@ -41,7 +45,21 @@ void func_actor_310600_80162A74(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600_2", func_actor_310600_80162A7C);
+/// Runs the entry of the actor's second state table that `field_47E` selects -
+/// the counter `func_actor_310600_80162AD8` and `func_actor_310600_80162B98`
+/// bump as they finish, so the table steps through the handlers in turn. Copies
+/// the table onto the stack first, the same dispatch `func_actor_310600_801629CC`
+/// performs over `state`, and the body `ActorsShared801327f8` repeats over the
+/// four-handler carriers.
+void func_actor_310600_80162A7C(Task* task)
+{
+    Actor310600Work* work;
+    TaskFuncTable3   fns;
+
+    work = (Actor310600Work*)task->idMap;
+    fns  = D_actor_310600_80161E48;
+    fns.funcs[(s16)work->field_47E](task);
+}
 
 /// Turns the actor's root part to face the work block's stored point: normalises
 /// the offset from the part's own translation, takes its yaw with `ratan2`, and

@@ -43413,6 +43413,41 @@ argument accounting for all of it; the fixed form is exact. When m2c hands a
 just-loaded narrow value to a call, read the callee's prototype before porting —
 a stray `andi` beside an `lhu` is this, not a register-allocation leftover.
 
+## A stack table copy reads as the callee's argument list
+
+The third form of the same invention, and the one where the callee cannot settle
+it. Dispatchers here copy a fixed function table onto the stack and call through
+one entry — `TaskFuncTable3/4/5`, `GpEnemyTaskFuncTable3/4/5`. The copy's
+temporaries land in `$a1`-`$a3` (they die at the `jalr`, so nothing else claims
+them), which leaves exactly the picture of a call passing the table's contents:
+
+```
+lw $a1,0x0($t0) ; lw $a2,0x4($t0) ; lw $a3,0x8($t0)
+sw $a1,0x10($sp) ; sw $a2,0x14($sp) ; sw $a3,0x18($sp)
+lh $v0,0x47E($v1) ; sll $v0,$v0,2 ; addu $v0,$sp,$v0 ; lw $v0,0x10($v0) ; jalr $v0
+```
+
+m2c read `func_actor_310600_80162A7C` as a six-argument indirect call and scored
+52.83% at `insert=4 delete=6`. Two things identify it. The same words are both
+loaded *and* stored, and the store is to the caller's own frame — an argument
+needs one or the other, never both. And the count is checkable against a
+sibling: `ActorsShared801327f8` is this body over a four-entry table, its C
+passes only `task`, and its assembly still leaves three loaded values in
+`$a1`-`$a3` — proof they belong to the copy, not the call. With an indirect call
+there is no callee `.s` to count argument registers in, so recognising the copy
+is the only route:
+
+```c
+work = (Actor310600Work*)task->idMap;
+fns  = D_actor_310600_80161E48;              /* TaskFuncTable3 fns; */
+fns.funcs[(s16)work->field_47E](task);
+```
+
+Exact on the second build. Worth recognising on sight: the one shared body is
+linked into every carrier of the family (`src/actors/lib/actors_shared_801327f8.c`
+covers four), and the index in the brackets is always a `s16` load off the work
+block.
+
 ## m2c's synthesized `Task*` field names can be swapped relative to `task.h`
 
 The scratch prelude carries no `Task`, so m2c invents field names for the pointer
