@@ -613,7 +613,24 @@ void Actor04400_Fn08718(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn087E0);
+void Actor04400_Fn087E0(Task* arg0)
+{
+    Actor104400Work* work;
+    TmdObject*       model;
+    u16              ticks;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks == 3) {
+        Tmd_FreeBuffers(model);
+        model->field_C |= 4;
+    }
+    if ((s16)work->field_412 >= 0x24) {
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08870);
 
