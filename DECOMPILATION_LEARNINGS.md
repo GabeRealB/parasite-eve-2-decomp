@@ -76739,3 +76739,82 @@ Inputs: `base.i` (m2c seed, 99.737% `regs=1`)
 `1afb30a7047e5beb2ab8c15e233e5ac8dfebaeca73b8686143a4ffb8dbdabd5c`,
 `base_1.i` (field address, 100.000%)
 `450b995a14c8c4926b463735dd1af44ee06dae34e925624ba39b325ae7fcfe3d`.
+## The store written *after* a load is what fills its delay slot; a last-statement store fills the last load's
+
+`func_actor_342000_801640C0` is a pose setter: three word loads copied into
+`coord.t`, three `lh` angles sign-extended into `s32` slots, and one
+`flg = 0`. The target spends a `nop` in the *second* load's delay slot and puts
+the flag clear in the *third* load's:
+
+```
+lh    v0,0x10(a2)
+nop
+sw    v0,0x274(a0)
+lh    v0,0x12(a2)
+nop
+sw    v0,0x278(a0)
+lh    v0,0x14(a2)
+sw    zero,0x214(a0)
+jr    ra
+sw    v0,0x27c(a0)
+```
+
+The m2c seed wrote the clear *before* the last angle store (its RTL order is
+`sw 0x274`, `sw 0x278`, `sw 0x214`, `sw 0x27C`). That puts `sw zero,0x214` in
+`lh 0x12`'s slot and leaves `lh 0x14` unfilled — 19 insns, no `nop` anywhere,
+`reorder=1`. Writing the clear **last**:
+
+```c
+coord->coord.t[0] = arg2->field_0;
+coord->coord.t[1] = arg2->field_4;
+coord->coord.t[2] = arg2->field_8;
+work->field_274   = arg2->field_10;
+work->field_278   = arg2->field_12;
+work->field_27C   = arg2->field_14;
+work->coord.flg   = 0;
+```
+
+reproduces the target exactly. A control build with the same signature and
+pointer shapes and only that one statement moved back scores 92.000%
+(`reorder=1 delete=1`), so the order is the cause, not the types.
+
+The rule: with this backward list scheduler each load's delay slot is filled by
+the store that follows it in source order, so the *last* load can only be filled
+by a store written after it. When a target spends a `nop` on an earlier load and
+an independent store on the last one, move that store to the end of the source.
+Do not reach for `SCHED_BARRIER` or a `do { } while (0)` fence first — those are
+for the reverse shape, where the store you want in the slot is already *above*
+the load (see the `do { } while (0)` entry above).
+
+Worth trying before anything else on this codebase's many pose setters: the
+original sources put `coord->flg = 0` last anyway, which the matched siblings
+`func_80104D68` (gameplay) and `func_actor_361100_80162F58` both show.
+
+Inputs: `base_3.i` (clear before the last store, 92.000%)
+`9e6011d969a8e6d447b9d70019987803a34c2625a18aaa84eb3f9dccee7b17d8`,
+`base_2.i` (clear last, 100.000%)
+`05d0e277caca703015060f1d2a067e9e922a1a268b9f15cf95b7f3d176b0e888`.
+
+## `grep` here is ugrep, and it silently skips the Psy-Q headers
+
+Six files in the tree — `include/psyq/libgte.h`, `libcd.h`, `libds.h`,
+`libspu.h`, `kernel.h`, `mcgui.h` — carry Shift-JIS bytes in their comments.
+This machine's `grep` is ugrep 7.8.4, which skips a file it considers binary
+*without printing anything at all*: no match lines, no `Binary file … matches`,
+no count. `grep -c "MATRIX" include/psyq/libgte.h` prints nothing and exits 1
+even though the file defines `MATRIX` on line 141.
+
+The symptom is a type that is used across the whole project and defined
+"nowhere": `grep -rn "MATRIX" include/` returns only its uses, so the next step
+is hunting the definition in `lib/`, in generated headers, or — worse —
+re-inventing it. The `VECTOR` in that same file is 0x10 bytes
+(`long vx, vy; long vz, pad;`), not the 12 a three-word reading suggests, and
+assuming so overflows a struct by four bytes: the only diagnostic is
+`size of array 'static_assertion_sizeof_X' is negative`, with no line pointing
+at the field.
+
+Always pass `-a` (`grep -a`, or `--binary-files=text`) when searching
+`include/psyq/`, and read the header rather than reconstructing a Psy-Q struct
+from its uses. Preprocessed `.i` files are unaffected — `-P` strips the
+comments that carry the high bytes — so a scratch `.i` is a fine place to look a
+definition up when the header itself is unreadable.
