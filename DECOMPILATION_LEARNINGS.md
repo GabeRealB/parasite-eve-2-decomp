@@ -77325,3 +77325,68 @@ Example: `func_actor_310600_80162B98` (50.156% -> 100.000%, one build).
 
 Inputs: `base.i` (m2c seed, 50.156%)
 `b36941505d0d8b4235316cb2474c68d98c62426d77f2d088dcd015d6ac7cd250`.
+
+## A pre-branch constant reaches the branch delay slot only if its `li` is not tied with the stack store
+
+`func_actor_161500_801320B4` wants the frame setup *third*, not first:
+
+```
+lui  v0,%hi(Game_Session)      li   a0,0x30        <- in the bne delay slot
+lw   v0,%lo(Game_Session)(v0)  jal  func_800D4D2C
+addiu sp,sp,-0x18              lw   ra,0x10(sp)
+sw   ra,0x10(sp)               jr   ra
+lbu  v1,0x9(v0)                  addiu sp,sp,0x18
+li   v0,1
+bne  v1,v0,...
+```
+
+m2c's `var_a0 = 0x30; if (...) var_a0 = 0x31;`, the if/else form and the
+ternary form all compile to byte-identical assembly and stall at 96.000%
+(`reorder=1`) with `subu $sp,$sp,24` emitted **first**. The statement shape is
+inert here - as "[25]/[37]" says for one-basic-block functions - because all
+three produce the same block 0.
+
+`.sched2` shows the whole penalty is one priority tie. Block 0 is
+`{subu, sw ra, lui, lw, li a0,0x30, lbu, li v0,1, bne}` with priorities
+`1, 1, 1, 1, 1, 2, 2, huge`, and sched2 launches
+`bne, li v0,1, lbu, sw ra, li a0,0x30, lw, lui, subu`. At T-4 the ready list is
+`{li a0,0x30 (1), sw ra (1)}`: an exact tie, and `schedule_select` breaks it on
+`potential_hazard`, where a store on the `memory` unit always beats a `li`
+(it has no function unit, so its potential hazard is 0). So `sw $ra` launches
+first. `.dbr` still fills the `bne` delay slot with the constant - but by then
+`subu $sp` has been emitted at position 1 instead of 3.
+
+Naming the global in a local pointer **and** wrapping the body in
+`do { ... } while (0)` moves it:
+
+```c
+void func_actor_161500_801320B4(void)
+{
+    GameSession* session;
+
+    session = Game_Session;
+    do {
+        func_800D4D2C((session->field_9 == 1) ? 0x31 : 0x30);
+    } while (0);
+}
+```
+
+The constant is now priority **2**, out of the tie with the store: ready lists
+become T-2 `{const(2), li v0,1(2)}`, T-3 `{const}`, T-4 `{lbu}`, T-5 `{sw ra}`,
+so it launches before the store, `.dbr` fills the delay slot from it, and `.dbr`
+also moves `lw` ahead of `subu` - exactly the target.
+
+Neither half works alone, which is why this needed the permuter: the pointer
+alone (base_3.c) reproduces the seed byte-for-byte at 96.000%, and `do/while(0)`
+alone (base_4.c) collapses to 86.188% (`branch=1 insert=1 reorder=2`). The
+emitted `.s` carries `.def session;` and the load's destination is `reg/v:SI`,
+i.e. a real user variable rather than a reload temp - so the copy is load-bearing
+the same way "m2c's nested `M2C_FIELD`..." describes, but the chain from
+`reg/v` + a loop note to the priority-2 `li` was **not** traced; the priority
+change is the observation, not a derived prediction. Treat the pairing as a
+recipe, not a rule, and check `.sched2` for the tie before reaching for it.
+
+Inputs: `base.i` (m2c, 96.000%)
+`8c24f60459c19d9dd883b443c29eed58a533aa202d51a9e597f88ec2b32da09f`,
+`base_5.i` (pointer + `do/while(0)`, 100.000%)
+`81620d86f23bad66a1c671113d66335415491ca409fb4b035d733d1542fb2536`.

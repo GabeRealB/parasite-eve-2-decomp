@@ -55,7 +55,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132038);
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801320B4);
+void func_actor_161500_801320B4(void)
+{
+    GameSession* session;
+
+    session = Game_Session;
+    do {
+        func_800D4D2C((session->field_9 == 1) ? 0x31 : 0x30);
+    } while (0);
+}
 
 void func_actor_161500_801320F0(s32 arg0)
 {
