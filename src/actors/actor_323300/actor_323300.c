@@ -4,7 +4,48 @@
 
 #include "gameplay/gameplay.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161E78);
+/// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
+/// seeds the `GpRec18` collision table and the display node at +0x480, then
+/// binds the three message handlers and the animation presets the state
+/// functions drive. Bails out through `Gp_EnemyTaskExit` when the room flag
+/// 0x60 is already set (the actor already spawned) or the allocation fails.
+void func_actor_323300_80161E78(Task* arg0)
+{
+    Actor323300Work* work;
+    TmdObject*       extra;
+    GpObj*           obj;
+
+    if (GameFlag_GetNibble(0x60) != 0 || (work = Mem_Calloc(0x504, 0)) == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_500 = 1;
+    work->field_502 = -1;
+    func_actor_323300_801626D0(arg0);
+    extra         = arg0->extra;
+    obj           = &work->obj;
+    obj->field_8  = extra->field_8 + 1;
+    obj->field_C  = &work->rec;
+    obj->field_18 = 0x30000;
+    obj->field_10 = 0;
+    obj->field_12 = 0;
+    obj->field_14 = 0;
+    obj->field_1C = 0x100;
+    obj->flags    = 1;
+    Gp_LinkObj(2, obj);
+    obj->flags |= 0x8000;
+    Gp_InitRec18Table(obj->field_C, 1, 0);
+    arg0->field_24 = &D_actor_323300_80172574;
+    func_actor_323300_80162208(arg0, 0x7D5, 0, 0);
+    func_actor_323300_801629F0(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
+    func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725B4, 0);
+    SndEvt_EnqueueType6(0x52100006, 0, 0x28);
+    arg0->exitCallback = func_actor_323300_8016269C;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161FE8);
 
@@ -49,8 +90,6 @@ void func_actor_323300_801626F4(Task* arg0)
 
     states[(s16)work->field_4FE](arg0);
 }
-
-extern Actor323300AnimPreset D_actor_323300_801725C8;
 
 void func_actor_323300_80162748(Task* arg0)
 {

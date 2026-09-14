@@ -74484,3 +74484,68 @@ trailing arguments the callee never reads are invisible in its body. Check the
 callee's first `lw` off `$a0` before trusting m2c's argument split; the sibling
 `func_actor_323300_801627B4` spells the identical call with an explicit
 `addu $a0, $s1, $zero`.
+
+## A load the target hoists above a store is a load written *before* that store
+
+**Problem.** `func_actor_323300_80161E78` seeds the display node at `work->obj`
+and derives one of its fields from the model:
+
+```c
+obj->field_C  = &work->rec;                  /* sw v0, 0xc(s0) */
+obj->field_18 = 0x30000;
+...
+obj->flags    = 1;
+extra         = arg0->extra;                 /* lw v0, 0x2c(s3) */
+obj->field_8  = extra->field_8 + 1;          /* lw v1, 8(v0) */
+Gp_LinkObj(2, obj);
+```
+
+with the loads written last (the natural place, since `field_8` is the last
+field assigned) the target's two `lw` come out *after* all seven stores, and the
+block scores 95.7% with `regs=3 reorder=3` that no statement permutation inside
+the tail fixes. Moving the `extra` / `field_8` pair above the other stores —
+which reads less naturally, since the field is stored last in the target too —
+gives 100% with every penalty zero.
+
+**Cause.** The scheduler cannot hoist a load past an earlier store unless it can
+*prove* the two do not overlap, and here it cannot. Every address in the block is
+a pseudo plus a constant — `s3+0x2c` for the load, `s0+0xc` for the stores — so
+`memrefs_conflict_p` has two different base registers, no constant-address case,
+and returns "may conflict". `true_dependence` then adds a TRUE edge, and the load
+is pinned after the stores. `true_dependence`'s struct-member exemption does not
+apply either: it needs the *store* to be a `MEM_IN_STRUCT_P` reference at a
+**varying** address while the other access is non-varying, and a `lw`/`sw` off a
+register plus a constant is non-varying. So the edge is unconditional. (That
+exemption is stock GCC 2.8.1, not a psx patch: `sched.c` in
+`local/gcc/gcc-2.8.1-psx/` is byte-identical to the pristine tarball here, and no
+patch under `local/gcc/patches/` mentions the scheduler at all — the section
+above attributes it to the patch series.)
+
+The consequence is that for plain register-based struct accesses the emitted
+order is essentially the source order, and a load the target places early is
+evidence about the *statement* order, not about the scheduler. This is the mirror
+image of "Write a struct store *before* the loads it shares a base with": there
+the store inherits a pending read's priority, here the load takes an unconditional
+edge — but both are decided by which statement comes first.
+
+**Second effect, in local-alloc.** The position also decides whether the loaded
+value's register is reused. Loaded early, `$v0` holds `arg0->extra` and dies at
+`lw v1, 8(v0)`, so `addiu v0, s2, 0x4a0` may take `$v0`. Loaded late, the
+address computation needs `$v0` first, the chain keeps it to the store, and the
+value lands in `$v1` — a `regs` residue with the same instruction count and the
+same block topology, which is exactly what the 95.7% form showed.
+
+```c
+extra         = arg0->extra;
+obj           = &work->obj;
+obj->field_8  = extra->field_8 + 1;   /* the two loads precede every store */
+obj->field_C  = &work->rec;
+obj->field_18 = 0x30000;
+...
+obj->flags    = 1;
+Gp_LinkObj(2, obj);
+```
+
+`base_2.c` 95.707% → `base_3.c` 100.000% on the fifth build, all six penalties
+zero, with no pins. Input `base_3.i`
+`43cdd05339d043262e6be676e37f75c5cbd84afdb163c762a2bd8212aa8c6c8e`.

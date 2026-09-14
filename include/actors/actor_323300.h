@@ -10,6 +10,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 
 /// Work block allocated by `func_actor_323300_80161E78` (`Mem_Calloc(0x504)`)
 /// and parked in that task's `Task::idMap` slot -- that slot is not a
@@ -29,7 +30,9 @@
 /// `func_actor_323300_8016269C` hands back to `Gp_UnlinkObj` before tearing
 /// the enemy task down. The size is the allocation, and the fields below are
 /// the ones the init seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at
-/// 0x502 are set to -1, and 0x500 is set to 1.
+/// 0x502 are set to -1, and 0x500 is set to 1. `rec` is the one-entry `GpRec18`
+/// collision table `Gp_InitRec18Table` seeds at 0x4A0; `obj.field_C` addresses
+/// it and `Gp_FindNearestSlot` walks it through that pointer.
 typedef struct Actor323300Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[19];
@@ -41,7 +44,8 @@ typedef struct Actor323300Work {
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
     /* 0x480 */ GpObj      obj;
-    /* 0x4A0 */ byte       pad_4A0[0x2C];
+    /* 0x4A0 */ GpRec18    rec; // seed table `obj.field_C` points at
+    /* 0x4B8 */ byte       pad_4B8[0x14];
     /* 0x4CC */ s32        field_4CC;
     /* 0x4D0 */ s32        field_4D0;
     /* 0x4D4 */ s32        field_4D4;
@@ -67,6 +71,18 @@ typedef struct {
     /* 0x10 */ s32 field_10;
 } Actor323300AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor323300AnimPreset, 0x14);
+
+/// 0x18-byte placement `func_actor_323300_801629F0` splats onto the actor's
+/// coordinate: it copies `pos` into the coordinate matrix translation and hands
+/// `rot` to `RotMatrix`, which converts it into that matrix's rotation. The
+/// shape is `VECTOR` followed by `SVECTOR`, so `rot` sits at 0x10 rather than
+/// abutting `pos`. `D_actor_323300_8017259C` is the one the spawn handler
+/// installs.
+typedef struct {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor323300Placement;
+STATIC_ASSERT_SIZEOF(Actor323300Placement, 0x18);
 
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent
@@ -99,9 +115,27 @@ typedef struct Actor323300MtxWork {
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
+/// Message table `func_actor_323300_80161E78` parks in `Task::field_24`:
+/// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
+/// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `func_actor_323300_801628B8`,
+/// `func_actor_323300_801629F0`, `func_actor_323300_80162208` and
+/// `func_actor_323300_80162360`; the 0x7FFFFFFF terminator ends the walk.
+extern GpMsgEntry D_actor_323300_80172574[];
+
+/// Placement `func_actor_323300_80161E78` hands `func_actor_323300_801629F0`.
+extern Actor323300Placement D_actor_323300_8017259C;
+
+/// Animation presets the spawn handler and `func_actor_323300_80162748` hand
+/// `func_actor_323300_801628B8`.
+extern Actor323300AnimPreset D_actor_323300_801725B4;
+extern Actor323300AnimPreset D_actor_323300_801725C8;
+
 void func_actor_323300_801626D0(Task* arg0);
+void func_actor_323300_8016269C(Task* arg0);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
 void func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
+s32  func_actor_323300_80162208(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, Actor323300Placement* arg2, s32 arg3);
 
 #endif
