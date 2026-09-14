@@ -20,6 +20,8 @@ extern s32 D_actor_161500_80136E88;
 extern s32 D_actor_161500_80137080;
 extern s32 D_actor_161500_80137650;
 extern s16 D_actor_161500_801376F2;
+extern s32 D_actor_161500_801376F8;
+extern s32 D_actor_161500_801378D8;
 extern s32 D_actor_161500_80137AB8;
 
 void func_actor_161500_80131E38(void)
@@ -118,7 +120,21 @@ void func_actor_161500_80132294(u8 arg0)
     D_80115768 = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801322A0);
+void func_actor_161500_801322A0(void)
+{
+    s32 temp_v0;
+
+    if (Game_GetPtrSlot(0xA) != NULL) {
+        temp_v0 = GameFlag_GetNibble(0xE4);
+        if (temp_v0 == 1) {
+            if (Gp_GetCurBit2Flag(3) == temp_v0) {
+                func_800E8614((s32)&D_actor_161500_801378D8, 0);
+            } else {
+                func_800E8614((s32)&D_actor_161500_801376F8, 0);
+            }
+        }
+    }
+}
 
 void func_actor_161500_8013230C(void)
 {

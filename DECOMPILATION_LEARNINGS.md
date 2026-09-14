@@ -77431,3 +77431,56 @@ Inputs: `base.i` (m2c, 96.000%)
 `8c24f60459c19d9dd883b443c29eed58a533aa202d51a9e597f88ec2b32da09f`,
 `base_5.i` (pointer + `do/while(0)`, 100.000%)
 `81620d86f23bad66a1c671113d66335415491ca409fb4b035d733d1542fb2536`.
+
+## An `&SYM` chosen in an if/else must be passed by a call *in each arm*, or the `lui` scratch lands in `$v0`
+
+`func_actor_161500_801322A0` (27 insns, 7 blocks) baselined at 91.815% with
+`branch=1 regs=4 insert=1 delete=1` and the topology already matching - the only
+difference was which register materializes the address:
+
+```
+target                             m2c
+bne   v0,s0,.LEC                   bne   v0,s0,.L4
+lui   a0,%hi(A)     <- delay       lui   v0,%hi(B)     <- delay
+j     .LF4                         lui   v0,%hi(A)
+addiu a0,a0,%lo(A)  <- delay       j     .L5
+.LEC: lui   a0,%hi(B)              addiu a0,v0,%lo(A)  <- delay
+      addiu a0,a0,%lo(B)           addiu a0,v0,%lo(B)
+```
+
+m2c folds both arms into one `var_a0 = &A / &B` local feeding a shared call.
+That variable is live *across the join*, so `.lreg` shows the arm as
+`p85 = high` / `p80 = lo_sum(p85)` with `p80` dying much later at the `a0 <- p80`
+copy in the join block: the `lo_sum` destination is a pseudo with no tie to the
+`high` scratch, global-alloc hands the scratch `$v0`, and sched2 then hoists the
+*else* arm's `lui` into the branch delay slot.
+
+Writing the call in each arm instead:
+
+```c
+if (Gp_GetCurBit2Flag(3) == temp_v0) {
+    func_800E8614((s32)&D_actor_161500_801378D8, 0);
+} else {
+    func_800E8614((s32)&D_actor_161500_801376F8, 0);
+}
+```
+
+is 100.000% on the next build. Now the arm's `lo_sum` writes the hard argument
+register and the `high` scratch dies in that same insn, so local-alloc ties the
+scratch to `$a0` as well and each arm emits `lui a0,%hi / addiu a0,a0,%lo`. The
+two arms' identical `move a1,zero; jal` tails are then cross-jumped back into the
+single call the target has (the rule in "Cross-jumping merges duplicate *call*
+blocks too…", applied to `&SYM` addresses rather than literals). Note the
+prediction is checkable without a build: a matched sibling in the same TU,
+`func_actor_161500_80132110`, has exactly this object shape - two calls in an
+`if/else` under the `(s32)&SYM, 0` idiom, one `jal` in the object.
+
+Generalization: the `high` scratch only shares a register with the `lo_sum`
+destination when the destination is already the register the value is consumed
+in - i.e. when the call is written where the address is chosen. A conditional
+address that reaches the call through a variable defeats the tie.
+
+Inputs: `base.i` (m2c shared variable, 91.815%)
+`7fb0031b7b507f6457f909f3f8b33c2b2c318610b2323ff50c70700e2524c057`,
+`base_1.i` (call per arm, 100.000%)
+`fbf554badcbb25c2dfa3798e303e4aa3ce3a18f6e93f0819ad700632ee09fa01`.
