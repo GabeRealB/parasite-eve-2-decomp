@@ -27,7 +27,9 @@ typedef struct Actor521100Work {
     /* 0x654 */ Actor521100* field_654;
     /* 0x658 */ byte         pad_658[0x28];
     /* 0x680 */ s16          field_680;
-    /* 0x682 */ byte         pad_682[0x1C];
+    /* 0x682 */ byte         pad_682[0xA];
+    /* 0x68C */ s16          field_68C;
+    /* 0x68E */ byte         pad_68E[0x10];
     /* 0x69E */ s16          field_69E;
     /* 0x6A0 */ byte         pad_6A0[0x10];
     /* 0x6B0 */ s16          field_6B0;
@@ -39,6 +41,7 @@ typedef struct Actor521100Ctx {
     /* 0x14 */ u8   field_14;
 } Actor521100Ctx;
 
+void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_801355C8(Actor521100* arg0);
 

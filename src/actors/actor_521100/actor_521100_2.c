@@ -10,13 +10,26 @@ void      func_actor_521100_80134C38(Actor521100* arg0);
 void      func_actor_521100_80134D88(Actor521100* arg0);
 void      func_actor_521100_80134EDC(Actor521100* arg0);
 void      func_actor_521100_80135024(Actor521100* arg0);
+void      func_actor_521100_80135230(Actor521100* arg0);
 void      func_actor_521100_801358D4(Actor521100* arg0);
 void      func_actor_521100_80135964(Actor521100* arg0);
 extern u8 D_801153F4;
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", ActorsShared80131e24Sub1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", func_actor_521100_80135414);
+void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1)
+{
+    Actor521100Work* temp_s0;
+
+    temp_s0        = arg1->field_1C;
+    arg0->field_14 = 1;
+    func_actor_521100_80135964(arg1);
+    ActorsShared80134934((ActorShared80134934*)arg1);
+    ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
+    if (temp_s0->field_68C != 0) {
+        func_actor_521100_80135230(arg1);
+    }
+}
 
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1)
 {
