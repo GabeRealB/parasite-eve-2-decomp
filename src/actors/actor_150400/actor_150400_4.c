@@ -4,5 +4,3 @@ s32 func_actor_150400_801327EC(void)
 {
     return 0;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400_4", func_actor_150400_801327F4);

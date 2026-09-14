@@ -1,0 +1,30 @@
+#include "common.h"
+
+#include "actors/actors_shared_80132fe8.h"
+
+#include "main/gfx.h"
+#include "main/tmd.h"
+
+/// Applies the "walk to" placement opcode: aims the actor's root coordinate at
+/// `target` by taking the yaw of the horizontal offset from the coordinate's
+/// own translation, caches that yaw in the overlay's work block and rebuilds
+/// the local matrix from it, then records the remaining distance, scaled by
+/// 17, for the walk that follows.
+s32 ActorsShared80132fe8(Task* task, s32 arg1, ActorsShared80132fe8Target* target)
+{
+    GsCOORDINATE2*            coord;
+    ActorsShared80132fe8Work* work;
+    s32                       dx;
+    s32                       dz;
+    u16                       yaw;
+
+    coord     = ((TmdObject*)task->extra)->field_8;
+    work      = (ActorsShared80132fe8Work*)task->idMap;
+    dx        = target->pos.vx - coord->coord.t[0];
+    dz        = target->pos.vz - coord->coord.t[2];
+    yaw       = ratan2(dx, dz);
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    work->travel = SquareRoot0(dx * dx + dz * dz) / 17;
+    return 0;
+}
