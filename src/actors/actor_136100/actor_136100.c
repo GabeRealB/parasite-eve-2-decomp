@@ -25,7 +25,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131FBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_801320E0);
+/// Spawn tick of the cutscene actor's second phase: allocates the 0x4F0-byte
+/// `Actor136100Work` block, zeroes it and parks it in `Task::idMap`, then wires
+/// the model object up -- `Tmd_AllocBuffers`, `TmdObject::field_C` cleared, the
+/// work block's light/colour matrices into `TmdObject::field_1C` / `field_20`
+/// and the animation-context task reparented under `D_actor_136100_8014078C`.
+/// The texture page / CLUT row come from the placement record at the nested
+/// area table's `field_0` list whose id matches neither 0xFF (end) nor 0x6A
+/// (the skip marker), and this all runs even on the `Mem_Malloc` failure path,
+/// which still advances the state after killing the task.
+///
+/// The dead `VECTOR` is read back through `arg0->extra` rather than the local
+/// `obj`, which is what makes the original reload `Task::extra` for each of the
+/// three coordinate reads (see `func_actor_136100_80132284`).
+void func_actor_136100_801320E0(Task* arg0)
+{
+    Actor136100Work* work;
+    VECTOR           vec;
+    GpAreaPlace*     place;
+    u8               id;
+
+    if (arg0->state == 0) {
+        TmdObject*     tmd   = arg0->extra;
+        GsCOORDINATE2* coord = tmd->field_8;
+
+        work        = Mem_Malloc(0x4F0, 0);
+        arg0->idMap = (TaskIdMap*)work;
+        if (work == NULL) {
+            Task_Kill(arg0);
+        } else {
+            Mem_Set(work, 0, 0x4F0);
+            coord->sub                         = (GsCOORDINATE2*)arg0->spawnArg2;
+            ((TmdObject*)arg0->extra)->field_C = 0;
+            Tmd_AllocBuffers(tmd);
+            tmd->field_1C  = &work->field_474;
+            tmd->field_20  = &work->field_494;
+            arg0->field_24 = &D_actor_136100_8013F2F4;
+            Task_Reparent(D_actor_136100_8014078C, arg0);
+        }
+        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+        id    = place->field_0;
+        while (id != 0xFF) {
+            if (id == 0x6A) {
+                break;
+            }
+            place++;
+            id = place->field_0;
+        }
+        Gp_SetTmdBytes((TmdObject*)arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+        arg0->state += 1;
+    }
+    {
+        TmdObject* obj = arg0->extra;
+
+        Gp_UpdateCoord(obj->field_8);
+        vec.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
+        vec.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+        vec.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &vec, 0, 3);
+    }
+}
 
 void func_actor_136100_80132284(Task* arg0)
 {
