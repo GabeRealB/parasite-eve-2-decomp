@@ -58233,6 +58233,32 @@ Two things to get right around it:
   written and every carrier failed at link with an undefined reference from its
   data segment. Fixed to match the whole assignment.
 
+## The `ActorsShared80131f9c` work block's prefix is per carrier, so identical C is not an identical body
+
+The block behind `ActorsShared80131f9cWork` is one layout in the family, but
+where it *starts* differs: `actor_143900`, `actor_151000` and `actor_461800`
+put a 0x40-byte state prefix ahead of `GpAnimCtx anim`, while `actor_110300`
+and `actor_110800` start with `anim` at offset 0. Every field name shifts with
+it rather than changing - the animation-id pair is 0x4B6/0x4B8 in
+`Actor143900Work`/`Actor151000Work` and 0x476/0x478 here, exactly 0x40 lower -
+so the two blocks are the same object at different bases, not two structures.
+
+Two things follow, and both cost a build if missed:
+
+* **The same one-line tick loop is two different bodies.** `&work->anim` with
+  the prefix compiles to `lw $a0,%lo(ActorsShared80131f9cWork)($s1)` plus
+  `addiu $a0,$a0,0x40`; without it, the load alone. `func_actor_110300_80132138`
+  and `func_actor_143900_801324C8` read identically in C and are not copies, so
+  the C of one is not portable to the other and the dup index is right to
+  separate them.
+* **A shared body can only be promoted into carriers that agree on the offset.**
+  `src/actors/lib/actors_shared_80132138.c` serves `actor_110300` and
+  `actor_110800` because both are prefix-free; the same body dropped into a
+  prefixed carrier would build 4 bytes long. Check the offset in every carrier
+  before promoting a block-reading body, and name it in the shared header (each
+  carrier's own header carries the fuller layout -
+  `include/actors/actor_110300.h` against `include/actors/actor_143900.h`).
+
 ## A stack dispatch table indexed through a pointer needs the pointer in its own local
 
 The stack-built handler table (`ActorsShared80131e24` and friends) usually
