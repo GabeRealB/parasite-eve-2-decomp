@@ -164,7 +164,44 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01E08);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn02008);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0216C);
+/// Same body as `ActorsShared801652a0`.
+void Actor04400_Fn0216C(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* next;
+    Actor104400Work* next2;
+    u32              soundId;
+    s32              pan;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((s16)++work->field_412 == 1) {
+        soundId   = (u16)((GpEnemy*)arg0->spawnArg2)->field_8;
+        soundId >>= 0xC;
+        soundId <<= 8;
+        soundId  |= 0x402C0004;
+        pan       = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan     >>= 24;
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if ((s16)work->field_412 == 2) {
+        soundId   = (u16)((GpEnemy*)arg0->spawnArg2)->field_8;
+        soundId >>= 0xC;
+        soundId <<= 8;
+        soundId  |= 0x402C0003;
+        pan       = Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8) << 24;
+        pan     >>= 24;
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if (Actor04400_Fn06618(arg0)) {
+        next             = (Actor104400Work*)arg0->idMap;
+        arg0->state      = 3;
+        next->field_420  = 0;
+        next->field_422  = 0;
+        next2            = (Actor104400Work*)arg0->idMap;
+        next2->field_420 = 3;
+        next2->field_422 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn022A8);
 
