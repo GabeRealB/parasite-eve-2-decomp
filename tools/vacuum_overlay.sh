@@ -188,9 +188,14 @@ trap 'kill $LEASE_REFRESHER 2>/dev/null || true; release_all' EXIT
 # than re-matched, and that is a large share of the tail - mist_r18 stopped with
 # 4 of 17 untouched, mist_parking is heading for 12 of 58. Counting them in the
 # denominator would make every sweep look like it stalled short of the end.
-VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" <<'PYEOF' 2>/dev/null || echo ""
+# A difficulty bound belongs in this denominator too. Without it the log counts
+# every attemptable function while the sweep will only ever pick those under the
+# bound, so "[1 of 49]" describes work it is not going to do and disagrees with
+# what the monitor reports.
+VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" "$MAX_DIFFICULTY" <<'PYEOF' 2>/dev/null || echo ""
 import re, subprocess, sys, pathlib
 wt, ov = sys.argv[1], sys.argv[2]
+bound = sys.argv[3] if len(sys.argv) > 3 else ""
 inc = []
 src = pathlib.Path(wt, "src")
 # "<family>/lib/<unit>" is one .c file; every other overlay is a directory of them.
@@ -209,7 +214,28 @@ try:
         cwd=wt, capture_output=True, text=True, timeout=900).stdout.split())
 except Exception:
     solved = set()
-print(len([f for f in inc if f not in solved]))
+keep = [f for f in inc if f not in solved]
+if bound and keep:
+    base = pathlib.Path(wt, "asm", "USA")
+    if "/lib/" in ov:
+        fam, unit = ov.split("/lib/", 1)
+        d = base / fam / "nonmatchings" / "lib" / unit
+    else:
+        hits = list(base.glob(f"*/nonmatchings/{ov}"))
+        d = hits[0] if hits else None
+    if d and d.is_dir():
+        # --scores, not --max-score: a bounded run exits non-zero both when
+        # nothing meets the bound and when it failed, and those need opposite
+        # handling. Unfiltered, non-zero means only "could not score".
+        r = subprocess.run(["python3", "tools/score_functions.py",
+                            "--scores", str(d)],
+                           cwd=wt, capture_output=True, text=True, timeout=900)
+        if r.returncode == 0 and r.stdout.strip():
+            lim = float(bound)
+            ok = {ln.split("\t")[1] for ln in r.stdout.splitlines()
+                  if "\t" in ln and float(ln.split("\t")[0]) <= lim}
+            keep = [f for f in keep if f in ok]
+print(len(keep))
 PYEOF
 )
 export VACUUM_TOTAL

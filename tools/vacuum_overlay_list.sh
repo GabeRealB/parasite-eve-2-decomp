@@ -107,7 +107,14 @@ worker() {
         sess="ovb-${name//\//-}-$$-$id"
         claim_args=()
         if [[ -x "$ROOT/tools/claim_filter.py" ]]; then
-            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $$ 2>>"$RUN/worker-$id.log")
+            # Pass the bound too: without it the filter clears an overlay whose
+            # only remaining work is above the bound, and the worker pays a full
+            # worktree and split to match nothing.
+            bound=""
+            for ((bi=0; bi<${#PASSTHRU[@]}; bi++)); do
+                [[ "${PASSTHRU[$bi]}" == "--max-difficulty" ]] && bound="${PASSTHRU[$((bi+1))]}"
+            done
+            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $$ $bound 2>>"$RUN/worker-$id.log")
             crc=$?
             if [[ $crc -eq 1 ]]; then
                 skipped=$((skipped + 1))
