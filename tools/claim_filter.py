@@ -70,6 +70,22 @@ def solved_set() -> set:
     return set(text.split()) if text else set()
 
 
+def difficult_names() -> set:
+    """Functions tools/difficult_functions has parked.
+
+    score_functions.py drops these, so an overlay whose every function is parked
+    simply has no rows in the score table - which reads identically to "the
+    table does not cover this overlay" and so fell through the fail-open. Read
+    the list directly; absence is not evidence.
+    """
+    try:
+        return {l.split()[0]
+                for l in (ROOT / "tools/difficult_functions").read_text().splitlines()
+                if l.strip()}
+    except OSError:
+        return set()
+
+
 def asm_dir(overlay: str) -> pathlib.Path | None:
     """Where this overlay's unmatched .s files live, for scoring."""
     base = ROOT / "asm" / "USA"
@@ -130,8 +146,8 @@ def _locked_cache(name: str, ttl: float, produce) -> str | None:
         return text
 
 
-def scores() -> dict:
-    """function -> difficulty, for the whole project, from one cached run.
+def scores() -> tuple[dict, set]:
+    """(function -> difficulty, overlays present), from one cached run.
 
     This used to be a score_functions.py invocation per claimed overlay. That is
     a fresh interpreter, a numpy import and a directory walk each time, and with
@@ -149,14 +165,17 @@ def scores() -> dict:
 
     text = _locked_cache("vacuum-scores-cache.tsv", 600.0, produce)
     if not text:
-        return {}
-    out = {}
+        return {}, set()
+    out, seen = {}, set()
     for line in text.splitlines():
         parts = line.split("\t")
         if len(parts) == 3:
-            try: out[parts[1]] = float(parts[0])
-            except ValueError: pass
-    return out
+            try:
+                out[parts[1]] = float(parts[0])
+                seen.add(parts[2])
+            except ValueError:
+                pass
+    return out, seen
 
 
 def under_bound(overlay: str, funcs: list[str], bound: str) -> list[str]:
@@ -165,13 +184,23 @@ def under_bound(overlay: str, funcs: list[str], bound: str) -> list[str]:
         lim = float(bound)
     except ValueError:
         return funcs
-    sc = scores()
+    sc, _covered = scores()
     if not sc:
-        return funcs
+        return funcs                        # no table at all - fail open
     known = [f for f in funcs if f in sc]
-    if not known:
-        return funcs                        # scored nothing here - do not guess
-    return [f for f in known if sc[f] <= lim]
+    if known:
+        return [f for f in known if sc[f] <= lim]
+    # No rows for any of them. The table is built from every directory
+    # decomp_overlay.py lists, and asm_dir() only resolves inside those, so a
+    # resolvable overlay was definitely scanned: no rows means nothing here is
+    # scorable at all - all data symbols or jump tables, which is what
+    # "All functions are marked as difficult or are data sections" reports after
+    # a worktree has already been built. Skip it.
+    #
+    # The narrow cost is an overlay whose functions appeared since the last
+    # refresh (<=10 min): it is passed over this run and picked up by the next
+    # driver, against a wasted worktree every time if we guessed the other way.
+    return [] if asm_dir(overlay) is not None else funcs
 
 
 def main() -> int:
@@ -192,6 +221,11 @@ def main() -> int:
     funcs = claim.get("functions", [])
     keep = landable(overlay, funcs)
     why = "landable here (shared or promoted bodies)"
+    if keep:
+        hard = difficult_names()
+        if hard:
+            keep = [f for f in keep if f not in hard]
+            why = "left that is not already parked in difficult_functions"
     if keep:
         solved = solved_set()
         if solved:
