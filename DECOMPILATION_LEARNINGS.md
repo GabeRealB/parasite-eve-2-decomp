@@ -60256,3 +60256,29 @@ held the 0x30 "code" store). Reuse ONE local across both:
 decomp-permuter distance search (see [[pe2-windows-toolchain-gotchas]] 3e for how
 the permuter runs on the spaced Windows checkout via a bind mount), confirmed by
 port.
+
+## A zero-init copy folds to $zero when it widens; narrow the local to keep the register copy (func_shelter_b3_dumping_hole_80182E50, 2026-09-14)
+
+The token-stream width scanner inits three locals from a zero accumulator:
+`acc = 0; total = acc; i = acc;`. Retail materialises acc in a register
+(`move a3,zero`) and copies it into both (`move t1,a3` / `move t0,a3`, the second
+filling a `beq` delay slot). GCC 2.8.1 only reproduces that copy for a **same-width**
+assignment: with `short acc` and `short total`, `total = acc` is an HImode→HImode
+copy that coalesces onto a3. But `i` as `s32` makes `i = acc` a widening
+(sign_extend of a known-0 HImode), and cprop substitutes the constant, emitting
+`move t0,zero` instead of copying a3 — a 1-instruction regs diff that no
+declaration reorder or operand-order change removes (source variants and ~9500
+permuter iterations all plateaued one instruction short).
+
+The fix is to narrow `i` to the same width so its init is also a plain copy.
+`unsigned short i;` with `i = total;` and the increment written as
+`ni = (i = i + 1);` (i is the u16 counter, ni the s32 index used for `p[(s16)ni]`)
+made `i` coalesce with the zero register like total, closing the last diff — an
+exact match. Two coupled levers here: `short total` (not `s32`; s32 total loses
+the `total += acc` operand order and drops to 91%) was the first permuter gain
+99.6→99.9, and the narrowed `i` was the second 99.9→100. General rule: when the
+target copies a zero-init value into a live-across local via a register move and
+GCC emits `move dst,zero`, check whether that local is wider than the value's
+type — matching the width turns the fold back into the copy. Likely applies to
+the sibling scanners (82C24/82D34/82F18/829B4). Found by decomp-permuter distance
+search (bind mount, see [[pe2-windows-toolchain-gotchas]] 3e), confirmed by port.
