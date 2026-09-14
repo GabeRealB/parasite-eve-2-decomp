@@ -25,7 +25,7 @@ other checkout - and fails *silently*, because a missing helper looks exactly
 like "nothing landable here" and the driver would skip every overlay.
 """
 from __future__ import annotations
-import json, pathlib, re, subprocess, sys
+import json, pathlib, re, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -52,6 +52,41 @@ def landable(overlay: str, funcs: list[str]) -> list[str]:
     text = "\n".join(p.read_text(errors="replace") for p in d.glob("*.c"))
     slots = set(re.findall(r"INCLUDE_ASM\([^)]*,\s*(\w+)\)", text))
     return [f for f in funcs if f in slots]
+
+
+def solved_set() -> set:
+    """Bodies already matched in another overlay - the pick skips these.
+
+    tools/vacuum.sh excludes them from every pick (`--exclude-file "$solved"`),
+    so an overlay whose remaining functions are all duplicates yields nothing.
+    Without the same exclusion here that overlay passed the filter, got a full
+    worktree and split, and the inner vacuum then reported "0 function(s) to
+    attempt (of N claimed; the rest are duplicates already matched elsewhere)".
+
+    The index rebuild costs ~8s, so it is cached briefly beside the orchestrator
+    state - machine-local, and not under local/, which tools/ must not depend on.
+    Fails open (empty set) so a cache or index problem never skips real work.
+    """
+    try:
+        gitdir = pathlib.Path(subprocess.run(
+            ["git", "rev-parse", "--git-common-dir"], cwd=ROOT,
+            capture_output=True, text=True, check=True).stdout.strip())
+        if not gitdir.is_absolute():
+            gitdir = ROOT / gitdir
+        cache = gitdir / "vacuum-solved-cache.txt"
+        if cache.is_file() and time.time() - cache.stat().st_mtime < 300:
+            return set(cache.read_text().split())
+        out = subprocess.run(
+            [sys.executable, "tools/overlay_dup_index.py", "solved", "--rebuild"],
+            cwd=ROOT, capture_output=True, text=True, timeout=900)
+        if out.returncode != 0:
+            return set()
+        tmp = cache.with_suffix(".tmp")
+        tmp.write_text(out.stdout)
+        tmp.replace(cache)
+        return set(out.stdout.split())
+    except Exception:
+        return set()
 
 
 def asm_dir(overlay: str) -> pathlib.Path | None:
@@ -113,6 +148,11 @@ def main() -> int:
     funcs = claim.get("functions", [])
     keep = landable(overlay, funcs)
     why = "landable here (shared or promoted bodies)"
+    if keep:
+        solved = solved_set()
+        if solved:
+            keep = [f for f in keep if f not in solved]
+            why = "left after duplicates already matched elsewhere"
     if keep and bound:
         keep = under_bound(overlay, keep, bound)
         why = f"under the {bound} difficulty bound"
