@@ -14,6 +14,12 @@ extern u8  D_801153F4;
 extern s32 D_actor_450900_80136B00;
 extern s32 D_actor_450900_80136BD8;
 
+/// The save-point capture task spawned by `func_actor_450900_80131E38`, kept
+/// alive until `func_actor_450900_80132548` kills it. Script opcode 0xD reaches
+/// both this and `func_actor_450900_80132678`, so its one argument is the
+/// opcode's immediate.
+extern Task* D_actor_450900_80136C9C;
+
 /// This overlay's own spawn table, six `TaskDesc` entries. Index 0 is the exit
 /// handler `Task_Kill`; 1..5 are the overlay's state handlers, and the "next
 /// stage" of each is the next entry: `func_actor_450900_80131E38` spawns 5 on
@@ -109,7 +115,19 @@ void func_actor_450900_8013235C(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132518);
+/// Script callback: arms or disarms the save-point capture task's flag
+/// (`Task::spawnArg1`, the value `func_actor_450900_80132548` tests to decide
+/// which way the capture cursor sweeps).
+void func_actor_450900_80132518(s32 arg0)
+{
+    if (D_actor_450900_80136C9C != NULL) {
+        if (arg0 == 1) {
+            D_actor_450900_80136C9C->spawnArg1 = 0;
+            return;
+        }
+        D_actor_450900_80136C9C->spawnArg1 = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132548);
 
