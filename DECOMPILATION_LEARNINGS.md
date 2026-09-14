@@ -76301,3 +76301,70 @@ aliasing" and "A cast-pointer access drops `MEM_IN_STRUCT_P`": those are about
 `sched.c`'s `fixed_scalar_and_varying_struct_p` letting a *scheduler* move an
 access, this one is about a *load* being deleted from CSE's table, and it is the
 QImode arm that fires, not the in-struct arm.
+
+## A varying-address load is evicted by any store at all: the third arm of `invalidate_memory`
+
+The entry above reads as "a byte store is what evicts a cached pointer load".
+That is the arm that fires only because the load in it is a *fixed-address*
+scalar. A load whose address depends on a pointer parameter is evicted by every
+store, of any width, and the practical consequence is the same: the duplicate
+`lw` belongs in the source.
+
+`func_actor_335800_80162F9C` reads `Task::extra` twice around its two matrix
+stores, and the second load is again the whole match:
+
+```
+lw    $v1, 0x2C($a0)      ; ext = arg0->extra
+addiu $v0, $s0, 0x478
+sw    $v0, 0x1C($v1)      ; ext->field_1C = &work->light
+addiu $v0, $s0, 0x498
+sw    $v0, 0x20($v1)      ; ext->field_20 = &work->color
+lw    $v0, 0x2C($a0)      ; <- second load
+li    $a3, 3
+lw    $a1, 0x8($v0)
+move  $a0, $v1
+jal   func_800D7A9C
+addiu $a1, $a1, 0x88
+```
+
+The trap is that the sibling `func_actor_335800_80163B54`, later in the same
+translation unit, does the *same two stores* with the pointer hoisted into a
+local and has no second load -- because nothing dereferences it after the
+stores. Hoisting here costs the match: 78.409%, 22 instructions to 20, because
+with only one load `ext` is allocated straight into `$a0` and the `move $a0,$v1`
+goes with the reload. Three builds isolate the cause:
+
+| second read | stores between | `lw 0x2C($a0)` |
+|---|---|---|
+| `((TmdObject*)arg0->extra)->field_8[1].workm.t` (target shape) | 2 x `sw` | 2 |
+| `ext->field_8[1].workm.t` (hoisted into the local) | 2 x `sw` | 1 |
+| target shape, stores deleted | none | 1 |
+
+Row 3 is the control: two source reads alone do not produce two loads. The
+stores do, and they are word stores, so the QImode rule cannot be what evicts
+them. `invalidate_memory` (cse.c:1745) has three disjuncts:
+
+```c
+	if (p->in_memory
+	    && (all
+		|| (nonscalar && p->in_struct)
+		|| cse_rtx_addr_varies_p (p->exp)))
+	  remove_from_table (p, i);
+```
+
+`all` is what the entry above is about, and `note_mem_written` sets it only for
+a varying-address store that is not in-struct/`PLUS` and not QImode. The cached
+load here is `*(void **)($a0 + 0x2C)`: `cse_rtx_addr_varies_p` (cse.c:2519)
+returns nonzero unless the address's base register has a known constant quantity
+-- a `lui`/`%lo` global does, a pointer parameter does not -- so it falls
+through to `rtx_addr_varies_p` and the **third** disjunct removes the entry.
+`note_mem_written` sets `writes_ptr->var = 1` for every `MEM` write (cse.c:7749)
+whatever its width, so each of the two `sw`s evicts it and the second read is
+re-emitted.
+
+Read together: a repeated read through a pointer parameter, or any base that is
+not a known constant address, is never CSE'd across a store -- write the
+dereference out twice, and do not tidy it into a local even when the function
+next door in the same TU is written that way. The field-width question in the
+entry above decides only the fixed-address case, where `all` is the sole
+disjunct that can fire.

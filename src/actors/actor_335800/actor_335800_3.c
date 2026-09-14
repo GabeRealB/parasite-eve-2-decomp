@@ -2,6 +2,8 @@
 
 #include "actors/actor_335800.h"
 
+#include "gameplay/3A34.h"
+
 #include "gameplay/3CD8.h"
 
 #include "gameplay/gameplay.h"
@@ -31,7 +33,18 @@ void func_actor_335800_80162F7C(Task* arg0)
     Gp_EnemyTaskExit(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_3", func_actor_335800_80162F9C);
+void func_actor_335800_80162F9C(Task* arg0)
+{
+    TmdObject*           ext;
+    Actor335800MainWork* work;
+
+    work          = (Actor335800MainWork*)arg0->idMap;
+    ext           = arg0->extra;
+    ext->field_1C = &work->light;
+    ext->field_20 = &work->color;
+    func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    work->field_504 = 1;
+}
 
 void func_actor_335800_80162FF4(void)
 {
