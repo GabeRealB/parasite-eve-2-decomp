@@ -32,6 +32,11 @@ extern SVECTOR D_actor_450800_80131E24;
 /// current animation id; `func_actor_450800_80132AE0` starts slots 1..0x13 of
 /// `anim` from it, forwarding `field_4FC` as the reset argument, and latches the
 /// id into `field_4B6` as the copy kept for change detection.
+///
+/// `state` drives `func_actor_450800_80132448`, which dispatches on it: 1 starts
+/// the animation through `func_actor_450800_80132AE0` and 2 reseeds the slots
+/// through `ActorsShared80132514`, the same pair `func_actor_460200_80132B2C`
+/// selects between.
 typedef struct Actor450800Work {
     /* 0x000 */ byte      pad_0[0x40];
     /* 0x040 */ GpAnimCtx anim;
@@ -39,10 +44,11 @@ typedef struct Actor450800Work {
     /* 0x4AE */ u16       yaw;
     /* 0x4B0 */ byte      pad_4B0[0x2];
     /* 0x4B2 */ s16       travel;
-    /* 0x4B4 */ byte      pad_4B4[0x2];
+    /* 0x4B4 */ s16       state;
     /* 0x4B6 */ s16       field_4B6;
     /* 0x4B8 */ s16       field_4B8;
-    /* 0x4BA */ byte      pad_4BA[0x36];
+    /* 0x4BA */ s16       field_4BA;
+    /* 0x4BC */ byte      pad_4BC[0x34];
     /* 0x4F0 */ Task*     field_4F0;
     /* 0x4F4 */ Task*     field_4F4;
     /* 0x4F8 */ Task*     field_4F8;
@@ -50,5 +56,16 @@ typedef struct Actor450800Work {
     /* 0x4FE */ byte      pad_4FE[0x6];
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
+
+/// Script args the "start animation" opcode `func_actor_450800_80132B44`
+/// receives: the clip id, a flag choosing the start path, and the reset
+/// argument only that path carries. Same shape as the `Actor150400AnimArgs` and
+/// `Actor460200AnimArgs` that opcode's twins take.
+typedef struct Actor450800AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+    /* 0x8 */ s32  withArg;
+    /* 0xC */ u16  animArg;
+} Actor450800AnimArgs;
 
 #endif

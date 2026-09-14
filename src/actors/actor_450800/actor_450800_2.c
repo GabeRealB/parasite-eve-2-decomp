@@ -20,6 +20,40 @@ void func_actor_450800_80132AE0(Task* task)
     work->field_4B6 = work->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_2", func_actor_450800_80132B44);
+void func_actor_450800_80132448(Task* task);
+
+/// Script opcode: start animation `args->animId` on this actor.
+///
+/// `withArg` selects between the two start paths `func_actor_450800_80132448`
+/// dispatches on, and only the first carries `animArg`. Returns -1, without
+/// touching the work block, when the clip id is out of range.
+///
+/// The `SOFT_BARRIER()` is a codegen pin, not a semantic one. Without it GCC's
+/// delay-slot pass fills the `beqz` from the fall-through arm (`state = 1`);
+/// the ROM has the *else* arm's `state = 2` there, which the pass only reaches
+/// once an `asm` at the head of the fall-through stops it searching that
+/// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
+/// then-arm moves the delay slot to the else arm".
+s32 func_actor_450800_80132B44(Task* task, s32 arg1, Actor450800AnimArgs* args)
+{
+    Actor450800Work* work;
+
+    work = (Actor450800Work*)task->idMap;
+    if (args->animId >= 0x1F) {
+        return -1;
+    }
+
+    work->field_4B8 = args->animId;
+    if (args->withArg != 0) {
+        SOFT_BARRIER();
+        work->state     = 1;
+        work->field_4FC = args->animArg;
+    } else {
+        work->state = 2;
+    }
+    work->field_4BA = 0;
+    func_actor_450800_80132448(task);
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_2", func_actor_450800_80132BB0);

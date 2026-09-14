@@ -67731,6 +67731,23 @@ blend)`. Example: `func_actor_510900_8013BD84`, the 0x7D3 entry of the
 input `base_1.i`
 `e79c7d071e85b9876a009ba260d18c10616e87483c0ed056511d3b42c1f06a8c`.
 
+**Same cause, symptom nowhere near the signature.** The register the missing
+parameter frees does not stay free: some unrelated quantity takes it, and the
+report then looks like an allocation problem with no argument mismatch to see.
+`func_actor_450800_80132B44` seeded as `f(void* arg0, void* arg2)` scored 84.296%
+at `stack=3 branch=1 regs=4 insert=2 delete=2`, carrying its return value in
+`$a2` (`li $a2,-1` … `move $v0,$a2`) where the ROM has `addiu $v0,$zero,-1` and
+no exit copy. The return pseudo is live from the out-of-range branch to the
+epilogue, so with `$a2` left free by the missing argument it is exactly the
+global quantity local-alloc hands a call-clobbered register to. Restoring the
+unused `s32 arg1` — **that change alone**, no barrier and no local split — gave
+92.370% with `stack=0 branch=1 regs=1 insert=1 delete=1`: the copy gone, the
+return on `$v0`, and only the branch arm left over. Note the `stack=3` cleared
+without touching a local, so it was part of the same symptom rather than a frame
+to shrink. The twins of this opcode all declare the unused slot:
+`func_actor_150400_801326A4`, `func_actor_460200_80132B2C`,
+`func_actor_461800_80132D84`.
+
 ## A promoted `shared` span that lands on existing cuts renumbers nothing
 
 `overlay_dup_index.py promote <fn>` writes the span into every sharer's manifest
