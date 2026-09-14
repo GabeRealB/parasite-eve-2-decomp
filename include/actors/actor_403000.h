@@ -3,7 +3,20 @@
 
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "main/task.h"
+
+/// One of the four display nodes the spawn handler `func_actor_403000_801343B8`
+/// links in a row from 0xB50 of the work block: the `GpObj` list node `Gp_LinkObj`
+/// appends and the task's exit callback `func_actor_403000_8013D4F4` hands back
+/// to `Gp_UnlinkObj`, followed by the five-entry `GpRec18` table the node's
+/// `field_C` points at (+0x20). `Gp_InitRec18Table(_, 5, 0)` on that table is
+/// what fixes the 0x98 stride the four nodes are spaced by.
+typedef struct Actor403000Obj {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[5];
+} Actor403000Obj;
+STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 
 /// Per-actor work block for the `actor_403000` overlay.
 ///
@@ -16,11 +29,16 @@
 /// animation id, written by the handlers and read back by the handlers that
 /// tick the current state.
 typedef struct Actor403000Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ s16  field_2;
-    /* 0x004 */ byte pad_4[0xAC2];
-    /* 0xAC6 */ u16  field_AC6;
-    /* 0xAC8 */ byte pad_AC8[0x514];
+    /* 0x000 */ s16            field_0;
+    /* 0x002 */ s16            field_2;
+    /* 0x004 */ byte           pad_4[0xAC2];
+    /* 0xAC6 */ u16            field_AC6;
+    /* 0xAC8 */ byte           pad_AC8[0x88];
+    /* 0xB50 */ Actor403000Obj objB50;
+    /* 0xBE8 */ Actor403000Obj objBE8;
+    /* 0xC80 */ Actor403000Obj objC80;
+    /* 0xD18 */ Actor403000Obj objD18;
+    /* 0xDB0 */ byte           pad_DB0[0x22C];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -33,5 +51,11 @@ typedef struct Actor403000Msg {
 
 /// Latch the requested animation and restart the animation state machine.
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
+
+/// `Task::exitCallback` installed by the spawn handler, for the teardown path
+/// where the enemy was created: hand the four display nodes back to
+/// `Gp_UnlinkObj`, drop the enemy's `field_54` slot, then let `Gp_DestroyEnemy`
+/// free the enemy and the task.
+void func_actor_403000_8013D4F4(Task* task);
 
 #endif // ACTOR_403000_H

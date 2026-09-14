@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_403000.h"
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
@@ -103,6 +104,19 @@ s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D48C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D4F4);
+void func_actor_403000_8013D4F4(Task* task)
+{
+    Actor403000Work* work  = (Actor403000Work*)task->idMap;
+    GpEnemy*         enemy = (GpEnemy*)task->spawnArg2;
+
+    if (work != NULL) {
+        Gp_UnlinkObj(&work->objB50.obj);
+        Gp_UnlinkObj(&work->objBE8.obj);
+        Gp_UnlinkObj(&work->objC80.obj);
+        Gp_UnlinkObj(&work->objD18.obj);
+        enemy->field_54 = 0;
+    }
+    Gp_DestroyEnemy(enemy, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D564);

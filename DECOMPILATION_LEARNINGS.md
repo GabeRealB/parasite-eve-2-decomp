@@ -78116,3 +78116,35 @@ Read a lone `stack=1` with a perfect topology diagnostic as an argument-register
 difference before splitting locals: `objdump` the two loads and compare the base
 register. The `stack` row of the MATCH_LOOP table ("extra locals / frame") is
 the wrong turn here.
+
+## No callers in `src/`? Read the signature off the installer's store offset
+
+`BRIEF.md`'s "Callers" list only sees decompiled C. A task callback that is
+still installed by an `INCLUDE_ASM` spawn handler shows as "none found", but
+`grep <func> asm/<ver>/<overlay>/` finds the install site immediately — and
+the *offset it is stored to* gives the signature for free.
+
+`func_actor_403000_801343B8` installs `func_actor_403000_8013D4F4` with
+
+```
+lui   v0, %hi(func_actor_403000_8013D4F4)
+addiu v0, v0, %lo(func_actor_403000_8013D4F4)
+sw    v0, 0x18(s7)          /* s7 = Task* */
+```
+
+0x18 is `Task::exitCallback`, whose type is `TaskFunc` — `void (*)(Task*)`. So
+the function is `void (Task*)`: one argument, and no explicit `return 0`, which
+matters because an `s32` declaration would be tempting from the sibling
+message handlers. Same trick for `sw ..., 0x14(s7)` (`callback`, also
+`TaskFunc`), `0x1C` (`idMap`), `0x20` (`spawnArg2`) and `0x2C` (`extra`): the
+store offset names the slot, the slot's type names the signature.
+
+The four `Gp_UnlinkObj` arguments came the same way. The installer writes
+`sw $v1, 0x8($s0)` / `sh $zero, 0x10($s0)` / `ori $v0, $v0, 0x8000` on
+`0x1E($s0)` and then `Gp_InitRec18Table(field_C, 5, 0)` on `0x20($s0)`, under
+`addiu $s0, $s6, 0xB50` — a `GpObj` node plus a five-entry `GpRec18` table
+(`GpObj`, then `GpRec18 rec[5]`, 0x98 total). The four nodes at 0xB50 / 0xBE8 /
+0xC80 / 0xD18 are exactly 0x98 apart, and `Gp_LinkObj` / `Gp_UnlinkObj` bracket
+the lifetime. The same `GpObj + GpRec18 rec[5]` node is already
+`ActorsShared801433b8Node` in `include/actors/actors_shared_801433b8.h`; the
+0x98 stride is the giveaway.
