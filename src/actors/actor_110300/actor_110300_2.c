@@ -4,8 +4,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern Task*        D_actor_110300_8013A0A8;
-extern GpActorWork* D_actor_110300_8013A0A4;
+extern Task* D_actor_110300_8013A0A8;
 
 void func_actor_110300_80131FF8(GpActorWork* arg0)
 {
@@ -30,7 +29,10 @@ void func_actor_110300_80132088(Task* arg0)
 /// running state. Steps 1 and 2 each return through their own copy of the
 /// advance; the two are identical, so jump.c cross-jumps them and only the
 /// second survives.
-void func_actor_110300_801320C4(void)
+///
+/// `arg0` is handed the actor but the body ignores it: it reaches the work
+/// block through the global, like every other function in the overlay.
+void func_actor_110300_801320C4(GpActorWork* arg0)
 {
     if (ActorsShared80131f9cWork->field_474 == 1) {
         func_actor_110300_80132208();

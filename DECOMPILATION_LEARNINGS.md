@@ -77649,3 +77649,75 @@ Inputs: `base.i` (m2c seed, 91.852%)
 `0285b980d39aca10c586ea2a4e25d5826f380aead36ba36397774679762e3034`,
 `base_3.i` (QI temp, copy after the join, 100.000%)
 `5220cc11ab7fd66e2998853d755b5b5fe1c6fcb0f1434710c6404bfeb4c961a8`.
+
+## A call argument's `lui` cannot hoist past a `li` on the same `$v0`: evaluate the read earlier
+
+`func_actor_110300_80132280` is a 24-insn message handler (0x7D3) with a
+byte-identical twin in `actor_110800` and a matched sibling in
+`func_actor_460200_80132B2C`. Its target interleaves the call's argument setup
+with the work-block stores:
+
+```
+lw    v0,0x4(a2) ; nop ; slt v0,v0,6
+bnez  v0,L2
+lui   v0,%hi(work)                 # branch delay slot
+j     L3 ; li v0,-1
+L2:
+lw    v1,%lo(work)(v0)
+lhu   v0,0x4(a2) ; nop ; sh v0,0x478(v1)
+lui   v0,%hi(actor) ; lw a0,%lo(actor)(v0)     <- the read is HERE
+li    v0,2 ; sh v0,0x474(v1)
+jal   dispatch ; sh zero,0x47A(v1)
+move  v0,zero
+```
+
+Reading the actor global where it is used - at the call - scores 88.800%
+(`reorder=3 insert=1`): the `lui`/`lw` pair lands after `li 2`/`sh 0x474`, and
+`sh zero,0x47A` takes a different slot. Both scheduler dumps say no reordering
+reaches the target from there, for two different reasons:
+
+* `.sched` (sched1, pre-reload) - the `lw %lo(actor)($v0)` that feeds the
+  argument register carries `(insn_list 27 (insn_list 36 (insn_list 43 ...)))`:
+  every *preceding* store, because a `mem:SI` load cannot be shown to miss
+  three `mem:HI` stores through a different base register.
+* `.sched2` (post-reload) - the `lui` writes hard `$v0`, which `li 2` also
+  writes and the `sh` beside it reads, so sched2 hangs `REG_DEP_OUTPUT 34` and
+  `REG_DEP_ANTI 36` on that `lui` and it cannot cross the `li` even once the
+  alias edges are gone.
+
+Assigning the global to a local *between* the two stores is what moves the read
+earlier in the RTL, and it matches exactly - 100.000%, all-zero penalties,
+nothing pinned:
+
+```c
+if (args->animId < 6) {
+    work->animId    = args->animId;
+    actor           = D_actor_110300_8013A0A4;   /* evaluated here, not at the call */
+    work->field_474 = 2;
+    work->field_47A = 0;
+    func_actor_110300_801320C4(actor);
+    return 0;
+}
+return -1;
+```
+
+The local is not decoration, and an ordering of the three stores alone does not
+substitute for it: the load has no reason to exist before its use, so only a
+mention of it in the source puts it in the RTL that early. It costs nothing -
+the `lw` still reaches `$a0` with its own `lui` in `$v0`, exactly as the target
+has it.
+
+**How to spot it.** A `reorder`/`insert` residue whose missing instructions are
+a `lui`/`lw` pair feeding a call argument, where the target has the pair ahead
+of a `li` sharing `$v0` and `.sched2` shows `REG_DEP_OUTPUT`/`REG_DEP_ANTI` on
+the `lui`. Check `.sched` too - the two schedulers block the same motion for
+different reasons, and only the source order clears both. The neighbouring
+entry on the directional store->load alias edge applies to the same class of
+residue; reach for that one when the blocked instruction is a field load whose
+consumer is in the same chain, and for this one when it is an address reaching
+a call.
+
+Inputs: `base_2.i` (read at the call, 88.800%)
+`ce1dd71fef6161cc1798963dc707044431e71d4452b345e51cc15d83d4b721f5`,
+`base_3.i` (read into a local, 100.000%)
+`b7723a9845dacbc01af01eaa288678f584abe0953a4b42e36a088ca6ce75accf`.
