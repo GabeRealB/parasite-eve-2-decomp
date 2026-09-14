@@ -76441,3 +76441,23 @@ inherit `field_1C`/`field_20`, `Task_Reparent`, `state += 1`). Written with m2c'
 because the compiler kept `task->extra` in `$a2` and its `field_8` in `$a3`;
 written with `TmdObject*` / `GsCOORDINATE2*` locals it puts
 `$a3 = extra`, `$t0 = extra->field_8`, `$a2 = parentExtra` and matches exactly.
+
+The tier does not need to be starred, and the twin does not need to be an
+equality. `func_actor_335800_80163CA0` (32 instructions, same overlay) has no
+`find` copy at all: its twin `ActorsShared80132920` sits in `src/actors/lib/`
+with its fields at 0x4C8/0x4E8/0x4FA where this overlay's are at
+0x490/0x4B0/0x4C2, and a work block 4 bytes shorter — so only the
+operand-dropping `shape` tier can pair them, and it did, at 1.00 unstarred.
+Transcribing the sibling's C against this overlay's own types and offsets was
+again the whole match: 50.156% for the m2c seed (`delete=11 insert=3 regs=15
+reorder=2`) → 100.000% in one build.
+
+What transfers is the *body shape*, not the sibling's header. Its
+`step`/`limit`/`turnCount` trio is this overlay's `step`/`limit`/`field_4C2`
+(0x490/0x4B0/0x4C2), and that last field is a state index: this overlay's
+dispatcher `func_actor_335800_80163B78` copies the four-entry table
+`D_actor_335800_80161E68` onto the stack and indexes it with a sign-extending
+`lh` of 0x4C2, so the body's `field_4C2++` is what advances the state. Pair the
+twin with the overlay's *table* before writing the fields: the counter, the
+`VECTOR3 step` `ApplyMatrixLV` writes and the `SVECTOR limit` it opens are three
+offsets, and only the dispatcher says which is the state.
