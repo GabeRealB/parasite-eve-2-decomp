@@ -576,7 +576,25 @@ void Actor04400_Fn06D90(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06DFC);
+void Actor04400_Fn06DFC(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    s16              angle;
+    s16              speed;
+
+    Actor04400_Fn067A0(arg0, 0x10);
+    speed                                           = Actor04400_Fn065F4(arg0, -0x10);
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        Actor104400Work* next = (Actor104400Work*)arg0->idMap;
+
+        next->field_420 = 4;
+        next->field_422 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06EEC);
 
