@@ -177,7 +177,53 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06328);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06374);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn063E4);
+/// While `field_41E` is 1, consumes the pending request in `field_448`:
+/// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at
+/// sub-state 0, anything else is just cleared. Returns 1 when `field_41E` is 1
+/// and 0 otherwise. Each case reloads the work block through its own local;
+/// one shared local lands in `$a0` instead of `$v1`.
+s32 Actor04400_Fn063E4(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+
+    if (work->field_41E == 1) {
+        switch ((s16)(work->field_448 - 1)) {
+            case 0: {
+                Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+                w->field_420       = 6;
+                w->field_422       = 0;
+                break;
+            }
+            case 1: {
+                Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+                w->field_420       = 7;
+                w->field_422       = 0;
+                break;
+            }
+            case 2: {
+                Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+                w->field_420       = 8;
+                w->field_422       = 0;
+                break;
+            }
+            case 3: {
+                Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+                w->field_420       = 7;
+                w->field_422       = 0;
+                break;
+            }
+            case 4: {
+                Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+                w->field_420       = 9;
+                w->field_422       = 0;
+                break;
+            }
+        }
+        work->field_448 = 0;
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0648C);
 
