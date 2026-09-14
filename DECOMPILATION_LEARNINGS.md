@@ -74042,3 +74042,56 @@ the same delay slot comes out of the scheduler: 100.000%. **When a low-priority
 local occupies a call-saved register nothing else appears to want, its live range
 must cross a call; move the assignment one statement earlier rather than reaching
 for a pin.**
+
+## A field written and then read back keeps the copy: `cse` folds the reload, `local-alloc` refuses to tie a pseudo that spans a block
+
+`func_actor_310100_801625E4` sat at 99.076% with exactly one instruction of
+difference — the target materialises the payload load through `$v0` and copies it
+into `$s2`, where the source had the load land straight in `$s2`:
+
+```asm
+-lhu    s2,0x34(s4)        +lhu    v0,0x34(s4)
+-sh     s2,0x504(s1)       +move   s2,v0
+                           +sh     s2,0x504(s1)
+```
+
+The stored value and the loop's third argument (`Gp_AnimResetSlot`'s payload) are
+the *same* `$s2`, so the RTL behind the target is `(set T (mem))`,
+`(set active T)`, `(set (mem) active)` — one copy that has to live through the
+loop.
+
+**The form that emits it is a store followed by a read of the same field.** Six
+copies of the body were compiled through cc1 side by side (`shapes.c`, one
+`cc1` call, no attempt budget) to find which one the target came from:
+
+| preheader | emitted (cc1's own operands) |
+|---|---|
+| `active = task->spawnArg1; work->field_504 = active;` | `lhu active` / `sh active` |
+| `active = task->spawnArg1; work->field_504 = task->spawnArg1;` | `lhu active` / `sh active` |
+| `work->field_504 = active = task->spawnArg1;` | `lhu active` / `sh active` |
+| `active = tmp; work->field_504 = active;` | `lhu active` / `sh active` |
+| `work->field_504 = task->spawnArg1; active = task->spawnArg1;` | **two** `lhu`s |
+| `work->field_504 = task->spawnArg1; active = work->field_504;` | `lhu $v0` / `move active,$v0` / `sh active` |
+
+Only the last matches. The reload is not re-read from memory: `cse` forwards the
+register that already holds the stored value into it and keeps one explicit
+`(set active <fresh temp>)`, and that temp is a new pseudo — which is exactly the
+extra `lhu $v0` plus `move`.
+
+**Why the copy survives into `$s2` instead of being tied away: the destination
+dies in more than one block.** `local-alloc.c`'s `combine_regs (usedreg, setreg,
+…)` returns 0 — no tie, copy kept — on `sreg >= FIRST_PSEUDO_REGISTER &&
+reg_qty[sreg] == -1`, its "not local to this block or dies more than once"
+condition. `active` is read in the loop preheader *and* inside the loop body, so
+`reg_qty[active]` is -1 and nothing stored into it can be folded. Both halves
+together are the general rule: **a value that spans a basic block cannot absorb a
+preceding copy, so when the target shows a `move` into a long-lived register from
+a temp, look for a source form that makes `cse` emit one — and a store followed
+by a reload of the same field is the reliable way to ask for it.**
+
+The same experiment rules out the cheap explanations: writing the expression
+twice does not produce the copy but a *second load*, and storing the variable
+(`work->field_504 = active;`) collapses the chain to the single `lhu` at
+99.076%. A near-identical sibling is not evidence here either —
+`func_actor_310100_80162414` has the same body at one fewer store and compiles to
+the plain `lhu` into `active`.

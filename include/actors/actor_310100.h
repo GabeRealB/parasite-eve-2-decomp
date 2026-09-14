@@ -33,7 +33,8 @@ typedef struct Actor310100Work {
     /* 0x4E8 */ Task*      field_4E8; // Game_GetPtrSlot(3)
     /* 0x4EC */ GpAnimRec* field_4EC; // record the frame handler last saw on slot 1
     /* 0x4F0 */ u16        field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
-    /* 0x4F2 */ byte       pad_4F2[0x14];
+    /* 0x4F2 */ byte       pad_4F2[0x12];
+    /* 0x504 */ u16        field_504; // handed to Task_SpawnFromTable as the display task's spawnArg1
     /* 0x506 */ u16        field_506; // passed down as the model task's spawnArg1
     /* 0x508 */ u16        field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
     /* 0x50A */ u16        field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
