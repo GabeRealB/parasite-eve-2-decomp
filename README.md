@@ -1,5 +1,8 @@
 # Parasite Eve 2 Decompilation
 ![coverage usa](https://decomp.dev/GabeRealB/parasite-eve-2-decomp.svg?mode=shield&label=Parasite+Eve+II+%28USA%29)
+=============
+
+![progress usa](https://decomp.dev/GabeRealB/parasite-eve-2-decomp.svg?w=512&h=256)
 
 A work-in-progress **matching decompilation** of *Parasite Eve II* for the Sony PlayStation.
 
