@@ -72609,3 +72609,10 @@ before touching registers. If the *set* of roles is right and only the order is
 reversed, the priorities are wrong, not the RTL: look for a C variable that is
 assigned twice in regions that do not overlap, and give the later region its own
 local.
+## Actor01900_Fn0A7C0: interleaved constant stores prevent register reuse
+
+Controlled base_2 moved `work->field_898 = 2` before `work->field_8A2 = 0x10`, leaving `work->field_89E = 2` afterward. The three stores are independent. Against base_1 this alone changed 98.214% (regs=3 reorder=1) to exact; the permuter pointer alias was unnecessary. sched1 kept the constant-2 live range around constant 16; lreg changed constant 2 from 3 refs/6 insns in v0 to 3 refs/10 insns in v1. greg retained those homes. sched2 then moved the B66 load ahead of the constant-2 stores, freed from the former v0 dependency. This is another instance of CODEGEN_MODEL 10.6, not proof of a general per-pseudo priority rule. No pins or asm helpers.
+
+Evidence: tools/permuter_findings/Actor01900_Fn0A7C0/; scratch base_2 controlled plan/build, lreg and sched2 retained by conclude-permuter.
+base_1.i SHA256: b9da53f87bdd617a8ed8a1cd2990269fb345f44896860477b89e7a87b70a6f45
+base_2.i SHA256: a473c47c9e01960ee8585b82f39e6b76f0b85af46ab14a0c9727dbfe1900dd48

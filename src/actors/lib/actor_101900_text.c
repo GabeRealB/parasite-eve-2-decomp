@@ -236,7 +236,29 @@ void Actor01900_Fn0A6CC(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A764);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A7C0);
+void Actor01900_Fn0A7C0(Actor01900* arg0)
+{
+    TmdObject*      obj;
+    Actor01900Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_898       = 2;
+        work->field_8A2       = 0x10;
+        work->field_89E       = 2;
+        work->field_89A       = 0;
+        work->field_B48.flags = (u16)(work->field_B48.flags & 0x7FFF);
+        work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
+        Actor01900_Fn01C94(arg0);
+    } else {
+        arg0->field_2C->field_8->flg = 0;
+        Actor01900_Fn01C94(arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A868);
 
