@@ -76838,3 +76838,55 @@ Always pass `-a` (`grep -a`, or `--binary-files=text`) when searching
 from its uses. Preprocessed `.i` files are unaffected — `-P` strips the
 comments that carry the high bytes — so a scratch `.i` is a fine place to look a
 definition up when the header itself is unreadable.
+
+## m2c's scalar locals for a struct copy die in CSE; declare the struct
+
+When m2c renders a copy out of a rodata global it emits one scalar local per
+word plus a cast at the call site:
+
+```c
+extern M2C_UNK D_thing_80161E40;          /* m2c: M2C_UNK is s32 */
+s32 sp10, sp14, sp18, sp1C;               /* four independent pseudos */
+sp10 = M2C_FIELD(&D_thing_80161E40, s32 *, 0);
+sp14 = M2C_FIELD(&D_thing_80161E40, s32 *, 4);
+...
+ApplyMatrixLV(&coord->coord, (VECTOR *) &sp10, dest);
+```
+
+Only `sp10` has its address taken, and only because the cast names it. The other
+three are plain scalars that nothing ever reads, so their loads are dead the
+moment they are computed and **CSE deletes load and all** - the call then reads
+12 bytes of stack the source believed it had filled. The object comes out three
+loads, three stores and 8 bytes of frame short, which shows up as a score around
+47% carrying `regs`, `insert` and `delete` residue rather than a clean
+register-only diff.
+
+The passes pin it: with `-da`, `.jump` still holds all four references to `D`,
+`.cse` holds one. In `.rtl` the three dead copies are already `reg/v:SI`
+pseudos with no reader (insn 21 loads into `reg/v:SI 82` and nothing follows),
+so no stack slot was ever reserved for them. A *smaller* frame than the target
+plus a missing multi-word copy is the signature, not a spill.
+
+The fix is to give the extern the struct type the target's copy width implies
+and assign it wholesale, so all 16 bytes belong to one object whose address
+escapes:
+
+```c
+extern VECTOR D_thing_80161E40;
+VECTOR vec;
+vec = D_thing_80161E40;                  /* 4 lw + 4 sw, 0x28 frame */
+```
+
+A 16-byte struct assignment compiles to the rotating three-register copy
+(`lw a3/0, lw t0/4, lw t1/8, sw a3, sw t0, sw t1, lw a3/0xC, sw a3/0x1C`) with a
+`nop` before the last store. This is the same body as `ActorsShared80132920` /
+`func_actor_335800_80163CA0`, so the work-struct field types come from the
+matched sibling's header too - here `Actor317000Work` gained `VECTOR3 step` at
+0x490, `u16 field_4C2` and `u8 field_4C4` (the target stores 0x4C4 with `sb`,
+so it is a byte, where actor_335800's is an `s16`). Nothing else moved, because
+the new fields only replace padding and the struct stays 0x4CC.
+
+Example: `func_actor_317000_801628D8` (46.833% -> 100.000%, one build).
+
+Inputs: `base.i` (m2c seed, 46.833%)
+`5bcf753c2b26d9121df7681977eaba481097034781daad8a06bbe2b1aecf1af3`.
