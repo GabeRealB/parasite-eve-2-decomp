@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
@@ -26,16 +27,27 @@ extern SVECTOR D_actor_450800_80131E24;
 /// the heading it applied to the root coordinate and the distance left to
 /// cover, in twelfths. That opcode is the shared body `ActorsShared80133678`,
 /// which reaches the same two fields through `ActorsShared80133678Work`.
+///
+/// `anim` is the animation context `func_800B4114` walks. `field_4B8` is the
+/// current animation id; `func_actor_450800_80132AE0` starts slots 1..0x13 of
+/// `anim` from it, forwarding `field_4FC` as the reset argument, and latches the
+/// id into `field_4B6` as the copy kept for change detection.
 typedef struct Actor450800Work {
-    /* 0x000 */ byte  pad_0[0x4AE];
-    /* 0x4AE */ u16   yaw;
-    /* 0x4B0 */ byte  pad_4B0[0x2];
-    /* 0x4B2 */ s16   travel;
-    /* 0x4B4 */ byte  pad_4B4[0x3C];
-    /* 0x4F0 */ Task* field_4F0;
-    /* 0x4F4 */ Task* field_4F4;
-    /* 0x4F8 */ Task* field_4F8;
-    /* 0x4FC */ byte  pad_4FC[0x8];
+    /* 0x000 */ byte      pad_0[0x40];
+    /* 0x040 */ GpAnimCtx anim;
+    /* 0x054 */ byte      pad_54[0x45A];
+    /* 0x4AE */ u16       yaw;
+    /* 0x4B0 */ byte      pad_4B0[0x2];
+    /* 0x4B2 */ s16       travel;
+    /* 0x4B4 */ byte      pad_4B4[0x2];
+    /* 0x4B6 */ s16       field_4B6;
+    /* 0x4B8 */ s16       field_4B8;
+    /* 0x4BA */ byte      pad_4BA[0x36];
+    /* 0x4F0 */ Task*     field_4F0;
+    /* 0x4F4 */ Task*     field_4F4;
+    /* 0x4F8 */ Task*     field_4F8;
+    /* 0x4FC */ s16       field_4FC;
+    /* 0x4FE */ byte      pad_4FE[0x6];
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
 

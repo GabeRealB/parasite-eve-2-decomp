@@ -75369,3 +75369,51 @@ when the wrong register is an argument register, merging is.
 
 `base_3.c` (100%; preprocessed
 `b64957a7cf24af2473820868d18d520b76d36ad69e214f4598867c14370ec144`).
+## m2c's two-pseudo `f(i++)` makes the argument copy an entry-block insn, one line from a `reorder` penalty
+
+**Problem.** `func_actor_450800_80132AE0` opened at 97.598% with `reorder=1` and
+exactly one differing line. The `addu $a1,$s0,$zero` that seeds the loop's
+argument was emitted one slot early — between `li $s0,1` and the `sw $ra`/`sw $s1`
+register saves — where the target has it after the saves and the
+`lw $s1,0x1C($a0)` that follows them. Every opcode count, block edge, predicate
+and delay-slot word already matched.
+
+**Cause.** m2c renders `do { f(i++); } while (i < 0x14)` as *two* pseudos: a
+counter `var_s0` and an argument `var_a1`, assigned once before the loop and
+re-assigned at the bottom (`var_a1 = var_s0`). That `var_a1 = 1` is a real
+statement, so it is an RTL insn of its own in the entry block:
+
+```
+(insn 11 ... (set (reg/v:SI 82) (const_int 1))          ; var_s0 = 1
+(insn 14 ... (set (reg/v:SI 83) (mem:SI (+ reg80 28)))) ; temp_s1 = arg0->0x1C
+(insn 17 ... (set (reg/v:SI 81) (const_int 1))          ; var_a1 = 1
+```
+
+The entry block therefore holds three insns, and the copy is scheduled *inside*
+it — ahead of the `sw $ra`/`sw $s1`/`sw $s0` saves, which the prologue pass
+inserts into that block afterwards (`base.i.sched2`'s entry block lists 83, 85,
+87, 89, 11, 14, 17: the saves and the copy together). The target has the copy
+last, after all of them.
+
+**Fix.** Write the loop the way the source had it — one counter used directly as
+the call argument, incremented after the call:
+
+```c
+    i = 1;
+    do {
+        func_800B4114(&work->anim, i, work->field_4B8, 0, work->field_4FC);
+        i++;
+    } while (i < 0x14);
+```
+
+The copy is then the one `expand_call` generates at the call site, so it belongs
+to the *loop* block and the entry block drops to two insns (`11`, `14`). Same
+instruction count, same registers, same delay slots — 100.000%. The change is
+one line: `base.c` → `base_1.c` differ only in that structure and nothing else
+(no struct-vs-`M2C_FIELD` change was involved).
+
+Both already-matched siblings of this body, `ActorsShared801324c8` and
+`ActorsShared80132640`, are written this way; only the m2c seed was not. This is
+the first thing to try on a `reorder=1` whose single differing line is a
+`move`/`addu` seeding an argument register, and it is worth checking a sibling's
+C before touching pins or barriers.
