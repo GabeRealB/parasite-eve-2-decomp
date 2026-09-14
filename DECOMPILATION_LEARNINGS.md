@@ -76930,3 +76930,46 @@ Example: `func_actor_317000_801628D8` (46.833% -> 100.000%, one build).
 
 Inputs: `base.i` (m2c seed, 46.833%)
 `5bcf753c2b26d9121df7681977eaba481097034781daad8a06bbe2b1aecf1af3`.
+
+## An actor overlay's bare `D_8xxxxxxx` may be room-overlay data — declare it, do not attribute it
+
+`func_actor_143900_80131E24` hands `&D_8017DA00` to `Task_SpawnFromTable`.
+splat left that address unnamed, and it belongs to neither main nor gameplay: it
+is offset 0x440 into the room-overlay region (rooms load at 0x8017D5C0), which
+is why `configs/USA/sym/actors.imports.txt` carries it in its *third* bucket,
+"still unnamed in their own overlay". That bucket exists for exactly this case -
+`tools/gen_overlay_imports.py` resolves names only from `sym.main.txt` and
+`sym.gameplay.txt`, so anything outside those two keeps its raw `func_`/`D_`
+form.
+
+The region is a real home for such a table, not an accident: all 167 room
+packages cover 0x8017DA00, and in `shelter_r49` offset 0x440 is a `TaskDesc` the
+room's own code spawns from (`D_shelter_r49_8017DA00`, via `Display_SpawnWithOt`).
+Other actor overlays reach into the same region the same way (`func_8017D9B8`
+from `actor_400600`, `D_8017DC54` from `actor_461800`), and the project already
+calls one of these "map 0x427's spawn points" (`D_8018B74C` in
+`actors_shared_801673f8.h`).
+
+**Fix - write the bare extern in the overlay's own `.c`, typed by the use.** A
+`Task_SpawnFromTable` table argument is a `TaskDesc`, and the sibling
+declaration is already in the family — `actor_206100.c` has
+
+```c
+extern TaskDesc D_80147E48;
+```
+
+with no header home and no comment on the symbol, immediately before the
+function that passes `&D_80147E48` to `Gp_SpawnEnemyFromTable`. Do not go
+looking for an owner in the two sym maps, and do not rename the symbol: the
+linker resolves the raw name and the target object's relocation carries it
+(`R_MIPS_HI16 D_8017DA00`).
+
+The function itself is the standard "story trigger unless the demo is running"
+shape: `if (Mc_SaveData.field_23 != 9)` — 9 is the `Task_Spawn` bank the
+`Gp_StrDemoWait` / `Gp_StrDemoPause` prompts key off — then arm the scene event
+byte `field_5C5` and spawn the table's task. `func_actor_450800_80132080` and
+`func_shelter_r36_8017D738` are the same shape with `Task_Spawn` instead.
+
+Inputs: `base.i` (seed retyped to `extern TaskDesc D_8017DA00;`, 100.000% with
+all-zero penalties on the first build)
+`2c031d6250196741879e2aa1e2e144188eb8f924d24d19368f2921d68ac661c5`.
