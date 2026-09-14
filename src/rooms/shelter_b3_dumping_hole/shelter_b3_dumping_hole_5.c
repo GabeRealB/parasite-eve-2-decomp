@@ -277,7 +277,51 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182D34);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182E50);
+typedef struct {
+    /* 0x00 */ u8 pad[3];
+    /* 0x03 */ u8 field_3;
+} GlyphEntry;
+
+s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0)
+{
+    u16*        p = (u16*)arg0;
+    short       acc;
+    short       total;
+    u16         i;
+    u16         tok;
+    s32         sh;
+    s32         t;
+    s32         ni;
+    GlyphEntry* e;
+
+    acc   = 0;
+    total = acc;
+    i     = total;
+    tok   = *p;
+    sh    = tok << 16;
+    if ((sh >> 16) != -1) {
+        do {
+            t = sh >> 16;
+            if (t == -2) {
+                if (acc == 0) {
+                    acc = 2;
+                }
+                total += acc;
+                acc    = 0;
+            } else if (t == -3) {
+            } else if (t >= 0) {
+                e = (GlyphEntry*)((tok & 0x3FF) * sizeof(GlyphEntry) + (s32)D_shelter_b3_dumping_hole_8018F4B8);
+                if (acc < e->field_3 + 2) {
+                    acc = e->field_3 + 2;
+                }
+            }
+            ni  = (i = i + 1);
+            tok = p[(s16)ni];
+            sh  = tok << 16;
+        } while ((sh >> 16) != -1);
+    }
+    return (s16)total;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80182F18);
 
