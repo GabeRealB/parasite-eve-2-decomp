@@ -906,7 +906,88 @@ void Actor00100_Fn06398(Actor00100* arg0)
     *(SVECTOR**)G_SCRATCH_HEAD += 2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn06654);
+void Actor00100_Fn06654(Actor00100* arg0)
+{
+    Actor00100Work* work;
+    Actor00100Ctx*  ctx;
+    TmdObject*      obj;
+    SVECTOR*        head;
+    SVECTOR*        vec;
+    s32             x, z;
+    s16             yaw;
+    s32             outside;
+    s32             state;
+
+    head = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec  = (*(SVECTOR**)G_SCRATCH_HEAD = head - 2);
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj           = arg0->field_2C;
+        ctx->field_14 = 0;
+        obj->field_C  = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 5;
+        work->field_82A        = 0;
+        work->field_83E        = 0;
+        work->field_C28        = 0;
+        work->field_6          = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(0x20);
+        gte_ldsv(vec);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(vec);
+        x                              = head[-2].vx;
+        work->field_8DC                = 0;
+        work->field_8D8                = x;
+        z                              = vec->vz;
+        work->field_8E8                = 7;
+        work->field_8EA                = 1;
+        work->objs[3].field_20.field_C = 0x320;
+        work->field_8E0                = z;
+        Gp_SpawnPadLerp(3, 0xFFU, 8U);
+    }
+    work->field_6 += 1;
+    Actor00100_Fn02788(arg0);
+    state = (s16)work->field_82E;
+    switch (state) {
+        case 5:
+            if (work->field_68 & 0x100) {
+                Actor00100_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, vec);
+                outside = Actor00100_OutsideRadius(vec, 2000);
+                if (outside) {
+                    work->field_0 = 0x26;
+                } else {
+                    work->field_0 = 0x1F;
+                }
+            }
+            break;
+        case 3:
+            yaw       = Actor00100_PositionYaw(arg0, vec, &Wip_SysConfig);
+            vec[1].vz = yaw;
+            if (Actor00100_HasRecord10(arg0)) {
+                Actor00100_MoveForward(arg0->field_2C->field_8, 85);
+            } else {
+                Actor00100_MoveForward(arg0->field_2C->field_8, 200);
+            }
+            if (Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5)) {
+                work->field_0 = 0x23;
+            }
+            if (work->field_6 >= 0x15) {
+                work->field_828 = 1;
+                work->field_82A = 0;
+                work->field_82E = 5;
+                work->field_832 = work->field_834;
+            }
+            break;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 2;
+}
 
 void Actor00100_Fn06C10(Actor00100* arg0)
 {

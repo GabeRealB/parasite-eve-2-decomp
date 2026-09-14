@@ -71304,3 +71304,27 @@ Inputs: base_1.i `9cdbb7e1a00be921e04c88f840c9a70cec28a5d5c155c4710b844689831562
 Evidence: `tools/permuter_findings/Actor00100_Fn09724/`, session
 `7eaf305296e94245a8dfe921d38fa669`; controlled base_2 plan/build,
 `.rtl/.sched2/.dbr`, and `PERMUTER_ANALYSIS.md`.
+
+
+## Actor00100_Fn06654: initialization order survives both schedulers
+
+An isolated permuter change moved `work->field_828 = 1` before
+`work->field_82E = 5`. Controlled normal-style candidate `base_2.c` reproduced
+distance 410 → 200 while preserving the call-crossing constant one in s0.
+Sched1 releases each definition after its first store in backward scheduling;
+changing store order changes definition order. Sched2 retains priority 2 for
+both constants, but now selects five before one backwards. Its greater-potential-
+hazard selection of the 0x924 store then puts one before that store forwards.
+The one live range grows from 94 to 98 insns without changing its register.
+This is evidence for this specific dependency/order intervention, not a claim
+that source order alone determines scheduling. Inspect selection and allocation
+separately. The final residual lhu was the existing load-site type rule:
+`field_82E` is u16; an s32 local alone does not help, `(s16)` at the load does.
+
+Bundled compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Preprocessed inputs: base_1 961b8da0151ada45afbb8a25062b685bdd6d24fdeb8c10ddf2e415f34063a2d1,
+base_2 329ca718115b4c838dbe7931a0530ef02ea2b022da19ac9f2604e1b9da51a051.
+Evidence: `tools/permuter_findings/Actor00100_Fn06654/`, session
+`d3f4d2a554e44c6599c92d6f495702fc`, retained `PERMUTER_ANALYSIS.md` and
+base_2 `.sched`, `.lreg`, `.greg`, `.sched2`; controlled prediction recorded
+before build. No tracer or register pins used.
