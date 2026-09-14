@@ -6,12 +6,21 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "main/unknown_syms.h"
 
 extern s16 D_80071076;
 extern u8  D_801153F4;
 extern s32 D_actor_450900_80136B00;
 extern s32 D_actor_450900_80136BD8;
+
+/// This overlay's own spawn table, six `TaskDesc` entries. Index 0 is the exit
+/// handler `Task_Kill`; 1..5 are the overlay's state handlers, and the "next
+/// stage" of each is the next entry: `func_actor_450900_80131E38` spawns 5 on
+/// its way through, and `func_actor_450900_80132834` spawns 4
+/// (`func_actor_450900_8013235C`, the save-data teardown) when the ally has
+/// walked past the trigger line.
+extern TaskDesc D_actor_450900_80135E78;
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80131E38);
 
@@ -115,4 +124,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_801327A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132834);
+/// Save-point gate: reads the ally actor's root coordinate and, once it has
+/// walked past `Z < -0x76C`, hands over to the save-data teardown task instead
+/// of starting the save-point capture. The chain is the one
+/// `func_actor_450900_80132684` and `func_actor_161500_80132210` use: the ally
+/// task's `Task::extra` is its `TmdObject`, whose `field_8` is the root
+/// `GsCOORDINATE2`, so `coord.t[2]` is that coordinate's world Z.
+void func_actor_450900_80132834(void)
+{
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+    if (coord->coord.t[2] < -0x76C) {
+        Task_SpawnFromTable(&D_actor_450900_80135E78, 4, 0, 0);
+    } else {
+        Gp_StartCapSlot(0xB, 1, 0);
+    }
+}
