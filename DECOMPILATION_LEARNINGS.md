@@ -77096,3 +77096,45 @@ Example: `func_actor_341300_801625AC` (78.868% -> 100.000%, one build).
 
 Inputs: `base.i` (m2c seed, 78.868%)
 `96842493310a46589e818081186f7683de020c8d803a2a81b7b5bf1def6b7e15`.
+
+## Splitting a fully-shared actor `.text` for a mid-function header table
+
+When the whole overlay `.text` is one `shared` span (the relocated-actor case:
+`actor_104400` / `actor_342200` both link `lib/actor_104400_text`), a switch
+whose jump table sits in the leading header cannot join that object. GCC emits
+every switch table at the start of its TU's `.rodata`, so a second table in
+the same file would land next to the existing one (here `Actor04400_Fn063E4`'s
+table already owned `0x1F4`) instead of at its header address (`0x114`).
+
+Cut the shared span into three, and move the existing table cut with the
+function that still generates it:
+
+```toml
+shared = [
+  { start = "0x220", end = "0x3390", unit = "actor_104400_text" },
+  { start = "0x3390", end = "0x3538", unit = "actor_104400_fn03390" },
+  { start = "0x3538", end = "0x8E14", unit = "actor_104400_text_tail" },
+]
+rodata = [
+  { start = "0x114", unit = "actor_104400_fn03390" },   # new table
+  { start = "0x128", unit = "actor_104400_header_1b" }, # overlay-local remainder
+  { start = "0x1F4", unit = "actor_104400_text_tail" }, # was actor_104400_text
+  { start = "0x208", unit = "actor_104400_header_2" },
+]
+```
+
+The first `rodata` cut must name a shared unit. The bytes after the new table
+cannot go back to `<name>_header` (that object already appears at `0x0`), so
+they need a second overlay-local asm unit (`header_1b`); the twin overlay gets
+its own name there because those words are slot addresses. Reassigning `0x1F4`
+is the easy miss: leaving it on `actor_104400_text` pairs `Fn063E4`'s table
+with the head object, which no longer contains that switch.
+
+Snapshot the original `.c` (`bodies_of()` or a full copy), write the three
+files from it, then re-split. splat will not rewrite an existing
+`actor_104400_text.c`, so trimming it by hand is required. Apply the same
+`shared` / `rodata` keys to every overlay that links the body.
+
+Example: `Actor04400_Fn03390` (scratch `base_1.c`, 100%; sibling
+`func_actor_342400_801664C4`). Compare `field_448` against the constant 1 so
+CSE keeps `field_44F` in `$a0`; `== work->field_44F` reloads the byte.
