@@ -75158,3 +75158,55 @@ range is the lever, and the pin is not needed.
 
 `base_1.c` (100%; preprocessed
 `bd6699732e1c6af3ecf8054469340f5da0df121956e8ddbf016682d7f3130573`).
+
+## A byte-identical sibling in another overlay is the whole answer, not just a nudge
+
+**Problem.** `func_actor_361100_80162FF4` seeded at 74.036% with `branch=4 regs=6
+reorder=7 insert=4 delete=6`. m2c had rendered a four-arm `switch` as a nested
+`if` chain, which is why the `branch`/`insert`/`delete` penalties were there at
+all; the rest looked like ordinary allocation and scheduling noise.
+
+**Symptom.** The ROM's dispatch is a comparison *tree* — `beq a2,1`, then
+`slti a2,2` / `beqz` for case 0, then `beq a2,2`, `beq a2,3`, with two separate
+`j` + `li s1,1` default exits — and it shares a tail between case 0 and case 1
+(`& ~4`) and another between case 2 and case 3 (a bare `sh`). Read from the asm
+alone that reads like hand-written `goto` control flow.
+
+**Fix.** Do not restructure it by hand. `tools/overlay_dup_index.py find` on the
+function is the first thing to run, and BRIEF.md's *shape* `1.00` candidate was
+the answer: `func_actor_503500_80132584` in `actor_503500_2.c` is byte-identical
+to this target for all 56 instructions, differing only in one store
+displacement (`sb a2,0x44(v0)` vs `sb a2,0x4A2(v0)`). Its C is a plain `switch`
+with the arms written out in full:
+
+```c
+    obj = task->extra;
+    ret = 0;
+    switch (mode) {
+        case 0: obj->field_C |= 0x80;  obj->field_C &= ~4; break;
+        case 1: obj->field_C &= ~0x80; Tmd_AllocBuffers(obj); obj->field_C &= ~4; break;
+        case 2: obj->field_C |= 0x80;  work->field_44 = mode; obj->field_C |= 4; break;
+        case 3: obj->field_C &= ~0x80; obj->field_C |= 4; break;
+        default: ret = 1; break;
+    }
+```
+
+Copying that shape, changing only the two field offsets, scored **100.000% with
+every penalty zero on the first build**. The shared tails are cross-jumping of
+the duplicated arms, not `goto`s: case 0's and case 1's `& ~4` merge into one
+block because they are the *same* statement, and case 2's and case 3's final
+store merge because only the `sh` is identical. Writing them once with a `goto`
+would move instructions, which is exactly what the base seed's
+`insert`/`delete` penalties were reporting.
+
+**Generalisation.** Read the shape-`1.00` sibling as *C* before planning any
+edit, not after a seed stalls. Its value scales with how much of the shape is
+shared, and here it covered the control flow, the dispatch tree, the cross-jump
+tail structure and the callee-saved usage in one step. `overlay_dup_index.py
+find` will also tell you whether the same body sits in another *overlay*: if it
+does, the body belongs in `src/<family>/lib/` matched once. Both copies here are
+inside `actor_361100` (units `_3` and `_4`), which is intra-overlay duplication
+and nothing to promote.
+
+`base_1.c` (100%; preprocessed
+`0e9dd0b0efba73a5f392a15f3ba0a0f1c230a9b2577889d4c35a802c16f6436f`).
