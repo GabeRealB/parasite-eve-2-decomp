@@ -19,7 +19,12 @@
 # Usage:
 #   tools/vacuum_overlay.sh [--overlay NAME] [--profile NAME] [--times N]
 #                           [--cli claude|grok|codex] [--keep] [--dry-run]
-#                           [--no-land]
+#                           [--no-land] [--max-difficulty 0..1]
+#
+# --max-difficulty bounds score_functions.py's P(does not match first try), so
+# the sweep takes an overlay's easy work and stops rather than grinding into its
+# hard tail. Pair it with a list sweep to skim many overlays cheaply; the
+# remainder is still there for a later unbounded pass.
 #
 # --profile takes the same named cli/model/effort sets as tools/vacuum.sh, from
 # the same table; --list-profiles prints it. The profile is applied here and
@@ -38,6 +43,9 @@ CLI="${VACUUM_CLI:-claude}"
 CLI_EXPLICIT=0
 PROFILE="${VACUUM_PROFILE:-}"
 TIMES=""
+# Upper bound on score_functions.py's difficulty, handed to the inner vacuum.
+# Empty means no bound.
+MAX_DIFFICULTY=""
 KEEP=false
 DRY_RUN=false
 NO_LAND=false
@@ -64,6 +72,7 @@ while [[ $# -gt 0 ]]; do
         --profiles) PROFILES_FILE="$2"; shift 2 ;;
         --list-profiles) list_profiles; exit 0 ;;
         --times)   TIMES="$2"; shift 2 ;;
+        --max-difficulty) MAX_DIFFICULTY="$2"; shift 2 ;;
         --keep)    KEEP=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         --no-land) NO_LAND=true; shift ;;
@@ -213,6 +222,7 @@ INNER_OVERLAY="$OVERLAY"
 [[ "$OVERLAY" == */lib/* ]] && INNER_OVERLAY="lib/${OVERLAY##*/}"
 inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$INNER_OVERLAY")
 [[ -n "$TIMES" ]] && inner+=(--times "$TIMES")
+[[ -n "$MAX_DIFFICULTY" ]] && inner+=(--max-difficulty "$MAX_DIFFICULTY")
 [[ "$DRY_RUN" == true ]] && inner+=(--dry-run)
 
 log "running: ${inner[*]}  (in $WT)"

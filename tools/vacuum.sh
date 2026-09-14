@@ -47,6 +47,10 @@ LOG_FILE=""
 OVERLAY_PY="tools/decomp_overlay.py"
 ORCH=0
 ONLY_DIFFICULT=0
+# Upper bound on score_functions.py's P(does not match first try). Empty means
+# no bound. An overlay sweep passes this down so a lane can skim the easy work
+# across many overlays instead of grinding each one into its hard tail.
+MAX_DIFFICULTY="${VACUUM_MAX_DIFFICULTY:-}"
 OVERLAY=""
 SKIP_FILE=""
 SESSION=""
@@ -80,6 +84,11 @@ Options:
                     worktree, then run a port agent on this tree under the
                     merge lock. Do not run a non-orchestrator vacuum on this
                     tree at the same time.
+  --max-difficulty X
+                    Only pick functions whose predicted difficulty is <= X
+                    (0..1, score_functions.py's P(does not match first try)).
+                    Skims the easy work instead of grinding an overlay's hard
+                    tail; VACUUM_MAX_DIFFICULTY sets the same bound.
   --difficult       Only pick functions listed in tools/difficult_functions.
   --functions FILE  Only pick functions named in FILE (one per line). Works on
                     a copy, so FILE itself is never modified.
@@ -206,6 +215,18 @@ while [[ $# -gt 0 ]]; do
     --difficult|--only-difficult)
       ONLY_DIFFICULT=1
       shift
+      ;;
+    --max-difficulty)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --max-difficulty requires a value in 0..1"
+        exit 1
+      fi
+      if ! awk -v v="$2" 'BEGIN { exit !(v+0 == v && v >= 0 && v <= 1) }' </dev/null; then
+        echo "Error: --max-difficulty must be a number in 0..1, got: $2"
+        exit 1
+      fi
+      MAX_DIFFICULTY="$2"
+      shift 2
       ;;
     --functions)
       # Sweep exactly the names in FILE. Mechanically this is the --difficult
@@ -383,6 +404,9 @@ pick_simplest_func() {
   fi
   if [[ -n "$SKIP_FILE" && -f "$SKIP_FILE" ]]; then
     extra+=(--exclude-file "$SKIP_FILE")
+  fi
+  if [[ -n "$MAX_DIFFICULTY" ]]; then
+    extra+=(--max-score "$MAX_DIFFICULTY")
   fi
   local solved
   solved=$(solved_elsewhere_file)

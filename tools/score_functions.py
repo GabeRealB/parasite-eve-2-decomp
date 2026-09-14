@@ -83,6 +83,29 @@ def decompilation_difficulty_score(instructions, branches, jumps, labels):
     return 1 / (1 + np.exp(-difficulty_logit(instructions, branches, jumps, labels)))
 
 
+def overlay_of(file_path: str) -> str:
+    """The overlay name a .s belongs to, as the vacuum drivers spell it.
+
+    Paths are asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<sym>.s, except
+    that a promoted body lives under a `lib` directory shared by the family and
+    is addressed family-qualified - `actors/lib/actor_101600_tail`, matching
+    what `vacuum_overlay.sh --overlay` expects. Anything unrecognised returns
+    "" rather than a guess, so a caller filtering by overlay drops it instead of
+    silently binding it to the wrong sweep.
+    """
+    parts = Path(file_path).parts
+    if "nonmatchings" not in parts:
+        return ""
+    i = parts.index("nonmatchings")
+    rest = parts[i + 1:]
+    if not rest:
+        return ""
+    if rest[0] == "lib":
+        family = parts[i - 1] if i >= 1 else ""
+        return f"{family}/lib/{rest[1]}" if len(rest) > 1 and family else ""
+    return rest[0]
+
+
 @dataclass
 class FunctionScore:
     """Stores complexity metrics for a function."""
@@ -516,6 +539,13 @@ Examples:
         help="Print remaining function names, easiest first (one per line).",
     )
     parser.add_argument(
+        "--scores",
+        action="store_true",
+        help="Print 'score<TAB>function<TAB>overlay' for every remaining "
+             "function, easiest first. Honours every filter above, so the "
+             "output is the population a sweep would actually draw from.",
+    )
+    parser.add_argument(
         "--exclude-file",
         action="append",
         default=[],
@@ -623,6 +653,14 @@ Examples:
     if args.ranked:
         for score in filtered_scores:
             print(score.name)
+        return
+
+    if args.scores:
+        # Machine-readable, so the monitor can bucket the same population the
+        # vacuum would pick from rather than re-deriving the filters and
+        # drifting from them.
+        for score in filtered_scores:
+            print(f"{score.total_score:.4f}\t{score.name}\t{overlay_of(score.file_path)}")
         return
 
     # In exhaustive mode, list all functions

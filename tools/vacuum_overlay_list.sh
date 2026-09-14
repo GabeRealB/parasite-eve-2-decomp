@@ -5,7 +5,7 @@
 #
 # Usage:
 #   tools/vacuum_overlay_list.sh --list FILE [--profile NAME] [--jobs N]
-#                                [--stagger SECONDS]
+#                                [--stagger SECONDS] [--max-difficulty 0..1]
 #                                [--cli claude|grok|codex] [--times N] [--keep]
 #
 # Why a list rather than the built-in order: vacuum_orch.rank_overlays sorts by
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
         --stagger) STAGGER="$2"; shift 2 ;;
         --jobs)    JOBS="$2"; shift 2 ;;
         --profile) PROFILE_ARG="$2"; PASSTHRU+=(--profile "$2"); shift 2 ;;
-        --cli|--times) PASSTHRU+=("$1" "$2"); shift 2 ;;
+        --cli|--times|--max-difficulty) PASSTHRU+=("$1" "$2"); shift 2 ;;
         --claude|--grok|--codex|--keep|--no-land) PASSTHRU+=("$1"); shift ;;
         -h|--help) usage ;;
         *) echo "unknown argument: $1" >&2; usage ;;
