@@ -15,12 +15,13 @@
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn01EEC);
 
-void      Actor00100_Fn001FC(GsCOORDINATE2*, s16);
-void      Actor00100_Fn01D74(Actor00100*);
-s32       Actor00100_Fn01EEC(Actor00100*, Actor00100Work*);
-void      Gp_UpdateCoord(GsCOORDINATE2*);
-void      func_800B4114(s8*, s32, s16, s32, s32);
-extern s8 Actor00100_D1B6D0;
+void                         Actor00100_Fn001FC(GsCOORDINATE2*, s16);
+void                         Actor00100_Fn01D74(Actor00100*);
+s32                          Actor00100_Fn01EEC(Actor00100*, Actor00100Work*);
+void                         Gp_UpdateCoord(GsCOORDINATE2*);
+void                         func_800B4114(s8*, s32, s16, s32, s32);
+extern s8                    Actor00100_D1B6D0;
+extern GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
 void Actor00100_Fn02788(Actor00100* arg0)
 {
@@ -1315,4 +1316,10 @@ void Actor00100_Fn0BCBC(s32 arg0, Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0BD28);
+void Actor00100_Fn0BD28(Task* arg0)
+{
+    GpEnemyTaskFuncTable4 sp;
+
+    sp = Actor00100_D001A0;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
