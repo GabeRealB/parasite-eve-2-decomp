@@ -5,6 +5,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 
 /// Status flags at `Actor104400Work` + 0xEC, read through two widths.
 ///
@@ -34,11 +35,15 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`.
 typedef struct Actor104400Work {
     /* 0x000 */ MATRIX    matrix_0; // model root coord, copied out on the kill path
-    /* 0x020 */ byte      pad_20[0x5A];
+    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
+    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
+    /* 0x060 */ byte      pad_60[0x1A];
     /* 0x07A */ s16       field_7A; // heading
     /* 0x07C */ byte      pad_7C[0x4];
-    /* 0x080 */ u16       field_80; // spawn position handed to Actor04400_Fn06520
-    /* 0x082 */ byte      pad_82[0x6];
+    /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
+    /* 0x082 */ u16       field_82; // root coord.t[1], after lifting it by 0x3C
+    /* 0x084 */ u16       field_84; // root coord.t[2]
+    /* 0x086 */ byte      pad_86[0x2];
     /* 0x088 */ s16       field_88; // x of the vector turned towards
     /* 0x08A */ s16       field_8A;
     /* 0x08C */ s16       field_8C; // z of the vector turned towards
@@ -49,12 +54,15 @@ typedef struct Actor104400Work {
     /* 0x0B4 */ GpAnimSlot       slot_B4;
     /* 0x0DC */ byte             pad_DC[0x10];
     /* 0x0EC */ Actor104400Flags flags_EC;
-    /* 0x0F0 */ byte             pad_F0[0x1BC];
+    /* 0x0F0 */ byte             pad_F0[0x12C];
+    /* 0x21C */ byte             field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
     /* 0x2AC */ GpObj            obj_2AC;
     /* 0x2CC */ GpObj            obj_2CC;
-    /* 0x2EC */ byte             pad_2EC[0xC0];
+    /* 0x2EC */ GpRec18          rec_2EC[8];
     /* 0x3AC */ GpObj            obj_3AC;
-    /* 0x3CC */ byte             pad_3CC[0x44];
+    /* 0x3CC */ byte             pad_3CC[0x30];
+    /* 0x3FC */ GpEffArg         eff_3FC;   // field_0 is the model's second coord part
+    /* 0x404 */ byte             pad_404[0xC];
     /* 0x410 */ s16              field_410; // random 0..0x7FF drawn from `Gp_LcgState`
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
@@ -89,7 +97,10 @@ typedef struct Actor104400Work {
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
-extern u8 Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
-extern u8 D_801153F4;          // absolute; nonzero skips the controller's state handler
+extern u8         Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
+extern u8         D_801153F4;          // absolute; nonzero skips the controller's state handler
+extern GpPairSrcE Actor04400_D0D318;   // the main enemy's `GpEnemy::field_50` record
+extern u8         Actor04400_D10778[]; // animation bank handed to `func_800B3F84`
+extern u8         Actor04400_D107CC[]; // stored into `Task::field_24` by Actor04400_Fn00B24
 
 #endif
