@@ -13157,6 +13157,22 @@ if (inRange) {
 Assigning `img = arg0` only after the if/else often puts `move a1` in the
 *true-path* `j` delay instead, and duplicates it on the else path.
 
+## `GsCOORDINATE2` is in `libgs.h`, and its absence reads as `parse error before '*'`
+
+A new overlay header that prototypes a function taking a root coordinate
+(`include/actors/actor_135600.h`, `s32 func_...(GsCOORDINATE2* coord, s16 arg1)`)
+fails to compile with the error pointing at the prototype:
+
+```
+actor_135600_2.i:622: parse error before `*'
+```
+
+GCC 2.8.1 is C89, so an unknown `GsCOORDINATE2` is an undeclared *identifier*,
+not an unknown type name, and the message never mentions a header. `MATRIX` /
+`SVECTOR` / `VECTOR` come from `<psyq/libgte.h>`, but `GsCOORDINATE2` (and
+`GsOT`) live in `<psyq/libgs.h>`. Include the trio, as `main/tmd.h` and the
+`actor_141000` / `actor_107600` overlay headers already do.
+
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
 `include/main/display.h` owns `GpuOtBuf` (the 0x14 OT descriptor). Including
