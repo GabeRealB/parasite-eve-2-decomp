@@ -388,7 +388,30 @@ void Actor04400_Fn06BF8(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06C70);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06CF0);
+void Actor04400_Fn06CF0(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* slow;
+    Actor104400Work* fast;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        if (work->field_44F == 1) {
+            fast            = (Actor104400Work*)arg0->idMap;
+            fast->field_426 = 0x32;
+            fast->field_41C = 0x10;
+            fast->field_418 = 7;
+            fast->field_414 = 1;
+        } else {
+            slow            = (Actor104400Work*)arg0->idMap;
+            slow->field_426 = 0x1E;
+            slow->field_41C = 0x10;
+            slow->field_418 = 1;
+            slow->field_414 = 1;
+        }
+        work->field_422 = work->field_422 + 1;
+    }
+}
 
 void Actor04400_Fn06D90(Task* arg0)
 {
