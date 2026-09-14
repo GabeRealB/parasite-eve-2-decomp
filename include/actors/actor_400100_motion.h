@@ -7,6 +7,8 @@
 #include <psyq/inline_c.h>
 
 extern u8 D_80072729;
+extern s8 D_80114C12;
+extern u8 D_80071075;
 
 static __inline__ void Actor00100_MoveForward(GsCOORDINATE2* coord, s16 amount)
 {
@@ -26,6 +28,34 @@ static __inline__ void Actor00100_MoveForward(GsCOORDINATE2* coord, s16 amount)
         coord->coord.t[1]          += vec->vy;
         coord->coord.t[2]          += vec->vz;
         coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+static __inline__ void Actor00100_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
         *(SVECTOR**)G_SCRATCH_HEAD += 1;
     }
 }

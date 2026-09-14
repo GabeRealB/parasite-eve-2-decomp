@@ -71190,3 +71190,28 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 base_perm_42813954b43746c8.i SHA256: `996e3396b578910ce04089708f8d4709b4b13667a8b52724f11a7d410d0d5e01`.
 
 base_6.i SHA256: `a3c99af57dc06762d946df742867c8df18b8097702d162a5c438de9ad9c1a360`.
+
+
+## Nested abs expression can change unrelated saved-register homes (Actor00100_Fn09CCC)
+
+In GCC 2.8.1, replacing a separate conditional negation and depth update with
+`SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan(coord)) / 2))`
+changed the sound temporaries from global ranges to block-local ranges.
+Actor00100_Fn09CCC base_6 -> base_7 improved 96.214% -> 99.673%;
+the planned sound homes s0/s2/s1 and abs result v0 were observed.
+
+The .lreg headers identify sound r100/r102/r107 as block-local in base_7;
+.greg now lists hard conflicts 16,17,18 for work r82, assigning work s3
+instead of s2. Consequently the unchanged GTE pointer takes s2 instead of s3.
+This is a concrete example of one block's local allocations changing an
+apparently unrelated whole-function register home. It is not a general claim
+that nested expressions always improve allocation. Separate conditional abs
+and builtin abs also produce different RTL control-flow shapes.
+
+Input SHA256: 644c97e8ed67d772123a78b86998f4718f4be4df0ca2987e73cd3d84643dfabe.
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Evidence: tools/permuter_findings/Actor00100_Fn09CCC/ immutable session snapshots,
+PERMUTER_ANALYSIS.md and base_6/base_7 dumps retained in scratch/evidence.
+The permuter's higher-scoring unconditional negation was rejected; this
+controlled expression change preserves the absolute value and was followed
+by an exact match and integration verification.

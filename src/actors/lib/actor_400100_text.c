@@ -890,7 +890,101 @@ void Actor00100_Fn09310(Actor00100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn09724);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn09CCC);
+void Actor00100_Fn09CCC(Actor00100* arg0)
+{
+    Actor00100Ctx*  ctx;
+    Actor00100Work* work;
+    GsCOORDINATE2*  coord;
+    TmdObject*      obj;
+    TmdObject*      hiddenObj;
+    TmdObject*      finishedObj;
+    s32             timer;
+    s32             y;
+    s32             sound;
+    s32             sound2;
+    s32             depth;
+    s32             pan2;
+    s32             pan;
+
+    work                   = arg0->field_1C;
+    *(s32*)G_SCRATCH_HEAD -= 0x14;
+    ctx                    = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj           = arg0->field_2C;
+        ctx->field_14 = 1;
+        obj->field_C  = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 3;
+        work->field_82A        = 0;
+        work->field_6          = 0;
+        work->field_840        = 0;
+        work->field_844        = 0;
+        work->field_83E        = 0;
+        work->field_842        = 0;
+        work->objs[2].flags   &= 0xBFFF;
+        work->field_832        = work->field_834;
+    }
+    work->field_6 += 1;
+    Actor00100_Fn02788(arg0);
+    switch ((s16)work->field_82E) {
+        case 3:
+            Actor00100_MoveForwardNonzero(arg0->field_2C->field_8, ((s16)work->field_834 * 1000) / 192);
+            arg0->field_2C->field_8->flg = 0;
+            if ((s16)work->field_6 >= 0xD) {
+                work->field_82E = 0xE;
+                work->field_828 = 1;
+                work->field_6   = 0;
+            }
+            break;
+        case 14:
+            Actor00100_MoveForwardNonzero(arg0->field_2C->field_8, ((s16)work->field_834 * 1300) / 192);
+            timer = (s16)work->field_6;
+            if (timer == 0xF) {
+                if ((Gp_GetViewIndex() & 0xFF) == 8) {
+                    sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x54010005;
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+                    depth = Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8);
+                    SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8)) / 2));
+                } else {
+                    sound2 = (((u16)ctx->field_8 >> 0xC) << 8) | 0x54010005;
+                    pan2   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+                    SndEvt_EnqueueType6(sound2, (s8)pan2, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+                }
+                timer = (s16)work->field_6;
+            }
+            if (timer >= 4) {
+                coord = arg0->field_2C->field_8;
+                y     = coord->coord.t[1];
+                if (y < 0x2EE0) {
+                    coord->coord.t[1] = y + ((timer - 3) * 0x21);
+                }
+            }
+            if ((s16)work->field_6 == 0x64) {
+                Gp_UnlinkObj(&work->objs[0]);
+                Gp_UnlinkObj(&work->objs[1]);
+                Gp_UnlinkObj(&work->objs[3]);
+                Gp_UnlinkObj(&work->objs[2]);
+                ctx->field_54       = 0;
+                ctx->field_40       = 0;
+                hiddenObj           = arg0->field_2C;
+                hiddenObj->field_C |= 0x80;
+            }
+            if ((s16)work->field_6 == 0x65) {
+                finishedObj           = arg0->field_2C;
+                finishedObj->field_C |= 4;
+            }
+            if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (D_80114C12 != 1) && D_80071075 == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, (s32)((u16)ctx->field_8 >> 0xC), 0);
+                work->field_C2A = 1;
+                arg0->field_30++;
+            }
+
+            break;
+    }
+    *(s32*)G_SCRATCH_HEAD += 0x14;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0A288);
 
