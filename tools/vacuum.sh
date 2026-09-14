@@ -414,7 +414,10 @@ pick_simplest_func() {
     echo "Skipping $(wc -l <"$solved") function(s) already matched in another overlay." >&2
     extra+=(--exclude-file "$solved")
   fi
-  python3 tools/score_functions.py "${extra[@]}" "$@"
+  # --name-only: this function's stdout *is* the function name. Without it a
+  # score filter switches score_functions.py to its verbose banner and the
+  # caller bootstraps a scratch env for a multi-line blob.
+  python3 tools/score_functions.py --name-only "${extra[@]}" "$@"
   rm -f "$solved"
 }
 

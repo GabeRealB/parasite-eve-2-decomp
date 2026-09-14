@@ -539,6 +539,12 @@ Examples:
         help="Print remaining function names, easiest first (one per line).",
     )
     parser.add_argument(
+        "--name-only",
+        action="store_true",
+        help="Print only the simplest function's name, whatever other filters "
+             "are set. Callers that consume the name must pass this.",
+    )
+    parser.add_argument(
         "--scores",
         action="store_true",
         help="Print 'score<TAB>function<TAB>overlay' for every remaining "
@@ -672,8 +678,14 @@ Examples:
 
     simplest = filtered_scores[0]
 
-    # Simple mode: just print the function name if no special flags
-    if not args.exhaustive and args.min_score is None and args.max_score is None:
+    # Simple mode: just the name. A score filter used to flip this to the
+    # verbose form, which is fine for a human and broke every caller that reads
+    # stdout as the function name - tools/vacuum.sh fed the whole banner to the
+    # bootstrapper and every pick of a --max-difficulty sweep failed with
+    # "Could not find assembly file". --name-only makes that contract explicit
+    # instead of implicit in which flags happen to be set.
+    if args.name_only or (not args.exhaustive
+                          and args.min_score is None and args.max_score is None):
         print(simplest.name)
     else:
         print(f"SIMPLEST FUNCTION: {simplest.name}")
