@@ -7,6 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "actors/actors_shared_8013411c.h"
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Payload of message 0x7D4: the same world translation + Euler rotation record
@@ -15,16 +16,33 @@
 typedef ActorShared8013411cPlacement Actor310100Placement;
 
 /// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
-/// which is not a `TaskIdMap` here. Only the prefix this body reaches is
-/// described; the block continues past it (the state handlers use 0x4F0…).
+/// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
+/// with `Mem_Malloc(0x50C)` and hands `&slots` to the model helpers as the slot
+/// array, so the prefix is the shared actor anim layout: a `GpAnimCtx` and the
+/// nineteen slots the frame handler ticks.
 typedef struct Actor310100Work {
-    /* 0x000 */ byte  pad_0[0x4E4];
-    /* 0x4E4 */ Task* field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ byte  pad_4E8[0x8];
-    /* 0x4F0 */ u16   field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
-    /* 0x4F2 */ byte  pad_4F2[0x14];
-    /* 0x506 */ u16   field_506; // passed down as the model task's spawnArg1
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[19];
+    /* 0x30C */ byte       pad_30C[0x130];
+    /// Light and colour matrices, handed to the model `TmdObject`'s `field_1C`
+    /// and `field_20`.
+    /* 0x43C */ MATRIX     field_43C;
+    /* 0x45C */ MATRIX     field_45C;
+    /* 0x47C */ byte       pad_47C[0x68];
+    /* 0x4E4 */ Task*      field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
+    /* 0x4E8 */ Task*      field_4E8; // Game_GetPtrSlot(3)
+    /* 0x4EC */ GpAnimRec* field_4EC; // record the frame handler last saw on slot 1
+    /* 0x4F0 */ u16        field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
+    /* 0x4F2 */ byte       pad_4F2[0x14];
+    /* 0x506 */ u16        field_506; // passed down as the model task's spawnArg1
+    /* 0x508 */ u16        field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
+    /* 0x50A */ u16        field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
 } Actor310100Work;
+STATIC_ASSERT_SIZEOF(Actor310100Work, 0x50C);
+
+/// Step sounds the model runs through while it is on the 0x6C display id:
+/// `field_50A` indexes the first three.
+extern s32 D_actor_310100_801798A8[];
 
 /// Scratch the message-0x6C state handler stages its vectors in. The state is
 /// dispatched through by value, so the spawn tick's `vec` and the steady tick's
@@ -33,6 +51,12 @@ typedef union Actor310100Vec {
     /* 0x0 */ VECTOR  vec; // model part-1 translation, handed to func_800D7A9C
     /* 0x0 */ SVECTOR rot; // floor-quad yaw, handed to Gp_DrawFloorQuad
 } Actor310100Vec;
+
+/// Model frame handler: queues the step sound for the animation record slot 1
+/// has just entered — from `D_actor_310100_801798A8` while the model is on the
+/// 0x6C display id, from the fixed 0x51050006 / 0x51050007 pair otherwise — then
+/// ticks slots 1..0x12 and returns slot 1's `field_10` bit 0.
+s32 func_actor_310100_80161E24(Task* task);
 
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:
 /// the spawn tick seeds the tracker from the model's part-1 coordinate frame and

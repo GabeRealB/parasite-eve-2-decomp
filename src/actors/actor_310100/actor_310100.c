@@ -4,13 +4,52 @@
 #include "actors/actor_310100.h"
 #include "main/display.h"
 #include "main/gfx.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern TaskDesc D_actor_310100_801798E4;
 extern TaskDesc D_actor_310100_801798F0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161E24);
+s32 func_actor_310100_80161E24(Task* task)
+{
+    Actor310100Work* work;
+    GpAnimRec*       rec;
+    GpObj38*         obj;
+    s32              i;
+    u16              step;
+
+    work = (Actor310100Work*)task->idMap;
+    obj  = (GpObj38*)((TmdObject*)task->extra)->field_8;
+    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+    if (rec != work->field_4EC) {
+        if (rec != NULL) {
+            if (work->field_508 == 0x6C) {
+                if (rec->field_3 & 0x20) {
+                    SndEvt_EnqueueType6(D_actor_310100_801798A8[work->field_50A], Gp_GetObjPan(obj), 0);
+                    step = work->field_50A;
+                    if (step < 2U) {
+                        work->field_50A = (u16)(step + 1);
+                    }
+                }
+            } else {
+                if (rec->field_3 & 0x20) {
+                    SndEvt_EnqueueType6(0x51050006, Gp_GetObjPan(obj), 0);
+                }
+                if (rec->field_3 & 0x10) {
+                    SndEvt_EnqueueType6(0x51050007, Gp_GetObjPan(obj), 0);
+                }
+            }
+        }
+        work->field_4EC = rec;
+    }
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i & 0xFFFF);
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 0x13U);
+    return work->slots[1].field_10 & 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161F80);
 
