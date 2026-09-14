@@ -78221,3 +78221,57 @@ Check two things before hand-landing one: the carrier's lane is free
 (`vacuum_orch.py status` - the copy belongs to another overlay, and the brief's
 `promote` path would have edited that overlay's config anyway), and the copy is
 not in `tools/difficult_functions`.
+
+## A rodata dispatch table names a handler's arguments when there are no callers
+
+`func_actor_323000_80164C20` arrives with BRIEF.md reporting no callers, no
+callees, and a single 0.80 shape match, so nothing in `src/` fixes its
+signature. Its two arguments are used as
+
+```
+lw   v0, 0x1C(a1)     # arg1->field_1C
+lh   v0, 0x4(v0)      #   ->field_4
+beqz v0, .L
+lw   v1, 0x2C(a1)     # arg1->field_2C
+sb   v0, 0x14(a0)     # arg0->field_14 = 1
+lhu  v0, 0xC(v1)
+ori  v0, v0, 0x80
+sh   v0, 0xC(v1)
+```
+
+and those offsets are ambiguous on purpose: `0x1C` / `0x2C` are `Task::idMap` /
+`Task::extra` *and* the `field_1C` / `field_2C` work/model pair the `Actor00100`
+family hangs off its actor object. The shape match is the second reading
+(`Actor00100_Fn0B4D8`, `src/actors/lib/actor_400100_tail.c`, which is this body
+plus a `flags &= 0xBFFF`), and since both readings load the same two operands
+the matcher cannot separate them - it scores operand shape, not type.
+
+What decides it is the overlay's own `.rodata`. Grepping the overlay's `asm/`
+tree for the function's address finds
+
+```
+/* 4 80161E24 204C1680 */ .word ActorsShared80164c20
+/* 8 80161E28 9C401680 */ .word func_actor_323000_8016409C
+/* C 80161E2C 584C1680 */ .word func_actor_323000_80164C58
+/* 10 80161E30 0C421680 */ .word func_actor_323000_8016420C
+```
+
+a state table whose entry 0 is the function and whose entry 2 is the *other*
+function of the same translation unit. This family dispatches such a table as
+`fns[task->state](task->spawnArg2, task)` - `ActorsShared80131e24` is the
+decompiled example - so the pair is `(GpEnemy*, Task*)` and the two loads become
+`(Work*)task->idMap` and `(TmdObject*)task->extra`, the reading
+`func_actor_206100_8014FAE4` already uses.
+
+The byte store then settles the first argument on its own: `Task::callback` is
+at `0x14`, so `sb …, 0x14($a0)` rules out a `Task*`, and
+`enemy->node.field_4 = 1` (`GpEnemy + 0x14`; an idiom in `actor_206100`,
+`actor_150400` and `actor_460200`) fits with no invented type.
+
+So when a body's arguments have no caller to fix them, look for its address in
+the overlay's `.rodata` *before* matching it against a shape-similar sibling:
+the table gives the parameter list, and the sibling gives only the operand
+pattern that both readings share.
+
+`base_1.c` (100%; preprocessed
+`323e00e233bdf8f6d8bdad3fd8c9c2141bbd56fda8277535f4382bd0fec8065e`).
