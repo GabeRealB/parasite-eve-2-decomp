@@ -65,6 +65,15 @@ s32 func_actor_310100_80161E24(Task* task);
 void func_actor_310100_801631B0(Task* task);
 
 /// Second state handler of the display model spawned from
+/// `D_actor_310100_801798FC` (descriptor arg 0x80168C00): the spawn tick hands
+/// the model to `func_actor_310100_80162414` with display id 0x6C and steps to
+/// state 1, and every later tick draws the floor quad at the model's part-1
+/// frame, runs `func_actor_310100_80161F80` while the display state is 1 and
+/// hands that frame's translation to `func_800D7A9C`. Display state 2, the
+/// freeze parked by `func_actor_310100_80162CDC`, returns before either.
+void func_actor_310100_80162F88(Task* task);
+
+/// Second state handler of the display model spawned from
 /// `D_actor_310100_80179920` (descriptor arg 0x801730B0): the spawn tick hands
 /// the model to `func_actor_310100_80162414` with display id 0x6D and steps to
 /// state 1, and every later tick draws the floor quad at the model's part-1

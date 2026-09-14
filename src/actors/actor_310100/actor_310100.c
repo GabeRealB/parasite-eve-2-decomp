@@ -130,13 +130,55 @@ void func_actor_310100_80162F34(Task* task)
     task->state = 3;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162F88);
-
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_310100_80161F80(Task* task);
 void func_actor_310100_80162414(Task* task, s32 arg1);
 void func_actor_310100_801625E4(Task* task, s32 arg1);
+
+/// Second state handler of the display model spawned from
+/// `D_actor_310100_801798FC` (descriptor arg 0x80168C00): the spawn tick hands
+/// the model to `func_actor_310100_80162414` with display id 0x6C and steps to
+/// state 1, and every later tick draws the floor quad at the model's part-1
+/// frame, runs `func_actor_310100_80161F80` while the display state is 1 and
+/// hands that frame's translation to `func_800D7A9C`. Display state 2, the
+/// freeze parked by `func_actor_310100_80162CDC`, returns before either.
+void func_actor_310100_80162F88(Task* task)
+{
+    Actor310100Work* work;
+    SVECTOR          rot;
+    VECTOR           vec;
+    TmdObject*       extra;
+
+    work = (Actor310100Work*)task->idMap;
+    switch (task->state) {
+        case 0:
+            func_actor_310100_80162414(task, 0x6C);
+            task->state++;
+            /* fallthrough */
+        case 1:
+            rot.vx = 0;
+            rot.vy = 0x380;
+            rot.vz = 0;
+            Gp_DrawFloorQuad(&((TmdObject*)task->extra)->field_8[1], 0x300, &rot);
+            switch (work->field_4F0) {
+                case 0:
+                    break;
+                case 1:
+                    func_actor_310100_80161F80(task);
+                    break;
+                case 2:
+                default:
+                    return;
+            }
+            extra  = (TmdObject*)task->extra;
+            vec.vx = extra->field_8[1].workm.t[0];
+            vec.vy = ((TmdObject*)task->extra)->field_8[1].workm.t[1];
+            vec.vz = ((TmdObject*)task->extra)->field_8[1].workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}
 
 /// Second state handler of the display model spawned from
 /// `D_actor_310100_80179920` (descriptor arg 0x801730B0): the spawn tick hands
