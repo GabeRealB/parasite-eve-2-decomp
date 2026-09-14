@@ -75308,3 +75308,53 @@ from block order, not from the source.
 
 `base_1.c` (100%; preprocessed
 `2080c3c04da416567d8cdd2507bce9049fc1581bda5717ced214c8d89e9a10f6`).
+
+## An m2c seed can need two of its temps *merged*: the argument-register preference is on the other one
+
+**Symptom.** `func_actor_361100_801627D4` sat at 94.817% with `regs=5` and
+nothing else wrong: the `Mem_Calloc` result and every use of it were in `$v1`
+where the target had `$a2` — `move a2,v0` / `beqz a2` / `sw a2,0x1c(s0)` /
+`sh v0,0(a2)` / `sh v0,2(a2)`, five operands, one value.
+
+**Cause.** m2c mints a fresh temp per assignment, so the seed held `temp_v0` for
+the allocation and `temp_a2` for the `0x1C` slot reloaded after the switch
+label. That is two allocnos. `.greg` names which one the target wants:
+
+```
+;; 6 regs to allocate: 87 86 83 80 81 82
+;; 86 preferences: 6
+;; 87 conflicts: 80 81 82 87 2 29
+;; Register dispositions: … 86 in 6  87 in 3
+```
+
+`86` (the reload) carries `preferences: 6` from being `func_800B17D4`'s third
+argument, and takes `$a2`. `87` (the allocation) has no preference line at all,
+is allocated *first* on priority, and simply takes the first free register,
+`$v1`. The original had one variable for both, so one allocno carried the
+preference across both live ranges.
+
+**Fix.** Give both assignments the same variable:
+
+```c
+aim = Mem_Calloc(sizeof(Actor361100HeadAim), false);   /* was temp_v0 */
+if (aim != NULL) {
+    task->idMap = (TaskIdMap*)aim;
+    …
+case 1:
+    aim = (Actor361100HeadAim*)task->idMap;            /* was temp_a2 */
+```
+
+The reload is still emitted at the switch label on both paths — merging the
+variables does not CSE it away, because the label is also reached straight from
+the switch.
+
+**Generalisation.** This is the same mechanism as the `func_800A5574` entry
+above, from the other side: there a hand-written body had to start *reusing* a
+pointer, here m2c's split has to be undone. Either way the tell is a `regs`
+penalty where one *value* is wrong in every operand, and the decision procedure
+is to grep `.greg` for `preferences:` — the allocno that has the line is the one
+the target's register belongs to. Splitting m2c temps apart is the usual repair;
+when the wrong register is an argument register, merging is.
+
+`base_3.c` (100%; preprocessed
+`b64957a7cf24af2473820868d18d520b76d36ad69e214f4598867c14370ec144`).

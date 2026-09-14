@@ -113,6 +113,36 @@ typedef struct Actor361100Coord {
 } Actor361100Coord;
 STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
 
+/// Head-aim record `func_actor_361100_801627D4` allocates and parks in
+/// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
+/// pitch clamps that function widens against the head's current pose, and the
+/// `rate` fraction of the remaining angle this overlay ramps one 0x100 step per
+/// frame.
+///
+/// The field roles are `GpHeadAim`'s, but the two readings of the record are
+/// not the same size. This overlay allocates 12 bytes where `GpHeadAim` is 10,
+/// and the two other `func_800B17D4` callers that build the record the same way
+/// -- `func_mine_mesa_8017E15C` and `func_actor_450200_80131FA8` -- also
+/// allocate 12, so 12 is the record's size and gameplay's 10 is the most
+/// `func_800B17D4` alone can see of it.
+///
+/// `rate` is `u16` here because this body reads it as an unsigned halfword and
+/// reinterprets the stored value as `s16` for the clamp, which is what the
+/// `lhu` / `sll` / `sra` sequence in the ROM says. That is a statement about the
+/// access, not about the field: declaring it `s16` here compiles to the same
+/// bytes, so the ROM cannot distinguish the two at this site, and the field
+/// never leaves [0, 0x1000], where both readings agree. See the
+/// `DECOMPILATION_LEARNINGS.md` entries on `lhu` and halfword signedness.
+typedef struct Actor361100HeadAim {
+    /* 0x0 */ s16  yawLimit;
+    /* 0x2 */ s16  pitchLimit;
+    /* 0x4 */ u16  rate;
+    /* 0x6 */ s16  lastPitch;
+    /* 0x8 */ s8   inited;
+    /* 0x9 */ byte pad_9[0x3];
+} Actor361100HeadAim;
+STATIC_ASSERT_SIZEOF(Actor361100HeadAim, 0xC);
+
 /// Places the actor at `placement`: drops the opcode's translation straight
 /// into the root part's local matrix, stores its Euler angles in the
 /// coordinate's own `rot` slot and rebuilds the rotation from them with
@@ -145,6 +175,18 @@ s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
 /// or resets them through `Gp_AnimResetSlot`, and finally ticks the whole
 /// array with `Gp_AnimTickIndex`.
 s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* preset);
+
+/// Head-aim state of the actor, run only while `D_801156F9` is clear: a looker
+/// task that is missing, or a target task that is, parks the state machine on
+/// -1. State 0 allocates the `Actor361100HeadAim` record into `Task::idMap` and
+/// seeds its clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up
+/// toward 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it
+/// is not, then hands the record to `func_800B17D4` between the slot-3 task
+/// (`Game_GetPtrSlot(3)`, the skeleton whose head turns) and the
+/// `Gp_LookupSlot4(2)` task it turns toward. Every other state kills the task
+/// and clears `D_actor_361100_80171BE0`. State 0 reaching a NULL allocation
+/// falls out of its own `if` into that kill, rather than into state 1.
+void func_actor_361100_801627D4(Task* task);
 
 /// Spawn callback: allocates the work block into `Task::idMap`, seeds the
 /// three -1 bytes, clears the first vector accumulator and arms the spawn
