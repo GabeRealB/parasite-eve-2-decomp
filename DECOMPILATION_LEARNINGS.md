@@ -75219,3 +75219,39 @@ and nothing to promote.
 
 `base_1.c` (100%; preprocessed
 `0e9dd0b0efba73a5f392a15f3ba0a0f1c230a9b2577889d4c35a802c16f6436f`).
+
+## A word stored into an `s8` field is loaded with `lbu`, not `lw`
+
+**Symptom.** `func_actor_361100_801634D0` stores the message payload's
+animation id and bank index into the work block's two `s8` fields, and the
+target loads them as *bytes*: `lbu $v1, 0x0($s2)` feeding `sb $v1, 0x43E($s1)`,
+and `lbu $v0, 0x4($s2)` feeding `sb $v0, 0x43D($s1)`. The same two words are
+read as words elsewhere in the same body — `lw $v0, 0x0($s2)` for the
+`if (msg->field_0 != work->field_43E)` compare, `lw $v0, 0x8($s2)` for the
+flag — so the `lbu` reads as evidence that the message fields are `u8` and the
+word loads as evidence that they are not.
+
+**Cause.** GCC 2.8.1 narrows the *store*, not the load it was fed from:
+`work->field_43E = msg->field_0;` with a 4-byte source and an `s8` destination
+is a fresh byte load of the source followed by `sb`, even when the word value
+is already live in a register from the compare immediately above. The
+destination's signedness does not change it — both fields are `s8` and both
+stores come out `lbu`/`sb`. Reading the field back for value (`lb` when it is
+an array index or a compare operand) is a separate access and sign-extends
+normally.
+
+**Fix.** Leave the source field 4 bytes wide. Retyping `field_0` / `field_4` to
+`u8` to "explain" the `lbu` trades one mismatch for another: the compare loses
+its `lw`, and the byte loads that were already correct stay correct. The
+message type here is the same record as `Actor503500AnimPreset` — the
+`calls 1.00` sibling `func_actor_503500_8014652C` reads its payload the same
+way, `s32` fields and all, and its C could be copied across with the two
+guards that differ removed.
+
+**Generalisation.** A narrow load in the target tells you the width of the
+*access*, and an assignment to a narrow field is such an access; it says
+nothing about the width of the expression assigned from. Check the same
+address's other accesses in the function before retyping anything.
+
+`base_1.c` (100%; preprocessed
+`9e5ee47ad831fa9cfa8c8f60c0d1fad5557faa48b8f4181999a6453cc014023a`).

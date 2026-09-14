@@ -13,6 +13,10 @@ extern Task* D_actor_361100_80171BE0;
 
 extern TaskDesc D_actor_361100_80165C58;
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 extern GpMsgEntry D_actor_361100_8016BAF0[];
 
 void func_actor_361100_80162B0C(void)
@@ -178,4 +182,35 @@ void func_actor_361100_801634B4(Task* arg0)
     ext->field_20 = &work->color;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_801634D0);
+extern void* D_actor_361100_80171BA8[];
+
+s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
+{
+    Actor361100Work* work;
+    TmdObject*       ext;
+    s32              i;
+
+    work = (Actor361100Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84(&work->anim, D_actor_361100_80171BA8[work->field_43E], (GpAnimObj*)ext, work->field_30C,
+                      work->slots);
+    }
+    work->field_43D = msg->field_4;
+    if (msg->field_8 != 0 && work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+        }
+    }
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_43C = 1;
+    return 0;
+}

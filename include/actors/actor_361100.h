@@ -8,6 +8,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/1BC.h"
+
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`Mem_Calloc(0x4A4)`)
 /// and parked in that task's `Task::idMap` slot -- that slot is not a
@@ -30,24 +32,34 @@
 /// `field_4A0` is the halfword the 0x7DB handler `func_actor_361100_80163750`
 /// arms alongside the first group, next door to the byte
 /// `func_actor_361100_80163670` writes.
+///
+/// The block is fronted by the animation context `func_actor_361100_801634D0`
+/// drives, laid out exactly as `Actor503500Effect4CC` is: the `GpAnimCtx` the
+/// block itself is handed to as (`func_800B3F84` takes the block address),
+/// the 0x13 0x28-byte slots immediately above it, and the 0x130-byte table
+/// `func_800B3F84` also takes at 0x30C. `field_43C` is the once-only latch
+/// the slots are started through.
 typedef struct Actor361100Work {
-    /* 0x000 */ byte   pad_0[0x43D];
-    /* 0x43D */ s8     field_43D;
-    /* 0x43E */ s8     field_43E;
-    /* 0x43F */ byte   pad_43F[0x1];
-    /* 0x440 */ MATRIX light;
-    /* 0x460 */ MATRIX color;
-    /* 0x480 */ s32    field_480;
-    /* 0x484 */ s32    field_484;
-    /* 0x488 */ s32    field_488;
-    /* 0x48C */ byte   pad_48C[0x4];
-    /* 0x490 */ s32    field_490;
-    /* 0x494 */ s32    field_494;
-    /* 0x498 */ s32    field_498;
-    /* 0x49C */ byte   pad_49C[0x4];
-    /* 0x4A0 */ s16    field_4A0;
-    /* 0x4A2 */ s8     field_4A2;
-    /* 0x4A3 */ byte   pad_4A3[0x1];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ s8         field_43C;
+    /* 0x43D */ s8         field_43D;
+    /* 0x43E */ s8         field_43E;
+    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x440 */ MATRIX     light;
+    /* 0x460 */ MATRIX     color;
+    /* 0x480 */ s32        field_480;
+    /* 0x484 */ s32        field_484;
+    /* 0x488 */ s32        field_488;
+    /* 0x48C */ byte       pad_48C[0x4];
+    /* 0x490 */ s32        field_490;
+    /* 0x494 */ s32        field_494;
+    /* 0x498 */ s32        field_498;
+    /* 0x49C */ byte       pad_49C[0x4];
+    /* 0x4A0 */ s16        field_4A0;
+    /* 0x4A2 */ s8         field_4A2;
+    /* 0x4A3 */ byte       pad_4A3[0x1];
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
@@ -71,6 +83,23 @@ typedef struct Actor361100Msg {
     /* 0x2 */ u16 field_2;
 } Actor361100Msg;
 STATIC_ASSERT_SIZEOF(Actor361100Msg, 0x4);
+
+/// Payload the sender of message 0x7D3 passes as `Gp_DispatchMsg`'s `arg2`,
+/// whose handler is `func_actor_361100_801634D0`; the same record
+/// `Actor503500AnimPreset` is read as, minus its trailing unread `field_10`.
+/// `field_0` indexes the animation bank table (`D_actor_361100_80171BA8`
+/// here, `D_actor_503500_80176520` there) and is latched into
+/// `Actor361100Work::field_43E`, re-seeding the slot array whenever it
+/// changes; `field_4` is the animation id stored into `field_43D`; `field_8`
+/// picks between `func_800B4114` -- which also takes `field_C` -- and
+/// `Gp_AnimResetSlot`.
+typedef struct Actor361100AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+} Actor361100AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor361100AnimPreset, 0x10);
 
 /// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs's
 /// `param`, with `super` at 0x48) holds the Euler angles the code writes and
@@ -98,6 +127,16 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* place
 /// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
 /// exits the task through its own `Task::exitCallback`.
 s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
+
+/// Message 0x7D3 handler, listed in `D_actor_361100_80171BB8` next to the
+/// spawn states. Re-seeds the whole animation slot array through
+/// `func_800B3F84` whenever the preset's bank index changes, stores the
+/// preset's animation id, then either re-seeds every slot through
+/// `func_800B4114` (preset `field_8` set and the slots already started once)
+/// or resets them through `Gp_AnimResetSlot`, and finally ticks the whole
+/// array with `Gp_AnimTickIndex`.
+s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* preset);
+
 /// Spawn callback: allocates the work block into `Task::idMap`, seeds the
 /// three -1 bytes, clears the first vector accumulator and arms the spawn
 /// argument `GpEnemy` with the coordinate's root matrix, then enters the
