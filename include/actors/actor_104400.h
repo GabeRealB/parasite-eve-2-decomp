@@ -83,7 +83,9 @@ typedef struct Actor104400Work {
     /* 0x44A */ s16              field_44A;
     /* 0x44C */ byte             pad_44C[0x3];
     /* 0x44F */ u8               field_44F;
-    /* 0x450 */ byte             pad_450[0x4];
+    /* 0x450 */ byte             pad_450[0x1];
+    /* 0x451 */ u8               field_451; // 1 skips Actor04400_Fn00220 part-pair colour
+    /* 0x452 */ byte             pad_452[0x2];
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 

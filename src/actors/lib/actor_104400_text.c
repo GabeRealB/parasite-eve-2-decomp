@@ -36,10 +36,11 @@ extern u32 Gp_LcgState;
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
  * cannot treat the store as a non-aliasing scalar and sink it past the
  * `TmdObject` loads. */
-extern void* D_800678F0[1];
-extern u8    Actor04400_D098FC[];
-extern u8    Actor04400_D09FA0[];
-extern u8    Actor04400_D0A510[];
+extern void*          D_800678F0[1];
+extern TaskFuncTable9 Actor04400_D000EC;
+extern u8             Actor04400_D098FC[];
+extern u8             Actor04400_D09FA0[];
+extern u8             Actor04400_D0A510[];
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
 
@@ -450,7 +451,35 @@ void Actor04400_Fn02B8C(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn02D18);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn02E8C);
+/// Same body as `func_actor_342400_80165FC0`. Per-frame callback of the main
+/// enemy. `D_801153F4` 2 hides the model, 0 runs the current state handler
+/// (then colours it), 1 only colours it. Unless `field_451` is set, it then
+/// runs `Actor04400_Fn00220` for three part pairs.
+void Actor04400_Fn02E8C(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFuncTable9   sp    = Actor04400_D000EC;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            sp.funcs[(s16)work->field_420](arg0);
+            coord->flg = 0;
+        case 1:
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            if (work->field_451 == 0) {
+                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0304C);
 
