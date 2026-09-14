@@ -917,7 +917,21 @@ void Actor04400_Fn08A9C(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08AA4);
+/// Same body as `Actor04400_Fn08870`.
+void Actor04400_Fn08AA4(Task* arg0)
+{
+    Actor104400Work* work;
+    GpEnemy*         enemy;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor104400Work*)arg0->idMap;
+    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+        Gp_StateF0.field_1F = 0;
+    }
+    Gp_UnlinkNode(&enemy->node);
+    work->field_420 = work->field_420 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08B3C);
 
