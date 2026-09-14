@@ -524,7 +524,123 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn08A14);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn08E7C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn09310);
+void Actor00100_Fn09310(Actor00100* arg0)
+{
+    SVECTOR         vector;
+    GpEffWork*      effect;
+    GpEffWork*      effect2;
+    GpEffWork*      effect3;
+    GpEffWork*      effect4;
+    Task*           task;
+    Task*           task2;
+    Task*           task3;
+    Task*           task4;
+    TmdObject*      obj;
+    u16             next;
+    TmdObject*      effectObj;
+    TmdObject*      effectObj2;
+    TmdObject*      effectObj3;
+    TmdObject*      effectObj4;
+    Actor00100Work* work;
+    Actor00100Ctx*  ctx;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    obj  = arg0->field_2C;
+    if (work->field_4 != 0) {
+        work->field_BE4        = 0;
+        obj->field_C           = 0x80;
+        work->objs[0].field_1C = 0x19C;
+        work->objs[2].flags    = (u16)(work->objs[2].flags & 0xBFFF);
+        ctx->field_14          = 1;
+        work->field_844        = 0;
+        work->field_840        = 0;
+        work->field_83E        = 0;
+        work->field_6          = 0U;
+        vector.vx              = 0x64;
+        vector.vz              = 0;
+        vector.vy              = 0;
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    if ((s16)next == 2) {
+        obj->field_C |= 4;
+        Tmd_FreeBuffers(obj);
+        D_80114B78[0] = &Actor00100_D10D60;
+        vector.vz     = 0x64;
+        vector.vy     = 0;
+        vector.vx     = 0;
+        effect        = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[9], 0x200, &vector);
+        if (effect != NULL) {
+            task                                = effect->field_0;
+            ((TmdObject*)task->extra)->field_24 = (u8)arg0->field_2C->field_24;
+            ((TmdObject*)task->extra)->field_25 = (u8)arg0->field_2C->field_25;
+            effectObj                           = task->extra;
+            if (effectObj->field_18 != 0) {
+                Tmd_ProcessStream((TmdObject*)effectObj);
+                Tmd_ProcessStream((TmdObject*)task->extra);
+            }
+        }
+        if ((s16)work->field_6 == 2) {
+            D_80114B78[0] = &Actor00100_D11234;
+            vector.vy     = 0;
+            vector.vx     = 0;
+            effect2       = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[12], 0x200, &vector);
+            if (effect2 != NULL) {
+                task2                                = effect2->field_0;
+                ((TmdObject*)task2->extra)->field_24 = (u8)arg0->field_2C->field_24;
+                ((TmdObject*)task2->extra)->field_25 = (u8)arg0->field_2C->field_25;
+                effectObj2                           = task2->extra;
+                if (effectObj2->field_18 != 0) {
+                    Tmd_ProcessStream((TmdObject*)effectObj2);
+                    Tmd_ProcessStream((TmdObject*)task2->extra);
+                }
+            }
+        }
+    }
+    if ((s16)work->field_6 == 4) {
+        D_80114B78[0] = &Actor00100_D12470;
+        effect3       = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[1], 0x200, NULL);
+        if (effect3 != NULL) {
+            task3                                = effect3->field_0;
+            ((TmdObject*)task3->extra)->field_24 = (u8)arg0->field_2C->field_24;
+            ((TmdObject*)task3->extra)->field_25 = (u8)arg0->field_2C->field_25;
+            effectObj3                           = task3->extra;
+            if (effectObj3->field_18 != 0) {
+                Tmd_ProcessStream((TmdObject*)effectObj3);
+                Tmd_ProcessStream((TmdObject*)task3->extra);
+            }
+        }
+    }
+    if ((s16)work->field_6 == 5) {
+        D_80114B78[0] = &Actor00100_D11F90;
+        effect4       = Gp_SpawnEff(0xA0000 | 5, &arg0->field_2C->field_8[3], 0x200, NULL);
+        if (effect4 != NULL) {
+            task4                                = effect4->field_0;
+            ((TmdObject*)task4->extra)->field_24 = (u8)arg0->field_2C->field_24;
+            ((TmdObject*)task4->extra)->field_25 = (u8)arg0->field_2C->field_25;
+            effectObj4                           = task4->extra;
+            if (effectObj4->field_18 != 0) {
+                Tmd_ProcessStream((TmdObject*)effectObj4);
+                Tmd_ProcessStream((TmdObject*)task4->extra);
+            }
+        }
+    }
+    if ((s16)work->field_6 == 0x1E) {
+        ctx->field_40 = 0;
+        Gp_UnlinkObj((GpObj*)&work->objs[0]);
+        Gp_UnlinkObj((GpObj*)&work->objs[1]);
+        Gp_UnlinkObj((GpObj*)&work->objs[3]);
+        Gp_UnlinkObj((GpObj*)&work->objs[2]);
+        ctx->field_54 = 0;
+    }
+    if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x04010000) {
+            Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, (s32)((u16)ctx->field_8 >> 0xC), 0);
+        }
+        arg0->field_30++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn09724);
 

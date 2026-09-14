@@ -128,6 +128,14 @@ typedef struct Actor00100AngleScratch {
 } Actor00100AngleScratch;
 STATIC_ASSERT_SIZEOF(Actor00100AngleScratch, 0x10);
 
+extern char  Actor00100_D10D60;
+extern char  Actor00100_D11234;
+extern char  Actor00100_D11F90;
+extern char  Actor00100_D12470;
+extern void* D_80114B78[1];
+
+void Actor00100_Fn09310(Actor00100* arg0);
+
 extern u32 Gp_LcgState;
 
 void Actor00100_Fn04270(Actor00100* argx);
