@@ -7848,6 +7848,24 @@ if (D_800820E9 != 0)      /* emits lb */
 `SndEvt_FlushType5Pending` / `Midi_UpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
 either way.
 
+Declaring the *field* `s8` is necessary but not sufficient: the type of the
+temporary the byte is held in picks the load. Holding it in an `s8` local keeps
+the move in QImode, and under `-funsigned-char` the plain byte move resolves to
+the unsigned variant, so GCC emits `lbu` and sign-extends at the compare; holding
+it in an `s32` local lets the load fold straight into a sign-extending `lb`.
+
+```c
+s8  temp = (*(s8 *)((u8 *)p + 0x7B3));   /* lbu $a0,...   sll/sra at the compare */
+s32 temp = (*(s8 *)((u8 *)p + 0x7B3));   /* lb  $v1,... */
+```
+
+A one-token change of the temp's type took the raw m2c seed of
+`func_actor_403200_8013E9C0` from 91.07% to 95.06%, and the rest of the match was
+matching the sibling body `func_actor_444000_8014105C`, which already uses `s32`
+for exactly this value. When an m2c seed emits `lbu` plus a `sll`/`sra` pair
+where the target has a bare `lb`, suspect the seed's `s8` locals before the field
+declaration.
+
 ## `u8` temp for `srl` bit tests on `byte` fields
 
 `byte` is `signed char`. Shifting a `byte` field directly as a condition inserts
