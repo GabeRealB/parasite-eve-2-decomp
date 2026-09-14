@@ -149,6 +149,15 @@ typedef struct Actor00100AngleScratch {
 } Actor00100AngleScratch;
 STATIC_ASSERT_SIZEOF(Actor00100AngleScratch, 0x10);
 
+typedef struct Actor00100TurnScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s16     delta;
+    /* 0x0A */ s16     yaw;
+    /* 0x0C */ s16     steps;
+    /* 0x0E */ s16     pad;
+} Actor00100TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor00100TurnScratch, 0x10);
+
 typedef struct Actor00100ProjectScratch {
     /* 0x00 */ s16 x;
     /* 0x02 */ s16 y;

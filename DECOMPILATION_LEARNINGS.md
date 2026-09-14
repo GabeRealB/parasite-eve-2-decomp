@@ -71215,3 +71215,35 @@ PERMUTER_ANALYSIS.md and base_6/base_7 dumps retained in scratch/evidence.
 The permuter's higher-scoring unconditional negation was rejected; this
 controlled expression change preserves the absolute value and was followed
 by an exact match and integration verification.
+
+
+## Actor00100_Fn08A14: assignment-result scratch allocation preserves an unpinned temporary
+
+A controlled `base_1` → `base_2` change from `scratch = head - 1; *arena = scratch;`
+to `scratch = (*arena = head - 1)` improved 97.606% to 99.382% (distance 675 → 175).
+The permuter discovered the same change; its normalized parent was identical to
+the original-style baseline, and the controlled original-style build reproduced
+the improved object. This mutation preserves the nonvolatile arena write and pointer value.
+
+Patched GCC 2.8.1 `expr.c:store_expr`'s `want_value && MEM` path creates a register
+copy for a memory assignment whose value is consumed. Expansion changed from a
+plus directly into the named scratch pseudo r92 to r106=head-16, r107=r106,
+store r107, r92=r107. CSE removed r107 but retained r106 separately from r92.
+The lreg dump lists r106 as block-local (3 references over 4 insns); greg assigns
+it v1 while global call-crossing r92 stays s3. The final dbr sequence places the
+r92=r106 copy (UID24, move s3,v1) in the entry branch delay. This also restores
+the target entry schedule without a register pin or empty asm. These are observed
+homes, not a claim that this C spelling always forces v1 or preserves a copy.
+
+The last extra nop was a separate memory-order issue: capturing `arg0->field_2C`
+before clearing `work->field_BE4` reverses the relevant dependence. In base_2 greg,
+load UID44 depends on store UID41; in base_3, load UID41 starts the block and store
+UID44 has REG_DEP_ANTI on that load. The store fills the load latency, yielding
+100% with the scratch/actor/work homes unchanged. Cleanup and real-header port
+also score 100%.
+
+Evidence: `tools/permuter_findings/Actor00100_Fn08A14/`, session
+`e59f21b090474182950886f413110e52`, retained run `22426caa320d4f42`, controlled
+base_2 plan/build and RTL/lreg/greg/sched2/dbr dumps. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Controlled base_2 preprocessed SHA256 `1a0c1031fe364231fcd42f18f791f8943e7074125d41255931f08745f86d4959`; source SHA256 `26acd83847d341bbc9b3a44ae6a3cbe32b51e705d486905fc9ab259910cc852c`.
