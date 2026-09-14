@@ -6611,6 +6611,47 @@ took 100% on the first attempt. The leading `bltz` is not the tell — the m2c
 nest emits the same branch for its `if (v >= 0)` wrapper — the body placement
 is.
 
+## A three-arm `switch` whose last arm is empty is what emits `bnez CASE0`
+
+`func_actor_161500_8013230C` dispatches on a nibble with three tests:
+`beq v1,v0(=1),CASE1` / `slti v0,v1,2; beqz v0,TAIL` / `bnez v1,TAIL`, with
+case 0's body falling through right after the last one. A two-arm `switch`
+cannot produce it: `balance_case_nodes` gates its whole split on `i > 2`, so
+two nodes stay a flat list whose pivot is the *lowest* case, and the first test
+comes out `beq v1,zero,CASE0` — the m2c shape, 83.5% (`branch=1 reorder=1
+insert=2 delete=3`). Three nodes take the `i == 3` branch, whose pivot is the
+middle node, so the first test is the middle case and the *last* test is node
+0's `do_jump_if_equal`, emitted immediately before the trailing
+`emit_jump_if_reachable (default_label)`. That adjacency is exactly what
+`jump.c`'s conditional-jump-over-unconditional-jump rule needs, so it inverts
+the test to `bne v1,zero,TAIL`, deletes the `j TAIL` and drops the
+now-unreferenced `CASE0` label, leaving case 0's body as the fallthrough.
+
+The third arm must be written out and left empty; omitting it collapses the
+tree back to two nodes:
+
+```c
+switch (v) {
+    case 0:
+        f(&D_a, 0, &D_b);
+        SetNibble(0xE4, 1);
+        break;
+    case 1:
+        g(&D_c, 1);
+        break;
+    case 2:                 /* empty - its only job is to be the third node */
+        break;
+}
+```
+
+The empty arm also absorbs the node-2 probe: at the `test_label` the middle
+test branches to, `emit_case_nodes` emits `beq v1,v0(=2),CASE2`, and `jump.c`
+deletes that condjump because `CASE2` is the label the unconditional jump after
+it already targets (an empty last arm's label is the switch's break/default
+label). That `j` does not survive either, since nothing separates it from its
+target, so the middle test's `beqz` lands directly on the epilogue and no
+`li v0,2` remains. 100% on the first build (34/34 insns, every penalty zero).
+
 ## Two literal `1`s across calls CSE into `$s0`
 
 `if (cmd == 1)` then later `if (GameFlag_GetNibble(...) != 1)` shares CONST_INT

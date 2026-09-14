@@ -16,6 +16,9 @@ extern s32 D_actor_161500_801357E8;
 extern s32 D_actor_161500_80135968;
 extern s32 D_actor_161500_80135AE8;
 extern s32 D_actor_161500_80135C68;
+extern s32 D_actor_161500_80136E88;
+extern s32 D_actor_161500_80137080;
+extern s32 D_actor_161500_80137650;
 extern s16 D_actor_161500_801376F2;
 extern s32 D_actor_161500_80137AB8;
 
@@ -117,7 +120,25 @@ void func_actor_161500_80132294(u8 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_801322A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8013230C);
+void func_actor_161500_8013230C(void)
+{
+    s32 temp_v0;
+
+    if (Game_GetPtrSlot(0xA) != NULL) {
+        temp_v0 = GameFlag_GetNibble(0xE4);
+        switch (temp_v0) {
+            case 0:
+                func_800E8634((s32)&D_actor_161500_80137080, 0, (s32)&D_actor_161500_80136E88);
+                GameFlag_SetNibble(0xE4, 1);
+                break;
+            case 1:
+                func_800E8614((s32)&D_actor_161500_80137650, 1);
+                break;
+            case 2:
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", ActorsShared80131e24Sub0);
 
