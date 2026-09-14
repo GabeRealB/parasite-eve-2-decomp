@@ -66688,6 +66688,28 @@ if (state != 0) {
 The inner `if`s collapse in `jump.c` — every empty arm jumps to the same end
 label — so the emitted order is still the source order `0, 0x12, 0x13, 5, 0xC`.
 
+The same fold has a signed *range* form, where one `&&` over a single variable
+becomes one unsigned compare and a branch disappears. `arg0 < 2 && arg0 >= 0`
+merges to `(unsigned)arg0 < 2`:
+
+```
+addiu v0, arg0, ...        # or the raw arg
+sltiu v0, v0, 2
+beqz  v0, false
+```
+
+so a ROM holding `slti $v0,$a0,2` **and** `bltz $a0`, both to the same target,
+is not one `&&` but two `if`s:
+
+```c
+if (arg0 < 2) {
+    if (arg0 >= 0) { ... return; }
+}
+```
+
+`func_actor_361100_801629D0` scored 52.33% with `insert=4 delete=5 branch=1`
+as a single `&&`; nesting the `if`s and changing nothing else gave 100%.
+
 ## `thread_jumps` cannot skip a reloaded test
 
 A branch that jumps *past* a test of the same memory looks like jump threading:
