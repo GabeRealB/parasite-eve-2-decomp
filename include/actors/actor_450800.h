@@ -21,8 +21,17 @@ extern SVECTOR D_actor_450800_80131E24;
 ///
 /// The three tasks at +0x4F0 .. +0x4F8 are the helper tasks this actor spawns;
 /// the exit callback `func_actor_450800_80132868` kills all three on teardown.
+///
+/// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
+/// the heading it applied to the root coordinate and the distance left to
+/// cover, in twelfths. That opcode is the shared body `ActorsShared80133678`,
+/// which reaches the same two fields through `ActorsShared80133678Work`.
 typedef struct Actor450800Work {
-    /* 0x000 */ byte  pad_0[0x4F0];
+    /* 0x000 */ byte  pad_0[0x4AE];
+    /* 0x4AE */ u16   yaw;
+    /* 0x4B0 */ byte  pad_4B0[0x2];
+    /* 0x4B2 */ s16   travel;
+    /* 0x4B4 */ byte  pad_4B4[0x3C];
     /* 0x4F0 */ Task* field_4F0;
     /* 0x4F4 */ Task* field_4F4;
     /* 0x4F8 */ Task* field_4F8;

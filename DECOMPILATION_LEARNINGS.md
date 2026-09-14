@@ -6282,6 +6282,17 @@ that many bytes and every `jal` past the cut lands one body early. Reading the
 `.elf.map` - `.text 0x... 0x2534 .../<overlay>.c.o` where `0x2534` should have
 been `0x23F0` - names the offending unit immediately.
 
+Promote *before* that overlay has ever been built and you meet the same defect
+one step earlier, where it is harder to read. The promote writes a `c`
+subsegment for the shared unit, so the next split emits no `.s` for the body at
+all; the sharer's stale `INCLUDE_ASM` then points at a path that no longer
+exists and the assembler stops with `Error: can't open
+asm/USA/<family>/nonmatchings/<overlay>/<unit>/<fn>.s for reading: No such file
+or directory`, followed by ld's `cannot find build/USA/src/.../<unit>.c.o`.
+Both name the unit and neither mentions promotion. The fix is the same - drop
+the line - and the split has already cut the unit down to the functions that
+are still its own.
+
 The `shared` cut already breaks `.text` at the body, so a `units` entry at the
 same offset that a pre-promotion single-overlay landing needed is redundant and
 should go. Splitting the body out also splits the overlay's `.c`: everything
