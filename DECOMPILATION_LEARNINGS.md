@@ -78320,3 +78320,43 @@ Inputs: `base.i` (79.545%)
 `0b60a43483f9ab5e4920f14d2868ebe4f6e120e60ed81dae1ab536b181743f7c`,
 `base_1.i` (100.000%)
 `cd4253fec1f8d9511d563a3ace9946b3d2c5388b39c87f66e139d9132118d6ae`.
+## A small `stack` penalty with no stack accesses is a register name, not a local
+
+The scratch scorer's stack-offset regex (`re_sprel` in `dist.py`) is
+`(?:\d+\(|\$sp\s*,\s*)(-?(?:0x)?[0-9a-fA-F]+)\(?(?:\$sp)?\)?`, and its capture
+class `[0-9a-fA-F]+` also matches a register name. When the displacement is
+decimal and abuts the paren, the *register* is read as the offset: `lhu v0,2(a2)`
+against `lhu v0,2(a0)` matches `2(`, captures `a2` / `a0` as 0xA2 / 0xA0, and
+reports `stack = |0xA2 - 0xA0| = 2` (`PENALTY_STACKDIFF` is 1). Real stack
+accesses do not have that shape - `sw $ra, 0x3C($sp)`, `sw s0,0x28(sp)`,
+`sh v0,0x4B4(v1)` and `lw v1,0x1C(a0)` all return no match - so the penalty meant
+to measure the frame is fired almost only by `aN` register names.
+
+`func_actor_451100_8013268C` scored 99.778% with `stack=2` on an object diff
+whose one changed line was `$a2` vs `$a0`. `.diagnosis.json` reported
+`stack_accesses: 0`, and that is the tell: the m2c seed had dropped the handler's
+two unused leading parameters, so its third argument - the payload the body
+actually reads - was allocated `$a0`. Declaring the full arity was the whole fix
+(100.000%, zero penalties):
+
+```c
+/* m2c seed: func(void *arg2)                     -> lhu v0,2(a0) */
+s32 func_actor_451100_8013268C(Task* task, s32 arg1, Actor451100Msg7DB* msg)
+{
+    if (msg->field_2 == 0) {
+        ActorsShared80131f9cWork->field_4B4 = 0x14;
+    }
+    return 0;
+}
+```
+
+The message handlers in this family all have type
+`s32 (*)(Task*, s32, s32, s32)` (`GpMsgHandler`, `include/gameplay/D4.h`), so the
+payload is argument 3 and the unused `arg0`/`arg1` still have to be declared.
+Read a small `stack` as "check the argument registers" whenever
+`stack_accesses` is 0; splitting locals is the wrong move.
+
+Inputs: `base.i` (m2c seed, 99.778%, `stack=2`)
+`243d1d0c5076d1b099fdcd905b0e9fa392b074b3524e09cd2d2e2c0edfb5aa5c`,
+`base_1.i` (arity restored, 100.000%)
+`552f83af72b8c2c995ffbbc6a0096e32b3b8ebe0139241b49bb5168f942db81f`.
