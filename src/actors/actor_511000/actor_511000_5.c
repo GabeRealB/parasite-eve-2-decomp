@@ -53,4 +53,8 @@ void func_actor_511000_8013409C(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_801340F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_80134130);
+void func_actor_511000_80134130(void* arg0, Task* arg1)
+{
+    ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+}
