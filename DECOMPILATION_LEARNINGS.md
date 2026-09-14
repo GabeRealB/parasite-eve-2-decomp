@@ -77751,3 +77751,54 @@ carries `--ignore-missing`, so an absent file is skipped instead of reported -
 and the script swallows the output regardless, so the run still ends in
 `✅ BUILD SUCCEEDED` with the binary gone. Deleting a build output never makes
 the checksum stricter; `ninja` simply relinks it on the next run.
+
+## A `&&` right operand's pointer load sits in the block the *source* put it in
+
+`func_actor_401300_80141EF8` (13 insns) compares an enemy halfword against -999
+and, if a work-block flag is clear, stamps the sentinel. The target's first
+block holds **both** pointer loads even though only the `&&` right operand
+needs the second one:
+
+```
+lw    a1,0x20(a0)          # enemy  - needed by the compare
+li    a2,-0x3e7            # fills a1's load-delay slot
+lh    v0,0x40(a1)
+lw    v1,0x1c(a0)          # work   - only block 1 needs this
+beq   v0,a2,L ; nop
+lh    v0,0xc8a(v1) ; nop ; bnez v0,L ; nop
+sh    a2,0x40(a1)
+```
+
+Written the natural way, with the work-block read inline in the `&&`, the load
+lands in block 1 and cannot come back: `.sched2` schedules one basic block at a
+time (`;; -- basic block number 0 from 42 to 19 --` ends before insn 21 in the
+dump), so a load never migrates across a boundary — its block is decided by the
+front end. Block 0 is then `lw`,`lh`,`li`,`beq`: the load and its use are
+adjacent, one stall is forced, and the differ reports 2 extra `nop`s,
+`regs=6` (const in `$a1`, pointer in `$v1` instead of `$a2`/`$a1`), 54.857%.
+
+Assigning the pointer to a local **before** the `if` is the whole fix — it puts
+the load in block 0, where the scheduler can use it as filler for the first
+load's delay slot; the second load's own delay slot then takes the `lh` that
+follows, so the block schedules stall-free in the target's exact order and the
+allocation falls out (`work`→`$v1`, `enemy`→`$a1`, sentinel→`$a2`) at 100.000%:
+
+```c
+    Actor401300Work* work  = (Actor401300Work*)task->idMap;
+    GpEnemy*         enemy = task->spawnArg2;
+
+    if (enemy->field_40 != -0x3E7 && work->field_C8A == 0) {
+        enemy->field_40 = -0x3E7;
+    }
+```
+
+This is the load-shaped twin of "Constants held in a register across a branch
+mean one local, reassigned": a value the target materialises in an earlier
+block than its use is a local assigned ahead of the `if`, because neither sched1
+nor sched2 may speculate it there. Ordering the two locals does not matter —
+either declaration order schedules to the target sequence.
+
+Inputs: `base.i` (m2c seed, 54.857%)
+`a2a888ec2115a48bbd4192b59e758e36cb21209c3ef4653da6658e7dbb4ee3b4`,
+`base_1.i` (locals hoisted, 100.000%)
+`bef6e3c97317a21ee46d58cf5802572cda1d9bb9130929b1a9f8b3961de70153`.
