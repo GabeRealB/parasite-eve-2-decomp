@@ -773,7 +773,140 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn08588);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn08A14);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn08E7C);
+void Actor00100_Fn08E7C(Actor00100* arg0)
+{
+    Actor00100Work*           work;
+    GsCOORDINATE2*            coord;
+    GsCOORDINATE2*            coord2;
+    GsCOORDINATE2*            facing;
+    GsCOORDINATE2*            facing2;
+    TmdObject*                obj;
+    s16                       delta;
+    s32                       playerX;
+    s16                       delta2;
+    s16                       z;
+    s16                       targetYaw;
+    s16                       wrapped;
+    s16                       wrappedYaw;
+    s16                       wrapped2;
+    s32                       angle;
+    s32                       angle2;
+    s32                       finalDelta;
+    s32                       firstDelta;
+    Actor00100ProjectScratch* head;
+    Actor00100ProjectScratch* scratch;
+
+    head    = *(Actor00100ProjectScratch**)G_SCRATCH_HEAD;
+    work    = arg0->field_1C;
+    scratch = (*(Actor00100ProjectScratch**)G_SCRATCH_HEAD = head - 1);
+    if (work->field_4 != 0) {
+        obj                      = arg0->field_2C;
+        arg0->field_20->field_14 = 0;
+        obj->field_C             = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82E        = 2;
+        work->field_82A        = 0;
+        work->field_83E        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+        work->field_6 = 0;
+    }
+    Gp_UpdateCoord(arg0->field_2C->field_8);
+    gte_SetTransMatrix(&arg0->field_2C->field_8->workm);
+    gte_SetRotMatrix(&arg0->field_2C->field_8->workm);
+    head[-1].x = 0;
+    scratch->y = 0;
+    scratch->z = 0;
+    gte_ldv0(scratch);
+    __asm__ volatile("nop; nop; .word 0x4A180001");
+    gte_stsxy(&head[-1].screenX);
+    gte_stdp(&head[-1].dp);
+    gte_stflg(&head[-1].flag);
+    gte_stszotz(&head[-1].depth);
+    Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5);
+    arg0->field_2C->field_8->flg = 0;
+    coord                        = arg0->field_2C->field_8;
+    head[-1].x                   = (s16)(Wip_SysConfig.field_4->t[0] - coord->coord.t[0]);
+    scratch->y                   = (s16)(Wip_SysConfig.field_4->t[1] - coord->coord.t[1]);
+    scratch->z                   = (s16)(Wip_SysConfig.field_4->t[2] - coord->coord.t[2]);
+    arg0->field_2C->field_8->flg = 0;
+    Actor00100_Fn02788(arg0);
+    facing  = arg0->field_2C->field_8;
+    angle   = ratan2((s32)head[-1].x, (s32)scratch->z);
+    delta   = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+    wrapped = delta;
+
+    if (delta < 0) {
+    wrapNegative:
+        if (wrapped < -0x800) {
+            wrapped += 0x1000;
+            goto wrapNegative;
+        }
+    } else {
+    wrapPositive:
+        if (wrapped >= 0x801) {
+            wrapped -= 0x1000;
+            goto wrapPositive;
+        }
+    }
+    firstDelta         = wrapped;
+    scratch->delta     = firstDelta;
+    work->field_840    = firstDelta;
+    playerX            = -((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0];
+    scratch->yaw       = ratan2((s32)playerX, (s32)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+    coord2             = arg0->field_2C->field_8;
+    scratch->x         = (s16)(Wip_SysConfig.field_4->t[0] - coord2->coord.t[0]);
+    scratch->y         = (s16)(Wip_SysConfig.field_4->t[1] - coord2->coord.t[1]);
+    z                  = Wip_SysConfig.field_4->t[2] - coord2->coord.t[2];
+    scratch->z         = z;
+    targetYaw          = ratan2((s32)scratch->x, (s32)z) + 0x800;
+    wrappedYaw         = targetYaw;
+    scratch->targetYaw = targetYaw;
+
+    if (targetYaw < 0) {
+    wrapYawNegative:
+        if (wrappedYaw < -0x800) {
+            wrappedYaw += 0x1000;
+            goto wrapYawNegative;
+        }
+    } else {
+    wrapYawPositive:
+        if (wrappedYaw >= 0x801) {
+            wrappedYaw -= 0x1000;
+            goto wrapYawPositive;
+        }
+    }
+    scratch->targetYaw = wrappedYaw;
+    facing2            = arg0->field_2C->field_8;
+    angle2             = ratan2((s32)scratch->x, (s32)scratch->z);
+    delta2             = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
+    wrapped2           = delta2;
+
+    if (delta2 < 0) {
+    wrapFinalNegative:
+        if (wrapped2 < -0x800) {
+            wrapped2 += 0x1000;
+            goto wrapFinalNegative;
+        }
+    } else {
+    wrapFinalPositive:
+        if (wrapped2 >= 0x801) {
+            wrapped2 -= 0x1000;
+            goto wrapFinalPositive;
+        }
+    }
+    finalDelta      = wrapped2;
+    scratch->delta  = (s16)finalDelta;
+    work->field_840 = (s16)finalDelta;
+    if (abs(scratch->screenX) < 0x78 && abs(scratch->screenY) < 0x64 && abs(scratch->delta) < 0x200) {
+        Gp_ArmStateF0(1);
+        work->field_0 = 0x1C;
+    }
+    *(Actor00100ProjectScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor00100_Fn09310(Actor00100* arg0)
 {

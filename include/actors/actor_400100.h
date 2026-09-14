@@ -134,6 +134,24 @@ typedef struct Actor00100AngleScratch {
 } Actor00100AngleScratch;
 STATIC_ASSERT_SIZEOF(Actor00100AngleScratch, 0x10);
 
+typedef struct Actor00100ProjectScratch {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 z;
+    /* 0x06 */ s16 pad_6;
+    /* 0x08 */ s16 screenX;
+    /* 0x0A */ s16 screenY;
+    /* 0x0C */ s32 dp;
+    /* 0x10 */ s32 flag;
+    /* 0x14 */ s32 pad_14;
+    /* 0x18 */ s32 depth;
+    /* 0x1C */ s16 yaw;
+    /* 0x1E */ s16 targetYaw;
+    /* 0x20 */ s16 delta;
+    /* 0x22 */ s16 pad_22;
+} Actor00100ProjectScratch;
+STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
+
 extern char  Actor00100_D10D60;
 extern char  Actor00100_D11234;
 extern char  Actor00100_D11F90;
