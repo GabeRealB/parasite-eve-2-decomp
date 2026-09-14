@@ -19,7 +19,12 @@ extern s32      D_actor_450200_80139098;
 extern TaskDesc D_actor_450200_80137A60;
 extern Task*    D_actor_450200_801401E0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_8013217C);
+void func_actor_450200_8013217C(s32 arg0)
+{
+    if (D_actor_450200_801401E0 != NULL) {
+        D_actor_450200_801401E0->spawnArg1 = arg0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_8013219C);
 
