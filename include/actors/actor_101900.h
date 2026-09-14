@@ -33,7 +33,9 @@ typedef struct Actor01900Work {
     /* 0xA08 */ GpObj field_A08;
     /* 0xA28 */ byte  pad_A28[0x120];
     /* 0xB48 */ GpObj field_B48;
-    /* 0xB68 */ byte  pad_B68[0xD0];
+    /* 0xB68 */ byte  pad_B68[0xCC];
+    /* 0xC34 */ u8    field_C34[3];
+    /* 0xC37 */ byte  pad_C37;
     /* 0xC38 */ Task* field_C38;
     /* 0xC3C */ Task* field_C3C;
 } Actor01900Work;
@@ -89,6 +91,7 @@ void Actor01900_Fn01C94(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
 void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta);
 s32  Actor01900_Fn0A31C(Actor01900* arg0, s32 arg1, Actor01900Msg7D3* arg2);
+s32  Actor01900_Fn0A5A4(Actor01900* arg0, s32 arg1, u16* arg2);
 s32  Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2);
 
 #endif

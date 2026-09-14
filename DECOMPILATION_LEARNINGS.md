@@ -72616,3 +72616,16 @@ Controlled base_2 moved `work->field_898 = 2` before `work->field_8A2 = 0x10`, l
 Evidence: tools/permuter_findings/Actor01900_Fn0A7C0/; scratch base_2 controlled plan/build, lreg and sched2 retained by conclude-permuter.
 base_1.i SHA256: b9da53f87bdd617a8ed8a1cd2990269fb345f44896860477b89e7a87b70a6f45
 base_2.i SHA256: a473c47c9e01960ee8585b82f39e6b76f0b85af46ab14a0c9727dbfe1900dd48
+
+## Actor01900_Fn0A5A4: duplicated switch arms replace phony-loop allocation weighting
+
+The minimally repaired m2c seed used a goto into the other switch's zero-state arm. It scored 99.324% with only regs=10: global work r86 (7 refs/25 insns) lost v1 to selector r90 (3/5), giving work a0. The global ranks are 2*7/25=.56 and 1*3/5=.6; neither value has a hard-register preference and both conflict with v0 and each other.
+
+The permuter wrapped state=0x1C and one coordinate store in do/while(0). Loop notes survive into flow, which counts the enclosed uses at loop weight even though loop calls it phony. Work became 8/25 and context 8/72; work's rank 3*8/25=.96 put it first and fixed the homes. Planned base_1 wrapped only the state store: work stayed 8/25, context returned to 7/72, and output stayed exact. This isolates the useful work weighting from context weighting; the constant in the wrapper also gained refs but retained v0.
+
+Porting to ordinary duplicated zero-state arms added another work reference surviving through allocation. Planned base_3 removed the wrapper and correctly predicted work 8/26, work=v1 and selector=a0, with identical final instructions. The final C needs no goto, fake loop, pin or asm helper. Prefer reconstructing ordinary separate source arms before retaining a phony-loop discovery. Final tail sharing does not imply those stores were already merged when allocation computed reference counts. This supports the existing global-rank model, not a universal switch recipe.
+
+Evidence: tools/permuter_findings/Actor01900_Fn0A5A4/; paired outputs, plans, flow/lreg/greg and analysis retained by conclude-permuter. Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Normalized parent input: 921d5832ad074d0a17975260d8b3780e1257033c49b90415fa5e334af184c493.
+base_1 input: 3cee4cfe8860940bd527c85409925d9b956974e813871b3e70665a65fc7afb2d.
+base_3 input: 1dfa95e4f3ff6be0ad4d21ebdd4efde847aa6c9bac539ce996291cf99b29b2b9.

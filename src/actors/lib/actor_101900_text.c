@@ -210,7 +210,51 @@ s32 Actor01900_Fn0A59C(void)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0A5A4);
+s32 Actor01900_Fn0A5A4(Actor01900* arg0, s32 arg1, u16* arg2)
+{
+    u16             room;
+    u16             state;
+    u16             state2;
+    Actor01900Work* work;
+
+    work               = arg0->field_1C;
+    work->field_C34[0] = ((u8*)arg2)[0];
+    work->field_C34[1] = ((u8*)arg2)[1];
+    work->field_C34[2] = ((u8*)arg2)[2];
+    room               = arg2[0];
+    if (room == 0x301) {
+        state = arg2[1];
+        switch (state) {
+            case 0:
+                work->field_0 = 0;
+                return 1;
+            case 1:
+                work->field_0 = 0x17;
+                return 1;
+            default:
+                return 0;
+        }
+    } else if (room == 0x1002) {
+        state2 = arg2[1];
+        switch (state2) {
+            case 0:
+                work->field_0 = 0;
+                return 1;
+            case 2:
+                work->field_0                       = 0x1C;
+                arg0->field_2C->field_8->coord.t[0] = -0x595;
+                arg0->field_2C->field_8->coord.t[1] = 0;
+                arg0->field_2C->field_8->coord.t[2] = -0x5B1;
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x400, 1);
+                arg0->field_2C->field_8->flg = 0;
+                return 1;
+            default:
+                return 0;
+        }
+    } else {
+        return 0;
+    }
+}
 
 void Actor01900_Fn0A6CC(Task* task)
 {
