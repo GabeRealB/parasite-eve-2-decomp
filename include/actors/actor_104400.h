@@ -46,7 +46,8 @@ typedef struct Actor104400Work {
     /* 0x2CC */ GpObj            obj_2CC;
     /* 0x2EC */ byte             pad_2EC[0xC0];
     /* 0x3AC */ GpObj            obj_3AC;
-    /* 0x3CC */ byte             pad_3CC[0x46];
+    /* 0x3CC */ byte             pad_3CC[0x44];
+    /* 0x410 */ s16              field_410; // random 0..0x7FF drawn from `Gp_LcgState`
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
     /* 0x416 */ byte             pad_416[0x2];
@@ -60,9 +61,11 @@ typedef struct Actor104400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ byte             pad_428[0x8];
     /* 0x430 */ s16              field_430;
-    /* 0x432 */ byte             pad_432[0x6];
+    /* 0x432 */ byte             pad_432[0x4];
+    /* 0x436 */ s16              field_436; // step picked from `field_43A`'s distance band
     /* 0x438 */ s16              field_438; // 1 on the death path
-    /* 0x43A */ byte             pad_43A[0x6];
+    /* 0x43A */ s16              field_43A; // distance to the nearer player actor
+    /* 0x43C */ byte             pad_43C[0x4];
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ byte             pad_442[0x6];
     /* 0x448 */ s16              field_448;
