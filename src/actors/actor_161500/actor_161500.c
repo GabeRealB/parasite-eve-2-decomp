@@ -9,6 +9,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+extern s32 D_actor_161500_80134920[8];
 extern s32 D_actor_161500_801352A8;
 extern s32 D_actor_161500_801354B8;
 extern s32 D_actor_161500_80135668;
@@ -56,7 +57,18 @@ void func_actor_161500_80131E38(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80131F50);
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80131FBC);
+void func_actor_161500_80131FBC(void)
+{
+    s32 temp_s0;
+    s32 temp_v0;
+
+    temp_s0 = (Game_Session->field_9 == 1) * 4;
+    temp_v0 = GameFlag_GetNibble(0x103);
+    func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
+    if (temp_v0 < 3) {
+        GameFlag_SetNibble(0x103, temp_v0 + 1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132038);
 

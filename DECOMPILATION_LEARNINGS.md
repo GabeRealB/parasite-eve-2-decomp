@@ -77484,3 +77484,59 @@ Inputs: `base.i` (m2c shared variable, 91.815%)
 `7fb0031b7b507f6457f909f3f8b33c2b2c318610b2323ff50c70700e2524c057`,
 `base_1.i` (call per arm, 100.000%)
 `fbf554badcbb25c2dfa3798e303e4aa3ce3a18f6e93f0819ad700632ee09fa01`.
+
+## A 2D array access distributes the element-size multiply; a flat table with an explicit `* N` does not
+
+`func_actor_161500_80131FBC` indexes an 8-entry pointer table by
+`(Game_Session->field_9 == 1)` (row) and `GameFlag_GetNibble(0x103)` (column),
+and the target scales the **sum**:
+
+```
+lbu  s0,0x9(v0)                 row
+xori s0,s0,0x1
+sltiu s0,s0,1
+jal  GameFlag_GetNibble
+sll  s0,s0,0x2                  <- row*4, in the jal delay slot
+addu s0,s1,s0                   <- + column
+sll  s0,s0,0x2                  <- * sizeof(element)
+addu s0,s0,v0                   <- + &D
+lw   a0,0x0(s0)
+```
+
+Declaring the table the obvious way, `extern s32 D[2][4]` with `D[row][col]`,
+keeps the structure — 3/3 blocks, 31/31 instructions, predicates and call
+targets matching — but only scores **83.710%** (`regs=9 reorder=1 insert=2
+delete=2`). GCC linearizes the index to `row*4+col` and then **distributes**
+the element-size multiply over that addition, so the row term becomes `row*16`:
+
+```
+sll  v0,s1,0x2                  <- column*4
+sll  s0,s0,0x4                  <- row*16
+addu v0,v0,s0
+addu v0,v0,v1
+lw   a0,0x0(v0)
+```
+
+The target shape is what an explicit `* 4` in the source index produces — a flat
+table whose index already carries the inner multiply:
+
+```c
+extern s32 D_actor_161500_80134920[8];
+...
+temp_s0 = (Game_Session->field_9 == 1) * 4;
+temp_v0 = GameFlag_GetNibble(0x103);
+func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
+```
+
+That is byte-identical to the target on the first build (100.000%). m2c had
+already spelled the flat form out (`*(((col + row*4) * 4) + &D)`), so its
+address arithmetic was the hint and the tidier 2D retype was the regression:
+when the target shows inner-multiply, add, then a single scale, keep the flat
+table and leave the `* innerdim` in the index. Do not also move the
+column-producing call earlier to "clean up" the temps - that alone drops the
+same file to 44.484% with a different block count.
+
+Inputs: `base.i` (flat table, 100.000%)
+`054dbfe148ba13cd47e41c371d612609d375448c30ecead7d5dbca0004c9a8a7`,
+`base_2.i` (2D retype, 83.710%)
+`bb418d0f3887f6e5d633cb258c958acc594c5898a434b3c74b6e98a604863221`.
