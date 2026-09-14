@@ -46844,6 +46844,24 @@ it in a branch delay slot — which is exactly the asymmetry the target shows
 written as *two* `slti`s is direct evidence that the source used separate
 statements rather than one `&&`/`||` condition.
 
+The `else if` chain above is not the only way back. `func_actor_215100_8014A398`
+has the same pair sitting inside a longer `&&` chain whose other terms have to
+stay in that one expression (`field_954 != 2 && Gp_CapBusy() == 0 && … && z <
+0x1644 && z >= 0x10CD && …`), and there the cheapest split is to nest just the
+second bound:
+
+```c
+if (z < 0x1644) {
+    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (D_80071075 == 0)) {
+```
+
+Every failing term still branches to the shared exit, so the topology is
+unchanged — with no duplicate arms to write. The fold also shows in the load's
+destination register: the merged form needs one register to subtract in, so the
+target's `lw $v1, 0x20($s0)` becomes `lw $v0, 0x20($s0)` feeding `addiu` /
+`sltiu`. A `$v0` where the target loads into `$v1` is therefore part of the same
+symptom, not a separate allocation problem.
+
 ## A three-way constant select keeps its `j` only when the default is assigned *before* the inner test
 
 Picking one of three constants off one variable — the ambience-volume idiom the

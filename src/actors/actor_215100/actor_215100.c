@@ -2,6 +2,7 @@
 
 #include "actors/actor_215100.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -21,6 +22,7 @@ extern TaskDesc D_80185384;
 extern TaskDesc D_801856B8;
 extern s8       D_8007216C;
 extern u8       D_80071085;
+extern u8       D_80071075;
 extern Task*    D_8018E0C4;
 extern TaskDesc D_actor_215100_8014CF6C;
 extern TaskDesc D_actor_215100_8014E13C;
@@ -29,6 +31,7 @@ extern TaskDesc D_actor_215100_80154508;
 extern Task*    D_actor_215100_8015E64C;
 extern s32      D_actor_215100_8014D038;
 extern s32      D_actor_215100_8014D03C;
+extern s32      D_actor_215100_8014D044;
 extern s32      D_actor_215100_80153ED4;
 extern s32      D_actor_215100_80153FDC;
 extern s32      D_actor_215100_801543E4;
@@ -63,7 +66,73 @@ INCLUDE_RODATA("actors/nonmatchings/actor_215100/actor_215100", D_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_80149F2C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A398);
+/// Arms the weapon pickup at this actor's spot while the event flag
+/// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
+/// leave (`Game_Session->field_4 == 0x12`) drops the `func_80180390` hold and
+/// `D_actor_215100_8014D03C` with it, sub-states 2 and 3 of
+/// `Gp_StateC08.field_A` start the 0x3C-frame cooldown in
+/// `D_actor_215100_8014D044`, and while that cooldown runs the function only
+/// ticks it down.
+///
+/// Otherwise the player has to be standing in the zone — its model root's X
+/// below -0x1806 and its Z inside [0x10CD, 0x1644) — not aiming
+/// (`GameActor.field_954 != 2`), with the caption system idle, `D_80115768`
+/// and `D_80071075` clear, its yaw inside one of the two 0x3FF-wide windows
+/// opening at 0x201 and 0xA01, and one of the 0x1000 / 0x4000 pad masks held.
+/// Either mask runs the handoff `func_actor_215100_8014AA54` uses: the weapon
+/// message, caption command 0x14 and the scene task `D_actor_215100_8014CF6C`.
+void func_actor_215100_8014A398(void)
+{
+    Task*          task;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    s32            z;
+    s32            facing;
+
+    task  = (Task*)Game_GetPtrSlot(3);
+    actor = (GameActor*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (D_actor_215100_8014D038 != 0) {
+        if (D_actor_215100_8015E670 >= 3) {
+            if (Game_Session->field_4 == 0x12) {
+                func_80180390(0);
+                D_actor_215100_8014D03C = 0;
+            }
+            if ((u32)((u8)Gp_StateC08.field_A - 2) < 2U) {
+                D_actor_215100_8014D044 = 0x3C;
+            }
+            if (D_actor_215100_8014D044 != 0) {
+                D_actor_215100_8014D044 -= 1;
+                return;
+            }
+            if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
+                (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
+                z = coord->coord.t[2];
+                if (z < 0x1644) {
+                    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (D_80071075 == 0)) {
+                        facing = (u16)actor->field_52 & 0xFFF;
+                        if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
+                            if ((u32)(facing - 0xA01) < 0x3FFU) {
+                                Gp_MsgPlayerWeapon(0);
+                                D_801153F4 = 1;
+                                Gp_RunCapCmd(0x14, 0);
+                                D_80115690 = 1;
+                                Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 0, 0);
+                            }
+                        }
+                        if ((Pad_CheckButtons(0, 0, 0x4000) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
+                            Gp_MsgPlayerWeapon(0);
+                            D_801153F4 = 1;
+                            Gp_RunCapCmd(0x14, 0);
+                            D_80115690 = 1;
+                            Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 0, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014A5C0);
 
