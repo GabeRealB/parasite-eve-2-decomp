@@ -49,6 +49,16 @@ typedef struct Actor403000Msg {
     /* 0x4 */ u16  field_4;
 } Actor403000Msg;
 
+/// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
+/// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
+/// caller's id -- `func_actor_403000_8013ACBC` scales a byte id by 8 into it
+/// the same way -- so a record's `vx`/`vy`/`vz` are the vector an actor's
+/// handlers copy out of it. Lives in the overlay's trailing data region.
+extern SVECTOR D_actor_403000_80158CE0[];
+
+/// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
+void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
+
 /// Latch the requested animation and restart the animation state machine.
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
 

@@ -119,4 +119,9 @@ void func_actor_403000_8013D4F4(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D564);
+void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1)
+{
+    arg0->vx = D_actor_403000_80158CE0[(s16)arg1].vx;
+    arg0->vy = D_actor_403000_80158CE0[(s16)arg1].vy;
+    arg0->vz = D_actor_403000_80158CE0[(s16)arg1].vz;
+}

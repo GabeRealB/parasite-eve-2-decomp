@@ -78148,3 +78148,47 @@ The four `Gp_UnlinkObj` arguments came the same way. The installer writes
 the lifetime. The same `GpObj + GpRec18 rec[5]` node is already
 `ActorsShared801433b8Node` in `include/actors/actors_shared_801433b8.h`; the
 0x98 stride is the giveaway.
+
+## The `sra` immediate after `sll 16` is the record stride, and the symbol's type sets it
+
+`func_actor_403000_8013D564` copies three halfwords out of an 8-byte record
+table and scored 91.07% with `regs=1 reorder=2`. Two independent causes, both
+from the same expression.
+
+**The shift constant.** The m2c seed typed the table `extern M2C_UNK
+D_actor_403000_80158CE0;` (`M2C_UNK` is `s32`) and wrote
+
+```c
+temp_a1 = ((s32) (arg1 << 0x10) >> 0xD) + &D_actor_403000_80158CE0;
+```
+
+which compiles `sll $5,$5,16` / `sra $5,$5,11`: the `s32` symbol scales the
+index by 4, and combine folds that `<<2` *into* the sign-extending `>>13`, so
+the target's `>>13` comes out as `>>11`. There is no HImode sign-extension
+instruction on MIPS1 — `(s16)x` is always the `sll 16` / `sra 16` pair — so the
+scaling shift merges with the arithmetic shift, and **the target's single `sra`
+immediate reads off the record size**:
+
+    stride = 1 << (16 - sra_immediate)      sra 13 -> 8 (SVECTOR), 11 -> 4, 14 -> 16
+
+Reading it that way recovers the declaration: `extern SVECTOR
+D_actor_403000_80158CE0[];` plus `[(s16)arg1]` reproduces `sll 16` / `sra 13`
+exactly (91.43%, `regs` back to 0). A `s32`-typed symbol silently picks the
+wrong stride; the shift pair is the only place it shows.
+
+**The instruction order.** The remaining `reorder=2` was `sll`/`sra` emitted
+*before* `lui`/`addiu`, where the target leads with the symbol. `&T[i]` (or
+`T + i`) expands the index offset after the base, so the scaling is emitted
+first — the same asymmetry `[30]` records for `func_actor_342400_801626CC`.
+Writing `T[i].vx` / `T[i].vy` / `T[i].vz` at every use with no pointer local
+lets CSE build the address symbol-first: 100%, and it matches the house shape
+already in the tree (`src/actors/actor_503500/actor_503500_6.c` writes
+`D_actor_503500_8016F0A8[arg0->spawnArg1].vx` three times the same way).
+
+Two-step forms reach the same order here — `SVECTOR *tbl = D_...;
+SVECTOR *src = &tbl[(s16)arg1];` also scored 100%, where the `p = T; p += i;`
+spelling in `[30]`'s function lost `regs`/`stack` — but neither is needed: the
+symbol-first order is what the inline form gives unaided.
+
+Inputs: `base_1.i` `def9903b4106f0a8ffc0d53b6ff641a881617f1f71edd5552431644a2ed9daa1`,
+`base_3.i` `77b8016ffd2057ac248c7ecd3ced827509f7e54ae71612dda597bc1631d39f86`.
