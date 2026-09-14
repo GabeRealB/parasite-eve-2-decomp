@@ -1939,6 +1939,66 @@ the block wherever the first user sits.
 is on at `-O2` and runs *before* register allocation, so the merge happens on
 pseudos and does not by itself constrain the allocation.
 
+## Actor step dispatcher: an if-chain with an explicit `return` per arm, never a `switch`
+
+The `field_47C`-style step field is dispatched the same way in actor overlay
+after actor overlay, and the target's layout is
+
+```
+   lh   v1, 0x47C(v0)
+   li   v0, 1
+   bne  v1, v0, next1
+   li   v0, 2            ; delay slot
+   jal  A
+   j    join
+next1:
+   bne  v1, v0, next2
+   li   v0, 3            ; delay slot
+   jal  B
+join:
+   lw   v1, global(s0)   ; the merged advance, cross-jumped
+   li   v0, 3
+   j    tail
+   sh   v0, 0x47C(v1)    ; delay slot
+next2:
+   bne  v1, v0, tail
+   jal  C
+tail:
+```
+
+Each body sits *immediately after its own test*, which is what an if-chain
+emits. A `switch` puts the whole compare chain first and every body after it -
+the layout the sibling section above relies on - so it is the wrong tool here
+even though the arms share a tail. `func_actor_202900_8014A194` scores 44.4%
+(`blocks 8/11`, `insert=13 delete=6`) as m2c's `switch` with a `goto block_4`,
+and 100% on the first build as an if-chain:
+
+```c
+if (ActorsShared80131f9cWork->field_47C == 1) {
+    func_actor_202900_8014A304();
+    ActorsShared80131f9cWork->field_47C = 3;
+    return;
+}
+if (ActorsShared80131f9cWork->field_47C == 2) {
+    func_actor_202900_8014A260();
+    ActorsShared80131f9cWork->field_47C = 3;
+    return;
+}
+if (ActorsShared80131f9cWork->field_47C == 3) {
+    func_actor_202900_8014A208();
+}
+```
+
+The explicit `return` after each step store is what does the merging: the two
+copies of `field_47C = 3` are then identical statements in two different
+blocks, jump.c cross-jumps them into the single advance at `join`, and the
+global is reloaded there through `$s0` - which is why the prologue keeps
+`ActorsShared80131f9cWork` in `$s0` across the calls. Collapsing the two stores
+into one shared statement by hand (the `goto block_4` m2c produced) reaches the
+same target but leaves the block where the first user sits and loses the
+reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
+`actor_420700`; porting one to the next is a field-offset rename.
+
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 
 A matched sibling (`func_replay_bonus_80117484`) does

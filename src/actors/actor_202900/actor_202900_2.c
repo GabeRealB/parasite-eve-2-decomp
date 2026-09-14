@@ -28,7 +28,26 @@ void func_actor_202900_8014A158(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A194);
+/// Runs the body the actor's step selects and then leaves it in step 3, the
+/// running state. Steps 1 and 2 each return through their own copy of the
+/// advance; the two are identical, so jump.c cross-jumps them and only the
+/// second survives.
+void func_actor_202900_8014A194(GpActorWork* arg0)
+{
+    if (ActorsShared80131f9cWork->field_47C == 1) {
+        func_actor_202900_8014A304();
+        ActorsShared80131f9cWork->field_47C = 3;
+        return;
+    }
+    if (ActorsShared80131f9cWork->field_47C == 2) {
+        func_actor_202900_8014A260();
+        ActorsShared80131f9cWork->field_47C = 3;
+        return;
+    }
+    if (ActorsShared80131f9cWork->field_47C == 3) {
+        func_actor_202900_8014A208();
+    }
+}
 
 /// Ticks animation slots 1..0x12 of the actor's animation context.
 void func_actor_202900_8014A208(void)
