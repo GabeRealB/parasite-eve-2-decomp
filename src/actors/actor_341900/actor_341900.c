@@ -1,11 +1,15 @@
 #include "common.h"
 
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
 #include "actors/actor_341900.h"
@@ -15,6 +19,15 @@ extern GpMsgEntry D_actor_341900_80163A38[];
 extern void func_80143490(s32 arg0);
 extern s32  D_80144A74;
 extern s32  D_80144A7C;
+
+extern TaskDesc D_actor_341900_80164190;
+/// Opaque script/table blobs in the overlay's `.data`, handed to
+/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
+extern u8 D_actor_341900_80163B48[];
+extern u8 D_actor_341900_80163FB0[];
+/// Byte the other actor overlays' one-argument setters write; set to 0xC here
+/// beside the stage-3 `D_80062735` mode byte.
+extern s8 D_8007272D;
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161E58);
 
@@ -151,4 +164,70 @@ INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80162AD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80162EFC);
+/// Controller task of the overlay's script sequence, the one published in
+/// `D_actor_341900_80164208`. State 0 clears and publishes the work block,
+/// points it at the slot-3 task and at the work object of the current session
+/// id, hands that id to slot 4 as message 0x7DA, spawns the five child script
+/// tasks (table entries 3..7, spawn arguments 1..5) under `field_8` and the
+/// two effect actors (entries 8 and 9) under the task itself, then sets the
+/// two `GameSession.field_69` flags that suppress the bank-load spawn of the
+/// ending and area-enter tasks. State 1 arms the stage-3 sound byte and spawns
+/// the two blob tasks. State 2 waits for `GameSession.field_1` to clear -- it
+/// sets game flag nibble 0x11D and kills the task when it does -- and
+/// otherwise runs the two child dispatchers.
+void func_actor_341900_80162EFC(Task* arg0)
+{
+    Actor341900Msg7DA sp10;
+    Actor341900Work*  work;
+    Actor341900Work*  seqWork;
+    u8                sessionIdLo;
+    s32               temp_a2;
+    u16               var_s0;
+
+    switch (arg0->state) {
+        case 0:
+            work        = (Actor341900Work*)Mem_Calloc(0x70U, false);
+            arg0->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(work, 0U, 0x70U);
+                work->field_0           = (Task*)Game_GetPtrSlot(3);
+                D_actor_341900_80164208 = arg0;
+                work->field_4           = (Task*)Gp_FindWorkById(
+                                    Game_Session->field_6 | (Game_Session->field_7 << 8))
+                                    ->field_0;
+            }
+            sp10.field_0 = Game_Session->field_7;
+            sessionIdLo  = Game_Session->field_6;
+            sp10.field_2 = 0;
+            sp10.field_1 = sessionIdLo;
+            Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
+            seqWork          = (Actor341900Work*)arg0->idMap;
+            seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, (s32)arg0);
+            for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
+                temp_a2 = var_s0 & 0xFFFF;
+                Task_SpawnFromTable(&D_actor_341900_80164190, temp_a2 + 3, temp_a2 + 1, (s32)seqWork->field_8);
+            }
+            seqWork->field_C        = Task_SpawnFromTable(&D_actor_341900_80164190, 8, 0, (s32)arg0);
+            seqWork->field_10       = Task_SpawnFromTable(&D_actor_341900_80164190, 9, 0, (s32)arg0);
+            Game_Session->field_69 |= 3;
+            goto next;
+        case 1:
+            D_80062735 = 4;
+            D_8007272D = 0xC;
+            func_800E8634((s32)D_actor_341900_80163B48, 0, (s32)D_actor_341900_80163FB0);
+        next:
+            arg0->state += 1;
+            return;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                GameFlag_SetNibble(0x11D, 2);
+                Task_RequestKill(arg0, 0);
+                return;
+            }
+            func_actor_341900_801628B8(arg0);
+            func_actor_341900_80162AD4(arg0);
+            return;
+    }
+}

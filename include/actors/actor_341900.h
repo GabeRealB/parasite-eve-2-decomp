@@ -38,7 +38,7 @@
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
     /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3)
-    /* 0x04 */ byte  pad_4[0x4];
+    /* 0x04 */ Task* field_4; // Gp_FindWorkById(session slot)->field_0
     /* 0x08 */ Task* field_8;
     /* 0x0C */ Task* field_C;
     /* 0x10 */ Task* field_10;
@@ -61,6 +61,18 @@ typedef struct Actor341900MsgPos {
     /* 0x10 */ SVECTOR rot;
 } Actor341900MsgPos;
 STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
+
+/// Session id payload `func_actor_341900_80162EFC` sends to slot 4 as message
+/// 0x7DA, asking for the 0x7DB reply. `field_0` takes `GameSession.field_7`
+/// and `field_1` takes `field_6`; the pair spells the id `Gp_FindWorkById`
+/// matches on (`field_6 | field_7 << 8`), which the same function uses to find
+/// the session's work object. `field_2` is zeroed.
+typedef struct Actor341900Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor341900Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor341900Msg7DA, 0x4);
 
 /// Work block allocated by `func_actor_341900_80162200` (`Mem_Malloc(0x44, 0)`)
 /// and parked in that task's `Task::idMap` slot, which is not a `TaskIdMap`
@@ -128,5 +140,9 @@ STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
 void func_actor_341900_80162330(Task* arg0);
 
 void func_actor_341900_80161E58(Task* arg0, s32 arg1);
+
+void func_actor_341900_801628B8(Task* arg0);
+
+void func_actor_341900_80162AD4(Task* arg0);
 
 #endif

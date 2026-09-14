@@ -43,6 +43,67 @@ Inputs: `base_2.i`
 `c10cb4f9d64d0c0ee1022b7511b3332347ce2956074845a27e47f4fffa5d9223` (separate
 `if`s), `base_3.i`
 `3ec22f1ae461cf5c970d7cd174c50b54bcd2cf3016ff258810f9f07df03770c9` (`||`).
+## A 16-bit loop counter is what *prevents* a `reload_cse` constant substitution
+
+The mirror of "`reload_cse` rewrites a later `= 0` as a copy unless the
+destination is wider": there, a wider *source* was needed to break the match;
+here the fix is a **narrower** one. `func_actor_341900_80162EFC` was at 99.966%
+with one instruction left — the target's `move a2,zero` for a `Task_SpawnFromTable`
+third argument against the candidate's `move a2,s0`. The candidate's `$s0` held
+the loop counter, whose `var_s0 = 0` init is an SImode `(set (reg/v:SI 86)
+(const_int 0))` (`base_5.i.sched` insn 154, before the argument set at insn 143),
+so `reload_cse_simplify_set` rewrote the argument's `(const_int 0)` into a copy
+of `$s0`.
+
+The target has an `andi $a2,$s0,0xFFFF` before *every* use of that counter,
+including inside the loop body — which is the zero-extension of a **16-bit
+variable**, not m2c's `s32` plus written-out `& 0xFFFF` masks. Declaring it
+`u16 var_s0` makes the init a `movhi_internal2` set recorded in HImode, and
+`reload_cse_regno_equal_p` rejects it for an SImode use (`mode != GET_MODE (x)`,
+and `GET_MODE_SIZE (SImode) < GET_MODE_SIZE (HImode)` is false), so the literal
+constant survives. 100% on the first build of that change.
+
+Two things make this hard to see from the object dump: `mips_move_1word` prints
+any `const_int 0` set as `move %0,%z1` regardless of mode, so the HImode init
+encodes and disassembles identically; and the substitution is invisible in
+`.sched`/`.greg` — read `.sched2` or the `reload1.c` source. Treat "the target
+ANDs this variable at every use" as evidence the variable is 16-bit, and note
+that its width is load-bearing rather than cosmetic.
+
+Inputs: `base_5.i` `3c0a92341d65b59510133bafeec8756af4cd364e14919d6d643a36e5d089c764`,
+`base_6.i` `4e47c39fb129c93da9d143b4ca6b23b1915004a46cdc4c0809c6199d74c7392b`.
+
+## One `reg/v` pseudo with two definitions blocks the register the target reuses
+
+`func_actor_341900_80162EFC` writes through `arg0->idMap` before and after the
+`Gp_DispatchMsg` call, and the target keeps the two pointers in different
+registers (`$s0` before, `$s1` after); one C variable gave `$s1` for both
+(`regs=7`). `.greg` says why: a variable assigned twice is *one* pseudo
+(`;; 5 regs to allocate: 83 84 81 80 117`, with `81 conflicts: 80 81 84 117 2 3
+4 5 6 7 16 29`), so its live range spans both blocks and it conflicts with the
+loop counter's `$s0` — the register the target's first half uses. `global.c`
+then has to place it elsewhere.
+
+Splitting it into two variables (`work` for the setup half, `seqWork` for the
+post-call half) gives two pseudos with disjoint ranges, the conflict disappears,
+and the first lands in `$s0` — `regs` 7 → 1, then 0. The same split applied to
+the `Task_SpawnFromTable` results is what fixed the earlier `reorder` residue.
+So when the target uses two registers for what reads as one pointer, do not
+reach for a pin: count the definitions in `.greg` first.
+
+Inputs: `base_4.i` (99.354%), `base_6.i`
+`4e47c39fb129c93da9d143b4ca6b23b1915004a46cdc4c0809c6199d74c7392b`.
+
+## `permute.sh` preprocesses without `-I tools/m2c`, so `m2c_macros.h` seeds fail setup
+
+`permute.sh` runs `gcc -E -P -Iinclude -Iinclude/decomp -Iinclude/psyq
+-DPERMUTER` while `build.sh` adds `-I tools/m2c`. A candidate whose source
+still has `#include "m2c_macros.h"` (any raw m2c seed) therefore fails setup
+with `fatal error: m2c_macros.h: No such file or directory`, and the router
+reports the candidate as a skip rather than a failure to compile — a whole
+search can come back `PERMUTER_MISS` with the real cause three lines up in
+`PERMUTER.txt`. Retype the seed to real struct fields (usually wanted anyway,
+see the aliasing entry) before asking the router to search it.
 
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 
