@@ -10,6 +10,7 @@
 #include "main/tmd.h"
 
 extern s32 D_actor_161500_80134920[8];
+extern s32 D_actor_161500_80135288[8];
 extern s32 D_actor_161500_801352A8;
 extern s32 D_actor_161500_801354B8;
 extern s32 D_actor_161500_80135668;
@@ -70,7 +71,18 @@ void func_actor_161500_80131FBC(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132038);
+void func_actor_161500_80132038(void)
+{
+    s32 temp_s0;
+    s32 temp_v0;
+
+    temp_s0 = (Game_Session->field_9 == 1) * 4;
+    temp_v0 = GameFlag_GetNibble(0x104);
+    func_800E8614(D_actor_161500_80135288[temp_v0 + temp_s0], 0);
+    if (temp_v0 < 3) {
+        GameFlag_SetNibble(0x104, temp_v0 + 1);
+    }
+}
 
 void func_actor_161500_801320B4(void)
 {
