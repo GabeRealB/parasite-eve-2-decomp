@@ -1773,6 +1773,47 @@ Rule: when the target shows one shared tail reached from two source branches,
 write the literals *in* each branch - do not merge them through a local - and
 let the cross-jumper build the tail. This is the same rule as the store entry
 above, extended to identical multi-instruction call blocks.
+## A cross-jumped call block also decides the address's register: `lui $a0`, not `lui $v0`
+
+`func_actor_161500_80132110` picks one of two symbol addresses and passes it to
+one call. m2c wrote the natural single-call shape
+
+```c
+s32 *p;
+if (GameFlag_GetNibble(0x105) == 0) p = &A; else p = &B;
+func_800E8614((s32)p, 0);
+```
+
+which scores 86% and cannot be fixed by tweaking that shape. The target instead
+has the address materialised *into `$a0`* in each arm, and that falls out of the
+two-call source:
+
+```c
+if (GameFlag_GetNibble(0x105) == 0) func_800E8614((s32)&A, 0);
+else                                func_800E8614((s32)&B, 0);
+```
+
+Cross-jumping (the `jump2` pass, `jump.c`'s `find_cross_jump`) compares each
+unconditional jump backwards against the insns before its label; here the two
+arms' `move $a1,$zero` + `jal` match, so the then-arm's jump is retargeted at the
+else-arm's copy and the then-arm's duplicates are deleted - one `jal` for two
+source branches, exactly as in the section above.
+
+The register effect is the part worth remembering. `movsi`'s expander always
+puts the `HIGH` half in a fresh temp (`gen_reg_rtx`) and leaves the `LO_SUM`
+half in `operands[0]`, and `local-alloc.c`'s `combine_regs` records a *suggested*
+hard register for a pseudo used by an insn whose destination is that hard reg.
+With the value going straight to the argument register, the `lo_sum` dest is
+`(reg:SI 4 a0)`, so the `high` temp gets `qty_phys_sugg = {$a0}` and both arms
+emit `lui $a0,%hi(A)` / `addiu $a0,$a0,%lo(A)`.
+
+In the single-call shape the `lo_sum` dest is a pseudo, no suggestion is
+recorded, and local-alloc falls back to its allocation order: the temp lands in
+`$v0` and the arms emit `lui $v0` / `addiu $a0,$v0`. Same instruction count,
+same blocks - only `regs` differs, so the structural diagnostics look clean and
+the score sits at 86%. Read the `lui` destination as the tell: when the target
+writes the address into the argument register itself, the source had no
+intervening variable.
 ## Duplicate a shared switch-case tail in the source; cross-jump keeps the *later* copy
 
 Two `case`s that end in the same statements do not need a `goto` to a shared

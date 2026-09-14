@@ -9,6 +9,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+extern s32 D_actor_161500_801352A8;
+extern s32 D_actor_161500_801354B8;
 extern s32 D_actor_161500_80135668;
 extern s32 D_actor_161500_801357E8;
 extern s32 D_actor_161500_80135968;
@@ -60,7 +62,14 @@ void func_actor_161500_801320F0(s32 arg0)
     Gp_RunCapCmd(arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_80132110);
+void func_actor_161500_80132110(void)
+{
+    if (GameFlag_GetNibble(0x105) == 0) {
+        func_800E8614((s32)&D_actor_161500_801352A8, 0);
+    } else {
+        func_800E8614((s32)&D_actor_161500_801354B8, 0);
+    }
+}
 
 void func_actor_161500_80132150(void)
 {
