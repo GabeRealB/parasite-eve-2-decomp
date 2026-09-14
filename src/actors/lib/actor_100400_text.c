@@ -26,6 +26,9 @@ void       Gp_SetLightMode(Actor100400Obj* arg0, s32 arg1);
 void       Actor00400_Fn0237C(Actor100400* arg0);
 void       Actor00400_Fn02FF8(Actor100400* arg0);
 void       Gp_IncStateF0Ref(s32 arg0);
+s32        Gp_GetObjPan(GsCOORDINATE2* arg0);
+s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
+s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -582,7 +585,22 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0962C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn096C0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09714);
+void Actor00400_Fn09714(Actor100400* arg0)
+{
+    s32              sound;
+    s32              pan;
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    work->field_63C = 6;
+    work->field_632 = 0x10;
+    work->field_628 = 0xA;
+    work->field_624 = 1;
+    sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+    pan             = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    work->field_63A++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn097C8);
 
