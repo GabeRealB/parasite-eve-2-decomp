@@ -14,6 +14,7 @@
 void Actor04400_Fn006A8(Task* arg0);
 /* Reads the caller's Task* from $a0; the call passes no argument. */
 void Actor04400_Fn02B8C();
+s16  Actor04400_Fn06328(Task* arg0);
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
 s16  Actor04400_Fn06618(Task* arg0);
 
@@ -633,7 +634,21 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07D78);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07E00);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07E74);
+extern TaskFuncTable3 Actor04400_D00168;
+
+void Actor04400_Fn07E74(Task* arg0)
+{
+    Actor104400Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor104400Work*)arg0->idMap;
+    sp   = Actor04400_D00168;
+    if ((Actor04400_Fn06328(arg0) << 0x10) != 0) {
+        work->field_438 = 0;
+        return;
+    }
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07F04);
 
