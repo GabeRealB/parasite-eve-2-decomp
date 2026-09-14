@@ -19,6 +19,16 @@ typedef struct Actor511000Work {
     /* 0x50 */ MATRIX color;
 } Actor511000Work;
 
+/// Work block of the spawner this overlay's model-attach handlers parent to,
+/// reached through the parent task's `Task::idMap`. Only the two matrices the
+/// model object is pointed at are modelled here; the same pair sits at the
+/// same offsets in `ActorsShared80135b64Work` / `Actor02000Work`.
+typedef struct Actor511000ParentWork {
+    /* 0x000 */ byte   pad_0[0x43C];
+    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
+    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
+} Actor511000ParentWork;
+
 /// Work block `func_actor_511000_80132480` allocates (`Mem_Calloc(0x4D4, 0)`)
 /// and parks in that task's `Task::idMap` slot. Distinct from
 /// `Actor511000Work`: this variant's light/color pair sits at 0x484 / 0x4A4
