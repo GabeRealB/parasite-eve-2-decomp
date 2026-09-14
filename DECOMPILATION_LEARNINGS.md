@@ -76405,3 +76405,39 @@ Two things the seed gets wrong beyond the type:
   (`slot = Game_GetPtrSlot(3);`), which is why `$s1` holds the slot across the
   `Gp_PlayerWeaponId` call. Both spellings match their own target; pick from the
   register that survives the call, not from the sibling.
+
+## `find` reports no copies for a byte-identical body when splat emits an `alabel`
+
+`python3 tools/overlay_dup_index.py find <fn>` decides "same body" from the
+**canonicalised disassembly text** (`text` hash; `cmd_find` at
+`overlay_dup_index.py:517`), and only marks `=` when the instruction words
+(`raw`) match too. `scan_function` builds that text by stripping the address
+column (`ADDR`), dropping lines that start with one of
+`glabel|endlabel|nonmatching|.include|.set|.section|.align|/*` (`SKIP`), and
+folding `.L…` labels (`LABELDEF`). A splat `alabel D_<addr>` line matches none
+of those, so it survives into the hash — and it belongs to the copy, not to the
+body.
+
+Worked case: `func_actor_335800_80162E8C` (`actor_335800`, 31 instructions) is
+byte-identical to the already-matched shared `ActorsShared80132450`. `diff` on
+the two `.s` files shows the address column and that one `alabel D_80162E98`
+line as the only differences. Yet `find` printed `same body: 1 copies` —
+itself — while `find ActorsShared80132450` listed four copies and not this one.
+The step-4b promotion check therefore reads as "nothing to promote", and
+`find <fn>` on the *shared* symbol cannot see the overlay that should be
+sharing it.
+
+`BRIEF.md`'s "Similar matched bodies" list did surface it, because that list
+comes from the lossy `shape` / `fields` tiers, which drop operands and label
+lines. So the rule is: **when `find` reports no copies but BRIEF lists a
+`*`-starred 1.00 sibling, `diff` the two `.s` files before treating the body as
+distinct.** Here the sibling's exact C body *was* the whole match — one attempt,
+100%.
+
+The typed form is what pins the allocation, not the offsets: this body is the
+attach sequence (`coord->flg = 0`, `coord->sub = &parentExtra->field_8[part]`,
+inherit `field_1C`/`field_20`, `Task_Reparent`, `state += 1`). Written with m2c's
+`void *` temps and `M2C_FIELD` it scored 75.875% (`regs=14 insert=4 delete=3`),
+because the compiler kept `task->extra` in `$a2` and its `field_8` in `$a3`;
+written with `TmdObject*` / `GsCOORDINATE2*` locals it puts
+`$a3 = extra`, `$t0 = extra->field_8`, `$a2 = parentExtra` and matches exactly.
