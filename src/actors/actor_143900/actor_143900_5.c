@@ -38,6 +38,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_80132A9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_80132DEC);
+/// Two-state dispatcher: publishes the task's work block in
+/// `D_actor_143900_801496C4` on the way through, then calls the handler its
+/// state selects.
+void func_actor_143900_80132DEC(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_143900_801328D4,
+        func_actor_143900_80132E48,
+    };
+    u8 scratch[0x40]; /* never referenced; only reserves the frame */
+
+    D_actor_143900_801496C4 = task->idMap;
+    fns[task->state](task->spawnArg2, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_80132E48);

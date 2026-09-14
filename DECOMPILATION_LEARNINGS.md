@@ -57501,6 +57501,55 @@ table to `0x18` (99.68%, `regs=7`). The target has `pos` at `0x10` and the
 table at `0x20`, so `pos` is declared first, then `ext`, then `work`, then the
 table.
 
+## A local initializer over 8 bytes is a `.rodata` copy, so it cannot supply the clobber
+
+`func_actor_143900_80132DEC` needs both halves of the pattern above at once: the
+8-byte handler table at `0x10` with the `store_constructor` clobber that keeps
+`sw $ra` first, and a `0x60` frame whose `$ra` sits at `0x58` — 0x40 bytes more
+local than the table needs. Growing the table to fill the frame is the obvious
+move, and it is the one thing that cannot work:
+
+```c
+typedef union {
+    void (*fns[2])(GpEnemy*, Task*);
+    u8 pad[0x48];
+} Actor143900Dispatch;
+
+Actor143900Dispatch dispatch = { { h0, h1 } };  /* 44.2%, 36 instructions */
+```
+
+The 0x48-byte object takes `expand_expr`'s CONSTRUCTOR rodata path:
+`output_constant_def` puts the whole value in `.rodata` (`$LC0`) and the
+assignment becomes `movstrsi_internal` copies — 16 bytes in a loop, then an
+8-byte tail — so there are no element stores and no clobber, and sched1 has
+nothing holding `sw $ra` at the top.
+
+The test is `expr.c:5460`: a `TREE_STATIC` initializer goes to memory when its
+mode is BLKmode and the target is not `safe_from_p`, or when it is
+`TREE_ADDRESSABLE`, or when
+`move_by_pieces_ninsns (TYPE_SIZE/8, TYPE_ALIGN/8) > MOVE_RATIO` and the value
+is not `mostly_zeros_p`. On mips1 `MOVE_MAX` is 4 and `HAVE_movstrsi` makes
+`MOVE_RATIO` 2, so the threshold is **more than two 4-byte moves at the object's
+own alignment**: 8 bytes for a function-pointer table (align 4) but only 3 for a
+`u8[3]` (align 1), which is why the byte arrays in "A stack array initializer is
+rodata" are copied from `.rodata` while a two-entry dispatch table is not.
+`mostly_zeros_p` is the escape hatch — a large `= { 0 }` initializer never takes
+this path.
+
+GCC 2.8.1 has no compound literals (no `compoundliteral` in `c-parse.y`), so no
+C form reaches `store_constructor` with a MEM target and a large value. Split
+the two requirements across two objects instead: a small initialized table for
+the clobber and the schedule, and an unused local *after* it for the frame.
+
+```c
+void (*fns[2])(GpEnemy*, Task*) = { h0, h1 };
+u8 scratch[0x40];   /* never referenced; only reserves the frame */
+```
+
+The table takes `0x10..0x18`, the dead local `0x18..0x58` and `$ra` lands at
+`0x58`: 100%. The dead local has to be declared after the table, or the table
+moves up to `0x50` and the `sw` slots are wrong.
+
 ## Four `lw` then four `sw` is a struct assignment, not a hand-written copy
 
 A run of loads into `$a2/$a3/$t0/$t1` followed by four stores, repeated, is
