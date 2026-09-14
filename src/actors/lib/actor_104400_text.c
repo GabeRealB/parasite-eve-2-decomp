@@ -8,6 +8,7 @@
 #include "gameplay/3A34.h"
 
 void Actor04400_Fn006A8(Task* arg0);
+void Actor04400_Fn06374(Task* arg0, s32 arg1);
 s16  Actor04400_Fn06618(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
@@ -472,7 +473,30 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07A38);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07B4C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07C60);
+void Actor04400_Fn07C60(Task* arg0)
+{
+    Actor104400Work* work;
+    s32              cond;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        if (work->field_44F == 1) {
+            work            = (Actor104400Work*)arg0->idMap;
+            work->field_420 = 3;
+            work->field_422 = 0;
+        } else {
+            Actor04400_Fn06374(arg0, 1);
+            work            = (Actor104400Work*)arg0->idMap;
+            work->field_420 = 5;
+            work->field_422 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07CF0);
 
