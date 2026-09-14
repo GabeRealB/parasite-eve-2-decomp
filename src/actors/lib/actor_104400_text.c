@@ -902,6 +902,49 @@ void Actor04400_Fn02E8C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn0304C);
+/// Same body as `ActorsShared80166180`. Death squash: copy `matrix_0` onto the
+/// model root, scale Y by the shrinking `field_430`, spawn spark 0x600A5 on
+/// frame 4, switch the light mode on frame 16, and hide the model after frame
+/// 32.
+void Actor04400_Fn0304C(Task* arg0)
+{
+    Actor104400Work*              work;
+    TmdObject*                    obj;
+    GsCOORDINATE2*                coord;
+    VECTOR                        scale;
+    ActorsShared801639a8Mat       m;
+    ActorsShared801639a8MatWords* ident;
+    SVECTOR                       ofs;
+
+    work             = (Actor104400Work*)arg0->idMap;
+    ident            = &m.ident;
+    obj              = arg0->extra;
+    coord            = obj->field_8;
+    work->field_430 -= 0x40;
+    scale.vx         = 0x1000;
+    scale.vy         = (s16)work->field_430;
+    scale.vz         = 0x1000;
+    coord->coord     = work->matrix_0;
+    m.ident.m00_m01  = 0x1000;
+    m.ident.m02_m10  = 0;
+    ident->m11_m12   = 0x1000;
+    m.ident.m20_m21  = 0;
+    ident->m22       = 0x1000;
+    ScaleMatrix(&m.mat, &scale);
+    MulMatrix(&coord->coord, &m.mat);
+    if ((s16)++work->field_412 == 4) {
+        ofs.vx = 0;
+        ofs.vy = 0;
+        ofs.vz = 0;
+        Gp_SpawnEff(0x600A5, coord, 3, &ofs);
+    }
+    if ((s16)work->field_412 == 0x10) {
+        Gp_SetLightMode(arg0->spawnArg2, 2);
+    }
+    if ((s16)work->field_412 > 0x20) {
+        obj->field_C |= 0x80;
+        work->field_420++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn031B8);
