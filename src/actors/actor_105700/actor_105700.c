@@ -38,6 +38,9 @@ extern Actor105700PlaceSrc D_actor_105700_80148F14;
 /// into its handover animation.
 extern s8 D_80115419;
 
+/// LCG the approach-cycle ticks roll into the `field_6AE` frame budget.
+extern u32 Gp_LcgState;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_105700/actor_105700", D_actor_105700_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80131ED0);
@@ -185,7 +188,50 @@ void func_actor_105700_80132B28(Actor105700* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80132C64);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133040);
+/// The `field_6A8` state shared by the approach-cycle ticks; state 0 arms the
+/// dwell the `field_6B8` selector picks, and states 1 and 2 wait for
+/// `field_698` to reach 0x10 / 0x16 before parking animation 0x19 / 0x1D and
+/// rolling `Gp_LcgState` into the `field_6AE` budget. The same body as
+/// `Actor02000_Fn011E8` of `actor_102000`.
+void func_actor_105700_80133040(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    s16              state;
+    s32              next;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            next = work->field_6B8;
+            if (next == 1) {
+                work->field_694 = 0x17;
+                work->field_6A8 = next;
+            } else {
+                work->field_694 = 0x1B;
+                work->field_6A8 = 2;
+            }
+            break;
+        case 1:
+            if (work->field_698 >= 0x10) {
+                work->field_694 = 0x19;
+                work->field_6A6 = 0xB;
+                work->field_6A8 = 3;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+        case 2:
+            if (work->field_698 >= 0x16) {
+                work->field_694 = 0x1D;
+                work->field_6A6 = 0xB;
+                work->field_6A8 = 3;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+    }
+}
 
 /// Per-frame tick of the actor's approach cycle, the verbatim counterpart of
 /// `Actor02000_Fn012E0` of `actor_102000` (see `overlay_dup_index.py find

@@ -65442,6 +65442,31 @@ it should be sized for six carriers at once rather than attempted per function.
 Inputs: `base_1.i`
 `f66f4b84caebc876e82a1dfd438496f522a8f9385d81e978a011a453e939239f` (100%).
 
+**Fourth sighting** (`func_actor_105700_80133040`, `0x1220`, the same six
+carriers). Same renumbering, and the collision is now visible in the *pre-promote*
+config as well: `0x8C/.rodata` and `0x517C/c` are both already named
+`actor_105700/actor_105700_3`, so the shift does not move a unit onto a fresh
+path — it rotates each of `_2.._5` one index up while `_3`, `_4` and `_5` each
+keep a rodata cut that does not move. `src/actors/actor_105700/actor_105700_3.c`
+is therefore not a file to rename but a file to *merge*: it must retain the
+`0x8C` rodata and take the code that was in `_2.c`. Reverted the promote the same
+way (manifest, six sym files, the carrier `INCLUDE_ASM` line, and the six
+splat-created stubs `_5.c` / `_6.c` plus `lib/actors_shared_80133040.c`) and
+landed the body in the overlay's own `.c`; scoped and unscoped both green.
+
+Worth recording because the tabulated penalty here was the opposite of the
+usual: `base.c` (m2c) scored 83.426% with `branch=1 regs=2 reorder=5 insert=2
+delete=5`, and the verbatim sibling body reached 100.000% on the first build
+with no pins — the duplicated-`return` shape m2c emits for this two-case
+switch is what cost the 16%, not any allocation or scheduling property. When
+`overlay_dup_index.py find` reports a same-family sibling at `shape` /
+`fields` / `cflow` all at 1.00, porting that body before touching m2c is the
+whole match. Four functions from this one overlay now carry a deferred
+promotion.
+
+Inputs: `base_1.i`
+`2c557ca0af20769d7f7a8be2a2d6974d3a3a8ad39a01f7216f340dbb6493e836` (100%).
+
 ## A byte-identical body already matched one overlay over is invisible to `find` and `solved`
 
 `func_actor_105700_80133364` is byte-for-byte `Actor02000_Fn0150C` of
