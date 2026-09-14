@@ -31,6 +31,7 @@ extern Actor120300* D_actor_120300_80141BA8;
 
 void func_actor_120300_80133E14(s16 arg0);
 void func_actor_120300_80133E34(s16 arg0);
+void func_actor_120300_80133E54(void);
 void func_actor_120300_80133E94(void);
 
 #endif

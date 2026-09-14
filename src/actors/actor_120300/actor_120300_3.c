@@ -21,7 +21,17 @@ void func_actor_120300_80133E34(s16 arg0)
     work->field_4CA = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300_3", func_actor_120300_80133E54);
+/// Requests the player-weapon effect be killed: latches `field_4DE` so the
+/// call happens once, and `func_actor_120300_80133E94` consumes the latch.
+void func_actor_120300_80133E54(void)
+{
+    Actor120300Work* work = D_actor_120300_80141BA8->field_1C;
+
+    if (work->field_4DE == 0) {
+        work->field_4DE = 1;
+        Gp_KillPlayerEffs();
+    }
+}
 
 /// Runs the pending player-weapon effect and reports it: the latch at
 /// `field_4DE` keeps it one-shot, and the `Gp_MsgPlayerWeapon` argument beside
