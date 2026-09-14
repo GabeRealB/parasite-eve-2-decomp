@@ -132,6 +132,40 @@ void func_actor_310100_801631B0(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_801632B0);
+/// The other display-model state handler (message 0x6D): the spawn tick seeds
+/// the tracker from the model's part-1 coordinate frame and steps to state 1,
+/// and every later tick draws the floor quad while the display state is still
+/// below 2.
+void func_actor_310100_801632B0(Task* task)
+{
+    Actor310100Work* work;
+    Actor310100Vec   pos;
+    TmdObject*       extra;
+
+    work = (Actor310100Work*)task->idMap;
+    switch (task->state) {
+        case 0:
+            func_actor_310100_801625E4(task, 0x6D);
+            Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+            extra      = (TmdObject*)task->extra;
+            pos.vec.vx = extra->field_8[1].workm.t[0];
+            pos.vec.vy = ((TmdObject*)task->extra)->field_8[1].workm.t[1];
+            pos.vec.vz = ((TmdObject*)task->extra)->field_8[1].workm.t[2];
+            func_800D7A9C(extra, &pos.vec, 0, 3);
+            task->state++;
+            break;
+        case 1:
+            switch (work->field_4F0) {
+                case 0:
+                case 1:
+                    pos.rot.vx = 0;
+                    pos.rot.vy = 0x380;
+                    pos.rot.vz = 0;
+                    Gp_DrawFloorQuad(&((TmdObject*)task->extra)->field_8[1], 0x300, &pos.rot);
+                    break;
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_310100/actor_310100", D_actor_310100_80161E20);

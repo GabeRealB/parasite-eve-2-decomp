@@ -40,6 +40,12 @@ typedef union Actor310100Vec {
 /// state goes non-zero.
 void func_actor_310100_801631B0(Task* task);
 
+/// The other display-model state handler (message 0x6D): the spawn tick seeds
+/// the tracker from the model's part-1 coordinate frame and steps to state 1,
+/// and every later tick draws the floor quad while the display state is still
+/// below 2.
+void func_actor_310100_801632B0(Task* task);
+
 /// Message 0x7D5 handler: kills the display task hanging off the work block,
 /// records the payload's `pos.vy` in the work block and spawns a fresh display
 /// task from `D_actor_310100_801798E4`. The display task is handed `arg2` as its

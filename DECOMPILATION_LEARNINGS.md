@@ -131,6 +131,64 @@ base_1.i `b3998257ca8d945da974c1c3846649ac2488078deafb4ad264eda281efda0ffd`.
 Evidence: scratch `nonmatchings/func_actor_113100_80132F40-vacuum/`, the
 `.rtl` insns 20/21/23 above; no pins, no permuter, no tracer.
 `overlay_dup_index.py find` reports this body as its own only copy.
+## A `u16` field tested for "0 or 1" is a two-case `switch`; `&&` folds to one `sltiu`
+
+A guard that draws only while a `u16` work field holds 0 or 1 reads naturally as
+`if (work->field < 2 && work->field >= 0)`. That compiles four instructions short
+of the target: `fold_range_test` (fold-const.c) merges two comparisons whose
+`make_range` operands are equal into a range test, and `build_range_check` emits
+it as `(unsigned)(x - low) <= (high - low)` — here a single `sltu v0,v0,2`.
+Because `u16` promotes to `int` and the range fits, both the signedness and the
+second test disappear.
+
+The target instead keeps two tests, both to the *same* label:
+
+```
+lhu    $v1, 0x4F0($a0)
+nop
+slti   $v0, $v1, 2
+beqz   $v0, end
+nop
+bltz   $v1, end
+```
+
+That is `stmt.c`'s `emit_case_nodes`, childless bounded node (line ~6528): it
+emits `x > high → default`, then `x < low → default`, then an unconditional jump
+to the case body that jump.c deletes when the body follows. The branches are
+signed because `unsignedp = TREE_UNSIGNED (index_type)` and a `u16` control
+expression has already been integer-promoted to `int` — `slti` and `bltz`, never
+`sltiu`. So the source was a switch with consecutive cases:
+
+```c
+        case 1:
+            switch (work->field_4F0) {
+                case 0:
+                case 1:
+                    ...draw...
+                    break;
+            }
+            break;
+```
+
+The `&&` form cannot be rescued by retyping: `(s32)field >= 0` and a named `s32`
+local assigned from the field both still merge, because `make_range` returns
+*the comparison's own operand* for each side and `operand_equal_p` then succeeds.
+Only a different operand tree (a `(s16)` cast, say) blocks the merge, and that
+costs a second, sign-extending load. A `switch` never reaches `fold_range_test`
+at all.
+
+A single-value guard in the same idiom stays an `if`: the sibling
+`func_actor_310100_801631B0` is `if (work->field_4F0 == 0)` → `lhu` + `bnez`.
+`func_acropolis_plaza_8017F9EC` is the same `{0, 1}` cluster reached from a
+3-case switch, emitted as `bltz` / `slti`+`bnez` (the `node->right` form at line
+~6485).
+
+Example: `func_actor_310100_801632B0` — `&&` form 93.9%, nested switch 100% with
+a zero penalty mix. Inputs: `base_2.i`
+`233b3fc41cff3b6b6d64acea062a9777c9cf3a785aece9408c480d7dc0fcd293` (`&&`),
+`base_3.i`
+`0292c0679115d3a19081352b35ec6837c99a913c9db53828b5b355f063bc45f0` (nested
+switch).
 
 ## Share one `return K` between the paths (`||`) so reorg threads `li v0,K` into both branch delays
 
