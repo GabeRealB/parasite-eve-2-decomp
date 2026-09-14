@@ -15,7 +15,10 @@ extern TaskDesc D_actor_310100_80179920;
 extern u32      D_actor_310100_80179754;
 extern u32      D_actor_310100_80179794;
 extern u32      D_actor_310100_801798B4;
+extern u32      D_actor_310100_801797FC;
 extern s8       D_8007106B;
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 s32 func_actor_310100_80161E24(Task* task)
 {
@@ -344,7 +347,65 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
     Display_SpawnWithOt(&D_actor_310100_801798F0, 0, arg2, (s32)task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80162D50);
+/// Message 0x7DD handler, and the display task's placement command: marks the
+/// display work block dirty, then either forwards the payload to the animation
+/// task (`pos.vx` zero — the seed carries the yaw into `field_4F6` and message
+/// 0x3F4 gets `pos.vy` / `pos.vz` as a `GpAnimArg`) or reseeds the nineteen
+/// animation slots (`pos.vz` zero resets them through `Gp_AnimResetSlot`,
+/// otherwise `func_800B4114` blends them) and records the new base in
+/// `field_4F8` / `field_4FA`.
+void func_actor_310100_80162D50(Task* task, s32 msgId, Actor310100Placement* placement)
+{
+    GpAnimArg        arg;
+    Actor310100Work* work;
+    Actor310100Work* disp;
+    Actor310100Work* msgDisp;
+    Actor310100Work* resetDisp;
+    Task*            display;
+    u16              vy;
+    u16              vz;
+    u16              blend;
+    u16              active;
+    s32              i;
+
+    work            = (Actor310100Work*)task->idMap;
+    display         = work->field_4E4;
+    disp            = (Actor310100Work*)display->idMap;
+    disp->field_4F0 = 1;
+    if (placement->pos.vx == 0) {
+        disp->field_4F6 = placement->pos.vy;
+        msgDisp         = (Actor310100Work*)display->idMap;
+        vy              = placement->pos.vy;
+        vz              = placement->pos.vz;
+        if (msgDisp->field_4E8 != NULL) {
+            arg.field_0  = &D_actor_310100_801797FC;
+            arg.field_4  = vy;
+            arg.field_8  = vz;
+            arg.field_C  = 0xA;
+            arg.field_10 = 1;
+            Gp_DispatchMsg(msgDisp->field_4E8, 0x3F4, (s32)&arg, 0);
+        }
+    } else {
+        active    = placement->pos.vy;
+        blend     = placement->pos.vz;
+        resetDisp = (Actor310100Work*)display->idMap;
+        i         = 1;
+        if (blend == 0) {
+            do {
+                resetDisp->slots[i & 0xFFFF].field_9 = 0x10;
+                Gp_AnimResetSlot(&resetDisp->anim, i & 0xFFFF, active);
+                i += 1;
+            } while ((u32)(i & 0xFFFF) < 0x13U);
+        } else {
+            do {
+                func_800B4114(&resetDisp->anim, i & 0xFFFF, active, 0, 8);
+                i += 1;
+            } while ((u32)(i & 0xFFFF) < 0x13U);
+        }
+        disp->field_4F8 = placement->pos.vx;
+        disp->field_4FA = placement->pos.vy;
+    }
+}
 
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and

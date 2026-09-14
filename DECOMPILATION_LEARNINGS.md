@@ -74234,3 +74234,43 @@ router best `base_perm_….i`
 (99.592%, correct `%hi` scratch, wrong `$sN`), `base_7.i`
 `99e22b6181744039a34fcd03d25fbcbec01b8d4397cbbd7fc038a74d5c9865c6` (100.000%,
 assembly `967b21f7a862343fe04a0411f283e4165ce2fbf59f9d55f150fd2c53bf7636ed`).
+
+## One local reused in two sibling branches is one allocno spanning both: give each branch its own
+
+`func_actor_310100_80162D50` reached 98.777% on its first real attempt with
+`stack=0 branch=0 regs=11 reorder=1 insert=0 delete=0`, and the diff was three
+instructions: a pointer that should have been caller-saved sat in `$s1`, and the
+two halfword locals beside it had swapped `$v1` / `$a0`. The branches are
+disjoint, so nothing in the source looked shared — but the *names* were:
+
+```c
+    Actor310100Work* disp2;          /* one declaration ... */
+    u16              vy;
+    u16              vz;
+    ...
+    if (placement->pos.vx == 0) {
+        disp2 = (Actor310100Work*)display->idMap;   /* ... used here */
+        vy    = placement->pos.vy;
+        vz    = placement->pos.vz;
+        ...
+    } else {
+        vz    = placement->pos.vz;                  /* ... and here */
+        disp2 = (Actor310100Work*)display->idMap;
+```
+
+A name is a pseudo, and its live range is the union of its assignments, so the
+two `disp2`s are **one** allocno live from the first branch into the second —
+which rules out every call-clobbered register across the `Gp_DispatchMsg` call in
+between, and `$s1` is what is left. The target keeps the message path's pointer
+in `$a3` (caller-saved, dead before the call) and the slot-reset path's in `$s1`,
+and those live ranges do not overlap, so they are two pseudos. Giving each branch
+its own variable — `msgDisp` / `resetDisp`, and `vz` / `blend` for the two
+halfword temps — scored 100.000% with every penalty zero.
+
+**This is the mirror of the `$sN`-split entry above.** There a single source
+variable covered two disjoint live ranges and had to be *split*; here two source
+mentions shared one name and had to be *separated*. Both show up as a pure
+`regs=N` penalty with no stack, branch, reorder or insert/delete component, and
+in both the fix is at the declaration, not at a pin: **when two branches of one
+`if` assign the same local, ask whether the target gives them the same home.** If
+it does not, they are two variables.
