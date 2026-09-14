@@ -23,19 +23,3 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", D_actor_403200_8
 INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", D_actor_403200_80131F14);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", D_actor_403200_80131F28);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_80131F3C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_80131F5C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_80131FAC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_80131FD4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_801320D4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", jtbl_actor_403200_80132104);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", D_actor_403200_80132154);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403200/actor_403200", D_actor_403200_801321B8);

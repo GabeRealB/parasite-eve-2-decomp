@@ -3,6 +3,7 @@
 #include "actors/actor_403200.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "main/display.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -26,7 +27,109 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80137EB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138284);
+/// Screen-shake driver for the enemy task: `func_actor_403200_8013FB54` writes a
+/// level into `field_EAC`, and a change from the armed level in `field_EAD`
+/// starts a shake of 5, 10 or 22 frames -- any other level is ignored. Each tick
+/// spends one frame and drives `Display_ClampField126` off the frame counter's
+/// low bits, so level 1 alternates 0 / 2, level 2 walks a four-frame 0 / 2 / 3 / 2
+/// pattern and level 3 an eight-frame ramp that peaks at 4. The shake clears
+/// itself once the counter runs out. Same body as
+/// `func_actor_444000_8013A77C`, plus the null test on the work block.
+void func_actor_403200_80138284(Task* arg0)
+{
+    Actor403200Work* work;
+    s32              phase;
+
+    work = (Actor403200Work*)arg0->idMap;
+    if (work == NULL) {
+        return;
+    }
+
+    if (work->field_EAC != work->field_EAD) {
+        switch (work->field_EAC) {
+            case 1:
+                work->field_EAE = 5;
+                break;
+            case 2:
+                work->field_EAE = 0xA;
+                break;
+            case 3:
+                work->field_EAE = 0x16;
+                break;
+            case 0:
+            default:
+                return;
+        }
+        work->field_EAD = work->field_EAC;
+    }
+
+    if (work->field_EAE == 0) {
+        Display_ClampField126(0);
+        work->field_EAC = 0;
+        work->field_EAD = 0;
+        return;
+    }
+    work->field_EAE--;
+
+    switch (work->field_EAC) {
+        case 1:
+            phase = work->field_EAE;
+            if ((phase & 1) == 0) {
+                work->field_EAF = 0;
+            } else {
+                work->field_EAF = 2;
+            }
+            Display_ClampField126(work->field_EAF);
+            break;
+
+        case 2:
+            phase = work->field_EAE;
+            switch (phase & 3) {
+                case 0:
+                    work->field_EAF = 0;
+                    break;
+                case 1:
+                    work->field_EAF = 2;
+                    break;
+                case 2:
+                    work->field_EAF = 3;
+                    break;
+                case 3:
+                    work->field_EAF = 2;
+                    break;
+            }
+            Display_ClampField126(work->field_EAF);
+            break;
+
+        case 3:
+            phase = work->field_EAE;
+            switch (phase & 7) {
+                case 3:
+                case 4:
+                    work->field_EAF = 4;
+                    break;
+                case 2:
+                case 5:
+                    work->field_EAF = 3;
+                    break;
+                case 1:
+                case 6:
+                    work->field_EAF = 1;
+                    break;
+                case 0:
+                case 7:
+                    work->field_EAF = 0;
+                    break;
+            }
+            Display_ClampField126(work->field_EAF);
+            break;
+
+        case 0:
+        default:
+            Display_ClampField126(0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138468);
 
@@ -180,3 +283,18 @@ void func_actor_403200_80140E6C(Task* arg0)
     }
     sp.funcs[arg0->state](enemy, arg0);
 }
+
+/* `migrate_rodata_to_functions` folds this run into the `.s` of
+ * `func_actor_403200_80140E6C`, whose body is C here, so its bytes have to be
+ * emitted in this unit: the twelve bytes that follow the table
+ * `func_actor_403200_8013FB54` carries. */
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_403200_801321B8\n"
+        "dlabel D_actor_403200_801321B8\n"
+        "    .word func_actor_403200_80138AFC\n"
+        "    .word func_actor_403200_8013FB54\n"
+        "    .word Gp_DestroyEnemy\n"
+        "enddlabel D_actor_403200_801321B8\n"
+        ".section .text");
+#endif

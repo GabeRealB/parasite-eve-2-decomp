@@ -74918,3 +74918,58 @@ survives into `addu v1,v1,a0`, so the self coordinate is written first.
 base_2.c preprocessed SHA256: 78d9599b66e14c376538b9a6ff98c62e90350711ce9dfe0d6e086e21dbadf55a
 
 base_1.c preprocessed SHA256: 3a8867f42ae7ba717daa4f7e7131b00533fa34c6cd562278a74ac9e0cf22297d
+
+## A `rodata` cut also changes how the *other* runs in that block are emitted
+
+Adding the `rodata` cut that gives a compiler-generated jump table the start of
+its object is not a local change to the bytes below the cut: it re-partitions
+the whole leading block, and splat then renders each run differently depending
+on whether the function that references it landed in the same subsegment.
+
+`actor_403200` had ten jump tables and two pointer runs in one leading rodata
+subsegment, all emitted as standalone `<sym>.s` files holding only
+`.section .rodata` + `dlabel` (the carrier functions live in *other* units).
+`func_actor_403200_80138284`'s table is GCC-generated and sits at `0x11C`, so
+the block had to be cut there:
+
+```toml
+actor_403200 = { rodata = [{ start = "0x11C", unit = "actor_403200_4" }], shared = [...] }
+```
+
+With that cut, splat stopped emitting standalone files for the rest of the runs
+and folded each one into the `.s` of the function that references it — and
+those files carry `.align 3`:
+
+```
+.section .rodata
+.align 3
+nonmatching jtbl_actor_403200_80131F5C
+dlabel jtbl_actor_403200_80131F5C
+```
+
+Three consequences, in the order they bite:
+
+- **A run whose carrier is `INCLUDE_ASM` is fine, and free.** The `.align 3`
+  aligns an in-object offset, not an address: the compiler table starts unit
+  `actor_403200_4`'s `.rodata`, so every later run begins at an 8-aligned
+  in-object offset and the directive pads nothing. The addresses come out
+  `0x11C, 0x13C, 0x18C, 0x1B4, 0x2B4, 0x2E4, 0x334` — the target's.
+- **A run whose carrier is already C loses its `.s` entirely.** The last run,
+  `D_actor_403200_801321B8`, is referenced by `func_actor_403200_80140E6C`,
+  a matched body, so nothing defines it. Emit it as file-scope asm in the
+  owning unit at the end of the `.c` (the migrated-`D_*` remedy above), *not*
+  as a `const` array: GCC collects a C `.rodata` object behind the compiler
+  table, and would then also have to `.align 3`-pad it, moving it off `0x398`.
+- **A symbol *at* the cut offset belongs to the previous subsegment.** splat
+  still emits `jtbl_actor_403200_80131F3C` (at exactly `0x11C`) into the
+  *first* unit's folder and lists it in that unit's `.c`, so the generated
+  `actor_403200_4.c` is not the file to copy from: the `INCLUDE_RODATA` lines
+  for `0x11C` and up have to be moved into the second unit by hand, ahead of a
+  hand-written tail, or the first object carries `0x3A4` bytes and the table
+  lands at `0x3A4`.
+
+Giving the tail its own further cut (`{ start = "0x398", unit = "<other>" }`)
+also works — the run comes back as a standalone `.s` with no `.align 3` — but
+it costs a second manifest cut and moves one table into an unrelated unit.
+
+base_1.c preprocessed SHA256: d023351c7787cbb24aac0f599b75a4777baa8c2f5dbddf3b45b1ec2de5c87a7e

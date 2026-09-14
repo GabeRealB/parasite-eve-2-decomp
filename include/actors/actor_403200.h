@@ -63,8 +63,14 @@ typedef struct Actor403200Work {
     /// slot and role as `Actor444000Work::field_E98`.
     /* 0xE98 */ s16  field_E98;
     /* 0xE9A */ byte pad_E9A[0x12];
-    /* 0xEAC */ s8   field_EAC;
-    /* 0xEAD */ byte pad_EAD[0x1F];
+    /// Screen-shake level `func_actor_403200_80138284` drives, and the level
+    /// armed last tick in `field_EAD`; a change from the armed level starts a
+    /// shake. Same slots, types and role as `Actor444000Work::field_EAC`.
+    /* 0xEAC */ u8   field_EAC;
+    /* 0xEAD */ u8   field_EAD;
+    /* 0xEAE */ u8   field_EAE;
+    /* 0xEAF */ s8   field_EAF;
+    /* 0xEB0 */ byte pad_EB0[0x1C];
     /// The escorts the state-change reset walks to push the host's
     /// `TmdObject::field_C` onto each escort's own model object; the same
     /// seven-slot run as `Actor444000Work::field_ECC`.
