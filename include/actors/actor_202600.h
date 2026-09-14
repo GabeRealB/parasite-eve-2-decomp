@@ -70,7 +70,7 @@ typedef struct Actor202600Work {
     /* 0x368 */ byte      pad_368[4];
     /* 0x36C */ TaskDesc* field_36C;
     /* 0x370 */ MATRIX    field_370;
-    /* 0x390 */ byte      pad_390[2];
+    /* 0x390 */ s16       field_390;
     /* 0x392 */ s16       field_392;
     /* 0x394 */ s16       field_394;
     /* 0x396 */ u16       field_396;
@@ -87,10 +87,11 @@ typedef struct Actor202600Work {
     /* 0x3AC */ u16       field_3AC;
     /* 0x3AE */ byte      pad_3AE[2];
     /* 0x3B0 */ s16       field_3B0;
-    /* 0x3B2 */ byte      pad_3B2[8];
+    /* 0x3B2 */ s16       field_3B2;
+    /* 0x3B4 */ byte      pad_3B4[6];
     /* 0x3BA */ s16       field_3BA;
     /* 0x3BC */ s16       field_3BC;
-    /* 0x3BE */ byte      pad_3BE[2];
+    /* 0x3BE */ s16       field_3BE;
     /* 0x3C0 */ s16       field_3C0;
     /* 0x3C2 */ s16       field_3C2;
     /* 0x3C4 */ s16       field_3C4;
@@ -102,6 +103,17 @@ typedef struct Actor202600Work {
     /* 0x3D0 */ s16       field_3D0;
 } Actor202600Work;
 STATIC_ASSERT_SIZEOF(Actor202600Work, 0x3D4);
+
+/// The 0x38-byte scratch a push-back needs: `delta` is filled by the collision
+/// walk, `unit` is its normal and `local` the same vector in the grid's space;
+/// `rot` is the temporary `RotMatrix` source and `func_800FDB18` effect angle.
+typedef struct Actor202600HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ VECTOR         unit;
+    /* 0x20 */ VECTOR         local;
+    /* 0x30 */ SVECTOR        rot;
+} Actor202600HitScratch;
+STATIC_ASSERT_SIZEOF(Actor202600HitScratch, 0x38);
 
 /// Animation view of the work prefix: the 0x14-byte context `func_800B3F84`
 /// fills in, followed by the eight slots it is handed and `Gp_AnimResetSlot`

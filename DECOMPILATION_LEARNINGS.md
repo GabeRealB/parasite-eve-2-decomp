@@ -70022,3 +70022,47 @@ the coalescing.
 `promote` refuses this body for the same reason as its neighbours: it indexes
 `D_actor_202600_80152798` / `…838` / `…850`, so `actor_102600` and `actor_302600`
 keep their own copies.
+
+## `move sN, v0` after two different calls: the target used *one* variable for both
+
+`func_actor_202600_80149E8C` sat at 98.043% with `insert=3 delete=3 branch=10
+regs=27`. The only missing instruction was a copy after the second call, and the
+`branch=10` was the usual ±4 shift caused by being one instruction short:
+
+```
+lw    a0, 0x2b8(s3)
+jal   Gp_GetIdParam2
+move  s4, v0          /* target; absent in the candidate */
+blez  s4, 5e0
+sh    s4, 0x390(s0)
+```
+
+`global.c:find_reg` only admits a call-clobbered register when
+`allocno_calls_crossed == 0`, so any `move $sN, v0` at a call site says the
+destination pseudo reaches across a call and therefore had to live in a
+callee-saved register. The target produces the same `move s4, v0` after
+`func_800E0C10` *and* after `Gp_GetIdParam2`, with everything between them
+reading `$s4`; two short block-local pseudos (which is what two C variables
+give, and what the candidate had) cannot do that. The source change is to merge
+the two locals — here the stun value into the movement value:
+
+```c
+movement = Gp_GetIdParam2(work->field_2B4[i].field_4);
+if (movement > 0) {
+    work->field_390 = movement;
+}
+```
+
+That alone reproduced the missing copy and moved the score 98.043 → 98.278
+(`branch` 10→3, `delete` 3→2, `regs` 27→28, `insert`/`reorder` unchanged) on a
+442-instruction function. Merging the flag variable in as well is the next step
+*only* if it is needed to force the allocno across a call: the register number
+is decided by `allocno_compare`'s `n_refs`/`live_length` ranking, and adding
+references can outrank the pointers that already hold `$s0`–`$s3`, which cascades
+(`regs` 27 → 76 when the flag was merged here). Confirm the copy first; treat the
+register as a separate lever.
+
+Inputs: `base_17.i`
+`51811e974e1daf0cdfd3a128ee84298807222d6b801abe917682ca884470caea`,
+`base_19.i`
+`960f581b3f8ef823f410d997ba0192bcf3e18457991e2220a79ac6c666e2aadb`.
