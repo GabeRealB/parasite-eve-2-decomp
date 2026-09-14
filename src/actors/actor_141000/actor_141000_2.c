@@ -7,6 +7,8 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -182,7 +184,60 @@ INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80133490);
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801335D4);
+/// The three texture uploads `func_actor_141000_801335D4` walks: one per value
+/// of `Actor141000Work::field_4CA`, each a `GpImgRec` whose own `rect` carries
+/// the 0x19x0x14 upload size the state's scratch `RECT` repeats and whose
+/// `data` points at the pixel blob. `func_actor_141000_80133FA8` picks from
+/// the same table.
+extern GpImgRec D_actor_141000_8013CA7C;
+extern GpImgRec D_actor_141000_8013CE84;
+extern GpImgRec D_actor_141000_8013D28C;
+
+/// Texture-upload state of the enemy actor: runs the countdown at
+/// `Actor141000Work::field_4C6` down one a frame while `field_4CA` names the
+/// upload in progress, and on the frame it underflows posts that step's image
+/// over the 0x19x0x14 rect at 0x10 -- reloading the countdown from `field_4C4`
+/// and advancing `field_4CA` for steps 1 and 2, or clearing `field_4CA` and
+/// starting over for step 3. Steps 1 and 2 share their whole tail, which is
+/// what makes the compiler emit one copy of it that step 1 jumps into; step 3
+/// only differs in clearing the step instead of advancing it.
+void func_actor_141000_801335D4(GpActorWork* arg0)
+{
+    Actor141000Work* work;
+    RECT             rect;
+
+    work   = (Actor141000Work*)arg0->actor;
+    rect.x = 0;
+    rect.y = 0x40;
+    rect.w = 0x19;
+    rect.h = 0x14;
+
+    switch (work->field_4CA) {
+        case 1:
+            work->field_4C6 = work->field_4C6 - 1;
+            if ((s16)work->field_4C6 < 0) {
+                Gp_LoadActorImage(arg0, &D_actor_141000_8013D28C, &rect);
+                work->field_4C6 = work->field_4C4;
+                work->field_4CA = work->field_4CA + 1;
+            }
+            break;
+        case 2:
+            work->field_4C6 = work->field_4C6 - 1;
+            if ((s16)work->field_4C6 < 0) {
+                Gp_LoadActorImage(arg0, &D_actor_141000_8013CE84, &rect);
+                work->field_4C6 = work->field_4C4;
+                work->field_4CA = work->field_4CA + 1;
+            }
+            break;
+        case 3:
+            work->field_4C6 = work->field_4C6 - 1;
+            if ((s16)work->field_4C6 < 0) {
+                Gp_LoadActorImage(arg0, &D_actor_141000_8013CA7C, &rect);
+                work->field_4CA = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801336DC);
 

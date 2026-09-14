@@ -67659,3 +67659,41 @@ covers this span" before it is read as a `QTY_CMP_PRI` tie.
 Example: `func_actor_141000_80132FD0` (permuter `5a6291d8121741f4`, isolated as
 scratch `base_3.c`, 100%). Input `base_3.i`
 `ff5eb3bb586dde024affb7c730ec1cc70dbad86701feafb1ff8933b260e5961e`.
+
+## The merge starts *at* the call when two arms' tails differ only in the arguments
+
+"Duplicate a switch's shared tail" above says each duplicated copy merges with
+the last one and the merge stops at the differing `jal` in front of the tail.
+That is the case when the arms pass the *same* arguments. When they pass
+different ones, the call is the first insn that can merge, and it merges too --
+the surviving block contains the `jal` itself, and each arm is left holding
+only the address materialisation for its own argument:
+
+```
+case 1:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...D28C) ; j .text+0xac ; addiu a1,a1,%lo(D_...D28C)
+case 2:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...CE84) ; addiu a1,a1,%lo(D_...CE84)
+0xac:    jal Gp_LoadActorImage ; addiu a2,sp,0x10 ; lbu v0,0x4ca ; lhu v1,0x4c4 ; addiu v0,v0,1 ;
+         sh v1,0x4c6 ; j .text+0xf8 ; sb v0,0x4ca
+```
+
+So the shared block sits between the *second* arm's body and the next case, and
+nothing in the source has to say so: writing the three arms out honestly, each
+with its own full call, produces it (`func_actor_141000_801335D4` is the worked
+example; the third arm's tail differs -- it clears the step instead of bumping
+it -- so it is a block of its own). Both `goto` spellings score worse: a label
+in front of the call keeps the tail as one block but is also where the address
+has to be carried in a local, which costs the `lui`'s register (see "Locals
+holding a symbol address across a `goto` cost the `lui`'s register") --
+99.697% with `lui v0,%hi` / `addiu a1,v0,%lo` against the target's
+`lui a1,%hi` / `addiu a1,a1,%lo`. Dropping the variable *and* the `goto` is
+what puts the address straight into `$a1`.
+
+The same function's other two seed failures were already-documented shapes: the
+0x19x0x14 rect has to be one address-taken `RECT` (m2c's four scalar `s16`
+locals lose three dead stores), and the underflow test is the signed truncation
+of the decremented `u16` (`lhu / addiu -1 / sh / sll 16 / bgez`), not a bit test
+on an `s32` temp.
+
+Example: `func_actor_141000_801335D4` (scratch `base_2.c`, 100%; `base_1.c`,
+the `goto` spelling, 99.697%). Input `base_2.i`
+`1520622cbff766666797221e9862f0afe6034a224a669ab40fbf0c8da24c11c6`.

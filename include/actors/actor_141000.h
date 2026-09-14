@@ -54,10 +54,12 @@ typedef struct Actor141000Work {
     /* 0x4BC */ byte    pad_4BC[0x4];
     /* 0x4C0 */ u16     field_4C0;
     /* 0x4C2 */ u16     field_4C2; // main-body state index; the dispatcher reads it back sign-extending
-    /* 0x4C4 */ byte    pad_4C4[0x4];
+    /* 0x4C4 */ u16     field_4C4; // source rect the upload countdown at 0x4C6 reloads from
+    /* 0x4C6 */ u16     field_4C6; // upload countdown; `func_actor_141000_801335D4` runs it down and an underflow starts the next upload
     /* 0x4C8 */ s8      field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
     /* 0x4C9 */ s8      field_4C9;
-    /* 0x4CA */ byte    pad_4CA[0x2];
+    /* 0x4CA */ s8      field_4CA; // upload step the switch at 0x801335D4 dispatches on
+    /* 0x4CB */ byte    pad_4CB;
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
 
