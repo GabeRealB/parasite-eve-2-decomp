@@ -76,6 +76,36 @@ typedef struct Actor215100CharRec {
 } Actor215100CharRec;
 STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
 
+/// One entry of the caption schedule `func_actor_215100_8014AFAC` scans while
+/// the actor waits to be talked to.
+///
+/// The entry whose window contains the session's caption clock
+/// (`GameSession::field_120`, which that function ticks down once the caption
+/// system goes idle) names the script to start and the line key to start it at:
+/// it is taken when `field_0 * 30 >= clock` and `field_4 * 30 < clock`, and the
+/// table is ordered by descending `field_0`, so the first match wins. A
+/// `field_0` of -1 terminates the scan. The table itself lives in the overlay's
+/// trailing data (`D_actor_215100_80154514`), not in this unit.
+typedef struct Actor215100CapWindow {
+    /* 0x0 */ s32 field_0; // window upper bound, x30; -1 terminates the table
+    /* 0x4 */ s32 field_4; // window lower bound, x30
+    /* 0x8 */ s32 field_8; // caption script index, the `func_actor_215100_8014B2B8` arg0
+    /* 0xC */ s32 field_C; // the line key to start that script at, its arg1
+} Actor215100CapWindow;
+STATIC_ASSERT_SIZEOF(Actor215100CapWindow, 0x10);
+
+/// `Task` as this overlay's caption actor reads it in
+/// `func_actor_215100_8014AFAC`: the dispatcher index, and the low half of
+/// `Task::spawnArg1` — the task's own line delay, handed to
+/// `func_actor_215100_8014B2B8` as its `arg2`. The rest of the overlay passes
+/// the whole `Task` around; the same two-field view is `Actor444000` in
+/// actor_444000.
+typedef struct Actor215100 {
+    /* 0x00 */ byte pad_0[0x30];
+    /* 0x30 */ s32  state;
+    /* 0x34 */ s16  spawnArg1Lo;
+} Actor215100;
+
 void func_actor_215100_8014C874(Task* task);
 
 s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args);

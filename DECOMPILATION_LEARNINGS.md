@@ -72141,3 +72141,31 @@ Inputs: `base_2.i`
 `0956b622e2538a86e065b92fe05fec6876f0c80e719032b35d07398afc30fdcf`,
 `base_3.i`
 `a7995d7cb7dc13bb4b3bfdf92e2b0ecaa0e084368532439feeb333f53c9ffcf5`.
+
+## A callee prototyped only in the host `.c` is unprototyped in the scratch env
+
+`func_actor_215100_8014AFAC` calls `func_actor_215100_8014B2B8(s16, s16, s32)`,
+which that overlay declares above its own definition and nowhere in
+`include/actors/actor_215100.h`. A scratch env includes the header, so the call
+compiled against an *implicit* declaration: the `s16` parameters were never
+seen, the two arguments went out unpromoted, and the target's truncation pairs
+were simply absent.
+
+```
+target:  beqz a0,…; sll a0,a0,0x10; sll a1,a1,0x10; sra a0,a0,0x10; jal …; sra a1,a1,0x10
+mine:    beqz a0,…; jal …; nop
+```
+
+No source difference explains it — m2c's own baseline matched here only because
+it wrote the casts by hand (`(s16)var_a0`), which is what a missing prototype
+forces a decompiler to do. Before reading a dropped truncation as a codegen
+difference, grep the `.i` for the callee name: if only the call site is there,
+copy the host `.c`'s declaration block into the scratch file. That block is
+worth copying wholesale — it also carries the declarations (`D_801153F4`, the
+overlay's own callees) that otherwise resolve to implicit `int`. Declaring
+`func_actor_215100_8014B2B8` alone took the candidate from 86.3% to 94.5%.
+
+Inputs: `base_2.i`
+`bb2ba0bccc1727bcf2dcb573a0cfa8ecbccea39a497a8b1be31a222b5b210510`,
+`base_3.i`
+`d1d87b02aa7527acbe02288a81a1d173b6e4db2276b4472cf523ecba430720d6`.

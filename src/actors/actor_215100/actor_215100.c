@@ -50,6 +50,9 @@ extern s32                  D_actor_215100_8015E670;
 extern s16                  D_actor_215100_801544EC;
 extern s16                  D_actor_215100_801544EE;
 extern Actor215100CharRec   D_actor_215100_8015E678;
+/// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
+/// `field_0`.
+extern Actor215100CapWindow D_actor_215100_80154514[];
 extern u8                   D_801153F4;
 extern u8                   D_80115690;
 void                        func_actor_215100_8014B0D4(void);
@@ -333,7 +336,46 @@ void func_actor_215100_8014AF0C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AFAC);
+/// Drives the caption schedule while the actor waits to be talked to: state 0
+/// arms it, and state 1 scans `D_actor_215100_80154514` for the window
+/// containing `Game_Session.field_120` - the first entry whose `field_0 * 30`
+/// has not dropped below the clock and whose `field_4 * 30` has - and, when it
+/// finds one, starts that entry's script at its own line key with the task's
+/// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
+/// caption system is busy or `D_801153F4` is up.
+void func_actor_215100_8014AFAC(Actor215100* task, s32 arg1)
+{
+    s32 i;
+    s32 script;
+    s32 key;
+    s32 time;
+
+    switch (task->state) {
+        case 0:
+            task->state = 1;
+            break;
+        case 1:
+            script = 0;
+            key    = arg1;
+            for (i = 0; D_actor_215100_80154514[i].field_0 != -1; i++) {
+                time = Game_Session->field_120;
+                if ((D_actor_215100_80154514[i].field_0 * 30 >= time) &&
+                    (D_actor_215100_80154514[i].field_4 * 30 < time)) {
+                    script = D_actor_215100_80154514[i].field_8;
+                    key    = D_actor_215100_80154514[i].field_C;
+                    break;
+                }
+            }
+            if (script != 0) {
+                func_actor_215100_8014B2B8(script, key, task->spawnArg1Lo);
+                func_actor_215100_8014B0D4();
+            }
+            if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
+                Game_Session->field_120 = (u16)Game_Session->field_120 - 1;
+            }
+            break;
+    }
+}
 
 void func_actor_215100_8014B0D4(void)
 {
