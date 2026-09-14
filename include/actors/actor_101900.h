@@ -113,6 +113,7 @@ extern Actor01900HeightClamp Actor01900_D172CC[];
 extern char                  Actor01900_D10B68;
 extern void*                 D_80114B78[1];
 
+void Actor01900_Fn00E00(GsCOORDINATE2* arg0, void* arg1, s32 arg2);
 void Actor01900_Fn01C94(Actor01900* arg0);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);

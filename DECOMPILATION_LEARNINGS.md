@@ -43,6 +43,47 @@ so the case-4 delay holds `%hi(D_80114B78)` instead of `lui a0, 0xA`.
 
 Example: `Actor01900_Fn08724`.
 
+## Else-if stores, not a phi local, so delay-slot `li` can reuse the compare's `$v0`
+
+A three-way `field = K` after `blez` / `bnez` looks like one local with a
+default assigned before the tests:
+
+```c
+next = 0x15;
+if (enemy->field_40 > 0) {
+    next = 4;
+    if (!(enemy->field_4C & 2)) {
+        next = 0x11;
+    }
+}
+work->field_0 = next;
+```
+
+That CFG is right (one `sh`, `li` in both delay slots) but the HI phi is
+live in the compare blocks. sched1 puts `li 0x15` between `lh` and `blez`
+and `li 4` between `lbu` and `andi`, so the phi conflicts with the
+block-local compare temps that local-alloc already put in `$v0`.
+global-alloc then homes the phi in `$v1`. Nested `if`/`else` into a phi
+does the same for whichever arm GCC hoists as the default.
+
+Write the stores in the arms instead. jump2 still merges them to one
+`sh`; dbr copies each `li` into the delay slot from the arm, after the
+compare is dead, so the constants reuse `$v0`:
+
+```c
+if (enemy->field_40 <= 0) {
+    work->field_0 = 0x15;
+} else if (enemy->field_4C & 2) {
+    work->field_0 = 4;
+} else {
+    work->field_0 = 0x11;
+}
+```
+
+Example: `Actor01900_Fn09BE8` — phi local 99.765% `regs=4`, else-if stores
+100%. Related to the `||` / `return K` delay-slot case, but the leftover
+is a store phi rather than a return.
+
 ## Share one `return K` between the paths (`||`) so reorg threads `li v0,K` into both branch delays
 
 A function that returns 2 when either of two probes is nonzero and 1
