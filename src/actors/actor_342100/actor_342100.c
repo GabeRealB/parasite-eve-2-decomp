@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_342100.h"
+#include "gameplay/D4.h"
 #include "main/session.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
@@ -31,7 +32,12 @@ void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_8016334C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_801633D0);
+void func_actor_342100_801633D0(s32 arg0)
+{
+    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+
+    Gp_DispatchMsg(work->field_34, 0x7DB, arg0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80163408);
 
