@@ -248,7 +248,24 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06B50);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06BC4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06BF8);
+void Actor04400_Fn06BF8(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        work            = (Actor104400Work*)arg0->idMap;
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = 0xB;
+        work->field_414 = 1;
+    }
+    if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_420 = 3;
+        work2->field_422 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn06C70);
 
