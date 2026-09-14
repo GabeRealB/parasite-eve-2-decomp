@@ -7,8 +7,6 @@
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_105700_80131EA0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700_2", func_actor_105700_80136DA0);
-
 void func_actor_105700_80136E58(void)
 {
 }

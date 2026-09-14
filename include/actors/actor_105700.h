@@ -26,7 +26,7 @@ typedef struct Actor105700Work {
     /* 0x4E0 */ s16  field_4E0;
     /* 0x4E2 */ byte pad_4E2[6];
     /// Frame count the state-0 branch parks alongside `field_4E0`.
-    /* 0x4E8 */ s16  field_4E8;
+    /* 0x4E8 */ s16 field_4E8;
     /// Flags whose bit 0x4000 the state-0 branch raises.
     /* 0x4EA */ u16  field_4EA;
     /* 0x4EC */ byte pad_4EC[0x96];
