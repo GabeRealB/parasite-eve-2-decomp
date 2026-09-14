@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "gameplay/3FB8.h"
+
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E20);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", ActorsShared801328ccTable);
@@ -20,7 +22,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162D74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162EEC);
+void func_actor_800300_80162EEC(GpActorWork* arg0)
+{
+    if (arg0->actor->field_95E == 1) {
+        Gp_ResetActorMove(arg0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162F24);
 
