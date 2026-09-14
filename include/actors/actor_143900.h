@@ -24,13 +24,26 @@ typedef struct Actor143900Work {
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
     /* 0x4BA */ byte       pad_4BA[0x2C];
     /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4E8 */ byte       pad_4E8[8];
+    /* 0x4E8 */ byte       pad_4E8[4];
+    /* 0x4EC */ s16        field_4EC; // animation reset argument, latched by the 0x7DB handler
+    /* 0x4EE */ byte       pad_4EE[2];
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
 extern Actor143900Work* ActorsShared80131f9cWork;
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. This
+/// overlay's 0x7DB handler, `func_actor_143900_80132778`, reads the halfword
+/// at 0x2.
+typedef struct Actor143900Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor143900Msg;
+STATIC_ASSERT_SIZEOF(Actor143900Msg, 0x4);
+
 void func_actor_143900_801324C8(void);
 s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
+s32  func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg);
 
 #endif

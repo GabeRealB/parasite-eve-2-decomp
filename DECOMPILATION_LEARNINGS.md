@@ -55857,6 +55857,46 @@ transcription will be exact, and the whole of the work is the struct layout: the
 two fields had to be cut out of the overlay's own padding runs, which is what
 the match then verifies.
 
+## `similar` cannot offer a twin under 10 instructions - the pool gate, not the score
+
+The advice above ("`find` first, `similar` second, only write C from the asm
+when both come back empty") has a size floor in it that is easy to read as a
+verdict. `cmd_similar` builds its candidate pool as
+
+```python
+pool = [f for f in data["functions"]
+        if f["state"] == "matched" and f["name"] != name and f["words"] >= 10]
+```
+
+so on a target of nine instructions or fewer every same-size twin is dropped
+before scoring, and `no matched body scores >= 0.80` means "no *longer*
+candidate cleared the floor", not "no twin". `rank()` then narrows further with
+`0.6 * words <= f["words"] <= 1.6 * words`, so a nine-instruction target is left
+comparing against ten- to fourteen-instruction bodies it cannot resemble.
+
+`func_actor_143900_80132778` is the worked example. Nine instructions; `find`
+listed only itself, because its twin touches a different global and the two
+symbol operands make the disassembly text unequal. What found the twin was
+grepping `src/` for the constant the body writes:
+
+```
+grep -rn "0x4EC\|field_4EC" src/ | head
+```
+
+That landed on `D_actor_461800_80143894->field_4EC = 0x14;` in
+`actor_461800`'s matched `func_actor_461800_80132F20` - also nine instructions,
+and byte-identical to ours but for `%hi(D_actor_461800_80143894)` where we have
+`%hi(ActorsShared80131f9cWork)`: same opcodes, same `$a2`, same `0x4EC`
+displacement, same `0x14`. Porting that body with the global renamed scored
+100% on the first build, the only other change being that the pointer is the
+*third* parameter (the payload of a `GpMsgHandler`), which is what puts it in
+`$a2` rather than `$a0`.
+
+On a body this small the constant is the whole function, so the grep is
+strictly stronger than either index tier. Reach for it before concluding "no
+twin" on anything under ten instructions - and note that the `find` output is
+not evidence either, since it only ever reports exact text equality.
+
 ## A named index temp can *win* the register allocation by shortening a live range
 
 `func_apobiosis_8012EF4C` reached 99.86% with `branch = insert = delete = 0` and

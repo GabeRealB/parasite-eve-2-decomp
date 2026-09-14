@@ -22,7 +22,15 @@ s32 func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacemen
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_80132778);
+/// Message 0x7DB handler: while the payload's halfword at 0x2 is zero, latch
+/// the work block's animation reset argument to 0x14.
+s32 func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg)
+{
+    if (msg->field_2 == 0) {
+        ActorsShared80131f9cWork->field_4EC = 0x14;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_8013279C);
 
