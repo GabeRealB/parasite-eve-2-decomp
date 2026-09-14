@@ -31,8 +31,9 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// `field_420` / `field_422` are the state and sub-state indices the handler
 /// table walks, `field_412` is the per-state frame counter, and
 /// `field_414` .. `field_426` are the animation request the actor hands to
-/// its player. The three `GpObj` nodes are the display objects
-/// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`.
+/// its player. The three `GpObj` nodes are the collision objects
+/// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`. `obj_2AC` and
+/// `obj_2CC` share `rec_2EC`; `obj_3AC` has its own table at `rec_3CC`.
 typedef struct Actor104400Work {
     /* 0x000 */ MATRIX    matrix_0; // model root coord, copied out on the kill path
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
@@ -68,7 +69,7 @@ typedef struct Actor104400Work {
     /* 0x2CC */ GpObj            obj_2CC;
     /* 0x2EC */ GpRec18          rec_2EC[8];
     /* 0x3AC */ GpObj            obj_3AC;
-    /* 0x3CC */ byte             pad_3CC[0x30];
+    /* 0x3CC */ GpRec18          rec_3CC[2];
     /* 0x3FC */ GpEffArg         eff_3FC;   // field_0 is the model's second coord part
     /* 0x404 */ byte             pad_404[0x8];
     /* 0x40C */ s16              field_40C; // heading Actor04400_Fn017B0 moves the root along

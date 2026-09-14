@@ -1104,7 +1104,47 @@ void Actor04400_Fn02B8C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn02D18);
+/// Same body as `ActorsShared80164b68`. Links the actor's three collision
+/// objects onto `Gp_ObjLists[2]` and clears their record tables.
+void Actor04400_Fn02D18(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+
+    work->obj_2AC.field_8  = &((TmdObject*)arg0->extra)->field_8[1];
+    work->obj_2AC.field_C  = work->rec_2EC;
+    work->obj_2AC.field_10 = 0;
+    work->obj_2AC.field_12 = 0;
+    work->obj_2AC.field_14 = 0;
+    work->obj_2AC.field_18 = 0x3002C;
+    work->obj_2AC.field_1C = 0x170;
+    work->obj_2AC.flags    = 1;
+    Gp_LinkObj(2, &work->obj_2AC);
+    Gp_InitRec18Table(work->rec_2EC, 8, 0);
+    work->obj_2AC.flags |= 0x8000;
+
+    work->obj_3AC.field_8  = &((TmdObject*)arg0->extra)->field_8[1];
+    work->obj_3AC.field_C  = work->rec_3CC;
+    work->obj_3AC.field_10 = 0;
+    work->obj_3AC.field_12 = 0;
+    work->obj_3AC.field_14 = 0;
+    work->obj_3AC.field_18 = Gp_PackObjPair(arg0->spawnArg2, 0);
+    work->obj_3AC.field_1C = 0x170;
+    work->obj_3AC.flags    = 1;
+    Gp_LinkObj(2, &work->obj_3AC);
+    Gp_InitRec18Table(work->rec_3CC, 2, 0);
+    work->obj_3AC.flags &= 0x7FFF;
+
+    work->obj_2CC.field_8  = &((TmdObject*)arg0->extra)->field_8[1];
+    work->obj_2CC.field_C  = work->rec_2EC;
+    work->obj_2CC.field_10 = 0;
+    work->obj_2CC.field_12 = 0;
+    work->obj_2CC.field_14 = 0;
+    work->obj_2CC.field_18 = 0x3002C;
+    work->obj_2CC.field_1C = 0x224;
+    work->obj_2CC.flags    = 1;
+    Gp_LinkObj(2, &work->obj_2CC);
+    work->obj_2CC.flags |= 0x4000;
+}
 
 /// Same body as `func_actor_342400_80165FC0`. Per-frame callback of the main
 /// enemy. `D_801153F4` 2 hides the model, 0 runs the current state handler
