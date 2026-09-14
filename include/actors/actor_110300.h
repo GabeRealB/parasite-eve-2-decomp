@@ -17,10 +17,18 @@
 /// in those two structs.
 typedef struct Actor110300Work {
     /* 0x000 */ GpAnimCtx anim;
+    /* 0x014 */ byte      pad_14[0x460];
+    /* 0x474 */ s16       field_474; // actor step: 1 and 2 select the body to run, which then advances it to 3
 } Actor110300Work;
 
 extern Actor110300Work* ActorsShared80131f9cWork;
 
-void func_actor_110300_80132138(void);
+void func_actor_110300_80132180(void);
+void func_actor_110300_80132208(void);
+
+/// The shared tick body `src/actors/lib/actors_shared_80132138.c`. Declared
+/// here rather than through `actors_shared_80132138.h` because that header
+/// publishes `ActorsShared80131f9cWork` with its own work type.
+void ActorsShared80132138(void);
 
 #endif

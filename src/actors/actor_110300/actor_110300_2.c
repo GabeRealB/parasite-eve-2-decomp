@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor_110300.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -25,4 +26,23 @@ void func_actor_110300_80132088(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110300/actor_110300_2", func_actor_110300_801320C4);
+/// Runs the body the actor's step selects and then leaves it in step 3, the
+/// running state. Steps 1 and 2 each return through their own copy of the
+/// advance; the two are identical, so jump.c cross-jumps them and only the
+/// second survives.
+void func_actor_110300_801320C4(void)
+{
+    if (ActorsShared80131f9cWork->field_474 == 1) {
+        func_actor_110300_80132208();
+        ActorsShared80131f9cWork->field_474 = 3;
+        return;
+    }
+    if (ActorsShared80131f9cWork->field_474 == 2) {
+        func_actor_110300_80132180();
+        ActorsShared80131f9cWork->field_474 = 3;
+        return;
+    }
+    if (ActorsShared80131f9cWork->field_474 == 3) {
+        ActorsShared80132138();
+    }
+}
