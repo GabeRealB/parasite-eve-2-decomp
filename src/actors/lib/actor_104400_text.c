@@ -831,7 +831,21 @@ void Actor04400_Fn087E0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn08870);
+/// Same body as `func_actor_341700_8016A6C0`.
+void Actor04400_Fn08870(Task* arg0)
+{
+    Actor104400Work* work;
+    GpEnemy*         enemy;
+
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor104400Work*)arg0->idMap;
+    SndEvt_EnqueueType7(((enemy->field_8 >> 0xC) << 8) | 0x402C0002, 0xF);
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+        Gp_StateF0.field_1F = 0;
+    }
+    Gp_UnlinkNode(&enemy->node);
+    work->field_420 = work->field_420 + 1;
+}
 
 /// Same body as `func_actor_342400_8016BA3C`.
 void Actor04400_Fn08908(Task* arg0)
