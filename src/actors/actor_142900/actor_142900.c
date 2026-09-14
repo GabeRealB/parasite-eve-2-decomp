@@ -1,11 +1,27 @@
 #include "common.h"
+#include "gameplay/D4.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/task.h"
-extern TaskDesc D_actor_142900_80137600;
-extern s32      D_actor_142900_801382AC;
+extern TaskDesc       D_actor_142900_80137600;
+extern s32            D_actor_142900_801382AC;
+extern s16            D_80071076;
+extern GpAreaApplyRec D_8017E9F8;
 
 INCLUDE_ASM("actors/nonmatchings/actor_142900/actor_142900", func_actor_142900_80131E24);
 
-INCLUDE_ASM("actors/nonmatchings/actor_142900/actor_142900", func_actor_142900_80131F5C);
+void func_actor_142900_80131F5C(void)
+{
+    if (Mc_SaveData.field_23 != 9) {
+        Gp_ApplyAreaRecs(&D_8017E9F8);
+        GameFlag_SetNibble(0x4C, 0);
+        Mc_SaveData.field_6 = 0x1B;
+        Mc_SaveData.field_8 = 2;
+        Mc_SaveData.field_5 = 1;
+        D_80071076          = 1;
+        Task_Spawn(0, 0x11, 0, 0);
+    }
+}
 
 void func_actor_142900_80131FDC(s32 arg0)
 {
