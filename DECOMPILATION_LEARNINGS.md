@@ -76627,3 +76627,46 @@ Inputs: `base.i` (literal `= 1`, 96.633%)
 `262e9d43f569f22439d7e49700730c031098cb8612d685c86e144ffc6511ac65`,
 `base_1.i` (`s32 flag`, 100.000%)
 `2652e4e220be62a919d6fb1ec5473af3172794600048b36183c5cd3c3677d15b`.
+
+## m2c's nested `M2C_FIELD` loads the pointer at its store; a local is what homes it
+
+When the same pointer feeds two stores, m2c renders it nested at the second one:
+
+```c
+M2C_FIELD(arg0, s8 *, 0x14) = 1;
+M2C_FIELD(M2C_FIELD(arg1, void **, 0x2C), s16 *, 0xC) = 0x84;
+```
+
+so the `lw` is emitted *between* the two stores and the constant-1 `li` is born
+first. `func_actor_341700_8016D2B8` stalls at 79.545% (`regs=5 insert=1
+delete=1`) that way: `li v0,1 / sb v0,0x14(a0) / lw v1,0x2C(a1) / li v0,0x84 /
+sh v0,0xC(v1)`. The target has `lw v0,0x2C(a1)` before the `sb`, the pointer in
+`$v0`, and *both* constants sharing `$v1`.
+
+Declaring the pointer as a local - exactly as the matched sibling
+`func_actor_341700_8016D2E8` in the same TU already did - reproduces it:
+
+```c
+TmdObject* model = (TmdObject*)arg1->extra;
+arg0->node.field_4 = 1;
+model->field_C     = 0x84;
+```
+
+`.lreg` shows why. In the seed the block-1 order is const-1 (pseudo 86), `sb`,
+pointer (87), const-132 (88), `sh`; the pointer is a plain `reg:SI` born last of
+the three and `.greg` homes it in `$v1`. With the local the pointer is a
+`reg/v:SI` born *first* (insn 23 before the `li` at 26), and both constants land
+in `$v1` while it takes `$v0`. The name also keeps `arg0`/`arg1` in `$a0`/`$a1`
+instead of copying them into pseudos, which is what the target's
+`sb $v1,0x14($a0)` reads off.
+
+This is the mirror of "Don't hoist m2c's `temp_` for a repeated array element":
+there the `temp_` is an *address computation* feeding several reads in one
+block, and repeating the indexed expression lets CSE rebuild it. Here the
+pointer is a *load* that the original source named, and the name is load-bearing
+- it fixes both birth order and which register wins.
+
+Inputs: `base.i` (nested form, 79.545%)
+`6a0e33f8fc4d44789da14d5abd961f7b362f3430a0ee1b644fa09b7f736f4b8b`,
+`base_1.i` (`model` local, 100.000%)
+`364858b0e3b659bdd05e944557fd56ed59eaecb2f87dfb05a7c82fbe044626ed`.
