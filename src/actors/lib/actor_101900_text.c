@@ -223,6 +223,17 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AA78);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AB1C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0ABA0);
+void Actor01900_Fn0ABA0(s32 arg0, Task* task)
+{
+    u16             count;
+    Actor01900Work* work;
+
+    work          = (Actor01900Work*)task->idMap;
+    count         = work->field_6 + 1;
+    work->field_6 = count;
+    if ((s16)count >= 3) {
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0ABE4);

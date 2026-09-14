@@ -17,7 +17,9 @@
 typedef struct Actor01900Work {
     /* 0x000 */ s16   field_0;
     /* 0x002 */ s16   field_2;
-    /* 0x004 */ byte  pad_4[0x89A];
+    /* 0x004 */ byte  pad_4[2];
+    /* 0x006 */ s16   field_6;
+    /* 0x008 */ byte  pad_8[0x896];
     /* 0x89E */ s16   field_89E;
     /* 0x8A0 */ byte  pad_8A0[0x28];
     /* 0x8C8 */ GpObj field_8C8;
