@@ -73540,3 +73540,40 @@ on an `s32` temp.
 Example: `func_actor_141000_801335D4` (scratch `base_2.c`, 100%; `base_1.c`,
 the `goto` spelling, 99.697%). Input `base_2.i`
 `1520622cbff766666797221e9862f0afe6034a224a669ab40fbf0c8da24c11c6`.
+## func_actor_113100_80132BDC: a wrong `addiu` displacement sizes the pointer, and a matched sibling names it
+
+An m2c seed scored 99.896% with exactly one difference: `addiu s1,s3,0x10`
+where the target has `addiu s1,s3,4`. The displacement in the object dump *is*
+the byte offset, so the candidate's temp was an `s32*` (`+4` scaled by 4) while
+the target's is a struct pointer whose field at `+4` is what was wanted. Read
+`target_disp / candidate_disp` as the element size and go find the real type —
+do not hand-edit the constant.
+
+`overlay_dup_index.py similar` put no candidate above 0.80 for this body, but
+grepping the *sub-expression* found a matched function doing the same object
+walk, `src/rooms/dryfield_dilapidated_house/dryfield_dilapidated_house_4.c:62`:
+
+```c
+coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8;
+```
+
+That fixes every type at once. `Task::extra` is the display task's `TmdObject`;
+`TmdObject::field_8` is a `GsCOORDINATE2*`, so `+4` is `GsCOORDINATE2::coord`
+and `+0x24` is `workm`; and the `0x50` stride is `sizeof(GsCOORDINATE2)`.
+Rewriting the seed with those types reached 100.000% with every penalty zero and
+the same allocation. `Task::spawnArg2` here is a *model task* (`Task*`), not the
+`GpEnemy*` the `Gp_AllocEnemy` path puts in that slot elsewhere — a body that
+passes it straight to `Task_Reparent` and dereferences `+0x2C` is the tell.
+
+Two non-conclusions. The `(TmdObject*)` / `(Task*)` casts exist only because
+`Task::spawnArg2` is `void*`; they are codegen-neutral — a variant expressing the
+same graph through an overlay struct typed `field_20` as a pointer to itself
+produced byte-identical assembly. And `overlay_dup_index.py find` reported this
+body as its own only copy, so there was no shared-body promotion to do: being
+below the similarity threshold does not mean the *structure* is unmatched.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base_1.i `f71b89bd03c7af91edc35e6c0838a946ca1822faf94d6930a1e64fc4be6b1a85`,
+base_2.i `05cee88f6a66bcc1997128422ea5c1e137aeaceac7a94bc53e896e307b678adb`.
+Evidence: scratch `nonmatchings/func_actor_113100_80132BDC-vacuum/`, base_1/2
+`.rtl` identical to target; no pins, no permuter, no tracer.

@@ -24,12 +24,12 @@ Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
 | 0x14 | `callback` | Per-frame callback (`TaskFunc`) |
 | 0x18 | `exitCallback` | Exit / kill callback (often `Task_Kill`) |
 | 0x1C | `idMap` | Optional `TaskIdMap*` (freed on kill) |
-| 0x20 | `spawnArg2` | Spawn arg2 — often `UiObject*` / UI context |
+| 0x20 | `spawnArg2` | Spawn arg2 — often `UiObject*` / UI context; in the model actors/rooms it is a model *task* (`Task*`, not the `GpEnemy*` `Gp_AllocEnemy` writes elsewhere), passed straight to `Task_Reparent` and read as `(TmdObject*)((Task*)task->spawnArg2)->extra` |
 | 0x24 | `field_24` | Pointer to `GpMsgEntry` id/handler table (`Gp_Slot4MsgTable` via `Gp_BindSlot4`, `D_8010FB90` via `Gp_InitCapTask`, `Gp_PlayerMsgTable` via `Gp_InitPlayerWork`); walked by `Gp_DispatchMsg` |
 | 0x28 | `spawnType` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
 | 0x29 | `priority` | List priority (lower runs earlier) |
 | 0x2A | `killCountdown` | Deferred-kill countdown / state |
-| 0x2C | `extra` | Spawn extra (`TmdObject*`, overlay object, …) |
+| 0x2C | `extra` | Spawn extra (`TmdObject*`, overlay object, …); for a model-display task the `TmdObject` is the displayed model, whose `field_8` is its `GsCOORDINATE2*` part-coordinate array |
 | 0x30 | `state` | Generic state word (handlers / kill path) |
 | 0x34 | `spawnArg1` | Spawn arg1 — menu/ctx pointer, mode, …; `func_800E73E8` writes 1 here on `D_801156B8` instead of `Task_Kill` |
 | 0x38 | `flags` | Small flag byte |
