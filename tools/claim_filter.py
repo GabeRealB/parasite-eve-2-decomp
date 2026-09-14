@@ -25,7 +25,7 @@ other checkout - and fails *silently*, because a missing helper looks exactly
 like "nothing landable here" and the driver would skip every overlay.
 """
 from __future__ import annotations
-import json, pathlib, re, subprocess, sys, time
+import fcntl, json, os, pathlib, re, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -57,36 +57,17 @@ def landable(overlay: str, funcs: list[str]) -> list[str]:
 def solved_set() -> set:
     """Bodies already matched in another overlay - the pick skips these.
 
-    tools/vacuum.sh excludes them from every pick (`--exclude-file "$solved"`),
-    so an overlay whose remaining functions are all duplicates yields nothing.
-    Without the same exclusion here that overlay passed the filter, got a full
-    worktree and split, and the inner vacuum then reported "0 function(s) to
-    attempt (of N claimed; the rest are duplicates already matched elsewhere)".
-
-    The index rebuild costs ~8s, so it is cached briefly beside the orchestrator
-    state - machine-local, and not under local/, which tools/ must not depend on.
-    Fails open (empty set) so a cache or index problem never skips real work.
+    tools/vacuum.sh excludes them from every pick, so an overlay holding only
+    those yields nothing: without the same exclusion here it got a full worktree
+    and split before the inner vacuum reported "0 function(s) to attempt".
     """
-    try:
-        gitdir = pathlib.Path(subprocess.run(
-            ["git", "rev-parse", "--git-common-dir"], cwd=ROOT,
-            capture_output=True, text=True, check=True).stdout.strip())
-        if not gitdir.is_absolute():
-            gitdir = ROOT / gitdir
-        cache = gitdir / "vacuum-solved-cache.txt"
-        if cache.is_file() and time.time() - cache.stat().st_mtime < 300:
-            return set(cache.read_text().split())
-        out = subprocess.run(
+    def produce():
+        r = subprocess.run(
             [sys.executable, "tools/overlay_dup_index.py", "solved", "--rebuild"],
             cwd=ROOT, capture_output=True, text=True, timeout=900)
-        if out.returncode != 0:
-            return set()
-        tmp = cache.with_suffix(".tmp")
-        tmp.write_text(out.stdout)
-        tmp.replace(cache)
-        return set(out.stdout.split())
-    except Exception:
-        return set()
+        return r.stdout if r.returncode == 0 else None
+    text = _locked_cache("vacuum-solved-cache.txt", 600.0, produce)
+    return set(text.split()) if text else set()
 
 
 def asm_dir(overlay: str) -> pathlib.Path | None:
@@ -101,33 +82,96 @@ def asm_dir(overlay: str) -> pathlib.Path | None:
     return d if d and d.is_dir() else None
 
 
-def under_bound(overlay: str, funcs: list[str], bound: str) -> list[str]:
-    """Those of `funcs` the scorer puts at or below `bound`.
+def _locked_cache(name: str, ttl: float, produce) -> str | None:
+    """Read a cached file, or let exactly one process regenerate it.
 
-    Fails open: any trouble resolving or running the scorer returns `funcs`
-    unchanged, so a scoring problem costs a wasted worktree rather than
-    silently skipping an overlay that had work in it.
+    Without the lock every caller that arrives while the value is being computed
+    starts its own copy. claim_filter runs on every claim, the duplicate index
+    takes ~9s and the scorer ~3s, and 136 concurrent copies of the two starved a
+    16-core box to a standstill (cpu pressure 92%, no landings for over an hour).
     """
-    d = asm_dir(overlay)
-    if d is None:
-        return funcs
-    # Ask for scores rather than passing --max-score, and apply the bound here.
-    # score_functions.py exits non-zero both when nothing meets the bound and
-    # when it genuinely failed, so a --max-score run cannot tell "skip this
-    # overlay" from "something went wrong" - and those need opposite handling.
-    # Unfiltered, a non-zero exit means only the latter.
-    p = subprocess.run([sys.executable, "tools/score_functions.py",
-                        "--scores", str(d)],
-                       cwd=ROOT, capture_output=True, text=True)
-    if p.returncode != 0 or not p.stdout.strip():
-        return funcs                      # could not score - fail open
+    try:
+        gitdir = pathlib.Path(subprocess.run(
+            ["git", "rev-parse", "--git-common-dir"], cwd=ROOT,
+            capture_output=True, text=True, check=True).stdout.strip())
+        if not gitdir.is_absolute():
+            gitdir = ROOT / gitdir
+    except Exception:
+        return None
+    cache = gitdir / name
+
+    def fresh():
+        try:
+            if time.time() - cache.stat().st_mtime < ttl:
+                return cache.read_text()
+        except OSError:
+            pass
+        return None
+
+    hit = fresh()
+    if hit is not None:
+        return hit
+    with open(gitdir / (name + ".lock"), "w") as lf:
+        try:
+            fcntl.flock(lf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            fcntl.flock(lf, fcntl.LOCK_EX)      # wait for the winner
+            fcntl.flock(lf, fcntl.LOCK_UN)
+            return fresh()
+        hit = fresh()
+        if hit is not None:
+            return hit
+        text = produce()
+        if text is None:
+            return None
+        tmp = cache.with_suffix(".tmp")
+        tmp.write_text(text)
+        tmp.replace(cache)
+        return text
+
+
+def scores() -> dict:
+    """function -> difficulty, for the whole project, from one cached run.
+
+    This used to be a score_functions.py invocation per claimed overlay. That is
+    a fresh interpreter, a numpy import and a directory walk each time, and with
+    workers claiming continuously they piled up faster than they finished.
+    """
+    def produce():
+        dirs = subprocess.run(
+            [sys.executable, "tools/decomp_overlay.py", "list-nonmatchings"],
+            cwd=ROOT, capture_output=True, text=True).stdout.split()
+        if not dirs:
+            return None
+        r = subprocess.run([sys.executable, "tools/score_functions.py", "--scores", *dirs],
+                           cwd=ROOT, capture_output=True, text=True, timeout=900)
+        return r.stdout if r.returncode == 0 and r.stdout.strip() else None
+
+    text = _locked_cache("vacuum-scores-cache.tsv", 600.0, produce)
+    if not text:
+        return {}
+    out = {}
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if len(parts) == 3:
+            try: out[parts[1]] = float(parts[0])
+            except ValueError: pass
+    return out
+
+
+def under_bound(overlay: str, funcs: list[str], bound: str) -> list[str]:
+    """Those of `funcs` at or below `bound`. Fails open on any trouble."""
     try:
         lim = float(bound)
     except ValueError:
         return funcs
-    ok = {ln.split("\t")[1] for ln in p.stdout.splitlines()
-          if "\t" in ln and float(ln.split("\t")[0]) <= lim}
-    return [f for f in funcs if f in ok]
+    sc = scores()
+    if not sc:
+        return funcs
+    known = [f for f in funcs if f in sc]
+    if not known:
+        return funcs                        # scored nothing here - do not guess
+    return [f for f in known if sc[f] <= lim]
 
 
 def main() -> int:
