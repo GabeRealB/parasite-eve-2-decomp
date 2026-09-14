@@ -78494,3 +78494,52 @@ Inputs: `base.i` (m2c seed, 73.333%)
 `1d1850feaf1461eb57a724bdf9fdca749b624338bb869f7c1345938a1d301098`,
 `base_1.i` (inverted guard, 100.000%)
 `8cf8de67a5dafeab080f1b2dd45fbd55833f10b5c147e09e09663a646852e51f`.
+
+## A store between two `a->b` references reloads it and extends `a`'s live range: cache the field in a local
+
+`func_actor_202900_8014A088` (actors/actor_202900) writes
+`((TmdObject*)arg0->extra)->field_C = 0` after `coord->flg = 0`, and the m2c
+seed that spells both references out reloads the chain:
+
+```c
+/* 72.417%: lw v1,0x2c(a0) ... lw v0,0x2c(a0)  - arg0 never dies */
+parent = D_actor_202900_80156E58->extra->field_8;
+coord  = arg0->extra->field_8;
+coord->flg = 0;
+arg0->extra->field_C = 0;        /* reload: $v1 now holds parent */
+coord->sub = parent + 4;
+```
+
+The intervening `sw zero,0(a0)` kills the CSE entry for `arg0->extra`, so the
+second reference is a fresh load. That reload keeps `arg0` alive three
+instructions past its last real use, and the cost is not the extra `lw`: the
+result quantity `coord` would otherwise land in `$a0`, the argument register
+`arg0` frees. Local-alloc has no free `$a0` to give it, so `coord` goes to
+`$a1` and the whole block rotates (`a1`/`v1`/`v0` instead of `a0`/`v0`/`v1`).
+
+Caching the base pointer in a local removes the second memory reference
+entirely - the pseudo is never reloaded - and the allocation falls out
+(100.000%, zero penalties):
+
+```c
+extra  = arg0->extra;
+parent = D_actor_202900_80156E58->extra->field_8;
+coord  = extra->field_8;
+coord->flg = 0;
+extra->field_C = 0;
+coord->sub = parent + 4;
+```
+
+Read this as the mirror of the `shelter_b3_dumping_hole_8017E7DC` entry above
+("A call between deriving `p = a->b` and re-using `a->b`"). There a call is the
+killer and the fix is to reference the chain **inline** at the late use; here a
+store is the killer and the fix is the **opposite** - hoist the chain into a
+local. The distinction is whether the late use can be reloaded cheaply and
+whether the base's live range is what costs you. When the target shows a single
+`lw` of the base feeding several uses, cache it; when the target shows a reload
+into a different register, leave the reference inline.
+
+Inputs: `base_1.i` (both references spelled out, 72.417%, `regs=6 insert=2`)
+`e61b139d31f96e4437204acd5b853ba55ef9e0c089e3af1de849a1173262352a`,
+`base_2.i` (cached local, 100.000%)
+`d897007ded7e2b9185baae952874b1bfafb21593c71fbd2fc2d9ea0e5c29269f`.
