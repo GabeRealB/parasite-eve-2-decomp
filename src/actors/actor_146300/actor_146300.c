@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -159,7 +160,11 @@ void func_actor_146300_8013224C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_146300/actor_146300", func_actor_146300_801323E0);
+void func_actor_146300_801323E0(void)
+{
+    Gp_PulseState1C();
+    Gp_StateC08.field_6 |= 1;
+}
 
 void func_actor_146300_80132418(s32 arg0)
 {
