@@ -70385,3 +70385,40 @@ placed. And it only ever bites for tables in the *leading* run: a table in a
 later unit's own rodata still pairs with its function and inlines as before. Add
 the includes as soon as the promotion's re-split is done, and expect them in both
 carriers.
+
+## An invariant base named in a local before the loop loads in the entry block; walk from the field to hoist it
+
+`func_actor_402200_80132D78` walks a box table whose base is a pointer field of
+the work block. Naming it once before the loop
+
+```c
+region = work->field_6B4;
+for (i = 0; i < count; i++) { … region[i] … }
+```
+
+emits the `lw a0,0x6b4(a3)` in the **entry** block, and nothing relocates it
+afterwards — no 2.8.1 pass sinks a load out of bb0 into a later block. The target
+has it in the loop preheader, so the entry-block load sits one instruction early,
+filling the delay slot the target leaves as `nop` after the count's `lh` (`blez`
+reads that register, so nothing available there can fill it), and the guard
+shifts down with it. 94.3%, `branch` 7, two hunks that are the same fact.
+
+Write the address expression *inside* the loop instead and drop the local:
+
+```c
+for (i = 0; i < count; i++) { … work->field_6B4[i] … }
+```
+
+The load is now an invariant MEM insn **in the loop**, and `move_movables` hoists
+it into the preheader, after the hoisted constants — where the target has it.
+100%, every penalty zero. It is the lever in "Hoist `%hi(store_global)` before the
+array base" (an explicit pre-loop assignment always wins) applied to a data load
+rather than an address setup.
+
+The paired `.loop` dumps show loop.c deciding identically both ways: the same
+`dest address` giv, `mult 16`, whose `add` operand is `(reg/v:SI 82)` in the first
+form and `(reg:SI 87)` in the second. In the second the load is a movable insn —
+`Insn 31: regno 87 (life 2), savings 1  moved to 177`, and `base_3.i.rtl` insn 31
+is `(set (reg:SI 87) (mem/s:SI (plus:SI (reg/v:SI 81) (const_int 1716))))`, 1716 =
+0x6B4. Read those `moved to` lines before reaching for a barrier: this fix is a
+change of *block*, not of slot, which `SCHED_BARRIER` cannot express.
