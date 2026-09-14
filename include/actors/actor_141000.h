@@ -91,7 +91,7 @@ typedef struct Actor141000Msg {
 } Actor141000Msg;
 STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
 
-void func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1);
+s32  func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1);
 void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1);
 void func_actor_141000_801339DC(Task* arg0);
 void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 arg2);

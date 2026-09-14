@@ -67471,3 +67471,46 @@ sibling's `.c` is one of the ways a matched function gets lost.
 build and the typed port `base_1.c` reproduces it instruction for instruction.
 Input `base_1.i`
 `c2d57ad641bfa70893c2bc309bda211056623b43a70fa9d23b9f95fe321623ac`.
+
+## A load that must precede a store needs the source to emit it before the store
+
+`func_actor_141000_80132EF4` opened at 96.98% with `branch=3 insert=1 reorder=1`:
+one instruction out of place. The target holds
+
+```
+lhu   a1,8(s0)          /* work->frames */
+lw    v0,0x2c(s1)       /* arg0->extra - sits in the lhu's load-delay slot */
+addiu a1,a1,1
+sh    a1,8(s0)
+```
+
+while the seed emitted `lw v0,0x2c(s1)` after the `sh`, leaving a `nop` where
+the target has the load. No priority could have fixed it: in `sched_analyze_1`
+a store depends on every pending read (`anti_dependence`), in `sched_analyze_2`
+a read depends on every pending write (`true_dependence`), and
+`memrefs_conflict_p` answers "may conflict" for two accesses off different base
+registers - it falls through to `return 1`. The `.sched` dump shows the
+constraint directly, `(insn 24 ... (insn_list 21 (nil)))`: with the store first
+in the RTL the load can never be hoisted above it, at any priority. The
+leftover is a **source-order** property, not a ranking one.
+
+Moving the read up fixes it: `obj = arg0->extra;` **before** the counter update
+generates `lw 0x2c(s1)` first, the link disappears, and sched1 spends the
+independent load in the `lhu` delay slot. 100% on that one edit.
+
+Two boundaries worth checking before concluding "scheduler":
+
+- **The hoisted load must die at the call.** The copy block here re-reads
+  `((TmdObject*)arg0->extra)->field_8`, so nothing lives across the `jal` - the
+  frame is `sp-0x20` saving `$ra`/`$s0`/`$s1` and has no spill slot. A local
+  kept live across the call is the opposite move (see the
+  `func_actor_141000_80132E24` entry above, where a `tmd` local broke the
+  match) and does not reproduce this shape.
+- **Hoist the pointer, not the load through it.** Reading
+  `coord = obj->field_8` early puts `lw 8(v0)` on the pending-read list first,
+  so the store then depends on *it* and the copy's own `lw a0,8(v0)` could not
+  stay below the `sh`.
+
+Example: `func_actor_141000_80132EF4` (scratch `base_2.c`, one edit off
+`base_1.c`). Input `base_2.i`
+`fa6277c80f6fa46964be9a9644a7882077475d57b473ce14c8f93d6354a30c57`.

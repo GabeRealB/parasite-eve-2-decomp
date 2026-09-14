@@ -16,6 +16,10 @@
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_141000_80131E24;
 
+/// The descriptor table the controller spawns from; index 2 is the model
+/// actor the state at 0x80132EF4 spawns every eighth frame.
+extern TaskDesc D_actor_141000_801348D8[];
+
 /// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
 /// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_141000_8013D788[];
@@ -54,7 +58,42 @@ void func_actor_141000_80132EB0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132EF4);
+/// State 2 of the handler table at 0x80131E3C: drives the model's rotation
+/// through `func_actor_141000_80132FD0` and, on the frame that runs the ramp's
+/// 0x5A entries out, advances the state index `field_C` the dispatcher at
+/// 0x80132D3C walks. Every eighth frame it spawns another actor from index 2
+/// of `D_actor_141000_801348D8` and copies this actor's world position onto
+/// the new one.
+void func_actor_141000_80132EF4(Task* arg0)
+{
+    Actor141000CtrlWork* work;
+    TmdObject*           obj;
+    Task*                spawned;
+    GsCOORDINATE2*       src;
+    GsCOORDINATE2*       dst;
+    u16                  frames;
+
+    work         = (Actor141000CtrlWork*)arg0->idMap;
+    obj          = arg0->extra;
+    frames       = work->frames + 1;
+    work->frames = frames;
+
+    if (func_actor_141000_80132FD0(obj->field_8, (s16)frames) != 0) {
+        work->state = work->state + 1;
+        return;
+    }
+
+    if (!(work->frames & 7)) {
+        spawned = Task_SpawnFromTable(D_actor_141000_801348D8, 2, 0, 0);
+        if (spawned != NULL) {
+            src             = ((TmdObject*)arg0->extra)->field_8;
+            dst             = ((TmdObject*)spawned->extra)->field_8;
+            dst->coord.t[0] = src->coord.t[0];
+            dst->coord.t[1] = src->coord.t[1];
+            dst->coord.t[2] = src->coord.t[2];
+        }
+    }
+}
 
 void func_actor_141000_80132FC8(void)
 {
