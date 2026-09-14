@@ -50,13 +50,3 @@ void func_actor_207000_8014FC8C(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FCF4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FDA4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FE18);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FEA8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FF1C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_801500C8);

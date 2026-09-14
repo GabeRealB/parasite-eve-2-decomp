@@ -41485,6 +41485,20 @@ Two consequences beyond the ones above.
 `actor_402200` and `actor_403900` were promoted in the same commit, so the
 cascade was run twice; the twin's span is at 0x602C and shifts the same units.
 
+When the shifted units hold **no C bodies** — every line an `INCLUDE_ASM`, as in
+`actor_207000` / `actor_107000`, whose only bodies sit in units *before* the span
+— the cascade does not have to be hand-walked. Confirm with `bodies_of()` that
+the files are body-free, delete the shifted unit `.c` files, and re-split: splat
+recreates them from the new layout and writes the correct `INCLUDE_ASM` paths
+itself, so no path string has to be rewritten by hand.
+
+Re-splitting *without* deleting is what fails, and it fails misleadingly. splat
+never rewrites a unit `.c` that exists, and for a unit whose `.c` is present it
+emits that unit's `.s` under `matchings/` instead of `nonmatchings/`. Nothing
+assembles `matchings/`, and no `INCLUDE_ASM` path reaches it, so the build stops
+with `can't open asm/USA/actors/nonmatchings/<overlay>/<unit>/<func>.s for
+reading` on functions that plainly exist one directory over.
+
 ## Name a load in a local to hoist it above a run of constant stores
 
 A block that zeroes several fields and then stores a value loaded from a
@@ -60160,6 +60174,32 @@ in `$v1`, resolving the last six register penalties at 99.946% without pins.
 The patched `local-alloc.c` ranks quantities by
 `floor_log2(refs) * refs * size / lifetime`, with quantity number breaking ties.
 Check `.lreg` and `.greg` before introducing a pinned comparison temporary.
+
+## The first statement decides the allocation for a repeated body
+
+`func_actor_207000_8014FDA4` is the same body as the already-matched
+`ActorsShared8013a2c0` — a 0x10-byte `VECTOR` off `G_SCRATCH_HEAD` filled from
+`((TmdObject*)task->extra)->field_8[1]` and handed to `Gp_UpdateActorColor` — and
+transcribing the sibling's C verbatim scored 76.8% with `regs=15 reorder=2`. The
+offsets were all correct; what was wrong was the allocation of the *whole* body,
+not of one register.
+
+`ActorsShared8013a2c0` leads with `coord = ...` and compiles to the coordinate in
+`$v1`, that coordinate's data in `$v0`, `spawnArg2` loaded last, and the
+scratch-address `ori` after `sw $ra`. The target wants the coordinate in `$v0`,
+its data in `$v1`, `spawnArg2` loaded fourth, and `ori` *before* `sw $ra`. Moving
+the single statement `obj = arg0->spawnArg2;` to the top of the body, ahead of
+`coord`, produced the target exactly: 29 of 29 instructions, every penalty zero.
+Two statements of reordering moved about ten instructions.
+
+So "the same body" does not mean "the same source". These repeated blocks are
+written with their arguments read in different orders, and the duplicate index
+cannot see that axis: `find` compares disassembly *text*, so byte-identical
+copies necessarily share an order and a different order reads as a different
+body. When a near-identical matched sibling reproduces your target's shape but
+not its registers, read the target's first few instructions to see which value
+is live first — the prologue names the statement order — before reaching for
+pins.
 
 ## Input-only SOFT_USE_REG helpers are implicitly volatile in GCC 2.8.1
 
