@@ -28,7 +28,12 @@ STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 /// other.
 extern SVECTOR D_actor_421600_80151158[];
 
+/// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
+extern s8 D_actor_421600_801511D0[];
+
 /// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
 void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
+
+s8 func_actor_421600_8013E830(s32 arg0, s32 arg1);
 
 #endif

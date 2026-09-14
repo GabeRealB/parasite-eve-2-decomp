@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `(cond) << 1` as an array index folds to a branch; store-flag locals plus a pointer first
+
+A 4-byte table indexed by two comparisons:
+
+```
+lui   v0, %hi(T)
+addiu v0, v0, %lo(T)
+slt   a0, zero, a0      /* arg0 > 0 */
+slti  a1, a1, 1         /* arg1 < 1 */
+sll   a1, a1, 1
+addu  a0, a0, a1
+addu  a0, a0, v0
+lb    v0, 0(a0)
+```
+
+`return T[(arg0 > 0) + ((arg1 < 1) << 1)]` (and m2c's `&T + (arg0 > 0) + (arg1 < 1) * 2`) folds the shift of a comparison into `cond ? 2 : 0`. Expand then emits `bgtz` / `addiu ..., 2` instead of `slti` / `sll`. Assign each comparison to an `s32` local so expand uses store-flag; the shift of a register is not a `COND_EXPR`.
+
+That still schedules `slt` / `slti` before the symbol because they are earlier statements. Assign the table pointer first so `high` / `lo_sum` get earlier luids; sched1 original-order then emits `lui` / `addiu` first:
+
+```c
+s8* p;
+s32 a;
+s32 b;
+
+p = T;
+a = arg0 > 0;
+b = arg1 < 1;
+return p[a + (b << 1)];
+```
+
+`func_actor_421600_8013E830`. Inputs: `base_2.i`
+`4fad32756fa13d832c9a87cb30eb151486f2c4905176e8ef2045d0eec39a56c1` (86.7%,
+`reorder=2`), `base_3.i`
+`1aadd3a31c6abf3fe694c71c8c01aad31d6be01b771533399316314016172355` (100%).
+
+
+
 ## `s16` wrap copy so `t = delta` cannot coalesce with `s32 delta <<= 16`
 
 A wrap that copies the difference, then sign-tests the *same* register shifted
