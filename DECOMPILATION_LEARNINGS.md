@@ -75050,3 +75050,38 @@ That must not lengthen a live range across a call (`base_3.c` showed a pointer
 kept live across `VectorNormalSS` costing `regs=27`).
 
 base_4.c preprocessed SHA256: dad55059ca56621dddd3fdbc278826182e6bff9f636b0ba2adff41cbafbfd882
+## An `s8` parameter takes a constant-arm ternary with no sign extension; a variable costs `sll`/`sra`
+
+A call to an `s8`-parameter function whose argument is selected by a branch --
+the `if`/`else` shape m2c recovers -- pays two extra instructions:
+
+```c
+s8 v;                      /* s32 v is the same, with `sra $a0,$a0,31` */
+v = 0;
+if (!(count & 1)) {
+    v = -1;
+}
+Display_ClampField126(v); /* sll $a0,$a0,24; jal; sra $a0,$a0,24 */
+```
+
+The ABI passes the argument in SImode, so GCC converts the register-born
+QImode value back up, and on this port that conversion is a shift pair. It
+knows the range -- both arms are 0 or -1, which is why the `s32` temp gets the
+cheaper `>> 31` -- but it shortens the extension instead of dropping it.
+
+Writing the selection as a ternary whose arms are both constants folds the
+conversion away entirely:
+
+```c
+Display_ClampField126((count & 1) ? 0 : -1);
+```
+
+That is `move $a0,$zero` in the `bnez` delay, `li $a0,-1` on the fall-through,
+and a plain `nop` after the `jal`. The branch survives because the two arms are
+still expanded separately; only the conversion disappears. Nothing else in the
+shape changes, so this is a pure win when a diff shows `insert=2 delete=1` on
+an `s8`/`s16` argument that reaches the call through a merge.
+
+`func_actor_361100_80162A54` (`base.c` `s8` and `base_1.c` `s32` both 92.23%,
+`insert=2 delete=1`; `base_2.c` 100%; preprocessed
+`7b9d5275e6360359f5afbcb9abca5826494c838f7293606bddc3d6379495e2a7`).
