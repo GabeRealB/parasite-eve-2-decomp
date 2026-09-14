@@ -167,6 +167,20 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg);
 /// exits the task through its own `Task::exitCallback`.
 s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
 
+/// Message 0x7D3 handler, listed in `D_actor_361100_8016BAF0` -- the table
+/// `func_actor_361100_80162D28` installs at `Task::field_24`, and the twin of
+/// `D_actor_361100_80171BB8` where `func_actor_361100_801634D0` serves the same
+/// id. Re-seeds the whole animation slot array through `func_800B3F84` -- off
+/// this variant's bank table, `D_actor_361100_8016BAE0` -- whenever the
+/// preset's bank index changes.
+///
+/// Where its twin stores the preset's animation id unconditionally, this one
+/// gates on it: an unchanged `field_4` skips the slot re-seed, the tick pass
+/// and the `field_43C` latch alike. That gate is also the only reason this body
+/// differs from `func_actor_361100_801634D0` at all; the loops and the
+/// short-circuit on `field_8` / `field_43C` are the same code.
+s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg);
+
 /// Message 0x7D3 handler, listed in `D_actor_361100_80171BB8` next to the
 /// spawn states. Re-seeds the whole animation slot array through
 /// `func_800B3F84` whenever the preset's bank index changes, stores the
