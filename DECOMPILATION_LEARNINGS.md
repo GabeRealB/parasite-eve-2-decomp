@@ -76690,3 +76690,52 @@ plus the work block's `field_34` — which is a `Task*`, since that load feeds
 guess from the instruction width alone; a matching seed can still carry the
 wrong field type, so check each retyped field against how the value is used
 before writing it into a header.
+
+## m2c scales a `(s32)(ptr + N)` argument by the pointee; the store beside it stays a byte offset
+
+`func_actor_342100_80163408` seeds two fields and hands their address to
+`Task_SpawnFromTable` as its fourth argument. m2c rendered both from the same
+offset, but only one of them means bytes:
+
+```c
+temp_a3 = D_actor_342100_80164BB8->idMap;      /* m2c types this TaskIdMap* */
+M2C_FIELD(temp_a3, s16 *, 0x20) = 0x258;       /* byte offset - correct */
+M2C_FIELD(temp_a3, s16 *, 0x22) = 0x100;
+Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32) (temp_a3 + 0x20));
+```
+
+`M2C_FIELD` takes a byte offset, but `temp_a3 + 0x20` is C pointer arithmetic on
+`TaskIdMap*`, so it scales by `sizeof(TaskIdMap)` = 8 and emits `addiu a3,a3,
+0x100`. The target has `addiu a3,a3,0x20`.
+
+**Why it is easy to misread.** The result is one wrong immediate at 99.737%
+with a single `regs` penalty and nothing else - `opcode_delta` empty,
+topology `match`, `delay_slot_words_match: false` only because the differing
+immediate sits in the `jal` delay slot. Nothing in the diagnostics says
+"pointer". The tell is arithmetic: the bogus immediate is exactly the wanted
+offset times the pointee's size (0x20 x 8 = 0x100), so divide the odd
+immediate by the intended offset before reading it as a wrong constant.
+
+**Fix - give the argument a type whose size is 1, by taking the field's
+address.** The fourth parameter is `s32 arg3`, so the address is cast at the
+call, exactly as the matched `(s32)&work->field_40` in `actor_503500_8.c` and
+`(s32)&work->field_10` in `acropolis_plaza_4.c` do it:
+
+```c
+Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+work->field_20 = 0x258;
+work->field_22 = 0x100;
+Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->field_20);
+```
+
+Do **not** "correct" the constant to `0x20` or reach for an empty-asm helper:
+the scaling is in the source's type, so the seed matches again the moment the
+pointee's type changes, and only the field address is stable against that. The
+same trap is worth checking on any m2c seed that passes `(s32)(ptr + N)` as an
+argument while storing through `M2C_FIELD(ptr, T*, N)` nearby - the two spell
+one number differently, and only the store is right.
+
+Inputs: `base.i` (m2c seed, 99.737% `regs=1`)
+`1afb30a7047e5beb2ab8c15e233e5ac8dfebaeca73b8686143a4ffb8dbdabd5c`,
+`base_1.i` (field address, 100.000%)
+`450b995a14c8c4926b463735dd1af44ee06dae34e925624ba39b325ae7fcfe3d`.
