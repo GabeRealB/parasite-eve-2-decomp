@@ -76083,3 +76083,57 @@ when a call's delay slot holds a constant add or a pointer bump on a value the
 preceding statement computed, that add has to be *the last expansion of that
 statement*, so write it where the target's `addiu` sits, not where the value is
 consumed.
+
+## A cast-pointer access drops `MEM_IN_STRUCT_P`, and sched1 then keeps a load under a fixed-address store
+
+`actor_102400`'s yaw step matched at 98.024% with the coordinate pointer read the
+way m2c writes it, and at 100% with the typed access:
+
+```c
+coord = *(Actor102400Coord**)((u8*)arg0->field_2C + 8);   /* 98.024% */
+coord = arg0->field_2C->field_8;                          /* 100%    */
+```
+
+The two candidates differ in that one line of C and in one RTL detail — the load
+loses the in-struct flag — and every dump from `.rtl` through `.combine` is
+identical apart from it:
+
+```
+- (insn 28 (set (reg/v:SI 82) (mem:SI   (plus:SI (reg:SI 97) (const_int 8))))
++ (insn 28 (set (reg/v:SI 82) (mem/s:SI (plus:SI (reg:SI 97) (const_int 8))))
+```
+
+`.sched` is the first dump that differs, and the scheduler's own trace
+(`tools/trace_gcc.py <i> --uids 21 28`) says what changed: the `SCRATCH_SP -= 0x18`
+store (uid 21) has two dependents without the flag and one with it — the
+coordinate load. Its true dependence on the store is gone, so sched1 is free to
+emit the load above the store, which is the target's order (`lw $s2, 8($v1)`
+before `sw $v0, 0($a0)`). The same measurement shows in the post-sched dumps'
+`LOG_LINKS`: uid 28 lists uid 21 only in the 98% build.
+
+sched1 reads `MEM_IN_STRUCT_P` nowhere but the `fixed_scalar_and_varying_struct_p`
+exception in `true_dependence` / `anti_dependence` / `output_dependence`
+(`local/gcc/gcc-2.8.1-psx/sched.c:846-906`), so that exception is what dropped
+the edge: with the flag set, the load is an in-struct MEM at a varying address,
+which the heuristic lets the scheduler disregard against a reference whose
+address it can compare reliably. This is the `fixed_scalar_and_varying_struct_p`
+heuristic of "Struct-typing a body changes GCC 2.8.1's aliasing" one reference
+over — there the fixed side was a bare `extern` global, here it is the
+scratchpad address `*(u32*)0x1F8003FC`, which the MIPS backend materialises as a
+pseudo holding the constant (a `lui` then an `ori`), with the store going
+through that pseudo.
+
+**Unresolved.** *Why* that scratchpad access counts as reliably comparable.
+`rtx_varies_p` reports a plain pseudo register as varying, so the exception
+needs sched.c's `canon_rtx` to fold the address pseudo back to the constant
+(`init_alias_analysis` records `reg_known_value[regno]` from an insn's
+`REG_EQUAL` or `REG_EQUIV` note, sched.c:436-450) — but that fold is guarded by
+`REG_N_SETS == 1`, and this pseudo is set twice. The dependence change itself is
+measured twice over; only the route to it is inferred. A future instance with a
+single-set constant pseudo is the cheap place to settle it with one tracer run.
+
+Practical shape: when a load and a store around a constant-address access (a
+scratchpad pointer, an absolute hardware register) come out in the wrong order
+and the struct typing is otherwise settled, look for a `*(T*)((u8*)p + n)` cast
+on the load. The typed member access does not just set an alias set — it sets
+the in-struct bit that decides this heuristic.
