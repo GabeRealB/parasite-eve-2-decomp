@@ -11,6 +11,8 @@
 #include "gameplay/D4.h"
 
 void Actor04400_Fn006A8(Task* arg0);
+/* Reads the caller's Task* from $a0; the call passes no argument. */
+void Actor04400_Fn02B8C();
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
 s16  Actor04400_Fn06618(Task* arg0);
 
@@ -424,7 +426,24 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07530);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn075F0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn076D0);
+void Actor04400_Fn076D0(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    s32              cond;
+
+    work = (Actor104400Work*)arg0->idMap;
+    Actor04400_Fn02B8C();
+    work2 = (Actor104400Work*)arg0->idMap;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 void Actor04400_Fn07750(Task* arg0)
 {
