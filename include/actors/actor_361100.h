@@ -26,6 +26,10 @@
 /// only the 0x490 group, `func_actor_361100_80162F58` clears both, and the two
 /// words that fall between them (0x48C, 0x49C) are never touched by anything in
 /// this overlay, which is the `pad` slot of a `VECTOR` apiece.
+///
+/// `field_4A0` is the halfword the 0x7DB handler `func_actor_361100_80163750`
+/// arms alongside the first group, next door to the byte
+/// `func_actor_361100_80163670` writes.
 typedef struct Actor361100Work {
     /* 0x000 */ byte   pad_0[0x43D];
     /* 0x43D */ s8     field_43D;
@@ -40,7 +44,8 @@ typedef struct Actor361100Work {
     /* 0x490 */ s32    field_490;
     /* 0x494 */ s32    field_494;
     /* 0x498 */ s32    field_498;
-    /* 0x49C */ byte   pad_49C[0x6];
+    /* 0x49C */ byte   pad_49C[0x4];
+    /* 0x4A0 */ s16    field_4A0;
     /* 0x4A2 */ s8     field_4A2;
     /* 0x4A3 */ byte   pad_4A3[0x1];
 } Actor361100Work;
@@ -55,6 +60,17 @@ typedef struct Actor361100Placement {
     /* 0x10 */ SVECTOR rot;
 } Actor361100Placement;
 STATIC_ASSERT_SIZEOF(Actor361100Placement, 0x18);
+
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
+/// same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. The overlay's
+/// 0x7DB handler, `func_actor_361100_80163750`, switches on the halfword at
+/// 0x2, as `func_actor_104600_80133D74` and `func_actor_342400_801626AC` do
+/// for theirs.
+typedef struct Actor361100Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor361100Msg;
+STATIC_ASSERT_SIZEOF(Actor361100Msg, 0x4);
 
 /// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs's
 /// `param`, with `super` at 0x48) holds the Euler angles the code writes and
@@ -74,7 +90,14 @@ STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
 /// `RotMatrixZYX`. Clearing `flg` makes `Gp_UpdateCoordTree` recompute the
 /// world matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
-s32  func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement);
+s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement);
+
+/// Message 0x7DB handler, listed in `D_actor_361100_80171BB8`, the table the
+/// task installs at `Task::field_24`. 0 parks the actor, clearing the work
+/// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
+/// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
+/// exits the task through its own `Task::exitCallback`.
+s32  func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
 void func_actor_361100_80162E04(Task* arg0);
 void func_actor_361100_801634B4(Task* arg0);
 void func_actor_361100_80163494(Task* arg0);

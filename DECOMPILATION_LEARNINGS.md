@@ -43221,6 +43221,41 @@ signature for a function that is still `INCLUDE_ASM`, open the callee's `.s` and
 count the argument registers it actually reads — passing the phantom arguments
 costs two instructions the target does not have.
 
+## The same invention at a `jalr` also costs the extending load its fold
+
+A second cost, and the one that does not look like a call-site problem. The
+message handlers are reached through `Task::field_24`, a table of `GpMsgHandler`
+— four slots — so the third argument is a message record pointer, not a value.
+In `func_actor_361100_80163750` m2c saw the halfword the handler had just loaded
+still sitting in `$a1` at the `jalr` and passed it as an argument:
+
+```c
+M2C_FIELD(arg0, M2C_UNK (**)(u16), 0x18)(temp_a1);   /* m2c */
+task->exitCallback(task);                            /* real: one arg, in $a0 */
+```
+
+That second use of the `u16` temporary changes codegen twice. The obvious half
+is the delay slot: the phantom argument needs `move`/`andi` into `$a0`, where
+the target has `nop`. The other half is a `combine` failure that reads as an
+allocation problem — with two uses the narrow pseudo can no longer be folded
+into its load, so the seed emits a `movhi_internal2/3` load followed by two
+separate `zero_extendhisi2/1` (`andi`) instead of the target's single
+`zero_extendhisi2/2` — the *memory* alternative, `lhu` in SImode. Dispatch on
+the field itself so the load keeps one use:
+
+```c
+s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg) {
+    work = (Actor361100Work*)task->idMap;
+    switch (msg->field_2) { ...; default: task->exitCallback(task); }
+    return 0;
+}
+```
+
+The seed scored 87.03% at `insert=3 branch=2 regs=2 stack=3`, with the phantom
+argument accounting for all of it; the fixed form is exact. When m2c hands a
+just-loaded narrow value to a call, read the callee's prototype before porting —
+a stray `andi` beside an `lhu` is this, not a register-allocation leftover.
+
 ## m2c's synthesized `Task*` field names can be swapped relative to `task.h`
 
 The scratch prelude carries no `Task`, so m2c invents field names for the pointer
