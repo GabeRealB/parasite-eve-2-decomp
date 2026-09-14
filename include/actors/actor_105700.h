@@ -55,7 +55,9 @@ typedef struct Actor105700Work {
     /* 0x6D2 */ s16  field_6D2;
     /* 0x6D4 */ byte pad_6D4[2];
     /* 0x6D6 */ s16  field_6D6; ///< animation index, used as a table row
-    /* 0x6D8 */ byte pad_6D8[8];
+    /* 0x6D8 */ byte pad_6D8[2];
+    /* 0x6DA */ s16  field_6DA; ///< state-0 frame budget, drained by `field_69C`
+    /* 0x6DC */ byte pad_6DC[4];
     /// State-1 branch selector: zero picks the short dwell and animation 2,
     /// non-zero the long dwell and animation 0x14.
     /* 0x6E0 */ s16  field_6E0;
@@ -65,9 +67,18 @@ STATIC_ASSERT_SIZEOF(Actor105700Work, 0x6E4);
 
 /// Spawn/context block behind `Actor105700.field_20`; `field_8` is the
 /// halfword the sound id takes its room/channel bits from.
+/// Spawn parameter block behind `Actor105700Ctx.field_3C`. Byte 1 scales the
+/// state-1 dwell timer that arms the lunge.
+typedef struct Actor105700Params {
+    /* 0x0 */ byte pad_0[1];
+    /* 0x1 */ u8   field_1;
+} Actor105700Params;
+
 typedef struct Actor105700Ctx {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
+    /* 0x00 */ byte               pad_0[8];
+    /* 0x08 */ u16                field_8;
+    /* 0x0A */ byte               pad_A[0x32];
+    /* 0x3C */ Actor105700Params* field_3C;
 } Actor105700Ctx;
 
 /// Model object behind `Actor105700.field_2C`; `field_8` is the root

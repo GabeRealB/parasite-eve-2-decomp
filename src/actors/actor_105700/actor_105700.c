@@ -34,11 +34,102 @@ extern s16 D_actor_105700_801372EC[];
 /// The body objects' variant flag comes from `D_actor_105700_80148F14`.
 extern Actor105700PlaceSrc D_actor_105700_80148F14;
 
+/// Set while the player is being grabbed; forces this actor's approach cycle
+/// into its handover animation.
+extern s8 D_80115419;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_105700/actor_105700", D_actor_105700_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80131ED0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80132944);
+/// Per-frame tick of the approach cycle, sharing the `field_6A8` state with
+/// `func_actor_105700_801341CC` and `func_actor_105700_80136AE0`; the same body
+/// as `Actor02000_Fn00AEC` of `actor_102000` (see `overlay_dup_index.py find
+/// func_actor_105700_80132944`). State 0 drains the `field_6DA` budget by
+/// `field_69C` (0 while `field_698` is under the per-animation entry of
+/// `D_actor_105700_801372EC`, 0x14 once past it) and runs the proximity cue
+/// every frame; when the budget runs out it switches to animation 4 and state
+/// 1. State 1 waits for `field_698` to reach 0x60, then either falls back to
+/// animation 2 (budget left) or starts the lunge: animation 3, state 2, a fresh
+/// budget of 1000 per unit of the spawn record's byte 1, and `field_6A2` /
+/// `field_6A4` set to the actor's current yaw and its opposite. State 2 holds
+/// `field_69E` at 0x3B until `field_698` reaches 0x23, then returns to animation
+/// 2 and state 0. A set `field_6B2` or `D_80115419` overrides everything with
+/// animation 2 and the shared state-F0 slot.
+void func_actor_105700_80132944(Actor105700* arg0)
+{
+    Actor105700Ctx*  spawn;
+    Actor105700Work* work;
+    GsCOORDINATE2*   self;
+    u8*              head;
+    s16              state;
+    s16              delta;
+    s32              ang;
+    s32              param;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x10;
+
+    self  = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    spawn = arg0->field_20;
+    state = work->field_6A8;
+
+    switch (state) {
+        case 0:
+            delta = 0;
+            if (work->field_698 >= D_actor_105700_801372EC[work->field_694]) {
+                delta = 0x14;
+            }
+            work->field_69C  = delta;
+            work->field_69E  = 0;
+            work->field_6DA -= work->field_69C;
+            if (work->field_6DA <= 0) {
+                work->field_694 = 4;
+                work->field_6AE = 0;
+                work->field_6A8 = 1;
+                work->field_69C = 0;
+            }
+            func_actor_105700_80132B28(arg0);
+            break;
+        case 1:
+            work->field_69C = 0;
+            work->field_69E = 0;
+            if (work->field_698 >= 0x60) {
+                if (work->field_6DA <= 0) {
+                    param           = spawn->field_3C->field_1;
+                    work->field_694 = 3;
+                    work->field_6A8 = 2;
+                    work->field_6DA = param * 1000;
+                    ang             = ratan2(self->coord.m[0][2], self->coord.m[2][2]) & 0xFFF;
+                    work->field_6A2 = ang;
+                    work->field_6A4 = (ang + 0x800) & 0xFFF;
+                } else {
+                    work->field_694 = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+        case 2:
+            work->field_69C = 0;
+            work->field_69E = 0x3B;
+            if (work->field_698 >= 0x23) {
+                work->field_694 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
+
+    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+        work->field_6A6 = 2;
+        work->field_6A8 = 0;
+        work->field_694 = 2;
+        work->field_6AE = 0;
+        Gp_ArmStateF0(1);
+    }
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
 
 /// Proximity cue; the same body as `Actor02000_Fn00CD0` of `actor_102000`
 /// (see `overlay_dup_index.py find func_actor_105700_80132B28`). Carves a
@@ -460,8 +551,6 @@ s32 func_actor_105700_801369D4(SVECTOR* arg0, SVECTOR* arg1)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
     return ret;
 }
-
-extern s8 D_80115419;
 
 /// Per-frame tick, the same body as `Actor02000_Fn03268` of `actor_102000`.
 /// State 0 counts `field_6AE` up to 0x5B frames and then hands over to state
