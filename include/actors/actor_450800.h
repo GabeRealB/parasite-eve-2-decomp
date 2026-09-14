@@ -3,7 +3,15 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
+
+/// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
+/// `Gp_SpawnEff` as the effect's position. Stays in assembly (the symbol's
+/// rodata run reaches past it), so it is listed `force_not_migration` in the
+/// overlay's symbol map and pulled in by its own `INCLUDE_RODATA`.
+extern SVECTOR D_actor_450800_80131E24;
 
 /// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_450800_80132160` allocates it
