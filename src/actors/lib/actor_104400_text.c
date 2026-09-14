@@ -1221,4 +1221,54 @@ void Actor04400_Fn0304C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn031B8);
+/// Latch the model root position into `field_60`, then aim at the nearer of
+/// the two `Gp_ActorSlots` actors (distance measured in XZ): its offset goes
+/// to `field_88`..`field_8C`, the distance to `field_43A`, and its heading
+/// relative to `field_7A` to `field_444`. Nothing is written when slot 0 is
+/// empty. Same body as `ActorsShared801662ec`.
+void Actor04400_Fn031B8(Task* arg0)
+{
+    Actor104400Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   other;
+    GpActorWork*     player;
+    SVECTOR          d0;
+    SVECTOR          d1;
+    s32              dist;
+    s32              dist2;
+
+    work              = (Actor104400Work*)arg0->idMap;
+    coord             = ((TmdObject*)arg0->extra)->field_8;
+    player            = Gp_ActorSlots[0];
+    work->field_60.vx = coord->coord.t[0];
+    work->field_60.vy = coord->coord.t[1];
+    work->field_60.vz = coord->coord.t[2];
+    if (player != NULL) {
+        other = player->extra->field_8;
+        d0.vx = other->coord.t[0] - coord->coord.t[0];
+        d0.vy = other->coord.t[1] - coord->coord.t[1];
+        d0.vz = other->coord.t[2] - coord->coord.t[2];
+        dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
+        if (Gp_ActorSlots[1] != NULL) {
+            other = Gp_ActorSlots[1]->extra->field_8;
+            d1.vx = other->coord.t[0] - coord->coord.t[0];
+            d1.vy = other->coord.t[1] - coord->coord.t[1];
+            d1.vz = other->coord.t[2] - coord->coord.t[2];
+            dist2 = SquareRoot0(d1.vx * d1.vx + d1.vz * d1.vz);
+            if (dist2 < dist) {
+                dist  = dist2;
+                d0.vx = d1.vx;
+                d0.vy = d1.vy;
+                d0.vz = d1.vz;
+            }
+        }
+        do {
+            work->field_88  = d0.vx;
+            work->field_8A  = d0.vy;
+            work->field_8C  = d0.vz;
+            work->field_43A = dist;
+        } while (0);
+        VectorNormalSS(&d0, &d0);
+        work->field_444 = (ratan2(d0.vx, d0.vz) - work->field_7A) & 0xFFF;
+    }
+}
