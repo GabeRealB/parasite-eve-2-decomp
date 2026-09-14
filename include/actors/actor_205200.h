@@ -42,6 +42,23 @@ typedef struct Actor205200Ctx {
     /* 0x10 */ GpLinkNode node;
 } Actor205200Ctx;
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor342400Msg7DB`, whose halfword at 0x2 is the
+/// only part the handler below reads. Senders seed it from a `Task`'s
+/// `spawnArg1` halfword -- `Gp_DispatchMsg` in `3CD8.c` sends `D_801155A0`.
+typedef struct Actor205200Msg7DB {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor205200Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor205200Msg7DB, 0x4);
+
+/// Message 0x7DB handler, listed in the overlay's `D_actor_205200_801567D0`
+/// next to the shared 0x7D5 one. A non-zero payload halfword sets
+/// `Actor205200Work.field_594`, the flag `func_actor_205200_8014C59C` tests to
+/// push the actor to state 2. Nothing reads the opcode itself, hence `arg1`.
+s32 func_actor_205200_8014C9A0(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* arg2);
+
 void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1);
 void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1);
 
