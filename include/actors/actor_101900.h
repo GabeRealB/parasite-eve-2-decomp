@@ -89,6 +89,17 @@ typedef struct Actor01900HeightClamp {
 } Actor01900HeightClamp;
 STATIC_ASSERT_SIZEOF(Actor01900HeightClamp, 0x10);
 
+/// 0x34-byte scratch `Actor01900_Fn06904` takes from `G_SCRATCH_HEAD`: a
+/// `MATRIX` plus the `VECTOR` handed to `ScaleMatrix` and the yaw stored
+/// before `Gfx_RotMatrixY`. Same layout as `ActorShared80135a60Scratch`.
+typedef struct Actor01900RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor01900RotScratch;
+STATIC_ASSERT_SIZEOF(Actor01900RotScratch, 0x34);
+
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn03C98`.
 /// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0C10`;
 /// `field_1C` is the running height offset that `Actor01900_Fn03C04` clamps

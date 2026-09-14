@@ -3,6 +3,29 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Hoist `PSX_SCRATCH` before a call-containing region to swap `$s3`/`$s4`
+
+A scale constant (`0x1194`) and the scratch-head pointer compete for `$s3`/`$s4`
+after `ratan2` / `Gfx_RotMatrixY` / `ScaleMatrix`. Loading `PSX_SCRATCH` inside
+the matrix block gives the pointer `$s3`. Assigning it to a local *before* a
+switch that contains calls lengthens that range so the constant outranks it and
+takes `$s3`:
+
+```c
+scratch_base = PSX_SCRATCH; /* before if (timer < N), which contains jals */
+...
+head = scratch_base;
+head = *(u8**)(head + 0x3FC);
+```
+
+`Actor01900_Fn06904` is the worked example. `Actor00100_Fn04270` solved the
+same pair with `register … asm("s3")` / `asm("s4")` pins.
+
+Two C stores through `G_SCRATCH_HEAD` CSE `0x1F8003FC` into an extra `$s5`.
+Keep one C alloc store (`*(T**)G_SCRATCH_HEAD = blk` → `lui $at` / `sw`) and
+release with the `ActorsShared80139ee4` `lui`/`sw 0x1F8003FC` asm pair so the
+reload is not hoisted into the first matrix `lhu` delay.
+
 ## Delay-slot table `%hi` paired with a field `lh` is splat, not C
 
 When a `%hi(table)` sits in a branch delay slot and its `%lo` is only used on
