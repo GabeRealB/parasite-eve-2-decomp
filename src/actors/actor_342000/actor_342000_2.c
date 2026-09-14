@@ -16,5 +16,3 @@ void func_actor_342000_80163F88(Task* task)
     coord->sub = work->field_2A4;
     Task_Kill(task);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000_2", func_actor_342000_80163FB8);

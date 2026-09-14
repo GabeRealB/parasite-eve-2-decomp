@@ -1,3 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900_2", func_actor_341900_80163224);
+void func_actor_341900_8016332C(void)
+{
+}

@@ -9,8 +9,6 @@ extern TaskDesc ActorsShared80136280Desc;
 extern Task* D_actor_121300_8013D418;
 extern s16   D_actor_121300_8013D41C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300_2", func_actor_121300_801341A8);
-
 void func_actor_121300_80134224(s32 arg0, s32 arg1, s32 arg2)
 {
     Task_SpawnFromTable(&ActorsShared80136280Desc, 0xA, arg2, arg0);
