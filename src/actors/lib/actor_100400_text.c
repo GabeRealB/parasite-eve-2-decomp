@@ -591,7 +591,16 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09B44);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09B74);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09BDC);
+void Actor00400_Fn09BDC(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_65E == 2) {
+        work->field_638 = 0xB;
+        work->field_63A = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09C04);
 
