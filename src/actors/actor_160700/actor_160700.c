@@ -4,13 +4,24 @@
 #include "main/task.h"
 #include "main/gameflag.h"
 
+extern s32 D_actor_160700_801354CC;
 extern s32 D_actor_160700_80135664;
 extern s32 D_actor_160700_80135ACC;
 extern s32 D_actor_160700_80135BD4;
 extern s32 D_actor_160700_801362F4;
 extern s32 D_actor_160700_80136414;
 
-INCLUDE_ASM("actors/nonmatchings/actor_160700/actor_160700", func_actor_160700_80131E24);
+void func_actor_160700_80131E24(void)
+{
+    s32 slot;
+
+    if (GameFlag_GetNibble(0x113) != 0) {
+        slot = Gp_LookupSlot4(0);
+        if (slot != 0) {
+            Gp_DispatchMsg((Task*)slot, 0x7D3, (s32)&D_actor_160700_801354CC, 0);
+        }
+    }
+}
 
 void func_actor_160700_80131E70(void)
 {
