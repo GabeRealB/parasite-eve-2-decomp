@@ -67,6 +67,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A394);
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A3E0);
+/// Animation-start handler: seeds the work block's `animId` with the requested
+/// one, rejecting anything from 5 up, and leaves the actor in step 2 with
+/// `field_482` cleared before running the step dispatcher.
+///
+/// The actor is read into a local between the first two stores on purpose: that
+/// is where the original evaluates it, and it is what puts the global's
+/// `lui`/`lw` ahead of the `li 2` and leaves the `field_482` clear for the
+/// call's delay slot.
+s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args)
+{
+    GpActorWork* actor;
+
+    if (args->animId < 5) {
+        ActorsShared80131f9cWork->animId    = args->animId;
+        actor                               = D_actor_202900_80156E58;
+        ActorsShared80131f9cWork->field_47C = 2;
+        ActorsShared80131f9cWork->field_482 = 0;
+        func_actor_202900_8014A194(actor);
+        return 0;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A440);

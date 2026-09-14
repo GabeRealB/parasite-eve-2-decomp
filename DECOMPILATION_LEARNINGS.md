@@ -78655,3 +78655,83 @@ Inputs: `base_1.i` (offset local, 87.727%)
 `3d0ff3e0ef9a4a2f4cc3590f2d52b8319a351a16a3247749559cf88aec8ad335`,
 `base_2.i` (indexed, 100.000%)
 `05e5ff4f12aa6248604d04675d9f4c9d57855be99d09145dba7da283af72c17e`.
+
+## The guard's polarity picks which arm is the fall-through, and the layout follows
+
+An `if` whose arms both return has two source spellings that compile to the same
+CFG, but not to the same block order. `func_actor_202900_8014A3E0` is the clean
+case: the same signature and the same five statements, only the guard written
+the other way round, and 13.3% between them.
+
+```
+-bnez    v0,24          # if (animId < 5) goto body   -> 100.000%
++beqz    v0,4c          # if (animId >= 5) goto -1   ->  86.667%
+ lui     v0,%hi(...)                                  (reorder=2 insert=1 delete=1)
+-j    .text+50
+-li     v0,-0x1
+ lw      v1,%lo(...)(v0)
+```
+
+The negated form makes the `return -1` arm the branch's target, so reorg parks it
+at the end of the function beside the epilogue, where it needs no jump of its
+own; the other `return` grows a `j` and a `move v0,zero`. The positive form
+leaves `-1` inline right after the branch with its own `j` to the epilogue, and
+displaces the body — which is the shape the target has.
+
+m2c's early-return form is the negated one, so a handler that rejects a range
+comes back in the wrong polarity. Write the accepting arm as the `if` and the
+rejection after it:
+
+```c
+    if (args->animId < 5) {     /* bnez to the body, -1 inline after it */
+        ...;
+        return 0;
+    }
+    return -1;                  /* not: if (args->animId >= 5) return -1; */
+```
+
+This is the same shape the sibling `func_actor_110300_80132280` is written in,
+one byte-pattern away in the same family — read the matched siblings before
+rewriting m2c's control flow.
+
+Inputs: `base_1.i` (positive, 100.000%)
+`43a810179afd3cf7b6f56d912c024322c4a247991250909d9bc680578cc2c4ff`,
+`base_2.i` (negated, 86.667%)
+`0783e32a4c4c7c1c24679cce689fd023ae1131ce67a3944558e8b8dd3090e316`.
+
+## A narrowing store re-reads its source at the narrow width
+
+A 32-bit field compared against a constant and later stored into a 16-bit field
+shows up in the target as *two* loads of the same address at different widths:
+
+```
+lw      v0,0x4($a2)     # compare
+slti    v0,$v0,0x5
+...
+lhu     v0,0x4($a2)     # the store's source, re-read
+sh      v0,0x480($v1)
+```
+
+That is not two fields and not a `(u16)` cast written at the use site. It is what
+GCC 2.8.1 emits for a plain assignment whose source is `s32` and whose
+destination is `u16`: the compare keeps its `lw`, and the narrowing conversion
+costs a fresh 16-bit access because the 32-bit value is dead after the `slti`.
+The first RTL dump already carries both — `(set (reg:SI 84) (mem/s:SI ... 4))`
+for the compare and `(set (reg:HI 89) (mem/s:HI ... 4))` for the store — so it is
+a front-end conversion, not a `combine` or peephole fold.
+
+```c
+    /* Actor202900AnimArgs */ s32 animId;   /* 0x4 */
+    /* Actor202900Work    */ u16 animId;    /* 0x480 */
+    ...
+    if (args->animId < 5) {
+        ActorsShared80131f9cWork->animId = args->animId;  /* lw compare, lhu store */
+```
+
+Pick the width from the *store* and leave the load alone: declaring the source
+`u16` kills the `lw`/`slti` pair, and declaring the destination `s32` kills the
+`lhu`. `Actor110300AnimArgs`/`Actor110300Work` is the same pair of declarations
+one animation id apart, and the comment on its args struct says the same thing.
+
+Inputs: `base_1.i` (100.000%)
+`43a810179afd3cf7b6f56d912c024322c4a247991250909d9bc680578cc2c4ff`.
