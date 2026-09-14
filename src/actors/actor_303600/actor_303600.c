@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_303600.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/task.h"
 
 extern Task* D_actor_303600_8016E4C0;
@@ -26,4 +28,8 @@ void func_actor_303600_80162600(s16 arg0)
     work->field_6 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_80162620);
+void func_actor_303600_80162620(void)
+{
+    Gp_PulseState1C80();
+    Gp_StateC08.field_6 |= 1;
+}
