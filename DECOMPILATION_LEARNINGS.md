@@ -5349,6 +5349,12 @@ A matched switch that also exists in another overlay of the family should be
 promoted, not landed twice. `overlay_dup_index.py promote` refuses the body
 while it is still `INCLUDE_ASM` if the copies are not byte-identical or if they
 jal overlay-local functions; match first, or write the `shared` span by hand.
+Matching cures only the first of those two: an overlay-local `jal` is refused
+after the body is C as well, because the copies name different callees
+(`func_actor_141000_80133CD8` against `func_actor_335800_80163E20` in the
+`func_actor_141000_80133BD8` / `func_actor_335800_80163D20` pair - otherwise the
+same 64 instructions, one `~` body), so the twin has to be matched in its own
+overlay with the local name.
 
 **"Same body" is not "same object" when the body loads its own overlay's
 table.** The dup index treats an overlay-local reference as a wildcard, so every
@@ -67331,6 +67337,65 @@ supposed to be settled. `func_actor_206100_8014FBE4` is the worked example
 for the one-argument `Gp_GetObjPan`, which materialised `0x40040006` twice -
 one `lui`/`ori` pair per copy. An `insert` penalty from a duplicated constant is
 worth checking against the callee's real prototype in `include/` first).
+
+## A halfword field widened into an `s32` local inside the branch: `sll`/`sra` at the assignment, and one shared load
+
+**Symptom.** The target steps a yaw by `+-0x40` on a *sign-extended* copy of the
+loaded halfword, computed once before the inner branch and used by both arms:
+
+```
+lhu   a0,0x12(sp)        /* vec.vy, loaded once for the whole function */
+...
+lhu   a2,0x4ba(s0)
+subu  v0,a2,a0
+sll   v0,v0,0x10
+sra   v1,v0,0x10         /* diff = (s16)(target - vy) */
+...
+li    a1,0x7d3
+sll   v0,a0,0x10         /* the widening, in the if-path */
+bgez  v1,L2
+sra   v0,v0,0x10         /* delay slot: v0 = (s32)vec.vy */
+addiu v0,v0,-0x40
+...
+L2: addiu v0,v0,0x40
+```
+
+The seed instead adds directly on the zero-extended load register
+(`addiu v0,v1,+0x40`), two instructions short per arm, with its own `lhu` per
+arm - `regs` plus `delete`, and the arms in the wrong order.
+
+**Why.** A halfword *field* used in an arithmetic expression is only
+*promoted*: `expand_expr` hands the SImode operation a `(subreg:SI (reg:HI v) 0)`,
+and `gen_lowpart_common`'s size guard is word-based ("MODE must occupy no more
+words than the mode of X"), so on MIPS a widening subreg is legal and costs
+nothing. Only an assignment into an `s32` *object* forces `convert_modes` ->
+`convert_move` -> `extendhisi2`; MIPS I has no `seh`, so that pattern expands to
+`ashlsi3`/`ashrsi3` - the `sll`/`sra` pair.
+
+**Fix.** Give the field an `s32` local assigned *inside* the branch, before the
+inner `if`, and add on that:
+
+```c
+if (ABS(diff) >= 0x41) {
+    vy = vec.vy;                     /* the conversion is an insn here, once */
+    if (diff < 0) {
+        vec.vy = vy - 0x40;
+    } else {
+        vec.vy = vy + 0x40;
+    }
+}
+```
+
+Both arms then read one SImode pseudo, the pair lands in the dominator (delayed
+branch moves the `sra` into the `bgez` delay slot), and - because the assignment
+sits in the same extended basic block as the earlier `vec.vy` read, ahead of any
+store to the field - cse shares a single `lhu` with the yaw subtraction rather
+than emitting one per arm. 93.172% -> 100% on `func_actor_141000_80133BD8` from
+that one change: the register rotation it also fixed (`$a0`/`$v1` swapped) was a
+consequence of the shared load, not something to pin. This is the assignment-vs-
+use rule of the `s8`-cast entry above, and the mirror of "An in-place
+accumulator must be `s32`": there a *non*-widening value keeps its subreg, here
+the widening is the instruction the target wants.
 
 ## A field read twice (once into a chain, once as a call arg) must stay two reads
 

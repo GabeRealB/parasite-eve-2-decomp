@@ -37,7 +37,7 @@ typedef struct Actor141000Work {
     /* 0x010 */ byte    pad_10[0x42D];
     /* 0x43D */ s8      field_43D;
     /* 0x43E */ s8      field_43E;
-    /* 0x43F */ byte    pad_43F[0x1];
+    /* 0x43F */ s8      field_43F;
     /* 0x440 */ MATRIX  light;
     /* 0x460 */ MATRIX  color;
     /* 0x480 */ VECTOR3 target;
@@ -49,7 +49,10 @@ typedef struct Actor141000Work {
     /* 0x4A8 */ s32     field_4A8;
     /* 0x4AC */ byte    pad_4AC[0x4];
     /* 0x4B0 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4B8 */ byte    pad_4B8[0xA];
+    /* 0x4B8 */ byte    pad_4B8[0x2];
+    /* 0x4BA */ u16     field_4BA; // target yaw the turn-to-face body steers toward
+    /* 0x4BC */ byte    pad_4BC[0x4];
+    /* 0x4C0 */ u16     field_4C0;
     /* 0x4C2 */ u16     field_4C2; // main-body state index; the dispatcher reads it back sign-extending
     /* 0x4C4 */ byte    pad_4C4[0x4];
     /* 0x4C8 */ s8      field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
@@ -102,6 +105,21 @@ typedef struct Actor141000Msg {
     /* 0x2 */ u16 field_2;
 } Actor141000Msg;
 STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
+
+/// 0x14-byte animation preset `func_actor_141000_80133BD8` builds for
+/// `func_actor_141000_80133CD8`, which installs it on the task's model through
+/// `Gp_AnimResetSlot` / `Gp_AnimTickIndex` and `func_800B3F84` /
+/// `func_800B4114`. The turn-to-face body fills `field_0` with 0, `field_4` with
+/// the `field_43F` byte, `field_8` with 1, `field_C` with 5 and `field_10` with
+/// 0 -- the same five-word shape as `GpAnimArg` and `Actor503500AnimPreset`.
+typedef struct Actor141000AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor141000AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor141000AnimPreset, 0x14);
 
 /// A `MATRIX`'s word-wise view, for the identity splat
 /// `func_actor_141000_80132FD0` writes over the root coordinate: five aligned
