@@ -73821,3 +73821,64 @@ carried m2c's two-parameter prototype (`(void *arg0, s32 arg2)`), which homes
 `arg2` to `$a1`; the target's `li $v0,3` / `bne $s0,$v0` against the seed's
 `li $v1,3` / `bne $s0,$v1` is the tell. The handler table at `0x801798B4` gives
 the real signature `(Task*, s32 msgId, s32 arg2)`.
+
+## Count a field's loads to count the source's mentions — a temp hides on the call's argument register
+
+`func_actor_310100_801631B0`'s spawn tick reads the model's part-1 frame three
+times and hands the model to `func_800D7A9C`. Written the plain way, five
+`lw 0x2C($s0)` (the `task->extra` chain, once per mention) reach the object and
+the call comes out as `lw a0,0x2C(s0)` / `jal`, with the argument setup rotated
+— 91.864%, `regs=3 reorder=2 insert=3 delete=1`. The target has four:
+
+```asm
+lw    a0,0x2c(s0)      ; 80163200, not $v0
+lw    v0,8(a0)
+lw    v0,0x88(v0)
+sw    v0,0x10(sp)
+lw    v0,0x2c(s0)      ; vy: its own load
+...
+lw    v0,0x2c(s0)      ; vz: its own load
+...
+jal   func_800D7A9C    ; $a0 still holds the value from 80163200
+```
+
+`$a0` is written once at 80163200 and never re-written before the `jal`: the
+`vx` read's `task->extra` **is** the call's first argument, as one pseudo with
+two uses. The other two mentions each still load their own.
+
+**Why the count is faithful.** Every `((TmdObject*)task->extra)` mention expands
+to its own load pseudo, and `update_equiv_regs` (`local-alloc.c` 1099-1153) gives
+each pseudo with `REG_N_SETS == 1` set from a MEM a `REG_EQUIV (mem …)` note —
+all five carry it in `base_2.i.lreg` — doubles its `REG_LIVE_LENGTH`, and notes
+"if no registers are available, reload will substitute the equivalence". Reload
+does, so each mention becomes one `lw`. A register survives only where the pseudo
+is also needed elsewhere: with a second use as the call argument the copy
+suggestion to `$a0` wins it a hard register, the two uses share the one load, and
+no separate argument load is emitted.
+
+**Fix.** Give the first mention a name and pass that to the call, leaving the
+other two in the long form:
+
+```c
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        extra      = (TmdObject*)task->extra;
+        pos.vec.vx = extra->field_8[1].workm.t[0];
+        pos.vec.vy = ((TmdObject*)task->extra)->field_8[1].workm.t[1];
+        pos.vec.vz = ((TmdObject*)task->extra)->field_8[1].workm.t[2];
+        func_800D7A9C(extra, &pos.vec, 0, 3);
+```
+
+100.000%, unchanged everywhere else.
+
+**Where the temp is born is readable off the target.** It must sit *after* the
+preceding `Gp_UpdateCoord` call — hoisting the assignment above it makes the
+pseudo live across that call, which costs a call-saved register and a prologue
+save the target does not have. The target says which: `$a0` is written at
+80163200, the first post-call load, not at 801631EC, the pre-call one.
+
+**Reading it.** When the object has exactly one more (or fewer) load of a pointer
+field than the C mentions, and the odd one's register is a call's argument
+register with a live range ending at that call, a temp is hiding there. Naming
+*every* mention instead collapses the chain to a single load with the reads
+reusing it, which is a different object — the three separate reloads are what
+pin the temp to the first mention alone.

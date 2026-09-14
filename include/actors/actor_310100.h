@@ -21,10 +21,24 @@ typedef struct Actor310100Work {
     /* 0x000 */ byte  pad_0[0x4E4];
     /* 0x4E4 */ Task* field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
     /* 0x4E8 */ byte  pad_4E8[0x8];
-    /* 0x4F0 */ s16   field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
+    /* 0x4F0 */ u16   field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
     /* 0x4F2 */ byte  pad_4F2[0x14];
     /* 0x506 */ u16   field_506; // passed down as the model task's spawnArg1
 } Actor310100Work;
+
+/// Scratch the message-0x6C state handler stages its vectors in. The state is
+/// dispatched through by value, so the spawn tick's `vec` and the steady tick's
+/// `rot` never overlap and the two share one stack slot.
+typedef union Actor310100Vec {
+    /* 0x0 */ VECTOR  vec; // model part-1 translation, handed to func_800D7A9C
+    /* 0x0 */ SVECTOR rot; // floor-quad yaw, handed to Gp_DrawFloorQuad
+} Actor310100Vec;
+
+/// State handler for the display model spawned by `func_actor_310100_80162C64`:
+/// the spawn tick seeds the tracker from the model's part-1 coordinate frame and
+/// steps to state 1, and every later tick draws the floor quad until the display
+/// state goes non-zero.
+void func_actor_310100_801631B0(Task* task);
 
 /// Message 0x7D5 handler: kills the display task hanging off the work block,
 /// records the payload's `pos.vy` in the work block and spawns a fresh display
