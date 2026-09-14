@@ -575,7 +575,44 @@ void Actor04400_Fn07530(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn075F0);
+/// Same body as `func_actor_342400_8016A724`.
+void Actor04400_Fn075F0(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* work3;
+    Actor104400Work* work4;
+    s16              anim;
+    s16              next;
+
+    work = (Actor104400Work*)arg0->idMap;
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    anim = work->field_418;
+    if (anim == 8) {
+        if (work->field_440 == 0) {
+            work2            = (Actor104400Work*)arg0->idMap;
+            work2->field_426 = 4;
+            work2->field_41C = 0x10;
+            work2->field_418 = 5;
+            work2->field_414 = 1;
+        } else {
+            work3            = (Actor104400Work*)arg0->idMap;
+            work3->field_426 = 4;
+            work3->field_41C = 0x10;
+            work3->field_418 = 6;
+            work3->field_414 = 1;
+        }
+    } else {
+        next             = Actor04400_D10828[anim - 1];
+        work4            = (Actor104400Work*)arg0->idMap;
+        work4->field_426 = 4;
+        work4->field_41C = 0x10;
+        work4->field_418 = next;
+        work4->field_414 = 1;
+    }
+    Actor04400_Fn02B8C(arg0);
+    work->field_420++;
+}
 
 void Actor04400_Fn076D0(Task* arg0)
 {
