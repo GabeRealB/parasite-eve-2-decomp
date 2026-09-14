@@ -1,4 +1,8 @@
 #include "common.h"
+#include "gameplay/D4.h"
+#include "main/tmd.h"
+
+extern MATRIX* D_80073B8C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801339FC);
 
@@ -10,7 +14,57 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801341E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80134374);
+s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
+{
+    SVECTOR        vec;
+    SVECTOR*       vp;
+    GsCOORDINATE2* coords;
+    s32            dist;
+    s32            value;
+    s32            view;
+    s32            flag;
+
+    view   = Gp_GetViewIndex() & 0xFF;
+    vp     = &vec;
+    coords = ((TmdObject*)arg0->extra)->field_8;
+    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
+    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    dist   = vec.vx * vec.vx;
+    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    dist  += vec.vy * vec.vy;
+    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
+    switch (arg1) {
+        case 0:
+        case 1:
+            if ((view != 7) && (view != 8)) {
+                value = 7;
+                flag  = dist < 0x26AC;
+            } else {
+                flag = view;
+                if (flag == 7) {
+                    value = 8;
+                    flag  = dist < 0x26AD;
+                    if (flag) {
+                        value = 7;
+                    }
+                    return value;
+                }
+                if (flag == 8) {
+                    value = 7;
+                    flag  = dist < 0x2328;
+                } else {
+                    return 1;
+                }
+            }
+            if (!flag) {
+                value = 8;
+            }
+            return value;
+        case 2:
+            return 0x1A;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801344C4);
 

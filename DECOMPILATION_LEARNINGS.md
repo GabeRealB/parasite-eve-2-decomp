@@ -74739,3 +74739,60 @@ is to move the read earlier, not to add a local.
 Preprocessed SHA256:
 
 - `base_2.i`: `0fa9f1d1b67a09ba85a3c0f16bd3acdb322f83a8ade08ff6490dc3ce390deca7`
+
+## A call result that lands in the accumulator's register comes from reusing one variable for both
+
+An accumulator that is added to in place, then handed to a call whose result is
+stored back, keeps its register across the call only when the accumulator *is*
+the variable that receives the result. In `func_actor_403200_80134374` the
+target is
+
+```
+mflo    t0            ; vx*vx
+lh      v1,0x12(sp)
+mult    v1,v1
+mflo    a2            ; vy*vy
+addu    t0,t0,a2      ; in place
+mflo    v1            ; vz*vz
+jal     SquareRoot0
+addu    a0,t0,v1      ; call argument
+move    t0,v0         ; result back into t0
+```
+
+so the partial sum is accumulated in its own register, the extra `vz*vz` lands
+in the argument register `a0`, and the result is copied back into `t0`. Writing
+the sum into a dedicated temp, or into a temp that a later block also uses,
+gives a different `mflo`/`addu` and a different tail register instead:
+
+```c
+    flag = vec.vx * vec.vx;                    /* separate temp */
+    ...
+    dist = SquareRoot0((flag + (vec.vy * vec.vy)) + (vec.vz * vec.vz));
+    /* -> addu a0,t0,a0 ; addu a0,a0,v1 ; move v1,v0 ; flag keeps t0 */
+```
+
+Two separate effects are in play. A temp shared with a later block is a single
+pseudo spanning blocks (`reg_qty = -1`), which refuses the tie at the add and
+keeps its register busy into that later block — here it held `t0`, pushing the
+call result to `v1` and swapping the tail's `dist`/`flag`. A dedicated *local*
+accumulator is allocated by local-alloc against the other block-local quantities
+and does not necessarily keep the register either. Reusing `dist` for both the
+accumulation and the result collapses them into one pseudo whose register
+survives:
+
+```c
+    dist = vec.vx * vec.vx;
+    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    dist += vec.vy * vec.vy;
+    dist = SquareRoot0(dist + (vec.vz * vec.vz));
+```
+
+The `+=` makes the destination and the first operand the same pseudo, so no tie
+is needed and the add is emitted in place; because the pseudo is also the result
+of the call, the copy back is a no-op (`move t0,v0`). Practical rule: when the
+target accumulates in a register and then moves a call's result into that same
+register, one variable is doing both jobs in the source.
+
+Preprocessed SHA256:
+
+- `base_20.i`: `26ed7a002c47bf796866da27c9452c35c154267d361d22dc2e709443e848a488`
