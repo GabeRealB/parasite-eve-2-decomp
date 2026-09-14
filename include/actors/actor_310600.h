@@ -30,7 +30,11 @@ typedef struct Actor310600Work {
     /* 0x4F8 */ s32     field_4F8;
     /* 0x4FC */ s32     field_4FC;
     /* 0x500 */ s32     field_500;
-    /* 0x504 */ byte    pad_504[0x34];
+    /* 0x504 */ byte    pad_504[0x4];
+    /* 0x508 */ VECTOR3 step;  // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x514 */ byte    pad_514[0x14];
+    /* 0x528 */ SVECTOR limit; // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x530 */ byte    pad_530[0x8];
 } Actor310600Work;
 STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 
@@ -56,6 +60,14 @@ typedef struct Actor310600Cmd {
     /* 0x0C */ s32 param;
     /* 0x10 */ s32 unk10;
 } Actor310600Cmd;
+
+/// The constant local-space offset `func_actor_310600_80162B98` rotates,
+/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z, the same
+/// offset body `ActorsShared80132920` / `func_actor_335800_80163CA0` use, which
+/// is why that handler's body appears again here. The overlay keeps its own copy
+/// in `.rodata` (`actor_310600.c` carries the `INCLUDE_RODATA`), so the address
+/// comes from the per-overlay symbol map.
+extern VECTOR D_actor_310600_80161E54;
 
 void func_actor_310600_80162A58(Task* arg0);
 

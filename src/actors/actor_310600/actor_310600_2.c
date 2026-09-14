@@ -76,4 +76,26 @@ void func_actor_310600_80162AD8(Task* task)
     work->field_47E++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600_2", func_actor_310600_80162B98);
+/// State handler reached by the `field_47E` advance `func_actor_310600_80162AD8`
+/// ends with: rotates the constant local-space offset
+/// `D_actor_310600_80161E54` through the root part's matrix into `work->step`,
+/// opens the per-axis stop threshold to 0x7FFF, which disables it for the update
+/// loop, and advances `field_47E` again so the dispatcher runs the next handler.
+/// The same body as `func_actor_335800_80163CA0` / `ActorsShared80132920`, which
+/// rotate their own overlay's copy of the offset.
+void func_actor_310600_80162B98(Task* task)
+{
+    Actor310600Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR           vec;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = (Actor310600Work*)task->idMap;
+
+    vec = D_actor_310600_80161E54;
+    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
+    work->limit.vx = 0x7FFF;
+    work->limit.vy = 0x7FFF;
+    work->limit.vz = 0x7FFF;
+    work->field_47E++;
+}

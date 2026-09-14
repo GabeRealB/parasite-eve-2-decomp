@@ -77190,3 +77190,46 @@ pointer variable, the store still reloads the pointer itself.
 Inputs: `base_2.i` (two independent `if`s, each with the tail spelled out,
 100.000% with all-zero penalties on the second build)
 `b5b01f73c0b461ef7addeb1befcfdf091c9da1059fa264a4bd35984b01642a72`.
+## `overlay_dup_index.py find` cannot see a family body that differs by offsets and rodata
+
+**Problem:** `func_actor_310600_80162B98` is an actor state handler that rotates
+a constant local-space offset through the root part's matrix into `work->step`,
+opens the three per-axis stop thresholds to 0x7FFF and advances the handler
+counter. `func_actor_335800_80163CA0`, `ActorsShared80132920` and
+`func_actor_317000_801628D8` are the same body, 32 instructions each.
+
+**Symptom:** `overlay_dup_index.py find` reports `same body: 1 copies` - itself.
+Equality is decided on disassembly *text*, and the copies differ in every
+`sh`/`addiu` displacement (the work block's `step` sits at 0x490 in one overlay
+and 0x508 in another) and in the `lui`/`addiu` pair that materialises each
+overlay's own `.rodata` copy of the offset. Neither `=` nor `~` matches, so the
+index is blind to the family and its silence is not evidence that the body is
+distinct. `overlay_dup_index.py similar` and the BRIEF's `shape` list both rank
+the copies 1.00.
+
+**Fix:** read a 1.00 `shape` sibling as the answer, not as a hint, and transcribe
+it with this overlay's symbols - the sibling's own field offsets, `extern VECTOR
+D_<overlay>_<addr>;` in the overlay header, and the `INCLUDE_RODATA` line for it
+that the overlay already carries. That is a full match in one build here, while
+the m2c seed it replaces cannot get there: m2c flattened the four-word copy into
+scalar locals, three of them unaddressed, so it scored 50.156% with `delete=11`
+and a 0x20 frame against the target's 0x28 - the artefact described in "m2c's
+scalar stack locals for an address-taken struct lose their dead stores", which
+is worth recognising before spending attempts on the seed.
+
+```c
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = (Actor310600Work*)task->idMap;
+
+    vec = D_actor_310600_80161E54;
+    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
+    work->limit.vx = 0x7FFF;
+    work->limit.vy = 0x7FFF;
+    work->limit.vz = 0x7FFF;
+    work->field_47E++;
+```
+
+Example: `func_actor_310600_80162B98` (50.156% -> 100.000%, one build).
+
+Inputs: `base.i` (m2c seed, 50.156%)
+`b36941505d0d8b4235316cb2474c68d98c62426d77f2d088dcd015d6ac7cd250`.
