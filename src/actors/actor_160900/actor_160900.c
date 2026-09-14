@@ -37,6 +37,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80133F90);
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8013418C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801343E4);
+void func_actor_160900_801343E4(Task* arg0)
+{
+    Actor160900FadeWork* work;
+    Actor160900FadeWork* alloc;
+
+    work = (Actor160900FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor160900FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work         = alloc;
+            work->b      = 0;
+            work->g      = 0;
+            work->r      = 0;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            work->r += (u16)arg0->spawnArg1;
+            work->g += (u16)arg0->spawnArg1;
+            work->b += (u16)arg0->spawnArg1;
+            if ((s16)work->r >= 0x100) {
+                work->b = 0xFF;
+                work->g = 0xFF;
+                work->r = 0xFF;
+            }
+            break;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801344D8);
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801345D0);
