@@ -5,6 +5,10 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "main/task.h"
+
 /// Per-actor state block for the `actor_421600` overlay's enemy.
 ///
 /// `func_actor_421600_80134AD4` allocates it with `Mem_Calloc(0xEB0, 0)` and
@@ -12,10 +16,26 @@
 /// allocation rather than a guess: this actor reuses that pointer field for its
 /// own work block and it is *not* a `TaskIdMap` here. Reach it with
 /// `(Actor421600Work*)task->idMap`.
+///
+/// Only the fields the decompiled code touches are named so far: the three
+/// `GpObj` display nodes `func_actor_421600_8013E668` hands back to
+/// `Gp_UnlinkObj`, the two child tasks it kills, and the halfword
+/// `func_actor_421600_8013E654` writes. The display nodes sit 0x24 later than
+/// the 0x8C8/0xA08/0xB48 triple on actor 01900/401800, with the same 0x140
+/// stride.
 typedef struct Actor421600Work {
-    /* 0x000 */ byte pad_0[0xEAC];
-    /* 0xEAC */ s16  field_EAC;
-    /* 0xEAE */ byte pad_EAE[2];
+    /* 0x000 */ byte  pad_0[0x8EC];
+    /* 0x8EC */ GpObj field_8EC;
+    /* 0x90C */ byte  pad_90C[0x120];
+    /* 0xA2C */ GpObj field_A2C;
+    /* 0xA4C */ byte  pad_A4C[0x120];
+    /* 0xB6C */ GpObj field_B6C;
+    /* 0xB8C */ byte  pad_B8C[0x308];
+    /* 0xE94 */ Task* field_E94;
+    /* 0xE98 */ Task* field_E98;
+    /* 0xE9C */ byte  pad_E9C[0x10];
+    /* 0xEAC */ s16   field_EAC;
+    /* 0xEAE */ byte  pad_EAE[2];
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 
@@ -30,6 +50,10 @@ extern SVECTOR D_actor_421600_80151158[];
 
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
+
+/// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
+/// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.
+void func_actor_421600_8013E668(Task* task);
 
 /// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
 void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);

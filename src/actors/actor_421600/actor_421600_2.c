@@ -11,7 +11,27 @@ s32 func_actor_421600_8013E654(Task* task)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E668);
+void func_actor_421600_8013E668(Task* task)
+{
+    Actor421600Work* work;
+    GpEnemy*         enemy;
+
+    work  = (Actor421600Work*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work != NULL) {
+        if (work->field_E94 != NULL) {
+            Task_Kill(work->field_E94);
+        }
+        if (work->field_E98 != NULL) {
+            Task_Kill(work->field_E98);
+        }
+        Gp_UnlinkObj(&work->field_8EC);
+        Gp_UnlinkObj(&work->field_A2C);
+        Gp_UnlinkObj(&work->field_B6C);
+        enemy->field_54 = 0;
+    }
+    Gp_DestroyEnemy(enemy, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E700);
 
