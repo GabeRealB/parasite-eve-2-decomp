@@ -14,7 +14,9 @@ typedef struct Actor100400Obj {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u16  field_8;
     /* 0x0A */ byte pad_A[6];
-    /* 0x10 */ byte field_10[0x30];
+    /* 0x10 */ byte field_10[4];
+    /* 0x14 */ u8   field_14;
+    /* 0x15 */ byte pad_15[0x2B];
     /* 0x40 */ u16  field_40;
     /* 0x42 */ byte pad_42[0xA];
     /* 0x4C */ u8   field_4C;
