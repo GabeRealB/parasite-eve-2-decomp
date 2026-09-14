@@ -48,7 +48,12 @@ typedef struct Actor104400Work {
     /* 0x088 */ s16       field_88; // x of the vector turned towards
     /* 0x08A */ s16       field_8A;
     /* 0x08C */ s16       field_8C; // z of the vector turned towards
-    /* 0x08E */ byte      pad_8E[0x12];
+    /* 0x08E */ byte      pad_8E[0x2];
+    /* 0x090 */ u16       field_90; // root coord.t[0], snapshotted with field_92 / field_94
+    /* 0x092 */ u16       field_92; // root coord.t[1]
+    /* 0x094 */ u16       field_94; // root coord.t[2]
+    /* 0x096 */ byte      pad_96[0x2];
+    /* 0x098 */ SVECTOR   field_98; // translation of coords[6] relative to the view
     /* 0x0A0 */ GpAnimCtx anim;
     /// First of the nine `GpAnimSlot`s (0xB4..0x21C); the second overlaps
     /// `flags_EC`, so only the first is spelled out.
@@ -63,7 +68,8 @@ typedef struct Actor104400Work {
     /* 0x3AC */ GpObj            obj_3AC;
     /* 0x3CC */ byte             pad_3CC[0x30];
     /* 0x3FC */ GpEffArg         eff_3FC;   // field_0 is the model's second coord part
-    /* 0x404 */ byte             pad_404[0xA];
+    /* 0x404 */ byte             pad_404[0x8];
+    /* 0x40C */ s16              field_40C; // heading Actor04400_Fn017B0 moves the root along
     /* 0x40E */ s16              field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
     /* 0x410 */ s16              field_410; // random 0..0x7FF drawn from `Gp_LcgState`
     /* 0x412 */ u16              field_412; // per-state frame counter
@@ -77,7 +83,9 @@ typedef struct Actor104400Work {
     /* 0x422 */ u16              field_422; // sub-state index
     /* 0x424 */ s16              field_424; // yaw added to model parts 3..5, a third each
     /* 0x426 */ s16              field_426;
-    /* 0x428 */ byte             pad_428[0x8];
+    /* 0x428 */ s16              field_428;
+    /* 0x42A */ s16              field_42A;
+    /* 0x42C */ byte             pad_42C[0x4];
     /* 0x430 */ s16              field_430;
     /* 0x432 */ s16              field_432; // 1 runs Actor04400_Fn06520 on the spawn position
     /* 0x434 */ byte             pad_434[0x2];
