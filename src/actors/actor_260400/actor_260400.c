@@ -5,9 +5,11 @@
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/task.h"
 
+extern s32 D_actor_260400_8014C6C0;
 extern s32 D_actor_260400_8014C788;
 extern s32 D_actor_260400_8014CF38;
 extern s32 D_actor_260400_8014D118;
@@ -56,7 +58,15 @@ void func_actor_260400_80149F5C(s32 arg0)
     Gp_ResetCap();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_80149FA4);
+void func_actor_260400_80149FA4(void)
+{
+    s32 slot;
+
+    slot = Gp_LookupSlot4(0);
+    if (slot != 0) {
+        Gp_DispatchMsg((Task*)slot, 0x7D4, (s32)&D_actor_260400_8014C6C0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", ActorsShared80131f9cSub0);
 
