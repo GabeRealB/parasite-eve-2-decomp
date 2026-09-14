@@ -78055,3 +78055,38 @@ Inputs: `base.i` (m2c seed, 81.361%, `delete=4 insert=2`)
 `b42c6026e7f296a8b4fe494bc35cf1cd74200bcd27223f42b0e219d007ba9555`,
 `base_3.i` (call hoisted, 100.000%)
 `de291a8798ddc4d65ae07cc95c0907e270e736349c048023cc828183c88f35ea`.
+
+## A `shape` 1.00 sibling is an equality — diff the sequence before writing any C
+
+The brief's "Similar matched bodies" is labelled *candidates to read, not
+equalities*, and `overlay_dup_index.py similar` only does generate candidates.
+But `shape: 1.00` on a short function is not a resemblance: it means the opcode
+order with operands dropped is identical. `func_actor_350500_80162ABC` is 15
+instructions, and its `shape: 1.00` entry `func_actor_141000_80133F6C` turned
+out to be the *same 15 instructions in the same order*, differing in exactly one
+displacement — the latched store, `sb $zero, 0x4C4($a0)` against
+`sb $zero, 0x4C8($a0)`. Reading the sibling's matched C and changing only that
+offset was a first-build 100.000% with every penalty zero. So at 1.00, compare
+the two `asm/` listings instruction by instruction before writing anything: if
+they are the same sequence, the sibling's source is the answer, and the only
+question left is which name and which displacement to use.
+
+The m2c seed scored 74.867% here with the penalties spread over *every* bucket
+(`stack=1 branch=1 regs=3 reorder=1 insert=2 delete=1`), which reads like a
+structural problem and is not one — that spread is what a wrong arity plus a
+`void*` field walk looks like.
+
+The arity half is already documented (§25): the payload is the *third*
+argument, so m2c's two-parameter seed made `$a2` a non-formal. Worth adding to
+that entry is what the missing parameter's register is *doing*. `$a1` is a dead
+incoming argument register, so it is simply free, and local-alloc hands it to
+the first local that wants a home — here the constant `1`, shared by the
+compare and the case-2 store, which is why the function opens with
+`addiu $a1, $zero, 0x1` and the case-2 arm stores `$a1` rather than a
+freshly-materialised 1. Dropping an unused parameter to tidy the seed re-rolls
+that allocation; the parameter list is a codegen decision, not cosmetics.
+
+Inputs: `base.i` (m2c seed, 74.867%)
+`cd3a7914d6312112950dcf0583ec9f2ff98c19a64a446891bcd42416babc8847`,
+`base_1.i` (sibling source, displacement changed, 100.000%)
+`fec2fa10ddedb25833ab3b7e870049c1a047b353bf2b50a957aa75fe2cad1273`.
