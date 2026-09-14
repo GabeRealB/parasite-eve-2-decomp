@@ -38,9 +38,11 @@ typedef struct Actor104400Work {
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
     /* 0x060 */ VECTOR    field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
-    /* 0x070 */ byte      pad_70[0xA];
+    /* 0x070 */ byte      pad_70[0x8];
+    /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX
     /* 0x07A */ s16       field_7A; // heading
-    /* 0x07C */ byte      pad_7C[0x4];
+    /* 0x07C */ s16       field_7C; // roll, fed to RotMatrixZ
+    /* 0x07E */ byte      pad_7E[0x2];
     /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
     /* 0x082 */ u16       field_82; // root coord.t[1], after lifting it by 0x3C
     /* 0x084 */ u16       field_84; // root coord.t[2]
@@ -100,7 +102,7 @@ typedef struct Actor104400Work {
     /* 0x446 */ s16              field_446; // randomised hold compared against field_412
     /* 0x448 */ s16              field_448;
     /* 0x44A */ s16              field_44A;
-    /* 0x44C */ byte             pad_44C[0x2];
+    /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
     /* 0x44E */ u8               field_44E; // set while the enemy carries status flag 4/8
     /* 0x44F */ u8               field_44F;
     /* 0x450 */ byte             pad_450[0x1];

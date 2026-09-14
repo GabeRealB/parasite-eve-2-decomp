@@ -21,9 +21,11 @@ void Actor04400_Fn022A8(Task* arg0, s16 arg1);
 /* Reads the caller's Task* from $a0; the call passes no argument. */
 void Actor04400_Fn02B8C();
 void Actor04400_Fn02D18(Task* arg0);
+void Actor04400_Fn031B8(Task* arg0);
 void Actor04400_Fn061B4(void);
 void Actor04400_Fn06520(Task* arg0, s16 arg1, u16* arg2);
 void Actor04400_Fn07360(Task* arg0);
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -42,11 +44,12 @@ extern u32 Gp_LcgState;
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
  * cannot treat the store as a non-aliasing scalar and sink it past the
  * `TmdObject` loads. */
-extern void*          D_800678F0[1];
-extern TaskFuncTable9 Actor04400_D000EC;
-extern u8             Actor04400_D098FC[];
-extern u8             Actor04400_D09FA0[];
-extern u8             Actor04400_D0A510[];
+extern void*           D_800678F0[1];
+extern TaskFuncTable11 Actor04400_D00044;
+extern TaskFuncTable9  Actor04400_D000EC;
+extern u8              Actor04400_D098FC[];
+extern u8              Actor04400_D09FA0[];
+extern u8              Actor04400_D0A510[];
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
 
@@ -347,7 +350,153 @@ void Actor04400_Fn00D3C(Task* arg0)
     w3->field_422        = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00F7C);
+/// Moves the task to `state` with a fresh state machine.
+static __inline__ void Actor04400_SetState(Task* arg0, s32 state)
+{
+    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+    arg0->state  = state;
+    w->field_420 = 0;
+    w->field_422 = 0;
+}
+
+/// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
+/// taken off `G_SCRATCH_HEAD`. The same helper as `func_actor_342400_801640B0`.
+static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
+{
+    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+
+    block->vx                 = coord->workm.t[0];
+    block->vy                 = coord->workm.t[1];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vz                 = coord->workm.t[2];
+    Gp_UpdateActorColor(enemy, block, 0, 0);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Message 0x2C00 (see `field_44C`) consumes the message and restarts the
+/// state machine: low nibble 2 enters state 3 at state index 10 unless
+/// `field_438` is set, low nibble 3 enters state 7. Returns 1 when it did, so
+/// the caller skips this frame's state handler.
+///
+/// Each arm has to `return 1` on its own, with `return 0` after them: that
+/// leaves a `hit = 0` block between the second arm and the join, so jump2
+/// cannot cross-jump the first arm's `field_422` store into the second's
+/// (dbr later steals the `hit = 0` into the branch delay slots and the block
+/// disappears). A flag set to 0 up front and to 1 in each arm cross-jumps.
+static __inline__ s16 Actor04400_TakeHit(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* w2;
+
+    if ((work->field_44C & 0xF) == 2) {
+        if (work->field_438 == 0) {
+            work->field_44C = 0;
+            Actor04400_SetState(arg0, 3);
+            w2            = (Actor104400Work*)arg0->idMap;
+            w2->field_420 = 10;
+            w2->field_422 = 0;
+            return 1;
+        }
+    } else if ((work->field_44C & 0xF) == 3) {
+        work->field_44C = 0;
+        Actor04400_SetState(arg0, 7);
+        return 1;
+    }
+    return 0;
+}
+
+/// Wraps the pitch / heading / roll at 0x78..0x7C to 12 bits and rebuilds the
+/// model root's rotation from them (Z, then X, then the heading) in a matrix
+/// taken off `G_SCRATCH_HEAD`.
+static __inline__ void Actor04400_UpdateRotation(Task* arg0)
+{
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    MATRIX*          dst;
+
+    work->field_78           &= 0xFFF;
+    work->field_7A           &= 0xFFF;
+    work->field_7C           &= 0xFFF;
+    *(s32*)&m->m[0][0]        = 0x1000;
+    *(s32*)&m->m[0][2]        = 0;
+    *(s32*)&m->m[1][1]        = 0x1000;
+    *(s32*)&m->m[2][0]        = 0;
+    m->m[2][2]                = 0x1000;
+    *(MATRIX**)G_SCRATCH_HEAD = m;
+    RotMatrixZ(work->field_7C, m);
+    RotMatrixX(work->field_78, m);
+    func_8004BFF8(work->field_7A, m);
+    dst                   = &coord->coord;
+    dst->m[0][0]          = m->m[0][0];
+    dst->m[0][1]          = m->m[0][1];
+    dst->m[0][2]          = m->m[0][2];
+    dst->m[1][0]          = m->m[1][0];
+    dst->m[1][1]          = m->m[1][1];
+    dst->m[1][2]          = m->m[1][2];
+    dst->m[2][0]          = m->m[2][0];
+    dst->m[2][1]          = m->m[2][1];
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+    dst->m[2][2]          = m->m[2][2];
+}
+
+/// Same body as `func_actor_342400_801640B0`. Per-frame callback for the main
+/// enemy. In mode 0 it aims at the nearest actor (`Actor04400_Fn031B8`), lets
+/// a pending hit (`Actor04400_TakeHit`) replace the state handler, eases
+/// `field_424` toward zero, rebuilds the root rotation, and then picks the
+/// next state: the `field_448` request once dead, state 4 when dead, 8 / 9 for
+/// messages 4 / 5 while `field_438` is clear.
+void Actor04400_Fn00F7C(Task* arg0)
+{
+    GpEnemy*         enemy = arg0->spawnArg2;
+    TmdObject*       obj   = arg0->extra;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFuncTable11  sp    = Actor04400_D00044;
+    s32              cur;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            Actor04400_Fn031B8(arg0);
+            if (Actor04400_TakeHit(arg0) == 0) {
+                sp.funcs[(s16)work->field_420](arg0);
+            }
+            Actor04400_Fn02B8C(arg0);
+            cur             = (u16)work->field_424;
+            work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
+            Actor04400_Fn00874(arg0);
+            if (work->field_432 == 1) {
+                Actor04400_Fn06520(arg0, 6, (u16*)&work->field_98);
+            }
+            Actor04400_UpdateRotation(arg0);
+            Actor04400_Fn022A8(arg0, 0);
+            if (work->field_44A != 0) {
+                work->field_44A--;
+            }
+            if (work->field_41E != 0 && work->field_448 == 4 && enemy->field_40 <= 0) {
+                Actor04400_SetState(arg0, work->field_448);
+            }
+            if (work->field_438 == 0 && enemy->field_40 <= 0) {
+                Actor04400_SetState(arg0, 4);
+            } else if (work->field_44C == 4 && work->field_438 == 0) {
+                Actor04400_SetState(arg0, 8);
+            } else if (work->field_44C == 5 && work->field_438 == 0) {
+                Actor04400_SetState(arg0, 9);
+            }
+            coord->flg = 0;
+        case 1:
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
+            Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
+            Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            return;
+    }
+}
 
 /// Same body as `ActorsShared8016454c`.
 void Actor04400_Fn01418(Task* arg0)
@@ -576,20 +725,6 @@ void Actor04400_Fn01B70(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01CA0);
-
-/// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
-/// taken off `G_SCRATCH_HEAD`; the same helper as `func_actor_342400_80164F3C`.
-static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
-{
-    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
-
-    block->vx                 = coord->workm.t[0];
-    block->vy                 = coord->workm.t[1];
-    *(VECTOR**)G_SCRATCH_HEAD = block;
-    block->vz                 = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
-}
 
 /// Same body as `func_actor_342400_80164F3C`. Per-frame callback with a
 /// one-entry handler table. `D_801153F4` 2 hides the model; 0 runs the state
