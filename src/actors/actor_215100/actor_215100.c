@@ -67,7 +67,7 @@ void                        func_actor_215100_8014B0D4(void);
 void                        func_actor_215100_8014B1B0(s32 arg0);
 s32                         func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
 s16                         func_actor_215100_8014BDFC(s32 arg0);
-s16                         func_actor_215100_8014C06C(s32 arg0);
+s16                         func_actor_215100_8014C06C(u16* arg0);
 s16                         func_actor_215100_8014C298(s32 arg0);
 s32                         func_actor_215100_8014C418(s32 arg0);
 void                        func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -491,7 +491,7 @@ s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
     entry                   = func_actor_215100_8014C418(1);
     D_actor_215100_8015E662 = entry;
     D_actor_215100_8015E660 = arg2;
-    D_actor_215100_8015E65C = func_actor_215100_8014C06C(D_actor_215100_8015E658[entry].field_8);
+    D_actor_215100_8015E65C = func_actor_215100_8014C06C((u16*)D_actor_215100_8015E658[entry].field_8);
     D_actor_215100_8015E65E = func_actor_215100_8014BDFC(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
     D_actor_215100_8015E664 = func_actor_215100_8014C298(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
     D_actor_215100_8015E66C = 0x1E;
@@ -504,7 +504,85 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014BEE8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C06C);
+/// Horizontal centring offset of the caption line the text stream `arg0`
+/// starts with: the widest line's pixel width subtracted from the 0x140 screen
+/// width, halved, minus 5. The walk is the one `func_actor_215100_8014C360`
+/// makes, and gameplay's `Gp_CapCenterX` compiles to the same 0x110 bytes with
+/// only the glyph table symbol differing — `-2` closes a line and keeps the
+/// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
+/// each glyph code (non-negative, `& 0x3FF` indexing `D_actor_215100_8015E654`)
+/// advances it by that glyph's `w - 1`.
+///
+/// The three pins are what gameplay's twin carries; leaving them out keeps the
+/// block structure and instruction count but moves 71 register choices.
+s16 func_actor_215100_8014C06C(u16* arg0)
+{
+    register s32        lineW asm("t0");
+    s32                 maxW;
+    s32                 i;
+    register s32        width asm("v1");
+    u16                 code;
+    s32                 shifted;
+    s32                 masked;
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+    GlyphUvwh*          table;
+
+    lineW   = 0;
+    maxW    = lineW;
+    i       = lineW;
+    code    = arg0[0];
+    shifted = code << 16;
+    v0tmp   = -1;
+    if (shifted >> 16 != v0tmp) {
+        table = D_actor_215100_8015E654;
+        do {
+            shifted = shifted >> 16;
+            v0tmp   = -2;
+            if (shifted == v0tmp) {
+                if ((lineW << 16) > (maxW << 16)) {
+                    maxW = lineW;
+                }
+                lineW = 0;
+                goto do_inc;
+            }
+            v0tmp = -3;
+            if (shifted == v0tmp) {
+                lineW += 3;
+                goto do_inc;
+            }
+            masked = shifted & 0xFF00;
+            TOUCH_REG(masked);
+            v0tmp = 0x8400;
+            if (masked == v0tmp) {
+                lineW += 0x10;
+                goto do_inc;
+            }
+            if (shifted >= 0) {
+                v0tmp = i + 1;
+                i     = v0tmp;
+                TOUCH_REG(v0tmp);
+                glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+                code  = arg0[(s16)v0tmp];
+                lineW = glyph->w + lineW - 1;
+                goto after_load;
+            }
+            if (shifted < 0) {
+            do_inc:
+                v0tmp = i + 1;
+                i     = v0tmp;
+                TOUCH_REG(v0tmp);
+                code = arg0[(s16)v0tmp];
+            }
+        after_load:
+            shifted = code << 16;
+            width   = shifted >> 16;
+            v0tmp   = -1;
+        } while (width != v0tmp);
+    }
+    width = (s16)maxW;
+    return (0x140 - width) / 2 - 5;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C17C);
 

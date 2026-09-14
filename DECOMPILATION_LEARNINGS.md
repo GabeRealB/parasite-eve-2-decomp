@@ -72207,12 +72207,32 @@ Two consequences worth knowing before planning around it:
   the body references its own overlay's data (`D_shelter_*_8018F4B8`), which
   `promote` refuses by design — the tooling gap recorded in its own docstring.
 
+- **Port the twin's register pins along with its body; this TU's house style is
+  not a substitute.** `func_actor_215100_8014C06C` is gameplay's
+  `Gp_CapCenterX` — 68 instructions, `shape`/`fields`/`cflow` all 1.00 — and
+  that body's matched source carries three pins (`register s32 lineW asm("t0")`,
+  `width asm("v1")`, `v0tmp asm("v0")`) beside its three `TOUCH_REG`s. The port
+  with them scored 100% on the first build. Dropping just the pins and keeping
+  everything else — the style this overlay's own `func_actor_215100_8014C360`
+  matched in, and it needed none — preserves topology exactly (15/15 blocks,
+  68/68 instructions, `insert`/`delete`/`branch` all zero) and still moves 71
+  register choices: 94.78%, and the real TU checksum fails. Whether a body needs
+  pins is a property of that body's allocation, not of the family or the TU: the
+  sibling twins `func_800E6BB8` and `Gp_CapCenterX` sit in the *same* file,
+  matched, one pin-free and one pinned. A `regs`-only 94–95% is therefore not
+  evidence that the missing pins are incidental — check the twin's source before
+  concluding the destination style is equivalent.
+
 The same caution as the `find` entries applies in reverse: a lone-copy answer
 from `find` says nothing about a twin in another family, and a starred
 multi-class line in the brief is the cheaper signal of the two.
 
 Inputs: `base_1.i`
-`f59fd66cf37fad91fe1472c365b14dceef81dfb29cea7d63117d06d4ddc3ffaa`.
+`f59fd66cf37fad91fe1472c365b14dceef81dfb29cea7d63117d06d4ddc3ffaa`,
+`base_1.i` (pinned port)
+`6c2e33cc5ac274c0cc41b402b5e9a8b4250c1525671e655a7c39601ce388e290`,
+`base_3.i` (same, unpinned)
+`67604e3fe7c31a7cb065cfa9ff3beeae681bae6f23597bf2a789bdc4b8a54fb8`.
 
 ## A switch arm that reads the selector field again: check the constant first
 
