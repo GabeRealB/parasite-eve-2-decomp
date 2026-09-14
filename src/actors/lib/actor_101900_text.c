@@ -455,7 +455,30 @@ void Actor01900_Fn0A9C0(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AA78);
+void Actor01900_Fn0AA78(Actor01900* arg0)
+{
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_8C8.field_1C = 0x180;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_898          = 2;
+        work->field_89E          = 8;
+        work->field_8B0          = 0;
+        work->field_8AE          = 0;
+        work->field_8A2          = work->field_8A4;
+    }
+    Actor01900_Fn01C94(arg0);
+    if (work->field_68 & 0x100) {
+        work->field_0 = 7;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0AB1C);
 
