@@ -78275,3 +78275,48 @@ pattern that both readings share.
 
 `base_1.c` (100%; preprocessed
 `323e00e233bdf8f6d8bdad3fd8c9c2141bbd56fda8277535f4382bd0fec8065e`).
+## m2c inlines the loaded pointer into the store that uses it, so the load is born *after* it - assign it to a local first
+
+`func_actor_123200_80134178` is 12 instructions: test a work-block flag, then
+release the node and set the model's kill bit. m2c folds the second store's
+pointer chain into one expression, so the load has no pseudo of its own until
+that statement. Its `.lreg` block 1 is
+
+```
+(insn 22 ... (set (reg:QI 86) (const_int 1)))            ; the flag value
+(insn 24 ... (set (mem/s:QI (plus (reg/v:SI 80) ...))))  ; sb 0x14(a0)
+(insn 27 ... (set (reg:SI 87) ...))                      ; lw 0x2c(a1), born here
+(insn 29 ... (set (reg:HI 88) (const_int 128)))          ; the kill bit
+```
+
+and it scores 79.545% (`regs=5 insert=1 delete=1`): the constant takes `$v0`,
+the pointer `$v1`, and `sb` is scheduled ahead of `lw`. The target has the load
+first, the constant in `$v1` and the pointer in `$v0`.
+
+Assigning the loaded pointer to a local *before* the independent store - the
+shape the 1.00 `shape` sibling `func_actor_341700_8016D2B8` already carries -
+moves the load to the top of the block (`(insn 23 (set (reg/v:SI 82) ...))`, a
+block-1 pseudo spanning 5 insns instead of one born at the store) and is a full
+match in one build:
+
+```c
+    TmdObject* model;
+
+    if (((ActorShared80134178Work*)arg1->idMap)->field_4 != 0) {
+        model              = (TmdObject*)arg1->extra;
+        arg0->node.field_4 = 1;
+        model->field_C     = 0x80;
+    }
+```
+
+The `regs` penalty names the *constant*, not the pointer, and that is the tell:
+when a `regs` mismatch survives every rewording of the pointer expression, check
+whether the seed ever gave the load a home of its own. A duplicated body's
+matched sibling answers that directly, so transcribe its statement order, not
+just its field offsets and types.
+
+Example: `func_actor_123200_80134178` (79.545% -> 100.000%, one build).
+Inputs: `base.i` (79.545%)
+`0b60a43483f9ab5e4920f14d2868ebe4f6e120e60ed81dae1ab536b181743f7c`,
+`base_1.i` (100.000%)
+`cd4253fec1f8d9511d563a3ace9946b3d2c5388b39c87f66e139d9132118d6ae`.
