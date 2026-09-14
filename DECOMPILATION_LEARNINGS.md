@@ -76670,3 +76670,23 @@ Inputs: `base.i` (nested form, 79.545%)
 `6a0e33f8fc4d44789da14d5abd961f7b362f3430a0ee1b644fa09b7f736f4b8b`,
 `base_1.i` (`model` local, 100.000%)
 `364858b0e3b659bdd05e944557fd56ed59eaecb2f87dfb05a7c82fbe044626ed`.
+
+## A bootstrapped scratch's `base.score.json` can already read 100 — read it before the first build
+
+`tools/claude --bootstrap-only` scores the seed through `build.sh` itself, so a
+scratch arrives with `base.score.json`, `match_log.txt` and one `attempts.jsonl`
+entry already written. When m2c happened to get the function right, that entry
+reads `100.0`, and a retry session that reads "give-up retry, improve the seed"
+as its instruction wastes its first builds re-deriving a match it already has.
+Open `base.score.json` before the first `./build.sh`: at 100.000% with zero
+penalties, re-score once to confirm and go straight to retyping the body into
+the project's own structs.
+
+`func_actor_342100_801633D0` was that shape. The seed's
+`M2C_FIELD(M2C_FIELD(D_actor_342100_80164BB8, void **, 0x1C), s32 *, 0x34)`
+compiled to the exact target bytes, and the only real work was `Task::idMap`
+plus the work block's `field_34` — which is a `Task*`, since that load feeds
+`Gp_DispatchMsg` as its first argument. m2c's `s32 *` in the `M2C_FIELD` is a
+guess from the instruction width alone; a matching seed can still carry the
+wrong field type, so check each retyped field against how the value is used
+before writing it into a header.
