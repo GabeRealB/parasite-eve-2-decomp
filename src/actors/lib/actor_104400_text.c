@@ -7,7 +7,8 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
-s16 Actor04400_Fn06618(Task* arg0);
+void Actor04400_Fn006A8(Task* arg0);
+s16  Actor04400_Fn06618(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn00220);
 
@@ -337,7 +338,29 @@ void Actor04400_Fn07878(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07890);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn078D4);
+void Actor04400_Fn078D4(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    model = (TmdObject*)arg0->extra;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    Tmd_FreeBuffers(model);
+    model->field_C |= 4;
+    Actor04400_Fn006A8(arg0);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    enemy->field_54 = 0;
+    work            = (Actor104400Work*)arg0->idMap;
+    Gp_UnlinkObj(&work->obj_2AC);
+    Gp_UnlinkObj(&work->obj_2CC);
+    Gp_UnlinkObj(&work->obj_3AC);
+    work2            = (Actor104400Work*)arg0->idMap;
+    arg0->state      = 5;
+    work2->field_420 = 0;
+    work2->field_422 = 0;
+}
 
 void Actor04400_Fn07968(Task* arg0)
 {
