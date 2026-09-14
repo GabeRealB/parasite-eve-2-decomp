@@ -74926,6 +74926,28 @@ Preprocessed SHA256:
 - `base_1.i`: `7ee6d80151e9298b342d90ec7901aef411e3d819d603d5ef10a208ca23605832`
 - `base_2.i`: `c0cd0ef648cc301fc0fa1070517b6a39707f418b5a8be91b88e4724a73559d5e`
 
+The signal needs no switch. `func_actor_205200_8014B94C` scores 99.909% off m2c
+with every instruction matching but one: the payload load reads
+`lhu $v0, 0x2($a1)` where the target has `$a2`, so the missing parameter is in
+the *middle*, not leading. The function is a 0x7DB message handler sitting in
+the same overlay as the already-matched
+`func_actor_205200_8014C9A0(Actor205200*, s32 arg1, Actor205200Msg7DB*)`, and
+the message table `D_actor_205200_8014CA78` lists it under the same opcode with
+the same payload. Borrowing the sibling's signature is the entire fix; the
+unused `arg1` then shifts the payload from `$a1` to `$a2` and the function is
+100%.
+
+So read a lone wrong argument register as an arity clue before an allocation
+difference: look for a matched sibling of the same shape whose signature is
+already settled, and for a dispatch or message table that fixes the arity
+independently. m2c drops parameters that the decompiled body never reads, and
+it does so wherever they sit in the list.
+
+Preprocessed SHA256:
+
+- `base_1.i`: `1956fefe1d4946d173e2f4a091d8c015fed7a037f02cfb6271105615869ba98d`
+- `base_2.i`: `81590f16e996b64405083979c06a1580701b6b4ea7ca4223e61d8682fc3b72f1`
+
 ## An `s8` field's signed compare loads `lb`, the `--` under it loads the same address again as `lbu`
 
 `func_actor_403200_80141A94`'s case 1 is

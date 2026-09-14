@@ -19,7 +19,9 @@ typedef struct Actor205200Obj2C {
 /// at +0x47C and +0x4E4 are the ones the exit callback
 /// `func_actor_205200_8014C924` hands back to `Gp_UnlinkObj`.
 typedef struct Actor205200Work {
-    /* 0x000 */ byte  pad_0[0x47C];
+    /* 0x000 */ byte  pad_0[0x2E];
+    /* 0x02E */ s16   field_2E;
+    /* 0x030 */ byte  pad_30[0x44C];
     /* 0x47C */ GpObj field_47C;
     /* 0x49C */ byte  pad_49C[0x48];
     /* 0x4E4 */ GpObj field_4E4;
@@ -58,6 +60,12 @@ STATIC_ASSERT_SIZEOF(Actor205200Msg7DB, 0x4);
 /// `Actor205200Work.field_594`, the flag `func_actor_205200_8014C59C` tests to
 /// push the actor to state 2. Nothing reads the opcode itself, hence `arg1`.
 s32 func_actor_205200_8014C9A0(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* arg2);
+
+/// The other 0x7DB handler, listed in `D_actor_205200_8014CA78` (the table at
+/// 0x801567D0 routes the same opcode to `func_actor_205200_8014C9A0`). Same
+/// payload, different flag: a non-zero halfword raises
+/// `Actor205200Work.field_2E` unless it is already set.
+s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* arg2);
 
 void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1);
 void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1);
