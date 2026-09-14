@@ -76177,3 +76177,41 @@ scratchpad pointer, an absolute hardware register) come out in the wrong order
 and the struct typing is otherwise settled, look for a `*(T*)((u8*)p + n)` cast
 on the load. The typed member access does not just set an alias set — it sets
 the in-struct bit that decides this heuristic.
+
+## A ported `similar` sibling's struct starts at offset 0 — the leading pad is part of the layout
+
+`func_actor_401800_8013E0A0` (USA/actors/actor_401800) is the case sections 26
+and 27 describe: BRIEF listed `Actor01900_Fn0A6CC` at 1.00 in `shape` and
+`calls`, `overlay_dup_index.py find` reported a single copy — itself — and the
+sibling's matched C in `src/actors/lib/actor_101900_text.c` is the whole control
+flow. Only the work struct differs: the three `GpObj` nodes are at the same
+addresses in both, the two child tasks are not (`+0xC14` / `+0xC18` here against
+`+0xC38` / `+0xC3C` in `Actor01900Work`), so the struct has to be rebuilt rather
+than reused.
+
+I rebuilt it starting at the first named field, `/* 0x8C8 */ GpObj field_8C8;`
+with no run in front. That compiles, has the right topology (7/7 blocks, 38/38
+instructions, predicates and calls matching) and scores **94.211%** with
+`regs=4 insert=1 delete=1`. Neither the penalty mix nor the `.greg` summary says
+"offset": the summary lists four pseudos with homes, so the natural read is a
+register-allocation or rematerialization problem, and the next experiment goes
+to `.lreg`.
+
+The object dump is what identifies it — every displacement short by exactly the
+missing pad, here 0x8C8, so the field that ends up at offset 0 is not even a
+load:
+
+```
+target                    base_1 (struct built without the leading pad)
+lw    a0,0xc14(s0)        lw    a0,0x34c(s0)
+addiu a0,s0,0xb48         addiu a0,s0,0x280
+addiu a0,s0,0x8c8         move  a0,s0
+addiu a0,s0,0xa08         addiu a0,s0,0x140
+```
+
+The rule is the one sections 26/27 already give — the port is entirely struct
+layout — plus the part they leave implicit: the padding runs you cut the fields
+out of include the run *before* the first named field. A constant shift of every
+displacement with an otherwise identical body and matching topology is the
+signature; diff the object dump's displacements before reading the penalty mix
+as evidence about registers.
