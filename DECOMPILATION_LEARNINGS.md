@@ -3,6 +3,70 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `s16` wrap copy so `t = delta` cannot coalesce with `s32 delta <<= 16`
+
+A wrap that copies the difference, then sign-tests the *same* register shifted
+16, wants a real copy:
+
+```
+move  v1, s0
+sll   s0, s0, 16
+bgez  s0, pos
+ sll  v0, v1, 16
+```
+
+with the wrap loop on `$v1`. `s32 t = delta; delta <<= 16; if (delta < 0)`
+coalesces `t` with `delta`: the copy dies, the sign test is `sll v0,s0,16`,
+and the loop stays on `$s0`. `TOUCH` on `delta` does not keep the RMW.
+
+`s16 t = delta` is a truncate that cannot merge with `s32 delta`. The copy
+lands in `$v1`; `delta <<= 16` clobbers `$s0` in place; the loop uses `$v1`.
+No pin and no `TOUCH` are required.
+
+```c
+s32 delta;
+s16 t;
+
+delta = ratan2(...) - ratan2(...);
+t     = delta;
+delta = delta << 16;
+if (delta < 0) {
+    /* wrap up on t */
+} else {
+    /* wrap down on t */
+}
+```
+
+This is the unpinned form of "Pin the wrap dest so `temp = delta` is
+`move v1, s0`" (`Gp_ApplyDirArg`), which needed a `$v1` pin because both
+temps were `s32`. Same shape as `func_acropolis_bridge_80185104`
+(`s16 diff, t`).
+
+`Actor01900_Fn03854` is the example. Controlled `base_9.c` reproduced the
+permuter a6 wrap object (98.75%). Inputs: `base_9.i`
+`1e77b681081642aeef04df2d7f056f2e00c0e6bb82879891898eb65a8e21fd7b`,
+assembly `756eecb8f6991d1057b4afbfdee70864317b7481586cc8990f5f17bdcb137ff4`.
+
+## Scratch-head `lui` after a field load: short-lived pointer as asm input
+
+`lw v0,0x2c(s3)` then `lui s2` / `lw s2,0x3fc(s2)` then `lw s1,8(v0)` needs
+the field load to stay in `$v0` across the `lui`. A named `TmdObject *model =
+arg0->field_2C` plus
+
+```c
+__asm__ volatile("lui %0, 0x1F80" : "=r"(head) : "r"(model));
+head  = *(u8**)(head + 0x3FC);
+coord = model->field_8;
+```
+
+keeps `model` in `$v0` and orders the `lui` after that load. Assigning the
+same pointer into a longer-lived name (the then-branch's `obj`) put
+`field_2C` in `$a0` and inserted a nop.
+
+`Actor01900_Fn03854` `base_11.c` (99.661%). Inputs: `base_11.i`
+`2ed06392880968e696c8979c58fa8bac1b3a12904e77d48ee813ac2318a098c6`,
+assembly `cc92dcc0a02e4a854ddffbcc551f4934fb6c4b196b3520df4e34096972a318b7`.
+
 ## Hoist `PSX_SCRATCH` before a call-containing region to swap `$s3`/`$s4`
 
 A scale constant (`0x1194`) and the scratch-head pointer compete for `$s3`/`$s4`
