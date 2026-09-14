@@ -76368,3 +76368,40 @@ dereference out twice, and do not tidy it into a local even when the function
 next door in the same TU is written that way. The field-width question in the
 entry above decides only the fixed-address case, where `all` is the sole
 disjunct that can fire.
+
+## The `0x3E8` weapon-republish record is `GpRec14`, and its sender calls the slot first
+
+An actor or room function that republishes the equipped weapon to pointer slot 3
+reads like this in the m2c seed:
+
+```c
+extern s32 D_actor_335800_80164E7C;                    /* wrong width */
+Gp_PlayerWeaponId(&D_actor_335800_80164E7C);
+Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, &D_actor_335800_80164E7C, 0);
+```
+
+The payload is not an `s32`: it is the five-word `GpRec14`
+(`include/gameplay/3CD8.h`, size 0x14) — `field_0` receives the weapon model id
+from `Gp_PlayerWeaponId`, `field_4` is the animation id the handler plays, and
+`field_8`/`field_C`/`field_10` are zero. `src/rooms/acropolis_sanctuary/
+acropolis_sanctuary_2.c` carries the identical pattern already matched as
+`extern GpRec14 D_acropolis_sanctuary_801809F8;`, and the splat data extent
+corroborates it (`actor_335800`: words `1, 0x33, 0, 0, 0` from `0x305C` to
+`0x3068`, next `dlabel` at `0x3070`). Treat the extent as corroboration only —
+see "A data symbol's `dlabel` extent is not the array's length" above. Because
+`field_0` sits at offset 0, `&rec.field_0` and `(s32*)&rec` are the same
+address; the typed form costs nothing.
+
+Two things the seed gets wrong beyond the type:
+
+* `Gp_DispatchMsg`'s prototype lives in `include/gameplay/D4.h`, which
+  `gameplay/gameplay.h` does not pull in — include it explicitly. m2c's
+  `? Gp_DispatchMsg(void *, ?, s32 *, ?);` placeholder is a parse error, not a
+  declaration; delete the line once the header is in.
+* The call order is **source order**, and it varies between neighbours. The
+  gameplay siblings (`src/gameplay/3CD8.c`, `3688.c`) inline the slot call —
+  `Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0)` — so it evaluates
+  after `Gp_PlayerWeaponId`. `func_actor_335800_801624DC` instead binds it first
+  (`slot = Game_GetPtrSlot(3);`), which is why `$s1` holds the slot across the
+  `Gp_PlayerWeaponId` call. Both spellings match their own target; pick from the
+  register that survives the call, not from the sibling.
