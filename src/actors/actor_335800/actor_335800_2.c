@@ -4,6 +4,8 @@
 
 #include "gameplay/3CD8.h"
 
+#include "gameplay/D4.h"
+
 #include "gameplay/gameplay.h"
 
 #include "main/sound.h"
@@ -19,6 +21,8 @@ extern TaskDesc D_80182834;
 extern s8 D_8007272D;
 
 extern u8 D_8007216D;
+
+extern GpRec14 D_actor_335800_80164E7C;
 
 void func_actor_335800_801620C0(void)
 {
@@ -77,7 +81,17 @@ void func_actor_335800_801624B8(s32 arg0)
     GameFlag_SetNibble(0x108, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801624DC);
+void func_actor_335800_801624DC(Task* arg0)
+{
+    Task* slot;
+
+    if (Game_Session->field_126 != 0) {
+        slot = Game_GetPtrSlot(3);
+        Gp_PlayerWeaponId(&D_actor_335800_80164E7C.field_0);
+        Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_335800_80164E7C, 0);
+        Task_Kill(arg0);
+    }
+}
 
 void func_actor_335800_80162558(void)
 {
