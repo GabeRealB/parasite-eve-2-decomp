@@ -30,7 +30,8 @@ typedef struct Actor323300Work {
     /* 0x440 */ MATRIX light;
     /* 0x460 */ MATRIX color;
     /* 0x480 */ GpObj  obj;
-    /* 0x4A0 */ byte   pad_4A0[0x60];
+    /* 0x4A0 */ byte   pad_4A0[0x5E];
+    /* 0x4FE */ s16    field_4FE;
     /* 0x500 */ s16    field_500;
     /* 0x502 */ s16    field_502;
 } Actor323300Work;
@@ -68,5 +69,7 @@ typedef struct Actor323300MtxWork {
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
 void func_actor_323300_801626D0(Task* arg0);
+void func_actor_323300_80162748(Task* arg0);
+void func_actor_323300_801627B4(Task* arg0);
 
 #endif

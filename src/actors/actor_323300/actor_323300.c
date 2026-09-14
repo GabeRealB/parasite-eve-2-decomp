@@ -39,7 +39,16 @@ void func_actor_323300_801626EC(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801626F4);
+void func_actor_323300_801626F4(Task* arg0)
+{
+    Actor323300Work* work                = (Actor323300Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_323300_80162748,
+        func_actor_323300_801627B4,
+    };
+
+    states[(s16)work->field_4FE](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162748);
 

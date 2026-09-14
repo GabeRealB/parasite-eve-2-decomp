@@ -74394,3 +74394,48 @@ The same overlay can carry more than one work block: `arg0->idMap` is the
 `func_actor_323300_80162BE4` allocates in this one. Check the `Mem_Calloc`
 argument at the allocation site before assuming a function's `idMap` is the
 overlay's named work struct.
+
+## m2c renders a frame-local function-pointer table as the call's arguments
+
+A two-entry dispatch table built on the frame and indexed by a signed
+`short` is a common actor shape (`func_actor_206100_8014F5B4`,
+`Actor00400_Fn0A468`, `func_actor_323300_801626F4`). m2c has no model of
+the frame, so it prints the table's *base* as a bare `sp` symbol, reads the
+slot through it, and then hands the two function addresses to the result as
+*call arguments*:
+
+```c
+void func_actor_323300_801626F4(void *arg0) {
+    M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x4FE) * 4)),
+              M2C_UNK (**)(M2C_UNK *, M2C_UNK *), 0x10)(
+        &func_actor_323300_80162748, &func_actor_323300_801627B4);
+}
+```
+
+That does not compile — `sp` is undeclared — and the two `&func_*` arguments
+are the tell. In the target they are never passed: they are `sw`-ed to
+`0x10($sp)` and `0x14($sp)` before the `lh`/`sll`/`addu`/`lw` walk, and the
+`jalr $v0` delay slot is a bare `nop` because the table index is already in
+`$v0` and the callee's `$a0` is the incoming task pointer, unchanged. The
+`M2C_FIELD(..., 0x10)` offset is the table base, not a field of an element.
+
+The body is the sibling verbatim — only the selector offset and the two
+symbols differ:
+
+```c
+void func_actor_323300_801626F4(Task* arg0)
+{
+    Actor323300Work* work                = (Actor323300Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_323300_80162748,
+        func_actor_323300_801627B4,
+    };
+
+    states[(s16)work->field_4FE](arg0);
+}
+```
+
+The three `nop`s are load-delay and call-delay fills sched2 declines to fill,
+not scheduler barriers — do not add empty asm to "restore" them. Reaching for
+the brief's `Similar matched bodies` list first is what makes this a
+one-attempt match; the m2c seed scored 59.76%.
