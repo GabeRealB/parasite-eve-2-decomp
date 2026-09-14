@@ -4,11 +4,13 @@
 
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "gameplay/1BC.h"
 
 extern void func_actor_113100_80132790(Task*, s32, s32, s32);
 extern void func_80183BAC(s32);
+extern void func_actor_113100_801331E8(Task*, s32, Actor113100AnimPreset*, s32);
 
 void func_actor_113100_80132F40(Task* arg0)
 {
@@ -26,7 +28,40 @@ void func_actor_113100_80132F40(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100_2", func_actor_113100_80132FB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100_2", func_actor_113100_8013301C);
+/// Builds the offset from the actor's own translation (work + 0x4F0) to the
+/// root part's coordinate translation and stores its yaw into the work block,
+/// then dispatches animation preset 0x7D3 through `func_actor_113100_801331E8`
+/// and counts the frame. The preset is built on this function's stack: it
+/// carries the slot index, the animation id and the two per-slot arguments.
+///
+/// `preset` is declared before `delta` / `dir` on purpose -- the stack slots
+/// land at 0x10, 0x28 and 0x38 only in that order (GCC assigns the frame in
+/// declaration order, and the 16-byte `VECTOR` is 8-byte aligned).
+void func_actor_113100_8013301C(Task* arg0)
+{
+    Actor113100Work*      work;
+    GsCOORDINATE2*        coord;
+    Actor113100AnimPreset preset;
+    VECTOR                delta;
+    SVECTOR               dir;
+
+    work  = (Actor113100Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+
+    delta.vx = work->field_4F0 - coord->coord.t[0];
+    delta.vy = work->field_4F4 - coord->coord.t[1];
+    delta.vz = work->field_4F8 - coord->coord.t[2];
+    VectorNormalS(&delta, &dir);
+    work->field_53A = ratan2(dir.vx, dir.vz);
+
+    preset.field_0  = 0;
+    preset.field_4  = 0x16;
+    preset.field_8  = 1;
+    preset.field_C  = 4;
+    preset.field_10 = 0;
+    func_actor_113100_801331E8(arg0, 0x7D3, &preset, 0);
+    work->field_532++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100_2", func_actor_113100_801330E8);
 

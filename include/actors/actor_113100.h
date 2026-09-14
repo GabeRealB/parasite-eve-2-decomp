@@ -19,10 +19,34 @@
 typedef struct Actor113100Work {
     /* 0x000 */ byte  pad_0[0x4B8];
     /* 0x4B8 */ GpObj obj;
-    /* 0x4D8 */ byte  pad_4D8[0x66];
+    /* 0x4D8 */ byte  pad_4D8[0x18];
+    /* 0x4F0 */ s32   field_4F0;
+    /* 0x4F4 */ s32   field_4F4;
+    /* 0x4F8 */ s32   field_4F8;
+    /* 0x4FC */ byte  pad_4FC[0x36];
+    /* 0x532 */ u16   field_532;
+    /* 0x534 */ byte  pad_534[0x6];
+    /* 0x53A */ s16   field_53A;
+    /* 0x53C */ byte  pad_53C[0x2];
     /* 0x53E */ s8    field_53E;
     /* 0x53F */ byte  pad_53F[1];
 } Actor113100Work;
 STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
+
+/// Animation preset `func_actor_113100_8013301C` builds on its stack and hands
+/// to `func_actor_113100_801331E8` as message 0x7D3. That function compares
+/// `field_0` against `Actor113100Work::field_476` and, when they differ,
+/// latches it and re-seeds the slot tables through `Gp_AnimResetSlot` /
+/// `func_800B3F84`; `field_8` selects between that path and the plain
+/// `Gp_AnimTickIndex` loop, and `field_C` is passed on as the per-slot
+/// argument. The trailing `field_10` is stored but never read by the callee.
+typedef struct Actor113100AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor113100AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor113100AnimPreset, 0x14);
 
 #endif

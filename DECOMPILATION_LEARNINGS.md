@@ -63310,6 +63310,17 @@ rather than hunting for a missing local. Each reordering is free of semantic
 risk, and the frame size tells you whether a slot is missing (add a local) or
 merely misplaced (move one).
 
+A pure reordering is the whole fix even when the frame size already agrees and
+every instruction matches: `func_actor_113100_8013301C` sat at 98.725% with
+`regs=13` and *only* displacements differing (`sw $v0,0x10($sp)` where the
+target has `0x28`, and so on down the body). Its three locals were declared
+`VECTOR delta; SVECTOR dir; Actor113100AnimPreset preset;`, but the target puts
+the preset at `0x10`, `delta` at `0x28` and `dir` at `0x38` -- so the preset was
+declared first in the original, even though the source *writes* it last. The
+4-byte hole the target leaves at `0x24` is not a missing local: a 16-byte
+`VECTOR` is 8-byte aligned, so `0x24` rounds up to `0x28`. Do not add a filler
+for that gap; just move the declarations.
+
 The residual 0.05% was ordinary sched1 tie-breaking: `arg0->extra` was read
 third, so `lw $v0, 0x2C($a0)` issued after `lw $s4, 0x1C($a0)` instead of before
 it. Assigning `coord` ahead of `work` and `enemy` in the source restored the
