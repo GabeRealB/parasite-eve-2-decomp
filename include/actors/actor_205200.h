@@ -19,14 +19,18 @@ typedef struct Actor205200Obj2C {
 /// at +0x47C and +0x4E4 are the ones the exit callback
 /// `func_actor_205200_8014C924` hands back to `Gp_UnlinkObj`.
 typedef struct Actor205200Work {
-    /* 0x000 */ byte  pad_0[0x2E];
-    /* 0x02E */ s16   field_2E;
-    /* 0x030 */ byte  pad_30[0x44C];
-    /* 0x47C */ GpObj field_47C;
-    /* 0x49C */ byte  pad_49C[0x48];
-    /* 0x4E4 */ GpObj field_4E4;
-    /* 0x504 */ byte  pad_504[0x90];
-    /* 0x594 */ s16   field_594;
+    /* 0x000 */ byte     pad_0[0x2E];
+    /* 0x02E */ s16      field_2E;
+    /* 0x030 */ byte     pad_30[0x38];
+    /* 0x068 */ GpEffArg field_68; // `func_800FDB18` argument record
+    /* 0x070 */ byte     pad_70[0x4];
+    /* 0x074 */ u16      field_74; // effect timer, reloaded every 0x40 ticks
+    /* 0x076 */ byte     pad_76[0x406];
+    /* 0x47C */ GpObj    field_47C;
+    /* 0x49C */ byte     pad_49C[0x48];
+    /* 0x4E4 */ GpObj    field_4E4;
+    /* 0x504 */ byte     pad_504[0x90];
+    /* 0x594 */ s16      field_594;
 } Actor205200Work;
 
 typedef struct Actor205200 {

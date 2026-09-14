@@ -43,7 +43,18 @@ void func_actor_205200_8014B978(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014B9D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014BA94);
+void func_actor_205200_8014BA94(Actor205200* arg0)
+{
+    Actor205200Work* work;
+    u16              timer;
+
+    work           = arg0->field_1C;
+    timer          = work->field_74 - 1;
+    work->field_74 = timer;
+    if (!(timer & 0x3F)) {
+        func_800FDB18(7, arg0->field_2C->field_8, NULL, &work->field_68);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014BAE8);
 
