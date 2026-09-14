@@ -72629,3 +72629,10 @@ Evidence: tools/permuter_findings/Actor01900_Fn0A5A4/; paired outputs, plans, fl
 Normalized parent input: 921d5832ad074d0a17975260d8b3780e1257033c49b90415fa5e334af184c493.
 base_1 input: 3cee4cfe8860940bd527c85409925d9b956974e813871b3e70665a65fc7afb2d.
 base_3 input: 1dfa95e4f3ff6be0ad4d21ebdd4efde847aa6c9bac539ce996291cf99b29b2b9.
+
+
+## Actor01900_Fn01950: sharing a short weight extension across loop uses
+
+GCC 2.8.1 can keep two SI conversions of one HI local when one use is before a loop and another is hoisted out of it. Here the preheader `complement = 0x1000 - weight` plus loop call argument `weight` produced local r88 in v1 and loop-hoisted r112 in s5; CSE2 changed the second extension into a surviving copy. Moving the pure complement expression into the call made both uses share the loop conversion. Loop UIDs183/184 hoisted r109, combine folded UID184 to signed lh, and global allocation assigned it s5 directly; complementary r113 stayed in s6. The separately predicted s32-local variant emitted the same object. Both controlled builds reduced distance 127 to 15 with other saved homes intact. This supports shared conversion for this function, not a universal hoisting rule.
+
+Evidence: tools/permuter_findings/Actor01900_Fn01950/, PERMUTER_ANALYSIS.md, controlled base_2 plan/build and dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. base_2 preprocessed SHA256 `3f853fd700369d5f147c82d429679540e0a52d7f345aef13f451c7c71cd3afbf`. Final typed single-index loop matched exactly; commutative address expansion was not separately isolated.

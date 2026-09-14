@@ -44,6 +44,22 @@ typedef struct Actor01900Work {
     /* 0xC3C */ Task* field_C3C;
 } Actor01900Work;
 
+/// Animation view of the same task work block. The arrays cover slot indices
+/// used by Actor01900_Fn01950; the remaining bytes are not yet described.
+typedef struct Actor01900AnimWork {
+    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[19];
+    /* 0x328 */ byte       pad_328[0x130];
+    /* 0x458 */ GpAnimCtx  blendAnim;
+    /* 0x46C */ GpAnimSlot blendSlots[19];
+    /* 0x764 */ byte       pad_764[0x13E];
+    /* 0x8A2 */ s16        field_8A2;
+    /* 0x8A4 */ byte       pad_8A4[6];
+    /* 0x8AA */ s16        field_8AA;
+    /* 0x8AC */ s16        field_8AC;
+} Actor01900AnimWork;
+
 /// Per-task actor context handed to the overlay's callbacks: `field_1C` is the
 /// work block above (the same pointer `Task::idMap` holds) and `field_2C` is
 /// the actor's `TmdObject`. Same shape as the other actor overlays' contexts.
