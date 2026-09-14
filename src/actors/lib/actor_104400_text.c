@@ -267,7 +267,37 @@ void Actor04400_Fn01584(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn017B0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01B70);
+void Actor04400_Fn01B70(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* work3;
+    s32              soundId;
+    s32              pan;
+    u32              rand;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((s16)++work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0004;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        work->field_438  = 0;
+        rand             = Gp_LcgState * 5 + 0x71357911;
+        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
+        work->field_7A  += 0x800;
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xD;
+        work2->field_414 = 2;
+        work3            = (Actor104400Work*)arg0->idMap;
+        Gp_LcgState      = rand;
+        arg0->state      = 1;
+        work3->field_420 = 0;
+        work3->field_422 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn01CA0);
 
