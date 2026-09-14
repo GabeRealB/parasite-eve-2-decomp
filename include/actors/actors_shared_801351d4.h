@@ -19,13 +19,19 @@
 /// `func_actor_102400_80134910`; `field_B2` is the sub-state the teardown
 /// switches on and `func_actor_102400_80134910` clears.
 typedef struct ActorsShared801351d4Work {
-    /* 0x00 */ GpObj obj_0;
-    /* 0x20 */ GpObj obj_20;
-    /* 0x40 */ byte  pad_40[0x18];
-    /* 0x58 */ GpObj obj_58;
-    /* 0x78 */ byte  pad_78[0x38];
-    /* 0xB0 */ u16   field_B0; // death timer
-    /* 0xB2 */ s16   field_B2; // sub-state
+    /* 0x00 */ GpObj   obj_0;
+    /* 0x20 */ GpObj   obj_20;
+    /* 0x40 */ u16     field_40; // bit 0 forces the death effect to spawn
+    /* 0x42 */ byte    pad_42[0x16];
+    /* 0x58 */ GpObj   obj_58;
+    /* 0x78 */ byte    pad_78[0x18];
+    /* 0x90 */ GpRec18 field_90; // collision record wiped on every tick
+    /* 0xA8 */ s16     field_A8; // per-axis step added to the coord below
+    /* 0xAA */ byte    pad_AA[0x2];
+    /* 0xAC */ s16     field_AC;
+    /* 0xAE */ byte    pad_AE[0x2];
+    /* 0xB0 */ u16     field_B0; // death timer
+    /* 0xB2 */ s16     field_B2; // sub-state
 } ActorsShared801351d4Work;
 STATIC_ASSERT_SIZEOF(ActorsShared801351d4Work, 0xB4);
 
