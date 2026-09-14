@@ -78090,3 +78090,29 @@ Inputs: `base.i` (m2c seed, 74.867%)
 `cd3a7914d6312112950dcf0583ec9f2ff98c19a64a446891bcd42416babc8847`,
 `base_1.i` (sibling source, displacement changed, 100.000%)
 `fec2fa10ddedb25833ab3b7e870049c1a047b353bf2b50a957aa75fe2cad1273`.
+## A wrong argument register on a load/store is scored `stack`, not `regs`
+
+`dist.py`'s MIPS `re_sprel` is loose enough to match the register itself:
+
+```
+re_sprel = r"(?:\d+\(|\$sp\s*,\s*)(-?(?:0x)?[0-9a-fA-F]+)\(?(?:\$sp)?\)?"
+```
+
+`lhu v0,4(a1)` matches through `4(` and captures `a1` as a hex number, so the
+"stack offset" of that line is 0xA1 and the same line with `a2` is 0xA2. The
+difference is charged as `stack` (penalty 1) and `ignore_last_field` then skips
+the field comparison, so it is *not* also charged as `regs` (penalty 5). Only
+`$a0`-`$a3` are spelled entirely in hex digits — `s0`, `t0`, `v0`, `ra` and a
+`$`-prefixed spelling all fail the capture — so the mislabel lands precisely on
+the argument registers, which is where a missing-parameter bug shows up.
+
+`func_actor_403000_8013D464` (m2c seed: two params, so the payload arrived in
+`$a1`) scored 99.909% as `stack=1 branch=0 regs=0 reorder=0 insert=0 delete=0`
+with `blocks=1/1 predicates_match=True` and an identical opcode histogram — the
+signature the section above describes, but wearing the other label. Adding the
+unused middle parameter took it to 100%.
+
+Read a lone `stack=1` with a perfect topology diagnostic as an argument-register
+difference before splitting locals: `objdump` the two loads and compare the base
+register. The `stack` row of the MATCH_LOOP table ("extra locals / frame") is
+the wrong turn here.

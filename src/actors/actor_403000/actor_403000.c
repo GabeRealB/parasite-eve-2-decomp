@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "actors/actor_403000.h"
+#include "main/task.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", D_actor_403000_80131E20);
@@ -88,7 +91,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D364);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D464);
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
+{
+    Actor403000Work* work = (Actor403000Work*)task->idMap;
+
+    work->field_AC6 = msg->field_4;
+    work->field_0   = 1;
+    work->field_2   = -1;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D48C);
 
