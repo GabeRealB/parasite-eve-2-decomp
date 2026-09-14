@@ -77022,3 +77022,61 @@ byte `field_5C5` and spawn the table's task. `func_actor_450800_80132080` and
 Inputs: `base.i` (seed retyped to `extern TaskDesc D_8017DA00;`, 100.000% with
 all-zero penalties on the first build)
 `2c031d6250196741879e2aa1e2e144188eb8f924d24d19368f2921d68ac661c5`.
+## A cut rodata block whose only reader becomes C has no `INCLUDE_RODATA` target - define it in C
+
+When the sole reader of a leading-rodata constant is the function you just
+promoted out of `INCLUDE_ASM`, the build fails at the link on the constant, not
+on the function:
+
+```
+build/USA/src/actors/actor_341300/actor_341300_2.i:(.text+0x194):
+    undefined reference to `D_actor_341300_80161E64'
+```
+
+`migrate_rodata_to_functions` had folded that constant into the reader's own
+`.s` (`D_actor_341300_80161E64` and `func_actor_341300_801625AC` shared one
+file). Promoting the reader retires that `.s` - splat stops regenerating it, and
+the copy left on disk is stale and no longer assembled - so nothing carries the
+bytes any more. The symbol is not gone from the config; it is gone from the
+*object*.
+
+This is **not** learnings [28]'s un-migration, and the `INCLUDE_RODATA` fix does
+not apply. There, a promotion moved the reader into a different unit, which
+broke the migration and made splat emit a standalone `D_<seg>_<vram>.s` to
+include. Here reader and rodata stayed in the same unit, so the migration is
+intact and splat emits no per-symbol file at all: it writes the whole
+subsegment as a view to `asm/USA/<family>/data/<name>/<unit>.rodata.s`. That
+file cannot be included, because it also carries the block's *other* symbols -
+here a compiler-generated `jtbl_actor_341300_80161E6C` that its own function's
+`.s` still emits - so pulling it in defines the jump table twice.
+
+Define the constant in the `.c` instead, at the position whose address order it
+must occupy. GAS lays `.rodata` down in file order and the bytes either side of
+it come from *other* entities: here a later `INCLUDE_ASM` whose function's `.s`
+carries the migrated `jtbl_` at 0x4C, so the definition has to sit above that
+line. Getting the position wrong builds cleanly and fails the checksum at the
+overlay's first rodata byte, with `diff.py` reporting every function matching.
+
+```c
+const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
+
+void func_actor_341300_801625AC(void) { ... }
+```
+
+`splat migrates this table into that function's own .s, so there is no
+standalone rodata file to INCLUDE_RODATA; defining it here emits it where the
+function sits` - the same comment, and the same fix, as `actor_342400_7.c`'s
+`D_actor_342400_80161F50` and `actor_342400.c`'s `D_actor_342400_80161E54`,
+which is the worked precedent in this family.
+
+The promoted body itself is ordinary: m2c had dropped the copy entirely (a
+`lwr` it could not pair) and typed the coordinate chain as raw pointer
+arithmetic, which is `delete=10 reorder=2` and 78.868%. `extern SVECTOR` plus a
+wholesale struct assignment restores the 8-byte `lwl/lwr` + `swl/swr` move, and
+the coordinate is `&((TmdObject*)slot->extra)->field_8[2]` - `GsCOORDINATE2` is
+0x50, so the target's `+0xA0` is the array index, not a field.
+
+Example: `func_actor_341300_801625AC` (78.868% -> 100.000%, one build).
+
+Inputs: `base.i` (m2c seed, 78.868%)
+`96842493310a46589e818081186f7683de020c8d803a2a81b7b5bf1def6b7e15`.

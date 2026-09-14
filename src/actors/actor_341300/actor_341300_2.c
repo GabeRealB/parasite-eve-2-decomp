@@ -1,6 +1,9 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern Task* D_actor_341300_80165A2C;
 
@@ -47,7 +50,22 @@ void func_actor_341300_80162588(s16 arg0)
     func_actor_341300_801639CC(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_801625AC);
+/// Offset vector the four `Gp_SpawnEff` calls below spawn on. splat migrates
+/// it into `func_actor_341300_801625AC`'s own `.s`, so there is no standalone
+/// rodata file to `INCLUDE_RODATA`; defining it here emits it where the
+/// function sits, ahead of the `jtbl_actor_341300_80161E6C` include below.
+const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
+
+void func_actor_341300_801625AC(void)
+{
+    SVECTOR        vec   = D_actor_341300_80161E64;
+    GsCOORDINATE2* coord = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[2];
+
+    Gp_SpawnEff(0x60055, coord, 0x10013300, &vec);
+    Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);
+    Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);
+    Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);
+}
 
 void func_actor_341300_80162680(s8 arg0)
 {
