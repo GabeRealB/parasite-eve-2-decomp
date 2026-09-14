@@ -3,26 +3,42 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Work block this overlay hangs off its task's `Task::idMap` slot (0x1C),
-/// which is not a `TaskIdMap` here. Only the prefix the animation opcode and
-/// `func_actor_150400_80132228` reach is described.
+/// which is not a `TaskIdMap` here. `ActorsShared80131e24Sub0` allocates it
+/// with `Mem_Calloc(0x4C0, 0)`, and the size below is that allocation.
 ///
 /// `state` drives `func_actor_150400_80132228`: 1 starts the animation through
 /// `ActorsShared80132640`, 2 through `ActorsShared801325c8`, and both then
 /// advance it to 3. `animId` is the clip to play and `animArg` the extra
 /// argument `ActorsShared80132640` forwards to `func_800B4114`; they are the
 /// same two fields `ActorsShared80132640Work` names `field_480` / `field_4B4`.
+///
+/// The leading matrices are the ones the actor renders through — the overlay's
+/// spawn handler hands `&light` and `&color` to the object's `field_1C` /
+/// `field_20` — and `anim` / `slots` are what `func_800B3F84` fills in.
 typedef struct Actor150400Work {
-    /* 0x000 */ byte pad_0[0x47C];
-    /* 0x47C */ s16  state;
-    /* 0x47E */ byte pad_47E[0x2];
-    /* 0x480 */ u16  animId;
-    /* 0x482 */ s16  field_482;
-    /* 0x484 */ byte pad_484[0x30];
-    /* 0x4B4 */ u16  animArg;
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x13];
+    /* 0x34C */ byte       field_34C;
+    /* 0x34D */ byte       pad_34D[0x12F];
+    /* 0x47C */ s16        state;
+    /* 0x47E */ byte       pad_47E[0x2];
+    /* 0x480 */ u16        animId;
+    /* 0x482 */ s16        field_482;
+    /* 0x484 */ byte       pad_484[0x30];
+    /* 0x4B4 */ u16        animArg;
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ Task*      field_4B8;
+    /* 0x4BC */ GpEnemy*   field_4BC;
 } Actor150400Work;
+STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
 /// Argument block of the script opcode `func_actor_150400_801326A4`
 /// implements: which animation to play, and how.

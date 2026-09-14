@@ -72073,3 +72073,40 @@ Both are copies of one `FsFolderSlot` scan: walk `D_8006C338[0..0x32]`, take the
 `arg2`-th entry whose `field_0 == 3`, call the overlay's relocation helper on its
 `field_4`. `overlay_dup_index find` shows the four carriers, and `promote`
 refuses them — the body names its own overlay's globals and callee.
+
+## One alloc result kept in two registers: assign the call to a short-lived pointer, then copy it
+
+The target holds a `Mem_Calloc` result twice — one copy that does the early
+stores and dies, one that lives to the end:
+
+```
+jal   Mem_Calloc
+move  a1, zero
+addu  v1, v0, zero      /* short-lived copy */
+addu  s2, v1, zero      /* the survivor */
+bnez  v1, .Lok
+sw    v1, 0x1C(s6)      /* delay slot: the idMap store */
+…
+sw    s0, 0x4BC(v1)     /* last use of v1 */
+```
+
+One source variable cannot produce that: `expand_call` gives the result a
+single pseudo and it takes a single register, so the natural form emits one
+`move sN, v0` and the allocator has nothing short-lived to spend on the `bnez`
+test. Write the result out twice instead —
+
+```c
+mem  = (Work*)Mem_Calloc(0x4C0, false);   /* $v1: dies at the last early use */
+work = (Work*)mem;                        /* $s2: live to the end */
+task->idMap = (TaskIdMap*)mem;
+if (mem == NULL) { … }
+mem->field_4BC = enemy;                   /* early uses through `mem` */
+…
+work->field_4B8 = spawned->task;          /* everything after the branch */
+```
+
+The `move` chain is the tell: `move sN, v0` alone means one variable; `addu v1,
+v0` followed by `addu s2, v1` means two. `ActorsShared80131e24Sub0` is the
+example, at 99.01% with one pointer and 100% with two. It is a property of the
+routine and not of the surrounding idiom: the sibling `actors_shared_80135c4c`
+allocates through the same `idMap` slot and emits the single `move`.
