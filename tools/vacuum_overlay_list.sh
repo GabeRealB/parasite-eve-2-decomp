@@ -56,22 +56,63 @@ RUN="$LOG_DIR/overlay-list-$$"
 mkdir -p "$RUN"
 STAGGER="${STAGGER:-30}"   # seconds between worker starts; 0 disables
 CURSOR="$RUN/queue"
-grep -vE '^\s*#|^\s*$' "$LIST" | awk '{print $1}' >"$CURSOR"
+fill_queue() { grep -vE '^\s*#|^\s*$' "$LIST" | awk '{print $1}' >"$CURSOR"; }
+fill_queue
 TOTAL=$(wc -l <"$CURSOR")
+
+# One pass over the list is not enough. Workers walk a shared queue in order, so
+# an overlay that is leased at the moment a worker reaches it is recorded as
+# skipped and never revisited - and with several workers contending, most names
+# are leased when someone gets to them. A worker that reached the end simply
+# exited, so a run decayed to nothing while work remained: one run ended with 43
+# free sub-0.3 functions and no workers left, another swept 1 overlay and
+# skipped 39.
+#
+# So re-walk while the last pass achieved something. "Achieved something" means
+# a sweep ran to completion, which releases a lease and can free an overlay for
+# the next pass; a pass of pure skips changes nothing and ends the run. The cap
+# is a backstop against a pathological cycle, not the expected exit.
+PASS_FILE="$RUN/pass";  echo 1 >"$PASS_FILE"
+SWEPT_FILE="$RUN/swept"; echo 0 >"$SWEPT_FILE"
+MAX_PASSES="${VACUUM_MAX_PASSES:-25}"
 
 STOP=0
 trap 'echo ""; echo "Interrupt received; workers stop after the overlay in flight."; STOP=1' INT
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$RUN/driver.log"; }
+# Same, but never on stdout. next_overlay's stdout IS the overlay name - it is
+# read with name=$(next_overlay) - so a log line written there is captured as
+# part of the name and the worker tries to sweep it.
+log_q() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$RUN/driver.log" >&2; }
 log "list $LIST: $TOTAL overlays, $JOBS worker(s)${PROFILE_ARG:+, profile $PROFILE_ARG}"
 log "run dir $RUN"
 
 # Pop the next name atomically. flock keeps two workers from picking the same
 # overlay in the same instant; the lease is what actually guarantees exclusion.
+note_swept() {
+    exec 8>"$CURSOR.lock"
+    flock 8
+    echo $(( $(cat "$SWEPT_FILE" 2>/dev/null || echo 0) + 1 )) >"$SWEPT_FILE"
+    flock -u 8
+    exec 8>&-
+}
+
 next_overlay() {
-    local name=""
+    local name="" swept pass
     exec 9>"$CURSOR.lock"
     flock 9
+    if [[ ! -s "$CURSOR" ]]; then
+        swept=$(cat "$SWEPT_FILE" 2>/dev/null || echo 0)
+        pass=$(cat "$PASS_FILE" 2>/dev/null || echo 1)
+        if [[ "$swept" -gt 0 && "$pass" -lt "$MAX_PASSES" ]]; then
+            fill_queue
+            echo $((pass + 1)) >"$PASS_FILE"
+            echo 0 >"$SWEPT_FILE"
+            log_q "pass $pass swept $swept overlay(s); re-walking the list (pass $((pass + 1)))"
+        elif [[ "$swept" -eq 0 && "$pass" -gt 1 ]]; then
+            log_q "pass $pass claimed nothing; list is exhausted"
+        fi
+    fi
     if [[ -s "$CURSOR" ]]; then
         name=$(head -1 "$CURSOR")
         tail -n +2 "$CURSOR" >"$CURSOR.tmp" && mv "$CURSOR.tmp" "$CURSOR"
@@ -132,6 +173,7 @@ worker() {
         rc=$?
         if [[ $rc -eq 0 ]]; then
             done=$((done + 1))
+            note_swept
         elif [[ $rc -eq 3 ]]; then
             # Exit 3 means the sweep matched functions it could not land: the
             # work is verified and committed on an overlay/* branch, and the
