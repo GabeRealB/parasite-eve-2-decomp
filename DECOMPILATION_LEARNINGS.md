@@ -77802,3 +77802,47 @@ Inputs: `base.i` (m2c seed, 54.857%)
 `a2a888ec2115a48bbd4192b59e758e36cb21209c3ef4653da6658e7dbb4ee3b4`,
 `base_1.i` (locals hoisted, 100.000%)
 `bef6e3c97317a21ee46d58cf5802572cda1d9bb9130929b1a9f8b3961de70153`.
+
+## A m2c `ptr + 0xNNN` is scaled by `sizeof(*ptr)`; the tell is one constant ratio
+
+m2c renders a field access it cannot type as pointer arithmetic on whatever
+pointer it happens to hold, and that arithmetic is in units of the pointee.
+`func_actor_401300_80141758`'s seed wrote `Gp_UnlinkObj(temp_s0 + 0xBF0)` where
+`temp_s0` came from `arg0->idMap` and was typed `TaskIdMap*` (8 bytes), so the
+object came out `addiu a0,s0,0x5f80`. All three unlink displacements were wrong
+by exactly 8x - `0x5f80/0xbf0 == 0x4b80/0x970 == 0x5580/0xab0 == 8` - and the
+differ read that as `regs=3`, 99.605%, because the offsets live in an `addiu`
+immediate rather than in a relocation.
+
+That ratio is the diagnostic. A single wrong displacement looks like a struct
+layout error and sends you hunting the struct; **every** mismatching
+displacement being the target times one constant means the C is right and only
+the pointee type is wrong. Grep the ratio before reading a single offset.
+
+The fix is the ordinary one - name the work block's fields at their absolute
+offsets and take their addresses:
+
+```c
+typedef struct Actor401300Work {
+    /* 0x000 */ byte  pad_0[0x970];
+    /* 0x970 */ GpObj field_970;
+    /* 0x990 */ byte  pad_990[0x120];
+    /* 0xAB0 */ GpObj field_AB0;
+    /* 0xAD0 */ byte  pad_AD0[0x120];
+    /* 0xBF0 */ GpObj field_BF0;
+    ...
+} Actor401300Work;
+
+Gp_UnlinkObj(&work->field_BF0);
+```
+
+The BRIEF's "similar matched bodies" list is the shortcut: the same-shaped
+teardown exists in several actors (`func_actor_401800_8013E0A0` is 1.00 shape
+and calls), and it already spells the pattern out. Do not copy its *offsets*
+though - actor 401300 keeps its three nodes at 0x970/0xAB0/0xBF0 where 01900 and
+401800 keep theirs at 0x8C8/0xA08/0xB48. Only the shape transfers.
+
+Inputs: `base.i` (m2c seed, 99.605%, `regs=3`)
+`f0fe3d35b1dd0de703719b004963635b5a65e7e2cd721fbc78a08ccf5395a470`,
+`base_1.i` (named fields, 100.000%)
+`1a1b14c74693344f13ef69044a9652aaac708e8e26a2b736f72514e7f3b75c31`.

@@ -2,7 +2,27 @@
 
 #include "actors/actor_401300.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_80141758);
+void func_actor_401300_80141758(Task* task)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = (Actor401300Work*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work != NULL) {
+        if (work->field_D0C != NULL) {
+            Task_Kill(work->field_D0C);
+        }
+        if (work->field_D10 != NULL) {
+            Task_Kill(work->field_D10);
+        }
+        Gp_UnlinkObj(&work->field_BF0);
+        Gp_UnlinkObj(&work->field_970);
+        Gp_UnlinkObj(&work->field_AB0);
+        enemy->field_54 = 0;
+    }
+    Gp_DestroyEnemy(enemy, task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_801417F0);
 
