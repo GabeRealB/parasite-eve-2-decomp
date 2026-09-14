@@ -71247,3 +71247,33 @@ Evidence: `tools/permuter_findings/Actor00100_Fn08A14/`, session
 base_2 plan/build and RTL/lreg/greg/sched2/dbr dumps. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Controlled base_2 preprocessed SHA256 `1a0c1031fe364231fcd42f18f791f8943e7074125d41255931f08745f86d4959`; source SHA256 `26acd83847d341bbc9b3a44ae6a3cbe32b51e705d486905fc9ab259910cc852c`.
+
+## Actor00100_Fn04864: a soft store dependency advances a scratch pointer without moving the head update
+
+The radius helper's `scratch = head - 1; scratch->x = pos->vx` had its x
+address folded to `head[-1].x`. The independent computed pointer then sank
+past that store in sched1, leaving one extra load-delay nop (99.543%).
+`x = pos->vx; SOFT_TOUCH_REG_USE(x, scratch); scratch->x = x` made the store
+depend on the computed pointer while leaving its value unchanged. In the
+controlled base_9, sched1 combines the nonvolatile asm into the store (UID
+908, inputs r383/r388), ordered after x load 904 and pointer definition 897.
+Reload splits the store back out (1340); sched2 retains load/addiu/store,
+with v0/a1/a2 homes intact and scratch-head writes still below the multiplies.
+This reproduced the prediction and reached zero distance. Input-only
+USE_REG(scratch), by contrast, was implicitly volatile and dragged the head
+write ahead of the x store, hoisting constants and changing homes (97.958%).
+This is evidence for the dependency change, not a universal instruction-order
+rule; the old unconstrained hazard choice was not traced.
+
+The permuter also discovered that narrowing a reused angle from s32 to u16
+removed its global SI pseudo, allowing each local call-result/subtraction
+chain to share s0 with its dead coordinate. The separate normal-source
+counterfactual reproduced distance 2025 -> 1565, excluding normalization
+as the cause. Only the low 16 bits feed the s16 yaw subtraction.
+
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Inputs: base_2.i 9c74e85ac5fd92676bb5a4a092b6958c9d4095aa831898cfe0e84c52fa6f16ba;
+base_7.i c4d1b2198f2caa3161378da1fbcf0a08969e485daaef3da0edb0ab94f5120888;
+base_9.i ee17c43fb2337afe32be0315f4f95a889a8d97ea8a4acfd7f02ec4f8ab7219b2.
+Retained evidence: tools/permuter_findings/Actor00100_Fn04864/, run
+25dd15a72c314f18, PERMUTER_ANALYSIS.md and controlled dumps.

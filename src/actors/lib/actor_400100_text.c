@@ -5,6 +5,7 @@
 #include "actors/actor_400100_facing.h"
 #include "actors/actor_400100_motion.h"
 #include "actors/actor_400100_move.h"
+#include "actors/actor_400100_patrol.h"
 #include "actors/actor_400100_update.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
@@ -254,7 +255,117 @@ void Actor00100_Fn04270(Actor00100* argx)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn04864);
+void Actor00100_Fn04864(Actor00100* arg0)
+{
+    Actor00100Work*          work;
+    Actor00100Ctx*           ctx;
+    Actor00100MoveWork*      move;
+    Actor00100PatrolScratch* head;
+    Actor00100PatrolScratch* scratch;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           playerCoord;
+    GsCOORDINATE2*           turnCoord;
+    GpRec18*                 records;
+    u16                      angle;
+    s16                      delta;
+    s32                      value;
+    s32                      magnitude;
+    s16                      yaw;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj           = arg0->field_2C;
+        ctx->field_14 = 0;
+        obj->field_C  = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 1;
+        work->field_82A        = 0;
+        work->field_82E        = 0;
+        work->field_83E        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+        Actor00100_Fn02788(arg0);
+        work->field_6                  = 0;
+        work->objs[3].field_20.field_C = 0x26C;
+        return;
+    }
+    head            = *(Actor00100PatrolScratch**)G_SCRATCH_HEAD;
+    scratch         = (*(Actor00100PatrolScratch**)G_SCRATCH_HEAD = head - 1);
+    move            = (Actor00100MoveWork*)work;
+    head[-1].vec.vx = move->pos[move->index][0] - arg0->field_2C->field_8->coord.t[0];
+    scratch->vec.vy = 0;
+    scratch->vec.vz = move->pos[move->index][1] - arg0->field_2C->field_8->coord.t[2];
+    if (!Actor00100_OutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
+        if (move->index == 0)
+            move->index = 1;
+        else
+            move->index = 0;
+        work->field_6 = 0;
+    }
+    Actor00100_Fn02788(arg0);
+    coord           = arg0->field_2C->field_8;
+    angle           = ratan2(scratch->vec.vx, scratch->vec.vz);
+    delta           = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    value           = Actor00100_NormalizeYaw(delta);
+    scratch->yaw    = value;
+    work->field_840 = value;
+    if (scratch->yaw >= 0x11)
+        scratch->yaw = 0x10;
+    if (scratch->yaw < -0x10)
+        scratch->yaw = -0x10;
+    work->field_83E = scratch->yaw;
+    turnCoord       = arg0->field_2C->field_8;
+    yaw             = (u16)scratch->yaw + ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]);
+    scratch->yaw    = yaw;
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, yaw, 1);
+    records = &work->objs[0].field_20;
+    if ((s16)work->field_82A == 0) {
+        if (Actor00100_HasRecord10(arg0)) {
+            Actor00100_MoveForward(arg0->field_2C->field_8, 20);
+        } else {
+            Actor00100_MoveForward(arg0->field_2C->field_8, 20);
+        }
+        records = &work->objs[0].field_20;
+    }
+    Actor00100_Fn00508(arg0->field_2C->field_8, records, 5, &scratch->vec);
+    if (Actor00100_Fn00A54(arg0->field_2C->field_8, &work->objs[2].field_20, 5) == 1) {
+        magnitude = abs((s16)work->field_840);
+        if (magnitude < 0x80)
+            work->field_6 = (u16)work->field_6 + 1;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (Actor00100_Fn00BF8(arg0) != 1) {
+        playerCoord     = arg0->field_2C->field_8;
+        scratch->vec.vx = Wip_SysConfig.field_4->t[0] - playerCoord->coord.t[0];
+        scratch->vec.vy = Wip_SysConfig.field_4->t[1] - playerCoord->coord.t[1];
+        scratch->vec.vz = Wip_SysConfig.field_4->t[2] - playerCoord->coord.t[2];
+        SCHED_BARRIER();
+        if ((ctx->field_8 >> 12) == D_80070F70 % 15) {
+            if (!Actor00100_PatrolOutsideRadius(&scratch->vec, 2000)) {
+                Gp_ArmStateF0(1);
+                work->field_0 = 0x26;
+            } else if (!Actor00100_PatrolOutsideRadius(&scratch->vec, 4000)) {
+                coord        = arg0->field_2C->field_8;
+                angle        = ratan2(scratch->vec.vx, scratch->vec.vz);
+                delta        = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+                value        = Actor00100_NormalizeYaw(delta);
+                scratch->yaw = value;
+                value        = abs(value);
+                if (value < 0x300) {
+                    Gp_ArmStateF0(1);
+                    work->field_0 = 0x26;
+                }
+            }
+        }
+        if (D_801153F2 & 1)
+            work->field_0 = 0x26;
+    }
+    *(Actor00100PatrolScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor00100_Fn0503C(Actor00100* arg0)
 {
