@@ -72885,3 +72885,57 @@ from m2c, helpers included.
 
 Input SHA256 (`base_1.i`, the matching candidate):
 `210001ee53b1925d890608aaf6d8e022aa99cae787260620ac3dc75934311391`.
+
+## A `(s8)` cast inlined as a call argument is a birthing insn, and sched1 launches it into the call's delay slot
+
+`func_actor_207200_8014C870` enqueues a sound effect in three arms, each as
+`SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord))` with `pan`
+computed by a preceding `Gp_GetObjPan` call. Written the obvious way — a `s8 pan`
+local assigned `(s8)Gp_GetObjPan(coord)` on its own line — the result is 90.5%:
+the coord-to-`$a0` copy lands in `Gp_GetObjDepth`'s delay slot and the pan
+sign-extension is emitted after the call,
+
+```
+    move a0,s0 / jal Gp_GetObjDepth / move s0,v0 / move a0,s1 / sll s0,s0,0x18 / sra a1,s0,0x18
+```
+
+where the target has the extension *before* the call and its `sra` in the slot:
+
+```
+    move a0,s0 / sll s0,v0,0x18 / jal Gp_GetObjDepth / sra s0,s0,0x18 / move a0,s1 / move a1,s0
+```
+
+Only the source form changes. Inlining the casts as arguments,
+
+```c
+    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+```
+
+scores 100% (0 differences, `blocks=7/7 instructions=133/133`). The `sll`/`sra`
+pair is the same in both; what moves is its scheduling.
+
+The mechanism is sched1's tie-break at the moment the depth call is scheduled.
+`rank_for_schedule` sorts first on `INSN_PRIORITY`, and with the extension's last
+insn and the coord copy both at the block's base priority the coord copy wins as
+class 3 (`sched.c`: `link == 0 || insn_cost(...) == 1`), so `reorg` puts it in
+the delay slot. The only way to outrank it is a higher priority, and the only
+source of one here is `adjust_priority` (sched.c ~2535) reaching
+`birthing_insn_p` (~2499): `GET_CODE(pat) == SET && GET_CODE(SET_DEST) == REG &&
+REGNO_REG_SET_P(bb_live_regs, i) && REG_N_SETS(i) == 1`. A named `s8 pan`
+assigned in three arms has `REG_N_SETS == 3`, so it can never qualify. Written as
+an argument the cast's destination is a fresh temp with one set, so it is
+birthing, and line 3923's `INSN_PRIORITY(insn) = LAUNCH_PRIORITY` (0x7f000001)
+propagates to it, winning the tie and placing it immediately before the call —
+where `reorg` then moves the `sra` into the delay slot.
+
+Two rules fall out. A value the target extends *before* a call and whose `sra`
+sits in the slot wants its cast written at the use site in the argument list,
+not as a named local. And the ordering is legal because MIPS does not define
+`PUSH_ARGS_REVERSED`: `calls.c` line 991 then evaluates actuals left to right, so
+the pan call in argument 2 still expands before the depth call in argument 3.
+The same shape matches in `Actor03800_Fn0166C` and `actor_503500_6.c` with a
+named local — there the surrounding blocks differ enough that the two insns
+never tie, which is why the local form is not wrong in general, only here.
+
+Input SHA256 (`base_7.i`, the matching candidate):
+`4f1532f7c0170eebd4e3d38fc07d03296cf4428ee46b22fc0eaeea00bfe20c9c`.

@@ -43,13 +43,18 @@ typedef struct Actor207200Work {
     /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
     /* 0x3FC */ byte           pad_3FC[0x68];
     /* 0x464 */ MATRIX         field_464; // last transform folded onto the model
-    /* 0x484 */ byte           pad_484[8];
+    /* 0x484 */ byte           pad_484[2];
+    /* 0x486 */ s16            field_486; // state the six helper slots are running
+    /* 0x488 */ s16            field_488; // frames spent in `field_486`
+    /* 0x48A */ byte           pad_48A[2];
     /* 0x48C */ s16            field_48C;
     /* 0x48E */ u16            field_48E; // id the six helper slots last saw
     /* 0x490 */ u16            field_490; // frames spent on the current id
-    /* 0x492 */ byte           pad_492[0xA];
+    /* 0x492 */ s16            field_492;
+    /* 0x494 */ byte           pad_494[8];
     /* 0x49C */ s16            field_49C;
-    /* 0x49E */ byte           pad_49E[6];
+    /* 0x49E */ byte           pad_49E[4];
+    /* 0x4A2 */ s16            field_4A2;
     /* 0x4A4 */ s16            field_4A4;
     /* 0x4A6 */ s16            field_4A6;
 } Actor207200Work;
@@ -59,7 +64,9 @@ typedef struct Actor207200Work {
 /// `field_54` a model pointer. `field_18` is the model part the context is
 /// driven from, re-picked every frame by `func_actor_207200_8014D8DC`.
 typedef struct Actor207200Ctx {
-    /* 0x00 */ byte           pad_0[0x10];
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ u16            field_8; // room/area id byte the sound id embeds
+    /* 0x0A */ byte           pad_A[6];
     /* 0x10 */ GpLinkNode     node;
     /* 0x18 */ GsCOORDINATE2* field_18;
     /* 0x1C */ byte           pad_1C[0x24];
