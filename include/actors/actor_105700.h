@@ -20,7 +20,19 @@ extern u8 D_801153F2;
 typedef struct Actor105700Work {
     /* 0x000 */ GpAnimCtx ctx;
     /* 0x014 */ byte      slots[19][0x28];
-    /* 0x30C */ byte      pad_30C[0x2F0];
+    /* 0x30C */ byte      pad_30C[0x1D4];
+    /// Pose the state-0 branch of `func_actor_105700_80133138` parks: the
+    /// animation's own offset, -0xA7 or 0x109.
+    /* 0x4E0 */ s16  field_4E0;
+    /* 0x4E2 */ byte pad_4E2[6];
+    /// Frame count the state-0 branch parks alongside `field_4E0`.
+    /* 0x4E8 */ s16  field_4E8;
+    /// Flags whose bit 0x4000 the state-0 branch raises.
+    /* 0x4EA */ u16  field_4EA;
+    /* 0x4EC */ byte pad_4EC[0x96];
+    /// Flags whose bit 0x4000 the state-0 branch clears.
+    /* 0x582 */ u16  field_582;
+    /* 0x584 */ byte pad_584[0x78];
     /// Object handed to the body by `Gp_PackPair` when `field_698` first
     /// reaches the animation's 0x1C mark (`func_actor_105700_801341CC`).
     /* 0x5FC */ s32  field_5FC;
@@ -49,15 +61,23 @@ typedef struct Actor105700Work {
     /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
     /* 0x6B0 */ byte pad_6B0[2];
     /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
-    /* 0x6B4 */ byte pad_6B4[0x1E];
+    /* 0x6B4 */ byte pad_6B4[4];
+    /// State-0 branch selector: 1 picks the short dwell and animation 1,
+    /// 2 the long dwell and animation 2.
+    /* 0x6B8 */ s16  field_6B8;
+    /* 0x6BA */ byte pad_6BA[0x18];
     /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
     /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
-    /* 0x6D2 */ s16  field_6D2;
-    /* 0x6D4 */ byte pad_6D4[2];
+    /* 0x6D2 */ s16 field_6D2;
+    /// Latched on state-0 entry, cleared when the frame budget runs out.
+    /* 0x6D4 */ s16  field_6D4;
     /* 0x6D6 */ s16  field_6D6; ///< animation index, used as a table row
     /* 0x6D8 */ byte pad_6D8[2];
     /* 0x6DA */ s16  field_6DA; ///< state-0 frame budget, drained by `field_69C`
-    /* 0x6DC */ byte pad_6DC[4];
+    /* 0x6DC */ byte pad_6DC[2];
+    /// State-1 step gate: 1 while the state-0 exit is still to be seen, 2
+    /// once it has been.
+    /* 0x6DE */ s16 field_6DE;
     /// State-1 branch selector: zero picks the short dwell and animation 2,
     /// non-zero the long dwell and animation 0x14.
     /* 0x6E0 */ s16  field_6E0;
@@ -79,6 +99,10 @@ typedef struct Actor105700Ctx {
     /* 0x08 */ u16                field_8;
     /* 0x0A */ byte               pad_A[0x32];
     /* 0x3C */ Actor105700Params* field_3C;
+    /* 0x40 */ byte               pad_40[0xC];
+    /// Cleared by `func_actor_105700_80133138` on state-0 entry.
+    /* 0x4C */ u8   field_4C;
+    /* 0x4D */ byte pad_4D[3];
 } Actor105700Ctx;
 
 /// Model object behind `Actor105700.field_2C`; `field_8` is the root
@@ -97,6 +121,9 @@ typedef struct Actor105700 {
     /* 0x20 */ Actor105700Ctx*  field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor105700Obj*  field_2C;
+    /// State the actor's handler chain advances to when the approach cycle
+    /// ends: 2 hands over to the next handler.
+    /* 0x30 */ s32 field_30;
 } Actor105700;
 
 /// 0x14-byte placement descriptor in the overlay's `.data`, handed to

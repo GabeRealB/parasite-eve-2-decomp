@@ -187,7 +187,91 @@ INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133040);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80133138);
+/// Per-frame tick of the actor's approach cycle, the verbatim counterpart of
+/// `Actor02000_Fn012E0` of `actor_102000` (see `overlay_dup_index.py find
+/// func_actor_105700_80133138`, which also lists five more actors carrying it).
+/// State 0 arms the cycle: `field_6AA` picks the dwell and animation, and the
+/// pose `field_4E0`, the flags `field_4EA` / `field_582`, the two counters and
+/// the step gate are all set before state 1 takes over. State 1 gates the
+/// handover once through `field_6DE`, plays the cue of the animation `field_6B8`
+/// selects at its 0x14 / 0x2C frame mark, and drops back to state 0 when the
+/// `field_6AE` frame budget runs out.
+void func_actor_105700_80133138(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    GpObj38*         self;
+    s32              snd;
+    s16              state;
+
+    work  = arg0->field_1C;
+    self  = (GpObj38*)arg0->field_2C->field_8;
+    state = work->field_6A8;
+
+    switch (state) {
+        case 0:
+            if (work->field_6AA == 0) {
+                work->field_694 = 0x16;
+                work->field_6A8 = 1;
+                work->field_6B8 = 1;
+                work->field_6AE = 0x42;
+                work->field_4E0 = -0xA7;
+            } else {
+                work->field_694 = 0x1A;
+                work->field_6A8 = 1;
+                work->field_6B8 = 2;
+                work->field_6AE = 0x31;
+                work->field_4E0 = 0x109;
+            }
+            work->field_4E8          = 0x15E;
+            work->field_69C          = 0;
+            work->field_69E          = 0;
+            work->field_6DE          = 1;
+            work->field_4EA         |= 0x4000;
+            work->field_582         &= 0xBFFF;
+            arg0->field_20->field_4C = 0;
+            work->field_6D4          = 1;
+            break;
+        case 1:
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+            }
+            if (work->field_6B8 == 1) {
+                if (work->field_698 == 0x14) {
+                    s32 pan;
+
+                    snd = D_actor_105700_80149004[work->field_6D6 + 0xC] |
+                          (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                    pan = (s8)Gp_GetObjPan(self);
+
+                    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+                }
+                if (work->field_698 == 0x2C) {
+                    s32 pan;
+
+                    snd = D_actor_105700_80149004[work->field_6D6 + 8] |
+                          (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                    pan = (s8)Gp_GetObjPan(self);
+
+                    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+                }
+            } else if (work->field_698 == 0x19) {
+                s32 pan;
+
+                snd = D_actor_105700_80149004[work->field_6D6 + 8] |
+                      (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(self);
+
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(self));
+            }
+            work->field_6AE--;
+            if (work->field_6AE <= 0) {
+                arg0->field_30  = 2;
+                work->field_6A8 = 0;
+                work->field_6D4 = 0;
+            }
+            break;
+    }
+}
 
 /// Verbatim port of `Actor02000_Fn0150C` of `actor_102000` - the two bodies are
 /// byte-identical (see `overlay_dup_index.py find func_actor_105700_80133364`,

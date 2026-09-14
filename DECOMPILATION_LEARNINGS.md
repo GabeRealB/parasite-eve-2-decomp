@@ -1056,6 +1056,56 @@ if (copy.field_F >= 2) {
 
 `func_replay_bonus_80116EC0` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `save->field_92B = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
 
+## Cross-jumping merges duplicate *call* blocks too, not just stores - and the m2c phi shape blocks it
+
+`func_actor_105700_80133138` (139 insns) is instruction-identical to the
+already-matched `Actor02000_Fn012E0` of `actor_102000`, so porting that body
+settled it in one build. The interesting part is *why* m2c's version of the
+same control flow sits at 85%.
+
+The target has one call site for two source branches:
+
+```
+   li   v0, 0x19          ; else path: the frame mark to test for
+   bne  v0, v1, else
+   ...
+   j    join
+   li   v0, 0x2C          ; if path: a different frame mark
+else:
+   lh   v1, 0x698(s1)
+join:
+   bne  v1, v0, done      ; ONE shared compare, $v0 carries the mark
+   jal  Gp_GetObjPan      ; ... and ONE shared call block
+   jal  Gp_GetObjDepth
+   jal  SndEvt_EnqueueType6
+```
+
+`if (work->field_698 == 0x2C) { snd = T[..+8] | ...; call; }` and
+`else if (work->field_698 == 0x19) { snd = T[..+8] | ...; call; }` are two
+textually identical blocks, and GCC 2.8.1 cross-jumps them into the single
+tail above - including hoisting each branch's differing constant into `$v0` so
+the *compare* merges as well. The same source shape in case 0
+
+```c
+if (work->field_6AA == 0) { ...; work->field_4E0 = -0xA7; }
+else                      { ...; work->field_4E0 = 0x109; }
+work->field_4E8 = 0x15E;
+```
+
+collapses the two `sh $v0, 0x4E0($s1)` stores into one, entered by both paths.
+
+m2c instead folds the branch values into a single local (`var_v0 = -0xA7;` /
+`var_v0 = 0x109;` then `field_4E0 = var_v0;`) and a `want` local for the frame
+mark. That is the same program, but it is one pseudo with two defs, so nothing
+is textually equal at the RTL level, no cross-jump fires, and the constants get
+hoisted to the top of the block and allocated to `$v1` / `$a0` instead of
+`$v0`: 85.3%, with `regs=63 insert=6 delete=10`.
+
+Rule: when the target shows one shared tail reached from two source branches,
+write the literals *in* each branch - do not merge them through a local - and
+let the cross-jumper build the tail. This is the same rule as the store entry
+above, extended to identical multi-instruction call blocks.
+
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 
 A matched sibling (`func_replay_bonus_80117484`) does
