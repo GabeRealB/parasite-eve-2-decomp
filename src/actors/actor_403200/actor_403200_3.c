@@ -132,7 +132,81 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801344C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80134748);
+s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
+{
+    SVECTOR        vec;
+    SVECTOR*       vp;
+    GsCOORDINATE2* coords;
+    s32            dist;
+    s32            value;
+    s32            view;
+    s32            flag;
+
+    view   = Gp_GetViewIndex() & 0xFF;
+    vp     = &vec;
+    coords = ((TmdObject*)arg0->extra)->field_8;
+    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
+    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    dist   = vec.vx * vec.vx;
+    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    dist  += vec.vy * vec.vy;
+    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
+    switch (arg1) {
+        case 0:
+            if ((view != 5) && (view != 6)) {
+                value = 5;
+                flag  = dist < 0x238C;
+            } else {
+                flag = view;
+                if (flag == 5) {
+                    value = 6;
+                    flag  = dist < 0x238D;
+                    if (flag) {
+                        value = 5;
+                    }
+                    return value;
+                }
+                if (flag == 6) {
+                    value = 5;
+                    flag  = dist < 0x2198;
+                } else {
+                    return 1;
+                }
+            }
+            if (!flag) {
+                value = 6;
+            }
+            return value;
+        case 1:
+            if ((view != 0xB) && (view != 0xC)) {
+                value = 0xB;
+                flag  = dist < 0x238C;
+            } else {
+                flag = view;
+                if (flag == 0xB) {
+                    value = 0xC;
+                    flag  = dist < 0x238D;
+                    if (flag) {
+                        value = 0xB;
+                    }
+                    return value;
+                }
+                if (flag == 0xC) {
+                    value = 0xB;
+                    flag  = dist < 0x1A90;
+                } else {
+                    return 1;
+                }
+            }
+            if (!flag) {
+                value = 0xC;
+            }
+            return value;
+        case 2:
+            return 0x1C;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80134900);
 
