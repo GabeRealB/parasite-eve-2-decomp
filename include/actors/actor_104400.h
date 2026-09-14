@@ -37,7 +37,8 @@ typedef struct Actor104400Work {
     /* 0x000 */ MATRIX    matrix_0; // model root coord, copied out on the kill path
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
-    /* 0x060 */ byte      pad_60[0x1A];
+    /* 0x060 */ VECTOR    field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
+    /* 0x070 */ byte      pad_70[0xA];
     /* 0x07A */ s16       field_7A; // heading
     /* 0x07C */ byte      pad_7C[0x4];
     /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
@@ -62,7 +63,8 @@ typedef struct Actor104400Work {
     /* 0x3AC */ GpObj            obj_3AC;
     /* 0x3CC */ byte             pad_3CC[0x30];
     /* 0x3FC */ GpEffArg         eff_3FC;   // field_0 is the model's second coord part
-    /* 0x404 */ byte             pad_404[0xC];
+    /* 0x404 */ byte             pad_404[0xA];
+    /* 0x40E */ s16              field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
     /* 0x410 */ s16              field_410; // random 0..0x7FF drawn from `Gp_LcgState`
     /* 0x412 */ u16              field_412; // per-state frame counter
     /* 0x414 */ s16              field_414; // animation request kind
@@ -82,14 +84,16 @@ typedef struct Actor104400Work {
     /* 0x436 */ s16              field_436; // step picked from `field_43A`'s distance band
     /* 0x438 */ s16              field_438; // 1 on the death path
     /* 0x43A */ s16              field_43A; // distance to the nearer player actor
-    /* 0x43C */ byte             pad_43C[0x4];
+    /* 0x43C */ byte             pad_43C[0x2];
+    /* 0x43E */ s16              field_43E; // counted down each frame by Actor04400_Fn022A8
     /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ u16              field_442;
     /* 0x444 */ u16              field_444; // heading to the nearer player actor, relative to field_7A
     /* 0x446 */ s16              field_446; // randomised hold compared against field_412
     /* 0x448 */ s16              field_448;
     /* 0x44A */ s16              field_44A;
-    /* 0x44C */ byte             pad_44C[0x3];
+    /* 0x44C */ byte             pad_44C[0x2];
+    /* 0x44E */ u8               field_44E; // set while the enemy carries status flag 4/8
     /* 0x44F */ u8               field_44F;
     /* 0x450 */ byte             pad_450[0x1];
     /* 0x451 */ u8               field_451; // 1 skips Actor04400_Fn00220 part-pair colour
