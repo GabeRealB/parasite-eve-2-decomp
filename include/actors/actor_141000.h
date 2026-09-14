@@ -103,6 +103,29 @@ typedef struct Actor141000Msg {
 } Actor141000Msg;
 STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
 
+/// A `MATRIX`'s word-wise view, for the identity splat
+/// `func_actor_141000_80132FD0` writes over the root coordinate: five aligned
+/// stores rather than nine halfword ones (the same shape as
+/// `ActorsShared8016a538Mat`, whose comment on the idiom is the fuller one).
+typedef struct Actor141000MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor141000MatWords;
+STATIC_ASSERT_SIZEOF(Actor141000MatWords, 0x14);
+
+/// The rotation table `func_actor_141000_80132FD0` feeds to `RotMatrix`: 0x5A
+/// `SVECTOR` axis triples, one per frame of the ramp the controller's state 2
+/// climbs, ending at the entry index 0x59 the function clamps to.
+extern SVECTOR D_actor_141000_80134228[];
+
+/// The world positions matching `D_actor_141000_80134228`, same 0x5A entries
+/// and same index; the function copies the chosen triple into the root
+/// coordinate's translation and then drops X by 40.
+extern SVECTOR D_actor_141000_801344F8[];
+
 s32  func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1);
 void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1);
 void func_actor_141000_801339DC(Task* arg0);

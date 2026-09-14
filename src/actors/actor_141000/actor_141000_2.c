@@ -99,7 +99,42 @@ void func_actor_141000_80132FC8(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80132FD0);
+/// Drives the model root one frame along the ramp the rotation table at
+/// 0x80134228 and its position table at 0x801344F8 hold: splat an identity
+/// matrix, let `RotMatrix` replace it with the frame's triple -- entry 0x59
+/// once `arg1` runs past the table's 0x5A entries -- copy that entry's
+/// position into the root's translation, drop X by 40 and clear `flg`.
+/// Returns non-zero on the frame that ran past the table, which is what the
+/// state-2 handler at 0x80132EF4 advances `field_C` on.
+s32 func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1)
+{
+    Actor141000MatWords* words;
+    SVECTOR*             pos;
+    s32                  idx;
+    s32                  ret;
+
+    if (arg1 < 0x5A) {
+        idx = arg1;
+        ret = 0;
+    } else {
+        idx = 0x59;
+        ret = 1;
+    }
+    words          = (Actor141000MatWords*)&arg0->coord;
+    words->m00_m01 = 0x1000;
+    words->m02_m10 = 0;
+    words->m11_m12 = 0x1000;
+    words->m20_m21 = 0;
+    words->m22     = 0x1000;
+    RotMatrix(&D_actor_141000_80134228[idx], &arg0->coord);
+    pos               = &D_actor_141000_801344F8[idx];
+    arg0->coord.t[0]  = pos->vx;
+    arg0->coord.t[1]  = pos->vy;
+    arg0->coord.t[2]  = pos->vz;
+    arg0->coord.t[0] -= 0x28;
+    arg0->flg         = 0;
+    return ret;
+}
 
 void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1)
 {

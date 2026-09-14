@@ -67550,3 +67550,37 @@ overlay's state-1 handler is a variant of, and supplies the field names, the
 Example: `func_actor_141000_80133B28` (scratch `base_1.c`, first distinct build,
 100%). Input `base_1.i`
 `28d9ecbc7256465d3a506a6b166343e890be5b2f5644e1e903735ab8ff018d88`.
+
+## A hard-register write reserves that register over its *scheduled* range, so a statement swap can move a local-alloc choice
+
+`func_actor_141000_80132FD0` sat at 90.745% with `regs=3`: the target keeps the
+`vy` load (`lh $v1,0x2($s0)`) in `$v1`, ours took `$v0`, and sched2 then
+interleaved the following `lw` into the load's delay slot where the target has a
+`nop` (`insert=1 delete=2`). Everything else in the function already matched --
+same blocks, same calls, same predicates.
+
+The sole `.lreg` difference is one line, `;; Register 103 in 3.` against
+`;; Register 103 in 2.`, and pseudo 103 is the `vy` load. `lregwalk.py` on that
+dump shows why: the return-value move `(set (reg/i:SI 2 v0) (reg/v:SI 85))`
+sits at block-3 index `#21` in the match and `#24` in the 90.745% build --
+between the `vy` load and its store, rather than after both.
+
+`local-alloc.c`'s `find_free_reg` picks the lowest free hard register in the
+class and then calls `post_mark_life (regno, mode, 1, born_index, dead_index)`,
+marking it live over `[birth, death)` in `regs_live_at`. `$v0` therefore belongs
+to the return value from that insn's scheduled position to the end of the block,
+and every quantity whose own range overlaps that span is denied it. Scheduling
+the move *earlier* is what costs the `vy` quantity its `$v0`: no data flow
+changed, only where the hard-register write landed.
+
+So the lever was a source reorder rather than a rewrite. Swapping the `t[0]`
+read-modify-write ahead of the independent `flg = 0` store (different fields of
+the same struct) changed the pre-sched1 emission order, which changed sched1's
+ready-list order at equal priority, which scheduled the return move between the
+load and its store. 90.745% -> 100.000%, every penalty zero. A `$v0`/`$v1`
+mismatch on a straight-line tail is worth reading as "whose hard-register range
+covers this span" before it is read as a `QTY_CMP_PRI` tie.
+
+Example: `func_actor_141000_80132FD0` (permuter `5a6291d8121741f4`, isolated as
+scratch `base_3.c`, 100%). Input `base_3.i`
+`ff5eb3bb586dde024affb7c730ec1cc70dbad86701feafb1ff8933b260e5961e`.
