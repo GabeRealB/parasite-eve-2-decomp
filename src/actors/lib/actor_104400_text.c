@@ -6,6 +6,8 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
 void Actor04400_Fn006A8(Task* arg0);
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
@@ -493,7 +495,21 @@ void Actor04400_Fn07968(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07984);
+void Actor04400_Fn07984(Task* arg0)
+{
+    Actor104400Work* work;
+    u16              ticks;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 0x24) {
+        if ((Game_Session->field_7 == 4) && ((u32)(Game_Session->field_6 - 0x27) < 2U) && (Game_Session->field_9 == 1)) {
+            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 1, 0);
+        }
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text", Actor04400_Fn07A38);
 
