@@ -67514,3 +67514,39 @@ Two boundaries worth checking before concluding "scheduler":
 Example: `func_actor_141000_80132EF4` (scratch `base_2.c`, one edit off
 `base_1.c`). Input `base_2.i`
 `fa6277c80f6fa46964be9a9644a7882077475d57b473ce14c8f93d6354a30c57`.
+
+## One field, two signedness: `lh` in the dispatcher and `lhu` in the handler means `u16`
+
+A task's state index is read back through a sign-extending load by its
+dispatcher and incremented unsigned by its handler, so the same offset shows up
+as `lh` in one function of an overlay and `lhu` in another. Do not "fix" the
+field to `s16` to satisfy the sign-extending site -- that just moves the
+mismatch to the other function. The field is `u16` and the `lh` site is an
+explicit cast:
+
+```c
+/* dispatcher: lh, then sll 2 / addu / lw */
+sp.funcs[(s16)work->field_4C2](arg0);
+/* handler: lhu / addiu / sh */
+work->field_4C2 = work->field_4C2 + 1;
+```
+
+`Actor141000Work`'s 0x4C2 is the worked example: `func_actor_141000_80133A00`
+indexes `D_actor_141000_80131E58` with it while `func_actor_141000_80133B28`
+bumps it. Changing the field to `u16` and adding the cast in the dispatcher
+keeps both matching; `actor_341700` 0x422 and `actor_403100` 0x5FA are the same
+pair already in the tree. A scratch env that only ever compiles one of the two
+cannot see the conflict -- check the sibling functions' disassembly before
+touching the struct.
+
+Related: m2c reads a 16-byte `.rodata` struct as one scalar, so a seed that
+loads a single word where the target copies four is not a missing statement.
+Look for the shared-body header under `include/actors/` that describes the same
+work block -- `actors_shared_80132920.h` documents the sibling
+"rotate a constant local offset, then open the per-axis limit" handler this
+overlay's state-1 handler is a variant of, and supplies the field names, the
+`u16` state counter and the `(VECTOR*)&work->step` cast directly.
+
+Example: `func_actor_141000_80133B28` (scratch `base_1.c`, first distinct build,
+100%). Input `base_1.i`
+`28d9ecbc7256465d3a506a6b166343e890be5b2f5644e1e903735ab8ff018d88`.

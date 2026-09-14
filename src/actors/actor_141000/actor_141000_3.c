@@ -48,5 +48,5 @@ void func_actor_141000_80133A00(Task* arg0)
 
     work = (Actor141000Work*)arg0->idMap;
     sp   = D_actor_141000_80131E58;
-    sp.funcs[work->field_4C2](arg0);
+    sp.funcs[(s16)work->field_4C2](arg0);
 }

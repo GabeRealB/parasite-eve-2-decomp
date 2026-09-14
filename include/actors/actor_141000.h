@@ -41,18 +41,30 @@ typedef struct Actor141000Work {
     /* 0x440 */ MATRIX  light;
     /* 0x460 */ MATRIX  color;
     /* 0x480 */ VECTOR3 target;
-    /* 0x48C */ byte    pad_48C[0x14];
+    /* 0x48C */ byte    pad_48C[0x4];
+    /* 0x490 */ VECTOR3 step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x49C */ byte    pad_49C[0x4];
     /* 0x4A0 */ s32     field_4A0;
     /* 0x4A4 */ s32     field_4A4;
     /* 0x4A8 */ s32     field_4A8;
-    /* 0x4AC */ byte    pad_4AC[0x16];
-    /* 0x4C2 */ s16     field_4C2;
+    /* 0x4AC */ byte    pad_4AC[0x4];
+    /* 0x4B0 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4B8 */ byte    pad_4B8[0xA];
+    /* 0x4C2 */ u16     field_4C2; // main-body state index; the dispatcher reads it back sign-extending
     /* 0x4C4 */ byte    pad_4C4[0x4];
     /* 0x4C8 */ s8      field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
     /* 0x4C9 */ s8      field_4C9;
     /* 0x4CA */ byte    pad_4CA[0x2];
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
+
+/// The local-space offset the actor's state-1 handler
+/// (`func_actor_141000_80133B28`) rotates into `Actor141000Work::step`: straight
+/// ahead along the part's own axis, halved first while `field_4C8` is clear.
+/// Each overlay keeps its own copy in `.rodata` -- this one follows the handler
+/// table `D_actor_141000_80131E58`, which is why `actor_141000_3` carries the
+/// run -- so the address comes from the per-overlay symbol map.
+extern VECTOR D_actor_141000_80131E68;
 
 /// Work block of the overlay's controller task -- the one whose three `Task`
 /// states are `D_actor_141000_80131E30`, which spawns the actor and then drives
