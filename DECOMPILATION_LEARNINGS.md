@@ -77893,3 +77893,53 @@ Inputs: `base.c` (two parameters, 98.938%)
 `1f599f50e8519b24ebcb4e7f8b1fbddeb1ffdb0fa6fa1c2e9e77fe336d76274a`,
 `base_1.c` (three parameters, 100.000%)
 `688e2e7590aa3ec2308edaee5390602ce65c59315ae1c939a697e71bb91d0d20`.
+
+## The frame tells you the locals' size; when it exceeds the stores, enlarge the copy's *destination* type
+
+`func_actor_210600_8014BA3C` is the family's state dispatcher: copy a global
+function-pointer table to the stack, index it by `Task::state`, call the entry.
+The 3-word table type reproduces every instruction - `lw` the three entries into
+`$v1`/`$a2`/`$a3`, `sw` them to `0x10`/`0x14`/`0x18`, index, `jalr` - and still
+scored 99.130%: all four frame instructions differed.
+
+    target   addiu sp,sp,-0x30   sw ra,0x28(sp)   ...   lw ra,0x28(sp)
+    base_2   addiu sp,sp,-0x28   sw ra,0x20(sp)   ...   lw ra,0x20(sp)
+
+That gap is not a register problem, so no amount of pinning helps. Read the
+frame instead. In this port (`config/mips/mips.c` `compute_frame_size`,
+`mips.h` `STARTING_FRAME_OFFSET`/`STACK_ARGS_ADJUST`):
+
+    var_size  = MIPS_STACK_ALIGN (locals)            /* 8-byte aligned */
+    args_size = MIPS_STACK_ALIGN (outgoing args)     /* >= 0x10, see below */
+    ra_offset = args_size + var_size
+    frame     = var_size + args_size + 8             /* $ra, 8-byte rounded */
+
+A call that passes no stack arguments has `args_size = 0x10`, so
+`frame = var_size + 0x18` and `locals` is the 8-byte window ending at
+`var_size`: frame `0x28` means 9-16 bytes of locals, `0x30` means 17-24. Here
+the code stores only 12 bytes but the frame says 17-24, so the assignment's
+*destination* is larger than its source.
+
+A struct assignment moves exactly the **source's** size, so the extra bytes
+belong in the destination type, as a member at offset 0 - the copy stays 3
+words and only the frame grows:
+
+    typedef struct { void (*funcs[3])(void*, Task*); } Actor210600StateFuncTable3;  /* 0xC */
+    typedef struct { Actor210600StateFuncTable3 table; s32 field_C; s32 field_10; } /* 0x14 */
+        Actor210600DispatchCtx;
+
+    Actor210600DispatchCtx sp;
+    sp.table = D_actor_210600_80149E24;          /* still 3 lw / 3 sw */
+    sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);   /* 100.000% */
+
+Casting the source up instead (`sp = *(Actor210600DispatchCtx*)&D;`) is the
+trap: it makes the move copy the *large* size and buys two more loads. The same
+20-byte table-plus-context local is built by `actor_521100`'s dispatcher
+(`func_actor_521100_80136604`: 3 words at `0x10`-`0x18`, bytes at `0x20`/`0x21`,
+a halfword at `0x22`), so the shape recurs in the family rather than being an
+artefact of one overlay.
+
+Inputs: `base_2.i` (3-word local, 99.130%)
+`f875b51dee062167d0eca2801acbe6bdc9c54c47fa29597b73d0cf0f1d646d82`,
+`base_3.i` (20-byte destination, 100.000%)
+`4c842265f21b64869b305290726e0c5d35afb4b399ad0a4298f26487575c9c98`.

@@ -33,6 +33,31 @@ typedef struct Actor210600Msg {
 } Actor210600Msg;
 STATIC_ASSERT_SIZEOF(Actor210600Msg, 0x4);
 
+/// State table the overlay dispatches through, indexed by `Task::state`. The
+/// rodata object `D_actor_210600_80149E24` is exactly its 3 words: create
+/// (0x8014B8C8), update (0x8014B434) and `Gp_DestroyEnemy`. Both handlers take
+/// the task's 0x20 spawn argument first, like `Actor100300StateFuncTable3`.
+typedef struct Actor210600StateFuncTable3 {
+    void (*funcs[3])(void* spawnArg2, Task* task);
+} Actor210600StateFuncTable3;
+STATIC_ASSERT_SIZEOF(Actor210600StateFuncTable3, 0xC);
+
+extern Actor210600StateFuncTable3 D_actor_210600_80149E24;
+
+/// Stack copy `func_actor_210600_8014BA3C` makes before the indirect call.
+/// The copy itself moves only the 3 words of `D_actor_210600_80149E24`, but
+/// the dispatcher's frame is 0x30 with `$ra` at 0x28, which needs 17-24 bytes
+/// of locals - so the copy target is this larger record and not the table
+/// type. Only `table` is written here; the trailing fields are unread, and
+/// `actor_521100`'s dispatcher builds the same 20-byte table-plus-context
+/// shape.
+typedef struct Actor210600DispatchCtx {
+    /* 0x00 */ Actor210600StateFuncTable3 table;
+    /* 0x0C */ s32                        field_C;
+    /* 0x10 */ s32                        field_10;
+} Actor210600DispatchCtx;
+STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
+
 s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg);
 
 #endif // ACTOR_210600_H
