@@ -31,7 +31,9 @@ typedef struct Actor521100Work {
     /* 0x68C */ s16          field_68C;
     /* 0x68E */ byte         pad_68E[0x10];
     /* 0x69E */ s16          field_69E;
-    /* 0x6A0 */ byte         pad_6A0[0x10];
+    /* 0x6A0 */ byte         pad_6A0[8];
+    /* 0x6A8 */ s16          field_6A8;
+    /* 0x6AA */ byte         pad_6AA[6];
     /* 0x6B0 */ s16          field_6B0;
     /* 0x6B2 */ s16          field_6B2;
 } Actor521100Work;
