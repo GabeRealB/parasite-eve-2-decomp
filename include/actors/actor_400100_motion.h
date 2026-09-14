@@ -46,4 +46,37 @@ static __inline__ s16 Actor00100_HasRecord10(Actor00100* actor)
     return found;
 }
 
+extern MATRIX* D_80073B8C;
+
+typedef struct Actor00100RadiusScratch {
+    /* 0x0 */ s32 x;
+    /* 0x4 */ s32 z;
+    /* 0x8 */ s32 radius;
+} Actor00100RadiusScratch;
+STATIC_ASSERT_SIZEOF(Actor00100RadiusScratch, 0xC);
+
+static __inline__ void Actor00100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = D_80073B8C->t[0] - coord->coord.t[0];
+    pos->vy = D_80073B8C->t[1] - coord->coord.t[1];
+    pos->vz = D_80073B8C->t[2] - coord->coord.t[2];
+}
+
+static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
+{
+    Actor00100RadiusScratch* head;
+    Actor00100RadiusScratch* scratch;
+    head                                        = *(Actor00100RadiusScratch**)G_SCRATCH_HEAD;
+    scratch                                     = head - 1;
+    *(Actor00100RadiusScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->x                                  = pos->vx;
+    scratch->z                                  = pos->vz;
+    scratch->radius                             = radius;
+    scratch->x                                 *= scratch->x;
+    scratch->z                                 *= scratch->z;
+    scratch->radius                            *= scratch->radius;
+    *(Actor00100RadiusScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->x + scratch->z >= scratch->radius;
+}
+
 #endif

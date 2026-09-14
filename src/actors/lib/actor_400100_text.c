@@ -515,7 +515,38 @@ void Actor00100_Fn070DC(Actor00100* arg0)
     *(Actor00100AngleScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_text", Actor00100_Fn0747C);
+void Actor00100_Fn0747C(Actor00100* arg0)
+{
+    SVECTOR         delta;
+    Actor00100Work* work;
+    TmdObject*      obj;
+    s32             radius;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                      = arg0->field_2C;
+        arg0->field_20->field_14 = 0;
+        obj->field_C             = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].field_1C = 0x19C;
+        work->field_828        = 2;
+        work->field_82E        = 7;
+        work->field_82A        = 0;
+        work->objs[2].flags   |= 0x4000;
+        work->field_832        = work->field_834;
+        Actor00100_Fn02788(arg0);
+    }
+    radius = 2000;
+    Actor00100_Fn02788(arg0);
+    if (((s16)Actor00100_Fn00508(arg0->field_2C->field_8, &work->objs[0].field_20, 5, &delta) != 0) || ((s16)Actor00100_Fn00508(arg0->field_2C->field_8, &work->objs[1].field_20, 5, &delta) != 0)) {
+        work->field_0 = 0x22;
+    }
+    Actor00100_PositionDelta(arg0->field_2C->field_8, &delta);
+    if (Actor00100_OutsideRadius(&delta, radius) == 0) {
+        work->field_0 = 0x22;
+    }
+    arg0->field_2C->field_8->flg = 0;
+}
 
 void Actor00100_Fn07650(Actor00100* arg0)
 {

@@ -169,4 +169,6 @@ void Actor00100_Fn0B658(Actor00100* arg0);
 s32  Actor00100_Fn0B264(Task* task);
 s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
 
+s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* records, s32 count, SVECTOR* pos);
+
 #endif
