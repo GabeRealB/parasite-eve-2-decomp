@@ -61,7 +61,30 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133554);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801336E0);
+/// Places the task's model at the indexed rotation and translation: copies
+/// `rots[index]` onto the root coordinate's Euler angles, `trans[index]` into
+/// its local translation, rebuilds the rotation matrix and marks the
+/// coordinate dirty.
+void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
+{
+    Actor511000Coord* coord;
+    SVECTOR*          rot;
+    SVECTOR*          pos;
+    s32               off;
+
+    off               = (index << 16) >> 13;
+    rot               = (SVECTOR*)(off + (s32)rots);
+    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
+    coord->rot.vx     = rot->vx;
+    coord->rot.vy     = rot->vy;
+    pos               = (SVECTOR*)(off + (s32)trans);
+    coord->rot.vz     = rot->vz;
+    coord->coord.t[0] = pos->vx;
+    coord->coord.t[1] = pos->vy;
+    coord->coord.t[2] = pos->vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133760);
 

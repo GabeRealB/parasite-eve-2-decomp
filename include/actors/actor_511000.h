@@ -19,6 +19,18 @@ typedef struct Actor511000Work {
     /* 0x50 */ MATRIX color;
 } Actor511000Work;
 
+/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
+/// `param`, and `super` at 0x48) holds the Euler angles
+/// `func_actor_511000_801336E0` writes and then hands straight to `RotMatrix`,
+/// the same reuse `ActorsShared8013231cCoord` documents for its own overlay.
+typedef struct Actor511000Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor511000Coord;
+STATIC_ASSERT_SIZEOF(Actor511000Coord, 0x4C);
+
 /// Work block of the spawner this overlay's model-attach handlers parent to,
 /// reached through the parent task's `Task::idMap`. Only the two matrices the
 /// model object is pointed at are modelled here; the same pair sits at the
