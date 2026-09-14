@@ -110,8 +110,20 @@ typedef struct Actor402200Work {
     /// State `func_actor_402200_8013539C` advances: 0 reseeds the animation at
     /// `field_6C0` and arms the cue, 1 waits for `field_6C4` to reach 0x37 and
     /// then drops the state back to 0 so the reseed runs again.
+    /// The attack sequence `func_actor_402200_801354B0` runs the same shape
+    /// over three states: its state 0 picks between slot sets 9 and 0xA on
+    /// `field_6D2` and parks the state on the matching one, and states 1 / 2
+    /// each wait out their own `field_6C4` threshold (0x50 and 0x3B) before
+    /// dropping back to 0.
     /* 0x6CE */ s16  field_6CE;
-    /* 0x6D0 */ byte pad_6D0[4];
+    /* 0x6D0 */ byte pad_6D0[2];
+    /// Which-side flag the target body `func_actor_402200_80131F54` raises from
+    /// a dot product of the offset to the actor it is tracking: 1 when the
+    /// product comes out zero, 0 otherwise. The sequence bodies branch on it -
+    /// `func_actor_402200_801354B0` picks between slot sets 9 and 0xA, and
+    /// `func_actor_402200_80135630` / `func_actor_402200_80135A24` between 0xD
+    /// and the set at `field_6C0`.
+    /* 0x6D2 */ s16 field_6D2;
     /// Countdown `func_actor_402200_801347F4` rolls from the `Gp_LcgState` LCG
     /// (0x4B..0x6A) when it reseeds the animation, and ticks down a frame at a
     /// time until it runs out and the cue fires.
