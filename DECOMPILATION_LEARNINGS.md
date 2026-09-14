@@ -43322,6 +43322,26 @@ scored 99.85% at `stack=6` with every other penalty zero, and the whole diff was
 the frame and the local count otherwise identical is a base-register mismatch,
 not a spilled local: split no locals, count the gap in the `argN` names.
 
+In the `actors` family the real arity is written down rather than guessed. Every
+enemy state handler is dispatched through a table copied onto the stack:
+
+```c
+sp = ActorsShared80135df4Table;
+sp.funcs[task->state](task->spawnArg2, task);
+```
+
+The element type is `GpEnemyTaskFunc` — `void (*)(GpEnemy*, Task*)` — so a
+handler m2c renders as a single `void *arg1` is really
+`(GpEnemy* enemy, Task* task)`. The *unused* leading `GpEnemy*` is what leaves
+the live pointer in `$a1`, and the body then copies `$a1` into `$a0` for its own
+calls — a copy the one-argument form cannot express. `func_actor_311900_801625F0`
+is the worked example: the m2c seed scored 95.73% with `move s0,a0` against the
+target's `move s0,a1`, plus the branch-offset and `delete` penalties that follow
+from the body being one instruction short; restoring the dropped parameter
+matched on the first build. Read the dispatch body — `src/actors/lib/
+actors_shared_80135df4.c`, or whichever `Gp_EnemyDispatch`-shaped copy the
+overlay carries — before inventing a signature.
+
 ## m2c invents callee arguments from registers a previous inlined macro left live
 
 The mirror image of the "m2c drops leading params" entry above: when the
