@@ -34,6 +34,8 @@ void       Actor00400_Fn060CC(Actor100400* arg0);
 void       Actor00400_Fn09714(Actor100400* arg0);
 void       Actor00400_Fn06EA4(Actor100400* arg0);
 void       Actor00400_Fn08ADC(Actor100400* arg0);
+void       Actor00400_Fn08B94(Actor100400* arg0);
+void       Actor00400_Fn06F64(Actor100400* arg0);
 void       Actor00400_Fn0A880(Actor100400* arg0);
 void       Actor00400_Fn04900(Actor100400* arg0);
 void       Actor00400_Fn0A940(Actor100400* arg0);
@@ -532,7 +534,16 @@ void Actor00400_Fn08A88(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08ADC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08B40);
+void Actor00400_Fn08B40(Actor100400* arg0)
+{
+    Actor100400Work* work                       = arg0->field_1C;
+    void             (*states[2])(Actor100400*) = {
+        Actor00400_Fn08B94,
+        Actor00400_Fn06F64,
+    };
+
+    states[(s16)work->field_63A](arg0);
+}
 
 void Actor00400_Fn08B94(Actor100400* arg0)
 {
