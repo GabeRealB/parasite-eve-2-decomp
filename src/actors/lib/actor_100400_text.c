@@ -706,7 +706,15 @@ void Actor00400_Fn08FC8(Actor100400* arg0)
     work->field_638++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08FF4);
+void Actor00400_Fn08FF4(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (++work->field_636 >= 2) {
+        work->field_638++;
+    }
+}
 
 void Actor00400_Fn09038(Actor100400* arg0)
 {
