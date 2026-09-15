@@ -1,19 +1,24 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
+
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 
+#include "rooms/dryfield_motel_room_1.h"
 #include "rooms/room_common.h"
 
-extern TaskDesc D_dryfield_motel_room_1_8017E478;
+extern GpMsgEntry D_dryfield_motel_room_1_8017E0A8[];
+extern TaskDesc   D_dryfield_motel_room_1_8017E478;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D5EC);
-
+s32 func_dryfield_motel_room_1_8017D5EC(void)
+{
+    return 0;
+}
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D5F4);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D61C);
-
 /// Message gate for the room's hotspot registered under id 0x13EF - the id the
 /// sanctuary's own gate uses. On the phase-3 visit (`Game_Session::field_9`)
 /// whose sub-id (`RoomEventMsg::field_2`) is 1 and that has not yet latched
@@ -32,8 +37,13 @@ s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     return 0;
 }
 
+/// Room entry task tick: park the room's hotspot table in `Task::field_24` -
+/// the table whose 0x13EF entry is the gate `func_dryfield_motel_room_1_8017D624`
+/// matches - register the task in pointer slot 7, then, on the phase-3 visit
+/// whose nibble 0x5C is still clear, announce the room to the slot-4 task with
+/// message 0x7DA carrying the session's two id bytes and a zero halfword. Then
+/// advance state.
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D69C);
-
 void func_dryfield_motel_room_1_8017D74C(void)
 {
 }

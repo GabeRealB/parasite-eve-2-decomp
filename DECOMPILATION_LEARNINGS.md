@@ -83467,3 +83467,106 @@ Inputs: `base_3.i`
 `7fec2134edc4fe9968020a6eea885f03d46c9e64a41a2cb93d0ed43693c7cfce` (100.000%).
 Backing files: `base_7.i.dbr` (the winning fill), `base_3.i.dbr` (the copied one),
 `base_7.i.flow` / `base_3.i.flow` (the block shapes).
+
+## A shared record's block-0 schedule is the *conditional's shape*, not the scheduler
+
+The "ternary over a global needs its load bound to a local" section above is
+about `func_actor_341900_801635A4`; `func_dryfield_motel_room_1_8017DFD0` sends
+the same slot-3 msg 0x3E8 record, and it is the diagnostic that is worth
+generalising. Written the natural sequential way,
+
+```c
+anim = D_80073BA9 + 0x22;
+if (D_8007218A == 1) {
+    anim = D_80073BA9 + 1;
+}
+```
+
+the CFG, predicates and call sites all match (`blocks=3/3`,
+`instructions=52/52`), yet the score stops at 87.692% with `regs=8 insert=3
+delete=3` and the entire diff is block 0: retail emits the three `lui`s first
+in source order, then the loads, and ends `lb $v0,D_8007218A($v1)` /
+`lbu $v1,D_80073BA9($a1)` / `bne $v0,$a0` / `addiu $v0,$v1,0x22` /
+`addu $v0,$v1,$a0`, where the sequential form emits the `D_80073BA9` chain
+first and lands the result in `$a2`.
+
+That leftover is not a scheduler decision to be argued with. `sched1`'s
+sequence here is a deterministic function of the RTL, so reordering the source
+statements does nothing: moving the `work = ...->idMap` load after the `anim`
+computation changes the uids and reproduces byte-identical output. The `if`/else
+form is worse, not better - naming the global in both arms gives two `lbu`s,
+`blocks=4` and 55 instructions (78.545%).
+
+What the target needs is the add *outside* the branch block, and that is the
+ternary with the load bound first - the sibling's own source. So when a room or
+actor function sends one of these shared records, read the BRIEF's
+`calls`/`cflow` candidate bodies before deriving anything from `.sched`/`.greg`:
+`cflow 1.00` here was the same record, 0.94 instructions-for-instructions.
+Inputs: `base_2.i`
+`9db6a37b2aded2b0080a3af021da8e36dac348e4459ec54508e21701772b80e1` (87.692%),
+`base_5.i` `1b15433171d70b7ffada2488e8484ee87bac89ac15695168335171511d38d1aa`
+(100%).
+
+## A `u16` parameter expands the whole argument in HImode, so it reassociates an `IOR` chain inside it
+
+`Gp_FindWorkById` takes `u16`. Passing an `int` expression makes the front end
+convert the *whole* argument, and `expand_expr` then expands that tree in
+HImode - the `.jump` dump shows `zero_extend:HI` byte loads and `subreg:HI`
+wrappers around every operand. The RTL comes out `ior(shifted_byte, 0x1000)`
+then `ior(plain_byte, that)` no matter how the chain is spelled: 108 spellings
+of the three-term form (every `|`/`+`/`^` and association permutation) all
+produce byte-identical assembly.
+
+`func_dryfield_motel_room_1_8017DC2C` needs the constant on the *plain byte*
+operand - `ori $a0,$a0,0x1000` off the `field_6` load, `sll $v0,$v0,8` for
+`field_7 << 8`, `or $a0,$v0,$a0` - and every direct spelling gave the two
+operands swapped. That is `regs=12` and 99.118% with `reorder=0 insert=0`, so
+no statement reordering touches it. The conversion itself is invisible in the
+object (`andi` is elided, the value provably fits 16 bits); only the operand
+order betrays it.
+
+Compute the id into an `s32` local first, so the OR runs as an SImode statement
+and only the *variable* is narrowed at the call:
+
+```c
+s32 id;
+...
+id            = Game_Session->field_6 | (Game_Session->field_7 << 8);
+work->field_4 = (Task*)Gp_FindWorkById(id)->field_0;
+id            = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+work->field_8 = (Task*)Gp_FindWorkById(id)->field_0;
+```
+
+The same shape appears with `(idx << 12) | (field_3 << 8) | field_2` in
+`func_acropolis_plaza_8017ECF8`, where the matched target also puts the plain
+byte load first - the caller's own source order is preserved only while the
+argument stays SImode. Inputs: `base_2.i`
+`4077955e23b9e1bc2d8d4fdf0bd97cb489eef5c15f207e47b5626192eaf8b14e` (99.118%),
+`base_3.i` `5d733fabd32c0f01069c6d1a3984c23781fcea4aabe86b73a8599c6fd4b09368`
+(100%).
+
+## A typed member store is `MEM_IN_STRUCT_P`, so the scheduler drops its edge to a later plain load
+
+`M2C_FIELD(p, T**, 8) = v;` compiles to a plain `mem` store; `p->field_8 = v;`
+compiles to `mem/s`. `sched.c`'s `true_dependence` / `anti_dependence` /
+`output_dependence` suppress the conflict when exactly one side is
+`MEM_IN_STRUCT_P && rtx_addr_varies_p` and the other is neither in a struct nor
+address-varying. So the cast store keeps a false dependence on the next
+statement's `lw Game_Session`, and `sched1` may not hoist that load across it:
+
+```
+lw    v0,0(v0)
+nop                 <- load-delay stall the target fills instead
+sw    v0,4(s1)
+lw    v1,%lo(Game_Session)(s0)
+nop
+```
+
+Typing the store is the whole fix - `work->field_4` instead of
+`M2C_FIELD(work, void**, 4)` - and the load lands in the delay slot with no
+other change (`insert=4 reorder=3` to `insert=0 reorder=0`, 91.944% to
+99.118%). The field declarations must already exist: add them to the overlay's
+own header rather than casting at the use site. Inputs: `base_1.i`
+`4086221625869f685839275ea39b2efa4244383da1828d2f0b83bb35d36d20c1` (91.944%),
+`base_2.i` `4077955e23b9e1bc2d8d4fdf0bd97cb489eef5c15f207e47b5626192eaf8b14e`
+(99.118%).

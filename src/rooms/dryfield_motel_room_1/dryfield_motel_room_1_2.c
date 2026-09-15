@@ -1,15 +1,24 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "main/mem.h"
 #include "main/session.h"
+#include "main/wipsys.h"
 
 #include "rooms/dryfield_motel_room_1.h"
+
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
+/// `D_8007218A` picks which of the two weapon-id bases that record uses.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017D7AC);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DC2C);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DD3C);
 
 void func_dryfield_motel_room_1_8017DF08(void)
@@ -35,7 +44,6 @@ void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DFD0);
-
 void func_dryfield_motel_room_1_8017E0A0(void)
 {
 }
