@@ -17,6 +17,8 @@ extern s32            D_dryfield_water_tank_801859DC;
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
 extern GpMsgEntry     D_dryfield_water_tank_8017F324[];
 extern TaskDesc       D_dryfield_water_tank_801868A4[];
+extern TaskDesc       D_dryfield_water_tank_80180794;
+extern Task*          D_dryfield_water_tank_80188D44;
 
 void func_dryfield_water_tank_8017DB48(void);
 
@@ -58,7 +60,25 @@ s32 func_dryfield_water_tank_8017D910(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func_dryfield_water_tank_8017D948);
+/// Room event task: state 0 spawns the child from `D_dryfield_water_tank_80180794`
+/// and parks it in `D_dryfield_water_tank_80188D44`, state 1 kills this task once
+/// that child has been killed.
+void func_dryfield_water_tank_8017D948(Task* task)
+{
+    s32 poll;
+
+    switch (task->state) {
+        case 0:
+            D_dryfield_water_tank_80188D44 = Task_SpawnFromTable(&D_dryfield_water_tank_80180794, 0, 0, 0);
+            task->state++;
+            return;
+        case 1:
+            if (Task_PollKill(D_dryfield_water_tank_80188D44, &poll) != 0) {
+                Task_Kill(task);
+            }
+            return;
+    }
+}
 
 /// State 0 of the room's event task: publish the message table the room's
 /// handlers hang off (`0x13EE`–`0x13F1`), take pointer slot 7, spawn the
