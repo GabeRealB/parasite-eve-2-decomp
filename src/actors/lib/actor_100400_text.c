@@ -424,7 +424,31 @@ void Actor00400_Fn076E8(Task* task)
     funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07738);
+/// Draws two LCG values into the work's `field_62E`/`field_630`, resets the
+/// state counters and copies the root coordinate's `t[1]` into `field_63E`.
+void Actor00400_Fn07738(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* state;
+    Actor100400Work* state2;
+    GsCOORDINATE2*   coord;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    Gp_IncStateF0Ref(0);
+    Gp_LcgState                  = Gp_LcgState * 5 + 0x71357911;
+    work->flags_62C.hi.field_62E = Gp_LcgState >> 16;
+    Gp_LcgState                  = Gp_LcgState * 5 + 0x71357911;
+    work->field_630              = Gp_LcgState >> 16;
+    state                        = arg0->field_1C;
+    state->field_632             = 0x10;
+    state->field_628             = 1;
+    state->field_624             = 2;
+    state2                       = arg0->field_1C;
+    state2->field_638            = 1;
+    state2->field_63A            = 0;
+    work->field_63E              = coord->coord.t[1];
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn077F4);
 

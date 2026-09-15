@@ -83570,3 +83570,26 @@ own header rather than casting at the use site. Inputs: `base_1.i`
 `4086221625869f685839275ea39b2efa4244383da1828d2f0b83bb35d36d20c1` (91.944%),
 `base_2.i` `4077955e23b9e1bc2d8d4fdf0bd97cb489eef5c15f207e47b5626192eaf8b14e`
 (99.118%).
+
+### Two reloads of the same pointer in two registers means two locals, even in one block
+
+`Actor00400_Fn07738` reloads `arg0->field_1C` twice in one basic block, and the
+target keeps the copies in *different* registers (`lw v1,0x1c(s0)`, later
+`lw v0,0x1c(s0)`). Reusing one `state` local for both reloads compiled at
+87.8% with `regs=34` and every allocation in the function shifted: a pseudo set
+twice dies twice, `local-alloc.c` only takes pseudos with `REG_N_DEATHS == 1`,
+so `state` went to global alloc (a3) and changed what local alloc could hand
+the LCG temporaries and the shared constant `1`.
+
+```c
+state  = arg0->field_1C;   /* v1 */
+state->field_632 = 0x10; ...
+state2 = arg0->field_1C;   /* v0 - a second local, not `state` again */
+state2->field_638 = 1; ...
+```
+
+Two distinct locals gave two local quantities and 100%. The misleading symptom
+was a constant (`li a2,1`) scheduled early in the target; it followed from the
+allocation, and reordering same-base stores or re-typing the constant changed
+nothing. The converse is the entry "Two values in one hard register means one
+local in the C, not two".
