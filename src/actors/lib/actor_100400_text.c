@@ -32,6 +32,8 @@ s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
 s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void       Actor00400_Fn060CC(Actor100400* arg0);
 void       Actor00400_Fn09714(Actor100400* arg0);
+void       Actor00400_Fn0A9F4(Actor100400* arg0);
+void       Actor00400_Fn0AA40(Actor100400* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -607,7 +609,16 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn093C4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09418);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0946C);
+void Actor00400_Fn0946C(Actor100400* arg0)
+{
+    Actor100400Work* work                       = arg0->field_1C;
+    void             (*states[2])(Actor100400*) = {
+        Actor00400_Fn0A9F4,
+        Actor00400_Fn0AA40,
+    };
+
+    states[(s16)work->field_63A](arg0);
+}
 
 void Actor00400_Fn094C0(Actor100400* arg0)
 {
