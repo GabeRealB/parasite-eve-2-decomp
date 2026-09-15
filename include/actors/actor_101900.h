@@ -65,10 +65,10 @@ typedef struct Actor01900Work {
     /* 0xC2A */ s16      field_C2A;
     /* 0xC2C */ byte     pad_C2C[2];
     /* 0xC2E */ s16      field_C2E;
-    /* 0xC30 */ byte     pad_C30[2];
+    /* 0xC30 */ s16      field_C30;
     /* 0xC32 */ s16      field_C32;
     /* 0xC34 */ u8       field_C34[3];
-    /* 0xC37 */ byte     pad_C37;
+    /* 0xC37 */ u8       field_C37;
     /* 0xC38 */ Task*    field_C38;
     /* 0xC3C */ Task*    field_C3C;
     /* 0xC40 */ s16      field_C40;
@@ -107,6 +107,8 @@ typedef struct Actor01900 {
     /* 0x20 */ GpEnemy*        field_20;
     /* 0x24 */ byte            pad_24[8];
     /* 0x2C */ TmdObject*      field_2C;
+    /* 0x30 */ byte            pad_30[6];
+    /* 0x36 */ s16             field_36;
 } Actor01900;
 
 /// Per-room clamp applied to the accumulated height offset of the actor's
@@ -260,6 +262,7 @@ s32  Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void Actor01900_Fn02A50(Actor01900* arg0);
 void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+s32  Actor01900_Fn016F0(Actor01900* arg0);
 void Actor01900_Fn01C94(Actor01900* arg0);
 void Actor01900_Fn03FF8(Actor01900* arg0, void* arg1, s32 arg2);
 void Actor01900_Fn08724(Actor01900* arg0);
