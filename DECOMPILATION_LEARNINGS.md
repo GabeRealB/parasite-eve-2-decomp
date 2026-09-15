@@ -80234,3 +80234,50 @@ those gave the whole source shape, which is the fast path for a `calls`-class
 
 Inputs: `base.i` `3b85f84be47bccc4d77de3f1b295cfb21ee418038f0d8bda6459c7a151b7ba16`,
 `base_1.i` `f0e9c92e15799d13cd3a249b72ddf3e4e16730bbd28174741adb546045ee4dcd`.
+
+## A `jal` that loads the argument register before calling a helper the rest of the TU calls with none (func_neo_ark_shrine_8017F320, 2026-09-15)
+
+`func_neo_ark_shrine_8017F320` is 30 insns. Its second call has an explicit
+`addu $a0,$s1,$zero` immediately before the `jal`, yet the callee
+(`func_neo_ark_shrine_8017EAC0`) takes no arguments - its decompiled body is one
+call to `func_neo_ark_shrine_8017DF7C` and it never reads `$a0` - and the three
+other call sites in the same unit load nothing into `$a0` (their `.s` under
+`asm/USA/rooms/matchings/neo_ark_shrine/neo_ark_shrine_6/` show the `jal` with a
+non-`$a0` instruction in the delay slot). So the source passes an argument here
+and nothing there.
+
+Neither prototype can say that: `void f(void);` rejects the call with an
+argument, `void f(Task*);` rejects the three without one. A declaration with an
+**empty parameter list** accepts both, because in C89 it leaves the arguments
+unspecified - and GCC emits no argument setup for a call that has none, so the
+three matched call sites are unaffected:
+
+```c
+/* No parameter list: 8017F320 passes `task` (the target loads `$a0` before
+   that call) while every other caller here passes nothing. */
+void func_neo_ark_shrine_8017EAC0();
+```
+
+This is not a niche spelling for a missing prototype: the tree already carries
+46 empty-parameter-list declarations (`void func_actor_400600_801361AC();`,
+`s32 ActorsShared8016974c();`, `include/psyq/{fs,stdlib}.h`), and they are the
+only form that lets one TU call a symbol both ways.
+
+**The argument is not cosmetic - it also repairs the schedule.** The m2c seed
+(73.667%, `regs=18 reorder=0 insert=2 delete=5`) only needed the *pointer* half
+of the source rebuilt first: writing the prompt as a local
+`RoomActionPrompt* prompt = &D_80114D28;` (see "Hold a global's address in a
+local pointer" - its two stores sit after the first `jal`, and local-alloc still
+puts the address in `$s0` because the scheduler hoisted the `lui`/`addiu` into
+the prologue) took it to 94.667% with `regs=0` and left exactly two leftovers:
+the missing `move $a0,$s1` and `li $a0,0x12` one slot late.
+
+Adding the argument fixed both at once - 100%, all-zero penalties - because the
+second `$a0` set lengthens the register's dependency chain, and the scheduler
+then issues the first call's `li $a0,0x12` one position earlier. Same rule as
+"the wrong `$a0` user delays a call's setup": the statement order was never the
+knob, the `$a0` graph was.
+
+Inputs: `base.i` `6c2870c680e9ba0288857295bc5606f260d14ffa5dc8fb15ef5840e1b7cf09f1`,
+`base_1.i` `bf9b5ada477ded3ccfb46b1690f9221204e59069b41cd6990aa79ec8714ede1c`,
+`base_2.i` `e9ebe5dd76d3114e29452a454bc2a3c2d940bcd686a8b36aa1350cfdaf113d63`.

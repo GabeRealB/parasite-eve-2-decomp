@@ -36,13 +36,17 @@ typedef struct {
 
 void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 
-void func_neo_ark_shrine_8017EAC0(void);
+/* No parameter list: `func_neo_ark_shrine_8017F320` passes `task` to the
+   argument-less helper (the target loads `$a0` before that call) while every
+   other caller here passes nothing. */
+void func_neo_ark_shrine_8017EAC0();
 void func_neo_ark_shrine_8017F86C(Task* task);
 
 extern s8  D_8007216C;
 extern s8  D_80115410;
 extern s16 D_80114D08;
 
+extern s16      D_neo_ark_shrine_80186868;
 extern s16      D_neo_ark_shrine_8018686A;
 extern TaskDesc D_neo_ark_shrine_80182508;
 
@@ -175,7 +179,22 @@ void func_neo_ark_shrine_8017F274(Task* task)
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F320);
+/// Runs the shrine's per-step helper and restarts the script's step timer:
+/// raises a pad lerp, clears the prompt's highlight state and advances the
+/// task to the next state.
+void func_neo_ark_shrine_8017F320(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+
+    Gp_SpawnPadLerp(0x12, 0x30, 0x90);
+    D_neo_ark_shrine_80186868 = 0;
+    prompt->mode              = 0;
+    prompt->targetId          = 0;
+    func_neo_ark_shrine_8017EAC0(task);
+    st->timer = 0;
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F398);
 
