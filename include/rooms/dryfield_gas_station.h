@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 
 /// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
@@ -22,5 +25,11 @@ typedef struct DgsWork {
     /* 0x0E */ byte  pad_E[0x2];
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
+
+/// Draws the gas station's shaft from the same four arguments `Room_Draw37`
+/// takes: `arg0` is updated with `Gp_UpdateCoord` and the beam is `arg1`
+/// rotated by its `workm`. Larger and textured where `Room_Draw37` is not --
+/// its body is still `INCLUDE_ASM`, so the rest is unverified.
+void func_dryfield_gas_station_80181058(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 #endif // ROOMS_DRYFIELD_GAS_STATION_H

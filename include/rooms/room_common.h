@@ -456,6 +456,15 @@ void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// radii `(s16)arg3 * 64 / otz0` and `(s16)arg3 * 64 / otz1`. Nothing is drawn
 /// when the far end's `otz` is below 0x11.
 void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+/// Draws one light shaft: `arg1` is rotated by `arg0`'s `workm`, offset by its
+/// translation and projected through `GsWSMATRIX` with a single `RTPS` into a
+/// 0x14 scratch block, and is dropped when `otz` is below 0x11. `arg3` is a
+/// signed half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`
+/// and the two `POLY_G4` halves narrow with distance; `arg2` scales
+/// `Display_State.field_8` into `rsin` so the lit vertex pulses as
+/// `rsin(...) / 34 + 0x78` on green and blue. Two gouraud `LINE_G3` diagonals
+/// cross the same centre.
+void Room_Draw37(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 /// Same rotated shade-tex `POLY_FT4` as `Room_Draw27` (same 0x1C scratch
 /// layout, tpage 0x2B, clut 0x43D3), but `arg1` selects the UV column
 /// `(arg1 & 0xFFFF) << 5` rather than `(s16)arg1 << 5`.
