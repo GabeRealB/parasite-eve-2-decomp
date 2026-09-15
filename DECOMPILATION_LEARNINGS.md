@@ -44030,6 +44030,16 @@ linked into every carrier of the family (`src/actors/lib/actors_shared_801327f8.
 covers four), and the index in the brackets is always a `s16` load off the work
 block.
 
+When the dispatched-to call is *direct* rather than indirect, the callee settles
+it in one look: `func_dryfield_night_gas_station_8017FB70`'s seed passed the
+table's three words as arguments to `func_dryfield_night_gas_station_80180D1C`,
+and that callee's first act is to overwrite `$a0` (`lui/lw $a0, Game_Session`)
+— it reads none of `$a0`-`$a3`, so it takes no arguments and the three loaded
+registers can only be the copy's temporaries. The body is the ordinary
+`TaskFuncTable3 sp; sp = <rodata table>; <no-arg call>(); sp.funcs[arg0->state](arg0);`,
+exact on the first build from 36.4%. Input: `base_1.i`
+`3138a1bc11de99b6169b0f4c9cd0a72ee8f1b6ba3362b3af7f15eef297a9a917`.
+
 ## m2c's synthesized `Task*` field names can be swapped relative to `task.h`
 
 The scratch prelude carries no `Task`, so m2c invents field names for the pointer
