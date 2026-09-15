@@ -2190,9 +2190,69 @@ So the target's block order is the source's case order with each merged tail
 left where the *later* case put it — a `goto` reaches the same target but parks
 the block wherever the first user sits.
 
-`jump_optimize (insns, 1, 1, 0)` in `toplev.c` is the enabling call: cross-jump
-is on at `-O2` and runs *before* register allocation, so the merge happens on
-pseudos and does not by itself constrain the allocation.
+`jump_optimize (insns, 1, 1, 0)` in `toplev.c` is the enabling call. It is the
+*last* of the five `jump_optimize` calls in `rest_of_compilation` — the other
+four pass `cross_jump = 0` — and it sits after `reload`, `reload_cse_regs`,
+`thread_prologue_and_epilogue_insns` and `schedule_insns` (sched2), immediately
+before `dbr_schedule`. So cross-jumping runs **after register allocation**, on
+hard registers, and cannot be steered from the C by shaping pseudos. The `.jump2`
+dump is the first one that shows a merge; a shared label present in `.jump2` and
+`.dbr` but absent from `.sched2` is the proof of when it ran.
+
+## A view dispatcher's cases share their call tails; the shared label lands *inside* the case's block
+
+`func_neo_ark_eve_access_tunnel_8017E15C` is a `switch (Gp_GetViewIndex())` with
+cases 2..6, each drawing two adjacent emitters per call out of one of four
+`SVECTOR` runs. The target reads like a hand-written goto graph — one shared
+`Room_Draw01(p); Room_Draw01(p + 0x10)` pair that cases 3, 4, 5 and 6 all jump
+into with their run's address in `$s0`, and case 2 entering the *second* call
+directly with `a0 = $s0 + 0x20` — and m2c reconstructed exactly that graph:
+82.4%, `regs=7 reorder=7 insert=4 delete=2`.
+
+It is not a goto graph. Written as the flat switch it is — every case spelling
+out its own calls, no shared local, no `goto`:
+
+```c
+case 2:
+    Room_Draw01(&D_8017EB48[0], 0x180, 0x444);
+    Room_Draw01(&D_8017EB48[2], 0x180, 0x444);
+    Room_Draw01(&D_8017EB48[4], 0x180, 0x444);
+    break;
+case 3:
+    Room_Draw01(&D_8017EAE8[0], 0x180, 0x444);
+    Room_Draw01(&D_8017EAE8[2], 0x180, 0x444);
+    break;
+/* ... case 4 falls through into case 5 ... */
+```
+
+it scores 100.000% with every penalty zero. `find_cross_jump` compares each
+jump's insns backwards against those before its target and, because
+`rtx_renumbered_equal_p` renumbers registers, the `a0 = $s0; a1 = 384;
+a2 = 1092; jal` runs of different cases match even though each case loaded `$s0`
+with its own symbol. The merge is entered by inserting a `code_label` **after**
+the case's `lui`/`addiu $s0` in `.jump2`, so each case keeps its own address
+materialisation as a block prefix and falls into the shared call run:
+
+```
+(insn 132 ... (set (reg:SI 16 s0) (lo_sum:SI (reg:SI 16 s0) (symbol_ref "D_..._8017EB48"))))
+(code_label 203 132 134 11 "")          ; <- inserted by do_cross_jump
+(insn 134 ... (set (reg:SI 4 a0) (reg:SI 16 s0)))
+(insn 136 ... (set (reg:SI 5 a1) (const_int 384)))
+(insn 138 ... (set (reg:SI 6 a2) (const_int 1092)))
+(call_insn 140 ... (call (mem:SI (symbol_ref "Room_Draw01")) ...))
+```
+
+Labels 203 (the call's argument setup) and 202 (the second call's, after its
+`a0 = $s0 + 16`) appear in `.jump2` and `.dbr` and in neither `.sched2` nor any
+earlier dump.
+
+Rule, same as the sections above but for a jump-table dispatch: when a
+dispatcher's cases appear to share a call tail, write the calls out in every
+case and let the cross-jumper find the tail. A `goto` reaches the same target
+but parks the merged block wherever the first user sits and forces the base into
+one variable, which costs `regs`, `reorder` and `insert` at once. The `$s0` that
+serves four different runs is the tell that the merge is post-reload: pre-
+allocation there is no single register to name.
 
 ## Actor step dispatcher: an if-chain with an explicit `return` per arm, never a `switch`
 
