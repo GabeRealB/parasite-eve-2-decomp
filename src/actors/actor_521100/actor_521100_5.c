@@ -6,7 +6,6 @@
 #include "main/tmd.h"
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void func_actor_521100_80135F2C(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135D10);
 
