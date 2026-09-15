@@ -4,6 +4,8 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
+extern u32 Gp_LcgState;
+
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
    the definitions in src/gameplay/3A34.c. */
@@ -653,7 +655,23 @@ void Actor00400_Fn08A88(Actor100400* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08ADC);
+void Actor00400_Fn08ADC(Actor100400* arg0)
+{
+    Actor100400Work* state;
+    Actor100400Work* work;
+    u32              random;
+
+    work             = arg0->field_1C;
+    random           = Gp_LcgState * 5 + 0x71357911;
+    Gp_LcgState      = random;
+    state            = arg0->field_1C;
+    state->field_63C = 8;
+    state->field_632 = ((random >> 16) & 3) + 3;
+    state->field_628 = 0xF;
+    state->field_624 = 1;
+    work->field_636  = 0;
+    work->field_63A++;
+}
 
 void Actor00400_Fn08B40(Actor100400* arg0)
 {
