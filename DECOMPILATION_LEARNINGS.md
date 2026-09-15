@@ -80558,3 +80558,21 @@ the load-address difference. Fix it in the shared reloc file with one
 `rom:0xOFF reloc:MIPS_32 symbol:<label>` per entry
 (`configs/USA/rel.actor_101900.txt`). Ninja does not rebuild the `.c.o` when an
 included `.s` changes, so `touch` the unit before re-checking.
+
+## Top-tested angle wrap plus `lui`/`ori` and absolute scratch forms: look for the known inline helpers
+
+`Actor01900_Fn080A8` has the top-tested `sll`/`sra`/`slti` + `j` wrap loops, a
+`bgez` on `sll s0,s0,16` with the delay slots all `sll v0,v1,16`, and a 0x34
+scratch block whose head accesses are absolute (`lui $s2`/`lw 0x3FC($s2)`,
+`lui $at`/`sw`) between two `lui`/`ori` register-form bumps. Written out flat
+it stalled at 85% (goto loops, locals, `scratch_base`). The whole gap was
+source shape: the body is `Actor00100_PositionYaw` / `Actor00100_NormalizeYaw`
+(`include/actors/actor_400100_facing.h`) plus `ActorsShared80135a60(coord,
+0x1194)`, all as `static __inline__`. Inside the `s16`-returning inline the
+plain `while (1) { if (v >= -0x800) break; v += 0x1000; }` keeps the top test
+(the return's sign extension supplies the `sll` at the exit label), and the
+inlined scratch dance gives the absolute forms, while the caller's own
+`*(T**)G_SCRATCH_HEAD -= 1; p = *(T**)G_SCRATCH_HEAD;` and `+= 1` keep
+`lui`/`ori`. 85% to 100% in one step. Before fighting a wrap loop or scratch
+address forms, `grep -rn "0x1194\|NormalizeYaw" include/actors src/actors` for a
+helper whose body the function already contains.

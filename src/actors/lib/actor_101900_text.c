@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_101900.h"
+#include "actors/actor_101900_facing.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -331,7 +332,52 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn07810);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn07BA8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn080A8);
+void Actor01900_Fn080A8(Actor01900* arg0)
+{
+    Actor01900Work*       work;
+    TmdObject*            obj;
+    GsCOORDINATE2*        coord;
+    Actor01900AimScratch* aim;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 9;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   &= 0xBFFF;
+        Actor01900_Fn01C94(arg0);
+        work->field_6 = 0;
+        return;
+    }
+    work->field_6++;
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                      = *(Actor01900AimScratch**)G_SCRATCH_HEAD;
+    arg0->field_2C->field_8->flg             = 0;
+    if (work->field_68 & 0x100) {
+        work->field_0 = 7;
+    }
+    aim->angle      = Actor01900_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_8AE = aim->angle;
+    if (aim->angle > 0) {
+        aim->angle = 0;
+    }
+    if (aim->angle < 0) {
+        aim->angle = 0;
+    }
+    coord       = arg0->field_2C->field_8;
+    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    Actor01900_Fn01C94(arg0);
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn083E8);
 
