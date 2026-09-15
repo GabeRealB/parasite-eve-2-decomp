@@ -43832,6 +43832,22 @@ matched on the first build. Read the dispatch body — `src/actors/lib/
 actors_shared_80135df4.c`, or whichever `Gp_EnemyDispatch`-shaped copy the
 overlay carries — before inventing a signature.
 
+**Restoring the arity is not free for the parameter that *is* used.** GCC emits
+a parameter-copy insn `(set (reg/v <n>) (reg <incoming>))` at the function head,
+so that pseudo's live range now starts at the top of the function and can
+exclude a hard register it did not conflict with before. Re-reading the memory
+operand at a second use site extends the range further. `func_dryfield_
+dilapidated_house_8017E68C` is the case: m2c's `void *arg2` scored 99.900% at
+`stack=2` with the single diff `lbu $v1,0x2($a0)` against `0x2($a2)`, and the
+3-arg form with a direct re-read `D_x = arg2->field_2;` scored 79.429% — an
+extra instruction. `arg2` stayed live to the store, `.greg` showed
+`82 conflicts: 82 87 2 3 29`, `$v1` was excluded from the address temp, and
+reload rematerialised a second `lbu $v0,0x2($a2)` into the store, flipping which
+register held what. Naming the loaded byte in a local (`u8 temp_v1; temp_v1 =
+arg2->field_2;`) kills the range at the first load and matched immediately. When
+a restored arity costs ~20 points, read the `.greg` conflict line for the used
+parameter before changing anything else.
+
 ## m2c invents callee arguments from registers a previous inlined macro left live
 
 The mirror image of the "m2c drops leading params" entry above: when the

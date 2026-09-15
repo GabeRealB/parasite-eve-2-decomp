@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 
@@ -8,6 +9,9 @@
 #include "main/task.h"
 
 extern s32 D_dryfield_dilapidated_house_80189B6C;
+extern s32 D_dryfield_dilapidated_house_80183EFC;
+extern s32 D_dryfield_dilapidated_house_80184408;
+extern s32 D_dryfield_dilapidated_house_80184C60;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
 
@@ -37,7 +41,17 @@ s32 func_dryfield_dilapidated_house_8017E684(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E68C);
+s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    u8 temp_v1;
+
+    temp_v1 = arg2->field_2;
+    if ((temp_v1 == 1) && (D_dryfield_dilapidated_house_80183EFC == 0)) {
+        D_dryfield_dilapidated_house_80183EFC = (s32)temp_v1;
+        func_800E8634((s32)&D_dryfield_dilapidated_house_80184408, 0, (s32)&D_dryfield_dilapidated_house_80184C60);
+    }
+    return 0;
+}
 
 void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
 {
