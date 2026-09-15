@@ -4,8 +4,10 @@
 #include "common.h"
 
 #include "actors/actors_shared_80164954.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// One of the four display nodes the spawn handler `func_actor_403000_801343B8`
 /// links in a row from 0xB50 of the work block: the `GpObj` list node `Gp_LinkObj`
@@ -34,7 +36,8 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 typedef struct Actor403000Work {
     /* 0x000 */ s16            field_0;
     /* 0x002 */ s16            field_2;
-    /* 0x004 */ byte           pad_4[0x8];
+    /* 0x004 */ s16            field_4;
+    /* 0x006 */ byte           pad_6[0x6];
     /* 0x00C */ s16            yaw;
     /* 0x00E */ byte           pad_E[0xAB8];
     /* 0xAC6 */ u16            field_AC6;
@@ -43,9 +46,22 @@ typedef struct Actor403000Work {
     /* 0xBE8 */ Actor403000Obj objBE8;
     /* 0xC80 */ Actor403000Obj objC80;
     /* 0xD18 */ Actor403000Obj objD18;
-    /* 0xDB0 */ byte           pad_DB0[0x22C];
+    /* 0xDB0 */ byte           pad_DB0[0x21A];
+    /* 0xFCA */ s16            field_FCA;
+    /* 0xFCC */ byte           pad_FCC[0x10];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
+
+/// Actor context handed to this overlay's callbacks: `field_1C` is the work
+/// block above, `field_20` the `GpEnemy` the spawner left in the task's
+/// `Task::spawnArg2` slot, and `field_2C` the display object.
+typedef struct Actor403000 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor403000Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ TmdObject*       field_2C;
+} Actor403000;
 
 /// Payload the sender of the animation message passes as `Gp_DispatchMsg`'s
 /// `arg2`; only the animation id at 0x4 is read.
@@ -76,5 +92,7 @@ void func_actor_403000_8013D4F4(Task* task);
 
 /// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
 void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
+
+void func_actor_403000_8013D5F8(Actor403000* arg0);
 
 #endif // ACTOR_403000_H
