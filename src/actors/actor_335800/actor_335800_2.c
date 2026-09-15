@@ -24,6 +24,10 @@ extern u8 D_8007216D;
 
 extern GpRec14 D_actor_335800_80164E7C;
 
+extern s32 D_80165FC0;
+
+extern s32 D_80166098;
+
 void func_actor_335800_801620C0(void)
 {
     Task_SpawnFromTable(&D_actor_335800_80164DE0, 0, 0, 0);
@@ -43,7 +47,19 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801622C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162364);
+void func_actor_335800_80162364(Task* arg0)
+{
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 != 0) {
+            func_800E8614((s32)&D_80166098, 0);
+        } else {
+            func_800E8614((s32)&D_80165FC0, 0);
+        }
+        arg0->state += 1;
+        return;
+    }
+    Task_Kill(arg0);
+}
 
 void func_actor_335800_801623D8(void)
 {
