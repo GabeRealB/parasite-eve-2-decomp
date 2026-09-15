@@ -79911,3 +79911,34 @@ scheduler chose and the *second* is the one parked in the delay slot with its
 address built early. When a target shows that shape, write the two stores in the
 order that gives the early store the register seen in the target - see the
 `Store the task pointer before Mem_Set` entry above for the single-store form.
+
+## An s16 field loads `lh` for its compare and `lhu` for its increment
+
+A signed 16-bit field that is compared against a constant and then incremented
+gets two loads of different widths, and the second is unsigned although the
+field is signed:
+
+```c
+if (arg0->killCountdown < 0x64) {                    /* lh  + slti */
+    func_dryfield_night_gas_station_8017FD80(arg0->killCountdown);
+    arg0->killCountdown = arg0->killCountdown + 1;   /* lhu + sh */
+}
+```
+
+The width is chosen per *use*, not per field: the compare needs the whole signed
+value (`lh`), while the increment's result only reaches a 16-bit store, so its
+upper bits are don't-care and the zero-extending `lhu` is free. The two loads
+cannot be CSEd across the call between them, so both survive.
+
+On `func_dryfield_night_gas_station_80180998` (2026-09-15) four spellings - named
+`s16` temp or inline compare, with or without a `(u16)` cast on the increment -
+all built to the identical object at 100%. Neither the temp nor the cast m2c
+emits is load-bearing here. What the build does pin is the pair of widths:
+`lh` together with `lhu` of one `s16` field is not a type error to "fix".
+
+The value *is* pinned, though. Carrying the compared value across the call and
+storing it back (`temp_a0 = temp_a0 + 1; arg0->killCountdown = temp_a0;`) keeps
+it live over the call, and that same function drops to 73.96%
+(`regs=15 insert=3 delete=3 branch=2`). The target re-reads the field after the
+call (`lhu` + `addiu` + `sh`) precisely because `$a0` does not survive it, so
+the increment has to be written as a fresh read of the field.
