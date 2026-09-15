@@ -60,6 +60,7 @@ extern GsCOORDINATE2  Gfx_ViewCoord;
 extern MATRIX         Gfx_ViewWorldMtx;
 extern TaskFuncTable3 Actor00400_D0002C;
 extern TaskFuncTable3 Actor00400_D00144;
+extern TaskFuncTable3 Actor00400_D0015C;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -442,7 +443,19 @@ void Actor00400_Fn07ABC(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07B10);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07B98);
+void Actor00400_Fn07B98(Actor100400* arg0)
+{
+    Actor100400Obj*  obj;
+    Actor100400Work* work;
+    TaskFuncTable3   fns;
+
+    obj             = arg0->field_20;
+    work            = arg0->field_1C;
+    fns             = Actor00400_D0015C;
+    work->field_660 = 1;
+    obj->field_14   = 1;
+    fns.funcs[(s16)work->field_63A]((Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07C04);
 
