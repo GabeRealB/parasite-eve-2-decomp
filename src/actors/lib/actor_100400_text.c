@@ -494,7 +494,30 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0805C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0814C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0824C);
+void Actor00400_Fn0824C(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
+{
+    MATRIX         a;
+    MATRIX         b;
+    GsCOORDINATE2* coordA;
+    GsCOORDINATE2* coordB;
+    GsCOORDINATE2* coords;
+
+    coords            = arg0->field_2C->field_8;
+    Gfx_ViewCoord.flg = 0;
+    coordA            = &coords[arg1];
+    coordB            = &coords[arg2];
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    coordA->flg = 0;
+    coordB->flg = 0;
+    Gp_UpdateCoord(coordA);
+    Gp_UpdateCoord(coordB);
+    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordA->workm, &a);
+    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordB->workm, &b);
+    arg3->vx    = (a.t[0] + b.t[0]) / 2;
+    arg3->vz    = (a.t[2] + b.t[2]) / 2;
+    coordA->flg = 0;
+    coordB->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08354);
 
