@@ -37,6 +37,9 @@ s32        Gp_GetObjPan(GsCOORDINATE2* arg0);
 s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
 s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void       Gp_UnlinkObj(void* node);
+void       Gp_LinkObj(s32 arg0, GpObj* arg1);
+void       Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
+s32        Gp_PackObjPair(Actor100400Obj* arg0, s32 arg1);
 void       Gp_UnlinkNode(void* node);
 void       Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void       Actor00400_Fn060CC(Actor100400* arg0);
@@ -152,7 +155,63 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn01454);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn016A4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn019B4);
+/* Links the actor's four collision objects and clears their record tables;
+   `obj_42C` takes hit flag 0x4000 from `field_661`. */
+void Actor00400_Fn019B4(Actor100400* arg0)
+{
+    Actor100400Work* work = arg0->field_1C;
+
+    work->obj_35C.field_8  = &arg0->field_2C->field_8[1];
+    work->obj_35C.field_C  = work->field_39C;
+    work->obj_35C.field_10 = 0;
+    work->obj_35C.field_12 = 0;
+    work->obj_35C.field_14 = 0;
+    work->obj_35C.field_18 = 0x30004;
+    work->obj_35C.field_1C = 0x300;
+    work->obj_35C.flags    = 1;
+    Gp_LinkObj(2, &work->obj_35C);
+    Gp_InitRec18Table(work->field_39C, 6, 0);
+    work->obj_35C.flags |= 0x8000;
+
+    work->obj_37C.field_8  = &arg0->field_2C->field_8[4];
+    work->obj_37C.field_C  = work->field_39C;
+    work->obj_37C.field_10 = 0;
+    work->obj_37C.field_12 = 0;
+    work->obj_37C.field_14 = 0;
+    work->obj_37C.field_18 = 0x30004;
+    work->obj_37C.field_1C = 0xC0;
+    work->obj_37C.flags    = 1;
+    Gp_LinkObj(2, &work->obj_37C);
+    work->obj_37C.flags |= 0x8000;
+
+    work->obj_4DC.field_8  = &arg0->field_2C->field_8[1];
+    work->obj_4DC.field_C  = work->rec_4FC;
+    work->obj_4DC.field_10 = 0;
+    work->obj_4DC.field_12 = 0;
+    work->obj_4DC.field_14 = 0;
+    work->obj_4DC.field_18 = Gp_PackObjPair(arg0->field_20, 0);
+    work->obj_4DC.field_1C = 0x480;
+    work->obj_4DC.flags    = 1;
+    Gp_LinkObj(3, &work->obj_4DC);
+    Gp_InitRec18Table(work->rec_4FC, 3, 0);
+    work->obj_4DC.flags &= 0x7FFF;
+
+    work->obj_42C.field_8  = arg0->field_2C->field_8;
+    work->obj_42C.field_C  = work->field_44C;
+    work->obj_42C.field_10 = 0;
+    work->obj_42C.field_12 = 0;
+    work->obj_42C.field_14 = 0;
+    work->obj_42C.field_18 = 0x30004;
+    work->obj_42C.field_1C = 0x380;
+    work->obj_42C.flags    = 1;
+    Gp_LinkObj(2, &work->obj_42C);
+    Gp_InitRec18Table(work->field_44C, 6, 0);
+    if (work->field_661 != 0) {
+        work->obj_42C.flags |= 0x4000;
+    } else {
+        work->obj_42C.flags &= 0xBFFF;
+    }
+}
 
 /* Damage / knock-back tick: walks the six contact records, applies the hit
    the first one carries, then folds the accumulated push-back into the work
@@ -413,10 +472,10 @@ void Actor00400_Fn042C0(Actor100400* arg0)
     Gp_UnlinkNode(&obj->field_10);
     Gp_ReleaseStateF0Add(arg0, 0);
     obj->field_54 = NULL;
-    Gp_UnlinkObj(&work->field_26C[0xF0]);
-    Gp_UnlinkObj(&work->field_26C[0x110]);
-    Gp_UnlinkObj(&work->pad_4DC);
-    Gp_UnlinkObj(&work->pad_42C);
+    Gp_UnlinkObj(&work->obj_35C);
+    Gp_UnlinkObj(&work->obj_37C);
+    Gp_UnlinkObj(&work->obj_4DC);
+    Gp_UnlinkObj(&work->obj_42C);
     work->field_636 = 0;
     if (work->field_644 == 4) {
         Actor100400Work* w = arg0->field_1C;
@@ -520,10 +579,10 @@ void Actor00400_Fn04CF8(Actor100400* arg0)
     work          = arg0->field_1C;
     obj           = arg0->field_20;
     obj->field_54 = NULL;
-    Gp_UnlinkObj(&work->pad_42C);
-    Gp_UnlinkObj(&work->field_26C[0xF0]);
-    Gp_UnlinkObj(&work->field_26C[0x110]);
-    Gp_UnlinkObj(&work->pad_4DC);
+    Gp_UnlinkObj(&work->obj_42C);
+    Gp_UnlinkObj(&work->obj_35C);
+    Gp_UnlinkObj(&work->obj_37C);
+    Gp_UnlinkObj(&work->obj_4DC);
     Gp_UnlinkNode(&obj->field_10);
     Gp_ReleaseStateF0Add(arg0, 0);
     work->field_648 = 0x80;

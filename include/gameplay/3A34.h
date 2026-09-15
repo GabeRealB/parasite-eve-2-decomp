@@ -43,41 +43,6 @@ typedef struct _GpLinkNode {
 } GpLinkNode;
 STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 
-/// Linked object used as a list head/node by the 3A34 pair/filter helpers.
-/// `next` is at 0x0, `prev` at 0x4, and `flags` at 0x1E. Bit 0x8 means the
-/// node is on the `Gp_ObjLists` list (set by `Gp_LinkObj`, cleared by
-/// `Gp_UnlinkObj`, keeping bits 0x7). `func_8010C980` fills `field_8` /
-/// `field_C` / the 0x10 SVECTOR / `field_18` / `field_1C` and ORs `flags`
-/// with 0x8000 after linking. `field_8` is a `GsCOORDINATE2*`; `Gp_ObjWorldPos`
-/// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
-/// `Gp_FindNearestSlot` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
-/// is the `GpRec18` table walked for the nearest matching slot.
-/// `func_800DEC80` uses that same table: flag `0x800` copies the first
-/// occupied slot's `field_8/A/C` (unless `arg3 != 0`), flag `0x400`
-/// copies the first occupied slot whose `field_4` high 16 bits equal
-/// `0x10`. Remaining of two world points come from `field_C` as
-/// `SVECTOR[2]` plus this object's 0x10 SVECTOR, rotated by `workm`.
-/// `func_800DBA20` selects that table from `flags & 7`: 1 is `field_C`
-/// itself, 2 is `((GpObj*)field_C)->field_C`, 3 is `GpActorD4Rec.field_14`,
-/// 4 is `((GpObj*)field_C)->field_8`.
-/// Embedded as 0x20-byte nodes in `GameActor`
-/// (`field_AC` / `field_CC` / `field_EC` / `field_10C` / `field_12C`).
-/// Full object size is not known for other list users.
-typedef struct _GpObj {
-    /* 0x00 */ struct _GpObj* next;
-    /* 0x04 */ struct _GpObj* prev;
-    /* 0x08 */ void*          field_8;
-    /* 0x0C */ GpRec18*       field_C;
-    /* 0x10 */ s16            field_10;
-    /* 0x12 */ s16            field_12;
-    /* 0x14 */ s16            field_14;
-    /* 0x16 */ byte           pad_16[2];
-    /* 0x18 */ s32            field_18;
-    /* 0x1C */ s16            field_1C;
-    /* 0x1E */ u16            flags;
-} GpObj;
-STATIC_ASSERT_SIZEOF(GpObj, 0x20);
-
 /// Payload a kind-4 `GpObj` points at with `field_C` (`GameActor.field_88`,
 /// followed by `GameActor.field_90`). `dir` is the facing vector
 /// `Gp_UpdatePlayerMove` writes there each frame; `field_8` is the `GpRec18` table
