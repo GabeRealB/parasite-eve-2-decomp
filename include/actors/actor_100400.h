@@ -65,6 +65,23 @@ typedef struct Actor100400Entry8 {
     /* 0x6 */ byte pad_6[2];
 } Actor100400Entry8;
 
+/// Word-wise view of a `MATRIX` used to splat an identity rotation before
+/// `RotMatrixX` / `RotMatrixY` overwrites it: five aligned stores instead of
+/// nine halfword ones, each word holding two adjacent `m[][]` entries.
+typedef struct Actor100400MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor100400MatWords;
+
+typedef union Actor100400Mat {
+    MATRIX              mat;
+    Actor100400MatWords ident;
+} Actor100400Mat;
+STATIC_ASSERT_SIZEOF(Actor100400Mat, 0x20);
+
 typedef union Actor100400Flags {
     u32 word;
     u16 half;
@@ -87,7 +104,9 @@ typedef struct Actor100400Work {
     /* 0x44C */ GpRec18            field_44C[6];
     /* 0x4DC */ GpObj              obj_4DC;
     /* 0x4FC */ GpRec18            rec_4FC[3];
-    /* 0x544 */ byte               pad_544[8];
+    /* 0x544 */ byte               pad_544[2];
+    /* 0x546 */ u16                field_546;
+    /* 0x548 */ byte               pad_548[4];
     /* 0x54C */ s16                field_54C;
     /* 0x54E */ byte               pad_54E[2];
     /* 0x550 */ s16                field_550;

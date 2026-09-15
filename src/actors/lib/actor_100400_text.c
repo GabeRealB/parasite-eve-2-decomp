@@ -78,6 +78,11 @@ void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s
 void       Actor00400_Fn019B4(Actor100400* arg0);
 void       Gp_LinkNode(byte* node, s32 slot);
 void       func_800B3F84(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4);
+void       Actor00400_Fn0814C(Actor100400* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
+void       Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst);
+void       Actor00400_Fn03570(GsCOORDINATE2* arg0, s16 arg1);
+void       Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
+void       func_8004BFF8(s32 angle, MATRIX* matrix);
 
 extern GsCOORDINATE2    Gfx_ViewCoord;
 extern MATRIX           Gfx_ViewWorldMtx;
@@ -236,7 +241,110 @@ void Actor00400_Fn012B0(Actor100400* arg0, s16 arg1, s32 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn01454);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn016A4);
+/* Re-aims the two upper body coordinates at the target yaw held in
+   `field_546` and folds the result back into the model root.
+
+   With `arg1 == 0` the yaw chases the heading `Actor00400_Fn0814C` reports:
+   it steps 0x18 per frame while the error is more than 0x20, and decays
+   toward zero once the heading leaves +/-0x5FF. A non-zero `arg1` only
+   decays, twice as fast. Each of the two coordinates then gets its pitch
+   re-applied about X and a third of the yaw about Y, and the composed
+   inverse of all three lands in `c4`. */
+void Actor00400_Fn016A4(Actor100400* arg0, s32 arg1)
+{
+    SVECTOR              euler;
+    SVECTOR              rot1;
+    SVECTOR              rot2;
+    MATRIX               t1;
+    MATRIX               t2;
+    MATRIX               t3;
+    Actor100400Mat       ma;
+    Actor100400Mat       mb;
+    Actor100400Mat       mc;
+    Actor100400MatWords* ia;
+    Actor100400MatWords* ib;
+    Actor100400MatWords* ic;
+    GsCOORDINATE2*       base;
+    GsCOORDINATE2*       c1;
+    GsCOORDINATE2*       c2;
+    GsCOORDINATE2*       c3;
+    GsCOORDINATE2*       c4;
+    Actor100400Work*     work;
+    MATRIX*              m2;
+    MATRIX*              m3;
+
+    base = arg0->field_2C->field_8;
+    c1   = &base[1];
+    c2   = &base[2];
+    c3   = &base[3];
+    c4   = &base[4];
+    work = arg0->field_1C;
+    Actor00400_Fn0814C(arg0, 4, &euler, 0x600);
+    if ((arg1 & 0xFF) == 0) {
+        if ((u16)(euler.vy + 0x5FF) < 0xBFF) {
+            if ((u32)((euler.vy - (s16)work->field_546) + 0x20) >= 0x41) {
+                if ((s16)work->field_546 < euler.vy) {
+                    work->field_546 = work->field_546 + 0x18;
+                } else {
+                    work->field_546 = work->field_546 - 0x18;
+                }
+            }
+        } else {
+            work->field_546 = work->field_546 + ((s32) - (s16)(work->field_546 * 0x10) >> 8);
+        }
+    } else {
+        work->field_546 = work->field_546 + ((s32) - (s16)(work->field_546 * 0x10) >> 7);
+    }
+
+    m2 = &c2->coord;
+    ia = &ma.ident;
+    ib = &mb.ident;
+    ic = &mc.ident;
+
+    ma.ident.m00_m01 = 0x1000;
+    ma.ident.m02_m10 = 0;
+    ia->m11_m12      = 0x1000;
+    ma.ident.m20_m21 = 0;
+    ia->m22          = 0x1000;
+    mb.ident.m00_m01 = 0x1000;
+    mb.ident.m02_m10 = 0;
+    ib->m11_m12      = 0x1000;
+    mb.ident.m20_m21 = 0;
+    ib->m22          = 0x1000;
+    mc.ident.m00_m01 = 0x1000;
+    mc.ident.m02_m10 = 0;
+    ic->m11_m12      = 0x1000;
+    mc.ident.m20_m21 = 0;
+    ic->m22          = 0x1000;
+
+    Gp_MtxToEuler(m2, &rot1);
+    m3 = &c3->coord;
+    Gp_MtxToEuler(m3, &rot2);
+    RotMatrixX(rot1.vx, &ma.mat);
+    RotMatrixX(rot2.vx, &mb.mat);
+    Actor00400_Fn08A1C(&ma.mat, m2);
+    Actor00400_Fn08A1C(&mb.mat, m3);
+    Gp_UpdateCoord(c1);
+    Gp_UpdateCoord(c2);
+    Gp_UpdateCoord(c3);
+    Actor00400_Fn03570(c2, (s16)work->field_546 / 3);
+    Actor00400_Fn03570(c3, (s16)work->field_546 / 3);
+
+    mc.ident.m00_m01 = 0x1000;
+    mc.ident.m02_m10 = 0;
+    ic->m11_m12      = 0x1000;
+    mc.ident.m20_m21 = 0;
+    ic->m22          = 0x1000;
+
+    func_8004BFF8((s16)work->field_546 / 3, &mc.mat);
+    TransposeMatrix(&c1->coord, &t1);
+    TransposeMatrix(m2, &t2);
+    TransposeMatrix(m3, &t3);
+    MulMatrix(&t1, &t2);
+    MulMatrix(&t1, &t3);
+    MulMatrix(&t1, &mc.mat);
+    Actor00400_Fn08A1C(&t1, &c4->coord);
+}
 
 /* Links the actor's four collision objects and clears their record tables;
    `obj_42C` takes hit flag 0x4000 from `field_661`. */
