@@ -81448,3 +81448,58 @@ Inputs: `base.i` `63f3c089b38c9ce569858956c03dfddb07be85cae9e1e10e8a0135d2c7a4ac
 `base_1.i` `59dd71691a036f6b17fdd66e0c1ad21e3f723fd6a8e8a7b4f3b2409f2170415e`,
 `base_2.i` `30be7804e64d9c0f8a367eabe3e38be638f85effbca31a20418209e0a0f08084`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A splat-auto-labelled address inside another object must keep its own symbol
+
+An instruction can reference an address *inside* a data object by a name splat
+invented for it. `func_neo_ark_observatory_8017FA98` writes the `vy` of an
+`SVECTOR` at `0x80181368`, and the target disassembles that store as
+
+```
+sh  v0, %lo(D_neo_ark_observatory_8018136A)(v1)
+```
+
+`D_neo_ark_observatory_8018136A` is `0x80181368 + 2`, auto-named by splat
+because the code names the address directly (it is why the symbol is also in
+`linkers/USA/undefined_syms_auto.<overlay>.txt`), while the data segment labels
+it separately: `D_neo_ark_observatory_80181368` is a 2-byte `dlabel` and
+`D_neo_ark_observatory_8018136A` the 6 bytes after it.
+
+The natural C — one `SVECTOR` and a field write — is **byte-identical** to the
+target:
+
+```c
+extern SVECTOR D_neo_ark_observatory_80181368;
+D_neo_ark_observatory_80181368.vy = 0x2710;   /* 99.242%, regs=5 */
+```
+
+Symptom: `dist.py` reports a `regs` penalty and the only differing lines are
+`lui`/`sh` operands — `%hi(D_...1368)` against `%hi(D_...136A)`, and
+`%lo(D_...1368+2)` against `%lo(D_...136A)`. Every instruction word is the
+same; the two diff at the relocation only. `normalize_asm.py`/`dist.py` compare
+the disassembly text together with its relocation, so `arr[i]`-shaped access
+scores below 100 while the overlay would still link and checksum identically.
+That is also why a `regs` penalty can appear with no allocation change at all —
+check whether the diff lines carry a symbol before opening `.lreg`.
+
+Fix: declare the auto-labelled address as its own object and assign to it:
+
+```c
+extern SVECTOR D_neo_ark_observatory_80181368;
+extern s16     D_neo_ark_observatory_8018136A; /* D_neo_ark_observatory_80181368.vy */
+D_neo_ark_observatory_8018136A = 0x2710;       /* 100% */
+```
+
+Do not generalise this to `weapons/gunblade`'s case, which is the opposite
+decision for a different reason: there the two spellings emit *different
+instructions* (`addiu $v0,$v0,0xe704` for the array base versus
+`addiu $v1,$v0,0xe70c` for the named label), so the code forces the choice.
+Here no instruction differs, so only the object dump can tell the two apart,
+and the target's own symbol names are the tie-breaker.
+
+Inputs: `base_1.i`
+`add695d28fe504f6a8cbc7fd7bd4e73ba76bef13c6918b3af2b49c8a24222e76` (separate
+symbol, 100%), `base_2.i`
+`f3801cf92aeb90a63f5f009df06866974ac029462cba5db2ea0699ded2f3b751` (folded into
+`.vy`, 99.242%). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
