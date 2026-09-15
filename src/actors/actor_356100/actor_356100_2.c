@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_356100.h"
+#include "gameplay/D4.h"
 
 INCLUDE_RODATA("actors/nonmatchings/actor_356100/actor_356100_2", ActorsShared80135df4Table);
 
@@ -126,7 +127,31 @@ void func_actor_356100_8016A3D4(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100_2", func_actor_356100_8016A468);
+void func_actor_356100_8016A468(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+    GpAnimArg*       msg;
+    void*            player;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_982 = 0x10;
+        work->field_97E = 6;
+        work->field_978 = 2;
+        msg             = &D_actor_356100_80173244;
+        msg->field_4    = 2;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        player = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+    }
+    if (work->field_68 & 2) {
+        work->field_0 = 0xE;
+    }
+    work->field_974 = work->field_5A & 0x3FF;
+    func_actor_356100_80163508(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100_2", func_actor_356100_8016A550);
 
