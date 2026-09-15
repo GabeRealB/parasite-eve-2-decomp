@@ -9,6 +9,7 @@
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
 #include "main/gameflag.h"
+#include "main/wipsys.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_8013bbe4.h"
@@ -412,7 +413,51 @@ void func_actor_510900_80138A9C(Actor510900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80138BF0);
+/// Aims the head coordinate (`field_8[4]`) at the player. Takes the head into
+/// view space, offsets the player position by 0x600 in Y, rotates that delta
+/// into the body's frame, clamps it to +/-0x400 yaw, +/-0x300 pitch and a
+/// minimum 0x200 forward, then builds the head rotation from it.
+///
+/// `head` is kept as its own pointer rather than indexing `coord` twice: CSE
+/// folds `head->workm` back onto `coord + 0x164` while `head` stays live, which
+/// is what puts the `coord += 0x140` in the clamp's branch delay slot. The
+/// `+ 0x600` likewise needs the temporary, or it is sunk into the subtrahend as
+/// `- 0x600` on the player coordinate.
+void func_actor_510900_80138BF0(Actor510900* arg0)
+{
+    Actor510900AimScratch* scratch;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         head;
+    s32                    offsetY;
+
+    coord                   = &arg0->field_2C->field_8->field_0;
+    head                    = &coord[4];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor510900AimScratch);
+    scratch                 = (Actor510900AimScratch*)*(void**)G_SCRATCH_HEAD;
+
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
+    scratch->delta.vx = Wip_SysConfig.field_4->t[0] - scratch->view.t[0];
+    offsetY           = scratch->view.t[1] + 0x600;
+    scratch->delta.vy = Wip_SysConfig.field_4->t[1] - offsetY;
+    scratch->delta.vz = Wip_SysConfig.field_4->t[2] - scratch->view.t[2];
+    ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
+
+    if (scratch->local.vx < -0x400) {
+        scratch->local.vx = -0x400;
+    } else if (scratch->local.vx > 0x400) {
+        scratch->local.vx = 0x400;
+    }
+    if (scratch->local.vy < -0x300) {
+        scratch->local.vy = -0x300;
+    } else if (scratch->local.vy > 0x300) {
+        scratch->local.vy = 0x300;
+    }
+    if (scratch->local.vz < 0x200) {
+        scratch->local.vz = 0x200;
+    }
+    Gp_OrientAlong(&scratch->local, &head->coord, 0);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor510900AimScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80138D38);
 

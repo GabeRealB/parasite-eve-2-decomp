@@ -15,6 +15,17 @@ typedef struct Actor510900Coord {
     /* 0x50 */ GsCOORDINATE2 field_50;
 } Actor510900Coord;
 
+/// 0x40-byte scratch `func_actor_510900_80138BF0` takes from `G_SCRATCH_HEAD`
+/// to aim the head coordinate at the player. `view` is the head coordinate in
+/// view space, `delta` the player offset from it, and `local` that offset
+/// rotated into the body's frame and clamped before `Gp_OrientAlong`.
+typedef struct Actor510900AimScratch {
+    /* 0x00 */ MATRIX view;
+    /* 0x20 */ VECTOR delta;
+    /* 0x30 */ VECTOR local;
+} Actor510900AimScratch;
+STATIC_ASSERT_SIZEOF(Actor510900AimScratch, 0x40);
+
 typedef struct Actor510900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor510900Coord* field_8;

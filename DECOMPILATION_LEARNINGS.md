@@ -83978,3 +83978,43 @@ the emitted position of a store between two others is not evidence for its
 position in the source; try the plain grouped order first.
 
 Inputs: `base_2.i` (93.4%, `regs=8 reorder=8`), `base_4.i` (100%).
+
+## Two field accesses through the same `&arr[k]` split into a folded `addiu` and a live pointer, so the source names the element (func_actor_510900_80138BF0, 2026-09-16)
+
+`func_actor_510900_80138BF0` touches `coord[4]` twice, far apart: `&coord[4].workm`
+for `Gp_WorldToLocal` at the top and `&coord[4].coord` for `Gp_OrientAlong` at the
+bottom. Written as two index expressions, GCC 2.8.1 folds each into one `addiu`:
+
+```c
+Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord[4].workm, &scratch->view);
+...
+Gp_OrientAlong(&scratch->local, &coord[4].coord, 0);   /* addiu a1,s2,0x144 */
+```
+
+The target instead has `addiu $a1,$s1,0x164` up front and, at the bottom,
+`addiu $s1,$s1,0x140` followed by `addiu $a1,$s1,0x4` - the base advanced
+destructively over the element stride, with the `0x140` stolen into the delay
+slot of the first clamp's branch. That asymmetry is the tell: only the *second*
+use kept a separate base. It comes from naming the element once,
+
+```c
+head = &coord[4];
+```
+
+which makes `head` a pseudo with two uses. CSE folds the first one, `head + 0x24`,
+back through `head == coord + 0x140` into `coord + 0x164`, so the early access
+looks index-folded; `head` stays live for the late `head->coord`, and the
+allocator gives it `coord`'s register once `coord` dies at `&coord->coord`.
+
+The same function shows the companion rule for a constant offset. `a - (b + 0x600)`
+is reassociated into `(a - 0x600) - b`, emitting `addiu v0,v0,-0x600` on the
+*player* coordinate; the target adds `0x600` to the view coordinate. Holding the
+sum in a temporary, as `func_actor_403100_8013B5E0` already does, pins it to the
+operand the source wrote it on:
+
+```c
+offsetY           = scratch->view.t[1] + 0x600;
+scratch->delta.vy = Wip_SysConfig.field_4->t[1] - offsetY;
+```
+
+Inputs: `base_1.i` (90.4%, `regs=36 branch=4 insert=2 delete=4`), `base_2.i` (100%).
