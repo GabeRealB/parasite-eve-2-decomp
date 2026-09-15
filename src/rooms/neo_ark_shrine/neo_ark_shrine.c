@@ -17,6 +17,11 @@ extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C;
 
+extern TaskDesc D_neo_ark_shrine_80182508;
+
+/// Task spawned in state 0, polled by `Task_PollKill` and cleared in state 1.
+extern Task* D_neo_ark_shrine_80186864;
+
 s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
@@ -49,7 +54,25 @@ s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D84C);
+void func_neo_ark_shrine_8017D84C(Task* task)
+{
+    s32 sp10;
+
+    switch (task->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgPlayer3F3(0);
+            D_neo_ark_shrine_80186864 = Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 0, 0, 0);
+            task->state++;
+            return;
+        case 1:
+            if (Task_PollKill(D_neo_ark_shrine_80186864, &sp10) != 0) {
+                D_neo_ark_shrine_80186864 = NULL;
+                Task_Kill(task);
+            }
+            return;
+    }
+}
 
 void func_neo_ark_shrine_8017D8F4(Task* task)
 {
