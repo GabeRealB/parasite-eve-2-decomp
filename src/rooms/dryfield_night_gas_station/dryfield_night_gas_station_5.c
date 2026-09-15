@@ -36,6 +36,15 @@ void func_dryfield_night_gas_station_80180B04(void)
     RoomsShared8017e320Task = Task_SpawnFromTable(&RoomsShared8017e320Desc, 3, 0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_5", func_dryfield_night_gas_station_80180B38);
+/// Second teardown entry point for `RoomsShared8017e320Task`: requests the
+/// task's exit and drops the room's reference to it, exactly as
+/// `func_dryfield_night_gas_station_80180974` does.
+void func_dryfield_night_gas_station_80180B38(void)
+{
+    if (RoomsShared8017e320Task != NULL) {
+        RoomsShared8017e320Task->state = -1;
+        RoomsShared8017e320Task        = NULL;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_5", func_dryfield_night_gas_station_80180B5C);
