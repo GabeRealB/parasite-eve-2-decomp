@@ -14,6 +14,10 @@ extern TaskFuncTable3 D_actor_511000_80131E48;
 extern TaskFuncTable3 D_actor_511000_80131E54;
 extern TaskFuncTable3 D_actor_511000_80131E60;
 
+/// Translation presets `func_actor_511000_80133760` copies onto the root
+/// coordinate; `Task::spawnArg1` selects the entry.
+extern SVECTOR D_actor_511000_80148FE4[];
+
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801327A0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_8013287C);
@@ -86,7 +90,24 @@ void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 i
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133760);
+/// Places the task's model at the indexed translation: copies
+/// `D_actor_511000_80148FE4[spawnArg1]` into the root coordinate's local
+/// translation, zeros the Euler angles, rebuilds the rotation matrix and
+/// marks the coordinate dirty.
+void func_actor_511000_80133760(Task* task)
+{
+    Actor511000Coord* coord;
+
+    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
+    coord->coord.t[0] = D_actor_511000_80148FE4[task->spawnArg1].vx;
+    coord->coord.t[1] = D_actor_511000_80148FE4[task->spawnArg1].vy;
+    coord->coord.t[2] = D_actor_511000_80148FE4[task->spawnArg1].vz;
+    coord->rot.vx     = 0;
+    coord->rot.vy     = 0;
+    coord->rot.vz     = 0;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+}
 
 /// Binds the task's TMD object to the work-block light/color matrices, clears
 /// the root coordinate flag, and rebuilds lighting from the world translation.
