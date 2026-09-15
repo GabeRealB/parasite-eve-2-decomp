@@ -5,6 +5,7 @@
 #include "main/task.h"
 
 extern u32 Gp_LcgState;
+extern s32 D_80115738;
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
@@ -415,7 +416,43 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05EA4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn060CC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn061E8);
+void Actor00400_Fn061E8(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coord2;
+    SVECTOR          vec;
+    s32              sound;
+    s32              pan;
+    s32              sound2;
+    s32              pan2;
+    s32              i;
+    s16              y;
+
+    work            = arg0->field_1C;
+    coord           = arg0->field_2C->field_8;
+    work->field_63C = 3;
+    work->field_632 = 0x10;
+    work->field_628 = 0xB;
+    work->field_624 = 1;
+    sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+    i               = 0;
+    pan             = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    y      = work->field_64E - coord->coord.t[1] + 0xFA;
+    coord2 = arg0->field_2C->field_8;
+    do {
+        vec.vx = (u32)rsin(i << 8) >> 3;
+        vec.vy = y;
+        vec.vz = (u32)rcos(i << 8) >> 3;
+        Gp_SpawnEff(D_80115738, coord2, 0x01202148, &vec);
+        i++;
+    } while (i < 16);
+    sound2 = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040008;
+    pan2   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    work->field_63A++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06380);
 
