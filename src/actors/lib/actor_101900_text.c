@@ -198,7 +198,7 @@ void Actor01900_Fn03710(Actor01900* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03854);
 
-void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta)
+void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord)
 {
     Actor01900HeightClamp* row;
     s32                    offset;
@@ -209,18 +209,101 @@ void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta)
         row = &Actor01900_D172CC[i];
         if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
             lo     = row->lo;
-            offset = delta->field_1C;
+            offset = coord->coord.t[1];
             if (offset < lo) {
-                delta->field_1C = lo;
+                coord->coord.t[1] = lo;
             } else if (row->hi < offset) {
-                delta->field_1C = row->hi;
+                coord->coord.t[1] = row->hi;
             }
             return;
         }
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03C98);
+/// `Actor01900_Fn03C04`'s row scan without the clamp: nonzero when the
+/// current room has an `Actor01900_D172CC` row.
+static __inline__ s32 Actor01900_HasHeightClamp(GameSessionFrom4* session)
+{
+    Actor01900HeightClamp* row;
+    s16                    i;
+
+    for (i = 0; i < 2; i++) {
+        row = &Actor01900_D172CC[i];
+        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
+{
+    Actor01900Delta* head;
+    Actor01900Delta* s;
+    Actor01900Delta* blk;
+    s16              vy;
+    SVECTOR*         step;
+
+    if (D_80072729 == 1) {
+        return 0;
+    }
+    head                               = *(Actor01900Delta**)G_SCRATCH_HEAD;
+    blk                                = head - 1;
+    *(Actor01900Delta**)G_SCRATCH_HEAD = blk;
+    s                                  = blk;
+    s->moved                           = 0;
+    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
+        s->step.vx = head[-1].delta.vx.w >> 16;
+        s->step.vy = s->delta.vy.w >> 16;
+        s->step.vz = s->delta.vz.w >> 16;
+        if (Actor01900_HasHeightClamp(&Game_Session->field_4)) {
+            vy = s->step.vy;
+            if (((vy >= 0) ? vy : -vy) > 0x180) {
+                s->step.vy = (vy <= 0) ? -0x180 : 0x180;
+            }
+        }
+        coord->coord.t[1] += s->step.vy;
+        s->len             = s->step.vx * s->step.vx + s->step.vz * s->step.vz;
+        s->len             = SquareRoot0(s->len);
+        step               = &s->step;
+        if (s->len >= 0xC0) {
+            s->step.vy = 0;
+            VectorNormalSS(step, step);
+            gte_lddp(0xC0);
+            gte_ldsv(step);
+            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_stsv(step);
+            coord->coord.t[0] += s->step.vx;
+            coord->coord.t[2] += s->step.vz;
+        } else {
+            coord->coord.t[0] += s->step.vx;
+            coord->coord.t[2] += s->step.vz;
+        }
+        if (s->delta.vx.w & 0xFFFF) {
+            if (s->delta.vx.w > 0) {
+                coord->coord.t[0]++;
+            } else {
+                coord->coord.t[0]--;
+            }
+        }
+        if (s->delta.vz.w & 0xFFFF) {
+            if (s->delta.vz.w > 0) {
+                coord->coord.t[2]++;
+            } else {
+                coord->coord.t[2]--;
+            }
+        }
+    }
+    if (Actor01900_HasHeightClamp(&Game_Session->field_4)) {
+        Actor01900_Fn03C04(&Game_Session->field_4, coord);
+        coord->coord.t[1] += arg3;
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->moved = 1;
+    }
+    *(Actor01900Delta**)G_SCRATCH_HEAD += 1;
+    return s->moved;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03FF8);
 

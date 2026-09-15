@@ -116,13 +116,15 @@ typedef struct Actor01900RotScratch {
 STATIC_ASSERT_SIZEOF(Actor01900RotScratch, 0x34);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn03C98`.
-/// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0C10`;
-/// `field_1C` is the running height offset that `Actor01900_Fn03C04` clamps
-/// against the current room's `Actor01900_D172CC` row.
+/// The first 0x10 bytes are the `GpDeltaScratch` filled by `func_800E0C10`;
+/// `step` is the integer part of those deltas (scaled down to length 0xC0
+/// when longer), `len` its XZ length, and `moved` the return value: set when
+/// the X or Z delta is nonzero.
 typedef struct Actor01900Delta {
     /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ byte           pad_10[0xC];
-    /* 0x1C */ s32            field_1C;
+    /* 0x10 */ SVECTOR        step;
+    /* 0x18 */ s32            len;
+    /* 0x1C */ s32            moved;
 } Actor01900Delta;
 STATIC_ASSERT_SIZEOF(Actor01900Delta, 0x20);
 
@@ -164,7 +166,7 @@ void Actor01900_Fn01C94(Actor01900* arg0);
 void Actor01900_Fn03FF8(Actor01900* arg0, void* arg1, s32 arg2);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
-void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta);
+void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord);
 s32  Actor01900_Fn0A31C(Actor01900* arg0, s32 arg1, Actor01900Msg7D3* arg2);
 s32  Actor01900_Fn0A5A4(Actor01900* arg0, s32 arg1, u16* arg2);
 s32  Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2);

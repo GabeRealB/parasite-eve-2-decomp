@@ -80609,3 +80609,46 @@ Nothing is stored between the merge label and the branch now, so both branches
 compare one pseudo and the thread succeeds. The type matters: as an `s16`
 local, the reassigned member load comes out `lhu` + `sll`/`sra` (+6
 instructions, 96.8%); as `s32` it stays `lh`, which gives 100%.
+
+## A lone store cannot win `potential_hazard`: it needs a second memory insn in its sched block
+
+`Actor01900_Fn03C98` stalled at 95.995% with a single `reorder`: the target has
+`move a0,s0 / move a1,s0 / jal VectorNormalSS / sh zero,0x12(s1)` and the build
+put the `sh` first, leaving `move a1` in the delay slot. The source store was
+already right before the call; arg moves, store, and the call's other
+dependencies were all `priority 1`, so sched1 broke the tie on LUID and the
+store, written first, lost (`ready list at T-7: 247 (1) 253 (1) 255 (1), now 255 253 247`,
+no "greater potential hazard" line).
+
+The store only wins that group through `schedule_select`'s `potential_hazard`,
+and that is multiplied by `(unit_n_insns[unit] - 1) * 0x1000 + unit`
+(`sched.c:1372`). The `memory` unit's count is per sched block, so a store that
+is the block's **only** load/store insn scores 0 and never beats a move.
+`__asm__` insns have `INSN_CODE < 0`, so `insn_unit` is -1: the `gte_ldsv` /
+`gte_stsv` loads and stores after the call do not count.
+
+Here the `if (len >= 0xC0)` arm ended in GTE asm and a label, so nothing else in
+the block touched memory. A permuter output (behaviour-changing) moved the
+following `coord->coord.t[0] += step.vx` into the arm, and its `.sched` shows
+`insn 244 has a greater potential hazard`. The legal form is to duplicate the
+tail in both arms. `jump2` cross-jumps the identical post-reload tails back into
+one copy, so the object keeps a single `t[0]`/`t[2]` update at the join:
+
+```c
+if (s->len >= 0xC0) {
+    s->step.vy = 0;                 /* sh fills the jal delay slot */
+    VectorNormalSS(step, step);
+    gte_lddp(0xC0); gte_ldsv(step); /* gpf12 */ gte_stsv(step);
+    coord->coord.t[0] += s->step.vx;
+    coord->coord.t[2] += s->step.vz;
+} else {
+    coord->coord.t[0] += s->step.vx;
+    coord->coord.t[2] += s->step.vz;
+}
+```
+
+Input `base_14.i` sha256 prefix `345022d5585d8647`. Arg-register pins
+(`asm("a0")`/`asm("a1")` + `TOUCH_REG2`) also sank the store but swapped
+`s0`/`s1` and produced `move a1,a0` (96.4%, `regs=35`), so do not use them for this.
+Tell: a store in a call's delay slot whose block holds no other C-level load
+or store. Look for a statement that follows the arm and could be copied into it.
