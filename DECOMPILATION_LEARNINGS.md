@@ -81566,3 +81566,84 @@ Inputs: `base_1.i`
 variation `base_2.i`
 `a988bc10a8d58748e4bbaa671d5c10bd2cbf4807d58b2d95e5833399d1f0c1d7` (92.0%,
 `insert=1 delete=1`).
+
+## A store written after the other stores to one object is emitted after them: sched2 orders a block by dependency-chain depth (func_mine_forked_tunnel_8017DE54, 2026-09-15)
+
+`func_mine_forked_tunnel_8017DE54` copies two fields out of the parent task's
+`TmdObject` and stores -1 into a third of its own before reparenting:
+
+```c
+ext->field_1C = parentExt->field_1C;
+ext->field_20 = parentExt->field_20;
+ext->field_E  = -1;                 /* last in the source */
+Task_Reparent(parent, task);
+```
+
+m2c read the *emitted* order off the target instead - the copy of `0x1C`, then
+the `-1`, then the copy of `0x20` - and scored 91.607% (`regs=2 reorder=1
+insert=2 delete=2`), with the `li`/`sb` pair sitting between the first store and
+the second load and the first store pushed behind it:
+
+```
+m2c order (91.607%)        target (100.000%)
+  lw    a3,0x1c(v1)          lw    v0,0x1c(v1)
+  li    v0,-0x1              move  a1,s1
+  sb    v0,0xe(s0)           sw    v0,0x1c(s0)
+  sw    a3,0x1c(s0)          lw    v1,0x20(v1)
+  lw    v0,0x20(v1)          li    v0,-0x1
+                             sb    v0,0xe(s0)
+```
+
+Moving that one store to the end of the source is the whole fix (100.000%,
+every penalty 0). The reason is the block order, not the store itself: `sched.c`'s
+`priority()` is the length of the longest dependency chain ending at an insn
+(`priority(pred) + insn_cost(pred) - 1`, MIPS load 2, everything else 1, anti and
+output links 1), and `schedule_block` builds the block from its end backwards, so
+the emitted order is ascending in that priority as far as readiness allows. A
+store written *after* other stores to the same object picks up OUTPUT/anti links
+to them, so its chain matches theirs and outranks anything earlier; written
+before them it has neither, and it - and the `li` feeding it - stay short and are
+emitted early. `.sched2` agreed: with the store last, `sb` ties the store before
+it at priority 6 and beats the earlier one at 5; with m2c's order it sat at 4.
+
+So the statement order of stores to one object is load-bearing and the asm order
+is not evidence of it. When the target puts a constant store late - after a load,
+next to the `jal` - write it last in the source even when m2c put it in the
+middle.
+
+Inputs: `base.i`
+`31de0a1b83bffc2a5ad41fb0b432178b674edbc0a7b3bc81dd42e8558fb29029` (91.607%,
+`regs=2 reorder=1 insert=2 delete=2`), `base_1.i`
+`9931434c9d0527d7444bf5aa904e32c0ea17ea4365ba8e83f0ce3a3d9edb558a` (100%).
+
+## m2c's third argument to a two-argument function was a value living in `$a2` (func_mine_forked_tunnel_8017DE54, 2026-09-15)
+
+m2c read the target's `lw a2,8(v1)` / `move a1,s1` / `jal` triple as a three
+argument call and emitted `Task_Reparent(temp_a0, arg0, temp_a2)`, which compiles
+only because the seed declares the callee itself instead of including the header.
+`Task_Reparent` takes two arguments (`include/main/task.h`, `src/main/task.c`),
+and the `$a2` value - the parent object's coordinate pointer - is stored into
+`coord->sub` before the call: a local the allocator parked in an argument
+register, not an argument.
+
+Rewriting the call with the real prototype keeps the 100% match, so nothing has
+to be smuggled past the header. The register evidence is not free either way: the
+value still has to be loaded where the target loads it, and that is what the
+typed rewrite gets wrong first.
+
+- One variable for both coordinate roles (`coord` used before and after the call)
+  merges them into one allocno that crosses the call, costing a callee-saved
+  register and a frame slot: `$s2` saved at `0x18(sp)`, 82.500% (`regs=50`).
+- Splitting it in two (`coord`, `dst`) gives that back: 93.333% (`regs=16`).
+- Leaving the parent coordinate inline in the store
+  (`coord->sub = parentExt->field_8;`) keeps the load at the store; naming it and
+  loading it with the other pointers restores the target's `lw a2,8(v1)` above
+  the first store: 100.000%.
+
+Inputs: `base_4.i`
+`794f0cbe4b5b79751700f821837db91b5190bb5bc566dc2310a1ad24394ddfe9` (100%),
+`base_2.i`
+`e40716a83bf7a841704f85acec30c36539f8a96dab7c9b267b97afdac3ab96a8` (82.500%,
+one variable, inline load), `base_3.i`
+`2ed402d00f497e833ed70fde31314ac89c59fd13a3d85b9602dbcd434d2e2290` (93.333%,
+two variables, inline load).
