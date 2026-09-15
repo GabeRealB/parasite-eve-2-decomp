@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -15,6 +16,7 @@ extern s32 D_dryfield_night_gas_station_80184098;
 extern s32 D_dryfield_night_gas_station_801840AC;
 extern s32 D_dryfield_night_gas_station_801841FC;
 extern s32 D_dryfield_night_gas_station_80188B0C;
+extern s32 D_dryfield_night_gas_station_8018920C;
 extern s32 D_dryfield_night_gas_station_801892E4;
 extern s32 D_dryfield_night_gas_station_80189A7C;
 
@@ -132,7 +134,17 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017F990);
+/// Handler for slot-7 msg `0x13EF` in `D_dryfield_night_gas_station_80184034`:
+/// the directed action selected by `field_2` 0xE runs the room's cutscene script
+/// blob at `D_dryfield_night_gas_station_8018920C`, but only once nibble 0x63 has
+/// reached 2 and pointer slot 0xA is live.
+s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, GpMsg13EF* msg)
+{
+    if ((msg->field_2 == 0xE) && (Game_GetPtrSlot(0xA) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
+        func_800E8614((s32)&D_dryfield_night_gas_station_8018920C, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017F9E8);
 
