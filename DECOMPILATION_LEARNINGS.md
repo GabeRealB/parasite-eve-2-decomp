@@ -82111,3 +82111,53 @@ Inputs: `base.i` (74.630%)
 `7433e351bc5eccb2bd048cedace369b802a3a0de094bbb87fc307ac5ff29741f`,
 `base_1.i` (100.000%)
 `3213b2994bf62d1aabad7ff1cc107821d7319633200f3dd0fe77636cefa147ef`.
+
+## m2c names a parameter by its register, not its position - a handler that only reads `$a2` comes out with the payload in `$a0` (func_dryfield_breezeway_8017DBD8, 2026-09-15)
+
+`func_dryfield_breezeway_8017DBD8` is the room's `GpMsgEntry` handler for message
+0x13EF. It reads one byte of its payload (`lbu $v1, 0x2($s0)`) and m2c, seeing
+only `$a2` touched and nothing upstream setting it, emitted the pointer as the
+function's *first* parameter:
+
+```c
+s32 func_dryfield_breezeway_8017DBD8(void *arg2) {   /* arg2 lands in $a0 */
+    if (GameFlag_GetNibble(0x5D) == 0 && M2C_FIELD(arg2, u8 *, 2) == 1) { ... }
+```
+
+The body was otherwise exactly right, so the seed scores 99.800% with the whole
+structure matching and `regs=1` - and the entire residual is the prologue's
+`move s0,a0` where the target has `move s0,a2`. m2c's `argN` names the *register*
+the value arrived in, not a position in the parameter list, so the declaration
+has to be padded with the parameters the handler ignores until the one it uses
+lands in the right slot.
+
+Recovering the slot and the type is a data-table read, not guesswork. A room's
+handlers are `GpMsgEntry[]` records - `{ s32 id; GpMsgHandler handler; }`, 8
+bytes, `0x7FFFFFFF`-terminated - and they live in the overlay's trailing data
+blob, so the built overlay image still holds them verbatim. Searching the image
+for the handler's address little-endian prints the id in the word just before it,
+which here named the message (`0x13EF`) and so pointed at the two already-matched
+twins in `acropolis_sanctuary` and `acropolis_observatory`: both are
+`(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)` and both read
+`in->field_2 == 1` with the same `lbu`. That settles the third parameter's type
+too - `RoomEventMsg.field_2` is the `u8` at offset 2, which is why the load is
+`lbu`; the room's own 4-byte `DbwMsg7DA` payload has an `s16` there and would
+have compiled to `lh`.
+
+So the fix is the padded parameter list, kept to the room's declared handler
+shape:
+
+```c
+s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+{
+    if (GameFlag_GetNibble(0x5D) == 0 && in->field_2 == 1) { ... }
+```
+
+100.000% on the first build, all penalties zero. The tell to watch for is a
+one-instruction `regs` residual confined to the prologue - a `move` from the
+wrong argument register - with the rest of the function byte-identical.
+
+Inputs: `base.i` (99.800%)
+`3714dc62bfe87d6184098b75e59a9c35f6ce28116ed471d09493b190c1e894d5`,
+`base_1.i` (100.000%)
+`c02fbfeb50bf6d70a57e97957eab11a11fefbc947a5ce59dcb6701fa3fa3c212`.

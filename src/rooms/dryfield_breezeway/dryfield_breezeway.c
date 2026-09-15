@@ -8,12 +8,14 @@
 #include "gameplay/3A34.h"
 
 #include "rooms/dryfield_breezeway.h"
+#include "rooms/room_common.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
 s32 Gp_DispatchMsg();
 
 extern TaskDesc D_dryfield_breezeway_80181E10[];
+extern TaskDesc D_dryfield_breezeway_801820B0[];
 
 s32 func_dryfield_breezeway_8017D90C(void)
 {
@@ -77,7 +79,18 @@ s32 func_dryfield_breezeway_8017DBA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DBD8);
+/// `GpMsgEntry` handler for message 0x13EF, the room's hotspot gate: sub-id 1
+/// arms the room's own task the first time it is seen, latching nibble 0x5D so
+/// a repeat visit does nothing. Only the incoming record is read - the handler
+/// answers 0 and never edits the outgoing copy.
+s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+{
+    if (GameFlag_GetNibble(0x5D) == 0 && in->field_2 == 1) {
+        GameFlag_SetNibble(0x5D, 1);
+        Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 1, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DC3C);
 
