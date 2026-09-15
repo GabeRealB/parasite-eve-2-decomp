@@ -66,6 +66,7 @@ void       func_800B3F84(void* arg0, void* arg1, void* arg2, void* arg3, void* a
 extern GsCOORDINATE2    Gfx_ViewCoord;
 extern MATRIX           Gfx_ViewWorldMtx;
 extern TaskFuncTable3   Actor00400_D0002C;
+extern TaskFuncTable4   Actor00400_D00134;
 extern TaskFuncTable3   Actor00400_D00144;
 extern TaskFuncTable3   Actor00400_D00150;
 extern TaskFuncTable3   Actor00400_D0015C;
@@ -524,7 +525,28 @@ void Actor00400_Fn07738(Actor100400* arg0)
     work->field_63E              = coord->coord.t[1];
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn077F4);
+extern u8 D_801153F2[2];
+void      Gp_ArmStateF0(s32 active);
+
+void Actor00400_Fn077F4(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    TaskFuncTable4   fns;
+    Actor100400Work* work2;
+
+    work = arg0->field_1C;
+    fns  = Actor00400_D00134;
+    if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
+        D_801153F2[1] = 1;
+        Gp_ArmStateF0(1);
+    } else if (D_801153F2[1] != 0) {
+        work2            = arg0->field_1C;
+        work2->field_638 = 4;
+        work2->field_63A = 0;
+    } else {
+        fns.funcs[(s16)work->field_63A]((Task*)arg0);
+    }
+}
 
 void Actor00400_Fn0962C(Actor100400* arg0);
 void Actor00400_Fn058C4(Actor100400* arg0);
