@@ -24,11 +24,23 @@
 /// `func_actor_421600_8013E654` writes. The display nodes sit 0x24 later than
 /// the 0x8C8/0xA08/0xB48 triple on actor 01900/401800, with the same 0x140
 /// stride. `field_4` is the live-actor flag `func_actor_421600_8013E858`
-/// tests, and `field_B6C.flags` is the mask it writes.
+/// tests, and `field_B6C.flags` is the mask it writes. `field_0` / `field_68`
+/// and the 0x828 motion halfwords are the same cluster `Actor00100_Fn0B730`
+/// uses; `field_8EC.field_1C` is the 0x908 store.
 typedef struct Actor421600Work {
-    /* 0x000 */ byte  pad_0[4];
+    /* 0x000 */ s16   field_0;
+    /* 0x002 */ byte  pad_2[2];
     /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[0x8E6];
+    /* 0x006 */ byte  pad_6[0x62];
+    /* 0x068 */ u16   field_68;
+    /* 0x06A */ byte  pad_6A[0x7BE];
+    /* 0x828 */ u16   field_828;
+    /* 0x82A */ u16   field_82A;
+    /* 0x82C */ byte  pad_82C[2];
+    /* 0x82E */ u16   field_82E;
+    /* 0x830 */ byte  pad_830[2];
+    /* 0x832 */ u16   field_832;
+    /* 0x834 */ byte  pad_834[0xB8];
     /* 0x8EC */ GpObj field_8EC;
     /* 0x90C */ byte  pad_90C[0x120];
     /* 0xA2C */ GpObj field_A2C;
@@ -77,5 +89,9 @@ void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
 s8 func_actor_421600_8013E830(s32 arg0, s32 arg1);
 
 void func_actor_421600_8013E858(Actor421600* arg0);
+
+void func_actor_421600_80134604(Actor421600* arg0);
+
+void func_actor_421600_8013EB7C(Actor421600* arg0);
 
 #endif
