@@ -100,6 +100,23 @@ typedef struct Actor510900ChildWork {
 } Actor510900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
 
+/// Gameplay-resident block at `D_8011505C` the spawn handler below seeds: a
+/// mode word, then a `GsCOORDINATE2` (set local to `Gfx_ViewWorldMtx`) followed
+/// by a rotation and two distances.
+typedef struct Actor510900CamCoord {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ SVECTOR       rot;
+    /* 0x58 */ s32           field_58;
+    /* 0x5C */ s32           field_5C;
+} Actor510900CamCoord;
+
+typedef struct Actor510900Cam {
+    /* 0x00 */ s32                 field_0;
+    /* 0x04 */ Actor510900CamCoord cam;
+} Actor510900Cam;
+
+extern Actor510900Cam D_8011505C;
+
 typedef struct Actor510900 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor510900Work*  field_1C;

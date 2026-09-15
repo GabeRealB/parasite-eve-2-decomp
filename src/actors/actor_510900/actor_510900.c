@@ -3,10 +3,13 @@
 #include "main/task.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "main/gfx.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_8013bbe4.h"
 
 void Gp_UpdateCoord(Actor510900Coord* arg0);
+void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_actor_510900_80135744(Actor510900* arg0);
 void func_actor_510900_8013864C(Actor510900* arg0);
 void func_actor_510900_801387F4(Actor510900* arg0);
@@ -34,7 +37,55 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80133C84);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801340E8);
+void func_actor_510900_801340E8(Task* arg0)
+{
+    Actor510900Cam*         base;
+    GsCOORDINATE2*          cam;
+    Actor510900CamCoord*    ext;
+    GpEffWork*              eff;
+    Actor510900Coord*       coord;
+    Actor510900MatrixWords* mat;
+    s32                     i;
+
+    base  = &D_8011505C;
+    cam   = &base->cam.coord;
+    eff   = arg0->spawnArg2;
+    coord = ((Actor510900Obj2C*)arg0->extra)->field_8;
+    ext   = (Actor510900CamCoord*)cam;
+    if (Gp_State1C->field_4 != 0) {
+        Gp_ReleaseState1CMem(eff, arg0);
+        return;
+    }
+    mat                       = (Actor510900MatrixWords*)&coord->field_0.coord;
+    coord->field_0.sub        = eff->field_8;
+    mat->m00_m01              = 0x1000;
+    mat->m02_m10              = 0;
+    mat->m11_m12              = 0x1000;
+    mat->m20_m21              = 0;
+    mat->m22                  = 0x1000;
+    coord->field_0.coord.t[0] = eff->field_18;
+    coord->field_0.coord.t[1] = eff->field_1A;
+    coord->field_0.coord.t[2] = eff->field_1C;
+    coord->field_0.flg        = 0;
+    Gp_UpdateCoord(coord);
+    eff->field_10 = -0x200;
+    eff->field_12 = 0x40;
+    eff->field_14 = 0;
+    Gp_SpawnEff(0x6003B, &coord->field_0, 0x180, (SVECTOR*)&eff->field_10);
+    for (i = 0; i < 6; i++) {
+        Gp_SpawnEff(0x60065, &coord->field_0, 0, (SVECTOR*)&eff->field_10);
+        Gp_SpawnEff(0x600A4, &coord->field_0, 1, NULL);
+    }
+    base->field_0 = 4;
+    ext->field_58 = 0xFA0;
+    ext->field_5C = 0x12C0;
+    ext->rot.vx   = 0xC00;
+    ext->rot.vy   = 0x800;
+    ext->rot.vz   = 0x400;
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->field_0.workm, &cam->coord);
+    cam->flg = 0;
+    Gp_ReleaseState1CMem(eff, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80134284);
 
