@@ -41068,6 +41068,48 @@ clause lives inline in the dependence functions, `sched.c:830/862/890`
 `local-alloc.c` calls `true_dependence` too, so the flag reaches allocation and
 not only scheduling.
 
+### When the value stored is itself a load, the struct spelling wins the *tie* rather than restoring a fence
+
+The two entries above move a global access relative to struct traffic. Here the
+target's order *is* the source order and the scalar spelling still loses it,
+because `priority()` ranks the two stores and the scalar form leaves them
+unequal. There is no dropped dependence to restore - both stores are released
+together by the load that depends on them - so a barrier and an array
+declaration have nothing to act on.
+
+`func_dryfield_water_tower_8017F9AC` reads a byte out of its state block into
+`Mc_SaveData.field_4` and then sets `Game_Session->field_52`. Written to the
+imported address `D_8007216C` the block schedules as
+
+```
+lui v0,%hi(Game_Session); lw v1,%lo(Game_Session)(v0); lbu a0,0x68(s0)
+li v0,1; sh v0,0x52(v1); lui v0,%hi(D_8007216C); sb a0,%lo(...)(v0); lw a0,0x44(s0)
+```
+
+and the target has that `lbu`/`lui`/`sb` group *first*, the `Game_Session` pair
+second. The `lw a0,0x44(s0)` depends on both stores, so it releases them in the
+same cycle and `priority()` picks between them:
+
+    priority (insn) = max over deps x of (priority (x) + insn_cost (x) - 1)
+
+The byte store is `priority (lbu) + 2 - 1 = 4` (a load's `result_ready_cost` is
+2), while the `sh`'s 3 comes from its anti-dependence on the same `lbu` at the
+anti cost clamped to 1. Writing the store as `Mc_SaveData.field_4` adds
+`REG_DEP_OUTPUT` between the two stores - the suppressing clause needs a
+non-struct fixed-address partner, and an in-struct store is neither - which
+passes `4 + 1 - 1 = 4` to the `sh`. The tie then falls to
+`rank_for_schedule`'s last criterion, `INSN_LUID (tmp) - INSN_LUID (tmp2)`
+under `qsort`, which prefers the *larger* LUID, i.e. the later original
+instruction. So the `sh` group is scheduled first and emitted second, as the
+target has it.
+
+Equal priorities are therefore resolved by original order, which is worth
+knowing before reaching for a fence: changing `priority()` from 3 to 4 does the
+work that adding a dependence would, and does not pin the constant setup the
+target schedules above the store. 99.773% on the scratch scorer, the residue
+being the `%hi(Mc_SaveData)` / `%lo(Mc_SaveData+4)` symbol pair; the unscoped
+`build-and-verify.sh` checksums.
+
 ## Promoting a matched body into a family's shared library
 
 Moving a repeated body into `src/<family>/lib/` is not just "delete the

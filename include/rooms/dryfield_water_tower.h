@@ -84,7 +84,10 @@ typedef struct DryfieldWaterTowerState {
     /* 0x5C */ s16   field_5C;
     /* 0x5E */ s16   field_5E;
     /* 0x60 */ s16   field_60;
-    /* 0x62 */ u8    pad_62[0xA];
+    /* 0x62 */ u8    pad_62[0x4];
+    /* 0x66 */ u16   field_66;
+    /* 0x68 */ u8    field_68;
+    /* 0x69 */ u8    pad_69[0x3];
     /* 0x6C */ s16   field_6C;
     /* 0x6E */ s16   field_6E;
     /* 0x70 */ u16   field_70;

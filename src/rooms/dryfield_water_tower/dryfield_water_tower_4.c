@@ -18,6 +18,14 @@
 /// unlike the placement that one sends, which splat splits in three.
 extern RoomPlacement D_dryfield_water_tower_80181A58;
 
+/// Placement `func_dryfield_water_tower_8017F9AC` sends to the prop task at
+/// `DryfieldWaterTowerState::field_44` with the same message 0x7D4, whose
+/// handler is `Room_Util08`. The 0x18 bytes immediately below the `80181A58`
+/// run `func_dryfield_water_tower_8017F908` sends with that message, so the two
+/// streams differ in the placement they hand the task and in nothing else this
+/// record carries.
+extern RoomPlacement D_dryfield_water_tower_80181A40;
+
 /// Placement `func_dryfield_water_tower_8017FA5C` sends to the prop task at
 /// `DryfieldWaterTowerState::field_48` with message 0x7D4, whose handler is
 /// `Room_Util08`. The first of three chunks splat splits it into; the other two
@@ -35,7 +43,7 @@ extern RoomPlacement D_dryfield_water_tower_80181AD0;
 /// `Gp_ReloadAtLoc` restores. Spelled by address because that is the name the
 /// room imports: the struct spelling prints `%hi(Mc_SaveData)` /
 /// `%lo(Mc_SaveData+4)` and costs the scratch scorer 0.24% on an object whose
-/// words are identical, while the entry below needs it for aliasing. Both
+/// words are identical, while the two entries below need it for aliasing. Both
 /// spellings are deliberate.
 extern s8 D_8007216C;
 
@@ -91,7 +99,43 @@ void func_dryfield_water_tower_8017F908(void)
     SndEvt_EnqueueType7(0x52140006, 0x1E);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_4", func_dryfield_water_tower_8017F9AC);
+/// The third of the unit's 0x0D script handlers, between
+/// `func_dryfield_water_tower_8017F908` and `func_dryfield_water_tower_8017FA5C`
+/// and the one that does not recompute the view: it records the state byte
+/// `DryfieldWaterTowerState::field_68` in the saved location, starts the prop
+/// task at `field_44` on state 1 with its 0x7D4 (`Room_Util08`) placement
+/// `80181A40` and stops the pad scripts, the same three-step restart the other
+/// two perform on their own prop tasks.
+///
+/// It plays both event ids of that restart -- 0x52140007 and 0x5214000C -- and
+/// is the only one of the three that moves the player: the 0x3E9 placement
+/// `80181AD0` `func_dryfield_water_tower_8017FA5C` sends unconditionally goes
+/// to the slot-3 game task at `field_40` here, but only while `field_66` reads
+/// 2, the room's "the cap is following" state.
+///
+/// `Mc_SaveData.field_4` rather than the `D_8007216C` address the room imports:
+/// as a scalar the store is fixed-address against the struct traffic below, so
+/// `sched.c`'s `true_dependence` drops the output dependence between it and the
+/// `Game_Session` store and the scheduler sinks the byte store past the whole
+/// `Game_Session` pair. Naming the field keeps both MEMs in-struct and the store
+/// where the target has it; the `%hi`/`%lo` pair it prints relocates to the same
+/// two words. Measured; see `DECOMPILATION_LEARNINGS.md` on struct-typing and
+/// aliasing.
+void func_dryfield_water_tower_8017F9AC(void)
+{
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+
+    Mc_SaveData.field_4    = state->field_68;
+    Game_Session->field_52 = 1;
+    Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
+    state->field_44->state = 1;
+    Gp_HaltPadScripts();
+    SndEvt_EnqueueType7(0x52140007, 0xA);
+    SndEvt_EnqueueType7(0x5214000C, 0xA);
+    if (state->field_66 == 2) {
+        Gp_DispatchMsg(state->field_40, 0x3E9, (s32)&D_dryfield_water_tower_80181AD0, 0);
+    }
+}
 
 /// Script opcode 0x0D of the room's command table `D_dryfield_water_tower_80182248`:
 /// it hands the stream to view 9, restarts the prop task at `field_48` on state 1
