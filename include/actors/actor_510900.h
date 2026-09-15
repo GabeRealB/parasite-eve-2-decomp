@@ -38,7 +38,8 @@ typedef struct Actor510900Work {
     /* 0x504 */ GpObj  obj504;
     /* 0x524 */ byte   pad_524[0x40];
     /* 0x564 */ s32*   field_564; // 0x34 receives field_594 when it changes
-    /* 0x568 */ byte   pad_568[0x14];
+    /* 0x568 */ byte   pad_568[0x10];
+    /* 0x578 */ s32    field_578;
     /* 0x57C */ s32    field_57C; ///< sound id stopped alongside field_580
     /* 0x580 */ s32    field_580; ///< last sound id queued
     /* 0x584 */ s16    field_584;

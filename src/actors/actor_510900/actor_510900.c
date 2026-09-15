@@ -6,11 +6,10 @@
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
 #include "main/gameflag.h"
+#include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_8013bbe4.h"
 
-void Gp_UpdateCoord(Actor510900Coord* arg0);
-void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_actor_510900_80135744(Actor510900* arg0);
 void func_actor_510900_8013864C(Actor510900* arg0);
 void func_actor_510900_801387F4(Actor510900* arg0);
@@ -26,6 +25,7 @@ void func_actor_510900_8013BC80(Actor510900* arg0);
 
 extern u8  D_801153F4;
 extern u32 Gp_LcgState;
+extern s16 D_80073BA0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80131F24);
 
@@ -67,7 +67,7 @@ void func_actor_510900_801340E8(Task* arg0)
     coord->field_0.coord.t[1] = eff->field_1A;
     coord->field_0.coord.t[2] = eff->field_1C;
     coord->field_0.flg        = 0;
-    Gp_UpdateCoord(coord);
+    Gp_UpdateCoord(&coord->field_0);
     eff->field_10 = -0x200;
     eff->field_12 = 0x40;
     eff->field_14 = 0;
@@ -169,7 +169,7 @@ void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
         Gp_AnimTickIndex((GpAnimCtx*)work, i);
     }
     coord->field_0.flg = 0;
-    Gp_UpdateCoord(coord);
+    Gp_UpdateCoord(&coord->field_0);
     func_actor_510900_8013BC38(arg1, coord);
     if (work->field_594 != work->field_596) {
         if (work->field_564 != NULL) {
@@ -252,7 +252,50 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80138250);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801384C4);
+void func_actor_510900_801384C4(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s32               snd;
+    s32               pan;
+    u32               rng;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (D_80073BA0 <= 0) {
+        arg0->field_20->field_40 = 1;
+        work->field_58E          = 1;
+        work->field_586          = 1;
+        work->field_590          = 0;
+        work->field_59C          = D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+        Gp_LcgState              = rng;
+        return;
+    }
+    if (work->field_594 != 0) {
+        work->field_594 = 3;
+    }
+    work->field_598 = 0;
+    if (work->field_578 != 0) {
+        SndEvt_EnqueueType7(work->field_578, 0);
+        work->field_578 = 0;
+    }
+    if (work->field_57C != 0) {
+        SndEvt_EnqueueType7(work->field_57C, 0);
+        work->field_57C = 0;
+    }
+    if (work->field_580 != 0) {
+        SndEvt_EnqueueType7(work->field_580, 0);
+        work->field_580 = 0;
+    }
+    arg0->field_20->node.field_4 = 1;
+    if (work->field_58A == 0x70) {
+        snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780007;
+        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+    Gp_StateC08.field_6 &= 1;
+    work->field_592      = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013864C);
 
@@ -380,7 +423,7 @@ body:
         i++;
     } while (i < 0xB);
     coord->field_0.flg = 0;
-    Gp_UpdateCoord(coord);
+    Gp_UpdateCoord(&coord->field_0);
 case1:
     func_actor_510900_8013C338((Actor510900*)arg1, coord);
 }
@@ -607,7 +650,7 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         }
         temp_s1->field_0.flg                  = 0;
         arg1->field_2C->field_8->field_50.flg = 0;
-        Gp_UpdateCoord(temp_s1);
+        Gp_UpdateCoord(&temp_s1->field_0);
         ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         func_actor_510900_80138F44(arg1);
