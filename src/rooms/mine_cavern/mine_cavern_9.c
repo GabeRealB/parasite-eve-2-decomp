@@ -16,6 +16,9 @@ extern void func_mine_cavern_80182454(void);
 /// emitter id `func_mine_cavern_801825C8` and its siblings are called with.
 extern SVECTOR D_mine_cavern_8018E39C[4];
 
+/// The cavern enemy's five state handlers, dispatched through by state.
+extern GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8;
+
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181864);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181CAC);
@@ -281,7 +284,15 @@ void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801838F4);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183A68);
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", D_mine_cavern_8017D7F8);
+
+void func_mine_cavern_80183A68(Task* arg0)
+{
+    GpEnemyTaskFuncTable5 sp;
+
+    sp = D_mine_cavern_8017D7F8;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183AD4);
 

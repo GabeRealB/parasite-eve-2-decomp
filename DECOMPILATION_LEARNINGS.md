@@ -43287,6 +43287,16 @@ since an unreferenced `.s` is never assembled, but deleting it once brings the
 tree back to what a fresh split produces and removes a duplicate `dlabel` for a
 later `INCLUDE_ASM` to trip over.
 
+That stale `.s` also changes the symptom you meet first. While it is on disk it
+still holds the migrated block - and the old function body, which is why it
+cannot simply be included - but nothing pulls it in any more, so the build
+fails at the link with `undefined reference to D_..._<addr>` rather than with
+the missing-file error above. Deleting it *before* adding `force_not_migration`
+does not produce a standalone block either: the next split writes the data to
+`matchings/<overlay>/<unit>/func_<addr>.s` and the whole run to
+`data/<overlay>/<unit>.rodata.s`, and the build assembles neither, so the symbol
+stays undefined and the deletion looks like the thing that lost it.
+
 ## A compiler-generated jump table is `.align 3`, so it cannot follow other rodata in the same object
 
 GCC 2.8.1 emits `.rdata / .align 3` before a switch jump table. If the unit's
