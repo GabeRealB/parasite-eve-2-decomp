@@ -79942,3 +79942,39 @@ it live over the call, and that same function drops to 73.96%
 (`regs=15 insert=3 delete=3 branch=2`). The target re-reads the field after the
 call (`lhu` + `addiu` + `sh`) precisely because `$a0` does not survive it, so
 the increment has to be written as a fresh read of the field.
+
+## A masked `s16` load is `lhu`: the stride and the width in an m2c array seed are independent guesses
+
+m2c seeded `func_dryfield_night_gas_station_80180A60` with the room's vector
+table read as
+
+```c
+temp_v0 = (*((arg0->killCountdown * 8) + &D_dryfield_night_gas_station_80188580) & 1) ^ 1;
+```
+
+and scored 95%, differing from the target on exactly two instructions:
+
+```
+- sll    v0,v0,0x3          + sll    v0,v0,0x5
+- lhu    v0,0(v0)           + lw     v0,0(v0)
+```
+
+Both halves come from one wrong declaration. `D_…` was an `M2C_UNK` (i.e.
+`s32`) scalar, so the `* 8` m2c printed is a *byte* offset being divided into an
+element size it guessed as 4 - the real stride is 8 bytes, and the real element
+is the `SVECTOR` the same overlay's `func_dryfield_night_gas_station_8017FD80`
+walks with `ApplyMatrixSV`. Indexing it as a real type
+
+```c
+temp_v0 = (D_dryfield_night_gas_station_80188580[arg0->killCountdown].vx & 1) ^ 1;
+```
+
+fixes the stride and the load in one move, and the function goes to 100% on the
+first build.
+
+The `lhu` is *not* a second finding about the type. `vx` is a signed `short`;
+its only use masks bit 0, so the upper bits are dead and the zero-extending load
+is free - the same per-use width rule as the `lh`/`lhu` pair above. Do not
+reach for an unsigned field or a `.vx`-as-`u16` typedef to produce the `lhu`:
+an `s16` field under an `& 1` already does, and a `lh` there would mean the
+*use* changed, not the type.
