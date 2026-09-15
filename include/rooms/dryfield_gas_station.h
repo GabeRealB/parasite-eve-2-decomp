@@ -18,7 +18,7 @@ typedef struct DgsWork {
     /* 0x04 */ s16   field_4;
     /* 0x06 */ s16   field_6;
     /* 0x08 */ byte  pad_8[0x4];
-    /* 0x0C */ s16   playerEffActive;
+    /* 0x0C */ u16   playerEffActive;
     /* 0x0E */ byte  pad_E[0x2];
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);

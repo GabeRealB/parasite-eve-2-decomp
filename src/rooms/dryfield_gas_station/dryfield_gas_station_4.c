@@ -8,7 +8,10 @@
 #include "main/stream.h"
 #include "main/task.h"
 
+#include "gameplay/3FB8.h"
+
 #include "rooms/dryfield_gas_station.h"
+#include "rooms/rooms_shared_80180b2c.h"
 
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
@@ -107,7 +110,16 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", fu
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_801807E0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_80180944);
+/// Latches the player-effect flag and kills the effects once. The 1 is loaded
+/// before the branch and stored in the `jal` delay slot.
+void func_dryfield_gas_station_80180944(void)
+{
+    DgsWork* work = (DgsWork*)RoomsShared80180b2cTask->idMap;
+    if (work->playerEffActive == 0) {
+        work->playerEffActive = 1;
+        Gp_KillPlayerEffs();
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_80180984);
 
