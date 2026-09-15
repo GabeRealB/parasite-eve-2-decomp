@@ -43,7 +43,13 @@ void func_neo_ark_altar_8017ED60(Task* arg0)
     arg0->state         = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EDBC);
+void func_neo_ark_altar_8017EDBC(Task* arg0)
+{
+    arg0->killCountdown = arg0->killCountdown + 1;
+    if (arg0->killCountdown >= 3) {
+        arg0->state = (s32)(arg0->state + 1);
+    }
+}
 
 void func_neo_ark_altar_8017EDF8(Task* arg0)
 {

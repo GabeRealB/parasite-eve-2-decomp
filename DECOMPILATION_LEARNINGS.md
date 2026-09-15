@@ -1389,6 +1389,42 @@ This is the load-width question in isolation. Where the same value is *also*
 stored back or fed to arithmetic, the signed and unsigned copies are both live
 and the pair is a different problem - see the `lh`+`lhu` section above.
 
+## A halfword that is incremented before its signed compare still loads `lhu`
+
+`lhu` is the default HImode load (`movhi_internal` → `lhu`); `lh` appears only
+when a *fresh* load feeds a signed use and combine folds the two into
+`extendhisi2_internal`. A read-modify-write breaks that fold, because the value
+being compared comes out of the `addiu`, not from memory:
+
+```c
+/* killCountdown is s16 */
+arg0->killCountdown = arg0->killCountdown + 1;
+if (arg0->killCountdown >= 3) { ... }
+```
+
+```asm
+lhu     $v0, 0x2A($a0)   /* movhi - the load is a plain HImode move */
+nop
+addiu   $v0, $v0, 0x1    /* addhi3, result stays HImode */
+sh      $v0, 0x2A($a0)
+sll     $v0, $v0, 16     /* extension materialised from the register, */
+sra     $v0, $v0, 16     /* not from a second load */
+slti    $v0, $v0, 3
+```
+
+So this is a *third* case beside the two above, and it must not be read as
+evidence about declared signedness: the `lhu`+`sll`/`sra`+`slti` shape on a
+field that is also stored back says nothing about `s16` vs `u16`, and the
+"only tested → field is `u16`" rule above does not reach it (there is no load
+to fold, so no `lh` was ever available). `Task::killCountdown` is `s16`, is
+read as `lh` by the many matched `gameplay` callers that load it without
+arithmetic, and must stay `s16`.
+
+`func_neo_ark_altar_8017EDBC` matched at 100% first try as a plain struct-field
+read-modify-write; the m2c seed's `u16` temp and the struct version compile to
+identical bytes (preprocessed `902aea30bf6837ccd34a631b5afb1ee8c7da5149e8e5b82cb78eafb6c37852b2`
+and `dda2f0028068f6cf7e16beccb0f0b689773653d108d0cda8d1f0ac0fc4f7fbf5`).
+
 ## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
 
 A bit test that then stores 7 or 8 wants `$v0` for both the `andi` and the
