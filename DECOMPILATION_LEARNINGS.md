@@ -78969,3 +78969,26 @@ GCC emits `move dst,zero`, check whether that local is wider than the value's
 type — matching the width turns the fold back into the copy. Likely applies to
 the sibling scanners (82C24/82D34/82F18/829B4). Found by decomp-permuter distance
 search (bind mount, see [[pe2-windows-toolchain-gotchas]] 3e), confirmed by port.
+
+## An overlay import named by address must keep its `D_<vram>` form, not the struct field it denotes (func_dryfield_night_motel_balcony_8017DD0C, 2026-09-15)
+
+A room or actor overlay touching `Gp_StateC08.field_A` can write it two ways.
+`extern s8 D_80114C12;` is the name splat generates and the one
+`configs/USA/sym/rooms.imports.txt` carries; `#include "gameplay/gameplay.h"`
+plus `Gp_StateC08.field_A` is the same address spelled through its owner.
+`sym.gameplay.txt` names only the struct base (0x80114C08), so
+`gen_overlay_imports.py` has no entry for +0xA and keeps the address-derived
+`D_80114C12` in the family's imports file; both spellings reach the linker with
+symbol+addend summing to the same word, which is why the gameplay map's own
+`Gp_StateC08.field_A` accesses link everywhere.
+
+The scratch scorer compares disassembly *including the relocation expression*,
+so the struct spelling prints `lui v0,%hi(Gp_StateC08)` /
+`lb v0,%lo(Gp_StateC08+0xa)(v0)` against the target's `%hi/%lo(D_80114C12)` and
+reports 99.63% with `regs=2` on an object whose instruction words are identical
+(27/27 instructions, matching structure). The address form is 100%. Use it, and
+put the struct relationship in a comment: `extern s8 D_80114C12;` is already the
+convention in the actors (`src/actors/actor_503500/*.c`). The same trap applies
+to any address whose owner the gameplay map names only at the base — the
+cutscene blob `D_80165720` in this same function is another, referenced by many
+rooms and named nowhere.
