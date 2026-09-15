@@ -32,6 +32,19 @@ typedef struct Actor01900TurnScratch {
 } Actor01900TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor01900TurnScratch, 0xC);
 
+/// 0x10-byte scratch `Actor01900_Fn04D14` takes from `G_SCRATCH_HEAD`: the
+/// offset from the actor to the player, the player's facing yaw, the yaw from
+/// the player back to the actor, the wrapped turn toward the player and the
+/// clamped turn applied to the root coordinate.
+typedef struct Actor01900ChaseScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     playerYaw;
+    /* 0xA */ s16     yaw;
+    /* 0xC */ s16     turn;
+    /* 0xE */ s16     angle;
+} Actor01900ChaseScratch;
+STATIC_ASSERT_SIZEOF(Actor01900ChaseScratch, 0x10);
+
 extern u8 D_80072729;
 
 /// Step `coord` `amount` units along its local Z axis unless movement is

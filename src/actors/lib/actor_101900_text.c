@@ -357,7 +357,121 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03FF8);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn042BC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn04D14);
+void Actor01900_Fn04D14(Actor01900* arg0)
+{
+    Actor01900Work*         work;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          facing;
+    Actor01900ChaseScratch* s;
+    s32                     turn;
+    s32                     diffPos;
+    s32                     diffNeg;
+    s32                     yaw;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0xC0;
+        work->field_898          = 1;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        Actor01900_Fn01C94(arg0);
+        work->field_C26   = 8;
+        work->field_6     = 0;
+        work->field_8     = 0;
+        Actor01900_D172FC = 0;
+        work->field_C40++;
+        return;
+    }
+    *(Actor01900ChaseScratch**)G_SCRATCH_HEAD -= 1;
+    s                                          = *(Actor01900ChaseScratch**)G_SCRATCH_HEAD;
+    arg0->field_2C->field_8->flg               = 0;
+    Actor01900_Fn01C94(arg0);
+    if (Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC) != 0) {
+        work->field_8++;
+    } else {
+        Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
+    }
+    Actor01900_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    if (work->field_8 >= 7) {
+        s->playerYaw  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                               ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+        s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+        s->yaw        = Actor01900_NormalizeYaw(s->yaw);
+        work->field_0 = 0x1A;
+    }
+    coord   = arg0->field_2C->field_8;
+    s->turn = Actor01900_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn    = s->turn;
+    if (turn >= 0) {
+        diffPos = turn - 1000;
+        if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
+            s->angle = s->turn - 1000;
+        } else if (diffPos > 0) {
+            s->angle = 0x60;
+        } else {
+            s->angle = -0x60;
+        }
+    } else {
+        diffNeg = turn + 1000;
+        if (((diffNeg < 0) ? -diffNeg : diffNeg) < 0x60) {
+            s->angle = s->turn + 1000;
+        } else if (diffNeg > 0) {
+            s->angle = 0x60;
+        } else {
+            s->angle = -0x60;
+        }
+    }
+    facing    = arg0->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->angle, 1);
+    Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    coord                        = arg0->field_2C->field_8;
+    work->field_8AE              = Actor01900_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    arg0->field_2C->field_8->flg = 0;
+    work->field_C24              = work->field_8A2 * 8;
+    if (work->field_89A != 0) {
+        work->field_C24 = work->field_C24 >> 1;
+    }
+    if (work->field_8 != 0) {
+        work->field_C24 = 2;
+    }
+    Actor01900_MoveForward(arg0->field_2C->field_8, work->field_C24);
+    Actor01900_D172FC += work->field_C24;
+    if (work->field_C26 == 8 && work->field_8A2 >= 0x18) {
+        work->field_C26 = -1;
+    }
+    if (work->field_C26 == -1 && work->field_8A2 == 0x12) {
+        work->field_C26 = 0;
+        work->field_6   = 0;
+    }
+    if (work->field_C26 == 0) {
+        if (++work->field_6 == 5) {
+            s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                                  ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+            Actor01900_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+            s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+            yaw    = Actor01900_NormalizeYaw(s->yaw);
+            s->yaw = yaw;
+            yaw    = yaw - s->playerYaw;
+            if (yaw < 0) {
+                yaw = -yaw;
+            }
+            if (yaw <= 0x400) {
+                work->field_0 = 0x1A;
+                work->field_2 = -1;
+            }
+        }
+    }
+    work->field_8A2                           += work->field_C26;
+    *(Actor01900ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0551C);
 

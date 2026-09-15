@@ -80652,3 +80652,31 @@ Input `base_14.i` sha256 prefix `345022d5585d8647`. Arg-register pins
 `s0`/`s1` and produced `move a1,a0` (96.4%, `regs=35`), so do not use them for this.
 Tell: a store in a call's delay slot whose block holds no other C-level load
 or store. Look for a statement that follows the arm and could be copied into it.
+
+## A clamp that recomputes `x - k` instead of reusing `diff`: test a reload, store from the field
+
+`Actor01900_Fn04D14` (actors/actor_101900) clamps a wrapped turn toward ±0x60
+around ±1000. The ROM computes `diff = turn - 1000` into `$a0` for the abs and
+sign tests, then *recomputes* `addiu v0, v1, -1000` in the delay slot of the
+`abs < 0x60` branch rather than storing `$a0`. Every form with one `turn`
+variable (if/else, else-if, ternary, `(u16)` casts, `s16 diff`) got the value
+folded into `diff` by `cse` following the branch into the store block.
+
+What matches: store the normalized result to the field, test a reload of it,
+and read the field again for the stored value:
+
+```c
+s->turn = Actor01900_NormalizeYaw(...);
+turn    = s->turn;               /* sign_extend(subreg) - a distinct pseudo to cse */
+if (turn >= 0) {
+    diffPos = turn - 1000;
+    if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
+        s->angle = s->turn - 1000; /* cse maps the read to the stored pseudo, not to `turn` */
+    } else if (diffPos > 0) { s->angle = 0x60; } else { s->angle = -0x60; }
+} else { /* same with diffNeg = turn + 1000 */ }
+```
+
+Combine turns the reload into the `move v0, v1` the ROM has in front of `bltz`.
+The last register swap (`diff` in `$v1` instead of `$a0`) was global priority:
+one shared `diff` had 6 refs over 10 insns and outranked the stored pseudo's
+5 over 14; a variable per branch (3 over 5) let the stored pseudo take `$v1`.

@@ -20,7 +20,8 @@ typedef struct Actor01900Work {
     /* 0x002 */ s16     field_2;
     /* 0x004 */ s16     field_4;
     /* 0x006 */ s16     field_6;
-    /* 0x008 */ byte    pad_8[0x52];
+    /* 0x008 */ s16     field_8;
+    /* 0x00A */ byte    pad_A[0x50];
     /* 0x05A */ u16     field_5A;
     /* 0x05C */ byte    pad_5C[0xC];
     /* 0x068 */ u16     field_68;
@@ -50,12 +51,14 @@ typedef struct Actor01900Work {
     /* 0xC10 */ s16     field_C10;
     /* 0xC12 */ byte    pad_C12[0x12];
     /* 0xC24 */ s16     field_C24;
-    /* 0xC26 */ byte    pad_C26[0xE];
+    /* 0xC26 */ s16     field_C26;
+    /* 0xC28 */ byte    pad_C28[0xC];
     /* 0xC34 */ u8      field_C34[3];
     /* 0xC37 */ byte    pad_C37;
     /* 0xC38 */ Task*   field_C38;
     /* 0xC3C */ Task*   field_C3C;
-    /* 0xC40 */ byte    pad_C40[8];
+    /* 0xC40 */ s16     field_C40;
+    /* 0xC42 */ byte    pad_C42[6];
     /// Ring of the last seven view-space positions `Actor01900_Fn09D3C`
     /// records, one per step; `field_C98` is the write cursor.
     /* 0xC48 */ SVECTOR field_C48[7];
@@ -164,6 +167,7 @@ STATIC_ASSERT_SIZEOF(Actor01900ViewScratch, 0x18);
 extern Actor01900StateTable  Actor01900_D001BC;
 extern Actor01900HeightClamp Actor01900_D172CC[];
 extern char                  Actor01900_D10B68;
+extern s16                   Actor01900_D172FC;
 extern void*                 D_80114B78[1];
 extern u8                    D_801153F2[2];
 extern u8                    D_801153F4;
