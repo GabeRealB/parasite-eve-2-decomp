@@ -166,6 +166,7 @@ typedef struct Actor100400 {
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor100400Ctx*  field_2C;
     /* 0x30 */ s32              field_30;
+    /* 0x34 */ s32              field_34;
 } Actor100400;
 
 void Actor00400_Fn00C84(Actor100400*);

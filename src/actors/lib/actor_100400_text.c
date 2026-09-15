@@ -399,7 +399,44 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03920);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn040DC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn042C0);
+void Actor00400_Fn042C0(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Obj*  obj;
+    s32              id;
+
+    work = arg0->field_1C;
+    obj  = arg0->field_20;
+    if (arg0->field_2C->field_8->coord.t[1] - work->field_64E < 0x320) {
+        work->field_63E = work->field_64E;
+    }
+    Gp_UnlinkNode(&obj->field_10);
+    Gp_ReleaseStateF0Add(arg0, 0);
+    obj->field_54 = NULL;
+    Gp_UnlinkObj(&work->field_26C[0xF0]);
+    Gp_UnlinkObj(&work->field_26C[0x110]);
+    Gp_UnlinkObj(&work->pad_4DC);
+    Gp_UnlinkObj(&work->pad_42C);
+    work->field_636 = 0;
+    if (work->field_644 == 4) {
+        Actor100400Work* w = arg0->field_1C;
+        w->field_638       = 7;
+        w->field_63A       = 0;
+        return;
+    }
+    if (arg0->field_34 != 7) {
+        Actor100400Work* w;
+        id = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+        SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(arg0->field_2C->field_8),
+                            (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        w            = arg0->field_1C;
+        w->field_632 = 0x30;
+        w->field_63C = 4;
+        w->field_628 = 1;
+        w->field_624 = 1;
+    }
+    work->field_638++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04414);
 
