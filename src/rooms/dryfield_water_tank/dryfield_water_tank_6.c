@@ -24,6 +24,12 @@ extern RoomPlacement D_dryfield_water_tank_801804F4;
 /// and `z` stepping up the room, 52 entries of movement before the tail clamps.
 extern SVECTOR D_dryfield_water_tank_80184530[];
 
+/// The second leg of the tank's run, same `SVECTOR` shape and one entry per
+/// frame: the seam repeats the first table's last entry (`x` 2532, `y` -12000,
+/// `z` 972), after which `x` steps down while `z` holds. Exactly the 52 entries
+/// its walk consumes, so unlike the first table it has no clamp tail.
+extern SVECTOR D_dryfield_water_tank_801847C0[];
+
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
 /// `D_8007218A` picks which of the two weapon-id bases that record uses.
@@ -82,7 +88,28 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017ED30);
+/// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
+/// walks it one step along `D_dryfield_water_tank_801847C0` per frame and sends
+/// slot 3 that entry as a `RoomPlacement`, this time with a quarter-turn about
+/// `y` (0x400) instead of the first leg's half-turn. At 0x34 the tank has
+/// finished its run a second time and the task kills itself.
+void func_dryfield_water_tank_8017ED30(Task* arg0)
+{
+    RoomPlacement rec;
+
+    if (arg0->killCountdown >= 0x34) {
+        Task_Kill(arg0);
+        return;
+    }
+    rec.pos.vx = D_dryfield_water_tank_801847C0[arg0->killCountdown].vx;
+    rec.pos.vy = D_dryfield_water_tank_801847C0[arg0->killCountdown].vy;
+    rec.pos.vz = D_dryfield_water_tank_801847C0[arg0->killCountdown].vz;
+    rec.rot.vx = 0;
+    rec.rot.vy = 0x400;
+    rec.rot.vz = 0;
+    arg0->killCountdown++;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017EDF4);
 

@@ -80075,3 +80075,40 @@ m2c seed's 54.59% (`base.i`
 `56a41611dd665dac63e2a0cea3c87ffd8e1d3718674a824ae86ce42763e9f4b0`); the seed
 modelled the payload as six scalars reading a 32-byte-stride table, which the
 `RoomPlacement` local plus `SVECTOR` array fixes.
+
+## A twin of a matched sibling is provable before you write any C (func_dryfield_water_tank_8017ED30, 2026-09-15)
+
+BRIEF's "similar matched bodies" list marks a sibling as `1.00` in *all four*
+classes (`shape`, `fields`, `calls`, `cflow`) with an asterisk. When the twin is
+in the same TU, do not decompile it: diff the target `.s` against the sibling's
+matched `asm/<ver>/<overlay>/matchings/.../<fn>.s` with the names substituted
+out. If only relocations and constants survive, the sibling's C *is* the answer
+modulo those constants.
+
+```sh
+diff <(sed 's/FUNC_OLD/FUNC_NEW/g;s/D_old/D_new/g;s/\.Lold/\.Lnew/g' \
+        asm/USA/rooms/matchings/<overlay>/<unit>/FUNC_OLD.s) target.s
+```
+
+`func_dryfield_water_tank_8017ED30` and the matched
+`func_dryfield_water_tank_8017EC6C` came out identical that way - 49
+instructions, same block/edge structure, same delay slots - with exactly two
+differing immediates between them: the `%lo` half of the data symbol, and
+`addiu $v0, $zero, 0x400` where the sibling has `-0x7FF`. Both are the second
+leg of the tank's run, so the body is the sibling's, one constant changed:
+100.000% on the first build (`base_1.i` `50d84b2d...`) against the m2c seed's
+54.59% (`base.i` `c58e4ace...`, penalty jump.c had already matched topology -
+`topology: match` at 31/49 instructions - so the missing 18 instructions were
+*entirely* the scalars-vs-struct modelling the sibling's entry above describes).
+A topology-matching seed at a low score is a strong twin signal: the control flow
+being right with the body 40% short means the diff is data modelling, not shape.
+
+The `.s` diff also sizes the clone's table for free. The two symbols are adjacent
+halves of one spline (`0x80184530` runs 82 entries to `0x801847C0`, which then
+runs exactly 52), and the guard's ceiling `0x34` equals the second table's entry
+count - the index limit names the table boundary, so the `extern SVECTOR` needs
+no length guess.
+
+This is a *read*, not a `promote`: the dup index correctly reports only this
+overlay (the differing constant is in the disassembly text, so the two are not
+equal bodies) and there is nothing to share.
