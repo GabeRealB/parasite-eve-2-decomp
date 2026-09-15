@@ -41,7 +41,20 @@ void func_actor_110600_801387F4(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_801388A4);
+void func_actor_110600_801388A4(Actor110600* arg0)
+{
+    TmdObject*       obj;
+    Actor110600Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 1;
+        obj->field_C                 = (u16)(obj->field_C | 0x80);
+        work->field_A90.flags        = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags        = (u16)(work->field_950.flags & 0xBFFF);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138900);
 

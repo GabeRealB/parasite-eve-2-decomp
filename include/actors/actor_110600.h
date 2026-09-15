@@ -6,12 +6,15 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Work block this overlay parks in the task's `Task::idMap` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
 /// with `Mem_Calloc(0xBEC, 0)`, so the size below is the allocation.
 ///
-/// `field_0` is the state index `func_actor_110600_801387C0` writes. The three
+/// `field_0` is the state index `func_actor_110600_801387C0` writes. `field_4`
+/// is the live-actor flag `func_actor_110600_801388A4` tests, and
+/// `field_A90.flags` / `field_950.flags` are the two masks it writes. The three
 /// `GpObj` display nodes are the ones the spawn handler links (with `GpRec18`
 /// tables of 5 / 12 / 1 records filling the gaps) and the exit callback
 /// `func_actor_110600_801387F4` hands back to `Gp_UnlinkObj`. `field_BD4` /
@@ -19,7 +22,9 @@
 /// `Task::state` when they are non-NULL.
 typedef struct Actor110600Work {
     /* 0x000 */ s16   field_0;
-    /* 0x002 */ byte  pad_2[0x8B6];
+    /* 0x002 */ byte  pad_2[2];
+    /* 0x004 */ s16   field_4;
+    /* 0x006 */ byte  pad_6[0x8B2];
     /* 0x8B8 */ GpObj field_8B8;
     /* 0x8D8 */ byte  pad_8D8[0x78];
     /* 0x950 */ GpObj field_950;
@@ -35,7 +40,20 @@ typedef struct Actor110600Work {
 } Actor110600Work;
 STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 
-s32 func_actor_110600_801387C0(Task* arg0);
+/// Per-task actor context: `field_1C` is the work block above (the same
+/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
+/// `Actor01900` / `Actor401800`.
+typedef struct Actor110600 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor110600Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ TmdObject*       field_2C;
+} Actor110600;
+
+s32  func_actor_110600_801387C0(Task* arg0);
+void func_actor_110600_801388A4(Actor110600* arg0);
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
