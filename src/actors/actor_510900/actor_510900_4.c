@@ -14,7 +14,32 @@ void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1)
     Gp_UpdateActorColor(arg0->field_20, &pos, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_4", func_actor_510900_8013BC80);
+void func_actor_510900_8013BC80(Actor510900* arg0)
+{
+    Actor510900Work* work = arg0->field_1C;
+
+    if ((u16)(work->field_594 - 1) < 2) {
+        if (--work->field_598 <= 0) {
+            work->field_594 = 3;
+            if (work->field_57C != 0) {
+                SndEvt_EnqueueType7(work->field_57C, 0);
+                work->field_57C = 0;
+            }
+            if (work->field_580 != 0) {
+                SndEvt_EnqueueType7(work->field_580, 0);
+                work->field_580 = 0;
+            }
+            work->obj4E4.flags &= 0x7FFF;
+            work->obj504.flags &= 0x7FFF;
+        }
+    }
+    if (work->field_594 != work->field_596) {
+        if (work->field_564 != NULL) {
+            work->field_564[0xD] = work->field_594;
+        }
+        work->field_596 = work->field_594;
+    }
+}
 
 s32 func_actor_510900_8013BD5C(Actor510900* arg0)
 {
