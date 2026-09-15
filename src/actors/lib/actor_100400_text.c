@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_100400.h"
+#include "main/gameflag.h"
 #include "main/task.h"
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
@@ -870,7 +871,15 @@ void Actor00400_Fn09A48(Actor100400* arg0)
     work->field_63A  = work->field_63A + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09A8C);
+void Actor00400_Fn09A8C(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_65E == 2 || GameFlag_GetNibble(0xBC) != 0) {
+        work->field_63A = work->field_63A + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09AE0);
 
