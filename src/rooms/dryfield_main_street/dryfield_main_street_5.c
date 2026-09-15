@@ -3,7 +3,25 @@
 
 extern Task* RoomsShared8017e320Task;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_5", func_dryfield_main_street_8017E354);
+void func_dryfield_main_street_8017E354(s32 arg0)
+{
+    Task* t = RoomsShared8017e320Task;
+
+    if (t == NULL) {
+        return;
+    }
+    if (arg0 >= 2) {
+        goto kill;
+    }
+    if (arg0 < 0) {
+        goto kill;
+    }
+    t->spawnArg1 = arg0;
+    return;
+kill:
+    Task_Kill(RoomsShared8017e320Task);
+    RoomsShared8017e320Task = NULL;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_5", func_dryfield_main_street_8017E3A8);
 

@@ -67912,6 +67912,16 @@ if (arg0 < 2) {
 `func_actor_361100_801629D0` scored 52.33% with `insert=4 delete=5 branch=1`
 as a single `&&`; nesting the `if`s and changing nothing else gave 100%.
 
+The suppression is about the two compares landing in different blocks, not about
+nesting specifically, so reflecting the comparisons works just as well —
+`if (arg0 >= 2) goto kill; if (arg0 < 0) goto kill;`, which is the form the
+`rooms/lib` copies of this body use (`RoomsShared801807d4`,
+`RoomsShared801845d0`, and `func_dryfield_main_street_8017E354` matched on the
+first build with it). Both forms compile to the same 21 instructions here
+(`slti`+`beqz` for the upper bound, `bltz` for the lower one), so which one the
+original used is not recoverable from the binary; follow the sibling whose
+disassembly is byte-identical to your target.
+
 ## `thread_jumps` cannot skip a reloaded test
 
 A branch that jumps *past* a test of the same memory looks like jump threading:
