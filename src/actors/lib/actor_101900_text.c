@@ -47,7 +47,102 @@ void Actor01900_Fn01950(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn01A7C);
+s32 Actor01900_Fn01A7C(Actor01900Work* work)
+{
+    s32 id;
+    s32 prev;
+
+    switch (work->field_89E) {
+        case 20:
+        case 21:
+            id = work->field_5A & 0x3FF;
+            if (id == 7) {
+                if (work->field_8B4 != id) {
+                    work->field_8B4 = id;
+                    return 0x400A0010;
+                }
+                work->field_8B4 = id;
+            } else if (id == 0x10) {
+                prev = work->field_8B4;
+                if (prev != id) {
+                    work->field_8B4 = id;
+                    return 0x400A0011;
+                }
+                work->field_8B4 = prev;
+            } else {
+                work->field_8B4 = 0;
+            }
+            break;
+        case 7:
+            id = work->field_5A & 0x3FF;
+            if (id == 0xF) {
+                if (work->field_8B4 != id) {
+                    work->field_8B4 = id;
+                    return 0x400A0010;
+                }
+                work->field_8B4 = id;
+            } else if (id == 0x14) {
+                prev = work->field_8B4;
+                if (prev != id) {
+                    work->field_8B4 = id;
+                    return 0x400A0011;
+                }
+                work->field_8B4 = prev;
+            } else {
+                work->field_8B4 = 0;
+            }
+            break;
+        case 2:
+        case 3:
+            id = work->field_5A & 0x3FF;
+            if (id == 0x24) {
+                if (work->field_8B4 != id) {
+                    work->field_8B4 = id;
+                    return 0x400A0002;
+                }
+                work->field_8B4 = id;
+            } else if (id == 0x2C) {
+                prev = work->field_8B4;
+                if (prev != id) {
+                    work->field_8B4 = id;
+                    return 0x400A0001;
+                }
+                work->field_8B4 = prev;
+            } else {
+                work->field_8B4 = 0;
+            }
+            break;
+        case 9:
+            id = work->field_5A & 0x3FF;
+            if (id == 4 && work->field_8B4 != id) {
+                work->field_8B4 = id;
+                return 0x400A0006;
+            }
+            work->field_8B4 = work->field_5A & 0x3FF;
+            break;
+        case 4:
+            id = work->field_5A & 0x3FF;
+            if (id == 0xC && work->field_8B4 != id) {
+                work->field_8B4 = id;
+                return 0x400A000C;
+            }
+            work->field_8B4 = work->field_5A & 0x3FF;
+            break;
+        case 11:
+            id = work->field_5A & 0x3FF;
+            if (id == 4 && work->field_8B4 != id) {
+                work->field_8B4 = id;
+                return 0x400A0005;
+            }
+            work->field_8B4 = work->field_5A & 0x3FF;
+            break;
+        default:
+            prev            = work->field_5A & 0x3FF;
+            work->field_8B4 = prev;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn01C94);
 

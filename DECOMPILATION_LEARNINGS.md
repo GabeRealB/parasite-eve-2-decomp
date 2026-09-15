@@ -80532,3 +80532,29 @@ Inputs: `base.i` `3c07c790d2ce3c1947e9f45aabb1590c850c0f9d5429b53f008fd20a117751
 `base_1.i` `378165c6791fbe3951bf44ad1c72ea8a72a6fd5ada1b84e5e90cbf366ee630df`,
 `base_2.i` `2451fd4962617bb82c0061dd84366d7728a5885339fe0512094ec35d8510e4ab`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A store that reuses the just-compared value wants a variable that outlives the block
+
+`Actor01900_Fn01A7C` has paths of the form `if (work->field_8B4 != id) {...
+return R; } work->field_8B4 = id;`. The retail store on the equal path writes the
+*loaded* `field_8B4` register (`$v0`), not `id` (`$v1`), so it cross-jumps into
+the `default:` store `sw $v0, 0x8B4($a0)`. Writing `prev = work->field_8B4;
+if (prev != id) ...; work->field_8B4 = prev;` alone changes nothing. On the
+equal edge, cse makes `prev` and `id` equivalent and keeps the older one as the
+canonical register. `make_regs_eqv` only promotes the newer register when it
+lives past the current cse block. So `prev` also has to be used elsewhere. Here
+`default: prev = work->field_5A & 0x3FF; work->field_8B4 = prev;` does that, and
+the object matches.
+
+## A jump table spimdisasm misses carries literal addresses into a shared unit
+
+When a jump table moves from an overlay's own header rodata into a shared lib
+unit's `.rodata` (a `rodata` cut moved earlier so a compiled table can start
+the object), the still-`INCLUDE_ASM` tables in that range come along in their
+functions' `.s`. If spimdisasm did not recognise the table (here the `%hi` sits
+in a `beqz` delay slot), the words are literal addresses from whichever slot
+split last. The other slot then fails its checksum at the table bytes, off by
+the load-address difference. Fix it in the shared reloc file with one
+`rom:0xOFF reloc:MIPS_32 symbol:<label>` per entry
+(`configs/USA/rel.actor_101900.txt`). Ninja does not rebuild the `.c.o` when an
+included `.s` changes, so `touch` the unit before re-checking.
