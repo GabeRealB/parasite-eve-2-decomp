@@ -71,7 +71,8 @@ typedef struct Actor01900Work {
     /* 0xC14 */ s16                field_C14;
     /* 0xC16 */ byte               pad_C16[2];
     /* 0xC18 */ SVECTOR            field_C18;
-    /* 0xC20 */ byte               pad_C20[4];
+    /* 0xC20 */ s16                field_C20;
+    /* 0xC22 */ s16                field_C22;
     /* 0xC24 */ s16                field_C24;
     /* 0xC26 */ s16                field_C26;
     /* 0xC28 */ s16                field_C28;

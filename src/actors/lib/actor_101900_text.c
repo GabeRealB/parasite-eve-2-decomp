@@ -1416,7 +1416,78 @@ void Actor01900_Fn04D14(Actor01900* arg0)
     *(Actor01900ChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0551C);
+void Actor01900_Fn0551C(Actor01900* arg0)
+{
+    Actor01900Work*         work;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          facing;
+    Actor01900ChaseScratch* head;
+    Actor01900ChaseScratch* s;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        head                                      = *(Actor01900ChaseScratch**)G_SCRATCH_HEAD;
+        obj                                       = arg0->field_2C;
+        *(Actor01900ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+        s                                         = head - 1;
+        arg0->field_20->node.field_4              = 0;
+        obj->field_C                              = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_8AE          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        Actor01900_Fn01C94(arg0);
+        Actor01900_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        coord                                      = arg0->field_2C->field_8;
+        s->turn                                    = Actor01900_NormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        facing                                     = arg0->field_2C->field_8;
+        s->angle                                   = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->field_C20                            = s->angle;
+        work->field_C22                            = s->angle + (u16)s->turn * 2;
+        *(Actor01900ChaseScratch**)G_SCRATCH_HEAD += 1;
+        return;
+    }
+    head                                      = *(Actor01900ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor01900ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                         = head - 1;
+    Actor01900_Fn01C94(arg0);
+    Actor01900_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    if (work->field_C20 == work->field_C22) {
+        if (work->field_C40 < 2 || Actor01900_OutOfRange(&s->delta, 0x384)) {
+            work->field_0 = 8;
+        }
+    }
+    if (work->field_C20 > work->field_C22) {
+        work->field_C20 -= 0x89;
+        if (work->field_C20 < work->field_C22) {
+            work->field_C20 = work->field_C22;
+        }
+    }
+    if (work->field_C20 < work->field_C22) {
+        work->field_C20 += 0x89;
+        if (work->field_C20 > work->field_C22) {
+            work->field_C20 = work->field_C22;
+        }
+    }
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, work->field_C20, 1);
+    Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89A == 0) {
+        Actor01900_StepForward(arg0->field_2C->field_8, 0x28);
+    } else {
+        Actor01900_StepForward(arg0->field_2C->field_8, 0x14);
+    }
+    if (Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+        Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
+    }
+    *(Actor01900ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor01900_Fn05B4C(Actor01900* arg0)
 {
