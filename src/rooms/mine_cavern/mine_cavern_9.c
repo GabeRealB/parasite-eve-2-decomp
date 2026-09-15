@@ -7,6 +7,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/gameflag.h"
 #include "main/sound.h"
 #include "rooms/mine_cavern.h"
 
@@ -18,6 +19,10 @@ extern SVECTOR D_mine_cavern_8018E39C[4];
 
 /// The cavern enemy's five state handlers, dispatched through by state.
 extern GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8;
+
+/// Enemy spawn table the cavern's ambush draws from, on the `GameFlag_GetNibble(0xE2)`
+/// bits.
+extern TaskDesc D_mine_cavern_8018EB38;
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181864);
 
@@ -245,7 +250,20 @@ void func_mine_cavern_801825C8(s16 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182CEC);
+void func_mine_cavern_80182CEC(Task* arg0)
+{
+    s16 i;
+    s32 flags;
+
+    flags = GameFlag_GetNibble(0xE2);
+    for (i = 0; i < 4; i++) {
+        if (!((flags >> i) & 1)) {
+            Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
+        }
+        Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 1, i, NULL);
+    }
+    arg0->state++;
+}
 
 void func_mine_cavern_80182DA8(void)
 {

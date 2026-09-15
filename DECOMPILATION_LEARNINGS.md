@@ -79805,3 +79805,58 @@ to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`
 91.2%), `base_2.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (two calls,
 99.83%).
+
+## A split `sll`/`sra` sign extension is the loop-carried half CSE'd across the loop, not a variable (func_mine_cavern_80182CEC, 2026-09-15)
+
+An `s16` loop index used as a shift amount, as a call argument and in the
+`i < 4` test reads like a hand-written loop-carried value:
+
+```asm
+        sll   $v0,$s1,16          ; before the loop
+.L:     sra   $s0,$v0,16          ; loop top: the index
+        srav  $v0,$s3,$s0
+        ...
+        bnez  $v0,.L
+        sll   $v0,$s1,16          ; delay slot: same shift, from the counter
+```
+
+m2c transcribes that faithfully — a `var_v0` holding `var_s1 << 0x10` used via
+`var_v0 >> 0x10` — but it also substitutes the constant it tracked for the
+counter, so the pre-loop statement comes out `var_v0 = 0 << 0x10`. That folds at
+parse time, CSE then deletes the loop-entry `sll`, and the loss cascades:
+`move a2,zero` appears, the loop-carried value is recomputed from the
+sign-extended temp instead of the counter, and the branch lands in a different
+slot (89.46%, penalties insert 3 / delete 2 / branch 1 / regs 1). Sourcing the
+shift from `var_s1` does not help — the init is in the same extended basic block,
+so cse's table still holds the 0 and folds it again (byte-identical object).
+
+The natural source has no `var_v0` at all:
+
+```c
+s16 i;
+s32 flags;
+
+flags = GameFlag_GetNibble(0xE2);
+for (i = 0; i < 4; i++) {
+    if (!((flags >> i) & 1)) {
+        Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
+    }
+    Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 1, i, NULL);
+}
+```
+
+Both halves are the compiler's own doing: `sign_extend(i)` is `sll`+`sra`, the
+`for` desugaring puts the increment and the test in the loop tail where the sign
+extension is recomputed from the incremented temp, and cse carries the `sll` half
+around the back edge (into the delay slot) so the top only needs `sra`. 100%
+exactly. General rule: when a target contains a shift/extension pair split across
+a loop edge, suspect the index's own sign extension before inventing the
+loop-carried variable m2c's transcription suggests — and never trust an m2c
+literal that came from its register value tracking, since a fold there reshapes
+the loop. Same family as the zero-init copy entry above: a constant fold
+deleting a materialization, fixed by changing the source shape rather than the
+declarations. Inputs: `base_1.i`
+`6c9e6553e0d33bc0188d5f4797398dde673c594e6b52261a91ea493590fe0f97` (m2c
+transcription, 89.46%), `base_2.i`
+`278d4c8d3cc5108e06c9537c3c825de2fbb01aa1bec63b1c7ee9317bf8405f70` (natural
+for-loop, 100%).
