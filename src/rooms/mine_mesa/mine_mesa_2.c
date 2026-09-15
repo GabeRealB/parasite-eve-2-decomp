@@ -4,11 +4,14 @@
 #include "gameplay/3A34.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 
 extern TaskDesc D_mine_mesa_80189B2C;
 extern Task*    D_mine_mesa_80189B4C;
+extern s32      D_mine_mesa_80189B50;
 extern GpObj4A  D_mine_mesa_801890EC[4];
 
 extern void func_800E8614(s32 arg0, s32 arg1);
@@ -60,7 +63,25 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_2", func_mine_mesa_8017DBC4);
+s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    u8 field9;
+
+    field9 = Game_Session->field_9;
+    if (field9 == 1) {
+        if (GameFlag_GetNibble(0xCD) == 0) {
+            if (Game_GetPtrSlot(0xA) != NULL) {
+                Gp_StateC08.field_6 |= 1;
+                Gp_PulseState1C();
+                D_mine_mesa_80189B50 = field9;
+                GameFlag_SetNibble(0xCD, 1);
+            }
+        } else if (D_mine_mesa_80189B4C != NULL) {
+            Gp_DispatchMsg(D_mine_mesa_80189B4C, 0x13F4, arg2, arg3);
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_2", func_mine_mesa_8017DC80);
 
