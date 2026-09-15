@@ -2,8 +2,14 @@
 #include "main/fs.h"
 #include "gameplay/3A34.h"
 extern s32 D_mine_cavern_8018EB54;
+extern u8  D_8007216D;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_6", func_mine_cavern_8017E330);
+void func_mine_cavern_8017E330(void)
+{
+    D_8007216D             = 2;
+    Game_Session->field_5  = 2;
+    Game_Session->field_76 = 1;
+}
 
 void func_mine_cavern_8017E358(void)
 {
