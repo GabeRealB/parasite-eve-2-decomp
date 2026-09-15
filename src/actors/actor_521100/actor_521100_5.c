@@ -7,7 +7,24 @@
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135D10);
+s32 func_actor_521100_80135D10(Actor521100* arg0, s32 arg1, s32 arg2)
+{
+    Actor521100Obj2C* obj;
+    Actor521100Work*  work;
+
+    obj  = arg0->field_2C;
+    work = arg0->field_1C;
+    if (!(arg2 & 1)) {
+        obj->field_C = 0x80;
+    } else {
+        obj->field_C = 0;
+    }
+    if (arg2 & 2) {
+        obj->field_C |= 4;
+    }
+    work->field_692 = arg2;
+    return 0;
+}
 
 s32 func_actor_521100_80135D58(Actor521100* arg0, s32 arg1, Actor521100Msg* arg2)
 {
