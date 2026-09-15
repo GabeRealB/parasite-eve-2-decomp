@@ -79829,3 +79829,51 @@ one copy per family, and the body names its own overlay's data.)
 Read the object before writing a bound check: two compares against the same
 register is a source-level fact, not an allocation artifact, and the folded
 version is a different function.
+
+## A constant selected by a two-way condition reaches one call site through the else's branch delay slot (func_mine_mesa_801817BC, 2026-09-15)
+
+When a room picks one of two constants by a condition and passes it to a single
+callee, the target has **one** `jal` and four blocks, not two calls. This room's
+target is 17 instructions:
+
+```
+lbu   $v1, 0x9($v0)                ; Game_Session->field_9
+addiu $v0, $zero, 0x1
+beq   $v1, $v0, .L_E4              ; first disjunct -> the then block
+addiu $v0, $zero, 0x7              ;   (delay slot: the second test's constant)
+bne   $v1, $v0, .L_E8              ; second disjunct, inverted -> the join
+addiu $a0, $zero, 0x190            ;   (delay slot: the *else* assignment)
+.L_E4:  addiu $a0, $zero, 0x7D0
+.L_E8:  jal    func_mine_mesa_801811C4
+```
+
+Two things fall out of that layout. The then-block sits *after* the else, so the
+inverted second test branches straight to the join and the else needs no jump of
+its own; and the else's single instruction is then scheduled into that branch's
+delay slot. It still executes when the branch is not taken, which is harmless
+here only because the then-block overwrites `$a0` - so the pattern is available
+whenever the else body is one instruction whose destination the then body
+rewrites.
+
+The source is an ordinary selection, and either spelling of it works:
+
+```c
+s32 offset;
+
+if (Game_Session->field_9 == 1 || Game_Session->field_9 == 7) {
+    offset = 0x7D0;
+} else {
+    offset = 0x190;
+}
+func_mine_mesa_801811C4(offset);
+```
+
+The m2c seed reached 100% on the first build with the comma-operator form
+(`if (x == 1 || (offset = 0x190, x == 7))`); the plain `if`/`else` above is the
+same object, so the comma operator is not doing any work and can be replaced with
+the readable form. What produces a *different* function is hoisting the call into
+the arms - `if (cond) f(0x7D0); else f(0x190);` gives two call blocks and two
+jals, which is not this target. Note also that `fold_range_test` does **not**
+apply: the two tests are equality against 1 and 7, whose ranges do not merge, so
+unlike a bound check (see the `func_mine_mesa_8017E70C` entry above) the `||`
+survives as two compares.
