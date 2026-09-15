@@ -78017,6 +78017,18 @@ destination when the destination is already the register the value is consumed
 in - i.e. when the call is written where the address is chosen. A conditional
 address that reaches the call through a variable defeats the tie.
 
+Third instance, and it shows the shared variable is not just the address:
+`func_dryfield_night_factory_801825F0` (51 insns, `regs=6 branch=3 delete=2
+reorder=1`) has the room-overlay shape `Room_Draw15(&SYM, 0x80, k)`, where m2c
+merged *both* `var_a0` and `var_a2` through a `block_8` goto. Both became one
+pseudo with two defs, so the `high` scratch went to `$v0` and the arm's
+`li a1,0x80` sank into the shared tail. Writing the call in each arm fixed all
+of the arguments at once: `lui a0,%hi / addiu a0,a0,%lo` in each arm,
+`li a1,0x80` duplicated into both arms, and the cross-jumped `jal` left holding
+only the call - which is why the target's shared `jal Room_Draw15` has a `nop`
+in its delay slot. A lone `nop` in the delay slot of a call that both arms reach
+is the tell that the tail really is just the call, so nothing can fill it.
+
 Inputs: `base.i` (m2c shared variable, 91.815%)
 `7fb0031b7b507f6457f909f3f8b33c2b2c318610b2323ff50c70700e2524c057`,
 `base_1.i` (call per arm, 100.000%)
