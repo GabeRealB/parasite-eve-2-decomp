@@ -79668,6 +79668,33 @@ store be scheduled *inside* the state value's live range; local-alloc then finds
 struct form — a probe with only `field_24` fixed still came out `$v0`. So when a
 `regs` penalty is one register in an otherwise byte-identical tail, check whether
 the seed's field accesses are `M2C_FIELD` before hunting the allocator.
+
+A second room instance (`func_dryfield_gas_station_8017FEDC`, 2026-09-15) says
+*which* accesses have to be: only the one whose value feeds the tail. Typing the
+parameter `Task*` but leaving `field_24` as `M2C_FIELD(arg0, void**, 0x24)` is
+byte-identical to typing both, because `field_24` is stored in block 0 and never
+reaches the tail's allocation. Do not read that as disagreement with
+`mine_mesa` — there the state access was the one that had to be struct form too;
+the probe there fixed `field_24` and left the state cast, which is the other
+direction. The size of the penalty tracks the number of differing *lines*, not
+the cause: this one was 99.048% with `regs=8` — ten lines, all of them the same
+`$v0`/`$v1` swap plus the byte store's constant moving from `$v0` to `$a0` —
+against `mine_mesa`'s `regs=2` for the same fix. What changes is the same
+`output_dependence`/`anti_dependence` clause: the cast form gives the trailing
+`sb` an `insn_list:REG_DEP_OUTPUT` on the `0x30` store and a `REG_DEP_ANTI` on
+its load, and the struct form (`mem/s:SI`, varying `(plus (reg) (const_int 48))`
+address against a non-varying `lo_sum` symbol address) drops both. sched1 then
+emits block 3 as `high`/`li`/`sb` ahead of `lw`/`add`/`sw`; local-alloc runs
+after sched1, so the reordered block renumbers the quantities and flips the tie.
+
+Inputs: `base.i`
+`579dcfe254aab43b49a2fb7088b90c77bb18d043aa14dcf0f88d70b2552f51e8` (cast form,
+99.048%), `base_1.i`
+`4b7750cfbc9030c95f4b8daf6a7f5f122385ce5b430e752caff157af3e3f8e25` (struct
+state + struct `field_24`, 100%), `base_3.i`
+`303876433d06b4c5c37ea092330a217daff24db558b57a6b32a41936f35daea6` (struct
+state only, 100%). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## m2c renders a stack-copied handler-table dispatch as a call that passes the table entries (func_neo_ark_forest_zone_8017DBBC, 2026-09-15)
 
 A dispatcher that block-copies a handler table onto the stack and calls through it
