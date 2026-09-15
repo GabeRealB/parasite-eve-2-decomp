@@ -33,6 +33,9 @@ void       Gp_IncStateF0Ref(s32 arg0);
 s32        Gp_GetObjPan(GsCOORDINATE2* arg0);
 s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
 s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
+void       Gp_UnlinkObj(void* node);
+void       Gp_UnlinkNode(void* node);
+void       Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void       Actor00400_Fn060CC(Actor100400* arg0);
 void       Actor00400_Fn09714(Actor100400* arg0);
 void       Actor00400_Fn06EA4(Actor100400* arg0);
@@ -363,7 +366,40 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04A1C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04B48);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04CF8);
+void Actor00400_Fn04CF8(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Obj*  obj;
+    s32              id;
+    Actor100400Work* w;
+
+    work          = arg0->field_1C;
+    obj           = arg0->field_20;
+    obj->field_54 = NULL;
+    Gp_UnlinkObj(&work->pad_42C);
+    Gp_UnlinkObj(&work->field_26C[0xF0]);
+    Gp_UnlinkObj(&work->field_26C[0x110]);
+    Gp_UnlinkObj(&work->pad_4DC);
+    Gp_UnlinkNode(&obj->field_10);
+    Gp_ReleaseStateF0Add(arg0, 0);
+    work->field_648 = 0x80;
+    if (work->field_644 == 4) {
+        w            = arg0->field_1C;
+        w->field_638 = 6;
+        w->field_63A = 0;
+        return;
+    }
+    w               = arg0->field_1C;
+    w->field_63C    = 8;
+    w->field_632    = 0x10;
+    w->field_628    = 0xF;
+    w->field_624    = 1;
+    work->field_636 = 0;
+    id              = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+    SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(arg0->field_2C->field_8),
+                        (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    work->field_638++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04E18);
 
