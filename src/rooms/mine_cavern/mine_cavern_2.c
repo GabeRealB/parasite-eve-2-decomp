@@ -2,6 +2,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, GpMsg13EF* arg2)
@@ -14,7 +15,13 @@ s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, GpMsg13EF* arg2)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DC9C);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DD38);
+s32 func_mine_cavern_8017DD38(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xD) {
+        SndEvt_EnqueueType6(0x54020000 | 0xD, 0, 0);
+    }
+    return 0;
+}
 
 void func_mine_cavern_8017DD6C(Task* task)
 {
