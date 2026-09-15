@@ -20,6 +20,10 @@ extern u16 D_dryfield_water_tank_801868CC[];
 /// The placement the room sends slot 3 with message 0x3E9.
 extern RoomPlacement D_dryfield_water_tank_801804F4;
 
+/// The water tank's run: one `SVECTOR` position per frame, `y` fixed at -12000
+/// and `z` stepping up the room, 52 entries of movement before the tail clamps.
+extern SVECTOR D_dryfield_water_tank_80184530[];
+
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
 /// `D_8007218A` picks which of the two weapon-id bases that record uses.
@@ -56,7 +60,27 @@ void func_dryfield_water_tank_8017EC38(u32 arg0)
     Task_SpawnFromTable(&D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017EC6C);
+/// Walks the water tank one step along `D_dryfield_water_tank_80184530` per
+/// frame: sends slot 3 that entry as a `RoomPlacement` -- the spline position
+/// with the tank's fixed half-turn about `y` -- and advances `killCountdown`.
+/// At 0x34 the tank has finished its run, and the task kills itself.
+void func_dryfield_water_tank_8017EC6C(Task* arg0)
+{
+    RoomPlacement rec;
+
+    if (arg0->killCountdown >= 0x34) {
+        Task_Kill(arg0);
+        return;
+    }
+    rec.pos.vx = D_dryfield_water_tank_80184530[arg0->killCountdown].vx;
+    rec.pos.vy = D_dryfield_water_tank_80184530[arg0->killCountdown].vy;
+    rec.pos.vz = D_dryfield_water_tank_80184530[arg0->killCountdown].vz;
+    rec.rot.vx = 0;
+    rec.rot.vy = -0x7FF;
+    rec.rot.vz = 0;
+    arg0->killCountdown++;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017ED30);
 
