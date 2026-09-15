@@ -5,6 +5,8 @@ extern TaskDesc RoomsShared8017e320Desc;
 extern Task*    RoomsShared8017e320Task;
 extern Task*    D_dryfield_night_gas_station_801907AC;
 
+extern void func_dryfield_night_gas_station_8017FD80(s16);
+
 /// Retires the room's third tracked task and drops the room's reference to it.
 /// The `-1` state is the task's own exit request, so the task frees itself on
 /// its next tick.
@@ -16,7 +18,22 @@ void func_dryfield_night_gas_station_80180974(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_5", func_dryfield_night_gas_station_80180998);
+/// Runs the room's countdown timer task: for its first 100 ticks it pulses
+/// `func_dryfield_night_gas_station_8017FD80` and counts up, then kills itself.
+void func_dryfield_night_gas_station_80180998(Task* arg0)
+{
+    s16 temp_a0;
+
+    if (arg0->state == 0) {
+        temp_a0 = arg0->killCountdown;
+        if (temp_a0 < 0x64) {
+            func_dryfield_night_gas_station_8017FD80(temp_a0);
+            arg0->killCountdown = (u16)arg0->killCountdown + 1;
+            return;
+        }
+    }
+    Task_Kill(arg0);
+}
 
 /// Spawns the room's second tracked task (slot 2 of the shared table) and
 /// stores it beside `RoomsShared8017e320Task`.
