@@ -16,7 +16,55 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0056C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn008B4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn00E00);
+extern SVECTOR Actor01900_D1730C;
+
+s32 Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
+{
+    void**               scratch;
+    u8*                  head;
+    Actor01900DeltaFlag* s;
+    register void*       p asm("v1");
+    s32                  val;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    p           = head - 0x14;
+    s           = p;
+    *scratch    = p;
+    s->field_10 = 0;
+    if (func_800E0C10(rec, &s->delta, (s16)arg2, NULL) != 0) {
+        coord->coord.t[0]   += ((Actor01900DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]   += s->delta.vz.h.hi;
+        Actor01900_D1730C.vx = ((Actor01900DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor01900_D1730C.vy = s->delta.vy.w >> 16;
+        Actor01900_D1730C.vz = s->delta.vz.w >> 16;
+        val                  = ((Actor01900DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                Actor01900_D1730C.vx++;
+            } else {
+                coord->coord.t[0]--;
+                Actor01900_D1730C.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                Actor01900_D1730C.vz++;
+            } else {
+                coord->coord.t[2]--;
+                Actor01900_D1730C.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->field_10 = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->field_10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn00FA4);
 

@@ -128,6 +128,15 @@ typedef struct Actor01900Delta {
 } Actor01900Delta;
 STATIC_ASSERT_SIZEOF(Actor01900Delta, 0x20);
 
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn00E00`:
+/// the `GpDeltaScratch` filled by `func_800E0C10` plus the returned flag,
+/// set when the X or Z delta is nonzero.
+typedef struct Actor01900DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor01900DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor01900DeltaFlag, 0x14);
+
 /// Payload of the `0x7D3` message the overlay's `Actor01900_D1728C` handler
 /// table dispatches to `Actor01900_Fn0A31C`. Senders build the record in their
 /// own data (`D_actor_146300_80137AAC` and friends); `field_4` selects which
@@ -159,7 +168,7 @@ extern void*                 D_80114B78[1];
 extern u8                    D_801153F2[2];
 extern u8                    D_801153F4;
 
-s32  Actor01900_Fn00E00(GsCOORDINATE2* arg0, void* arg1, s32 arg2);
+s32  Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void Actor01900_Fn02A50(Actor01900* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void Actor01900_Fn01C94(Actor01900* arg0);
