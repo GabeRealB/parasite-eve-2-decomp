@@ -79930,3 +79930,37 @@ Scope matters: only that one reference needs the cast. `Game_Session->field_52 =
 two statements later stayed a struct field and the body still matched, and the
 sibling `func_dryfield_water_tank_8017E194` in the same TU is plain struct access
 throughout — the flag is per-access, and the diagnostic names which access.
+
+## m2c's `M2C_UNK` base pointer scales the index a second time - retype the table to the access width (func_dryfield_water_tank_8017F084, 2026-09-15)
+
+`M2C_UNK` is `s32` (`tools/m2c/m2c_macros.h`), so an m2c seed that scales an
+element index by hand — `((Gp_GetViewIndex() & 0xFF) - 1) * 2 + &D_x` — scales it
+again at the pointer addition: the `* 2` is multiplied by the base type's 4
+bytes, and the `- 1` is folded into the symbol's displacement.
+
+```
+target                              seed, M2C_UNK base (90.526%)
+    andi  $v0, $v0, 0xFF                andi  $v0, $v0, 0xFF
+    addiu $v0, $v0, -0x1                sll   $v0, $v0, 0x3
+    sll   $v0, $v0, 0x1          vs.    lui   $v1, %hi(D_x)
+    addu  $v0, $v0, $v1                 addiu $v1, $v1, %lo(D_x-0x8)
+                                        addu  $v0, $v0, $v1
+```
+
+Signature: one shift larger than the access width justifies, the index's
+adjustment gone, and a `%lo(sym-N)` whose N is that adjustment times the
+*seed's* element size (`1 * 2 * 4 = 8`). The index expression itself is correct;
+only the base type is wrong.
+
+Declare the table at the width the target's own access uses, and write the index
+once:
+
+```c
+extern u16 D_dryfield_water_tank_801868CC[];
+    Gp_State1C->field_A = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
+```
+
+`lhu` at the read says 2 bytes, so `u16` — and 100.000% followed on the first
+build, all penalties zero. Read the width off the target (`lbu` byte, `lhu`
+halfword, `lw`/`lwl` word) rather than from the seed's `* N`, which is the
+element count the *writer* of the seed guessed.
