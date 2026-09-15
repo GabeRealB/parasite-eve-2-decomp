@@ -6973,6 +6973,44 @@ the header word pushed `jtbl_m249_8011D1C4` to `0x8011D1C8`. Adding
 m249 = { item = 0x90, weapon = "M249", rodata_head = "0x4" }
 ```
 
+### A read from an unset register is a late `.text` start, not a pin
+
+`text_span()` looks for the *first stack-frame prologue*, so code that begins
+before the first `addiu $sp, $sp, -N` is filed as leading rodata. In the room
+overlays the message handlers begin right after the id word, the
+`TaskFuncTable3` and the jump table, and the first of them is usually a
+frameless two-instruction `return 0` - nothing to detect. The span then starts
+at the first function that *does* have a frame, and since GCC hoists a global's
+`lui`/`lw` above that frame, it starts 8 bytes late as well.
+
+The symptom inside the function is m2c's `Read from unset register $v0`: the
+target `.s` loads `lbu $v1, 0x9($v0)` with nothing in the function setting
+`$v0`, so it cannot be written as C at all - the two instructions that set it
+are in the rodata blob ahead of it. Check for a `lui`/`lw` pair there before
+reaching for `register ... asm("v0")`: pinning reproduces the mis-split object
+but asserts a live-in the original source never had.
+
+`dryfield_motel_room_1` is the worked example. Its handler table at `0xAE8`
+names handlers at `0x8017D5EC`, `0x8017D5F4`, `0x8017D624` and `0x8017D61C`;
+the first is `jr $ra` / `move v0, zero`, so the detector's first prologue is
+`0x6C` - which is `0x8017D624`'s third instruction, after the hoisted
+`lui`/`lw` of `Game_Session`. Every byte still matched (the handler bodies sat
+in the leading rodata as `.word`s), so the build stayed green and nothing
+pointed at the split until the handler was decompiled from C: the compiler
+emits the hoisted load, the object is 8 bytes longer than the `.s` at the same
+address, and everything after it links shifted.
+
+```toml
+dryfield_motel_room_1 = { text = [0x2C, 0xAE8], ... }
+```
+
+`0x2C` is the offset the sibling rooms reach by accident, because their first
+handler has a frame (`acropolis_patio`'s `func_acropolis_patio_8017D5EC` is the
+first function at `0x2C`). Pinning the start there splits the three stubs as
+functions, so the message table's handler words resolve to them rather than to
+a `D_...` rodata symbol - and the function is 8 bytes longer than before, which
+is the whole reason it could not be written as C.
+
 ## Shared `task->state++` is per-case stores, not a `next` phi
 
 A long task switch whose every advancing arm is `lw v0, 0x30(s1) / j store /
