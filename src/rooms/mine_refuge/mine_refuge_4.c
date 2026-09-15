@@ -6,8 +6,12 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
-extern u8 D_8007216C;
-extern u8 D_mine_refuge_80182ADC;
+extern u8         D_8007216C;
+extern u8         D_80062735;
+extern u8         D_80115598;
+extern s32        D_mine_refuge_80182AD8;
+extern u8         D_mine_refuge_80182ADC;
+extern GpMsgEntry D_mine_refuge_80181884[];
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017ef20Title);
 INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017de9cHundred);
@@ -50,4 +54,12 @@ void func_mine_refuge_8017FDBC(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FE78);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FF4C);
+void func_mine_refuge_8017FF4C(Task* arg0)
+{
+    arg0->field_24 = D_mine_refuge_80181884;
+    Game_SetPtrSlot(arg0, 7);
+    D_mine_refuge_80182AD8 = 0;
+    D_80062735             = 1;
+    arg0->state            = arg0->state + 1;
+    D_80115598             = 1;
+}

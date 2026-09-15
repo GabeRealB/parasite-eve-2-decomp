@@ -82950,3 +82950,37 @@ Inputs: `base_1.i` (100.000%)
 `a9baaa56bffc8294bb4e7ebbbb6f40d39cd02eb93f54f63ea683524b65ceefae`,
 `base_2.i` (93.548%)
 `8b9a4eabab100532c0ffa9fd234941e23bfad35346d7f9cf44d7ee28059d273c`.
+
+## m2c's cast access and a real struct field access are different MEMs, and sched1 can see the difference (func_mine_refuge_8017FF4C, 2026-09-15)
+
+An m2c body with a stubborn `regs` penalty that survives every reordering of the
+statements: two `sb` stores share one constant 1, and the build puts the constant
+in `$v1` and the last symbol address in `$v0`, while the target has the constant
+in `$a0` and that address in `$v1`. All 24 permutations of the four trailing
+statements score identically (98.96%, `regs=5`), and the object is instruction-for-
+instruction identical otherwise, so the leftover is a live-span difference, not a
+statement order.
+
+The cause is how the enclosing parameter is read. m2c writes
+`M2C_FIELD(arg0, s32 *, 0x30)`, i.e. `*(s32 *)((u8 *)arg0 + 0x30)`, whose MEM comes
+out with alias set 0 - the `-da` dump prints `(mem:SI (plus:SI (reg/v:SI 80)
+(const_int 48)))`. The real field access `arg0->state` with a `Task *arg0` prints
+`(mem/s:SI (plus:SI ...))`: the struct's alias set is recorded, so `sched_analyze`
+does not order the trailing store to a symbol against it. With alias set 0 it does,
+which forces the last symbol's `high` insn *after* the state block in the
+pre-allocation order; the `high`'s live span then misses the state quantity's
+`$v0` mark, so it is free to take `$v0` and the shared constant gets `$v1`.
+`tools/trace_gcc.py` shows both directly - the m2c body's local quantities are
+
+```
+local b0 q6 [91]: refs=2 span=2  priority=10000 -> $v0   # high of the last symbol
+local b0 q4 [87]: refs=3 span=12 priority=2500  -> $v1   # the shared constant
+```
+
+where the target's allocation only follows if `[91]`'s span overlaps the state
+quantity's own span. Writing the field access the way the TU's matched siblings
+write it (`arg0->state = arg0->state + 1;`) moves the `high` insn one slot earlier,
+gives `[91]` span 6, and lands 100% with zero penalties. Aliasing is a property of
+the *expression*, not of the layout, so a cast-based access is never a free
+substitute for the field it names - even when the offsets are identical and the
+instruction count matches.
