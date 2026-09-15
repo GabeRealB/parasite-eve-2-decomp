@@ -82084,3 +82084,30 @@ penalty zero, on the first build after the rewrite (`base_2.c`, preprocessed
 m2c split into scalars is a *shape* error, not a scheduling one - no amount of
 statement reordering recovers instructions that were deleted before the
 scheduler ever ran.
+
+## m2c drops a call argument that is already in `$a0`, and the missing argument costs a callee-saved register (func_dryfield_breezeway_8017FD9C, 2026-09-15)
+
+`func_dryfield_breezeway_8017FD9C` calls the room's cursor scan as
+`func_dryfield_breezeway_8017EB8C(task, 0, 0x20)` - the task itself, passed
+straight through from `$a0`. m2c sees only `a1`/`a2` being set before the `jal`,
+so it renders the call as `func_dryfield_breezeway_8017EB8C(0, 0x20)` and the
+seed compiles `move a0,zero`, handing the callee a null task.
+
+The part worth recognising is the collateral: with `a0` clobbered, only one of
+the two values the function keeps across the call can live in a register. The
+seed keeps `task->idMap` in `$s0` and rematerialises the prompt address from
+`lui`/`addiu` *after* the call, so `$s2` is never used and the frame loses its
+save - 74.630% on `regs=17 insert=2 delete=4` alone, with the control flow
+already matching. Restoring the argument gives the target's three-way split
+(`$s1` task, `$s2` idMap, `$s0` `&D_80114D28`, `lui` hoisted above the `jal` and
+its `addiu` in the delay slot) and 100.000% on the first build after the edit.
+
+The tell is a call whose first argument register is never written between the
+function entry and the `jal`: the value sitting there is the incoming parameter,
+not a constant, and m2c will have dropped it. Read the callee's head to confirm
+what it does with `a0` before assuming the seed's argument list is complete.
+
+Inputs: `base.i` (74.630%)
+`7433e351bc5eccb2bd048cedace369b802a3a0de094bbb87fc307ac5ff29741f`,
+`base_1.i` (100.000%)
+`3213b2994bf62d1aabad7ff1cc107821d7319633200f3dd0fe77636cefa147ef`.

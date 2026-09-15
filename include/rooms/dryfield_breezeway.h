@@ -48,10 +48,18 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// zeroed by the allocator and by `func_dryfield_breezeway_8017E464` itself;
 /// `func_dryfield_breezeway_8017FE08` reads the latch back and picks state 6
 /// when it is 1 and state 2 otherwise.
+///
+/// `promptKind` is the display mode the hotspot scan
+/// `func_dryfield_breezeway_8017E65C` copies off the `RoomHotspot` the cursor
+/// landed on (whose id it parks at 0x4C) before it picks state 3;
+/// `func_dryfield_breezeway_8017FD9C` forwards it to `func_800D4E78` when it
+/// re-spawns the prompt.
 typedef struct DbwEventWork {
     /* 0x00 */ byte pad_0[0x40];
     /* 0x40 */ s32  field_40;
-    /* 0x44 */ byte pad_44[0x1C];
+    /* 0x44 */ byte pad_44[0x18];
+    /* 0x5C */ s8   promptKind;
+    /* 0x5D */ byte pad_5D[0x3];
 } DbwEventWork;
 STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
 
@@ -97,5 +105,13 @@ extern DbwPlacement D_dryfield_breezeway_80181E28;
 /// its way out. `func_dryfield_breezeway_8017D90C` forwards it to
 /// `Gp_DispatchMsg` (with no message id of its own).
 extern Task* D_dryfield_breezeway_801843A8;
+
+/// The breezeway's cursor scan, run every frame its key-item event task is on a
+/// state that watches the cursor. `arg1` / `arg2` are the position the scan
+/// starts from - the prompt's own `screen` coordinates from
+/// `func_dryfield_breezeway_8017E81C`, or the reset pair (0, 0x20) the other
+/// states pass - and the scan answers by writing `D_80114D28::mode` (1 = over a
+/// hotspot, 2 = confirmed) as well as advancing the hotspot's own animation.
+void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
 
 #endif // ROOMS_DRYFIELD_BREEZEWAY_H
