@@ -27,7 +27,9 @@ typedef struct Actor521100 {
 /// stores the pointer both in `D_actor_521100_8016A3D8` and in the task's
 /// 0x1C slot. `anim` sits at 0x40 and the slot array at 0x54, the same layout
 /// as `Actor202900Work`; the nineteen slots are the ones
-/// `func_actor_521100_80136724` ticks.
+/// `func_actor_521100_80136724` ticks. The step / playing-id / `animId` /
+/// clear-flag fields at 0x47C / 0x47E / 0x480 / 0x482 are the same layout
+/// `Actor202900Work` uses.
 ///
 /// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
 /// the heading it applied to the root coordinate and the remaining distance,
@@ -36,7 +38,12 @@ typedef struct Actor521100Work {
     /* 0x000 */ byte         pad_0[0x40];
     /* 0x040 */ GpAnimCtx    anim;
     /* 0x054 */ GpAnimSlot   slots[0x13];
-    /* 0x34C */ byte         pad_34C[0x162];
+    /* 0x34C */ byte         pad_34C[0x130];
+    /* 0x47C */ s16          field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
+    /* 0x47E */ u16          field_47E; // animation id currently playing
+    /* 0x480 */ u16          animId;    // animation id the slots are seeded with
+    /* 0x482 */ s16          field_482; // cleared when a step body is started
+    /* 0x484 */ byte         pad_484[0x2A];
     /* 0x4AE */ u16          yaw;
     /* 0x4B0 */ byte         pad_4B0[0x2];
     /* 0x4B2 */ s16          travel;
@@ -79,12 +86,53 @@ typedef struct Actor521100Target {
 } Actor521100Target;
 STATIC_ASSERT_SIZEOF(Actor521100Target, 0x10);
 
+/// Argument block of the message handler `func_actor_521100_801369B8`
+/// implements: which animation to start. Same 4-byte-id prefix as
+/// `Actor202900AnimArgs`, and the same `(u16)` narrowing on the store into the
+/// work block's `animId`. The stored id is `args->animId + 1`.
+typedef struct Actor521100AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+} Actor521100AnimArgs;
+
 extern Actor521100Work* D_actor_521100_8016A3D8;
+
+/// State table the overlay dispatches through, indexed by `Task::state`.
+/// `D_actor_521100_80131E68` is its 3 words: create
+/// (`func_actor_521100_80135DDC`), update (`func_actor_521100_80136680`)
+/// and teardown (`func_actor_521100_801360C4`). Both handlers take the
+/// task's 0x20 spawn argument first, like `Actor210600StateFuncTable3`.
+typedef void (*Actor521100StateFunc)(void* spawnArg2, Task* task);
+
+typedef struct Actor521100StateFuncTable3 {
+    Actor521100StateFunc funcs[3];
+} Actor521100StateFuncTable3;
+STATIC_ASSERT_SIZEOF(Actor521100StateFuncTable3, 0xC);
+
+extern const Actor521100StateFuncTable3 D_actor_521100_80131E68;
+
+/// Stack copy `func_actor_521100_80136604` makes before the indirect call.
+/// The copy itself moves only the 3 words of `D_actor_521100_80131E68`, but
+/// the dispatcher's frame is 0x30 with `$ra` at 0x28, which needs 17-24 bytes
+/// of locals. The trailing `u8`/`u8`/`u16` at 0x10 are written to 2, 9, 1;
+/// `field_C` is unread. Same 20-byte table-plus-context shape as
+/// `Actor210600DispatchCtx`.
+typedef struct Actor521100DispatchCtx {
+    /* 0x00 */ Actor521100StateFuncTable3 table;
+    /* 0x0C */ s32                        field_C;
+    /* 0x10 */ u8                         field_10;
+    /* 0x11 */ u8                         field_11;
+    /* 0x12 */ u16                        field_12;
+} Actor521100DispatchCtx;
+STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 
 void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_801355C8(Actor521100* arg0);
+void func_actor_521100_80135F2C(Task* task);
 void func_actor_521100_80136724(void);
+void func_actor_521100_80136820(void);
+s32  func_actor_521100_801369B8(Task* task, s32 arg1, Actor521100AnimArgs* args);
 s32  func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target);
 
 #endif
