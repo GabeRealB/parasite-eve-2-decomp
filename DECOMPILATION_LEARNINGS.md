@@ -80733,3 +80733,36 @@ keeping it alive in a callee-saved register. The target reads `0x2C($s2)` off th
 `head[-1].vx` still matches where no release precedes it, so this is context,
 not a rule: try both spellings when the base register of the first component
 read is the only regs diff.
+
+### Duplicated call arms need their own locals, or the shared ones steal callee-saved registers
+
+`Actor01900_Fn02A50` picks a sound id with `hp <= 0 ? 0x400A0008 : 0x400A0007`
+and feeds it through `Gp_GetObjPan` / `Gp_GetObjDepth` to `SndEvt_EnqueueType6`.
+Every single-local form was 99.988% at best: a plain `if`/`else` (or ternary)
+is hoisted by jump.c's `x = b; if (...) x = a`; loading `hp` into the result
+local blocks that (the jump then references `x`) but leaves the test in the
+result's register (`lh v1` for `lh v0`); copying through a second local lets CSE
+canonicalise the copy and the post-CSE jump pass hoists anyway.
+
+Duplicating the whole sound block into both arms (the "duplicate the whole
+call" entry) fixed the topology but moved every callee-saved register: the
+shared `sound` / `pan` pseudos now had twice the refs and outranked the
+function's long-lived pointers in `global.c`. Giving each arm its own locals
+(`deathSound`/`deathPan`, `hitSound`/`hitPan`, as `actor_400100_damage.c`
+already does) matched:
+
+```c
+if (enemy->field_40 <= 0) {
+    deathSound = ((enemy->field_8 >> 0xC) << 8) | 0x400A0008;
+    deathPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(deathSound, deathPan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+} else {
+    hitSound = ((enemy->field_8 >> 0xC) << 8) | 0x400A0007;
+    ...
+}
+```
+
+Same function: a hand-written yaw wrap loop left the loop variable in `$v1`
+instead of `$a1`; `s->yaw = Actor01900_NormalizeYaw(s->yaw)` (the overlay's
+existing inline) put it in `$a1`, because the inline's return pseudo, not the
+loop variable, is what gets stored and passed.
