@@ -80098,6 +80098,19 @@ the fallthrough. Reaching `-1` by a `j` to the join block, with `li v0,-0x1` in
 that jump's delay slot, is the signature of the **else** arm: the original
 stored into a result temp and returned once, so neither arm leaves early.
 
+## The same block swap has a polarity-free cure: one `ret` local and a single `return`
+
+The swap above is a property of *two `return`s*, not of the function. Write the
+two paths as assignments to one local instead and jump.c has nothing to swap:
+the `if/else` expands in source order, the taken arm stays inline and the
+single epilogue is reached by fall-through.
+
+`func_dryfield_breezeway_8017D90C` is the guarded-dispatch wrapper most rooms
+carry - read a room-local `Task*`, return 0 when it is null, else forward it to
+`Gp_DispatchMsg` and return that. m2c's two-`return` seed scored exactly 60%
+(`insert=3 delete=2 reorder=1`) with the call as the fall-through, `beqz`, and
+an extra `j`/`nop` around the out-of-line `addu v0,zero,zero`:
+
 ```c
 s32 ret;
 
@@ -80105,6 +80118,10 @@ if (D_neo_ark_woodland_path_80181680 == NULL) {
     ret = -1;
 } else {
     ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680);
+if (D_dryfield_breezeway_801843A8 == NULL) {
+    ret = 0;
+} else {
+    ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8);
 }
 return ret;
 ```
@@ -81959,3 +81976,15 @@ no length guess.
 This is a *read*, not a `promote`: the dup index correctly reports only this
 overlay (the differing constant is in the disassembly text, so the two are not
 equal bodies) and there is nothing to share.
+is 100% on the first build (`base_1.c`; preprocessed
+`10bcab4c4b957e2f55133b606862dedd172f095aa4992741600e825e05fbc4d1`), giving the
+target's `bnez $a0, .Lcall`, `j .Lend` / `addu v0,zero,zero` in the delay slot,
+and one epilogue. Prefer this over choosing a polarity when the body's tail is a
+dispatch guard: the already-matched room siblings
+(`func_neo_ark_woodland_path_8017E910`, `func_acropolis_security_room_8017D6DC`)
+are written this way, so copying a sibling's shape is the cheapest route to the
+layout. The declaration of `Gp_DispatchMsg`
+stays unprototyped (`s32 Gp_DispatchMsg();`) - the call passes only the task and
+leaves `a1`-`a3` holding whatever the caller had - and the referenced `Task*` is
+overlay-local, so the body is *not* promotable despite the twin other rooms
+carry.

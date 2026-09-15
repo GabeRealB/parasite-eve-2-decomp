@@ -7,9 +7,25 @@
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 
+#include "rooms/dryfield_breezeway.h"
+
+/* The room calls the dispatcher with only the task, leaving a1-a3 holding
+   whatever the caller had, so the declaration must stay unprototyped. */
+s32 Gp_DispatchMsg();
+
 extern TaskDesc D_dryfield_breezeway_80181E10[];
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017D90C);
+s32 func_dryfield_breezeway_8017D90C(void)
+{
+    s32 ret;
+
+    if (D_dryfield_breezeway_801843A8 == NULL) {
+        ret = 0;
+    } else {
+        ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8);
+    }
+    return ret;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017D940);
 

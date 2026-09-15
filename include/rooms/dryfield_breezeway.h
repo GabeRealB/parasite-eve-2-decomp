@@ -35,4 +35,11 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// `func_dryfield_breezeway_8017E114` once they have built its work block.
 extern Task* D_dryfield_breezeway_801843C0;
 
+/// Secondary task spawned from the room data table by
+/// `func_dryfield_breezeway_8017DC3C` (state 0) and cleared again once
+/// `Task_PollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it on
+/// its way out. `func_dryfield_breezeway_8017D90C` forwards it to
+/// `Gp_DispatchMsg` (with no message id of its own).
+extern Task* D_dryfield_breezeway_801843A8;
+
 #endif // ROOMS_DRYFIELD_BREEZEWAY_H
