@@ -2,6 +2,7 @@
 
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -52,7 +53,13 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DBA4);
+s32 func_dryfield_breezeway_8017DBA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    if (arg2 == 7) {
+        SndEvt_EnqueueType6(0x52160000 | 7, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DBD8);
 
