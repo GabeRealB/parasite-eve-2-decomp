@@ -79860,3 +79860,34 @@ declarations. Inputs: `base_1.i`
 transcription, 89.46%), `base_2.i`
 `278d4c8d3cc5108e06c9537c3c825de2fbb01aa1bec63b1c7ee9317bf8405f70` (natural
 for-loop, 100%).
+
+## An unused middle parameter m2c dropped puts the payload in the wrong argument register
+
+`func_dryfield_water_tank_8017E174` is a three-argument room message handler —
+the shape every `(msgId, handler)` table in the room library uses, e.g.
+`Room_Util08(Task* task, s32 arg1, RoomPlacement* placement)`. m2c's
+transcription declared it with two parameters, dropping the `msgId` no
+expression reaches, so the message payload was read as `$a1` where the target
+reads `$a2` (`lhu $v0, 0x2($a2)`).
+
+**Symptom.** 75% with `insert=1 delete=1` and `regs=0 stack=0 reorder=0` — a
+whole register rename plus the swapped pair below, not a scheduling problem and
+not a spill.
+
+**Fix.** Read the target's argument registers as fact rather than inferring
+arity from the C. A `$aN` the parameters cannot produce means one is missing; a
+parameter never read is what the missing one looks like from the other side.
+Both halves matter here: restoring `s32 msgId` moved the payload to `$a2`, and
+naming the third parameter after the payload is what let the two instructions
+below fall in order.
+
+The remaining `for`-loop-free two-instruction swap was a source-order problem of
+the kind described in "One-basic-block functions are scheduled as a whole": the
+payload read has to be written *before* the independent `killCountdown` store in
+the C for the backward scheduler's `INSN_LUID` tie-break to leave them in the
+target's order (`sh 0x4C`, `sh 0x54`, `lhu`, `sh 0x2A`, `sw`), which is what the
+`lhu` feeding a temp buys. Inputs: `base.i`
+`8864aeaf6d7e8e04dbcc6c5eb7277a5958649d966044ac2b7d7360e27867ec63` (m2c
+transcription, 75.00%), `base_1.i`
+`a01a86feb1d883d850dd8cdadeb832ba9279bbf4e4af292565b313944aa9a617` (restored
+parameter and reordered read, 100%).
