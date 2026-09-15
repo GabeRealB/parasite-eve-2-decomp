@@ -8,8 +8,12 @@
 #include "main/task.h"
 
 extern u8  D_80115598;
+extern u8  D_80115768;
+extern s8  D_8007272D;
 extern s32 D_dryfield_night_gas_station_80184034;
 extern s32 D_dryfield_night_gas_station_80184098;
+extern s32 D_dryfield_night_gas_station_801840AC;
+extern s32 D_dryfield_night_gas_station_801841FC;
 extern s32 D_dryfield_night_gas_station_80188B0C;
 extern s32 D_dryfield_night_gas_station_801892E4;
 extern s32 D_dryfield_night_gas_station_80189A7C;
@@ -132,6 +136,19 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_st
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017F9E8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017FA6C);
+/// Tears the room's scripted sequence down: raises `Game_Session->field_68`
+/// and `D_80115768`, hides the display, clears collection bit 0x117, installs
+/// the room's two cap files, runs the 0xA2/0x16 event and kills its own task.
+void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
+{
+    Game_Session->field_68 = 1;
+    D_80115768             = 1;
+    SetDispMask(0);
+    Gp_ClearCollectedBit(0x117);
+    func_800E8634((s32)&D_dryfield_night_gas_station_801840AC, 0, (s32)&D_dryfield_night_gas_station_801841FC);
+    func_800E3FAC(0xA2, 0x16);
+    D_8007272D = 4;
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017FAEC);
