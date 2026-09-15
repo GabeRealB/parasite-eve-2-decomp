@@ -38,6 +38,10 @@ void       Gp_IncStateF0Ref(s32 arg0);
 s32        Gp_GetObjPan(GsCOORDINATE2* arg0);
 s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
 s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
+void       Gp_AnimTickIndex(Actor100400Work* arg0, s32 arg1);
+void       Actor00400_Fn085B8(Actor100400* arg0);
+void       Actor00400_Fn08624(Actor100400* arg0);
+s16        Actor00400_Fn086FC(Actor100400* arg0, s16 arg1);
 void       Gp_UnlinkObj(void* node);
 void       Gp_LinkObj(s32 arg0, GpObj* arg1);
 void       Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
@@ -975,7 +979,39 @@ void Actor00400_Fn07C04(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07CC4);
+void Actor00400_Fn07CC4(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* w;
+    s32              i;
+
+    work = arg0->field_1C;
+    work->field_636++;
+    w = arg0->field_1C;
+    if (w->field_624 == 1) {
+        if (w->field_626 != w->field_628) {
+            w->field_62A = 0;
+        } else {
+            w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
+        }
+        Actor00400_Fn08624(arg0);
+        w->field_624 = 3;
+    } else if (w->field_624 == 2) {
+        Actor00400_Fn085B8(arg0);
+        w->field_624 = 3;
+        w->field_62A = 0;
+    } else if (w->field_624 == 3) {
+        w->field_62A++;
+    }
+    i = 1;
+    do {
+        Gp_AnimTickIndex(w, i);
+        i++;
+    } while (i < 0xF);
+    if (work->field_636 >= 0x3C) {
+        work->field_638++;
+    }
+}
 
 void Actor00400_Fn07DE0(Actor100400* arg0)
 {
