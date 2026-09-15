@@ -5,6 +5,8 @@
 #include "main/task.h"
 
 extern u32 Gp_LcgState;
+extern u8  D_801153F2[2];
+void       Gp_ArmStateF0(s32 active);
 extern s32 D_80115738;
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
@@ -334,7 +336,47 @@ void Actor00400_Fn01B90(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02154);
+s16 Actor00400_Fn02154(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    s16              state;
+    s16              req;
+
+    work = arg0->field_1C;
+    if (work->field_642 != 1) {
+        goto fail;
+    }
+    req = work->field_644;
+    if (req == 1) {
+        state = 7;
+    } else if (req == 2) {
+        state = 8;
+    } else if (req == 3) {
+        state = 9;
+    } else if (req == 4) {
+        state = 8;
+    } else {
+        goto other;
+    }
+    work->field_638 = state;
+    work->field_63A = 0;
+    work->field_644 = 0;
+    goto ok;
+other:
+    if (req == 5) {
+        D_801153F2[1] = 1;
+        Gp_ArmStateF0(1);
+        work->field_650 = 10;
+        work->field_644 = 0;
+        return 0;
+    }
+    work->field_644 = 0;
+    goto fail;
+ok:
+    return 1;
+fail:
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02208);
 
@@ -584,9 +626,6 @@ void Actor00400_Fn07738(Actor100400* arg0)
     state2->field_63A            = 0;
     work->field_63E              = coord->coord.t[1];
 }
-
-extern u8 D_801153F2[2];
-void      Gp_ArmStateF0(s32 active);
 
 void Actor00400_Fn077F4(Actor100400* arg0)
 {
