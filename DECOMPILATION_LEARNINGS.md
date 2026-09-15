@@ -42248,6 +42248,27 @@ branch. Emit them as plain local `label:` lines. `dist.py` scores 100% either
 way, but only the local form lets you confirm with
 `objcopy -O binary --only-section=.text`.
 
+## The scratch `target.o` `.text` is padded, so a whole-section `cmp` is not a match test
+
+Independent byte verification of a scratch match has to allow for the padding.
+The scratch's `target.o` is assembled with `-no-pad-sections` off, so `.text` is
+rounded up to the 16-byte alignment `-no-pad-sections` would have removed:
+a 0x74-byte function lands as a 0x80-byte section whose last 12 bytes are zero.
+The compiled side (`build.sh` → cc1 → maspsx) emits exactly the function's size.
+
+```sh
+mips-linux-gnu-objcopy -O binary --only-section=.text base.o   /tmp/a.bin  # 116
+mips-linux-gnu-objcopy -O binary --only-section=.text target.o /tmp/b.bin  # 128
+cmp /tmp/a.bin /tmp/b.bin   # "EOF on /tmp/a.bin after byte 116" - a false alarm
+```
+
+The section headers show it (`objdump -h`: `.text 00000080` against `0x74`) but
+`cmp` does not, so the failure reads as a real 12-byte shortfall. Truncate the
+target to the `.size` in its `nonmatching <label>, <size>` line before comparing;
+`head -c 0x74 /tmp/b.bin` then `cmp` is the check that actually means something.
+`objdump.py` is already immune - it strips trailing `nop`s - which is why
+`build.sh` can score 100% while a naive `cmp` says the sizes differ.
+
 ## A sibling's `one = 1` local does not port: check for a second `li v0,1`
 
 `one = 1` before a dispatch chain shares CONST_INT 1 between the compare and

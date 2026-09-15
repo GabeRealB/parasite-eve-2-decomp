@@ -1,6 +1,11 @@
 #include "common.h"
 #include "main/display.h"
 #include "gameplay/gameplay.h"
+#include "gameplay/D4.h"
+#include "main/task.h"
+
+extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[];
+extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", D_neo_ark_submarine_gallery_8017D5C0);
 
@@ -26,7 +31,15 @@ s32 func_neo_ark_submarine_gallery_8017EB48(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EB50);
+void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
+{
+    arg0->field_24 = D_neo_ark_submarine_gallery_80181884;
+    Game_SetPtrSlot(arg0, 7);
+    if (Game_Session->field_9 == 4) {
+        Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_neo_ark_submarine_gallery_8017EBC4(void)
 {
