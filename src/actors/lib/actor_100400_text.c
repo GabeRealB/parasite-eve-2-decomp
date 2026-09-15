@@ -54,6 +54,7 @@ void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
 extern GsCOORDINATE2  Gfx_ViewCoord;
+extern MATRIX         Gfx_ViewWorldMtx;
 extern TaskFuncTable3 Actor00400_D0002C;
 extern TaskFuncTable3 Actor00400_D00144;
 
@@ -512,7 +513,25 @@ void Actor00400_Fn08004(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0805C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0814C);
+void Actor00400_Fn0814C(Actor100400* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
+{
+    MATRIX           m;
+    VECTOR           d;
+    VECTOR           r;
+    GsCOORDINATE2*   coords;
+    Actor100400Work* work;
+
+    coords = arg0->field_2C->field_8;
+    work   = arg0->field_1C;
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[arg1].workm, &m);
+    d.vx = work->field_5E4.vx - m.t[0];
+    d.vy = work->field_5E4.vy - arg3 - m.t[1];
+    d.vz = work->field_5E4.vz - m.t[2];
+    ApplyTransposeMatrixLV(&coords->coord, &d, &r);
+    arg2->vx = ratan2(-r.vy, r.vz) << 20 >> 20;
+    arg2->vy = ratan2(r.vx, r.vz) << 20 >> 20;
+    arg2->vz = 0;
+}
 
 void Actor00400_Fn0824C(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 {
