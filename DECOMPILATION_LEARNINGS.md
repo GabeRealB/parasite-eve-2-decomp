@@ -83658,3 +83658,26 @@ target does not reload `field_1C`. The last register swap (`work` in `a0`
 instead of `v1`) went away when the later `arg0->field_1C` reload was assigned
 back to `work` instead of a second local, which raised `work`'s allocation
 priority above the helper's `req`.
+
+### `li C; slt $r,$r,x; beqz` for `x > C` means C was a register at expand time
+
+The usual branch form of `x > C` is `slti x,C+1; bnez`. `Actor00400_Fn05EA4`
+instead had `li v1,0x100; slt v1,v1,v0; beqz v1`, next to a normal
+`slti v0,v0,-0x100` for the paired `x < -C`. The cause is MIPS
+`gen_int_relational` (`config/mips/mips.c`). It adds 1 to a constant `cmp1` and
+emits `slti`. A *register* `cmp1` makes it swap the operands instead
+(`reverse_regs`) and emit `slt`. Later CSE cannot fold the constant back,
+because `slt`'s first operand has to be a register. The `-C` side still ends up
+as `slti`, because the constant only replaces the second operand.
+
+Fix: make C an inline-function parameter. After integration it is a pseudo
+holding 0x100 when the comparison is expanded:
+
+```c
+static inline void TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
+{ ... if (diff > range) ... else if (diff < -range) ... }
+TurnToward(arg0, &work->field_56C, 0x30, 0x100);
+```
+
+Writing `0x100 < diff` does not work, because fold canonicalizes it back to
+`diff > 0x100`.

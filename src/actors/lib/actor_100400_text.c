@@ -754,7 +754,71 @@ void Actor00400_Fn05D00(Actor100400* arg0)
     work->field_63A++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05EA4);
+static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
+{
+    Actor100400Work* work = arg0->field_1C;
+    GsCOORDINATE2*   coords;
+    SVECTOR          vec;
+    s32              diff;
+    s32              yaw;
+    u16              angle;
+
+    coords      = arg0->field_2C->field_8;
+    coords->flg = 0;
+    vec.vx      = target->vx - coords->coord.t[0];
+    vec.vy      = 0;
+    vec.vz      = target->vz - coords->coord.t[2];
+    VectorNormalSS(&vec, &vec);
+    yaw   = ratan2(vec.vx, vec.vz);
+    angle = work->field_556;
+    diff  = ((angle - yaw) << 20) >> 20;
+    if (diff > range) {
+        work->field_556 = angle - step;
+    } else if (diff < -range) {
+        work->field_556 = angle + step;
+    }
+}
+
+void Actor00400_Fn05EA4(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    s32              id;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    Actor00400_Fn02FF8(arg0);
+    vec.vx          = work->field_56C.vx - coord->coord.t[0];
+    vec.vy          = 0;
+    vec.vz          = work->field_56C.vz - coord->coord.t[2];
+    work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
+    if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 800 && work->field_64C == 0) {
+        Actor100400Work* w;
+        Gp_SetLightMode(arg0->field_20, 0);
+        work->field_636 = 0;
+        w               = arg0->field_1C;
+        w->field_638    = 3;
+        w->field_63A    = 0;
+        return;
+    }
+    if (work->field_628 != 3) {
+        Actor100400Work* w;
+        w            = arg0->field_1C;
+        w->field_63C = 10;
+        w->field_632 = 0x10;
+        w->field_628 = 3;
+        w->field_624 = 1;
+    }
+    Actor00400_TurnToward(arg0, &work->field_56C, 0x30, 0x100);
+    Actor00400_Fn0762C(arg0, 0x60, work->field_556);
+    if (!(work->field_630 & 0xF)) {
+        id  = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40040001;
+        pan = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+}
 
 void Actor00400_Fn060CC(Actor100400* arg0)
 {
