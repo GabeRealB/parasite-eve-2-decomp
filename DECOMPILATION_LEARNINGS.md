@@ -82419,3 +82419,46 @@ Inputs: `base.c` (m2c casts, 99.600%)
 `6656e69c899a534f67678089ba5db969ad0a7cd08724e9b38aaa58552e2e4cda`,
 `base_3.c` (struct fields, 100.000%)
 `ac3551549a89104fb97af7fe624965282fe0478e81a143706629e1fc97286480`.
+
+## A lone wrong `addiu` displacement is m2c's data type, and the message handler names it (func_dryfield_water_tower_80180220, 2026-09-15)
+
+The ratio tell in "A m2c `ptr + 0xNNN` is scaled by `sizeof(*ptr)`" needs several
+displacements to fire. One alone reads as a plain layout error: m2c's seed
+declared both `Gp_DispatchMsg` payloads `extern M2C_UNK D_...` (`s32`) and wrote
+`&D_dryfield_water_tower_801823D8 + 0x18`, so the compiler scaled the offset and
+emitted `addiu a2,s0,0x60` where the target has `0x18`. One instruction, 99.891%,
+`regs=1`.
+
+The route to the pointee type is the *receiver*, not the data. The room's script
+table pairs message 0x7D4 with `Room_Util08`, whose third parameter is a
+`RoomPlacement*` - `VECTOR pos` + `SVECTOR rot`, 0x18 bytes - and the bytes
+decode as one. Declaring the payloads as that type and indexing them reproduces
+the displacement while keeping the base symbol:
+
+```c
+extern RoomPlacement D_dryfield_water_tower_801823A8;
+extern RoomPlacement D_dryfield_water_tower_801823D8[];
+
+Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
+Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
+```
+
+CSE keeps `&D_..._801823D8` in one register, so the second call is the single
+`addiu a2,s0,0x18` the target has. 100.000%.
+
+**Do not fold the displacement into a neighbouring symbol instead.** The records
+are consecutive, so `&D_..._801823A8[2]` denotes the same address (base +
+2*0x18) and reads as the truer table. It fails: the differ compares the `.o`,
+before any linker collapses the addend, so the object's `%lo(D_..._801823A8+0x30)`
+must match splat's text for *that address*, which is the bare `D_..._801823D8`.
+Measured 97.391% (`regs=4 delete=1`) - and the 0x3E9 payload, now sharing the
+same base register, degraded further to `addiu a2,s0,-0x30` where the target
+emits its own `lui`/`addiu` pair. Keep the symbol each reference names and let
+the index supply the displacement.
+
+Inputs: `base.i` (m2c `M2C_UNK` payloads, 99.891%)
+`87f594027ef2c8703f8d77dd6c3140a483ba955364859c95932b084bdc1ae587`,
+`base_1.i` (typed payloads, 100.000%)
+`eb9d6652ee43a9c24db2b888077d9c1ba561d16ee6a2d4b65ebe5ec64d2f0ccb`,
+`base_3.i` (one `[5]` table, 97.391%)
+`0056ffdc64be396456d95cab5493ab3f40287382c62ef4bdd563707130a622c4`.
