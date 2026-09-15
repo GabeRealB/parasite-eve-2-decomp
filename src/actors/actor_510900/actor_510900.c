@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
+#include "main/gameflag.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_8013bbe4.h"
 
@@ -218,7 +219,78 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A5B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A85C);
+void func_actor_510900_8013A9BC(Task* task);
+s32  func_actor_510900_8013C240(Task* task);
+void func_actor_510900_8013C338(Actor510900* arg0, Actor510900Coord* arg1);
+
+/// Frame handler (state 1) of the child task. Mode 1 of `D_801153F4` only
+/// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
+/// animation until `func_actor_510900_8013C240` reports ready before falling
+/// into the normal body.
+void func_actor_510900_8013A85C(Actor510900Ctx* arg0, Task* arg1)
+{
+    Actor510900Obj2C*     obj;
+    Actor510900ChildAnim* work;
+    Actor510900Coord*     coord;
+    Actor510900Work*      parent;
+    s32                   mode;
+    s32                   i;
+    s32                   one;
+
+    obj    = (Actor510900Obj2C*)arg1->extra;
+    work   = (Actor510900ChildAnim*)arg1->idMap;
+    coord  = obj->field_8;
+    parent = (Actor510900Work*)arg1->parent->idMap;
+    mode   = D_801153F4;
+    one    = 1;
+    if (mode == one) {
+        goto case1;
+    }
+    if (mode >= 2) {
+        goto ge2;
+    }
+    if (mode == 0) {
+        goto case0;
+    }
+    goto body;
+ge2:
+    if (mode == 2) {
+        goto case2;
+    }
+    goto body;
+case0:
+    if (func_actor_510900_8013C240(arg1) == 0) {
+        i = 1;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 0xB);
+        return;
+    }
+    ((Actor510900Obj2C*)arg1->extra)->field_C = 0;
+    arg0->field_14                            = one;
+    goto body;
+case2:
+    obj->field_C   = 0x80;
+    arg0->field_14 = one;
+    return;
+body:
+    func_actor_510900_8013A9BC(arg1);
+    if (work->field_334 < 2) {
+        GameFlag_SetNibble(work->field_334 + 0xB, work->field_336);
+    } else {
+        parent->field_5C2 = work->field_336;
+    }
+    i = 1;
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        i++;
+    } while (i < 0xB);
+    coord->field_0.flg = 0;
+    Gp_UpdateCoord(coord);
+case1:
+    func_actor_510900_8013C338((Actor510900*)arg1, coord);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A9BC);
 

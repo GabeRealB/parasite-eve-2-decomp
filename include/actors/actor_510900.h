@@ -75,7 +75,22 @@ typedef struct Actor510900Work {
     /* 0x5B8 */ s16  field_5B8;
     /* 0x5BA */ byte pad_5BA[2];
     /* 0x5BC */ s16  field_5BC;
+    /* 0x5BE */ byte pad_5BE[4];
+    /// Written by the child task's frame handler from its `field_336` when
+    /// that task's `field_334` is 2 or more.
+    /* 0x5C2 */ s16 field_5C2;
 } Actor510900Work;
+
+/// `Task::idMap` of the child task `func_actor_510900_8013A85C` drives: an
+/// animation context `Gp_AnimTickIndex` ticks slots 1..10 of, with a pair of
+/// words past it. Below 2, `field_334` + 0xB is the game-flag nibble index
+/// `field_336` is written to; otherwise `field_336` goes to the parent work's
+/// `field_5C2`.
+typedef struct Actor510900ChildAnim {
+    /* 0x000 */ byte pad_0[0x334];
+    /* 0x334 */ s16  field_334;
+    /* 0x336 */ s16  field_336;
+} Actor510900ChildAnim;
 
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent
