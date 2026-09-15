@@ -47,7 +47,16 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func_dryfield_water_tank_8017D910);
+/// Room message handler: on message `0xE` spawn the second entry of
+/// `D_dryfield_water_tank_8017F34C`, the same table `func_dryfield_water_tank_8017D7EC`
+/// takes entry 0 from.
+s32 func_dryfield_water_tank_8017D910(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xE) {
+        Task_SpawnFromTable(&D_dryfield_water_tank_8017F34C, 1, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func_dryfield_water_tank_8017D948);
 
