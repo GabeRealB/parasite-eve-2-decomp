@@ -1,4 +1,7 @@
 #include "common.h"
+
+#include <psyq/rand.h>
+
 #include "main/task.h"
 
 extern TaskDesc RoomsShared8017e320Desc;
@@ -6,6 +9,7 @@ extern Task*    RoomsShared8017e320Task;
 extern Task*    D_dryfield_night_gas_station_801907AC;
 
 extern void func_dryfield_night_gas_station_8017FD80(s16);
+extern void func_dryfield_night_gas_station_801802EC(s16);
 
 /// Retires the room's third tracked task and drops the room's reference to it.
 /// The `-1` state is the task's own exit request, so the task frees itself on
@@ -72,4 +76,27 @@ void func_dryfield_night_gas_station_80180B38(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_5", func_dryfield_night_gas_station_80180B5C);
+/// Runs the room's countdown task: seeds the RNG on its first tick, then for
+/// 100 ticks pulses `func_dryfield_night_gas_station_801802EC` and counts up,
+/// then kills itself.
+void func_dryfield_night_gas_station_80180B5C(Task* arg0)
+{
+    s16 temp_a0;
+
+    switch (arg0->state) {
+        case 0:
+            srand(1);
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            temp_a0 = arg0->killCountdown;
+            if (temp_a0 < 0x64) {
+                func_dryfield_night_gas_station_801802EC(temp_a0);
+                arg0->killCountdown = (u16)arg0->killCountdown + 1;
+                return;
+            }
+        default:
+            Task_Kill(arg0);
+            return;
+    }
+}
