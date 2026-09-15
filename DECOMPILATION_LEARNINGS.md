@@ -81503,3 +81503,66 @@ symbol, 100%), `base_2.i`
 `f3801cf92aeb90a63f5f009df06866974ac029462cba5db2ea0699ded2f3b751` (folded into
 `.vy`, 99.242%). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A constant store followed by a call taking that constant shares it: the copy is `reload_cse_regs`, not a temp (func_mine_forked_tunnel_8017E1E8, 2026-09-15)
+
+`func_mine_forked_tunnel_8017E1E8` raises the message flag and then calls the
+reader with the same immediate:
+
+```c
+D_80062735 = 1;
+func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);
+```
+
+The target stores the flag through a *copy* of the call's argument register -
+`li a0,1` / `lui v1,%hi(D_80062735)` / `addu v0,a0,zero` / `jal
+Gp_GetCurBit2Flag` / `sb v0,%lo(D_80062735)(v1)`:
+
+```
+addiu a0,$zero,1     # the argument of the following call
+lui   v1,%hi(D_80062735)
+addu  v0,a0,$zero    # the store value, a copy of that same constant
+jal   Gp_GetCurBit2Flag
+sb    v0,%lo(D_80062735)(v1)
+```
+
+Read `.rtl` and the two constants are separate insns - `(set (reg:QI 85)
+(const_int 1))` for the byte store and `(set (reg:SI 4 a0) (const_int 1))` for
+the argument - so nothing has been tied in the source yet. `.greg` still has
+the store loading its own constant, into `$v0`:
+
+```
+(insn 25 (set (reg:QI 2 v0) (const_int 1)) 190 {movqi_internal2}
+    (expr_list:REG_EQUIV (const_int 1) (nil)))
+```
+
+`.sched2` has the copy, with the same `REG_EQUIV` note and a new dependence on
+the `a0 = 1` insn:
+
+```
+(insn 25 (set (reg:QI 2 v0) (reg:QI 4 a0)) 190 {movqi_internal2}
+    (insn_list 30 (insn_list:REG_DEP_ANTI 20 (nil)))
+    (expr_list:REG_EQUIV (const_int 1) (nil)))
+```
+
+The substitution happens between those two dumps, i.e. in `reload_cse_regs`:
+post-reload CSE finds a register already known to hold the value (`$a0`, from
+the argument still carrying its `REG_EQUIV`) and rewrites the constant load to
+a copy from it. dbr then drops the copy into the `jal` delay slot, which is why
+it is visible at all.
+
+This is the call-argument form of "A store of a small constant before an
+arithmetic use of it makes that use `addu`, not `addiu`": one immediate, two
+uses, one CSE quantity. The fix is the same as there - write the store and the
+use in the order that lets CSE tie them, and do not introduce a local for the
+stored value, which CSE substitutes away. Controlled check: changing only the
+stored constant to `2` (so no register holds the stored value) removes the copy
+and emits `li v0,2` in the same slot, with the rest of the register shape and
+the frame unchanged - 92.0%, `insert=1 delete=1`, exactly the one swapped word.
+So an `addu vN,aM,zero` feeding a store, just before a call, means the C stores
+the value that call is being passed.
+
+Inputs: `base_1.i`
+`0c5ed9a7f947e82f0db3ce8187acd6ff7b7a6a4dd096f8889cc62816b359f59e` (100%),
+variation `base_2.i`
+`a988bc10a8d58748e4bbaa671d5c10bd2cbf4807d58b2d95e5833399d1f0c1d7` (92.0%,
+`insert=1 delete=1`).
