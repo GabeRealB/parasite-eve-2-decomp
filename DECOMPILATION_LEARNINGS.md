@@ -84018,3 +84018,60 @@ scratch->delta.vy = Wip_SysConfig.field_4->t[1] - offsetY;
 ```
 
 Inputs: `base_1.i` (90.4%, `regs=36 branch=4 insert=2 delete=4`), `base_2.i` (100%).
+
+
+## A single-set pseudo is sunk to the end of its block by sched1's "birthing" boost
+
+`func_actor_510900_801387F4` truncates an int difference into an `s16` and
+sign-extends the same int separately, so the copy and the shift both read the
+subtraction's destination and the two pseudos must conflict:
+
+```c
+d     = target - cur;
+diff  = d;          /* move a2,v0 */
+sdiff = (s16)d;     /* sll v0,v0,0x10 ; sra v1,v0,0x10 */
+```
+
+The target keeps `move a2,v0` immediately after the `subu`. GCC instead moved
+it to the bottom of the block, which let `d` die at the shift and the allocator
+coalesce the two into one register - one instruction short of the target, at
+97.2% with `delete=1`.
+
+The cause is in `sched.c`. Scheduling runs bottom-up, and an insn with no
+dependents inside the block only becomes ready once the block's jump is
+scheduled; `schedule_insn` then calls `adjust_priority` on it, whose
+`case 0` is
+
+```c
+if (birthing_insn_p (PATTERN (prev)))
+    INSN_PRIORITY (prev) = max_priority;
+```
+
+and `birthing_insn_p` returns `REG_N_SETS (i) == 1` for a live destination.
+`max_priority` at that moment is the jump's `LAUNCH_PRIORITY`, so a copy whose
+destination is assigned exactly once in the function is selected first and lands
+last in the block - the pass deliberately shortens that register's life. A
+destination with two or more sets keeps its ordinary priority and the
+`INSN_LUID` tie-break then reproduces the original order.
+
+So the leftover is decided by how many times the *other* local in the block is
+assigned. Writing the magnitude as `mag = sdiff; if (mag < 0) mag = -mag;`
+gives `mag` two sets, so it is not boosted, the single-set truncating copy wins
+the first choice and sinks. `__builtin_abs` expands to one `abs:SI` insn, so
+`mag` is single-set too, both insns are boosted to the same priority, and LUID
+order is preserved - the copy stays where the source put it. That took the
+function from 97.2% to 99.4% with `regs=0`.
+
+This is a scheduling consequence of `__builtin_abs`, distinct from the
+allocation one recorded for `Actor05500_Fn00914`: here the win is that the abs
+stops *competing* with an unrelated copy, not that `abs:SI` is allocated
+differently.
+
+The last `reorder=1` was ordinary load-latency slack. Storing the rotation's
+components in `vx`, `vy`, `vz` order lets the scheduler hoist the
+`lhu` that feeds `vy` above the `vz` store; different constant offsets from one
+base do not alias, so the stores reorder freely.
+
+Inputs: `base_6.i` (97.2%, `delete=1`), `base_11.i` (99.4%, `reorder=1`),
+`base_13.i` (100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.

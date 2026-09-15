@@ -80,7 +80,10 @@ typedef struct Actor510900Work {
     /* 0x59A */ u16 field_59A;
     /// Rolled from `Gp_LcgState` when state 1 expires.
     /* 0x59C */ s16  field_59C;
-    /* 0x59E */ byte pad_59E[4];
+    /* 0x59E */ byte pad_59E[2];
+    /// Yaw the head coordinate is rebuilt from each frame: the actor's facing
+    /// angle, stepped 0x1E at a time towards the direction `field_5A8` selects.
+    /* 0x5A0 */ s16 field_5A0;
     /// Cleared by state 0 on the frame it restarts.
     /* 0x5A2 */ s16  field_5A2;
     /* 0x5A4 */ s16  field_5A4;
@@ -88,7 +91,9 @@ typedef struct Actor510900Work {
     /* 0x5A8 */ s16  field_5A8;
     /* 0x5AA */ s16  field_5AA;
     /* 0x5AC */ s16  field_5AC;
-    /* 0x5AE */ byte pad_5AE[2];
+    /// Below 0x3E8 the turn target is taken one entry further along
+    /// `D_actor_510900_80167B9C`.
+    /* 0x5AE */ s16  field_5AE;
     /* 0x5B0 */ s16  field_5B0;
     /* 0x5B2 */ byte pad_5B2[6];
     /* 0x5B8 */ s16  field_5B8;
@@ -233,6 +238,10 @@ extern TaskDesc D_actor_510900_80167A18[];
 /// Per-animation-id value `func_actor_510900_8013BB20` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 D_actor_510900_80167B38[];
+
+/// The four cardinal yaws `func_actor_510900_801387F4` turns the actor's
+/// coordinate towards, indexed by `Actor510900Work::field_5A8`.
+extern u16 D_actor_510900_80167B9C[];
 
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);

@@ -377,7 +377,66 @@ void func_actor_510900_801384C4(Actor510900* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013864C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801387F4);
+void func_actor_510900_801387F4(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    SVECTOR*          rot;
+    void*             head;
+    u16               target;
+    u16               cur;
+    s32               d;
+    s16               diff;
+    s32               sdiff;
+    s32               mag;
+    s32               prev;
+    s32               prev2;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (work->field_5A2 != 0) {
+        head                = *(void**)0x1F8003FC;
+        *(void**)0x1F8003FC = (u8*)head - 8;
+        rot                 = (SVECTOR*)((u8*)head - 8);
+        if (work->field_5AE < 0x3E8) {
+            target = D_actor_510900_80167B9C[work->field_5A8 + 1];
+        } else {
+            target = D_actor_510900_80167B9C[work->field_5A8];
+        }
+        cur             = ratan2(coord->field_0.coord.m[0][2], coord->field_0.coord.m[2][2]) & 0xFFF;
+        d               = target - cur;
+        diff            = d;
+        sdiff           = (s16)d;
+        mag             = __builtin_abs(sdiff);
+        work->field_5A0 = cur;
+        if (mag < 0x800) {
+            if (mag < 0x1F) {
+                work->field_5A0 = target;
+            } else {
+                prev = work->field_5A0;
+                if (sdiff > 0) {
+                    work->field_5A0 = prev + 0x1E;
+                } else {
+                    work->field_5A0 = prev - 0x1E;
+                }
+            }
+        } else if (sdiff > 0 ? (0x1000 - sdiff) < 0x1F : (sdiff + 0x1000) < 0x1F) {
+            work->field_5A0 = target;
+        } else {
+            prev2 = work->field_5A0;
+            if (diff > 0) {
+                work->field_5A0 = prev2 - 0x1E;
+            } else {
+                work->field_5A0 = prev2 + 0x1E;
+            }
+        }
+        rot->vx = 0;
+        rot->vy = work->field_5A0;
+        rot->vz = 0;
+        RotMatrix(rot, &coord->field_0.coord);
+        *(u32*)0x1F8003FC += 8;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80138978);
 
