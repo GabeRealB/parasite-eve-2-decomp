@@ -81376,3 +81376,75 @@ for this function alone; only one keeps the sibling reachable, and the build
 cannot tell you which, because an `INCLUDE_ASM` sibling never reads the
 declaration. When the matched body and an unmatched sibling disagree about a
 shared global's signedness, keep the declaration the sibling's loads demand.
+## Moving the constant after the compare is not enough: jump_optimize's if/else exchange hoists it back above the branch
+
+The entry "A switch case whose value equals the case's own constant drops the
+`li`" says to move a `value = K` assignment *after* the `if (x == K)` so the
+constant gets its own birth. That is necessary but not always sufficient, and
+the failure mode looks identical, so it is worth knowing the second half.
+
+`func_neo_ark_observatory_8017FD7C` (24 insns) tests `Game_Session->field_1`,
+then `D_8007216C == 2`, then `D_8007216C == 3`, and calls `Gp_MsgAlly3F3` with
+2/1/2. The target opens the middle test with
+
+```
+lbu    v1, %lo(D_8007216C)(v0)
+li     v0, 2                  /* its own register */
+bne    v1, v0, call
+li     a0, 2                  /* delay slot: the arm's own value */
+```
+
+The m2c shape (`var_a0 = 2;` before `if (D_8007216C == 2) goto block_3;`) gave
+`lbu v0 / li a0,2 / bne v0,a0` - 94.875% - because CSE fuses the two. Moving
+`var_a0 = 2;` to the end of the if-body (after the branch in the RTL, the fix
+the switch entry recommends) changed *nothing*: 94.875% and byte-identical
+assembly. The dumps say why:
+
+* `.rtl` (after expand) has `(set (reg/v:SI 80) (const_int 2))` **after** the
+  `branch_equality` insn - the assignment is already correctly placed.
+* `.jump` (after the first `jump_optimize`, which runs before `cse`) has the
+  same insn renumbered to 74 and sitting **before** the compare. `jump.c` moved
+  it. Its if/else exchange - "Look for `if (foo) bar; else break;`", the
+  `invert_jump (insn, label1)` + range-swap block - requires the taken block to
+  end in a **simple jump** (`JUMP_LABEL (range1end) == label2`,
+  `simplejump_p (range1end)`), which `{var_a0 = 2; goto join}` is.
+* `.cse` then has `(if_then_else (ne:SI (reg:SI 90) (reg/v:SI 80)) ...)`: the
+  constant pseudo 91 is gone, substituted by the variable, because the hoist
+  made the assignment precede the compare in the linear order.
+
+So the exchange re-materialises the exact situation the source order was
+avoiding. The fix is to give that arm a tail the exchange rejects: a `call` +
+`return`, whose block ends in `(return)`, not a simple jump.
+
+```c
+if (Game_Session->field_1 == 0) {
+    if (D_8007216C != 2) {
+        Gp_MsgAlly3F3(2);
+        return;
+    }
+}
+var_a0 = 1;
+if (D_8007216C == 3) {
+    var_a0 = 2;
+}
+Gp_MsgAlly3F3(var_a0);
+```
+
+100%, all penalties zero, on the first build. The duplicated call is what the
+corpus already recommends for a tail merge ("Duplicate `TextDrawReq` setup …
+so GCC tail-merges one `jal`"): post-reload `jump2` cross-jumps the two
+`jal`/epilogue tails into one, and `dbr` then fills the `bne`'s delay slot with
+the arm's `li a0,2`, which is dead on the fall-through path because the other
+arm assigns `var_a0` before use. The single `jal` in the ROM does not mean the
+source had one call site.
+
+Symptom to recognise: a `regs`+`branch` diff whose only real content is the
+compare's constant living in the register that another arm assigns, while the
+source already puts that assignment after the branch. Check `.rtl` against
+`.jump` for the insn's position - if the two disagree, the source order is not
+the problem and rewriting it again will not help.
+
+Inputs: `base.i` `63f3c089b38c9ce569858956c03dfddb07be85cae9e1e10e8a0135d2c7a4ac1e`,
+`base_1.i` `59dd71691a036f6b17fdd66e0c1ad21e3f723fd6a8e8a7b4f3b2409f2170415e`,
+`base_2.i` `30be7804e64d9c0f8a367eabe3e38be638f85effbca31a20418209e0a0f08084`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

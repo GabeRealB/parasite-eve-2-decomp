@@ -26,6 +26,7 @@ extern GpAreaApplyRec D_neo_ark_observatory_80187A28;
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s32 arg3);
 
+extern u8   D_8007216C;
 extern void func_801322F8(void);
 extern void func_neo_ark_observatory_8017FA98(s32 arg0);
 extern void func_neo_ark_observatory_80180DAC(s32 arg0);
@@ -74,4 +75,23 @@ void func_neo_ark_observatory_8017FCE0(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory_3", func_neo_ark_observatory_8017FD7C);
+/// Asks the ally message system for the observatory's arrival line: with no
+/// cap running, arrival 2 only counts once the published area id (`D_8007216C`)
+/// says the script is on it; otherwise the line follows the area id's 2/3
+/// staging.
+void func_neo_ark_observatory_8017FD7C(void)
+{
+    s32 var_a0;
+
+    if (Game_Session->field_1 == 0) {
+        if (D_8007216C != 2) {
+            Gp_MsgAlly3F3(2);
+            return;
+        }
+    }
+    var_a0 = 1;
+    if (D_8007216C == 3) {
+        var_a0 = 2;
+    }
+    Gp_MsgAlly3F3(var_a0);
+}
