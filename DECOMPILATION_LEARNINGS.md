@@ -83181,3 +83181,73 @@ Inputs: `base_1.i`
 `4cdb3c0880478538e944f8cfa2b7e2d6f1ebfb6833a1f6a90c1f5327160800e8` (100.000%),
 `base_2.i`
 `43cfee392c24ffc551fc1c4ecf50daa81de8a29dcc68efb762d2be189a4456c6` (100.000%).
+
+## A duplicated `return 0;` is what puts the return-value move in a branch's delay slot
+
+A room message handler that spawns one of two tasks off `arg2->field_2` ends like
+every other one in the family:
+
+```c
+    if (arg2->field_2 == 0xA) {
+        if (GameFlag_GetNibble(0xF8) != 0) {
+            Gp_RunCapCmd1(5);
+            Task_SpawnFromTable(&D_..., 2, 0x1AF, 0);
+        } else {
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_..., 0, arg2->field_3, 0);
+        }
+    }
+    return 0;
+```
+
+That compiles to everything the target has except two adjacent insns: the target's
+`bne` delay slot holds a copy of `move v0,zero`, and its epilogue reads
+`move v0,zero` / `lw ra` / `lw s0` / `jr ra` against the natural source's `nop` and
+`lw ra` / `lw s0` / `move v0,zero`. Nothing about the arguments, the call sites or the
+register allocation is left over - only this pair, and both come from one place.
+
+`expand_function_end` emits the return label *before* the value move
+(`emit_label (return_label)` then the `real_decl_result` copy and `USE`), so the outer
+if's exit label - the `bne`'s target - lands after the move. `jump_optimize` then
+deletes the `gen_return()` jump to the epilogue as a jump-to-next, the epilogue's label
+falls out, and the two blocks merge into one that `schedule_insns` reorders: the `lw`
+must issue a cycle ahead of its `jr`, so the loads are scheduled before `move v0,zero`
+and the block's head becomes `lw ra`. reorg fills the delay slot from the target block's
+first insn, and `lw ra` sets `$ra`, which is live on the fall-through path, so nothing is
+fillable and the slot stays `nop`.
+
+Write the return twice - inside the body *and* trailing:
+
+```c
+        }
+        return 0;
+    }
+    return 0;
+```
+
+The inside `return 0;` puts the value move at the end of the shared-call block; the
+trailing one gives the exit label a block whose head *is* that move and whose tail jumps
+to the return label, and that jump is no longer a jump-to-next (the exit label sits
+between), so the epilogue keeps its own block and the scheduler cannot reorder across
+the boundary. reorg now sees `insn_at_target = move v0,zero`, and `$v0` is dead at the
+branch (`li v0,0xA` is its last use), so the move is eligible to be copied into the delay
+slot. Having filled the slot, reorg finds the target's first insn redundant with it and
+redirects the branch past the original - which is why the target's label sits *after*
+`addu v0,zero,zero`. Both paths still return 0, so the source is not a riddle: the
+retail body just wrote the early return and shut the function off afterwards.
+
+Sequence of scores: single trailing return 91.844%, return inside the body only 93.750%
+(right block split, but the branch still targets the epilogue and the slot stays `nop`),
+both returns 100.000%. Do not pin a register for this - the slot is not a live-range
+problem and a pin would only move the reorder.
+
+Inputs: `base_1.i`
+`7ef903d1b3b71fab13facef1c50825494adf52b8a0e8224767a8a3a87ba0ff6e` (91.844%),
+`base_2.i`
+`618a8a7e4948b2c07a83ff28f72c22dd9e9e4d3913a92f315e3de85bf41ac45e` (93.750%),
+`base_3.i`
+`4d71dc02ceed9021e65b63bc3c318cbd4aa1f3dd1b78e19367f2f46545152be1` (100.000%),
+`base_4.i`
+`8dcb085c7ff8844efc81548252a5bb489d023688c9ac7713960c28d0fa999547` (100.000%,
+typed `GpMsg13EF*` form), target
+`8c6abc7e385f4c6eec866e9bc6fbad76ec691362761f1ee34970c665515336a9`.
