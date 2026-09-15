@@ -95,7 +95,7 @@ static __inline__ void Actor01900_StepForward(GsCOORDINATE2* coord, s16 amount)
         gte_ldsv(vec);
         __asm__ volatile("nop; nop; .word 0x4B98003D");
         gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[0]          += vec->vx;
         coord->coord.t[1]          += vec->vy;
         coord->coord.t[2]          += vec->vz;
         coord->flg                  = 0;

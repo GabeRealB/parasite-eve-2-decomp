@@ -80711,3 +80711,25 @@ ret = blk->dx + blk->dz >= blk->r;   /* after the pop: slt + xori */
 
 Tell: two adjacent absolute stores to one address in the target means a read
 sat between them in the source.
+
+### A pointer reloaded in both arms before a shared call is one call per arm, cross-jumped
+
+`Actor01900_Fn07BA8` picks a turn of `±0x4B0` for `Gfx_RotMatrixY(&obj->field_8->coord, turn, 0)`.
+The target loads `lw v0, 0x2C(s4)` *twice* - once in each arm - and only the
+`lw a0, 8(v0)` / `jal` tail is shared. A variable assigned in an `if`/`else`
+(or a ternary) loads the pointer once after the join. Write the call in each arm;
+jump2's cross-jump merges the common tail and stops at the `li a1` whose
+position differs per arm. Arm order follows the source: the target's `bgtz`
+to the `-0x4B0` arm needed `if (x <= 0) { call(0x4B0) } else { call(-0x4B0) }`.
+
+### After an earlier scratch release, `vec->vx` (not `head[-1].vx`) keeps the old head as the base
+
+In the same function a `RescaleYaw` inline releases its block
+(`*scratch = *scratch + 0x34`) just before a step-forward inline pushes an
+`SVECTOR` (`head = *G; vec = head - 1`). CSE equates `head` with the released
+value, and the address fold for `head[-1].vx` chose that pseudo (`-8($s2)`),
+keeping it alive in a callee-saved register. The target reads `0x2C($s2)` off the
+*pre-release* pointer; `vec->vx` produced it. Actor01900_MoveForward's
+`head[-1].vx` still matches where no release precedes it, so this is context,
+not a rule: try both spellings when the base register of the first component
+read is the only regs diff.
