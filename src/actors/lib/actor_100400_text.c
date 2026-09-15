@@ -800,7 +800,54 @@ void Actor00400_Fn042C0(Actor100400* arg0)
     work->field_638++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04414);
+void Actor00400_Fn04414(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* w;
+    Actor100400Work* w2;
+    s32              i;
+    s32              cond;
+
+    work = arg0->field_1C;
+    w    = arg0->field_1C;
+    if (w->field_624 == 1) {
+        if (w->field_626 != w->field_628) {
+            w->field_62A = 0;
+        } else {
+            w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
+        }
+        Actor00400_Fn08624(arg0);
+        w->field_624 = 3;
+    } else if (w->field_624 == 2) {
+        Actor00400_Fn085B8(arg0);
+        w->field_624 = 3;
+        w->field_62A = 0;
+    } else if (w->field_624 == 3) {
+        w->field_62A++;
+    }
+    i = 1;
+    do {
+        Gp_AnimTickIndex(w, i);
+        i++;
+    } while (i < 0xF);
+    if (arg0->field_34 != 7) {
+        w2 = arg0->field_1C;
+        if ((w2->flags_62C.half & 1) || (w2->flags_62C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond == 0) {
+            return;
+        }
+        w2            = arg0->field_1C;
+        w2->field_63C = 4;
+        w2->field_632 = 0x10;
+        w2->field_628 = 0xE;
+        w2->field_624 = 1;
+    }
+    work->field_638++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04580);
 
