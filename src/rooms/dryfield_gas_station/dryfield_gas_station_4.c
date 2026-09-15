@@ -5,14 +5,19 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 
 #include "rooms/dryfield_gas_station.h"
 #include "rooms/rooms_shared_80180b2c.h"
 
+extern s32      D_dryfield_gas_station_80182E30;
+extern s32      D_dryfield_gas_station_80182E74;
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 
@@ -123,4 +128,36 @@ void func_dryfield_gas_station_80180944(void)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_80180984);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_80180A60);
+/// Tells slot 3 that the cutscene is opening: it ends the weapon effect the
+/// player may still be carrying (flag at `DgsWork::playerEffActive`), echoes the
+/// equipped weapon back with msg 0x3E9 and, once the cutscene task has an owner,
+/// hands that owner the `D_dryfield_gas_station_80182E30` script record as msg
+/// 0x3F4. The record is a `GpRec14` built on the stack, only its first field
+/// (the script pointer) set.
+void func_dryfield_gas_station_80180A60(void)
+{
+    Task*    task;
+    DgsWork* work;
+    DgsWork* work2;
+    GpRec14  script;
+
+    task = RoomsShared80180b2cTask;
+    work = (DgsWork*)task->idMap;
+    if (work->playerEffActive != 0) {
+        Gp_SpawnWeaponEff();
+        work->playerEffActive = 0;
+        Gp_MsgPlayerWeapon(0);
+    }
+    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E74, 0);
+    work2 = (DgsWork*)task->idMap;
+    if (work2->owner != 0) {
+        script.field_0  = (s32)&D_dryfield_gas_station_80182E30;
+        script.field_4  = 0;
+        script.field_8  = 0;
+        script.field_C  = 0;
+        script.field_10 = 0;
+        Gp_DispatchMsg((Task*)work2->owner, 0x3F4, (s32)&script, 0);
+    }
+    SndEvt_EnqueueType7(0x52010011, 0x3C);
+    SetDispMask(1);
+}
