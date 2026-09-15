@@ -23,7 +23,13 @@ void func_mine_mesa_8017DD44(void);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_2", func_mine_mesa_8017D8F8);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_2", func_mine_mesa_8017DA7C);
+s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xD) {
+        Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);
+    }
+    return 0;
+}
 
 s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
 {

@@ -79724,3 +79724,48 @@ container the source indexed, not which register the allocator happened to pick.
 beside it.** `addiu $v0, $v1, %lo(` (or any register pair) followed within a few
 instructions by `sw $zero, 0x4($vN)` hits 19 functions across the tree, and a
 matched one spells out the idiom in three lines.
+
+## A register in the compare names the arity: m2c undercounts parameters, and the fix is not register allocation (func_mine_mesa_8017DA7C, 2026-09-15)
+
+m2c infers a prototype from the uses it can see in the body, so an argument whose
+only use is one side of a comparison can go missing. The seed then compiles, the
+compare lands in `$a0`, and the diff reads as a register-allocation problem: the
+m2c seed for this room message handler read 69.368%
+(`regs=4 insert=4 delete=1 branch=2`) with a `$s0` save/restore and `bne $a0`.
+
+Two independent things were wrong, and the target's own operands name both.
+
+**The compare register is the arity.** `bne $a2, $v0` against an `$a2` the seed
+never declared means three parameters, whatever the body appears to use - the
+handler signature here is `(s32 arg0, s32 arg1, s32 arg2)`, which its matched
+sibling `func_shelter_b3_dumping_hole_8017D82C` spells out.
+
+**A store before the call outlives it.** The seed's shape,
+
+```c
+var_a0 = 0xC;
+if (GameFlag_GetNibble(0x11A) >= 2) var_a0 = 0xD;   /* call in the condition */
+Gp_RunCapCmd1(var_a0);
+```
+
+makes `var_a0` live across the `GameFlag_GetNibble` call, so global allocation
+gives it a callee-saved home and pays a save/restore for it. The target selects
+the constant *after* the call (`li $a0, 0xC` in the `bnez` delay slot, `li
+$a0, 0xD` in the fall-through), which is a ternary argument, not a variable:
+
+```c
+s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xD) {
+        Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);
+    }
+    return 0;
+}
+```
+
+100%, all penalties zero, first build. In the sibling the same idiom appears as
+`Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x11D) != 0 ? 0x12 : 0x17, 1)` - a
+condition, two constants and one call is this family's signature, and the
+"chooser" never earns a name. The handlers are reached from a room data table of
+`{ u32 msgId, handler }` pairs, so an unmatched one is cheap to locate: the id
+beside it says which message it serves.
