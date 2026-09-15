@@ -118,7 +118,22 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DDB0);
+void func_dryfield_breezeway_8017DDB0(Task* task)
+{
+    DbwMsg7DA msg;
+
+    task->field_24 = D_dryfield_breezeway_80181DE0;
+    Game_SetPtrSlot(task, 7);
+    if (GameFlag_GetNibble(0x5D) == 0) {
+        msg.field_0 = Game_Session->field_7;
+        msg.field_1 = Game_Session->field_6;
+        msg.field_2 = 0;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
+    }
+    task->state++;
+    D_dryfield_breezeway_801843A8 = NULL;
+}
 
 void func_dryfield_breezeway_8017DE60(void)
 {

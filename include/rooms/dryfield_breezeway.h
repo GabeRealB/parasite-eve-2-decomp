@@ -7,6 +7,11 @@
 
 #include "main/task.h"
 
+/// `GpMsgEntry` (`gameplay/D4.h`), forward-declared because that header's
+/// four-argument `Gp_DispatchMsg` prototype is not in scope in
+/// `dryfield_breezeway.c`, which calls the dispatcher with only the task.
+struct _GpMsgEntry;
+
 /// 0x14 work block the breezeway's room task hangs off the `Task::idMap` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
 /// `(DbwWork*)task->idMap`.
@@ -76,6 +81,16 @@ typedef struct DbwMsg7DA {
     /* 0x2 */ s16 field_2;
 } DbwMsg7DA;
 STATIC_ASSERT_SIZEOF(DbwMsg7DA, 0x4);
+
+/// This room's `GpMsgEntry` id/handler table, the one
+/// `func_dryfield_breezeway_8017DDB0` parks in `Task::field_24` so
+/// `Gp_DispatchMsg` routes messages into the room at all: 0x13EE ->
+/// `func_dryfield_breezeway_8017D940`, 0x13EF ->
+/// `func_dryfield_breezeway_8017DBD8` (the hotspot gate, whose sub-id 1 arms
+/// the room's task), 0x13F0 -> `func_dryfield_breezeway_8017DA48` (the
+/// weapon/state sequencer), 0x13F1 -> `func_dryfield_breezeway_8017D90C` and
+/// 0x13F2 -> `func_dryfield_breezeway_8017DBA4`, terminated by 0x7FFFFFFF.
+extern struct _GpMsgEntry D_dryfield_breezeway_80181DE0[];
 
 /// 0x18-byte placement record this room sends as `Gp_DispatchMsg`'s `arg2` for
 /// message 0x7D4, the reset that drops `pos` into the receiving display object's

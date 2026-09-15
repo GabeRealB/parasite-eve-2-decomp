@@ -82161,3 +82161,40 @@ Inputs: `base.i` (99.800%)
 `3714dc62bfe87d6184098b75e59a9c35f6ce28116ed471d09493b190c1e894d5`,
 `base_1.i` (100.000%)
 `c02fbfeb50bf6d70a57e97957eab11a11fefbc947a5ce59dcb6701fa3fa3c212`.
+
+## A MEM_IN_STRUCT_P schedule difference can surface as a pure `regs` penalty (func_dryfield_breezeway_8017DDB0, 2026-09-15)
+
+The mirror of the `func_neo_ark_altar_8017EF00` entry above, where the struct
+form *was* the fix: here its effect reaches all the way through the scheduler
+into the allocator, so the only symptom is a swapped `$v0`/`$v1`.
+
+This room's `func_dryfield_breezeway_8017DDB0` ends with `task->state++;` and a
+store of zero to a global. m2c renders the bump as
+`*(s32*)((s8*)arg0 + 0x30) = ... + 1`, whose MEM is unflagged, so the symbol
+store keeps its output/anti dependence on the `lw`/`sw` of `0x30(s0)`; block 2
+comes out in source order and the address pseudo of the tail store is born after
+the state value dies, so `find_free_reg` finds `$v0` free and takes it. 99.773%,
+`regs=2` with every other penalty zero - one instruction differing by one
+register.
+
+Writing the access the way the room's other units write it (`Task* task` and
+`task->state`, so the store is `mem/s:SI`) drops that dependence, because
+`rtx_addr_varies_p` reads a `lo_sum` address as constant (rtlanal.c:
+`case LO_SUM: return rtx_varies_p (XEXP (x, 1))`, operand 1 being the
+`SYMBOL_REF`). sched1 then hoists the `%hi` insn into the middle of the bump -
+`lw state; lui; sw sym; addiu; sw state`, the same interleaving
+`func_actor_403600_80134288` shows - which lengthens the address pseudo's
+local-alloc live range until it spans the state value's. `$v0` is marked over
+that range, so the address takes `$v1`; sched2 reorders the finished block back
+to the target's order. 100.000%.
+
+Diagnostic order when `regs` is the only residual: compare the *insn order* in
+`.sched`/`.lreg` before assuming a ranking or tie problem. If the order already
+matches the target and only the register differs, live-range overlap cannot be
+the cause; if it differs, check the `mem/s` flags on the accesses involved
+before touching statement order, `register ... asm()` pins or the permuter.
+
+Inputs: `base_2.i` (99.773%)
+`f9a2623be89547ad5e96e9998510e5f24f8c41b5ed486fe9e49e96b0222d3b2f`,
+`base_3.i` (100.000%)
+`bd864666ba34c5a87d5e1f2920e687d7271a595d8c1cf51dcae959257b896ca8`.
