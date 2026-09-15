@@ -32,7 +32,89 @@ void Actor01900_Fn00260(GsCOORDINATE2* coord, s16 yaw)
     *(MATRIX**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0056C);
+/// Same body as `Actor04400_CalcPush`: push-out of `pos` from contact record
+/// `rec`, how far it sits inside the record's radius (`field_2`) along the
+/// direction from the record's centre, carried into grid space.
+static __inline__ void Actor01900_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
+{
+    VECTOR d;
+    VECTOR n;
+    s32    t;
+    s32    pen;
+
+    d.vx = pos->vx - rec->field_8;
+    d.vy = 0;
+    d.vz = pos->vz - rec->field_C;
+    pen  = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
+    pen  = rec->field_2 - pen;
+    if (pen <= 0) {
+        t = 0;
+    } else {
+        t = pen;
+    }
+    pen  = t;
+    d.vx = pos->vx - rec->field_8;
+    d.vy = pos->vy - rec->field_A;
+    d.vz = pos->vz - rec->field_C;
+    VectorNormal(&d, &n);
+    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
+    out->vx = (pen * d.vx) >> 12;
+    out->vy = 0;
+    out->vz = (pen * d.vz) >> 12;
+}
+
+/// Updates `coord` and computes the push-out of the last kind 0x10000 / 0x30000 record
+/// in `recs`, walking until `count` or a zero `field_4`; nonzero when any hit.
+s32 Actor01900_Fn0056C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+{
+    Actor01900RepelScratch* head;
+    Actor01900RepelScratch* s;
+    Actor01900RepelScratch* blk;
+    SVECTOR*                offset;
+
+    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+        return 0;
+    }
+    coord->flg                                = 0;
+    head                                      = *(Actor01900RepelScratch**)G_SCRATCH_HEAD;
+    blk                                       = head - 1;
+    *(Actor01900RepelScratch**)G_SCRATCH_HEAD = blk;
+    s                                         = blk;
+    Gp_UpdateCoord(coord);
+    s->pos.vx  = coord->workm.t[0];
+    s->pos.vy  = coord->workm.t[1];
+    s->pos.vz  = coord->workm.t[2];
+    s->last.vz = 0;
+    s->last.vy = 0;
+    s->last.vx = 0;
+    s->hit     = 0;
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].field_4 == 0) {
+            s->dist[s->i] = 0x7FFE;
+            break;
+        }
+        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        if (s->kind == 0x10000 || s->kind == 0x30000) {
+            s->hit = 1;
+            Actor01900_CalcPush(&s->pos, &recs[s->i], &s->offset);
+            s->last.vx = s->offset.vx;
+            s->last.vz = s->offset.vz;
+        }
+    }
+    s->len = SquareRoot0(s->offset.vx * s->offset.vx + s->offset.vy * s->offset.vy +
+                         s->offset.vz * s->offset.vz);
+    if (s->len > 0x100) {
+        offset = &s->offset;
+        VectorNormalSS(offset, offset);
+        gte_lddp(0x100);
+        gte_ldsv(offset);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(offset);
+    }
+    coord->flg                                 = 0;
+    *(Actor01900RepelScratch**)G_SCRATCH_HEAD += 1;
+    return s->hit;
+}
 
 /// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
 /// own that is released before `ratan2` runs.

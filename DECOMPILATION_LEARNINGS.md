@@ -80836,3 +80836,19 @@ has no trace of the duplication. That gave 100%, and it also fixed an unrelated-
 looking `VectorNormalSS` delay-slot order (`sh zero` in the slot instead of `move a1`).
 A hoisted loop-bound extension with otherwise-matching code is a sign that the
 original loop body was bigger at loop time. Look for an if/else arm that repeats a tail.
+
+### A hoisted `&local` call argument in a loop can mean the locals belong to an inline helper
+
+`Actor01900_Fn0056C` computes a contact push-out (`VectorNormal(&d, &n)` then
+`ApplyTransposeMatrixLV(..., &n, &d)`) inside a `for` loop. Written inline in the
+loop body, loop.c hoists `&n` into a callee-saved register (`move a1,s5` at both
+calls, `.loop`: "savings 1 moved"), and the `pen <= 0` clamp loses its `a0`
+temporary. The target reloads `addiu a1,sp,0x20` at each call and keeps
+`s3 = &s->pos`, `s4 = &s->out` alive across the calls - parameter pseudos.
+Calling the same body as a `static __inline__` helper with `(pos, rec, out)`
+parameters (copied from the matched `Actor04400_CalcPush`) fixed all three at
+once (91% -> 98.6%). Search other overlays for the body before hand-expanding it:
+`grep -rln "VectorNormal(" src | xargs grep -l ApplyTransposeMatrixLV`.
+
+Side effect: with the helper in place, an explicit `s32 num = count` bound was
+wrong again; plain `s->i < count` gave the target's `sra v0; blez v0; move s7,v0`.

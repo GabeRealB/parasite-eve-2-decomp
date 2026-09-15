@@ -175,6 +175,25 @@ typedef struct Actor01900PushScratch {
 } Actor01900PushScratch;
 STATIC_ASSERT_SIZEOF(Actor01900PushScratch, 0x34);
 
+/// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn0056C` to keep
+/// the push-out of the last kind 0x10000 / 0x30000 record of a `GpRec18` table.
+/// `pos` is the coordinate's world translation, `offset` the latest push
+/// (clamped to length 0x100), `last` its XZ copy, `i` the record cursor and
+/// `hit` the return value. `dist` gets 0x7FFE at the terminating record.
+typedef struct Actor01900RepelScratch {
+    /* 0x00 */ byte    pad_0[0x20];
+    /* 0x20 */ SVECTOR offset;
+    /* 0x28 */ SVECTOR last;
+    /* 0x30 */ SVECTOR pos;
+    /* 0x38 */ s32     kind;
+    /* 0x3C */ u32     len;
+    /* 0x40 */ s16     dist[32];
+    /* 0x80 */ s16     i;
+    /* 0x82 */ byte    pad_82[4];
+    /* 0x86 */ s16     hit;
+} Actor01900RepelScratch;
+STATIC_ASSERT_SIZEOF(Actor01900RepelScratch, 0x88);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn00E00`:
 /// the `GpDeltaScratch` filled by `func_800E0C10` plus the returned flag,
 /// set when the X or Z delta is nonzero.
