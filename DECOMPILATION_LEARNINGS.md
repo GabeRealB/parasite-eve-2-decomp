@@ -60953,6 +60953,17 @@ it as a `TaskFuncTable5` global copied by struct assignment: a local
 `TaskFunc sp[5] = {...}` initializer produces the same `$LC0` bytes but lands
 at 99.6% with `regs=2`.
 
+This is not limited to a *leading*-`.rodata` symbol. A table in a later
+subsegment cut for a compiler-generated jump table migrates the same way, into
+the `.s` of the function in the cut's own unit that reads it, and vanishes the
+same way when that function is matched - `neo_ark_forest_zone`'s
+`D_neo_ark_forest_zone_8017D634` is at `0x74`, behind the
+`jtbl_neo_ark_forest_zone_8017D620` at `0x60` that
+`func_neo_ark_forest_zone_80180D24`'s `INCLUDE_ASM` carries. Its `const` sits
+above the dispatcher, after that `INCLUDE_ASM`, and the unit checksums. What
+makes the symbol migratable is the reader being in the same unit as the cut, so
+the pairing has nothing to do with where the subsegment falls.
+
 ## A merged tail of just `jal` + `nop` means the call was written twice
 
 When both arms of an `if` set up **all four** argument registers themselves and
