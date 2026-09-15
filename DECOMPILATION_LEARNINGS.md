@@ -79287,6 +79287,20 @@ Two near-misses keep the flag: `((s16*)Game_Session)[0x29] = 1;` still emits
 cast-through-`u8*` address form drops it. When a schedule looks impossible from
 dependencies (an insn that must be picked early keeps being picked late),
 check the MEM flags before assuming a scheduler heuristic.
+
+`M2C_FIELD(ptr, T*, off)` is that cast form, so the same flag decides the mirror
+case, where the *seed* is the cast and the struct form is the fix
+(func_mine_mesa_8017DC80, 2026-09-15). There, m2c's `M2C_FIELD(arg0, s32*, 0x30)`
+kept the state load/store non-struct, and `M2C_FIELD(arg0, M2C_UNK**, 0x24)` did
+the same for `field_24`; the seed scored 99.796% with `regs=2` — every byte right
+except the trailing `lui` for a zeroed global, `$v0` where the target has `$v1`.
+Typing the parameter `Task*` and writing `arg0->state` / `arg0->field_24` marks
+those MEMs `in_struct` (`mem/s:SI`), which lets the `high(symbol)` of the trailing
+store be scheduled *inside* the state value's live range; local-alloc then finds
+`$v0` busy and takes `$v1`, and the same C is 100%. Both field accesses had to be
+struct form — a probe with only `field_24` fixed still came out `$v0`. So when a
+`regs` penalty is one register in an otherwise byte-identical tail, check whether
+the seed's field accesses are `M2C_FIELD` before hunting the allocator.
 ## m2c renders a stack-copied handler-table dispatch as a call that passes the table entries (func_neo_ark_forest_zone_8017DBBC, 2026-09-15)
 
 A dispatcher that block-copies a handler table onto the stack and calls through it
