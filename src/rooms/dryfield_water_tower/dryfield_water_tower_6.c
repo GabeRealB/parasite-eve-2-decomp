@@ -29,7 +29,23 @@ void func_dryfield_water_tower_80180174(s16 arg0)
     work->field_E = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_6", func_dryfield_water_tower_80180194);
+/// Armed once per room: hands the slot-4 task the session's two id bytes as
+/// message 0x7DA's payload, then sets `field_14` so the message goes out only
+/// the first time. The halfword it zeroes is the state the 0x7DB handler reads.
+void func_dryfield_water_tower_80180194(void)
+{
+    DwtwWork*  work = (DwtwWork*)D_dryfield_water_tower_801876AC->idMap;
+    DwtwMsg7DB msg;
+
+    if (work->field_14 == 0) {
+        Gp_ArmStateF0(1);
+        msg.field_0 = Game_Session->field_7;
+        msg.field_1 = Game_Session->field_6;
+        msg.field_2 = 0;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        work->field_14 = 1;
+    }
+}
 
 /// Places the room's two prop tasks and the slot-3 game task: the first two
 /// 0x7D4 placements go to `field_8` / `field_4`, then `field_0` gets the 0x3F3

@@ -2374,6 +2374,13 @@ reusing the same slot `sp+0x10`. Three ways to write it, only one matches:
 point generalises: any packed stack struct/descriptor passed by pointer wants a
 single addressable aggregate, not sibling scalars.
 
+Casting that address to an integer does not defeat the escape.
+`Gp_DispatchMsg` takes its payload as `(s32)&msg` throughout this project, and a
+`DwtwMsg7DB` (`u8`, `u8`, `u16`) local still keeps all three stores - the
+aggregate is addressable as a whole. `func_dryfield_water_tower_80180194` is the
+case (m2c's three scalars: 88.1%, `delete=4`; one struct local: 100% first try,
+the same body as `ActorsShared80132724` plus its one-shot latch).
+
 ## Split a shared `Task_Kill` so the kill-arg can occupy `$a0`
 
 A two-case switch that shares one `Task_Kill(arg0)` via `goto kill` makes

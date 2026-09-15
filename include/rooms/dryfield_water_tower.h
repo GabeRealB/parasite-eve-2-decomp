@@ -40,6 +40,10 @@ STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 /// Only the halfword at 0x2 is read; it becomes the receiving task's state. The
 /// same four bytes the actors send in `Actor210600Msg` / `Actor560800Msg`, and
 /// the shape `AcropolisBridgeMsg7DB` gives them on the receiving side.
+///
+/// `func_dryfield_water_tower_80180194` is the send side: it fills the two id
+/// bytes from the session's `field_7` / `field_6` and zeroes the halfword
+/// before handing the record to `Gp_DispatchMsg` as message 0x7DA.
 typedef struct DwtwMsg7DB {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
