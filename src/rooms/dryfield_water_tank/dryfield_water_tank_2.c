@@ -5,6 +5,8 @@
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 extern TaskDesc       D_dryfield_water_tank_8017F34C;
@@ -13,6 +15,10 @@ extern s32            D_dryfield_water_tank_8017F21C;
 extern s32            D_dryfield_water_tank_80184E0C;
 extern s32            D_dryfield_water_tank_801859DC;
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
+extern GpMsgEntry     D_dryfield_water_tank_8017F324[];
+extern TaskDesc       D_dryfield_water_tank_801868A4[];
+
+void func_dryfield_water_tank_8017DB48(void);
 
 s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
@@ -45,6 +51,19 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func_dryfield_water_tank_8017D948);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func_dryfield_water_tank_8017D9D4);
+/// State 0 of the room's event task: publish the message table the room's
+/// handlers hang off (`0x13EE`–`0x13F1`), take pointer slot 7, spawn the
+/// cutscene task from `D_dryfield_water_tank_801868A4`, queue sound event
+/// `0x52150009`, run the game-flag `0x55` dispatch in
+/// `func_dryfield_water_tank_8017DB48`, then advance.
+void func_dryfield_water_tank_8017D9D4(Task* task)
+{
+    task->field_24 = D_dryfield_water_tank_8017F324;
+    Game_SetPtrSlot(task, 7);
+    Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
+    SndEvt_EnqueueType6(0x52150009, 0, 0);
+    func_dryfield_water_tank_8017DB48();
+    task->state = (s32)(task->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_2", func_dryfield_water_tank_8017DA4C);
