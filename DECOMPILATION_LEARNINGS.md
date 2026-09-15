@@ -79877,3 +79877,79 @@ jals, which is not this target. Note also that `fold_range_test` does **not**
 apply: the two tests are equality against 1 and 7, whose ranges do not merge, so
 unlike a bound check (see the `func_mine_mesa_8017E70C` entry above) the `||`
 survives as two compares.
+
+## How the subscript is spelled decides whether the base or the index is emitted first (func_mine_mesa_80181800, 2026-09-15)
+
+m2c takes the address of an element into a local pointer before touching it:
+
+```c
+s32 *temp_a2 = &D_mine_mesa_80189B74[arg2];
+temp_v0 = *temp_a2;
+if (...) { *temp_a2 = 0; ... }
+```
+
+and the resulting object emits the index's scaling *before* the base symbol:
+
+```
+sll    a2,a2,0x2                    |  lui    v0,%hi(D_mine_mesa_80189B74)
+lui    v0,%hi(D_mine_mesa_80189B74) |  addiu  v0,v0,%lo(D_mine_mesa_80189B74)
+addiu  v0,v0,%lo(...)               |  sll    a2,a2,0x2
+addu   a2,a2,v0                     |  addu   a2,a2,v0
+        (seed)                          (target)
+```
+
+That reads as a scheduler leftover (`reorder=1`) and is not one: the order is
+already fixed at expand time. `&arr[i]` is an `ADDR_EXPR`, whose operand is
+expanded with `EXPAND_SUM`, so `expand_expr`'s `PLUS_EXPR` case falls into
+`both_summands` - and that path materialises the scaled index onto the ready list
+before the symbol address. Writing the same element as a *value*, with no local
+pointer, takes the `ARRAY_REF` case instead: `get_inner_reference` expands `tem`
+(the base object) with `EXPAND_NORMAL` and only then emits the offset, so
+`lui`/`addiu` come first and the base is already in a register when the `addu`
+needs it.
+
+```c
+s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
+{
+    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->field_40 <= 0) {
+        D_mine_mesa_80189B74[slot] = NULL;
+        D_mine_mesa_80189B6C       = (u16)D_mine_mesa_80189B6C - 1;
+    }
+    return 1;
+}
+```
+
+Two subscripts and one store, no address temporary: 100%, every penalty zero
+(the same edit also moved `sw` into the counter load's delay slot, removing the
+`nop`, because the store's address is then a plain `MEM` on a live pointer rather
+than the value of a pointer local). Worth trying as the *first* move on any
+seed whose only complaint is a base/index ordering pair - it costs one build and
+needs no scheduler reasoning. `func_mine_mesa_80181848`, the sibling that seeds
+the same array, matched the same day with `arr[1] = 0; arr[0] = 0;` written out.
+
+Note the arity was wrong too - the handler's third argument is in `$a2` - so this
+seed needed the message-handler prototype from the `func_mine_mesa_8017DA7C`
+entry above before the ordering mattered. Fixing both in one build (80.2% -> 100%)
+is what the two-attempt history here shows: `regs=0 stack=0` after the prototype,
+`reorder=0 insert=0` after the subscript form.
+
+## An unsigned read of a signed global is a per-use cast, and a sibling's load sign says which (func_mine_mesa_80181800, 2026-09-15)
+
+The matched body reads a countdown with `lhu` and writes it back with `sh`, which
+is what `u16` gives - but the sibling `func_mine_mesa_80181358`, still
+`INCLUDE_ASM` in the same TU, reads the *same* symbol with `lh` and compares it
+against 0 and 1. The two are not interchangeable and the choice is a property of
+the declaration, not of the use: a probe built against this compiler shows
+
+```c
+extern u16 D;  ...  if (D == 0) ...      ->  lhu  $4,%lo(D)($2)  # zero_extendhisi2
+```
+
+so a `lh` anywhere in the family proves the global is `s16` and that the
+`lhu` in a matched body is an explicit `(u16)` cast on the right-hand side of the
+one expression that wants it - `D = (u16)D - 1`, not a `u16` declaration, which
+would silently re-type every other reader in the TU. Both spellings reach 100%
+for this function alone; only one keeps the sibling reachable, and the build
+cannot tell you which, because an `INCLUDE_ASM` sibling never reads the
+declaration. When the matched body and an unmatched sibling disagree about a
+shared global's signedness, keep the declaration the sibling's loads demand.

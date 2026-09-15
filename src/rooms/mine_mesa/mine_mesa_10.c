@@ -1,11 +1,13 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
+
 #include "main/session.h"
 #include "main/task.h"
 
-extern s16 D_mine_mesa_80189B6C;
-extern s32 D_mine_mesa_80189B74[2];
-extern s32 D_mine_mesa_80189B1C;
+extern s16      D_mine_mesa_80189B6C;
+extern GpEnemy* D_mine_mesa_80189B74[2];
+extern s32      D_mine_mesa_80189B1C;
 
 void func_mine_mesa_801811C4(s32 arg0);
 
@@ -28,7 +30,18 @@ void func_mine_mesa_801817BC(void)
     func_mine_mesa_801811C4(offset);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_10", func_mine_mesa_80181800);
+/// Message 0x13F4 handler, the only entry of the room's `GpMsgEntry` table
+/// `D_mine_mesa_80189B1C`. Once the enemy parked in slot `slot` of
+/// `D_mine_mesa_80189B74` is dead (`field_40` is its HP) the slot is emptied and
+/// the room's remaining-enemy countdown ticks down. Always consumes the message.
+s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
+{
+    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->field_40 <= 0) {
+        D_mine_mesa_80189B74[slot] = NULL;
+        D_mine_mesa_80189B6C       = (u16)D_mine_mesa_80189B6C - 1;
+    }
+    return 1;
+}
 
 /// Starts the room's slot countdown: seeds `D_mine_mesa_80189B6C` to 10, clears
 /// the two slots at `D_mine_mesa_80189B74`, points the task at the room's state
