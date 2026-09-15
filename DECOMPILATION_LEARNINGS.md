@@ -79860,3 +79860,44 @@ declarations. Inputs: `base_1.i`
 transcription, 89.46%), `base_2.i`
 `278d4c8d3cc5108e06c9537c3c825de2fbb01aa1bec63b1c7ee9317bf8405f70` (natural
 for-loop, 100%).
+## Two stores of one constant: source order picks the delay slot *and* its register
+
+`func_dryfield_night_gas_station_8017FA6C` raises two globals to 1 and then
+calls `SetDispMask(0)`. The m2c baseline is already the match:
+
+```c
+Game_Session->field_68 = 1;
+D_80115768 = 1;
+SetDispMask(0);
+```
+
+```
+lui   v0, %hi(Game_Session)
+lw    v0, %lo(Game_Session)(v0)
+li    v1, 1                       # the shared constant
+sb    v1, 0x68(v0)
+lui   v0, %hi(D_80115768)         # second store's address, hoisted
+jal   SetDispMask
+ sb   v1, %lo(D_80115768)(v0)     # delay slot, reuses v1
+```
+
+Swapping the two statements (100% -> 92.19%, `regs=10 insert=1 delete=1`) moves
+the constant to `$v0`, defers the *Game_Session* store into the delay slot
+instead, and spends a live `$a1` on the `lui` of the store that stayed early:
+
+```
+lui   a1, %hi(D_80115768)
+lui   v0, %hi(Game_Session)
+lw    v1, %lo(Game_Session)(v0)
+li    v0, 1
+sb    v0, %lo(D_80115768)(a1)
+jal   SetDispMask
+ sb   v0, 0x68(v1)
+```
+
+Both stores share one materialised constant, so the swap is not local to the
+delay slot: the *first-written* store keeps the constant in the register the
+scheduler chose and the *second* is the one parked in the delay slot with its
+address built early. When a target shows that shape, write the two stores in the
+order that gives the early store the register seen in the target - see the
+`Store the task pointer before Mem_Set` entry above for the single-store form.
