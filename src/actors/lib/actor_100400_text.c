@@ -866,7 +866,64 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06B7C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06EA4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06F64);
+static inline s32 Actor00400_ConsumeStateRequest(Actor100400Work* work)
+{
+    s16 req;
+    s32 state;
+
+    state = work->field_642;
+    if (state != 1) {
+        return 0;
+    }
+    req = work->field_644;
+    if (req == 1)
+        goto set;
+    if (req == 2)
+        goto set;
+    if (req == 3)
+        goto set;
+    if (req != 4)
+        goto other;
+set:
+    work->field_638 = state;
+    work->field_63A = 0;
+other:
+    work->field_644 = 0;
+    return 1;
+}
+
+void Actor00400_Fn06F64(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    s32              id;
+    s32              cond;
+
+    work = arg0->field_1C;
+    if (work->field_642 != 0 && work->field_644 == 1) {
+        work->field_63C = 2;
+        work->field_632 = 0x10;
+        work->field_628 = 0x13;
+        work->field_624 = 1;
+        id              = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40040006;
+        SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(arg0->field_2C->field_8),
+                            (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        return;
+    }
+    if (Actor00400_ConsumeStateRequest(work) == 0) {
+        work = arg0->field_1C;
+        if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work2            = arg0->field_1C;
+            work2->field_638 = 0;
+            work2->field_63A = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn070C0);
 

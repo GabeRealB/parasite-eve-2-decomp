@@ -83638,3 +83638,23 @@ Same function: the parameter lost `$s2` to `work` because its `REG_EQUIV`
 doubles its live length (see the parameter-priority entry). Copying it into a
 local first (`actor = arg0;`) and using only the local removed the doubling and
 flipped the order, with no instruction change.
+
+### A store that reuses a compared register behind a multi-way label is a variable, not CSE
+
+`Actor00400_Fn06F64` tests `field_642 == 1`, then `field_644` against 1..4
+(`beq`/`beq`/`beq`/`bne`), and the joined block stores `sh a1,0x638` - the
+register holding the `field_642` read. Two separate fixes were needed. First,
+`req == 1 || req == 2 || ...` folds to `addiu -1; sltiu 4` (so does a
+`switch`); a `goto set` chain keeps the four compares. Second, that label has
+several predecessors, so CSE forgets `a1 == 1` and emits `li v0,1` for the
+store. Holding the read in a local (`s32 state = work->field_642;`, then
+`field_638 = state`) reproduces the reuse; an `s16` local instead adds an
+`lhu` re-read.
+
+The surrounding `v0 = 0; ...; v0 = 1; bnez v0` came from an inline helper
+returning `s32` (the same shape as the sibling `Actor00400_Fn02154` call, but
+without the `<< 16`). The helper takes `work` rather than `arg0` because the
+target does not reload `field_1C`. The last register swap (`work` in `a0`
+instead of `v1`) went away when the later `arg0->field_1C` reload was assigned
+back to `work` instead of a second local, which raised `work`'s allocation
+priority above the helper's `req`.
