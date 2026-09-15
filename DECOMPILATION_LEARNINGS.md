@@ -79035,3 +79035,58 @@ ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `Game_SetPtrSlot(task, 7)`.
+## m2c's temp plus per-arm duplicate splits one value into three pseudos; reuse one local for the RMW (func_dryfield_dilapidated_house_8017E858, 2026-09-15)
+
+`func_dryfield_dilapidated_house_8017E858` is 20 instructions and its body is
+byte-identical to the already-matched `func_actor_460200_80132090`
+(`overlay_dup_index.py find` reports `=`, not `~`). The m2c seed below scored
+99.250% with `regs=3` and no other penalty: the only difference was the store
+operand, `sw $v0` in retail against `sw $v1` in the build.
+
+```
+  lw    v0,0x34(s0)
+  bgez  v0,3c
+  addiu v0,v0,-0x1      <- retail $v0, build $v1 (same for the store below)
+  ...
+  lw    v0,0x34(s0)
+  addiu v0,v0,-0x1
+  sw    v0,0x34(s0)
+```
+
+The sign test branches between the load and the subtract, and m2c spells the
+value as a temp plus a duplicated subtract — `temp_v0 = arg0->spawnArg1;
+var_v0 = temp_v0 - 1; if (temp_v0 < 0) { ...; var_v0 = arg0->spawnArg1 - 1; }`.
+`.lreg` shows what that costs: **three** quantities for one value (81 the load,
+82 the fall-through result, 83 the taken-path result; 84 registers total), and
+82 — the one that reaches the store — loses the `$v0` contest and lands in
+`$v1`. The sibling's spelling keeps the value in one reused local and puts the
+subtract in the shared tail:
+
+```c
+    var_v0 = arg0->spawnArg1;
+    if (var_v0 < 0) {
+        Stage_SetEndingFlag();
+        Task_Kill(arg0);
+        var_v0 = arg0->spawnArg1;
+    }
+    var_v0          = var_v0 - 1;
+    arg0->spawnArg1 = var_v0;
+```
+
+That is one quantity (81, *6 refs across 5 insns*, 82 registers total), which
+takes `$v0` and scores 100.000%. The `qty_n_refs * floor_log2` numerator of
+`QTY_CMP_PRI` (see the `do{}while(0)` entry above) is why the merged quantity
+wins: 6 refs / span 5 against the split form's 3 refs / span 6 and 3 refs / span
+4. Same lesson as "Chained signed divides by 15: reuse one local, not two" — the
+tell is the quantity *count* and ref count in `.lreg`, not the object dump.
+
+The general rule for a read-modify-write whose test branches between the load and
+the arithmetic: write the load into the reused local, branch on it, reload into
+the *same* local, and do the arithmetic once after the join. Copying the already
+matched sibling's source spelling is the fast path when the body is equal.
+
+Inputs: parent `base.i`
+`69b5d5c78a26db39f9f78b4abe5b3132638638773381af6c6e7e49e3a4e9cdb1` (99.250%),
+`base_1.i` `da8d050179fe5d57c19fcef650018c04acb5d28a1597f50dc6898a2c0a45d62d`
+(100.000%), target
+`4c4598b0f47c3f2dd93166d70eb6fbcfcffc689caa9d1bd56c9b4229e62d1594`.

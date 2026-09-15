@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 
 #include "main/session.h"
+#include "main/stage.h"
 #include "main/task.h"
 
 extern s32 D_dryfield_dilapidated_house_80189B6C;
@@ -87,7 +88,19 @@ void func_dryfield_dilapidated_house_8017E780(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E858);
+void func_dryfield_dilapidated_house_8017E858(Task* arg0)
+{
+    s32 var_v0;
+
+    var_v0 = arg0->spawnArg1;
+    if (var_v0 < 0) {
+        Stage_SetEndingFlag();
+        Task_Kill(arg0);
+        var_v0 = arg0->spawnArg1;
+    }
+    var_v0          = var_v0 - 1;
+    arg0->spawnArg1 = var_v0;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D61C);
 
