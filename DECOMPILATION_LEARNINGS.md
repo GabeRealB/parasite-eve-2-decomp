@@ -79689,3 +79689,38 @@ definition - see "Interleaved jump tables"/the migration entry above). No file
 is deleted, so no matched body can be lost; `build-and-verify.sh --only <overlay>`
 confirms it, and `ninja_config.py`'s post-split check still guards the `.text`
 span.
+
+## Two zero stores to one global: index a declared array, `[1]` before `[0]` (func_mine_mesa_80181848, 2026-09-15)
+
+m2c renders a target that clears two words of one global as two `M2C_FIELD`
+stores, and neither reproduces it: the offset folds into the symbol reloc, so the
+compiler emits `sw %lo(sym+4)(v0)` and then a second store through `-0x4(v0)`.
+The target materializes the *bare* symbol once, keeps the displacement in the
+store, and reaches the other word symbolically:
+
+```
+lui   $v1, %hi(D_x)
+addiu $v0, $v1, %lo(D_x)     # base materialized, the +4 is NOT in the reloc
+sw    $zero, 0x4($v0)
+sw    $zero, %lo(D_x)($v1)   # direct, no base register
+```
+
+That is an array subscript pair, in this order:
+
+```c
+D_x[1] = 0;
+D_x[0] = 0;
+```
+
+`func_actor_104000_80138CC8` (matched, `extern s32 D_actor_104000_8013E530[2];`)
+carries the identical pair and is what settled this one: the m2c seed read 84.286%
+(`regs=4 insert=1 delete=1`) and the subscript spelling matched on the first
+build with all-zero penalties. The subscript keeps the base bare and the
+displacement in the memory operand - the same front-end split the `M2C_FIELD`
+reloc-fold entry describes - so the question a two-store clear asks is which
+container the source indexed, not which register the allocator happened to pick.
+
+**Find that sibling by grepping the matched asm for the shape, then read the C
+beside it.** `addiu $v0, $v1, %lo(` (or any register pair) followed within a few
+instructions by `sw $zero, 0x4($vN)` hits 19 functions across the tree, and a
+matched one spells out the idiom in three lines.
