@@ -5,10 +5,26 @@
 extern Task*    RoomsShared8017e8a8Task;
 extern TaskDesc RoomsShared8017daf0Desc;
 extern Task*    RoomsShared8018459cTask;
+extern Task*    D_mine_mesa_80189B58;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E6D8);
+void func_mine_mesa_8017E6D8(void)
+{
+    D_mine_mesa_80189B58 = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 2, 0, 0);
+}
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_5", func_mine_mesa_8017E70C);
+void func_mine_mesa_8017E70C(s32 arg0)
+{
+    if (D_mine_mesa_80189B58 != NULL) {
+        if (arg0 < 2) {
+            if (arg0 >= 0) {
+                D_mine_mesa_80189B58->spawnArg1 = arg0;
+                return;
+            }
+        }
+        Task_Kill(D_mine_mesa_80189B58);
+        D_mine_mesa_80189B58 = NULL;
+    }
+}
 
 void func_mine_mesa_8017E760(void)
 {

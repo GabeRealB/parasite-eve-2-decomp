@@ -79404,6 +79404,20 @@ Two near-misses keep the flag: `((s16*)Game_Session)[0x29] = 1;` still emits
 cast-through-`u8*` address form drops it. When a schedule looks impossible from
 dependencies (an insn that must be picked early keeps being picked late),
 check the MEM flags before assuming a scheduler heuristic.
+
+`M2C_FIELD(ptr, T*, off)` is that cast form, so the same flag decides the mirror
+case, where the *seed* is the cast and the struct form is the fix
+(func_mine_mesa_8017DC80, 2026-09-15). There, m2c's `M2C_FIELD(arg0, s32*, 0x30)`
+kept the state load/store non-struct, and `M2C_FIELD(arg0, M2C_UNK**, 0x24)` did
+the same for `field_24`; the seed scored 99.796% with `regs=2` — every byte right
+except the trailing `lui` for a zeroed global, `$v0` where the target has `$v1`.
+Typing the parameter `Task*` and writing `arg0->state` / `arg0->field_24` marks
+those MEMs `in_struct` (`mem/s:SI`), which lets the `high(symbol)` of the trailing
+store be scheduled *inside* the state value's live range; local-alloc then finds
+`$v0` busy and takes `$v1`, and the same C is 100%. Both field accesses had to be
+struct form — a probe with only `field_24` fixed still came out `$v0`. So when a
+`regs` penalty is one register in an otherwise byte-identical tail, check whether
+the seed's field accesses are `M2C_FIELD` before hunting the allocator.
 ## m2c renders a stack-copied handler-table dispatch as a call that passes the table entries (func_neo_ark_forest_zone_8017DBBC, 2026-09-15)
 
 A dispatcher that block-copies a handler table onto the stack and calls through it
@@ -81098,3 +81112,267 @@ Inputs: `base.i`
 `c2ebb051457d76cb5dafdf6188e13f0ce97bb024b1e15856fce9e844147518da` (79.3%,
 `regs=16 insert=2 delete=3`), `base_1.i`
 `2cc874a6a28088017b1560b54a8f0b2409382e97b2a057019f7cafcdf5022bc7` (100%).
+
+## Two zero stores to one global: index a declared array, `[1]` before `[0]` (func_mine_mesa_80181848, 2026-09-15)
+
+m2c renders a target that clears two words of one global as two `M2C_FIELD`
+stores, and neither reproduces it: the offset folds into the symbol reloc, so the
+compiler emits `sw %lo(sym+4)(v0)` and then a second store through `-0x4(v0)`.
+The target materializes the *bare* symbol once, keeps the displacement in the
+store, and reaches the other word symbolically:
+
+```
+lui   $v1, %hi(D_x)
+addiu $v0, $v1, %lo(D_x)     # base materialized, the +4 is NOT in the reloc
+sw    $zero, 0x4($v0)
+sw    $zero, %lo(D_x)($v1)   # direct, no base register
+```
+
+That is an array subscript pair, in this order:
+
+```c
+D_x[1] = 0;
+D_x[0] = 0;
+```
+
+`func_actor_104000_80138CC8` (matched, `extern s32 D_actor_104000_8013E530[2];`)
+carries the identical pair and is what settled this one: the m2c seed read 84.286%
+(`regs=4 insert=1 delete=1`) and the subscript spelling matched on the first
+build with all-zero penalties. The subscript keeps the base bare and the
+displacement in the memory operand - the same front-end split the `M2C_FIELD`
+reloc-fold entry describes - so the question a two-store clear asks is which
+container the source indexed, not which register the allocator happened to pick.
+
+**Find that sibling by grepping the matched asm for the shape, then read the C
+beside it.** `addiu $v0, $v1, %lo(` (or any register pair) followed within a few
+instructions by `sw $zero, 0x4($vN)` hits 19 functions across the tree, and a
+matched one spells out the idiom in three lines.
+
+## A register in the compare names the arity: m2c undercounts parameters, and the fix is not register allocation (func_mine_mesa_8017DA7C, 2026-09-15)
+
+m2c infers a prototype from the uses it can see in the body, so an argument whose
+only use is one side of a comparison can go missing. The seed then compiles, the
+compare lands in `$a0`, and the diff reads as a register-allocation problem: the
+m2c seed for this room message handler read 69.368%
+(`regs=4 insert=4 delete=1 branch=2`) with a `$s0` save/restore and `bne $a0`.
+
+Two independent things were wrong, and the target's own operands name both.
+
+**The compare register is the arity.** `bne $a2, $v0` against an `$a2` the seed
+never declared means three parameters, whatever the body appears to use - the
+handler signature here is `(s32 arg0, s32 arg1, s32 arg2)`, which its matched
+sibling `func_shelter_b3_dumping_hole_8017D82C` spells out.
+
+**A store before the call outlives it.** The seed's shape,
+
+```c
+var_a0 = 0xC;
+if (GameFlag_GetNibble(0x11A) >= 2) var_a0 = 0xD;   /* call in the condition */
+Gp_RunCapCmd1(var_a0);
+```
+
+makes `var_a0` live across the `GameFlag_GetNibble` call, so global allocation
+gives it a callee-saved home and pays a save/restore for it. The target selects
+the constant *after* the call (`li $a0, 0xC` in the `bnez` delay slot, `li
+$a0, 0xD` in the fall-through), which is a ternary argument, not a variable:
+
+```c
+s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xD) {
+        Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);
+    }
+    return 0;
+}
+```
+
+100%, all penalties zero, first build. In the sibling the same idiom appears as
+`Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x11D) != 0 ? 0x12 : 0x17, 1)` - a
+condition, two constants and one call is this family's signature, and the
+"chooser" never earns a name. The handlers are reached from a room data table of
+`{ u32 msgId, handler }` pairs, so an unmatched one is cheap to locate: the id
+beside it says which message it serves.
+
+## Two compares in the object mean the source had nested `if`s: the tree folder merges a single `&&` into one range test (func_mine_mesa_8017E70C, 2026-09-15)
+
+A bound check is the one place where writing the source the obvious way changes
+the branch count. This room message handler's target carries *two* compares that
+jump to the same block - `slti $v0,$a0,2; beqz $v0,.Lkill` then `bltz
+$a0,.Lkill` - over six blocks. The m2c seed's condition,
+
+```c
+if ((arg0 < 2) && (arg0 >= 0)) {
+    D_mine_mesa_80189B58->spawnArg1 = arg0;
+    return;
+}
+```
+
+compiled to five blocks with a single `sltiu $v0,$v1,2` and scored 52.333%
+(`branch=1 regs=8 insert=4 delete=5`): one branch, one block, and every
+downstream register decision inherited from it.
+
+`fold_range_test` in the bundled `gcc/fold-const.c` (`fold` calls it for
+`TRUTH_ANDIF_EXPR`/`TRUTH_ORIF_EXPR` at line 4943) does this on purpose. It runs
+`make_range` on both operands, merges them when both describe the same innermost
+variable, and rebuilds one test via `build_range_check`; an inclusive low bound
+of 0 converts the comparison to the unsigned type, which is where `sltiu`
+comes from. Operand order does not matter (`merge_ranges` sorts the two ranges),
+and `||` folds too - it inverts both sides and inverts the result - so no
+spelling of the compound condition escapes it.
+
+**Spreading the two tests over nested `if`s does.** Each becomes its own tree,
+so the folder never sees a pair to merge, and the branch structure of the target
+falls out directly:
+
+```c
+void func_mine_mesa_8017E70C(s32 arg0)
+{
+    if (D_mine_mesa_80189B58 != NULL) {
+        if (arg0 < 2) {
+            if (arg0 >= 0) {
+                D_mine_mesa_80189B58->spawnArg1 = arg0;
+                return;
+            }
+        }
+        Task_Kill(D_mine_mesa_80189B58);
+        D_mine_mesa_80189B58 = NULL;
+    }
+}
+```
+
+100%, all penalties zero, first build after the baseline. `func_actor_361100_801629D0`
+is the same body in the actors family, already matched with this exact nesting,
+which is what makes the shape the original's rather than a matching trick - the
+two bodies differ only in the global they guard (`D_actor_361100_80171BE0`
+against `D_mine_mesa_80189B58`), both storing `arg0` into `spawnArg1` and killing
+the task otherwise.
+(`overlay_dup_index.py find` reports the pair as `~` and `promote` refuses it:
+one copy per family, and the body names its own overlay's data.)
+
+Read the object before writing a bound check: two compares against the same
+register is a source-level fact, not an allocation artifact, and the folded
+version is a different function.
+
+## A constant selected by a two-way condition reaches one call site through the else's branch delay slot (func_mine_mesa_801817BC, 2026-09-15)
+
+When a room picks one of two constants by a condition and passes it to a single
+callee, the target has **one** `jal` and four blocks, not two calls. This room's
+target is 17 instructions:
+
+```
+lbu   $v1, 0x9($v0)                ; Game_Session->field_9
+addiu $v0, $zero, 0x1
+beq   $v1, $v0, .L_E4              ; first disjunct -> the then block
+addiu $v0, $zero, 0x7              ;   (delay slot: the second test's constant)
+bne   $v1, $v0, .L_E8              ; second disjunct, inverted -> the join
+addiu $a0, $zero, 0x190            ;   (delay slot: the *else* assignment)
+.L_E4:  addiu $a0, $zero, 0x7D0
+.L_E8:  jal    func_mine_mesa_801811C4
+```
+
+Two things fall out of that layout. The then-block sits *after* the else, so the
+inverted second test branches straight to the join and the else needs no jump of
+its own; and the else's single instruction is then scheduled into that branch's
+delay slot. It still executes when the branch is not taken, which is harmless
+here only because the then-block overwrites `$a0` - so the pattern is available
+whenever the else body is one instruction whose destination the then body
+rewrites.
+
+The source is an ordinary selection, and either spelling of it works:
+
+```c
+s32 offset;
+
+if (Game_Session->field_9 == 1 || Game_Session->field_9 == 7) {
+    offset = 0x7D0;
+} else {
+    offset = 0x190;
+}
+func_mine_mesa_801811C4(offset);
+```
+
+The m2c seed reached 100% on the first build with the comma-operator form
+(`if (x == 1 || (offset = 0x190, x == 7))`); the plain `if`/`else` above is the
+same object, so the comma operator is not doing any work and can be replaced with
+the readable form. What produces a *different* function is hoisting the call into
+the arms - `if (cond) f(0x7D0); else f(0x190);` gives two call blocks and two
+jals, which is not this target. Note also that `fold_range_test` does **not**
+apply: the two tests are equality against 1 and 7, whose ranges do not merge, so
+unlike a bound check (see the `func_mine_mesa_8017E70C` entry above) the `||`
+survives as two compares.
+
+## How the subscript is spelled decides whether the base or the index is emitted first (func_mine_mesa_80181800, 2026-09-15)
+
+m2c takes the address of an element into a local pointer before touching it:
+
+```c
+s32 *temp_a2 = &D_mine_mesa_80189B74[arg2];
+temp_v0 = *temp_a2;
+if (...) { *temp_a2 = 0; ... }
+```
+
+and the resulting object emits the index's scaling *before* the base symbol:
+
+```
+sll    a2,a2,0x2                    |  lui    v0,%hi(D_mine_mesa_80189B74)
+lui    v0,%hi(D_mine_mesa_80189B74) |  addiu  v0,v0,%lo(D_mine_mesa_80189B74)
+addiu  v0,v0,%lo(...)               |  sll    a2,a2,0x2
+addu   a2,a2,v0                     |  addu   a2,a2,v0
+        (seed)                          (target)
+```
+
+That reads as a scheduler leftover (`reorder=1`) and is not one: the order is
+already fixed at expand time. `&arr[i]` is an `ADDR_EXPR`, whose operand is
+expanded with `EXPAND_SUM`, so `expand_expr`'s `PLUS_EXPR` case falls into
+`both_summands` - and that path materialises the scaled index onto the ready list
+before the symbol address. Writing the same element as a *value*, with no local
+pointer, takes the `ARRAY_REF` case instead: `get_inner_reference` expands `tem`
+(the base object) with `EXPAND_NORMAL` and only then emits the offset, so
+`lui`/`addiu` come first and the base is already in a register when the `addu`
+needs it.
+
+```c
+s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
+{
+    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->field_40 <= 0) {
+        D_mine_mesa_80189B74[slot] = NULL;
+        D_mine_mesa_80189B6C       = (u16)D_mine_mesa_80189B6C - 1;
+    }
+    return 1;
+}
+```
+
+Two subscripts and one store, no address temporary: 100%, every penalty zero
+(the same edit also moved `sw` into the counter load's delay slot, removing the
+`nop`, because the store's address is then a plain `MEM` on a live pointer rather
+than the value of a pointer local). Worth trying as the *first* move on any
+seed whose only complaint is a base/index ordering pair - it costs one build and
+needs no scheduler reasoning. `func_mine_mesa_80181848`, the sibling that seeds
+the same array, matched the same day with `arr[1] = 0; arr[0] = 0;` written out.
+
+Note the arity was wrong too - the handler's third argument is in `$a2` - so this
+seed needed the message-handler prototype from the `func_mine_mesa_8017DA7C`
+entry above before the ordering mattered. Fixing both in one build (80.2% -> 100%)
+is what the two-attempt history here shows: `regs=0 stack=0` after the prototype,
+`reorder=0 insert=0` after the subscript form.
+
+## An unsigned read of a signed global is a per-use cast, and a sibling's load sign says which (func_mine_mesa_80181800, 2026-09-15)
+
+The matched body reads a countdown with `lhu` and writes it back with `sh`, which
+is what `u16` gives - but the sibling `func_mine_mesa_80181358`, still
+`INCLUDE_ASM` in the same TU, reads the *same* symbol with `lh` and compares it
+against 0 and 1. The two are not interchangeable and the choice is a property of
+the declaration, not of the use: a probe built against this compiler shows
+
+```c
+extern u16 D;  ...  if (D == 0) ...      ->  lhu  $4,%lo(D)($2)  # zero_extendhisi2
+```
+
+so a `lh` anywhere in the family proves the global is `s16` and that the
+`lhu` in a matched body is an explicit `(u16)` cast on the right-hand side of the
+one expression that wants it - `D = (u16)D - 1`, not a `u16` declaration, which
+would silently re-type every other reader in the TU. Both spellings reach 100%
+for this function alone; only one keeps the sibling reachable, and the build
+cannot tell you which, because an `INCLUDE_ASM` sibling never reads the
+declaration. When the matched body and an unmatched sibling disagree about a
+shared global's signedness, keep the declaration the sibling's loads demand.
