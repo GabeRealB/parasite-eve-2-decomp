@@ -79264,3 +79264,26 @@ indexed by `task->state`, spelled as either shape of
 "Rodata link order says whether a stack-copied table is a global or a local
 initializer" above. Which of the two it is still has to come from where the table
 sits relative to the units that own the surrounding rodata.
+
+## An overlay that carries a body twice cannot promote it (func_neo_ark_forest_zone_80181430, 2026-09-15)
+
+`overlay_dup_index.py find` marks a copy `=` (identical bytes) or `~` (same body,
+different link offset), but neither mark says whether `promote` can use it: a
+shared body lives in one object under `src/<family>/lib/`, and that object is
+linked **once per overlay**. An overlay listed twice in the `find` output needs
+two live copies at two addresses, so the shared symbol satisfies at most one of
+them and the other must stay a local definition.
+
+`neo_ark_forest_zone` is the case: the four-entry stack-copied handler-table
+dispatch appears at `0x8017DBBC`, `0x80181430` and `0x8018151C` in that one
+overlay, over three different rodata tables (`D_..._8017D5D8`,
+`D_..._8017D5E8`, and a third). `actor_107600` and `actor_342400` are the same
+shape. Read the `same body: N copies` list for repeats of the *same* overlay
+before promoting anything; when one appears, keep each copy local and rename only
+the rodata operand.
+
+That rename is the whole port. `80181430` is `~` against its already-matched
+sibling `8017DBBC` in the same overlay, and the matched body transferred
+verbatim — the two differ only in which table the local is copied from, so
+retargeting the `extern const TaskFuncTable4` declaration is enough. A `~`
+sibling in the same overlay is as good a seed as an `=` one.

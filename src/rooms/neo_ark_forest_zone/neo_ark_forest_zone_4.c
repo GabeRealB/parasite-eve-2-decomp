@@ -26,7 +26,19 @@ void func_neo_ark_forest_zone_8018141C(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_4", func_neo_ark_forest_zone_80181430);
+/* Same stack-copied handler-table dispatch as func_neo_ark_forest_zone_8017DBBC,
+ * over the second table in this overlay's leading rodata. Kept local: a shared
+ * symbol can only link once per overlay, and this one carries the body twice
+ * more (0x8017DBBC, 0x8018151C). */
+extern const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8;
+
+void func_neo_ark_forest_zone_80181430(Task* task)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_neo_ark_forest_zone_8017D5E8;
+    sp.funcs[task->state](task);
+}
 
 s32 func_neo_ark_forest_zone_80181494(void)
 {
