@@ -3,24 +3,29 @@
 
 #include "common.h"
 
+#include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
 /// Private work block of the actor 401300 task, hanging off `Task::idMap`.
 ///
-/// Only the fields the matched code touches are named so far: the three `GpObj`
-/// display nodes `func_actor_401300_80141758` hands back to `Gp_UnlinkObj`, the
-/// two child tasks it kills, and the halfword the teardown-ish
-/// `func_actor_401300_80141EF8` tests before it stamps the enemy's `field_40`
-/// with the -999 sentinel. The block is a good deal larger - sibling
+/// Only the fields the matched code touches are named so far: `yaw` at 0x18
+/// (the heading `func_actor_401300_80141614` reads back from the root
+/// coordinate, one halfword later than `ActorsShared80169f74Work::yaw`), the
+/// three `GpObj` display nodes `func_actor_401300_80141758` hands back to
+/// `Gp_UnlinkObj`, the two child tasks it kills, and the halfword the
+/// teardown-ish `func_actor_401300_80141EF8` tests before it stamps the enemy's
+/// `field_40` with the -999 sentinel. The block is a good deal larger - sibling
 /// `func_actor_401300_80141C88` reads animation state at 0x89C..0xC0E of the
 /// same pointer - so the struct stays open-ended.
 ///
 /// The display nodes do *not* sit at the same addresses as the same-shaped
 /// teardown of actor 01900/401800, which keeps its three at 0x8C8/0xA08/0xB48.
 typedef struct Actor401300Work {
-    /* 0x000 */ byte  pad_0[0x970];
+    /* 0x000 */ byte  pad_0[0x18];
+    /* 0x018 */ s16   yaw;
+    /* 0x01A */ byte  pad_1A[0x956];
     /* 0x970 */ GpObj field_970;
     /* 0x990 */ byte  pad_990[0x120];
     /* 0xAB0 */ GpObj field_AB0;
@@ -34,6 +39,8 @@ typedef struct Actor401300Work {
     /* 0xD0C */ Task* field_D0C;
     /* 0xD10 */ Task* field_D10;
 } Actor401300Work;
+
+s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placement* placement);
 
 void func_actor_401300_80141758(Task* task);
 
