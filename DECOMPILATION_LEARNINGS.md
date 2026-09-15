@@ -1435,6 +1435,18 @@ header field to `u16` was the whole match (`base_1.c`, preprocessed
 The sibling `func_actor_341900_801633F8` reads the same field with `lhu` and
 `bnez`, which corroborates `u16` rather than being a second coincidence.
 
+The rule is not an actor-overlay artifact: the room script work blocks keep the
+same 0/1 latch, and `func_dryfield_gas_station_80180944` reads `DgsWork`'s flag
+at 0xC with `lhu` / `bnez` exactly as `func_actor_341900_801633F8` does. Run as a
+controlled pair - the same body twice, differing only in the flag's declared
+type, the header untouched in one arm because the struct was copied locally -
+the `s16` arm emits `lh` and scores 87.5% (`insert=1 delete=1`, preprocessed
+`5cad88b8e8282021431789cc0665b074c30064ae70c26936dbee334e09795f15`) where the
+`u16` arm is exact (`25ec285ef6a48f82a2cbc270a508d35f0194a1fbf5834389b76081aa7c7c216b`).
+`include/rooms/dryfield_gas_station.h` carries the widened field; the
+`dryfield_warehouse` and `dryfield_water_tank` headers declare their equivalent
+field `s16` and have not been checked against their own targets.
+
 This is the load-width question in isolation. Where the same value is *also*
 stored back or fed to arithmetic, the signed and unsigned copies are both live
 and the pair is a different problem - see the `lh`+`lhu` section above.
