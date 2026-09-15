@@ -97,6 +97,35 @@ typedef struct Actor521100AnimArgs {
 
 extern Actor521100Work* D_actor_521100_8016A3D8;
 
+/// State table the overlay dispatches through, indexed by `Task::state`.
+/// `D_actor_521100_80131E68` is its 3 words: create
+/// (`func_actor_521100_80135DDC`), update (`func_actor_521100_80136680`)
+/// and teardown (`func_actor_521100_801360C4`). Both handlers take the
+/// task's 0x20 spawn argument first, like `Actor210600StateFuncTable3`.
+typedef void (*Actor521100StateFunc)(void* spawnArg2, Task* task);
+
+typedef struct Actor521100StateFuncTable3 {
+    Actor521100StateFunc funcs[3];
+} Actor521100StateFuncTable3;
+STATIC_ASSERT_SIZEOF(Actor521100StateFuncTable3, 0xC);
+
+extern const Actor521100StateFuncTable3 D_actor_521100_80131E68;
+
+/// Stack copy `func_actor_521100_80136604` makes before the indirect call.
+/// The copy itself moves only the 3 words of `D_actor_521100_80131E68`, but
+/// the dispatcher's frame is 0x30 with `$ra` at 0x28, which needs 17-24 bytes
+/// of locals. The trailing `u8`/`u8`/`u16` at 0x10 are written to 2, 9, 1;
+/// `field_C` is unread. Same 20-byte table-plus-context shape as
+/// `Actor210600DispatchCtx`.
+typedef struct Actor521100DispatchCtx {
+    /* 0x00 */ Actor521100StateFuncTable3 table;
+    /* 0x0C */ s32                        field_C;
+    /* 0x10 */ u8                         field_10;
+    /* 0x11 */ u8                         field_11;
+    /* 0x12 */ u16                        field_12;
+} Actor521100DispatchCtx;
+STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
+
 void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_801355C8(Actor521100* arg0);

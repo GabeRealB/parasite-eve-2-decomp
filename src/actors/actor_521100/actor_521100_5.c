@@ -6,6 +6,9 @@
 #include "main/tmd.h"
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void func_actor_521100_80135DDC(void* spawnArg2, Task* task);
+void func_actor_521100_801360C4(void* spawnArg2, Task* task);
+void func_actor_521100_80136680(void* arg0, Task* task);
 
 s32 func_actor_521100_80135D10(Actor521100* arg0, s32 arg1, s32 arg2)
 {
@@ -66,7 +69,32 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80136404);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80136604);
+/// splat migrates this table into `func_actor_521100_80136604`'s own `.s`, so
+/// there is no standalone rodata file to `INCLUDE_RODATA`; it is defined here.
+/// The word of 0 after the three handlers is the `.align 3` pad before
+/// `jtbl_actor_521100_80131E78` in the next unit; splat grouped it into this
+/// symbol.
+const Actor521100StateFuncTable3 D_actor_521100_80131E68 = { {
+    func_actor_521100_80135DDC,
+    func_actor_521100_80136680,
+    func_actor_521100_801360C4,
+} };
+const s32                        D_actor_521100_80131E74 = 0;
+
+/// State dispatcher: copies the overlay's 3-entry state table onto a 20-byte
+/// stack record, fills the trailing context bytes, caches the work pointer,
+/// and calls the entry `Task::state` selects.
+void func_actor_521100_80136604(Task* arg0)
+{
+    Actor521100DispatchCtx sp;
+
+    sp.table                = D_actor_521100_80131E68;
+    sp.field_10             = 2;
+    sp.field_11             = 9;
+    sp.field_12             = 1;
+    D_actor_521100_8016A3D8 = (Actor521100Work*)arg0->idMap;
+    sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 void func_actor_521100_80136680(void* arg0, Task* task)
 {
