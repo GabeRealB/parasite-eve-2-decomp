@@ -11,6 +11,8 @@
 
 #include <psyq/inline_c.h>
 
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
 INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn00048);
 
 GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
@@ -583,7 +585,36 @@ void Actor02100_Fn03488(Actor02100* arg0)
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_102100_text", Actor02100_Fn034E0);
+/// Projects the two `field_128` points through the actor's own coordinate,
+/// storing screen x/y in `field_18C`/`field_190` and depth in `field_194`.
+void Actor02100_Fn034E0(Actor02100* arg0)
+{
+    Actor02100Screen* scratch;
+    GsCOORDINATE2*    coord;
+    Actor02100Work*   work;
+    s32               i;
+    u8*               head;
+    s32               y;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    work                  = arg0->field_1C;
+    *(u8**)G_SCRATCH_HEAD = head - 8;
+    scratch               = (Actor02100Screen*)*(u8**)G_SCRATCH_HEAD;
+    coord                 = arg0->field_2C->field_8;
+    for (i = 0; i < 2; i++) {
+        gte_SetRotMatrix(&coord->workm);
+        gte_SetTransMatrix(&coord->workm);
+        gte_ldv0(&work->field_128[i]);
+        gte_rtps_real();
+        gte_stsxy(&scratch->sxy);
+        gte_stszotz(&scratch->sz);
+        work->field_18C[i] = scratch->sxy.vx;
+        y                  = scratch->sxy.vy;
+        work->field_190[i] = y;
+        work->field_194[i] = scratch->sz;
+    }
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 8;
+}
 
 void Actor02100_Fn035D4(Actor02100Ctx* arg0, Actor02100* arg1)
 {

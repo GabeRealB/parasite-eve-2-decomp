@@ -57,6 +57,14 @@ typedef struct Actor02100Sight {
 } Actor02100Sight;
 STATIC_ASSERT_SIZEOF(Actor02100Sight, 0x20);
 
+/// 8-byte block taken from `G_SCRATCH_HEAD` by `Actor02100_Fn034E0`: the
+/// projected screen position (`stsxy`) and the quartered depth (`stszotz`).
+typedef struct Actor02100Screen {
+    /* 0x0 */ DVECTOR sxy;
+    /* 0x4 */ s32     sz;
+} Actor02100Screen;
+STATIC_ASSERT_SIZEOF(Actor02100Screen, 8);
+
 struct Actor02100;
 
 typedef struct Actor02100Work {
@@ -79,7 +87,9 @@ typedef struct Actor02100Work {
     /* 0x120 */ s16                field_120;
     /* 0x122 */ s16                field_122;
     /* 0x124 */ s16                field_124;
-    /* 0x126 */ byte               pad_126[0x1A];
+    /* 0x126 */ byte               pad_126[2];
+    /* 0x128 */ SVECTOR            field_128[2];
+    /* 0x138 */ byte               pad_138[8];
     /* 0x140 */ struct Actor02100* field_140;
     /* 0x144 */ MATRIX             field_144;
     /* 0x164 */ s32                field_164;
@@ -99,7 +109,9 @@ typedef struct Actor02100Work {
     /* 0x186 */ s16                field_186;
     /* 0x188 */ s16                field_188;
     /* 0x18A */ s16                field_18A;
-    /* 0x18C */ byte               pad_18C[0x10];
+    /* 0x18C */ s16                field_18C[2];
+    /* 0x190 */ s16                field_190[2];
+    /* 0x194 */ s32                field_194[2];
 } Actor02100Work;
 STATIC_ASSERT_SIZEOF(Actor02100Work, 0x19C);
 
