@@ -54,7 +54,22 @@ s8 func_actor_421600_8013E830(s32 arg0, s32 arg1)
     return p[a + (b << 1)];
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E858);
+void func_actor_421600_8013E858(Actor421600* arg0)
+{
+    TmdObject*       obj;
+    Actor421600Work* work;
+    GpEnemy*         enemy;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                    = arg0->field_2C;
+        enemy                  = arg0->field_20;
+        enemy->node.field_4    = 1;
+        obj->field_C          |= 0x80;
+        work->field_B6C.flags &= 0xBFFF;
+        enemy->field_40        = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013E8AC);
 

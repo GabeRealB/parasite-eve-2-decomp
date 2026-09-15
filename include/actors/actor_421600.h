@@ -8,6 +8,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Per-actor state block for the `actor_421600` overlay's enemy.
 ///
@@ -22,9 +23,12 @@
 /// `Gp_UnlinkObj`, the two child tasks it kills, and the halfword
 /// `func_actor_421600_8013E654` writes. The display nodes sit 0x24 later than
 /// the 0x8C8/0xA08/0xB48 triple on actor 01900/401800, with the same 0x140
-/// stride.
+/// stride. `field_4` is the live-actor flag `func_actor_421600_8013E858`
+/// tests, and `field_B6C.flags` is the mask it writes.
 typedef struct Actor421600Work {
-    /* 0x000 */ byte  pad_0[0x8EC];
+    /* 0x000 */ byte  pad_0[4];
+    /* 0x004 */ s16   field_4;
+    /* 0x006 */ byte  pad_6[0x8E6];
     /* 0x8EC */ GpObj field_8EC;
     /* 0x90C */ byte  pad_90C[0x120];
     /* 0xA2C */ GpObj field_A2C;
@@ -38,6 +42,18 @@ typedef struct Actor421600Work {
     /* 0xEAE */ byte  pad_EAE[2];
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
+
+/// Per-task actor context: `field_1C` is the work block above (the same
+/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
+/// `Actor403000` / `Actor401800`.
+typedef struct Actor421600 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor421600Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ TmdObject*       field_2C;
+} Actor421600;
 
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
@@ -59,5 +75,7 @@ void func_actor_421600_8013E668(Task* task);
 void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
 
 s8 func_actor_421600_8013E830(s32 arg0, s32 arg1);
+
+void func_actor_421600_8013E858(Actor421600* arg0);
 
 #endif
