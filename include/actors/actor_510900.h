@@ -76,11 +76,12 @@ typedef struct Actor510900Work {
     /* 0x5A6 */ byte pad_5A6[2];
     /* 0x5A8 */ s16  field_5A8;
     /* 0x5AA */ s16  field_5AA;
-    /* 0x5AC */ byte pad_5AC[4];
+    /* 0x5AC */ s16  field_5AC;
+    /* 0x5AE */ byte pad_5AE[2];
     /* 0x5B0 */ s16  field_5B0;
     /* 0x5B2 */ byte pad_5B2[6];
     /* 0x5B8 */ s16  field_5B8;
-    /* 0x5BA */ byte pad_5BA[2];
+    /* 0x5BA */ s16  field_5BA;
     /* 0x5BC */ s16  field_5BC;
     /* 0x5BE */ byte pad_5BE[4];
     /// Written by the child task's frame handler from its `field_336` when
@@ -173,6 +174,13 @@ typedef struct Actor510900AnimArgs {
 /// Table the state 1 handler below picks `field_59C` from; a 4-bit
 /// `Gp_LcgState` draw indexes at least sixteen `u16` entries.
 extern u16 D_actor_510900_801679F0[];
+
+/// Table the 0x14-animation state picks `field_59C` from, indexed by a 4-bit
+/// `Gp_LcgState` draw the same way `D_actor_510900_801679F0` is.
+extern u16 D_actor_510900_801679D0[];
+
+/// `TaskDesc` table the state hands `Gp_SpawnEnemyFromTable` (entry 4).
+extern TaskDesc D_actor_510900_80167A18[];
 
 /// Per-animation-id value `func_actor_510900_8013BB20` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.

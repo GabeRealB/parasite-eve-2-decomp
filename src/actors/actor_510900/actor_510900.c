@@ -1,7 +1,10 @@
 #include "common.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "main/session.h"
 
+#include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
@@ -191,7 +194,81 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137008);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801373B8);
+/// Handler that spawns the actor's companion enemy once the 0x14 animation has
+/// blended in (`field_58A` == 0x14): the spawned task's model takes its texture
+/// page and CLUT row from the current area record, indexed by the enemy's own
+/// bank nibble, and a sound is queued from the actor's attach coordinate. Past
+/// blend 0x46 the handler leaves for either state 5 (animation 0xB) or, on a
+/// failed `Gp_LcgState` roll, state 1 with a fresh `field_59C`.
+void func_actor_510900_801373B8(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    GpEnemy*          enemy;
+    Actor510900Coord* coord;
+    GameSessionFrom4* sessionKey;
+    TmdObject*        model;
+    GpAreaRec*        rec;
+    GpCdRec10*        entry;
+    GpAreaKey         key;
+    s32               idx;
+    s32               snd;
+    s32               pan;
+    s32               roll;
+    u32               rng;
+
+    roll  = 0;
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+
+    work->field_5A2 = 0;
+    if (work->field_58A == 0x14) {
+        work->field_5BA = 1;
+        model           = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 4, roll, enemy)->task->extra;
+        idx             = (u16)enemy->field_8 >> 0xC;
+        sessionKey      = (GameSessionFrom4*)&Game_Session->field_4;
+        key.field_3     = sessionKey->field_3;
+        key.field_2     = sessionKey->field_2;
+        key.field_1     = sessionKey->field_1;
+        key.field_0     = Game_Session->field_4;
+        Gp_SyncAreaKeyIndex(&key);
+        rec = Gp_GetNestedAreaRec(&key);
+        /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
+           index onto the table (`addu s0, s0, v0`). */
+        entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = entry->field_D;
+        model->field_25 = entry->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+        snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780012;
+        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+    if (work->field_58A >= 0x46) {
+        if (work->field_5AC >= 0xEA7) {
+            /* Reading the global back is what keeps the store ahead of the
+               shift: written as a local, the store sinks into the branch
+               delay slot and the draw lands in a different register. */
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (((Gp_LcgState >> 0x10) & 0xF) < 0xCU) {
+                roll = 1;
+            }
+        }
+        if (roll == 0) {
+            work->field_58E = 1;
+            work->field_586 = 1;
+            work->field_590 = 0;
+            work->field_59C = D_actor_510900_801679D0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
+            Gp_LcgState     = rng;
+            return;
+        }
+        work->field_58E = 5;
+        work->field_590 = 0;
+        work->field_586 = 0xB;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801375D8);
 
