@@ -1,34 +1,53 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 
-/// `D_..._A7E0` / `D_..._A7E4` hold the address of whichever spawn table
-/// `func_dryfield_night_factory_80180438` selected for the current session
-/// (it stores `&D_..._80186E94` / `&D_..._80186E28` / ... into them), and
-/// `D_..._A7E8` points at the `Mem_Calloc(4, 0)` slot the spawned task is
-/// parked in. Both are read as values here, which is why the target loads
-/// them (`lw $a0, %lo(...)`) rather than forming `&symbol`.
-extern TaskDesc* D_dryfield_night_factory_8018A7E0;
-extern Task**    D_dryfield_night_factory_8018A7E8;
+extern void Room_Util16(s32);
+extern void Room_Util17(s32);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_80180438);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_8017FE44);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_80180574);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_8017FE9C);
 
-void func_dryfield_night_factory_8018076C(Task* task)
+/// Second cutscene driver for the night factory: silences both weapons, runs
+/// the cap command in `Task::spawnArg1`, and once the cap reports event key 3
+/// records progress flag 0x4A, restores the weapons and kills the task.
+void func_dryfield_night_factory_8017FEF4(Task* task)
 {
-    s32 poll;
+    s32 state = task->state;
 
-    switch (task->state) {
+    switch (state) {
         case 0:
-            *D_dryfield_night_factory_8018A7E8 = Task_SpawnFromTable(D_dryfield_night_factory_8018A7E0, 0, 0, 0);
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgAllyWeapon(0);
+            Gp_RunCapCmd(task->spawnArg1, 0);
+            goto advance;
+        case 1:
+            if (GameFlag_GetNibble(0x4A) < 2) {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 0, 0);
+            }
+            task->state++;
+            /* fallthrough */
+        case 2:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+        advance:
             task->state++;
             return;
-        case 1:
-            if (Task_PollKill(*D_dryfield_night_factory_8018A7E8, &poll) != 0) {
-                Task_Kill(task);
+        case 3:
+            if (Gp_GetCapEventKey() == state) {
+                GameFlag_SetNibble(0x4A, 2);
             }
-            return;
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgAllyWeapon(1);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
+            Task_Kill(task);
+            break;
     }
 }
 

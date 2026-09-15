@@ -79538,3 +79538,82 @@ offset (the `~` marker), but both copies name their own overlay's
 The refusal *is* the answer - the duplicate stays matched twice - rather than an
 obstacle to work around. Run `promote` to get that verdict instead of assuming a
 shared-body landing is pending.
+
+## A `promote` shifts every later unit .c, and migrated rodata has to be pinned by hand (func_dryfield_night_factory_8017FDC8, 2026-09-15)
+
+`overlay_dup_index.py promote` writes the `shared` span, the sym entries, and
+tells you to move the body into `src/<family>/lib/`. What it cannot do is move
+the units out of the way: the span is cut into the middle of an auto unit, so
+the generator re-splits that gap in two and **every later auto unit's name moves
+by one**. Objects are placed by the linker script in unit order, so an overlay
+whose files still hold the old distribution puts the wrong bytes at the wrong
+addresses and fails the checksum - or, when the file is a pure `INCLUDE_ASM`
+stub, fails to assemble at all:
+
+```
+can't open asm/.../dryfield_night_factory_3/func_dryfield_night_factory_8017FE44.s
+```
+
+Rebuild each affected unit .c from the **old** files, redistributing chunks by
+address: `_4.c` takes the tail of `_3.c`, `_5.c` takes `_4.c`, and so on, with
+the moved `INCLUDE_ASM` path following into the new unit directory. Both
+factories of this room needed it (units `_4`..`_11` / `_5`..`_11`). Audit with a
+before/after set difference over `INCLUDE_ASM` names and definitions: only the
+promoted copy may disappear, and nothing may appear twice.
+
+**The rodata does not shift with the code.** The manifest's `rodata` unit names
+are explicit, so after the shift a `.rodata` subsegment's name no longer matches
+the code unit holding the function that references it - and splat pairs the two
+by name when it migrates function-referenced rodata into that function's `.s`.
+Merely renaming the C files therefore loses the migration and the symbol is
+undefined at link time:
+
+```
+dryfield_factory_8.i:(.text+0x34): undefined reference to `jtbl_dryfield_factory_8017D698'
+```
+
+The bytes still have to come from the object named after the *rodata* span (its
+`.rodata` is what the linker script places there), so pin the symbol with an
+explicit `INCLUDE_RODATA` in that file, in address order:
+
+```c
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_5", jtbl_dryfield_night_factory_8017D648);
+
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_5", RoomsShared8017fc38Table);
+```
+
+Three such pins were needed here (the night factory's `_5` and `_7`, the
+factory's `_7`). A standalone `nonmatchings/<unit>/jtbl_*.s` left on disk is not
+evidence either way - those files linger after a migration moves the table into
+the function's `.s`. The linker's undefined references are the reliable signal.
+
+## A mask two tests share maps to one pseudo; write the second one inline (func_dryfield_night_factory_8017FDC8, 2026-09-15)
+
+A flag read once and tested twice against its low byte (`m == 1`, then `m == 0`):
+
+```c
+    state = flag & 0xFF;
+    if (state == 1) { ... }
+    if (((flag & 0xFF) == 0) && ...) { ... }
+```
+
+Held in a local, the mask is one pseudo live from the first test to the join, so
+the join tests the register the first test filled (`bnez $v1`) and the value
+simply stays in it. Written out again at the second test it is a *separate*
+pseudo: `cse` works per extended basic block, so it is defined in the join block
+and `reorg` copies the `andi` into **both** predecessors' delay slots, testing a
+fresh `$v0`. Same C semantics, different bytes - the local-scoped version scored
+86.9%, the repeated expression 100%.
+
+```asm
+    bne    $v1,$v0,.LFE0C      # bne    $v1,$v0,.LFE0C
+    nop                        #  andi  $v0,$a0,0xFF   <- delay slot
+    ...
+    bnez   $v0,.LFE0C          #  bnez $v0,.LFE0C
+    nop                        #  andi  $v0,$a0,0xFF   <- delay slot
+```
+
+The diagnostic is a join-block test whose operand is computed in the delay slots
+of both branches reaching it, while an earlier test of the same expression used
+a different register. Do not answer it with a `register ... asm()` pin - the
+pseudo count, not the register, is what differs.
