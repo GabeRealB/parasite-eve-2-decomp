@@ -82813,3 +82813,80 @@ Inputs: `base.i`
 `fe9fe68eaa7765edbd5aff180ab895f4a90b0631a44bff4e70c3b8907b155c4f` (90%),
 `base_1.i` `ec63fe426790b983132367e1f6eaa36744b0c3029e8cda283848278f23cecde4`
 (100%).
+
+## A table handler's payload type comes from the dispatcher that posts its id, not from a twin's declaration (func_dryfield_main_street_8017E05C, 2026-09-15)
+
+`func_dryfield_main_street_8017E05C` is the same seed shape as the breezeway
+handler below - m2c emitted `s32 f(void *arg2)` reading one byte at offset 2,
+99.935% with the payload in `$a0` where the target has `$a2` - and the fix is the
+same padded parameter list. What is worth separating is how the *type* and the
+*arity* are recovered, because a twin's declaration is not evidence for either.
+
+The arity is fixed by the only caller a table handler has. `Gp_DispatchMsg`
+(`src/gameplay/D4.c`) walks the room's `GpMsgEntry[]` and calls
+`entry->handler(arg0, arg1, arg2, arg3)` - four arguments - which
+`GpMsgHandler` in `include/gameplay/D4.h` spells
+`s32 (*)(Task* task, s32 msgId, s32 arg2, s32 arg3)`. So the room's own table
+matters for the convention: `D_dryfield_main_street_80180EA0` registers this
+function under `0x13EF` beside `Room_Snd01` under `0x13F2`, and `Room_Snd01` is
+already matched as `(Task* task, s32 msgId, s32 arg2, s32 arg3)`.
+
+The payload type follows the *id*, not the parameter's shape. A room table is
+indexed by global message ids whose payloads are unrelated to each other:
+`0x13F2` is dispatched as `(s32)((u8)Gp_CapTable[...].field_4 >> 1)`, a plain
+integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
+dereferences it. Grepping the immediate finds the id's one producer - here
+`addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `Gp_PostMsg13EF`
+- and that function posts `(s32)&sp` where `sp` is a 4-byte `GpMsg13EF`
+(`field_2 = Gp_DirByte`). So the third parameter is `GpMsg13EF*` and the fourth
+`s32 arg3`:
+
+```c
+s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+{
+    if ((msg->field_2 == 1) && (GameFlag_GetNibble(0x5F) == 0)) { ... }
+```
+
+This contradicts the type given for the same id in the breezeway entry below,
+which concluded `RoomEventMsg* in, RoomEventMsg* out` from two matched twins.
+`RoomEventMsg` (8 bytes, `include/rooms/room_common.h`) belongs to the other
+mechanism - `RoomsShared8017d638(RoomEventReq* req, RoomEventMsg* msg)`, the
+room requisites gate - and nothing in that gate re-dispatches to a table
+handler. Both records carry a `u8` at offset 2, which is why the `lbu` that
+entry used as its tell cannot separate them, and why two independent
+declarations agreeing on `RoomEventMsg` is not corroboration. The dispatcher
+can separate them; a twin cannot.
+
+The match itself is insensitive to all of this - 100.000% on the first build
+with the 3-parameter form too, since trailing unused parameters cost nothing -
+so the type has to be argued from the dispatcher rather than from the score.
+
+Inputs: `base.i` (99.935%)
+`2a0f8dd6cc3a990b2f7760ebcb92275eb908aa48ac9c951a5481adbd19ec296a`,
+`base_3.i` (100.000%)
+`2447384f609a507ca91b33b233d1cf504f88b6b6a637c2345c213a8abe0dca3e`.
+
+## A constant argument stays at the call site even when the callee's matched body ignores it (func_dryfield_main_street_8017E05C, 2026-09-15)
+
+`func_dryfield_main_street_8017E4A4` is defined in `dryfield_main_street_5.c` as
+`void func_dryfield_main_street_8017E4A4(void)` - it clears one global and reads
+no parameter - so calling it as `func_dryfield_main_street_8017E4A4(0)` looks
+like an m2c artifact to clean up. It is not. Dropping the argument takes the
+seed from 100.000% to 93.548% on `insert=1 delete=1` alone: the target's
+`jal` delay slot is `addu $a0, $zero, $zero`, and with no argument to place GCC
+fills the slot with a `nop` instead.
+
+So a zero argument at a call site is only removable if the target has no
+instruction setting that register before the `jal`. Here the callee's own
+matched body is what misleads - an unused parameter compiles identically to no
+parameter at all, so the definition cannot say whether retail's prototype had
+one, and the caller is the only witness. The repo already carries this shape:
+`func_shelter_b1_golem_freezer_1_8017D744` is defined `(void)` in its `_2.c` and
+declared `(s32 arg0)` where `_1.c` calls it with `0`. A local prototype with the
+parameter is the established way to keep the call while the definition stays as
+it was matched.
+
+Inputs: `base_1.i` (100.000%)
+`a9baaa56bffc8294bb4e7ebbbb6f40d39cd02eb93f54f63ea683524b65ceefae`,
+`base_2.i` (93.548%)
+`8b9a4eabab100532c0ffa9fd234941e23bfad35346d7f9cf44d7ee28059d273c`.
