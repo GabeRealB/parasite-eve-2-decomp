@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3688.h"
+#include "gameplay/3CD8.h"
 #include "main/task.h"
 #include "rooms/dryfield_night_motel_lobby.h"
 #include "rooms/room_common.h"
@@ -21,4 +22,22 @@ void func_dryfield_night_motel_lobby_80180FD8(Task* task)
     task->state = 4;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_7", func_dryfield_night_motel_lobby_8018103C);
+/// Confirms the action prompt the script's current step put up: drops the
+/// highlight state, then, while `func_800D4EC0` still reports a prompt on
+/// screen, flags the step busy in `promptBusy` (which the cursor draw in
+/// `func_dryfield_night_motel_lobby_801802A8` gates its confirm on) and starts
+/// cap slot 9. Advances the task to state 2 either way.
+void func_dryfield_night_motel_lobby_8018103C(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    DnmlExamineWork*  work   = (DnmlExamineWork*)task->idMap;
+
+    func_dryfield_night_motel_lobby_801802A8(task);
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if (func_800D4EC0() != 0) {
+        work->promptBusy = 1;
+        Gp_StartCapSlot(9, 0, 0);
+    }
+    task->state = 2;
+}

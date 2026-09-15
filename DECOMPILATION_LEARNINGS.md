@@ -81026,3 +81026,75 @@ Inputs: `base.i`
 `9270d49860de6181b03c64a41a34e1086ed6e4c9a7cc4b4a3f4b53009f4376c9` (98.2%,
 `regs=9`), `base_2.i`
 `38a88e2a0d877ce7faa4ee35ab195575d8541aa75bd639d128b4ed55caaae379` (100%).
+
+## A direct global store materializes its address *after* a call; a local pointer holds it across (func_dryfield_night_motel_lobby_8018103C, 2026-09-15)
+
+The m2c seed for this room's prompt-confirm state stored through the global
+directly, exactly as m2c renders it:
+
+```c
+    temp_s1 = arg0->idMap;
+    func_dryfield_night_motel_lobby_801802A8(arg0);
+    D_80114D28.mode     = 0;
+    D_80114D28.targetId = 0;
+```
+
+It scored 79.3% (`regs=16 insert=2 delete=3`). The object recomputes the
+global's address *after* the first call and keeps it in a call-clobbered
+register, so it saves one register fewer than the target and leaves a `nop`
+where the target has work:
+
+```asm
+jal  func_dryfield_night_motel_lobby_801802A8
+ nop                        # target: addiu $s0, $s0, %lo(D_80114D28)
+lui   $v0, %hi(D_80114D28)  # target: lui $s0, ... before the jal
+addiu $v0, $v0, %lo(D_80114D28)
+sb    $zero, 0x10($v0)
+jal   func_800D4EC0
+ sh   $zero, 0xC($v0)
+```
+
+Writing the same stores through a **local pointer declared before the call**
+takes it to 100.0% with every penalty zero:
+
+```c
+    RoomActionPrompt* prompt = &D_80114D28;
+    DnmlExamineWork*  work   = (DnmlExamineWork*)task->idMap;
+
+    func_dryfield_night_motel_lobby_801802A8(task);
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+```
+
+The mechanism is the *birth* of the address, and the `.lreg` header states it
+outright - flow.c prints `in block N` (local-alloc went on to pick `$v0`, see
+the `;; Register 82 in 2.` line from local-alloc.c:2490) when the quantity stays
+inside one block, and only prints `crosses N calls` when it does not:
+
+| form | `.lreg` header for the address | home |
+|---|---|---|
+| `D_80114D28.mode = 0` | `used 3 times across 6 insns in block 0` | `$v0` |
+| `prompt->mode = 0` | `used 3 times across 10 insns in block 0; crosses 1 call` | `$sN` |
+
+With the global written directly, `expand` builds the `high`/`lo_sum` pair where
+the *store* is, which is after the call. With a local pointer, the initializer
+is expanded where the *declaration* is, before the call; the pointer is a
+`reg/v`, and `.rtl` (pre-CSE) shows its address insn ahead of the first
+`call_insn`. A quantity whose live range crosses a call cannot be given a
+call-clobbered register, so it takes `$s0` - and only then can sched2 hoist the
+`lui` above the `jal` and dbr move the `addiu` into its delay slot. The
+allocation choice is upstream of the whole visible difference; the empty delay
+slot is a symptom, not the thing to fix.
+
+This is not a coincidence of this function: the already-matched
+`func_dryfield_night_motel_lobby_80180FD8` - the same room, the same prompt -
+has the identical `$s0` shape, and it is written in the pointer form. When a
+room's state bodies touch the shared `D_80114D28` prompt, adopt the file's
+existing form (declare the pointer locally, store through it) before treating
+`lui`/`addiu`/saved-register differences as an allocation tie to fight with
+pins.
+
+Inputs: `base.i`
+`c2ebb051457d76cb5dafdf6188e13f0ce97bb024b1e15856fce9e844147518da` (79.3%,
+`regs=16 insert=2 delete=3`), `base_1.i`
+`2cc874a6a28088017b1560b54a8f0b2409382e97b2a057019f7cafcdf5022bc7` (100%).
