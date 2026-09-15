@@ -16,11 +16,20 @@
 /// the same-shaped teardown of actor 01900 (`Actor01900Work`), whose display
 /// nodes sit at the same three addresses; only the child-task pair differs.
 /// `field_4` is the live-actor flag `func_actor_401800_8013E138` tests, and
-/// `field_A08.flags` / `field_B48.flags` are the two masks it writes.
+/// `field_A08.flags` / `field_B48.flags` are the two masks it writes. The
+/// halfwords at 0x898..0x8A2 are the same animation-state slots
+/// `Actor01900_Fn0A7C0` writes; `func_actor_401800_8013E194` is that body.
 typedef struct Actor401800Work {
     /* 0x000 */ byte  pad_0[4];
     /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[0x8C2];
+    /* 0x006 */ byte  pad_6[0x892];
+    /* 0x898 */ s16   field_898;
+    /* 0x89A */ s16   field_89A;
+    /* 0x89C */ byte  pad_89C[2];
+    /* 0x89E */ s16   field_89E;
+    /* 0x8A0 */ byte  pad_8A0[2];
+    /* 0x8A2 */ s16   field_8A2;
+    /* 0x8A4 */ byte  pad_8A4[0x24];
     /* 0x8C8 */ GpObj field_8C8;
     /* 0x8E8 */ byte  pad_8E8[0x120];
     /* 0xA08 */ GpObj field_A08;
@@ -45,7 +54,9 @@ typedef struct Actor401800 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor401800;
 
+void func_actor_401800_80133EB8(Actor401800* arg0);
 void func_actor_401800_8013E0A0(Task* task);
 void func_actor_401800_8013E138(Actor401800* arg0);
+void func_actor_401800_8013E194(Actor401800* arg0);
 
 #endif // ACTOR_401800_H
