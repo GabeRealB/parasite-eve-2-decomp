@@ -80782,3 +80782,18 @@ cost**, which is `(plus x 44)`, so `vec->vx` becomes `0x2C(x)`. A
 left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
 reason. Fix in `Actor01900_Fn06100`: `Actor01900_StepForward` (reads `vec->vx`)
 instead of `Actor01900_StepForwardHead`.
+
+## `addiu v0,head,-K` + `move sN,v0` at a scratch push: `*(T**)G_SCRATCH_HEAD -= 1; s = *G_SCRATCH_HEAD`
+
+`Actor01900_Fn06F40` opens a 0xC block with the head load scheduled late (after
+the first field's operands, just before its `sh v0,-0xC(a1)`), then
+`addiu v0,a1,-0xC` / `move s4,v0`, and the head store `sw s4,0(a0)` only after
+the second field. Written as `head = *G_SCRATCH_HEAD; s = head - 1;` the block
+pointer is computed straight into `$s4` (no copy) and the head load is emitted
+first; everything else matched (99.30%, `delete=2`, `insert=1`). The sibling
+push form `*(T**)G_SCRATCH_HEAD -= 1; s = *(T**)G_SCRATCH_HEAD;` with the fields
+written through `s->` is the whole fix: the decremented value is a short-lived
+pseudo, the reload CSEs into the `move`, and the store still lands after the
+field writes. Read the copy as the signature of the compound push. The same
+function also needed `Actor01900_StepForward` rather than `StepForwardHead`
+after the `0x1194` rescale (see "`0x2C(x)` vs `-8(head)` after a scratch pop").

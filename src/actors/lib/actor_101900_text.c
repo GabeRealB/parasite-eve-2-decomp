@@ -1509,7 +1509,105 @@ void Actor01900_Fn06B4C(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06F40);
+/// Patrol state: walks toward the waypoint `field_14` selects, turning at most
+/// 0x20 per step and swapping waypoints on arrival or after 0x15 steps; switches
+/// to state 6 when the player comes within `field_C32`, or within 0xFA0 and in
+/// front.
+void Actor01900_Fn06F40(Actor01900* arg0)
+{
+    Actor01900Work*        work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor01900TurnScratch* s;
+    GsCOORDINATE2*         facing;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        Actor01900_Fn01C94(arg0);
+        work->field_6 = 0;
+        if (arg0->field_36 == 0x10) {
+            work->field_8C8.flags |= 0x4000;
+        }
+        return;
+    }
+    *(Actor01900TurnScratch**)G_SCRATCH_HEAD -= 1;
+    s                                         = *(Actor01900TurnScratch**)G_SCRATCH_HEAD;
+    s->delta.vx                               = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vy                               = 0;
+    s->delta.vz                               = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+    if (!Actor01900_OutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15) {
+        if (work->field_14 == 0) {
+            work->field_14 = 1;
+        } else {
+            work->field_14 = 0;
+        }
+        work->field_6 = 0;
+    }
+    Actor01900_Fn01C94(arg0);
+    coord           = arg0->field_2C->field_8;
+    s->angle        = Actor01900_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->field_8AE = s->angle;
+    if (s->angle > 0x20) {
+        s->angle = 0x20;
+    }
+    if (s->angle < -0x20) {
+        s->angle = -0x20;
+    }
+    facing    = arg0->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->angle, 1);
+    Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    if (work->field_89A == 0) {
+        Actor01900_StepForward(arg0->field_2C->field_8, 0xA);
+    }
+    if (arg0->field_36 != 0x10) {
+        if (Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC) == 1 && ABS(work->field_8AE) < 0x80) {
+            work->field_6++;
+        } else {
+            Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
+        }
+    } else {
+        if ((Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC) == 1 ||
+             Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_8E8, 0xC) == 1) &&
+            ABS(work->field_8AE) < 0x80) {
+            work->field_6++;
+        } else {
+            Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
+        }
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (Actor01900_Fn016F0(arg0) != 1) {
+        Actor01900_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        if (!Actor01900_OutOfRange(&s->delta, work->field_C32)) {
+            if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
+                work->field_0 = 6;
+            }
+        } else if (!Actor01900_OutOfRange(&s->delta, 0xFA0)) {
+            coord    = arg0->field_2C->field_8;
+            s->angle = Actor01900_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+            if (ABS(s->angle) < 0x300) {
+                if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
+                    work->field_0 = 6;
+                }
+            }
+        }
+    }
+    if (*(u32*)&Gp_StateF0 & 0xD0000) {
+        work->field_0 = 6;
+    }
+    *(Actor01900TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor01900_Fn07810(Actor01900* arg0)
 {
