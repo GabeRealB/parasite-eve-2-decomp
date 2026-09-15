@@ -24,7 +24,8 @@ void func_actor_510900_8013BB20(Actor510900* arg0);
 void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1);
 void func_actor_510900_8013BC80(Actor510900* arg0);
 
-extern u8 D_801153F4;
+extern u8  D_801153F4;
+extern u32 Gp_LcgState;
 
 INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900", D_actor_510900_80131E20);
 
@@ -153,7 +154,56 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137868);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137E20);
+void func_actor_510900_80137E20(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    GpEnemy*          enemy;
+    Actor510900Coord* coord;
+    s32               snd;
+    s32               pan;
+    s32               rng;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    coord = arg0->field_2C->field_8;
+    switch (work->field_590) {
+        case 0:
+            work->field_586 = 0x10;
+            work->field_5A2 = 0;
+            work->field_590 = 1;
+            snd             = (((u16)enemy->field_8 >> 0xC) << 8) | 0x40780005;
+            pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            break;
+        case 1:
+            if (work->field_5B0 >= 0xC8 && work->field_5AA == work->field_5A8) {
+                if ((u16)work->field_58A >= 3 && (u16)work->field_58A < 13) {
+                    work->field_5A2 = -0x2C;
+                } else if ((u16)work->field_58A >= 0x12 && (u16)work->field_58A < 0x27) {
+                    work->field_5A2 = -0x1E;
+                } else {
+                    work->field_5A2 = 0;
+                }
+            } else {
+                work->field_5A2 = 0;
+            }
+            if (work->field_58A >= 0x53) {
+                if (enemy->field_40 <= 0) {
+                    work->field_58E = 0xC;
+                    work->field_590 = 0;
+                    work->field_586 = 0x18;
+                } else {
+                    work->field_58E = 1;
+                    work->field_586 = 1;
+                    work->field_590 = 0;
+                    work->field_59C =
+                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                    Gp_LcgState = rng;
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137FBC);
 
@@ -355,7 +405,6 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
 s32  Gp_GetViewIndex(void);
 void func_actor_510900_8013B0D8(Task* arg0);
 
-extern u32 Gp_LcgState;
 /// View index the child keeps running in; any other view parks it.
 extern u16 D_actor_510900_80167CE4;
 /// Game-flag nibble 0xD values, indexed by the child's `field_74` and the

@@ -72,7 +72,12 @@ typedef struct Actor510900Work {
     /// Cleared by state 0 on the frame it restarts.
     /* 0x5A2 */ s16  field_5A2;
     /* 0x5A4 */ s16  field_5A4;
-    /* 0x5A6 */ byte pad_5A6[0x12];
+    /* 0x5A6 */ byte pad_5A6[2];
+    /* 0x5A8 */ s16  field_5A8;
+    /* 0x5AA */ s16  field_5AA;
+    /* 0x5AC */ byte pad_5AC[4];
+    /* 0x5B0 */ s16  field_5B0;
+    /* 0x5B2 */ byte pad_5B2[6];
     /* 0x5B8 */ s16  field_5B8;
     /* 0x5BA */ byte pad_5BA[2];
     /* 0x5BC */ s16  field_5BC;
