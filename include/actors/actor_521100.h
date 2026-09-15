@@ -28,11 +28,19 @@ typedef struct Actor521100 {
 /// 0x1C slot. `anim` sits at 0x40 and the slot array at 0x54, the same layout
 /// as `Actor202900Work`; the nineteen slots are the ones
 /// `func_actor_521100_80136724` ticks.
+///
+/// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
+/// the heading it applied to the root coordinate and the remaining distance,
+/// scaled by 20. Same offsets as `ActorsShared80133678Work`.
 typedef struct Actor521100Work {
     /* 0x000 */ byte         pad_0[0x40];
     /* 0x040 */ GpAnimCtx    anim;
     /* 0x054 */ GpAnimSlot   slots[0x13];
-    /* 0x34C */ byte         pad_34C[0x308];
+    /* 0x34C */ byte         pad_34C[0x162];
+    /* 0x4AE */ u16          yaw;
+    /* 0x4B0 */ byte         pad_4B0[0x2];
+    /* 0x4B2 */ s16          travel;
+    /* 0x4B4 */ byte         pad_4B4[0x1A0];
     /* 0x654 */ Actor521100* field_654;
     /* 0x658 */ byte         pad_658[0x28];
     /* 0x680 */ s16          field_680;
@@ -64,11 +72,19 @@ typedef struct Actor521100Ctx {
     /* 0x14 */ u8   field_14;
 } Actor521100Ctx;
 
+/// Argument block of the "walk to" script opcode: the world position to walk
+/// to. Only the horizontal components are read.
+typedef struct Actor521100Target {
+    /* 0x00 */ VECTOR pos;
+} Actor521100Target;
+STATIC_ASSERT_SIZEOF(Actor521100Target, 0x10);
+
 extern Actor521100Work* D_actor_521100_8016A3D8;
 
 void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_801355C8(Actor521100* arg0);
 void func_actor_521100_80136724(void);
+s32  func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target);
 
 #endif
