@@ -82368,3 +82368,54 @@ Inputs: `base.c` (m2c)
 `2e02c071b236f66212f723a60db269c9aab557512cb727ef37945baba1caa9b7`,
 `base_3.c` (subscript at the use site, 100.000%)
 `4a9708be907b33dca8e230c5d0b826a31227fb187ee4caa5122eb577cec1d1c3`.
+
+## A `regs`-only residue can be a sched1 decision, and the MEM flag on the stores is what flipped it (func_dryfield_water_tower_8017DD6C, 2026-09-15)
+
+`field_24 = &msgTable; Game_SetPtrSlot(arg0, 7); temp = Task_SpawnFromTable(&desc,
+0, 0, 0); arg0->state++; D_...876A0 = temp;` — 25 instructions in one basic block.
+m2c's body (`void* arg0`, every access a `*(T*)((u8*)arg0 + off)` cast) scores
+99.600% with `regs=2` and every other penalty zero: the final store's `lui` is
+`$v1` where retail has `$a0`.
+
+`.lreg` says the address pseudo is unpinned and every other register already
+agrees with retail, so the whole difference is local-alloc's choice for one
+allocno. `used` is `fixed_regs | regs_live_at[born..died) | ~class`, so `$v1`
+can only be denied to it if some other quantity already allocated to `$v1` is
+live inside its range. The only such quantity is `state++`'s — `lw`/`addiu`/`sw`,
+tied into one qty. The global's `high` is emitted adjacent to its store (the
+expander emits `high`, `lo_sum`, store as a unit and cse folds the `lo_sum`
+into the store), so a *contiguous* increment can never span it: the increment
+has to be split **around** the address pair, `lw`/`addiu` before the `high` and
+`sw` after it.
+
+That split is sched1's, and it happens only in the typed form. `.flow` shows
+the two forms differing in exactly one bit per store:
+
+    base.c   (set (mem:SI   (plus:SI (reg/v:SI 80) (const_int 48))) ...)
+    base_3.c (set (mem/s:SI (plus:SI (reg/v:SI 80) (const_int 48))) ...)
+
+The struct member store carries `MEM_IN_STRUCT_P`; the `u8*` cast drops it, and
+sched1's memory-dependence analysis consults that flag (the clauses are quoted
+in the `func_neo_ark_altar_8017EF00` entry above, where the flag's *absence* was
+the fix — so which form is right is a per-function question, not "fields always
+win"). Cast form: sched1 leaves the tail in source order and spends its hoisting
+on the first call's argument setup. Struct form: it hoists `high`+store into the
+load-delay gap after the increment's `lw`, the increment's live range then spans
+the address pseudo, local-alloc refuses `$v1` and takes `$a0`, and sched2
+(post-reload, same scheduler, uid tie-break) restores the pair to the end — so
+the listing keeps retail's `[lw][nop][addu][sw] … [lui][sw]` order. 100.000%.
+
+Two falsified routes are worth remembering: swapping the last two statements
+(83.2%) cannot work because sched2 may not lift a load over a store, so the
+statement order is pinned to the source; and deferring the field store past the
+global store (91.2%) *did* produce `$a0` — the live-range mechanism is real —
+but with that source's uid order sched2 had nothing to restore to, so the
+schedule stayed wrong.
+
+So on a `regs`-only residue, dump `.flow` and compare the MEM flags of the
+accesses the schedule turns on before reaching for the allocator or a pin.
+
+Inputs: `base.c` (m2c casts, 99.600%)
+`6656e69c899a534f67678089ba5db969ad0a7cd08724e9b38aaa58552e2e4cda`,
+`base_3.c` (struct fields, 100.000%)
+`ac3551549a89104fb97af7fe624965282fe0478e81a143706629e1fc97286480`.

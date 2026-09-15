@@ -19,6 +19,9 @@ extern u8 D_801153F4;
 extern u32   D_dryfield_water_tower_8018768C;
 extern Task* D_dryfield_water_tower_801876A0;
 
+extern s32      D_dryfield_water_tower_801803A0[];
+extern TaskDesc D_dryfield_water_tower_80182384[];
+
 void func_dryfield_water_tower_8017DCB4(void);
 
 void func_dryfield_water_tower_8017D948(Task* arg0)
@@ -90,7 +93,16 @@ void func_dryfield_water_tower_8017DD44(void)
     Gp_DispatchMsg(D_dryfield_water_tower_801876A0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DD6C);
+void func_dryfield_water_tower_8017DD6C(Task* arg0)
+{
+    Task* temp_v0;
+
+    arg0->field_24 = D_dryfield_water_tower_801803A0;
+    Game_SetPtrSlot(arg0, 7);
+    temp_v0                         = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
+    arg0->state                     = (s32)(arg0->state + 1);
+    D_dryfield_water_tower_801876A0 = temp_v0;
+}
 
 void func_dryfield_water_tower_8017DDD0(void)
 {
