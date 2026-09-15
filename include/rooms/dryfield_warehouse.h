@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Work block for the warehouse cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_warehouse_8017E090` and hung off `Task::idMap` (0x1C).
@@ -23,5 +24,7 @@ typedef struct DwhWork {
     /* 0x0E */ byte  pad_E[0x2];
 } DwhWork;
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
+
+s32 func_dryfield_warehouse_8017D824(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 
 #endif // ROOMS_DRYFIELD_WAREHOUSE_H

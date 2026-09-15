@@ -80458,3 +80458,77 @@ address is a conversion at the narrow use, not a second symbol.
 
 Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c659b`,
 `base_1.i` `9f16fe3b1b6843c315a9c3200e76bdba98c630be27050b15f535d607ce1be9f8`.
+
+## A shared return temporary is live across the calls, so it takes a callee-saved register (func_dryfield_warehouse_8017D824, 2026-09-15)
+
+The room message handlers are a family, and m2c renders this one's return as a
+single `var_v0` written on each path and read once at the join:
+
+```c
+s32 var_v0;
+...
+    var_v0 = 1;
+    if (GameFlag_GetNibble(0x3C) == 0) {
+        var_v0 = 0;
+        if (in->field_5 == 0) { Gp_RunCapCmd1(3); ...; return 0; }
+    }
+    return var_v0;                  /* read after the calls above */
+```
+
+That read is what costs the match. `var_v0` is defined *before* the
+`GameFlag_GetNibble` call and used after it - and again after
+`SndEvt_EnqueueType7` in the tail - so its live range crosses a call,
+local-alloc cannot spend a call-clobbered register on it, and it takes `$s0`.
+`$s0` is the register the target keeps `in` (the incoming `$a2`) in, so the
+pointer is displaced to `$s1`, and the frame grows from 0x18 to 0x20 with a
+second callee-saved pair:
+
+```
+addiu sp,sp,-0x20        sw s1,0x14(sp)      move s1,a2
+sw ra,0x18(sp)           sw s0,0x10(sp)      li s0,1 / move s0,zero / move v0,s0
+```
+
+Isolating it: rebuilding m2c's own structure with only the *arity* corrected
+(4 parameters, so `in` arrives in `$a2`) still scores 84.696% with `regs=20` and
+`move s1,a2` - the pointer is pushed up by the return temporary alone.
+
+Writing each path as an early `return` is the whole fix, and it is what the
+matched family members already do (`func_neo_ark_shrine_8017D6AC`,
+`func_acropolis_cafeteria_8017D700`, `func_shelter_b3_incinerator_control_room_8017FA8C`):
+
+```c
+    if (in->msgId == 9) {
+        if (GameFlag_GetNibble(0x3C) != 0) {
+            return 1;
+        }
+        if (in->field_5 == 0) {
+            Gp_RunCapCmd1(3);
+            Gp_SetNibbleIf(in->field_6, 2);
+        }
+        return 0;
+    }
+    if (in->field_5 == 0) {
+        SndEvt_EnqueueType7(0x52070005, 0xF);
+    }
+    return 1;
+```
+
+No temporary is live across a call any more, so `in` keeps `$s0`, the frame
+returns to 0x18, and each constant lands in `$v0` - on the branch-to-epilogue
+paths in the branch delay slot, as `addu v0,zero,zero` for 0 and
+`addiu v0,zero,1` for 1. 100%, all penalties zero, on the first build.
+
+This is the same root cause as `Gp_RunCapCmd1(x ? 5 : 0xC)` above and as
+"Shared `var_v0` + epilogue flips global pointer store register order": a value
+defined before a call cannot be born in an argument register. What is new here
+is the *shape* of the symptom - `regs` penalties plus a frame one word too
+large, with the function's one logically-needed callee-saved register
+(`in` in `$s0`) pushed to the next one - which reads like an argument or frame
+problem rather than a return-value one. A `Penalties: regs` diff that saves
+`$s1` where the target saves only `$s0` is this, and the fix is each return
+site's own constant, not a register pin.
+
+Inputs: `base.i` `3c07c790d2ce3c1947e9f45aabb1590c850c0f9d5429b53f008fd20a11775113`,
+`base_1.i` `378165c6791fbe3951bf44ad1c72ea8a72a6fd5ada1b84e5e90cbf366ee630df`,
+`base_2.i` `2451fd4962617bb82c0061dd84366d7728a5885339fe0512094ec35d8510e4ab`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
