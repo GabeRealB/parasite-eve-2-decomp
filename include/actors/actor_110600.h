@@ -52,6 +52,11 @@ typedef struct Actor110600 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor110600;
 
+/// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
+/// `-m[2][0], m[2][2]`), scaled independently on each axis through a
+/// 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
+void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz);
+
 s32  func_actor_110600_801387C0(Task* arg0);
 void func_actor_110600_801388A4(Actor110600* arg0);
 
