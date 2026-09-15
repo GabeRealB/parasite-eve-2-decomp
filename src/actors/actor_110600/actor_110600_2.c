@@ -56,7 +56,30 @@ void func_actor_110600_801388A4(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138900);
+s32 func_actor_110600_80138900(void)
+{
+    s16* p;
+    s16  next;
+    s32  cur;
+
+    p    = &D_actor_110600_8014865C;
+    next = (u16)*p + 1;
+    *p   = next;
+    if (next == 5) {
+        *p = 0;
+    }
+    cur = (u16)*p;
+    if ((cur & 1) == 0) {
+        Display_ClampField126(0);
+    } else {
+        Display_ClampField126(1);
+    }
+    if (D_actor_110600_8014865C != 0) {
+        return 0;
+    }
+    Display_ClampField126(0);
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138980);
 

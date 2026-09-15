@@ -55,6 +55,11 @@ typedef struct Actor110600 {
 s32  func_actor_110600_801387C0(Task* arg0);
 void func_actor_110600_801388A4(Actor110600* arg0);
 
+/// Five-frame shake counter. Incremented each call, wraps at 5, and drives
+/// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
+extern s16 D_actor_110600_8014865C;
+s32        func_actor_110600_80138900(void);
+
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
 /// `field_54` slot, clear the screen shake, then `Gp_DestroyEnemy`.

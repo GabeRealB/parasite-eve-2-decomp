@@ -3,6 +3,39 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `A ? 1 : 0` into an `s8` call folds; if/else around the call plus polarity swap keeps `bnez`
+
+`fold-const.c` turns `A ? 1 : 0` into `A` when the COND and the arms share a
+type, so `Display_ClampField126((count & 1) ? 1 : 0)` becomes `count & 1`
+passed in `$a0`. That also keeps `&global` live across the `jal` in a saved
+register. The 0 / -1 sibling (`func_actor_361100_80162A54`) does not fold,
+because `-1` is not `integer_onep`.
+
+Write the 0 / 1 choice as two calls and let jump cross-jump the `jal`:
+
+```c
+cur = (u16)*p; /* s32: keeps lhu; `(u16)*p & 1` as the arg narrows to lbu */
+if ((cur & 1) == 0) {
+    Display_ClampField126(0);
+} else {
+    Display_ClampField126(1);
+}
+```
+
+`if (cur & 1) { Display(1); } else { Display(0); }` is the same values but
+`beqz` with 0 in the delay slot. Negate the test and swap the arms so reorg
+fills a `bnez` from the taken else-arm (`li a0, 1` in the delay, `move a0, 0`
+on the fall-through), matching "A constant ternary puts the *else* arm in the
+branch delay slot". Bind the halfword to a pointer for the increment/wrap so
+`$a0` dies at the argument setup and the post-call zero-check rematerializes
+`lui` into `$v0` as `lh`.
+
+`func_actor_110600_80138900`. Inputs: `base_2.i`
+`1f2f565f4d45c5fa44803509e1f3a3db60b531759e4e33ce13e2781f54c16fd0`
+(91.9%, `beqz` / delay 0), `base_3.i`
+`738c0b0af4f76b69c0b74e9de02ac90d9d66a2408910fa5ba2e926a8f3bd2342`
+(100%).
+
 ## m2c's split IV from a delay-slot `move a1,s0` floats `li s0,1` to the preheader head
 
 A loop that reseeds slots 1..N and returns, with the target preheader
