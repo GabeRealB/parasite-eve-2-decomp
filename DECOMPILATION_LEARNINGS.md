@@ -79273,6 +79273,35 @@ ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `Game_SetPtrSlot(task, 7)`.
+## A lone `.word` code pointer in a room's data is a `GpMsgHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
+
+A room function no `jal` reaches - nothing in `src/` calls it, its only
+reference is a `.word` in the room's `_data` blob - is a callback, and the
+neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
+`D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
+`0x7FFFFFFF` after it: that is the `GpMsgEntry` spelling above, a one-entry
+message table plus terminator. The room function that owns the table confirms
+it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
+(the record's id half) into `Task::field_24` and a `Mem_Calloc(0x60, 0)` block
+into `Task::idMap`, and the handler reaches its work as `task->idMap`.
+
+The trap is the argument split. `GpMsgHandler` is
+`s32 (*)(Task* task, s32 msgId, s32 arg2, s32 arg3)` - the handler gets the
+same four arguments `Gp_DispatchMsg` did - so `a1` is the message id and `a2`
+is the sender's third argument. This body compares `$a2`, which reads like the
+id at first glance; it is the *payload*. `Gp_UseKeyItemRow`
+(`src/gameplay/3688.c`) sends `Gp_DispatchMsg(slot, 0x13F1, item, 0)` with the
+highlighted key item third, so the handler answers "is the highlighted item
+0x11B?", not "am I message 0x11B?". The matched C of the same query,
+`func_acropolis_security_room_8017FE24`, is the shape to copy.
+
+The m2c seed wrote that same body with the condition inverted
+(`if (arg2 != 0x11B)`), which is not merely cosmetic: it blocks the delay-slot
+fill. Retail hoists the `1` materialization into the branch delay slot
+(`beq $a2, $v0` / `addiu $v0, $zero, 0x1`), and the inverted seed emitted
+`bne` (opcode 5) against retail's `beq` (opcode 4) at 64.44% with
+`reorder=2 insert=1 delete=1`. Writing the condition the way the source reads -
+taken arm first, the equal case - scored 100.00%.
 ## m2c's temp plus per-arm duplicate splits one value into three pseudos; reuse one local for the RMW (func_dryfield_dilapidated_house_8017E858, 2026-09-15)
 
 `func_dryfield_dilapidated_house_8017E858` is 20 instructions and its body is

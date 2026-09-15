@@ -31,6 +31,28 @@ typedef struct DbwWork {
 } DbwWork;
 STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 
+/// 0x60 work block of the second task family in this room, also hung off
+/// `Task::idMap` (0x1C): `func_dryfield_breezeway_8017E464` allocates it with
+/// `Mem_Calloc(0x60, 0)` and parks the family's `GpMsgEntry[]`
+/// (`D_dryfield_breezeway_80182DCC`, a single 0x13F1 entry) in
+/// `Task::field_24`, which is what makes `Gp_DispatchMsg` route messages into
+/// this family at all. Reach the block with `(DbwEventWork*)task->idMap`.
+///
+/// `field_40` is the answer latch the message handler
+/// `func_dryfield_breezeway_8017FBC8` sets: message 0x13F1 is the "can this key
+/// item be used here?" query `Gp_UseKeyItemRow` sends to slot 7, carrying the
+/// highlighted item as its payload, and the handler stores 1 exactly when that
+/// payload is 0x11B, the one item this room accepts. The block starts out
+/// zeroed by the allocator and by `func_dryfield_breezeway_8017E464` itself;
+/// `func_dryfield_breezeway_8017FE08` reads the latch back and picks state 6
+/// when it is 1 and state 2 otherwise.
+typedef struct DbwEventWork {
+    /* 0x00 */ byte pad_0[0x40];
+    /* 0x40 */ s32  field_40;
+    /* 0x44 */ byte pad_44[0x1C];
+} DbwEventWork;
+STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
+
 /// Room task published by `func_dryfield_breezeway_8017E010` and
 /// `func_dryfield_breezeway_8017E114` once they have built its work block.
 extern Task* D_dryfield_breezeway_801843C0;
