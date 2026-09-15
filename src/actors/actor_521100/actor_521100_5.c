@@ -5,7 +5,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void Gp_IncStateF0Ref(s32 arg0);
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_521100_80135F2C(Task* task);
 
@@ -16,7 +15,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100
 s32 func_actor_521100_80135D9C(Actor521100* arg0)
 {
     arg0->field_1C->field_6B0 = 1;
-    Gp_IncStateF0Ref(0);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
     return 0;
 }
 
