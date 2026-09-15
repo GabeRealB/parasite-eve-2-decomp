@@ -79227,3 +79227,40 @@ Two near-misses keep the flag: `((s16*)Game_Session)[0x29] = 1;` still emits
 cast-through-`u8*` address form drops it. When a schedule looks impossible from
 dependencies (an insn that must be picked early keeps being picked late),
 check the MEM flags before assuming a scheduler heuristic.
+## m2c renders a stack-copied handler-table dispatch as a call that passes the table entries (func_neo_ark_forest_zone_8017DBBC, 2026-09-15)
+
+A dispatcher that block-copies a handler table onto the stack and calls through it
+confuses m2c: the stack local has no type it can recover, so it names it `sp` and
+reads the `lw $v0, 0x30($a0)` / `sll $v0,$v0,2` / `addu $v0,$sp,$v0` /
+`lw $v0, 0x10($v0)` / `jalr $v0` chain as an indexed call whose **arguments are
+the table it just copied** — seven of them, in the room case:
+
+```c
+M2C_FIELD((sp + (M2C_FIELD(arg0, s32 *, 0x30) * 4)), M2C_UNK (**)(s32, s32, M2C_UNK *, ...), 0x10)(
+    M2C_FIELD(&D_..., s32 *, 4), M2C_FIELD(&D_..., s32 *, 8), &D_..., /* ...4 more */);
+```
+
+Those arguments are an artifact of the copy, not of the call. The `$a1`/`$a2`/`$a3`
+live at the `jalr` are leftovers: the allocator parked table entries 1 and 2 in
+`$a1`/`$a2`, the table base in `$a3`, and `$a0` still holds the incoming `task`;
+`$v1` takes entry 0 and entry 3, so nothing forces it. The source passes one
+argument, and the shape is the one the sibling sections describe:
+
+```c
+void f(Task* task)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_<seg>_<addr>;          /* or a local brace-initializer */
+    sp.funcs[task->state](task);
+}
+```
+
+Taking the m2c call at face value cannot match — the copy's register assignment is
+exactly what is being scored, and writing the seven arguments down pins them where
+the target has leftovers. Fifteen copies of this 25-instruction body exist across
+rooms/actors/kyle/weapons; every one that is matched is a local table variable
+indexed by `task->state`, spelled as either shape of
+"Rodata link order says whether a stack-copied table is a global or a local
+initializer" above. Which of the two it is still has to come from where the table
+sits relative to the units that own the surrounding rodata.
