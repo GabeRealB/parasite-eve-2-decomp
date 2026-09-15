@@ -89,6 +89,13 @@ extern TaskFuncTable3   Actor00400_D0015C;
 extern TaskFuncTable4   Actor00400_D00168;
 extern Actor100400Stats Actor00400_D0FDC8;
 extern byte             Actor00400_D1604C[];
+extern u8               Actor00400_D0E5B8[];
+extern u8               Actor00400_D0E970[];
+extern u8               Actor00400_D0ED28[];
+extern u8               Actor00400_D0F25C[];
+extern u8               Actor00400_D0F790[];
+extern u8               Actor00400_D0FD9C[];
+extern void*            D_800678F0[1];
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -540,7 +547,95 @@ s32 Actor00400_Fn02208(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0237C);
+/* The random pick spawns in both arms rather than after the `if`: jump2
+   cross-jumps the identical tails, which is what leaves the 0x20010 argument
+   load ahead of the `D_800678F0` store in each arm. */
+void Actor00400_Fn0237C(Actor100400* arg0)
+{
+    GpEffWork* eff1;
+    TmdObject* src1;
+    TmdObject* dst1;
+    GpEffWork* eff2;
+    TmdObject* src2;
+    TmdObject* dst2;
+    GpEffWork* eff3;
+    TmdObject* src3;
+    TmdObject* dst3;
+    GpEffWork* eff4;
+    TmdObject* src4;
+    TmdObject* dst4;
+    GpEffWork* eff5;
+    TmdObject* src5;
+    TmdObject* dst5;
+
+    D_800678F0[0] = Actor00400_D0E5B8;
+    eff1          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[4], 0x200, NULL);
+    if (eff1 != NULL) {
+        src1           = (TmdObject*)arg0->field_2C;
+        dst1           = (TmdObject*)eff1->field_0->extra;
+        dst1->field_24 = src1->field_24;
+        dst1->field_25 = src1->field_25;
+        if (dst1->field_18 != NULL) {
+            Tmd_ProcessStream(dst1);
+            Tmd_ProcessStream(dst1);
+        }
+    }
+    D_800678F0[0] = Actor00400_D0E970;
+    eff2          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[11], 0x200, NULL);
+    if (eff2 != NULL) {
+        src2           = (TmdObject*)arg0->field_2C;
+        dst2           = (TmdObject*)eff2->field_0->extra;
+        dst2->field_24 = src2->field_24;
+        dst2->field_25 = src2->field_25;
+        if (dst2->field_18 != NULL) {
+            Tmd_ProcessStream(dst2);
+            Tmd_ProcessStream(dst2);
+        }
+    }
+    D_800678F0[0] = Actor00400_D0ED28;
+    eff3          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[14], 0x200, NULL);
+    if (eff3 != NULL) {
+        src3           = (TmdObject*)arg0->field_2C;
+        dst3           = (TmdObject*)eff3->field_0->extra;
+        dst3->field_24 = src3->field_24;
+        dst3->field_25 = src3->field_25;
+        if (dst3->field_18 != NULL) {
+            Tmd_ProcessStream(dst3);
+            Tmd_ProcessStream(dst3);
+        }
+    }
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if ((Gp_LcgState >> 16) & 1) {
+        D_800678F0[0] = Actor00400_D0F25C;
+        eff4          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[8], 0x200, NULL);
+    } else {
+        D_800678F0[0] = Actor00400_D0F790;
+        eff4          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[8], 0x200, NULL);
+    }
+    if (eff4 != NULL) {
+        src4           = (TmdObject*)arg0->field_2C;
+        dst4           = (TmdObject*)eff4->field_0->extra;
+        dst4->field_24 = src4->field_24;
+        dst4->field_25 = src4->field_25;
+        if (dst4->field_18 != NULL) {
+            Tmd_ProcessStream(dst4);
+            Tmd_ProcessStream(dst4);
+        }
+    }
+    D_800678F0[0] = Actor00400_D0FD9C;
+    eff5          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[1], 0x200, NULL);
+    if (eff5 != NULL) {
+        src5           = (TmdObject*)arg0->field_2C;
+        dst5           = (TmdObject*)eff5->field_0->extra;
+        dst5->field_24 = src5->field_24;
+        dst5->field_25 = src5->field_25;
+        if (dst5->field_18 != NULL) {
+            Tmd_ProcessStream(dst5);
+            Tmd_ProcessStream(dst5);
+        }
+    }
+    Gp_SpawnEff(0x60030, &((TmdObject*)arg0->field_2C)->field_8[1], 0x200, NULL);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02648);
 

@@ -83681,3 +83681,41 @@ TurnToward(arg0, &work->field_56C, 0x30, 0x100);
 
 Writing `0x100 < diff` does not work, because fold canonicalizes it back to
 `diff > 0x100`.
+
+## A constant argument load stranded inside both arms of an `if` means the source duplicated the call
+
+**Problem.** `Actor00400_Fn0237C` picks one of two model streams at random and
+then spawns an effect. Written the obvious way - the `if/else` stores the
+pointer, the `Gp_SpawnEff` call follows the join - the object was 97%: the
+target loads the call's first argument (`li $a0, 0x20010`) *inside each arm*,
+before the `sw` to `D_800678F0`, while the natural form emits it once after the
+join.
+
+**Symptom.** `branch`/`insert`/`delete` penalties on a block boundary that
+moves a few instructions, with the arms otherwise identical to the target. The
+`beqz` delay slot holds `lui $a0` and both arms then repeat `ori $a0`, i.e. the
+argument setup exists twice.
+
+**Cause.** The original duplicated the whole call in both arms; `jump2`
+cross-jumped the identical tails, merging them back from the `sw` onwards.
+Within each arm sched had already sunk the store past the argument load - the
+same aliasing effect that moves these `D_800678F0` stores everywhere - so the
+merge point lands after the load, leaving one copy per arm. GCC never
+duplicates a call on its own, so a register setup that appears in both arms and
+converges later is evidence the *source* had it twice.
+
+**Fix.**
+
+```c
+if ((Gp_LcgState >> 16) & 1) {
+    D_800678F0[0] = Actor00400_D0F25C;
+    eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
+} else {
+    D_800678F0[0] = Actor00400_D0F790;
+    eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
+}
+```
+
+A ternary (`D_800678F0[0] = cond ? A : B;`) is the other natural guess and is
+wrong in the same place - it hoists the address of `D_800678F0` above the
+branch instead.
