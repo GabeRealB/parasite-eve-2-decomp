@@ -6,6 +6,7 @@
 
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/dryfield_water_tank.h"
 
 extern TaskDesc       D_dryfield_water_tank_8017F34C;
@@ -35,4 +36,19 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017DEA4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017E0B4);
+/// Hides the task's `TmdObject` (bit 0x80 of `field_C`) while `arg2` is zero,
+/// and clears that bit otherwise. `arg1` is unused; the flag is the *third*
+/// argument, so the second slot is only there to place it in `$a2`. Byte for
+/// byte the actors library's `ActorsShared801346ec`, which toggles the same bit
+/// of the same field for the model of the task it is handed.
+void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* obj;
+
+    obj = (TmdObject*)task->extra;
+    if (arg2 != 0) {
+        obj->field_C = obj->field_C & 0xFF7F;
+        return;
+    }
+    obj->field_C = obj->field_C | 0x80;
+}
