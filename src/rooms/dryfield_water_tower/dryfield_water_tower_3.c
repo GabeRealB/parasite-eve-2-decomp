@@ -1,22 +1,39 @@
 #include "common.h"
 
-#include "rooms/dryfield_water_tower.h"
+#include <psyq/libgte.h>
 
-/// Message 0x7DB handler, the room script table `D_dryfield_water_tower_80181B00`
-/// lists beside its `Room_Util08` 0x7D4 entry. It rests the cap script: the
-/// three halfword slots it keeps its timers in are cleared along with the
-/// task's kill countdown, and the payload's halfword becomes the task's state,
-/// so the 0x7DB sender picks the state the cap script resumes in. The opcode
-/// itself is never read, hence the named-but-unused `msgId`.
-void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, DwtwMsg7DB* msg)
-{
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->idMap;
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
 
-    state->field_58     = 0;
-    state->field_60     = 0;
-    state->field_5A     = 0;
-    task->state         = msg->field_2;
-    task->killCountdown = 0;
-}
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017F82C);
+extern u8 D_8007216C;
+extern u8 D_801153F4;
+
+extern u32   D_dryfield_water_tower_8018768C;
+extern Task* D_dryfield_water_tower_801876A0;
+
+void func_dryfield_water_tower_8017DCB4(void);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017DE30);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017DFAC);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E1DC);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E428);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E5B0);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E764);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E93C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017EB7C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017F128);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017F700);

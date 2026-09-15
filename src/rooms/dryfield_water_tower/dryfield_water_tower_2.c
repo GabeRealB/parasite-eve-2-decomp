@@ -8,7 +8,10 @@
 #include "main/task.h"
 
 #include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
+
+/* The room calls the dispatcher with only the task, leaving a1-a3 holding
+   whatever the caller had, so the declaration must stay unprototyped. */
+s32 Gp_DispatchMsg();
 
 extern u8 D_8007216C;
 extern u8 D_801153F4;
@@ -16,24 +19,61 @@ extern u8 D_801153F4;
 extern u32   D_dryfield_water_tower_8018768C;
 extern Task* D_dryfield_water_tower_801876A0;
 
+extern s32      D_dryfield_water_tower_801803A0[];
+extern TaskDesc D_dryfield_water_tower_801803D8;
+extern TaskDesc D_dryfield_water_tower_80182384[];
+
 void func_dryfield_water_tower_8017DCB4(void);
+void func_dryfield_water_tower_801802D8(u8 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017DE30);
+void func_dryfield_water_tower_8017DCB4(void)
+{
+    s32 mode = GameFlag_GetNibble(0x55);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017DFAC);
+    if (mode < 0) {
+        return;
+    }
+    if (mode < 2) {
+        func_dryfield_water_tower_801802D8(1);
+    } else if (mode < 4) {
+        func_dryfield_water_tower_801802D8(0);
+    }
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017E1DC);
+s32 func_dryfield_water_tower_8017DCFC(void)
+{
+    return 0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017E428);
+s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    if (arg2 == 7) {
+        Task_SpawnFromTable(&D_dryfield_water_tower_801803D8, 0, 0, 0);
+    }
+    return 0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017E5B0);
+s32 func_dryfield_water_tower_8017DD3C(void)
+{
+    return 0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017E764);
+void func_dryfield_water_tower_8017DD44(void)
+{
+    Gp_DispatchMsg(D_dryfield_water_tower_801876A0);
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017E93C);
+void func_dryfield_water_tower_8017DD6C(Task* arg0)
+{
+    Task* temp_v0;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017EB7C);
+    arg0->field_24 = D_dryfield_water_tower_801803A0;
+    Game_SetPtrSlot(arg0, 7);
+    temp_v0                         = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
+    arg0->state                     = (s32)(arg0->state + 1);
+    D_dryfield_water_tower_801876A0 = temp_v0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017F128);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_2", func_dryfield_water_tower_8017F700);
+void func_dryfield_water_tower_8017DDD0(void)
+{
+}
