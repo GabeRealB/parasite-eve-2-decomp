@@ -76,7 +76,27 @@ s32 func_neo_ark_forest_zone_80181494(void)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_4", func_neo_ark_forest_zone_801814B0);
+/* The same latch as func_neo_ark_forest_zone_801813C4 directly above, emitted a
+ * second time at 0x801814B0 - two objects in the overlay, so shared code
+ * cannot cover it. */
+s32 func_neo_ark_forest_zone_801814B0(void* arg0, void* arg1, u8* arg2)
+{
+    s16 counter;
+
+    if (arg2[2] != D_neo_ark_forest_zone_80182D68) {
+        counter = D_neo_ark_forest_zone_80182D62;
+        if (counter == 0) {
+            D_neo_ark_forest_zone_80182D66 = arg2[2];
+        } else {
+            goto L_clear;
+        }
+    } else {
+    L_clear:
+        D_neo_ark_forest_zone_80182D66 = 0;
+    }
+    D_neo_ark_forest_zone_80182D68 = arg2[2];
+    return 1;
+}
 
 void func_neo_ark_forest_zone_80181508(Task* arg0)
 {
