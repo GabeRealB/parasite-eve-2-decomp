@@ -83594,7 +83594,7 @@ allocation, and reordering same-base stores or re-typing the constant changed
 nothing. The converse is the entry "Two values in one hard register means one
 local in the C, not two".
 
-### Inlined bool check:  before  wants an  local, and a shared  wants per-case stores
+### Inlined bool check: `move v0,v1` before `bnez` wants an `s16` local, and a shared `sh v0,field` wants per-case stores
 
 `Actor00400_Fn079FC` inlines a state-request check whose result lands in `$v1`
 and is copied to `$v0` right before the branch (`addu v0,v1,zero; bnez v0`).
