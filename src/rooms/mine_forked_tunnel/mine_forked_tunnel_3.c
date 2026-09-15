@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -25,7 +26,15 @@ s32 func_mine_forked_tunnel_8017E134(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_3", func_mine_forked_tunnel_8017E19C);
+/// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
+/// tunnel switch flag is still clear.
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x75) == 0)) {
+        Task_SpawnFromTable(&D_mine_forked_tunnel_80183104, 0, 0, 0);
+    }
+    return 0;
+}
 
 /// State 0 of the room's message-driven task family: park the room's
 /// `GpMsgEntry` table in `Task::field_24`, publish the task in pointer slot 7,
