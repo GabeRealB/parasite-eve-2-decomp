@@ -59,5 +59,6 @@ void func_actor_401800_8013E0A0(Task* task);
 void func_actor_401800_8013E138(Actor401800* arg0);
 void func_actor_401800_8013E194(Actor401800* arg0);
 void func_actor_401800_8013E23C(Actor401800* arg0);
+void func_actor_401800_8013E2E8(Actor401800* arg0);
 
 #endif // ACTOR_401800_H
