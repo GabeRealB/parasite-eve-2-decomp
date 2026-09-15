@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 extern u8  D_80115598;
@@ -16,9 +17,12 @@ extern s32 D_dryfield_night_gas_station_80184098;
 extern s32 D_dryfield_night_gas_station_801840AC;
 extern s32 D_dryfield_night_gas_station_801841FC;
 extern s32 D_dryfield_night_gas_station_80188B0C;
+extern s32 D_dryfield_night_gas_station_80188B64;
 extern s32 D_dryfield_night_gas_station_8018920C;
 extern s32 D_dryfield_night_gas_station_801892E4;
 extern s32 D_dryfield_night_gas_station_80189A7C;
+
+extern GpAreaApplyRec D_dryfield_night_gas_station_801907A0;
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", RoomsShared8017ef20Title);
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", RoomsShared8017de9cHundred);
@@ -146,7 +150,24 @@ s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, GpMsg13EF* m
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017F9E8);
+/// Arms the room's night sequence, once: while nibble 0x63 is still clear it
+/// sets that nibble, plays the script blob at
+/// `D_dryfield_night_gas_station_80188B64`, raises `Game_Session->field_69`
+/// bit 0x80, applies the room's area records, clears nibbles 0x62 and 0x45 and
+/// queues sound event 0x64.
+s32 func_dryfield_night_gas_station_8017F9E8(void)
+{
+    if (GameFlag_GetNibble(0x63) == 0) {
+        GameFlag_SetNibble(0x63, 1);
+        func_800E8614((s32)&D_dryfield_night_gas_station_80188B64, 1);
+        Game_Session->field_69 |= 0x80;
+        Gp_ApplyAreaRecs(&D_dryfield_night_gas_station_801907A0);
+        GameFlag_SetNibble(0x62, 0);
+        GameFlag_SetNibble(0x45, 0);
+        SndEvt_EnqueueType2(0, 0x64);
+    }
+    return 0;
+}
 
 /// Tears the room's scripted sequence down: raises `Game_Session->field_68`
 /// and `D_80115768`, hides the display, clears collection bit 0x117, installs
