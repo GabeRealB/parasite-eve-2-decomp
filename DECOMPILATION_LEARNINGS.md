@@ -76995,6 +76995,27 @@ and the struct typing is otherwise settled, look for a `*(T*)((u8*)p + n)` cast
 on the load. The typed member access does not just set an alias set — it sets
 the in-struct bit that decides this heuristic.
 
+**Second instance, different symptom: a wrong tail register.** `func_mine_cavern_8017DDFC`
+matched at 99.828% with the state field written m2c's way,
+`M2C_FIELD(arg0, s32 *, 0x30) = (s32)(M2C_FIELD(arg0, s32 *, 0x30) + 1);`, and at
+100% with `arg0->state = arg0->state + 1;` on a `Task*`. The instruction order was
+already right here; the leftover was the register of the last address pair — the
+ROM has `lui $v1` / `sw $zero, %lo(...)($v1)` where the cast build gets `$v0`.
+Without the in-struct bit the state store and the following global store are
+mutually dependent, which anchors the `lui`/`sw` pair after the state store in
+`.sched`; in the typed build sched1 hoists the pair between the state load and its
+`addiu`, so `find_free_reg` (which unions `regs_live_at` over
+`[qty_birth, qty_death)`) sees `$v0` busy and must take `$v1`, and sched2 then
+sinks the pair back to the tail. A wrong register can therefore be a scheduling
+consequence rather than an allocation one: before reaching for a pin, compile a
+matched function with the same tail shape alone under the scratch flags and read
+its `.lreg` — `func_acropolis_security_room_8017D930` and
+`func_acropolis_roof_garden_8017D5D4` both have this tail and both show `mem/s`
+on the state access. Inputs: `base_2.i`
+`ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (99.83%),
+`base_5.i` `379a062c792785396fa125202ac9205a248c135abaa6fac31baacd5d7b9a2237`
+(100%).
+
 ## A ported `similar` sibling's struct starts at offset 0 — the leading pad is part of the layout
 
 `func_actor_401800_8013E0A0` (USA/actors/actor_401800) is the case sections 26
@@ -79724,3 +79745,53 @@ allocation is decided by the source text and the two targets disagree. A 1.00
 Here m2c's raw output was already the separate-statements form, so the baseline
 scored 100% unedited — worth building the baseline before rewriting from the asm
 even when the function looks like a sibling you already matched.
+
+## A branchy 0/1 argument: jump.c's store-flag conversion, and the call-in-each-arm form that defeats it
+
+Room tasks hand a 0/1 flag to a setter and the ROM branches to build it:
+
+```
+jal   GameFlag_GetNibble
+li    a0, 0xC7
+beqz  v0, .L
+addu  a0, zero, zero
+addiu a0, zero, 1
+.L:   jal   func_mine_cavern_8017E3A0
+nop
+```
+
+Written the obvious way — `var_a0 = 0; if (GameFlag_GetNibble(0xC7) != 0) var_a0 = 1;`
+then `func(var_a0)` — the branch is gone: the whole if collapses to one
+branch-less `sltu a0,zero,v0`, four instructions short. The pass is jump.c's
+store-flag block (`local/gcc/gcc-2.8.1-psx/jump.c:1145`), which rewrites
+`x = a; if (...) x = b;` into a set of the condition. It fires here because
+`STORE_FLAG_VALUE == 1` and `BRANCH_COST == 1` (`config/mips/mips.h:2860,3211`)
+leave the "one arm is zero, the other a power of two" disjunct enabled, which
+`0`/`1` satisfies. The else-form does not dodge it: the rewrite at `jump.c:868`
+("Simplify `if (...) { x = a; goto l; } x = b;`") normalises it into the same
+shape first, and the store-flag block then fires on the rewritten jump.
+
+The ROM's form is the same decision with a call in each arm:
+
+```c
+if (GameFlag_GetNibble(0xC7) != 0) {
+    func_mine_cavern_8017E3A0(1);
+} else {
+    func_mine_cavern_8017E3A0(0);
+}
+```
+
+The store-flag block needs `GET_CODE (PATTERN (temp)) == SET` on the insn after
+the branch, and a `call_insn` is not a `SET`, so the pattern never matches.
+Nothing merges the two calls early either — every `jump_optimize` call before
+`toplev.c:3548` passes `cross_jump = 0`, and that last one runs after reload,
+where the store-flag block is already disabled by `! reload_completed`. So the
+merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
+The idiom is everywhere in this project (`Gp_MapTaskState2`,
+`func_acropolis_security_room_8017D930`, `func_acropolis_roof_garden_8017D5D4`),
+so a branchy 0/1 argument is a signal to look for the two-call form rather than
+to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`
+`d071dc9b40e5ce0f52dfd28e943d210037645ba7843fc647d81c70fc0493f526` (else-form,
+91.2%), `base_2.i`
+`ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (two calls,
+99.83%).

@@ -6,11 +6,18 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s32 D_mine_cavern_80188214;
-extern s32 D_mine_cavern_801887B4;
-extern s32 D_mine_cavern_80188A3C;
-extern s32 D_mine_cavern_80188D24;
-extern s32 D_mine_cavern_8018EB50;
+extern s32      D_mine_cavern_80183C6C;
+extern s32      D_mine_cavern_80187C74;
+extern s32      D_mine_cavern_8018804C;
+extern s32      D_mine_cavern_80188214;
+extern s32      D_mine_cavern_801887B4;
+extern s32      D_mine_cavern_80188A3C;
+extern s32      D_mine_cavern_80188D24;
+extern TaskDesc D_mine_cavern_8018E3F4;
+extern s32      D_mine_cavern_8018EB50;
+extern u8       D_80062735;
+extern s32      func_mine_cavern_8017E3A0(s32 arg0);
+extern void     func_mine_cavern_8017E394(void);
 
 /// Cutscene / "among us" mode flag in the main executable.
 extern s8 D_80114C12;
@@ -65,7 +72,26 @@ void func_mine_cavern_8017DD6C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DDFC);
+void func_mine_cavern_8017DDFC(Task* arg0)
+{
+    arg0->field_24 = &D_mine_cavern_80183C6C;
+    Game_SetPtrSlot(arg0, 7);
+    if ((Game_Session->field_9 == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
+        func_800E8634((s32)&D_mine_cavern_80187C74, 0, (s32)&D_mine_cavern_8018804C);
+        func_mine_cavern_8017E394();
+        GameFlag_SetNibble(0x10F, 1);
+    } else {
+        D_80062735 = 1;
+    }
+    Task_SpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
+    if (GameFlag_GetNibble(0xC7) != 0) {
+        func_mine_cavern_8017E3A0(1);
+    } else {
+        func_mine_cavern_8017E3A0(0);
+    }
+    arg0->state            = arg0->state + 1;
+    D_mine_cavern_8018EB50 = 0;
+}
 
 void func_mine_cavern_8017DEE4(void)
 {
