@@ -967,7 +967,17 @@ void Actor00400_Fn09C84(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09CCC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09D3C);
+void Actor00400_Fn09D3C(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (GameFlag_GetNibble(0xEB) == 1) {
+        work->field_63A = 3;
+    } else if (work->field_65E == 3) {
+        work->field_63A = work->field_63A + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09D98);
 
