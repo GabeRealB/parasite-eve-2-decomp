@@ -94,7 +94,28 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn005DC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00A14);
+void Actor00400_Fn00A14(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_646 != 0) {
+        if (!(work->field_646 & 7)) {
+            s32 id  = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x4004000B;
+            s32 pan = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        }
+        if (work->field_646 == 0x18 || work->field_646 == 0x30) {
+            func_800FDB18(7, &arg0->field_2C->field_8[1], NULL, &work->field_5DC);
+        }
+        if (work->field_646 == 0x16 && work->field_666 == 0) {
+            work->obj_4DC.flags |= 0x8000;
+        }
+        if (--work->field_646 == 0) {
+            work->obj_4DC.flags &= 0x7FFF;
+        }
+    }
+}
 
 void Actor00400_Fn00B48(Actor100400* arg0)
 {
