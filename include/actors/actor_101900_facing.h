@@ -165,6 +165,76 @@ static __inline__ void Actor01900_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][2] = m22;
 }
 
+/// `Actor01900_RescaleYaw` with a separate Y scale.
+static __inline__ void Actor01900_RescaleYawY(GsCOORDINATE2* coord, s32 scale, s16 scaleY)
+{
+    void**                scratch;
+    void*                 head;
+    Actor01900RotScratch* blk;
+    s16                   ang;
+    u16                   m22;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (Actor01900RotScratch*)((u8*)head - 0x34);
+    *scratch = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vx = scale;
+    blk->scale.vy = scaleY;
+    blk->scale.vz = scale;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0] = *(u16*)&((Actor01900RotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    m22                  = *(u16*)&blk->m.m[2][2];
+    *scratch             = (u8*)*scratch + 0x34;
+    coord->flg           = 0;
+    coord->coord.m[2][2] = m22;
+}
+
+/// Rebuild `coord`'s Y rotation from its current yaw at unit scale.
+static __inline__ void Actor01900_ResetYaw(GsCOORDINATE2* coord)
+{
+    void**                scratch;
+    void*                 head;
+    Actor01900RotScratch* blk;
+    s16                   ang;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (Actor01900RotScratch*)((u8*)head - 0x34);
+    *scratch = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = 1;
+    blk->scale.vy = 1;
+    blk->scale.vx = 1;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0] = *(u16*)&blk->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    coord->coord.m[2][2] = *(u16*)&blk->m.m[2][2];
+    coord->flg           = 0;
+    *scratch             = (u8*)*scratch + 0x34;
+}
+
 /// Wraps a 12-bit angle difference into `[-0x800, 0x800]`.
 static __inline__ s16 Actor01900_NormalizeYaw(s16 input)
 {

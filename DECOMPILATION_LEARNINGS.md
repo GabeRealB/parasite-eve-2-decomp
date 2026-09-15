@@ -80852,3 +80852,30 @@ once (91% -> 98.6%). Search other overlays for the body before hand-expanding it
 
 Side effect: with the helper in place, an explicit `s32 num = count` bound was
 wrong again; plain `s->i < count` gave the target's `sra v0; blez v0; move s7,v0`.
+
+### Chained scratch rescales: read `m[0][0]` through `blk`, not `head - 0x34`
+
+`Actor01900_Fn0892C` ends with nine back-to-back `RescaleYaw`-style inlines
+(`head = *G; blk = head - 0x34; ...; *G = *G + 0x34`). The target reads the
+first matrix word as `-0x34(head)` in the first copy and as `0(blk)` in every
+later one. The existing `Actor01900_RescaleYaw` spells that read
+`((T*)(head - 0x34))->m.m[0][0]`, and that gave `-0x34(head)` in all nine copies,
+which kept the previous pop value alive in `$s2` (99.67%, `regs` only).
+Reading `blk->m.m[0][0]` matched. The mechanism is in cse.c `find_best_addr`:
+
+- A `(plus reg const)` address is never folded to a bare REG, because
+  `ADDRESS_COST` ties at 1 and a tie only wins with a *higher* `rtx_cost`.
+- A bare REG address *is* replaced by an equal-cost class member with a higher
+  cost. In the first copy `blk`'s class holds `(plus head -52)`, so it becomes
+  `-0x34(head)`. In later copies `head` is CSE'd into the previous pop
+  (`L + 0x34`) and `blk` folds to the reload `L` itself. No plus form is
+  left to pick, so it stays `0(L)`.
+
+So one `blk->` spelling covers both shapes. If the head-relative spelling is
+right only for the first copy, write the read through `blk`.
+
+The inner `switch` here generated a jump table that used to be `.incbin`'d by
+the next rodata unit (`actor_101900_header_2` at 0x11C). The table is emitted at
+the end of the text unit's `.rodata`, which is the same offset, so the overlay
+failed its checksum at the correct function. Moving that unit's cut past the
+table (0x11C -> 0x1BC, in both slots) fixed it.
