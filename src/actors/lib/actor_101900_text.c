@@ -363,7 +363,35 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0551C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn05B4C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn05F38);
+void Actor01900_Fn05F38(Actor01900* arg0)
+{
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+    GsCOORDINATE2*  coord;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_8A2 = 0x10;
+        work->field_89E = 7;
+        work->field_898 = 2;
+        work->field_6   = 0;
+    }
+    Actor01900_Fn01C94(arg0);
+    if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
+        coord = arg0->field_2C->field_8;
+        Actor01900_StepForward(coord, -0x78);
+        Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC);
+        arg0->field_2C->field_8->flg = 0;
+    }
+    if (work->field_68 & 0x100) {
+        if (enemy->node.field_5 == 1) {
+            work->field_0 = 10;
+        } else {
+            work->field_0 = 6;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06100);
 
