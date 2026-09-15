@@ -1,12 +1,15 @@
 #include "common.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
 
 extern s32 D_mine_cavern_80188214;
 extern s32 D_mine_cavern_801887B4;
+extern s32 D_mine_cavern_80188A3C;
+extern s32 D_mine_cavern_80188D24;
 extern s32 D_mine_cavern_8018EB50;
 
 /// Cutscene / "among us" mode flag in the main executable.
@@ -20,7 +23,23 @@ s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DC9C);
+/// Advances the cavern's collapse sequence one step: flag 0xE6 goes 0 -> 1
+/// (bit 0 of `Gp_StateC08.field_6` set) and 1 -> 2 (quake shake, then camera
+/// pan), each step writing `D_mine_cavern_8018EB50` to the step number.
+s32 func_mine_cavern_8017DC9C(void)
+{
+    if (GameFlag_GetNibble(0xE6) == 0) {
+        Gp_StateC08.field_6 |= 1;
+        Gp_PulseState1C();
+        GameFlag_SetNibble(0xE6, 1);
+        D_mine_cavern_8018EB50 = 1;
+    } else if (GameFlag_GetNibble(0xE6) == 1) {
+        func_800E3FAC(0xA2, 0x3D);
+        func_800E8634((s32)&D_mine_cavern_80188A3C, 0, (s32)&D_mine_cavern_80188D24);
+        GameFlag_SetNibble(0xE6, 2);
+    }
+    return 0;
+}
 
 s32 func_mine_cavern_8017DD38(s32 arg0, s32 arg1, s32 arg2)
 {
