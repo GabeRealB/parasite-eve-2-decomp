@@ -9,6 +9,8 @@
 extern s32      D_dryfield_night_motel_lobby_801827CC;
 extern s32      D_dryfield_night_motel_lobby_801844D4;
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
+extern TaskDesc D_dryfield_night_motel_lobby_801828D4;
+extern Task*    D_dryfield_night_motel_lobby_801844CC;
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", RoomsShared8017ef20Title);
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", RoomsShared8017de9cHundred);
@@ -40,7 +42,22 @@ s32 func_dryfield_night_motel_lobby_8017FCDC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", func_dryfield_night_motel_lobby_8017FD10);
+void func_dryfield_night_motel_lobby_8017FD10(Task* task)
+{
+    s32 poll;
+
+    switch (task->state) {
+        case 0:
+            D_dryfield_night_motel_lobby_801844CC = Task_SpawnFromTable(&D_dryfield_night_motel_lobby_801828D4, 0, 0, 0);
+            task->state++;
+            return;
+        case 1:
+            if (Task_PollKill(D_dryfield_night_motel_lobby_801844CC, &poll) != 0) {
+                Task_Kill(task);
+            }
+            return;
+    }
+}
 
 void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
 {
