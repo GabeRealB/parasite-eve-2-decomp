@@ -996,7 +996,17 @@ void Actor00400_Fn09B44(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn09B74);
+void Actor00400_Fn09B74(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (++work->field_636 < 0x30) {
+        Actor00400_Fn0762C(arg0, 0xA0, work->field_556);
+        return;
+    }
+    work->field_63A++;
+}
 
 void Actor00400_Fn09BDC(Actor100400* arg0)
 {
