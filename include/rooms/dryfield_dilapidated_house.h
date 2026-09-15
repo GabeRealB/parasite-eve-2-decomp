@@ -31,12 +31,30 @@ typedef struct DdhCoordWork {
 } DdhCoordWork;
 STATIC_ASSERT_SIZEOF(DdhCoordWork, 0x6C);
 
+/// Record at `D_dryfield_dilapidated_house_8018669C` handed to
+/// `func_dryfield_dilapidated_house_80180A0C` together with the complement of a
+/// 0..0x1000 ramp. Both pairs are a pointer and the entry count of the array it
+/// points at: `field_0` / `field_16` and `field_8` / `field_12`; `field_14` is
+/// the index the caller is currently at, and the callee walks from it.
+typedef struct DdhRoomRec {
+    /* 0x00 */ void*    field_0;
+    /* 0x04 */ s32      field_4;
+    /* 0x08 */ SVECTOR* field_8;
+    /* 0x0C */ s32      field_C;
+    /* 0x10 */ s16      field_10;
+    /* 0x12 */ s16      field_12;
+    /* 0x14 */ s16      field_14;
+    /* 0x16 */ s16      field_16;
+} DdhRoomRec;
+STATIC_ASSERT_SIZEOF(DdhRoomRec, 0x18);
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);
 void func_dryfield_dilapidated_house_8017EE58(Task* task);
 void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
 void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
+void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2);
 s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 void func_dryfield_dilapidated_house_80181028(Task* task);
 void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);

@@ -79106,3 +79106,48 @@ Inputs: parent `base.i`
 `base_1.i` `da8d050179fe5d57c19fcef650018c04acb5d28a1597f50dc6898a2c0a45d62d`
 (100.000%), target
 `4c4598b0f47c3f2dd93166d70eb6fbcfcffc689caa9d1bd56c9b4229e62d1594`.
+
+## An `s16` local holding `field + K` loads `lhu`; the target's `lh` says `s32`
+
+`func_dryfield_dilapidated_house_80180FD8` steps a 0..0x1000 ramp held in an
+`s16` task field. m2c's `s16 var_s0` reproduces the clamp but not the load: the
+target's `lh $v0, 0x2A($a0)` comes out as `lhu`, followed by a promote pair at
+the compare.
+
+```
+lh    v0,0x2a(a0)          # target            lhu   v0,0x2a(a0)     # s16 local
+nop                                            addiu v0,v0,0x44
+addiu s0,v0,0x44                               move  s0,v0
+slti  v0,s0,0x1001                             sll   v0,v0,0x10
+                                               sra   v0,v0,0x10
+                                               slti  v0,v0,0x1001
+```
+
+The tell is the load *opcode*, and it is about the C temporary, not the field
+(which is `s16` in both). While the destination is a 16-bit object the only use
+of the loaded halfword is its own truncation, so GCC takes the zero-extending
+`movhi` form and pays `sll 16` / `sra 16` to reduce the sum back to HImode at
+every use. Widening the local keeps both the arithmetic and the compare in
+SImode, and the load becomes a plain `lh`:
+
+```c
+s32 ramp;
+
+ramp = task->killCountdown + 0x44;
+if (ramp >= 0x1001) {
+    ramp = 0x1000;
+}
+task->killCountdown = ramp; /* sh truncates once, at the store */
+```
+
+Contrast "`s16` accumulator forces `sll/sra 16` on each add" above, where the
+truncation is *in* the target and `s16` is the fix, and "An `s16` compared and
+stored into `u16` is `lh`+`lhu`", where the pair is over one address. Here a
+single `lh` with no `lhu` anywhere and no promote pair means the local is wider
+than the field.
+
+Inputs: parent `base.i`
+`fa894bdcc779df2c6dfd2a161ca7ec8bf766bed10f1de87da7defdfaac2f1805` (50.538%),
+`base_1.i` `cf7aa853c3f1d898ce0d16becc453dbadcd4f44e533dc30a150cd05305229f6d`
+(100.000%), target
+`28d5ddced61b0004626849971d4f5e3db3ac7199f5810868233c103429ff2847`.

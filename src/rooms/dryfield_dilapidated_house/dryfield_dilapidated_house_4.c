@@ -11,7 +11,24 @@ void func_dryfield_dilapidated_house_8018142C(Task* task);
 void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80180FD8);
+extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
+
+/// Steps the task's 0..0x1000 ramp by 0x44, saturating at 0x1000, and feeds the
+/// distance still to run (`0x1000 - ramp`) to the room record's matrix/vertex
+/// interpolator. Returns the ramp value, which the caller stores into its
+/// `DdhCoordWork`.
+s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
+{
+    s32 ramp;
+
+    ramp = task->killCountdown + 0x44;
+    if (ramp >= 0x1001) {
+        ramp = 0x1000;
+    }
+    task->killCountdown = ramp;
+    func_dryfield_dilapidated_house_80180A0C(task, &D_dryfield_dilapidated_house_8018669C, 0x1000 - ramp);
+    return ramp;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181028);
 
