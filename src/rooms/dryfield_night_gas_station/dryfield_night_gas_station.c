@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+extern s8  D_80114C12;
 extern u8  D_80115598;
 extern u8  D_80115768;
 extern s8  D_8007272D;
@@ -18,6 +19,8 @@ extern s32 D_dryfield_night_gas_station_801840AC;
 extern s32 D_dryfield_night_gas_station_801841FC;
 extern s32 D_dryfield_night_gas_station_80188B0C;
 extern s32 D_dryfield_night_gas_station_80188B64;
+extern s32 D_dryfield_night_gas_station_80188BF4;
+extern s32 D_dryfield_night_gas_station_80189014;
 extern s32 D_dryfield_night_gas_station_8018920C;
 extern s32 D_dryfield_night_gas_station_801892E4;
 extern s32 D_dryfield_night_gas_station_80189A7C;
@@ -184,4 +187,19 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station", func_dryfield_night_gas_station_8017FAEC);
+/// Runs the room's one-shot post-sequence event: with the session still on its
+/// first mode and nibble 0x63 reading 1 — and the cutscene flag agreeing — it
+/// advances the nibble to 2 and plays the cap pair
+/// `D_dryfield_night_gas_station_80188BF4` / `_80189014`.
+void func_dryfield_night_gas_station_8017FAEC(void)
+{
+    s32 temp_v0;
+
+    if (Game_Session->field_1 == 0) {
+        temp_v0 = GameFlag_GetNibble(0x63);
+        if ((temp_v0 == 1) && (D_80114C12 != temp_v0)) {
+            GameFlag_SetNibble(0x63, 2);
+            func_800E8634((s32)&D_dryfield_night_gas_station_80188BF4, 0, (s32)&D_dryfield_night_gas_station_80189014);
+        }
+    }
+}
