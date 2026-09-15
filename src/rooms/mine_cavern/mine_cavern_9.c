@@ -7,6 +7,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/sound.h"
+#include "rooms/mine_cavern.h"
 
 extern void func_mine_cavern_80182454(void);
 
@@ -255,7 +256,15 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801836D0);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183860);
+void func_mine_cavern_80183860(Task* arg0)
+{
+    MineCavernWork* work;
+
+    work = (MineCavernWork*)arg0->idMap;
+    if (work != NULL) {
+        Gp_UnlinkObj(&work->obj40);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183890);
 
