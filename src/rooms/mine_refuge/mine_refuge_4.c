@@ -62,7 +62,24 @@ s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FD48);
+/// The `0x13F2` message handler of `D_mine_refuge_80181884`: arguments 0xC, 0x63
+/// and 0x67 each cue a sound (ids 0x5406000C, 0x5406000F and 0x5406000D),
+/// centred and at zero depth. Any other argument is ignored.
+s32 func_mine_refuge_8017FD48(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 0xC:
+            SndEvt_EnqueueType6(0x5406000C, 0, 0);
+            break;
+        case 0x63:
+            SndEvt_EnqueueType6(0x5406000F, 0, 0);
+            break;
+        case 0x67:
+            SndEvt_EnqueueType6(0x5406000D, 0, 0);
+            break;
+    }
+    return 0;
+}
 
 void func_mine_refuge_8017FDBC(Task* arg0)
 {

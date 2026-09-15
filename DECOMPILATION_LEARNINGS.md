@@ -83016,3 +83016,33 @@ same m2c guess are worth telling apart: a register in a compare that the seed
 never declared means the seed *undercounts* parameters (see the
 `func_mine_mesa_8017DA7C` entry above), while an `$a3` fed by a delay-slot store
 usually means it is overcounting.
+
+## Concurrent lanes share the regenerated asset store, so a build can overlap an extraction (build-and-verify, 2026-09-16)
+
+Every overlay lane works in its own worktree, but `assets/` and `rom/` are
+gitignored and per-tree, so a lane with no store extracts its own: `rom/USA`
+gets symlinked to the main checkout's disc dump and `ninja_config.py -iso_min`
+is run once. That command starts by `shutil.rmtree`-ing the target tree's
+`assets/USA`, and each lane does it on its own schedule, so a
+`build-and-verify.sh` that overlaps another lane's extraction dies inside
+`gen_overlay_configs.py` with
+
+```
+weapons/as12: assets/USA/pe2pkg/as12.pe2pkg not found.
+  Package names come from tools/peassets/asset_data.py; extract with
+  `python3 ninja_config.py -iso_min` to materialise the required set.
+```
+
+The package count is the readiness signal, not the directory's existence:
+`ls assets/USA/pe2pkg/*.pe2pkg | wc -l` read 136 while the extractor was still
+materialising and 448 when it was done, and both a partial store and an empty
+one are normal states rather than a broken checkout. Poll the count up to the
+full set before starting a build; retrying is otherwise the only fix.
+
+Two traps while waiting. `pgrep -f extract.py` inside a wait loop matches the
+*waiting shell's own command line*, so the loop never terminates - anchor the
+pattern with `^` on the interpreter path, or poll the package count instead.
+And because `rom/USA` is a symlink into the main checkout, `dumpsxiso` writes
+its dump *through* it, so the main checkout's `rom/USA/{disk1,disk2}` gain the
+stage container files the extractor needs from the disc image; that is the
+intended way to get a store in a fresh worktree, not a stray write.
