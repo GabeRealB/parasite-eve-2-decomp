@@ -6,15 +6,34 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 void func_neo_ark_shrine_8017F448(void);
+
+extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Message table installed at `Task::field_24` by the room task's state 0.
 extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C;
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D6AC);
+s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    if (in->msgId != 0x11) {
+        return 1;
+    }
+    if (GameFlag_GetNibble(0xDB) != 0) {
+        return 1;
+    }
+    if (in->field_5 != 0) {
+        return 0;
+    }
+    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_RunCapCmd1(4);
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D740);
 
