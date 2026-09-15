@@ -443,7 +443,179 @@ s32 Actor01900_Fn01A7C(Actor01900Work* work)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn01C94);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn02018);
+/// Binds the actor model's light and colour matrices to the pair kept in its
+/// work block.
+static __inline__ void Actor01900_BindMatrices(Actor01900* actor)
+{
+    Actor01900Work* work;
+    TmdObject*      obj;
+
+    work          = actor->field_1C;
+    obj           = actor->field_2C;
+    obj->field_1C = &work->field_BB0;
+    obj->field_20 = &work->field_BD0;
+}
+
+/// Enemy init: allocates the work block, sets up both animation contexts,
+/// the three hit/body `GpObj` nodes and the patrol points, then picks the
+/// starting state from the spawn flags and rescales the model.
+void Actor01900_Fn02018(GpEnemy* enemy, Actor01900* actor)
+{
+    SVECTOR         dir;
+    VECTOR          pos;
+    SVECTOR*        v;
+    TmdObject*      obj;
+    GsCOORDINATE2*  root;
+    Actor01900Work* work;
+    GpObj*          body;
+    GpObj*          head;
+    s32             kind;
+
+    root            = actor->field_2C->field_8;
+    obj             = actor->field_2C;
+    work            = Mem_Calloc(0xC9C, 0);
+    actor->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, (Task*)actor);
+        return;
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    actor->field_18 = Actor01900_Fn0A6CC;
+    Actor01900_BindMatrices(actor);
+    enemy->field_4     = &actor->field_2C->field_8->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &actor->field_2C->field_8[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_4C     = 0;
+    enemy->field_40     = (s16)Actor01900_D0AC54.field_4;
+    enemy->field_50     = &Actor01900_D0AC54;
+    enemy->field_54     = (s32)&work->field_8E8;
+    func_800B3F84(&((Actor01900AnimWork*)work)->anim, Actor01900_D17174, (GpAnimObj*)obj,
+                  ((Actor01900AnimWork*)work)->pad_328, ((Actor01900AnimWork*)work)->slots);
+    func_800B3F84(&((Actor01900AnimWork*)work)->blendAnim, Actor01900_D17174, (GpAnimObj*)obj,
+                  ((Actor01900AnimWork*)work)->pad_764, ((Actor01900AnimWork*)work)->blendSlots);
+    work->field_898 = 2;
+    work->field_89A = 0;
+    work->field_89E = 2;
+    work->field_8B0 = 0;
+    work->field_8AE = 0;
+    work->field_8A4 = 0x10;
+    work->field_8A2 = 0x10;
+    Actor01900_Fn01C94(actor);
+
+    work->field_A08.field_C  = &work->field_A28;
+    work->field_A08.field_8  = root;
+    work->field_A08.field_10 = 0;
+    work->field_A08.field_12 = -0x100;
+    work->field_A08.field_14 = 0;
+    work->field_A08.field_18 = 0x30013;
+    work->field_A08.field_1C = 0x180;
+    work->field_A08.flags    = 1;
+    Gp_LinkObj(2, &work->field_A08);
+    work->field_C10       = 0;
+    work->field_A08.flags = (work->field_A08.flags | 0x4000) & 0x7FFF;
+    Gp_InitRec18Table(work->field_A08.field_C, 0xC, 0);
+
+    body           = &work->field_8C8;
+    body->field_8  = &actor->field_2C->field_8[2];
+    body->field_C  = &work->field_8E8;
+    body->field_10 = 0;
+    body->field_12 = 0;
+    body->field_14 = 0;
+    body->field_18 = 0x30000;
+    body->field_1C = 0x180;
+    body->flags    = 1;
+    Gp_LinkObj(2, body);
+    body->flags |= 0x8000;
+    Gp_InitRec18Table(body->field_C, 0xC, 0);
+
+    dir.vx         = 0;
+    dir.vy         = 0;
+    dir.vz         = 0;
+    head           = &work->field_B48;
+    head->field_8  = &actor->field_2C->field_8[4];
+    head->field_C  = &work->field_B68;
+    v              = &dir;
+    head->field_10 = v->vx;
+    head->field_12 = v->vy;
+    head->field_14 = v->vz;
+    head->field_1C = 0x180;
+    head->flags    = 1;
+    Gp_LinkObj(3, head);
+    Gp_InitRec18Table(head->field_C, 1, 0);
+    work->field_B48.field_18 = Gp_PackObjPair((GpObj50*)enemy, 0);
+
+    work->field_14     = 0;
+    work->field_C[0].x = actor->field_2C->field_8->coord.t[0];
+    work->field_C[0].z = actor->field_2C->field_8->coord.t[2];
+    Gfx_MatrixCol2(&actor->field_2C->field_8->coord, v);
+    dir.vy = 0;
+    VectorNormalSS(v, v);
+    gte_lddp(2000);
+    gte_ldsv(v);
+    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_stsv(v);
+    work->field_C[1].x = actor->field_2C->field_8->coord.t[0] + dir.vx;
+    work->field_C[1].z = actor->field_2C->field_8->coord.t[2] + dir.vz;
+
+    actor->field_24 = &Actor01900_D1728C;
+    root->sub       = &Gfx_ViewCoord;
+    root->flg       = 0;
+    Gp_UpdateCoord(root);
+    pos.vx = root->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    work->field_8B8.field_0 = &actor->field_2C->field_8[1];
+    work->field_8B8.field_4 = 0x300;
+    work->field_8B8.field_6 = 2;
+    kind                    = actor->field_36;
+    switch (kind & 0xF) {
+        case 2:
+            work->field_2 = -1;
+            work->field_0 = 0;
+            break;
+        case 4:
+            work->field_2 = -1;
+            work->field_0 = 0x17;
+            break;
+        default:
+            work->field_2 = -1;
+            work->field_0 = 0x18;
+            Tmd_AllocBuffers(obj);
+            break;
+    }
+    switch (((Task*)actor)->spawnArg1 & 0xF) {
+        case 2:
+            work->field_C2C = Actor01900_D0AC64[0].field_0;
+            work->field_C2E = Actor01900_D0AC64[0].field_2;
+            work->field_C30 = Actor01900_D0AC64[0].field_4;
+            work->field_C32 = Actor01900_D0AC64[0].field_6;
+            break;
+        case 1:
+            work->field_C2C = Actor01900_D0AC64[2].field_0;
+            work->field_C2E = Actor01900_D0AC64[2].field_2;
+            work->field_C30 = Actor01900_D0AC64[2].field_4;
+            work->field_C32 = Actor01900_D0AC64[2].field_6;
+            break;
+        case 0:
+        default:
+            work->field_C2C = Actor01900_D0AC64[1].field_0;
+            work->field_C2E = Actor01900_D0AC64[1].field_2;
+            work->field_C30 = Actor01900_D0AC64[1].field_4;
+            work->field_C32 = Actor01900_D0AC64[1].field_6;
+            break;
+    }
+
+    Actor01900_RescaleYaw(actor->field_2C->field_8, 0x1194);
+    work->field_C98 = 0;
+    actor->field_30++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn02664);
 

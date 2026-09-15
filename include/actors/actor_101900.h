@@ -62,7 +62,10 @@ typedef struct Actor01900Work {
     /* 0xA40 */ byte               pad_A40[0x108];
     /* 0xB48 */ GpObj              field_B48;
     /* 0xB68 */ GpRec18            field_B68;
-    /* 0xB80 */ byte               pad_B80[0x90];
+    /* 0xB80 */ byte               pad_B80[0x30];
+    /* 0xBB0 */ MATRIX             field_BB0; // `TmdObject.field_1C` light matrix
+    /* 0xBD0 */ MATRIX             field_BD0; // `TmdObject.field_20` color matrix
+    /* 0xBF0 */ byte               pad_BF0[0x20];
     /* 0xC10 */ s16                field_C10;
     /* 0xC12 */ s16                field_C12;
     /* 0xC14 */ s16                field_C14;
@@ -73,7 +76,7 @@ typedef struct Actor01900Work {
     /* 0xC26 */ s16                field_C26;
     /* 0xC28 */ s16                field_C28;
     /* 0xC2A */ s16                field_C2A;
-    /* 0xC2C */ byte               pad_C2C[2];
+    /* 0xC2C */ s16                field_C2C;
     /* 0xC2E */ s16                field_C2E;
     /* 0xC30 */ s16                field_C30;
     /* 0xC32 */ s16                field_C32;
@@ -112,12 +115,15 @@ typedef struct Actor01900AnimWork {
 /// work block above (the same pointer `Task::idMap` holds) and `field_2C` is
 /// the actor's `TmdObject`. Same shape as the other actor overlays' contexts.
 typedef struct Actor01900 {
-    /* 0x00 */ byte            pad_0[0x1C];
+    /* 0x00 */ byte            pad_0[0x18];
+    /* 0x18 */ void*           field_18;
     /* 0x1C */ Actor01900Work* field_1C;
     /* 0x20 */ GpEnemy*        field_20;
-    /* 0x24 */ byte            pad_24[8];
+    /* 0x24 */ void*           field_24;
+    /* 0x28 */ byte            pad_28[4];
     /* 0x2C */ TmdObject*      field_2C;
-    /* 0x30 */ byte            pad_30[6];
+    /* 0x30 */ s32             field_30;
+    /* 0x34 */ byte            pad_34[2];
     /* 0x36 */ s16             field_36;
 } Actor01900;
 
@@ -291,7 +297,23 @@ typedef struct Actor01900HitScratch {
 } Actor01900HitScratch;
 STATIC_ASSERT_SIZEOF(Actor01900HitScratch, 0x54);
 
+/// 0xC-byte row of `Actor01900_D0AC64`; `Actor01900_Fn02018` copies the four
+/// halfwords of the row picked by the spawn argument's low nibble into
+/// `Actor01900Work.field_C2C..field_C32`.
+typedef struct Actor01900TintRow {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  field_4;
+    /* 0x6 */ s16  field_6;
+    /* 0x8 */ byte pad_8[4];
+} Actor01900TintRow;
+STATIC_ASSERT_SIZEOF(Actor01900TintRow, 0xC);
+
 extern Actor01900StateTable  Actor01900_D001BC;
+extern GpPairSrcE            Actor01900_D0AC54;
+extern Actor01900TintRow     Actor01900_D0AC64[];
+extern u8                    Actor01900_D17174[];
+extern void*                 Actor01900_D1728C;
 extern char                  Actor01900_D16960;
 extern void*                 Actor01900_D171B4;
 extern MATRIX*               D_80073B8C;
@@ -309,6 +331,7 @@ void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 s32  Actor01900_Fn016F0(Actor01900* arg0);
 void Actor01900_Fn01C94(Actor01900* arg0);
+void Actor01900_Fn0A6CC(Task* task);
 s32  Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
