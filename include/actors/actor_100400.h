@@ -56,7 +56,11 @@ typedef struct Actor100400Work {
     /* 0x54C */ s16                field_54C;
     /* 0x54E */ byte               pad_54E[2];
     /* 0x550 */ s16                field_550;
-    /* 0x552 */ byte               pad_552[0x12];
+    /* 0x552 */ byte               pad_552[2];
+    /* 0x554 */ s16                field_554;
+    /* 0x556 */ s16                field_556;
+    /* 0x558 */ s16                field_558;
+    /* 0x55A */ byte               pad_55A[0xA];
     /* 0x564 */ s16                field_564;
     /* 0x566 */ byte               pad_566[2];
     /* 0x568 */ s16                field_568;
