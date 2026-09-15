@@ -460,7 +460,51 @@ s32 Actor01900_Fn00FA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
     return hit;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn016F0);
+/// Rotates the slot-3 player's and this actor's raised root positions into
+/// world space and returns `func_800E0308` on the pair.
+s32 Actor01900_Fn016F0(Actor01900* arg0)
+{
+    Task*                   player;
+    u8*                     head;
+    Actor01900SightScratch* s;
+    SVECTOR*                local;
+    SVECTOR*                v;
+    SVECTOR*                out;
+
+    player                = Game_GetPtrSlot(3);
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    local                 = (SVECTOR*)(head - 0xC);
+    s                     = (Actor01900SightScratch*)(head - 0x1C);
+    s->local.vx           = ((Actor01900*)player)->field_2C->field_8->coord.t[0];
+    s->local.vy           = ((Actor01900*)player)->field_2C->field_8->coord.t[1] - 1000;
+    *(u8**)G_SCRATCH_HEAD = (u8*)s;
+    s->local.vz           = ((Actor01900*)player)->field_2C->field_8->coord.t[2];
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    v = local;
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(v);
+    gte_rtv0_real();
+    gte_stsv(&s->out);
+    s->out.vx += Gfx_ViewCoord.workm.t[0];
+    s->out.vy += Gfx_ViewCoord.workm.t[1];
+    s->out.vz += Gfx_ViewCoord.workm.t[2];
+
+    s->local.vx = arg0->field_2C->field_8->coord.t[0];
+    s->local.vy = arg0->field_2C->field_8->coord.t[1] - 1000;
+    s->local.vz = arg0->field_2C->field_8->coord.t[2];
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    out = (SVECTOR*)(head - 0x14);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(v);
+    gte_rtv0_real();
+    gte_stsv(out);
+    s->from.vx           += Gfx_ViewCoord.workm.t[0];
+    s->from.vy           += Gfx_ViewCoord.workm.t[1];
+    s->from.vz           += Gfx_ViewCoord.workm.t[2];
+    s->hit                = func_800E0308(&s->out, out);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+    return s->hit;
+}
 
 void Actor01900_Fn01950(Actor01900* arg0)
 {

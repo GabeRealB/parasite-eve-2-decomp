@@ -80879,3 +80879,28 @@ the next rodata unit (`actor_101900_header_2` at 0x11C). The table is emitted at
 the end of the text unit's `.rodata`, which is the same offset, so the overlay
 failed its checksum at the correct function. Moving that unit's cut past the
 table (0x11C -> 0x1BC, in both slots) fixed it.
+
+### Early pointer plus a later copy adds refs to a local-alloc quantity without new code
+
+`Actor01900_Fn016F0` computes `v = head - 0xC` after a call and uses it in two
+`gte_ldv0`s. With 3 refs over a span of 68, `v` ranked 441 in local-alloc, below
+`arg0` (769) and the scratch-head constant (632). The target gives `v` `$s3`
+first, so this build had a `$s3/$s4/$s5` permutation (99.34%, `regs` only).
+Routing the stores through `v` fixed the ranking but moved them off `$s0`. A
+plain `w = v;` copy is propagated away by CSE.
+
+The match is to compute the value early and copy it at the old site:
+
+```c
+local = (SVECTOR*)(head - 0xC);   /* next to head's load */
+...
+Gp_UpdateCoord(&Gfx_ViewCoord);
+v = local;                        /* where v used to be defined */
+```
+
+`update_equiv_regs` moves `local`'s single-use definition down to just before
+the copy. The copy then ties both pseudos into one quantity, and
+`local-alloc.c:1973` sums their refs (2 + 3 = 5), which lifts the quantity above
+`arg0`. The output is identical apart from register homes. `.lreg` shows both
+pseudos (84, 85) in reg 19. Use this when the only lever left is a value's
+reference count and no other spelling adds a use.

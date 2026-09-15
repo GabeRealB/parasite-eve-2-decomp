@@ -210,6 +210,20 @@ typedef struct Actor01900DeltaFlag {
 } Actor01900DeltaFlag;
 STATIC_ASSERT_SIZEOF(Actor01900DeltaFlag, 0x14);
 
+/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn016F0`: `local`
+/// takes each actor's root translation raised by 1000, rotated into `out` (the
+/// slot-3 player) and `from` (the actor), and `hit` is `func_800E0308`'s result.
+typedef struct Actor01900SightScratch {
+    /* 0x00 */ SVECTOR out;
+    /* 0x08 */ SVECTOR from;
+    /* 0x10 */ SVECTOR local;
+    /* 0x18 */ s32     hit;
+} Actor01900SightScratch;
+STATIC_ASSERT_SIZEOF(Actor01900SightScratch, 0x1C);
+
 /// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn008B4` to push
 /// a coordinate away from the obstacles in a `GpRec18` table. `angle`/`ok` hold
 /// up to eight bearings collected from the records, `i`/`j` are the loop
