@@ -81647,3 +81647,63 @@ Inputs: `base_4.i`
 one variable, inline load), `base_3.i`
 `2ed402d00f497e833ed70fde31314ac89c59fd13a3d85b9602dbcd434d2e2290` (93.333%,
 two variables, inline load).
+
+## A tail call after the `switch` makes the address's `%hi` temp `$v0`; the call written in each case puts it in the argument register
+
+`func_mine_forked_tunnel_8017E78C` switches `Gp_GetViewIndex() & 0xFF` and
+projects one of four anchors through `Room_Draw17(p, 1, 0x300)`, three of the
+arms ending in the same call. The obvious source shape - assign `p` per case,
+one call after the switch - reaches 99.49% with `regs=4` and nothing else: the
+target writes the address into the argument register (`lui a0,%hi(A)` /
+`addiu a0,a0,%lo(A)`), the seed into a temp (`lui v0,%hi(A)` / `addiu a0,v0`).
+
+With `p` a variable spanning the switch, its value is still one cross-block
+pseudo, and the `lo_sum` that produces it has a *pseudo* destination.
+`local-alloc.c`'s `combine_regs` records a suggested register only for a pseudo
+dying in an insn whose destination is a hard register, so the `%hi` temp gets no
+suggestion and `find_free_reg`'s numeric scan hands it `$v0` - "## A cross-jumped
+call block also decides the address's register: `lui $a0`, not `lui $v0`" read
+from the other side.
+
+Write the call in each case instead:
+
+```c
+    switch (idx) {
+        case 2:
+        case 3:
+            Room_Draw17(D_...3614, 1, 0x300);
+            break;
+        case 4:
+            Room_Draw17(&D_...361C[0], 1, 0x300);
+            Room_Draw17(&D_...361C[1], 1, 0x300);
+            break;
+        case 5:
+            Room_Draw17(D_...362C, 1, 0x300);
+            break;
+        default:
+            return;
+    }
+```
+
+`combine` folds the argument move into the `lo_sum`, so `.lreg` shows
+`(set (reg:SI 4 a0) (lo_sum (reg 87) sym))` and the `%hi` temp picks up
+`qty_phys_sugg = {$a0}`: `lui a0` / `addiu a0,a0` in every arm, and 0
+differences.
+
+The three identical `li a1,1` / `jal` / `li a2,0x300` tails are merged
+afterwards, by the post-reload cross-jump: the `.lreg` dump still shows the
+three call blocks (`jump2` is the pass that merges them), and the single shared
+`jal` survives in the object. So the target's merged tail is **not** evidence
+that the source had one call - and a `goto`, a shared local or any other shape
+that reaches the same merged tail places the address in `$v0` instead.
+
+The switch's own shape came with it: cases 2 and 3 sharing a body plus 4 and 5
+is what makes GCC build the balanced decision tree (`beq x,4` / `slti x,5` /
+`slti x,2`) instead of the two-case linear chain, so m2c's `default:`-carries-the
+-body reading has to go first.
+
+Inputs: `base_1.i`
+`dd4e3c00b854cd72c65273b8f5e5ff1a563f908142cc88ffbb1ce92445842048` (99.487%,
+`regs=4`), `base_2.i`
+`14cacb574679d497c4e3e451309cac7092eab32f6c129ed3c218e5bf7ac99bdd` (100%),
+target `8b9d3c0601648efde4e7a64846f9525b943dc6cd533befbfaa22b66d782a6ab0`.
