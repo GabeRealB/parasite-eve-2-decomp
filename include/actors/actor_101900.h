@@ -48,7 +48,9 @@ typedef struct Actor01900Work {
     /* 0xB68 */ GpRec18 field_B68;
     /* 0xB80 */ byte    pad_B80[0x90];
     /* 0xC10 */ s16     field_C10;
-    /* 0xC12 */ byte    pad_C12[0x22];
+    /* 0xC12 */ byte    pad_C12[0x12];
+    /* 0xC24 */ s16     field_C24;
+    /* 0xC26 */ byte    pad_C26[0xE];
     /* 0xC34 */ u8      field_C34[3];
     /* 0xC37 */ byte    pad_C37;
     /* 0xC38 */ Task*   field_C38;
@@ -155,10 +157,11 @@ extern void*                 D_80114B78[1];
 extern u8                    D_801153F2[2];
 extern u8                    D_801153F4;
 
-void Actor01900_Fn00E00(GsCOORDINATE2* arg0, void* arg1, s32 arg2);
+s32  Actor01900_Fn00E00(GsCOORDINATE2* arg0, void* arg1, s32 arg2);
 void Actor01900_Fn02A50(Actor01900* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void Actor01900_Fn01C94(Actor01900* arg0);
+void Actor01900_Fn03FF8(Actor01900* arg0, void* arg1, s32 arg2);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
 void Actor01900_Fn03C04(GameSessionFrom4* session, Actor01900Delta* delta);

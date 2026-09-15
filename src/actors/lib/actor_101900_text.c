@@ -328,7 +328,60 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06B4C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06F40);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn07810);
+void Actor01900_Fn07810(Actor01900* arg0)
+{
+    Actor01900Work*        work;
+    GpEnemy*               enemy;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor01900TurnScratch* turn;
+    u16                    next;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy           = arg0->field_20;
+        obj             = arg0->field_2C;
+        work->field_89E = 0x12;
+        work->field_898 = 1;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_8B0          = 0;
+        work->field_8A2          = 0x1E;
+    }
+    *(Actor01900TurnScratch**)G_SCRATCH_HEAD -= 1;
+    turn                                      = *(Actor01900TurnScratch**)G_SCRATCH_HEAD;
+    turn->angle                               = Actor01900_PositionYaw(arg0, &turn->delta, &Wip_SysConfig);
+    work->field_8AE                           = turn->angle;
+    if (turn->angle > 0x40) {
+        turn->angle = 0x40;
+    }
+    if (turn->angle < -0x40) {
+        turn->angle = -0x40;
+    }
+    coord        = arg0->field_2C->field_8;
+    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
+    if (Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+        Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
+    }
+    Actor01900_MoveForward(arg0->field_2C->field_8, work->field_C24);
+    if (work->field_C24 > 0) {
+        next            = work->field_C24 - 0xA;
+        work->field_C24 = next;
+        if ((s16)next < 0) {
+            work->field_C24 = 0;
+        }
+    }
+    Actor01900_Fn01C94(arg0);
+    if ((work->field_68 & 0x100) || work->field_C24 == 0) {
+        work->field_0 = 9;
+    }
+    *(Actor01900TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn07BA8);
 

@@ -23,6 +23,47 @@ typedef struct Actor01900AimScratch {
 } Actor01900AimScratch;
 STATIC_ASSERT_SIZEOF(Actor01900AimScratch, 0x10);
 
+/// 0xC-byte scratch `Actor01900_Fn07810` takes from `G_SCRATCH_HEAD`: the
+/// offset from the actor to the player, then the clamped turn.
+typedef struct Actor01900TurnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor01900TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor01900TurnScratch, 0xC);
+
+extern u8 D_80072729;
+
+/// Step `coord` `amount` units along its local Z axis unless movement is
+/// frozen. Same body as `Actor00100_MoveForwardNonzero`.
+static __inline__ void Actor01900_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
 /// `ActorsShared80135a60`'s body, inlined: rebuild `coord`'s Y rotation from
 /// its current yaw, uniformly scaled by `scale`.
 static __inline__ void Actor01900_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
