@@ -80576,3 +80576,36 @@ inlined scratch dance gives the absolute forms, while the caller's own
 `lui`/`ori`. 85% to 100% in one step. Before fighting a wrap loop or scratch
 address forms, `grep -rn "0x1194\|NormalizeYaw" include/actors src/actors` for a
 helper whose body the function already contains.
+
+## Reassigning the test variable *inside* the `if` does let `thread_jumps` skip the retest
+
+The complement of "`thread_jumps` cannot skip a reloaded test": there the
+reload sat in the merge block, here it is in the arm. `Actor01900_Fn09D3C`
+tests `work->field_0` against four states, draws, and then tests `== 0x1E`
+again. The ROM's `beq v1,0x1E` jumps *past* the second `bne v1,0x1E`, straight
+to the `lh 0x89E` that follows, and that second branch keeps a `nop` in its
+delay slot. Written as `if (s != 0 && ... && s != 0x1E) { draw(); }
+if (work->field_0 == 0x1E && ...)` it sat at 99.67%: the reload lands in the
+merge block, the `beq` stops *on* the `bne`, and `dbr` then steals `li v0,2`
+from the fall-through into the slot. The early edge skipping the retest in the
+target is what stops `dbr`, because it makes the fall-through a branch target.
+(In the switch's first copy a `lui` fills the slot anyway, so only the
+beq target differed there.)
+
+Reload into the same variable at the end of the arm, and test the variable:
+
+```c
+s32 state;                    /* not s16 */
+state = work->field_0;
+if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {
+    ...
+    Gp_DrawEffGroundQuad(...);
+    state = work->field_0;
+}
+if ((state == 0x1E) && (work->field_89E == 2)) {
+```
+
+Nothing is stored between the merge label and the branch now, so both branches
+compare one pseudo and the thread succeeds. The type matters: as an `s16`
+local, the reassigned member load comes out `lhu` + `sll`/`sra` (+6
+instructions, 96.8%); as `s32` it stays `lh`, which gives 100%.

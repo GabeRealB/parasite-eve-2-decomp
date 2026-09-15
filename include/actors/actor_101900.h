@@ -16,38 +16,49 @@
 /// masks `field_A08.flags` and `field_B48.flags`, which is what fixes those
 /// two offsets as `GpObj` rather than opaque padding.
 typedef struct Actor01900Work {
-    /* 0x000 */ s16   field_0;
-    /* 0x002 */ s16   field_2;
-    /* 0x004 */ s16   field_4;
-    /* 0x006 */ s16   field_6;
-    /* 0x008 */ byte  pad_8[0x52];
-    /* 0x05A */ u16   field_5A;
-    /* 0x05C */ byte  pad_5C[0xC];
-    /* 0x068 */ u16   field_68;
-    /* 0x06A */ byte  pad_6A[0x82E];
-    /* 0x898 */ s16   field_898;
-    /* 0x89A */ s16   field_89A;
-    /* 0x89C */ byte  pad_89C[2];
-    /* 0x89E */ s16   field_89E;
-    /* 0x8A0 */ byte  pad_8A0[2];
-    /* 0x8A2 */ s16   field_8A2;
-    /* 0x8A4 */ s16   field_8A4;
-    /* 0x8A6 */ byte  pad_8A6[8];
-    /* 0x8AE */ s16   field_8AE;
-    /* 0x8B0 */ s16   field_8B0;
-    /* 0x8B2 */ byte  pad_8B2[2];
-    /* 0x8B4 */ s32   field_8B4;
-    /* 0x8B8 */ byte  pad_8B8[0x10];
-    /* 0x8C8 */ GpObj field_8C8;
-    /* 0x8E8 */ byte  pad_8E8[0x120];
-    /* 0xA08 */ GpObj field_A08;
-    /* 0xA28 */ byte  pad_A28[0x120];
-    /* 0xB48 */ GpObj field_B48;
-    /* 0xB68 */ byte  pad_B68[0xCC];
-    /* 0xC34 */ u8    field_C34[3];
-    /* 0xC37 */ byte  pad_C37;
-    /* 0xC38 */ Task* field_C38;
-    /* 0xC3C */ Task* field_C3C;
+    /* 0x000 */ s16     field_0;
+    /* 0x002 */ s16     field_2;
+    /* 0x004 */ s16     field_4;
+    /* 0x006 */ s16     field_6;
+    /* 0x008 */ byte    pad_8[0x52];
+    /* 0x05A */ u16     field_5A;
+    /* 0x05C */ byte    pad_5C[0xC];
+    /* 0x068 */ u16     field_68;
+    /* 0x06A */ byte    pad_6A[0x82E];
+    /* 0x898 */ s16     field_898;
+    /* 0x89A */ s16     field_89A;
+    /* 0x89C */ byte    pad_89C[2];
+    /* 0x89E */ s16     field_89E;
+    /* 0x8A0 */ byte    pad_8A0[2];
+    /* 0x8A2 */ s16     field_8A2;
+    /* 0x8A4 */ s16     field_8A4;
+    /* 0x8A6 */ byte    pad_8A6[8];
+    /* 0x8AE */ s16     field_8AE;
+    /* 0x8B0 */ s16     field_8B0;
+    /* 0x8B2 */ byte    pad_8B2[2];
+    /* 0x8B4 */ s32     field_8B4;
+    /* 0x8B8 */ byte    pad_8B8[0x10];
+    /* 0x8C8 */ GpObj   field_8C8;
+    /* 0x8E8 */ GpRec18 field_8E8;
+    /* 0x900 */ byte    pad_900[0x108];
+    /* 0xA08 */ GpObj   field_A08;
+    /* 0xA28 */ GpRec18 field_A28;
+    /* 0xA40 */ byte    pad_A40[0x108];
+    /* 0xB48 */ GpObj   field_B48;
+    /* 0xB68 */ GpRec18 field_B68;
+    /* 0xB80 */ byte    pad_B80[0x90];
+    /* 0xC10 */ s16     field_C10;
+    /* 0xC12 */ byte    pad_C12[0x22];
+    /* 0xC34 */ u8      field_C34[3];
+    /* 0xC37 */ byte    pad_C37;
+    /* 0xC38 */ Task*   field_C38;
+    /* 0xC3C */ Task*   field_C3C;
+    /* 0xC40 */ byte    pad_C40[8];
+    /// Ring of the last seven view-space positions `Actor01900_Fn09D3C`
+    /// records, one per step; `field_C98` is the write cursor.
+    /* 0xC48 */ SVECTOR field_C48[7];
+    /* 0xC80 */ byte    pad_C80[0x18];
+    /* 0xC98 */ s16     field_C98;
 } Actor01900Work;
 
 /// Animation view of the same task work block. The arrays cover slot indices
@@ -122,11 +133,31 @@ typedef struct Actor01900Msg7D3 {
     /* 0x4 */ s32 field_4;
 } Actor01900Msg7D3;
 
+/// The actor's state handlers, indexed by `Actor01900Work::field_0`.
+/// `Actor01900_Fn09D3C` copies the table to its frame before dispatching.
+typedef struct Actor01900StateTable {
+    void (*fn[32])(Actor01900*);
+} Actor01900StateTable;
+STATIC_ASSERT_SIZEOF(Actor01900StateTable, 0x80);
+
+/// 0x18-byte scratch `Actor01900_Fn09D3C` takes from `G_SCRATCH_HEAD`;
+/// `pos` receives the model's third coordinate transformed to view space.
+typedef struct Actor01900ViewScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR pos;
+} Actor01900ViewScratch;
+STATIC_ASSERT_SIZEOF(Actor01900ViewScratch, 0x18);
+
+extern Actor01900StateTable  Actor01900_D001BC;
 extern Actor01900HeightClamp Actor01900_D172CC[];
 extern char                  Actor01900_D10B68;
 extern void*                 D_80114B78[1];
+extern u8                    D_801153F2[2];
+extern u8                    D_801153F4;
 
 void Actor01900_Fn00E00(GsCOORDINATE2* arg0, void* arg1, s32 arg2);
+void Actor01900_Fn02A50(Actor01900* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void Actor01900_Fn01C94(Actor01900* arg0);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);

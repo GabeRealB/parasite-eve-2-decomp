@@ -5,6 +5,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/wipsys.h"
+#include <psyq/inline_c.h>
 
 /* Inline bodies behind `Actor01900_Fn080A8`. Same shapes as
  * `actor_400100_facing.h` and `ActorsShared80135a60`; inlining is what keeps
@@ -95,6 +96,41 @@ static __inline__ s16 Actor01900_PositionYaw(Actor01900* actor, SVECTOR* pos, Wi
     coord = actor->field_2C->field_8;
     angle = ratan2(pos->vx, pos->vz);
     return Actor01900_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+/// Walk `p` up its parent chain to `Gfx_ViewCoord`, carrying `out` through
+/// each local matrix. Same body as `Actor00100_TransformToView`.
+static __inline__ void Actor01900_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
 }
 
 #endif

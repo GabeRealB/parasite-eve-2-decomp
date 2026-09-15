@@ -491,8 +491,8 @@ void Actor01900_Fn09BE8(Actor01900* arg0)
         work->field_8C8.flags |= 0x4000;
     }
     Actor01900_Fn01C94(arg0);
-    Actor01900_Fn00E00(arg0->field_2C->field_8, work->pad_8E8, 0xC);
-    Actor01900_Fn00E00(arg0->field_2C->field_8, work->pad_A28, 0xC);
+    Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_8E8, 0xC);
+    Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC);
     arg0->field_2C->field_8->flg = 0;
     if (work->field_68 & 0x100) {
         work->field_8C8.flags &= 0xBFFF;
@@ -506,7 +506,114 @@ void Actor01900_Fn09BE8(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn09D3C);
+void Actor01900_Fn09D3C(GpEnemy* enemy, Actor01900* actor)
+{
+    VECTOR                 pos;
+    Actor01900StateTable   states;
+    Actor01900Work*        work;
+    Actor01900ViewScratch* scratch;
+    Actor01900ViewScratch* head;
+    s32                    state;
+
+    work   = actor->field_1C;
+    states = Actor01900_D001BC;
+
+    actor->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(actor->field_2C->field_8);
+    pos.vx = actor->field_2C->field_8->workm.t[0];
+    pos.vy = actor->field_2C->field_8->workm.t[1];
+    pos.vz = actor->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    switch (D_801153F4) {
+        case 0:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {
+                actor->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+                state = work->field_0;
+            }
+            if ((state == 0x1E) && (work->field_89E == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {
+                actor->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+                state = work->field_0;
+            }
+            if ((state == 0x1E) && (work->field_89E == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            Gp_ClearRec18Occupied(&work->field_A28);
+            Gp_ClearRec18Occupied(&work->field_8E8);
+            Gp_ClearRec18Occupied(&work->field_B68);
+            return;
+        case 2:
+            actor->field_2C->field_C = 0x80;
+            Gp_ClearRec18Occupied(&work->field_A28);
+            Gp_ClearRec18Occupied(&work->field_8E8);
+            Gp_ClearRec18Occupied(&work->field_B68);
+            return;
+    }
+
+    head                                     = *(Actor01900ViewScratch**)G_SCRATCH_HEAD;
+    *(Actor01900ViewScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                  = head - 1;
+
+    if (work->field_C10 > 0) {
+        work->field_C10 = (s16)((u16)work->field_C10 - 1);
+    } else {
+        Actor01900_Fn02A50(actor);
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (u16)work->field_0;
+    state         = work->field_0;
+    if ((state == 0x1C) || (state == 0x15) || (state == 0) || (state == 0x1D) || (state == 0x1E)) {
+        work->field_8C8.flags &= 0x7FFF;
+        work->field_A08.flags &= 0x7FFF;
+    } else {
+        work->field_8C8.flags |= 0x8000;
+    }
+    states.fn[work->field_0](actor);
+    Gp_ClearRec18Occupied(&work->field_A28);
+    Gp_ClearRec18Occupied(&work->field_8E8);
+    Gp_ClearRec18Occupied(&work->field_B68);
+    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+        work->field_0 = 6;
+    }
+
+    scratch->pos.vx = 0;
+    scratch->pos.vy = 0;
+    scratch->pos.vz = 0;
+    Actor01900_TransformToView(actor->field_2C->field_8 + 2, &scratch->pos);
+
+    work->field_C48[work->field_C98].vx = scratch->pos.vx;
+    work->field_C48[work->field_C98].vy = scratch->pos.vy;
+    work->field_C48[work->field_C98].vz = scratch->pos.vz;
+
+    *(u8**)G_SCRATCH_HEAD += 0x18;
+    work->field_C98        = (u16)work->field_C98 + 1;
+    if (work->field_C98 == 7) {
+        work->field_C98 = 0;
+    }
+    if ((u32)((u16)work->field_89E - 0x14) < 2U) {
+        enemy->field_1C.vx = work->field_C48[work->field_C98].vx;
+        enemy->field_1C.vy = work->field_C48[work->field_C98].vy;
+        enemy->field_1C.vz = work->field_C48[work->field_C98].vz;
+    } else {
+        enemy->field_1C.vx = scratch->pos.vx;
+        enemy->field_1C.vy = scratch->pos.vy;
+        enemy->field_1C.vz = scratch->pos.vz;
+    }
+    enemy->field_18 = &Gfx_ViewCoord;
+}
 
 void Actor01900_Fn0A314(void)
 {
