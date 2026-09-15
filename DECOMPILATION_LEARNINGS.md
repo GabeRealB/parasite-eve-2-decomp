@@ -81707,3 +81707,255 @@ Inputs: `base_1.i`
 `regs=4`), `base_2.i`
 `14cacb574679d497c4e3e451309cac7092eab32f6c129ed3c218e5bf7ac99bdd` (100%),
 target `8b9d3c0601648efde4e7a64846f9525b943dc6cd533befbfaa22b66d782a6ab0`.
+
+## An unused middle parameter m2c dropped puts the payload in the wrong argument register
+
+`func_dryfield_water_tank_8017E174` is a three-argument room message handler —
+the shape every `(msgId, handler)` table in the room library uses, e.g.
+`Room_Util08(Task* task, s32 arg1, RoomPlacement* placement)`. m2c's
+transcription declared it with two parameters, dropping the `msgId` no
+expression reaches, so the message payload was read as `$a1` where the target
+reads `$a2` (`lhu $v0, 0x2($a2)`).
+
+**Symptom.** 75% with `insert=1 delete=1` and `regs=0 stack=0 reorder=0` — a
+whole register rename plus the swapped pair below, not a scheduling problem and
+not a spill.
+
+**Fix.** Read the target's argument registers as fact rather than inferring
+arity from the C. A `$aN` the parameters cannot produce means one is missing; a
+parameter never read is what the missing one looks like from the other side.
+Both halves matter here: restoring `s32 msgId` moved the payload to `$a2`, and
+naming the third parameter after the payload is what let the two instructions
+below fall in order.
+
+The remaining `for`-loop-free two-instruction swap was a source-order problem of
+the kind described in "One-basic-block functions are scheduled as a whole": the
+payload read has to be written *before* the independent `killCountdown` store in
+the C for the backward scheduler's `INSN_LUID` tie-break to leave them in the
+target's order (`sh 0x4C`, `sh 0x54`, `lhu`, `sh 0x2A`, `sw`), which is what the
+`lhu` feeding a temp buys. Inputs: `base.i`
+`8864aeaf6d7e8e04dbcc6c5eb7277a5958649d966044ac2b7d7360e27867ec63` (m2c
+transcription, 75.00%), `base_1.i`
+`a01a86feb1d883d850dd8cdadeb832ba9279bbf4e4af292565b313944aa9a617` (restored
+parameter and reordered read, 100%).
+
+## The same MEM_IN_STRUCT_P clause drops a *load*'s true dependence, and the store then lands in the call's delay slot (func_dryfield_water_tank_8017E1B4, 2026-09-15)
+
+The `neo_ark_altar` entry above is the store side of this clause. This is the load
+side, in the call-argument position:
+
+```c
+    D_8007216C = Gp_FindViewIndex(3);
+    Gp_DispatchMsg(work->owner, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
+```
+
+`work->owner` is `(mem/s:SI (plus:SI (reg) (const_int 64)))` — in-struct, varying,
+mode SI, address a PLUS. The other half of the pair is the store to `D_8007216C`,
+`(mem:QI (lo_sum:SI (reg) (symbol_ref)))`: a symbol store whose `rtx_varies_p` is 0
+because `LO_SUM` looks only at operand 1. So the *second* suppression clause of
+`true_dependence` fires and the load's true dependence on the store is dropped —
+this is a load, so it is `true_dependence`, not `output_dependence` as in the room
+case, but the clause body is the same and so is the effect.
+
+Signature, and it is entirely inside the scheduler: insn 24 (the `sb`) reads
+`ref_count = 2` in `.cse2`, `.sched` and `.sched2` on the m2c form and `1` on the
+typed form, and the divergence is one ready-list line in each dump — everything
+else, `.rtl` through `.combine` inclusive, is byte-identical. With the edge the
+`sb` is not ready until the load has been picked, so it precedes it; without it
+sched1 sinks the store past the load and `dbr` takes it for
+`jal Gp_DispatchMsg`'s delay slot, which is the whole 4-instruction difference.
+Symptom to recognise: a store that belongs before a call shows up *after* the
+`jal`, and the call's real delay-slot insn appears above the call.
+
+The fix is the cast-through-`u8*` form, `OFFSET_OF` for the offset:
+
+```c
+    Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+```
+
+Scope matters: only that one reference needs the cast. `Game_Session->field_52 = 1`
+two statements later stayed a struct field and the body still matched, and the
+sibling `func_dryfield_water_tank_8017E194` in the same TU is plain struct access
+throughout — the flag is per-access, and the diagnostic names which access.
+
+## m2c's `M2C_UNK` base pointer scales the index a second time - retype the table to the access width (func_dryfield_water_tank_8017F084, 2026-09-15)
+
+`M2C_UNK` is `s32` (`tools/m2c/m2c_macros.h`), so an m2c seed that scales an
+element index by hand — `((Gp_GetViewIndex() & 0xFF) - 1) * 2 + &D_x` — scales it
+again at the pointer addition: the `* 2` is multiplied by the base type's 4
+bytes, and the `- 1` is folded into the symbol's displacement.
+
+```
+target                              seed, M2C_UNK base (90.526%)
+    andi  $v0, $v0, 0xFF                andi  $v0, $v0, 0xFF
+    addiu $v0, $v0, -0x1                sll   $v0, $v0, 0x3
+    sll   $v0, $v0, 0x1          vs.    lui   $v1, %hi(D_x)
+    addu  $v0, $v0, $v1                 addiu $v1, $v1, %lo(D_x-0x8)
+                                        addu  $v0, $v0, $v1
+```
+
+Signature: one shift larger than the access width justifies, the index's
+adjustment gone, and a `%lo(sym-N)` whose N is that adjustment times the
+*seed's* element size (`1 * 2 * 4 = 8`). The index expression itself is correct;
+only the base type is wrong.
+
+Declare the table at the width the target's own access uses, and write the index
+once:
+
+```c
+extern u16 D_dryfield_water_tank_801868CC[];
+    Gp_State1C->field_A = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
+```
+
+`lhu` at the read says 2 bytes, so `u16` — and 100.000% followed on the first
+build, all penalties zero. Read the width off the target (`lbu` byte, `lhu`
+halfword, `lw`/`lwl` word) rather than from the seed's `* N`, which is the
+element count the *writer* of the seed guessed.
+
+## A positive `beq` to a shared call means `switch`, not `if`/`else`: the if/else permutations never converge (func_dryfield_water_tank_8017DB48, 2026-09-15)
+
+`func_dryfield_water_tank_8017DB48` dispatches on a game-flag nibble: values 0-2
+call a setter with 1, value 3 calls it with 0, anything else does nothing.
+
+```
+bltz  v1, end          # v < 0  -> out
+slti  v0, v1, 3
+bnez  v0, L1           # v < 3  -> f(1)
+li    v0, 3
+beq   v1, v0, call     # v == 3 -> f(0), the jal shared with the f(1) arm
+move  a0, zero
+j     end
+nop
+L1:   li a0, 1
+call: jal   func_dryfield_water_tank_8017EFF4
+```
+
+The m2c seed reads this as `if (v >= 0) { if (v >= 3) { arg = 0; if (v != 3)
+return; } else arg = 1; f(arg); }` and compiles to 75.9%: `bne v1,v0,end` with
+the call in the fall-through and no `j`. Eight further if/else shapes — the
+natural `if (v < 3) f(1); else if (v == 3) f(0);`, explicit `return`s in the
+arms, an `if (v >= 0)` wrapper, `arg = 0;` hoisted before the tests, reversed
+test order — produced byte-identical assembly to the seed. The whole chain is
+`bne`-shaped because `stmt.c`'s `expand_if` always emits the negation of the
+condition to the false label (`do_jump (cond, next_label, NULL_RTX)`), so no
+if/else arrangement can put the branch in the positive sense.
+
+Two marks identify the real source as `stmt.c`'s `emit_case_nodes`:
+
+- `beq v1,v0,const` — `do_jump_if_equal` tests a case *positively* and branches
+  into the case body, which no `if` produces (see "Switch default `ret = 1` …");
+- the `bltz` + `slti`/`bnez` pair is the bounded case node's two-sided range
+  check, emitted signed because the control expression promoted to `int` (see
+  "A `u16` field tested for \"0 or 1\" …"), and the `j end` is the default
+  landing.
+
+The source is the switch:
+
+```c
+    switch (GameFlag_GetNibble(0x55)) {
+        case 0:
+        case 1:
+        case 2:
+            func_dryfield_water_tank_8017EFF4(1);
+            break;
+        case 3:
+            func_dryfield_water_tank_8017EFF4(0);
+            break;
+    }
+```
+
+100.000% on the first build after eight if/else builds; all penalties zero.
+Inputs: `base_9.i`
+`a35f1b4ec37c8ba73605a00ce940e87922dc93535f8c6a037be14427b198537b` (switch,
+100%), `base_2.i`
+`6857ba926ab6bf02c4c24fb9706553ee0bdf114348c95101985c9eec006584b1` (natural
+if/else, 75.9%). The empirical rule: an if/else restructure that reproduces the
+seed byte for byte is not a near miss — read the branch sense, and if the target
+branches *into* a body, reach for `switch` next.
+
+
+## A store to a *stack slot* kills CSE's memory equivalence too, so a re-read field stays re-read
+
+`func_dryfield_water_tank_8017EC6C` steps the water tank one entry along its
+path: it fills a `RoomPlacement` local from an `SVECTOR` table indexed by the
+task's own `killCountdown`, sends it with msg 0x3E9, and bumps the counter. The
+target loads `0x2A($a1)` four times - once for the `slti 0x34` guard, then once
+per table field, with the payload stores in between:
+
+```c
+rec.pos.vx = D_dryfield_water_tank_80184530[arg0->killCountdown].vx;
+rec.pos.vy = D_dryfield_water_tank_80184530[arg0->killCountdown].vy;
+rec.pos.vz = D_dryfield_water_tank_80184530[arg0->killCountdown].vz;
+```
+
+Only the first lookup reuses the guard's value (`sll $v0, $a0, 3` off the `$a0`
+the `slti` already had): each later one follows a `sw $v0, 0x10($sp)` /
+`0x14($sp)` and is a fresh `lh $v0, 0x2A($a1)`. Hoisting the index into a local
+(`s16 idx = arg0->killCountdown;`) collapses them to two loads of `0x2A` and
+scores 81.02%; the three fresh reads are 100%.
+
+**Cause, from `cse.c`.** `note_mem_written` classifies a store to
+`(mem:M (plus (reg) (const_int)))` as a *varying* address: it skips
+`writes->all` (the address is a `PLUS`, not `QImode`, not `AND`) but sets
+`writes->nonscalar` and `writes->var`. `invalidate_from_clobbers` then calls
+`invalidate_memory`, which drops every entry that is
+`in_memory && (all || (nonscalar && in_struct) || addr_varies)`. A struct-member
+or array-element load off a pseudo base satisfies both the `nonscalar &&
+in_struct` clause (`arg0->killCountdown` is `MEM_IN_STRUCT_P`) and the
+`addr_varies` clause (`rtx_varies_p` is false only for the frame and arg pointer
+rtx's themselves), so **any** store to the frame invalidates it, however
+unrelated the slot. That is the rule of "A store to a neighbouring field kills
+CSE's memory equivalence" reaching a store base that has nothing to do with the
+load's.
+
+So a repeated field read in the target that survives every intervening *stack*
+store is evidence that the source re-read the expression at each use - do not
+reach for a local or a pin, and do check whether the extra loads line up
+one-for-one with the stores the source's payload assignments make. The same
+function's read-modify-write (`arg0->killCountdown++`) loads `lhu`, which is the
+documented HImode-move rule and not a signedness statement: the field stays
+`s16`.
+
+100% on the first build (`base_1.i`
+`9ea069322c3468fb8e5607278c19c446347fd742aed25365ce3bb09c64407d4d`) against the
+m2c seed's 54.59% (`base.i`
+`56a41611dd665dac63e2a0cea3c87ffd8e1d3718674a824ae86ce42763e9f4b0`); the seed
+modelled the payload as six scalars reading a 32-byte-stride table, which the
+`RoomPlacement` local plus `SVECTOR` array fixes.
+
+## A twin of a matched sibling is provable before you write any C (func_dryfield_water_tank_8017ED30, 2026-09-15)
+
+BRIEF's "similar matched bodies" list marks a sibling as `1.00` in *all four*
+classes (`shape`, `fields`, `calls`, `cflow`) with an asterisk. When the twin is
+in the same TU, do not decompile it: diff the target `.s` against the sibling's
+matched `asm/<ver>/<overlay>/matchings/.../<fn>.s` with the names substituted
+out. If only relocations and constants survive, the sibling's C *is* the answer
+modulo those constants.
+
+```sh
+diff <(sed 's/FUNC_OLD/FUNC_NEW/g;s/D_old/D_new/g;s/\.Lold/\.Lnew/g' \
+        asm/USA/rooms/matchings/<overlay>/<unit>/FUNC_OLD.s) target.s
+```
+
+`func_dryfield_water_tank_8017ED30` and the matched
+`func_dryfield_water_tank_8017EC6C` came out identical that way - 49
+instructions, same block/edge structure, same delay slots - with exactly two
+differing immediates between them: the `%lo` half of the data symbol, and
+`addiu $v0, $zero, 0x400` where the sibling has `-0x7FF`. Both are the second
+leg of the tank's run, so the body is the sibling's, one constant changed:
+100.000% on the first build (`base_1.i` `50d84b2d...`) against the m2c seed's
+54.59% (`base.i` `c58e4ace...`, penalty jump.c had already matched topology -
+`topology: match` at 31/49 instructions - so the missing 18 instructions were
+*entirely* the scalars-vs-struct modelling the sibling's entry above describes).
+A topology-matching seed at a low score is a strong twin signal: the control flow
+being right with the body 40% short means the diff is data modelling, not shape.
+
+The `.s` diff also sizes the clone's table for free. The two symbols are adjacent
+halves of one spline (`0x80184530` runs 82 entries to `0x801847C0`, which then
+runs exactly 52), and the guard's ceiling `0x34` equals the second table's entry
+count - the index limit names the table boundary, so the `extern SVECTOR` needs
+no length guess.
+
+This is a *read*, not a `promote`: the dup index correctly reports only this
+overlay (the differing constant is in the disassembly text, so the two are not
+equal bodies) and there is nothing to share.
