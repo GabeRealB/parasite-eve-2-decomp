@@ -82198,3 +82198,66 @@ Inputs: `base_2.i` (99.773%)
 `f9a2623be89547ad5e96e9998510e5f24f8c41b5ed486fe9e49e96b0222d3b2f`,
 `base_3.i` (100.000%)
 `bd864666ba34c5a87d5e1f2920e687d7271a595d8c1cf51dcae959257b896ca8`.
+
+## An addressable local is what blocks jump.c's `if (c) x = a; else x = b;` fold - and that fold is what a swapped `$v0`/`$a0` arm needs (func_dryfield_breezeway_8017FE08, 2026-09-15)
+
+A two-armed state select over one local,
+
+    if (work->field_40 == 1) { state = 6; } else { state = 2; }
+
+comes out with the *else* value hoisted above the test:
+
+    lw v1,0x40(s1); addiu v0,zero,1; li a0,2; bne v1,v0,join; li a0,6; join: sw a0,0x30(s2)
+
+and the target wants the same instruction sequence with everything in `$v0`
+(the else arm's `li v0,2` in the branch delay slot, then `li v0,6`). 99.412%,
+`regs=4`, every other penalty zero. It is not a ranking or tie problem: the arm
+value *conflicts* with `$v0`, and `.greg` says so - `;; 84 conflicts: 80 83 84
+2 3 29`, the `2`/`3` being the hard registers the `field_40` load and its
+comparand took, so `find_reg` skips both and lands on `$a0`.
+
+The first jump pass rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x =
+a;` (jump.c, "Simplify if (...) x = a; else x = b; by converting it to x = b;
+if (...) x = a;"). That is what moves the else assignment into the block holding
+the test, and a pseudo born in that block is born while `hard_regs_live` still
+holds the comparand's registers - their `REG_DEAD` notes sit on the branch at the
+same block's end. In the initial RTL both arms are `(set (reg/v:SI 84)
+(const_int N))`, so the guard `rtx_equal_p (SET_DEST (temp4), temp1)` passes and
+the fold fires.
+
+Make the local addressable and the fold cannot fire, because the arms stop being
+register assignments at all:
+
+    s32 state;
+    ...
+    task->state = *&state;
+
+An addressable local lives in a stack slot, so at the first jump pass each arm is
+a *memory* store into it - `(set (mem:SI (addressof:SI (reg:SI 88) 84))
+(reg:SI 91))` - with a fresh value pseudo per arm, and both the `GET_CODE
+(SET_DEST) == REG` and the `rtx_equal_p` guards fail. The else arm keeps its own
+basic block, born after the branch, where `hard_regs_live` is empty - `;; 89
+conflicts: 80 89 29` - and `find_reg` takes `$v0` as the first free register.
+cse promotes the slot away over the next two passes (`.cse2` has no `addressof`
+left, `.flow` shows one pseudo and register defs) because the address never
+escapes, so nothing else about the function changes. 100.000%.
+
+`*&state` is the whole trick, and it is free: `TREE_ADDRESSABLE` is set while the
+parser builds the `ADDR_EXPR` and the dereference folds away before RTL
+generation, so the store stays a plain register read. Splitting the address into
+its own statement (`statePtr = &state; task->state = *statePtr;`) does *not*
+work - 90.135%, `insert=3` - because the pointer becomes a live pseudo of its
+own.
+
+Diagnostic order: when the residual is one register on an arm value, check
+whether the two arms still share a basic block by comparing `.rtl` with `.flow`
+(the arm assignment changes block when the fold fires), and whether the allocno's
+conflict set in `.greg` names the comparand's registers. If both hold, separate
+the arms rather than pinning the value: none of the fold's guards test for a
+hard register (mips.h does not define `SMALL_REGISTER_CLASSES`), so a pin does
+not stop the assignment from moving into the test's block.
+
+Inputs: `base_1.i` (99.412%)
+`3b81a9453cbedcd717734661411a852d49e5b77f1d2826d574c0a525c8e4e8cd`,
+`base_5.i` (100.000%)
+`90523f0871234519882131068d802613b7737a9e205f436c3daa8e2d70c8c40a`.
