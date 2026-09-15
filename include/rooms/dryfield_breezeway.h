@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/3CD8.h"
 #include "main/task.h"
 
 /// `GpMsgEntry` (`gameplay/D4.h`), forward-declared because that header's
@@ -81,6 +82,17 @@ typedef struct DbwMsg7DA {
     /* 0x2 */ s16 field_2;
 } DbwMsg7DA;
 STATIC_ASSERT_SIZEOF(DbwMsg7DA, 0x4);
+
+/// The one scratch buffer `func_dryfield_breezeway_8017E390` builds both of its
+/// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
+/// slot-3 weapon record msg 0x3E8 takes (the `GpRec14` `Gp_MsgPlayerWeapon`
+/// also sends, with `field_4` set to this room's 9 and `field_C`/`field_10`
+/// zeroed), and `msg` the `DbwMsg7DA` the 0x7DA prompt takes right after it.
+typedef union DbwMsgBuf {
+    /* 0x0 */ GpRec14   rec;
+    /* 0x0 */ DbwMsg7DA msg;
+} DbwMsgBuf;
+STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
 /// This room's `GpMsgEntry` id/handler table, the one
 /// `func_dryfield_breezeway_8017DDB0` parks in `Task::field_24` so
