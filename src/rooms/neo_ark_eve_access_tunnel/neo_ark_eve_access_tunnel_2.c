@@ -5,6 +5,7 @@
 
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_2", func_neo_ark_eve_access_tunnel_8017DC6C);
 
@@ -37,4 +38,10 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_2", func_neo_ark_eve_access_tunnel_8017DE1C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_2", func_neo_ark_eve_access_tunnel_8017DE9C);
+s32 func_neo_ark_eve_access_tunnel_8017DE9C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        SndEvt_EnqueueType6(0x55080000 | 1, 0, 0);
+    }
+    return 0;
+}

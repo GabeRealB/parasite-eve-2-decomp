@@ -83131,3 +83131,53 @@ And because `rom/USA` is a symlink into the main checkout, `dumpsxiso` writes
 its dump *through* it, so the main checkout's `rom/USA/{disk1,disk2}` gain the
 stage container files the extractor needs from the disc image; that is the
 intended way to get a store in a fresh worktree, not a stray write.
+## A big-constant argument's `lui` + `or reg,reg,constreg` is the backend's split, not an allocation
+
+A room message handler that cues one sound is one compare and one call:
+
+```c
+s32 func_neo_ark_eve_access_tunnel_8017DE9C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        SndEvt_EnqueueType6(0x55080000 | 1, 0, 0);
+    }
+    return 0;
+}
+```
+
+The target builds the argument as `lui a0,0x5508` / `or a0,a0,v0`, with `$v0` the
+register the compare needed (`li v0,1` / `bne a2,v0`). That `or` is not the source
+expression being CSE'd with the compare, and not a tie in local-alloc. mips.md's
+
+```
+(define_split
+  [(set (match_operand:SI 0 "register_operand" "")
+	(match_operand:SI 1 "large_int" ""))]
+  "!TARGET_DEBUG_D_MODE"
+  [(set (match_dup 0) (match_dup 2))
+   (set (match_dup 0) (ior:SI (match_dup 0) (match_dup 3)))]
+  "... operands[2] = INTVAL (operands[1]) & 0xffff0000;
+       operands[3] = INTVAL (operands[1]) & 0x0000ffff;")
+```
+
+splits any constant that needs two insns into `lui high` plus `ior low`, with the low
+half still a `const_int`. `schedule_insns` applies it (sched.c:4950, `try_split`, guarded
+by `reload_completed == 0`), which is why the constant is one `movsi_internal2` in the
+`.combine` dump and two insns in `.sched`, carrying a `REG_EQUAL` note with the whole
+value. Post-reload CSE then sees that `$v0` holds 1 and rewrites the `(const_int 1)`
+operand to that register: `.sched` has `(ior (reg 4 a0) (const_int 1))`, `.sched2` has
+`(ior (reg 4 a0) (reg 2 v0))`.
+
+Consequence: the spelling does not matter, and folding the literal is not an alternative
+to try. `0x55080000 | 1` and `0x55080001` compile to identical objects here - both
+100.000% (`base_1.i 4cdb3c08...`, `base_2.i 43cfee39...`). Do not hunt for a source shape
+that emits `ori`, and do not read the shared register as an allocation leftover.
+
+The `addu a2,a1,zero` beside it is the same constant sharing one step earlier: the two
+`0` arguments are separate `li 0` pseudo-insns at `.combine` and one copied pseudo at
+output, so the handler written with the literals `0, 0` reproduces it as written.
+
+Inputs: `base_1.i`
+`4cdb3c0880478538e944f8cfa2b7e2d6f1ebfb6833a1f6a90c1f5327160800e8` (100.000%),
+`base_2.i`
+`43cfee392c24ffc551fc1c4ecf50daa81de8a29dcc68efb762d2be189a4456c6` (100.000%).
