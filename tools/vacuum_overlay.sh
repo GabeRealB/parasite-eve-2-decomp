@@ -405,6 +405,9 @@ Then:
   1. If configs/USA/overlays.toml changed, re-split: venv/bin/python3 ninja_config.py
   2. ./tools/build-and-verify.sh  - require the '✅ BUILD SUCCEEDED' line, and check
      the exit status explicitly. Never pipe it into tail or head under set -e.
+     Run it, and everything else, in the foreground and wait for it. This is a
+     one-shot session: it ends when you stop, and that kills any background job
+     - actor_521100's landing died mid-merge that way, build killed, no commit.
   3. Preserve one commit per function with its original attempt count from the
      branch; that number is training data for fit_difficulty_model.py.
   4. If you cannot land it safely, change nothing on trunk and say so.
@@ -449,6 +452,9 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
         # unit a concurrent grok session had just added. rc=1, worktree kept,
         # nothing actually wrong. The queue verifies trunk after every room
         # anyway, so the second check bought nothing and cost a false alarm.
+        if git -C "$ROOT" rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            log "warning: trunk is left mid-merge (MERGE_HEAD set) - the landing agent stopped before committing"
+        fi
         if [[ $rc -ne 0 ]]; then
             log "LANDING FAILED: $OVERLAY - landing agent failed; ${#MATCHED[@]} match(es) kept on $BRANCH_NAME (worktree $WT)"
             exit 3
