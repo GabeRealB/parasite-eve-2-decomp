@@ -79492,3 +79492,49 @@ first exactly: 89.615% (`regs=2 reorder=1 insert=1 delete=1`) with
 struct-member spelling. A controlled variant that kept m2c's `void *arg0` and its
 `M2C_FIELD` task and work accesses and changed *only* those two stores matched
 too, which is what makes the address spelling, and nothing else, the cause.
+
+## A global read as `lw %lo(sym)` holds a pointer - type it as one, not as m2c's `extern s32`
+
+m2c types every global it sees loaded as a word `extern s32`, so a global that
+*holds an address* comes out looking like a plain scalar. The target separates
+the two cases by access shape:
+
+```
+lui   $a0, %hi(D_x)                  lui   $a0, %hi(D_x)
+lw    $a0, %lo(D_x)($a0)       vs.   addiu $a0, $a0, %lo(D_x)
+```
+
+The left loads the symbol's *stored value*, so `D_x` is a pointer (`TaskDesc*`,
+`Task**`, ...); the right forms the symbol's *address*, so `D_x` is an array or a
+struct. `func_dryfield_night_factory_8018076C` feeds the left-hand form straight
+to `Task_SpawnFromTable`, whose first parameter is `TaskDesc*` - m2c's `extern
+s32` reads as though a word were being passed where a table pointer belongs.
+Declaring the real pointer type is byte-identical to m2c's `s32` (the load is
+the same either way), so naming it costs nothing and is what the self-review
+checklist asks for.
+
+**A still-`INCLUDE_ASM` sibling is the cheapest way to type those globals.**
+`func_dryfield_night_factory_80180438`, earlier in the same unit, *writes* both:
+`sw $v0, %lo(D_x_A7E0)` where `$v0` was produced by
+`addiu $v0, $v0, %lo(D_..._80186E94)`. A stored *address* proves the slot is a
+pointer and names the table it selects, and a `Mem_Calloc(4, 0)` result stored
+into the neighbour proves that one is a `Task**`. Read the unit's other functions
+before declaring an m2c global `s32`; here it settled both types without a guess.
+
+## A `~`/`=` body from `overlay_dup_index.py find` is not automatically promotable
+
+Matching a function whose body is duplicated asks for
+`overlay_dup_index.py promote <fn>` so one object serves every carrier. It can
+refuse:
+
+```
+func_dryfield_night_factory_8018076C: cannot be shared - the body references its
+own overlay's code or data (USA/rooms/dryfield_factory, USA/rooms/dryfield_night_factory).
+```
+
+`func_dryfield_factory_8017DD00` is the same 40 instructions at a different link
+offset (the `~` marker), but both copies name their own overlay's
+`D_..._A7E0`/`D_..._A7E8` globals, so no single linked object can serve both.
+The refusal *is* the answer - the duplicate stays matched twice - rather than an
+obstacle to work around. Run `promote` to get that verdict instead of assuming a
+shared-body landing is pending.
