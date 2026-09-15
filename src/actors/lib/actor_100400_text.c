@@ -657,7 +657,19 @@ void Actor00400_Fn08B94(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08C54);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08D70);
+void Actor00400_Fn08D70(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+
+    work            = arg0->field_1C;
+    coord           = arg0->field_2C->field_8;
+    work->field_61E = 0x1000;
+    work->field_5BC = coord->coord;
+    Gp_SetLightMode(arg0->field_20, 1);
+    work->field_636 = 0;
+    work->field_638 = work->field_638 + 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08DFC);
 
