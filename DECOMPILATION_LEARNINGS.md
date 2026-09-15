@@ -3,6 +3,56 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## One shared `ret` decides which arm is the entry fall-through; m2c's early returns do not
+
+A two-arm global guard whose target is:
+
+```
+lui    v0,%hi(D)
+lw     a0,%lo(D)(v0)
+addiu  sp,sp,-0x18
+bnez   a0, Lcall        /* the call arm is *not* the fall-through */
+sw     ra,0x10(sp)
+j      Lret
+addu   v0,zero,zero     /* then-arm in the j delay slot */
+Lcall:
+jal    Gp_DispatchMsg
+nop
+Lret:
+lw     ra,0x10(sp)
+```
+
+m2c writes that as an early return, and the shape is wrong:
+
+```c
+if (D == NULL) return 0;                    /* 60%, insert=3 delete=2 reorder=1 */
+return Gp_DispatchMsg(D);
+```
+
+GCC lays the *call* arm out as the entry's fall-through and the then-arm after
+it, so the call arm needs its own `j` to reach the epilogue
+(`beqz a0,Lthen; jal; j Lret; nop; Lthen: move v0,zero`) — 14 instructions
+against the target's 13, and `move v0,zero` misses the delay slot. Assigning
+both arms to one local restores the target order, then-arm falling through the
+`bnez` and the call arm falling into the epilogue:
+
+```c
+s32 ret;
+
+if (D == NULL) {
+    ret = 0;
+} else {
+    ret = Gp_DispatchMsg(D);
+}
+return ret;                                 /* 100% */
+```
+
+`func_mine_refuge_8017FBB4` (rooms/mine_refuge). A control keeping the same
+`Task*`/`NULL` typing but the early-return shape reproduced `base.c`
+byte-for-byte, so the statement shape, not the types, decides the layout.
+`func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
+is the sibling to read first; `func_dryfield_breezeway_8017D90C` is a third copy.
+
 ## `A ? 1 : 0` into an `s8` call folds; if/else around the call plus polarity swap keeps `bnez`
 
 `fold-const.c` turns `A ? 1 : 0` into `A` when the COND and the arms share a
