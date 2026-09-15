@@ -285,7 +285,32 @@ void func_neo_ark_shrine_8017F640(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F688);
+/// Second state of the shrine's second falling prop: as `func_neo_ark_shrine_8017F4C8`,
+/// but parked at the mirror position on the far side of the shrine.
+void func_neo_ark_shrine_8017F688(Task* task)
+{
+    TmdObject*        extra;
+    GsCOORDINATE2*    coord;
+    NeoArkShrineFall* st;
+
+    extra       = (TmdObject*)task->extra;
+    coord       = extra->field_8;
+    st          = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
+    task->idMap = (TaskIdMap*)st;
+    if (st == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    extra->field_1C   = &st->light;
+    extra->field_C    = 0;
+    extra->field_20   = &st->color;
+    coord->sub        = &Gfx_ViewCoord;
+    coord->coord.t[0] = 0x222E;
+    coord->coord.t[1] = -0xBB8;
+    coord->coord.t[2] = -0x11C6;
+    func_neo_ark_shrine_8017F86C(task);
+    task->state++;
+}
 
 void func_neo_ark_shrine_8017F738(Task* task)
 {
