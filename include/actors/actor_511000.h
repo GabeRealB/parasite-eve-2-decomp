@@ -9,15 +9,20 @@
 
 #include "main/task.h"
 
-/// Work block this actor parks in `Task::idMap`. `light` / `color` are the
-/// matrices the TMD object's `field_1C` / `field_20` are republished from.
-/// Only that pair is spelled out here; the prefix fields are unreferenced by
-/// the bodies matched so far.
+/// Work block this actor parks in `Task::idMap`. `func_actor_511000_80133034`
+/// allocates it with `Mem_Calloc(0x70, 0)`. `light` / `color` are the matrices
+/// the TMD object's `field_1C` / `field_20` are republished from.
+/// `field_8` is the Tmd_FreeBuffers countdown (`-1` disables it);
+/// `field_C` is the dest buffer published through `D_actor_511000_80147EB0`.
 typedef struct Actor511000Work {
-    /* 0x00 */ byte   pad_0[0x30];
+    /* 0x00 */ byte   pad_0[8];
+    /* 0x08 */ s32    field_8;
+    /* 0x0C */ u16    field_C;
+    /* 0x0E */ byte   pad_E[0x22];
     /* 0x30 */ MATRIX light;
     /* 0x50 */ MATRIX color;
 } Actor511000Work;
+STATIC_ASSERT_SIZEOF(Actor511000Work, 0x70);
 
 /// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
 /// `param`, and `super` at 0x48) holds the Euler angles
@@ -65,7 +70,9 @@ typedef struct Actor511000AnimPreset {
     /* 0x4 */ s32 field_4;
 } Actor511000AnimPreset;
 
+void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
 void func_actor_511000_80133760(Task* task);
+void func_actor_511000_801337F0(Task* task);
 s32  func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset);
 
 #endif // ACTOR_511000_H

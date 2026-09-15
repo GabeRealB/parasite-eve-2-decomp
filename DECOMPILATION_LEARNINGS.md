@@ -52,6 +52,47 @@ return ret;                                 /* 100% */
 byte-for-byte, so the statement shape, not the types, decides the layout.
 `func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
 is the sibling to read first; `func_dryfield_breezeway_8017D90C` is a third copy.
+## Box two address-materializing stores in one `do-while(0)`; leave the next load outside
+
+A calloc result that is nearly tied with the `Task*` argument (`work` 5/23 vs
+`task` 9/62, pri 4347 vs 4354) takes `$s1` instead of `$s0`. One extra
+weighted ref on `work` flips the pair, but *where* the once-loop sits decides
+the tail:
+
+- Around `work->field_8 = -1` at the top of the success block: `$s0`/`$s1`
+  swap, and `li $v0, -1` steals the `bnez` delay slot.
+- Around only `global = &work->field_C`: `$s0`/`$s1` swap and the following
+  `lw` of `task->state` keeps its nop, but the global `lui` is boxed after
+  `sw field_24` (`reorder=1`).
+- Around `task->idMap = work`: `$s0`/`$s1` swap, success-block schedule
+  reopens.
+
+Put **both** independent tail stores in one once-loop and leave `state += 1`
+outside:
+
+```c
+do {
+    task->field_24 = table;
+    global         = &work->field_C;
+} while (0);
+task->state += 1;
+```
+
+`&work->field_C` inside the loop is the extra ref. Both address
+materializations share a sched region, so `lui $v1` of `global` can issue
+before `sw field_24`. The `lw` of `state` stays outside and cannot hoist into
+the `$v0` reuse window, so the load-delay nop survives. The once-loop folds
+away.
+
+`func_actor_511000_80133034`. Inputs: `base_1.i`
+`825010bce68b047c0d9670ab6a4c104245f5cd7d86d6863ba918762e08fb68f5`
+(91.4%, `task` in `$s0`), `base_3.i`
+`21a1bc86ffdd4d44a188cbbfb66cf1f2a188e43cf187cf3fb32a15315816c47d`
+(98.7%, `reorder=1`), `base_5.i`
+`14cd948e0ae251b40940859658236ea3cee271c68f8d737d057c8c7f029d0552`
+(100%).
+
+
 
 ## `A ? 1 : 0` into an `s8` call folds; if/else around the call plus polarity swap keeps `bnez`
 

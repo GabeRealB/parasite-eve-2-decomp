@@ -2,8 +2,16 @@
 
 #include "actors/actor_511000.h"
 
+#include "gameplay/D4.h"
+
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern SVECTOR    D_actor_511000_80147344[];
+extern SVECTOR    D_actor_511000_80147704[];
+extern u16*       D_actor_511000_80147EB0;
+extern GpMsgEntry D_actor_511000_80148FC4[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801327A0);
 
@@ -17,7 +25,33 @@ INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132E6C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80133034);
+/// Spawn/setup state: allocates the 0x70 work block, parks it in `idMap`,
+/// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
+/// 0x80), places it at rot/trans index 0, binds light/color, installs the
+/// message table, and publishes `work->field_C` through
+/// `D_actor_511000_80147EB0` before advancing to the per-frame state.
+void func_actor_511000_80133034(Task* task)
+{
+    Actor511000Work* work;
+    TmdObject*       extra;
+
+    extra = (TmdObject*)task->extra;
+    work  = (Actor511000Work*)Mem_Calloc(0x70, 0);
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    task->idMap     = (TaskIdMap*)work;
+    work->field_8   = -1;
+    extra->field_C |= 0x80;
+    func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
+    func_actor_511000_801337F0(task);
+    do {
+        task->field_24          = D_actor_511000_80148FC4;
+        D_actor_511000_80147EB0 = &work->field_C;
+    } while (0);
+    task->state += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801330F0);
 
