@@ -46,6 +46,10 @@ void       Actor00400_Fn0A3D4(Actor100400* arg0);
 void       Actor00400_Fn0A414(Actor100400* arg0);
 void       Actor00400_Fn098A8(Actor100400* arg0);
 void       Actor00400_Fn09924(Actor100400* arg0);
+void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+
+extern GsCOORDINATE2 Gfx_ViewCoord;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -468,7 +472,36 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0824C);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08354);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08464);
+void Actor00400_Fn08464(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
+{
+    MATRIX         root;
+    MATRIX         a;
+    MATRIX         b;
+    GsCOORDINATE2* coordA;
+    GsCOORDINATE2* coordB;
+    GsCOORDINATE2* coords;
+
+    coords            = arg0->field_2C->field_8;
+    Gfx_ViewCoord.flg = 0;
+    coordA            = &coords[arg1];
+    coordB            = &coords[arg2];
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    coordA->flg = 0;
+    coordB->flg = 0;
+    Gp_UpdateCoord(coordA);
+    Gp_UpdateCoord(coordB);
+    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coords[0].workm, &root);
+    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordA->workm, &a);
+    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coordB->workm, &b);
+    coords[0].coord.t[0] = arg3->vx - ((a.t[0] + b.t[0]) / 2 - root.t[0]);
+    coords[0].coord.t[2] = arg3->vz - ((a.t[2] + b.t[2]) / 2 - root.t[2]);
+    coords[0].flg        = 0;
+    coordA->flg          = 0;
+    coordB->flg          = 0;
+    Gp_UpdateCoord(coordA);
+    Gp_UpdateCoord(coordB);
+    Gp_UpdateCoord(coords);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn085B8);
 
