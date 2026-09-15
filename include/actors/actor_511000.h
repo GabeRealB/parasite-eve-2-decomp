@@ -65,6 +65,7 @@ typedef struct Actor511000AnimPreset {
     /* 0x4 */ s32 field_4;
 } Actor511000AnimPreset;
 
-s32 func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset);
+void func_actor_511000_80133760(Task* task);
+s32  func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset);
 
 #endif // ACTOR_511000_H
