@@ -6,6 +6,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Private work block of the actor 401800 task, hanging off `Task::idMap`.
 ///
@@ -14,8 +15,12 @@
 /// back to `Gp_UnlinkObj`, and the two child tasks it kills. The offsets match
 /// the same-shaped teardown of actor 01900 (`Actor01900Work`), whose display
 /// nodes sit at the same three addresses; only the child-task pair differs.
+/// `field_4` is the live-actor flag `func_actor_401800_8013E138` tests, and
+/// `field_A08.flags` / `field_B48.flags` are the two masks it writes.
 typedef struct Actor401800Work {
-    /* 0x000 */ byte  pad_0[0x8C8];
+    /* 0x000 */ byte  pad_0[4];
+    /* 0x004 */ s16   field_4;
+    /* 0x006 */ byte  pad_6[0x8C2];
     /* 0x8C8 */ GpObj field_8C8;
     /* 0x8E8 */ byte  pad_8E8[0x120];
     /* 0xA08 */ GpObj field_A08;
@@ -28,6 +33,19 @@ typedef struct Actor401800Work {
     /* 0xC18 */ Task* field_C18;
 } Actor401800Work;
 
+/// Per-task actor context: `field_1C` is the work block above (the same
+/// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
+/// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
+/// `Actor01900`.
+typedef struct Actor401800 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor401800Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ TmdObject*       field_2C;
+} Actor401800;
+
 void func_actor_401800_8013E0A0(Task* task);
+void func_actor_401800_8013E138(Actor401800* arg0);
 
 #endif // ACTOR_401800_H
