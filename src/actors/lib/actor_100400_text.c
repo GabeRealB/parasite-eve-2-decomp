@@ -50,6 +50,7 @@ void       Gp_UnlinkNode(void* node);
 void       Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void       Actor00400_Fn060CC(Actor100400* arg0);
 void       Actor00400_Fn09714(Actor100400* arg0);
+void       Actor00400_Fn097C8(Actor100400* arg0);
 void       Actor00400_Fn06EA4(Actor100400* arg0);
 void       Actor00400_Fn08ADC(Actor100400* arg0);
 void       Actor00400_Fn08B94(Actor100400* arg0);
@@ -919,7 +920,43 @@ void Actor00400_Fn079A8(Actor100400* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn079FC);
+static inline s32 Actor00400_TakeStateRequest(Actor100400* arg0)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_642 == 1) {
+        switch (work->field_644) {
+            case 2:
+                work->field_638 = 8;
+                work->field_63A = 0;
+                work->field_644 = 0;
+                return 1;
+            case 3:
+                work->field_638 = 9;
+                work->field_63A = 0;
+                work->field_644 = 0;
+                return 1;
+        }
+    }
+    work->field_644 = 0;
+    return 0;
+}
+
+void Actor00400_Fn079FC(Actor100400* arg0)
+{
+    Actor100400Work* work                       = arg0->field_1C;
+    void             (*states[2])(Actor100400*) = {
+        Actor00400_Fn061E8,
+        Actor00400_Fn097C8,
+    };
+    s16 taken;
+
+    taken = Actor00400_TakeStateRequest(arg0);
+    if (taken == 0) {
+        states[(s16)work->field_63A](arg0);
+    }
+}
 
 void Actor00400_Fn07ABC(Actor100400* arg0)
 {

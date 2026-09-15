@@ -83593,3 +83593,27 @@ was a constant (`li a2,1`) scheduled early in the target; it followed from the
 allocation, and reordering same-base stores or re-typing the constant changed
 nothing. The converse is the entry "Two values in one hard register means one
 local in the C, not two".
+
+### Inlined bool check:  before  wants an  local, and a shared  wants per-case stores
+
+`Actor00400_Fn079FC` inlines a state-request check whose result lands in `$v1`
+and is copied to `$v0` right before the branch (`addu v0,v1,zero; bnez v0`).
+Two things were needed.
+
+1. **The copy.** `if (Check(arg0) == 0)` compares the return pseudo directly;
+   CSE canonicalises the copy away (`make_regs_eqv` keeps the multiply-set
+   source when the destination lives only in the join block), 97.8%. Receiving
+   the `s32` result in an `s16` local keeps it: `s16 taken = Check(arg0);
+   if (taken == 0)`. A dead `r = 0` store also kept the copy through CSE but
+   then local-alloc put `r` in `v0`, and global alloc steered `state` off
+   `v0` via `regs_someone_prefers` - wrong registers.
+2. **The shared store.** Target cases load `li v0,8` / `li v0,9` and jump to one
+   `sh v0,0x638`. A `state` local plus one store matched the layout but made
+   `state` global. Writing `field_638 = 8; ...; return 1;` in each case works:
+   the post-reload `jump_optimize (insns, 1, 1, 0)` cross-jump (the only pass
+   with cross-jumping in 2.8.1) merges the identical tails after allocation.
+
+Also, `ret = 1` appearing in *both* case blocks is the per-case `return 1`,
+not duplication by the compiler.
+
+Inputs: `base_25.i` (100.000%) `12238417d88f79205ec5e97a73a05cdde4292130bee920d1abc77369d0fe85e6`.
