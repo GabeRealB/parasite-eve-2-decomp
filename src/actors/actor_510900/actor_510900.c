@@ -352,7 +352,73 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     task->state        = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013AF38);
+s32  Gp_GetViewIndex(void);
+void func_actor_510900_8013B0D8(Task* arg0);
+
+extern u32 Gp_LcgState;
+/// View index the child keeps running in; any other view parks it.
+extern u16 D_actor_510900_80167CE4;
+/// Game-flag nibble 0xD values, indexed by the child's `field_74` and the
+/// parent work's `field_5C2`.
+extern u16 D_actor_510900_80167CEC[][4];
+
+void func_actor_510900_8013AF38(Actor510900Ctx* arg0, Task* arg1)
+{
+    Actor510900ChildWork* work;
+    Actor510900Work*      parent;
+    s32                   mode;
+    s32                   one;
+    u32                   random;
+    Task*                 child;
+
+    work   = (Actor510900ChildWork*)arg1->idMap;
+    parent = (Actor510900Work*)arg1->parent->idMap;
+    mode   = D_801153F4;
+    one    = 1;
+    if (mode == one) {
+        return;
+    }
+    if (mode >= 2) {
+        goto ge2;
+    }
+    if (mode == 0) {
+        goto case0;
+    }
+    goto body;
+ge2:
+    if (mode == 2) {
+        goto case2;
+    }
+    goto body;
+case0:
+    if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4) {
+        arg0->field_14     = one;
+        work->obj0.flags  &= 0x7FFF;
+        work->obj38.flags &= 0x7FFF;
+        if (work->field_76 != 0) {
+            work->field_76--;
+        }
+        child = work->field_70;
+        if (child != NULL) {
+            child->state   = 3;
+            work->field_70 = NULL;
+        }
+        return;
+    }
+    arg0->field_14 = one;
+    goto body;
+case2:
+    arg0->field_14 = one;
+    return;
+body:
+    func_actor_510900_8013B0D8(arg1);
+    GameFlag_SetNibble(0xD, D_actor_510900_80167CEC[work->field_74][parent->field_5C2]);
+    random      = Gp_LcgState * 5 + 0x71357911;
+    Gp_LcgState = random;
+    if ((u16)((random >> 16) % 3) == 0) {
+        Gp_SpawnEff(0x6005A, ((Actor510900Obj2C*)arg1->extra)->field_8, 0, NULL);
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900", ActorsShared80135df4Table);
 

@@ -112,7 +112,10 @@ typedef struct Actor510900ChildWork {
     /* 0x20 */ GpRec18 rec20;
     /* 0x38 */ GpObj   obj38;
     /* 0x58 */ GpRec18 rec58;
-    /* 0x70 */ byte    pad_70[0xC];
+    /* 0x70 */ Task*   field_70; // released (state 3) on a view change
+    /* 0x74 */ s16     field_74; // row of `D_actor_510900_80167CEC`
+    /* 0x76 */ s16     field_76; // countdown, decremented on a view change
+    /* 0x78 */ byte    pad_78[0x4];
 } Actor510900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
 
