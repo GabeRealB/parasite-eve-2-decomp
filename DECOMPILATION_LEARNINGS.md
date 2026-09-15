@@ -78992,3 +78992,25 @@ convention in the actors (`src/actors/actor_503500/*.c`). The same trap applies
 to any address whose owner the gameplay map names only at the base — the
 cutscene blob `D_80165720` in this same function is another, referenced by many
 rooms and named nowhere.
+
+## `Task::field_24` tables are 8-byte `GpMsgEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
+
+A room's state-0 opener parks its message table in `Task::field_24` and the C
+body shows nothing but the address, so the `D_<room>_<vram>` label it names has
+no type of its own. Several matched rooms declare it `extern s32 D_x;` and take
+`&D_x`; that compiles and matches (the store is a 32-bit immediate either way)
+but leaves the table's structure undocumented.
+
+The type is recoverable from the consumer, which is already matched C:
+`Gp_DispatchMsg` (`src/gameplay/D4.c`) walks `field_24` as `GpMsgEntry*` with
+`entry++` and stops at `entry->id == 0x7FFFFFFF`; `GpMsgEntry` is
+`{s32 id; GpMsgHandler handler;}` = 8 bytes (`include/gameplay/D4.h`). So
+`extern GpMsgEntry D_<room>_<vram>[];` with a bare `task->field_24 = D_...;` -
+the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
+
+Two checks confirm the reading on a raw splat dump: the record stride is 8 bytes
+with a code pointer at `+0x4`, and the last record's `id` is `0x7FFFFFFF`. The
+ids are message ids some gameplay dispatcher calls by name, which is the
+strongest confirmation: `Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13EF, ...)`
+(`src/gameplay/1A8.c`) selects the entry this task installed with
+`Game_SetPtrSlot(task, 7)`.
