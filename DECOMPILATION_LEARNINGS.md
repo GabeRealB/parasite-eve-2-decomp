@@ -80025,3 +80025,45 @@ temp-and-converge shape before trying anything else. The body was already
 matched in this unit as `func_neo_ark_woodland_path_8017E910`, so the `shape`
 1.00 hit in the brief was the answer outright - read the matched sibling
 first when the dup index rates it 1.00.
+
+## m2c drops a leading call argument that is already in `$a0` on entry
+
+`func_neo_ark_woodland_path_8017E944` opens the way every room's state 0 does -
+park the room's message table in `Task::field_24`, publish the task in pointer
+slot 7 - and m2c seeded it as `Game_SetPtrSlot(7)`, one argument. The real call
+takes two, `Game_SetPtrSlot(arg0, 7)` (`include/main/session.h`), and the seed
+is not a wild miss: it scores 99.4% with `regs=3`, because the instruction
+count, the block graph, the calls and the delay-slot words all already match and
+only three registers differ.
+
+Nothing in the seeded source points at the missing argument - `arg0` is still
+live, it is simply never mentioned at the call - so the tell is the *register*
+the constant lands in. A two-argument call puts 7 in `$a1` and leaves the
+incoming `$a0` untouched:
+
+```asm
+addiu $a1, $zero, 0x7      # target: 7 is the second argument
+  ...
+jal   Game_SetPtrSlot
+sw    $v0, 0x24($s0)
+```
+
+m2c emits `li $a0, 7` there instead, clobbering the `$a0` the callee reads as
+its first argument. The other two differences were downstream of this one:
+`$a0` staying live across the `jal` reorders the local-alloc quantities, which
+is why the tail's address pseudo (the `lui` feeding the
+`D_neo_ark_woodland_path_80181680` store) comes out in `$a0` in the target and
+`$v1` in the seed. Restoring the argument fixed all three, 100% on the first
+build.
+
+Check the callee's prototype before accepting any m2c seed whose call's first
+argument is an incoming parameter of the enclosing function - and prefer the
+already-matched siblings named in the brief, which show the call written
+correctly. `Game_SetPtrSlot(arg0, 7)` is the standard room state-0 opener and
+appears in dozens of them, so a raw m2c seed of one starts 99% and stalled
+here for that reason alone.
+
+Inputs: `base.i`
+`9feb35919f7a7407c565378a31b855a45b6247b721337c5348187a572692e9c7` (99.4%,
+`regs=3`), `base_1.i`
+`1dce15224cead24faad31a7bb9df1f5414baaa585c2c95487679ec7c69f9a19a` (100%).
