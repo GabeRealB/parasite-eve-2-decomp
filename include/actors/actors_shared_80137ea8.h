@@ -9,9 +9,9 @@
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
 /// `Task::idMap`, which is not a `TaskIdMap` here). `coord` is the extra
-/// `GsCOORDINATE2` the overlay wires as `sub` of the model's second part;
-/// `field_34E` is that node's Y scale in 4096-per-unit fixed point, the
-/// middle of the X/Y/Z trio the spawn path arms to 0x1000.
+/// `GsCOORDINATE2` `ActorsShared80137e18` wires as `sub` of the model's
+/// second part; `field_34E` is that node's Y scale in 4096-per-unit fixed
+/// point, the middle of the X/Y/Z trio that spawn path arms to 0x1000.
 typedef struct ActorShared80137ea8Work {
     /* 0x000 */ byte          pad_0[0x2EC];
     /* 0x2EC */ GsCOORDINATE2 coord;
