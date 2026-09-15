@@ -27,8 +27,9 @@ typedef struct Actor521100 {
 /// stores the pointer both in `D_actor_521100_8016A3D8` and in the task's
 /// 0x1C slot. `anim` sits at 0x40 and the slot array at 0x54, the same layout
 /// as `Actor202900Work`; the nineteen slots are the ones
-/// `func_actor_521100_80136724` ticks. The step / `animId` / clear-flag triple
-/// at 0x47C / 0x480 / 0x482 is the same layout `Actor202900Work` uses.
+/// `func_actor_521100_80136724` ticks. The step / playing-id / `animId` /
+/// clear-flag fields at 0x47C / 0x47E / 0x480 / 0x482 are the same layout
+/// `Actor202900Work` uses.
 ///
 /// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
 /// the heading it applied to the root coordinate and the remaining distance,
@@ -39,7 +40,7 @@ typedef struct Actor521100Work {
     /* 0x054 */ GpAnimSlot   slots[0x13];
     /* 0x34C */ byte         pad_34C[0x130];
     /* 0x47C */ s16          field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x47E */ byte         pad_47E[2];
+    /* 0x47E */ u16          field_47E; // animation id currently playing
     /* 0x480 */ u16          animId;    // animation id the slots are seeded with
     /* 0x482 */ s16          field_482; // cleared when a step body is started
     /* 0x484 */ byte         pad_484[0x2A];
@@ -101,6 +102,7 @@ void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
 void func_actor_521100_801355C8(Actor521100* arg0);
 void func_actor_521100_80135F2C(Task* task);
 void func_actor_521100_80136724(void);
+void func_actor_521100_80136820(void);
 s32  func_actor_521100_801369B8(Task* task, s32 arg1, Actor521100AnimArgs* args);
 s32  func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target);
 
