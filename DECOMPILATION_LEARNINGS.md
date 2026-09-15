@@ -79891,3 +79891,42 @@ target's order (`sh 0x4C`, `sh 0x54`, `lhu`, `sh 0x2A`, `sw`), which is what the
 transcription, 75.00%), `base_1.i`
 `a01a86feb1d883d850dd8cdadeb832ba9279bbf4e4af292565b313944aa9a617` (restored
 parameter and reordered read, 100%).
+
+## The same MEM_IN_STRUCT_P clause drops a *load*'s true dependence, and the store then lands in the call's delay slot (func_dryfield_water_tank_8017E1B4, 2026-09-15)
+
+The `neo_ark_altar` entry above is the store side of this clause. This is the load
+side, in the call-argument position:
+
+```c
+    D_8007216C = Gp_FindViewIndex(3);
+    Gp_DispatchMsg(work->owner, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
+```
+
+`work->owner` is `(mem/s:SI (plus:SI (reg) (const_int 64)))` — in-struct, varying,
+mode SI, address a PLUS. The other half of the pair is the store to `D_8007216C`,
+`(mem:QI (lo_sum:SI (reg) (symbol_ref)))`: a symbol store whose `rtx_varies_p` is 0
+because `LO_SUM` looks only at operand 1. So the *second* suppression clause of
+`true_dependence` fires and the load's true dependence on the store is dropped —
+this is a load, so it is `true_dependence`, not `output_dependence` as in the room
+case, but the clause body is the same and so is the effect.
+
+Signature, and it is entirely inside the scheduler: insn 24 (the `sb`) reads
+`ref_count = 2` in `.cse2`, `.sched` and `.sched2` on the m2c form and `1` on the
+typed form, and the divergence is one ready-list line in each dump — everything
+else, `.rtl` through `.combine` inclusive, is byte-identical. With the edge the
+`sb` is not ready until the load has been picked, so it precedes it; without it
+sched1 sinks the store past the load and `dbr` takes it for
+`jal Gp_DispatchMsg`'s delay slot, which is the whole 4-instruction difference.
+Symptom to recognise: a store that belongs before a call shows up *after* the
+`jal`, and the call's real delay-slot insn appears above the call.
+
+The fix is the cast-through-`u8*` form, `OFFSET_OF` for the offset:
+
+```c
+    Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+```
+
+Scope matters: only that one reference needs the cast. `Game_Session->field_52 = 1`
+two statements later stayed a struct field and the body still matched, and the
+sibling `func_dryfield_water_tank_8017E194` in the same TU is plain struct access
+throughout — the flag is per-access, and the diagnostic names which access.
