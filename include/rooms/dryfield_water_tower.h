@@ -38,4 +38,9 @@ STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 /// `func_dryfield_water_tower_8017FD64`. `DwtwWork` hangs off its `idMap`.
 extern Task* D_dryfield_water_tower_801876AC;
 
+/// The water tower's cap-script task, published by
+/// `func_dryfield_water_tower_8017F128`, which allocates the cap script's
+/// 0x7C-byte scratch block into the task's `idMap` first.
+extern Task* D_dryfield_water_tower_801876A4;
+
 #endif // ROOMS_DRYFIELD_WATER_TOWER_H
