@@ -10,6 +10,7 @@
 
 extern SVECTOR    D_actor_511000_80147344[];
 extern SVECTOR    D_actor_511000_80147704[];
+extern SVECTOR    D_actor_511000_80147AC4;
 extern u16*       D_actor_511000_80147EB0;
 extern GpMsgEntry D_actor_511000_80148FC4[];
 
@@ -95,7 +96,39 @@ void func_actor_511000_801333A4(Task* task)
     Task_Kill(task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801333C4);
+/// Inherits the parent model's light/color and visibility bit, chains this
+/// actor's root coordinate under the parent's, places it at the spawnArg1
+/// translation, copies `D_actor_511000_80147AC4` onto the Euler angles,
+/// rebuilds the rotation matrix, and reparents the task.
+void func_actor_511000_801333C4(Task* task)
+{
+    Task*             parent;
+    TmdObject*        extra;
+    TmdObject*        parentExtra;
+    Actor511000Coord* coord;
+    GsCOORDINATE2*    dest;
+
+    parent          = (Task*)task->spawnArg2;
+    parentExtra     = (TmdObject*)parent->extra;
+    extra           = (TmdObject*)task->extra;
+    dest            = parentExtra->field_8;
+    extra->field_1C = parentExtra->field_1C;
+    extra->field_20 = parentExtra->field_20;
+    extra->field_C  = 0x80;
+    coord           = (Actor511000Coord*)extra->field_8;
+    if (!(parentExtra->field_C & 0x80)) {
+        extra->field_C = 0;
+    }
+    func_actor_511000_80133760(task);
+    ((GsCOORDINATE2*)coord)->sub = dest;
+    Task_Reparent(parent, task);
+    coord->rot.vx = D_actor_511000_80147AC4.vx;
+    coord->rot.vy = D_actor_511000_80147AC4.vy;
+    coord->rot.vz = D_actor_511000_80147AC4.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg   = 0;
+    task->state += 1;
+}
 
 void func_actor_511000_80133498(Task* task)
 {
