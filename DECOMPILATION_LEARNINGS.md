@@ -82616,3 +82616,54 @@ Inputs: `base.i` (m2c comma form, 100.000%)
 `64fcba6e72711fd1a12c186722604dea4b15ebf9c6a8eda4e78acf2f31f8a874`,
 `base_4.i` (two calls, 100.000%)
 `b015506ee123eae40bd2452efb7a36fbe5a00e3c1e8e2f140b08139c17bd673f`.
+
+## `promote` renumbers a carrier's units and leaves the manifest's rodata cut on the old name
+
+**Symptom.** After `overlay_dup_index.py promote` and the unit redistribution
+described in "`overlay_dup_index.py promote` writes the configs but renumbers the
+carrier's units", the link dies naming a *jump table*, not a function:
+
+```
+build/USA/src/rooms/dryfield_water_tower/dryfield_water_tower_5.i:(.text+0x32c): undefined reference to `jtbl_dryfield_water_tower_8017D658'
+```
+
+**Diagnose it from the map in thirty seconds.** `build/USA/out/<overlay>.elf.map`
+prints the two boundary symbols; both are short by exactly the table's size
+(`RODATA_SIZE 0x98`, `TEXT_START 0x8017D658`, where the package has `0xB4` and
+`0x8017D674` for a 7-word table). The table's bytes are being placed at the wrong
+offset, or not at all.
+
+**Why.** `migrate_rodata_to_functions` folds such a table into the `.s` of the
+function that reads it — that `.s` opens with `.section .rodata`, the
+`dlabel jtbl_… / .word … / enddlabel`, then `.section .text` and the code — so the
+table's `.L…` targets and the function resolve only inside one translation unit,
+which they are, because the function is `INCLUDE_ASM`'d in that unit's `.c`. What
+decides where the bytes are *placed* is the manifest's `rodata` cut, and after a
+promotion the cut still carries the pre-shift index: `unit = "…_4"` while the
+function reading the table has become `_5`. The `.c` files are all correct; only
+the cut is stale.
+
+**Fix.** Rename the cut's `unit` to the shifted unit and re-split. No `.c` change:
+
+```toml
+dryfield_water_tower = { rodata = [{ start = "0x98", unit = "dryfield_water_tower_5" }], … }
+```
+
+**Do not "fix" it with `INCLUDE_RODATA`.** Adding
+`INCLUDE_RODATA("…/<unit>", jtbl_…);` beside the function's `INCLUDE_ASM` is the
+natural-looking repair and it is wrong: a `.c` that names the symbol tells splat
+the `.c` provides it, so it writes nothing — neither the standalone `.s` the
+`.include` then points at, nor the migration — and the build fails opening a file
+that was never written:
+
+```
+Error: can't open asm/USA/rooms/nonmatchings/<overlay>/<unit>/jtbl_….s for reading
+```
+
+Removing the line again brings the migration back and the overlay links. So the
+presence of a `jtbl_*.s` under `asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/`
+is the signal that the table is *not* migrating there, and the unit named by the
+`rodata` cut is the one that has to contain the reading function.
+
+Inputs: `base_1.i`
+`eb5e6a59b54148cd06f4fa642181dbe31ff371ec4d179959aaf114811ce681be` (100.000%).
