@@ -4,7 +4,19 @@
 
 #include "rooms/dryfield_breezeway.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FAD0);
+/// 1 when `pos` is closer than 9 units to `target`: a real distance, since the
+/// sum of the two squared component differences is square-rooted before the
+/// comparison. Only `vx` and `vy` take part. `func_dryfield_breezeway_8017EB8C`
+/// asks this of each point it generates while it looks for somewhere to put the
+/// hotspot prompt, and leaves its loop on the first point this accepts, so the
+/// answer marks the candidate that has converged onto the target.
+s32 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
+{
+    s16 dx = pos->vx - target->vx;
+    s16 dy = pos->vy - target->vy;
+
+    return SquareRoot0((dx * dx) + (dy * dy)) < 9;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FB30);
 

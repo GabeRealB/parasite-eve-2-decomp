@@ -90,6 +90,20 @@ typedef struct DbwPlacement {
 } DbwPlacement;
 STATIC_ASSERT_SIZEOF(DbwPlacement, 0x18);
 
+/// A point in the plane the room works in: an `SVECTOR`'s three components plus
+/// the halfword that rounds the record up to the 8-byte stride the room's stack
+/// slots for it have, with `vz` a real component the room pins to zero.
+/// `func_dryfield_breezeway_8017FAD0` reads `vx` and `vy` unsigned and truncates
+/// each difference back to 16 bits before squaring it, so the sign of the load
+/// never reaches its result.
+typedef struct DbwVec {
+    /* 0x0 */ u16 vx;
+    /* 0x2 */ u16 vy;
+    /* 0x4 */ u16 vz;
+    /* 0x6 */ u16 pad;
+} DbwVec;
+STATIC_ASSERT_SIZEOF(DbwVec, 0x8);
+
 /// Room task published by `func_dryfield_breezeway_8017E010` and
 /// `func_dryfield_breezeway_8017E114` once they have built its work block.
 extern Task* D_dryfield_breezeway_801843C0;
