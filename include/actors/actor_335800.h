@@ -89,6 +89,7 @@ typedef struct Actor335800Msg {
 } Actor335800Msg;
 STATIC_ASSERT_SIZEOF(Actor335800Msg, 0x4);
 
+void func_actor_335800_80163B34(Task* arg0);
 void func_actor_335800_80163B54(Task* arg0);
 
 #endif
