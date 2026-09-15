@@ -80904,3 +80904,57 @@ the copy. The copy then ties both pseudos into one quantity, and
 `arg0`. The output is identical apart from register homes. `.lreg` shows both
 pseudos (84, 85) in reg 19. Use this when the only lever left is a value's
 reference count and no other spelling adds a use.
+
+## A store of a small constant before an arithmetic use of it makes that use `addu`, not `addiu`
+
+`func_dryfield_night_motel_lobby_8017FD9C` is the room state-0 opener - park the
+message table in `Task::field_24`, publish the task in slot 7, raise a flag,
+`state++` - and the m2c baseline scored 67.9% (`regs=2 insert=3 delete=3`) with
+only the increment and the flag store wrong:
+
+```
+lw    v0, 0x30(s0)
+lui   v1, %hi(D_801844D4)     # baseline
+addiu v0, v0, 1
+sw    v0, 0x30(s0)
+...
+li    v0, 1
+sw    v0, %lo(D_801844D4)(v1)
+```
+
+The target increments with the *register* form, reusing the register that also
+holds the stored constant:
+
+```
+lw    v0, 0x30(s0)
+li    v1, 1                   # target
+addu  v0, v0, v1
+sw    v0, 0x30(s0)
+...
+sw    v1, %lo(D_801844D4)(a0)
+```
+
+Storing `1` to memory forces the constant into a pseudo (`insn 32 (set (reg 87)
+(const_int 1))` in the `.rtl` dump), and cse then has a register known to hold
+`1`. cse only looks forward, so a `+ 1` written *above* the store keeps the
+immediate and compiles to `addiu`; write the store first and cse substitutes
+that register into the add, `addsi3_internal` matches the register/register
+form, and `$v1` stays live into the flag store:
+
+```c
+D_dryfield_night_motel_lobby_801844D4 = 1;
+task->state                           = (s32)(task->state + 1);
+```
+
+Swapping those two statements alone took the seed to 100.0% with every penalty
+zero. So when a target's `+K` (or any small-constant ALU op) uses a register
+that a nearby constant store also uses, the two are one CSE quantity: move the
+store above the arithmetic and let cse tie them, rather than reaching for a
+local to force the register (which CSE substitutes away - see "Interleave two
+stores of the same constant" and "One local, assigned twice" for the two-use
+store forms of the same rule).
+
+Inputs: `base.i`
+`15ad286f859749756884d7d5a2124a41af8335332645c567a9a84d10396a9fdb` (67.9%,
+`regs=2 insert=3 delete=3`), `base_1.i`
+`c372c4b861715c5339e42315c2c63178cfb658177272097f4ad88b627f99af51` (100%).

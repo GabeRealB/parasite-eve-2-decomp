@@ -3,8 +3,10 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 
+extern s32      D_dryfield_night_motel_lobby_801827CC;
 extern s32      D_dryfield_night_motel_lobby_801844D4;
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
 
@@ -40,7 +42,13 @@ s32 func_dryfield_night_motel_lobby_8017FCDC(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", func_dryfield_night_motel_lobby_8017FD10);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", func_dryfield_night_motel_lobby_8017FD9C);
+void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
+{
+    task->field_24 = &D_dryfield_night_motel_lobby_801827CC;
+    Game_SetPtrSlot(task, 7);
+    D_dryfield_night_motel_lobby_801844D4 = 1;
+    task->state                           = (s32)(task->state + 1);
+}
 
 void func_dryfield_night_motel_lobby_8017FDE8(void)
 {
