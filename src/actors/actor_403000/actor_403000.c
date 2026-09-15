@@ -2,7 +2,9 @@
 
 #include "actors/actor_403000.h"
 #include "gameplay/1BC.h"
+#include "main/gfx.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
@@ -90,7 +92,27 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D324);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013D364);
+/// Same placement opcode as `ActorsShared80164954` (Y then X then Z, re-fetch
+/// the coordinate for every field), except the heading is cached at
+/// `Actor403000Work::yaw` (0xC) rather than 0x16, and `ratan2` reads both
+/// matrix components from one saved `GsCOORDINATE2*`.
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placement* placement)
+{
+    GsCOORDINATE2*   coord;
+    Actor403000Work* work;
+
+    work                                           = (Actor403000Work*)task->idMap;
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vy, 1);
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vx, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vz, 0);
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    coord                                   = ((TmdObject*)task->extra)->field_8;
+    work->yaw                               = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    return 1;
+}
 
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
 {

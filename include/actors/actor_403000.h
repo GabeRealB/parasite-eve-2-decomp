@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "actors/actors_shared_80164954.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
@@ -25,13 +26,17 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 /// and `Actor403100Work` use for the same job, so the overlay reaches its state
 /// through the task and not through the actor. `field_0` is the animation state
 /// the per-frame handler switches on and `field_2` its frame counter, both
-/// restarted together by the message handlers; `field_AC6` is the requested
-/// animation id, written by the handlers and read back by the handlers that
-/// tick the current state.
+/// restarted together by the message handlers; `yaw` is the heading
+/// `func_actor_403000_8013D364` reads back from the root coordinate (0xC
+/// rather than `ActorShared80164af0Work::field_16`); `field_AC6` is the
+/// requested animation id, written by the handlers and read back by the
+/// handlers that tick the current state.
 typedef struct Actor403000Work {
     /* 0x000 */ s16            field_0;
     /* 0x002 */ s16            field_2;
-    /* 0x004 */ byte           pad_4[0xAC2];
+    /* 0x004 */ byte           pad_4[0x8];
+    /* 0x00C */ s16            yaw;
+    /* 0x00E */ byte           pad_E[0xAB8];
     /* 0xAC6 */ u16            field_AC6;
     /* 0xAC8 */ byte           pad_AC8[0x88];
     /* 0xB50 */ Actor403000Obj objB50;
@@ -56,8 +61,9 @@ typedef struct Actor403000Msg {
 /// handlers copy out of it. Lives in the overlay's trailing data region.
 extern SVECTOR D_actor_403000_80158CE0[];
 
-/// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
-void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
+/// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
+/// cache the resulting heading in `Actor403000Work::yaw`.
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placement* placement);
 
 /// Latch the requested animation and restart the animation state machine.
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
@@ -67,5 +73,8 @@ s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
 /// `Gp_UnlinkObj`, drop the enemy's `field_54` slot, then let `Gp_DestroyEnemy`
 /// free the enemy and the task.
 void func_actor_403000_8013D4F4(Task* task);
+
+/// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
+void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
 
 #endif // ACTOR_403000_H
