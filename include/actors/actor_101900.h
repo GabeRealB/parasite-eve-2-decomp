@@ -159,6 +159,22 @@ typedef struct Actor01900Delta {
 } Actor01900Delta;
 STATIC_ASSERT_SIZEOF(Actor01900Delta, 0x20);
 
+/// 0x34-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn03FF8` to push
+/// the root coordinate out of the kind 0x10000 / 0x30000 records of a `GpRec18`
+/// table. `pos` is the translation of the second coordinate, `offset` the push
+/// from `Gp_MakeDirOffset` (clamped to length 0xC0), `i` the record cursor and
+/// `hit` the return value. `dist` gets 0x7FFE at the terminating record.
+typedef struct Actor01900PushScratch {
+    /* 0x00 */ SVECTOR offset;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     kind;
+    /* 0x14 */ s32     len;
+    /* 0x18 */ s16     i;
+    /* 0x1A */ s16     hit;
+    /* 0x1C */ s16     dist[12];
+} Actor01900PushScratch;
+STATIC_ASSERT_SIZEOF(Actor01900PushScratch, 0x34);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn00E00`:
 /// the `GpDeltaScratch` filled by `func_800E0C10` plus the returned flag,
 /// set when the X or Z delta is nonzero.
@@ -274,7 +290,7 @@ void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 s32  Actor01900_Fn016F0(Actor01900* arg0);
 void Actor01900_Fn01C94(Actor01900* arg0);
-void Actor01900_Fn03FF8(Actor01900* arg0, void* arg1, s32 arg2);
+s32  Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count);
 void Actor01900_Fn08724(Actor01900* arg0);
 void Actor01900_Fn0A7C0(Actor01900* arg0);
 void Actor01900_Fn03C04(GameSessionFrom4* session, GsCOORDINATE2* coord);

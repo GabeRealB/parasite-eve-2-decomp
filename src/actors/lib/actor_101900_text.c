@@ -828,7 +828,59 @@ s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
     return s->moved;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn03FF8);
+/// Pushes the actor's root coordinate by half of each nearby kind 0x10000 /
+/// 0x30000 record's offset, walking `recs` until `count` or a zero `field_4`.
+/// The duplicated coordinate update is load-bearing: loop.c counts both copies
+/// before cross-jumping merges them, which keeps `count`'s sign extension in the loop.
+s32 Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count)
+{
+    Actor01900PushScratch* head;
+    Actor01900PushScratch* s;
+    Actor01900PushScratch* blk;
+
+    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+        return 0;
+    }
+    arg0->field_2C->field_8[1].flg           = 0;
+    head                                     = *(Actor01900PushScratch**)G_SCRATCH_HEAD;
+    blk                                      = head - 1;
+    *(Actor01900PushScratch**)G_SCRATCH_HEAD = blk;
+    s                                        = blk;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+    s->pos.vx = arg0->field_2C->field_8[1].workm.t[0];
+    s->pos.vy = arg0->field_2C->field_8[1].workm.t[1];
+    s->pos.vz = arg0->field_2C->field_8[1].workm.t[2];
+    s->hit    = 0;
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].field_4 == 0) {
+            s->dist[s->i] = 0x7FFE;
+            break;
+        }
+        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        if (s->kind == 0x10000 || s->kind == 0x30000) {
+            s->hit = 1;
+            Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);
+            s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
+            s->len = SquareRoot0(s->len);
+            if (s->len >= 0xC0) {
+                s->offset.vy = 0;
+                VectorNormalSS(&s->offset, &s->offset);
+                gte_lddp(0xC0);
+                gte_ldsv(&s->offset);
+                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_stsv(&s->offset);
+                arg0->field_2C->field_8->coord.t[0] += s->offset.vx / 2;
+                arg0->field_2C->field_8->coord.t[2] += s->offset.vz / 2;
+            } else {
+                arg0->field_2C->field_8->coord.t[0] += s->offset.vx / 2;
+                arg0->field_2C->field_8->coord.t[2] += s->offset.vz / 2;
+            }
+            arg0->field_2C->field_8->flg = 0;
+        }
+    }
+    *(Actor01900PushScratch**)G_SCRATCH_HEAD += 1;
+    return s->hit;
+}
 
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor01900_OutOfRange(SVECTOR* d, s16 r)

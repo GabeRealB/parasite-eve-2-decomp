@@ -80797,3 +80797,42 @@ pseudo, the reload CSEs into the `move`, and the store still lands after the
 field writes. Read the copy as the signature of the compound push. The same
 function also needed `Actor01900_StepForward` rather than `StepForwardHead`
 after the `0x1194` rescale (see "`0x2C(x)` vs `-8(head)` after a scratch pop").
+
+## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
+
+`Actor01900_Fn03FF8` walks `for (s->i = 0; s->i < count; s->i++)` with an `s16`
+`count` parameter. Target keeps the bound's sign extension inside the loop, and
+combine folds both sides into a shifted compare:
+
+```
+sll  v1,s4,16        # target: count << 16, compared unextended
+slt  v0,v0,v1
+```
+
+Every natural rewrite (for / while / guarded do-while, local copy, `s32` arg
+with a cast) instead gave `sll; sra; blez; move s2,v0` before the loop and a
+`sra` on `s->i` at the bottom: `move_movables` hoisted `sign_extend(count)`
+(`.loop` dump: `Insn 119: regno 119 (life 2), savings 2  moved`). That move is
+the `threshold * savings * lifetime >= insn_count` rule; the loop had 95-100
+real insns. Padding the loop with 30 empty `__asm__` insns (125 insns) printed
+`not desirable` and matched everything else, which proved the cause.
+
+The source-level form of that padding is the sibling `Fn03C98`'s shape: repeat
+the tail in both arms of the length clamp.
+
+```c
+if (s->len >= 0xC0) {
+    ...gte scale...
+    coord->coord.t[0] += s->offset.vx / 2;
+    coord->coord.t[2] += s->offset.vz / 2;
+} else {
+    coord->coord.t[0] += s->offset.vx / 2;   /* identical copy */
+    coord->coord.t[2] += s->offset.vz / 2;
+}
+```
+
+loop.c counts both copies. jump2 cross-jumps them back into one, so the object
+has no trace of the duplication. That gave 100%, and it also fixed an unrelated-
+looking `VectorNormalSS` delay-slot order (`sh zero` in the slot instead of `move a1`).
+A hoisted loop-bound extension with otherwise-matching code is a sign that the
+original loop body was bigger at loop time. Look for an if/else arm that repeats a tail.
