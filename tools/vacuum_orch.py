@@ -478,7 +478,12 @@ def cmd_claim_overlay(
     replace this with a separate `overlays` key: an older session would walk
     straight into it.
     """
-    if store.session_claim(session):
+    # Only a *single-function* claim conflicts: those carry no "overlay" key.
+    # Matching any claim by this session meant a session's own overlay lease
+    # refused its retry, which is the second half of how 52 overlays locked
+    # themselves out after their sweeps died without releasing.
+    if any(c.get("session") == session and not c.get("overlay")
+           for c in store.data["claims"].values()):
         return EXIT_CONFLICT, result(
             False, error="session already holds a single-function claim; "
                          "the two modes must not interleave", code="conflict")
@@ -496,8 +501,16 @@ def cmd_claim_overlay(
         funcs = [f for f in overlay_functions(root, name) if f not in blocked]
         if not funcs:
             continue
+        # A claim this same session already holds is not a conflict: it is
+        # this worker retrying an overlay whose earlier attempt died without
+        # releasing. Session names are deterministic (overlay + driver + worker
+        # id), so counting those made the retry refuse itself for the whole
+        # lease - 52 overlays sat idle behind their own leases for 20 minutes
+        # while their driver logged "claim refused" and declared the list
+        # exhausted. Re-claiming rewrites the entry, which also refreshes it.
         held = {f: store.data["claims"][f].get("session")
-                for f in funcs if f in store.data["claims"]}
+                for f in funcs if f in store.data["claims"]
+                and store.data["claims"][f].get("session") != session}
         # A name another overlay also carries is one shared body under the
         # imports' name (RoomsShared8017dcb8Draw is in 15 rooms). Its lease,
         # taken through any copy, rightly keeps the others off it - one match

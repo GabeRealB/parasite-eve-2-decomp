@@ -238,8 +238,16 @@ done
 
 if [[ ! -d "$WT/asm" ]]; then
     echo "splitting (a few minutes)..."
-    (cd "$WT" && venv/bin/python3 ninja_config.py >/dev/null 2>&1) \
-        || { echo "split failed in $WT" >&2; exit 1; }
+    # Keep the output: this is the one command whose failure aborts the sweep,
+    # and discarding it left "split failed" as the only account of 50 dead
+    # sweeps - the real error (a missing package, from an asset tree being
+    # re-extracted underneath them) was only recoverable from other lanes' logs.
+    split_log="$WT/.split.log"
+    if ! (cd "$WT" && venv/bin/python3 ninja_config.py >"$split_log" 2>&1); then
+        echo "split failed in $WT" >&2
+        tail -15 "$split_log" >&2
+        exit 1
+    fi
 fi
 
 # --- rodata triage -----------------------------------------------------------

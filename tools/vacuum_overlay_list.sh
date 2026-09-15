@@ -188,7 +188,10 @@ worker() {
             for ((bi=0; bi<${#PASSTHRU[@]}; bi++)); do
                 [[ "${PASSTHRU[$bi]}" == "--max-difficulty" ]] && bound="${PASSTHRU[$((bi+1))]}"
             done
-            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $$ $bound 2>>"$RUN/worker-$id.log")
+            # $BASHPID, not $$: in this subshell $$ is the driver's pid, so a
+            # lease taken here outlived the worker that took it and the
+            # orchestrator's liveness sweep could never reclaim it.
+            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $BASHPID $bound 2>>"$RUN/worker-$id.log")
             crc=$?
             if [[ $crc -eq 1 ]]; then
                 skipped=$((skipped + 1))
@@ -220,6 +223,16 @@ worker() {
             # is not a failure of this driver - take the next name.
             skipped=$((skipped + 1))
             log "worker $id: $name returned $rc (leased elsewhere, or no work left)"
+            # If we claimed for it, the lease is ours to drop: overlay_batch.sh
+            # leaves a --pre-claimed lease alone on purpose. Without this, one
+            # transient failure - a half-extracted asset tree took out 50 sweeps
+            # at once - parks every function in the overlay for the full lease,
+            # and the retry is refused by our own orphaned claims.
+            if [[ ${#claim_args[@]} -gt 0 ]]; then
+                "$ROOT/tools/vacuum_orch.py" relinquish-overlay --session "$sess" \
+                    >>"$RUN/worker-$id.log" 2>&1 || true
+                log "worker $id: released $name's lease after rc=$rc"
+            fi
         fi
         # Belt and braces, independent of the exit code: if the branch survived
         # with commits ahead of main, matches are stranded whatever rc said. An

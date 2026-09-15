@@ -473,8 +473,13 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
         if not target.is_file():
             raise SystemExit(
                 f"{family}/{name}: {target} not found.\n"
-                f"  Package names come from tools/peassets/asset_data.py; extract with\n"
-                f"  `python3 ninja_config.py -iso_min` to materialise the required set."
+                f"  Package names come from tools/peassets/asset_data.py. The asset\n"
+                f"  tree is incomplete - most often because an extraction is running\n"
+                f"  right now, since `ninja_config.py -iso_min` deletes assets/ and\n"
+                f"  rom/ before rebuilding them, and every sweep worktree symlinks\n"
+                f"  those from the main checkout. Wait for it to finish and retry.\n"
+                f"  Do not start an extraction yourself while other sweeps are\n"
+                f"  running: that is how one wipe took out 50 of them at once."
             )
         data = target.read_bytes()
 
