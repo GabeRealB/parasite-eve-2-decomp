@@ -6020,6 +6020,40 @@ wins) and drops a source whose last row is a failure, so the router reported
 redirected to a file — `./build.sh base_1.c > /tmp/b.log 2>&1` — and the fresh
 clean row makes the seed eligible again.
 
+**A wrong argument register is scored as `stack`, not `regs`, and is worth 1
+point instead of 5.** `dist.py` looks for stack-pointer offsets with
+
+```python
+re_sprel = r"(?:\d+\(|\$sp\s*,\s*)(-?(?:0x)?[0-9a-fA-F]+)\(?(?:\$sp)?\)?"
+```
+
+On the `N(reg)` operand form the `\d+\(` alternative fires, and the "offset"
+group then captures whatever follows the paren — which for `lbu v1,2(a2)` is
+the register name `a2`, read as the hex number `0xA2`. It fires only when the
+*whole* name is hex digits: `a0`–`a3` yes, `s0`/`t0`/`v0`/`ra` no. Two
+consequences, both verified by scoring edited copies of an object dump (`a0`→
+`a1` gives `stack=1 regs=0`; `a0`→`v0` gives `stack=0 regs=1`):
+
+- The penalty lands in `stack` at 1 point, not `regs` at 5, so the reported mix
+  points at the frame. The MATCH_LOOP table routes `stack` to "extra locals /
+  frame → split or shrink locals", which is the wrong chase for this.
+- `ignore_last_field` is set whenever both lines match the regex, so the last
+  comma-field is dropped from the operand comparison entirely. The instruction
+  is compared on nothing but the bogus register-as-number difference.
+
+`func_neo_ark_shrine_8017D7F0` is the worked example: the m2c seed scored
+99.913% with `stack=2` and the only object difference was `lbu v1,2(a0)` where
+the target reads `2(a2)` — `|0xA0 - 0xA2| = 2`. The body was already right; the
+signature was missing two leading parameters (see the arity entry above), and
+the 2 arrived from the register names, not from any stack slot.
+
+So when `stack` is small and the address it names is itself an argument
+register, read the diff before touching the frame. The `0x10(sp)` form escapes
+the regex entirely (`\d+\(` cannot match across the `x`, and the `$sp,`
+alternative needs a comma right after `$sp`), so a genuine frame difference is
+still counted — as `regs`, through the parenthesised-field split, not as
+`stack`.
+
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
 A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /
