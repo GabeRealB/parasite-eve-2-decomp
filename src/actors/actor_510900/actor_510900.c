@@ -242,4 +242,26 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B804);
+void func_actor_510900_8013B804(Actor510900* arg0)
+{
+    Actor510900Work* work;
+    GpEnemy*         enemy;
+    u8               flags;
+
+    enemy = arg0->field_20;
+    flags = enemy->field_4C;
+    work  = arg0->field_1C;
+    if (flags & 1) {
+        enemy->field_4C = flags & 0xFE;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= 0xFD;
+        work->field_58E  = 7;
+        work->field_590  = 0;
+        work->field_5B8  = 1;
+    }
+    flags = enemy->field_4C;
+    if (flags & 0xC) {
+        enemy->field_4C = flags & 0xF3;
+    }
+}
