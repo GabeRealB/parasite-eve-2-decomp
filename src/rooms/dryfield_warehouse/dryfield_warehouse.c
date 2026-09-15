@@ -13,6 +13,11 @@
 
 extern GpMsgEntry D_dryfield_warehouse_8017F554[];
 extern TaskDesc   D_dryfield_warehouse_8017F56C[];
+extern TaskDesc   D_dryfield_warehouse_8017FB08;
+
+/// Cutscene task spawned by state 0, polled by `Task_PollKill` in state 1 and
+/// killed along with its parent in state 2.
+extern Task* D_dryfield_warehouse_801821B4;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D5E8);
 
@@ -41,7 +46,30 @@ s32 func_dryfield_warehouse_8017D824(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D8D4);
+/// Warehouse cutscene state machine: state 0 blanks the display and spawns the
+/// cutscene task, state 1 waits for it to finish, and state 2 kills this task
+/// once it has.
+void func_dryfield_warehouse_8017D8D4(Task* arg0)
+{
+    s32 sp10;
+
+    switch (arg0->state) {
+        case 0:
+            SetDispMask(0);
+            D_dryfield_warehouse_801821B4 = Task_SpawnFromTable(&D_dryfield_warehouse_8017FB08, 0, 0, 0);
+            arg0->state                  += 1;
+            return;
+        case 1:
+            if (Task_PollKill(D_dryfield_warehouse_801821B4, &sp10) != 0) {
+                arg0->state += 1;
+                return;
+            }
+            return;
+        case 2:
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 void func_dryfield_warehouse_8017D99C(Task* arg0)
 {
