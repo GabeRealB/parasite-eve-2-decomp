@@ -80958,3 +80958,71 @@ Inputs: `base.i`
 `15ad286f859749756884d7d5a2124a41af8335332645c567a9a84d10396a9fdb` (67.9%,
 `regs=2 insert=3 delete=3`), `base_1.i`
 `c372c4b861715c5339e42315c2c63178cfb658177272097f4ad88b627f99af51` (100%).
+
+## Passing the enclosing parameter to a call emits no instruction, but still moves the allocation
+
+`func_dryfield_night_motel_lobby_80180FD8` is the room's "re-spawn the action
+prompt" state. The already-matched `func_shelter_b1_underground_parking_80184594`
+carries the same body, so the seed was written from it with the leading call
+left argument-less, as m2c had it, and scored 98.2% (`regs=9`) with exactly one
+difference - `task` and `work` swap `$s1` and `$s2`:
+
+```asm
+addu $s1, $a0, $zero        # task -> $s1
+lw   $s2, 0x1C($s1)         # work = task->idMap
+jal  func_dryfield_night_motel_lobby_801802A8
+ addiu $s0, $s0, %lo(D_80114D28)
+sw   $v0, 0x30($s1)         # task->state = 4
+```
+
+The callee takes a `Task*`: every other caller sets `$a0` before the `jal`, and
+its first instruction is `lw $v1, 0x1C($a0)`. This call sets nothing, and the
+delay slot holds the prompt's `lo_sum` instead - because the parameter is
+*still in `$a0`*, untouched since the prologue copied it to `$s1`, so the
+original source passed it straight through and the argument costs no
+instruction. Writing `func_dryfield_night_motel_lobby_801802A8(task)` is
+therefore instruction-neutral, and it took the file to 100.0% with every
+penalty zero.
+
+**An argument that emits nothing still changes the RTL, so it still changes the
+allocation.** The `.lreg` input carries a real copy for the argument:
+
+```
+(insn 16 (set (reg:SI 4 a0)
+        (reg/v:SI 80)) 172 {movsi_internal2} (nil))
+```
+
+That is a fourth reference to `task`, and local-alloc ranks quantities by
+`QTY_CMP_PRI = floor_log2(refs) * refs * size / (death - birth)`
+(CODEGEN_MODEL §10.3). Both `task` and `work` cross a call, so both need an
+`$sN`, and the prompt's tighter quantity has already taken `$s0`; the loser is
+served last:
+
+| quantity | refs | span | QTY_CMP_PRI |
+|---|---|---|---|
+| `task`, argument withheld | 3 | 24 | 5000 |
+| `work` | 2 | 7 | 11428 |
+| `task`, argument passed | 4 | 26 | 12307 |
+
+`floor_log2(4) * 4` beats `floor_log2(2) * 2`, so `task` takes `$s1` - and the
+copy itself is then deleted, because nothing writes `$a0` between the
+parameter copy and the call. The surviving `.s` has no `move` at all, which is
+why the `$sN` swap looks like a pure allocation tie to be fought with pins or
+reordered statements.
+
+Check the callee's prototype whenever two call-crossing pointers swap `$sN` in
+a room state body: a `jal` whose argument setup is missing because the value is
+already in `$a0` is not "no argument". The sibling that matches *with* the
+argument is evidence for it; `func_shelter_b1_underground_parking_80184594`'s
+`func_shelter_b1_underground_parking_80183B9C()` is genuinely `void (void)`, so
+its silence is not. This is the same lever as "m2c drops a leading call argument
+that is already in `$a0` on entry" above, but that one *clobbers* `$a0` with
+`li $a0, 7` and so announces itself; here the lost argument leaves no trace in
+the candidate at all.
+
+Inputs: `base.i`
+`d481d654275268268743d870911af244cfba4c1046f4994b749844c2d1e86f4c` (67.0%,
+`regs=25 insert=3 delete=4`), `base_1.i`
+`9270d49860de6181b03c64a41a34e1086ed6e4c9a7cc4b4a3f4b53009f4376c9` (98.2%,
+`regs=9`), `base_2.i`
+`38a88e2a0d877ce7faa4ee35ab195575d8541aa75bd639d128b4ed55caaae379` (100%).
