@@ -6,6 +6,7 @@
 
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "rooms/dryfield_water_tank.h"
 
 extern TaskDesc       D_dryfield_water_tank_8017F34C;
 extern s32            D_dryfield_water_tank_8017F114;
@@ -14,7 +15,19 @@ extern s32            D_dryfield_water_tank_80184E0C;
 extern s32            D_dryfield_water_tank_801859DC;
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017DB48);
+void func_dryfield_water_tank_8017DB48(void)
+{
+    switch (GameFlag_GetNibble(0x55)) {
+        case 0:
+        case 1:
+        case 2:
+            func_dryfield_water_tank_8017EFF4(1);
+            break;
+        case 3:
+            func_dryfield_water_tank_8017EFF4(0);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017DB98);
 

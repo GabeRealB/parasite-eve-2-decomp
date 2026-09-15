@@ -79964,3 +79964,64 @@ extern u16 D_dryfield_water_tank_801868CC[];
 build, all penalties zero. Read the width off the target (`lbu` byte, `lhu`
 halfword, `lw`/`lwl` word) rather than from the seed's `* N`, which is the
 element count the *writer* of the seed guessed.
+
+## A positive `beq` to a shared call means `switch`, not `if`/`else`: the if/else permutations never converge (func_dryfield_water_tank_8017DB48, 2026-09-15)
+
+`func_dryfield_water_tank_8017DB48` dispatches on a game-flag nibble: values 0-2
+call a setter with 1, value 3 calls it with 0, anything else does nothing.
+
+```
+bltz  v1, end          # v < 0  -> out
+slti  v0, v1, 3
+bnez  v0, L1           # v < 3  -> f(1)
+li    v0, 3
+beq   v1, v0, call     # v == 3 -> f(0), the jal shared with the f(1) arm
+move  a0, zero
+j     end
+nop
+L1:   li a0, 1
+call: jal   func_dryfield_water_tank_8017EFF4
+```
+
+The m2c seed reads this as `if (v >= 0) { if (v >= 3) { arg = 0; if (v != 3)
+return; } else arg = 1; f(arg); }` and compiles to 75.9%: `bne v1,v0,end` with
+the call in the fall-through and no `j`. Eight further if/else shapes — the
+natural `if (v < 3) f(1); else if (v == 3) f(0);`, explicit `return`s in the
+arms, an `if (v >= 0)` wrapper, `arg = 0;` hoisted before the tests, reversed
+test order — produced byte-identical assembly to the seed. The whole chain is
+`bne`-shaped because `stmt.c`'s `expand_if` always emits the negation of the
+condition to the false label (`do_jump (cond, next_label, NULL_RTX)`), so no
+if/else arrangement can put the branch in the positive sense.
+
+Two marks identify the real source as `stmt.c`'s `emit_case_nodes`:
+
+- `beq v1,v0,const` — `do_jump_if_equal` tests a case *positively* and branches
+  into the case body, which no `if` produces (see "Switch default `ret = 1` …");
+- the `bltz` + `slti`/`bnez` pair is the bounded case node's two-sided range
+  check, emitted signed because the control expression promoted to `int` (see
+  "A `u16` field tested for \"0 or 1\" …"), and the `j end` is the default
+  landing.
+
+The source is the switch:
+
+```c
+    switch (GameFlag_GetNibble(0x55)) {
+        case 0:
+        case 1:
+        case 2:
+            func_dryfield_water_tank_8017EFF4(1);
+            break;
+        case 3:
+            func_dryfield_water_tank_8017EFF4(0);
+            break;
+    }
+```
+
+100.000% on the first build after eight if/else builds; all penalties zero.
+Inputs: `base_9.i`
+`a35f1b4ec37c8ba73605a00ce940e87922dc93535f8c6a037be14427b198537b` (switch,
+100%), `base_2.i`
+`6857ba926ab6bf02c4c24fb9706553ee0bdf114348c95101985c9eec006584b1` (natural
+if/else, 75.9%). The empirical rule: an if/else restructure that reproduces the
+seed byte for byte is not a near miss — read the branch sense, and if the target
+branches *into* a body, reach for `switch` next.

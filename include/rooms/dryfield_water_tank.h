@@ -64,4 +64,10 @@ typedef struct DwtScriptWork {
 } DwtScriptWork;
 STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 
+/// Toggle the room's cutscene-“played” state: `arg0 != 0` marks the task the
+/// script driver points at as watched and clears the sibling flag, `arg0 == 0`
+/// does the opposite. `func_dryfield_water_tank_8017DB48` passes the game-flag
+/// `0x55` nibble through it, one way per value.
+void func_dryfield_water_tank_8017EFF4(s32 arg0);
+
 #endif // ROOMS_DRYFIELD_WATER_TANK_H
