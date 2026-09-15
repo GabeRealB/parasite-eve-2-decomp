@@ -2,6 +2,7 @@
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
+#include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -58,7 +59,18 @@ void func_neo_ark_altar_8017EDF8(Task* arg0)
     arg0->state         = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EE30);
+void func_neo_ark_altar_8017EE30(Task* arg0)
+{
+    u8 temp_a0;
+
+    arg0->killCountdown = arg0->killCountdown + 6;
+    if (arg0->killCountdown >= 0x100) {
+        arg0->killCountdown = 0xFF;
+        arg0->state         = (s32)(arg0->state + 1);
+    }
+    temp_a0 = (u8)arg0->killCountdown;
+    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, 2);
+}
 
 void func_neo_ark_altar_8017EE90(Task* arg0)
 {

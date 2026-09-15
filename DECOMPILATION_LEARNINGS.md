@@ -1425,6 +1425,15 @@ read-modify-write; the m2c seed's `u16` temp and the struct version compile to
 identical bytes (preprocessed `902aea30bf6837ccd34a631b5afb1ee8c7da5149e8e5b82cb78eafb6c37852b2`
 and `dda2f0028068f6cf7e16beccb0f0b689773653d108d0cda8d1f0ac0fc4f7fbf5`).
 
+The same holds when the clamp arm stores a constant and bumps a neighbouring
+field: `func_neo_ark_altar_8017EE30` (step +6, then `>= 0x100` → store `0xFF`
+and `arg0->state + 1`, then a `(u8)` reload of the field handed to
+`Fade_DrawOverlay`) is `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` with no
+second load, and matched 100% first try as
+`arg0->killCountdown = arg0->killCountdown + 6;`. Neither a `(u16)` cast on the
+read nor a `(s16)` cast on the comparison is needed — both spellings compile to
+the same bytes, so prefer the plain field arithmetic.
+
 ## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
 
 A bit test that then stores 7 or 8 wants `$v0` for both the `andi` and the
