@@ -217,6 +217,26 @@ def list_nonmatching_dirs(
     return dirs
 
 
+def is_function_asm(path: Path) -> bool:
+    """Whether a split `.s` is a function, decided by its label, not its name.
+
+    splat declares a function with `glabel` and data with `dlabel`, and across
+    every nonmatchings file the two never disagree. Names do: data named from a
+    family's imports carries no `D_`/`jtbl_` prefix (RoomsShared8017d878Table,
+    in 142 rooms; ActorsShared*, Display_TaskStates), and a `.text` span that
+    comes up short files code into `.rodata` under a `func_` name
+    (func_actor_104000_8013206C), which is not matchable as a function either.
+    The prefix test is only a shortcut that avoids reading the common case.
+    """
+    if path.name.startswith(("D_", "jtbl_")):
+        return False
+    try:
+        text = path.read_text(errors="replace")
+    except OSError:
+        return False
+    return re.search(rf"^\s*glabel\s+{re.escape(path.stem)}\s*$", text, re.M) is not None
+
+
 def _iter_named_asm(overlay: Overlay, kind: str, name: str) -> Iterator[Path]:
     root = overlay.asm_path / kind
     if not root.is_dir():

@@ -72,9 +72,20 @@ TOTAL=$(wc -l <"$CURSOR")
 # a sweep ran to completion, which releases a lease and can free an overlay for
 # the next pass; a pass of pure skips changes nothing and ends the run. The cap
 # is a backstop against a pathological cycle, not the expected exit.
+#
+# "Nothing claimable" is only final when no sweep is in flight. Every in-flight
+# sweep will release its lease, and a worker that found the queue empty used to
+# exit on the spot: a 12-worker run lost a worker each time one finished its
+# overlay while the rest were still busy, and was down to 7 within the hour.
+# So an idle worker waits for the next sweep to finish and re-walks after it,
+# and only exits once the queue is dry with nothing running. Because a refill
+# now follows every completed sweep rather than every burst of them, the pass
+# cap has to be sized in sweeps, not in walks of the list.
 PASS_FILE="$RUN/pass";  echo 1 >"$PASS_FILE"
 SWEPT_FILE="$RUN/swept"; echo 0 >"$SWEPT_FILE"
-MAX_PASSES="${VACUUM_MAX_PASSES:-25}"
+BUSY_FILE="$RUN/busy";   echo 0 >"$BUSY_FILE"
+MAX_PASSES="${VACUUM_MAX_PASSES:-200}"
+IDLE_POLL="${VACUUM_IDLE_POLL:-60}"   # seconds an idle worker waits between re-checks
 
 STOP=0
 trap 'echo ""; echo "Interrupt received; workers stop after the overlay in flight."; STOP=1' INT
@@ -89,28 +100,37 @@ log "run dir $RUN"
 
 # Pop the next name atomically. flock keeps two workers from picking the same
 # overlay in the same instant; the lease is what actually guarantees exclusion.
-note_swept() {
+# Add $2 to the counter in file $1, under the cursor lock.
+bump() {
     exec 8>"$CURSOR.lock"
     flock 8
-    echo $(( $(cat "$SWEPT_FILE" 2>/dev/null || echo 0) + 1 )) >"$SWEPT_FILE"
+    echo $(( $(cat "$1" 2>/dev/null || echo 0) + $2 )) >"$1"
     flock -u 8
     exec 8>&-
 }
+note_swept() { bump "$SWEPT_FILE" 1; }
 
+# Prints a name, WAIT (queue dry but sweeps are still in flight), or nothing
+# (exhausted: the worker should exit).
 next_overlay() {
-    local name="" swept pass
+    local name="" swept pass busy
     exec 9>"$CURSOR.lock"
     flock 9
     if [[ ! -s "$CURSOR" ]]; then
         swept=$(cat "$SWEPT_FILE" 2>/dev/null || echo 0)
         pass=$(cat "$PASS_FILE" 2>/dev/null || echo 1)
+        busy=$(cat "$BUSY_FILE" 2>/dev/null || echo 0)
         if [[ "$swept" -gt 0 && "$pass" -lt "$MAX_PASSES" ]]; then
             fill_queue
             echo $((pass + 1)) >"$PASS_FILE"
             echo 0 >"$SWEPT_FILE"
             log_q "pass $pass swept $swept overlay(s); re-walking the list (pass $((pass + 1)))"
-        elif [[ "$swept" -eq 0 && "$pass" -gt 1 ]]; then
-            log_q "pass $pass claimed nothing; list is exhausted"
+        elif [[ "$busy" -gt 0 && "$pass" -lt "$MAX_PASSES" ]]; then
+            name=WAIT
+        elif [[ "$pass" -ge "$MAX_PASSES" ]]; then
+            log_q "pass cap $MAX_PASSES reached; stopping"
+        else
+            log_q "pass $pass claimed nothing and no sweep is in flight; list is exhausted"
         fi
     fi
     if [[ -s "$CURSOR" ]]; then
@@ -133,9 +153,22 @@ worker() {
         log "worker $id: waiting $(( (id - 1) * STAGGER ))s before its first claim"
         sleep $(( (id - 1) * STAGGER ))
     fi
+    local idle=0
     while [[ $STOP -eq 0 ]]; do
         name=$(next_overlay)
         [[ -n "$name" ]] || break
+        if [[ "$name" == WAIT ]]; then
+            [[ $idle -eq 1 ]] || log "worker $id: nothing claimable; waiting for an in-flight sweep to finish"
+            idle=1
+            sleep "$IDLE_POLL"
+            continue
+        fi
+        idle=0
+        # Busy from the moment a name is taken, not from when the sweep starts:
+        # a claim in progress can still produce a sweep, and counting only the
+        # sweep let an idle worker see busy=0 between another's claim and its
+        # launch, and exit.
+        bump "$BUSY_FILE" 1
         log "worker $id -> $name"
         # Claim here, not in the worker: claiming is cheap and filtering
         # cheaper still, so an overlay whose remaining functions are all shared
@@ -160,6 +193,7 @@ worker() {
             if [[ $crc -eq 1 ]]; then
                 skipped=$((skipped + 1))
                 log "worker $id: $name skipped (unclaimable, or nothing landable here)"
+                bump "$BUSY_FILE" -1
                 continue
             elif [[ $crc -eq 0 ]]; then
                 claim_args=(--pre-claimed --session "$sess")
@@ -199,6 +233,7 @@ worker() {
                 log "worker $id: STRANDED - $b still holds $ahead verified match(es) after rc=$rc"
             fi
         fi
+        bump "$BUSY_FILE" -1
     done
     log "worker $id finished: $done swept, $skipped skipped, $stranded stranded"
 }

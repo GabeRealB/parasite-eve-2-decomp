@@ -28,6 +28,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Optional
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import decomp_overlay as ovl  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -403,7 +406,14 @@ def overlay_of_asm(rel: str) -> Optional[str]:
 
 
 def overlay_functions(root: Path, overlay: str) -> list[str]:
-    """Every unmatched function splat emits for this overlay."""
+    """Every unmatched function splat emits for this overlay.
+
+    Decided by label (is_function_asm), never by name. A data symbol named from
+    a family's imports is emitted under that one name in every overlay carrying
+    it - RoomsShared8017d878Table is in 142 rooms - so leasing it as a function
+    made the first room's claim block all the others: a 12-worker rooms sweep
+    could claim 8 overlays and left 232 sub-0.4 functions unclaimable.
+    """
     out: list[str] = []
     for d in list_nonmatching_dirs(root):
         base = Path(d)
@@ -411,9 +421,21 @@ def overlay_functions(root: Path, overlay: str) -> list[str]:
             if p.name.startswith(("D_", "jtbl_")):
                 continue
             rel = str(p.relative_to(root)) if p.is_absolute() else str(p)
-            if overlay_of_asm(rel) == overlay:
+            if overlay_of_asm(rel) == overlay and ovl.is_function_asm(p):
                 out.append(p.stem)
     return sorted(set(out))
+
+
+def function_overlays(root: Path, func: str) -> set[str]:
+    """Every overlay holding an unmatched `.s` for this function name."""
+    out: set[str] = set()
+    for d in list_nonmatching_dirs(root):
+        for p in Path(d).rglob(f"{func}.s"):
+            rel = str(p.relative_to(root)) if p.is_absolute() else str(p)
+            ov = overlay_of_asm(rel)
+            if ov and ovl.is_function_asm(p):
+                out.add(ov)
+    return out
 
 
 def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
@@ -438,7 +460,7 @@ def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
             # A shared unit ("<family>/lib") is opt-in only: it must be asked
             # for by name, never handed out by ranking, because a plain
             # per-function vacuum also draws from it.
-            if ov and "/" not in ov:
+            if ov and "/" not in ov and ovl.is_function_asm(p):
                 counts[ov] = counts.get(ov, 0) + 1
     return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
@@ -476,6 +498,20 @@ def cmd_claim_overlay(
             continue
         held = {f: store.data["claims"][f].get("session")
                 for f in funcs if f in store.data["claims"]}
+        # A name another overlay also carries is one shared body under the
+        # imports' name (RoomsShared8017dcb8Draw is in 15 rooms). Its lease,
+        # taken through any copy, rightly keeps the others off it - one match
+        # retires every copy - but it is not a lease on *this* overlay, and
+        # refusing the overlay for it let one room block fourteen. Leave such a
+        # name out of the claim; a name only this overlay has still refuses.
+        foreign = {f for f in held
+                   if store.data["claims"][f].get("overlay") != name
+                   and len(function_overlays(root, f)) > 1}
+        if foreign:
+            funcs = [f for f in funcs if f not in foreign]
+            held = {f: s for f, s in held.items() if f not in foreign}
+            if not funcs:
+                continue
         if held:
             if overlay:      # explicit request: say what blocked it
                 first = next(iter(held))

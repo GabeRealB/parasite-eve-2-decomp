@@ -233,7 +233,7 @@ def iter_functions(
             continue
         for asm in sorted(root.rglob("*.s")):
             # splat emits data units into the same tree; they are not functions.
-            if asm.name.startswith(("D_", "jtbl_")):
+            if not ovl.is_function_asm(asm):
                 continue
             yield ovl.FunctionLoc(
                 name=asm.stem, overlay=o, asm_file=asm,

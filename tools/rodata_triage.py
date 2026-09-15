@@ -30,6 +30,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import decomp_overlay as ovl  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 JTBL = re.compile(r"\bjtbl_[0-9A-Za-z_]+")
 INCLUDE_RODATA = re.compile(r'INCLUDE_RODATA\("([^"]+)",\s*(\w+)\)')
@@ -40,7 +43,7 @@ def asm_units(overlay: str) -> dict[str, str]:
     out = {}
     for d in ROOT.glob(f"asm/*/**/nonmatchings/{overlay}"):
         for s in d.rglob("*.s"):
-            if s.stem.startswith(("D_", "jtbl_", "_L")):
+            if not ovl.is_function_asm(s):
                 continue
             out[s.stem] = s.parent.name
     return out

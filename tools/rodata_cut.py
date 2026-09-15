@@ -32,6 +32,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import decomp_overlay as ovl  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 DLABEL = re.compile(r"^dlabel (\w+)", re.M)
 ADDR = re.compile(r"_([0-9A-F]{8})$")
@@ -70,7 +73,7 @@ def referencing_unit(sym: str, overlay: str) -> str | None:
     units = set()
     for ud in unit_dirs(overlay):
         for f in ud.glob("*.s"):
-            if f.stem.startswith(("D_", "jtbl_", "_L")):
+            if not ovl.is_function_asm(f):
                 continue
             txt = f.read_text(errors="replace")
             if sym in txt:
