@@ -30,7 +30,13 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, GpMsg13EF* a
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", func_dryfield_night_motel_lobby_8017FCDC);
+s32 func_dryfield_night_motel_lobby_8017FCDC(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0x63) {
+        Gp_EnqueueStageSnd6(0x5311000A, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", func_dryfield_night_motel_lobby_8017FD10);
 
