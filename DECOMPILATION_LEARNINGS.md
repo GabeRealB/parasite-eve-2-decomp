@@ -44029,6 +44029,48 @@ argument accounting for all of it; the fixed form is exact. When m2c hands a
 just-loaded narrow value to a call, read the callee's prototype before porting —
 a stray `andi` beside an `lhu` is this, not a register-allocation leftover.
 
+## m2c under-counts a callee's arity, and the missing argument is already in `$a0`
+
+The mirror of the entry above, and the harder one to spot. m2c is handed only
+this function's `.s`, so a callee it has no prototype for is typed with the
+arity that call site implies. `func_dryfield_warehouse_8017D99C` really calls
+`Game_SetPtrSlot(arg0, 7)`, but m2c emitted a one-argument version:
+
+```c
+M2C_UNK Game_SetPtrSlot(M2C_UNK);   /* extern */
+...
+Game_SetPtrSlot(7);
+```
+
+which puts the constant in `$a0` and still scores 99.78% on a single `regs`
+penalty — the entire diff is `li a1,7` against our `li a0,7`.
+
+The tell is that **nothing writes `$a0` before the `jal`**. `arg0` is copied to
+a callee-saved register at the function head because it is live across the call,
+and that copy leaves `$a0` untouched, so a call whose first argument *is* `arg0`
+needs no argument setup at all: GCC reuses the incoming register. Restore the
+prototype from the shared header (`main/session.h` here) and pass the pointer:
+
+```c
+void func_dryfield_warehouse_8017D99C(Task* arg0)
+{
+    arg0->field_24 = D_dryfield_warehouse_8017F554;
+    Game_SetPtrSlot(arg0, 7);
+    ...
+}
+```
+
+The fix costs **zero instructions**, which is exactly why the wrong-arity seed
+sits at 99.78% instead of failing outright — `move s0,a0` happens either way and
+the `$a0` argument setup is empty in both forms. So a `li` into `$a1` with an
+untouched `$a0` is a missing leading argument, not a scheduling or allocation
+quirk, and the penalty label (`regs`) says nothing about it. These room
+`INCLUDE_ASM` seeds are the same body copied across a family, so a matched
+sibling in another overlay usually already shows the right call — here
+`func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
+`func_mist_r21_8017D61C` all carry `Game_SetPtrSlot(arg0, 7)` verbatim. Compare
+against one of those before reading the dumps.
+
 ## A stack table copy reads as the callee's argument list
 
 The third form of the same invention, and the one where the callee cannot settle
