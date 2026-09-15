@@ -6,20 +6,22 @@
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
-extern TaskDesc D_neo_ark_observatory_801811AC;
-extern s32      D_neo_ark_observatory_801811B8;
-extern SVECTOR  D_neo_ark_observatory_80181434[];
-extern SVECTOR  D_neo_ark_observatory_801814E4[];
-extern SVECTOR  D_neo_ark_observatory_801814F4[];
-extern SVECTOR  D_neo_ark_observatory_801814FC[];
-extern SVECTOR  D_neo_ark_observatory_8018150C[];
-extern SVECTOR  D_neo_ark_observatory_8018151C[];
-extern SVECTOR  D_neo_ark_observatory_80181524[];
-extern SVECTOR  D_neo_ark_observatory_80181564[];
-extern SVECTOR  D_neo_ark_observatory_80181574[];
-extern SVECTOR  D_neo_ark_observatory_8018157C[];
-extern s16      D_neo_ark_observatory_80187A3C;
+extern TaskDesc       D_neo_ark_observatory_801811AC;
+extern s32            D_neo_ark_observatory_801811B8;
+extern SVECTOR        D_neo_ark_observatory_80181434[];
+extern SVECTOR        D_neo_ark_observatory_801814E4[];
+extern SVECTOR        D_neo_ark_observatory_801814F4[];
+extern SVECTOR        D_neo_ark_observatory_801814FC[];
+extern SVECTOR        D_neo_ark_observatory_8018150C[];
+extern SVECTOR        D_neo_ark_observatory_8018151C[];
+extern SVECTOR        D_neo_ark_observatory_80181524[];
+extern SVECTOR        D_neo_ark_observatory_80181564[];
+extern SVECTOR        D_neo_ark_observatory_80181574[];
+extern SVECTOR        D_neo_ark_observatory_8018157C[];
+extern s16            D_neo_ark_observatory_80187A3C;
+extern GpAreaApplyRec D_neo_ark_observatory_80187A28;
 
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s32 arg3);
@@ -27,8 +29,24 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s32 arg3)
 extern void func_801322F8(void);
 extern void func_neo_ark_observatory_8017FA98(s32 arg0);
 extern void func_neo_ark_observatory_80180DAC(s32 arg0);
+extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory_3", func_neo_ark_observatory_8017FBE8);
+/// Room event-script handler: mirrors the incoming message onto the outgoing
+/// one and lets `func_80179B14` act on both. Once the observatory has been
+/// reached from both routes (nibbles 0xD1 == 3 and 0x4C == 9) and the script
+/// raises one of the two arrival ids with no sub-state pending, nibble 0x4C is
+/// cleared and the room's area records are applied.
+s32 func_neo_ark_observatory_8017FBE8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    if ((GameFlag_GetNibble(0xD1) == 3) && (GameFlag_GetNibble(0x4C) == 9) &&
+        ((in->msgId == 0xA) || (in->msgId == 0x13)) && (in->field_5 == 0)) {
+        GameFlag_SetNibble(0x4C, 0);
+        Gp_ApplyAreaRecs(&D_neo_ark_observatory_80187A28);
+    }
+    return 1;
+}
 
 s32 func_neo_ark_observatory_8017FCA0(s32 arg0, s32 arg1, s32 arg2)
 {
