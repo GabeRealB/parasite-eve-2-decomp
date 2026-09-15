@@ -2,6 +2,7 @@
 
 #include "actors/actor_101900.h"
 #include "actors/actor_101900_facing.h"
+#include "actors/actors_shared_80132808.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -13,7 +14,23 @@
 #include "main/sound.h"
 #include "psyq/abs.h"
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn00260);
+/// Same body as `ActorsShared80132808`: re-aim one joint by `yaw` about Y in
+/// world space and write the result back in its parent's frame.
+void Actor01900_Fn00260(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    ActorsShared80132808_Accumulate(coord, rotation, &Gfx_ViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = ActorsShared80132808_Localize(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn0056C);
 
