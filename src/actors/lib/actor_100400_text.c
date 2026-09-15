@@ -52,6 +52,7 @@ void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s
 
 extern GsCOORDINATE2  Gfx_ViewCoord;
 extern TaskFuncTable3 Actor00400_D0002C;
+extern TaskFuncTable3 Actor00400_D00144;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -376,7 +377,15 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn077F4);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn078C8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0793C);
+void Actor00400_Fn0793C(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    TaskFuncTable3   fns;
+
+    work = arg0->field_1C;
+    fns  = Actor00400_D00144;
+    fns.funcs[(s16)work->field_63A]((Task*)arg0);
+}
 
 void Actor00400_Fn07998(void)
 {
