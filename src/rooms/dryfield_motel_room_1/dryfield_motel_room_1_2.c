@@ -18,7 +18,29 @@ extern s8 D_8007218A;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017D7AC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DC2C);
+void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
+{
+    Dmr1Work* work;
+    s32       id;
+
+    work        = (Dmr1Work*)Mem_Malloc(0x38, 0);
+    arg0->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    Mem_Set(work, 0, 0x38);
+    work->field_0                    = (Task*)Game_GetPtrSlot(3);
+    D_dryfield_motel_room_1_8018159C = arg0;
+    id                               = Game_Session->field_6 | (Game_Session->field_7 << 8);
+    work->field_4                    = (Task*)Gp_FindWorkById(id)->field_0;
+    id                               = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+    work->field_8                    = (Task*)Gp_FindWorkById(id)->field_0;
+    id                               = ((Game_Session->field_7 << 8) | 0x2000) | Game_Session->field_6;
+    work->field_C                    = (Task*)Gp_FindWorkById(id)->field_0;
+    id                               = ((Game_Session->field_7 << 8) | 0x3000) | Game_Session->field_6;
+    work->field_10                   = (Task*)Gp_FindWorkById(id)->field_0;
+}
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DD3C);
 
 void func_dryfield_motel_room_1_8017DF08(void)
