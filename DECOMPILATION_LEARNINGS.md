@@ -79689,3 +79689,38 @@ definition - see "Interleaved jump tables"/the migration entry above). No file
 is deleted, so no matched body can be lost; `build-and-verify.sh --only <overlay>`
 confirms it, and `ninja_config.py`'s post-split check still guards the `.text`
 span.
+## The `lui`-order trick has a mirror: read the target's *first* `lui` to pick the form (func_mine_cavern_8017E330, 2026-09-15)
+
+"Chaining across two *different* destinations fixes the `lui` order too" above
+describes the pair `Game_Session->field_5 = D_8007216D = 2;` vs. the two separate
+stores for the *same* two addresses. `func_mine_cavern_8017E330` is that same
+body with the `%hi`s the other way round, and it confirms the mechanism decides
+both directions — so use the target's first `lui` as the selector:
+
+```
+func_mine_cavern_8017E330        func_acropolis_patio_8017DF48
+lui a1, %hi(D_8007216D)          lui a1, %hi(Game_Session)
+lui a0, %hi(Game_Session)        lui v1, %hi(D_8007216D)
+lw  v1, %lo(Game_Session)(a0)    lw  a0, %lo(Game_Session)(a1)
+li  v0, 2                        li  v0, 2
+sb  v0, %lo(D_8007216D)(a1)      sb  v0, %lo(D_8007216D)(v1)
+sb  v0, 5(v1)                    sb  v0, 5(a0)
+```
+
+Both tails are the same (`lw v1,%lo(Game_Session)(base)`, `li v0,1`, `jr ra`,
+`sh v0,0x76(v1)`), so this is one body at a different link offset — identical
+instruction sequence, different address registers. Each needs the *other*
+source form: the chained form puts `%hi(Game_Session)` first, the separate
+statements put the stored symbol's first. Only the first `lui` differs, so the rotated-register
+leftover is not a `regs` problem to chase — write the other form. Both keep the
+redundant second `lw` of `Game_Session` (the intervening `sb` to another global
+stops the CSE); do not hoist the pointer into a local to "fix" it.
+
+Corollary for the promotion pass: `overlay_dup_index.py find` is right to call
+these two different bodies — a shared object cannot match both, because the
+allocation is decided by the source text and the two targets disagree. A 1.00
+`shape`/`fields` neighbour in BRIEF.md is a body to read, not a body to copy.
+
+Here m2c's raw output was already the separate-statements form, so the baseline
+scored 100% unedited — worth building the baseline before rewriting from the asm
+even when the function looks like a sibling you already matched.
