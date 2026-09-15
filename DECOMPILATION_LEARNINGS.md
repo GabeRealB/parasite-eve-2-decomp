@@ -81453,6 +81453,38 @@ Inputs: `base.i`
 `regs=16 insert=2 delete=3`), `base_1.i`
 `2cc874a6a28088017b1560b54a8f0b2409382e97b2a057019f7cafcdf5022bc7` (100%).
 
+**Same mechanism, different symptom: the store displacement.** The two forms
+do not have to differ in *where* the address is born to be visible in the
+object. `func_neo_ark_eve_access_tunnel_8017DFC0` stored through
+`CdCmd_Queue.field_22A` (offset 0x22A) after two calls with no pointer local,
+and scored 86.6% with `branch=2 regs=8 reorder=1 delete=3` - the missing insns
+were one `lui`, one `addiu` and one `sw $s1`, and the store itself read
+`sh $v0, %lo(CdCmd_Queue+0x22a)($v1)`: the `%lo` was folded into the memory
+operand's relocation, so no address value ever existed. The target has
+
+```asm
+lui   $v1, %hi(CdCmd_Queue)
+sw    $s1, 0x14($sp)
+...
+beqz  $v0, .L...
+ addiu $s1, $v1, %lo(CdCmd_Queue)   # $s1 live across both calls, frame 0x20
+...
+sh    $v0, 0x22A($s1)
+```
+
+Declaring `CdCmdQueue* queue = &CdCmd_Queue;` as the function's first
+statement reproduced it exactly, 100.000% with every penalty zero: with the
+address a value, `expand` emits the `high`/`lo_sum` pair where the declaration
+is, the pseudo is live across the two calls, and the offset stays a plain
+displacement. So when a target stores to a *nonzero* offset of a global with a
+register base, suspect a missing pointer local even when nothing was
+recomputed after the call - a folded `%lo(sym+disp)` operand is the tell.
+
+Inputs: `base.i`
+`b1d57236deae55fd8be200bdbc0b1f836fe06a8cd7b9a6744d6ccc65be8446b0` (86.6%),
+`base_1.i`
+`119bb54673181831955ccd93b27d3adfc7eb26a99b299c09b92aa23a20ed1b1f` (100%).
+
 ## Two zero stores to one global: index a declared array, `[1]` before `[0]` (func_mine_mesa_80181848, 2026-09-15)
 
 m2c renders a target that clears two words of one global as two `M2C_FIELD`
