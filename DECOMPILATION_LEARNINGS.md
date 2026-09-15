@@ -80281,3 +80281,55 @@ knob, the `$a0` graph was.
 Inputs: `base.i` `6c2870c680e9ba0288857295bc5606f260d14ffa5dc8fb15ef5840e1b7cf09f1`,
 `base_1.i` `bf9b5ada477ded3ccfb46b1690f9221204e59069b41cd6990aa79ec8714ede1c`,
 `base_2.i` `e9ebe5dd76d3114e29452a454bc2a3c2d940bcd686a8b36aa1350cfdaf113d63`.
+
+## A store the target puts in the `bnez` delay slot must be written *before* the check
+
+`func_neo_ark_shrine_8017F4C8` allocates its scratch block, stores it to
+`Task::idMap`, and kills the task when the allocation failed:
+
+```
+jal   Mem_Calloc
+move  a1,zero
+move  v1,v0
+bnez  v1, .L514
+sw    v1,0x1C(s2)      # delay: task->idMap = block, taken or not
+jal   Task_Kill
+move  a0,s2
+j     .L560
+nop
+.L514:
+move  a0,s2            # the *later* call's argument, hoisted into the arm
+addiu v0,v1,0x20
+```
+
+Every other room that allocates a work block writes the store *after* the
+check - `if (work == NULL) { Task_Kill(task); return; } task->idMap = work;` -
+and following that convention here scored 97.273% with `reorder=2`: sched2
+hoisted the `func_neo_ark_shrine_8017F86C` argument into the branch delay slot
+(`bnez v1,4c` / `move a0,s2`) and pushed the store past `addiu v0,v1,0x20`.
+Writing `task->idMap = (TaskIdMap*)st;` **before** `if (st == NULL)` restores the
+target exactly (100%, all-zero penalties).
+
+The store is unconditional in the target, so the source has to make it
+unconditional: with it inside the taken block, sched1's ready list holds two
+`$a0` setters for the same register and dbr takes the one the branch does not
+kill, not the store. Compare "Assign the delay-slot default first so `bnez`
+keeps the `== 0` overwrite" - same rule, applied to a store rather than a
+constant.
+
+The same function is also the worked example for m2c's scaled pointer
+arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `TaskIdMap*` (8 bytes) emits
+`addiu v0,v1,0x100` and leaves the rest of the function matching at 99.886%.
+The block is `{ MATRIX color; MATRIX light; u16 speed, delta, ticks; }` - the
+0x48 allocation and the `light` / `color` republished onto
+`TmdObject::field_1C` / `field_20` say so, as in `MineForkedTunnelWork` - so the
+offset is the member, not a byte count. Note this struct has colour at 0x00 and
+light at 0x20, the reverse of every other room's work block.
+
+`GsCOORDINATE2` here is the `libgs.h` layout (`flg` 0x00, `coord` 0x04, `workm`
+0x24, `param` 0x44, `super` 0x48, `sub` 0x4C), so `coord.coord.t[0..2]` land at
+0x18/0x1C/0x20 and the parent link is at 0x4C.
+
+Inputs: `base.i` `c848ce07458f28a0e8ecb67bd03ab17c1f76474253f0273309256651d81b4c17`,
+`base_1.i` `1236914c918a59c1c55f5758ca7e900b117a5c7b3f9fff4c1ab5ea9f09d7761b`,
+`base_2.i` `379a54b9b0d14b3f82d2eeb1a4dd2a5349ec0067ff05881ec44923510f62beec`.

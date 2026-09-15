@@ -26,12 +26,16 @@ typedef struct {
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::idMap`
 /// (`Mem_Calloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
+/// `color` / `light` are the prop's own matrices, republished onto
+/// `TmdObject::field_1C` / `field_20` by the two spawn handlers; `speed` /
+/// `delta` / `ticks` are the fall itself, stepped by `func_neo_ark_shrine_8017F578`.
 typedef struct {
-    /* 0x00 */ u8  pad_0[0x40];
-    /* 0x40 */ u16 speed; ///< per-frame gravity step
-    /* 0x42 */ u16 delta; ///< accumulated fall distance for this frame
-    /* 0x44 */ u16 ticks; ///< frames since the fall started
-    /* 0x46 */ u8  pad_46[2];
+    /* 0x00 */ MATRIX color;
+    /* 0x20 */ MATRIX light;
+    /* 0x40 */ u16    speed; ///< per-frame gravity step
+    /* 0x42 */ u16    delta; ///< accumulated fall distance for this frame
+    /* 0x44 */ u16    ticks; ///< frames since the fall started
+    /* 0x46 */ u8     pad_46[2];
 } NeoArkShrineFall;
 
 void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
@@ -214,7 +218,34 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_s
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F448);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F4C8);
+/// Second state of the shrine's first falling prop: allocates its 0x48-byte
+/// scratch block, republishes the block's light / colour matrices onto the
+/// model's `TmdObject`, parks the prop at its starting position parented to the
+/// room's view coordinate system, and advances the task to the falling state.
+void func_neo_ark_shrine_8017F4C8(Task* task)
+{
+    TmdObject*        extra;
+    GsCOORDINATE2*    coord;
+    NeoArkShrineFall* st;
+
+    extra       = (TmdObject*)task->extra;
+    coord       = extra->field_8;
+    st          = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
+    task->idMap = (TaskIdMap*)st;
+    if (st == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    extra->field_1C   = &st->light;
+    extra->field_C    = 0;
+    extra->field_20   = &st->color;
+    coord->sub        = &Gfx_ViewCoord;
+    coord->coord.t[0] = 0x1B58;
+    coord->coord.t[1] = -0xBB8;
+    coord->coord.t[2] = -0x3E8;
+    func_neo_ark_shrine_8017F86C(task);
+    task->state++;
+}
 
 void func_neo_ark_shrine_8017F578(Task* task)
 {
