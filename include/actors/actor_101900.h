@@ -156,6 +156,37 @@ typedef struct Actor01900DeltaFlag {
 } Actor01900DeltaFlag;
 STATIC_ASSERT_SIZEOF(Actor01900DeltaFlag, 0x14);
 
+/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn008B4` to push
+/// a coordinate away from the obstacles in a `GpRec18` table. `angle`/`ok` hold
+/// up to eight bearings collected from the records, `i`/`j` are the loop
+/// cursors, and `blocked` is set when any record's kind is 0x10000.
+typedef struct Actor01900AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ u8       blocked;
+} Actor01900AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor01900AvoidScratch, 0x54);
+
+/// 0x10-byte scratch the bearing helpers of `Actor01900_Fn008B4` nest inside
+/// `Actor01900AvoidScratch`: an obstacle's offset, widened to words.
+typedef struct Actor01900AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor01900AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor01900AvoidDelta, 0x10);
+
 /// Payload of the `0x7D3` message the overlay's `Actor01900_D1728C` handler
 /// table dispatches to `Actor01900_Fn0A31C`. Senders build the record in their
 /// own data (`D_actor_146300_80137AAC` and friends); `field_4` selects which
