@@ -82,7 +82,7 @@ typedef struct _GameSession {
     s16   field_11C; // cached Mc_SaveData.field_22; -1 forces refresh (Gp_InitStarterInv / Gp_LoadWaitBoot)
     s16   field_11E; // cached Wip_SysConfig.field_26; refreshed with field_11C
     s16   field_120; // actor_342400's spawner waits for this to reach 0x3D
-    byte  unknown_122[2];
+    s16   field_122; // water surface height: the water-room dispatchers store their room's level here, the room code feeds it to Gp_UpdateCoord as a world Y
     u8    field_124; // companion type 1/2/3; written from Gp_PickCompanion's return
     u8    field_125; // written with Mc_SaveData.field_5C7 (Gp_EnqueueCompanionCd)
     u8    field_126;

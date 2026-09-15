@@ -82674,3 +82674,62 @@ is the signal that the table is *not* migrating there, and the unit named by the
 
 Inputs: `base_1.i`
 `eb5e6a59b54148cd06f4fa642181dbe31ff371ec4d179959aaf114811ce681be` (100.000%).
+
+## The water rooms share one dispatcher, and it stores the room's level in `GameSession.field_122` (func_dryfield_night_water_hole_8017E630, 2026-09-16)
+
+Eight room functions are the same 24 instructions, and the same *source* idiom —
+copy a two-entry `TaskFunc` table onto the stack, dispatch on `task->state`, then
+store the room's water level:
+
+```c
+void func_dryfield_night_water_hole_8017E630(Task* task)
+{
+    TaskFunc states[2] = { RoomsShared8017e690, func_dryfield_night_water_hole_8017DF28 };
+
+    states[task->state](task);
+    Game_Session->field_122 = -0x1A4;
+}
+```
+
+100.000% on the first build, all penalties zero. The remaining seven are
+`shelter_b4_upper_sewer_8017E4F4`, `shelter_b4_lower_sewer_8017E2D4`,
+`shelter_b2_septic_tank_8017EA50`, `shelter_b2_main_corridor_8017EB8C`,
+`shelter_b4_water_supply_8017ED28`, `shelter_b4_reservoir_8017FADC` and
+`dryfield_water_hole_8017DFA0`; a ninth store site,
+`shelter_b4_upper_sewer_8017DC88`, writes the same field from inside a larger
+function. Write them from this template rather than from their m2c seeds.
+
+**The field.** `field_122` was `unknown_122[2]` in `GameSession`; the store is a
+`sh`, so `s16`. Rooms differ only in the value: the two dryfield rooms store the
+constant `-0x1A4`, the shelter rooms load their own `D_<room>_<addr>` u16 and
+store that. Four room functions read it back with `lh` — `func_dryfield_water_hole_8017E040`
+and `func_dryfield_night_water_hole_8017E6D0` feed it to `Gp_UpdateCoord` as a
+world Y (`sw $v0, 0x2C($sp)` before `Gp_UpdateCoord(&coord)`), and the
+`dryfield_night_water_hole` one also gates a spawn loop on `slt` of it against a
+state block's `0x1C`.
+
+**Do not add that field to `GameActor`.** `session.h` declares both `GameSession`
+(the type of `Game_Session`) and `GameActor`, and both have something at 0x122:
+the session field above, and `GpObj.pad_16` inside `GameActor`'s embedded 0x10C
+list node. A field added to the wrong struct compiles; the failure surfaces only
+at the function that uses it:
+
+```
+…dryfield_night_water_hole_3.i:903: structure has no member named `field_122'
+```
+
+**m2c cannot express the stack table.** It renders the two stores as the call's
+argument list and the indexed load as `sp + idx * 4 + 0x10`, which is not
+compilable C at all (`sp` is undeclared). The index and the array base are one
+expression in the target — `addu $v0, $sp, $v0` then `lw $v0, 0x10($v0)`, the
+array's `0x10` frame offset carried as the load's displacement.
+
+**The copies cannot be shared.** `overlay_dup_index.py find` reports
+`func_dryfield_water_hole_8017DFA0` as the same body at a different link offset,
+but `promote` refuses it: the table's second entry names the overlay's own state
+function (`func_dryfield_night_water_hole_8017DF28` against
+`func_dryfield_water_hole_8017D898`), the "references its own overlay's code or
+data" refusal. Each carrier is matched in its own overlay.
+
+Inputs: `base.i`
+`dcb93d512e15741805c91d823d3ac711794060212ad496cfaf41e48e01d7000b` (100.000%).
