@@ -82984,3 +82984,35 @@ gives `[91]` span 6, and lands 100% with zero penalties. Aliasing is a property 
 the *expression*, not of the layout, so a cast-based access is never a free
 substitute for the field it names - even when the offsets are identical and the
 instruction count matches.
+
+## m2c's argument count is a guess in both directions: a store in the `jal` delay slot is not a fourth argument (func_mine_refuge_8017FC2C, 2026-09-16)
+
+m2c reads the `sb` in a call's delay slot as a use of `$a3` at the call, so a
+byte loaded just before the call and stored in that slot comes out as a fourth
+argument: `SndEvt_EnqueueType6(0x54060003, 0, 0, temp_a3)`, when the project
+declares the callee with three parameters. Following m2c there is a dead end -
+the call does not compile - and the obvious repair, casting to a
+four-parameter pointer type, "works" only by adding `andi a3,t0,0xff` (the `s32`
+parameter promotes the `u8`) and the address shift it drags behind it: 97.357%
+with `branch=1 regs=2 insert=1`.
+
+The target is the three-argument call with the store written *before* it:
+
+```c
+temp_a3                = Mc_SaveData.field_4;   /* lbu a3,4(v0) */
+Mc_SaveData.field_4    = 6;
+D_mine_refuge_80182ADC = temp_a3;
+SndEvt_EnqueueType6(0x54060003, 0, 0);
+```
+
+`temp_a3`'s live range now ends before the call, so an ordinary temp takes
+`$a3` and reorg fills the `jal` slot with the store. 100% on the second build,
+all penalties zero.
+
+A store in a call's delay slot is only a fourth argument if the stored value
+outlives the call in the source; the slot's address alone cannot say, because
+the filler moves the store in from before the call. The two directions of the
+same m2c guess are worth telling apart: a register in a compare that the seed
+never declared means the seed *undercounts* parameters (see the
+`func_mine_mesa_8017DA7C` entry above), while an `$a3` fed by a delay-slot store
+usually means it is overcounting.

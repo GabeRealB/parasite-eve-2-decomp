@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 #include "gameplay/1A8.h"
@@ -23,7 +25,26 @@ INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017ea
 
 void func_mine_refuge_8017FE78(u8 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FC2C);
+s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2)
+{
+    u8 temp_a3;
+
+    if (arg2 == 1) {
+        if (GameFlag_GetNibble(0x12B) != 0) {
+            func_mine_refuge_8017FE78(0U);
+        } else {
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgPlayer3F3(0);
+            temp_a3                = Mc_SaveData.field_4;
+            Mc_SaveData.field_4    = 6U;
+            D_mine_refuge_80182ADC = temp_a3;
+            SndEvt_EnqueueType6(0x54060003, 0, 0);
+            Gp_RunCapCmd(0xD, 0);
+            Task_SpawnFromTable(&D_mine_refuge_801818B4, 1, 0, 0);
+        }
+    }
+    return 0;
+}
 
 s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
