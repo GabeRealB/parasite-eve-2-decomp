@@ -42,6 +42,10 @@ void       Gp_AnimTickIndex(Actor100400Work* arg0, s32 arg1);
 void       Actor00400_Fn085B8(Actor100400* arg0);
 void       Actor00400_Fn08624(Actor100400* arg0);
 s16        Actor00400_Fn086FC(Actor100400* arg0, s16 arg1);
+void       Actor00400_Fn08814(Actor100400* arg0);
+s16        Actor00400_Fn08908(Actor100400* arg0);
+void       Actor00400_Fn0824C(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
+void       Actor00400_Fn08464(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
 void       Gp_UnlinkObj(void* node);
 void       Gp_LinkObj(s32 arg0, GpObj* arg1);
 void       Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
@@ -134,7 +138,51 @@ void Actor00400_Fn00B48(Actor100400* arg0)
     work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00C84);
+void Actor00400_Fn00C84(Actor100400* arg0)
+{
+    Actor100400*      actor;
+    GpActorWork*      player;
+    Actor100400Work*  work;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    pc;
+    Actor100400Entry8 pos;
+    u8                frame;
+
+    actor  = arg0;
+    player = Gp_ActorSlots[0];
+    work   = actor->field_1C;
+    coord  = actor->field_2C->field_8;
+    if (work->field_628 != 4) {
+        Actor00400_Fn088EC(actor, 4, 0x20, 0xA);
+        Actor00400_Fn08814(actor);
+    }
+    frame = Actor00400_Fn086FC(actor, 0x39);
+    if (Actor00400_Fn08908(actor)) {
+        work->field_62A = 0;
+    }
+    if (work->field_62A == 0) {
+        Actor00400_Fn0824C(actor, 0xB, 0xE, (SVECTOR*)&work->field_564);
+        if (work->pad_65C[0] & 1) {
+            s32 id  = (((u16)actor->field_20->field_8 >> 12) << 8) | 0x40040002;
+            s32 pan = (s8)Gp_GetObjPan(actor->field_2C->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(actor->field_2C->field_8));
+        } else {
+            s32 id  = (((u16)actor->field_20->field_8 >> 12) << 8) | 0x40040003;
+            s32 pan = (s8)Gp_GetObjPan(actor->field_2C->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(actor->field_2C->field_8));
+        }
+        work->pad_65C[0]++;
+    }
+    if (work->field_62A >= 0 && frame >= work->field_62A) {
+        pc          = player->extra->field_8;
+        pos.field_0 = pc->coord.t[0];
+        pos.field_2 = pc->coord.t[1];
+        pos.field_4 = pc->coord.t[2];
+        Actor00400_Fn0875C(actor, &pos, 8, 0x100);
+        Actor00400_Fn08464(actor, 0xB, 0xE, (SVECTOR*)&work->field_564);
+    }
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00E3C);
 

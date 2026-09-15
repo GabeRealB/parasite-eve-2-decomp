@@ -83617,3 +83617,24 @@ Also, `ret = 1` appearing in *both* case blocks is the per-case `return 1`,
 not duplication by the compiler.
 
 Inputs: `base_25.i` (100.000%) `12238417d88f79205ec5e97a73a05cdde4292130bee920d1abc77369d0fe85e6`.
+
+### Duplicated arms that assign locals: declare the locals inside each arm
+
+`Actor00400_Fn00C84` picks a sound id from `work->pad_65C[0] & 1` and the target
+keeps both arms whole (`beqz` slot = shared `lui a1`, `j` over the `ori`), i.e.
+the `jump.c` "`x = b; if (...) x = a;`" hoist did not fire. Duplicating the whole
+id/pan/`SndEvt_EnqueueType6` block into both arms (the known lever) fixes the
+branch, but with function-scope `id`/`pan` locals each is now set in two blocks,
+so they leave local-alloc for `global.c` and reshuffle every callee-saved
+register (98.7%). Declaring `s32 id` / `s32 pan` *inside each arm* gives each arm
+its own block-local pseudos, cross-jumping still merges the tails, and it matched.
+
+Two dead ends on the way, both worth knowing: `snd = bit; if (snd)` blocks the
+hoist (the jump itself references `x`) but CSE makes `snd` canonical, so the
+`andi` lands in the constants' register (`a1`, not `v0`); and a separate `bit`
+temp or `u8` width does not survive CSE either.
+
+Same function: the parameter lost `$s2` to `work` because its `REG_EQUIV`
+doubles its live length (see the parameter-priority entry). Copying it into a
+local first (`actor = arg0;`) and using only the local removed the doubling and
+flipped the order, with no instruction change.
