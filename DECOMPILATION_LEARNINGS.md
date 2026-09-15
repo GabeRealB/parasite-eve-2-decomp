@@ -82462,3 +82462,53 @@ Inputs: `base.i` (m2c `M2C_UNK` payloads, 99.891%)
 `eb9d6652ee43a9c24db2b888077d9c1ba561d16ee6a2d4b65ebe5ec64d2f0ccb`,
 `base_3.i` (one `[5]` table, 97.391%)
 `0056ffdc64be396456d95cab5493ab3f40287382c62ef4bdd563707130a622c4`.
+
+## The "write two calls" fix for a shared constant argument is a liveness rule, not a shape rule (func_dryfield_water_tower_8017DCB4, 2026-09-15)
+
+The section above (`m2c's var_a0 = K; if (…) var_a0 = K2; f(var_a0)`) says to
+write the two calls out instead of a shared local. That is only *forced* when
+the local is live across an intervening call; with no call between the
+assignment and the use, both spellings compile to the same object.
+
+`func_dryfield_water_tower_8017DCB4` is the minimal case — m2c reconstructs the
+target's single `jal` as one local assigned in each arm of the if-chain:
+
+```c
+temp_v0 = GameFlag_GetNibble(0x55);
+if ((temp_v0 >= 0) && ((var_a0 = 1, ((temp_v0 < 2) != 0)) || (var_a0 = 0, ((temp_v0 < 4) != 0)))) {
+    func_dryfield_water_tower_801802D8(var_a0);
+}
+```
+
+Both of `var_a0`'s definitions sit *after* the `GameFlag_GetNibble` call, so
+the value never has to survive a call: local-alloc keeps it in `$a0` (`li a0,1`
+in the `bnez` delay slot, `addu a0,zero,zero` in the `beqz` delay slot) and the
+frame stays 0x18. Writing that m2c shape as a plain if-chain that assigns the
+variable before one call is 100.000%, and so is the two-call spelling the
+section above recommends:
+
+```c
+mode = GameFlag_GetNibble(0x55);
+if (mode < 0) {
+    return;
+}
+if (mode < 2) {
+    func_dryfield_water_tower_801802D8(1);
+} else if (mode < 4) {
+    func_dryfield_water_tower_801802D8(0);
+}
+```
+
+Both give byte-identical objects (18 instructions, `stack=0 regs=0`), so check
+liveness before bracing for a `$s0` + `sw/lw` frame: the `$s0` case needs the
+constant defined *before* the `jal`, not merely a shared `jal`. The shape also
+carries a second m2c artefact worth naming — `(v = K, cond)` inside a `&&`/`||`
+chain is a variable set per arm of an if-chain, not a comma expression anyone
+wrote.
+
+Inputs: `base.i` (m2c comma form, 100.000%)
+`255666d23bfba519b328a84dbcea8e4f10242e729846fe6e9f6096f4b7710baa`,
+`base_1.i` (if-chain assigning the variable, 100.000%)
+`64fcba6e72711fd1a12c186722604dea4b15ebf9c6a8eda4e78acf2f31f8a874`,
+`base_4.i` (two calls, 100.000%)
+`b015506ee123eae40bd2452efb7a36fbe5a00e3c1e8e2f140b08139c17bd673f`.

@@ -24,6 +24,7 @@ extern TaskDesc D_dryfield_water_tower_801803D8;
 extern TaskDesc D_dryfield_water_tower_80182384[];
 
 void func_dryfield_water_tower_8017DCB4(void);
+void func_dryfield_water_tower_801802D8(u8 arg0);
 
 void func_dryfield_water_tower_8017D948(Task* arg0)
 {
@@ -75,7 +76,19 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DC64);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DCB4);
+void func_dryfield_water_tower_8017DCB4(void)
+{
+    s32 mode = GameFlag_GetNibble(0x55);
+
+    if (mode < 0) {
+        return;
+    }
+    if (mode < 2) {
+        func_dryfield_water_tower_801802D8(1);
+    } else if (mode < 4) {
+        func_dryfield_water_tower_801802D8(0);
+    }
+}
 
 s32 func_dryfield_water_tower_8017DCFC(void)
 {
