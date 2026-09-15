@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
@@ -266,7 +267,17 @@ void func_mine_cavern_80183860(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183890);
+void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
+{
+    MineCavernWork* work;
+
+    work                = (MineCavernWork*)task->idMap;
+    work->obj40.flags  &= 0x7FFF;
+    enemy->node.field_4 = 1;
+    Gp_UnlinkObj(&work->obj40);
+    work->field_148 = 0;
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801838F4);
 

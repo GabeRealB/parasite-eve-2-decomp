@@ -6,15 +6,26 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// Work block a mine_cavern task parks at `Task::idMap`. Only the `GpObj`
-/// display node at +0x40 is known so far, and the sibling
-/// `func_mine_cavern_80183890` is what gives it away: it clears
-/// `obj40.flags` with `andi 0x7FFF` at +0x5E and then passes `&obj40` (a
+/// Work block a mine_cavern task parks at `Task::idMap`, allocated with
+/// `Mem_Calloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`
+/// (and by `func_mine_cavern_801836D0`). It carries two `GpObj` display nodes:
+/// the `+0x40` one is what `func_mine_cavern_80183890` is given away by - it
+/// clears `obj40.flags` with `andi 0x7FFF` at +0x5E and then passes `&obj40` (a
 /// `+0x40` on the same base pointer) to `Gp_UnlinkObj`, the way
-/// `func_mine_cavern_80183860` does on its own exit path.
+/// `func_mine_cavern_80183860` does on its own exit path - and
+/// `func_mine_cavern_801838F4` reaches the second by `+0xC0`, clearing its
+/// flags at +0xDE the same way. `field_148` is the counter that function ticks
+/// and switch-dispatches on (against 0x3C) and that `func_mine_cavern_80183890`
+/// clears on its way out.
 typedef struct MineCavernWork {
-    /* 0x00 */ byte  pad_0[0x40];
-    /* 0x40 */ GpObj obj40;
+    /* 0x000 */ byte  pad_0[0x40];
+    /* 0x040 */ GpObj obj40;
+    /* 0x060 */ byte  pad_60[0x60];
+    /* 0x0C0 */ GpObj objC0;
+    /* 0x0E0 */ byte  pad_E0[0x68];
+    /* 0x148 */ u16   field_148;
+    /* 0x14A */ byte  pad_14A[2];
 } MineCavernWork;
+STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
 
 #endif
