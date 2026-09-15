@@ -27,8 +27,6 @@ void func_actor_510900_8013BC80(Actor510900* arg0);
 extern u8  D_801153F4;
 extern u32 Gp_LcgState;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900", D_actor_510900_80131E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80131F24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80132D4C);
@@ -91,7 +89,52 @@ void func_actor_510900_801340E8(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80134284);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801346D4);
+void func_actor_510900_801346D4(Task* arg0)
+{
+    GpEffWork*     eff;
+    GsCOORDINATE2* coord;
+    s16            mode;
+
+    eff   = arg0->spawnArg2;
+    mode  = Gp_State1C->field_4;
+    coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
+    if (mode != 0) {
+        if (mode >= 4 || arg0->state == 4) {
+            Gp_ReleaseState1CMem(eff, arg0);
+        }
+        return;
+    }
+    eff->field_22++;
+    switch (arg0->state) {
+        case 0:
+            eff = Gp_SpawnEff(0x60184, coord, 0x480, NULL);
+            if (eff != NULL) {
+                Task_Reparent(arg0, eff->field_0);
+            }
+            arg0->state++;
+            break;
+        case 1:
+            if (eff->field_22 >= 9) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            Gp_SpawnEff(0x60070, coord, 0x82004400, NULL);
+            if (eff->field_22 >= 0x33) {
+                arg0->state++;
+            }
+            break;
+        case 3:
+            Gp_SpawnEff(0x60070, coord, 0xD2004400, NULL);
+            if (eff->field_22 >= 0x3D) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            Gp_ReleaseState1CMem(eff, arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013482C);
 
