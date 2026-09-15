@@ -110,6 +110,26 @@ typedef struct Actor510900ChildAnim {
 } Actor510900ChildAnim;
 STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
 
+/// 0xD0-byte `Task::idMap` block `func_actor_510900_801397F0` allocates for its
+/// child task: the child's colour and light matrices (handed to
+/// `TmdObject::field_20` / `field_1C`), two linked `GpObj`s with their `GpRec18`
+/// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
+/// teardown state machine on.
+typedef struct Actor510900ChildFx {
+    /* 0x00 */ MATRIX  colorMtx;
+    /* 0x20 */ MATRIX  lightMtx;
+    /* 0x40 */ GpObj   obj40;
+    /* 0x60 */ GpRec18 rec60;
+    /* 0x78 */ GpObj   obj78;
+    /* 0x98 */ GpRec18 rec98;
+    /* 0xB0 */ GpRec18 recB0;
+    /* 0xC8 */ u16     field_C8; ///< frame counter, reset at every state change
+    /* 0xCA */ s16     field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
+    /* 0xCC */ s16     field_CC;
+    /* 0xCE */ s16     field_CE;
+} Actor510900ChildFx;
+STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
+
 /// Spawn position of the child, indexed by its `Task::spawnArg1`.
 extern SVECTOR D_actor_510900_80167CB8[];
 /// Spawn rotation about Y, indexed the same way.

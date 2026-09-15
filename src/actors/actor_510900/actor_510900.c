@@ -426,7 +426,79 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80139C10);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A100);
+void func_actor_510900_8013A310(Task* task);
+
+/// Frame handler of the effect child task: state 0 fades the object in over
+/// 0x10 frames, state 1 holds it until its `GpRec18` reports a hit or 0x1F
+/// frames pass, state 2 runs the hit handler, and state 3 unlinks the object
+/// and destroys the enemy.
+void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
+{
+    Actor510900ChildFx* work;
+    Actor510900Work*    parent;
+    u16                 tick;
+
+    work   = (Actor510900ChildFx*)task->idMap;
+    parent = (Actor510900Work*)task->parent->idMap;
+    if (D_801153F4 == 0) {
+        switch (work->field_CA) {
+            case 0:
+                tick           = work->field_C8 + 1;
+                work->field_C8 = tick;
+                if (tick >= 0x10) {
+                    work->obj40.field_1C = 0x258;
+                    work->field_CA       = 1;
+                    work->field_C8       = 0;
+                    work->obj40.flags   |= 0x8000;
+                    return;
+                }
+                if (parent->field_592 == 0) {
+                    work->obj40.flags &= 0x7FFF;
+                    Gp_UnlinkObj(&work->obj78);
+                    work->field_C8                            = 0;
+                    ((Actor510900Obj2C*)task->extra)->field_C = 0x80;
+                    task->state                               = 2;
+                    work->field_CA                            = 3;
+                    return;
+                }
+                break;
+            case 1:
+                if ((work->rec60.field_4 & 0xFFFF0000) == 0x10000) {
+                    work->field_CA     = 2;
+                    work->field_CC     = 0;
+                    work->obj40.flags &= 0x7FFF;
+                } else {
+                    tick           = work->field_C8 + 1;
+                    work->field_C8 = tick;
+                    if (tick >= 0x1F) {
+                        work->field_CA = 3;
+                        work->field_C8 = 0;
+                    } else if (parent->field_592 == 0) {
+                        work->obj40.flags &= 0x7FFF;
+                        Gp_UnlinkObj(&work->obj78);
+                        work->field_C8                            = 0;
+                        ((Actor510900Obj2C*)task->extra)->field_C = 0x80;
+                        task->state                               = 2;
+                        work->field_CA                            = 3;
+                    }
+                }
+                Gp_ClearRec18Occupied(&work->rec60);
+                return;
+            case 2:
+                func_actor_510900_8013A310(task);
+                return;
+            case 3:
+                tick           = work->field_C8 + 1;
+                work->field_C8 = tick;
+                if (tick >= 0x1F) {
+                    parent->field_5BA = 0;
+                    Gp_UnlinkObj(&work->obj40);
+                    Gp_DestroyEnemy(enemy, task);
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A310);
 
