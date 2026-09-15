@@ -80151,3 +80151,52 @@ Two levers that do *not* work for this swap, both worth knowing:
 
 Inputs: `base_1.i` `d8c3158cdcb2cd2a9a9e10b9c28c8c74916baf0d75a10e6ef0ccfe479691458e`,
 `base_12.i` `41d64bdea1facee77f1fb36da4d86fe0707c4c7389f2d544d58b95b0e6e75fee`.
+
+## An m2c pile of scalars assembled into one stack object: only the address-taken one survives dead-store elimination (func_neo_ark_shrine_8017F86C, 2026-09-15)
+
+`func_neo_ark_shrine_8017F86C` is 23 insns that load three words from a
+`GsCOORDINATE2`'s `workm.t[]`, bias the middle one by `-0x320`, and hand them to
+`func_800D7A9C` as its `VECTOR*`. m2c renders that as three unrelated locals and
+one address-taken:
+
+```c
+    s32 sp10, sp14, sp18;
+    sp10 = M2C_FIELD(temp_s0, s32 *, 0x38);
+    sp14 = M2C_FIELD(temp_s0, s32 *, 0x3C) - 0x320;
+    sp18 = M2C_FIELD(temp_s0, s32 *, 0x40);
+    func_800D7A9C(temp_s1, &sp10, 0, 3);
+```
+
+Only `sp10`'s address escapes, so the other two are ordinary dead stores: GCC
+deletes both `sw`s *and* the loads that feed them, leaving one `lw v0,0x38(s0)`
+and one `sw v0,0x10(sp)`. The frame shrinks with them (0x28 instead of 0x30,
+because the surviving local block is 8 bytes, not 16), which is the tell.
+
+Symptom in the score: **structure "match" with `blocks=1/1`, `predicates_match`,
+`calls_match`, and the candidate 5 insns short** — here 79.1%,
+`Penalties: regs=17 delete=5`. Nothing about the control flow is wrong; the
+candidate is missing instructions the target has, all of them stores.
+
+Fix: write the object the callee actually takes, so one address is taken for all
+three fields:
+
+```c
+    VECTOR vec;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+```
+
+100% with all-zero penalties on the first body rewrite, frame back to 0x30.
+Rule of thumb: when the target stores consecutive words to consecutive stack
+slots and passes one of those addresses, the C is one aggregate — declare the
+named repo type (`VECTOR`, `SVECTOR`, the work struct) rather than an array or
+a set of scalars, so the field names also match the siblings. The BRIEF's
+"similar matched bodies" listed the identical body minus its trailing call
+(`func_actor_521100_80136680`, `func_actor_460200_80133A04`); reading one of
+those gave the whole source shape, which is the fast path for a `calls`-class
+1.00 neighbour.
+
+Inputs: `base.i` `3b85f84be47bccc4d77de3f1b295cfb21ee418038f0d8bda6459c7a151b7ba16`,
+`base_1.i` `f0e9c92e15799d13cd3a249b72ddf3e4e16730bbd28174741adb546045ee4dcd`.
