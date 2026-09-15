@@ -1,9 +1,16 @@
 #include "common.h"
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DC58);
+s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    if ((arg2->field_2 == 6) && (GameFlag_GetNibble(0xC4) == 1)) {
+        Gp_RunCapCmd1(6);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_2", func_mine_cavern_8017DC9C);
 
