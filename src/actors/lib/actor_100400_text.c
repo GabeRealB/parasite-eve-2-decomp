@@ -362,7 +362,37 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04414);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04580);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04900);
+void Actor00400_Fn04900(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    s32              id;
+    s32              cond;
+
+    work = arg0->field_1C;
+    if (work->field_642 != 0 && work->field_644 == 1) {
+        work->field_632 = 0x10;
+        work->field_628 = 0xC;
+        work->field_624 = 2;
+        id              = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40040006;
+        SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(arg0->field_2C->field_8),
+                            (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        return;
+    }
+    if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
+        work2 = arg0->field_1C;
+        if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work2            = arg0->field_1C;
+            work2->field_638 = 2;
+            work2->field_63A = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04A1C);
 
