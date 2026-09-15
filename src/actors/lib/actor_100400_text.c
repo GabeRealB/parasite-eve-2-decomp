@@ -612,7 +612,47 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05728);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn058C4);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05D00);
+void Actor00400_Fn05D00(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* w;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coord2;
+    SVECTOR          vec;
+    s32              sound;
+    s32              pan;
+    s32              i;
+    s16              y;
+
+    coord           = arg0->field_2C->field_8;
+    work            = arg0->field_1C;
+    work->field_660 = 1;
+    work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
+    Gp_SetLightMode(arg0->field_20, 2);
+    if (work->field_628 != 3) {
+        i      = 0;
+        y      = work->field_64E - coord->coord.t[1] + 0xFA;
+        coord2 = arg0->field_2C->field_8;
+        do {
+            vec.vx = (u32)rsin(i << 8) >> 3;
+            vec.vy = y;
+            vec.vz = (u32)rcos(i << 8) >> 3;
+            Gp_SpawnEff(D_80115738, coord2, 0x01202148, &vec);
+            i++;
+        } while (i < 16);
+        sound = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40040008;
+        pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        w            = arg0->field_1C;
+        w->field_63C = 4;
+        w->field_632 = 0x10;
+        w->field_628 = 1;
+        w->field_624 = 1;
+    } else {
+        work->field_63A++;
+    }
+    work->field_63A++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05EA4);
 

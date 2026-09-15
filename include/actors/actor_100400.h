@@ -55,6 +55,14 @@ typedef struct Actor100400Record {
     /* 0x06 */ s16  field_6;
 } Actor100400Record;
 
+/// 8-byte entry indexed by `Actor100400Work.field_65B`; `field_2` offsets
+/// the Y base in `Actor00400_Fn05D00`.
+typedef struct Actor100400Entry8 {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  field_2;
+    /* 0x4 */ byte pad_4[4];
+} Actor100400Entry8;
+
 typedef union Actor100400Flags {
     u32 word;
     u16 half;
@@ -97,7 +105,7 @@ typedef struct Actor100400Work {
     /* 0x5E4 */ SVECTOR            field_5E4;
     /* 0x5EC */ byte               pad_5EC[0x1C];
     /* 0x608 */ Actor100400Record* field_608;
-    /* 0x60C */ byte               pad_60C[4];
+    /* 0x60C */ Actor100400Entry8* field_60C;
     /* 0x610 */ s32                field_610;
     /* 0x614 */ s16                field_614[3];
     /* 0x61A */ byte               pad_61A[2];
