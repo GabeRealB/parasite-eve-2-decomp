@@ -79450,3 +79450,45 @@ current.
 Then `--unit room_snd05` writes the symbol `RoomSnd05`; the family convention
 is `Room_Snd05` (see the entry above), so rename it by hand in every carrying
 sym file and put the line in sort order.
+
+## The `M2C_FIELD(&global, T*, off)` reloc fold is visible in `.rtl`, before any pass
+
+The entry "`M2C_FIELD(&global, T*, off)` folds the offset into the symbol reloc"
+says the two spellings differ "in the object dump rather than in a dump pass".
+They differ in the *first* dump, at insn expansion, and one `dump.sh` shows the
+whole mechanism - worth having before spending builds on register hypotheses.
+
+A member access leaves the symbol bare and puts the field offset in the memory
+operand:
+
+```
+(insn 13 (set (reg:SI 83) (high:SI (symbol_ref:SI ("D_80114D28")))))
+(insn 14 (set (reg:SI 82) (lo_sum:SI (reg:SI 83) (symbol_ref:SI ("D_80114D28"))))
+         (expr_list:REG_EQUAL (symbol_ref:SI ("D_80114D28"))))
+(insn 16 (set (mem/s:QI (plus:SI (reg:SI 82) (const_int 16))) (const_int 0)))
+```
+
+`M2C_FIELD(&D_80114D28, s8 *, 0x10)` folds the offset *into the symbol constant*
+instead, so the memory operand is the reloc itself and carries no displacement:
+
+```
+(insn 13 (set (reg:SI 83)
+          (high:SI (const:SI (plus:SI (symbol_ref:SI ("D_80114D28"))
+                          (const_int 16))))))
+(insn 14 (set (reg:SI 82) (lo_sum:SI (reg:SI 83)
+                          (const:SI (plus:SI (symbol_ref:SI ("D_80114D28"))
+                                  (const_int 16)))))
+         (expr_list:REG_EQUAL (const:SI (plus:SI (symbol_ref:SI ("D_80114D28"))
+                     (const_int 16))) (nil)))
+(insn 16 (set (mem/s:QI (reg:SI 82)) (const_int 0)))
+```
+
+So it is a front-end property - the member offset is applied *outside* the symbol
+for a field access and *inside* it for address-taken pointer arithmetic - and not
+something CSE decides; CSE only inherits whichever base the front end handed it.
+`func_dryfield_night_factory_801819BC` is the second instance, and matches the
+first exactly: 89.615% (`regs=2 reorder=1 insert=1 delete=1`) with
+`sb %lo(D_80114D28+0x10)(v0)` / `sh -0x4(v0)`, 100.000% and all-zero on the
+struct-member spelling. A controlled variant that kept m2c's `void *arg0` and its
+`M2C_FIELD` task and work accesses and changed *only* those two stores matched
+too, which is what makes the address spelling, and nothing else, the cause.
