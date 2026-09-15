@@ -15,6 +15,7 @@ expected/
 .splat/
 .splache
 .ninja_log
+.ninja_deps
 *.ninja
 
 tools/vacuum.log

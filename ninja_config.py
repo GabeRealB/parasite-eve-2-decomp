@@ -1312,6 +1312,11 @@ def clean_working_files(clean_build_files: bool, clean_target_files: bool):
             os.remove("rules.ninja")
         if os.path.exists(".ninja_log"):
             os.remove(".ninja_log")
+        # The deps log the assembler depfiles feed. Stale entries are safe -
+        # a missing output is dirty whatever they say - but a clean that
+        # leaves a 1MB index of deleted objects behind is not a clean.
+        if os.path.exists(".ninja_deps"):
+            os.remove(".ninja_deps")
         shutil.rmtree(ASM_DIR, ignore_errors=True)
         shutil.rmtree(LINKER_DIR, ignore_errors=True)
 
