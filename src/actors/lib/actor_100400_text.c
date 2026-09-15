@@ -30,6 +30,8 @@ void       func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 s32        func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 void       Gp_ClearRec18Occupied(GpRec18* arg0);
 void       Gp_SetLightMode(Actor100400Obj* arg0, s32 arg1);
+void       Actor00400_Fn0875C(Actor100400* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3);
+void       Actor00400_Fn088EC(Actor100400* arg0, s16 arg1, s16 arg2, s16 arg3);
 void       Actor00400_Fn0237C(Actor100400* arg0);
 void       Actor00400_Fn02FF8(Actor100400* arg0);
 void       Gp_IncStateF0Ref(s32 arg0);
@@ -438,7 +440,31 @@ fail:
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02208);
+s32 Actor00400_Fn02208(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+
+    work   = arg0->field_1C;
+    coord  = arg0->field_2C->field_8;
+    vec.vx = work->field_60C[work->field_65B].field_0 - coord->coord.t[0];
+    vec.vy = work->field_60C[work->field_65B].field_2 - coord->coord.t[1];
+    vec.vz = work->field_60C[work->field_65B].field_4 - coord->coord.t[2];
+    if (work->field_628 != 3) {
+        Actor00400_Fn088EC(arg0, 3, 0x10, 0xE);
+        Gp_SetLightMode(arg0->field_20, 2);
+    }
+    work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
+    if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 400) {
+        work->field_65B = (work->field_65B + 1) & 7;
+        return 1;
+    } else {
+        Actor00400_Fn0875C(arg0, &work->field_60C[work->field_65B], 0x2C, 0x100);
+        Actor00400_Fn0762C(arg0, 0x60, work->field_556);
+        return 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0237C);
 

@@ -55,12 +55,14 @@ typedef struct Actor100400Record {
     /* 0x06 */ s16  field_6;
 } Actor100400Record;
 
-/// 8-byte entry indexed by `Actor100400Work.field_65B`; `field_2` offsets
-/// the Y base in `Actor00400_Fn05D00`.
+/// 8-byte waypoint indexed by `Actor100400Work.field_65B` (wraps at 8);
+/// `field_2` offsets the Y base in `Actor00400_Fn05D00`, and
+/// `Actor00400_Fn02208` measures the XZ distance from the root coordinate.
 typedef struct Actor100400Entry8 {
-    /* 0x0 */ byte pad_0[2];
+    /* 0x0 */ u16  field_0;
     /* 0x2 */ u16  field_2;
-    /* 0x4 */ byte pad_4[4];
+    /* 0x4 */ u16  field_4;
+    /* 0x6 */ byte pad_6[2];
 } Actor100400Entry8;
 
 typedef union Actor100400Flags {
