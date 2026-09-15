@@ -49,24 +49,42 @@ STATIC_ASSERT_SIZEOF(DwtwMsg7DB, 0x4);
 
 /// Scratch state of the room's cap script, stored at `Task::idMap`: the
 /// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
-/// task before it runs. The whole body is halfword slots -- the pairs are
-/// timers the instructions above the state switch count down -- and the ones
-/// the decomp has named so far are `field_58` / `field_5A` / `field_60`, the
-/// three `func_dryfield_water_tower_8017F808` clears on message 0x7DB, and
+/// task before it runs. Every task the room spawns off `D_..._80182384`
+/// allocates the same block, so the prop tasks reached through `field_44` /
+/// `field_48` carry one too.
+///
+/// `field_40` is the slot-3 game pointer (`Game_GetPtrSlot(3)`), the task the
+/// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
+/// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
+/// `D_..._80182384` -- the 0x7D4 (`Room_Util08`) targets -- and `field_4C` is
+/// the task it spawns off a second table, `D_..._8018277C`.
+///
+/// The tail is halfword slots -- the pairs are timers the instructions above
+/// the state switch count down -- and the ones the decomp has named so far are
+/// `field_58` / `field_5A` / `field_60`, the three
+/// `func_dryfield_water_tower_8017F808` clears on message 0x7DB, and
 /// `field_5C` / `field_5E`, which `func_dryfield_water_tower_8017F8E8` writes
 /// together. `field_6C` / `field_6E` are 0/1 latches set by
-/// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`.
+/// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`; `field_70` is a third,
+/// set by script opcode `func_dryfield_water_tower_8017FA5C` and read back by
+/// the prop task `func_dryfield_water_tower_8017E1DC`.
 typedef struct DryfieldWaterTowerState {
-    /* 0x00 */ u8  pad_0[0x58];
-    /* 0x58 */ s16 field_58;
-    /* 0x5A */ s16 field_5A;
-    /* 0x5C */ s16 field_5C;
-    /* 0x5E */ s16 field_5E;
-    /* 0x60 */ s16 field_60;
-    /* 0x62 */ u8  pad_62[0xA];
-    /* 0x6C */ s16 field_6C;
-    /* 0x6E */ s16 field_6E;
-    /* 0x70 */ u8  pad_70[0xC];
+    /* 0x00 */ u8    pad_0[0x40];
+    /* 0x40 */ Task* field_40; // Game_GetPtrSlot(3)
+    /* 0x44 */ Task* field_44;
+    /* 0x48 */ Task* field_48;
+    /* 0x4C */ Task* field_4C;
+    /* 0x50 */ u8    pad_50[0x8];
+    /* 0x58 */ s16   field_58;
+    /* 0x5A */ s16   field_5A;
+    /* 0x5C */ s16   field_5C;
+    /* 0x5E */ s16   field_5E;
+    /* 0x60 */ s16   field_60;
+    /* 0x62 */ u8    pad_62[0xA];
+    /* 0x6C */ s16   field_6C;
+    /* 0x6E */ s16   field_6E;
+    /* 0x70 */ u16   field_70;
+    /* 0x72 */ u8    pad_72[0xA];
 } DryfieldWaterTowerState;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 

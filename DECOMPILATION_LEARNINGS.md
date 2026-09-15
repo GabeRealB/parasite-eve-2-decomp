@@ -41875,6 +41875,53 @@ order *and* leaves the address computation free to move -- 100%.
 Read a barrier that moves the score up but not to 100 as "right diagnosis,
 wrong remedy", not as "close, permute it".
 
+## When the aliasing victim is really a struct field, name that field rather than declaring an array
+
+Both remedies above treat the global as a bare scalar. Check whether it is one
+first. `D_8007216C` is `Mc_SaveData.field_4` -- `Mc_SaveData = 0x80072168` and
+the sym files carry both names for that one address. Writing the access the way
+the save data actually is
+
+```c
+Mc_SaveData.field_4 = Gp_FindViewIndex(9);
+```
+
+restores the order with no barrier and no shape claim, because both sides are
+now `MEM_IN_STRUCT_P` and *both* suppressing clauses in `true_dependence` go
+false. In `func_dryfield_water_tower_8017FA5C` -- a `Gp_FindViewIndex` result
+stored beside a `DryfieldWaterTowerState*` load of `field_48` -- the schedule
+then matches the target instruction for instruction.
+
+Prefer this to `SOFT_BARRIER()` here, and read the barrier's failure as
+diagnostic rather than as noise. Measured on that function the barrier bought
+only 96.0% -> 98.0% (`reorder=2` left): it fences in *both* directions, so the
+independent constant setup the target schedules *above* the store
+(`li a1,0x7D4`, `lui`/`addiu a2`) can no longer move there, and the store group
+lands too early. That is a different residual from the `%hi`-hoist case above,
+and the same conclusion follows. Keep `[1]` for a global that really is a bare
+scalar.
+
+The residual cost of naming the field is the *symbol spelling*, not the code. A
+`COMPONENT_REF` off a different symbol emits `%hi(Mc_SaveData)` /
+`%lo(Mc_SaveData+4)` where the target `asm/` names `%hi(D_8007216C)` /
+`%lo(D_8007216C)`. Only the relocation addend differs; the linked bytes do not.
+So `asm-differ` and the scratch scorer report 99.833% for an exact match, while
+the project's acceptance criterion -- `build-and-verify.sh`, the image
+checksum -- passes. The repo already builds matched bodies this way
+(`src/rooms/lib/rooms_shared_80181228.c` and `acropolis_observatory_3.c` both
+write `Mc_SaveData.field_4`), so do not "fix" the score by fabricating an alias
+for the symbol.
+
+One operand detail worth keeping: the clause that drops the dependence needs
+`GET_MODE (operand) != QImode`, so a byte store is never the suppressing side --
+only the wider in-struct varying-address operand suppresses, and only against a
+non-struct fixed-address partner, which is why an `sb` to a scalar global is the
+classic victim. In 2.8.1 all three predicates live in `sched.c`; there is no
+`alias.c` in this tree. `explow.c`'s
+`MEM_IN_STRUCT_P (mem) = ... || GET_CODE (addr) == PLUS` sits inside
+`stabilize()`, which only runs for genuinely unstable addresses, so it is not
+why an ordinary field access is flagged.
+
 ## Promoting a shared body re-cuts the overlay's units, and the `rodata` key does not follow
 
 `overlay_dup_index.py promote` writes a `shared` span into every carrying
