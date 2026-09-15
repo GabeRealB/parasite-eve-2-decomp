@@ -43,7 +43,32 @@ void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
     work->field_2E = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DFD0);
+void func_dryfield_motel_room_1_8017DFD0(void)
+{
+    Dmr1Work*     work;
+    GpAnimArg     msg;
+    WipSysConfig* cfg;
+    s32           weaponId;
+    s32           anim;
+
+    work         = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->idMap;
+    weaponId     = D_80073BA9;
+    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0  = (void*)anim;
+    msg.field_4  = 9;
+    msg.field_8  = 0;
+    msg.field_C  = 0;
+    msg.field_10 = 0;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+    cfg            = &Wip_SysConfig;
+    work->field_14 = cfg->field_4->t[0];
+    work->field_18 = cfg->field_4->t[1];
+    work->field_1C = cfg->field_4->t[2];
+    work->field_24 = 0;
+    work->field_26 = 0x500;
+    work->field_28 = 0;
+    Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&work->field_14, 0);
+}
 void func_dryfield_motel_room_1_8017E0A0(void)
 {
 }
