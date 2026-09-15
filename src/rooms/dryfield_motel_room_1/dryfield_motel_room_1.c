@@ -18,7 +18,10 @@ s32 func_dryfield_motel_room_1_8017D5EC(void)
 }
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D5F4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D61C);
+s32 func_dryfield_motel_room_1_8017D61C(void)
+{
+    return 0;
+}
 /// Message gate for the room's hotspot registered under id 0x13EF - the id the
 /// sanctuary's own gate uses. On the phase-3 visit (`Game_Session::field_9`)
 /// whose sub-id (`RoomEventMsg::field_2`) is 1 and that has not yet latched
