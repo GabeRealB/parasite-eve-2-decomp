@@ -50,7 +50,8 @@ void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
-extern GsCOORDINATE2 Gfx_ViewCoord;
+extern GsCOORDINATE2  Gfx_ViewCoord;
+extern TaskFuncTable3 Actor00400_D0002C;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -481,7 +482,13 @@ void Actor00400_Fn07FEC(Actor100400* arg0)
     work->field_63A = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08004);
+void Actor00400_Fn08004(Actor100400* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = Actor00400_D0002C;
+    sp.funcs[arg0->field_30]((Task*)arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn0805C);
 
