@@ -38,7 +38,11 @@ typedef struct Actor521100Work {
     /* 0x680 */ s16          field_680;
     /* 0x682 */ byte         pad_682[0xA];
     /* 0x68C */ s16          field_68C;
-    /* 0x68E */ byte         pad_68E[0x10];
+    /* 0x68E */ s16          field_68E;
+    /* 0x690 */ s16          field_690;
+    /* 0x692 */ s16          field_692;
+    /* 0x694 */ s16          field_694;
+    /* 0x696 */ byte         pad_696[8];
     /* 0x69E */ s16          field_69E;
     /* 0x6A0 */ byte         pad_6A0[8];
     /* 0x6A8 */ s16          field_6A8;
@@ -46,6 +50,14 @@ typedef struct Actor521100Work {
     /* 0x6B0 */ s16          field_6B0;
     /* 0x6B2 */ s16          field_6B2;
 } Actor521100Work;
+
+/// 4-byte message record; the handler switches on the halfword at 0x2,
+/// the same shape as `Actor361100Msg`.
+typedef struct Actor521100Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor521100Msg;
+STATIC_ASSERT_SIZEOF(Actor521100Msg, 0x4);
 
 typedef struct Actor521100Ctx {
     /* 0x00 */ byte pad_0[0x14];

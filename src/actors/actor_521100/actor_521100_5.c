@@ -10,7 +10,23 @@ void func_actor_521100_80135F2C(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135D10);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135D58);
+s32 func_actor_521100_80135D58(Actor521100* arg0, s32 arg1, Actor521100Msg* arg2)
+{
+    Actor521100Work* work;
+
+    work = arg0->field_1C;
+    switch (arg2->field_2) {
+        case 0:
+            work->field_68C = 1;
+            work->field_68E = 0;
+            work->field_690 = 0;
+            break;
+        case 1:
+            work->field_694 = arg2->field_2;
+            break;
+    }
+    return 0;
+}
 
 s32 func_actor_521100_80135D9C(Actor521100* arg0)
 {
