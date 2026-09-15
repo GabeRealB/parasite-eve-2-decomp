@@ -82733,3 +82733,45 @@ data" refusal. Each carrier is matched in its own overlay.
 
 Inputs: `base.i`
 `dcb93d512e15741805c91d823d3ac711794060212ad496cfaf41e48e01d7000b` (100.000%).
+
+## A `base + const` argument off a reused `%hi`/`%lo` means one symbol indexed - and the const is the element size (func_dryfield_motel_room_1_8017DF08, 2026-09-15)
+
+`func_dryfield_motel_room_1_8017DF08` hands `Gp_DispatchMsg` two payload
+pointers and the target reads
+
+```
+lui   s0,%hi(D_dryfield_motel_room_1_8017E130)
+addiu s0,s0,%lo(D_dryfield_motel_room_1_8017E130)
+move  a2,s0            # first call
+...
+addiu a2,s0,0x18       # second call, same base
+```
+
+That `addiu` off a live base is the whole answer about the data. Two *sibling*
+symbols would have compiled to a second `lui`/`addiu` pair, and splat would then
+have labelled the second address - exactly what it did for
+`acropolis_helicopter_landing_pad`, whose two `RoomPlacement`s 0x18 apart carry
+two names. One base plus a constant offset means the original indexed a single
+array, so the offset *is* the stride: `0x30 / 0x18 = 2` elements.
+
+Read the blob at that stride and the element type names itself. Both records fit
+`rooms/room_common.h`'s `RoomPlacement` (`0x1F4, 0, 0xAF0` and `0x3E8, 0, 0xC80`
+with every rotation zero, at 0x00 and 0x18), and that is the type the room family
+already uses for the 0x7D4 placement payload the two calls carry - check
+`room_common.h` and the `actors_shared_*` headers before declaring a new one.
+
+```c
+extern RoomPlacement D_dryfield_motel_room_1_8017E130[2];
+Gp_DispatchMsg(work->field_C,  0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
+Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
+```
+
+The function's other half is the 4-byte stack payload of "m2c's scalar stack
+locals for an address-taken struct lose their dead stores", in its one-store
+form: m2c's `u8 sp10; u8 sp11; s16 sp12;` materialized only `sp10` (90%,
+`delete=4 regs=4`), and putting all three behind one `&msg` restored both `lbu`s,
+all three stores, and `Game_Session`'s pointer in `$v1` with no other change.
+Inputs: `base.i`
+`fe9fe68eaa7765edbd5aff180ab895f4a90b0631a44bff4e70c3b8907b155c4f` (90%),
+`base_1.i` `ec63fe426790b983132367e1f6eaa36744b0c3029e8cda283848278f23cecde4`
+(100%).
