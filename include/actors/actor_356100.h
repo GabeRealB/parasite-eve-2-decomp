@@ -61,6 +61,9 @@ void func_actor_356100_8016A1D8(Actor356100* arg0);
 void func_actor_356100_8016A21C(Actor356100* arg0);
 
 /// Same shape as `func_actor_356100_8016A21C` with `field_97E = 0xB`.
+void func_actor_356100_8016A340(Actor356100* arg0);
+
+/// Same shape as `func_actor_356100_8016A21C` with `field_97E = 0xB`.
 void func_actor_356100_8016A3D4(Actor356100* arg0);
 
 #endif
