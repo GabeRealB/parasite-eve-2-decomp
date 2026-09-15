@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_100400.h"
+#include "main/task.h"
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
@@ -315,7 +316,19 @@ void Actor00400_Fn0762C(Actor100400* arg0, s16 arg1, s16 arg2)
     arg0->field_2C->field_8->flg         = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn076E8);
+void Actor00400_Fn0A2F4(Task* arg0);
+void Actor00400_Fn0A364(Task* arg0);
+
+/// Two-state dispatcher over a handler table built on the stack.
+void Actor00400_Fn076E8(Task* task)
+{
+    TaskFunc funcs[2] = {
+        Actor00400_Fn0A2F4,
+        Actor00400_Fn0A364,
+    };
+
+    funcs[task->state](task);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07738);
 
