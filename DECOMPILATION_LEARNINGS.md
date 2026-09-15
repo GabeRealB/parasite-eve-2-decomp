@@ -79382,3 +79382,71 @@ pass.
 `base.c` was off by one argument before that - the handler takes four
 (`arg0`/`$a0` unused) and the m2c seed had dropped the leading one, which alone
 cost `regs=3` and shifted every `move sN,aN`.
+## m2c's lone parameter lands in `$a0` even when the body reads `$a2` (func_dryfield_night_factory_80180914, 2026-09-15)
+
+A room message handler whose subject is the *third* argument decompiles to a
+single-parameter function: m2c names it `arg2` because the body reads `$a2`,
+then declares it alone.
+
+```c
+s32 func_dryfield_night_factory_80180914(s32 arg2) {   /* m2c */
+    switch (arg2) { case 7: ... case 21: ... }
+}
+```
+
+C places a lone parameter in `$a0`, so the compiled dispatch compares `$a0`
+where the ROM compares `$a2`. Everything else is already right: 99.630%,
+`regs=2`, `structure: match` (6/6 blocks, 27/27 instructions, predicates and
+calls equal), and the whole diff is the two `beq` operand registers. There is
+nothing to explain in the allocation either - `.greg` names the one pseudo
+`$a0` and no second value competes for it; the register is decided by parameter
+*position*, which a lone parameter cannot express.
+
+Padding the list is the whole fix (no pins, no locals, no reordering):
+
+```c
+s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
+```
+
+100.000%, every penalty zero. This is why the sibling bodies `Room_Snd01..04`
+in `src/rooms/lib/` carry four parameters - the room tables hold
+`GpMsgEntry { s32 id; GpMsgHandler handler; }` and `Gp_DispatchMsg` calls
+`handler(task, msgId, arg2, arg3)`, so the handler type itself is the evidence
+for the list. General rule: when m2c names a parameter `argN` with N > 0 but
+declares it alone, pad the list to N+1 before changing anything else; `regs=N`
+with a matching structure and no competing home for the value is the signature.
+
+## `promote` needs the stale `nonmatchings/*.s` removed first (func_dryfield_night_factory_80180914, 2026-09-15)
+
+After integrating a matched body and running the scoped build
+(`./tools/build-and-verify.sh --only rooms`), the overlay's
+`asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<fn>.s` is still on disk: the
+split writes the fresh `matchings/<fn>.s` copy but does not delete the older
+`nonmatchings` one. The index scans both, so the overlay you just matched
+carries the body twice, once `todo` and once `matched`:
+
+```
+same body: 3 copies   identical bytes: 2
+  ~ USA/rooms/dryfield_factory         func_dryfield_factory_8017DEA8
+  = USA/rooms/dryfield_night_factory   func_dryfield_night_factory_80180914
+  = USA/rooms/dryfield_night_factory   func_dryfield_night_factory_80180914 matched
+```
+
+`cmd_promote` counts copies per **overlay** (`twice = {u for u, n in
+Counter(...) if n > 1}`), so that overlay is dropped from `keep`, and with two
+carriers in total the run stops with
+
+```
+func_...: every overlay carrying it contains it twice; cannot share
+```
+
+Delete the stale `.s`, rebuild the index (`find <fn> --rebuild`) and the
+promotion reports `2 of 2 copies` and proceeds. mtime is the check: every split
+rewrites the `matchings` copy while the stale `nonmatchings` one keeps its old
+timestamp - and a body matched before the overlay's last full split has no
+`nonmatchings` copy at all, which is what shows the file is stale rather than
+current.
+
+Then `--unit room_snd05` writes the symbol `RoomSnd05`; the family convention
+is `Room_Snd05` (see the entry above), so rename it by hand in every carrying
+sym file and put the line in sort order.
