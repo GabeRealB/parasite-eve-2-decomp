@@ -1,3 +1,56 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_160600/actor_160600_2", ActorsShared80131e24Sub0);
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/task.h"
+#include "main/tmd.h"
+
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+
+#include "actors/actor_160600.h"
+#include "actors/actors_shared_801366fc.h"
+
+extern u8 D_actor_160600_8013DFAC[];
+extern u8 D_actor_160600_8013DF70[];
+
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    VECTOR           vec;
+    Actor160600Work* work;
+    Actor160600Work* mem;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+
+    obj         = task->extra;
+    coord       = obj->field_8;
+    mem         = (Actor160600Work*)Mem_Calloc(0x4F8, false);
+    work        = mem;
+    task->idMap = (TaskIdMap*)mem;
+    if (mem == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback  = ActorsShared801366fc;
+    coord->sub          = &Gfx_ViewCoord;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    enemy->node.field_5 = 0;
+    enemy->node.field_4 = 1;
+    obj->field_E        = 1;
+    obj->field_C        = 0;
+    work->field_4B8     = 10;
+    work->enemy         = enemy;
+    obj->field_1C       = &work->light;
+    obj->field_20       = &work->color;
+    vec.vx              = coord->workm.t[0];
+    vec.vy              = coord->workm.t[1] - 0x320;
+    vec.vz              = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, D_actor_160600_8013DFAC, (GpAnimObj*)obj,
+                  &work->field_374, work->slots);
+    work->state    = 2;
+    task->field_24 = D_actor_160600_8013DF70;
+    func_actor_160600_80131FFC(task);
+    task->state++;
+}
