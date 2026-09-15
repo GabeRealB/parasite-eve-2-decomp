@@ -20,6 +20,7 @@ extern u32   D_dryfield_water_tower_8018768C;
 extern Task* D_dryfield_water_tower_801876A0;
 
 extern s32      D_dryfield_water_tower_801803A0[];
+extern TaskDesc D_dryfield_water_tower_801803D8;
 extern TaskDesc D_dryfield_water_tower_80182384[];
 
 void func_dryfield_water_tower_8017DCB4(void);
@@ -81,7 +82,13 @@ s32 func_dryfield_water_tower_8017DCFC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", func_dryfield_water_tower_8017DD04);
+s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    if (arg2 == 7) {
+        Task_SpawnFromTable(&D_dryfield_water_tower_801803D8, 0, 0, 0);
+    }
+    return 0;
+}
 
 s32 func_dryfield_water_tower_8017DD3C(void)
 {
