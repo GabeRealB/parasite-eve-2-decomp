@@ -83719,3 +83719,93 @@ if ((Gp_LcgState >> 16) & 1) {
 A ternary (`D_800678F0[0] = cond ? A : B;`) is the other natural guess and is
 wrong in the same place - it hoists the address of `D_800678F0` above the
 branch instead.
+
+## A bare `li` feeding `slt` is an inlined constant parameter, not `if (K < x)`
+
+**Problem.** The target compares against a small constant, but materializes it
+into a register instead of using the immediate form:
+
+```
+li    $v1, 0x20
+slt   $v1, $v1, $v0
+beqz  $v1, .Lelse
+ slti $v0, $v0, -0x20
+```
+
+m2c writes this back as `if (temp > 0x20)`, and compiling that gives the
+immediate form instead — `slti $v0,$v1,0x21` plus an inverted branch.
+
+**Symptom.** One extra `li`, an inverted branch predicate, and (because the
+extra pseudo competes) a shifted allocation across the whole function.
+
+**Cause.** The constant was an argument to a `static inline` helper. GCC 2.8.1
+expands the inline body with the parameter still a pseudo, so the comparison RTL
+is formed as `(gt (reg diff) (reg range))`. CSE then tries to substitute the
+constant and fails validation: `mips.md`'s `slt` pattern requires operand 1 to
+be a `register_operand`, so the pseudo survives along with its `li`. A sibling
+parameter used in plain arithmetic *does* fold in the same function, because
+`addiu`'s operand predicate is `arith_operand` and accepts the immediate.
+
+**Fix.** Look for an existing `static inline` helper in the TU carrying that
+idiom and call it with the constants, rather than open-coding the comparison.
+
+```c
+static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
+{
+    ...
+    diff = ((angle - yaw) << 20) >> 20;
+    if (diff > range) {
+        work->field_556 = angle - step;   /* step folds: addiu $v0,$a0,-0x10 */
+    } else if (diff < -range) {           /* range does not: li $v1,0x20; slt */
+        work->field_556 = angle + step;
+    }
+}
+
+Actor00400_TurnToward(arg0, &work->field_5E4, 0x10, 0x20);
+```
+
+So the asymmetry — one argument folded to an immediate, the other stranded in a
+register — is itself the evidence that both came from one inlined call. Do not
+read it as a hand-written `0x20 < x`, and do not add a pin to force the `li`.
+
+Worked example: `Actor00400_Fn06380` (`src/actors/lib/actor_100400_text.c`),
+68.1% -> 100% in one attempt. The same helper shape appears as
+`ActorsShared801698d4` and in `actor_104400_text_tail.c`.
+
+## An `SVECTOR` local split into separate `s16`s is not reloaded after a call
+
+**Problem.** m2c names stack halfwords individually (`sp10`, `sp12`, `sp14`) and
+only the first one's address is passed:
+
+```c
+s16 sp10, sp12, sp14;
+...
+VectorNormalSS((SVECTOR *)&sp10, (SVECTOR *)&sp10);
+ratan2((s32)sp10, (s32)sp14);
+```
+
+**Symptom.** The target stores the value into the frame before the `jal` and
+reloads `lh $a1, 0x14($sp)` after it; the compiled version instead keeps the
+pre-call value live in a callee-saved register and sign-extends it in place
+(`sll`/`sra`). That costs an extra saved register, 8 more bytes of frame, and
+renumbers the rest of the allocation — here 48 points of `regs` penalty from a
+one-line declaration difference.
+
+**Cause.** Only `&sp10` escapes. `sp14` is a distinct local whose address is
+never taken, so GCC does not treat the call as clobbering it and is free to
+carry the value across in a register.
+
+**Fix.** Declare the aggregate the original declared:
+
+```c
+SVECTOR vec;
+vec.vx = target->vx - coords->coord.t[0];
+vec.vy = 0;
+vec.vz = target->vz - coords->coord.t[2];
+VectorNormalSS(&vec, &vec);
+yaw = ratan2(vec.vx, vec.vz);
+```
+
+Taking `&vec` makes every field address-taken, so each one is reloaded after the
+call. Whenever m2c hands you consecutive same-size stack slots and passes a
+pointer to the first, the original was one struct.

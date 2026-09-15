@@ -985,7 +985,27 @@ void Actor00400_Fn061E8(Actor100400* arg0)
     work->field_63A++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06380);
+void Actor00400_Fn06380(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* w;
+
+    work = arg0->field_1C;
+    work->field_636++;
+    Actor00400_TurnToward(arg0, &work->field_5E4, 0x10, 0x20);
+    if (work->field_636 == 1) {
+        work->field_646 = 0x18;
+    }
+    if (work->field_636 >= 0x24) {
+        work->field_636 = 0;
+        w               = arg0->field_1C;
+        w->field_63C    = 8;
+        w->field_632    = 0x10;
+        w->field_628    = 7;
+        w->field_624    = 1;
+        work->field_63A++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn064B0);
 
