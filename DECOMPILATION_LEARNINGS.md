@@ -79617,3 +79617,63 @@ The diagnostic is a join-block test whose operand is computed in the delay slots
 of both branches reaching it, while an earlier test of the same expression used
 a different register. Do not answer it with a `register ... asm()` pin - the
 pseudo count, not the register, is what differs.
+
+## One shared `return` keeps the exit block's `$v0` setup inside it (func_dryfield_night_factory_80180814, 2026-09-15)
+
+A switch whose arms each bail out early, with one spawn call and one `return 0;`
+after it, compiles two ways that differ only in where the constant is
+materialised:
+
+```asm
+    target                          each arm ends in `return 0;`
+    lw    ra,0x14(sp)               move  v0,zero
+    lw    s0,0x10(sp)               lw    ra,0x14(sp)
+    move  v0,zero                   lw    s0,0x10(sp)
+    jr    ra                        jr    ra
+```
+
+and the arm that fails its test branches with `move v0,zero` in the delay slot
+instead of a `nop` (`reorg` duplicating the target thread's first insn). Score
+~96% with `reorder=1 insert=1 delete=1` and nothing missing from any block.
+
+`expand_return` writes each `return 0;`'s own `(set (reg/i:SI 2 v0)
+(const_int 0))` at the *statement*, then jumps to the function's single return
+label, whose block holds only `(use (reg/i:SI 2 v0))` and `(return)`. Every
+early `return` therefore leaves its `set` in its own predecessor block. There is
+only one `(return)` for the RETURN cross-jump to compare, and `find_cross_jump`
+would not carry a lone `set` anyway - USE and CLOBBER do not count toward its
+`minimum` (jump.c:2685), so two real insns must match before a return.
+
+Write the bail-outs as `goto end;` and leave a single `return 0;` after the
+shared call: the one `set` is then emitted inside the block `end:` labels, the
+taken-path branch and the jump table's empty slots all target that block, and
+the constant is scheduled after the restores. Match the exit-block shape before
+touching scheduling.
+
+## Give a compiled jump table its range by splitting the cut, not with a `units` cut (dryfield_night_factory, 2026-09-15)
+
+"A compiler-generated jump table needs to start its object's `.rodata`" reaches
+for a `.text` `units` cut so the table starts a fresh object, which renumbers
+every later unit and forces a delete-and-re-split of the overlay's `src/` files.
+When the switch's function is already the *first* function of a unit, only the
+rodata owner is wrong: the cut at the table's offset names whichever unit was
+next in rodata order, not the unit that compiles the switch.
+
+Split that one cut instead - the table's own range to the compiling unit, the
+rest to the unit that held it:
+
+```toml
+# before: one cut, { start = "0x88", unit = "_5" }
+{ start = "0x88", unit = "_6" },   # jtbl_..., compiler-generated
+{ start = "0xB8", unit = "_5" },   # RoomsShared8017fc38Table, still asm
+```
+
+The cut names drive the linker's `.rodata` order, so `_6.c.o(.rodata)` is placed
+at `0x88` and `_5.c.o(.rodata)` immediately after it, and no unit renumbers.
+Only two files change: the compiling unit takes the body, and the tail's owner
+drops the `INCLUDE_RODATA` line the rodata-to-function migration had pinned
+there (the table is compiler-generated now, so the pin would be a duplicate
+definition - see "Interleaved jump tables"/the migration entry above). No file
+is deleted, so no matched body can be lost; `build-and-verify.sh --only <overlay>`
+confirms it, and `ninja_config.py`'s post-split check still guards the `.text`
+span.
