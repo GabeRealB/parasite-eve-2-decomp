@@ -484,7 +484,24 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08ADC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08B40);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08B94);
+void Actor00400_Fn08B94(Actor100400* arg0)
+{
+    s32              sound;
+    s32              pan;
+    Actor100400Work* work;
+    Actor100400Work* state;
+
+    work  = arg0->field_1C;
+    sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+    pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    state            = arg0->field_1C;
+    state->field_63C = 2;
+    state->field_632 = 0x10;
+    state->field_628 = 0x13;
+    state->field_624 = 1;
+    work->field_63A++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08C54);
 
