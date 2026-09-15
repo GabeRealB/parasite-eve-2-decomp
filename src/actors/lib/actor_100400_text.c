@@ -34,6 +34,8 @@ void       Actor00400_Fn060CC(Actor100400* arg0);
 void       Actor00400_Fn09714(Actor100400* arg0);
 void       Actor00400_Fn0A9F4(Actor100400* arg0);
 void       Actor00400_Fn0AA40(Actor100400* arg0);
+void       Actor00400_Fn0A3D4(Actor100400* arg0);
+void       Actor00400_Fn0A414(Actor100400* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -474,7 +476,16 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08908);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08948);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn089C8);
+void Actor00400_Fn089C8(Actor100400* arg0)
+{
+    Actor100400Work* work                       = arg0->field_1C;
+    void             (*states[2])(Actor100400*) = {
+        Actor00400_Fn0A3D4,
+        Actor00400_Fn0A414,
+    };
+
+    states[work->field_638](arg0);
+}
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
 /// alone. Same body as src/actors/lib/actors_shared_80132c4c.c.
