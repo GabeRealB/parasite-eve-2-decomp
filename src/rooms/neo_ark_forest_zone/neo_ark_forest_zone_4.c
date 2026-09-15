@@ -1,6 +1,13 @@
 #include "common.h"
 #include "main/task.h"
+
+/* The pending-change counter and the pair of latched values it gates. The
+ * counter is unsigned everywhere else in this unit (func_...80180620 and
+ * func_...80180D24 read it with `lhu` while testing it with `lh`), so the
+ * signed reader below is what this body needs, not a signed declaration. */
 extern u16 D_neo_ark_forest_zone_80182D62;
+extern s16 D_neo_ark_forest_zone_80182D66;
+extern s16 D_neo_ark_forest_zone_80182D68;
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_4", func_neo_ark_forest_zone_801803B4);
 
@@ -19,7 +26,30 @@ s32 func_neo_ark_forest_zone_801813BC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone_4", func_neo_ark_forest_zone_801813C4);
+/* Publishes the byte at 0x2 of `arg2` as `D_neo_ark_forest_zone_80182D66` only
+ * while the counter is idle, and remembers the byte in `D_...80182D68` either
+ * way; a change arriving while the counter runs is suppressed to zero. */
+s32 func_neo_ark_forest_zone_801813C4(void* arg0, void* arg1, u8* arg2)
+{
+    s16 counter;
+
+    if (arg2[2] != D_neo_ark_forest_zone_80182D68) {
+        /* Assigning to a signed temp is what makes this reader `lh`; testing
+           the counter in place folds the conversion into the comparison and
+           reads it with `lhu` instead. */
+        counter = D_neo_ark_forest_zone_80182D62;
+        if (counter == 0) {
+            D_neo_ark_forest_zone_80182D66 = arg2[2];
+        } else {
+            goto L_clear;
+        }
+    } else {
+    L_clear:
+        D_neo_ark_forest_zone_80182D66 = 0;
+    }
+    D_neo_ark_forest_zone_80182D68 = arg2[2];
+    return 1;
+}
 
 void func_neo_ark_forest_zone_8018141C(Task* arg0)
 {

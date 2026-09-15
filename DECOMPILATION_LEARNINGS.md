@@ -1433,6 +1433,43 @@ second load, and matched 100% first try as
 `arg0->killCountdown = arg0->killCountdown + 6;`. Neither a `(u16)` cast on the
 read nor a `(s16)` cast on the comparison is needed — both spellings compile to
 the same bytes, so prefer the plain field arithmetic.
+## One halfword, two signednesses: the odd reader needs a temp, not a cast
+
+The section above fixes an `lh`/`lhu` mismatch by correcting the declaration.
+That is not on the table when two bodies already matched in the *same* unit
+read one object both ways. `func_neo_ark_forest_zone_801813C4` tests
+`D_neo_ark_forest_zone_80182D62` with `lh` while its neighbour
+`func_neo_ark_forest_zone_80181494` reads the same halfword with `lhu` (a plain
+`u16 D += 0x5A`), and `func_...80180620` does both four instructions apart -
+`lh` for the `if (D > 0)` test, `lhu` for the decrement in the body. The unit's
+declaration is `u16` with signed *reads*; the body that wants `lh` has to ask
+for it.
+
+A cast inside the comparison does not ask. `(s16)D_...80182D62 == 0` is folded
+by the front end into an unsigned compare of the halfword, because the
+extension cannot change whether the value is zero, so the load stays `lhu` -
+that line is in the m2c seed and scores 90.64%. Assigning to a signed temp
+first keeps the conversion and emits `lh`:
+
+```c
+s16 counter;
+
+counter = D_neo_ark_forest_zone_80182D62;  /* lh $v0 - the read the target has */
+if (counter == 0) { ... }                  /* bnez */
+```
+
+`base_1.c` (`extern s16` declarations, no temp) and `base_2.c` (this form) both
+score 100.00% and compile to identical assembly, so land whichever fits the
+unit: `base_2.c` when the declaration is pinned by another matched body.
+Preprocessed SHA256 `base_1.i`
+`5613045e4afaf7a5394396ce2035efe4c08d57c88d6a1f119ee2605c1e9400ac`, `base_2.i`
+`bec44bc2f6d7da92f65c5e08d2fa213d390dfdc6e2dc3b63f3d1b79231795b26`.
+
+The same seed carried both defects at once, and the mix is worth recognising:
+`insert=1 delete=1` for this load-width pair plus `stack=6` with no frame
+mismatch, which was the payload sitting in `$a0` instead of the third
+parameter's `$a2` (`re_sprel` misreading `2($a0)` as a displacement - see that
+section).
 
 ## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
 
