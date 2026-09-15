@@ -1,9 +1,15 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
 #include "main/task.h"
+
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_80180b2c.h"
 
 extern TaskDesc D_dryfield_water_tank_80184DF4;
 
@@ -11,7 +17,39 @@ extern TaskDesc D_dryfield_water_tank_80184DF4;
 /// the room publishes as its `Gp_State1C::field_A` variant index.
 extern u16 D_dryfield_water_tank_801868CC[];
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017EBA0);
+/// The placement the room sends slot 3 with message 0x3E9.
+extern RoomPlacement D_dryfield_water_tank_801804F4;
+
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
+/// `D_8007218A` picks which of the two weapon-id bases that record uses.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
+
+/// Stages the room's cutscene: tells the script task the water-tank scene is
+/// entered (msg 0x3E9 with the room's fixed placement), then hands slot 3 the
+/// 0x3E8 record that installs the equipped weapon's animation set -- the same
+/// five-word record `acropolis_observatory_4` fills, `field_4` 1 and the rest
+/// zero. The display is turned back on last, because entering the scene is what
+/// blanked it.
+void func_dryfield_water_tank_8017EBA0(void)
+{
+    GpRec14 rec;
+    s32     weaponId;
+    s32     anim;
+
+    Gp_DispatchMsg(((RoomsShared80180b2cWork*)RoomsShared80180b2cTask->idMap)->owner, 0x3E9,
+                   (s32)&D_dryfield_water_tank_801804F4, 0);
+    weaponId     = D_80073BA9;
+    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.field_0  = anim;
+    rec.field_4  = 1;
+    rec.field_8  = 0;
+    rec.field_C  = 0;
+    rec.field_10 = 0;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+    SetDispMask(1);
+}
 
 void func_dryfield_water_tank_8017EC38(u32 arg0)
 {
