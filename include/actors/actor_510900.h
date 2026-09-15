@@ -36,7 +36,10 @@ typedef struct Actor510900Work {
     /* 0x49C */ byte   pad_49C[0x48];
     /* 0x4E4 */ GpObj  obj4E4;
     /* 0x504 */ GpObj  obj504;
-    /* 0x524 */ byte   pad_524[0x60];
+    /* 0x524 */ byte   pad_524[0x40];
+    /* 0x564 */ s32*   field_564; // 0x34 receives field_594 when it changes
+    /* 0x568 */ byte   pad_568[0x18];
+    /* 0x580 */ s32    field_580; ///< last sound id queued
     /* 0x584 */ s16    field_584;
     /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
     /// stores `Actor510900AnimArgs::field_4 + 0x1B` here.
@@ -53,9 +56,12 @@ typedef struct Actor510900Work {
     /// Per-handler sub-state. State 0 waits for `field_20`'s spawn block flag
     /// to fire and then hands state 1 the animation 0x14; state 1 waits out
     /// `field_58A` and drops back to state 0 with a fresh `field_59C`.
-    /* 0x590 */ s16  field_590;
-    /* 0x592 */ s16  field_592;
-    /* 0x594 */ byte pad_594[0x6];
+    /* 0x590 */ s16 field_590;
+    /* 0x592 */ s16 field_592;
+    /* 0x594 */ s16 field_594;
+    /// `field_594` as last pushed to `field_564`.
+    /* 0x596 */ s16 field_596;
+    /* 0x598 */ s16 field_598;
     /// The `GpAnimRec::field_3` bits 0x30 latched on the previous frame. The
     /// step handler plays a sound on the frame one of them has just dropped.
     /* 0x59A */ u16 field_59A;
@@ -103,7 +109,9 @@ typedef struct Actor510900 {
 } Actor510900;
 
 typedef struct Actor510900Ctx {
-    /* 0x00 */ byte pad_0[0x14];
+    /* 0x00 */ byte pad_0[0x8];
+    /* 0x08 */ u16  field_8; // top nibble selects the sound bank
+    /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ u8   field_14;
     /* 0x15 */ byte pad_15[0x37];
     /* 0x4C */ u8   field_4C;

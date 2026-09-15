@@ -46,7 +46,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801350F8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801355B4);
+void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
+{
+    Actor510900Coord* coord;
+    Actor510900Work*  work;
+    s32               snd;
+    s32               pan;
+    s32               pan2;
+    s32               i;
+
+    work           = arg1->field_1C;
+    coord          = arg1->field_2C->field_8;
+    arg0->field_14 = 1;
+    if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
+        work->field_594 = 1;
+        work->field_598 = 0xFF;
+        snd             = (((u16)arg0->field_8 >> 0xC) << 8) | 0x4078000E;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        work->field_580 = (((u16)arg0->field_8 >> 0xC) << 8) | 0x40780011;
+        pan2            = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(work->field_580, pan2, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+    work->field_58A++;
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+    }
+    coord->field_0.flg = 0;
+    Gp_UpdateCoord(coord);
+    func_actor_510900_8013BC38(arg1, coord);
+    if (work->field_594 != work->field_596) {
+        if (work->field_564 != NULL) {
+            work->field_564[0xD] = work->field_594;
+        }
+        work->field_596 = work->field_594;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80135744);
 
