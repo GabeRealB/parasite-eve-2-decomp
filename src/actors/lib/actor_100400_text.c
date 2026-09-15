@@ -72,6 +72,7 @@ extern TaskFuncTable4   Actor00400_D00134;
 extern TaskFuncTable3   Actor00400_D00144;
 extern TaskFuncTable3   Actor00400_D00150;
 extern TaskFuncTable3   Actor00400_D0015C;
+extern TaskFuncTable4   Actor00400_D00168;
 extern Actor100400Stats Actor00400_D0FDC8;
 extern byte             Actor00400_D1604C[];
 
@@ -763,7 +764,26 @@ void Actor00400_Fn07B98(Actor100400* arg0)
     fns.funcs[(s16)work->field_63A]((Task*)arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07C04);
+void Actor00400_Fn07C04(Actor100400* arg0)
+{
+    Actor100400Obj*  obj;
+    Actor100400Work* work;
+    TaskFuncTable4   fns;
+    Actor100400Work* work2;
+
+    obj  = arg0->field_20;
+    work = arg0->field_1C;
+    fns  = Actor00400_D00168;
+    if (GameFlag_GetNibble(0xBC) != 0) {
+        work2            = arg0->field_1C;
+        work2->field_638 = 0xB;
+        work2->field_63A = 0;
+    } else {
+        work->field_660 = 1;
+        obj->field_14   = 1;
+        fns.funcs[(s16)work->field_63A]((Task*)arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07CC4);
 
