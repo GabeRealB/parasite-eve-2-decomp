@@ -9,6 +9,9 @@
 #include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "psyq/abs.h"
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn00260);
 
@@ -597,7 +600,119 @@ void Actor01900_Fn06904(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06B4C);
+/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
+static __inline__ s32 Actor01900_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                     head;
+    Actor01900RangeScratch* blk;
+    s32                     ret;
+
+    head                                         = *(u8**)G_SCRATCH_HEAD;
+    ((Actor01900RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                          = (Actor01900RangeScratch*)(head - 0xC);
+    blk->dz                                      = d->vz;
+    blk->r                                       = r;
+    ((Actor01900RangeScratch*)(head - 0xC))->dx *= ((Actor01900RangeScratch*)(head - 0xC))->dx;
+    *(Actor01900RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                     *= blk->dz;
+    blk->r                                      *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                        = head;
+    ret                                          = ((Actor01900RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+/// Arms `Gp_StateF0` and returns 1 when the player is within 500 units of the
+/// actor's height (and not in `field_954` state 2).
+static __inline__ s32 Actor01900_ArmIfPlayerLevel(Actor01900* arg0)
+{
+    GpActorWork* player;
+    s32          dy;
+
+    player = Game_GetPtrSlot(3);
+    if (player->actor->field_954 != 2) {
+        dy = arg0->field_2C->field_8->coord.t[1] - player->extra->field_8->coord.t[1];
+        if (ABS(dy) < 0x1F4) {
+            Gp_ArmStateF0(1);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void Actor01900_Fn06B4C(Actor01900* arg0)
+{
+    SVECTOR         delta;
+    SVECTOR*        d;
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+    TmdObject*      obj;
+    GsCOORDINATE2*  coord;
+    s32             sound;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj               = arg0->field_2C;
+        Actor01900_D171B4 = &Actor01900_D16960;
+        work->field_89E   = 0x10;
+        work->field_898   = 2;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_8B0          = 0;
+        work->field_8A2          = 0x10;
+        work->field_8AE          = 0;
+        work->field_6            = 0;
+        work->field_894          = 0;
+    }
+    Actor01900_Fn01C94(arg0);
+    if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
+        (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x01090000) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        sound       = 0x51090009;
+        if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
+            sound = 0x51090008;
+        }
+        switch ((u8)Gp_GetViewIndex()) {
+            case 2:
+                SndEvt_EnqueueType6(sound, 0x64, 0);
+                break;
+            case 3:
+                SndEvt_EnqueueType6(sound, 0x50, 0x1F);
+                break;
+            case 4:
+            default:
+                SndEvt_EnqueueType6(sound, 0x40, 0x4C);
+                break;
+        }
+    }
+    if ((work->field_5A & 0x3FF) == 5 && work->field_894 != (work->field_5A & 0x3FF)) {
+        work->field_8B8.field_0 = arg0->field_2C->field_8 + 1;
+        work->field_8B8.field_4 = 0x200;
+        work->field_8B8.field_6 = 2;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x01030000 || (u8)Gp_GetViewIndex() != 0x10) {
+            func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->field_8 + 5, NULL, &work->field_8B8);
+        }
+    }
+    work->field_894 = work->field_5A & 0x3FF;
+    coord           = arg0->field_2C->field_8;
+    d               = &delta;
+    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    if (!Actor01900_OutOfRange(d, work->field_C32)) {
+        SndEvt_EnqueueType7(0x51030008, 1);
+        if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
+            work->field_0 = 6;
+        }
+    }
+    if (*(u32*)&Gp_StateF0 & 0x50000) {
+        work->field_0 = 6;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06F40);
 

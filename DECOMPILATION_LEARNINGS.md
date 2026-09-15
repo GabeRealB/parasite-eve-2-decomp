@@ -80680,3 +80680,34 @@ Combine turns the reload into the `move v0, v1` the ROM has in front of `bltz`.
 The last register swap (`diff` in `$v1` instead of `$a0`) was global priority:
 one shared `diff` had 6 refs over 10 insns and outranked the stored pseudo's
 5 over 14; a variable per branch (3 over 5) let the stored pseudo take `$v1`.
+
+## A scratch push the pop overwrites is deleted by `flow`; put a block read between them
+
+`Actor01900_Fn06B4C` (actors/actor_101900) carves a 0xC block, squares three
+ints in it and compares, and the ROM keeps *both* head stores back to back:
+
+```
+lui at,0x1F80 ; sw $v1,0x3FC($at)   # push  (head - 0xC)
+lui at,0x1F80 ; sw $a2,0x3FC($at)   # pop   (head)
+sw  $a0,4($v1) ; mflo $t1 ; sw $t1,8($v1)
+```
+
+Writing the push directly before the pop (inside the `static __inline__`
+helper) loses the push: `cse2` still has three `(mem (const_int 0x1F8003FC))`,
+`flow` has two - `mem_set_list` dead-store elimination sees the same absolute
+address written twice with no memory read between. Writing the push at the
+very start instead keeps it but places it far too early. What matches is the
+push between the squarings, so reads of the block keep it alive and `sched`
+still slides it (and the dependent stores) down next to the pop:
+
+```c
+blk->dx *= blk->dx;
+*(Actor01900RangeScratch**)G_SCRATCH_HEAD = blk;
+blk->dz *= blk->dz;
+blk->r  *= blk->r;
+*(u8**)G_SCRATCH_HEAD = head;
+ret = blk->dx + blk->dz >= blk->r;   /* after the pop: slt + xori */
+```
+
+Tell: two adjacent absolute stores to one address in the target means a read
+sat between them in the source.

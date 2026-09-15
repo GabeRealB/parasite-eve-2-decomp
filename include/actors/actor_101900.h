@@ -5,6 +5,7 @@
 
 #include "gameplay/3A34.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -16,49 +17,52 @@
 /// masks `field_A08.flags` and `field_B48.flags`, which is what fixes those
 /// two offsets as `GpObj` rather than opaque padding.
 typedef struct Actor01900Work {
-    /* 0x000 */ s16     field_0;
-    /* 0x002 */ s16     field_2;
-    /* 0x004 */ s16     field_4;
-    /* 0x006 */ s16     field_6;
-    /* 0x008 */ s16     field_8;
-    /* 0x00A */ byte    pad_A[0x50];
-    /* 0x05A */ u16     field_5A;
-    /* 0x05C */ byte    pad_5C[0xC];
-    /* 0x068 */ u16     field_68;
-    /* 0x06A */ byte    pad_6A[0x82E];
-    /* 0x898 */ s16     field_898;
-    /* 0x89A */ s16     field_89A;
-    /* 0x89C */ byte    pad_89C[2];
-    /* 0x89E */ s16     field_89E;
-    /* 0x8A0 */ byte    pad_8A0[2];
-    /* 0x8A2 */ s16     field_8A2;
-    /* 0x8A4 */ s16     field_8A4;
-    /* 0x8A6 */ byte    pad_8A6[8];
-    /* 0x8AE */ s16     field_8AE;
-    /* 0x8B0 */ s16     field_8B0;
-    /* 0x8B2 */ byte    pad_8B2[2];
-    /* 0x8B4 */ s32     field_8B4;
-    /* 0x8B8 */ byte    pad_8B8[0x10];
-    /* 0x8C8 */ GpObj   field_8C8;
-    /* 0x8E8 */ GpRec18 field_8E8;
-    /* 0x900 */ byte    pad_900[0x108];
-    /* 0xA08 */ GpObj   field_A08;
-    /* 0xA28 */ GpRec18 field_A28;
-    /* 0xA40 */ byte    pad_A40[0x108];
-    /* 0xB48 */ GpObj   field_B48;
-    /* 0xB68 */ GpRec18 field_B68;
-    /* 0xB80 */ byte    pad_B80[0x90];
-    /* 0xC10 */ s16     field_C10;
-    /* 0xC12 */ byte    pad_C12[0x12];
-    /* 0xC24 */ s16     field_C24;
-    /* 0xC26 */ s16     field_C26;
-    /* 0xC28 */ byte    pad_C28[0xC];
-    /* 0xC34 */ u8      field_C34[3];
-    /* 0xC37 */ byte    pad_C37;
-    /* 0xC38 */ Task*   field_C38;
-    /* 0xC3C */ Task*   field_C3C;
-    /* 0xC40 */ s16     field_C40;
-    /* 0xC42 */ byte    pad_C42[6];
+    /* 0x000 */ s16      field_0;
+    /* 0x002 */ s16      field_2;
+    /* 0x004 */ s16      field_4;
+    /* 0x006 */ s16      field_6;
+    /* 0x008 */ s16      field_8;
+    /* 0x00A */ byte     pad_A[0x50];
+    /* 0x05A */ u16      field_5A;
+    /* 0x05C */ byte     pad_5C[0xC];
+    /* 0x068 */ u16      field_68;
+    /* 0x06A */ byte     pad_6A[0x82A];
+    /* 0x894 */ s32      field_894;
+    /* 0x898 */ s16      field_898;
+    /* 0x89A */ s16      field_89A;
+    /* 0x89C */ byte     pad_89C[2];
+    /* 0x89E */ s16      field_89E;
+    /* 0x8A0 */ byte     pad_8A0[2];
+    /* 0x8A2 */ s16      field_8A2;
+    /* 0x8A4 */ s16      field_8A4;
+    /* 0x8A6 */ byte     pad_8A6[8];
+    /* 0x8AE */ s16      field_8AE;
+    /* 0x8B0 */ s16      field_8B0;
+    /* 0x8B2 */ byte     pad_8B2[2];
+    /* 0x8B4 */ s32      field_8B4;
+    /* 0x8B8 */ GpEffArg field_8B8;
+    /* 0x8C0 */ byte     pad_8C0[8];
+    /* 0x8C8 */ GpObj    field_8C8;
+    /* 0x8E8 */ GpRec18  field_8E8;
+    /* 0x900 */ byte     pad_900[0x108];
+    /* 0xA08 */ GpObj    field_A08;
+    /* 0xA28 */ GpRec18  field_A28;
+    /* 0xA40 */ byte     pad_A40[0x108];
+    /* 0xB48 */ GpObj    field_B48;
+    /* 0xB68 */ GpRec18  field_B68;
+    /* 0xB80 */ byte     pad_B80[0x90];
+    /* 0xC10 */ s16      field_C10;
+    /* 0xC12 */ byte     pad_C12[0x12];
+    /* 0xC24 */ s16      field_C24;
+    /* 0xC26 */ s16      field_C26;
+    /* 0xC28 */ byte     pad_C28[0xA];
+    /* 0xC32 */ s16      field_C32;
+    /* 0xC34 */ u8       field_C34[3];
+    /* 0xC37 */ byte     pad_C37;
+    /* 0xC38 */ Task*    field_C38;
+    /* 0xC3C */ Task*    field_C3C;
+    /* 0xC40 */ s16      field_C40;
+    /* 0xC42 */ byte     pad_C42[6];
     /// Ring of the last seven view-space positions `Actor01900_Fn09D3C`
     /// records, one per step; `field_C98` is the write cursor.
     /* 0xC48 */ SVECTOR field_C48[7];
@@ -164,7 +168,21 @@ typedef struct Actor01900ViewScratch {
 } Actor01900ViewScratch;
 STATIC_ASSERT_SIZEOF(Actor01900ViewScratch, 0x18);
 
+/// 0xC-byte scratch `Actor01900_Fn06B4C` takes from `G_SCRATCH_HEAD` for
+/// its player-in-radius test: the X/Z offset to the camera target and the
+/// radius, each squared in place before `dx + dz < r`.
+typedef struct Actor01900RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor01900RangeScratch;
+STATIC_ASSERT_SIZEOF(Actor01900RangeScratch, 0xC);
+
 extern Actor01900StateTable  Actor01900_D001BC;
+extern char                  Actor01900_D16960;
+extern void*                 Actor01900_D171B4;
+extern MATRIX*               D_80073B8C;
+extern u32                   Gp_LcgState;
 extern Actor01900HeightClamp Actor01900_D172CC[];
 extern char                  Actor01900_D10B68;
 extern s16                   Actor01900_D172FC;
