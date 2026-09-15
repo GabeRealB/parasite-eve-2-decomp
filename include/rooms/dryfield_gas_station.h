@@ -32,4 +32,29 @@ STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 /// its body is still `INCLUDE_ASM`, so the rest is unverified.
 void func_dryfield_gas_station_80181058(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
+/// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
+/// `field_0` is the area id forced for the duration of the scene (negative =
+/// keep the current one); `field_1` selects the cap slot / command;
+/// `field_2` skips straight to the abort state; `field_3` is the cap file to
+/// load. The four s32s are sound-event ids. `func_dryfield_gas_station_8017FD54`
+/// writes `field_0` .. `field_10`; the trailing `field_14` / `field_16` pair is
+/// inferred from the identically laid out `Shelter1fTentCapScript` and the
+/// object's 0x18-byte extent, not from a matched body here.
+typedef struct {
+    /* 0x00 */ s8  field_0;
+    /* 0x01 */ s8  field_1;
+    /* 0x02 */ s8  field_2;
+    /* 0x03 */ s8  field_3;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+    /* 0x14 */ s16 field_14;
+    /* 0x16 */ s16 field_16;
+} DryfieldGasStationCapScript;
+
+STATIC_ASSERT_SIZEOF(DryfieldGasStationCapScript, 0x18);
+
+extern DryfieldGasStationCapScript D_dryfield_gas_station_80184BD8;
+
 #endif // ROOMS_DRYFIELD_GAS_STATION_H

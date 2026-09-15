@@ -80070,6 +80070,52 @@ taken-path branch and the jump table's empty slots all target that block, and
 the constant is scheduled after the restores. Match the exit-block shape before
 touching scheduling.
 
+## A trailing `return N` reuses the `if (x == N)` constant, so its block disappears (func_dryfield_gas_station_8017FD54, 2026-09-16)
+
+A room cutscene trigger guards on `arg2 == 1`, and the fall-through return is a
+constant. Whether that constant gets *its own* exit block or shares the
+epilogue is decided by whether it is the same one the compare already
+materialised. Two neighbours in `USA/rooms` are the A/B:
+
+```asm
+  shelter_1f_tent (return 0)      dryfield_gas_station (return 1)
+  li   v0,1                       li   v0,1
+  bne  s0,v0,.L40                 bne  s0,v0,.LFE10      <- the epilogue itself
+  ...
+.L40:  move v0,zero             .LFE10:  lw ra,0x14(sp)
+.L44:  lw   ra,0x14(sp)                  lw s0,0x10(sp)
+```
+
+The compare needs `1` in a register anyway; on the `bne`-taken path no call has
+run, so `$v0` still holds it and `return 1`'s own `(set (reg v0) (const_int 1))`
+is redundant. cse drops it, the block becomes empty, and it merges with the
+epilogue - one label, not two. `return 0` is a *different* constant, so it
+survives as its own materialisation block. Read the label count: a `bne` whose
+target is the epilogue means the fall-through return is the compare's constant.
+
+The same seed also hid a second cost. m2c renders the shared exit as a live
+temp:
+
+```c
+Task *var_v0;
+var_v0 = (Task *)1;              /* live across the GameFlag calls */
+...
+return var_v0;
+```
+
+`$v0` is call-clobbered, so a value genuinely live across those calls would be
+forced into `$s1` and saved. The frame saves only `$s0` and `$ra`, which rules
+the temp out before any pass is read: the constant is *rematerialised*, not
+carried. Counting the saved registers bounds how many values can be live across
+the calls, and that bound is often enough to reject m2c's exit shape on sight.
+With the lone-parameter arity fixed as well (see "m2c's lone parameter lands in
+`$a0`"), 74.948% -> 100.000% in one edit.
+
+Inputs: `base.i` (74.948%)
+`b41568d879cc029546fbd242247f07794cd5b65f4c38baa64e1938bcec685ed9`,
+`base_1.i` (100.000%)
+`307947f678e8af950c18ff9c9d7deb7b869b7edd93c1a72658c46f0735d75368`.
+
 ## Give a compiled jump table its range by splitting the cut, not with a `units` cut (dryfield_night_factory, 2026-09-15)
 
 "A compiler-generated jump table needs to start its object's `.rodata`" reaches

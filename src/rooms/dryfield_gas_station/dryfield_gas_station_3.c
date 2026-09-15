@@ -1,8 +1,10 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -13,6 +15,7 @@
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern u8       D_80072170;
 extern u8       D_80115598;
+extern TaskDesc D_dryfield_gas_station_80181E18;
 extern TaskDesc D_dryfield_gas_station_80181E3C[];
 extern s32      D_dryfield_gas_station_80181E54;
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
@@ -24,7 +27,34 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3",
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017e8b4PeTitle);
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017ea68Title);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", func_dryfield_gas_station_8017FD54);
+/// Cutscene trigger for the gas station. On request 1, if the `0x16B` flag is
+/// clear it raises it and asks the cap system to run command 0xB; otherwise it
+/// fills in the room's cap script (area 8, this request as the slot and file)
+/// and spawns `D_dryfield_gas_station_80181E18`. Returns 1 when the request is
+/// not 1, otherwise the spawned task.
+s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        if (GameFlag_GetNibble(0x16B) == 0) {
+            GameFlag_SetNibble(0x16B, 1);
+            Gp_RunCapCmd1(0xB);
+            return 0;
+        }
+        if (Mc_SaveData.field_8 == arg2) {
+            Mc_SaveData.field_8 = 2;
+        }
+        D_dryfield_gas_station_80184BD8.field_0  = 8;
+        D_dryfield_gas_station_80184BD8.field_1  = arg2;
+        D_dryfield_gas_station_80184BD8.field_3  = arg2;
+        D_dryfield_gas_station_80184BD8.field_2  = 0;
+        D_dryfield_gas_station_80184BD8.field_4  = 0x52010005;
+        D_dryfield_gas_station_80184BD8.field_8  = 0x52010007;
+        D_dryfield_gas_station_80184BD8.field_10 = 0x52010008;
+        D_dryfield_gas_station_80184BD8.field_C  = 0x52010010;
+        return (s32)Task_SpawnFromTable(&D_dryfield_gas_station_80181E18, 0, 2, (s32)&D_dryfield_gas_station_80184BD8);
+    }
+    return 1;
+}
 
 /// Spawns the room's event task and stores it in `D_dryfield_gas_station_80184BCC`,
 /// waits for it to be killed, then kills this task.
