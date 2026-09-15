@@ -83892,3 +83892,48 @@ assembly but not in the ranking.
 Worked example: `Actor00400_Fn05728` (`src/actors/lib/actor_100400_text.c`),
 96.9% -> 99.6% with the hoisted constant, -> 100% with the reload idiom; the
 calibration came from the already-matched `Actor00400_Fn0A5B8`.
+
+## A second pointer to the same object forces a reload CSE would otherwise fold
+
+**Problem.** m2c writes a ring-buffer push as a re-read of the field it just
+stored, and a store through a *different* pointer to the same object sits
+between the two:
+
+```c
+work2->field_638                   = 0xA;
+work2->field_614[work2->field_65A] = work2->field_638;   /* folded */
+if (...) {
+    state->field_638                   = 4;              /* state aliases work2 */
+    work2->field_614[work2->field_65A] = work2->field_638;  /* NOT folded */
+}
+```
+
+**Symptom.** One `lhu $v1, 0x638($a1)` appears in the `if` body that the target
+does not have; the first push has no such load. Nothing else differs, and the
+extra insn shows up as an `insert`/`delete` pair rather than a reg penalty.
+
+**Cause.** GCC 2.8.1's `cse` folds the first re-read because it still knows the
+value stored one insn earlier. The store through `state` — a separately
+reloaded `arg0->field_1C` pseudo — invalidates memory, so the second re-read
+survives as a real load. In the RTL dumps the parent keeps three
+`(set (reg:HI) (mem/s:HI (plus (reg) (const_int 1592))))` loads at `.i.rtl` and
+still three at `.i.cse`; hoisting the value into a local leaves one load
+adjacent to its store, which `cse` folds to `(const_int 10)` and `flow` deletes.
+
+**Fix.** Hold the value in a variable across the aliasing store. Beware that
+the variable must carry the value the *original* re-read would have seen — here
+4, written by `state->field_638 = 4`, not the earlier 0xA — so this is a
+semantic decision, not a formatting one.
+
+**Corollary, for reading a permuter candidate.** These effects are separable
+and additive, so a candidate that changes two use sites at once can be split
+and each half measured. For `Actor00400_Fn05728`, reverting one use at a time
+gave distances 569 (neither), 614 (push 1 only), 414 (both), 369 (push 2 only):
+push 2 is worth -200 (the deleted reload), push 1 is worth +45 (the
+`$v0`/`$v1` swap above), in either order. The permuter had bundled a -200 gain
+with a +45 regression; taking only the gain beat its own candidate. Always try
+the one-at-a-time 2x2 before porting a multi-site permutation.
+
+Worked example: `Actor00400_Fn05728`, evidence in the scratch archive
+(`base_6.c` `56ef70cdde8a…`, `base_7.c` `96a300410b7f…`, parent
+`8c86cfac9f83…`, permuter candidate `4bcd89c96728…`).
