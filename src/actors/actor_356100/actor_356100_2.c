@@ -6,7 +6,24 @@ INCLUDE_RODATA("actors/nonmatchings/actor_356100/actor_356100_2", ActorsShared80
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100_2", func_actor_356100_8016A0B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100_2", func_actor_356100_8016A158);
+void func_actor_356100_8016A158(Task* task)
+{
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+
+    work  = (Actor356100Work*)task->idMap;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work != NULL) {
+        if (work->field_B5C != NULL) {
+            Task_Kill(work->field_B5C);
+        }
+        if (work->field_B60 != NULL) {
+            Task_Kill(work->field_B60);
+        }
+        enemy->field_54 = 0;
+    }
+    Gp_DestroyEnemy(enemy, task);
+}
 
 void func_actor_356100_8016A1D8(Actor356100* arg0)
 {
