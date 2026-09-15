@@ -88,7 +88,21 @@ void func_neo_ark_shrine_8017EED4(Task* task)
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EF68);
+/// Same as `func_neo_ark_shrine_8017F320`, but it latches the script's pad
+/// mode on rather than off.
+void func_neo_ark_shrine_8017EF68(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+
+    Gp_SpawnPadLerp(0x12, 0x30, 0x90);
+    D_neo_ark_shrine_80186868 = 1;
+    prompt->mode              = 0;
+    prompt->targetId          = 0;
+    func_neo_ark_shrine_8017EAC0(task);
+    st->timer = 0;
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EFE4);
 
