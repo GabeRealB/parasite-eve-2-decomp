@@ -82304,3 +82304,67 @@ Inputs: `base.c` (listing order, 77.778%)
 `b5f6864df1063598ccb3a1b70f61edcc0cad7cd26ea7bdd700daffe3f8007fdd`,
 `base_1.c` (target order, 100.000%)
 `549cd4b5208239a783578467e8245f9bf86e3437a335e5a320989f3a67c4edf7`.
+
+## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (func_dryfield_water_tower_80180348, 2026-09-15)
+
+`Gp_State1C->field_A = D_..._801827A0[(Gp_GetViewIndex() & 0xFF) - 1]` - one
+call, one table read, one halfword store. The target keeps the subtraction on
+the *index*:
+
+```
+lui   a0,%hi(Gp_State1C)
+lui   v1,%hi(D_..._801827A0)
+addiu v1,v1,%lo(D_..._801827A0)     # symbol unbias
+andi  v0,v0,0xff
+addiu v0,v0,-0x1                    # the -1 sits before the scale
+sll   v0,v0,0x1
+addu  v0,v0,v1
+```
+
+That shape is not reachable through pointer arithmetic. `D_[x - 1]` on an
+`extern u16 D_[]` is an **ARRAY_REF**: `build_array_ref` takes the
+`TREE_CODE (TREE_TYPE (array)) == ARRAY_TYPE` branch (c-typeck.c:1406) and
+never calls `pointer_int_sum`, so the index tree reaches `expand_expr`
+untouched and the `* 2` is applied at expansion, on the far side of the
+subtract. `*(D_ + (Gp_GetViewIndex() & 0xFF) - 1)` instead parses as
+`pointer - 1`; `pointer_int_sum` scales that literal by the element size and
+buries it in the symbol - `addiu v1,v1,%lo(D_...-0x2)`, no `addiu v0,v0,-0x1`
+at all (90.789%). m2c's `M2C_FIELD`-style form, which writes the scale out by
+hand over an `M2C_UNK*`, folds both the scale and the constant into the symbol
+the same way (`%lo(D_...-0x8)`, `sll 3`, 90.526%).
+
+**The half of this that reads as a register bug is program order.** The
+ARRAY_REF's base expands before its index, so the address insns are born with
+*lower* RTL uids than the `andi`/`addiu` pair. Hoisting the index into a local -
+
+```c
+view = (Gp_GetViewIndex() & 0xFF) - 1;
+Gp_State1C->field_A = D_...[view];
+```
+
+- emits the identical instruction *set*, in the wrong order (`andi`,`addiu`
+  first, then the two `lui`s), and scores 85.526% with `regs=3 reorder=1`.
+  `sched.c`'s `rank_for_schedule` ranks by `INSN_PRIORITY`, then by class
+  against `last_scheduled_insn`, and falls through to `INSN_LUID` - program
+  order - so the birth position decides it. Splitting the statement restored
+  100.000%: at `sched` time the index chain's uids are the higher ones and the
+  addresses win the tie.
+
+Check this on `base_N.s`, which annotates every insn with its uid
+(`andi $2,$2,0x00ff  # 12 zero_extendqisi2/1`): if the index chain's uids are
+lower than the `lui`/`addiu` address insns, the statement split is the fix, and
+no register pin can reach it. `.diagnosis.json` reports this residue as
+`topology: match`, 19/19 instructions, `regs` and `reorder` only - the
+instruction count and the opcode census are both right.
+
+The three rooms carrying this body (`dryfield_parking_lot`,
+`dryfield_water_tank`, `dryfield_water_tower`) each read a *different* room-local
+table, so `overlay_dup_index.py promote` refuses it - the "body references its
+own overlay's data" case the promote docstring measures at 39 of 42 clusters.
+
+Inputs: `base.c` (m2c)
+`06a7eec343dcc9d1045a063c6070cd7ff7e6f7056ff6311247fbb69261d87b90`,
+`base_1.c` (index hoisted, 85.526%)
+`2e02c071b236f66212f723a60db269c9aab557512cb727ef37945baba1caa9b7`,
+`base_3.c` (subscript at the use site, 100.000%)
+`4a9708be907b33dca8e230c5d0b826a31227fb187ee4caa5122eb577cec1d1c3`.
