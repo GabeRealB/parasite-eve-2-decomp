@@ -34,6 +34,42 @@ typedef struct DwtwWork {
 } DwtwWork;
 STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 
+/// Payload `Gp_DispatchMsg` carries for message 0x7DB, the record this room's
+/// script table `D_dryfield_water_tower_80181B00` pairs with
+/// `func_dryfield_water_tower_8017F808` next to its `Room_Util08` 0x7D4 entry.
+/// Only the halfword at 0x2 is read; it becomes the receiving task's state. The
+/// same four bytes the actors send in `Actor210600Msg` / `Actor560800Msg`, and
+/// the shape `AcropolisBridgeMsg7DB` gives them on the receiving side.
+typedef struct DwtwMsg7DB {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} DwtwMsg7DB;
+STATIC_ASSERT_SIZEOF(DwtwMsg7DB, 0x4);
+
+/// Scratch state of the room's cap script, stored at `Task::idMap`: the
+/// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
+/// task before it runs. The whole body is halfword slots -- the pairs are
+/// timers the instructions above the state switch count down -- and the ones
+/// the decomp has named so far are `field_58` / `field_5A` / `field_60`, the
+/// three `func_dryfield_water_tower_8017F808` clears on message 0x7DB, and
+/// `field_5C` / `field_5E`, which `func_dryfield_water_tower_8017F8E8` writes
+/// together. `field_6C` / `field_6E` are 0/1 latches set by
+/// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`.
+typedef struct DryfieldWaterTowerState {
+    /* 0x00 */ u8  pad_0[0x58];
+    /* 0x58 */ s16 field_58;
+    /* 0x5A */ s16 field_5A;
+    /* 0x5C */ s16 field_5C;
+    /* 0x5E */ s16 field_5E;
+    /* 0x60 */ s16 field_60;
+    /* 0x62 */ u8  pad_62[0xA];
+    /* 0x6C */ s16 field_6C;
+    /* 0x6E */ s16 field_6E;
+    /* 0x70 */ u8  pad_70[0xC];
+} DryfieldWaterTowerState;
+STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
+
 /// The water tower's script task, published by its state-0 init
 /// `func_dryfield_water_tower_8017FD64`. `DwtwWork` hangs off its `idMap`.
 extern Task* D_dryfield_water_tower_801876AC;

@@ -82261,3 +82261,46 @@ Inputs: `base_1.i` (99.412%)
 `3b81a9453cbedcd717734661411a852d49e5b77f1d2826d574c0a525c8e4e8cd`,
 `base_5.i` (100.000%)
 `90523f0871234519882131068d802613b7737a9e205f436c3daa8e2d70c8c40a`.
+## A load above a store on a *different* base pins the source order (func_dryfield_water_tower_8017F808, 2026-09-15)
+
+The two entries above on permuting independent struct stores both end in the
+same warning: stores through one base at different constant offsets are
+provably disjoint, so the emitted store order says nothing about the order they
+were written in. That is a statement about *equal base* addresses. Change the
+base register and the proof disappears, and the emitted order becomes evidence
+you can rely on.
+
+`func_dryfield_water_tower_8017F808` is nine instructions in one basic block and
+stalled at 77.778% with `insert=1 delete=1` and every other penalty zero. The
+whole diff was the order of two instructions:
+
+```
+lhu   v0, 2(a2)          # target: the payload halfword, loaded early
+sh    zero, 0x2a(a0)
+```
+
+m2c had emitted its C in the assembly's *listing* order - the `0x2A` store
+before the `0x30` store that needs the load - which is what a load-delay-bitten
+listing looks like. It cannot be produced from that order: `(mem (reg $a2) 2)`
+against `(mem (reg $a0) 0x2A)` are two register bases with no offset
+relationship, so `rtxanal.c`'s `memrefs_conflict_p` proves nothing, the
+`true_dependence` edge stands, and no scheduler pass may lift the load above the
+store. Only a source whose statements are in the target's order emits it. Moving
+`task->state = msg->field_2;` above `task->killCountdown = 0;` scored 100.000%.
+
+So: when the residue is one load passing one store and the two use *different*
+base registers, reach for the statement order before the scheduler, the
+allocator, or the permuter - the dependency graph has already decided the
+question. The same-base entries still own their territory; the rule is the base,
+not "load vs store". Compare bases in `objdump` rather than assuming both are
+`$a0`.
+
+The other half of the same seed was arity: the payload pointer arrived in `$a1`
+because m2c had dropped the unused middle parameter, so the fix was the
+`(Task*, s32 msgId, payload*)` handler signature the "unread parameter" entry
+describes. Both edits are needed; neither alone moves the score.
+
+Inputs: `base.c` (listing order, 77.778%)
+`b5f6864df1063598ccb3a1b70f61edcc0cad7cd26ea7bdd700daffe3f8007fdd`,
+`base_1.c` (target order, 100.000%)
+`549cd4b5208239a783578467e8245f9bf86e3437a335e5a320989f3a67c4edf7`.
