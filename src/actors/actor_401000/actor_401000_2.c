@@ -65,7 +65,29 @@ void func_actor_401000_8013DB6C(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000_2", func_actor_401000_8013DC14);
+void func_actor_401000_8013DC14(Actor401000* arg0)
+{
+    TmdObject*       obj;
+    Actor401000Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_898       = 2;
+        work->field_8A2       = 0x10;
+        work->field_89E       = 3;
+        work->field_89A       = 0;
+        work->field_B50.flags = (u16)(work->field_B50.flags & 0x7FFF);
+        work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
+        func_actor_401000_80132EF0(arg0);
+    } else {
+        arg0->field_2C->field_8->flg = 0;
+        func_actor_401000_80132EF0(arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000_2", func_actor_401000_8013DCC0);
 

@@ -62,5 +62,6 @@ void func_actor_401000_80132EF0(Actor401000* arg0);
 void func_actor_401000_8013DA78(Task* task);
 void func_actor_401000_8013DB10(Actor401000* arg0);
 void func_actor_401000_8013DB6C(Actor401000* arg0);
+void func_actor_401000_8013DC14(Actor401000* arg0);
 
 #endif // ACTOR_401000_H
