@@ -79335,3 +79335,50 @@ sibling `8017DBBC` in the same overlay, and the matched body transferred
 verbatim — the two differ only in which table the local is copied from, so
 retargeting the `extern const TaskFuncTable4` declaration is enough. A `~`
 sibling in the same overlay is as good a seed as an `=` one.
+
+## A two-`return` tail is block-swapped by jump.c; the source polarity picks the layout
+
+Target:
+
+```
+lw    a0,%lo(D)(v0)
+nop
+bnez  a0,.Lcall
+move  a1,s2          /* delay slot */
+j     .Lend
+li    v0,-1
+.Lcall:
+move  a2,s1
+jal   Gp_DispatchMsg
+move  a3,s3
+```
+
+Both the `-1` and the call block end in a jump to the same epilogue, which is
+exactly what `jump.c` is looking for. Its "Look for `if (foo) bar; else break;`"
+pass in `jump_optimize_1` (the `range1`/`range2` splice guarded by
+`condjump_p (insn) && JUMP_LABEL (insn) == label1 && LABEL_NUSES (label1) == 1`,
+plus both ranges ending in a simplejump to the same label2) inverts the condjump
+and then **physically splices range2 into range1's slot**, i.e. the block the
+source places *second* is what lands immediately after the condition.
+
+* `if (D == NULL) { return -1; } return call(...);` expands with range1 = the
+  `-1` and range2 = the call, so the swap drags the **call** up front:
+  `beq a0,.Lneg`, fallthrough into the call, and an extra `j`/`nop` around the
+  now-out-of-line `li v0,-1`. 88% with `insert=3 delete=2 reorder=1`, and no
+  amount of register work moves it.
+* `if (D != NULL) { return call(...); } return -1;` expands the other way round,
+  so the same swap yields the target's `bnez`-to-call with the `-1` out of line
+  and `li v0,-1` filling the `j` delay slot.
+
+The two sources are semantically identical, so when a tail of two `return`s is
+off by one `j` and a swapped block order, invert the condition instead of
+restructuring the returns. Check `.rtl` first: the expansion already shows the
+final order, so if it is wrong there the fix is source polarity, not a later
+pass.
+
+`func_neo_ark_forest_zone_8017D958` (`base.c` 88.02%, `base_1.c` 88.33%,
+`base_2.c` 100%; preprocessed
+`46eac1e710f793926a79e9219e67e2bed8bb61fabece35fd50115e46693a6d28`). Its
+`base.c` was off by one argument before that - the handler takes four
+(`arg0`/`$a0` unused) and the m2c seed had dropped the leading one, which alone
+cost `regs=3` and shifted every `move sN,aN`.

@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
@@ -7,10 +8,13 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+
 extern s32      D_neo_ark_forest_zone_80181DC8;
 extern s32      D_neo_ark_forest_zone_80181E30;
 extern s32      D_neo_ark_forest_zone_80181E38;
 extern Task*    D_neo_ark_forest_zone_80181E68;
+extern u8       D_neo_ark_forest_zone_80181E6C[];
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", D_neo_ark_forest_zone_8017D5C0);
@@ -29,7 +33,27 @@ s32 func_neo_ark_forest_zone_8017D950(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017D958);
+/// Room message handler: on the first-visit sub-id (`field_2 == 1`) with flag
+/// 0xBD unset and the session's visit count equal to that sub-id, latches flag
+/// 0xBD and starts the room's fade with the record at `D_..._80181E6C`. Then
+/// forwards the message to the room's own task, answering -1 while that task
+/// does not exist yet.
+s32 func_neo_ark_forest_zone_8017D958(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    u8 visit;
+
+    visit = in->field_2;
+    if (visit == 1) {
+        if (GameFlag_GetNibble(0xBD) == 0 && Game_Session->field_9 == visit) {
+            GameFlag_SetNibble(0xBD, 1);
+            func_800E8614((s32)D_neo_ark_forest_zone_80181E6C, 0);
+        }
+    }
+    if (D_neo_ark_forest_zone_80181E68 != NULL) {
+        return Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, arg1, (s32)in, (s32)out);
+    }
+    return -1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017DA14);
 
