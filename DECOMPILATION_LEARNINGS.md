@@ -80766,3 +80766,19 @@ Same function: a hand-written yaw wrap loop left the loop variable in `$v1`
 instead of `$a1`; `s->yaw = Actor01900_NormalizeYaw(s->yaw)` (the overlay's
 existing inline) put it in `$a1`, because the inline's return pseudo, not the
 loop variable, is what gets stored and passed.
+
+## `0x2C(x)` vs `-8(head)` after a scratch pop: read through `vec->vx`, not `head[-1].vx`
+
+A scratch pop (`x = *G_SCRATCH_HEAD; *G_SCRATCH_HEAD = x + 0x34`) followed by
+a step-forward push (`head = *G_SCRATCH_HEAD; vec = head - 1; ...`) left the
+target's X read as `lh v1, 0x2C($s2)` (off the reloaded `x`), with `vec` in
+`$s0 = $s2 + 0x2C`. Reading `head[-1].vx` gave `-8($s2)` with `head` as a
+third call-crossing pseudo, which also moved `x` out of `$s2` (regs=11).
+
+Cause (`cse.c` `find_best_addr`): for a plain `(mem (reg vec))` it walks the
+class of `vec` and takes an entry with **equal address cost and higher rtx
+cost**, which is `(plus x 44)`, so `vec->vx` becomes `0x2C(x)`. A
+`(plus head -8)` address only has equal-cost `(plus x 44)` alternatives and is
+left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
+reason. Fix in `Actor01900_Fn06100`: `Actor01900_StepForward` (reads `vec->vx`)
+instead of `Actor01900_StepForwardHead`.

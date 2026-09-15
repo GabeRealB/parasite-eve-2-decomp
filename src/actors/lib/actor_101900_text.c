@@ -819,7 +819,84 @@ void Actor01900_Fn05F38(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06100);
+/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
+static __inline__ s32 Actor01900_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                     head;
+    Actor01900RangeScratch* blk;
+    s32                     ret;
+
+    head                                         = *(u8**)G_SCRATCH_HEAD;
+    ((Actor01900RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                          = (Actor01900RangeScratch*)(head - 0xC);
+    blk->dz                                      = d->vz;
+    blk->r                                       = r;
+    ((Actor01900RangeScratch*)(head - 0xC))->dx *= ((Actor01900RangeScratch*)(head - 0xC))->dx;
+    *(Actor01900RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                     *= blk->dz;
+    blk->r                                      *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                        = head;
+    ret                                          = ((Actor01900RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+void Actor01900_Fn06100(Actor01900* arg0)
+{
+    Actor01900Work*       work;
+    TmdObject*            obj;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        facing;
+    Actor01900AimScratch* aim;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x180;
+        work->field_898          = 1;
+        work->field_8A2          = 8;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        Actor01900_Fn01C94(arg0);
+        work->field_C40 = 0;
+        return;
+    }
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                      = *(Actor01900AimScratch**)G_SCRATCH_HEAD;
+    if (Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+        Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
+    }
+    Actor01900_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    arg0->field_2C->field_8->flg = 0;
+    Actor01900_Fn01C94(arg0);
+    coord           = arg0->field_2C->field_8;
+    aim->angle      = Actor01900_NormalizeYaw(ratan2(aim->delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->field_8AE = aim->angle;
+    if (aim->angle < 0x200) {
+        Actor01900_OutOfRange(&aim->delta, 0x384);
+    }
+    if (aim->angle > 0x40) {
+        aim->angle = 0x40;
+    }
+    if (aim->angle < -0x40) {
+        aim->angle = -0x40;
+    }
+    facing      = arg0->field_2C->field_8;
+    aim->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor01900_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89A == 0) {
+        Actor01900_StepForward(arg0->field_2C->field_8, 0x28);
+    } else {
+        Actor01900_StepForward(arg0->field_2C->field_8, 0x14);
+    }
+    *(Actor01900AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void Actor01900_Fn06634(Actor01900* arg0)
 {
@@ -957,27 +1034,6 @@ void Actor01900_Fn06904(Actor01900* arg0)
             coord->coord.m[2][2] = m22;
         }
     }
-}
-
-/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
-static __inline__ s32 Actor01900_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                     head;
-    Actor01900RangeScratch* blk;
-    s32                     ret;
-
-    head                                         = *(u8**)G_SCRATCH_HEAD;
-    ((Actor01900RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                          = (Actor01900RangeScratch*)(head - 0xC);
-    blk->dz                                      = d->vz;
-    blk->r                                       = r;
-    ((Actor01900RangeScratch*)(head - 0xC))->dx *= ((Actor01900RangeScratch*)(head - 0xC))->dx;
-    *(Actor01900RangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                     *= blk->dz;
-    blk->r                                      *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                        = head;
-    ret                                          = ((Actor01900RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
 }
 
 /// Arms `Gp_StateF0` and returns 1 when the player is within 500 units of the
