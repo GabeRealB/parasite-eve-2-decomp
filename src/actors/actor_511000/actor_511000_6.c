@@ -4,8 +4,6 @@
 #include "gameplay/gameplay.h"
 #include "actors/actor_511000.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_6", func_actor_511000_80133EAC);
-
 void func_actor_511000_80133F48(void* enemy, Task* task);
 void func_actor_511000_80133F88(void* enemy, Task* task);
 

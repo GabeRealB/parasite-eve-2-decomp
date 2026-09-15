@@ -6,3 +6,4 @@ ActorsShared80135df4Table = 0x80131E6C; // shared body data, see src/actors/lib/
 ActorsShared80135df4 = 0x80133D90; // shared body, see src/actors/lib/
 D_actor_511000_80131E24 = 0x80131E24; // force_not_migration:True actor state table, read from C
 ActorsShared801334c4 = 0x801334C4; // shared body, see src/actors/lib/
+ActorsShared80133eac = 0x80133EAC; // shared body, see src/actors/lib/
