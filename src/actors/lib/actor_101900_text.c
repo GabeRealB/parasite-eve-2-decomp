@@ -512,7 +512,57 @@ void Actor01900_Fn05F38(Actor01900* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06100);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text", Actor01900_Fn06634);
+void Actor01900_Fn06634(Actor01900* arg0)
+{
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_8C8.field_1C = 0x180;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_898          = 1;
+        work->field_89E          = 0xA;
+        work->field_89A          = 0;
+        work->field_8A2          = 0x10;
+        work->field_8B0          = 0;
+        work->field_8AE          = 0;
+        if (enemy->field_40 < 0 && work->field_C34[0] != 1 && work->field_C34[1] != 3 && work->field_C34[2] != 2) {
+            Gp_SetStateF0Byte3(1);
+        }
+        work->field_8C8.flags |= 0x4000;
+    }
+    if (work->field_89E == 0xA) {
+        Actor01900_StepForwardHead(arg0->field_2C->field_8, -0x57);
+    }
+    Actor01900_Fn01C94(arg0);
+    Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_8E8, 0xC);
+    Actor01900_Fn00E00(arg0->field_2C->field_8, &work->field_A28, 0xC);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_68 & 0x100) {
+        if (work->field_89E == 0xA) {
+            work->field_89E = 0xB;
+            work->field_898 = 2;
+            Actor01900_Fn01C94(arg0);
+        }
+        if ((work->field_68 & 0x100) && work->field_89E == 0xB) {
+            work->field_8C8.flags &= 0xBFFF;
+            if (enemy->field_40 > 0) {
+                if (enemy->field_4C & 2) {
+                    work->field_0 = 4;
+                } else {
+                    work->field_0 = 0x11;
+                }
+            } else {
+                work->field_0 = 0x15;
+            }
+        }
+    }
+}
 
 void Actor01900_Fn06904(Actor01900* arg0)
 {
