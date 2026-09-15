@@ -37,8 +37,9 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 void func_neo_ark_shrine_8017EAC0(void);
 void func_neo_ark_shrine_8017F86C(Task* task);
 
-extern s8 D_8007216C;
-extern s8 D_80115410;
+extern s8  D_8007216C;
+extern s8  D_80115410;
+extern s16 D_80114D08;
 
 extern s16      D_neo_ark_shrine_8018686A;
 extern TaskDesc D_neo_ark_shrine_80182508;
@@ -47,7 +48,22 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_s
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EE44);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EED4);
+void func_neo_ark_shrine_8017EED4(Task* task)
+{
+    D_80114D08 = 0xA;
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
+    Display_ReleaseRef();
+    Game_Session->field_1  = 0;
+    Game_Session->field_68 = 0;
+    Game_Session->field_66 = 0;
+    D_8007216C             = 0xA;
+    /* Without this the scheduler hoists the `spawnArg2` load above the
+       `D_8007216C` byte store, which then fills `Task_Kill`'s delay slot. */
+    SOFT_BARRIER();
+    Task_Kill((Task*)task->spawnArg2);
+    Task_RequestKill(task, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EF68);
 

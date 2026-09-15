@@ -80067,3 +80067,33 @@ Inputs: `base.i`
 `9feb35919f7a7407c565378a31b855a45b6247b721337c5348187a572692e9c7` (99.4%,
 `regs=3`), `base_1.i`
 `1dce15224cead24faad31a7bb9df1f5414baaa585c2c95487679ec7c69f9a19a` (100%).
+## Target `jal`+`nop`: the argument load is hoisted above a byte store's address pair, and reorg fills the slot (func_neo_ark_shrine_8017EED4, 2026-09-15)
+
+The room-script tail `Display_ReleaseRef(); Game_Session->field_1/0x68/0x66 = 0;
+D_8007216C = N; Task_Kill(task->spawnArg2);` recurs across rooms: the shared
+bodies `Room_Script10`/`Room_Script11` are the same tail with other constants,
+and this overlay's own `func_neo_ark_shrine_8017F0F0` has it. Retail keeps source
+order and takes a genuine `nop`:
+
+```asm
+sb   $s0,%lo(D_8007216C)($v0)
+lw   $a0,0x20($s1)
+jal  Task_Kill
+nop
+```
+
+m2c's shape scores 94.05% with `delete=1 reorder=2`: GCC hoists the `lw` above the
+`lui %hi`/`sb` pair, and reorg then fills the call's delay slot with the store
+(the store sits immediately before the call at sched2 output). `.sched` (sched1,
+pre-reload) shows the mechanism: the `lw` → `jal` dependence has `insn_cost` 2, so
+`queue_insn` postpones the load two cycles; in the cycle it comes off the queue,
+the `lui %hi` — a *birthing* insn, its one-set pseudo not live at the block head —
+has just become ready and `adjust_priority` promoted it to `LAUNCH_PRIORITY`
+(0x7f000001), so the store's address materialisation is emitted after the load and
+the load ends up before the pair.
+
+`SOFT_BARRIER()` between the byte store and the call restores both the order and
+the empty delay slot (100%), and here that is the *right* remedy because the
+target wants the `nop`. Contrast the fixed-scalar entry, where the target hoists
+the `%hi` into the load-delay slot and a barrier is a wrong remedy — read which
+side of the pair the target pins before reaching for one.
