@@ -3,6 +3,7 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -12,6 +13,7 @@ extern u8         D_80115598;
 extern s32        D_mine_refuge_80182AD8;
 extern u8         D_mine_refuge_80182ADC;
 extern GpMsgEntry D_mine_refuge_80181884[];
+extern TaskDesc   D_mine_refuge_801818B4;
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017ef20Title);
 INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017de9cHundred);
@@ -23,7 +25,21 @@ void func_mine_refuge_8017FE78(u8 arg0);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FC2C);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FCD0);
+s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    u8 temp_s0 = arg2->field_2;
+
+    if (temp_s0 == 1) {
+        if (GameFlag_GetNibble(0xBB) != temp_s0) {
+            GameFlag_SetNibble(0xC4, 0);
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_mine_refuge_801818B4, 0, 0, 0);
+        } else {
+            Gp_RunCapCmd1(0xA);
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_4", func_mine_refuge_8017FD48);
 
