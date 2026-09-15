@@ -702,15 +702,6 @@ run_agent() {
 # Shared with non-orch and orch match prompts. Claude also gets this via scratch
 # CLAUDE.md; grok -p does not auto-read that file, so the vacuum prompt must
 # carry MATCH_LOOP.md or it only stares at asm-differ.
-# Overlay basename to pass to build-and-verify.sh --only. decomp_overlay.py
-# writes it into the brief, so the agent and the vacuum agree on the scope
-# without re-deriving it from paths.
-build_scope() {
-  local bf="$1"
-  [ -f "$bf" ] || return 0
-  sed -n 's/^- Build scope: `\(.*\)`$/\1/p' "$bf" | head -1
-}
-
 dump_loop_instructions() {
   local func=${1:-${AGENT_FUNC:-}}
   match_loop_text "$func"
@@ -730,8 +721,6 @@ build_prompt() {
   local func=$1
   local scratch=$2
   local brief_file=$3
-  local scope
-  scope=$(build_scope "$brief_file")
   cat <<EOF
 Match \`$func\`. The scratch environment is already created at \`$scratch\`.
 Do NOT run ./tools/claude or recreate the scratch directory.
@@ -742,7 +731,7 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 2. $(dump_loop_instructions "$func")
 3. At ≥95%, use structural diagnostics and the bounded search router from the repo root **before** adding register pins:
    \`python3 tools/vacuum_permute.py --func $func --scratch $scratch --timeout 360 --jobs 4\`
-4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then verify twice — \`./tools/build-and-verify.sh${scope:+ --only $scope}\` for a fast check of this overlay, then the bare \`./tools/build-and-verify.sh\` before you commit, since a scoped pass says nothing about the overlays it skipped. Commit \`matched $func <attempts>\`.
+4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then run \`./tools/build-and-verify.sh\` and require \`✅ BUILD SUCCEEDED\`. It splits and rebuilds only what your edit changed, so it is already the fast check. Commit \`matched $func <attempts>\`.
 ${promote_guard}4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/<family>/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
 6. Complete experiment conclusions and LEARNINGS.md with unresolved hypotheses and evidence. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
@@ -757,8 +746,6 @@ build_permute_prompt() {
   local scratch=$2
   local seed=$3
   local winner=$4
-  local scope
-  scope=$(build_scope "$scratch/BRIEF.md")
   cat <<EOF
 The permuter router retained a candidate for \`$func\`. Read its verification
 status and available scratch scores in PERMUTER.json. PERMUTER_REVIEW is an
@@ -793,8 +780,8 @@ or ./tools/claude, add register pins, or start a wider matching search.
    evidence or budget is insufficient. Explaining a gain must not discard it.
 4. Port the useful transformation into the original seed's C style in a new
    base_N.c, retaining headers and verifying the score. A partial result stays
-   in scratch for retry; keep INCLUDE_ASM. An exact result must pass the scoped
-   and bare full verification commands below before integration is complete.
+   in scratch for retry; keep INCLUDE_ASM. An exact result must pass the full
+   verification command below before integration is complete.
    If the candidate is already integrated and fully verified, keep that match.
 5. After the final scratch build, conclude the investigation with:
    ./attempt.py conclude-permuter <candidate>.c --status unresolved \\
@@ -810,7 +797,6 @@ or ./tools/claude, add register pins, or start a wider matching search.
    changes. Unresolved hypotheses belong in the session notes.
 
 For an exact scratch match: replace INCLUDE_ASM in the host C file, run
-\`./tools/build-and-verify.sh${scope:+ --only $scope}\` and the bare
 \`./tools/build-and-verify.sh\`, and commit \`matched $func permute\` including supported findings.
 If there is no PERMUTER_ANALYSIS.md, the seed itself matched on rebuild; just port
 and verify it. Before finishing, archive any investigation with
@@ -920,9 +906,9 @@ commit_match_if_needed() {
   fi
 
   echo "INCLUDE_ASM for $func is gone; verifying before auto-commit..." | tee -a "$LOG_FILE"
-  # Deliberately unscoped. The agent's inner loop uses --only, but this is the
-  # vacuum's own check before it commits, and a scoped run cannot see an
-  # overlay the change broke somewhere else.
+  # Unscoped, like the agent's own verify: a scoped run cannot see an overlay
+  # the change broke somewhere else, and since the split is cached it is no
+  # slower for a single-overlay edit anyway.
   if ! ./tools/build-and-verify.sh; then
     echo "Verify failed after INCLUDE_ASM removal; discarding uncommitted match" | tee -a "$LOG_FILE"
     return 1

@@ -543,7 +543,10 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             raise SystemExit(f"{family}/{name}: unsubstituted placeholder in template")
 
         dest = out_dir / f"{name}.yaml"
-        dest.write_text(text, encoding="utf-8")
+        # Unchanged configs keep their mtime: ninja_config.py treats a config
+        # modified during a split as a reason to split it again.
+        if not dest.is_file() or dest.read_text(encoding="utf-8") != text:
+            dest.write_text(text, encoding="utf-8")
         written.append(dest)
     return written
 

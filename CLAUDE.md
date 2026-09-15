@@ -214,6 +214,22 @@ the order the folders appear under `stageN.folders`; checked against stage 1,
 all 8 sampled rooms resolve into their own package. `tools/find_models.py`
 documents the wider model-reference chain this belongs to.
 
+**A unit is re-split only when something it reads has changed.** The stamp in
+`linkers/USA/.split/<name>.json` hashes the config, the target binary, the
+symbol and reloc files the config names, `sym.<name>.imports.txt`, the unit's
+`c`-subsegment `.c` files (splat reads those to sort each function into
+`matchings/` or `nonmatchings/`, and creates a `.c` that is missing), the splat
+and spimdisasm versions, and `ninja_config.py` itself. A unit that misses has
+its `nonmatchings/<name>` and `matchings/<name>` directories deleted before it
+is re-split, because splat never removes a `.s` whose function moved. **If you
+make the split, or a post-split fixup, read a new file, add it to
+`split_inputs()`** - otherwise the cache serves outputs that ignore it and the
+build still passes. `build/` is kept between runs for the same reason it can
+be: the assembler's depfiles track the `.s` files `INCLUDE_ASM` pulls into a C
+object, which cpp never sees, so any new rule reading files cpp cannot see
+needs a depfile of its own. `--clean` / `ninja_config.py --fresh` bypass all of
+it.
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the
@@ -230,14 +246,18 @@ overlay.
 
 ## Tools
 
-- `./tools/build-and-verify.sh [--only SELECTOR[,SELECTOR...]]` build the
-  project and verify that it matches the target. `--only` splits, builds and
-  checksums just those units — a family (`core`, `weapons`) or a single
-  basename (`gameplay`, `m93r`) — leaving every other overlay's `asm/` and
-  `linkers/` alone. Use it as the inner loop while matching (2.6s for one
-  weapon overlay, 4.8s for gameplay, against 38s for the project), then run it
-  **unscoped** before committing: a scoped pass says nothing about the
-  overlays it skipped, which is exactly what a struct change breaks.
+- `./tools/build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]`
+  build the project and verify that it matches the target. Run it bare: it
+  re-splits only the units whose split would change and rebuilds
+  incrementally, so a no-op run is ~7s and a one-overlay edit ~9s — the same
+  cost as the old scoped run, with none of its blind spots. `--only` splits,
+  builds and checksums just those units — a family (`core`, `weapons`) or a
+  single basename (`gameplay`, `m93r`) — and is worth reaching for in one
+  case: iterating on a header many overlays include, where the full build
+  recompiles all of them (~50s). Its `✅ SCOPED BUILD SUCCEEDED` says nothing
+  about the overlays it skipped, which for a header change is the thing you
+  have to check, so finish unscoped. `--clean` wipes `asm/`, `linkers/` and
+  `build/` and splits everything, as every run used to.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
 - `./tools/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
 - `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.

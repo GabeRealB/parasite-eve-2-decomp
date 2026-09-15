@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Format project sources, then build and verify the matching binary.
 #
-# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]]
+# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]
 #
 # With --only, splits and builds just those units and checksums only what it
 # built - a family (core, weapons) or a single basename (gameplay, m93r).
 # Other overlays' asm/ and linkers/ are left alone, so a scoped run is the fast
 # inner loop while matching one function; finish with an unscoped run before
 # calling anything done.
+#
+# Both re-split only the units whose split would change (tools/split_cache.py)
+# and rebuild incrementally. --clean wipes asm/, linkers/ and build/ and splits
+# everything, as every run used to.
 #
 # Formats:
 #   - src/**/*.{c,h}
@@ -23,6 +27,7 @@ cd "$ROOT"
 
 SCOPE_ARGS=()
 SCOPE_LABEL=""
+CLEAN=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --only|-o)
@@ -30,11 +35,13 @@ while [[ $# -gt 0 ]]; do
             SCOPE_ARGS+=(--only "$2"); SCOPE_LABEL="${SCOPE_LABEL:+$SCOPE_LABEL,}$2"; shift 2 ;;
         --only=*)
             SCOPE_ARGS+=(--only "${1#*=}"); SCOPE_LABEL="${SCOPE_LABEL:+$SCOPE_LABEL,}${1#*=}"; shift ;;
+        --clean)
+            CLEAN=1; shift ;;
         -h|--help)
-            sed -n "2,12p" "$0"; exit 0 ;;
+            sed -n "2,16p" "$0"; exit 0 ;;
         *)
             echo "build-and-verify.sh: unknown argument '$1'" >&2
-            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]]" >&2
+            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]" >&2
             exit 2 ;;
     esac
 done
@@ -111,10 +118,15 @@ fi
 
 "$CLANG_FORMAT" -i "${STYLE_ARGS[@]}" "${FORMAT_FILES[@]}"
 
-# A full run starts from a clean build tree. A scoped run must not: wiping
-# build/ would throw away exactly the incremental work that makes it fast.
-if [[ ${#SCOPE_ARGS[@]} -eq 0 ]]; then
+# Neither run wipes build/ by default: ninja tracks every input of every object
+# (including the .s files INCLUDE_ASM assembles in), so an incremental build is
+# the same build. --clean starts from nothing.
+FRESH_ARGS=()
+if [[ $CLEAN -eq 1 ]]; then
     "$PYTHON" ninja_config.py -c 1>/dev/null
+    FRESH_ARGS=(--fresh)
+fi
+if [[ ${#SCOPE_ARGS[@]} -eq 0 ]]; then
     SUCCESS="✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors"
 else
     SUCCESS="✅ SCOPED BUILD SUCCEEDED (${SCOPE_LABEL}). Only these units were split, built and checksummed - run without --only before treating the project as matching."
@@ -127,7 +139,7 @@ fi
 # like the error. Keep it, and print it when the build fails.
 NINJA_LOG="$(mktemp -t pe2-ninja-XXXXXX.log)"
 ninja_failed=0
-"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
+"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" "${FRESH_ARGS[@]+"${FRESH_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
 if [[ $ninja_failed -eq 0 ]]; then
     ninja >"$NINJA_LOG" 2>&1 || ninja_failed=1
 fi

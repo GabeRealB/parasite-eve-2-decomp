@@ -1,21 +1,24 @@
 # This file has been adapted from the silent-hill-decomp project.
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import time
 import tomllib
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import IntEnum
 from pathlib import Path
 
 import spimdisasm
 import splat
 import splat.scripts.split as split
+import yaml as pyyaml
 from ninja import ninja_syntax
 
 
@@ -238,6 +241,11 @@ OBJDIFF_DIR = TOOLS_DIR / "objdiff"
 # and a bare "python3" is whatever happens to be first on PATH.
 PYTHON = sys.executable or ("python" if PLATFORM == Platform.Windows else "python3")
 MASPSX = f"{PYTHON} {TOOLS_DIR / 'maspsx' / 'maspsx.py'}"
+# maspsx is patched in place (below), so a changed patch has to reassemble.
+MASPSX_SOURCES = [
+    str(TOOLS_DIR / "maspsx" / "maspsx.py"),
+    str(TOOLS_DIR / "maspsx" / "maspsx" / "__init__.py"),
+]
 
 
 def _ensure_maspsx_patch() -> None:
@@ -490,6 +498,7 @@ def ninja_setup_list_add_source(
             outputs=f"{target_path}.c.s",
             rule="cc",
             inputs=f"{target_path}.i",
+            implicit=[str(CC)],
             variables={"DLFLAG": DL_EXE_FLAGS},
         )
     else:
@@ -497,6 +506,7 @@ def ninja_setup_list_add_source(
             outputs=f"{target_path}.c.s",
             rule="cc",
             inputs=f"{target_path}.i",
+            implicit=[str(CC)],
             variables={"DLFLAG": DL_OVL_FLAGS},
         )
 
@@ -510,6 +520,7 @@ def ninja_setup_list_add_source(
             outputs=f"{target_path}.c.o",
             rule="maspsx",
             inputs=f"{target_path}.c.s",
+            implicit=MASPSX_SOURCES,
             variables={
                 "EXPANDIVFLAG": expand_div,
                 "DLFLAG": DL_EXE_FLAGS,
@@ -521,6 +532,7 @@ def ninja_setup_list_add_source(
             outputs=f"{target_path}.c.o",
             rule="maspsx",
             inputs=f"{target_path}.c.s",
+            implicit=MASPSX_SOURCES,
             variables={
                 "EXPANDIVFLAG": expand_div,
                 "DLFLAG": DL_OVL_FLAGS,
@@ -649,7 +661,11 @@ def append_main_overlay_imports() -> None:
             if addr not in present:
                 out.append(entry)
                 present.add(addr)
-        path.write_text("\n".join(out) + "\n", encoding="utf-8")
+        text = "\n".join(out) + "\n"
+        # Runs on every configure, split or not; an identical rewrite would
+        # relink main each time.
+        if text != "\n".join(lines) + "\n":
+            path.write_text(text, encoding="utf-8")
 
     rewrite(fun, extra_fun)
     if extra_sym and sym.is_file():
@@ -798,10 +814,16 @@ def ninja_build(
     ninja_rules_file = ninja_syntax.Writer(
         open("rules.ninja", "w", encoding="utf-8"), width=9999
     )
+    # build/ persists between runs, so every edge has to name every input.
+    # cpp's depfile covers headers; the assembler's covers what it `.include`s
+    # and `.incbin`s - the .s files INCLUDE_ASM pulls into a C object, and the
+    # asset blobs - which cpp never sees.
     ninja_rules_file.rule(
         "as",
         description="as $in",
-        command=f"{AS} {AS_FLAGS} $DLFLAG -o $out $in",
+        command=f"{AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $in",
+        depfile="$out.d",
+        deps="gcc",
     )
     ninja_rules_file.rule(
         "cc",
@@ -832,7 +854,9 @@ def ninja_build(
     ninja_rules_file.rule(
         "maspsx",
         description="maspsx $in",
-        command=f"{MASPSX} {MASPSX_FLAGS} --aspsx-version=$MASPSXVER $EXPANDIVFLAG {AS_FLAGS} $DLFLAG -o $out $in",
+        command=f"{MASPSX} {MASPSX_FLAGS} --aspsx-version=$MASPSXVER $EXPANDIVFLAG {AS_FLAGS} $DLFLAG --MD $out.d -o $out $in",
+        depfile="$out.d",
+        deps="gcc",
     )
     ninja_rules_file.rule(
         "ld",
@@ -886,6 +910,10 @@ def ninja_build(
 
     # Build all the objects
     for split_config in split_entries:
+        # Per unit: an overlay's ELF links its own objects. Accumulating across
+        # units made every later overlay relink whenever any earlier one's
+        # object changed - invisible while every run rebuilt from scratch.
+        elf_build_requirements = []
         # A `.`-prefixed subsegment is linker placement only - it says where a
         # unit's .rodata/.data lands, and the unit's `c` subsegment is what
         # gets compiled. A unit can be placement *only*, though: a C object
@@ -1023,7 +1051,8 @@ def ninja_build(
                 "undef_sym_path": split_config.split_undef_sym,
                 "undef_fun_path": split_config.split_undef_fun,
             },
-            implicit=elf_build_requirements,
+            implicit=elf_build_requirements
+            + [split_config.split_undef_sym, split_config.split_undef_fun],
         )
         ninja_file.build(
             outputs=output,
@@ -1037,7 +1066,7 @@ def ninja_build(
                 outputs=f"{output}.fix",
                 rule="postbuild",
                 inputs=output,
-                implicit=output,
+                implicit=[output, str(TOOLS_DIR / "postbuild.py")],
             )
             checksum_build_requirements += [str(s) for s in [f"{output}.fix"]]
         else:
@@ -1085,6 +1114,111 @@ def ninja_build(
 
     with open("compile_commands.json", "w") as cc_file:
         json.dump(cc_entries, cc_file, indent=2)
+
+
+# A split is skipped when nothing it reads has changed. What it reads is known up
+# front: the config, the binary and symbol/reloc files the config names, the
+# `.c` files of its `c` subsegments (splat sorts each function into matchings/
+# or nonmatchings/ by whether the .c defines it, and creates a .c that is
+# missing), and the imports files the post-split fixups append. The stamp lives
+# in linkers/, so anything that wipes the generated trees drops it too.
+SPLIT_STAMP_DIR = "linkers/{version}/.split"
+
+
+def split_tool_key() -> bytes:
+    """What decides a split besides its inputs: splat itself and our fixups."""
+    from importlib import metadata
+
+    h = hashlib.sha1()
+    for dist in ("splat64", "spimdisasm", "rabbitizer"):
+        h.update(f"{dist}={metadata.version(dist)};".encode())
+    h.update(Path(__file__).read_bytes())
+    return h.digest()
+
+
+def split_inputs(yaml: str, version_dir: str, basename: str, c_sources: list[str]) -> list[Path]:
+    config = CONFIG_DIR / version_dir / yaml
+    options = pyyaml.safe_load(config.read_text(encoding="utf-8"))["options"]
+    base = config.parent / options.get("base_path", ".")
+
+    def listed(key: str) -> list[str]:
+        value = options.get(key) or []
+        return [value] if isinstance(value, str) else list(value)
+
+    paths = [config, base / options["target_path"]]
+    paths += [base / p for p in listed("symbol_addrs_path") + listed("reloc_addrs_path")]
+    paths += [CONFIG_DIR / version_dir / f"sym.{basename}.imports.txt"]
+    paths += [Path(c) for c in c_sources]
+    return paths
+
+
+def split_key(tool: bytes, job_args: list, inputs: list[Path]) -> str:
+    h = hashlib.sha1(tool)
+    h.update(json.dumps(job_args).encode())
+    for path in inputs:
+        h.update(f"\0{path}\0".encode())
+        try:
+            with open(path, "rb") as f:
+                h.update(hashlib.file_digest(f, "sha1").digest())
+        except FileNotFoundError:
+            h.update(b"missing")
+    return h.hexdigest()
+
+
+def split_outputs_present(info: dict) -> bool:
+    """The generated files the build names still exist (asm/ was not wiped)."""
+    paths = [info["split_linker"], info["split_undef_fun"], info["split_undef_sym"]]
+    for group in info["split_entries"]:
+        for entry in group:
+            # Only the generated ones: sources and prebuilt Psy-Q objects are inputs.
+            paths += [p for p in entry["src_paths"] if p.startswith(str(ASM_DIR))]
+    return all(os.path.exists(p) for p in paths)
+
+
+def c_sources_of(info: dict) -> list[str]:
+    return sorted(
+        {
+            entry["src_paths"][0]
+            for group in info["split_entries"]
+            for entry in group
+            if entry["segment"]["type"] == "c" and entry["src_paths"]
+        }
+    )
+
+
+def remove_function_asm(yaml: str, version_dir: str, basename: str, family: str, info: dict | None) -> None:
+    """Drop the per-function .s a unit's previous split wrote.
+
+    splat only adds files: a function that became C gets a matchings/ .s but
+    keeps its nonmatchings/ one, and the tooling reads nonmatchings/ as the
+    list of unmatched functions. A clean run hid that by wiping asm/.
+    """
+    config = CONFIG_DIR / version_dir / yaml
+    options = pyyaml.safe_load(config.read_text(encoding="utf-8"))["options"]
+    asm = config.parent / options.get("base_path", ".") / options["asm_path"]
+    units = [basename] if family != CORE_FAMILY else [""]
+    if info is not None:
+        units += [
+            str(Path(c).relative_to(options["src_path"]).with_suffix(""))
+            for c in c_sources_of(info)
+            if "/lib/" in c
+        ]
+    for unit in units:
+        for kind in ("nonmatchings", "matchings"):
+            shutil.rmtree(asm / kind / unit, ignore_errors=True)
+
+
+def yaml_info_from_dict(d: dict) -> YamlInfo:
+    return YamlInfo(
+        [
+            [SplitEntry(SplitSeg(**e["segment"]), e["object_path"], e["src_paths"]) for e in group]
+            for group in d["split_entries"]
+        ],
+        d["split_basename"],
+        d["split_linker"],
+        d["split_undef_fun"],
+        d["split_undef_sym"],
+    )
 
 
 class SplitFailure(Exception):
@@ -1292,6 +1426,14 @@ def main():
         ),
     )
     parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help=(
+            "Ignore the split cache: wipe asm/, linkers/ and build/ (or, with "
+            "--only, the selected units) and split everything selected."
+        ),
+    )
+    parser.add_argument(
         "-sc",
         "--skip_checksum",
         help="Skip checksum",
@@ -1377,10 +1519,16 @@ def main():
         )
 
     yamls_paths.extend(yaml for yaml, _n, _f in selected)
-    if scoped:
-        clean_scoped_files(selected)
+    fresh = args.fresh
+    if fresh:
+        if scoped:
+            clean_scoped_files(selected)
+        else:
+            clean_working_files(True, objdiff_config_option)
     else:
-        clean_working_files(True, objdiff_config_option)
+        # build/ is kept: ninja tracks every input of every object, including
+        # the .s files INCLUDE_ASM assembles in (see the `as` rules).
+        shutil.rmtree(PERMUTER_DIR, ignore_errors=True)
 
     version_dir = GAME_VERSIONS[game_version_option].metadata.version_dir
     jobs = [
@@ -1395,36 +1543,87 @@ def main():
         )
         for yaml in yamls_paths
     ]
+    names = [overlay_basename[yaml] for yaml in yamls_paths]
+    stamp_dir = Path(SPLIT_STAMP_DIR.format(version=version_dir))
+    tool = split_tool_key()
 
-    # Splitting dominates a full run - 111 s of ~120 s across 449 units - and
-    # each unit is independent, so it parallelises cleanly. `map` keeps the
-    # original order, which matters: main must stay first in the ninja graph.
-    # One unit is not worth a pool.
-    workers = jobs_option if jobs_option > 0 else (os.cpu_count() or 1)
-    workers = min(len(jobs), max(1, workers))
-    if workers > 1:
-        with ProcessPoolExecutor(max_workers=workers) as pool:
-            results = list(pool.map(split_one, jobs, chunksize=1))
+    def job_args(yaml: str) -> list:
+        family = overlay_family[yaml]
+        return [yaml, family, family_imports.get(family), bool(objdiff_config_option)]
+
+    results: list[YamlInfo | None] = [None] * len(jobs)
+    todo: list[int] = []
+    for i, (yaml, name) in enumerate(zip(yamls_paths, names)):
+        stamp_path = stamp_dir / f"{name}.json"
+        stamp = None
+        if not fresh and stamp_path.is_file():
+            stamp = json.loads(stamp_path.read_text(encoding="utf-8"))
+            inputs = split_inputs(yaml, version_dir, name, c_sources_of(stamp["info"]))
+            if stamp["key"] == split_key(tool, job_args(yaml), inputs) and split_outputs_present(stamp["info"]):
+                results[i] = yaml_info_from_dict(stamp["info"])
+                continue
+        # Drop the stamp before splitting, so a failed split cannot leave one.
+        stamp_path.unlink(missing_ok=True)
+        remove_function_asm(yaml, version_dir, name, overlay_family[yaml], stamp and stamp["info"])
+        todo.append(i)
+    print(f"Split: {len(todo)} of {len(jobs)} unit(s)")
+
+    def run(indices: list[int], parallel: bool = True) -> None:
+        # Splitting dominates a cold run - 111 s of ~120 s across 449 units -
+        # and each unit is independent, so it parallelises cleanly. `map`
+        # keeps the original order. One unit is not worth a pool.
+        started = time.time_ns() - 2_000_000_000  # file timestamps are coarse
+        workers = jobs_option if jobs_option > 0 else (os.cpu_count() or 1)
+        workers = min(len(indices), max(1, workers))
+        if workers > 1 and parallel:
+            with ProcessPoolExecutor(max_workers=workers) as pool:
+                out = list(pool.map(split_one, [jobs[i] for i in indices], chunksize=1))
+        else:
+            out = [split_one(jobs[i]) for i in indices]
+        stamp_dir.mkdir(parents=True, exist_ok=True)
+        for i, info in zip(indices, out):
+            results[i] = info
+            data = asdict(info)
+            inputs = split_inputs(yamls_paths[i], version_dir, names[i], c_sources_of(data))
+            key = split_key(tool, job_args(yamls_paths[i]), inputs)
+            # The key is taken after the split, so an input that changed while
+            # it ran - an edit, or a .c splat created and the fixups rewrote -
+            # must not be vouched for. Split it again next run instead.
+            if any(p.exists() and p.stat().st_mtime_ns >= started for p in inputs):
+                key = "resplit"
+            (stamp_dir / f"{names[i]}.json").write_text(
+                json.dumps({"key": key, "info": data}), encoding="utf-8"
+            )
+
+    if todo:
+        run(todo)
 
         # A shared `lib/` unit is written by *every* overlay that links it, so
-        # in a sequential run the last one in this order wins. In parallel the
-        # winner is whoever finishes last, which leaves the same instructions
-        # under a different ROM/VRAM comment column - harmless to the build,
-        # but non-deterministic. Re-split each shared unit's last owner in
-        # order so the output is byte-identical to a sequential run.
+        # in a sequential run the last one in this order wins. When another
+        # sharer was split - in parallel, or while the last one was cached -
+        # the winner is whoever wrote last, which leaves the same instructions
+        # under a different ROM/VRAM comment column: harmless to the build,
+        # but non-deterministic. Re-split each such unit's last owner, one at a
+        # time and in order: owners share units with each other too.
         owner: dict[str, int] = {}
+        writers: dict[str, set[int]] = {}
         for i, info in enumerate(results):
             for entry in info.split_entries[0]:
                 for src in entry.src_paths:
-                    marker = f"{os.sep}lib{os.sep}"
-                    if marker in str(src):
+                    if f"{os.sep}lib{os.sep}" in str(src):
                         owner[str(src)] = i
-        for i in sorted(set(owner.values())):
-            results[i] = split_one(jobs[i])
-        splits_yaml_info.extend(results)
-    else:
-        splits_yaml_info.extend(split_one(job) for job in jobs)
+                        writers.setdefault(str(src), set()).add(i)
+        # An owner re-split rewrites the units it shares with later owners too,
+        # so close over that before running them.
+        wrote = set(todo)
+        resplit: set[int] = set()
+        while grown := {o for src, o in owner.items() if (writers[src] & wrote) - {o}} - resplit:
+            resplit |= grown
+            wrote |= grown
+        if resplit:
+            run(sorted(resplit), parallel=False)
 
+    splits_yaml_info.extend(results)
     append_main_overlay_imports()
 
     ninja_build(
