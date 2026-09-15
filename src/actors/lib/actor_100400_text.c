@@ -48,6 +48,7 @@ void       Actor00400_Fn098A8(Actor100400* arg0);
 void       Actor00400_Fn09924(Actor100400* arg0);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
 extern GsCOORDINATE2 Gfx_ViewCoord;
 
@@ -63,7 +64,25 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00C84);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00E3C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn012B0);
+void Actor00400_Fn012B0(Actor100400* arg0, s16 arg1, s32 arg2)
+{
+    s32 temp_s2;
+
+    temp_s2 = arg2 & 0xFF;
+    Actor00400_Fn00E3C(arg0, 1, 2, 0x258, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 2, 3, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 3, 4, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 4, 5, 0x1F4, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 1, 6, 0x320, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 6, 7, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 7, 8, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 1, 0xC, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 0xC, 0xD, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 0xD, 0xE, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 1, 9, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 9, 0xA, 0x12C, arg1, temp_s2);
+    Actor00400_Fn00E3C(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn01454);
 
