@@ -79978,3 +79978,50 @@ is free - the same per-use width rule as the `lh`/`lhu` pair above. Do not
 reach for an unsigned field or a `.vx`-as-`u16` typedef to produce the `lhu`:
 an `s16` field under an `& 1` already does, and a `lh` there would mean the
 *use* changed, not the type.
+
+## m2c's guard return picks the wrong arm as fallthrough; the target lists the *else* arm
+
+m2c seeded `func_neo_ark_woodland_path_8017E8DC` with the early-return guard
+
+```c
+if (D_neo_ark_woodland_path_80181680 == NULL) {
+    return -1;
+}
+return Gp_DispatchMsg(D_neo_ark_woodland_path_80181680);
+```
+
+which scored 60% with `reorder=1 insert=3 delete=2` and inverted the predicate
+and the block order:
+
+```
+-bnez  a0,1c            +beqz  a0,24
+ sw    ra,0x10(sp)       sw    ra,0x10(sp)
+-j     .text+24         jal   Gp_DispatchMsg
+-li    v0,-0x1           nop
+ jal   Gp_DispatchMsg   +j     .text+28
+ nop                    +nop
+                        +li    v0,-0x1
+```
+
+Both forms are the same control flow, so the whole score is which arm GCC makes
+the fallthrough. Reaching `-1` by a `j` to the join block, with `li v0,-0x1` in
+that jump's delay slot, is the signature of the **else** arm: the original
+stored into a result temp and returned once, so neither arm leaves early.
+
+```c
+s32 ret;
+
+if (D_neo_ark_woodland_path_80181680 == NULL) {
+    ret = -1;
+} else {
+    ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680);
+}
+return ret;
+```
+
+That is 100% on the first build. The tell is cheap: a guard return in the seed
+plus a target whose error path ends in `j <join>` means rewrite to the
+temp-and-converge shape before trying anything else. The body was already
+matched in this unit as `func_neo_ark_woodland_path_8017E910`, so the `shape`
+1.00 hit in the brief was the answer outright - read the matched sibling
+first when the dup index rates it 1.00.
