@@ -80025,3 +80025,53 @@ Inputs: `base_9.i`
 if/else, 75.9%). The empirical rule: an if/else restructure that reproduces the
 seed byte for byte is not a near miss — read the branch sense, and if the target
 branches *into* a body, reach for `switch` next.
+
+
+## A store to a *stack slot* kills CSE's memory equivalence too, so a re-read field stays re-read
+
+`func_dryfield_water_tank_8017EC6C` steps the water tank one entry along its
+path: it fills a `RoomPlacement` local from an `SVECTOR` table indexed by the
+task's own `killCountdown`, sends it with msg 0x3E9, and bumps the counter. The
+target loads `0x2A($a1)` four times - once for the `slti 0x34` guard, then once
+per table field, with the payload stores in between:
+
+```c
+rec.pos.vx = D_dryfield_water_tank_80184530[arg0->killCountdown].vx;
+rec.pos.vy = D_dryfield_water_tank_80184530[arg0->killCountdown].vy;
+rec.pos.vz = D_dryfield_water_tank_80184530[arg0->killCountdown].vz;
+```
+
+Only the first lookup reuses the guard's value (`sll $v0, $a0, 3` off the `$a0`
+the `slti` already had): each later one follows a `sw $v0, 0x10($sp)` /
+`0x14($sp)` and is a fresh `lh $v0, 0x2A($a1)`. Hoisting the index into a local
+(`s16 idx = arg0->killCountdown;`) collapses them to two loads of `0x2A` and
+scores 81.02%; the three fresh reads are 100%.
+
+**Cause, from `cse.c`.** `note_mem_written` classifies a store to
+`(mem:M (plus (reg) (const_int)))` as a *varying* address: it skips
+`writes->all` (the address is a `PLUS`, not `QImode`, not `AND`) but sets
+`writes->nonscalar` and `writes->var`. `invalidate_from_clobbers` then calls
+`invalidate_memory`, which drops every entry that is
+`in_memory && (all || (nonscalar && in_struct) || addr_varies)`. A struct-member
+or array-element load off a pseudo base satisfies both the `nonscalar &&
+in_struct` clause (`arg0->killCountdown` is `MEM_IN_STRUCT_P`) and the
+`addr_varies` clause (`rtx_varies_p` is false only for the frame and arg pointer
+rtx's themselves), so **any** store to the frame invalidates it, however
+unrelated the slot. That is the rule of "A store to a neighbouring field kills
+CSE's memory equivalence" reaching a store base that has nothing to do with the
+load's.
+
+So a repeated field read in the target that survives every intervening *stack*
+store is evidence that the source re-read the expression at each use - do not
+reach for a local or a pin, and do check whether the extra loads line up
+one-for-one with the stores the source's payload assignments make. The same
+function's read-modify-write (`arg0->killCountdown++`) loads `lhu`, which is the
+documented HImode-move rule and not a signedness statement: the field stays
+`s16`.
+
+100% on the first build (`base_1.i`
+`9ea069322c3468fb8e5607278c19c446347fd742aed25365ce3bb09c64407d4d`) against the
+m2c seed's 54.59% (`base.i`
+`56a41611dd665dac63e2a0cea3c87ffd8e1d3718674a824ae86ce42763e9f4b0`); the seed
+modelled the payload as six scalars reading a 32-byte-stride table, which the
+`RoomPlacement` local plus `SVECTOR` array fixes.
