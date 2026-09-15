@@ -71,6 +71,29 @@ typedef struct Actor510900Work {
     /* 0x5BC */ s16  field_5BC;
 } Actor510900Work;
 
+/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
+/// aligned stores instead of nine halfword ones, each word holding two adjacent
+/// `m[][]` entries. The same shape `Actor206100MatrixWords` has.
+typedef struct Actor510900MatrixWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor510900MatrixWords;
+
+/// 0x7C-byte `Task::idMap` block `func_actor_510900_8013AD90` allocates: two
+/// linked `GpObj`s, each with its one-entry `GpRec18` table, laid out as the
+/// head of `Actor510900Work` (`func_actor_510900_8013C430` unlinks both).
+typedef struct Actor510900ChildWork {
+    /* 0x00 */ GpObj   obj0;
+    /* 0x20 */ GpRec18 rec20;
+    /* 0x38 */ GpObj   obj38;
+    /* 0x58 */ GpRec18 rec58;
+    /* 0x70 */ byte    pad_70[0xC];
+} Actor510900ChildWork;
+STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
+
 typedef struct Actor510900 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor510900Work*  field_1C;

@@ -2,6 +2,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "gameplay/3CD8.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_8013bbe4.h"
 
@@ -135,7 +136,63 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A9BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013AD90);
+void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
+{
+    GsCOORDINATE2*          coord;
+    Actor510900MatrixWords* mat;
+    Actor510900ChildWork*   work;
+
+    coord = ((Actor510900Obj2C*)task->extra)->field_8;
+    work  = Mem_Calloc(sizeof(Actor510900ChildWork), false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    mat               = (Actor510900MatrixWords*)&coord->coord;
+    task->idMap       = (TaskIdMap*)work;
+    mat->m00_m01      = 0x1000;
+    mat->m11_m12      = 0x1000;
+    mat->m22          = 0x1000;
+    mat->m02_m10      = 0;
+    mat->m20_m21      = 0;
+    coord->coord.t[0] = -0x17D4;
+    coord->coord.t[1] = -0x456;
+    coord->coord.t[2] = 0x17C;
+    coord->sub        = &Gfx_ViewCoord;
+    coord->flg        = 0;
+    enemy->field_4    = &coord->coord;
+    enemy->field_48   = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->field_18     = coord;
+    enemy->node.field_4 = 1;
+    enemy->field_1C.vx  = 0;
+    enemy->field_1C.vy  = 0;
+    enemy->field_1C.vz  = 0;
+    work->obj0.field_8  = coord;
+    work->obj0.field_10 = 0;
+    work->obj0.field_12 = 0;
+    work->obj0.field_14 = 0;
+    work->obj0.field_C  = &work->rec20;
+    work->obj0.field_18 = 0;
+    work->obj0.field_1C = 0x12C;
+    work->obj0.flags    = 1;
+    Gp_LinkObj(2, &work->obj0);
+    Gp_InitRec18Table(&work->rec20, 1, 0);
+    work->obj38.field_12 = -0x200;
+    work->obj38.field_8  = coord;
+    work->obj38.field_10 = 0;
+    work->obj38.field_14 = 0;
+    work->obj38.field_C  = &work->rec58;
+    work->obj38.field_18 = 0;
+    work->obj38.field_1C = 0x200;
+    work->obj38.flags    = 1;
+    work->obj0.flags    &= 0x7FFF;
+    Gp_LinkObj(8, &work->obj38);
+    Gp_InitRec18Table(&work->rec58, 1, 0);
+    work->obj38.flags &= 0x7FFF;
+    task->exitCallback = (TaskFunc)func_actor_510900_8013C430;
+    task->state        = 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013AF38);
 
