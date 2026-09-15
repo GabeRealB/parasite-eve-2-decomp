@@ -46,7 +46,20 @@ s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 /// whose nibble 0x5C is still clear, announce the room to the slot-4 task with
 /// message 0x7DA carrying the session's two id bytes and a zero halfword. Then
 /// advance state.
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D69C);
+void func_dryfield_motel_room_1_8017D69C(Task* arg0)
+{
+    Dmr1Msg7DA msg;
+
+    arg0->field_24 = D_dryfield_motel_room_1_8017E0A8;
+    Game_SetPtrSlot(arg0, 7);
+    if (Game_Session->field_9 == 3 && GameFlag_GetNibble(0x5C) == 0) {
+        msg.field_0 = Game_Session->field_7;
+        msg.field_1 = Game_Session->field_6;
+        msg.field_2 = 0;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+    }
+    arg0->state = arg0->state + 1;
+}
 void func_dryfield_motel_room_1_8017D74C(void)
 {
 }
