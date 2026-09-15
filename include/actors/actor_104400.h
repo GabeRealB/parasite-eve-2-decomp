@@ -91,7 +91,7 @@ typedef struct Actor104400Work {
     /* 0x42C */ byte             pad_42C[0x4];
     /* 0x430 */ s16              field_430;
     /* 0x432 */ s16              field_432; // 1 runs Actor04400_Fn06520 on the spawn position
-    /* 0x434 */ byte             pad_434[0x2];
+    /* 0x434 */ s16              field_434; // pitch, eased back to zero while falling
     /* 0x436 */ s16              field_436; // step picked from `field_43A`'s distance band
     /* 0x438 */ s16              field_438; // 1 on the death path
     /* 0x43A */ s16              field_43A; // distance to the nearer player actor
