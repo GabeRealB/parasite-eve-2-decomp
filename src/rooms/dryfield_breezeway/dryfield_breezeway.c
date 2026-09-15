@@ -16,6 +16,7 @@ s32 Gp_DispatchMsg();
 
 extern TaskDesc D_dryfield_breezeway_80181E10[];
 extern TaskDesc D_dryfield_breezeway_801820B0[];
+extern TaskDesc D_dryfield_breezeway_80182E18;
 
 s32 func_dryfield_breezeway_8017D90C(void)
 {
@@ -92,7 +93,32 @@ s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, Ro
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DC3C);
+/// The breezeway's room task, spawned from the room data table. State 0 arms
+/// the room: it silences the two weapon displays and spawns the secondary task
+/// `D_dryfield_breezeway_80182E18` describes, keeping the handle so state 1 can
+/// reap it. State 1 polls that child and, once it is gone, drops the handle and
+/// kills the room task with it.
+void func_dryfield_breezeway_8017DC3C(Task* arg0)
+{
+    s32 sp10;
+    s32 temp_v1;
+
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgPlayer3F3(0);
+            D_dryfield_breezeway_801843A8 = Task_SpawnFromTable(&D_dryfield_breezeway_80182E18, 0, 0, 0);
+            arg0->state                  += 1;
+            return;
+        case 1:
+            if (Task_PollKill(D_dryfield_breezeway_801843A8, &sp10) != 0) {
+                D_dryfield_breezeway_801843A8 = NULL;
+                Task_Kill(arg0);
+            }
+            return;
+    }
+}
 
 void func_dryfield_breezeway_8017DCE4(Task* task)
 {
