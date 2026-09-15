@@ -83343,3 +83343,86 @@ Inputs: `base_1.i`
 `8dcb085c7ff8844efc81548252a5bb489d023688c9ac7713960c28d0fa999547` (100.000%,
 typed `GpMsg13EF*` form), target
 `8c6abc7e385f4c6eec866e9bc6fbad76ec691362761f1ee34970c665515336a9`.
+
+## The same handler as a `switch` instead of an if/else chain is what hands the second delay slot to the fall-through (func_neo_ark_eve_access_tunnel_8017DC6C, 2026-09-16)
+
+The tunnel's message handler is the family shape its neighbours use - copy the incoming
+record, `func_80179B14`, then answer message 9 off flag nibble 0xB9, with `field_5`
+suppressing the side effects. Written as an if/else chain:
+
+```c
+    *dst = *src;
+    func_80179B14(src, dst);
+    if (*(u16*)src != 9) {
+        return 1;
+    }
+    if (GameFlag_GetNibble(0xB9) == 0) {
+        if (src->field_5 == 0) {
+            Gp_SetNibbleIf(src->field_6, 2);
+            Gp_RunCapCmd1(1);
+        }
+    } else if (src->field_5 == 0) {
+        ...
+    }
+    return 0;
+```
+
+Eight spellings of that control flow - if/else, the else-if above, both arms carrying their
+own `return 0;`, early returns inside each body, a single trailing return, and each of those
+with the arms swapped - all compile to the **same object at 98.439%**, one instruction long.
+(A ninth, a `s32 result` assigned in both arms, splits the CFG differently and parks the
+result in a callee-saved register: 91.971%, `regs=30`.)
+
+The leftover is one delay slot. The target's second `field_5` branch (`bnez v0,0xEC`) keeps
+the return block as its target and takes the fall-through's `lui` into the slot; every
+if/else build instead copies the return block's `move v0,zero` into the slot and redirects
+the branch past the block (reorg's `fill_slots_from_thread` winner path, then the
+`new_thread != thread` redirect). The two `move v0,zero` that survive - one in the slot, one
+in the block - are the extra instruction, and they also shift the epilogue by 4.
+
+Writing the same logic as a `switch` scores 100.000%:
+
+```c
+    switch (*(u16*)src) {
+        case 9:
+            switch (GameFlag_GetNibble(0xB9)) {
+                case 0:
+                    if (src->field_5 == 0) { Gp_SetNibbleIf(src->field_6, 2); Gp_RunCapCmd1(1); }
+                    break;
+                default:
+                    if (src->field_5 == 0) { ... }
+                    break;
+            }
+            return 0;
+    }
+    return 1;
+```
+
+The RTL difference is visible in `.flow` and `.dbr`. A `return` that follows a `break` is
+reached from both `case` arms, so it becomes **one return block that ends with its own jump
+to the function's return label** (`{v0 = 0; j 157}`), sitting before the epilogue. The
+if/else form instead gives each arm its own return block, and the second one sits directly
+before the epilogue and falls into it. With the shared, jump-terminated block reorg still
+fills the *first* branch's slot from it - `.dbr` shows `(insn/s 133 ...)` in that sequence
+plus a redirect of that branch to the return label - but the second branch's slot comes from
+the fall-through (`insn 69`, no `/s` marker) and that branch keeps the block as its target.
+That is the target's code, and the RTL is otherwise identical.
+
+Which reorg predicate flips between the two shapes is not pinned down. The target block and
+its first insn, the branch condition, the block's fall-through live set (`{sp,fp,83}` for
+the second body in both builds) and the candidate pattern are all the same, so the resource
+test in `fill_slots_from_thread` should have accepted the candidate in both; the recorded
+observation is the `.dbr` difference, not a verified mechanism.
+
+Practical rule for this family: when the if/else spelling leaves exactly one delay-slot insn
+(or one `move v0,zero` pair) behind and nothing else, try the `switch` spelling before
+touching registers. The neighbouring entries here cover the same decision reached by a
+duplicated `return 0;` and by a store written before the check; this is a third, purely
+structural knob on it.
+
+Inputs: `base_3.i`
+`ad91162aa5ea40f85ed92e6bab92cff0e4b414516e39cd33931a0c0846f672d0` (98.439%),
+`base_7.i`
+`7fec2134edc4fe9968020a6eea885f03d46c9e64a41a2cb93d0ed43693c7cfce` (100.000%).
+Backing files: `base_7.i.dbr` (the winning fill), `base_3.i.dbr` (the copied one),
+`base_7.i.flow` / `base_3.i.flow` (the block shapes).
