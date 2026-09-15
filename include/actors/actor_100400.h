@@ -109,6 +109,7 @@ typedef struct Actor100400Work {
     /* 0x661 */ byte               pad_661[3];
     /* 0x664 */ u8                 field_664;
     /* 0x665 */ s8                 field_665;
+    /* 0x666 */ u8                 field_666;
 } Actor100400Work;
 
 /// One 0x28-byte animation slot record, as walked from `Actor100400Work`
@@ -124,6 +125,12 @@ typedef struct Actor100400Ctx {
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ s16            field_C;
 } Actor100400Ctx;
+
+/// Event passed to `Actor00400_Fn0805C`; `field_2` selects the reaction (1-6).
+typedef struct Actor100400Msg {
+    /* 0x00 */ u16 field_0;
+    /* 0x02 */ u16 field_2;
+} Actor100400Msg;
 
 typedef struct Actor100400 {
     /* 0x00 */ byte             pad_0[0x1C];
