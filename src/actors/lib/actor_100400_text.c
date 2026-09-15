@@ -911,7 +911,61 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04E18);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05320);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05728);
+void Actor00400_Fn05728(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    Actor100400Work* state;
+    Actor100400Work* state2;
+    Actor100400Work* state3;
+    u32              random;
+    s16              next;
+    u8               idx;
+    u8               idx2;
+
+    work = arg0->field_1C;
+    if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
+        if (work->field_640 < 0x2710 && (u32)(work->field_634 - 0xC0) >= 0xE81U) {
+            random      = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = random;
+            if ((random >> 16) & 1) {
+                work2                              = arg0->field_1C;
+                work2->field_638                   = 0xA;
+                work2->field_63A                   = 0;
+                work2->field_614[work2->field_65A] = work2->field_638;
+                next                               = 4;
+                if (work2->field_614[0] == work2->field_614[1] &&
+                    work2->field_614[0] == work2->field_614[2] && work2->field_614[0] == 0xA) {
+                    state                              = arg0->field_1C;
+                    state->field_638                   = next;
+                    state->field_63A                   = 0;
+                    work2->field_614[work2->field_65A] = next;
+                    work2->field_64C                   = 0x5A;
+                }
+                idx              = work2->field_65A + 1;
+                work2->field_65A = idx;
+                if (idx >= 3U) {
+                    work2->field_65A = 0;
+                }
+            } else {
+                work->field_64C   = 0x5A;
+                state2            = arg0->field_1C;
+                state2->field_638 = 4;
+                state2->field_63A = 0;
+            }
+        } else {
+            state3                           = arg0->field_1C;
+            state3->field_638                = 4;
+            state3->field_63A                = 0;
+            work->field_614[work->field_65A] = work->field_638;
+            idx2                             = work->field_65A + 1;
+            work->field_65A                  = idx2;
+            if (idx2 >= 3U) {
+                work->field_65A = 0;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn058C4);
 

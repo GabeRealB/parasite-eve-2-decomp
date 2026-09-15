@@ -143,7 +143,7 @@ typedef struct Actor100400Work {
     /* 0x62C */ Actor100400Flags   flags_62C;
     /* 0x630 */ s16                field_630;
     /* 0x632 */ s16                field_632;
-    /* 0x634 */ byte               pad_634[2];
+    /* 0x634 */ u16                field_634;
     /* 0x636 */ s16                field_636;
     /* 0x638 */ s16                field_638;
     /* 0x63A */ u16                field_63A;

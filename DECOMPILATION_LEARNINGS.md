@@ -83809,3 +83809,86 @@ yaw = ratan2(vec.vx, vec.vz);
 Taking `&vec` makes every field address-taken, so each one is reloaded after the
 call. Whenever m2c hands you consecutive same-size stack slots and passes a
 pointer to the first, the original was one struct.
+
+## A constant materialised into `$a1` before a compare chain is a global allocno
+
+**Problem.** m2c writes the constant at its use site, inside the `if` body:
+
+```c
+if (work2->field_614[0] == work2->field_614[1] && ... ) {
+    state->field_638                   = 4;
+    work2->field_614[work2->field_65A] = 4;
+}
+```
+
+**Symptom.** The target loads the constant in the *first* branch's delay slot,
+several blocks before its first use, and keeps it in `$a1`:
+
+```
+bne   $v1, $v0, .Lexit
+ addiu $a1, $zero, 0x4      # target
+...
+bne   $v1, $v0, .Lexit
+ addiu $v1, $zero, 0x4      # ours: materialised at the last branch, in $v1
+```
+
+**Cause.** `$a1` is the fourth register `find_free_reg` offers (`$v0`, `$v1`,
+`$a0`, `$a1` — MIPS has no `REG_ALLOC_ORDER`, so allocation walks register
+numbers). A quantity local to the `if` body finds `$v1` free there and takes it;
+only a *global* allocno conflicts with `$v0`/`$v1` across the compare chain and
+with the work pointer's `$a0`, and so lands on `$a1`. local-alloc only handles
+pseudos referenced in one block (`REG_BASIC_BLOCK >= 0 && REG_N_DEATHS == 1`),
+so the constant must be *defined before the branch chain* to reach global.c at
+all.
+
+**Fix.** Give the constant a variable assigned ahead of the `if`:
+
+```c
+next = 4;
+if (work2->field_614[0] == work2->field_614[1] && ... ) {
+    state->field_638                   = next;
+    work2->field_614[work2->field_65A] = next;
+}
+```
+
+Read a call-argument register holding a plain constant as a claim about *where
+the value was defined*, not about scheduling: dbr fills the delay slot with the
+insn that already precedes the branch. This is the inverse of the usual advice —
+here the register number is diagnostic, and a pin would have hidden the cause.
+
+## `arr[i] = p->field` and `arr[i] = <literal>` allocate differently
+
+**Problem.** After storing a constant to a field, the ring-buffer push can be
+written either way; m2c always picks the literal, because CSE erased the load:
+
+```c
+work->field_638                  = 0xA;
+work->field_614[work->field_65A] = 0xA;              /* m2c */
+work->field_614[work->field_65A] = work->field_638;  /* original */
+```
+
+**Symptom.** `$v0` and `$v1` are swapped between the constant and the
+`lbu`/`sll`/`addu` index chain, and nothing else differs:
+
+```
+-li   $v0, 0xa          lbu  $v1, 0x65a($a0)     # target
++li   $v1, 0xa          lbu  $v0, 0x65a($a0)     # ours
+```
+
+**Cause.** With a literal, the constant is one quantity of 3 refs in `HImode`;
+`QTY_CMP_PRI` (`floor_log2(refs) * refs * size / (death - birth)`) ranks it far
+below the 6-ref `SImode` index chain, which therefore picks `$v0` first. Reading
+the field back instead leaves a register copy after CSE substitutes the stored
+value; local-alloc ties the copy into the constant's quantity, and the larger
+quantity outranks the chain. No priority tweak reaches this: with a literal the
+chain wins for every span the block can produce.
+
+**Fix.** Write the push as a read of the field that was just stored, the way the
+matched sibling in the same TU does. When two adjacent quantities come out
+swapped and the block is otherwise identical, look for a load the original
+performed that CSE would have folded away — the fold is invisible in the
+assembly but not in the ranking.
+
+Worked example: `Actor00400_Fn05728` (`src/actors/lib/actor_100400_text.c`),
+96.9% -> 99.6% with the hoisted constant, -> 100% with the reload idiom; the
+calibration came from the already-matched `Actor00400_Fn0A5B8`.
