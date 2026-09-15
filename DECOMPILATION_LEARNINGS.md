@@ -79769,3 +79769,63 @@ condition, two constants and one call is this family's signature, and the
 "chooser" never earns a name. The handlers are reached from a room data table of
 `{ u32 msgId, handler }` pairs, so an unmatched one is cheap to locate: the id
 beside it says which message it serves.
+
+## Two compares in the object mean the source had nested `if`s: the tree folder merges a single `&&` into one range test (func_mine_mesa_8017E70C, 2026-09-15)
+
+A bound check is the one place where writing the source the obvious way changes
+the branch count. This room message handler's target carries *two* compares that
+jump to the same block - `slti $v0,$a0,2; beqz $v0,.Lkill` then `bltz
+$a0,.Lkill` - over six blocks. The m2c seed's condition,
+
+```c
+if ((arg0 < 2) && (arg0 >= 0)) {
+    D_mine_mesa_80189B58->spawnArg1 = arg0;
+    return;
+}
+```
+
+compiled to five blocks with a single `sltiu $v0,$v1,2` and scored 52.333%
+(`branch=1 regs=8 insert=4 delete=5`): one branch, one block, and every
+downstream register decision inherited from it.
+
+`fold_range_test` in the bundled `gcc/fold-const.c` (`fold` calls it for
+`TRUTH_ANDIF_EXPR`/`TRUTH_ORIF_EXPR` at line 4943) does this on purpose. It runs
+`make_range` on both operands, merges them when both describe the same innermost
+variable, and rebuilds one test via `build_range_check`; an inclusive low bound
+of 0 converts the comparison to the unsigned type, which is where `sltiu`
+comes from. Operand order does not matter (`merge_ranges` sorts the two ranges),
+and `||` folds too - it inverts both sides and inverts the result - so no
+spelling of the compound condition escapes it.
+
+**Spreading the two tests over nested `if`s does.** Each becomes its own tree,
+so the folder never sees a pair to merge, and the branch structure of the target
+falls out directly:
+
+```c
+void func_mine_mesa_8017E70C(s32 arg0)
+{
+    if (D_mine_mesa_80189B58 != NULL) {
+        if (arg0 < 2) {
+            if (arg0 >= 0) {
+                D_mine_mesa_80189B58->spawnArg1 = arg0;
+                return;
+            }
+        }
+        Task_Kill(D_mine_mesa_80189B58);
+        D_mine_mesa_80189B58 = NULL;
+    }
+}
+```
+
+100%, all penalties zero, first build after the baseline. `func_actor_361100_801629D0`
+is the same body in the actors family, already matched with this exact nesting,
+which is what makes the shape the original's rather than a matching trick - the
+two bodies differ only in the global they guard (`D_actor_361100_80171BE0`
+against `D_mine_mesa_80189B58`), both storing `arg0` into `spawnArg1` and killing
+the task otherwise.
+(`overlay_dup_index.py find` reports the pair as `~` and `promote` refuses it:
+one copy per family, and the body names its own overlay's data.)
+
+Read the object before writing a bound check: two compares against the same
+register is a source-level fact, not an allocation artifact, and the folded
+version is a different function.
