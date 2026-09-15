@@ -80333,3 +80333,86 @@ light at 0x20, the reverse of every other room's work block.
 Inputs: `base.i` `c848ce07458f28a0e8ecb67bd03ab17c1f76474253f0273309256651d81b4c17`,
 `base_1.i` `1236914c918a59c1c55f5758ca7e900b117a5c7b3f9fff4c1ab5ea9f09d7761b`,
 `base_2.i` `379a54b9b0d14b3f82d2eeb1a4dd2a5349ec0067ff05881ec44923510f62beec`.
+
+## A call inside the `if` body sends the result to a callee-saved register; the ternary keeps `$a0` (func_neo_ark_shrine_8017D740, 2026-09-15)
+
+The handler picks a cap command from a game flag:
+
+```
+jal   GameFlag_GetNibble
+li    a0,0xde
+bnez  v0, .L8c
+li    a0,0xc          # delay slot: the *else* value
+li    a0,5            # the *then* value, fallthrough
+.L8c:
+jal   Gp_RunCapCmd1
+nop
+```
+
+The `bnez`+delay-slot+fallthrough shape says the source is a conditional
+expression whose condition is evaluated first, so the result is materialised
+straight into the call's `$a0`:
+
+```c
+Gp_RunCapCmd1(GameFlag_GetNibble(0xDE) == 0 ? 5 : 0xC);
+```
+
+m2c's `if` spelling instead writes the default and overrides it:
+
+```c
+s32 v = 0xC;
+if (GameFlag_GetNibble(0xDE) == 0) v = 5;
+Gp_RunCapCmd1(v);
+```
+
+That is semantically identical and scored 89.432% (`regs=1 reorder=1 insert=2
+delete=2`): the RTL defines `v` *before* the `GameFlag_GetNibble` call, so the
+pseudo is live across a call, local-alloc cannot give it the call-clobbered
+`$a0` and picks `$s0` instead. With a callee-saved home the `li $s0,0xc` is then
+free to hoist into the *previous* branch's delay slot and the call needs a
+`move $a0,$s0`. In the ternary the result pseudo is born after the call, never
+crosses it, and local-alloc spends `$a0` directly - 100%, all-zero penalties.
+
+So when the target's condition register feeds a *value* line rather than a
+branch, the source is a `? :`, and which register the value lands in is decided
+by evaluation order: a definition placed before a call in the RTL cannot become
+an argument register. The same shape is already in the matched
+`func_shelter_b6_growth_room_8017D634` -
+`Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xD8) == 0 ? 0x10 : 0x11, 0)` - which is
+where the pattern was read off before the first rebuild.
+
+Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c659b`,
+`base_1.i` `9f16fe3b1b6843c315a9c3200e76bdba98c630be27050b15f535d607ce1be9f8`,
+`base_2.i` `c814decb74e0f4f0814dc9c673e794eeb5d3bbff1769b3166313cfc0009090df`.
+
+## One global read at two widths is a parameter conversion, not a wrong type (func_neo_ark_shrine_8017D740, 2026-09-15)
+
+The same address is loaded with `lh` for the call and `lw` for the comparison
+two instructions later, and stored with `sw`:
+
+```
+lh    a2,%lo(D_neo_ark_shrine_80181E74)(s0)   # Gp_StartCapSlot(7, 1, x)
+...
+lw    v1,%lo(D_neo_ark_shrine_80181E74)(s0)   # if (x == 2)
+sw    s1,%lo(D_neo_ark_shrine_80181E74)(s0)
+```
+
+That reads like one symbol with two types. It is one type plus a conversion at
+the argument: declare the object `s32` and cast at the call site, because
+`Gp_StartCapSlot` takes `s16`s:
+
+```c
+extern s32 D_neo_ark_shrine_80181E74;
+Gp_StartCapSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
+```
+
+This is the width leak of "An `int` expression stored into a `u16` field
+narrows its own source load", at an argument position rather than an
+assignment, and it is already the matched idiom elsewhere
+(`Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 0)`). Declaring the global
+`s16` instead - which the m2c seed did - makes all three accesses narrow and
+costs 80.227% with `regs=2 insert=4 delete=4`. A mixed-width access to one
+address is a conversion at the narrow use, not a second symbol.
+
+Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c659b`,
+`base_1.i` `9f16fe3b1b6843c315a9c3200e76bdba98c630be27050b15f535d607ce1be9f8`.

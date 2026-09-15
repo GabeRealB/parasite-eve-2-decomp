@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -22,6 +23,10 @@ extern TaskDesc D_neo_ark_shrine_80182508;
 /// Task spawned in state 0, polled by `Task_PollKill` and cleared in state 1.
 extern Task* D_neo_ark_shrine_80186864;
 
+/// Cap event key (`Gp_StartCap`'s third argument) handed to the slot-7 event
+/// this room starts, so the event's exit can tell which one it was.
+extern s32 D_neo_ark_shrine_80181E74;
+
 s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
@@ -40,7 +45,26 @@ s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEvent
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D740);
+s32 func_neo_ark_shrine_8017D740(s32 arg0, s32 arg1, s32 arg2)
+{
+    s32 bit2;
+
+    if (arg2 == 7) {
+        bit2 = Gp_GetCurBit2Flag(7);
+        if (bit2 == 1) {
+            Gp_StartCapSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
+            if (D_neo_ark_shrine_80181E74 == 2) {
+                D_neo_ark_shrine_80181E74 = bit2;
+            }
+        } else {
+            Gp_StartCapSlot(7, 1, 0);
+        }
+    }
+    if (arg2 == 5) {
+        Gp_RunCapCmd1(GameFlag_GetNibble(0xDE) == 0 ? 5 : 0xC);
+    }
+    return 0;
+}
 
 s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
