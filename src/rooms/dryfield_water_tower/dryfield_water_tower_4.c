@@ -11,6 +11,13 @@
 #include "rooms/dryfield_water_tower.h"
 #include "rooms/room_common.h"
 
+/// Placement `func_dryfield_water_tower_8017F908` sends to the prop task at
+/// `DryfieldWaterTowerState::field_44` with message 0x7D4, whose handler is
+/// `Room_Util08` -- the same message and handler the table's other 0x0D entry
+/// `func_dryfield_water_tower_8017FA5C` uses below. One whole 0x18-byte run,
+/// unlike the placement that one sends, which splat splits in three.
+extern RoomPlacement D_dryfield_water_tower_80181A58;
+
 /// Placement `func_dryfield_water_tower_8017FA5C` sends to the prop task at
 /// `DryfieldWaterTowerState::field_48` with message 0x7D4, whose handler is
 /// `Room_Util08`. The first of three chunks splat splits it into; the other two
@@ -21,6 +28,16 @@ extern RoomPlacement D_dryfield_water_tower_80181AA0;
 /// message 0x3E9, the player move `func_dryfield_water_tower_80180220` also
 /// uses. 0x18 bytes, one word run in the split.
 extern RoomPlacement D_dryfield_water_tower_80181AD0;
+
+/// `func_dryfield_water_tower_8017F908` writes the room's view index here and
+/// `func_dryfield_water_tower_8017FA5C` writes view 9's; the byte is
+/// `Mc_SaveData.field_4`, the saved location `Gp_CommitSpawnLoc` sets and
+/// `Gp_ReloadAtLoc` restores. Spelled by address because that is the name the
+/// room imports: the struct spelling prints `%hi(Mc_SaveData)` /
+/// `%lo(Mc_SaveData+4)` and costs the scratch scorer 0.24% on an object whose
+/// words are identical, while the entry below needs it for aliasing. Both
+/// spellings are deliberate.
+extern s8 D_8007216C;
 
 /// The three effect-definition tables `func_dryfield_water_tower_8017FA5C`
 /// installs into the room's live copies -- 0x10, 0x18 and 0x40 bytes. The same
@@ -45,7 +62,34 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
     state->field_5E = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_4", func_dryfield_water_tower_8017F908);
+/// The 0x0D entry of the room's other script table,
+/// `D_dryfield_water_tower_80181DC8` -- the word at 0x80181DF8 is the opcode
+/// and 0x80181DFC this function's address. It is the sibling of
+/// `func_dryfield_water_tower_8017FA5C` on `D_dryfield_water_tower_80182248`
+/// and differs in the view it selects: 7 here against that one's 9.
+///
+/// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
+/// says the view has already been announced, records the view in the saved
+/// location byte `D_8007216C`, sends its 0x7D4 (`Room_Util08`) placement
+/// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
+/// then stops the pad scripts and queues event 0x52140006. The latch is what
+/// separates it from that sibling: this one is the re-entry the 0x5214000C
+/// announcement is gated on, and `func_dryfield_water_tower_8017EB7C` clears
+/// the latch when it re-arms the room.
+void func_dryfield_water_tower_8017F908(void)
+{
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
+
+    if (state->field_78 == 0) {
+        SndEvt_EnqueueType6(0x5214000C, 0, 0);
+    }
+    D_8007216C             = Gp_FindViewIndex(7);
+    Game_Session->field_52 = 1;
+    Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
+    state->field_44->state = 1;
+    Gp_HaltPadScripts();
+    SndEvt_EnqueueType7(0x52140006, 0x1E);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_4", func_dryfield_water_tower_8017F9AC);
 

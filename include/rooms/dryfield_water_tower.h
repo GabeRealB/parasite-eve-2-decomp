@@ -67,7 +67,11 @@ STATIC_ASSERT_SIZEOF(DwtwMsg7DB, 0x4);
 /// together. `field_6C` / `field_6E` are 0/1 latches set by
 /// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`; `field_70` is a third,
 /// set by script opcode `func_dryfield_water_tower_8017FA5C` and read back by
-/// the prop task `func_dryfield_water_tower_8017E1DC`.
+/// the prop task `func_dryfield_water_tower_8017E1DC`. `field_78` is a fourth:
+/// `func_dryfield_water_tower_8017E93C` sets it as it spawns
+/// `Gp_SpawnScript18(0x80187628, 0x8018763C)`, `8017EB7C` clears it, and
+/// `func_dryfield_water_tower_8017F908` reads it to decide whether its event
+/// 0x5214000C is due.
 typedef struct DryfieldWaterTowerState {
     /* 0x00 */ u8    pad_0[0x40];
     /* 0x40 */ Task* field_40; // Game_GetPtrSlot(3)
@@ -84,7 +88,9 @@ typedef struct DryfieldWaterTowerState {
     /* 0x6C */ s16   field_6C;
     /* 0x6E */ s16   field_6E;
     /* 0x70 */ u16   field_70;
-    /* 0x72 */ u8    pad_72[0xA];
+    /* 0x72 */ u8    pad_72[0x6];
+    /* 0x78 */ u16   field_78;
+    /* 0x7A */ u8    pad_7A[0x2];
 } DryfieldWaterTowerState;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 

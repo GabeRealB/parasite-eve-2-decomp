@@ -79299,6 +79299,21 @@ to any address whose owner the gameplay map names only at the base — the
 cutscene blob `D_80165720` in this same function is another, referenced by many
 rooms and named nowhere.
 
+The trap does *not* need the generator to be missing an entry. `Mc_SaveData`
+(0x80072168) and `D_8007216C` are **both** absolute imports in
+`configs/USA/sym/rooms.imports.txt`, so `Mc_SaveData.field_4` and `D_8007216C`
+link to the same word and either would checksum — yet the struct spelling costs
+the scratch scorer 0.24% (`regs=2`) on an object whose instruction words are
+identical, because the target object is what relocates against the address name.
+`func_dryfield_water_tower_8017F908`: `Mc_SaveData.field_4` is 99.756%, the
+address form 100.000%, and both produce the same `sb` (the reported `regs` is a
+counting artefact of the two renamed operands, not an allocation difference —
+do not go looking in `.lreg` for it). The struct spelling is not always wrong,
+though: `func_dryfield_water_tower_8017FA5C`, two functions away in the same
+file, needs it for the aliasing of that store with its `state->field_48` read.
+Prefer whichever name the target relocates against, and when a body's schedule
+needs the other one, say so at both sites.
+
 ## `Task::field_24` tables are 8-byte `GpMsgEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
 
 A room's state-0 opener parks its message table in `Task::field_24` and the C
