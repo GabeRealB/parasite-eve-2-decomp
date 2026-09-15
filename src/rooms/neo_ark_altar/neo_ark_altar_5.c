@@ -2,12 +2,15 @@
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 
 extern TaskDesc RoomsShared8018397cDesc;
 
 extern u8 D_8007216D;
+
+extern void func_neo_ark_altar_8017E148(void);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DC40);
 
@@ -25,7 +28,20 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_alt
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017ECE0);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017ED60);
+void func_neo_ark_altar_8017ED60(Task* arg0)
+{
+    TaskIdMap* work;
+
+    work        = Mem_Calloc(0x10, 0);
+    arg0->idMap = work;
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    func_neo_ark_altar_8017E148();
+    arg0->killCountdown = 0;
+    arg0->state         = (s32)(arg0->state + 1);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EDBC);
 
