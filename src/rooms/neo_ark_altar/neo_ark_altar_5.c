@@ -7,6 +7,8 @@
 
 extern TaskDesc RoomsShared8018397cDesc;
 
+extern u8 D_8007216D;
+
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DC40);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DF0C);
@@ -47,7 +49,13 @@ void func_neo_ark_altar_8017EE90(Task* arg0)
     arg0->state            = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EF00);
+void func_neo_ark_altar_8017EF00(Task* arg0)
+{
+    *(s16*)((u8*)Game_Session + OFFSET_OF(GameSession, field_52)) = 1;
+    D_8007216D                                                    = 2;
+    Game_Session->field_5                                         = 2;
+    arg0->state                                                   = (s32)(arg0->state + 1);
+}
 
 void func_neo_ark_altar_8017EF34(Task* arg0)
 {

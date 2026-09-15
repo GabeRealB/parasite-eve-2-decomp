@@ -79151,3 +79151,34 @@ Inputs: parent `base.i`
 `base_1.i` `cf7aa853c3f1d898ce0d16becc453dbadcd4f44e533dc30a150cd05305229f6d`
 (100.000%), target
 `28d5ddced61b0004626849971d4f5e3db3ac7199f5810868233c103429ff2847`.
+## sched1 memory output deps hinge on MEM_IN_STRUCT_P, not on the access itself (func_neo_ark_altar_8017EF00, 2026-09-15)
+
+`Game_Session->field_52 = 1;` and `*(s16*)((u8*)Game_Session + 0x52) = 1;`
+compile to the same bytes but schedule differently, because the struct form's
+MEM is flagged `in_struct` (`mem/s:HI` in the `.cse` dump) and
+`output_dependence()` in sched.c suppresses the conflict for exactly that shape:
+
+    ! (MEM_IN_STRUCT_P (mem) && rtx_addr_varies_p (mem) && GET_MODE (mem) != QImode
+       && GET_CODE (XEXP (mem, 0)) != AND && ! MEM_IN_STRUCT_P (x) && ! rtx_addr_varies_p (x))
+
+`rtx_addr_varies_p` treats a LO_SUM address as constant (`case LO_SUM: return
+rtx_varies_p (XEXP (x, 1))` in rtlanal.c — the `%lo(symbol)` half is a
+SYMBOL_REF), so a symbol-addressed store never *appears* to vary and the clause
+fires: a HI struct store and a symbol store never get an output dependence
+between them.
+
+Symptom: this room function is three stores and a `state++`. With the struct
+form, `sh 0x52(a1)` has no dependence against the later `D_8007216D` store, so
+the D-store group (`lui`/`li`/`sb`) is free to be scheduled first — 52.3%, a
+fixed penalty mix, and identical assembly for every statement order tried
+(`field_52,D,field_5`; `field_52,field_5,D`; the chained `field_5 = D = 2`).
+Dropping the flag with the cast form creates the dependence: the symbol store
+now depends on the `sh`, so it takes priority 2 (its predecessor 16 has
+priority 2 from the load edge), the `sh` is not ready until 27 is picked, and
+the block comes out in source order with the constant 2 in `$v0` — 100%.
+
+Two near-misses keep the flag: `((s16*)Game_Session)[0x29] = 1;` still emits
+`mem/s:HI`, and so does `*(s16*)&Game_Session->field_52 = 1;`. Only the
+cast-through-`u8*` address form drops it. When a schedule looks impossible from
+dependencies (an insn that must be picked early keeps being picked late),
+check the MEM flags before assuming a scheduler heuristic.
