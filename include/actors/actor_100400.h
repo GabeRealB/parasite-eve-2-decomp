@@ -9,18 +9,37 @@
 
 #include "gameplay/3FB8.h"
 
+/// Stat record `Actor00400_Fn00B48` hangs off `Actor100400Obj.field_50`;
+/// `field_4` seeds both HP fields.
+typedef struct Actor100400Stats {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ u16  field_4;
+} Actor100400Stats;
+
 /// Object the actor pushes damage and hit flags into (`Actor00400_Fn01B90`).
 typedef struct Actor100400Obj {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[6];
-    /* 0x10 */ byte field_10[4];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ u16  field_40;
-    /* 0x42 */ byte pad_42[0xA];
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D[0x13];
+    /* 0x00 */ byte              pad_0[4];
+    /* 0x04 */ MATRIX*           field_4;
+    /* 0x08 */ u16               field_8;
+    /* 0x0A */ byte              pad_A[6];
+    /* 0x10 */ byte              field_10[4];
+    /* 0x14 */ u8                field_14;
+    /* 0x15 */ byte              pad_15[3];
+    /* 0x18 */ GsCOORDINATE2*    field_18;
+    /* 0x1C */ s32               field_1C;
+    /* 0x20 */ s32               field_20;
+    /* 0x24 */ s32               field_24;
+    /* 0x28 */ byte              pad_28[0x18];
+    /* 0x40 */ u16               field_40;
+    /* 0x42 */ u16               field_42;
+    /* 0x44 */ byte              pad_44[4];
+    /* 0x48 */ u8                field_48;
+    /* 0x49 */ byte              pad_49[3];
+    /* 0x4C */ u8                field_4C;
+    /* 0x4D */ byte              pad_4D[3];
+    /* 0x50 */ Actor100400Stats* field_50;
+    /* 0x54 */ GpRec18*          field_54;
+    /* 0x58 */ byte              pad_58[8];
 } Actor100400Obj;
 
 typedef struct Actor100400QuadWork {
@@ -47,8 +66,10 @@ typedef union Actor100400Flags {
 
 typedef struct Actor100400Work {
     /* 0x000 */ byte               pad_0[8];
-    /* 0x008 */ byte               field_8[0x20];
-    /* 0x028 */ byte               pad_28[0x374];
+    /* 0x008 */ byte               field_8[0xC];
+    /* 0x014 */ byte               field_14[0x14];
+    /* 0x028 */ byte               pad_28[0x244];
+    /* 0x26C */ byte               field_26C[0x130];
     /* 0x39C */ GpRec18            field_39C[6];
     /* 0x42C */ byte               pad_42C[0x20];
     /* 0x44C */ GpRec18            field_44C[6];
@@ -64,7 +85,9 @@ typedef struct Actor100400Work {
     /* 0x564 */ s16                field_564;
     /* 0x566 */ byte               pad_566[2];
     /* 0x568 */ s16                field_568;
-    /* 0x56A */ byte               pad_56A[0x52];
+    /* 0x56A */ byte               pad_56A[0x12];
+    /* 0x57C */ MATRIX             field_57C;
+    /* 0x59C */ MATRIX             field_59C;
     /* 0x5BC */ MATRIX             field_5BC;
     /* 0x5DC */ GpEffArg           field_5DC;
     /* 0x5E4 */ SVECTOR            field_5E4;
@@ -124,6 +147,9 @@ typedef struct Actor100400Ctx {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0xE];
+    /* 0x1C */ MATRIX*        field_1C;
+    /* 0x20 */ MATRIX*        field_20;
 } Actor100400Ctx;
 
 /// Event passed to `Actor00400_Fn0805C`; `field_2` selects the reaction (1-6).

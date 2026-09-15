@@ -55,12 +55,17 @@ void       Actor00400_Fn0A5B8(Actor100400* arg0);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void       Actor00400_Fn019B4(Actor100400* arg0);
+void       Gp_LinkNode(byte* node, s32 slot);
+void       func_800B3F84(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4);
 
-extern GsCOORDINATE2  Gfx_ViewCoord;
-extern MATRIX         Gfx_ViewWorldMtx;
-extern TaskFuncTable3 Actor00400_D0002C;
-extern TaskFuncTable3 Actor00400_D00144;
-extern TaskFuncTable3 Actor00400_D0015C;
+extern GsCOORDINATE2    Gfx_ViewCoord;
+extern MATRIX           Gfx_ViewWorldMtx;
+extern TaskFuncTable3   Actor00400_D0002C;
+extern TaskFuncTable3   Actor00400_D00144;
+extern TaskFuncTable3   Actor00400_D0015C;
+extern Actor100400Stats Actor00400_D0FDC8;
+extern byte             Actor00400_D1604C[];
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
 
@@ -68,7 +73,47 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn005DC);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00A14);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00B48);
+void Actor00400_Fn00B48(Actor100400* arg0)
+{
+    Actor100400Ctx*  ctx;
+    Actor100400Work* work;
+    Actor100400Obj*  obj;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coords;
+    u16              hp;
+    u8               slot;
+
+    ctx                     = arg0->field_2C;
+    work                    = arg0->field_1C;
+    obj                     = arg0->field_20;
+    ctx->field_1C           = &work->field_59C;
+    ctx->field_C            = 0;
+    ctx->field_20           = &work->field_57C;
+    coords                  = arg0->field_2C->field_8;
+    coord                   = ctx->field_8;
+    work->field_5DC.field_4 = 0x600;
+    work->field_5DC.field_6 = 3;
+    work->field_664         = 4;
+    work->field_5DC.field_0 = &coords[1];
+    obj->field_4            = &coord->coord;
+    obj->field_48           = 0;
+    obj->field_1C           = 0;
+    obj->field_20           = 0;
+    obj->field_24           = 0;
+    slot                    = work->field_664;
+    obj->field_18           = &arg0->field_2C->field_8[slot];
+    Gp_LinkNode(obj->field_10, slot);
+    obj->field_14 = 1;
+    obj->field_54 = work->field_39C;
+    obj->field_50 = &Actor00400_D0FDC8;
+    hp            = Actor00400_D0FDC8.field_4;
+    obj->field_42 = hp;
+    obj->field_40 = hp;
+    coord->sub    = &Gfx_ViewCoord;
+    func_800B3F84(work, Actor00400_D1604C, ctx, work->field_26C, work->field_14);
+    Actor00400_Fn019B4(arg0);
+    work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00C84);
 
