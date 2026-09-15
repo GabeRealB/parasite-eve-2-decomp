@@ -38,6 +38,7 @@ void       Actor00400_Fn09714(Actor100400* arg0);
 void       Actor00400_Fn06EA4(Actor100400* arg0);
 void       Actor00400_Fn08ADC(Actor100400* arg0);
 void       Actor00400_Fn08B94(Actor100400* arg0);
+void       Gp_AnimResetSlot(Actor100400Work* anim, s32 slot, s32 active);
 void       Actor00400_Fn06F64(Actor100400* arg0);
 void       Actor00400_Fn0A880(Actor100400* arg0);
 void       Actor00400_Fn04900(Actor100400* arg0);
@@ -593,7 +594,23 @@ void Actor00400_Fn08464(Actor100400* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     Gp_UpdateCoord(coords);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn085B8);
+void Actor00400_Fn085B8(Actor100400* arg0)
+{
+    Actor100400Work*       work;
+    Actor100400AnimStride* stride;
+    s32                    i;
+
+    work   = arg0->field_1C;
+    i      = 1;
+    stride = (Actor100400AnimStride*)work + 1;
+    do {
+        Gp_AnimResetSlot(work, i, work->field_628);
+        i++;
+        stride->field_1D = (u8)work->field_632;
+        stride++;
+    } while (i < 0xF);
+    work->field_626 = (u16)work->field_628;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn08624);
 

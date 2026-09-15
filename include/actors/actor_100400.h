@@ -78,7 +78,7 @@ typedef struct Actor100400Work {
     /* 0x61E */ s16                field_61E;
     /* 0x620 */ byte               pad_620[4];
     /* 0x624 */ s16                field_624;
-    /* 0x626 */ byte               pad_626[2];
+    /* 0x626 */ u16                field_626;
     /* 0x628 */ s16                field_628;
     /* 0x62A */ byte               pad_62A[2];
     /* 0x62C */ Actor100400Flags   flags_62C;
@@ -110,6 +110,14 @@ typedef struct Actor100400Work {
     /* 0x664 */ u8                 field_664;
     /* 0x665 */ s8                 field_665;
 } Actor100400Work;
+
+/// One 0x28-byte animation slot record, as walked from `Actor100400Work`
+/// by `Actor00400_Fn085B8`; slot 0 overlaps the work header.
+typedef struct Actor100400AnimStride {
+    /* 0x00 */ byte pad[0x1D];
+    /* 0x1D */ u8   field_1D;
+    /* 0x1E */ byte pad_1E[0xA];
+} Actor100400AnimStride;
 
 typedef struct Actor100400Ctx {
     /* 0x00 */ byte           pad_0[8];
