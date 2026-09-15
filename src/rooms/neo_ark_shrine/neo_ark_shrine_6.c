@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gameflag.h"
@@ -10,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::idMap`
 /// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
@@ -44,7 +46,24 @@ extern s16 D_80114D08;
 extern s16      D_neo_ark_shrine_8018686A;
 extern TaskDesc D_neo_ark_shrine_80182508;
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EDE0);
+/// Spawns the action prompt for the script's current step: runs the shrine's
+/// per-step helper, clears the prompt's highlight state, then re-spawns the
+/// prompt at the coordinates the gameplay side left in `D_80114D28` with the
+/// display mode this step picked, and advances the task to state 4.
+void func_neo_ark_shrine_8017EDE0(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* work   = (NeoArkShrineScript*)task->idMap;
+
+    func_neo_ark_shrine_8017EAC0();
+    /* Without this local-alloc ranks `work` (2 refs over 6 insns) above `task`
+       (3 refs over 12), which swaps their `$s1` / `$s2` homes. */
+    SOFT_TOUCH_REG(task);
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->field_E);
+    task->state = 4;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EE44);
 

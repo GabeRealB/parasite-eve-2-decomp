@@ -80097,3 +80097,57 @@ the empty delay slot (100%), and here that is the *right* remedy because the
 target wants the `nop`. Contrast the fixed-scalar entry, where the target hoists
 the `%hi` into the load-delay slot and a barrier is a wrong remedy — read which
 side of the pair the target pins before reaching for one.
+
+## A same-body room twin with `$s1`/`$s2` swapped is a local-alloc `refs` race, not a CFG difference (func_neo_ark_shrine_8017EDE0, 2026-09-15)
+
+`func_neo_ark_shrine_8017EDE0` (25 insns) is the same body as the already-matched
+`func_shelter_b1_underground_parking_80184594` — leading per-step helper, prompt
+reset, `func_800D4E78` re-spawn, `task->state = 4` — and the two targets are
+identical insn for insn except that the shrine puts `task` in `$s1` and the
+`Task::idMap` local in `$s2`, the shelter the other way. Rewriting the m2c seed
+in the shelter's source shape reproduces the shelter's homes exactly (98.2%,
+`regs=9`, everything else 0), so the swap is not source order: both bodies
+compile to the same block.
+
+`python3 tools/trace_gcc.py --regs 80 81 82 83 93` names the two quantities
+(all suggestions empty, both call-crossing, both dying once, so `local_alloc`
+colours them):
+
+| quantity | refs | span | priority | got |
+|---|---|---|---|---|
+| `task` (parameter copy) | 3 | 24 | 1250 | `$s2` |
+| `work` (`Task::idMap`) | 2 | 12 | 1666 | `$s1` |
+
+`work` ranks higher, takes the first free `$s` after the prompt's `$s0`, and
+`task` falls to `$s2`. Raising `task`'s reference count is the whole fix:
+
+```c
+    func_neo_ark_shrine_8017EAC0();
+    SOFT_TOUCH_REG(task);
+```
+
+refs 3 → 5, span 24 → 26 (`in block 0` 13 insns), priority 3846 > 1666; `task`
+is allocated first and lands in `$s1`, `work` in `$s2` — 100% with all-zero
+penalties and a byte-identical object. The `SOFT_TOUCH_REG` emits nothing.
+
+Placement is not free. The same touch at the end of the body is dead and GCC
+drops it (score unchanged, 98.2%); before the `work` load it reorders the
+address materialisation and costs `insert=3 delete=2` (77.5%). Directly after
+the first call it is free. Note this is the load-side twin of the entry above:
+there a byte store moved a load, here nothing moves at all — the lever is only
+`QTY_CMP_PRI`.
+
+Two levers that do *not* work for this swap, both worth knowing:
+
+- **Reordering the two initializers.** `sched1` ranks the `%hi`/`lo_sum` pair
+  above the `lw` (the address chain reaches the second call through one more
+  link than `lw → lb → call`), so `work`'s birth stays at block position 4
+  whichever declaration comes first. Even at position 2 its span would only tie
+  `task`'s 1250.
+- **An empty `asm("")` between the load and the address pair** — `SOFT_BARRIER`
+  does pin the load to position 2 and flips the homes (96.4%), but the barrier
+  also blocks `sched2` from hoisting the `%hi` into the prologue, leaving
+  `sw $s0`/`lui` two slots late.
+
+Inputs: `base_1.i` `d8c3158cdcb2cd2a9a9e10b9c28c8c74916baf0d75a10e6ef0ccfe479691458e`,
+`base_12.i` `41d64bdea1facee77f1fb36da4d86fe0707c4c7389f2d544d58b95b0e6e75fee`.
