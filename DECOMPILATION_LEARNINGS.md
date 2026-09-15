@@ -82017,3 +82017,70 @@ stays unprototyped (`s32 Gp_DispatchMsg();`) - the call passes only the task and
 leaves `a1`-`a3` holding whatever the caller had - and the referenced `Task*` is
 overlay-local, so the body is *not* promotable despite the twin other rooms
 carry.
+
+## An m2c payload's unread scalar locals are deleted by the first jump pass - write the payload as a struct (func_dryfield_breezeway_8017E2D4, 2026-09-15)
+
+`func_dryfield_breezeway_8017E2D4` builds a 4-byte message payload on the stack
+and passes `&payload` to `Gp_DispatchMsg`. m2c renders such a payload as one
+scalar local per field and takes the address of the first one only:
+
+```c
+u8 sp10; u8 sp11; s16 sp12;   /* msg payload at sp+0x10 / +0x11 / +0x12 */
+...
+sp10 = Game_Session->field_7;
+sp12 = 2;
+sp11 = Game_Session->field_6;
+Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, &sp10, 0x7DB);
+```
+
+`sp11` and `sp12` are never read by any C expression - the callee is unknowable
+to the compiler - so they stay pseudos, and the object comes out three
+instructions short (28 against the target's 31: `sb $v1,0x11($sp)` and
+`sh $v0,0x12($sp)` are simply absent) with `insert=2 delete=5` and a *second*
+difference the penalties do not point at: the lost instructions shift sched2's
+placement of the `lw $s0,0x1C($v0)`, so the register order of the whole head of
+the function reads wrong and invites a register-allocation theory. Baseline
+74.677%.
+
+The pass is `jump`, not `flow`: both stores are present in `base.i.rtl` and gone
+in `base.i.jump`. The first `jump_optimize` call (`after_regscan=1`,
+`!reload_completed`) ends with jump.c's
+
+```c
+  /* If we haven't yet gotten to reload and we have just run regscan,
+     delete any insn that sets a register that isn't used elsewhere.  */
+  if (! reload_completed && after_regscan)
+    ... if (set && GET_CODE (SET_DEST (set)) == REG
+	    && REGNO (SET_DEST (set)) >= FIRST_PSEUDO_REGISTER
+	    && REGNO_FIRST_UID (...) == INSN_UID (insn)
+	    && REGNO_LAST_NOTE_UID (...) == INSN_UID (insn)
+	    && ! side_effects_p (SET_SRC (set)) ...)
+	  delete_insn (insn);
+```
+
+a single-set to a pseudo whose first and last use are that same insn. This is
+cse's dead-store pass' earlier sibling, and it runs before every dump you would
+normally look at, which is why `.cse` and `.flow` both already look clean.
+
+Give the payload its own type and pass `&msg` as the tree already does
+everywhere else (`ActorsShared80132724Msg`, `Actor104000Msg7DA`,
+`AcropolisBridgeMsg7DA`):
+
+```c
+typedef struct DbwMsg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} DbwMsg7DA;
+STATIC_ASSERT_SIZEOF(DbwMsg7DA, 0x4);
+...
+DbwMsg7DA msg;
+```
+
+Every field store is then a MEM write, which the sweep only deletes when the
+destination is a REG, and the whole function falls out byte-exact: 31/31, every
+penalty zero, on the first build after the rewrite (`base_2.c`, preprocessed
+`655f5b7f7f22b00613f25d5810779514324ae858f663e8734deeccc367e98277`). A payload
+m2c split into scalars is a *shape* error, not a scheduling one - no amount of
+statement reordering recovers instructions that were deleted before the
+scheduler ever ran.

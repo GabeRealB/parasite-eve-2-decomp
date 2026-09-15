@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::idMap` slot
@@ -53,9 +55,41 @@ typedef struct DbwEventWork {
 } DbwEventWork;
 STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
 
+/// 4-byte payload this room sends as `Gp_DispatchMsg`'s `arg2` for message
+/// 0x7DA, which the slot-4 task forwards to the 0x7DB handlers tagged with the
+/// action taken. `field_0` / `field_1` are the session's two id bytes and
+/// `field_2` the halfword the receiver switches on: plain 2 from
+/// `func_dryfield_breezeway_8017E2D4` and the tail of
+/// `func_dryfield_breezeway_8017E390`. Same four bytes as
+/// `ActorsShared80132724Msg` and `AcropolisBridgeMsg7DA`.
+typedef struct DbwMsg7DA {
+    /* 0x0 */ u8  field_0; // GameSession::field_7
+    /* 0x1 */ u8  field_1; // GameSession::field_6
+    /* 0x2 */ s16 field_2;
+} DbwMsg7DA;
+STATIC_ASSERT_SIZEOF(DbwMsg7DA, 0x4);
+
+/// 0x18-byte placement record this room sends as `Gp_DispatchMsg`'s `arg2` for
+/// message 0x7D4, the reset that drops `pos` into the receiving display object's
+/// coordinate frame -- the actor side's handler of that message reads only the
+/// yaw back out (`rot.vy`). Same shape as the shared
+/// `ActorShared8013411cPlacement`, and the same shape the cafeteria's 0x7D4
+/// payload has. `D_dryfield_breezeway_80181E28` is the first of a
+/// three-record run in the room's data blob, stride 0x18.
+typedef struct DbwPlacement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} DbwPlacement;
+STATIC_ASSERT_SIZEOF(DbwPlacement, 0x18);
+
 /// Room task published by `func_dryfield_breezeway_8017E010` and
 /// `func_dryfield_breezeway_8017E114` once they have built its work block.
 extern Task* D_dryfield_breezeway_801843C0;
+
+/// Placement this room hands on with message 0x7D4 from
+/// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
+/// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
+extern DbwPlacement D_dryfield_breezeway_80181E28;
 
 /// Secondary task spawned from the room data table by
 /// `func_dryfield_breezeway_8017DC3C` (state 0) and cleared again once
