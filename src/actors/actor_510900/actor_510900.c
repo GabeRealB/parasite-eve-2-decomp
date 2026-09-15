@@ -430,7 +430,84 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A310);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A5B8);
+/// Spawn handler of the child task: allocates the animation work block, seeds
+/// the model's root coordinate from the spawn-index tables, resets animation
+/// slots 1..10 and links the two render objects.
+void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
+{
+    TmdObject*            tmd;
+    GsCOORDINATE2*        coords;
+    Actor510900ChildAnim* work;
+    GsCOORDINATE2*        coord;
+    SVECTOR*              rot;
+    void*                 head;
+    s32                   i;
+
+    tmd    = task->extra;
+    coords = tmd->field_8;
+    work   = Mem_Calloc(sizeof(Actor510900ChildAnim), 0);
+    coord  = &coords[10];
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->idMap         = (TaskIdMap*)work;
+    tmd->field_C        = 0x80;
+    coords->flg         = 0;
+    tmd->field_1C       = &work->lightMtx;
+    tmd->field_20       = &work->colorMtx;
+    head                = *(void**)0x1F8003FC;
+    enemy->field_4      = &coords->coord;
+    rot                 = (SVECTOR*)(head - 8);
+    *(void**)0x1F8003FC = head - 8;
+    enemy->field_48     = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4        = 1;
+    enemy->field_18            = coord;
+    enemy->field_1C.vx         = -0xC8;
+    enemy->field_1C.vy         = 0;
+    enemy->field_1C.vz         = 0;
+    work->field_334            = task->spawnArg1;
+    ((SVECTOR*)(head - 8))->vx = 0;
+    rot->vy                    = D_actor_510900_80167CD0[work->field_334];
+    rot->vz                    = 0;
+    RotMatrix(rot, &coords->coord);
+    i                  = 1;
+    coords->coord.t[0] = D_actor_510900_80167CB8[work->field_334].vx;
+    coords->coord.t[1] = D_actor_510900_80167CB8[work->field_334].vy;
+    coords->coord.t[2] = D_actor_510900_80167CB8[work->field_334].vz;
+    coords->sub        = &Gfx_ViewCoord;
+    func_800B3F84(&work->anim, D_actor_510900_80167CAC, (GpAnimObj*)tmd, work->poses, work->slots);
+    do {
+        Gp_AnimResetSlot(&work->anim, i, 1);
+        i++;
+    } while (i < 0xB);
+    work->obj2BC.field_10 = -0xC8;
+    work->obj2BC.field_8  = coord;
+    work->obj2BC.field_12 = 0;
+    work->obj2BC.field_14 = 0;
+    work->obj2BC.field_C  = &work->rec2DC;
+    work->obj2BC.field_18 = 0;
+    work->obj2BC.field_1C = 0xC8;
+    work->obj2BC.flags    = 1;
+    Gp_LinkObj(2, &work->obj2BC);
+    Gp_InitRec18Table(&work->rec2DC, 1, 0);
+    work->obj2F4.field_18 = 0x50002;
+    work->obj2F4.field_8  = coord;
+    work->obj2F4.field_10 = 0;
+    work->obj2F4.field_12 = 0;
+    work->obj2F4.field_14 = 0;
+    work->obj2F4.field_C  = &work->rec314;
+    work->obj2F4.field_1C = 0x15E;
+    work->obj2F4.flags    = 1;
+    work->obj2BC.flags   &= 0x7FFF;
+    Gp_LinkObj(8, &work->obj2F4);
+    Gp_InitRec18Table(&work->rec314, 1, 0);
+    work->obj2F4.flags &= 0x7FFF;
+    task->exitCallback  = (TaskFunc)func_actor_510900_8013C380;
+    task->state         = 1;
+    *(u32*)0x1F8003FC  += 8;
+}
 
 void func_actor_510900_8013A9BC(Task* task);
 s32  func_actor_510900_8013C240(Task* task);

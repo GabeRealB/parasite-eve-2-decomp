@@ -95,10 +95,27 @@ typedef struct Actor510900Work {
 /// `field_336` is written to; otherwise `field_336` goes to the parent work's
 /// `field_5C2`.
 typedef struct Actor510900ChildAnim {
-    /* 0x000 */ byte pad_0[0x334];
-    /* 0x334 */ s16  field_334;
-    /* 0x336 */ s16  field_336;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[11];   ///< `func_800B3F84` arg4, reset 1..10
+    /* 0x1CC */ byte       poses[0xB0]; ///< `func_800B3F84` arg3
+    /* 0x27C */ MATRIX     colorMtx;    ///< handed to `TmdObject::field_20`
+    /* 0x29C */ MATRIX     lightMtx;    ///< handed to `TmdObject::field_1C`
+    /* 0x2BC */ GpObj      obj2BC;
+    /* 0x2DC */ GpRec18    rec2DC;
+    /* 0x2F4 */ GpObj      obj2F4;
+    /* 0x314 */ GpRec18    rec314;
+    /* 0x32C */ byte       pad_32C[8];
+    /* 0x334 */ s16        field_334;
+    /* 0x336 */ s16        field_336;
 } Actor510900ChildAnim;
+STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
+
+/// Spawn position of the child, indexed by its `Task::spawnArg1`.
+extern SVECTOR D_actor_510900_80167CB8[];
+/// Spawn rotation about Y, indexed the same way.
+extern u16 D_actor_510900_80167CD0[];
+/// Animation set table `func_800B3F84` installs in the context above.
+extern GpAnimSet* D_actor_510900_80167CAC[];
 
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent

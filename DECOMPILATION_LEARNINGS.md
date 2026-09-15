@@ -83937,3 +83937,44 @@ the one-at-a-time 2x2 before porting a multi-site permutation.
 Worked example: `Actor00400_Fn05728`, evidence in the scratch archive
 (`base_6.c` `56ef70cdde8a…`, `base_7.c` `96a300410b7f…`, parent
 `8c86cfac9f83…`, permuter candidate `4bcd89c96728…`).
+## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (func_actor_510900_8013A5B8, 2026-09-16)
+
+`func_actor_510900_8013A5B8` hands the same `&coords[10]` to three sinks that are
+separated by calls: `enemy->field_18`, and the `field_8` of each of the two
+`GpObj`s it links. Written inline at all three sites, GCC 2.8.1 emits the
+`addiu` three times, in three different call-clobbered registers:
+
+```c
+enemy->field_18      = &coords[10];   /* addiu v0,s5,0x320 */
+work->obj2BC.field_8 = &coords[10];   /* addiu s1,s5,0x320 */
+work->obj2F4.field_8 = &coords[10];   /* reuses s1          */
+```
+
+CSE does not unify them, because each use is in a different basic block run and
+the value is cheap to recompute; the cost model prefers re-materialization over
+occupying a callee-saved register across two calls. The target has exactly one
+`addiu $s7,$s5,0x320`, and it sits in the **delay slot of the allocation's
+null-check branch** - that is the tell. An address that appears before the
+function can possibly need it was computed by a source statement ahead of the
+`if`, so the pseudo is live across the whole body and must land in `$sN`:
+
+```c
+work  = Mem_Calloc(sizeof(*work), 0);
+coord = &coords[10];          /* before the null test */
+if (work == NULL) { ... return; }
+```
+
+That one change moved the score from 86.8% (`regs=51 reorder=8`) to 93.4%
+(`regs=8`); it also freed `$s8`/`$fp` for the `Task*` parameter, which is what
+the extra `sw $fp,0x38(sp)` in the target's prologue is. Read a hoisted address
+in a delay slot as a statement-placement fact about the source, not as an
+allocation tie to fight with pins.
+
+The residue after that was pure statement order: the three `coord.t[i]` stores
+followed by `coords->sub = &Gfx_ViewCoord;` matched, while putting the `sub`
+store between `t[1]` and `t[2]` - where the *emitted* order suggests it belongs -
+did not. Sched1 is free to sink an independent store past the ones after it, so
+the emitted position of a store between two others is not evidence for its
+position in the source; try the plain grouped order first.
+
+Inputs: `base_2.i` (93.4%, `regs=8 reorder=8`), `base_4.i` (100%).
