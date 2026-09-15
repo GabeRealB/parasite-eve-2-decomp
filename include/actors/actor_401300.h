@@ -70,6 +70,8 @@ void func_actor_401300_80141758(Task* task);
 
 void func_actor_401300_801419B8(Actor401300* arg0);
 
+void func_actor_401300_80141A60(Actor401300* arg0);
+
 void func_actor_401300_80141EF8(Task* task);
 
 #endif // ACTOR_401300_H
