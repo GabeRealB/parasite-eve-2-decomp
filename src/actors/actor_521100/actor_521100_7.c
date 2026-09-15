@@ -16,10 +16,10 @@ s32 func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target)
     s32            dz;
     u16            yaw;
 
-    coord = ((TmdObject*)task->extra)->field_8;
-    dx    = target->pos.vx - coord->coord.t[0];
-    dz    = target->pos.vz - coord->coord.t[2];
-    yaw   = ratan2(dx, dz);
+    coord                        = ((TmdObject*)task->extra)->field_8;
+    dx                           = target->pos.vx - coord->coord.t[0];
+    dz                           = target->pos.vz - coord->coord.t[2];
+    yaw                          = ratan2(dx, dz);
     D_actor_521100_8016A3D8->yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     D_actor_521100_8016A3D8->travel = SquareRoot0(dx * dx + dz * dz) / 20;
