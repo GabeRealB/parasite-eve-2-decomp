@@ -16,11 +16,21 @@
 /// 8 bytes later than the 0x8C8/0xA08/0xB48 triple on actor 01900/401800, with
 /// the same 0x140 stride.
 /// `field_4` is the live-actor flag `func_actor_401000_8013DB10` tests, and
-/// `field_B50.flags` / `field_A10.flags` are the two masks it writes.
+/// `field_B50.flags` / `field_A10.flags` are the two masks it writes. The
+/// halfwords at 0x898..0x8A2 are the same animation-state slots
+/// `Actor01900_Fn0A7C0` writes; `func_actor_401000_8013DB6C` is that body
+/// with `field_A10.flags |= 0x4000` in place of the sibling's `&= 0xBFFF`.
 typedef struct Actor401000Work {
     /* 0x000 */ byte  pad_0[4];
     /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[0x8CA];
+    /* 0x006 */ byte  pad_6[0x892];
+    /* 0x898 */ s16   field_898;
+    /* 0x89A */ s16   field_89A;
+    /* 0x89C */ byte  pad_89C[2];
+    /* 0x89E */ s16   field_89E;
+    /* 0x8A0 */ byte  pad_8A0[2];
+    /* 0x8A2 */ s16   field_8A2;
+    /* 0x8A4 */ byte  pad_8A4[0x2C];
     /* 0x8D0 */ GpObj field_8D0;
     /* 0x8F0 */ byte  pad_8F0[0x120];
     /* 0xA10 */ GpObj field_A10;
@@ -45,9 +55,12 @@ typedef struct Actor401000 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor401000;
 
+void func_actor_401000_80132EF0(Actor401000* arg0);
+
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
 /// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.
 void func_actor_401000_8013DA78(Task* task);
 void func_actor_401000_8013DB10(Actor401000* arg0);
+void func_actor_401000_8013DB6C(Actor401000* arg0);
 
 #endif // ACTOR_401000_H
