@@ -76893,6 +76893,59 @@ Inputs: `base_5.c` (`base_5.i`
 `base_38.c` (`base_38.i`
 `e12a5f578d65e0552cf034f43b9b51cf1eac5ce2246cb6b222175a87fd4a0f7b`, 100%).
 
+## A `?:` stored straight into a field is one *store per arm* in the RTL, and that reference can decide a register
+
+`func_actor_401000_80135374` matched byte-for-byte except for a `$s0`/`$s1`
+swap: the 0x20-byte scratch block pointer against the `SVECTOR*` local `step`
+(= `&s->step`, allocated right before use). `allocno_compare` orders allocnos by
+`floor_log2(n_refs) * n_refs / live_length`, and the tracer reads the two
+candidates out directly:
+
+```
+a5 [87] refs=32 span=169 priority=9467 -> $s0   (block pointer, 99.123%)
+a6 [89] refs=5  span=11  priority=9090 -> $s1   (step)
+a5 [87] refs=31 span=167 priority=7425 -> $s1   (block pointer, 100%)
+a7 [90] refs=5  span=11  priority=9090 -> $s0   (step)
+```
+
+One reference is worth 25% here because 32 crosses the power of two
+(`5*32 = 160` against `4*31 = 124`), so the pointer drops from first to second
+and `step` takes `$s0`. The reference itself comes from the clamp:
+
+```c
+s->step.vy = (vy <= 0) ? -0x12C : 0x12C;   /* two stores in the RTL: one per arm */
+```
+
+A conditional expression whose destination is memory is expanded per arm, so the
+RTL carries **two** `set (mem …)` insns; one of them is dead and never reaches
+the object, but `flow.c` counts both. Assigning the same `?:` to a local first
+emits a single store:
+
+```c
+clamped    = (vy <= 0) ? -0x12C : 0x12C;
+s->step.vy = clamped;                      /* one store in the RTL */
+```
+
+The surviving store count at that offset reads 4 → 3 → 2 as the temporary is
+added to the second and then both clamps, tracking `REG_N_REFS` 32 → 31 → 30;
+either single temporary is enough to match, and two 100% candidates differing
+only in *which* clamp holds it are the control. A duplicate `s->step.vy =
+clamped;` does **not** put the reference back — cse deletes a redundant
+same-value store before `flow.c` runs, so the extra store has to be one the
+compiler cannot prove dead.
+
+This is the mirror of the entry above: there the lever *added* a reference by
+reading a stored value back out of the object; here the store form decides how
+many references a single assignment contributes. Prefer the temporary when a
+pointer is one reference short of a `floor_log2` step, and check the `.lreg`
+store count at the field before reaching for a helper.
+
+Inputs: `base_5.c` (`base_5.i`
+`664d227928a92f21215df52501e25d5e806c8872c1abd7eebd1102096dd2caa8`,
+99.123%), `base_7.c` (`base_7.i`
+`943b7173685f245cbd64167ed6ea1ef33bb3674fd71fccfda2db39445cfc65ab`,
+100.000%).
+
 ## Source order against an unknown-pointer store decides whether CSE keeps a struct pointer: the original's reloads are the evidence
 
 `func_actor_105700_80133878` carves eight bytes off `G_SCRATCH_HEAD` and then

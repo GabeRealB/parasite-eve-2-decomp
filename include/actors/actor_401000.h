@@ -258,6 +258,19 @@ typedef struct Actor401000HeightClamp {
 } Actor401000HeightClamp;
 STATIC_ASSERT_SIZEOF(Actor401000HeightClamp, 0x10);
 
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_401000_80135374`.
+/// Same shape as `Actor401300Delta` / `Actor01900Delta`: the `GpDeltaScratch`
+/// filled by `func_800E0C10`, its integer `step` (Y clamped to ±0x12C while a
+/// height-clamp row matches, XZ normalised through the GTE past 0x96), the XZ
+/// length `len`, and `moved`, the return value.
+typedef struct Actor401000Delta {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ SVECTOR        step;
+    /* 0x18 */ s32            len;
+    /* 0x1C */ s32            moved;
+} Actor401000Delta;
+STATIC_ASSERT_SIZEOF(Actor401000Delta, 0x20);
+
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80134F98` carves off
 /// for the offset from the actor to `Wip_SysConfig.field_4`, the wrapped turn
 /// toward it and the facing yaw. Same shape as `Actor01900AimScratch` /

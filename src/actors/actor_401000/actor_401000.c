@@ -623,7 +623,113 @@ void func_actor_401000_801352DC(GameSessionFrom4* session, GsCOORDINATE2* coord)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80135374);
+/// Whether `D_actor_401000_80154FD0` has a row matching the session's
+/// `GameSessionFrom4::field_3` / `field_2` pair. The helper behind both
+/// height-clamp probes of `func_actor_401000_80135374`; the second probe is
+/// followed by the `func_actor_401000_801352DC` call itself, which walks the
+/// same rows to clamp the root Y. Same helper as `Actor401300_HasHeightClamp`.
+static __inline__ s32 Actor401000_HasHeightClamp(GameSessionFrom4* session)
+{
+    Actor401000HeightClamp* row;
+    s16                     i;
+
+    for (i = 0; i < 2; i++) {
+        row = &D_actor_401000_80154FD0[i];
+        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Root-coordinate step, the 401000 twin of `func_actor_401300_80132C78`:
+/// carve the 0x20-byte `Actor401000Delta` off `G_SCRATCH_HEAD`, fill its delta
+/// from the `rec` obstacle record, clamp the Y step to ±0x12C while a
+/// height-clamp row matches, hand the XZ step to the GTE normalisation once it
+/// passes 0x96, and step the root coordinate by each component. Reports
+/// whether anything moved.
+///
+/// Both the repeated clamp and the `clamped` temporary are load-bearing for
+/// register allocation, not style. The first clamp only runs while a clamp row
+/// matches and its in-range arm skips the second copy entirely, so folding the
+/// two (or letting the add re-read `s->step.vy`) swaps `$s0`/`$s1`: the block
+/// pointer against the `step` local. The temporary keeps one reference to the
+/// block pointer out of the RTL, which is what tips that fight the other way.
+s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
+{
+    Actor401000Delta* head;
+    Actor401000Delta* s;
+    s16               vy;
+    s16               clamped;
+    SVECTOR*          step;
+
+    if (D_80072729 == 1) {
+        return 0;
+    }
+    head                                = *(Actor401000Delta**)G_SCRATCH_HEAD;
+    *(Actor401000Delta**)G_SCRATCH_HEAD = head - 1;
+    s                                   = head - 1;
+    s->moved                            = 0;
+    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
+        s->step.vx = head[-1].delta.vx.w >> 16;
+        s->step.vy = s->delta.vy.w >> 16;
+        s->step.vz = s->delta.vz.w >> 16;
+        if (Actor401000_HasHeightClamp(&Game_Session->field_4)) {
+            vy = s->step.vy;
+            if (((vy >= 0) ? vy : -vy) <= 0x12C) {
+                goto addStep;
+            }
+            clamped    = (vy <= 0) ? -0x12C : 0x12C;
+            s->step.vy = clamped;
+        }
+        vy = s->step.vy;
+        if (((vy >= 0) ? vy : -vy) <= 0x12C) {
+            goto addStep;
+        }
+        s->step.vy = (vy <= 0) ? -0x12C : 0x12C;
+    addStep:
+        coord->coord.t[1] += s->step.vy;
+        s->len             = s->step.vx * s->step.vx + s->step.vz * s->step.vz;
+        s->len             = SquareRoot0(s->len);
+        step               = &s->step;
+        if (s->len >= 0x96) {
+            s->step.vy = 0;
+            VectorNormalSS(step, step);
+            gte_lddp(0x96);
+            gte_ldsv(step);
+            gte_gpf12_real();
+            gte_stsv(step);
+            coord->coord.t[0] += s->step.vx;
+            coord->coord.t[2] += s->step.vz;
+        } else {
+            coord->coord.t[0] += s->step.vx;
+            coord->coord.t[2] += s->step.vz;
+        }
+        if (s->delta.vx.w & 0xFFFF) {
+            if (s->delta.vx.w > 0) {
+                coord->coord.t[0]++;
+            } else {
+                coord->coord.t[0]--;
+            }
+        }
+        if (s->delta.vz.w & 0xFFFF) {
+            if (s->delta.vz.w > 0) {
+                coord->coord.t[2]++;
+            } else {
+                coord->coord.t[2]--;
+            }
+        }
+    }
+    if (Actor401000_HasHeightClamp(&Game_Session->field_4)) {
+        func_actor_401000_801352DC(&Game_Session->field_4, coord);
+        coord->coord.t[1] += arg3;
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->moved = 1;
+    }
+    *(Actor401000Delta**)G_SCRATCH_HEAD += 1;
+    return s->moved;
+}
 
 void func_actor_401000_80135704(Actor401000* arg0, GpRec18* rec, s32 arg2);
 
