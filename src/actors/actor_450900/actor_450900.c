@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -136,7 +137,25 @@ void func_actor_450900_80132678(u8 arg0)
     D_801153F4 = arg0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132684);
+/// Plays the ally's voice cue at its own pan and depth: `arg0` picks the
+/// non-random id, otherwise one of the two `0x55170005/6` takes is chosen.
+void func_actor_450900_80132684(s32 arg0)
+{
+    GsCOORDINATE2* coord;
+    s8             pan;
+    s8             depth;
+
+    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+    depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+    if (arg0 != 0) {
+        SndEvt_EnqueueType6(0x55170007, pan, depth);
+    } else if (rand() & 1) {
+        SndEvt_EnqueueType6(0x55170005, pan, depth);
+    } else {
+        SndEvt_EnqueueType6(0x55170006, pan, depth);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132724);
 

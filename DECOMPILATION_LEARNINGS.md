@@ -96768,3 +96768,63 @@ Evidence: scratch `nonmatchings/func_actor_120500_80132920-vacuum/`; `base.c`
 88.754%, `base_1.c` 96.966% (two loads, `insert=1 reorder=1`), `base_2.c`
 99.719% (`$s0`), `base_3.c` 100.000%; `base_2.i.lreg` shows insn 44 writing
 pseudo 81, the same pseudo as the other two assignments.
+
+## An `if/else if/else` that picks a constant for a later call: put the call in every arm
+
+The tell is a conditional branch whose **delay slot is a `lui`** and whose arms
+each end in a `j` to one shared tail:
+
+```
+beqz v0, else_
+lui  a0, 0x5517        /* delay: the high half both arms need */
+j    join
+ori  a0, a0, 5
+else_:
+ori  a0, a0, 6
+join:
+sll  a1, s1, 24        /* the argument setup lives at the join */
+sra  a1, a1, 24
+sll  a2, s2, 24
+jal  SndEvt_EnqueueType6
+sra  a2, a2, 24
+```
+
+That is cross-jumping's output, not a source shape you can write directly. The
+source calls the *same function in every arm*, each with its own constant, and
+jump.c merges the identical tails — leaving per-arm constant materialisation
+and a shared call whose argument setup sits at the join. Writing it the natural
+way (one call after the chain, the id in a local) gives the *other* layout
+instead, and plateaus: jump.c's `if (...) { x = a; goto l; } x = b;` rule fires,
+hoisting the else arm's constant before the branch, putting its `ori` in the
+delay slot, and deleting the `goto` — 91.2% on `func_actor_450900_80132684`
+with `branch=1 regs=6 reorder=2 insert=1 delete=1`.
+
+```c
+if (arg0 != 0) {
+    SndEvt_EnqueueType6(0x55170007, pan, depth);
+} else if (rand() & 1) {
+    SndEvt_EnqueueType6(0x55170005, pan, depth);
+} else {
+    SndEvt_EnqueueType6(0x55170006, pan, depth);
+}
+```
+
+The two siblings in the same overlay, `func_actor_450900_80131E38` and
+`func_actor_450900_8013207C`, carry the same idiom with the branch delay slot
+left as a `nop` (nothing was free to fill it), which is the same merge with a
+different fill. Compare `## /* irregular */ in m2c output` above: that is the
+`switch` spelling of this rule, and both come from m2c hoisting the constant
+into a `var_a0`/`var` local and lowering each arm to `x = K; goto tail;`.
+
+Keep the pan/depth a **byte** (`s8`) so the sign-extension stays at the call —
+`(s32)`-widening at the assignment moves the `sll`/`sra` pair into each arm and
+shifts the whole tail — and keep the coordinate a pointer so its load is `lw`.
+
+`func_actor_450900_80132684`: 91.225% from the m2c seed, 100.00% all-zero
+penalties (`base_2.c`, and `base_3.c` in the project's own style) with the call
+written per arm. Preprocessed SHA256
+`a4be31247a63bb20ced12fb458a1f0c3ff3047e3b9cae91eb0f1360bccb0fc1b` (`base_2`)
+and `f0e59f99810c60ec5b88edf3b9669192742ceb17681826dd4aae85771da8d067`
+(`base_3`). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Session:
+`nonmatchings/func_actor_450900_80132684-vacuum` (`base_2_diff`, `base_3_diff`).
