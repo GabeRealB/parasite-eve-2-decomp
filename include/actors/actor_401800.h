@@ -124,6 +124,29 @@ typedef struct Actor401800AnimWork {
     /* 0x8AC */ s16        field_8AC;
 } Actor401800AnimWork;
 
+/// 0x10-byte scratch `func_actor_401800_80135F58` takes from `G_SCRATCH_HEAD`:
+/// the offset from the actor to the player, then the clamped turn applied to
+/// the root coordinate. Same shape as `Actor01900AimScratch`.
+typedef struct Actor401800AimScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     angle;
+    /* 0xE */ s16     pad_E;
+} Actor401800AimScratch;
+STATIC_ASSERT_SIZEOF(Actor401800AimScratch, 0x10);
+
+/// 0x34-byte scratch the yaw rebuild takes from `G_SCRATCH_HEAD`: a `MATRIX`
+/// plus the `VECTOR` handed to `ScaleMatrix` and the yaw stored before
+/// `Gfx_RotMatrixY`. Same layout as `Actor01900RotScratch`.
+typedef struct Actor401800RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor401800RotScratch;
+STATIC_ASSERT_SIZEOF(Actor401800RotScratch, 0x34);
+
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
