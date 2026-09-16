@@ -1156,6 +1156,23 @@ fills. Gotos keep the zero-both tail *before* the hit-flag check. Example:
 `base_5.i`
 `e75203767dacd28f5a0d8622a1be602686ea50bea5184651f94c1c79e2c482f7`.
 
+The mirror case, where the def the ROM hoists into the *branch delay* is the
+init `ret = 1` and the register it must keep is `$v0` itself:
+`func_dryfield_g_r_kitchen_8017D8C4` is `*out = *in;` then
+`if (in->msgId == 0x14) { …gate(&req, in); } return ret;`. With `ret = 1;`
+before the `if`, `.greg` reports `84 conflicts: 82 84 2 3 7 29` — the `$v0`
+holding the compare's `0x14` and the `$v1` holding the `lhu` result — so `ret`
+takes `$a0`, and the object grows `move a0,v0` after the `jal` plus `move v0,a0`
+in the epilogue (91%). Defining `ret` in each arm instead (`ret = call(…)` in
+the taken one, `ret = 1` in an `else`) removes the value of `ret` from block 0
+entirely, and the same allocno is then free for `$v0`: both copies vanish and
+it matches exactly. The constants it shares `$v0` with inside the taken arm are
+harmless — `ret`'s value from the entry block is dead there. Inputs:
+`base_1.i`
+`6d083ed15431e792120b4999b888fa5baf0a6fc480e9043d9ad17014f905608f`,
+`base_2.i`
+`bcca0cb7e6748d72080451aad351a7a8e65092db9687c1f5fef1979b684b2b30`.
+
 
 
 ## `(s8)GetObjPan()` ashl dest stays in `$v0`; `pan <<= 24; pan >>= 24` writes `$s0`
