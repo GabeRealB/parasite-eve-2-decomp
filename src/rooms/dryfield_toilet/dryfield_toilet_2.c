@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -12,6 +13,14 @@
 /// `D_801156D0` for the task that follows it.
 extern s32 D_dryfield_toilet_80180C58;
 extern s32 D_dryfield_toilet_80180F40;
+
+/// The room task's message table (published in `Task::field_24` for
+/// `Gp_DispatchMsg` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
+/// hands that call as `arg2`.
+extern s32 D_dryfield_toilet_801802A4;
+extern s32 D_dryfield_toilet_801802D4;
+
+void func_dryfield_toilet_8017D5E4(void);
 
 s32 func_dryfield_toilet_8017D8B8(void)
 {
@@ -40,4 +49,18 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_toilet/dryfield_toilet_2", func_dryfield_toilet_8017D940);
+/// The room task's entry state: publish the message table, claim game pointer
+/// slot 7, and on the visit that agrees with the session's sub-id
+/// (`Game_Session::field_9` == 1) and has not yet latched nibble 0x60, post
+/// message `0x7DA` with the room's payload and run the scene setup. Advance to
+/// the next state either way.
+void func_dryfield_toilet_8017D940(Task* arg0)
+{
+    arg0->field_24 = &D_dryfield_toilet_801802A4;
+    Game_SetPtrSlot(arg0, 7);
+    if (GameFlag_GetNibble(0x60) == 0 && Game_Session->field_9 == 1) {
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_toilet_801802D4, 0x7DB);
+        func_dryfield_toilet_8017D5E4();
+    }
+    arg0->state = arg0->state + 1;
+}
