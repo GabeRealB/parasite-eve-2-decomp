@@ -407,7 +407,119 @@ void func_actor_521100_80134658(Actor521100* arg0)
 /// `do { ... } while (0)` around phase 1's `ratan2` is what keeps `head` ahead
 /// of that copy in the register allocator's order - see
 /// `DECOMPILATION_LEARNINGS.md`, "loop_depth as an allocation weight".
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80134774);
+void func_actor_521100_80134774(Actor521100* arg0)
+{
+    Actor521100Work*       work;
+    GsCOORDINATE2*         coord;
+    Actor521100RotScratch* sc;
+    Actor521100RotScratch* sc2;
+    u8*                    head;
+    s16                    state;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    sc                    = (Actor521100RotScratch*)(head - 0x18);
+    sc2                   = (Actor521100RotScratch*)sc;
+    *(u8**)G_SCRATCH_HEAD = (u8*)sc;
+    work                  = arg0->field_1C;
+    coord                 = arg0->field_2C->field_8;
+    state                 = work->field_6A0;
+    switch (state) {
+        case 0:
+            work->field_686 = 0x12;
+            work->field_69A = 0x14;
+            work->field_69C = 0x78;
+            sc->vec.vx      = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            sc->vec.vy      = 0;
+            sc->vec.vz      = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            if ((SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x7D0) && (Wip_SysConfig.field_4->t[2] < -0x5DC)) {
+                work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+                work->field_69A = 0;
+                work->field_69C = 0x78;
+                work->field_69E = 1;
+                work->field_6A0 = 0;
+            } else {
+                sc2->vec.vx     = D_actor_521100_8015F654[0].vx - coord->coord.t[0];
+                sc2->vec.vy     = 0;
+                sc2->vec.vz     = D_actor_521100_8015F654[0].vz - coord->coord.t[2];
+                work->field_698 = (u16)(ratan2((s16)sc2->vec.vx, (s16)sc2->vec.vz) & 0xFFF);
+                if (SquareRoot0((sc2->vec.vx * sc2->vec.vx) + (sc2->vec.vz * sc2->vec.vz)) < 0x3C) {
+                    work->field_6A0 = 1;
+                } else {
+                    if (Game_Session->field_4 != 2) {
+                        work->field_69E = 0;
+                        work->field_6A0 = 0;
+                        work->field_6BA = 0;
+                    } else {
+                        work->field_6BA = 1;
+                    }
+                    work->field_6BC = 0;
+                }
+            }
+            break;
+        case 1:
+            work->field_686 = 0x12;
+            work->field_69A = 0x14;
+            work->field_69C = 0x78;
+            sc->vec.vx      = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            sc->vec.vy      = 0;
+            sc->vec.vz      = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) >= 0x7D0) {
+                sc->vec.vx = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
+                sc->vec.vy = 0;
+                sc->vec.vz = D_actor_521100_8015F654[1].vz - coord->coord.t[2];
+                do {
+                    work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+                    if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) >= 0x3C) {
+                        goto game;
+                    }
+                } while (0);
+                sc->vec.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+                sc->vec.vy = 0;
+                sc->vec.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            }
+            work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+            work->field_69A = 0;
+            work->field_69C = 0x78;
+            work->field_69E = 1;
+            work->field_6A0 = 0;
+            break;
+        game:
+            if (Game_Session->field_4 != 2) {
+                work->field_6A0 = 2;
+                work->field_6BA = 0;
+                work->field_6BC = 0;
+            } else {
+                work->field_6BA = 1;
+                work->field_6BC = 1;
+            }
+            break;
+        case 2:
+            work->field_686 = 0x12;
+            work->field_69A = 0x14;
+            work->field_69C = 0x78;
+            sc->vec.vx      = D_actor_521100_8015F654[2].vx - coord->coord.t[0];
+            sc->vec.vy      = 0;
+            sc->vec.vz      = D_actor_521100_8015F654[2].vz - coord->coord.t[2];
+            work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+            if (coord->coord.t[0] < -0xFA0) {
+                if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x3C) {
+                    work->field_69E = 0;
+                    work->field_6A0 = 0;
+                } else if (Game_Session->field_4 == state) {
+                    work->field_6A0 = 0;
+                }
+            } else {
+                if (Game_Session->field_4 != state) {
+                    work->field_69E = 0;
+                }
+                work->field_6A0 = 0;
+            }
+            work->field_6BA = 0;
+            work->field_6BC = 0;
+            break;
+    }
+    *(u32*)G_SCRATCH_HEAD += 0x18;
+}
 /// Steers the actor's heading towards the work block's `field_698` at up to
 /// `field_69C` of turn per frame, then builds the result into the attach
 /// coordinate as a pure-yaw rotation. The heading error is `field_698` minus
