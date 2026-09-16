@@ -97651,3 +97651,77 @@ but they are *not* listed as duplicates, so `find` will not surface them.
 Inputs: `base.i` `27652b9f3cfc34e8e50986ebc8e4ace5544f64c76b2c67b2fcf1b4f61f683ace`
 (98.065%), `base_1.i`
 `2418e34c51ae5635ae7033309bb5d78ade138360f1f9e32a7b0dd15c8feb8762` (0 differences).
+
+## An empty case node changes the switch decision tree (func_actor_420700_80132784, 2026-09-16)
+
+The target dispatch for this message handler is a chain no three-case switch can
+produce:
+
+```
+lhu   a2,2(a2)          # the message's mode
+li    v0,1
+beq   a2,v0,LC3         # x == 1 -> the shared 1/3 body
+slti  v0,a2,2           # <- range guard, in the branch's delay slot
+bnez  v0,LEND           # x < 2 -> default
+li    v0,2
+beq   a2,v0,LC2         # x == 2
+li    v0,0x1000
+li    v0,3
+bne   a2,v0,LEND        # x != 3 -> default, else fall into the 1/3 body
+```
+
+`case 1: case 3:` plus `case 2:` compiles to a *balanced* tree instead - root at
+the middle node, `beq x,2` first, then the high side as `slti v0,a2,3; beqz`:
+
+```
+li    v0,2
+beq   a2,v0,LC2         # root: the middle node
+slti  v0,a2,3           # x > 2 -> the {3} subtree
+beqz  v0,L50
+li    v0,1
+beq   a2,v0,LC3
+```
+
+`balance_case_nodes` (`gcc/stmt.c`) splits a list of exactly three nodes at the
+middle one (`else if (i == 3) npp = &(*npp)->right;`). A fourth node takes the
+counted bisect instead (`i = (i + ranges + 1) / 2`, then one decrement per node
+and two per range node): for four single-valued nodes it lands on the
+**second**. So the case list `[0, 1, 2, 3]` roots at the value-1 node, leaving
+value 0 as its left child and `{2, 3}` as an unbalanced right chain - which is
+the target's shape, and why the target's first test is `x == 1`.
+
+The `x < 2` guard is that chain's low-bound test. `node_has_low_bound` is false
+for the value-2 node (its parent tested equality, and `node->low - 1` is no
+parent's `high`), so `emit_case_nodes` emits `emit_cmp_insn (index, node->high,
+LT)` + `gen_blt_pat (default_label)`. Read it with the port's encoding in mind:
+`(lt x C)` is `slt v0,x,C` + `bnez` and `(gt x C)` is `slt v0,x,C+1` + `beqz`,
+so `slti v0,a2,2; bnez v0,L` is `x < 2` while the same `slti` with `beqz` would
+be `x > 1`. The same two-line pair therefore appears in both tree shapes with
+opposite polarity, which is what makes the object dump hard to read directly.
+
+The fix is to give the no-op case its own label:
+
+```c
+    switch (args->mode) {
+    case 0:
+        break;          /* the fourth node: tree roots at case 1 */
+    case 1:
+    case 3:
+        work->field_4BC = 0;
+        break;
+    case 2:
+        work->field_4BC = 0x1000;
+        break;
+    }
+```
+
+The extra node has to be a `case`: an explicit `default:` is a separate label
+and never enters the case list, so `default: break;` leaves the three-node list
+and the balanced tree. `case 0: break;` is behaviour-preserving against the
+default arm the three-case form falls into.
+
+Inputs: `c1.i`
+`07648bbdd88a3cf1c2e0242fc15b7bf99a9cfdf8f73bede579046c25a58c2d3d` (70.903%,
+the three-case form), `c6.i`
+`066afd547b32cdb028c8663b1a46e38017c6655b7aebcd17cef48239b5232e0b` (0
+differences, with `case 0` added).
