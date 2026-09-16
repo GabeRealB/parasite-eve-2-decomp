@@ -93256,3 +93256,38 @@ the group: the body calls a per-overlay function, so it stays matched per
 overlay rather than promoted.)
 
 Inputs: `base.c` (64.69%), `base_1.c` (100%).
+
+## A `regs`-heavy penalty mix can be one wrong base type; read the element width off the shift
+
+`func_actor_103700_801350DC`'s m2c seed scored 82.6% with
+`regs=11 reorder=3 insert=1 delete=1` and a structure that already matched -
+three blocks, same predicates, same 25 instructions. That mix reads as an
+allocation fight that then drags three schedulers with it, and it is not: all
+sixteen points were downstream of one line, and the next build was 100.000%.
+
+The seed declared the table `extern M2C_UNK D_actor_103700_80139DB8;` and reached
+it as `*((((arg1 * 0xF) + idx) * 2) + &D)`. `M2C_UNK` is 4 bytes, so GCC scaled
+an index that was *already* scaled: `sll v0,v0,3` where the target has
+`sll v0,v0,1`, and `lw v0,0(v0)` where the target has `lh v1,0(v0)`. Typing it
+`extern s16 D_actor_103700_80139DB8[];` and indexing it -
+`D[(arg1 * 15) + (s16)work->field_25E]` - fixed the shift and the load in one
+edit, and `regs`, `reorder`, `insert` and `delete` went to 0 with them.
+
+The width is legible before you compile anything, in two places at once: the
+**scaling shift** and the **load opcode**. `sll v0,v0,1` + `lh` says the element
+is a signed halfword, and `lw` after a `sll` of 3 says the seed doubled a
+byte offset. A sibling reading the same table settles it without a guess -
+`func_actor_103700_801347E0`, two units away, does `lh $v0, 0x25E($a0)` /
+`sll $v0,$v0,1` / `lh $v1,0($v0)` on the same symbol, so the table is `s16[]`
+and every later `* 2` in an m2c seed is byte arithmetic that must not be scaled
+again. This is the same modelling error as the 8x `addiu` shape above, with a
+different symptom: there the wrong element size lands on an `addiu` immediate,
+here on a `sll` and a load.
+
+Do not reach for a register pin or a scheduler barrier while a penalty mix is
+led by `regs` and the object still differs in a *shift or a load width*. Fix the
+type first and rescore; the allocation penalties were never independent.
+Example: `func_actor_103700_801350DC`. Inputs: `base_1.i`
+`ea603dc00796f39f097f22902a4216f5a54c803b27b44696107839cb5e550e27` (100.000%),
+`base.c` `5ad8c2cc253f9b95d631cbd16e69f27d0e3709a49663e543032b8a1c4029079d`
+(82.600%).
