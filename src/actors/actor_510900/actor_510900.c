@@ -901,7 +901,22 @@ void func_actor_510900_8013B3D0(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B424);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B524);
+void func_actor_510900_8013B524(void)
+{
+    s32         i;
+    SVECTOR*    normals = Gp_GridParams->field_4;
+    SVECTOR*    verts   = Gp_GridParams->field_8;
+    GpGridFace* faces   = Gp_GridParams->field_C;
+
+    for (i = 0; i < 12; i++) {
+        verts[i] = D_actor_510900_80167BDC[i];
+    }
+
+    for (i = 0; i < 3; i++) {
+        normals[i] = D_actor_510900_80167BC4[i];
+        faces[i]   = D_actor_510900_80167C3C[i];
+    }
+}
 
 void func_actor_510900_8013B608(Actor510900* arg0)
 {

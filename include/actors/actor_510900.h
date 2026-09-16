@@ -243,6 +243,18 @@ extern s16 D_actor_510900_80167B38[];
 /// coordinate towards, indexed by `Actor510900Work::field_5A8`.
 extern u16 D_actor_510900_80167B9C[];
 
+/// The three face normals `func_actor_510900_8013B524` copies into
+/// `Gp_GridParams->field_4`, restoring the collision grid this actor edited.
+extern SVECTOR D_actor_510900_80167BC4[3];
+
+/// The twelve face corners `func_actor_510900_8013B524` copies into
+/// `Gp_GridParams->field_8`.
+extern SVECTOR D_actor_510900_80167BDC[12];
+
+/// The three `GpGridFace` records `func_actor_510900_8013B524` copies into
+/// `Gp_GridParams->field_C`.
+extern GpGridFace D_actor_510900_80167C3C[3];
+
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);
