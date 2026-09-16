@@ -4,12 +4,18 @@
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
+#include <psyq/memory.h>
+#include <psyq/rand.h>
+
+extern char             D_actor_143000_80131EB0[];
 extern Actor143000Rect  D_actor_143000_80134580[];
 extern TaskDesc         D_actor_143000_801350B0;
 extern Actor143000Spawn D_actor_143000_80135C08;
 extern u8               D_actor_143000_80135C0C;
+extern char             D_actor_143000_80135C20[];
 extern s16              D_80114D08;
 extern s8               D_8007216C;
 extern u8               D_801153F4;
@@ -44,7 +50,26 @@ void func_actor_143000_801338C8(Actor143000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_801338E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_801339CC);
+void func_actor_143000_801339CC(Actor143000* arg0)
+{
+    Actor143000Work* work = arg0->field_1C;
+    u32              count;
+
+    if (Gp_CapBusy() == 0) {
+        count          = (u16)arg0->field_2A - 1;
+        arg0->field_2A = count;
+        if ((s16)count <= 0) {
+            arg0->field_2A = (rand() * 8 >> 15) + 8;
+            work->field_10++;
+            SndEvt_EnqueueType6(0x541F0013, 0, 0);
+            memcpy(D_actor_143000_80135C20, D_actor_143000_80131EB0, 11);
+            count = work->field_10;
+            if (count >= 0xA) {
+                arg0->field_30 = 2;
+            }
+        }
+    }
+}
 
 void func_actor_143000_80133AC0(Actor143000* arg0)
 {

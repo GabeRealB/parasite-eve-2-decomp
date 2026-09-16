@@ -94206,3 +94206,45 @@ branch=1`, exact after dropping the phantom argument. Preprocessed SHA256
 `base_1.i` `0feea753586adef0272c43651ee27a00e01bd0352faeace261342751e7bdef62`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_143000_80133800-vacuum` (`base_1_diff`).
+
+## An inline `(u32)` cast zero-extends a 16-bit load; a 32-bit variable keeps it signed
+
+The target reads a signed 16-bit field with `lh` and compares the result
+*unsigned* — the shape GCC emits for signed values in a jump-table range check or
+an `== 0` store flag, not for `if (x >= 0xA)`:
+
+```
+lh    $v0, 0x10($s0)
+nop
+sltiu $v0, $v0, 0xA
+bnez  $v0, .Lend
+addiu $v0, $zero, 2      /* the branch skips the store */
+sw    $v0, 0x30($s1)
+```
+
+Every inline-cast spelling misses in a different way. GCC 2.8.1 picks the load's
+extension from the *destination* type of the conversion, so `if ((u32)x >= 0xA)`
+emits `lhu` (and folds `(u32)(s32)x` the same way, contradicting the C
+semantics); the signed spelling `if (x >= 0xA)` emits `lh` but a signed `slti`; a
+`u16`/`s16` temporary or `0xAU`/`(s16)0xAU` constant all come out `lhu`. Only a
+32-bit variable converts by the *source's* signedness:
+
+```c
+u32 count = work->field_10;      /* lh — correct sign-extend */
+if (count >= 0xA) { ... }        /* sltiu */
+```
+
+`s32 count = work->field_10;` with `if ((u32)count >= 0xA)` is equivalent. A probe
+matrix over both field types (`u32`/`u16`/`s16`/`u16`-via-`s16` temporaries,
+`(u32)`, `(u32)(s32)`, `> 9`, `>= 0xAU`, `>= 10u`, GNU range-case switches) gave
+`lh`+`sltu` for the 32-bit-variable forms only; switches emit a two-comparison
+range check and do not match. Note the *same* field is read `lhu` for its
+increment: `field_10++` on an `s16` field only needs the low 16 bits, so GCC
+zero-extends the load there even though the field is signed.
+
+`func_actor_143000_801339CC`: 96.72% (`insert=1 delete=1`) with the inline
+`(u32)` cast, 100.00% with the 32-bit variable, every penalty zero. Preprocessed
+SHA256 `base_1.i` `6e361f563828da9a9fa358f3ebc2937ca4810f3f54a07b258ea1784e734dcd70`,
+`base_3.i` `b6795aa5b383b9663b37665d5d41a7be4d4cbbeb9c5e00a7340686359c93728d`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_143000_801339CC-vacuum` (`base_3_diff`).
