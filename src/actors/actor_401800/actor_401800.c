@@ -912,8 +912,6 @@ void func_actor_401800_80139B18(Actor401800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80139D60);
-
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
 {
@@ -933,6 +931,82 @@ static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
     *(u8**)G_SCRATCH_HEAD                         = head;
     ret                                           = ((Actor401800RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
+}
+
+/// Countdown body: on the live-actor flag re-allocates the model's buffers,
+/// copies the root coordinate over its `field_BC0` home and restarts the step
+/// counter in state 0xE. The counter then runs to 0x961, rerolling the LCG each
+/// frame past it and bailing for that frame on every 0xF-th draw; the surviving
+/// frames re-test the squared XZ offset to the camera target against
+/// `field_C0E` and arm `Gp_StateF0` state 6 on a miss — bit 0x50000 there arms
+/// it the same way. After the shared per-frame tick the body flips between
+/// states 0xE and 0xF, one LCG draw per attempt, on the two `field_68` mask
+/// bits. Same shape as `func_actor_401800_8013A034`.
+void func_actor_401800_80139D60(Actor401800* arg0)
+{
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+    u16              step;
+    u32              lcg;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj          = arg0->field_2C;
+        enemy        = arg0->field_20;
+        obj->field_C = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   &= 0xBFFF;
+        enemy->node.field_4      = 0;
+        work->field_6            = 0;
+        work->field_BC0          = work->field_BA0;
+        work->field_89E          = 0xE;
+        work->field_898          = 1;
+        work->field_8A2          = work->field_8A4;
+    }
+    step = (u16)work->field_6;
+    if (work->field_6 >= 0x961) {
+        lcg         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = lcg;
+        if (!((lcg >> 16) & 0xF)) {
+            return;
+        }
+    } else {
+        work->field_6 = (s16)(step + 1);
+    }
+    coord    = arg0->field_2C->field_8;
+    d        = &delta;
+    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    if (!Actor401800_OutOfRange(d, work->field_C0E)) {
+        work->field_0 = 6;
+    }
+    if (*(u32*)&Gp_StateF0 & 0x50000) {
+        work->field_0 = 6;
+    }
+    func_actor_401800_80133EB8(arg0);
+    if (work->field_89E == 0xE) {
+        if (work->field_68 & 2) {
+            lcg         = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = lcg;
+            if ((lcg >> 16) & 1) {
+                work->field_89E = 0xF;
+                work->field_898 = 1;
+                func_actor_401800_80133EB8(arg0);
+            }
+        }
+    }
+    if (work->field_89E == 0xF && (work->field_68 & 1)) {
+        work->field_89E = 0xE;
+        work->field_898 = 1;
+        func_actor_401800_80133EB8(arg0);
+    }
 }
 
 /// Walking body: on the live-actor flag re-allocates the model's buffers,

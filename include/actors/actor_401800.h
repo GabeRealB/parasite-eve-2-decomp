@@ -65,7 +65,14 @@ typedef struct Actor401800Work {
     /* 0xA28 */ GpRec18 field_A28;
     /* 0xA40 */ byte    pad_A40[0x108];
     /* 0xB48 */ GpObj   field_B48;
-    /* 0xB68 */ byte    pad_B68[0x94];
+    /* 0xB68 */ byte    pad_B68[0x38];
+    /// Root-coordinate matrix the live-actor block of the walking body copies
+    /// from `field_BC0` back over itself, then re-writes from the pose scratch.
+    /* 0xBA0 */ MATRIX field_BA0;
+    /// Home of the root-coordinate matrix the live-actor block restores.
+    /// Same pair `Actor00100Work.field_BA0` keeps.
+    /* 0xBC0 */ MATRIX field_BC0;
+    /* 0xBE0 */ byte   pad_BE0[0x1C];
     /// Step the aim-and-rescale body walks the actor along its own local Z
     /// axis while `func_actor_401800_80133558` says the path is clear, and
     /// reloads `field_0 = 9` once it has counted down to zero. Same slot

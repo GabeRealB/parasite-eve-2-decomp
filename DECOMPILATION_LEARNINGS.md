@@ -103621,3 +103621,36 @@ tail it cannot, so the test shifts both halfwords left by 16 and compares those
 which needs a second live copy of `count` in `$s4` and the extra stack slot.
 `func_actor_401300_80132910` carries the duplication in its matched source with
 this note on it; the m2c seed has the shared spelling and scores 73.4%.
+
+## A relational branch always targets the `else` clause; `>=` reaches it with `bnez`
+
+MIPS has no `sge`/`sgt`: `config/mips/mips.c`'s `gen_int_relational` only ever
+emits `slt`/`sltu` and records the inversion in its `info[]` table
+(`info[ITEST_GE].invert_const` / `.invert_reg` are 1), so a relational `if`/`else`
+compiles as `jump-if-false(cond) -> else_label` where the materialised `slt` may
+be the *negation* of the condition. The branch target is the else clause either
+way; only the `beqz`/`bnez` direction moves:
+
+```
+if (a <  K) { T } else { E }     slti v0,a,K ; beqz v0,Lelse ; T ; j Ljoin ; Lelse: E
+if (a >= K) { T } else { E }     slti v0,a,K ; bnez v0,Lelse ; T ; j Ljoin ; Lelse: E
+```
+
+So `bnez v0,L` does **not** mean "L begins the then-block" — read the `slti`'s
+operand order first. `func_actor_401800_80139D60` opens with
+
+```
+lh   v0,0x6(s1)
+lhu  v1,0x6(s1)
+slti v0,v0,0x961
+bnez v0,L_9E6C          <- the *else* clause, laid out after the LCG block
+addiu v0,v1,1
+```
+
+Writing `if (work->field_6 < 0x961) { increment } else { LCG }` gives the same
+two arms with `beqz` and the LCG block as the fall-through (96.9%, 20/19 blocks);
+the source that produces the target is the negated spelling, `if (work->field_6
+>= 0x961) { LCG } else { increment }`, which puts the increment in the else
+clause and the LCG in the fall-through (100%). The corpus entry "If/else branch
+polarity" is this same rule for `== 0`, where the test is a simple branch and no
+`slt` is materialised.
