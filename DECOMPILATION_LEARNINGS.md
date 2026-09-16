@@ -93990,3 +93990,59 @@ and `arg0` is a copy of the incoming `$a0`, so the reloaded pointer prefers
 `$a0` even with `$v0` free - retail has it in `$v0` and the constant in `$v1`.
 `prune_preferences` only strips call-clobbered registers from the preferences of
 an allocno that crosses a call, and this reload crosses none.
+
+## A dropped preference is an allocation lever that leaves no instruction in the output (func_actor_107000_80132D8C, 2026-09-16)
+
+The 100% entry for this function (above) records the arms' reloaded pointer
+inheriting `$a0` from `arg0` and stopping the body at 94.85%. The function that
+does that inheriting is `expand_preferences` (`global.c`, ~line 776 — the entry
+above calls it `merge_reg_preferences`), and it merges a dying allocno's
+preferences into an insn's set-destination **only when the two allocnos do not
+conflict** (`! CONFLICTP (a1, a2)` in both directions). Make them conflict and
+the inherited preference never arrives:
+
+```c
+    } else {
+        e = (GpEnemy*)arg0->spawnArg2;   /* seed: arg0 dies in this insn, 80/84 do not conflict */
+        arg0->spawnArg2 += pan;          /* pan == 0: arg0 now dies one insn later */
+        var_v1 = 0x402E0002;             /* 80 and 84 conflict -> $a0 never merges in */
+    }
+```
+
+With the merge blocked, the arm value has **no preference at all** — the
+`;; 84 preferences:` line disappears from `.greg`, only the conflict lines remain
+— and `find_reg`'s pass-0 scan homes it in `$v0`, the lowest free register:
+`REG_ALLOC_ORDER` is not defined anywhere under `config/mips/`, so the `#ifndef`
+branch runs and hard registers are tried 0, 1, 2, … The arms then load `$v0` and
+the per-arm constant drops to `$v1`, which is retail's shape. The store's
+position is irrelevant (before or after the read both work); what matters is only
+that the base register's death moves *past* the definition of the value that
+inherited its preference.
+
+Two things this is worth remembering for:
+
+- **The lever is invisible in the output.** The round-trip's load/store survives
+  `cse`, `cse2`, `flow`, `combine`, `sched`, local and global allocation, and
+  reload; the post-reload `jump_optimize` (`.jump2`, "delete no-op move insns" and
+  the dead-store pass) then removes the store and the no-op copy. The result's
+  instruction count and opcode multiset equal the target's, so no object-dump or
+  `.diagnosis.json` difference points at it — the entire effect is the
+  allocation, and it all shows up in the `regs` penalty (30 → 21, distance
+  350 → 105, 94.85% → 98.46%). A `delete 1`/`insert 1` pair on such a body is
+  the *shape* difference the lever removes, not the lever.
+- **`set_preference` reads `reg_renumber`.** `local_alloc` runs before
+  `global_alloc` (toplev.c), so a copy from a block-local temp gives the
+  destination the *temp's* hard register as a preference (and a copy preference
+  when the source is the SET_SRC). That is a second route to the same register;
+  here it agreed with the free pick and was incidental.
+
+Evidence: scratch `PERMUTER_EVIDENCE/19d95918b46748ab/analysis/` —
+`greg-preferences.txt` (the preference/disposition lines for all seven sources),
+`uid-lifetime.txt` (uid presence per pass, plus the `.flow` insns that define the
+arm value and kill `arg0`), `scores.txt`. Sources and sha256: `base_11.c`
+`aedf30a5…` (seed + the two-line lever), `base_12.c` `2b955f39…` (independent
+round-trip), `base_13.c` `06e84a25…` (candidate minus the store, reverts to the
+seed), `base_14.c` `51867349…` (store after the read: no preference line at all,
+same 98.4559); seed `base_6.c` `67d667dc…`, permuter candidate
+`base_perm_19d95918b46748ab.c` `1da0c8c5…`. Compiler `60d886cd…` (the bundled
+patched cc1), all four variations built with the scratch `build.sh`.
