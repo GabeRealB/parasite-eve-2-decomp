@@ -105014,3 +105014,38 @@ Inputs: base_1.i SHA256
 `4308cad65f659d19a9466f67ba61187e509971c09effcccdb69e9c3e1a5128a8`; target.o SHA256
 `a0a7a8a24d13ec228b4e3e7aae8701ceeef35823c8a740256c5c24e8cc6ddcda`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A global store's address register can be shared with a later use or rematerialised per use (func_actor_401000_801378DC, 2026-09-16)
+
+A store to a global through a struct field (`G.field_0 = v;`) expands its address
+as a value: the post-expand `.rtl` holds a `high`/`low` pair and the store reads
+`(mem (reg <low>))`. CSE then rewrites the memory operand to the `lo_sum` form,
+so the final assembly prints `lui %hi; sw %lo(sym)(reg)` — the `low` register
+survives only if something else still uses it.
+
+If a later statement also takes the symbol's address (`&G` as a call argument, a
+sibling field store), CSE propagates that same register there. It then has to
+stay live across the intervening calls, gets a call-saved register, and its
+defining `addiu` is emitted beside the store — the object is one instruction
+longer than the target's.
+
+The target instead rematerialises the address in the later block
+(`lui s0,%hi; addiu s0,s0,%lo`, the `Mnis` `movsi` form into a single register,
+which `mips_move_1word` prints only for a bare `symbol_ref` — `move_operand`
+accepts one once `reload_in_progress`). That is the *unallocated* case: reload
+replaces the pseudo by its `REG_EQUIV` at each use, and the store's own address
+register dies unused and is deleted.
+
+The two shapes are one instruction apart in the object while the C is identical
+in behaviour. Probes with the scratch cc1 (`probe2`–`probe6.c`, archived with
+the session) show the choice is not selectable from C: a plain field store,
+`*(void**)&G = v;`, an array element, a ternary RHS, an `if`/`else` and a block
+pointer all give the shared form; only moving the store *after* the other use
+gives the split, at the price of a behavioural change. Treat this leftover as an
+allocator/CSE artefact when the remaining penalty is `branch=N regs=N` with one
+instruction of difference and the structure already matching.
+
+Inputs: base_3.i SHA256
+`402e2a2c6261851b4c66be0cec70fe03e770dc43a98f2c527c857b63d58e6702`; target.o SHA256
+`5e678812427568180108d197f6e7e9d6d1da3839f682fe76bf3837f7fa2c4599`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
