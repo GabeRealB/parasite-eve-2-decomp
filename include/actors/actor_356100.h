@@ -68,6 +68,34 @@ typedef struct Actor356100 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor356100;
 
+/// Animation view of the work block above, as `func_actor_356100_801633DC`
+/// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two
+/// `GpAnimCtx` blocks at 0x1C / 0x4C8 each sit 0x14 bytes before their
+/// 0x28-byte slot array. `field_982` is the clip id the slot loop copies
+/// minus 3 into `slots[i].field_9`, `field_98A` the clip written whole into
+/// `blendSlots[i].field_9`, and `field_98C` the blend weight, the same three
+/// roles `Actor01900AnimWork.field_8A2` / `field_8AA` / `field_8AC` have.
+typedef struct Actor356100AnimWork {
+    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[24];
+    /* 0x3F0 */ byte       pad_3F0[0xD8];
+    /* 0x4C8 */ GpAnimCtx  blendAnim;
+    /* 0x4DC */ GpAnimSlot blendSlots[24];
+    /* 0x89C */ byte       pad_89C[0xE6];
+    /* 0x982 */ s16        field_982;
+    /* 0x984 */ byte       pad_984[6];
+    /* 0x98A */ s16        field_98A;
+    /* 0x98C */ s16        field_98C;
+} Actor356100AnimWork;
+
+/// Blends pose slots 1..0x14: the first eleven copy the two clip ids into
+/// their slot records and are written from both animation contexts with
+/// `0x1000 - field_98C` as the blend weight, the rest only tick. Same body as
+/// `Actor01900_Fn01950` / `func_actor_403000_801336B4` with this overlay's
+/// slot count.
+void func_actor_356100_801633DC(Actor356100* arg0);
+
 void func_actor_356100_80163508(Actor356100* arg0);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the

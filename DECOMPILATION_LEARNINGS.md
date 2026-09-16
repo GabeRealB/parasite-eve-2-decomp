@@ -108395,3 +108395,37 @@ Same function: a group of three computed stores followed by a constant/flag stor
 when the flag/constant statements came *after* the third computed store in C (`t[0]`, `t[1]`, `t[2]`, then
 `|= 0xC000`); written before it, sched interleaved them with the second store. And the scratch carve
 needed `*head_ptr = head - N; sc = head - N;` (two pseudos) to get `addiu v0,s2,-N; move s0,v0; sw v0`.
+
+## A `(u8)` cast on an `s16` struct field is a byte load: `lbu`, not `lh` + `andi` (func_actor_356100_801633DC, 2026-09-16)
+
+**Symptom.** The target loads the two animation clip ids with `lbu $v1, 0x98A($s1)` /
+`lbu $v1, 0x982($s1)` (then `addiu v1,v1,-3`) and the blend weight with
+`lh $s5, 0x98C($s1)`. It reads as if 0x982 and 0x98A are `u8` fields. Declaring them
+`u8` is not required to reproduce it, and a `u8` declaration is not evidence about the
+field the original source had.
+
+**Cause.** Both are `s16` fields; only the *use* narrows. `(u8)work->field_98A` on an
+`s16` member is a `subreg:QI` of a `reg:HI` that was loaded from memory, and on a
+little-endian target GCC 2.8.1 loads that subreg straight from the same address in
+QImode - one `lbu`. The already-matched sibling `Actor01900_Fn01950` spells the same
+read `work->blendSlots[i].field_9 = (u8)work->field_8AA;` against an `s16 field_8AA`
+(`src/actors/actor_101900.h`) and emits the same `lbu 0x8AA($s1)`.
+
+So a target load width does not pin the declared width of the field. Before "fixing" a
+struct so an `lbu` appears, check whether the byte is ever read as a whole halfword
+somewhere else; a real `u8` and an `s16` read through `(u8)` diverge only at that other
+use.
+
+**Family.** The body - blend pose slots 1..N, the first eleven from both animation
+contexts with `0x1000 - weight`, the rest ticked - now has three matched members, each
+an overlay-local `*AnimWork` view of the task work block: `Actor01900_Fn01950`
+(`anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
+weight +0xAD4, bound 0x18) and `func_actor_356100_801633DC` (`anim` +0x1C, weight
++0x98C, bound 0x15). Because `1BC.h` `GpAnimCtx` is 0x14 bytes, each view's slot array
+starts exactly 0x14 after its context, which fixes `slots[i].field_9` at `+9` off that
+base - so the three displacements 0x39 / 0x39 / 0x39 are the same number and only the
+`blendSlots` base moves with the overlay. Transcribing the sibling's C verbatim and
+substituting the offsets reproduced 75/75 instructions on the first attempt from an
+m2c seed at 87.57% (`regs=36` - the whole penalty was the seed's `M2C_FIELD` temps).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
+input `base_1.i` SHA256 `a32c8ba0831d91f4eb0c5d8ec62b874b5b1a8b68b999cb9e9bad8afac64d1113`.
