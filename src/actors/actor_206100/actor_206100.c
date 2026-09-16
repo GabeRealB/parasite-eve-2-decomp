@@ -381,7 +381,18 @@ static __inline__ s16 take_request(Task* task)
 /// none, runs the current sub-state handler.  The request is handled through
 /// the inlined `take_request`, so a request that moved the actor to another
 /// state skips this frame's handler entirely.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014CFF4);
+void func_actor_206100_8014CFF4(Task* task)
+{
+    Actor206100Work* sub                 = (Actor206100Work*)task->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_206100_8014F6F8,
+        func_actor_206100_8014D14C,
+    };
+
+    if (take_request(task) == 0) {
+        states[(s16)sub->field_522](task);
+    }
+}
 /// Sub-state 1 of `func_actor_206100_8014CFF4`'s table: ticks the per-state
 /// counter `field_51E` and arms `field_52E` with 0x18 on the first frame, eases
 /// `field_35C` toward 0x4000 by a quarter of the remaining distance over frames
