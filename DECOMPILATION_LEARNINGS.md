@@ -92097,3 +92097,37 @@ six statements on another actor family's work block, matched earlier — so its
 anything from offsets. Reach for that before the byte arithmetic: a stub type
 that "works" for one function is the thing to re-derive from the sibling whose
 body it is, not to extend by hand.
+
+## A loop-hoisted constant's `reload_cse` copy borrows the loop counter's register
+
+`func_actor_521100_8013677C` seeds animation slots with `slots[i].field_9 = 1;`
+inside a single-index `do`/`while`. The target's preheader holds `li $s0,1` (the
+counter) and then `move $s4,$s0`, and the loop stores `sb $s4,0x5D(...)` — which
+reads like a source local copied from `i` before the loop. It is not: with the
+plain `= 1` spelling, `loop.c` hoists the store's QI constant into a register
+(`move_movables`; the `.loop` dump says
+`Insn 28: regno 89 (life 1), move-insn savings 1  moved to 107`), and the
+post-reload CSE then rewrites that `(set (reg:QI 89) (const_int 1))` into a copy
+of whatever hard register already holds 1 — `$s0`, whose own init is the SImode
+`li $s0,1`. The rewrite is invisible until `.sched2`: `.sched` still shows
+`(set (reg:QI 89) (const_int 1))`, `.sched2` shows
+`(set (reg:QI 20 s4) (reg:QI 16 s0))`, with the `REG_EQUIV (const_int 1)` note
+surviving. The pass is `reload_cse_simplify_set` (reload1.c), which substitutes a
+hard register `i` into the source of a constant set; its mode test,
+`reload_cse_regno_equal_p`, allows this one because the *use* is narrower than
+the recorded value (`GET_MODE_SIZE (mode) < GET_MODE_SIZE (GET_MODE (x))`, plus
+`TRULY_NOOP_TRUNCATION`) — the mirror of the HImode-counter case, where an
+SImode use is rejected and the literal survives. Both directions are reachable
+and neither is visible in `.greg`.
+
+Consequences for a seed: the constant takes a *callee-saved* register and a
+prologue store (`sw $s4,0x20($sp)`), and the loop keeps one IV per distinct
+address rather than a walking pointer. Adding a real `one = i;` local to
+"explain" the copy only perturbs the allocno set. The body is the one
+`func_actor_461800_80132C74` matched from ("m2c's split counter + offset
+accumulator suppresses loop strength reduction") — m2c's duplicate walker is what
+loses strength reduction, and the constant's home falls out of the single-index
+spelling that fixes it.
+
+81.683% -> 100.00% (`base.c` -> `base_1.c`). Preprocessed SHA256: `base_1.i`
+`a13742c1fb7036eea1db1c11c96464f93c337ff7b80e8fe08f93dc952e4b2e39`.
