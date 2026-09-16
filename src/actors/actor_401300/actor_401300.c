@@ -16,6 +16,9 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+extern u8 D_801153F4;
+void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -4072,7 +4075,396 @@ void func_actor_401300_8014046C(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801405DC);
+// This is a decompilation attempt by the m2c tool.
+
+/// `Actor401300_InRange` with the flag kept apart from the comparison. The
+/// dead `ret = cmp` in each arm stops jump from turning the if/else into a
+/// store-flag, which would fold `cmp` and `ret` into one register.
+static __inline__ s32 Actor401300_InRangeFlag(Actor401300* arg0)
+{
+    SVECTOR        out;
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp;
+    GsCOORDINATE2* view;
+    VECTOR*        vecp;
+    s32*           flagp;
+    SVECTOR*       outp;
+    GsCOORDINATE2* p;
+    s32            ret;
+    s32            cmp;
+
+    memset(&out, 0, 8);
+    p     = &arg0->field_2C->field_8[1];
+    svp   = &sv;
+    outp  = &out;
+    view  = &Gfx_ViewCoord;
+    vecp  = &vec;
+    flagp = &flag;
+    sv.vx = outp->vx;
+    sv.vy = outp->vy;
+    sv.vz = outp->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        outp->vx = sv.vx;
+        outp->vy = sv.vy;
+        outp->vz = sv.vz;
+    }
+    cmp = (u16)(out.vz + 0x12B) < 0xA27;
+    if (cmp == 0) {
+        ret = cmp;
+        ret = 0;
+    } else {
+        ret = cmp;
+        ret = 1;
+    }
+    return ret;
+}
+
+/// 1 when the first of `recs` is a kind 0x10000 record.
+static __inline__ s32 Actor401300_HasRec10000(GpRec18* recs)
+{
+    s16 i;
+
+    for (i = 0; i < 1; i++) {
+        if (!recs[i].field_4)
+            break;
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Snaps the player's height to the actor's when it is locked (`field_CD0`
+/// 7) and has drifted 0x321 or more away.
+static __inline__ void Actor401300_SnapPlayerHeight(Actor401300* actor)
+{
+    Actor401300Work* work;
+    Task*            slot;
+    GsCOORDINATE2*   playerCoord;
+    GsCOORDINATE2*   actorCoord;
+
+    work = actor->field_1C;
+    slot = Game_GetPtrSlot(3);
+    if ((slot != NULL) && (work->field_CD0 == 7)) {
+        playerCoord = ((Actor401300*)slot)->field_2C->field_8;
+        actorCoord  = actor->field_2C->field_8;
+        if (abs(playerCoord->coord.t[1] - actorCoord->coord.t[1]) >= 0x321) {
+            playerCoord->coord.t[1]                      = actorCoord->coord.t[1];
+            ((Actor401300*)slot)->field_2C->field_8->flg = 0;
+        }
+    }
+}
+
+static const Actor401300StateTable D_actor_401300_80131F34 = { {
+    func_actor_401300_8014192C,
+    func_actor_401300_801419B8,
+    func_actor_401300_80141A60,
+    func_actor_401300_80141B0C,
+    func_actor_401300_80135DDC,
+    func_actor_401300_80141BC8,
+    func_actor_401300_80136238,
+    func_actor_401300_801365F8,
+    func_actor_401300_80136CE8,
+    func_actor_401300_801376E4,
+    func_actor_401300_80137D78,
+    func_actor_401300_80138160,
+    func_actor_401300_80138800,
+    func_actor_401300_80138B24,
+    (void (*)(Actor401300*))func_actor_401300_80141C80,
+    func_actor_401300_80141C88,
+    func_actor_401300_80141D50,
+    func_actor_401300_80141DF4,
+    NULL,
+    func_actor_401300_80138CF8,
+    func_actor_401300_80138FCC,
+    func_actor_401300_80139134,
+    func_actor_401300_80139520,
+    func_actor_401300_801397F8,
+    func_actor_401300_80139AB0,
+    func_actor_401300_8013A5C0,
+    func_actor_401300_8013A208,
+    func_actor_401300_8013AAE8,
+    func_actor_401300_8013AE48,
+    func_actor_401300_8013B6E8,
+    func_actor_401300_8013CBAC,
+    func_actor_401300_8013D2AC,
+    func_actor_401300_8013D6C4,
+    func_actor_401300_8013DADC,
+    func_actor_401300_8013E930,
+    func_actor_401300_8013F628,
+    (void (*)(Actor401300*))func_actor_401300_80141EF8,
+    func_actor_401300_80140300,
+    func_actor_401300_8014046C,
+    func_actor_401300_80135FC4,
+    func_actor_401300_8013BB30,
+} };
+
+void func_actor_401300_801405DC(GpEnemy* enemy, Actor401300* actor)
+{
+    VECTOR                  pos;
+    Actor401300StateTable   states;
+    Actor401300Work*        work;
+    Actor401300ViewScratch* scratch;
+    Actor401300ViewScratch* head;
+    Actor401300*            player;
+    WipSysConfig*           config;
+    s32                     state;
+    s32                     action;
+
+    work   = actor->field_1C;
+    player = (Actor401300*)Game_GetPtrSlot(3);
+    config = &Wip_SysConfig;
+    states = D_actor_401300_80131F34;
+
+    actor->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(actor->field_2C->field_8);
+    pos.vx = actor->field_2C->field_8->workm.t[0];
+    pos.vy = actor->field_2C->field_8->workm.t[1];
+    pos.vz = actor->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    switch (D_801153F4) {
+        case 0:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
+                actor->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x280, Gp_State1C->field_8);
+                state = work->field_0;
+            }
+            if ((state == 0x28) && (work->field_8A2 == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x280, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
+                actor->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x280, Gp_State1C->field_8);
+                state = work->field_0;
+            }
+            if ((state == 0x28) && (work->field_8A2 == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x280, Gp_State1C->field_8);
+            }
+            Gp_ClearRec18Occupied((GpRec18*)work->field_AD0);
+            Gp_ClearRec18Occupied((GpRec18*)work->field_990);
+            Gp_ClearRec18Occupied((GpRec18*)work->pad_C10);
+            return;
+        case 2:
+            actor->field_2C->field_C = 0x80;
+            Gp_ClearRec18Occupied((GpRec18*)work->field_AD0);
+            Gp_ClearRec18Occupied((GpRec18*)work->field_990);
+            Gp_ClearRec18Occupied((GpRec18*)work->pad_C10);
+            return;
+    }
+
+    head                                      = *(Actor401300ViewScratch**)G_SCRATCH_HEAD;
+    *(Actor401300ViewScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                   = head - 1;
+
+    if (work->field_C88 > 0) {
+        work->field_C88 = (s16)((u16)work->field_C88 - 1);
+    } else {
+        func_actor_401300_80134F90(actor);
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (u16)work->field_0;
+    states.fn[work->field_0](actor);
+
+    state = work->field_0;
+    if ((state != 0x15) && (state != 3) && (state != 0) && (state != 0x24) && (state != 0x1D) && (state != 0x28)) {
+        scratch->pos.vx = 0;
+        scratch->pos.vy = 0;
+        scratch->pos.vz = 0;
+        Actor401300_TransformToView(actor->field_2C->field_8 + 1, &scratch->pos);
+        work->field_970.field_10   = scratch->pos.vx;
+        work->field_970.field_12   = scratch->pos.vy;
+        work->field_970.field_14   = scratch->pos.vz;
+        work->field_920.coord.t[0] = actor->field_2C->field_8->coord.t[0];
+        work->field_920.coord.t[1] = actor->field_2C->field_8->coord.t[1] - 0x15E;
+        work->field_920.coord.t[2] = actor->field_2C->field_8->coord.t[2];
+        work->field_920.flg        = 0;
+        Gp_UpdateCoord(&work->field_920);
+        actor->field_2C->field_8->flg = 0;
+        Gp_UpdateCoord(actor->field_2C->field_8);
+        state = work->field_0;
+    }
+    if ((state == 0x15) || (state == 0) || (state == 0x24) || (state == 0x1D) || (state == 0x28)) {
+        work->field_970.flags &= 0x7FFF;
+        work->field_AB0.flags &= 0x7FFF;
+    } else {
+        work->field_970.flags |= 0x8000;
+        if ((u32)((u16)work->field_0 - 0x21) < 2U) {
+            work->field_AB0.flags &= 0x7FFF;
+        } else {
+            work->field_AB0.flags |= 0x8000;
+        }
+    }
+    if ((Actor401300_HasRec10000((GpRec18*)work->pad_C10) == 1) || (enemy->field_40 <= 0)) {
+        work->field_BF0.flags &= 0x7FFF;
+    }
+    Gp_ClearRec18Occupied((GpRec18*)work->field_AD0);
+    Gp_ClearRec18Occupied((GpRec18*)work->field_990);
+    Gp_ClearRec18Occupied((GpRec18*)work->pad_C10);
+
+    if (work->field_D20 == 1) {
+        state = work->field_0;
+        if ((state != 0x15) && (state != 3) && (state != 0) && (state != 0x24) && (state != 0x1D) && (state != 0x28)) {
+            Actor401300_SnapPlayerHeight(actor);
+        }
+        action          = work->field_CAC.field_4;
+        work->field_D22 = (u16)(work->field_D22 + 1);
+        switch (action) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                break;
+            case 4:
+                if ((s16)work->field_D22 == 0xF) {
+                    if (Actor401300_InRangeFlag(player) == 1) {
+                        SndEvt_EnqueueType6(0x551D0005, (s8)Gp_GetObjPan((GpObj38*)player->field_2C->field_8),
+                                            (s8)Gp_GetObjDepth((GpObj38*)player->field_2C->field_8));
+                    } else {
+                        SndEvt_EnqueueType6(0x400D0013, (s8)Gp_GetObjPan((GpObj38*)player->field_2C->field_8),
+                                            (s8)Gp_GetObjDepth((GpObj38*)player->field_2C->field_8));
+                    }
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &player->field_2C->field_8[1], 0x80003A00, NULL);
+                    }
+                }
+                if (Gp_DispatchMsg((Task*)player, 0x3FE, (s32)work->field_CC0, 0) == 1) {
+                    work->field_CC0[0] = 0;
+                    work->field_CC0[1] = 0;
+                    work->field_CC0[2] = 0;
+                }
+                if (work->field_6 >= 10) {
+                    work->field_CC0[1] = 0;
+                    work->field_CC0[0] = work->field_CC0[0] >> 1;
+                    work->field_CC0[2] = work->field_CC0[2] >> 1;
+                }
+                break;
+            case 5:
+                if ((s16)work->field_D22 == 0xD) {
+                    if (Actor401300_InRangeFlag(player) == 1) {
+                        SndEvt_EnqueueType6(0x551D0005, (s8)Gp_GetObjPan((GpObj38*)player->field_2C->field_8),
+                                            (s8)Gp_GetObjDepth((GpObj38*)player->field_2C->field_8));
+                    } else {
+                        SndEvt_EnqueueType6(0x400D0013, (s8)Gp_GetObjPan((GpObj38*)player->field_2C->field_8),
+                                            (s8)Gp_GetObjDepth((GpObj38*)player->field_2C->field_8));
+                    }
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &player->field_2C->field_8[1], 0x80003A00, NULL);
+                    }
+                }
+                if (Gp_DispatchMsg((Task*)player, 0x3FE, (s32)work->field_CC0, 0) == 1) {
+                    work->field_CC0[0] = 0;
+                    work->field_CC0[1] = 0;
+                    work->field_CC0[2] = 0;
+                }
+                if (work->field_6 >= 10) {
+                    work->field_CC0[1] = 0;
+                    work->field_CC0[0] = work->field_CC0[0] >> 1;
+                    work->field_CC0[2] = work->field_CC0[2] >> 1;
+                }
+                break;
+            case 6:
+            case 7:
+                break;
+        }
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            switch (work->field_CAC.field_4) {
+                case 0:
+                    break;
+                case 1:
+                    if (config->field_18 > 0) {
+                        work->field_CAC.field_4 = 2;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        work->field_D22 = 0;
+                    }
+                    break;
+                case 2:
+                    if (config->field_18 > 0) {
+                        work->field_CAC.field_4 = 3;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        work->field_D22 = 0;
+                    }
+                    break;
+                case 4:
+                    if (config->field_18 > 0) {
+                        work->field_CAC.field_4 = 6;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        work->field_D22 = 0;
+                    }
+                    break;
+                case 5:
+                    if (config->field_18 > 0) {
+                        work->field_CAC.field_4 = 7;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                        work->field_D22 = 0;
+                    }
+                    break;
+                case 3:
+                case 6:
+                case 7:
+                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                    work->field_D20 = 0;
+                    break;
+            }
+        }
+    }
+    if ((work->field_C8A == 1) && (work->field_D20 == 0)) {
+        Gp_ReleaseStateF0Add((GpObj20E*)actor, 0xD);
+        work->field_C8A = 0;
+    }
+    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+        work->field_0 = 6;
+    }
+
+    scratch->pos.vx = 0;
+    scratch->pos.vy = 0;
+    scratch->pos.vz = 0;
+    Actor401300_TransformToView(actor->field_2C->field_8 + 2, &scratch->pos);
+
+    work->field_D28[work->field_D78].vx = scratch->pos.vx;
+    work->field_D28[work->field_D78].vy = scratch->pos.vy;
+    work->field_D28[work->field_D78].vz = scratch->pos.vz;
+
+    *(u8**)G_SCRATCH_HEAD += 0x18;
+    work->field_D78        = (u16)work->field_D78 + 1;
+    if (work->field_D78 == 7) {
+        work->field_D78 = 0;
+    }
+    if ((u32)((u16)work->field_8A2 - 0x14) < 2U) {
+        enemy->field_1C.vx = work->field_D28[work->field_D78].vx;
+        enemy->field_1C.vy = work->field_D28[work->field_D78].vy;
+        enemy->field_1C.vz = work->field_D28[work->field_D78].vz;
+    } else {
+        enemy->field_1C.vx = scratch->pos.vx;
+        enemy->field_1C.vy = scratch->pos.vy;
+        enemy->field_1C.vz = scratch->pos.vz;
+    }
+    enemy->field_18 = &Gfx_ViewCoord;
+}
 
 void func_actor_401300_8014148C(void)
 {

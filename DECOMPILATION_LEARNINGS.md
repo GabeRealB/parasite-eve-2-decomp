@@ -97109,3 +97109,20 @@ order in only one of the two calls (`addiu a2,…,0xad0` before `addiu a1,…,0x
 Swapping the helper's *parameter* order (`FindHit(SVECTOR* pos, GpRec18*
 records)`) fixed it. Inline arguments are bound in parameter order, and the other
 call's order was hidden by scheduling.
+
+## A dead `ret = cmp` in each arm keeps a 1/0 flag off the comparison's register (func_actor_401300_801405DC, 2026-09-16)
+
+Target: `sltiu v0,v0,0xa27; bnez v0,L; li v1,1 (slot); move v1,zero; L: li v0,1; bne v1,v0` -
+the comparison and the 1/0 flag in different registers. Every clean spelling misses:
+
+- `ret = x < K; if (ret != 0) ret = 1; else ret = 0;` - one pseudo, so the `sltiu` lands in `$v1`.
+- `cmp = x < K; if (cmp != 0) ret = 1; else ret = 0;` (or `return 1`/`return 0`, `ret = 0; if (...) ret = 1;`)
+  - jump.c's store-flag conversion folds it into `ret = cmp != 0`, and the whole if disappears.
+
+Fix: give each arm a second, dead insn so jump.c's single-insn arm patterns do not apply; flow deletes
+the dead store afterwards and it emits nothing. Arm order picks the branch sense (`cmp == 0` first gave `bnez`):
+
+```c
+cmp = (u16)(out.vz + 0x12B) < 0xA27;
+if (cmp == 0) { ret = cmp; ret = 0; } else { ret = cmp; ret = 1; }
+```

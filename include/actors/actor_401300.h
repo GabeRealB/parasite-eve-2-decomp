@@ -145,11 +145,31 @@ typedef struct Actor401300Work {
     /* 0xD1E */ s16   field_D1E;
     /* 0xD20 */ s16   field_D20;
     /* 0xD22 */ s16   field_D22;
-    /* 0xD24 */ byte  pad_D24[0x54];
-    /* 0xD78 */ s16   field_D78;
-    /* 0xD7A */ byte  pad_D7A[2];
+    /* 0xD24 */ byte  pad_D24[4];
+    /// Ring of the last seven view-space positions of coordinate 2, written by
+    /// `func_actor_401300_801405DC`; `field_D78` is the write cursor.
+    /* 0xD28 */ SVECTOR field_D28[7];
+    /* 0xD60 */ byte    pad_D60[0x18];
+    /* 0xD78 */ s16     field_D78;
+    /* 0xD7A */ byte    pad_D7A[2];
 } Actor401300Work;
 STATIC_ASSERT_SIZEOF(Actor401300Work, 0xD7C);
+
+/// The actor's state handlers, indexed by `Actor401300Work::field_0`.
+/// `func_actor_401300_801405DC` copies the table to its frame before
+/// dispatching.
+typedef struct Actor401300StateTable {
+    void (*fn[41])(struct Actor401300*);
+} Actor401300StateTable;
+STATIC_ASSERT_SIZEOF(Actor401300StateTable, 0xA4);
+
+/// 0x18-byte scratch `func_actor_401300_801405DC` takes from
+/// `G_SCRATCH_HEAD`; `pos` receives a model coordinate in view space.
+typedef struct Actor401300ViewScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR pos;
+} Actor401300ViewScratch;
+STATIC_ASSERT_SIZEOF(Actor401300ViewScratch, 0x18);
 
 /// Animation view of the same work block, as `func_actor_401300_80133324`
 /// reads it: the `Actor01900AnimWork` layout shifted 4 bytes later, like the
@@ -424,6 +444,15 @@ void func_actor_401300_801419B8(Actor401300* arg0);
 void func_actor_401300_80141A60(Actor401300* arg0);
 
 void func_actor_401300_80141EF8(Task* task);
+
+void func_actor_401300_801365F8(Actor401300* arg0);
+void func_actor_401300_80136CE8(Actor401300* arg0);
+void func_actor_401300_80141B0C(Actor401300* arg0);
+void func_actor_401300_80141BC8(Actor401300* arg0);
+void func_actor_401300_80141C80(void);
+void func_actor_401300_80141C88(Actor401300* arg0);
+void func_actor_401300_80141D50(Actor401300* arg0);
+void func_actor_401300_80141DF4(Actor401300* arg0);
 
 /// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view.
