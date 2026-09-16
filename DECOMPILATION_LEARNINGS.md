@@ -86886,3 +86886,65 @@ still lands where CSE needs it.
 Read a re-load right after a loop, of something the loop top had in a register,
 as this note being present — and reach for `goto` out of `for (;;)` rather than
 trying to lengthen or shorten a live range.
+
+## A stack function-pointer table must be a declaration initializer: its `CLOBBER` is what pins the preceding loads (Actor00400_Fn06B7C, 2026-09-16)
+
+`Actor00400_Fn06B7C` caches three pointers out of its argument and then builds a
+two-entry dispatch table in its own frame:
+
+```
+lw    s2,0x1c(s3)
+lw    s5,0x20(s3)
+lw    s4,0x2c(s3)
+lui   v0,%hi(Actor00400_Fn08A88)
+addiu v0,v0,%lo(Actor00400_Fn08A88)
+sw    v0,0x10(sp)
+```
+
+Written as plain assignments after the pointer assignments,
+
+```c
+work = arg0->field_1C; obj = arg0->field_20; ctx = arg0->field_2C;
+fns[0] = Actor00400_Fn08A88;
+fns[1] = Actor00400_Fn08B40;
+```
+
+sched1 hoists the `lui` to the very top of the block, above all three loads
+(99.70%, `reorder=1`). Moving the table to a declaration initializer but leaving
+the pointers as statements is worse (98.81%, `reorder=4`): the initializer is
+expanded at the declaration, so the stores precede the loads and the memory
+dependence then drags all three `lw` below them. Both must be declaration
+initializers, pointers first:
+
+```c
+Actor100400Work* work = arg0->field_1C;
+Actor100400Obj*  obj  = arg0->field_20;
+Actor100400Ctx*  ctx  = arg0->field_2C;
+void (*fns[2])(Actor100400*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
+```
+
+The mechanism is visible in the `.rtl` dump. An aggregate initializer goes
+through `store_constructor`, which emits
+
+```
+(insn 18 (clobber (mem/s:BLK (reg:SI 77))))
+```
+
+before the element stores. Plain `fns[0] =` assignments do not. That clobber is
+a memory write, so each earlier load picks up a third anti-dependence
+(`ref_count` 2 → 3 in the `.sched` header) and cannot become ready until the
+clobber is scheduled — which happens *after* the `lui`.
+
+Without it the loads are ready in the same cycle as the `lui`, and they always
+win: `schedule_select` (`sched.c`) groups the ready list by `INSN_PRIORITY` and
+inside a group picks the largest `potential_hazard`, which is zero for a `high`
+insn (`type "move"`, on no function unit) and positive for anything on the
+"memory" unit. No amount of statement reordering beats that — a load in the
+ready list outranks the `lui` every time. The fix has to remove the loads from
+the ready list, and the constructor's clobber is what does it.
+
+The already-matched `func_actor_206100_8014F5B4` / `..._8014F608` are the same
+shape and were written this way; read a stack table built from `lui`/`addiu`
+pairs (rather than copied from a global, as `TaskFuncTable11 fns = D_…;` does)
+as a brace initializer, and keep everything that must stay above it in
+declarations of its own.
