@@ -120,9 +120,13 @@ typedef struct Actor510900ChildAnim {
     /* 0x2DC */ GpRec18    rec2DC;
     /* 0x2F4 */ GpObj      obj2F4;
     /* 0x314 */ GpRec18    rec314;
-    /* 0x32C */ byte       pad_32C[8];
-    /* 0x334 */ s16        field_334;
-    /* 0x336 */ s16        field_336;
+    /// Task the frame handler releases (state 2) once the camera has cut
+    /// away from every view this actor is visible in.
+    /* 0x32C */ struct _Task* field_32C;
+    /* 0x330 */ byte          pad_330[2];
+    /* 0x332 */ s16           field_332;
+    /* 0x334 */ s16           field_334;
+    /* 0x336 */ s16           field_336;
 } Actor510900ChildAnim;
 STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
 
