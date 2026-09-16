@@ -106289,6 +106289,31 @@ private `M4a1PykeBeamScratch` is exactly the `GpEffFt4Scratch` of
 `include/gameplay/3FB8.h`, and a reused type name costs nothing, because the
 layout is what the compiler sees.
 
+### Byte-identical across two *families* still cannot be promoted
+
+`func_actor_800100_80162A14` is the third of that overlay's drawers to come
+from `m4a1_pyke`: `find` reported it against `func_m4a1_pyke_8011DCEC` as
+`identical bytes: 2`, so the `=` case above applied again and the port needed
+only the scratch type name (`Actor800100SpinScratch`) against the sibling's
+`M4a1PykeQuadScratch` - both are the 0x1C `vec / otz / flag / dx / dy / sxy`
+block, and `actor_510900.h` carries a fourth copy of it. 100.000% on the first
+build.
+
+What `identical bytes: 2` does *not* buy is a promotion. `promote` answers
+`only one copy in actors, nothing to share`: the duplicate index is
+family-scoped, and so is the manifest. A `shared` span's `unit` resolves to
+`src/<family>/lib/<unit>.c` and links only into that family's overlays - no
+`unit` in `configs/USA/overlays.toml` appears under two `[family]` sections.
+The refusal here is not the `localref` one either: the copies reference only
+shared globals (`D_80111E48`, `GsWSMATRIX`, `Display_State`, `Gpu_PrimCursor`,
+`Gpu_CurrentOt`, `rsin`, `rcos`), so they would share cleanly if there were
+anywhere to put them. There is not, and the two overlays keep their own
+copies.
+
+So the rule for a cross-family `=` body is: match it in its own overlay by
+porting the sibling's C, and expect no promotion afterwards. Do not go looking
+for a cross-family lib unit to hand-write - the layout has none.
+
 ## The allocator counts source copies that cross-jump later erases
 
 `func_actor_800100_80166190` sat at 99.80% with `branch = insert = delete = 0`,
