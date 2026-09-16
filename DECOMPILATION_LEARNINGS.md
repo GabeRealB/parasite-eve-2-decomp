@@ -107598,3 +107598,45 @@ and the register chooses whether the store is a free leaf; only when it is does
 its LUID order decide the emission.
 
 base_6.c preprocessed SHA256: 90f32fc92970b2767ce0fad080a8fca8c7e67c74c471f420fdf30cb615370fc2
+
+## A view dispatch whose tests are `beq` to their bodies is a `goto`, not `if`/`else` and not `switch` (func_actor_403200_80134A14, 2026-09-16)
+
+**Symptom:** the per-view dispatcher's inner dispatch on a non-adjacent view pair
+`{0x22, 4}` (and `{0x25, 0x19}`) emits two *jump-if-true* compares in source order, each
+branching to its own body, with the default's flag computation falling through the dispatch
+block and the two bodies emitted in the same order as the tests:
+
+```
+    move  v1,s2            ; flag = view
+    li    v0,0x22
+    beq   v1,v0,L_body22
+     li   v0,4
+    beq   v1,v0,L_body4
+     li   v0,0x22
+    j     L_tail
+     slti v1,a1,0x2455     ; flag = dist < 0x2455
+```
+
+**Cause:** `if (cond) { … }` goes through `do_jump (cond, if_false_label, NULL)` and emits
+jump-if-*false* (`bne`); `if (cond) goto label;` goes through
+`do_jump (cond, NULL, if_true_label)` and emits jump-if-*true* (`beq`). So a `beq` chain in
+source order is a run of `goto`s. Two other spellings were tried and rejected here:
+
+* a nested `switch (view)` — right `beq` shape, but `add_case_node` builds an AVL case tree, so
+  the emit order is always the *smaller* value first, the reverse of the target, for either
+  source order of the two cases;
+* the `(flag != V1) && (flag != V2)` outside test from the `func_actor_403200_801344C4` entry
+  above — here it did not make jump threading collapse the pair (208 insns, branch penalty 15,
+  74.7%), where the `goto` spelling reproduces the dispatch exactly.
+
+The `if (flag == C) goto L;` run is also what puts the case bodies in source order: an
+`if`/`else` chain emits the inner `else` first, which is the opposite of every body order in
+this target.
+
+**Verified:** with the goto dispatch the function went 70.9% -> 84.5%, and the same shape
+carried the head, the 32-byte `SVBLOCK`-style rodata copy and the per-view tails to a 103/203
+insn match. `m2c`'s `goto block_25` / `goto block_36` in this function are real gotos.
+
+**Not to be confused with** the `func_actor_403000_80134F44` entry above: there, a duplicated
+load in front of a jump into a tail meant duplicated source. Here the discriminator is the
+branch sense (`beq` vs `bne`), which duplicated source cannot produce.
