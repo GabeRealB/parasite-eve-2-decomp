@@ -96365,3 +96365,60 @@ than after the first mismatch: the tell is one wrong immediate in an otherwise
 perfect function, and it never is a register-allocation difference.
 
 Example: `func_actor_105300_80133838`.
+## A global an arm re-reads after `jal` must not be hoisted into a local
+
+The target loads the work block once at the top and then, on the far side of the
+call, loads the *same global* again instead of keeping the value:
+
+```
+lw     a0,%lo(ActorsShared80131f9cWork)(s2)   # work, at the top
+lw     v0,0x4F0(a0)
+...
+jal    func_800B7420
+...
+lw     v0,%lo(ActorsShared80131f9cWork)(s2)   # re-loaded, not kept
+sb     s0,0x4F4(v0)
+```
+
+Writing that arm through a local — `work = ActorsShared80131f9cWork;` at the top
+and `work->field_4F4 = mode;` inside the call-containing case — reads as the same
+value, and it is, but it is a *different live range*. Liveness is per block: the
+pseudo is live-in to the case block and nothing kills it before the `jal`, so it
+is live across the call, and global.c must hand it a callee-saved home. The
+target's `$a0` is only reachable if the pseudo dies at the dispatch — which needs
+a second load in the arm that CSE cannot fold across the call.
+
+The two forms differ in nothing else, and the controlled pair measures it:
+holding it in the local scores 89.256%, `regs=12`, instructions 41/43; re-reading
+the global scores 100.000%. In the local form `work` sits in `$s1`, `obj` is
+pushed out to `$s2`, and the target's post-call `lw $v0,%lo(...)($s2)` is gone —
+two instructions' difference and the whole `regs` penalty, from one identifier.
+
+```c
+    /* 100%: the arm re-reads the global, so the top load dies at the dispatch */
+    obj  = (TmdObject*)ActorsShared80131f9cWork->field_4F0->extra;
+    mode = msg->field_2;
+
+    switch (mode) {
+        case 1:
+            if (func_800B7420(0x88) == 0) {
+                ActorsShared80131f9cWork->field_4F4 = mode;
+                obj->field_C                        = 0;
+            }
+```
+
+`obj` in the same function is the control: it is live across the call in *both*
+forms — the arm uses it after the `jal` and no re-read can replace it — and it
+takes `$s1` either way. So the rule is not "avoid locals"; it is that a load the
+target repeats after a `jal` is evidence the source did not hoist it, and
+reproducing the repeat is what fixes the register.
+
+The index is the SI-local rule from the section above, hit the same way in the
+same function: `u16 mode` gave `andi v0,a0,0xffff` beside the `lhu`, and reading
+`msg->field_2` straight into the byte store gave `lbu` — `s32 mode = msg->field_2;`
+removes both.
+
+`func_actor_260400_8014AAA4` (actors). Inputs: `base_3.i`
+`36d48206e4da739ec62a231fe0a6c2bdd8996577091791d06d356bd48161b47a` (100.000%),
+`base_4.i` `6b30e4ec9b10c261d81b15d3c850723e12087d27b1ef3635ce78c108844a4b52`
+(89.256%). One identifier apart.
