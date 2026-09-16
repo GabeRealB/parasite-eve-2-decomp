@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/3688.h"
+#include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 
@@ -13,7 +14,13 @@ s32 func_dryfield_night_trailer_coach_80182800(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_4", func_dryfield_night_trailer_coach_80182808);
+s32 func_dryfield_night_trailer_coach_80182808(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0x63) {
+        Gp_EnqueueStageSnd6(0x531B000D, 0, 0);
+    }
+    return 0;
+}
 
 void func_dryfield_night_trailer_coach_8018283C(void)
 {
