@@ -72566,6 +72566,44 @@ for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
         edge->state = 0;
     } else {
         edge->state = 1;
+## m2c's counting pointer errs the other way: `+= 4` on an element-typed pointer advances 4 *elements*, not 4 bytes
+
+**Problem.** A 16-iteration fill loop matched instruction for instruction except
+its two pointer increments: `addiu $a0,$a0,0x10` / `addiu $a1,$a1,0x10` where
+the target has `addiu $a0,$a0,0x4` / `addiu $a1,$a1,0x4` (99.808%, `regs=2`;
+the `mult`/`mflo`, the `andi`, the branch offsets and the loop's three bivs were
+already identical).
+
+**Cause.** m2c named the walking pointers by the *access* type and then advanced
+them by the byte count the target steps:
+
+```c
+s32 *var_a0;      /* source table */
+s32 *var_a1;      /* dest work block */
+...
+var_a0 += 4;      /* 4 * sizeof(s32) == 0x10 */
+var_a1 += 4;
+```
+
+The entry above squares the element size; this one is off by exactly the element
+size, and that ratio is the tell — `0x10 / 0x4 == 4 == sizeof(s32)`.
+
+**Fix.** Correct the *type*, not the constant: m2c's raw pointers become real
+element access and the loop gets an index, which compiles to the same three
+strength-reduced bivs the target has.
+
+```c
+for (i = 0; i < 0x10; i++) {
+    work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1) & 0x3FFF;
+}
+```
+
+`func_dryfield_dilapidated_house_801814B4` went 99.808% → 100% on that edit and
+stayed 100% through the struct rewrite. The general lesson is the diagnostic
+split: when the object still says `blocks=N/N instructions=N/N
+predicates_match=True` and the only penalty left is `regs`, read the two or
+three differing immediates before touching lifetimes or adding a pin.
+
 ## A halfword field widened into an `s32` local inside the branch: `sll`/`sra` at the assignment, and one shared load
 
 **Symptom.** The target steps a yaw by `+-0x40` on a *sign-extended* copy of the
