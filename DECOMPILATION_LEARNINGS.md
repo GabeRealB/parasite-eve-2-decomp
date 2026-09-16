@@ -100293,3 +100293,54 @@ this body, so afterwards it is `[0x7148, 0x72B8)` and the next span (0x736C,
 the four carriers only need their `INCLUDE_ASM` line removed: a shared span that
 coincides with a unit's tail truncates it, where one in the middle renumbers
 every later unit and moves bodies between files.
+
+## A `do {} while (0)` around a loop body buys `refs`, not scheduling: the extra block changes `REG_N_REFS` and with it the whole allocno order (func_actor_104900_80132B10, 2026-09-16)
+
+`func_actor_104900_80132B10` (154 insns) initialises four `GpObj` display nodes,
+two of them in a two-iteration loop that walks a node pointer (`+0x20`) and a
+`GpRec18` collision-table offset (`+0x48`) from `work` (the `$a2` argument). All
+three are live across the loop's calls, so they need `$s3`-`$s5` and are placed in
+`allocno_compare` order; retail is node offset `$s3`, table offset `$s4`, `work`
+`$s5`. Every source variant below compiled to the **same 154-instruction stream**
+- the whole fight was which of those three allocnos ranked first.
+
+```
+pri = floor_log2(refs) * refs / live_length * 10000 * size     (global.c:594)
+```
+
+| variant | node offset | table offset | `work` |
+|---|---|---|---|
+| natural source | 7 refs / 97 = 5773 | 7 / 100 = 5600 | **11 / 220 = 6000** |
+| + body in `do{}while(0)` | **10 / 99 = 12121** | **9 / 97 = 11134** | 12 / 220 = 6545 |
+
+`floor_log2(7) = 2` but `floor_log2(10) = 3`, so one extra weighted reference is a
+50% jump - far more than the ~4% the live lengths move. The barrier emits no code
+(`jump` deletes the loop), but it *is* a basic block at allocate time, and `flow`
+weights each mention by loop depth per block, so moving a use across it adds a
+reference. Which of the two offsets gains and which loses depends on which side of
+the barrier the one use each has in the body lands on: with the table offset's
+`field_C` store outside the barrier and the tail `obj = &work->nodes[i+1]` inside,
+the node giv went 7 -> 10 and the table offset 7 -> 9, which is the order retail
+has. Two other splits measured: everything inside (9/10, wrong winner) and
+everything outside (both 7, `work` wins).
+
+**A hoisted constant is the other half of the match.** A loop's CSE'd constant is
+emitted by `move_movables` at `loop_start` - i.e. *after* every preheader source
+statement - so `li $s7,0x12c` landed after `li $s4,0xa70` while retail has it
+before. Writing the constant as a source-level variable (`reach = 0x12C;`, used
+for both `field_10` and `field_1C`) puts its `li` at the source position instead,
+which is the whole difference: 35 -> 0 differing lines. `update_equiv_regs` will
+not sink it, because a plain `x = 0x12C;` carries no `REG_EQUIV` (CODEGEN_MODEL
+10.1), and the two uses in the loop keep it in a register.
+
+**Why the node giv wins the lower register.** `loop.c` emits giv initialisers in
+the reverse of the order it discovers them, so among two givs the one whose
+address expression appears *later* in the body is born earlier - with the **longer**
+live range and therefore the lower priority. Here the node's address expression is
+the loop's tail assignment and the table's is the mid-body `field_C` store, so the
+table giv is emitted first and the node giv second: node `97` against table `100`,
+and the node takes `$s3`. Reordering statements so the node's expression is found
+first (the m2c order, `field_C` before `field_8`) inverts it and also moves the
+`extra->field_8` loads out of the block head, costing the scheduler match - the
+two objectives pull on the same lever, which is why the barrier was needed for the
+refs and a variable was needed for the init order.
