@@ -93398,3 +93398,55 @@ Example: `func_actor_103700_80135210`. Inputs: `base_5.i`
 `216117408d3869b6c872af6d479af88225d17f05e7bfc19587d64ab6f42fa642` (100.000%),
 `base_5.c` `c4b08db040730d3e061aa0292216de55ac2d8eb9617161fe148bf8f2b642d2dc`
 (100.000%).
+
+## A repeated constant's register is chosen by statement order: put the field store before the return assignment (func_actor_103700_80134F50, 2026-09-16)
+
+A message-send prologue writes `1` to three places - `anim.field_4`,
+`anim.field_10` (the store that lands in the `jal` delay slot) and
+`work->field_262` after the call - and also returns it. The obvious source,
+
+```c
+    Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+    ret = 1;
+    work->field_262 = 1;
+```
+
+scores 91.27% with `structure: match` and a pure register-swap diff: the
+`1`-holding pseudo is born *after* the call and lands in a call-clobbered
+register, so the two `1`s around the `jal` are separate `li`s, the return
+register is not a copy of anything, and the surplus pair shows up as
+`insert=2 delete=2` on top of `regs=23`. Swapping the two statements is 100.000%:
+
+```c
+    Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+    work->field_262 = 1;
+    ret = 1;
+```
+
+The asymmetry is the CSE constant class, not the allocator. Both `1`s are
+separate `(set (reg) (const_int 1))` insns in `.rtl` (four, in fact: 0x1C, 0x28,
+the return, and a HImode one for the `sh`). In `cse_insn` a register costs 1 and
+the folded constant costs more, so when a later insn sets a register to a
+constant the class already holds, CSE replaces the constant with *a register
+from that class* and the `set` becomes a copy. Which register it picks is a
+tie-break inside the class, and with two candidates the pick is the later one -
+so in the failing order the HImode store takes the return register and the
+`sh` keeps that short live range alive past the assignment.
+
+Writing the field store first removes the choice instead of winning it: at the
+`sh` only the 0x1C/0x28 register is in the class, so CSE picks it, which makes
+the constant live across the `Gp_DispatchMsg` call. It then has to be
+callee-saved (`$s0`), and the return assignment, now the second `1`, folds into
+`move $s3,$s0`. The readable signature of the two orders is `li` + `move` (match)
+against two `li`s (mismatch) - and the mismatch's second `li` is what the
+`insert`/`delete` penalties are counting.
+
+Same shape as the entry above on `func_dryfield_night_junk_yard_8017D6AC`: the
+source order of two assignments to one value decides where that value is born,
+and only one order puts it in the register the target uses.
+
+Example: `func_actor_103700_80134F50`. Inputs: `base_2.i`
+`860452ed9dca5329b704a4ba85f9963d03ca171da3a3ed671405172f6b9bb8ea` (100.000%),
+`base_2.c` `d627ff9e89efde2dacde7aa5c4875fbfacb65dfcffe1ff813ae7247cfb7bbb7b`
+(100.000%); the 91.27% parent is `base_1.i`
+`e23e55b0c6143174d4bbd9296ebd7034344943a81307863265793bcd0ce54821`.
