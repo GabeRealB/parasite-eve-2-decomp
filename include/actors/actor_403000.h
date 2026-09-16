@@ -61,25 +61,35 @@ typedef struct Actor403000Work {
     /* 0xAC6 */ s16            field_AC6;
     /* 0xAC8 */ byte           pad_AC8[2];
     /* 0xACA */ s16            field_ACA;
-    /* 0xACC */ byte           pad_ACC[0xA];
+    /* 0xACC */ s16            field_ACC;
+    /* 0xACE */ byte           pad_ACE[0x8];
     /* 0xAD6 */ s16            field_AD6;
     /* 0xAD8 */ s16            field_AD8;
     /* 0xADA */ byte           pad_ADA[0x6];
     /* 0xAE0 */ s16            field_AE0;
-    /* 0xAE2 */ byte           pad_AE2[0x6E];
+    /* 0xAE2 */ byte           pad_AE2[0x6];
+    /* 0xAE8 */ u8             field_AE8;
+    /* 0xAE9 */ u8             field_AE9;
+    /* 0xAEA */ u8             field_AEA;
+    /* 0xAEB */ u8             field_AEB;
+    /* 0xAEC */ byte           pad_AEC[0x64];
     /* 0xB50 */ Actor403000Obj objB50;
     /* 0xBE8 */ Actor403000Obj objBE8;
     /* 0xC80 */ Actor403000Obj objC80;
     /* 0xD18 */ Actor403000Obj objD18;
-    /* 0xDB0 */ byte           pad_DB0[0x38];
+    /* 0xDB0 */ GpObj          objDB0;
+    /* 0xDD0 */ GpActorD4Rec   recDD0;
     /// Record table `func_actor_403000_8013D48C` scans: the same five-entry
     /// `GpRec18` run the display nodes carry at +0x20, here standing on its own
     /// after the four nodes. `func_actor_403000_8013C864` hands it back to
     /// `Gp_ClearRec18Occupied` twice, and the scan reads a record's `field_4`
     /// the way the shared hit-record walkers do -- 0 means the run has ended,
     /// high half 0x10 is the kind that counts as present.
-    /* 0xDE8 */ GpRec18 records[5];
-    /* 0xE60 */ byte    pad_E60[0xD0];
+    /* 0xDE8 */ GpRec18      records[5];
+    /* 0xE60 */ GpObj        objE60;
+    /* 0xE80 */ GpActorD4Rec recE80;
+    /* 0xE98 */ GpRec18      recordsE98[5];
+    /* 0xF10 */ MATRIX       field_F10;
     /// The second of the two default matrices the spawn handler binds to the
     /// display object -- `&work->field_F10` and this one are what it writes to
     /// `TmdObject::field_1C` / `field_20` -- so it is a `MATRIX` whether or not
@@ -95,19 +105,27 @@ typedef struct Actor403000Work {
     /* 0xF7A */ byte pad_F7A[0xE];
     /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
     /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
-    /* 0xF88 */ s16  field_F88;
-    /* 0xF8A */ byte pad_F8A[0x2];
-    /* 0xF8C */ s16  field_F8C;
-    /* 0xF8E */ byte pad_F8E[0x18];
-    /* 0xFA6 */ u8   field_FA6;
-    /* 0xFA7 */ byte pad_FA7[0x23];
-    /* 0xFCA */ s16  field_FCA;
-    /* 0xFCC */ byte pad_FCC[0x6];
-    /* 0xFD2 */ s8   field_FD2;
-    /* 0xFD3 */ s8   field_FD3;
-    /* 0xFD4 */ byte pad_FD4[0x1];
-    /* 0xFD5 */ s8   field_FD5;
-    /* 0xFD6 */ byte pad_FD6[0x6];
+    /* 0xF88 */ s16   field_F88;
+    /* 0xF8A */ byte  pad_F8A[0x2];
+    /* 0xF8C */ s16   field_F8C;
+    /* 0xF8E */ byte  pad_F8E[0x2];
+    /* 0xF90 */ void* field_F90;
+    /* 0xF94 */ s32   field_F94;
+    /* 0xF98 */ s32   field_F98;
+    /* 0xF9C */ s32   field_F9C;
+    /* 0xFA0 */ s32   field_FA0;
+    /* 0xFA4 */ byte  pad_FA4[0x2];
+    /* 0xFA6 */ u8    field_FA6;
+    /* 0xFA7 */ byte  pad_FA7[0x19];
+    /* 0xFC0 */ s16   field_FC0;
+    /* 0xFC2 */ byte  pad_FC2[0x8];
+    /* 0xFCA */ s16   field_FCA;
+    /* 0xFCC */ byte  pad_FCC[0x6];
+    /* 0xFD2 */ s8    field_FD2;
+    /* 0xFD3 */ s8    field_FD3;
+    /* 0xFD4 */ byte  pad_FD4[0x1];
+    /* 0xFD5 */ s8    field_FD5;
+    /* 0xFD6 */ byte  pad_FD6[0x6];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 

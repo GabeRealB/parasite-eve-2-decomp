@@ -99299,3 +99299,30 @@ Inputs: `base_1.i` (99.804%) SHA256
 target.o SHA256 `718984f6e9ee7d2bef28ae4e84a7b3690269e5f3f6919ea2ca1d4c63938cfc7a`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn097C8-vacuum`.
+
+## One pointer local reused across a spawn handler's sections goes global and drags the whole allocation (func_actor_403000_801343B8, 2026-09-16)
+
+A 0x558 spawn handler links six `GpObj` nodes in a row. The target keeps a
+different value in `$s0` for each stretch - the anim source, `0x12C`, the second
+record table, each of three node pointers, then `&dir` for the GTE scale -
+which reads like one reused `GpObj* o`. Writing it that way reached 91.7%:
+`o` has many sets and deaths, so local-alloc rejects it (see "local-alloc only
+sees single-death pseudos"); global-alloc then puts it in `$s6`, pushing the
+work pointer and `arg0` down a register and moving the CSE constants.
+sched1 also moved `o = &dir` above the preceding `Gfx_MatrixCol2` call (UID 712
+ahead of call 706 in `.sched`), after which reload CSE wrote it as `move $s6,$a1`
+and a load-delay `nop` disappeared.
+
+**Fix.** Give every stretch its own single-assignment local (`animSrc`,
+`records`, `records2`, `node`, `node2`, `node3`, `dirp`). Each one dies once
+inside the block, so local-alloc hands them all `$s0` in turn. This took the
+score from 91.7% to 98.7% in a single edit, and the `&dir` set stayed below the call.
+The last 1.3% was plain statement order: `field_F94 = 1` before
+`field_F9C = 3` gives the constant its own `$v1` quantity ahead of the
+`field_F90` store. Same function: `arg0->field_40 = D.field_4;` written
+*before* `arg0->field_50 = &D;` is what puts the `lhu` into `$v1` while `$v0`
+still holds `&D`.
+
+Unresolved: sched.c only ties a pseudo's set to the preceding call when the
+pseudo crosses no calls, and `dirp` still crosses `VectorNormalSS`, so that rule
+does not explain why the split stopped the move. I did not trace it.

@@ -17,6 +17,11 @@
 /// word, so spell the instruction out.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+extern GpPairSrcE D_actor_403000_8013DA00;
+extern u32        D_actor_403000_80158B50;
+extern u32        D_actor_403000_80158C08;
+extern u32        D_actor_403000_80158CA8;
+
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", D_actor_403000_80131E20);
@@ -67,7 +72,184 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134204);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801343B8);
+void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
+{
+    SVECTOR          dir;
+    VECTOR           pos;
+    Actor403000Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    GpObj*           node;
+    GpObj*           node2;
+    GpObj*           node3;
+    u32*             animSrc;
+    GpRec18*         records;
+    GpRec18*         records2;
+    SVECTOR*         dirp;
+    GpRec18*         firstRec;
+    Actor403000Work* idWork;
+    TmdObject*       tmd;
+
+    obj         = (TmdObject*)arg1->extra;
+    coord       = obj->field_8;
+    arg1->idMap = (TaskIdMap*)(work = Mem_Calloc(0xFDCU, false));
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->exitCallback = func_actor_403000_8013D4F4;
+    idWork             = (Actor403000Work*)arg1->idMap;
+    tmd                = (TmdObject*)arg1->extra;
+    tmd->field_1C      = &idWork->field_F10;
+    tmd->field_20      = &idWork->field_F30;
+    arg0->field_4      = &((TmdObject*)arg1->extra)->field_8->coord;
+    arg0->field_48     = 0;
+    arg0->field_1C.vx  = 0;
+    arg0->field_1C.vy  = 0;
+    arg0->field_1C.vz  = 0;
+    arg0->field_18     = &((TmdObject*)arg1->extra)->field_8[2];
+    Gp_LinkNode(&arg0->node);
+    animSrc         = &D_actor_403000_80158B50;
+    work->field_FCA = 1;
+    arg0->field_4C  = 0;
+    arg0->field_40  = D_actor_403000_8013DA00.field_4;
+    arg0->field_50  = &D_actor_403000_8013DA00;
+    arg0->field_54  = (s32)(firstRec = work->objB50.rec);
+    func_800B3F84(&((Actor403000AnimWork*)work)->anim, animSrc, (GpAnimObj*)obj,
+                  ((Actor403000AnimWork*)work)->pad_3E8, ((Actor403000AnimWork*)work)->slots);
+    func_800B3F84(&((Actor403000AnimWork*)work)->blendAnim, animSrc, (GpAnimObj*)obj,
+                  ((Actor403000AnimWork*)work)->pad_93C, ((Actor403000AnimWork*)work)->blendSlots);
+    work->field_AC0 = 2;
+    work->field_AC2 = 0;
+    work->field_AC6 = 0;
+    work->field_AE0 = 0;
+    work->field_AD8 = 0;
+    work->field_ACC = 0x10;
+    work->field_ACA = 0x10;
+    work->field_AEB = 1;
+    work->field_AEA = 1;
+    work->field_AE9 = 1;
+    work->field_AE8 = 1;
+    func_actor_403000_80133AF8((Actor403000*)arg1);
+    work->objD18.obj.field_C  = work->objD18.rec;
+    work->objD18.obj.field_8  = coord;
+    work->objD18.obj.field_10 = 0;
+    work->objD18.obj.field_12 = -0x11C;
+    work->objD18.obj.field_14 = 0;
+    work->objD18.obj.field_18 = 0x30001;
+    work->objD18.obj.field_1C = 0x12C;
+    work->objD18.obj.flags    = 1;
+    Gp_LinkObj(2, &work->objD18.obj);
+    work->recDD0.field_2  = -0x180;
+    work->recDD0.field_A  = -0x180;
+    work->recDD0.field_C  = 0x2BC;
+    work->objDB0.field_C  = (GpRec18*)&work->recDD0;
+    work->objDB0.field_18 = 0x30001;
+    work->recDD0.field_0  = 0;
+    work->recDD0.field_4  = 0;
+    work->recDD0.field_8  = 0;
+    work->recDD0.field_10 = 0x12C;
+    work->recDD0.field_12 = 0x12C;
+    work->recDD0.field_14 = records = work->records;
+    work->objDB0.field_8            = coord;
+    work->objDB0.field_10           = 0;
+    work->objDB0.field_12           = 0;
+    work->objDB0.field_14           = 0;
+    work->objDB0.field_1C           = 0;
+    work->objDB0.flags              = 3;
+    work->objD18.obj.flags         |= 0x4000;
+    Gp_LinkObj(2, &work->objDB0);
+    work->recE80.field_4  = -0x3E8;
+    work->recE80.field_C  = 0x190;
+    work->recE80.field_10 = 0x200;
+    work->recE80.field_12 = 0x200;
+    work->recE80.field_0  = 0;
+    work->recE80.field_2  = 0;
+    work->recE80.field_8  = 0;
+    work->recE80.field_A  = 0;
+    work->recE80.field_14 = records2 = work->recordsE98;
+    work->objDB0.flags              |= 0x4000;
+    work->objE60.field_8             = &((TmdObject*)arg1->extra)->field_8[5];
+    work->objE60.field_C             = (GpRec18*)&work->recE80;
+    work->objE60.field_10            = 0;
+    work->objE60.field_12            = 0;
+    work->objE60.field_14            = 0;
+    work->objE60.field_18            = 0x3001E;
+    work->objE60.field_1C            = 0;
+    work->objE60.flags               = 3;
+    Gp_LinkObj(2, &work->objE60);
+    work->objE60.flags |= 0x8000;
+    Gp_InitRec18Table(records, 5, 0);
+    Gp_InitRec18Table(records2, 5, 0);
+    Gp_InitRec18Table(work->objD18.obj.field_C, 5, 0);
+    node           = &work->objB50.obj;
+    node->field_8  = &((TmdObject*)arg1->extra)->field_8[1];
+    node->field_C  = firstRec;
+    node->field_10 = 0;
+    node->field_12 = 0;
+    node->field_14 = 0;
+    node->field_18 = 0x3001E;
+    node->field_1C = 0x3E8;
+    node->flags    = 1;
+    Gp_LinkObj(2, &work->objB50.obj);
+    node->flags |= 0x8000;
+    Gp_InitRec18Table(node->field_C, 5, 0);
+    node2           = &work->objBE8.obj;
+    node2->field_8  = &((TmdObject*)arg1->extra)->field_8[15];
+    node2->field_C  = work->objBE8.rec;
+    node2->field_10 = 0;
+    node2->field_12 = 0;
+    node2->field_14 = 0;
+    node2->field_18 = 0x3001E;
+    node2->field_1C = 0x320;
+    node2->flags    = 1;
+    Gp_LinkObj(2, &work->objBE8.obj);
+    node2->flags |= 0x8000;
+    Gp_InitRec18Table(node2->field_C, 5, 0);
+    node3           = &work->objC80.obj;
+    node3->field_8  = &((TmdObject*)arg1->extra)->field_8[4];
+    node3->field_C  = work->objC80.rec;
+    node3->field_10 = 0;
+    node3->field_12 = 0;
+    node3->field_14 = 0;
+    node3->field_18 = 0x3001E;
+    node3->field_1C = 0x320;
+    node3->flags    = 1;
+    Gp_LinkObj(2, &work->objC80.obj);
+    node3->flags |= 0x8000;
+    Gp_InitRec18Table(node3->field_C, 5, 0);
+    work->objBE8.obj.field_10 = 0;
+    work->objBE8.obj.field_12 = 0;
+    work->objBE8.obj.field_14 = -0x100;
+    work->field_FC0           = 0;
+    work->field_F88           = GameFlag_GetNibble(0xE2);
+    Gfx_MatrixCol2(&((TmdObject*)arg1->extra)->field_8->coord, &dir);
+    dir.vy = 0;
+    dirp   = &dir;
+    VectorNormalSS(dirp, dirp);
+    gte_lddp(0x1388);
+    gte_ldsv(dirp);
+    gte_gpf12_real();
+    gte_stsv(dirp);
+    work->field_F90 = &D_actor_403000_80158C08;
+    work->field_F94 = 1;
+    work->field_F9C = 3;
+    work->field_F98 = 0;
+    work->field_FA0 = 1;
+    work->field_F8C = 0;
+    arg1->field_24  = &D_actor_403000_80158CA8;
+    coord->sub      = &Gfx_ViewCoord;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    work->field_FD2 = -1;
+    work->field_FD3 = -1;
+    work->field_0   = 0xB;
+    arg1->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134910);
 
