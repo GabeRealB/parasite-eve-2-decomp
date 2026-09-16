@@ -101,6 +101,7 @@ extern GsCOORDINATE2    Gfx_ViewCoord;
 extern MATRIX           Gfx_ViewWorldMtx;
 extern TaskFuncTable3   Actor00400_D0002C;
 extern TaskFuncTable11  Actor00400_D0007C;
+extern TaskFuncTable10  Actor00400_D000A8;
 extern TaskFuncTable10  Actor00400_D000D0;
 extern TaskFuncTable4   Actor00400_D00134;
 extern TaskFuncTable3   Actor00400_D00144;
@@ -1114,7 +1115,98 @@ void Actor00400_Fn04414(Actor100400* arg0)
     work->field_638++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04580);
+void Actor00400_Fn04580(Actor100400* arg0)
+{
+    Actor100400Work*     work = arg0->field_1C;
+    Actor100400Obj*      obj  = arg0->field_20;
+    Actor100400Ctx*      ctx  = arg0->field_2C;
+    TaskFuncTable10      fns;
+    Actor100400Mat       m;
+    Actor100400MatWords* ia;
+    Actor100400Work*     w;
+    Actor100400Work*     w2;
+    Actor100400Work*     w3;
+    Actor100400Work*     work2;
+    Actor100400Ctx*      ctx2;
+    GsCOORDINATE2*       coord;
+    MATRIX*              dst;
+    s32                  i;
+
+    fns = Actor00400_D000A8;
+    switch (D_801153F4) {
+        case 2:
+            ctx->field_C |= 0x80;
+            break;
+        case 0:
+            if (work->field_663 != 0) {
+                break;
+            }
+            work->flags_62C.hi.field_62E++;
+            work->field_630++;
+            Actor00400_Fn01454(arg0);
+            fns.funcs[work->field_638]((Task*)arg0);
+            Actor00400_Fn00A14(arg0);
+            w = arg0->field_1C;
+            if (w->field_624 == 1) {
+                if (w->field_626 != w->field_628) {
+                    w->field_62A = 0;
+                } else {
+                    w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
+                }
+                Actor00400_Fn08624(arg0);
+                w->field_624 = 3;
+            } else if (w->field_624 == 2) {
+                Actor00400_Fn085B8(arg0);
+                w->field_624 = 3;
+                w->field_62A = 0;
+            } else if (w->field_624 == 3) {
+                w->field_62A++;
+            }
+            i = 1;
+            do {
+                Gp_AnimTickIndex(w, i);
+                i++;
+            } while (i < 0xF);
+            work->flags_62C.half = work->field_4C;
+            Actor00400_Fn016A4(arg0, (u8)work->field_665);
+            w2              = arg0->field_1C;
+            coord           = arg0->field_2C->field_8;
+            ia              = &m.ident;
+            m.ident.m00_m01 = 0x1000;
+            m.ident.m02_m10 = 0;
+            ia->m11_m12     = 0x1000;
+            m.ident.m20_m21 = 0;
+            ia->m22         = 0x1000;
+            RotMatrixZ(w2->field_558, &m.mat);
+            func_8004BFF8(w2->field_556, &m.mat);
+            dst          = &coord->coord;
+            dst->m[0][0] = m.mat.m[0][0];
+            dst->m[0][1] = m.mat.m[0][1];
+            dst->m[0][2] = m.mat.m[0][2];
+            dst->m[1][0] = m.mat.m[1][0];
+            dst->m[1][1] = m.mat.m[1][1];
+            dst->m[1][2] = m.mat.m[1][2];
+            dst->m[2][0] = m.mat.m[2][0];
+            dst->m[2][1] = m.mat.m[2][1];
+            dst->m[2][2] = m.mat.m[2][2];
+            coord->flg   = 0;
+            Actor00400_Fn01B90(arg0);
+            if ((s16)obj->field_40 <= 0) {
+                w3             = arg0->field_1C;
+                arg0->field_30 = 2;
+                w3->field_638  = 0;
+                w3->field_63A  = 0;
+            }
+            /* fallthrough */
+        case 1:
+            ctx2  = arg0->field_2C;
+            work2 = arg0->field_1C;
+            Actor00400_UpdateColor(arg0, &ctx2->field_8[1], work2, ctx2);
+            Actor00400_Fn012B0(arg0, arg0->field_2C->field_8->coord.t[1], 0x80);
+            ctx->field_C &= ~0x80;
+            break;
+    }
+}
 
 void Actor00400_Fn04900(Actor100400* arg0)
 {
