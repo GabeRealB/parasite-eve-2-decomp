@@ -88815,3 +88815,66 @@ the increment belongs.
   differently (98.5%, regs=16) than `coord, work, node` (100%) — with the
   schedule this tight, keep the statement order the target's load order implies
   rather than sorting them for readability.
+
+## A store written on the line before a call is the insn that fills its `jal` delay slot (func_dryfield_dilapidated_house_80183D5C, 2026-09-16)
+
+A state handler whose first frame ends with `Gp_UpdateCoord(coord)` and a
+`coord->flg = 0` store sat at 95.68% with the store two instructions late and
+the argument setup in the slot:
+
+```
+    /* target */                      /* base, m2c statement order */
+    addu   $a0, $s1, $zero            jal    Gp_UpdateCoord
+    jal    Gp_UpdateCoord              move   $a0, $s1        (delay)
+     sw    $zero, 0x0($s1)   (delay)  li     $v0, 0x80
+    li     $v0, 0x80                  sw     $zero, 0x0($s1)
+```
+
+The C was
+
+```c
+    Gp_UpdateCoord(coord);
+    coord->flg    = 0;
+    mem->field_24 = 0x80;
+```
+
+Moving `coord->flg = 0;` to the line *before* the call matched exactly. Nothing
+about the allocation changed; the store's source position decides which insn
+reorg puts in the slot.
+
+The mechanism is in the `.sched2` dumps. `reorg.c`'s `fill_simple_delay_slots`
+scans *backwards* from the call and takes the first insn that neither references
+nor sets the resources the call needs or sets — so the call's immediate
+predecessor in the scheduled stream wins, and both a plain `a0 = coord` argument
+setup and a store to unrelated memory are eligible. Written after the call, the
+stream is `[a0=s1][call][li][store]` and the setup is taken; written before it,
+the scheduler emits `[a0=s1][store][call]` and the store is taken instead. Two
+correct codes, one original.
+
+The idiom is in the matched corpus, which is what settled it in two builds:
+`func_acropolis_west_elevator_hall_8017F6F0`, `func_shelter_b2_elevator_8017D70C`
+and `func_neo_ark_shrine_8017F86C` all write `coord->flg = 0;` on the line before
+`Gp_UpdateCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
+`sw $zero,0x0($sX)`. When a function belongs to a family, grep the matched corpus
+for its callee and read how the neighbouring statement is written before
+theorising about the schedule.
+
+**The branch shape came from the same place.** The m2c `goto` form
+`if (v0 != 0) { if (v0 >= 4) goto release; }` emits `beqz` to the *call* plus a
+`j` to the epilogue, and no arrangement of the gotos changes that. The twin's
+source form
+
+```c
+    if (flag != 0) {
+        if (flag >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+```
+
+emits the target's `bnez $v0, epilogue` / `j release` — the shape
+`Gp_EffCtlTaskC1` (gameplay, 100%) and `func_pyrokinesis_801311B8` (pe, 100%)
+produce for the identical handler family. It cleared all three `branch`
+penalties, which the `insert`/`delete` pair from the swapped loads had been
+riding along with.

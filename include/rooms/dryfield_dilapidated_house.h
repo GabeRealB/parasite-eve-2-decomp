@@ -71,6 +71,20 @@ typedef struct DdhAngleStep {
 } DdhAngleStep;
 STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 
+/// Work block of the two effect handlers `func_dryfield_dilapidated_house_80183C8C`
+/// and `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2`
+/// and handed to `Gp_ReleaseState1CMem` when their ramp runs out. `field_24` is a
+/// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
+/// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one
+/// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is a
+/// frame counter only `func_dryfield_dilapidated_house_80183C8C` touches.
+typedef struct DdhEffWork {
+    /* 0x00 */ byte pad_00[0x22];
+    /* 0x22 */ u16  field_22;
+    /* 0x24 */ s16  field_24;
+    /* 0x26 */ s16  field_26;
+} DdhEffWork;
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);

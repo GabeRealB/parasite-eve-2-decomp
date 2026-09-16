@@ -1,11 +1,14 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "rooms/dryfield_dilapidated_house.h"
 #include "main/tmd.h"
 
+void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* coord, s16 arg1, s32 arg2, s16 arg3);
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
 void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
@@ -242,4 +245,49 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80183C8C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80183D5C);
+/// Per-frame handler of the effect family whose work block is `DdhEffWork`
+/// (`task->spawnArg2`). While the `Gp_State1C` state word at 0x4 is clear it
+/// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
+/// clears the model coordinate's update flag, refreshes the coordinate and feeds
+/// the angle/scale pair to `func_dryfield_dilapidated_house_80183728`, stepping
+/// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
+/// immediately when that state word has already reached 4 - it releases the work
+/// block through `Gp_ReleaseState1CMem`.
+void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
+{
+    DdhEffWork*    mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s32            scale;
+    s32            angle;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+
+    if (arg0->state == 0) {
+        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1, 0);
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        mem->field_24 = 0x80;
+        mem->field_26 = 0x100;
+        arg0->state   = 1;
+    }
+
+    func_dryfield_dilapidated_house_80183728(coord, mem->field_26, 0x100, mem->field_24);
+    angle         = (u16)mem->field_26;
+    scale         = (u16)mem->field_24;
+    angle        += 0x80;
+    scale        -= 8;
+    mem->field_24 = scale;
+    mem->field_26 = angle;
+    if ((s16)scale < 9) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
