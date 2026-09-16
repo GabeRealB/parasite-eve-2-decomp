@@ -277,6 +277,19 @@ typedef struct Actor01600 {
 } Actor01600;
 STATIC_ASSERT_SIZEOF(Actor01600, 0x34);
 
+/// State table the overlay dispatches through, indexed by the actor's
+/// `field_30`. Its three words are `Actor01600_Fn001F4`, `Actor01600_Fn00674`
+/// and `Actor01600_Fn04054`, and every handler takes the actor's 0x20 context
+/// first, like `Actor100300StateFuncTable3`. The object sits in the header unit
+/// right after the overlay id, so `Actor01600_D00000` is that id and this table
+/// starts at 0x4.
+typedef struct Actor01600StateFuncTable3 {
+    void (*funcs[3])(Actor01600Ctx*, Actor01600*);
+} Actor01600StateFuncTable3;
+STATIC_ASSERT_SIZEOF(Actor01600StateFuncTable3, 0xC);
+
+extern Actor01600StateFuncTable3 Actor01600_D00004;
+
 /// Overlay-local view of the gameplay `Gp_StateF0` block (`GpStateF0` in
 /// `include/gameplay/3A34.h`). Flags are accessed as a word and individual
 /// bytes; `field_1C` is read with `lb`, so it is signed here.
@@ -363,6 +376,7 @@ void Actor01600_Fn070AC(Actor01600* arg0, Actor01600* arg1);
 
 void Actor01600_Fn01420(Actor01600* arg0);
 void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1);
+void Actor01600_Fn066E8(Actor01600* arg0);
 
 s32 Actor01600_Fn045A8(Actor01600* arg0, s32* distance);
 s32 Actor01600_Fn04C64(Actor01600* arg0, s32 distance, s32 angle);

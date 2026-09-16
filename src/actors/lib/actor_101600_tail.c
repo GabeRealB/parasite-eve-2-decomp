@@ -146,7 +146,13 @@ void Actor01600_Fn0646C(Actor01600* arg0)
     obj2->field_C |= 4;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn066E8);
+void Actor01600_Fn066E8(Actor01600* arg0)
+{
+    Actor01600StateFuncTable3 sp;
+
+    sp = Actor01600_D00004;
+    sp.funcs[arg0->field_30]((Actor01600Ctx*)arg0->field_20, arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06744);
 
