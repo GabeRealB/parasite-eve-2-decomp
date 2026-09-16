@@ -85575,3 +85575,51 @@ Inputs: `base_1.i`
 `3c18e603b12656d7e4b4653d317328a2882cab207fcb4fb1037ee113d42ba8ad` (100.000%,
 first hypothesis), target
 `a7e0d28dccb3e47cda2115ba118b6bcb60b59ef88355ffe215f50f9850f2baf4`.
+## A room model-task body needs its `coord` in a local, because 2.8.1 will not CSE a load across a call (func_dryfield_night_dilapidated_house_8017E670, 2026-09-16)
+
+Rooms carry a per-frame task of a recurring shape: fetch the model's coordinate
+array out of `Task::extra`, take the stage-visit byte as a bit index, refresh the
+world matrix, and re-pose the parts whose visit set the current visit falls in.
+
+```c
+coord = ((TmdObject*)arg0->extra)->field_8;
+mask  = 1 << Game_Session->field_4;
+Gp_UpdateCoord(coord);
+if (mask & 0x99C) {
+    pose(coord, 0);
+}
+if (mask & 0x998) {
+    pose(coord, 8);
+}
+```
+
+m2c seeds this body correctly - `M2C_FIELD(M2C_FIELD(arg0, void **, 0x2C), s32 *, 8)`
+is `((TmdObject*)arg0->extra)->field_8` - so the retype to project structs is the
+whole job and it matches on the first build. The one thing to preserve while
+retyping is the **local**: the `coord` in a `GsCOORDINATE2*` local is what keeps
+the pointer in `$s1` across the four calls.
+
+Writing the same expression inline at each call site is not equivalent:
+
+```c
+Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
+if (mask & 0x99C) {
+    pose(((TmdObject*)arg0->extra)->field_8, 0);
+}
+/* ... */
+```
+
+GCC 2.8.1 cannot CSE a memory load across a call, so `arg0->extra` is re-loaded
+after every `Gp_UpdateCoord` / `pose`, and removing those loads is not something
+the scheduler can undo. Measured on
+`func_dryfield_night_dilapidated_house_8017E670`: the local form is 100.000% at 33
+instructions, the inline form 53.500% at 42 instructions
+(`insert=14 delete=5 regs=10 branch=3`).
+
+Scope: this binds when the coordinate outlives one call. When it is used exactly
+once - `func_dryfield_night_factory_801825F0` passes it straight into
+`Gp_UpdateCoord` and never again - inlining the expression is what the source
+did, and the local is the redundant one.
+
+Inputs: `base.i` (100%), `base_2.i` (53.5%, inline form). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
