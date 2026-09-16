@@ -192,7 +192,63 @@ void func_actor_206100_8014B698(Task* task)
 /// the effect kind to 2 - once `killCountdown` reaches 0x5B or the flag is up.
 /// `field_64` is the scale the setup hands to `func_actor_206100_8014A70C`
 /// biased by 0x10002000; it ramps 0x100 a frame to 0x600 and then holds.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014B8B4);
+void func_actor_206100_8014B8B4(Task* task)
+{
+    Actor206100ChildWork* child;
+    GsCOORDINATE2*        coord;
+    GpDeltaScratch        delta;
+    s32                   mask;
+    s32                   hit;
+    s32                   mode;
+    s32                   i;
+    s32                   n;
+    s32                   v;
+
+    hit   = 0;
+    child = (Actor206100ChildWork*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+    mode  = 1;
+    if (D_801153F4 == 0) {
+        child->field_5A   += 2;
+        *(u32*)&coord->flg = 0;
+        coord->coord.t[0] += child->field_58;
+        coord->coord.t[1] += child->field_5A;
+        coord->coord.t[2] += child->field_5C;
+        if (Gp_FindRec18(child->rec, 0) != 0) {
+            for (i = 0; i < 2; i++) {
+                switch (child->rec[i].field_4 & 0xFFFF0000) {
+                    case 0x10000:
+                    case 0x30000:
+                    case 0x50000:
+                        hit = 1;
+                        break;
+                }
+            }
+        }
+        n = func_800E0C10(child->rec, &delta, 2, &mask);
+        if (n < 3) {
+            if (n > 0) {
+                if ((mask & 8) == 0) {
+                    hit = 1;
+                }
+            }
+        }
+        Gp_ClearRec18Occupied(child->rec);
+        if ((++task->killCountdown >= 0x5B) || (hit != 0)) {
+            task->killCountdown = 0;
+            child->obj.flags   &= 0x3FFF;
+            mode                = 2;
+            task->state        += 1;
+        }
+        v = child->field_64;
+        if (v < 0x600) {
+            child->field_64 = v + 0x100;
+        } else {
+            child->field_64 = 0x600;
+        }
+        func_actor_206100_8014A70C(coord, child->field_60, mode, child->field_64 + 0x10002000);
+    }
+}
 /// Damage / knock-back tick: walks the six contact records of the actor's
 /// `rec_384` table and turns the first occupied one into a hit.  `field_504` is
 /// the cooldown that gates it -- `Gp_GetIdParam2` of the record arms it, and
