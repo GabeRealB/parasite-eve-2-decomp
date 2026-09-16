@@ -3,6 +3,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -32,11 +33,67 @@ extern s32                    D_dryfield_night_garage_80182DF8;
 extern s32                    D_dryfield_night_garage_801831B8;
 extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
 
+/// The room's own `GpMsgEntry[]` - the message table `func_dryfield_night_garage_8017FF2C`
+/// publishes in `Task::field_24`. It terminates with id 0x7FFFFFFF.
+extern GpMsgEntry D_dryfield_night_garage_80181C38[];
+
+/// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
+/// payload of the 0x3E8 message.
+extern s32 D_dryfield_night_garage_80181C68;
+
+/// Script blob passed to `func_800E8614` when game flag 0x8E is already set.
+extern s32 D_dryfield_night_garage_80181C7C;
+
+/// Cutscene script blobs owned by the main executable.
+extern s32 D_8013B570;
+extern s32 D_8013B590;
+extern s32 D_8013C388;
+
 s32 func_800D4D2C(s32 arg0);
 
 s32 func_dryfield_night_garage_80180A64(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_2", func_dryfield_night_garage_8017FF2C);
+s32 func_dryfield_night_garage_80180604(s32 arg0);
+
+/// State 0 of this room's message task, run when the garage scene starts.
+/// Publishes the room's message table in `Task::field_24` and the task itself
+/// in pointer slot 7, clears the display bit on the first object entry, then
+/// hands off to the player actor through messages 0x3E9 / 0x3E8.
+void func_dryfield_night_garage_8017FF2C(Task* task)
+{
+    DryfieldNightGarageObj* base;
+    DryfieldNightGarageObj* obj;
+    Task*                   player;
+
+    task->field_24 = D_dryfield_night_garage_80181C38;
+    Game_SetPtrSlot(task, 7);
+    D_dryfield_night_garage_80186E60->field_4A &= 0xBF;
+    player                                      = Game_GetPtrSlot(0xA);
+    if (Game_Session->field_9 == 3 && player != NULL) {
+        Gp_DispatchMsg(player, 0x3E9, (s32)&D_8013B570, 0);
+        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68);
+        Gp_DispatchMsg(player, 0x3E8, (s32)&D_dryfield_night_garage_80181C68, 0);
+        func_dryfield_night_garage_80180604(0);
+        Gp_EndPlayerActorTask((GpActorWork*)player);
+        if (GameFlag_GetNibble(0x8E) == 0) {
+            Gp_FillAllyHp();
+            GameFlag_SetNibble(0x8E, 1);
+            func_800E8634((s32)&D_8013B590, 0, (s32)&D_8013C388);
+        } else {
+            func_800E8614((s32)&D_dryfield_night_garage_80181C7C, 1);
+        }
+    }
+    if (Game_Session->field_9 == 2 && GameFlag_GetNibble(0x6C) > 0) {
+        if (GameFlag_GetNibble(0x6C) == 1) {
+            GameFlag_SetNibble(0x6C, 2);
+        }
+        base            = D_dryfield_night_garage_80186E60;
+        obj             = base + 1;
+        base->field_4A |= 0x40;
+        obj->field_4A  &= 0xBF;
+    }
+    task->state = (s32)(task->state + 1);
+}
 
 s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
 {
