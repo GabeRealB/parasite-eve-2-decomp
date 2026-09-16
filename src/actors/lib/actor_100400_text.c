@@ -8,13 +8,17 @@
 #include "main/mem.h"
 #include "main/task.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
 extern u8  D_801153F4;
 void       Gp_ArmStateF0(s32 active);
+void       Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3);
 extern s32 D_80115738;
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
@@ -120,7 +124,84 @@ extern u8               Actor00400_D0F790[];
 extern u8               Actor00400_D0FD9C[];
 extern void*            D_800678F0[1];
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn001AC);
+/// Spawns the hit/impact effect burst for `coord`. `arg3` packs an effect
+/// parameter in its low 12 bits and a 4-bit variant index at bits 12..15;
+/// `kind` selects between a single spark (0), a spark plus an optional
+/// directional puff (1), and a four-shot burst (2). `phase` drives the
+/// sub-effect `Actor00400_Fn005DC` plays and gates the puff on its low bits.
+void Actor00400_Fn001AC(GsCOORDINATE2* coord, u16 phase, u16 kind, u32 arg3)
+{
+    SVECTOR vec;
+    s32     i;
+    u16     variant;
+    u16     param;
+
+    if (Gp_State1C->field_4 != 0) {
+        Actor00400_Fn005DC(coord, ((u32)phase >> 1) % 6, 0x400, 0);
+        if (Gp_State1C->field_4 >= 4) {
+            return;
+        }
+    }
+
+    variant = (arg3 >> 12) & 0xF;
+    param   = arg3 & 0xFFF;
+
+    switch (kind) {
+        case 0:
+            Gp_SpawnEff(D_80115738, coord, 0x14001000 + param + variant, NULL);
+            break;
+
+        case 1:
+            Actor00400_Fn005DC(coord, ((u32)phase >> 1) % 6, param, 0);
+            if (!(phase & 1)) {
+                Gp_SpawnEff(D_80115738, coord, 0x01000000 + param + variant, NULL);
+            }
+            if (!(phase & 7)) {
+                SVECTOR* dir;
+
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+
+                dir = &vec;
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x40);
+                gte_ldsv(dir);
+                gte_gpf12_real();
+                gte_stsv(dir);
+                Gp_SpawnEff(0x600E0, coord, param, dir);
+            }
+            break;
+
+        case 2:
+            Actor00400_Fn005DC(coord, ((u32)phase >> 1) % 6, param, 0);
+            Gp_SpawnEff(D_80115738, coord, 0x10001000 + param + variant, NULL);
+            for (i = 0; i < 4; i++) {
+                SVECTOR* dir;
+
+                Gp_SpawnEff(D_80115738, coord, 0x02001000 + param + variant, NULL);
+
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+
+                dir = &vec;
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x40);
+                gte_ldsv(dir);
+                gte_gpf12_real();
+                gte_stsv(dir);
+                Gp_SpawnEff(0x600E0, coord, param, dir);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn005DC);
 

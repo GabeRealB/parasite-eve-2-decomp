@@ -87006,3 +87006,52 @@ output with no copy at all. The copy is a mode widening, which `cse` records as
 widening insn is also what splits the join into its own basic block, so a
 diagnosis showing one extra single-instruction block in front of a flag test is
 the same finding seen from the other side.
+
+## One variable is one pseudo: reuse serialises a live range, `&local` inline does not span a call (Actor00400_Fn001AC, 2026-09-16)
+
+`Actor00400_Fn001AC` fills a stack `SVECTOR` from three LCG draws, normalises
+it and hands it to two more calls. Three separate mismatches all came from the
+same rule — a named C variable becomes exactly one RTL pseudo, so reusing one
+name where the target used several (or using one name where the target used
+none) changes both the register count and where the value lives.
+
+**Do not reuse a temp for a repeated read-modify-write of a global.** Writing
+
+```c
+r = Gp_LcgState * 5 + 0x71357911;  vec.vx = 0x80 - ((r >> 16) & 0xFF);  Gp_LcgState = r;
+r = Gp_LcgState * 5 + 0x71357911;  /* … twice more, same r … */
+```
+
+gives one pseudo that all three draws chain through, so the object reuses a
+single register (`addu $t2, $v0, $t0` three times) and the scheduler cannot sink
+the stores. Writing the global update directly, with no temp at all, lets `cse`
+substitute each store's value into the following load and leaves three
+independent pseudos — which is what the target has (`$a2`, `$v1`, `$v0`), with
+the three `sw`s grouped after the last one. This alone moved the function from
+74% to 95%.
+
+**`&local` written at each use does not survive a call.** `VectorNormalSS(&vec,
+&vec); gte_ldsv(&vec); gte_stsv(&vec);` expands a fresh address pseudo on each
+side of the call: the first dies in the argument register, the second is a new
+`addiu $a3, $sp, 0x10` after the call. The target instead keeps one pseudo in a
+callee-saved register across the call. Assign the address to a pointer local and
+use that:
+
+```c
+dir = &vec;
+VectorNormalSS(dir, dir);
+gte_ldsv(dir);
+```
+
+Keep the field writes as `vec.vx = …` rather than `dir->vx = …`; routing the
+stores through the pointer turns `sh $v0, 0x12($sp)` into `sh $v0, 2($s1)`.
+The `addiu` is scheduled where its RTL was created, so put the `dir = &vec;`
+statement where the target emits the `addiu` — here after the LCG draws, not at
+the top of the block.
+
+**Declare that pointer per block, not per function.** A single function-scope
+`SVECTOR* p` used in two different `switch` arms is still one pseudo (`reg/v:SI
+17` in `.greg`), so both arms get the same hard register. The target used `$s0`
+in one arm and `$s1` in the other, i.e. two pseudos. Two block-scoped
+declarations — one inside the `if`, one inside the loop body — reproduce that
+and were the last 0.26%.
