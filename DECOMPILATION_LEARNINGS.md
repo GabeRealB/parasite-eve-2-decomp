@@ -70963,6 +70963,14 @@ The next function in that TU, `func_actor_510900_8013C338`, is the same body wit
 a different callee (`func_800D7A9C(obj, &pos, 0, 3)`) and shows the same numbers:
 63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.
 
+`func_actor_146300_80132B1C` is a third instance, and the one that shows the
+signature at its clearest: m2c's three scalars score 77.2% with `delete=7` (both
+`sp14`/`sp18` stores gone, 0x20 frame, `$ra` at `0x18`), and replacing them with
+one `VECTOR` — nothing else — is an exact match at 40/40 instructions. The
+deleted count is the tell: it is *both* extra stores where the aggregate should
+be, not one. The frame size follows for free, because the aggregate's 16 bytes
+push `$ra` from `0x18` to `0x20`.
+
 ## sched is bottom-up: a store waits on the loads written after it
 
 Read a `.sched` / `.sched2` trace **back to front**. The ready list starts with
