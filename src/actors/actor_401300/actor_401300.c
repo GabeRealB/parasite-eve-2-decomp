@@ -2324,7 +2324,142 @@ void func_actor_401300_8013B6E8(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013BB30);
+/// Rebuild `coord`'s Y rotation from its current yaw at unit scale. Same body
+/// as `Actor01900_ResetYaw`.
+static __inline__ void Actor401300_ResetYaw(GsCOORDINATE2* coord)
+{
+    void*                  head;
+    Actor401300RotScratch* blk;
+    s16                    ang;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    blk                     = (Actor401300RotScratch*)((u8*)head - 0x34);
+    *(void**)G_SCRATCH_HEAD = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = 1;
+    blk->scale.vy = 1;
+    blk->scale.vx = 1;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0]    = *(u16*)&blk->m.m[0][0];
+    coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]    = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]    = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]    = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]    = *(u16*)&blk->m.m[2][1];
+    coord->coord.m[2][2]    = *(u16*)&blk->m.m[2][2];
+    coord->flg              = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+}
+
+void func_actor_401300_8013BB30(Actor401300* arg0)
+{
+    SVECTOR          vec;
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    u16              next;
+    s16              cur;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_970.field_1C = 0x280;
+        work->field_AB0.flags    = (u16)(work->field_AB0.flags | 0x4000);
+        work->field_BF0.flags    = (u16)(work->field_BF0.flags & 0x7FFF);
+        enemy->node.field_4      = 1;
+        work->field_8B2          = 0;
+        work->field_6            = 0;
+        vec.vx                   = 0x64;
+        vec.vz                   = 0;
+        vec.vy                   = 0;
+        work->field_8A2          = 2;
+        work->field_89C          = 1;
+        work->field_8A6          = 0x10;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &vec);
+        work->field_6 = 0;
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    switch (work->field_8A2) {
+        case 2:
+            if ((s16)next >= 0x10 && (work->field_6C & 2)) {
+                work->field_8A2 = 0x23;
+                work->field_89C = 2;
+                work->field_8A6 = 0x10;
+                work->field_89E = 0;
+            }
+            if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, 0xA) != 0) {
+                Actor401300_MoveForward(arg0->field_2C->field_8, 0xA);
+            }
+            func_actor_401300_801323B0(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC);
+            if (work->field_6 == 3) {
+                D_80114B78[0] = &D_actor_401300_80148808;
+                vec.vz        = 0x64;
+                vec.vy        = 0;
+                vec.vx        = 0;
+                Actor401300_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &vec), enemy);
+            }
+            if (work->field_6 == 5) {
+                D_80114B78[0] = &D_actor_401300_80148A14;
+                Actor401300_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 1, 0x200, NULL), enemy);
+            }
+            break;
+        case 0x23:
+            if (!(work->field_6C & 0x100)) {
+                work->field_6 = 0;
+            }
+            switch (work->field_6) {
+                case 3:
+                    break;
+                case 30:
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    vec.vx = 0;
+                    vec.vy = 0;
+                    vec.vz = 0;
+                    Actor401300_TransformToView(arg0->field_2C->field_8 + 2, &vec);
+                    work->field_8C0.sub        = &Gfx_ViewCoord;
+                    work->field_8C0.coord.t[0] = vec.vx;
+                    work->field_8C0.coord.t[1] = arg0->field_2C->field_8->coord.t[1];
+                    work->field_8C0.coord.t[2] = vec.vz;
+                    work->field_8C0.flg        = 0;
+                    Gp_UpdateCoord(&work->field_8C0);
+                    Gp_SpawnEff(0x600A5, &work->field_8C0, 2, NULL);
+                    break;
+                case 48:
+                    arg0->field_2C->field_C = 2;
+                    break;
+                case 42:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+                case 64:
+                    arg0->field_2C->field_C = 0x80;
+                    work->field_0           = 0x24;
+                    break;
+            }
+            cur = work->field_6;
+            if (cur >= 0x1A) {
+                Actor401300_RescaleYawXZ(arg0->field_2C->field_8, 0x1964, 0x1964 - (cur - 0x14) * 16);
+            }
+            break;
+    }
+    func_actor_401300_80133A3C(arg0);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 2);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 3);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 4);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 5);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 6);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 7);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 8);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 9);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 10);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 11);
+    Actor401300_ResetYaw(arg0->field_2C->field_8 + 12);
+}
 
 void func_actor_401300_8013CBAC(Actor401300* arg0)
 {
