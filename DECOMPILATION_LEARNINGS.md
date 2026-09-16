@@ -84361,3 +84361,44 @@ Do not chase `switch` vs `if` for the dispatch when only **one** case is present
 `switch` (see "A switch's shared tail belongs after the switch"); the load-bearing
 shape in both is just that the return value is preset once and every exit shares
 the epilogue.
+## An m2c seed drops the parameters it cannot see used, so the message lands in `$a0`
+
+Every room event handler in this port has the shape
+`s32 f(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)`. When the body
+touches only `$a2` — the common case, since a handler that just latches a flag
+reads `in->field_2` and never writes `out` — m2c emits a *single* parameter and
+names it after the register it saw: `s32 func(void *arg2)`. Naming it `arg2`
+makes the seed read correctly and compile cleanly, so nothing in the source
+looks wrong, but the parameter is the function's first and the compiler puts it
+in `$a0`. The target's `lbu v1,0x2($a2)` comes out `lbu v1,0x2($a0)`, and that
+one register is the whole difference:
+
+```
+-lbu    v1,2(a2)
++lbu    v1,2(a0)
+```
+
+`stack=2` is what the scorer reports for it — a lone argument-register mismatch
+on a function with a plain `0x18` frame, not a frame-size problem, so the
+penalty name points away from the cause. Restoring the full four-parameter
+signature is the entire fix and changes nothing else: 99.923% → 100.000% with
+every penalty zero, one build later.
+
+The same collapse happens to any m2c seed whose leading parameters are unread,
+so check the argument register of the *first* load from a parameter before
+hunting for an allocation cause: `$a0` where the target says `$a1`/`$a2`/`$a3`
+means the parameter list is short, and no amount of local rewording will move
+it. Take the signature from a matched sibling in the same room family
+(`dryfield_night_water_hole_2.c` is the worked example here, and the sibling
+declares the four parameters even when it also ignores `out`); the extra
+parameters cost no code, and unused ones cannot affect allocation.
+
+`func_dryfield_underpass_8017D908` (`base_1.c` 100%, one build after the 99.923%
+baseline; `base.c` is the raw m2c seed). `overlay_dup_index.py find` reports
+this body as its own only copy, so nothing needed promoting.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `37a2a067ece339296551877a47e3af55fbb6a3a792465ef607b9dc13871e28b9`,
+base_1.i `0dd655fdcac8e6c6febf4a01f82faa9fa754d262f32fc2e0369057fbc692ef5c`.
+Evidence: scratch `nonmatchings/func_dryfield_underpass_8017D908-vacuum/`,
+`base_diff`; no pins, no permuter, no tracer.
