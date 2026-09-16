@@ -93450,3 +93450,49 @@ Example: `func_actor_103700_80134F50`. Inputs: `base_2.i`
 `base_2.c` `d627ff9e89efde2dacde7aa5c4875fbfacb65dfcffe1ff813ae7247cfb7bbb7b`
 (100.000%); the 91.27% parent is `base_1.i`
 `e23e55b0c6143174d4bbd9296ebd7034344943a81307863265793bcd0ce54821`.
+
+## A shared span that renumbers units strands the jump tables it walks past
+
+`overlay_dup_index.py promote` inserts a `shared` span around a duplicated body,
+and that span splits whichever code unit contains it: every later unit in the
+overlay moves up one index. The manifest's `rodata` key still names the *old*
+owners, and the failure is a link error, not a checksum one:
+
+```
+actor_103700_2.i:(.text+0xaf4): undefined reference to `jtbl_actor_103700_80131E64'
+```
+
+Splat emits a function's jump table inside that function's own `.s`
+(`migrate_rodata_to_functions`), but only while the function shares a unit with
+the `rodata` subsegment's owner. Once the function moves to another unit the
+table is emitted as an orphan `nonmatchings/<unit>/jtbl_*.s` that nothing
+`.include`s, and the branch through it goes undefined.
+
+The fix is to cut the rodata block wherever its tables' callers split, so each
+table's subsegment is owned by the unit holding the function that branches
+through it. `jtbl` entry addresses name the caller: here the table at 0x74
+pointed into `80133EF4` (unit `_3`) while the ones at 0x44 and 0x5C pointed into
+`_2`'s functions, so:
+
+```toml
+rodata = [{ start = "0x44", unit = "actor_103700_2" },
+          { start = "0x74", unit = "actor_103700_3" },
+          { start = "0x8C", unit = "actor_103700_5" }]
+```
+
+Promoting into a carrier whose rodata is *also* shared - here `actor_203700`,
+the same package at another load address - needs the same cut on both entries.
+
+Two traps around the check. The renumbering is invisible to the split: splat
+creates the new unit's `.c` but never rewrites the existing ones, so the old
+`_2`/`_3`/`_4` files keep the pre-promotion distribution and must be
+redistributed by hand (the bodies for `80134F50`/`801350DC` move from `_3` to
+`_4`). And a stale `build/` object hides it: `_3.c.o` still carried a `.rodata`
+with a table its source no longer assembled, so `nm` on the object showed the
+symbol present while the link disagreed.
+
+Example: `func_actor_103700_80133C1C`. Inputs: `base_2.i`
+`9b1a1c810349d7eb25f9b67c62d4a397fa4245f06b6ae6f042a82cafce6bfe32` (100.000%),
+`base_2.c` `1ba30f4a572ab4675b7afecd9d2356a9d27fdfd13f306520a4f89703363495dc`
+(100.000%); the 91.30% parent is `base_1.i`
+`1fb2a8663f5685781ec83106331a88da6507694350f2ad21ccdfd63aed12d5e0`.
