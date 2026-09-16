@@ -192,6 +192,21 @@ extern SVECTOR D_actor_421600_80151158[];
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
 
+/// Effect callback the spawning code points `D_80114B78` at before each
+/// `Gp_SpawnEff` on a death-tick frame, so the spawn knows which tick follows.
+/// Same role as actor 401300's `D_actor_401300_80147894` pair; the four
+/// addresses sit in this overlay's trailing model/animation bank, so they are
+/// objects rather than named tables.
+extern char D_actor_421600_80143EF4;
+extern char D_actor_421600_801443C8;
+extern char D_actor_421600_80145124;
+extern char D_actor_421600_80145604;
+
+/// Global effect-model callback slot the spawn helpers read; a one-element
+/// array so the store is absolute (see actor 401300's header for the same
+/// declaration).
+extern void* D_80114B78[1];
+
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
 /// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.
 void func_actor_421600_8013E668(Task* task);

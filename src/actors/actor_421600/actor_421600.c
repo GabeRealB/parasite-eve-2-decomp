@@ -5,6 +5,8 @@
 #include "actors/actor_421600.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -672,7 +674,194 @@ void func_actor_421600_8013B8E0(Actor421600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013BA70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013C8E0);
+/// Death tick: the live-actor edge arms the model (dirty 0x80, clip 0x19C, the
+/// 0xB6C node's 0x4000 flag down, the enemy's list node marked, the 0x83E /
+/// 0x840 / 0x844 triple and `field_6` cleared) and spawns the 0x60030 effect on
+/// the second coordinate. Frames 2, 3, 5, 7 and 8 then free the model buffers
+/// and spawn one effect each -- 0xA0005 on coordinate 9, 12, 1 and 3 -- whose
+/// model is tinted from the enemy's area record (`field_24` / `field_25`) and
+/// re-streamed. Frame 0xA writes the 0x16 state. The counter stops at 0x400.
+void func_actor_421600_8013C8E0(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    TmdObject*       obj;
+    SVECTOR          vec;
+    GpAreaKey        key;
+    GpAreaKey*       keyPtr;
+    GpAreaKey*       sessionKey1;
+    GpAreaKey*       sessionKey2;
+    GpAreaKey*       sessionKey3;
+    GpAreaKey*       sessionKey4;
+    u32              raw1;
+    u32              raw2;
+    u32              raw3;
+    u32              raw4;
+    u32              index1;
+    u32              index2;
+    u32              index3;
+    u32              index4;
+    GpEffWork*       effect1;
+    GpEffWork*       effect2;
+    GpEffWork*       effect3;
+    GpEffWork*       effect4;
+    TmdObject*       model1;
+    TmdObject*       model2;
+    TmdObject*       model3;
+    TmdObject*       model4;
+    GpAreaRec*       rec1;
+    GpAreaRec*       rec2;
+    GpAreaRec*       rec3;
+    GpAreaRec*       rec4;
+    GpCdRec10*       entry1;
+    GpCdRec10*       entry2;
+    GpCdRec10*       entry3;
+    GpCdRec10*       entry4;
+    u8               areaByte0;
+    u16              tick;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    obj  = arg0->field_2C;
+    if (work->field_4 != 0) {
+        obj->field_C             = 0x80;
+        work->field_8EC.field_1C = 0x19C;
+        work->field_B6C.flags    = (u16)(work->field_B6C.flags & 0xBFFF);
+        ctx->node.field_4        = 1;
+        work->field_844          = 0;
+        work->field_840          = 0;
+        work->field_83E          = 0;
+        work->field_6            = 0;
+        vec.vx                   = 0x64;
+        vec.vz                   = 0;
+        vec.vy                   = 0;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &vec);
+    }
+    if ((s16)work->field_6 == 2) {
+        obj->field_C |= 4;
+        Tmd_FreeBuffers(obj);
+    }
+    if ((s16)work->field_6 == 3) {
+        D_80114B78[0] = &D_actor_421600_80143EF4;
+        vec.vz        = 0x64;
+        vec.vy        = 0;
+        vec.vx        = 0;
+        effect1       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &vec);
+        if (effect1 != NULL) {
+            sessionKey1 = (GpAreaKey*)&Game_Session->field_4;
+            raw1        = ctx->field_8;
+            model1      = (TmdObject*)effect1->field_0->extra;
+            key.field_3 = sessionKey1->field_3;
+            key.field_2 = sessionKey1->field_2;
+            key.field_1 = sessionKey1->field_1;
+            areaByte0   = Game_Session->field_4;
+            index1      = raw1 >> 12;
+            SOFT_BARRIER();
+            keyPtr = &key;
+            TOUCH_REG(keyPtr);
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(keyPtr);
+            rec1             = Gp_GetNestedAreaRec(&key);
+            entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)rec1->field_0);
+            model1->field_24 = entry1->field_D;
+            model1->field_25 = entry1->field_E;
+            if (model1->field_18 != NULL) {
+                Tmd_ProcessStream(model1);
+                Tmd_ProcessStream(model1);
+            }
+        }
+    }
+    if ((s16)work->field_6 == 5) {
+        D_80114B78[0] = &D_actor_421600_801443C8;
+        vec.vy        = 0;
+        vec.vx        = 0;
+        effect2       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 12, 0x200, &vec);
+        if (effect2 != NULL) {
+            sessionKey2 = (GpAreaKey*)&Game_Session->field_4;
+            raw2        = ctx->field_8;
+            model2      = (TmdObject*)effect2->field_0->extra;
+            key.field_3 = sessionKey2->field_3;
+            key.field_2 = sessionKey2->field_2;
+            key.field_1 = sessionKey2->field_1;
+            areaByte0   = Game_Session->field_4;
+            index2      = raw2 >> 12;
+            SOFT_BARRIER();
+            keyPtr = &key;
+            TOUCH_REG(keyPtr);
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(keyPtr);
+            rec2             = Gp_GetNestedAreaRec(&key);
+            entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)rec2->field_0);
+            model2->field_24 = entry2->field_D;
+            model2->field_25 = entry2->field_E;
+            if (model2->field_18 != NULL) {
+                Tmd_ProcessStream(model2);
+                Tmd_ProcessStream(model2);
+            }
+        }
+    }
+    if ((s16)work->field_6 == 7) {
+        D_80114B78[0] = &D_actor_421600_80145604;
+        effect3       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 1, 0x200, NULL);
+        if (effect3 != NULL) {
+            sessionKey3 = (GpAreaKey*)&Game_Session->field_4;
+            raw3        = ctx->field_8;
+            model3      = (TmdObject*)effect3->field_0->extra;
+            key.field_3 = sessionKey3->field_3;
+            key.field_2 = sessionKey3->field_2;
+            key.field_1 = sessionKey3->field_1;
+            areaByte0   = Game_Session->field_4;
+            index3      = raw3 >> 12;
+            SOFT_BARRIER();
+            keyPtr = &key;
+            TOUCH_REG(keyPtr);
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(keyPtr);
+            rec3             = Gp_GetNestedAreaRec(&key);
+            entry3           = (GpCdRec10*)((index3 * 0x10) + (s32)rec3->field_0);
+            model3->field_24 = entry3->field_D;
+            model3->field_25 = entry3->field_E;
+            if (model3->field_18 != NULL) {
+                Tmd_ProcessStream(model3);
+                Tmd_ProcessStream(model3);
+            }
+        }
+    }
+    if ((s16)work->field_6 == 8) {
+        D_80114B78[0] = &D_actor_421600_80145124;
+        effect4       = Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 3, 0x200, NULL);
+        if (effect4 != NULL) {
+            sessionKey4 = (GpAreaKey*)&Game_Session->field_4;
+            raw4        = ctx->field_8;
+            model4      = (TmdObject*)effect4->field_0->extra;
+            key.field_3 = sessionKey4->field_3;
+            key.field_2 = sessionKey4->field_2;
+            key.field_1 = sessionKey4->field_1;
+            areaByte0   = Game_Session->field_4;
+            index4      = raw4 >> 12;
+            SOFT_BARRIER();
+            keyPtr = &key;
+            TOUCH_REG(keyPtr);
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(keyPtr);
+            rec4             = Gp_GetNestedAreaRec(&key);
+            entry4           = (GpCdRec10*)((index4 * 0x10) + (s32)rec4->field_0);
+            model4->field_24 = entry4->field_D;
+            model4->field_25 = entry4->field_E;
+            if (model4->field_18 != NULL) {
+                Tmd_ProcessStream(model4);
+                Tmd_ProcessStream(model4);
+            }
+        }
+    }
+    if ((s16)work->field_6 == 0xA) {
+        work->field_0 = 0x16;
+    }
+    if ((s16)work->field_6 < 0x400) {
+        tick          = work->field_6 + 1;
+        work->field_6 = tick;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013CD3C);
 

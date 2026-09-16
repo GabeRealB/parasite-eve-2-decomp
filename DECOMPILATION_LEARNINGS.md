@@ -107039,3 +107039,53 @@ compare with `sll/sra` (`insert=5 delete=3`, 95.27%). Moving the increment
 inside the `if` keeps them in different blocks, cse leaves both, and dbr then
 fills the branch delay slot with the `addiu` while the load it feeds stays
 before the branch. Zero regressions: 100.000%, zero penalties.
+
+## A local's address at a non-zero frame offset becomes a per-call pseudo that cse merges into a saved register - `TOUCH_REG` on a pointer local breaks the chain (func_actor_421600_8013C8E0, 2026-09-16)
+
+A block that passes `&key` to two calls wants the address recomputed at each
+call site:
+
+```
+lbu   $v0,0x4($a1)
+addiu $a0,$sp,0x18        /* arg 1 */
+jal   Gp_SyncAreaKeyIndex
+sb    $v0,0x18($sp)
+jal   Gp_GetNestedAreaRec
+addiu $a0,$sp,0x18        /* arg 2 */
+```
+
+With `Gp_SyncAreaKeyIndex(&key);` and the second call taking `&key` as well,
+`expand_call` materialises the address into a **fresh pseudo per call site**,
+because `&key` is `(plus $fp N)` and not the bare frame-pointer register cse
+can move directly. cse then records the value and rewrites the second call's
+argument to the first pseudo, whose live range now spans a call - so
+`global_alloc` has to give it a callee-saved home and the block comes out as
+`addiu sX,sp,0x18` once plus `move a0,sX` per call. That is one extra saved
+register for the whole function, which shifts every other colour with it
+(89.3% on this function, `regs=76`).
+
+Only a local at **virtual frame offset 0** is exempt: its address is `(reg fp)`
+itself, which `emit_move_insn` can drop straight into `a0` and which is trivially
+rematerialisable, so the pseudo is never created. `assign_stack_local` hands the
+slots out in declaration order from the local base (`sp + outgoing_args_size`),
+so a declaration reorder can move the whole mismatch onto a *different*
+variable's stack slots - it does not remove it.
+
+The fix is the idiom `Actor401300_TintEffect` already uses: assign a pointer
+local, touch it, and take the second address directly.
+
+```c
+SOFT_BARRIER();
+keyPtr      = &key;
+TOUCH_REG(keyPtr);
+key.field_0 = areaByte0;
+Gp_SyncAreaKeyIndex(keyPtr);
+rec         = Gp_GetNestedAreaRec(&key);
+```
+
+The empty volatile asm makes `keyPtr` a value cse cannot equate with the later
+`&key`, so the two address computations stay separate; each is used once as a
+call argument, `local_alloc` ties each to `$a0`, and both rematerialise as
+`addiu a0,sp,N` with no extra instruction and no saved register. 89.338% with
+the plain form, 100.000% / zero penalties with this one - and the frame slots
+stay where the target has them.
