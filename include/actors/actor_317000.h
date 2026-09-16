@@ -17,7 +17,12 @@
 ///
 /// The size is the allocation, and the fields below are the ones the init
 /// seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at 0x4C8 are set to
-/// -1, and the three words at 0x4A0..0x4A8 are cleared.
+/// -1, and the three words at 0x4A0..0x4A8 are cleared. `field_4C0` is the
+/// state index `func_actor_317000_80161E68` dispatches on, `lh` scaled by 4
+/// into the two function pointers it builds at 0x18/0x1C of its frame:
+/// `func_actor_317000_80162458` latches 1 there, and
+/// `func_actor_317000_801620BC` clears it together with `field_4C2` when the
+/// actor is already facing its target.
 typedef struct Actor317000Work {
     /* 0x000 */ byte    pad_0[0x43D];
     /* 0x43D */ s8      field_43D;
@@ -31,7 +36,8 @@ typedef struct Actor317000Work {
     /* 0x4A0 */ s32     field_4A0;
     /* 0x4A4 */ s32     field_4A4;
     /* 0x4A8 */ s32     field_4A8;
-    /* 0x4AC */ byte    pad_4AC[0x16];
+    /* 0x4AC */ byte    pad_4AC[0x14];
+    /* 0x4C0 */ u16     field_4C0;
     /* 0x4C2 */ u16     field_4C2;
     /* 0x4C4 */ u8      field_4C4;
     /* 0x4C5 */ s8      field_4C5;
@@ -72,6 +78,19 @@ extern VECTOR D_actor_317000_80161E40;
 extern char D_actor_317000_80161E50[];
 extern char D_actor_317000_80161E60[];
 extern char D_actor_317000_80161E64[];
+
+/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
+/// `param`) holds the facing `func_actor_317000_801620BC` derives from the
+/// actor's own and the slot 3 task's translation, the rotation `RotMatrix` is
+/// later rebuilt from -- the same reuse `ActorsShared80132860Coord`,
+/// `ActorsShared8013231cCoord` and `GpCoordExt` document for their own
+/// overlays.
+typedef struct Actor317000Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor317000Coord;
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor335800Msg` and `Actor361100Msg`, whose

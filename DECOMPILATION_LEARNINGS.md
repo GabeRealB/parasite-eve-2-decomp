@@ -95529,3 +95529,59 @@ the store takes the constant's register (`sb $a1`) and the narrowing never
 arises; the two forms are the same mechanism seen from either side. Evidence:
 scratch `nonmatchings/func_actor_317000_80162CA0-vacuum/`, `base_1.c` (97.900%)
 against `base_2.c` (100.000%, all penalties zero).
+
+## `abs()` and a hand-written absolute value differ by one `move`, and the negation's operand tells them apart
+
+`mips.md`'s `abssi2` is a single `multi` insn of length 3 whose template depends
+only on whether source and destination are the same register:
+
+```
+bgez  %1,1f              bgez  %1,1f
+subu  %0,$0,%0     vs.   move  %0,%1
+1:                       subu  %0,$0,%0
+                      1:
+```
+
+So `magnitude = abs(delta)` with the two in different registers emits the
+`move` for the taken path and lands the negation on the *destination*, which is
+what a target like this wants:
+
+```
+bgez   v1,L
+move   v0,v1
+negu   v0,v0
+L:     slti v0,v0,0x41
+```
+
+Writing the same thing out as `x = delta; if (delta < 0) x = -x;` does not
+reproduce it, and both ways of missing miss by exactly that `move` (`regs=1`):
+
+* `cse2` substitutes the copied register into the negation, giving `negu v0,v1`;
+* or, when the `s16` conversion and the sign test end up adjacent, `combine`
+  folds `(lt (ashiftrt (ashift x 16) 16) 0)` into `(lt (ashift x 16) 0)`, the
+  un-truncated value stays live for that test, the copy is coalesced away and
+  `negu v0,v0` appears -- but with no `move` in the delay slot.
+
+Putting a copy statement between the truncation and the test (`x = diff;` before
+`if (diff < 0)`) blocks the fold and keeps the source live; only `abs()` keeps
+the copy itself, because `abssi2` is one insn and nothing can reach inside it.
+Reading the negation's operand is the discriminator: `negu dst,dst` after a
+`bgez`/`move` pair is `abs()` with dst != src; `negu dst,src` is a hand-written
+form. Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
+`base_3.c` (99.936%, `negu v0,v1`) against `base_4.c` (100.000%, all penalties
+zero); matched carrier `Actor00300_Fn019C0` (`s16 delta; s32 magnitude;
+magnitude = abs(delta);`) shows the same three instructions.
+
+## A halfword field read twice is sign-extended only if the value flows into a wider local
+
+`ang.vy` (an `SVECTOR` field) is read twice in `func_actor_317000_801620BC`:
+once as the right operand of a subtraction that is immediately truncated back
+to `s16`, and once for `ang.vy ± 0x40`, stored back through the same halfword
+field. GCC loads it once, as `lhu`, because only the low 16 bits survive either
+use, and the `sll/sra` that would materialise the real `short` value is skipped:
+the adjustment comes out `addu v0,v1,0x40` off the zero-extended register.
+Assigning the field to an `s32` local first (`y = ang.vy;`) makes the widened
+value the one that is needed, so the conversion is emitted and the target's
+`sll v0,a0,16; sra v0,v0,16` reappears ahead of the `±0x40` (`regs=8` -> `regs=1`
+in one edit). Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
+`base_1.c`/`base_2.c` before the local was added.
