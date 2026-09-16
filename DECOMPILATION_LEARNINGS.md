@@ -90541,3 +90541,39 @@ Generalisable: where a symbol's address is used in two blocks separated by a
 call, m2c's re-assignment through a temp is what keeps the two `high`s apart.
 Reach for the single-expression form even when the temp form looks equivalent -
 the register penalties it leaves are not a scheduling problem.
+
+## m2c hoists a guarded loop's counter init above the `if`, and the init's home is what fills the branch delay slot (func_dryfield_night_underpass_8017DC3C, 2026-09-16)
+
+A `do`/`while` loop wrapped in a guard comes out of m2c with the counter's
+zero-init *before* the guard, because m2c assigns it where it first renders the
+loop's initial `i < N` test:
+
+```c
+    var_s2 = 0;                        /* m2c: above the guard */
+    if (GameFlag_GetNibble(0x53) == 0) {
+```
+
+The original source assigns it inside the guarded block. Both forms compile, but
+the hoisted init is born before the guard's `jal`, so the register's save slot
+and the init itself are scheduled ahead of the call's argument setup, and the
+init never reaches the `bnez` delay slot the target uses:
+
+```
+target                                   seed, init hoisted
+    sw   ra,0x20(sp)                         sw   s2,0x18(sp)
+    sw   s3,0x1c(sp)                         move s2,zero
+    sw   s2,0x18(sp)                vs.      lui  v0,%hi(Game_Session)
+    ...
+    bnez v0,Lend                             bnez v0,Lend
+    move s2,zero                             lui  v0,%hi(D_x)
+```
+
+Isolated by a controlled pair differing only in that statement's position: with
+the init above the `if`, 92.820% (`regs=4 reorder=1 insert=1 delete=1`); with it
+inside, 100.000% all-zero. The sibling's own source
+(`func_dryfield_underpass_8017DE30`) has the same `i = 0` inside the guard, which
+is the shape to copy. Before editing dumps, check whether the seed's counter is
+assigned immediately above the `if` that guards its loop.
+
+Input: `base_1.i`
+`f5da0f387b1d4ffa3f573ef3d46e963ad5bcdfba68bd643fd655061b1296ecdc`.
