@@ -89961,3 +89961,44 @@ be steered from the C by shaping pseudos" holds for *whether* two tails are
 compared, but the comparison is on hard registers, and which register a constant
 lives in is shaped from the C. A tail you need kept distinct can be kept
 distinct by giving its constant a home.
+
+## One pointer variable reused in two exclusive branches loses a `reload_cse` base rewrite
+
+`func_actor_510900_801395AC` (actors/actor_510900) splats an identity rotation
+through a word-wise `MATRIX` view in two mutually exclusive arms. Writing both
+arms through the same local
+
+```c
+Actor510900MatrixWords* mat;
+...
+if (r < 0xF) { mat = (Actor510900MatrixWords*)&coord->coord; ... }
+else if (blend == 0x52) { mat = (Actor510900MatrixWords*)&coord->coord; ... }
+```
+
+matched the first arm exactly and left the second one 8 `regs` off:
+
+```
+         target                     one shared `mat`
+  bne   a0,v0,end             bne   a0,v0,end
+  lui   v1,0x1f80              lui   v1,0x1f80
+  move  a0,s0                  addiu v1,s0,4        <- hoisted into the arm
+  li    v1,0x1000              move  a0,s0
+  addiu v0,a0,4                li    v0,0x1000
+```
+
+Both arms write one tree variable, so they share one pseudo whose live range
+spans the branch. That makes the address computation available early enough for
+the delay-slot pass to pull it above `move a0,s0` — and once it runs *before*
+the argument copy, `reload_cse` has no equal register to substitute and the
+`addiu` keeps `$s0` as its base. The target's order is the other way round:
+`move a0,s0` first, so `reload_cse` rewrites the following `addiu ...,$s0,4`
+to `addiu ...,$a0,4`, and the stores address off `$a0`.
+
+Declaring a second variable for the second arm gives two pseudos, each dead
+outside its own block, and restores the target order for a 100% match. The
+general rule: when an arm's leftover is *where* an address computation sits
+relative to an argument copy, and the same C variable is assigned in a sibling
+arm, split the variable before reaching for scheduling hacks. This is the
+counterpart of the usual advice to prefer one reused variable over a pile of
+temps — that holds for values, but a pointer recomputed identically in two arms
+is two live ranges in the original, not one.

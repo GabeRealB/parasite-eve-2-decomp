@@ -58,7 +58,7 @@ typedef struct Actor510900Work {
     /* 0x53C */ GsCOORDINATE2* field_53C; ///< `&coord[3]`, as the context's `field_18`
     /* 0x540 */ s16            field_540;
     /* 0x542 */ s16            field_542;
-    /* 0x544 */ byte           pad_544[0x20];
+    /* 0x544 */ MATRIX         field_544;
     /* 0x564 */ s32*           field_564; // 0x34 receives field_594 when it changes
                                           /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
                                           /// `obj4E4` hangs off its model's first coordinate.

@@ -771,7 +771,92 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_801391B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_801395AC);
+/// Frame handler of the muzzle-flash child task, dispatched from
+/// `func_actor_510900_8013BE98` once the spawn has run. The parent's animation
+/// id (`field_586`) selects the behaviour: below 0x1C the model is hidden,
+/// 0x1C/0x1D hold, 0x1E unhides it once the blend weight reaches 0xC8, and 0x1F
+/// drives the coordinate. There the weight's position within its 40-frame cycle
+/// picks between an identity frame parented to the body's coordinate 12 (with
+/// frame 0xE re-deriving the stashed local matrix from the view) and the stashed
+/// matrix parented to the view, lifted along y by `3*(n - 0xC)^2 - 0x1B0`.
+/// Weight 0x52 restores the parented identity frame.
+void func_actor_510900_801395AC(void* enemy, Task* task)
+{
+    TmdObject*              obj;
+    Actor510900Work*        work;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          parentCoord;
+    Actor510900MatrixWords* mat;
+    Actor510900MatrixWords* mat2;
+    s16                     blend;
+    s16                     r;
+    s32                     dy;
+
+    work  = (Actor510900Work*)task->parent->idMap;
+    obj   = (TmdObject*)task->extra;
+    coord = obj->field_8;
+    if (work->field_586 < 0x1C) {
+        obj->field_C = 0x80;
+        return;
+    }
+    *(u8**)G_SCRATCH_HEAD -= 0x20;
+    switch (work->field_586) {
+        case 0x1C:
+        case 0x1D:
+            break;
+
+        case 0x1E:
+            if (work->field_58A == 0xC8) {
+                obj->field_C = 0;
+            }
+            break;
+
+        case 0x1F:
+            parentCoord = &((TmdObject*)task->parent->extra)->field_8[12];
+            blend       = work->field_58A;
+            if (blend < 0x50) {
+                r = blend % 40;
+                if (r < 0xF) {
+                    mat               = (Actor510900MatrixWords*)&coord->coord;
+                    mat->m00_m01      = 0x1000;
+                    mat->m11_m12      = 0x1000;
+                    mat->m22          = 0x1000;
+                    mat->m02_m10      = 0;
+                    mat->m20_m21      = 0;
+                    coord->coord.t[0] = 0;
+                    coord->coord.t[1] = 0;
+                    coord->coord.t[2] = 0;
+                    coord->sub        = parentCoord;
+                    if (r == 0xE) {
+                        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &parentCoord->workm, &work->field_544);
+                    }
+                } else {
+                    r                  = r - 0xF;
+                    dy                 = ((r - 0xC) * (r - 0xC) * 3) - 0x1B0;
+                    coord->coord       = work->field_544;
+                    coord->sub         = &Gfx_ViewCoord;
+                    coord->coord.t[1] += dy;
+                }
+                coord->flg = 0;
+                Gp_UpdateCoord(coord);
+            } else if (blend == 0x52) {
+                mat2              = (Actor510900MatrixWords*)&coord->coord;
+                mat2->m00_m01     = 0x1000;
+                mat2->m02_m10     = 0;
+                mat2->m11_m12     = 0x1000;
+                mat2->m20_m21     = 0;
+                mat2->m22         = 0x1000;
+                coord->coord.t[0] = 0;
+                coord->coord.t[1] = 0;
+                coord->coord.t[2] = 0;
+                coord->sub        = parentCoord;
+                coord->flg        = 0;
+                Gp_UpdateCoord(coord);
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x20;
+}
 
 /// Spawn state of the child effect task: allocates its `Actor510900ChildFx`
 /// work block, places the child on the parent's fourth coordinate offset by a
