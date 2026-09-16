@@ -96221,3 +96221,56 @@ Reading that config for a load address, a `shared` span or a `rodata` cut
 reasons about a different overlay. Take the yaml whose `segments:` name the unit
 you are editing (`grep -l <unit> configs/USA/generated/*.yaml`), or derive the
 load address from the function name, which is the VRAM address itself.
+## A halfword field that only feeds a truncating store loads as `lhu` with no cast
+
+`func_actor_105300_80133530` decrements a halfword counter and stores it back,
+and the target reads it back unsigned:
+
+```asm
+lhu   v0,0x33e(s0)
+addiu v0,v0,-1
+sh    v0,0x33e(s0)
+sll   v0,v0,16
+bgtz  v0,...
+```
+
+m2c infers a `u16` field from the `lhu` and writes the arithmetic as
+`(s16)((u16)x + 1)`. Neither cast is needed. Declare the field `s16` and write
+the plain form: the store truncates to the low half, so every load mode yields
+the same 16 bits, and combine folds `lh` to `lhu` on its own.
+
+```c
+timer           = work->field_33E - 1;
+work->field_33E = timer;
+if ((timer << 0x10) <= 0) {
+    ctx->field_40 = ctx->field_40 + 1;
+```
+
+Three sources - m2c's `(s16)((u16)x ± 1)`, the `(u16)x ± 1` several matched
+bodies carry, and the plain form above - compiled to identical bytes here.
+The plain form is the one to write first; a `(u16)` cast in an archived seed is
+evidence of nothing, so do not carry it forward.
+
+## A shared span consumes no unit ordinal, so a promotion renumbers every unit after it
+
+Inserting a `shared` span into `configs/USA/overlays.toml` cuts the run out of
+the overlay's own units, and the generator numbers *those* units by ordinal -
+the shared span takes no number. So a span inserted in the middle shifts every
+later unit down by one, and the re-split cannot apply that to a tree that
+already exists: splat creates the unit whose `.c` is missing and leaves the
+rest exactly as they were, still holding the old distribution.
+
+For `actor_105300` / `actor_105400` the span `0x1710..0x1798` covered the whole
+of unit `actor_105300_2`, so nothing had to be redistributed - but the unit at
+`0x17F0` still had to become `_2` and the one at `0x19BC` `_3`:
+
+```
+git rm  src/actors/actor_105300/actor_105300_3.c        # stale skeleton
+git mv  src/actors/actor_105300/actor_105300_4.c src/actors/actor_105300/actor_105300_3.c
+```
+
+The renamed file then still names the **old** unit in its `INCLUDE_ASM` path,
+which only shows up at assemble time as `can't open
+asm/…/actor_105300_4/func_….s` - rewrite those paths in the same pass. A unit
+whose `.c` was deleted (here `_2`, the promoted one) is the one splat
+regenerates, and its skeleton already carries the new path.
