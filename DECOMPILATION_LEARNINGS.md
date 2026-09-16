@@ -93856,3 +93856,37 @@ immediate, which reads like a struct-layout error. Type the pointer instead --
 `&...->field_8[1]` emits the `addiu a1, a1, 0x50` the target has, and the same
 expression serves the `Gp_UpdateCoord` call. Any m2c `+ N` on a
 non-`char`-pointer is suspect before the first build, not after the first diff.
+
+## m2c's `temp_` copy before a call reorders the whole argument setup
+
+A three-slot animation rebind whose loop calls `func_800B4114(work, i, id, 0, 0)`
+targets `move a0,s1` / `move a1,s0` / `addiu s0,s0,1` at the loop head, with the
+back-edge branch's delay slot refilling `move a0,s1`. An m2c seed instead emits
+`move a1,s0` / `addiu s0,s0,1` / `move a0,s1`, and the delay slot then fills with
+`move a1,s0` - which reads like a scheduling difference and is not one. The seed
+reorders the increment ahead of the call and passes a copy:
+
+```c
+temp_a1 = var_s0; var_s0 += 1; func_800B4114(temp_s1, temp_a1, ...);
+```
+
+The extra copy puts the `i++` insn ahead of the argument setup in the RTL, and
+sched1's ready list - priority ties broken by `INSN_LUID`, i.e. by that RTL
+order - then launches the moves in a different order. Writing the call first and
+incrementing after it restores the target's order:
+
+```c
+func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
+i++;
+```
+
+`func_actor_107000_80134680`: 90.67% with the seed's shape, 100% with the source
+order; the controlled variation that restores *only* the copy scores 95.11% and
+differs by exactly that one move pair, so the shape decides the order. The
+already-matched sibling of this loop, `ActorsShared8014af2c`, has it in the
+source order - copy the sibling's statement shapes, not just its types.
+
+The same seed's other habit, folding the counter add to a constant
+(`work->field_2BC + 1` where the target has `addu v0,v0,s0`), survives that
+rewrite because `i` is provably 1 on that path; `TOUCH_REG(i)` before the add is
+what stops GCC folding it, as the sibling does.
