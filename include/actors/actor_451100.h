@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Work block this overlay hangs off its task's `Task::idMap` slot (0x1C),
@@ -20,17 +21,27 @@
 /// `ActorsShared80132640`, 2 through `ActorsShared801325c8`, and both then
 /// advance it to 3. Those are the same two shared steps, on the same offsets,
 /// as `func_actor_150400_80132228` takes.
+///
+/// `field_47E` is `animId` as it was when the slots were last seeded: both
+/// walks over the slot array - this overlay's `func_actor_451100_801324B8` and
+/// the `ActorsShared801325c8` the starter dispatches to - latch it there once
+/// they have re-aimed every slot, so it records the set now playing. `anim` is
+/// the animation context those walks reseed.
 typedef struct Actor451100Work {
-    /* 0x000 */ byte pad_0[0x47C];
-    /* 0x47C */ s16  state;
-    /* 0x47E */ byte pad_47E[0x2];
-    /* 0x480 */ u16  animId;
-    /* 0x482 */ s16  field_482;
-    /* 0x484 */ byte pad_484[0x30];
-    /* 0x4B4 */ u16  animArg;
-    /* 0x4B6 */ byte pad_4B6[0xA];
+    /* 0x000 */ byte      pad_0[0x40];
+    /* 0x040 */ GpAnimCtx anim;
+    /* 0x054 */ byte      pad_54[0x428];
+    /* 0x47C */ s16       state;
+    /* 0x47E */ u16       field_47E;
+    /* 0x480 */ u16       animId;
+    /* 0x482 */ s16       field_482;
+    /* 0x484 */ byte      pad_484[0x30];
+    /* 0x4B4 */ u16       animArg;
+    /* 0x4B6 */ byte      pad_4B6[0xA];
 } Actor451100Work;
 STATIC_ASSERT_SIZEOF(Actor451100Work, 0x4C0);
+
+extern Actor451100Work* ActorsShared80131f9cWork;
 
 /// Argument block of the script opcode `func_actor_451100_80132E98`
 /// implements: which animation to play, and how. Same shape as the
