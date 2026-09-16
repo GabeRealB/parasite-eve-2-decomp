@@ -59,6 +59,18 @@ typedef struct DdhModelWork {
 } DdhModelWork;
 STATIC_ASSERT_SIZEOF(DdhModelWork, 0x24);
 
+/// Work block of the state family at `D_dryfield_dilapidated_house_8017D634`,
+/// whose state 0 is `func_dryfield_dilapidated_house_801814B4`: allocated with
+/// `Mem_Malloc(0x40, 0)` and parked in the `Task::idMap` slot. One angle step per
+/// model part, each the matching entry of `D_dryfield_dilapidated_house_80186804`
+/// scaled by the task's spawn arg 1 and wrapped into the 0x4000 angle period.
+/// `func_dryfield_dilapidated_house_80180738` advances the same table against a
+/// running per-part angle.
+typedef struct DdhAngleStep {
+    /* 0x00 */ s32 step[16];
+} DdhAngleStep;
+STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);

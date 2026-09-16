@@ -160,7 +160,34 @@ void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_8018145C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801814B4);
+extern s32 D_dryfield_dilapidated_house_80186804[16];
+
+/// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D634`,
+/// dispatched by `func_dryfield_dilapidated_house_8018145C`: fills a fresh
+/// `DdhAngleStep` with the shared per-part angle table scaled by this task's spawn
+/// arg (each wrapped into the 0x4000 angle period), links the model coordinate
+/// this task works on to the parent model's coordinate array, and re-parents the
+/// task that spawned this one under it.
+void func_dryfield_dilapidated_house_801814B4(Task* arg0)
+{
+    DdhAngleStep*  work;
+    GsCOORDINATE2* coord;
+    s32            i;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    work  = (DdhAngleStep*)Mem_Malloc(0x40, false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->idMap = (TaskIdMap*)work;
+    for (i = 0; i < 0x10; i++) {
+        work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1) & 0x3FFF;
+    }
+    coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8;
+    Task_Reparent((Task*)arg0->spawnArg2, arg0);
+    arg0->state += 1;
+}
 
 void func_dryfield_dilapidated_house_80181584(Task* task)
 {
