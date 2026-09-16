@@ -94911,3 +94911,59 @@ ever address-taken. The same seed's `temp_v0 + 0x20` also compiled scaled by
 `sizeof(TaskIdMap)` (8) into `addiu v0, s3, 0x100`; the target's offsets 0x20 /
 0x40 / 0x54 / 0x374 are plain byte offsets, which is what a struct-typed work
 pointer gives for free.
+
+## A `regs` penalty that is really statement order: the flag store written before the pointer store decides the load's register (ActorsShared80131e24Sub0, 2026-09-16)
+
+Two adjacent independent stores - a constant into a flag field, and the result of
+a load into a pointer field - are not order-free at `-O2`. Written
+`work->field_4B8 = 1;` then `work->field_4F0 = spawned->task;` the seed scored
+97.556% with `regs=1 reorder=2 insert=1 delete=1`; swapping the two statements
+scored 100%. Nothing else differs between the pair, and the whole delta in the
+object is the five instructions those penalties count.
+
+The order survives `sched1` in either direction because of a memory
+anti-dependency between the two: in the parent build (`base_2.i.sched`) the load
+insn carries a dependency on the flag store, and in the swapped build
+(`base_3.i.sched`) the flag store carries `(insn_list:REG_DEP_ANTI <load>)`. So
+the second-written store is the one that ends up after the other, and the load
+that feeds it stays live across the `li`/`sh` of the flag store.
+
+That live range is what `local-alloc` sees, and it decides the register. For the
+same two source statements, `trace_gcc.py` on the paired `.i` files (block 4):
+
+```
+base_2: local b4 q0 [117 = load]   refs=2 span=2 priority=10000 -> $v0
+        local b4 q1 [118 = const]  refs=2 span=4 priority=5000  -> $v0   (reused, no overlap)
+base_3: local b4 q1 [118 = const]  refs=2 span=2 priority=10000 -> $v0
+        local b4 q0 [117 = load]   refs=2 span=6 priority=3333  -> $v1
+```
+
+The constant's pseudo has priority 10000 in both builds and always wins `$v0`;
+in the parent the load's range does not overlap it, so it reuses `$v0`, and in
+the swapped build the overlap forces the split onto `$v1`. `.greg` carries the
+same fact in its dispositions - `117 in 2 118 in 2` against `117 in 3 118 in 2`.
+
+Two things this is worth remembering for:
+
+- A `regs` penalty next to `reorder` on a block whose only difference is a
+  register number is a live-range symptom: read `.lreg`/`.greg` spans before
+  reaching for a pin or a type change, and consider that the fix is statement
+  order in the source. Here the permuter's swap was the whole gain and no pin
+  was needed.
+- Do not read the sched1 delay-slot filling as the cause. The recorded
+  hypothesis blamed the `jal` delay slot taking the `li`; the delay slot is
+  `move a0,s6` in both builds, and the real chain is order -> live range ->
+  local-alloc split.
+
+The remaining open question is why sched1 sinks the pointer store past `li`/`sh`
+in the swapped order but keeps it next to its load in the original: the
+dependency lists allow both, so it is ready-list ranking (priorities 10000
+against 3333) rather than a constraint.
+
+Inputs: parent `base_2.i` SHA256 `15d887f764ca5e77d568e2fa24ef6c92be5e13df4c921cd801ca3a841ea1aa00`;
+candidate `base_3.i` SHA256 `f2416468a380febf074a749e3b7d1fce43a6c3240cd547eedda011831445cf68`;
+target `target.o` SHA256 `ea3c9f999e46ad1d2d05da77689b6af23ab408a8ff92fa2921d0c6f0481eceb1`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence: `tools/permuter_findings/ActorsShared80131e24Sub0/` (conclusion, retained
+`PERMUTER_ANALYSIS.md`, pass-ordered observations and both trace directories);
+scratch `nonmatchings/ActorsShared80131e24Sub0-vacuum` (session `22d03add1c074301a10a21d6bf399747`).
