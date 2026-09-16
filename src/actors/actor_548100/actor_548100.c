@@ -16,7 +16,7 @@ void func_actor_548100_801330EC(void);
 s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
 void func_actor_548100_8013461C(Actor548100TexRect* rect);
 void func_actor_548100_80133BBC(s32 arg0);
-void func_actor_548100_80133200(u8 nodeA, u8 nodeB, u8 r, u8 g, u8 b);
+void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b);
 void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
 void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
 void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
@@ -452,7 +452,196 @@ void func_actor_548100_801330EC(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133200);
+/// Draws a line between nodes `nodeA` and `nodeB` as a flat `r`/`g`/`b` quad
+/// two pixels wide, framed on each side by `POLY_G4` edges fading from black
+/// into that colour. The quad lies along whichever axis the line spans further,
+/// with the nodes ordered so the lower coordinate comes first.
+void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
+{
+    POLY_F4* quad;
+    POLY_G4* top;
+    POLY_G4* left;
+    POLY_G4* right;
+    POLY_G4* bottom;
+    s32      ax;
+    s32      ay;
+    s32      bx;
+    s32      by;
+    s32      dx;
+    s32      tmp;
+    s32      x0;
+    s32      y0;
+    s32      x1;
+    s32      y1;
+    s32      x2;
+    s32      y2;
+    s32      x3;
+    s32      y3;
+
+    quad           = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
+    setPolyF4(quad);
+    setSemiTrans(quad, 1);
+    quad->r0 = r;
+    quad->g0 = g;
+    quad->b0 = b;
+    ax       = D_actor_548100_801358E4[nodeA].vx - 0x9E;
+    ay       = D_actor_548100_801358E4[nodeA].vy - 0x76;
+    bx       = D_actor_548100_801358E4[nodeB].vx - 0x9E;
+    by       = D_actor_548100_801358E4[nodeB].vy - 0x76;
+    dx       = ax - bx;
+    if (dx < 0) {
+        dx = bx - ax;
+    }
+    if (ABS(ay - by) < dx) {
+        if (bx < ax) {
+            tmp = ax;
+            ax  = bx;
+            bx  = tmp;
+            tmp = ay;
+            ay  = by;
+            by  = tmp;
+        }
+        x0 = ax + 1;
+        y0 = ay - 1;
+        x1 = bx - 1;
+        y1 = by - 1;
+        x2 = x0;
+        y2 = ay + 1;
+        x3 = x1;
+        y3 = by + 1;
+    } else {
+        if (by < ay) {
+            tmp = ax;
+            ax  = bx;
+            bx  = tmp;
+            tmp = ay;
+            ay  = by;
+            by  = tmp;
+        }
+        x0 = ax - 1;
+        y0 = ay + 1;
+        x1 = ax + 1;
+        y1 = y0;
+        x2 = bx - 1;
+        y2 = by - 1;
+        x3 = bx + 1;
+        y3 = y2;
+    }
+    quad->x0 = x0;
+    quad->y0 = y0;
+    quad->x1 = x1;
+    quad->y1 = y1;
+    quad->x2 = x2;
+    quad->y2 = y2;
+    quad->x3 = x3;
+    quad->y3 = y3;
+    addPrim(&Gpu_CurrentOt[0x3FC], quad);
+
+    top            = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(top + 1);
+    setPolyG4(top);
+    setSemiTrans(top, 1);
+    top->r0 = 0;
+    top->g0 = 0;
+    top->b0 = 0;
+    top->r1 = 0;
+    top->g1 = 0;
+    top->b1 = 0;
+    top->r2 = r;
+    top->g2 = g;
+    top->b2 = b;
+    top->r3 = r;
+    top->g3 = g;
+    top->b3 = b;
+    top->x0 = x0 - 3;
+    top->y0 = y0 - 3;
+    top->x1 = x1 + 3;
+    top->y1 = y1 - 3;
+    top->x2 = x0;
+    top->y2 = y0;
+    top->x3 = x1;
+    top->y3 = y1;
+    addPrim(&Gpu_CurrentOt[0x3FC], top);
+
+    left           = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
+    setPolyG4(left);
+    setSemiTrans(left, 1);
+    left->r0 = 0;
+    left->g0 = 0;
+    left->b0 = 0;
+    left->r1 = 0;
+    left->g1 = 0;
+    left->b1 = 0;
+    left->r2 = r;
+    left->g2 = g;
+    left->b2 = b;
+    left->r3 = r;
+    left->g3 = g;
+    left->b3 = b;
+    left->x0 = x0 - 3;
+    left->y0 = y0 - 3;
+    left->x1 = x2 - 3;
+    left->y1 = y2 + 3;
+    left->x2 = x0;
+    left->y2 = y0;
+    left->x3 = x2;
+    left->y3 = y2;
+    addPrim(&Gpu_CurrentOt[0x3FC], left);
+
+    right          = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
+    setPolyG4(right);
+    setSemiTrans(right, 1);
+    right->r0 = 0;
+    right->g0 = 0;
+    right->b0 = 0;
+    right->r1 = 0;
+    right->g1 = 0;
+    right->b1 = 0;
+    right->r2 = r;
+    right->g2 = g;
+    right->b2 = b;
+    right->r3 = r;
+    right->g3 = g;
+    right->b3 = b;
+    right->x0 = x1 + 3;
+    right->y0 = y1 - 3;
+    right->x1 = x3 + 3;
+    right->y1 = y3 + 3;
+    right->x2 = x1;
+    right->y2 = y1;
+    right->x3 = x3;
+    right->y3 = y3;
+    addPrim(&Gpu_CurrentOt[0x3FC], right);
+
+    bottom         = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
+    setPolyG4(bottom);
+    setSemiTrans(bottom, 1);
+    bottom->r0 = 0;
+    bottom->g0 = 0;
+    bottom->b0 = 0;
+    bottom->r1 = 0;
+    bottom->g1 = 0;
+    bottom->b1 = 0;
+    bottom->r2 = r;
+    bottom->g2 = g;
+    bottom->b2 = b;
+    bottom->r3 = r;
+    bottom->g3 = g;
+    bottom->b3 = b;
+    bottom->x0 = x2 - 3;
+    bottom->y0 = y2 + 3;
+    bottom->x1 = x3 + 3;
+    bottom->y1 = y3 + 3;
+    bottom->x2 = x2;
+    bottom->y2 = y2;
+    bottom->x3 = x3;
+    bottom->y3 = y3;
+    addPrim(&Gpu_CurrentOt[0x3FC], bottom);
+}
 
 /// Draws `edge` between its two nodes in the colour its `state` selects (1-3).
 /// States 4 and 5 (5 swaps the nodes) split the line at `field_C` along x, or
