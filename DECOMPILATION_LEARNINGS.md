@@ -90329,6 +90329,16 @@ arm is a local quantity, local-alloc ties it to the `high` that dies into it,
 and the pair comes out in one register as the target has it:
 `lui a0,%hi(sym); addiu a0,a0,%lo(sym)`.
 
+**The reverse is just as often the fix, and it moves registers too.**
+`func_actor_510900_80134C90` reads a CLUT out of `D_actor_510900_8013C48C[arg1]`
+twice; writing that through a `Actor510900SprClut* clut` local put the
+`lui`/`addiu` *before* the `sll` and held the whole `idx`-to-`rec` chain in
+`$a1` instead of `$a0` - 98.7%. Spelling both reads as `D_..._8013C48C[arg1].field`
+restored the target's order and the target's registers in one edit. So when a
+near-match differs only in where a `%hi`/`%lo` pair sits, try dropping a pointer
+local as readily as adding one; the allocation difference downstream is a
+consequence of the emission order, not a separate problem to chase in `.lreg`.
+
 ## Two reads of the same field merge unless a store separates them
 
 `if (tbl[work->field_59C] < draw || work->field_59C >= 3)` compiles to one `lh`

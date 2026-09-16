@@ -43,6 +43,9 @@ extern u32 Gp_LcgState;
 extern s16 D_80073BA0;
 extern s32 D_80070F70;
 
+/// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
+extern Actor510900SprClut D_actor_510900_8013C48C[];
+
 /// The pair source the context's `field_50` points at; its `field_4` seeds the
 /// enemy's HP.
 extern GpPairSrcE D_actor_510900_80167980;
@@ -362,7 +365,78 @@ void func_actor_510900_8013482C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80134C90);
+/// Draws one frame of the muzzle flash: a single textured `POLY_FT4`
+/// billboarded on the effect coordinate's world point. `arg1` walks the twelve
+/// sprite frames, each with its own CLUT in `D_actor_510900_8013C48C` and its
+/// own texture window in `D_80111E48`; `arg2` is the flare's half-width
+/// (divided down by the projected depth) and `arg3` its spin, so the quad is a
+/// square rotated by `arg3` rather than an axis-aligned sprite. `otz` is
+/// biased by one before it is used as the divisor so a point on the near plane
+/// cannot divide by zero.
+void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+{
+    void**                  scratch;
+    u8*                     head;
+    Actor510900QuadScratch* block;
+    Actor510900QuadScratch* vecp;
+    POLY_FT4*               prim;
+    GpEffUv8*               rec;
+    s32                     a;
+    u16                     vz;
+
+    scratch                                          = (void**)G_SCRATCH_HEAD;
+    head                                             = *scratch;
+    ((Actor510900QuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                            = (Actor510900QuadScratch*)(head - 0x1C);
+    block->vec.vy                                    = *(u16*)&arg0->workm.t[1];
+    vz                                               = *(u16*)&arg0->workm.t[2];
+    *scratch                                         = block;
+    block->vec.vz                                    = vz;
+    vecp                                             = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->vec);
+    gte_rtps_real();
+    gte_stsxy(&((Actor510900QuadScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((Actor510900QuadScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((Actor510900QuadScratch*)(head - 0x1C))->otz);
+        block->otz     = block->otz + 1;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x29;
+        prim->clut  = (D_actor_510900_8013C48C[arg1].clutY << 6) |
+                     ((D_actor_510900_8013C48C[arg1].clutX >> 4) & 0x3F);
+        rec       = &D_80111E48[arg1];
+        prim->u0  = rec->u;
+        prim->v0  = rec->v;
+        prim->u1  = rec->u + 0x27;
+        prim->v1  = rec->v;
+        prim->u2  = rec->u;
+        prim->v2  = rec->v + 0x27;
+        prim->u3  = rec->u + 0x27;
+        prim->v3  = rec->v + 0x27;
+        a         = arg3;
+        block->dx = (((arg2 * 0x27) / block->otz) * rsin(a)) >> 12;
+        block->dy = (((arg2 * 0x27) / block->otz) * rcos(a)) >> 12;
+        prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        a         = a + 0x400;
+        prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx = (((arg2 * 0x27) / block->otz) * rsin(a)) >> 12;
+        block->dy = (((arg2 * 0x27) / block->otz) * rcos(a)) >> 12;
+        prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 /// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the

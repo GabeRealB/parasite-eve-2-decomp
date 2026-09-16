@@ -62,6 +62,32 @@ typedef struct Actor510900TrailScratch {
 } Actor510900TrailScratch;
 STATIC_ASSERT_SIZEOF(Actor510900TrailScratch, 0x24);
 
+/// 0x1C-byte scratch `func_actor_510900_80134C90` takes from `G_SCRATCH_HEAD`
+/// to draw one frame of the muzzle flash. `vec` is the effect coordinate's
+/// `workm.t[]` truncated to s16 and pushed through `GsWSMATRIX` by a single
+/// `RTPS`; `flag` is its `gte_stflg`, `otz` its `gte_stszotz` (biased by 1 so
+/// it can also be the divisor) and `sxy` its `gte_stsxy`. `dx` / `dy` are the
+/// rotated half-extents `(size * 39 / otz) * rsin/rcos(angle) >> 12` that
+/// offset `sxy` into the four corners of the billboard `POLY_FT4`.
+typedef struct Actor510900QuadScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ DVECTOR sxy;
+} Actor510900QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor510900QuadScratch, 0x1C);
+
+/// One VRAM CLUT coordinate per frame of the muzzle-flash sprite, packed the
+/// way `getClut` takes them. `D_actor_510900_8013C48C` holds twelve, one for
+/// each frame `D_80111E48` supplies the texture window for.
+typedef struct Actor510900SprClut {
+    /* 0x0 */ u16 clutX;
+    /* 0x2 */ u16 clutY;
+} Actor510900SprClut;
+STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
+
 typedef struct Actor510900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor510900Coord* field_8;
