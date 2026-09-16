@@ -87532,6 +87532,39 @@ arms makes the quotient ineligible, no tie is attempted, the dividend keeps
 `div $v1,$v0,$v1`, `mflo $v1`. When a `mflo` picks the wrong one of two dying
 inputs, change the *storage class* of the destination, not the expression.
 
+**It can also be the move that makes an arm match.** The rule cuts the other
+way when the same load appears in every arm of an `if`/`else` and the target
+keeps that value in one register across all arms.
+`func_mine_forked_tunnel_8017E48C` walks the sprite table to a record and writes
+two `0`/`1` bytes through `rec->field_28` / `rec->field_34`:
+
+```c
+    if (!(arg0 & 0xFF)) {
+        rec->field_28->field_2C = 0;   /* both arms load the same two fields */
+        rec->field_34->field_1C = 0;
+        return;
+    }
+    rec->field_28->field_2C = 1;
+    rec->field_34->field_1C = 1;
+```
+
+Written that way each arm gets its own single-death load pseudo, and
+local-alloc colours them: the fall-through arm stores `(const_int 0)`, which
+needs no register, so nothing competes with its two loads and both take `$v0`;
+the branch-target arm's constant `1` cannot be stored directly, so its `movqi`
+is last in the priority order and is pushed to `$v1` - the mirror of retail
+(`regs=11`, 98.167%), with the branch, its predicate, the block layout and all
+30 instructions already identical.
+
+Naming the two pointers as function-scope variables and assigning them in
+*each* arm (`v28 = rec->field_28; v28->field_2C = ...;` twice) gives each
+variable two deaths, so both become global allocnos and `global_alloc` colours
+each one once for the whole function - `$v1` in both arms, because the
+arm-local constant in the target arm has already claimed `$v0`. Nothing else
+changed; 100%. So when a load is duplicated per arm and the target shows it in
+a single register, check whether retail stored it in a variable declared
+outside the `if` rather than in a fresh expression per arm.
+
 ## A stray `move sX, vY` after a pointer load means the derived field was read first (Actor00400_Fn04E18, 2026-09-16)
 
 **Problem.** The target opened with an extra copy that no obvious C could produce:

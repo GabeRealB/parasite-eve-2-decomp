@@ -1,9 +1,12 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
 #include "main/gameflag.h"
 #include "main/task.h"
+
+#include "rooms/mine_forked_tunnel.h"
 
 extern s32 D_mine_forked_tunnel_801831AC;
 extern s32 D_mine_forked_tunnel_801834F4;
@@ -69,4 +72,25 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_4", func_mine_forked_tunnel_8017E48C);
+void func_mine_forked_tunnel_8017E48C(s32 arg0)
+{
+    GameSessionFrom4*        sess;
+    MineForkedTunnelSprtRec* rec;
+    MineForkedTunnelViewB*   v28;
+    MineForkedTunnelViewA*   v34;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    rec  = (MineForkedTunnelSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+
+    if (!(arg0 & 0xFF)) {
+        v28           = rec->field_28;
+        v28->field_2C = 0;
+        v34           = rec->field_34;
+        v34->field_1C = 0;
+        return;
+    }
+    v28           = rec->field_28;
+    v28->field_2C = 1;
+    v34           = rec->field_34;
+    v34->field_1C = 1;
+}
