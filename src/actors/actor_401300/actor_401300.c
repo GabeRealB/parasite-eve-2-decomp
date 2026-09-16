@@ -121,8 +121,61 @@ s32 func_actor_401300_8013267C(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
     return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= arg1 + 0x96;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132910);
-void func_actor_401300_80132910(Actor401300* arg0, u8* arg1, s32 arg2);
+/// Pushes the root coordinate by a quarter of each kind 0x10000 / 0x30000 record's
+/// offset (skipping 0x3000D), walking `recs` until `count` or a zero `field_4`.
+/// The duplicated coordinate update keeps `count`'s sign extension in the loop,
+/// as in `Actor01900_Fn03FF8`.
+s32 func_actor_401300_80132910(Actor401300* arg0, GpRec18* recs, s16 count)
+{
+    Actor401300PushScratch* head;
+    Actor401300PushScratch* s;
+    Actor401300PushScratch* blk;
+
+    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+        return 0;
+    }
+    arg0->field_2C->field_8[1].flg            = 0;
+    head                                      = *(Actor401300PushScratch**)G_SCRATCH_HEAD;
+    blk                                       = head - 1;
+    *(Actor401300PushScratch**)G_SCRATCH_HEAD = blk;
+    s                                         = blk;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+    s->pos.vx = arg0->field_2C->field_8[1].workm.t[0];
+    s->pos.vy = arg0->field_2C->field_8[1].workm.t[1];
+    s->pos.vz = arg0->field_2C->field_8[1].workm.t[2];
+    s->hit    = 0;
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].field_4 == 0) {
+            s->dist[s->i] = 0x7FFE;
+            break;
+        }
+        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        if ((s->kind == 0x10000 || s->kind == 0x30000) && recs[s->i].field_4 != 0x3000D) {
+            if (s->kind == 0x10000) {
+                s->hit = 1;
+            }
+            Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);
+            s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
+            s->len = SquareRoot0(s->len);
+            if (s->len >= 0x140) {
+                s->offset.vy = 0;
+                VectorNormalSS(&s->offset, &s->offset);
+                gte_lddp(0x140);
+                gte_ldsv(&s->offset);
+                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_stsv(&s->offset);
+                arg0->field_2C->field_8->coord.t[0] += s->offset.vx >> 2;
+                arg0->field_2C->field_8->coord.t[2] += s->offset.vz >> 2;
+            } else {
+                arg0->field_2C->field_8->coord.t[0] += s->offset.vx >> 2;
+                arg0->field_2C->field_8->coord.t[2] += s->offset.vz >> 2;
+            }
+            arg0->field_2C->field_8->flg = 0;
+        }
+    }
+    *(Actor401300PushScratch**)G_SCRATCH_HEAD += 1;
+    return s->hit;
+}
 
 void func_actor_401300_80132BE4(GameSessionFrom4* session, GsCOORDINATE2* coord)
 {
@@ -923,7 +976,7 @@ void func_actor_401300_8013A208(Actor401300* arg0)
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
     if (func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57) == 0) {
-        func_actor_401300_80132910(arg0, work->field_990, 0xC);
+        func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
     }
     if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, work->field_C98) != 0) {
         Actor401300_MoveForwardNonzero(arg0->field_2C->field_8, work->field_C98);

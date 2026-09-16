@@ -204,6 +204,21 @@ typedef struct Actor401300TurnScratch {
 } Actor401300TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor401300TurnScratch, 0xC);
 
+/// 0x34-byte `G_SCRATCH_HEAD` block `func_actor_401300_80132910` takes to push
+/// the root coordinate away from kind 0x10000 / 0x30000 records: `pos` is the
+/// world translation, `offset` the push (clamped to length 0x140), `i` the
+/// record cursor and `hit` the return value. Same shape as `Actor01900PushScratch`.
+typedef struct Actor401300PushScratch {
+    /* 0x00 */ SVECTOR offset;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     kind;
+    /* 0x14 */ s32     len;
+    /* 0x18 */ s16     i;
+    /* 0x1A */ s16     hit;
+    /* 0x1C */ s16     dist[12];
+} Actor401300PushScratch;
+STATIC_ASSERT_SIZEOF(Actor401300PushScratch, 0x34);
+
 /// 0x34-byte `G_SCRATCH_HEAD` block `Actor401300_RescaleYaw` builds its scaled
 /// Y rotation in. Same shape as `Actor01900RotScratch`.
 typedef struct Actor401300RotScratch {
