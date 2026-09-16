@@ -43540,6 +43540,20 @@ clause lives inline in the dependence functions, `sched.c:830/862/890`
 `local-alloc.c` calls `true_dependence` too, so the flag reaches allocation and
 not only scheduling.
 
+`func_actor_107000_801367E0` is the same body as `func_actor_207200_8014CFEC`
+under a `switch`, and measures the same remedy on a second schedule. Written
+with the plain cast, `((TmdObject*)arg0->extra)->field_8 + 1`, it scores 81.512%
+with the block's structure already perfect (13/13 blocks, 86/86 insns,
+predicates and calls matching): both coords loads float above the `sw` to
+`D_80062730`, and because the store is then scheduled early its `adjust_priority`
+promotion carries them and the `lui`/`addiu` of the store's value to the top of
+the ready list, so the `a2`/`a3` argument moves that the target puts between the
+loads are instead scheduled first and land at the head of the block. Reading the
+pointer as `(*(TmdObject**)&arg0->extra)->field_8` - the form the matched sibling
+uses - is 100.000% with every penalty zero, and the only change is that first
+load's `MEM_IN_STRUCT_P`. Two of the three case bodies differ by 0x50-scaled
+offsets only, so the whole defect is one expression spelled three times.
+
 ### When the value stored is itself a load, the struct spelling wins the *tie* rather than restoring a fence
 
 The two entries above move a global access relative to struct traffic. Here the
