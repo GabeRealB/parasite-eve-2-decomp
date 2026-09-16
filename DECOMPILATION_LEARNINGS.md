@@ -41521,6 +41521,33 @@ overlay. An uninitialized `GameSession *session` plus `(u8)session->field_4`
 keeps `$v0` and matches the splat-cut body. `func_actor_450800_80131E34` /
 `actor_460200` are examples.
 
+The hoisted load need not be a pointer dereference: a scalar global read
+straight into an `if` hoists the same way, and the cut body then opens with
+`beqz $v0` instead of a field access. The stand-in is an uninitialized local of
+the value's type, used as the test --
+
+```c
+void func_actor_535700_80131E2C(Task* task)
+{
+    TILE* tile;
+    s32   count;          /* $v0: the count the hoisted load left there */
+
+    if (count != 0) { ... } else { Task_Kill(task); }
+    D_actor_535700_80146840--;
+}
+```
+
+`count` takes `$v0` exactly as `session` does, and the body then matches from the
+prologue on. The direct form is not a near miss to be tuned: `if
+(D_actor_535700_80146840 != 0)` compiles to the ROM's own bytes, with `lui %hi` /
+`lw %lo` above `addiu $sp` where the split cannot see them, and scores 96.06%
+(`insert=2 branch=1`) with those two instructions as the whole insert penalty.
+So when a first function plateaus just under 100% with a small `insert` count,
+disassemble the overlay's leading rodata words before attacking the tail: if
+they are `lui $v0, %hi(sym)` / `lw $v0, %lo(sym)($v0)`, the function is already
+matched and only the span disagrees. `func_actor_535700_80131E2C` is the worked
+example of the scalar form.
+
 ## Read a local struct field through a pointer local to defeat store forwarding
 
 CSE forwards a constant store to a stack slot into the very next load of that

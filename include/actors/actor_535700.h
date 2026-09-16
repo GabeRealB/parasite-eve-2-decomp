@@ -35,6 +35,19 @@ STATIC_ASSERT_SIZEOF(Actor535700Work, 0x4C0);
 
 extern Actor535700Work* ActorsShared80131f9cWork;
 
+/// Fade countdown at 0x80146840, the word just below the work pointer.
+/// `func_actor_535700_80131EF0` seeds it from its argument and spawns the fade
+/// task from `D_actor_535700_8013346C`; that task (0x80131E2C) draws a
+/// full-screen black `TILE` into ordering table slot 0xA while the count is
+/// non-zero, kills itself once it reaches zero, and decrements the count every
+/// frame.
+///
+/// The task body reads the count from a live-in `$v0`: GCC hoists its `lui` /
+/// `lw` above `addiu $sp`, so splat cuts the function at the prologue and the
+/// load lands in the overlay's leading rodata. See "Splat cuts the first
+/// function after a hoisted `Game_Session` load" in `DECOMPILATION_LEARNINGS.md`.
+extern s32 D_actor_535700_80146840;
+
 /// Reset argument the "play animation" opcode above leaves behind: the
 /// state-1 handler `func_actor_535700_80132730` reads it and the runner
 /// rewrites it on the way past. The counterpart of `D_actor_451100_8013F700`.
