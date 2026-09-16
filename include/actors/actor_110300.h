@@ -4,6 +4,7 @@
 #include "common.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 
 /// Per-actor work block for the `actor_110300` overlay, reached through the
 /// global `ActorsShared80131f9c` publishes.
@@ -48,7 +49,23 @@ extern GpActorWork* D_actor_110300_8013A0A4;
 /// of that body.
 extern Task* D_actor_110300_8013A0A8;
 
+/// Spawn descriptor `ActorsShared80131f9cSub0` binds the actor to (the task
+/// from index 1 is `D_actor_110300_8013A0A8` above).
+extern TaskDesc D_actor_110300_8013A06C[];
+
+/// Animation source `func_800B3F84` seeds the work block's slots from.
+extern u8 D_actor_110300_8013A084[];
+
+/// Message table published as `Task::field_24`, 0x18 bytes below
+/// `D_actor_110300_8013A06C` in the same trailing data blob - three
+/// `GpMsgEntry` records.
+extern GpMsgEntry D_actor_110300_8013A054[];
+
 void func_actor_110300_801320C4(GpActorWork* arg0);
+
+/// Self-kill exit callback installed by `ActorsShared80131f9cSub0`; defined in
+/// `actor_110300_2.c`.
+void func_actor_110300_80132088(Task* task);
 
 /// The shared slot-reseed body `src/actors/lib/actors_shared_80132180.c`,
 /// declared for the same reason as `ActorsShared80132138` below. Its other
