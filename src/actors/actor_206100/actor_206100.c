@@ -131,7 +131,57 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// every later branch target.  And the player delta `d0` is normalised and fed
 /// to `ratan2` even when slot 1 was the closer one, so `field_51C` follows the
 /// player's bearing rather than the target's.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014B698);
+void func_actor_206100_8014B698(Task* task)
+{
+    Actor206100Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   c0;
+    GsCOORDINATE2*   c1;
+    GpActorWork*     player;
+    SVECTOR          d0;
+    SVECTOR          d1;
+    s32              dist0;
+    s32              dist1;
+
+    work            = (Actor206100Work*)task->idMap;
+    coord           = ((TmdObject*)task->extra)->field_8;
+    player          = Gp_ActorSlots[0];
+    work->field_434 = (u16)coord->coord.t[0];
+    work->field_436 = (u16)coord->coord.t[1];
+    work->field_438 = (u16)coord->coord.t[2];
+    if (player != NULL) {
+        c0    = player->extra->field_8;
+        d0.vx = (u16)c0->coord.t[0] - (u16)coord->coord.t[0];
+        d0.vy = (u16)c0->coord.t[1] - (u16)coord->coord.t[1];
+        d0.vz = (u16)c0->coord.t[2] - (u16)coord->coord.t[2];
+        dist0 = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
+        if (Gp_ActorSlots[1] == NULL) {
+            work->field_4D0 = c0->coord.t[0];
+            work->field_4D2 = c0->coord.t[1];
+            work->field_4D4 = c0->coord.t[2];
+            work->field_528 = dist0;
+        } else {
+            c1    = Gp_ActorSlots[1]->extra->field_8;
+            d1.vx = (u16)c1->coord.t[0] - (u16)coord->coord.t[0];
+            d1.vy = (u16)c1->coord.t[1] - (u16)coord->coord.t[1];
+            d1.vz = (u16)c1->coord.t[2] - (u16)coord->coord.t[2];
+            dist1 = SquareRoot0(d1.vx * d1.vx + d1.vz * d1.vz);
+            if (dist1 < dist0) {
+                work->field_4D0 = c1->coord.t[0];
+                work->field_4D2 = c1->coord.t[1];
+                work->field_4D4 = c1->coord.t[2];
+                dist0           = dist1;
+            } else {
+                work->field_4D0 = c0->coord.t[0];
+                work->field_4D2 = c0->coord.t[1];
+                work->field_4D4 = c0->coord.t[2];
+            }
+            work->field_528 = dist0;
+        }
+        VectorNormalSS(&d0, &d0);
+        work->field_51C = (ratan2(d0.vx, d0.vz) - (u16)work->field_43E) & 0xFFF;
+    }
+}
 /// Tick handler of the beam child `func_actor_206100_8014EEC0` starts, the
 /// same shape the marker `Actor00400_Fn02D48` has: while the effect mode
 /// `D_801153F4` is 0 it advances the child's `field_5A` and folds `field_58` /
