@@ -107444,3 +107444,51 @@ Calling the unmatched `func_actor_511000_80132E6C` with the live `work` local
 instead of re-reading `task->idMap` at the call site swaps `$s2`/`$s3` for the
 whole function (`lw a0,0x1c(s0)` becomes `move a0,s2` in the delay slot); keep
 the re-read.
+
+
+## Per-view dispatchers: `flag = view;` then `(flag != V1) && (flag != V2)` is what makes jump threading collapse the pair (func_actor_403200_801344C4, 2026-09-16)
+
+**Symptom:** an actor's "which view do I go to" helper (`Gp_GetViewIndex() & 0xFF`, a distance
+`SquareRoot0(dx*dx+dy*dy+dz*dz)`, then a per-view threshold ladder) matches everywhere except the
+case dispatch: the target tests one view per compare and *falls through* into the outside body
+(`beq v1,v0,<body>; li v0,4; beq v1,v0,<body>; li v0,0x22; j <tail>; slti v1,t0,0x2455`), while the
+candidate emitted a compare on the *view* register for the outside test plus a second pair on the
+copied `flag`.
+
+**Cause:** writing the outside test against `view` (`if ((view != 0x22) && (view != 4))`) and copying
+`flag = view;` inside the `else` leaves the two tests on different pseudos, so nothing can collapse
+them. Writing `flag = view;` *first* and testing `flag` in both places makes the outside test's
+compares redundant with the chain's, and jump threading redirects them straight to the bodies - the
+dispatch then holds exactly two compares on `flag`, as the target does. The earlier `flag = view` also
+protects the copy: with two uses (the chain tests) it survives; a single use in the same block is
+coalesced away and the function comes up one `move` short.
+
+**Fix (minimal, verified against a standalone cc1 probe):**
+
+```c
+        case 1:
+            flag = view;
+            if ((flag != 0x22) && (flag != 4)) {
+                value = 0x22;
+                flag  = dist < 0x2455;
+            } else {
+                if (flag == 0x22) { value = 4; flag = dist < 0x2456; if (flag) value = 0x22; return value; }
+                if (flag == 4) { flag = dist < 0x2260; } else { return 1; }
+            }
+            if (!flag) { value = 4; }
+            return value;
+```
+
+`if ((a != X) && (a != Y))` with *adjacent* X, Y folds to `addiu a,-X; sltiu ...,(Y-X+1)`; so does the
+three-value form `(a != 2) && (a != 3) && (a != 4)` -> `addiu v0,s2,-2; sltiu v0,v0,3`. A body written
+as a comparison ladder (`if (dist < C) return 3;`) instead of the `value`/`flag` tail emits the
+constant into the *branch delay slot* and shares `$v0` between flag and value, which is the
+discriminator between the two spellings when the dump is ambiguous.
+
+**Duplicate every tail, do not share it after the `if/else`.** Two cases that both end
+`if (!flag) { value = 4; } return value;` are cross-jumped by jump2 *after reload* (matching backwards
+from each jump, as the `func_actor_403000_80134F44` entry describes). Writing the tail once per case
+branch instead of once after the `if/else` took this function from 78.9% to 92.0% (regs 10 -> 1,
+insert 15 -> 4). Which copy anchors the merge is still unexplained here: the surviving copy sits at
+case 1's last body in the target and at case 0's first branch in every candidate tried, including
+with case 1's tails duplicated as well.
