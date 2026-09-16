@@ -32,6 +32,28 @@ typedef struct Actor213100Work {
 } Actor213100Work;
 STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
+/// 0x14-byte animation preset the init `func_actor_213100_8014A118` builds on
+/// its stack and hands to `func_actor_213100_8014A258`, the overlay's copy of
+/// the shared animation body that installs it on the task's model through
+/// `Gp_AnimResetSlot` / `Gp_AnimTickIndex` and `func_800B3F84` /
+/// `func_800B4114`. `field_0` indexes the anim-block table
+/// `D_actor_213100_801521A4` and is latched into `Actor213100Work::field_43E`;
+/// `field_4` plays the same role for `field_43D`, seeded to -1 so that it
+/// always differs; a nonzero `field_8` takes the `func_800B4114` path, which
+/// also passes `field_C`; `field_10` is unread here. The init passes
+/// `{ 0, 5, 0, 0, 0 }` -- the same five-word shape as `GpAnimArg` and
+/// `Actor503500AnimPreset`.
+typedef struct Actor213100AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor213100AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor213100AnimPreset, 0x14);
+
 void func_actor_213100_8014A23C(Task* arg0);
+
+s32 func_actor_213100_8014A258(Task* arg0, s32 arg1, Actor213100AnimPreset* arg2, s32 arg3);
 
 #endif
