@@ -1,13 +1,23 @@
 #include "common.h"
 
+#include "actors/actor_161500.h"
+#include "actors/actors_shared_801366fc.h"
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern TaskDesc D_actor_161500_801401B0[];
+extern u8       D_actor_161500_801401C8[];
+extern u8       D_actor_161500_80140180[];
 
 extern s32 D_actor_161500_80134920[8];
 extern s32 D_actor_161500_80135288[8];
@@ -198,6 +208,52 @@ void func_actor_161500_8013230C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", ActorsShared80131e24Sub0);
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    VECTOR           vec;
+    Actor161500Work* work;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    GpEnemy*         spawned;
+
+    coord       = ((TmdObject*)task->extra)->field_8;
+    obj         = task->extra;
+    work        = (Actor161500Work*)Mem_Calloc(0x4FC, false);
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback  = ActorsShared801366fc;
+    coord->sub          = &Gfx_ViewCoord;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    enemy->node.field_5 = 0;
+    enemy->node.field_4 = 1;
+    obj->field_E        = 1;
+    work->enemy         = enemy;
+    if (task->spawnArg1 != 0) {
+        spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
+        Task_Reparent(task, spawned->task);
+        work->field_4F4 = spawned->task;
+        work->animId    = 2;
+    } else {
+        work->animId = 1;
+    }
+    work->field_4EE = 0;
+    work->field_4F0 = 0;
+    obj->field_1C   = &work->light;
+    obj->field_20   = &work->color;
+    vec.vx          = coord->workm.t[0];
+    vec.vy          = coord->workm.t[1] - 0x320;
+    vec.vz          = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, D_actor_161500_801401C8, (GpAnimObj*)obj,
+                  &work->slots[0x14], work->slots);
+    work->state    = 2;
+    task->field_24 = D_actor_161500_80140180;
+    func_actor_161500_8013252C(task);
+    task->state += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8013252C);
