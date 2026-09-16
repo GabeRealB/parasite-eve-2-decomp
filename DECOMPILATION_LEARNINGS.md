@@ -106853,3 +106853,70 @@ Inputs: `base_9.i` (97.688%) SHA256
 target.o SHA256 `a128ed2a884bc9f92cd16c667e8c9e61eec2102e07b5b2902cca6c9ab9aa721d`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_8013903C-vacuum`.
+
+## The side a difference is written on decides the two temporaries' registers (func_actor_421600_80133334, 2026-09-16)
+
+`if ((x + 0xC4E) < (0xD16 - x))` and `if ((0xD16 - x) > (x + 0xC4E))` are the same
+comparison, and GCC expands them to the same four instructions - but not to the
+same two registers. `expand_expr` walks a comparison's operands in source order,
+and `local-alloc` hands the earlier quantity the lower free register, so the form
+with the subtraction on the left computes `0xD16 - x` first and gives it `$v1`
+while `x + 0xC4E` takes `$v0`; the other form swaps them.
+
+Symptom: a function whose instruction sequence matches exactly but whose two
+`addiu`/`subu`/`slt` temporaries sit in each other's registers, with `regs` the
+only non-zero penalty. Before the flip `func_actor_421600_80133334` scored 84.63%
+with `regs=30`; after it 91.13% with `regs=19`, and every other penalty
+(`insert`, `delete`, `reorder`, `branch`) fell to 0 or 2 with it. The same flip
+applied to the second comparison in the same function took it to 98.60%.
+
+Read the target's two temporaries and write the expression so the *later*
+temporary's computation appears on the left. There is no CSE or scheduling lever
+here - the tree's operand order is the whole knob.
+
+## `(u16)var` is not a halfword load: the range test deletes the mask (func_actor_421600_80133334, 2026-09-16)
+
+A target that reads the low half of an `s32` field with `lhu` while the same field
+is compared as an `s32` cannot be reproduced with `(u16)x` on the variable.
+`combine` knows the range test `(u32)(x + 0xC4D) < 0x1963` leaves the high half
+zero, so `(u16)x` becomes `x` and the `lhu` never appears - the instruction count
+drops by two, `insert`/`delete` go non-zero and the score is ~7 points low even
+though nothing else changed.
+
+The field has to be *re-read* as a halfword: `((GpCoordXZ *)arg0)->field_18`,
+the overlay type `include/gameplay/1A8.h` already provides for exactly this
+("the low 16 bits of `coord.t[0]`/`coord.t[2]`"). Both adjustment arms then get
+their own `lhu`, matching the target. 84.63% -> 91.13% together with the operand
+order above.
+
+## An s16 adjustment and its s32 absolute value are two different type choices (func_actor_421600_80133334, 2026-09-16)
+
+For `d = <wide expr>; ad = d; if (d < 0) ad = -ad;` the pair of types decides
+three separate things, and the target assembly pins all three:
+
+- all four `s16`: the final `ad < ad` is a signed comparison of two `s16`s, so
+  `combine`/`cse` re-sign-extend both operands at the `slt` (four extra
+  `sll`/`sra`, 91.13%);
+- all four `s32`: the truncation of `d` disappears, so the in-place `sll`/`sra`
+  in the target's abs block cannot be reproduced;
+- `d` s16, `ad` s32 (the target): the truncation is deferred to `d`'s first
+  `s16` use and lands in `d`'s own register, the assignment widening `d` to `ad`
+  is then a plain move, and the `slt` needs no re-extension. 98.09% -> 98.60%.
+
+Writing the abs as a ternary (`ad = d < 0 ? -d : d;`) instead of the `if` is
+*not* a difference: both forms produce byte-identical assembly here, so the
+readable form can be kept.
+
+Unresolved in the same function: the two widened (`s16`->`s32`) values are
+`global` allocnos in their own right, and because the second one's live range
+begins at the abs block and runs to the final add it has the highest `pri` in the
+function and takes `$v1` before the s16 variable it belongs to is placed. Every
+locally-found fix (extending a `$v1` resident's live range, testing the widened
+copy, a function-local `register ... asm("v1")` pin) either moves the wrong value
+or changes nothing, and the best candidate (99.412%, scratch
+`nonmatchings/func_actor_421600_80133334-vacuum`, `LEARNINGS.md` there) is 8
+register names short. Inputs: `base_3.i` (91.129%) SHA256
+`b060691ba2546cc748cf5534ab35c3a6fe31683fa35b6f4dfb9f953980ab2500`; `base_5.i`
+(98.603%) SHA256 `018f75e1c12e8e8fc288444c466911b779871a8f023e834d6783e109f3d6f727`;
+target.o SHA256
+`2843270708690f47f8f092622d80c4080e183db7d5dfc4bf4c3d99f04045fad9`.
