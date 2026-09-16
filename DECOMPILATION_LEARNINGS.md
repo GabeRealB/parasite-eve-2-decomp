@@ -97448,3 +97448,87 @@ penalties (`base_1.c`). Preprocessed SHA256
 `565cc7cb7d157f467f298d7be2dbd5fa0ce8aebebcab39962791b15bca1a61d7`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_260500_8014A6C4-vacuum` (`base_1_diff`).
+## Two `M2C_FIELD` stores into one global derive the second address as `-N`
+
+A pair of byte stores into the same save-data global, written the way m2c
+renders them, expands to two independent addresses of the same symbol:
+
+```c
+M2C_FIELD(&Mc_SaveData, s8 *, 6) = 0x19;   /* *(s8*)((s8*)&Mc_SaveData + 6) */
+M2C_FIELD(&Mc_SaveData, s8 *, 5) = state;  /* ... + 5 */
+```
+
+CSE keeps the first address and folds the second into `(sym + 6) - 1`, so the
+object comes out with a constant inside the `%hi` and a negative displacement:
+
+```
+lui     $v0, %hi(Mc_SaveData+6)
+li      $v1, 0x19
+sb      $v1, %lo(Mc_SaveData+6)($v0)
+addiu   $v0, $v0, %lo(Mc_SaveData+6)
+sb      $s0, -1($v0)
+```
+
+The target materialises the bare base once and reaches both fields by
+displacement:
+
+```
+lui     $v0, %hi(Mc_SaveData)
+addiu   $v0, $v0, %lo(Mc_SaveData)
+li      $v1, 0x19
+sb      $v1, 0x6($v0)
+sb      $s0, 0x5($v0)
+```
+
+Writing the two stores as members of the declared struct is the whole fix:
+
+```c
+Mc_SaveData.field_6 = 0x19;
+Mc_SaveData.field_5 = state;
+```
+
+Both member accesses are `COMPONENT_REF`s on one base, so the base is
+materialised once and both displacements stay positive. This is the addressing
+sibling of the `%hi(base + N)` entry above: there a lone field in a block with
+no live base produced a fresh `%hi(base + N)`; here two fields on one base do
+the opposite and share it. `M2C_FIELD(&G, T, off)` on a *global* is the tell —
+the `&` puts the constant into the address instead of the displacement.
+
+## A store merged after an `if/else` sinks the global's address to the join
+
+Same function, same case: a flag picks 4 or 2 for one global, then the task
+state advances. m2c's shape assigns a temp in each arm and stores once after
+the join, and the address `lui` lands at the join with the value already
+staged:
+
+```
+j       $L5                     lui   $v0, %hi(D_80072170)   <- at the join
+li      $v1, 4                  sb    $v1, %lo(D_80072170)($v0)
+$L5:
+lui     $v0, %hi(D_80072170)
+sb      $v1, %lo(D_80072170)($v0)
+```
+
+The target carries the address in each arm and puts the constant in the
+branch's delay slot:
+
+```
+lui     $v1, %hi(D_80072170)    lui   $v1, %hi(D_80072170)   <- false arm
+j       $Ljoin                  li    $v0, 0x2
+li      $v0, 4                  $Ljoin:
+                                sb    $v0, %lo(D_80072170)($v1)
+```
+
+One store per arm — `D_80072170 = 4;` in the taken arm, `= 2;` in the else —
+reproduces it: cross-jump merges only the `sb`, and each arm keeps its own
+address materialisation. The register pairing flips with the placement
+(`$v1` address / `$v0` value rather than the reverse), which the scorer reports
+as `regs`, but the cause is the merge point, not the allocator: removing the
+temp local took `func_actor_146000_80131E24` from 93.862% (`branch=4 regs=6
+insert=2 delete=3`) to 100.000% with both edits above.
+
+Inputs (preprocessed sha256): `base.i`
+`429d7d7c8333b3765335d27bb9aabcdfeb834b879f66e4f654c2deb5f60d9d15` (93.862%),
+`base_1.i` `d3dc2604f02f98c6c012d57d616940ce8916daa823686321bfad66faecee2413`
+(100.000%). Both changes were made in that one file, so their individual
+contributions are not separated.
