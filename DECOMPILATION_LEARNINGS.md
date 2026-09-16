@@ -493,6 +493,53 @@ So when a sibling already has a `static inline` for an idiom, reach for it
 before re-expanding the idiom by hand — the parameter pseudos are part of what
 the original compiled to.
 
+## A declaration-initialised narrow variable blocks `x > C` folding; the same value as a literal does not
+
+Same fold as the entry above, reached from the other side. `func_actor_421600_8013B4C4`
+tests a mode byte for the value 5 twice — `== 5` to abandon the tick, then `> 5`
+to pick which neighbour of a pose table to aim at — and the target keeps the
+constant in a register for both:
+
+```
+li    v0,5
+move  a2,v0
+move  a3,a0      /* a0 is the mode byte */
+bne   a3,a2,...
+...
+slt   v0,a2,a3
+beqz  v0,...
+```
+
+Writing the `5` literally, or assigning it (`s32 mode; mode = 5;`), gives
+`bne a0,v0` plus `slti v0,a0,6` / `bnez` instead — 97.4% and one branch
+predicate short. A **declaration initialiser** of a narrow type is what the
+target has:
+
+```c
+    s8 mode = 5;            /* 100% */
+    ...
+    if ((s8)zone == mode) { ... }
+    if ((s8)zone > mode) { ... }
+```
+
+An initialiser leaves `mode` a register pseudo at expand, so `canonicalize_comparison`
+sees a register and never rewrites `> 5` into `!(< 6)`; the `slt` and both
+`move`s survive. An assignment, and a `s32` limit, both let the fold back in.
+Check the width too: `s16 mode = 5;` with `(s16)` casts scored *below* the
+literal, so the cast on the compared value has to agree with the limit's type.
+
+Two more things in the same function are load-bearing and neither is visible
+from the instruction listing alone:
+
+- The three halfword copies out of the pose table belong **inside each arm** of
+  the `if`, not hoisted after it. Hoisting them out costs the 32nd basic block:
+  with them inside, GCC materialises the array base in both arms and the else
+  arm falls through, which is the ROM's shape. The router skips any candidate
+  whose block connections differ, so a CFG reading of "just registers" is wrong
+  here — 95.3% with matching registers still could not be searched.
+- `blk->vec.vy = 0` sits **between** the two coordinate subtractions, not before
+  them; there it fills the load-delay slot they leave open.
+
 ## A CSE copy names the *second* read: the variable that stays live is the one assigned last
 
 `Actor00400_Fn040DC` loads `arg0->field_2C` once and then copies it:

@@ -80,7 +80,11 @@ typedef struct Actor421600Work {
     /* 0x068 */ u16  field_68;
     /* 0x06A */ byte pad_6A[0x7BE];
     /* 0x828 */ u16  field_828;
-    /* 0x82A */ u16  field_82A;
+    /// Motion mode every tick in this overlay tests against 0; read as a
+    /// signed halfword wherever it branches (`lh` in `func_actor_421600_8013B4C4`
+    /// and the six other readers), so it is an `s16` rather than the `u16`
+    /// the store-only callers would suggest.
+    /* 0x82A */ s16  field_82A;
     /* 0x82C */ byte pad_82C[2];
     /* 0x82E */ s16  field_82E;
     /* 0x830 */ byte pad_830[2];
@@ -195,6 +199,17 @@ typedef struct Actor421600ShrinkScratch {
     /* 0x32 */ s16    pad_32;
 } Actor421600ShrinkScratch;
 STATIC_ASSERT_SIZEOF(Actor421600ShrinkScratch, 0x34);
+
+/// 0xC-byte block taken from the scratchpad head by the zone-aim tick
+/// `func_actor_421600_8013B4C4`: the XZ direction it measures the actor's
+/// facing against, plus the wrapped heading it derives from that direction and
+/// re-reads after clamping `field_83E` to +/-0x80, before `Gfx_RotMatrixY`.
+typedef struct Actor421600SeekScratch {
+    /* 0x0 */ SVECTOR vec;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor421600SeekScratch;
+STATIC_ASSERT_SIZEOF(Actor421600SeekScratch, 0xC);
 
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_421600_80133444`
 /// to hold the XZ offset of a `GsCOORDINATE2` from the centre of its circular
