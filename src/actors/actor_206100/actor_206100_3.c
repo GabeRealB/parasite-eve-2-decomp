@@ -223,7 +223,39 @@ void func_actor_206100_8014F9C4(Task* task)
     work->field_522 = work->field_522 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FA08);
+void func_actor_206100_8014FA08(Task* task)
+{
+    u16              timer;
+    Actor206100Work* work;
+    Actor206100Work* next;
+    s32              cond;
+
+    work            = (Actor206100Work*)task->idMap;
+    timer           = work->field_51E + 1;
+    work->field_51E = timer;
+    if ((s16)timer >= 0x1F) {
+        work->field_557 = 1;
+    }
+    next = (Actor206100Work*)task->idMap;
+    if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond != 0) {
+        next            = (Actor206100Work*)task->idMap;
+        next->field_524 = 8;
+        next->field_51A = 8;
+        next->field_510 = 0x10;
+        next->field_50C = 1;
+    }
+    if (Gp_TickObjFlag2((GpObj5D*)task->spawnArg2) != 0) {
+        work->field_557 = 4;
+        next            = (Actor206100Work*)task->idMap;
+        next->field_520 = 1;
+        next->field_522 = 0;
+    }
+}
 /// Ring-spawn state: seeds `field_4F4` and `field_548` from the eight-point ring
 /// `D_actor_206100_80158B68`, copies the current vertex into the root part
 /// coordinate, advances the index modulo 8, and hands the actor the state-1
