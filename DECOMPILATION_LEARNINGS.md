@@ -60224,6 +60224,30 @@ table to `0x18` (99.68%, `regs=7`). The target has `pos` at `0x10` and the
 table at `0x20`, so `pos` is declared first, then `ext`, then `work`, then the
 table.
 
+An m2c seed reaches this failure mode through its own shape, and both halves
+have to be replaced at once (`Actor00400_Fn09348`, 2026-09-16). m2c emits the
+handlers as casts of the *extern data* symbols it bootstrapped — it has no
+prototype for them — and stores them element-wise:
+
+```c
+extern M2C_UNK Actor00400_Fn0A7F0;
+extern M2C_UNK Actor00400_Fn0A82C;
+temp_states[0] = (void (*)(Actor100400 *))&Actor00400_Fn0A7F0;
+temp_states[1] = (void (*)(Actor100400 *))&Actor00400_Fn0A82C;
+```
+
+97.931%, `reorder=1`, the same single hoist: sched1 fired the first `lui` at
+T-9 where the target fires the `lw` of the work pointer, leaving the `lui` three
+slots early after `.sched`. Declaring the handlers as functions (they are
+already-decompiled bodies elsewhere in the overlay) and brace-initializing the
+table — the sibling `Actor00400_Fn09260`/`Fn092D4` shape in the same unit —
+is 100%, and the `.rtl` then carries `(clobber (mem/s:BLK (reg:SI 77)))` that
+the seed form does not. The element type is not what moves: the brace
+initializer with the casts still in place (`extern M2C_UNK` + cast on each
+element, only the stores folded into the declaration) is also 100% and carries
+the same clobber, so keeping m2c's element expressions is safe as long as they
+are an initializer.
+
 ## A local initializer over 8 bytes is a `.rodata` copy, so it cannot supply the clobber
 
 `func_actor_143900_80132DEC` needs both halves of the pattern above at once: the
