@@ -103198,3 +103198,32 @@ per-overlay struct names change; `(u8)(work->field_8A2 - 3)` on an `s16` member 
 `.s` is not evidence about the member's declared type. The twin in `actor_401000`
 (`func_actor_401000_80132A84`) is an unmatched, leased duplicate, so this stayed an overlay-local
 body rather than a `promote`.
+
+## m2c's shared result temp loses `$v0` to the arm's own test scratch (func_actor_401800_80139870, 2026-09-16)
+
+The previous entry's rule — transcribe a matched twin instead of editing m2c toward it —
+had a second, sharper instance in the same TU. `func_actor_401800_80139870` is
+`func_actor_401800_8013971C` with one constant changed (`work->field_89E = 0x19`, not `0xB`);
+the m2c seed still scored 90.75% because of two *spellings*, not two behaviours:
+
+```c
+/* m2c:   */  var_v0 = 0x15;                        /* shared temp, one trailing store */
+              if (e->field_40 > 0) { var_v0 = 4; if (!(e->field_4C & 2)) var_v0 = 0x11; }
+              work->field_0 = var_v0;
+/* target: */ if (e->field_40 <= 0)      work->field_0 = 0x15;
+              else if (e->field_4C & 2)  work->field_0 = 4;
+              else                       work->field_0 = 0x11;
+```
+
+The shared temp is live across the middle arm's condition, which the compiler evaluates in
+`$v0` (`lbu`/`andi`) — so the result cannot have `$v0` and takes `$v1`:
+`blez v0,K; li v1,0x15; ...; li v1,4; li v1,0x11; sh v1,0(s0)`. Storing in every arm makes each
+constant dead right after its own store, and the target's `$v0` form appears — the `li` even
+lands in the branch delay slot. Same class as section [29] (shared `var_v0` in dispatch
+epilogues) but for a plain field chain with no jump table, and the visible difference is the
+register *identity* rather than operand order. The other leftover was `lui a1,0x6b; ori
+a1,a1,0xd960; addu a1,s0,a1` — m2c's `temp_s0 + 0x8E8` — against the target's
+`addiu a1,s0,0x8e8`, which `&work->field_8E8` reproduces; when a twin exists that already names
+the offset as a struct member, the seed's pointer arithmetic is a spelling problem too.
+
+Both fixes were applied at once: 100.000% on the first build, all penalties zero.
