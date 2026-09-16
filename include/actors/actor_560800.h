@@ -130,7 +130,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
 /// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
 /// walks 1..count with `Gp_AnimResetSlot`. `field_27C` / `field_27E` and the
-/// 0x38 bytes at `field_1DC` (`Mem_CopyUnaligned`'s source and destination in
+/// 0x38 bytes of `rot` (`Mem_CopyUnaligned`'s source and destination in
 /// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
 typedef struct Actor560800ModelWork {
     /* 0x000 */ GpAnimCtx  anim;
@@ -139,7 +139,10 @@ typedef struct Actor560800ModelWork {
     /* 0x17C */ MATRIX     field_17C;
     /* 0x19C */ MATRIX     light;
     /* 0x1BC */ MATRIX     color;
-    /* 0x1DC */ byte       field_1DC[0x90];
+    /* 0x1DC */ SVECTOR    rot[7];
+    /* 0x214 */ SVECTOR    swing[7];
+    /* 0x24C */ byte       pad_24C[0x10];
+    /* 0x25C */ u16        swingDir[8];
     /* 0x26C */ Task*      field_26C;
     /* 0x270 */ u32        field_270;
     /* 0x274 */ u32        field_274;
@@ -151,7 +154,8 @@ typedef struct Actor560800ModelWork {
     /* 0x282 */ s16        field_282;
     /* 0x284 */ byte       pad_284[2];
     /* 0x286 */ s16        field_286;
-    /* 0x288 */ byte       pad_288[4];
+    /* 0x288 */ s16        field_288;
+    /* 0x28A */ s16        field_28A;
 } Actor560800ModelWork;
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
@@ -258,6 +262,8 @@ extern s32 D_actor_560800_80171800;
 
 /// Flag word whose bit 0 gates `func_actor_560800_80138BCC`'s sink step.
 extern s32 D_actor_560800_801752E8;
+
+extern Task* D_actor_560800_801757AC;
 
 extern u8 D_80071075;
 extern s8 D_8007218A;

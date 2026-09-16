@@ -2,6 +2,7 @@
 
 #include "actors/actor_560800.h"
 
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -51,7 +52,91 @@ void func_actor_560800_801376E0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80137820);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80137BEC);
+/// Per-frame handler of the model part. State 0 runs the spawner, parents the
+/// root coordinate to `D_actor_560800_801757AC`'s and records its height; state
+/// 1 swings parts 3-5 on X/Z by 20 between +-0x154, rebuilds their rotation
+/// matrices and sinks the root, killing the task once its height passes 10000.
+void func_actor_560800_80137BEC(Task* task)
+{
+    Actor560800ModelWork* work;
+    GsCOORDINATE2*        coord;
+    TmdObject*            extra;
+    VECTOR                vec;
+    s32                   i;
+    s32                   j;
+    u16                   t286;
+    u16                   t288;
+
+    work  = (Actor560800ModelWork*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+    switch (task->state) {
+        case 0:
+            func_actor_560800_801376E0(task);
+            coord->sub                         = ((TmdObject*)D_actor_560800_801757AC->extra)->field_8;
+            ((TmdObject*)task->extra)->field_C = 0;
+            work                               = (Actor560800ModelWork*)task->idMap;
+            i                                  = 1;
+            do {
+                work->swingDir[i & 0xFFFF] = 0;
+                i                         += 1;
+            } while ((u32)(i & 0xFFFF) < 6U);
+            work->field_28A = coord->coord.t[1];
+            coord->flg      = 0;
+            task->state++;
+            break;
+        case 1:
+            i = 3;
+            do {
+                if (work->swingDir[i & 0xFFFF] & 1) {
+                    work->swing[i & 0xFFFF].vx += 20;
+                    if (work->swing[i & 0xFFFF].vx >= 0x155) {
+                        work->swingDir[i & 0xFFFF] |= 1;
+                    }
+                } else {
+                    work->swing[i & 0xFFFF].vx -= 20;
+                    if (work->swing[i & 0xFFFF].vx < -0x154) {
+                        work->swingDir[i & 0xFFFF] &= 0xFFFE;
+                    }
+                }
+                if (work->swingDir[i & 0xFFFF] & 2) {
+                    work->swing[i & 0xFFFF].vz += 20;
+                    if (work->swing[i & 0xFFFF].vz >= 0x155) {
+                        work->swingDir[i & 0xFFFF] |= 2;
+                    }
+                } else {
+                    work->swing[i & 0xFFFF].vz -= 20;
+                    if (work->swing[i & 0xFFFF].vz < -0x154) {
+                        work->swingDir[i & 0xFFFF] &= 0xFFFD;
+                    }
+                }
+                j = i & 0xFFFF;
+                Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8[j].coord, work->rot[j].vy, 1);
+                Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8[j].coord,
+                               work->rot[j].vx + work->swing[j].vx, 0);
+                Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8[j].coord,
+                               work->rot[j].vz + work->swing[j].vz, 0);
+                i += 1;
+            } while ((u32)(i & 0xFFFF) < 6U);
+            t286              = work->field_286 + 4;
+            t288              = work->field_288 + t286;
+            work->field_288   = t288;
+            work->field_286   = t286;
+            coord->coord.t[1] = work->field_28A + task->spawnArg1 -
+                                ((TmdObject*)D_actor_560800_801757AC->extra)->field_8->coord.t[1] +
+                                (s16)t288;
+            coord->flg = 0;
+            if (coord->coord.t[1] > 10000) {
+                Task_Kill(task);
+                return;
+            }
+            break;
+    }
+    extra  = (TmdObject*)task->extra;
+    vec.vx = extra->field_8->workm.t[0];
+    vec.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    vec.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    func_800D7A9C(extra, &vec, 0, 3);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80137F58);
 
