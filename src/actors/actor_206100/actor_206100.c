@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/mem.h"
 #include "main/task.h"
 #include "gameplay/3CD8.h"
 #include "actors/actor_206100.h"
@@ -157,7 +158,29 @@ void func_actor_206100_8014EB60(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EC54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014ED3C);
+void func_actor_206100_8014ED3C(Task* task, s16 arg1)
+{
+    Actor206100Work*        work;
+    GsCOORDINATE2*          coord;
+    Actor206100DistScratch* head;
+    Actor206100DistScratch* scratch;
+
+    head                                      = *(Actor206100DistScratch**)G_SCRATCH_HEAD;
+    scratch                                   = head - 1;
+    *(Actor206100DistScratch**)G_SCRATCH_HEAD = scratch;
+    work                                      = (Actor206100Work*)task->idMap;
+    coord                                     = ((TmdObject*)task->extra)->field_8;
+    func_actor_206100_8014EA8C(task, arg1, work->field_43E);
+    scratch->delta.vx = -(u16)coord->coord.t[0];
+    scratch->delta.vz = -(u16)coord->coord.t[2];
+    scratch->dist     = SquareRoot0(scratch->delta.vx * scratch->delta.vx +
+                                    scratch->delta.vz * scratch->delta.vz);
+    if (scratch->dist >= 0x191) {
+        coord->coord.t[0] = work->field_434;
+        coord->coord.t[2] = work->field_438;
+    }
+    *(Actor206100DistScratch**)G_SCRATCH_HEAD += 1;
+}
 
 extern TaskDesc D_80147E48;
 

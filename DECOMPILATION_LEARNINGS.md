@@ -91034,3 +91034,55 @@ Compare the entry above on `func_dryfield_gas_station_8017FA20`: same family of
 idiom, same conclusion that a constant appearing on both paths means one arm
 holds its own copy, but there the duplication is in the *source* and here it is
 in the *store*.
+
+## A scratch walk negates once, and one of its two read-backs reloads anyway
+
+A target that mirrors a coordinate pair through the origin and takes the length
+of the result stores each negated half into a scratch object and uses it twice
+-- as the store, and again in the multiply:
+
+```
+lhu    v0, 0x18(s2)
+negu   v0, v0
+sh     v0, -0xC(s0)     /* scratch->vx */
+lhu    v0, 0x20(s2)
+negu   v0, v0
+sh     v0, 0x4(s1)      /* scratch->vz */
+lh     v1, -0xC(s0)     /* vx read back from memory */
+mult   v1, v1
+mflo   v1
+sll    v0, v0, 16       /* vz used straight from the register */
+sra    v0, v0, 16
+mult   v0, v0
+```
+
+Negating the source half twice in C -- once for the store, once for the length
+-- compiles to two `negu`s and does not match. Read the negated value back *out
+of* the scratch object instead, the shape `Actor00100_OutsideRadius` in
+`include/actors/actor_400100_motion.h` already has:
+
+```c
+scratch->delta.vx = -(u16)coord->coord.t[0];
+scratch->delta.vz = -(u16)coord->coord.t[2];
+scratch->dist     = SquareRoot0(scratch->delta.vx * scratch->delta.vx +
+                                scratch->delta.vz * scratch->delta.vz);
+```
+
+That gives one `negu` per half, shared by the store and the multiply. The `(u16)`
+is what makes the load `lhu`; the halfword store and the `SVECTOR` field do the
+truncation.
+
+The two read-backs then come out asymmetric, and that is CSE, not the source:
+`vx` is a real `lh` while `vz` is served out of the register its store just
+wrote, sign-extended by an `sll`/`sra` pair (the forwarded value is the
+untruncated 32-bit negation, so the sign extension is not yet implicit). In the
+`.cse` dump the `vz` read is folded to the store's value
+(`REG_EQUAL (sign_extend:SI (mem/s:HI ...))` on the `ashiftrt`), and the `vx`
+record is dropped by the *`vz` store*, whose address `(plus (reg 86)
+(const_int 4))` shares no base register with `(plus (reg 85) (const_int -12))`
+and so cannot be proven disjoint. A store to a neighbouring scratch field
+therefore forces the earlier field to reload: expect one load and one
+register-served use, and do not restructure the source to even them out.
+
+`func_actor_206100_8014ED3C` in `src/actors/actor_206100/actor_206100.c` is the
+example -- 60 instructions, exact on the first build.

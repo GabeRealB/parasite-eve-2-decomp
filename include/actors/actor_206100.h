@@ -93,6 +93,20 @@ STATIC_ASSERT_SIZEOF(Actor206100RingPos, 0x8);
 /// `Actor206100Work::field_548`.
 extern Actor206100RingPos D_actor_206100_80158B68[8];
 
+/// 0xC-byte scratch `func_actor_206100_8014ED3C` takes off `G_SCRATCH_HEAD` to
+/// hold the actor's position mirrored through the origin and its distance from
+/// it: `delta` is the negated root coordinate (`vy` is left unwritten, the walk
+/// is planar) and `dist` the `SquareRoot0` of the two written squares.
+///
+/// The same `SVECTOR` + length shape `Actor00100RadiusScratch` and
+/// `Actor01900RangeScratch` have, and the same walk `Actor00100_OutsideRadius`
+/// makes.
+typedef struct Actor206100DistScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s32     dist;
+} Actor206100DistScratch;
+STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
+
 /// Per-actor state block for the `actor_206100` overlay's enemy.
 ///
 /// `func_actor_206100_8014C274` allocates it with `Mem_Calloc(0x558, 0)` and
@@ -133,7 +147,14 @@ typedef struct Actor206100Work {
     /* 0x364 */ GpObj obj_364;
     /* 0x384 */ byte  pad_384[0x90];
     /* 0x414 */ GpObj obj_414;
-    /* 0x434 */ byte  pad_434[0xA];
+    /// Post the actor walks out from: `func_actor_206100_8014B698` latches the
+    /// root coordinate's three halves here, and `func_actor_206100_8014ED3C`
+    /// snaps `t[0]` / `t[2]` back to `field_434` / `field_438` once the walk has
+    /// carried the actor more than 0x191 away from it.
+    /* 0x434 */ s16  field_434;
+    /* 0x436 */ byte pad_436[0x2];
+    /* 0x438 */ s16  field_438;
+    /* 0x43A */ byte pad_43A[0x4];
     /// Yaw `func_actor_206100_8014AF74` reads back out of the root
     /// coordinate's third row at spawn.
     /* 0x43E */ s16  field_43E;
