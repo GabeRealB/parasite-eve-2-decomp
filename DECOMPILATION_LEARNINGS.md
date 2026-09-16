@@ -78404,6 +78404,32 @@ mentions shared one name and had to be *separated*. Both show up as a pure
 in both the fix is at the declaration, not at a pin: **when two branches of one
 `if` assign the same local, ask whether the target gives them the same home.** If
 it does not, they are two variables.
+
+The shared name does not have to be a pointer, and the split does not have to be
+between two branches of one `if`. `func_actor_800200_801637B4` hit the same thing
+across the two cases of a `switch`, with the value 1 in case 0 and the call
+argument 6 / 5 in case 1 under one `s32 flag`:
+
+```c
+            flag             = 1;
+            actor->field_960 = flag;
+            ...
+            flag = 6;                                   /* case 1 */
+            if (d4->field_CE == 1) {
+                flag = 5;
+            }
+            func_actor_800200_80165408(arg0, flag);
+```
+
+One allocno spanning both cases takes `$a1`, because the case-1 use is an
+argument of the immediately following call, and the case-0 store then costs an
+extra `li a1,1` — the target reuses the `li v0,1` the switch dispatch already put
+in the `beqz` delay slot. Renaming the case-1 local to `mode` scored 100.000%.
+Unlike the pure-`regs` instances above, this one reported `regs=1 branch=5
+insert=1`: the one extra instruction shifted every branch address, so the
+penalties looked structural. **Read the diff before believing the penalty mix —
+when `branch` and `insert` accompany a single `regs`, the address shift, not the
+control flow, is usually what they are measuring.**
 ## m2c's `ptr + K` scales by `sizeof`, so a byte offset in the `.s` lands in the wrong element
 
 **Problem.** `func_actor_323300_80163510` came back from m2c at 99.71% with the
