@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "psyq/abs.h"
 
 #include "actors/actor_401800.h"
 #include "gameplay/1A8.h"
@@ -1208,15 +1209,85 @@ void func_actor_401800_8013AB64(Actor401800* arg0)
     *(Actor401800TurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013AF1C);
+/// Aim the actor at the player and rebuild its root coordinate from the new
+/// yaw at scale 0x1194, clamping the turn it adds to +-0x80 and halving it
+/// when it is not below -0x80. Once the aim state reaches 0x11 it counts
+/// frames in `field_6`, steps the actor along its own local Z while
+/// `func_actor_401800_80133558` says the path is clear, re-seeds the
+/// `field_A28` contact record and past 0x13 frames turns the actor away from
+/// the side the player is on by +-0x4B0. On the live flag it resets the model
+/// buffers and arms the state 2 the aim test promotes to 0x11 within 0x80.
+/// Same body as `Actor01900_Fn080A8` / `func_actor_401300_8013A5C0`, with the
+/// aim, rescale and step helpers inlined.
+void func_actor_401800_8013AF1C(Actor401800* arg0)
+{
+    Actor401800Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor401800AimScratch* aim;
 
-/// Aim the actor at the player and rescale its root coordinate. Same body as
-/// `Actor01900_Fn080A8`, and as `func_actor_401800_80135F58` apart from the
-/// live-flag block's constants and mask, the 0x12C it arms `field_8C8` with,
-/// and a turn clamp whose two tests both write zero where its sibling clamps
-/// to +-0x10: on the live flag it resets the model buffers and re-arms the
-/// step countdown; otherwise it hands the player offset and the new yaw to
-/// the actor's state body and rebuilds the matrix at scale 0x1194.
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_898          = 1;
+        work->field_8A2          = 0x16;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        func_actor_401800_80133EB8(arg0);
+        return;
+    }
+    func_actor_401800_80133EB8(arg0);
+    *(Actor401800AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401800AimScratch**)G_SCRATCH_HEAD;
+    aim->angle                                = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_8AE                           = aim->angle;
+    if (ABS(aim->angle) <= 0x80 && work->field_89E == 2) {
+        work->field_8A2 = 0x16;
+        work->field_89E = 0x11;
+        work->field_898 = 1;
+        work->field_6   = 0;
+        func_actor_401800_80133EB8(arg0);
+    }
+    if (aim->angle > 0x80) {
+        aim->angle = 0x80;
+    }
+    if (aim->angle < -0x80) {
+        aim->angle = -0x80;
+    } else {
+        aim->angle = aim->angle >> 1;
+    }
+    coord       = arg0->field_2C->field_8;
+    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89E == 0x11) {
+        work->field_6++;
+        if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, -0x10) != 0) {
+            Actor401800_StepForward(arg0->field_2C->field_8, -0x10);
+        }
+        if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+            func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+        }
+        arg0->field_2C->field_8->flg = 0;
+        if (work->field_6 >= 0x13) {
+            if (work->field_8AE <= 0) {
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x4B0, 0);
+            } else {
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x4B0, 0);
+            }
+            work->field_0 = 7;
+        }
+    }
+    *(Actor401800AimScratch**)G_SCRATCH_HEAD += 1;
+}
+
 void func_actor_401800_8013B444(Actor401800* arg0)
 {
     Actor401800Work*       work;
