@@ -124,7 +124,78 @@ void func_actor_403000_801332E8(Actor403000* arg0)
     arg0->field_2C->field_8[23].flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133444);
+void func_actor_403000_80133444(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    s16              target;
+    s16              orig;
+    s32              diff;
+    s32              delta;
+
+    work = arg0->field_1C;
+    if (work->field_AE0 < work->field_AE6 && (diff = abs(work->field_AE0 - work->field_AE6)) >= 8 && work->field_ADC > -0x280) {
+        if (diff >= 24) {
+            if (work->field_ADC > 0) {
+                work->field_ADC = -32;
+            } else {
+                work->field_ADC -= 32;
+            }
+        } else {
+            if (work->field_ADC > 0) {
+                work->field_ADC = -2;
+            } else {
+                work->field_ADC -= 2;
+            }
+        }
+    } else if (work->field_AE0 > work->field_AE6 && (diff = abs(work->field_AE0 - work->field_AE6)) >= 8 && work->field_ADC < 0x280) {
+        if (diff >= 24) {
+            if (work->field_ADC < 0) {
+                work->field_ADC = 32;
+            } else {
+                work->field_ADC += 32;
+            }
+        } else {
+            if (work->field_ADC < 0) {
+                work->field_ADC = 2;
+            } else {
+                work->field_ADC += 2;
+            }
+        }
+    } else {
+        work->field_ADC = 0;
+    }
+    target          = work->field_ADC;
+    work->field_AE6 = work->field_AE0;
+    orig            = target;
+    if (orig > 640) {
+        target = 640;
+    }
+    if (orig < -640) {
+        target = -640;
+    }
+    if (work->field_AE4 < target) {
+        if (target - work->field_AE4 > 48) {
+            work->field_AE4 += 48;
+        } else {
+            work->field_AE4 = target;
+        }
+    }
+    if (target < work->field_AE4) {
+        delta = work->field_AE4 - target;
+        if (delta < 0) {
+            delta = -delta;
+        }
+        if (delta > 48) {
+            work->field_AE4 -= 48;
+        } else {
+            work->field_AE4 = target;
+        }
+    }
+    Gfx_RotMatrixZ(&arg0->field_2C->field_8[6].coord, work->field_AE4 / 2, 0);
+    arg0->field_2C->field_8[6].flg = 0;
+    Gfx_RotMatrixZ(&arg0->field_2C->field_8[7].coord, work->field_AE4 * 3 / 4, 0);
+    arg0->field_2C->field_8[7].flg = 0;
+}
 
 void func_actor_403000_801336B4(Actor403000* arg0)
 {
