@@ -1,6 +1,9 @@
 #include "common.h"
 
 #include "actors/actor_401300.h"
+#include "gameplay/3CD8.h"
+#include "main/mem.h"
+#include <psyq/inline_c.h>
 
 void func_actor_401300_80141758(Task* task)
 {
@@ -24,7 +27,49 @@ void func_actor_401300_80141758(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_801417F0);
+/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// coordinate; `out` is left unchanged if the chain ends before the view.
+static __inline__ void Actor401300_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
+}
+
+s32 func_actor_401300_801417F0(Actor401300* arg0)
+{
+    SVECTOR out;
+
+    memset(&out, 0, 8);
+    Actor401300_TransformToView(&arg0->field_2C->field_8[1], &out);
+    return (u16)(out.vz + 0x12B) < 0xA27;
+}
 
 void func_actor_401300_8014192C(Actor401300* arg0)
 {
