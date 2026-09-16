@@ -61,7 +61,8 @@ typedef struct Actor104000Work {
     /* 0x188 */ s32        field_188;
     /* 0x18C */ s32        field_18C;
     /* 0x190 */ s32        field_190;
-    /* 0x194 */ byte       pad_194[4];
+    /* 0x194 */ u16        field_194;
+    /* 0x196 */ byte       pad_196[2];
     /* 0x198 */ u16        field_198;
     /* 0x19A */ u16        field_19A;
     /* 0x19C */ s16        field_19C;
@@ -77,17 +78,17 @@ typedef struct Actor104000Work {
     /* 0x388 */ GpObj      obj388;
     /* 0x3A8 */ GpRec18    rec3A8;
     /* 0x3C0 */ GpObj      obj3C0;
-    /* 0x3E0 */ GpEffArg   eff;       // `func_800FDB18` argument record
-    /* 0x3E8 */ SVECTOR    effOfs;    // offset handed to `func_800FDB18`; `pad` picks the coordinate
-    /* 0x3F0 */ SVECTOR    origin;    // model position at spawn
-    /* 0x3F8 */ SVECTOR    dir;       // facing direction captured on restart
-    /* 0x400 */ SVECTOR    ahead;     // spawn position plus 1000 units along the facing (XZ)
-    /* 0x408 */ SVECTOR    behind;    // spawn position minus the same offset
+    /* 0x3E0 */ GpEffArg   eff;           // `func_800FDB18` argument record
+    /* 0x3E8 */ SVECTOR    effOfs;        // offset handed to `func_800FDB18`; `pad` picks the coordinate
+    /* 0x3F0 */ SVECTOR    origin;        // model position at spawn
+    /* 0x3F8 */ SVECTOR    dir;           // facing direction captured on restart
+    /* 0x400 */ SVECTOR    ahead;         // spawn position plus 1000 units along the facing (XZ)
+    /* 0x408 */ SVECTOR    behind;        // spawn position minus the same offset
     /* 0x410 */ byte       pad_410[4];
-    /* 0x414 */ MATRIX     lightMtx;  // installed at `Actor104000Obj2C.field_1C`
-    /* 0x434 */ MATRIX     colorMtx;  // installed at `Actor104000Obj2C.field_20`
-    /* 0x454 */ byte       pad_454[0x20];
-    /* 0x474 */ u16        field_474; // animation id that last raised the reaction
+    /* 0x414 */ MATRIX     lightMtx;      // installed at `Actor104000Obj2C.field_1C`
+    /* 0x434 */ MATRIX     colorMtx;      // installed at `Actor104000Obj2C.field_20`
+    /* 0x454 */ MATRIX     savedColorMtx; // `colorMtx` before the death fade scales it
+    /* 0x474 */ u16        field_474;     // animation id that last raised the reaction
     /* 0x476 */ byte       pad_476[3];
     /* 0x479 */ u8         field_479;
     /* 0x47A */ u8         field_47A;
@@ -155,6 +156,15 @@ typedef struct Actor104000HitScratch {
     /* 0x16 */ s16     angle;
 } Actor104000HitScratch;
 STATIC_ASSERT_SIZEOF(Actor104000HitScratch, 0x18);
+
+/// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
+/// rebuild: the rotation, the uniform scale applied to it and the yaw.
+typedef struct Actor104000FaceScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+} Actor104000FaceScratch;
+STATIC_ASSERT_SIZEOF(Actor104000FaceScratch, 0x34);
 
 /// A `MATRIX` rotation block written a word at a time: the identity is stored
 /// as 0x1000 / 0 pairs over the halfword elements, `m22` last.
