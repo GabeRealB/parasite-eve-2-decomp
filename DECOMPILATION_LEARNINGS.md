@@ -96979,3 +96979,24 @@ rodata block whose unit already has one (here 0x4 and 0x20C, the second not
 second. A `units` cut before the other table's function plus `rodata_head` at
 the first table fixed it; `touch` the renamed `.c` files (see the `git mv`
 entry above).
+
+## `move` in an abs `bgez` delay slot is still `ABS()`, when the result gets its own register (func_actor_401300_80134BA4, 2026-09-16)
+
+The "`ABS()` leaves the delay slot empty" tell only holds when the abs is done
+in place. When the source and destination of the single `abssi2` insn get
+different hard registers, the pattern itself emits the copy into the slot:
+
+```
+bgez  a1, 1f
+move  v1, a1      /* part of abssi2, not a dbr fill */
+negu  v1, v1
+1:
+```
+
+`mag = arg1; if (mag < 0) mag = -mag;` and `(arg1 < 0) ? -arg1 : arg1`
+both scheduled the copy (or the `sra` of the `s16` parameter) above the scratch
+head store, so `mag` conflicted with `$v0`/`$v1` and landed in `$a0` (96.8%),
+which also pushed `slti` into the next delay slot instead of `lui %hi(global)`.
+`mag = (arg1 >= 0) ? arg1 : -arg1;` (the `ABS()` shape) was 100%. Also here: a
+`(u32)` LCG draw switched as `switch ((s32)(x >> 16) & 3)` gets the balanced
+`beq 1 / slti 2` case tree; unsigned gave a linear chain.

@@ -180,6 +180,11 @@ extern s8 D_actor_401300_8015804C[][45];
 extern SVECTOR D_actor_401300_801589F8[2];
 extern SVECTOR D_actor_401300_80158A08[2];
 
+/// Twelve vectors `func_actor_401300_80134BA4` picks from by LCG, grouped by
+/// `|arg1|`: 0-4 below 0x200, 5-7 above 0x600, else 8-9 / 10-11 by sign.
+/// `pad` is the model coordinate index passed to `func_800FDB18`.
+extern SVECTOR D_actor_401300_80158928[12];
+
 /// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_801397F8` borrows for
 /// its player-in-radius test: the X/Z offset to the camera target and the
 /// radius, each squared in place before `dx + dz < r`. Same shape as
