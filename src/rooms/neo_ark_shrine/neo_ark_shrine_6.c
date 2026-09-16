@@ -47,6 +47,7 @@ void func_neo_ark_shrine_8017EAC0();
 void func_neo_ark_shrine_8017F86C(Task* task);
 
 extern s8  D_8007216C;
+extern u8  D_8007216D;
 extern s8  D_80115410;
 extern s16 D_80114D08;
 
@@ -108,7 +109,38 @@ void func_neo_ark_shrine_8017EF68(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EFE4);
+/// The script step that runs while the shrine's pad is idle: it re-clears the
+/// prompt, ticks the step's timer, and once the step has run 0x1E frames latches
+/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `D_8007216D` and the
+/// session, which makes the room rebuild its objects, and enters state 2.
+///
+/// The same literal is stored in both arms on purpose: `Game_Session` is read
+/// per arm, and jump_optimize's cross-jumping (post-sched2) merges the arms'
+/// identical `sb` pairs into the join. Written with one shared `var_v0` the
+/// stores are one pair too but the constant's `li` precedes the address, the
+/// merge swallows the `Game_Session` load as well, and the function comes out
+/// four insns short.
+void func_neo_ark_shrine_8017EFE4(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    st->timer        = st->timer + 1;
+    func_neo_ark_shrine_8017EAC0(task);
+    if (st->timer >= 0x1E) {
+        if (GameFlag_GetNibble(0xE9) == 0) {
+            D_8007216D            = 2;
+            Game_Session->field_5 = 2;
+        } else {
+            D_8007216D            = 5;
+            Game_Session->field_5 = 5;
+        }
+        Game_Session->field_76 = 1;
+        task->state            = 2;
+    }
+}
 
 void func_neo_ark_shrine_8017F094(Task* task)
 {

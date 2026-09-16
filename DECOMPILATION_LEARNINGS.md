@@ -2459,6 +2459,48 @@ if (work->field_6D2 == 0) {
 This shape - two arms that store different constants to one field and then
 disagree again on a second field - is the actor sequence-body template, so the
 same fix applies wherever a sequence state picks a slot set.
+
+## A global read in *both* arms is how a cross-jumped store pair looks
+
+`func_neo_ark_shrine_8017EFE4` reads `Game_Session` in each arm and stores the
+resolved byte twice in the join:
+
+```
+bnez  v0, else
+ lui   a0, %hi(D_8007216D)
+lui   v0, %hi(Game_Session)
+lw    v1, %lo(Game_Session)(v0)
+j     join
+ li    v0, 2
+else:
+lui   v0, %hi(Game_Session)
+lw    v1, %lo(Game_Session)(v0)
+ li    v0, 5
+join:
+sb    v0, %lo(D_8007216D)(a0)
+sb    v0, 5(v1)
+```
+
+The duplicate load is not a second expression in the source. Each arm ends with
+the same `D_8007216D = N; Game_Session->field_5 = N;` pair, and
+`jump_optimize (insns, 1, 1, 0)` - cross-jumping, `optimize > 0`, run after
+sched2 - merges the arms' `sb`s into the join and redirects the then-arm's `j`
+to a label placed before them. Both arms must still compute `$v1` for the
+merged store, so the load is left standing in each, and the `j` slot takes the
+arm's `li`. A duplicated *global load* per arm with the stores at the join is
+therefore the signature to read the original source from: the stores were
+written per arm, not once after the `if`.
+
+Writing the pair once after the `if`/`else` with a shared `var_v0` is the same
+C semantically and gives a different object (80.98% here): the `li` then
+precedes the address, so the merge swallows `lui`/`lw`/`lui`/`sb`/`sb` as one
+five-insn tail and the load survives only in the join - 40 insns against 44.
+`.cse` shows why the literal form lands where it does: for `D_8007216D = 2;`
+CSE splits the address *and* materialises the constant in one step, so the
+block reads `lui`, `li`, `sb`; the `li` after the load is then forced by its
+`REG_DEP_ANTI` on the load's address register, and its `REG_DEP_OUTPUT` on that
+arm's `lui`. Spelling the constant as a statement (`var_v0 = 2;` before the
+store) instead gives `li`, `lui`, `sb` and the wrong merge point.
 ## Cross-jumping merges duplicate *call* blocks too, not just stores - and the m2c phi shape blocks it
 
 `func_actor_105700_80133138` (139 insns) is instruction-identical to the
