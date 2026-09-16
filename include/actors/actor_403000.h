@@ -131,10 +131,12 @@ typedef struct Actor403000Work {
     /* 0xFBC */ s16      field_FBC;
     /* 0xFBE */ byte     pad_FBE[0x2];
     /* 0xFC0 */ s16      field_FC0;
-    /* 0xFC2 */ byte     pad_FC2[0x6];
+    /* 0xFC2 */ s16      field_FC2;
+    /* 0xFC4 */ byte     pad_FC4[0x4];
     /* 0xFC8 */ s16      field_FC8;
     /* 0xFCA */ s16      field_FCA;
-    /* 0xFCC */ byte     pad_FCC[0x6];
+    /* 0xFCC */ byte     pad_FCC[0x5];
+    /* 0xFD1 */ s8       field_FD1;
     /* 0xFD2 */ s8       field_FD2;
     /* 0xFD3 */ s8       field_FD3;
     /* 0xFD4 */ byte     pad_FD4[0x1];
@@ -247,6 +249,21 @@ typedef struct Actor403000AimScratch {
     /* 0x10 */ byte    pad_10[0x4];
 } Actor403000AimScratch;
 STATIC_ASSERT_SIZEOF(Actor403000AimScratch, 0x14);
+
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_8013C2D4`: `facing` and `base` are the player's and the
+/// actor's waypoint-grid cells, `index` the waypoint picked from `base` plus
+/// `field_FD1`, `vec` it relative to the coordinate and `angle` the clamped turn.
+typedef struct Actor403000SeekScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s16     index;
+    /* 0x0A */ byte    pad_A[0x2];
+    /* 0x0C */ s16     angle;
+    /* 0x0E */ s16     base;
+    /* 0x10 */ s16     facing;
+    /* 0x12 */ byte    pad_12[0x2];
+} Actor403000SeekScratch;
+STATIC_ASSERT_SIZEOF(Actor403000SeekScratch, 0x14);
 
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_80134204`: `index` picks the next waypoint out of

@@ -99373,3 +99373,15 @@ first: `mag = angle; scratch->angle = mag; if (ABS(mag) < 0x400)`. Writing
 branch, and storing it with `$v1`. Also, `addu v1,v1,v0` where the scratch
 field was just stored from a local needed `scratch->index = scratch->base + fd5`.
 Naming the local (`b + fd5`) swapped the operands, and so did `fd5 + b`.
+
+## Default-then-nested-if vs `else if` chain: same branches, different registers (func_actor_403000_8013C2D4, 2026-09-16)
+
+A banded classifier (`col = 4; if (x >= A) { col = 3; if (x >= B) ... }`) and the
+`if (x < A) col = 4; else if (x < B) col = 3; ...` chain emit identical
+`slti`/`bnez`/delay-slot `li` sequences, so the diff shows only register churn:
+the loaded pointer lands in `$v1` instead of `$v0`, `z` reuses it, and the first
+`slti` moves to `$v0`. Swapping to the `else if` form fixed all four inlined
+copies at once (99.0% → 99.4%). The same function's `lb` (not `lbu`+`sll/sra`)
+needed the lookup in a `static inline s8` helper returning the `u8` table entry;
+a GNU statement-expression macro returned `lbu`. The last store's `sll/sra` before
+two `sh` of a wrapped `s16 angle` was the known `s32 mag = angle;` copy.
