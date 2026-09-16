@@ -71914,6 +71914,16 @@ reader: `func_actor_548100_80134AE0`, `..80134BF0`, `..80134CB8` and
 is what tells you a "field that is always zero" is written by code you have not
 read yet.
 
+The mirror case is a symbol the code touches only at its *head*. Every room's
+shaft drawer — `Room_Draw37` and its per-room twins — takes `&D_<room>_<addr>` as
+an `SVECTOR*` and reads exactly 8 bytes of it (`gte_ldv0`), while splat's
+`dlabel` for that address spans 0x98: the vertex is the first field of a larger
+room record that no interior reference lets the splitter name, so the extent is
+the chunk map's, not the code's. Declare it `extern SVECTOR D_<room>_<addr>;` as
+`D_dryfield_gas_station_80183144` and `D_dryfield_trailer_coach_801871C4` are —
+the type is used for nothing but its address, so the `dlabel` size is not
+evidence about it in either direction.
+
 ## m2c's shared-`goto` call is the anti-pattern when only a constant argument differs
 
 **Symptom.** m2c joins two arms that both call the same function by hoisting the
