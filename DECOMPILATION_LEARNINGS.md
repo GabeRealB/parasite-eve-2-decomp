@@ -87170,3 +87170,103 @@ cheapest place to see which form the original used: a delay slot holding
 
 Swapping the two declarations and chaining the init took 99.834% to 100% in
 one build.
+
+## One `hidden = 1` per `case` is a free allocno reweighting lever (Actor00400_Fn02D48, 2026-09-16)
+
+A third lever for "Two zero-cost levers on the allocno order", for the case
+where the pseudo that has to move is a **flag written inside a loop**.
+
+`Actor00400_Fn02D48` reached `Structure: match`, `blocks=35/35
+instructions=172/172`, every penalty zero except `regs=20`, and the whole diff
+was a flag and a `GsCOORDINATE2*` sitting in each other's homes. The `.lreg`
+head gave the arithmetic straight away:
+
+```
+Register 82 used 8 times across 140 insns;   ; the flag   24/140 = .1714
+Register 83 used 9 times across 148 insns;   ; the coord  27/148 = .1824
+```
+
+so the coord sorted first and took `$s1`. The flag's eight references decompose
+as `= 0` (1) + the loop's `= 1` (2, `REG_N_REFS += loop_depth`) + four
+`= 1` sites in the `else if` chain (4) + the final test (1).
+
+Two obvious repairs do not work. **Passing the flag where a `0` is wanted adds
+nothing** - `Gp_FindRec18(work->recs, hidden)` left the count at 8, because cse
+folds a read of a known-zero variable back to `const_int 0` long before `flow`
+counts anything. And the `move a1,s1` in the target that looks like such a use
+is not one: it is `reload_cse` substituting a register that already holds 0.
+
+What does work is splitting the `switch` that sets the flag so each label gets
+its own assignment:
+
+```c
+switch (work->recs[i].field_4 & 0xFFFF0000) {
+    case 0x10000: hidden = 1; break;     /* not: case 0x10000: */
+    case 0x30000: hidden = 1; break;     /*      case 0x30000: */
+    case 0x50000: hidden = 1; break;     /*      case 0x50000: hidden = 1; break; */
+}
+```
+
+Refs go 8 -> 12 (three loop-weighted sites instead of one), priority .1714 ->
+.2571, and the flag sorts first. **The object is unchanged**: `expand_end_case`
+builds its comparison tree from the case *values*, so the tree is identical, and
+jump2 cross-jumps the three one-instruction arms back into the single `li $s1,1`
+the target has. 99.419% -> 100%.
+
+Reach for this whenever the diff is a pure `$sN` permutation and the pseudo that
+must climb is set from several `case` labels or several `if` arms that currently
+share one statement; the merge is what makes it free.
+
+Matched as `Actor00400_Fn02D48` (attempt 10). Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Preprocessed SHA256:
+
+- `base_8.c` (99.419%, shared `case` body): `c5a7ac9de414cfcf225608f7819e5b24a47fba96125b885eca74054b0d2d85f0`
+- `base_10.c` (100.000%, one assignment per `case`): `8143ac85f2aae435cc7af44aa56125d598f69beb8c7b880b947418ed623b11ca`
+
+## Reading a MIPS compare chain back to C: `fold` merges only the leftmost adjacent pair (Actor00400_Fn02D48, 2026-09-16)
+
+Three shapes in the same function that are easy to misread, and the rule that
+separates them.
+
+**A sorted comparison tree is a `switch`; an unsorted run of `beq`s is `||`.**
+
+```
+beq   v1,a2,L      ; 0x30000 tested first, then a > test, then 0x10000, 0x50000
+sltu  v0,a2,v1
+```
+
+is `expand_end_case`'s balanced tree over `{0x10000, 0x30000, 0x50000}`, which
+always tests the middle value first. Five `beq`s against `0x21, 0x2B, 0x2C,
+0x2D, 0x22` in that order cannot be a `switch` - `add_case_node` would have
+sorted them - so that one is a plain `||` chain written in source order.
+
+**`addiu v0,v1,-0xD` / `sltiu v0,v0,2` inside an `||` chain is still `||`.**
+`x == 0xD || x == 0xE || x == 0x1B` associates as `((a || b) || c)`, and `fold`
+turns the *leftmost* pair into an unsigned range test because both are
+comparisons of the same operand. The third disjunct's left operand is now a
+`TRUTH_ORIF_EXPR`, not a comparison, so nothing further merges. That is why the
+same function can hold an unmerged `0x2B/0x2C/0x2D` run - there `0x21` sits in
+front of it and takes the one merge that was available.
+
+**`slti` followed by a separate `blez` means the tests are nested, not `&&`.**
+`if (n < 3 && n > 0)` merges into `(unsigned)(n - 1) < 2` by the same rule and
+emits `addiu v0,v0,-1` / `sltiu v0,v0,2`. The target's
+
+```
+slti  v0,v1,3
+beqz  v0,L
+blez  v1,L
+```
+
+is `if (n < 3) { if (n > 0) { ... } }`: two statements are not one
+`TRUTH_ANDIF_EXPR`, so there is nothing for `fold` to merge. Nesting is the
+lever whenever a range test appears where the target keeps two branches.
+
+**And two `else if` arms with identical bodies are not one `||`.** Writing
+`if (A || B) { body }` places `body` *after* B's code, because `do_jump` jumps
+forward to it; the target had the body physically between A and B with B
+branching backwards into it, which is `if (A) { body } else if (B) { body }`
+after cross-jumping. Duplicating the body is what buys that layout, and it costs
+nothing in the object.

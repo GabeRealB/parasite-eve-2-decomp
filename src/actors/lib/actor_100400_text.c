@@ -18,6 +18,7 @@
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
 extern u8  D_801153F4;
+extern s8  D_80115413;
 void       Gp_ArmStateF0(s32 active);
 void       Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3);
 extern s32 D_80115738;
@@ -914,7 +915,96 @@ void Actor00400_Fn0237C(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02648);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02D48);
+/// Per-frame callback of the marker task `Actor00400_SpawnMarker` starts: it
+/// walks the marker up its stored view-space span, then decides whether the
+/// marker should stop being drawn.
+///
+/// `hidden` is raised when either of the marker's two `GpRec18` slots reports
+/// one of the three kinds 1/3/5, or when `func_800E0C10`'s push-back says the
+/// marker is being crowded and the current stage/room is not one of the
+/// exceptions. Once it is raised - or after 0x3C frames, or when
+/// `D_80115413` is set - the object's draw flags are cleared, the task's
+/// state is bumped and the effect is spawned with kind 2 instead of 1.
+///
+/// `flg` is cleared through a scalar lvalue on purpose: written as a struct
+/// member it is an in-struct MEM, and GCC 2.8.1's
+/// `fixed_scalar_and_varying_struct_p` would then let the `D_801153F4` load
+/// hoist above the store. See DECOMPILATION_LEARNINGS.md, "Struct-typing a
+/// body changes GCC 2.8.1's aliasing".
+void Actor00400_Fn02D48(Task* arg0)
+{
+    Actor100400MarkerWork* work;
+    s32                    hidden;
+    GsCOORDINATE2*         coord;
+    GpDeltaScratch         delta;
+    s32                    mask;
+    s32                    i;
+    s32                    n;
+    u16                    kind;
+
+    hidden             = 0;
+    work               = (Actor100400MarkerWork*)arg0->idMap;
+    coord              = ((Actor100400Ctx*)arg0->extra)->field_8;
+    *(u32*)&coord->flg = 0;
+    kind               = 1;
+    switch (D_801153F4) {
+        case 0:
+            work->field_60    += 1;
+            work->field_5A    += 2;
+            coord->coord.t[0] += work->field_58;
+            coord->coord.t[1] += work->field_5A;
+            coord->coord.t[2] += work->field_5C;
+            if (Gp_FindRec18(work->recs, 0) != 0) {
+                for (i = 0; i < 2; i++) {
+                    switch (work->recs[i].field_4 & 0xFFFF0000) {
+                        case 0x10000:
+                            hidden = 1;
+                            break;
+                        case 0x30000:
+                            hidden = 1;
+                            break;
+                        case 0x50000:
+                            hidden = 1;
+                            break;
+                    }
+                }
+            }
+            n = func_800E0C10(work->recs, &delta, 2, &mask);
+            if (n < 3) {
+                if (n > 0) {
+                    if (Game_Session->field_7 == 4 &&
+                        (Game_Session->field_6 == 0x21 || Game_Session->field_6 == 0x2B ||
+                         Game_Session->field_6 == 0x2C || Game_Session->field_6 == 0x2D ||
+                         Game_Session->field_6 == 0x22)) {
+                        if ((mask & 2) == 0) {
+                            hidden = 1;
+                        }
+                    } else if (Game_Session->field_7 == 5 &&
+                               (Game_Session->field_6 == 0xD || Game_Session->field_6 == 0xE ||
+                                Game_Session->field_6 == 0x1B)) {
+                        if ((mask & 2) == 0) {
+                            hidden = 1;
+                        }
+                    } else if (Game_Session->field_6 == 0x1E && Game_Session->field_7 == 5) {
+                        if ((mask & 8) == 0) {
+                            hidden = 1;
+                        }
+                    } else {
+                        hidden = 1;
+                    }
+                }
+            }
+            Gp_ClearRec18Occupied(work->recs);
+            if ((++arg0->killCountdown >= 0x3D) || (D_80115413 != 0) || (hidden != 0)) {
+                arg0->killCountdown = 0;
+                work->obj.flags    &= 0x3FFF;
+                kind                = 2;
+                arg0->state        += 1;
+            }
+            Actor00400_Fn001AC(coord, work->field_60, kind, 0x1300);
+            break;
+    }
+}
 
 /// Same nearest-waypoint search as `Actor00400_Fn031A4`, but the winner is
 /// stored into `field_56C` and then made current: the record `field_64A` used
