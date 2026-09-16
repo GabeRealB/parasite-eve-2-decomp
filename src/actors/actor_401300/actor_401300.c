@@ -826,7 +826,102 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801376E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80137D78);
+void func_actor_401300_80137D78(Actor401300* arg0)
+{
+    Actor401300Work*       work;
+    Actor401300AimScratch* head;
+    Actor401300AimScratch* aim;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    SVECTOR*               dir;
+    MATRIX                 mat;
+    u16                    angle;
+    s32                    kind;
+
+    kind = arg0->field_36;
+    work = arg0->field_1C;
+    if ((kind & 0xF0) == 0x10) {
+        work->field_0 = 0x1E;
+        return;
+    }
+    head                                     = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
+    *(Actor401300AimScratch**)G_SCRATCH_HEAD = head - 1;
+    aim                                      = head - 1;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x140;
+        work->field_6            = 0;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+        aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
+        if (work->field_C9C == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                work->field_C9C = 1;
+            } else {
+                work->field_C9C = -1;
+            }
+        }
+        if (work->field_C9C == 1) {
+            work->field_8A2 = 0x15;
+            if (work->field_D1E == 0) {
+                angle      = aim->angle + 0x171;
+                aim->angle = work->field_CA2 + angle;
+            } else {
+                aim->angle += work->field_CA2;
+            }
+            work->field_C9C = -1;
+        } else {
+            work->field_8A2 = 0x14;
+            if (work->field_D1E == 0) {
+                angle      = aim->angle - 0x171;
+                aim->angle = angle - work->field_CA2;
+            } else {
+                aim->angle -= work->field_CA2;
+            }
+            work->field_C9C = 1;
+        }
+        work->field_89C = 1;
+        work->field_8A6 = 0xC;
+        work->field_89E = 0;
+        func_actor_401300_80133A3C(arg0);
+        Gfx_RotMatrixY(&mat, aim->angle, 1);
+        dir = &work->field_C8C;
+        Gfx_MatrixCol2(&mat, dir);
+        VectorNormalSS(dir, dir);
+        work->field_C9E = 0xDE;
+        work->field_D1E++;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_401300_80133A3C(arg0);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89E == 0) {
+        gte_lddp(work->field_C9E);
+        gte_ldsv(&work->field_C8C);
+        gte_gpf12_real();
+        gte_stsv(aim);
+    } else {
+        gte_lddp(work->field_C9E >> 1);
+        gte_ldsv(&work->field_C8C);
+        gte_gpf12_real();
+        gte_stsv(aim);
+    }
+    if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
+        coord              = arg0->field_2C->field_8;
+        coord->coord.t[0] += aim->delta.vx;
+        coord              = arg0->field_2C->field_8;
+        coord->coord.t[2] += aim->delta.vz;
+        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+    }
+    if (++work->field_6 >= 0x1E) {
+        work->field_0 = 7;
+    }
+    *(Actor401300AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138160);
 

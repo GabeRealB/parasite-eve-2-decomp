@@ -97000,3 +97000,23 @@ which also pushed `slti` into the next delay slot instead of `lui %hi(global)`.
 `mag = (arg1 >= 0) ? arg1 : -arg1;` (the `ABS()` shape) was 100%. Also here: a
 `(u32)` LCG draw switched as `switch ((s32)(x >> 16) & 3)` gets the balanced
 `beq 1 / slti 2` case tree; unsigned gave a linear chain.
+
+### `(s16field & 0xF0) == 0x10` loads `lhu`; target `lh` needs an `s32` local (func_actor_401300_80137D78, 2026-09-16)
+
+**Symptom.** 99.2%, `insert=1 delete=1`: the only difference is `lhu v0,0x36(s3)`
+where the target has `lh`, followed by `andi v0,v0,0xf0` / `bne`.
+
+**Cause.** The front end's `shorten_compare` narrows a masked compare of an `s16`
+field to HImode: `.rtl` shows `(set (reg:HI) (mem:HI))` then `(and:SI (subreg:SI
+(reg:HI)) 240)`, and a plain HImode move emits `lhu`. Rewriting as
+`((f >> 4) & 0xF) == 1` is worse (95%).
+
+**Fix.** Read the field into an `s32` local first; the variable blocks the
+narrowing, the load becomes `sign_extend:SI (mem:HI)` = `lh`, and combine still
+fuses the rest:
+
+```c
+kind = arg0->field_36;
+work = arg0->field_1C;
+if ((kind & 0xF0) == 0x10) {
+```

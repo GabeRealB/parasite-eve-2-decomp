@@ -69,15 +69,19 @@ typedef struct Actor401300Work {
     /* 0xC10 */ byte          pad_C10[0x38];
     /// Saved at 0xC48 and copied over 0xC68 when
     /// `func_actor_401300_80139520` enters its state.
-    /* 0xC48 */ MATRIX field_C48;
-    /* 0xC68 */ MATRIX field_C68;
-    /* 0xC88 */ byte   pad_C88[2];
-    /* 0xC8A */ s16    field_C8A;
-    /* 0xC8C */ byte   pad_C8C[0xC];
-    /* 0xC98 */ s16    field_C98;
-    /* 0xC9A */ byte   pad_C9A[6];
-    /* 0xCA0 */ u16    field_CA0;
-    /* 0xCA2 */ byte   pad_CA2[6];
+    /* 0xC48 */ MATRIX  field_C48;
+    /* 0xC68 */ MATRIX  field_C68;
+    /* 0xC88 */ byte    pad_C88[2];
+    /* 0xC8A */ s16     field_C8A;
+    /* 0xC8C */ SVECTOR field_C8C;
+    /* 0xC94 */ byte    pad_C94[4];
+    /* 0xC98 */ s16     field_C98;
+    /* 0xC9A */ byte    pad_C9A[2];
+    /* 0xC9C */ s16     field_C9C;
+    /* 0xC9E */ s16     field_C9E;
+    /* 0xCA0 */ u16     field_CA0;
+    /* 0xCA2 */ s16     field_CA2;
+    /* 0xCA4 */ byte    pad_CA4[4];
     /// Copy of the first three bytes of the last event
     /// `func_actor_401300_80132554` handled.
     /* 0xCA8 */ u8   field_CA8[3];
@@ -96,7 +100,7 @@ typedef struct Actor401300Work {
     /* 0xD10 */ Task* field_D10;
     /* 0xD14 */ byte  pad_D14[8];
     /* 0xD1C */ s16   field_D1C;
-    /* 0xD1E */ byte  pad_D1E[2];
+    /* 0xD1E */ s16   field_D1E;
     /* 0xD20 */ s16   field_D20;
     /* 0xD22 */ s16   field_D22;
 } Actor401300Work;
