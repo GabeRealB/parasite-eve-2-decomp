@@ -100708,3 +100708,14 @@ changed nothing; splitting `m` (`m` in one case, `m2` in the other) matched.
 **Also.** A compare `x < 0x1000` emitted as `slt v0,v0,v1` against a register
 already holding 0x1000 from the stores wants a local (`one = 0x1000`) used by
 both the stores and the compare; with plain constants the compare stays `slti`.
+
+### `addu $s2, $s2, $a2` for `i++`: the increment follows the call's `li $a2, 1`
+
+`func_actor_560800_80137BEC` increments its loop counter with `addu $s2,$s2,$a2`
+instead of `addiu $s2,$s2,1`, with `li $a2,1` (the next call's third argument)
+sitting just before it. That is `reload_cse_regs` replacing the constant with a
+hard register already known to hold it, so the increment has to come *after*
+the argument load in the insn stream. Computing `j = i & 0xFFFF; i += 1;`
+before the calls schedules the increment first and emits `addiu`; writing the
+natural `i += 1` at the end of the do-while body (after the calls, indices
+through `j`) lets sched1 hoist it just behind `a2 = 1`, and it matched.
