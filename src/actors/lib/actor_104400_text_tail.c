@@ -37,7 +37,9 @@ void Actor04400_Fn08718(Task* arg0);
 void Actor04400_Fn087E0(Task* arg0);
 s32  Actor04400_Fn08DBC(Task* arg0);
 void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
+void Actor04400_Fn022A8(Task* arg0, s32 arg1);
 
+extern TaskFuncTable10 Actor04400_D00184;
 extern TaskFuncTable4  Actor04400_D000B0;
 extern TaskFuncTable6  Actor04400_D00004;
 extern TaskFuncTable10 Actor04400_D0001C;
@@ -141,7 +143,121 @@ void Actor04400_Fn03E20(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03F8C);
+/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
+/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
+/// This overlay's copy lives in `actor_104400_text.c`; the tail unit needs its
+/// own because the two are separate translation units.
+static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
+{
+    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+
+    block->vx                 = coord->workm.t[0];
+    block->vy                 = coord->workm.t[1];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vz                 = coord->workm.t[2];
+    Gp_UpdateActorColor(enemy, block, 0, 0);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Coalesces the `0x2C00` hit message: returns 1 when the low nibble of
+/// `field_44C` is 3, which consumes it into state 7 with a fresh state machine
+/// so the caller skips this frame's handler.
+static __inline__ s16 Actor04400_TakeHit(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    s16              hit  = 0;
+    Actor104400Work* w2;
+
+    if ((work->field_44C & 0xF) == 3) {
+        hit             = 1;
+        work->field_44C = 0;
+        arg0->state     = 7;
+        w2              = (Actor104400Work*)arg0->idMap;
+        w2->field_420   = 0;
+        w2->field_422   = 0;
+    }
+    return hit;
+}
+
+/// Wraps the pitch / heading / roll at 0x78..0x7C to 12 bits and rebuilds the
+/// model root's rotation from them (Z, then X, then the heading) in a matrix
+/// taken off `G_SCRATCH_HEAD`, copying the 3x3 into the root coordinate.
+static __inline__ void Actor04400_UpdateRotation(Task* arg0)
+{
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    MATRIX*          dst;
+
+    work->field_78           &= 0xFFF;
+    work->field_7A           &= 0xFFF;
+    work->field_7C           &= 0xFFF;
+    *(s32*)&m->m[0][0]        = 0x1000;
+    *(s32*)&m->m[0][2]        = 0;
+    *(s32*)&m->m[1][1]        = 0x1000;
+    *(s32*)&m->m[2][0]        = 0;
+    m->m[2][2]                = 0x1000;
+    *(MATRIX**)G_SCRATCH_HEAD = m;
+    RotMatrixZ(work->field_7C, m);
+    RotMatrixX(work->field_78, m);
+    func_8004BFF8(work->field_7A, m);
+    dst                   = &coord->coord;
+    dst->m[0][0]          = m->m[0][0];
+    dst->m[0][1]          = m->m[0][1];
+    dst->m[0][2]          = m->m[0][2];
+    dst->m[1][0]          = m->m[1][0];
+    dst->m[1][1]          = m->m[1][1];
+    dst->m[1][2]          = m->m[1][2];
+    dst->m[2][0]          = m->m[2][0];
+    dst->m[2][1]          = m->m[2][1];
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+    dst->m[2][2]          = m->m[2][2];
+}
+
+/// Per-frame callback of the enemy this overlay drives, and the ten-state
+/// counterpart of `Actor04400_Fn05DE0`: its handlers come from the
+/// `Actor04400_D00184` table copied onto the stack, and in mode 0 a pending hit
+/// (`Actor04400_TakeHit`) replaces this frame's handler. `Actor04400_Fn02B8C`
+/// advances the animation, the root rotation is rebuilt from 0x78..0x7C, and
+/// `Actor04400_Fn022A8` applies the frame's motion before the root coordinate
+/// is marked dirty. Mode 1 re-pushes the model's second coordinate for
+/// `Gp_UpdateActorColor` and rebuilds the part-pair colour quads while
+/// `field_451` is clear. `D_801153F4` short-circuits both: 1 runs mode 1 only,
+/// 2 hides the model instead.
+///
+/// The shape is `func_actor_342400_801670C0`'s on this overlay's work block,
+/// with this overlay's own animation and motion helpers in place of that
+/// actor's.
+void Actor04400_Fn03F8C(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFuncTable10  sp    = Actor04400_D00184;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            if (Actor04400_TakeHit(arg0) == 0) {
+                sp.funcs[(s16)work->field_420](arg0);
+            }
+            Actor04400_Fn02B8C(arg0);
+            Actor04400_UpdateRotation(arg0);
+            Actor04400_Fn022A8(arg0, 0);
+            coord->flg = 0;
+        case 1:
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            if (work->field_451 == 0) {
+                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn042C4);
 
@@ -627,22 +743,6 @@ void Actor04400_Fn058F4(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05A40);
-
-/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
-/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
-/// This overlay's copy lives in `actor_104400_text.c`; the tail unit needs its
-/// own because the two are separate translation units.
-static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
-{
-    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
-
-    block->vx                 = coord->workm.t[0];
-    block->vy                 = coord->workm.t[1];
-    *(VECTOR**)G_SCRATCH_HEAD = block;
-    block->vz                 = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
-}
 
 /// Same body as `func_actor_342400_80168F14`. This overlay's whole `.text` is
 /// already one shared span, so it cannot join that unit.
