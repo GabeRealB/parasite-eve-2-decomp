@@ -1460,7 +1460,36 @@ void func_actor_206100_8014EB60(Task* task)
     dest->m[2][2] = matrix.mat.m[2][2];
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014EC54);
+void func_actor_206100_8014EC54(Task* task)
+{
+    Actor206100Work* work = (Actor206100Work*)task->idMap;
+    s16              value;
+    s16              angle;
+
+    switch (work->field_556) {
+        case 0:
+            work->field_540 = (u16)work->field_540 + ((-(work->field_540 * 0x10)) >> 7);
+            return;
+        case 1:
+            work->field_556 = 2;
+            return;
+        case 2:
+            value           = (u16)work->field_540 + ((-0x3000 - work->field_540 * 0x10) >> 6);
+            work->field_540 = value;
+            if (value < -0x2DF) {
+                work->field_556++;
+                return;
+            }
+            return;
+        case 3:
+            angle           = (u16)work->field_540 + 0x1C;
+            work->field_540 = angle;
+            if (angle >= 0) {
+                work->field_556 = 0;
+            }
+            break;
+    }
+}
 void func_actor_206100_8014ED3C(Task* task, s16 arg1)
 {
     Actor206100Work*        work;
