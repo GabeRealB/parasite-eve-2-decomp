@@ -1,8 +1,61 @@
 #include "common.h"
 
 #include "actors/actor_401800.h"
+#include "main/gfx.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_3", func_actor_401800_8013DF80);
+/// Room request handler: copies the request's three leading bytes into the work
+/// block, then dispatches on the request's room id and state pair.
+///
+/// Room `0x301` only accepts state `1` (mount); room `0x1002` accepts `0`
+/// (reset) or `2`, which parks the actor's root coordinate at
+/// (-0x595, 0, -0x5B1) and rebuilds its Y rotation from -0x400, clearing `flg`
+/// so the coordinate tree recomputes. Anything else returns 0, leaving the work
+/// block's `field_0` state alone. Same body as `Actor01900_Fn0A5A4`, which
+/// takes the same record and dispatches on the same two room ids.
+s32 func_actor_401800_8013DF80(Actor401800* arg0, s32 arg1, u16* arg2)
+{
+    Actor401800Work* work;
+    u16              room;
+    u16              state;
+    u16              state2;
+
+    work = arg0->field_1C;
+
+    work->field_C10[0] = ((u8*)arg2)[0];
+    work->field_C10[1] = ((u8*)arg2)[1];
+    work->field_C10[2] = ((u8*)arg2)[2];
+
+    room = arg2[0];
+    if (room == 0x301) {
+        state = arg2[1];
+        switch (state) {
+            case 1:
+                work->field_0 = 0x17;
+                return 1;
+            default:
+                return 0;
+        }
+    } else if (room == 0x1002) {
+        state2 = arg2[1];
+        switch (state2) {
+            case 0:
+                work->field_0 = 0;
+                return 1;
+            case 2:
+                work->field_0                       = 0x1C;
+                arg0->field_2C->field_8->coord.t[0] = -0x595;
+                arg0->field_2C->field_8->coord.t[1] = 0;
+                arg0->field_2C->field_8->coord.t[2] = -0x5B1;
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x400, 1);
+                arg0->field_2C->field_8->flg = 0;
+                return 1;
+            default:
+                return 0;
+        }
+    } else {
+        return 0;
+    }
+}
 
 void func_actor_401800_8013E0A0(Task* task)
 {

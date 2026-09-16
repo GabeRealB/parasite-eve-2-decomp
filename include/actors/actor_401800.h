@@ -53,7 +53,11 @@ typedef struct Actor401800Work {
     /* 0xA08 */ GpObj    field_A08;
     /* 0xA28 */ byte     pad_A28[0x120];
     /* 0xB48 */ GpObj    field_B48;
-    /* 0xB68 */ byte     pad_B68[0xAC];
+    /* 0xB68 */ byte     pad_B68[0xA8];
+    /// The three bytes `func_actor_401800_8013DF80` copies out of the room
+    /// request record it is handed; same slot as `Actor01900Work.field_C34`.
+    /* 0xC10 */ u8   field_C10[3];
+    /* 0xC13 */ byte pad_C13[1];
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC14 */ Task* field_C14;
