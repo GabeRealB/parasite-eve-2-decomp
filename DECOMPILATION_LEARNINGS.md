@@ -105410,3 +105410,51 @@ for the case compare), so it took a callee-saved register and pushed the
 parameter into an extra saved reg. Making the stored value SImode - the matched
 sibling `func_actor_800300_80162F24`'s `flag = 1; actor->field_95E = flag;` - let
 cse share the switch's constant and removed both.
+
+## An `SVECTOR` filler written in address order beats the asm's store order
+
+`func_actor_800100_80163F04` builds two effect positions as
+`vx = 0; vy = <height>; vz = 0;`. The target emits the `vz` store *between*
+the two `lhu`s that feed `vy` and the `subu` that consumes them:
+
+```
+sh    zero, 0x40(sp)      ; vx
+lhu   v1, 0x1c(s2)
+lhu   v0, 0x122(v0)
+sh    zero, 0x44(sp)      ; vz   <- here
+subu  v0, v0, v1
+sh    v0, 0x42(sp)        ; vy   (delay slot of the following jal)
+```
+
+That is `-fschedule-insns` dropping an independent store into the `lhu` load
+delay, not the source order - the same mechanism as "Independent `= 0` store
+last so it fills a stack-arg load delay" above. m2c renders the *emitted*
+order, so its `vx, vz, vy` costs a build: with the stores adjacent the
+scheduler leaves them together and the second `lhu` takes a `nop`.
+
+Write the fields in address order (`vx`, `vy`, `vz`) even when the asm shows
+the middle field's store last; the scheduler moves it. Both literals here are
+`sh zero` to consecutive halfwords, so the alternative reading - that the
+source stores `vz` before `vy` - also reproduces the *count* of instructions
+and reads as a plausible match until the delay slot is compared.
+
+`func_actor_800100_80163F04`. Inputs: `base_1.i`
+`0693ae465ab777f31215fa7ef686d69a1cd6dda9b4b3846504aa6235a284c732`,
+`base_2.i`
+`f94a939374358349b5f5b18cc41d631c5de2ce23cb4be2f404fc265edadc2988`.
+
+## A matched function's migrated rodata table must be re-emitted from the unit
+
+See "Migrated `D_*` tables have no `D_*.s` after a re-split" above. Matching
+`func_actor_800100_80163F04` dropped the `INCLUDE_ASM` whose `.s` carried
+`D_actor_800100_80161E58` (a 12-entry `GpActorFuncTable12` folded to the top of
+that file), and the unscoped build then failed at link with `undefined
+reference to 'D_actor_800100_80161E58'`. splat's re-split had written the table
+to `asm/USA/actors/data/actor_800100/actor_800100_2.rodata.s`, which the
+generated `.ld` does not reference - so the bytes were on disk and unlinked.
+
+Re-emit with the guarded file-scope asm block (the `D_actor_800100_80161E98`
+pattern already in the same file), placed between the neighbouring
+`INCLUDE_RODATA` line and the unit's later tables so the object's `.rodata`
+stays in address order. Point the words at the overlay's own symbols:
+`.word func_actor_800100_80165748` and friends, as the split `.s` did.

@@ -7,8 +7,15 @@
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
 void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
+s32  func_80105ED4(GpActorWork* arg0);
 void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
 s32  rand();
+
+extern GpActorFuncTable12 D_actor_800100_80161E58;
+extern s32                D_80115738;
+extern s32                D_8011574C;
+extern s16                D_80072830;
+extern s8                 D_8007272F;
 
 void func_actor_800100_80163D54(GpActorWork* arg0)
 {
@@ -58,7 +65,85 @@ void func_actor_800100_80163D54(GpActorWork* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100_2", D_actor_800100_80161E4C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80163F04);
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "nonmatching D_actor_800100_80161E58\n"
+        "dlabel D_actor_800100_80161E58\n"
+        "    .word func_actor_800100_80165748\n"
+        "    .word func_actor_800100_80164184\n"
+        "    .word func_actor_800100_801643F4\n"
+        "    .word func_actor_800100_80164580\n"
+        "    .word func_actor_800100_801657D8\n"
+        "    .word func_actor_800100_80164710\n"
+        "    .word func_actor_800100_80164940\n"
+        "    .word func_actor_800100_80164B9C\n"
+        "    .word func_actor_800100_80165818\n"
+        "    .word func_actor_800100_80164E60\n"
+        "    .word func_actor_800100_80165010\n"
+        "    .word func_actor_800100_801652B0\n"
+        "enddlabel D_actor_800100_80161E58\n"
+        ".section .text");
+#endif
+
+/// Drives the actor's `field_954`/`field_956` callback tables while the
+/// `field_944` countdown runs, spawning the drip effect every tenth frame.
+/// `sp40` / `sp48` hold the effect position: it rides the water surface
+/// (`Game_Session.field_122`) minus the actor coordinate's world Y.
+void func_actor_800100_80163F04(GpActorWork* arg0)
+{
+    GpActorFuncTable12 sp;
+    SVECTOR            sp40;
+    SVECTOR            sp48;
+    GameActor*         actor;
+    GpActorD4*         d4;
+    GsCOORDINATE2*     coord;
+    s16                temp;
+    s16                rem;
+    s32                pan;
+
+    sp    = D_actor_800100_80161E58;
+    actor = arg0->actor;
+    coord = arg0->extra->field_8;
+    d4    = actor->field_910;
+    if (d4->field_C4 > 0) {
+        d4->field_C4--;
+    }
+    sp.funcs[actor->field_956](arg0);
+    if ((u32)(func_80105ED4(arg0) + 0xEFFFFF77) < 4) {
+        actor->field_944 = 0x78;
+        sp40.vx          = 0;
+        sp40.vy          = (u16)Game_Session->field_122 - (u16)coord->coord.t[1];
+        sp40.vz          = 0;
+        Gp_SpawnEff(D_80115738, coord, 0x1202180, &sp40);
+        Gp_SpawnEff(D_8011574C, coord, (rand() & 0x1F) | 0x40, &sp40);
+    }
+    temp = (u16)actor->field_944;
+    if (temp != 0) {
+        actor->field_944--;
+        rem = temp % 10;
+        if (rem == 0) {
+            sp48.vx = 0;
+            sp48.vy = (u16)Game_Session->field_122 - (u16)coord->coord.t[1];
+            sp48.vz = 0;
+            Gp_SpawnEff(D_8011574C, coord, (rand() & 0x1F) | 0x40, &sp48);
+        }
+    }
+    if ((s8)actor->field_97A == 0) {
+        func_80109BB4(arg0, actor->field_17C);
+        if ((u16)actor->field_96C != 0) {
+            func_8010B9A4(arg0);
+            pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(((D_8007272F - 1) << 16) + 0x4065000A, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        }
+    }
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
+    if (D_80072830 <= 0) {
+        Gp_StopPlayerAnim(arg0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164184);
 
@@ -340,7 +425,6 @@ void func_actor_800100_80165928(void)
 {
 }
 
-extern s16               D_80072830;
 extern GpActorFuncTable7 D_actor_800100_80161E98;
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
@@ -425,7 +509,6 @@ void func_actor_800100_80165C38(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
 }
 
-extern s8  D_8007272F;
 extern s16 D_actor_800100_80167218[];
 
 void func_actor_800100_80165DE8(GpActorWork* arg0)
