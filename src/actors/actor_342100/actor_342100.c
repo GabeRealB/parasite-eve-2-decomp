@@ -2,12 +2,19 @@
 
 #include "actors/actor_342100.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/sound.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
+
+/// Main-executable globals with no module header yet: `D_80073BA9` is the base
+/// weapon id records are numbered from, and `D_8007218A` selects the alternate
+/// set -- 1 means the second block, anything else the `+0x22` one.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
 
 /// Single-entry, type-0 spawn table: `func_actor_342100_80163408` starts entry
 /// 0 and hands it the address of `Actor342100Work::field_20`. The task's
@@ -39,7 +46,31 @@ void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2)
     arg0->field_30 = arg2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_8016334C);
+/// Point the overlay's slot-3 task at the animation set `arg0 + 0x2F` and hand
+/// the work block's `field_3C` the same value, then install the set with
+/// message 0x3E8. The set's block is `D_80073BA9 + 1` under the alternate
+/// weapon configuration and `D_80073BA9 + 0x22` otherwise; its `field_4` is the
+/// same halfword the block keeps, `field_8` is 1 and `field_C` 0xF.
+void func_actor_342100_8016334C(s32 arg0)
+{
+    Actor342100Work* work;
+    GpAnimArg        msg;
+    s16              anim;
+    s32              weaponId;
+    s32              setId;
+
+    work           = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+    anim           = arg0 + 0x2F;
+    weaponId       = D_80073BA9;
+    setId          = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0    = (void*)setId;
+    work->field_3C = anim;
+    msg.field_4    = anim;
+    msg.field_8    = 1;
+    msg.field_C    = 0xF;
+    msg.field_10   = 0;
+    Gp_DispatchMsg(work->field_2C, 0x3E8, (s32)&msg, 0);
+}
 
 void func_actor_342100_801633D0(s32 arg0)
 {

@@ -61,6 +61,7 @@ extern Task* D_actor_342100_80164BB8;
 extern TaskDesc D_actor_342100_80164B78;
 
 void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2);
+void func_actor_342100_8016334C(s32 arg0);
 void func_actor_342100_801633D0(s32 arg0);
 void func_actor_342100_80163408(void);
 void func_actor_342100_80163454(s32 arg0);

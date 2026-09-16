@@ -43084,6 +43084,33 @@ Related: writing the `if` as `if (c) y = x + K; else y = x;` does not help. The
 folding `move y,x` into the branch delay slot, which is what the `y = x;` before
 the `if` gives you.
 
+The same trap catches the *ternary* form, and there it is the read-modify-write
+that costs the block. For `y = x; y = c ? y + 1 : y + 0x22;` both arms name `y`,
+so each becomes `addu/addiu y,y,K` and the two-arm join needs a real jump:
+
+```
+bne  v1,a0,3c
+nop                     # the delay slot the target fills
+j    .text+40
+addu a1,a1,a0
+3c:  addiu a1,a1,0x22
+```
+
+Name the source and the result separately and the arms read live registers
+instead, which lets the result take the compare's own register once it is dead -
+`bne v0,a0` with `addiu v0,v1,0x22` in the delay slot and `addu v0,v1,a0` falling
+through:
+
+```c
+weaponId = D_80073BA9;
+setId    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;   /* 100% */
+```
+
+`func_actor_342100_8016334C` (actors/actor_342100): `base = D_80073BA9;
+base = (D_8007218A == 1) ? base + 1 : base + 0x22;` scored 70.543% with
+`branch=1 insert=6 delete=4` and `blocks=3/4`, `calls_match=False`; splitting the
+variable was the only change to reach 100.000%, all penalties zero.
+
 ## Prove a twin byte-for-byte against the raw `.pe2pkg`
 
 `Actor03800_Fn01EEC` (0x1EEC) and the already-matched `Actor03800_Fn02068`
