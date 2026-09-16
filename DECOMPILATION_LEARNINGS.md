@@ -99589,3 +99589,23 @@ coord = ((TmdObject*)task->extra)->field_8;
 in `$a1`, the register its one call wants, with no callee-saved cost, and this
 single edit was worth 66.9% -> 91.3% here; the remaining diff was then only the
 two-register swap above.
+
+## A permuter follow-up with no `PERMUTER_ANALYSIS.md` means the seed already matched (toolchain, 2026-09-16)
+
+`tools/vacuum_permute.py` run against a scratch whose seed already scores zero --
+the ordinary case when the matching agent matched and committed inside the same
+vacuum iteration -- retains that same file as the candidate and writes
+`experiments: []` to `PERMUTER.json`. `tools/permuter_evidence.py:prepare_followup`
+returns early when no run retained outputs, so it writes neither
+`PERMUTER_ANALYSIS.md` nor `PERMUTER_FOLLOWUP.json`, and the router's follow-up
+prompt opens its "no PERMUTER_ANALYSIS.md" branch. `./attempt.py conclude-permuter`
+then refuses with `no permuter follow-up is active in this scratch` (exit 2, and
+before it writes anything), and `archive_giveup.py ... --permuter-findings`
+prints `PERMUTER_FINDINGS_SKIP=no discoveries`.
+
+Nothing is broken and there is no permutation to explain: diff the retained
+candidate against the host file the scratch `BRIEF.md` names (here they differed
+only in whitespace and comments), confirm the checksum, and stop. Seen on
+ActorsShared8013845cSub1, whose retained `base_3.c`
+(`e47ee1677a06f926098b53c6066249096f786f632fd2763d1cd2c3d22e2db1ce`) was already
+the body landed in `src/actors/actor_201100/actor_201100_4.c`.
