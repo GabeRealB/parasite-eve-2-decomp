@@ -786,7 +786,25 @@ void Actor00400_Fn09D98(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09E70);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09F18);
+void Actor00400_Fn09F18(Actor100400* arg0)
+{
+    u16              count;
+    s32              sound;
+    s32              pan;
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    count           = work->field_636 + 1;
+    work->field_636 = count;
+    if ((s16)count == 0x26) {
+        sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x54220006;
+        pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+    if ((s16)work->field_636 == 0x30) {
+        work->field_63A += 1;
+    }
+}
 
 void Actor00400_Fn09FDC(Actor100400* arg0)
 {
