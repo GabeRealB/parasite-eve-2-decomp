@@ -352,6 +352,13 @@ solved_elsewhere_file() {
   if ! python3 tools/overlay_dup_index.py solved --rebuild >"$out" 2>/dev/null; then
     : >"$out"      # index unavailable: fall through rather than block the vacuum
   fi
+  # Under a sweep list, also skip copies whose body another overlay owns: lanes
+  # working sibling overlays at once would otherwise each match it, and a body
+  # that gives up would be fought once per carrier. vacuum_overlay_list.sh sets
+  # this; see overlay_dup_index.py `ceded`.
+  if [[ -n "${VACUUM_OWNER_LIST:-}" && -f "$VACUUM_OWNER_LIST" ]]; then
+    python3 tools/overlay_dup_index.py ceded --list "$VACUUM_OWNER_LIST" >>"$out" 2>/dev/null || true
+  fi
   echo "$out"
 }
 
@@ -411,7 +418,7 @@ pick_simplest_func() {
   local solved
   solved=$(solved_elsewhere_file)
   if [[ -s "$solved" ]]; then
-    echo "Skipping $(wc -l <"$solved") function(s) already matched in another overlay." >&2
+    echo "Skipping $(wc -l <"$solved") function(s) already matched in${VACUUM_OWNER_LIST:+, or owned by,} another overlay." >&2
     extra+=(--exclude-file "$solved")
   fi
   # --name-only: this function's stdout *is* the function name. Without it a

@@ -25,7 +25,7 @@ other checkout - and fails *silently*, because a missing helper looks exactly
 like "nothing landable here" and the driver would skip every overlay.
 """
 from __future__ import annotations
-import fcntl, json, os, pathlib, re, subprocess, sys, time
+import fcntl, hashlib, json, os, pathlib, re, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -67,6 +67,27 @@ def solved_set() -> set:
             cwd=ROOT, capture_output=True, text=True, timeout=900)
         return r.stdout if r.returncode == 0 else None
     text = _locked_cache("vacuum-solved-cache.txt", 600.0, produce)
+    return set(text.split()) if text else set()
+
+
+def ceded_set() -> set:
+    """Copies whose body another overlay owns under the driver's sweep list.
+
+    The inner vacuum skips these (overlay_dup_index.py `ceded`), so an overlay
+    holding only ceded copies yields nothing - the same waste solved_set avoids.
+    Cached per list, since two drivers can run different lists at once.
+    """
+    owner_list = os.environ.get("VACUUM_OWNER_LIST", "")
+    if not owner_list or not os.path.isfile(owner_list):
+        return set()
+
+    def produce():
+        r = subprocess.run(
+            [sys.executable, "tools/overlay_dup_index.py", "ceded", "--list", owner_list],
+            cwd=ROOT, capture_output=True, text=True, timeout=900)
+        return r.stdout if r.returncode == 0 else None
+    tag = hashlib.sha1(owner_list.encode()).hexdigest()[:10]
+    text = _locked_cache(f"vacuum-ceded-cache-{tag}.txt", 600.0, produce)
     return set(text.split()) if text else set()
 
 
@@ -231,6 +252,11 @@ def main() -> int:
         if solved:
             keep = [f for f in keep if f not in solved]
             why = "left after duplicates already matched elsewhere"
+    if keep:
+        ceded = ceded_set()
+        if ceded:
+            keep = [f for f in keep if f not in ceded]
+            why = "left after duplicates owned by another overlay in the list"
     if keep and bound:
         keep = under_bound(overlay, keep, bound)
         why = f"under the {bound} difficulty bound"

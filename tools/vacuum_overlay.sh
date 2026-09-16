@@ -217,7 +217,7 @@ trap 'kill $LEASE_REFRESHER 2>/dev/null || true; release_all' EXIT
 # bound, so "[1 of 49]" describes work it is not going to do and disagrees with
 # what the monitor reports.
 VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" "$MAX_DIFFICULTY" <<'PYEOF' 2>/dev/null || echo ""
-import re, subprocess, sys, pathlib
+import os, re, subprocess, sys, pathlib
 wt, ov = sys.argv[1], sys.argv[2]
 bound = sys.argv[3] if len(sys.argv) > 3 else ""
 inc = []
@@ -238,6 +238,14 @@ try:
         cwd=wt, capture_output=True, text=True, timeout=900).stdout.split())
 except Exception:
     solved = set()
+owner_list = os.environ.get("VACUUM_OWNER_LIST", "")
+if owner_list and os.path.isfile(owner_list):
+    try:
+        solved |= set(subprocess.run(
+            ["python3", "tools/overlay_dup_index.py", "ceded", "--list", owner_list],
+            cwd=wt, capture_output=True, text=True, timeout=900).stdout.split())
+    except Exception:
+        pass
 keep = [f for f in inc if f not in solved]
 if bound and keep:
     base = pathlib.Path(wt, "asm", "USA")
@@ -263,7 +271,7 @@ print(len(keep))
 PYEOF
 )
 export VACUUM_TOTAL
-log "${VACUUM_TOTAL:-?} function(s) to attempt (of $CLAIMED_N claimed; the rest are duplicates already matched elsewhere)"
+log "${VACUUM_TOTAL:-?} function(s) to attempt (of $CLAIMED_N claimed; the rest are duplicates matched${VACUUM_OWNER_LIST:+ or owned} elsewhere)"
 
 # decomp_overlay resolves a nested name relative to the family's asm tree, so
 # it knows "lib/<unit>" but not "<family>/lib/<unit>". The lease keeps the

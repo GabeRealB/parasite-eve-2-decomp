@@ -478,6 +478,73 @@ def cmd_solved(data: dict, min_words: int) -> int:
     return 0
 
 
+def owner_rank(order: list[str]):
+    """Sort key choosing which carrier of a body owns it, for a sweep list.
+
+    A promoted copy in `<family>/lib` owns outright: matching it serves every
+    carrier. Otherwise the first carrier in list order owns, which for a cover
+    order (local/actors_sweep_order.txt) is the overlay the list meant to take
+    the body from. Unlisted carriers rank after every listed one, so ownership
+    never lands on an overlay the sweep will not reach while a listed carrier
+    exists; ties break on the overlay path so every lane computes the same owner.
+    """
+    pos = {}
+    for i, entry in enumerate(order):
+        pos.setdefault(entry.split("/")[-1], i)
+
+    def key(f: dict) -> tuple:
+        if f["overlay"].split("/")[-1] == "lib":
+            return (-1, f["overlay"])
+        return (pos.get(f["overlay"].split("/")[-1], len(order)), f["overlay"])
+
+    return key
+
+
+def cmd_ceded(data: dict, min_words: int, order: list[str]) -> int:
+    """Unmatched functions whose body another overlay owns under a sweep list.
+
+    `solved` only skips a body once some copy is *matched*, and only as far as
+    the tree it runs in knows. Lanes working sibling overlays at the same time,
+    or from worktrees cut before a sibling's match landed, each match the body
+    again - and a body that gives up is not solved at all, so every carrier
+    fights it separately. Giving each body one owner closes both without any
+    live coordination: every lane using the same list computes the same owner,
+    and the rest skip it. A skipped copy is parked exactly as a solved one is,
+    for promotion or a later match of its own.
+    """
+    key = owner_rank(order)
+    listed = {entry.split("/")[-1] for entry in order}
+    ceded: set[int] = set()   # id() of each ceded function record
+    for v in classes(data, "text").values():
+        if v[0]["words"] < min_words:
+            continue  # a stub is matched per overlay, like `solved`
+        by_family: dict[str, list[dict]] = collections.defaultdict(list)
+        for f in v:
+            by_family[f["overlay"].split("/")[1]].append(f)
+        for copies in by_family.values():
+            if len({f["overlay"] for f in copies}) < 2:
+                continue
+            if any(f.get("state") == "matched" for f in copies):
+                continue  # `solved` already covers it
+            # A list only decides bodies it can reach: with no listed carrier
+            # (another family, or overlays the cover order left out) the owner
+            # would be an arbitrary name that no lane of this list sweeps.
+            if not any(f["overlay"].split("/")[-1] in listed or f["overlay"].endswith("/lib")
+                       for f in copies):
+                continue
+            owner = min(copies, key=key)["overlay"]
+            ceded.update(id(f) for f in copies if f["overlay"] != owner)
+    # The pick excludes by name, and names repeat across overlays - alias
+    # symbols such as ActorsShared80131f9cSub1 name four different bodies - so a
+    # name is ceded only when every function carrying it is a ceded copy.
+    names: dict[str, bool] = {}
+    for f in data["functions"]:
+        names[f["name"]] = names.get(f["name"], True) and id(f) in ceded
+    for name in sorted(n for n, all_ceded in names.items() if all_ceded):
+        print(name)
+    return 0
+
+
 def cmd_stats(data: dict) -> int:
     fns = [f for f in data["functions"] if f.get("state") != "matched"]
     by_family = collections.Counter(f["overlay"].split("/")[1] for f in fns)
@@ -669,15 +736,17 @@ def body_file(f: dict) -> str | None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "promote",
-                                        "siblings", "similar"))
+    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "ceded",
+                                        "promote", "siblings", "similar"))
     ap.add_argument("name", nargs="?")
     ap.add_argument("--family", action="append", help="limit to a family (rooms, weapons, …)")
     ap.add_argument("--min", type=int, default=10, help="`shared`: minimum copies")
     ap.add_argument("--refs", action="store_true", help="`shared`: count overlay-local references")
     ap.add_argument("--unit", help="`promote`: name for the shared unit")
     ap.add_argument("--min-words", type=int, default=8, dest="min_words",
-                    help="`solved`: ignore bodies shorter than this (default 8)")
+                    help="`solved`, `ceded`: ignore bodies shorter than this (default 8)")
+    ap.add_argument("--list", dest="order_list",
+                    help="`ceded`: the sweep list whose order decides each body's owner")
     ap.add_argument("--rebuild", action="store_true", help="ignore the cached index")
     ap.add_argument("--top", type=int, default=5, help="`similar`: candidates per class")
     ap.add_argument("--floor", type=float, default=0.80,
@@ -687,6 +756,12 @@ def main() -> int:
     data = load(args.rebuild, args.family)
     if args.command == "solved":
         return cmd_solved(data, args.min_words)
+    if args.command == "ceded":
+        if not args.order_list:
+            ap.error("ceded needs --list FILE")
+        order = [line.split()[0] for line in Path(args.order_list).read_text().splitlines()
+                 if line.strip() and not line.lstrip().startswith("#")]
+        return cmd_ceded(data, args.min_words, order)
     if args.command == "siblings":
         if not args.name:
             ap.error("siblings needs a function name")

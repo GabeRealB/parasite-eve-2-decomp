@@ -49,6 +49,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$LIST" && -f "$LIST" ]] || { echo "need --list FILE" >&2; usage; }
+# The list also decides which overlay owns each shared body: the first carrier
+# in list order, or its promoted lib copy. Every sweep this driver starts - the
+# claim filter, vacuum_overlay.sh and the inner vacuum - skips the other copies,
+# so parallel workers never match one body twice or give it up once per carrier.
+# Absolute, because the inner vacuum runs in a worktree without local/.
+VACUUM_OWNER_LIST="$(realpath "$LIST")"
+export VACUUM_OWNER_LIST
 [[ "$JOBS" =~ ^[0-9]+$ ]] || { echo "--jobs must be a number" >&2; exit 1; }
 
 LOG_DIR="$(vacuum_log_dir)"
