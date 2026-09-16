@@ -1194,7 +1194,19 @@ void Actor04400_Fn07E74(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07F04);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07F6C);
+void Actor04400_Fn07F6C(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+
+    work->field_426 = 4;
+    work->field_41C = 0x10;
+    work->field_418 = 1;
+    work->field_414 = 1;
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->field_446 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+    work->field_412 = 0;
+    work->field_422 = work->field_422 + 1;
+}
 
 /// Same body as `ActorsShared8016b104`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
