@@ -71,9 +71,12 @@ typedef struct Actor104000Obj2C {
 } Actor104000Obj2C;
 
 /// Caller-owned context the actor also keeps a pointer to at `field_20`;
-/// `field_14` is the flag the state handlers clear.
+/// `field_14` is the flag the state handlers clear; the top nibble of `field_8`
+/// selects whether it is raised again.
 typedef struct Actor104000Ctx {
-    /* 0x00 */ byte pad_0[0x14];
+    /* 0x00 */ byte pad_0[8];
+    /* 0x08 */ u16  field_8;
+    /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ s8   field_14;
     /* 0x15 */ byte pad_15[3];
 } Actor104000Ctx;
