@@ -199,7 +199,74 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_8
 /// the far half. `field_696` is read back as a signed half, the form the
 /// sibling overlays' work blocks declare their yaw in; this body is the same
 /// one `Actor02500_Fn016FC` and `func_actor_300700_80164794` carry.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80134C38);
+void func_actor_521100_80134C38(Actor521100* arg0)
+{
+    Actor521100Work*       work;
+    GsCOORDINATE2*         coord;
+    Actor521100RotScratch* sc;
+    s32                    ang;
+    u16                    want;
+    s16                    diff;
+    s32                    adiff;
+    s32                    step;
+    s32                    cur;
+    s32                    next;
+    s32                    wrapStep;
+
+    sc    = (Actor521100RotScratch*)(SCRATCH_SP -= 0x18);
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_698;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
+
+    work->field_696 = ang;
+    if (adiff < 0x800) {
+        step = work->field_69C;
+        if (step >= adiff) {
+            work->field_696 = want;
+        } else {
+            next = (s16)work->field_696;
+            if (diff <= 0) {
+                next -= step;
+            } else {
+                next += step;
+            }
+            work->field_696 = next;
+        }
+    } else {
+        step = work->field_69C;
+        if (diff > 0) {
+            if (step >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (step >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_696 = work->field_698;
+        goto done;
+    turn:
+        wrapStep = work->field_69C;
+        cur      = (s16)work->field_696;
+        if (diff > 0) {
+            work->field_696 = cur - wrapStep;
+        } else {
+            work->field_696 = cur + wrapStep;
+        }
+    }
+done:
+    sc->rot.vx = 0;
+    sc->rot.vy = work->field_696;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    SCRATCH_SP += 0x18;
+}
 /// Plays the actor's footstep cues: while the animation record the cue body
 /// reads carries `field_3` bit 0x20 (or 0x10), a sound is queued on the frame
 /// that bit has just dropped from `Actor521100Work::field_6B4`, panned and
