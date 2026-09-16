@@ -375,5 +375,36 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_8
 /// `D_actor_521100_8015F8BC` by the top three bits of an LCG draw. `field_690`
 /// is the sequence's own clock, walking the state 1 -> 2 at 0xF0 frames, 2 -> 3
 /// at 0x14A and 3 -> 0 at 0x1A4, where the tick stops.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80135230);
+void func_actor_521100_80135230(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    u16              timer;
+    s16*             tbl;
+    s16              part;
+
+    work            = arg0->field_1C;
+    timer           = work->field_68E + 1;
+    work->field_68E = timer;
+    if ((s16)timer >= D_actor_521100_8015F8CC[work->field_68C]) {
+        work->field_68E = 0U;
+        func_800FDB18(3, &arg0->field_2C->field_8[3], NULL, &work->eff);
+        if (work->field_68C == 1) {
+            tbl         = D_actor_521100_8015F8BC;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            part        = tbl[(Gp_LcgState >> 16) & 7];
+            func_800FDB18(3, &arg0->field_2C->field_8[part], NULL, &work->eff);
+        }
+    }
+    timer           = work->field_690 + 1;
+    work->field_690 = timer;
+    if ((s16)timer == 0xF0) {
+        work->field_68C = 2;
+    }
+    if ((s16)work->field_690 == 0x14A) {
+        work->field_68C = 3;
+    }
+    if ((s16)work->field_690 >= 0x1A4) {
+        work->field_68C = 0;
+    }
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100", ActorsShared80135df4Table);
