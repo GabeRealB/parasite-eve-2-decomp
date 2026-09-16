@@ -37,6 +37,7 @@ void Actor04400_Fn087E0(Task* arg0);
 s32  Actor04400_Fn08DBC(Task* arg0);
 void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
 
+extern TaskFuncTable4 Actor04400_D000B0;
 extern TaskFuncTable5 Actor04400_D001C4;
 extern TaskFuncTable7 Actor04400_D001D8;
 extern u32            Gp_LcgState;
@@ -1007,7 +1008,19 @@ void Actor04400_Fn0723C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07360);
+/// Dispatches this overlay's `Actor04400_D000B0` dispatcher table by the
+/// sub-state index `field_422`. Entry 2 is the fall-to-floor handler
+/// `Actor04400_Fn02008` and entry 3 the landing it triggers
+/// (`Actor04400_Fn0216C`).
+void Actor04400_Fn07360(Task* arg0)
+{
+    Actor104400Work* work;
+    TaskFuncTable4   sp;
+
+    work = (Actor104400Work*)arg0->idMap;
+    sp   = Actor04400_D000B0;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn073C8);
 
