@@ -95094,3 +95094,45 @@ Inputs: `base.c` (80.905%)
 `fdba11d78de5a47bbe4f95ed30e2a95616ce5e6cc4687166b181615526bca1d6`,
 `base_2.c` (100.000%)
 `7c29f53e1f3797e505b5548a5407cc2466ffb5cec3538d673e6edfb826a0f79a`.
+
+## Locals m2c invents for a loop's index and its walk offset reorder the
+backward schedule's callee-save block (func_actor_202900_8014A304, 2026-09-16)
+
+The target and the m2c seed held the *same 36 instructions in the same three
+blocks*; every difference was inside the prologue, where the target pairs each
+`sw $sN,off($sp)` with the `li`/`lui` that overwrites that register
+(`s0, s3, s2, s1`, then `sw $ra`, then the argument copy) and the seed splits
+the same pairs apart. `regs=2 reorder=2 insert=1 delete=1`, 90.833%.
+
+Nothing in the loop body moved, so the cause is one extra insn in the
+preheader. `.sched2` builds each block's ready list by walking it from the tail
+backward and queueing every insn whose dependents are all scheduled, then picks
+from the head, with stores overriding the head via `potential_hazard`. Both
+compilations have the same five leaves, but the m2c source's `var_s1 = 0x7C`
+and `var_a2 = i` are *statements*, so they sit at fixed positions in the block:
+
+```
+seed    122 subu; 124 sw ra; 126 sw s3; 128 sw s2; 130 sw s1; 132 sw s0;
+        9 li s0; 12 li s1; 15 a2=s0; 99 lui s3; 101 li s2
+        ready 101 99 15 12 114   -> emitted sw s0,li s0, sw s1,li s1, move,
+                                    sw s3,lui s3, sw s2,li s2, sw ra
+natural 122 subu; 124 sw ra; 126 sw s3; 128 sw s2; 130 sw s1; 132 sw s0;
+        9 li s0; 94 lui s3; 96 li s2; 102 li s1        (no a2 copy at all)
+        ready 102 96 94 9 124    -> emitted pairs, in target order
+```
+
+Writing the loop the way the sibling `func_actor_521100_80136820` does —
+`&work->slots[i]` with `i` itself as the call's third argument — is what removes
+the extra leaf: `loop.c` then creates the walking offset biv and the argument
+copy itself, and both land where the target has them (the biv at the end of the
+preheader, the copy at the top of the body). 100.000%, all penalties zero.
+
+So when an m2c seed carries a local for a strength-reduced offset or for a
+value that is already a live variable, and the only diff is a save-block order,
+delete the local rather than reordering anything: the leaf queue is built in
+reverse program order, so one extra leaf shifts every later pick.
+
+Inputs: `base.i`
+`3154baa9fd20dd7f58aeeca96c96ba84af64d853c567cab3f9b052b6bd090af0` (90.833%),
+`base_1.i` `c10b7cfcb1055451f644dda15bf056324a749164eab5e1f8800aaa4e4b765c2e`
+(100.000%).

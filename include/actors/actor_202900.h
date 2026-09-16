@@ -18,7 +18,7 @@ typedef struct Actor202900Work {
     /* 0x054 */ GpAnimSlot slots[0x13];
     /* 0x34C */ byte       pad_34C[0x130];
     /* 0x47C */ s16        field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x47E */ byte       pad_47E[2];
+    /* 0x47E */ u16        field_47E; // animation id currently playing
     /* 0x480 */ u16        animId;    // animation id the slots are seeded with
     /* 0x482 */ s16        field_482; // cleared when a step body is started
     /* 0x484 */ s16        field_484; // frame the second slot last held when it was 0x15, kept for change detection

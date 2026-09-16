@@ -63,7 +63,25 @@ void func_actor_202900_8014A208(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A260);
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A304);
+/// Reseeds animation slots 1..0x12 from `animId` and latches that id into
+/// `field_47E` as the one now playing.
+///
+/// The third argument is the loop counter itself. Giving the call its own
+/// counter copy (as m2c does) makes the preheader's `a2` initialisation a
+/// separate pseudo, and the scheduler then orders the prologue saves around it
+/// instead of leaving each `sw` paired with the load that overwrites it.
+void func_actor_202900_8014A304(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        func_800B3AA4(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i], i,
+                      (s16)ActorsShared80131f9cWork->animId, 0, 8);
+        i++;
+    } while (i < 0x13);
+    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+}
 
 /// Watches the second animation slot for the frame the overlay reacts to:
 /// while it holds 0x15, records it in `field_484` and reports whether that is
