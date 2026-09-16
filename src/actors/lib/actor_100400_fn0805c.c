@@ -667,7 +667,29 @@ void Actor00400_Fn09C84(Actor100400* arg0)
     states[(s16)work->field_63A](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09CCC);
+void Actor00400_Fn09CCC(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    Actor100400Work* state;
+
+    work              = arg0->field_1C;
+    coord             = arg0->field_2C->field_8;
+    work->field_660   = 1;
+    coord->coord.t[0] = -0x6C0;
+    coord->coord.t[1] = 0x3E8;
+    work->field_63E   = 0x3E8;
+    coord->coord.t[2] = -0xBB8;
+    work->field_554   = 0;
+    work->field_556   = 0x800;
+    work->field_558   = 0;
+    state             = arg0->field_1C;
+    state->field_632  = 0x10;
+    state->field_628  = 3;
+    state->field_624  = 2;
+    work->field_636   = 0;
+    work->field_63A   = work->field_63A + 1;
+}
 
 void Actor00400_Fn09D3C(Actor100400* arg0)
 {
