@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_421600.h"
+#include "main/gfx.h"
 #include "main/task.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132310);
@@ -65,7 +66,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013B4C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013B8E0);
+void func_actor_421600_8013B8E0(Actor421600* arg0)
+{
+    Actor421600Work* temp_s1;
+    TmdObject*       temp_a0;
+
+    temp_s1 = arg0->field_1C;
+    if (temp_s1->field_4 != 0) {
+        temp_a0                      = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        temp_a0->field_C             = 0;
+        Tmd_AllocBuffers(temp_a0);
+        temp_s1->field_832                  = 0x10;
+        temp_s1->field_82E                  = 0x11;
+        temp_s1->field_828                  = 2;
+        temp_s1->field_B6C.flags           |= 0x4000;
+        arg0->field_2C->field_8->coord.t[0] = 0;
+        arg0->field_2C->field_8->coord.t[1] = 0;
+        arg0->field_2C->field_8->coord.t[2] = 0;
+        arg0->field_2C->field_8->flg        = 0;
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0, 1);
+        func_actor_421600_80134604(arg0);
+    }
+    func_actor_421600_80134604(arg0);
+    if (temp_s1->field_68 & 0x100) {
+        arg0->field_2C->field_8->coord.t[0] = -0x334;
+        arg0->field_2C->field_8->coord.t[1] = 0;
+        arg0->field_2C->field_8->coord.t[2] = -0x4C4;
+        arg0->field_2C->field_8->flg        = 0;
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x400, 1);
+        temp_s1->field_828 = 2;
+        temp_s1->field_82E = 0;
+        func_actor_421600_80134604(arg0);
+        func_actor_421600_80134604(arg0);
+        temp_s1->field_0 = 0x27;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013BA70);
 
