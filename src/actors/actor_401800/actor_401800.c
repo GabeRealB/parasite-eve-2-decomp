@@ -102,7 +102,154 @@ s32 func_actor_401800_801323D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     return s->hit;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013271C);
+/// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
+/// own that is released before `ratan2` runs.
+static __inline__ s16 Actor401800_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
+{
+    u8*                    head;
+    Actor401800AvoidDelta* d;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (Actor401800AvoidDelta*)(head - 0x10);
+    d->vx                 = p->vx - eye->vx;
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = p->vy - eye->vy;
+    d->vz                 = p->vz - eye->vz;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vz);
+}
+
+/// Bearing of `p` from `eye` in the XY plane; used when the facing column is
+/// close to vertical.
+static __inline__ s16 Actor401800_BearingXY(SVECTOR3* p, SVECTOR3* eye)
+{
+    u8*                    head;
+    Actor401800AvoidDelta* d;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (Actor401800AvoidDelta*)(head - 0x10);
+    d->vx                 = p->vx - eye->vx;
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = p->vy - eye->vy;
+    d->vz                 = p->vz - eye->vz;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vy);
+}
+
+/// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
+/// (which also raises the returned `blocked` flag) or 0x30000 each give a
+/// bearing, at most eight; bearings more than 0x400 apart cancel each other.
+/// Each survivor becomes a 10-unit step added to `pos` and to the translation.
+/// Same body as `Actor00100_Fn00508`.
+s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+{
+    u8*                      head;
+    Actor401800AvoidScratch* s;
+    s16                      diff;
+    s16                      t;
+    s32                      mag;
+
+    if (Game_Session->field_4D == 1 || D_80072729 == 1) {
+        return 0;
+    }
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor401800AvoidScratch);
+    s                     = (Actor401800AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    s->blocked            = 0;
+    pos->vz               = 0;
+    pos->vy               = 0;
+    pos->vx               = 0;
+
+    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
+    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
+
+    if (ABS(s->dir.vz) < 0x818) {
+        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+    } else {
+        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
+    }
+
+    s->eye.vx = *(u16*)&coord->workm.t[0];
+    s->eye.vy = *(u16*)&coord->workm.t[1];
+    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->count  = 0;
+
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].field_4 == 0) {
+            break;
+        }
+        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        switch (s->kind) {
+            case 0x10000:
+                s->blocked = 1;
+            case 0x30000:
+                break;
+            default:
+                continue;
+        }
+
+        if (ABS(s->dir.vz) < 0x818) {
+            s->angle[s->count] = Actor401800_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+        } else {
+            s->angle[s->count] = Actor401800_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+        }
+        s->ok[s->count] = 1;
+        s->count++;
+        if (s->count >= 8) {
+            break;
+        }
+    }
+
+    for (s->i = 0; s->i < s->count; s->i++) {
+        for (s->j = s->i + 1; s->j < s->count; s->j++) {
+            diff = (u16)s->angle[s->i] - (u16)s->angle[s->j];
+            t    = diff;
+            if (diff < 0) {
+            wrapUp:
+                if (t < -0x800) {
+                    t += 0x1000;
+                    goto wrapUp;
+                }
+            } else {
+            wrapDown:
+                if (t > 0x800) {
+                    t -= 0x1000;
+                    goto wrapDown;
+                }
+            }
+            mag     = t;
+            s->diff = mag;
+            SOFT_BARRIER();
+            if (mag < 0) {
+                mag = -mag;
+            }
+            if (mag >= 0x401) {
+                s->ok[s->i] = 0;
+                s->ok[s->j] = 0;
+            }
+        }
+        if (s->ok[s->i] != 0) {
+            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+            s->diff = diff;
+            Gfx_RotMatrixY(&s->m, diff, 1);
+            Gfx_MatrixCol2(&s->m, &s->dir);
+            VectorNormalSS(&s->dir, &s->dir);
+            gte_lddp(-10);
+            gte_ldsv(&s->dir);
+            gte_gpf12_real();
+            gte_stsv(&s->dir);
+            pos->vx           += s->dir.vx;
+            pos->vz           += s->dir.vz;
+            coord->coord.t[0] += s->dir.vx;
+            coord->coord.t[2] += s->dir.vz;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor401800AvoidScratch);
+    return s->blocked != 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80132C68);
 

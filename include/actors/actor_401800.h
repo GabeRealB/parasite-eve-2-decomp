@@ -215,6 +215,38 @@ typedef struct Actor401800RepelScratch {
 } Actor401800RepelScratch;
 STATIC_ASSERT_SIZEOF(Actor401800RepelScratch, 0x88);
 
+/// 0x54-byte scratch `func_actor_401800_8013271C` takes from `G_SCRATCH_HEAD` to
+/// push a coordinate away from the obstacles in a `GpRec18` table: `angle`/`ok`
+/// hold up to eight bearings collected from the records, `i`/`j` are the loop
+/// cursors, and `blocked` is set when any record's kind is 0x10000. Same layout
+/// as `Actor00100AvoidScratch`, which `Actor00100_Fn00508` carves.
+typedef struct Actor401800AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ u8       blocked;
+} Actor401800AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor401800AvoidScratch, 0x54);
+
+/// 0x10-byte scratch the bearing helpers of `func_actor_401800_8013271C` nest
+/// inside `Actor401800AvoidScratch`: an obstacle's offset, widened to words.
+typedef struct Actor401800AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor401800AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor401800AvoidDelta, 0x10);
+
 /// 0xC-byte scratch `func_actor_401800_8013A034` takes from `G_SCRATCH_HEAD`
 /// for its player-in-radius test: the X/Z offset to the camera target and the
 /// radius, each squared in place before `dx + dz < r`. Same shape as
@@ -393,6 +425,12 @@ typedef struct Actor401800Msg7D3 {
 /// and the other families' step helpers test.
 extern u8 D_80072729;
 
+/// Pushes `coord` away from the obstacles in `recs`, exactly as
+/// `Actor00100_Fn00508` does for actor 00100: records of kind 0x10000 (which
+/// also raises the returned `blocked` flag) or 0x30000 each give a bearing, at
+/// most eight; bearings more than 0x400 apart cancel each other. Each survivor
+/// becomes a 10-unit step added to `pos` and to the coordinate's translation.
+s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos);
 s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 /// Re-seeds the `rec` contact record the aim-and-rescale body arms for the
 /// actor's root coordinate. Same role `func_actor_401300_80132910` plays.
