@@ -85875,4 +85875,64 @@ if (arg2 == 1) {
 ```
 
 Inputs: `base.i` (100%, 11/11 instructions), compiler SHA256
+## A two-case `switch` whose first case falls through in the target was an `if`/`else if`
+
+m2c renders a dispatch on one value as a `switch`, and that is the wrong
+construct whenever the target's *first* case is reached by falling out of the
+first compare. `func_dryfield_g_r_kitchen_8017EB04` picks one of two beam pairs
+by `Game_Session->field_4`; the target is
+
+```
+bne    a0,a1, .L6C        /* a1 = 2, set well above */
+addiu  v0,zero,0x3        /* the *else* arm's constant, in the delay slot */
+[case 2 body]
+j      .Lend
+nop
+.L6C:
+bne    a0,v0, .Lend       /* v0 = 3 */
+move   a0,s1
+[case 3 body]
+.Lend:
+```
+
+Every case label sits *below* its test and is fallen into. The m2c `switch` seed
+instead compiles every compare as a taken branch to the case label:
+
+```
+beq    a0,a1, 0x40        /* if (x == 2) goto case 2 */
+li     v0,3
+beq    a0,v0, 0x78
+move   a0,s1
+j      0xa4               /* the default is the fall-through */
+nop
+```
+
+85%, `regs=6 insert=4 delete=2 reorder=1`, blocks 6 vs 5, predicates and calls
+mismatched. The counters name nothing; the object does.
+
+The cause is in `stmt.c`: for a short case list `emit_case_nodes` emits one
+`do_jump_if_equal` per node — a compare-and-branch *to* the case label — and
+leaves the default as whatever falls off the end. An `if` statement has no such
+fixity: its `if_false_label` is the else block, so the then-block is laid out
+immediately after the test and falls through. Writing the two arms as an
+`else if` chain (a `return` at the end of the first arm gives the same object)
+reproduces the target exactly:
+
+```c
+if (Game_Session->field_4 == 2) {
+    Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
+    Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
+} else if (Game_Session->field_4 == 3) {
+    func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
+    func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
+}
+```
+
+100% at once, all penalties zero. Read the target's *first* compare to tell the
+two apart: `bne reg,val,CASE` with the case below it is an `if` chain; `beq
+reg,val,CASE` is a real `switch`. This is the mirror of the entry above on
+cases sharing a tail — there the switch is real and the arms jump *forward*
+into a join; here nothing joins and the fallen-into case is the tell.
+
+Inputs: `base.i` (85%, the m2c switch), `base_1.i` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
