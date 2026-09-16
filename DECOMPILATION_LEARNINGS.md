@@ -91934,3 +91934,57 @@ Inputs: `base.i`
 `aa8cf5c1f1b334d5d6ab8d9a62fb82a8f3516486babcae34186a3b03c31c991f` (0
 differences), target
 `7d3ab20d058ab702b3d5cd2deb495c7f5580449b629ed56a5be55cad94a83997`.
+
+## A tie at the top of `QTY_CMP_PRI` is winnable: shorten the span of the quantity that has to take `$v0`
+
+`func_actor_110600_80138AFC` (53 insns, 5 blocks) sat at 87.7% with
+`regs=10 insert=3 delete=3` and the same four lines wrong: the walker pointer in
+`$v1` instead of `$v0`, the `li 8` for `walker->field_60` in `$v0` instead of
+`$v1`, the `field_B86` load in `$a0` instead of `$v1`. The object dump makes
+`$v0` look free at the pointer's `addiu`, which is the misleading part —
+local-alloc allocates in *priority* order, not birth order, so the question is
+which quantity took `$v0` first. Note the priority formula's `death - birth`
+counts the *block's* insn positions, so every insn that runs while a quantity is
+live lengthens its span and lowers its priority.
+
+`tools/trace_gcc.py` named it (all suggestions empty):
+
+| quantity | refs | span | priority | got |
+|---|---|---|---|---|
+| `walker` pointer | 4 | 10 | 8000 | `$v1` |
+| `li 8` for `field_60` | 2 | 2 | 10000 | `$v0` |
+| `field_B86` load | 2 | 8 | 2500 | `$a0` |
+
+With the `lhu` of `field_B86` sitting between the `addiu` and the store that
+consumes it, the pointer's range is five insns long. Reading that field into a
+local *before* the pointer is computed takes the load out of the range, so
+span 10 → 8 and priority 8000 → 10000 — an exact tie with the constant.
+
+**This tie is winnable, unlike the `do { } while (0)` one.** `qty_compare_1`
+breaks a tie by quantity number and quantity numbers run in birth order: the
+pointer is born before the constant it ties with, so it is allocated first,
+takes `$v0`, and the constant is then blocked across its range and falls to
+`$v1`. The `field_B86` value, whose range ends before the constant's begins,
+then reuses `$v1`. `regs=0`, 100%.
+
+```c
+    ramp             = work->field_B86;      /* load hoisted out of the range */
+    walker           = (Actor110600Walker*)((u8*)work + 0xB28);
+    work->field_B90  = 0;
+    walker->field_5C = 0;
+    walker->field_5E = ramp;
+    walker->field_60 = 8;
+```
+
+The lever is bidirectional and either direction only works when the birth order
+is on its side: "The array base expands before its index" *lowers* a
+competitor's priority by lengthening its span, this entry *raises* its own by
+shortening it. Moving the two flat stores (`field_B90`, `field_B82`) around the
+pointer's `addiu` instead — four permutations, including one that reproduces the
+retail statement order exactly — does not touch the span and changes nothing.
+
+Inputs: `base_2.i`
+`565d224681f26b4d7052497777252d0b2d1d440f2964bd16d1d02d39a19cc8b6` (87.736%),
+`base_5.i` `7ab282c2e5dcdcd4f88523016acf4a708c433a6e96e0eb18bf8372239076e4af`
+(0 differences), target
+`064ff0df72ca6dbd63ba6836981b3365630043fb0485ffbc54a540a14057282f`.

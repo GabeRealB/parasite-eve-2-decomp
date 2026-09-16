@@ -121,7 +121,39 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138A70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138AFC);
+void func_actor_110600_80138AFC(Actor110600* arg0)
+{
+    Actor110600Work*   work;
+    Actor110600Walker* walker;
+    GpEnemy*           enemy;
+    u16                ramp;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C = 0;
+        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags   = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4     = 8;
+        work->field_88C         = 2;
+        work->field_892         = 0xF;
+        work->field_896         = work->field_898;
+        ramp                    = work->field_B86;
+        walker                  = (Actor110600Walker*)((u8*)work + 0xB28);
+        work->field_B90         = 0;
+        walker->field_5C        = 0;
+        walker->field_5E        = ramp;
+        walker->field_60        = 8;
+        work->field_B82         = 0;
+        work->field_8A4         = 0;
+        work->field_8A2         = 0;
+    }
+    func_actor_110600_80133A94((Actor110600Walker*)((u8*)work + 0xB28));
+    func_actor_110600_80134728(arg0);
+    if (work->field_5C & 1) {
+        work->field_0 = 3;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138BD0);
 

@@ -9,6 +9,31 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// View of the walker block `Actor110600Work` carries at 0xB28 — the shape the
+/// acropolis bridge room drives, including the `D_80073B08` motion config the
+/// byte at 0x6E indexes. `nav` and `route` point at the node tables stored
+/// further down the same block (0x80 and 0x8C), `coord` is the coordinate the
+/// per-tick step moves, and `field_5E` is the value `field_60` ramps towards
+/// `field_5C` once per tick. The work block names the four fields it reads
+/// back through its own pointer `field_B7C` / `field_B82` / `field_B86` /
+/// `field_B90` instead: same bytes, reached with a constant offset.
+typedef struct Actor110600Walker {
+    /* 0x00 */ void*          nav;
+    /* 0x04 */ void*          route;
+    /* 0x08 */ GsCOORDINATE2* coord;
+    /* 0x0C */ byte           pad_C[0x48];
+    /* 0x54 */ s16            scale;
+    /* 0x56 */ byte           pad_56[4];
+    /* 0x5A */ s16            field_5A;
+    /* 0x5C */ u16            field_5C;
+    /* 0x5E */ u16            field_5E;
+    /* 0x60 */ u16            field_60;
+    /* 0x62 */ byte           pad_62[6];
+    /* 0x68 */ u8             state;
+    /* 0x69 */ byte           pad_69[0x43];
+} Actor110600Walker;
+STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
+
 /// Work block this overlay parks in the task's `Task::idMap` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
 /// with `Mem_Calloc(0xBEC, 0)`, so the size below is the allocation.
@@ -22,19 +47,26 @@
 /// `field_BD8` are optional helpers the spawn clears; teardown increments
 /// `Task::state` when they are non-NULL.
 typedef struct Actor110600Work {
-    /* 0x000 */ s16   field_0;
-    /* 0x002 */ byte  pad_2[2];
-    /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[2];
-    /* 0x008 */ s16   field_8;
-    /* 0x00A */ byte  pad_A[0x882];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ byte pad_2[2];
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ byte pad_6[2];
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[0x52];
+    /// Flag halfword the state handlers test on entry: bit 0 moves the actor
+    /// on (`field_0 = 3`), bit 1 is the timer gate
+    /// `func_actor_110600_80136888` retimes on.
+    /* 0x05C */ u16   field_5C;
+    /* 0x05E */ byte  pad_5E[0x82E];
     /* 0x88C */ s16   field_88C;
     /* 0x88E */ s16   field_88E;
     /* 0x890 */ byte  pad_890[2];
     /* 0x892 */ s16   field_892;
     /* 0x894 */ byte  pad_894[2];
     /* 0x896 */ s16   field_896;
-    /* 0x898 */ byte  pad_898[0xC];
+    /* 0x898 */ u16   field_898;
+    /* 0x89A */ byte  pad_89A[8];
+    /* 0x8A2 */ s16   field_8A2;
     /* 0x8A4 */ s16   field_8A4;
     /* 0x8A6 */ byte  pad_8A6[0x12];
     /* 0x8B8 */ GpObj field_8B8;
@@ -43,10 +75,17 @@ typedef struct Actor110600Work {
     /* 0x970 */ byte  pad_970[0x120];
     /* 0xA90 */ GpObj field_A90;
     /* 0xAB0 */ byte  pad_AB0[0xCC];
+    /// The walker's own names for these four halfwords are `scale`,
+    /// `field_5A`, `field_5E` and `state`; the work side reads them back
+    /// through its own pointer, so both spellings are live in the code.
     /* 0xB7C */ u16   field_B7C;
     /* 0xB7E */ byte  pad_B7E[4];
     /* 0xB82 */ s16   field_B82;
-    /* 0xB84 */ byte  pad_B84[0x50];
+    /* 0xB84 */ byte  pad_B84[2];
+    /* 0xB86 */ u16   field_B86;
+    /* 0xB88 */ byte  pad_B88[8];
+    /* 0xB90 */ u8    field_B90;
+    /* 0xB91 */ byte  pad_B91[0x43];
     /* 0xBD4 */ Task* field_BD4;
     /* 0xBD8 */ Task* field_BD8;
     /* 0xBDC */ byte  pad_BDC[4];
@@ -81,6 +120,11 @@ void func_actor_110600_801388A4(Actor110600* arg0);
 /// The actor's per-tick model update, driven from `Task::idMap` /
 /// `Task::spawnArg2` off the pointer it is handed.
 void func_actor_110600_80134728(Actor110600* arg0);
+
+/// Per-tick walker step: advances the animation the `field_68` byte selects,
+/// resolves the patrol node the `field_6E` byte names against `D_80073B08`,
+/// and ramp-scales the model matrix between `field_5E` and `field_5C`.
+void func_actor_110600_80133A94(Actor110600Walker* walker);
 
 /// Enters work state 2 (`field_88C`) on a live actor: clear the model object,
 /// clear bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
