@@ -89616,6 +89616,14 @@ bodies alone is not enough:
   treats them as current, so `maspsx` runs on a stale `.s`. `rm -rf
   build/USA/src/rooms/<overlay>` (and the other carrier's directory) first.
 
+Do the redistribution **before** `ninja_config.py`, not after. Re-splitting
+first leaves the new tail unit with no `.c`, so splat writes it full of
+`INCLUDE_ASM` stubs for the functions the *old* last unit still defines under
+its old name - a duplicate-definition state that has to be unpicked before
+anything links. Rewrite the carriers first and every unit already has a `.c`, so
+splat creates nothing: `ninja_config.py` then lands the new spans with the tree
+already in the shape they describe.
+
 The redistribution itself is lossless if it is done by text rather than by hand:
 run `bodies_of()` from `tools/land_overlay.py` over `git show HEAD:<file>` and
 over the new files and require the function-name sets and body texts to be
