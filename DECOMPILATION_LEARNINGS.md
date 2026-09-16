@@ -87733,3 +87733,50 @@ at 96% with `branch=2 regs=1 delete=1` and the overlay struct alone took it to
 100% on the first edit. Read the shape-similar matched siblings for the rest of
 the body -- `Room_Util16` / `Room_Util17` carry the same `Gp_SprtTables`
 walk.
+## A duplicated store to one address is a source-level double write; stores only sink, never rise (func_mine_mesa_8017E074, 2026-09-16)
+
+**Problem.** A `RoomPlacement` builder stores two words to each of two stack
+slots -- the raw table value, then the adjusted one:
+
+```
+sw    $a0,0x10($sp)     # rec.pos.vx = tbl[i].vx
+...
+addiu $a0,$a0,-0x64
+sw    $a0,0x10($sp)     # rec.pos.vx -= 0x64
+...
+sw    $v1,0x18($sp)     # rec.pos.vz = tbl[i].vz
+addiu $v1,$v1,0xc8
+sw    $v1,0x18($sp)     # rec.pos.vz += 0xC8
+```
+
+Writing the field once (`rec.pos.vx = tbl[i].vx - 0x64;`) compiles to a single
+store, so the duplicate is not something to mimic from the asm -- it is the
+fingerprint of the source writing the field twice. `cse` forwards the stored
+value to the in-place update (the `addiu` reuses the load's register; no reload
+appears), and 2.8.1 leaves dead stores to memory alone.
+
+**Fix.** Assign the raw field first, then adjust it in place. Statement order
+then decides the emitted store order, and in one direction only: `sched.c`
+(writing memory, `sched_analyze_1`) adds a `REG_DEP_OUTPUT` edge from the new
+store onto every earlier pending store, so a later store can never be hoisted
+above an earlier one, while an earlier store may be delayed below later ones.
+Here the `vy`/`vz` loads chain off a `killCountdown` reload that is only live
+late, which is what sinks the `vz` pair below the `rot` stores; the adjusted
+`vx` store, written after the `rot` block in the first attempt, stayed there
+(one `reorder` penalty, 98.97%), and moving the adjustment above the block put
+it where the target has it:
+
+```c
+rec.pos.vx = D_x[i].vx;
+rec.pos.vy = D_x[i].vy;
+rec.pos.vz = D_x[i].vz;
+rec.pos.vx -= 0x64;      /* must precede the rot stores */
+rec.pos.vz += 0xC8;      /* may sink below them */
+rec.rot.vx = 0;
+rec.rot.vy = 0x311;
+rec.rot.vz = 0;
+```
+
+So read a store sitting later than its statement suggests as the scheduler
+having delayed it, and a store that must move *up* as the statement needing to
+move up in the source -- no reordering of the C after it can pull it earlier.
