@@ -16,7 +16,22 @@ void func_actor_521100_80136724(void)
     } while (i < 0x13);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_6", func_actor_521100_8013677C);
+/// Re-inits animation slots 1..0x12 from `animId`, forcing each slot's set
+/// index to 1 first, and latches that id into `field_47E` as the one now
+/// playing.
+void func_actor_521100_8013677C(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        D_actor_521100_8016A3D8->slots[i].field_9 = 1;
+        Gp_AnimInitSlot(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i], i,
+                        (s16)D_actor_521100_8016A3D8->animId);
+        i++;
+    } while (i < 0x13);
+    D_actor_521100_8016A3D8->field_47E = D_actor_521100_8016A3D8->animId;
+}
 
 /// Reseeds animation slots 1..0x12 from `animId` and latches that id into
 /// `field_47E` as the one now playing.
