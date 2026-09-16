@@ -101274,3 +101274,45 @@ After the split, confirm that every splat-written standalone `.s` under
 the `mist_parking` entry prescribes) - the duplicate-include assembler error
 `symbol ... is already defined` is what a hand-written line on top of splat's
 looks like.
+
+## A named intermediate defeats `associate()`: `cur - (tgt - K)` keeps its `addiu` when `tgt - K` is its own variable
+
+The `(X - 1) - Y` entry above concludes the fold cannot be dodged from the
+source side. That holds for a cast, which `split_tree` strips when the modes
+match, but not for a *variable*: assigning the biased term first hides the
+constant behind a pseudo, so `cur - wrap` is no longer a `(VAR +- CON)` tree and
+`associate()` has nothing to move.
+
+m2c renders the target's two-instruction chain as the inline expression and gets
+the folded spelling:
+
+```
+target                          m2c, a0 - (a1 - 0x1000)
+addiu v0,a1,-0x1000             addiu v0,a0,0x1000
+subu  v0,a0,v0                  subu  v0,v0,a1
+```
+
+When the biased term is only needed if the first test fails, the assignment has
+to sit inside the `||` as a comma expression — which is also what keeps the pair
+in the branch's delay slot:
+
+```c
+    temp = cur - tgt;
+    if (temp < 0) {
+        temp = -temp;
+    }
+    if (temp < 0x31 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x31)) {
+```
+
+That compiles to `slti v0,v0,0x31` / `bnez v0,<then>` / `addiu v0,a1,-0x1000` /
+`subu v0,a0,v0` / `bgez v0` / `negu v0,v0`, the target's shape. The sibling read
+`u16 raw = inner->field_82;` next to the `s16 tgt = inner->field_82;` on the same
+line group is what puts the early `lhu $v1,0x82($s0)` live across the whole test.
+
+Worked example: `func_actor_800200_80165FF0` is `Gp_PlayerMode2State2`
+(`src/gameplay/3FB8.c`) with 0x41/0x40 narrowed to 0x31/0x30 and two stores
+(`field_958 = 5`, `field_973 = 1`) added before the angle update. Transcribing
+the already-matched sibling's body and changing only those gave 100% on the
+first attempt, where m2c's rendering of the same function scored 78.6%. The
+brief's `similar` search ranks `calls`/`cflow` at 1.00 for exactly this pair; a
+near-duplicate across overlays is worth reading as a seed, not just as a hint.

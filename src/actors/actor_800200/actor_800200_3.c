@@ -2,6 +2,8 @@
 
 #include "actors/actor_800200.h"
 
+#include <psyq/abs.h>
+
 extern void func_8010ABD4();
 
 extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
@@ -692,7 +694,44 @@ void func_actor_800200_80165F50(GpActorWork* arg0)
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80165FF0);
+void func_actor_800200_80165FF0(GpActorWork* arg0)
+{
+    GameActor* actor;
+    s16        cur;
+    s16        tgt;
+    u16        raw;
+    s32        temp;
+    s32        wrap;
+    s32        delta;
+    s32        flag;
+
+    actor = arg0->actor;
+    cur   = actor->field_52;
+    tgt   = actor->field_82;
+    raw   = actor->field_82;
+    temp  = cur - tgt;
+    if (temp < 0) {
+        temp = -temp;
+    }
+    if (temp < 0x31 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x31)) {
+        flag             = 1;
+        actor->field_52  = raw;
+        actor->field_982 = 0;
+        actor->field_956 = flag;
+        Gp_AnimPlayChildSlotsEx(arg0, flag, 0, 5);
+    } else {
+        delta = func_80103E7C(cur, tgt);
+        if (delta > 0x30) {
+            delta = 0x30;
+        } else if (delta < -0x30) {
+            delta = -0x30;
+        }
+        actor->field_958 = 5;
+        actor->field_973 = 1;
+        actor->field_52  = ((u16)actor->field_52 + delta) & 0xFFF;
+    }
+    Gp_AnimTickChildSlots(arg0);
+}
 
 s32 func_actor_800200_801660E8(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2)
 {
