@@ -32,6 +32,24 @@ typedef struct Actor303600Work {
 } Actor303600Work;
 STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
 
+/// Fade block `func_actor_303600_801623CC` allocates with `Mem_Malloc(8, 0)` and
+/// parks in its own task's `Task::idMap` slot (0x1C, again not a `TaskIdMap`),
+/// so reach it with `(Actor303600FadeWork*)task->idMap`.  The allocation size is
+/// the struct size, and not a guess.  The three halfwords are the RGB channels
+/// `Fade_DrawOverlay` draws: the task steps them by `Task::spawnArg1` -- the
+/// fade rate, not a colour -- and hands `r` and `g` to that call, so only the
+/// green channel reads as a colour and the blue one is stepped without ever
+/// being shown.  The leading halfword is part of the allocation and is never
+/// touched.  `func_actor_303600_801622E8` walks this same block the other way,
+/// subtracting where this one adds.
+typedef struct Actor303600FadeWork {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ u16  r;
+    /* 0x4 */ u16  g;
+    /* 0x6 */ u16  b;
+} Actor303600FadeWork;
+STATIC_ASSERT_SIZEOF(Actor303600FadeWork, 0x8);
+
 /// Payload `func_actor_303600_801624B0` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers:
 /// the session's two id bytes followed by the halfword the receiver switches on,

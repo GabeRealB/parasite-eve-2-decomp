@@ -94678,3 +94678,37 @@ with the real `Actor303600LightMats` / `Task*` / `TmdObject*` types. The same
 trap applies to any `M2C_UNK*` walker in a seed: when the target's `addiu`
 disagrees with the seed's increment constant, the element type is wrong, not the
 constant.
+
+## A twin can differ by a *code literal* too — and when it lives in `src/<family>/lib/`, the overlay gets its own copy (func_actor_303600_801623CC, 2026-09-16)
+
+The starred multi-class line in the brief is worth more than the `find` answer,
+and this is the third reason why. `overlay_dup_index.py find` decides equality on
+disassembly *text*, so a twin that reads different data is not a copy, and
+neither is one whose **call carries a different literal**. Here
+`func_actor_303600_801623CC` is `ActorsShared80133b5c`
+(`src/actors/lib/`) with exactly two edits: `Fade_DrawOverlay`'s mode argument is
+`1` where the twin passes `2`, and one extra `D_actor_303600_8016E4C4 = NULL;`
+before the exit. `find` reports one copy — the function itself.
+
+Reading the twin's *compiled object* is the cheap way to see the whole diff
+before writing any C: `objdump -dr build/USA/src/actors/lib/actors_shared_80133b5c.c.o`
+next to `target.s` lines up instruction-for-instruction, and every one of the 57
+target instructions is the twin's, so the port is "same body, one different
+immediate, one added store". 100% on the first build, all penalties zero.
+
+**Do not edit the twin to fit.** A body in `src/<family>/lib/` is linked into
+every overlay that got the span in `configs/USA/overlays.toml` —
+`ActorsShared80133b5c` serves actor_120300 and actor_120500 — so changing its
+mode literal to `1` would break both. `promote` is not in play either: it is
+family-scoped and keys on identical bodies, and one differing immediate is not
+one. The new overlay's C body belongs in its own TU, as a second copy.
+
+**Port the twin's control flow verbatim, gotos and all.** m2c renders the shared
+exit as a nested `block_7` label inside the `else` of `if (temp_v0 != NULL)`,
+which invites restructuring; the twin's plain two-`Task_Kill(arg0)`-calls shape
+is what the target has, because `reorg` cross-jumps the identical tails. The
+merge shows up at the same place as the entry above: `.sched2` still has both
+`call_insn`s (4 total, both `Task_Kill`s present), `.dbr` has one.
+
+Inputs: `base_1.i`
+`2939c045e98d94813eff515ade12f5c7af939d1aa63c86de3df930c9f1133d9a`.

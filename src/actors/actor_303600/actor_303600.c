@@ -4,6 +4,8 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/gameflow.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -18,7 +20,45 @@ INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_801622E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_801623CC);
+/// Fade-in driver: state 0 allocates the eight-byte channel block and clears
+/// all three channels; a failed allocation kills the task outright.  State 1
+/// runs every frame: it draws the overlay tinted `r`/`g`/`r` in mode 1, steps
+/// all three channels by `Task::spawnArg1` -- the fade rate, not a colour -- and
+/// once `r` has passed 0x100 clears `D_actor_303600_8016E4C4` before killing the
+/// task.  The fade-out counterpart that walks the same block the other way, from
+/// 0xFF down past zero, is `func_actor_303600_801622E8`.
+void func_actor_303600_801623CC(Task* arg0)
+{
+    Actor303600FadeWork* work;
+    Actor303600FadeWork* alloc;
+
+    work = (Actor303600FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor303600FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work         = alloc;
+            work->b      = 0;
+            work->g      = 0;
+            work->r      = 0;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 1);
+            work->r += (u16)arg0->spawnArg1;
+            work->g += (u16)arg0->spawnArg1;
+            work->b += (u16)arg0->spawnArg1;
+            if ((s16)work->r >= 0x100) {
+                D_actor_303600_8016E4C4 = NULL;
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 /// One-shot announcement of the cutscene: while the work block's "message
 /// outstanding" flag is still clear, hand the slot-4 task the session's two id
