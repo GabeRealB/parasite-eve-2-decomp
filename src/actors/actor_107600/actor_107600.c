@@ -248,7 +248,113 @@ void func_actor_107600_80132160(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132514);
+/// Twin of `func_actor_107600_80132160` that bobs the model root between
+/// -0xF4C and -0xF3C instead of -0x10 and 0.
+void func_actor_107600_80132514(Task* arg0)
+{
+    Actor107600Work*     work  = (Actor107600Work*)arg0->idMap;
+    GpEnemy*             enemy = arg0->spawnArg2;
+    GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->field_8;
+    Actor107600Waypoint* wp;
+    s32                  d;
+    s16                  x;
+    u16                  z;
+    s32                  step;
+
+    switch (work->field_140.step) {
+        case 0:
+            if (work->field_14B < 100) {
+                work->field_14B += 8;
+                return;
+            }
+            work->field_14B = 100;
+            work->field_13A = 0;
+            work->field_140.step++;
+        case 1:
+            if (++work->field_13A & 1) {
+                coord->coord.t[1] = -0xF4C;
+                return;
+            }
+            coord->coord.t[1] = -0xF3C;
+            if ((s16)work->field_13A >= 4) {
+                work->field_140.step++;
+                enemy->task->firstChild->spawnArg1 |= 0x10;
+            }
+            return;
+        case 2:
+            if (!(enemy->task->firstChild->spawnArg1 & 0x20)) {
+                return;
+            }
+            wp  = D_actor_107600_80135624[work->field_146];
+            wp += work->field_148;
+            if (arg0->spawnArg1 & 0x10000000) {
+                work->field_14A = 1;
+            }
+            if (wp->step == 0) {
+                work->field_140.step = 4;
+                work->field_13A      = (((u8*)&arg0->spawnArg1)[3] & 0xF) * 30;
+                return;
+            }
+            work->field_140.step++;
+        case 3:
+            wp  = D_actor_107600_80135624[work->field_146];
+            wp += work->field_148;
+            x   = wp->x;
+            if (x == -1) {
+            stop:
+                work->field_140.step                = 5;
+                work->field_14A                     = 0;
+                enemy->task->firstChild->spawnArg1 |= 0x40;
+                return;
+            }
+            d = (s16)(coord->coord.t[0] - x);
+            if (d != 0) {
+                step = wp->step;
+                if (step >= abs(d)) {
+                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                        goto stop;
+                    }
+                    coord->coord.t[0] = x;
+                    work->field_148++;
+                } else if (d < 0) {
+                    coord->coord.t[0] += step;
+                } else {
+                    coord->coord.t[0] -= step;
+                }
+            }
+            d = (s16)(coord->coord.t[2] - (u16)wp->z);
+            z = wp->z;
+            if (d != 0) {
+                step = wp->step;
+                if (step >= abs(d)) {
+                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                        goto stop;
+                    }
+                    coord->coord.t[2] = (s16)z;
+                    work->field_148++;
+                } else if (d < 0) {
+                    coord->coord.t[2] += step;
+                } else {
+                    coord->coord.t[2] -= step;
+                }
+            }
+            return;
+        case 4:
+            if ((s16)work->field_13A != 0 && (s16)--work->field_13A <= 0) {
+                goto stop;
+            }
+        case 5:
+            if (enemy->task->firstChild->spawnArg1 & 0x80) {
+                if (work->field_14B > 0) {
+                    work->field_14B -= 8;
+                    return;
+                }
+                work->field_14B = 0;
+                arg0->state++;
+            }
+            break;
+    }
+}
 
 /* The two tables follow the jump tables of `func_actor_107600_80132160` and
  * `func_actor_107600_80132514` in this unit's .rodata, so they are defined
