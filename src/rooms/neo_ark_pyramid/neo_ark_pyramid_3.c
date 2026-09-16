@@ -10,4 +10,12 @@ extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pyramid/neo_ark_pyramid_3", func_neo_ark_pyramid_8017DB5C);
+extern s32  D_neo_ark_pyramid_801818A4;
+extern void func_neo_ark_pyramid_8017D7F4(s32 arg0);
+
+void func_neo_ark_pyramid_8017DB5C(void)
+{
+    if (Game_Session->field_4 == 8) {
+        func_neo_ark_pyramid_8017D7F4(D_neo_ark_pyramid_801818A4);
+    }
+}
