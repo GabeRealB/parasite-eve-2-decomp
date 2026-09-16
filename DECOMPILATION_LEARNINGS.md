@@ -107787,3 +107787,53 @@ SHA256 `2474f6718e7cb8d730fa6e414da2ce01721bbe96f4c7f7ef865ab2d513b54043`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_403200_8013E5A8-vacuum`.
+
+## A run of `p->f = v` stores through separate loaded pointers shares one register unless the addresses are evaluated first (func_actor_403200_80139A60, 2026-09-16)
+
+The group-0 hit handler mirrors the host's remaining HP onto three escorts:
+
+```c
+        hp = enemy->field_40;
+        work->field_ECC[3]->field_40 = hp;
+        work->field_ECC[1]->field_40 = hp;
+        work->field_ECC[0]->field_40 = hp;
+```
+
+Written that way the target's three parallel registers collapse into one. In the
+pre-sched1 RTL each statement is `(set (reg P) (mem (plus s3 off)))` followed by
+`(set (mem (plus P 64)) (reg H))`, and the load of the *next* statement's pointer
+has to move up past the *previous* statement's store to be hoisted at all - a
+store through a pointer whose value the compiler does not know, so sched1 must
+assume it aliases. Nothing hoists, the three pointer pseudos never overlap, and
+global-alloc hands all three the same `$v0`; the stores then sit one `nop` after
+their loads. Target instead has `a0` / `a1` / `v1` and four-deep load
+separation.
+
+**Fix.** Evaluate the addresses before the stores, which makes the three
+pointers simultaneously live and forces three registers:
+
+```c
+        esc3           = work->field_ECC[3];
+        hp             = enemy->field_40;
+        esc0           = work->field_ECC[0];
+        esc1           = work->field_ECC[1];
+        esc3->field_40 = hp;
+        esc1->field_40 = hp;
+        esc0->field_40 = hp;
+```
+
+The load order is the source order, so it is also the knob for the *value* load:
+with `hp` first the target's `lw a0,0xed8(s3)` / `lhu v0,0x40(s2)` came out
+swapped (99.777%, `reorder=1`, one instruction); moving the `hp` load between
+the escort 3 and escort 0 ones was the last step to 100.000%. Nothing else about
+the body needed pins or barriers.
+
+**Reading it.** "Same value to three pointers" reads as one statement per
+pointer, and that is the natural way to write it. When the target shows the
+loads grouped ahead of the stores and in different registers, the grouping is
+the source: split the assignment. The `.lreg` dump tells you which it was -
+`REG_DEAD (reg:SI N)` on the store's base plus a `REG_DEP_OUTPUT` chain between
+consecutive stores is one-register reuse.
+
+Scratch `nonmatchings/func_actor_403200_80139A60-vacuum`,
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

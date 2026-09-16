@@ -3,11 +3,44 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
 typedef struct Actor403200Obj Actor403200Obj;
+
+/// One of the nine back-to-back collision groups in `Actor403200Work` at
+/// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
+/// is the `GpRec18` table it fills in for that part, which is why the stride is
+/// 0x98. `obj.field_8` is the part's own coordinate -- what the hit handler
+/// spawns the hit effect on. The same shape as `Actor444000HitGroup`.
+typedef struct Actor403200HitGroup {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 recs[5];
+} Actor403200HitGroup;
+STATIC_ASSERT_SIZEOF(Actor403200HitGroup, 0x98);
+
+/// 0x30-byte scratchpad frame the group-0 hit handler
+/// `func_actor_403200_80139A60` carves off `SCRATCH_HEAD` for the one hit it
+/// takes this frame. `pos` is the contact point copied out of the `GpRec18`;
+/// `delta` is the player-relative offset whose length is `dist`, the range
+/// `Gp_ComputeDamage` scales `damage` by. `rot` doubles as `Gp_SpawnEff`'s
+/// rotation argument and, afterwards, as the workspace for the contact point
+/// relative to the part's world translation, which `angle` is the yaw of.
+typedef struct Actor403200HitScratch {
+    /* 0x00 */ VECTOR3 delta;
+    /* 0x0C */ byte    pad_C[0x4];
+    /* 0x10 */ SVECTOR rot;
+    /* 0x18 */ SVECTOR pos;
+    /* 0x20 */ s32     id;     // attack id of the hit that landed, 0 for none
+    /* 0x24 */ u32     damage; // HP taken off the enemy
+    /* 0x28 */ s32     dist;   // distance from the player, in world units
+    /* 0x2C */ s16     angle;  // yaw of the contact point, wrapped to +/-0x800
+    /* 0x2E */ byte    pad_2E[0x2];
+} Actor403200HitScratch;
+STATIC_ASSERT_SIZEOF(Actor403200HitScratch, 0x30);
 
 /// Per-actor state block for the `actor_403200` overlay.
 ///
@@ -68,7 +101,15 @@ typedef struct Actor403200Work {
     /// The animation slot selector the launch state arms to 0x40 and then to
     /// 0x10. Same slot and role as `Actor444000Work::field_7B6`.
     /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ byte pad_7B8[0x20];
+    /* 0x7B8 */ byte pad_7B8[0xC];
+    /// Cleared alongside `field_7C8` by the group-0 hit handler, the same pair
+    /// `Actor444000Work::field_7C4` is.
+    /* 0x7C4 */ s16  field_7C4;
+    /* 0x7C6 */ byte pad_7C6[0x2];
+    /// Cleared alongside `field_7C4` by the group-0 hit handler, the same pair
+    /// `Actor444000Work::field_7C8` is.
+    /* 0x7C8 */ s16  field_7C8;
+    /* 0x7CA */ byte pad_7CA[0xE];
     /// The masked `field_72` frame the per-frame body last saw, so each of its
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
@@ -76,8 +117,19 @@ typedef struct Actor403200Work {
     /* 0x7DC */ byte pad_7DC[0x17];
     /// Cleared by the state-change reset to mark the work block as re-armed.
     /// Same slot and role as `Actor444000Work::field_7F3`.
-    /* 0x7F3 */ u8   field_7F3;
-    /* 0x7F4 */ byte pad_7F4[0x6A0];
+    /* 0x7F3 */ u8 field_7F3;
+    /// The nine back-to-back collision groups, one per model part, the same
+    /// run `Actor444000Work::hits` holds: each is the `GpObj` the gameplay
+    /// collision list carries plus the `GpRec18` table it fills in.
+    /* 0x7F4 */ Actor403200HitGroup hits[9];
+    /* 0xD4C */ byte                pad_D4C[0x140];
+    /// `Gp_GetIdParam2` of the hit the group-0 handler took this frame; the
+    /// sibling slots carry the other groups' ids. Same slots and role as
+    /// `Actor444000Work::field_E8C`.
+    /* 0xE8C */ s16 field_E8C;
+    /* 0xE8E */ s16 field_E8E;
+    /* 0xE90 */ s16 field_E90;
+    /* 0xE92 */ s16 field_E92;
     /// Yaw the upkeep tick walks toward `field_E96` in steps of 0x32, snapping
     /// once the two are within 0x33 of each other. Same slot and role as
     /// `Actor444000Work::field_E94`.

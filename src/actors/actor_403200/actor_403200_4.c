@@ -9,6 +9,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -31,6 +32,12 @@ extern GpEnemyTaskFuncTable3 D_actor_403200_801321B8;
 /// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
 /// and `arg3` the mode; takes the task, not the work block.
 void func_actor_403200_801408D8(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
+
+/// Overlay-local hit-effect spawner (`actor_403200_3.c`): picks a rotation from
+/// the attack id's param 0, hands `func_800FDB18` the part's coordinate with the
+/// effect id from param 1, and returns. Only the coordinate and the id are read;
+/// the caller's `a2` / `a3` are left over from the scan.
+void func_actor_403200_80134044(GsCOORDINATE2* coord, s32 id);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80137CCC);
 
@@ -146,7 +153,166 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138AFC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80139A60);
+/// The group-0 hit handler: takes at most one hit this frame and turns it into
+/// damage.
+///
+/// It carves a 0x30-byte `Actor403200HitScratch` off the scratchpad stack and
+/// scans the five `GpRec18` records of `hits[0]` for the first whose `field_4`
+/// high halfword is attack kind 2 -- the contact point goes into the frame's
+/// `pos` and the id is kept. A record with `field_4` 0 ends the scan with no
+/// hit. The scan is written with labels rather than a `for` so `loop.c` parks
+/// the match arm out of line; the same shape as
+/// `func_actor_444000_8013C060`'s.
+///
+/// A hit spawns the impact effect on the part's coordinate, publishes
+/// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C, and
+/// then takes the damage off the host: the player-relative offset to the part
+/// gives the range `Gp_ComputeDamage` scales `damage` by, quadrupled when
+/// `Gp_RollEnemyChance` fires. The contact point is re-read relative to the
+/// part's world translation and `ratan2` of the pair against the part's facing
+/// gives the yaw `angle`, wrapped to +/-0x800. The damage is doubled, applied
+/// through `func_800E2C78` and `func_800DA6E8`, and the host's remaining HP is
+/// mirrored onto the three escorts sharing its pool.
+///
+/// The second arm runs the same tick on the `field_4C` bits 0x2/0x8 hit, which
+/// `Gp_TickObjFlag4` turns into damage of its own; that one only comes off the
+/// host.
+///
+/// `esc3` / `esc0` / `esc1` and the `hp` load are not spare: read as three
+/// separate assignments the loaded pointers all share one register, and the
+/// stores then interleave with their loads (the scheduler cannot hoist a load
+/// past a store through an unknown pointer). Evaluating the three addresses
+/// first is what puts them in `a0` / `a1` / `v1`, and the `hp` load has to sit
+/// between the escort 3 and escort 0 ones to land where the original has it.
+void func_actor_403200_80139A60(Task* arg0)
+{
+    Actor403200HitScratch* sc;
+    Actor403200Work*       work;
+    GpEnemy*               enemy;
+    GpRec18*               recs;
+    WipSysConfig*          cfg;
+    SVECTOR*               pos;
+    s32                    mask;
+    s32                    kind;
+    s32                    id;
+    s32                    dx2;
+    s32                    dy2;
+    s32                    dz2;
+    s16                    angle;
+    s16                    i;
+    s16                    param;
+    u16                    hp;
+    GpEnemy*               esc3;
+    GpEnemy*               esc0;
+    GpEnemy*               esc1;
+
+    cfg   = &Wip_SysConfig;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    work  = (Actor403200Work*)arg0->idMap;
+    sc    = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    pos   = &sc->pos;
+    recs  = work->hits[0].recs;
+    i     = 0;
+    mask  = 0xFFFF0000;
+    kind  = 0x20000;
+scan:
+    if (recs[i].field_4 == 0) {
+        goto missed;
+    }
+    if ((recs[i].field_4 & mask) == kind) {
+        pos->vx = recs[i].field_8;
+        pos->vy = recs[i].field_A;
+        pos->vz = recs[i].field_C;
+        id      = recs[i].field_4;
+        goto found;
+    }
+    i++;
+    if (i < 5) {
+        goto scan;
+    }
+missed:
+    id = 0;
+found:
+    sc->id = id;
+
+    if (id != 0) {
+        func_actor_403200_80134044(work->hits[0].obj.field_8, id);
+        param           = Gp_GetIdParam2(sc->id);
+        work->field_E90 = param;
+        work->field_E8E = param;
+        work->field_E8C = param;
+        work->field_E92 = param;
+        Gp_GetIdParam0(sc->id);
+
+        sc->delta.vx = cfg->field_4->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+        dx2          = sc->delta.vx * sc->delta.vx;
+        sc->delta.vy = cfg->field_4->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1];
+        dy2          = sc->delta.vy * sc->delta.vy;
+        sc->delta.vz = cfg->field_4->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+        dz2          = sc->delta.vz * sc->delta.vz;
+        sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
+        sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
+        if (Gp_RollEnemyChance(enemy, sc->id, 0) != 0) {
+            sc->damage *= 4;
+        }
+        if (sc->damage != 0) {
+            sc->rot.vy = 0x320;
+            sc->rot.vx = 0;
+            sc->rot.vz = 0x3E8;
+            Gp_SpawnEff(0x6009C, &((TmdObject*)enemy->task->extra)->field_8[3], 3, &sc->rot);
+        }
+        ((TmdObject*)arg0->extra)->field_8->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
+        sc->rot.vx = sc->pos.vx - ((TmdObject*)arg0->extra)->field_8->workm.t[0];
+        sc->rot.vy = sc->pos.vy - ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+        sc->rot.vz = sc->pos.vz - ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+        angle      = ratan2(sc->rot.vx, sc->rot.vz) -
+                ratan2(-((TmdObject*)arg0->extra)->field_8->workm.m[2][0],
+                       ((TmdObject*)arg0->extra)->field_8->workm.m[2][2]);
+        sc->angle = angle;
+        if (angle < 0) {
+        wrapUp:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto wrapUp;
+            }
+        } else {
+        wrapDown:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto wrapDown;
+            }
+        }
+        sc->angle = angle;
+
+        work->field_7C8 = 0;
+        work->field_7C4 = 0;
+        sc->damage     *= 2;
+        func_800E2C78((GpObj40*)enemy, sc->id, sc->damage, 0);
+        enemy->field_40 -= sc->damage;
+        func_800DA6E8(&enemy->node, sc->damage, 0);
+        esc3           = work->field_ECC[3];
+        hp             = enemy->field_40;
+        esc0           = work->field_ECC[0];
+        esc1           = work->field_ECC[1];
+        esc3->field_40 = hp;
+        esc1->field_40 = hp;
+        esc0->field_40 = hp;
+    }
+
+    if (enemy->field_4C & 0xC) {
+        sc->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+        if (sc->damage != 0) {
+            func_800E2C78((GpObj40*)enemy, sc->id, sc->damage, 0);
+            enemy->field_40 -= sc->damage;
+        }
+    }
+
+    SCRATCH_SP += sizeof(Actor403200HitScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80139E94);
 
