@@ -912,6 +912,19 @@ reports the candidate as a skip rather than a failure to compile — a whole
 search can come back `PERMUTER_MISS` with the real cause three lines up in
 `PERMUTER.txt`. Retype the seed to real struct fields (usually wanted anyway,
 see the aliasing entry) before asking the router to search it.
+
+## A candidate needing `GsCOORDINATE2` must include a project header, not `<psyq/libgs.h>`
+
+`include/psyq/libgs.h` is vendored without its own includes, so adding it
+directly dies on a wall of parse errors: `VECTOR` / `MATRIX` / `SVECTOR` (from
+`libgte.h`) and `POLY_*` / `CVECTOR` / `GsDRAWENV` (from `libgpu.h`) are all
+undefined, and `GsCOORDINATE2` ends up undeclared even though its typedef is
+right there in the file. Including the three in the order `libgte.h`,
+`libgpu.h`, `libgs.h` works - but any project header that mentions a coordinate
+already does exactly that, so include one of those instead: `main/tmd.h` pulls
+the trio in that order and is what a `TmdObject::field_8` candidate wants
+anyway. Two builds, both ending in `parse error before 'VECTOR'`, is what it
+costs to find out the other way.
 ## A temp local for a value re-read across stores collapses the reloads
 
 `func_actor_136100_80134588` steps three `s16` channels by the task's
