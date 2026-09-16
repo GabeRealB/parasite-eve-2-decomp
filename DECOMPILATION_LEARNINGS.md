@@ -90408,3 +90408,43 @@ and the `andi`. Both effects come from the one statement swap, so try it before
 reaching for a soft use or a pin. The neighbouring
 "A loop entry test that reads a *copy* of the count" entry is the harder version
 of the same fold, where the guard has to be steered onto a different register.
+
+### `sra aN` + `move s0,aN`, or `move s0,v0` + `sll s0,v0,1`: the long-lived value is an `s16` local (func_actor_510900_80135744, 2026-09-16)
+
+Symptom: a damage value kept in `$s0` across calls is built in a scratch
+register and *copied* in (`sll a2,v0,16; sra a2,a2,17; move s0,a2`, with `a2`
+then passed on), or copied from `v0` while the next insn still reads `v0`
+(`move s0,v0` in a `bne` slot, then `sll s0,v0,1`). Every later use of `$s0`
+sign-extends it (`sll/sra 16`). With an `s32` variable GCC computes straight
+into `$s0` and reads `$s0` back: CSE canonicalises the temp to the longer-lived
+variable, and local-alloc's `optimize_reg_copy_1` reroutes the argument load
+through it.
+
+Fix: declare the variable `s16`. This compiler does not promote HImode locals,
+so the store is an HImode copy CSE does not equate with the SImode temp, and the
+uses carry the explicit extension. Keep an `s32` local for the untruncated call
+result when a derived value is computed from it:
+
+```c
+s16 dmg;
+s32 full;
+dmg = (s16)Gp_ComputeDamage(id, 0, 0, 0) >> 1;   /* sra a2; move s0,a2 */
+func_800E2C78(enemy, id, dmg, 0);
+...
+full = Gp_ComputeDamage(id, dist, 0, 0);
+dmg  = full;                                     /* move s0,v0 */
+if (kind == 5) dmg = full * 2;                   /* sll s0,v0,1 */
+dmg *= 4;                                        /* sll 16; srl 14 */
+```
+
+The `s16` type also turns `dmg *= 4` into the `sll 16 / srl 14` pair that
+needed `(u32)(dmg << 16) >> 14` on an `s32`. The sign-extension trick alone
+(`dmg = (s16)half` on an `s32`) does keep two pseudos, but the copy is
+scheduled before the argument load, so `optimize_reg_copy_1` still passes `dmg`.
+
+Integration note: the function's two jump tables followed an already-compiled
+table in the first unit's `.rodata`, and GCC's `.align 3` padded them by 4
+bytes (the checksum failed while the scratch score was 100%). `rodata_head`
+cannot help when the earlier table is compiled C, so this needed a `units` cut at
+the function plus a `rodata` cut at its table, renumbering `actor_510900_2..9`
+to `_3..10`.

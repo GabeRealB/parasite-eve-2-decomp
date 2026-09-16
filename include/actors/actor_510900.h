@@ -141,8 +141,8 @@ typedef struct Actor510900Work {
     /// reseeds 1..0x12 whenever this differs from `field_586`.
     /* 0x588 */ s16 field_588;
     /// Blend weight the 0x7D3 handler is handed, cleared once the reseed is done.
-    /* 0x58A */ s16  field_58A;
-    /* 0x58C */ byte pad_58C[2];
+    /* 0x58A */ s16 field_58A;
+    /* 0x58C */ s16 field_58C;
     /// Handler index `func_actor_510900_8013B870` dispatches on each frame:
     /// case 7 enters state 0 below, so this is the currently running one.
     /* 0x58E */ s16 field_58E;

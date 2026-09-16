@@ -640,5 +640,3 @@ void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
         work->field_596 = work->field_594;
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80135744);
