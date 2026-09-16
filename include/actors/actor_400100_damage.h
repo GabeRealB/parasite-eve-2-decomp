@@ -2,24 +2,38 @@
 #define ACTOR_400100_DAMAGE_H
 
 #include "actors/actor_400100.h"
+#include "gameplay/3FB8.h"
+
+/// Twelve `SVECTOR` hit positions `Actor00100_Fn03340` picks from by damage
+/// magnitude. The fourth halfword (`pad`, unused by the effect) is the model
+/// part index the spawned effect anchors to.
+extern SVECTOR Actor00100_D1B9F4[12];
 
 void Actor00100_Fn03340(Actor00100*, s16, s32);
 
 typedef struct Actor00100DamageWork {
-    s16     field_0;
-    s16     field_2;
-    u8      pad_4[0x2];
-    s16     field_6;
-    u8      pad_8[0x822];
-    s16     field_82A;
-    u8      pad_82C[0xA];
-    s16     field_836;
-    s16     field_838;
-    u8      pad_83A[0x6];
-    s16     field_840;
-    u8      pad_842[0x2];
-    s16     field_844;
-    u8      pad_846[0xBE];
+    s16 field_0;
+    s16 field_2;
+    u8  pad_4[0x2];
+    s16 field_6;
+    u8  pad_8[0x822];
+    s16 field_82A;
+    u8  pad_82C[0xA];
+    s16 field_836;
+    s16 field_838;
+    u8  pad_83A[0x6];
+    s16 field_840;
+    u8  pad_842[0x2];
+    s16 field_844;
+    u8  pad_846[0x4A];
+    /// Argument record `Actor00100_Fn03340` fills for `func_800FDB18`: the
+    /// model part coordinate `sc->pad` names, scale 0x100 and count 2.
+    GpEffArg field_890;
+    u8       pad_898[0x8];
+    /// Hit position `Actor00100_Fn03340` copies out of its scratch vector and
+    /// hands to `func_800FDB18` as the effect rotation.
+    SVECTOR field_8A0;
+    u8      pad_8A8[0x5C];
     u8      field_904;
     u8      field_905;
     s16     field_906;

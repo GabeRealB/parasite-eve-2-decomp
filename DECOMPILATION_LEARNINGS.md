@@ -98051,3 +98051,124 @@ Inputs: `base_3.i` (100.000%) SHA256 `67c4b652460c2217c608fb61c79ecc2113439d9d21
 target SHA256 `498a3a58f1992279eee8c22b98e6740d99370002ba58e746f99aa65f8d9b6791`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn0A190-vacuum`.
+## A `similar` candidate that stars in both `calls` and `cflow` is instruction-identical outside one region, even across overlays (Actor00100_Fn03340, 2026-09-16)
+
+The brief's similar-body list for `Actor00100_Fn03340` named a single candidate,
+`func_actor_401300_80134BA4`, scoring shape 0.96 / calls 1.00 / cflow 1.00 - a
+sibling in a **different overlay** (`actor_401300`) that happens to load at the
+same address. Stripping the address and comment columns and the local label
+names from the two `.s` files and diffing them shows they are
+instruction-for-instruction identical for 190 of 210 instructions: the whole
+`Gp_LcgState` xorshift, the four-arm decision tree over the magnitude, the
+scratchpad allocate/free and the prologue need no experiment at all. Only the
+block after the magnitude switch differs, and only in three places:
+
+* the table symbol (`Actor00100_D1B9F4` against `D_actor_401300_80158928`),
+* the part index - a constant 1 in the sibling (`addiu $v1, $v1, 0x50`), here
+  `sc->pad` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
+  `GsCOORDINATE2` stride),
+* the third `func_800FDB18` argument - `sc` itself in the sibling, here a copy
+  saved into the work block (`work->field_8A0 = *sc;` then `&work->field_8A0`),
+  which is the `lwl`/`lwr` quad decribed in "`lwl`/`lwr` + `swl`/`swr` quads are
+  a whole-struct assignment" - the member's *declared* alignment is what picks
+  the byte-lane form, so at 0x8A0 it has to be an `SVECTOR` (alignment 2),
+  not a word-aligned field.
+
+Retelling the sibling's body with those three substitutions is 100.000% on the
+first build with all six penalties zero. `overlay_dup_index.py find` reports
+only one copy (the function itself), because those three differences are enough
+to keep it out of the exact-equality index - so the fuzzy `similar` classes and
+the exact index are complementary, and class agreement (`calls` + `cflow` at
+1.00, marked `*`) is the predictor worth acting on: it compares the `jal`
+sequence and the branch skeleton, which is exactly what "same body, different
+constants" looks like. A sibling in another overlay is no obstacle, since every
+actor overlay sees the same library globals.
+
+Method, for reuse:
+
+    norm() { sed -e 's#/\*.*\*/##' -e 's/\.L[a-z0-9_]*/LB/g' \
+                  -e 's/<Prefix>_L[0-9A-F]*/LB/g' -e 's/^[[:space:]]*//' "$1" | grep -v '^$'; }
+    diff <(norm target.s) <(norm sibling_matchings.s)
+
+Inputs: `base.c` (100.000%)
+SHA256 `2c6763f71eee3dfeb59bb89d04932c63dc773f264b51b2ce999f8dbe8ad7debd`;
+`base.i` SHA256 `9df605a9649d390ee3f538936f90a92e521dca44e189d2dbc19a851c88f88ebb`;
+target SHA256 `1632576e4d4442ef2977f5eb6ed5e40cda6501761a28a7583fe60bf05acb00e2`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00100_Fn03340-vacuum`.
+
+## A self-assignment is deleted before the first RTL dump; load into a local to reproduce the ROM's dead store (Actor00100_Fn01EEC, 2026-09-16)
+
+`Actor00100_Fn01EEC` (551 insns, actors/lib) re-stores the value it just loaded
+on the "state already handled" arm of every check: `sw $v0, 0x84C($a1)` where
+`$v0` is the result of `lw $v0, 0x84C($a1)` two instructions earlier. Written
+the obvious way that store does not exist:
+
+```c
+if (arg1->field_84C != 9) { arg1->field_84C = 9; ...; return 0x40010002; }
+arg1->field_84C = arg1->field_84C;      /* 0 stores in the .o, 13 expected */
+```
+
+Nothing in the pass dumps shows a deletion because the store is already gone in
+`.rtl`, the first dump: the C front end folds `x = x` away before RTL. The
+object then has 13 loads and 13 stores to 0x84C where the ROM has 13 loads and
+20 stores, and the arm's fall-through loses its `sw` (it is the *only*
+difference between a 86.4% and a 100% score on this function).
+
+A local carries the loaded value and its store-back survives:
+
+```c
+u32 prev;
+...
+    prev = arg1->field_84C;
+    if (prev != 9) { arg1->field_84C = 9; ...; return 0x40010002; }
+    arg1->field_84C = prev;             /* 7 `sw $v0` + 1 shared, as in the ROM */
+    var_a0          = 0;
+```
+
+The store is what makes the value a *source-level* one, so cse keeps the
+register the load produced; `field_84C` also sits inside the 0x48-byte block
+the `var_a0 == 1` path hands to `Mem_Set`, which is why every arm re-writes it.
+
+Diagnostic: count the store forms in the `.o` (`grep -c 'sw    v0,0x84c'`), not
+the score - a dead store missing from one arm shows up as `regs`/`reorder`
+noise spread over the whole function, and `diff.py` renders the missing store as
+a block that merely moved.
+
+Inputs: `base_4.c` SHA256 `e7155c96d5c9e6ecf16c5cb953b2e3d99cbedb198738b06c9162f0d9b4ef1e61`;
+`base_4.i` SHA256 `7bd7175cbc7a5a556ada9699b3672188166cfa68bb8b17df94217131f605b241`;
+target SHA256 `20e3be4d21c4d32b68eaee1ddb6557a27dbd6243398592927a15df556f5b7d33`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00100_Fn01EEC-vacuum`.
+
+## The duplicated tail can be a whole conditional block, and the source must really contain it (Actor00100_Fn01EEC, 2026-09-16)
+
+`Actor00100_Fn01EEC` ends its `case 18` chain and its `case 17` chain with the
+same `(field_5A & 0x3FF) == 0xE` check - same two `Gp_SpawnEff` calls, same
+`return 0x40010002`. GCC's cross-jumping keeps one copy (at the *later* case,
+as "m2c `goto block_N` for a cross-jumped tail merges in the wrong direction"
+describes) and both cases branch into it, so the preserved copy sits at
+`0x2644`, between case 17's body and case 13's, and case 18's `0xE` test is a
+forward `bne` out of its own chain.
+
+Written with the check in `case 18` only, that copy stays in case 18 and the
+whole tail lands ~100 instructions earlier than the ROM's: 86.4% with
+`branch=9 reorder=88`, the two `j`/`jal` pairs swapping between the `0x40010001`
+and `0x40010002` merge sites. Adding the *same* check to the end of `case 17` is
+the fix; GCC re-merges and puts the survivor where the ROM has it. The tell is
+a case whose not-equal arm branches forward into another case's chain: the
+m2c/CFG reading treats that target as belonging to the case that branches to
+it, but the block only exists once because the source wrote it twice.
+
+Size is a useful cross-check before touching the manifest: the ROM's
+`lib/actor_400100_damage` rodata spans `0x5C..0xD4` (0x78 bytes), which is
+exactly the compiled object's `.rodata` - GCC emits the two jump tables
+(`Jt0005C` 19 words, `Jt000AC` 10 words) in source-function order with the
+trailing zero word the ROM has at `0xA8`, so one cut at the first table's
+address covers both. A `.rodata` cut already naming the compiling unit at a
+*later* offset (`0xAC`) is not enough - the table has to own the range from its
+own address, and the earlier `rodata` blob (`actor_400100_header_tail`, which
+held the table as an `INCLUDE_RODATA` blob) shrinks to the 4 bytes in front of
+it. The overlay still built and linked with the table at the wrong address: the
+checksum is what catches it, in both overlays that share the unit
+(`actor_400100`, `actor_407500`).
