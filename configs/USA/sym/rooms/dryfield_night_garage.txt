@@ -61,3 +61,4 @@ RoomsShared8017e90cRowFuncs = 0x80181AD8; // shared body data, see src/rooms/lib
 RoomsShared8017e90cBalanceDesc = 0x80181BF4; // shared body data, see src/rooms/lib/
 RoomsShared8017e90cFillList = 0x8017E39C; // shared body data, see src/rooms/lib/
 RoomsShared8017e3f4 = 0x8017E250; // shared body, see src/rooms/lib/
+RoomsShared80180300 = 0x80180300; // shared body, see src/rooms/lib/

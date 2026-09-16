@@ -1,153 +1,79 @@
 #include "common.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "main/task.h"
-#include "main/wipsys.h"
-
+#include "gameplay/1A8.h"
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
 
-extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
-extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
-extern s32            D_dryfield_night_garage_80182DE0;
-extern s32            D_dryfield_night_garage_80182DE4;
+/// Cutscene script blob argument of `func_800E8634`.
+extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 
-Task* func_dryfield_night_garage_80180A64(s32 arg0);
+/// Byte at 0x8007272D, written when the garage scene ends.
+extern s8 D_8007272D;
 
-void func_dryfield_night_garage_801809A4(Task* arg0)
+/// One entry of the room's 0x98-byte display-object table. Only the flag byte
+/// at 0x4A is touched here: bit 6 shows the entry, clearing it hides it.
+typedef struct {
+    /* 0x00 */ u8 pad_0[0x4A];
+    /* 0x4A */ u8 field_4A;
+    /* 0x4B */ u8 pad_4B[0x4D];
+} DryfieldNightGarageObj;
+
+STATIC_ASSERT_SIZEOF(DryfieldNightGarageObj, 0x98);
+
+extern TaskDesc               D_8013B11C[];
+extern s32                    D_dryfield_night_garage_80182DE0;
+extern s32                    D_dryfield_night_garage_80182DE4;
+extern TaskDesc               D_dryfield_night_garage_80182C98[];
+extern s32                    D_dryfield_night_garage_80182DF8;
+extern s32                    D_dryfield_night_garage_801831B8;
+extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
+
+s32 func_800D4D2C(s32 arg0);
+
+s32 func_dryfield_night_garage_80180A64(s32 arg0);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_5", func_dryfield_night_garage_80180414);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_5", func_dryfield_night_garage_80180604);
+
+void func_dryfield_night_garage_801807E4(Task* arg0)
 {
     s32 temp_v1;
 
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_RunCapCmd(arg0->spawnArg1, 0);
-            Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE0, 0);
-            arg0->state = arg0->state + 1;
-            return;
+            Gp_StartCapSlot((s16)arg0->spawnArg1, 0, 0);
+            Gp_DispatchMsg(
+                (Task*)func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE0, 0);
+            goto block_12;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Gp_MsgPlayerWeapon(1);
-                Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
-                break;
+                func_800D4D2C(0x20);
+                goto block_12;
             }
             return;
-    }
-    Task_Kill(arg0);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_5", func_dryfield_night_garage_80180A64);
-
-void func_dryfield_night_garage_80180AB0(void)
-{
-    Gp_ApplyAreaRecs(D_dryfield_night_garage_801875D8);
-    GameFlag_SetNibble(0x59, 0);
-    GameFlag_SetNibble(0x5A, 0);
-    GameFlag_SetNibble(0x4B, 5);
-    GameFlag_SetNibble(0x35, 1);
-    if (GameFlag_GetNibble(0xCE) != 0) {
-        Gp_ApplyAreaRecs(D_dryfield_night_garage_80187620);
-    }
-}
-
-void func_dryfield_night_garage_80180B20(Task* arg0)
-{
-    u8          slotParam[4];
-    GBytes8     key;
-    s16         slot;
-    CdCmdQueue* queue;
-    Task*       task;
-
-    task  = arg0;
-    queue = &CdCmd_Queue;
-    switch (task->state) {
-        case 0:
-            goto L_case0;
-        case 1:
-            goto L_case1;
         case 2:
-            goto L_case2;
+            Gp_StartCapSlot((s16)arg0->spawnArg1, 0, (s16)(GameFlag_GetNibble(0x107) + 1));
+            if (GameFlag_GetNibble(0x107) == 0) {
+                GameFlag_SetNibble(0x107, 1);
+            }
+        block_12:
+            arg0->state = arg0->state + 1;
+            return;
         case 3:
-            goto L_case3;
-        case 4:
-            goto L_case4;
-        case 5:
-            goto L_case5;
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            Gp_MsgPlayerWeapon(1);
+            Gp_DispatchMsg(
+                (Task*)func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
+        default:
+            Task_Kill(arg0);
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key = ((SessionBytesAt4*)Game_Session)->field_4;
-    if (Wip_SysFlags.field_0 == 2) {
-        if (task->spawnArg1 != 0) {
-            key.data[0] = 0x67;
-        } else {
-            key.data[0] = 0x65;
-        }
-    } else {
-        if (task->spawnArg1 != 0) {
-            key.data[0] = 0x66;
-        } else {
-            key.data[0] = 0x64;
-        }
-    }
-    slot = Stream_FindSlot(key.data, 0, 0);
-    {
-        s32 cmd;
-        s32 zero;
-        u8* p;
-        cmd  = 0x61;
-        zero = 0;
-        p    = slotParam;
-        SOFT_TOUCH_REG4(cmd, zero, p, slot);
-        slotParam[0] = slot;
-        CdCmd_Enqueue(cmd, zero, p);
-    }
-    goto advance;
-
-L_case2:
-    if (queue->field_1FA == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    Task_Kill(task);
-    Display_ResetHeapWrapper();
 }

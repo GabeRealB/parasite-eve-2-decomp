@@ -84517,3 +84517,72 @@ Inputs: `base.c` (one-parameter m2c, 99.583%)
 `base_1.c` (three-parameter, 100.000%)
 `cc22ba5650347c7ef01e08b0910606a8bc56f844e2d377dac1655678cc15391f`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## The split output itself tells you the new unit mapping after a promotion
+
+A `shared` span inserted mid-file renumbers every later unit of both carriers,
+and splat only *creates* the one new unit's `.c`, so the existing files keep the
+old distribution and the bodies have to be moved by hand. Several entries here
+describe that hazard; what they do not say is how to find the mapping without
+guessing, and guessing is what loses bodies.
+
+Two independent oracles, both free:
+
+**The split output.** splat writes each function's `.s` into the directory of the
+unit that owns its *address*, so the tree after the re-split already states the
+new assignment:
+
+```
+find asm/USA/<family>/{matchings,nonmatchings}/<overlay> -name '*.s'
+# <overlay>/<unit>/<fn>.s   -> that function belongs to <unit> now
+```
+
+Whether a function lands under `matchings/` or `nonmatchings/` is decided by a
+different rule (splat reads the unit's *own* `.c`: `INCLUDE_ASM`-declared and
+newly-created-unit functions go to `nonmatchings/`, everything else to
+`matchings/` when `disassemble_all` is on — splat's `segtypes/common/c.py`
+around the `create_c_asm_file` call). That split is circular during a
+half-finished redistribution, but the *directory* — which is the part the move
+needs — is not. It also confirms the inverse: a function under
+`nonmatchings/<unit>/` must be `INCLUDE_ASM`'d by `<unit>.c`, or splat will not
+write that file on the next split.
+
+**The pre-promotion config.** `git checkout` the manifest and the overlay's sym
+files, run `ninja_config.py`, save the generated yaml, restore, re-run. Diffing
+the two `subsegments` lists gives old range -> new unit directly. Worth doing
+when the split output alone is ambiguous, e.g. when a unit's range is unowned
+afterwards.
+
+Worked case: `func_dryfield_night_garage_80180300` promoted into
+`rooms_shared_80180300` turned the night garage's `_3`.._6` into `_4`.._7`,
+created `_7` for the former `_6`, cut an 8-byte `_3` off the old `_2`, and left
+the day garage without a `_3` at all (its only body moved to `_2`, so the file
+was deleted). The bodies are moved, not rewritten: read each from the
+pre-promotion source and write it to the file the oracle names.
+
+### The `rodata` cut moves with the code, and a migrated table hides in the function
+
+The cut that gives a compiler-generated jump table the start of its unit's
+`.rodata` follows the *generating function*, which the promotion moves. In the
+worked case the night garage's `rodata` cut named `_5` at 0x148 for
+`func_80180B20`'s table; `func_80180B20` ended up in `_6`, so the cut had to be
+re-pointed at `_6`, and its second entry at 0x160 at the new `_7` (which owns the
+`INCLUDE_ASM`'d `func_80181518` and its table). Getting this wrong is a link
+failure, not a silent one.
+
+Do not add an `INCLUDE_RODATA` for a table that splat migrated into its
+function's `.s`. `migrate_rodata_to_functions` emits the table as a leading
+`.section .rodata` block *inside* the referencing function's `.s`, so no
+standalone `jtbl_*.s` exists and the include fails on the assembler:
+
+```
+Error: can't open asm/USA/rooms/.../dryfield_night_garage_7/jtbl_dryfield_night_garage_8017D720.s
+```
+
+That is the same error text as the trailing-pad-word case above, for an
+unrelated reason — there the file was folded into the preceding symbol, here it
+was folded into the function itself. The table still reaches the right address,
+because the function's object supplies `.rodata`; only the redundant include is
+wrong.
+
+Inputs: `base_1.i`
+`3e9fc45f8f4fa4a93f47eeff62044adfdea72e9502c223c2b289336ca18532f6` (100%).
