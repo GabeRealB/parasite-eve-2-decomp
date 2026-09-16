@@ -86379,3 +86379,65 @@ evidence about the callee: check `include/` before editing registers.
 
 Inputs: `base_2.i`
 `4938436ada38aca74e031c63da8d241b44707ad37d3365148d41d7adddfb4819` (100%).
+
+## Distinct-looking data symbols can be indices into one array (func_mine_tunnel_8017D7D4, 2026-09-16)
+
+The seed for this room effect tick read the target's `%hi`/`%lo` pairs as four
+separate anchor arrays -- `D_mine_tunnel_8017E12C`, `_E134`, `_E13C`, `_E14C` --
+which the data asm appears to confirm, because splat emits a `dlabel` for each.
+Written that way the function stalled at 98.129% with exactly one difference,
+in view 5:
+
+```
+lui    $s0,%hi(D_mine_tunnel_8017E134)   /* target */
+addiu  $s0,$s0,%lo(D_mine_tunnel_8017E134)
+addu   $a0,$s0,$zero
+```
+
+against `lui $a0,%hi(D_mine_tunnel_8017E134)` / `addiu $a0,$a0,%lo(...)` in ours.
+Everything else in the function matched.
+
+The anchors are one run of `SVECTOR`s, so the expression is an *index* into one
+array -- `E134`, `E13C` and `E14C` are `E12C+8`, `+0x10` and `+0x20`. Spimdisasm
+names any address a `%lo` pair resolves to, so an indexed access renders as its
+own symbol. The tell is the address that is *not* named: the view-3 fourth
+anchor, `E12C+0x18`, has no symbol, because that access compiles to
+`addiu $a0,$s0,0x18` off the base register rather than a `%lo` pair.
+
+Why the shape follows from the index. MIPS `movsi` materializes every symbol
+address into a fresh pseudo and copies it to the argument register, and the
+combiner deletes that copy whenever the pseudo has a single use:
+
+```
+(set Q (lo_sum T sym))          /* a single-use address  */
+(set (reg 4 a0) (reg Q))        /* ... folds into $a0    */
+```
+
+A second use keeps the copy and pushes Q across the call, which is what makes
+local-alloc refuse `$a0` and pick a callee-saved register. Indexing the one
+array gives exactly that second use: the base address is CSE'd once
+(`lui $s0` / `addiu $s0`), the earlier anchors become `move $a0,$s0` and
+`addiu $a0,$s0,N`, and the closing `[4]` anchor is rematerialized as a fresh
+`lui`/`addiu`, because `combine`'s `simplify_rtx` LO_SUM rule -- "Convert
+`(lo_sum (high FOO) FOO)` to FOO. This is necessary so we can add in an offset"
+-- folds the base register plus the index back into one constant address.
+
+Rewriting the switch against `D_mine_tunnel_8017E12C[k]` matched the whole
+function; the remaining object-diff lines are symbol *names* only
+(`%lo(D_mine_tunnel_8017E12C+0x10)` and `%lo(D_mine_tunnel_8017E13C)` assemble
+to the same 16 bits), so the scratch score read 99.339% on a function whose
+bytes are identical. Read the instruction words, or finish with the unscoped
+build, before treating a residual symbol-name diff as a real mismatch.
+
+This is also a jump-table function, so the C now owns the table: the manifest's
+`rodata` cut moved from `mine_tunnel_2` to `mine_tunnel_3` with a second cut at
+`0x24` for `mine_tunnel_2` (which keeps `D_mine_tunnel_8017D5E4`), and
+`mine_tunnel_2.c`'s `INCLUDE_RODATA(jtbl_mine_tunnel_8017D5D0)` was deleted --
+its labels had been defined by the function's assembly. The config change
+re-splits the units, but the existing `.c` files stay in place (splat never
+rewrites one that exists), so no matched body was lost and
+`check_lost_matches.py` passed.
+
+Inputs: `base_15.i`
+`733499da18bf72f55e469e3731d0554896bcb27b59d6132bd602bbed093fa0b5` (99.339% on
+symbol rendering; the unscoped build matches).
