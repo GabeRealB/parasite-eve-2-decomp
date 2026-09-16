@@ -89364,3 +89364,41 @@ adjusted, was one build to 100%. Read the shape-1.00 neighbour before
 reconstructing control flow from the asm.
 Input: `base_1.i`
 `c8221e0783cefa316b541c72c2e2da159d233b4618966f9a014c38fedc9e50cf`.
+## m2c hoists a loop counter's init above the call, and that costs a callee-saved register
+
+`func_actor_510900_8013C240` loads three `Task` fields, calls `Gp_GetViewIndex`,
+then runs a fixed three-iteration loop. m2c rendered the loop as a `do/while`
+with both inits above the call:
+
+```c
+var_s1 = 0;              /* the accumulator */
+var_a0 = 0;              /* the loop counter  <- hoisted */
+temp_a1 = Gp_GetViewIndex() & 0xFF;
+do { ... var_a0 += 1; } while (var_a0 < 3);
+```
+
+Written that way the counter is live across the `jal`, so it needs a
+callee-saved home. With three struct pointers already holding `$s0`-`$s2`, the
+allocator spilled into `$s4`, which added `sw $s4,0x20(sp)` / `lw $s4,0x20(sp)`
+and pushed `$ra` from `0x20` to `0x24` - every subsequent branch displacement
+shifted. Score 91.4%, `regs=29 branch=5 insert=3 delete=1`, with topology,
+predicates and calls all already matching.
+
+The target keeps the counter in `$a0`, set *after* the call returns, and saves
+only `$s0`-`$s3`. The fix is purely where the initialization sits:
+
+```c
+misses = 0;                       /* accumulated across the call: stays in $s1 */
+view   = Gp_GetViewIndex();
+for (i = 0; i < 3; i++) { ... }   /* i initialized after the call: gets $a0 */
+```
+
+That alone went 91.4% -> 100%. The accumulator genuinely is live across the
+call and correctly keeps `$s1`; only the counter was hoisted needlessly.
+
+Rule of thumb: when a post-call loop costs one extra `$sN` and the whole frame
+shifts, check whether m2c placed the counter's `= 0` before the call. Converting
+the `do/while` back to a `for` puts the init where the original source had it.
+Do not reach for a register pin for this - the allocation follows the lifetime.
+
+Inputs: `base_1.i` (91.4%), `base_2.i` (100%).
