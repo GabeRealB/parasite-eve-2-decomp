@@ -96204,3 +96204,20 @@ Evidence: scratch `nonmatchings/func_actor_312200_801636CC-vacuum/`; `base_1.c`
 `Actor312200Msg7DB` union, whose `u8 b[4]` / `struct { u16 id; u16 action; }`
 view pair is what makes the two byte loads and the two halfword loads of the
 same four payload bytes come out as the target's `lbu`/`lbu`/`lhu`/`lhu`.
+
+## The brief's `Yaml:` line names an arbitrary overlay of the family, not yours
+
+`decomp_overlay.py` keys its overlay table by `asm_path` relative to
+`asm/<ver>`, and every actor overlay declares `asm_path: asm/USA/actors` — so
+they all collapse onto one entry, the last generated yaml in sorted order.
+`find <function>` resolves the function's `.s` path and its `src` file
+correctly, but the `yaml_path` it reports (the `Yaml:` line the scratch brief
+prints) is whatever overlay sorted last: for `func_actor_102300_80135A70` that
+was `configs/USA/generated/actor_800300.yaml`, whose load address is 0x80161E20
+where this function's own overlay loads at 0x80131E20. The `ASM`, `C file` and
+`Unit` lines are right, so the wrong yaml is not obvious.
+
+Reading that config for a load address, a `shared` span or a `rodata` cut
+reasons about a different overlay. Take the yaml whose `segments:` name the unit
+you are editing (`grep -l <unit> configs/USA/generated/*.yaml`), or derive the
+load address from the function name, which is the VRAM address itself.
