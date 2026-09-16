@@ -85761,3 +85761,32 @@ same way in `src/gameplay/1BC.c` and `src/gameplay/3CD8.c`.
 Inputs: `base.c` 77.931% (`regs=16 delete=4 insert=1 reorder=1`), `base_1.c`
 100.000% zero penalties, one attempt. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A constant in the wrong argument register is m2c's prototype, not codegen
+
+m2c declares each callee from the call site it can see, so a call that passes a
+single visible argument comes out as a one-parameter `extern`. The seed for
+`func_dryfield_night_toilet_8017D690` had
+`M2C_UNK Game_SetPtrSlot(M2C_UNK)` and `Game_SetPtrSlot(7)`, and the object
+matched the target everywhere except one line: `li a0,7` where the target has
+`li a1,7`. The real declaration is `void Game_SetPtrSlot(void* ptr, s32 index)`
+(`main/session.h`), so the correct call is `Game_SetPtrSlot(task, 7)` — the
+task in `$a0` (which the target never reloads, it is still entry's `arg0`) and
+the index in `$a1`.
+
+Nothing in the RTL is wrong; the argument is simply bound to the first
+parameter. Writing `1 arg → 2 args` off the header was the whole fix, one build
+after the 99.857% baseline, no pins.
+
+The general rule: a single mismatching line whose only difference is *which*
+argument register holds a value is evidence about the callee's signature, not
+about allocation. Reach for the header before the seed's own `extern`, and
+before any `register ... asm("")` pin — pinning `$a1` would reproduce the byte
+and misstate the call.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `9ea3c67d9104b1703307abd5c7d1767c56bd07af6211a661d6fe395df7ebf7d7`,
+base_1.i `656bd913c1c85eeba07629a62ce247348ffc94de4f589e9500cbf8818f322438`.
+Evidence: scratch `nonmatchings/func_dryfield_night_toilet_8017D690-vacuum/`,
+`base_diff`; no pins, no permuter, no tracer.
+`overlay_dup_index.py find` reports this body as its own only copy.
