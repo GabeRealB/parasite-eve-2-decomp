@@ -2092,7 +2092,31 @@ void Actor04400_Fn080E8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08160);
+void Actor04400_Fn08160(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    s32              cond;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_426 = 4;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xE;
+        work2->field_414 = 1;
+        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+        work->field_412  = 0;
+        work->field_42C  = 0;
+        work->field_446  = (s16)((((u32)Gp_LcgState >> 16) & 0x3F) + 0xB0);
+        work->field_422++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08208);
 
