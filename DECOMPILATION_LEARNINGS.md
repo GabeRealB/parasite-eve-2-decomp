@@ -90065,3 +90065,42 @@ pair schedules in source order. This is also why that `goto` cannot be replaced
 by `return ret;` in the early arms: `ret = 1; ...; return ret;` inside one block
 lets cse2 fold it to `return 1`, which then cross-jumps onto an unrelated
 `return 1` tail elsewhere in the function.
+
+## A store through a bare pointer cast lets `sched1` hoist a later struct load above it
+
+`func_actor_510900_80138D38` pushes a `MATRIX` onto the scratch stack and then
+reads two pointers out of its argument:
+
+    matrix                = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    *(u8**)G_SCRATCH_HEAD = (u8*)matrix;
+    work                  = arg0->field_1C;
+    coord                 = &arg0->field_2C->field_8->field_0;
+    RotMatrix(&work->field_570, matrix);
+
+That scored 97.56% with `reorder=5 regs=4`, all of it in the prologue: the
+`lw` of `work` was scheduled *above* the `sw` to the scratch head, which made
+`addiu $a0,$s3,0x570` available early, so `move $a1,$s0` was left for the `jal`
+delay slot instead of `addiu $a0`.
+
+The `.sched` RTL shows why. The store is `(mem:SI (reg 91))` — a plain `MEM` —
+while the load is `(mem/s:SI (plus (reg 80) (const_int 28)))`. With
+`MEM_IN_STRUCT_P` set on only one of the two, the dependence test clears them,
+and insn 20's dependence list holds no link to the load at all:
+
+    (insn 20 ... (set (mem:SI (reg:SI 91)) (reg/v:SI 83))
+        (insn_list 194 (insn_list:REG_DEP_ANTI 13 (insn_list 15 (nil)))))
+
+Giving the scratch head a one-field struct view marks the store `mem/s` too,
+the dependence appears, and the block schedules in source order — 100.00%:
+
+    typedef struct Actor510900ScratchStack { u32 sp; } Actor510900ScratchStack;
+
+    matrix = (MATRIX*)(((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+
+`Actor100300ScratchStack` in `include/actors/actor_100300.h` is the same trick,
+and `Actor00300ByteView` beside it is the reverse case. So when a store and a
+nearby load disagree about `mem/s` and the scheduler swaps them, the fix is to
+make the *access form* agree, not to reorder the statements: statement order
+does not move a `sched1` decision that never consults it (see "`sched1` always
+hoists a plain `li` above stores in the same block" for the other half of this).

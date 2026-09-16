@@ -882,7 +882,79 @@ void func_actor_510900_80138BF0(Actor510900* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor510900AimScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80138D38);
+/// Yaws the head coordinate (`field_8[3]`) by the residual rotation in
+/// `Actor510900Work::field_570` and then walks that residual 0x20 back towards
+/// zero on each axis, snapping to zero inside the last step. `field_584` is
+/// cleared on the frame both axes have come to rest.
+///
+/// The scratch head is taken through `Actor510900ScratchStack` rather than as a
+/// bare pointer: the struct store keeps the `arg0->field_1C` load below it.
+void func_actor_510900_80138D38(Actor510900* arg0)
+{
+    Actor510900Work* work;
+    GsCOORDINATE2*   coord;
+    MATRIX*          matrix;
+    s32              angleX;
+    s32              angleY;
+    s32              absX;
+    s32              nextX;
+    s32              absY;
+    s32              nextY;
+    s32              active;
+
+    matrix                                         = (MATRIX*)(((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    active                                         = 0;
+    work                                           = arg0->field_1C;
+    coord                                          = &arg0->field_2C->field_8->field_0;
+    RotMatrix(&work->field_570, matrix);
+    USE_REG(matrix);
+    gte_SetRotMatrix(&coord[3].coord);
+    gte_ldclmv(matrix);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord);
+    gte_ldclmv(&matrix->m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord.m[0][1]);
+    gte_ldclmv(&matrix->m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord.m[0][2]);
+
+    angleX = work->field_570.vx;
+    if (angleX != 0) {
+        absX = __builtin_abs(angleX);
+        if (absX < 0x21) {
+            work->field_570.vx = 0;
+        } else {
+            nextX = angleX - 0x20;
+            if (angleX <= 0) {
+                nextX = angleX + 0x20;
+            }
+            work->field_570.vx = nextX;
+            active             = 1;
+        }
+    }
+
+    angleY = work->field_570.vy;
+    if (angleY != 0) {
+        absY = __builtin_abs(angleY);
+        if (absY < 0x21) {
+            work->field_570.vy = 0;
+        } else {
+            nextY = angleY - 0x20;
+            if (angleY <= 0) {
+                nextY = angleY + 0x20;
+            }
+            work->field_570.vy = nextY;
+            active             = 1;
+        }
+    }
+
+    if (active == 0) {
+        work->field_584 = 0;
+    }
+    (*(u32*)G_SCRATCH_HEAD) += 0x20;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80138F44);
 

@@ -15,6 +15,14 @@ typedef struct Actor510900Coord {
     /* 0x50 */ GsCOORDINATE2 field_50;
 } Actor510900Coord;
 
+/// `G_SCRATCH_HEAD` seen as a struct field rather than a bare pointer. The
+/// struct store carries `MEM_IN_STRUCT_P`, which is what keeps GCC 2.8.1's
+/// first scheduling pass from hoisting a later struct load above the push in
+/// `func_actor_510900_80138D38`.
+typedef struct Actor510900ScratchStack {
+    u32 sp;
+} Actor510900ScratchStack;
+
 /// 0x40-byte scratch `func_actor_510900_80138BF0` takes from `G_SCRATCH_HEAD`
 /// to aim the head coordinate at the player. `view` is the head coordinate in
 /// view space, `delta` the player offset from it, and `local` that offset
@@ -65,11 +73,13 @@ typedef struct Actor510900Work {
     /* 0x568 */ Task* field_568;
     /// Task of the third enemy spawned from the same table.
     /* 0x56C */ Task* field_56C;
-    /* 0x570 */ byte  pad_570[8];
-    /* 0x578 */ s32   field_578;
-    /* 0x57C */ s32   field_57C; ///< sound id stopped alongside field_580
-    /* 0x580 */ s32   field_580; ///< last sound id queued
-    /* 0x584 */ s16   field_584;
+    /// Residual head rotation, stepped 0x20 at a time towards zero each frame
+    /// by `func_actor_510900_80138D38` while it yaws the head coordinate.
+    /* 0x570 */ SVECTOR field_570;
+    /* 0x578 */ s32     field_578;
+    /* 0x57C */ s32     field_57C; ///< sound id stopped alongside field_580
+    /* 0x580 */ s32     field_580; ///< last sound id queued
+    /* 0x584 */ s16     field_584;
     /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
     /// stores `Actor510900AnimArgs::field_4 + 0x1B` here.
     /* 0x586 */ s16 field_586;
