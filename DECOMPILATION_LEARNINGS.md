@@ -2585,6 +2585,19 @@ the score sits at 86%. Read the `lui` destination as the tell: when the target
 writes the address into the argument register itself, the source had no
 intervening variable.
 
+`func_dryfield_night_motel_room_1_8017D9B0` is the switch-case instance of the
+same rule and pins down what is *not* the cause. Its m2c seed assigns `var_a0` /
+`var_a1` / `var_a2` in each case and reaches the one `Room_Draw20` through a
+`goto block_4`; it scores 67.394% with `lui $v0` / `addiu $a0,$v0` and the tail
+parked in the first case. Writing the call out in both cases gives 100.00%.
+Three variants isolate the factor, and each came out **byte-identical** to the
+100% object: declaring the data as an array (`extern SVECTOR X[]`, `&X[0]`)
+versus a scalar object (`extern SVECTOR X`, `&X`); a per-case `SVECTOR* p`
+local; and a single `SVECTOR* p` assigned in both cases and merged at the join.
+So the data's declaration and the variable/merge structure are both irrelevant
+here - only the pre-shared single call reproduces `lui $v0`. Do not chase the
+declaration; write the second call and let `jump.c` cross-jump the tails.
+
 ## A `nop` in a `jal`'s delay slot is the tell that the call block is a cross-jump head
 
 `func_mine_forked_tunnel_8017D5E8` picks a `RoomPlacement` and hands it to
