@@ -107323,3 +107323,42 @@ source `base_3.c` `dd5ad9488c048d4700a7b2155651a9ed7617f6341278e713c05808cfa4ebc
 `7ce669a19de6d53a02f806d455099c6d6e67ca71fa8ac9ba503d435ea26e4bff`, source
 `base_1.c` `293407d2f17036a523783450d71e18ef61b05649f711581c904e785f50b8d82f`
 (79.229%, `reorder=6`). Scratch `nonmatchings/func_actor_511000_801332E4-vacuum`.
+
+## A pointer load sitting in the entry block means the source read it *before* the `switch`
+
+`func_actor_511000_801327A0`, the message-0x7D5 handler, is the same four-way
+mode dispatch as the already-matched `func_actor_141000_80133E8C` and
+`func_actor_503500_80132584`, which both name the work pointer inline in the one
+arm that uses it (`((Worker*)task->idMap)->field_44 = mode;`). Here the target
+loads it once, in the entry block, *above* the dispatch test:
+
+```
+lw   s0,0x2c(a0)     ; Task::extra
+lw   v1,0x1c(a0)     ; Task::idMap -- its only use is case 2
+beq  a2,v0,.Lcase1
+```
+
+and case 2's store reads `$v1` (`sw a2,0x480(v1)`). 2.8.1 has no PRE and sched1
+is per-block, so a load reaches the entry block only because the source put it
+there. Reading the pointer into a local before the switch
+
+```c
+    work = (Actor511000Work2*)arg0->actor;
+    ...
+        case 2: work->field_480.word = mode;
+```
+
+matches 100%. Copying the siblings' inline form instead is 94.286%
+(`branch=5 regs=3 insert=2 delete=1`): the load moves into the case-2 block *and*
+into `$v0`, so both the placement and the register change. Read where the load
+sits relative to the first dispatch test - not which register holds it - when
+deciding whether a dispatch handler's pointer is a hoisted local or an inline
+expression.
+
+Inputs: `base_1.i` `ece878d9a4432338e5409fe11d513fee5add27b3c9ea6ae18ae438614dd08347`,
+source `base_1.c` `7d66465b9e7705a66239407080a379d4e989b558ef6260adc5d9c68c11a37a95`
+(100.000%). Inline-form variant `base_2.i`
+`4b30bc48843a8f5e5642cd0f6ed98062af70dfe3e4551e3c38d974a1beb35dc2`, source
+`base_2.c` `37cd3f32c2ae01d0c2ce4d4a19c88b0aa7308268b4afe88383fdb44e95d6e0d4`
+(94.286%). Target `d96cb58530a42fdb3157c15cfacfe13d5535c864e11a49af91267bbbdf99f354`.
+Scratch `nonmatchings/func_actor_511000_801327A0-vacuum`.

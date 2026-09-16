@@ -22,7 +22,50 @@ extern GpImgRec D_actor_511000_80146C74;
 extern GpImgRec D_actor_511000_80146F94;
 extern GpImgRec D_actor_511000_801472B4;
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801327A0);
+/// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
+/// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 shows
+/// the model (`field_C` bit 0x80) and clears the 4 flag, 1 hides it, frees the
+/// aux buffers and clears the flag, 2 does both plus latching the mode into the
+/// work block's `field_480`, and 3 hides it while setting the flag. Anything
+/// else returns 1 and leaves the object alone; the handled modes return 0.
+/// The handler reads `idMap` before the switch even though mode 2 is its only
+/// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
+/// shape as `func_actor_141000_80133E8C` / `func_actor_503500_80132584`.
+s32 func_actor_511000_801327A0(GpActorWork* arg0, s32 arg1, s32 mode)
+{
+    TmdObject*        obj;
+    Actor511000Work2* work;
+    s32               ret;
+
+    obj  = arg0->extra;
+    work = (Actor511000Work2*)arg0->actor;
+    ret  = 0;
+
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C        |= 0x80;
+            work->field_480.word = mode;
+            obj->field_C        |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 /// Message-0x7DB handler: un-hides the model its first child task carries in
 /// `Task::extra` (`field_C` bit 0x80) for mode 1 and hides it for mode 0, then
