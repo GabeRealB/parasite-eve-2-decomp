@@ -133,5 +133,6 @@ extern TaskFuncTable3 Actor04400_D00070;   // dispatcher table Actor04400_Fn06AC
 extern TaskFuncTable3 Actor04400_D0007C;   // dispatcher table Actor04400_Fn06870 copies onto its stack
 extern TaskFuncTable3 Actor04400_D00150;   // dispatcher table Actor04400_Fn07CF0 copies onto its stack
 extern TaskFuncTable3 Actor04400_D0015C;   // dispatcher table Actor04400_Fn07D78 copies onto its stack
+extern TaskFuncTable4 Actor04400_D00174;   // dispatcher table Actor04400_Fn07F04 copies onto its stack
 
 #endif

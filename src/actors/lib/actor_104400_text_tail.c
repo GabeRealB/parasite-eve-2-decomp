@@ -1374,7 +1374,15 @@ void Actor04400_Fn07E74(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07F04);
+void Actor04400_Fn07F04(Task* arg0)
+{
+    Actor104400Work* work;
+    TaskFuncTable4   sp;
+
+    work = (Actor104400Work*)arg0->idMap;
+    sp   = Actor04400_D00174;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 void Actor04400_Fn07F6C(Task* arg0)
 {
