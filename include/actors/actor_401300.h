@@ -62,7 +62,9 @@ typedef struct Actor401300Work {
     /* 0xBF0 */ GpObj    field_BF0;
     /* 0xC10 */ byte     pad_C10[0x7A];
     /* 0xC8A */ s16      field_C8A;
-    /* 0xC8C */ byte     pad_C8C[0x1C];
+    /* 0xC8C */ byte     pad_C8C[0x14];
+    /* 0xCA0 */ u16      field_CA0;
+    /* 0xCA2 */ byte     pad_CA2[6];
     /// Copy of the first three bytes of the last event
     /// `func_actor_401300_80132554` handled.
     /* 0xCA8 */ u8   field_CA8[3];
@@ -171,7 +173,8 @@ typedef struct Actor401300RangeScratch {
 extern MATRIX* D_80073B8C;
 
 /// Movement freeze flag: `Actor401300_MoveForward` skips its step when it is 1.
-extern u8 D_80072729;
+extern u8  D_80072729;
+extern u32 Gp_LcgState;
 
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401300_8013B6E8`.

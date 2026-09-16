@@ -249,7 +249,37 @@ void func_actor_401300_80141D50(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_80141DF4);
+void func_actor_401300_80141DF4(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_8B6 = 0x20;
+        work->field_8BA = 8;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_6   = work->field_CA0 + ((Gp_LcgState >> 16) & 0xF);
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (--work->field_6 < 0) {
+        switch (work->field_8A2) {
+            case 11:
+            case 23:
+                work->field_0 = 0xF;
+                break;
+            case 12:
+            case 24:
+            case 34:
+                work->field_0 = 0x10;
+                break;
+        }
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x15;
+    }
+}
 
 void func_actor_401300_80141EF8(Task* task)
 {
