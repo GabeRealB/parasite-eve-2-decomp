@@ -92653,3 +92653,32 @@ around it: exempting `jtbl_*` refs (at least for `state == "matched"`) would
 make this one promotable, and the rodata half is already supported - a `rodata`
 cut naming a shared unit is emitted as `lib/<unit>`, and the 0x130 block above is
 identical across all three carriers.
+## A duplicate body that spans families is handed out as an ordinary task; port the other family's matched C
+
+`overlay_dup_index.py find <fn>` decides equality on splat's disassembly text, which
+drops anything that names a copy's own position — so it groups copies that no single
+shared object can serve. The same 55-instruction fade task exists as an actor
+overlay's `func_actor_120300_80133B5C` and as the room-side
+`func_dryfield_water_tower_80180038`; the index reports three copies of one body
+across two load address classes.
+
+Only a *same-family* match is reachable, because the shared unit lives in
+`src/<family>/lib/`: `promote` groups carriers per family and prints `N of M copies
+share src/<family>/lib/<unit>.c` with the other family's copy left out, and `solved`
+parks an unmatched body only when another overlay *in its own family* already has the
+match (`cmd_solved` in `tools/overlay_dup_index.py`). So a cross-family duplicate is
+not skipped by the vacuum and not promotable: it arrives as an ordinary unmatched
+function, and its known-good C is already in `src/` under the other family's name.
+
+Worked case: the source of `func_dryfield_water_tower_80180038` (fade-*out*, channels
+raised from 0 until `(s16)r` passes `0x100`), ported verbatim with only the game's own
+naming changed, matched `func_actor_120300_80133B5C` at 100.000% with all penalties
+zero on the first build after the baseline — and the two Task_Kill call sites that
+source writes merge into the target's single call through the cross-jumping already
+described above. The room copy itself was matched first as a private body
+(`src/rooms/dryfield_water_tower/`, the fade-out direction deliberately not shared
+there), which is what made the actor copy a port rather than a decompilation.
+
+Check `find` before starting: the brief's "similar matched bodies" list is the fuzzy
+`similar` tier and says as much, while `find`'s equality is exact and marks which
+copies are already matched.
