@@ -99409,3 +99409,19 @@ pos:
     dir = 1;
 }
 ```
+
+### `sra v0` / `sh v0,field` / `move v1,v0` before a clamp: `field = tmp = x`, then compare the field
+
+`func_actor_403000_801386E8` wraps an `s16` angle, stores it, then clamps the
+stored field to ±0x40. The ROM sign-extends into `$v0`, stores `$v0`, and only
+then copies it to `$v1` for the compares. `scratch->angle = angle` stores the raw
+`HI` pseudo *before* the extension (and drops the `sll` from the wrap loop's
+delay slots); `scratch->angle = mag = angle; if (mag > 0x40)` extends straight
+into `mag`, because cse's `make_regs_eqv` makes the longer-lived user variable
+the canonical register and substitutes it into the store (no `move`). The match
+is `scratch->angle = mag = angle;` with the compares written against
+`scratch->angle` - the assignment makes the store's source the extended value,
+and the field re-read becomes the separate copy. `mag` is otherwise unused.
+In the same function, one `G_SCRATCH_HEAD` push/pop in the middle of the body
+needed `static __inline__` push and pop helpers, and the `mtc2`/`lhu` GTE block
+a third inline taking the vector, for the extra `move s3,s0` register.

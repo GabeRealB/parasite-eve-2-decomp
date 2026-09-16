@@ -108,7 +108,13 @@ typedef struct Actor403000Work {
     /* 0xF74 */ s16  field_F74;
     /* 0xF76 */ byte pad_F76[0x2];
     /* 0xF78 */ s16  field_F78;
-    /* 0xF7A */ byte pad_F7A[0xE];
+    /* 0xF7A */ byte pad_F7A[0x2];
+    /* 0xF7C */ s16  field_F7C;
+    /* 0xF7E */ s16  field_F7E;
+    /* 0xF80 */ s16  field_F80;
+    /* 0xF82 */ byte pad_F82[0x2];
+    /* 0xF84 */ s16  field_F84;
+    /* 0xF86 */ byte pad_F86[0x2];
     /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
     /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
     /* 0xF88 */ s16      field_F88;
@@ -236,6 +242,35 @@ typedef struct Actor403000PushScratch {
 } Actor403000PushScratch;
 STATIC_ASSERT_SIZEOF(Actor403000PushScratch, 0x28);
 
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_801386E8`: `d` is the player's offset from the model and
+/// `dist` its length, `target` the camera target relative to the model,
+/// `angle` the clamped turn and `ret` the reply to message 0x3F9.
+typedef struct Actor403000LungeScratch {
+    /* 0x00 */ VECTOR  d;
+    /* 0x10 */ SVECTOR target;
+    /* 0x18 */ s32     dist;
+    /* 0x1C */ byte    pad_1C[0x4];
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     ret;
+    /* 0x24 */ byte    pad_24[0x4];
+} Actor403000LungeScratch;
+STATIC_ASSERT_SIZEOF(Actor403000LungeScratch, 0x28);
+
+/// Payload of message 0x3E9 `func_actor_403000_801386E8` sends the player:
+/// the player's position and a heading of the model's facing minus 0x400.
+typedef struct Actor403000Msg3E9 {
+    /* 0x00 */ s32  x;
+    /* 0x04 */ s32  y;
+    /* 0x08 */ s32  z;
+    /* 0x0C */ byte pad_C[0x4];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ byte pad_16[0x2];
+} Actor403000Msg3E9;
+STATIC_ASSERT_SIZEOF(Actor403000Msg3E9, 0x18);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_8013B238`: `vec` is the waypoint relative to the
 /// coordinate and later the scaled matrix columns, `index` the waypoint picked
@@ -320,6 +355,9 @@ extern u8 D_actor_403000_80158D48[];
 /// The push message `func_actor_403000_801384E8` keeps resending to the
 /// player.
 extern Actor403000Msg3FE D_actor_403000_80158DB0;
+
+/// The grab message `func_actor_403000_801386E8` sends as 0x3E9.
+extern Actor403000Msg3E9 D_actor_403000_80158D90;
 
 /// Pairs of hit-effect vectors `func_actor_403000_80134910` picks from by
 /// turn magnitude; `pad` indexes the display object's coordinate parts.
