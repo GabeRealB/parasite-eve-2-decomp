@@ -100108,3 +100108,47 @@ cse.c:6599, and a volatile MEM hashes to `do_not_record`, cse.c:1972) — 93.23%
 and it is a useful *diagnostic* that the fold is what separates the two objects.
 It is not the source: it buys the reload but not the register pair, and the arms
 explain both.
+
+## Promoting a body out of the *first* unit is blocked by the leading rodata's migration order (func_actor_104900_801356BC, 2026-09-16)
+
+`overlay_dup_index.py promote func_actor_104900_801356BC` accepts the match (5
+copies: actor_101100/104900 byte-identical, actor_201100/204900/301100 at other
+addresses) and writes the usual `shared = [{ start = "0x389C", end = "0x39D0",
+unit = "actors_shared_801356bc" }, ...]` into all five carriers plus the shared
+symbol in each `sym/actors/*.txt`. The rotation is then like the `_3`-unit one
+above but starting one unit earlier:
+
+```
+old _2 (0x65E4..0x67C0) -> new _3      new _2 = the tail of the old unit 1 (0x39D0..0x65E4)
+old _3 (0x67C0..0x6C0C) -> new _4      old unit 1 keeps only 0xE8..0x389C
+...                                    the lib unit owns 0x389C..0x39D0
+```
+
+That part is mechanical and worked: rename the unit files highest-first (the
+split has already dropped a fresh stub for the new highest number), rewrite each
+moved file's `"actors/nonmatchings/<carrier>/<carrier>_N"` paths to `_N+1`,
+re-cut the old unit 1 into head + tail, prepend `#include "common.h"` to the new
+`_2`, and carry the old head's includes and externs (`actor_101100.h` plus its
+`SCRATCH_SP` define and `D_actor_101100_80131E24`) into it - the tail's matched
+bodies compile against them. `INCLUDE_RODATA` lines are the exception: their
+`.s` belongs to the unit that owns the *address*, not the unit that references
+it, so a rewritten path breaks the assembler.
+
+What blocks it is the leading rodata. `migrate_rodata_to_functions: True` emits
+each rodata symbol inside the `.s` of a function that references it, and the
+linker script concatenates the objects' `.rodata` in unit order - so the leading
+block (0x0..0xE8 here) is built from unit 1's own `INCLUDE_RODATA` lines *plus*
+the migrated data of every function that references it. Moving half of unit 1's
+functions into `_2` moves their migrated rodata into `_2`'s object, which the
+script places after the shared lib and after `_2`'s code: `D_actor_104900_80131EEC`
+came out at 0x80131E30 instead of 0x80131EEC, and all five overlays failed the
+checksum with every symbol address otherwise correct. Defining the symbol
+explicitly in unit 1's `.c` is not the fix either - it then lands third in the
+block instead of last, which fails the same way.
+
+So a mid-unit promotion of a carrier whose leading rodata is fed by migrated
+data needs the rodata cut the manifest's `rodata` key exists for, decided
+*before* the span: give the whole leading block one unit, delete and re-split so
+splat writes the `INCLUDE_RODATA` lines itself, and only then cut the shared
+span. The match itself does not depend on it - the four other carriers keep
+their `INCLUDE_ASM` stubs and still checksum.
