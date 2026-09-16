@@ -56,6 +56,15 @@ typedef struct Actor451100AnimArgs {
 
 void func_actor_451100_80132A1C(Task* task);
 
+/// Drives the actor for one frame off the state `func_actor_451100_80132A1C`
+/// or `func_actor_451100_80132538` left in the work block.
+void func_actor_451100_80131F84(Task* task);
+
+/// Second script opcode taking `Actor451100AnimArgs`: like
+/// `func_actor_451100_80132E98`, but it accepts a wider id range and enters the
+/// run through `func_actor_451100_80131F84`.
+s32 func_actor_451100_80132538(Task* task, s32 arg1, Actor451100AnimArgs* args);
+
 s32 func_actor_451100_80132E98(Task* task, s32 arg1, Actor451100AnimArgs* args);
 
 #endif

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_451100.h"
+#include "actors/actors_shared_801326b4.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -26,4 +27,26 @@ void func_actor_451100_801324B8(void)
     ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_3", func_actor_451100_80132538);
+/// Script opcode: start animation `args->animId` on this actor through
+/// `func_actor_451100_80131F84` rather than `func_actor_451100_80132A1C`.
+///
+/// The same argument block and the same two-way `withArg` start as
+/// `func_actor_451100_80132E98`; only the accepted id range (0x25 instead of
+/// 0x12) and the run entry point differ. `animArg` goes to the overlay's reset
+/// word instead of the work block's own slot.
+s32 func_actor_451100_80132538(Task* task, s32 arg1, Actor451100AnimArgs* args)
+{
+    if (args->animId < 0x25) {
+        ActorsShared80131f9cWork->animId = args->animId;
+        if (args->withArg != 0) {
+            ActorsShared80131f9cWork->state = 1;
+            D_actor_451100_8013F700         = args->animArg;
+        } else {
+            ActorsShared80131f9cWork->state = 2;
+        }
+        ActorsShared80131f9cWork->field_482 = 0;
+        func_actor_451100_80131F84(ActorsShared801326b4Task);
+        return 0;
+    }
+    return -1;
+}
