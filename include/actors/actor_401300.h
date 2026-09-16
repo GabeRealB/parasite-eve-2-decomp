@@ -67,7 +67,9 @@ typedef struct Actor401300Work {
     /* 0xC68 */ MATRIX field_C68;
     /* 0xC88 */ byte   pad_C88[2];
     /* 0xC8A */ s16    field_C8A;
-    /* 0xC8C */ byte   pad_C8C[0x14];
+    /* 0xC8C */ byte   pad_C8C[0xC];
+    /* 0xC98 */ s16    field_C98;
+    /* 0xC9A */ byte   pad_C9A[6];
     /* 0xCA0 */ u16    field_CA0;
     /* 0xCA2 */ byte   pad_CA2[6];
     /// Copy of the first three bytes of the last event
@@ -191,6 +193,16 @@ typedef struct Actor401300AimScratch {
     /* 0xE */ s16     pad_E;
 } Actor401300AimScratch;
 STATIC_ASSERT_SIZEOF(Actor401300AimScratch, 0x10);
+
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013A208` takes: the
+/// offset from the actor to the player, then the clamped turn. Same shape as
+/// `Actor01900TurnScratch`.
+typedef struct Actor401300TurnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor401300TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor401300TurnScratch, 0xC);
 
 /// 0x34-byte `G_SCRATCH_HEAD` block `Actor401300_RescaleYaw` builds its scaled
 /// Y rotation in. Same shape as `Actor01900RotScratch`.
