@@ -82,12 +82,28 @@ typedef struct Actor401000Work {
     /// `Actor401300Work` keeps at +0xC48 / +0xC68.
     /* 0xBA8 */ MATRIX field_BA8;
     /* 0xBC8 */ MATRIX field_BC8;
-    /* 0xBE8 */ byte   pad_BE8[0x1C];
+    /* 0xBE8 */ byte   pad_BE8[8];
+    /// Forward direction `func_actor_401000_801374D4` rebuilds from the wrapped
+    /// turn toward the player: `Gfx_RotMatrixY` on the turn then its second
+    /// column, normalised, and finally scaled by the `field_C0A` draw. The same
+    /// slot `Actor401300Work` keeps at +0xC8C.
+    /* 0xBF0 */ SVECTOR field_BF0;
+    /* 0xBF8 */ byte    pad_BF8[0xC];
     /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
     /// actor at the player: the `func_actor_401000_80132590` probe reads it
     /// signed, the step helper and the countdown itself through a `(u16)`.
     /* 0xC04 */ s16  field_C04;
-    /* 0xC06 */ byte pad_C06[6];
+    /* 0xC06 */ byte pad_C06[2];
+    /// Turn direction `func_actor_401000_801374D4` toggles as it enters: 0 (the
+    /// unseeded state) draws a sign from `Gp_LcgState`, and each entry flips it
+    /// to the other side. Selects the `field_89E` clip and the `field_C12` sign.
+    /// The same slot `Actor401300Work` keeps at +0xC9C.
+    /* 0xC08 */ s16 field_C08;
+    /// Turn length `func_actor_401000_801374D4` rebuilds the forward direction
+    /// with: seeded to 0xDE, taken signed by the `gte_lddp` draw and halved
+    /// while the actor overlaps an obstacle record. The same slot
+    /// `Actor401300Work` keeps at +0xC9E.
+    /* 0xC0A */ s16 field_C0A;
     /// Forward step `func_actor_401000_801385B0` walks the root by, feeding the
     /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
     /// Set to -0x78 when the live-actor flag goes up, halved while the actor
@@ -100,8 +116,12 @@ typedef struct Actor401000Work {
     /// countdown from, plus a 0-15 `Gp_LcgState` draw. The 401300 sibling keeps
     /// the same bias at +0xCA0, and the countdown `Actor01900` runs off +0xC10
     /// is the same slot.
-    /* 0xC10 */ u16  field_C10;
-    /* 0xC12 */ byte pad_C12[4];
+    /* 0xC10 */ u16 field_C10;
+    /// Turn step `func_actor_401000_801374D4` adds to (or subtracts from) the
+    /// wrapped facing each entry; the same slot `Actor401300Work` keeps at
+    /// +0xCA2 and `Actor01900Work` at +0xC14.
+    /* 0xC12 */ s16  field_C12;
+    /* 0xC14 */ byte pad_C14[2];
     /// Radius `func_actor_401000_8013922C` and `func_actor_401000_80138F50`
     /// test the actor's distance from `D_80073B8C` against.
     /* 0xC16 */ u16 field_C16;
@@ -113,7 +133,11 @@ typedef struct Actor401000Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC1C */ Task* field_C1C;
     /* 0xC20 */ Task* field_C20;
-    /* 0xC24 */ byte  pad_C24[4];
+    /* 0xC24 */ byte  pad_C24[2];
+    /// Wraps counter `func_actor_401000_801374D4` counts the turn entries with:
+    /// nonzero picks the un-biased `field_C12` arm, and each entry increments
+    /// it. The same slot `Actor401300Work` keeps at +0xD1E.
+    /* 0xC26 */ s16 field_C26;
     /// Latch `func_actor_401000_801385B0` clears after sending the closing
     /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
     /// The same slot `Actor00100Work` keeps at +0xC28.
@@ -130,6 +154,10 @@ typedef struct Actor401000 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ byte             pad_30[6];
+    /// High halfword of `Task::spawnArg1`; `func_actor_401000_801374D4` returns
+    /// early on the 0x1 arm before it touches the scratch block.
+    /* 0x36 */ s16 field_36;
 } Actor401000;
 
 /// Message payload of `func_actor_401000_8013D694`, the actor's animation

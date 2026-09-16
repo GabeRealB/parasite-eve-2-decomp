@@ -393,7 +393,114 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80136E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801374D4);
+/// Turn-entry body, the 401000 twin of `func_actor_401300_80137D78`: carve the
+/// aim scratch off `G_SCRATCH_HEAD`, and while the live-actor flag is up reset
+/// the display nodes and rebuild the actor's facing. The turn direction
+/// (`field_C08`) is drawn from `Gp_LcgState` on the first entry, and each entry
+/// swings the facing toward the player by `field_C12` plus a 0x171 bias until
+/// `field_C26` has been counted once. The forward direction `field_BF0` comes
+/// out of the turn angle through `Gfx_RotMatrixY`, and the `field_C0A` draw
+/// scales it onto the scratch vector; the actor is then slid along its obstacle
+/// table, halving that draw while it overlaps. Counts the entry in `field_6`
+/// and keys state 7 once 0x1E of them have run.
+void func_actor_401000_801374D4(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    Actor401000AimScratch* aim;
+    Actor401000AimScratch* head;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    SVECTOR*               dir;
+    MATRIX                 mat;
+    u16                    angle;
+    s32                    kind;
+
+    kind = arg0->field_36;
+    work = arg0->field_1C;
+    if ((kind & 0xF0) == 0x10) {
+        work->field_0 = 0x1E;
+        return;
+    }
+    head                                     = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD = head - 1;
+    aim                                      = head - 1;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0xD7;
+        work->field_6            = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+        aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
+        if (work->field_C08 == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                work->field_C08 = 1;
+            } else {
+                work->field_C08 = -1;
+            }
+        }
+        if (work->field_C08 == 1) {
+            work->field_89E = 0x15;
+            if (work->field_C26 == 0) {
+                angle      = aim->angle + 0x171;
+                aim->angle = work->field_C12 + angle;
+            } else {
+                aim->angle += work->field_C12;
+            }
+            work->field_C08 = -1;
+        } else {
+            work->field_89E = 0x14;
+            if (work->field_C26 == 0) {
+                angle      = aim->angle - 0x171;
+                aim->angle = angle - work->field_C12;
+            } else {
+                aim->angle -= work->field_C12;
+            }
+            work->field_C08 = 1;
+        }
+        work->field_898 = 1;
+        work->field_8A2 = 0xC;
+        work->field_89A = 0;
+        func_actor_401000_80132EF0(arg0);
+        Gfx_RotMatrixY(&mat, aim->angle, 1);
+        dir = &work->field_BF0;
+        Gfx_MatrixCol2(&mat, dir);
+        VectorNormalSS(dir, dir);
+        work->field_C0A = 0xDE;
+        work->field_C26++;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_401000_80132EF0(arg0);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89A == 0) {
+        gte_lddp(work->field_C0A);
+        gte_ldsv(&work->field_BF0);
+        gte_gpf12_real();
+        gte_stsv(aim);
+    } else {
+        gte_lddp(work->field_C0A >> 1);
+        gte_ldsv(&work->field_BF0);
+        gte_gpf12_real();
+        gte_stsv(aim);
+    }
+    if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
+        coord              = arg0->field_2C->field_8;
+        coord->coord.t[0] += aim->delta.vx;
+        coord              = arg0->field_2C->field_8;
+        coord->coord.t[2] += aim->delta.vz;
+        if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) == 1) {
+            work->field_C0A = (u16)(work->field_C0A >> 1);
+        }
+    }
+    if (++work->field_6 >= 0x1E) {
+        work->field_0 = 7;
+    }
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801378DC);
 

@@ -7283,6 +7283,20 @@ right and reports `blocks=27/27`. Copy the host file's include block —
 define — and it goes to 100% unchanged. `gte_gpf12_real` is also defined in
 `include/rooms/rooms_shared_80182078.h`, but the per-TU define is the one the
 actor TUs use.
+The same invisibility makes the object come out **long**, not short, when what
+is missing is the host `.c`'s prelude rather than its helpers. A body whose GTE
+draw goes through `<psyq/inline_c.h>` and the host's own
+`#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")`
+override (the psyq macro of that name assembles to a different word) has both
+out of scope in the scratch unit: `gte_lddp` / `gte_ldsv` / `gte_stsv` are
+undeclared, so each becomes an implicit-declaration `jal` with its operands
+loaded by the caller, and the block grows by a call frame's worth of
+instructions (231 vs 214, `delete=34`, `insert=7`, `calls_match=False`, 84%).
+Copied verbatim from the host `.c`, the same body scores 100%. Symptom that
+points here rather than at the earlier paragraph: `calls_match=False` with an
+instruction count *above* the target, and a diff whose right-hand column is
+`jal gte_lddp` where the target has `mtc2`. Copy the include and the `#define`
+along with any helpers; the count also tells the two apart at a glance.
 
 **Piping `build.sh` into `head` records a failure and can disqualify the seed.**
 `build.sh` journals its result from an `EXIT` trap, so a `./build.sh base_1.c |
