@@ -6,6 +6,10 @@ extern void func_8010ABD4();
 
 extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
 
+extern s32 func_8010BC70(GsCOORDINATE2*);
+
+extern void func_8010BE5C(GpActorWork*, VECTOR3*);
+
 extern GpActorFuncTable4 D_actor_800200_80161EB8;
 
 extern GpActorFuncTable12 D_actor_800200_80161E5C;
@@ -566,7 +570,37 @@ void func_actor_800200_80165CB4(Task* arg0)
     sp.funcs[arg0->spawnArg1 & 0xF](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165D44);
+void func_actor_800200_80165D44(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    actor  = arg0->actor;
+    switch (actor->field_95E) {
+        case 1:
+            actor->field_95C  = 0;
+            actor->field_95E += 1;
+            Gp_AnimResetChildSlots(arg0, 9);
+        case 2:
+            if ((func_8010BC70(coord) >= 0x500) || (Gp_StateF0.field_0 == 1)) {
+                actor->field_95C  = 7;
+                actor->field_95E += 1;
+                Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 3);
+            }
+            break;
+        case 4:
+            Gp_ResetActorMove(arg0, 0);
+            break;
+        default:
+        case 0:
+        case 3:
+            break;
+    }
+    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+}
 
 void func_actor_800200_80165E50(GpActorWork* arg0)
 {
