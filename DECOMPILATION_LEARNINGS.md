@@ -85664,4 +85664,42 @@ Inputs: `base.i` 67.000% (`branch=2 regs=5 insert=5 delete=1`)
 100.000%, zero penalties
 `ac9fff60e0ad3785a536b3ffac3b77621ae50de22f354f85282115e9eff63571`.
 Compiler SHA256
+## One single-use store through a global struct: the pointer local is what crosses the call (func_neo_ark_r31_8017D90C, 2026-09-16)
+
+**Problem.** m2c's seed `M2C_FIELD(&CdCmd_Queue, s16*, 0x22A) = 2;` scored 77.9%
+with `regs=16 delete=4 insert=1` and a candidate *smaller* than the target (26
+insns vs 29, frame 0x18 vs 0x20, two saved registers vs three). The target holds
+`&CdCmd_Queue` in `$s0` across the `Game_SetPtrSlot` call and stores with a
+displacement (`sh $v0, 0x22A($s0)`), while the candidate folds the whole address
+into one `lui $v1,%hi(CdCmd_Queue+554)` after the call.
+
+**Cause.** Same mechanism as "`lui %hi(sym)` + `addiu %lo(sym)` + `lh x,OFF(reg)`
+means a pointer local" above, but the consequence here is allocation, not just
+instruction shape: `-msplit-addresses` puts the `lo_sum` *inline in the store*,
+so the folded form has no separate address insn to hoist, and the one insn it
+does have writes a call-clobbered `$v1` that cannot cross the call. A pointer
+local's `(set (reg) (symbol_ref))` is independent of the call, so its live range
+spans it, and the allocator must give it a callee-saved register — `$s0` — which
+is what pushes `arg0` to `$s1` and the frame to 0x20.
+
+```c
+CdCmdQueue* queue;
+
+queue            = &CdCmd_Queue;      /* before the call: the range spans it */
+arg0->field_24   = D_neo_ark_r31_8017D9F4;
+Game_SetPtrSlot(arg0, 7);
+queue->field_22A = 2;
+func_800E8634((s32)&D_80133F90, 0, (s32)&D_80134470);
+arg0->state      = (s32)(arg0->state + 1);
+```
+
+**Tell.** A base address in a *callee-saved* register with a displacement store,
+where the candidate instead has `%hi(sym+off)`. The ordinary single-use pointer
+loses that register and rematerialises into `$t0` at the use site (see the entry
+above); it only survives when its initialisation precedes an intervening call.
+This is the PE2 house idiom for `CdCmd_Queue` — `p = &CdCmd_Queue;` appears the
+same way in `src/gameplay/1BC.c` and `src/gameplay/3CD8.c`.
+
+Inputs: `base.c` 77.931% (`regs=16 delete=4 insert=1 reorder=1`), `base_1.c`
+100.000% zero penalties, one attempt. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
