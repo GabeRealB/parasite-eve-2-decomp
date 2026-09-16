@@ -6,6 +6,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/session.h"
 
 /// Payload `func_actor_104000_80138CC8` passes as `Gp_DispatchMsg`'s `arg2`
@@ -64,7 +65,9 @@ typedef struct Actor104000Work {
     /* 0x3A6 */ u16        field_3A6;
     /* 0x3A8 */ byte       pad_3A8[0x36];
     /* 0x3DE */ u16        field_3DE;
-    /* 0x3E0 */ byte       pad_3E0[0x94];
+    /* 0x3E0 */ GpEffArg   eff;       // `func_800FDB18` argument record
+    /* 0x3E8 */ SVECTOR    effOfs;    // offset handed to `func_800FDB18`; `pad` picks the coordinate
+    /* 0x3F0 */ byte       pad_3F0[0x84];
     /* 0x474 */ u16        field_474; // animation id that last raised the reaction
     /* 0x476 */ byte       pad_476[3];
     /* 0x479 */ u8         field_479;

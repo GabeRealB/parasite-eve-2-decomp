@@ -88,11 +88,82 @@ INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014D5B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014DB50);
-
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-void func_actor_204000_8014DB50(Actor104000* arg0, s16 arg1, u32 arg2);
+/// Picks a random offset and coordinate index for an effect from the hit
+/// angle `arg1` (front, back, right or left), copies it into `work->eff` and
+/// spawns the effect for hit id `arg2`.
+void func_actor_204000_8014DB50(Actor104000* arg0, s16 arg1, u32 arg2)
+{
+    SVECTOR*         sc;
+    Actor104000Work* work;
+    s32              mag;
+    GsCOORDINATE2*   coord;
+
+    sc   = (SVECTOR*)(SCRATCH_SP -= sizeof(SVECTOR));
+    mag  = (arg1 >= 0) ? arg1 : -arg1;
+    work = arg0->field_1C;
+    if (mag < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 1)) {
+            sc->pad = 2;
+            sc->vx  = 80;
+            sc->vy  = -180;
+            sc->vz  = 330;
+        } else {
+            sc->pad = 2;
+            sc->vx  = -60;
+            sc->vy  = -150;
+            sc->vz  = 300;
+        }
+    } else if (mag > 0x600) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 1)) {
+            sc->pad = 1;
+            sc->vx  = 0;
+            sc->vy  = 0;
+            sc->vz  = -180;
+        } else {
+            sc->pad = 2;
+            sc->vx  = 2;
+            sc->vy  = -50;
+            sc->vz  = -50;
+        }
+    } else if (arg1 > 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 1)) {
+            sc->pad = 5;
+            sc->vx  = 100;
+            sc->vy  = 0;
+            sc->vz  = 0;
+        } else {
+            sc->pad = 5;
+            sc->vx  = 120;
+            sc->vy  = 0;
+            sc->vz  = 100;
+        }
+    } else {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 1)) {
+            sc->pad = 4;
+            sc->vx  = -100;
+            sc->vy  = 0;
+            sc->vz  = 0;
+        } else {
+            sc->pad = 4;
+            sc->vx  = -120;
+            sc->vy  = 0;
+            sc->vz  = 100;
+        }
+    }
+    work->effOfs      = *sc;
+    coord             = &arg0->field_2C->field_8[sc->pad];
+    work->eff.field_4 = 0x100;
+    work->eff.field_6 = 1;
+    work->eff.field_0 = coord;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->effOfs, &work->eff);
+    SCRATCH_SP += sizeof(SVECTOR);
+}
 
 /// Wraps a 12-bit angle difference into [-0x800, 0x800].
 static __inline__ s16 Actor204000_WrapAngle(s16 angle)
