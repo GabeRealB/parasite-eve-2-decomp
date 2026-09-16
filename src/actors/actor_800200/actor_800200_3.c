@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_800200.h"
+#include "gameplay/3FB8.h"
+#include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -771,7 +773,77 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
     *scratch += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80164598);
+void func_actor_800200_80164598(GpActorWork* arg0)
+{
+    GpApproachScratch* block;
+    GsCOORDINATE2*     coord;
+    GameActor*         actor;
+    TmdObject*         extra;
+    void**             scratch;
+    u8*                head;
+    register u8*       tmp asm("a0");
+    s32                angle;
+    s32                val;
+    s32                mode;
+    s32                flag;
+
+    scratch                                      = (void**)G_SCRATCH_HEAD;
+    head                                         = *scratch;
+    extra                                        = arg0->extra;
+    actor                                        = arg0->actor;
+    tmp                                          = head - 0x14;
+    coord                                        = extra->field_8;
+    block                                        = (GpApproachScratch*)tmp;
+    block->vec.vx                                = actor->field_20 - coord->coord.t[0];
+    *scratch                                     = block;
+    block->vec.vy                                = actor->field_24 - coord->coord.t[1];
+    block->vec.vz                                = actor->field_28 - coord->coord.t[2];
+    angle                                        = ratan2(block->vec.vx, block->vec.vz);
+    actor->field_82                              = angle;
+    val                                          = func_80103E7C(actor->field_52, angle);
+    ((GpApproachScratch*)(head - 0x14))->field_0 = val;
+    if (val >= 0x31) {
+        ((GpApproachScratch*)(head - 0x14))->field_0 = 0x30;
+    } else if (val < -0x30) {
+        ((GpApproachScratch*)(head - 0x14))->field_0 = -0x30;
+    } else if (actor->field_95E == 0) {
+        actor->field_95E = 1;
+    }
+    actor->field_52 = ((u16)actor->field_52 + (u16)block->field_0) & 0xFFF;
+    switch (actor->field_95E) {
+        case 0:
+            flag             = 1;
+            actor->field_95E = flag;
+            actor->field_973 = flag;
+            mode             = 6;
+            if (block->field_0 < 0) {
+                mode = 5;
+            }
+            Gp_AnimPlayChildSlots(arg0, mode, 1);
+        case 1:
+            if (block->field_0 == 0) {
+                actor->field_958 = actor->field_934;
+                actor->field_95E++;
+                mode = 4;
+                if ((actor->field_934 & 0xFFFF) == 5) {
+                    mode = 2;
+                }
+                Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+            }
+            break;
+        case 2:
+            if ((func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0xC1) ||
+                (func_801041B4(arg0) != 0)) {
+                Gp_ResetActorMove(arg0, 0);
+            } else {
+                actor->field_973 = 1;
+            }
+            break;
+        default:
+            break;
+    }
+    *(u32*)G_SCRATCH_HEAD += 0x14;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_801647A8);
 

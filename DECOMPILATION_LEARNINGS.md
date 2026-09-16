@@ -101753,3 +101753,50 @@ register, displacement 0). Splat printed that base as an auto-named
 `D_actor_800200_80169FF8`; it links as declared, needing nothing beyond the
 `extern GpActorPathStep D_actor_800200_80169FF8[];` the neighbouring tables in
 the same `.c` already use.
+
+## A sub-word constant store captures the *next* store's constant — read an `int` value to make both stores share one register
+
+Two adjacent constant stores to different-width fields (a `u16` then an `s8`)
+compile to two separate `li`s, not the single register a target may show,
+because `mips.md`'s `movhi` / `movqi` `define_expand`s force a non-zero
+`CONST_INT` into a fresh pseudo of the *store's* mode:
+
+```
+if (... && !register_operand (operands[1], QImode)
+     && (GET_CODE (operands[1]) != CONST_INT || INTVAL (operands[1]) != 0))
+  { rtx temp = force_reg (QImode, operands[1]); emit_move_insn (operands[0], temp); DONE; }
+```
+
+`cse.c`'s "CONST_INT already in a register in a wider mode" search then walks the
+constant's equivalence classes from the narrow mode upward and takes the first
+`REG` it meets, so the `s8` store (QImode) looks in HImode **before** SImode and
+lands on the `u16` store's brand-new pseudo rather than on the `li $s2,1` the
+switch's equality compare already materialised:
+
+```
+li   v0,1            # movhi's fresh HI pseudo, for field_95E = 1
+sh   s2,0x95E(s0)    # ...which CSE itself replaced with the compare's constant
+li   v0,1            # movqi's fresh QI pseudo, merged into the HI one instead
+sb   v0,0x973(s0)
+```
+
+A target showing `sh $s2` / `sb $s2` means both stores read the *SImode* constant,
+so the second store's value must not be a constant at all: give the pair an
+`int` (SImode) value, the HImode class stays empty, both stores and the compare
+share the one pseudo, and its duplicate `li` is dropped by
+`reload_cse_noop_set_p` — the destination register already holds that value:
+
+```c
+flag             = 1;          /* one SImode def, not two sub-word ones */
+actor->field_95E = flag;
+actor->field_973 = flag;
+```
+
+`func_actor_800200_80164598`: 99.16% with the literals (`regs=1 insert=1`, the
+extra `li`), 100% with the shared `flag`. Swapping the two stores is a trap — it
+merges the constants too, but the scheduler does not reorder two stores, so the
+`sh` / `sb` come out in the wrong order (99.55%, `reorder=1`). The same function
+also needs the scratch allocator's intermediate pointer pinned
+(`register u8* tmp asm("a0")`, as in its matched gameplay twin
+`Gp_PlayerMode2State4`): unpinned, local-alloc coalesces `tmp` into the
+call-saved `block` it feeds, losing the `move $s1,$a0` the target has.
