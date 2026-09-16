@@ -96,7 +96,47 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03B34
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03CA0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03E20);
+/// Unless `Actor04400_Fn06328` claims the frame: count the frame in
+/// `field_412` and, on frames 0x17..0x23, push the model root along the
+/// heading `field_7A` turned a quarter circle, by `field_41C` scaled -30/16.
+/// Once `flags_EC` reports a hit (bit 0 as a halfword, or 0x102 as a word),
+/// `field_438` is cleared and the state machine rewinds to state 0.
+/// Same body as `ActorsShared80166f54` up to the callee, which is this
+/// overlay's own copy of the "frame claimed" test.
+void Actor04400_Fn03E20(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* next;
+    s32              cond;
+    s16              angle;
+    s16              speed;
+    s32              scale;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
+        if ((u16)(work->field_412++ - 0x17) < 0xD) {
+            scale                                           = -0x1E;
+            angle                                           = work->field_7A + 0x400;
+            speed                                           = (((Actor104400Work*)arg0->idMap)->field_41C * scale) << 0xC >> 0x10;
+            ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+            ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+            ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+        }
+        work2 = (Actor104400Work*)arg0->idMap;
+        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work->field_438 = 0;
+            next            = (Actor104400Work*)arg0->idMap;
+            next->field_420 = 0;
+            next->field_422 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03F8C);
 
