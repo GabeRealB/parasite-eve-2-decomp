@@ -266,7 +266,11 @@ typedef struct Actor403200Work {
     /// advances it and re-arms `field_0`. Same slot and role as
     /// `Actor444000Work::field_F08`.
     /* 0xF08 */ s16  field_F08;
-    /* 0xF0A */ byte pad_F0A[0x6];
+    /* 0xF0A */ byte pad_F0A[0x4];
+    /// Damage pool the hit handler for collision groups 1 and 2
+    /// (`func_actor_403200_80139E94`) draws down alongside the host's HP. Same
+    /// slot and role as `Actor444000Work::field_F0E`.
+    /* 0xF0E */ u16 field_F0E;
     /// Start-of-state countdown the attack state reads against `field_6`: the
     /// state body only runs once `field_6` has reached it, and it is seeded to
     /// 0x28 if still zero. Same slot and role as `Actor444000Work::field_F10`.

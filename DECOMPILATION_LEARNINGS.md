@@ -2234,6 +2234,55 @@ Inputs: `base_1.i`
 `13cba8048ec365d3bf995c81fac59765db0c1378c55e5d444d47bd946e364212`,
 `base_2.i` `23b3a952b4703ad1ac1368b8dff6b0bfca9a16864cab8d81ccfec5883bceee6b`.
 
+### The same weighting breaks a *one-reference* tie between two long-lived pointers
+
+`func_actor_403200_80139E94` (`actor_403200`) stalled at 99.057% with
+`Structure: match` and every one of its 365 penalised lines the same `$s1` <->
+`$s2` swap: `sc` (the scratch frame) and `work` (the work block). Both are
+298/299 insns long and cross 13 calls, so the only thing separating them is
+`n_refs`, and there it is one reference:
+
+```
+sc    36 refs / 298 insns -> 5*36/298  = 6040
+work  37 refs / 299 insns -> 5*37/299  = 6187
+```
+
+`work` ranks first and takes `$s1`. A 0.3% priority gap is still a gap: the
+`-dg` order prints `... 82 81 ...`, and only a change to one of those two
+numbers moves it. The fix is the same lever one order of magnitude finer than
+the section above - **wrap a statement that *uses* `sc` in `do { } while (0)`**,
+because a use counts too:
+
+```c
+        do {
+            sc->angle = angle;
+            if (angle < 0) {
+            wrapUp:
+                ...
+            }
+        } while (0);
+        sc->angle = angle;
+```
+
+`sc` goes 36 -> 37 refs at the *same* 298-insn live length, priority 6040 ->
+6208, and it now edges `work`'s 6187 and takes `$s1`. The order prints
+`... 81 82 ...`.
+
+Two things make this shape usable where the hoist above is not. The body is a
+`goto`-label block, so the wrapper adds a block the optimiser folds away: the
+`.s` is byte-identical apart from the register substitution (`base_1.s` and
+`base_3.s` differ only in the `$17`/`$18` operands and the `.def` values), and
+no instruction, `.loc` order or delay slot moves. And because only the *use*
+count changes, it is available when the value to reweight is used rather than
+defined inside the region - here the rotated pair is two pointers that both
+live the whole function, which no amount of statement moving can reorder.
+
+Inputs: `base_1.i`
+`5485fda2f029d8d6aecff6f3944fdac867022dbbad559add04e5613112495c91`,
+`base_3.i` `635f4f2d81c475fb6ea6c754160a5c0babe892fad73529793201b3c5488c4eee`.
+The `-dg` order prints `82 81` against `81 82`, and the `-dl` header prints
+`Register 81 used 36 times across 298 insns` against `37 times across 298`.
+
 ## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
 
 A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does
