@@ -6,6 +6,7 @@
 #include "actors/actors_shared_801511c8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 
 #include <psyq/inline_c.h>
 
@@ -20,6 +21,7 @@ extern GpU16Pair D_actor_104900_801392F0[];
 /// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 void func_actor_104900_80137FB8(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80131F08);
@@ -203,7 +205,69 @@ INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80137498);
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80137B1C);
+/// Countdown handler built around the halfword at 0xB8C.
+///
+/// The first frame arms the motion pair: `field_BA4` takes 0x13, or 0x14 while
+/// the flag at 0xBAE is set, `field_BA5` and `field_BAF` both take 1 and the
+/// countdown is zeroed, with the run-once latch at 0xBA8 stepped either way.
+/// Every later frame moves the countdown up by one and, on the frame it reaches
+/// 5, cues the 0x400B0003 event - the actor's id byte at 0xB88 in bits 8..15
+/// and the variant at 0xBB8 in bit 22, pan and depth from the frame block -
+/// then parks the countdown at -0x7FFF so it fires only once. The frame block's
+/// scratch byte at 0x64 takes 3 either way, and the trigger at 0xBA9 ends the
+/// sub-state: while `field_B92` still counts it keeps the state on the 0x17
+/// motion with the 0x10 pair when the enemy is not carrying flag 0x2 in
+/// `field_4C`, and stages the 0x14 motion through `field_BA6` when it is; once
+/// that count has run out it hands the frame to the shared routine at
+/// 0x80137498 on state 0x18 instead.
+///
+/// Same body as the four twins - `func_actor_101100_80137B1C` at the same
+/// address, `func_actor_201100_8014FB1C` / `func_actor_204900_8014FB1C` 0x18000
+/// past it and `func_actor_301100_80167B1C` 0x30000 past - but the last call
+/// reaches this overlay's own `func_actor_104900_80137498`, so the body cannot
+/// move into `src/actors/lib/`.
+void func_actor_104900_80137B1C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    u16 time;
+
+    if (work->field_BA8 == 0) {
+        if (work->field_BAE == 0) {
+            work->field_BA4 = 0x13;
+        } else {
+            work->field_BA4 = 0x14;
+        }
+        work->field_BA5 = 1;
+        work->field_BAF = 1;
+        work->field_B8C = 0;
+        work->field_BA8 = (u8)work->field_BA8 + 1;
+    }
+    time            = (u16)work->field_B8C + 1;
+    work->field_B8C = time;
+    if ((s16)time >= 5) {
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0003), arg->pan, arg->depth);
+        work->field_B8C = -0x7FFF;
+    }
+    arg->field_64 = 3;
+    if (work->field_BA9 != 0) {
+        work->field_B9C = 0;
+        if (work->field_B92 > 0) {
+            if (!(enemy->field_4C & 2)) {
+                work->field_BAB = 0x10;
+                work->field_BAF = 2;
+                work->state     = 0x17;
+            } else {
+                work->field_BA6 = 2;
+                work->field_BAB = 5;
+                work->state     = 0x14;
+            }
+            work->field_BA8 = 0;
+            return;
+        }
+        work->state     = 0x18;
+        work->field_BA8 = 0;
+        func_actor_104900_80137498(enemy, task, work, arg);
+    }
+}
 
 /// Spawns the effect this actor's next state rides on and re-homes the actor.
 ///
