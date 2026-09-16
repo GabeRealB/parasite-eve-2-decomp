@@ -17648,6 +17648,23 @@ same bar the compared register in one column (`bne $a0,$v0` against retail's
 two leading parameters scored 100% on the next build. A `regs`-only residue on a
 function whose only reference is a data `.word` is arity, so read
 `include/gameplay/D4.h` before touching the register allocation.
+The same trap reports as a `regs` penalty only while the seed *keeps* a
+placeholder for the dead argument. When **every** leading parameter is dead,
+m2c's seed drops them from the signature, and then the symptom is a **missing
+instruction**, not a wrong register. A room message handler takes
+`GpMsgHandler`'s `s32 (*)(Task*, s32, s32, s32)` shape; for
+`func_neo_ark_submarine_tunnel_8017F2C8` only the third one is read, and m2c
+emitted `s32 f(s32 arg2)` — so the value arrived in `$a0` and the target's
+`move $a0,$a2` had nothing to reproduce. The prologue is the tell: a `move`
+whose source is a *later* argument register, ahead of any use, means the seed's
+parameter list lost the leading placeholders, whatever the body looks like.
+Restoring the full signature (`Task* task, s32 msgId, s32 arg2, s32 arg3`)
+brought the copy back and the function matched; the id/handler pairing in the
+`GpMsgEntry` table the room publishes is where that prototype comes from. That
+seed also carried `insert=2 delete=4` from an unrelated cause — its single `&&`
+condition folded the two bound compares into one range test (section "Two
+compares in the object mean the source had nested `if`s") — so the 69.9%
+baseline needed both fixes at once.
 
 ## Split call results: dying temp vs join-live `ret`
 
