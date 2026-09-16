@@ -47984,6 +47984,19 @@ actually typedef'd relative to its first use. Fix the header (hoist the psyq
 include above the project includes) rather than papering over it with an extra
 `#include` in the new `.c` — the next lean TU hits the same wall.
 
+A second carrier, and the one that reaches the *landing* step: the
+`include/actors/actors_shared_*.h` work-block headers use `MATRIX` with only
+`common.h` and `main/task.h` included. Every consumer under `src/actors/lib/`
+listed `main/task.h` / `main/tmd.h` *before* the actors header, so the omission
+never showed. A scratch `base_N.c` that happens to put the actors header last
+compiles and scores 100%, and the landed file — where the same includes sort
+alphabetically, actors first — dies with `parse error before 'MATRIX'` and
+`parse error before '}'` inside the struct, reported against the function that
+merely preceded them in the TU. Fix the header (`actors_shared_80135a24.h` now
+includes `<psyq/libgte.h>` above `main/task.h`, matching
+`actors_shared_80133a68.h`), not the include order in your `.c`:
+`func_actor_102300_80135A70`.
+
 ## The same call written twice: duplicated argument setup around a join
 
 A call whose *constant* argument is set in both predecessors of the join, with
