@@ -88715,3 +88715,65 @@ a property the layout is free to choose.
 explicit `\0` padding. That works when the code references only the run's start
 and a `.data` table reaches the later names; when the matched function itself
 references two addresses inside the run, each needs its own named object.
+
+## An increment the branch delay slot holds is a post-increment loop condition (func_dryfield_dilapidated_house_80181028, 2026-09-16)
+
+**Problem.** The target's loop latch keeps the branch and the pointer bump
+together, with the bump in the delay slot and a copy of the pointer feeding the
+compare:
+
+```
+addu  v1, s1, zero      # copy of the walking pointer
+lw    v0, 0x4c(s2)      # terminator, re-read each iteration
+nop                     # its load delay
+bne   v1, v0, loop
+ addiu s1, s1, 0x50     # increment, in the delay slot
+```
+
+m2c's shape, `do { body; var_s1 += 0x50; } while (var_s1 != end)`, puts the add
+*before* the branch:
+
+```
+addiu s1, s1, 0x50
+bne   s1, v0, loop
+ move a0, s0            # loop head's first insn, eagerly duplicated
+```
+
+The branch now references the register the add sets, so
+`fill_simple_delay_slots` will not take the add from before the branch; it falls
+through to `fill_eager_delay_slots`, which duplicates the branch target's first
+instruction instead. Structural diagnostics still say `match`; the score is
+90.4% with `insert=2 delete=3` (all of it address shift).
+
+**Cause.** `while (node++ != end)` is what emits the copy. Post-increment needs
+the old value across the add, so expand emits the copy first and compares with
+it:
+
+```
+(insn 119 (set (reg:SI 103) (reg/v:SI 83)))              # v1 = s1
+(insn 115 (set (reg:SI 102) (mem (plus (reg 84) 76))))   # v0 = end
+(insn 116 (set (reg/v:SI 83) (plus (reg 83) (const_int 80))))
+(jump_insn 121 (if_then_else (ne (reg 103) (reg 102)) ...))
+```
+
+The branch references 103, not 83, so the add no longer conflicts with it and
+reorg.c's first choice — "insns which come from before the branch and which are
+safe to execute after the branch" — moves the add into the slot. The `nop`
+stays because the load's result is then needed one instruction later. This is
+the mirror of the `count++` entry above, where a copy in the target was the
+symptom of writing the increment in the condition *by mistake*: read the
+target's branch operands first — a copy there means the condition is the place
+the increment belongs.
+
+**Two more things this function pins down.**
+
+- The bump is the *type* of the walking variable, not the loop shape. With
+  `s32 var_s1` the condition compiles to `addiu $s1,$s1,1` — 99.90%, every
+  structural and scheduling penalty already zero, one operand off. Declaring
+  `GsCOORDINATE2* node` (0x50 bytes) gives `addiu $s1,$s1,0x50`. Check the
+  stride the increment implies before rewriting the loop.
+- Assignment order among the leading pointer loads is load-bearing. The same
+  four statements in `work, coord, node` order schedule the prologue's loads
+  differently (98.5%, regs=16) than `coord, work, node` (100%) — with the
+  schedule this tight, keep the statement order the target's load order implies
+  rather than sorting them for readability.

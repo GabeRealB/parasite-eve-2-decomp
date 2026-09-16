@@ -30,7 +30,39 @@ s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
     return ramp;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181028);
+/// Rebuilds the work block's `mtx` as the identity, then composes it against
+/// the parent model's `GsCOORDINATE2` chain: each node's `coord` rotation is
+/// multiplied in, and its translation is rotated by the accumulated matrix and
+/// added to `mtx.t`. Steps one coordinate record at a time from the head of the
+/// parent's array up to the record this task's own `coord` links with `sub`.
+void func_dryfield_dilapidated_house_80181028(Task* task)
+{
+    VECTOR         vec;
+    GsCOORDINATE2* coord;
+    DdhCoordWork*  work;
+    GsCOORDINATE2* node;
+    MATRIX*        mtx;
+
+    coord                = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    work                 = (DdhCoordWork*)task->idMap;
+    node                 = (GsCOORDINATE2*)((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8;
+    mtx                  = &work->mtx;
+    *(s32*)&work->mtx    = ONE;
+    *(s32*)&mtx->m[0][2] = 0;
+    *(s32*)&mtx->m[1][1] = ONE;
+    *(s32*)&mtx->m[2][0] = 0;
+    mtx->m[2][2]         = ONE;
+    mtx->t[0]            = 0;
+    mtx->t[1]            = 0;
+    mtx->t[2]            = 0;
+    do {
+        ApplyMatrixLV(mtx, (VECTOR*)node->coord.t, &vec);
+        mtx->t[0] += vec.vx;
+        mtx->t[1] += vec.vy;
+        mtx->t[2] += vec.vz;
+        MulMatrix0(mtx, &node->coord, mtx);
+    } while (node++ != coord->sub);
+}
 
 void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
 {
