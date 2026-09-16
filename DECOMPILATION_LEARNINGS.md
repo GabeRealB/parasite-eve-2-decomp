@@ -63588,6 +63588,18 @@ check, so their ROM order says nothing about their source order. When the
 leftover is `reorder` and the block has independent chains of visibly different
 length, try permuting the statements before reaching for pins.
 
+**The shadow is not a property of the body — read the sibling's own source.**
+`Actor02500_Fn02288` is the same sequence as `ActorsShared8013454c`, field for
+field, and its target has the Y chain in the *first* `mult`'s shadow instead:
+after `mult` come `lw t[1]` / `nop` / `addiu` / `sw t[1]`, then `lw t[0]` /
+`mflo`. So the m2c-order seed (X, Y, Z) scores 92% with `reorder=3 delete=1`
+there, and reordering to X, Z, Y — the recipe above — would make it worse. What
+settles it is the shape-1.00 sibling `Actor00700_Fn01CF0`, whose matched C is
+`X; Y += 0x80; Z` and whose ROM has Y in the first shadow too. Two copies of one
+body, opposite statement orders, each confirmed by its own match: the tie is
+resolved by source position, so the sibling's C is the authority and the target
+you are staring at is the evidence, in that order.
+
 ## `BRANCH_COST` is 1 here, so a `0`/`1` flag collapses to `sltiu` unless `reg_set_last` fails
 
 `jump_optimize`'s store-flag case rewrites `x = a; if (cond) goto L; x = b; L:`
