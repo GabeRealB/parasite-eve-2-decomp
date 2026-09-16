@@ -108249,3 +108249,49 @@ Two builds: 86.239% from m2c, 86.239% -> 99.088% on the project-style rewrite,
 
 Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Preprocessed input (base_2) `0d031abe936fcefcb9d8486907b591088af85ee6055987a37bcfa367878bd8f2`.
+
+## An `s16` field truncated through an `s16` local narrows to `lhu`; switched on directly it stays `lh`
+
+`work->field_6` is `s16`, and the target of `func_actor_403200_8013B3C8` reads it
+with `lhu`:
+
+```
+lhu   v0, 0x6(s2)
+addiu v0, v0, -0x13
+sll   v0, v0, 16      <- the truncation
+sra   v1, v0, 16
+sltiu v0, v1, 0x40
+```
+
+No cast is involved. Copying the expression into an `s16` local is what does it:
+
+```c
+s16 state;
+
+state = work->field_6 - 0x13;
+switch (state) { ... }
+```
+
+The assignment to `state` discards everything above bit 15, and the `addiu` can
+carry out of that width, so GCC only ever needs the low halfword: it narrows the
+load to `lhu` and materialises the truncation as the `sll`/`sra` pair. Switched
+on `work->field_6 - 0x13` *directly* the index is an `int`, the whole
+sign-extended value is needed, and the load becomes `lh` with no `sll`/`sra` —
+three instructions where the target has five.
+
+So the load sign is a consequence of the destination width, not of the field:
+the same `s16` field emits `lh` at the `if (work->field_6 >= 0x15)` a few
+instructions later, which needs the signed value whole. Read `lhu` on a signed
+field as "this use only wanted 16 bits", and look for the local that threw the
+rest away.
+
+`func_actor_403200_8013D9EC` is the same shape one state over (`s16 state =
+work->field_6 - 0x39`), and its source comment carries the same conclusion.
+`func_actor_403200_8013B3C8` matched 100% on the first project-style rewrite:
+m2c's `goto block_20` for the eight spawn cases scored 66.734%, and writing each
+case's `Gp_SpawnEnemyFromTable` call out separately — per-case index, no shared
+local — reproduced the target's per-case argument setup with the cross-jumped
+`jal` tail (see "Duplicate a shared switch-case tail in the source").
+
+Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed input (base_1) `6c071ed29e092d32e53c323ba91e16cf2b574b738ebbdce37eff401c0dd2493d`.

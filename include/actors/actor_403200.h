@@ -77,6 +77,18 @@ typedef struct Actor403200ApproachScratch {
 } Actor403200ApproachScratch;
 STATIC_ASSERT_SIZEOF(Actor403200ApproachScratch, 0x20);
 
+/// 0xC-byte scratchpad frame the launch state's reset half
+/// `func_actor_403200_8013B3C8` carves off `SCRATCH_SP` for the one yaw it
+/// takes this tick. `dir` is the player-relative offset of the host model's
+/// root part, the pair `ratan2` turns into the yaw written to `field_7C4`; the
+/// trailing word is not read back, and is only here because the frame the code
+/// carves is 0xC, not the 8 the vector alone needs.
+typedef struct Actor403200TurnScratch {
+    /* 0x00 */ SVECTOR dir; // player position minus the host root part's
+    /* 0x08 */ s32     field_8;
+} Actor403200TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
+
 /// Per-actor state block for the `actor_403200` overlay.
 ///
 /// `func_actor_403200_80138AFC` allocates it with `Mem_Calloc(0xF24, 0)` and
@@ -132,7 +144,7 @@ typedef struct Actor403200Work {
     /// The masked `field_9A` frame the launch state last saw, so each of its
     /// four one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7A8`.
-    /* 0x7A8 */ s32  field_7A8;
+    /* 0x7A8 */ s32 field_7A8;
     /// The masked `field_4A` / `field_72` frame the stand-up tick last saw, so
     /// each of its one-shot cues only fires on the step the animation first
     /// reaches that frame. Same slot and role as `Actor444000Work::field_7AC`.

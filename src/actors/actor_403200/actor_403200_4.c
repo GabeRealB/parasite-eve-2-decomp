@@ -498,7 +498,117 @@ void func_actor_403200_8013B23C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B3C8);
+/// State-change reset for the enemy's launch state: `func_actor_403200_8013B23C`'s
+/// reset half with a yaw servo in the middle. It arms the stand-up pair
+/// (`field_F1D` 2, `field_7B3` 3), turns animation slot 2 on, clears the host
+/// model's flag word and walks the seven escorts pushing that word onto each of
+/// their models, allocates the host's and every escort's buffers, and only then
+/// turns the enemy to face the player -- the host root part's position made
+/// relative to the player's root coordinate, `ratan2` of that pair less the
+/// enemy's own facing, wrapped to +/-0x800 into `field_7C4`. On the way out it
+/// runs the per-frame body, re-arms the state to 0xA on the animation slot's
+/// flag, and latches `field_F06` once the state counter is past 0x14.
+///
+/// The switch is on the state counter and spawns from
+/// `D_actor_403200_8015E858`, each of the eight counter values picking its own
+/// table index; the spawned enemy is dropped, unlike the arena reset's. The
+/// `state` copy is what keeps the switch index 16-bit, as in
+/// `func_actor_403200_8013D9EC`.
+void func_actor_403200_8013B3C8(Task* arg0)
+{
+    Actor403200Work*        work;
+    Actor403200Work*        escorts;
+    Actor403200Work*        dying;
+    GsCOORDINATE2*          model;
+    GsCOORDINATE2*          facing;
+    Actor403200TurnScratch* sc;
+    s16                     i;
+    s16                     j;
+    s16                     state;
+    s16                     ang;
+
+    sc   = (Actor403200TurnScratch*)(SCRATCH_SP -= sizeof(Actor403200TurnScratch));
+    work = (Actor403200Work*)arg0->idMap;
+    if (work->field_4 != 0) {
+        work->field_F1D                    = 2;
+        work->field_7B3                    = 3;
+        work->field_7B0                    = 2;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_EF6 = 1;
+        work->field_EF4 = 1;
+        work->field_EFA = 0;
+    }
+    state = work->field_6 - 0x13;
+    switch (state) {
+        case 0:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 0, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 7:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 1, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 9:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 2, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 0x10:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 3, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 0x1F:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 4, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 0x37:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 5, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 0x3B:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 6, arg0->spawnArg2)->field_A = 0x900;
+            break;
+        case 0x3F:
+            Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 1, 7, arg0->spawnArg2)->field_A = 0x900;
+            break;
+    }
+    func_actor_403200_80133DD8(arg0);
+    if (work->field_58 & 1) {
+        work->field_0 = 0xA;
+    }
+    if (work->field_6 >= 0x15) {
+        work->field_F06 = 1;
+    }
+    model      = ((TmdObject*)arg0->extra)->field_8;
+    sc->dir.vx = Wip_SysConfig.field_4->t[0] - model->coord.t[0];
+    sc->dir.vy = Wip_SysConfig.field_4->t[1] - model->coord.t[1];
+    sc->dir.vz = Wip_SysConfig.field_4->t[2] - model->coord.t[2];
+    facing     = ((TmdObject*)arg0->extra)->field_8;
+    ang        = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (ang < 0) {
+    wrapUp:
+        if (ang < -0x800) {
+            ang += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (ang > 0x800) {
+            ang -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = ang;
+    SCRATCH_SP     += sizeof(Actor403200TurnScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B740);
 
