@@ -99517,3 +99517,21 @@ value, so the store and `subu` share `$v0` and the store is forced early. An
 `s16 cell = Cell(); scratch->cell = cell; diff = scratch->cell - other;` makes the
 CSE'd reread `sign_extend:SI (subreg:QI (reg:HI))`, which stays as sll/sra and
 leaves the stored value in its own register.
+
+## A load duplicated in front of a jump into the middle of a tail means duplicated source, not a `goto` (func_actor_403000_80134F44, 2026-09-16)
+
+**Symptom:** two paths share a tail, but the jumping path carries its own copy of the tail's first load
+(`lbu a0,0xFD3(s2); li v0,2; j X; sh v0,0(s2)`), and `X` is *after* that same `lbu` in the fall-through
+copy. A `goto` into the tail (with or without a local holding the value) cannot produce it - the load
+sits at the label, or the local lands in a different register and loses the tail's `move v1,a0; negu v1,v1`.
+
+**Cause:** both copies were written out in full (`field_0 = 2; field_2 = -1; FD2 = FD3; FD3 = -FD3;`).
+jump2 cross-jumps after reload, matching backwards from the end; scheduling had already put each
+copy's `lbu` before its `field_0` store, so the match stops at the differing store and keeps both loads.
+The `move/negu` pair is the second `FD3` read: the `QImode` store to `FD2` invalidates every `QImode`
+mem in CSE, so the re-read survives to `reload_cse_regs`, which turns it into a copy of `a0`.
+
+**Related, same function:** an angle wrapped in `while` loops and then both stored and passed as an
+`s16` argument (`sll a1,a1; sra a1,a1; jal; sh a1,0x2C(s3)`) matched only as
+`scratch->angle = WrapAngle(scratch->angle); f(arg0, scratch->angle, ...)` with a `static inline s16`
+helper: the return-value extension becomes the pseudo both uses read, so the loop variable lands in `a1`.

@@ -25,21 +25,23 @@
 /// `rtps`, spelled out for the same reason.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-extern GpPairSrcE D_actor_403000_8013DA00;
-extern GpPairSrcE D_actor_403000_8013DA10;
-extern u32        D_actor_403000_80158B50;
-extern u32        D_actor_403000_80158C08;
-extern u32        D_actor_403000_80158C28;
-extern u32        D_actor_403000_80158CA8;
-extern u32        D_actor_403000_80158DD0;
-extern u8         D_80071075;
-extern s8         D_80114C12;
-extern s8         D_actor_403000_80158364[];
-extern void*      Gp_PlayerAnimBlkTbl[];
-extern u16        Gp_WeaponIdBase[];
-extern u8         D_80073BA9;
-extern u8         D_801153F4;
-extern s32        D_80070F70;
+extern GpPairSrcE        D_actor_403000_8013DA00;
+extern GpPairSrcE        D_actor_403000_8013DA10;
+extern u32               D_actor_403000_80158B50;
+extern u32               D_actor_403000_80158C08;
+extern u32               D_actor_403000_80158C28;
+extern u32               D_actor_403000_80158CA8;
+extern u32               D_actor_403000_80158DD0;
+extern u8                D_80071075;
+extern s8                D_80114C12;
+extern s8                D_actor_403000_80158364[];
+extern void*             Gp_PlayerAnimBlkTbl[];
+extern u16               Gp_WeaponIdBase[];
+extern u8                D_80073BA9;
+extern u8                D_801153F4;
+extern s32               D_80070F70;
+extern s16               D_80073BA0;
+extern Actor403000Msg7DA D_actor_403000_80158D8C;
 
 void func_800B4114(GpAnimCtx* anim, s32 slot, s16 animation, s32 arg3, s32 arg4);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
@@ -1102,7 +1104,291 @@ s32 func_actor_403000_80134E00(Actor403000* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134F44);
+static inline s32 func_actor_403000_FindHit(SVECTOR* pos, GpRec18* records)
+{
+    s16 i;
+    for (i = 0; i < 5; i++) {
+        if (!records[i].field_4)
+            break;
+        if ((records[i].field_4 & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].field_8;
+            pos->vy = records[i].field_A;
+            pos->vz = records[i].field_C;
+            return records[i].field_4;
+        }
+    }
+    return 0;
+}
+
+static inline s16 func_actor_403000_WrapAngle(s16 angle)
+{
+    if (angle < 0) {
+        while (1) {
+            if (angle >= -0x800)
+                break;
+            angle += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (angle <= 0x800)
+                break;
+            angle -= 0x1000;
+        }
+    }
+    return angle;
+}
+
+static inline void func_actor_403000_PlaySound(Actor403000* arg0, GpEnemy* enemy, s32 id)
+{
+    s32 sound;
+    s32 pan;
+
+    sound = (((u16)enemy->field_8 >> 0xC) << 8) | id;
+    pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+    SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+}
+
+void func_actor_403000_80134F44(Actor403000* arg0)
+{
+    Actor403000*              player;
+    GpEnemy*                  enemy;
+    WipSysConfig*             config;
+    Actor403000Work*          work;
+    Actor403000DamageScratch* head;
+    Actor403000DamageScratch* scratch;
+    s32                       yaw;
+    s32                       dx;
+    s32                       dy;
+    s32                       dz;
+
+    player = Game_GetPtrSlot(3);
+    enemy  = arg0->field_20;
+    config = &Wip_SysConfig;
+    work   = arg0->field_1C;
+    if (enemy->field_40 > 0) {
+        if (work->field_F70 > 0) {
+            work->field_F70--;
+            return;
+        }
+        head        = *(Actor403000DamageScratch**)G_SCRATCH_HEAD;
+        scratch     = (*(Actor403000DamageScratch**)G_SCRATCH_HEAD = head - 1);
+        scratch->id = func_actor_403000_FindHit(&scratch->pos, work->objB50.rec);
+        if (scratch->id == 0) {
+            scratch->id = func_actor_403000_FindHit(&scratch->pos, work->objBE8.rec);
+        }
+        if (scratch->id == 0) {
+            scratch->id = func_actor_403000_FindHit(&scratch->pos, work->objC80.rec);
+        }
+        if (scratch->id == 0) {
+            scratch->id = func_actor_403000_FindHit(&scratch->pos, work->recordsE98);
+        }
+        if (work->field_FDA != 0) {
+            work->field_FDA--;
+            switch (work->field_FDA % 30) {
+                case 0:
+                    Gp_SpawnEff(0x60080, &arg0->field_2C->field_8[15], 0x800001FF, NULL);
+                    break;
+                case 8:
+                    Gp_SpawnEff(0x60080, &arg0->field_2C->field_8[23], 0x800001FF, NULL);
+                    break;
+                case 19:
+                    Gp_SpawnEff(0x60080, &arg0->field_2C->field_8[11], 0x800001FF, NULL);
+                    break;
+            }
+        }
+        if ((s16)func_actor_403000_80134E00(arg0) != 0) {
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_FDA = ((Gp_LcgState >> 16) & 0x1F) + 0xA0;
+            if (work->field_0 != 0x10 && work->field_0 != 0x12 && !(work->field_0 == 0x13 && (s16)work->field_6 >= 0x13)) {
+                if (work->field_0 != 0xF && !(work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) && work->field_0 != 0xD && work->field_FC0 != 1) {
+                    work->field_0 = 0x11;
+                }
+            }
+            scratch->id     = 0;
+            scratch->damage = 400;
+            work->field_AE0 = 0;
+            work->field_AD8 = 0;
+            func_800E2C78((GpObj40*)enemy, scratch->id, scratch->damage, 0);
+            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            enemy->field_40 -= scratch->damage;
+            if (enemy->field_40 <= 0 && D_80073BA0 <= 0) {
+                enemy->field_40 = 1;
+            }
+            if ((work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) || work->field_0 == 0xD || work->field_0 == 0xF || work->field_FC0 == 1) {
+                if (enemy->field_40 <= 0) {
+                    enemy->field_40 = 1;
+                }
+            }
+            if (enemy->field_40 <= 0) {
+                if ((work->field_0 == 0x13 && (s16)work->field_6 < 0x12) || work->field_0 == 0x12 || work->field_0 == 0x10 || work->field_0 == 0x18) {
+                    work->field_F8C = 1;
+                    work->field_0   = 0x14;
+                } else {
+                    work->field_0 = 0x11;
+                }
+                if ((s8)arg0->field_2C->field_24 == 0) {
+                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
+                } else {
+                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0012);
+                }
+            } else {
+                func_actor_403000_PlaySound(arg0, enemy, 0x401E0005);
+            }
+        }
+        if (scratch->id != 0) {
+            if (work->field_0 == 3) {
+                work->field_FD6 = 1;
+            }
+            work->field_F70 = Gp_GetIdParam2(scratch->id);
+            switch (Gp_GetIdParam0(scratch->id) & 0xFFFF) {
+                case 0:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    if (work->field_0 == 3 || work->field_0 == 0xE) {
+                        work->field_0   = 2;
+                        work->field_2   = -1;
+                        work->field_FD2 = work->field_FD3;
+                        work->field_FD3 = -work->field_FD3;
+                        break;
+                    }
+                    if ((u16)(work->field_0 - 0x10) >= 3 && work->field_0 != 0x18 && work->field_FC0 != 1 && !(work->field_0 == 0x13 && (s16)work->field_6 < 0x12)) {
+                        work->field_AD0 = 0xD;
+                        work->field_AC2 = 1;
+                        work->field_ACE = 2;
+                    }
+                    break;
+                case 4:
+                    if (work->field_0 == 0x10 || work->field_0 == 0x12 || work->field_0 == 0x18 || (work->field_0 == 0x13 && (s16)work->field_6 < 0x12)) {
+                        work->field_0 = 0x18;
+                        work->field_2 = -1;
+                        break;
+                    }
+                    if (work->field_0 != 0xF && !(work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) && work->field_0 != 0x11 && work->field_0 != 0xD && work->field_FC0 != 1) {
+                        work->field_0 = 0x11;
+                    }
+                    break;
+                case 2:
+                    if (work->field_0 != 0xF && !(work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) && work->field_0 != 0x11 && work->field_0 != 0xD && work->field_FC0 != 1) {
+                        Gp_SetObjFlag2((GpObj5D*)enemy, scratch->id, 0);
+                        if (work->field_0 == 0x10 || work->field_0 == 0x12 || work->field_0 == 0x18 || (work->field_0 == 0x13 && (s16)work->field_6 < 0x12)) {
+                            work->field_0 = 0x18;
+                            work->field_2 = -1;
+                            break;
+                        }
+                        work->field_0 = 0x11;
+                    }
+                    break;
+                case 3:
+                    Gp_SetObjFlag4((GpObj5C*)enemy, scratch->id, 0);
+                    break;
+                case 1:
+                    enemy->field_4C &= 0xFE;
+                    if (work->field_0 == 0x10 || work->field_0 == 0x12 || work->field_0 == 0x18 || (work->field_0 == 0x13 && (s16)work->field_6 < 0x12)) {
+                        work->field_0 = 0x18;
+                        work->field_2 = -1;
+                        break;
+                    }
+                    if (work->field_0 != 0xF && !(work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) && work->field_0 != 0x11 && work->field_0 != 0xD && work->field_FC0 != 1) {
+                        work->field_AC2 = 1;
+                        work->field_AD0 = 0xD;
+                        work->field_ACE = 2;
+                        if (work->field_0 == 3 || work->field_0 == 0xE) {
+                            work->field_0   = 2;
+                            work->field_2   = -1;
+                            work->field_FD2 = work->field_FD3;
+                            work->field_FD3 = -work->field_FD3;
+                        }
+                    }
+                    break;
+            }
+            dx              = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+            scratch->d.vx   = dx;
+            dy              = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
+            scratch->d.vy   = dy;
+            dz              = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+            scratch->d.vz   = dz;
+            scratch->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
+            scratch->damage = Gp_ComputeDamage(scratch->id, scratch->dist, 0, 0);
+            if (Gp_RollEnemyChance(enemy, scratch->id, 0) != 0) {
+                scratch->damage *= 4;
+                Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[2], 0, NULL);
+            }
+            scratch->rel.vx = scratch->pos.vx - arg0->field_2C->field_8->workm.t[0];
+            scratch->rel.vy = scratch->pos.vy - arg0->field_2C->field_8->workm.t[1];
+            scratch->rel.vz = scratch->pos.vz - arg0->field_2C->field_8->workm.t[2];
+            yaw             = ratan2(scratch->rel.vx, scratch->rel.vz);
+            scratch->angle  = yaw - ratan2(-arg0->field_2C->field_8->workm.m[2][0], arg0->field_2C->field_8->workm.m[2][2]);
+            scratch->angle  = func_actor_403000_WrapAngle(scratch->angle);
+            func_actor_403000_80134910(arg0, scratch->angle, scratch->id);
+            work->field_AE0 = 0;
+            work->field_AD8 = 0;
+            func_800E2C78((GpObj40*)enemy, scratch->id, scratch->damage, 0);
+            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            enemy->field_40 -= scratch->damage;
+            if ((work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) || work->field_0 == 0xD || work->field_0 == 0xF || work->field_FC0 == 1) {
+                if (enemy->field_40 <= 0) {
+                    enemy->field_40 = 1;
+                }
+            }
+            if (enemy->field_40 <= 0) {
+                if ((work->field_0 == 0x13 && (s16)work->field_6 < 0x12) || work->field_0 == 0x12 || work->field_0 == 0x10 || work->field_0 == 0x18) {
+                    work->field_F8C = 1;
+                    work->field_0   = 0x14;
+                } else {
+                    work->field_0 = 0x11;
+                }
+                D_actor_403000_80158D8C.field_0 = 9;
+                D_actor_403000_80158D8C.field_1 = 1;
+                D_actor_403000_80158D8C.field_2 = 3;
+                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_actor_403000_80158D8C, 0x7DB);
+                if ((s8)arg0->field_2C->field_24 == 0) {
+                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
+                } else {
+                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0012);
+                }
+            } else {
+                func_actor_403000_PlaySound(arg0, enemy, 0x401E0005);
+            }
+        }
+        if (enemy->field_4C & 0xC) {
+            scratch->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
+            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+                enemy->field_4C &= 0xF3;
+            }
+            if (scratch->damage != 0) {
+                scratch->damage >>= 2;
+                func_800DA6E8(&enemy->node, scratch->damage, 0);
+                enemy->field_40 -= scratch->damage;
+                if ((work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) || work->field_0 == 0xD || work->field_0 == 0xF || work->field_FC0 == 1) {
+                    if (enemy->field_40 <= 0) {
+                        enemy->field_40 = 1;
+                    }
+                }
+                if (enemy->field_40 <= 0) {
+                    if (work->field_0 != 0x12 && work->field_0 != 0x18 && work->field_0 != 0x11 && work->field_0 != 0x10) {
+                        work->field_0 = 0x11;
+                    } else {
+                        work->field_F8C = 1;
+                        work->field_0   = 0x14;
+                    }
+                } else {
+                    if ((work->field_0 == 0x13 && (s16)work->field_6 < 0x12) || work->field_0 == 0x12 || work->field_0 == 0x18 || work->field_0 == 0x10) {
+                        work->field_0 = 0x18;
+                        work->field_2 = -1;
+                    } else if (work->field_0 != 0x11 && work->field_0 != 0xF && !(work->field_0 == 0xC && arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) && work->field_0 != 0xD) {
+                        work->field_AC2 = 1;
+                        work->field_AD0 = 0xD;
+                        work->field_ACE = 2;
+                    }
+                }
+            }
+        }
+        *(Actor403000DamageScratch**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 void func_actor_403000_80135F08(Actor403000* arg0)
 {

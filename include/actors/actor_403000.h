@@ -64,7 +64,9 @@ typedef struct Actor403000Work {
     /* 0xAC8 */ byte           pad_AC8[2];
     /* 0xACA */ s16            field_ACA;
     /* 0xACC */ s16            field_ACC;
-    /* 0xACE */ byte           pad_ACE[0x8];
+    /* 0xACE */ s16            field_ACE;
+    /* 0xAD0 */ s16            field_AD0;
+    /* 0xAD2 */ byte           pad_AD2[0x4];
     /* 0xAD6 */ s16            field_AD6;
     /* 0xAD8 */ s16            field_AD8;
     /* 0xADA */ s16            field_ADA;
@@ -102,7 +104,11 @@ typedef struct Actor403000Work {
     /// the animation that drives it is running. `func_actor_403000_8013D72C`
     /// zeroes this one field by field, last element first.
     /* 0xF30 */ MATRIX field_F30;
-    /* 0xF50 */ byte   pad_F50[0x24];
+    /* 0xF50 */ byte   pad_F50[0x20];
+    /// Frames left before the next hit is taken (`Gp_GetIdParam2` of the last
+    /// hit id), counted down by `func_actor_403000_80134F44`.
+    /* 0xF70 */ s16  field_F70;
+    /* 0xF72 */ byte pad_F72[0x2];
     /// Horizontal target the display object is eased toward while it sits
     /// below the player (`func_actor_403000_8013BDE0`).
     /* 0xF74 */ s16  field_F74;
@@ -152,7 +158,8 @@ typedef struct Actor403000Work {
     /* 0xFD7 */ s8       field_FD7;
     /* 0xFD8 */ s8       field_FD8;
     /* 0xFD9 */ u8       field_FD9;
-    /* 0xFDA */ byte     pad_FDA[0x2];
+    /* 0xFDA */ u8       field_FDA;
+    /* 0xFDB */ byte     pad_FDB[0x1];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -233,6 +240,31 @@ typedef struct Actor403000Msg3FE {
     /* 0x13 */ byte pad_13[0x1];
 } Actor403000Msg3FE;
 STATIC_ASSERT_SIZEOF(Actor403000Msg3FE, 0x14);
+
+/// 0x34-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_80134F44`: `pos` and `id` are the first damage record
+/// found on the four hit tables, `d`/`dist` the player's offset from the model
+/// and its length, `rel` the hit position relative to the model, `damage` the
+/// amount taken and `angle` the wrapped heading of the hit.
+typedef struct Actor403000DamageScratch {
+    /* 0x00 */ VECTOR  d;
+    /* 0x10 */ SVECTOR rel;
+    /* 0x18 */ SVECTOR pos;
+    /* 0x20 */ s32     id;
+    /* 0x24 */ u32     damage;
+    /* 0x28 */ s32     dist;
+    /* 0x2C */ s16     angle;
+    /* 0x2E */ byte    pad_2E[0x6];
+} Actor403000DamageScratch;
+STATIC_ASSERT_SIZEOF(Actor403000DamageScratch, 0x34);
+
+/// Payload of message 0x7DA `func_actor_403000_80134F44` hands the slot-4 task
+/// when the actor is killed.
+typedef struct Actor403000Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor403000Msg7DA;
 
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_801384E8`: `dir` holds the display object's first
