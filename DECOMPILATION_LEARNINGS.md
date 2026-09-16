@@ -97915,3 +97915,57 @@ Inputs: `base_1.i` (100.000%) SHA256 `1ff253e5700579d0423f52dde0436b7d45e54bd43b
 target SHA256 `45a5ee82e41e192745ac6d86083202f44ac5e7ab7839de2827e065ab34d86b3f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor01900_Fn0ABE4-vacuum`.
+## A `regs`+`reorder` mix from one statement placed after its neighbours: move it earlier
+
+`Actor00700_Fn00060` (actors) sat at 96.4% (`regs=14 reorder=3`) with one block
+wrong: the target emits the `field_18` chain early and in a call-clobbered
+scratch,
+
+```
+    lw    v0,0x2c(s5)          ; actor->field_2C
+    li    s0,1
+    lw    a3,8(v0)             ; -> coord
+    ...
+    sw    v1,0x50(s1)
+    sw    v0,0x54(s1)
+    addiu a3,a3,0x140
+    sw    a3,0x18(s1)
+```
+
+while the decompile kept the whole chain late and in `$v0` — the register the
+previous, dying value (`actor->field_2C`) had just used:
+
+```
+    sw    v0,0x54(s1)
+    lw    v0,0x2c(s5)
+    lw    v0,8(v0)
+    addiu v0,v0,0x140
+    sw    v0,0x18(s1)
+```
+
+The C had `ctx->field_18 = &actor->field_2C->field_8[4];` *after* the
+`field_1C`/`field_20`/`field_24`/`field_50`/`field_54` stores. local-alloc picks
+the first register in `reg_alloc_order` not marked live over the quantity's
+`[birth, death)` span, so a chain born in the insn where its predecessor dies
+inherits that predecessor's register; and sched2 cannot hoist a load above the
+independent stores that precede it in the RTL. Both penalties came from one
+placement: moving the statement up to just after `Gp_LinkNode(&ctx->node);`
+made `$a3` free at the birth, and the loads then hoisted above the stores.
+100.000%, all penalties zero.
+
+The two matched siblings that share this function shape both put `field_18`
+first in that group — `func_actor_105100_801327B4` and this overlay's own
+`Actor00700_Fn01FE0` (`field_18` immediately after `Gp_LinkNode`, before
+`node.field_4`). Neither sibling's *object* shows that order: the store sinks to
+the end of the run anyway. Read the sibling's source for statement order, never
+its disassembly.
+
+Signature to look for: a `regs` leftover where the mismatching load's
+destination register is the one the preceding load/definition used, plus a
+`reorder` count — that pairing means the RTL statement order moved the birth, not
+that the allocator needs a pin.
+
+Inputs: `base_2.i` (100.000%) SHA256 `f2a31136eb4679f998623b10494d0ab27cce7c51a96c09086ba61d155bd0c1eb`;
+target SHA256 `2e02638c67bd05c65c2a7de7761d1e07e1f6554d15d5bdb0dfcad1bad6e56fc9`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00700_Fn00060-vacuum`.

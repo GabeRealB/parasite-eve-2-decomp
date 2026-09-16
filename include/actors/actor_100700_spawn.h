@@ -66,4 +66,42 @@ extern Actor00700SpawnData Actor00700_D07588;
 extern u32                 Actor00700_D07584;
 extern u32                 Actor00700_D075B4;
 
+/// The 0x39C-byte block `Actor00700_Fn00060` allocates. Larger than
+/// `Actor00700SpawnWork` and laid out differently: the pose buffer
+/// `func_800B3F84` fills sits at +0x12C instead of +0xB4, and the four
+/// `GpObj` render nodes it links (`Gp_LinkObj` shapes 3/2/2/3, each with its
+/// own `GpRec18` table) start at +0x1DC rather than +0x134.
+typedef struct Actor00700InitWork {
+    /* 0x000 */ byte           pad_0[0x14];
+    /* 0x014 */ byte           field_14[0x118];
+    /* 0x12C */ byte           field_12C[0x70];
+    /* 0x19C */ MATRIX         field_19C;
+    /* 0x1BC */ MATRIX         field_1BC;
+    /* 0x1DC */ GpObj          obj1;
+    /* 0x1FC */ GpRec18        rec1;
+    /* 0x214 */ GpObj          obj2;
+    /* 0x234 */ GpRec18        rec2;
+    /* 0x24C */ byte           pad_24C[0x30];
+    /* 0x27C */ GpObj          obj3;
+    /* 0x29C */ GpRec18        rec3;
+    /* 0x2B4 */ byte           pad_2B4[0x48];
+    /* 0x2FC */ GpObj          obj4;
+    /* 0x31C */ GpRec18        rec4;
+    /* 0x334 */ GsCOORDINATE2* field_334;
+    /* 0x338 */ u16            field_338;
+    /* 0x33A */ u16            field_33A;
+    /* 0x33C */ byte           pad_33C[0x42];
+    /* 0x37E */ u16            field_37E;
+    /* 0x380 */ s16            field_380;
+    /* 0x382 */ byte           pad_382[0x1A];
+} Actor00700InitWork;
+STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
+
+/// The pair source, parameter record and pose source `Actor00700_Fn00060`
+/// hands to `Gp_PackPair` and `func_800B3F84` -- the same three shapes as the
+/// `Actor00700_D075*` trio above, for the actor's other spawn handler.
+extern u32                 Actor00700_D06DDC;
+extern Actor00700SpawnData Actor00700_D06DE0;
+extern u32                 Actor00700_D06E6C;
+
 #endif
