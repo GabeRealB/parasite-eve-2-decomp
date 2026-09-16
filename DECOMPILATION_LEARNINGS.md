@@ -98763,3 +98763,75 @@ Inputs: `base_7.i` (100.000%) SHA256 `c550579a33aa262c076f86b59ce83117363b546ad9
 target SHA256 `4f7afbfde205f7117829679e1b300cf0fb2077d86cda0e853d112a8212b85b59`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor01600_Fn04C64-vacuum`.
+## A lone `reorder=1` in the prologue, part 2: per-element stores to a local function-pointer array hoist the first `lui`; the aggregate initializer does not (Actor00400_Fn09260, 2026-09-16)
+
+`Actor00400_Fn09260` is a byte-for-byte copy of the matched `Actor00400_Fn078C8`
+(one 0x74-byte body, two function-pointer constants) and its m2c seed scored
+97.931% with every penalty zero but `reorder=1` and exactly one instruction
+misplaced: the `lui` (`high`) of the *first* array element's address sat at the
+top of the entry block, ahead of the prologue's `sw $ra`/`sw $s1`/`lw $s1`,
+where the target has it immediately before its own `addiu`.
+
+The m2c seed built the local dispatch table with two statements:
+
+```c
+    void (*states[2])(Actor100400*);   /* m2c: 97.931%, reorder=1 */
+    states[0] = Actor00400_Fn0A680;
+    states[1] = Actor00400_Fn0A6B0;
+```
+
+Writing the same table as an aggregate initializer - the form the matched
+sibling uses - is 100%:
+
+```c
+    void (*states[2])(Actor100400*) = {   /* 100.000% */
+        Actor00400_Fn0A680,
+        Actor00400_Fn0A6B0,
+    };
+```
+
+**The RTL says why, and it is not the variable style.** Holding the surrounding
+code fixed (the same `work = arg0->field_1C;` declaration form in both), the
+initializer adds one insn at the head of the initialization, before any address
+computation:
+
+```
+(insn 12 11 13 (clobber (mem/s:BLK (reg:SI 77))) -1 (nil) (nil))   ; only with the initializer
+(insn 13 12 15 (set (reg:SI 82) (high:SI (symbol_ref:SI ("Actor00400_Fn0A680")))) ...)
+(insn 15 13 17 (set (reg:SI 83) (lo_sum:SI (reg:SI 82) (symbol_ref:SI (...)))))
+(insn 17 15 18 (set (mem/s:SI (reg:SI 77)) (reg:SI 83)))
+```
+
+`reg 77` is the array's stack address (the virtual frame pointer; it becomes
+`(plus:SI (reg:SI 30 $fp) ...)` by `.sched`). Without the initializer the clobber
+is absent and sched1's first block comes out `25, 12(lui), 10, 14, 16, ...` -
+the bare `high` hoisted above the `(set (reg) (mem))` load of `field_1C` that
+precedes it in program order. With the clobber present sched1's block is
+`10, 12(clobber), 25, 13(lui), 15, 17, ...`: the `high` stays where the clobber
+leaves it, and the emitted order is the target's.
+
+A one-line variation isolating the two differences confirmed it: keeping the
+initializer's `work` style but going back to per-element assignment reproduces
+97.931% and the identical hoisted `lui`, so the initializer - not the extra m2c
+temporary - is the cause.
+
+**Reading it.** When a local array of pointers/function pointers is initialized
+from non-constant addresses and the only leftover is a `high`/`lui` misplaced
+near the prologue, write the table as an aggregate initializer. `.rtl` will show
+a `(clobber (mem/s:BLK ...))` for that form; its presence is what keeps the
+address computations anchored. An uninitialized declaration plus per-element
+stores is a different RTL stream, and sched1 treats the free-standing `high` as
+hoistable. Check the `.rtl` diff before touching statement order: the two forms
+differ there, not in `.sched`'s comparator.
+
+The exact ready-list rule that stops the hoist at the clobber was not traced to
+a condition in `sched.c`; what is established is the source form, the clobber's
+presence or absence in `.rtl`, and the resulting sched1 block order.
+
+Inputs: `base_1.i` (100.000%) SHA256
+`586e5e20436cc2390bfc7491385b6543601253cf6a98820065b3ebf58839a457`; `base_2.i`
+(97.931%, aggregate initializer removed) SHA256
+`df7c97fb9b9e7db57aa2f1e525221ee623e57e1623276bb248d2eac52e7cd80a`;
+target SHA256 `69d43542a055091f7aef7a7be3c4cd11469b044e0f3552fd1f1f4c5c25eee1e9`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn09260-vacuum`.

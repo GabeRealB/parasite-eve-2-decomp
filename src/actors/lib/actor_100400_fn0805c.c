@@ -52,6 +52,8 @@ void       Actor00400_Fn098A8(Actor100400* arg0);
 void       Actor00400_Fn09924(Actor100400* arg0);
 s16        Actor00400_Fn02154(Actor100400* arg0);
 void       Actor00400_Fn0A5B8(Actor100400* arg0);
+void       Actor00400_Fn0A680(Actor100400* arg0);
+void       Actor00400_Fn0A6B0(Actor100400* arg0);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -417,7 +419,18 @@ void Actor00400_Fn091F8(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09260);
+void Actor00400_Fn09260(Actor100400* arg0)
+{
+    Actor100400Work* work                       = arg0->field_1C;
+    void             (*states[2])(Actor100400*) = {
+        Actor00400_Fn0A680,
+        Actor00400_Fn0A6B0,
+    };
+
+    if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
+        states[(s16)work->field_63A](arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn092D4);
 
