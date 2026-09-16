@@ -111748,3 +111748,68 @@ by editing one carrier and re-splitting, it is the same destruction `Never
 rewrite a whole .c` warns about, with the extra twist that a marker-based edit
 can take the wrong function: a search for a doc-comment line matched the
 *sibling's* comment, which deleted a matched body three functions away.
+
+## m2c types the `Mem_Calloc` result from its first store, so every later offset is scaled by that pointee's size (func_actor_107000_80131F0C, 2026-09-17)
+
+A seed whose diff is a wall of `addiu` immediates that are all exact multiples of
+the offsets the function wants - `0x50` against `0x140`, `0xDC` against `0x6E0`,
+`0x154` against `0xAA0` - is not a scheduling or an allocation problem, and no
+amount of restructuring the statements will move it. m2c back-propagated the
+type of the `Mem_Calloc` result from `arg1->idMap = temp_v0;`, so the work block
+is a `TaskIdMap*` in its output and every `temp_v0 + 0xDC` in the *source* is
+scaled by 8 in the *RTL*; the `s32*` pieces in the same expressions scale by 4.
+The work block's own field accesses come out wrong too, because m2c writes them
+as `M2C_FIELD(temp_v0, T*, k)` off the same mis-scaled base only when the base is
+a field - the raw `temp_v0 + k` forms are the ones that scale.
+
+The tell is that the ratio is constant and equals a struct size: here every bad
+immediate was 8x its target (`0xDC`/`0xBC`/`0x8C`/`0x14`/`0xFC`/`0x134`/`0x154`/
+`0x1B4`/`0x1D4`/`0x1EC`/`0x20C` against the `TaskIdMap`-sized `0x2E4` work
+block), while the `s32*`-typed pair came out 4x. Instruction count and control
+flow are unaffected, so the seed still scores 91.220% (`regs=38`) and looks like
+a register problem.
+
+The fix is to name what each address belongs to instead of adding to a temp -
+`(TmdObject*)arg1->extra`, `GsCOORDINATE2* coord = obj->field_8` with
+`&coord[1].coord` for `+0x54`, `&work->field_DC`, `&work->rec154[0]`,
+`&work->objFC` - and to take the field set, the declaration order and the
+compound-literal forms from the matched sibling `func_actor_107000_80133690` in
+the same TU, which builds the identical 0x2E4-byte block. Two differences beyond
+the arithmetic remain visible in the target and are load-bearing: the sibling's
+`((void (*)(s32))Gp_IncStateF0Ref)(0);` cast is what puts `addu $a0,$zero,$zero`
+in the `jal` delay slot of a `(void)` prototype, and the `| 0x8000` / `| 0xC200`
+forms here where the sibling has `& 0x7FFF` / `& 0x3DFF` are stored at the same
+statement positions. A dead `addiu $a0,$s1,0x10` in the destroy path's delay slot
+is `&arg0->node` (node is at 0x10) hoisted by the scheduler; it falls out of
+`Gp_LinkNode(&arg0->node)` on its own and needs nothing written for it.
+
+Inputs: `base.i` (m2c seed, 91.220%), `base_1.c` (100.000%, all penalties 0)
+
+## `lh` against `lhu` is decided by how far the loaded halfword is widened, not by the field's C signedness (func_actor_107000_80131F0C, 2026-09-17)
+
+`Task::spawnArg1` is an `s32` whose two halves the actor spawn handlers read
+separately, and the target reads the high half with `lh 0x36($s6)` and the low
+half with `lhu 0x34($s6)`. Writing the high half as its own `s16` field -
+`(s16)M2C_FIELD(arg1, s16*, 0x36)` - gives `lhu`, and switching the *signedness*
+of the field does not fix it: the load's mode follows the use. When the only use
+is another halfword-sized store, GCC never widens the value and the whole
+expression stays in `HI` mode:
+
+    (insn 477 (set (reg:HI 145) (mem:HI (plus:SI (reg/v:SI 81) (const_int 54))))
+    (insn 479 (set (mem:HI (plus:SI (reg/v:SI 88) (const_int 732))) (reg:HI 145))
+
+A use that needs a word - a comparison, an arithmetic shift - widens it through
+a sign extension, and the load becomes `lh`:
+
+    (insn 22 (set (reg:HI 92) (mem:HI (plus:SI (reg/v:SI 81) (const_int 54))))
+    (insn 23 (set (reg:SI 94) (ashift:SI (subreg:SI (reg:HI 92) 0) (const_int 16)))
+
+So the packed-pair spelling, `(s16)(arg1->spawnArg1 >> 16)`, is what produces
+`lh`: the `>> 16` builds the value in `SI` mode and the backend picks the
+sign-extending load. `(u16)arg1->spawnArg1` gives `lhu` for the low half the same
+way. Both halves then feed the same comparison as `(s16)v`/`(u16)v` on one local,
+which is why the target materialises the low half once and widens it in place
+with `sll`/`sra` rather than reloading it after the intervening stores.
+
+Inputs: `base.i` (the `M2C_FIELD` spelling, `lhu` where the target has `lh`),
+`base_1.c` (100.000%)
