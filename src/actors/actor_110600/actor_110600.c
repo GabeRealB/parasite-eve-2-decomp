@@ -9,6 +9,7 @@
 #include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -479,7 +480,110 @@ void func_actor_110600_80135A18(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135B84);
+/// 1 when the first of `recs` carries the kind 0x10000 tag: the walk breaks on
+/// an empty slot and reports 0.
+static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
+{
+    s16 i;
+
+    for (i = 0; i < 1; i++) {
+        if (!recs[i].field_4) {
+            break;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Firing stage. Entering on a live actor re-arms it: clear the model object,
+/// take 0x8000 off `field_A90.flags` and put 0x4000 on `field_950.flags`, tag
+/// the enemy's link node, and pick one of the two patrol modes off
+/// `field_BE6` — a zeroed one packs the model pair with 1 and holds the stage
+/// at `field_892` 5 for 0x10 ticks, a set one packs it with 0 and holds mode 4
+/// for 0x1A. `field_B90` is raised and the walker block at 0xB28 is re-armed
+/// for a fresh patrol (`field_5C` cleared, `field_5E` reloaded from
+/// `field_B86`, `field_60` = 8) with `field_8A2` / `field_8A4` cleared and
+/// `field_B82` parked at 0x10 to cover the first ten ticks. Every tick after
+/// that raises `field_BE0`, which retires `field_B82` once it passes 0xB, and
+/// ticks the model; the pose `field_4E` then drives the pair of flag edges the
+/// mode owns — 0xF raises and 0x15 drops 0x8000 in mode 4, 0x10 / 0x13 the
+/// same in mode 5. The `field_5C` bit 0 the walker sets moves the actor on
+/// (state 3). Finally, while the first `GpRec18` record still carries the
+/// 0x10000 kind tag, the model root's pan and depth are played as sound
+/// 0x401D000D and 0x8000 comes off `field_A90.flags`.
+void func_actor_110600_80135B84(Actor110600* arg0)
+{
+    Actor110600Work*   work;
+    Actor110600Walker* walker;
+    GpEnemy*           enemy;
+    TmdObject*         obj;
+    u16                ramp;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C          = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_88C       = 1;
+        if (arg0->field_1C->field_BE6 != 0) {
+            work->field_A90.field_18 = Gp_PackObjPair((GpObj50*)enemy, 0);
+            work->field_892          = 4;
+            work->field_896          = 0x1A;
+        } else {
+            work->field_A90.field_18 = Gp_PackObjPair((GpObj50*)enemy, 1);
+            work->field_892          = 5;
+            work->field_896          = 0x10;
+        }
+        work->field_B90  = 1;
+        walker           = (Actor110600Walker*)((u8*)work + 0xB28);
+        ramp             = work->field_B86;
+        walker->field_5C = 0;
+        walker->field_60 = 8;
+        walker->field_5E = ramp;
+        work->field_B82  = 0x10;
+        work->field_8A4  = 0;
+        work->field_8A2  = 0;
+        work->field_BE0  = 0;
+    }
+    work->field_BE0++;
+    if (work->field_BE0 >= 0xB) {
+        work->field_B82 = 0;
+    }
+    func_actor_110600_80134728(arg0);
+    if (work->field_892 == 4) {
+        switch (work->field_4E & 0x3FF) {
+            case 0xF:
+                work->field_A90.flags = (u16)(work->field_A90.flags | 0x8000);
+                break;
+            case 0x15:
+                work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+                break;
+        }
+    }
+    if (work->field_892 == 5) {
+        switch (work->field_4E & 0x3FF) {
+            case 0x10:
+                work->field_A90.flags = (u16)(work->field_A90.flags | 0x8000);
+                break;
+            case 0x13:
+                work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+                break;
+        }
+    }
+    if (work->field_5C & 1) {
+        work->field_0 = 3;
+    }
+    if (Actor110600_HasRec10000(work->recs)) {
+        SndEvt_EnqueueType6(0x401D000D, (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8),
+                            (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135E20);
 

@@ -223,7 +223,12 @@ typedef struct Actor110600Work {
     /* 0x950 */ GpObj field_950;
     /* 0x970 */ byte  pad_970[0x120];
     /* 0xA90 */ GpObj field_A90;
-    /* 0xAB0 */ byte  pad_AB0[0xCC];
+    /// The actor's own `GpRec18` table, filling the gap between the display
+    /// node above and the walker block at 0xB28 exactly: five 0x18 records.
+    /// `func_actor_110600_80135B84` reads the first one's `field_4` as the
+    /// 0x10000 kind tag the sound cue is gated on.
+    /* 0xAB0 */ GpRec18 recs[5];
+    /* 0xB28 */ byte    pad_B28[0x54];
     /// The walker's own names for these four halfwords are `scale`,
     /// `field_5A`, `field_5E` and `state`; the work side reads them back
     /// through its own pointer, so both spellings are live in the code.

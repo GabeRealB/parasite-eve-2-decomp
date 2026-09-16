@@ -110542,3 +110542,76 @@ Inputs: `base_4.i` SHA256
 SHA256 `bc4db433ef0de7980a8db1e3139e19a7e1417e0ba5595bb9bcd3a645d1a994a1`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80135194-vacuum`.
+
+## A one-iteration `s16` loop bound compiles the back edge to `blez`, with no constant in the asm
+
+The `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` shape above is the
+read-modify-write case; a **loop counter** compared against a narrow constant
+canonicalises one step further, and the constant disappears entirely.
+`func_actor_110600_80135B84` walks a `GpRec18` table at 0xAB0 with the
+`0xFFFF0000 == 0x10000` kind test every actor overlay repeats, and the target's
+back edge is:
+
+```asm
+sll     $v1, $a0, 16     /* preheader: the counter shifted into the high half */
+.Loop:
+sra     $v1, $v1, 16     /* the index is the *sign-extended* s16 */
+...
+addiu   $v0, $a0, 1
+move    $a0, $v0
+sll     $v0, $v0, 16
+blez    $v0, .Loop       /* no slti, no constant */
+sll     $v1, $a0, 16
+```
+
+`(s16)(i + 1) <= 0` is exactly `(s16)(i + 1) < 1`, so GCC folded the
+sign-extend plus `slti 1` into a single `blez` on the shifted value. The bound
+is **1**; a bound of 5 in the same position keeps the constant
+(`sll` / `sra` / `slti $v0,$v0,0x5` / `bnez`, the shape inlined by
+`Actor00100_HasRecord10` in `include/actors/actor_400100_motion.h`). So a
+bottom-tested loop with a `blez` on `(i + 1) << 16` and no literal anywhere is
+`for (i = 0; i < 1; i++)` on an `s16` counter — read the counter's declared
+width from the `sll`/`sra` pair, not from the missing compare.
+
+The source idiom that needs it is the "is the first record loaded" helper:
+
+```c
+static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
+{
+    s16 i;
+
+    for (i = 0; i < 1; i++) {
+        if (!recs[i].field_4) {
+            break;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+```
+
+Its two `return`s are the second tell: `return 1` inlined at an `if (...)` use
+site becomes `addiu $v0,$zero,1` plus a jump to the condition, and the
+fall-out-of-loop `return 0` becomes `addu $v0,$zero,$zero` **at the loop exit**
+— a zero store sitting after the loop, not hoisted before it, which a
+`found`-variable version (`found = 0; for (...) { ... found = 1; }`) never
+produces. The same helper exists as `Actor401300_HasRec10000` in
+`src/actors/actor_401300/actor_401300.c` and `Actor00100_HasRecord10` in
+`include/actors/actor_400100_motion.h`, so the shape is worth recognising on
+sight.
+
+Two builds of the same C differ in *which* store gets cross-jumped: with
+`work->field_892 = X;` in each arm and a trailing `work->field_896 = timer;`
+the `jump` pass merged the two `field_892` stores and left the timer in `$v1`;
+writing `work->field_896 = 0x1A;` / `= 0x10;` in the arms instead (`j` +
+cross-jumped tail for `field_896`, timer constant into the delay slot) is what
+the target has, and took the score 91.9% → 95.8%. When a flag arm differs only
+in the constant it stores, prefer the store in each arm.
+
+Inputs: `base_3.i` SHA256
+`523fccce504839d5eba9bae83a819b4d3544821b3a77f65d9847b12393eae14e`; target.o
+SHA256 `0d48fd6f50e88f48391c021f0ba0a02575b7e46b4f7fee8edf040fe7b48b8de0`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80135B84-vacuum`.
