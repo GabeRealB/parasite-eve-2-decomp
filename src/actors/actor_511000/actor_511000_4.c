@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -18,6 +19,7 @@ extern GpImgRec   D_actor_511000_80147EA4;
 extern u16*       D_actor_511000_80147EB0;
 extern u8         D_actor_511000_80147EC4[];
 extern CVECTOR    D_actor_511000_80149004[];
+extern DVECTOR    D_actor_511000_80149014[];
 extern GpMsgEntry D_actor_511000_80148FC4[];
 
 void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb);
@@ -216,7 +218,96 @@ void func_actor_511000_801329C4(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132B14);
+/// Draws a semi-transparent gradient disc at the model's root: projects the
+/// parent-composed origin, scales the 16 unit offsets in
+/// `D_actor_511000_80149014` by 0x12C/0x1000 around it, and fans 16 `POLY_G3`
+/// from the centre (`col`) to the rim (`rgb`) into one OT slot, followed by an
+/// additive draw-mode `DR_TPAGE`. Both `pts` and the offset table walk by
+/// pointer and `scale` is a variable, which is what keeps the `mult` and the
+/// retail induction-variable order.
+void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
+{
+    SVECTOR   pos;
+    DVECTOR   pts[16];
+    MATRIX    mtx;
+    s32       sxy;
+    s32       p;
+    s32       flag;
+    s32       otz;
+    POLY_G3*  prim;
+    DR_TPAGE* dr;
+    u16       x;
+    u16       y;
+    s32       scale;
+    u32*      ot;
+    s32       i;
+    DVECTOR*  pt;
+    DVECTOR*  src;
+
+    Gp_ComposeParentWorld(((TmdObject*)task->extra)->field_8, &mtx, &pos);
+    SetRotMatrix(&Gfx_ViewWorldMtx);
+    SetTransMatrix(&Gfx_ViewWorldMtx);
+    otz   = RotTransPers(&pos, &sxy, (long*)&p, (long*)&flag);
+    x     = sxy;
+    y     = sxy >> 16;
+    src   = D_actor_511000_80149014;
+    pt    = pts;
+    scale = 0x12C;
+    for (i = 0; i < 16; i++) {
+        pt->vx = x + scale * src->vx / 0x1000;
+        pt->vy = y + scale * src->vy / 0x1000;
+        pt++;
+        src++;
+    }
+    ot = (u32*)((u32)Gpu_CurrentOt + (((u32)(otz << Display_State.field_128) >> 2) & 0xFFC)) - 30;
+    pt = pts;
+    for (i = 0; i < 15; i++, pt++) {
+        prim           = (POLY_G3*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyG3(prim);
+        setSemiTrans(prim, 1);
+        prim->x0 = x;
+        prim->y0 = y;
+        prim->x1 = pt->vx;
+        prim->y1 = pt->vy;
+        prim->x2 = pt[1].vx;
+        prim->y2 = pt[1].vy;
+        prim->r0 = col->r;
+        prim->g0 = col->g;
+        prim->b0 = col->b;
+        prim->r1 = rgb[0];
+        prim->g1 = rgb[1];
+        prim->b1 = rgb[2];
+        prim->r2 = rgb[0];
+        prim->g2 = rgb[1];
+        prim->b2 = rgb[2];
+        addPrim(ot, prim);
+    }
+    prim           = (POLY_G3*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setPolyG3(prim);
+    setSemiTrans(prim, 1);
+    prim->x0 = x;
+    prim->y0 = y;
+    prim->x1 = pt->vx;
+    prim->y1 = pt->vy;
+    prim->x2 = pts[0].vx;
+    prim->y2 = pts[0].vy;
+    prim->r0 = col->r;
+    prim->g0 = col->g;
+    prim->b0 = col->b;
+    prim->r1 = rgb[0];
+    prim->g1 = rgb[1];
+    prim->b1 = rgb[2];
+    prim->r2 = rgb[0];
+    prim->g2 = rgb[1];
+    prim->b2 = rgb[2];
+    addPrim(ot, prim);
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setDrawTPage(dr, 1, 0, 0x2A);
+    addPrim(ot, dr);
+}
 
 /// Palette fade: steps `field_2C` up by 0x555 per frame while the
 /// `field_2E` hold counter is live (counting it down once the blend saturates
