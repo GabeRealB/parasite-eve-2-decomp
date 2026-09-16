@@ -95332,3 +95332,63 @@ partner for any even GP number below 30, which is the only one a 64-bit value
 can have, so the omission cannot recur for `$20`/`$22`/`$24`. A constant that
 goes straight into `$6`/`$7` for a single call was already covered, which is why
 this only surfaces on a repeated one.
+
+## The turn-to-face seed's second fault is the argument block, not the aliased local (func_actor_350700_80162764, 2026-09-16)
+
+`actor_350700` carries its own copy of the body the entry above matched in
+`actor_335800`. `BRIEF.md` again ranked `func_actor_141000_80133BD8` 1.00 in
+`shape` and `cflow`, and again that sibling *is* this function: the m2c seed
+scored 77.365% with the structure already matching, and the whole gap was two
+source-shape differences. Porting the sibling's declaration list and statement
+order raised it to 100.000% on the first build (`regs=33 insert=3 delete=9` to
+all zeros).
+
+The 9 missing instructions are a second instance of the m2c-locals-vs-struct
+mechanism, one level out from the `SVECTOR` field. m2c turned the callee's
+five-word argument block into five separate stack locals and took the address
+of the first:
+
+```c
+s32 sp18; s32 sp1C; s32 sp20; s32 sp24; s32 sp28;   /* m2c */
+sp1C = 1; sp20 = 1; sp24 = 4; sp18 = 0; sp28 = 0;
+func(arg0, 0x7D3, &sp18, 0);      /* only sp18's address escapes */
+```
+
+Only `sp18` is observable, so `.flow` deletes the other four stores and the
+target loses four `sw`, both `li` that fed them, and the frame shrinks by a
+whole 0x10 slot. Give the five words to one struct local and pass `&preset`:
+address-taken objects are not dead, so all five stores survive. Recognise it by
+`sw` stores to *consecutive* stack slots with no reads, alongside a frame
+smaller than the target's.
+
+The remaining 3 instructions were the abs. m2c declared its temp `s16`, so
+`var_v0 = -var_v0` widened again (`sll`/`sra`) before the `slti`; the target
+negates the already-widened difference and compares it directly. The original
+reads as `s16 diff = (u16)a - (u16)b; if (ABS(diff) >= 0x61)` with the step
+taken on an `s32 vy = vec.vy` widening - which is what puts the `sll`/`sra`
+pair on the *yaw* (hoisted ahead of both arms by the scheduler) instead of on
+the negation. Same shape as the sibling, and the sibling's `vy` being `s32`
+while the extracted field is `s16` is the part m2c cannot infer.
+
+**Two work blocks in one overlay overlap at 0x4B8, and the shared body reads
+the other one.** This body's `arg0->idMap` is the *actor* block (0x4C8,
+`Actor350700Work`), so `field_4BA` there is a plain `u16`. It looks impossible
+beside `func_actor_350700_801630C0`, which stores three *words* at
+0x4B8/0x4BC/0x4C0 - but that body runs on the *controller* block, the 0x50C
+allocation `func_actor_350700_80162B30` parks in a different task's `idMap`
+(the twin of `Actor335800MainWork`, still without a header here). The same
+split explains `ActorsShared80132860Work::target` sitting at 0x4B8: it is the
+controller's, while the actor's own `target` is at 0x480
+(`ActorsShared80162540Work`). Telling them apart needs the state table, not the
+offsets: `D_actor_350700_80161E30` dispatches the actor (its handlers read
+0x43D/0x43E, 0x490, 0x4B0, 0x4C2/0x4C4), `ActorsShared801327f8Table` the
+controller (0x474-0x477, 0x4B8 target, 0x4F0 angles, 0x4F8/0x4FA,
+0x4C8..0x4E0). A shared body reading 0x4B8 is not evidence about the block its
+caller's *own* handlers see.
+
+`overlay_dup_index.py find` lists the `actor_350500` copy, and `promote`
+refuses it for the same reason as above: the body calls its own overlay's anim
+installer `func_actor_350700_80162860` / `func_actor_350500_80162828`, so the
+two copies stay matched separately.
+
+Inputs: `base.c` (77.365%), `base_1.c` (100.000%).
