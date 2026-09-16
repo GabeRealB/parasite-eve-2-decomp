@@ -2333,7 +2333,64 @@ void Actor04400_Fn083CC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn0847C);
+/// Same body as `func_actor_342400_8016B5B0`, instruction for instruction.
+///
+/// Resets the actor's slide state, then re-derives `field_70` as the view-space
+/// position of slot 4 entry 0's `coords[3]`: zeroes it and walks up the `sub`
+/// chain from that joint towards `&Gfx_ViewCoord`, transforming the point
+/// through each coord's rotation and translation with the GTE and writing the
+/// result into `field_70` on arrival. Snapshots the root coord's translation
+/// into `field_90`..`field_94`, clears `field_412` and the `field_428` /
+/// `field_42A` slide accumulators, plays the encounter sound 0x402C0002 and
+/// counts the sub-state up.
+void Actor04400_Fn0847C(Task* arg0)
+{
+    Actor104400Work* work;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   current;
+    SVECTOR*         pos;
+    SVECTOR          local;
+    VECTOR           result;
+    s32              flag;
+
+    work   = (Actor104400Work*)arg0->idMap;
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    SndEvt_EnqueueType7(0x402C0002, 1);
+    work->field_90  = coords->coord.t[0];
+    work->field_92  = coords->coord.t[1];
+    work->field_94  = coords->coord.t[2];
+    work->field_412 = 0;
+    work->field_428 = 0;
+    work->field_42A = 0;
+    work->field_422++;
+    pos     = &work->field_70;
+    pos->vx = pos->vy = pos->vz = 0;
+    current                     = &((GsCOORDINATE2*)((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8)[3];
+    local.vx                    = pos->vx;
+    local.vy                    = pos->vy;
+    local.vz                    = pos->vz;
+    while (1) {
+        if (current->sub == NULL) {
+            return;
+        }
+        if (current == &Gfx_ViewCoord) {
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            return;
+        }
+        gte_SetTransMatrix(&current->coord);
+        gte_SetRotMatrix(&current->coord);
+        gte_ldv0(&local);
+        __asm__ volatile("nop; nop; .word 0x4A480012");
+        gte_stlvnl(&result);
+        gte_stflg(&flag);
+        local.vx = result.vx;
+        local.vy = result.vy;
+        local.vz = result.vz;
+        current  = current->sub;
+    }
+}
 
 /// Same body as `func_actor_342400_8016B744`, up to the animation ids it
 /// requests. When `Actor04400_D10814[field_418 - 1]` is 0, requests animation

@@ -79931,6 +79931,20 @@ The step-4b promotion check therefore reads as "nothing to promote", and
 `find <fn>` on the *shared* symbol cannot see the overlay that should be
 sharing it.
 
+A second line form survives the same way, and a pair can carry both at once.
+`BRANCH` (`\.L\w+`) and `LABELDEF` match only the *dotted* local-label
+spelling; an overlay whose `symbol_name_format` prints `Actor04400_L08530` -
+no dot - keeps its branch targets and its label definitions verbatim in the
+hash. `Actor04400_Fn0847C` against `func_actor_342400_8016B5B0` (101
+instructions each, identical but for the three branch labels) is such a pair:
+widening both patterns in memory to also take
+`\b[A-Za-z]\w*_L[0-9A-F]{4,8}\b` collapses their canonical texts to a
+**one-line** diff - the `alabel` above, `D_8016A408`. So `find` needs both
+fixes before it groups them, and until it has them the diff-the-two-`.s` rule
+is what recovers the match: the twin here is in a *matched* overlay, and
+copying its C body across with this overlay's work block retyped scored
+100.000% with every penalty zero on the first build (m2c seed: 19.901%).
+
 `BRIEF.md`'s "Similar matched bodies" list did surface it, because that list
 comes from the lossy `shape` / `fields` tiers, which drop operands and label
 lines. So the rule is: **when `find` reports no copies but BRIEF lists a
