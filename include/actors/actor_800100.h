@@ -7,6 +7,23 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 
+/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// 0x38 block `func_actor_800100_801624F0` allocates with `Mem_Calloc` when
+/// its task enters state 0 and stores at `Task::idMap`: the launched
+/// projectile's object plus its one-entry collision table, whose `field_0` is
+/// armed with 2. `obj.field_C` points at `rec`, `obj.field_8` at the task's
+/// own coordinate, and `obj.field_18` is the hit payload `0x21C9E`. The
+/// projectile flies out along `work->field_26` while `field_24` opens, then
+/// drops; `func_actor_800100_801631C8` hands the block back to `Gp_UnlinkObj`
+/// on teardown. Same shape as the m4a1_pyke dart's `M4a1PykeBeam`.
+typedef struct _Actor800100Beam {
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[1];
+} Actor800100Beam;
+STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
+
 /// 0x5C-byte block from `G_SCRATCH_HEAD` used by
 /// `func_actor_800100_80166514`: the `GsCOORDINATE2` it hands to
 /// `Gp_PlaceCoordOffset` / `func_actor_800100_801668C0`, the `rot` offset
@@ -68,6 +85,9 @@ extern u32 Gp_LcgState;
 extern SVECTOR D_actor_800100_80167128;
 
 void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
+void func_actor_800100_80162A14(VECTOR3* arg0, u16 arg1, u16 arg2, s16 arg3);
+void func_actor_800100_80162E90(VECTOR3* arg0, s32 arg1);
+void func_actor_800100_801631C8(Task* arg0);
 void func_actor_800100_80163C04(GpActorWork* arg0);
 void func_actor_800100_80163D54(GpActorWork* arg0);
 void func_actor_800100_801655C0(GpActorWork* arg0);

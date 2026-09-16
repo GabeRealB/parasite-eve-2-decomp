@@ -106181,3 +106181,41 @@ Look at `.i.loop` before reaching for the allocation tools when a loop over a
 walking pointer has an `insert`/`delete` penalty: a giv that got its own
 register is a *structural* difference (extra increment, extra reload), not an
 allocation one, and pinning the pointer is one line.
+
+## A 0.99-shape sibling in another family is a template: diff the two targets, then port it
+
+`func_actor_800100_801624F0` (actors) listed `func_m4a1_pyke_8011D7D4` (weapons)
+at 0.99 in all three `overlay_dup_index.py similar` classes. `find` reported no
+shared body, so nothing was due for promotion - but the sibling's *matched C*
+was the answer: porting it into this overlay's own names and types matched
+100.000% on the first build, against 69.0% for the m2c seed.
+
+Normalizing both target `.s` files and difflib-ing them is what says which
+edits the port needs. 329 instructions, 9 differing line groups, and every one
+traces to a source difference rather than an allocation one:
+
+- the callee names (`jal func_m4a1_pyke_8011DCEC` -> `..._80162A14` at three
+  call sites, `..._8011E168` -> `..._80162E90`)
+- one immediate: `0x21C1E` -> `0x21C9E`
+- one **extra call**: this function's `fade != 0` early-return runs
+  `Gp_UpdateCoord(coord)` before the draw call and the sibling's does not
+- the constant `1`'s materialization position (`addiu $s4,$zero,0x1` lands in
+  the `beqz`'s delay slot instead of after the switch load) - a scheduling
+  consequence of that extra call, not a source difference, so it needs no
+  source edit to reproduce
+
+The strip-and-diff is four lines:
+
+```python
+re.match(r'\s*/\*\s*[0-9A-F]+ [0-9A-F]+ ([0-9A-F]{8}) \*/\s*(.*)', line)
+# keep group(2), collapse `.L…` labels to `.L`, then difflib.SequenceMatcher
+```
+
+Note the space after `/*` - a regex without it matches nothing and the diff
+comes back empty and silent, which reads exactly like "identical".
+
+It settles the structs too: the sibling's `M4a1PykeBeam` (`GpObj obj; GpRec18
+rec[1]`, 0x38) is the same block here, and its `GpEffWork` the same work struct.
+Check `find` first - 0.99 shape similarity is not equality, and a body with no
+copies should not be promoted to a shared lib unit just because a lookalike
+exists.

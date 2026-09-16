@@ -1,7 +1,14 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "actors/actor_800100.h"
 
 /// Per-frame flare task of the actor: while the player model is visible
@@ -124,7 +131,149 @@ void func_actor_800100_80161F20(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80162264);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_801624F0);
+/// Projectile task of the actor: while the state block says a fade-out is not
+/// running it winds `work->field_22` (the animation frame, halved for the
+/// draw) forward, and while one is (`Gp_State1C->field_4` non-zero) it just
+/// redraws at the coordinate. `field_4 >= 4` tears the task down.
+///
+/// - State 0 allocates the projectile's `Actor800100Beam`, claims the exit
+///   callback, seeds its spin from `Gp_LcgState`, and rotates the scratch
+///   `(0, pitch, roll)` vector by the task's own coordinate through the GTE
+///   to get the launch direction. It arms the record's payload `0x21C9E`,
+///   links the object onto list 1, and falls through.
+/// - State 1 steps the coordinate by that direction, redraws, and rolls
+///   `Gp_LcgState % 3` to drop a ground impact (`Gp_TraceGroundCoord` plus
+///   `func_actor_800100_80162E90` at two thirds of the width) when the room's
+///   ground is live. A hit on anything (`func_800DE7CC`) ends the flight into
+///   state 2, and a miss after 0x15 frames releases the task.
+/// - State 2 keeps falling at four times the speed until the same 0x15.
+void func_actor_800100_801624F0(Task* task)
+{
+    GsCOORDINATE2    ground;
+    SVECTOR          after;
+    SVECTOR          before;
+    GsCOORDINATE2*   coord;
+    GpEffWork*       work;
+    Actor800100Beam* beam;
+    s32              fade;
+    u32              ang0;
+    u32              ang1;
+    u32              ang2;
+    u32              ang3;
+
+    beam  = (Actor800100Beam*)task->idMap;
+    work  = task->spawnArg2;
+    fade  = Gp_State1C->field_4;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (fade >= 4) {
+        if (task->state != 0) {
+            Gp_UnlinkObj(&beam->obj);
+        }
+        Gp_ReleaseState1CMem(work, task);
+        return;
+    }
+    if (fade != 0) {
+        Gp_UpdateCoord(coord);
+        func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
+                                   ((s16)(u16)work->field_22 >> 1) + 1, work->field_24,
+                                   work->field_26);
+        return;
+    }
+    work->field_22 = (u16)work->field_22 + 1;
+    switch (task->state) {
+        case 0:
+            beam = Mem_Calloc(sizeof(Actor800100Beam), 0);
+            if (beam == NULL) {
+                work->field_22 = 0;
+                return;
+            }
+            task->exitCallback = func_actor_800100_801631C8;
+            work->field_10     = 0;
+            ang0               = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState        = ang0;
+            work->field_12     = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
+            work->field_14     = 0;
+            gte_SetRotMatrix(&coord->coord);
+            gte_ldv0(&work->field_10);
+            gte_rtv0_real();
+            gte_stsv(&work->field_10);
+            work->field_24     = (u16)task->spawnArg1 + 0x180;
+            ang1               = Gp_LcgState * 5 + 0x71357911;
+            work->field_26     = (ang1 >> 16) & 0xFFF;
+            task->state        = 1;
+            task->idMap        = (TaskIdMap*)beam;
+            beam->obj.field_8  = coord;
+            beam->obj.field_C  = beam->rec;
+            beam->obj.field_18 = 0x21C9E;
+            beam->obj.field_1C = (s16)(u16)work->field_24 >> 1;
+            Gp_LcgState        = ang1;
+            beam->obj.flags    = 1;
+            Gp_LinkObj(1, &beam->obj);
+            beam->rec[0].field_0 = 2;
+            beam->obj.flags     |= 0x8000;
+            /* fallthrough */
+        case 1:
+            work->field_24     = (u16)work->field_24 + 0x10;
+            work->field_12     = (u16)work->field_12 + 8;
+            before.vx          = coord->workm.t[0];
+            before.vy          = coord->workm.t[1];
+            before.vz          = coord->workm.t[2];
+            coord->coord.t[0] += work->field_10;
+            coord->coord.t[1] += work->field_12;
+            coord->coord.t[2] += work->field_14;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            after.vx = coord->workm.t[0];
+            after.vy = coord->workm.t[1];
+            after.vz = coord->workm.t[2];
+            func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
+                                       ((s16)(u16)work->field_22 >> 1) + 1, work->field_24,
+                                       work->field_26);
+            ang2        = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = ang2;
+            if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->field_6 != 0 &&
+                Gp_TraceGroundCoord(coord, &ground) == 1) {
+                func_actor_800100_80162E90((VECTOR3*)ground.workm.t,
+                                           (s16)((work->field_24 * 2) / 3));
+            }
+            if (Gp_CountRec18Hi(beam->obj.field_C, 0x30000) != 0) {
+                Gp_UnlinkObj(&beam->obj);
+                Gp_ReleaseState1CMem(work, task);
+                return;
+            }
+            if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
+                Gp_UnlinkObj(&beam->obj);
+                task->state    = 2;
+                work->field_10 = (u32)rcos(work->field_26) >> 8;
+                work->field_12 = (u32)rsin(work->field_26) >> 8;
+                ang3           = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState    = ang3;
+                work->field_14 = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
+                return;
+            }
+            if (work->field_22 >= 0x15) {
+                Gp_UnlinkObj(&beam->obj);
+                Gp_ReleaseState1CMem(work, task);
+                return;
+            }
+            Gp_ClearRec18Occupied(beam->rec);
+            return;
+        case 2:
+            work->field_24     = (u16)work->field_24 + 0x40;
+            coord->coord.t[0] += work->field_10;
+            coord->coord.t[1] += work->field_12;
+            coord->coord.t[2] += work->field_14;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
+                                       ((s16)(u16)work->field_22 >> 1) + 1, work->field_24,
+                                       work->field_26);
+            if (work->field_22 >= 0x15) {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80162A14);
 
