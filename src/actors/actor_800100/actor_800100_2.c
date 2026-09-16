@@ -2,8 +2,16 @@
 #include "actors/actor_800100.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgte.h>
+#include <psyq/libgs.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
@@ -20,6 +28,8 @@ extern s32                D_80115738;
 extern s32                D_8011574C;
 extern s16                D_80072830;
 extern s8                 D_8007272F;
+extern u8                 D_80073BA9;
+extern u16                D_80112F60[];
 extern s16                D_actor_800100_80167218[];
 extern u8                 D_actor_800100_80167230[];
 extern u8*                D_actor_800100_801672F8[];
@@ -1270,7 +1280,74 @@ void func_actor_800100_80166514(GpActorWork* arg0)
     *scratch = (u8*)*scratch + 0x5C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_8016666C);
+/* The 0x1C bytes are carved off `head` into `newhead` and stored there, but the
+   GTE calls address them through the typed `blk` view: the ROM keeps that typed
+   pointer as a copy of `newhead` in `$a3`, and one variable for both drops it.
+   The post-`rcos` reads go through `newhead` for the same reason - naming `blk`
+   there would keep the copy live across the call - and the two `sxy0` reads are
+   spelled off `head`, whose folded address is the one the ROM uses. */
+void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
+{
+    void**                  scratch;
+    u8*                     head;
+    u8*                     newhead;
+    Actor800100LineScratch* blk;
+    LINE_G2*                prim;
+    s16                     angle;
+    s32                     sy0;
+    s32                     sy1;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    newhead  = head - sizeof(Actor800100LineScratch);
+    blk      = (Actor800100LineScratch*)newhead;
+    *scratch = newhead;
+
+    angle = arg1;
+    if (arg1 == 0) {
+        angle = D_80112F60[D_80073BA9];
+    }
+    blk->tip.vy    = angle;
+    blk->origin.vx = 0;
+    blk->origin.vy = 0;
+    blk->origin.vz = 0;
+    blk->tip.vx    = 0;
+    blk->tip.vz    = 0;
+
+    gte_SetTransMatrix(&arg0->workm);
+    gte_SetRotMatrix(&arg0->workm);
+    gte_ldv0(&blk->origin);
+    gte_rtps_real();
+    gte_stsxy(&blk->sxy0);
+    gte_ldv0(&blk->tip);
+    gte_rtps_real();
+    gte_stsxy(&blk->sxy1);
+    gte_stszotz(&blk->otz);
+
+    if (((Actor800100LineScratch*)newhead)->otz >= 0x20) {
+        prim           = (LINE_G2*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setLineG2(prim);
+        prim->x0 = ((Actor800100LineScratch*)(head - sizeof(Actor800100LineScratch)))->sxy0.vx;
+        /* Both `vy` loads sign-extend, which needs the `s32` locals: a direct
+           16-bit field copy assembles to `lhu` for either of them. */
+        sy0      = ((Actor800100LineScratch*)(head - sizeof(Actor800100LineScratch)))->sxy0.vy;
+        prim->y0 = sy0;
+        prim->x1 = ((Actor800100LineScratch*)newhead)->sxy1.vx;
+        sy1      = ((Actor800100LineScratch*)newhead)->sxy1.vy;
+        prim->y1 = sy1;
+        /* Both ends pulse with the frame counter, the far one 0x50 darker. */
+        prim->r0 = (rcos(Display_State.field_4) & 0x1F) - 0x80;
+        prim->g0 = 0x20;
+        prim->b0 = 0x20;
+        prim->r1 = prim->r0 - 0x50;
+        prim->g1 = 0;
+        prim->b1 = 0;
+        addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, ((Actor800100LineScratch*)newhead)->otz);
+    }
+    *scratch = (u8*)*scratch + sizeof(Actor800100LineScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801668C0);
 

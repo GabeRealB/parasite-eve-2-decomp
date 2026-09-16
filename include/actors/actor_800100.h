@@ -32,6 +32,23 @@ typedef struct _Actor800100LockScratch {
 } Actor800100LockScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LockScratch, 0x20);
 
+/// 0x1C-byte block from `G_SCRATCH_HEAD` used by
+/// `func_actor_800100_8016666C` to draw the vertical `LINE_G2` that
+/// `func_actor_800100_80166514` puts on the placed coordinate. `origin` is the
+/// vector pushed through the coordinate's `workm` first — always (0, 0, 0), so
+/// `sxy0` is the origin's screen point — and `tip` the second, `angle` units
+/// straight up, so `sxy1` is the screen point of the far end. `otz` is the
+/// `gte_stszotz` of that second projection, already shifted, and doubles as
+/// the `Gp_AddTpageShift` bucket.
+typedef struct _Actor800100LineScratch {
+    /* 0x00 */ DVECTOR sxy0;
+    /* 0x04 */ DVECTOR sxy1;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ SVECTOR origin;
+    /* 0x14 */ SVECTOR tip;
+} Actor800100LineScratch;
+STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
+
 /// NULL-terminated `GpImgRec*` frame lists for `func_actor_800100_80163A58`,
 /// indexed `table[field_987 - 1][field_989]`; `D_actor_800100_80167210` is
 /// the `field_98A` sequence.
