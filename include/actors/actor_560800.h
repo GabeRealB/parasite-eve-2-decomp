@@ -130,7 +130,8 @@ typedef struct Actor560800ModelWork {
     /* 0x27C */ s16        field_27C;
     /* 0x27E */ s16        field_27E;
     /* 0x280 */ u16        field_280;
-    /* 0x282 */ byte       pad_282[0xA];
+    /* 0x282 */ s16        field_282;
+    /* 0x284 */ byte       pad_284[8];
 } Actor560800ModelWork;
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 

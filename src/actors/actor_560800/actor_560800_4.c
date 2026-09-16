@@ -59,7 +59,54 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_801386D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138A4C);
+extern s32 D_actor_560800_801756FC[];
+extern s32 D_actor_560800_80175714[];
+extern s32 D_actor_560800_8017572C[];
+
+void func_actor_560800_80138A4C(Task* task, s32 msgId, Actor560800Msg* msg)
+{
+    Actor560800ModelWork* work;
+    TmdObject*            extra;
+    VECTOR                vec;
+
+    work = (Actor560800ModelWork*)task->idMap;
+    switch (msg->field_2) {
+        case 0:
+            extra  = (TmdObject*)task->extra;
+            vec.vx = extra->field_8->workm.t[0];
+            vec.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+            vec.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+        case 1:
+            task->state = 1;
+            break;
+        case 2:
+            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            Gp_DispatchMsg(task, 0x7D4, (s32)D_actor_560800_801756FC, 0);
+            work->field_278 = 0x1000;
+            task->state     = 2;
+            break;
+        case 3:
+            task->state = 3;
+            break;
+        case 4:
+            task->state = 4;
+            break;
+        case 5:
+            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            Gp_DispatchMsg(task, 0x7D4, (s32)D_actor_560800_80175714, 0);
+            work->field_278 = 0x1000;
+            task->state     = 5;
+            break;
+        case 6:
+            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            Gp_DispatchMsg(task, 0x7D4, (s32)D_actor_560800_8017572C, 0);
+            work->field_282 = 0;
+            task->state     = 6;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138BCC);
 
