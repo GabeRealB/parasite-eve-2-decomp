@@ -98744,3 +98744,46 @@ scratch prelude does.
 
 **Fix.** Add `#include "psyq/inline_c.h"` to the host file. Scratch
 `nonmatchings/Actor04400_Fn053FC-vacuum`.
+
+## A body that mirrors another overlay's matched function has to copy its *helper decomposition*, not just its statements (Actor04400_Fn03F8C, 2026-09-16)
+**Symptom.** Two sources for the same function, semantically identical:
+m2c's flat temporary soup (`temp_s0`, `temp_s1`, `temp_s2_2`, `temp_a1_2`, a
+separate local per use) scores 81.6% — `regs=87 branch=7 insert=14 delete=17` —
+while the spelling that states the three inlined helpers as `static __inline__`
+functions the way the already-matched sibling does scores **100%** with all
+penalties zero.
+
+| source (sha256) | score |
+|---|---|
+| `base.c` `83abf535…` m2c translation, real types and field names | 81.641% |
+| `base_1.c` `f339c451…` sibling `func_actor_342400_801670C0`'s shape | 100.000% |
+
+**Cause.** The gap is not the logic, it is which pseudo covers which range. A
+helper body written as `static __inline__ void f(Task*)` gives the inline its own
+`work` / `m` / `dst` locals and its own reload of `arg0->idMap` inside the hit
+test, so 2.8.1's local-alloc sees the same quantity membership the original
+compile did. Flattening the same statements into the caller's temporaries merges
+and lengthens those live ranges, and every later pass inherits the difference.
+
+**Fix.** When BRIEF lists a matched body with a high `shape` / `fields` /
+`cflow` score, port its *decomposition*: same helper boundaries, same helper
+parameter widths, same "reload the work block through a second local" habits.
+Then adapt the names, addresses and callees. Scratch
+`nonmatchings/Actor04400_Fn03F8C-vacuum`, two builds, no pins, no search.
+
+## A `static __inline__` helper used by a landed body must be *defined* above its call site (Actor04400_Fn03F8C, 2026-09-16)
+**Symptom.** Integrating into the host `.c` a landed function that calls an
+existing file-scope `static __inline__` helper defined ~500 lines further down
+(e.g. `Actor04400_UpdateColor`, which the tail unit's other bodies define below
+this function's INCLUDE_ASM site).
+
+**Cause.** A forward declaration does not let the 2.8.1 inliner see a body it has
+not read yet, so the call would be out-of-line (and C89 rejects a later `static`
+definition after an implicit non-static declaration). Inlining needs the
+definition in hand at the call site.
+
+**Fix.** Move the helper's definition (with its doc comment) above the function
+that uses it. Moving a `static __inline__` emits no code, so the unit's `.text`
+order — and the overlay checksum — is unaffected; only the order of the
+non-inline function definitions is load-bearing, which is why the matched body
+stays at its INCLUDE_ASM site.
