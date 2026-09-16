@@ -102,7 +102,30 @@ void func_actor_401300_80141B0C(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_80141BC8);
+void func_actor_401300_80141BC8(Actor401300* arg0)
+{
+    TmdObject*       obj;
+    Actor401300Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_89C       = 2;
+        work->field_8A6       = 0x12;
+        work->field_8A2       = 0xD;
+        work->field_89E       = 0;
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_6C & 0x100) {
+        work->field_0 = 7;
+    }
+}
 
 void func_actor_401300_80141C80(void)
 {
