@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 
 /// Work block this actor parks in `Task::idMap`. `func_actor_511000_80133034`
@@ -80,6 +81,17 @@ typedef struct Actor511000AnimPreset {
     /* 0x4 */ s32 field_4;
 } Actor511000AnimPreset;
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor143900Msg` and `Actor335800Msg`. This
+/// overlay's 0x7DB handler, `func_actor_511000_8013287C`, reads the halfword
+/// at 0x2.
+typedef struct Actor511000Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor511000Msg;
+STATIC_ASSERT_SIZEOF(Actor511000Msg, 0x4);
+
+s32  func_actor_511000_8013287C(GpActorWork* arg0, s32 arg1, Actor511000Msg* msg);
 void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
 void func_actor_511000_80133760(Task* task);
 void func_actor_511000_801337F0(Task* task);

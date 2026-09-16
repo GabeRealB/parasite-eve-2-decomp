@@ -24,7 +24,45 @@ extern GpImgRec D_actor_511000_801472B4;
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801327A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_8013287C);
+/// Message-0x7DB handler: un-hides the model its first child task carries in
+/// `Task::extra` (`field_C` bit 0x80) for mode 1 and hides it for mode 0, then
+/// hides the second child as well on the mode-1 path -- the same two tasks
+/// `func_actor_511000_80132480` parked at `field_4C4` / `field_4C8`. Any other
+/// mode leaves both alone.
+/// The `default:` arm jumps straight to the shared `return 0` instead of
+/// falling through the hide block: retail's single epilogue is only reached
+/// that way, the hide block and the shared return merging into one block whose
+/// first label sits on the value store.
+s32 func_actor_511000_8013287C(GpActorWork* arg0, s32 arg1, Actor511000Msg* msg)
+{
+    Actor511000Work2* work;
+    Task*             child;
+    u16               mode;
+
+    mode = msg->field_2;
+    work = (Actor511000Work2*)arg0->actor;
+
+    switch (mode) {
+        case 0:
+            child = work->field_4C4;
+            break;
+        case 1:
+            child = work->field_4C4;
+            if (child != NULL) {
+                ((TmdObject*)child->extra)->field_C |= 0x80;
+            }
+            child = work->field_4C8;
+            break;
+        default:
+            goto out;
+    }
+
+    if (child != NULL) {
+        ((TmdObject*)child->extra)->field_C &= 0xFF7F;
+    }
+out:
+    return 0;
+}
 
 /// Message-0x7E0 handler: uploads one of the actor's three texture records
 /// over the 0x18x0x10 rect at y 0x28 -- `D_actor_511000_801472B4` for mode 1,
