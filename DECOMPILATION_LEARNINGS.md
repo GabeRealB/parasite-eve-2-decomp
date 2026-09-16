@@ -109688,3 +109688,92 @@ SHA256 `e38e9b61697d530e5ffbbcbd967fbcaf8ad5b9291b075b675b3e002538d13636`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_356100_80169854-vacuum`.
+
+## One temp per `ABS()`-guarded condition: a shared one is a global allocno
+
+`func_actor_356100_80164158` has two `ABS()`-guarded conditions reading the same
+pair of halfwords from an aim scratch:
+
+```
+lh    v0, 0xa(s2)          /* aim->current */
+lh    v1, 8(s2)            /* aim->target  */
+subu  v0, v0, v1
+bgez  v0, .L
+nop
+negu  v0, v0
+.L:   slti  v0, v0, 0x44
+```
+
+The whole function matched except that one pair of registers, worth `regs=4`:
+`lh v1,0xa(s2)` / `lh v0,8(s2)` / `subu v0,v1,v0` — the same value, with the
+subtraction's destination sharing the register of the **second** operand instead
+of the first (`CODEGEN_MODEL.md` 10.3: the first-listed operand that dies gets
+the result).
+
+Cause: both conditions wrote their result into one `s32 diff`. That temp is live
+in two basic blocks, so it is a **global** allocno, `global-alloc` hands it
+`$v0`, and `local-alloc` then reaches for whichever dying operand can share
+`$v0` — the *second* one. `ABS()` does keep the operand's own computation
+block-local (see "`ABS()` also decides `$v0` vs `$v1`"), but that only fixes the
+allocno the abs consumes, not the variable it is stored into.
+
+Give each condition its own temp and the tie comes back: `local-alloc` allocates
+the result first, the first-listed operand dies into it, and the ROM's
+`subu v0,v0,v1` falls out. Nothing else in the function moves.
+
+```
+s32 diff;                    /* first condition  */
+s32 range;                   /* second condition */
+...
+diff  = aim->current - aim->target;
+if (ABS(diff) < 0x44 && ...) { ... }
+range = Actor356100_NormalizeYaw((u16)aim->current - (u16)aim->target);
+if (ABS(range) >= 0x201 && ...) { ... }
+```
+
+Two dead ends from the same search, so the next reader does not re-walk them:
+
+* **Putting the abs on the assignment re-folds the comparison.** `diff =
+  ABS(a - b); if (diff < 0x44)` came out with the compare duplicated into both
+  arms (`bgez` + `slti` on both sides, no `negu`), distance 411 against 20 for
+  the form above. `fold()` pushes a comparison against a constant into a
+  `COND_EXPR`'s arms, and `NEGATE_EXPR (MINUS_EXPR (a, b))` folds to
+  `MINUS_EXPR (b, a)` first, so the two arms are two real subtractions. Keep the
+  *difference* in the temp and write `ABS()` at the comparison.
+* **Swapping the source operands is not available here.** The second condition
+  is not symmetric under the wrap, so the operand order is fixed.
+
+Inputs: `base_9.i` (100%) SHA256
+`cf3fed48b7db963a3cc567e6d46e90bf9662a5feffd65d302c4df72e6b7d8f6f`; source
+SHA256 `94bc7c2176f13077f2baf7aa2152d46ab6f35402212509f05102eef12d4e527d`;
+target SHA256 `936361c9fb643493c264ace0fccfcc88b8e2419ded8e94980fd653419e015088`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.
+
+## A TU-local `static __inline__` is only inlinable below its own definition
+
+GCC 2.8.1 sets `DECL_SAVED_INSNS` when a function's own `rest_of_compilation`
+runs, i.e. when its definition is reached; a call above that point cannot
+inline and is emitted as a real `jal`. A scratch `base.c` holds one function and
+the headers, so helpers that live in the `.c` — here `Actor356100_YawTo`,
+`Actor356100_StepForward` and `Actor356100_PushRecords` — are not visible at all
+and become implicit declarations. Nothing warns under `-w`, the build passes,
+and the score is merely low: 60.998% with 491 instructions against the target's
+605, `delete=164`, because three inlined bodies (most of `PushRecords`) were
+emitted as calls instead. The baseline is not a baseline at that point.
+
+Paste the helper definitions into the scratch above the function under test.
+
+The same rule constrains the integration. splat places the function at its
+address slot, and if the helpers are defined *below* that slot in the TU the
+real build outlines them exactly as the scratch did — the overlay still links
+and still checksums (the `jal` is a different object, not a wrong one), so this
+is a matching failure and not a build failure. Move the helper definitions above
+the function's slot. They are `static __inline__` that emit no out-of-line copy
+when every call site inlines, so their source position changes no other
+function's code; check the ones already above the new position do not call them
+first, and the move is free.
+
+Inputs: `base_2.i` (87.527%, helpers present) and `base_9.i` (100%); see the
+hashes above. Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.

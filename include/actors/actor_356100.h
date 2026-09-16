@@ -72,8 +72,14 @@ typedef struct Actor356100Work {
     /// Signed, like `Actor01900Work.field_6` / `Actor401300Work.field_6`;
     /// `func_actor_356100_80167584` reads the same slot as a `u16` when it
     /// increments it, so it casts there.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[4];
+    /* 0x006 */ s16 field_6;
+    /// Latch `func_actor_356100_80164158` raises together with the `field_97E = 9`
+    /// reseed once the wrapped turn from the actor's own facing to the player's
+    /// exceeds 0x200, and tests before raising so the state change fires once.
+    /// Cleared on the state-7 entry next to `field_6`; same slot as
+    /// `Actor01900Work.field_8`.
+    /* 0x008 */ s16 field_8;
+    /* 0x00A */ s16 field_A;
     /// The two XZ pairs `func_actor_356100_8016382C` seeds on entering state
     /// 0x10: the model root's X/Z, then the same pair pushed one normalised
     /// unit along the facing. Same role as `Actor01900Work.field_C`.
@@ -359,9 +365,14 @@ static __inline__ s32 Actor356100_OutOfRange(SVECTOR* d, s16 r)
 /// Same shape as `Actor401300AimScratch` / `Actor01900AimScratch`.
 typedef struct Actor356100AimScratch {
     /* 0x0 */ SVECTOR delta;
-    /* 0x8 */ s16     pad_8;
-    /* 0xA */ s16     pad_A;
-    /* 0xC */ s16     angle;
+    /// The two facing yaws `func_actor_356100_80164158` compares: `target` is the
+    /// player's root facing (`ratan2` of its matrix column) and `current` this
+    /// actor's own, re-derived from `delta` and wrapped 0x800 off it. Their
+    /// wrapped difference is the turn onto the player, which is what separates
+    /// the state-0xA and state-0xB transitions.
+    /* 0x8 */ s16 target;
+    /* 0xA */ s16 current;
+    /* 0xC */ s16 angle;
     /// The root's facing yaw `func_actor_356100_801653F4` reads back to seed
     /// `Actor356100Work::field_B48`; `Actor01900ChaseScratch` names the same
     /// pair `turn` / `angle`.

@@ -404,10 +404,6 @@ void func_actor_356100_80163E2C(Actor356100* arg0)
     *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80164158);
-
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80164ACC);
-
 /// Wrapped yaw from `coord`'s facing to an offset (`x`, `z`) already in hand.
 /// Same body as `Actor401300_YawTo` / `Actor01900_YawTo`, the pair
 /// `Actor356100_PositionYaw` above is spelled out as. The enter tick below and
@@ -498,6 +494,89 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
         *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
     }
 }
+
+void func_actor_356100_80164158(Actor356100* arg0)
+{
+    Actor356100Work*       work;
+    Actor356100AimScratch* aim;
+    TmdObject*             obj;
+    s16                    yaw;
+    s32                    diff;
+    s32                    range;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0x180;
+        work->field_978 = 1;
+        work->field_982 = 0x12;
+        work->field_97A = 0;
+        work->field_97E = 3;
+        func_actor_356100_80163508(arg0);
+        work->field_B64 = 0;
+        work->field_6   = 0;
+        work->field_8   = 0;
+        return;
+    }
+    work->field_6                             = (u16)work->field_6 + 1;
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor356100AimScratch**)G_SCRATCH_HEAD;
+    Actor356100_PushRecords(arg0->field_2C->field_8, &work->field_A58, 3, 0x10);
+    Actor356100_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_356100_80163508(arg0);
+    aim->target = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                         ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+    Actor356100_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    yaw             = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
+    aim->current    = yaw;
+    aim->current    = Actor356100_NormalizeYaw(yaw);
+    aim->angle      = Actor356100_YawTo(arg0->field_2C->field_8, aim->delta.vx, aim->delta.vz);
+    work->field_98E = aim->angle;
+    diff            = aim->current - aim->target;
+    if (ABS(diff) < 0x44 && (((s16)work->field_B66 / 2) + 3) < work->field_6 && ABS(aim->angle) < 0x80) {
+        if (Actor356100_OutOfRange(&aim->delta, 0x708)) {
+            work->field_0 = 0xA;
+        }
+    }
+    range = Actor356100_NormalizeYaw((u16)aim->current - (u16)aim->target);
+    if (ABS(range) >= 0x201 && (((s16)work->field_B66 / 2) + 3) < work->field_6 && work->field_8 == 0) {
+        work->field_8   = 1;
+        work->field_97E = 9;
+        work->field_978 = 1;
+    }
+    if (aim->angle < 0x200) {
+        if (!Actor356100_OutOfRange(&aim->delta, 0x44C)) {
+            work->field_0 = 0xB;
+        }
+    }
+    if (aim->angle > 0x40) {
+        aim->angle = 0x40;
+    }
+    if (aim->angle < -0x40) {
+        aim->angle = -0x40;
+    }
+    aim->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_97E == 3) {
+        if (work->field_97A == 0) {
+            Actor356100_StepForward(arg0->field_2C->field_8, 0x78);
+        } else {
+            Actor356100_StepForward(arg0->field_2C->field_8, 0x1E);
+        }
+    } else if (work->field_68 & 1) {
+        work->field_97E = 3;
+        work->field_978 = 1;
+    }
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80164ACC);
 
 /// Aim tick: going live resets the model and starts clip 1 at speed 0x10 with
 /// the 3 state parked in `field_97E` and `field_98E` cleared; otherwise the
