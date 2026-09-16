@@ -42,13 +42,28 @@ typedef struct Actor342100Work {
 } Actor342100Work;
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
 
+/// Payload `func_actor_342100_80163454` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x7DA and then re-sends verbatim as the 0x7DB the slot-4 task
+/// forwards. Two zero/action bytes followed by the halfword the receiver
+/// reads, the same four bytes as `Actor104000Msg7DA`.
+typedef struct Actor342100Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor342100Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor342100Msg7DA, 0x4);
+
 /// The overlay's event/controller task, published by
 /// `func_actor_342100_801630A4`.
 extern Task* D_actor_342100_80164BB8;
 
+/// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
+extern TaskDesc D_actor_342100_80164B78;
+
 void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2);
 void func_actor_342100_801633D0(s32 arg0);
 void func_actor_342100_80163408(void);
+void func_actor_342100_80163454(s32 arg0);
 void func_actor_342100_80163518(void);
 
 #endif

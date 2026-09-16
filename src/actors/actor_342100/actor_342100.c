@@ -1,8 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_342100.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
+#include "main/sound.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
@@ -57,7 +59,31 @@ void func_actor_342100_80163408(void)
     Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->field_20);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80163454);
+/// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
+/// slot 4 to forward message 0x7DB with the `{ 0, 0x2C, 4 }` record, passes the
+/// same record on to `field_30` if that target exists, and starts the child at
+/// entry 3; a non-zero arm tells the already-spawned child so through its
+/// `Task::spawnArg1`.
+void func_actor_342100_80163454(s32 arg0)
+{
+    Actor342100Work*  work = (Actor342100Work*)D_actor_342100_80164BB8->idMap;
+    Actor342100Msg7DA msg;
+
+    if (arg0 == 0) {
+        SndEvt_EnqueueType6(0x54270005, 0, 0);
+        Gp_PulseState1C();
+        msg.field_1 = 0x2C;
+        msg.field_0 = 0;
+        msg.field_2 = 4;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        if (work->field_30 != NULL) {
+            Gp_DispatchMsg(work->field_30, 0x7DB, (s32)&msg, 0);
+        }
+        work->field_38 = Task_SpawnFromTable(&D_actor_342100_80164B78, 3, 0, 0);
+        return;
+    }
+    work->field_38->spawnArg1 = 1;
+}
 
 void func_actor_342100_80163518(void)
 {

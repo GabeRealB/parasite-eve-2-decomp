@@ -93725,3 +93725,34 @@ equalling the number of dropped stores, with the frame short by the slots they
 needed, is the signature to sight-read. Note this is the mirror of the two
 "dead store" entries above - there a store is *written* to steer `cse`, here a
 store the source has is *deleted* because nothing addresses the slot.
+## m2c splits one asm store sequence into separate scalars: only the one whose address escapes survives, and the payload's other stores are dead (func_actor_342100_80163454, 2026-09-16)
+
+Three adjacent stores at `$sp,0x10` / `0x11` / `0x12` (`sb 0x2C`, `sb 0`,
+`sh 4`) are one four-byte record handed to two calls as `&msg`. m2c renders the
+sequence as three locals, `s8 sp10; s8 sp11; s16 sp12;`, and passes `(s32)&sp10`
+-- so *only* `sp10` is addressable and `.flow` deletes the other two stores as
+unobservable. The seed scored 79.245% with `delete=5 insert=4 regs=11` and the
+frame one callee-saved register too big (`0x28` with `$s1`, target `0x20`), and
+the object was missing `li $v0,0x2C` / `sb $v0,0x11($sp)` / `sh $v0,0x12($sp)`
+outright -- the same "instruction count *below* the target with a large `delete`
+and `stack=0`" signature as the `func_actor_335800_801631A4` entry above, with
+the complementary cause. Where that entry's single local aliased one struct
+field, here a *group* of stores has one addressable member.
+
+The fix is the project's dispatch-payload idiom: declare the record as a named
+four-byte struct (`u8 field_0; u8 field_1; s16 field_2;`, the shape already
+documented for `Actor104000Msg7DA` / `Actor341900Msg7DA`) and take `&msg` once.
+Every field is then addressable, the stores survive, and the same edit also
+settled the register penalty: with no ADDRESSOF pseudo to keep alive across the
+call, the payload address is rematerialised per use (`addiu $a2,$sp,0x10`) and
+the `idMap` pointer -- not the payload address -- takes `$s0`. 100.000% on the
+first build, all penalties zero, `base.c` -> `base_1.c`.
+
+Signature to reach for this rather than a pin: a payload built by consecutive
+narrow stores whose values never appear in the object, plus one extra saved
+register.
+
+Inputs: `base.c` (79.245%)
+`aa4ba005b8587ff363f719f9cc4ebece878aaff089b7f22de39a815881f480e3`,
+`base_1.c` (100.000%)
+`db35415cff0ec19071fc00175f4a4824209ec758d608c2bf8c04467e81a50dcb`.
