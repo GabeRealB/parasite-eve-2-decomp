@@ -234,7 +234,6 @@ void      func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void      func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1);
 void      func_actor_402200_80134968(Actor402200* arg0);
-void      func_actor_402200_801380D8(Actor402200* arg0);
 extern u8 D_801153F4;
 
 /// Inlined copy of `func_actor_402200_80137EEC`: reseeds animation slots

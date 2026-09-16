@@ -21,6 +21,7 @@ typedef struct Actor402200Coord {
     /* 0x000 */ GsCOORDINATE2 field_0;
     /* 0x050 */ byte          pad_50[0xA0];
     /* 0x0F0 */ GsCOORDINATE2 field_F0;
+    /* 0x140 */ GsCOORDINATE2 field_140;
 } Actor402200Coord;
 
 /// Display object hung off `Actor402200::field_2C`; `field_8` is the per-part
@@ -301,9 +302,10 @@ typedef struct Actor402200Work {
     /* 0x6F0 */ s16 field_6F0;
     /// Pair `func_actor_402200_80135A24` parks at 2 while it runs, cleared when
     /// its countdown runs out.
-    /* 0x6F2 */ s16  field_6F2;
-    /* 0x6F4 */ s16  field_6F4;
-    /* 0x6F6 */ byte pad_6F6[4];
+    /* 0x6F2 */ s16 field_6F2;
+    /* 0x6F4 */ s16 field_6F4;
+    /* 0x6F6 */ s16 field_6F6;
+    /* 0x6F8 */ s16 field_6F8;
     /// Entry count of the box table at `field_6B4`, read as a signed halfword;
     /// a non-positive count disarms the scan.
     /* 0x6FA */ s16 field_6FA;
@@ -418,8 +420,41 @@ typedef struct Actor402200HitScratch {
 } Actor402200HitScratch;
 STATIC_ASSERT_SIZEOF(Actor402200HitScratch, 0x30);
 
+/// Payload of the 0x3F8 query `func_actor_402200_8013314C` sends the player
+/// before it grabs; `field_14` is the range it asks for. Same shape as
+/// `Actor103700Msg3F8`.
+typedef struct Actor402200Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor402200Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor402200Msg3F8, 0x18);
+
+/// Payload of message 0x3E9: the world position and rotation the player is
+/// placed at.
+typedef struct Actor402200Msg3E9 {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor402200Msg3E9;
+STATIC_ASSERT_SIZEOF(Actor402200Msg3E9, 0x18);
+
+/// 0x5C-byte block `func_actor_402200_8013314C` takes from `G_SCRATCH_HEAD`:
+/// the 0x3F8 query, the `GpAnimArg` sent as message 0x3FF, the 0x3E9
+/// placement, and the offset `in` rotated through the actor's root into `out`
+/// (`in` is also the rotation handed to `RotMatrix` and `func_800FDB18`).
+typedef struct Actor402200GrabScratch {
+    /* 0x00 */ Actor402200Msg3F8 query;
+    /* 0x18 */ GpAnimArg         anim;
+    /* 0x2C */ Actor402200Msg3E9 place;
+    /* 0x44 */ VECTOR            out;
+    /* 0x54 */ SVECTOR           in;
+} Actor402200GrabScratch;
+STATIC_ASSERT_SIZEOF(Actor402200GrabScratch, 0x5C);
+
 /// Reacts to the damage just taken; see its definition.
 void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1);
+
+/// Runs the one-shot vocal cue armed by `field_718`; see its definition.
+void func_actor_402200_801380D8(Actor402200* arg0);
 
 /// Aims the actor at the player; see its definition.
 void func_actor_402200_80135D5C(Actor402200* arg0);
