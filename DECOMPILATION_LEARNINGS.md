@@ -84884,3 +84884,56 @@ Inputs: `base.c` (90.909%, sha256
 77872460fba970409657fef568c4acceb2e7e5ecdb74036a834f52ecd5f20382), `base_1.c`
 (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## m2c's `block_N:` shared call is an artefact: the source had the call twice, and cross-jumping is what merged it
+
+**Problem.** Retail reaches one `jal GameFlag_SetNibble` from two branches, so
+m2c renders it as a single call statement behind a `block_9:` label with a
+`goto block_9` from the second case. That form scores 86.9%
+(`stack=2 branch=3 regs=10 reorder=2 insert=2 delete=2`): because the call block
+is already the fall-through successor of the first branch, jump optimization has
+nothing to merge, and the call lands immediately after case 1 while case 2's
+paths are sent *forward* to it, setting `$a1` in each jump's delay slot and `$a0`
+in the call's own delay slot.
+
+**Symptom.** The block count is one short of the target's and the call sits on
+the wrong side of the second case; the `regs` penalty comes from the `$a0`/`$a1`
+setup being split across predecessors instead of the argument registers being
+loaded per path.
+
+**Cause.** The target's layout - the call *after* the second case, reached by a
+forward `j` from case 1 with `$a0` loaded before the jump and `$a1` in its delay
+slot - is what you get when `jump2` cross-jumps two identical source-level copies:
+the surviving copy is the later one. Writing the call once per case is what puts
+the merge point there.
+
+**Fix.** Drop the label and the `goto`, and duplicate the call in each case:
+
+```c
+switch (arg2->field_2) {
+    case 1:
+        if (GameFlag_GetNibble(0x5E) == 0) {
+            Task_SpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
+            GameFlag_SetNibble(0x5E, 1);
+        }
+        break;
+    case 2:
+        if (Gp_StateF0.field_0 != 1 && GameFlag_GetNibble(0x5E) == 1) {
+            func_800E8614((s32)&D_dryfield_general_store_8017E568, 1);
+        }
+        GameFlag_SetNibble(0x5E, 2);
+        break;
+}
+```
+
+This is the mirror of "A constant argument load stranded inside both arms of an
+`if` means the source duplicated the call": there the duplicated call shows up as
+a per-arm argument load, here as a merge point on the wrong side of a case. The
+`$a0` load left in the call's delay slot is not a miscompile - a delay slot runs
+before the callee's first instruction - it is only where the setup ended up once
+the merge point moved, so do not chase it as a correctness bug.
+
+Inputs: `base.c` (86.932%, sha256
+950469a79eb7a9e58d1cb59a70b3816c6a70a17e4e4e87b501def3b748c9901a), `base_1.c`
+(100%, sha256 c086454ed1c3a3f7d4621f555e0324e93d3d6e1174e1540d4d2b13eedef5c6cf).
+Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
