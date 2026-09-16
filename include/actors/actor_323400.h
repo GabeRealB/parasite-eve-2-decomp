@@ -19,7 +19,9 @@ typedef struct Actor323400Work {
     /* 0x004 */ s16  field_4;
     /* 0x006 */ byte pad_6[0x822];
     /* 0x828 */ s16  field_828;
-    /* 0x82A */ byte pad_82A[0x8];
+    /* 0x82A */ byte pad_82A[4];
+    /* 0x82E */ s16  field_82E;
+    /* 0x830 */ byte pad_830[2];
     /* 0x832 */ s16  field_832;
     /* 0x834 */ byte pad_834[0xA];
     /* 0x83E */ s16  field_83E;
@@ -37,5 +39,15 @@ void func_actor_323400_80163B58(Task* task);
 /// `fns[state](task->spawnArg2, task)`, like the other handler tables in this
 /// family.
 void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task);
+
+/// Re-init handler (table `D_actor_323400_80161E24`, index 3): the same shape
+/// as the handler above, but its animation-state slots hold a different state
+/// (`field_82E` is 2 and `field_828` is 1, where the sibling writes none and
+/// 2). The flag-set path clears `enemy->node.field_4`, drops the model's root
+/// `field_C`, rebuilds its buffers and writes those slots; the flag-clear path
+/// instead clears the `flg` word of the model's trailing coord block, so the
+/// coordinate matrix is rebuilt from the actor transform on the next draw.
+/// Either way the tick runs last.
+void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task);
 
 #endif

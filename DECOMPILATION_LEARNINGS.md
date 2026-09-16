@@ -97347,3 +97347,42 @@ Evidence: scratch `nonmatchings/func_actor_210600_8014B8C8-vacuum/`. `base.c`
 address-taken `VECTOR` fix above), `base_2.c` `9aa3a97f...` (100.000%,
 preprocessed `b03db8ba...`), `base_3.c` `750273c6...` (typed port of
 `base_2.c`, identical object). Compiler `60d886cd...`.
+
+## One variable assigned in two exclusive branches is one *global* pseudo
+
+**Symptom.** A chase load at the tail of an `else` arm is the only difference:
+the target has `lw $v0,0x2C($s1)` / `lw $v0,8($v0)` / `sw $zero,0($v0)` and the
+object has `$a0` for the first load, so the report reads `regs=2` at 99.75%
+with blocks, predicates and counts all matching.
+
+**Cause.** The obvious C names the same temp in both arms:
+
+```c
+    if (work->field_4 != 0) { obj = (TmdObject*)task->extra; … }
+    else                    { tick(task); obj = (TmdObject*)task->extra; obj->field_8->flg = 0; }
+```
+
+A C variable is one RTL pseudo, and one pseudo defined in two basic blocks is
+allocated once by `global.c` — in `func_actor_323400_80164C4C` that is
+`reg/v:SI 83`, listed in `.greg` as `83 in 4`, so *both* arms load `task->extra`
+into `$a0` and the difference cannot be fixed in either arm alone. Deriving the
+expression inline instead gives a fresh compiler temp (`reg:SI 91`) that
+`local-alloc` places on its own, and it lands in `$v0` as the ROM has it.
+
+**Fix.** Do not assign the shared temp in the arm whose register must differ —
+re-derive it there:
+
+```c
+    } else {
+        tick(task);
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+    }
+```
+
+This is the value-temp twin of "Declare that pointer per block, not per
+function": same rule, but the fix cannot be a second declaration when the type
+is identical, so the second arm writes the cast expression directly. Check
+`.greg` first — a pseudo named in the dispositions list is one `global.c`
+decided, and no amount of rewriting inside a single arm will move it.
+
+Example: `func_actor_323400_80164C4C` (`base_1.c` 99.75% → `base_2.c` 100%).
