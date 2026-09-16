@@ -141,7 +141,9 @@ typedef struct Actor560800ModelWork {
     /* 0x1BC */ MATRIX     color;
     /* 0x1DC */ SVECTOR    rot[7];
     /* 0x214 */ SVECTOR    swing[7];
-    /* 0x24C */ byte       pad_24C[0x10];
+    /* 0x24C */ byte       pad_24C[0xA];
+    /* 0x256 */ u16        field_256;
+    /* 0x258 */ byte       pad_258[4];
     /* 0x25C */ u16        swingDir[8];
     /* 0x26C */ Task*      field_26C;
     /* 0x270 */ u32        field_270;
@@ -190,22 +192,32 @@ STATIC_ASSERT_SIZEOF(Actor560800FadeWork, 0x8);
 /// applies message 0x7D5 to the `TmdObject` each part carries.
 ///
 /// `field_40` is the task the spawner passed as `Task::spawnArg2`, reparented
-/// to this one - the same role `Actor560800ModelWork::field_26C` plays - and
-/// `field_14` / `field_18` / `field_1C` are the world position that function
-/// copies out of `Gp_ComposeParentWorld`, `field_18` biased by -0x78.
+/// to this one - the same role `Actor560800ModelWork::field_26C` plays. While
+/// its `field_4A` is 0x83 or 0x22, `world` is the matrix `Gp_ComposeParentWorld`
+/// composes from part 9 of the controller's `field_4` / `field_C` model; the
+/// translation is then overwritten with the returned position, `t[1]` biased
+/// by -0x78.
 typedef struct Actor560800PartsWork {
-    /* 0x00 */ byte  pad_0[0x14];
-    /* 0x14 */ s32   field_14;
-    /* 0x18 */ s32   field_18;
-    /* 0x1C */ s32   field_1C;
-    /* 0x20 */ Task* parts[8];
-    /* 0x40 */ Task* field_40;
-    /* 0x44 */ s16   field_44;
-    /* 0x46 */ s16   field_46;
-    /* 0x48 */ s16   field_48;
-    /* 0x4A */ s16   field_4A;
+    /* 0x00 */ MATRIX world;
+    /* 0x20 */ Task*  parts[8];
+    /* 0x40 */ Task*  field_40;
+    /* 0x44 */ s16    field_44;
+    /* 0x46 */ s16    field_46;
+    /* 0x48 */ s16    field_48;
+    /* 0x4A */ s16    field_4A;
 } Actor560800PartsWork;
 STATIC_ASSERT_SIZEOF(Actor560800PartsWork, 0x4C);
+
+/// One 0x18-byte entry per part in `D_actor_560800_80175314`:
+/// `func_actor_560800_801386D4` clamps the part's
+/// `Actor560800ModelWork::field_256` to `field_4` while it grows it by the
+/// matching `D_actor_560800_801756EC` step.
+typedef struct Actor560800PartLimit {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte pad_8[0x10];
+} Actor560800PartLimit;
+STATIC_ASSERT_SIZEOF(Actor560800PartLimit, 0x18);
 
 /// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
 /// message 0x7DB: the same 4-byte record the other actors send, whose halfword

@@ -100719,3 +100719,19 @@ the argument load in the insn stream. Computing `j = i & 0xFFFF; i += 1;`
 before the calls schedules the increment first and emits `addiu`; writing the
 natural `i += 1` at the end of the do-while body (after the calls, indices
 through `j`) lets sched1 hoist it just behind `a2 = 1`, and it matched.
+
+### A `sN = sM` copy in a call's delay slot is a second local aliasing the first; place it after the call args (func_actor_560800_801386D4, 2026-09-16)
+
+**Symptom.** A state-0 spawner does `w = Mem_Malloc(...); task->idMap = w; ...
+Mem_Set(task->idMap, 0, size);` and the target's `Mem_Set` delay slot holds
+`move s2,s0`, after which the loop writes through `s2`. `w` itself (`$s0`) is
+also the variable reloaded from `task->idMap` after the switch.
+
+**Fix.** Write a second local (`spawned = w;`) for the loop, *after* the
+`Mem_Set` call statement, preceded by the counter init: `i = 0; spawned = w;`.
+Sched1 still pulls both ahead of the call, `i = 0` becomes `move s1,a1`
+(reload_cse against the `a1 = 0` argument) and the copy lands in the delay
+slot. With the copy written before `Mem_Set`, or `i = 0` after it, the two
+swap registers. The rest of the allocation was settled by giving each switch
+case its own locals (case-0 coord vs case-3 coord, case-2 counter and work
+alias) while case 0 and case 3 share their loop counter (both `$s1`).

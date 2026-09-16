@@ -2,6 +2,8 @@
 
 #include "actors/actor_560800.h"
 
+#include "gameplay/3CD8.h"
+
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -214,7 +216,113 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, Actor560800Msg* msg)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_801386D4);
+extern s32                  D_80115738;
+extern Actor560800PartLimit D_actor_560800_80175314[];
+extern void                 D_actor_560800_801756D4;
+extern u16                  D_actor_560800_801756EC[];
+extern TaskDesc             D_actor_560800_8017575C;
+
+/// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
+/// roots the model at `Gfx_ViewCoord`, reparents the spawner's task, spawns the
+/// eight part tasks and swaps `Gp_LcgState` out for a zero seed; state 2 grows
+/// each part's `field_256` up to its `D_actor_560800_80175314` limit; state 3
+/// bursts effects on the first remaining part, puts it into state 4 and drops
+/// it. Every frame the world position follows part 9 of the controller model
+/// `field_4A` selects.
+void func_actor_560800_801386D4(Task* task)
+{
+    Actor560800PartsWork* work;
+    Actor560800PartsWork* w;
+    Actor560800PartsWork* spawned;
+    Actor560800PartsWork* grow;
+    Actor560800ModelWork* model;
+    GsCOORDINATE2*        root;
+    GsCOORDINATE2*        partCoord;
+    GsCOORDINATE2*        effCoord;
+    GsCOORDINATE2*        c;
+    Task*                 part;
+    SVECTOR               pos;
+    s32                   i;
+    s32                   n;
+    s16                   k;
+
+    work = (Actor560800PartsWork*)task->idMap;
+    switch (task->state) {
+        case 0:
+            root        = ((TmdObject*)task->extra)->field_8;
+            w           = (Actor560800PartsWork*)Mem_Malloc(0x4C, 0);
+            task->idMap = (TaskIdMap*)w;
+            if (w == NULL) {
+                Task_Kill(task);
+            } else {
+                root->sub = &Gfx_ViewCoord;
+                Mem_Set(task->idMap, 0, 0x4C);
+                i                 = 0;
+                spawned           = w;
+                spawned->field_40 = (Task*)task->spawnArg2;
+                task->field_24    = &D_actor_560800_801756D4;
+                Task_Reparent(spawned->field_40, task);
+                do {
+                    spawned->parts[i & 0xFFFF] =
+                        Task_SpawnFromTable(&D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, (s32)task);
+                    i++;
+                } while ((u32)(i & 0xFFFF) < 8U);
+                D_actor_560800_801757A8 = Gp_LcgState;
+                Gp_LcgState             = 0;
+            }
+            task->state++;
+            break;
+        case 1:
+            break;
+        case 2:
+            grow = work;
+            n    = 0;
+            do {
+                part = grow->parts[n & 0xFFFF];
+                if (part != NULL) {
+                    model             = (Actor560800ModelWork*)part->idMap;
+                    partCoord         = ((TmdObject*)part->extra)->field_8;
+                    model->field_256 += D_actor_560800_801756EC[n & 0xFFFF];
+                    if (D_actor_560800_80175314[n & 0xFFFF].field_4 < (s16)model->field_256) {
+                        model->field_256 = D_actor_560800_80175314[n & 0xFFFF].field_4;
+                    }
+                    partCoord->flg = 0;
+                }
+                n++;
+            } while ((u32)(n & 0xFFFF) < 8U);
+            break;
+        case 3:
+            for (k = 0; k < 8; k++) {
+                if (work->parts[k] != NULL) {
+                    effCoord = &((TmdObject*)work->parts[k]->extra)->field_8[3];
+                    Gp_SpawnEff(D_80115738, effCoord, 0x10002380, 0);
+                    Gp_SpawnEff(D_80115738, effCoord, 0x04003480, 0);
+                    i = 0;
+                    do {
+                        Gp_SpawnEff(D_80115738, effCoord, 0x02002400, 0);
+                        i++;
+                        Gp_SpawnEff(0x601B4, effCoord, 0x02202300, 0);
+                    } while ((u32)(i & 0xFFFF) < 4U);
+                    work->parts[k]->state = 4;
+                    work->parts[k]        = NULL;
+                    break;
+                }
+            }
+            task->state = 1;
+            break;
+    }
+    w = (Actor560800PartsWork*)task->idMap;
+    if (w->field_4A == 0x83) {
+        c = ((TmdObject*)((Actor560800Work*)w->field_40->idMap)->field_4->extra)->field_8;
+        Gp_ComposeParentWorld(&c[9], &w->world, &pos);
+    } else if (w->field_4A == 0x22) {
+        c = ((TmdObject*)((Actor560800Work*)w->field_40->idMap)->field_C->extra)->field_8;
+        Gp_ComposeParentWorld(&c[9], &w->world, &pos);
+    }
+    w->world.t[0] = pos.vx;
+    w->world.t[1] = pos.vy - 0x78;
+    w->world.t[2] = pos.vz;
+}
 
 extern s32 D_actor_560800_801756FC[];
 extern s32 D_actor_560800_80175714[];
