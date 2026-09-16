@@ -16,7 +16,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132470);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132654);
+void func_actor_110600_80132654(Actor110600Walker* work, SVECTOR3* pos)
+{
+    Actor110600WalkerRoute* route;
+    Actor110600WalkerRoute* step;
+    Actor110600WalkerRoute* wrap;
+    Actor110600WalkerRoute* next;
+    u8                      node;
+
+    route      = work->route;
+    work->node = route->nodes[route->cursor];
+    if (func_actor_110600_80132470(work) == 0) {
+        pos->vx              = work->nav->nodes[work->node].x;
+        pos->vy              = work->nav->nodes[work->node].y;
+        pos->vz              = work->nav->nodes[work->node].z;
+        work->route->arrived = 0;
+        return;
+    }
+
+    work->route->arrived = 1;
+    step                 = work->route;
+    work->field_62       = 0;
+    work->field_64       = 0;
+    step->cursor++;
+
+    wrap = work->route;
+    if (wrap->nodes[wrap->cursor] == 0xFF) {
+        wrap->cursor = 0;
+    }
+
+    next       = work->route;
+    node       = next->nodes[next->cursor];
+    work->node = node;
+    pos->vx    = work->nav->nodes[node].x;
+    pos->vy    = work->nav->nodes[work->node].y;
+    pos->vz    = work->nav->nodes[work->node].z;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801327EC);
 

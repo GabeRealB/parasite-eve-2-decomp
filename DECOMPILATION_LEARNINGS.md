@@ -110377,3 +110377,57 @@ Inputs: `base_3.i` SHA256
 SHA256 `419e3593688ace0aa8571144eadd5afd9df115a41808e59459aa6cfcbcc4fb91`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80137980-vacuum`.
+
+## An undeclared callee leaves the CALL_INSN with no argument uses, and the post-reload scheduler ranks the call differently — moving a nearby parameter copy a clock (func_actor_110600_80132654, 2026-09-16)
+
+`func_actor_110600_80132654` is the acropolis walker's patrol step —
+`func_acropolis_bridge_80184208`'s body word for word — and the whole function
+matched on the first try except for one instruction. The target fills the
+load-delay slot after `lw v0,0(v0)` with the second parameter's copy:
+
+```
+lw    v0,0(v0)
+addu  s1,a1,zero      # target: the copy, in the load-delay slot
+addu  v0,v0,v1
+lbu   v0,0(v0)
+```
+
+The emitted object instead put the copy after `lbu v0,0(v0)` and printed a
+`#nop` in that slot (`mips.c`'s `final_prescan_insn` emits it when the insn
+right after a load mentions the loaded register). 98.427%, penalties
+`branch=2 reorder=1 insert=1` — all three only the address shift the extra
+instruction causes.
+
+The cause is the callee's declaration. Written the way m2c/splat leaves it, as
+`s16 func_actor_110600_80132470();` called with no arguments, the call has no
+argument `use`, and `.sched2`'s header shows the jal at `priority = 4,
+ref_count = 1`, picked at T-3 — after the delay-slot `sb` at T-4, so reorg has
+to move the `sb` in behind it. Declaring the callee with its real prototype and
+passing the argument:
+
+```c
+s16 func_actor_110600_80132470(Actor110600Walker* walker);
+...
+if (func_actor_110600_80132470(work) == 0) {
+```
+
+gives the same jal `priority = 1, ref_count = 1`, which puts it *in the ready
+list* at T-4/T-5 where it is picked ahead of the copy: the copy is pushed to
+T-8 — exactly the load-delay slot — and the function is 100%. `sched_analyze`'s
+CALL_INSN handling and the `call_used_regs` anti-dependences in
+`sched_analyze_1/2` are what the missing use perturbs; the argument registers
+themselves are unchanged in both builds, so the machine code before and after
+the call is identical.
+
+Read `.sched2`'s per-insn `priority = N, ref_count = N` block against the
+target when a copy sits one clock off: a call whose priority differs from every
+neighbouring insn's is the tell, and the fix is in the declaration, not the
+schedule. Same body in two overlays does not mean the same declaration does the
+job — `func_acropolis_bridge_80184024` is declared with a parameter above the
+sibling that calls it.
+
+Inputs: `base_2.i` SHA256
+`fa81beb297c6423834a8746412d339268a6a41c1764a0eb9d6f7a3d1c4f736f2`; target.o
+SHA256 `63ad3c227ceb88ae6089d1fea6ba705dc884094cefbf9bb74829025763aa5834`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80132654-vacuum`.

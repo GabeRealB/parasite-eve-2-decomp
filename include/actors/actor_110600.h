@@ -9,6 +9,34 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// One node of the patrol table `Actor110600WalkerNav::nodes` points at. The
+/// three packed coordinates are copied straight out to the caller's `SVECTOR3`,
+/// so they are read back as raw halfwords.
+typedef struct Actor110600WalkerNavNode {
+    /* 0x0 */ u16  x;
+    /* 0x2 */ u16  y;
+    /* 0x4 */ u16  z;
+    /* 0x6 */ byte pad_6[0x2];
+} Actor110600WalkerNavNode;
+
+/// The walker's patrol node table: the array `node` indexes, and the list
+/// `func_actor_110600_80132470` measures the current step against.
+typedef struct Actor110600WalkerNav {
+    /* 0x0 */ Actor110600WalkerNavNode* nodes;
+} Actor110600WalkerNav;
+
+/// One patrol route: a 0xFF-terminated list of node indices plus the cursor
+/// into it, which `func_actor_110600_80132654` wraps back to the first node at
+/// the terminator. `arrived` is the flag that same step raises on the frame the
+/// walker reaches the node it was heading for. Same shape as the acropolis
+/// bridge room's route type, which drives the identical walker body.
+typedef struct Actor110600WalkerRoute {
+    /* 0x0 */ u8*  nodes;
+    /* 0x4 */ byte pad_4[0x1];
+    /* 0x5 */ u8   cursor;
+    /* 0x6 */ u8   arrived;
+} Actor110600WalkerRoute;
+
 /// View of the walker block `Actor110600Work` carries at 0xB28 — the shape the
 /// acropolis bridge room drives, including the `D_80073B08` motion config the
 /// byte at 0x6E indexes. `nav` and `route` point at the node tables stored
@@ -16,21 +44,27 @@
 /// per-tick step moves, and `field_5E` is the value `field_60` ramps towards
 /// `field_5C` once per tick. The work block names the four fields it reads
 /// back through its own pointer `field_B7C` / `field_B82` / `field_B86` /
-/// `field_B90` instead: same bytes, reached with a constant offset.
+/// `field_B90` instead: same bytes, reached with a constant offset. `node` is
+/// the patrol node the walker is heading for and `field_62` / `field_64` the
+/// movement deltas `func_actor_110600_80132654` clears once it arrives.
 typedef struct Actor110600Walker {
-    /* 0x00 */ void*          nav;
-    /* 0x04 */ void*          route;
-    /* 0x08 */ GsCOORDINATE2* coord;
-    /* 0x0C */ byte           pad_C[0x48];
-    /* 0x54 */ s16            scale;
-    /* 0x56 */ byte           pad_56[4];
-    /* 0x5A */ s16            field_5A;
-    /* 0x5C */ u16            field_5C;
-    /* 0x5E */ u16            field_5E;
-    /* 0x60 */ u16            field_60;
-    /* 0x62 */ byte           pad_62[6];
-    /* 0x68 */ u8             state;
-    /* 0x69 */ byte           pad_69[0x43];
+    /* 0x00 */ Actor110600WalkerNav*   nav;
+    /* 0x04 */ Actor110600WalkerRoute* route;
+    /* 0x08 */ GsCOORDINATE2*          coord;
+    /* 0x0C */ byte                    pad_C[0x48];
+    /* 0x54 */ s16                     scale;
+    /* 0x56 */ byte                    pad_56[4];
+    /* 0x5A */ s16                     field_5A;
+    /* 0x5C */ u16                     field_5C;
+    /* 0x5E */ u16                     field_5E;
+    /* 0x60 */ u16                     field_60;
+    /* 0x62 */ s16                     field_62;
+    /* 0x64 */ s16                     field_64;
+    /* 0x66 */ byte                    pad_66[0x2];
+    /* 0x68 */ u8                      state;
+    /* 0x69 */ byte                    pad_69[0x1];
+    /* 0x6A */ u8                      node;
+    /* 0x6B */ byte                    pad_6B[0x41];
 } Actor110600Walker;
 STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
 
@@ -179,6 +213,20 @@ void func_actor_110600_80135A18(Actor110600* arg0);
 /// resolves the patrol node the `field_6E` byte names against `D_80073B08`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`.
 void func_actor_110600_80133A94(Actor110600Walker* walker);
+
+/// Measures the walker's node against the coordinate it is moving towards,
+/// leaving the three per-axis deltas in the scratchpad, and reports whether it
+/// has arrived: 1 once the accumulated distance stops short of the remaining
+/// one, 0 while it is still travelling.
+s16 func_actor_110600_80132470(Actor110600Walker* walker);
+
+/// Steers the walker along its patrol route: resolves the node the route
+/// cursor names, and on the frame `func_actor_110600_80132470` reports arrival
+/// it raises the route's `arrived` flag, clears the movement deltas and steps
+/// the cursor onto the next node — wrapping back to the first at the 0xFF
+/// terminator. `pos` receives the position of the node it is heading for, so
+/// on the arrival frame it already describes the new node.
+void func_actor_110600_80132654(Actor110600Walker* work, SVECTOR3* pos);
 
 /// Enters work state 2 (`field_88C`) on a live actor: clear the model object,
 /// clear bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
