@@ -75,13 +75,10 @@ void func_actor_356100_80163CD4(Actor356100* arg0)
         Tmd_AllocBuffers(obj);
         work->field_978 = 2;
         work->field_982 = 0x10;
-    loop_2:
-        func_actor_356100_80163508(arg0);
-        if ((work->field_97E != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) {
-            if ((work->field_97E != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)) {
-                goto loop_2;
-            }
-        }
+        do {
+            func_actor_356100_80163508(arg0);
+        } while (((work->field_97E != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) &&
+                 ((work->field_97E != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)));
         work->field_982 = 0x20;
         return;
     }
