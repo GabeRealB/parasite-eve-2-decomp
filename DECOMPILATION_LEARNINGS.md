@@ -88638,3 +88638,29 @@ codegen-neutral — check the decrement and the mask's home together.
 Example: `func_dryfield_r08_8017F3B8`. Inputs: `base_1.i`
 `a52724021c0d0dda203a0eeb4f64bfd499c6166bfff7ef0f670c12663c891609`, `base_2.i`
 `903b36038e9083a05163d6128012ef49c9a553305e84a96d80c5821b10de87f4`.
+
+## The sprite-table record is longer than `GpSprtRec`: `rec[N].field_4` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].field_4`
+
+`Gp_SprtTables[stage - 1]->field_0[room - 1]` is typed `GpSprtRec*`, but the
+record a room stores there is longer than that 0xC-byte prefix, and the
+per-view `GpSprtCmd*` lists past it keep the *same* 0xC stride the element type
+would index with. So a `lw r, 0x28(v0)` on that record is `rec[3].field_4`
+(3 * 0xC + 4) and not a field of some wider struct: write the index and the
+displacement falls out, with no cast and no private record type.
+
+The command list's own records are 8 bytes (`GpSprtCmd`), so an 8-scaled index
+landing at displacement 0xC addresses the *next* record's `field_4` off a base
+of `cmd`:
+
+```c
+cmd = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][3].field_4;
+cmd[arg0 + 1].field_4 = 1;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
+```
+
+`cmd[arg0].field_4` is the same shape at displacement 4 - read the
+displacement together with the scale before deciding the index is off by one.
+
+Example: `func_dryfield_r08_8017F340`, whose sibling `func_dryfield_r08_8017F3B8`
+in the same unit establishes the stride with `rec[1]` / `rec[2]` reads.
+Input: `base_1.i`
+`3b9e12d4e068e1b36349f777ea5aaba2be5d2267460ab7294e24a6fa77ea6e4c`.
