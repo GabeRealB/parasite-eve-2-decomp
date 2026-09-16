@@ -221,4 +221,41 @@ void func_actor_110600_80138CA4(Actor110600* arg0)
     func_actor_110600_80134728(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138D7C);
+void func_actor_110600_80138D7C(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    s16              step;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                 = arg0->field_2C;
+        enemy->node.field_4 = 8;
+        obj->field_C        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_88C        = 2;
+        work->field_892        = 5;
+        work->field_896        = 0x30;
+        work->field_950.flags |= 0x4000;
+        work->field_A90.flags &= 0x7FFF;
+        func_actor_110600_80134728(arg0);
+        func_actor_110600_80134728(arg0);
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    step                         = (s16)work->field_896 / 2;
+    work->field_896              = step;
+    if (step == 1) {
+        work->field_896 = -0x10;
+    }
+    if (work->field_896 == -1) {
+        work->field_896 = 0x10;
+    }
+    func_actor_110600_80134728(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+        enemy->field_4C &= 0xFD;
+        work->field_0    = 3;
+    }
+}

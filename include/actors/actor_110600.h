@@ -132,6 +132,15 @@ void func_actor_110600_80133A94(Actor110600Walker* walker);
 /// 20 update ticks before parking `field_896` at -8 and ticking once more.
 void func_actor_110600_80138CA4(Actor110600* arg0);
 
+/// Re-enters work state 2 on a live actor: clear the model root coordinate,
+/// re-allocate its TMD buffers, tag the enemy's link node, arm `field_88C` /
+/// `field_892` / `field_896` and the `field_950.flags` 0x4000 / `field_A90.flags`
+/// 0x8000 masks, then tick twice. On a dead one it is the model-shrink tail:
+/// halves `field_896` each tick — parking at -0x10 when the halving lands on 1
+/// and bouncing -1 back to 0x10 — and once `Gp_TickObjFlag2` reports 1, drops
+/// bit 1 of the enemy node's flags and moves the actor to state 3.
+void func_actor_110600_80138D7C(Actor110600* arg0);
+
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
