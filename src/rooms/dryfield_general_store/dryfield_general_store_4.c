@@ -1,5 +1,34 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "main/session.h"
+#include "main/task.h"
+
+extern s32 D_dryfield_general_store_8017E560;
+extern s32 D_dryfield_general_store_8017E564;
+
 INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store_4", func_dryfield_general_store_8017DFB4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store_4", func_dryfield_general_store_8017E064);
+void func_dryfield_general_store_8017E064(Task* arg0)
+{
+    s16 temp_v0;
+
+    switch (arg0->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E560, 0x7DB);
+            arg0->killCountdown = 0x5A;
+            arg0->state++;
+            return;
+        case 1:
+            temp_v0             = (u16)arg0->killCountdown - 1;
+            arg0->killCountdown = temp_v0;
+            if (temp_v0 < 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E564, 0x7DB);
+                Gp_MsgPlayerWeapon(1);
+                Task_Kill(arg0);
+            }
+            return;
+    }
+}

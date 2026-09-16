@@ -41898,6 +41898,21 @@ assigning it into a `u16` local means only the low half is live, so GCC drops
 the sign-extending load and re-extends at the comparison instead. Reading the
 field into an `s16` local flips it back to `lh`. `func_replay_bonus_80117924`.
 
+Where the local has to stay `s16` - the value is both compared and assigned
+back, as a task's underflowing countdown - cast the read instead and keep the
+`lhu`:
+
+```c
+s16 temp_v0 = (u16)arg0->killCountdown - 1;
+
+arg0->killCountdown = temp_v0;
+if (temp_v0 < 0) { ... }
+```
+
+The `(u16)` makes the read a zero-extending one, so only the comparison is
+signed. `func_dryfield_general_store_8017E064` matches this form; the same
+shape is `func_actor_503500_8013D914` (`timer = (u16)work->field_E8 - 1;`).
+
 ## Don't hoist m2c's `temp_` for a repeated array element - let GCC CSE it
 
 m2c names the address of a repeated array element and reuses it:
