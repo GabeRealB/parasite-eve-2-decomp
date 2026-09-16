@@ -1940,7 +1940,164 @@ void func_actor_403000_8013A08C(Actor403000* arg0)
     *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013A678);
+/// Waypoint-ring patrol toward a goal waypoint: on entry derive the goal from
+/// the player's cell and, if unset, the ring direction `field_FD2`; every frame
+/// on reaching the goal pick the next state (3, 11 or 15) from a random roll,
+/// then steer (clamped to 0x40) toward the next waypoint and step forward 0x12C.
+void func_actor_403000_8013A678(Actor403000* arg0)
+{
+    Actor403000Work*        work;
+    Actor403000*            player;
+    Actor403000SeekScratch* scratch;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    SVECTOR*                table;
+    SVECTOR*                v;
+    s16                     angle;
+    s16                     diff;
+    s32                     mag;
+    s16                     r;
+    s8                      base;
+    s8                      dir;
+    s8                      goal;
+
+    work    = arg0->field_1C;
+    player  = Game_GetPtrSlot(3);
+    scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        work->field_FCA = 0;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->objB50.obj.field_1C = 0x3E8;
+        work->field_AC0           = 1;
+        work->field_ACA           = 0x10;
+        work->field_AC2           = 0;
+        work->field_AC6           = 2;
+        work->field_AD6           = 0;
+        work->objD18.obj.flags   |= 0x4000;
+        func_actor_403000_80133AF8(arg0);
+        work->field_6        = 0;
+        work->field_8        = 0;
+        work->field_FC2      = 0;
+        work->recDD0.field_C = 0x320;
+        scratch->facing      = Actor403000_Cell(player->field_2C->field_8);
+        scratch->base        = Actor403000_Cell(arg0->field_2C->field_8);
+        switch ((u8)scratch->facing) {
+            case 0:
+            case 1:
+            case 2:
+                goal = 5;
+                break;
+            case 3:
+            case 4:
+                goal = 9;
+                break;
+            case 5:
+            case 6:
+            case 7:
+                goal = 0;
+                break;
+            case 8:
+            case 9:
+                goal = 4;
+                break;
+            default:
+                goal = -1;
+                break;
+        }
+        work->field_FD4 = goal;
+        if (work->field_FD2 == 0) {
+            diff = scratch->base - scratch->facing;
+            if (diff < -5) {
+                goto neg;
+            }
+            if (diff < 0) {
+                goto pos;
+            }
+            if (diff < 5) {
+            neg:
+                dir = -1;
+            } else {
+            pos:
+                dir = 1;
+            }
+            work->field_FD2 = -dir;
+        }
+    }
+    work->field_6++;
+    func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
+    base          = Actor403000_Cell(arg0->field_2C->field_8);
+    scratch->base = base;
+    if (base == work->field_FD4) {
+        if ((s8)work->field_FD6 == 1) {
+            work->field_0 = 0xF;
+        } else {
+            r = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
+            if ((s8)arg0->field_2C->field_24 == 2) {
+                if (r <= 0) {
+                    work->field_0 = 3;
+                } else if (r < 7) {
+                    work->field_0 = 0xF;
+                } else {
+                    work->field_0 = 0xB;
+                }
+            } else if (r < 7) {
+                work->field_0 = 3;
+            } else if (r < 0xB) {
+                work->field_0 = 0xF;
+            } else {
+                work->field_0 = 0xB;
+            }
+        }
+    }
+    scratch->index = scratch->base + work->field_FD2;
+    if (scratch->index != -1) {
+        if (scratch->index == 10) {
+            scratch->index = 0;
+        }
+    } else {
+        scratch->index = 9;
+    }
+    table            = D_actor_403000_80158CE0;
+    v                = &table[scratch->index];
+    scratch->vec.vx  = v->vx;
+    scratch->vec.vy  = v->vy;
+    scratch->vec.vz  = v->vz;
+    scratch->vec.vx -= arg0->field_2C->field_8->coord.t[0];
+    scratch->vec.vy  = 0;
+    scratch->vec.vz -= arg0->field_2C->field_8->coord.t[2];
+    coord            = arg0->field_2C->field_8;
+    angle            = ratan2(scratch->vec.vx, scratch->vec.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    mag             = angle;
+    scratch->angle  = mag;
+    work->field_AD8 = mag;
+    func_actor_403000_80133AF8(arg0);
+    if (scratch->angle > 0x40) {
+        scratch->angle = 0x40;
+    }
+    if (scratch->angle < -0x40) {
+        scratch->angle = -0x40;
+    }
+    scratch->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+    arg0->field_2C->field_8->flg = 0;
+    Actor00100_MoveForward(arg0->field_2C->field_8, 0x12C);
+    *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Walk the waypoint ring: on the entry frame snap the model onto its cell's
 /// waypoint and face the neighbour in the `field_FD3` direction; every frame

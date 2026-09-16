@@ -145,7 +145,7 @@ typedef struct Actor403000Work {
     /* 0xFD1 */ s8       field_FD1;
     /* 0xFD2 */ s8       field_FD2;
     /* 0xFD3 */ s8       field_FD3;
-    /* 0xFD4 */ byte     pad_FD4[0x1];
+    /* 0xFD4 */ s8       field_FD4;
     /* 0xFD5 */ s8       field_FD5;
     /* 0xFD6 */ u8       field_FD6;
     /* 0xFD7 */ byte     pad_FD7[0x2];

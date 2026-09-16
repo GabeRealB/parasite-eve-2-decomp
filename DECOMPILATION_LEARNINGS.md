@@ -99425,3 +99425,13 @@ and the field re-read becomes the separate copy. `mag` is otherwise unused.
 In the same function, one `G_SCRATCH_HEAD` push/pop in the middle of the body
 needed `static __inline__` push and pop helpers, and the `mtc2`/`lhu` GTE block
 a third inline taking the vector, for the extra `move s3,s0` register.
+
+### `move v1,a0` in a branch delay slot and `move v0,a0` before `bgtz`: the masked roll is an `s16` local
+
+`func_actor_403000_8013A678` rolls `r = ((Gp_LcgState = ...) >> 16) & 0xF` and
+tests it in both arms of an `if`. The ROM keeps `r` in `$a0` and copies it into
+each arm's own register (`move v1,a0` in the `bne` delay slot, `move v0,a0`
+ahead of `bgtz v0`). With `s32 r` cse folds the copies away and both arms test
+`$a0` directly (98.4%). Declaring `s16 r` matched: the SImode->HImode narrowing
+leaves a separate pseudo per use that combine does not merge, and no
+sign-extension appears because the `& 0xF` bounds it.
