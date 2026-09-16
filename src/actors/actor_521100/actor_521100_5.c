@@ -126,7 +126,32 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
 /// `Actor521100_MoveForward`. The pause check the helper makes is why the step
 /// is skipped while the game is frozen - `travel` still ticks down, so a
 /// paused actor finishes its walk.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135F2C);
+void func_actor_521100_80135F2C(Task* task)
+{
+    Actor521100Work* work;
+    s16              animId;
+
+    work = D_actor_521100_8016A3D8;
+    if (work->field_47C == 1) {
+        func_actor_521100_80136820();
+        D_actor_521100_8016A3D8->field_47C = 3;
+        return;
+    }
+    if (work->field_47C == 2) {
+        func_actor_521100_8013677C();
+        D_actor_521100_8016A3D8->field_47C = 3;
+        return;
+    }
+    if (work->field_47C == 3) {
+        animId = work->animId;
+        if (animId == 1 && work->travel != 0) {
+            Actor521100_MoveForward(((TmdObject*)task->extra)->field_8, 0x14);
+            D_actor_521100_8016A3D8->travel = (u16)D_actor_521100_8016A3D8->travel - 1;
+        }
+        func_actor_521100_80136724();
+        return;
+    }
+}
 /// State-2 body, the actor's last: it snapshots the attach coordinate onto a
 /// stack `GsCOORDINATE2` - the copy the shrink's effect is placed off - and
 /// runs the scale-in step `field_484`. Step 0 seeds the shrink (the step-1
