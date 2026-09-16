@@ -30,7 +30,9 @@ extern s8       D_8007106B;
 extern TaskDesc ActorsShared80136280Desc;
 extern TaskDesc D_actor_560800_8016EA28;
 extern TaskDesc D_actor_560800_8017575C;
+extern void     D_actor_560800_8016EA74;
 extern void     D_actor_560800_8016EB30;
+extern void     D_actor_560800_8016EC1C;
 extern void     D_actor_560800_8016ECC4;
 extern void     D_actor_560800_8016F34C;
 
@@ -258,7 +260,95 @@ void func_actor_560800_80132A14(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80132C60);
+void func_actor_560800_80132C60(Task* arg0)
+{
+    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->idMap;
+    SVECTOR              ofs;
+    VECTOR               pos;
+
+    if (arg0->state == 0) {
+        u16 failed;
+        {
+            TmdObject*           tmd   = arg0->extra;
+            GsCOORDINATE2*       coord = tmd->field_8;
+            Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
+            GpAreaPlace*         place;
+            u8                   id;
+
+            arg0->idMap = (TaskIdMap*)block;
+            if (block == NULL) {
+                failed = 1;
+            } else {
+                coord->sub = &Gfx_ViewCoord;
+                Mem_Set(arg0->idMap, 0, 0x4CC);
+                tmd->field_1C  = &block->light;
+                tmd->field_20  = &block->color;
+                arg0->field_24 = &D_actor_560800_8016F34C;
+                place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+                id             = place->field_0;
+                while (id != 0xFF) {
+                    if (id == 0x65) {
+                        break;
+                    }
+                    place++;
+                    id = place->field_0;
+                }
+                Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->field_D, (s8)place->field_E);
+                Task_Reparent(D_actor_560800_8017578C, arg0);
+                failed = 0;
+            }
+        }
+        if (failed) {
+            Task_Kill(arg0);
+            return;
+        }
+        work = (Actor560800AnimWork*)arg0->idMap;
+        {
+            GpAnimObj* obj = arg0->extra;
+            func_800B3F84(&work->anim, &D_actor_560800_8016EA74, obj, work->animAux, work->slots);
+        }
+        work->field_4BA = 0x14;
+        work->field_4B4 = &D_actor_560800_8016EC1C;
+        {
+            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->idMap;
+            u16                  i;
+            s32                  fade = 0x10;
+
+            w->field_4B8 = 0;
+            w->field_4C8 = fade;
+            w->field_4BE = 0;
+            for (i = 1; i < w->field_4BA; i++) {
+                w->slots[i].field_9 = fade;
+                Gp_AnimResetSlot(&w->anim, i, 0);
+            }
+        }
+        arg0->state += 1;
+    }
+    ofs.vx = 0;
+    ofs.vy = 0x380;
+    ofs.vz = 0;
+    Gp_DrawFloorQuad(&((TmdObject*)arg0->extra)->field_8[1], 0x300, &ofs);
+    if (work->field_4CA == 0) {
+        func_actor_560800_80132498(arg0);
+    }
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->field_8[4].coord, work->field_4C0, 0);
+    Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->field_8[4].coord, work->field_4C6, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->field_8[2].coord, work->field_4C4, 0);
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    if (work->field_4CA != 0) {
+        work->field_4C0 = 0;
+        work->field_4C6 = 0;
+        work->field_4C4 = 0;
+    }
+    if (work->field_4BC != 0) {
+        TmdObject* obj = arg0->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+}
 
 void func_actor_560800_80132F64(Task* arg0)
 {

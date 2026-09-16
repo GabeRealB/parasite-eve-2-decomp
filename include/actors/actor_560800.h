@@ -92,7 +92,8 @@ typedef struct Actor560800AnimWork {
     /* 0x4BE */ s16        field_4BE;
     /* 0x4C0 */ s16        field_4C0;
     /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ byte       pad_4C4[0x4];
+    /* 0x4C4 */ s16        field_4C4;
+    /* 0x4C6 */ s16        field_4C6;
     /* 0x4C8 */ s16        field_4C8;
     /* 0x4CA */ s16        field_4CA;
 } Actor560800AnimWork;
