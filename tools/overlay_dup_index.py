@@ -455,7 +455,7 @@ def cmd_solved(data: dict, min_words: int) -> int:
     library instead of matching it again.
     """
     cl = classes(data, "text")
-    out = []
+    out: set[int] = set()
     for v in cl.values():
         if v[0]["words"] < min_words:
             continue  # a stub is cheaper to match than to plumb into lib/
@@ -472,10 +472,27 @@ def cmd_solved(data: dict, min_words: int) -> int:
                 and o["overlay"].split("/")[1] == family
                 for o in v
             ):
-                out.append(f["name"])
-    for name in sorted(out):
+                out.add(id(f))
+    for name in names_wholly_in(data, out):
         print(name)
     return 0
+
+
+def names_wholly_in(data: dict, chosen: set[int]) -> list[str]:
+    """Names every one of whose unmatched functions is in `chosen` (by id()).
+
+    `solved` and `ceded` feed a pick that excludes by *name*, and names repeat
+    across overlays - alias symbols such as ActorsShared80131f9cSub1 name four
+    different bodies. Emitting a name because one of its functions qualifies
+    would skip the others with it. A matched function is never picked, so it
+    does not hold a name back.
+    """
+    wholly: dict[str, bool] = {}
+    for f in data["functions"]:
+        if f.get("state") == "matched":
+            continue
+        wholly[f["name"]] = wholly.get(f["name"], True) and id(f) in chosen
+    return sorted(n for n, ok in wholly.items() if ok)
 
 
 def owner_rank(order: list[str]):
@@ -534,13 +551,7 @@ def cmd_ceded(data: dict, min_words: int, order: list[str]) -> int:
                 continue
             owner = min(copies, key=key)["overlay"]
             ceded.update(id(f) for f in copies if f["overlay"] != owner)
-    # The pick excludes by name, and names repeat across overlays - alias
-    # symbols such as ActorsShared80131f9cSub1 name four different bodies - so a
-    # name is ceded only when every function carrying it is a ceded copy.
-    names: dict[str, bool] = {}
-    for f in data["functions"]:
-        names[f["name"]] = names.get(f["name"], True) and id(f) in ceded
-    for name in sorted(n for n, all_ceded in names.items() if all_ceded):
+    for name in names_wholly_in(data, ceded):
         print(name)
     return 0
 
