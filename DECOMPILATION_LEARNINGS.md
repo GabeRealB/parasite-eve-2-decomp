@@ -104690,3 +104690,37 @@ Inputs: `base_4.i` SHA256
 `e5880a492847c50f2aff74a5b6052a1205ba7248d8b2b341aa32cacc1ea90cad`; target SHA256
 `cbad33dbd533ce6c57fe1fdc3c7eab85c920518f6fbd9ad4aef5a993fabeefda`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A 0.95 twin with different constants still lends its helper boundary — port the shape first, the values second (func_actor_401000_8013A5F0, 2026-09-16)
+
+The next function along from the entry above, `func_actor_401000_8013A5F0`, is
+the same turn-toward-the-player body as `func_actor_401000_80134F98` (0.95
+shape / 0.97 fields / 0.95 calls). The m2c seed scored 80.62 with `regs=41
+insert=17 delete=17 branch=6`, and `.diagnosis.json` showed the candidate at 17
+blocks against the ROM's 16 — the flattened-helper symptom again. Writing the
+body out of the twin's four `static __inline__` helpers unchanged
+(`Actor401000_PositionYaw`, `_ConfigPositionDelta`, `_NormalizeYaw`,
+`_RescaleYaw`) scored **100.000 with every penalty zero on the first
+restructured build**.
+
+What made it one build is that none of the twin's *values* had to be this
+function's — only its helper boundary did. The four statements that differ were
+re-derived from the target `.s` after the shape was in place:
+
+| | 80134F98 (twin) | 8013A5F0 (target) |
+|---|---|---|
+| turn clamp | `> 0x10` / `< -0x10` | `> 0` / `< 0`, i.e. zero-or-negative |
+| `field_89E` | 9 | 0x13 |
+| `field_8D0.field_1C = 0x1AE` | after `func_actor_401000_80132EF0` | before the 0x898/0x8A2/0x89E writes |
+| spawn-arm tail | `Gp_ArmStateF0(1)` | `work->field_6 = 0` |
+
+The clamp is the one to read carefully off the asm rather than off the twin's
+source: `if (x > 0) x = 0; if (x < 0) x = 0;` is two independent tests, not an
+`if`/`else` — there is no jump after the first store, and `x` is re-read from
+the scratch block between them. m2c renders exactly this pair, so on a
+structure-only mismatch its clamp does not need rewriting, only retyping.
+
+Inputs: `base_1.i` SHA256
+`7125985481dbd855d5f519e376526fa565372e0c60b1bdcb4d440ce907bcf34c`; target SHA256
+`c3ac8de0fe019c6509d0ed9ed5338bf0467036e6f8afddb8d1da7ec58c53f5b8`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

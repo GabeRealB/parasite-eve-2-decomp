@@ -609,7 +609,58 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A0C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A5F0);
+/// Aim step toward the player: the same body as `func_actor_401000_80134F98`
+/// with three differences. The wrapped turn is clamped to zero-or-negative
+/// rather than +-0x10, so the actor only ever rotates one way; the animation
+/// slot is 0x13 instead of 9 and `field_8D0.field_1C` is written before the
+/// other state words; and the spawn arm clears the `field_6` latch on its way
+/// out instead of arming state F0.
+void func_actor_401000_8013A5F0(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    Actor401000AimScratch* aim;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 0x13;
+        work->field_89A          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        work->field_6 = 0;
+        return;
+    }
+    work->field_6                            += 1;
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
+    arg0->field_2C->field_8->flg              = 0;
+    if (work->field_68 & 1) {
+        work->field_0 = 7;
+    }
+    aim->angle      = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_8AE = aim->angle;
+    if (aim->angle > 0) {
+        aim->angle = 0;
+    }
+    if (aim->angle < 0) {
+        aim->angle = 0;
+    }
+    coord       = arg0->field_2C->field_8;
+    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    func_actor_401000_80132EF0(arg0);
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A930);
 
