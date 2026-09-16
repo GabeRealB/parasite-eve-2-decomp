@@ -64,10 +64,18 @@ typedef struct ActorsShared80138efcWork {
     /// Countdown a state arms and decrements per frame: `func_actor_104900_80138D58`
     /// posts 0x64 into it and acts when it reaches zero, and this unit's
     /// 0x80138E34 arms 0xA.
-    /* 0xB8C */ s16  field_B8C;
-    /* 0xB8E */ byte pad_B8E[0x4];
+    /* 0xB8C */ s16 field_B8C;
+    /// Walking offset `func_actor_104900_80138B5C` steps 0x30 back toward zero
+    /// from either end of the +-0x30 band, one frame at a time.
+    /* 0xB8E */ s16  field_B8E;
+    /* 0xB90 */ byte pad_B90[0x2];
     /* 0xB92 */ s16  field_B92;
-    /* 0xB94 */ byte pad_B94[0x8];
+    /// Decay counters the 0x80138B5C body subtracts from - 0x400 for the axis
+    /// pair and 0x100 for the next two - clamping each at zero.
+    /* 0xB94 */ s16  field_B94;
+    /* 0xB96 */ s16  field_B96;
+    /* 0xB98 */ s16  field_B98;
+    /* 0xB9A */ s16  field_B9A;
     /* 0xB9C */ s16  field_B9C;
     /* 0xB9E */ byte pad_B9E[0x6];
     /// Motion id armed for the frame; every sibling writes a different pair
@@ -88,12 +96,15 @@ typedef struct ActorsShared80138efcWork {
     /// countdown at `field_B9C` and selects state 0xF.
     /* 0xBA9 */ s8   field_BA9;
     /* 0xBAA */ byte pad_BAA[0x1];
-    /* 0xBAB */ s8   field_BAB;
+    /// Compared against 1 (`lbu`) by the 0x80138B5C body, which skips its whole
+    /// decay block while it is set.
+    /* 0xBAB */ u8   field_BAB;
     /* 0xBAC */ byte pad_BAC[0x2];
     /* 0xBAE */ u8   field_BAE;
     /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
-    /// trigger then compares against.
-    /* 0xBAF */ s8   field_BAF;
+    /// trigger then compares against. The 0x80138B5C body gates the `field_B8E`
+    /// step on it (`lbu`).
+    /* 0xBAF */ u8   field_BAF;
     /* 0xBB0 */ byte pad_BB0[0x8];
     /// Sound variant bit the slot's setup body at 0x8013279C picks from the
     /// spawn record, 0 or 1. `func_actor_104900_80138D58` and the bodies at

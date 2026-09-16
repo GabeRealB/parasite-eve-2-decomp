@@ -100152,3 +100152,62 @@ data needs the rodata cut the manifest's `rodata` key exists for, decided
 splat writes the `INCLUDE_RODATA` lines itself, and only then cut the shared
 span. The match itself does not depend on it - the four other carriers keep
 their `INCLUDE_ASM` stubs and still checksum.
+
+## A parameter displaced into `$t0` with copy-in/copy-out is the natural source, not a defect (func_actor_104900_80138B5C, 2026-09-16)
+
+**Problem.** The handler's tail re-arms the enemy's link transform and then calls
+the state machine, and the target keeps `enemy` out of `$a0` for the whole
+function:
+
+```
+beq    v1,v0,.Lactor_104900_80138C2C
+move   t0,a0            # entry: enemy copied out of its arrival register
+...
+addiu  v1,t0,0x10       # &enemy->node, built from the copy
+...
+jal    func_actor_104900_80132D78
+move   a0,t0            # and copied back for the call
+```
+
+m2c's version of the same tail scored 78.67% (`regs=10 insert=7 delete=6`) and
+kept `enemy` in `$a0`, because it wrote the transform pointer as
+`temp_v1_2 = arg0 + 0x10` - pointer arithmetic on a `GpEnemy*`, so C scaled the
+0x10 by `sizeof(GpEnemy)` (0x60) and the object carried `addiu v1,a0,0x600`.
+
+**Fix.** Write the block the way the sibling `func_actor_104900_80138A2C` in the
+same unit writes it - `xform = (GpLinkXform*)&enemy->node;` then
+`xform->coord = &((TmdObject*)task->extra)->field_8[3];` and the three `src`
+halfwords. One edit, no pin, 100.000% with every penalty zero: the byte offset
+and the allocation come out together.
+
+**The scaled immediate is the second instance of an existing class**, the one at
+"A `regs=1` penalty can be a scaled-pointer constant": an immediate that is an
+exact multiple of the right one (0x600 = 0x10 * 0x60) is a mistyped pointer's
+element size. Here the right reading is a known struct member rather than a
+retyped pointer, and the tell is the same - the target's own `addiu v1,t0,0x10`
+names the byte offset.
+
+**Why the copy pair appears.** `.greg` says it is the allocator moving a
+parameter out of the way of a local, not a copy the source asked for:
+
+```
+;; 80 conflicts: 80 81 82 83 85 89 95 101 107 115 2 3 4 5 6 7 29
+;; Register dispositions:
+80 in 8  81 in 5  82 in 6  83 in 7  85 in 3 ... 115 in 4
+```
+
+80 is the `enemy` parameter, 4 is `$a0`, and 115 - the sign-extended halfword
+load at `work+0xB8E` whose value feeds both `slti` tests of the walk band - is
+sitting in `$a0` and is in 80's conflict list. `global.c` walks 2..15, so it
+skips 4 and stops at 8 (`$t0`), which is exactly the `move t0,a0` /
+`move a0,t0` pair the target has. So that pair is a symptom to *reproduce*, not
+to remove: nothing should be pinned or restructured to put `enemy` back in
+`$a0`. It is the same allocator-pool effect as the section on the argument
+registers deciding a temp's home, read from the parameter's side - there a local
+walked *up* to `$t0` once the callee's arity freed it, here the parameter walks
+*past* `$a0` because a local got there first.
+
+**Promotion.** `promote` refuses the body: all five carriers (101100, 104900,
+201100, 204900, 301100) reach it through their own slot's callee at that
+address, and that callee is itself an unpromoted duplicate. Same shape as
+`func_actor_104900_80138E34` above - callee first, or nothing.

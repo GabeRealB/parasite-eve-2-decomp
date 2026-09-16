@@ -59,6 +59,57 @@ void func_actor_104900_80138A2C(GpEnemy* enemy, Task* task, ActorsShared80138efc
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80138B5C);
+/// Decays the four counters at 0xB94..0xB9A - the axis pair by 0x400, the two
+/// after them by 0x100, each clamped at zero once it falls below its step - and
+/// walks `field_B8E` 0x30 back toward zero from either end of the +-0x30 band.
+/// `field_BAF` gates the walk, `field_BAB` the whole block, which is why the
+/// locals read signed for the test and unsigned for the step.
+///
+/// Either way the link transform is re-armed exactly as `func_actor_104900_80138A2C`
+/// arms it - model part 3 through `TmdObject::field_8[3]` as `coord`, the
+/// 0xC8-box local offset through `src` - and the state machine at 0x80132D78
+/// runs last.
+void func_actor_104900_80138B5C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, void* scratch)
+{
+    GpLinkXform* xform;
+    s16          walk;
+
+    if (work->field_BAB != 1) {
+        if (work->field_B96 >= 0x400) {
+            work->field_B96 = (s16)((u16)work->field_B96 - 0x400);
+        } else {
+            work->field_B96 = 0;
+        }
+        if (work->field_B94 >= 0x400) {
+            work->field_B94 = (s16)((u16)work->field_B94 - 0x400);
+        } else {
+            work->field_B94 = 0;
+        }
+        if (work->field_B98 >= 0x100) {
+            work->field_B98 = (s16)((u16)work->field_B98 - 0x100);
+        } else {
+            work->field_B98 = 0;
+        }
+        if (work->field_B9A >= 0x100) {
+            work->field_B9A = (s16)((u16)work->field_B9A - 0x100);
+        } else {
+            work->field_B9A = 0;
+        }
+        if (work->field_BAF != 0) {
+            walk = work->field_B8E;
+            if (walk >= 0x31) {
+                work->field_B8E = (s16)((u16)work->field_B8E - 0x30);
+            } else if (walk < -0x30) {
+                work->field_B8E = (s16)((u16)work->field_B8E + 0x30);
+            }
+        }
+    }
+    xform         = (GpLinkXform*)&enemy->node;
+    xform->coord  = &((TmdObject*)task->extra)->field_8[3];
+    xform->src.vx = 0;
+    xform->src.vy = -0xC8;
+    xform->src.vz = 0xC8;
+    func_actor_104900_80132D78(enemy, task, work, scratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80138C6C);
