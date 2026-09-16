@@ -86308,3 +86308,39 @@ Inputs: `base.i` (m2c `M2C_FIELD`, 98.150%)
 `99d91b4e338522d4ec70ce2d8b83357275fd4a5d710408ca6aa2941bef565dc3`, `base_2.i`
 (Task-typed host spelling, 100.000%, same object)
 `c32a2b4118c521c4909348491cbddec9f203966b0e6650f53baf88b14edd48e5`.
+
+## A room's shared draw tail is duplicated calls, not a `goto` (func_dryfield_night_cellar_8017DA28, 2026-09-16)
+
+Retail draws the two anchors of the current visit through a tail both branches
+reach with a `j`, with the `%hi` scratch in the destination's own register:
+
+```asm
+lui   $s0,%hi(D_dryfield_night_cellar_8017DAD0)
+j     .Ldraw
+addiu $s0,$s0,%lo(D_dryfield_night_cellar_8017DAD0)
+...
+.Ldraw:  addu $a0,$s0,$zero ; jal Room_Draw17 ; ... addiu $a0,$s0,0x8 ; jal Room_Draw17
+```
+
+m2c renders that as one variable assigned in each branch plus a `goto` join. That
+variable is then live across a basic block, so `reg_qty` is -1 and `combine_regs`
+cannot tie the `%hi` scratch into it — the only difference from the target is
+`lui $v0` + `addiu $s0,$v0` (99.375%, `branch=insert=delete=reorder=0`, `regs`).
+
+Write the other form instead: **both `Room_Draw17` calls in each branch**
+(`&D_x[0]` and `&D_x[1]`, which is also what produces the `addiu
+$a0,$s0,0x8`). Each branch's address is then block-local and dies once, the tie
+happens, both copies allocate to `$s0`, and the cross-jumper — which runs *after*
+allocation (`toplev.c` `jump_optimize (insns, 1, 1, 0)`, below `local_alloc`) —
+merges the identical tails into the single `j` the target shows. Same mechanism
+as section 17; the room idiom ("one anchor pair per visit byte") is where it
+recurs.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `6e5cd80b36053099555731329b5f93674ae181a2890f0e2a9292b39b1ee4cecc`,
+base_1.i `afe66c482d452c5b1569d5369c6a37ea6da4cc3c8ef1f8f6aca1f7f1067e0028`,
+base_2.i `5147c72e3798291ec0e94a8331fddff075172a3b7f72b28be848ed9bceedaf3c`.
+Evidence: scratch `nonmatchings/func_dryfield_night_cellar_8017DA28-vacuum/`,
+`base_2_diff`; probe compile of the local/global pair under `dump.sh`; no pins,
+no permuter, no tracer. `overlay_dup_index.py find` reports this body as its own
+only copy.
