@@ -315,7 +315,41 @@ void func_actor_521100_80134D88(Actor521100* arg0)
 /// is what puts the `coord += 0x140` in the clamp's branch delay slot. The
 /// `+ 0x600` likewise needs the temporary, or it is sunk into the subtrahend as
 /// `- 0x600` on the player coordinate.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80134EDC);
+void func_actor_521100_80134EDC(Actor521100* arg0)
+{
+    Actor521100AimScratch* scratch;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         head;
+    s32                    offsetY;
+
+    coord                   = arg0->field_2C->field_8;
+    head                    = &coord[4];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor521100AimScratch);
+    scratch                 = (Actor521100AimScratch*)*(void**)G_SCRATCH_HEAD;
+
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
+    scratch->delta.vx = Wip_SysConfig.field_4->t[0] - scratch->view.t[0];
+    offsetY           = scratch->view.t[1] + 0x600;
+    scratch->delta.vy = Wip_SysConfig.field_4->t[1] - offsetY;
+    scratch->delta.vz = Wip_SysConfig.field_4->t[2] - scratch->view.t[2];
+    ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
+
+    if (scratch->local.vx < -0x400) {
+        scratch->local.vx = -0x400;
+    } else if (scratch->local.vx > 0x400) {
+        scratch->local.vx = 0x400;
+    }
+    if (scratch->local.vy < -0x300) {
+        scratch->local.vy = -0x300;
+    } else if (scratch->local.vy > 0x300) {
+        scratch->local.vy = 0x300;
+    }
+    if (scratch->local.vz < 0x200) {
+        scratch->local.vz = 0x200;
+    }
+    Gp_OrientAlong(&scratch->local, &head->coord, 0);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor521100AimScratch);
+}
 /// Untwists the coordinate at `field_8[3]`, which `func_actor_521100_801322F8`
 /// left rotated by the random residual in `Actor521100Work::field_678` on the
 /// frame the actor took a hit. The residual is turned into a matrix and
