@@ -94435,3 +94435,44 @@ vanish from the object (the `delete=14`). One `RECT rect;` with
 `func_actor_560800_80136548` in the same TU writes it, restores all four. The
 four separate locals never had a chance: only the aggregate makes the other
 three stores observable.
+
+### A loop init that belongs in the guard's delay slot needs an empty asm before it (func_actor_560800_801364A0, 2026-09-16)
+
+The target reseeds animation slots in a rotated loop whose entry test is a copy
+of the loop's own test:
+
+```
+lhu   v1, 0x4BA(s1)
+li    v0, 1
+sltu  v0, v0, v1
+beqz  v0, .Lend
+li    s0, 1          # the loop's `i = 1`, stolen into the delay slot
+li    s3, 0xA
+move  a0, s1
+```
+
+The natural source - three stores into the work block, then `i = 1;` and the
+`if (i < count) { do { ... } while (...) }` shape the matched
+`func_actor_560800_80134B14` uses one unit over - scores 87.7%: identical
+instruction set, but `li s0,1` is scheduled at the head of the block and the
+`beqz` delay slot takes the `field_4BE` store instead. sched1 is the pass that
+moves it - its output has `i = 1` above the three stores, because a bare
+`li reg,const` has nothing to wait for and its luid is a tie-break winner - and
+reorg's delay-slot scan then finds the store nearest the branch.
+
+An empty asm between the stores and the init keeps the constant after them, and
+the same source is 100.000% with every penalty zero:
+
+```c
+    anim->field_4BE = 0;
+    SOFT_BARRIER();
+    i = 1;
+```
+
+`SOFT_BARRIER()` is `__asm__("")` from `include/decomp/common.h`; it emits
+nothing, it only stops sched1 from moving the init up. Reach for it when a
+one-instruction constant initializer has to stay *late* in its block:
+`TOUCH_REG` / `SOFT_USE_REG` pin a value's register, not its position, and
+moving the statement around the source changes nothing here (`i = 1;` as a
+declaration initializer, as a statement before or after the stores, and a `u16`
+local copied from the argument all compile to the same object).

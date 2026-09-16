@@ -13,6 +13,10 @@ extern TaskDesc ActorsShared80136280Desc;
 extern s32      D_actor_560800_8016F57C[];
 extern s8       D_8007106B;
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 void func_actor_560800_801362B0(s32 arg0)
 {
     Task_SpawnFromTable(&ActorsShared80136280Desc, 3, arg0, 0);
@@ -70,7 +74,37 @@ void func_actor_560800_80136378(s16 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801363F8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801364A0);
+/// Reseeds the animation slots of the sub-task at `field_C` from `arg0`: the
+/// id goes to `field_4B8` with 0x10 as the restart rate in `field_4C8`,
+/// `field_4BE` is cleared, and slots 1..`field_4BA` are blended through
+/// `func_800B4114`. `func_actor_560800_801363F8` is the same body reached
+/// through `field_4`.
+///
+/// The `SOFT_BARRIER()` is a codegen pin, not a semantic one: without it sched1
+/// hoists `i = 1` above the three slot stores, so the count test runs before
+/// the assignment and the guard's `beqz` delay slot gets the `field_4BE` store
+/// instead of the loop's `i = 1`.
+void func_actor_560800_801364A0(u16 arg0)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* anim;
+    u16                  i;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    anim = (Actor560800AnimWork*)work->field_C->idMap;
+
+    anim->field_4B8 = arg0;
+    anim->field_4C8 = 0x10;
+    anim->field_4BE = 0;
+    SOFT_BARRIER();
+    i = 1;
+    if (i < anim->field_4BA) {
+        do {
+            func_800B4114(&anim->anim, i, arg0, 0, 10);
+            i++;
+        } while (i < anim->field_4BA);
+    }
+}
 
 /// Copies a 64x256 strip of VRAM to (0x280, 0x100), then re-loads the chunk at
 /// `D_8006C454` with `D5B498_8006C234` set to 5 for the duration (that byte is
