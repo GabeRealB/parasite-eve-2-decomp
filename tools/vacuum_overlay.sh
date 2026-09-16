@@ -547,9 +547,28 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
             log "LANDING FAILED: $OVERLAY - landing agent failed; ${#MATCHED[@]} match(es) kept on $BRANCH_NAME (worktree $WT)"
             exit 3
         fi
-        if git -C "$WT" log --oneline "$BASE..HEAD" --format=%s \
-             | grep -qvxFf <(git -C "$ROOT" log --oneline "$BASE..HEAD" --format=%s); then
-            log "LANDING FAILED: $OVERLAY - agent reported success but commits are missing on trunk; worktree $WT"
+        # A `matched` commit with no counterpart on trunk is still landed when
+        # trunk no longer has the function as unmatched assembly. That happens
+        # when trunk promoted the body into src/<family>/lib after this worktree
+        # was cut: the agent correctly drops the now-redundant copy, and there is
+        # no commit to replay. actor_113100 was reported stranded that way, with
+        # func_actor_113100_80132E00 already served by actors_shared_80132390.
+        # The agent's unscoped build has just re-split trunk, so asm/ is current.
+        missing=$(git -C "$WT" log --format=%s "$BASE..HEAD" \
+                  | grep -vxFf <(git -C "$ROOT" log --format=%s "$BASE..HEAD") || true)
+        stranded=""
+        while read -r subject; do
+            [[ -n "$subject" ]] || continue
+            fn=$(awk '$1 == "matched" {print $2}' <<<"$subject")
+            if [[ -n "$fn" && -d "$ROOT/asm" ]] \
+               && [[ -z "$(find "$ROOT/asm" -path '*/nonmatchings/*' -name "$fn.s" -print -quit)" ]]; then
+                log "  $fn has no commit on trunk but is no longer unmatched there (promoted)"
+                continue
+            fi
+            stranded="$stranded; $subject"
+        done <<<"$missing"
+        if [[ -n "$stranded" ]]; then
+            log "LANDING FAILED: $OVERLAY - agent reported success but commits are missing on trunk:${stranded#;}; worktree $WT"
             exit 3
         fi
         log "agent landing complete; every branch commit is on trunk"
