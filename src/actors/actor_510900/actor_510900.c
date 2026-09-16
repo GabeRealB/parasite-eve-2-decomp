@@ -49,6 +49,11 @@ extern u32 D_actor_510900_80167A6C;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_510900_80167AA4[];
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_80180A64(GsCOORDINATE2* arg0);
+
 void func_actor_510900_8013B424(s32 arg0);
 void func_actor_510900_8013B524(Actor510900* arg0);
 
@@ -1504,7 +1509,155 @@ case1:
     func_actor_510900_8013C338((Actor510900*)arg1, coord);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A9BC);
+/// Grab state machine of the child task, run from the frame handler above.
+/// State 0 waits for the grab: the player has to be inside the `rec2DC` node
+/// (and survive `Gp_ComputeDamage`) or the parent has to request this child by
+/// number through `field_5BE`; on a hit it resets the animation slots, spawns
+/// the grab effect and its sound and starts the `field_332` countdown. State 1
+/// runs that countdown, keeping the four trailing part coordinates updated, and
+/// hands the held effect task its exit state once the timer runs out or the
+/// camera cuts away. State 2 only releases the held task. `field_334` 2 mirrors
+/// the state back to the parent's `field_5C4`.
+void func_actor_510900_8013A9BC(Task* task)
+{
+    Actor510900ChildAnim*   work;
+    Actor510900Work*        parent;
+    Actor510900Ctx*         ctx;
+    Actor510900GrabScratch* scratch;
+    void*                   head;
+    GsCOORDINATE2*          coord;
+    GpEffWork*              eff;
+    Task*                   spawned;
+    s16                     next;
+    s32                     grabbed;
+    s32                     i;
+    s32                     one;
+    s32                     snd;
+    s32                     pan;
+    s32                     dmg;
+    s16                     state;
+
+    grabbed             = 0;
+    head                = *(void**)0x1F8003FC;
+    coord               = &((TmdObject*)task->extra)->field_8[10];
+    *(void**)0x1F8003FC = (u8*)head - 0x18;
+    scratch             = (Actor510900GrabScratch*)((u8*)head - 0x18);
+    work                = (Actor510900ChildAnim*)task->idMap;
+    ctx                 = (Actor510900Ctx*)task->spawnArg2;
+    state               = work->field_330;
+    parent              = (Actor510900Work*)task->parent->idMap;
+    one                 = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto end;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto end;
+case0:
+    if (parent->field_592 == 0) {
+        work->field_336 = 3;
+        work->field_330 = 2;
+        goto end;
+    }
+    ctx->node.field_4   = Gp_StateF0.field_0 != 1;
+    dmg                 = work->rec2DC.field_4;
+    work->obj2BC.flags |= 0x8000;
+    if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.field_5 == one &&
+        Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
+        grabbed = 1;
+    }
+    if (parent->field_5BE == work->field_334 + 1 && parent->field_5C0 == 1) {
+        grabbed           = 1;
+        parent->field_5BE = -1;
+    }
+    if (grabbed == 1) {
+        work->field_336 = grabbed;
+        work->field_330 = grabbed;
+        i               = 1;
+        do {
+            func_800B4114(&work->anim, i, 2, 0, 0);
+            i++;
+        } while (i < 0xB);
+        scratch->rot.vx = 0;
+        scratch->rot.vy = 0x80;
+        scratch->rot.vz = 0;
+        eff             = Gp_SpawnEff(0x8006005B, coord, 0, &scratch->rot);
+        if (eff != NULL) {
+            spawned         = eff->field_0;
+            work->field_32C = spawned;
+            Task_Reparent(task, spawned);
+        }
+        Gp_SpawnEff(0x6005C, coord, 0x200, &scratch->rot);
+        work->field_332     = 0x78;
+        work->obj2BC.flags &= 0x7FFF;
+        work->obj2F4.flags |= 0x8000;
+        snd                 = (((u16)ctx->field_8 >> 0xC) << 8) | 0x51100004;
+        pan                 = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+    Gp_ClearRec18Occupied(&work->rec2DC);
+    goto end;
+case1:
+    if (Gp_FindRec18(&work->rec314, 0) != 0) {
+        work->obj2F4.flags &= 0x7FFF;
+    }
+    Gp_ClearRec18Occupied(&work->rec314);
+    func_80180A64(&((TmdObject*)task->extra)->field_8[9]);
+    func_80180A64(&((TmdObject*)task->extra)->field_8[8]);
+    func_80180A64(&((TmdObject*)task->extra)->field_8[7]);
+    func_80180A64(&((TmdObject*)task->extra)->field_8[6]);
+    work->field_332--;
+    next = 2;
+    if (work->field_332 <= 0) {
+        Task* held;
+
+        work->field_336     = next;
+        work->obj2F4.flags &= 0x7FFF;
+        held                = work->field_32C;
+        if (held != NULL) {
+            held->state = state;
+        }
+    } else {
+        Task* held;
+
+        if (parent->field_592 != 0) {
+            goto end;
+        }
+        work->field_336     = next;
+        work->obj2F4.flags &= 0x7FFF;
+        held                = work->field_32C;
+        if (held != NULL) {
+            held->state     = 2;
+            work->field_32C = NULL;
+        }
+    }
+    work->field_330 = next;
+    goto end;
+case2:
+    if (parent->field_592 == 0) {
+        Task* held;
+
+        held = work->field_32C;
+        if (held != NULL) {
+            held->state     = state;
+            work->field_32C = NULL;
+        }
+    }
+end:
+    if (work->field_334 == 2) {
+        parent->field_5C4 = work->field_330;
+    }
+    *(u32*)0x1F8003FC += 0x18;
+}
 
 void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
 {

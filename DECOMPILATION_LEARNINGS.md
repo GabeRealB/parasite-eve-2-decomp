@@ -89866,3 +89866,67 @@ entry above: there the default-first form put the `li` *before* the branch
 because the compare value was still live in the same local; here the compare
 value is a different local, so the same source shape gives the delay slot
 instead.
+
+## A local shared with a call argument drags that argument register into every other branch
+
+`func_actor_510900_8013A9BC` reads `work->field_32C` (a `Task*`) in four
+different places: once to store the task `Gp_SpawnEff` just created and hand it
+to `Task_Reparent`, and once in each arm of the later state machine, where it is
+only tested and written through. Using one `Task* child` local for all of them
+put the pointer in `$a1` in arms that contain no call at all, for `regs=10`.
+
+The reason is in the `.greg` dump, not the object dump:
+
+    ;; 88 conflicts: 80 81 82 83 86 88 91 105 149 2 4 29
+    ;; 88 preferences: 5
+
+`$v1` (3) is not in the conflict set, so plain candidate order would have taken
+it; the copy preference for `$5` — earned by the *other* use, where the local is
+copied into `$a1` as `Task_Reparent`'s second argument — overrides it
+(`CODEGEN_MODEL.md` §10.4 step 3). A preference is a property of the allocno,
+so it applies to every reference of the shared local, including branches that
+never see the call. Giving the argument its own local (`spawned`) dropped the
+preference and the remaining arms took `$v1`, as the target has them: 99.06% →
+99.76% with `regs=0`.
+
+The diagnostic is worth generalising: when a value sits in `$aN`/`$v0` in a
+block with no call or return, read `;; R preferences:` before touching
+conflicts or lifetimes, and look for the *other* end of the local.
+
+## Cross-jump merges an arm's tail into a sibling's; a constant in a local keeps them apart
+
+The same function ends three blocks with `field_330 = 2; goto end`. Writing the
+`2` as a literal everywhere produced one instruction too few: the early-exit
+arm's `li $v0,2; j end; sh $v0,0x330($s2)` was identical, register for register,
+to the tail the two state-1 arms converge on, so the post-reload
+`jump_optimize (insns, 1, 1, 0)` merged them and the early arm just branched
+into the other block.
+
+The target keeps both copies because its shared tail is `j end; sh $a0,0x330` —
+the `2` is already in `$a0` there, materialised before the branch that picks the
+arm and live through both arms and the join. That is what a *local* assigned
+before the `if` compiles to:
+
+    next = 2;
+    if (work->field_332 <= 0) {
+        work->field_336 = next;   /* sh $a0 */
+        ...
+    } else {
+        ...
+        work->field_336 = next;   /* sh $a0 */
+        held->state     = 2;      /* separate li $v0,2 — see below */
+    }
+    work->field_330 = next;       /* sh $a0, and no li in this block */
+
+Two details make this reproducible. The `li $a0,2` lands in the delay slot of
+the arm-selecting branch, which is where a value computed before a branch goes.
+And the literal `2` stored inside the second arm still gets its own `li $v0,2`
+rather than reusing `$a0`: CSE clears its table at the start of a basic block
+reached by a conditional branch, so `next`'s constant value is not known there —
+only its register is.
+
+So the earlier entry's "cross-jumping runs after register allocation and cannot
+be steered from the C by shaping pseudos" holds for *whether* two tails are
+compared, but the comparison is on hard registers, and which register a constant
+lives in is shaped from the C. A tail you need kept distinct can be kept
+distinct by giving its constant a home.

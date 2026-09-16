@@ -121,7 +121,11 @@ typedef struct Actor510900Work {
     /* 0x5B8 */ s16  field_5B8;
     /* 0x5BA */ s16  field_5BA;
     /* 0x5BC */ s16  field_5BC;
-    /* 0x5BE */ byte pad_5BE[4];
+    /// Grab request the child task's state 0 watches: when it equals the
+    /// child's `field_334 + 1` and `field_5C0` is 1 the grab lands, and the
+    /// handler takes the request back by writing -1.
+    /* 0x5BE */ s16 field_5BE;
+    /* 0x5C0 */ s16 field_5C0;
     /// Written by the child task's frame handler from its `field_336` when
     /// that task's `field_334` is 2 or more.
     /* 0x5C2 */ s16 field_5C2;
@@ -162,12 +166,23 @@ typedef struct Actor510900ChildAnim {
     /// Task the frame handler releases (state 2) once the camera has cut
     /// away from every view this actor is visible in.
     /* 0x32C */ struct _Task* field_32C;
-    /* 0x330 */ byte          pad_330[2];
-    /* 0x332 */ s16           field_332;
-    /* 0x334 */ s16           field_334;
-    /* 0x336 */ s16           field_336;
+    /// State the frame handler below dispatches on: 0 waits for the grab, 1
+    /// runs the `field_332` countdown, 2 is done.
+    /* 0x330 */ s16 field_330;
+    /* 0x332 */ s16 field_332;
+    /* 0x334 */ s16 field_334;
+    /* 0x336 */ s16 field_336;
 } Actor510900ChildAnim;
 STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
+
+/// 0x18 scratch block `func_actor_510900_8013A9BC` takes from `G_SCRATCH_HEAD`
+/// for the frame it starts the grab on; only the trailing `SVECTOR` is used,
+/// as the spawn argument of both effects.
+typedef struct Actor510900GrabScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR rot;
+} Actor510900GrabScratch;
+STATIC_ASSERT_SIZEOF(Actor510900GrabScratch, 0x18);
 
 /// 0xD0-byte `Task::idMap` block `func_actor_510900_801397F0` allocates for its
 /// child task: the child's colour and light matrices (handed to
