@@ -7270,6 +7270,64 @@ sibling functions part of the host-file edit instead. This is the same
 entry above, reached from the other side: there the target was too small, here
 the candidate is too big.
 
+**A missing `<psyq/inline_c.h>` turns every `gte_*` load/store into a call.**
+`m2c` seeds never include it, and `gte_lddp` / `gte_ldsv` / `gte_stsv` are
+*only* macros there — with no declaration in scope GCC 2.8.1 falls back to an
+implicit `int gte_lddp()` and emits `jal gte_lddp; li a0,0x100`, silently, under
+`-w`. Nothing in the diagnostics says "undefined macro"; the score just stalls
+around 90% with `delete`/`insert` penalties and the object diff is the only
+place that names it:
+
+```
+-jal    gte_lddp                 +li    a3,0x100
+-li     a0,0x100                 +mtc2  a3,$8
+-jal    gte_ldsv                 +lhu   t4,0(s0)
+-move   a0,s0                    +mtc2  t4,$9
+```
+
+That pair — a `jal` where the target has the raw COP2 opcode — means "check the
+include", not "the gte macros encode wrong" (that is the different,
+next-section problem). `func_actor_401800_801323D4` scored 90.924% on the
+missing include and 100.000% on adding it; the body itself never changed.
+
+**`diff.py` in the scratch takes the `.o`, not the `.c`.** The wrapper is
+`${1//.o/.c}` / `${1//.o/_object_dump.s}`, so `bash ./diff.py base_1.o` is
+correct and `bash ./diff.py base_1.c` substitutes nothing: `O_FILE` stays
+`base_1.c`, `normalize_asm.py` prints the *C source* into the normalized dump,
+and the diff is total. It reads like the candidate is completely wrong. Run it
+through `bash` too — the file has no shebang, and `zsh` rejects `${1//.o/.c}`.
+
+## A verified sibling `.s` turns a matching job into a port
+
+`overlay_dup_index.py find <fn>` reports *similar* bodies, but the stronger
+move is to diff the **matched `.s`** of a sibling listed there against the
+function's own `target.s`. Strip the `/* offset address word */` prefix (the
+addresses differ between overlays; the opcodes do not) and normalize the label
+names, and an instruction-identical twin falls out exactly:
+
+```sh
+norm() { sed -e 's|/\*.*\*/||' "$1" | sed -e 's/[A-Za-z_0-9]*L[0-9A-F]\{4,6\}/.L/g' \
+  -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//' -e '/^$/d'; }
+diff <(norm asm/USA/<fam>/matchings/<unit>/<Sibling>.s) \
+     <(norm nonmatchings/<fn>/target.s)
+```
+
+`func_actor_401800_801323D4` came back with **no line differing except the
+labels** against
+`asm/USA/actors/matchings/lib/actor_101900_text/Actor01900_Fn0056C.s` — so the
+C was already written, and the task became renaming structs and checking the
+local header spellings. Ported verbatim it scored 100.000% on the second build.
+
+Two things to check before trusting the result, because equal instructions do
+not mean equal declarations: the sibling's scratch struct must have the same
+field offsets (here `Actor01900RepelScratch` was already `0x88` with `offset` /
+`last` / `pos` / `kind` / `len` / `dist` / `i` / `hit` in the same places), and
+any inlined helper the sibling calls must be reproduced rather than called —
+the twin inlined `Actor01900_CalcPush`, so a local `Actor401800_CalcPush` had to
+be written out. A sibling in `src/<family>/lib/` is also *already promoted*;
+porting does not license a second promotion, and the retry brief can forbid one
+outright while the other carriers are leased.
+
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
 A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /

@@ -120,6 +120,26 @@ typedef struct Actor401800PushScratch {
 } Actor401800PushScratch;
 STATIC_ASSERT_SIZEOF(Actor401800PushScratch, 0x34);
 
+/// 0x88-byte scratch `func_actor_401800_801323D4` takes from `G_SCRATCH_HEAD`
+/// to keep the push-out of the last kind 0x10000 / 0x30000 record of a `GpRec18`
+/// table: `pos` is the coordinate's world translation, `offset` the latest push
+/// (clamped to length 0x100), `last` its XZ copy, `i` the record cursor and
+/// `hit` the return value. `dist` gets 0x7FFE at the terminating record.
+/// Same shape as `Actor01900RepelScratch`.
+typedef struct Actor401800RepelScratch {
+    /* 0x00 */ byte    pad_0[0x20];
+    /* 0x20 */ SVECTOR offset;
+    /* 0x28 */ SVECTOR last;
+    /* 0x30 */ SVECTOR pos;
+    /* 0x38 */ s32     kind;
+    /* 0x3C */ u32     len;
+    /* 0x40 */ s16     dist[32];
+    /* 0x80 */ s16     i;
+    /* 0x82 */ byte    pad_82[4];
+    /* 0x86 */ s16     hit;
+} Actor401800RepelScratch;
+STATIC_ASSERT_SIZEOF(Actor401800RepelScratch, 0x88);
+
 /// 0xC-byte scratch `func_actor_401800_8013A034` takes from `G_SCRATCH_HEAD`
 /// for its player-in-radius test: the X/Z offset to the camera target and the
 /// radius, each squared in place before `dx + dz < r`. Same shape as
