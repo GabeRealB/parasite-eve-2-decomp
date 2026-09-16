@@ -21,6 +21,7 @@ s16  Actor04400_Fn06618(Task* arg0);
 void Actor04400_Fn067A0(Task* arg0, s32 step);
 void Actor04400_Fn08208(Task* arg0);
 void Actor04400_Fn0823C(Task* arg0);
+s32  Actor04400_Fn08DBC(Task* arg0);
 
 extern u32 Gp_LcgState;
 
@@ -260,7 +261,18 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06A24
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06A78);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06ACC);
+void Actor04400_Fn06ACC(Task* arg0)
+{
+    Actor104400Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor104400Work*)arg0->idMap;
+    sp   = Actor04400_D00070;
+    sp.funcs[(s16)work->field_422](arg0);
+    if (work->field_44F == 1) {
+        Actor04400_Fn08DBC(arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06B50);
 
