@@ -6,8 +6,11 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include <psyq/inline_c.h>
 
 /// XZ patrol point in `Actor401800Work.field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -337,6 +340,128 @@ typedef struct Actor401800RotScratch {
 } Actor401800RotScratch;
 STATIC_ASSERT_SIZEOF(Actor401800RotScratch, 0x34);
 
+/// 0x20 scratch block the shared coordinate walk takes from
+/// `G_SCRATCH_HEAD`. `coord` is the frame the walk is currently standing on
+/// (it climbs the `GsCOORDINATE2::sub` parent chain until NULL), `vec` is the
+/// vector being carried up into world space, and `out` receives the `MVMVA`
+/// result (`MAC1..3`) that is fed back into `vec` each step. `flag` takes the
+/// GTE flag register so the block matches what the code stores. Same layout as
+/// `RoomsShared80182078Walk`.
+typedef struct Actor401800BisectorWalk {
+    /* 0x00 */ GsCOORDINATE2* coord;
+    /* 0x04 */ SVECTOR        vec;
+    /* 0x0C */ s32            out[3];
+    /* 0x18 */ s32            pad_18;
+    /* 0x1C */ s32            flag;
+} Actor401800BisectorWalk;
+STATIC_ASSERT_SIZEOF(Actor401800BisectorWalk, 0x20);
+
+/// 0xE4 scratch block `func_actor_401800_80132E0C` takes from
+/// `G_SCRATCH_HEAD` while it nudges a coordinate frame away from the
+/// obstacles recorded in a `GpRec18` table. `m` is the working matrix handed
+/// to `Gfx_RotMatrixY` / `Gfx_MatrixCol2`. `eye` is the frame's own world
+/// position and `aim` the world point one unit (0x1000) in front of it, both
+/// produced by walking the parent chain; `delta` is the scratch difference fed
+/// to `ratan2` and later the GPF-scaled push applied to `coord.t[0]` /
+/// `coord.t[2]`. `kind` is the record's `field_4` high halfword, `angle[]` the
+/// per-record bearing relative to the facing direction (0x7FFE marks "no more
+/// records", 0x7FFF "record does not count"), `i` / `j` the two loop counters,
+/// `diff` the wrapped bearing difference between a pair of records and `hit`
+/// the value the function returns. Same layout as
+/// `RoomsShared80182078Scratch`.
+typedef struct Actor401800BisectorScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ byte    pad_20[0x80];
+    /* 0xA0 */ SVECTOR delta;
+    /* 0xA8 */ SVECTOR eye;
+    /* 0xB0 */ SVECTOR aim;
+    /* 0xB8 */ s32     kind;
+    /* 0xBC */ s16     angle[0x10];
+    /* 0xDC */ s16     i;
+    /* 0xDE */ s16     j;
+    /* 0xE0 */ s16     diff;
+    /* 0xE2 */ s16     hit;
+} Actor401800BisectorScratch;
+STATIC_ASSERT_SIZEOF(Actor401800BisectorScratch, 0xE4);
+
+/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
+/// translation vector. The `inline_c.h` macro of that name assembles to a
+/// different word, so spell the instruction out.
+#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+
+/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
+/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
+static __inline__ void Actor401800_BisectorToWorld(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    Actor401800BisectorWalk* blk;
+
+    {
+        register GsCOORDINATE2* parent asm("v0");
+        parent                                                                                              = coord;
+        ((Actor401800BisectorWalk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor401800BisectorWalk)))->coord = parent;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor401800BisectorWalk);
+        blk = (Actor401800BisectorWalk*)tmp;
+    }
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr_real();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor401800BisectorWalk);
+}
+
+/// Same as `Actor401800_BisectorToWorld`, but the walk starts at `coord`
+/// itself rather than its parent, so the vector is not carried through a frame
+/// until the loop has run at least once.
+static __inline__ void Actor401800_BisectorToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    Actor401800BisectorWalk* blk;
+
+    blk         = (Actor401800BisectorWalk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor401800BisectorWalk));
+    blk->coord  = coord;
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr_real();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor401800BisectorWalk);
+}
+
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as
@@ -450,6 +575,13 @@ extern u8 D_80072729;
 /// becomes a 10-unit step added to `pos` and to the coordinate's translation.
 s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos);
 s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+/// Nudges a coordinate frame away from the obstacles recorded in a `GpRec18`
+/// table: it takes the frame's world position and the point one unit in front
+/// of it, sorts the records by bearing, and where two of them close to within
+/// 0x400 pushes the frame `push` units along the bisector. Returns 1 when a
+/// push was applied. Same body as `RoomsShared80182078`, which six acropolis
+/// rooms carry.
+s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push);
 /// Re-seeds the `rec` contact record the aim-and-rescale body arms for the
 /// actor's root coordinate. Same role `func_actor_401300_80132910` plays.
 s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* rec, s16 count);
