@@ -59,7 +59,11 @@ typedef struct Actor511000Work2 {
     /* 0x482 */ byte   pad_482[2];
     /* 0x484 */ MATRIX light;
     /* 0x4A4 */ MATRIX color;
-    /* 0x4C4 */ byte   pad_4C4[0x10];
+    /* 0x4C4 */ byte   pad_4C4[0x8];
+    /* 0x4CC */ s16    field_4CC; ///< set to 1 alongside `field_4D0` by the message-0x7E0 handler's mode 3
+    /* 0x4CE */ byte   pad_4CE[0x2];
+    /* 0x4D0 */ s16    field_4D0; ///< set to 1 alongside `field_4CC` by the message-0x7E0 handler's mode 3
+    /* 0x4D2 */ byte   pad_4D2[0x2];
 } Actor511000Work2;
 STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
 

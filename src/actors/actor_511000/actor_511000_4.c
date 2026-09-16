@@ -2,6 +2,7 @@
 
 #include "actors/actor_511000.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 
 #include "main/mem.h"
@@ -14,11 +15,59 @@ extern SVECTOR    D_actor_511000_80147AC4;
 extern u16*       D_actor_511000_80147EB0;
 extern GpMsgEntry D_actor_511000_80148FC4[];
 
+/// The three texture records the message-0x7E0 handler uploads, one per mode.
+/// Each is a lone `GpImgRec` whose 0x18x0x10 source rect repeats the size the
+/// handler's scratch `RECT` carries and whose `data` points at its pixel blob.
+extern GpImgRec D_actor_511000_80146C74;
+extern GpImgRec D_actor_511000_80146F94;
+extern GpImgRec D_actor_511000_801472B4;
+
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801327A0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_8013287C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132904);
+/// Message-0x7E0 handler: uploads one of the actor's three texture records
+/// over the 0x18x0x10 rect at y 0x28 -- `D_actor_511000_801472B4` for mode 1,
+/// `D_actor_511000_80146C74` for modes 0 and 2, and `D_actor_511000_80146F94`
+/// for mode 3, which sets the work block's `field_4D0` / `field_4CC` to 1
+/// first. Any other mode leaves the image NULL and returns 0.
+/// The mode-1 case is written first because the compiler lays the case bodies
+/// out in source order and that is the order the retail image has them in.
+s32 func_actor_511000_80132904(GpActorWork* arg0, s32 arg1, s32 mode)
+{
+    RECT      rect;
+    GpImgRec* img;
+    s32       ret;
+
+    ret    = 0;
+    rect.x = 0;
+    rect.y = 0x28;
+    rect.w = 0x18;
+    rect.h = 0x10;
+
+    switch (mode) {
+        case 1:
+            img = &D_actor_511000_801472B4;
+            break;
+        case 0:
+        case 2:
+            img = &D_actor_511000_80146C74;
+            break;
+        case 3:
+            ((Actor511000Work2*)arg0->actor)->field_4D0 = 1;
+            ((Actor511000Work2*)arg0->actor)->field_4CC = 1;
+            img                                         = &D_actor_511000_80146F94;
+            break;
+        default:
+            img = NULL;
+            break;
+    }
+
+    if (img != NULL) {
+        ret = Gp_LoadActorImage(arg0, img, &rect);
+    }
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801329C4);
 

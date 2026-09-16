@@ -92777,3 +92777,45 @@ and negating the condition (`if (!(src->field_C & 0x80))`, so the branch is
 The second `if` keeps m2c's `if (!(x & 4)) { ...; Tmd_AllocBuffers(x); return; }
 x |= 4;` shape, which is what leaves its `bnez` on the *set* arm with the
 clearing arm, call and all, as the fall-through.
+
+## A switch's case bodies are laid out in source order, so an out-of-order target layout is the source's case order (func_actor_511000_80132904, 2026-09-16)
+
+A four-value mode switch that stores one of three image records into a local and
+passes it to `Gp_LoadActorImage`, with the cases written ascending
+(`case 0: case 2:` ... then `case 1:` ...), scores **99.52%** (`branch=3
+regs=4`) with an otherwise perfect 48/48 instructions, matching predicates and
+matching calls and blocks. The only difference is which of the two
+single-assignment bodies sits at the lower address:
+
+```
+beq  $a2,$a3, .L96C      # mode == 1: branches *forward*, over the whole tree
+slti $v0,$a2,2
+...
+.L96C:  lui $v0,%hi(D_actor_511000_801472B4)   # target: mode-1 body first
+.L978:  lui $v0,%hi(D_actor_511000_80146C74)   # then the mode-0/2 body
+```
+
+`stmt.c:expand_end_case` builds the dispatch tree from the case *values* only
+(`balance_case_nodes`), so the test order is a compiler decision that source
+order cannot change - but the bodies stay where the `case` statements put them.
+They are emitted first and the tree is created afterwards and spliced in above
+them: in `.jump` the three bodies are insns 38/45/52 and the tree is 83-98 with
+the `code_label`s at 91/100/117. A matched sibling shows the same rule the other
+way round - `func_actor_361100_80163670`'s cases are ascending in the source and
+its case-body blocks come out ascending.
+
+So when the target's case bodies are not in ascending order, the source's case
+order was not either: writing `case 1:` first (values still covering 0..3)
+reaches **100.000%** with every penalty zero. Read the layout, not the values.
+
+The `if`/`else if` equivalent is not a substitute even when it produces the same
+tree: `if (mode == 1) ... else if (mode < 2) ...` emits `bne $a2,$a3,else`
+(46 instructions, 69.31%) because its then-block falls through, while the target's
+`beq ...,body` polarity only arises when every case body ends in a jump to the
+join and none can fall through.
+
+Input `base_1.c`
+`d480baf13f46e3b10fc385350f4dd9286d395c993a3488c4085080b6059eb6cc` (99.521%,
+`branch=3 regs=4`, only the two case bodies swapped) and `base_3.c`
+`2241b4184527219a2fc7a2f0fafcecd37048352277f5713805e068a6c58ce8a9` (100.000%,
+zero penalties).
