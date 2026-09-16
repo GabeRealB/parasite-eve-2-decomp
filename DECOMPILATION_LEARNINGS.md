@@ -99535,3 +99535,57 @@ mem in CSE, so the re-read survives to `reload_cse_regs`, which turns it into a 
 `s16` argument (`sll a1,a1; sra a1,a1; jal; sh a1,0x2C(s3)`) matched only as
 `scratch->angle = WrapAngle(scratch->angle); f(arg0, scratch->angle, ...)` with a `static inline s16`
 helper: the return-value extension becomes the pseudo both uses read, so the loop variable lands in `a1`.
+
+## A nested member folds its offsets too -- and assigning the pointer local per branch is what keeps *two* `addiu`s (ActorsShared8013845cSub1, 2026-09-16)
+
+The pointer-local rule above generalises from `arr[3].field` to a plain nested
+member: `work->obj.flags &= 0x3FFF;` on a `GpObj` at 0x08 folds both offsets
+into one displacement (`lhu v0,0x26($s1)`), where the target has the inner base
+as a value (`addiu $v1,$s1,8` / `lhu v0,0x1e($v1)`). Because the value also
+feeds a store, combine cannot fold it back, so `obj = &work->obj; obj->flags &= mask;`
+reproduces the pair. The register the folded form leaves free is what reorg
+then has nothing to put in the delay slot -- the tell is a `nop` where the
+target fills the slot.
+
+**New here:** when the same access appears in two blocks, assign the local in
+*each* of them rather than once outside. The second use sat in a block with two
+predecessors, and `cse` flushes its table at that extended-basic-block
+boundary, so the two `work + 8` computations stay separate pseudos and both
+`addiu`s survive. One assignment hoisted above both blocks would instead give a
+single value live across the intervening calls, which is a different register.
+
+**Also new:** the extra pseudo reweights `global.c`'s `allocno_compare`
+(`floor_log2(n_refs) * n_refs / live_length`, higher first, ties by allocno
+number) enough to swap the two saved registers: the `Task*` parameter moved from
+`$s1` to `$s0` and the work pointer from `$s0` to `$s1`, which is the target's
+arrangement. Worth checking before reaching for a pin when the only remaining
+difference is two callee-saved registers swapped end to end.
+
+## A load the target has above its own guard means the source assigned that local at function scope (ActorsShared8013845cSub1, 2026-09-16)
+
+**Problem.** The body is one `if (D_801153F4 == 0) { ... }` and the coordinate
+its one effect spawn needs is read only inside it, but the target loads it in
+the entry block, above the `bnez` on the flag:
+
+```
+lw   $s1,0x1c($s0)       ; work
+lw   $v1,0x2c($s0)       ; task->extra
+lbu  $v0,%lo(D_801153F4)($v0)
+lw   $a1,8($v1)          ; ((TmdObject*)task->extra)->field_8
+bnez $v0,.Lend
+```
+
+**Cause.** `sched` runs per basic block, so an instruction cannot move from the
+guarded block back into the entry block -- if the load is there, the RTL put it
+there. GCC also neither sinks nor hoists a load by itself: it emits the load
+where the C first reads the value. So the source assigned it at function scope:
+
+```c
+work  = (Actor101100Work*)task->idMap;
+coord = ((TmdObject*)task->extra)->field_8;
+```
+
+**Fix.** Hoist the expression into a local ahead of the guard. The value lands
+in `$a1`, the register its one call wants, with no callee-saved cost, and this
+single edit was worth 66.9% -> 91.3% here; the remaining diff was then only the
+two-register swap above.
