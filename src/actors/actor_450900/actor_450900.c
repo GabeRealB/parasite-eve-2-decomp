@@ -12,6 +12,11 @@
 
 extern s16 D_80071076;
 extern u8  D_801153F4;
+extern s32 D_8017A99C;
+extern s32 D_actor_450900_80135E74;
+extern s32 D_actor_450900_80136470;
+extern s32 D_actor_450900_80136680;
+extern s32 D_actor_450900_80136890;
 extern s32 D_actor_450900_80136B00;
 extern s32 D_actor_450900_80136BD8;
 
@@ -159,7 +164,29 @@ void func_actor_450900_80132684(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132724);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_801327A8);
+/// Spawns the ally's save-point state handler. Once flag 0xD8 is set (the
+/// capture ran) the one-shot `D_actor_450900_80135E74` swaps the ally onto the
+/// `D_actor_450900_80136890` handler the first time through, and every later
+/// call just re-arms the idle capture. Before the flag is set the handler is
+/// picked by the AI tick counter `D_8017A99C`: the low-traffic
+/// `D_actor_450900_80136470` below 0x30C, `D_actor_450900_80136680` at or above
+/// it. The three calls are written out at each site - the `jal` is shared only
+/// because `jump.c` cross-jumps the identical tails.
+void func_actor_450900_801327A8(void)
+{
+    if (GameFlag_GetNibble(0xD8) != 0) {
+        if (D_actor_450900_80135E74 == 0) {
+            D_actor_450900_80135E74 = 1;
+            func_800E8614((s32)&D_actor_450900_80136890, 0);
+        } else {
+            Gp_SpawnIfCapIdle(0xC, 1);
+        }
+    } else if (D_8017A99C < 0x30C) {
+        func_800E8614((s32)&D_actor_450900_80136470, 0);
+    } else {
+        func_800E8614((s32)&D_actor_450900_80136680, 0);
+    }
+}
 
 /// Save-point gate: reads the ally actor's root coordinate and, once it has
 /// walked past `Z < -0x76C`, hands over to the save-data teardown task instead
