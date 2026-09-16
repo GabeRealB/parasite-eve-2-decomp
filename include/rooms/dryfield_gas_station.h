@@ -26,6 +26,16 @@ typedef struct DgsWork {
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
+/// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
+/// allocates as 4 bytes in its state 0 and hangs off `Task::idMap` (0x1C) for
+/// the next run of the state machine to pick up. `child` is the task spawned
+/// from `D_dryfield_gas_station_8018312C` entry 0 in state 3 and polled with
+/// `Task_PollKill` in state 4.
+typedef struct DgsCutsceneSlot {
+    /* 0x0 */ Task* child;
+} DgsCutsceneSlot;
+STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
+
 /// Draws the gas station's shaft from the same four arguments `Room_Draw37`
 /// takes: `arg0` is updated with `Gp_UpdateCoord` and the beam is `arg1`
 /// rotated by its `workm`. Larger and textured where `Room_Draw37` is not --

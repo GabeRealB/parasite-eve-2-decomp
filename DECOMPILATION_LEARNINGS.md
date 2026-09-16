@@ -88454,3 +88454,88 @@ the emptied block merges into the store. 100%, every penalty zero.
 So when a target materialises a constant on both sides of a call, the source was
 not the single-assignment form -- one arm holds its own copy. Read the extra
 `li` as evidence about *where the assignment lives*, not as something to pin.
+
+## A `case N: goto L;` costs nothing: `jump_optimize` tensions the dispatch table to `L` (func_dryfield_gas_station_801802C0, 2026-09-16)
+
+`func_dryfield_gas_station_801802C0` is a five-entry state machine whose jump
+table has only four distinct destinations: states 1 and 2 both advance, and the
+advance block sits *after* state 3's body, which falls through into it. The
+table word-order in the target is
+
+```
+-> case0 body        -> advance (state 1)
+-> advance (state 2) -> case3 body   -> case4 body
+```
+
+so the shared block is neither first nor last, and two of the table slots point
+*through* where a `case 1:` label would naturally sit.
+
+m2c's shape -- `case 1: case 2:` labelling the shared block in source order --
+puts the shared block ahead of state 3's body and leaves the kill call below the
+last arm, so case 4 branches backwards to it; that scores 81.72%
+(`stack=0 branch=0 regs=2 reorder=6 insert=4 delete=4`, one block too many).
+Writing it in the room family's `goto`-label style and putting the shared label
+where the binary has it -- case 3 falling through into `advance`, case 4 falling
+through into `L_kill` -- is 100% on the first build:
+
+```c
+switch (task->state) {
+    case 0: goto L_case0;
+    case 1: goto advance;
+    case 2: goto advance;
+    case 3: goto L_case3;
+    case 4: goto L_case4;
+}
+return;
+
+L_case0:  ...; goto advance;
+L_case3:  ...; if (child == 0) { goto L_kill; }
+advance:  task->state = task->state + 1; return;
+L_case4:  if (Task_PollKill(slot->child, &killed) == 0) { return; }
+L_kill:   Task_RequestKill(task, 0);
+```
+
+The table does **not** grow a two-insn trampoline per `goto`. `jump_optimize`
+runs `tension_vector_labels` (`jump.c:3271`), which walks each `ADDR_VEC` slot
+through `follow_jumps` to the ultimate label of the chain, rewrites the slot and
+drops the bypassed label. The emitted table reads `.word $L4 / $L6 / $L6 / $L9 /
+$L11` -- states 1 and 2 name the same label as state 3's fallthrough, and the
+`j` that once carried them is gone as dead code.
+
+So for this family, block order and every fallthrough into a shared block are a
+*source* property: place the labels to match the binary, and let the table
+tension absorb the cases that merely jump to one. Do not duplicate an arm's body
+to make a case label land on it, and do not read `case N: goto L;` as evidence
+that the original had a trampoline.
+
+## A field load between the prologue and the switch dispatch is the source caching it in a local (func_dryfield_gas_station_801802C0, 2026-09-16)
+
+The same function loads `$s1` from `Task::idMap` (0x1C) *before* the range check
+and `jr` that dispatch the switch, and every use of it (states 3 and 4) goes
+through `$s1` with no reload:
+
+```
+lw    $v1, 0x30($s0)      /* task->state */
+lw    $s1, 0x1C($s0)      /* task->idMap, once */
+sltiu $v0, $v1, 0x5
+beqz  $v0, .Lret
+...
+jr    $v0
+```
+
+CSE alone will not do this here -- state 0 *stores* to `task->idMap`
+(`task->idMap = Mem_Malloc(4, false)` is the store in the `bnez` delay slot), and
+the paths that read the field are behind a call. The load survives because the
+source read the field once into a local declared before the switch:
+
+```c
+DgsCutsceneSlot* slot = (DgsCutsceneSlot*)task->idMap;
+switch (task->state) { ... }
+```
+
+That also explains the otherwise surprising semantics: `slot` is the value from
+the *previous* run of the state machine, so state 3 writes the task it spawns
+into the block state 0 allocated on an earlier call. When a target hoists a
+field load above the dispatch, write the local -- casting it to the work struct
+the overlay header names, as the other room bodies do -- and keep every later use
+on that pointer, which is what makes one callee-saved register cover the call.
