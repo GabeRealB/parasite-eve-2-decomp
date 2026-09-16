@@ -8,6 +8,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 void func_actor_107000_801334C8(Task* arg0, s32 arg1);
 void func_actor_107000_80132E9C(Task* arg0);
@@ -166,7 +167,63 @@ void func_actor_107000_80132D8C(Task* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132E9C);
+/// Turns the caged specimen toward the player, one 0x20 step a frame. The
+/// 0x18-byte scratch the model's heading is rebuilt in carries the XZ offset
+/// from the model's coordinate to the player (`Wip_SysConfig.field_4`), and the
+/// heading `field_2B0` is re-steered against it: at most 0x21 off, the target
+/// heading is taken outright; otherwise the field is stepped one 0x20 toward it,
+/// with a difference of 0x801 or more first folded through the 0x1000 wrap so
+/// the specimen turns the short way round. The result is written back as the
+/// scratch's Y rotation and `RotMatrix` rebuilds the coordinate from the
+/// scratch's angle triple.
+void func_actor_107000_80132E9C(Task* arg0)
+{
+    Actor107000Work*       work;
+    GsCOORDINATE2*         coord;
+    Actor107000RotScratch* sc;
+    s16                    cur;
+    s32                    want;
+    s16                    diff;
+    s32                    adiff;
+    s16                    turn;
+    s16                    wrap;
+    s32                    current;
+
+    coord      = ((TmdObject*)arg0->extra)->field_8;
+    work       = (Actor107000Work*)arg0->idMap;
+    sc         = (Actor107000RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc->vec.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+    sc->vec.vy = 0;
+    sc->vec.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
+    cur        = work->field_2B0 & 0xFFF;
+    diff       = want - cur;
+    adiff      = diff >= 0 ? diff : -diff;
+    turn       = diff;
+    if (adiff < 0x21) {
+        work->field_2B0 = want;
+    } else {
+        if (adiff >= 0x801) {
+            wrap = diff - 0x1000;
+            if (diff <= 0) {
+                wrap = 0x1000 - diff;
+            }
+            turn = wrap;
+        }
+        current = work->field_2B0;
+        if (turn <= 0) {
+            cur = current - 0x20;
+        } else {
+            cur = current + 0x20;
+        }
+        work->field_2B0 = cur;
+    }
+    sc->rot.vx = 0;
+    sc->rot.vy = work->field_2B0;
+    sc->rot.vz = 0;
+    RotMatrix(&sc->rot, &coord->coord);
+    *(u32*)0x1F8003FC += 0x18;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132FD4);
 

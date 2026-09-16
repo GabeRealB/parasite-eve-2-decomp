@@ -19,6 +19,18 @@ typedef struct Actor107000Ctx {
     /* 0x14 */ u8   field_14;
 } Actor107000Ctx;
 
+/// The 0x18 bytes `func_actor_107000_80132E9C` carves off the per-object
+/// scratch stack (`0x1F8003FC`, one `addiu` of `-0x18`): `vec` is the
+/// translation from the model's coordinate to the player, `rot` is the Euler
+/// angle triple rebuilt from the heading the same call just steered. The same
+/// block as `Actor100300RotScratch`, which the sibling body `Actor00300_Fn04528`
+/// carves the same way.
+typedef struct Actor107000RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor107000RotScratch;
+STATIC_ASSERT_SIZEOF(Actor107000RotScratch, 0x18);
+
 /// Animation work reached through `Task::idMap`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
 /// spent on it) triple as `Actor207200Work`'s `field_28C`/`field_28E`/
@@ -42,7 +54,7 @@ typedef struct Actor107000Work {
     /* 0x22C */ byte    pad_22C[0x60];
     /* 0x28C */ MATRIX  field_28C; // transform folded onto the model part
     /* 0x2AC */ s32     field_2AC; // advanced by 0xC8 a frame while the death flag runs
-    /* 0x2B0 */ byte    pad_2B0[2];
+    /* 0x2B0 */ s16     field_2B0; // heading the specimen is turned toward; stepped 0x20 a frame
     /* 0x2B2 */ s16     field_2B2; // armed to 3 by the hit branch, with the pair below
     /* 0x2B4 */ s16     field_2B4; // cleared on the death branch
     /* 0x2B6 */ s16     field_2B6; // cleared next to `field_2B2`
