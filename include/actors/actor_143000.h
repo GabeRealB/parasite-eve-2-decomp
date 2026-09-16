@@ -8,13 +8,19 @@
 typedef struct Actor143000Work {
     /* 0x00 */ byte pad_0[4];
     /* 0x04 */ s16  field_4;
-    /* 0x06 */ byte pad_6[6];
+    /* 0x06 */ byte pad_6[1];
+    /* 0x07 */ s8   field_7;
+    /* 0x08 */ byte pad_8[4];
     /* 0x0C */ s32  field_C;
     /* 0x10 */ s16  field_10;
     /* 0x12 */ s8   field_12;
     /* 0x13 */ s8   field_13;
     /* 0x14 */ s16  field_14;
+    /* 0x16 */ s16  field_16;
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
 } Actor143000Work;
+STATIC_ASSERT_SIZEOF(Actor143000Work, 0x1C);
 
 typedef struct Actor143000 {
     /* 0x00 */ byte             pad_0[0x1C];
@@ -41,7 +47,10 @@ typedef struct Actor143000Rect {
     /* 0x4 */ s16 w;
     /* 0x6 */ s16 h;
     /* 0x8 */ s16 field_8;
-    /* 0xA */ s16 field_A;
+    /* 0xA */ s8  field_A;
+    /// Non-zero while the entry is live for `func_actor_143000_801325F0`;
+    /// `func_actor_143000_801324C8` clears it on every entry at spawn.
+    /* 0xB */ s8 field_B;
 } Actor143000Rect;
 STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
 

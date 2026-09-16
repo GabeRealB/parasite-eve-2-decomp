@@ -18,11 +18,14 @@ extern GpAreaApplyRec   D_80186488;
 extern GpAreaApplyRec   D_8018649C;
 extern char             D_actor_143000_80131EB0[];
 extern char             D_actor_143000_80131EBC[];
+extern TaskDesc         D_actor_143000_80134558;
+extern Actor143000Rect  D_actor_143000_80134580[];
 extern s32              D_actor_143000_801351B0;
 extern s32              D_actor_143000_80135870;
 extern s32              D_actor_143000_80135A20;
 extern s32              D_actor_143000_80135AE0;
 extern Actor143000Spawn D_actor_143000_80135C08;
+extern u8               D_actor_143000_80135C0C;
 extern s32              D_actor_143000_80135C14;
 extern s32              D_actor_143000_80135C18;
 extern s32              D_actor_143000_80135C1C;
@@ -35,7 +38,45 @@ INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", ActorsShared8013845
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801323E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801324C8);
+void func_actor_143000_801324C8(Task* arg0)
+{
+    Actor143000Work* work;
+    Actor143000Rect* p;
+    u8               temp_a0;
+
+    p    = D_actor_143000_80134580;
+    work = Mem_Calloc(0x1CU, false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->spawnArg2         = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->idMap             = (TaskIdMap*)work;
+    temp_a0                 = Mc_SaveData.field_4;
+    Mc_SaveData.field_4     = 0xB;
+    D_actor_143000_80135C0C = temp_a0;
+    arg0->state            += 1;
+    work->field_4           = 0;
+    Display_AcquireRef();
+    if (p->field_8 != -1) {
+        do {
+            p->field_B = 0;
+            p++;
+        } while (p->field_8 != -1);
+    }
+    work->field_7          = 0;
+    work->field_12         = 1;
+    work->field_13         = 0;
+    work->field_16         = 0xA00;
+    work->field_C          = 0;
+    work->field_10         = 0;
+    work->field_18         = 0x10;
+    work->field_1A         = 0;
+    Game_Session->field_66 = 1;
+    Game_Session->field_68 = 1;
+    Gp_MsgPlayerWeapon(0);
+    Gp_MsgPlayer3F3(0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801325F0);
 

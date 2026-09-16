@@ -85177,6 +85177,42 @@ own header rather than casting at the use site. Inputs: `base_1.i`
 `base_2.i` `4077955e23b9e1bc2d8d4fdf0bd97cb489eef5c15f207e47b5626192eaf8b14e`
 (99.118%).
 
+### The escape's `QImode` clause puts the hoisted plain load *between* the stores - so only the halfword/word stores need typing
+
+`func_actor_143000_801324C8` is the same rule with the `mem/s` split inside one
+run of work stores, and it pins down where the freed load comes to rest. m2c's
+cast form is not uniformly plain `mem`: `M2C_FIELD(p, s8*, 7) = 0;` reaches the
+front end's `store_field` path, which sets `MEM_IN_STRUCT_P` (`expr.c:5891`), so
+the *byte* stores were already `mem/s` while `M2C_FIELD(p, s16*, 0x16) = 0xA00;`
+and `M2C_FIELD(p, s32*, 0xC) = 0;` took the direct `store_expr` path and stayed
+plain `mem`. The escape needs `GET_MODE (mem) != QImode` on the *store*, so a
+byte store keeps its edge to the load no matter how the struct is declared.
+`Game_Session` loads are fixed-address and non-struct, so the whole chain is:
+click the halfword/word work stores over to real fields, and the load rises
+until the last byte work-store stops it - which is where retail has it, three
+stores into the block:
+
+```
+sb    zero,7(s0)          <- the only three stores that still order the load
+sb    v1,0x12(s0)
+sb    zero,0x13(s0)
+lw    a1,%lo(Game_Session)(a0)   <- free to rise no further than here
+li    v0,0xa00
+sh    v0,0x16(s0)
+sw    zero,0xc(s0)
+...
+sb    v1,0x66(a1)
+```
+
+`reorder`+`regs`+`insert`/`delete` all cleared at once (regs=7 reorder=3
+insert=2 delete=1 to zero), 93.133% to 100%. Read the `.sched` dump rather than
+the object dump to see it: the load carries `(insn_list 125 (insn_list 130 ...))`
+- one edge per preceding store - and every halfword/word store in that list is
+plain `mem`. Inputs: `base_2.i`
+`bee7eff8cda81300e5c8a6b857e6fbfef495ddddb371811824fdb23d45cc3803` (93.133%),
+`base_3.i` `5a491e991a888b3d3e4e31843aa66234eba659718cae774342403004c02fb39d`
+(100.000%).
+
 ### Two reloads of the same pointer in two registers means two locals, even in one block
 
 `Actor00400_Fn07738` reloads `arg0->field_1C` twice in one basic block, and the
