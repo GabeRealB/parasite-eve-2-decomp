@@ -98787,3 +98787,57 @@ that uses it. Moving a `static __inline__` emits no code, so the unit's `.text`
 order — and the overlay checksum — is unaffected; only the order of the
 non-inline function definitions is load-bearing, which is why the matched body
 stays at its INCLUDE_ASM site.
+
+## m2c's inverted nested guard is a different block graph from the target's `li v0,1` / `move v0,zero` merge (Actor04400_Fn08160, 2026-09-16)
+**Symptom.** A two-bit status test whose result feeds exactly one `if`:
+
+```
+lhu   v0,0xec(a3)
+andi  v0,v0,0x1
+bnez  v0,L08194
+ li   v0,1
+lw    v0,0xec(a3)
+andi  v0,v0,0x102
+bnez  v0,L08194
+ li   v0,1
+move  v0,zero
+L08194:
+beqz  v0,L08200
+```
+
+m2c writes it as a negated, nested guard (`v = 1; if (!(x & 1)) { v = 1; if
+(!(x & 0x102)) v = 0; }`) because the flag is already boolean there. That scores
+**64.049%** (`stack=3 branch=1 regs=22 reorder=1 insert=5 delete=8`) and its
+block graph is not the target's: the mask comes out `li v1,1` / `and v0,v0,v1`
+rather than `andi`, and the merge is `sltu v1,zero,v0` / `beqz v1` rather than
+the `move v0,zero`.
+
+**Fix.** Spell the flag the way the sibling bodies in the same file do, with an
+explicit 1/0 assignment:
+
+```c
+    s32 cond;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) { ... }
+```
+
+100.000%, 42 instructions, all-zero penalties, no pins. The `||` gives the two
+`bnez` arms with `li v0,1` in each delay slot, and the `else` arm is the `move
+v0,zero` the merge block reads.
+
+The tell is the shape, not the percentage: `move v0,zero` feeding a `beqz` means
+the source had a real 1/0 assignment on both arms, not a negated guard. When the
+file already holds a matched sibling with the same guard — `Actor04400_Fn080E8`,
+`Fn0823C`, `Fn082E0` here all share it — copy its spelling before trying
+anything else.
+
+Inputs: `base.i` (m2c inverted form, 64.05%)
+`31030b4a04a1cee6acfefaabe80efdc5d77e5453a61d9db5baec335c89c64ff8`,
+`base_1.i` (`if (a || b) cond = 1; else cond = 0;`, 100.000%)
+`d1c78279de10ddb062f4cd493def62166e23e9b01beed3af61a3c2770248d581`.
