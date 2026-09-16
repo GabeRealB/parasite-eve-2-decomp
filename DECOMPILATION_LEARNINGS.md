@@ -104022,3 +104022,85 @@ keeps the other order, and its twin's store still lands late), take the target's
 order as the retail order of *this* TU rather than treating it as a local hack:
 the helper is one function with one source order, and the siblings that matched
 without it were insensitive, not contradictory.
+
+### What `dist.py` actually charges for: alignment, not operands
+
+`tools/claude-decomp-env/dist.py` scores `100 - final_score / max(len(target),
+len(cand))` with per-line weights `stack=1 branch=1 regs=5 reorder=60
+insert=100 delete=100`. `insert`/`delete` are charged per *exact line string*
+that appears in one listing and not the other, after the reorder post-pass — so
+a single register rename that knocks a line out of the `equal` opcodes costs
+200, not 5, and the following lines stay misaligned until the mnemonic
+sequences resync.
+
+`func_actor_401800_801381E4` sat at 95.4 % with 11 insertions + 13 deletions
+(2400 of its 2991 distance) from **five register renames inside two inlined
+helper bodies** — `head` `$a0`→`$v0`, `outp` `$a2`→`$a1`, `p` `$a1`→`$a2`,
+`svp` `$s1`→`$s2`, `dir` `$s0`→`$s1` — every instruction, block, predicate and
+call already matching. Chasing operand mismatches (5 each) before alignment
+(100 each) is the wrong order; count the nets first:
+
+```
+python3 - <<'PY'
+import collections, difflib
+def mn(l): return l.strip().split(None, 1)[0] if l.strip() else ''
+t = open('target_object_dump_normalized.s').read().split('\n')
+c = open('base_N_object_dump_normalized.s').read().split('\n')
+sm = difflib.SequenceMatcher(a=[mn(x) for x in c], b=[mn(x) for x in t], autojunk=False)
+ins, dele = [], []
+for tag, i1, i2, j1, j2 in sm.get_opcodes():
+    if tag in ('replace', 'delete'): ins.extend(c[i1:i2])
+    if tag in ('replace', 'insert'):  dele.extend(t[j1:j2])
+ic, dc = collections.Counter(ins), collections.Counter(dele)
+print('mine-only', (ic - dc).most_common())
+print('target-only', (dc - ic).most_common())
+PY
+```
+
+Also note `read_object_file()` ignores its `preserve_offsets` argument in this
+version, so `--stack-diffs` is a no-op; the stack penalty comes from
+`diff_sameline` alone.
+
+### An inlined helper fixes the allocation of its arguments; a twice-assigned local does not
+
+Two changes on `func_actor_401800_801381E4` (95.4 % final, input `base_27.i`
+`8b972b74f9e60ca0956e4d23a0ede99faf2afe633ec45f0b0a71abdf713b233b`) are the
+same mechanism read in both directions, and both are pure source shape — no
+statement moved.
+
+**A local assigned in two blocks is two short live ranges.** A `coord` local set
+at the top of each of two `if`s and passed to an inlined helper is, to
+`global_alloc`, two pseudos with short ranges; `floor_log2(n_refs)*n_refs /
+live_length` makes them high priority and they take `$s0`. Passing the
+expression `arg0->field_2C->field_8` to both calls instead leaves the target's
+*one* long-lived pseudo, which sinks to `$s2` and matches. 93.19 % → 95.02 %.
+
+**A helper argument is a register, and a definition that spans a call is
+callee-saved.** The walk helper's start order decides the whole function's
+allocation: `svp = &sv;` must precede the `Game_GetPtrSlot(3)` call (so `svp`
+legitimately owns `$s1`), and the scratch pointer must be computed *after* it,
+so it never spans the call and stays in `$a`/`$v`. The first version computed
+the scratch first and cost a callee-saved register plus the frame slot
+`$ra`/`$s6` shift the prologue showed. 84.7 % → 90.2 %.
+
+Both changes are invisible in the C — same statements, same order in the second
+case only. When the prologue does not match instruction-for-instruction, read
+the order of the *first* statements of each inlined helper before touching
+anything else.
+
+### `s16` vs `s32` on an abs'd 12-bit angle: one instruction or four
+
+`ang = Actor401800_NormalizeYaw(...); if (ang < 0) ang = -ang; if (ang < 0x20)`
+with `ang` declared `s16` re-truncates the negated value:
+
+```
+move    v1,v0
+negu    v1,v0
+sll     v0,v1,0x10
+sra     v0,v0,0x10
+slti    v0,v0,0x20
+```
+
+Declaring `ang` `s32` gives the target's `nop / negu v0,v0 / slti v0,v0,0x20`.
+The same variable is sign-extended once at the `NormalizeYaw` return either way,
+so nothing else moves. 92.78 % → 93.19 %.
