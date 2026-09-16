@@ -126,11 +126,16 @@ typedef struct Actor510900Work {
     /* 0x5B0 */ s16 field_5B0;
     /// Latch that sends the wind-up out to state 8 instead of back to state 1;
     /// state 3 clears it on the way through.
-    /* 0x5B2 */ s16  field_5B2;
-    /* 0x5B4 */ byte pad_5B4[4];
-    /* 0x5B8 */ s16  field_5B8;
-    /* 0x5BA */ s16  field_5BA;
-    /* 0x5BC */ s16  field_5BC;
+    /* 0x5B2 */ s16 field_5B2;
+    /// Handler phase latch: state 0 sets it to 1 on entry, state 2 to 2 once
+    /// the 0x50 blend has passed.
+    /* 0x5B4 */ s16 field_5B4;
+    /// Sub-state of the state-3 handler's disc load: 1 queues the file, 2 waits
+    /// for `CdCmd_IsIdle` and plays the cue, 0 is idle.
+    /* 0x5B6 */ s16 field_5B6;
+    /* 0x5B8 */ s16 field_5B8;
+    /* 0x5BA */ s16 field_5BA;
+    /* 0x5BC */ s16 field_5BC;
     /// Grab request the child task's state 0 watches: when it equals the
     /// child's `field_334 + 1` and `field_5C0` is 1 the grab lands, and the
     /// handler takes the request back by writing -1.
@@ -395,6 +400,10 @@ extern Actor510900PatrolStep D_actor_510900_80167B94[4];
 
 /// The four cardinal yaws `func_actor_510900_801387F4` turns the actor's
 /// coordinate towards, indexed by `Actor510900Work::field_5A8`.
+/// `func_800FDB18` argument record the state-3 handler refreshes every sixth
+/// frame from the player's model coordinates.
+extern GpEffArg D_actor_510900_80167B7C;
+
 extern u16 D_actor_510900_80167B9C[];
 
 /// One of the four world-space x/z boxes `func_actor_510900_8013864C` tests the

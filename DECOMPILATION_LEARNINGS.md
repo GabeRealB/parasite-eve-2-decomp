@@ -90127,3 +90127,110 @@ mistake; it is the destination's mode reaching back into the load. Note this is
 the opposite direction from the `* 0x96` terms in the same function, whose
 products are added to `s32` translation components and therefore sign-extend on
 their own.
+
+## A signed field read into the same temp is what keeps `andi 0xFFFF` in a range chain
+
+"Keep `andi 0xffff` in a range chain: the tested value needs unknown high bits"
+says the temp needs a *wide* set so combine's global `reg_nonzero_bits` entry is
+unknown. That set does not have to be a genuinely 32-bit value, and it does not
+have to be an artificial one: a plain `lh` of a signed halfword field is enough.
+MIPS defines `LOAD_EXTEND_OP` as `ZERO_EXTEND`, so a HImode move (`lhu`) or a
+`zero_extendhisi2` pins the pseudo at `0xFFFF` and every mask folds away — but
+`extendhisi2` is a `sign_extend`, whose `nonzero_bits` are unknown.
+
+`func_actor_510900_80137868` tests the same animation blend in two switch arms:
+
+```
+lhu   v1, 0x58A(s1)
+addiu v0, v1, -0x4B
+sltiu v0, v0, 0x10          ; no mask - same block as the load
+...
+addiu v0, v1, -0x8F
+andi  v0, v0, 0xFFFF        ; later block - mask survives
+sltiu v0, v0, 0xF
+```
+
+Both arms only ever load the blend with `lhu`, so nothing in them can make the
+pseudo wide. What does it is the *other* case of the switch, which reads a
+signed field into the same local first:
+
+```c
+s32 blend;
+...
+case 2:
+    blend = (u16)work->field_58A;            /* lhu */
+    if (blend - 0x4B < 0x10U) { ... }
+    else if (((blend - 0x8F) & 0xFFFF) < 0xFU) { ... }
+    ...
+case 3:
+    blend = work->field_586;                 /* lh - this is the wide set */
+    if (blend == 7) {
+        blend = (u16)work->field_58A;
+        ...
+```
+
+`reg_nonzero_bits` is per pseudo and per function, so one `lh` anywhere in the
+function covers every masked test in it. Typing the temp `s16` does not work:
+the set is then a HImode move and MIPS loads it with `lhu`. Neither does an
+`&&` window (`blend >= 0x8F && blend <= 0x9D`), which folds to the same masked
+compare and loses the mask the same way.
+
+## Duplicating a whole statement into both arms is a cross-jumping lever
+
+When two `if`/`else` arms differ only in one constant, how much of the shared
+work ends up back in the join block is decided by `jump2`'s cross-jumping, which
+runs *after* `sched1`. It merges identical insns from the end of each arm
+backwards and stops at the first difference, so the scheduled order inside an
+arm decides where the merge stops.
+
+In `func_actor_510900_80137868` the target keeps `lw` in both arms but hoists
+the `lui` out and puts everything from the `lhu` down in the join:
+
+```
+bne  v0, s5, .Lelse
+ lui v1, 0x4078          ; dbr: common head of both arms
+lw   v0, 0x20(s4)
+j    .Ljoin
+ ori v1, v1, 0x10
+.Lelse:
+lw   v0, 0x20(s4)
+ori  v1, v1, 0xC
+.Ljoin:
+lhu  v0, 8(v0)
+```
+
+Assigning only the constant per arm leaves the `lw` in the join; duplicating
+just the `snd = ... | K;` assignment leaves `lw` *and* `lhu` in the arms.
+Duplicating the whole statement including the call is what matches: each arm is
+then scheduled exactly like the single-armed sibling block (`lw`, `ori`, `lhu`,
+`move`, `srl`, `sll`, `jal`+`or`), and the merge stops at the differing `ori`.
+
+## An empty `case 0:` shows up as `ble`, not as its own equality test
+
+A `switch` whose lowest case has an empty body leaves no comparison of its own.
+`emit_case_nodes` emits `beq` for the root, `bgt` into the right subtree, then
+the left leaf's `beq` followed by a jump to the default label; when that leaf's
+body is empty, its label and the default label resolve to the same place, so
+`jump.c` drops the redundant conditional and inverts the remaining one:
+
+```
+beq   v1, s0, .Lcase1      ; == 1
+ slti v0, v1, 2
+bnez  v0, .Lbreak          ; <= 1, i.e. the empty case 0
+ li   v0, 2
+beq   v1, v0, .Lcase2
+```
+
+The tell is the constant: `gen_int_relational` gives `LT k` a `slti k` and `LE
+k` / `GT k` a `slti k+1`, so `slti 2` + `bnez` is `ble 1`, which the plain
+two-case form (`beq 1` … `beq 2`) never produces.
+
+## An implicitly declared `u16` callee loses its `andi 0xFFFF`
+
+A scratch match can port cleanly and still come out one instruction short if the
+host `.c` is missing a header the scratch had. With `-w`, an undeclared callee
+is implicitly `int`, so `CdCmd_IsIdle() == 1` compares all 32 bits instead of
+masking to the declared `u16` return. Nothing warns, the overlay just ends up 4
+bytes shorter and the checksum fails away from the edited function. Compare the
+scratch's include list against the host file's before hunting for a codegen
+difference.

@@ -3,6 +3,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/session.h"
+#include "main/fs.h"
 
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
@@ -34,7 +35,12 @@ void func_actor_510900_8013BB20(Actor510900* arg0);
 void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1);
 void func_actor_510900_8013BC80(Actor510900* arg0);
 
-extern u8  D_801153F4;
+extern u8 D_801153F4;
+
+/// The script block pair `Gp_SpawnScript18` is handed at blend 0x58; both live
+/// in the room overlay, not here.
+extern s32 D_80187D34;
+extern s32 D_80187D3C;
 extern u32 Gp_LcgState;
 extern s16 D_80073BA0;
 
@@ -426,7 +432,169 @@ void func_actor_510900_801375D8(Actor510900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80137868);
+/// Handler for the scripted sequence the actor plays out through `field_590`:
+/// state 0 opens with the two 0x4078 cues at blend 0x39 and hands over at 0x5A,
+/// state 1 plays one more cue at blend 0xA and hands over at 0x64, state 2 runs
+/// the long beat - a pair swap and a screen fade at 0x50, a cue at 0x53 whose id
+/// depends on `field_594`, a script spawn at 0x58, the pair blanked at 0x60 -
+/// and either enters state 3 when `field_5B2` is latched or, past blend 0xB3,
+/// drops back to `field_58E` state 1 with a fresh `field_59C`. State 3 keeps the
+/// walk speed inside its two blend windows and, every sixth frame, restarts the
+/// effect on the player's model; its `field_5B6` sub-state queues file 0x1E and
+/// plays the arrival cue once the drive goes idle.
+///
+/// `blend` is one temp on purpose: the `lh` of `field_586` leaves its high bits
+/// unknown to combine, which is what keeps the `andi 0xFFFF` on the second
+/// window test of each chain.
+void func_actor_510900_80137868(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s32               snd;
+    s32               pair;
+    s32               blend;
+    u32               rng;
+
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+
+    *(u8**)G_SCRATCH_HEAD -= 0x10;
+
+    switch (work->field_590) {
+        case 0:
+            work->field_5B4 = 1;
+            work->field_5A2 = 0;
+            if (work->field_58A == 0x39) {
+                work->field_594 = 1;
+                work->field_598 = 0x10E;
+                snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000E;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_57C = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
+                SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 5);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+            }
+            if (work->field_58A >= 0x5A) {
+                work->field_586 = 0x1A;
+                work->field_590 = 1;
+            }
+            break;
+        case 1:
+            if (work->field_58A == 0xA) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780006;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x64) {
+                work->field_586 = 7;
+                work->field_590 = 2;
+            }
+            break;
+        case 2:
+            if (work->field_58A == 0x50) {
+                work->field_5B4       = 2;
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 3);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+
+                Game_Session->field_12F = 0x80;
+                Game_Session->field_12D = 0x7F;
+            }
+            if (work->field_58A == 0x53) {
+                if (work->field_594 == 1) {
+                    snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780010;
+                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                        (s8)Gp_GetObjDepth((GpObj38*)coord));
+                } else {
+                    snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000C;
+                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                        (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            }
+            if (work->field_58A == 0x58) {
+                Gp_SpawnScript18((s32)&D_80187D34, (s32)&D_80187D3C);
+            }
+            if (work->field_58A == 0x60) {
+                work->obj4E4.flags &= 0x7FFF;
+                work->obj504.flags &= 0x7FFF;
+            }
+            blend = (u16)work->field_58A;
+            if (blend - 0x4B < 0x10U) {
+                work->field_5A2 = 0x3C;
+            } else if (((blend - 0x8F) & 0xFFFF) < 0xFU) {
+                work->field_5A2 = -0x40;
+            } else {
+                work->field_5A2 = 0;
+            }
+            if (work->field_58A >= 0x51) {
+                if (work->field_5B2 == 1) {
+                    work->field_590 = 3;
+                    work->field_5B2 = 0;
+                    work->field_5B6 = 1;
+                    D_80073BA0      = 0;
+                    Gp_PulseState1C80();
+                }
+            } else {
+                work->field_5B2 = 0;
+            }
+            if (work->field_58A >= 0xB3) {
+                work->field_58E = 1;
+                work->field_586 = 1;
+                work->field_590 = 0;
+                work->field_59C = D_actor_510900_801679D0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
+                Gp_LcgState     = rng;
+            }
+            break;
+        case 3:
+            blend = work->field_586;
+            if (blend == 7) {
+                blend = (u16)work->field_58A;
+                if (blend - 0x4B < 0x10U) {
+                    work->field_5A2 = 0x3C;
+                } else if (((blend - 0x8F) & 0xFFFF) < 0xFU) {
+                    work->field_5A2 = -0x10;
+                } else {
+                    work->field_5A2 = 0;
+                }
+                if (work->field_58A >= 0xAA) {
+                    work->field_586 = 0x19;
+                }
+            }
+            work->field_59C++;
+            if (work->field_59C >= 6) {
+                work->field_59C                 = 0;
+                D_actor_510900_80167B7C.field_0 = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                func_800FDB18(5, &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4], NULL,
+                              &D_actor_510900_80167B7C);
+            }
+            switch (work->field_5B6) {
+                case 0:
+                    break;
+                case 1:
+                    CdCmd_EnqueueLoadFile(9, 0x1E, 3);
+                    work->field_5B6 = 2;
+                    break;
+                case 2:
+                    if (CdCmd_IsIdle() == 1) {
+                        coord = (Actor510900Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                        SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                            (s8)Gp_GetObjDepth((GpObj38*)coord));
+                        work->field_5B6 = 0;
+                    }
+                    break;
+            }
+            break;
+    }
+
+    *(u8**)G_SCRATCH_HEAD += 0x10;
+}
 
 void func_actor_510900_80137E20(Actor510900* arg0)
 {
