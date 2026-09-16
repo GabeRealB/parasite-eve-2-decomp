@@ -167,7 +167,39 @@ void func_actor_560800_80133540(u32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133648);
+void func_actor_560800_80133648(u32 arg0)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+
+    switch (arg0) {
+        case 0:
+            Gp_DispatchMsg(work->field_0, 0x3F3, 2, 0);
+            break;
+        case 1:
+            Gp_DispatchMsg(work->field_4, 0x7D5, 2, 0);
+            break;
+        case 2:
+            Gp_DispatchMsg(work->field_8, 0x7D5, 2, 0);
+            Gp_DispatchMsg(work->field_10, 0x7D5, 2, 0);
+            Gp_DispatchMsg(work->field_14, 0x7D5, 2, 0);
+            if (work->field_18 != NULL) {
+                Gp_DispatchMsg(work->field_18, 0x7D5, 2, 0);
+            }
+            break;
+        case 3:
+            Gp_DispatchMsg(work->field_C, 0x7D5, 2, 0);
+            if (work->field_1C != NULL) {
+                Gp_DispatchMsg(work->field_1C, 0x7D5, 2, 0);
+            }
+            break;
+        case 4:
+            Gp_DispatchMsg(work->field_20, 0x7D5, 2, 0);
+            break;
+        case 5:
+            Gp_DispatchMsg(work->field_24, 0x7D5, 2, 0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133750);
 
