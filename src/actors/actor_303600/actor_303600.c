@@ -7,7 +7,9 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern Task* D_actor_303600_8016E4C0;
+extern Task*    D_actor_303600_8016E4C0;
+extern Task*    D_actor_303600_8016E4C4;
+extern TaskDesc D_actor_303600_80162E98;
 INCLUDE_RODATA("actors/nonmatchings/actor_303600/actor_303600", D_actor_303600_80161E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_80161F40);
@@ -37,7 +39,34 @@ void func_actor_303600_801624B0(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8016253C);
+/// Cutscene teardown: kill the task a previous cutscene left in
+/// `D_actor_303600_8016E4C4`, then, while the work block's message flag is
+/// still clear, send the same 0x7DA announcement
+/// `func_actor_303600_801624B0` sends and latch selector 9.  Finishes by
+/// spawning the overlay's own continuation task -- `D_actor_303600_80162E98`
+/// entry 3 -- so this runs exactly once per cutscene.
+void func_actor_303600_8016253C(void)
+{
+    Actor303600Work*  work;
+    Actor303600Msg7DA msg;
+
+    if (D_actor_303600_8016E4C4 != NULL) {
+        Task_Kill(D_actor_303600_8016E4C4);
+        D_actor_303600_8016E4C4 = NULL;
+    }
+
+    work = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+    if (work->field_E == 0) {
+        msg.field_0 = Game_Session->field_7;
+        msg.field_1 = Game_Session->field_6;
+        msg.field_2 = 9;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        work->field_C = 9;
+        work->field_E = 1;
+    }
+
+    Task_SpawnFromTable(&D_actor_303600_80162E98, 3, 0, 0);
+}
 
 void func_actor_303600_80162600(s16 arg0)
 {
