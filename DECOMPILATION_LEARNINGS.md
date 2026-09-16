@@ -92948,3 +92948,73 @@ Inputs: `base.c` (92.945%)
 `6adb81edb56aa0eba94004681e1711030829c70f4a086b90118b5e679baccf90`,
 `base_3.c` (100.000%, reproduces base_1)
 `9884972180d2e95722d756bd97d550475d60f90b4252c59202ff64e1443bd9ee`.
+
+## An address variable the compiler folds away is still a scheduling lever (func_actor_800300_80161E80, 2026-09-16)
+
+`func_actor_800300_80161E80` reached 99.008% with `regs=0` and one residue left:
+`reorder=2`. Everything was byte-identical except that the `lui`/`sw` pair
+storing `D_80115764 = arg0` was emitted third, right after `lw v1,0x2c(s2)`,
+where the target has it in source order, after `sh v0,0x938(s0)`. So the whole
+question was *where* one independent store sits.
+
+Two experiments ruled out the obvious levers. Moving the statement later in the
+source moved its RTL uid (49 -> 61) and changed nothing, so the placement is not
+luid-driven; writing the constant as a plain `u8` was a separate defect (see the
+next entry).
+
+What fixed it is the idiom the twin body already uses - take the address into a
+variable, then dereference it:
+
+    GsCOORDINATE2** addr;
+    ...
+    addr  = &extra->field_8;
+    coord = *addr;
+
+Over the direct `coord = extra->field_8;` this adds two RTL insns (`.rtl` 20:
+`r85 = r82 + 8`, 23: `r83 = [r85]`) instead of one load `r83 = [r82 + 8]`.
+`combine` folds the address back into the load before assembly, so the object is
+still exactly 121 instructions and the diff is empty - but the extra chain
+changes sched's decisions: `.sched` prints the store's `INSN_PRIORITY` as 2 where
+the direct-load seed printed 1, and it lands in source order.
+
+`INSN_PRIORITY` is a max over predecessors, so an unrelated address chain moving
+a store's rank looks impossible on the static graph; the printed value already
+includes `adjust_priority`'s dynamic bumping (that dump is written after the
+block is scheduled), which is what a reverse scheduler actually ranks with. Read
+the dump, not the formula.
+
+Recognise the shape before reaching for a pin: when the residue is *the position
+of one memory op* and every penalty but `reorder` is zero, try the sibling body's
+address-variable form. In this family a body that takes `&x->field` into a local
+is not stylistic noise - it is what the original wrote, and it is load-bearing.
+
+Example: `func_actor_800300_80161E80`. Inputs: `base_5.i`
+`7b2f8ae7fea2eafd2a121c527b925db97241e3d7d74dd57735d9ca0f84c3ea62` (99.008%),
+`base_6.i` `ea3f67298eef32f212a937c299f6c248eb646c7024266a1725cabfadd1cd9808` (100%).
+
+## A negative constant into a `u8` field folds to its positive byte; an `s8` temporary keeps the sign (func_actor_800300_80161E80, 2026-09-16)
+
+The last instruction of `func_actor_800300_80161E80` is `li $2,-0x6a` followed by
+`sb $2,0xcc($s6)`. `GpActorD4::field_CC` really is `u8` - `func_actor_800100_80165C38`
+reads it with `lbu` at 0xCC - and `d4->field_CC = -0x6A;` compiles to `li $2,150`:
+
+- the conversion to an unsigned 8-bit type masks the constant at tree level, so
+  `convert_modes (QImode, SImode, -106, unsignedp = 1)` yields 150;
+- casting the constant, `(s8)-0x6A`, does not help: `fold` collapses the cast
+  pair into one NOP_EXPR to `u8` and the same masking happens.
+
+An `s8`-typed *variable* does keep it, because the assignment first builds
+`(set (reg:QI) (const_int -106))` and the copy into the store stays QImode, where
+`trunc_int_for_mode` sign-extends:
+
+    s8           fcc;
+    ...
+    fcc          = -0x6A;
+    d4->field_CC = fcc;
+
+The byte stored is 0x96 either way, so the program is unchanged; only the
+register's upper bits differ, and those are what the object compares. Expect this
+wherever a field the header types `u8` is written with a negative literal.
+
+Example: `func_actor_800300_80161E80`. Inputs: `base_4.i` (cast, 98.967%) vs
+`base_5.i` `7b2f8ae7fea2eafd2a121c527b925db97241e3d7d74dd57735d9ca0f84c3ea62` (99.008%).
