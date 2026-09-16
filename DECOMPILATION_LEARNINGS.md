@@ -95031,3 +95031,66 @@ by 20 points, because gcc emits the then-block inline.
 `1d4d0d2820487b1621e40a0f69a5049ad90b260fb08c13801eaa717b54754a03`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_341300_80163A10-vacuum` (`base_4_diff`).
+## Hoisting a `& 0x3FF` into a `u16` local folds the compare's zero-extension to a `move` (func_actor_202900_8014A394, 2026-09-16)
+
+The slot's animation id is the low ten bits of `GpAnimSlot.field_2`, and the
+target masks it at every use - the mask and the re-extension of its own result
+are two separate instructions:
+
+```
+lhu    $v0, 0x7E($v1)
+nop
+andi   $a0, $v0, 0x3FF
+andi   $a1, $a0, 0xFFFF      <- zero_extendhisi2 feeding the s16 compare
+lh     $v0, 0x484($v1)
+nop
+beq    $v0, $a1, ...
+```
+
+The m2c seed - an `s16` local holding the masked word, plus the `& 0xFFFF` copy
+m2c invents for the compare - scored 80.905%, with `move $a1,$a0` where the
+second `andi` belongs, and a duplicated `jr $ra` tail. Hoisting the mask into a
+`u16` local (the obvious cleanup, and the form the `lbu` entries above call for)
+fixed the whole control flow - 89.474%, 5/5 blocks, 19/19 instructions - and
+still emitted `move $a1,$a0`.
+
+`.combine` says why. With the local, the RTL is a copy of the masked word into
+an HImode pseudo followed by the extension, and combine merges the two:
+
+```
+(set (reg:HI 80) (subreg:HI (reg:SI 85) 0))          ; the u16 local
+(set (reg:SI 86) (zero_extend:SI (reg/v:HI 80)))
+  ->  (set (reg:SI 86) (reg:SI 85))  {movsi_internal2}
+```
+
+Once the masked register is the subreg's register, combine's ZERO_EXTEND-of-
+SUBREG rule can see that bits 16 and up are zero and rewrites the extension
+away before the machine description ever sees it. Leaving the read raw and
+writing the mask at each use site - three times in the source, cse still emits
+one `andi` - keeps the extension born at expansion as
+`(set (reg:SI 85) (zero_extend:SI (subreg:HI (reg:SI 84) 0)))`, which combine
+leaves alone (`{zero_extendhisi2}`) and the backend turns into
+`andi $a1,$a0,0xFFFF`. 100.000% on the next build, all penalties zero.
+
+A probe of the same body with the mask spelled eight different ways, target
+sequence first:
+
+```
+u16 raw = slot.field_2;   ... (raw & 0x3FF) at each use     andi $a0; andi $a1,0xffff
+s32 raw = slot.field_2 & 0x3FF;   (u16) casts at each use   andi $a0; andi $a1,0xffff
+u16 frame = slot.field_2 & 0x3FF;   frame used              andi $a0; move
+u16 frame; frame = ...; frame &= 0x3FF;                     andi $a0; move
+u16 frame = ...;   (frame & 0xFFFF) at each use             andi $a0; move
+s32 raw = slot.field_2;   s32 frame = raw & 0x3FF;          andi $a0 (no extension at all)
+```
+
+So the tell is a target that masks a halfword read *and* re-extends that very
+register: keep the masked value's declared width out of it. Note this is the
+mirror of "A `u16` local re-truncates; use `s32` when the source is `lhu`" -
+there the narrow local costs a spurious `andi`, here it costs the `andi` you
+need, because it gives the combiner a value to replace.
+
+Inputs: `base.c` (80.905%)
+`fdba11d78de5a47bbe4f95ed30e2a95616ce5e6cc4687166b181615526bca1d6`,
+`base_2.c` (100.000%)
+`7c29f53e1f3797e505b5548a5407cc2466ffb5cec3538d673e6edfb826a0f79a`.

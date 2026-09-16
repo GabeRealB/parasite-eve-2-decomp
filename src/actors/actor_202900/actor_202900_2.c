@@ -65,7 +65,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A304);
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A394);
+/// Watches the second animation slot for the frame the overlay reacts to:
+/// while it holds 0x15, records it in `field_484` and reports whether that is
+/// a change.
+///
+/// The mask is written at each use rather than hoisted into a `u16` local.
+/// Hoisting makes the local a copy of the masked word, and combine then folds
+/// the compare's zero-extension into a `move`; masking where the value is read
+/// keeps the `andi $a1,$a0,0xffff`.
+s32 func_actor_202900_8014A394(void)
+{
+    u16 frame;
+
+    frame = ActorsShared80131f9cWork->slots[1].field_2;
+    if ((frame & 0x3FF) == 0x15) {
+        if (ActorsShared80131f9cWork->field_484 != (frame & 0x3FF)) {
+            ActorsShared80131f9cWork->field_484 = frame & 0x3FF;
+            return 1;
+        }
+        ActorsShared80131f9cWork->field_484 = frame & 0x3FF;
+    }
+    return 0;
+}
 
 /// Animation-start handler: seeds the work block's `animId` with the requested
 /// one, rejecting anything from 5 up, and leaves the actor in step 2 with

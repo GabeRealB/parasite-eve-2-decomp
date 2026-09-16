@@ -21,6 +21,7 @@ typedef struct Actor202900Work {
     /* 0x47E */ byte       pad_47E[2];
     /* 0x480 */ u16        animId;    // animation id the slots are seeded with
     /* 0x482 */ s16        field_482; // cleared when a step body is started
+    /* 0x484 */ s16        field_484; // frame the second slot last held when it was 0x15, kept for change detection
 } Actor202900Work;
 
 extern Actor202900Work* ActorsShared80131f9cWork;
@@ -42,6 +43,7 @@ void func_actor_202900_8014A194(GpActorWork* arg0);
 void func_actor_202900_8014A208(void);
 void func_actor_202900_8014A260(void);
 void func_actor_202900_8014A304(void);
+s32  func_actor_202900_8014A394(void);
 s32  func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args);
 
 #endif
