@@ -742,7 +742,111 @@ void Actor04400_Fn058F4(Task* arg0)
     tmd->field_C |= 0x80;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05A40);
+/// Sub-state handler: slides the model's root toward `field_70` in x/z,
+/// accelerating with `field_42A`; after 90 frames it also eases y in and marks
+/// `field_438`. Within 800 units it advances `field_422`; if the enemy's HP is
+/// gone instead, it queues the follow-up animation (or clears `field_438` when
+/// state 4 is pending).
+///
+/// The same body as `func_actor_342400_80168B74` and
+/// `func_actor_341700_80167890`, except that the animation to follow id 8 with
+/// comes from this overlay's `Actor04400_D10828`. The three name different
+/// tables, so the bodies are not interchangeable and each is matched on its own.
+void Actor04400_Fn05A40(Task* arg0)
+{
+    TmdObject*       obj;
+    Actor104400Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   c;
+    VECTOR           d;
+    SVECTOR          dir;
+    VECTOR           sq;
+    VECTOR*          out;
+    s16              angle;
+    s16              next;
+
+    obj   = arg0->extra;
+    work  = (Actor104400Work*)arg0->idMap;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    coord = obj->field_8;
+    work->field_412++;
+    work->field_428++;
+    work->field_42A += work->field_428;
+    if ((s16)work->field_412 < 0x5A) {
+        s32 step = work->field_42A >> 6;
+
+        c      = ((TmdObject*)arg0->extra)->field_8;
+        dir.vx = work->field_70.vx - c->coord.t[0];
+        dir.vy = 0;
+        dir.vz = work->field_70.vz - c->coord.t[2];
+        VectorNormalSS(&dir, &dir);
+        angle                                           = ratan2(dir.vx, dir.vz);
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    } else {
+        s32 step;
+
+        work->field_438 = 1;
+        step            = work->field_42A >> 5;
+        c               = ((TmdObject*)arg0->extra)->field_8;
+        dir.vx          = work->field_70.vx - c->coord.t[0];
+        dir.vy          = 0;
+        dir.vz          = work->field_70.vz - c->coord.t[2];
+        VectorNormalSS(&dir, &dir);
+        angle                                           = ratan2(dir.vx, dir.vz);
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+        coord->coord.t[1]                              += (work->field_70.vy - coord->coord.t[1]) >> 4;
+    }
+    d.vx = coord->coord.t[0] - work->field_70.vx;
+    d.vy = coord->coord.t[1] - work->field_70.vy;
+    d.vz = coord->coord.t[2] - work->field_70.vz;
+    out  = &sq;
+    gte_ldlvl(&d);
+    __asm__ volatile("nop; nop; .word 0x4AA00428"); // sqr 0
+    gte_stlvnl(out);
+    if (SquareRoot0(sq.vx + sq.vy + sq.vz) < 800) {
+        work->field_422++;
+        return;
+    }
+    if (enemy->field_40 <= 0) {
+        SndEvt_EnqueueType7(0x402C0002, 1);
+        if (work->field_448 != 4) {
+            work->field_438 = 1;
+            if (work->field_418 == 8) {
+                if (work->field_440 == 0) {
+                    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+                    w->field_426 = 4;
+                    w->field_41C = 0x10;
+                    w->field_418 = 5;
+                    w->field_414 = 1;
+                } else {
+                    Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+                    w->field_426 = 4;
+                    w->field_41C = 0x10;
+                    w->field_418 = 6;
+                    w->field_414 = 1;
+                }
+            } else {
+                Actor104400Work* w;
+
+                next         = Actor04400_D10828[work->field_418 - 1];
+                w            = (Actor104400Work*)arg0->idMap;
+                w->field_426 = 4;
+                w->field_41C = 0x10;
+                w->field_418 = next;
+                w->field_414 = 1;
+            }
+        } else {
+            work->field_438 = 0;
+        }
+    }
+}
 
 /// Same body as `func_actor_342400_80168F14`. This overlay's whole `.text` is
 /// already one shared span, so it cannot join that unit.
