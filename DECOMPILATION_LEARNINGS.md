@@ -6721,6 +6721,35 @@ flag = D_8006EBBA;
 CSE still reuses the masked value for later uses after the reload is combined,
 but the early store pulls the `lui` ahead of the callee-saved saves.
 
+## Setup before an early-out is source order: scheduling never crosses a block boundary
+
+`m2c` puts the guard first when a function opens with an early return, but the
+asm order decides which basic block the setup sits in. sched1 schedules one
+block at a time, and MIPS delay-slot filling only pulls instructions from
+*before* the branch into its delay slot — never from the fall-through path. So a
+carve/store that appears *before* the guard's `beq` in the target was written
+there in the source.
+
+`Actor00100_Fn01388` carves its 0x70-byte scratch, stores the new head and binds
+`s` (`move $s1, $v1`) *above* the `D_80072729 == 1 || Game_Session->field_4D == 1`
+early-out, which makes that path leak the scratch. Its sibling `Actor00100_Fn00508`,
+the same body otherwise, guards first. Moving the carve below the guard in the C
+lost one instruction and cost 22 branch penalties plus insert/delete 7/8; putting
+it back above gave an all-zero 100%.
+
+```c
+/* Matches Fn01388: one block from the carve through the guard's branch */
+head                  = *(u8**)G_SCRATCH_HEAD;
+*(u8**)G_SCRATCH_HEAD = head - sizeof(Scratch);
+s                     = (Scratch*)*(u8**)G_SCRATCH_HEAD;
+if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+    return 0;
+}
+```
+
+Read an apparently buggy leak as evidence about block membership, not as
+something to clean up.
+
 ## Count-up `do`/`while` with `u32` for `sltiu` clear loops
 
 A plain `for (i = 0; i < N; i++) { *ptr++ = 0; }` with a signed `i` often
@@ -6926,6 +6955,16 @@ diffs against the relocatable `j` your build emits. A leftover
 `j 48` vs `j .text+48` in the final diff is only the relocation, not a
 mismatch. On the match, delete **all** of that function's `INCLUDE_ASM` lines
 — the label ones included.
+
+**A host `.c`'s `static __inline__` helpers are invisible to the scratch unit.**
+The scratch env compiles only the candidate file, so a helper defined above the
+`INCLUDE_ASM` in the host `.c` (here `Actor00100_BearingXZ` / `_BearingXY`) has
+no definition in scope: the call is emitted against an implicit declaration and
+the helper's body never appears, so the object comes out ~40 instructions short
+(310 vs 350, `delete=55`, `blocks=42/43`) and scores well below what the source
+deserves. Copy the helper definitions verbatim into the scratch file — they are
+already in scope when the body lands back in the host file, so do not add them
+there.
 
 **Piping `build.sh` into `head` records a failure and can disqualify the seed.**
 `build.sh` journals its result from an `EXIT` trap, so a `./build.sh base_1.c |

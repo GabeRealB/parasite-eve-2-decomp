@@ -382,7 +382,123 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn01388);
+/// Collects bearings from the obstacles in `recs` into a 16-slot scratch and
+/// steps `coord` along each survivor. Same walk as `Actor00100_Fn00508`, but
+/// `blocked` is raised only for a kind 0x10000 record whose `field_4` bit 0x80
+/// is clear. The scratch is carved before the early-out, so that path leaks it.
+s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+{
+    u8*                       head;
+    Actor00100AvoidScratch16* s;
+    s16                       diff;
+    s16                       t;
+    s32                       mag;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor00100AvoidScratch16);
+    s                     = (Actor00100AvoidScratch16*)*(u8**)G_SCRATCH_HEAD;
+
+    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+        return 0;
+    }
+
+    s->blocked = 0;
+    pos->vz    = 0;
+    pos->vy    = 0;
+    pos->vx    = 0;
+
+    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x50));
+    VectorNormalSS((SVECTOR*)(head - 0x50), (SVECTOR*)(head - 0x50));
+
+    if (ABS(s->dir.vz) < 0x818) {
+        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+    } else {
+        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
+    }
+
+    s->eye.vx = *(u16*)&coord->workm.t[0];
+    s->eye.vy = *(u16*)&coord->workm.t[1];
+    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->count  = 0;
+
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].field_4 == 0) {
+            break;
+        }
+        s->kind  = recs[s->i].field_4 & 0xFFFF0000;
+        s->flags = recs[s->i].field_4 & 0x80;
+        switch (s->kind) {
+            case 0x10000:
+                if (s->flags == 0) {
+                    s->blocked = 1;
+                }
+            case 0x30000:
+                break;
+            default:
+                continue;
+        }
+
+        if (ABS(s->dir.vz) < 0x818) {
+            s->angle[s->count] = Actor00100_BearingXZ((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+        } else {
+            s->angle[s->count] = Actor00100_BearingXY((SVECTOR3*)&recs[s->i].field_8, &s->eye);
+        }
+        s->ok[s->count] = 1;
+        s->count++;
+        if (s->count >= 16) {
+            break;
+        }
+    }
+
+    for (s->i = 0; s->i < s->count; s->i++) {
+        for (s->j = s->i + 1; s->j < s->count; s->j++) {
+            diff = (u16)s->angle[s->i] - (u16)s->angle[s->j];
+            t    = diff;
+            if (diff < 0) {
+            wrapUp:
+                if (t < -0x800) {
+                    t += 0x1000;
+                    goto wrapUp;
+                }
+            } else {
+            wrapDown:
+                if (t > 0x800) {
+                    t -= 0x1000;
+                    goto wrapDown;
+                }
+            }
+            mag     = t;
+            s->diff = mag;
+            SOFT_BARRIER();
+            if (mag < 0) {
+                mag = -mag;
+            }
+            if (mag >= 0x401) {
+                s->ok[s->i] = 0;
+                s->ok[s->j] = 0;
+            }
+        }
+        if (s->ok[s->i] != 0) {
+            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+            s->diff = diff;
+            Gfx_RotMatrixY(&s->m, diff, 1);
+            Gfx_MatrixCol2(&s->m, &s->dir);
+            VectorNormalSS(&s->dir, &s->dir);
+            gte_lddp(-10);
+            gte_ldsv(&s->dir);
+            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_stsv(&s->dir);
+            pos->vx           += s->dir.vx;
+            pos->vz           += s->dir.vz;
+            coord->coord.t[0] += s->dir.vx;
+            coord->coord.t[2] += s->dir.vz;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor00100AvoidScratch16);
+    return s->blocked != 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn01900);
 

@@ -219,6 +219,27 @@ typedef struct Actor00100AvoidScratch {
 } Actor00100AvoidScratch;
 STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch, 0x54);
 
+/// 0x70-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn01388`, the
+/// 16-slot variant of the `Actor00100_Fn00508` walk. `flags` keeps the current
+/// record's `field_4` bit 0x80, which gates `blocked` for kind 0x10000.
+typedef struct Actor00100AvoidScratch16 {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s32      flags;
+    /* 0x38 */ s16      angle[16];
+    /* 0x58 */ s8       ok[16];
+    /* 0x68 */ s16      face;
+    /* 0x6A */ s16      diff;
+    /* 0x6C */ u8       i;
+    /* 0x6D */ u8       j;
+    /* 0x6E */ u8       count;
+    /* 0x6F */ u8       blocked;
+} Actor00100AvoidScratch16;
+STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch16, 0x70);
+
 /// 0x10-byte scratch the bearing helpers of `Actor00100_Fn00508` nest inside
 /// `Actor00100AvoidScratch`: an obstacle's offset, widened to words.
 typedef struct Actor00100AvoidDelta {
