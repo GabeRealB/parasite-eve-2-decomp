@@ -99032,3 +99032,61 @@ Inputs: `base_1.i` (100.000%, first distinct build) SHA256
 `ed37df1b6c699eb4a3f1a0bd9622b6be5800b25cb8d22be77dd26f0195fdaa06`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn095D8-vacuum`.
+
+## An m2c temp and the natural `+=` create a compound assignment's loads in opposite order, and that alone places the store's reload
+
+`Actor00400_Fn0962C` (actors, `actor_100400_fn0805c`) copies `field_56C` into
+`field_574`, then lerps two `coord.t[]` words a quarter of the way toward the
+copied values. Both the seed and the match are 37 instructions with the same
+histogram, and the seed scored 96.486% (`stack=0 branch=0 regs=2 reorder=2`):
+its whole diff was four lines - `sh zero,0x636($a1)` and the reload
+`lh $v0,0x574($a1)` swapped with the `lw $v1,0x18($a2)` they sit between.
+
+The seed is m2c's two-statement transliteration of the assignment:
+
+```c
+temp_v1 = M2C_FIELD(temp_a2, s32 *, 0x18);
+M2C_FIELD(temp_a2, s32 *, 0x18) =
+    (s32)(temp_v1 + ((s32)((s16)M2C_FIELD(temp_a1, u16 *, 0x574) - temp_v1) >> 2));
+```
+
+Writing the same thing as one compound assignment is the match:
+
+```c
+coord->coord.t[0] += ((s16)work->field_574.vx - coord->coord.t[0]) >> 2;  /* 100% */
+```
+
+The two forms emit the same four arithmetic instructions, and the difference is
+where the two *loads* land in RTL creation order, which the `.loc` lines of the
+`s` dump pin down (both from the one source line):
+
+| form | insn order | uids |
+|---|---|---|
+| m2c temp | `lw 0x18($a2)` then `lh 0x574($a1)` | 37, 42 |
+| compound assignment | `lh 0x574($a1)` then `lw 0x18($a2)` | 39, 41 |
+
+The store (`sh $v0,0x574`) is a producer the reload reads, so the two loads both
+become ready when the `subu` that consumes them is scheduled, both carry the
+same priority (3), and `rank_for_schedule` falls through to
+`INSN_LUID (tmp) - INSN_LUID (tmp2)` - the later-created insn is preferred. In
+the seed that picks the object load first and leaves the reload until after the
+`sh $zero,0x636` and the other two stores; with the compound assignment `sched1`
+still emits `... 24 21 29 34 39 41 ...` but `sched2`, whose dependencies now
+include the post-reload register homes, reorders to the target's
+`... 21 39 24 29 34 41 ...`. The second pair (`lh 0x578($a1)` / `lw 0x20($a2)`)
+is decided the same way in both builds, so one statement-form change moves both
+reloads at once.
+
+The general lesson: **when a store is immediately re-read into the same
+register, the creation order of the reload and of any neighbouring load is
+source-form dependent, and m2c's hoisted temporaries are the usual reason the
+pair comes out backwards.** A `regs=`/`reorder=` penalty with an identical
+instruction multiset and `topology: match` is the signature; check the uids of
+the two loads in `.lreg` (or the `.loc` lines of the `.s`) before touching
+scheduling.
+
+Inputs: `base_1.i` (100.000%, first distinct build) SHA256
+`d58012d49d9f1df6e2856e72d4bcb574412f2ea0afb3d11ef8d201ddbba842bf`; target SHA256
+`5231d75349e68d81b4a319e93ccb06cb5e0ae4b8d4c11967b347cf30ab60d1d1`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn0962C-vacuum`.
