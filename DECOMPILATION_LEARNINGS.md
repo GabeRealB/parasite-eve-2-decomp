@@ -74401,6 +74401,29 @@ and read a missing prologue as a control-flow shape difference, since
 `insert`/`delete`/`branch` on such a seed are the duplicated `jr ra`s, not
 scheduling noise.
 
+The frame is the whole of that difference; the C control-flow shape is not.
+`func_dryfield_trailer_coach_8018291C` (a two-arm leaf, `64.6%` as m2c's
+early-return, identical as `if/else`) reaches 100.00% either as a `switch` with
+`case 8:` / `default:` + `char pad[0x10]` *or* as a plain `if/else` + the same
+pad — the two compile to the same object. Both differ from the frameless form in
+one RTL detail, read from `.sched2`:
+
+```
+frameless:  (jump_insn 43 (return))                     335 {return}
+with pad:   (insn 52 (set sp (plus sp 16)))             3   {addsi3_internal}
+            (jump_insn 53 (parallel[(use (reg 31 ra))
+                                    (return)]))         336 {return_internal}
+```
+
+`reorg.c`'s `find_end_label` decides `end_of_function_label` by testing
+`GET_CODE (PATTERN (PREV_INSN (barrier))) == RETURN`, which matches the bare
+`{return}` and *not* the `{return_internal}` parallel. With a frame that test
+misses, the exit label is not `end_of_function_label`, and `make_return_insns`
+— which only converts a branch whose `JUMP_LABEL` *is* `end_of_function_label` —
+leaves it as a `j` into the one epilogue. Without the frame it converts the
+branch to its own `jr ra`. So the duplicated-`jr ra` tell is a missing pad, full
+stop: do not go looking for a `switch`, a `goto` or a label to explain it.
+
 ## A second zero-init copies the first variable's register, so `move a3,t0` is not `i = count`
 
 `func_actor_215100_8014C5E0` opens with two instructions that look like a
