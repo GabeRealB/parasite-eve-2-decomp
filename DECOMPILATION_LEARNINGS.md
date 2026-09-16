@@ -100850,3 +100850,20 @@ Also in this function: a `u16 id` masked from `field_4A & 0x3FF` plus an explici
 `s32 v = id;` used for every compare swapped the two `andi` registers into place
 (`a1` = masked, `v1` = extension); with the implicit extension the u16 pseudo had
 more refs and won `v1`.
+
+### `move v1,a0` in a branch delay slot: load the other pointer into a local before the arg store
+
+`func_actor_204000_8014C51C` opens its restart arm with `beqz v0,...` /
+`move v1,a0`, then `lw v0,0x2C(s1)` / `sb zero,0x14(v1)` / `sh zero,0xC(v0)`.
+Writing `arg0->field_14 = 0; arg1->field_2C->field_C = 0;` stores straight off
+`$a0` (97%, only diff). Naming the object first matched:
+
+```c
+obj            = arg1->field_2C;
+arg0->field_14 = 0;
+obj->field_C   = 0;
+```
+
+The rest of the function is `Actor01900_OutOfRange`'s scratch-block radius
+test verbatim (see "A scratch push the pop overwrites is deleted by `flow`");
+porting that inline took it from 77% to 97% in one step.

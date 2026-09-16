@@ -44,7 +44,9 @@ typedef struct Actor104000Work {
     /* 0x174 */ s16  field_174;
     /* 0x176 */ s16  field_176;
     /* 0x178 */ s16  field_178;
-    /* 0x17A */ byte pad_17A[0x114];
+    /* 0x17A */ byte pad_17A[2];
+    /* 0x17C */ s16  field_17C;
+    /* 0x17E */ byte pad_17E[0x110];
     /* 0x28E */ u16  field_28E;
     /* 0x290 */ byte pad_290[0xDE];
     /* 0x36E */ u16  field_36E;
@@ -89,6 +91,15 @@ typedef struct Actor104000 {
     /* 0x2C */ Actor104000Obj2C* field_2C;
 } Actor104000;
 STATIC_ASSERT_SIZEOF(Actor104000, 0x30);
+
+/// 0xC-byte scratch taken from `0x1F8003FC` for the player-in-radius test:
+/// the X/Z offset to the camera target and the radius, squared in place.
+typedef struct Actor104000RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor104000RangeScratch;
+STATIC_ASSERT_SIZEOF(Actor104000RangeScratch, 0xC);
 
 void func_actor_104000_80132C8C(Actor104000* arg0);
 void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);
