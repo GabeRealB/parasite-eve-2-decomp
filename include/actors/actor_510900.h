@@ -121,8 +121,11 @@ typedef struct Actor510900Work {
     /* 0x5BE */ byte pad_5BE[4];
     /// Written by the child task's frame handler from its `field_336` when
     /// that task's `field_334` is 2 or more.
-    /* 0x5C2 */ s16  field_5C2;
-    /* 0x5C4 */ byte pad_5C4[4];
+    /* 0x5C2 */ s16 field_5C2;
+    /// Phase the child task's state machine reads: 1 starts it, 2 makes the
+    /// grab land on the node's occupancy tag rather than 0.
+    /* 0x5C4 */ s16  field_5C4;
+    /* 0x5C6 */ byte pad_5C6[2];
 } Actor510900Work;
 STATIC_ASSERT_SIZEOF(Actor510900Work, 0x5C8);
 
@@ -251,7 +254,8 @@ typedef struct Actor510900ChildWork {
     /* 0x70 */ Task*   field_70; // released (state 3) on a view change
     /* 0x74 */ s16     field_74; // row of `D_actor_510900_80167CEC`
     /* 0x76 */ s16     field_76; // countdown, decremented on a view change
-    /* 0x78 */ byte    pad_78[0x4];
+    /* 0x78 */ s16     field_78; // state handed to `field_70` when the grab lands
+    /* 0x7A */ byte    pad_7A[0x2];
 } Actor510900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
 

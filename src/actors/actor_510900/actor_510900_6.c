@@ -1,102 +1,102 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 
-void func_actor_510900_8013A5B8(void* enemy, Task* task);
-void func_actor_510900_8013A85C(void* enemy, Task* task);
-
-void func_actor_510900_8013C1EC(Task* task)
+s16 func_actor_510900_8013BE84(Actor510900* arg0)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_510900_8013A5B8, func_actor_510900_8013A85C };
+    return arg0->field_1C->field_592;
+}
+
+void func_actor_510900_8013BEEC(void* enemy, Task* task);
+void func_actor_510900_801395AC(void* enemy, Task* task);
+
+void func_actor_510900_8013BE98(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_510900_8013BEEC, func_actor_510900_801395AC };
 
     fns[task->state](task->spawnArg2, task);
 }
 
-s32 Gp_GetViewIndex(void);
-
-/// The three views the child is visible in, indexed by its `field_334`.
-extern u16 D_actor_510900_80167CD8[][3];
-
-/// Reports whether the camera has cut away from every view this child runs in.
-/// Until then it returns 1 and the caller keeps ticking the animation; on the
-/// frame all three views miss it hides the model, releases the task it holds
-/// and returns 0.
-s32 func_actor_510900_8013C240(Task* task)
+void func_actor_510900_8013BEEC(void* enemy, Task* task)
 {
-    Actor510900Obj2C*     obj;
-    Actor510900ChildAnim* work;
-    Actor510900Ctx*       ctx;
-    s32                   i;
-    u8                    misses;
-    u8                    view;
+    TmdObject*       obj;
+    Actor510900Work* work;
+    GsCOORDINATE2*   coord;
 
-    obj    = (Actor510900Obj2C*)task->extra;
-    work   = (Actor510900ChildAnim*)task->idMap;
-    ctx    = (Actor510900Ctx*)task->spawnArg2;
-    misses = 0;
-    view   = Gp_GetViewIndex();
-    for (i = 0; i < 3; i++) {
-        if (view != D_actor_510900_80167CD8[work->field_334][i]) {
-            misses++;
-        }
-    }
-
-    if (misses != 3) {
-        return 1;
-    }
-
-    obj->field_C        = 0x80;
-    work->obj2BC.flags &= 0x7FFF;
-    work->obj2F4.flags &= 0x7FFF;
-    ctx->node.field_4   = 1;
-    if (work->field_32C != NULL) {
-        work->field_32C->state = 2;
-        work->field_32C        = NULL;
-    }
-    if (work->field_332 != 0) {
-        work->field_332--;
-    }
-    return 0;
+    obj            = (TmdObject*)task->extra;
+    work           = (Actor510900Work*)task->parent->idMap;
+    coord          = obj->field_8;
+    obj->field_25 += 2;
+    Tmd_ProcessStream(obj);
+    Tmd_ProcessStream(obj);
+    coord->sub    = &((TmdObject*)task->parent->extra)->field_8[12];
+    coord->flg    = 0;
+    obj->field_C  = 0x80;
+    obj->field_1C = &work->field_45C;
+    obj->field_20 = &work->field_43C;
+    task->state   = 1;
 }
 
-void func_actor_510900_8013C338(Actor510900* arg0, Actor510900Coord* arg1)
+void func_actor_510900_8013BFE4(void* enemy, Task* task);
+void func_actor_510900_8013C034(void* enemy, Task* task);
+
+void func_actor_510900_8013BF90(Task* task)
 {
-    VECTOR pos;
-
-    pos.vx = arg1->field_0.workm.t[0];
-    pos.vy = arg1->field_0.workm.t[1];
-    pos.vz = arg1->field_0.workm.t[2];
-    func_800D7A9C((TmdObject*)arg0->field_2C, &pos, 0, 3);
-}
-
-void func_actor_510900_8013C380(Actor510900* arg0)
-{
-    GpEnemy*         enemy = arg0->field_20;
-    Actor510900Work* work  = arg0->field_1C;
-
-    Gp_UnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->obj2BC);
-    Gp_UnlinkObj(&work->obj2F4);
-    Gp_DestroyEnemy(enemy, (Task*)arg0);
-}
-
-void func_actor_510900_8013AD90(void* enemy, Task* task);
-void func_actor_510900_8013AF38(void* enemy, Task* task);
-
-void func_actor_510900_8013C3DC(Task* task)
-{
-    void (*fns[2])(void*, Task*) = { func_actor_510900_8013AD90, func_actor_510900_8013AF38 };
+    void (*fns[2])(void*, Task*) = { func_actor_510900_8013BFE4, func_actor_510900_8013C034 };
 
     fns[task->state](task->spawnArg2, task);
 }
 
-void func_actor_510900_8013C430(Actor510900* arg0)
+void func_actor_510900_8013BFE4(void* enemy, Task* task)
 {
-    GpEnemy*         enemy = arg0->field_20;
-    Actor510900Work* work  = arg0->field_1C;
+    TmdObject*       obj;
+    Actor510900Work* work;
 
-    Gp_UnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->obj0);
-    Gp_UnlinkObj(&work->obj38);
-    Gp_DestroyEnemy(enemy, (Task*)arg0);
+    obj               = (TmdObject*)task->extra;
+    work              = (Actor510900Work*)task->parent->idMap;
+    obj->field_C      = 0x80;
+    obj->field_8->sub = &((TmdObject*)task->parent->extra)->field_8[8];
+    obj->field_1C     = &work->field_45C;
+    obj->field_20     = &work->field_43C;
+    task->state       = 1;
+}
+
+void func_actor_510900_8013C034(void* enemy, Task* task)
+{
+    ((TmdObject*)task->extra)->field_C      = ((TmdObject*)task->parent->extra)->field_C;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+}
+
+void func_actor_510900_8013C0E4(void* enemy, Task* task);
+void func_actor_510900_8013C134(void* enemy, Task* task);
+
+void func_actor_510900_8013C090(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_510900_8013C0E4, func_actor_510900_8013C134 };
+
+    fns[task->state](task->spawnArg2, task);
+}
+
+void func_actor_510900_8013C0E4(void* enemy, Task* task)
+{
+    TmdObject*       obj;
+    Actor510900Work* work;
+
+    obj               = (TmdObject*)task->extra;
+    work              = (Actor510900Work*)task->parent->idMap;
+    obj->field_C      = 0x80;
+    obj->field_8->sub = &((TmdObject*)task->parent->extra)->field_8[3];
+    obj->field_1C     = &work->field_45C;
+    obj->field_20     = &work->field_43C;
+    task->state       = 1;
+}
+
+void func_actor_510900_8013C134(void* enemy, Task* task)
+{
+    ((TmdObject*)task->extra)->field_C      = ((TmdObject*)task->parent->extra)->field_C;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
 }

@@ -89729,3 +89729,50 @@ the reference point.
 96.8% -> 100%. Corollary for reading a diff: when a global's address appears
 much earlier than its only use, suspect a merged block rather than
 rematerialization.
+
+## A `Task*` reused across switch cases is multi-set, so every case's load starves (func_actor_510900_8013B0D8, 2026-09-16)
+
+A sharper corollary of "sched1 starves an insn whose destination pseudo is
+assigned more than once" above: mutually exclusive branches still share one
+pseudo, so `REG_N_SETS` counts *all* of them. A single `Task* child` written
+once per `switch` case has four sets, `birthing_insn_p` fails for all four, and
+none of the `lw child, 0x70(work)` loads is ever bumped to `LAUNCH_PRIORITY`.
+
+The symptom was not `reorder`. In the one block that also updated a flags
+halfword, the starved load drifted to the front:
+
+```
+li    v1,4              /* target: li v0,4    */
+lw    a0,0x70(s2)       /*         sh v0,0x74 */
+lhu   v0,0x56(s2)       /*         lhu v0,0x56 */
+sh    v1,0x74(s2)       /*         lw  v1,0x70 */
+```
+
+which kept the `4` constant live across the load, so the constant took `$v1`,
+the flags took `$v0` and `child` was pushed out to `$a0` — a `regs=12` penalty
+on four blocks, with only `reorder=2`. Reading it as an allocation problem
+leads nowhere; the allocation is downstream of the schedule.
+
+Splitting into one variable per case (`held`, `ending`, `dropped`, `released`)
+made each load single-set and birthing. In the `.i.sched` trace the decision is
+visible as the T-4 tie disappearing:
+
+```
+;; ready list at T-4: 363 (1) 354 (1), now 363 354
+;; insn 354 has a greater potential hazard, now 354 363   <- store beats load
+```
+
+`schedule_select`'s potential-hazard override only runs inside one
+equal-priority group, and a store outranks a load there. Once the load carries
+`LAUNCH_PRIORITY` it is in a group of its own and the override never fires.
+96.9% -> 100%.
+
+Two things that look like the fix and are not. Reordering the three statements
+in the block (all six permutations of store / flags / load) produced byte-identical
+objects. And decomp-permuter's winning mutation, an extra pointer `new_var` left
+assigned only on an unrelated path, *did* reproduce the target's order — by
+defeating sched.c's alias analysis, since MEMs on two different base pseudos
+cannot be disambiguated by offset. That is a real mechanism but the wrong one
+here: the target addresses all four MEMs off `$s2`, and two simultaneously live
+pointer pseudos can never share a register. A permuter hit that needs a register
+the target does not have is a hint about the block, not a candidate to port.
