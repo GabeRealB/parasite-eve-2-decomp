@@ -38,7 +38,7 @@ typedef struct Actor104000Work {
     /* 0x002 */ s16        field_2;
     /* 0x004 */ s16        field_4;
     /* 0x006 */ u16        field_6;
-    /* 0x008 */ byte       pad_8[2];
+    /* 0x008 */ s16        field_8;
     /* 0x00A */ s16        field_A;
     /* 0x00C */ GpAnimCtx  anim;
     /* 0x020 */ GpAnimSlot slots[1]; // slots 1..5 continue past here, overlapping the fields below

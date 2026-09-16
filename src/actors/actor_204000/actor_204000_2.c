@@ -5,6 +5,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "actors/actors_shared_8014adfc.h"
@@ -514,7 +515,80 @@ INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F3E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F908);
+extern u8 D_80072729;
+
+/// Step `coord` `amount` units along its local Z axis unless movement is
+/// frozen. Same body as `Actor01900_StepForwardHead`.
+static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Resets the actor when `field_4` is set; otherwise advances the `field_6`
+/// timer, stepping the model forward in three speed bands and switching to
+/// state 0x11 once it passes 48.
+void func_actor_204000_8014F908(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work* work;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        arg1->field_2C->field_C = 0;
+        work->obj350.flags     |= 0x8000;
+        work->obj388.flags     &= 0x7FFF;
+        work->obj3C0.flags     &= 0x7FFF;
+        work->obj270.flags     &= 0xBFFF;
+        arg0->field_14          = 0;
+        work->field_174         = 0xB;
+        work->field_170         = 2;
+        work->field_178         = 0;
+        work->field_176         = 1;
+        func_actor_204000_8014AC8C(arg1);
+        work->field_176              = 0x10;
+        arg1->field_2C->field_8->flg = 0;
+        work->field_6                = 0;
+        work->field_479              = 1;
+        work->field_19A              = 0xA;
+        work->field_198              = 0;
+        work->field_6                = 0;
+        work->field_8                = 0;
+        return;
+    }
+    work->field_6++;
+    func_actor_204000_8014AC8C(arg1);
+    if (work->field_6 >= 0x13 && work->field_6 < 0x23) {
+        Actor204000_StepForward(arg1->field_2C->field_8, 4);
+    }
+    if (work->field_6 >= 0x23 && work->field_6 < 0x28) {
+        Actor204000_StepForward(arg1->field_2C->field_8, 0xC);
+    }
+    if (work->field_6 >= 0x28 && work->field_6 < 0x31) {
+        Actor204000_StepForward(arg1->field_2C->field_8, 0x18);
+        arg1->field_2C->field_8->coord.t[1] += 0x28;
+    }
+    if ((s16)work->field_6 > 0x30) {
+        work->field_0 = 0x11;
+    }
+    arg1->field_2C->field_8->flg = 0;
+}
 
 void ActorsShared8015087c(GpEnemy* enemy, Task* task);
 void func_actor_204000_801509E8(Actor104000Ctx* arg0, Actor104000* arg1);
