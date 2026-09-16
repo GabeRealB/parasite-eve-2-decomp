@@ -310,7 +310,40 @@ void func_actor_206100_8014FBE4(Task* task)
 /// and threads the branch past it.  See `DECOMPILATION_LEARNINGS.md`, "A
 /// constant store in a delay slot decides whether post-reload CSE folds it into
 /// a later increment".
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FCD4);
+void func_actor_206100_8014FCD4(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* next;
+    s32              i;
+    s16              state;
+
+    work            = (Actor206100Work*)task->idMap;
+    work->field_524 = 4;
+    work->field_51A = 0x10;
+    work->field_510 = 0xE;
+    work->field_50C = 1;
+    next            = (Actor206100Work*)task->idMap;
+    state           = next->field_50C;
+    if (state == 1) {
+        if (next->field_50E != next->field_510) {
+            next->field_512 = 0;
+        } else {
+            next->field_512 = func_actor_206100_8014F3C8(task, next->field_512);
+        }
+        func_actor_206100_8014F2F0(task);
+        next->field_50C = 3;
+    } else if (state == 2) {
+        func_actor_206100_8014F284(task);
+        next->field_50C = 3;
+        next->field_512 = 0;
+    } else if (state == 3) {
+        next->field_512 = next->field_512 + 1;
+    }
+    for (i = 1; i < 0xF; i++) {
+        Gp_AnimTickIndex(&next->anim, i);
+    }
+    work->field_520 = work->field_520 + 1;
+}
 /// Idle-state tick: advances the actor's two frame counters, keeps the root
 /// coordinate dirty so `GsGetLw` rebuilds it, spawns the shockwave task once the
 /// counter reaches 0x5A and retires the actor four frames later.
