@@ -81,7 +81,39 @@ void func_actor_135600_80132C18(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135600/actor_135600_2", func_actor_135600_80132C80);
+/// Walks `coord->sub` up to world (`Gfx_ViewCoord`), composing each node's
+/// `coord` rotation into `mtx` and accumulating the rotated translation into
+/// `vec`. The world parent initializes `mtx` to identity and `vec` to zero.
+/// The same algorithm as gameplay's `Gp_ComposeParentWorld`, but through the
+/// library `ApplyMatrixSV` / `MulMatrix0` rather than the GTE macros.
+void func_actor_135600_80132C80(GsCOORDINATE2* coord, MATRIX* mtx, SVECTOR* vec)
+{
+    SVECTOR tmp;
+    MATRIX* m;
+
+    if (coord->sub != &Gfx_ViewCoord) {
+        func_actor_135600_80132C80(coord->sub, mtx, vec);
+    } else {
+        m                  = mtx;
+        *(s32*)m           = 0x1000;
+        *(s32*)&m->m[0][2] = 0;
+        *(s32*)&m->m[1][1] = 0x1000;
+        *(s32*)&m->m[2][0] = 0;
+        m->m[2][2]         = 0x1000;
+        vec->vx            = 0;
+        vec->vy            = 0;
+        vec->vz            = 0;
+    }
+
+    tmp.vx = *(u16*)&coord->coord.t[0];
+    tmp.vy = *(u16*)&coord->coord.t[1];
+    tmp.vz = *(u16*)&coord->coord.t[2];
+    ApplyMatrixSV(mtx, &tmp, &tmp);
+    vec->vx += tmp.vx;
+    vec->vy += tmp.vy;
+    vec->vz += tmp.vz;
+    MulMatrix0(mtx, &coord->coord, mtx);
+}
 
 void func_actor_135600_80132D64(Task* task)
 {

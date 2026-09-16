@@ -95647,3 +95647,61 @@ Inputs: `base_1.i` SHA256 `f1b9961c610821315fec0e4a700e1ce5cdda54eccc4f51d6eb537
 target SHA256 `3a8a89f9a38b67485801fbe14f8f0e6e6b034ee8748827b3a4e1d8a00842b9b8`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_135600_80132B14-vacuum` (session `b3216cb9d136418db1910740c700c717`).
+
+## m2c's sibling locals for a vector whose address escapes become callee-saved registers (func_actor_135600_80132C80, 2026-09-16)
+
+The function builds an `SVECTOR` from three halfwords of
+`GsCOORDINATE2.coord.t[]` and passes it to `ApplyMatrixSV` in place. m2c
+renders it as three sibling `u16` locals, and only the first one's address is
+taken - `&sp10` is passed twice - so GCC promotes `sp12`/`sp14`, keeps them
+live across the call in `$s0`/`$s1`, and takes `$s4`/`$s3` for the arguments
+besides: frame `0x30` against the target's `0x28`, `regs=46`, while `blocks`
+4/4, `instructions` 57/58, predicates and calls already matched. A `regs`
+penalty this size with a matching structure is the signature; the structure
+diagnostic alone will not point at it.
+
+The target re-reads *all three* halfwords from one contiguous slot after the
+call, each with its own `lhu`:
+
+```
+lhu    v0,0x0(s0)      /* vec->vx */
+lhu    v1,0x10(sp)     /* tmp.vx  */
+addu   v0,v0,v1
+sh     v0,0x0(s0)
+lhu    v0,0x2(s0)
+lhu    v1,0x12(sp)     /* tmp.vy, then 0x14(sp) for tmp.vz */
+```
+
+Three consecutive halfwords re-read through a single frame base is one object
+on the stack, so the source local is an aggregate:
+
+```c
+SVECTOR tmp;
+
+tmp.vx = *(u16*)&coord->coord.t[0];
+tmp.vy = *(u16*)&coord->coord.t[1];
+tmp.vz = *(u16*)&coord->coord.t[2];
+ApplyMatrixSV(mtx, &tmp, &tmp);
+vec->vx += tmp.vx;
+vec->vy += tmp.vy;
+vec->vz += tmp.vz;
+```
+
+All three members then share the escaped address, and CSE cannot forward a
+frame slot across a call that clobbers memory, so the round trip survives by
+construction. 63.603% -> 100.000% on the next build. Note the read is a
+halfword load (`lhu`), not `coord.t[n]` as a `long` - the low half of each
+`t[]` word, written `*(u16*)&`, which is how the gameplay twin of this walk,
+`Gp_ComposeParentWorld`, reads it too.
+
+Same decision as "m2c's scalar locals for a copied table become callee-saved
+registers across a call", different trigger: there the scalars are dead copies
+of a table, here one scalar's address escapes. The tell is identical, and so is
+the conclusion - a target that round-trips a value through the frame means the
+source object is an aggregate, and no register-level rewrite reaches it.
+
+Inputs: `base.i` (m2c seed, 63.603%) SHA256 `7d2b2a3c2b0ccc424233fe98090e917e4f8f0bc23b32f0f63e69aae8ca21640e`;
+`base_1.i` (100.000%) SHA256 `d21499f681f0743cd830c06fafdab9ca9d18621b91945f578609d3a5c0b0c01f`;
+target SHA256 `a4d80ef5810e91ce123de56640f474d60b649ba6756bef63efbcbc9d596ba43f`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_135600_80132C80-vacuum` (session `282d171ed39045cd99475934f00bb371`).

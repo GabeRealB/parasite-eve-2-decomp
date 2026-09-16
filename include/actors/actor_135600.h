@@ -26,6 +26,9 @@ typedef union Actor135600Matrix {
 } Actor135600Matrix;
 STATIC_ASSERT_SIZEOF(Actor135600Matrix, 0x20);
 
+/// The world coordinate every `GsCOORDINATE2` chain is rooted at.
+extern GsCOORDINATE2 Gfx_ViewCoord;
+
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
