@@ -311,7 +311,106 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A930);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013B1E4);
+/// Tint a freshly spawned effect model from the enemy's area record: read the
+/// session's location key, let `Gp_SyncAreaKeyIndex` fill its table index, and
+/// copy the room's texture page / CLUT row into the model's `TmdObject`. The
+/// same body `func_actor_302600_80165A6C` writes out inline and
+/// `Actor401300_TintEffect` keeps as a helper; it has to be a helper here too
+/// rather than four copies in the caller, because each inline expansion gets
+/// its own `raw` / `model` / `idx` pseudos and the copies then share `$s0`
+/// block by block, while four uses of one variable rank `model` (96 refs/insn
+/// over 104) above `idx` (24 over 28) in `global.c` and hand it `$s0`.
+static __inline__ void Actor401000_TintEffect(GpEffWork* eff, GpEnemy* enemy)
+{
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
+    u8         areaByte0;
+    GpAreaRec* rec;
+    GpCdRec10* entry;
+    TmdObject* model;
+    s32        idx;
+    u32        raw;
+
+    if (eff != NULL) {
+        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        raw         = enemy->field_8;
+        model       = (TmdObject*)eff->field_0->extra;
+        key.field_3 = sessionKey->field_3;
+        key.field_2 = sessionKey->field_2;
+        key.field_1 = sessionKey->field_1;
+        areaByte0   = Game_Session->field_4;
+        idx         = raw >> 12;
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec = Gp_GetNestedAreaRec(&key);
+        /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
+           index onto the table (`addu s0, s0, v0`). */
+        entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = entry->field_D;
+        model->field_25 = entry->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+}
+
+/// Clip-0x2D body: on the live-actor flag it resets the effect node and the
+/// spawn offset, then walks the animation latch `field_6` from 0 to 0x3D and
+/// spawns one effect per key frame, each tinted by `Actor401000_TintEffect`.
+/// At 0x3D the actor returns to state 0. The 401000 twin of
+/// `func_actor_401300_8013B6E8`: same five clips, three of them at the same
+/// node offsets (`+1`, `+9`, `+12`, `+1`, `+3` off the root coordinate) and the
+/// same 0x64/0/0 spawn vector, but it reads the offset from the work block
+/// rather than a stack `SVECTOR` and has no `field_D20` guard on the tail.
+void func_actor_401000_8013B1E4(Actor401000* arg0)
+{
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+    u16              next;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0x80;
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_A10.flags   |= 0x4000;
+        enemy->node.field_4      = 1;
+        work->field_8AE          = 0;
+        work->field_6            = 0;
+        work->field_8C0.vx       = 0x64;
+        work->field_8C0.vz       = 0;
+        work->field_8C0.vy       = 0;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &work->field_8C0);
+        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    if ((s16)next == 3) {
+        D_80114B78[0]      = &D_actor_401000_80143EB4;
+        work->field_8C0.vz = 0x64;
+        work->field_8C0.vy = 0;
+        work->field_8C0.vx = 0;
+        Actor401000_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &work->field_8C0), enemy);
+    }
+    if ((s16)work->field_6 == 5) {
+        D_80114B78[0]      = &D_actor_401000_80144830;
+        work->field_8C0.vy = 0;
+        work->field_8C0.vx = 0;
+        Actor401000_TintEffect(Gp_SpawnEff(0xA0000 | 5, arg0->field_2C->field_8 + 12, 0x200, &work->field_8C0), enemy);
+    }
+    if ((s16)work->field_6 == 7) {
+        D_80114B78[0] = &D_actor_401000_80146190;
+        Actor401000_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 1, 0x200, NULL), enemy);
+    }
+    if ((s16)work->field_6 == 8) {
+        D_80114B78[0] = &D_actor_401000_8014599C;
+        Actor401000_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 3, 0x200, NULL), enemy);
+    }
+    if ((s16)work->field_6 >= 0x3D) {
+        work->field_0 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013B61C);
 

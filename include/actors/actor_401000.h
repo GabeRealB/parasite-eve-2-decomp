@@ -51,8 +51,13 @@ typedef struct Actor401000Work {
     /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
     /* 0x8B4 */ s32      field_8B4;
     /* 0x8B8 */ GpEffArg field_8B8;
-    /* 0x8C0 */ byte     pad_8C0[0x10];
-    /* 0x8D0 */ GpObj    field_8D0;
+    /// Offset the actor's state-3/5/7/8 effects spawn at, passed as the
+    /// `Gp_SpawnEff` position: the same local `SVECTOR` `Actor401300` keeps on
+    /// the stack for the 3013B6E8 triple, materialised into the work block
+    /// here because every one of the four spawns reads it.
+    /* 0x8C0 */ SVECTOR field_8C0;
+    /* 0x8C8 */ byte    pad_8C8[8];
+    /* 0x8D0 */ GpObj   field_8D0;
     /// The two obstacle-record tables `func_actor_401000_801323EC` slides the
     /// root coordinate against; the same pair `Actor01900Work` keeps at
     /// +0x8E8 / +0xA28 and `func_actor_401300_801323B0` walks at +0x990/+0xAD0.
@@ -143,6 +148,18 @@ extern Actor401000HeightClamp D_actor_401000_80154FD0[];
 /// slot-3 handler. The 401000 twin of the block `func_actor_401300_80138800`
 /// keeps inline at `Actor401300Work.field_CD4` / `.field_CE4`.
 extern GpMsg3EE D_actor_401000_80155018;
+
+/// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
+/// each spawn in `func_actor_401000_8013B1E4`.
+extern void* D_80114B78[1];
+
+/// Overlay effect model data `func_actor_401000_8013B1E4` points
+/// `D_80114B78` at before spawning, one per animation-latch key frame
+/// (`field_6` 3, 5, 7, 8).
+extern char D_actor_401000_80143EB4;
+extern char D_actor_401000_80144830;
+extern char D_actor_401000_8014599C;
+extern char D_actor_401000_80146190;
 
 void func_actor_401000_80132EF0(Actor401000* arg0);
 

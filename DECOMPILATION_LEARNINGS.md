@@ -104387,3 +104387,53 @@ Inputs: `base_1.i` SHA256
 `ee65157b673f7eb7a5050ef0fe4a0586440c74673e6b9b8d4e097925a7856568`; target SHA256
 `b32c44adb3dd6102c8bb923bf28f868c1cdc1d97c1a1c83606bd5cea3eeec2e4`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Four copies of one block are four inlined expansions, not one variable used four times (func_actor_401000_8013B1E4, 2026-09-16)
+
+A function that repeats the same 20-instruction body in four `if` arms — here
+the area-key tint that follows each `Gp_SpawnEff` — compiles to different
+registers depending on whether the four copies share a variable or are four
+expansions of a `static __inline__` helper. Written out four times with one
+`model` / `idx` / `raw` at function scope (m2c's shape, and the shape of the
+`func_actor_302600_80165A6C` twin, which has the body only once), the body
+scored 84.126%; moved into `Actor401000_TintEffect` and called four times
+exactly as `Actor401300_TintEffect` is, it scored 100.000% on the first build.
+
+The mechanism is `global.c`'s allocno ordering. A variable assigned in four
+blocks is one pseudo with a whole-function live range, so it is a *global*
+allocno ranked by
+
+```
+priority = floor_log2 (n_refs) * n_refs / live_length      (allocno_compare)
+```
+
+and the four copies of the body make that ranking decide the home. Here
+`model` had 24 refs over 104 insns (96/104 = 0.92) against `idx`'s 8 over 28
+(24/28 = 0.86), so `model` was allocated first and took `$s0`, pushing `idx`
+to `$s1`. The target has them the other way round: `$s0` holds `raw`, then
+`idx` inherits it in the same instruction where `raw` dies, and `$s1` holds
+`model`.
+
+Each inline expansion gets fresh pseudos, so the copies become block-local
+quantities that `local-alloc` handles per block. There `raw` is born and dies
+within two instructions, so it takes the first free call-saved register; `idx`
+is born in the instruction that kills `raw` and does not conflict with it, so
+it takes `$s0` too; `model`, which conflicts with both, takes `$s1`. Identical
+allocation in every copy, because every copy sees the same pressure.
+
+Symptoms to look for, all present in the failing 84% build:
+
+* `;; <N> regs to allocate: 84 86 88 83 87 90 81 89 80 82` in `.greg` — the
+  block's own temporaries are in the global list at all. With the inline, the
+  list shrinks to the function's genuine long-lived values.
+* A `nop` after each `lbu` of a key byte. The target fills that load-delay
+  slot; with the wrong home chosen, nothing is free to fill it, so
+  `sched2` emits the nop and the block gains three instructions.
+* `srl $s1,$a1,0xc` where the target has `srl $s0,$s0,0xc` — the shift's
+  destination differing from its source is the tell that `raw` and `idx` did
+  not share a register.
+
+Inputs: `base_2.i` SHA256
+`d679b1d76b8f365db65b01df5a0476677fe2ef4291acd72d465b23c630017bd9`; target SHA256
+`2a9fde3deef65509c1a4e1d9d51c801f77ddc2517d0c52be4f085d12c21443e4`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
