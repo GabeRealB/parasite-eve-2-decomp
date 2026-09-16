@@ -49,4 +49,5 @@ void func_actor_207000_8014FC8C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014FCF4);
+// func_actor_207000_8014FCF4 is shared with actor_107000; see
+// src/actors/lib/actors_shared_80137cf4.c.

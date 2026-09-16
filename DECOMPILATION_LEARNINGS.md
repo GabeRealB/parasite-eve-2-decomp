@@ -93890,3 +93890,37 @@ The same seed's other habit, folding the counter add to a constant
 (`work->field_2BC + 1` where the target has `addu v0,v0,s0`), survives that
 rewrite because `i` is provably 1 on that path; `TOUCH_REG(i)` before the add is
 what stops GCC folding it, as the sibling does.
+
+## A promotion leaves every *other* carrier's `INCLUDE_ASM` in place
+
+`overlay_dup_index.py promote` writes the shared span and the symbol maps and says
+to move the matched carrier's body out of its own `.c` - but the carriers whose
+copy is still unmatched keep their line verbatim:
+
+```c
+INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014FCF4);
+```
+
+The span takes that address out of the carrier's own unit, so the split deletes
+the `.s` the line names, and the build then dies twice over - `can't open
+asm/.../<fn>.s for reading` from the assembler, and `cannot find
+build/.../<unit>.c.o` from the link, the second because the compile that failed
+never produced the object. Replace each remaining carrier's `INCLUDE_ASM` with a
+comment naming the shared unit:
+
+```c
+// func_actor_207000_8014FCF4 is shared with actor_107000; see
+// src/actors/lib/actors_shared_80137cf4.c.
+```
+
+Whether the same span renumbers the overlay's later units depends on where it
+lands. In `actor_107000` it shrinks unit 5 and touches nothing else: the span
+0x5ED4..0x5F84 ends exactly where the next shared span (`actors_shared_8014fda4`
+at 0x5F84) begins, so no own unit is added - the own-unit numbers count only the
+non-shared `c` subsegments in order - and `_6`/`_7` keep both their numbers and
+the bodies in their files. The 80134680 promotion's span landed mid-unit, and
+that one did renumber, needing the carriers' bodies redistributed by hand and
+its rodata cut repointed (`actor_107000_4` to `actor_107000_3`); read the
+regenerated `configs/USA/generated/<overlay>.yaml` after the manifest change and
+before the split, and snapshot the carriers' bodies with `bodies_of()` in
+`tools/land_overlay.py` if any own unit is about to move.
