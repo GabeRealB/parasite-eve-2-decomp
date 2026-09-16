@@ -98104,3 +98104,42 @@ Inputs: `base_1.i` (100.000%) SHA256 `d28a015ed23af9c06ec9ba7f0cf1db98c71629ecee
 target SHA256 `5fa00a3204a21d4094b7dfe3a6d07c862af4795a3b17295eece7f5ae87e04561`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor04400_Fn083CC-vacuum`; two builds, no pins, no permuter.
+
+## Read `find`'s two counts together: `identical bytes:` is taken over the instruction words, so no label style can hide a copy from it
+
+`overlay_dup_index.py find` prints two numbers from two different hash classes:
+the copy list below them is the `text` class (canonicalised disassembly), while
+`identical bytes:` is `len(cl_raw[hit["raw"]])`, the class of verbatim
+instruction words. A label style the canonicaliser does not fold shrinks the
+first and leaves the second alone — so **`identical bytes:` greater than the
+number of printed copies is the cheap tell that byte-identical siblings exist
+that the list is not showing.**
+
+`find Actor04400_Fn06374` prints `same body: 1 copies   identical bytes: 3` and
+lists itself alone, because this unit's local labels are `Actor04400_L063B8` and
+`BRANCH = re.compile(r"\.L\w+")` folds only the `.L…` form (the `<family>/lib`
+label case above). The two hidden copies are `func_actor_341700_801681C4` and
+`func_actor_342400_801694A8`; asking from their side prints `2 copies   identical
+bytes: 3`, the same three. Folding `<Symbol>_L<addr>` to a wildcard by hand and
+re-running the canonicalisation loop makes the two bodies compare equal line for
+line, labels aside.
+
+`promote` fails worse than under-reporting, because it returns a verdict rather
+than a short list: `promote Actor04400_Fn06374` answers "every copy is already
+served by the shared body" and exits 1 — a green light to skip the step. Check
+the spans before believing it; these two copies are served by nothing. The
+shared unit that does carry the body is `actor_104400_text_tail` (0x3538–0x8E14
+of `actor_104400` / `actor_342200`) with the body at 0x6374 inside it, so the
+real promotion is the mid-overlay shared-span re-split, deferred for the usual
+reason rather than attempted. Note for that pass: even with correct grouping
+`promote` would name that 0x58DC-byte unit for a 0x70-byte span — it takes the
+unit from whichever `src/<family>/lib` file defines the symbol, which is the
+shared unit only when the promotion *is* the whole unit.
+
+Inputs: `base.i` SHA256
+`22a129c4c37cbcdbd8808e9ccee4dae3f801162594b56f294d1e7023b94b9b69` (100.000%),
+`base.c` SHA256
+`71afb7f83e2968880b2a50a796059ca66c8f4fc90fd80895e0db57a2b481a5c4`; target
+SHA256 `fc73e2f0649bab84e93ab1e6aa1865edc36ad4a2376c7c86a8895401a9b3a881`;
+one build, no pins, no permuter. Scratch
+`nonmatchings/Actor04400_Fn06374-vacuum`.

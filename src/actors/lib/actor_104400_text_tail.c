@@ -211,7 +211,26 @@ s16 Actor04400_Fn06328(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06374);
+/// Claims or releases this actor's spawn place in `Gp_StateF0.field_1F`:
+/// `arg1` non-zero sets bit 7 from the place id in bits 12+ of the spawn
+/// descriptor (unless the place is already claimed), and `arg1` zero clears the
+/// byte when its low nibble still matches that place. Spawn paths pass 1,
+/// despawn paths pass 0; `Actor04400_Fn06328` reads bit 7 back.
+///
+/// Same body as `func_actor_341700_801681C4` in `actor_341700` and
+/// `func_actor_342400_801694A8` in `actor_342400` — all three are byte-identical
+/// — but those are separate packages whose copies sit at their own link
+/// offsets, so this one cannot join them.
+void Actor04400_Fn06374(Task* arg0, s32 arg1)
+{
+    if ((arg1 << 0x10) != 0) {
+        if (!((s8)Gp_StateF0.field_1F & 0x80)) {
+            Gp_StateF0.field_1F = (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) | 0x80;
+        }
+    } else if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
+        Gp_StateF0.field_1F = 0;
+    }
+}
 
 /// While `field_41E` is 1, consumes the pending request in `field_448`:
 /// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at
