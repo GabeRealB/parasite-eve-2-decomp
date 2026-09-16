@@ -98172,3 +98172,138 @@ held the table as an `INCLUDE_RODATA` blob) shrinks to the 4 bytes in front of
 it. The overlay still built and linked with the table at the wrong address: the
 checksum is what catches it, in both overlays that share the unit
 (`actor_400100`, `actor_407500`).
+## One local shared by every arm of a jump-table switch misallocates all of them (Actor00100_Fn00E58, 2026-09-16)
+
+Five arms of a `switch` each computed the next LCG word, tested it, and stored it
+back to the same global:
+
+```c
+    case 2:
+        value = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState = value;
+        rnd = ((value >> 0x10) % 3) + 1;
+        break;
+```
+
+The structure was right and the instruction count matched, but every arm put the
+new word in the *wrong register* — `$v1` where the target has `$v0`, and the
+`lui`/`ori` address in `$a0` where the target has `$a1`. `regs` sat at 38 with
+no other penalty naming a cause. One `u32 value;` at function scope is one
+pseudo, live in all five arms, and local-alloc's per-block tie-break hands it
+`$v1` in every one of them.
+
+Give each arm its own local and the score goes 93.4% -> 99.3% in one build:
+
+```c
+    case 2:
+        value2 = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState = value2;
+        rnd = ((value2 >> 0x10) % 3) + 1;
+        break;
+```
+
+...and the identical `case 3: case 8:` / `default:` pair must not be folded onto
+one variable either. The last 0.7% is the *store*: two arms that shared a
+`block_30:` label for `Gp_LcgState = value` (m2c's rendering of one store jumped
+to from two arms) put the address in `$v0` and reloaded `%hi(Gp_LcgState)` for
+it. Writing the store in each arm instead makes the two stores identical
+instruction-for-instruction, so `jump.c` cross-jumps them into the single tail
+the target has — 100.000%, all penalties zero.
+
+**Reading it.** When several arms of a switch share one named local, the
+allocation is decided per block *and* per pseudo: if the same pseudo appears in
+every arm, one arm's register choice is every arm's. Split the variable before
+touching registers, and split the shared tail too — a label inside the first arm
+is not the join point.
+
+Inputs: `base_13.i` SHA256 `aa699f7302270d741334d9ab6a9ea58c6d80c7a34b6c31043e28e4b22b8acccb`
+(100.000%); target SHA256 `3d610819d7b796e7e0091cda3b9105ee09041451fdced6b6fcc255f370ac6e0d`;
+scratch `nonmatchings/Actor00100_Fn00E58-vacuum`.
+
+## `if (x == C) x = C;` keeps its store and reuses the register that holds x (Actor00100_Fn00E58, 2026-09-16)
+
+m2c rendered an arm's self-assignment as `work->field_0 = work->field_0;`, which
+GCC deletes outright — the load survives as a dead `lhu` and the arm's body
+disappears from the object. The target keeps it:
+
+```
+lh   v1,0(s2)
+li   v0,0x26
+bne  v1,v0,.Lexit
+li   v0,1
+j    .Lexit
+sh   v1,0(s2)
+```
+
+Writing the *constant* the comparison just tested keeps the store, and because
+the register is already known to hold it, GCC stores `$v1` rather than
+materializing a second copy:
+
+```c
+    case 2:
+        if (work->field_0 == 0x26) {
+            work->field_0 = 0x26;
+        }
+        break;
+```
+
+A pure self-assignment is folded at the tree level (so is `x = x` through a cast
+or a differently-typed view of the same address — three variants were tried), so
+this is not a register-allocation question to be solved later: any C that reads
+"store back what you just read" compiles to nothing. Reach for the constant.
+
+Inputs: `base_3.i` (92.449% before the rest of the function was worked out);
+target SHA256 `3d610819d7b796e7e0091cda3b9105ee09041451fdced6b6fcc255f370ac6e0d`.
+
+## `sll 24` / `sra 21` for an array index says the index is an `s8` (Actor00100_Fn00E58, 2026-09-16)
+
+Scaling a table row by 8 came out as `sll v0,a2,0x18` + `sra v0,v0,0x15` in the
+target and `sll v1,a2,0x3` in the build. The long pair is `(s8)index * 8`: GCC
+narrows a signed index to its declared width before scaling, so the shifts
+encode the type rather than the multiply. Declaring the index `s8` was worth
+1.0 point on its own (96.0% -> 97.0%) and needed no other change.
+
+**Reading it.** `sll N` with `sra N-3` (or any `sra` offset deeper than the
+element shift) is a signed-narrowing scale, not an arithmetic-strength-reduced
+multiply: the index type is signed and `8 * N / 8` bits wide. Check the index's
+declaration before touching the expression.
+
+Inputs: `base_9.i` SHA256 `aa699f7302270d741334d9ab6a9ea58c6d80c7a34b6c31043e28e4b22b8acccb`'s
+predecessor (`base_8.c` 95.997%); target SHA256
+`3d610819d7b796e7e0091cda3b9105ee09041451fdced6b6fcc255f370ac6e0d`.
+
+## A jump table for the overlay's *first* unit needs a `rodata` cut on the shared unit, not `rodata_head` (Actor00100_Fn00E58, 2026-09-16)
+
+`actor_400100` is a fully-shared overlay (every `.text` span is in `shared`), and
+its first function `Actor00100_Fn00E58` at 0x1FC owns a 7-word jump table at
+0x24, with the pose table it indexes at 0x4 and a second, already-matched
+function's 5-word table at 0x44. The unit's `.rodata` was configured at 0x44, so
+the compiler's table landed there and pushed everything after it: the overlay
+built 32 bytes long, failing only at the checksum with **all** code penalties
+zero — `rodata_triage.py` reports nothing for this shape.
+
+`rodata_head` is the documented remedy for a table in the first unit, but
+`gen_overlay_configs.py` rejects it when the whole text is shared ("makes no
+sense when the whole text is shared"). The fully-shared branch instead treats
+the *first* `rodata` cut as the boundary of an asm header blob, and emits
+`lib/<unit>` for a cut whose `unit` names a `shared` span:
+
+```
+actor_400100 = { rodata = [{ start = "0x24", unit = "actor_400100_anim" }, { start = "0x58", ... }], shared = [...] }
+```
+
+which generates `[0x0, rodata, actor_400100_header]` + `[0x24, .rodata,
+lib/actor_400100_anim]`. The cut has to sit where the unit's `.rodata` really
+begins, which is not always the table: here it is 0x24, and the unit's
+`.rodata` is then the whole 0x34-byte run `[table][4-byte pad][second table]`
+GCC emits — landing both tables and the pad exactly where the ROM has them.
+
+**Reading it.** A 100.00% function whose scoped build fails means rodata, and
+for a fully-shared overlay the fix is a `rodata` cut naming the shared unit, at
+the offset of the *first* object the unit's `.rodata` contributes. Check the
+order GCC emits objects in (function order) rather than assuming the unit's
+`.rodata` starts at the table.
+
+Inputs: `base_13.c` 100.000%; the manifest change is
+`configs/USA/overlays.toml` (`actor_400100`, `actor_407500`), both of which
+carry the same package.

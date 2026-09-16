@@ -10,7 +10,160 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn00A54);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn00BF8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn00E58);
+/// Message handler for the walking animation. `field_0` is the opcode:
+/// 0x109 drives the aim state machine, 0x104 picks one of the four poses in
+/// `Actor00100_D00004` with the global LCG, 0x1602 plays the step sound with
+/// the pose latched out of `Actor00100_D0BDB4`, and 0x202 writes the fixed
+/// crouch pose. Every opcode except 0x104/0x1602/0x202 returns 0.
+///
+/// Each LCG arm keeps its own `value` local: they are separate variables
+/// because the arms are separate blocks and one local shared between them
+/// changes which register the allocator picks in every arm.
+s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
+{
+    Actor00100PoseTable table;
+    Actor00100PoseRow*  row;
+    Actor00100Work*     work;
+    Actor00100Ctx*      ctx;
+    s8                  rnd;
+    s32                 view;
+    u32                 value2;
+    u32                 value4;
+    u32                 value5;
+    u32                 value38;
+    u32                 valueDefault;
+    s32                 kind;
+    s32                 cmd;
+    s32                 sub;
+    s32                 req;
+    s32                 sound;
+    s32                 pan;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+
+    if (arg2->field_0.word == 0x109) {
+        kind = arg2->field_2.word;
+        switch (kind) {
+            case 1:
+                work->field_C26 = 0x5A;
+                break;
+            case 2:
+                if (work->field_0 == 0x26) {
+                    work->field_0 = 0x26;
+                }
+                break;
+            case 3:
+                work->field_C26 = work->field_C24;
+                break;
+            case 4:
+                if (work->field_0 == 0x21) {
+                    work->field_0 = 0x22;
+                }
+                if (work->field_0 == 0x18) {
+                    work->field_0 = 0x26;
+                }
+                break;
+        }
+        return 1;
+    } else {
+        work->field_C0C = arg2->field_0.bytes[0];
+        work->field_C0D = arg2->field_0.bytes[1];
+        work->field_C0E = arg2->field_2.bytes[0];
+        if (arg2->field_0.word == 0x104) {
+            table = Actor00100_D00004;
+            cmd   = arg2->field_2.word;
+            switch (cmd) {
+                case 0:
+                    work->field_0 = 0;
+                    break;
+                case 1:
+                    view = Gp_GetViewIndex() & 0xFF;
+                    switch (view) {
+                        case 2:
+                            value2      = (Gp_LcgState * 5) + 0x71357911;
+                            Gp_LcgState = value2;
+                            rnd         = ((value2 >> 0x10) % 3) + 1;
+                            break;
+                        case 4:
+                            value4      = (Gp_LcgState * 5) + 0x71357911;
+                            Gp_LcgState = value4;
+                            rnd         = 1;
+                            if (((value4 >> 0x10) & 1) == 0) {
+                                rnd = 3;
+                            }
+                            break;
+                        case 5:
+                            value5      = (Gp_LcgState * 5) + 0x71357911;
+                            rnd         = (value5 >> 0x10) & 1;
+                            Gp_LcgState = value5;
+                            break;
+                        case 3:
+                        case 8:
+                            value38     = (Gp_LcgState * 5) + 0x71357911;
+                            rnd         = ((value38 >> 0x10) & 1) | 2;
+                            Gp_LcgState = value38;
+                            break;
+                        default:
+                            valueDefault = (Gp_LcgState * 5) + 0x71357911;
+                            rnd          = (valueDefault >> 0x10) & 3;
+                            Gp_LcgState  = valueDefault;
+                    }
+                    row                                 = &table.rows[rnd];
+                    arg0->field_2C->field_8->coord.t[0] = row->vx;
+                    arg0->field_2C->field_8->coord.t[1] = (s16)row->vy;
+                    arg0->field_2C->field_8->coord.t[2] = (s16)row->vz;
+                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, (s16)row->yaw, 1);
+                    arg0->field_2C->field_8->flg = 0;
+                    work->field_0                = 5;
+                    break;
+            }
+        }
+        if (arg2->field_0.word == 0x1602) {
+            sub = arg2->field_2.word;
+            switch (sub) {
+                case 0:
+                    work->field_0 = 0;
+                    break;
+                case 2:
+                    sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x52160009;
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+                    SndEvt_EnqueueType6(sound, pan,
+                                        (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+                    work->field_82E = sub;
+                    work->field_828 = sub;
+                    Actor00100_Fn02788(arg0);
+                    Actor00100_Fn02788(arg0);
+                    work->field_0   = 0x1C;
+                    work->field_C1E = Actor00100_D0BDB4.field_1A;
+                    work->field_C20 = Actor00100_D0BDB4.field_18;
+                    work->field_C22 = Actor00100_D0BDB4.field_1C;
+                    work->field_C24 = Actor00100_D0BDB4.field_1E;
+                    break;
+            }
+        }
+        if (arg2->field_0.word == 0x202) {
+            req = arg2->field_2.word;
+            switch (req) {
+                case 0:
+                    work->field_0 = 0;
+                block_46:
+                    return 0;
+                case 2:
+                    work->field_0                       = 0x26;
+                    arg0->field_2C->field_8->coord.t[0] = -0x896;
+                    arg0->field_2C->field_8->coord.t[1] = 0;
+                    arg0->field_2C->field_8->coord.t[2] = 0x5AF;
+                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x3F4, 1);
+                    goto block_46;
+                default:
+                    return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn01388);
 

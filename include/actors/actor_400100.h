@@ -85,16 +85,23 @@ typedef struct Actor00100Work {
     /* 0xBFC */ s32                    field_BFC;
     /* 0xC00 */ s32                    field_C00;
     /* 0xC04 */ s32                    field_C04;
-    /* 0xC08 */ byte                   pad_C08[0x10];
-    /* 0xC18 */ s16                    field_C18;
-    /* 0xC1A */ s16                    field_C1A;
-    /* 0xC1C */ byte                   pad_C1C[4];
-    /* 0xC20 */ u16                    field_C20;
-    /* 0xC22 */ s16                    field_C22;
-    /* 0xC24 */ byte                   pad_C24[2];
-    /* 0xC26 */ s16                    field_C26;
-    /* 0xC28 */ s16                    field_C28;
-    /* 0xC2A */ s16                    field_C2A;
+    /* 0xC08 */ byte                   pad_C08[4];
+    /// Last message opcode/operands, kept for the debug display: the three
+    /// bytes of `Actor00100Msg` are latched here verbatim.
+    /* 0xC0C */ u8   field_C0C;
+    /* 0xC0D */ u8   field_C0D;
+    /* 0xC0E */ u8   field_C0E;
+    /* 0xC0F */ byte pad_C0F[9];
+    /* 0xC18 */ s16  field_C18;
+    /* 0xC1A */ s16  field_C1A;
+    /* 0xC1C */ byte pad_C1C[2];
+    /* 0xC1E */ u16  field_C1E;
+    /* 0xC20 */ u16  field_C20;
+    /* 0xC22 */ s16  field_C22;
+    /* 0xC24 */ u16  field_C24;
+    /* 0xC26 */ s16  field_C26;
+    /* 0xC28 */ s16  field_C28;
+    /* 0xC2A */ s16  field_C2A;
 } Actor00100Work;
 
 typedef struct Actor00100Record {
@@ -180,6 +187,52 @@ typedef struct Actor00100ProjectScratch {
     /* 0x22 */ s16 pad_22;
 } Actor00100ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
+
+/// One halfword of an `Actor00100Msg`, which the message system also hands to
+/// handlers as a raw byte triple.
+typedef union Actor00100MsgWord {
+    /* 0x00 */ u16 word;
+    /* 0x00 */ u8  bytes[2];
+} Actor00100MsgWord;
+
+/// Payload of the messages `Actor00100_Fn00E58` dispatches on. `field_0` is the
+/// opcode (0x104 / 0x109 / 0x202 / 0x1602) and `field_2` the sub-command.
+typedef struct Actor00100Msg {
+    /* 0x00 */ Actor00100MsgWord field_0;
+    /* 0x02 */ Actor00100MsgWord field_2;
+} Actor00100Msg;
+STATIC_ASSERT_SIZEOF(Actor00100Msg, 0x4);
+
+/// One entry of `Actor00100_D00004`: a translation plus the yaw applied after
+/// it. The first component is signed, the rest are not (the code sign-extends
+/// them at the use site).
+typedef struct Actor00100PoseRow {
+    /* 0x00 */ s16 vx;
+    /* 0x02 */ u16 vy;
+    /* 0x04 */ u16 vz;
+    /* 0x06 */ u16 yaw;
+} Actor00100PoseRow;
+STATIC_ASSERT_SIZEOF(Actor00100PoseRow, 0x8);
+
+/// Four poses `Actor00100_Fn00E58` picks between when the 0x104 message arms
+/// the actor. Alignment stays 2 so a whole-table copy stays unaligned.
+typedef struct Actor00100PoseTable {
+    /* 0x00 */ Actor00100PoseRow rows[4];
+} Actor00100PoseTable;
+STATIC_ASSERT_SIZEOF(Actor00100PoseTable, 0x20);
+
+/// Source of the four halfwords the 0x1602 handler latches into
+/// `Actor00100Work.field_C1E..field_C24`.
+typedef struct Actor00100PoseSrc {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ u16  field_18;
+    /* 0x1A */ u16  field_1A;
+    /* 0x1C */ u16  field_1C;
+    /* 0x1E */ u16  field_1E;
+} Actor00100PoseSrc;
+
+extern Actor00100PoseTable Actor00100_D00004;
+extern Actor00100PoseSrc   Actor00100_D0BDB4;
 
 extern char  Actor00100_D10D60;
 extern char  Actor00100_D11234;
