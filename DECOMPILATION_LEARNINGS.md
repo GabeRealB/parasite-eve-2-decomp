@@ -107705,3 +107705,39 @@ all); with it, 100% and every penalty zero.
 The same function reads the *same* field as `lh` for its closing
 `if (work->field_6 >= 0x15)`, so two widths of load on one field inside one function
 is expected here and is not evidence about the field's declared signedness.
+
+## A 1.00 in every `similar` class with no `find` equality means the sibling's body *is* the target's, modulo one named global (func_actor_403200_8013509C, 2026-09-16)
+
+`tools/overlay_dup_index.py similar func_actor_403200_8013509C` ranks
+`func_actor_444000_80137594` at 1.00 in all four classes, but `find` lists the
+function as its own only copy - the index decides equality on splat's
+disassembly *text*, and the two bodies read a different overlay's global
+(`D_actor_403200_80141C50` against `D_actor_444000_80144A68`). One changed
+operand in one `lui`/`lh` is enough to hide a body that is otherwise word for
+word the target's, register allocation included.
+
+Diff the two `.s` files with the addresses and labels stripped:
+
+```sh
+norm() { grep -E '^\s+/\*' "$1" | sed -E 's|^\s+/\* [0-9A-F]+ [0-9A-F]+ [0-9A-F]+ \*/||;
+                                          s|\.Lactor_[0-9]+_[0-9A-F]+|.L|g'; }
+diff <(norm asm/USA/actors/matchings/actor_444000/actor_444000_5/func_actor_444000_80137594.s) \
+     <(norm target.s)
+```
+
+That prints two lines, both the global's name, out of 258. Same instruction
+count, same registers, same delay slots: what is left is a transcription, not a
+search. Writing the sibling's source with this overlay's types
+(`Actor403200GrabWork`, `host->field_ECC[0]`, `(Actor403200Work*)owner->task->idMap`)
+scored 100.000% with every penalty zero on the first real attempt.
+
+**Reading it.** Byte-identity is not the bar for porting; "different symbol
+name" is not a difference in shape. When the fuzzy tier is unanimous at 1.00
+and the exact tier disagrees, spend one diff before reaching for m2c - and read
+the matched sibling's C even when the diff is not empty, because the siblings'
+inline helpers (`Actor444000_AccumulateRotation` in `actor_444000_view.h`) name
+the loop shapes the asm shows only as GTE sequences.
+
+Since such a helper is `static __inline__` and inlined at every use, its
+definition can be moved up the unit `.c` to sit above a body that needs it
+without changing the object: definition order is free, function order is not.

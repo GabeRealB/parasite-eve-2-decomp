@@ -159,10 +159,15 @@ typedef struct Actor403200GrabWork {
     /// handed `lightMtx` and `field_20` `colorMtx`.
     /* 0x150 */ MATRIX colorMtx;
     /* 0x170 */ MATRIX lightMtx;
-    /* 0x190 */ byte   pad_190[0x1A];
-    /* 0x1AA */ s16    field_1AA;
-    /* 0x1AC */ s16    field_1AC;
-    /* 0x1AE */ byte   pad_1AE[0x12];
+    /* 0x190 */ byte   pad_190[0x18];
+    /// Armed to 1 by the spawn state `func_actor_403200_8013509C` once the
+    /// model has been stood up on its escort's part 1; the states that follow
+    /// re-arm the step counter and the first display node on the tick they see
+    /// it set. Same slot and role as `Actor444000GrabWork::field_1A8`.
+    /* 0x1A8 */ s16  field_1A8;
+    /* 0x1AA */ s16  field_1AA;
+    /* 0x1AC */ s16  field_1AC;
+    /* 0x1AE */ byte pad_1AE[0x12];
 } Actor403200GrabWork;
 STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 

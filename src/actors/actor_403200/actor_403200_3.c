@@ -358,17 +358,30 @@ void func_actor_403200_80134D40(Task* arg0)
     SCRATCH_SP += 0xC;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_8013509C);
+/// Accumulated world rotation of `coord`: `mat` starts as the coordinate's own
+/// rotation and is multiplied by each parent's in turn, renormalised at every
+/// level, until the chain reaches `Gfx_ViewCoord` (or runs out).
+static __inline__ void Actor403200_AccumulateRotation(GsCOORDINATE2* coord, MATRIX* mat)
+{
+    MATRIX         m;
+    GsCOORDINATE2* cur;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801354A4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80135854);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80135CB8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80135F98);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801364F4);
+    cur  = coord->sub;
+    *mat = coord->coord;
+    while (1) {
+        if (cur == NULL) {
+            return;
+        }
+        if (cur == &Gfx_ViewCoord) {
+            return;
+        }
+        gte_SetRotMatrix(&cur->coord);
+        MulRotMatrix(mat);
+        MatrixNormal(mat, &m);
+        *mat = m;
+        cur  = cur->sub;
+    }
+}
 
 /// World position of `coord` as seen from `Gfx_ViewCoord`: `out` starts as the
 /// point in `coord`'s own space and is walked up the coordinate hierarchy, one
@@ -424,6 +437,77 @@ static __inline__ void Actor403200_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj,
     Gp_LinkObj(prio, obj);
     Gp_InitRec18Table(obj->field_C, kind, 0);
 }
+
+/// Second entry of the spawn table `D_actor_403200_80131E90`: allocate the
+/// work block and stand the model up where the host's first escort's part 1 is,
+/// in view space.
+///
+/// The model is reparented to `Gfx_ViewCoord`, so both halves of that escort's
+/// part 1 have to be resolved by hand: `Actor403200_AccumulateRotation` walks
+/// the part's coordinate chain up to the view coordinate for the rotation and
+/// `Actor403200_LocalToView` carries its origin along the same chain for the
+/// translation. The model is then spun by 0x80 of the 0x1000-unit circle, its
+/// single display node is linked with a 0x394 extent, and that node is paired
+/// with the owning enemy so collisions against it reach this task.
+///
+/// Bails out -- destroying the enemy -- when the overlay is shutting down, the
+/// host actor has left the grab states, or the work block cannot be allocated.
+void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
+{
+    Actor403200GrabWork* work;
+    GpEnemy*             owner;
+    Actor403200Work*     host;
+    SVECTOR              pos;
+    SVECTOR              vec;
+
+    owner = task->parent->spawnArg2;
+    host  = (Actor403200Work*)owner->task->idMap;
+
+    if (D_actor_403200_80141C50 == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
+        host->field_0 == 0xC || host->field_0 == 0x12 ||
+        (work = Mem_Calloc(sizeof(Actor403200GrabWork), false), task->idMap = (TaskIdMap*)work,
+         work == NULL)) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+
+    work->field_1AC                         = 0;
+    ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_C      = 0;
+
+    Actor403200_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->field_8[1],
+                                   &((TmdObject*)task->extra)->field_8->coord);
+
+    vec.vx = vec.vy = vec.vz = 0;
+    Actor403200_LocalToView(&((TmdObject*)host->field_ECC[0]->task->extra)->field_8[1], &vec);
+
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = vec.vx;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = vec.vy;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = vec.vz;
+    ((TmdObject*)task->extra)->field_8->flg        = 0;
+
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, 0x80, 0);
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+
+    pos.vx = pos.vy = pos.vz = 0;
+    Actor403200_LinkWorkObj(((TmdObject*)task->extra)->field_8, &work->obj0, &work->rec0, &pos, 0x394, 3,
+                            1);
+
+    work->obj0.flags   &= 0x7FFF;
+    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 2);
+    work->field_1A8     = 1;
+    task->state++;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801354A4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80135854);
+
+INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80135CB8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80135F98);
+
+INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801364F4);
 
 /// Spawn state of this enemy: allocate the work block, drop the model onto the
 /// floor of the view coordinate and hang the two display nodes off it.
