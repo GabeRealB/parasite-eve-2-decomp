@@ -281,7 +281,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134248);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801344E8);
+/// Mode 1 collapses each column of `m` to one weighted value plus a
+/// `Display_State.field_14`-driven sine pulse; mode 2 clears the 3x3 part.
+void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
+{
+    s32 i;
+    s16 v;
+
+    switch (mode) {
+        case 0:
+            break;
+        case 1:
+            for (i = 0; i < 3; i++) {
+                v          = (m->m[0][i] * 7 + m->m[1][i] * 6 + m->m[2][i] * 3) / 33;
+                v         += (s16)(rsin(Display_State.field_14 * 198) + 0x1000);
+                m->m[0][i] = v;
+                m->m[1][i] = v;
+                m->m[2][i] = v;
+            }
+            break;
+        case 2:
+            m->m[0][0] = 0;
+            m->m[0][1] = 0;
+            m->m[0][2] = 0;
+            m->m[1][0] = 0;
+            m->m[1][1] = 0;
+            m->m[1][2] = 0;
+            m->m[2][0] = 0;
+            m->m[2][1] = 0;
+            m->m[2][2] = 0;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134608);
 
