@@ -91086,3 +91086,59 @@ register-served use, and do not restructure the source to even them out.
 
 `func_actor_206100_8014ED3C` in `src/actors/actor_206100/actor_206100.c` is the
 example -- 60 instructions, exact on the first build.
+## A load sitting above an `if` is source order, not scheduling: sched1's region ends at the block boundary
+
+`func_actor_356100_8016A5DC` matched at 89% with one instruction in the wrong
+place. The reference loads the enemy pointer in the *entry* block, in the slot
+before the branch, and stores through it seven instructions later:
+
+```
+lh     v0,0x4(s0)          # work->field_4
+lw     v1,0x20(a0)         # arg0->field_20  <- here
+beqz   v0,.L
+nop
+lw     v0,0x2C(a0)
+nop
+sh     zero,0xC(v0)
+li     v0,0x180
+sh     v0,0x9BC(s0)
+sb     zero,0x14(v1)       # enemy->node.field_4
+```
+
+The m2c shape — `arg0->field_20->node.field_4 = 0;` written inside the `if` —
+puts the load immediately before its `sb` and costs a load-delay `nop`, two
+instructions over the reference. The `.sched` dump says which of the two
+explanations applies without trying a single scheduler knob: `;; End of basic
+block 0.` prints *above* the load, so sched1 never had it in the entry block's
+region. sched1 schedules one extended basic block at a time and cannot move an
+instruction across a branch at all, so an instruction the reference keeps above
+a branch must be assembled there by the front end, i.e. written there in C.
+
+The idiom is the pointer hoisted into a local before the `if`, and the body
+storing through the local:
+
+```c
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        ...
+        enemy->node.field_4 = 0;
+    }
+```
+
+After the hoist sched1 orders the block as the reference does on its own: the
+condition load depends on the pointer load and feeds the branch, so it goes
+first, and the hoisted load fills the slot before the `beqz` (taking `$v1`
+there because `$v0` carries the condition and the constants). 100% first try,
+all penalties zero, preprocessed input `base_1.i` sha256 `6406c2d25b9cebe8…`.
+
+`func_actor_356100_8016A468`, the neighbouring state handler in the same file,
+and the matched sibling `Actor01900_Fn0AA78`
+(`src/actors/lib/actor_101900_text_tail.c`) both carry the hoisted-local form
+and the same `lh` → `lw 0x20(a0)` → `beqz` order. When a pointer field is read
+only inside one arm of an `if`, check `overlay_dup_index.py find <func>` for a
+matched sibling of the same body and read its C: the hoisted local is the
+family's house style, so the sibling is the model rather than the m2c form.

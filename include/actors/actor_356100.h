@@ -14,7 +14,12 @@
 /// offsets; `field_974` is the `field_5A & 0x3FF` snapshot
 /// `func_actor_356100_8016A468` stores (same role as `Actor01900Work.field_8B4`).
 /// The halfwords at 0x978..0x982 are the same animation-state slots
-/// `Actor01900_Fn0A7C0` writes at 0x898..0x8A2.
+/// `Actor01900_Fn0A7C0` writes at 0x898..0x8A2; `field_984` is the halfword
+/// `func_actor_356100_8016A5DC` snapshots into `field_982`, where
+/// `Actor01900Work.field_8A4` sits, and `field_98E` / `field_990` the zero-pair
+/// that function clears at +0x8AE / +0x8B0. `field_9BC` holds the 0x180 it
+/// writes; `Actor01900_Fn0AA78` puts the same constant in the neighbouring
+/// `GpObj` field it names `field_8C8.field_1C` (+0x8E4), not this one.
 /// `field_B5C` / `field_B60` are the two helper tasks the exit callback
 /// kills; same pair as `Actor01900Work` at +0xC38 / +0xC3C, without the three
 /// `GpObj` nodes that teardown unlinks.
@@ -34,7 +39,13 @@ typedef struct Actor356100Work {
     /* 0x97E */ s16   field_97E;
     /* 0x980 */ byte  pad_980[2];
     /* 0x982 */ s16   field_982;
-    /* 0x984 */ byte  pad_984[0x1D8];
+    /* 0x984 */ s16   field_984;
+    /* 0x986 */ byte  pad_986[8];
+    /* 0x98E */ s16   field_98E;
+    /* 0x990 */ s16   field_990;
+    /* 0x992 */ byte  pad_992[0x2A];
+    /* 0x9BC */ s16   field_9BC;
+    /* 0x9BE */ byte  pad_9BE[0x19E];
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
 } Actor356100Work;
@@ -89,5 +100,11 @@ extern GpAnimArg D_actor_356100_80173244;
 /// `field_5A & 0x3FF` into `field_974`. Bit 1 of `field_68` forces `field_0`
 /// to 0xE.
 void func_actor_356100_8016A468(Actor356100* arg0);
+
+/// When the work block's `field_4` flag is set, clears the model's `field_C`,
+/// clears the enemy's link node and writes the 0x978..0x982 animation slots
+/// with `field_9BC` forced to 0x180. Bit 0 of `field_68` forces `field_0` to 7.
+/// Same shape as `Actor01900_Fn0AA78` without its two `GpObj` flag masks.
+void func_actor_356100_8016A5DC(Actor356100* arg0);
 
 #endif
