@@ -2494,6 +2494,47 @@ same blocks - only `regs` differs, so the structural diagnostics look clean and
 the score sits at 86%. Read the `lui` destination as the tell: when the target
 writes the address into the argument register itself, the source had no
 intervening variable.
+
+## A `nop` in a `jal`'s delay slot is the tell that the call block is a cross-jump head
+
+`func_mine_forked_tunnel_8017D5E8` picks a `RoomPlacement` and hands it to
+`Room_Util18`. m2c's single-call shape - a pointer assigned in each arm, one
+call after the join - scores 87.2% with `regs=18 branch=1 reorder=2 insert=3
+delete=5` and *identical* block topology, so the structural diagnostics are
+clean and say nothing. The target instead writes the call out in both arms:
+
+```c
+if (GameFlag_GetNibble(0x75) == 0) {
+    ...fill placement...
+    Room_Util18(arg0, 0x7D4, &placement, 0);
+} else {
+    Room_Util18(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
+}
+```
+
+That is 100.00% with all-zero penalties. Two things in the target give it away
+before you look at any dump.
+
+**The `nop`.** The merged `jal Room_Util18` is a *jump target* - the then-arm
+reaches it with a `j` (whose delay slot the store `sh $t0,0x24($sp)` fills) and
+the else-arm falls into it. `dbr_schedule` fills a delay slot only from insns
+preceding the branch *in the same block*, and the `jal` heads its own
+single-insn block, so its slot stays `nop`. The natural single-call source puts
+the arg setup and the `jal` in one block, where the `nop` gets filled with
+`addu $a3,$zero,$zero`. An unfilled call delay slot whose arm-adjacent
+instructions are all arg setup is the cross-jump head, not a scheduling barrier.
+
+**The registers follow from the same fact, one pass earlier.** `jump_optimize
+(insns, 1, 1, 0)` runs after reload, so `local-alloc` / `global-alloc` still see
+two separate calls, each with `$a0` / `$a2` / `$a3` live across it inside its own
+arm. The arm's six loads therefore cannot use `$a0`-`$a3` and land in
+`$v0`/`$v1`/`$t0`-`$t3` - the target's `lh $v0` / `lh $t1` / `lhu $t2` shape.
+In the single-call shape those registers are free at the loads and take the
+values, which is where the `regs` penalty comes from. So a `regs` miss whose
+block/topology diagnostics match is worth re-reading as "the call was duplicated
+in the source"; the merged tail lands in the *later* arm, as in the switch-case
+entry above.
+
 ## Duplicate a shared switch-case tail in the source; cross-jump keeps the *later* copy
 
 Two `case`s that end in the same statements do not need a `goto` to a shared

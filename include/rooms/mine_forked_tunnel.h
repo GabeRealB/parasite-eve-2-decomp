@@ -4,6 +4,30 @@
 #include "common.h"
 
 #include "main/tmd.h"
+#include "rooms/room_common.h"
+
+/// Position / rotation pair `func_mine_forked_tunnel_8017D5E8` and
+/// `func_mine_forked_tunnel_8017D8EC` compose into the `RoomPlacement` they
+/// hand `Room_Util18`: the first holds the placement's `pos`, the second its
+/// `rot`. The two live in different areas of the room's `.data`, so they are
+/// separate symbols rather than one `RoomPlacement`.
+extern SVECTOR D_mine_forked_tunnel_80181244;
+extern SVECTOR D_mine_forked_tunnel_80180AC4;
+
+/// The placement `func_mine_forked_tunnel_8017D5E8` uses instead when the
+/// `0x75` game flag is set: a complete `RoomPlacement` sitting in the room's
+/// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
+extern RoomPlacement D_mine_forked_tunnel_80181BBC;
+
+/// Two-entry `TaskDesc` table `func_mine_forked_tunnel_8017D5E8` spawns the
+/// child enemy from; `Task_SpawnFromTable` picks entry 1.
+extern TaskDesc D_mine_forked_tunnel_80181B74;
+
+/// The `{id, TaskFunc}` pairs the tunnel's enemy restores through
+/// `Task::field_24` - `0x7D5` maps to `func_mine_forked_tunnel_8017DD08` and
+/// `0x7DB` to `func_mine_forked_tunnel_8017D8EC`, the two ids
+/// `func_mine_forked_tunnel_8017D5E8` registers.
+extern s32 D_mine_forked_tunnel_80181B8C;
 
 /// Per-task work block for the tunnel's enemy: a 0x48-byte `Mem_Calloc`
 /// allocation `func_mine_forked_tunnel_8017D5E8` stores at `Task::idMap`,
@@ -12,12 +36,14 @@
 /// `TmdObject` (`field_1C` / `field_20`) so `Tmd_SetupDraw` picks them up.
 /// Same layout as `Actor503500ColorMtx`, whose overlay carries a byte-identical
 /// copy of that function.
+///
+/// `field_40` is the `Task_SpawnFromTable` child the room's `func_mine_forked_tunnel_8017D724`
+/// frees; `field_44` is the signed lifetime counter it decrements.
 typedef struct MineForkedTunnelWork {
     /* 0x00 */ MATRIX light;
     /* 0x20 */ MATRIX color;
-    /* 0x40 */ byte   pad_40[0x4];
-    /* 0x44 */ s8     field_44;
-    /* 0x45 */ byte   pad_45[0x3];
+    /* 0x40 */ void*  field_40;
+    /* 0x44 */ s32    field_44;
 } MineForkedTunnelWork;
 STATIC_ASSERT_SIZEOF(MineForkedTunnelWork, 0x48);
 
