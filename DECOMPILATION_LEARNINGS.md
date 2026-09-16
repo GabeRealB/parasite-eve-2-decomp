@@ -103271,3 +103271,45 @@ so the load's signedness is the declaration's and nothing else. Rule: when two r
 halfword disagree, the declaration is decided by the read no narrowing can explain; re-check
 the narrowing readers by rebuilding rather than by reading their `.s`, because their casts are
 expected to absorb the change.
+
+## `similar`'s starred multi-class hit is a source twin - prove it by diffing the two `.s` streams (func_actor_401800_8013BB10, 2026-09-16)
+
+Fourth instance of "transcribe the twin" in this TU, and the one that shows how to *know* before
+writing any C. The brief's `similar matched bodies` listed `func_actor_401300_8013B6E8` starred
+- it appears in all four classes (shape 0.98, fields 0.91, calls 0.98, cflow 0.97). Where
+`similar` normally "generates candidates, never equalities", agreement across every class was
+here an *exact* source-level match: the m2c seed scored 62.559%, and a transcription of the twin
+reached 100.000% with all penalties zero on the first build (270/270 instructions).
+
+The test that settles it costs one command and works because a matched twin's own target lives
+under `asm/<ver>/<fam>/matchings/`. Strip the leading `/* addr addr word */` column from both
+`.s` files and diff the instruction text:
+
+```python
+norm = lambda p: [l[m.end():].strip() for l in open(p)
+                  if (m := re.match(r'\s*/\* [0-9A-F]+ [0-9A-F]+ [0-9A-F]{8} \*/', l))]
+difflib.unified_diff(norm(twin_s), norm(target_s), lineterm='')
+```
+
+`diff.py` compares a *function against its own target*, which says nothing about whether another
+overlay's function is a template. This compares the twin's target against yours, and collapses
+274 vs 270 instructions to the whole real delta: two field writes in the first block, one
+dropped mask, one extra call, the `D_` symbol names, and the tail condition. Branch labels have
+to be normalized (`\.L\w+` → `.L`) or every block boundary shows as a diff.
+
+The twin's repeated block was a `static __inline__` helper, `Actor401300_TintEffect`, inlined at
+four spawn sites - and its *expansion* is byte-identical in the 401800 TU even though every
+surrounding struct offset differs. So transcribe the helper verbatim, barrier macros included:
+
+```c
+SOFT_BARRIER();
+keyPtr = &key;
+TOUCH_REG(keyPtr);
+key.field_0 = areaByte0;
+```
+
+Do not re-derive that barrier from your own dump. It reads like a scheduling nudge to be
+re-invented per TU; it is part of the twin's spelling, and copying it reproduced the expanded
+block instruction-for-instruction - same registers, same memory offsets, even the same
+scheduler-placed `nop` padding. Removing or "improving" it is where an exact template turns back
+into a search.

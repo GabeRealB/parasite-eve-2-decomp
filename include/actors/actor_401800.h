@@ -148,6 +148,17 @@ extern MATRIX* D_80073B8C;
 extern s32  D_actor_401800_80155124;
 extern s32* D_actor_401800_80155978;
 
+/// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
+/// each spawn in `func_actor_401800_8013BB10`.
+extern void* D_80114B78[1];
+
+/// Overlay effect model data `func_actor_401800_8013BB10` points `D_80114B78`
+/// at before spawning: the 0x60030 debris burst, then the 0xA0005 fan the step
+/// counter trips at 3 and 5 and the two 0xA0005 bursts at 7 and 9.
+extern char D_actor_401800_80143E9C;
+extern char D_actor_401800_80144434;
+extern char D_actor_401800_80144F24;
+
 /// Payload of message `0x7D3`, the "set animation state" request the handler
 /// table `D_actor_401800_80155A80` routes to `func_actor_401800_8013DCBC`:
 /// `field_4` is the requested state, 0..4. The 01900 actor's table entry for
