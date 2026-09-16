@@ -20,8 +20,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132958);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", D_actor_110600_80131E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132A84);
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132D54);
@@ -185,7 +183,51 @@ void func_actor_110600_80138394(void)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", ActorsShared80135df4Table);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8013839C);
+/// The `0x7D3` handler of the display-opcode table `D_actor_110600_80148624`:
+/// maps the requested state onto the work block's `field_892` (0x22..0x28) and
+/// parks the actor in state 0x11 with `field_2` cleared. States 0 and 4 also
+/// stamp the enemy's occupancy tag and re-save its pose; state 0 writes its own
+/// `field_892` ahead of those calls, so it skips the store the other four share,
+/// which is the tail the compiler merged out of the four `break`s.
+///
+/// The table GCC emits for this switch is what pins the package's
+/// `rodata_head`: it lands at 0x18C, 8-aligned only if this unit's `.rodata`
+/// starts at 0x4 rather than 0x0 — the package id ahead of it is prepended, not
+/// compiled — and behind the id it picks up `.align 3`'s 4-byte pad instead.
+s32 func_actor_110600_8013839C(Actor110600* arg0, s32 arg1, Actor110600Msg7D3* arg2)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    s32              state;
+
+    state = arg2->field_4;
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    switch (state) {
+        case 0:
+            work->field_892 = 0x22;
+            enemy->field_4B = 1;
+            Gp_SaveEnemyPose(enemy);
+            break;
+        case 1:
+            work->field_892 = 0x23;
+            break;
+        case 2:
+            work->field_892 = 0x24;
+            break;
+        case 3:
+            work->field_892 = 0x25;
+            break;
+        case 4:
+            enemy->field_4B = 1;
+            Gp_SaveEnemyPose(enemy);
+            work->field_892 = 0x28;
+            break;
+    }
+    work->field_0 = 0x11;
+    work->field_2 = -1;
+    return 0;
+}
 
 /// Display-object handler, the same shape as `ActorsShared8013d268` one overlay
 /// over: `arg2` selects the mode and `GpEnemy.field_4B` -- the occupancy tag

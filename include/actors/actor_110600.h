@@ -47,8 +47,10 @@ STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
 /// `field_BD8` are optional helpers the spawn clears; teardown increments
 /// `Task::state` when they are non-NULL.
 typedef struct Actor110600Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[2];
+    /* 0x000 */ s16 field_0;
+    /// Second halfword of the state word above: the `0x7D3` display handler
+    /// clears it to -1 whenever it parks the actor in state 0x11.
+    /* 0x002 */ s16  field_2;
     /* 0x004 */ s16  field_4;
     /* 0x006 */ byte pad_6[2];
     /* 0x008 */ s16  field_8;
@@ -132,6 +134,18 @@ typedef struct Actor110600 {
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C;
 } Actor110600;
+
+/// Message payload the `0x7D3` display handler is handed: `field_4` is the
+/// requested state, `field_0` unused here. The same message id carries the
+/// identical record as `Actor01900Msg7D3` / `Actor401800Msg7D3`.
+typedef struct Actor110600Msg7D3 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+} Actor110600Msg7D3;
+
+/// The `0x7D3` display handler: parks the actor in state 0x11 with
+/// `field_892` set from the requested state.
+s32 func_actor_110600_8013839C(Actor110600* arg0, s32 arg1, Actor110600Msg7D3* arg2);
 
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a

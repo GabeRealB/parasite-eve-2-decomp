@@ -109874,3 +109874,44 @@ differs only in having no `field_4B` test in its arms.
 carry the same body — write it twice and let cross-jumping merge it. A semantically redundant test
 (`v1 == 0` before `v1 == 4`, where `4` already implies `!= 0`) is a normal thing to find in the
 original source, not evidence of a misread; do not "simplify" it away.
+
+## m2c's mid-switch `block_N` label puts a cross-jumped store merge between the cases (func_actor_110600_8013839C, 2026-09-16)
+
+The `0x7D3` display handler: five cases each end by writing a different constant
+into the work block's `field_892`, and the target holds ONE `sh v0,0x892(s0)`,
+reached by `j` from cases 1-3 with case 4 falling into it. m2c reconstructs the
+merge as `var_v0 = 0x23; block_7: work->field_892 = var_v0;` with the label
+sitting *inside* case 1, which emits the surviving copy between the case bodies
+and a `j` back to the post-switch tail:
+
+```
+91.773% branch=1 insert=2 delete=1 reorder=1 stack=1
+  case1: li v0,0x23        target: j store      (delay slot li v0,0x23)
+         j store
+  store: sh v0,0x892(s0)   case2:  j store      (delay slot li v0,0x24)
+         j tail            ...
+  case2: li v0,0x24        store:  sh v0,0x892(s0)   <- after case 4, falls
+         j tail                                           through to the tail
+```
+
+Write the store out in full in every case, the shape the already-matched
+`func_actor_401800_8013DCBC` uses — the `0x7D3` handler of `actor_401800`,
+whose two calling cases differ but whose five per-case stores are the same
+shape. Cross-jumping re-merges them at the end of the last case: case 4 falls
+into it, cases 1-3 get a `j` with their `li v0,N` in the delay slot, and the
+shared tail's `li v0,0x11` sinks into case 0's `j` delay slot. 100.00% on the
+first build, from the same five-store C. This is the store sibling of the
+`goto block_N` rule above; `func_actor_110600_80138448`, the next function in
+the same unit, is the same family of merge.
+
+That body also emits the package's jump table, and the table wants `0x18C` —
+`4 mod 8`, so with the id word folded into unit 1 the overlay comes out 4 bytes
+long with the table at `0x190`. The id is prepended, not compiled, so the
+original first translation unit's `.rodata` began at `0x4` and `0x18C` is
+`0x188` into it: already 8-aligned, and `.align 3` there emits nothing.
+`rodata_head = "0x4"` (plus deleting the id's now-dangling `INCLUDE_RODATA` line)
+restores exactly that, with no `units` cut and so no unit renumbering. The table
+is the last rodata byte before `.text`, so there is no pad word to write in C —
+the trigger is the alignment alone. The `units` + `rodata` pair reaches the same
+bytes, but it splits the first unit in two and renumbers every later one, which
+is the churn `rodata_head` exists to avoid.
