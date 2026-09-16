@@ -2,6 +2,7 @@
 #define ACTOR_143900_H
 
 #include "common.h"
+#include "actors/actors_shared_80132ecc.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
@@ -36,8 +37,9 @@ extern Actor143900Work* ActorsShared80131f9cWork;
 /// pair of places `func_actor_143900_801328D4` fills in. It is not the block
 /// above: that one is the shared body's `Mem_Calloc(0x4F0, 0)`, while this
 /// variant allocates `Mem_Calloc(0x4F8, 0)` and keeps two helper tasks at
-/// 0x4F0 / 0x4F4, so it stays untyped until its own struct is reconstructed.
-extern void* D_actor_143900_801496C4;
+/// 0x4F0 / 0x4F4 - the `ActorsShared80132eccWork` shape, which is what the
+/// dispatcher here parks in the task's 0x1C slot.
+extern ActorsShared80132eccWork* D_actor_143900_801496C4;
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. This
@@ -54,5 +56,6 @@ s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlaceme
 s32  func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg);
 void func_actor_143900_801328D4(GpEnemy* enemy, Task* task);
 void func_actor_143900_80132E48(GpEnemy* enemy, Task* task);
+s32  func_actor_143900_80133360(Task* task, s32 arg1, Actor143900Msg* msg);
 
 #endif

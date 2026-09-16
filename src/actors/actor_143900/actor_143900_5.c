@@ -49,7 +49,7 @@ void func_actor_143900_80132DEC(Task* task)
     };
     u8 scratch[0x40]; /* never referenced; only reserves the frame */
 
-    D_actor_143900_801496C4 = task->idMap;
+    D_actor_143900_801496C4 = (ActorsShared80132eccWork*)task->idMap;
     fns[task->state](task->spawnArg2, task);
 }
 

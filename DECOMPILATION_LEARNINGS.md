@@ -46,6 +46,45 @@ Writing `D_actor_560800_8017579C > Display_State.field_0` instead of
 `func_actor_560800_80135AEC` (98.5% → 100%). When a `regs=` penalty shows both
 loads right but *swapped*, and both same-order spellings of the compare are
 available, try the swap before reaching for pins.
+## One `jr ra` shared by every arm is one `return` statement, not one per arm
+
+`HAVE_return` is defined for this target, so `stmt.c`'s `expand_null_return_1`
+emits a `(return)` insn for **every** `return` statement instead of jumping to a
+shared `return_label`. Two switch arms that each end in `return 0;` therefore
+compile to two inline `jr ra`, and each arm's return value is pinned in `$v0`
+across the arm, which evicts the arm's own constants:
+
+```
+move    v0,zero            /* this arm's return value, live to its jr ra */
+li      v1,0x80            /* the arm's constant, pushed out of $v0 */
+sh      zero,0xc(a0)
+jr      ra
+sh      v1,0xc(a1)
+```
+
+A target with a single `jr ra` that the arms jump or fall into needs one `return`
+statement they share — `break` out of the switch and return once after it:
+
+```c
+switch (msg->field_2) {
+case 0: a->field_C = 0; b->field_C = 0x80; break;
+case 1: b->field_C = 0; a->field_C = 0x80; break;
+}
+return 0;
+```
+
+`.dbr` then shows `reorg`'s `fill_slots_from_thread` working on that one shared
+block: `insn 71 (set (reg/i:SI 2 v0) (const_int 0))` is duplicated into the
+second `beq`'s delay slot and the default arm's `jump_insn 66` is retargeted past
+it, both marked `Insn is in multiple basic blocks`. That is why the target's
+default path reaches the bare `jr ra` while the arms reach the `v0 = 0` above it,
+and why the `0x80` lands in `$v0` rather than `$v1`.
+
+`func_actor_143900_80133360`: m2c's per-arm `return 0` scored 68.8%, and 77.0%
+once the locals were typed; the `break` + single `return 0` form is 100%.
+Inputs: `base_1.i`
+`4dff7709c7d058a09fc83a1c184c3103badf8052ddcfe6981a09af3e756933f7`,
+`base_2.i` `a7cafff31a9c9c2a6554b8aaa819d18b845d7bfc5716da08e2e6e263913735e5`.
 
 ## Two literal call sites merge their `jal` in `reorg`; m2c's shared block mirrors the layout
 
