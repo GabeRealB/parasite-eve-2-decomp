@@ -94870,3 +94870,44 @@ This body is carried by many actors, and the matched carriers are the template -
 98.125% -> 100% on the first build after copying it, with `base.i.sched` (both
 insns in source order) and `base.i.sched2`/`base.i.dbr` (the moved copy) as the
 dumps that locate it.
+
+## Stores to a local whose address is never taken are gone at *expand*: an m2c seed can be missing instructions that no RTL dump explains (ActorsShared80131e24Sub0, 2026-09-16)
+
+An m2c seed that fills a four-byte area one field at a time scores 71.7% with
+`lbu`/`sb` counts *three short* of the target on each side. The cause is not a
+pass: `sp28` has its address taken (`Gp_SyncAreaKeyIndex(&sp28, ...)`), so it
+gets a stack slot and its byte store is emitted, but `sp29` / `sp2A` / `sp2B`
+are ordinary locals whose addresses are never taken. Those three become plain
+`reg/v` pseudos that nothing reads, so `flow` drops them — and by then it is
+too late to see: **`.rtl`, the first dump, already has no store for them.** A
+`grep` of every `.i.*` dump for the variable name comes back empty because RTL
+dumps name pseudos by number, which is what makes this read as "the compiler
+lost three statements" rather than "the destinations were never addressable".
+
+The ROM's shape gives it away: all four stores are to one object that is then
+passed by address — a `GpAreaKey key;` handed to `Gp_SyncAreaKeyIndex(&key)`
+and `Gp_GetNestedAreaRec(&key)`. Writing the area as a named struct local makes
+every field addressable, and all four `lbu`/`sb` pairs appear. The canonical
+caller pattern (`src/actors/actor_150400/actor_150400.c`,
+`actor_302600_7.c`, `actor_510900.c`) is the template:
+
+```c
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
+
+    sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+    key.field_3 = sessionKey->field_3;
+    key.field_2 = sessionKey->field_2;
+    key.field_1 = sessionKey->field_1;
+    idx         = raw >> 12;
+    areaByte0   = sessionKey->field_0;
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(&key);
+```
+
+So when an m2c seed is short a whole family of byte or halfword stores that
+share one destination, do not hunt the pass — check whether the destination is
+ever address-taken. The same seed's `temp_v0 + 0x20` also compiled scaled by
+`sizeof(TaskIdMap)` (8) into `addiu v0, s3, 0x100`; the target's offsets 0x20 /
+0x40 / 0x54 / 0x374 are plain byte offsets, which is what a struct-typed work
+pointer gives for free.
