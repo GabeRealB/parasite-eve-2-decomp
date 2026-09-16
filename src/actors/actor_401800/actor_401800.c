@@ -907,7 +907,172 @@ static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80136560);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80136EAC);
+/// Step `coord` `amount` units along its local Z axis unless movement is
+/// frozen. Same body as `Actor01900_MoveForward`.
+static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            gte_gpf12_real();
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Chase body that steers the actor along its own local Z while the step
+/// countdown runs: takes a 0x10 scratch for the player offset and the yaws, and
+/// on the live flag resets the model buffers, arms the walk state and seeds
+/// `field_BFE` to 8. Otherwise it re-aims the actor at the player once
+/// `field_8` has run 7 frames, clamps the turn toward the player into
+/// `s->angle`, rebuilds the root coordinate at scale 0x1194 and steps the actor
+/// by `field_BFC` (the step countdown, halved while `field_89A` is set, forced
+/// to 2 while `field_8` is live) while `func_actor_401800_80133558` reports the
+/// path clear. `field_BFE` then walks 8 -> -1 -> 0 against `field_8A2`, and at
+/// 0 the fifth `field_6` frame picks `field_0` from the yaw offset to the
+/// player. Same step ramp as `Actor01900_Fn04D14`, with the aim and the step
+/// helper inlined.
+void func_actor_401800_80136EAC(Actor401800* arg0)
+{
+    Actor401800Work*         work;
+    Actor401800ChaseScratch* head;
+    Actor401800ChaseScratch* s;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+    s32                      turn;
+    s32                      diffPos;
+    s32                      diffNeg;
+    s32                      yaw;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x96;
+        work->field_898          = 1;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        func_actor_401800_80133EB8(arg0);
+        work->field_BFE         = 8;
+        work->field_6           = 0;
+        work->field_8           = 0;
+        D_actor_401800_80155AC0 = 0;
+        work->field_C1C++;
+        return;
+    }
+    head                                       = *(Actor401800ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor401800ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                          = head - 1;
+    arg0->field_2C->field_8->flg               = 0;
+    func_actor_401800_80133EB8(arg0);
+    if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) != 0) {
+        work->field_8++;
+    } else {
+        func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+    }
+    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    if (work->field_8 >= 7) {
+        s->playerYaw  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                               ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+        s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+        s->yaw        = Actor401800_NormalizeYaw(s->yaw);
+        work->field_0 = 0x1A;
+    }
+    coord   = arg0->field_2C->field_8;
+    s->turn = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn    = s->turn;
+    if (turn >= 0) {
+        diffPos = turn - 1000;
+        if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
+            s->angle = s->turn - 1000;
+        } else if (diffPos > 0) {
+            s->angle = 0x60;
+        } else {
+            s->angle = -0x60;
+        }
+    } else {
+        diffNeg = turn + 1000;
+        if (((diffNeg < 0) ? -diffNeg : diffNeg) < 0x60) {
+            s->angle = s->turn + 1000;
+        } else if (diffNeg > 0) {
+            s->angle = 0x60;
+        } else {
+            s->angle = -0x60;
+        }
+    }
+    facing    = arg0->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->angle, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    coord                        = arg0->field_2C->field_8;
+    work->field_8AE              = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    arg0->field_2C->field_8->flg = 0;
+    work->field_BFC              = work->field_8A2 * 8;
+    if (work->field_89A != 0) {
+        work->field_BFC = work->field_BFC >> 1;
+    }
+    if (work->field_8 != 0) {
+        work->field_BFC = 2;
+    }
+    if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, work->field_BFC) != 0) {
+        Actor401800_MoveForwardNonzero(arg0->field_2C->field_8, work->field_BFC);
+    }
+    D_actor_401800_80155AC0 += work->field_BFC;
+    if (work->field_BFE == 8 && work->field_8A2 >= 0x18) {
+        work->field_BFE = -1;
+    }
+    if (work->field_BFE == -1 && work->field_8A2 == 0x12) {
+        work->field_BFE = 0;
+        work->field_6   = 0;
+    }
+    if (work->field_BFE == 0) {
+        if (++work->field_6 == 5) {
+            s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                                  ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+            Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+            s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+            yaw    = Actor401800_NormalizeYaw(s->yaw);
+            s->yaw = yaw;
+            yaw    = yaw - s->playerYaw;
+            if (yaw < 0) {
+                yaw = -yaw;
+            }
+            if (yaw >= 0x401 && func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+                work->field_0 = 0xB;
+            } else {
+                work->field_0 = 0x1A;
+                work->field_2 = -1;
+            }
+        }
+    }
+    work->field_8A2 += work->field_BFE;
+    if (work->field_8C2 != 0) {
+        work->field_8C2--;
+    }
+    *(Actor401800ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Chase body: takes a 0x10 scratch for the player offset and the heading it
 /// folds into the root coordinate. On the live flag it resets the model
@@ -1217,36 +1382,6 @@ void func_actor_401800_80138F5C(Actor401800* arg0)
     Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
     arg0->field_2C->field_8[5].flg = 0;
     Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
-}
-
-/// Step `coord` `amount` units along its local Z axis unless movement is
-/// frozen. Same body as `Actor01900_MoveForward`.
-static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-    SVECTOR* gteVec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        gteVec                     = vec;
-        if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
-            Gfx_MatrixCol2(&coord->coord, vec);
-            VectorNormalSS(vec, vec);
-            gte_lddp(amount);
-            gte_ldsv(gteVec);
-            gte_gpf12_real();
-            gte_stsv(gteVec);
-            coord->coord.t[0] += head[-1].vx;
-            coord->coord.t[1] += vec->vy;
-            coord->coord.t[2] += vec->vz;
-            coord->flg         = 0;
-        }
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
 }
 
 /// Per-frame body of the live actor while it walks: on work flag bit 0 it

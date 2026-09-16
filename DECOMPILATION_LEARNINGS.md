@@ -103860,3 +103860,38 @@ s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
 That alone took the function to 100.000%. A callee-saved register holding a
 value that is dead at the call is the tell — before touching the allocator,
 check whether the twin used a second name for that use.
+
+## A `static __inline__` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`func_actor_401800_80136EAC`, 2026-09-16)
+
+`func_actor_401800_80136EAC` reached 100.000% in the scratch env with all
+penalties at zero, and the overlay still failed its checksum: the built function
+started `addiu sp,sp,-0x30` where the target has `-0x38`, and held `arg0` in
+`$s5` instead of `$s7`. Disassembling `build/USA/out/actor_401800` and comparing
+the 538 words at the function's file offset against the split `.s` is what
+localised it; the scratch score says nothing about it.
+
+The function calls two `static __inline__` helpers of its own TU. One of them,
+`Actor401800_MoveForwardNonzero`, is *defined later in the file* than the
+function that calls it — the scratch env had copied the definition in above the
+function, the host file has it below. GCC 2.8.1 sees an undeclared call, takes
+the implicit declaration, and never reconsiders, so the call is emitted as
+`jal Actor401800_MoveForwardNonzero` plus an out-of-line copy of the helper
+(`.ent`/`.end` in the generated `.s`). The caller's frame and allocation follow
+from that: one fewer live value across the call, one fewer saved register.
+
+Fix by moving the **helper** up, not the function down — a unit's function order
+is the overlay's `.text` layout, and reordering functions breaks the checksum in
+a way that looks nothing like the original symptom. Moving the helper is
+layout-neutral as long as every call inlines: a `static` function that is never
+called out-of-line is not emitted. Both call sites (`func_actor_401800_80136EAC`
+and `func_actor_401800_80139118`) inlined after the move, and the checksum passed
+with the function order untouched.
+
+The tell is the same as any scratch-versus-overlay divergence: the scratch env
+compiles one function with the helpers pasted in above it, so it cannot see this
+class of difference. When a scratch match fails the overlay checksum, compare the
+built bytes before suspecting rodata.
+
+Two habits avoid it: put a new inline helper above its first caller, and after a
+100% scratch match, confirm the helper the function relies on is defined before
+the function in the host file.

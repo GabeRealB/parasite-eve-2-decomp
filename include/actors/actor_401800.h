@@ -127,8 +127,13 @@ typedef struct Actor401800Work {
     /// axis while `func_actor_401800_80133558` says the path is clear, and
     /// reloads `field_0 = 9` once it has counted down to zero. Same slot
     /// `Actor401300Work.field_C98` keeps.
-    /* 0xBFC */ s16  field_BFC;
-    /* 0xBFE */ byte pad_BFE[2];
+    /* 0xBFC */ s16 field_BFC;
+    /// Countdown that walks the chase body of `func_actor_401800_80136EAC`
+    /// through its step ramp: 8 until `field_8A2` reaches 0x18, then -1 until
+    /// it lands on 0x12, then 0 — the state that ticks `field_6` and re-aims
+    /// the actor at the player. Added to `field_8A2` every frame. Same slot
+    /// `Actor01900Work.field_C26` keeps.
+    /* 0xBFE */ s16 field_BFE;
     /// Side the live-actor swing of `func_actor_401800_80137DDC` takes from
     /// the LCG, then flips every frame it runs: 1 adds 0x171 to the yaw and
     /// -1 subtracts it. Same slot `Actor01900Work.field_C28`.
@@ -391,6 +396,12 @@ STATIC_ASSERT_SIZEOF(Actor401800Msg3E9, 0x18);
 
 /// Payload `func_actor_401800_80138C28` fills and sends with message 0x3E9.
 extern Actor401800Msg3E9 D_actor_401800_80155AD8;
+
+/// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
+/// `field_BFC` into and the init body clears; the aim-and-rescale body reads it
+/// back as the phase of the step it walks. Same role `Actor01900_D172FC` plays
+/// for actor 01900.
+extern u16 D_actor_401800_80155AC0;
 
 /// Camera-target matrix `func_actor_401800_8013A034` measures the actor's root
 /// coordinate against for its proximity test. Same global `Actor401300` reads.
