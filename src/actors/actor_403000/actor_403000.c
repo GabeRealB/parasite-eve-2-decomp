@@ -12,6 +12,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "psyq/abs.h"
 #include "psyq/inline_c.h"
 
 /// `gpf 12`. The `inline_c.h` macro of that name assembles to a different
@@ -1325,7 +1326,131 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013ACBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013B238);
+/// Turn toward the next waypoint: on the entry frame pick it from the grid
+/// offset by `field_FD5`, set state 2 if it is within a quarter turn, and fold
+/// the display object's scaled first and third matrix columns into the drift
+/// `field_FB0`; every frame re-aim by `field_FC8` and apply that drift.
+void func_actor_403000_8013B238(Actor403000* arg0)
+{
+    Actor403000Work*       work;
+    Actor403000AimScratch* scratch;
+    GsCOORDINATE2*         coord;
+    s32                    x;
+    s32                    z;
+    s8                     col;
+    s32                    b;
+    s8                     row;
+    TmdObject*             obj;
+    SVECTOR*               v;
+    SVECTOR*               table;
+    s32                    mag;
+    Actor403000AimScratch* head;
+    s16                    angle;
+
+    head                                     = *(Actor403000AimScratch**)G_SCRATCH_HEAD;
+    work                                     = arg0->field_1C;
+    *(Actor403000AimScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                  = head - 1;
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        work->field_FCA = 0;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->objB50.obj.field_1C = 0x3E8;
+        work->field_AC0           = 1;
+        work->field_ACA           = 0x10;
+        work->field_AC2           = 0;
+        work->field_AC6           = 9;
+        work->field_AD6           = 0;
+        work->objD18.obj.flags   |= 0x4000;
+        x                         = arg0->field_2C->field_8->coord.t[0];
+        z                         = arg0->field_2C->field_8->coord.t[2];
+        if (x < 0xD48) {
+            col = 4;
+        } else if (x < 0x1A90) {
+            col = 3;
+        } else if (x < 0x2AF8) {
+            col = 2;
+        } else {
+            col = x < 0x3C8C;
+        }
+        row            = z >= 0x1068;
+        b              = (s8)D_actor_403000_80158D48[col + row * 5];
+        scratch->base  = b;
+        scratch->index = scratch->base + work->field_FD5;
+        if (scratch->index >= 10) {
+            scratch->index -= 10;
+        } else if (scratch->index < 0) {
+            scratch->index += 10;
+        }
+        table            = D_actor_403000_80158CE0;
+        v                = &table[scratch->index];
+        scratch->vec.vx  = v->vx;
+        scratch->vec.vy  = v->vy;
+        scratch->vec.vz  = v->vz;
+        scratch->vec.vx -= arg0->field_2C->field_8->coord.t[0];
+        scratch->vec.vy -= arg0->field_2C->field_8->coord.t[1];
+        scratch->vec.vz -= arg0->field_2C->field_8->coord.t[2];
+        coord            = arg0->field_2C->field_8;
+        angle            = ratan2(scratch->vec.vx, scratch->vec.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto loop_neg;
+            }
+        } else {
+        loop_pos:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos;
+            }
+        }
+        mag            = angle;
+        scratch->angle = mag;
+        if (ABS(mag) < 0x400) {
+            work->field_0 = 2;
+        }
+        if (scratch->angle < 0) {
+            scratch->angle += 0x1000;
+        }
+        Gfx_MatrixCol0(&arg0->field_2C->field_8->coord, &scratch->vec);
+        VectorNormalSS(&scratch->vec, &scratch->vec);
+        gte_lddp(0x1B);
+        gte_ldsv(&scratch->vec);
+        gte_gpf12_real();
+        gte_stsv(&scratch->vec);
+        work->field_FB0 = scratch->vec;
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, &scratch->vec);
+        VectorNormalSS(&scratch->vec, &scratch->vec);
+        gte_lddp(-0x29);
+        gte_ldsv(&scratch->vec);
+        gte_gpf12_real();
+        gte_stsv(&scratch->vec);
+        work->field_FC8     = scratch->angle / 36;
+        work->field_FB0.vx += scratch->vec.vx;
+        work->field_FB0.vy += scratch->vec.vy;
+        work->field_FB0.vz += scratch->vec.vz;
+        work->field_AEB     = 0;
+        work->field_AEA     = 0;
+        work->field_AE9     = 0;
+        work->field_AE8     = 0;
+        work->field_6       = 0;
+    }
+    work->field_6++;
+    func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
+    scratch->angle = work->field_FC8 + ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+    arg0->field_2C->field_8->coord.t[0] += work->field_FB0.vx;
+    arg0->field_2C->field_8->coord.t[1] += work->field_FB0.vy;
+    arg0->field_2C->field_8->coord.t[2] += work->field_FB0.vz;
+    arg0->field_2C->field_8->flg         = 0;
+    func_actor_403000_80133AF8(arg0);
+    if (work->field_60.half & 1) {
+        work->field_0 = 2;
+    }
+    *(Actor403000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013B74C);
 

@@ -125,13 +125,14 @@ typedef struct Actor403000Work {
     /* 0xFA6 */ u8       field_FA6;
     /* 0xFA7 */ byte     pad_FA7[0x1];
     /* 0xFA8 */ GpEffArg field_FA8; // `func_800FDB18` argument record
-    /* 0xFB0 */ byte     pad_FB0[0x8];
+    /* 0xFB0 */ SVECTOR  field_FB0;
     /* 0xFB8 */ s16      field_FB8;
     /* 0xFBA */ s16      field_FBA;
     /* 0xFBC */ s16      field_FBC;
     /* 0xFBE */ byte     pad_FBE[0x2];
     /* 0xFC0 */ s16      field_FC0;
-    /* 0xFC2 */ byte     pad_FC2[0x8];
+    /* 0xFC2 */ byte     pad_FC2[0x6];
+    /* 0xFC8 */ s16      field_FC8;
     /* 0xFCA */ s16      field_FCA;
     /* 0xFCC */ byte     pad_FCC[0x6];
     /* 0xFD2 */ s8       field_FD2;
@@ -217,6 +218,20 @@ typedef struct Actor403000PushScratch {
     /* 0x18 */ byte    pad_18[0x10];
 } Actor403000PushScratch;
 STATIC_ASSERT_SIZEOF(Actor403000PushScratch, 0x28);
+
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_8013B238`: `vec` is the waypoint relative to the
+/// coordinate and later the scaled matrix columns, `index` the waypoint picked
+/// from `base` plus `field_FD5`, `angle` the wrapped heading error.
+typedef struct Actor403000AimScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s16     index;
+    /* 0x0A */ byte    pad_A[0x2];
+    /* 0x0C */ s16     angle;
+    /* 0x0E */ s16     base;
+    /* 0x10 */ byte    pad_10[0x4];
+} Actor403000AimScratch;
+STATIC_ASSERT_SIZEOF(Actor403000AimScratch, 0x14);
 
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_80134204`: `index` picks the next waypoint out of

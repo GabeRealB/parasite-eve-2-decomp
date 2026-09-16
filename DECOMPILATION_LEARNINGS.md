@@ -99352,3 +99352,24 @@ stays 8-aligned relative to the new base. No `.c` needed re-splitting.
 Codegen note from the same function: `enemy->field_40 = D.field_4;
 enemy->field_50 = &D;` (read before storing the pointer) put the address in
 `$v1` and the value in `$a0`; the reverse order kept both in `$v0`.
+
+## Threshold ladder: `if/else if` and nested `if` differ only in the first compare's register (func_actor_403000_8013B238, 2026-09-16)
+
+A band lookup `col = 4; if (x >= A) { col = 3; if (x >= B) { ... } }` and the
+`if (x < A) col = 4; else if (x < B) col = 3; ...` ladder emit the same
+`slti`/`bnez`/`li` shape with `col` in the delay slots. They differ only in
+the registers: the nested form put the coordinate pointer in `$v1` and the
+first `slti` in `$v0`, while the target had `lw v0,8(v0)`, the first `slti` in
+`$v1`, and the second coordinate `z` in `$a2`. Switching to the ladder fixed
+all of it at once. So when a ladder's shape matches but the temps start in
+the wrong registers, swap between the two forms before trying declaration order
+or new temporaries. (Neither `s8 col` / `s8 row` nor the order of the `x`/`z`
+reads changed anything here.)
+
+In the same function, the `sh` of an abs'd angle has to come *before* the abs
+`bgez`, with a `nop` in the delay slot. To get that, copy the angle into an `s32`
+first: `mag = angle; scratch->angle = mag; if (ABS(mag) < 0x400)`. Writing
+`scratch->angle = angle; ABS(angle)` let the scheduler move the store after the
+branch, and storing it with `$v1`. Also, `addu v1,v1,v0` where the scratch
+field was just stored from a local needed `scratch->index = scratch->base + fd5`.
+Naming the local (`b + fd5`) swapped the operands, and so did `fd5 + b`.
