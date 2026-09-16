@@ -120,9 +120,17 @@ typedef struct {
 /// `Game_Session->field_7` (1..5). Low 11 bits are the `GameFlag_GetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
-s16  Gp_LookupStageFlag(s32 arg0);
-s32  Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
-u8   Gp_GetViewCountLo(void);
+s16 Gp_LookupStageFlag(s32 arg0);
+s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
+u8  Gp_GetViewCountLo(void);
+
+struct _GpAreaKey;
+
+/// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears bit 2 of
+/// `GpAreaObj.field_1` on the record selected by `Gp_AreaTables[arg0->field_3]`
+/// + `arg0->field_2`. Null records are skipped, as in the setter.
+void Gp_ClearAreaFlag4(struct _GpAreaKey* arg0);
+
 void Gp_SetCurAreaFlag4(void);
 void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
 
