@@ -49,6 +49,25 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_801357F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_801358D4);
+/// Snapshots the attach coordinate's translation into the work block, then
+/// walks the coordinate forward: 0x80 up, and along its own facing axis
+/// (`m[0][2]` / `m[2][2]`) scaled by the work block's speed in 12-bit fixed
+/// point. The same body as `ActorsShared80134f60`, on this actor's own
+/// coordinate.
+void func_actor_521100_801358D4(Actor521100* arg0)
+{
+    Actor521100Coord* coord;
+    Actor521100Work*  work;
+
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+
+    work->field_64C    = coord->coord.t[0];
+    work->field_64E    = coord->coord.t[1];
+    work->field_650    = coord->coord.t[2];
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_69A) >> 12;
+    coord->coord.t[1] += 0x80;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_69A) >> 12;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_80135964);

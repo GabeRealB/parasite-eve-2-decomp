@@ -92066,3 +92066,34 @@ allocated, the seed is a wrong program, not a structural near-miss. Here
 `.diagnosis.json` still reported `topology: match`, 8 blocks against 8 and the
 same predicates, because the removed stores lived in one block. Read the
 instruction count, not only the topology, before planning from the penalties.
+## One address read at two widths in one function means m2c picked the wrong field type
+
+m2c infers a field's width from the load in front of the store it is looking at,
+and GCC narrows a load whose only use is a truncating store: a `long` written
+into a halfword comes out `lhu`/`sh`. So a seed can type a 32-bit field `u16`,
+and then the *same field* used in a read-modify-write, where the width is
+visible, goes wrong too:
+
+```
+lhu  v0,0x18(a1)      /* seed, field typed u16   */
+sh   v0,0x64C(a0)
+lw   v0,0x18(a1)      /* target                  */
+sw   v0,0x18(a1)
+```
+
+`func_actor_521100_801358D4` (62.2% from the m2c seed, `insert=6 delete=7`)
+snapshots the attach coordinate's translation into the work block — where the
+loads really are narrowed — then advances those same three words in place. One
+field cannot be both widths, and the type is the one the RMW needs: the seed's
+`Actor521100Coord` was a stub (`s32`, 0x4C of pad, `s32`), while the real
+object is a `GsCOORDINATE2`, whose `coord.t` is `long`. Spelling the coordinate
+out as `MATRIX coord` / `MATRIX workm` is exact, because GCC still narrows the
+three snapshot loads. `field_0` at 0x00 is `flg`, and the one word the actor
+keeps past the 0x50-byte coordinate is what the stub's `field_50` was reaching.
+
+The stub had already spoken for the sibling `ActorsShared80134f60` — the same
+six statements on another actor family's work block, matched earlier — so its
+`coord->coord.t[0]` / `m[0][2]` / `m[2][2]` was there to read before deriving
+anything from offsets. Reach for that before the byte arithmetic: a stub type
+that "works" for one function is the thing to re-derive from the sibling whose
+body it is, not to extend by hand.

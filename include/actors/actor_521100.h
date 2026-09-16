@@ -3,12 +3,21 @@
 
 #include "common.h"
 #include "gameplay/1BC.h"
+#include <psyq/libgte.h>
 
+/// The actor's attach coordinate. `Gp_UpdateCoord` reads it as a plain
+/// `GsCOORDINATE2`, and the body that walks the actor forward advances
+/// `coord.coord.t` by the facing axis `coord.coord.m[0][2]` / `m[2][2]`;
+/// the actor keeps one more word after the coordinate, so the layout is
+/// spelled out here rather than borrowed from libgs.
 typedef struct Actor521100Coord {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x4C];
-    /* 0x50 */ s32  field_50;
+    /* 0x00 */ s32    field_0;
+    /* 0x04 */ MATRIX coord;
+    /* 0x24 */ MATRIX workm;
+    /* 0x44 */ byte   pad_44[0xC];
+    /* 0x50 */ s32    field_50;
 } Actor521100Coord;
+STATIC_ASSERT_SIZEOF(Actor521100Coord, 0x54);
 
 typedef struct Actor521100Obj2C {
     /* 0x00 */ byte              pad_0[8];
@@ -47,7 +56,11 @@ typedef struct Actor521100Work {
     /* 0x4AE */ u16          yaw;
     /* 0x4B0 */ byte         pad_4B0[0x2];
     /* 0x4B2 */ s16          travel;
-    /* 0x4B4 */ byte         pad_4B4[0x1A0];
+    /* 0x4B4 */ byte         pad_4B4[0x198];
+    /* 0x64C */ s16          field_64C; // the attach coordinate's translation, snapshotted each frame
+    /* 0x64E */ s16          field_64E;
+    /* 0x650 */ s16          field_650;
+    /* 0x652 */ byte         pad_652[2];
     /* 0x654 */ Actor521100* field_654;
     /* 0x658 */ byte         pad_658[0x28];
     /* 0x680 */ s16          field_680;
@@ -57,7 +70,9 @@ typedef struct Actor521100Work {
     /* 0x690 */ s16          field_690;
     /* 0x692 */ s16          field_692;
     /* 0x694 */ s16          field_694;
-    /* 0x696 */ byte         pad_696[8];
+    /* 0x696 */ byte         pad_696[4];
+    /* 0x69A */ s16          field_69A; // forward speed, in 12-bit fixed point
+    /* 0x69C */ byte         pad_69C[2];
     /* 0x69E */ s16          field_69E;
     /* 0x6A0 */ byte         pad_6A0[8];
     /* 0x6A8 */ s16          field_6A8;
