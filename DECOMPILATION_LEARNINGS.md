@@ -92448,3 +92448,13 @@ The timer halfword at +0x74 is the other half of the match, and confirms the
 halfword down reads it `lhu` through the family's `(u16)field - 1` view. The
 field is therefore declared `s16` and the countdown carries the cast - the
 declared type follows the load that is *not* arithmetic.
+
+Tooling note for the header above: `tools/build-and-verify.sh` runs
+`clang-format -i` over every `.c` and every overlay `include/` header on each
+build, so a field comment is rewritten into the formatter's canonical shape. A
+multi-line `///` block placed after a field that already carries a trailing `//`
+comment is re-indented as a continuation of *that* comment and reads as if it
+belonged to the field above. Keep the explanation in the struct's own doc
+comment and leave each field a short trailing `//` - and re-read a file after a
+build before quoting it back, since the format pass can move lines you did not
+touch.
