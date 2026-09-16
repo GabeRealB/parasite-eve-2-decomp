@@ -87694,3 +87694,42 @@ is the 8-byte fade work the actors carry as `Actor560800FadeWork`
 code word for word: reading the sibling turned a 74.5% baseline into an exact
 match on the first edit, where the target's own three widths look contradictory
 until you see which use produced each.
+
+
+## `addiu $a1, $v0, 0x4` in the prologue: the source took `&Game_Session->field_4`
+
+A target that opens
+
+```
+lui   $v0, %hi(Game_Session)
+lw    $v0, %lo(Game_Session)($v0)
+nop
+addiu $a1, $v0, 0x4
+lbu   $v1, 0x3($a1)
+...
+lbu   $v0, 0x2($a1)
+```
+
+is not reachable by rearranging the *uses*. m2c types every session byte access
+off the base symbol and folds the displacement in (`lw $a1, Game_Session`, then
+`lbu $v1, 7($a1)`), and no rewrite of the field accesses brings the `addiu`
+back: the original computed the sub-object's address once and kept that in a
+register. `main/session.h` already models the sub-object as `GameSessionFrom4`,
+an overlay of `GameSession` starting at 0x4, declared for exactly this shape:
+
+```c
+GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+if (sess->field_3 == 2) {          /* GameSession.field_7 */
+    ... sess->field_2 ...          /* GameSession.field_6 */
+}
+```
+
+The session pointer then stays in `$v0` and the byte loads become `0x3($a1)` /
+`0x2($a1)`. `Mc_SaveData` has the same overlay in use. The prologue recurs
+across the rooms (the dryfield night motel balcony's
+`func_dryfield_night_motel_balcony_8017E4B8` opens with it), and
+`func_dryfield_water_tower_801802D8` is the worked example: the m2c baseline sat
+at 96% with `branch=2 regs=1 delete=1` and the overlay struct alone took it to
+100% on the first edit. Read the shape-similar matched siblings for the rest of
+the body -- `Room_Util16` / `Room_Util17` carry the same `Gp_SprtTables`
+walk.

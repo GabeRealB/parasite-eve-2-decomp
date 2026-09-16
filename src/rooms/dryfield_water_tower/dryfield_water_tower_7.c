@@ -66,7 +66,26 @@ void func_dryfield_water_tower_80180220(void)
     Gp_RestoreStreamRng();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_7", func_dryfield_water_tower_801802D8);
+/// Sets the current view's skip-OT-link byte from the nibble-0x55 band: the
+/// argument's low byte zero skips the view's sprites, non-zero draws them. Only
+/// the stage byte 2 (the first stage table) has a record to write, and the
+/// lookup walks it exactly like the `Room_Util16` / `Room_Util17` bodies, down
+/// to taking `&Game_Session->field_4` as its own pointer.
+void func_dryfield_water_tower_801802D8(u8 arg0)
+{
+    GameSessionFrom4*  sess;
+    DwtwSprtViewState* vs;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    if (sess->field_3 == 2) {
+        vs = ((DwtwSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1])->field_DC;
+        if (!(arg0 & 0xFF)) {
+            vs->field_C = 1;
+            return;
+        }
+        vs->field_C = 0;
+    }
+}
 
 void func_dryfield_water_tower_80180348(void)
 {

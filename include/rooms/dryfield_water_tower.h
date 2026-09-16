@@ -80,6 +80,32 @@ typedef struct DwtwMsg7DB {
 } DwtwMsg7DB;
 STATIC_ASSERT_SIZEOF(DwtwMsg7DB, 0x4);
 
+/// One of the per-view objects the room's sprite-table record points at.
+/// `field_C` is the skip-OT-link byte: non-zero leaves the view's sprites out
+/// of the ordering table, zero draws them. `func_dryfield_water_tower_801802D8`
+/// is this room's writer, driven from the `GameFlag_GetNibble(0x55)` band by
+/// `func_dryfield_water_tower_8017DCB4`; the byte at 0x14 sits next to it and
+/// is written by the other rooms carrying the same object (the dryfield night
+/// motel balcony's `func_dryfield_night_motel_balcony_8017E4B8` writes both).
+typedef struct DwtwSprtViewState {
+    /* 0x0 */ byte pad_0[0xC];
+    /* 0xC */ u8   field_C; // skip-OT-link; 0 draws the view's sprites
+} DwtwSprtViewState;
+STATIC_ASSERT_SIZEOF(DwtwSprtViewState, 0xD);
+
+/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at:
+/// a room-sized block, far larger than the 0xC-byte `GpSprtRec` the table's
+/// element type declares, so the room reaches its tail through a cast. The tail
+/// is a run of pointers to `DwtwSprtViewState`; the sibling overlays carrying
+/// the same record keep them at 0xC4 / 0xD0 / 0xDC / 0x100
+/// (`shelter_b3_dumping_hole_6.c` models the shape privately as `SprtBigRec`,
+/// with its own pointer at 0xA0).
+typedef struct DwtwSprtRec {
+    /* 0x000 */ byte               pad_0[0xDC];
+    /* 0x0DC */ DwtwSprtViewState* field_DC;
+} DwtwSprtRec;
+STATIC_ASSERT_SIZEOF(DwtwSprtRec, 0xE0);
+
 /// Scratch state of the room's cap script, stored at `Task::idMap`: the
 /// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
 /// task before it runs. Every task the room spawns off `D_..._80182384`
