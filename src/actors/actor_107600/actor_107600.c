@@ -865,7 +865,61 @@ void func_actor_107600_80133DC4(Task* arg0)
     *(s32*)G_SCRATCH_HEAD += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133FA8);
+/// Corner offsets of the quad `func_actor_107600_80133FA8` draws.
+const DVECTOR D_actor_107600_80131ED8[] = {
+    { -0x100, -0x100 },
+    { -0x100, 0x100 },
+    { 0x100, -0x100 },
+    { 0x100, 0x100 },
+};
+
+/// Same as `func_actor_107600_80134248` with a 0x200-wide square, UVs
+/// 0x40..0x67 x 0..0x27 and a 0xA0 depth bias.
+void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    Actor107600QuadScratch* s;
+    POLY_FT4*               p;
+    s32                     i;
+
+    *(s32*)G_SCRATCH_HEAD -= sizeof(Actor107600QuadScratch);
+    s                      = *(Actor107600QuadScratch**)G_SCRATCH_HEAD;
+    for (i = 0; i < 4; i++) {
+        s->v[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
+        s->v[i].vy = pos->vy + (D_actor_107600_80131ED8[i].vy + coord->coord.t[1]);
+        s->v[i].vz = coord->coord.t[2] + pos->vz;
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_SetTransMatrix(&coord->workm);
+    gte_ldv0(&s->v[0]);
+    gte_rtps_real();
+    p              = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    setPolyFT4(p);
+    gte_stsxy(&s->sxy[0]);
+    gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
+    gte_rtpt_real();
+    p->tpage = 0x99;
+    p->clut  = 0x3E80;
+    setUV4(p, 0x40, 0, 0x67, 0, 0x40, 0x27, 0x67, 0x27);
+    setShadeTex(p, 1);
+    gte_stsxy3(&s->sxy[1], &s->sxy[2], &s->sxy[3]);
+    gte_stszotz(&s->otz);
+    s->otz -= 0xA0;
+    if (s->otz < 0x40) {
+        *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+        return;
+    }
+    p->x0 = s->sxy[0];
+    p->y0 = s->sxy[0] >> 16;
+    p->x1 = s->sxy[1];
+    p->y1 = s->sxy[1] >> 16;
+    p->x2 = s->sxy[2];
+    p->y2 = s->sxy[2] >> 16;
+    p->x3 = s->sxy[3];
+    p->y3 = s->sxy[3] >> 16;
+    addPrim(&Gpu_CurrentOt[s->otz >> 4], p);
+    *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+}
 
 /// Corner offsets of the quad `func_actor_107600_80134248` draws; the
 /// zero fifth entry is never read.
