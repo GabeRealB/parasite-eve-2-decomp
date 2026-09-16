@@ -23512,6 +23512,42 @@ the words with inline `.section .rodata` / `.globl` in the C file — a C
 later tables; a hand-written `.s` under `nonmatchings/` is deleted on the next
 `ninja_config.py` splat.
 
+## A matched function's migrated rodata leaves the build with its `INCLUDE_ASM`
+
+splat's `migrate_rodata_to_functions` attaches each rodata symbol to the
+function that *references* it, and writes that function's whole entry -
+`.rodata` included - as one `.s`. So a room's dispatch table is owned by the
+unit whose code reads it, not by the unit whose `.rodata` subsegment holds it:
+`D_neo_ark_altar_8017D648` sits in `neo_ark_altar_5`'s rodata subsegment but
+was written into `func_neo_ark_altar_8017ECE0.s` because that function loads
+it. Match that function and the file moves to
+`asm/<ver>/<family>/matchings/<overlay>/<unit>/`, which nothing assembles: the
+table is simply gone and the link fails with `undefined reference to D_...`.
+The splitter is no help - it never rewrites the `src/` file, so removing the
+`INCLUDE_ASM` is what triggers this, and the failure looks like a missing
+symbol rather than a rodata problem.
+
+Fix it in the C, not in assembly: define the table at file scope in the unit
+that owns the rodata subsegment, at the source position that keeps the block's
+order (the jump tables the remaining `INCLUDE_ASM` functions contribute come
+first, the table last). `INCLUDE_RODATA` cannot help here - the file it would
+name lives under `matchings/` and carries the function's `.text` too.
+
+What makes the mid-file definition land at exactly its declaration point is
+the *initializer*: `rest_of_decl_compilation` skips `assemble_variable` for a
+top-level, non-final declaration whose `DECL_INITIAL` is null, deferring it to
+the end of the TU, and emits everything else where it stands. That is the
+whole difference from the entry above - a `const Table x = {...}` is placed at
+its declaration, an uninitialized `Table x;` is collected at the TU's end.
+MIPS emits the const into `.rdata`, which maspsx folds into `.rodata`, so
+there is still one input section for the linker script to match.
+
+`func_neo_ark_altar_8017ECE0` (32 words, 8 entries) is the example: with the
+table declared between the last `INCLUDE_ASM` and the function bodies, the
+unit's object is `.rodata` = jtbl `0x18` + jtbl `0x18` + table `0x30`, and the
+overlay's sha1 (`81bee87394eeb2dce334c3d32a910da99acae524`) matches byte for
+byte.
+
 ## Nested mid-struct object so `%lo(sym+off)` wins against a later `&sym`
 
 When the target stores a mid-struct halfword block as

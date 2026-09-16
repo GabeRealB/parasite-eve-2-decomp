@@ -27,7 +27,37 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_alt
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EC34);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017ECE0);
+void func_neo_ark_altar_8017ED60(Task* task);
+void func_neo_ark_altar_8017EDBC(Task* task);
+void func_neo_ark_altar_8017DF0C(Task* task);
+void func_neo_ark_altar_8017EDF8(Task* task);
+void func_neo_ark_altar_8017EE30(Task* task);
+void func_neo_ark_altar_8017EE90(Task* task);
+void func_neo_ark_altar_8017EF00(Task* task);
+void func_neo_ark_altar_8017EF34(Task* task);
+
+/// State handlers of the altar task, dispatched by
+/// `func_neo_ark_altar_8017ECE0` off `Task::state`. The table is declared here
+/// rather than left to the splitter: only a file-scope definition in this unit
+/// puts the bytes in this unit's `.rodata`, after the jump tables
+/// `func_neo_ark_altar_8017DC40` contributes to the same block.
+const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
+    func_neo_ark_altar_8017ED60,
+    func_neo_ark_altar_8017EDBC,
+    func_neo_ark_altar_8017DF0C,
+    func_neo_ark_altar_8017EDF8,
+    func_neo_ark_altar_8017EE30,
+    func_neo_ark_altar_8017EE90,
+    func_neo_ark_altar_8017EF00,
+    func_neo_ark_altar_8017EF34,
+};
+
+void func_neo_ark_altar_8017ECE0(Task* arg0)
+{
+    TaskFuncTable8 sp = D_neo_ark_altar_8017D648;
+
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_neo_ark_altar_8017ED60(Task* arg0)
 {
