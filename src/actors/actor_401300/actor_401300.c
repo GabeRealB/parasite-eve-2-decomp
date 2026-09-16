@@ -1272,7 +1272,102 @@ void func_actor_401300_80137D78(Actor401300* arg0)
     *(Actor401300AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138160);
+/// Offset from `coord` to the translation of `m`; `Actor401300_ConfigPositionDelta` for a bare matrix.
+static __inline__ void Actor401300_MatrixPositionDelta(MATRIX* m, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = m->t[0] - coord->coord.t[0];
+    pos->vy = m->t[1] - coord->coord.t[1];
+    pos->vz = m->t[2] - coord->coord.t[2];
+}
+
+/// `Actor401300_PositionYaw` towards the translation of `m`.
+static __inline__ s16 Actor401300_MatrixPositionYaw(Actor401300* actor, SVECTOR* pos, MATRIX* m)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+    Actor401300_MatrixPositionDelta(m, actor->field_2C->field_8, pos);
+    coord = actor->field_2C->field_8;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor401300_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+void func_actor_401300_80138160(Actor401300* arg0)
+{
+    SVECTOR          pos;
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GameActor*       player;
+    WipSysConfig*    config;
+    SVECTOR*         p;
+    s16              angle;
+
+    enemy  = arg0->field_20;
+    work   = arg0->field_1C;
+    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    config = &Wip_SysConfig;
+    if (work->field_4 != 0) {
+        work->field_970.field_1C = 0x280;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_89C          = 1;
+        work->field_8A6          = 0x10;
+        work->field_8A2          = 4;
+        func_actor_401300_80133A3C(arg0);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, Actor401300_PositionYaw(arg0, &pos, config), 0);
+        Actor401300_RescaleYaw(arg0->field_2C->field_8, 0x1964);
+        pos.vx                       = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vy                       = 0;
+        pos.vz                       = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        work->field_8B2              = 0;
+        work->field_8B4              = 0;
+        arg0->field_2C->field_8->flg = 0;
+        work->field_D1E              = 0;
+        work->field_D20              = 0;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if ((work->field_5E & 0x3FF) == 0x10 && player->field_954 != 2) {
+        angle = Actor401300_MatrixPositionYaw(arg0, &pos, D_80073B8C);
+        if (abs(angle) < 0x10 && !Actor401300_OutOfRange(&pos, 0x44C)) {
+            work->field_CAC.field_0 = (s32)&D_actor_401300_801588F0;
+            work->field_D00         = 8;
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
+                work->field_0           = 0xC;
+                work->field_D20         = 1;
+                work->field_CAC.field_4 = 1;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                work->field_CC0[2] = 0;
+                work->field_CC0[1] = 0;
+                work->field_CC0[0] = 0;
+                work->field_CD0    = 7;
+                work->field_CD2    = 1;
+                work->field_D22    = 0;
+            }
+        }
+    }
+    if (work->field_8A2 == 4 && (work->field_6C & 0x100)) {
+        work->field_0 = 7;
+    }
+    if ((work->field_5E & 0x3FF) > 0x10) {
+        p      = &pos;
+        pos.vx = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vy = 0;
+        pos.vz = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        if (!Actor401300_OutOfRange(p, 0x578)) {
+            VectorNormalSS(p, p);
+            gte_lddp(10);
+            gte_ldsv(p);
+            gte_gpf12_real();
+            gte_stsv(p);
+            coord                        = arg0->field_2C->field_8;
+            coord->coord.t[0]           += pos.vx;
+            coord                        = arg0->field_2C->field_8;
+            coord->coord.t[2]           += pos.vz;
+            arg0->field_2C->field_8->flg = 0;
+        }
+    }
+}
 
 void func_actor_401300_80138800(Actor401300* arg0)
 {

@@ -114,12 +114,19 @@ typedef struct Actor401300Work {
     /* 0xCA8 */ u8                field_CA8[3];
     /* 0xCAB */ byte              pad_CAB;
     /* 0xCAC */ Actor401300Msg3FF field_CAC;
-    /* 0xCC0 */ byte              pad_CC0[0x14];
+    /* 0xCC0 */ s32               field_CC0[3];
+    /* 0xCCC */ byte              pad_CCC[4];
+    /* 0xCD0 */ s16               field_CD0;
+    /* 0xCD2 */ u8                field_CD2;
+    /* 0xCD3 */ byte              pad_CD3;
     /// Player position and facing sent with message 0x3E9 by
     /// `func_actor_401300_80138800`.
     /* 0xCD4 */ VECTOR  field_CD4;
     /* 0xCE4 */ SVECTOR field_CE4;
-    /* 0xCEC */ byte    pad_CEC[0x20];
+    /// Payload `func_actor_401300_80138160` sends with message 0x3F8.
+    /* 0xCEC */ byte field_CEC[0x14];
+    /* 0xD00 */ s32  field_D00;
+    /* 0xD04 */ byte pad_D04[8];
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xD0C */ Task* field_D0C;
@@ -218,9 +225,11 @@ extern SVECTOR D_actor_401300_80158A08[2];
 /// record (`GpEnemy::field_50`), the three per-variant `field_CA0..CA4`
 /// triples selected by `spawnArg1 & 0xF`, the animation bank passed to
 /// `Gp_AnimInitCtxSlots`, the 0x3FF message seed, and the task's `field_24`.
-extern GpPairSrcE        D_actor_401300_80141FA0;
-extern SVECTOR           D_actor_401300_80141FB0[3];
-extern s32               D_actor_401300_80158838;
+extern GpPairSrcE D_actor_401300_80141FA0;
+extern SVECTOR    D_actor_401300_80141FB0[3];
+extern s32        D_actor_401300_80158838;
+/// Handler table `func_actor_401300_80138160` points `field_CAC.field_0` at.
+extern s32               D_actor_401300_801588F0;
 extern Actor401300Msg3FF D_actor_401300_80158914;
 extern s32               D_actor_401300_80158988;
 
