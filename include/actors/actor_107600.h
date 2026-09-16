@@ -53,13 +53,14 @@ typedef struct Actor107600Work {
     /* 0x14A */ u8             field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
     /* 0x14B */ s8             field_14B; // scale percent applied to the model root coord.m[1][1]
     /* 0x14C */ s32            field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
-    /* 0x150 */ byte           pad_150[0x6];
+    /* 0x150 */ s16            field_150; // Gp_GetIdParam2 of the last hit's id
+    /* 0x152 */ byte           pad_152[0x4];
     /* 0x156 */ s16            field_156;
     /* 0x158 */ s16            field_158;
     /* 0x15A */ s16            field_15A;
     /* 0x15C */ byte           pad_15C[0x2];
     /* 0x15E */ u16            field_15E;
-    /* 0x160 */ byte           pad_160[0x2];
+    /* 0x160 */ s16            field_160; // damage of the last hit
     /* 0x162 */ s16            field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
     /* 0x164 */ byte           pad_164[0x4];
     /* 0x168 */ u8             field_168; // percent scale applied to coord.m[0][0]
@@ -67,6 +68,15 @@ typedef struct Actor107600Work {
     /* 0x16A */ u8             field_16A; // rolled 0..7 alongside field_168
     /* 0x16B */ u8             field_16B;
 } Actor107600Work;
+
+/// The hit position `func_actor_107600_80133DC4` copies out of a collision
+/// record as three words over `Actor107600Work.pitch`/`yaw`/`roll`: the same
+/// 0x40 slot read as `s32`s, sign-extended from the record's halfwords.
+typedef struct Actor107600HitPos {
+    /* 0x0 */ s32 vx;
+    /* 0x4 */ s32 vy;
+    /* 0x8 */ s32 vz;
+} Actor107600HitPos;
 
 typedef struct Actor107600 {
     /* 0x00 */ byte             pad_0[0x1C];

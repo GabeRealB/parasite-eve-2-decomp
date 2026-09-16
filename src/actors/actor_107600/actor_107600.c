@@ -305,7 +305,59 @@ INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801339A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133DC4);
+/// Hit handler: for each collision record tagged 0x2xxxx, stores the hit
+/// position, applies `Gp_ComputeDamage` to the enemy's HP, plays the hit sound
+/// for the first eight hits and picks a light/heavy reaction in `field_15E`.
+void func_actor_107600_80133DC4(Task* arg0)
+{
+    Actor107600Work* work;
+    GpEnemy*         enemy;
+    GpObj38*         obj;
+    s32              i;
+    s16              damage;
+    s32              pan;
+
+    work                   = (Actor107600Work*)arg0->idMap;
+    enemy                  = arg0->spawnArg2;
+    *(s32*)G_SCRATCH_HEAD -= 8;
+    work->field_156        = 0;
+    if (Gp_FindRec18(work->obj.field_C, 0) != 0) {
+        for (i = 0; i < 8; i++) {
+            if ((work->rec18[i].field_4 & 0xFFFF0000) == 0x20000) {
+                work->field_156                        = 1;
+                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].field_10;
+                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].field_12;
+                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].field_14;
+                func_actor_107600_80134D9C(arg0);
+                damage          = Gp_ComputeDamage(work->rec18[i].field_4, work->field_14C, 0, 0);
+                work->field_150 = Gp_GetIdParam2(work->rec18[i].field_4);
+                work->field_160 = damage;
+                func_800DA6E8(&enemy->node, damage, 0);
+                enemy->field_40 -= damage;
+                if (enemy->field_40 <= 0) {
+                    enemy->field_40 = 0;
+                }
+                if (damage > 0) {
+                    if (work->field_16B < 8) {
+                        obj = (GpObj38*)((TmdObject*)arg0->extra)->field_8;
+                        work->field_16B++;
+                        pan = (s8)Gp_GetObjPan(obj);
+                        SndEvt_EnqueueType6(0x51140008, pan, (s8)Gp_GetObjDepth(obj));
+                    }
+                    if (damage >= 0x14) {
+                        work->field_15E = 2;
+                    } else {
+                        work->field_15E = 1;
+                    }
+                } else {
+                    work->field_156 = 0;
+                }
+            }
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec18);
+    *(s32*)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133FA8);
 
