@@ -88133,3 +88133,40 @@ is born before the `idMap` load. `local-alloc` hands out its scratch registers
 in RTL birth order, so *which* of `$v0`/`$v1` a short-lived temp receives is set
 by the C order of the statements that create it — not visible in the emitted
 code, and cheaper to try than reading `.lreg`.
+
+## m2c hoists a loop's locals above the enclosing `if`; block-scope them and the argument returns to `$s0` (func_neo_ark_eve_access_tunnel_8017DF24, 2026-09-16)
+
+**Problem.** m2c declares every local at function scope and assigns it where the
+value is produced, so a loop that lives inside one arm of an `if` gets its
+induction variables assigned *before* the branch:
+
+```c
+    u16* ptr = (u16*)Fs_ImgBuffers;   /* outside the if */
+    s32  i   = 0;
+    ...
+    if (Game_Session->field_9 == 0xB) {
+        do { *ptr = (u16)(*ptr | 0x8000); i += 1; ptr += 1; } while (i <= 0x12BFF);
+```
+
+Both locals are then live across the branch, so `arg0` — which the target keeps
+in `$s0` for the whole body — is pushed up to `$s2`, the pointer takes `$s0`, the
+counter takes `$s1`, and the frame grows 0x18 -> 0x20 with two extra callee-saved
+saves and restores. 100% -> 78.4% from a change that looks like pure style.
+Symptom to recognise: **the argument register moves up and the prologue grows**,
+with the loop body itself still instruction-for-instruction correct.
+
+**Fix.** Declare the locals inside the branch that produces them, so their live
+ranges start after the test:
+
+```c
+    if (Game_Session->field_9 == 0xB) {
+        u16* ptr = (u16*)Fs_ImgBuffers;
+        s32  i   = 0;
+
+        do { *ptr = (u16)(*ptr | 0x8000); i += 1; ptr += 1; } while (i <= 0x12BFF);
+```
+
+Back to 100.000%. Statement order inside the loop body is sched1's business and
+did not matter; where the locals are *born* did. Same family as "Shape a live
+range by *where* a local is introduced", but the actionable form against an m2c
+seed is mechanical: move the declaration into the branch, not the assignment.
