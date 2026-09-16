@@ -101847,3 +101847,16 @@ for a new hypothesis. Second, an unpinned attempt is what makes the pin
 legitimate: the same function's `dx` and `tmp` both came out correct by copying
 the sibling's pins only after 95.49% had demonstrated that the prologue, switch
 and control flow were already exact and the register was the sole leftover.
+
+The next copy of the family in the same unit, `func_actor_800200_80164C54`,
+confirms both halves. Its target is an instruction-for-instruction twin of
+`Gp_PlayerMode2State4` -- 154 instructions, every register the same, 153 of them
+identical -- differing only in `addiu $v0,$zero,0x5` against `0x1`
+(`actor->field_958 = 5` against `= 1`). The copies are variants of one body that
+differ in *data constants*: State4 stores 1, `80164C54` stores 5, the already
+matched `func_actor_800200_80164EBC` stores 6 and differs further only in its
+`case 1` mode selection. Porting State4's source with that one constant changed
+scored 93.597% unpinned and 100.000% once its same two `register asm()`
+declarations were adopted verbatim -- so when a twin appears, take its source
+*including* the declaration list, and expect the remaining work to be an
+immediate, not a statement.
