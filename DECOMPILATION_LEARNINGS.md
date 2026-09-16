@@ -94046,3 +94046,45 @@ seed), `base_14.c` `51867349…` (store after the read: no preference line at al
 same 98.4559); seed `base_6.c` `67d667dc…`, permuter candidate
 `base_perm_19d95918b46748ab.c` `1da0c8c5…`. Compiler `60d886cd…` (the bundled
 patched cc1), all four variations built with the scratch `build.sh`.
+
+## An m2c seed can already be byte-exact, and the struct retype is then a port, not a search (func_actor_107000_8013844C, 2026-09-16)
+
+The baseline is worth taking at face value. `func_actor_107000_8013844C`'s m2c
+output scored **100.000%** on the first `./build.sh base.c` - 52/52 instructions,
+every penalty zero, `Structure: match`. Nothing about the shape needed changing:
+the seed's `temp_s0`/`temp_s1` copies and its `M2C_FIELD` reads already produced
+the target's `$s0`/`$s1`/`$s2`, and every branch, delay slot and load width
+landed. The seed's `M2C_UNK` callee type and its `void *arg0` were not hiding a
+structural difference.
+
+What remains is the code-quality port to real types, and that rewrite is
+codegen-neutral: keep each access's offset and width - `lbu` for the `u8` flag
+byte, `sb` for its two stores, `sh` for the two `s16` work fields, `lw` for the
+`Task::spawnArg2` / `Task::idMap` loads - and
+
+```c
+    enemy->field_4C &= 0xFD;      /* was: M2C_FIELD(temp_s0, u8 *, 0x4C) &= 0xFD */
+```
+
+re-scores 100.000% with the same penalties. `base_1.c` reproduced `base.c`
+instruction for instruction, which `build.sh` reports as
+`Repeated assembly: base_1.c reproduces base.c` - on a port that line is the
+confirmation, not the "pick a different hypothesis" warning it is during a
+search.
+
+So a seed at 100% is not a reason to skip the retype, and the retype is not a
+risk to the match: do it, and only investigate if a width or offset actually
+changed. A `void*` the seed passes straight through (here `arg0` to the local
+callee) is worth typing from that callee's own accesses - the first use in
+`asm/USA/actors/nonmatchings/actor_107000/actor_107000_5/func_actor_107000_80136094.s`
+(`lw $s0, 0x20($s4)` / `lw $v0, 0x2C($s4)` / `lw $s1, 0x1C($s4)`) shows the same
+`Task` shape the already-matched `func_actor_107000_80132D8C` uses, so the
+declaration is `void func_actor_107000_80136094(Task* arg0, s32 arg1);`.
+
+Evidence: scratch `nonmatchings/func_actor_107000_8013844C-vacuum/`, `base.c`
+`4fafd10c…` (m2c seed, 100.000%) and `base_1.c` (struct port, 100.000%, same
+assembly sha256); `include/actors/actor_107000.h` gained `field_36A`/`field_36E`
+inside the work's former `pad_2DA`, offsets 0x36A/0x36E unchanged either side.
+The `overlay_dup_index.py promote` for this body is refused - its callee
+`func_actor_107000_80136094` is overlay-local, so the `actor_207000` copy cannot
+share the object.

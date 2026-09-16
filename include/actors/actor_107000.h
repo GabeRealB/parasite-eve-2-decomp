@@ -24,6 +24,11 @@ typedef struct Actor107000Ctx {
 /// over the work's *six* helper slots, mirroring `Actor207200Work`'s
 /// `field_48C`/`field_48E`/`field_490`.
 ///
+/// `field_36A`/`field_36E` are the same pair `Actor103800Work` and
+/// `ActorShared80137e18Work` carry: the reaction sub-state the damage branch
+/// writes (3 here, 5 once the 0x600A5 spawn is armed) and a word cleared
+/// alongside it.
+///
 /// `field_28C`/`field_2CA` are the same pair as `Actor207200Work`'s
 /// `field_264`/`field_2A0`: the transform `ActorsShared801349d8` folds onto the
 /// model, and the angle it is scaled by.
@@ -44,7 +49,10 @@ typedef struct Actor107000Work {
     /* 0x2D4 */ byte   pad_2D4[2];
     /* 0x2D6 */ s16    field_2D6; // selects the sound event's high half
     /* 0x2D8 */ s16    field_2D8; // latched copy of `field_2B8`
-    /* 0x2DA */ byte   pad_2DA[0x96];
+    /* 0x2DA */ byte   pad_2DA[0x90];
+    /* 0x36A */ s16    field_36A; // reaction sub-state, cleared once applied
+    /* 0x36C */ byte   pad_36C[2];
+    /* 0x36E */ s16    field_36E; // cleared alongside `field_36A`
     /* 0x370 */ s16    field_370; // animation id the work is playing
     /* 0x372 */ u16    field_372; // id the six helper slots last saw
     /* 0x374 */ u16    field_374; // frames spent on the current id
