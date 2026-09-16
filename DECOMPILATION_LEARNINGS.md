@@ -62985,6 +62985,29 @@ tables owned by the unit at `0x29F0`; promoting `ActorsShared8013454c` at
 The build does not fail on the mistake — it just links the tables into a
 different object.
 
+## A promotion that consumes a whole unit leaves its carrier `.c` silently dead
+
+When the promoted span is the *entire* content of a unit, the re-split drops
+that unit from the generated config and deletes its `asm/…/nonmatchings/<unit>/`
+directory. splat never deletes a `.c`, so
+`src/<family>/<overlay>/<unit>.c` stays on disk holding a lone `INCLUDE_ASM`
+that names an `.s` path which no longer exists.
+
+Nothing reports it, and the file is not merely stale — it is outside the build
+entirely. It is no longer one of the config's c-subsegment `.c` files, so it is
+not a split input (the overlay's `.split` stamp does not move when the file
+changes) and no ninja rule reads it: rewriting it to contain invalid C still
+builds green. The hazard is latent rather than absent — splat creates a unit
+`.c` only when one is missing, so a later manifest change that re-creates that
+unit name adopts the stale file and compiles its `INCLUDE_ASM` against the
+missing `.s`.
+
+Snapshot with `bodies_of()` and delete the carrier once its span was the whole
+unit; `actor_107000_9.c` and `actor_207000_9.c` (both a lone
+`func_actor_107000_80138640`, promoted to `ActorsShared80138640`) are the worked
+example. This is the benign twin of the renumbering entry above: there the
+stale files fail loudly, here they never do.
+
 ## sched1 will not lift a load above an earlier store, so give the pointer its own statement
 
 An early-out handler cleared two fields:
