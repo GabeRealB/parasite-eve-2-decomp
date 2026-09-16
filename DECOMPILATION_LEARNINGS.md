@@ -94737,6 +94737,25 @@ Check `find` before starting: the brief's "similar matched bodies" list is the f
 `similar` tier and says as much, while `find`'s equality is exact and marks which
 copies are already matched.
 
+Worked case, byte-identical: `func_actor_110600_80133550` turned out to be
+`func_acropolis_bridge_80185104` verbatim — `find` printed it with `~ ... matched`
+(one `=` for the two copies' own images, `~` because the room's copy sits at the
+room load address). When the sibling is already matched, confirm it at
+instruction level before porting, since text equality only drops position:
+`diff` the two `.s` files with the `/* offset vram encoding */` column and the
+`.L<overlay>_<vram>` labels stripped. Identical streams mean the port is a rename
+job, and it scored 100.000% with all penalties zero on the first build after the
+baseline.
+
+The preparation that is *not* textual is the receiving overlay's struct view. The
+acropolis walker type names a `MATRIX scaleMtx` at 0x34; `Actor110600Walker` hid
+the same bytes inside `pad_C[0x48]`, so the body's `work->scaleMtx.m` reads had to
+have the field carved out of the padding (offsets unchanged, so the neighbouring
+matched bodies were unaffected) rather than reached with a cast. Read the ported
+body's field accesses first and check each one has a named home at the same offset
+in *this* overlay's types; the `s16`-local variant of the same trap is a separate
+entry above.
+
 ## m2c's masked loop variable is a `(u16)i` cast at each use site, not a variable of its own
 
 `func_actor_120300_80133330` opens by walking animation slots 1..19 through
