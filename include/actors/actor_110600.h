@@ -131,8 +131,11 @@ typedef struct Actor110600Work {
     /* 0xB91 */ byte  pad_B91[0x43];
     /* 0xBD4 */ Task* field_BD4;
     /* 0xBD8 */ Task* field_BD8;
-    /* 0xBDC */ byte  pad_BDC[4];
-    /* 0xBE0 */ s16   field_BE0;
+    /// Copy of the first three bytes of the last event
+    /// `func_actor_110600_80134040` handled.
+    /* 0xBDC */ u8   field_BDC[3];
+    /* 0xBDF */ byte pad_BDF[1];
+    /* 0xBE0 */ s16  field_BE0;
     /// Death-shrink stage: `func_actor_110600_80137DB0` runs its idle half at
     /// 0 and its halving tail at 1, advancing from 0 once `field_4E` lands on
     /// pose 4.
@@ -186,6 +189,41 @@ typedef struct Actor110600Msg7D3 {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
 } Actor110600Msg7D3;
+
+/// Event record `func_actor_110600_80134040` dispatches on: `w[0]` is the event
+/// kind (0x301, 0x401) and `w[1]` its sub-code, and the first three bytes are
+/// also copied raw into `Actor110600Work::field_BDC`. Same shape as
+/// `Actor401300Event`, which is the same body one overlay over.
+typedef union Actor110600Event {
+    u8  b[3];
+    u16 w[2];
+} Actor110600Event;
+
+/// One of the model objects `func_actor_110600_80134040` parks in the four
+/// display slots below. They live in main's data; this overlay only ever takes
+/// their addresses, so their layout is not modelled here.
+typedef struct Actor110600Display Actor110600Display;
+
+extern Actor110600Display D_8015BD7C;
+extern Actor110600Display D_8015C064;
+extern Actor110600Display D_8015C950;
+extern Actor110600Display D_8015D2E8;
+
+/// The actor's four display slots, which the 0x401 events repoint at one of the
+/// objects above; `D_actor_110600_80148598` is the one events 2 and 6 swap.
+extern Actor110600Display* D_actor_110600_80148594;
+extern Actor110600Display* D_actor_110600_80148598;
+extern Actor110600Display* D_actor_110600_8014859C;
+extern Actor110600Display* D_actor_110600_801485A0;
+
+/// Event handler: saves the event's first three bytes in the work block's
+/// `field_BDC`, then dispatches on the event kind. Kind 0x301 with sub-code 1
+/// enters state 0x14; kind 0x401 picks a display slot and a `field_892` state
+/// per sub-code — 1, 8 and 9 only set the state, and 9 shares its tail with the
+/// five sub-codes that repoint a slot — parking the actor in state 0x11 with
+/// `field_2` cleared. Returns 1 when it handled the event, 0 otherwise. `arg1`
+/// is unused; it exists because the dispatch passes three arguments.
+s32 func_actor_110600_80134040(Actor110600* arg0, s32 arg1, Actor110600Event* arg2);
 
 /// The `0x7D3` display handler: parks the actor in state 0x11 with
 /// `field_892` set from the requested state.

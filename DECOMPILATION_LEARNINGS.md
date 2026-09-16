@@ -110431,3 +110431,51 @@ Inputs: `base_2.i` SHA256
 SHA256 `63ad3c227ceb88ae6089d1fea6ba705dc884094cefbf9bb74829025763aa5834`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80132654-vacuum`.
+
+## A switch's shared tail belongs after the *last* case that falls into it
+
+`func_actor_110600_80134040` dispatches on an event kind: five sub-codes repoint
+a display slot and then share `work->field_0 = 0x11; work->field_2 = -1;
+return 1;` with sub-code 9, which falls into it, while sub-codes 1 and 8 have
+their own tails. The share is a `goto`, and *where the label physically sits in
+the source* decides where the merged block lands — cross-jumping runs after
+reload and keeps the code in the block that already holds it:
+
+```c
+case 2:
+    work->field_892         = 0x23;
+    D_actor_110600_80148598 = &D_8015BD7C;
+    goto state_11;
+...
+case 9:
+    work->field_892 = 0x11;
+state_11:                   /* label after the last case that falls in */
+    work->field_0 = 0x11;
+    work->field_2 = -1;
+    return 1;
+```
+
+m2c's reconstruction puts the same label inside case 2's body, because that is
+where its control-flow recovery happened to name the block. That compiles to the
+same instructions with the shared block parked after case 2 — 92.1%, with
+`reorder` / `insert` / `delete` penalties, a `bne` to a different address, and no
+reordering of the cases in the source fixing it. Moving the label down to where
+the switch's last case ends gives the target's layout: case 9 falls through the
+label, the five `goto` cases jump to it, and the store tail that it jumps to then
+sits right after case 1's block. 100%.
+
+Two traps sit on the way there. Duplicating the whole tail in every case instead
+(`field_0` / `field_2` / `return` written out in all eight) also matches the
+*target's* generated shape but scores 64-82%: the extra live constant pair makes
+a case block keep `li v0, 1` for the return hoisted at the top, a case temp then
+takes `$a0`, and `work` is pushed out of `$a0` into `$a1`. And a shared `var_v1`
+temp for the constant (m2c's `var_v1 = 0x11; work->field_0 = var_v1;`) scores
+92.1% against 93.9% for the same source with the constant written directly —
+the temp's extra copy is visible in the merge granularity. Check `regs` and
+`stack` are zero *before* reading anything into the tail diagnostics.
+
+Inputs: `base_15.i` SHA256
+`44b89c0d218296d79e13f061cffca83ba6baca212bf935974a0a249b6adf49e8`; target.o
+SHA256 `8393ef6319ff70979f7156863e8f337e69f4b7598a4bce5b40f7fdf326fa79c6`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80134040-vacuum`.

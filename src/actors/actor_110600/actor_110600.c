@@ -138,7 +138,71 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacemen
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134040);
+/// Event handler: saves the event's first three bytes in the work block's
+/// `field_BDC`, then dispatches on the event kind. Kind 0x301 with sub-code 1
+/// enters state 0x14; kind 0x401 picks a display slot and a `field_892` state
+/// per sub-code — 1, 8 and 9 only set the state, and 9 shares its tail with the
+/// five sub-codes that repoint a slot — parking the actor in state 0x11 with
+/// `field_2` cleared. Written with the share as a `goto` because the sub-codes
+/// fall through into it from case 9. `arg1` is unused; it exists because the
+/// dispatch passes three arguments.
+s32 func_actor_110600_80134040(Actor110600* arg0, s32 arg1, Actor110600Event* arg2)
+{
+    Actor110600Work* work = arg0->field_1C;
+
+    work->field_BDC[0] = arg2->b[0];
+    work->field_BDC[1] = arg2->b[1];
+    work->field_BDC[2] = arg2->b[2];
+    if (arg2->w[0] == 0x301) {
+        if (arg2->w[1] == 1) {
+            work->field_0 = 0x14;
+            return 1;
+        }
+        return 0;
+    }
+    if (arg2->w[0] == 0x401) {
+        switch (arg2->w[1]) {
+            default:
+                return 0;
+            case 1:
+                work->field_0 = 0x17;
+                work->field_2 = -1;
+                return 1;
+            case 2:
+                work->field_892         = 0x23;
+                D_actor_110600_80148598 = &D_8015BD7C;
+                goto state_11;
+            case 3:
+                work->field_892         = 0x24;
+                D_actor_110600_8014859C = &D_8015BD7C;
+                goto state_11;
+            case 5:
+                work->field_892         = 0x22;
+                D_actor_110600_80148594 = &D_8015C950;
+                goto state_11;
+            case 6:
+                work->field_892         = 0x23;
+                D_actor_110600_80148598 = &D_8015D2E8;
+                goto state_11;
+            case 4:
+            case 7:
+                work->field_892         = 0x25;
+                D_actor_110600_801485A0 = &D_8015C064;
+                goto state_11;
+            case 8:
+                work->field_0 = 0xC;
+                work->field_2 = -1;
+                return 1;
+            case 9:
+                work->field_892 = 0x11;
+            state_11:
+                work->field_0 = 0x11;
+                work->field_2 = -1;
+                return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801341A4);
 
