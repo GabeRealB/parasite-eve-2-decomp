@@ -1402,8 +1402,20 @@ the `Task_SpawnFromTable` results is what fixed the earlier `reorder` residue.
 So when the target uses two registers for what reads as one pointer, do not
 reach for a pin: count the definitions in `.greg` first.
 
+`func_actor_107000_80136288` is the same split arriving as a different symptom.
+There the shared pseudo's longer range did not merely move a home: it pushed the
+dispatch's `work` from `$s0` to `$s1`, and the prologue's `lbu` of `D_801153F4`
+then scheduled last, immediately ahead of the `beq` that reads it — the MIPS
+port's load-delay check (`final_prescan_insn`) fires there and prints a `#nop`,
+which maspsx assembles. That one extra instruction shifts every branch target
+(`branch=13`, `regs=24`, `insert=1`) and hides the real residue. Splitting the
+tail read into `work2` restored the homes and the schedule at once: 98.034% →
+100%. A `#nop` in the `.s` is a load-delay stall, not a scheduling miss, so
+check the *use* that follows the load before touching the statement order.
+
 Inputs: `base_4.i` (99.354%), `base_6.i`
-`4e47c39fb129c93da9d143b4ca6b23b1915004a46cdc4c0809c6199d74c7392b`.
+`4e47c39fb129c93da9d143b4ca6b23b1915004a46cdc4c0809c6199d74c7392b`;
+`func_actor_107000_80136288` `base_3.i` (98.034%), `base_6.i`.
 
 ## The same two-definition pseudo also fails on *priority*: its two live ranges sum into `live_length`
 
