@@ -108951,3 +108951,35 @@ compiler SHA256
 Scratch `nonmatchings/func_actor_356100_80168AFC-vacuum`. Related: the
 `Actor00400_Fn0875C` entry above, where the same tie was *manufactured* by a
 control-flow change and then won with declaration order.
+
+## An aggregate copy is one assignment, not eight `M2C_FIELD` pairs
+
+m2c renders a 0x20-byte struct copy as eight per-word `M2C_FIELD` assignments,
+and the two forms schedule differently: the target interleaves `4 lw` / `4 sw`
+twice, while the eight-statement form emits all eight loads before all eight
+stores. `func_actor_356100_80167584`'s init block and its matched sibling
+`func_actor_401300_80139520` both save a `MATRIX`, and `work->field_B18 =
+work->field_AF8;` - one assignment - reproduces the 4+4 shape exactly.
+
+Fix: give the run its own type (`MATRIX` here, after splitting the `byte pad[]`
+that covered it) and write the assignment whole. The field offsets are the same
+either way, so nothing in the object dump says the copy was ever eight
+statements; only the interleave does.
+
+Inputs: `base_1.i` (100%) SHA256
+`013f32a37d5fcdf0796fc067e5e520d6f7b926182d58e542133fe9c248ba0ca6`; target
+SHA256 `ebd6168c820e94ce877a816d30ef44215214de27afffca7d1357f2eac9b4c8fd`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_80167584-vacuum`.
+
+## An `s16` field's `x++` already loads `lhu`, so a cast is not what produces it
+
+An increment of a `short` field is a HImode read-modify-write, and the MIPS
+backend emits `lhu` for a HImode load with no extension needed - so
+`work->field_6++` and `work->field_6 = (s16)((u16)work->field_6 + 1);` compile
+to the same `lhu` / `addiu` / `sh`, and `func_actor_356100_80167584` scores
+100% with either (the second is the house style, kept for that reason alone).
+A target `lhu` on an increment is therefore not evidence that the original cast
+through `u16` - look for the missing `lh` somewhere else. An `s32` context is
+what forces `lh`; the `(u16)` cast only makes the read unsigned explicitly.

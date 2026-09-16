@@ -303,7 +303,67 @@ void func_actor_356100_80167358(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167584);
+/// Range tick, and the sibling of `func_actor_356100_80167818` below it. Going
+/// live clears the model's `field_C`, reallocates its buffers, clears the
+/// enemy's link node, saves the `field_AF8` colour matrix into `field_B18` and
+/// starts clip 0xE at speed 1 with `field_9BC` forced to 0x180. Each frame then
+/// bumps `field_6` until it passes 0x960, after which a 4-bit `Gp_LcgState`
+/// draw thins the tick to one frame in 16. A tick that runs drops to state 6
+/// while the player is still within 3000 of the actor, then flips the clip
+/// between 0xE and 0xF on a 50/50 draw gated by bits 2 and 1 of `field_68`.
+/// Same shape as `func_actor_401300_80139520`.
+void func_actor_356100_80167584(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj          = arg0->field_2C;
+        enemy        = arg0->field_20;
+        obj->field_C = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC     = 0x180;
+        enemy->node.field_4 = 0;
+        work->field_6       = 0;
+        work->field_B18     = work->field_AF8;
+        work->field_97E     = 0xE;
+        work->field_978     = 1;
+        work->field_982     = work->field_984;
+    }
+    if (work->field_6 > 0x960) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 0xF)) {
+            return;
+        }
+    } else {
+        work->field_6 = (s16)((u16)work->field_6 + 1);
+    }
+    coord = arg0->field_2C->field_8;
+    d     = &delta;
+    Actor356100_PositionDelta(coord, d);
+    if (!Actor356100_OutOfRange(d, 3000)) {
+        work->field_0 = 6;
+    }
+    func_actor_356100_80163508(arg0);
+    if (work->field_97E == 0xE && (work->field_68 & 2)) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            work->field_97E = 0xF;
+            work->field_978 = 1;
+            func_actor_356100_80163508(arg0);
+        }
+    }
+    if (work->field_97E == 0xF && (work->field_68 & 1)) {
+        work->field_97E = 0xE;
+        work->field_978 = 1;
+        func_actor_356100_80163508(arg0);
+    }
+}
 
 void func_actor_356100_80167818(Actor356100* arg0)
 {

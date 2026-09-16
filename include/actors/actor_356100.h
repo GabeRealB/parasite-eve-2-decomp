@@ -60,7 +60,16 @@ typedef struct Actor356100Work {
     /* 0x994 */ s32  field_994;
     /* 0x998 */ byte pad_998[0x24];
     /* 0x9BC */ s16  field_9BC;
-    /* 0x9BE */ byte pad_9BE[0x17C];
+    /* 0x9BE */ byte pad_9BE[0x11A];
+    /// Light matrix `func_actor_356100_8016382C` binds to the model's
+    /// `TmdObject::field_1C` (the color matrix is `field_AF8`).
+    /* 0xAD8 */ MATRIX field_AD8;
+    /// Color matrix bound to the model's `TmdObject::field_20`.
+    /* 0xAF8 */ MATRIX field_AF8;
+    /// Copy `func_actor_356100_80167584` saves `field_AF8` into when it enters
+    /// its state; same role as `Actor401300Work.field_C68` has for `field_C48`.
+    /* 0xB18 */ MATRIX field_B18;
+    /* 0xB38 */ byte   pad_B38[2];
     /// Threshold `func_actor_356100_8016A834` tests once the enemy is still
     /// alive (`field_40 > 0`) to choose clip 4 or 0x11; the analogue of the
     /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
@@ -132,6 +141,8 @@ void func_actor_356100_80163508(Actor356100* arg0);
 /// The player's coordinate, as `Actor401300` / `Actor01900` name it. The
 /// overlay keeps its own copy like those two do.
 extern MATRIX* D_80073B8C;
+
+extern u32 Gp_LcgState;
 
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
