@@ -55,6 +55,50 @@ went from 79.426% (`stack=0 branch=10 regs=20 insert=8 delete=16`) to 94.426%
 callee-saved value also displaced the flags mask out of `$s2` and into `$s4`.
 Check the prototype before believing an m2c `void`: the overlay's own header is
 ours, and changing it costs nothing when the callers ignore the value.
+## A unit-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
+
+`Actor401800_RescaleYaw(coord, 1)` and `Actor401800_ResetYaw(coord)` compute the
+same thing, but only the second compiles to the target's tail in
+`func_actor_401800_8013BF48`. Inlining the *scaled* body nine times gave
+98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
+
+Both bodies push `0x34` bytes of `Actor401800RotScratch`, rebuild the yaw with
+`Gfx_RotMatrixY` / `ScaleMatrix`, copy nine halfwords back over `coord->coord.m`
+and pop. They differ in how the pop is spelled:
+
+```c
+/* RescaleYaw(coord, scale) -- scaled form, and the one to avoid here */
+scratch  = (void**)G_SCRATCH_HEAD;
+head     = *scratch;                        /* head stays live to the pop */
+blk      = (Actor401800RotScratch*)((u8*)head - 0x34);
+*scratch = blk;
+...
+m22                  = *(u16*)&blk->m.m[2][2];
+*scratch             = (u8*)*scratch + 0x34;   /* CSEs to `head + 0x34` */
+coord->flg           = 0;
+coord->coord.m[2][2] = m22;
+
+/* ResetYaw(coord) -- unit-scale form, the target's */
+head                    = *(void**)G_SCRATCH_HEAD;
+blk                     = (Actor401800RotScratch*)((u8*)head - 0x34);
+*(void**)G_SCRATCH_HEAD = blk;
+...
+coord->flg              = 0;
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+```
+
+The scaled form's pop reads `*scratch` through a variable, so `flow` CSEs it to
+the push's `head` and the *head* pseudo is live from the block's load to its
+last matrix copy - across the block's three calls. `.lreg` reports it as
+`used 4 times across 30 insns in block 35; crosses 3 calls; pointer`, so
+local-alloc gives it a call-saved register (`$s2`) and the coordinate, with
+only three refs, is pushed to the next free one (`$s4`). The unit-scale form's
+pop re-loads `*(void**)G_SCRATCH_HEAD` fresh; the loaded value becomes the
+matrix pointer itself, the pop temp is short-lived, and it takes a call-used
+register (`$v0`) - exactly what the target does. Check `.lreg` for a
+`crosses N calls` on a pointer that is only used twice before swapping in the
+family's unit-scale helper; the sibling tail in `func_actor_401300_8013BB30`
+compiles from the unit-scale shape and has the target's allocation.
 
 ## `(X - 1) - Y` folds to `X - (Y + 1)`: write the folded spelling when the target subtracts from `X`
 

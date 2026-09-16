@@ -345,6 +345,75 @@ static __inline__ void Actor401800_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][2] = m22;
 }
 
+/// `Actor401800_RescaleYaw` with a separate Y scale.
+static __inline__ void Actor401800_RescaleYawY(GsCOORDINATE2* coord, s32 scale, s16 scaleY)
+{
+    void**                 scratch;
+    void*                  head;
+    Actor401800RotScratch* blk;
+    s16                    ang;
+    u16                    m22;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (Actor401800RotScratch*)((u8*)head - 0x34);
+    *scratch = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vx = scale;
+    blk->scale.vy = scaleY;
+    blk->scale.vz = scale;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0] = *(u16*)&((Actor401800RotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    m22                  = *(u16*)&blk->m.m[2][2];
+    *scratch             = (u8*)*scratch + 0x34;
+    coord->flg           = 0;
+    coord->coord.m[2][2] = m22;
+}
+
+/// Rebuild `coord`'s Y rotation from its current yaw at unit scale. Same body
+/// as `Actor01900_ResetYaw` / `Actor401300_ResetYaw`.
+static __inline__ void Actor401800_ResetYaw(GsCOORDINATE2* coord)
+{
+    void*                  head;
+    Actor401800RotScratch* blk;
+    s16                    ang;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    blk                     = (Actor401800RotScratch*)((u8*)head - 0x34);
+    *(void**)G_SCRATCH_HEAD = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = 1;
+    blk->scale.vy = 1;
+    blk->scale.vx = 1;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0]    = *(u16*)&blk->m.m[0][0];
+    coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]    = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]    = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]    = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]    = *(u16*)&blk->m.m[2][1];
+    coord->coord.m[2][2]    = *(u16*)&blk->m.m[2][2];
+    coord->flg              = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+}
+
 /// Enemy init: allocates the work block, binds the model matrices, sets up both
 /// animation contexts and the three hit/body `GpObj` nodes, then picks the
 /// starting state and tint row from the spawn flags and rescales the model.
@@ -2012,7 +2081,110 @@ void func_actor_401800_8013BB10(Actor401800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013BF48);
+/// Step-driven aim-and-rescale body: while the spawn flag is set the actor
+/// pitches its 0x8C8 node to the 0x12C walk animation, sets the 0xA08 flags bit
+/// 0x4000, plays the 0x60030 burst and arms the 2/0x1A state pair; the step
+/// counter then steps the actor along its facing while
+/// `func_actor_401800_80133558` reports the path clear, re-seeds the
+/// `field_A28` contact and fires the 0xA0005 effects at 3, 5 and 6. The 0x1A
+/// state runs its light/state table and folds the countdown into the root
+/// coordinate's Y scale; the nine body coordinates from +2 to +10 are then
+/// rebuilt at unit scale.
+void func_actor_401800_8013BF48(Actor401800* arg0)
+{
+    SVECTOR          vec;
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+    u16              next;
+    s16              cur;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_8C8.field_1C = 0x12C;
+        work->field_A08.flags    = (u16)(work->field_A08.flags | 0x4000);
+        enemy->node.field_4      = 1;
+        work->field_8AE          = 0;
+        work->field_6            = 0U;
+        vec.vx                   = 0x64;
+        vec.vz                   = 0;
+        vec.vy                   = 0;
+        work->field_89E          = 2;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &vec);
+        work->field_6 = 0U;
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    switch (work->field_89E) {
+        case 2:
+            if ((s16)next >= 0x10 && (work->field_68 & 2)) {
+                work->field_89E = 0x1A;
+                work->field_898 = 2;
+                work->field_8A2 = 0x10;
+                work->field_89A = 0;
+            }
+            if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, 7) != 0) {
+                Actor401800_StepForward(arg0->field_2C->field_8, 7);
+            }
+            func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC);
+            if (work->field_6 == 3) {
+                D_80114B78[0] = &D_actor_401800_80143E9C;
+                vec.vz        = 0x64;
+                vec.vy        = 0;
+                vec.vx        = 0;
+                Actor401800_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &vec), enemy);
+            }
+            if (work->field_6 == 5) {
+                D_80114B78[0] = &D_actor_401800_80143E9C;
+                Actor401800_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 1, 0x200, NULL), enemy);
+            }
+            if (work->field_6 == 6) {
+                D_80114B78[0] = &D_actor_401800_80144F24;
+                Actor401800_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 3, 0x200, NULL), enemy);
+            }
+            break;
+        case 0x1A:
+            if (!(work->field_68 & 0x100)) {
+                work->field_6 = 0;
+            }
+            switch ((s16)(work->field_6 - 0x19)) {
+                case 0:
+                    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                    break;
+                case 5:
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SpawnEff(0x600A5, arg0->field_2C->field_8 + 2, 2, NULL);
+                    break;
+                case 23:
+                    arg0->field_2C->field_C = 2;
+                    break;
+                case 17:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+                case 39:
+                    arg0->field_2C->field_C = 0x80;
+                    work->field_0           = 0;
+                    break;
+            }
+            cur = work->field_6;
+            if (cur >= 0x1A) {
+                Actor401800_RescaleYawY(arg0->field_2C->field_8, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+            }
+            break;
+    }
+    func_actor_401800_80133EB8(arg0);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 2);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 3);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 4);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 5);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 6);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 7);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 8);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 9);
+    Actor401800_ResetYaw(arg0->field_2C->field_8 + 10);
+}
 
 /// Walk body: takes a 0x10 scratch for the player offset, the facing yaws and
 /// the wrapped turn toward the player. On the live flag it resets the model
