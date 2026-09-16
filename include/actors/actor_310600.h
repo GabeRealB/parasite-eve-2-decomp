@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -20,7 +21,11 @@
 /// `TmdObject::field_1C` / `field_20` in place of the shared defaults
 /// `Gp_BindDefaultMtx` installs.
 typedef struct Actor310600Work {
-    /* 0x000 */ byte    pad_0[0x47C];
+    /* 0x000 */ byte    pad_0[0x475];
+    /* 0x475 */ s8      field_475;
+    /* 0x476 */ s8      field_476;
+    /* 0x477 */ s8      field_477;
+    /* 0x478 */ byte    pad_478[0x4];
     /* 0x47C */ s16     field_47C;
     /* 0x47E */ u16     field_47E;
     /* 0x480 */ MATRIX  light;
@@ -31,8 +36,12 @@ typedef struct Actor310600Work {
     /* 0x4FC */ s32     field_4FC;
     /* 0x500 */ s32     field_500;
     /* 0x504 */ byte    pad_504[0x4];
-    /* 0x508 */ VECTOR3 step;  // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x514 */ byte    pad_514[0x14];
+    /* 0x508 */ VECTOR3 step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x514 */ byte    pad_514[0x4];
+    /* 0x518 */ s32     field_518;
+    /* 0x51C */ s32     field_51C;
+    /* 0x520 */ s32     field_520;
+    /* 0x524 */ byte    pad_524[0x4];
     /* 0x528 */ SVECTOR limit; // per-axis stop threshold; 0x7FFF on all three disables it
     /* 0x530 */ byte    pad_530[0x8];
 } Actor310600Work;
@@ -69,8 +78,19 @@ typedef struct Actor310600Cmd {
 /// comes from the per-overlay symbol map.
 extern VECTOR D_actor_310600_80161E54;
 
+/// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1
+/// setup entry it is spawned from is `func_actor_310600_80161E64`.
+extern TaskDesc D_actor_310600_801796A4[];
+
+/// The overlay's `GpMsgEntry` table, parked in `Task::field_24`.
+extern GpMsgEntry D_actor_310600_801796BC[];
+
+void func_actor_310600_80162A24(Task* arg0);
+
 void func_actor_310600_80162A58(Task* arg0);
 
 void func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 arg3);
+
+void func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
 
 #endif

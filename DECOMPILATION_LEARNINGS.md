@@ -95392,3 +95392,52 @@ installer `func_actor_350700_80162860` / `func_actor_350500_80162828`, so the
 two copies stay matched separately.
 
 Inputs: `base.c` (77.365%), `base_1.c` (100.000%).
+## A load written after a run of stores cannot be scheduled before them (func_actor_310600_80161E64, 2026-09-16)
+
+`func_actor_310600_80161E64`'s m2c seed scored 95.000% with
+`regs=3 reorder=3 insert=1 delete=1`, and `base_diff` put the whole difference in
+one region: the target runs a `lw 0x2C` → `lw 8` → `addiu 0x50` → `sw 8` chain at
+the **head** of the block, ahead of seven stores to `0xC/0x18/0x1C/0x10/0x12/0x14/
+0x1E`, while the seed runs the same chain after them and lands its result in `$v0`
+instead of `$v1`. The seed's own `.sched` dump already had the seed's order, so
+the difference is upstream of sched2 and `reorg`.
+
+The block's stores never move relative to each other — they are in the m2c
+statement order — so the only degree of freedom is where the load chain sits among
+them, and the scheduler has none. `sched_analyze_1` keeps `pending_read_insns` /
+`pending_write_insns`: a store reaching the pending list while a load is pending
+gets a dependence on that load. Both addresses here are `reg + const`
+(`reg/v:SI 80 + 44` for `Task::extra`, `reg/v:SI 81 + 12` for the first store), and
+`find_base_term` returns 0 for a plain pseudo, so `base_alias_check` cannot prove
+them disjoint and every store becomes a dependent of the load. sched1 is a
+*backward* list schedule — `.sched` opens "ready list initially", then counts
+"T-1", "T-2", … and inserts each launched insn before `last = next_tail`, so the
+final order is the reverse of the launch order — and a load whose dependents are
+seven stores cannot be launched until they are. Its own dump states the graph:
+insn 117's dep list is `(insn_list 90 (insn_list 95 … (insn_list 114 (insn_list 82
+…))))`, every store in the block.
+
+Moving the assignment before the stores in the C is the whole fix:
+
+```c
+    obj           = &work->obj;
+    obj->field_8  = &((TmdObject*)task->extra)->field_8[1];  /* was written last */
+    obj->field_C  = &work->rec;
+```
+
+100.000% on the next build, every penalty zero. The register change is downstream
+of the schedule, not a second problem: once `119` is placed before `88`
+(`addiu v0,s1,0x4e0`, which defines `$v0`), the quantity holding the load result
+can no longer live in `$v0`.
+
+Reach for this when a `reorder`/`regs` mix is one contiguous load chain sitting at
+the wrong end of a block whose stores are otherwise in source order: the C
+statement order **is** the block order for memory operations, and no amount of
+register work reaches it. Read the seed's `.sched` dep lists before rewriting
+anything — if the misplaced load depends on every intervening store, only the
+source order moves it.
+
+Inputs: `base.i`
+`75f9fbb3983a4ebd00d81c87eac429a85f52619277cb506f5352cf0750a10687` (95.000%),
+`base_1.i` `cad5783bf08d48a08087b419551d9e0c8549be2c16e0ab3a77ede263accb054`
+(100.000%).

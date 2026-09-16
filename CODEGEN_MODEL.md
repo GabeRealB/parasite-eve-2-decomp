@@ -69,6 +69,17 @@ relationship to the last scheduled instruction, then original RTL order
 instruction is not necessarily the next one in final forward assembly. Only
 instructions admitted by the dependency graph can compete in the ready queue.
 
+For **memory** operations that graph comes from statement order, not from what the
+addresses could be proven to be: `sched_analyze_1` keeps `pending_read_insns` /
+`pending_write_insns` and makes each store a dependent of every load still pending,
+and vice versa, disjoining the pair only when `base_alias_check` can prove the
+bases distinct — which it cannot for two plain pseudos. A load written after a run
+of stores therefore depends on all of them, and a backward schedule can only place
+it after them. When a block's stores are in source order and one load chain sits at
+the wrong end of it, the C statement order is the fix; register work and priority
+levers do not reach it (`DECOMPILATION_LEARNINGS.md`, "A load written after a run
+of stores cannot be scheduled before them").
+
 That comparator does **not** make the final selection. `schedule_select` scans
 equal-priority groups, queues instructions blocked by `actual_hazard`, then
 prefers the survivor with the largest `potential_hazard` weight. A lower-ranked
