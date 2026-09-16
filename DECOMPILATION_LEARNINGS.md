@@ -90766,9 +90766,11 @@ imply; the difference is the node count.
 ```
 
 and `CASE_VALUES_THRESHOLD` is **5** in this build, not the 4 that
-`HAVE_casesi ? 4 : 5` suggests - mips.md's `casesi` is a `define_expand`, and
-that `#ifdef HAVE_casesi` is not taken. `count` is the number of case *nodes*,
-not labels, and a node covering more than one value counts **twice**:
+`HAVE_casesi ? 4 : 5` suggests. That `#ifdef HAVE_casesi` is taken - the table
+path below it ends in `if (! win) abort ();`, and this compiler does emit tables
+- so the macro must expand to `0` (mips.md's `casesi` is a plain
+`define_expand`). `count` is the number of case *nodes*, not labels, and a node
+covering more than one value counts **twice**:
 
 ```c
 	  /* A range counts double, since it requires two compares.  */
@@ -90785,9 +90787,16 @@ Probed with the bundled `cc1` at the project's flags on a `unsigned char` index:
 | `2, 3, 4, 5` written separately | 4 | tree |
 | `2, 3` + stacked `4: 5` | 4 | tree |
 | `2, 3` + stacked `4: 5` + `6` | 5 | **table** |
+| `2, 3` + stacked `4: 5: 6` (5 labels, 3 nodes) | 4 | tree |
 
-So: **four distinct results, or three with one of them a range, is one node
-short of a table**, and a tree is not a mismatch to be fixed. Two consequences:
+The first four fix the threshold at 5; the last one proves the doubling, because
+it is the only shape here where counting labels and counting nodes disagree - 5
+labels would be a table, 3 nodes plus one range is 4 and is a tree. So the count
+is what `stmt.c` says it is, and a stacked range is cheaper than the label it
+covers, not equal to it.
+
+So: **four counted nodes is one short of a table**, and a tree is not a mismatch
+to be fixed. Two consequences:
 
 - The counterpart to "Dense dummy cases force jump tables" is mechanical rather
   than a heuristic: each stacked dummy *value* widens a range node by one count,
