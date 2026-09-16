@@ -88009,3 +88009,60 @@ with `regs=8` and nothing else wrong.
 Example: `func_dryfield_night_motel_lobby_8017FB7C`. Inputs: `base_1.i`
 `7e8b7e80c9511bc09528f9be9e9b73dd730261eaf351f5c235a2d5c778b46e07`, `base_2.i`
 `c2b01570db8190811762a1f9418bc07fd341b547adf77199d9231bae6a89c812`.
+## `fold`'s `associate` inverts `a | (b | C)` — so match the target by writing it pre-inverted (func_dryfield_breezeway_8017E010, 2026-09-16)
+
+**Problem.** The target applies the constant to the *plain* operand and the
+other operand to the shifted one:
+
+```
+lbu  a0,6(v1)            # f6
+lbu  v0,7(v1)            # f7   (scheduler order; emission is f6 first)
+sll  v0,v0,0x8
+ori  a0,a0,0x1000        # constant on f6
+or   a0,v0,a0            # src1 = shifted, src2 = ori result
+```
+
+`(Game_Session->field_7 << 8) | (Game_Session->field_6 | 0x1000)` — the
+straightforward reading, and what m2c emits — compiles to the mirror image:
+
+```
+sll  a0,a0,0x8
+ori  a0,a0,0x1000        # constant on the shifted value
+or   a0,a0,v0
+```
+
+The difference is decided at **expand**, not by combine or the scheduler: the
+first `.rtl` dump already has `(set (reg 103) (ior (reg 102) (const 4096)))`
+with `102` the shift result. Because the whole chain then allocates
+differently, the cost is not one instruction — this function scored 98.615%
+with `regs=6 reorder=1` despite matching every block, predicate and call.
+
+**Cause.** `fold-const.c`'s `associate:` block (2.8.1, ~line 4275) reassociates
+the two shapes into each other, through the two `split_tree` calls:
+
+- `a | (b | C)`: `split_tree(arg0)` fails, `split_tree(arg1)` succeeds at
+  ~line 4349 and builds `fold(build(code, arg0, con)), var` → `(a | C) | b`.
+- `(a | C) | b`: `split_tree(arg0)` succeeds at ~line 4293 and builds
+  `build(code, var, fold(build(code, arg1, con)))` → `a | (b | C)`.
+
+`split_tree` accepts any `IOR` with a constant on either side, so both
+spellings are reachable and neither survives as written.
+
+**Fix.** Write the parentheses the way they are *not* usually written — put the
+constant inside the operand that is `arg0` of the outer `|`:
+
+```c
+id = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+```
+
+That takes the arg0 path, which rebuilds `(f7 << 8) | (f6 | 0x1000)` in the
+tree — the shape the target wants — and the function matched at 100% on the
+first build. The sibling `func_dryfield_motel_room_1_8017DC2C` is already
+matched with exactly this spelling for its 0x1000/0x2000/0x3000 lookups and
+carries the identical instruction sequence, so it is the form to copy whenever
+a room builds a `Gp_FindWorkById` key.
+
+Generalisation: when a fold rewrites an expression into a shape you cannot
+express directly, the fix is usually a *positional* respelling of the same
+expression, not a semantically different one. Reach for the sibling that
+already matches before restructuring the C.

@@ -1,8 +1,10 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -10,7 +12,33 @@
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017DEC0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017E010);
+void func_dryfield_breezeway_8017E010(Task* arg0)
+{
+    DbwWork* work;
+    s32      id;
+
+    switch (arg0->state) {
+        case 0:
+            work        = (DbwWork*)Mem_Malloc(0x14, 0);
+            arg0->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x14);
+                work->field_0                 = (void*)Game_GetPtrSlot(3);
+                D_dryfield_breezeway_801843C0 = arg0;
+                id                            = Game_Session->field_6 | (Game_Session->field_7 << 8);
+                work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
+                id                            = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+                work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
+            }
+            arg0->state += 1;
+            return;
+        case 1:
+            Task_Kill(arg0);
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017E114);
 
