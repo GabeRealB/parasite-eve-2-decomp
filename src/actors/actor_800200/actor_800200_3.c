@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_800200.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -1049,7 +1051,70 @@ INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200_3", D_actor_800200
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800200/actor_800200_3", D_actor_800200_80161EC8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80165104);
+s32 func_actor_800200_80165104(GpActorWork* arg0)
+{
+    GameActor*      actor;
+    GpAnimRec*      rec;
+    GpObj38*        obj;
+    GpRoomParamRec* param;
+    s32*            sounds;
+    s32             ret;
+    s32             sound;
+    s8              flags;
+    s32             pan;
+
+    ret   = 0;
+    sound = 0;
+    actor = arg0->actor;
+    obj   = (GpObj38*)arg0->extra->field_8;
+    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
+    if (rec != NULL && rec != actor->field_92C) {
+        actor->field_92C = rec;
+        switch (flags = rec->field_3 & 0x30) {
+            case 0x10:
+            case 0x20:
+                param  = Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1][actor->field_930];
+                sounds = param->field_4;
+                if (sounds != NULL) {
+                    if ((u16)actor->field_958 - 5 < 2U) {
+                        switch (sounds[0]) {
+                            case 0x10000015:
+                                sound = 0x40720007;
+                                break;
+                            case 0x1000002D:
+                                sound = 0x40720003;
+                                break;
+                            case 0x1000001D:
+                            case 0x10000049:
+                                sound = 0x40720001;
+                                break;
+                            case 0x1000003D:
+                            case 0x10000041:
+                            case 0x10000051:
+                            case 0x10000059:
+                            case 0x1000005D:
+                                sound = 0x40720005;
+                                break;
+                        }
+                        if (flags == 0x10) {
+                            sound++;
+                        }
+                        if ((u16)actor->field_958 == 6) {
+                            Gp_SetStateF0Bit(5);
+                        }
+                    }
+                    if (sound != 0) {
+                        pan = (s8)Gp_GetObjPan(obj);
+                        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(obj));
+                        func_800EA3A0(flags != 0x20);
+                    }
+                }
+                ret = 1;
+                break;
+        }
+    }
+    return ret;
+}
 
 void func_actor_800200_801652EC(GpActorWork* arg0)
 {

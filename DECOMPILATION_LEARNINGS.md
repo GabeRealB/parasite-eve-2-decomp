@@ -3,6 +3,59 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A local's declared *width* decides how many pseudos a `switch (x = expr)` operand costs — and with them the callee-saved home
+
+`func_actor_800200_80165104` sat at 97.951% with the whole structure matching and
+one register pair swapped: the target keeps the animation flags in `$s4` and the
+coordinate pointer in `$s3`, ours had the two the other way round, and the target
+also had a copy pair ours lacked.
+
+```
+andi v0,v0,0x30       /* target */                  /* ours */
+move s4,v0                                          andi s3,v0,0x30
+move v1,v0
+li   v0,0x10                                        li   v0,0x10
+beq  v1,v0,body                                     beq  s3,v0,body
+```
+
+The source difference is the local's type: `s8 flags;` against `s32 flags;`, with
+the assignment inside the switch operand, `switch (flags = rec->field_3 & 0x30)`.
+An `s32` local makes the assignment's value *be* the register, so `combine` folds
+the store into the `andi` destination and the case compares read that register
+directly — 4 refs, one pseudo. An `s8` local makes the assignment a SUBREG store:
+the `andi` result stays in a temp and both the local and the switch operand become
+copies of it — 3 refs for the local, plus a separate 4-ref operand temp. The value
+range (0..0x30) makes the truncation and the sign-extension both no-ops, so the
+narrower type leaves **no** `sll`/`sra` pair to spot; the copies are its only
+trace. Read the copies as "this local is narrower than int", not as a missing
+optimization.
+
+That matters because `global.c` ranks allocnos by `floor_log2(refs) * refs /
+live_length`. Dropping the local from 5 refs (pri 1369) to 3 refs over 73 insns
+(pri 410) put it just under the pointer's 3 refs over 72 insns (pri 416), so the
+pointer was placed first and took `$s3` instead of `$s4`. The margin is a few
+points of integer priority: a wrong-width local can flip two long-lived values
+between adjacent callee-saved registers without changing a single instruction
+shape. `func_80105ED4` in `src/gameplay/3FB8.c` is the same body with `s8 flags`
+and the same two copies — a matched sibling is the cheapest place to read the
+original's declared types off.
+
+## `move $v0,$sN` in every exit's delay slot means the function returns a *variable*, not a literal
+
+An m2c seed whose prototype says `void` still emits a body that returns 0 or 1 in
+`$s2`, because m2c dropped the value: the tell is that every early exit carries
+`addu $v0,$sN,$zero` in its branch delay slot, `$sN` is zeroed once before the
+calls and set to a non-zero constant later. Constant returns would put `li $v0,0`
+/ `li $v0,1` in those slots instead, and a void function would have no `$v0` write
+at all.
+
+Restoring it is what makes the tail allocate at all: `func_actor_800200_80165104`
+went from 79.426% (`stack=0 branch=10 regs=20 insert=8 delete=16`) to 94.426%
+(`branch=10 regs=14 insert=2 delete=4`) on that change alone, because the new
+callee-saved value also displaced the flags mask out of `$s2` and into `$s4`.
+Check the prototype before believing an m2c `void`: the overlay's own header is
+ours, and changing it costs nothing when the callers ignore the value.
+
 ## `(X - 1) - Y` folds to `X - (Y + 1)`: write the folded spelling when the target subtracts from `X`
 
 m2c renders `addiu v0,a0,-0x1` / `subu v0,v0,a1` as `(X - 1) - Y`, and compiling
