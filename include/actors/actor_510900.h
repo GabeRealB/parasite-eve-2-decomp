@@ -159,8 +159,8 @@ typedef struct Actor510900Work {
     /// step handler plays a sound on the frame one of them has just dropped.
     /* 0x59A */ u16 field_59A;
     /// Rolled from `Gp_LcgState` when state 1 expires.
-    /* 0x59C */ s16  field_59C;
-    /* 0x59E */ byte pad_59E[2];
+    /* 0x59C */ s16 field_59C;
+    /* 0x59E */ s16 field_59E;
     /// Yaw the head coordinate is rebuilt from each frame: the actor's facing
     /// angle, stepped 0x1E at a time towards the direction `field_5A8` selects.
     /* 0x5A0 */ s16 field_5A0;

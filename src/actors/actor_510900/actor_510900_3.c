@@ -105,3 +105,7 @@ void func_actor_510900_80135E90(Actor510900* arg0)
             break;
     }
 }
+
+/* Closes this unit's .rodata after the jump table above so actor_510900_4's
+ * table starts at 0x80131EA8. Nothing reads it. */
+const u32 D_actor_510900_80131EA4 = 0;
