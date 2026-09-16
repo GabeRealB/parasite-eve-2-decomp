@@ -94111,3 +94111,58 @@ inside the work's former `pad_2DA`, offsets 0x36A/0x36E unchanged either side.
 The `overlay_dup_index.py promote` for this body is refused - its callee
 `func_actor_107000_80136094` is overlay-local, so the `actor_207000` copy cannot
 share the object.
+## m2c walks a sentinel-terminated struct array as `M2C_UNK`, so the `p++` stride comes out 4x and the pointer splits in two (func_actor_143000_80133C2C, 2026-09-16)
+
+`func_actor_143000_80133C2C` is a `do`/`while` over a list of 12-byte rects,
+ending at the first entry whose `s16` at +8 is -1, calling a draw helper on each:
+
+```
+target                                  seed, M2C_UNK* walk (86.654%)
+    addiu $s0, $v0, %lo(D_x)                addiu $a0, $v0, %lo(D_x)
+    ...                                     ...
+    lh    $v1, 0x8($s0)                     lh    $v1, 0x8($a0)
+    beq   $v1, $v0, end                     beq   $v1, $v0, end
+     addu $s1, $v0, $zero                    addu  $s1, $v0, $zero
+    addu  $a0, $s0, $zero                   move  $s0, $a0
+    ...                                     move  $a0, $s0
+    addiu $s0, $s0, 0xC               vs.   addiu $s0, $s0, 0x30
+```
+
+Two symptoms, one cause. `M2C_UNK` is `s32`, so the walk advances 4 bytes per
+step and the reassociation of `var_s0 += 0xC` lands on `0x30` — a wrong
+*immediate* on the increment, not a shift, which is why it reads as a stride
+bug rather than as the `M2C_UNK`-base mis-scaling in the entry above. The seed
+also carries m2c's two-variable shape (`var_s0` for the cursor, `var_a0` for the
+call argument), and the two pseudos are what put the list address in the
+argument register with a late `move`.
+
+Retype the base to a struct of the target's stride and keep a single cursor:
+
+```c
+typedef struct Actor143000Rect {
+    /* 0x0 */ s16 x;   /* 0x2 */ s16 y;   /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;   /* 0x8 */ s16 field_8;   /* 0xA */ s16 field_A;
+} Actor143000Rect;
+
+    Actor143000Rect* p = D_actor_143000_80134580;
+    if (p->field_8 != -1) {
+        do {
+            func_actor_143000_80133334(p, 0, 0xFF, 0);
+            p++;
+        } while (p->field_8 != -1);
+    }
+```
+
+100.000%, all penalties zero, on the first build — and the header-declared form
+(the struct and the callee prototype in the overlay's header, only the `extern`
+array left in the `.c`) reproduces it byte for byte. The source is the natural
+loop; `for (p = D_x; p->field_8 != -1; p++)` with the call inside is the same
+RTL, and m2c's entry `if` plus `do`/`while` only mirrors where the target puts
+the preheader test.
+
+Preprocessed SHA256 `base_1.i`
+`3a02d06476c65adacc690374594d4f0dee40c9198644450a7819d211fee6eec8`, `base_2.i`
+`4a1f47d597c5da90f1b5eb2ca56d709775a68ad87e136b952c95f2be1f66628b`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_143000_80133C2C-vacuum` (`base_1_diff`,
+`base_2_diff`).

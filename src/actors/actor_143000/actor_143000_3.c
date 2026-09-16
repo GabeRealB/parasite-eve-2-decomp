@@ -2,6 +2,8 @@
 
 #include "actors/actor_143000.h"
 
+extern Actor143000Rect D_actor_143000_80134580[];
+
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_801336E8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133800);
@@ -28,7 +30,17 @@ void func_actor_143000_80133AC0(Actor143000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133AE8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133C2C);
+void func_actor_143000_80133C2C(void)
+{
+    Actor143000Rect* p = D_actor_143000_80134580;
+
+    if (p->field_8 != -1) {
+        do {
+            func_actor_143000_80133334(p, 0, 0xFF, 0);
+            p++;
+        } while (p->field_8 != -1);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", ActorsShared8013845cSub0);
 

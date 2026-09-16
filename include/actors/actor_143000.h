@@ -32,7 +32,21 @@ typedef struct Actor143000Spawn {
 } Actor143000Spawn;
 STATIC_ASSERT_SIZEOF(Actor143000Spawn, 4);
 
+/// One entry of the `D_actor_143000_80134580` list, a screen-space sprite rect
+/// `func_actor_143000_80133334` draws as `(x, y, x + w, y + h)`. The list is
+/// terminated by an entry whose `field_8` is -1.
+typedef struct Actor143000Rect {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 field_8;
+    /* 0xA */ s16 field_A;
+} Actor143000Rect;
+STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
+
 void func_actor_143000_80132A04(Actor143000* arg0);
+void func_actor_143000_80133334(Actor143000Rect* arg0, u8 r, u8 g, u8 b);
 void func_actor_143000_80133EE4(Task* arg0);
 
 #endif
