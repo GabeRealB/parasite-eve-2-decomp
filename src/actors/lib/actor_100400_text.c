@@ -1310,8 +1310,6 @@ void Actor00400_Fn06A44(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06B7C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06EA4);
-
 static inline s32 Actor00400_ConsumeStateRequest(Actor100400Work* work)
 {
     s16 req;
@@ -1341,6 +1339,30 @@ set:
 other:
     work->field_644 = 0;
     return 1;
+}
+
+void Actor00400_Fn06EA4(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    s32              cond;
+
+    work = arg0->field_1C;
+    if (Actor00400_ConsumeStateRequest(work) == 0) {
+        work = arg0->field_1C;
+        if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work2            = arg0->field_1C;
+            work2->field_63C = 8;
+            work2->field_632 = 4;
+            work2->field_628 = 0xF;
+            work2->field_624 = 1;
+        }
+    }
 }
 
 void Actor00400_Fn06F64(Actor100400* arg0)
