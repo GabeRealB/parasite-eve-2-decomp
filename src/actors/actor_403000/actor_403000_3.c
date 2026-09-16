@@ -93,6 +93,25 @@ void func_actor_403000_8013D850(Actor403000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_3", func_actor_403000_8013D910);
+void func_actor_403000_8013D910(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    GpEnemy*         enemy;
+    u32              rng;
+    s16              timer;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        rng           = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng;
+        work->field_6 = ((rng >> 16) & 0xF) + 0xA;
+    }
+    timer         = work->field_6 - 1;
+    work->field_6 = timer;
+    if (timer < 0 && enemy->field_40 > 0) {
+        work->field_0 = 0x13;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_3", func_actor_403000_8013D98C);

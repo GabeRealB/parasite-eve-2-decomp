@@ -109,6 +109,11 @@ typedef struct Actor403000Msg {
 /// handlers copy out of it. Lives in the overlay's trailing data region.
 extern SVECTOR D_actor_403000_80158CE0[];
 
+/// The game's shared 32-bit LCG state: a draw is
+/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
+/// with the caller taking the bits it wants out of the high half.
+extern u32 Gp_LcgState;
+
 /// Tick the work block's animation playback: state `field_AC0` 1 advances
 /// `field_AC2` until it catches up with the requested `field_AC6`, copying
 /// `field_ACA` into the four display nodes' clip slot as it goes.
@@ -138,5 +143,11 @@ void func_actor_403000_8013D5F8(Actor403000* arg0);
 /// state, and when bit 0x100 of `field_60` reports the clip has arrived, raise
 /// `field_FD2`/`field_FD3` and move the state machine to state 2.
 void func_actor_403000_8013D850(Actor403000* arg0);
+
+/// Per-frame countdown: on the frame `field_4` is set, reload the `field_6`
+/// tick from a fresh `Gp_LcgState` draw masked to 0xA..0x19, then decrement
+/// it. When the tick underflows and the enemy still has HP left
+/// (`GpEnemy::field_40`), the animation state `field_0` is set to 0x13.
+void func_actor_403000_8013D910(Actor403000* arg0);
 
 #endif // ACTOR_403000_H

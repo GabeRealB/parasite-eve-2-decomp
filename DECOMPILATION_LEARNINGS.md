@@ -1959,6 +1959,39 @@ second load, and matched 100% first try as
 `arg0->killCountdown = arg0->killCountdown + 6;`. Neither a `(u16)` cast on the
 read nor a `(s16)` cast on the comparison is needed — both spellings compile to
 the same bytes, so prefer the plain field arithmetic.
+
+## A decremented halfword tested against zero wants a signed temporary
+
+The `>= const` case above folds to `slti` whatever the temporary's type is.
+Testing the same decremented halfword against *zero* is different: there is no
+constant to fold into, so the extension is materialised from the register and
+the type of the value tested decides what it becomes.
+
+`func_actor_403000_8013D910` reloads the `u16` tick `Actor403000Work::field_6`,
+decrements it and tests it, so the load stays `lhu` as above — but the test only
+comes out right when the decremented value is `s16`:
+
+```c
+/* timer is s16; work->field_6 is u16 */
+timer         = work->field_6 - 1;
+work->field_6 = timer;
+if (timer < 0 && enemy->field_40 > 0) { work->field_0 = 0x13; }
+```
+
+```asm
+lhu     $v0, 0x6($a2)    /* movhi - plain HImode move */
+addiu   $v0, $v0, -0x1   /* addhi3, result stays HImode */
+sh      $v0, 0x6($a2)
+sll     $v0, $v0, 16     /* extension from the register, not a second load */
+bgez    $v0, .L...
+```
+
+The m2c seed spelled the same test as `(temp & 0x8000)` on a `u16` temporary and
+scored 72.4% with `andi $v0,$v0,0x8000` / `beqz $v0` — an HImode `and` against a
+constant is its own `andi`, and the branch on it is a plain zero test, so the
+`sll` never appears. The field itself stays `u16` (its reload is still `lhu`);
+only the temporary carrying the decremented value is `s16`.
+
 ## One halfword, two signednesses: the odd reader needs a temp, not a cast
 
 The section above fixes an `lh`/`lhu` mismatch by correcting the declaration.
