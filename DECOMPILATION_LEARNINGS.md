@@ -771,6 +771,45 @@ Keep one C alloc store (`*(T**)G_SCRATCH_HEAD = blk` → `lui $at` / `sw`) and
 release with the `ActorsShared80139ee4` `lui`/`sw 0x1F8003FC` asm pair so the
 reload is not hoisted into the first matrix `lhu` delay.
 
+## A halfword field read through a pointer expands to `lhu` + `ashl`/`ashr`, not `lh`
+
+`config/mips/mips.md`'s `extendhisi2` expand starts with
+
+```c
+  if (optimize && GET_CODE (operands[1]) == MEM)
+    operands[1] = force_not_mem (operands[1]);
+```
+
+so a sign-extend straight out of memory is first copied to a register. That
+copy is a plain `movhi`, and `movhi_internal2` — the default arm — calls
+`mips_move_1word (operands, insn, TRUE)`, whose `HImode` load case is
+`ret = (unsignedp) ? "lhu" : "lh"`. The load therefore comes out **unsigned**
+and the sign-extend becomes the two shifts: `lhu $t,off($b)` / `ashl $t,$t,16`
+/ `ashr $t,$t,16`. Plain `lh` appears only when a `sign_extend` survives to
+reload on its own and matches `extendhisi2_internal`, which is why a late
+`combine`/`reload` re-derivation of the same read prints `lh`.
+
+So `lh 0x14(sp)` versus `lhu v0,4(a3)` + shifts says *how the source reaches the
+field*, not what the field's type is. Reaching it through a pointer that stays
+in a register gets the `lhu` form:
+
+```c
+    vec.vx  = (u16)mtx->t[0] - (u16)coord->coord.t[0];
+    dir     = &vec;
+    dir->vy = (u16)mtx->t[1] - (u16)coord->coord.t[1];
+    dir->vz = (u16)mtx->t[2] - (u16)coord->coord.t[2];
+    ...
+    blk->field_0 = vec.vx;
+    blk->field_4 = dir->vz;      /* -> lhu v0,4(a3); ashl; ashr */
+```
+
+`dir` needs a use that keeps `&vec` in a register — here the `vy`/`vz` stores.
+Assigning it only for the reload lets CSE fold `dir` back to `&vec`, the read
+becomes a direct stack slot, and the object shows `lh 0x14(sp)` with the stores
+sp-relative; that alone was 90.821% against 97.359% in
+`func_actor_421600_801392A8` (100%, `base_4.c`), whose matched sibling
+`func_actor_421600_80133444` in the same file is the same idiom.
+
 ## Delay-slot table `%hi` paired with a field `lh` is splat, not C
 
 When a `%hi(table)` sits in a branch delay slot and its `%lo` is only used on
@@ -93026,6 +93065,16 @@ sched1's region ends at the `beq` that enters the arm, so an `$a1` live across
 the arm into the `jal` has to be loaded in the same block as the `beq` because
 the C put it there. Writing the argument expression inline in the arm is the m2c
 shape and is what costs the instruction.
+
+The rule runs the other way too, and it is the target that decides. In
+`func_actor_421600_801392A8` the same `ctx->node.field_4 = 0` sits in a live-arm
+edge, but there the reference loads `arg0->field_20` *after* the `beqz`, so the
+hoisted-local form is wrong: `ctx = arg0->field_20` has to move inside the `if`,
+which also hands the load `$v0` (freed once the branch is taken) instead of
+`$v1`. Both shapes are correct C and the family carries both -- the sibling
+`func_actor_421600_8013947C` hoists the identical line -- so read the target's
+block boundary rather than the neighbour. Fixing this last one, after the
+scratch-pointer and store-order work, took 90.821% to 100%.
 ## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (func_actor_421600_8013E9D8, 2026-09-16)
 
 A spawn tail ends with "state = 2, or 5 when the id word masks down to

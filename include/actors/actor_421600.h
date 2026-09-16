@@ -89,10 +89,13 @@ typedef struct Actor421600Work {
     /* 0x8EC */ GpObj field_8EC;
     /// `GpRec18` table paired with `field_8EC`, the same 0x20-byte stride
     /// `field_B8C` keeps after `field_B6C`.
-    /* 0x90C */ GpRec18           field_90C;
-    /* 0x924 */ byte              pad_924[0x108];
-    /* 0xA2C */ GpObj             field_A2C;
-    /* 0xA4C */ byte              pad_A4C[0x120];
+    /* 0x90C */ GpRec18 field_90C;
+    /* 0x924 */ byte    pad_924[0x108];
+    /* 0xA2C */ GpObj   field_A2C;
+    /// `GpRec18` table paired with `field_A2C`, the middle of the three the
+    /// death tick `func_actor_421600_801392A8` walks (0x90C / 0xA4C / 0xB8C).
+    /* 0xA4C */ GpRec18           field_A4C;
+    /* 0xA64 */ byte              pad_A64[0x108];
     /* 0xB6C */ GpObj             field_B6C;
     /* 0xB8C */ GpRec18           field_B8C;
     /* 0xBA4 */ byte              pad_BA4[0x2EC];
@@ -190,7 +193,19 @@ void func_actor_421600_80134604(Actor421600* arg0);
 /// byte is not 2.
 void func_actor_421600_80133334(GsCOORDINATE2* arg0);
 
-s32  func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
+s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
+
+/// `func_actor_421600_8013285C`'s sibling: same `arg0` (rotated into the
+/// scratch `MATRIX`) and same 0x18-stride `GpRec18` table in `arg1`, walked for
+/// the first `arg2` records. `arg3` is zeroed up front and holds the
+/// displacement of whichever record applied. `func_actor_421600_801392A8`
+/// walks the 0x90C and 0xA4C tables with it and tests the return.
+s32 func_actor_421600_80132310(GsCOORDINATE2* arg0, GpRec18* arg1, s16 arg2, SVECTOR* arg3);
+
+/// Camera-target matrix the actor measures its offset from; see
+/// `D_80073B8C[0]->t[]` in the other enemy overlays.
+extern MATRIX* D_80073B8C;
+
 void func_actor_421600_8013EAAC(Actor421600* arg0);
 void func_actor_421600_8013EB7C(Actor421600* arg0);
 

@@ -236,7 +236,71 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013903C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801392A8);
+/// Re-arms the model buffers and the 0x828 motion block the way
+/// `func_actor_421600_8013848C` does, with clip 0x10 and pose 7, then walks the
+/// two `GpRec18` movement tables 0x90C and 0xA4C through
+/// `func_actor_421600_80132310`. `field_0` becomes 0x22 when either walk
+/// reports a hit, and again when the squared XZ offset from `D_80073B8C` is
+/// under the squared 0x5DC radius, so the actor only takes the state while the
+/// camera target is close. Ends by clearing the model's `flg`.
+void func_actor_421600_801392A8(Actor421600* arg0)
+{
+    Actor421600Work*         work;
+    GpEnemy*                 ctx;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    MATRIX*                  target;
+    void*                    head;
+    Actor421600ArenaScratch* blk;
+    SVECTOR                  vec;
+    SVECTOR*                 dir;
+    u32                      spad_a;
+    u32                      spad_b;
+    s32                      outside;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        ctx               = arg0->field_20;
+        obj               = arg0->field_2C;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.field_1C = 0x19C;
+        work->field_828          = 2;
+        work->field_832          = 0x10;
+        work->field_82A          = 0;
+        work->field_82E          = 7;
+        work->field_B6C.flags   |= 0x4000;
+        func_actor_421600_80134604(arg0);
+    }
+    func_actor_421600_80134604(arg0);
+    if (((func_actor_421600_80132310(arg0->field_2C->field_8, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((func_actor_421600_80132310(arg0->field_2C->field_8, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
+        work->field_0 = 0x22;
+    }
+    target                         = D_80073B8C;
+    coord                          = arg0->field_2C->field_8;
+    vec.vx                         = (u16)target->t[0] - (u16)coord->coord.t[0];
+    dir                            = &vec;
+    dir->vy                        = (u16)target->t[1] - (u16)coord->coord.t[1];
+    dir->vz                        = (u16)target->t[2] - (u16)coord->coord.t[2];
+    head                           = *(void**)G_SCRATCH_HEAD;
+    blk                            = (Actor421600ArenaScratch*)((u8*)head - 0xC);
+    spad_a                         = (u32)PSX_SCRATCH;
+    *(void**)((u8*)spad_a + 0x3FC) = blk;
+    blk->field_0                   = vec.vx;
+    blk->field_4                   = dir->vz;
+    blk->field_8                   = 0x5DC;
+    blk->field_0                   = blk->field_0 * blk->field_0;
+    blk->field_4                   = blk->field_4 * blk->field_4;
+    blk->field_8                   = blk->field_8 * blk->field_8;
+    spad_b                         = (u32)PSX_SCRATCH + 0x3F8;
+    *(void**)((u8*)spad_b + 0x4)   = head;
+    outside                        = blk->field_0 + blk->field_4 >= blk->field_8;
+    if (outside == 0) {
+        work->field_0 = 0x22;
+    }
+    arg0->field_2C->field_8->flg = 0;
+}
 
 /// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,
 /// fires the 0x40010009 spawn sound and the 0x40010007 tick sound (draining
