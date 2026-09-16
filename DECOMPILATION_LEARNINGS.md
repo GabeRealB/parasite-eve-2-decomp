@@ -108106,3 +108106,79 @@ already writes them, is what the source had. Reusing one pair scored 98.6% with
 Scratch `nonmatchings/func_actor_403200_8013DC3C-vacuum` (`base_4.c` matched;
 `base_3.c` the split-temps control, `base_2.c` the shared-temp/`&pos` form),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Reading a stored struct field back through a pointer is what keeps a call argument a load — cse forwards it into a `sll`/`sra` pair when the read is spelled directly (func_actor_403200_8013C84C, 2026-09-17)
+
+`func_actor_403200_8013C84C` fills a stack `SVECTOR view` with the player-relative
+offset (`view.vx = ... - view.vx; view.vy = 0; view.vz = ... - view.vz;`) and then
+computes the facing yaw from it. Written the obvious way, GCC's cse finds the two
+stores in its table when it reaches the argument reads and substitutes the values,
+so both `ratan2` arguments are set up from registers:
+
+```
+sll  a1,v0,0x10        /* view.vz forwarded from the store -- 2 insns */
+sra  a1,a1,0x10
+jal  ratan2
+sh   v0,0x14(sp)
+```
+
+The target instead loads the second argument out of the slot and folds the first
+back onto `a0`, the register that stored it:
+
+```
+sh   v0,0x14(sp)       /* view.vz = dz */
+lw   v0,0x2c(s3)
+lh   a1,0x14(sp)       /* the second argument, reloaded from the struct */
+lw   s0,8(v0)
+jal  ratan2
+sra  a0,a0,0x10        /* the first argument, the value a0 already holds */
+```
+
+Same instruction count in the region but one instruction overall (503 vs 504) and
+58 `regs` apart. The lever is the *addressing of the read*: a stack access is
+`(mem (plus (reg $fp) N))`, which `cse_rtx_addr_varies_p` calls fixed, so the
+store is never invalidated; a read through a pointer is `(mem (plus (reg P) N))`,
+a different expression cse cannot match, so the load survives. Taking the address
+into a named local for the yaw is enough:
+
+```c
+    posp    = &view;
+    coord   = ((TmdObject*)arg0->extra)->field_8;
+    yaw     = ratan2(posp->vx, posp->vz) -
+          ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+```
+
+`coord` is the second half of the same fix: the matrix read has to be bound to a
+named local so its live range crosses the `ratan2` call, which puts the
+`arg0->extra->field_8` load in `$s0` *before* the call (the target has
+`lw $s0,8($v0)` there) instead of rematerializing it afterwards in `$v1`. Note the
+two halves are not the same mechanism as the `func_actor_403200_8013DC3C` entry
+above: there a pointer local was needed so the address survived calls; here it is
+needed so cse cannot see the store. Reading the field through such a pointer is
+the general shape of the second case: it is nearly free when the address has to
+be in a register anyway, and it changes instruction *selection*, not just a home.
+
+Scratch `nonmatchings/func_actor_403200_8013C84C-vacuum` (`base_11.c` matched;
+`base_9.c` the same yaw with the direct `view.` spelling, 99.4% and `regs=58`;
+`base_4.c`/`base_8.c` the two halves separately), compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A swapped `lui` pair is the source order of the two globals' first use (func_actor_403200_8013C84C, 2026-09-17)
+
+At 99.96% the only difference left was the order of two independent `lui`s at the
+head of a block that clears one global and fills a message struct:
+
+```
+    lui v0,%hi(D_actor_403200_8015F8E0)      /* target */
+    lui s0,%hi(D_actor_403200_8015F8F4)
+```
+
+The addresses are computed at their first use, and sched1 keeps that order when
+neither has a longer dependence chain. The source had the message stores first
+(`msg.field_0 = 0; D_actor_403200_8015F8E0 = 0; msg.field_1 = 0x2C; ...`, which is
+what puts the two `sb`s in the target's order), so `F8F4`'s `lui` came first.
+Moving the `D_actor_403200_8015F8E0 = 0;` store ahead of the `work->field_7C4 =
+yaw;` store above it computes its address first and the pair lands in the target's
+order — the `yaw` store itself still schedules after both `lui`s. Worth trying
+before anything else when a lone `lui`/`lui` pair is the leftover: the store order
+inside the block and the address order at its head are two separate levers.

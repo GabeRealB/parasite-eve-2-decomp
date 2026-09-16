@@ -11,6 +11,17 @@
 
 typedef struct Actor403200Obj Actor403200Obj;
 
+/// Payload `func_actor_403200_8013C84C` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
+/// The same four bytes as `Actor444000Msg7DA`: two id bytes followed by a
+/// halfword the receiver switches on.
+typedef struct Actor403200Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor403200Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor403200Msg7DA, 0x4);
+
 /// One of the nine back-to-back collision groups in `Actor403200Work` at
 /// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
 /// is the `GpRec18` table it fills in for that part, which is why the stride is
@@ -123,8 +134,12 @@ typedef struct Actor403200Work {
     /* 0x7C6 */ byte pad_7C6[0x2];
     /// Cleared alongside `field_7C4` by the group-0 hit handler, the same pair
     /// `Actor444000Work::field_7C8` is.
-    /* 0x7C8 */ s16  field_7C8;
-    /* 0x7CA */ byte pad_7CA[0xE];
+    /* 0x7C8 */ s16 field_7C8;
+    /// Frames since the arena tick last sent the player its message 0x3FF
+    /// animation; the retries in `func_actor_403200_8013FB54` are bounded by
+    /// it. Same slot and role as `Actor444000Work::field_7CA`.
+    /* 0x7CA */ u16  field_7CA;
+    /* 0x7CC */ byte pad_7CC[0xC];
     /// The masked `field_72` frame the per-frame body last saw, so each of its
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
@@ -159,11 +174,14 @@ typedef struct Actor403200Work {
     /// Screen-shake level `func_actor_403200_80138284` drives, and the level
     /// armed last tick in `field_EAD`; a change from the armed level starts a
     /// shake. Same slots, types and role as `Actor444000Work::field_EAC`.
-    /* 0xEAC */ u8   field_EAC;
-    /* 0xEAD */ u8   field_EAD;
-    /* 0xEAE */ u8   field_EAE;
-    /* 0xEAF */ s8   field_EAF;
-    /* 0xEB0 */ byte pad_EB0[0x1C];
+    /* 0xEAC */ u8 field_EAC;
+    /* 0xEAD */ u8 field_EAD;
+    /* 0xEAE */ u8 field_EAE;
+    /* 0xEAF */ s8 field_EAF;
+    /// Message 0x3FF payload the launch state sends the player. Same slot and
+    /// role as `Actor444000Work::anim`.
+    /* 0xEB0 */ GpAnimArg field_EB0;
+    /* 0xEC4 */ byte      pad_EC4[0x8];
     /// The escorts the state-change reset walks to push the host's
     /// `TmdObject::field_C` onto each escort's own model object; the same
     /// seven-slot run as `Actor444000Work::field_ECC`.
