@@ -1,11 +1,14 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern s32 D_dryfield_junk_yard_8017DD20;
 extern s32 D_dryfield_junk_yard_8017DD88;
@@ -14,7 +17,28 @@ extern s32 D_dryfield_junk_yard_8017DE30;
 extern s32 D_dryfield_junk_yard_8017E490;
 extern s32 D_dryfield_junk_yard_8017E658;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D5F4);
+void func_dryfield_junk_yard_8017D658(Task* task);
+
+/// State 0 of the yard's pickup-model task: hides the mesh with flag 4
+/// (`field_C` 0x84) once the item's 2-bit flag reads 2, otherwise shows it
+/// (`field_C` 0) and clears the animation byte, then advances the task.
+void func_dryfield_junk_yard_8017D5F4(Task* task)
+{
+    GpItemObj8* obj;
+    TmdObject*  tmd;
+    s32         flag;
+
+    obj          = (GpItemObj8*)task->spawnArg2;
+    tmd          = (TmdObject*)task->extra;
+    flag         = Gp_GetCurBit2Flag(obj->field_8);
+    tmd->field_C = 0;
+    if (flag == 2) {
+        tmd->field_C = 0x84;
+    } else {
+        tmd->field_E = 0;
+    }
+    func_dryfield_junk_yard_8017D658(task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D658);
 

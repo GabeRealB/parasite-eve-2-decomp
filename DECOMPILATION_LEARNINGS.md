@@ -85228,4 +85228,75 @@ pin to reproduce it and do not introduce a temp to "share" it.
 
 Inputs: `base.c` 100.000% (zero penalties), unmodified apart from the two
 declaration edits. Compiler SHA256
+## A store never fills a conditional branch's delay slot eagerly: write it before the `if`
+
+`func_dryfield_junk_yard_8017D5F4` is a pickup-model step, the same shape as the
+shared `RoomsShared80182574`: read the item's 2-bit flag, set the model's
+`field_C` from it, call the next state. The target puts the *else* arm's store in
+the `bne`'s delay slot and leaves the else block a single `sb`:
+
+```
+addiu  v1,zero,0x2
+bne    v0,v1, .L638
+sh     zero,0xC(s0)      /* the else arm's store, in the delay slot */
+addiu  v0,zero,0x84
+j      .L63C
+sh     v0,0xC(s0)
+.L638:
+sb     zero,0xE(s0)
+```
+
+Writing the store where it reads — in the else arm — scores 91.76% and gives the
+delay slot to the *if* arm's constant instead:
+
+```c
+if (flag == 2) {
+    tmd->field_C = 0x84;
+} else {
+    tmd->field_C = 0;     /* reorg will not take this */
+    tmd->field_E = 0;
+}
+```
+
+reorg's `fill_eager_delay_slots` fills a conditional jump's slot from one of the
+two threads, and `fill_slots_from_thread` only accepts a trial insn that clears
+
+```c
+if (condition == const_true_rtx
+    || (! insn_sets_resource_p (trial, &opposite_needed, 1)
+	&& ! may_trap_p (pat)))
+```
+
+`opposite_needed` comes from `mark_target_live_regs`, which opens with
+`res->memory = 1;` ("We have to assume memory is needed, but the CC isn't"), and
+`resource_conflicts_p` counts `memory && memory` as a conflict — so any insn that
+sets memory, i.e. every store, is refused from *both* threads. Only
+`const_true_rtx` (an unconditional jump) clears `opposite_needed` and lifts the
+restriction. That is also why the sibling `RoomsShared80182574` keeps its
+else-arm store and has only `addiu v0,zero,0x8` stolen into its slot: the
+*constant* needs a register and is materialised as its own insn, while a store of
+zero uses `$zero` and needs none.
+
+A store the target really shows in a conditional branch's delay slot therefore
+has to come from `fill_simple_delay_slots`' backward scan, which moves an insn
+from *before* the branch. So the store belongs in the block ahead of the `bne`,
+after the flag call — compute the flag into a local first:
+
+```c
+flag = Gp_GetCurBit2Flag(obj->field_8);
+tmd->field_C = 0;
+if (flag == 2) {
+    tmd->field_C = 0x84;
+} else {
+    tmd->field_E = 0;
+}
+```
+
+100% at once, with the `lw` of `tmd` scheduled after the `lbu` exactly as in the
+target. The `.dbr` dump does not print `INSN_FROM_TARGET_P`, so the two sources
+look alike there; the mechanism is what tells them apart, and it says a store in
+the slot was written ahead of the branch.
+
+Inputs: `base_1.i` (91.76%, `branch=1 insert=1 delete=1 regs=1`), `base_2.i`
+(100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
