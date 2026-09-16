@@ -1207,7 +1207,37 @@ void Actor04400_Fn083CC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn0847C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08610);
+/// Same body as `func_actor_342400_8016B744`, up to the animation ids it
+/// requests. When `Actor04400_D10814[field_418 - 1]` is 0, requests animation
+/// 9 with `field_426` 4 and plays the encounter sound 0x402C0002 at the
+/// enemy's pan and depth, then sets the sub-state to 4. Otherwise requests
+/// animation 7 with `field_426` 8, folds `field_41C * 4` onto `field_44F` and
+/// counts the sub-state up.
+void Actor04400_Fn08610(Task* arg0)
+{
+    Actor104400Work* work;
+    s32              soundId;
+    s32              pan;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if (Actor04400_D10814[work->field_418 - 1] == 0) {
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = 9;
+        work->field_414 = 1;
+        soundId         = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0002;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        work->field_422 = 4;
+        return;
+    }
+    work->field_426 = 8;
+    work->field_41C = 0x10;
+    work->field_418 = 7;
+    work->field_414 = 1;
+    work->field_44F = (u8)work->field_41C * 4;
+    work->field_422++;
+}
 
 void Actor04400_Fn08718(Task* arg0)
 {

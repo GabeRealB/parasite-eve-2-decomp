@@ -2414,6 +2414,63 @@ Store `8`, then `0x10`, then `8` again. CSE keeps one `8` pseudo live across
 the target store order. The duplicate store has to straddle the other constant;
 sweeping a one-use store's position does not lengthen the two-use range.
 
+## A shared constant's `li` is placed by statement order, not by the store order the asm shows
+
+`Actor04400_Fn08610` writes `4` to two halfwords of its work block, the second
+of them the last statement of the branch (`field_422 = 4`), whose store lands in
+the `j`'s delay slot. m2c's statement order — the order the target's *stores*
+appear in — reproduces all 66 instructions and leaves the `li $s2,4` one slot
+late, scoring 96.667% with only that line differing:
+
+```
+target                     base
+lui   a1,0x402c            lui   a1,0x402c
+ori   a1,a1,0x2            ori   a1,a1,0x2
+li    s2,4                 li    v0,0x10
+li    v0,0x10              sh    v0,0x41c(s3)
+sh    v0,0x41c(s3)         li    v0,9
+li    v0,9                 li    s2,4
+sh    v0,0x418(s3)         sh    v0,0x418(s3)
+```
+
+CSE gives the two uses one pseudo, whose `li` is created where the *expression*
+is first written — the second store, not the first — so the store order decides
+the load's insn number and the scheduler never moves it back. Write the store
+that uses the shared constant first:
+
+```c
+if (Actor04400_D10814[work->field_418 - 1] == 0) {
+    work->field_426 = 4;      /* before field_41C/field_418, not after them */
+    work->field_41C = 0x10;
+    work->field_418 = 9;
+    work->field_414 = 1;
+```
+
+The store itself still lands third of four, as the target has it, because sched2
+treats the two kinds of insn differently. It runs backward; every `li` is
+priority 1, so `rank_for_schedule`'s third rule — `INSN_LUID (*y) -
+INSN_LUID (*x)`, the later insn of the pre-sched2 chain first — reproduces the
+chain and cannot reorder them. A ready store is not tied that way:
+`schedule_select` takes the largest `potential_hazard` within a group of equal
+priorities, which is 0 for the ALU (`insn_unit` gives -1) and a large weight for
+the memory unit, so the store jumps ahead of the `li`s regardless of its
+position. `trace_gcc.py --uids` shows both decisions directly (cycles 23-28 of
+sched2 here); the `.sched2` dump's `priority = 1, ref_count` list and its
+ready-list trace are enough to see the tie without a trace.
+
+Read the top `similar` body, not its shape: `func_actor_342400_8016B744` is this
+same function for another actor, already matched, and writes `field_426 = 4`
+first. The overlay's own siblings write their field stores in the asm's order,
+which is what makes the one outlier correct here rather than a mistake.
+
+Input: `base_1.i` (96.667%) SHA256
+`dcf99645e47e00d981d4bf652260516b3cc01b9fd9df4e2d90196d3a59212d71`, `base_2.i`
+(100.000%) SHA256
+`2834a0bac16d332e93468cebc3f69c9d72b6afd1bc9a5f09b321caa97586be94`; target
+SHA256 `d7f59367566220f2df5f76644167955dcc2afe356ff60e3f7d998ff4e0636007`.
+Three scratch builds, no pins, no permuter; scratch
+`nonmatchings/Actor04400_Fn08610-vacuum`.
+
 ## A permuter gain can come from moving an expression across a generated branch
 
 Replay's Fable alternate improves from distance 1215 to 1161 by moving the clut
