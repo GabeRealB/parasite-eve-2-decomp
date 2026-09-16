@@ -20,6 +20,8 @@
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /* Leading-rodata state table. A local initializer would emit the pool at this
  * function's .rodata instead of at D_actor_107600_80131E24. */
@@ -865,7 +867,64 @@ void func_actor_107600_80133DC4(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133FA8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134248);
+/// Corner offsets of the quad `func_actor_107600_80134248` draws; the
+/// zero fifth entry is never read.
+const DVECTOR D_actor_107600_80131EE8[] = {
+    { -0x60, -0x60 },
+    { -0x60, 0x60 },
+    { 0x60, -0x60 },
+    { 0x60, 0x60 },
+    { 0, 0 },
+};
+
+/// Projects a 0xC0-wide square centred on `pos` (relative to `coord`'s
+/// translation) and links it as an unshaded `POLY_FT4` on tpage 0x99,
+/// dropping it when its OT depth lands too close.
+void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    Actor107600QuadScratch* s;
+    POLY_FT4*               p;
+    s32                     i;
+
+    *(s32*)G_SCRATCH_HEAD -= sizeof(Actor107600QuadScratch);
+    s                      = *(Actor107600QuadScratch**)G_SCRATCH_HEAD;
+    for (i = 0; i < 4; i++) {
+        s->v[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);
+        s->v[i].vy = pos->vy + (D_actor_107600_80131EE8[i].vy + coord->coord.t[1]);
+        s->v[i].vz = coord->coord.t[2] + pos->vz;
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_SetTransMatrix(&coord->workm);
+    gte_ldv0(&s->v[0]);
+    gte_rtps_real();
+    p              = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    setPolyFT4(p);
+    gte_stsxy(&s->sxy[0]);
+    gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
+    gte_rtpt_real();
+    p->tpage = 0x99;
+    p->clut  = 0x3E80;
+    setUV4(p, 0x68, 0, 0x77, 0, 0x68, 0xF, 0x77, 0xF);
+    setShadeTex(p, 1);
+    gte_stsxy3(&s->sxy[1], &s->sxy[2], &s->sxy[3]);
+    gte_stszotz(&s->otz);
+    s->otz -= 0x40;
+    if (s->otz < 0x40) {
+        *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+        return;
+    }
+    p->x0 = s->sxy[0];
+    p->y0 = s->sxy[0] >> 16;
+    p->x1 = s->sxy[1];
+    p->y1 = s->sxy[1] >> 16;
+    p->x2 = s->sxy[2];
+    p->y2 = s->sxy[2] >> 16;
+    p->x3 = s->sxy[3];
+    p->y3 = s->sxy[3] >> 16;
+    addPrim(&Gpu_CurrentOt[s->otz >> 4], p);
+    *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+}
 
 /// Mode 1 collapses each column of `m` to one weighted value plus a
 /// `Display_State.field_14`-driven sine pulse; mode 2 clears the 3x3 part.

@@ -100,6 +100,18 @@ typedef struct Actor107600Pair {
     /* 0x2 */ u16 vy;
 } Actor107600Pair;
 
+/// 0x34-byte scratch block `func_actor_107600_80134248` takes from
+/// `G_SCRATCH_HEAD` to draw one `POLY_FT4`. `v` holds the four corners
+/// (the offset table plus the coordinate's translation and the caller's
+/// position), projected through `workm` by one `RTPS` and one `RTPT` into
+/// `sxy` (each a packed `gte_stsxy` word, x low and y high). `otz` is the
+/// `gte_stszotz` less 0x40, which picks the OT bucket.
+typedef struct Actor107600QuadScratch {
+    /* 0x00 */ s32     sxy[4];
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ SVECTOR v[4];
+} Actor107600QuadScratch;
+
 typedef struct Actor107600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor107600Work* field_1C;
