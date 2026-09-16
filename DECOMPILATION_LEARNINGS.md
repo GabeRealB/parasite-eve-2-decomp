@@ -95943,3 +95943,64 @@ Evidence: scratch `nonmatchings/func_actor_311900_801624F8-vacuum/`. `base.c`
 `d2ab9a49…` (m2c seed, 99.839%, `regs=2`), `base_1.c` `d6212210…` (byte-offset
 casts, 100.000%), `base_2.c` `db5edc54…` (typed port, same object `bec5e572…`
 as `base_1.c`). Compiler `60d886cd…` throughout.
+
+## A short-circuit `||` guard is what places a shared teardown block inline
+
+`func_actor_311900_8016228C` is the sibling of `func_actor_311900_801624F8` above,
+and the prediction at the end of that entry held: the port with the six named
+edits compiled to the target on the first build, 100.000%, all penalties zero.
+What the port needed beyond those edits was the shape of its first statement.
+
+The two functions share one teardown (`Gp_DestroyEnemy`) reached from two
+places: an early bail-out on a game flag, and a failed work-block allocation.
+m2c renders that as two inverted tests whose true edges both jump to one tail
+block -
+
+```c
+    if (!(GameFlag_GetNibble(0xA) & 2)) {
+        temp_v0 = Mem_Calloc(0x4CC, 0);
+        task->idMap = temp_v0;
+        if (temp_v0 == NULL) {
+            goto fail;
+        }
+        ...
+        return;
+    }
+fail:
+    Gp_DestroyEnemy(enemy, task);
+```
+
+- which scores 90.521% at `stack=0 branch=2 regs=2 reorder=3 insert=2 delete=3`,
+the top-level `different` topology being the tell: its `fail` block sits after
+the main body, so the main body ends in `j epilogue` and `fail` falls through,
+where the target has `fail` inline and the main body falling through. Every
+`goto`-shaped spelling collapses to this - it is the layout `jump.c`'s
+"duplicate call in both arms"/tail-merge behaviour produces for a merged sink.
+
+The target comes from the guard being a **single short-circuit `||` whose
+second operand carries the call, the store and the test**, with the teardown as
+the then-arm of one `if`:
+
+```c
+    if ((GameFlag_GetNibble(0xA) & 2) ||
+        (work = Mem_Calloc(0x4CC, 0), task->idMap = (TaskIdMap*)work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+```
+
+The compound condition's true label is a *forward* branch to the then-arm, and
+that arm is emitted where the condition ends - after the allocation sequence,
+before the main body - so the teardown lands inline; the last test then spells
+its false edge as a forward branch over it (`bnez s0, main`), and the main body
+falls through to the shared epilogue. The same TU's `func_actor_311900_801624F8`
+is written this way and matches, so prefer the idiom over the m2c inversion
+whenever a teardown is shared between a guard and a failing allocation. This is
+the emission-point counterpart of the `&&`/`||` entry above: there the guard
+defeated a `jump.c` range swap, here it decides where a shared block is
+emitted, and in both the drop-through label is the thing to reach for.
+
+Evidence: scratch `nonmatchings/func_actor_311900_8016228C-vacuum/`. `base.c`
+`4bccef77…` (m2c seed, 90.521%), `base_1.c` `5939d5da…` (preprocessed
+`6f10329a…`, 100.000%, object `b6b63c49…`). Compiler `60d886cd…`, unchanged
+from the sibling's session.
