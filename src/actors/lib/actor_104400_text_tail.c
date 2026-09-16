@@ -106,7 +106,46 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn042C4
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn045A0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn04718);
+/// Same body as `ActorsShared8016784c` at this overlay's own address, so the
+/// two cannot share one object: the package needs both addresses.
+///
+/// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank
+/// from the enemy's `field_8` high nibble) panned and attenuated from the model
+/// root. Every frame, pushes the root 0x14 forward along the heading
+/// `field_7A`, then walks the root's y by `field_42A` while `field_428` ramps
+/// it by 4 and feeds that back into `field_42A`. Once the root y passes zero it
+/// snaps back to -0x3C and starts the cycle again, clearing the frame counter
+/// and stepping the state `field_420`.
+void Actor04400_Fn04718(Task* arg0)
+{
+    Actor104400Work* work;
+    GsCOORDINATE2*   coord;
+    s32              soundId;
+    s32              pan;
+    s16              angle;
+    s16              speed;
+
+    work  = (Actor104400Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if ((s16)++work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    speed                                           = 0x50;
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    coord->coord.t[1]                              += work->field_42A;
+    work->field_428                                += 4;
+    work->field_42A                                += work->field_428;
+    if (coord->coord.t[1] > 0) {
+        coord->coord.t[1] = -0x3C;
+        work->field_412   = 0;
+        work->field_420++;
+    }
+}
 
 /// Same body as `Actor04400_Fn05260` at this overlay's own address: counts
 /// `field_412` up and on the first frame plays sound 0x402C0009 (bank from the

@@ -98532,3 +98532,46 @@ SHA256 `41fb3e787cf79087b2e50d6f6e0e9969eae3d1015532207a16a6df3b4411b736`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`;
 two builds, no pins, no search. Scratch
 `nonmatchings/Actor04400_Fn048A0-vacuum`.
+
+## When `identical bytes:` counts one more than the copies listed, check `src/<family>/lib/` before any same-unit twin (Actor04400_Fn04718, 2026-09-16)
+
+`Actor04400_Fn04718` is the vertical-oscillation twin of `ActorsShared8016784c`,
+the actors family's already-promoted shared body in
+`src/actors/lib/actors_shared_8016784c.c`. Copying that body and retyping only
+its work block (`ActorsShared80168d3cWork*` -> `Actor104400Work*`) scored
+100.000% with every penalty zero on the first build, against a 75.500% m2c
+baseline (`branch=1 regs=16 reorder=2 insert=10 delete=12`) - two builds, no
+search. The pointer was the brief's "Similar matched bodies" list, which stars
+a candidate appearing in more than one similarity class: `ActorsShared8016784c`
+was 1.00 in shape, fields, calls *and* cflow, the strongest signal the list can
+carry.
+
+The hidden-carrier tell is the one the [Read `find`'s two counts together] and
+[Actor04400_Fn048A0] entries describe, but this instance resolves differently:
+
+```
+Actor04400_Fn04718  (98 instructions, USA/actors/lib)
+  same body: 1 copies   identical bytes: 2
+```
+
+Two byte-identical carriers, one listed. The second is not a same-unit twin and
+not a third overlay: it is the shared body itself, which `overlay_dup_index.py`
+excludes from carriers by design (a copy under `<family>/lib` is what the other
+overlays link, not a carrier - see `cmd_promote`'s comment on the `lib` suffix).
+That is why `siblings Actor04400_Fn04718` prints nothing here and promotion is a
+no-op: the two addresses are wanted in the same package, so there is nothing to
+merge. `siblings`, not `find`, is the command that decides promotion; an empty
+answer is the common case and not an error.
+
+So when `identical bytes:` exceeds the printed count, resolve the extra carrier
+before assuming a same-unit twin: look in `src/<family>/lib/` first. If it is
+there, the cheapest match is to retype the shared body's work struct and stop -
+no manifest change, no re-split, no promotion.
+
+Inputs: `base.c` SHA256 `f03098f3752ea293…` (75.500%), `base_1.c` SHA256
+`45bdf9783a7b03abcc9e82314f8dd533a08c1752b9f1f37e13069e6f7d0e5834` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`65c44c22a91cd37155ac23ca58d626a229c1fe4dd515b512566b1040f116a84d`; target
+SHA256 `96e6344f15bbf0a0fdd1fd0c766d74a97227a701f2f66325ac96a58ffcf93136`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn04718-vacuum`.
