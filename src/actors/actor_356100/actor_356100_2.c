@@ -3,6 +3,8 @@
 #include "actors/actor_356100.h"
 #include "gameplay/D4.h"
 
+extern u32 Gp_LcgState;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_356100/actor_356100_2", ActorsShared80135df4Table);
 
 s32 func_actor_356100_8016A0B8(Actor356100* arg0, s32 arg1, Actor356100Event* arg2)
@@ -224,7 +226,31 @@ void func_actor_356100_8016A5DC(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100_2", func_actor_356100_8016A668);
+void func_actor_356100_8016A668(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        work->field_6 = work->field_B54 + (((u32)Gp_LcgState >> 16) & 0xF);
+    }
+    if ((s16)--work->field_6 < 0) {
+        switch (work->field_97E) {
+            case 0xB:
+                work->field_0 = 0xF;
+                break;
+            case 0xC:
+                work->field_0 = 0x10;
+                break;
+        }
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x15;
+    }
+}
 
 void func_actor_356100_8016A710(Actor356100* arg0)
 {

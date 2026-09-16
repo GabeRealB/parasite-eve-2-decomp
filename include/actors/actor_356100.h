@@ -27,7 +27,11 @@ typedef struct Actor356100Work {
     /* 0x000 */ s16  field_0;
     /* 0x002 */ byte pad_2[2];
     /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[0x54];
+    /// Countdown `func_actor_356100_8016A668` decrements every frame and
+    /// tests with `(s16)` — the 0x0F / 0x10 state it picks when the counter
+    /// wraps is the transition into the state 0xB / 0xC clip it is running.
+    /* 0x006 */ u16  field_6;
+    /* 0x008 */ byte pad_8[0x52];
     /* 0x05A */ u16  field_5A;
     /* 0x05C */ byte pad_5C[0xC];
     /* 0x068 */ u16  field_68;
@@ -50,7 +54,11 @@ typedef struct Actor356100Work {
     /// alive (`field_40 > 0`) to choose clip 4 or 0x11; the analogue of the
     /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
     /* 0xB3A */ s16  field_B3A;
-    /* 0xB3C */ byte pad_B3C[0x1C];
+    /* 0xB3C */ byte pad_B3C[0x18];
+    /// Random reload `func_actor_356100_8016A668` adds a 4-bit `Gp_LcgState`
+    /// draw to when the work block's `field_4` flag is set.
+    /* 0xB54 */ u16  field_B54;
+    /* 0xB56 */ byte pad_B56[2];
     /// Copy of the first three bytes of the last event
     /// `func_actor_356100_8016A0B8` handled.
     /* 0xB58 */ u8    field_B58[3];

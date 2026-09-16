@@ -108520,3 +108520,57 @@ sub-code read is an `s32` local rather than a `u16` (an HImode pseudo kept alive
 **Counting the tails is the cheap test.** One `jr ra` reached by a `j` means no explicit
 default; two, with the tree's default jumps split from the `if`'s exit, means the switch
 carries `default: return 0;`.
+
+## A two-case `switch` branches forward to out-of-line bodies; the same choice as `if/else if` falls through (func_actor_356100_8016A668, 2026-09-16)
+
+**Symptom.** The two arms assign the same field and the target merges them into one store -
+which is the "several branches converging on one store" signature of the entry above - so the
+m2c seed's if/else chain looks right, yet `branch=2 insert=3 delete=4` with blocks 11/10 and
+`predicates_match=False` stays. The branch polarity is the whole tell:
+
+```
+    beq $v1,$v0,.L6EC        ; t == 0xB -> out-of-line body
+     addiu $v0,$zero,0xC
+    beq $v1,$v0,.L6F0        ; t == 0xC -> the shared store
+     addiu $v0,$zero,0x10
+    j .L6F4
+    .L6EC: addiu $v0,$zero,0xF
+    .L6F0: sh $v0,0x0($a2)
+```
+
+Both tests branch **to** their bodies and the default path is the one that jumps away; the
+right-hand body is a single `sh` that the left-hand body falls into. That is `expand_end_case`
+emitting `beq x,const,case_label` with the case bodies after the comparison chain, plus the
+`jump2`/`reorg` store merge. An `if (t == 0xB) … else if (t == 0xC) …` chain compiles to the
+inverted tests instead - `bne` falling through into the first arm, `j` over the second - and no
+amount of arm reordering reproduces the target, because the case body of the *first* case is
+the one that must come last in the emitted order.
+
+```c
+    if ((s16)--work->field_6 < 0) {
+        switch (work->field_97E) {   /* 0xB / 0xC; two case nodes, no table */
+            case 0xB:
+                work->field_0 = 0xF;
+                break;
+            case 0xC:
+                work->field_0 = 0x10;
+                break;
+        }
+    }
+```
+
+100.00% on the next build, all penalties zero.
+
+**Reading it.** With only two arms, don't ask whether the *instructions* match - ask which way
+the first test goes. `beq`/`bne` **to** a label that sits below the join is a switch; an
+inverted test whose fall-through is the first arm is an if/else chain. The reverse direction is
+already recorded: a two-`case` switch over consecutive values (`case 7: case 8:`) that the
+target compiles as two `slti` compares is really the range test `(u16)x - 7 >= 2U`. So the
+number of cases alone never decides it; the emitted comparison is the evidence.
+
+**Unrelated leftover in the same function:** `if ((s16)--work->field_6 < 0)` needs `field_6`
+declared `u16`, which is what gives the target's `lhu` + `addiu -1` + `sh` + `sll $v0,$v0,16`
++ `bgez` (a sign test of the truncated halfword). An `s16` field loads `lh` and tests with a
+bare `bltz`, and the `sll` has nowhere to come from. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input `base_2.i`
+SHA256 `9972e59abfff660c2fefcf39e0623ba79f72954553ff04a2d8b8d597cf2307c6`.
