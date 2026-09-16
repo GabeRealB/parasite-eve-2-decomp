@@ -109915,3 +109915,81 @@ is the last rodata byte before `.text`, so there is no pad word to write in C â€
 the trigger is the alignment alone. The `units` + `rodata` pair reaches the same
 bytes, but it splits the first unit in two and renumbers every later one, which
 is the churn `rodata_head` exists to avoid.
+
+## A constant born before an earlier value's death hard-conflicts with its register; a store in each arm moves the birth past the `REG_DEAD` (func_actor_110600_80138980, 2026-09-16)
+
+**Problem.** `func_actor_110600_80138980` (actors, `actor_110600_2`) is
+`func_actor_110600_80138AFC`'s sibling with two differences: it seeds
+`walker->field_5C` from `2` rather than `0`, and instead of parking
+`work->field_0` at a constant it picks a state id from the enemy's HP. Written
+the way m2c writes it, with a temp the condition overwrites,
+
+```c
+    if (work->field_5C & 1) {
+        var_v0 = 0xB;
+        if (enemy->field_40 <= 0) {
+            var_v0 = 0xC;
+        }
+        work->field_0 = var_v0;
+    }
+```
+
+it is 99.750%: 60/60 instructions, `Structure: match`, `regs=3` and every other
+penalty zero, the whole object identical except the tail's three -
+
+    bgtz v0,.L / addiu v0,zero,0xB / addiu v0,zero,0xC / sh v0,0(s0)   (target)
+    bgtz v0,.L / addiu v1,zero,0xB / addiu v1,zero,0xC / sh v1,0(s0)   (mine)
+
+`.greg` reports `r85 used 3/4 -> $v1 hard-conf $v0`, and `$v0` holds
+`lh v0,0x40(s2)`, the enemy test, placed there by local-alloc.
+
+**Why.** `global_conflicts()` (`global.c:665-728`) walks each block in program
+order and, for each insn, kills that insn's `REG_DEAD` registers first and only
+then calls `note_stores (PATTERN (insn), mark_reg_store)` - the call that marks
+a newly born allocno live and records its conflicts with everything currently
+live. So a definition that sits *earlier in the block* than another value's last
+use hard-conflicts with that value's register, even though the two ranges only
+touch. Reordering the C does not escape it: the load and the constant have equal
+sched1 priority, and the ready list's LUID tie-break keeps the `lh` in front
+whichever statement comes first. A `-dS` run of cc1 gives the priorities
+directly (`insn[115]: priority = 1, ref_count = 1`, `insn[120]: priority = 1`,
+both hoisted under the jump's `priority = 2147483536`).
+
+**Lever.** Give each arm its own store, so both constants are born in blocks
+that *follow* the branch, past the load's `REG_DEAD`:
+
+```c
+    if (work->field_5C & 1) {
+        if (enemy->field_40 > 0) {
+            work->field_0 = 0xB;
+        } else {
+            work->field_0 = 0xC;
+        }
+    }
+```
+
+`.flow` then shows the load plus sign-extend alone in the branch block, `r106 =
+11` / store as one arm's block and `r107 = 12` / store as the other's: neither
+literal sees `$v0` live, so both take it, and `.dbr` has `(reg:HI 2 v0)` for
+both. The two stores are separate insns with separate pseudos and the object is
+still 60/60 instructions: `jump2`'s cross-jumping merges the identical
+`sh v0,0(s0)` tails behind a fresh label (the branch retargets to it), and reorg
+then pulls the taken arm's constant into the `bgtz` delay slot, where its clobber
+of `$v0` is harmless because the fall-through re-materializes `0xC`. 100%, all
+penalties zero.
+
+**The general lesson.** When the leftover is a *hard* conflict - `.greg` showing
+`-> $vX` next to `hard-conf $vY` - the question is not priority but whether the
+losing definition sits before or after the winner's `REG_DEAD` in its block. Two
+C forms that produce the same instructions in the same order can differ there,
+because the allocator sees block membership and death points, not the
+scheduler's final layout. A store in each arm is the usual way to move a birth
+across a death, and it costs nothing at the object level when cross-jumping and
+delay-slot filling put the arms back together.
+
+Inputs: `base_1.i` (99.750%) SHA256
+`a5c7948dbcab8c8cc21e4165942591e977cc56dba62baa71b4606d308979d7f1`; `base_2.i`
+(100%) SHA256 `7f48cad3a7abacc2b9d6b977dd162b863fafbeb3753805155c2d97a57b91aba3`;
+target.o SHA256 `d963d78d5e58ca85cc047a998c7e32c4c44aeb549a73ae748a4e9831df611209`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80138980-vacuum`.
