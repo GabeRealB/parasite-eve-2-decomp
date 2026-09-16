@@ -80,7 +80,7 @@ typedef struct Actor104000Work {
     /* 0x3E0 */ GpEffArg   eff;       // `func_800FDB18` argument record
     /* 0x3E8 */ SVECTOR    effOfs;    // offset handed to `func_800FDB18`; `pad` picks the coordinate
     /* 0x3F0 */ SVECTOR    origin;    // model position at spawn
-    /* 0x3F8 */ byte       pad_3F8[8];
+    /* 0x3F8 */ SVECTOR    dir;       // facing direction captured on restart
     /* 0x400 */ SVECTOR    ahead;     // spawn position plus 1000 units along the facing (XZ)
     /* 0x408 */ SVECTOR    behind;    // spawn position minus the same offset
     /* 0x410 */ byte       pad_410[4];

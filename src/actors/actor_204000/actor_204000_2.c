@@ -606,7 +606,117 @@ void func_actor_204000_8014F04C(Actor104000Ctx* arg0, Actor104000* arg1)
     arg0->field_14 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F3E8);
+/// Restarts the actor when `field_4` is set; otherwise runs state 0xC (drop the
+/// model to the ground, then hop forward and tip it over), state 0x10 (wait for
+/// the flag or 80 frames) and state 0x11 (slide along `dir` while rolling).
+void func_actor_204000_8014F3E8(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          sv;
+    s32              y;
+    u16              h;
+    s16              t;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        arg1->field_2C->field_C = 0;
+        work->obj350.flags     |= 0x8000;
+        work->obj388.flags     &= 0x7FFF;
+        work->obj3C0.flags     &= 0x7FFF;
+        work->obj270.flags     &= 0xBFFF;
+        arg0->field_14          = 0;
+        work->field_174         = 0xC;
+        work->field_170         = 2;
+        work->field_178         = 0;
+        work->field_176         = 1;
+        func_actor_204000_8014AC8C(arg1);
+        func_actor_204000_8014AC8C(arg1);
+        work->field_176              = 0;
+        arg1->field_2C->field_8->flg = 0;
+        work->field_6                = 0;
+        work->field_479              = 1;
+        work->field_19A              = 0xA;
+        work->field_198              = 0;
+        work->field_6                = 0;
+        work->field_8                = 0;
+        Gfx_MatrixCol0(&arg1->field_2C->field_8->coord, &work->dir);
+        VectorNormalSS(&work->dir, &work->dir);
+    }
+    work->field_6++;
+    switch (work->field_174) {
+        case 12:
+            if (work->field_176 == 0) {
+                work->field_19A += 2;
+                work->field_198 += work->field_19A;
+                h                = work->field_198;
+                coord            = arg1->field_2C->field_8;
+                y                = coord->coord.t[1];
+                if (y >= 0 || (y < 0 ? -y : y) < (s16)h) {
+                    coord->coord.t[1] = 0;
+                    work->field_176   = 0x10;
+                    work->field_6     = 0;
+                } else {
+                    coord->coord.t[1] = y + (s16)h;
+                }
+                arg1->field_2C->field_8->flg = 0;
+                return;
+            }
+            func_actor_204000_8014AC8C(arg1);
+            if ((s16)work->field_6 < 0xA) {
+                Actor204000_StepForward(arg1->field_2C->field_8, 0x23);
+            }
+            if ((s16)work->field_6 < 4) {
+                arg1->field_2C->field_8->coord.t[1] -= 0x67;
+            }
+            if ((u32)(work->field_6 - 4) < 8) {
+                arg1->field_2C->field_8->coord.t[1] -= 0xB;
+                arg1->field_2C->field_8->flg         = 0;
+                Gfx_RotMatrixX(&arg1->field_2C->field_8->coord, -0x100, 0);
+            }
+            if ((s16)work->field_6 == 0xC) {
+                work->field_170 = 2;
+                work->field_174 = 0x10;
+                work->field_6   = 0;
+                work->field_176 = 0x10;
+            }
+            break;
+        case 16:
+            func_actor_204000_8014AC8C(arg1);
+            if (!((arg0->field_8 >> 0xC) & 1)) {
+                t = work->field_6;
+                if (t < 0x14) {
+                    break;
+                }
+                if (t < 0x50) {
+                    break;
+                }
+            }
+            work->field_174 = 0x11;
+            work->field_170 = 2;
+            work->field_6   = 0;
+            break;
+        case 17:
+            func_actor_204000_8014AC8C(arg1);
+            if ((u32)(work->field_6 - 0xD) < 0x10) {
+                arg1->field_2C->field_8->coord.t[1] += 0xD;
+                sv                                   = work->dir;
+                gte_lddp(0x14);
+                gte_ldsv(&sv);
+                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_stsv(&sv);
+                arg1->field_2C->field_8->coord.t[0] += sv.vx;
+                arg1->field_2C->field_8->coord.t[2] += sv.vz;
+                Gfx_RotMatrixZ(&arg1->field_2C->field_8->coord, -0x88, 0);
+                arg1->field_2C->field_8->flg = 0;
+            }
+            if (work->field_58 & 1) {
+                work->field_0   = 4;
+                work->field_479 = 0;
+            }
+            break;
+    }
+}
 
 /// Resets the actor when `field_4` is set; otherwise advances the `field_6`
 /// timer, stepping the model forward in three speed bands and switching to
