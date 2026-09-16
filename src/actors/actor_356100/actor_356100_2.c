@@ -5,7 +5,32 @@
 
 INCLUDE_RODATA("actors/nonmatchings/actor_356100/actor_356100_2", ActorsShared80135df4Table);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100_2", func_actor_356100_8016A0B8);
+s32 func_actor_356100_8016A0B8(Actor356100* arg0, s32 arg1, Actor356100Event* arg2)
+{
+    Actor356100Work* work = arg0->field_1C;
+    s32              code;
+
+    work->field_B58[0] = arg2->b[0];
+    work->field_B58[1] = arg2->b[1];
+    work->field_B58[2] = arg2->b[2];
+    if (arg2->w[0] == 0xB05) {
+        code = arg2->w[1];
+        switch (code) {
+            case 0:
+            case 2:
+                work->field_0 = 0;
+                return 1;
+            case 1:
+                work->field_0   = 0x1E;
+                work->field_97E = code;
+                work->field_978 = 2;
+                return 1;
+            default:
+                return 0;
+        }
+    }
+    return 0;
+}
 
 void func_actor_356100_8016A158(Task* task)
 {

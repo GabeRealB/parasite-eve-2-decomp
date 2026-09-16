@@ -49,11 +49,23 @@ typedef struct Actor356100Work {
     /// Threshold `func_actor_356100_8016A834` tests once the enemy is still
     /// alive (`field_40 > 0`) to choose clip 4 or 0x11; the analogue of the
     /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
-    /* 0xB3A */ s16   field_B3A;
-    /* 0xB3C */ byte  pad_B3C[0x20];
+    /* 0xB3A */ s16  field_B3A;
+    /* 0xB3C */ byte pad_B3C[0x1C];
+    /// Copy of the first three bytes of the last event
+    /// `func_actor_356100_8016A0B8` handled.
+    /* 0xB58 */ u8    field_B58[3];
+    /* 0xB5B */ byte  pad_B5B;
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
 } Actor356100Work;
+
+/// Event record `func_actor_356100_8016A0B8` dispatches on: the first three
+/// bytes are copied raw into `Actor356100Work::field_B58`, `w[0]` is the
+/// event kind and `w[1]` its sub-code. Same shape as `Actor401300Event`.
+typedef union Actor356100Event {
+    u8  b[3];
+    u16 w[2];
+} Actor356100Event;
 
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
@@ -97,6 +109,11 @@ typedef struct Actor356100AnimWork {
 void func_actor_356100_801633DC(Actor356100* arg0);
 
 void func_actor_356100_80163508(Actor356100* arg0);
+
+/// Event handler: copies the event's first three bytes into the work block's
+/// `field_B58`, then dispatches on `w[0] == 0xB05` and `w[1]` — sub-code 1
+/// puts the actor in state 0x1E, 0 and 2 in state 0. Anything else returns 0.
+s32 func_actor_356100_8016A0B8(Actor356100* arg0, s32 arg1, Actor356100Event* arg2);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the
 /// enemy's `field_54` slot, then `Gp_DestroyEnemy`. Same shape as

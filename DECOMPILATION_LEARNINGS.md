@@ -108474,3 +108474,49 @@ take shrinks accordingly. Check whether a sibling in the same TU writes the same
 direct stores before trying to fix the register. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input `base_1.i`
 SHA256 `1ccb46d1b31aa54030431c458481d03d3ad55c09e570caca394b26b8283384e6`.
+
+## Two `jr ra` tails on a three-case tree: `case 0: case 2:` first, plus `default: return 0;`
+
+Companion to "`slti high+1` between the equality tests means three case nodes". The case
+*bodies* follow the tree in source order, so which body the right subtree's test falls
+through into is a source-order decision. A target whose right subtree test reads
+`bne $a2,$v0,<default>` with the body immediately after it means that body is listed
+first:
+
+```c
+        switch (code) {
+            case 0:
+            case 2:                    /* adjacent labels, one body, one address */
+                work->field_0 = 0;
+                return 1;
+            case 1:
+                ...
+                return 1;
+            default:
+                return 0;              /* see below */
+        }
+    }
+    return 0;
+```
+
+Two `code_label`s with nothing between them land on the same address, so the
+`beq index, 0` and the inverted `beq index, 2` both reach that body with no cross-jumping
+involved. Written apart, or as two separate bodies, the case-2 body sits somewhere else
+and the test stops inverting.
+
+**Two returns, not one.** `func_actor_356100_8016A0B8` ends in two `jr ra` - one reached
+only by the right subtree's `bne`, the other by the `if`'s exit *and* the root's "do not
+fall into the right subtree" jump (`emit_case_nodes`'s `emit_jump_if_reachable
+(default_label)` between the left and right subtrees, which is the `j` that separates
+them). That split exists only with an explicit `default: return 0;` last in the switch:
+the tree's `default_label` lands on it, while the `if`'s exit keeps the trailing return.
+`jump.c` does not cross-jump the two blocks, for the `use (reg/i:SI 2 v0)` reason in "A
+second `return 0` is a separate block". Drop the `default` arm and both labels collapse
+onto the trailing return, so the second `jr ra` disappears. Same source otherwise:
+77.85% with `case 1:` listed first, 90.18% after the reorder, 93.31% once the shared
+sub-code read is an `s32` local rather than a `u16` (an HImode pseudo kept alive by the
+`sh` cannot fold its `zero_extendhisi2` into the `lhu`), 100.00% with the `default` arm.
+
+**Counting the tails is the cheap test.** One `jr ra` reached by a `j` means no explicit
+default; two, with the tree's default jumps split from the `if`'s exit, means the switch
+carries `default: return 0;`.
