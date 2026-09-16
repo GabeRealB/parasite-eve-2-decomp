@@ -121,12 +121,25 @@ typedef struct Actor356100Work {
     /// alive (`field_40 > 0`) to choose clip 4 or 0x11; the analogue of the
     /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
     /* 0xB3A */ s16  field_B3A;
-    /* 0xB3C */ byte pad_B3C[0x10];
+    /* 0xB3C */ byte pad_B3C[4];
+    /// Direction `Gfx_MatrixCol2` takes off the model's root colour-matrix Y
+    /// column and `VectorNormalSS` normalises; `func_actor_356100_80165B30`
+    /// then GPF-scales it by `field_B52` into its aim scratch, the same
+    /// normalise-then-scale pair `Actor01900_MoveForward` runs.
+    /* 0xB40 */ SVECTOR field_B40;
+    /* 0xB48 */ byte    pad_B48[4];
     /// Push distance `func_actor_356100_8016804C` normalises the root's own
     /// colour-matrix column by and walks down by 0xA per frame until the
     /// state moves on; same role as `Actor401300Work.field_C98`.
     /* 0xB4C */ s16  field_B4C;
-    /* 0xB4E */ byte pad_B4E[6];
+    /* 0xB4E */ byte pad_B4E[2];
+    /// Side `func_actor_356100_80165B30`'s turn settles on: the zero it draws
+    /// once from `Gp_LcgState` at entry, then -1 / 1 for the two clip directions
+    /// it alternates each time it re-enters with the same clip.
+    /* 0xB50 */ s16 field_B50;
+    /// Uniform GTE scale `func_actor_356100_80165B30` applies to the normalised
+    /// direction: 0xDE whole while `field_97A` is clear, halved when it is set.
+    /* 0xB52 */ u16 field_B52;
     /// Random reload `func_actor_356100_8016A668` adds a 4-bit `Gp_LcgState`
     /// draw to when the work block's `field_4` flag is set.
     /* 0xB54 */ u16 field_B54;

@@ -172,6 +172,60 @@ needed, and the build does not tell you the second one:
    split problem rather than a stale include. Every table in the unit's rodata
    had a matched body behind it, so after removing the line the image matched
    byte for byte.
+## A rare constant finds the matched twin body; a halfword temp decides which operand carries the constant
+
+When a function's body is a near-copy of another overlay's, the cheapest route
+to 100% is to find that body's C source and port it, not to re-derive the shape
+from the target. Grep the decomp trees for a rare literal in the function — an
+offset, a scale, a magic constant — and, when the brief's similar-body list
+names a candidate, read its source first. `grep -rn 0x171 src/` found
+`Actor01900_Fn05B4C` in `src/actors/lib/actor_101900_text.c` for
+`func_actor_356100_80165B30`; the two were instruction-for-instruction
+identical (314 instructions, only the field offsets differing), so every
+codegen question the diff left open — which register a halfword lands in,
+whether a load hoists above an intervening store — was already answered.
+
+One shape the target's own assembly does not suggest is the **halfword temp**.
+Without it, all four spellings of "add `K` to one halfword, then add the other"
+fold to the same node and put `K` on the *wrong* operand:
+
+```
+/* work->field_B56 + (aim->angle + 0x171)
+   aim->angle + 0x171 + work->field_B56
+   aim->angle + (0x171 + work->field_B56)      -- all identical */
+lhu  $2, 2902(b56)      /* constant rides B56 */
+lhu  $3, 12(angle)
+addu $2, $2, 369
+addu $3, $3, $2
+```
+
+Assigning the first step to a `u16` (or `s16`) local keeps the constant on the
+halfword it was added to, which is what the target shows:
+
+```c
+u16 angle;                          /* the truncating temp is the whole trick */
+angle      = aim->angle + 0x171;
+aim->angle = work->field_B56 + angle;
+```
+
+```
+lhu  $2, 12(angle)      /* target: constant rides angle */
+lhu  $3, 2902(b56)
+addu $2, $2, 369
+addu $3, $3, $2
+```
+
+Probed in isolation with `cc1 -da`; both `u16` and `s16` give the second form,
+so the temp's *width*, not its signedness, is what matters.
+
+The same twin also showed the two-name scratch idiom that produces a mixed
+base: `head` declared as the block pointer and `aim = head - 1`, then using
+both `head[-1].delta.vx` and `aim->delta.vy`. One name alone gives the same
+base register for all three stores.
+
+`func_actor_356100_80165B30`: 73.0% (m2c) → 93.5% (GTE blocks and scratch
+model restored) → 97.1% → 100.0%, the last being the twin ported
+field-for-field.
 
 ## `(X - 1) - Y` folds to `X - (Y + 1)`: write the folded spelling when the target subtracts from `X`
 

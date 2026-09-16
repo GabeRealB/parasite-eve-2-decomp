@@ -264,7 +264,154 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801653F4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80165B30);
+/// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
+/// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
+/// 0x14-byte `Actor356100DeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
+/// the two spellings of the block in the body reach it the same way the
+/// original does — the negative offsets off `head` for the X component and the
+/// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
+/// its mask argument.
+static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor356100DeltaFlag* s;
+    s32                   val;
+
+    if (D_80072729 != 1) {
+        scratch                                  = (void**)G_SCRATCH_HEAD;
+        head                                     = *scratch;
+        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
+        s->field_10                              = 0;
+        if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
+            coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[1] += s->delta.vy.h.hi;
+            coord->coord.t[2] += s->delta.vz.h.hi;
+            val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[0]++;
+                } else {
+                    coord->coord.t[0]--;
+                }
+            }
+            val = s->delta.vz.w;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[2]++;
+                } else {
+                    coord->coord.t[2]--;
+                }
+            }
+        }
+        coord->coord.t[1] += height;
+        if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+            s->field_10 = 1;
+        }
+        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Turn-and-close tick: going live writes the 0x978..0x982 animation slots with
+/// `field_9BC` forced to 0xC0 and the enemy's link node cleared, takes the
+/// player offset into the aim scratch and turns the root onto it with
+/// `ratan2`, then settles `field_B50` on the 12-bit side the `Gp_LcgState`
+/// draw picks and leans the yaw by `field_B56` either way, before rebuilding
+/// its Y rotation at the fixed 0xDE GPF scale and bumping `field_B66`. Each
+/// frame then re-runs the animation and, while the clip sits in 0xC..0x15,
+/// takes the aim and pushes the root out of the `field_A58` collision records
+/// by 0x10. Past clip 0x1E the state moves to 7. Same body as
+/// `Actor01900_Fn05B4C`, whose `head[-1]` / `aim` spelling of the 0x10-byte
+/// scratch block this matches.
+void func_actor_356100_80165B30(Actor356100* arg0)
+{
+    Actor356100Work*       work;
+    Actor356100AimScratch* head;
+    Actor356100AimScratch* aim;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    SVECTOR*               dir;
+    MATRIX                 mat;
+    u16                    angle;
+
+    head                                     = *(Actor356100AimScratch**)G_SCRATCH_HEAD;
+    work                                     = arg0->field_1C;
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD = head - 1;
+    aim                                      = head - 1;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0xC0;
+        work->field_6   = 0;
+        Actor356100_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+        aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
+        if (work->field_B50 == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                work->field_B50 = 1;
+            } else {
+                work->field_B50 = -1;
+            }
+        }
+        if (work->field_B50 == 1) {
+            work->field_97E = 0x15;
+            if (work->field_B66 == 0) {
+                angle      = aim->angle + 0x171;
+                aim->angle = work->field_B56 + angle;
+            } else {
+                aim->angle += work->field_B56;
+            }
+            work->field_B50 = -1;
+        } else {
+            work->field_97E = 0x14;
+            if (work->field_B66 == 0) {
+                angle      = aim->angle - 0x171;
+                aim->angle = angle - work->field_B56;
+            } else {
+                aim->angle -= work->field_B56;
+            }
+            work->field_B50 = 1;
+        }
+        work->field_978 = 1;
+        work->field_982 = 0xC;
+        work->field_97A = 0;
+        func_actor_356100_80163508(arg0);
+        Gfx_RotMatrixY(&mat, aim->angle, 1);
+        dir = &work->field_B40;
+        Gfx_MatrixCol2(&mat, dir);
+        VectorNormalSS(dir, dir);
+        work->field_B52 = 0xDE;
+        work->field_B66++;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_356100_80163508(arg0);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_97A == 0) {
+        gte_lddp(work->field_B52);
+        gte_ldsv(&work->field_B40);
+        gte_gpf12_real();
+        gte_stsv(aim);
+    } else {
+        gte_lddp((s16)work->field_B52 >> 1);
+        gte_ldsv(&work->field_B40);
+        gte_gpf12_real();
+        gte_stsv(aim);
+    }
+    if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
+        coord              = arg0->field_2C->field_8;
+        coord->coord.t[0] += aim->delta.vx;
+        coord              = arg0->field_2C->field_8;
+        coord->coord.t[2] += aim->delta.vz;
+        Actor356100_PushRecords(arg0->field_2C->field_8, &work->field_A58, 3, 0x10);
+    }
+    if (++work->field_6 >= 0x1E) {
+        work->field_0 = 7;
+    }
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Turn-and-close tick, and the sibling of `func_actor_356100_801666B4` above
 /// it. Going live writes the 0x978..0x982 animation slots with `field_9BC`
@@ -613,55 +760,6 @@ void func_actor_356100_80167818(Actor356100* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167A7C);
-
-/// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
-/// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
-/// 0x14-byte `Actor356100DeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
-/// the two spellings of the block in the body reach it the same way the
-/// original does — the negative offsets off `head` for the X component and the
-/// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
-/// its mask argument.
-static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
-{
-    void**                scratch;
-    u8*                   head;
-    Actor356100DeltaFlag* s;
-    s32                   val;
-
-    if (D_80072729 != 1) {
-        scratch                                  = (void**)G_SCRATCH_HEAD;
-        head                                     = *scratch;
-        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
-        s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
-        s->field_10                              = 0;
-        if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-            coord->coord.t[1] += s->delta.vy.h.hi;
-            coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
-            if ((val & 0xFFFF) != 0) {
-                if (val > 0) {
-                    coord->coord.t[0]++;
-                } else {
-                    coord->coord.t[0]--;
-                }
-            }
-            val = s->delta.vz.w;
-            if ((val & 0xFFFF) != 0) {
-                if (val > 0) {
-                    coord->coord.t[2]++;
-                } else {
-                    coord->coord.t[2]--;
-                }
-            }
-        }
-        coord->coord.t[1] += height;
-        if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-            s->field_10 = 1;
-        }
-        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
-    }
-}
 
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
 /// movement is frozen (`D_80072729`) or `amount` is zero, the column
