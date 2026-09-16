@@ -262,6 +262,8 @@ static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
 }
 
 extern Actor104000MsgArg D_actor_204000_80156350;
+extern s32               D_actor_204000_80150EB4;
+extern s32               D_actor_204000_80150EC0;
 extern byte              D_actor_204000_80156330[];
 extern byte              D_actor_204000_80156340[];
 
@@ -376,7 +378,167 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
     SCRATCH_SP += sizeof(Actor104000AimScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014BC3C);
+/// Turns `coord` to face along its own Z axis in the XZ plane and scales the
+/// rotation uniformly by `s`, working on a scratch block.
+static __inline__ void Actor204000_FaceScale(GsCOORDINATE2* coord, s16 s)
+{
+    Actor104000FaceScratch* head;
+    Actor104000FaceScratch* sc;
+
+    head                                      = *(Actor104000FaceScratch**)G_SCRATCH_HEAD;
+    sc                                        = head - 1;
+    *(Actor104000FaceScratch**)G_SCRATCH_HEAD = sc;
+    sc->angle                                 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&sc->m, sc->angle, 1);
+    sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
+    ScaleMatrix(&sc->m, &head[-1].scale);
+    coord->coord.m[0][0]                       = head[-1].m.m[0][0];
+    coord->coord.m[0][1]                       = sc->m.m[0][1];
+    coord->coord.m[0][2]                       = sc->m.m[0][2];
+    coord->coord.m[1][0]                       = sc->m.m[1][0];
+    coord->coord.m[1][1]                       = sc->m.m[1][1];
+    coord->coord.m[1][2]                       = sc->m.m[1][2];
+    coord->coord.m[2][0]                       = sc->m.m[2][0];
+    coord->coord.m[2][1]                       = sc->m.m[2][1];
+    coord->coord.m[2][2]                       = sc->m.m[2][2];
+    coord->flg                                 = 0;
+    *(Actor104000FaceScratch**)G_SCRATCH_HEAD += 1;
+}
+
+/// Frames 0x5B onward of the collapse: drifts the model along its facing for the
+/// first 0x13 frames, steps the effects keyed on `field_6`, then fades the colour
+/// matrix out and grows the model over frames 0x5C-0x64.
+void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    SVECTOR           dir;
+    SVECTOR*          d;
+    VECTOR            scale;
+    Actor104000Work*  work;
+    Actor104000Obj2C* obj;
+    s16               s;
+    s32               pan;
+    s32               id;
+
+    work = arg1->field_1C;
+    obj  = arg1->field_2C;
+    if (work->field_4 != 0) {
+        arg0->field_14        = 1;
+        obj->field_C          = 0;
+        work->obj350.flags   &= 0x7FFF;
+        work->obj388.flags   &= 0x7FFF;
+        work->obj3C0.flags   &= 0x7FFF;
+        work->obj388.field_18 = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj3C0.field_18 = 0x22222;
+        work->field_6         = 0;
+        work->obj270.flags   |= 0x4000;
+        work->savedColorMtx   = work->colorMtx;
+        work->field_174       = 0xE;
+        work->field_170       = 1;
+        work->field_178       = 0;
+        func_actor_204000_8014AC8C(arg1);
+        work->obj3C0.field_10           = arg1->field_2C->field_8->coord.t[0];
+        work->obj3C0.field_12           = arg1->field_2C->field_8->coord.t[1] - 0x1F4;
+        work->obj3C0.field_14           = arg1->field_2C->field_8->coord.t[2];
+        work->obj388.field_10           = arg1->field_2C->field_8->coord.t[0];
+        work->obj388.field_12           = arg1->field_2C->field_8->coord.t[1];
+        work->obj388.field_14           = arg1->field_2C->field_8->coord.t[2];
+        D_actor_204000_80156350.field_4 = 2;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, &D_actor_204000_80156350, 0);
+        work->field_6 = 0;
+    }
+    if ((s16)work->field_6 < 0x13) {
+        Gfx_MatrixCol0(&arg1->field_2C->field_8->coord, &dir);
+        d      = &dir;
+        dir.vy = 0;
+        VectorNormalSS(d, d);
+        gte_lddp(0x15);
+        gte_ldsv(d);
+        gte_gpf12_real();
+        gte_stsv(d);
+        arg1->field_2C->field_8->coord.t[0] += dir.vx;
+        arg1->field_2C->field_8->coord.t[2] += dir.vz;
+        arg1->field_2C->field_8->flg         = 0;
+    }
+    func_actor_204000_8014AC8C(arg1);
+    switch ((s16)(work->field_6 - 0x5B)) {
+        case 0:
+            if (work->field_496 == 1) {
+                if (((GameActor*)((Task*)Game_GetPtrSlot(3))->idMap)->field_954 == 2) {
+                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+                }
+                work->field_496 = 0;
+            }
+            arg1->field_2C->field_C = 2;
+            break;
+        case 1:
+            Gp_SpawnScript18Ex((s32)&D_actor_204000_80150EB4, (s32)&D_actor_204000_80150EC0,
+                               (s16)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+            work->obj388.field_1C = 0x3E8;
+            work->obj3C0.field_1C = 0xFA;
+            work->obj388.flags   |= 0x8000;
+            work->obj3C0.flags   |= 0x8000;
+            Gp_SpawnEff(0x6009C, &arg1->field_2C->field_8[2], 1, NULL);
+            break;
+        case 2:
+            work->obj3C0.field_1C = 0x1F4;
+            break;
+        case 3:
+            work->obj3C0.field_1C = 0x3E8;
+            work->obj388.flags   &= 0x7FFF;
+            break;
+        case 5:
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            work->obj3C0.flags &= 0x7FFF;
+            break;
+        case 7:
+            if ((s8)work->field_479 == 0) {
+                Gp_SpawnEff(0x6009E, arg1->field_2C->field_8, 0, NULL);
+            }
+            obj->field_C = 0x80;
+            id           = ((arg0->field_8 >> 12) << 8) | 0x40280004;
+            pan          = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+            break;
+        case 28:
+            work->field_0 = 0;
+            break;
+        default:
+            work->colorMtx = work->savedColorMtx;
+            break;
+    }
+    work->colorMtx = work->savedColorMtx;
+    if ((u16)(work->field_6 - 0x17) < 0x44) {
+        work->colorMtx.t[0] += ((s16)work->field_6 - 0x16) * 0x60;
+    }
+    if ((u16)(work->field_6 - 0x5C) < 9) {
+        s = 0xBB8 - ((s16)work->field_6 - 0x5C) * 600;
+        if (s < 0x4B0) {
+            scale.vx = scale.vy = scale.vz = 0;
+            Actor204000_FaceScale(arg1->field_2C->field_8, 0x1000);
+            ScaleMatrix(&work->colorMtx, &scale);
+            work->colorMtx.t[0] = work->colorMtx.t[1] = work->colorMtx.t[2] = 0;
+            Actor204000_FaceScale(arg1->field_2C->field_8, 0x1000);
+        } else {
+            scale.vx = scale.vy = scale.vz = s;
+            work->colorMtx                 = work->savedColorMtx;
+            ScaleMatrix(&work->colorMtx, &scale);
+            gte_lddp(s);
+            gte_ldlvl(work->colorMtx.t);
+            gte_gpf12_real();
+            gte_stlvl(work->colorMtx.t);
+            s = ((s16)work->field_6 - 0x5A) * 0x400 + 0x1000;
+            if (s > 0x2000) {
+                s = 0x2000;
+            }
+            Actor204000_FaceScale(arg1->field_2C->field_8, s);
+        }
+    }
+    if ((s16)work->field_6 < 0x400) {
+        work->field_6++;
+    } else {
+        work->field_0 = 0;
+    }
+}
 
 /// Restarts the actor when `field_4` is set; otherwise steps it, occasionally
 /// switches to state 3 on a random roll, and arms the player state when the
@@ -506,36 +668,6 @@ void func_actor_204000_8014C710(Actor104000Ctx* arg0, Actor104000* arg1)
         }
     }
     SCRATCH_SP += sizeof(Actor104000TurnScratch);
-}
-
-extern s32 D_actor_204000_80150EB4;
-extern s32 D_actor_204000_80150EC0;
-
-/// Turns `coord` to face along its own Z axis in the XZ plane and scales the
-/// rotation uniformly by `s`, working on a scratch block.
-static __inline__ void Actor204000_FaceScale(GsCOORDINATE2* coord, s16 s)
-{
-    Actor104000FaceScratch* head;
-    Actor104000FaceScratch* sc;
-
-    head                                      = *(Actor104000FaceScratch**)G_SCRATCH_HEAD;
-    sc                                        = head - 1;
-    *(Actor104000FaceScratch**)G_SCRATCH_HEAD = sc;
-    sc->angle                                 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&sc->m, sc->angle, 1);
-    sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
-    ScaleMatrix(&sc->m, &head[-1].scale);
-    coord->coord.m[0][0]                       = head[-1].m.m[0][0];
-    coord->coord.m[0][1]                       = sc->m.m[0][1];
-    coord->coord.m[0][2]                       = sc->m.m[0][2];
-    coord->coord.m[1][0]                       = sc->m.m[1][0];
-    coord->coord.m[1][1]                       = sc->m.m[1][1];
-    coord->coord.m[1][2]                       = sc->m.m[1][2];
-    coord->coord.m[2][0]                       = sc->m.m[2][0];
-    coord->coord.m[2][1]                       = sc->m.m[2][1];
-    coord->coord.m[2][2]                       = sc->m.m[2][2];
-    coord->flg                                 = 0;
-    *(Actor104000FaceScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Frames 0x28 onward of the collapse: steps the effects keyed on `field_6`,
