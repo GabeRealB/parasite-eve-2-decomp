@@ -232,6 +232,21 @@ typedef struct Actor403000FacingScratch {
 } Actor403000FacingScratch;
 STATIC_ASSERT_SIZEOF(Actor403000FacingScratch, 0xC);
 
+/// 0xB4-byte `G_SCRATCH_HEAD` block `func_actor_403000_801330D4` takes (and
+/// never returns): a coordinate parented to the caller's, and `pos`, its
+/// origin walked up the parent chain into view space.
+typedef struct Actor403000TrailScratch {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ byte          pad_50[0x18];
+    /* 0x68 */ SVECTOR       pos;
+    /* 0x70 */ byte          pad_70[0x44];
+} Actor403000TrailScratch;
+STATIC_ASSERT_SIZEOF(Actor403000TrailScratch, 0xB4);
+
+/// Trail history `func_actor_403000_801330D4` shifts down one slot per call,
+/// storing the newest position in slot 0.
+extern SVECTOR D_actor_403000_80158DF0[18];
+
 /// Waypoint grid for `func_actor_403000_80134204`: two rows of five indices
 /// (row by `coord.t[2]`, column by `coord.t[0]` band), each one less than the
 /// `D_actor_403000_80158CE0` entry it selects.

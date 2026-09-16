@@ -187,7 +187,71 @@ void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132AE0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801330D4);
+void func_actor_403000_801330D4(GsCOORDINATE2* parent)
+{
+    Actor403000TrailScratch* scratch;
+    MATRIX*                  m;
+    GsCOORDINATE2*           walker;
+    SVECTOR*                 pos;
+    s16                      i;
+
+    *(u8**)G_SCRATCH_HEAD -= sizeof(Actor403000TrailScratch);
+    scratch                = *(Actor403000TrailScratch**)G_SCRATCH_HEAD;
+    for (i = 0; i < 17; i++) {
+        D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
+    }
+    /* Identity, written as three words and a short through a second pointer. */
+    m                                    = &scratch->coord.coord;
+    *(s32*)&scratch->coord.coord.m[0][0] = 0x1000;
+    *(s32*)&m->m[0][2]                   = 0;
+    *(s32*)&m->m[1][1]                   = 0x1000;
+    *(s32*)&m->m[2][0]                   = 0;
+    m->m[2][2]                           = 0x1000;
+    scratch->coord.coord.t[0]            = -0x3C;
+    scratch->coord.coord.t[1]            = -0x28;
+    scratch->coord.sub                   = parent;
+    scratch->coord.coord.t[2]            = 0x12C;
+    scratch->coord.flg                   = 0;
+    Gp_UpdateCoord(&scratch->coord);
+    walker          = &scratch->coord;
+    pos             = &scratch->pos;
+    scratch->pos.vz = 0;
+    scratch->pos.vy = 0;
+    scratch->pos.vx = 0;
+    {
+        SVECTOR local;
+        VECTOR  result;
+        s32     flag;
+
+        local.vx = 0;
+        local.vy = pos->vy;
+        local.vz = pos->vz;
+        while (1) {
+            if (walker->sub == NULL)
+                break;
+            if (walker != &Gfx_ViewCoord) {
+                gte_SetTransMatrix(&walker->coord);
+                gte_SetRotMatrix(&walker->coord);
+                gte_ldv0(&local);
+                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_stlvnl(&result);
+                gte_stflg(&flag);
+                local.vx = result.vx;
+                local.vy = result.vy;
+                local.vz = result.vz;
+                walker   = walker->sub;
+                continue;
+            }
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            break;
+        }
+    }
+    D_actor_403000_80158DF0[0].vx = scratch->pos.vx;
+    D_actor_403000_80158DF0[0].vy = scratch->pos.vy;
+    D_actor_403000_80158DF0[0].vz = scratch->pos.vz;
+}
 
 void func_actor_403000_801332E8(Actor403000* arg0)
 {
