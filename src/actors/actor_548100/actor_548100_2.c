@@ -45,7 +45,24 @@ void func_actor_548100_801347F8(Task* arg0)
     func_actor_548100_80132A14(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_801348A4);
+s32 func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y)
+{
+    s32 hit;
+
+    hit = 0;
+    while (table->id != -1) {
+        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
+            table->hit = 1;
+            if (hit == 0) {
+                hit = table->id;
+            }
+        } else {
+            table->hit = 0;
+        }
+        table++;
+    }
+    return hit;
+}
 
 void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
 {

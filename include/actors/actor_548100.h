@@ -160,6 +160,25 @@ typedef struct Actor548100TexRect {
 } Actor548100TexRect;
 STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
 
+/// Entry of a 0xFFFF-terminated hit-test table, walked by
+/// `func_actor_548100_801348A4`: a screen rectangle (`x`, `y`, `w`, `h`) whose
+/// `hit` is raised when the point lies inside it. Same layout as the rooms'
+/// `RoomHotspot`.
+typedef struct Actor548100Hotspot {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id; // list terminator is -1
+    /* 0xA */ u8  promptKind;
+    /* 0xB */ s8  hit;
+} Actor548100Hotspot;
+STATIC_ASSERT_SIZEOF(Actor548100Hotspot, 0xC);
+
+/// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
+/// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
+s32 func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y);
+
 /// State table of the actor's `Task::callback`, `func_actor_548100_801347F8`:
 /// eleven `TaskFunc` entries, one per `Task::state`, which that body copies
 /// onto its stack before indexing. Entry 0 is the spawner
