@@ -111402,3 +111402,80 @@ gave the target order exactly (99.74% -> 100%), because only the *base* load mov
 statement: `extra` then reads first and its `field_8` load still lands last. So when a prologue's
 load order is wrong, the lever is where each defining statement sits, and a two-load compound
 statement placed first behaves like its first load placed first.
+
+## A two-case `switch` whose target has a `slti` above the first test needs an empty `case 0:` arm (func_actor_107000_8013777C, 2026-09-16)
+
+**Symptom:** the switch value is tested against 1 and 2 and the arms are the usual pair, but the
+target interposes a range check between them that `if`/`else if` and a two-case `switch` both fail to
+emit:
+
+```
+li    v0,1
+beq   a1,v0,case1
+slti  v0,a1,2      # <- neither spelling produces this
+bnez  v0,default
+li    v0,2
+beq   a1,v0,case2
+```
+
+**Cause:** the tree is built from the *case labels*, not the bodies, and the missing node is below the
+pair. `{1, 2}` is two nodes, so `balance_case_nodes` leaves the list in order - root 1, right child 2 -
+and the right child is a leaf, which takes the `do_jump_if_equal` shortcut with no bound test. Adding
+an empty `case 0:` makes it three nodes, the list is rebalanced around the middle one (root 1, left 0,
+right 2), and the root's both-children path emits the bound test against the root's high. Section [26]
+describes the same shape from the other side: there the extra label sits *above* the pair, which is
+what a `slti` bound one past the highest case signals. Here the bound equals the highest case (2),
+because the node it tests against is the root, not the top of the range - so the signal to read is
+"a range check appears where a two-way compare was written", not a specific bound.
+
+**Fix:** add the empty arm, in numeric order with the others:
+
+```c
+switch (movement) {
+    case 0:
+        break;
+    case 1:
+        ...
+        break;
+    case 2:
+        ...
+        break;
+}
+```
+
+`func_actor_503500_80144778` and `Actor00700_Fn02414` in this same family write their switches this
+way (`case 0: break;` first), which is the sibling evidence to check first.
+
+## One temp for a value both arms store makes it callee-saved; writing the store in each arm cross-jumps it back to `$v0` (func_actor_107000_8013777C, 2026-09-16)
+
+**Symptom:** 90.6% with `regs=12 insert=4 delete=3`. The frame is `0x28` instead of `0x20`, with an
+extra `sw s3,0x1c(sp)` / `lw s3,0x1c(sp)` pair; the switch's shared tail value is computed into `$s3`,
+and its store lands in the *first* `jal`'s delay slot instead of before it, so the two calls and the
+store interleave differently.
+
+**Cause:** `s32 z;` assigned in both switch arms and stored once after the join gives the two arm
+definitions one pseudo. `local-alloc`/`global-alloc` homed it in a callee-saved register - the value
+is defined in more than one block, so it cannot take a caller-saved one across the join - and the
+frame grew. Neither the score nor the penalty mix names a register; the tell is the frame size and
+the `$s3` pair in the prologue.
+
+**Fix:** delete the temp and write the destination in each arm. The arms then end with the same
+`sw $v0,0x20(s1)` and `jump.c`'s cross-jump merges them into the one shared store block the target
+has, with each arm's own value in `$v0`:
+
+```c
+case 1:
+    coord->coord.t[0] += scratch->delta.vx.h.hi;
+    coord->coord.t[2] += scratch->delta.vz.h.hi;   /* store, not z = ... */
+    break;
+case 2:
+    coord->coord.t[0] = work->field_33C.vx;
+    coord->coord.t[1] = work->field_33C.vy;
+    coord->coord.t[2] = work->field_33C.vz;
+    break;
+```
+
+Same rule as the `$t2`/`$v1` phi entries above: a named temp that survives a join is a register
+allocation decision, and writing the destination field in both arms is what removes it. The
+difference here is that the join is a *store* rather than a call argument, and the cost of the temp
+shows up as frame size, not as a wrong callee register.
