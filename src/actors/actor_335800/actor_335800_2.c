@@ -22,6 +22,8 @@ extern s8 D_8007272D;
 
 extern u8 D_8007216D;
 
+extern u8 D_8007216C;
+
 extern GpRec14 D_actor_335800_80164E7C;
 
 extern s32 D_80165FC0;
@@ -64,7 +66,27 @@ void func_actor_335800_80162114(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801621B4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_8016224C);
+void func_actor_335800_8016224C(void)
+{
+    register u8    areaId asm("a0");
+    Task*          slot;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+
+    slot = Game_GetPtrSlot(3);
+    if (slot != NULL) {
+        areaId = 6;
+        extra  = slot->extra;
+        coord  = extra->field_8;
+        if (coord->coord.t[2] >= 0xC53) {
+            areaId = 5;
+        }
+        D_8007216C             = areaId;
+        Game_Session->field_4  = areaId;
+        Game_Session->field_52 = 1;
+        Game_Session->field_76 = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801622C0);
 

@@ -93018,3 +93018,67 @@ wherever a field the header types `u8` is written with a negative literal.
 
 Example: `func_actor_800300_80161E80`. Inputs: `base_4.i` (cast, 98.967%) vs
 `base_5.i` `7b2f8ae7fea2eafd2a121c527b925db97241e3d7d74dd57735d9ca0f84c3ea62` (99.008%).
+
+## A value the target keeps across blocks in $a0 is a hard register, and pinning it is what frees $a0 (func_actor_335800_8016224C, 2026-09-16)
+
+**Problem.** 98.79% with `regs=7` and nothing else: an `$a0`/`$a1` swap. The flag
+written to `D_8007216C` and `Game_Session->field_4` sits in `$a0` in the target
+(`li $a0,6` in the branch's delay slot, `sb $a0,...` two blocks later) with the
+`%hi(Game_Session)` temp in `$a1`; the C below compiles to the mirror image.
+Every other instruction, block connection and predicate already matched.
+
+**Mechanism.** `local_alloc()` runs *before* `global_alloc()` (`toplev.c`:
+`local_alloc()` at 3447, `global_alloc()` at 3480), and the global pass treats
+local-alloc's results as hard registers: `mark_reg_store` / `mark_reg_clobber`
+(`global.c`) do `if (reg_renumber[regno] >= 0) regno = reg_renumber[regno];`
+before `record_one_conflict`, which marks every live allocno as conflicting with
+that register. Dump evidence from the 98.79% build:
+
+```
+;; 2 regs to allocate: 81 80
+;; 80 conflicts: 80 2 3 4 29      # 80 = the flag, 29 = $sp
+```
+
+`2`, `3` and `4` are exactly the homes local-alloc had just given the three
+block-3 locals (`%hi(D_8007216C)` in `$v0`, `Game_Session` pointer in `$v1`,
+`%hi(Game_Session)` in `$a0`), and they overlap the flag's live range - so
+`find_reg` skips `$a0` and takes `$a1`. The *flag's* register is not decided by
+anything the flag's own C says; it is decided by which registers the later
+block's single-block temporaries happen to occupy.
+
+**Fix.** A value that must survive in one register *across basic blocks* while
+the blocks it passes through are forbidden to reuse that register has to be a
+real hard register: local-alloc seeds `regs_live` from
+`basic_block_live_at_start` (`local-alloc.c`:1311), so a hard register live into
+the block is in `used` for every quantity in it, and `basic_block_live_at_start`
+does not know about pseudos. A function-local pin is the only C that says this:
+
+```c
+void func_actor_335800_8016224C(void)
+{
+    register u8    areaId asm("a0");
+    ...
+        areaId = 6;
+        if (coord->coord.t[2] >= 0xC53) {
+            areaId = 5;
+        }
+        D_8007216C = areaId;
+```
+
+That removes the flag as an allocno (`;; 1 reg to allocate`), the block-3 locals
+move down one register, `%hi(Game_Session)` lands in `$a1` as retail has it, and
+the function is 100% with all penalties zero on the first build after the pin.
+Read the pin here as a *description* of the target, not as a scheduling hack: the
+retail object genuinely holds that value in `$a0` across three blocks, which no
+pseudo can do once a later block's temporaries have taken `$a0` first.
+
+**Telling the two cures apart.** When an `$a0`/`$a1` swap survives every
+statement-order and storage-class experiment, look at the `.greg` conflict line
+for the value that is live across blocks. If it names a register that only ever
+appears as a *local quantity's* home in a later block, the target's value cannot
+be a pseudo in that register - pin it. If instead the conflicting register is
+another *global* allocno's, this is the plain allocno-vs-allocno tie and the
+levers are the ones recorded above (reassign vs. declare separately, ref count,
+live length). This also closes the **Open** note above: a local `%hi` temp
+reaching `$a0` means nothing else claimed `$a0`, which is consistent - a hard
+register live across the block, not a missing conflict.
