@@ -84264,3 +84264,65 @@ promotion later.
 Scratch `nonmatchings/func_dryfield_night_driveway_8017DAF4-vacuum`; target
 SHA256 `36881b06e1c0fa5cf8e07e2028a24ea9d4ea56d803cc1b88e2a910bf50dc1bbc`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A switch's shared tail belongs after the switch, not at the first case (func_neo_ark_island_8017EA34, 2026-09-16)
+
+When two cases of a small switch assign a value and then make the *same* call,
+m2c reconstructs it as the call written inside the first case with a label on
+it, and a `goto` to that label from the later cases:
+
+```c
+    switch (arg2) {
+    case 3:
+        var_a0 = 0x550E0003;
+block_6:
+        SndEvt_EnqueueType6(var_a0, 0, 0);   /* label inside case 3 */
+        break;
+    case 0x65:
+        if (Gp_GetCapEventKey() == 0) {
+            var_a0 = 0x550E0004;
+            goto block_6;
+        }
+        break;
+    }
+```
+
+GCC places a block where its statements sit, so that layout gives
+`[dispatch][case 3 + call][case 0x65][end]`: case 3 falls through into the call
+and case 0x65 jumps backwards into the middle of it. The target has the mirror
+image - case 3 jumps forward, case 0x65 falls through - and the score sat at
+61.7% with `insert=5 delete=3 branch=1 reorder=3` and mismatched calls, none of
+which names the cause.
+
+Move the call to the switch's real join point, after the closing brace under its
+own label, and give the *earlier* cases an explicit `goto`:
+
+```c
+    switch (arg2) {
+    case 3:
+        id = 0x550E0003;
+        goto play;
+    case 0x65:
+        if (Gp_GetCapEventKey() != 0) {
+            break;
+        }
+        id = 0x550E0004;
+    play:
+        SndEvt_EnqueueType6(id, 0, 0);
+        break;
+    }
+    return 0;
+```
+
+The case immediately preceding the label now falls into it, which is the target's
+order. This is the shape already landed for `func_dryfield_gas_station_8017FB94`
+(ten cases, all `id = K; goto play;`), so the rule for a room handler written
+this way is: the shared tail's label follows the switch, never the first case.
+
+The same function had a second, independent leftover the diagnostic did not
+separate: every `beq` compared `$a0` where the target compares `$a2`. m2c names
+parameters by register and drops the leading ones the body never reads, so the
+live switch value came out as the first parameter. Restoring the family's arity
+- `s32 f(s32 arg0, s32 arg1, s32 arg2)`, matching
+`func_acropolis_hallway_8017D734` and the other sound-key handlers - moves it to
+`$a2`. Both fixes together scored 100.00% with every penalty zero on the first
+build.
