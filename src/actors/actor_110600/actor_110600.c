@@ -515,7 +515,95 @@ void func_actor_110600_80134438(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134564);
+/// Sound cue the pose the model has reached has earned this tick, 0 for none:
+/// each state watches one clip id of the animation slot `field_892` selects and
+/// reports its `0x401D00NN` cue the first time that id is held, remembering it
+/// in `field_8AC` so the cue is not repeated. State 3 reads slots 14 and 18
+/// (cues 4 and 3, the second only while `field_8AC` is not already 0xFC);
+/// states 2, 21, 4 and 5 read slot 1, with state 2 the only one watching two
+/// ids (cues 2 and 1) and clearing the memory when neither is held. Every other
+/// way out re-reads the slot-1 pose into `field_8AC`.
+s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
+{
+    s32 id14;
+    s32 id18;
+    s32 id2;
+    s32 id21;
+    s32 id4;
+    s32 id5;
+    s32 prev;
+    s16 state;
+
+    state = (u16)anim->field_892 - 2;
+    switch (state) {
+        case 1:
+            id14 = anim->slots[14].field_2 & 0x3FF;
+            if (id14 == 0xC5) {
+                prev = anim->field_8AC;
+                if (prev != id14) {
+                    anim->field_8AC = id14;
+                    return 0x401D0004;
+                }
+                anim->field_8AC = prev;
+                return 0;
+            }
+            id18 = anim->slots[18].field_2 & 0x3FF;
+            if (id18 == 0xFD) {
+                if (anim->field_8AC != 0xFC) {
+                    anim->field_8AC = id18;
+                    return 0x401D0003;
+                }
+                anim->field_8AC = id18;
+                break;
+            }
+            anim->field_8AC = 0;
+            break;
+        case 0:
+            id2 = anim->slots[1].field_2 & 0x3FF;
+            if (id2 == 0x33) {
+                if (anim->field_8AC != id2) {
+                    anim->field_8AC = id2;
+                    return 0x401D0002;
+                }
+                anim->field_8AC = id2;
+            } else if (id2 == 0x26) {
+                prev = anim->field_8AC;
+                if (prev != id2) {
+                    anim->field_8AC = id2;
+                    return 0x401D0001;
+                }
+                anim->field_8AC = prev;
+            } else {
+                anim->field_8AC = 0;
+            }
+            break;
+        case 19:
+            id21 = anim->slots[1].field_2 & 0x3FF;
+            if (id21 == 4 && anim->field_8AC != id21) {
+                anim->field_8AC = id21;
+                return 0x401D0006;
+            }
+            anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+            break;
+        case 2:
+            id4 = anim->slots[1].field_2 & 0x3FF;
+            if (id4 == 9 && anim->field_8AC != id4) {
+                anim->field_8AC = id4;
+                return 0x401D000C;
+            }
+            anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+            break;
+        case 3:
+            id5 = anim->slots[1].field_2 & 0x3FF;
+            if (id5 == 0xB && anim->field_8AC != id5) {
+                anim->field_8AC = id5;
+                return 0x401D000C;
+            }
+            anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+            break;
+    }
+    return 0;
+}
 
 /// Reset argument `func_800B4114` is handed for the clip `field_892` of the
 /// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
@@ -681,7 +769,7 @@ void func_actor_110600_80134728(Actor110600* arg0)
         ActorsShared80132808(&arg0->field_2C->field_8[5], (s16)turn);
         ActorsShared80132808(&arg0->field_2C->field_8[3], (s16)((s32)(turn << 0x10) >> 0x12));
     }
-    sound = func_actor_110600_80134564((Actor110600Work*)work);
+    sound = func_actor_110600_80134564(work);
     if (sound != 0) {
         soundId = sound | ((enemy->field_8 >> 12) << 8);
         pan     = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);

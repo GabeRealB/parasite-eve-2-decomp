@@ -110753,3 +110753,79 @@ Inputs: `base_1.i` SHA256
 SHA256 `7f463d67729cf193e6a692651ca656a06fe06807ad998540d48b5c9e78eb0f3f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_801327EC-vacuum`.
+
+## A switch that reuses one C variable across its cases fuses them into one cross-block pseudo (func_actor_110600_80134564, 2026-09-16)
+
+The brief's starred twin, `Actor01900_Fn01A7C`, is this body verbatim with a
+different cue set and writes every case with a single shared `id` / `prev` pair.
+Copying that shape here scored 89.7%: gcc reuses a variable's pseudo for the next
+assignment once the old value is dead, so all eight `id = slots[n].field_2 & 0x3FF;`
+statements of the switch became *one* `reg/v` pseudo live from the first case to
+the last (`base_1.i.lreg`: `Register 84 used 22 times across 35 insns`). The gate
+is in `local-alloc.c`:
+
+```c
+      if (REG_BASIC_BLOCK (i) >= 0 && REG_N_DEATHS (i) == 1   /* local */
+```
+
+A pseudo used in more than one basic block, or dying twice, is left for
+`global.c`, which colours it against everything else — here every masked pose
+landed in `a1` (`regs=19`). One variable per case restores the per-block
+quantities and each masked pose comes back as `v1`, exactly as in the target:
+
+```c
+    s32 id14;  s32 id18;  s32 id2;  s32 id21;  s32 id4;  s32 id5;  s32 prev;
+```
+
+m2c's `temp_v1` / `temp_v1_2` / `temp_v1_3` / `var_v1` naming does this by
+accident, which is why a give-up seed often beats a "cleaned up" rewrite. One
+variable can still be shared where the target's live ranges allow it: `prev`
+serves both state 3's first check and state 2's second check here. Same
+mechanism as "Duplicated arms that assign locals: declare the locals inside each
+arm" — there the arms are duplicates, here they are distinct cases.
+
+## A shared compare block between two cases is cross-jumping, not a source label
+
+States 4 and 5 watch the same slot for 9 and 0xB and report the same cue, and the
+target shares the compare: state 5's block ends `j` *into the middle of* state
+4's compare, with `li v0,0xB` in the delay slot. That reads like a `goto`, and a
+`check:` label the compiler folds into both cases reproduces the blocks — but it
+pulls both cases' quantities into one set of live ranges. Writing each case out
+in full instead, each ending in its own
+
+```c
+        anim->field_8AC = anim->slots[1].field_2 & 0x3FF;
+        break;
+```
+
+tail, produces the same two blocks: `jump_optimize`'s cross-jumping matches the
+identical tails (same registers, same target label), deletes the *earlier* one
+and redirects its jumps to the survivor — and each case keeps its own register
+allocation. The `field_8AC = 0` tail shared by state 2's last arm and state 3
+falls out the same way; the surviving copy is the later one, which is where the
+target has it. 97.3% → 100.00% once state 3's second check reports 0 with
+`break;` rather than `return 0;` — a `break` jumps to the shared trailing
+`return 0`, a `return` duplicates it and costs 4 bytes.
+
+## cse rewrites a compared register pair's later uses to the longer-lived member, which can delete a block
+
+`if (anim->field_8AC != id)` with the read held in a variable that is used again
+in the merge block left the target's `sw v1,0x8AC` + `j` block collapsed into the
+shared store: `.cse` shows insn 132 rewritten `(reg/v:SI 85)` → `(reg/v:SI 87)`,
+`regs` unchanged, 4 bytes and one block short of the target (93.4%). The read
+register won because `record_jump_equiv` → `record_jump_cond` merges the pair's
+equivalence classes and `make_regs_eqv` promotes the member that outlives the
+extended basic block (or starts before it) over one that does not. Keeping the
+read single-use — the comparison written inline, no variable — leaves `id` as
+the class's canonical member and the block survives (95.3%). The mirror of "A
+store that reuses a compared register behind a multi-way label is a variable,
+not CSE": there a variable keeps the reuse, here it is what forces it.
+
+Inputs: `base_3.i` SHA256
+`8630bf0dd0c5ddda07bde78bb85766dd664070f54c8cdaef6977c6e70f27cd0e` (95.3%);
+`base_7.i` SHA256
+`b05103461163f5662024614edcf5d0c209a52b6dd9835ac0af7532848d6e006f`; `base_7.c`
+SHA256 `2b5bd7766ffcdebd0e3dc5a030d35a45cd2bd41a2d1d78fb613c4363ab3d3e46`;
+target.o SHA256 `b72ed10478bca8eb826ebe81dbfe79a3cee9344fc3a0f9ea77d71eacb7037ce7`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80134564-vacuum`. Builds: 8.

@@ -461,9 +461,10 @@ void func_actor_110600_801388A4(Actor110600* arg0);
 void func_actor_110600_80134728(Actor110600* arg0);
 
 /// Reports the sound cue the model is currently owed — 0 while there is none —
-/// which `func_actor_110600_80134728` queues as the id's low byte. Reads the
-/// work block's `field_6` timer and its `field_892` clip.
-s32 func_actor_110600_80134564(Actor110600Work* work);
+/// which `func_actor_110600_80134728` queues as the id's low byte. Watches the
+/// pose of the animation slot the `field_892` state selects, reporting the cue
+/// once per pose and remembering it in `field_8AC`.
+s32 func_actor_110600_80134564(Actor110600AnimWork* anim);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
 /// target `D_80073B8C` against the coordinate's own yaw into `field_8A2`, ticks
