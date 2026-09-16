@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/sound.h"
@@ -43,6 +44,33 @@ void func_dryfield_night_motel_balcony_8017E3C8(void)
     func_dryfield_night_motel_balcony_8017E250(8, GameFlag_GetNibble(0x8D));
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E4B8);
+void func_dryfield_night_motel_balcony_8017E4B8(void)
+{
+    GameSession*      g    = Game_Session;
+    GameSessionFrom4* sess = (GameSessionFrom4*)&g->field_4;
+    GpSprtRec*        rec;
+    GpSprtCmd*        cmd;
+
+    rec = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+
+    cmd            = rec[16].field_4;
+    cmd[2].field_4 = 0;
+    cmd[3].field_4 = 0;
+
+    cmd             = rec[17].field_4;
+    cmd[6].field_4  = 1;
+    cmd[7].field_4  = 1;
+    cmd[8].field_4  = 1;
+    cmd[9].field_4  = 1;
+    cmd[10].field_4 = 1;
+
+    cmd            = rec[18].field_4;
+    cmd[1].field_4 = 1;
+    cmd[2].field_4 = 1;
+
+    cmd            = rec[21].field_4;
+    cmd[1].field_4 = 1;
+    cmd[2].field_4 = 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E554);

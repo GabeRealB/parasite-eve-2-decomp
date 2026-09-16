@@ -87610,3 +87610,44 @@ generalises past the LCG: when an m2c seed's `/` or `%` compiles to `mult`
 where the target has `multu`, the original operand was unsigned, and a `(u32)`
 cast (or the project's own matched spelling) is the fix. Do not hand-write the
 magic constant, and do not chase the operand's register home — it follows.
+
+## A displacement past the struct's own size is an array index: `rec[16].field_4` reads as `0xC4` (func_dryfield_night_motel_balcony_8017E4B8, 2026-09-16)
+
+The room sprite idiom `Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1]`
+yields a `GpSprtRec*` (`GpSprtRec` is 0xC bytes), but the m2c seed then loaded
+four "fields" of it — `M2C_FIELD(temp_v1, void **, 0xC4)`, `0xD0`, `0xDC`,
+`0x100` — none of which exists. Each is a subscript:
+
+```
+k = (disp - field_offset) / sizeof(rec)
+```
+
+`0xC4 = 0xC * 16 + 4` → `rec[16].field_4`, `0xD0` → `rec[17]`, `0xDC` →
+`rec[18]`, `0x100` → `rec[21]`. All four divide exactly, and the member name is
+what confirms it: the writes off each loaded pointer land on
+`GpSprtCmd.field_4` (`cmd[2].field_4 = 0` at `0x14`, `cmd[3]` at `0x1C`,
+`cmd[6..10]` at `0x34`..`0x54`), the byte `Gp_LinkViewSprts` reads as "skip
+OT-linking" in the matched siblings `room_util16/17.c` and `acropolis_bridge_6.c`.
+
+Gaps are the source's business, not a mis-read: index 21 skips 19 and 20 because
+the function touches four sprites of that view, not a contiguous run.
+
+```c
+rec = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+
+cmd            = rec[16].field_4;
+cmd[2].field_4 = 0;
+cmd[3].field_4 = 0;
+```
+
+Do this before the register work, not after: the four groups share one live
+range for the base pointer, so the flat spelling settles its home too. One build
+carrying both the retyping and the `rec[k]` indexing took the seed from 91.744%
+(`regs=24 delete=2 stack=2`) to 100.000% with every penalty zero — in the seed
+the base sat in `$a0` and the loaded commands cycled through `$v0`, where the
+target keeps the base in `$v1` and the commands in `$a0`. The two fixes were not
+isolated here. The same seed also had the lost `M2C_UNK` scaling above — `sll
+0x4` and `%lo(Gp_SprtTables-0x10)` where the target has `sll 0x2` and
+`%lo(Gp_SprtTables)`, because `M2C_UNK` is `s32` and the hand-written `* 4`
+scales again — so when both signatures appear in one seed, look for one lost
+pointer type rather than two bugs.
