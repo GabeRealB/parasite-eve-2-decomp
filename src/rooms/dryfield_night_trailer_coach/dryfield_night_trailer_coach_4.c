@@ -32,7 +32,19 @@ void func_dryfield_night_trailer_coach_80182864(void)
     func_800D4D2C((GameFlag_GetNibble(0xE0) == 0) ? 0x20 : 0x21);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_4", func_dryfield_night_trailer_coach_80182898);
+extern s8 D_80071090;
+extern u8 D_8007216C;
+
+void func_dryfield_night_trailer_coach_80182898(void)
+{
+    char pad[0x10];
+
+    if (D_8007216C == 5) {
+        D_80071090 = 0;
+    } else {
+        D_80071090 = 3;
+    }
+}
 
 extern SVECTOR D_dryfield_night_trailer_coach_801893F8[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
