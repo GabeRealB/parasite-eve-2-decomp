@@ -96763,11 +96763,34 @@ them separately (`$s0` and `$a1`), which makes the copy a free-standing insn in
 the entry block whose position sched1 may choose, and it chose the prologue.
 Writing the loop with a single counter instead - the form the matched sibling
 `func_actor_521100_80136820` uses:
+## m2c's two-variable loop split schedules the preheader copy wrong - use one induction variable
+
+A `do`/`while` whose counter is also passed to the callee forces the counter into
+a callee-saved register and copies it to `$a1` at each call. m2c renders that as
+two source variables - the counter plus a snapshot assigned before the loop:
+
+```c
+var_s0 = 1;
+var_a1 = 1;                       /* m2c */
+do { var_s0 += 1; f(..., var_a1, ...); var_a1 = var_s0; } while (var_s0 < 0x14);
+```
+
+That reproduces every instruction but one: the snapshot's `var_a1 = 1` is a real
+preheader insn, and `loop.c`'s `move_movables` inserts the hoisted loop
+invariants (the `lui` of a global address, a constant argument's `li`) at
+`NOTE_INSN_LOOP_BEG`, i.e. *after* it. The emitted preheader is then
+`li s0,1 / move a1,s0 / [saves] / lui s2 / li s1`, and the `move a1,s0` sits
+ahead of the hoists instead of behind them - 98.065%, `reorder=1`, every other
+penalty zero and the topology an exact match.
+
+Writing the loop the way the original did removes the insn rather than moving it.
+One induction variable, `i++` at the bottom:
 
 ```c
 i = 1;
 do {
     func_800B4114(&work->anim, i, (s16)work->animId, 0, 8);
+    func_800B4114(&work->anim, i, work->field_4B8, 0, 8);
     i++;
 } while (i < 0x14);
 ```
@@ -97609,3 +97632,22 @@ Inputs: `base.c`
 `3135e534cf1ae00772c75e91f32deb788b471ff4d6d261c4bab3f5bc1fe88299` (100.000%,
 all penalties zero); preprocessed input `base_1.i`
 `eb1a026a1b1316fcf2ae52b2ce8569121165f8a463e8603edfd6dcbc9ac3414d`.
+is 100.000%. The preheader copy is then not a source statement at all: the
+counter is a single pseudo and the `addu $a1,$s0,$zero` for the first call is a
+reload-generated argument move, which lands at the end of the preheader, after
+the hoisted movables and `sw $ra` - exactly the target order. The `.loop` dump
+confirms the difference in kind: the two-variable form reports `Insn 51: giv reg
+80 src reg 81` (a separate giv pseudo, "not worth while"), the one-variable form
+reports only `Reg 80: biv verified` and the `.greg` header drops from 4 regs to
+allocate to 3.
+
+`func_actor_143900_801325A4` and `func_actor_461800_80132D04` are matched bodies
+of this same function (same `&work->anim`, `field_4B8` / `field_4B6` tail, only
+the 5th argument differs: a global there, the literal 8 here) and both already
+carry the one-variable shape, which is what makes them the source to copy -
+`overlay_dup_index.py similar` ranks them 1.00 on `fields` and 0.92 on `shape`,
+but they are *not* listed as duplicates, so `find` will not surface them.
+
+Inputs: `base.i` `27652b9f3cfc34e8e50986ebc8e4ace5544f64c76b2c67b2fcf1b4f61f683ace`
+(98.065%), `base_1.i`
+`2418e34c51ae5635ae7033309bb5d78ade138360f1f9e32a7b0dd15c8feb8762` (0 differences).
