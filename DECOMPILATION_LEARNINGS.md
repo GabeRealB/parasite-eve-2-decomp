@@ -96485,3 +96485,65 @@ Inputs (source sha256): `base_1.c`
 (100.000%). The 100% body names no pointer local, and the only other change
 between the two is the parameter list: `(void* arg2)` in the m2c seed versus
 `(Task* task, s32 arg1, Actor260400AnimPreset* preset)`.
+## An address-taken local reused across a call ranks above the task pointer and takes `$s0`; reloading it in the source fixes both the reload and the swap
+
+`func_actor_113000_80131F90` is a spawn handler whose shape is the matched
+`func_actor_511000_80132480`. The m2c seed scored 93.912% with the two callee-
+saved homes swapped (`s0` = `task`, `s1` = `task->extra` in the target; ours had
+`s1` = `task`, `s0` = the extra pointer) and the pointer held across the
+`func_800EA1A8` call, where the target reloads it:
+
+```
+lw     v0,0x2c(s0)      # target: fresh task->extra
+nop
+lw     a0,8(v0)
+```
+
+The seed kept the extra pointer in a local `extra` and passed `&pos` from it:
+
+```c
+extra = (TmdObject*)task->extra;
+...
+if (func_800EA1A8((VECTOR3*)extra->field_8[1].workm.t, &pos) != 0) {
+```
+
+Writing the same access the way the target reads it — a fresh load of
+`task->extra`, which no call can CSE away because `Mem_Calloc` has already
+clobbered memory:
+
+```c
+if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+```
+
+is the whole fix, 93.912% -> 100.000%.
+
+**Cause.** The extra pointer is a global allocno either way, but its reference
+count is not: in the seed the pseudo has four (`lw` def, `lhu`, `sh`, plus the
+MEM base at the call), in the target three. `CODEGEN_MODEL.md` 10.4's rank is
+`floor_log2(n_refs) * n_refs / live_length`, and `dump.sh`'s "global allocation
+order" line prints the allocnos in it:
+
+```
+93.912%   r81 used 7/8  -> $v1   r82 used 4/16 -> $s0   r80 used 9/80  -> $s1
+         (2*7/8 = 1.75)          (2*4/16 = 0.50)          (3*9/80 = 0.34)
+100.000%  r81 used 7/8  -> $v1   r80 used 10/82 -> $s0  r82 used 3/13 -> $s1
+         (2*7/8 = 1.75)          (3*10/82 = 0.37)         (1*3/13 = 0.23)
+```
+
+`r81` is the work block (`$v1` both times — it is born after the `Mem_Calloc`
+call), `r80` the task parameter, `r82` the extra pointer. Dropping one
+reference moves it below the parameter, and `find_reg` gives each allocno in
+rank order the lowest free callee-saved register, so the two swap homes. The
+rank order after the fix is the target's.
+
+**Reading it.** A swapped pair of `$s` registers where one side is a pointer
+re-read from memory is a rank difference, not a pin case: count the references
+the target's own instruction sequence implies and write the source so the
+pseudo has that many. Reusing a local across a call adds the address use.
+
+Inputs: `base.i` (m2c seed, 93.912%) SHA256 `70d1a105588491f512a88bed8a006b195d7d125950bbb5f4417abcecddfc5081`;
+`base_1.i` (94.786%, VECTOR3 local, address recomputed) SHA256 `630ff532612876ed50d40cee07ddfeb7e7336bcc4d4f62fb18e48137b91a4cbd`;
+`base_2.i` (100.000%) SHA256 `aa544501e59cc327e00fa0a74f98da4b7105d8ce40763585a4efa3cff1c4435e`;
+target SHA256 `9f8823a1e208a1a63dc0be03e83a2e344afb9a71a6dc5e87659535a227c26cdf`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_113000_80131F90-vacuum` (session `114148419da64b0fb843f683f2856ea1`).
