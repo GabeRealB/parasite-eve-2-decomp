@@ -60,10 +60,14 @@ typedef struct Actor401300Work {
     /* 0xBF0 */ GpObj    field_BF0;
     /* 0xC10 */ byte     pad_C10[0x7A];
     /* 0xC8A */ s16      field_C8A;
-    /* 0xC8C */ byte     pad_C8C[0x20];
-    /* 0xCAC */ s32      field_CAC;
-    /* 0xCB0 */ s32      field_CB0;
-    /* 0xCB4 */ byte     pad_CB4[0x58];
+    /* 0xC8C */ byte     pad_C8C[0x1C];
+    /// Copy of the first three bytes of the last event
+    /// `func_actor_401300_80132554` handled.
+    /* 0xCA8 */ u8   field_CA8[3];
+    /* 0xCAB */ byte pad_CAB;
+    /* 0xCAC */ s32  field_CAC;
+    /* 0xCB0 */ s32  field_CB0;
+    /* 0xCB4 */ byte pad_CB4[0x58];
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xD0C */ Task* field_D0C;
@@ -93,6 +97,21 @@ typedef struct Actor401300Msg {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ u32 field_4;
 } Actor401300Msg;
+
+/// Event record `func_actor_401300_80132554` dispatches on: `w[0]` is the
+/// event kind (0x301, 0xB05, 0x1D05) and `w[1]` its sub-code, and the first
+/// three bytes are also copied raw into `Actor401300Work::field_CA8`.
+typedef union Actor401300Event {
+    u8  b[3];
+    u16 w[2];
+} Actor401300Event;
+
+/// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
+/// event writes into `GpEnemy::field_40`. Declared as an array: a scalar lets
+/// the scheduler hoist its load above the preceding store.
+extern u16 D_actor_401300_80141FA4[];
+
+s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* arg2);
 
 s32 func_actor_401300_80141494(Actor401300* arg0, s32 arg1, Actor401300Msg* arg2);
 

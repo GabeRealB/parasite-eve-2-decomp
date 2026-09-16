@@ -8,7 +8,49 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801323B0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132554);
+s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* arg2)
+{
+    Actor401300Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+
+    work->field_CA8[0] = arg2->b[0];
+    work->field_CA8[1] = arg2->b[1];
+    work->field_CA8[2] = arg2->b[2];
+    if (arg2->w[0] == 0x301) {
+        if (arg2->w[1] == 1) {
+            work->field_0 = 0x17;
+            return 1;
+        }
+    } else if (arg2->w[0] == 0xB05) {
+        switch (arg2->w[1]) {
+            case 0:
+                work->field_0 = 0;
+                return 1;
+            case 0xB:
+                work->field_0 = 0x23;
+                work->field_2 = -1;
+                return 1;
+            case 0xC:
+                if ((enemy->field_8 >> 12) == 0) {
+                    work->field_0   = 6;
+                    enemy->field_40 = D_actor_401300_80141FA4[0];
+                    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+                }
+                return 1;
+        }
+    } else if (arg2->w[0] == 0x1D05) {
+        switch (arg2->w[1]) {
+            case 0:
+                work->field_0 = 0;
+                return 1;
+            case 0xB:
+                work->field_0 = 0x23;
+                work->field_2 = -1;
+                return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013267C);
 
