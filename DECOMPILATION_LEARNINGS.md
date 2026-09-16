@@ -85585,6 +85585,16 @@ plain `GameFlag_SetNibble`). Two of the three carry the required duplicated
 what the entry above ("A duplicated `return 0;`...") shows the third delay slot
 needs. Transplant the sibling, change the constants, done.
 
+The gate itself varies too, so read the family as the `*out = *in` plus
+`RoomEventMsg` skeleton rather than the nibble specifically:
+`func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `field_5` tests but
+gates on `CdCmd_IsIdle()` and answers with `Gp_SpawnIfCapIdle(1, 1)`, where the
+siblings latch a nibble and run a cap command. `func_80179B14` is the shared
+forwarder the shrine, garden, observatory and elevator forms all call with
+`(in, out)` right after the copy - `func_80179A04` plays that role in mine_gorge -
+so its absence is what tells you a handler has been recognised as a variant at
+all.
+
 Two traps make a from-scratch attempt look much harder than it is. m2c cannot
 render the `*out = *in` copy at all (`M2C_ERROR(/* Unable to handle lwr */)` leaves
 it as an empty statement) - `RoomEventMsg` has alignment 2, so the whole-record copy
