@@ -7173,6 +7173,37 @@ word at `0x2D4` between the tables at `0x2A8` and `0x2D8` keeps those in one
 object, while the table at `0x29C` (`4 mod 8`, butted against the previous unit's
 jump table) can only be the first thing in an object of its own.
 
+**The pad after a generated table is nobody's until you cut for it.** Give the
+table its own unit and the table itself lands right, but the zero word the
+original has *after* it does not: GCC emits `.align 3` only *before* a table, so
+the generated `.rodata` ends flush at the table's last word, and the next
+symbol - still assembly, arriving with the following function's `INCLUDE_ASM` -
+butts against it 4 bytes early. `func_actor_510900_80135E90` matched at 100.00%
+and the overlay still failed with exactly 16 bytes wrong from `0x70` on, all of
+them the table shifted by one word.
+
+Cut *again* at the pad and hand the remainder to the next unit. For
+`actor_510900` that is `units = ["0x4070", "0x4364", ...]` with
+`rodata = [{ start = "0x70", unit = "actor_510900_2" }, { start = "0x84", unit = "actor_510900_3" }, ...]`:
+`_2` is the one matched function, its 5-word table is the whole of its `.rodata`
+at offset 0, and `_3` starts at the pad. splat then emits the orphan word as its
+own symbol - `dlabel D_actor_510900_80131EA4 / .word 0x00000000` in
+`actor_510900_3.rodata.s` - which is the same trick the main-executable entry
+above describes for `rodata` remainders, reached through the manifest's
+`rodata` key instead. Because splat never rewrites a `.c` that exists, the
+matching `INCLUDE_RODATA(..., D_actor_510900_80131EA4)` has to be written into
+`actor_510900_3.c` by hand, ahead of the first `INCLUDE_ASM`; the pad is then
+between the two tables again.
+
+**Renumbering units with `git mv` leaves ninja building the old objects.**
+`git mv` preserves mtime, so after `_2..._7` become `_4..._9` every renamed file
+is *older* than the `.o` ninja built from the file that used to have its name,
+and ninja rebuilds nothing. The link then reports both halves of the shuffle at
+once: `multiple definition` between two units whose `.i` line numbers are
+identical, plus `undefined reference` for the bodies that moved the other way.
+`touch src/<overlay>/*.c` (or deleting that directory's objects) before the
+build avoids reading the error as a bad cut.
+
 ### Generated overlay configs: a rodata cut needs a matching `.text` cut
 
 A `rodata` cut alone does not move a *function* into the new unit, and the

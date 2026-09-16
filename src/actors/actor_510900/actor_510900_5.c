@@ -1,70 +1,64 @@
 #include "common.h"
+
 #include "actors/actor_510900.h"
 
-/// Main-executable global with no module header yet: the remaining-enemy count.
-extern s16 D_80073BA0;
+void func_actor_510900_80135E90(void);
+void func_actor_510900_80136184(void);
+void func_actor_510900_80136B70(void);
+void func_actor_510900_80137008(void);
+void func_actor_510900_801373B8(void);
+void func_actor_510900_801375D8(void);
+void func_actor_510900_80137868(void);
+void func_actor_510900_80137E20(void);
+void func_actor_510900_80137FBC(void);
+void func_actor_510900_80138250(void);
+void func_actor_510900_801384C4(void);
 
-void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1)
+void func_actor_510900_8013B870(Actor510900* arg0)
 {
-    VECTOR pos;
+    s16 temp_v1;
 
-    pos.vx = arg1->field_0.workm.t[0];
-    pos.vy = arg1->field_0.workm.t[1];
-    pos.vz = arg1->field_0.workm.t[2];
-    Gp_UpdateActorColor(arg0->field_20, &pos, 0, 0);
-}
-
-void func_actor_510900_8013BC80(Actor510900* arg0)
-{
-    Actor510900Work* work = arg0->field_1C;
-
-    if ((u16)(work->field_594 - 1) < 2) {
-        if (--work->field_598 <= 0) {
-            work->field_594 = 3;
-            if (work->field_57C != 0) {
-                SndEvt_EnqueueType7(work->field_57C, 0);
-                work->field_57C = 0;
-            }
-            if (work->field_580 != 0) {
-                SndEvt_EnqueueType7(work->field_580, 0);
-                work->field_580 = 0;
-            }
-            work->obj4E4.flags &= 0x7FFF;
-            work->obj504.flags &= 0x7FFF;
-        }
+    temp_v1 = arg0->field_1C->field_58E;
+    switch (temp_v1) {
+        case 0:
+            func_actor_510900_80135E90();
+            return;
+        case 1:
+            func_actor_510900_80136184();
+            return;
+        case 2:
+            func_actor_510900_80136B70();
+            return;
+        case 3:
+            func_actor_510900_80137008();
+            return;
+        case 4:
+            func_actor_510900_801373B8();
+            return;
+        case 5:
+            func_actor_510900_801375D8();
+            return;
+        case 6:
+            func_actor_510900_80137868();
+            return;
+        case 7:
+            func_actor_510900_8013B988(arg0);
+            return;
+        case 8:
+            func_actor_510900_8013BA58(arg0);
+            return;
+        case 9:
+            func_actor_510900_80137E20();
+            return;
+        case 10:
+            func_actor_510900_80137FBC();
+            return;
+        case 11:
+            func_actor_510900_80138250();
+            return;
+        case 12:
+            func_actor_510900_801384C4();
+        default:
+            return;
     }
-    if (work->field_594 != work->field_596) {
-        if (work->field_564 != NULL) {
-            work->field_564[0xD] = work->field_594;
-        }
-        work->field_596 = work->field_594;
-    }
-}
-
-s32 func_actor_510900_8013BD5C(Actor510900* arg0)
-{
-    if (D_80073BA0 > 0) {
-        arg0->field_1C->field_5BC = 1;
-    }
-    return 0;
-}
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, Actor510900AnimArgs* arg2)
-{
-    Actor510900Work* work;
-    s32              blend;
-    s32              i;
-
-    blend           = (arg2->field_8 != 0) * 8;
-    work            = arg0->field_1C;
-    work->field_586 = arg2->field_4 + 0x1B;
-    for (i = 1; i < 0x13; i++) {
-        func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
-    }
-    work->field_58A = 0;
-    return 0;
 }
