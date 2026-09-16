@@ -339,13 +339,13 @@ carry_bookkeeping() {
         log "could not take the merge lock; give-up bookkeeping for $OVERLAY is lost"
         return 0
     fi
-    if python3 - "$WT" "$ROOT" "${files[@]}" <<'PYEOF' >>"$LOG_FILE" 2>&1
-import sys
+    if python3 - "$WT" "$ROOT" "$BASE" "${files[@]}" <<'PYEOF' >>"$LOG_FILE" 2>&1
+import subprocess, sys
 from pathlib import Path
-wt, root = Path(sys.argv[1]), Path(sys.argv[2])
+wt, root, base = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
 sys.path.insert(0, str(root / "tools"))
 from land_overlay import merge_sections
-for f in sys.argv[3:]:
+for f in sys.argv[4:]:
     src, dst = wt / f, root / f
     if f.endswith("difficult_functions"):
         # Same union land_overlay.py applies: keyed by name, latest line wins.
@@ -355,7 +355,10 @@ for f in sys.argv[3:]:
                 have[l.split()[0]] = l
         dst.write_text("\n".join(have[k] for k in sorted(have)) + "\n")
     else:
-        dst.write_text(merge_sections(dst.read_text(), src.read_text()))
+        r = subprocess.run(["git", "-C", str(root), "show", f"{base}:{f}"],
+                           capture_output=True, text=True)
+        dst.write_text(merge_sections(dst.read_text(), src.read_text(),
+                                      r.stdout if r.returncode == 0 else ""))
 PYEOF
     then
         added=$(git -C "$WT" diff "$BASE" HEAD -- tools/difficult_functions \
@@ -493,7 +496,8 @@ worktree's, do not discard either side. Landing by overwriting is what reverted
 another overlay's manifest span earlier today and broke the build.
 
 Also carry across, merging rather than replacing:
-  - DECOMPILATION_LEARNINGS.md   (append the worktree's new '## ' sections)
+  - DECOMPILATION_LEARNINGS.md   (the worktree's new '## ' sections AND its edits
+                                  inside existing sections - diff it against $BASE)
   - tools/difficult_functions    (union by function name)
   - configs/USA/overlays.toml    (only the entries the worktree changed)
 
@@ -562,8 +566,41 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
         # no commit to replay. actor_113100 was reported stranded that way, with
         # func_actor_113100_80132E00 already served by actors_shared_80132390.
         # The agent's unscoped build has just re-split trunk, so asm/ is current.
+        # Lines added between two branch revisions (optionally only in the
+        # given paths) that the branch still has must all be on trunk.
+        lines_on_trunk() {              # $1 from, $2 to, [$3.. pathspec]
+            python3 - "$WT" "$ROOT" "$@" <<'PYEOF'
+import subprocess, sys
+from pathlib import Path
+wt, root, a, b, *spec = sys.argv[1:]
+def git(*args):
+    return subprocess.run(["git", "-C", wt, *args], capture_output=True, text=True).stdout
+lost = 0
+for f in git("diff", "--name-only", a, b, "--", *spec).split():
+    added = {l[1:] for l in git("diff", a, b, "--", f).splitlines()
+             if l.startswith("+") and not l.startswith("+++") and l[1:].strip()}
+    dst = Path(root) / f
+    have = set(dst.read_text().splitlines()) if dst.is_file() else set()
+    gone = (added & set(git("show", f"HEAD:{f}").splitlines())) - have
+    if gone:
+        lost += 1
+        print(f"  {f}: {len(gone)} line(s) not on trunk, e.g. {sorted(gone)[0][:90]!r}")
+sys.exit(1 if lost else 0)
+PYEOF
+        }
+        content_on_trunk() {            # $1 = subject of a branch commit
+            local sha
+            sha=$(git -C "$WT" log --format='%H %s' "$BASE..HEAD" \
+                  | awk -v s="$1" '{h=$1; sub(/^[^ ]+ /,"")} $0 == s {print h; exit}')
+            [[ -n "$sha" ]] && lines_on_trunk "$sha^" "$sha" >/dev/null
+        }
         missing=$(git -C "$WT" log --format=%s "$BASE..HEAD" \
                   | grep -vxFf <(git -C "$ROOT" log --format=%s "$BASE..HEAD") || true)
+        # Any other commit can reach trunk folded into a content merge rather
+        # than replayed - a learnings commit merged into the doc keeps its text
+        # but not its subject. actor_521100 reported 7 of those as stranded
+        # next to 2 commits that really were. So judge those by content: every
+        # line the commit added that the branch still has must be on trunk.
         stranded=""
         while read -r subject; do
             [[ -n "$subject" ]] || continue
@@ -573,8 +610,21 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
                 log "  $fn has no commit on trunk but is no longer unmatched there (promoted)"
                 continue
             fi
+            if [[ -z "$fn" ]] && content_on_trunk "$subject"; then
+                log "  '$subject' has no commit on trunk but its content is there (merged)"
+                continue
+            fi
             stranded="$stranded; $subject"
         done <<<"$missing"
+        # The docs are checked whole as well, because a `matched` commit carries
+        # learnings too and the subject test above passes it by name. The
+        # section-append merge lost a paragraph actor_521100's
+        # func_actor_521100_80136290 commit added inside an existing section.
+        if ! doc_loss=$(lines_on_trunk "$BASE" HEAD '*.md'); then
+            log "doc content from the branch is missing on trunk:"
+            log "$doc_loss"
+            stranded="$stranded; doc edits (above)"
+        fi
         if [[ -n "$stranded" ]]; then
             log "LANDING FAILED: $OVERLAY - agent reported success but commits are missing on trunk:${stranded#;}; worktree $WT"
             exit 3

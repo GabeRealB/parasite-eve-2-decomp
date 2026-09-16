@@ -24,6 +24,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -77,8 +78,28 @@ def sections(text: str) -> dict[str, str]:
     return parts
 
 
-def merge_sections(current: str, incoming: str) -> str:
-    """Append incoming `##` sections the current file does not already have."""
+def merge_sections(current: str, incoming: str, base: str | None = None) -> str:
+    """Merge an append-mostly doc, keeping both sides' changes.
+
+    Given the text both sides started from, this is a three-way merge that
+    resolves overlapping hunks by keeping both. Appending only the `##` sections
+    the current file lacks is the fallback without one, and it silently drops
+    every edit *inside* an existing section: actor_521100's sweep extended the
+    `alabel` section and rewrote a paragraph of another, and both edits were lost
+    while its new sections landed.
+    """
+    if base is not None:
+        with tempfile.TemporaryDirectory() as d:
+            paths = []
+            for name, text in (("current", current), ("base", base), ("incoming", incoming)):
+                p = Path(d) / name
+                p.write_text(text)
+                paths.append(str(p))
+            r = subprocess.run(["git", "merge-file", "-p", "--union", *paths],
+                               capture_output=True, text=True)
+            if r.returncode < 0 or r.returncode > 127:
+                raise SystemExit(f"git merge-file failed:\n{r.stderr}")
+            return r.stdout
     have, new = sections(current), sections(incoming)
     missing = [t for t in new if t not in have]
     if not missing:
@@ -297,7 +318,12 @@ def _apply(args, wt: Path, funcs: list[str]) -> int:
             # append to DECOMPILATION_LEARNINGS.md and the second landing
             # silently erases the first one's entries - which is exactly what
             # happened landing dryfield_motel_balcony after acropolis_cafeteria.
-            dst.write_text(merge_sections(dst.read_text(), src.read_text()))
+            base_txt = None
+            if base_rev:
+                r = subprocess.run(["git", "show", f"{base_rev}:{e}"],
+                                   cwd=ROOT, capture_output=True, text=True)
+                base_txt = r.stdout if r.returncode == 0 else ""
+            dst.write_text(merge_sections(dst.read_text(), src.read_text(), base_txt))
         else:
             dst.write_text(src.read_text())
 
