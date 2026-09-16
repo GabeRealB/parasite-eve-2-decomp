@@ -964,7 +964,97 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
 /// comes out frame-relative.  `scale` is declared between the two matrices
 /// because the frame slots are handed out in declaration order -- matrix /
 /// scale / scaling is what puts them at 0x18, 0x38 and 0x48.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014DA28);
+void func_actor_206100_8014DA28(Task* task)
+{
+    Actor206100Work* work               = (Actor206100Work*)task->idMap;
+    TmdObject*       obj                = (TmdObject*)task->extra;
+    void             (*funcs[2])(Task*) = {
+        func_actor_206100_8014FAE4,
+        func_actor_206100_8014DD3C,
+    };
+    Actor206100Work*  next;
+    Actor206100Work*  sub;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    scaled;
+    MATRIX*           mtx;
+    MATRIX*           mtx2;
+    MATRIX*           dest;
+    Actor206100Matrix matrix;
+    VECTOR            scale;
+    Actor206100Matrix scaling;
+    s32               i;
+    s16               state;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
+            work->field_518                 = work->field_518 + 1;
+            funcs[(s16)work->field_520](task);
+            next  = (Actor206100Work*)task->idMap;
+            state = next->field_50C;
+            if (state == 1) {
+                if (next->field_50E != next->field_510) {
+                    next->field_512 = 0;
+                } else {
+                    next->field_512 = func_actor_206100_8014F3C8(task, next->field_512);
+                }
+                func_actor_206100_8014F2F0(task);
+                next->field_50C = 3;
+            } else if (state == 2) {
+                func_actor_206100_8014F284(task);
+                next->field_50C = 3;
+                next->field_512 = 0;
+            } else if (state == 3) {
+                next->field_512 = next->field_512 + 1;
+            }
+            for (i = 1; i < 0xF; i++) {
+                Gp_AnimTickIndex(&next->anim, i);
+            }
+            work->flags_514.parts.half = work->slots[1].field_10;
+            func_actor_206100_8014B0AC(task, work->field_54D);
+            coord                = ((TmdObject*)task->extra)->field_8;
+            sub                  = (Actor206100Work*)task->idMap;
+            mtx                  = &matrix.mat;
+            matrix.ident.m00_m01 = 0x1000;
+            matrix.ident.m02_m10 = 0;
+            *(s32*)&mtx->m[1][1] = 0x1000;
+            matrix.ident.m20_m21 = 0;
+            mtx->m[2][2]         = 0x1000;
+            RotMatrixZ(sub->field_440, &matrix.mat);
+            func_8004BFF8(sub->field_43E, &matrix.mat);
+            dest                  = &coord->coord;
+            dest->m[0][0]         = matrix.mat.m[0][0];
+            dest->m[0][1]         = matrix.mat.m[0][1];
+            dest->m[0][2]         = matrix.mat.m[0][2];
+            dest->m[1][0]         = matrix.mat.m[1][0];
+            dest->m[1][1]         = matrix.mat.m[1][1];
+            dest->m[1][2]         = matrix.mat.m[1][2];
+            dest->m[2][0]         = matrix.mat.m[2][0];
+            dest->m[2][1]         = matrix.mat.m[2][1];
+            dest->m[2][2]         = matrix.mat.m[2][2];
+            coord->flg            = 0;
+            scaled                = ((TmdObject*)task->extra)->field_8;
+            scale.vx              = work->field_53E;
+            scale.vy              = scale.vx;
+            scale.vz              = scale.vx;
+            mtx2                  = &scaling.mat;
+            scaling.ident.m00_m01 = 0x1000;
+            scaling.ident.m02_m10 = 0;
+            *(s32*)&mtx2->m[1][1] = 0x1000;
+            scaling.ident.m20_m21 = 0;
+            mtx2->m[2][2]         = 0x1000;
+            ScaleMatrix(&scaling.mat, &scale);
+            MulMatrix(&scaled->coord, &scaling.mat);
+            /* fallthrough */
+        case 1:
+            Actor206100_UpdateColor(task);
+            obj->field_C &= 0xFF7F;
+            return;
+    }
+}
 /// Companion tick: holds the per-state counter at the explosion frame and then
 /// fills and retires the actor's two companion slots (see the header for the
 /// full walk -- each slot is handled on its own, and the fifth release moves
