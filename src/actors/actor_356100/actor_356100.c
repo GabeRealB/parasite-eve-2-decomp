@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
@@ -265,7 +266,94 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80165B30);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80166018);
+/// Turn-and-close tick, and the sibling of `func_actor_356100_801666B4` above
+/// it. Going live writes the 0x978..0x982 animation slots with `field_9BC`
+/// forced to 0x180 and the enemy's link node cleared, then turns the root
+/// coordinate onto the player through `Actor356100_PositionYaw` and rebuilds
+/// its Y rotation at a uniform 0x1194 scale, re-seeding the offset from the
+/// player and clearing the two halfwords next to `field_B68`. Each frame then
+/// re-runs the animation and, while the clip sits on 0x10 and the player is not
+/// in mode 2, takes the player offset again through
+/// `Actor356100_MatrixPositionYaw` and — if the turn is within 0x10 and the
+/// player is closer than 0x44C — points `D_actor_356100_80173244.field_0` at
+/// one of the two blocks `D_8007218A` selects, then queries message 0x3F8 and
+/// on acceptance moves to state 0xC, sets `field_B68` and re-sends the handler
+/// as message 0x3FF. Bit 0 of `field_68` forces `field_0` to 7 on clip 4, and
+/// past clip 0x10 the actor is pushed one normalised unit away from the player
+/// unless it is further than 0x578.
+void func_actor_356100_80166018(Actor356100* arg0)
+{
+    SVECTOR          pos;
+    SVECTOR*         p;
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+    GameActor*       player;
+    WipSysConfig*    config;
+    GsCOORDINATE2*   coord;
+    s16              angle;
+
+    enemy  = arg0->field_20;
+    work   = arg0->field_1C;
+    player = (GameActor*)((Task*)Game_GetPtrSlot(3))->idMap;
+    config = &Wip_SysConfig;
+    if (work->field_4 != 0) {
+        work->field_9BC     = 0x180;
+        enemy->node.field_4 = 0;
+        work->field_978     = 1;
+        work->field_982     = 0x10;
+        work->field_97E     = 4;
+        func_actor_356100_80163508(arg0);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, Actor356100_PositionYaw(arg0, &pos, config), 0);
+        Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+        pos.vx                       = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vy                       = 0;
+        pos.vz                       = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        work->field_98E              = 0;
+        work->field_990              = 0;
+        arg0->field_2C->field_8->flg = 0;
+        work->field_B66              = 0;
+        work->field_B68              = 0;
+    }
+    func_actor_356100_80163508(arg0);
+    if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
+        angle = Actor356100_MatrixPositionYaw(arg0, &pos, D_80073B8C);
+        if (abs(angle) < 0x10 && !Actor356100_OutOfRange(&pos, 0x44C)) {
+            if (D_8007218A == 1) {
+                D_actor_356100_80173244.field_0 = &D_actor_356100_80173230;
+            } else {
+                D_actor_356100_80173244.field_0 = &D_actor_356100_80173228;
+            }
+            D_actor_356100_801732D0.field_14 = 8;
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_356100_801732D0, 0) == 0) {
+                work->field_0                   = 0xC;
+                work->field_B68                 = 1;
+                D_actor_356100_80173244.field_4 = 1;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_356100_80173244, 0);
+            }
+        }
+    }
+    if (work->field_97E == 4 && (work->field_68 & 1)) {
+        work->field_0 = 7;
+    }
+    if ((work->field_5A & 0x3FF) > 0x10) {
+        p      = &pos;
+        pos.vx = arg0->field_2C->field_8->coord.t[0] - config->field_4->t[0];
+        pos.vy = 0;
+        pos.vz = arg0->field_2C->field_8->coord.t[2] - config->field_4->t[2];
+        if (!Actor356100_OutOfRange(p, 0x578)) {
+            VectorNormalSS(p, p);
+            gte_lddp(10);
+            gte_ldsv(p);
+            gte_gpf12_real();
+            gte_stsv(p);
+            coord                        = arg0->field_2C->field_8;
+            coord->coord.t[0]           += pos.vx;
+            coord                        = arg0->field_2C->field_8;
+            coord->coord.t[2]           += pos.vz;
+            arg0->field_2C->field_8->flg = 0;
+        }
+    }
+}
 
 void func_actor_356100_801666B4(Actor356100* arg0)
 {

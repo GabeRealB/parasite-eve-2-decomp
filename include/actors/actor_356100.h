@@ -123,7 +123,10 @@ typedef struct Actor356100Work {
     /* 0xB5B */ byte  pad_B5B;
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
-    /* 0xB64 */ byte  pad_B64[4];
+    /* 0xB64 */ byte  pad_B64[2];
+    /// Cleared next to `field_B68` on the state-4 entry; same slot as
+    /// `Actor401300Work.field_D1E`.
+    /* 0xB66 */ s16 field_B66;
     /// Latch `func_actor_356100_801668FC` and `func_actor_356100_80166018`
     /// clear after dispatching message 0x3F1, and set so that the next tick
     /// dispatches it once.
@@ -363,6 +366,28 @@ static __inline__ s16 Actor356100_PositionYaw(Actor356100* actor, SVECTOR* pos, 
     return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
+/// `Actor356100_PositionDelta` against an explicit matrix rather than the
+/// overlay's own `D_80073B8C` copy of the player coordinate.
+static __inline__ void Actor356100_MatrixPositionDelta(MATRIX* m, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = m->t[0] - coord->coord.t[0];
+    pos->vy = m->t[1] - coord->coord.t[1];
+    pos->vz = m->t[2] - coord->coord.t[2];
+}
+
+/// `Actor356100_PositionYaw` towards the translation of `m`. Same body as
+/// `Actor401300_MatrixPositionYaw`.
+static __inline__ s16 Actor356100_MatrixPositionYaw(Actor356100* actor, SVECTOR* pos, MATRIX* m)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+
+    Actor356100_MatrixPositionDelta(m, actor->field_2C->field_8, pos);
+    coord = actor->field_2C->field_8;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
 /// Rebuilds `coord`'s Y rotation from the yaw it already faces, uniformly
 /// scaled by `scale`. Same body as `Actor401300_RescaleYaw` / `Actor01900_RescaleYaw`.
 static __inline__ void Actor356100_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
@@ -422,6 +447,29 @@ STATIC_ASSERT_SIZEOF(Actor356100Msg3E9, 0x18);
 /// The overlay's only message-0x3E9 instance; all eight words are zero in the
 /// image, so it is a work area rather than a table.
 extern Actor356100Msg3E9 D_actor_356100_801732B0;
+
+/// Reply buffer `func_actor_356100_80166018` passes with message 0x3F8; only
+/// `field_14` is seeded (to 8) before the query. Same shape as
+/// `Actor400600Msg3F8`.
+typedef struct Actor356100Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor356100Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor356100Msg3F8, 0x18);
+
+/// Reply buffer for the message-0x3F8 query above; the six words after it are
+/// zero in the image. Same shape as `Actor400600Msg3F8`.
+extern Actor356100Msg3F8 D_actor_356100_801732D0;
+
+/// Player-character flag selecting which animation block
+/// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
+/// the second block when it is 1, the first otherwise.
+extern s32 D_actor_356100_80173228;
+extern s32 D_actor_356100_80173230;
+
+/// `s8` selector for those two blocks; same slot and role as
+/// `Actor403100AnimTable`'s base index.
+extern s8 D_8007218A;
 
 /// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
 /// The 0x74 bytes after it are zero in the image too, so the whole run is a

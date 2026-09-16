@@ -109236,3 +109236,54 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_80163508-vacuum`; best unpinned candidate
 `base_4.c` / `base_6.c` / `base_10.c` / `base_11.c`.
+
+## A ternary assigned to a global struct field materializes the destination address; the if/else arms keep the folded `%lo(sym)(reg)` store
+
+`D_msg.field_0 = sel == 1 ? &A : &B;` does not compile to the same store as the
+two-armed `if`/`else`. The ternary hands `expand_assignment` a `COND_EXPR`
+rvalue, which stabilizes the destination into a register first, so the store
+becomes a base-register store with an extra `addiu`:
+
+```
+lui    v0,%hi(D_av)          /* ternary: address as a value       */
+addiu  a1,v0,%lo(D_av)
+...
+sw     v0,0(a1)              /* 3 insns, +4 bytes                 */
+```
+
+The arms-form keeps the destination a `symbol_ref` memory operand, and the
+backend folds the displacement into the store — one instruction fewer, with the
+`lui` free in the branch delay slot:
+
+```
+bne    v1,v0,.L
+lui    v1,%hi(D_av)          /* if/else: folded store             */
+lui    v0,%hi(D_x)
+j      .L2
+addiu  v0,v0,%lo(D_x)
+.L:
+lui    v0,%hi(D_y)
+addiu  v0,v0,%lo(D_y)
+.L2:
+sw     v0,%lo(D_av)(v1)      /* 2 insns                           */
+```
+
+jump2 still merges the two arms to a single store, so the CFG is identical and
+the object's `insert=4 delete=3` plus shifted branch displacements are the only
+symptom — `func_actor_356100_80166018` read 98.125% with the ternary (its own
+m2c shape) and 100% with the arms, the diff before the fix being exactly this
+one extra `addiu` and the branch targets after it.
+
+This is the store-shaped sibling of the "else-if stores, not a phi local" entry
+above; there the phi costs the *value's* register home, here the `COND_EXPR`
+costs the *destination's* addressing mode. Note the asymmetry with a
+straight-line store: `D_a.field_0 = <non-conditional expr>` and `D_a.field_4 = 8`
+both fold, so only a conditional rvalue triggers the register form.
+
+Inputs: `base_1.i` (98.125%) SHA256
+`53ef742e36f20be2f615b78b9af074fac936d6d8e1a193d02f31cf1612fe84b0`; `base_2.i`
+(100%) `678e3c562e99d933fb19dddd97dfb857447585cce0ac25208eacf5c913bfe92b`;
+target SHA256 `fee99d8299ff7b2d2cbcda61e2ac22b3a1fd9d6acef867d8fa61556c894d35bd`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
+`nonmatchings/func_actor_356100_80166018-vacuum`; matching candidate `base_2.c`.
