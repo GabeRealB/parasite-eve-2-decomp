@@ -106515,3 +106515,79 @@ Inputs: `base.i` (99.655%) SHA256
 target.o SHA256 `a08d530d47b8025d7965c08a9a3343244a172e04511b2d0a8403eb963bd04a46`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_8013ED24-vacuum`.
+
+## One constant address, three spellings: CSE merging is what turns a raw absolute MEM operand into `li`+`sw 0(reg)`
+
+`func_actor_421600_80133444` reads and writes the scratch head `0x1F8003FC`
+three times, and the target keeps every access as a *raw absolute* MEM operand —
+what the assembler expands into the target's `lui $a1,0x1f80; lw $a1,0x3fc($a1)`
+(load) and `lui $at,0x1f80; sw $a0,0x3fc($at)` (store):
+
+```
+lui    a1, (0x1F8003FC >> 16)
+lw     a1, (0x1F8003FC & 0xFFFF)(a1)
+...
+lui    at, (0x1F8003FC >> 16)
+sw     a0, (0x1F8003FC & 0xFFFF)(at)
+lui    at, (0x1F8003FC >> 16)
+sw     a1, (0x1F8003FC & 0xFFFF)(at)
+```
+
+Writing those accesses the obvious way — `head = *(void**)G_SCRATCH_HEAD;`,
+`*(void**)G_SCRATCH_HEAD = blk;`, `*(void**)G_SCRATCH_HEAD = head;` — instead
+compiles to one materialised address used as a base:
+
+```
+li     a2, 0x1F800000
+ori    a2, a2, 0x3FC
+lw     a1, 0(a2)
+...
+sw     a0, 0(a2)
+sw     a1, 0(a2)
+```
+
+The register is not an accident of pressure. `memory_address` deliberately runs
+constant addresses through registers ("By passing constant addresses thru
+registers we get a chance to cse them", `explow.c`), so each access starts as
+its own pseudo; CSE then merges every access whose address *value* is equal into
+one pseudo, and a pseudo that spans the block gets a register from local-alloc.
+Only a pseudo with **two** references (`REG_N_REFS == 2`, `update_equiv_regs` in
+`local-alloc.c`) has its constant substituted back at the use by reload — and
+that substitution is exactly the raw absolute MEM operand the target has.
+
+So keep the three addresses *unequal as values* until they fold. Each spelling
+must reach `0x1F8003FC` from a different value:
+
+```c
+    u8*  head;
+    u32  spad_a;
+    u32  spad_b;
+
+    head   = *(void**)G_SCRATCH_HEAD;              /* folded constant  */
+    spad_a = (u32)PSX_SCRATCH;                     /* 0x1F800000 + 0x3FC */
+    *(void**)((u8*)spad_a + 0x3FC) = blk;
+    spad_b = (u32)PSX_SCRATCH + 0x3F8;             /* 0x1F8003F8 + 0x4 */
+    *(void**)((u8*)spad_b + 0x4)   = head;
+```
+
+Every pseudo now has two references, reload rematerialises each constant into
+its MEM operand, and the object matches 100%. Re-spelling store 2 with the
+shared constant (`*(void**)((u8*)0x1F800000 + 0x3FC) = head;`) merges it back
+and costs 8 points (100.000% -> 92.128%) — the controlled variation that
+confirms the mechanism. The load needs the *folded* spelling; a variable base
+for a load keeps `li`+`lw 0(reg)` (a store through a variable base does
+rematerialise, which is why only the permuter's two-store spelling was not
+enough).
+
+The same overlay has both outcomes: `func_actor_421600_8013CD3C` materialises
+the address once in its entry block (`lui $v0`/`ori $v0`, two accesses sharing
+it) and uses raw forms in two later blocks.
+
+Inputs: `base_9.i` (100%) SHA256
+`1d3ae833982f049aa0daf069faa40eebd172d725f621a964c7004913ec85147e`;
+`base_10.i` (92.128%) SHA256
+`fe50bb66fa096ad651fea9cc1ddab04749d7ced3dbdc8e378d4e21886f3e0bc6`;
+`base_8.i` (95.274%) SHA256
+`c2e1cea4b65af3d461201f4abdf03186cd0c81c9ae492c160d041553898e45b3`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_421600_80133444-vacuum`.

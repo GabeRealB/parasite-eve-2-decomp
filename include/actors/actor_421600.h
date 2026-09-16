@@ -71,6 +71,20 @@ typedef struct Actor421600Work {
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 
+/// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_421600_80133444`
+/// to hold the XZ offset of a `GsCOORDINATE2` from the centre of its circular
+/// arena (`field_0` / `field_4`) together with the radius `field_8` is tested
+/// against: the function squares all three and pulls the coordinate onto a
+/// 700-unit ring when `field_0 + field_4` reaches `field_8`. Same slot shape as
+/// the gameplay `GpAngleScratch` (3 words at `head - 0xC`); the fields there
+/// are wrap angles, so this overlay keeps its own name for it.
+typedef struct {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+} Actor421600ArenaScratch;
+STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
+
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as

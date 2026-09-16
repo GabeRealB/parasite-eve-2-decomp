@@ -1,8 +1,14 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "actors/actor_421600.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
+
+/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132310);
 
@@ -16,7 +22,51 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80133334);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80133444);
+void func_actor_421600_80133444(GsCOORDINATE2* arg0)
+{
+    SVECTOR                  vec;
+    SVECTOR*                 dir;
+    Actor421600ArenaScratch* blk;
+    u8*                      head;
+    s32                      outside;
+    u32                      spad_a;
+    u32                      spad_b;
+
+    if ((u32)(arg0->coord.t[0] - 0x1F5) < 0x3E7) {
+        if (arg0->coord.t[2] < 0x1F4) {
+            if (arg0->coord.t[2] < -0x1F4) {
+                head                           = *(void**)G_SCRATCH_HEAD;
+                blk                            = (Actor421600ArenaScratch*)(head - 0xC);
+                spad_a                         = (u32)PSX_SCRATCH;
+                *(void**)((u8*)spad_a + 0x3FC) = blk;
+                vec.vx                         = (u16)arg0->coord.t[0] - 0x3E8;
+                vec.vy                         = 0;
+                vec.vz                         = (u16)arg0->coord.t[2] + 1;
+                blk->field_0                   = vec.vx;
+                dir                            = &vec;
+                blk->field_4                   = dir->vz;
+                blk->field_8                   = 0x2D0;
+                blk->field_0                   = blk->field_0 * blk->field_0;
+                blk->field_4                   = blk->field_4 * blk->field_4;
+                blk->field_8                   = blk->field_8 * blk->field_8;
+                spad_b                         = (u32)PSX_SCRATCH + 0x3F8;
+                *(void**)((u8*)spad_b + 0x4)   = head;
+                outside                        = blk->field_0 + blk->field_4 >= blk->field_8;
+                if (outside != 0) {
+                    return;
+                }
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x2BC);
+                gte_ldsv(dir);
+                gte_gpf12_real();
+                gte_stsv(dir);
+                arg0->coord.t[0] = vec.vx + 0x3E8;
+                arg0->coord.t[2] = vec.vz;
+                arg0->flg        = 0;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801335BC);
 
