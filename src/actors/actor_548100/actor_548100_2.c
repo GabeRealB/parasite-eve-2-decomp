@@ -133,7 +133,37 @@ void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
     *arg3 = (s8)(var_v0_3 >> 5);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134AE0);
+void func_actor_548100_80134AE0(s32 id, u8 stop)
+{
+    u8* route;
+    u8* head;
+    u8  prev;
+    u8  cur;
+    u8  edge;
+    u8  state;
+
+    state = 2;
+    if (stop != 0) {
+        state = 3;
+    }
+    head  = D_actor_548100_80135B24[id];
+    prev  = head[0];
+    route = head + 1;
+    while (*route != 0) {
+        cur = *route;
+        if (cur != 0xFF) {
+            edge                                = D_actor_548100_80135B5C[cur + prev * 100];
+            D_actor_548100_801351D0[edge].state = state;
+            prev                                = *route;
+        } else {
+            route++;
+            prev = *route;
+        }
+        if (*route++ == stop) {
+            break;
+        }
+    }
+}
 
 void func_actor_548100_80134BA8(void)
 {

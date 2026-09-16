@@ -101979,3 +101979,14 @@ written *before* `*scratch = head - 0x18;`, CSE gives the store `sc`'s register
 and there is no copy; with the store first, CSE has to materialise a temporary
 for the store and the later `sc` becomes a copy. Which of the two uses is
 written first is a real codegen decision, not style.
+## A byte read twice at a join: assign it in both branches and let cross-jumping merge the tail (func_actor_548100_80134AE0)
+
+**Symptom.** The target loads the same byte twice in a row at a branch join
+(`lbu a3,0(a0); lbu v0,0(a0); beq v0,a1,...`), but `prev = *route; if (*route++ == stop)`
+after the `if/else` compiles to one load - CSE merges the reads in one block.
+
+**Fix.** Write `prev = *route;` at the end of *both* arms. Jump optimization
+cross-jumps the identical tails into one load at the join, but only after CSE, so the
+comparison's own read in the next block survives. The same function also needed
+`edge = B5C[cur + prev * 100]; D_1D0[edge].state = s;` instead of the nested
+`D_1D0[B5C[...]]` to hoist `B5C`'s address ahead of `D_1D0`'s in the loop preheader.

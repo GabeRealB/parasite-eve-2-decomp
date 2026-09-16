@@ -136,6 +136,10 @@ typedef struct Actor548100Edge {
 STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
 
 extern Actor548100Edge D_actor_548100_801351D0[];
+/// Route strings, indexed by route id: node ids, 0xFF-escaped, 0-terminated.
+extern u8* D_actor_548100_80135B24[];
+/// Edge-id matrix keyed `prev * 100 + cur`.
+extern u8 D_actor_548100_80135B5C[];
 
 /// One cell of the sprite table `D_actor_548100_801357C0` (four records, the
 /// actor's four frames, each drawn only while its `GameFlag_GetNibble(i + 0xBF)`
