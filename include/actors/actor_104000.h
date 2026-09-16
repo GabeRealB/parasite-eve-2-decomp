@@ -20,6 +20,13 @@ typedef struct Actor104000Msg7DA {
 } Actor104000Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor104000Msg7DA, 0x4);
 
+/// Event packet handed to the message handlers: the same four bytes read as
+/// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
+typedef union Actor104000Event {
+    /* 0x0 */ u8  bytes[4];
+    /* 0x0 */ u16 words[2];
+} Actor104000Event;
+
 /// Two counters the overlay clears together with `D_actor_104000_8013E538`
 /// when it restarts its run; still assembly everywhere they are written.
 extern s32 D_actor_104000_8013E530[2];
