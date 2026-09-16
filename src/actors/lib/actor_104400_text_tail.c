@@ -139,7 +139,51 @@ void Actor04400_Fn03B34(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03CA0);
+/// Counts the frame in `field_412` and, on frames 0x1D..0x29, pushes the model
+/// root along the heading `field_7A` turned a quarter circle, by `field_41C`
+/// scaled 30/16. Once `flags_EC` reports a hit (bit 0 as a halfword, or 0x102 as
+/// a word), clears `field_438`, requests animation 3 at speed 0x10 and rewinds
+/// the frame counter so the next state starts fresh.
+///
+/// Byte-for-byte `ActorsShared80166dd4` of `actor_341700` / `actor_342400`,
+/// which is this same source written on that pair's work type. The two are
+/// separate shared units of this family (this one is `actor_104400`'s), so
+/// neither absorbs the other.
+void Actor04400_Fn03CA0(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    s32              cond;
+    s16              angle;
+    s16              speed;
+    s32              scale;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+        scale                                           = 0x1E;
+        angle                                           = work->field_7A + 0x400;
+        speed                                           = (((Actor104400Work*)arg0->idMap)->field_41C * scale) << 0xC >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    }
+    work2 = (Actor104400Work*)arg0->idMap;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_438  = 0;
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 3;
+        work2->field_414 = 1;
+        work->field_412  = 0;
+        work->field_422++;
+    }
+}
 
 /// Unless `Actor04400_Fn06328` claims the frame: count the frame in
 /// `field_412` and, on frames 0x17..0x23, push the model root along the
