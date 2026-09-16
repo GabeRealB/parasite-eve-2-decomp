@@ -126,7 +126,11 @@ typedef struct Actor401300Work {
     /// Payload `func_actor_401300_80138160` sends with message 0x3F8.
     /* 0xCEC */ byte field_CEC[0x14];
     /* 0xD00 */ s32  field_D00;
-    /* 0xD04 */ byte pad_D04[8];
+    /// Root position saved by `func_actor_401300_8013F628` on entry.
+    /* 0xD04 */ s16  field_D04;
+    /* 0xD06 */ s16  field_D06;
+    /* 0xD08 */ s16  field_D08;
+    /* 0xD0A */ byte pad_D0A[2];
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xD0C */ Task* field_D0C;
@@ -317,6 +321,14 @@ typedef struct Actor401300RotScratch {
     /* 0x32 */ s16    pad_32;
 } Actor401300RotScratch;
 STATIC_ASSERT_SIZEOF(Actor401300RotScratch, 0x34);
+
+/// 0x18-byte `G_SCRATCH_HEAD` block `Actor401300_ScaleMatrix` scales a matrix
+/// and its translation in. Same shape as `Actor00100ScaleScratch`.
+typedef struct Actor401300ScaleScratch {
+    /* 0x00 */ VECTOR  scale;
+    /* 0x10 */ SVECTOR trans;
+} Actor401300ScaleScratch;
+STATIC_ASSERT_SIZEOF(Actor401300ScaleScratch, 0x18);
 
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent
