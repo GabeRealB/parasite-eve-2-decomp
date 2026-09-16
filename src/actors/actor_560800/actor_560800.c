@@ -185,7 +185,78 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801326C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80132A14);
+void func_actor_560800_80132A14(Task* arg0)
+{
+    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->idMap;
+    VECTOR               pos;
+
+    if (arg0->state == 0) {
+        TmdObject*           tmd    = arg0->extra;
+        Task*                parent = arg0->spawnArg2;
+        GsCOORDINATE2*       coord  = tmd->field_8;
+        Actor560800AnimWork* block;
+        GpAreaPlace*         place;
+        u8                   id;
+
+        block       = Mem_Malloc(0x4CC, 0);
+        arg0->idMap = (TaskIdMap*)block;
+        if (block == NULL) {
+            Task_Kill(arg0);
+            return;
+        }
+        work = block;
+        switch (arg0->spawnArg1) {
+            case 0:
+                coord->sub = &((TmdObject*)parent->extra)->field_8[12];
+                break;
+            case 1:
+            case 2:
+            case 3:
+                coord->sub = &((TmdObject*)parent->extra)->field_8[8];
+                break;
+        }
+        Mem_Set(arg0->idMap, 0, 0x4CC);
+        tmd->field_1C = &work->light;
+        tmd->field_20 = &work->color;
+        if (arg0->spawnArg1 < 2) {
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+            id    = place->field_0;
+            while (id != 0xFF) {
+                if (id == 0x65) {
+                    break;
+                }
+                place++;
+                id = place->field_0;
+            }
+            Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->field_D, (s8)place->field_E);
+        } else if (arg0->spawnArg1 == 2) {
+            Gp_SetTmdBytes((TmdObject*)arg0->extra, 0, 0);
+        } else if (arg0->spawnArg1 == 3) {
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+            id    = place->field_0;
+            while (id != 0xFF) {
+                if (id == 0x22) {
+                    break;
+                }
+                place++;
+                id = place->field_0;
+            }
+            Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->field_D, (s8)place->field_E);
+        }
+        Task_Reparent(parent, arg0);
+        arg0->field_24 = &D_actor_560800_8016F34C;
+        arg0->state   += 1;
+        return;
+    }
+    if (work->field_4BC != 0) {
+        TmdObject* obj = arg0->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80132C60);
 
