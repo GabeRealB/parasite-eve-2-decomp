@@ -96275,6 +96275,14 @@ asm/…/actor_105300_4/func_….s` - rewrite those paths in the same pass. A uni
 whose `.c` was deleted (here `_2`, the promoted one) is the one splat
 regenerates, and its skeleton already carries the new path.
 
+A `git mv` alone also leaves the build linking the *previous* content at that
+path, because a rename keeps the file's old mtime: the moved `.c` is older than
+the `.i`/`.o` built from whatever held that name before, so ninja calls them up
+to date. It surfaces at link time, not at compile time -
+`multiple definition of func_actor_105300_801337DC` from a unit that no longer
+contains it, `undefined reference` for one that moved in. `touch` the renamed
+files after the move (or rewrite them in place, which keeps the mtime honest).
+
 ## A four-arm `switch` with an empty first arm pivots on the *second* node
 
 `func_actor_105300_8013391C` dispatches on a halfword with `beq v1,v0(=1),CASE1`
