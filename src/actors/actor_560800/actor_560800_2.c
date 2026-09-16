@@ -11,6 +11,7 @@
 
 extern TaskDesc ActorsShared80136280Desc;
 extern s32      D_actor_560800_8016F57C[];
+extern s8       D_8007106B;
 
 void func_actor_560800_801362B0(s32 arg0)
 {
@@ -104,7 +105,44 @@ void func_actor_560800_80136678(s32 arg0)
     SndEvt_EnqueueType6(D_actor_560800_8016F57C[arg0], 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801366B0);
+/// Task state handler for the second spawn mode: states 1 and 2 — and state 0,
+/// which first parks `D_8007106B` at 2 — only step the state, and state 3 runs
+/// the hand-off. That hand-off copies a 64x256 VRAM strip from (0x380, 0) to
+/// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
+/// other strip, then re-loads the chunk at `D_8006C45C` with
+/// `D5B498_8006C234` at 8 for the duration, kills this task, resets the
+/// display heap and spawns `ActorsShared80136280Desc` index 0xB into the work
+/// block's `field_4`. Like `func_actor_310100_801620FC`, state 3 hands the
+/// finished work over rather than leaving the task alive.
+void func_actor_560800_801366B0(Task* arg0)
+{
+    RECT             rect;
+    Actor560800Work* work;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    switch (arg0->state) {
+        case 0:
+            D_8007106B = 2;
+            /* fallthrough */
+        case 1:
+        case 2:
+            arg0->state++;
+            return;
+        case 3:
+            rect.x = 0x380;
+            rect.y = 0;
+            rect.w = 0x40;
+            rect.h = 0x100;
+            MoveImage(&rect, 0x200, 0x100);
+            D5B498_8006C234 = 8;
+            Fs_LoadImageChunk(D_8006C45C, 1);
+            D5B498_8006C234 = 0;
+            Task_Kill(arg0);
+            Display_ResetHeapWrapper();
+            work->field_4 = Task_SpawnOnDefaultList(&ActorsShared80136280Desc, 0xB, 1, (s32)D_actor_560800_8017578C);
+            break;
+    }
+}
 
 void func_actor_560800_801367C0(s16 arg0)
 {

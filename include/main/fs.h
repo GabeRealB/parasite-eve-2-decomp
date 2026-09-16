@@ -600,6 +600,10 @@ extern FsFolderSlot D_8006C338[50];
 /// own symbol table, so this address gets a name of its own there — the actor
 /// sources must reference `D_8006C454`, not the slot it sits in.
 extern FsImageChunk* D_8006C454;
+/// `D_8006C338[36].field_4` (that is `D_8006C454` + 8): the second chunk the
+/// actor overlays hand to `Fs_LoadImageChunk`, on the same terms — the sources
+/// reference `D_8006C45C`, not the slot it sits in.
+extern FsImageChunk* D_8006C45C;
 extern u8*           Fs_ChunkReadPtr;
 extern u8            D5B498_8006C233;
 extern u8            D5B498_8006C234;

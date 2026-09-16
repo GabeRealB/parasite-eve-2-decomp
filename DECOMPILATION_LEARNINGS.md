@@ -94366,3 +94366,72 @@ displacements), so nothing in the object dump names the local -- an unreferenced
 aggregate is the only candidate. A declared-and-unused `SVECTOR unused;` supplies
 it; cc1 probes confirm a never-referenced aggregate still gets a slot
 (`SVECTOR s;` is `vars= 8`) while an unused scalar does not.
+
+## m2c invents a `default:` arm for a fallthrough switch - the cases fall through instead (func_actor_560800_801366B0, 2026-09-16)
+
+This seed scores 74.088% (`branch=2 regs=8 reorder=2 insert=2 delete=14`) with
+two faults from the same dump, both worth recognising on sight.
+
+**The dispatch.** The target opens
+
+```
+lw    a0, 0x30(s1)      # state
+slti  v1, a0, 3
+beqz  v1, L700          # a0 > 2 -> the {3} subtree
+bgtz  a0, L71C          # a0 > 0 -> the shared state++ tail
+beqz  a0, L714          # a0 == 0 -> the flag store, then the tail
+j     epilogue          # nothing else reaches the tail
+```
+
+and m2c read it as
+
+```c
+case 0:
+    D_8007106B = 2;
+    /* fallthrough */
+default:
+    arg0->state += 1;
+    return;
+case 3:
+```
+
+The `default:` arm is an invention: in the target, states 4 and up and the
+negatives reach the epilogue *without* the increment, which is a switch with no
+default at all. Give the fallthrough group its own labels and the tree appears:
+
+```c
+switch (arg0->state) {
+    case 0:
+        D_8007106B = 2;
+        /* fallthrough */
+    case 1:
+    case 2:
+        arg0->state++;
+        return;
+    case 3:
+        ...
+```
+
+`group_case_nodes` (`gcc/stmt.c`) merges cases 1 and 2 into one range node, so
+the list is three nodes, `balance_case_nodes` roots on the middle one, and the
+two tests it emits around that root are the `slti high+1` / `bgtz low` pair
+above; the `{0}` leaf is an equality test and the trailing `j` is
+`emit_jump_if_reachable (default_label)`. See "`slti high+1` between the
+equality tests means three case nodes" and "A dispatch rooted at the *lowest*
+case value needs a fourth, empty case node" for the node arithmetic.
+
+One build later this is 100.000%, so when a seed's switch has a `default:`
+carrying what the case above it also does, suspect the fallthrough before
+anything else. The same body is already matched in another overlay -
+`func_actor_310100_801620FC` / `func_actor_310100_80162284` in
+`src/actors/actor_310100/actor_310100.c` - with a comment spelling the shape
+out; a sibling overlay is faster than re-deriving the labels from the tree.
+
+**The rect.** The seed declares `s16 sp10, sp12, sp14, sp16;` and passes
+`&sp10`, so `-O2` keeps that store and deletes the other three as dead - nothing
+reads a local whose address was never taken, and three `sh` plus two `li`
+vanish from the object (the `delete=14`). One `RECT rect;` with
+`MoveImage(&rect, ...)`, written exactly as the matched
+`func_actor_560800_80136548` in the same TU writes it, restores all four. The
+four separate locals never had a chance: only the aggregate makes the other
+three stores observable.
