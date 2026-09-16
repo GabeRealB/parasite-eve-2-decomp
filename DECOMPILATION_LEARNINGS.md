@@ -112973,3 +112973,52 @@ case-1 pose variable single-block for `lreg`, which then picks `$a0`, and the
 switch variable keeps `$v1` from the dispatch. That reuse is this overlay's own
 style (`func_actor_105100_80135F50` writes `state = work->field_598` and uses
 `state` inside the cases), which is why it reads naturally.
+
+## A cast written inline at the call site is a call-crossing temp; through a local it is not
+
+`func_actor_105100_80133A14` pipes a `(s8)Gp_GetObjPan(...)` pan and a
+`(s8)Gp_GetObjDepth(...)` depth into `SndEvt_EnqueueType6` in three of its four
+paths. Written through a named local --
+
+```c
+    pan = (s8)Gp_GetObjPan((GpObj38*)self);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)self));
+```
+
+-- the build stops at 96.7%: the function's long-lived `work` pointer sits in
+`$s0` where the target has `$s1`, and every field access in the function is one
+register off (`regs=46`, the only structural diagnostic left). Inlining the
+cast instead --
+
+```c
+    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+```
+
+-- is 100%. The two forms allocate the same expression differently: in the
+inline form the extension's result is an *argument temporary*. It is born
+before the depth call and used after it, so it crosses that call, and the
+`.lreg` header says so (`Register 111 used 2 times across 3 insns in block 7;
+crosses 1 call`). That is enough to put the extension's own temp -- a plain
+single-death local (`Register 112 used 2 times across 2 insns`) -- into `$s0`,
+which is where the target's `sll $s0,$v0,24` / `sra $s0,$s0,24` pair comes
+from. With the local form the value's live range ends at the call and the pair
+prints as `sll $v0,$v0,24` / `sra $s0,$v0,24`.
+
+The register the pointer gets follows from that: `global_alloc`'s first pass
+skips for each allocno every register in its conflict set, and the winning
+build's `.greg` shows exactly that --
+
+```
+  r82   used 34/127   → $s1 (17) ptr  hard-conf $v0 (2),$v1 (3),$a0 (4),$a1 (5),$a2 (6),$a3 (7),$s0 (16),$sp (29)
+```
+
+-- a conflict with the *hard* register `$s0`, because a local-alloc'd temporary
+holds it across a point where `work` is live. The local form's `work` has no
+`$s0` conflict and takes it. So when a long-lived local lands one register
+below the target's, look for a short-lived temp occupying the register the
+target gave it before reaching for a pin: a named local for a value that is
+only ever an argument is often what vacates it.
+
+`extendqisi2` (`config/mips/mips.md`, the `gen_ashlsi3`/`gen_ashrsi3` pair) is
+what emits the shifts; which register the first one writes is allocation, not
+the expander, so the same source shape with the same expansion still moves.

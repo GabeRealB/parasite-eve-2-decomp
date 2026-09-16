@@ -418,7 +418,93 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801336B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80133A14);
+/// The appearance handler, the step the aim-retry schedule hands to once it
+/// wants the enemy to show up. `field_598` is the sub-state it walks through:
+///
+/// Step 0 seeds the show pose (`field_58E` 3), the `field_59A` timer at its
+/// high-water 0xBC and the `field_5AA` aim window, then spawns the
+/// `0x800601A9` puff at the model's coordinate -- lifted to the top of the
+/// model by the 0x1F4/-0x6D6/0 z-offset vector -- and announces the
+/// appearance on the `...0009` sound. Step 1 waits the timer out and, on the
+/// 0x5A midpoint, plays the `...000A` sound; when the timer expires it moves
+/// the schedule to step 2, plays `...000B` and runs the pad lerp in. Step 2
+/// holds the enemy on the `0x8000` list flag while `field_592` is 0xC and
+/// releases it after, moving to step 3 once it passes 0x1B. Step 3 clears
+/// both flags and, past 0x1C, puts the schedule back on step 0 with a fresh
+/// timer drawn from the gameplay LCG.
+///
+/// The pan and depth are cast at the call rather than through locals: the
+/// sign extension then occupies the argument's own temporary (`$s0`) instead
+/// of `work`'s register, which is what the original allocation needs.
+void func_actor_105100_80133A14(Actor105100* arg0, Actor105100Ctx* arg1)
+{
+    Actor105100Work* work;
+    GsCOORDINATE2*   self;
+    SVECTOR          pos;
+    s32              snd;
+    u16              timer;
+    u32              rnd;
+
+    work = arg0->field_1C;
+    self = arg0->field_2C->field_8;
+    switch (work->field_598) {
+        case 0:
+            work->field_58E = 3;
+            work->field_59A = 0xBC;
+            work->field_5AA = 0x1E;
+            work->field_5A8 = 0;
+            work->field_5B4 = 1;
+            work->field_598 = 1;
+            pos.vx          = 0;
+            pos.vy          = -0x6D6;
+            pos.vz          = 0x1F4;
+            work->field_55C = Gp_SpawnEff(0x800601A9, arg0->field_2C->field_8, (s16)work->field_59A + 0xA, &pos);
+            work->field_588 = ((arg0->field_20->field_8 >> 12) << 8) | 0x40330009;
+            SndEvt_EnqueueType6(work->field_588, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+            break;
+        case 1:
+            timer           = work->field_59A - 1;
+            work->field_59A = timer;
+            if ((timer << 16) <= 0) {
+                work->field_598 = 2;
+                work->field_58E = 4;
+                SndEvt_EnqueueType7(work->field_588, 1);
+                work->field_588 = 0;
+                snd             = ((arg0->field_20->field_8 >> 12) << 8) | 0x4033000B;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+                Gp_SpawnPadLerp(0xF, 8, 0xFF);
+            }
+            if ((s16)work->field_59A == 0x5A) {
+                snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x4033000A;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+            }
+            break;
+        case 2:
+            if ((s16)work->field_592 == 0xC) {
+                work->field_55C  = NULL;
+                work->field_502 |= 0x8000;
+                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+            } else {
+                work->field_502 &= 0x7FFF;
+            }
+            if ((s16)work->field_592 >= 0x1B) {
+                work->field_598 = 3;
+                work->field_58E = 5;
+            }
+            break;
+        case 3:
+            work->field_5B4 = 0;
+            if ((s16)work->field_592 >= 0x1C) {
+                work->field_58E = 1;
+                work->field_596 = 0;
+                work->field_598 = 0;
+                rnd             = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = rnd;
+                work->field_59A = (rnd >> 16) & 0x3F;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80133CE4);
 
