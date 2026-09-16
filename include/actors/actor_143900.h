@@ -43,6 +43,19 @@ extern Actor143900Work* ActorsShared80131f9cWork;
 /// dispatcher here parks in the task's 0x1C slot.
 extern ActorsShared80132eccWork* D_actor_143900_801496C4;
 
+/// The task that variant publishes next to the block above - `func_actor_143900_801328D4`
+/// stores it on the way through, the same pair of places the shared body's
+/// `ActorsShared801326b4Task` is filled in. `func_actor_143900_80133254` reads
+/// its `extra` to reach the overlay's models; `func_actor_143900_801331C4`
+/// hands the task itself to the per-frame update.
+extern Task* D_actor_143900_801496C8;
+
+/// Reset argument the overlay's own variant forwards to the reseed, the field
+/// the shared body's carriers keep in `D_actor_143900_801413B8`: the
+/// play-animation handler latches the preset's `field_C` here and
+/// `func_actor_143900_80133144` reads it back.
+extern s16 D_actor_143900_80149630;
+
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. This
 /// overlay's 0x7DB handler, `func_actor_143900_80132778`, reads the halfword
@@ -68,6 +81,7 @@ STATIC_ASSERT_SIZEOF(Actor143900AnimPreset, 0x10);
 
 void func_actor_143900_80131FD4(Task* task);
 void func_actor_143900_801324C8(void);
+void func_actor_143900_80132A9C(Task* task);
 s32  func_actor_143900_80132624(Task* task, s32 arg1, Actor143900AnimPreset* preset);
 s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32  func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg);

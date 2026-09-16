@@ -14,7 +14,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900_80133144);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900_801331C4);
+/// Play-animation handler of the overlay's own variant, the twin of
+/// `func_actor_143900_80132624` for the work block published in
+/// `D_actor_143900_801496C4`: adopts `preset`'s animation id when it is one of
+/// the first 0xC, latches the reset mode and the reset argument the reseed
+/// uses, then hands the published task to the per-frame update. Ids past the
+/// range are rejected with -1 and leave the work block untouched.
+s32 func_actor_143900_801331C4(Task* task, s32 arg1, Actor143900AnimPreset* preset)
+{
+    if (preset->field_4 < 0xC) {
+        D_actor_143900_801496C4->field_4B8 = preset->field_4;
+        if (preset->field_8 != 0) {
+            D_actor_143900_801496C4->field_4B4 = 1;
+            D_actor_143900_80149630            = preset->field_C;
+        } else {
+            D_actor_143900_801496C4->field_4B4 = 2;
+        }
+        D_actor_143900_801496C4->field_4BA = 0;
+        func_actor_143900_80132A9C(D_actor_143900_801496C8);
+        return 0;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900_80133254);
 
