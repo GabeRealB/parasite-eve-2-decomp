@@ -80,6 +80,10 @@ typedef struct Actor401300 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ byte             pad_30[6];
+    /// High halfword of `Task::spawnArg1`; `func_actor_401300_8014192C` only
+    /// stamps the -999 sentinel when it is 2.
+    /* 0x36 */ s16 field_36;
 } Actor401300;
 
 /// Payload of the message `func_actor_401300_80141494` handles; `field_4`
@@ -97,6 +101,8 @@ s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placemen
 void func_actor_401300_80133A3C(Actor401300* arg0);
 
 void func_actor_401300_80141758(Task* task);
+
+void func_actor_401300_8014192C(Actor401300* arg0);
 
 void func_actor_401300_801419B8(Actor401300* arg0);
 

@@ -26,7 +26,26 @@ void func_actor_401300_80141758(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_801417F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300_3", func_actor_401300_8014192C);
+void func_actor_401300_8014192C(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                   = arg0->field_2C;
+        enemy->node.field_4   = 1;
+        obj->field_C          = (u16)(obj->field_C | 0x80);
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+        return;
+    }
+    if (enemy->field_40 != -0x3E7 && work->field_C8A == 0 && arg0->field_36 == 2) {
+        enemy->field_40 = -0x3E7;
+    }
+}
 
 void func_actor_401300_801419B8(Actor401300* arg0)
 {
