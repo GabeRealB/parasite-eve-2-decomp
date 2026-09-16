@@ -168,7 +168,55 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167584);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167818);
+void func_actor_356100_80167818(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+    s32              sound;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                     = arg0->field_2C;
+        D_actor_356100_801731B0 = 0;
+        work->field_97E         = 0x10;
+        work->field_978         = 2;
+        obj->field_C            = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC     = 0x180;
+        enemy->node.field_4 = 0;
+        work->field_990     = 0;
+        work->field_982     = 0x10;
+        work->field_98E     = 0;
+        work->field_6       = 0;
+    } else if (work->field_6 == 0) {
+        sound = ((enemy->field_8 >> 0xC) << 8) | 0x51030008;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        work->field_6 = 1;
+    }
+    func_actor_356100_80163508(arg0);
+    if ((work->field_5A & 0x3FF) == 4 && work->field_994 != (work->field_5A & 0x3FF)) {
+        D_actor_356100_801732A8.field_0 = arg0->field_2C->field_8;
+        D_actor_356100_801732A8.field_4 = 0x100;
+        D_actor_356100_801732A8.field_6 = 2;
+        func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->field_8 + 5, NULL,
+                      &D_actor_356100_801732A8);
+    }
+    work->field_994 = work->field_5A & 0x3FF;
+    coord           = arg0->field_2C->field_8;
+    d               = &delta;
+    Actor356100_PositionDelta(coord, d);
+    if (!Actor356100_OutOfRange(d, 3000)) {
+        SndEvt_EnqueueType7(0x51030008, 1);
+        work->field_0 = 6;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167A7C);
 

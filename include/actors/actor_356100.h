@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -30,7 +31,10 @@ typedef struct Actor356100Work {
     /// Countdown `func_actor_356100_8016A668` decrements every frame and
     /// tests with `(s16)` — the 0x0F / 0x10 state it picks when the counter
     /// wraps is the transition into the state 0xB / 0xC clip it is running.
-    /* 0x006 */ u16  field_6;
+    /// Signed, like `Actor01900Work.field_6` / `Actor401300Work.field_6`;
+    /// `func_actor_356100_80167584` reads the same slot as a `u16` when it
+    /// increments it, so it casts there.
+    /* 0x006 */ s16  field_6;
     /* 0x008 */ byte pad_8[0x52];
     /* 0x05A */ u16  field_5A;
     /* 0x05C */ byte pad_5C[0xC];
@@ -47,7 +51,12 @@ typedef struct Actor356100Work {
     /* 0x986 */ byte pad_986[8];
     /* 0x98E */ s16  field_98E;
     /* 0x990 */ s16  field_990;
-    /* 0x992 */ byte pad_992[0x2A];
+    /* 0x992 */ byte pad_992[2];
+    /// Snapshot of `field_5A & 0x3FF` `func_actor_356100_80167818` tests
+    /// before re-storing it, so the clip-4 branch fires once per change.
+    /// Distinct from `field_974`, which the state 0xE tick snapshots.
+    /* 0x994 */ s32  field_994;
+    /* 0x998 */ byte pad_998[0x24];
     /* 0x9BC */ s16  field_9BC;
     /* 0x9BE */ byte pad_9BE[0x17C];
     /// Threshold `func_actor_356100_8016A834` tests once the enemy is still
@@ -118,6 +127,54 @@ void func_actor_356100_801633DC(Actor356100* arg0);
 
 void func_actor_356100_80163508(Actor356100* arg0);
 
+/// The player's coordinate, as `Actor401300` / `Actor01900` name it. The
+/// overlay keeps its own copy like those two do.
+extern MATRIX* D_80073B8C;
+
+/// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
+static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = D_80073B8C->t[0] - coord->coord.t[0];
+    pos->vy = D_80073B8C->t[1] - coord->coord.t[1];
+    pos->vz = D_80073B8C->t[2] - coord->coord.t[2];
+}
+
+/// 0xC-byte 3D squared-radius block walked off `G_SCRATCH_HEAD`, same shape
+/// `Actor401300RangeScratch` has. Handed out whole by `Actor356100_OutOfRange`.
+typedef struct Actor356100RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor356100RangeScratch;
+STATIC_ASSERT_SIZEOF(Actor356100RangeScratch, 0xC);
+
+/// Whether `d` is further than `r` from the origin, compared on squared
+/// lengths. Takes the block off `G_SCRATCH_HEAD`, publishes it for the
+/// duration of the multiply chain and gives it back, then adds `dx*dx` to
+/// `dz*dz` and tests `>= r*r`. Same body as `Actor401300_OutOfRange`; the two
+/// `G_SCRATCH_HEAD` stores bracketing the chain are what the scratch block is
+/// reserved against (`func_actor_356100_80167818` and the tick above it pass
+/// 3000).
+static __inline__ s32 Actor356100_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor356100RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor356100RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor356100RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor356100RangeScratch*)(head - 0xC))->dx *= ((Actor356100RangeScratch*)(head - 0xC))->dx;
+    *(Actor356100RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor356100RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
 /// Payload of message 0x3E9 `func_actor_356100_801666B4` sends the player:
 /// the player's own position, then the heading away from this actor, so the
 /// player ends up moved one normalised unit along that direction. Same shape
@@ -141,12 +198,33 @@ STATIC_ASSERT_SIZEOF(Actor356100Msg3E9, 0x18);
 /// image, so it is a work area rather than a table.
 extern Actor356100Msg3E9 D_actor_356100_801732B0;
 
+/// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
+/// The 0x74 bytes after it are zero in the image too, so the whole run is a
+/// work area rather than a table.
+extern s32 D_actor_356100_801731B0;
+
+/// Effect record `func_actor_356100_80167818` fills for `func_800FDB18`:
+/// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
+/// roles as `Actor401300Work.field_910`.
+extern GpEffArg D_actor_356100_801732A8;
+
 /// Separation tick: when the work block's `field_4` flag is set, pushes this
 /// actor one normalised unit away from the player along the player-to-actor
 /// direction in XZ (recentring it on the player first), clears the model's
 /// root `flg`, and sends the player message 0x3E9 with its own position and
 /// the resulting heading. Bit 0 of `field_68` then forces `field_0` to 0xD.
 void func_actor_356100_801666B4(Actor356100* arg0);
+
+/// Approach tick, and the sibling of `func_actor_356100_80167584` above it. Going
+/// live clears `D_actor_356100_801731B0` and re-seeds the animation slots at
+/// clip 2 / speed 0x10 with the enemy's link node cleared; otherwise a single
+/// sound 0x51030008 is queued the first time through, keyed on the enemy's
+/// `field_8 >> 12` bank. Each frame then snapshots `field_5A & 0x3FF` into
+/// `field_994`, and the frame that first lands on clip 4 spawns the
+/// `D_actor_356100_801732A8` effect at model coordinate 5. Once the player is
+/// further than 3000 away it plays 0x51030008 as a type-7 event and enters
+/// state 6. Same shape as `func_actor_401300_801397F8`.
+void func_actor_356100_80167818(Actor356100* arg0);
 
 /// Event handler: copies the event's first three bytes into the work block's
 /// `field_B58`, then dispatches on `w[0] == 0xB05` and `w[1]` — sub-code 1

@@ -108694,3 +108694,57 @@ loop, or the loop has no call, the allocator can already keep it in `$v0` and th
 is not the lever. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_1.i` SHA256 `bc1eccbb67a322bbf956b04609c90c6d12ca581170809fb8ff5c62942ef12191`.
+
+## The same 0xC scratch block allocates differently from a differently-shaped inliner (func_actor_356100_80167818, 2026-09-16)
+
+**Symptom.** `func_actor_356100_80167818` reached 97.778% with `regs=16` and every
+instruction, block and branch correct except one register pair: the 0xC
+`G_SCRATCH_HEAD` squared-distance block put its block pointer in `$v1` and the
+radius constant in `$a0`, where the target has the block pointer in `$a0` and the
+constant in `$v1`. That block was the *only* difference in the whole function.
+
+**Cause.** Both helpers that produce this block inline to byte-identical assembly
+in the functions they were written for — `Actor00100_OutsideRadius`
+(`include/actors/actor_400100_motion.h`) in the 400100 shared bodies, and
+`Actor401300_OutOfRange` (local to `src/actors/actor_401300/actor_401300.c`) in
+`func_actor_401300_80139520`. An inlined body cannot be recovered from its own
+output, so the two are interchangeable *as assembly* and not interchangeable *as
+RTL*: they differ in how many intermediate pseudos they create and in what order.
+`local-alloc.c` breaks an equal-priority tie with `return q1 - q2`
+(`qty_compare_1`), so pseudo numbering alone decides which of two simultaneously
+free registers the block pointer wins. The 400100 shape (`scratch = head - 1;`
+through the typed pointer, `G_SCRATCH_HEAD` armed before the field stores) numbers
+the constant first and hands it `$a0`; the 401300 shape (`u8* head`, the first
+store through a fresh `((Scratch*)(head - 0xC))` temporary, `blk` assigned after
+it, `G_SCRATCH_HEAD` armed after the first multiply) numbers the block pointer
+first.
+
+**Fix.** Give the overlay the 401300-shaped helper rather than reusing the 400100
+one. Naming it `Actor356100_OutOfRange` in the overlay's own
+`include/actors/actor_356100.h` and calling it scored 100.00% with all penalties
+zero, first try; keeping `Actor00100_OutsideRadius` did not, across two attempts
+that fixed everything else. The two shared helpers are still untouched, so the
+matched 400100 callers are unaffected.
+
+**Scope.** Any inlined scratch-block helper that produces an allocation tie, where
+the same block appears in another overlay's matched function and its register
+choice there is known to be correct. Reach for the sibling overlay's helper shape
+before reaching for a pin — this is the "unpin and rescore" move with the pin
+never written. Not evidence that one shape is *the* original: `Actor00100_Fn061FC`
+reached the same destination homes (`radius` `$v1`, `scratch` `$a0`) from the
+400100 helper by moving where the radius constant's definition lives, so the two
+routes agree and either can be the 100% move.
+
+Also needed, and each was observable on its own: `Actor356100Work::field_6` is
+`s16` (family convention — `Actor01900Work` / `Actor401300Work` both are), not the
+`u16` the header had, or the `== 0` test emits `lhu` where the target has `lh`;
+and filling the `D_actor_356100_801732A8` record with `field_0` first rather than
+last lets the model coordinate load schedule ahead of the two `sh` stores and the
+store land in the `Gp_GetIdParam1` delay slot.
+
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`;
+matching input `base_5.i` SHA256
+`75f5dfba35f395c708e5e52830df3ead7a1860a9beeb9c3813bed65ce04f6de8`
+(the 400100-helper variant, `base_2.i` SHA256
+`4044e198377abc8678ebeaf403c5fd0d9d8994c5b5bb47fc7a0254122348f93f`, is the
+97.778% one).
