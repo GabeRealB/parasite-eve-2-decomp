@@ -75089,6 +75089,43 @@ expressions. Example: `func_actor_141000_80133204` (scratch `base_2.c`; the
 hoisted `base_1.c` is the counter-example). Input `base_2.i`
 `9b927762e546b3b14d340f093c1ca426c5fa7d5c055dec676e9da171d90780a2`.
 
+## Reading a field twice across a call is not free - the call clobbers memory
+
+The converse of the entry above, and the same read-count rule seen from the
+other side. `func_dryfield_toilet_8017D8C8` tests the incoming message's sub-id
+and then compares it against the session's:
+
+```c
+if (in->field_2 == 1 && GameFlag_GetNibble(0x60) == 0 && Game_Session->field_9 == in->field_2) {
+```
+
+Two loads of `in->field_2` are free to CSE only when nothing between them can
+write memory. Here `GameFlag_GetNibble` sits between them, GCC 2.8.1 assumes any
+call clobbers memory, and the second load survives. That load needs a home live
+across the call, so `in` itself is hoisted into `$s0` (`move s0,a2` / `sw s0,
+0x10(sp)`), the first byte goes to `$v1` instead of `$v0`, and the function
+compiles 32 instructions against the target's 30 - the frame is 8 bytes past
+what the overlay's next unit expects, so the **overlay** checksum fails with
+nothing wrong at the function level.
+
+The fix is to make it one read: m2c's seed already did, via its scratch local.
+
+```c
+u8 subId = in->field_2;
+
+if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && Game_Session->field_9 == subId) {
+```
+
+Generalizing: when two reads of one expression are separated by a call, the
+target's single register holding that value across the call *is* the evidence
+that the source read it once. Neither direction of the read count is the "safe"
+rewrite - the seed's count has to be preserved, whichever it is. Both this
+function's `base_2.c` and the `func_actor_141000_80133204` case are the seed
+being rewritten into the style guide's shape and losing the match. Example:
+`func_dryfield_toilet_8017D8C8` (scratch `base_2.c`, with the local; the
+header-cleaned `base_1.c` without it is the counter-example). Input `base_2.i`
+`0c16c07b8a6e524110d9f9cfcfcb7ea217ccb9fa57d94b8adce92a61092dd08e`.
+
 ## A state index loaded `lh` at its dispatch table is still a `u16` field
 
 The handler-table dispatcher reads the index with `lh`:
