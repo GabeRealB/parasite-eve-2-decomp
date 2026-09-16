@@ -85032,3 +85032,41 @@ splat will not remove for you because it never rewrites a `.c` that exists.
 Unlike the `rodata`-cut recipe in CLAUDE.md this needs no delete-and-re-split of
 any unit file, so no matched body in the sibling is at risk. Verified with
 `./tools/build-and-verify.sh`: `✅ BUILD SUCCEEDED`.
+## A wrong arity in one call shows up as a `reorder` in a later one
+
+`func_dryfield_night_junk_yard_8017D8B0` is a four-statement room task tick.
+m2c gave `Game_SetPtrSlot` a one-parameter prototype — the target writes `$a1`
+and never touches `$a0`, which already holds the task, so m2c read that as a
+call whose only argument is the 7 — and the seed scored 98.45%:
+
+```c
+void Game_SetPtrSlot(M2C_UNK);   /* one parameter */
+...
+Game_SetPtrSlot(7);              /* 98.45%, regs=1 reorder=1 */
+```
+
+Writing `Game_SetPtrSlot(task, 7)` took it straight to 100% with **both**
+penalties gone. The `regs` is the obvious half (7 lands in `$a0` instead of
+`$a1`); the half worth remembering is the other one. The `reorder` belongs to
+the `Gp_DispatchMsg` call three blocks later — the familiar
+`li a1,0x7DA` / `lui a2,%hi(payload)` swap — and nothing in that block is
+wrong. Reading it first sends you after the scheduler for a defect that lives
+in a call signature.
+
+The dumps say where it is decided: the two candidates agree through `sched1`
+(`base.i.sched` chains the `a1` insn before the `a2` insn, and so does
+`base_1.i.sched`) and diverge in `sched2`, which swapped them for the
+mis-called build and kept the order for the fixed one. The only input that
+differs between the builds is the arity fix, whose extra argument copy also
+renumbers the later block's insns (`49/54/56` → `51/56/58`), so a raw dump diff
+between the two is mostly numbering noise — compare the linear insn order.
+
+The tie-break that made sched2 pick the other order was not investigated; the
+reorder was downstream of a defect that already had a fix.
+
+This is the same root cause as "An unused middle parameter is what puts the
+flag in `$a2`", reached from the opposite end: there the excess parameter is
+dead, here the missing one is the live pointer.
+
+Inputs: `base.c` (98.45%, `regs=1 reorder=1`), `base_1.c` (100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
