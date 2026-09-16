@@ -21,7 +21,48 @@ void func_actor_403000_8013D5F8(Actor403000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_3", func_actor_403000_8013D648);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_3", func_actor_403000_8013D72C);
+void func_actor_403000_8013D72C(Actor403000* arg0)
+{
+    GpEnemy*         enemy;
+    Actor403000Work* work;
+    TmdObject*       obj;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        enemy           = arg0->field_20;
+        work->field_FCA = 1;
+        Gp_ClearNodeSlots(&enemy->node);
+        obj->field_C = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_ACA         = 0x10;
+        work->field_AC0         = 2;
+        work->field_AD6         = 0;
+        work->field_AD8         = 0;
+        work->objD18.obj.flags |= 0x4000;
+        func_actor_403000_80133AF8(arg0);
+        return;
+    }
+    func_actor_403000_80133AF8(arg0);
+    if (work->field_FA6 == 0xA) {
+        work->field_F30.t[2]    = 0;
+        work->field_F30.t[1]    = 0;
+        work->field_F30.t[0]    = 0;
+        work->field_F30.m[2][2] = 0;
+        work->field_F30.m[2][1] = 0;
+        work->field_F30.m[2][0] = 0;
+        work->field_F30.m[1][2] = 0;
+        work->field_F30.m[1][1] = 0;
+        work->field_F30.m[1][0] = 0;
+        work->field_F30.m[0][2] = 0;
+        work->field_F30.m[0][1] = 0;
+        work->field_F30.m[0][0] = 0;
+    }
+    if (work->field_FA6 == 4 && work->field_AC6 == 0x1B && (work->field_60 & 0x100)) {
+        work->field_AC6 = 0x1D;
+        work->field_AC0 = 2;
+    }
+}
 
 void func_actor_403000_8013D850(Actor403000* arg0)
 {

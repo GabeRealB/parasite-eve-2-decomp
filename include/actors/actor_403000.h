@@ -55,20 +55,32 @@ typedef struct Actor403000Work {
     /* 0xAC0 */ s16            field_AC0;
     /* 0xAC2 */ s16            field_AC2;
     /* 0xAC4 */ s16            field_AC4;
-    /* 0xAC6 */ u16            field_AC6;
+    /* 0xAC6 */ s16            field_AC6;
     /* 0xAC8 */ byte           pad_AC8[2];
     /* 0xACA */ s16            field_ACA;
-    /* 0xACC */ byte           pad_ACC[0x84];
+    /* 0xACC */ byte           pad_ACC[0xA];
+    /* 0xAD6 */ s16            field_AD6;
+    /* 0xAD8 */ s16            field_AD8;
+    /* 0xADA */ byte           pad_ADA[0x76];
     /* 0xB50 */ Actor403000Obj objB50;
     /* 0xBE8 */ Actor403000Obj objBE8;
     /* 0xC80 */ Actor403000Obj objC80;
     /* 0xD18 */ Actor403000Obj objD18;
-    /* 0xDB0 */ byte           pad_DB0[0x21A];
-    /* 0xFCA */ s16            field_FCA;
-    /* 0xFCC */ byte           pad_FCC[0x6];
-    /* 0xFD2 */ s8             field_FD2;
-    /* 0xFD3 */ s8             field_FD3;
-    /* 0xFD4 */ byte           pad_FD4[0x8];
+    /* 0xDB0 */ byte           pad_DB0[0x180];
+    /// The second of the two default matrices the spawn handler binds to the
+    /// display object -- `&work->field_F10` and this one are what it writes to
+    /// `TmdObject::field_1C` / `field_20` -- so it is a `MATRIX` whether or not
+    /// the animation that drives it is running. `func_actor_403000_8013D72C`
+    /// zeroes this one field by field, last element first.
+    /* 0xF30 */ MATRIX field_F30;
+    /* 0xF50 */ byte   pad_F50[0x56];
+    /* 0xFA6 */ u8     field_FA6;
+    /* 0xFA7 */ byte   pad_FA7[0x23];
+    /* 0xFCA */ s16    field_FCA;
+    /* 0xFCC */ byte   pad_FCC[0x6];
+    /* 0xFD2 */ s8     field_FD2;
+    /* 0xFD3 */ s8     field_FD3;
+    /* 0xFD4 */ byte   pad_FD4[0x8];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 

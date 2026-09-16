@@ -91341,3 +91341,41 @@ Verify a promotion that splits a unit the same way as any other landing: the
 unscoped `./tools/build-and-verify.sh` (which re-splits both carriers and
 checksums every overlay) plus `tools/check_lost_matches.py` for the bodies that
 moved between files.
+
+## A halfword-to-halfword copy loads `lhu` whatever the field's signedness is
+
+The read-modify-write case above is one member of a family: any use that does
+*not* promote the value to `int` leaves the load as the default `movhi` (→
+`lhu`), so the load says nothing about the declared type. A plain copy between
+two same-width fields is the cleanest instance — there is no extension to fold:
+
+```c
+work->field_AC4 = work->field_AC6;   /* lhu $v0, 0xAC6($s0); sh $v0, 0xAC4($s0) */
+```
+
+`Actor403000Work::field_AC6` was declared `u16` on exactly that evidence (two
+copies in `func_actor_403000_80133AF8`), but the same function also reads the
+field `lh` twice — a compare against the neighbouring `field_AC4` and an
+argument passed on — and `func_actor_403000_8013D72C` needs `lh` for
+`field_AC6 == 0x1B`. Declaring it `s16` satisfies both `lh` readers and leaves
+both copies `lhu`, because a bare HImode move is still a bare HImode move: no
+cast, no signed temp, and no change to the two copy sites is needed. The
+declaration was the whole fix.
+
+So when the evidence conflicts, sort the sites by use: a compare, an argument,
+or anything promoted to `int` is a signedness claim, a copy is not. Check the
+other sites before changing a declaration — here the only matched readers were
+stores (`sh` either way), so the change was free.
+
+The same function also carries the reverse-direction trap for store order:
+`work->field_F30` is a `MATRIX` (`short m[3][3]` then `long t[3]`) zeroed as
+twelve constant stores running strictly *down* from `t[2]` to `m[0][0]`. sched1
+sorts equal-priority independent insns by `INSN_LUID` (`rank_for_schedule`
+falls through to it), i.e. source order, so a descending run like that is a
+property of the source and has to be written descending — twelve assignments
+last element first, not a clear in natural order.
+
+`func_actor_403000_8013D72C` matched at 100% (73 insns, 2 builds). The struct
+version and the `M2C_FIELD` version compile to identical bytes: `base_1.i`
+`027be4dca73845d7719f1afb4410e702b75d7a589519e049a73197273b51dc6c`, `base_2.i`
+`3ea6fabb3a3da035f583fdacb2bd3aba8a58379bcebe7fe9ca0760f781ab58ca`.
