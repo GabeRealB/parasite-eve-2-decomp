@@ -454,7 +454,177 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133684);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133BBC);
+/// Draws a translucent flat quad in the (`D_..._80135B53`..`55`) colour at
+/// x 0x43..0x68, on row 1 (`arg0 == 1`) or row 2, framed by four `POLY_G4`
+/// edges fading from black into that colour, all linked into
+/// `Gpu_CurrentOt[0x3FC]`.
+void func_actor_548100_80133BBC(s32 arg0)
+{
+    POLY_F4* quad;
+    POLY_G4* top;
+    POLY_G4* left;
+    POLY_G4* right;
+    POLY_G4* bottom;
+    s16      x0;
+    s16      x1;
+    s16      y0;
+    s16      y1;
+    u8       r1;
+    u8       g1;
+    u8       b1;
+    u8       r2;
+    u8       g2;
+    u8       b2;
+    u8       r3;
+    u8       g3;
+    u8       b3;
+    u8       r4;
+    u8       g4;
+    u8       b4;
+
+    quad           = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
+    setPolyF4(quad);
+    setSemiTrans(quad, 1);
+    quad->r0 = D_actor_548100_80135B53;
+    quad->g0 = D_actor_548100_80135B54;
+    quad->b0 = D_actor_548100_80135B55;
+    x0       = 0x43;
+    if (arg0 == 1) {
+        y0 = 0x2E;
+        x1 = 0x68;
+        y1 = 0x39;
+    } else {
+        y0 = 0x42;
+        x1 = 0x68;
+        y1 = 0x4D;
+    }
+    quad->x0 = x0;
+    quad->y0 = y0;
+    quad->x1 = x1;
+    quad->y1 = y0;
+    quad->x2 = x0;
+    quad->y2 = y1;
+    quad->x3 = x1;
+    quad->y3 = y1;
+    addPrim(&Gpu_CurrentOt[0x3FC], quad);
+
+    r1             = D_actor_548100_80135B53;
+    g1             = D_actor_548100_80135B54;
+    b1             = D_actor_548100_80135B55;
+    top            = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(top + 1);
+    setPolyG4(top);
+    setSemiTrans(top, 1);
+    top->r0 = 0;
+    top->g0 = 0;
+    top->b0 = 0;
+    top->r1 = 0;
+    top->g1 = 0;
+    top->b1 = 0;
+    top->r2 = r1;
+    top->g2 = g1;
+    top->b2 = b1;
+    top->r3 = r1;
+    top->g3 = g1;
+    top->b3 = b1;
+    top->x0 = x0 - 3;
+    top->y0 = y0 - 3;
+    top->x1 = x1 + 3;
+    top->y1 = y0 - 3;
+    top->x2 = x0;
+    top->y2 = y0;
+    top->x3 = x1;
+    top->y3 = y0;
+    addPrim(&Gpu_CurrentOt[0x3FC], top);
+
+    r2             = D_actor_548100_80135B53;
+    g2             = D_actor_548100_80135B54;
+    b2             = D_actor_548100_80135B55;
+    left           = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(left + 1);
+    setPolyG4(left);
+    setSemiTrans(left, 1);
+    left->r0 = 0;
+    left->g0 = 0;
+    left->b0 = 0;
+    left->r1 = 0;
+    left->g1 = 0;
+    left->b1 = 0;
+    left->r2 = r2;
+    left->g2 = g2;
+    left->b2 = b2;
+    left->r3 = r2;
+    left->g3 = g2;
+    left->b3 = b2;
+    left->x0 = x0 - 3;
+    left->y0 = y0 - 3;
+    left->x1 = x0 - 3;
+    left->y1 = y1 + 3;
+    left->x2 = x0;
+    left->y2 = y0;
+    left->x3 = x0;
+    left->y3 = y1;
+    addPrim(&Gpu_CurrentOt[0x3FC], left);
+
+    r3             = D_actor_548100_80135B53;
+    g3             = D_actor_548100_80135B54;
+    b3             = D_actor_548100_80135B55;
+    right          = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(right + 1);
+    setPolyG4(right);
+    setSemiTrans(right, 1);
+    right->r0 = 0;
+    right->g0 = 0;
+    right->b0 = 0;
+    right->r1 = 0;
+    right->g1 = 0;
+    right->b1 = 0;
+    right->r2 = r3;
+    right->g2 = g3;
+    right->b2 = b3;
+    right->r3 = r3;
+    right->g3 = g3;
+    right->b3 = b3;
+    right->x0 = x1 + 3;
+    right->y0 = y0 - 3;
+    right->x1 = x1 + 3;
+    right->y1 = y1 + 3;
+    right->x2 = x1;
+    right->y2 = y0;
+    right->x3 = x1;
+    right->y3 = y1;
+    addPrim(&Gpu_CurrentOt[0x3FC], right);
+
+    r4             = D_actor_548100_80135B53;
+    g4             = D_actor_548100_80135B54;
+    b4             = D_actor_548100_80135B55;
+    bottom         = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(bottom + 1);
+    setPolyG4(bottom);
+    setSemiTrans(bottom, 1);
+    bottom->r0 = 0;
+    bottom->g0 = 0;
+    bottom->b0 = 0;
+    bottom->r1 = 0;
+    bottom->g1 = 0;
+    bottom->b1 = 0;
+    bottom->r2 = r4;
+    bottom->g2 = g4;
+    bottom->b2 = b4;
+    bottom->r3 = r4;
+    bottom->g3 = g4;
+    bottom->b3 = b4;
+    bottom->x0 = x0 - 3;
+    bottom->y0 = y1 + 3;
+    bottom->x1 = x1 + 3;
+    bottom->y1 = y1 + 3;
+    bottom->x2 = x0;
+    bottom->y2 = y1;
+    bottom->x3 = x1;
+    bottom->y3 = y1;
+    addPrim(&Gpu_CurrentOt[0x3FC], bottom);
+}
 
 /// Draws a translucent flat quad in half the (`D_..._80135B53`..`55`) colour
 /// and a gradient border of four `POLY_G4` edges fading from black into
