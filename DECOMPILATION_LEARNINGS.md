@@ -96134,3 +96134,73 @@ Evidence: scratch `nonmatchings/func_actor_312200_80163778-vacuum/`; `base.c`
 reproduces base.c`); `include/actors/actor_312200.h` gained `GpObj field_8BC`
 inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `GpEnemy.pad_4D`
 to `field_4D`.
+
+## A switch whose cases share a body must repeat that body, one `case` per copy (func_actor_312200_801636CC, 2026-09-16)
+
+`func_actor_312200_801636CC` dispatches on a 0x7DB action with cases 1, 2, 3 and
+4, where 2, 3 and 4 do the same two stores. Written the obvious way, with the
+three labels sharing one body:
+
+```c
+    case 2:
+    case 3:
+    case 4:
+        work->field_892 = action;
+        work->field_88C = 1;
+        break;
+```
+
+the target's decision tree does not come out. `expand_end_case` calls
+`group_case_nodes` (stmt.c), which merges adjacent case nodes whose labels reach
+the *same first real insn* into one range node — and a range node is emitted as
+bound compares (`slti`/`bnez`), not as one `beq` per value. The target has a
+`beq` per case (`beq $a2,$v1` for 2, `beq $a2,$v0` for 3, `beq $a2,$v0` for 4),
+which is `balance_case_nodes` over four *single-valued* nodes, so each case had
+its own body in the source. Write the duplicate out:
+
+```c
+    case 2:
+        work->field_892 = action;
+        work->field_88C = 1;
+        break;
+
+    case 3:
+        work->field_892 = action;
+        work->field_88C = 1;
+        break;
+
+    case 4:
+        work->field_892 = action;
+        work->field_88C = 1;
+        break;
+```
+
+Nothing is lost by the duplication: jump.c cross-jumps the identical tails
+(`find_cross_jump`/`do_cross_jump`, reached from the second `jump_optimize`), so
+the three bodies collapse into the one shared block the target shows — with case
+4 left holding only the `li v0,1` prefix that materializes the constant for
+0x88C, which is exactly the target's `.L375C` falling into the shared `.L3760`.
+
+Reproducing the arithmetic is what the two forms cost:
+
+| seed | switch form | score |
+|---|---|---|
+| `base_1.c` | shared `case 2: case 3: case 4:` label | 52.302%, `insert=5 delete=14` |
+| `base_2.c` | three separate identical bodies | 100.000%, all penalties zero |
+
+Two smaller things the same function needed, both visible in the leftover diff:
+a `u16` local as the switch index gets an `andi v0,$a2,0xffff` in front of the
+dispatch (stmt.c widens HImode to SImode because MIPS has no HImode compare
+pattern), so type the index `s32` — the family's `func_actor_444000_8013ACD0`
+does exactly that; and the handler's fourth parameter is unread, so the seed's
+two-parameter m2c signature puts the payload in `$a1` where the target reads
+`$a2`. The arity comes from the dispatch table, not the body:
+`D_actor_312200_80169F5C` lists this handler as a `GpMsgEntry` id 0x7DB handler,
+i.e. `s32 f(Task*, s32, Msg*, s32)`.
+
+Evidence: scratch `nonmatchings/func_actor_312200_801636CC-vacuum/`; `base_1.c`
+(52.302%) and `base_2.c` (100.000%); `include/actors/actor_312200.h` gained
+`field_0`, `field_8B4`/`field_8B6`/`field_8B8` (cut out of `pad_898`) and the
+`Actor312200Msg7DB` union, whose `u8 b[4]` / `struct { u16 id; u16 action; }`
+view pair is what makes the two byte loads and the two halfword loads of the
+same four payload bytes come out as the target's `lbu`/`lbu`/`lhu`/`lhu`.

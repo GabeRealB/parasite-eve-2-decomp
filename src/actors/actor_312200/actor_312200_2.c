@@ -29,7 +29,49 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placemen
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200_2", func_actor_312200_801636CC);
+/// Id 0x7DB command handler. The payload is always recorded in the work block,
+/// and a message from sender 0x301 additionally selects the work state: action
+/// 1 takes state 2, actions 2, 3 and 4 take state 1, and the action itself is
+/// latched in the 0x892 timer. Either way the actor's `field_0` state word is
+/// raised to 1.
+s32 func_actor_312200_801636CC(Task* task, s32 msgId, Actor312200Msg7DB* msg)
+{
+    Actor312200Work* work;
+    s32              action;
+
+    work            = (Actor312200Work*)task->idMap;
+    work->field_8B4 = msg->b[0];
+    work->field_8B6 = msg->b[1];
+    work->field_8B8 = msg->h.action;
+
+    if (msg->h.id == 0x301) {
+        action = msg->h.action;
+        switch (action) {
+            case 1:
+                work->field_892 = action;
+                work->field_88C = 2;
+                break;
+
+            case 2:
+                work->field_892 = action;
+                work->field_88C = 1;
+                break;
+
+            case 3:
+                work->field_892 = action;
+                work->field_88C = 1;
+                break;
+
+            case 4:
+                work->field_892 = action;
+                work->field_88C = 1;
+                break;
+        }
+    }
+
+    work->field_0 = 1;
+    return 1;
+}
 
 /// Show handler. On a live actor it flags the enemy's link node, raises the
 /// model's 0x80 draw bit, clears `GpEnemy::field_4D` and drops bit 0x8000 of
