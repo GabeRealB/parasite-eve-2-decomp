@@ -7,11 +7,15 @@
 
 #include <psyq/abs.h>
 
+#include <psyq/rand.h>
+
 extern void func_8010ABD4();
 
 extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
 
 extern s32 func_8010BC70(GsCOORDINATE2*);
+
+extern void func_8010BD88(GpActorWork*, VECTOR3*);
 
 extern s32 func_8010BCF4(Task*, VECTOR3*);
 
@@ -524,7 +528,94 @@ void func_actor_800200_80163E14(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80163F5C);
+void func_actor_800200_80163F5C(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    VECTOR3*       vec;
+    GameActor*     hit;
+    s32            mode;
+    s32            dist;
+    s32            angle;
+
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    actor  = arg0->actor;
+    dist   = func_actor_800200_801660E8(coord, &actor->field_910->field_A0, NULL);
+    if (dist != 0 && dist < 0x301) {
+        hit            = arg0->actor;
+        d4             = hit->field_910;
+        hit->field_956 = 0xA;
+        hit->field_95A = 2;
+        hit->field_954 = 0;
+        hit->field_95C = 0;
+        hit->field_95E = 0;
+        hit->field_973 = 0;
+        hit->field_975 = 0;
+        d4->field_CA   = -1;
+        d4->field_C6   = 0;
+        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
+        return;
+    }
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_934 = 0;
+            if (func_8010BC70(coord) >= 0xE00) {
+                mode             = 4;
+                actor->field_95E = 2;
+                actor->field_958 = 6;
+            } else {
+            resume:
+                if (actor->field_95E != 3) {
+                    actor->field_95E = 1;
+                }
+                actor->field_958 = 5;
+                mode             = 2;
+            }
+            actor->field_973 = 1;
+            Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
+        case 1:
+        case 2:
+        case 3:
+            dist = func_8010BC70(coord);
+            if (dist < 0x301) {
+                Gp_ResetActorMove(arg0, 0);
+                break;
+            }
+            if (actor->field_95E == 3) {
+                break;
+            }
+            actor->field_934++;
+            if (actor->field_934 == 0xF0) {
+                actor->field_95E = 3;
+                goto resume;
+            }
+            angle = rand() & 0x3FF;
+            if ((0x800 - angle) < dist) {
+                goto in_range;
+            }
+            if (actor->field_95E == 2) {
+                goto reset;
+            }
+        in_range:
+            if (dist < angle + 0xC00) {
+                break;
+            }
+            if (actor->field_95E != 1) {
+                break;
+            }
+        reset:
+            actor->field_95E = 0;
+            break;
+        default:
+            break;
+    }
+    vec = (VECTOR3*)&target->coord.t[0];
+    func_8010BD88(arg0, vec);
+    func_8010BE5C(arg0, vec);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80164180);
 

@@ -101617,3 +101617,61 @@ belongs in the division statement": which pseudo the division's operand is decid
 decides the register.
 
 Inputs: `base_5.i` (95.375%, one-statement divide), `base_6.i` (96.414%).
+
+## An `if/else` with equal block and insn counts left only `reorder`: the block that falls through is the `then` (func_actor_800200_80163F5C, 2026-09-16)
+
+`func_actor_800200_80163F5C` dispatches on a `u16` state with `switch (actor->field_95E)` and cases
+0..3. Two things about the shape are worth keeping:
+
+The **dispatch** is `lhu $v0, 0x95E($s0)` / `beqz $v0, case0` / `bltz $v0, default` /
+`slti $v0,$v0,4` / `beqz $v0, default`. The `bltz` is dead for a value just loaded with `lhu`, and
+that is the tell: the switch index is the *promoted* `u16`, so the controlling expression is `int`,
+the load stays `lhu`, and the two compares are `expand_end_case`'s `< min` / `> max` default range
+check. A four-case switch does not become a table here: `HAVE_casesi` is undefined for mips, so
+`CASE_VALUES_THRESHOLD` is 5 (`stmt.c`) and `count < 5` picks the decision tree.
+
+The **case-0 arm** then sat at 96.343% with `blocks=26/26 instructions=137/137`, `branch=1
+insert=1 delete=1 reorder=5` and nothing else wrong: equal counts plus a block-order-only diff is a
+layout leftover, not a missing or extra statement. The target has the `>= 0xE00` block first,
+falling through from `bnez`, with the resume-block after a `j`:
+
+```c
+            if (func_8010BC70(coord) < 0xE00) {   /* 96.343%: then-block is the fall-through */
+            resume:
+                ...
+            } else {
+                mode             = 4;
+                actor->field_95E = 2;
+                actor->field_958 = 6;
+            }
+```
+```c
+            if (func_8010BC70(coord) >= 0xE00) {  /* 100%: >= is the then, so it lands first */
+                mode             = 4;
+                actor->field_95E = 2;
+                actor->field_958 = 6;
+            } else {
+            resume:
+                ...
+            }
+```
+
+GCC emits the then-block first, jumping to the else label when the condition fails, so the block that
+physically falls through *is* the `then`; writing the same test in the opposite polarity moves the two
+blocks and swaps the emitted branch (`beqz v0,ELSE` for `<`, `bnez v0,ELSE` for `>=`). A `goto` label
+inside the arm - here `resume:`, reached from case 3 - does not change this, but it does mean the two
+orderings are the only candidates, which makes the flip a one-line experiment rather than a rewrite.
+
+Same function, second leftover: `mode = 4` was assigned *before* the `if` and only read on the
+`>= 0xE00` path, so its pseudo was live across the whole arm and `global.c` gave it `$s1`
+(callee-saved); with `mode = 4` the arm's first statement, `reorg` fills the `bnez` delay slot with
+it and it never leaves `$a1`, as the target's `li a1,4` shows. m2c had hoisted the assignment with the
+`var_a1 = 4` it invented, and that is where the register and the delay slot both came from.
+
+Also in this function: `temp_s0->field_910 + 0xA0` where `field_910` is a `GpActorD4*` (sizeof 0xD4)
+compiles to `li $v1,0x8480` + `addu $a1,$a1,$v1` - m2c's pointer-typed add is *scaled*, and the
+constant is unrecognisable. Reaching the same address by field, `&actor->field_910->field_A0`,
+gives the target's `addiu $a1,$a1,0xA0`. Read `GpActorD4`'s field list before debugging the constant.
+
+Inputs: `base_2.i` (96.343%, `< 0xE00` polarity), `base_3.i` (100%)
+`99fc539087a26265b047311d06b188fc4c7a72c4729ebb460579fe61de6ac2fe`.
