@@ -103,13 +103,26 @@ typedef struct Actor401800Work {
     /// Cleared by the init body right after `field_A08` is linked; same slot
     /// `Actor01900Work.field_C10` / `Actor401300Work.field_C88` clears.
     /* 0xBE0 */ s16  field_BE0;
-    /* 0xBE2 */ byte pad_BE2[0x1A];
+    /* 0xBE2 */ byte pad_BE2[6];
+    /// Direction the swing body of `func_actor_401800_80137DDC` rebuilds from
+    /// the yaw in the scratch angle with `Gfx_MatrixCol2` / `VectorNormalSS`,
+    /// then GPF-scales by `field_C02` into the offset added to the root
+    /// coordinate. Same slot `Actor01900Work.field_C18` keeps.
+    /* 0xBE8 */ SVECTOR field_BE8;
+    /* 0xBF0 */ byte    pad_BF0[0xC];
     /// Step the aim-and-rescale body walks the actor along its own local Z
     /// axis while `func_actor_401800_80133558` says the path is clear, and
     /// reloads `field_0 = 9` once it has counted down to zero. Same slot
     /// `Actor401300Work.field_C98` keeps.
     /* 0xBFC */ s16  field_BFC;
-    /* 0xBFE */ byte pad_BFE[6];
+    /* 0xBFE */ byte pad_BFE[2];
+    /// Side the live-actor swing of `func_actor_401800_80137DDC` takes from
+    /// the LCG, then flips every frame it runs: 1 adds 0x171 to the yaw and
+    /// -1 subtracts it. Same slot `Actor01900Work.field_C28`.
+    /* 0xC00 */ s16 field_C00;
+    /// The 0xDE the swing body resets its GPF scale to and halves once the
+    /// `field_A28` contact test fires. Same slot `Actor01900Work.field_C2A`.
+    /* 0xC02 */ s16 field_C02;
     /// Step the actor walks along its local Z axis: `func_actor_401800_80139118`
     /// seeds it with -0x78, hands it to the step helper while the 0x10 clip is
     /// playing, and halves it each time the `field_A28` contact test fires.
@@ -138,7 +151,11 @@ typedef struct Actor401800Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC14 */ Task* field_C14;
     /* 0xC18 */ Task* field_C18;
-    /* 0xC1C */ byte  pad_C1C[4];
+    /* 0xC1C */ byte  pad_C1C[2];
+    /// Frames the live-actor swing of `func_actor_401800_80137DDC` has run:
+    /// it picks the side `field_C00` flips to only while this is zero, and
+    /// bumps it once per frame. Same slot `Actor01900Work.field_C42`.
+    /* 0xC1E */ s16 field_C1E;
     /// Set to 1 by the actors that own the `0x3F1` message and cleared once
     /// `func_actor_401800_80139118` has sent it. Same slot `Actor01900Work`
     /// keeps at 0xC20.

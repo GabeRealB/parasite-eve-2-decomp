@@ -103716,3 +103716,39 @@ error under `-w`. That shows up in `.diagnosis.json` as `calls_match=False` with
 `ABS+0` and `gte_lddp+0` in the candidate's call list, and it costs about eleven
 instructions — the seed sat at 98.7% with the remaining diff being nothing but
 branch-target offsets.
+
+## `lh` vs `lhu` on a masked halfword: the receiver's width decides, not the mask
+
+"A halfword that is incremented before its signed compare still loads `lhu`"
+above gives the mechanism: `lhu` is the plain HImode load and `lh` needs a
+*fresh* load feeding a signed SImode use for combine to fold into
+`extendhisi2_internal`. What keeps that fold alive here is the **width of the
+local the load is assigned to** — not the field's signedness, and not the mask
+that follows, which looks like it proves the upper bits are dead:
+
+```c
+kind = arg0->field_36;                            /* field_36 is s16 */
+if ((kind & 0xF0) == 0x10) { work->field_0 = 0x1E; return; }
+```
+
+```asm
+s32 kind;   /* lh  $v0, 0x36($s3); andi $v0,$v0,0xF0   <- ROM */
+s16 kind;   /* lhu $v0, 0x36($s3); andi $v0,$v0,0xF0 */
+```
+
+An `s32` receiver makes the sign-extension part of the assignment, so the `andi`
+no longer breaks the fold; a HImode receiver leaves the load a bare HImode move
+and the `andi` reads a zero-extended register, which is the same value only
+while the mask holds. Read the receiver's declaration before concluding anything
+from the mask.
+
+Evidence, `func_actor_401800_80137DDC` (preprocessed sha256 `8feb6a24f5f8be27…`
+/ `113607fbc247e89e…` for the two below, one token apart):
+
+| receiver | score | penalties | difference |
+|---|---|---|---|
+| `s32 kind` | 100.000% | all zero | — |
+| `s16 kind` | 99.225% | insert=1 delete=1 | the `lh`/`lhu` line only |
+
+`func_actor_401300_80137D78`, the same swing body in the neighbouring overlay,
+declares it `s32` for the same reason.
