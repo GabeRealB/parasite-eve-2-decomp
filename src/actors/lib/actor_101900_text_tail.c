@@ -297,7 +297,29 @@ void Actor01900_Fn0AA78(Actor01900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text_tail", Actor01900_Fn0AB1C);
+void Actor01900_Fn0AB1C(Actor01900* arg0)
+{
+    Actor01900Work* work;
+    GpEnemy*        enemy;
+    u32             rng;
+    s16             timer;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        rng           = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng;
+        work->field_6 = ((rng >> 16) & 0xF) + work->field_C2C;
+    }
+    timer         = work->field_6 - 1;
+    work->field_6 = timer;
+    if (timer < 0) {
+        work->field_0 = 0xF;
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x15;
+    }
+}
 
 void Actor01900_Fn0ABA0(s32 arg0, Task* task)
 {

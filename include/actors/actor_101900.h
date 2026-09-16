@@ -346,6 +346,7 @@ void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 s32  Actor01900_Fn016F0(Actor01900* arg0);
 void Actor01900_Fn01C94(Actor01900* arg0);
+void Actor01900_Fn0AB1C(Actor01900* arg0);
 void Actor01900_Fn0A6CC(Task* task);
 s32  Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count);
 void Actor01900_Fn08724(Actor01900* arg0);
