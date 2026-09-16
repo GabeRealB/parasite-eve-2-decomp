@@ -23,7 +23,7 @@
 /// with `field_A10.flags |= 0x4000` in place of the sibling's `&= 0xBFFF`.
 typedef struct Actor401000Work {
     /* 0x000 */ s16      field_0;
-    /* 0x002 */ byte     pad_2[2];
+    /* 0x002 */ s16      field_2;
     /* 0x004 */ s16      field_4;
     /* 0x006 */ byte     pad_6[0x54];
     /* 0x05A */ u16      field_5A;
@@ -68,12 +68,23 @@ typedef struct Actor401000 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor401000;
 
+/// Message payload of `func_actor_401000_8013D694`, the actor's animation
+/// request handler: `field_4` is the requested clip index, which the handler
+/// maps onto `Actor401000Work.field_89E` (0x22-0x25, 0x27) and then restarts
+/// the state halfwords. Only the two leading words of the argument block are
+/// read, so the struct covers just those.
+typedef struct Actor401000Msg {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+} Actor401000Msg;
+
 /// Message 0x3FF payload of `func_actor_401000_801383F0` and
 /// `func_actor_401000_801385B0`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
 
 void func_actor_401000_80132EF0(Actor401000* arg0);
+s32  func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
 /// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.

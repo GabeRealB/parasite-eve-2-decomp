@@ -7374,6 +7374,40 @@ matching `INCLUDE_RODATA(..., D_actor_510900_80131EA4)` has to be written into
 `actor_510900_3.c` by hand, ahead of the first `INCLUDE_ASM`; the pad is then
 between the two tables again.
 
+**When the table sits at a `4 mod 8` offset *inside its own unit's* `.rodata`,
+that pad has no cut to escape through - move the section base instead.**
+`actor_401000`'s `func_actor_401000_8013D694` matched at 100.00% in scratch and
+failed only its own overlay, `cmp -l` showing 13 bytes wrong: the table four
+bytes late, everything from the next unit's table on identical. The leading
+rodata's assembly content ends at `0x26C` and GCC's `.align 3` ahead of the
+table pads it to `0x270`, because the section base is the overlay's own
+`0x0` (8-aligned). The original TU's `.rodata` *started* at `0x26C`, which is
+`4 mod 8`, so its pad was a no-op - and the pad the target does have sits after
+the table, ahead of the next TU's table.
+
+The actor_510900 cut above cannot reach it. That pad is at `0x280` and the next
+unit's rodata starts at `0x284`, the pad's *end*: give the pad to the next unit
+and its own table's `.align 3` moves off its address (`0x284` is `4 mod 8`,
+`0x280` is not). Nor can the table move: it must stay in the first unit's object
+(the function is the last in that unit's `.text`, so a `units` cut there only
+renumbers `_2` onward), and a unit's `.rodata` appears once in the linker script.
+
+`rodata_head = "0x4"` is the fix - it moves the section base to `0x4`, making
+the `0x268` bytes of assembly rodata before the table 8-aligned *section
+relative*, so the `.align 3` goes quiet and the table lands at `0x26C`. That
+leaves the section four bytes short of its span, and those four bytes are the
+pad the original emitted ahead of the next table; materialise them at the end of
+the section, after the table, as an explicit word named for its own address:
+
+```c
+const u32 D_actor_401000_801320A0 SECTION(".rodata") = 0;
+```
+
+(`SECTION` is `__attribute__((section(x)))` in `include/decomp/common.h`.) The
+`rodata_head` split takes over the header word the unit's `.c` used to
+`INCLUDE_RODATA` - delete that line in the same edit, or the section opens with
+a second copy of it and everything shifts by four.
+
 **Renumbering units with `git mv` leaves ninja building the old objects.**
 `git mv` preserves mtime, so after `_2..._7` become `_4..._9` every renamed file
 is *older* than the `.o` ninja built from the file that used to have its name,

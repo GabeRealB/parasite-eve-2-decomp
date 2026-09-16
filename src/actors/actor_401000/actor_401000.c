@@ -15,8 +15,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80132A84);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_401000/actor_401000", D_actor_401000_80131E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80132BB0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80132EF0);
@@ -126,4 +124,35 @@ void func_actor_401000_8013D68C(void)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_401000/actor_401000", ActorsShared80135df4Table);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013D694);
+s32 func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2)
+{
+    Actor401000Work* work = arg0->field_1C;
+
+    switch (arg2->field_4) {
+        case 0:
+            work->field_89E = 0x22;
+            break;
+        case 1:
+            work->field_89E = 0x23;
+            break;
+        case 2:
+            work->field_89E = 0x24;
+            break;
+        case 3:
+            work->field_89E = 0x25;
+            break;
+        case 4:
+            work->field_89E = 0x27;
+            break;
+    }
+    work->field_0 = 0x11;
+    work->field_2 = -1;
+    return 0;
+}
+
+/// The four bytes of `.rodata` that sit between this function's jump table and
+/// `func_actor_401000_8013DF6C`'s. Both tables came out of one translation unit,
+/// where GCC's `.align 3` ahead of the second left this gap; the split puts the
+/// second table in `actor_401000_2`, so the gap has to be materialised here to
+/// keep the leading rodata the length the package says it is.
+const u32 D_actor_401000_801320A0 SECTION(".rodata") = 0;
