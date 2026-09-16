@@ -8,6 +8,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -2705,34 +2706,6 @@ void func_actor_401300_8013D6C4(Actor401300* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013DADC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013E930);
-
-/// Scale `m` uniformly by `scale` (4.12), translation included.
-static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
-{
-    Actor401300ScaleScratch* head;
-    Actor401300ScaleScratch* blk;
-
-    head                                       = *(Actor401300ScaleScratch**)G_SCRATCH_HEAD;
-    blk                                        = head - 1;
-    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD = blk;
-    blk->scale.vz                              = scale;
-    blk->scale.vy                              = scale;
-    head[-1].scale.vx                          = scale;
-    ScaleMatrix(m, &blk->scale);
-    blk->trans.vx = m->t[0];
-    blk->trans.vy = m->t[1];
-    blk->trans.vz = m->t[2];
-    gte_lddp(scale);
-    gte_ldsv(&blk->trans);
-    gte_gpf12_real();
-    gte_stsv(&blk->trans);
-    m->t[0]                                     = blk->trans.vx;
-    m->t[1]                                     = blk->trans.vy;
-    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD += 1;
-    m->t[2]                                     = blk->trans.vz;
-}
-
 /// `Actor401300_RescaleYaw` at 0x1964 on the actor's root coordinate, with
 /// the root's `flg` cleared again before the scratch block is released.
 static __inline__ void Actor401300_ResetActorYaw(Actor401300* actor)
@@ -2769,6 +2742,257 @@ static __inline__ void Actor401300_ResetActorYaw(Actor401300* actor)
     coord->coord.m[2][2]          = m22;
     actor->field_2C->field_8->flg = 0;
     *(void**)G_SCRATCH_HEAD       = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+}
+
+/// Wrapped yaw from `coord`'s facing to the offset (`x`, `z`).
+static __inline__ s16 Actor401300_YawTo(GsCOORDINATE2* coord, s16 x, s16 z)
+{
+    s32 angle;
+    angle = ratan2(x, z);
+    return Actor401300_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+/// Facing yaw of `coord`.
+static __inline__ s32 Actor401300_Yaw(GsCOORDINATE2* coord)
+{
+    return ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+}
+
+/// `Actor401300_MoveForwardNonzero` testing the same flag byte through a
+/// `McSaveData*` (`D_80072729` is `Mc_SaveData.unknown_5C0[1]`).
+static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if ((u8)save->unknown_5C0[1] != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            gte_gpf12_real();
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+void func_actor_401300_8013E930(Actor401300* arg0)
+{
+    Actor401300Work*         work;
+    Task*                    task;
+    GameActor*               player;
+    WipSysConfig*            config;
+    GpEnemy*                 enemy;
+    TmdObject*               obj;
+    GsCOORDINATE2*           root;
+    SVECTOR**                scratch;
+    Actor401300LungeScratch* head;
+    Actor401300LungeScratch* blk;
+    SVECTOR*                 delta;
+    SVECTOR*                 vec;
+    s16                      cur;
+    s16                      amount;
+    s16                      ret;
+    McSaveData*              save;
+
+    work   = arg0->field_1C;
+    task   = Game_GetPtrSlot(3);
+    player = (GameActor*)task->idMap;
+    config = &Wip_SysConfig;
+    save   = &Mc_SaveData;
+    enemy  = arg0->field_20;
+
+    if (work->field_4 != 0) {
+        obj                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        obj->field_C        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x280;
+        work->field_89C          = 1;
+        work->field_8A6          = 0x10;
+        work->field_8A2          = 0x1F;
+        work->field_89E          = 0;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        func_actor_401300_80133A3C(arg0);
+        work->field_8B6 = 0x200;
+        work->field_D1C = 0;
+        work->field_6   = 0;
+        work->field_8BA = 0x100;
+        work->field_D04 = arg0->field_2C->field_8->coord.t[0];
+        work->field_D06 = arg0->field_2C->field_8->coord.t[1];
+        work->field_D08 = arg0->field_2C->field_8->coord.t[2];
+        return;
+    }
+    scratch = (SVECTOR**)G_SCRATCH_HEAD;
+    work->field_6++;
+    root              = arg0->field_2C->field_8;
+    head              = (Actor401300LungeScratch*)*scratch;
+    head[-1].delta.vx = config->field_4->t[0] - root->coord.t[0];
+    delta             = &head[-1].delta;
+    delta->vy         = config->field_4->t[1] - root->coord.t[1];
+    blk               = (Actor401300LungeScratch*)(*scratch = (SVECTOR*)(head - 1));
+    delta->vz         = config->field_4->t[2] - root->coord.t[2];
+    func_actor_401300_80133A3C(arg0);
+    switch (work->field_8A2) {
+        case 0x1F:
+            work->field_970.field_1C = 0x280;
+            if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
+                func_actor_401300_80132910(arg0, work->field_990, 0xC);
+            }
+            work->field_8B2 = 0;
+            blk->angle      = Actor401300_YawTo(arg0->field_2C->field_8, head[-1].delta.vx, delta->vz);
+            if (work->field_6 >= 0xB) {
+                work->field_8A2 = 0x20;
+                work->field_89C = 1;
+                blk->dist.vx    = config->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+                blk->dist.vy    = config->field_4->t[1] - arg0->field_2C->field_8->coord.t[1];
+                blk->dist.vz    = config->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+                blk->range      = SquareRoot0(blk->dist.vx * blk->dist.vx + blk->dist.vy * blk->dist.vy + blk->dist.vz * blk->dist.vz) + 1000;
+                if (blk->range > 5000) {
+                    blk->range = 5000;
+                } else if (blk->range < 3000) {
+                    blk->range = 3000;
+                }
+                work->field_14  = blk->range / 18;
+                work->field_8B6 = 0;
+                work->field_6   = 0;
+                work->field_8BA = 0x20;
+            }
+            if (abs(blk->angle) > 0x400) {
+                work->field_0 = 7;
+            }
+            if (blk->angle > 0x10) {
+                blk->angle = 0x10;
+            } else if (blk->angle < -0x10) {
+                blk->angle = -0x10;
+            }
+            blk->angle += Actor401300_Yaw(arg0->field_2C->field_8);
+            Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, blk->angle, 1);
+            Actor401300_ResetActorYaw(arg0);
+            break;
+        case 0x20:
+            work->field_970.field_1C = 0x140;
+            func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
+            if (work->field_6C & 0x100) {
+                work->field_8A2 = 0x21;
+                work->field_89C = 2;
+                work->field_6   = 0;
+            }
+            if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->field_954 != 2 && work->field_6 >= 8 &&
+                enemy->field_40 > 0) {
+                work->field_D00 = 0x7F;
+                if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
+                    Gp_SpawnPadLerp(0x10, 8, 0xFF);
+                    SndEvt_EnqueueType6(6, (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8),
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+                    work->field_D20         = 1;
+                    work->field_CAC.field_0 = (s32)&D_actor_401300_801588F0;
+                    blk->delta.vx           = work->field_D04 - ((TmdObject*)task->extra)->field_8->coord.t[0];
+                    blk->delta.vy           = work->field_D06 - ((TmdObject*)task->extra)->field_8->coord.t[1];
+                    blk->delta.vz           = work->field_D08 - ((TmdObject*)task->extra)->field_8->coord.t[2];
+                    blk->angle              = Actor401300_YawTo(((TmdObject*)task->extra)->field_8, head[-1].delta.vx, delta->vz);
+                    if (abs(blk->angle) < 0x400) {
+                        amount                  = -0x46;
+                        work->field_CAC.field_4 = 4;
+                        work->field_CE4.vy      = blk->angle + Actor401300_Yaw(((TmdObject*)task->extra)->field_8);
+                        ret                     = Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 2), 0);
+                    } else {
+                        amount                  = 0x46;
+                        work->field_CAC.field_4 = 5;
+                        work->field_CE4.vy      = blk->angle + Actor401300_Yaw(((TmdObject*)task->extra)->field_8) + 0x800;
+                        ret                     = Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+                    }
+                    if (ret == 1) {
+                        player->field_956 = 0xA;
+                    }
+                    work->field_CD4.vx = ((TmdObject*)task->extra)->field_8->coord.t[0];
+                    work->field_CD4.vy = ((TmdObject*)task->extra)->field_8->coord.t[1];
+                    work->field_CD4.vz = ((TmdObject*)task->extra)->field_8->coord.t[2];
+                    work->field_CE4.vx = 0;
+                    work->field_CE4.vz = 0;
+                    Gp_DispatchMsg(task, 0x3E9, (s32)&work->field_CD4, 0);
+                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+                    work->field_D22 = 0;
+                    vec             = &blk->delta;
+                    Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, vec);
+                    blk->delta.vy = 0;
+                    VectorNormalSS(vec, vec);
+                    gte_lddp(amount);
+                    gte_ldsv(vec);
+                    gte_gpf12_real();
+                    gte_stsv(vec);
+                    work->field_CC0[0] = blk->delta.vx;
+                    work->field_CC0[1] = 0;
+                    work->field_CC0[2] = blk->delta.vz;
+                    work->field_CD0    = 7;
+                    work->field_CD2    = 1;
+                }
+            }
+            if (work->field_D20 == 0) {
+                Actor401300_MoveForwardNonzero(arg0->field_2C->field_8, work->field_14);
+            }
+            Actor401300_ResetActorYaw(arg0);
+            break;
+        case 0x21:
+            work->field_970.field_1C = 0x280;
+            if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
+                cur = work->field_6;
+                if (cur < 0x11 && work->field_D20 == 0) {
+                    if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, (s16)(0x54 - cur * 0x54 / 16)) != 0) {
+                        Actor401300_MoveForwardNonzeroSave(save, arg0->field_2C->field_8, 0x54 - work->field_6 * 0x54 / 16);
+                    }
+                }
+            }
+            func_actor_401300_80132910(arg0, work->field_990, 0xC);
+            Actor401300_ResetActorYaw(arg0);
+            if (work->field_6C & 0x100) {
+                work->field_0 = 6;
+            }
+            break;
+        default:
+            work->field_0 = 0x18;
+            break;
+    }
+    *(Actor401300LungeScratch**)G_SCRATCH_HEAD += 1;
+}
+
+/// Scale `m` uniformly by `scale` (4.12), translation included.
+static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
+{
+    Actor401300ScaleScratch* head;
+    Actor401300ScaleScratch* blk;
+
+    head                                       = *(Actor401300ScaleScratch**)G_SCRATCH_HEAD;
+    blk                                        = head - 1;
+    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD = blk;
+    blk->scale.vz                              = scale;
+    blk->scale.vy                              = scale;
+    head[-1].scale.vx                          = scale;
+    ScaleMatrix(m, &blk->scale);
+    blk->trans.vx = m->t[0];
+    blk->trans.vy = m->t[1];
+    blk->trans.vz = m->t[2];
+    gte_lddp(scale);
+    gte_ldsv(&blk->trans);
+    gte_gpf12_real();
+    gte_stsv(&blk->trans);
+    m->t[0]                                     = blk->trans.vx;
+    m->t[1]                                     = blk->trans.vy;
+    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD += 1;
+    m->t[2]                                     = blk->trans.vz;
 }
 
 void func_actor_401300_8013F628(Actor401300* arg0)

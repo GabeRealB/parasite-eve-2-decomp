@@ -97020,3 +97020,28 @@ kind = arg0->field_36;
 work = arg0->field_1C;
 if ((kind & 0xF0) == 0x10) {
 ```
+
+### `lui t0; addiu t0,t0,%lo(G); lbu off(t0)` right before a use is a spilled `p = &G` from the prologue (func_actor_401300_8013E930, 2026-09-16)
+
+**Symptom.** 99.78%, the only difference: target
+`li v1,1; lui t0,%hi(Mc_SaveData); addiu t0,t0,%lo(Mc_SaveData); lbu v0,0x5c1(t0)`,
+while every local form (`McSaveData* save = &Mc_SaveData;` inside the inline,
+or `&Mc_SaveData` passed as an inline argument) gave the fused
+`lui v0,%hi(G+0x5c1); lbu v0,%lo(G+0x5c1)(v0)` - combine folds a one-use address
+pseudo into the `mem`. The same byte is `D_80072729` elsewhere in the function,
+loaded the normal split way.
+
+**Cause.** The pointer is a function-wide local set once at the top
+(`save = &Mc_SaveData;` next to `config = &Wip_SysConfig;`) and used once deep
+in a switch case. It gets a `REG_EQUIV` constant, and with every callee-saved
+register already taken it gets no hard register; reload rematerialises the
+constant into a reload register (`$t0`) immediately before the use, after the
+compare constant already loaded, so combine never had the chance to fold it.
+
+**Fix.** Hoist the `&global` into a prologue local when the target builds the
+address in `$t0` (or another odd temp) directly before a single load.
+
+Also in this function: a constant `1` held in `$s5` for both a `bne` and a
+later `sb` after calls means the compare sits in the extended basic block of
+the store - two `if ((s16)Dispatch(...) == 1)` arms (later cross-jumped) had to
+become `ret = Dispatch(...)` in each arm and one `if (ret == 1)` after the join.

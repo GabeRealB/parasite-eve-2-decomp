@@ -52,29 +52,31 @@ typedef struct Actor401300Work {
     /* 0x00A */ byte pad_A[2];
     /// XZ patrol points: the spawn position and one step along its facing.
     /* 0x00C */ Actor401300Waypoint field_C[2];
-    /* 0x014 */ byte                pad_14[2];
-    /* 0x016 */ s16                 field_16;
-    /* 0x018 */ s16                 yaw;
-    /* 0x01A */ byte                pad_1A[0x44];
-    /* 0x05E */ u16                 field_5E;
-    /* 0x060 */ byte                pad_60[0xC];
-    /* 0x06C */ u16                 field_6C;
-    /* 0x06E */ byte                pad_6E[0x82A];
-    /* 0x898 */ s32                 field_898;
-    /* 0x89C */ s16                 field_89C;
-    /* 0x89E */ s16                 field_89E;
-    /* 0x8A0 */ byte                pad_8A0[2];
-    /* 0x8A2 */ s16                 field_8A2;
-    /* 0x8A4 */ byte                pad_8A4[2];
-    /* 0x8A6 */ s16                 field_8A6;
-    /* 0x8A8 */ s16                 field_8A8;
-    /* 0x8AA */ byte                pad_8AA[8];
-    /* 0x8B2 */ s16                 field_8B2;
-    /* 0x8B4 */ s16                 field_8B4;
-    /* 0x8B6 */ s16                 field_8B6;
-    /* 0x8B8 */ s16                 field_8B8;
-    /* 0x8BA */ s16                 field_8BA;
-    /* 0x8BC */ s32                 field_8BC;
+    /// Lunge step length: `func_actor_401300_8013E930`'s clamped player
+    /// distance over 18.
+    /* 0x014 */ s16  field_14;
+    /* 0x016 */ s16  field_16;
+    /* 0x018 */ s16  yaw;
+    /* 0x01A */ byte pad_1A[0x44];
+    /* 0x05E */ u16  field_5E;
+    /* 0x060 */ byte pad_60[0xC];
+    /* 0x06C */ u16  field_6C;
+    /* 0x06E */ byte pad_6E[0x82A];
+    /* 0x898 */ s32  field_898;
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ s16  field_89E;
+    /* 0x8A0 */ byte pad_8A0[2];
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ byte pad_8A4[2];
+    /* 0x8A6 */ s16  field_8A6;
+    /* 0x8A8 */ s16  field_8A8;
+    /* 0x8AA */ byte pad_8AA[8];
+    /* 0x8B2 */ s16  field_8B2;
+    /* 0x8B4 */ s16  field_8B4;
+    /* 0x8B6 */ s16  field_8B6;
+    /* 0x8B8 */ s16  field_8B8;
+    /* 0x8BA */ s16  field_8BA;
+    /* 0x8BC */ s32  field_8BC;
     /// Effect anchor `func_actor_401300_80139134` places at the actor's
     /// view-space position before spawning effect 0x600A5.
     /* 0x8C0 */ GsCOORDINATE2 field_8C0;
@@ -321,6 +323,19 @@ typedef struct Actor401300RotScratch {
     /* 0x32 */ s16    pad_32;
 } Actor401300RotScratch;
 STATIC_ASSERT_SIZEOF(Actor401300RotScratch, 0x34);
+
+/// 0x24-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013E930` takes: the
+/// offset to the player (full width for the distance, halfwords for the yaw),
+/// the clamped lunge range and the wrapped turn.
+typedef struct Actor401300LungeScratch {
+    /* 0x00 */ VECTOR  dist;
+    /* 0x10 */ SVECTOR delta;
+    /* 0x18 */ s32     range;
+    /* 0x1C */ s32     pad_1C;
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     pad_22;
+} Actor401300LungeScratch;
+STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
 
 /// 0x18-byte `G_SCRATCH_HEAD` block `Actor401300_ScaleMatrix` scales a matrix
 /// and its translation in. Same shape as `Actor00100ScaleScratch`.
