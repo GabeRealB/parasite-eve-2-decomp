@@ -72919,6 +72919,24 @@ The scratchpad idiom comes across unchanged too (`#define SCRATCH_SP
 (*(u32*)0x1F8003FC)`, a 0x18 `RotScratch` holding a `VECTOR` then the
 `SVECTOR` handed to `RotMatrix`), and `ratan2` / `RotMatrix` need no declaration
 - the siblings call them implicitly.
+
+The converse needs care: all four at 1.00 with an equal instruction count does
+**not** by itself prove the two are byte-identical, because no class covers a
+literal-immediate operand. `func_actor_110600_80138BD0` scored 1.00 in all four
+classes against the already-matched sibling `func_actor_110600_80138AFC` in its
+own TU at the same 53 instructions, and the normalized diff is one line -
+`addiu v0,zero,0xF` against `addiu v0,zero,0x10` (`work->field_892`). `shape`
+drops operands, `fields` compares only load/store displacements, and `calls` /
+`cflow` see neither, so an `and`/`or`/`addiu` literal is invisible to all of
+them. Diff the normalized text anyway: it is one line of work and it separates
+"port the sibling verbatim" from "port it and change this constant". Here it was
+the latter - the sibling's C body with that one literal edited - and that
+matched at 100.000%, all penalties zero, on the first build, where the m2c seed
+on the same function sat at 74.439% (`branch=2 regs=15 reorder=3 insert=8
+delete=4`). m2c's `temp_s0 + 0xB28` on a complete `Actor110600Work*` scales by
+`sizeof(Actor110600Work)`, so its seed carried `lui a0,0x85 / ori a0,a0,0xe0 /
+addu a0,s0,a0` (0xB28 * 0xBEC) and addressed the whole walker half through the
+wrong base - a scaled-offset seed is worth discarding whole rather than tuning.
 ## `M2C_FIELD(&global, T*, off)` folds the offset into the symbol reloc
 
 **Symptom.** An m2c seed that reaches a *global* struct through `M2C_FIELD`
