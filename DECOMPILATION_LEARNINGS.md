@@ -100384,3 +100384,51 @@ all zero and `blocks`/`instructions` matching: a statement position, not a
 missing or extra operation. The sibling `func_actor_403600_8013E66C` already
 carries the second fix, so a same-family copy is worth diffing against before
 touching the C.
+
+## A five-carrier scratch body: the push is a store of the expression, and the LCG reads back
+
+`func_actor_104900_80137C88` is byte-identical to `func_actor_101100_80137C88` and
+the same body at 0x8014FC88 / 0x8014FC88 / 0x80167C88 in `actor_201100`,
+`actor_204900` and `actor_301100`, so it wants the family's lib unit - but it
+tail-calls its own overlay's `func_actor_104900_80137FB8` and reads its own
+`D_actor_104900_801392F0`, and `overlay_dup_index.py promote` refuses an
+overlay-local *code or data* reference outright, whatever the body's state. Match
+it per overlay; there is nothing to share until the callee is shared too.
+
+Four steps, each an instance of rules already in this file, took it from 86.5% to
+100% with `blocks`/`instructions` matching from the first one:
+
+- 86.5 -> 93.1% (`regs` 65 -> 50): the first LCG step written
+  `rng = Gp_LcgState * 5 + 0x71357911; Gp_LcgState = rng;` (see "Assign the LCG
+  back onto `Gp_LcgState`"), i.e. store and **read the global back** in the
+  consuming expression:
+  `Gp_LcgState = Gp_LcgState * 5 + 0x71357911; vec->vy = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);`
+- 93.1 -> 98.2%: the other two steps the same way, and the middle one *between*
+  the `t[0]` and `t[2]` adds, which is where the target's `lw`/`sw` pair sits.
+- 98.2 -> 99.3% (`regs` 35 -> 17): a `mtx = &coord->coord` local, then
+  `gte_SetRotMatrix(mtx)` and the identity block written through `mtx` - without
+  it the identity stores fold to `coord+8`/`+0xC`/... displacements off `$s6`
+  and the `SetRotMatrix` address dies in `$v0`, where the target keeps one
+  `$a1` (= `coord + 4`) alive from the `ctc3` block to the last of the five
+  stores.
+- 99.3 -> 99.7% (`regs` 17 -> 0): the pool push. `vec = (SVECTOR*)(head - 8);
+  *(u8**)G_SCRATCH_HEAD = (u8*)vec;` leaves `head` and `vec` at (refs 4, span 36)
+  and (refs 6, span 64), so `head` outranks `vec` and takes `$s0`; writing the
+  store as the expression and deriving `vec` **after** it gives `vec` the shorter
+  span it needs for `$s0`:
+
+```c
+head                  = *(u8**)G_SCRATCH_HEAD;
+*(u8**)G_SCRATCH_HEAD = head - 8;
+vec                   = (SVECTOR*)(head - 8);
+```
+
+- 99.7 -> 100% (`reorder` 1 -> 0): `gte_ldv0(&local)` on the stack local, as in
+  the sibling entry above, becomes the raw
+  `__asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");`.
+
+The push and the LCG both show as a *two-register swap* with everything else
+matching, so the `refs`/`span`/`priority` lines `trace_gcc.py --regs` prints are
+what to read (see "`QTY_CMP_PRI` in `local-alloc.c` is ..."): the quantities that
+matter here are block-local, and the `.lreg` header shows them only as
+"`;; Register N in M`" with no membership or priority.
