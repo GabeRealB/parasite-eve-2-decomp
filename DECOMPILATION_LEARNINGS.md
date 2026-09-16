@@ -113022,3 +113022,59 @@ only ever an argument is often what vacates it.
 `extendqisi2` (`config/mips/mips.md`, the `gen_ashlsi3`/`gen_ashrsi3` pair) is
 what emits the shifts; which register the first one writes is allocation, not
 the expander, so the same source shape with the same expansion still moves.
+
+## Among sibling stores, the alias-set-0 one is the one sched1 ranks to the head of the block (func_actor_105100_8013345C, 2026-09-17)
+
+`func_actor_105100_8013345C` opens with five constant stores into one
+`Actor105100Work` -- `field_58E` 3, then `field_59C`, `field_5AE`, `field_598`,
+`field_5AC` -- and the target has the `lw` of `Gp_LcgState` ahead of the whole
+run, the stores in source order behind it. A body that is otherwise finished
+(98.609%, `insert=1 delete=1`) emits exactly one instruction one slot early:
+`sh $zero, 0x59C($s1)` jumps ahead of that `lw`, and nothing else differs.
+
+`field_59C` was the one store still written m2c's way, because the header carried
+it as padding:
+
+```c
+M2C_FIELD(temp_s1, u16 *, 0x59C) = 0U;   /* (mem:HI (plus:SI (reg/v:SI 82) (const_int 1436))) */
+temp_s1->field_5AE = 0;                   /* (mem/s:HI (plus:SI (reg/v:SI 82) (const_int 1454))) */
+```
+
+The `-da` `.rtl` dump prints the difference at once: every sibling store is
+`mem/s:HI`, this one is `mem:HI` with alias set 0. Giving it a real field --
+`/* 0x59C */ u16 field_59C;` in the overlay header, `work->field_59C = 0;` --
+turns it into `mem/s:HI`, and with no other edit the store drops back into
+source order: 100.000%, all penalties zero. `base_1.i.rtl` insn 33 and
+`base_2.i.rtl` insn 33 are the same insn but for that one flag.
+
+The mechanism is the one "m2c's cast access and a real struct field access are
+different MEMs" and "Struct-typing a body changes GCC 2.8.1's aliasing" already
+describe. What is new is the observable: among independent constant stores to
+the *same* struct, the alias-set-0 one is the one sched1 ranks to the head of
+the block, so a single displaced instruction in a run of stores is a reason to
+list the alias-set-0 MEMs before touching statement order:
+
+```
+grep -n '(mem:' base_N.i.rtl | grep -v '/s'
+```
+
+`base_1.i.rtl` lists insn 33 there and `base_2.i.rtl` does not. The neighbouring
+trap is the opposite direction and is why this is a measurement, not a rule:
+where a scalar global must *not* alias a struct -- the `D_80115417` case in the
+section above -- the `M2C_FIELD` form is what preserves the dependence, and
+struct-typing the body is what loses it.
+
+The same function re-confirmed "A cast written inline at the call site is a
+call-crossing temp; through a local it is not": `s32 pan` assigned from
+`(s8)Gp_GetObjPan(...)`, with `(s8)Gp_GetObjDepth(...)` inline at the
+`SndEvt_EnqueueType6` call, is what produces the target's `sll $s0,$v0,24` /
+`sra $s0,$s0,24` / `move $a1,$s0` triple plus the depth's own `sll`/`sra`. The
+m2c `s8 temp` local instead extends at the use site and loses the depth's
+extension outright (`insert=3 delete=4`, `regs=6`; fixing it alone is 98.609%).
+Same shape as the sibling `func_actor_105100_80133A14` -- the sibling's C is the
+evidence.
+
+Inputs: `base_1.i` (98.609%)
+`d8f9d43161737f5f3239532b8961d4f1839f95a85344b21e0ed0e4c5d892e8d3`,
+`base_2.i` (100.000%)
+`56b315489f09c15dce13c4b289ca88d7922d96188ce9cd1613d2ee8d07b35cc3`.

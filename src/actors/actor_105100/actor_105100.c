@@ -414,7 +414,102 @@ void func_actor_105100_8013329C(Actor105100* arg0, Actor105100Ctx* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013345C);
+/// The enemy descriptor run at 0x80141464 the spawn below draws from. Declared
+/// as a scalar rather than an aggregate on purpose: only its address is taken,
+/// so the two words `Gp_SpawnEnemyFromTable` splits it into are the function's
+/// addend, not a load this unit has to model.
+extern TaskDesc D_actor_105100_80141464;
+
+/// The enemy's summon step, run every frame the schedule is on step 1. It is
+/// the half of the appearance that runs before the model shows: sub-step 0
+/// seeds the closing pose (3) and zeroes the spawn timer `field_59C` and the
+/// spawned count `field_5AE`, arms the `field_5AC` gate the spawn tests, and
+/// draws the LCG into `field_59A`, the aim window (`0x9E` .. `0xBD`).
+///
+/// Sub-step 1 holds everything on the animation frame counter `field_592`: not
+/// until it passes `0x58` does the spawn timer start counting, and every expiry
+/// sends one enemy out through `Gp_SpawnEnemyFromTable` -- up to four, gated on
+/// `field_5AC` still being 1 -- with a fresh `0xF` .. `0x1E` interval drawn the
+/// same way. The aim window steps down in parallel: at `0xF` it latches the
+/// gate to 2, and at zero the step moves on to 2 with the hold pose `0xA`. The
+/// single frame `field_592 == 0x58` is the cue: it builds the enemy's own id
+/// into `field_580` and fires the type-6 event with the model coordinate's pan
+/// and depth, which is what plays the summon as the model becomes visible.
+///
+/// Sub-step 2 waits out `field_592` to `0x1A`, then drops the whole step back
+/// to pose 1, sub-step 0 and gate 0, rerolls `field_59A` to a `0` .. `0x3F`
+/// window and fires the type-7 event on the id sub-step 1 built, clearing it.
+void func_actor_105100_8013345C(Actor105100* arg0, Actor105100Ctx* arg1)
+{
+    Actor105100Work* work;
+    GsCOORDINATE2*   coord;
+    s16              step;
+    s32              pan;
+    u16              spawnTimer;
+    u16              aimTimer;
+    u32              rnd;
+    u32              spawnRnd;
+    u32              resetRnd;
+
+    work  = arg0->field_1C;
+    step  = work->field_598;
+    coord = arg0->field_2C->field_8;
+    switch (step) {
+        case 0:
+            work->field_58E = 3;
+            work->field_59C = 0;
+            work->field_5AE = 0;
+            work->field_598 = 1;
+            work->field_5AC = 1;
+            rnd             = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState     = rnd;
+            work->field_59A = ((rnd >> 16) & 0x1F) + 0x9E;
+            return;
+        case 1:
+            if ((s16)work->field_592 >= 0x58) {
+                spawnTimer      = work->field_59C - 1;
+                work->field_59C = spawnTimer;
+                if ((spawnTimer << 16) <= 0 && (s16)work->field_5AE < 4 && work->field_5AC == 1) {
+                    Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 1, 0,
+                                           (GpEnemy*)arg0->field_20);
+                    work->field_5AE += 1;
+                    spawnRnd         = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState      = spawnRnd;
+                    work->field_59C  = ((spawnRnd >> 16) & 0xF) + 0xF;
+                }
+            }
+            if ((s16)work->field_59A == 0xF) {
+                work->field_5AC = 2;
+            }
+            aimTimer        = work->field_59A - 1;
+            work->field_59A = aimTimer;
+            if ((aimTimer << 16) <= 0) {
+                work->field_598 = 2;
+                work->field_58E = 0xA;
+            }
+            if ((s16)work->field_592 == 0x58) {
+                work->field_580 = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40330004;
+                pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(work->field_580, pan,
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                return;
+            }
+            return;
+        case 2:
+            if ((s16)work->field_592 >= 0x1A) {
+                work->field_58E = 1;
+                work->field_596 = 0;
+                work->field_598 = 0;
+                work->field_5AC = 0;
+                resetRnd        = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = resetRnd;
+                work->field_59A = (resetRnd >> 16) & 0x3F;
+                SndEvt_EnqueueType7(work->field_580, 1);
+                work->field_580 = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801336B8);
 
