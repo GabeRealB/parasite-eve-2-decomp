@@ -95,7 +95,7 @@ typedef struct Actor104000Work {
     /* 0x47B */ byte       pad_47B[1];
     /* 0x47C */ byte       field_47C[0x14];
     /* 0x490 */ s32        field_490;
-    /* 0x494 */ byte       pad_494[2];
+    /* 0x494 */ s16        field_494;
     /* 0x496 */ s16        field_496;
 } Actor104000Work;
 STATIC_ASSERT_SIZEOF(Actor104000Work, 0x498);
@@ -156,6 +156,15 @@ typedef struct Actor104000HitScratch {
     /* 0x16 */ s16     angle;
 } Actor104000HitScratch;
 STATIC_ASSERT_SIZEOF(Actor104000HitScratch, 0x18);
+
+/// 0xC-byte scratch taken from `0x1F8003FC` by the walking state: the offset
+/// to the spawn point (later the camera target) and the clamped new yaw.
+typedef struct Actor104000TurnScratch {
+    /* 0x0 */ SVECTOR d;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad;
+} Actor104000TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor104000TurnScratch, 0xC);
 
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
 /// rebuild: the rotation, the uniform scale applied to it and the yaw.
