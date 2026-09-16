@@ -89552,3 +89552,70 @@ work->field_59C = val;
 local (the trick `func_actor_510900_801373B8` needs) made no difference here.
 
 Inputs: `base_2.i` (85.6%), `base_4.i` (93.6%), `base_5.i` (100%).
+
+## sched1 starves an insn whose destination pseudo is assigned more than once
+
+`adjust_priority` in `sched.c` raises a newly-freed predecessor to
+`LAUNCH_PRIORITY` (`0x7f000001`), which outranks every plain priority in the
+ready list, but only when `birthing_insn_p` holds — and that requires
+`REG_N_SETS (REGNO (SET_DEST (pat))) == 1`. Because sched1 is a backward list
+scheduler, a bumped insn is chosen early and so lands *later* in the output;
+a non-bumped one is starved until the pool drains and lands at the front of
+the block.
+
+So whether a value is loaded into its own single-assignment temp or into a
+variable that is later reassigned changes where its load is scheduled, with
+identical semantics. In `func_actor_510900_801350F8` the target has
+
+```
+lw    v0,0(s4)
+lhu   s0,8(s3)          /* the index load, one slot after the task load */
+addiu v1,a1,4
+```
+
+and this source put the `lhu` one slot too early, at 98.9% with `reorder=2`:
+
+```c
+index1 = arg0->field_8;   /* index1 is assigned twice, so neither insn is  */
+...                       /* birthing: the lhu starves and drifts forward  */
+index1 >>= 12;
+```
+
+while a separate single-set temp made the `lhu` birthing and fixed the slot:
+
+```c
+raw1   = arg0->field_8;   /* one set  -> birthing -> bumped -> right slot */
+...
+index1 = raw1 >> 12;
+```
+
+Reordering the statements does nothing here — the scheduler re-derives the
+order from the dependence graph, and `LAUNCH_PRIORITY` dominates the `INSN_LUID`
+tie-break that source order controls. Read the `;; ready list at T-N:` lines in
+`<file>.i.sched`: an insn printed with a plain priority while its competitors
+show `(7f000001)` is being starved, and the fix is on the C side of
+`REG_N_SETS`, not in the statement order.
+
+## A repeated idiom wants its own variables per repetition, not one reused set
+
+Where a function performs the same sequence two or three times over, reusing one
+set of locals doubles each pseudo's `allocno_n_refs` and `allocno_live_length`,
+and `allocno_compare` ranks by `floor_log2 (n_refs) * n_refs / live_length`. One
+shared pair therefore gets a completely different allocation order from two
+short per-repetition pairs, and the registers come out swapped.
+
+`func_actor_510900_801350F8` runs the `Gp_SyncAreaKeyIndex` /
+`Gp_GetNestedAreaRec` room-texture lookup twice. With one shared `model` and
+`index` the priorities were 3*12/52 = 0.69 against 3*8/41 = 0.59, so `model`
+took `$s0` and `index` `$s1` — the reverse of the target. Splitting them into
+`model1`/`model2` and `index1`/`index2` shortened both ranges and put `index1`
+in `$s0`, gaining 15 points of match.
+
+Not everything wants splitting, though: the enemy handle the two blocks come
+from stayed **one** `spawned` variable. Per-block `spawned1`/`spawned2` scored
+2352 against `arg0`'s 2282 and stole `$s3` from the incoming argument, while one
+shared variable spanning both blocks dropped to 1918 and left `$s3` alone.
+
+The already-matched bodies of this idiom (`src/actors/lib/actor_102500_tail.c`,
+`src/actors/lib/actor_100300_text.c`) all use numbered per-block locals, which is
+worth taking as the default shape for a repeated sequence.

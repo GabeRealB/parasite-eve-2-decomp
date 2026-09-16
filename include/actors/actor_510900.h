@@ -29,7 +29,10 @@ STATIC_ASSERT_SIZEOF(Actor510900AimScratch, 0x40);
 typedef struct Actor510900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor510900Coord* field_8;
-    /* 0x0C */ s16               field_C; // model flag word, as TmdObject::field_C
+    /* 0x0C */ s16               field_C;  // model flag word, as TmdObject::field_C
+    /* 0x0E */ byte              pad_E[0xE];
+    /* 0x1C */ MATRIX*           field_1C; // light matrix, as TmdObject::field_1C
+    /* 0x20 */ MATRIX*           field_20; // colour matrix, as TmdObject::field_20
 } Actor510900Obj2C;
 
 typedef struct Actor510900Work {
@@ -44,16 +47,29 @@ typedef struct Actor510900Work {
     /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
     /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
     /* 0x47C */ GpObj  obj47C;
-    /* 0x49C */ byte   pad_49C[0x48];
-    /* 0x4E4 */ GpObj  obj4E4;
-    /* 0x504 */ GpObj  obj504;
-    /* 0x524 */ byte   pad_524[0x40];
-    /* 0x564 */ s32*   field_564; // 0x34 receives field_594 when it changes
-    /* 0x568 */ byte   pad_568[0x10];
-    /* 0x578 */ s32    field_578;
-    /* 0x57C */ s32    field_57C; ///< sound id stopped alongside field_580
-    /* 0x580 */ s32    field_580; ///< last sound id queued
-    /* 0x584 */ s16    field_584;
+    /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records) and the
+    /// byte address the context's `field_54` points at.
+    /* 0x49C */ GpRec18 rec49C[3];
+    /* 0x4E4 */ GpObj   obj4E4;
+    /* 0x504 */ GpObj   obj504;
+    /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
+    /// `Gp_InitRec18Table` seeds it.
+    /* 0x524 */ GpRec18        rec524[1];
+    /* 0x53C */ GsCOORDINATE2* field_53C; ///< `&coord[3]`, as the context's `field_18`
+    /* 0x540 */ s16            field_540;
+    /* 0x542 */ s16            field_542;
+    /* 0x544 */ byte           pad_544[0x20];
+    /* 0x564 */ s32*           field_564; // 0x34 receives field_594 when it changes
+                                          /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
+                                          /// `obj4E4` hangs off its model's first coordinate.
+    /* 0x568 */ Task* field_568;
+    /// Task of the third enemy spawned from the same table.
+    /* 0x56C */ Task* field_56C;
+    /* 0x570 */ byte  pad_570[8];
+    /* 0x578 */ s32   field_578;
+    /* 0x57C */ s32   field_57C; ///< sound id stopped alongside field_580
+    /* 0x580 */ s32   field_580; ///< last sound id queued
+    /* 0x584 */ s16   field_584;
     /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
     /// stores `Actor510900AnimArgs::field_4 + 0x1B` here.
     /* 0x586 */ s16 field_586;
@@ -105,8 +121,22 @@ typedef struct Actor510900Work {
     /* 0x5BE */ byte pad_5BE[4];
     /// Written by the child task's frame handler from its `field_336` when
     /// that task's `field_334` is 2 or more.
-    /* 0x5C2 */ s16 field_5C2;
+    /* 0x5C2 */ s16  field_5C2;
+    /* 0x5C4 */ byte pad_5C4[4];
 } Actor510900Work;
+STATIC_ASSERT_SIZEOF(Actor510900Work, 0x5C8);
+
+/// Animation view of `Actor510900Work`'s prefix. `func_800B3F84` is handed the
+/// block as a `GpAnimCtx`, the nineteen `GpAnimSlot`s that live at 0x14 and the
+/// pose buffer that follows them at 0x30C -- the same bytes the child-task
+/// views (`Actor510900ChildAnim`, `Actor510900ChildWork`) label as `GpObj`s,
+/// which is why the handlers reach slot 1 as `&work->obj38.prev`.
+typedef struct Actor510900Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       poses[0x130];
+} Actor510900Anim;
+STATIC_ASSERT_SIZEOF(Actor510900Anim, 0x43C);
 
 /// `Task::idMap` of the child task `func_actor_510900_8013A85C` drives: an
 /// animation context `Gp_AnimTickIndex` ticks slots 1..10 of, with a pair of
@@ -227,20 +257,35 @@ typedef struct Actor510900Cam {
 extern Actor510900Cam D_8011505C;
 
 typedef struct Actor510900 {
-    /* 0x00 */ byte              pad_0[0x1C];
+    /* 0x00 */ byte              pad_0[0x18];
+    /* 0x18 */ TaskFunc          exitCallback;
     /* 0x1C */ Actor510900Work*  field_1C;
     /* 0x20 */ GpEnemy*          field_20;
-    /* 0x24 */ byte              pad_24[0x8];
+    /* 0x24 */ void*             field_24;
+    /* 0x28 */ byte              pad_28[0x4];
     /* 0x2C */ Actor510900Obj2C* field_2C;
+    /* 0x30 */ s32               state;
 } Actor510900;
 
 typedef struct Actor510900Ctx {
-    /* 0x00 */ byte pad_0[0x8];
-    /* 0x08 */ u16  field_8; // top nibble selects the sound bank
-    /* 0x0A */ byte pad_A[0xA];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x37];
-    /* 0x4C */ u8   field_4C;
+    /* 0x00 */ byte           pad_0[0x4];
+    /* 0x04 */ MATRIX*        field_4;
+    /* 0x08 */ u16            field_8; // top nibble selects the sound bank
+    /* 0x0A */ byte           pad_A[0x6];
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ s32            field_20;
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ byte           pad_28[0x18];
+    /* 0x40 */ u16            field_40; ///< HP, seeded from the pair source's `field_4`
+    /* 0x42 */ byte           pad_42[0x6];
+    /* 0x48 */ u8             field_48;
+    /* 0x49 */ byte           pad_49[0x3];
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[0x3];
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ s32            field_54; ///< byte address of `Actor510900Work::rec49C`
 } Actor510900Ctx;
 
 /// 0x7D3 argument block. `field_4` is the animation the actor switches to,

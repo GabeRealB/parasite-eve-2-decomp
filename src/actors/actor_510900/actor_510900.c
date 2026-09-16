@@ -31,6 +31,20 @@ extern u8  D_801153F4;
 extern u32 Gp_LcgState;
 extern s16 D_80073BA0;
 
+/// The pair source the context's `field_50` points at; its `field_4` seeds the
+/// enemy's HP.
+extern GpPairSrcE D_actor_510900_80167980;
+
+/// The block the tick handler reaches through `Task::field_24`.
+extern u32 D_actor_510900_80167A6C;
+
+/// The animation data `func_800B3F84` builds the work block's clip context
+/// from; the spawn hands it over whole, so it is only ever a byte address here.
+extern u8 D_actor_510900_80167AA4[];
+
+void func_actor_510900_8013B424(s32 arg0);
+void func_actor_510900_8013B524(Actor510900* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80131F24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80132D4C);
@@ -144,7 +158,171 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80134C90);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801350F8);
+/// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off
+/// the task, points the model object at the block's two `MATRIX`es (0x45C the
+/// light matrix, 0x43C the colour one) and fills the context's coordinate, pair
+/// source and HP (`field_40`, seeded from the pair source's `field_4`).
+///
+/// The block's 0x14-prefix then becomes the `GpAnimCtx`: `func_800B3F84` loads
+/// the animation data into it over the nineteen `GpAnimSlot`s, and slots 1..18
+/// are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
+/// and 3 are the two whose models get the current room's texture page and CLUT
+/// row (`Gp_GetNestedAreaRec`, indexed by the context id's top nibble) and whose
+/// tasks are kept in `field_568` / `field_56C`. Entry 2 also gets an effect
+/// reparented onto this task.
+///
+/// The three list nodes at 0x47C / 0x4E4 / 0x504 are linked into the global
+/// object lists with their collision tables (`Gp_InitRec18Table`), which also
+/// sets each node's 0x8000 "last element" flag -- kept for the first node and
+/// cleared again for the other two.
+///
+/// A failed allocation tears the enemy down instead and leaves the task on this
+/// handler; otherwise the task moves to the tick handler (`state` 1).
+void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
+{
+    Actor510900Obj2C* obj;
+    Actor510900Coord* coord;
+    Actor510900Work*  work;
+    GpEnemy*          spawned;
+    GpEffWork*        eff;
+    u32               raw1;
+    u32               raw2;
+    u32               index1;
+    u32               index2;
+    TmdObject*        model1;
+    TmdObject*        model2;
+    GpCdRec10*        entry1;
+    GpCdRec10*        entry2;
+    GpAreaKey         key;
+    GpAreaKey*        sessionKey1;
+    GpAreaKey*        sessionKey2;
+    GpRec18*          records1;
+    GpRec18*          records2;
+    u8                areaByte0;
+    s32               i;
+
+    obj   = arg1->field_2C;
+    coord = obj->field_8;
+    work  = Mem_Calloc(sizeof(Actor510900Work), 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy((GpEnemy*)arg0, (Task*)arg1);
+        return;
+    }
+    arg1->field_1C     = work;
+    obj->field_C       = 0x80;
+    coord->field_0.flg = 0;
+    obj->field_1C      = &work->field_45C;
+    obj->field_20      = &work->field_43C;
+    arg0->field_4      = &coord->field_0.coord;
+    arg0->field_48     = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->field_18  = &((TmdObject*)arg1->field_2C)->field_8[3];
+    arg0->field_1C  = 0;
+    arg0->field_20  = 0;
+    arg0->field_24  = 0;
+    arg0->field_50  = &D_actor_510900_80167980;
+    arg0->field_54  = (s32)work->rec49C;
+    arg0->field_40  = D_actor_510900_80167980.field_4;
+    work->field_53C = &((TmdObject*)arg1->field_2C)->field_8[3];
+    work->field_540 = 0x400;
+    work->field_542 = 2;
+    func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (GpAnimObj*)obj,
+                  ((Actor510900Anim*)work)->poses, ((Actor510900Anim*)work)->slots);
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    work->field_592 = 1;
+    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 1, 0, (GpEnemy*)arg0);
+    spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 2, 0, (GpEnemy*)arg0);
+    raw1        = arg0->field_8;
+    model1      = spawned->task->extra;
+    sessionKey1 = (GpAreaKey*)&Game_Session->field_4;
+    key.field_3 = sessionKey1->field_3;
+    key.field_2 = sessionKey1->field_2;
+    index1      = raw1 >> 12;
+    key.field_1 = sessionKey1->field_1;
+    areaByte0   = Game_Session->field_4;
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(&key);
+    entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model1->field_24 = entry1->field_D;
+    model1->field_25 = entry1->field_E;
+    if (model1->field_18 != NULL) {
+        Tmd_ProcessStream(model1);
+        Tmd_ProcessStream(model1);
+    }
+    work->field_568 = spawned->task;
+    eff             = Gp_SpawnEff(0x80060043, ((TmdObject*)spawned->task->extra)->field_8, 0, NULL);
+    if (eff != NULL) {
+        work->field_564 = (s32*)eff->field_0;
+        Task_Reparent((Task*)arg1, eff->field_0);
+    }
+    if (work->field_564 != NULL) {
+        work->field_564[0xD] = 0;
+    }
+    spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 3, 0, (GpEnemy*)arg0);
+    raw2        = arg0->field_8;
+    model2      = spawned->task->extra;
+    sessionKey2 = (GpAreaKey*)&Game_Session->field_4;
+    key.field_3 = sessionKey2->field_3;
+    key.field_2 = sessionKey2->field_2;
+    index2      = raw2 >> 12;
+    key.field_1 = sessionKey2->field_1;
+    areaByte0   = Game_Session->field_4;
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(&key);
+    entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model2->field_24 = entry2->field_D;
+    model2->field_25 = entry2->field_E;
+    if (model2->field_18 != NULL) {
+        Tmd_ProcessStream(model2);
+        Tmd_ProcessStream(model2);
+    }
+    work->field_56C = spawned->task;
+    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 0, (GpEnemy*)arg0);
+    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 1, (GpEnemy*)arg0);
+    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 2, (GpEnemy*)arg0);
+    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 6, 0, (GpEnemy*)arg0);
+    work->obj47C.field_8  = &((TmdObject*)arg1->field_2C)->field_8[3];
+    records1              = work->rec49C;
+    work->obj47C.field_C  = records1;
+    work->obj47C.field_10 = 0;
+    work->obj47C.field_12 = 0;
+    work->obj47C.field_14 = 0;
+    work->obj47C.field_18 = 0x3001B;
+    work->obj47C.field_1C = 0x1C2;
+    work->obj47C.flags    = 1;
+    Gp_LinkObj(2, &work->obj47C);
+    Gp_InitRec18Table(records1, 3, 0);
+    records2              = work->rec524;
+    work->obj47C.flags   |= 0x8000;
+    work->obj4E4.field_8  = ((TmdObject*)work->field_568->extra)->field_8;
+    work->obj4E4.field_C  = records2;
+    work->obj4E4.field_10 = -0x140;
+    work->obj4E4.field_12 = 0x80;
+    work->obj4E4.field_14 = 0;
+    work->obj4E4.field_18 = 0;
+    work->obj4E4.field_1C = 0x190;
+    work->obj4E4.flags    = 1;
+    Gp_LinkObj(3, &work->obj4E4);
+    Gp_InitRec18Table(records2, 1, 0);
+    work->obj4E4.flags   &= 0x7FFF;
+    work->obj504.field_8  = &((TmdObject*)arg1->field_2C)->field_8[7];
+    work->obj504.field_C  = records2;
+    work->obj504.field_10 = 0;
+    work->obj504.field_12 = 0;
+    work->obj504.field_14 = 0;
+    work->obj504.field_18 = 0;
+    work->obj504.field_1C = 0x190;
+    work->obj504.flags    = 1;
+    Gp_LinkObj(3, &work->obj504);
+    work->obj504.flags &= 0x7FFF;
+    arg1->field_24      = &D_actor_510900_80167A6C;
+    arg1->exitCallback  = (TaskFunc)func_actor_510900_8013B608;
+    func_actor_510900_8013B524(arg1);
+    func_actor_510900_8013B424(1);
+    arg1->state = 1;
+}
 
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
 {
@@ -155,9 +333,9 @@ void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1)
     s32               pan2;
     s32               i;
 
-    work           = arg1->field_1C;
-    coord          = arg1->field_2C->field_8;
-    arg0->field_14 = 1;
+    work               = arg1->field_1C;
+    coord              = arg1->field_2C->field_8;
+    arg0->node.field_4 = 1;
     if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
         work->field_594 = 1;
         work->field_598 = 0xFF;
@@ -981,11 +1159,11 @@ case0:
         return;
     }
     ((Actor510900Obj2C*)arg1->extra)->field_C = 0;
-    arg0->field_14                            = one;
+    arg0->node.field_4                        = one;
     goto body;
 case2:
-    obj->field_C   = 0x80;
-    arg0->field_14 = one;
+    obj->field_C       = 0x80;
+    arg0->node.field_4 = one;
     return;
 body:
     func_actor_510900_8013A9BC(arg1);
@@ -1104,7 +1282,7 @@ ge2:
     goto body;
 case0:
     if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4) {
-        arg0->field_14     = one;
+        arg0->node.field_4 = one;
         work->obj0.flags  &= 0x7FFF;
         work->obj38.flags &= 0x7FFF;
         if (work->field_76 != 0) {
@@ -1117,10 +1295,10 @@ case0:
         }
         return;
     }
-    arg0->field_14 = one;
+    arg0->node.field_4 = one;
     goto body;
 case2:
-    arg0->field_14 = one;
+    arg0->node.field_4 = one;
     return;
 body:
     func_actor_510900_8013B0D8(arg1);
@@ -1148,7 +1326,10 @@ void func_actor_510900_8013B3D0(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B424);
 
-void func_actor_510900_8013B524(void)
+/// Restores the collision-grid faces this actor edited. The spawn handler
+/// passes its task, which this never reads; the parameter is kept because the
+/// call site materialises it.
+void func_actor_510900_8013B524(Actor510900* arg0)
 {
     s32         i;
     SVECTOR*    normals = Gp_GridParams->field_4;
@@ -1214,16 +1395,16 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         }
         goto default_body;
     case0:
-        temp_a1->field_C = 0;
-        arg0->field_14   = 8;
+        temp_a1->field_C   = 0;
+        arg0->node.field_4 = 8;
         goto default_body;
     case1:
         ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
-        temp_a1->field_C = 0x80;
-        arg0->field_14   = one;
+        temp_a1->field_C   = 0x80;
+        arg0->node.field_4 = one;
         return;
     default_body:
         if (arg0->field_4C != 0) {
