@@ -8976,6 +8976,43 @@ do {
 `SndEvt_Process` only matches with this shape; `return` in the null arm stuck at
 ~94% with inverted `beqz` and a missing `j` to the shared epilogue.
 
+## Early-exit guard whose arm shares a tail with the body: write the `return`
+
+The mirror image of the entry above, and it has the same cause. When a guard's
+exit arm calls the *same* cleanup function the body's own exit calls, the two
+sites share one `jal` + epilogue tail, and the guard arm has two distinct
+outcomes to encode:
+
+```
+beqz  v0, .Lbody
+slti  v0, v0, 4
+bnez  v0, .Lepilogue      # nothing to do — leave
+move  a0, s0
+j     .Lrelease           # run the shared tail
+nop
+```
+
+m2c renders this as `if (x != 0) { if (x >= 4) goto shared_tail; } else { body }`,
+which is semantically right but leaves the "nothing to do" arm as a **fall-through
+to the join**. GCC then emits `slti` + `beqz` branching to the shared tail, with
+the epilogue as the `j` — same blocks, inverted branch, plus `branch`/`insert`/
+`delete` penalties. Writing the exit out restores it:
+
+```c
+if (flag != 0) {
+    if (flag >= 4) {
+        Gp_ReleaseState1CMem(mem, arg0);   /* duplicated: cross-jump re-merges it */
+    }
+    return;                                /* this is what flips the branch */
+}
+```
+
+`func_dryfield_dilapidated_house_80183C8C`, measured as a one-edit variation of
+the m2c seed: 95.19% → 99.04%, `structure: match`, `branch`/`insert`/`delete` all
+zeroed; the only leftover was an unrelated load-order pair. Its sibling
+`func_dryfield_dilapidated_house_80183D5C` — same guard, same shared tail — was
+already written this way, so check the sibling before reaching for a barrier.
+
 ## Ring-buffer wrap: `x = x + 1; x = x % N` keeps both stores
 
 For a power-of-two ring size, `x = (x + 1) & (N-1)` and `x++; x &= (N-1)` both

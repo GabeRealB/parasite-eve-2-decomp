@@ -8,6 +8,7 @@
 #include "rooms/dryfield_dilapidated_house.h"
 #include "main/tmd.h"
 
+void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* coord, s16 arg1, s32 arg2, s16 arg3);
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
@@ -243,7 +244,45 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80183C8C);
+/// Per-frame handler that runs the `DdhEffWork` effect block one step further:
+/// an early out while `Gp_State1C` is armed. It counts frames in `field_22`,
+/// seeds the 0xC0 / 0x100 scale/angle pair on the first frame, feeds the pair to
+/// `func_dryfield_dilapidated_house_80182A18` and then steps the scale by -0x10
+/// and the angle by +0x40. Once the scale falls below 0x10 - and immediately
+/// when the state word has already reached 4 - it releases the work block.
+void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
+{
+    DdhEffWork* mem;
+    s16         flag;
+    s32         scale;
+    s32         angle;
+
+    mem  = arg0->spawnArg2;
+    flag = Gp_State1C->field_4;
+    if (flag != 0) {
+        if (flag >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+
+    mem->field_22++;
+    if (arg0->state == 0) {
+        mem->field_24 = 0xC0;
+        mem->field_26 = 0x100;
+        arg0->state   = 1;
+    }
+    func_dryfield_dilapidated_house_80182A18(((TmdObject*)arg0->extra)->field_8, mem->field_26, mem->field_24);
+    angle         = (u16)mem->field_26;
+    scale         = (u16)mem->field_24;
+    angle        += 0x40;
+    scale        -= 0x10;
+    mem->field_24 = scale;
+    mem->field_26 = angle;
+    if ((s16)scale < 0x10) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 /// Per-frame handler of the effect family whose work block is `DdhEffWork`
 /// (`task->spawnArg2`). While the `Gp_State1C` state word at 0x4 is clear it
