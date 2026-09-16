@@ -72386,6 +72386,44 @@ a byte-field value in an `s32` local": there an `s32` local stops combine from
 
 **Example:** `func_actor_107600_80132ED0` (99.294% -> 100%, `u8 variant` -> `u32
 variant`, everything else unchanged).
+
+## One body, two declaration orders: the `birthing_insn_p` priority bump makes initialiser order the emitted order
+
+**Symptom.** `Actor04400_Fn08B3C` and its already-matched TU sibling
+`Actor04400_Fn07750` are the same body, byte-identical apart from one swapped
+pair in the entry block - Fn08B3C loads `spawnArg2` (0x20) before `extra` (0x2C),
+Fn07750 loads `extra` first. Written as m2c's per-word copy the seed scored
+52.4%; typing the copy as a struct (`work->matrix_0 = coord->coord;`) took it to
+99.608%, leaving only that pair.
+
+**Cause.** Every one of the four entry loads defines a single-set pseudo, so
+`birthing_insn_p (PATTERN (prev))` is true and `adjust_priority` raises each to
+`LAUNCH_PRIORITY` the moment `schedule_insn` frees it. The natural priorities -
+the `8(v0)` load inherits 2 from its parent, the rest 1 - are flattened away, and
+`rank_for_schedule` falls through to `INSN_LUID` **descending**. Launch order was
+`0x1C`, `8(v0)`, `0x20`, `0x2C`; since sched1 emits the launch order reversed
+(see the section above) that came out `0x2C, 0x20, 8(v0), 0x1C`. The `8(v0)`
+load is the child of the `0x2C` load, so its parent pays the load-to-address
+latency and launches two cycles late - which is why the fixed chain below puts
+`0x2C` *before* `0x1C` in the emitted output even though `0x1C` is declared
+first.
+
+**Fix.** Move the declaration that must emit *earlier* further *down*, so the
+others take the larger LUIDs:
+
+```c
+GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;        /* LUID min */
+Actor104400Work* work  = (Actor104400Work*)arg0->idMap;    /* before coord */
+GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+```
+
+RTL chain `0x20, 0x1C, 0x2C, 8(v0)`; launch `8(v0)`, `0x1C`, `0x2C`, `0x20`;
+emits `0x20, 0x2C, 0x1C, 8(v0)` - the target, penalties all zero. Initialiser
+order is RTL chain order exactly as statement order is, so the lever is
+available for any equal-priority group of loads, and sched2 needs no attention:
+it only re-swapped the two independent stores' children here.
+
+**Example:** `Actor04400_Fn08B3C` (99.608% -> 100%, declaration order only).
 ## An `s8` local defers its sign extension to the use; a cast into `s32` pins it at the assignment
 
 **Symptom.** `Gp_GetObjPan` returns `s32`; the target truncates its result

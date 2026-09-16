@@ -1074,7 +1074,34 @@ void Actor04400_Fn08AA4(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08B3C);
+/// Same body as `ActorsShared8016a98c`, which serves `actor_341700` and
+/// `actor_342400`; this unit serves `actor_104400` and `actor_342200`.
+///
+/// `work` is declared before `coord` on purpose: sched1 promotes all four
+/// loads to `LAUNCH_PRIORITY` and breaks that tie by descending `INSN_LUID`,
+/// so the order the initialisers are emitted in is the order the loads land.
+void Actor04400_Fn08B3C(Task* arg0)
+{
+    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    Actor104400Work* objWork;
+
+    enemy->field_54 = 0;
+
+    objWork = (Actor104400Work*)arg0->idMap;
+    Gp_UnlinkObj(&objWork->obj_2AC);
+    Gp_UnlinkObj(&objWork->obj_2CC);
+    Gp_UnlinkObj(&objWork->obj_3AC);
+
+    work->field_430 = 0x1000;
+    work->matrix_0  = coord->coord;
+
+    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+
+    work->field_412 = 0;
+    work->field_420++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08C08);
 
