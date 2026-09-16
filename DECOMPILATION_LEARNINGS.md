@@ -88206,3 +88206,64 @@ Back to 100.000%. Statement order inside the loop body is sched1's business and
 did not matter; where the locals are *born* did. Same family as "Shape a live
 range by *where* a local is introduced", but the actionable form against an m2c
 seed is mechanical: move the declaration into the branch, not the assignment.
+
+## A call argument that repeats a value CSE already has in a register is a variable, not a literal (func_neo_ark_submarine_gallery_8017EF14, 2026-09-16)
+
+A handler that forces a session state and passes the same state on:
+
+```c
+    if (Game_Session->field_9 != 4 && Game_Session->field_126 != 0) {
+        Game_Session->field_9 = 4;
+    }
+    if (arg0->killCountdown < 0x780) {
+        arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
+    }
+    func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, 4);
+```
+
+is 93.333% (`insert=1 delete=1`), and the whole difference is the `jal`'s delay
+slot: the target has `nop`, this has `li $5,4`. `build.sh` follows uid 71, which
+**already exists in the `.rtl` dump** - `expand_call` emits the argument setup
+itself (`calls.c`, `emit_move_insn (reg, val)`), so a literal argument becomes
+`(set (reg:SI 5 a1) (const_int 4))` with the *hard* register as destination.
+Nothing later can fold it away, and `dbr` moves it into the call's delay slot.
+The earlier `li $5,4` is a different insn entirely: the `!=` forced the same
+constant through `force_reg` (`REG_EQUAL (const_int 4)` on the `(set (reg:SI 89)
+…)`), so the compare and the store share pseudo 89 - which is why the target
+shows one materialisation and a `nop`.
+
+**Fix.** Give the value a C-level identity so `expand_call` emits a register
+copy instead of a raw constant:
+
+```c
+    s32 mode;
+    if (Gp_ActorSlots[0] != NULL) {
+        mode = 4;
+        if (Game_Session->field_9 != mode && Game_Session->field_126 != 0) {
+            Game_Session->field_9 = mode;
+        }
+        ...
+        func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, mode);
+    }
+```
+
+`(set (reg:SI 5 a1) (reg:SI mode))` becomes a self-move once global-alloc lands
+`mode` in `$a1` too, and `reload_cse_regs`'s noop-set elimination deletes it -
+leaving exactly the target's `nop`. 100.000%, all-zero penalties.
+
+**The initializer's position is load-bearing.** `s32 mode = 4;` at the top of the
+function is 92.774% (`branch=4 reorder=2 insert=1`, 31 instructions): the `li`
+is emitted in the entry block, ahead of the branch. The assignment has to sit
+inside the guarded block, as above.
+
+This is the sibling of the ternary entry above, from the other side: there the
+constant had to stay *in* the call and land in the delay slot; here a constant
+that already has a register home must *not* be re-materialised there. Decide by
+whether the target materialises the value once or twice.
+
+Inputs: `base.c` (literal, 93.333%)
+`ec0806a24b8cb425c9c04c23ac2c6134f368561fe3c46b7703d0839e05c0249c`,
+`base_1.c` (variable inside the guard, 100.000%)
+`9696f35390901695c142d36d9cb5ccbb4ab00535219a42ba359897615dd2fefd`,
+`base_2.c` (initializer at function top, 92.774%)
+`b4edd1b0e15b4cf126a319f592ddb684d7d35adfc67e47dda3ec5c93b82255d9`.
