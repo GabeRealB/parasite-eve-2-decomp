@@ -3,8 +3,10 @@
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Message table of the night water-tank room, 0x13EE..0x13F1 with the
 /// 0x7FFFFFFF terminator: `Room_Util11`, `Room_Util06` and the two room-local
@@ -20,6 +22,14 @@ extern TaskDesc D_dryfield_night_water_tank_8017EE28;
 /// emitted against bare address, the way the other rooms' `func_8013...` are.
 extern void func_8013224C(void);
 
+/// Absolute import: the shared room script descriptor 0x8013788C, spawned by
+/// entry 0 in the handler below.
+extern TaskDesc D_8013788C;
+
+/// Model/lighting records the handler below toggles on message 3 and 4.
+extern s32 D_dryfield_night_water_tank_8017DDD8;
+extern s32 D_dryfield_night_water_tank_8017DEE0;
+
 void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
 s32 func_dryfield_night_water_tank_8017D73C(s32 arg0, s32 arg1, s32 arg2)
@@ -30,7 +40,31 @@ s32 func_dryfield_night_water_tank_8017D73C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tank/dryfield_night_water_tank_2", func_dryfield_night_water_tank_8017D76C);
+s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in)
+{
+    u8 temp_v1;
+
+    if ((Game_Session->field_9 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
+        if (in->field_2 == 3) {
+            func_800E8614((s32)&D_dryfield_night_water_tank_8017DDD8, 0);
+        }
+        if (in->field_2 == 4) {
+            func_800E8614((s32)&D_dryfield_night_water_tank_8017DEE0, 0);
+        }
+    }
+    if (in->field_2 == 5) {
+        temp_v1 = Game_Session->field_9;
+        if ((u32)(temp_v1 - 0xA) < 2U) {
+            if ((temp_v1 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
+                Gp_MsgPlayerWeapon(0);
+                Task_SpawnFromTable(&D_8013788C, 0, 0, 0);
+            } else {
+                Gp_RunCapCmd1(0x17);
+            }
+        }
+    }
+    return 0;
+}
 
 /// Room entry task tick, the shape the other dryfield rooms' entry tasks have:
 /// publish the message table the room's handlers hang off (0x13EE..0x13F1) in
