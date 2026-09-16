@@ -94624,3 +94624,32 @@ target's shared register is just a constant cse1 unified.
 The sibling `func_actor_303600_8016253C` in the same unit repeats the block byte
 for byte (`addiu $s0,$zero,0x9` / `sh $s0,0xC($s1)` included, with `$s0` reused
 from an earlier global load), so this body is the template to port it from.
+
+## m2c's unknown pointer type is `s32`, so a walker's byte-stride increment gets scaled by 4 (func_actor_303600_80162A0C, 2026-09-16)
+
+m2c renders a pointer whose target type it cannot see as `M2C_UNK *` and keeps
+the *byte* offset in the increment. `M2C_UNK` is `typedef s32 M2C_UNK`, so
+`var_s1 += 0x10;` compiles to `addiu $s1,$s1,0x40` while the target has
+`addiu $s1,$s1,0x10`. One instruction off, and the diff names no register:
+`regs=1`, everything else zero.
+
+The increment constant is the one place the seed states the walked element's
+size, so read the type off it rather than adjusting the constant. Here the table
+is three `GsF_LIGHT` -- 0x10 bytes each (`int vx,vy,vz; uchar r,g,b;` plus
+padding), which the overlay's own data confirms: 0x30 bytes whose last word of
+each entry is `0x00808080`, the r/g/b triple -- so the walker becomes
+`GsF_LIGHT*` and `var_s1 += 1;`:
+
+```c
+    GsF_LIGHT *light = D_actor_303600_8016E490;
+    ...
+    for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
+        Gfx_SetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
+    }
+```
+
+100% on the first build of the retyped seed, and again for the same body written
+with the real `Actor303600LightMats` / `Task*` / `TmdObject*` types. The same
+trap applies to any `M2C_UNK*` walker in a seed: when the target's `addiu`
+disagrees with the seed's increment constant, the element type is wrong, not the
+constant.

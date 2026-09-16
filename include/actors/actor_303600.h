@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "main/gfx.h"
 #include "main/task.h"
 
 /// Work block for the `actor_303600` overlay's cutscene controller.
@@ -42,5 +43,21 @@ typedef struct Actor303600Msg7DA {
     /* 0x2 */ s16 field_2;
 } Actor303600Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
+
+/// Light / colour matrix pair the overlay's actor hands to its model: the pair
+/// `func_actor_303600_80162950` allocates with `Mem_Calloc(0x44, 0)` and parks
+/// in its own task's `Task::idMap` slot (0x1C, again not a `TaskIdMap`), so
+/// reach it with `(Actor303600LightMats*)task->idMap`.  The four bytes after
+/// the two matrices are part of the allocation and are never read here.
+typedef struct Actor303600LightMats {
+    /* 0x00 */ MATRIX lightMtx;
+    /* 0x20 */ MATRIX colorMtx;
+    /* 0x40 */ byte   pad_40[0x4];
+} Actor303600LightMats;
+STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
+
+/// The overlay's three flat lights, loaded into the model by
+/// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
+extern GsF_LIGHT D_actor_303600_8016E490[3];
 
 #endif // ACTOR_303600_H
