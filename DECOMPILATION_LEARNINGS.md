@@ -3,6 +3,78 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Two literal call sites merge their `jal` in `reorg`; m2c's shared block mirrors the layout
+
+A switch whose arms converge on one `jal`, with the *argument setup repeated in
+front of each arm*, is two literal call sites — not one call with variables:
+
+```
+beq    a2,v0,Lcase1
+sw     ra,0x10(sp)
+li     v0,2
+beq    a2,v0,Lcase2
+lui    a0,%hi(D)        /* copied into the beq's delay slot */
+j      Lret
+nop
+Lcase1:
+lui    a0,%hi(D)        /* the whole setup repeats here */
+addiu  a0,a0,%lo(D)
+move   a1,zero
+li     a2,0x51
+j      Lcall
+li     a3,1
+Lcase2:
+addiu  a0,a0,%lo(D)     /* reuses the delay-slot lui */
+move   a1,zero
+li     a2,0x52
+li     a3,2
+Lcall:
+jal    Task_SpawnFromTable
+nop
+```
+
+Write both calls out and let the compiler unify them:
+
+```c
+switch (arg2) {
+    case 1:
+        Task_SpawnFromTable(&D_room_8017E818, 0, 0x51, 1);
+        break;
+    case 2:
+        Task_SpawnFromTable(&D_room_8017E818, 0, 0x52, 2);
+        break;
+}
+return 0;                                   /* 100% */
+```
+
+m2c reads that shared `jal` as a `block_5` label inside `case 1` that `case 2`
+`goto`s, and the layout comes out mirrored — case 1 falls into the call and
+case 2 jumps back to it, 57%. Giving each arm its own `var_a2`/`var_a3` and a
+`default: goto done;` restores the *topology* (blocks 7/7, predicates and calls
+match) but still leaves the setup in the shared block, 68%, `regs=2`.
+
+**The merge is `reorg.c`, not `jump.c` or CSE**, so the RTL keeps both calls for
+most of the pipeline and the setup is duplicated by the same pass that unifies
+them:
+
+- `.sched2` still has two `call_insn`s, one per arm, each preceded by its own
+  `(set (reg:SI 4 a0) (high:SI (symbol_ref …)))`.
+- `.dbr` (printed after `reorg.c`) has one. A new `code_label 85` sits between
+  the second arm's last `li` and the surviving `call_insn 45`, and the first
+  arm's `jump_insn 30` has been redirected onto it — the first arm's own
+  `call_insn 28` is gone and its `li a3,1` now fills the jump's delay slot.
+
+So a mid-pipeline dump is not evidence that the source had one call; only
+`.dbr` shows the shape the assembler sees.
+
+`func_dryfield_underpass_8017D868` (rooms/dryfield_underpass). Its third
+parameter carries the command, so it takes the sibling
+`func_neo_ark_power_plant_2_8017D61C` signature `(s32 arg0, s32 arg1, s32 arg2)`
+— with one parameter the compare lands in `$a0` instead of `$a2`. The sibling
+`func_dryfield_night_underpass_8017D868` is the identical body, but
+`overlay_dup_index.py promote` refuses it: the table it reads sits at a
+different offset in each room.
+
 ## One shared `ret` decides which arm is the entry fall-through; m2c's early returns do not
 
 A two-arm global guard whose target is:
