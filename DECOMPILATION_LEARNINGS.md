@@ -49647,6 +49647,38 @@ a barrier instead, the `sb` is duplicated into each arm's delay slot, and the
 block order puts the early-return arm before the tail. Read the target's block
 order as the source order of the arms: here it is 0, 1, 3, 6, 4/5, 2/7.
 
+## `/* irregular */` in m2c output: a two-arm switch that shares its call already merged
+
+The room "stage sound" idiom repeats across the rooms family — one switch on an
+argument, each arm calling the same sound function with a different constant:
+
+```c
+s32 F(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 4: SndEvt_EnqueueType6(0x52200004, 0, 0); break;
+        case 5: SndEvt_EnqueueType6(0x52200005, 0, 0); break;
+    }
+    return 0;
+}
+```
+
+The target has **one** `jal`, reached from the second arm by fall-through, with
+the first arm jumping to it. Both arms end in the identical
+`move a1,zero; jal; move a2,a1`, so cross-jumping merges that tail; only the
+`lui $a0,hi` / `ori $a0,a0,lo` constant pair stays per-arm.
+
+m2c does not reproduce this. It sees the arms as sharing a *statement* rather
+than a tail, so it hoists the constant into one `s32 var_a0` local and lowers
+both arms to `var_a0 = K; goto block_5;` — and marks the switch `/* irregular */`
+for good measure. That explicit label is a real block boundary: each arm gets
+its own call and its own jump back, the object comes out 22 instructions against
+20, and the score parks at 72% with `insert=4 delete=2`.
+
+Fix is to delete m2c's goto and write each arm's call inline with its own
+constant, exactly as above. Ignore the `/* irregular */` comment — it is m2c
+reporting its own lowering, not evidence about the source.
+
 ## Room effect task prologue: read `extra->field_8` before `spawnArg2`, and both before `state`
 
 A room's `Gp_State1C` effect task opens by unpacking three `Task` fields, and
