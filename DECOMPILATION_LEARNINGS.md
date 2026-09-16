@@ -97903,3 +97903,79 @@ SHA256 `2c6763f71eee3dfeb59bb89d04932c63dc773f264b51b2ce999f8dbe8ad7debd`;
 target SHA256 `1632576e4d4442ef2977f5eb6ed5e40cda6501761a28a7583fe60bf05acb00e2`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00100_Fn03340-vacuum`.
+
+## A self-assignment is deleted before the first RTL dump; load into a local to reproduce the ROM's dead store (Actor00100_Fn01EEC, 2026-09-16)
+
+`Actor00100_Fn01EEC` (551 insns, actors/lib) re-stores the value it just loaded
+on the "state already handled" arm of every check: `sw $v0, 0x84C($a1)` where
+`$v0` is the result of `lw $v0, 0x84C($a1)` two instructions earlier. Written
+the obvious way that store does not exist:
+
+```c
+if (arg1->field_84C != 9) { arg1->field_84C = 9; ...; return 0x40010002; }
+arg1->field_84C = arg1->field_84C;      /* 0 stores in the .o, 13 expected */
+```
+
+Nothing in the pass dumps shows a deletion because the store is already gone in
+`.rtl`, the first dump: the C front end folds `x = x` away before RTL. The
+object then has 13 loads and 13 stores to 0x84C where the ROM has 13 loads and
+20 stores, and the arm's fall-through loses its `sw` (it is the *only*
+difference between a 86.4% and a 100% score on this function).
+
+A local carries the loaded value and its store-back survives:
+
+```c
+u32 prev;
+...
+    prev = arg1->field_84C;
+    if (prev != 9) { arg1->field_84C = 9; ...; return 0x40010002; }
+    arg1->field_84C = prev;             /* 7 `sw $v0` + 1 shared, as in the ROM */
+    var_a0          = 0;
+```
+
+The store is what makes the value a *source-level* one, so cse keeps the
+register the load produced; `field_84C` also sits inside the 0x48-byte block
+the `var_a0 == 1` path hands to `Mem_Set`, which is why every arm re-writes it.
+
+Diagnostic: count the store forms in the `.o` (`grep -c 'sw    v0,0x84c'`), not
+the score - a dead store missing from one arm shows up as `regs`/`reorder`
+noise spread over the whole function, and `diff.py` renders the missing store as
+a block that merely moved.
+
+Inputs: `base_4.c` SHA256 `e7155c96d5c9e6ecf16c5cb953b2e3d99cbedb198738b06c9162f0d9b4ef1e61`;
+`base_4.i` SHA256 `7bd7175cbc7a5a556ada9699b3672188166cfa68bb8b17df94217131f605b241`;
+target SHA256 `20e3be4d21c4d32b68eaee1ddb6557a27dbd6243398592927a15df556f5b7d33`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00100_Fn01EEC-vacuum`.
+
+## The duplicated tail can be a whole conditional block, and the source must really contain it (Actor00100_Fn01EEC, 2026-09-16)
+
+`Actor00100_Fn01EEC` ends its `case 18` chain and its `case 17` chain with the
+same `(field_5A & 0x3FF) == 0xE` check - same two `Gp_SpawnEff` calls, same
+`return 0x40010002`. GCC's cross-jumping keeps one copy (at the *later* case,
+as "m2c `goto block_N` for a cross-jumped tail merges in the wrong direction"
+describes) and both cases branch into it, so the preserved copy sits at
+`0x2644`, between case 17's body and case 13's, and case 18's `0xE` test is a
+forward `bne` out of its own chain.
+
+Written with the check in `case 18` only, that copy stays in case 18 and the
+whole tail lands ~100 instructions earlier than the ROM's: 86.4% with
+`branch=9 reorder=88`, the two `j`/`jal` pairs swapping between the `0x40010001`
+and `0x40010002` merge sites. Adding the *same* check to the end of `case 17` is
+the fix; GCC re-merges and puts the survivor where the ROM has it. The tell is
+a case whose not-equal arm branches forward into another case's chain: the
+m2c/CFG reading treats that target as belonging to the case that branches to
+it, but the block only exists once because the source wrote it twice.
+
+Size is a useful cross-check before touching the manifest: the ROM's
+`lib/actor_400100_damage` rodata spans `0x5C..0xD4` (0x78 bytes), which is
+exactly the compiled object's `.rodata` - GCC emits the two jump tables
+(`Jt0005C` 19 words, `Jt000AC` 10 words) in source-function order with the
+trailing zero word the ROM has at `0xA8`, so one cut at the first table's
+address covers both. A `.rodata` cut already naming the compiling unit at a
+*later* offset (`0xAC`) is not enough - the table has to own the range from its
+own address, and the earlier `rodata` blob (`actor_400100_header_tail`, which
+held the table as an `INCLUDE_RODATA` blob) shrinks to the 4 bytes in front of
+it. The overlay still built and linked with the table at the wrong address: the
+checksum is what catches it, in both overlays that share the unit
+(`actor_400100`, `actor_407500`).

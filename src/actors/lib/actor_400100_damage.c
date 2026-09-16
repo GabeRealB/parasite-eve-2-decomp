@@ -15,11 +15,309 @@
 #include "main/wipsys.h"
 #include <psyq/inline_c.h>
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_damage", Actor00100_Fn01EEC);
+s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
+{
+    Actor00100Work* work;
+    u32             prev;
+    s32             var_a0 = 1;
+
+    switch ((s16)arg1->field_82E) {
+        case 0:
+            if ((arg1->field_5A & 0x3FF) == 9) {
+                prev = arg1->field_84C;
+                if (prev != 9) {
+                    arg1->field_84C    = 9;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80002280, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80002120, &work->field_898);
+                    }
+                    return 0x40010002;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 6) {
+                prev = arg1->field_84C;
+                if (prev != 6) {
+                    arg1->field_84C    = 6;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80002220, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80002120, &work->field_898);
+                    }
+                    return 0x40010001;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+        case 0xA:
+            if ((arg1->field_5A & 0x3FF) == 0xA) {
+                prev = arg1->field_84C;
+                if (prev != 0xA) {
+                    arg1->field_84C    = 0xA;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[0], 0x80004A00, &work->field_898);
+                    }
+                    return 0x40010005;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+        case 3:
+            if ((arg1->field_5A & 0x3FF) == 0xC) {
+                prev = arg1->field_84C;
+                if (prev != 0xC) {
+                    arg1->field_84C = 0xC;
+                    return 0x40010004;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 8) {
+                prev = arg1->field_84C;
+                if (prev != 8) {
+                    arg1->field_84C = 8;
+                    return 0x40010003;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+        case 6:
+            if ((arg1->field_5A & 0x3FF) == 6) {
+                prev = arg1->field_84C;
+                if (prev != 6) {
+                    arg1->field_84C    = 6;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010004;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 0xC) {
+                prev = arg1->field_84C;
+                if (prev != 0xC) {
+                    arg1->field_84C    = 0xC;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80004480, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80004480, &work->field_898);
+                    }
+                    return 0x40010011;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+        case 0x12:
+            if ((arg1->field_5A & 0x3FF) == 6) {
+                prev = arg1->field_84C;
+                if (prev != 6) {
+                    arg1->field_84C    = 6;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010001;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 9) {
+                prev = arg1->field_84C;
+                if (prev != 9) {
+                    arg1->field_84C    = 9;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010001;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 0xE) {
+                prev = arg1->field_84C;
+                if (prev != 0xE) {
+                    arg1->field_84C    = 0xE;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010002;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+        case 0x11:
+            if ((arg1->field_5A & 0x3FF) == 6) {
+                prev = arg1->field_84C;
+                if (prev != 6) {
+                    arg1->field_84C    = 6;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010001;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 0xA) {
+                prev = arg1->field_84C;
+                if (prev != 0xA) {
+                    arg1->field_84C    = 0xA;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x2BC;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010001;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            if ((arg1->field_5A & 0x3FF) == 0xE) {
+                prev = arg1->field_84C;
+                if (prev != 0xE) {
+                    arg1->field_84C    = 0xE;
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80003200, &work->field_898);
+                    }
+                    work               = arg0->field_1C;
+                    work->field_898.vz = 0;
+                    work->field_898.vx = 0;
+                    work->field_898.vy = 0x258;
+                    if (Gp_State1C->field_A == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80003200, &work->field_898);
+                    }
+                    return 0x40010002;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+        case 0xD:
+            if ((arg1->field_5A & 0x3FF) == 0x18) {
+                prev = arg1->field_84C;
+                if (prev != 0x18) {
+                    arg1->field_84C = 0x18;
+                    return 0x4001000F;
+                }
+                arg1->field_84C = prev;
+                var_a0          = 0;
+            }
+            break;
+    }
+    if (var_a0 == 1) {
+        Mem_Set(&arg1->pad_846[2], 0U, 0x48U);
+    }
+    return 0;
+}
 
 void                         Actor00100_Fn001FC(GsCOORDINATE2*, s16);
 void                         Actor00100_Fn01D74(Actor00100*);
-s32                          Actor00100_Fn01EEC(Actor00100*, Actor00100Work*);
 void                         Gp_UpdateCoord(GsCOORDINATE2*);
 void                         func_800B4114(s8*, s32, s16, s32, s32);
 extern s8                    Actor00100_D1B6D0;
