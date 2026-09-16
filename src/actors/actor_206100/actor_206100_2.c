@@ -55,6 +55,14 @@ void func_actor_206100_8014F284(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F2F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F3C8);
+s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
+{
+    Actor206100Work* work = (Actor206100Work*)arg0->idMap;
+
+    if (work->field_51A == 0) {
+        return 0;
+    }
+    return ((arg1 << 8) / work->field_51A << 12) >> 16;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F428);
