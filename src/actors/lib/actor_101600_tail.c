@@ -23,6 +23,8 @@ void       Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void*      Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
 void       Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
 void       Actor01600_Fn06880(Actor01600* arg0);
+MATRIX*    ScaleMatrix(MATRIX* m, VECTOR* v);
+MATRIX*    MulMatrix(MATRIX* m0, MATRIX* m1);
 void       Actor01600_Fn06EA4(Actor01600* arg0);
 u8         Actor01600_Fn06F78(Actor01600* arg0);
 
@@ -179,7 +181,40 @@ void Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1)
     *scratch = (u8*)*scratch + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06880);
+/// Squashes the actor's attachment coordinate: the work block's `field_49C`
+/// rotation is copied into the coordinate, an identity is splatted into a
+/// 0x30-byte scratch block and scaled per axis by 1.0 / the decaying
+/// `field_518` / 1.0, and the product replaces the coordinate's rotation.
+/// `flg` is cleared so its own work matrix is rebuilt from `coord` next frame.
+void Actor01600_Fn06880(Actor01600* arg0)
+{
+    GsCOORDINATE2*          coord;
+    u8*                     head;
+    Actor01600ScaleScratch* scratch;
+    Actor01600Work*         work;
+
+    head                = *(u8**)0x1F8003FC;
+    work                = arg0->field_1C;
+    scratch             = (Actor01600ScaleScratch*)(head - 0x30);
+    *(void**)0x1F8003FC = scratch;
+    coord               = arg0->field_2C->field_8;
+    if (work->field_518 >= 0x201) {
+        work->field_518 = (u16)work->field_518 - 0x50;
+    }
+    scratch->scale.vx          = 0x1000;
+    scratch->scale.vy          = (s32)work->field_518;
+    scratch->scale.vz          = 0x1000;
+    coord->coord               = work->field_49C;
+    scratch->mat.ident.m00_m01 = 0x1000;
+    scratch->mat.ident.m02_m10 = 0;
+    scratch->mat.ident.m11_m12 = 0x1000;
+    scratch->mat.ident.m20_m21 = 0;
+    scratch->mat.ident.m22     = 0x1000;
+    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->mat.mat);
+    coord->flg         = 0;
+    *(u8**)0x1F8003FC += 0x30;
+}
 
 /// Steps the attachment coordinate `distance` units along the model's facing:
 /// `Gfx_MatrixCol2` reads that coordinate's column into `dir`, `ratan2` turns it

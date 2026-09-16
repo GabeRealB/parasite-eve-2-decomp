@@ -421,6 +421,17 @@ typedef struct Actor01600StepScratch {
 } Actor01600StepScratch;
 STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
 
+/// 0x30-byte `G_SCRATCH_HEAD` block `Actor01600_Fn06880` squashes the attachment
+/// coordinate with: an identity `mat` scaled per axis by `scale` and multiplied
+/// into the coordinate's own rotation. The axis scales are 1.0, the work
+/// block's decaying `field_518` and 1.0 again. Same shape as the
+/// `ActorShared80135b58Scratch` the other actors' shrinking bodies borrow.
+typedef struct Actor01600ScaleScratch {
+    /* 0x00 */ Actor01600Matrix mat;
+    /* 0x20 */ VECTOR           scale;
+} Actor01600ScaleScratch;
+STATIC_ASSERT_SIZEOF(Actor01600ScaleScratch, 0x30);
+
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 void Actor01600_Fn03A60(Actor01600* actor);
