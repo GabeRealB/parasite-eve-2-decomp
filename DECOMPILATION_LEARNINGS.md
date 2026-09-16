@@ -2453,6 +2453,41 @@ Rule: when the target shows one shared tail reached from two source branches,
 write the literals *in* each branch - do not merge them through a local - and
 let the cross-jumper build the tail. This is the same rule as the store entry
 above, extended to identical multi-instruction call blocks.
+
+### The arm that differs caps how far jump2 walks back
+
+`func_dryfield_night_gas_station_80180604` is a three-case switch whose arms all
+end `Gp_SpawnEff(0x600E0, coord, arg2, &offset); <notify>(1);` with only `arg2`
+and the offset vector differing, and the target keeps **three** `jal
+Gp_SpawnEff` sites. Writing the notify value through a local -
+
+```c
+s16 state;
+switch (arg0) { case 0: ...; state = 1; break; ... default: state = 0; }
+<notify>(state);
+```
+
+- leaves each arm ending in the same `[set a0 1][j tail]` pair while the block
+  *before* the tail is the `state = 0` arm. The post-reload cross-jump then
+  walks back from the tail past `[set a0 1]`, past the shared store and past the
+  `jal Gp_SpawnEff`, and merges the effect calls too: 86.761%, `delete=8
+  branch=5`, 63 of 71 insns.
+
+Calling the notify **inline in each arm** (`<notify>(1);` in each case,
+`<notify>(0);` in the default) is what the target wants. The arms now end
+`[set a0 1][jal <notify>][j tail]`, and the block immediately before the epilogue
+label is the default's `[set a0 0][jal <notify>]`, so the backward walk matches
+the `jal` and stops on the very next insn - `set a0 0` against `set a0 1`. The
+merge point is therefore the shared *notify* call and nothing earlier: each arm
+keeps its own `jal Gp_SpawnEff` and its own stores, and the arm's `set a0 1` is
+left in place to be copied into the `j`'s delay slot by `dbr_schedule`. 100%.
+
+The generalisation: the merge stops at the first insn that differs walking
+backwards, so whichever arm supplies the differing insn right below the shared
+tail is the one that limits the merge. A shared tail fed only by arms that agree
+all the way down gets eaten whole; give the diverging arm its instruction as
+close to the tail as the target shows it.
+
 ## A cross-jumped call block also decides the address's register: `lui $a0`, not `lui $v0`
 
 `func_actor_161500_80132110` picks one of two symbol addresses and passes it to
@@ -88581,6 +88616,28 @@ object is 19/20 blocks with an extra `j`.
 
 `Room_Script02`, whose nibble block is byte-identical to this one, was matched
 with a third form, and that is the one that reproduces the target exactly:
+## A duplicated room block is often already matched in `src/rooms/lib` (func_dryfield_night_gas_station_8017F544, 2026-09-16)
+
+**Problem.** The first block of the night gas station's slot-7 msg `0x13EE`
+handler —
+
+```
+jal GameFlag_GetNibble / li $a0,0x7A
+slti $v0, $v0, 4
+beqz $v0, .Lstore
+ li   $v0, 3                     # the else arm lands in the delay slot
+jal GameFlag_GetNibble / li $a0,0x61
+addiu $v0, $v0, 1
+.Lstore: sb $v0, 0x3($s1)
+```
+
+— did not come out of the obvious `val = 3; if (nib(0x7A) < 4) val = nib(0x61) + 1;`,
+which scored 97% with `val` in `$s0`: the constant is defined before the
+`nib(0x7A)` call, so its live range crosses one, `global.c` gives it a
+callee-saved register, and `dbr` hoists the whole assignment out of the block.
+
+**Fix.** That sequence is the *entire* body of the promoted shared unit
+`Room_Script02` (`src/rooms/lib/room_script02.c`):
 
 ```c
 n = GameFlag_GetNibble(0x7A);
@@ -89122,3 +89179,41 @@ store in both arms rather than assigning a local that both arms share.
 
 Input `base_5.c`
 `151e4a324aef36393f94993ce58da1a2ee86c58f386181d7511debc956fb10d2` (100.000%).
+    val = 3;
+    TOUCH_REG(val);
+    val = GameFlag_GetNibble(0x61) + 1;
+} else {
+    val = 3;
+}
+out->field_3 = val;
+```
+
+The comparison is hoisted into its own statement, so the `slti` result is
+already in `$v0` and `val` is defined on *both* arms after the call: no live
+range crosses one, the allocator keeps it in the call-clobbered `$v0`, and the
+`3`-arm is a single-insn block that reorg moves into the branch delay slot.
+Before writing a room handler block, grep `src/rooms/lib` for its constants —
+the family's idioms are already matched there, and `overlay_dup_index.py find`
+cannot point at them, because it only reports bodies duplicated *between*
+overlays and a shared unit's body is one overlay's copy by construction.
+
+## Promoting a body renames units, and two things must follow (2026-09-16)
+
+`overlay_dup_index.py promote` writes the span into `configs/USA/overlays.toml`
+and the shared symbol into every carrier's sym file. When the span sits mid-unit,
+every later unit of that overlay shifts one index, and a redistribution of the
+bodies alone is not enough:
+
+- the `INCLUDE_ASM("rooms/nonmatchings/<overlay>/<unit>", …)` path compiled into
+  each renumbered `.c` still names the *old* unit, so `gas` cannot open the `.s`
+  ("can't open … : No such file or directory"). Rewrite each file's INCLUDE
+  paths to its own new unit name;
+- `build/` still holds objects compiled from the pre-rename files, and ninja
+  treats them as current, so `maspsx` runs on a stale `.s`. `rm -rf
+  build/USA/src/rooms/<overlay>` (and the other carrier's directory) first.
+
+The redistribution itself is lossless if it is done by text rather than by hand:
+run `bodies_of()` from `tools/land_overlay.py` over `git show HEAD:<file>` and
+over the new files and require the function-name sets and body texts to be
+equal. `check_lost_matches.py` cannot see this class of loss — it looks for a
+matched function that reverted to `INCLUDE_ASM` in its own file.
