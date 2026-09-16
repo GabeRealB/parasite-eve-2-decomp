@@ -73,7 +73,13 @@ typedef struct Actor401000Work {
     /// `func_actor_401000_80132590` probe takes the signed value, while the
     /// step helper and the halving read it back through a `(u16)`.
     /* 0xC0C */ s16  field_C0C;
-    /* 0xC0E */ byte pad_C0E[8];
+    /* 0xC0E */ byte pad_C0E[2];
+    /// Frame-length bias `func_actor_401000_8013DF6C` reseeds the `field_6`
+    /// countdown from, plus a 0-15 `Gp_LcgState` draw. The 401300 sibling keeps
+    /// the same bias at +0xCA0, and the countdown `Actor01900` runs off +0xC10
+    /// is the same slot.
+    /* 0xC10 */ u16  field_C10;
+    /* 0xC12 */ byte pad_C12[4];
     /// Radius `func_actor_401000_8013922C` tests the actor's distance from
     /// `D_80073B8C` against.
     /* 0xC16 */ u16 field_C16;
@@ -141,6 +147,10 @@ typedef struct Actor401000RangeScratch {
 STATIC_ASSERT_SIZEOF(Actor401000RangeScratch, 0xC);
 
 extern MATRIX* D_80073B8C;
+
+/// Linear congruential generator state `func_actor_401000_8013DF6C` advances
+/// with the same `(x * 5 + 0x71357911) >> 16` draw the 401300 sibling uses.
+extern u32 Gp_LcgState;
 
 /// Overlay-data word `func_actor_401000_8013922C` points
 /// `D_actor_401000_80154E88` at on entering its state.
@@ -213,5 +223,14 @@ void func_actor_401000_8013DC14(Actor401000* arg0);
 void func_actor_401000_8013DCC0(Actor401000* arg0);
 void func_actor_401000_8013DD6C(Actor401000* arg0);
 void func_actor_401000_8013DEC8(Actor401000* arg0);
+
+/// Per-frame animation tick: while the live-actor flag is up, reload the
+/// `field_6` countdown from `field_C10` plus a 0-15 draw from `Gp_LcgState`.
+/// On underflow the `field_89E` state picks the next clip — 0xB/0x17 select
+/// 0xF and 0xC/0x18/0x19 select 0x10, every other state leaving the actor as
+/// it was — and a spent enemy HP forces 0x15 whatever came out. The same body
+/// as `func_actor_401300_80141DF4`, which reads the state from `field_8A2`
+/// with case groups 0xB/0x17 and 0xC/0x18/0x22.
+void func_actor_401000_8013DF6C(Actor401000* arg0);
 
 #endif // ACTOR_401000_H

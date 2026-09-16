@@ -104538,3 +104538,53 @@ The `(u16)` cast does not survive as an RTL node — both are HImode — but it 
 flag `expand_expr` widens the load with, which is the whole difference between `lh` and `lhu`. The
 `s16` field with `(u16)` reads is the 100.000% form; the `u16` field with `(s16)` reads scores
 99.976% on the single store constant.
+
+## A jump-table switch's `addiu $-K` / `sltiu $N` dispatch is GCC's; switch on the raw field (func_actor_401000_8013DF6C, 2026-09-16)
+
+Once a `switch` becomes a jump table, `expand_end_case` in `stmt.c` builds the
+range check out of the case values themselves: `range = maxval - minval` folded
+from the case list, then `index_expr - minval` and an unsigned (`LTU`) compare
+against that range. On the way out that is `addiu $idx,$idx,-K` with `K` the
+lowest case value, then `sltiu $idx,$idx,N` with `N` the span
+(`highest - lowest + 1`). Neither number is in the source, so a dispatch that
+reads
+
+```
+lhu     $v0, 0x89E($a2)
+addiu   $v0, $v0, -0xB
+sll     $v0, $v0, 16
+sra     $v1, $v0, 16
+sltiu   $v0, $v1, 0xF
+beqz    $v0, .Lskip
+```
+
+is `switch (work->field_89E)` with cases `0xB`/`0xC`/`0x17`/`0x18`/`0x19`, not
+`switch (work->field_89E - 0xB)` with cases 0/1/12/13/14. m2c writes the second
+form and it compiles to the same object, so the score cannot choose between the
+two - but the tell is that `-0xB` and `0xF` are exactly `min` and
+`max - min + 1` of the case list. Take the raw form: the folded one needs a
+`default: goto` around the arms' shared store (the range check must reach the
+post-switch code), while the raw one does not, and the arms lay out identically
+either way.
+
+### The arms' two stores cross-jump into one, constants and all
+
+Those two arms are `work->field_0 = 0xF;` and `work->field_0 = 0x10;`, and the
+ROM joins them into a single `sh $v0,0($a2)` with the constant materialised in
+each arm - `j .Lstore` with `addiu $v0,$zero,0xF` in its delay slot for the
+first, a falling-through `addiu $v0,$zero,0x10` for the second. So a shared store
+with per-arm constants is *not* evidence of a source-level shared temp; the
+`result` variable + `default: goto` form that reproduces this object is the wrong
+shape, and "Prefer separate stores over `next` + goto for shared `field_30`" is
+the same call.
+
+The registry pair `func_actor_401300_80141DF4` (body in
+`src/actors/actor_401300/actor_401300_4.c`, ROM in its `matchings/` `.s`) is the
+oracle here: the two read together show that sibling's `switch (work->field_8A2)`
+over its own `addiu $v0,$v0,-0xB` / `sltiu $v0,$v1,0x18` (cases 11/12/23/24/34),
+and the same single `sh $v0,0($s0)` shared by its two arm groups. A matched body
+beside its target assembly is the fastest way to recover a family's source shape.
+
+Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c8c74`,
+`base_3.i` `9ca1f486b6fe7035e7065bf1d5dd3bad12fd7b3528ac457b1f0cf333eb56eb7f`
+(100.000%; the folded `default: goto` form scores the same).
