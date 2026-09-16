@@ -110326,3 +110326,54 @@ Inputs: `base_3.i` (100%) SHA256
 SHA256 `14a6e22ec8603a58a683f5e0f5645d287dd1f153a7cc710df569814f05aad82d`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80137684-vacuum`.
+
+## A load is never hoisted over a store with a different base register — the order is a source-order decision (func_actor_110600_80137980, 2026-09-16)
+
+`sched.c`'s `true_dependence` / `anti_dependence` both end in
+`memrefs_conflict_p`, which resolves two `(plus (reg N) const)` addresses by
+recursing onto the base registers and then `return 1` — *conflict* — for any two
+different ones. Nothing there knows two pseudos are distinct objects, so the
+scheduler orders every load against every store whose base register differs, in
+sched1 and sched2 alike, and reorg cannot move one past the other either.
+
+Symptom: the target has the pointer loads at the head of a block, before the
+stores that only use `$v0` / `$a0`; writing the field access at its use
+(`arg0->field_2C->field_C = 0;`) emits each load beside its own store and no
+amount of statement shuffling *around* them moves them:
+
+```
+target                          emitted with the access written at its use
+lw    a1,0x20(s2)   # enemy     li    a0,1
+lw    v1,0x2c(s2)   # object    sh    v0,0x892(s1)
+addiu a0,zero,1                 sh    a0,0x88c(s1)
+sh    v0,0x892(s1)              lw    v0,0x2c(s2)   <- born here
+```
+
+Fix: bind the pointers to locals as the *first* statements of the block, in the
+order the target emits them, and let the stores keep their source order after —
+sched1 reorders the independent stores among themselves but cannot lift a load
+back over any of them.
+
+The register homes survive that reorder, because local-alloc ranks quantities by
+`QTY_CMP_PRI = floor_log2(refs) * refs * size / (death - birth)` rather than by
+birth alone: the pointer whose use comes first has the shorter span, is
+allocated first, and keeps the lowest free register even when it is *born*
+second. Here the object pointer stayed in `$v1` although its assignment was
+written after the enemy's, which is what the target does too.
+
+The entry above on `func_actor_110600_80137684` is the other half of this — the
+same binding decides the load's register through `find_free_reg`'s interval
+scan. Both levers are the same edit; one fixes the order, the other the home.
+This one scored 99.785% for the binding and 100% once the two loads' order
+matched. The 9% before that was the angle wrap, copied verbatim from the
+already-matched sibling `func_actor_110600_80135A18` in the same unit: m2c's
+`(temp & 0x8000)` bit test and two live `var_v0` / `var_v1` locals cost
+`sll`/`sra`/`andi`/`beqz` and an out-of-place `addiu` + `move` where the
+sibling's `if (angle < 0)` with two `goto` loops gives the target's `bgez` and
+rotated positive loop. Read the sibling first.
+
+Inputs: `base_3.i` SHA256
+`cd028631c7c49b639148b678be0917b51acca199ab7abffcab2fc8f737db756e`; target.o
+SHA256 `419e3593688ace0aa8571144eadd5afd9df115a41808e59459aa6cfcbcc4fb91`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80137980-vacuum`.
