@@ -565,7 +565,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// `set_state`, which reloads `task->idMap` instead of reusing `work`: that
 /// fresh load is what keeps the pointer a block-local quantity, exactly as in
 /// `take_request`.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014D8E8);
+void func_actor_206100_8014D8E8(Task* task)
+{
+    Actor206100Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    s32              i;
+    s16              y;
+
+    work            = (Actor206100Work*)task->idMap;
+    work->field_51E = work->field_51E + 1;
+    if ((s16)work->field_51E == 7) {
+        y     = -0x3E8;
+        i     = 0;
+        coord = ((TmdObject*)task->extra)->field_8;
+        do {
+            vec.vx = (u32)rsin(i << 7) >> 3;
+            vec.vy = y;
+            vec.vz = (u32)rcos(i << 7) >> 3;
+            Gp_SpawnEff(D_80115738, coord, 0x01202148, &vec);
+            i++;
+        } while (i < 0x20);
+    }
+    if ((s16)work->field_51E >= 0x1F) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (((Gp_LcgState >> 0x10) & 3) == 0) {
+            set_state(task, 2);
+            return;
+        }
+        work->field_51E = 0;
+        work->field_522 = work->field_522 + 1;
+    }
+}
 /// Push the model's second coordinate's world position onto `G_SCRATCH_HEAD`
 /// and hand it to `Gp_UpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
 /// inlined the way `Actor405800_UpdateColor` and `Actor400600_UpdateColor`
