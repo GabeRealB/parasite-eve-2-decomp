@@ -91812,3 +91812,63 @@ Inputs: `base.i` (m2c statement inside the `if`, 90.53%)
 `29d418658066d0510b3b1c442957e9e900b0b641bc26a6ec299091695763079e`,
 `base_1.i` (hoisted pointer local, 100.000%)
 `d57d6bbb6dc390b9cdef2d10eceed035f95c738412bf321e619b612ebd5210f7`.
+## A scratch rebuild whose tail re-fetches `field_8` and clears `flg` twice is an *inlined* helper (func_actor_110600_80133E48, 2026-09-16)
+
+`func_actor_110600_80133E48` is the placement opcode of `ActorsShared80169f74`
+with the rescale of `ActorsShared80135a60` folded in behind it. Every scratch
+access in the target is the absolute form (`lui $s4,0x1F80` / `lw $s4,0x3FC($s4)`
+and `lui $at,0x1F80` / `sw $s0,0x3FC($at)`), so the obvious transcription --
+`head = *(u8**)G_SCRATCH_HEAD; blk = head - 0x34; *(Scratch**)G_SCRATCH_HEAD = blk;
+... *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;` -- stalls at 89.96%:
+`cse` merges the four constant addresses into one pseudo, which global-alloc then
+keeps in a callee-saved register (`lui/ori` + `sw $s0,0($s5)`), burning a seventh
+`s` register. Entries above give the fix; what is missing is the *tell*.
+
+The tell is the tail. Read literally, the target clears `flg` twice and re-derives
+the coordinate the second time:
+
+```
+lhu  $v0,0x10($s0)     ; m22
+sw   $zero,0x0($s2)    ; coord->flg = 0        (cached coord)
+sh   $v0,0x14($s2)     ; coord->coord.m[2][2] = m22
+lw   $v0,0x2C($s3)     ; task->extra  <- re-fetched
+lw   $v0,0x8($v0)
+sw   $zero,0x0($v0)    ; ...->field_8->flg = 0 (again)
+lui  $v0,0x1F80 ; lw $v0,0x3FC($v0) ; addiu $v0,$v0,0x34 ; sw $v0,0x3FC($at)
+```
+
+That double clear plus the re-fetch is not something a straight-line body would
+write; it is what an **inlined** helper looks like when the helper takes the
+`task` and re-derives `task->extra->field_8` for its own tail. `Actor444000_RebuildRotation`
+(`src/actors/actor_444000/actor_444000_6.c`) ends with exactly
+`coord->flg = 0; ((TmdObject*)task->extra)->field_8->flg = 0; *scratch += sizeof(...); Gp_UpdateCoord(...)`,
+and `Actor444000_ShrinkRotation` in `actor_444000_5.c` is the same body without
+the placement half. So the original source called an inline, and the fix is to
+reconstruct one:
+
+```c
+static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
+{
+    head  = *(u8**)G_SCRATCH_HEAD;
+    coord = ((TmdObject*)task->extra)->field_8;
+    blk   = (ActorShared80135a60Scratch*)(head - 0x34);
+    *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
+    ... ratan2 / Gfx_RotMatrixY / ScaleMatrix / nine matrix shorts ...
+    m22 = *(u16*)&blk->m.m[2][2];
+    coord->flg = 0;
+    coord->coord.m[2][2] = m22;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;
+}
+```
+
+`integrate.c`'s `try_constants` keeps the constant address absolute however many
+times the inlined body touches it, so all four accesses come out bare and the
+100% falls out with `stack=0 branch=0 regs=0 reorder=0 insert=0 delete=0` --
+89.96% to 100.00% on that restructuring alone, with the caller unchanged apart
+from the call. The `head - 0x34` re-derivation for `m[0][0]` (the shared body's
+idiom) must be kept: the target reads `-0x34($s4)` from the surviving `head`, not
+`0x0($s0)` from `blk`.
+
+So before reaching for asm or pins on a fixed-address access, look for a
+duplicated close-out in the target: an inline is usually cheaper than the pin.

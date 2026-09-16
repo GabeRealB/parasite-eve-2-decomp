@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
@@ -24,13 +25,17 @@ typedef struct Actor110600Work {
     /* 0x000 */ s16   field_0;
     /* 0x002 */ byte  pad_2[2];
     /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[0x8B2];
+    /* 0x006 */ byte  pad_6[2];
+    /* 0x008 */ s16   field_8;
+    /* 0x00A */ byte  pad_A[0x8AE];
     /* 0x8B8 */ GpObj field_8B8;
     /* 0x8D8 */ byte  pad_8D8[0x78];
     /* 0x950 */ GpObj field_950;
     /* 0x970 */ byte  pad_970[0x120];
     /* 0xA90 */ GpObj field_A90;
-    /* 0xAB0 */ byte  pad_AB0[0x124];
+    /* 0xAB0 */ byte  pad_AB0[0xCC];
+    /* 0xB7C */ u16   field_B7C;
+    /* 0xB7E */ byte  pad_B7E[0x56];
     /* 0xBD4 */ Task* field_BD4;
     /* 0xBD8 */ Task* field_BD8;
     /* 0xBDC */ byte  pad_BDC[8];
@@ -59,6 +64,10 @@ void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz);
 
 s32  func_actor_110600_801387C0(Task* arg0);
 void func_actor_110600_801388A4(Actor110600* arg0);
+
+/// Placement opcode: seeds the model's root coordinate from `placement`, then
+/// rebuilds and rescales it from the actor's own heading.
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
