@@ -9,6 +9,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/D4.h"
+
+extern TaskDesc D_actor_560800_8017575C;
+
+void func_8017F450(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_actor_560800_80136AA8(Task* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80136AA8);
 
 /// Sets up the animated model part the spawn argument names: allocates its
@@ -52,7 +59,129 @@ void func_actor_560800_801376E0(Task* arg0)
     work->field_280 = arg0->spawnArg1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80137820);
+/// Per-frame handler of the animated model part `func_actor_560800_801376E0`
+/// sets up. State 1 hides the part (`TmdObject::field_C` bit 0x80) for the
+/// part ids the current view excludes and otherwise runs
+/// `func_actor_560800_80136AA8`; state 2 resets all seven animation slots to
+/// `field_280`, state 3 ticks them, state 4 copies the coordinates of a part
+/// spawned from `D_actor_560800_8017575C` and state 5 kills the task a frame
+/// later. Every frame that survives rebuilds the root translation and, while
+/// visible, drives `func_8017F450` and the periodic `Gp_SpawnEff`.
+void func_actor_560800_80137820(Task* arg0)
+{
+    Actor560800ModelWork* work;
+    TmdObject*            extra;
+    GsCOORDINATE2*        coord;
+    Actor560800ModelWork* anim;
+    Task*                 child;
+    s32                   i;
+    u32                   tick;
+    TmdObject*            obj;
+    u32                   state;
+    u16                   id;
+    SVECTOR               unused; // never touched; only reserves the frame slot
+
+    extra = (TmdObject*)arg0->extra;
+    state = arg0->state;
+    work  = (Actor560800ModelWork*)arg0->idMap;
+    coord = extra->field_8;
+    obj   = extra;
+    switch (state) {
+        case 0:
+            func_actor_560800_801376E0(arg0);
+            arg0->state++;
+            return;
+        case 1:
+            if (Gp_FindViewIndex(Game_Session->field_4) == 0x16) {
+                switch (work->field_280) {
+                    case 1:
+                    case 3:
+                        obj->field_C |= 0x80;
+                        return;
+                    case 4 ... 0x7FFF:
+                        break;
+                    default:
+                        func_actor_560800_80136AA8(arg0);
+                        goto done;
+                }
+            }
+            if (work->field_280 < 8) {
+                if (work->field_280 >= 5) {
+                    obj->field_C |= 0x80;
+                    return;
+                }
+            }
+            func_actor_560800_80136AA8(arg0);
+            break;
+        case 2:
+            if (work->field_280 < 4) {
+                if (work->field_280 >= 2) {
+                    obj->field_C |= 0x80;
+                    return;
+                }
+            }
+            i    = 1;
+            id   = work->field_280;
+            anim = (Actor560800ModelWork*)arg0->idMap;
+            do {
+                anim->slots[i & 0xFFFF].field_9 = 0x10;
+                Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, id);
+                i++;
+            } while ((u32)(i & 0xFFFF) < 7U);
+            arg0->state++;
+            break;
+        case 3:
+            anim = (Actor560800ModelWork*)arg0->idMap;
+            i    = 1;
+            do {
+                Gp_AnimTickIndex(&anim->anim, i & 0xFFFF);
+                i++;
+            } while ((u32)(i & 0xFFFF) < 7U);
+            for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {
+                if (!(anim->slots[i & 0xFFFF].field_10 & 0x100)) {
+                    break;
+                }
+            }
+            break;
+        case 4:
+            child = Task_SpawnFromTable(&D_actor_560800_8017575C, 3,
+                                        ((TmdObject*)D_actor_560800_801757AC->extra)->field_8->coord.t[1],
+                                        (s32)arg0->spawnArg2);
+            if (child == NULL) {
+                arg0->state = 1;
+                return;
+            }
+            i = 0;
+            do {
+                Mem_CopyUnaligned(&((TmdObject*)arg0->extra)->field_8[i & 0xFFFF].coord,
+                                  &((TmdObject*)child->extra)->field_8[i & 0xFFFF].coord, 0x20);
+                i++;
+            } while ((u32)(i & 0xFFFF) < 7U);
+            arg0->killCountdown = 0;
+            arg0->state++;
+            break;
+        case 5:
+            if (++arg0->killCountdown >= 2) {
+                Task_Kill(arg0);
+                return;
+            }
+            break;
+    }
+done:
+    coord->coord.t[0] = work->field_254 + work->field_24C;
+    coord->coord.t[1] = (s16)work->field_256 + work->field_24E;
+    coord->coord.t[2] = work->field_258 + work->field_250;
+    coord->flg        = 0;
+    if (!(obj->field_C & 0x80)) {
+        func_8017F450(&((TmdObject*)arg0->extra)->field_8[6], work->field_280, 0x100, 0x3C36);
+        if (Gp_FindViewIndex(Game_Session->field_4) != 0x16) {
+            tick = D_actor_560800_801752E8 + 1;
+            if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->field_280) {
+                Gp_SpawnEff(0x601C6, &((TmdObject*)arg0->extra)->field_8[2], 0x800, NULL);
+            }
+        }
+    }
+}
 
 /// Per-frame handler of the model part. State 0 runs the spawner, parents the
 /// root coordinate to `D_actor_560800_801757AC`'s and records its height; state
@@ -220,7 +349,6 @@ extern s32                  D_80115738;
 extern Actor560800PartLimit D_actor_560800_80175314[];
 extern void                 D_actor_560800_801756D4;
 extern u16                  D_actor_560800_801756EC[];
-extern TaskDesc             D_actor_560800_8017575C;
 
 /// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
 /// roots the model at `Gfx_ViewCoord`, reparents the spawner's task, spawns the

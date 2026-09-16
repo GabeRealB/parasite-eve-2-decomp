@@ -141,9 +141,14 @@ typedef struct Actor560800ModelWork {
     /* 0x1BC */ MATRIX     color;
     /* 0x1DC */ SVECTOR    rot[7];
     /* 0x214 */ SVECTOR    swing[7];
-    /* 0x24C */ byte       pad_24C[0xA];
+    /* 0x24C */ s16        field_24C;
+    /* 0x24E */ s16        field_24E;
+    /* 0x250 */ s16        field_250;
+    /* 0x252 */ byte       pad_252[2];
+    /* 0x254 */ s16        field_254;
     /* 0x256 */ u16        field_256;
-    /* 0x258 */ byte       pad_258[4];
+    /* 0x258 */ s16        field_258;
+    /* 0x25A */ byte       pad_25A[2];
     /* 0x25C */ u16        swingDir[8];
     /* 0x26C */ Task*      field_26C;
     /* 0x270 */ u32        field_270;
@@ -152,7 +157,7 @@ typedef struct Actor560800ModelWork {
     /* 0x27A */ byte       pad_27A[2];
     /* 0x27C */ s16        field_27C;
     /* 0x27E */ s16        field_27E;
-    /* 0x280 */ u16        field_280;
+    /* 0x280 */ s16        field_280;
     /* 0x282 */ s16        field_282;
     /* 0x284 */ byte       pad_284[2];
     /* 0x286 */ s16        field_286;

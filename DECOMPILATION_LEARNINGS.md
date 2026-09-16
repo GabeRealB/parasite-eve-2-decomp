@@ -100735,3 +100735,23 @@ slot. With the copy written before `Mem_Set`, or `i = 0` after it, the two
 swap registers. The rest of the allocation was settled by giving each switch
 case its own locals (case-0 coord vs case-3 coord, case-2 counter and work
 alias) while case 0 and case 3 share their loop counter (both `$s1`).
+
+### A switch's `slti high+1 → <other code>` can be a `case N ... 0x7FFF: break;` right node (func_actor_560800_80137820)
+
+**Symptom.** A tree `beq x,3,hide; slti x,4; beqz → range_check; beq x,1,hide; j call`,
+where the `x > 3` branch lands on the code *after* the switch but a failed `== 1`
+jumps to the switch's `default` arm (a call). A hidden single-value right case
+(`case 5: break;`) keeps its `li 5; bne` test, because its arm (break) differs
+from `default`.
+
+**Fix.** Make the right node a range up to the type maximum of the `s16` index:
+`case 1: case 3: hide; case 4 ... 0x7FFF: break; default: call(); goto tail;`.
+The parent already bounds it below and 0x7FFF is the top, so the node emits no
+test at all, and `x > 3` jumps straight to after the switch.
+
+**Related allocation note.** The same function's `obj->field_C |= 0x80; return;`
+arm reached from three places scored 99.75% with `goto hide` (s5/s6/s7 rotated);
+writing the store inline in each arm (cross-jumping re-merges them) raised the
+pseudo's ref count enough for global alloc to rank it above a hoisted loop
+constant, giving 100%. The obj pseudo also had to be a copy of the loaded
+`extra` (`coord = extra->field_8; obj = extra;`) to keep the `move s5,v0`.
