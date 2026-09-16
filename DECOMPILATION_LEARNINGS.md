@@ -104975,3 +104975,42 @@ Inputs: base_14.i SHA256
 `3c0e87417c17f3acaea38fed745878c02af0ef780ed2691efbaf21ef559703e8`; target.o SHA256
 `b9d7dca55f8e146e91190e59d0d42dd303a8f1c274cb1c856290d793579ae0cb`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A helper defined *below* its caller is implicitly declared, so GCC emits a real call instead of inlining it (func_actor_401000_80136E20, 2026-09-16)
+
+A `static __inline__` helper only inlines where its definition has already been
+seen. Called from above the definition, the name is an implicit `extern int
+f()` declaration, the call becomes an out-of-line `jal`, and the body is emitted
+once as a separate (unreachable, never-named) local function. `-w` hides the
+mismatched-declaration warning, so nothing in the build says so.
+
+The scratch environment hides this completely: `base_N.c` carries its own copies
+of every helper above the function, so the same source scores 100.000% with
+all-zero penalties there and still fails the overlay checksum. The tell is
+arithmetic rather than structural — the scratch `target.o` matches, the linked
+image does not:
+
+```
+build/USA/src/.../actor_401000.c.s   jal   Actor401000_OutOfRange   <- should be the 31-insn inline
+.map  pristine  func_actor_401000_801374D4  0x801374d4
+.map  rebuilt   func_actor_401000_801374D4  0x80137458   (-0x7C, the missing inline)
+```
+
+Everything after the function then links 0x7C early and the overlay's sha256
+fails while `diff.py` on the function itself is clean. Fix is positional, not
+semantic: move the helper's definition above its first caller in the TU (a
+forward declaration does not help — the definition still has to precede the
+call for the inliner to see it). Reordering is free for an always-inlined
+`static inline`; it emits no code of its own.
+
+Corollary for diagnosing any "100% in scratch, checksum fails" report: a
+function whose size in the built `.map` differs from `next_symbol -
+its_address` is a `-O2` inlining difference, not rodata placement. The
+`actor_401000` `.text` grew by 0xC overall while this one function lost 0x7C —
+size deltas in *both* directions on one TU mean one call site lost an inline
+and the out-of-line copy landed at the end of the object.
+
+Inputs: base_1.i SHA256
+`4308cad65f659d19a9466f67ba61187e509971c09effcccdb69e9c3e1a5128a8`; target.o SHA256
+`a0a7a8a24d13ec228b4e3e7aae8701ceeef35823c8a740256c5c24e8cc6ddcda`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

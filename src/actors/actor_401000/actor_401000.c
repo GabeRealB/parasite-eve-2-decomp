@@ -633,7 +633,119 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801365C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80136E20);
+/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
+static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor401000RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor401000RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor401000RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor401000RangeScratch*)(head - 0xC))->dx *= ((Actor401000RangeScratch*)(head - 0xC))->dx;
+    *(Actor401000RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor401000RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+/// Turn-entry body, the 401000 twin of `func_actor_401300_801376E4`: carve the
+/// chase scratch off `G_SCRATCH_HEAD`, and while the live-actor flag is up
+/// reset the display nodes and rebuild the actor's facing. The turn direction
+/// comes off the wrapped yaw toward the player, the yaw itself out of the
+/// root's own rotation, and the pair (`field_C00` / `field_C02`) is what the
+/// per-frame arm then walks: the turn swings the facing 0x89 a frame until it
+/// reaches the seeded yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and
+/// `Actor401000_RescaleYaw` re-scales the root by 0x1194. When the two have
+/// met the actor re-arms (`field_0` 8 or 0xB) off `field_C24`, the obstacle
+/// range and the `field_C1B` cooldown, and the arm is then slid forward along
+/// its obstacle table. `field_C1B` counts down once per entry.
+void func_actor_401000_80136E20(Actor401000* arg0)
+{
+    Actor401000Work*         work;
+    Actor401000ChaseScratch* aim;
+    Actor401000ChaseScratch* head;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        head                                       = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
+        obj                                        = arg0->field_2C;
+        *(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+        aim                                        = head - 1;
+        arg0->field_20->node.field_4               = 0;
+        obj->field_C                               = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_8AE          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+        coord                                       = arg0->field_2C->field_8;
+        aim->turn                                   = Actor401000_NormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        facing                                      = arg0->field_2C->field_8;
+        aim->angle                                  = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->field_C00                             = aim->angle;
+        work->field_C02                             = aim->angle + (u16)aim->turn * 2;
+        *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+        return;
+    }
+    head                                       = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    aim                                        = head - 1;
+    func_actor_401000_80132EF0(arg0);
+    Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    if (work->field_C00 == work->field_C02) {
+        if (work->field_C24 < 2 || Actor401000_OutOfRange(&aim->delta, 0x384) || work->field_C1B != 0) {
+            work->field_0 = 8;
+        } else {
+            work->field_0 = 0xB;
+        }
+    }
+    if (work->field_C00 > work->field_C02) {
+        work->field_C00 -= 0x89;
+        if (work->field_C00 < work->field_C02) {
+            work->field_C00 = work->field_C02;
+        }
+    }
+    if (work->field_C00 < work->field_C02) {
+        work->field_C00 += 0x89;
+        if (work->field_C00 > work->field_C02) {
+            work->field_C00 = work->field_C02;
+        }
+    }
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, work->field_C00, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89A == 0) {
+        if ((s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, 0x28) != 0) {
+            Actor401000_MoveForward(arg0->field_2C->field_8, 0x28);
+        }
+    } else {
+        if ((s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, 0x14) != 0) {
+            Actor401000_MoveForward(arg0->field_2C->field_8, 0x14);
+        }
+    }
+    if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) != 1) {
+        func_actor_401000_80135704(arg0, (GpRec18*)work->field_8F0, 0xC);
+    }
+    if (work->field_C1B != 0) {
+        work->field_C1B--;
+    }
+    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_80137D78`: carve the
 /// aim scratch off `G_SCRATCH_HEAD`, and while the live-actor flag is up reset
@@ -1097,27 +1209,6 @@ void func_actor_401000_80138D08(Actor401000* arg0)
             coord->coord.m[2][2] = m22;
         }
     }
-}
-
-/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
-static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                      head;
-    Actor401000RangeScratch* blk;
-    s32                      ret;
-
-    head                                          = *(u8**)G_SCRATCH_HEAD;
-    ((Actor401000RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                           = (Actor401000RangeScratch*)(head - 0xC);
-    blk->dz                                       = d->vz;
-    blk->r                                        = r;
-    ((Actor401000RangeScratch*)(head - 0xC))->dx *= ((Actor401000RangeScratch*)(head - 0xC))->dx;
-    *(Actor401000RangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                      *= blk->dz;
-    blk->r                                       *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                         = head;
-    ret                                           = ((Actor401000RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
 }
 
 /// Per-frame tick of the 0xE/0xF animation pair, the same shape as

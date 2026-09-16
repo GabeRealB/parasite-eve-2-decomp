@@ -139,7 +139,14 @@ typedef struct Actor401000Work {
     /// column, normalised, and finally scaled by the `field_C0A` draw. The same
     /// slot `Actor401300Work` keeps at +0xC8C.
     /* 0xBF0 */ SVECTOR field_BF0;
-    /* 0xBF8 */ byte    pad_BF8[0xC];
+    /* 0xBF8 */ byte    pad_BF8[0x8];
+    /// Turn angle `func_actor_401000_80136E20` rebuilds the facing from, and
+    /// the yaw it is driven to: each entry nudges `field_C00` by 0x89 toward
+    /// `field_C02` and stops once they meet, and `Gfx_RotMatrixY` /
+    /// `Actor401000_RescaleYaw` turn that angle into the root rotation. The
+    /// same pair `Actor401300Work` keeps at +0xC94 / +0xC96.
+    /* 0xC00 */ s16 field_C00;
+    /* 0xC02 */ s16 field_C02;
     /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
     /// actor at the player: the `func_actor_401000_80132590` probe reads it
     /// signed, the step helper and the countdown itself through a `(u16)`.
@@ -180,13 +187,20 @@ typedef struct Actor401000Work {
     /* 0xC16 */ u16 field_C16;
     /// The three bytes `func_actor_401000_8013D958` copies out of the front of
     /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
-    /* 0xC18 */ u8   field_C18[3];
-    /* 0xC1B */ byte pad_C1B;
+    /* 0xC18 */ u8 field_C18[3];
+    /// Turn cooldown `func_actor_401000_80136E20` spends an entry on: while it
+    /// is up the actor keeps the state-8 arm instead of the 0xB one, and each
+    /// entry it is up it counts down by one. The same slot `Actor401300Work`
+    /// keeps at +0xC1F.
+    /* 0xC1B */ u8 field_C1B;
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC1C */ Task* field_C1C;
     /* 0xC20 */ Task* field_C20;
-    /* 0xC24 */ byte  pad_C24[2];
+    /// Counter `func_actor_401000_80136E20` gates the turn-entry obstacle
+    /// probe on: below 2 the actor keeps the state-8 arm whatever the range
+    /// check says. The same slot `Actor401300Work` keeps at +0xD1C.
+    /* 0xC24 */ s16 field_C24;
     /// Wraps counter `func_actor_401000_801374D4` counts the turn entries with:
     /// nonzero picks the un-biased `field_C12` arm, and each entry increments
     /// it. The same slot `Actor401300Work` keeps at +0xD1E.
@@ -256,6 +270,19 @@ typedef struct Actor401000AimScratch {
     /* 0xE */ s16     pad_E;
 } Actor401000AimScratch;
 STATIC_ASSERT_SIZEOF(Actor401000AimScratch, 0x10);
+
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80136E20` carves off
+/// for the offset from the actor to `Wip_SysConfig.field_4`, the wrapped turn
+/// toward it and the facing yaw. Same shape as `Actor401000AimScratch`, but
+/// with the turn and the yaw as two separate halfwords.
+typedef struct Actor401000ChaseScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     turn;
+    /* 0xE */ s16     angle;
+} Actor401000ChaseScratch;
+STATIC_ASSERT_SIZEOF(Actor401000ChaseScratch, 0x10);
 
 /// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401000_80139D10` carves off for
 /// the offset from the actor to `Wip_SysConfig.field_4` and the wrapped turn
