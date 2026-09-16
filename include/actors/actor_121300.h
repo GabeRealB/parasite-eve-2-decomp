@@ -26,4 +26,20 @@ typedef struct Actor121300Work {
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
 
+/// 8-byte fade block `func_actor_121300_8013400C` allocates with
+/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
+/// block in this overlay, distinct from `Actor121300Work`.
+///
+/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
+/// seeds all three to 0 and raises them by `Task::spawnArg1` every frame, then
+/// once the red channel has reached 0x100 it blanks the display and kills
+/// itself.  The blue channel is advanced but never read back.
+typedef struct Actor121300FadeWork {
+    /* 0x0 */ u8  pad_0[0x2];
+    /* 0x2 */ s16 r;
+    /* 0x4 */ s16 g;
+    /* 0x6 */ s16 b;
+} Actor121300FadeWork;
+STATIC_ASSERT_SIZEOF(Actor121300FadeWork, 0x8);
+
 #endif
