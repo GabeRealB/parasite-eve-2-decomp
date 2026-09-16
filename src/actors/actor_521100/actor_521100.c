@@ -122,7 +122,86 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_8
 /// effect id out of `D_actor_521100_8015F5F4` (the top four bits of an LCG
 /// draw) into `field_68E`, and the state latch `field_69E`, its phase
 /// `field_6A0` and the armed flag all cleared.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_8013334C);
+void func_actor_521100_8013334C(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         head;
+    SVECTOR*         vec;
+    u16*             tbl;
+    u32              rng;
+    s16              clip;
+    u16              clipId;
+    s16              turn;
+    s16              speed;
+    s16              frame;
+    s16              frame2;
+    s32              frame3;
+    s32              snd;
+    s32              pan;
+
+    work                       = arg0->field_1C;
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    clip                       = D_actor_521100_8015F894[work->field_686];
+    clipId                     = D_actor_521100_8015F894[work->field_686];
+    coord                      = arg0->field_2C->field_8;
+
+    turn = 0;
+    if ((s16)work->field_68A < clip + 0x28) {
+        turn = 0x50;
+    }
+    work->field_69C = turn;
+
+    frame = (s16)work->field_68A;
+    if (frame == clip + 0x23) {
+        Gp_SpawnEff(0x60188, arg0->field_2C->field_8 + 8, 0xC, NULL);
+        Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
+    } else if (frame == clip + 0x27) {
+        vec->vx = -0x320;
+        vec->vy = 0x64;
+        vec->vz = 0;
+        Gp_SpawnEff(0x6009C, work->field_654->field_2C->field_8, 0, vec);
+    }
+
+    frame2 = (s16)work->field_68A;
+    if (frame2 == (s16)clipId + 0x23) {
+        work->field_6AE     = 1;
+        work->obj57C.flags |= 0x8000;
+        work->obj59C.flags |= 0x8000;
+        snd                 = (((u32)arg0->field_20->field_8 >> 12) << 8) | 0x401C0008;
+        pan                 = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        speed = 0;
+    } else {
+        speed = 0;
+        if (frame2 == (s16)clipId + 0x2D) {
+            work->field_6A6     = 0;
+            work->obj57C.flags &= 0x7FFF;
+            work->obj59C.flags &= 0x7FFF;
+        }
+    }
+
+    frame3 = (s16)work->field_68A;
+    if ((s16)clipId + 0x20 < frame3) {
+        if ((s16)clipId + 0x2A >= frame3) {
+            speed = 0x88;
+        }
+    }
+    work->field_69A = speed;
+    if ((s16)work->field_68A >= (s16)clipId + 0x90) {
+        work->field_686 = 1;
+        work->field_69E = 0;
+        work->field_6A0 = 0;
+        tbl             = D_actor_521100_8015F5F4;
+        rng             = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState     = rng;
+        work->field_68E = tbl[(rng >> 16) & 0xF];
+        work->field_6AE = 0;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+}
 /// Step-0 body of the burn-out sequence: the transition into it and the two
 /// respawn draws. `field_6A2` is a four-phase latch. Phase 0 waits out the clip
 /// long enough for the actor to commit (`D_actor_521100_8015F894[field_686]`
