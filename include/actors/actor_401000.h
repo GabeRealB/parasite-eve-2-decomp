@@ -76,7 +76,13 @@ typedef struct Actor401000Work {
     /* 0xA10 */ GpObj field_A10;
     /* 0xA30 */ byte  field_A30[0x120];
     /* 0xB50 */ GpObj field_B50;
-    /* 0xB70 */ byte  pad_B70[0x9C];
+    /* 0xB70 */ byte  pad_B70[0x38];
+    /// Saved at 0xBA8 and copied over 0xBC8 when
+    /// `func_actor_401000_80138F50` enters its state; the same pair
+    /// `Actor401300Work` keeps at +0xC48 / +0xC68.
+    /* 0xBA8 */ MATRIX field_BA8;
+    /* 0xBC8 */ MATRIX field_BC8;
+    /* 0xBE8 */ byte   pad_BE8[0x24];
     /// Forward step `func_actor_401000_801385B0` walks the root by, feeding the
     /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
     /// Set to -0x78 when the live-actor flag goes up, halved while the actor
@@ -91,8 +97,8 @@ typedef struct Actor401000Work {
     /// is the same slot.
     /* 0xC10 */ u16  field_C10;
     /* 0xC12 */ byte pad_C12[4];
-    /// Radius `func_actor_401000_8013922C` tests the actor's distance from
-    /// `D_80073B8C` against.
+    /// Radius `func_actor_401000_8013922C` and `func_actor_401000_80138F50`
+    /// test the actor's distance from `D_80073B8C` against.
     /* 0xC16 */ u16 field_C16;
     /// The three bytes `func_actor_401000_8013D958` copies out of the front of
     /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.

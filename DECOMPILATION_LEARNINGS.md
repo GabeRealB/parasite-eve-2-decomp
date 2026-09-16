@@ -104742,3 +104742,49 @@ Inputs: `base_1.i` SHA256
 `7125985481dbd855d5f519e376526fa565372e0c60b1bdcb4d440ce907bcf34c`; target SHA256
 `c3ac8de0fe019c6509d0ed9ed5338bf0467036e6f8afddb8d1da7ec58c53f5b8`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A `static __inline__` called above its definition is a `jal`, not an expansion — move the helper, not the caller (func_actor_401000_80138F50, 2026-09-16)
+
+A unit emits its functions in source order, so a matched body has to occupy the
+position its address in the overlay gives it. When the `static __inline__`
+helper it calls is defined *below* that position, the obvious repair —
+forward-declare the helper and leave the definition where it is — compiles
+without a warning and silently loses the inline:
+
+```c
+static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r);         /* declaration only */
+void func_actor_401000_80138F50(Actor401000* arg0) { ... Actor401000_OutOfRange(d, r) ... }
+static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r) { ... }  /* below the caller */
+```
+
+The object then carries `jal .text+0x102` to an out-of-line copy of the helper
+(which is emitted too), the score collapses 100.000 -> 69.315 with
+`insert=22 delete=21 reorder=20`, and `.diagnosis.json` reports the structure
+"unknown" rather than naming the call. The gate is in `calls.c`:
+
+```c
+	  if (!flag_no_inline
+	      && fndecl != current_function_decl
+	      && DECL_INLINE (fndecl)
+	      && DECL_SAVED_INSNS (fndecl)
+	      && RTX_INTEGRATED_P (DECL_SAVED_INSNS (fndecl)))
+	    is_integrable = 1;
+```
+
+`DECL_SAVED_INSNS` is set by `rest_of_compilation` of the *definition*, which
+runs after the earlier caller has already been expanded, so a declaration alone
+never makes the call integrable. Note the `else` arm then marks the function
+addressable, which also forces the out-of-line copy.
+
+**Fix.** Move the helper's definition above the call site. A `static __inline__`
+whose every call inlines emits nothing, so moving it disturbs no address, while
+moving the *caller* down would reorder the unit's `.text` and fail the checksum.
+The mirror case is real: with the helper above the caller and a *second* call
+below it, both inline — the order only constrains the calls that precede the
+definition. Re-check the assumption whenever the helper gains a call site rather
+than trusting its name.
+
+Inputs: base_1.i SHA256
+`27f0041f3ca656bbd892fb46731688d9b5dd30efe37ffe3d2923b883db9adc11`; target.o SHA256
+`b68626bfdfd567400857081926ee082e9188d3d7f9c0683ca9c55931cf94935c`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

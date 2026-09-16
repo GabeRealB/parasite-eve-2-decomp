@@ -675,8 +675,6 @@ void func_actor_401000_80138D08(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80138F50);
-
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r)
 {
@@ -696,6 +694,79 @@ static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r)
     *(u8**)G_SCRATCH_HEAD                         = head;
     ret                                           = ((Actor401000RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
+}
+
+/// Per-frame tick of the 0xE/0xF animation pair, the same shape as
+/// `func_actor_401000_8013922C`. The live-actor arm allocates the model
+/// buffers, restores the saved pose matrix `field_BA8` over the live
+/// `field_BC8`, and restarts the 0xE / 0x898 animation slots; the body is then
+/// gated on the `field_6` countdown and a 0-15 `Gp_LcgState` draw. The XZ
+/// offset to `D_80073B8C` is probed against `field_C16`, and an armed
+/// `Gp_StateF0` bit 0x50000, each dropping the actor to state 6. The tail runs
+/// `func_actor_401000_80132EF0` and swaps `field_89E` between 0xE and 0xF on
+/// `flags_68` bits 1 and 2, re-running the tick after each swap.
+/// Same body as `func_actor_401300_80139520`, with the pose matrix in place of
+/// that one's `field_C48` / `field_C68` pair and a `field_C16` radius in place
+/// of its literal 3000.
+void func_actor_401000_80138F50(Actor401000* arg0)
+{
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj          = arg0->field_2C;
+        obj->field_C = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_6            = 0;
+        work->field_BC8          = work->field_BA8;
+        work->field_89E          = 0xE;
+        work->field_898          = 1;
+        work->field_8A2          = work->field_8A4;
+    }
+    if (work->field_6 > 0x960) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 0xF)) {
+            return;
+        }
+    } else {
+        work->field_6 = (u16)work->field_6 + 1;
+    }
+    coord    = arg0->field_2C->field_8;
+    d        = &delta;
+    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    if (!Actor401000_OutOfRange(d, work->field_C16)) {
+        work->field_0 = 6;
+    }
+    if (*(u32*)&Gp_StateF0 & 0x50000) {
+        Gp_ArmStateF0(1);
+        work->field_0 = 6;
+    }
+    func_actor_401000_80132EF0(arg0);
+    if (work->field_89E == 0xE && (work->flags_68.half & 2)) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            work->field_89E = 0xF;
+            work->field_898 = 1;
+            func_actor_401000_80132EF0(arg0);
+        }
+    }
+    if (work->field_89E == 0xF && (work->flags_68.half & 1)) {
+        work->field_89E = 0xE;
+        work->field_898 = 1;
+        func_actor_401000_80132EF0(arg0);
+    }
 }
 
 void func_actor_401000_8013922C(Actor401000* arg0)
