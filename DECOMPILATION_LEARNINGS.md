@@ -85134,3 +85134,51 @@ copy, i.e. the parameter is an untyped `void*` and the source had
 
 Input: `base_1.i`, 100.000%, zero penalties, first build. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## Write the real prototypes into an m2c seed before chasing a `regs` penalty (func_mine_gorge_8017D8D4, 2026-09-16)
+
+The m2c seed here scored 99.082% with `regs=9` and one call argument wrong
+(`Game_SetPtrSlot(7)` on a `(void*, s32)` prototype), so fixing that gave
+99.184% / `regs=8`. The whole leftover was six instructions in the last block,
+a pure `$v0`/`$v1`/`$a0` permutation:
+
+```
+lw    v1,0x30(s0)      lui   v0,%hi(D_80062735)     li    a0,1
+addiu v1,v1,1          addiu v1,v1,1               sb    a0,%lo(..)(v0)
+sw    v1,0x30(s0)      ...                          (target)
+```
+against a build that put the counter in `$v0`, the symbol's `high` in `$v1` and
+the constant back in `$v0`. Nothing about statement order moved it - and it did
+not need to. Rewriting the seed against the real headers (`Task*`, the real
+`Gp_SpawnIfCapIdle`/`GameFlag_SetNibble`/`Game_SetPtrSlot` prototypes, the real
+`Game_Session->field_9`) was 100.000% on the first build, with the source order
+unchanged.
+
+The mechanism is visible in two dumps. m2c's `M2C_UNK GameFlag_SetNibble(...)`
+is an int-returning declaration, so every call carries an RTL
+`(set (reg:SI 2 $v0) (call ...))`; `lregwalk.py` prints those CALL insns as
+`set= 2`. The real headers declare them `void`, and the same insns print
+`set= -`. That changes the pre-reload `sched` pass's ordering of the *final*
+block - `.lreg` shows the chain as `100,94,103,105,96,98` instead of
+`94,96,98,100,103,105` - and `local-alloc`'s `qty_birth`/`qty_death` are
+positions in that chain, not insn UIDs. Same instructions, same final order
+after `sched2`, opposite registers.
+
+Generalisation: `regs` penalties confined to one block are not only about that
+block's statement order. Before permuting statements, finish the seed's *typing*
+- real prototypes, real struct types - because a callee's return type is an RTL
+fact about every call site, and the pre-reload scheduler reads it. Two cheap
+dumps tell you which side you are on: `lregwalk.py <file>.i.lreg` for
+`set= 2` on CALL lines, and the `.lreg` block listing for the chain order the
+allocator's birth/death indices are counted in.
+
+The exact `local-alloc` accounting (which quantity wins `$v0` under the
+`floor_log2(refs)*refs*size/(death-birth)` formula) was not derived here: the
+tied `state` load+add pair should have outranked the `high` quantity by that
+formula in *both* orders, so the priority model does not yet explain the flip.
+The verified facts are the CALL `set=` difference and the block-6 chain-order
+difference; the source change and the 99.184% -> 100% result are reproducible.
+
+Inputs: `base.c` 99.082% (`regs=9`), `base_1.c` 99.184% (`regs=8`),
+`base_2.c` 100.000%, zero penalties. Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
