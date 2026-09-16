@@ -109368,3 +109368,70 @@ SHA256 `b3302290c7f0bb26674ea62d8b0d8da8e10ddda0293df687832ca57f641a6c62`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_8016804C-vacuum`; matching candidate `base_6.c`.
+
+## A `G_SCRATCH_HEAD` reservation must be written as the read-modify-write it is, or the target's `move $sN, $v0` copy never appears
+
+Reserving a scratch block off `G_SCRATCH_HEAD` by naming the old head first
+
+```c
+head = *(u8**)G_SCRATCH_HEAD;
+turn = (Actor356100TurnScratch*)(head - 0xC);
+```
+
+compiles to a single `addiu s1,a1,-0xC`: the address temp and the long-lived
+`turn` are the same pseudo. The target instead has
+
+```
+lw     a1, 0(a0)            ; the old head
+addiu  v0, a1, -0xC         ; temp
+addu   s1, v0, $zero        ; turn = temp -- a copy local-alloc will not tie
+sw     v0, 0(a0)            ; the reservation
+```
+
+which is what the read-modify-write spelling produces, because `turn` is a
+global allocno (live across the calls that follow) and the temp it is copied
+from is not, so `combine_regs` leaves the copy for global-alloc:
+
+```c
+turn = (Actor356100TurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
+```
+
+The store the expression performs *is* the reservation, so no separate
+`*(T**)G_SCRATCH_HEAD = turn;` statement may follow. `G_SCRATCH_HEAD` is
+`PSX_SCRATCH_ADDR(0x3FC)`; cast the slot to `u32*` (or the block's own type, as
+`func_actor_401300_80134BA4` does with `sc = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD
+-= 8);`) and the size of the type supplies the byte count. Writing the head
+into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
+collapse to the single `addiu` and lose the copy. Same family as "Combined
+`*scratch = tmp` assignment keeps the add in `$v0` without a pin" above: one
+expression so CSE cannot fold the store onto the longer-lived variable.
+`func_actor_356100_80167A7C`: 94.626% → 95.603%, and the first two blocks then
+match instruction for instruction.
+
+## Repeated `coord = <expr>;` statements in one function are one pseudo with a union live range
+
+Three separate `coord = arg0->field_2C->field_8;` assignments do not give three
+short-lived values. GCC 2.8.1 has no SSA form, so the RTL uses one
+pseudo-register with all three definitions, `flow` computes its live range as
+the union, and `global_alloc` then has to find a single register free over that
+whole span — a callee-saved one, live across every call in between. That both
+costs a frame slot and shifts the register homes of everything allocated above
+it: 67 `regs` penalties and `sp` of 0x30 instead of 0x28.
+
+Splitting the sites — passing `arg0->field_2C->field_8` straight to the inline
+that wants it, and writing the raw member chain where a variable is not needed —
+drops the union range entirely: 93.252% → 94.626%, `regs` 32 → 14, frame size
+0x28. Use a distinct variable name per lifetime when a name is genuinely needed;
+the register allocator will not recover this for you.
+
+Inputs: `base_9.i` (95.603%) SHA256
+`fed10d53ad9b950ec134a90ea4d4e9103c517128c5049b7b383195f8e88c2a37`; `base_5.i`
+(94.626%) SHA256
+`5e3b1a6cf7268624e71d646a91bd02eeceb78d6737264c8a9d70ffec9272ec19`; `base_2.i`
+(93.252%) SHA256
+`269463e28596865f3c5e04de1d4fccd85fcff39c22bef466d18aed92405e9332`; target SHA256
+`2b9a7a61cf18471ff8ef774845bf1096b5c0c846b1befb50fcb1c3a721ddd8c9`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_80167A7C-vacuum`; best candidate
+`base_9.c` (unresolved: a `cse` jump-threading difference, see the session
+`LEARNINGS.md` there).
