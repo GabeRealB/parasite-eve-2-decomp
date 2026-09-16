@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_403200.h"
+#include "actors/actor_403200_view.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -30,6 +31,12 @@ extern s32 D_actor_403200_80141C64;
 /// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
 /// draw from.
 extern TaskDesc D_actor_403200_8015E858;
+
+/// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
+/// built on: `F920` is the whole `GsCOORDINATE2` and `F924` its `coord` matrix,
+/// which splat names separately because the code takes that address directly.
+extern GsCOORDINATE2 D_actor_403200_8015F920;
+extern MATRIX        D_actor_403200_8015F924;
 
 /// This overlay's three task states -- spawn/setup, per-frame tick and
 /// teardown -- dispatched through by state, the same shape as the sibling
@@ -631,7 +638,148 @@ void func_actor_403200_8013D9EC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013DC3C);
+/// The state that rains debris on the arena `func_actor_403200_8013D9EC` opens.
+///
+/// A reset request re-arms the block on animation 0xB, clears the host model's
+/// flag word and pushes it onto each of the seven escorts' models, makes sure
+/// the host and every escort has its model buffers allocated, and plays the
+/// entry cue.
+///
+/// Sub-states 0x3B and 0x3C each fire a one-shot cue positioned on part 1 of
+/// the first escort. From 0x3D on the state also drops debris: every third step
+/// the shared scratch coordinate is rebuilt on that same part -- its rotation
+/// accumulated up the parent chain, its origin carried into view space, then
+/// turned a quarter turn each way so `Gfx_MatrixCol2` yields the launch
+/// direction, which is normalised and scaled to 0x320 before being added to the
+/// origin -- and an effect is spawned on it. Every tenth step a fresh enemy is
+/// spawned from `D_actor_403200_8015E858` and remembered in `field_EF0`.
+///
+/// The tick then runs the per-frame body and hands over to state 0xA once the
+/// second animation slot raises its flag.
+void func_actor_403200_8013DC3C(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    GpEnemy*         enemy;
+    GpEnemy*         spawned;
+    SVECTOR          pos;
+    SVECTOR*         posp;
+    s16              i;
+    s16              j;
+    s32              resetId;
+    s32              resetPan;
+    s32              cueId;
+    s32              cuePan;
+    s32              hitId;
+    s32              hitPan;
+
+    work  = (Actor403200Work*)arg0->idMap;
+    enemy = arg0->spawnArg2;
+    if (work->field_4 != 0) {
+        work->field_F1D                    = 7;
+        work->field_7B3                    = 0xB;
+        work->field_7B0                    = 2;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_EF4 = 1;
+        work->field_EF6 = 1;
+        work->field_EFA = 0;
+        work->field_E96 = 0xC80;
+        resetId         = (((u16)enemy->field_8 >> 12) << 8) | 0x40200017;
+        resetPan        = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(resetId, resetPan,
+                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+
+    if (work->field_6 == 0x3B) {
+        cueId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200016;
+        cuePan = (s8)Gp_GetObjPan(
+            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            cueId, cuePan,
+            (s8)Gp_GetObjDepth(
+                (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]));
+    }
+
+    if (work->field_6 == 0x3C) {
+        hitId  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020000D;
+        hitPan = (s8)Gp_GetObjPan(
+            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            hitId, hitPan,
+            (s8)Gp_GetObjDepth(
+                (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]));
+    }
+
+    if ((s16)(u16)work->field_6 >= 0x3D) {
+        if ((s16)((s16)(u16)work->field_6 % 3) == 0) {
+            Actor403200_AccumulateRotation(
+                &((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1],
+                &D_actor_403200_8015F924);
+
+            pos.vz = 0;
+            pos.vy = 0;
+            pos.vx = 0;
+            Actor403200_LocalToView(&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1],
+                                    &pos);
+
+            D_actor_403200_8015F920.sub        = &Gfx_ViewCoord;
+            D_actor_403200_8015F920.coord.t[0] = pos.vx;
+            D_actor_403200_8015F920.coord.t[1] = pos.vy;
+            D_actor_403200_8015F920.coord.t[2] = pos.vz;
+            Gfx_RotMatrixY(&D_actor_403200_8015F920.coord, 0x80, 0);
+            Gfx_RotMatrixX(&D_actor_403200_8015F920.coord, -0x80, 0);
+            Gfx_MatrixCol2(&D_actor_403200_8015F920.coord, &pos);
+
+            posp   = &pos;
+            pos.vy = 0;
+            VectorNormalSS(posp, posp);
+
+            gte_lddp(0x320);
+            gte_ldsv(posp);
+            gte_gpf12_real();
+            gte_stsv(posp);
+
+            D_actor_403200_8015F920.coord.t[0] += pos.vx;
+            D_actor_403200_8015F920.coord.t[1] += pos.vy;
+            D_actor_403200_8015F920.coord.t[2] += pos.vz;
+            D_actor_403200_8015F920.flg         = 0;
+            Gp_UpdateCoord(&D_actor_403200_8015F920);
+            Gp_SpawnEff(0x60199, &D_actor_403200_8015F920, 0x97A0D680, NULL);
+        }
+        if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
+            spawned          = Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 2, 0, arg0->spawnArg2);
+            spawned->field_A = 0x900;
+            work->field_EF0  = spawned;
+        }
+    }
+
+    func_actor_403200_80133DD8(arg0);
+
+    if (work->field_58 & 1) {
+        work->field_0 = 0xA;
+        SndEvt_EnqueueType7((((u16)enemy->field_8 >> 12) << 8) | 0x4020000D, 1);
+    }
+
+    if (work->field_6 >= 0x15) {
+        work->field_F06 = 5;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013E2FC);
 

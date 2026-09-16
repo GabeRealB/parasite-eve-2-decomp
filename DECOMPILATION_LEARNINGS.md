@@ -108063,3 +108063,46 @@ head-rooted entry above, reached without writing `head - sizeof(T)` out.
 Scratch `nonmatchings/func_actor_403200_8013EB64-vacuum` (`base_4.c` matched;
 `base_3.c` the `==`-form control, `base_2.c` the fused member access), compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A stack `SVECTOR` read back through the GTE macros wants a named pointer local, and it frees the saved register the neighbouring pointers were queued behind (func_actor_403200_8013DC3C, 2026-09-16)
+
+The debris block of `func_actor_403200_8013DC3C` fills a stack `SVECTOR pos`,
+hands it to `VectorNormalSS(pos, pos)`, then feeds it to `gte_ldsv` / `gte_stsv`.
+Written with `&pos` at each use, 99.225% and a 27-instruction `regs` penalty: the
+two `VectorNormalSS` arguments came out as two pseudos (`addiu $a0, $sp, 0x10` /
+`move $a1, $a0`) and the GTE loads got a third, rematerialized as
+`addiu $v0, $sp, 0x10`, while the target holds one `$s0` across all of them
+(`addiu $s0, $sp, 0x10` / `move $a0, $s0` / `move $a1, $s0`, then `lhu t4, 0($s0)`).
+Taking the address into a pointer local closes it:
+
+```c
+    posp   = &pos;
+    pos.vy = 0;
+    VectorNormalSS(posp, posp);
+
+    gte_lddp(0x320);
+    gte_ldsv(posp);
+    gte_gpf12_real();
+    gte_stsv(posp);
+```
+
+This is the idiom the matched 444000 sibling already uses
+(`include/actors/actor_444000_view.h` `Actor444000_LocalToView` keeps `posp` for
+the same reason), and the fix is not just the argument pair: the extra
+call-crossing `&pos` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
+and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
+the pointer gave `$s0` back and both pairs fell into place. Distinct from the
+`&local` *call argument* entry above (`func_actor_403200_8013F700`), where the
+address never needs to survive a call and a pointer local alone is folded away —
+here the same register really is reused by the GTE reads and writes after it.
+
+The same function confirmed the per-block temp rule from the other direction:
+the target gives `id`/`pan` the *opposite* saved register in the first cue block
+from the other two ($s0/$s1 against $s1/$s0), which one function-scope variable
+cannot do — three separate `s32` pairs, as the matched `func_actor_444000_801404C0`
+already writes them, is what the source had. Reusing one pair scored 98.6% with
+`regs=81`; splitting it scored 99.2% with `regs=27`.
+
+Scratch `nonmatchings/func_actor_403200_8013DC3C-vacuum` (`base_4.c` matched;
+`base_3.c` the split-temps control, `base_2.c` the shared-temp/`&pos` form),
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
