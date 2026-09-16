@@ -26,6 +26,8 @@ extern GpPairSrcE D_actor_403000_8013DA10;
 extern u32        D_actor_403000_80158B50;
 extern u32        D_actor_403000_80158C08;
 extern u32        D_actor_403000_80158CA8;
+extern u8         D_80071075;
+extern s8         D_80114C12;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
@@ -795,8 +797,6 @@ void func_actor_403000_80135F08(Actor403000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013603C);
-
 static __inline__ void Actor403000_FaceScale(GsCOORDINATE2* coord, s16 sy)
 {
     Actor403000ScaleScratch* head;
@@ -822,6 +822,80 @@ static __inline__ void Actor403000_FaceScale(GsCOORDINATE2* coord, s16 sy)
     coord->coord.m[2][2]                        = scratch->m.m[2][2];
     coord->flg                                  = 0;
     *(Actor403000ScaleScratch**)G_SCRATCH_HEAD += 1;
+}
+
+void func_actor_403000_8013603C(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    s16              t;
+
+    work  = arg0->field_1C;
+    tmd   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        tmd->field_C = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_FCA         = 1;
+        work->objD18.obj.flags &= 0xBFFF;
+        Gp_ClearNodeSlots(&enemy->node);
+        work->field_6 = 0;
+        Gp_SetLightMode((GpObj4C*)enemy, 0);
+    }
+    if (work->field_F8C == 1 && D_80114C12 != work->field_F8C && D_80071075 == 0) {
+        Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+        work->field_F8C = 0;
+    }
+    if ((s16)work->field_6 <= 0x1000) {
+        work->field_6++;
+        if ((s16)work->field_6 % 5 == 0 && (s16)work->field_6 < 130) {
+            switch ((s16)((s16)((s16)work->field_6 / 5) % 4)) {
+                case 0:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[1], 0x12600, NULL);
+                    break;
+                case 1:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[4], 0x22400, NULL);
+                    break;
+                case 2:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[1], 0x32600, NULL);
+                    break;
+                case 3:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[18], 0x12500, NULL);
+                    break;
+            }
+        }
+        switch ((s16)work->field_6) {
+            case 1:
+                arg0->field_2C->field_C = 0;
+                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                break;
+            case 0x76:
+                Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[1], 2, NULL);
+                Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[4], 1, NULL);
+                Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[18], 1, NULL);
+                break;
+            case 0x78:
+                arg0->field_2C->field_C = 2;
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                arg0->field_2C->field_24 = 2;
+                arg0->field_2C->field_25 = 4;
+                break;
+            case 0x88:
+                arg0->field_2C->field_C = 0x80;
+                break;
+        }
+        t = work->field_6;
+        if (t > 0x64) {
+            if ((t - 0x64) * 0x3C < 0x1000) {
+                Actor403000_FaceScale(arg0->field_2C->field_8, 0x1000 - (t - 0x64) * 0x6B);
+            } else {
+                Actor403000_FaceScale(arg0->field_2C->field_8, 0);
+            }
+        } else {
+            Actor403000_FaceScale(arg0->field_2C->field_8, 0x1000);
+        }
+    }
 }
 
 void func_actor_403000_801365D0(Actor403000* arg0)
