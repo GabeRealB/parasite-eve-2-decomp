@@ -10,6 +10,8 @@ extern GpActorFuncTable4 D_actor_800200_80161EB8;
 
 extern GpActorFuncTable12 D_actor_800200_80161E5C;
 
+extern TaskFuncTable11 D_actor_800200_80161E8C;
+
 extern GpActorFuncTable3 D_actor_800200_80161E34;
 
 extern GpActorFuncTable9 D_actor_800200_80161EC8;
@@ -422,7 +424,13 @@ void func_actor_800200_80165B84(GpActorWork* arg0)
     Gp_StepPlayerMove(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165CB4);
+void func_actor_800200_80165CB4(Task* arg0)
+{
+    TaskFuncTable11 sp;
+
+    sp = D_actor_800200_80161E8C;
+    sp.funcs[arg0->spawnArg1 & 0xF](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80165D44);
 
