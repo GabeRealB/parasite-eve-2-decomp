@@ -71,6 +71,24 @@ typedef struct _Actor800100LineScratch {
 } Actor800100LineScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
 
+/// 0x1C-byte block from `G_SCRATCH_HEAD` used by
+/// `func_actor_800100_80162A14` to draw one frame of the launched
+/// projectile's spinning sprite. `vec` is the effect coordinate's `workm.t[]`
+/// truncated to s16 and pushed through `GsWSMATRIX` by a single `RTPS`; `flag`
+/// is its `gte_stflg`, `otz` its `gte_stszotz` (biased by 1 so it can also be
+/// the divisor) and `sxy` its `gte_stsxy`. `dx` / `dy` are the rotated
+/// half-extents `(width * 39 / otz) * rsin/rcos(angle) >> 12` that offset `sxy`
+/// into the four corners of the billboard `POLY_FT4`.
+typedef struct _Actor800100SpinScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ DVECTOR sxy;
+} Actor800100SpinScratch;
+STATIC_ASSERT_SIZEOF(Actor800100SpinScratch, 0x1C);
+
 /// One corner of the beam quad `func_actor_800100_801668C0` draws, as an
 /// offset in the placed coordinate's own frame: `vy` straight up, `vz` along
 /// the face. `D_actor_800100_80161F10` is the four of them.
@@ -111,7 +129,11 @@ extern u32 Gp_LcgState;
 extern SVECTOR D_actor_800100_80167128;
 
 void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
-void func_actor_800100_80162A14(VECTOR3* arg0, u16 arg1, u16 arg2, s16 arg3);
+/// Draws one frame of the launched projectile's spinning sprite at `pos`:
+/// `frame` walks the twelve windows of `D_80111E48`, `width` is the flare's
+/// half-width (divided down by the projected depth) and `ang` its spin, so the
+/// quad is a square rotated by `ang` rather than an axis-aligned sprite.
+void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang);
 void func_actor_800100_80162E90(VECTOR3* arg0, s32 arg1);
 void func_actor_800100_801631C8(Task* arg0);
 void func_actor_800100_80163C04(GpActorWork* arg0);
