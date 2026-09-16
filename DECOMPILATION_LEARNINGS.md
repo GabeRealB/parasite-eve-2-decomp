@@ -99385,3 +99385,27 @@ copies at once (99.0% → 99.4%). The same function's `lb` (not `lbu`+`sll/sra`)
 needed the lookup in a `static inline s8` helper returning the `u8` table entry;
 a GNU statement-expression macro returned `lbu`. The last store's `sll/sra` before
 two `sh` of a wrapped `s16 angle` was the known `s32 mag = angle;` copy.
+
+## Banded sign test: shared `goto` labels keep `bltz` and the re-loaded constant
+
+**Problem:** target tests `d < -5` (to a store with `li v0,-1` in the slot),
+then `bltz d` (to `li v0,1`), then `slti d,5` (to the store, slot `li v0,-1`
+again), falling through to `li v0,1`. `dir = -1; if (d >= -5) { if (d < 0 ||
+d >= 5) dir = 1; }` matches branches but keeps `dir` in one global pseudo
+(`a2`), so the second `-1` load becomes a `nop`. `if (d < -5 || (d >= 0 && d <
+5))` puts `dir` in `v0` but fuses `d >= 0 && d < 5` into `andi 0xffff; sltiu 5`.
+
+**Fix:** two assignment blocks reached by gotos, which jump/reorg turn into the
+slot-filled constant loads (`func_actor_403000_80139AE0`):
+
+```c
+if (diff < -5) goto neg;
+if (diff < 0) goto pos;
+if (diff < 5) {
+neg:
+    dir = -1;
+} else {
+pos:
+    dir = 1;
+}
+```
