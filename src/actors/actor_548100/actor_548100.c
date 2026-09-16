@@ -15,6 +15,8 @@ void func_actor_548100_801330EC(void);
 s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
 
 extern Actor548100Hotspot D_actor_548100_801357E8[];
+extern Actor548100Route   D_actor_548100_801356D8;
+extern Actor548100Route   D_actor_548100_80135750;
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", ActorsShared8013845cSub1);
 
@@ -186,7 +188,37 @@ void func_actor_548100_80132EA0(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132EA8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_801330EC);
+void func_actor_548100_801330EC(void)
+{
+    s32 want;
+    s32 have;
+    s32 i;
+
+    if (GameFlag_GetNibble(0xBE) == 1) {
+        D_actor_548100_80135B4C = &D_actor_548100_801356D8;
+    } else {
+        D_actor_548100_80135B4C = &D_actor_548100_80135750;
+    }
+    while (D_actor_548100_80135B4C->bitA != -1) {
+        want = 0;
+        if (D_actor_548100_80135B4C->bitA != 0) {
+            want = 1 << (D_actor_548100_80135B4C->bitA - 1);
+        }
+        if (D_actor_548100_80135B4C->bitB != 0) {
+            want |= 1 << (D_actor_548100_80135B4C->bitB - 1);
+        }
+        have = 0;
+        for (i = 0; i < 4; i++) {
+            if (GameFlag_GetNibble(i + 0xBF) != 0) {
+                have |= 1 << i;
+            }
+        }
+        if (want == have) {
+            break;
+        }
+        D_actor_548100_80135B4C++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133200);
 
