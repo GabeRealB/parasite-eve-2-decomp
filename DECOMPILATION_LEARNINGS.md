@@ -85402,3 +85402,51 @@ tidying it away.
 Inputs: `base.c` 100.000%, `base_1.c` (struct-typed port, temp kept) 100.000%,
 both zero penalties. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## The room message-handler gate is one body with three constants changed, and m2c's `var_v0` hides it
+
+A whole family of room message handlers is the same body: copy the record out,
+then answer 1 while the request is not the one this room waits for or its nibble
+is already latched, and 0 otherwise.
+
+```c
+s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    if (in->msgId != 0x14) {
+        return 1;
+    }
+    if (GameFlag_GetNibble(0x54) != 0) {
+        return 1;
+    }
+    if (in->field_5 != 0) {
+        return 0;
+    }
+    GameFlag_SetNibble(0x54, 1);
+    Gp_RunCapCmd1(7);
+    return 0;
+}
+```
+
+`func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
+and this one differ only in `msgId`, the nibble index and the cap command (and, in
+the shrine and incinerator, a `Gp_SetNibbleIf(in->field_6, 2)` where this one has a
+plain `GameFlag_SetNibble`). Two of the three carry the required duplicated
+`return 0;` already - both the `field_5` early return and a trailing one - which is
+what the entry above ("A duplicated `return 0;`...") shows the third delay slot
+needs. Transplant the sibling, change the constants, done.
+
+Two traps make a from-scratch attempt look much harder than it is. m2c cannot
+render the `*out = *in` copy at all (`M2C_ERROR(/* Unable to handle lwr */)` leaves
+it as an empty statement) - `RoomEventMsg` has alignment 2, so the whole-record copy
+is four `lwl`/`lwr` + `swl`/`swr` insns. And m2c writes the returns as a `var_v0`
+accumulator that sets one value and jumps back to a shared block, which is
+`branch=3 insert=5 delete=9` and 56.382% on its own; the retail form materialises
+each constant in its own branch's delay slot. `overlay_dup_index.py similar`'s
+`fields` class scores the siblings 1.00 precisely because it compares displacements
+only, so it finds the family despite every constant differing.
+
+Inputs: `base_1.i`
+`edd911c356c0980568d5782a14beca45bf73fc2a0df696ad7b7a1249cf100ab2` (100.000%,
+first hypothesis), target
+`dc115c261dad60072031dcab72732e1e87d178b3551b4b36fe58645eb688048d`.
