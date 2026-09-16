@@ -6,7 +6,28 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400_8014A888);
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400_8014A908);
+/// Play-animation message handler: adopts the preset's animation id when it is
+/// one of the first 0x10, latching the reset mode -- 1 for the blended
+/// `func_actor_260400_8014A888` reseed, 2 for a plain one -- and the reset
+/// argument that reseed forwards, then hands the published helper task to the
+/// per-frame update. Ids past the range are rejected with -1 and leave the
+/// work block untouched.
+s32 func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset)
+{
+    if (preset->field_4 < 0x10) {
+        ActorsShared80131f9cWork->field_4B8 = preset->field_4;
+        if (preset->field_8 != 0) {
+            ActorsShared80131f9cWork->field_4B4 = 1;
+            D_actor_260400_80154BE4             = preset->field_C;
+        } else {
+            ActorsShared80131f9cWork->field_4B4 = 2;
+        }
+        ActorsShared80131f9cWork->field_4BA = 0;
+        func_actor_260400_8014A200(D_actor_260400_80154C74);
+        return 0;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400_8014A998);
 

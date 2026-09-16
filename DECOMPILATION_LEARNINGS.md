@@ -67963,6 +67963,20 @@ The corollary: do not read the `argN` suffix in an m2c seed as an argument
 index. It is a register name, so a gap in the sequence (`arg0`, `arg2`) is
 itself the report that a parameter is missing.
 
+The signal is not limited to a clean `regs` profile, and the gap is worth
+counting even when the penalty mix reads as a scheduling fault. When the dropped
+parameter is a whole pointer rather than a value compared against a branch, the
+surviving arguments shift registers with it and the mispacked call tail shows up
+as `insert` / `reorder` / `stack`: `func_actor_260400_8014A908` reads its payload
+through `$a2`, and the two-parameter seed carried it in `$a0`, giving `regs=4
+stack=6 insert=3 reorder=1` at 87.184% with `blocks=7/7` — a `nop`-filled load
+delay and an empty `jal` delay slot where the target interleaves two address
+computations into one six-instruction tail. Naming the two unused leading
+parameters reached 100.000% in one build with no change to the body at all. So
+the check is "does the leftover register belong to a *parameter*", not "is the
+leftover a `regs`-only difference": a dropped leading parameter surfaces as
+whatever its register was flowing into, delay-slot fill included.
+
 ## The inverted twin: when the low group runs the body, `default:` has to be written beside it
 
 "`bltz` + `slti N` before the `bne N` is a switch with empty low cases" recovers
@@ -96422,3 +96436,52 @@ removes both.
 `36d48206e4da739ec62a231fe0a6c2bdd8996577091791d06d356bd48161b47a` (100.000%),
 `base_4.i` `6b30e4ec9b10c261d81b15d3c850723e12087d27b1ef3635ce78c108844a4b52`
 (89.256%). One identifier apart.
+
+## A store through the aliasing pointer blocks the re-read too, with no `jal` in sight (func_actor_260400_8014A908, 2026-09-16)
+
+The rule above is not about the `jal`. A store the compiler cannot disambiguate
+kills CSE's entry for the global just as well, and on this codebase the aliasing
+store is usually one made *through the loaded pointer itself* — so the same
+function shape appears with no call between the two loads.
+
+`func_actor_260400_8014A908`, the play-animation handler in the same overlay as
+the section above, writes three fields of `ActorsShared80131f9cWork` and the
+target reloads the global for the last group: the first two stores reuse the
+pointer loaded in the `beqz` delay slot (`sh $v0,0x4B8($v1)`, then
+`sh $v0,0x4B4($v1)` on either arm), and the merge block loads it again,
+`lui $v0,%hi(ActorsShared80131f9cWork)` / `lw $v0,%lo(...)`, for
+`sh $zero,0x4BA($v0)` in the `jal` delay slot. m2c's repeated
+`M2C_FIELD(ActorsShared80131f9cWork, …)` already reproduces that — `base.i.rtl`
+carries four loads of the symbol, one per use.
+
+Naming it in a local collapses them into one and deletes the rest:
+
+```c
+    /* 75.250% */
+    ScratchWork* work = (ScratchWork*)ActorsShared80131f9cWork;
+
+    work->field_4B8 = preset->field_4;
+    ...
+```
+
+A local holds a *copy*: stores through `work` may change the global, but they
+cannot change the copy, so CSE is right to keep it — and GCSE then hoists the
+single load out of the guarded branch entirely, to the entry block above
+`sw $ra`. The function came out four instructions short (`blocks=7/6`,
+`instructions=36/32`, `delete=6`, 75.250%) with the pointer parked in `$a1` for
+the whole body. Writing each access as a direct struct dereference of the global
+gives one `lw` per use and 100.000%.
+
+Read together with "m2c's nested `M2C_FIELD` loads the pointer at its store; a
+local is what homes it", the deciding operand is whether the *target repeats the
+load*: repeat it in the source, and do not name what it repeats. There the
+pointer was a field the original named and the local was the fix, because the
+target performs that load once either way; here the target performs it per use,
+and a name is what makes it once.
+
+Inputs (source sha256): `base_1.c`
+`0ab6bf3e2ab50cb7b8d776c27e365126d1a74732ff19921a05c9be47e33342d3` (75.250%),
+`base_2.c` `d5180be30dd9fe65c903a5c31ca0a532d7a9c37b813e1d48c330b6bfd30892b5`
+(100.000%). The 100% body names no pointer local, and the only other change
+between the two is the parameter list: `(void* arg2)` in the m2c seed versus
+`(Task* task, s32 arg1, Actor260400AnimPreset* preset)`.
