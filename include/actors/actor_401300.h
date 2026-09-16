@@ -170,6 +170,9 @@ typedef struct Actor401300RangeScratch {
 
 extern MATRIX* D_80073B8C;
 
+/// Movement freeze flag: `Actor401300_MoveForward` skips its step when it is 1.
+extern u8 D_80072729;
+
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401300_8013B6E8`.
 extern void* D_80114B78[1];
