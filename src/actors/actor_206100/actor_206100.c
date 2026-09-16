@@ -723,7 +723,43 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// materialises `i` shares a block with the case-3 increment, post-reload CSE
 /// folds that increment's `+ 1` into `+ $s0`, and the phase is written with
 /// `addu`.  Here the branch targets the initialiser instead.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014E964);
+void func_actor_206100_8014E964(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* next;
+    GsCOORDINATE2*   coord;
+    s32              i;
+    s16              state;
+
+    work            = (Actor206100Work*)task->idMap;
+    coord           = ((TmdObject*)task->extra)->field_8;
+    work->field_51E = work->field_51E + 1;
+    next            = (Actor206100Work*)task->idMap;
+    state           = next->field_50C;
+    if (state == 1) {
+        if (next->field_50E != next->field_510) {
+            next->field_512 = 0;
+        } else {
+            next->field_512 = func_actor_206100_8014F3C8(task, next->field_512);
+        }
+        func_actor_206100_8014F2F0(task);
+        next->field_50C = 3;
+    } else if (state == 2) {
+        func_actor_206100_8014F284(task);
+        next->field_50C = 3;
+        next->field_512 = 0;
+    } else if (state == 3) {
+        next->field_512 = next->field_512 + 1;
+    }
+    for (i = 1; i < 0xF; i++) {
+        Gp_AnimTickIndex(&next->anim, i);
+    }
+    coord->flg = 0;
+    if ((s16)work->field_51E >= 0x32) {
+        work->field_51E = 0;
+        work->field_520 = work->field_520 + 1;
+    }
+}
 void func_actor_206100_8014EA8C(Task* task, s16 arg1, s16 arg2)
 {
     ((TmdObject*)task->extra)->field_8->coord.t[0] += ((rsin(arg2) << 4) * arg1) >> 16;
