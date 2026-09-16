@@ -285,7 +285,29 @@ void Actor04400_Fn06BF8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06C70);
+void Actor04400_Fn06C70(Task* arg0)
+{
+    Actor104400Work* work;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    work->field_44F = Actor04400_D10814[work->field_418 - 1];
+    if (work->field_44F == 1) {
+        Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+        w->field_426 = 6;
+        w->field_41C = 0x10;
+        w->field_418 = 6;
+        w->field_414 = 1;
+    } else {
+        Actor104400Work* w = (Actor104400Work*)arg0->idMap;
+
+        w->field_426 = 6;
+        w->field_41C = 0x10;
+        w->field_418 = 5;
+        w->field_414 = 1;
+    }
+    work->field_422++;
+}
 
 void Actor04400_Fn06CF0(Task* arg0)
 {

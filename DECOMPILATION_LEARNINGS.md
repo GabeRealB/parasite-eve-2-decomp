@@ -97857,3 +97857,45 @@ Inputs: `base_9.i` (100.000%) SHA256 `b92cc4ec81705d0f084be818ff5908897eac80a842
 target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
+
+## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
+
+`Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
+— but the 32 instructions are identical to `func_actor_341700_80168AC0` and
+`func_actor_342400_80169DA4`, differing only in the `%hi/%lo` of the u8 table
+they index and in local-label style. The cause is in the canonicalisation, not
+in the similarity measure:
+
+```python
+LOCAL = re.compile(r"\b(func|D|jtbl)_([A-Za-z0-9_]+?)_([0-9A-F]{8})\b")
+...
+line = LOCAL.sub(
+    lambda m: f"{m.group(1)}_LOCAL" if m.group(2) == unit else m.group(0), line)
+```
+
+The wildcard only fires on splat's **generated** names, `D_<family>_<vram>`, and
+only for the unit being scanned. actor_341700's `D_actor_341700_80174D88` is
+rewritten to `D_LOCAL` and groups with actor_342400's `D_actor_342400_80173A84`;
+actor_104400's copy reads the *named* `Actor04400_D10814`, which the regex does
+not match at all, so it stays verbatim and the group splits in two.
+
+This is the same family as the other `find`-misses in this file (a differing
+callee, a label style, a displacement), but with a cause worth separating: the
+gap is *created by naming*. `D_<ovl>_<hex>` invisible-to-the-index only holds
+while the datum is unnamed, so `find` under-reports progressively as the naming
+passes land, and "no copies" is weaker evidence now than it was when every datum
+was an auto name.
+
+`similar` is unaffected — it drops operands, so it scored the twin 1.00 in
+`shape` and `fields`, and the BRIEF printed it. Porting `func_actor_342400_80169DA4`'s
+body (`src/actors/actor_342400/actor_342400_17.c`) with the two work fields
+renamed and `extern u8 Actor04400_D10814[]` added to `include/actors/actor_104400.h`
+scored 100.00 with every penalty zero on the first build; the m2c seed reached
+the same score after only the struct field rename, so this function is cheap
+either way. Promotion is a separate question and `promote` cannot be driven by
+`find` here for the reason above.
+
+Inputs: `base_1.i` SHA256 `06dbb7008e9e7c50dd8756ebb4ca331f7c4fef3d2b712d565fbd69f60620ffdd`;
+target SHA256 `fae26ba6aaf1de804dd38244c8809cf76aac0049c74e912cbc70c72fccf5a24c`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn06C70-vacuum`.
