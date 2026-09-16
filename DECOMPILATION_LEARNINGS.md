@@ -83937,6 +83937,22 @@ build, all penalties zero. Read the width off the target (`lbu` byte, `lhu`
 halfword, `lw`/`lwl` word) rather than from the seed's `* N`, which is the
 element count the *writer* of the seed guessed.
 
+The same wrong base type turns up as a wrong **walk stride** when the seed steps
+the pointer by bytes rather than indexing: `var_s2 += 0x10` on an `M2C_UNK *`
+adds `0x10 * 4` and the target's `addiu $s2, $s2, 0x10` comes out `0x40`. That
+one immediate was the entire diff in `func_actor_135400_80132CB0` (99.828%,
+`regs=1`); typing the walk at its real element width fixed it:
+
+```c
+extern GsF_LIGHT D_actor_135400_8013F904[3];
+    for (i = 0, light = D_actor_135400_8013F904; i < 3; i++, light++) { ... }
+```
+
+`GsF_LIGHT` is 0x10 bytes, which is both the target's stride and the whole of
+the 3-entry table (0x30) — so the stride and the symbol's own byte run agree,
+and either one will tell you the element size when the seed's arithmetic does
+not.
+
 ## A positive `beq` to a shared call means `switch`, not `if`/`else`: the if/else permutations never converge (func_dryfield_water_tank_8017DB48, 2026-09-15)
 
 `func_dryfield_water_tank_8017DB48` dispatches on a game-flag nibble: values 0-2
