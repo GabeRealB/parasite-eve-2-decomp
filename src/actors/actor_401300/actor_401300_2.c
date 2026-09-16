@@ -1,30 +1,33 @@
 #include "common.h"
 
 #include "actors/actor_401300.h"
-#include "main/gfx.h"
-#include "main/tmd.h"
 
-/// Same placement opcode as `ActorsShared80169f74` (X then Y then Z, re-fetch
-/// the coordinate for every field, then `ratan2` of the matrix Z-axis), except
-/// the heading is cached at `Actor401300Work::yaw` (0x18) rather than 0x16.
-s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+s32 func_actor_401300_80141494(Actor401300* arg0, s32 arg1, Actor401300Msg* arg2)
 {
-    GsCOORDINATE2*   coord;
-    s32              mx;
-    s32              mz;
-    Actor401300Work* work;
+    Actor401300Work* work = arg0->field_1C;
 
-    work                                           = (Actor401300Work*)task->idMap;
-    ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vz, 0);
-    ((TmdObject*)task->extra)->field_8->flg = 0;
-    coord                                   = ((TmdObject*)task->extra)->field_8;
-    mx                                      = coord->coord.m[2][0];
-    mz                                      = coord->coord.m[2][2];
-    work->yaw                               = ratan2(-mx, mz);
-    return 1;
+    switch (arg2->field_4) {
+        case 0:
+            work->field_8A2 = 0x22;
+            break;
+        case 1:
+            work->field_8A2 = 0x23;
+            break;
+        case 2:
+            work->field_8A2 = 0x24;
+            break;
+        case 3:
+            work->field_8A2 = 0x25;
+            break;
+        case 4:
+            work->field_8A2 = 0x27;
+            break;
+    }
+    work->field_0 = 0x11;
+    work->field_2 = -1;
+    return 0;
 }
+
+/* Closes this unit's .rodata after the 5-entry jump table above, so
+   actor_401300_4's tables start at 0x80132044. Nothing reads it. */
+const u32 D_actor_401300_80132040 = 0;

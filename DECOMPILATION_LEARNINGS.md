@@ -96952,3 +96952,30 @@ if (arg2 >= 0) {
 Found on `func_actor_401300_8013267C` (99.91% -> 100%). The same function also
 needed `s16` parameters, not `s32` with casts: `(s16)arg` casts left the
 `move $s4,$a1` prologue copy after `$s3`, and `s16 arg1` alone only half-fixed it.
+
+## A local that outlives a CSE restart flips which register a jump-equality store uses; re-read the expression instead (func_actor_401300_8013346C, 2026-09-16)
+
+Shape: per switch case, a chain of `if (frame == K) { if (work->field_8BC != frame) { work->field_8BC = frame; return SE; } work->field_8BC = frame; break; }`.
+On the equal path both registers hold the same value, and CSE picks one for the
+store. Target: `sw $v1` (the frame) after every test *but the last* in a case,
+`sw $v0` (the loaded `field_8BC`) after the last one. That choice decides which
+shared `j end; sw` tail each block cross-jumps into, so a wrong pick shows up as
+`branch`/`insert` noise far from the store.
+
+`record_jump_cond` merges the classes with `make_regs_eqv(frame, loaded)`; the
+frame becomes canonical only if it lives *beyond* the current CSE path
+(`REGNO_FIRST_UID < cse_basic_block_start` or `LAST_UID > end`). With
+`s32 frame = work->field_5E & 0x3FF;` at the case head, CSE restarts at the
+label of the second test, the local was set before that start, so the frame
+won everywhere (98.1%). Dropping the local and writing
+`(work->field_5E & 0x3FF)` at every use (CSE still loads it once) gives each
+restart its own short-lived pseudo, the loaded value stays canonical for the
+last test, and the function matched. A function-scope local was worse again
+(89%): one pseudo across all cases also gets a different hard register.
+
+Also: when a new function's compiler-generated jump table sits in a leading
+rodata block whose unit already has one (here 0x4 and 0x20C, the second not
+8-aligned), the two tables cannot share an object - GCC's `.align 3` pads the
+second. A `units` cut before the other table's function plus `rodata_head` at
+the first table fixed it; `touch` the renamed `.c` files (see the `git mv`
+entry above).

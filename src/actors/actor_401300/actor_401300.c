@@ -258,7 +258,219 @@ void func_actor_401300_80133324(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013346C);
+/// Returns the sound to play when the current animation (`field_8A2`) reaches
+/// one of its cue frames, once per frame reached; `field_8BC` holds the last cue
+/// frame seen. The frame is re-read at every use: caching it in a local moves
+/// CSE's choice of register for the repeat-frame store.
+s32 func_actor_401300_8013346C(Actor401300Work* work)
+{
+    switch ((s16)(work->field_8A2 - 2)) {
+        case 1:
+            if ((work->field_5E & 0x3FF) == 0xF) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0004;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0x15) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0003;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 0:
+            if ((work->field_5E & 0x3FF) == 0x11) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0002;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0x1A) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0001;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 23:
+            if ((work->field_5E & 0x3FF) == 0xB) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D000C;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0xE) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0001;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 24:
+            if ((work->field_5E & 0x3FF) == 0xB) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D000C;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 10:
+            if ((work->field_5E & 0x3FF) == 0x7) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0005;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 32:
+            if ((work->field_5E & 0x3FF) == 0x4) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0005;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 9:
+            if ((work->field_5E & 0x3FF) == 0x5) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0005;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 7:
+            if ((work->field_5E & 0x3FF) == 0x7) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0006;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 30:
+            if ((work->field_5E & 0x3FF) == 0xB) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D000A;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 31:
+            if ((work->field_5E & 0x3FF) == 0xD) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D000B;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 25:
+            if ((work->field_5E & 0x3FF) == 0xE) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0004;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0x14) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0003;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 26:
+            if ((work->field_5E & 0x3FF) == 0x12) {
+                if (work->field_8BC != 0xE) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0004;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 27:
+            if ((work->field_5E & 0x3FF) == 0xD) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0002;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0xF) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0001;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0x11) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0002;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            } else if ((work->field_5E & 0x3FF) == 0x14) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0001;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+        case 28:
+            if ((work->field_5E & 0x3FF) == 0x9) {
+                if (work->field_8BC != (work->field_5E & 0x3FF)) {
+                    work->field_8BC = work->field_5E & 0x3FF;
+                    return 0x400D0012;
+                }
+                work->field_8BC = work->field_5E & 0x3FF;
+                break;
+            }
+            work->field_8BC = 0;
+            break;
+    }
+    return 0;
+}
 
 void func_actor_401300_80133834(Actor401300* arg0, s16 arg1)
 {
@@ -1339,32 +1551,4 @@ void func_actor_401300_8014148C(void)
 {
 }
 
-s32 func_actor_401300_80141494(Actor401300* arg0, s32 arg1, Actor401300Msg* arg2)
-{
-    Actor401300Work* work = arg0->field_1C;
-
-    switch (arg2->field_4) {
-        case 0:
-            work->field_8A2 = 0x22;
-            break;
-        case 1:
-            work->field_8A2 = 0x23;
-            break;
-        case 2:
-            work->field_8A2 = 0x24;
-            break;
-        case 3:
-            work->field_8A2 = 0x25;
-            break;
-        case 4:
-            work->field_8A2 = 0x27;
-            break;
-    }
-    work->field_0 = 0x11;
-    work->field_2 = -1;
-    return 0;
-}
-
-/* Closes this unit's .rodata after the 5-entry jump table above, so
-   actor_401300_3's tables start at 0x80132044. Nothing reads it. */
-const u32 D_actor_401300_80132040 = 0;
+INCLUDE_RODATA("actors/nonmatchings/actor_401300/actor_401300", ActorsShared80135df4Table);
