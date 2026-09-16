@@ -1095,6 +1095,45 @@ reach for a pin: count the definitions in `.greg` first.
 Inputs: `base_4.i` (99.354%), `base_6.i`
 `4e47c39fb129c93da9d143b4ca6b23b1915004a46cdc4c0809c6199d74c7392b`.
 
+## The same two-definition pseudo also fails on *priority*: its two live ranges sum into `live_length`
+
+The entry above is that shape losing on a conflict. It fails a second way, on
+nothing but the rank, in `Actor04400_Fn0723C`. The target keeps the parameter in
+`$s2` and the work pointer in `$s3`; reusing one C variable for the pointer put
+them the other way round (`regs=19`, 98.699%), and the `.lreg` header says why:
+
+```
+Register 80 used 8 times across 94 insns; crosses 4 calls; pointer.   /* arg0  */
+Register 81 used 8 times across 50 insns; dies in 2 places; ...       /* work  */
+```
+
+`;; 4 regs to allocate: 81 117 103 80` — `work` ranks first, so `find_reg`'s
+ascending scan hands it the lower call-saved register, and the parameter takes
+`$s3`. Both have 8 references, so the comparison is purely by live length and
+the shorter one wins.
+
+`REG_N_REFS` and `REG_LIVE_LENGTH` are accumulated *per pseudo*, and the two
+`work = (Actor104400Work*)arg0->idMap;` assignments in different blocks are one
+pseudo — the second definition reuses the number, which is what `dies in 2
+places` reports. So the counts cover both ranges: refs 5 + 3 = 8, and live
+length 46 + 4 = 50. The sum, not the maximum — a maximum is what the
+`reg_may_share` path in `CODEGEN_MODEL.md` §10.4 takes, and no two pseudos share
+an allocno here. Rank `floor_log2(8)*8/50 = 0.48` then beats the parameter's
+`floor_log2(8)*8/94 = 0.255`, though the parameter is live across the whole
+function.
+
+Giving the reload its own variable — `work2`, which the sibling handlers in this
+TU already use — splits the pseudo: `Register 81 used 5 times across 46 insns`,
+rank `floor_log2(5)*5/46 = 0.217`, below the parameter's, and both registers land
+where the target has them. 100%, no other change.
+
+So when a `regs` residue is a clean swap of two call-saved registers, read the
+`used N times across M insns` lines before reaching for a pin: a variable reused
+across a call inflates both of the numbers its rank divides.
+
+Inputs: `base_1.i` (98.699%), `base_2.i`
+`0a02a062356ca578d8535234e6e8550072df4aa86bd74f57b9a01cd71ae58a1f`.
+
 ## `permute.sh` preprocesses without `-I tools/m2c`, so `m2c_macros.h` seeds fail setup
 
 `permute.sh` runs `gcc -E -P -Iinclude -Iinclude/decomp -Iinclude/psyq
@@ -2446,6 +2485,63 @@ Store `8`, then `0x10`, then `8` again. CSE keeps one `8` pseudo live across
 `0x10`. The shorter `0x10` span wins `$v0`; `8` takes `$v1`. sched1 still emits
 the target store order. The duplicate store has to straddle the other constant;
 sweeping a one-use store's position does not lengthen the two-use range.
+
+## A shared constant's `li` is placed by statement order, not by the store order the asm shows
+
+`Actor04400_Fn08610` writes `4` to two halfwords of its work block, the second
+of them the last statement of the branch (`field_422 = 4`), whose store lands in
+the `j`'s delay slot. m2c's statement order — the order the target's *stores*
+appear in — reproduces all 66 instructions and leaves the `li $s2,4` one slot
+late, scoring 96.667% with only that line differing:
+
+```
+target                     base
+lui   a1,0x402c            lui   a1,0x402c
+ori   a1,a1,0x2            ori   a1,a1,0x2
+li    s2,4                 li    v0,0x10
+li    v0,0x10              sh    v0,0x41c(s3)
+sh    v0,0x41c(s3)         li    v0,9
+li    v0,9                 li    s2,4
+sh    v0,0x418(s3)         sh    v0,0x418(s3)
+```
+
+CSE gives the two uses one pseudo, whose `li` is created where the *expression*
+is first written — the second store, not the first — so the store order decides
+the load's insn number and the scheduler never moves it back. Write the store
+that uses the shared constant first:
+
+```c
+if (Actor04400_D10814[work->field_418 - 1] == 0) {
+    work->field_426 = 4;      /* before field_41C/field_418, not after them */
+    work->field_41C = 0x10;
+    work->field_418 = 9;
+    work->field_414 = 1;
+```
+
+The store itself still lands third of four, as the target has it, because sched2
+treats the two kinds of insn differently. It runs backward; every `li` is
+priority 1, so `rank_for_schedule`'s third rule — `INSN_LUID (*y) -
+INSN_LUID (*x)`, the later insn of the pre-sched2 chain first — reproduces the
+chain and cannot reorder them. A ready store is not tied that way:
+`schedule_select` takes the largest `potential_hazard` within a group of equal
+priorities, which is 0 for the ALU (`insn_unit` gives -1) and a large weight for
+the memory unit, so the store jumps ahead of the `li`s regardless of its
+position. `trace_gcc.py --uids` shows both decisions directly (cycles 23-28 of
+sched2 here); the `.sched2` dump's `priority = 1, ref_count` list and its
+ready-list trace are enough to see the tie without a trace.
+
+Read the top `similar` body, not its shape: `func_actor_342400_8016B744` is this
+same function for another actor, already matched, and writes `field_426 = 4`
+first. The overlay's own siblings write their field stores in the asm's order,
+which is what makes the one outlier correct here rather than a mistake.
+
+Input: `base_1.i` (96.667%) SHA256
+`dcf99645e47e00d981d4bf652260516b3cc01b9fd9df4e2d90196d3a59212d71`, `base_2.i`
+(100.000%) SHA256
+`2834a0bac16d332e93468cebc3f69c9d72b6afd1bc9a5f09b321caa97586be94`; target
+SHA256 `d7f59367566220f2df5f76644167955dcc2afe356ff60e3f7d998ff4e0636007`.
+Three scratch builds, no pins, no permuter; scratch
+`nonmatchings/Actor04400_Fn08610-vacuum`.
 
 ## A permuter gain can come from moving an expression across a generated branch
 
@@ -39360,6 +39456,39 @@ room are separate packages, and their scripted-cutscene task is the same code
 with different overlay-local data. A `sed` rename of the overlay prefix, the two
 `D_<seg>_<vram>` symbols and the typedef scored 99.971% on the first build.
 
+A matched body under a sibling **family's shared library** can be the whole
+function, and the index will still say `1 copies`. `overlay_dup_index.py find
+Actor04400_Fn042C4` printed the narrowest answer — itself the only `=` — but
+`asm/USA/actors/matchings/lib/actors_shared_801673f8/ActorsShared801673f8.s`
+is the same code: the branch *words* are identical and only the label names
+(`Actor04400_L04580` against `.Lactor_342400_801676B4`) and the `j` immediates
+of the switch tail differ, so the disassembly text hashes apart.
+
+Settle it with one `diff` of the mnemonics-and-operands column, which strips
+the leading address/word comment so operands compare directly:
+
+```sh
+s() { grep -oE '/\* [0-9A-F]{4} [0-9A-F]{8} [0-9A-F]{8} \*/ +.*' "$1" |
+      sed 's|/\* [0-9A-F]* [0-9A-F]* ||; s|\*/||; s/^ *//; s/  */ /g'; }
+diff <(s "$MATCHED.s") <(s "$SCRATCH/target.s")
+```
+
+Every remaining line here was a label or a `j` immediate — absolute jumps move
+with the link offset, so read the diff for mnemonics and operands, not for
+whole lines. The port is then the sibling's C body with its **type names**
+renamed: the sibling was written against `ActorsShared80168d3cWork`, this
+overlay against `Actor104400Work`, and the two layouts agree on every offset
+the body touches. Keep every source-level oddity, because that shape is what
+matched — the duplicated inline `set_state` per switch arm, the re-read of
+`arg0->spawnArg2` / `arg0->extra` at the sound call. The raw m2c seed scored
+84.8%; the ported body 100.000% with every penalty zero on the next build.
+
+This is a landing, not a promotion: `actor_104400` does not import
+`ActorsShared801673f8` (its own copy is at 0x801660E4, the shared one at
+0x80166114 / 0x801673F8 in `actor_341700` / `actor_342400`), so no object can
+serve both — the body is compiled twice by design and the symbol map is left
+alone.
+
 Port the sibling's **manifest cuts** along with its body. A cutscene state
 machine emits a compiler-generated jump table, so its object has to own the
 slice of leading `.rodata` holding that table — the sibling entry in
@@ -39995,6 +40124,60 @@ trees and re-split, then re-apply any already-matched function to its new file.
 Splat will not rewrite a `src/` file that already exists, and a stale
 `INCLUDE_RODATA` naming the old unit's directory shows up as
 `undefined reference to '.L<overlay>_<addr>'` at link time.
+
+## A jump table inside a later unit's rodata block needs a second `shared` span
+
+"A compiler-generated jump table needs to start its object's `.rodata`" is the
+case where the cut names the unit the table's function lives in. The table can
+equally belong to a unit that already *has* a rodata run of its own elsewhere,
+and then the cut has to be paired with a `.text` cut, not just moved.
+
+`actor_104400`'s `Actor04400_Fn03538` matched its assembly 100% with all-zero
+penalties and the overlay still failed its checksum. `build/USA/out/actor_104400`
+was exactly 24 bytes longer than the package and the link map showed the tail
+unit's `.rodata` as `0x80132014 0x44` where the package has 44 bytes there: the
+function's inner switch table belongs at `0x13C`, in the middle of what was the
+`actor_104400_header_1b` rodata block and ahead of that block's hand-written
+`D00150..D001D8` dispatch tables, but the unit's `.rodata` sits at `0x1F4`, so
+the table went there and pushed everything after it down by 20 + the 4-byte
+`.align 3` pad GCC emits ahead of the *next* table.
+
+Both halves are needed, and neither is a `units` cut:
+
+- The table must start a *fresh object*, so every function ahead of it in the
+  unit's `.rodata` order must be in another object. `units` is ignored for the
+  **trailing** shared span - `emit_run` in `gen_overlay_configs.py` runs only
+  for the gap between shared spans and after the last one - so split the span
+  itself and name the new one after the function:
+
+  ```toml
+  shared = [{ start = "0x3538", end = "0x39EC", unit = "actor_104400_fn03538" },
+            { start = "0x39EC", end = "0x8E14", unit = "actor_104400_text_tail" }],
+  rodata = [{ start = "0x13C", unit = "actor_104400_fn03538" },
+            { start = "0x150", unit = "actor_104400_header_1c" }]
+  ```
+
+- The block's remainder - the tables between the new cut and the tail unit's
+  own run - needs a `rodata` unit of its own, because one unit cannot have two
+  `.rodata` runs and the tail unit still needs `0x1F4`.
+
+Moving those tables into the `.c` instead, so that a single run could cover
+`0x13C..0x220`, does **not** work: splat attaches a data symbol to the `.s` of
+an unmatched function *in the same unit* that references it
+(`nonmatchings/lib/actor_104400_text_tail/Actor04400_Fn03F8C.s` carries
+`dlabel Actor04400_D00184`), the `.c` pulls that `.s` in through `INCLUDE_ASM`,
+and the C definition collides with it as
+`Error: symbol `Actor04400_D00184' is already defined` at assembly time. Keeping
+the tables as generated `rodata` (they are symbol references either way) is the
+move.
+
+The run's start need not be 8-aligned for the layout to come out right: `.align
+3` works on offsets *inside* the section, so a run starting at the unaligned
+`0x13C` reproduces the target's pad words exactly -
+`[jtbl][D tables][jtbl][pad][jtbl]` lands on `0x13C`, `0x150`, `0x1F4`, `0x208`,
+`0x20C`. Check the map's section size against the package before touching the
+code: an overlay that is a few bytes long with a 100% function is this, not
+codegen.
 
 ## A trailing `.rodata` pad word goes in C, not `INCLUDE_RODATA`
 
@@ -46016,6 +46199,46 @@ registers can only be the copy's temporaries. The body is the ordinary
 `TaskFuncTable3 sp; sp = <rodata table>; <no-arg call>(); sp.funcs[arg0->state](arg0);`,
 exact on the first build from 36.4%. Input: `base_1.i`
 `3138a1bc11de99b6169b0f4c9cd0a72ee8f1b6ba3362b3af7f15eef297a9a917`.
+
+## A *built* stack table reads as the callee's argument list, and costs the load its register
+
+The fourth form, and the one with no `lw` to give it away. Where the copy above
+loads a rodata table and re-stores it, some dispatchers materialise the entries
+as immediate addresses and store them straight into the frame:
+
+```
+lw  $v1,0x1C($a0)          ; the work block
+lui $v0,%hi(Actor04400_Fn07A38) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x10($sp)
+lui $v0,%hi(Actor04400_Fn03390) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x14($sp)
+lh  $v0,0x422($v1) ; sll $v0,$v0,2 ; addu $v0,$sp,$v0 ; lw $v0,0x10($v0) ; jalr $v0
+```
+
+m2c read the two stored addresses as the callee's argument list and wrote the
+whole thing as one nested-`M2C_FIELD` call expression — 76.59% at
+`regs=3 insert=3 delete=2`, one instruction short. The "loaded *and* stored"
+tell of the copy form is unavailable here, but the geometry still settles it:
+the stores target the caller's own frame at exactly the offsets the index
+expression reads back through (`0x10($sp)`/`0x14($sp)`), and the final `lw`'s
+base is `$sp`. An argument would be neither.
+
+The register symptom is the useful part. Because m2c materialised the entries
+*as* arguments, the `idMap` load got deferred past the table stores and reused
+`$v0`, so `lw $v0,0x1C($a0)` sat one instruction from `lh $v0,0x422($v0)` and
+earned a stall `nop`. The sibling `work` local — assigned on its own first line,
+before the table — issues the load ahead of the stores and takes `$v1`, leaving
+`$v0` free for both entries and no `nop` anywhere. Flipping only the *statement
+order* moved 21 instructions to the target's 21:
+
+```c
+work = (Actor104400Work*)arg0->idMap;       /* first, so the load is not deferred */
+void (*states[2])(Task*) = { Actor04400_Fn07A38, Actor04400_Fn03390 };
+states[(s16)work->field_422](arg0);
+```
+
+Exact on the second build. Same overlay family twice over — `Actor04400_Fn0674C`
+is this shape too — so treat a `lui/addiu`-then-`sw` pair into `0x10($sp)` as
+the table long before believing the argument count. Input: `base_1.i`
+`8ed84e325fc0e09f2abd287d2cd84d95ad0235d4e66b420122fd25d77f05d35f`.
 
 ## m2c's synthesized `Task*` field names can be swapped relative to `task.h`
 
@@ -72563,6 +72786,44 @@ a byte-field value in an `s32` local": there an `s32` local stops combine from
 
 **Example:** `func_actor_107600_80132ED0` (99.294% -> 100%, `u8 variant` -> `u32
 variant`, everything else unchanged).
+
+## One body, two declaration orders: the `birthing_insn_p` priority bump makes initialiser order the emitted order
+
+**Symptom.** `Actor04400_Fn08B3C` and its already-matched TU sibling
+`Actor04400_Fn07750` are the same body, byte-identical apart from one swapped
+pair in the entry block - Fn08B3C loads `spawnArg2` (0x20) before `extra` (0x2C),
+Fn07750 loads `extra` first. Written as m2c's per-word copy the seed scored
+52.4%; typing the copy as a struct (`work->matrix_0 = coord->coord;`) took it to
+99.608%, leaving only that pair.
+
+**Cause.** Every one of the four entry loads defines a single-set pseudo, so
+`birthing_insn_p (PATTERN (prev))` is true and `adjust_priority` raises each to
+`LAUNCH_PRIORITY` the moment `schedule_insn` frees it. The natural priorities -
+the `8(v0)` load inherits 2 from its parent, the rest 1 - are flattened away, and
+`rank_for_schedule` falls through to `INSN_LUID` **descending**. Launch order was
+`0x1C`, `8(v0)`, `0x20`, `0x2C`; since sched1 emits the launch order reversed
+(see the section above) that came out `0x2C, 0x20, 8(v0), 0x1C`. The `8(v0)`
+load is the child of the `0x2C` load, so its parent pays the load-to-address
+latency and launches two cycles late - which is why the fixed chain below puts
+`0x2C` *before* `0x1C` in the emitted output even though `0x1C` is declared
+first.
+
+**Fix.** Move the declaration that must emit *earlier* further *down*, so the
+others take the larger LUIDs:
+
+```c
+GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;        /* LUID min */
+Actor104400Work* work  = (Actor104400Work*)arg0->idMap;    /* before coord */
+GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+```
+
+RTL chain `0x20, 0x1C, 0x2C, 8(v0)`; launch `8(v0)`, `0x1C`, `0x2C`, `0x20`;
+emits `0x20, 0x2C, 0x1C, 8(v0)` - the target, penalties all zero. Initialiser
+order is RTL chain order exactly as statement order is, so the lever is
+available for any equal-priority group of loads, and sched2 needs no attention:
+it only re-swapped the two independent stores' children here.
+
+**Example:** `Actor04400_Fn08B3C` (99.608% -> 100%, declaration order only).
 ## An `s8` local defers its sign extension to the use; a cast into `s32` pins it at the assignment
 
 **Symptom.** `Gp_GetObjPan` returns `s32`; the target truncates its result
@@ -79867,6 +80128,20 @@ itself — while `find ActorsShared80132450` listed four copies and not this one
 The step-4b promotion check therefore reads as "nothing to promote", and
 `find <fn>` on the *shared* symbol cannot see the overlay that should be
 sharing it.
+
+A second line form survives the same way, and a pair can carry both at once.
+`BRANCH` (`\.L\w+`) and `LABELDEF` match only the *dotted* local-label
+spelling; an overlay whose `symbol_name_format` prints `Actor04400_L08530` -
+no dot - keeps its branch targets and its label definitions verbatim in the
+hash. `Actor04400_Fn0847C` against `func_actor_342400_8016B5B0` (101
+instructions each, identical but for the three branch labels) is such a pair:
+widening both patterns in memory to also take
+`\b[A-Za-z]\w*_L[0-9A-F]{4,8}\b` collapses their canonical texts to a
+**one-line** diff - the `alabel` above, `D_8016A408`. So `find` needs both
+fixes before it groups them, and until it has them the diff-the-two-`.s` rule
+is what recovers the match: the twin here is in a *matched* overlay, and
+copying its C body across with this overlay's work block retyped scored
+100.000% with every penalty zero on the first build (m2c seed: 19.901%).
 
 `BRIEF.md`'s "Similar matched bodies" list did surface it, because that list
 comes from the lossy `shape` / `fields` tiers, which drop operands and label
@@ -98996,6 +99271,191 @@ return 0;
    to the already-matched Actor00400_Fn04414 */
 w2 = arg0->field_1C;
 if ((w2->flags_62C.half & 1) || (w2->flags_62C.word & 0x102)) {
+## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
+
+`Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
+— but the 32 instructions are identical to `func_actor_341700_80168AC0` and
+`func_actor_342400_80169DA4`, differing only in the `%hi/%lo` of the u8 table
+they index and in local-label style. The cause is in the canonicalisation, not
+in the similarity measure:
+
+```python
+LOCAL = re.compile(r"\b(func|D|jtbl)_([A-Za-z0-9_]+?)_([0-9A-F]{8})\b")
+...
+line = LOCAL.sub(
+    lambda m: f"{m.group(1)}_LOCAL" if m.group(2) == unit else m.group(0), line)
+```
+
+The wildcard only fires on splat's **generated** names, `D_<family>_<vram>`, and
+only for the unit being scanned. actor_341700's `D_actor_341700_80174D88` is
+rewritten to `D_LOCAL` and groups with actor_342400's `D_actor_342400_80173A84`;
+actor_104400's copy reads the *named* `Actor04400_D10814`, which the regex does
+not match at all, so it stays verbatim and the group splits in two.
+
+This is the same family as the other `find`-misses in this file (a differing
+callee, a label style, a displacement), but with a cause worth separating: the
+gap is *created by naming*. `D_<ovl>_<hex>` invisible-to-the-index only holds
+while the datum is unnamed, so `find` under-reports progressively as the naming
+passes land, and "no copies" is weaker evidence now than it was when every datum
+was an auto name.
+
+`similar` is unaffected — it drops operands, so it scored the twin 1.00 in
+`shape` and `fields`, and the BRIEF printed it. Porting `func_actor_342400_80169DA4`'s
+body (`src/actors/actor_342400/actor_342400_17.c`) with the two work fields
+renamed and `extern u8 Actor04400_D10814[]` added to `include/actors/actor_104400.h`
+scored 100.00 with every penalty zero on the first build; the m2c seed reached
+the same score after only the struct field rename, so this function is cheap
+either way. Promotion is a separate question and `promote` cannot be driven by
+`find` here for the reason above.
+
+Inputs: `base_1.i` SHA256 `06dbb7008e9e7c50dd8756ebb4ca331f7c4fef3d2b712d565fbd69f60620ffdd`;
+target SHA256 `fae26ba6aaf1de804dd38244c8809cf76aac0049c74e912cbc70c72fccf5a24c`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn06C70-vacuum`.
+
+## A jump table in a *shared* unit needs its `rodata` cut in every package that links it
+
+`Actor04400_Fn0648C` (USA/actors/lib/actor_104400_text_tail) is a 24-instruction
+message handler whose twin `func_actor_342400_801695C0` was already matched, so
+the body was a port: separate `case 1:`..`case 5:` bodies that all store
+`arg2->field_2` into `field_44C`. A single `case 1 ... 5` folds into
+`addiu -1` / `sltiu` / range test and loses the table (46.9%, `delete=10`,
+`unresolved indirect jump`); five identical bodies cross-jump into one and keep
+it (100.00%, all penalties zero).
+
+Its table is *not* the first thing in its unit's `.rodata`, so the usual "give
+the table the start of the object" rule does not apply. `Jt0020C` sits at file
+offset `0x20C` and a named zero word, `D_actor_104400_80132028`, sits at `0x208`
+between it and `Jt001F4`; `0x1F4 + 0x14` is `4 mod 8`, so that word is the real
+`.align 3` pad ahead of the second table, not an artefact. GCC reproduces the
+run byte for byte once the function is in the unit — the object's `.rodata`
+comes out `0x14` table + 4 pad + `0x14` table = `0x2C` — provided the whole run
+belongs to that unit, which means dropping the cut that split it:
+
+```toml
+# before: { start = "0x1F4", unit = "actor_104400_text_tail" },
+#         { start = "0x208", unit = "actor_104400_header_2" }
+# after:
+rodata = [..., { start = "0x1F4", unit = "actor_104400_text_tail" }]
+```
+
+The cut then runs to the start of `.text`, and `actor_104400_header_2`
+disappears. Distinguishing this from the incinerator case above — where the pad
+*was* an artefact and needed a `units` cut — is what the extracted rodata says:
+a pad that is genuine ROM content is a named symbol of its own.
+
+The expensive part is that `actor_104400_text_tail` is a **shared** unit:
+`src/actors/lib/actor_104400_text_tail.c` compiles once and links into every
+package that lists the span. `actor_342200`, the same actor in the other RAM
+slot (`load_addr = 0x80161E20`), lists the same three spans and carried its own
+`{ start = "0x208", unit = "actor_342200_header_2" }`. The object's `.rodata`
+grows by 0x18 for *all* of them at once, so fixing only the package being
+matched leaves the other slots shifted:
+
+```
+FAILED: build/USA/out/checksum.ok        <- the only symptom
+build/USA/out/actor_104400: FAILED
+$ ls -la build/USA/out/actor_104400      <- exactly 0x18 bytes too long
+```
+
+The check is `grep -n "<unit>" configs/USA/overlays.toml` — every entry that
+names the unit needs the same cut, and the sibling's cut names *its* header
+(`<other_slot>_header_2`), not this one's, so it does not look like a match.
+A scoped `--only <overlay>` build says nothing about the other slots.
+
+Inputs: `base_1.i` SHA256 `c7b1119a0f8bb4f4b7ab640fb37b549d102f6cec33549a25b54f6d5d961c092f`;
+target SHA256 `18b53dab655dbc16dd16e54216ea292bbeeb34e1e9ed9c203e2f056bafa5c5ef`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn0648C-vacuum`.
+
+## m2c's narrow type for a sign-extended call result keeps the raw value out of `$v0` (Actor04400_Fn07B4C, 2026-09-16)
+
+`temp = (s8)Gp_GetObjPan(...)` came out of m2c as `s8 temp_s1`, because the only
+thing the assembly shows is the pair that *sign-extends* the call result:
+
+```
+jal   Gp_GetObjPan
+move  s1,v0        <- a copy the target does not have
+...
+sll   s1,s1,0x18
+sra   a1,s1,0x18   <- and the extension lands in the *argument* register
+```
+
+Two penalties follow from that one word, `regs=4 insert=3 delete=2`, 92.571%:
+the raw result needs a register of its own (`move s1,v0`), which also displaces
+the `sll` out of the load-delay slot that the target fills with it
+(`lw v1,0x2c(s1); sll s1,v0,0x18; lw a0,8(v1)`), leaving a `nop` behind.
+
+The `s8` declaration makes the pseudo QImode, so the extension has a QI source
+and a SI result — two pseudos, and local-alloc can tie neither to `$v0`. m2c is
+right that a byte is sign-extended, but the local is not a byte: the *store*
+(the call argument) wants a word. Declaring it `s32`, exactly as the already
+matched sibling in the same TU does
+
+```c
+s32 pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(...));
+```
+
+collapses it to one SI sign-extension of the call result, which is what keeps
+the raw value in `$v0` and puts `sll $s1,$v0,24` in the delay slot. One-line
+change from the 92.571% baseline to 100.000%, every penalty zero.
+
+Same family as the `GameFlag_GetNibble` entry above — m2c types a local from the
+sub-expression it can see rather than from the use that consumes it — but the
+symptom inverts: there an over-narrow local *added* a shift ahead of a compare,
+here it *added a copy* and cost a delay slot. Read a matched sibling in the same
+TU before rewriting the seed: `Actor04400_Fn07050` carries this exact call
+sequence and shows which declaration the target was compiled from.
+
+Inputs: `base_1.i` (100.000%) SHA256 `eec33a072d1d31ba4e2b2a71a453391de75ae151cc67e25de4c5bf5df7411068`,
+`base.i` (92.571%) SHA256 `5b5dc36ff6529a1451f374941c3988d141177b4b77e23743487fc4f175324eb0`;
+target SHA256 `cd531d94bf77879fd12a67ca200a6d0bde75902c1dec9247431182aa1482c655`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn07B4C-vacuum`; two builds, no pins, no permuter.
+`overlay_dup_index.py find` reports this body as its own only copy.
+
+## A 0/1 in `$v0` cleared by `addu $v0,$zero,$zero` is a source-level `cond = 0`, not a comparison (Actor04400_Fn083CC, 2026-09-16)
+
+m2c reconstructs the flag test of this actor's animation re-request as a
+`var_v0` chain and GCC 2.8.1 gives back a different shape than the target:
+
+```c
+var_v0 = 1;
+if (!(work->flags_EC.half & 1)) {
+    var_v0 = 1;
+    if (!(work->flags_EC.word & 0x102)) { var_v0 = 0; }
+}
+if (var_v0 != 0) { ... }
+```
+
+The `!(a & 1)` negations survive as compares, so the second one if-converts:
+
+```
+and   v0,v0,v1          lhu   v0,0xec(v1)
+bnez  v0,L              andi  v0,v0,0x1
+lw    v0,0xec(a0)       bnez  v0,L0842C
+andi  v0,v0,0x102       addiu v0,$zero,0x1     <- constant 1, in the delay slot
+sltu  v1,zero,v0        lw    v0,0xec(v1)
+beqz  v1,END            andi  v0,v0,0x102
+                        bnez  v0,L0842C
+                        addiu v0,$zero,0x1
+                        addu  v0,$zero,$zero   <- constant 0, not a compare
+                      L0842C:
+                        beqz  v0,END
+```
+
+Six blocks and 44 instructions against the target's seven and 42, so the
+block/predicate diagnostics alone say control flow, and the leftover is `sltu`
+where the target has two `li`-style constants.
+
+The target is decisive by itself: `addu $v0,$zero,$zero` **materialises a
+constant** where a computed predicate would be `sltu` (or `sltiu`). A value that
+is 1 in the taken path and literally 0 in the fall-through only comes from a
+source-level variable assigned a literal in an `else`:
+
+```c
+if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
     cond = 1;
 } else {
     cond = 0;
@@ -99535,3 +99995,649 @@ mem in CSE, so the re-read survives to `reload_cse_regs`, which turns it into a 
 `s16` argument (`sll a1,a1; sra a1,a1; jal; sh a1,0x2C(s3)`) matched only as
 `scratch->angle = WrapAngle(scratch->angle); f(arg0, scratch->angle, ...)` with a `static inline s16`
 helper: the return-value extension becomes the pseudo both uses read, so the loop variable lands in `a1`.
+if (cond) { ... }
+```
+
+Written this way the two `li`/`addiu $v0,$zero,0x1` land in the delay slots of
+the two `bnez` and the merge label is the `beqz`, which is exactly the target.
+Read the leftover `$v0` producer before rearranging the `if`s: `andi`/`or` chain
+plus `sltu` means a comparison, `addu rd,$zero,$zero` means a literal.
+
+The body is `ActorsShared8016b500` verbatim apart from the callee, so the
+matched twin's C is the whole answer - one build, 79.932% (m2c baseline) to
+100.000%, every penalty zero. `overlay_dup_index.py find` reports this body as
+its own only copy for the callee-spelling reason documented above, while
+`similar` scores the twin 1.00 in `shape`, `fields` and `cflow`.
+
+Inputs: `base_1.i` (100.000%) SHA256 `d28a015ed23af9c06ec9ba7f0cf1db98c71629ecee479f8cd3f3acce701670be`,
+`base.i` (79.932%) SHA256 `0f403f12e0a66cebd5d8deec4e76f27745f2aaf0533aec2b7f2ef05000967924`;
+target SHA256 `5fa00a3204a21d4094b7dfe3a6d07c862af4795a3b17295eece7f5ae87e04561`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn083CC-vacuum`; two builds, no pins, no permuter.
+
+## Read `find`'s two counts together: `identical bytes:` is taken over the instruction words, so no label style can hide a copy from it
+
+`overlay_dup_index.py find` prints two numbers from two different hash classes:
+the copy list below them is the `text` class (canonicalised disassembly), while
+`identical bytes:` is `len(cl_raw[hit["raw"]])`, the class of verbatim
+instruction words. A label style the canonicaliser does not fold shrinks the
+first and leaves the second alone — so **`identical bytes:` greater than the
+number of printed copies is the cheap tell that byte-identical siblings exist
+that the list is not showing.**
+
+`find Actor04400_Fn06374` prints `same body: 1 copies   identical bytes: 3` and
+lists itself alone, because this unit's local labels are `Actor04400_L063B8` and
+`BRANCH = re.compile(r"\.L\w+")` folds only the `.L…` form (the `<family>/lib`
+label case above). The two hidden copies are `func_actor_341700_801681C4` and
+`func_actor_342400_801694A8`; asking from their side prints `2 copies   identical
+bytes: 3`, the same three. Folding `<Symbol>_L<addr>` to a wildcard by hand and
+re-running the canonicalisation loop makes the two bodies compare equal line for
+line, labels aside.
+
+`promote` fails worse than under-reporting, because it returns a verdict rather
+than a short list: `promote Actor04400_Fn06374` answers "every copy is already
+served by the shared body" and exits 1 — a green light to skip the step. Check
+the spans before believing it; these two copies are served by nothing. The
+shared unit that does carry the body is `actor_104400_text_tail` (0x3538–0x8E14
+of `actor_104400` / `actor_342200`) with the body at 0x6374 inside it, so the
+real promotion is the mid-overlay shared-span re-split, deferred for the usual
+reason rather than attempted. Note for that pass: even with correct grouping
+`promote` would name that 0x58DC-byte unit for a 0x70-byte span — it takes the
+unit from whichever `src/<family>/lib` file defines the symbol, which is the
+shared unit only when the promotion *is* the whole unit.
+
+Inputs: `base.i` SHA256
+`22a129c4c37cbcdbd8808e9ccee4dae3f801162594b56f294d1e7023b94b9b69` (100.000%),
+`base.c` SHA256
+`71afb7f83e2968880b2a50a796059ca66c8f4fc90fd80895e0db57a2b481a5c4`; target
+SHA256 `fc73e2f0649bab84e93ab1e6aa1865edc36ad4a2376c7c86a8895401a9b3a881`;
+one build, no pins, no permuter. Scratch
+`nonmatchings/Actor04400_Fn06374-vacuum`.
+
+The hidden twin can also be the *already-promoted* shared unit itself rather
+than another overlay's function: `find Actor04400_Fn04A3C` prints `1 copies
+identical bytes: 2`, and the second copy is `ActorsShared80167b70` in
+`src/actors/lib/actors_shared_80167b70.c` (the shared unit for `actor_341700` /
+`actor_342400`). There the promotion has no unit left to name — the body is
+already shared — so the only route is the same mid-overlay re-split, now
+deferred for two functions of `actor_104400_text_tail`, and the practical use
+of the twin is as the *source*: stripping the `/* offset vram encoding */`
+column from both `.s` files and diffing names the delta exactly (here two extra
+`sh $zero` stores and one constant), which is faster and stronger than reading
+the ranked sibling list. The nearer starting point, when it exists, is a matched
+function in the same unit — `Actor04400_Fn04EDC` differed by only those three
+instructions and gave a 100.000% first build.
+
+## m2c reads a stack-local dispatch table's stores as call arguments (Actor04400_Fn06A78, 2026-09-16)
+
+A state handler that builds its table *on the stack* from two function
+addresses comes out of m2c as a **call with two arguments**:
+
+```c
+M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x422) * 4)),
+          M2C_UNK (**)(M2C_UNK *, void (*)(Task *)), 0x10)
+    (&Actor04400_Fn06BC4, Actor04400_Fn06BF8);
+```
+
+The giveaway is where the stores land: `0x10($sp)` and `0x14($sp)` are the o32
+**outgoing stack-argument slots**, so m2c's calling-convention recovery claims
+them as arguments 5 and 6 of the indirect call. But the `jalr` sets up nothing at
+all — no `$a0`…`$a3` write, and the callee already finds `Task*` in `$a0` — while
+the "arguments" are `lui`/`addiu` pairs forming two *function addresses*, which no
+arg setup would do. They are a local array's initializer:
+
+```c
+void Actor04400_Fn06A78(Task* arg0)
+{
+    Actor104400Work* work                = (Actor104400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        Actor04400_Fn06BC4,
+        Actor04400_Fn06BF8,
+    };
+
+    states[(s16)work->field_422](arg0);
+}
+```
+
+Distinguish the two readings structurally: a stack-argument call writes the args
+*after* the callee's other operands are ready and passes them to a target already
+in a register; a local table writes them *before* the index load (`lh 0x422`
+comes last, after both `sw`s) and the `lw` from `$sp + index*4` *is* the target.
+The 2-element local array is the family idiom, already matched in
+`src/actors/lib/actor_100400_text.c` (`Actor00400_Fn079A8`, `Actor00400_Fn089C8`)
+— check a matched sibling in the same family before writing the body by hand.
+
+Inputs: `base.i` SHA256
+`c75ecb5c5c3b0e602c77a55bddd07a46309cf346cf8cb1530d676accbb59b80c` (100.000%),
+`base.c` SHA256
+`c99c607ec97f031c064506bb3f0f0cded537f8a5c75e6392dc3da020285e1bfe`; target
+SHA256 `97545fc1f3d5ed5413b6934ad9fdc0d58a8b6f351baa496d9194ec270265632a`;
+two builds (mid-quilt `base.c` 59.762%), no pins, no permuter. Scratch
+`nonmatchings/Actor04400_Fn06A78-vacuum`.
+
+## m2c passes a copied dispatch table's base register as a second argument
+
+The struct-assignment local jump table (entry [Local jump table via struct
+assignment of function pointers]) has a second m2c artefact, distinct from the
+outgoing-stack-slot one above: m2c reads the **base register of the indexed
+load** as an argument of the indirect call.
+
+```
+lui   v0, %hi(Actor04400_D001D8)
+addiu t3, v0, %lo(Actor04400_D001D8)
+...
+addiu v0, zero, 1
+beq   v1, v0, L060D8
+      addiu a1, sp, 0x18        # <- the table's base address, in the delay slot
+...
+addu  v1, a1, v1                # &sp.funcs + field_420*4
+lw    v0, 0(v1)
+jalr  v0
+      addu a0, s1, zero
+```
+
+comes out as `(&sp18)[temp_s0->unk420](arg0, &sp18)`. The register is not an
+argument — it is the addressing base the compiler happens to have left live
+across the switch, and a matched sibling's one-argument call reproduces it
+exactly:
+
+```c
+    sp.funcs[(s16)work->field_420](arg0);
+```
+
+which register holds it is decided by the object's live range, not by the
+source. `Actor04400_Fn05DE0` and `Actor04400_Fn05FC8` are the same body
+(`field_C |= 0x80` in mode 2, mode 0's count / handler / every-32-frames effect
+/ `coord->flg = 0`, mode 1's inline `Gp_UpdateActorColor` push and part-pair
+rebuild), differing **only** in that `Fn05DE0` clears `obj->field_C &= ~0x80`
+on the mode-1 exit and `Fn05FC8` does not. That one statement keeps `obj` live
+through mode 1's calls, so `Fn05DE0` holds it in `$s2` and the table base lands
+in `$a0`; `Fn05FC8`'s `obj` dies at mode 2's store, stays in `$a0`, and the
+table base moves to `$a1`. Both are correct — do not chase the base register,
+and do not add a pin for it; change which modes reference the object.
+
+Transcribing the sibling wholesale is the fast path for this family: the body
+recurs as `func_actor_342400_80168F14` / `801690FC` (and the `actor_341700`
+twins), so diff the target against the nearest matched one and port only the
+mode-1 exit.
+
+Inputs: `base.i` SHA256
+`e52f99ee4df21c1fc2122fe9a86c7b263b0998ef77617d87272ec6660c41b0bb` (100.000%),
+`base_1.c` SHA256
+`3e4e917ed52fffdc9e67755302e1dd933309d377f47bb0bf45f5c2954b61f661`; target
+SHA256 `1c02fc6aadb349e25ac5796c3c781c88657c6adbb249ed6266bc2acba6b753b9`;
+two builds (m2c-shaped `base.c` 83.992% `regs=53 insert=8 delete=9`), no pins,
+no permuter. Scratch `nonmatchings/Actor04400_Fn05FC8-vacuum`.
+
+### One variable reused for two *different* constants is one quantity, and it loses `$v0`
+
+`Actor04400_Fn06EEC` (0x6EEC, `actor_104400`) is byte-identical to the matched
+`ActorsShared80168d3c`, so the body ports over - except for one register. m2c
+writes the two `8`s and the `1` as separate literals:
+
+```c
+work2->field_426 = 8;      /* cse merges the two equal 8s into ONE pseudo */
+work2->field_418 = 8;
+work2->field_41C = 0x10;
+work2->field_414 = 1;      /* ...but the 1 gets its own */
+```
+
+which leaves the `8` in `$v0` (`regs` 6, 98.8%). The original reused one scratch
+variable for both values, which is the whole of the difference:
+
+```c
+s16 tmp;
+tmp              = 8;
+work2->field_426 = tmp;
+work2->field_418 = tmp;
+work2->field_41C = 0x10;
+tmp              = 1;
+work2->field_414 = tmp;
+work->field_440  = tmp;
+```
+
+A `reg/v` written twice in the block is **one** quantity: `reg_is_born` only
+clears the pending death (`qty_death[qty] = -1`), it does not start a second
+allocno, so the range runs from the first write to the last read. Both
+consequences push the same way - `(death - birth)` grows, dropping the quantity
+below the short-lived ones in `local_alloc`'s
+`floor_log2(n_refs) * n_refs * size / (death - birth)` sort so it is allocated
+*after* them, and its range now overlaps theirs, so the registers they took are
+still marked. `$v0` and `$v1` are both blocked, the `8` takes `$a1`, and the `1`
+reuses `$a1` after the `8` dies.
+
+cse cannot produce this for you: it merges *equal* constants, and here the values
+differ. So when the only leftover is which register a constant sits in, check
+whether the two literals were really two literals in the original - one scratch
+variable written twice is the commoner shape, and `.lreg`'s
+`used N times across M insns` for that quantity reports the longer span and
+trips it. This is the mirror of "A named index temp can *win* the register
+allocation by shortening a live range".
+
+The router cannot see this shape for you either, and here it failed outright: a
+seed that still does `#include "m2c_macros.h"` gives `permute.sh` (run by
+`tools/vacuum_permute.py` as its setup step) a preprocessing error, because that
+script's include set is `-Iinclude -Iinclude/psyq -I build` with no
+`-I tools/m2c`, which only `build.sh` carries. The router reports it as
+`search finished without a discovery`, which on the console is indistinguishable
+from a search that ran - check `PERMUTER.json`'s per-candidate `status`. Port the
+seed onto real struct access before asking for a search.
+
+Inputs: `base_1.c` SHA256
+`46535fd2411225686b14155652d5779ffcbe7e4ff72b3cf9dcbcad83c65e8bee` (100.000%),
+m2c-shaped `base.c` SHA256
+`75ca5d4905febc470bd39a8f479310a763a1c03045ab7b19748fa2722bec9264` (98.800%
+`regs=6`); target SHA256
+`821920d491fb026d7cc97ee137795df868bfa09baca7979950cddc3801510890`; two builds,
+no pins, no search performed. Scratch `nonmatchings/Actor04400_Fn06EEC-vacuum`.
+
+## Diff a same-TU sibling's `.s` directly; the file's own "Same body as …" notes do not mark every twin (Actor04400_Fn048A0, 2026-09-16)
+
+`Actor04400_Fn048A0` turned out to be **byte-identical to `Actor04400_Fn05260`,
+in the same unit** (`src/actors/lib/actor_104400_text_tail.c`). Stripping the
+`/* offset vram word */` and label lines from the two
+`asm/USA/actors/*/lib/actor_104400_text_tail/` files leaves an empty diff, so
+the already-matched sibling's C body retyped with the name changed scored
+100.000% with every penalty zero on the first build - one m2c-shaped baseline
+(68.097%, `branch=1 regs=21 reorder=3 insert=13 delete=17`), one ported body,
+done.
+
+Nothing in the tree pointed at that pair. `actor_104400_text_tail.c` annotates
+several of its bodies with a "Same body as `X`" doc comment, and neither
+`Fn048A0` nor `Fn05260` carried one naming the other, so the annotation is a
+partial index rather than a reliable one. `overlay_dup_index.py find
+Actor04400_Fn048A0` also printed only the body itself. What surfaced it was the
+cheap tell from the [Read `find`'s two counts together] entry above:
+
+```
+Actor04400_Fn048A0  (103 instructions, USA/actors/lib)
+  same body: 1 copies   identical bytes: 6
+```
+
+Six, against a one-entry list. Hashing the instruction words out of every
+`asm/USA/**/*.s` body gives the cluster exactly - all 103 words, no label style
+involved:
+
+| carrier | overlay | state |
+|---|---|---|
+| `Actor04400_Fn048A0` | actor_104400 | just matched |
+| `Actor04400_Fn05260` | actor_104400 | matched, same unit |
+| `func_actor_341700_801666F0` | actor_341700 | `INCLUDE_ASM` |
+| `func_actor_341700_801670B0` | actor_341700 | `INCLUDE_ASM` |
+| `func_actor_342400_801679D4` | actor_342400 | matched |
+| `func_actor_342400_80168394` | actor_342400 | matched |
+
+So the rule to carry forward: when `identical bytes:` exceeds the printed copy
+count, the brief's "Similar matched bodies" list at shape 1.00 is worth a
+**direct `.s` diff against the target** even when the sibling is in the same
+unit. A same-unit twin is the cheapest match available - no promotion, no
+manifest change, no re-split - and the notes in the host file are not what finds
+it.
+
+### The body is unpromotable because every carrier holds it twice
+
+The clustering gap is not what stops the promotion here. `promote
+Actor04400_Fn048A0` answers
+
+```
+Actor04400_Fn048A0: every copy is already served by the shared body
+```
+
+and exits 1, which reads as "already handled" and is not what is going on.
+Two causes, in the order the function tests them.
+
+The message itself comes first and is a misreading of the `lib` suffix.
+`promote` takes any copy under `src/<family>/lib/` to be the already-promoted
+shared body (`promoted`), leaving `copies` empty and hitting its `if not copies`
+branch. That is true at *span* granularity and false at *body* granularity:
+`actor_104400_text_tail` is a shared span (0x3538-0x8E14, carrying both
+actor_104400 and actor_342200), and `Fn048A0` is one body inside it, not the
+cluster's shared definition. With the grouping corrected the refusal would be
+the honest one.
+
+That honest refusal is structural, and no tooling fix reaches it: the body's
+own carriers are actor_104400, actor_341700 and actor_342400, and **each of the
+three holds it twice** (see the table). `promote` drops any overlay that
+contains the body more than once - `ld` includes an input object once, so the
+second slot would go unfilled - which leaves `keep` empty and prints "every
+overlay carrying it contains it twice; cannot share". This is the second of the
+two refusal classes the function's docstring counts; the first (an overlay-local
+data reference) does not apply, because this body reads no data at all - its
+only literal is the constant `0x402C0009` and its five callees are all
+main-executable.
+
+The duplicate-pair shape inside one overlay is the normal reading for this
+family rather than a surprise: actor_104400's own pair is the forward-push
+handler (`+0x14`, lands on state 5) reached from two states, the backward one
+(`Fn04D44`, `-0x14`, state 3) being its own separate body.
+
+Inputs: `base.c` SHA256
+`c6d82055026241ec…` (68.097%), `base_1.c` SHA256
+`de3f7490ec88eddf45f9a897f161432bae3f0d9b61cb3996983246f0272377e4` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`9531fcca0903f586b49769760354d9bc4b52f671b1ea27d0ff394d35d8738849`; target
+SHA256 `41fb3e787cf79087b2e50d6f6e0e9969eae3d1015532207a16a6df3b4411b736`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn048A0-vacuum`.
+
+## When `identical bytes:` counts one more than the copies listed, check `src/<family>/lib/` before any same-unit twin (Actor04400_Fn04718, 2026-09-16)
+
+`Actor04400_Fn04718` is the vertical-oscillation twin of `ActorsShared8016784c`,
+the actors family's already-promoted shared body in
+`src/actors/lib/actors_shared_8016784c.c`. Copying that body and retyping only
+its work block (`ActorsShared80168d3cWork*` -> `Actor104400Work*`) scored
+100.000% with every penalty zero on the first build, against a 75.500% m2c
+baseline (`branch=1 regs=16 reorder=2 insert=10 delete=12`) - two builds, no
+search. The pointer was the brief's "Similar matched bodies" list, which stars
+a candidate appearing in more than one similarity class: `ActorsShared8016784c`
+was 1.00 in shape, fields, calls *and* cflow, the strongest signal the list can
+carry.
+
+The hidden-carrier tell is the one the [Read `find`'s two counts together] and
+[Actor04400_Fn048A0] entries describe, but this instance resolves differently:
+
+```
+Actor04400_Fn04718  (98 instructions, USA/actors/lib)
+  same body: 1 copies   identical bytes: 2
+```
+
+Two byte-identical carriers, one listed. The second is not a same-unit twin and
+not a third overlay: it is the shared body itself, which `overlay_dup_index.py`
+excludes from carriers by design (a copy under `<family>/lib` is what the other
+overlays link, not a carrier - see `cmd_promote`'s comment on the `lib` suffix).
+That is why `siblings Actor04400_Fn04718` prints nothing here and promotion is a
+no-op: the two addresses are wanted in the same package, so there is nothing to
+merge. `siblings`, not `find`, is the command that decides promotion; an empty
+answer is the common case and not an error.
+
+So when `identical bytes:` exceeds the printed count, resolve the extra carrier
+before assuming a same-unit twin: look in `src/<family>/lib/` first. If it is
+there, the cheapest match is to retype the shared body's work struct and stop -
+no manifest change, no re-split, no promotion.
+
+Inputs: `base.c` SHA256 `f03098f3752ea293…` (75.500%), `base_1.c` SHA256
+`45bdf9783a7b03abcc9e82314f8dd533a08c1752b9f1f37e13069e6f7d0e5834` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`65c44c22a91cd37155ac23ca58d626a229c1fe4dd515b512566b1040f116a84d`; target
+SHA256 `96e6344f15bbf0a0fdd1fd0c766d74a97227a701f2f66325ac96a58ffcf93136`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn04718-vacuum`.
+
+## The positive tell for a named `&local`: a stack struct's fields addressed off one saved register (Actor04400_Fn08C64, 2026-09-16)
+
+Another twin of the promoted shared body `ActorsShared8016bd98`
+(`src/actors/lib/actors_shared_8016bd98.c`), the third in this family after
+`Actor04400_Fn04718` and `Actor04400_Fn048A0`. Retyping that body onto
+`Actor104400Work` scored 100.000% on the second build, so the match itself
+teaches nothing new - what is worth keeping is the 99.000% baseline, because it
+isolates the one source fact that separated the two.
+
+The baseline was the m2c seed with real struct types and nothing else changed
+(same statements, same order): 99.000%, `stack=0 branch=0 regs=4 reorder=1
+insert=0 delete=0`, structure already `blocks=5/5 instructions=80/80
+predicates_match=True`, and exactly two hunks of difference. Both are the same
+fact:
+
+```
+target:   addiu s1,sp,0x20 / addu a0,s1,zero      (early, before the stores)
+          sw v0,8(s1)                             (m.ident.m11_m12)
+          sh v0,0x10(s1)                          (ident->m22)
+seed:     sw v0,0x28(sp) / sh v0,0x30(sp)         (same two stores, folded)
+          and sw v0,0x18(sp) emitted before lh v1,0x430(s2)
+```
+
+The fix was to declare and initialise a named pointer exactly as the sibling
+does, `ident = &m.ident;`, and write two of the five splat stores through it
+(`ident->m11_m12`, `ident->m22`). Nothing else changed.
+
+This is the positive form of the rule the "`&local` passed to two back-to-back
+calls" entries state in the negative. There, an `&local` that CSEs across a call
+owes the allocator a callee-saved register and the fix was to remove the live
+value; here the named pointer *is* what the target has, and it makes GCC
+materialise the frame address once into `$s1`, address the struct's fields off
+it (`8(s1)`, `0x10(s1)`) and pass `a0 = $s1` to the first call. So read the
+addressing form as the tell in both directions: `0x28(sp)`-style accesses mean
+the source had no pointer variable, `8(s1)`-style accesses mean it did. The
+second half of the same hunk is an ordering tell, not a register one: the
+sibling writes the scale vector `vx`, `vy`, `vz`, and sched1 then sinks
+`sw v0,0x18(sp)` below the `lh` that feeds `vy`. Writing it `vx`, `vz`, `vy`
+(the way the target's *store* order reads) keeps the three stores together and
+costs the match.
+
+Inputs (source sha256): `base.c`
+`671d4d995e2234619a067adfae4b25a00680477fffbd9945059abb63f570ab05` (99.000%),
+`base_1.c` `eab6d29fd058b8d12bea3f2ce8d088d0aad84e00e17bdb375c7aa77cb4e04867`
+(100.000%, all penalties zero); preprocessed `base_1.i`
+`7cdecdc8b7a6e3f0e59321421faf1b09e6e030c3ead874cea0525c2681cdc638`; target
+`target.s` `9581089644f14ce4a74fcb97edd93f18009b4c1329557ef16c954ffad0ed4427`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn08C64-vacuum`.
+
+## The named-`&local` tell can present as `insert`/`delete` and a short frame (Actor04400_Fn07404, 2026-09-16)
+
+`Actor04400_Fn07404` is `ActorsShared8016a538` retyped onto `Actor104400Work`:
+the same 75-instruction body (identity splat, `RotMatrixX` + `func_8004BFF8`,
+copy the 3x3, the `field_41E` latch). Porting that body verbatim matched on the
+second build, and the failed first build is the useful part - the m2c seed's
+statements were already right, so the whole difference was whether `&rot` was
+named:
+
+```c
+    Actor104400Mat   rot;
+    Actor104400Mat*  src;
+    src                = &rot;
+    src->ident.m00_m01 = 0x1000;
+```
+
+The named pointer keeps the frame address live across both calls, so the target
+carries four callee-saved registers (`$s0 = sp + 0x10`, `$s1` coord, `$s2`
+work, `$s3` pitch) and its frame is `0x48`. The seed reached the same
+statements with three, re-materialised `li v0,0x1000` instead of reusing the
+register already holding it, and passed `addiu a1,sp,0x10` where the target
+passes `move a1,s0`.
+
+The same tell that reads as `regs` in the `Actor04400_Fn08C64` entry above
+reads here as `Penalties: stack=0 branch=1 regs=67 reorder=0 insert=2 delete=5`
+at 86.187% with `instructions=75/72`. A *short* instruction count with non-zero
+`insert`/`delete` is the signature, because the missing live value shrinks the
+prologue and epilogue - so read those two against the count before suspecting a
+real structural difference. Here `blocks=3/3 predicates_match=True` was already
+correct, and no pin or search was needed.
+
+One field needed a cast: `field_442` is a `u16` (three other matched functions
+in this unit load it with `lhu`), but this function's sway phase is signed, so
+the source reads `(s16)work->field_442 << 6` to get the `lh`.
+
+Inputs (source sha256): `base.c`
+`5f97a6a16d8c19a6abd7aa7b5e973587ddce43b3a939d1013aa09b7846ef00be` (86.187%),
+`base_1.c` `5d2e39bb95d6fd46c199602b310776db83d4c8582851eab515e69bd1e499ffc0`
+(100.000%, all penalties zero); preprocessed `base_1.i`
+`39249dee6074267a92b50d336ba5b3ea363c21ac6eeef17dfade31618889d8f0`; target
+`target.s` `016397860a40da24b18d26a772e2f513925bbfbef547a3ff335287ba2940559d`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn07404-vacuum`.
+
+## Landing a `gte_*`-using body into a host TU needs `#include "psyq/inline_c.h"` in that TU (Actor04400_Fn053FC, 2026-09-16)
+**Symptom.** The scratch build of the adapted body is 100%, but the unscoped
+build after replacing `INCLUDE_ASM` in the host `.c` fails at the **link**:
+
+```
+build/USA/src/actors/lib/actor_104400_text_tail.i:(.text+0x1cd8): undefined
+reference to `gte_ldlvl'
+undefined reference to `gte_stlvnl'
+```
+
+**Cause.** Without `<psyq/inline_c.h>` each `gte_*` macro is an implicitly
+declared function, so it survives compilation and dies in the linker. `cc1` runs
+with `-w`, so nothing warns. This is the same missing header the corpus already
+records for a *scratch* source (where it shows up as `jal gte_*` in the diff and
+a ~91% score) — in a host TU it is a link error instead of a score drop, because
+the host file's own include chain does not reach `inline_c.h` even when the
+scratch prelude does.
+
+**Fix.** Add `#include "psyq/inline_c.h"` to the host file. Scratch
+`nonmatchings/Actor04400_Fn053FC-vacuum`.
+
+## A body that mirrors another overlay's matched function has to copy its *helper decomposition*, not just its statements (Actor04400_Fn03F8C, 2026-09-16)
+**Symptom.** Two sources for the same function, semantically identical:
+m2c's flat temporary soup (`temp_s0`, `temp_s1`, `temp_s2_2`, `temp_a1_2`, a
+separate local per use) scores 81.6% — `regs=87 branch=7 insert=14 delete=17` —
+while the spelling that states the three inlined helpers as `static __inline__`
+functions the way the already-matched sibling does scores **100%** with all
+penalties zero.
+
+| source (sha256) | score |
+|---|---|
+| `base.c` `83abf535…` m2c translation, real types and field names | 81.641% |
+| `base_1.c` `f339c451…` sibling `func_actor_342400_801670C0`'s shape | 100.000% |
+
+**Cause.** The gap is not the logic, it is which pseudo covers which range. A
+helper body written as `static __inline__ void f(Task*)` gives the inline its own
+`work` / `m` / `dst` locals and its own reload of `arg0->idMap` inside the hit
+test, so 2.8.1's local-alloc sees the same quantity membership the original
+compile did. Flattening the same statements into the caller's temporaries merges
+and lengthens those live ranges, and every later pass inherits the difference.
+
+**Fix.** When BRIEF lists a matched body with a high `shape` / `fields` /
+`cflow` score, port its *decomposition*: same helper boundaries, same helper
+parameter widths, same "reload the work block through a second local" habits.
+Then adapt the names, addresses and callees. Scratch
+`nonmatchings/Actor04400_Fn03F8C-vacuum`, two builds, no pins, no search.
+
+## A `static __inline__` helper used by a landed body must be *defined* above its call site (Actor04400_Fn03F8C, 2026-09-16)
+**Symptom.** Integrating into the host `.c` a landed function that calls an
+existing file-scope `static __inline__` helper defined ~500 lines further down
+(e.g. `Actor04400_UpdateColor`, which the tail unit's other bodies define below
+this function's INCLUDE_ASM site).
+
+**Cause.** A forward declaration does not let the 2.8.1 inliner see a body it has
+not read yet, so the call would be out-of-line (and C89 rejects a later `static`
+definition after an implicit non-static declaration). Inlining needs the
+definition in hand at the call site.
+
+**Fix.** Move the helper's definition (with its doc comment) above the function
+that uses it. Moving a `static __inline__` emits no code, so the unit's `.text`
+order — and the overlay checksum — is unaffected; only the order of the
+non-inline function definitions is load-bearing, which is why the matched body
+stays at its INCLUDE_ASM site.
+
+## m2c's inverted nested guard is a different block graph from the target's `li v0,1` / `move v0,zero` merge (Actor04400_Fn08160, 2026-09-16)
+**Symptom.** A two-bit status test whose result feeds exactly one `if`:
+
+```
+lhu   v0,0xec(a3)
+andi  v0,v0,0x1
+bnez  v0,L08194
+ li   v0,1
+lw    v0,0xec(a3)
+andi  v0,v0,0x102
+bnez  v0,L08194
+ li   v0,1
+move  v0,zero
+L08194:
+beqz  v0,L08200
+```
+
+m2c writes it as a negated, nested guard (`v = 1; if (!(x & 1)) { v = 1; if
+(!(x & 0x102)) v = 0; }`) because the flag is already boolean there. That scores
+**64.049%** (`stack=3 branch=1 regs=22 reorder=1 insert=5 delete=8`) and its
+block graph is not the target's: the mask comes out `li v1,1` / `and v0,v0,v1`
+rather than `andi`, and the merge is `sltu v1,zero,v0` / `beqz v1` rather than
+the `move v0,zero`.
+
+**Fix.** Spell the flag the way the sibling bodies in the same file do, with an
+explicit 1/0 assignment:
+
+```c
+    s32 cond;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) { ... }
+```
+
+100.000%, 42 instructions, all-zero penalties, no pins. The `||` gives the two
+`bnez` arms with `li v0,1` in each delay slot, and the `else` arm is the `move
+v0,zero` the merge block reads.
+
+The tell is the shape, not the percentage: `move v0,zero` feeding a `beqz` means
+the source had a real 1/0 assignment on both arms, not a negated guard. When the
+file already holds a matched sibling with the same guard — `Actor04400_Fn080E8`,
+`Fn0823C`, `Fn082E0` here all share it — copy its spelling before trying
+anything else.
+
+Inputs: `base.i` (m2c inverted form, 64.05%)
+`31030b4a04a1cee6acfefaabe80efdc5d77e5453a61d9db5baec335c89c64ff8`,
+`base_1.i` (`if (a || b) cond = 1; else cond = 0;`, 100.000%)
+`d1c78279de10ddb062f4cd493def62166e23e9b01beed3af61a3c2770248d581`.
+
+## `find`'s `same body` misses a byte-identical twin whose labels are not `.L`-named (Actor04400_Fn03B34, 2026-09-16)
+
+`Actor04400_Fn03B34` is byte-for-byte the promoted shared body
+`ActorsShared80166c68` (`src/actors/lib/actors_shared_80166c68.c`, the
+`actor_341700` / `actor_342400` pair). Copying that source and retyping its work
+block (`ActorsShared80168d3cWork*` -> `Actor104400Work*`) scored 100.000% on the
+first build with every penalty zero, against a 33% m2c baseline - two builds,
+no search. Its own TU held the closer pointer: the matched sibling
+`Actor04400_Fn03E20` is the same body with the `Actor04400_Fn06328` guard, the
+frame window 0x17, and scale -0x1E, so the brief's `1.00 shape / 1.00 fields /
+1.00 calls / 1.00 cflow` star was real.
+
+The `find` output was the ambiguous one the two entries above also describe:
+
+```
+Actor04400_Fn03B34  (91 instructions, USA/actors/lib)
+  same body: 1 copies   identical bytes: 2
+```
+
+Those entries resolve an excess `identical bytes:` as the shared body itself,
+which `overlay_dup_index.py` excludes from the carrier class by design. **That is
+not what happened here.** The extra carrier was missed by *hashing*, not by
+classification, and the reason is the label naming:
+
+| | branch label |
+|---|---|
+| `actor_104400_text_tail` | `Actor04400_L03C24` |
+| `actors_shared_80166c68` | `.Lactor_342400_80166D58` |
+
+`LABELDEF` and `BRANCH` both require a leading `.L`, so in the first copy neither
+regex matches: the label definition keeps the unit's own name in the canonical
+text and every branch keeps spelling it out. In the second copy both match, so
+the definition normalises and the branches become `.L0` / `.L1` / `.L2`.
+Replaying the tool's own canonicalisation over the two `.s` files gives 94 lines
+each with **every instruction line identical**; the 7 differing lines are exactly
+the three label definitions and the four branches naming them. Two copies of one
+body, one text-class key between them.
+
+So `identical bytes:` exceeding the printed count does not by itself say *which*
+kind of hidden carrier is there. Read the two `.s` files' label lines: if one
+copy's labels lack the `.L` prefix, the twin is real and the body is worth
+copying, retyped. (`overlay_dup_index.py find`'s own footer does print the `raw`
+count it found the twin with - `identical bytes:` is `len(cl_raw[...])`, not a
+restatement of the printed list.)
+
+Promotion is still a no-op, for a third reason: `actor_104400`'s whole `.text` is
+already four shared spans, so `find` files this function under `USA/actors/lib`
+and `promote` takes its `promoted` branch - it prints `already shared as
+Actor04400_Fn03B34, but no file in src/actors/lib defines it` and aborts.
+`Actor04400_Fn03B34` sits at 0x3B34, 0x148 into `actor_104400_text_tail`
+(0x39EC..0x8E14), so carving it out for `actors_shared_80166c68` would split that
+unit in the middle and renumber the tail - for both of its carriers, since the
+span is shared. Landing it in the host unit, as here, leaves the family with two
+shared units carrying one body, which is the pre-existing state and not
+something this match introduces.
+
+Inputs: `base.c` SHA256
+`c3d1eb19de90ba2fa7d2335d2d3a7ceebcf130109500ff65ac50f3dba453fb01` (m2c,
+33%), `base_1.c` SHA256
+`5637558bc601fca4179145da67be46f18987412594c7f24c4bdef9bc944619e6` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`ecc0948e8c0dfd1d8706306fb21ff8b6289b562170fb44f88d7d694f8ee161f1`;
+target SHA256 `8a54159a19269822a47a7e97727326d5139de6e971a48d90f00239f58ed40c04`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn03B34-vacuum`.

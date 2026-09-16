@@ -39,7 +39,7 @@ typedef struct Actor104400Work {
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
     /* 0x060 */ VECTOR    field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
-    /* 0x070 */ byte      pad_70[0x8];
+    /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by Actor04400_Fn05B08
     /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX
     /* 0x07A */ s16       field_7A; // heading
     /* 0x07C */ s16       field_7C; // roll, fed to RotMatrixZ
@@ -88,7 +88,8 @@ typedef struct Actor104400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ s16              field_428;
     /* 0x42A */ s16              field_42A;
-    /* 0x42C */ byte             pad_42C[0x4];
+    /* 0x42C */ s16              field_42C; // frames spent turning toward field_444; 16 enters state 3
+    /* 0x42E */ byte             pad_42E[0x2];
     /* 0x430 */ s16              field_430;
     /* 0x432 */ s16              field_432; // 1 runs Actor04400_Fn06520 on the spawn position
     /* 0x434 */ s16              field_434; // pitch, eased back to zero while falling
@@ -112,10 +113,54 @@ typedef struct Actor104400Work {
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
-extern u8         Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
-extern u8         D_801153F4;          // absolute; nonzero skips the controller's state handler
-extern GpPairSrcE Actor04400_D0D318;   // the main enemy's `GpEnemy::field_50` record
-extern u8         Actor04400_D10778[]; // animation bank handed to `func_800B3F84`
-extern u8         Actor04400_D107CC[]; // stored into `Task::field_24` by Actor04400_Fn00B24
+/// Payload the sender of message 0x2C00 passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor342400Msg` and `Actor335800Msg`. The
+/// overlay's 0x2C00 handler, `Actor04400_Fn0648C`, tests the id at 0x0 and
+/// stores the halfword at 0x2 in `Actor104400Work::field_44C`.
+typedef struct Actor104400Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor104400Msg;
+STATIC_ASSERT_SIZEOF(Actor104400Msg, 0x4);
+
+/// A `MATRIX`'s word-wise view, for the identity splat `Actor04400_Fn08C64`
+/// writes over the root coordinate before `ScaleMatrix` scales it: five aligned
+/// stores instead of nine halfword ones, each word holding two adjacent `m[][]`
+/// entries. The same idiom as `ActorsShared8016bd98Mat`, whose body this
+/// function repeats on the `Actor104400Work` layout.
+typedef struct Actor104400MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor104400MatWords;
+
+typedef union Actor104400Mat {
+    MATRIX              mat;
+    Actor104400MatWords ident;
+} Actor104400Mat;
+STATIC_ASSERT_SIZEOF(Actor104400Mat, 0x20);
+
+extern u8             Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
+extern u8             Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
+extern u8             D_801153F4;          // absolute; nonzero skips the controller's state handler
+extern GpPairSrcE     Actor04400_D0D318;   // the main enemy's `GpEnemy::field_50` record
+extern u8             Actor04400_D10778[]; // animation bank handed to `func_800B3F84`
+extern u8             Actor04400_D107CC[]; // stored into `Task::field_24` by Actor04400_Fn00B24
+extern TaskFuncTable3 Actor04400_D00070;   // dispatcher table Actor04400_Fn06ACC copies onto its stack
+extern TaskFuncTable3 Actor04400_D0007C;   // dispatcher table Actor04400_Fn06870 copies onto its stack
+extern TaskFuncTable5 Actor04400_D00088;   // dispatcher table Actor04400_Fn068F8 copies onto its stack
+extern TaskFuncTable5 Actor04400_D0009C;   // dispatcher table Actor04400_Fn06964 copies onto its stack
+extern TaskFuncTable3 Actor04400_D00150;   // dispatcher table Actor04400_Fn07CF0 copies onto its stack
+extern TaskFuncTable3 Actor04400_D0015C;   // dispatcher table Actor04400_Fn07D78 copies onto its stack
+extern TaskFuncTable4 Actor04400_D00174;   // dispatcher table Actor04400_Fn07F04 copies onto its stack
+extern TaskFuncTable6 Actor04400_D001AC;   // dispatcher table Actor04400_Fn06B50 copies onto its stack
+
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
+/// so a negated angle is passed without re-truncation to 16 bits. Same
+/// declaration as `ActorsShared8016a538`, whose body `Actor04400_Fn07404`
+/// repeats on this overlay's work block.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 #endif
