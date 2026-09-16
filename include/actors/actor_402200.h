@@ -64,6 +64,17 @@ typedef struct Actor402200Spot {
 } Actor402200Spot;
 STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 
+/// Word view of a `GsCOORDINATE2::coord` matrix, the shape
+/// `func_actor_402200_80134968` resets it to identity through: whole-word
+/// stores over `m[0][0]`..`m[2][1]` and a halfword for `m[2][2]`.
+typedef struct Actor402200MatrixWords {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s16 field_10;
+} Actor402200MatrixWords;
+
 /// Per-instance work block the overlay's setup `func_actor_402200_80137444`
 /// allocates with `Mem_Calloc(0x71C)` and parks in the 0x1C slot below (the
 /// task's `Task::idMap`, which is not a `TaskIdMap` here).
@@ -218,11 +229,19 @@ typedef struct Actor402200Work {
     /* 0x664 */ s32      field_664;
     /* 0x668 */ s32      field_668;
     /* 0x66C */ s32      field_66C;
-    /* 0x670 */ byte     pad_670[0x34];
-    /* 0x6A4 */ s32      field_6A4;
-    /* 0x6A8 */ s32      field_6A8;
-    /* 0x6AC */ s32      field_6AC;
-    /* 0x6B0 */ byte     pad_6B0[4];
+    /* 0x670 */ byte     pad_670[4];
+    /// Copy of the root coordinate's matrix `func_actor_402200_80134968`
+    /// takes when its fade-out finishes, with the scale `field_694`..
+    /// `field_69C` reset to 0x1000 beside it.
+    /* 0x674 */ MATRIX field_674;
+    /* 0x694 */ s32    field_694;
+    /* 0x698 */ s32    field_698;
+    /* 0x69C */ s32    field_69C;
+    /* 0x6A0 */ byte   pad_6A0[4];
+    /* 0x6A4 */ s32    field_6A4;
+    /* 0x6A8 */ s32    field_6A8;
+    /* 0x6AC */ s32    field_6AC;
+    /* 0x6B0 */ byte   pad_6B0[4];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
@@ -264,8 +283,8 @@ typedef struct Actor402200Work {
     /// `field_6D2` and parks the state on the matching one, and states 1 / 2
     /// each wait out their own `field_6C4` threshold (0x50 and 0x3B) before
     /// dropping back to 0.
-    /* 0x6CE */ s16  field_6CE;
-    /* 0x6D0 */ byte pad_6D0[2];
+    /* 0x6CE */ s16 field_6CE;
+    /* 0x6D0 */ s16 field_6D0;
     /// Which-side flag the target body `func_actor_402200_80131F54` raises from
     /// a dot product of the offset to the actor it is tracking: 1 when the
     /// product comes out zero, 0 otherwise. The sequence bodies branch on it -
