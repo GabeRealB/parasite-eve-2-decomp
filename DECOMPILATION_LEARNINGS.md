@@ -94838,3 +94838,42 @@ statement order at all.
 
 Inputs: `base.i` (m2c seed, 98.000%, `b2fc9e83…` -> `70c2399e…` after the
 prototype fix), `base_1.i` (100.000%, `8d18817b…`).
+
+## A body that reads its carrier's published work global is still promotable
+
+`overlay_dup_index.py promote`'s docstring reports that 39 of the 42 clusters it
+measured were refused "because the body references its own overlay's data", and
+that not one was promotable - which reads as "any overlay-local reference kills a
+promotion". It does not. `func_actor_110300_80132180` reads
+`ActorsShared80131f9cWork`, a genuinely overlay-local pointer global that
+resolves to `0x8013A0A0` in `actor_110300` and `0x80139F10` in `actor_110800`,
+and it promoted cleanly: both carriers checksum with the one shared object.
+
+The guard that implements the refusal (`localref`) only tests whether a
+referenced name starts with `func_<unit>_`, `D_<unit>_` or `jtbl_<unit>_` - a
+bare overlay-local symbol. A global the *family already declares per carrier* in
+`configs/USA/sym/<family>/<ov>.txt` (the `ActorsShared80131f9cWork = …; // shared
+body data` line every actor carrier writes) leaves the shared object with an
+undefined reference that each link resolves to its own address, which is the
+mechanism the existing `src/actors/lib/` bodies already rely on.
+
+So the question for a candidate is not "does it read its overlay's data" but
+**"is that symbol defined in every carrier's symbol map"**. Two more conditions
+come with it, both met by construction here:
+
+- The copies must touch the same offsets, since one object serves all carriers;
+  the shared unit declares its own view of the block (`ActorsShared80132180Work`
+  names the 0x14 slots, 0x476 and 0x478 fields the body uses), exactly as
+  `ActorsShared80132208Work` does for the sibling body.
+- The reference must be the *same* symbol in each carrier, not just the same
+  offset - a `D_<room>_8017D620` style name exists in one overlay only.
+
+That makes the actors family's 384 `solved` bodies (`overlay_dup_index.py solved
+--family actors`) worth triaging by symbol rather than dismissing in bulk: the
+ones whose only overlay-local reference is the published work global promote the
+way this one did. Position still decides the file work - this body occupied its
+whole unit in *both* carriers, so each overlay's `_4.c` became `_3.c` and the
+`INCLUDE_ASM` paths inside moved with it (mechanics in the renumbering entries
+above).
+
+Inputs: `base.i` (m2c seed, 85.111%), `base_1.i` (100.000%).
