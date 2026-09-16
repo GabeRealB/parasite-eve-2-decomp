@@ -111479,3 +111479,34 @@ Same rule as the `$t2`/`$v1` phi entries above: a named temp that survives a joi
 allocation decision, and writing the destination field in both arms is what removes it. The
 difference here is that the join is a *store* rather than a call argument, and the cost of the temp
 shows up as frame size, not as a wrong callee register.
+
+## The same two-arm store temp can also cost the comparison's register instead of the frame (func_actor_107000_80136C80, 2026-09-16)
+
+**Symptom:** 99.885% with `regs=3` and every other penalty 0 - the only difference is `li v1,2` /
+`li v1,3` where the target has `li v0,2` / `li v0,3`, with `lh v0,...` / `slti v0,v0,-0xc00` /
+`bnez v0` immediately in front of it.
+
+**Cause:** the same `s32 v; v = 2; if (cond) v = 3; store v;` temp as the entry above, but here the
+cost is a register conflict rather than a frame slot. The temp's live range starts *before* the
+comparison, so it is live across the `slti` whose result `local-alloc` homes in `$v0`; `global-alloc`
+records a hard-register conflict with `$v0` (the tell is in `.greg` - `85 conflicts: 80 85 88 89 2
+29`, where `2` is `$v0`) and homes the temp in `$v1` instead. No source rewrite of the variable keeps
+the target's code: `if/else`, the ternary and the assign-then-overwrite forms all canonicalise to the
+same RTL, and `sched` re-orders the assignment back in front of the `slti` in every one of them
+(both are ready together and the `slti`, being on the critical path to the branch, always wins the
+later slot).
+
+**Fix:** drop the temp and store in each arm, exactly as in the entry above - the value is then born
+in its own arm block, after the comparison, so it shares `$v0` with the `slti` result and `dbr` puts
+it in the branch's delay slot:
+
+```c
+if (hit->field_12 >= -0xC00) {
+    child->spawnArg1 = 3;
+} else {
+    child->spawnArg1 = 2;
+}
+```
+
+Note the shared store block that makes m2c see a variable at all: it is `jump.c`'s cross-jump
+merging the two arms' identical `sw`, not one store the source wrote.

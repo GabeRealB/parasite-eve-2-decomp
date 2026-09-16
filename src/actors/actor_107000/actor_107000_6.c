@@ -70,15 +70,3 @@ void func_actor_107000_801367E0(Task* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_80136938);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_80136C80);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_80136E88);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_80137220);
-
-// func_actor_107000_8013777C is shared with actor_207000; see
-// src/actors/lib/actors_shared_8013777c.c.
-
-// func_actor_107000_80137CF4 is shared with actor_207000; see
-// src/actors/lib/actors_shared_80137cf4.c.
