@@ -45,7 +45,11 @@ typedef struct Actor107600Work {
     /* 0x050 */ u16     field_50;  // fed to Gfx_RotMatrixX
     /* 0x052 */ u16     field_52;  // fed to Gfx_RotMatrixY
     /* 0x054 */ u16     field_54;  // fed to Gfx_RotMatrixZ
-    /* 0x056 */ byte    pad_56[0xA];
+    /* 0x056 */ byte    pad_56[0x2];
+    /* 0x058 */ s16     field_58;  // spin velocity added to field_50 while tumbling
+    /* 0x05A */ s16     field_5A;  // spin velocity added to field_52
+    /* 0x05C */ s16     field_5C;  // spin velocity added to field_54
+    /* 0x05E */ byte    pad_5E[0x2];
     /* 0x060 */ GpObj   obj;
     /* 0x080 */ GpRec18 rec18[1]; // collision table; count 8 passed to Gp_InitRec18Table
     /* 0x098 */ byte    pad_98[0xA6];

@@ -688,7 +688,126 @@ void func_actor_107600_801337FC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801339A4);
+/// Kill sequence sub-state machine in `field_15A`: bumps the gallery's kill
+/// count for the spawn slot, plays the kill cue, rolls random spins into
+/// `field_58/5A/5C`, detaches the model to world space with the hit direction
+/// as a knock-back velocity, then tumbles and shrinks it for 16 frames before
+/// advancing `Task::state` and raising bit 0x80 of `Task::spawnArg1`.
+void func_actor_107600_801339A4(Task* arg0)
+{
+    Actor107600Work*         work  = (Actor107600Work*)arg0->idMap;
+    GpEnemy*                 enemy = arg0->spawnArg2;
+    TmdObject*               tmd   = arg0->extra;
+    GsCOORDINATE2*           obj   = tmd->field_8;
+    MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_8018E0C4->idMap;
+    Actor107600HitPos*       pos;
+    s32                      id;
+    s32                      pan;
+    s16                      x;
+    s16                      y;
+    s16                      z;
+    s32                      v;
+
+    switch (work->field_15A) {
+        case 0:
+            work->field_15A++;
+            tmd->field_C    |= 2;
+            arg0->spawnArg1 |= 0x40;
+            work->field_16B  = 0;
+            work->field_15C  = 0;
+            Gp_SetLightMode((GpObj4C*)enemy, 2);
+            work->field_154 = 0;
+            id              = arg0->spawnArg1 & 0xF;
+            gal->pad_0F[id]++;
+            if (id < 9) {
+                id = 0x51140011;
+            } else if (id == 9) {
+                id = 0x51140010;
+            } else {
+                id = 0x51140012;
+            }
+            pan = (s8)Gp_GetObjPan((GpObj38*)obj);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)obj));
+            work->field_52 = ((GpCoordExt*)obj->sub)->field_46;
+            work->field_54 = ((GpCoordExt*)obj->sub)->field_48;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            x              = (Gp_LcgState >> 16) & 0x7F;
+            work->field_58 = x;
+            if (!((Gp_LcgState >> 16) & 1)) {
+                x = -x;
+            }
+            work->field_58 = x;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            y              = (Gp_LcgState >> 16) & 0x7F;
+            work->field_5A = y;
+            if (!((Gp_LcgState >> 16) & 1)) {
+                y = -y;
+            }
+            work->field_5A = y;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            z              = (Gp_LcgState >> 16) & 0x7F;
+            work->field_5C = z;
+            if (!((Gp_LcgState >> 16) & 1)) {
+                z = -z;
+            }
+            work->field_5C = z;
+            func_actor_107600_80134B2C(&obj->sub->coord, &obj->coord);
+            obj->coord.t[0] += obj->sub->coord.t[0];
+            obj->coord.t[1] += obj->sub->coord.t[1];
+            obj->coord.t[2] += obj->sub->coord.t[2];
+            obj->sub         = &Gfx_ViewCoord;
+            pos              = (Actor107600HitPos*)&work->pitch;
+            VectorNormal((VECTOR*)pos, (VECTOR*)pos);
+            ApplyMatrixLV(&obj->coord, (VECTOR*)pos, (VECTOR*)pos);
+            ((Actor107600HitPos*)&work->pitch)->vx = 0;
+            if (obj->coord.t[1] < -2000) {
+                v = ((Actor107600HitPos*)&work->pitch)->vy >> 4;
+            } else {
+                v = ((Actor107600HitPos*)&work->pitch)->vy >> 2;
+            }
+            ((Actor107600HitPos*)&work->pitch)->vy = v = -v;
+            ((Actor107600HitPos*)&work->pitch)->vz     = 0;
+            if (v < -220) {
+                ((Actor107600HitPos*)&work->pitch)->vy = -220;
+            }
+            Gp_UnlinkNode(&enemy->node);
+            enemy->field_54  = 0;
+            work->obj.flags &= 0xBFFF;
+        case 1:
+            work->field_154++;
+            if ((s16)work->field_154 < 0x10) {
+                ((Actor107600HitPos*)&work->pitch)->vx -= ((Actor107600HitPos*)&work->pitch)->vx >> 4;
+                ((Actor107600HitPos*)&work->pitch)->vy -= ((Actor107600HitPos*)&work->pitch)->vy >> 4;
+                ((Actor107600HitPos*)&work->pitch)->vz -= ((Actor107600HitPos*)&work->pitch)->vz >> 4;
+                work->field_58                         -= work->field_58 >> 6;
+                work->field_50                         += work->field_58;
+                work->field_5A                         -= work->field_5A >> 6;
+                work->field_52                         += work->field_5A;
+                work->field_5C                         -= work->field_5C >> 6;
+                work->field_54                         += work->field_5C;
+                obj->coord.t[0]                        += ((Actor107600HitPos*)&work->pitch)->vx;
+                obj->coord.t[1]                        += ((Actor107600HitPos*)&work->pitch)->vy;
+                obj->coord.t[2]                        += ((Actor107600HitPos*)&work->pitch)->vz;
+                if (obj->coord.t[1] < -0x40) {
+                    obj->coord.t[1] += 0x40;
+                }
+                if (work->field_169 > 20) {
+                    work->field_169 -= 0x20;
+                    return;
+                }
+                if (work->field_168 > 20) {
+                    work->field_168 -= 0x20;
+                    return;
+                }
+            } else {
+                arg0->state++;
+                arg0->spawnArg1 |= 0x80;
+            }
+            break;
+        case 2:
+            break;
+    }
+}
 
 /// Hit handler: for each collision record tagged 0x2xxxx, stores the hit
 /// position, applies `Gp_ComputeDamage` to the enemy's HP, plays the hit sound
