@@ -325,7 +325,21 @@ void Actor04400_Fn0685C(Task* arg0)
     work->field_422 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06870);
+/// Copies this overlay's `Actor04400_D0007C` dispatcher table onto the stack and
+/// lets the pending-request handler `Actor04400_Fn063E4` consume the request
+/// first: the table entry `field_422` selects runs only when nothing was
+/// consumed.
+void Actor04400_Fn06870(Task* arg0)
+{
+    Actor104400Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor104400Work*)arg0->idMap;
+    sp   = Actor04400_D0007C;
+    if ((s16)Actor04400_Fn063E4(arg0) == 0) {
+        sp.funcs[(s16)work->field_422](arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn068F8);
 
