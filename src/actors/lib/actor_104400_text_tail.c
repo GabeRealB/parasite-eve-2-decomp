@@ -2,6 +2,8 @@
 #include "actors/actor_104400.h"
 #include "actors/actors_shared_801639a8.h"
 #include "actors/actors_shared_8016945c.h"
+#include "actors/actors_shared_801692e8.h"
+#include "main/fs.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -148,7 +150,52 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05DE0
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05FC8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn061B4);
+/// Same body as `ActorsShared801692e8`. This overlay's whole `.text` is already
+/// one shared span, so it cannot join that unit.
+///
+/// Queues CD command 0x21 once, guarded by `D_80115415`: the first parameter
+/// block selects 2 or 3 when session `field_7` is 4, `field_6` is 0x27 or 0x28
+/// and `field_9` is 1 or 2 respectively, and 1 otherwise.
+void Actor04400_Fn061B4(void)
+{
+    u8 param1[8];
+    u8 param2[8];
+
+    if (D_80115415 == 0) {
+        /* Each branch makes its own call; jump2's cross-jumping merges the
+         * identical tails after sched2, which is why the argument setup is
+         * duplicated per branch in the target. */
+        if (Game_Session->field_7 == 4 && (u32)(Game_Session->field_6 - 0x27) < 2 && Game_Session->field_9 == 1) {
+            param1[2] = 0xA;
+            param1[0] = 2;
+            param1[3] = 0;
+            param2[0] = 0x2C;
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+        } else if (Game_Session->field_7 == 4 && (u32)(Game_Session->field_6 - 0x27) < 2 && Game_Session->field_9 == 2) {
+            param1[2] = 0xA;
+            param1[0] = 3;
+            param1[3] = 0;
+            param2[0] = 0x2C;
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+        } else {
+            param1[2] = 0xA;
+            param1[0] = 1;
+            param1[3] = 0;
+            param2[0] = 0x2C;
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+        }
+        D_80115415 = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn062D4);
 
