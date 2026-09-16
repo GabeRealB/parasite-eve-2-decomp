@@ -9,7 +9,13 @@
 /// map, which keeps the raw address.
 extern s32 D_mine_tunnel_8017E024;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_tunnel/mine_tunnel", func_mine_tunnel_8017D630);
+s32 func_mine_tunnel_8017D630(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 2) {
+        Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 3 : 2);
+    }
+    return 0;
+}
 
 s32 func_mine_tunnel_8017D670(s32 arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
