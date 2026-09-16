@@ -99339,3 +99339,16 @@ scc result goes through a QImode lowpart), reproducing the separate temp, the
 values are 0..5. Same function: `v = &D[idx]` put the result in the table's
 register (`addu v0,v1,v0`); a separate `table = D; v = &table[idx];` let `v` tie
 to the shifted index instead (`addu v0,v0,v1`).
+
+**A `rodata_head` past a jump table has to come back when that table's function is matched.**
+`actor_403000` got `rodata_head = "0x84"` so `func_actor_403000_80133FC0`'s
+rodata would start the unit, which parked the two jump tables at `0x4`/`0x3C`
+in `actor_403000_hdr` as assembly. Matching `func_actor_403000_801324EC` (the
+`0x4` table) then fails at link with `undefined reference to .Lactor_403000_…`
+from `actor_403000_hdr.rodata.s`. The fix is `rodata_head = "0x4"` alone: the
+unit owns `0x4..` again, the compiled table starts its `.rodata`, splat keeps
+the still-asm table at `0x3C` in the unit's `.rodata.s`, and the later rodata
+stays 8-aligned relative to the new base. No `.c` needed re-splitting.
+Codegen note from the same function: `enemy->field_40 = D.field_4;
+enemy->field_50 = &D;` (read before storing the pointer) put the address in
+`$v1` and the value in `$a0`; the reverse order kept both in `$v0`.
