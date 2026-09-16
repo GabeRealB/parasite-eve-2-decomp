@@ -101235,3 +101235,42 @@ constant into the switch value. Gotos into a nested block are legal C and alread
 (`src/actors/actor_105100/actor_105100.c`), so a `goto` here is the shape the target wanted. The two
 rules combine: the *position* of the join point decides the layout, and the *cse EBB* it starts decides
 whether its constants stay its own.
+
+## Under `rodata_head` a data run cannot be its own asm unit
+
+The `rodata_head` branch of `tools/gen_overlay_configs.py` emits `.rodata` -
+a C unit - for *every* cut, because from `head` on the block is paired with the
+unit name it shares with a `c` subsegment. A bare `rodata` cut naming an asm
+data unit (the `_header_tail` / `_header_extra` shape `actor_400100` uses) only
+exists in the whole-text-shared branch. So when a jump table sits in the middle
+of the leading rodata and the raw data after it must still be assembled, the
+data run has to join a *neighbouring C unit's* span rather than become a unit.
+
+`actor_800200` is the worked case: `jtbl_actor_800200_80161E44` at `0x24`, then
+four dispatch tables `[0x3C, 0xCC)`, then `jtbl_80161EEC` (unmatched) and the two
+tables of the already-matched `func_actor_800200_80165708` / `_80165D44`:
+
+```toml
+actor_800200 = { units = ["0x1224"],
+                 rodata = [{ start = "0x24", unit = "actor_800200_2" },
+                           { start = "0x3C", unit = "actor_800200_3" }],
+                 rodata_head = "0x24", ... }
+```
+
+Unit 2 owns `[0x930, 0x1224)` (three stubs plus the decompiled function) and its
+`.rodata` *starts* with the compiler-generated table; unit 3 owns everything
+after, so its span `[0x3C, 0x268)` covers the data, the unmatched table and the
+two matched ones, in increasing address order as the `.c` emits them.
+
+splat writes the `INCLUDE_RODATA` lines for that data into the unit's `.c` at
+the address-correct position - but **only when it creates the `.c`**. A unit
+`.c` left over from an earlier split keeps the old distribution and no
+`INCLUDE_RODATA` at all, and the data bytes then exist only in the unit's
+`asm/.../<unit>.rodata.s`, which is not in the linker script. Delete the unit
+`.c` files and re-split; do not hand-write the lines.
+
+After the split, confirm that every splat-written standalone `.s` under
+`asm/.../<overlay>/<unit>/` is named by exactly one `INCLUDE_RODATA` (the check
+the `mist_parking` entry prescribes) - the duplicate-include assembler error
+`symbol ... is already defined` is what a hand-written line on top of splat's
+looks like.
