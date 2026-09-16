@@ -36,7 +36,11 @@ typedef struct Actor401800Work {
     /* 0x89E */ s16  field_89E;
     /* 0x8A0 */ byte pad_8A0[2];
     /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ byte pad_8A4[0x14];
+    /* 0x8A4 */ s16  field_8A4;
+    /* 0x8A6 */ byte pad_8A6[8];
+    /* 0x8AE */ s16  field_8AE;
+    /* 0x8B0 */ s16  field_8B0;
+    /* 0x8B2 */ byte pad_8B2[6];
     /// `func_800FDB18` argument record: the coordinate handed to it plus the
     /// effect scale / count pair. Same slot `Actor01900Work.field_8B8` keeps.
     /* 0x8B8 */ GpEffArg field_8B8;
@@ -77,5 +81,6 @@ void func_actor_401800_8013E194(Actor401800* arg0);
 void func_actor_401800_8013E23C(Actor401800* arg0);
 void func_actor_401800_8013E2E8(Actor401800* arg0);
 void func_actor_401800_8013E394(Actor401800* arg0);
+void func_actor_401800_8013E44C(Actor401800* arg0);
 
 #endif // ACTOR_401800_H

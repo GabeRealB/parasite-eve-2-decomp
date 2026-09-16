@@ -91205,3 +91205,53 @@ something to read. Example: `func_actor_421600_8013E9D8`. Inputs: `base_2.i`
 `a5fac8bb0c991fc5d6b006606a115c03937d73dcabd15bc38780ccf248936585` (100.000%),
 `base.c` `8d046d78a99c4533238d9d50c1355bf918e0348adf343e92340ebf9e76c55ece`
 (99.717%, tried `if/else` with the test on the field: same 99.717%).
+## sched1 schedules one basic block at a time, so a load hoisted *across a branch* was hoisted in the source (func_actor_401800_8013E44C, 2026-09-16)
+
+`schedule_block` takes a single block: `head` and `tail` are
+`basic_block_head[b]` / `basic_block_end[b]`, and `schedule_insns` calls it once
+per basic block. There is no extended-basic-block region in this compiler, and
+`sched2` reuses the same loop, so **neither scheduling pass can move an
+instruction across a branch** in either direction. The only pass that moves
+anything across a branch boundary is `reorg`, and it moves an instruction into a
+*delay slot* -- not above a branch, and not out of a block.
+
+So when the target has an instruction on the far side of a branch from where m2c
+put it, the answer is in the C, not in the scheduler. `func_actor_401800_8013E44C`
+scored 90.53% (`regs=1`, `insert=3`) on one such line: the target loads the enemy
+pointer *unconditionally*, and m2c had the load at its use, inside the `if`.
+
+```
+target                              m2c body (90.53%)
+lh    v0,0x4(s0)                    lh    v0,0x4(s0)
+lw    a1,0x20(a0)   <- block 0      beqz  v0,.L
+beqz  v0,.L                         nop
+nop                                 ...
+...                                   lw    v0,0x20(a0)
+                                      nop
+                                      sb    zero,0x14(v0)
+```
+
+Reading the pointer before the `if` reproduces the target exactly -- 90.53% to
+100.00% in one build:
+
+```c
+work  = arg0->field_1C;
+enemy = arg0->field_20;      /* read unconditionally, so the load is in block 0 */
+if (work->field_4 != 0) {
+    ...
+    enemy->node.field_4 = 0; /* used here */
+}
+```
+
+Both observations follow from that one change, and both are worth checking
+separately: the load moves into the branch's block, *and* it now crosses a block
+boundary, so it is a global allocno and takes a caller-saved register (`$a1`)
+instead of the `$v0` local-alloc had picked for the block-local version. A load
+that is merely misallocated but still in the right block is a different
+problem -- that one really is allocation.
+
+Read the twin first when the brief lists one. `Actor01900_Fn0AA78` in
+`src/actors/lib/actor_101900_text_tail.c` is this body with different constants,
+and it has the shape above; its `.s` under
+`asm/USA/actors/matchings/lib/actor_101900_text_tail/` shows the hoisted
+`lw $a1,0x20($a0)` directly, in a body that is already verified.
