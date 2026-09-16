@@ -110127,3 +110127,64 @@ Inputs: `base_1.i` (86.768%, cast inline — load and store folded away) SHA256
 target.o SHA256 `2504643904e51e32e84c6119cc887e0dd3787a4123478f79af76e324d14a2213`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_801369D8-vacuum`.
+
+## A `switch` index off a halfword field wants an `s32` temp: an HImode one lands on `lhu` + `sll 16` / `sra 16` (func_actor_110600_80137DB0, 2026-09-16)
+
+The target loads its switch index sign-extended — `lh $a0, 0xBE2($s0)` — while
+the *same field* incremented four instructions away in case 0 is `lhu $v0,
+0xBE2($s0)` / `addiu` / `sh`. The m2c seed that names the index as an `s16`
+temp scores 88.979% and emits
+
+```
+lhu    v0,0xbe2(s0)
+nop
+sll    v0,v0,0x10
+sra    a0,v0,0x10      # the sign-extend, by hand
+beqz   a0,...
+```
+
+`movhi_internal2` hands `mips_move_1word` a literal `TRUE` for `unsignedp`
+(`config/mips/mips.c`), so *every* HImode load is `lhu`; `lh` only ever comes
+from `extendhisi2`, a load whose result is consumed in SImode with the HImode
+value dead. An `s16` temp is still live as an HImode pseudo — the case-1 body
+compares the field against it — so the load cannot fold and the extension has
+to be spelled out. Widen the temp and the index and the compare become one
+SImode value:
+
+```c
+    s32 state;
+
+    state           = work->field_BE2;
+    work->field_88E = 0;
+    switch (state) {
+    case 1:
+        if (work->field_896 == state) { ... }
+```
+
+which is `lh $a0, 0xBE2($s0)` and `bne $v1, $a0` — 100%. The declaration is
+the whole difference: a controlled variation of that one line (`s32` → `s16`,
+everything else byte-identical) drops to 95.814% and brings `lhu` + the shift
+pair back, the `branch` penalties being only the shifted addresses that follow.
+
+Two things this does **not** fix, so do not chase them from here. The halving
+`step = (s16)work->field_896 / 2;` keeps its `lhu` + `sll 16` / `sra 16` in the
+target — an explicit cast asks for the extension, so it is *not* the same read
+as the neighbouring `lh $v1, 0x896($s0)` comparison (see "One halfword, two
+signednesses: the odd reader needs a temp, not a cast"). And the case-0
+`work->field_BE2 = (s16)((u16)work->field_BE2 + 1)` is a separate block after a
+`jal`, so it keeps its own `lhu` regardless of the temp's width.
+
+Related: "A store into a byte field narrows its source load at *expand*, so a
+value shared with a switch index needs an SI local" reaches `lhu` for its
+switch by widening to `u32`; the difference here is only that the target's
+index is *signed*, so the wider local is `s32`.
+
+`func_actor_110600_80137DB0` (100%). Inputs: `base_1.i` SHA256
+`6658bb0f2a18d5bc91e191d9e3815db4c65afec6a41ff861009c3ca5f47ff79b`; the `s16`
+variant `base_2.i` SHA256
+`e1a7949cc1052895ba038034a7b08e132306a9cc82b20eb852dc434e4715ed7f`;
+target.o SHA256 `8a1da1a275b141ede219dfcdedded41c353f96e2d9b152a4abbcbc07df26637f`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80137DB0-vacuum`. Sibling
+`func_actor_110600_80138D7C` is the same halving tail with no switch, and its
+matched body reads the same way.

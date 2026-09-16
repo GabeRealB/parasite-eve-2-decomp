@@ -454,7 +454,72 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80137AF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80137DB0);
+/// Death stage machine, entering on a live actor: take the model out of draw,
+/// drop bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
+/// tag the enemy's link node, arm `field_892` / `field_88C` and the `field_896`
+/// timer, tick once and clear both `field_BE0` and the `field_BE2` stage. Stage
+/// 0 idles on that timer — once the pose `field_4E` reaches 4 it parks
+/// `field_896` at -0x10 and steps to stage 1. Stage 1 is the shrink tail:
+/// halves `field_896` each tick, parking at -0xC when the halving lands on the
+/// stage value and bouncing -1 back to 8, and after 0x35 ticks parks
+/// `field_896` / `field_898` at 0x38 and moves the actor to state 3. Every
+/// stage-1 tick also adds 0x27 to `field_BE4`.
+void func_actor_110600_80137DB0(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    s16              step;
+    s32              state;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy                 = arg0->field_20;
+        obj                   = arg0->field_2C;
+        obj->field_C          = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_892       = 0xC;
+        work->field_88C       = 2;
+        work->field_B82       = 0;
+        work->field_8A4       = 0;
+        work->field_896       = 6;
+        func_actor_110600_80134728(arg0);
+        work->field_BE0 = 0;
+        work->field_BE2 = 0;
+    }
+    state           = work->field_BE2;
+    work->field_88E = 0;
+    switch (state) {
+        case 0:
+            func_actor_110600_80134728(arg0);
+            if ((work->field_4E & 0x3FF) == 4) {
+                work->field_896 = -0x10;
+                work->field_BE2 = (s16)((u16)work->field_BE2 + 1);
+                return;
+            }
+            return;
+        case 1:
+            step            = (s16)work->field_896 / 2;
+            work->field_896 = step;
+            work->field_BE0++;
+            if (work->field_896 == state) {
+                work->field_896 = -0xC;
+            }
+            if (work->field_896 == -1) {
+                work->field_896 = 8;
+            }
+            func_actor_110600_80134728(arg0);
+            if (work->field_BE0 >= 0x35) {
+                work->field_896 = 0x38;
+                work->field_898 = 0x38;
+                work->field_0   = 3;
+            }
+            work->field_BE4 += 0x27;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80137F2C);
 

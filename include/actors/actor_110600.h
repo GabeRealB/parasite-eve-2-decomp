@@ -56,7 +56,12 @@ typedef struct Actor110600Work {
     /// the actor is live, and reseeds from `Gp_LcgState` when `field_4` is set.
     /* 0x006 */ u16  field_6;
     /* 0x008 */ s16  field_8;
-    /* 0x00A */ byte pad_A[0x52];
+    /* 0x00A */ byte pad_A[0x44];
+    /// Pose the model has reached, the same `& 0x3FF` frame index
+    /// `func_actor_110600_80137DB0` tests for 4 before it advances the
+    /// `field_BE2` stage from 0 to 1.
+    /* 0x04E */ u16  field_4E;
+    /* 0x050 */ byte pad_50[0xC];
     /// Flag halfword the state handlers test on entry: bit 0 moves the actor
     /// on (`field_0 = 3`), bit 1 is the timer gate
     /// `func_actor_110600_80136888` retimes on.
@@ -94,10 +99,13 @@ typedef struct Actor110600Work {
     /* 0xBD8 */ Task* field_BD8;
     /* 0xBDC */ byte  pad_BDC[4];
     /* 0xBE0 */ s16   field_BE0;
-    /* 0xBE2 */ byte  pad_BE2[2];
-    /* 0xBE4 */ s16   field_BE4;
-    /* 0xBE6 */ s16   field_BE6;
-    /* 0xBE8 */ byte  pad_BE8[4];
+    /// Death-shrink stage: `func_actor_110600_80137DB0` runs its idle half at
+    /// 0 and its halving tail at 1, advancing from 0 once `field_4E` lands on
+    /// pose 4.
+    /* 0xBE2 */ s16  field_BE2;
+    /* 0xBE4 */ s16  field_BE4;
+    /* 0xBE6 */ s16  field_BE6;
+    /* 0xBE8 */ byte pad_BE8[4];
 } Actor110600Work;
 STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 
