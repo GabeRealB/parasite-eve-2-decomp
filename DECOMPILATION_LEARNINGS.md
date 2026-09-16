@@ -39343,6 +39343,39 @@ room are separate packages, and their scripted-cutscene task is the same code
 with different overlay-local data. A `sed` rename of the overlay prefix, the two
 `D_<seg>_<vram>` symbols and the typedef scored 99.971% on the first build.
 
+A matched body under a sibling **family's shared library** can be the whole
+function, and the index will still say `1 copies`. `overlay_dup_index.py find
+Actor04400_Fn042C4` printed the narrowest answer — itself the only `=` — but
+`asm/USA/actors/matchings/lib/actors_shared_801673f8/ActorsShared801673f8.s`
+is the same code: the branch *words* are identical and only the label names
+(`Actor04400_L04580` against `.Lactor_342400_801676B4`) and the `j` immediates
+of the switch tail differ, so the disassembly text hashes apart.
+
+Settle it with one `diff` of the mnemonics-and-operands column, which strips
+the leading address/word comment so operands compare directly:
+
+```sh
+s() { grep -oE '/\* [0-9A-F]{4} [0-9A-F]{8} [0-9A-F]{8} \*/ +.*' "$1" |
+      sed 's|/\* [0-9A-F]* [0-9A-F]* ||; s|\*/||; s/^ *//; s/  */ /g'; }
+diff <(s "$MATCHED.s") <(s "$SCRATCH/target.s")
+```
+
+Every remaining line here was a label or a `j` immediate — absolute jumps move
+with the link offset, so read the diff for mnemonics and operands, not for
+whole lines. The port is then the sibling's C body with its **type names**
+renamed: the sibling was written against `ActorsShared80168d3cWork`, this
+overlay against `Actor104400Work`, and the two layouts agree on every offset
+the body touches. Keep every source-level oddity, because that shape is what
+matched — the duplicated inline `set_state` per switch arm, the re-read of
+`arg0->spawnArg2` / `arg0->extra` at the sound call. The raw m2c seed scored
+84.8%; the ported body 100.000% with every penalty zero on the next build.
+
+This is a landing, not a promotion: `actor_104400` does not import
+`ActorsShared801673f8` (its own copy is at 0x801660E4, the shared one at
+0x80166114 / 0x801673F8 in `actor_341700` / `actor_342400`), so no object can
+serve both — the body is compiled twice by design and the symbol map is left
+alone.
+
 Port the sibling's **manifest cuts** along with its body. A cutscene state
 machine emits a compiler-generated jump table, so its object has to own the
 slice of leading `.rodata` holding that table — the sibling entry in
