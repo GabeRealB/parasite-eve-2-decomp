@@ -109529,16 +109529,34 @@ still use the saved pointer — this is register pressure, not a rule.
 `03233a375c70b55c2f3ab33fd13202401c1a74e2b5c77d6c6df9e253b4af5cc7`.
 Scratch `nonmatchings/func_actor_356100_801684F0-vacuum`.
 
-## A local shared by two call sites costs a register; the expression at each call site does not
+## A local shared by two call sites merges two live ranges into one; the expression at each call site does not
 
 When the same pointer is passed to an inlined helper from two mutually exclusive
-branches, storing it in a local first is not free. Each *assignment* to a C
-local makes its own pseudo, but the helper's parameter is the same variable in
-both expansions, so the value stays live from the first assignment through the
-branch and both bodies. It lands in a callee-saved register for the whole
-region, and the surrounding block then has one fewer scratch register for
-`dbr` to work with — which shows up as `branch` / `insert` / `delete` penalties
-that look structural but are not.
+branches, naming it in a local first is not free. CSE folds the identical load
+of both arms into one value, and the assignment keeps it *named*, so one pseudo
+stays live across the whole `if`/`else` instead of one per arm. Measured on this
+function (`.lreg` plus `trace_gcc.py`, both stages): one allocno of `18 refs
+across 66 insns; dies in 2 places; crosses 4 calls` becomes two of `9 refs
+across 30 insns; crosses 2 calls`.
+
+The register *home* is `$s1` either way — what moves is the rank. The merged
+value's priority is 10909 against 9000 for each split half, both reproducing
+`CODEGEN_MODEL.md` 10.4's `floor_log2(refs) * refs / live_length * 10000`
+exactly, so it is placed earlier in the global order (4th of 15, not 5th of 16).
+Inside the inlined body the local allocator then enumerates different per-block
+quantities and puts the `D_80072729` constant in `$v0` — the register the `lbu`
+base was just read from — instead of `$a0`; `li $v0,1` cannot be hoisted over
+the `lbu` that needs `$v0`, so the two delay slots the target fills stay `nop`
+in the local-named form.
+
+Only the *fall-through* arm's assignment does this: dropping the else-arm
+assignment alone leaves the object unchanged (`base_12.c`, 99.866%), and the
+permuter's leftover null statement is inert (`base_13.c`). Re-adding the
+if-arm assignment alone restores the seed's bytes exactly (`base_10.c`,
+`2193ff39…`, `base_4`'s assembly). Read the 1468-to-55 headline as mostly
+alignment: the two objects differ in 7 instruction regions and one instruction
+of length, and dist.py scores the resulting address shift as hundreds of
+mismatches.
 
 For `func_actor_356100_80166CF0` the two spellings of one call site moved
 16.45%:
@@ -109583,3 +109601,19 @@ independently before that entry was consulted.
 `a693088194f54f04b21fe283dd1b33868b92ee69e71339a93a27b5386b03293c`; target
 `1032f066099e68f8cafdc52399aac250eb85432bd49e12a47d3e01c70044e529`.
 Scratch `nonmatchings/func_actor_356100_80166CF0-vacuum`.
+
+Follow-up counterfactuals, all planned before their builds and all landing as
+predicted: `base_10.c`
+`c3932481cef18a929e22d4a8585d6458de7c93af12d19ab8029c7c35eb5dd7ff` / `base_10.i`
+`100659e7784e688c01bf4b52b0839690696bbff7def85eeb7f96107650979452` (re-adds the
+if-arm assignment: distance 1468 and `base_4`'s bytes exactly), `base_12.c`
+`64972a5d032f5147f30fe8edba035658c55bc91d6257853ea7b96c640f07b1b9` / `base_12.i`
+`25a3da9f9345c56244a73de40512ef1ac94968247f4a3a6659731946617272d2` and
+`base_13.c`
+`ef90e8235ec33ce5167e4958dbadf951e49c49409c6fe881f671aa83261d0d21` / `base_13.i`
+`dceb27bedde22b9de9cfe2b3500121f3ad0a117ebe8411ce964c866d5265a655` (both inert).
+`base_11.c` is byte-identical to `base_7.c`. Traces
+(`PERMUTER_EVIDENCE/d917845bd13d4e16/analysis/{base_10,candidate}/REPORT.txt`,
+both stages, per-allocno priority) and the analysis
+(`PERMUTER_ANALYSIS.md`) are cited in the retained conclusion,
+`PERMUTER_EVIDENCE/conclusions/34757a0747784c5aa973c4ca7154a81d/`.
