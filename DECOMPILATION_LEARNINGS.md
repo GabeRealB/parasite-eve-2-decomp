@@ -96004,3 +96004,61 @@ Evidence: scratch `nonmatchings/func_actor_311900_8016228C-vacuum/`. `base.c`
 `4bccef77…` (m2c seed, 90.521%), `base_1.c` `5939d5da…` (preprocessed
 `6f10329a…`, 100.000%, object `b6b63c49…`). Compiler `60d886cd…`, unchanged
 from the sibling's session.
+## A `void*` work global written with `M2C_FIELD` keeps its tail store out of the `jal` delay slot
+
+**Problem.** `func_actor_535700_801327BC` (actors) came out of m2c at 87.18%
+with `stack=6 branch=1 regs=4 reorder=1 insert=3 delete=1`. Its body was already
+the target's, instruction for instruction, except in the tail block, where the
+target sinks `sh $zero, 0x482($v0)` into the `jal`'s delay slot:
+
+```
+lui   v0,%hi(Work)
+lui   v1,%hi(Task)
+lw    v0,%lo(Work)(v0)
+lw    a0,%lo(Task)(v1)
+jal   func_actor_535700_80132108
+sh    $zero, 0x482(v0)
+```
+
+The seed instead runs that store before the `Task` load and pays two `nop`s for
+it: the assembler's load-delay filler after `lw v0`, and an empty delay slot.
+
+**Cause.** The store is the fourth direction of the `MEM_IN_STRUCT_P` rule the
+sections above describe. m2c emits the work pointer as
+`extern void *ActorsShared80131f9cWork;` and the writes as
+`M2C_FIELD(ActorsShared80131f9cWork, s16 *, 0x482) = 0;`, so the store's RTL is
+a plain `(mem:HI ...)`, and the callee's argument is a scalar
+`(mem:SI (lo_sum:SI (reg) (symbol_ref)))` at a *fixed* address. Neither MEM is
+in-struct, so `true_dependence` keeps the dependence and sched1 cannot hoist the
+load over the store. Typing the work block as the overlay's own struct (the
+twins `actor_451100`, `actor_461800` and `actor_151000` all have one) makes the
+store `(mem/s:HI (plus:SI (reg) (const_int 1154)))` — in-struct, varying
+address, non-QImode, not AND, against a non-struct MEM at a fixed address — and
+the exemption fires. 100.000%, all penalties zero; the same body with only the
+signature fixed (4 arguments, preset third) and the `M2C_FIELD` writes left in
+place still scored 87.474%, so the whole 12.5 points is this one scheduling
+decision.
+
+**How to spot it.** `.lreg` and `.sched` already show it: the store is
+`(mem:HI ...)` where the target's order needs it after the callee's argument
+load. The register the reload lands in is *not* a signal — the target reloads
+`ActorsShared80131f9cWork` into `$v0` exactly as the seed does, and both
+`lui`s then look the same.
+
+Two m2c side-findings measured on the same function, both free of codegen: a
+one-parameter declaration puts the preset in `$a0` rather than `$a2` (it is the
+third argument of a `(Task*, s32, preset, s32)` script opcode handler — worth
+0.3 points and one `regs` here, but it is what makes the argument register
+right), and the callee's declared return type is irrelevant —
+`M2C_UNK f(s32)` and `void f(Task*)` reproduced byte-identical objects.
+
+The body is carried by `func_actor_151000_80132738`, but each copy calls its own
+overlay's runner and writes its own overlay's reset word, so
+`overlay_dup_index.py promote` refuses it; it stays matched per overlay.
+
+Inputs: `base_1.i`
+`f22f195db4b0654431eff4f8524715f8a2fe48e0b425fd9d9678f71189b927cf` (87.474%),
+`base_2.i` `455f3afb135cf85ee80bf629341b791e76bda3f2f5bbf59b6864bec206ccea68`
+(100.000%), `base_3.i`
+`6717e4dc5dc85d74c9db2e0dcde214d265bee02bd70603ebd94324d9010dc611` (100.000%,
+callee return type varied).
