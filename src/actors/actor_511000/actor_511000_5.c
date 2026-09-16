@@ -28,7 +28,55 @@ extern TaskDesc D_actor_511000_80155070[];
 extern void* D_actor_511000_801550A0;
 extern void* D_actor_511000_801550C0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_80133554);
+/// Spawn table and per-child args for the children spawned on message 1.
+extern TaskDesc D_actor_511000_80139924;
+extern s32      D_actor_511000_80149054[];
+
+s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
+{
+    TmdObject*       obj;
+    Actor511000Work* work;
+    Task*            child;
+    s32              ret;
+    s32              i;
+
+    obj  = (TmdObject*)task->extra;
+    work = (Actor511000Work*)task->idMap;
+    ret  = 0;
+    switch (msg) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C |= 0x80;
+            work->field_8 = msg;
+            obj->field_C |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    if (msg == 1 && work->field_2F == 0) {
+        for (i = 1; i < 4; i++) {
+            child = Task_SpawnFromTable(&D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, (s32)task);
+            if (child != NULL) {
+                ((TmdObject*)child->extra)->field_C &= ~0x84;
+            }
+        }
+        work->field_2F = 1;
+    }
+    return ret;
+}
 
 /// Places the task's model at the indexed rotation and translation: copies
 /// `rots[index]` onto the root coordinate's Euler angles, `trans[index]` into

@@ -20,7 +20,8 @@ typedef struct Actor511000Work {
     /* 0x00 */ byte   pad_0[8];
     /* 0x08 */ s32    field_8;
     /* 0x0C */ u16    field_C;
-    /* 0x0E */ byte   pad_E[0x22];
+    /* 0x0E */ byte   pad_E[0x21];
+    /* 0x2F */ s8     field_2F;
     /* 0x30 */ MATRIX light;
     /* 0x50 */ MATRIX color;
 } Actor511000Work;
