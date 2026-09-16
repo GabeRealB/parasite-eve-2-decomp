@@ -105204,3 +105204,41 @@ Inputs: base_1.i SHA256
 `c36e59db28978b69ec4c25d6e238e8d04becd2217b0492a9d286c9d91f991a21`; target.o SHA256
 `111b1c26c5a674942f160ff8b4e6a7f5179872e9e6f68af80da7ec306c59633b`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A scratch block's `-= 1` push is what makes the pointer's `addiu`/`move` pair
+
+Carving a typed block below `G_SCRATCH_HEAD` two ways differs by one
+instruction, and the shorter spelling is the wrong one:
+
+```c
+/* emits addiu $s4,$a1,-0xC — one insn, misses the move */
+turn = (Actor401000TurnScratch*)((u8*)*(void**)G_SCRATCH_HEAD - 0xC);
+turn->delta.vx = ...;
+
+/* emits addiu $v0,$a1,-0xC ; move $s4,$v0 — the target's pair */
+*(Actor401000TurnScratch**)G_SCRATCH_HEAD -= 1;
+turn = *(Actor401000TurnScratch**)G_SCRATCH_HEAD;
+turn->delta.vx = ...;
+```
+
+The `-= 1` form stores the decremented pointer, so its value lands in a
+short-lived temp; the following reload CSEs to that temp and becomes a copy
+into `turn`'s register. The direct assignment defines `turn` in place, so no
+copy exists to emit. Only the store-carrying spelling produces the pair.
+
+Two corollaries the same function showed:
+
+- The first store into the block still addresses it as `-0xC($a1)`, from the
+  *original* head register, while the later accesses use `turn`'s register.
+  `cse`/`fold_rtx` folds the address back through the pointer's known value;
+  do not read the mixed bases as two C expressions.
+- The push's own `sw` is a store like any other and sinks: in
+  `func_actor_401000_80139D10` it lands after all three delta stores, here
+  between `vy` and `vz`. Position of the `sw` is not where the `-= 1` sits in
+  the source.
+
+Worked example: `func_actor_401000_801394EC`, matched at `base_7.c` after
+`base_4`–`base_6` (99.253%) each spelled the pointer directly. Inputs: base_7.i
+SHA256 `3c6e5416b9428507050f03e919cc4d0ec7bf2aebe0f0f0c6a12fb72cc23a09cd`;
+target.o SHA256 `011697edbdc0d7ec7feb062aaebfadb649fb782d14c37d76cfffe087b448ed12`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

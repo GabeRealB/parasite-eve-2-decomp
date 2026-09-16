@@ -1448,7 +1448,107 @@ void func_actor_401000_8013922C(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801394EC);
+/// Walk the actor along its `field_C` waypoint pair: `field_14` picks the
+/// waypoint the offset is taken from and flips once the actor closes inside
+/// 0xA0 of it, or after 0x15 frames in `field_6`, and the wrapped yaw toward
+/// that waypoint is clamped to +-0x20, added back to the facing yaw and the
+/// root rotation rescaled by 0x1194. The `func_actor_401000_80132590` probe
+/// takes one 0xA step forward, the obstacle walk runs against `field_A30`
+/// (plus `field_8F0` through `func_actor_401000_80135704` when `field_36` is
+/// 0x10), and each arm counts `field_6` up while the yaw stays inside 0x80.
+/// The tail drops the actor to state 6 on the `Wip_SysConfig` range checks and
+/// the `Gp_StateF0` bits, and the live-actor arm restarts the 0x1AE clip.
+void func_actor_401000_801394EC(Actor401000* arg0)
+{
+    Actor401000Work*        work;
+    Actor401000TurnScratch* turn;
+    TmdObject*              obj;
+    GpRec18*                rec;
+    GsCOORDINATE2*          coord;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        work->field_6 = 0;
+        if (arg0->field_36 == 0x10) {
+            work->field_8D0.flags |= 0x4000;
+        }
+    } else {
+        *(Actor401000TurnScratch**)G_SCRATCH_HEAD -= 1;
+        turn                                       = *(Actor401000TurnScratch**)G_SCRATCH_HEAD;
+        turn->delta.vx                             = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+        turn->delta.vy                             = 0;
+        turn->delta.vz                             = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+        if (!Actor401000_OutOfRange(&turn->delta, 0xA0) || work->field_6 >= 0x15) {
+            if (work->field_14 == 0) {
+                work->field_14 = 1;
+            } else {
+                work->field_14 = 0;
+            }
+            work->field_6 = 0;
+        }
+        func_actor_401000_80132EF0(arg0);
+        coord           = arg0->field_2C->field_8;
+        turn->angle     = Actor401000_NormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = turn->angle;
+        if (turn->angle > 0x20) {
+            turn->angle = 0x20;
+        }
+        if (turn->angle < -0x20) {
+            turn->angle = -0x20;
+        }
+        turn->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
+        Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+        if (work->field_89A == 0 && (func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, 0xA) << 16) != 0) {
+            Actor401000_MoveForward(arg0->field_2C->field_8, 0xA);
+        }
+        if (arg0->field_36 != 0x10) {
+            if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) == 1) {
+                if (ABS(work->field_8AE) < 0x80) {
+                    work->field_6 = (u16)work->field_6 + 1;
+                }
+            }
+        } else {
+            rec = (GpRec18*)work->field_8F0;
+            if (func_actor_401000_801323EC(arg0->field_2C->field_8, rec, 0xC) != 1 && func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) != 1) {
+                func_actor_401000_80135704(arg0, rec, 0xC);
+            } else {
+                if (ABS(work->field_8AE) < 0x80) {
+                    work->field_6 = (u16)work->field_6 + 1;
+                }
+            }
+        }
+        arg0->field_2C->field_8->flg = 0;
+        if (func_actor_401000_80132824(arg0) != 1) {
+            Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &turn->delta);
+            if (!Actor401000_OutOfRange(&turn->delta, work->field_C16)) {
+                work->field_0 = 6;
+            } else if (!Actor401000_OutOfRange(&turn->delta, 0xFA0)) {
+                coord       = arg0->field_2C->field_8;
+                turn->angle = Actor401000_NormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+                if (ABS(turn->angle) < 0x300) {
+                    work->field_0 = 6;
+                }
+            }
+        }
+        if (*(u32*)&Gp_StateF0 & 0xD0000) {
+            work->field_0 = 6;
+        }
+        *(Actor401000TurnScratch**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 /// Walk the actor at the player: on the live-actor flag it restarts the
 /// 0x12 clip and clears the spawn pose, then takes a 0xC-byte `G_SCRATCH_HEAD`
