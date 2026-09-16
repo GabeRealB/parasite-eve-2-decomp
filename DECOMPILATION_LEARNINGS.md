@@ -90684,3 +90684,52 @@ allocno in the picture and with the GS load hoisted above the store, which the
 model above does not yet account for. When a `%hi` temp's register is the
 sticking point, compare against that function before assuming the C shape is
 wrong.
+
+## A folded `do{}while(0)` reweights *and* orders a near-tie allocno pair (func_neo_ark_shrine_8017ECC4, 2026-09-16)
+
+**Problem.** 98.879% with `regs=13`, `branch=0`, `reorder=0`, `delete=0`: every
+instruction present and in order, and the whole diff was `$s0`/`$s1` swapped
+between the parameter `task` and the `Mem_Calloc` pointer `st`. `.greg` ranked
+`113 81 80 82 95`; `tools/trace_gcc.py --regs 80 81` printed the inputs
+`global.c` used:
+
+```
+global a0 [80] (task): refs=6 span=42 priority=2857 calls=2 -> $s1
+global a1 [81] (st)  : refs=3 span=10 priority=3000 calls=1 -> $s0
+```
+
+This is **not** the exact tie the `REG_N_REFS` entry above describes, and the
+margin matters when choosing the lever: `pri = floor_log2(refs)*refs/span`, so
+refs 6 -> 7 moves 12/42 to 14/42 (a step, because `floor_log2` is in the
+numerator) while the span route needs 42 -> 40 for `task`, or 10 -> 11 for `st`,
+i.e. two instructions' worth of live range that the object does not contain.
+Where the two competitors differ by a couple of percent, only the reference
+count is reachable; where they are tied, either is.
+
+**Lever.** `task->state++` holds the parameter's two counted references, so wrap
+it in a constant-false once-loop:
+
+```c
+    D_8007216C = 0xB;
+    do {
+        task->state++;
+    } while (0);
+```
+
+`flow.c`'s `REG_N_REFS (regno) += loop_depth` counts both at depth 2: refs 6 -> 8,
+`3*8/42 = 5714 > 3000`, `task` sorts first and takes `$s0`. All three predicted
+observations held - `.flow` `Register 80 used 6 times` -> `8 times` at an
+unchanged `across 42 insns`, the order becoming `113 80 81 82 95`, and the
+dispositions `80 in 16  81 in 17`. 100%, byte-identical to retail.
+
+**The same construct is also the scheduling boundary.** This function needed the
+`lw task->state` kept *below* the `sb D_8007216C`; without a boundary sched1
+hoists it (that attempt scored 96.86% with `delete=1 branch=2`). A `SOFT_BARRIER()`
+there fixed the order but left the swap. With the once-loop present the barrier is
+redundant - both variants score 100% - so when a reweight and an ordering edge are
+wanted at the same statement, ask for the loop and drop the helper.
+
+Inputs: `base_2.i`
+`d4837ca091f33e467f78129cd04cdf1b6a965c16f74e4ed3b2dcb53094216871` (98.879%),
+`base_3.i`
+`cfa4bdd28bd87857ae9796d72ab5843f0b9abb2e92f32ec6d8575f38e9a523c1` (100%).
