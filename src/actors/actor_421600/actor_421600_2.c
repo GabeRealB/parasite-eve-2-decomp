@@ -158,7 +158,43 @@ void func_actor_421600_8013EB7C(Actor421600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600_2", func_actor_421600_8013EC28);
+void func_actor_421600_8013EC28(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_8EC.field_1C = 0x19C;
+        work->field_B6C.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_828          = 1;
+        work->field_82E          = 0xA;
+        work->field_832          = 0x10;
+        work->field_844          = 0;
+        work->field_840          = 0;
+        work->field_83E          = 0;
+        if (enemy->field_40 <= 0) {
+            Gp_SetStateF0Byte3(1);
+        }
+    }
+    func_actor_421600_80134604(arg0);
+    if (work->field_68 & 0x100) {
+        if (work->field_82E == 0xA) {
+            if (enemy->field_40 > 0) {
+                if (enemy->field_4C & 2) {
+                    work->field_0 = 4;
+                } else {
+                    work->field_0 = 0x11;
+                }
+            } else {
+                work->field_0 = 0x15;
+            }
+        }
+    }
+}
 
 void func_actor_421600_8013ED24(Actor421600* arg0)
 {
