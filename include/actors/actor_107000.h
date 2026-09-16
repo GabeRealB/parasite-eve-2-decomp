@@ -54,7 +54,10 @@ STATIC_ASSERT_SIZEOF(Actor107000RotScratch, 0x18);
 /// `field_264`/`field_2A0`: the transform `ActorsShared801349d8` folds onto the
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
-    /* 0x000 */ byte    pad_0[0x214];
+    /* 0x000 */ byte    pad_0[0x11A];
+    /* 0x11A */ u16     field_11A; // flag word of the render node at 0xFC, `Actor107000SpawnWork::objFC.flags`
+    /* 0x11C */ GpRec18 field_11C; // that node's collision table, `Actor107000SpawnWork::rec11C`
+    /* 0x134 */ byte    pad_134[0xE0];
     /* 0x214 */ GpRec18 field_214; // collision record `func_actor_107000_801364D8` re-rolls
     /* 0x22C */ byte    pad_22C[0x60];
     /* 0x28C */ MATRIX  field_28C; // transform folded onto the model part
@@ -67,7 +70,8 @@ typedef struct Actor107000Work {
     /* 0x2BA */ s16     field_2BA; // id the three helper slots last saw
     /* 0x2BC */ u16     field_2BC; // frames spent on the current id
     /* 0x2BE */ s16     field_2BE; // cleared next to the pair above
-    /* 0x2C0 */ byte    pad_2C0[0x8];
+    /* 0x2C0 */ byte    pad_2C0[0x6];
+    /* 0x2C6 */ s16     field_2C6; // armed to 1 with the stage handoff, two bytes before the stage selector
     /* 0x2C8 */ s16     field_2C8; // reaction stage the per-frame handler switches on
     /* 0x2CA */ s16     field_2CA; // angle the transform is scaled by
     /* 0x2CC */ s16     field_2CC; // countdown seeded by the damage branch

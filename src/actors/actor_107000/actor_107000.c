@@ -252,7 +252,75 @@ void func_actor_107000_80132298(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132474);
+/// Dormant arm of the caged specimen: the `field_2B2 == 0` arm of the per-frame
+/// dispatch, run while the specimen is still caged. The collision record at
+/// `field_11C` is polled for a 0x10000-kind occupant and, when one appears,
+/// `field_2D8` latches - that latch is what wakes the specimen. It moves the
+/// reaction stage and the animation to the live handler's, clears the render
+/// node's 0x8000 flag, and arms the global state, which is the same three
+/// writes the spawn handler's own node setup makes. The record is released
+/// either way.
+///
+/// While the work plays animation 1 the arm also runs the sound cue the live
+/// handler runs: `field_2D0` is counted down and, when it expires, re-rolled
+/// from `Gp_LcgState` as `(state >> 16) % 100 + 0x50` frames - between 0x50 and
+/// 0xB3 - with `field_2D6` picking between the two half-ids and the model's
+/// pan and depth passed alongside. The whole assignment *and* its call are
+/// written out in both arms, the way `func_actor_107000_80132674` writes them.
+/// `field_2BE` is then re-armed from the frames spent on the current id (see
+/// the two 0x29-frame windows below) and the id is restarted once it has spent
+/// 0x63 frames.
+void func_actor_107000_80132474(Task* arg0)
+{
+    Actor107000Work* work;
+    GsCOORDINATE2*   coord;
+    u16              countdown;
+    s32              soundId;
+    u32              rng;
+
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    work               = (Actor107000Work*)arg0->idMap;
+    *(u32*)0x1F8003FC -= 8;
+    if (Gp_CountRec18Hi(&work->field_11C, 0x10000) != 0) {
+        work->field_2D8 = 1;
+    }
+    if (work->field_2D8 != 0) {
+        work->field_2B2 = 1;
+        work->field_2C8 = 1;
+        work->field_11A = (u16)(work->field_11A & 0x7FFF);
+        Gp_ArmStateF0(1);
+    }
+    Gp_ClearRec18Occupied(&work->field_11C);
+    if (work->field_2B8 == 1) {
+        countdown       = work->field_2D0 - 1;
+        work->field_2D0 = countdown;
+        if ((countdown << 16) <= 0) {
+            rng             = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState     = rng;
+            work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
+            if (work->field_2D6 != 0) {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40460009;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            } else {
+                soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x402E0001;
+                SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+        }
+        work->field_2C6 = 1;
+        work->field_2BE = 0;
+        if ((u32)(work->field_2BC - 1) < 0x29) {
+            work->field_2BE = 0x14;
+        }
+        if ((u32)(work->field_2BC - 0x33) < 0x29) {
+            work->field_2BE = -0x14;
+        }
+        if ((s16)work->field_2BC >= 0x63) {
+            work->field_2BC = 0;
+        }
+        ActorsShared8013454c(arg0);
+    }
+    *(u32*)0x1F8003FC += 8;
+}
 
 // actor_104600 (func_actor_104600_801325D0), actor_204600
 // (func_actor_204600_8014A5D0) and actor_207000 (func_actor_207000_8014A674)
