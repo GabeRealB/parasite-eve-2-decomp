@@ -106219,3 +106219,67 @@ rec[1]`, 0x38) is the same block here, and its `GpEffWork` the same work struct.
 Check `find` first - 0.99 shape similarity is not equality, and a body with no
 copies should not be promoted to a shared lib unit just because a lookalike
 exists.
+
+## The allocator counts source copies that cross-jump later erases
+
+`func_actor_800100_80166190` sat at 99.80% with `branch = insert = delete = 0`,
+`blocks = 33/33` and `instructions = 225/225` - every leftover was `regs`, and
+all of it one swap: the target has `d4` in `$s2` and the scratch `place` in
+`$s3`, the pointer in `$s2` and the record in `$s3`.
+
+Nothing in the emitted code hinted at it: the source writes the same tail three
+times (the `field_934` countdown path, the `field_93E == 0` path, and case 4),
+and GCC's cross-jumper merges the identical copies, so the final assembly is
+the target's either way. But **cross-jumping runs after global allocation**
+(`jump` -> ... -> local-alloc -> global-alloc -> reload -> `sched2` -> `jump2`),
+so the allocator sees all three copies and counts `place` once per copy. Its
+priority is `floor_log2(n_refs) * n_refs * 10000 / live_length` (`global.c`,
+`allocno_compare`, descending), and the register is decided by that order:
+
+```
+3 tail copies -> place refs=7 span=81 priority=1728 -> $s2   (99.80%)
+                 d4    refs=5 span=68 priority=1470 -> $s3
+2 tail copies -> place refs=5 span=70 priority=1428 -> $s3   (100.000%)
+                 d4    refs=5 span=68 priority=1470 -> $s2
+```
+
+The two-copy source is also the natural one: the `field_93E == 0` path needs
+the state store, and case 4 already has it, so it falls through instead of
+repeating its own copy.
+
+```c
+        case 3:
+            if (actor->field_93E != 0) {
+                if (actor->field_934 == 0) {
+                    /* ... */
+                    break;
+                }
+                actor->field_934 -= 1;
+                if (actor->field_934 != 0) {
+                    break;
+                }
+                actor->field_12A &= 0x3FFF;
+                if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                    Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                }
+                break;
+            }
+            /* fallthrough */
+
+        case 4:
+            actor->field_960 = 6;
+            actor->field_12A &= 0x3FFF;
+            if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+            }
+            break;
+```
+
+Read the numbers with `python3 tools/trace_gcc.py <scratch>/base_N.i --regs
+<candidates>`; the `.greg` dump prints the allocation *order* but not the refs,
+span or priority behind it, and there is no way to infer them from the `.lreg`
+walk. When the leftovers are `regs`-only and every register task the object
+dump names is *swapped* rather than wrong, count the source copies of each
+shared tail before reaching for anything else, and remember that the second
+`jump` pass (`.i.jump2`: one call site where `.i.jump` has two) is the one
+that hides them.

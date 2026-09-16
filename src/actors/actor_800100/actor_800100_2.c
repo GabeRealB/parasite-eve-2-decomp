@@ -1238,7 +1238,124 @@ void func_actor_800100_80165F50(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166190);
+void func_actor_800100_80166190(GpActorWork* arg0)
+{
+    void**         scratch;
+    void*          head;
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* place;
+    u16            state;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = (u8*)head - 0x50;
+    place    = (GsCOORDINATE2*)((u8*)head - 0x50);
+
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    state = actor->field_960;
+    coord = ((TmdObject*)actor->field_91C->extra)->field_8;
+
+    switch (state) {
+        case 0:
+            actor->field_954  = 0;
+            actor->field_958  = 0;
+            actor->field_95C  = 0;
+            actor->field_960 += 1;
+            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 1);
+            break;
+
+        case 1:
+            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                              (GpAnimSlot*)actor->field_438 + 1) != NULL) {
+                actor->field_960 += 1;
+            }
+            break;
+
+        case 2:
+            Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
+            if (((Gp_LcgState >> 16) & 0xFF) < 0x3F) {
+                actor->field_960 = 5;
+                actor->field_95A = 2;
+                actor->field_940 = 0x28;
+                actor->field_979 = 0x1C;
+                actor->field_93E = 0x14;
+                Gp_PlayObjSfx((GpObj38*)coord, 0x40680002, 1);
+                if (actor->field_914 != NULL) {
+                    actor->field_914->spawnArg1 = 2;
+                }
+                break;
+            }
+            actor->field_960 = 3;
+            actor->field_95A = 0;
+            actor->field_934 = 0;
+            actor->field_979 = 9;
+            actor->field_93E = 3;
+            func_80106238(arg0, 0, 1);
+            actor->field_12A |= 0x800;
+            /* fallthrough */
+
+        case 3:
+            if (actor->field_93E != 0) {
+                if (actor->field_934 == 0) {
+                    actor->field_93E  = (u16)actor->field_93E - 1;
+                    actor->field_934  = 3;
+                    actor->field_12A |= 0xC000;
+                    d4->field_CD     -= 1;
+                    if ((s8)d4->field_CD == 0) {
+                        actor->field_93E = 0;
+                    }
+                    Gp_PlayObjSfx((GpObj38*)coord, 0x40680001, 1);
+                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[D_8007272F] | 0x10000, NULL);
+                    Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
+                    break;
+                } else {
+                    actor->field_934 -= 1;
+                    if (actor->field_934 != 0) {
+                        break;
+                    }
+                }
+                actor->field_12A &= 0x3FFF;
+                if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                    Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+                }
+                break;
+            }
+            /* fallthrough */
+
+        case 4:
+            actor->field_960  = 6;
+            actor->field_12A &= 0x3FFF;
+            if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+            }
+            break;
+
+        case 5:
+            if (actor->field_93E == 0) {
+                actor->field_960 = 6;
+                if (actor->field_914 != NULL) {
+                    actor->field_914->spawnArg1 = 3;
+                }
+                SndEvt_EnqueueType7(0x40680002, 1);
+                Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
+            } else {
+                actor->field_93E = (u16)actor->field_93E - 1;
+            }
+            break;
+
+        case 6:
+            if (func_80105894(arg0, 8, 0, 0) == 0) {
+                actor->field_940 = 0xF;
+                d4->field_CC     = (actor->field_97F == 1) ? d4->field_CC - 1 : 0;
+                func_actor_800100_80166DD0(arg0);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 void func_actor_800100_80166514(GpActorWork* arg0)
 {
