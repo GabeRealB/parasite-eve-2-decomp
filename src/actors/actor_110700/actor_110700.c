@@ -1,6 +1,8 @@
 #include "common.h"
 #include "actors/actor_110700.h"
+#include "gameplay/3A34.h"
 #include "main/mem.h"
+#include "main/tmd.h"
 
 // Typed accesses change GCC 2.8.1's alias/CSE decisions in this initializer.
 #define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
@@ -31,7 +33,34 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 
 #undef ACTOR_FIELD
 
-INCLUDE_ASM("actors/nonmatchings/actor_110700/actor_110700", ActorsShared80131e24Sub1);
+/// Ticks animation slots 1..0x12 while an animation id is set, then puts the
+/// model's second attach coordinate's world translation on `G_SCRATCH_HEAD`
+/// and hands it to `Gp_UpdateActorColor`. The scratch push is written as a
+/// compound `-=` followed by a reload: the decremented head stays a
+/// short-lived pseudo in `$v0` and the reload is CSE'd into the copy of it
+/// that survives the animation call.
+void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+{
+    Actor110700Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR*          block;
+    s32              i;
+
+    work                    = (Actor110700Work*)task->idMap;
+    coord                   = &((TmdObject*)task->extra)->field_8[1];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x10;
+    block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
+    if (work->field_47C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    Gp_UpdateActorColor(enemy, block, 0, 0);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 /// Copies the animation id from `preset` into the work block parked in
 /// `task->idMap` and reseeds slots 1..0x12 through `Gp_AnimResetSlot`.

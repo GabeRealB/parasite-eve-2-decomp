@@ -83872,6 +83872,27 @@ field writes. Read the copy as the signature of the compound push. The same
 function also needed `Actor01900_StepForward` rather than `StepForwardHead`
 after the `0x1194` rescale (see "`0x2C(x)` vs `-8(head)` after a scratch pop").
 
+Same push when the block outlives a *call*: `ActorsShared80131e24Sub1` (the
+argument `actor_110700` carries) stores the head, then writes the three
+`VECTOR` fields after a `Gp_AnimTickIndex` loop, so the block pointer crosses
+that call. `head = *scratch - 0x10; *scratch = head; block = (VECTOR*)head;`
+compiles to `addiu s3,v0,-0x10` / `sw s3,0(a0)` and swaps the two crossing
+locals ($s3 block, $s2 coord), one instruction short of the `addiu v0` /
+`sw v0,0(a0)` / `move s2,v0` target — CSE folds the plain copy into the home
+register, so no unpinned C split of it reproduces the copy. The compound push
+closes it unpinned:
+
+```c
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x10;
+block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
+```
+
+The stored value stays a short-lived pseudo (local-alloc colours it `$v0`) and
+the reload CSEs back to it, which is what puts the copy into the `$s2` home.
+Pinning `head` to `$v0` instead scores the same 100.000% and assembles to the
+identical object, so the pin is the readable substitute for this shape rather
+than the mechanism.
+
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
 
 `Actor01900_Fn03FF8` walks `for (s->i = 0; s->i < count; s->i++)` with an `s16`
