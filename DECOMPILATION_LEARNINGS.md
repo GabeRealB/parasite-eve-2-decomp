@@ -100801,3 +100801,17 @@ Seen in `func_actor_560800_80133970` (a 570-insn request switch built from inlin
   `break`. This moves their jumps to the return label, so the chain offers different
   partners. The explicit clears are cross-jumped back into the shared clear. They also
   add refs to `work`, which moved `work` ahead of `arg0` in global allocation (s3/s4).
+
+## Builtin `abs()` can show up as swapped subtract operand registers alone (func_actor_560800_80136AA8)
+
+Symptom: `d = a - b; if (d < 0) d = -d; if (d < 300)` produced the target's
+exact instructions and branches, but with `lh v1,a / lw v0,b / subu v0,v1,v0`
+where the target has `lh v0,a / lw v1,b / subu v0,v0,v1` - `regs` only, 99.95%.
+Local-alloc gave the shorter-lived `b` load `$v0` first; reversing the operands
+(`-b + a`) fixed the registers but swapped the load order. Separate `dy`/`dz`
+locals, assignment-in-condition and block-scoped locals changed nothing, and
+the permuter found nothing.
+
+Fix: `if (abs(a - b) < 300)` with `<psyq/abs.h>`. The builtin expansion ties the
+difference to the abs result, so the `a` load lands in `$v0`. Try `abs()` whenever
+an if/negate absolute value is exact except for the subtract's operand registers.

@@ -11,12 +11,206 @@
 
 #include "gameplay/D4.h"
 
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
+
+/// `rtir` / `mvmva 1, 0, 0, 3, 0` (rtv0). The `inline_c.h` macros of those
+/// names assemble to different words, so spell the instructions out.
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 extern TaskDesc D_actor_560800_8017575C;
 
 void func_8017F450(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_actor_560800_80136AA8(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80136AA8);
+/// Swings the model's chain of parts toward the named task's work block: while
+/// the pieces are walked 1..5 on the scratchpad stack, each part's X rotation
+/// steps by `speed` toward the heading of that block's `world` translation seen
+/// from the part's joint, and the joint positions accumulate through the GTE.
+/// Part 0's X rotation oscillates on a `D_actor_560800_801752E8` phase. The
+/// closing switch drives `field_27E`: close enough in Y/Z starts the dip in
+/// `field_24E`, which then returns to zero.
+void func_actor_560800_80136AA8(Task* arg0)
+{
+    Actor560800ChainScratch* top;
+    Actor560800ModelWork*    work;
+    Actor560800ChainScratch* s;
+    Actor560800PartsWork*    target;
+    s16                      i;
+    s16                      speed;
+    s32                      a;
+
+    top  = *(Actor560800ChainScratch**)0x1F8003FC;
+    work = (Actor560800ModelWork*)arg0->idMap;
+    s = *(Actor560800ChainScratch**)0x1F8003FC = top - 1;
+    target                                     = (Actor560800PartsWork*)work->field_26C->idMap;
+    Mem_Set(s, 0, sizeof(Actor560800ChainScratch));
+    Mem_CopyUnaligned(work->rot, s->rot, sizeof(s->rot));
+    if (work->field_280 & 1) {
+        speed = 2;
+        switch (((D_actor_560800_801752E8 + work->field_270) * 2) & 0x300) {
+            case 0x0:
+            case 0x300:
+                s->rot[0].vx += 4;
+                s->rot[0].vx %= 0x1000;
+                break;
+            case 0x100:
+            case 0x200:
+                s->rot[0].vx -= 4;
+                if (s->rot[0].vx < 0) {
+                    s->rot[0].vx += 0x1000;
+                }
+                break;
+        }
+    } else {
+        speed = 1;
+        switch (((D_actor_560800_801752E8 + work->field_270) * 2) & 0x700) {
+            case 0x0:
+            case 0x100:
+            case 0x600:
+            case 0x700:
+                s->rot[0].vx += 2;
+                s->rot[0].vx %= 0x1000;
+                break;
+            case 0x200:
+            case 0x300:
+            case 0x400:
+            case 0x500:
+                s->rot[0].vx -= 2;
+                if (s->rot[0].vx < 0) {
+                    s->rot[0].vx += 0x1000;
+                }
+                break;
+        }
+    }
+    s->pos.vx = ((TmdObject*)arg0->extra)->field_8->sub->coord.t[0] + ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+    s->pos.vy = ((TmdObject*)arg0->extra)->field_8->sub->coord.t[1] + ((TmdObject*)arg0->extra)->field_8->coord.t[1];
+    s->pos.vz = ((TmdObject*)arg0->extra)->field_8->sub->coord.t[2] + ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+    s->ang.vx = s->rot[0].vx;
+    s->ang.vy = s->rot[0].vy;
+    s->ang.vz = s->rot[0].vz;
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->field_8->coord, s->rot[0].vy, 1);
+    Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->field_8->coord, s->rot[0].vx + 0x400, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->field_8->coord, s->rot[0].vz, 0);
+    s->link  = ((TmdObject*)arg0->extra)->field_8->coord;
+    s->chain = s->link;
+    gte_SetRotMatrix(&s->chain);
+    for (i = 1; i < 6; i++) {
+        gte_ldclmv(&((TmdObject*)arg0->extra)->field_8[i].coord);
+        gte_rtir_real();
+        gte_stclmv(&s->link);
+        gte_ldclmv((char*)&((TmdObject*)arg0->extra)->field_8[i].coord + 2);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->link + 2);
+        gte_ldclmv((char*)&((TmdObject*)arg0->extra)->field_8[i].coord + 4);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->link + 4);
+        s->joint.vx = ((TmdObject*)arg0->extra)->field_8[i + 1].coord.t[0];
+        s->joint.vy = ((TmdObject*)arg0->extra)->field_8[i + 1].coord.t[1];
+        s->joint.vz = ((TmdObject*)arg0->extra)->field_8[i + 1].coord.t[2];
+        gte_SetRotMatrix(&s->link);
+        gte_ldv0(&s->joint);
+        gte_rtv0_real();
+        gte_stsv(&s->joint);
+        s->joint.vx += s->pos.vx;
+        s->joint.vy += s->pos.vy;
+        s->joint.vz += s->pos.vz;
+        s->aim.vx    = (s->ang.vx + s->rot[i].vx) % 0x1000;
+        s->aim.vy    = (s->ang.vy + s->rot[i].vy) % 0x1000;
+        s->aim.vz    = (s->ang.vz + s->rot[i].vz) % 0x1000;
+        if (s->rot[0].vy == 0) {
+            a = ratan2(s->joint.vy - target->world.t[1], target->world.t[2] - s->joint.vz) % 0x1000;
+            if (a < 0) {
+                a += 0x1000;
+            }
+            s->aim.vx -= a;
+            if (s->aim.vx < 0) {
+                s->aim.vx += 0x1000;
+            }
+            if (s->aim.vx < 0x800) {
+                s->rot[i].vx += speed;
+                s->rot[i].vx %= 0x1000;
+            } else {
+                s->rot[i].vx -= speed;
+                if (s->rot[i].vx < 0) {
+                    s->rot[i].vx += 0x1000;
+                }
+            }
+        } else {
+            a = ratan2(target->world.t[1] - s->joint.vy, target->world.t[2] - s->joint.vz) % 0x1000;
+            if (a < 0) {
+                a += 0x1000;
+            }
+            s->aim.vx -= a;
+            if (s->aim.vx < 0) {
+                s->aim.vx += 0x1000;
+            }
+            if (s->aim.vx > 0x800) {
+                s->rot[i].vx += speed;
+                s->rot[i].vx %= 0x1000;
+            } else {
+                s->rot[i].vx -= speed;
+                if (s->rot[i].vx < 0) {
+                    s->rot[i].vx += 0x1000;
+                }
+            }
+        }
+        Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->field_8[i].coord, s->rot[i].vy, 1);
+        Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->field_8[i].coord, s->rot[i].vx, 0);
+        Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->field_8[i].coord, s->rot[i].vz, 0);
+        gte_SetRotMatrix(&s->chain);
+        gte_ldclmv(&((TmdObject*)arg0->extra)->field_8[i].coord);
+        gte_rtir_real();
+        gte_stclmv(&s->chain);
+        gte_ldclmv((char*)&((TmdObject*)arg0->extra)->field_8[i].coord + 2);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->chain + 2);
+        gte_ldclmv((char*)&((TmdObject*)arg0->extra)->field_8[i].coord + 4);
+        gte_rtir_real();
+        gte_stclmv((char*)&s->chain + 4);
+        s->joint.vx = ((TmdObject*)arg0->extra)->field_8[i + 1].coord.t[0];
+        s->joint.vy = ((TmdObject*)arg0->extra)->field_8[i + 1].coord.t[1];
+        s->joint.vz = ((TmdObject*)arg0->extra)->field_8[i + 1].coord.t[2];
+        gte_SetRotMatrix(&s->chain);
+        gte_ldv0(&s->joint);
+        gte_rtv0_real();
+        gte_stsv(&s->joint);
+        s->ang.vx += s->rot[i].vx;
+        s->ang.vx %= 0x1000;
+        s->ang.vy += s->rot[i].vy;
+        s->ang.vy %= 0x1000;
+        s->ang.vz += s->rot[i].vz;
+        s->ang.vz %= 0x1000;
+        s->pos.vx += s->joint.vx;
+        s->pos.vy += s->joint.vy;
+        s->pos.vz += s->joint.vz;
+    }
+    Mem_CopyUnaligned(s->rot, work->rot, sizeof(s->rot));
+    switch (work->field_27E) {
+        case 0:
+            if (abs(s->pos.vy - target->world.t[1]) < 300) {
+                if (abs(s->pos.vz - target->world.t[2]) < 200) {
+                    work->field_27E = 1;
+                }
+            }
+            break;
+        case 1:
+            work->field_24E -= 20;
+            if (work->field_24E < -100) {
+                work->field_27E = 2;
+            }
+            break;
+        case 2:
+            work->field_24E += 2;
+            if (work->field_24E > 0) {
+                work->field_24E = 0;
+                work->field_27E = 0;
+            }
+            break;
+    }
+    *(Actor560800ChainScratch**)0x1F8003FC += 1;
+}
 
 /// Sets up the animated model part the spawn argument names: allocates its
 /// `Actor560800ModelWork`, hangs it off `Task::idMap`, points the object's light

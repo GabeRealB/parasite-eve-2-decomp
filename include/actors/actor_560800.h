@@ -214,6 +214,25 @@ typedef struct Actor560800PartsWork {
 } Actor560800PartsWork;
 STATIC_ASSERT_SIZEOF(Actor560800PartsWork, 0x4C);
 
+/// The 0xA8-byte block `func_actor_560800_80136AA8` pushes on the scratchpad
+/// stack (`0x1F8003FC`). `chain` is the rotation accumulated down the part
+/// chain, `link` that rotation times the current part's, and `joint` the next
+/// part's translation carried through them; `pos` sums the joints from the root
+/// and `ang` the parts' rotations, with `aim` their sum against the current
+/// part. `rot` is the working copy of `Actor560800ModelWork::rot`, copied in and
+/// back out around the walk.
+typedef struct Actor560800ChainScratch {
+    /* 0x00 */ MATRIX  chain;
+    /* 0x20 */ MATRIX  link;
+    /* 0x40 */ SVECTOR pos;
+    /* 0x48 */ SVECTOR ang;
+    /* 0x50 */ SVECTOR aim;
+    /* 0x58 */ SVECTOR joint;
+    /* 0x60 */ byte    pad_60[0x10];
+    /* 0x70 */ SVECTOR rot[7];
+} Actor560800ChainScratch;
+STATIC_ASSERT_SIZEOF(Actor560800ChainScratch, 0xA8);
+
 /// One 0x18-byte part pose: a root position and the root rotation.
 /// `func_actor_560800_80137F58` loads one table of eight (one per part) into
 /// the parts - `D_actor_560800_80175314` / `801753D4` / `80175494` by
