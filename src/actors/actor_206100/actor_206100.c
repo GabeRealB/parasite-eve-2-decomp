@@ -435,7 +435,41 @@ const Actor206100StateTable4 D_actor_206100_80149EC0 = {
 /// the walk that retires the actor back to `field_434` / `field_438` once it has
 /// travelled far enough.
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014D380);
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014D574);
+void func_actor_206100_8014D574(Task* task)
+{
+    Actor206100Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    s32              sound;
+    s32              pan;
+    s32              i;
+    s16              y;
+
+    work            = (Actor206100Work*)task->idMap;
+    work->field_51E = work->field_51E + 1;
+    if ((s16)work->field_51E < 0x1E) {
+        work->field_35C = work->field_35C + ((s32) - (work->field_35C << 0x14) >> 0x15);
+        work->field_35E = work->field_35E + ((s32) - (work->field_35E << 0x14) >> 0x15);
+    }
+    y = -0x64;
+    if ((s16)work->field_51E == 0x1E) {
+        i     = 0;
+        coord = ((TmdObject*)task->extra)->field_8;
+        do {
+            vec.vx = (u32)rsin(i << 7) >> 3;
+            vec.vy = y;
+            vec.vz = (u32)rcos(i << 7) >> 3;
+            Gp_SpawnEff(D_80115738, coord, 0x01202148, &vec);
+            i++;
+        } while (i < 0x20);
+        sound = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 12) << 8) | 0x551E0006;
+        pan   = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->field_8));
+        work->field_51E = 0;
+        work->field_526 = 0x1E78;
+        work->field_522 = work->field_522 + 1;
+    }
+}
 /// State handler of the second table, `D_actor_206100_80149EB4`: consumes a
 /// pending sub-state request through the inlined `take_request`, and when there
 /// was none runs the current sub-state handler from that table and then steers
