@@ -76,6 +76,23 @@ typedef struct Actor401300Work {
     /* 0xD22 */ s16   field_D22;
 } Actor401300Work;
 
+/// Animation view of the same work block, as `func_actor_401300_80133324`
+/// reads it: the `Actor01900AnimWork` layout shifted 4 bytes later, like the
+/// rest of this overlay's animation fields.
+typedef struct Actor401300AnimWork {
+    /* 0x000 */ byte       pad_0[0x20];
+    /* 0x020 */ GpAnimCtx  anim;
+    /* 0x034 */ GpAnimSlot slots[19];
+    /* 0x32C */ byte       pad_32C[0x130];
+    /* 0x45C */ GpAnimCtx  blendAnim;
+    /* 0x470 */ GpAnimSlot blendSlots[19];
+    /* 0x768 */ byte       pad_768[0x13E];
+    /* 0x8A6 */ s16        field_8A6;
+    /* 0x8A8 */ byte       pad_8A8[6];
+    /* 0x8AE */ s16        field_8AE;
+    /* 0x8B0 */ s16        field_8B0;
+} Actor401300AnimWork;
+
 /// Per-task actor context: `field_1C` is the work block (`Task::idMap`) and
 /// `field_2C` is the actor's `TmdObject`. Same shape as `Actor01900`.
 typedef struct Actor401300 {

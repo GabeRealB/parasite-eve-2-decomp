@@ -64,7 +64,36 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80133254);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80133324);
+void func_actor_401300_80133324(Actor401300* arg0)
+{
+    GpAnimPose           pose;
+    GpAnimPose           blendPose;
+    s16                  weight;
+    s16                  i;
+    Actor401300AnimWork* work;
+
+    work   = (Actor401300AnimWork*)arg0->field_1C;
+    weight = work->field_8B0;
+    for (i = 1; i < 0x13; i++) {
+        if (i < 0xB) {
+            work->blendSlots[i].field_9 = (u8)work->field_8AE;
+            work->slots[i].field_9      = (u8)(work->field_8A6 - 3);
+            if (i >= 7) {
+                if (i < 9) {
+                    continue;
+                }
+            }
+            do {
+                func_800B3448(&work->anim, i, (s32)&pose, 0);
+                func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
+                Gp_AnimWritePoseCopy(&work->anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+            } while (0);
+        } else {
+            work->slots[i].field_9 = (u8)(work->field_8A6 - 3);
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013346C);
 
