@@ -53,7 +53,47 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_8
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
 /// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
 /// query buffer is the 0x18 bytes `SCRATCH_SP` is pushed by.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80132C70);
+s32 func_actor_521100_80132C70(Actor521100* arg0)
+{
+    Actor521100Work*   work;
+    Task*              player;
+    Actor521100Msg3F8* msg;
+    s16                diff;
+    s32                adiff;
+    s16                wrap;
+    s32                ret;
+
+    work   = arg0->field_1C;
+    player = Game_GetPtrSlot(3);
+    msg    = (Actor521100Msg3F8*)(SCRATCH_SP -= 0x18);
+
+    diff  = work->field_698 - work->field_696;
+    adiff = diff >= 0 ? diff : -diff;
+    ret   = 0;
+    if (adiff < 0x800) {
+        wrap = adiff;
+    } else if (diff > 0) {
+        wrap = 0x1000 - diff;
+    } else {
+        wrap = diff + 0x1000;
+    }
+    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (D_80073BA0 > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GpActorWork*)player)->actor->field_954 != 2)) {
+        msg->field_14 = 0x19;
+        if (Gp_DispatchMsg(player, 0x3F8, (s32)msg, 0) == 0) {
+            ret             = 1;
+            work->field_6A8 = 0;
+            work->field_69E = 2;
+            work->field_6A0 = 0;
+            work->field_6A2 = 0;
+            work->field_686 = 0xA;
+            work->field_69A = 0;
+            work->field_69C = 0;
+            Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
+        }
+    }
+    SCRATCH_SP += 0x18;
+    return ret;
+}
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80132DE8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80133104);
