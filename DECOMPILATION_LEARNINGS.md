@@ -97207,3 +97207,44 @@ Inputs: `base.i`
 `fa59e1f9adbc85b08fbd1ea2c4272d4494383beea7a1227d849214b9af852be4` (94.630%),
 `base_1.i` `890037663697c5df7b8a5d7d98813212e8453845f3e197d1932469e3e69fd2f3`
 (100.000%).
+
+## An actor spawn-handler seed: retype from a matched sibling before forcing `&local` rematerialization (func_actor_443500_80132078, 2026-09-16)
+
+Every enemy actor's spawn handler is the same shape — `Mem_Calloc` a work block,
+seed its head, `Task_SpawnFromTable` a child, copy the location out of the
+session area key onto the child's `TmdObject`, install `Task::field_24` (the
+`(anim id, handler)` table), `Task::exitCallback` and `Task::state++`. Because
+the shape repeats, a *matched* sibling of your function usually already exists
+in the family, and typing the m2c seed the way that sibling is written is worth
+trying before any register pin or scheduling barrier.
+
+The seed here (`base.c`, 81.298%, `stack=0 branch=3 regs=39 reorder=1 insert=5
+delete=10`) came out with a 0x30 frame and four callee-saved slots
+(`$s3`/`$s2`/`$s1`/`$s0`) where the target has 0x28 and three, plus `move a0,
+s1` in both `Gp_SyncAreaKeyIndex` / `Gp_GetNestedAreaRec` argument slots. That
+is the signature the "`&local` passed to two back-to-back calls" entry above
+describes: the two `&sp10` computations CSE'd into one pseudo, live across the
+first `jal`, so `global-alloc` owed it a callee-saved register. The difference
+is that here nothing had to be done about it — the address pseudo was a symptom
+of the seed, not of the source. m2c's rendering carried an untyped `void* task`
+with `M2C_FIELD(...)` nested loads and four separate `u8 sp10..sp13` scalars;
+rewriting in the sibling's typed form (`Task* task`, a real `GpAreaKey key;`,
+a typed work struct, `model = (TmdObject*)spawned->extra`) removed the extra
+live values, the surviving pseudo never formed, and `&key` rematerializes as
+`addiu a0, sp, 0x10` per call on its own. Same source body, 100.000%, no
+barrier, no pin, frame 0x28.
+
+So the ordering is: (1) `overlay_dup_index.py find` for the body; (2) read a
+matched carrier's C — for this shape `src/actors/lib/actor_105500_tail.c`
+(`Actor05500_Fn03C54`), `src/actors/actor_302600/actor_302600_7.c`
+(`func_actor_302600_80165A6C`) and `src/actors/actor_135400/actor_135400_2.c`
+(`func_actor_135400_80132B60`) all carry it; (3) write the new function in that
+style; (4) only then reach for `SOFT_BARRIER`/`TOUCH_REG`. The corpus entry
+above is the case where the source genuinely has to keep an untyped local and
+the barrier is load-bearing — it is not the first move.
+
+Inputs (source sha256): `base.c`
+`21efd74b3a56e06fc529910d2c2906ff13ff3cde5435d7c11fece32581afe82f` (81.298%),
+`base_1.c` `de2e390cf0a6501b05a2f72cb33f4bd7bc5f59ccd51fe261a714d573e26d2d62`
+(100.000%). Between them the whole function was retyped at once, so the
+individual contributions are not separated — the measured fact is the pair.
