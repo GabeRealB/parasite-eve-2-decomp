@@ -16,10 +16,12 @@
 
 #include <psyq/inline_c.h>
 
-/* `gte_ApplyMatrix` / `gte_MulMatrix0` from `psyq/gtemac.h`, except with the
- * real `rtv0` / `rtir` encodings this toolchain assembles correctly. */
+/* `gte_ApplyMatrix` / `gte_MulMatrix0` / `gte_RotTransPers` from
+ * `psyq/gtemac.h`, except with the real `rtv0` / `rtir` / `rtps` encodings this
+ * toolchain assembles correctly. */
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 void func_actor_510900_80135744(Actor510900* arg0);
 void func_actor_510900_8013864C(Actor510900* arg0);
@@ -117,7 +119,102 @@ void func_actor_510900_801340E8(Task* arg0)
     Gp_ReleaseState1CMem(eff, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80134284);
+/// One frame of the trail effect: the coordinate drifts by a per-effect random
+/// step, and the segment between last frame's position and this one is drawn as
+/// a `LINE_F2` that fades out over `field_24 * 16` frames.
+void func_actor_510900_80134284(Task* arg0)
+{
+    Actor510900TrailScratch* block;
+    GpEffWork*               eff;
+    GsCOORDINATE2*           coord;
+    LINE_F2*                 prim;
+    s16                      mode;
+    s16                      step;
+    s32                      rng;
+    s16                      val;
+    s16                      count;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor510900TrailScratch);
+    block                   = (Actor510900TrailScratch*)*(void**)G_SCRATCH_HEAD;
+    eff                     = arg0->spawnArg2;
+    mode                    = Gp_State1C->field_4;
+    coord                   = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
+    if (mode != 0) {
+        if (mode >= 4) {
+            Gp_ReleaseState1CMem(eff, arg0);
+        }
+        return;
+    }
+    Gp_UpdateCoord(coord);
+    if (arg0->state == 0) {
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        eff->field_10 = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        eff->field_12 = -((Gp_LcgState >> 16) & 0x3F) - 0x10;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        eff->field_14 = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        step          = 2;
+        if (((Gp_LcgState >> 16) & 3) != 0) {
+            step = 1;
+        }
+        rng           = Gp_LcgState * 5 + 0x71357911;
+        eff->field_24 = step;
+        eff->field_26 = (((u32)rng >> 16) & 1) + 1;
+        Gp_LcgState   = rng;
+        arg0->state++;
+    }
+    block->vec0.vx     = *(u16*)&coord->workm.t[0];
+    block->vec0.vy     = *(u16*)&coord->workm.t[1];
+    block->vec0.vz     = *(u16*)&coord->workm.t[2];
+    coord->coord.t[0] += eff->field_10;
+    coord->coord.t[1] += eff->field_12;
+    coord->coord.t[2] += eff->field_14;
+    coord->flg         = 0;
+    Gp_UpdateCoord(coord);
+    block->vec1.vx = *(u16*)&coord->workm.t[0];
+    block->vec1.vy = *(u16*)&coord->workm.t[1];
+    block->vec1.vz = *(u16*)&coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec0);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy0);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz0);
+        gte_ldv0(&block->vec1);
+        gte_rtps_real();
+        gte_stsxy(&block->sxy1);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz1);
+            prim           = (LINE_F2*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 3);
+            setcode(prim, 0x40);
+            val      = 0xFF - (eff->field_22 << (5 - eff->field_24));
+            prim->r0 = val;
+            prim->g0 = val >> eff->field_26;
+            prim->b0 = val >> 3;
+            prim->x0 = *(u16*)&block->sxy0.vx;
+            prim->y0 = *(u16*)&block->sxy0.vy;
+            prim->x1 = *(u16*)&block->sxy1.vx;
+            prim->y1 = *(u16*)&block->sxy1.vy;
+            addPrim((u_long*)(((((u32)((block->otz0 + block->otz1) >> 1) << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz0 + block->otz1) >> 1);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor510900TrailScratch);
+    eff->field_12          += 6;
+    count                   = eff->field_22 + 1;
+    eff->field_22           = count;
+    if (count > eff->field_24 * 16 - 1) {
+        Gp_ReleaseState1CMem(eff, arg0);
+    }
+}
 
 void func_actor_510900_801346D4(Task* arg0)
 {

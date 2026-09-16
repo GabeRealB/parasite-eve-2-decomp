@@ -34,6 +34,23 @@ typedef struct Actor510900AimScratch {
 } Actor510900AimScratch;
 STATIC_ASSERT_SIZEOF(Actor510900AimScratch, 0x40);
 
+/// 0x24-byte scratch `func_actor_510900_80134284` takes from `G_SCRATCH_HEAD`
+/// to draw one frame of the debris trail. `vec0` is the effect coordinate's
+/// `workm.t[]` before the per-frame drift is added and `vec1` the same after,
+/// so the two `RTPS` projections give the ends of the trail `LINE_F2`.
+/// `otz0` / `otz1` receive `gte_stszotz` for each end and their mean picks the
+/// OT bucket; `flag` is the shared `gte_stflg` the projections are dropped on.
+typedef struct Actor510900TrailScratch {
+    /* 0x00 */ SVECTOR vec0;
+    /* 0x08 */ SVECTOR vec1;
+    /* 0x10 */ s32     otz0;
+    /* 0x14 */ s32     otz1;
+    /* 0x18 */ s32     flag;
+    /* 0x1C */ DVECTOR sxy0;
+    /* 0x20 */ DVECTOR sxy1;
+} Actor510900TrailScratch;
+STATIC_ASSERT_SIZEOF(Actor510900TrailScratch, 0x24);
+
 typedef struct Actor510900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor510900Coord* field_8;
