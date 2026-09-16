@@ -92145,3 +92145,70 @@ spelling that fixes it.
 
 81.683% -> 100.00% (`base.c` -> `base_1.c`). Preprocessed SHA256: `base_1.i`
 `a13742c1fb7036eea1db1c11c96464f93c337ff7b80e8fe08f93dc952e4b2e39`.
+
+
+## An angle-wrap body wants `abs()` and an `s32` magnitude: the `if` form adds an allocno
+
+`func_actor_521100_80135680` measures the 12-bit angle difference between two
+`u16` fields, wraps it into [-0x800, 0x800] and tests the magnitude against
+0x200. m2c's shape types that magnitude `s16` (its `var_a1`) and inverts the
+test, which costs an `sll`/`sra` pair the target does not have: an HImode value
+has to be re-extended before `slti` reads it. The source is the actor family's
+angle-wrap idiom, already matched in `src/actors/lib/actor_100300_text.c`
+(`Actor00300_Fn019C0`) and reused verbatim:
+
+```
+s16 delta;    /* from two u16 fields */
+s16 angle;
+s16 wrapped;
+s32 magnitude;
+
+delta     = a->field_698 - a->field_696;
+magnitude = abs(delta);
+if (magnitude < 0x800) {
+    angle = magnitude;
+} else {
+    if (delta > 0) { wrapped = 0x1000 - delta; }
+    else           { wrapped = delta + 0x1000; }
+    angle = wrapped;
+}
+```
+
+Widening m2c's magnitude to `s32` alone (keeping the source-level
+`if (delta < 0) magnitude = -magnitude;`) is worth 85.78% -> 87.80%; wrapping it
+in `abs()` as well reaches 100%. The second step is not a codegen difference -
+both spellings produce the same 35 instructions in the same order, with
+insert/delete/branch all zero. It is an *allocation* difference, and `.greg`
+shows it in one line:
+
+* `abs()` is a single `abssi2` insn (`(set (reg:SI 84) (abs:SI (reg:SI 6 a2)))
+  84 {abssi2}`), one value of 3 refs / 4 insns. The allocation order is
+  `85 88 82 83 84 89` (85 is the `pointer` allocno, 8 refs / 29 insns), and 85
+  takes `$a0` - the target's home - while 84 takes `$a1`.
+* The `if` form splits the block: the negation becomes its own value of 5 refs /
+  7 insns, which leads the order (`90 84 85 82 83 88`). It takes `$v1`, the
+  magnitude takes `$a0`, and the pointer is pushed to `$a1`: 96.68% with
+  `regs=22`, and `stack=3` for a frame the same 35 insns do not otherwise
+  explain.
+
+`global.c` is what makes the higher-priority allocno lose: `prune_preferences`
+fills `regs_someone_prefers[allocno]` with the registers preferred by
+lower-priority conflicting allocnos, and `find_reg`'s pass 0 skips them so the
+low-priority value can have its preference. `.greg` prints the preferences as
+`;; 82 preferences: 2`, `;; 83 preferences: 2`, `;; 88 preferences: 3`. So one
+extra live value does not just shift a register - it re-orders which of two
+long-lived values keeps the low call-clobbered register it wants.
+
+Note also that both wrap branches read the *raw* 32-bit difference
+(`subu v0,v0,v1`), not the sign-extended one. `wrapped` is HImode, so only the
+low 16 bits of `0x1000 - delta` matter and GCC folds the truncation away - do
+not add a raw `s32` local to explain it.
+
+85.78% -> 87.80% -> 100.00% (`base.c` -> `base_1.c` -> `base_2.c`); the
+`abs()`-free variant `base_3.c` gives 96.68% and is kept as the counter-example.
+Preprocessed SHA256: `base_2.i`
+`70513f61f77350f49ca9d6cda69bebbf103f1fa483354611b7806c1a11929f42`, `base_3.i`
+`c4ba5b3923dd15a269357e7911312b9446a91e6042b1706f15d28e0923a60af0`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_521100_80135680-vacuum` (`base_2.i.greg`,
+`base_3.i.greg`, `base_3_diff`).

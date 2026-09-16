@@ -2,6 +2,8 @@
 
 #include "actors/actor_521100.h"
 
+#include <psyq/abs.h>
+
 void func_actor_521100_801358D4(Actor521100* arg0);
 void func_actor_521100_80135964(Actor521100* arg0);
 void func_actor_521100_80132958(void);
@@ -43,7 +45,36 @@ void func_actor_521100_801355C8(Actor521100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_80135680);
+/// Steps the actor into state 1 once its facing has come within 45 degrees of
+/// the angle at `field_696`, then stops it: both speeds are zeroed.
+void func_actor_521100_80135680(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    s16              delta;
+    s16              angle;
+    s16              wrapped;
+    s32              magnitude;
+
+    work      = arg0->field_1C;
+    delta     = work->field_698 - work->field_696;
+    magnitude = abs(delta);
+    if (magnitude < 0x800) {
+        angle = magnitude;
+    } else {
+        if (delta > 0) {
+            wrapped = 0x1000 - delta;
+        } else {
+            wrapped = delta + 0x1000;
+        }
+        angle = wrapped;
+    }
+    if ((angle < 0x200) && (work->field_6AA < 0xDAC)) {
+        work->field_69E = 1;
+        work->field_6A0 = 0;
+        work->field_69A = 0;
+        work->field_69C = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_8013570C);
 

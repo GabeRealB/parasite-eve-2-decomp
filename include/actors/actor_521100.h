@@ -76,15 +76,21 @@ typedef struct Actor521100Work {
     /* 0x690 */ s16          field_690;
     /* 0x692 */ s16          field_692;
     /* 0x694 */ s16          field_694;
-    /* 0x696 */ byte         pad_696[4];
-    /* 0x69A */ s16          field_69A; // forward speed, in 12-bit fixed point
-    /* 0x69C */ byte         pad_69C[2];
-    /* 0x69E */ s16          field_69E;
-    /* 0x6A0 */ byte         pad_6A0[8];
-    /* 0x6A8 */ s16          field_6A8;
-    /* 0x6AA */ byte         pad_6AA[6];
-    /* 0x6B0 */ s16          field_6B0;
-    /* 0x6B2 */ s16          field_6B2;
+    /// 12-bit angles. The step-1 entry body `func_actor_521100_80135680`
+    /// subtracts them, wraps the difference into [-0x800, 0x800] and reads
+    /// `field_6AA` when the result is under 0x200.
+    /* 0x696 */ u16  field_696;
+    /* 0x698 */ u16  field_698;
+    /* 0x69A */ s16  field_69A; // forward speed, in 12-bit fixed point
+    /* 0x69C */ s16  field_69C; // cleared together with the forward speed
+    /* 0x69E */ s16  field_69E;
+    /* 0x6A0 */ s16  field_6A0;
+    /* 0x6A2 */ byte pad_6A2[6];
+    /* 0x6A8 */ s16  field_6A8;
+    /* 0x6AA */ s16  field_6AA;
+    /* 0x6AC */ byte pad_6AC[4];
+    /* 0x6B0 */ s16  field_6B0;
+    /* 0x6B2 */ s16  field_6B2;
     /// The animation record's flag nibble (`rec->field_3 & 0x30`) latched for
     /// the next frame by the footstep cue body `func_actor_521100_80134D88`, so
     /// each foot fires on the frame its bit has just dropped.
