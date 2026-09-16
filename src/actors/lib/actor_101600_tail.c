@@ -342,7 +342,32 @@ void Actor01600_Fn066E8(Actor01600* arg0)
     sp.funcs[arg0->field_30]((Actor01600Ctx*)arg0->field_20, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06744);
+/// Snapshots the attachment coordinate's translation into the work block's
+/// `field_4BC`/`field_4C0`/`field_4C4`, then steps that coordinate along the
+/// model's own facing: `field_50E` units of the coordinate's column 2 added to
+/// its X/Z translation. Vertical follow-up only runs while `field_530` is
+/// clear: with `field_528` set the frame counter `field_51E` is added to
+/// `t[1]`, otherwise the coordinate is snapped down by 0x80.
+void Actor01600_Fn06744(Actor01600* arg0)
+{
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+
+    coord              = arg0->field_2C->field_8;
+    work               = arg0->field_1C;
+    work->field_4BC    = coord->coord.t[0];
+    work->field_4C0    = coord->coord.t[1];
+    work->field_4C4    = coord->coord.t[2];
+    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_50E) >> 0xC;
+    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_50E) >> 0xC;
+    if (work->field_530 == 0) {
+        if (work->field_528 != 0) {
+            coord->coord.t[1] += work->field_51E;
+            return;
+        }
+        coord->coord.t[1] += 0x80;
+    }
+}
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
