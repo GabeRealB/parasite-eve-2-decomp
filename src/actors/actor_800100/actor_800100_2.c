@@ -13,6 +13,8 @@ s32  func_80105ED4(GpActorWork* arg0);
 void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
 s32  rand();
 
+extern u32 Gp_LcgState;
+
 extern GpActorFuncTable12 D_actor_800100_80161E58;
 extern s32                D_80115738;
 extern s32                D_8011574C;
@@ -562,7 +564,114 @@ void func_actor_800100_80164940(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164B9C);
+/// Aim/lock drive for the actor's `field_95E` phase machine. While the angle
+/// to the ally block at `field_910->field_A0` is nonzero and under `0x301`,
+/// `field_93E` counts up and the LCG decides the next aim window: once the
+/// step passes `((Gp_LcgState >> 16) & 0x3F) + 0x28` the actor latches into
+/// the `0xA` / child-slot-1 chain, keeping the old `field_956` in `field_960`
+/// and clearing the aim offset on `field_910`. Otherwise it carves a 0x20-byte
+/// `Actor800100LockScratch` off `G_SCRATCH_HEAD`, fills `lock` either from the
+/// lock node (`Gp_GetLockPos`) or from the player's model coordinate, runs the
+/// `field_95E` switch, measures the aim spread across `rot`, and drops back to
+/// child slot 9 when the roll loses. Both arms end by handing `lock` to
+/// `func_8010BD88` / `func_8010BE5C` and returning the scratch.
+void func_actor_800100_80164B9C(GpActorWork* arg0)
+{
+    GameActor*              actor;
+    GameActor*              actor2;
+    GameActor*              actor3;
+    GpActorD4*              d4;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          target;
+    Actor800100LockScratch* block;
+    GpLinkNode*             node;
+    void**                  scratch;
+    u8*                     head;
+    u16                     step;
+    u16                     old;
+    s16                     anim;
+    u32                     random;
+    s32                     angle;
+    s32                     val;
+
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    actor  = arg0->actor;
+    angle  = func_actor_800100_8016709C(coord, &actor->field_910->field_A0, NULL);
+    if (angle != 0 && angle < 0x301) {
+        step             = actor->field_93E + 1;
+        actor->field_93E = step;
+        random           = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState      = random;
+        if ((s16)step >= (s32)(((random >> 16) & 0x3F) + 0x28)) {
+            anim              = 1;
+            actor2            = arg0->actor;
+            old               = actor2->field_956;
+            actor2->field_956 = 0xA;
+            actor2->field_95A = anim;
+            actor2->field_97E = anim;
+            d4                = actor2->field_910;
+            actor2->field_954 = 0;
+            actor2->field_95C = 0;
+            actor2->field_95E = 0;
+            actor2->field_960 = old;
+            d4->field_CA      = -1;
+            d4->field_C6      = 0;
+            Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+            return;
+        }
+    }
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x20;
+    block    = (Actor800100LockScratch*)(head - 0x20);
+    node     = actor->field_90C;
+    if (node != NULL) {
+        if ((node->field_4 & 1) == 0) {
+            Gp_GetLockPos((GpLockPos*)node, &block->lock);
+        } else {
+            actor->field_95E = 2;
+        }
+    } else {
+        block->lock.vx = target->coord.t[0];
+        block->lock.vy = target->coord.t[1];
+        block->lock.vz = target->coord.t[2];
+    }
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_95E = 1;
+            actor->field_934 = 0;
+            actor->field_958 = 3;
+            Gp_AnimPlayChildSlotsEx(arg0, 0xC, 0, 5);
+        case 1:
+        case 2:
+            break;
+        default:
+            goto tail;
+    }
+    actor->field_973 = 1;
+    func_80103C74(coord, &block->lock, &block->rot);
+    angle = func_80103D8C(block->rot.vx, block->rot.vz);
+    if (actor->field_90C != NULL) {
+        val = (rand() & 0x3FF) + 0xB00;
+    } else {
+        val = 0xB00;
+    }
+    if (val >= angle || actor->field_95E == 2) {
+        actor3            = arg0->actor;
+        actor3->field_954 = 0;
+        actor3->field_956 = 4;
+        actor3->field_95C = 0;
+        actor3->field_95E = 0;
+        actor3->field_973 = 0;
+        actor3->field_975 = 0;
+        Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+    }
+tail:
+    func_8010BD88(arg0, &block->lock);
+    func_8010BE5C(arg0, &block->lock);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
 
 void func_actor_800100_80164E60(GpActorWork* arg0)
 {

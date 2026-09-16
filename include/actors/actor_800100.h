@@ -19,9 +19,11 @@ typedef struct _Actor800100PlaceScratch {
 STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
 
 /// 0x20-byte block from `G_SCRATCH_HEAD` used by
-/// `func_actor_800100_80164710`: the lock position `Gp_GetLockPos` fills (also
-/// the `VECTOR3` handed to `func_80103C74`), and the `rot` vector above it
-/// whose `vx`/`vz` `func_80103D8C` measures.
+/// `func_actor_800100_80164710` and `func_actor_800100_80164B9C`: the lock
+/// position `Gp_GetLockPos` fills (also the `VECTOR3` handed to
+/// `func_80103C74`), and the `rot` vector above it whose `vx`/`vz`
+/// `func_80103D8C` measures. `80164B9C` also treats it as the `VECTOR3`
+/// handed to `func_8010BD88` / `func_8010BE5C`.
 typedef struct _Actor800100LockScratch {
     /* 0x00 */ VECTOR3 lock;
     /* 0x0C */ byte    pad_C[4];

@@ -105962,3 +105962,61 @@ every other callee-saved home. Writing the store into each arm (see
 "Cross-jumping merges duplicate *call* blocks too") removes the pseudo; the two
 stores then merge into the one the target has, the surviving then-block is a
 single `addiu`, and its branch's delay slot absorbs it as `lh/lhu/bgtz/addiu`.
+
+## A variable assigned in two blocks is a *global* allocno; give the second block its own (func_actor_800100_80164B9C, 2026-09-16)
+
+The last block of `func_actor_800100_80164B9C` would not come out right. The
+target loads the actor pointer into `$v0` and keeps it there
+
+```
+lw    v0,0x1c(a0)      ; actor2
+lhu   t0,0x956(v0)     ; old
+li    v1,0xa
+sh    v1,0x956(v0)
+...
+lw    v1,0x910(v0)     ; d4
+sh    t0,0x960(v0)
+```
+
+while every attempt produced the same instructions with the homes rotated:
+`actor2` in `$t0`, the `0xa` / `anim` constants in `$v0`, `old` in `$v1`. The
+chain is one decision: whichever register holds the pointer decides where the
+constant, the saved `field_956` and the `field_910` load land, and the store
+order follows them.
+
+The trigger is scope, not expression. `actor2` was assigned in **two** basic
+blocks — the early-return body, and the tail block that resets to child slot 9.
+A pseudo with defs in more than one block is not a local quantity, so
+`local-alloc` skips it and `global-alloc` picks its home. `global-alloc`'s
+`find_reg` tries the callee-saved class first and then scans up from register 0,
+but `hard_reg_conflicts[allocno]` is seeded from `hard_regs_live` *every time the
+pseudo is stored* (`global.c` `mark_allocno_live`), so `$v0` — live at the call
+setup the body begins with — is excluded and `$t0` wins.
+
+Give each block its own pointer variable and the same statement sequence
+compiles to the target:
+
+```c
+    if (angle != 0 && angle < 0x301) {
+        actor2 = arg0->actor;           /* block-local: local-alloc -> $v0 */
+        ...
+    }
+    ...
+    if (val >= angle || actor->field_95E == 2) {
+        actor3 = arg0->actor;           /* separate variable, separate pseudo */
+        actor3->field_954 = 0;
+        ...
+    }
+```
+
+`.greg` shows the change directly: `82 conflicts: ... 2 3 4 5 6 7 29`
+(`$v0 $v1 $a0-$a3 $sp`) before, `82 conflicts: ... 2 4 5 6 7 8 29` after — the
+allocno is gone, its register is chosen by `local-alloc`, and the whole block
+falls into place with no extra instruction.
+
+The permuter reached 97.55% on this function by re-reading `arg0->actor` at the
+last store. That is the same lever with a cost: the re-read is not
+common-subexpression-eliminated across the intervening stores, so it buys the
+schedule at the price of an extra `lw`, and it only moves `old`. When a block's
+registers are rotated wholesale rather than one home being wrong, look for a
+variable shared between blocks before adding anything.
