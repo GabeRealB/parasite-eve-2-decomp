@@ -100755,3 +100755,22 @@ writing the store inline in each arm (cross-jumping re-merges them) raised the
 pseudo's ref count enough for global alloc to rank it above a hoisted loop
 constant, giving 100%. The obj pseudo also had to be a copy of the loaded
 `extra` (`coord = extra->field_8; obj = extra;`) to keep the `move s5,v0`.
+
+### An unwanted cross-jump into another path's tail: the shared store is last in source (func_actor_560800_80137F58)
+
+**Symptom.** A switch case returns with `D_E8 = 1; work->field_46 = 0; D_EC = 1;`
+and the fall-through path after the switch ends `work->field_48 = 0;
+work->field_46 = 0;`. The build came out 4 bytes short: the case's `j` targeted
+the default path's final `sh zero,0x46(t0)` and its own copy was gone, while the
+target keeps `sh zero,0x46(t0)` in the case and puts `sw D_EC` in the delay slot.
+
+**Cause.** Scheduling had already moved the `field_46` store after the second
+global store, so the two paths ended in the same insn and jump2 merged them.
+Every other instruction was identical; the fix is only which store the source
+writes first.
+
+**Fix.** Put the shared store first: `work->field_46 = 0; D_E8 = 1; D_EC = 1;`.
+The halfword store still comes out between the two global stores, but no longer
+last, so nothing cross-jumps (99.54% -> 100%). When a tail `j` lands 4 bytes
+early on another path's last store, reorder that store earlier in source before
+restructuring the control flow.

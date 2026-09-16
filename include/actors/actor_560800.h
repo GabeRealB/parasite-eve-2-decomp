@@ -213,16 +213,38 @@ typedef struct Actor560800PartsWork {
 } Actor560800PartsWork;
 STATIC_ASSERT_SIZEOF(Actor560800PartsWork, 0x4C);
 
-/// One 0x18-byte entry per part in `D_actor_560800_80175314`:
-/// `func_actor_560800_801386D4` clamps the part's
-/// `Actor560800ModelWork::field_256` to `field_4` while it grows it by the
-/// matching `D_actor_560800_801756EC` step.
-typedef struct Actor560800PartLimit {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ byte pad_8[0x10];
-} Actor560800PartLimit;
-STATIC_ASSERT_SIZEOF(Actor560800PartLimit, 0x18);
+/// One 0x18-byte part pose: a root position and the root rotation.
+/// `func_actor_560800_80137F58` loads one table of eight (one per part) into
+/// the parts - `D_actor_560800_80175314` / `801753D4` / `80175494` by
+/// `Actor560800PartsWork::field_46`, `80175554` as offsets from the message
+/// position, `80175614` for the teardown - and `func_actor_560800_801386D4`
+/// clamps the part's `Actor560800ModelWork::field_256` to `pos.vy` while it
+/// grows it by the matching `D_actor_560800_801756EC` step.
+typedef struct Actor560800PartPose {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor560800PartPose;
+STATIC_ASSERT_SIZEOF(Actor560800PartPose, 0x18);
+
+extern Actor560800PartPose D_actor_560800_80175314[];
+extern Actor560800PartPose D_actor_560800_801753D4[];
+extern Actor560800PartPose D_actor_560800_80175494[];
+extern Actor560800PartPose D_actor_560800_80175554[];
+extern Actor560800PartPose D_actor_560800_80175614[];
+
+/// Word-wise view of a `MATRIX`, which lets an identity rotation be written
+/// as four `sw` and one `sh` instead of nine halfword stores.
+typedef union Actor560800MatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor560800MatWords;
+STATIC_ASSERT_SIZEOF(Actor560800MatWords, 0x20);
 
 /// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
 /// message 0x7DB: the same 4-byte record the other actors send, whose halfword

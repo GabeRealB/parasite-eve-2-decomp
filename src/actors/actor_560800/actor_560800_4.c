@@ -269,7 +269,147 @@ void func_actor_560800_80137BEC(Task* task)
     func_800D7A9C(extra, &vec, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80137F58);
+/// Message handler of the parts task that loads a pose table into all eight
+/// parts, chosen by `Actor560800PartsWork::field_46`: 0-2 place each part at
+/// its table position and, while `field_48` is set, rebuild its rotation from
+/// the table with the child joints reset; 3 resets each part's matrix, hangs
+/// it off `Gfx_ViewCoord` and offsets it from the message position; 4 kills
+/// parts 4-7, reparents the rest to `D_actor_560800_801757AC`'s model and
+/// raises the `D_actor_560800_801752E8` / `801752EC` flags.
+void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
+{
+    Actor560800PartsWork* work;
+    u16                   flag;
+    Actor560800PartPose*  pose;
+    Actor560800ModelWork* part;
+    GsCOORDINATE2*        coord;
+    Actor560800MatWords*  mat;
+    s32                   i;
+    s32                   j;
+
+    work = (Actor560800PartsWork*)task->idMap;
+    flag = 0;
+    switch (work->field_46) {
+        case 0:
+            pose = D_actor_560800_80175314;
+            break;
+        case 1:
+            pose = D_actor_560800_801753D4;
+            break;
+        case 2:
+            pose = D_actor_560800_80175494;
+            flag = 1;
+            break;
+        case 3:
+            pose = D_actor_560800_80175554;
+            i    = 0;
+            do {
+                if (work->parts[i & 0xFFFF] != NULL) {
+                    coord              = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8;
+                    mat                = (Actor560800MatWords*)&coord->coord;
+                    mat->ident.m00_m01 = 0x1000;
+                    mat->ident.m02_m10 = 0;
+                    mat->ident.m11_m12 = 0x1000;
+                    mat->ident.m20_m21 = 0;
+                    mat->ident.m22     = 0x1000;
+                    coord->sub         = &Gfx_ViewCoord;
+                    part               = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->idMap;
+                    part->field_254    = msg->vx + pose->pos.vx;
+                    part->field_256    = msg->vy + pose->pos.vy;
+                    part->field_258    = msg->vz + pose->pos.vz;
+                    part->field_24C    = 0;
+                    part->field_24E    = 0;
+                    part->field_250    = 0;
+                }
+                i++;
+                pose++;
+            } while ((u32)(i & 0xFFFF) < 8U);
+            return;
+        case 4:
+            i = 0;
+            do {
+                if ((i & 0xFFFF) >= 4U) {
+                    Task_Kill(work->parts[i & 0xFFFF]);
+                    work->parts[i & 0xFFFF] = NULL;
+                }
+                i++;
+            } while ((u32)(i & 0xFFFF) < 8U);
+            pose = D_actor_560800_80175614;
+            i    = 0;
+            do {
+                if (work->parts[i & 0xFFFF] != NULL) {
+                    part            = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->idMap;
+                    coord           = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8;
+                    coord->sub      = ((TmdObject*)D_actor_560800_801757AC->extra)->field_8;
+                    part->field_254 = pose->pos.vx;
+                    part->field_256 = pose->pos.vy;
+                    part->field_258 = pose->pos.vz;
+                    Gfx_RotMatrixY(&coord->coord, pose->rot.vy, 1);
+                    Gfx_RotMatrixX(&coord->coord, pose->rot.vx + 0x400, 0);
+                    Gfx_RotMatrixZ(&coord->coord, pose->rot.vz, 0);
+                    part->rot[0].vx = pose->rot.vx;
+                    part->rot[0].vy = pose->rot.vy;
+                    part->rot[0].vz = pose->rot.vz;
+                    part->field_27C = flag;
+                    j               = 1;
+                    do {
+                        Gfx_RotMatrixY(&((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8[j & 0xFFFF].coord, 0, 1);
+                        Gfx_RotMatrixX(&((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8[j & 0xFFFF].coord, 0, 0);
+                        Gfx_RotMatrixZ(&((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8[j & 0xFFFF].coord, 0, 0);
+                        part->rot[j & 0xFFFF].vx = 0;
+                        part->rot[j & 0xFFFF].vy = 0;
+                        part->rot[j & 0xFFFF].vz = 0;
+                        j++;
+                    } while ((u32)(j & 0xFFFF) < 7U);
+                    coord->flg = 0;
+                }
+                i++;
+                pose++;
+            } while ((u32)(i & 0xFFFF) < 8U);
+            work->field_46          = 0;
+            D_actor_560800_801752E8 = 1;
+            D_actor_560800_801752EC = 1;
+            return;
+    }
+    i = 0;
+    do {
+        if (work->parts[i & 0xFFFF] != NULL) {
+            part                                           = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->idMap;
+            coord                                          = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8;
+            ((TmdObject*)task->extra)->field_8->coord.t[0] = msg->vx;
+            ((TmdObject*)task->extra)->field_8->coord.t[1] = msg->vy;
+            ((TmdObject*)task->extra)->field_8->coord.t[2] = msg->vz;
+            ((TmdObject*)task->extra)->field_8->flg        = 0;
+            part->field_254                                = pose->pos.vx;
+            part->field_256                                = pose->pos.vy;
+            part->field_258                                = pose->pos.vz;
+            part->field_27C                                = flag;
+            if (work->field_48 != 0) {
+                Gfx_RotMatrixY(&coord->coord, pose->rot.vy, 1);
+                Gfx_RotMatrixX(&coord->coord, pose->rot.vx + 0x400, 0);
+                Gfx_RotMatrixZ(&coord->coord, pose->rot.vz, 0);
+                part->rot[0].vx = pose->rot.vx;
+                part->rot[0].vy = pose->rot.vy;
+                part->rot[0].vz = pose->rot.vz;
+                j               = 1;
+                do {
+                    Gfx_RotMatrixY(&((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8[j & 0xFFFF].coord, 0, 1);
+                    Gfx_RotMatrixX(&((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8[j & 0xFFFF].coord, 0, 0);
+                    Gfx_RotMatrixZ(&((TmdObject*)work->parts[i & 0xFFFF]->extra)->field_8[j & 0xFFFF].coord, 0, 0);
+                    part->rot[j & 0xFFFF].vx = 0;
+                    part->rot[j & 0xFFFF].vy = 0;
+                    part->rot[j & 0xFFFF].vz = 0;
+                    j++;
+                } while ((u32)(j & 0xFFFF) < 7U);
+            }
+            coord->flg = 0;
+        }
+        i++;
+        pose++;
+    } while ((u32)(i & 0xFFFF) < 8U);
+    work->field_48 = 0;
+    work->field_46 = 0;
+}
 
 /// Message handler of the parts task (`D_actor_560800_801756D4`): command 0
 /// rebuilds each part's colour matrix from its world translation, 5 and 6 put
@@ -345,10 +485,9 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, Actor560800Msg* msg)
     }
 }
 
-extern s32                  D_80115738;
-extern Actor560800PartLimit D_actor_560800_80175314[];
-extern void                 D_actor_560800_801756D4;
-extern u16                  D_actor_560800_801756EC[];
+extern s32  D_80115738;
+extern void D_actor_560800_801756D4;
+extern u16  D_actor_560800_801756EC[];
 
 /// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
 /// roots the model at `Gfx_ViewCoord`, reparents the spawner's task, spawns the
@@ -411,8 +550,8 @@ void func_actor_560800_801386D4(Task* task)
                     model             = (Actor560800ModelWork*)part->idMap;
                     partCoord         = ((TmdObject*)part->extra)->field_8;
                     model->field_256 += D_actor_560800_801756EC[n & 0xFFFF];
-                    if (D_actor_560800_80175314[n & 0xFFFF].field_4 < (s16)model->field_256) {
-                        model->field_256 = D_actor_560800_80175314[n & 0xFFFF].field_4;
+                    if (D_actor_560800_80175314[n & 0xFFFF].pos.vy < (s16)model->field_256) {
+                        model->field_256 = D_actor_560800_80175314[n & 0xFFFF].pos.vy;
                     }
                     partCoord->flg = 0;
                 }
