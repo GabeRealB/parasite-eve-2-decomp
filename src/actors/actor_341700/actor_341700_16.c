@@ -87,7 +87,18 @@ void func_actor_341700_80168748(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_16", func_actor_341700_801687B4);
+/// The second five-entry block, adjacent to the table above.
+extern TaskFuncTable5 D_actor_341700_80161EBC;
+
+void func_actor_341700_801687B4(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable5   sp;
+
+    work = (Actor341700Work*)arg0->idMap;
+    sp   = D_actor_341700_80161EBC;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 void func_actor_341700_80168820(Task* arg0)
 {

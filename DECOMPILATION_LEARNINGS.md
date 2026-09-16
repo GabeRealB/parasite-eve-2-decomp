@@ -45455,6 +45455,29 @@ argument accounting for all of it; the fixed form is exact. When m2c hands a
 just-loaded narrow value to a call, read the callee's prototype before porting —
 a stray `andi` beside an `lhu` is this, not a register-allocation leftover.
 
+### The same invention from a stack-copied dispatch table's block move
+
+The "Local jump table via struct assignment of function pointers" entry above has
+this artifact attached to it. A 5-entry `TaskFuncTable5` copy is emitted as
+`lw $a1,$a2,$a3` / `sw` pairs and then two more through `$a1`/`$a2` again, so
+those registers are still holding table words at the `jalr`. m2c reads that as a
+callee of eight arguments:
+
+```c
+M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x422) * 4)),
+          M2C_UNK (**)(s32, s32, s32, s32, s32, s32, s32, s32), 0x10)(/* 8 args */);
+```
+
+m2c also never emits the copy itself, so `sp` comes out undeclared and the seed
+does not even compile. A dispatcher whose `jalr` appears to take `$a1`-`$a3`
+arguments *and* whose seed mentions an undeclared `sp` is a stack-copied table,
+not a many-argument callee. `func_actor_341700_801687B4` is the worked example:
+the sibling `func_actor_341700_80168748` in the same TU is byte-identical except
+for the table's `%hi`/`%lo`, and its matched body ports verbatim once the symbol
+is swapped — `0x80161EBC` is exactly `sizeof(TaskFuncTable5)` past the matched
+`0x80161EA8`, which is the tell that the two are adjacent tables rather than one
+longer one.
+
 ## m2c under-counts a callee's arity, and the missing argument is already in `$a0`
 
 The mirror of the entry above, and the harder one to spot. m2c is handed only
