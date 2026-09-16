@@ -98,7 +98,44 @@ s32 func_actor_403000_80134E00(Actor403000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134F44);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80135F08);
+void func_actor_403000_80135F08(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    GpObj5D*         obj;
+    TmdObject*       tmd;
+    u32              seed;
+
+    work = arg0->field_1C;
+    obj  = arg0->field_20;
+    if (work->field_4 != 0) {
+        tmd             = arg0->field_2C;
+        work->field_FCA = 0;
+        tmd->field_C    = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_ACA         = 0x10;
+        work->field_AC6         = 0xF;
+        work->field_AC0         = 2;
+        work->field_6           = 0;
+        work->objD18.obj.flags |= 0x4000;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_403000_80133AF8(arg0);
+    if (work->field_60.word & 0x102) {
+        seed          = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState   = seed;
+        work->field_6 = (seed >> 0x10) & 0x1F;
+    }
+    if ((s16)work->field_6 > 0) {
+        work->field_6--;
+        work->field_ACA = 0;
+    } else {
+        work->field_ACA = 0x10;
+    }
+    if ((Gp_TickObjFlag2(obj) == 1) || (obj->field_40 <= 0)) {
+        obj->field_4C &= 0xFD;
+        work->field_0  = 0x12;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013603C);
 

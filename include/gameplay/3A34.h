@@ -508,7 +508,9 @@ STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 /// `field_50->field_C * D_80113D30[field_5D] / 100` and ticks `field_5B`.
 /// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5D {
-    /* 0x00 */ byte        pad_0[0x4C];
+    /* 0x00 */ byte        pad_0[0x40];
+    /* 0x40 */ s16         field_40;
+    /* 0x42 */ byte        pad_42[0xA];
     /* 0x4C */ u8          field_4C;
     /* 0x4D */ byte        pad_4D[3];
     /* 0x50 */ GpPairSrcE* field_50;
