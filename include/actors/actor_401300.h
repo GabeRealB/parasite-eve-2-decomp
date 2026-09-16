@@ -74,7 +74,8 @@ typedef struct Actor401300Work {
     /* 0xC88 */ byte    pad_C88[2];
     /* 0xC8A */ s16     field_C8A;
     /* 0xC8C */ SVECTOR field_C8C;
-    /* 0xC94 */ byte    pad_C94[4];
+    /* 0xC94 */ s16     field_C94;
+    /* 0xC96 */ s16     field_C96;
     /* 0xC98 */ s16     field_C98;
     /* 0xC9A */ byte    pad_C9A[2];
     /* 0xC9C */ s16     field_C9C;
@@ -209,6 +210,17 @@ typedef struct Actor401300AimScratch {
     /* 0xC */ s16     angle;
     /* 0xE */ s16     pad_E;
 } Actor401300AimScratch;
+
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401300_801376E4` takes: the
+/// offset from the actor to the player, the wrapped turn toward the player
+/// and the facing yaw. Same shape as `Actor01900ChaseScratch`.
+typedef struct Actor401300ChaseScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     turn;
+    /* 0xE */ s16     angle;
+} Actor401300ChaseScratch;
 STATIC_ASSERT_SIZEOF(Actor401300AimScratch, 0x10);
 
 /// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013A208` takes: the

@@ -824,7 +824,129 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80136CE8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801376E4);
+/// Step `coord` `amount` units along its local Z axis unless movement is
+/// frozen. Same body as `Actor00100_MoveForward`.
+static __inline__ void Actor401300_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor401300RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor401300RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor401300RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor401300RangeScratch*)(head - 0xC))->dx *= ((Actor401300RangeScratch*)(head - 0xC))->dx;
+    *(Actor401300RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor401300RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+void func_actor_401300_801376E4(Actor401300* arg0)
+{
+    Actor401300Work*         work;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+    Actor401300ChaseScratch* head;
+    Actor401300ChaseScratch* s;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        head                                       = *(Actor401300ChaseScratch**)G_SCRATCH_HEAD;
+        obj                                        = arg0->field_2C;
+        *(Actor401300ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+        s                                          = head - 1;
+        arg0->field_20->node.field_4               = 0;
+        obj->field_C                               = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x280;
+        work->field_89C          = 1;
+        work->field_8A6          = 0x10;
+        work->field_8A2          = 3;
+        work->field_89E          = 0;
+        work->field_8B2          = 0;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        func_actor_401300_80133A3C(arg0);
+        Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        coord                                       = arg0->field_2C->field_8;
+        s->turn                                     = Actor401300_NormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        facing                                      = arg0->field_2C->field_8;
+        s->angle                                    = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->field_C94                             = s->angle;
+        work->field_C96                             = s->angle + (u16)s->turn * 2;
+        *(Actor401300ChaseScratch**)G_SCRATCH_HEAD += 1;
+        return;
+    }
+    head                                       = *(Actor401300ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor401300ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                          = head - 1;
+    func_actor_401300_80133A3C(arg0);
+    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    if (work->field_C94 == work->field_C96) {
+        if (work->field_D1C < 2 || Actor401300_OutOfRange(&s->delta, 0x384)) {
+            work->field_0 = 8;
+        } else {
+            work->field_0 = 0xB;
+        }
+    }
+    if (work->field_C94 > work->field_C96) {
+        work->field_C94 -= 0x89;
+        if (work->field_C94 < work->field_C96) {
+            work->field_C94 = work->field_C96;
+        }
+    }
+    if (work->field_C94 < work->field_C96) {
+        work->field_C94 += 0x89;
+        if (work->field_C94 > work->field_C96) {
+            work->field_C94 = work->field_C96;
+        }
+    }
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, work->field_C94, 1);
+    Actor401300_RescaleYaw(arg0->field_2C->field_8, 0x1964);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89E == 0) {
+        if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, 0x28) != 0) {
+            Actor401300_MoveForward(arg0->field_2C->field_8, 0x28);
+        }
+    } else {
+        if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, 0x14) != 0) {
+            Actor401300_MoveForward(arg0->field_2C->field_8, 0x14);
+        }
+    }
+    if (func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57) != 1) {
+        func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
+    }
+    *(Actor401300ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_401300_80137D78(Actor401300* arg0)
 {
@@ -1012,31 +1134,6 @@ void func_actor_401300_80138B24(Actor401300* arg0)
     Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
     arg0->field_2C->field_8[5].flg = 0;
     Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
-}
-
-/// Step `coord` `amount` units along its local Z axis unless movement is
-/// frozen. Same body as `Actor00100_MoveForward`.
-static __inline__ void Actor401300_MoveForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12_real();
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
 }
 
 void func_actor_401300_80138CF8(Actor401300* arg0)
@@ -1233,26 +1330,6 @@ void func_actor_401300_80139134(Actor401300* arg0)
             work->field_0 = 0x24;
         }
     }
-}
-
-static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                      head;
-    Actor401300RangeScratch* blk;
-    s32                      ret;
-
-    head                                          = *(u8**)G_SCRATCH_HEAD;
-    ((Actor401300RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                           = (Actor401300RangeScratch*)(head - 0xC);
-    blk->dz                                       = d->vz;
-    blk->r                                        = r;
-    ((Actor401300RangeScratch*)(head - 0xC))->dx *= ((Actor401300RangeScratch*)(head - 0xC))->dx;
-    *(Actor401300RangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                      *= blk->dz;
-    blk->r                                       *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                         = head;
-    ret                                           = ((Actor401300RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
 }
 
 void func_actor_401300_80139520(Actor401300* arg0)
