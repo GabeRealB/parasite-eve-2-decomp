@@ -12,6 +12,7 @@
 #include <psyq/libgs.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
@@ -1466,7 +1467,96 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
     *scratch = (u8*)*scratch + sizeof(Actor800100LineScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801668C0);
+/// The four (y, z) corners of the quad `func_actor_800100_801668C0` draws,
+/// offset off the placed coordinate's world translation. The table sits in the
+/// unit's .rodata right after the jump tables, so it is written here rather
+/// than left to the split: nothing else refers to it.
+const Actor800100QuadCorner D_actor_800100_80161F10[4] = {
+    { -62, 0 },
+    { -62, 124 },
+    { 62, 0 },
+    { 62, 124 },
+};
+
+/* The beam quad `func_actor_800100_80166514` places: the four
+   `D_actor_800100_80161F10` (y, z) offsets, raised to the coordinate's world
+   translation, projected through `GsWSMATRIX` and textured with one 0x20
+   square of the atlas.
+   The 0x44 bytes are carved off the scratch head and written back in one
+   chained assignment: the ROM keeps the allocated pointer as a copy of the
+   store's temporary in `$t1`, and splitting the two into separate statements
+   drops that copy. */
+void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
+{
+    void**                  scratch;
+    Actor800100QuadScratch* blk;
+    POLY_FT4*               prim;
+    s32                     i;
+    s32                     ay;
+    s32                     az;
+    s32                     sy;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    blk     = (*scratch = (Actor800100QuadScratch*)((u8*)*scratch - sizeof(Actor800100QuadScratch)));
+
+    for (i = 0; i < 4; i++) {
+        ay           = D_actor_800100_80161F10[i].vy;
+        az           = D_actor_800100_80161F10[i].vz;
+        blk->work.vx = 0;
+        blk->work.vy = ay;
+        blk->work.vz = az;
+        blk->v[i].vx = *(u16*)&blk->work.vx + *(u16*)&arg0->workm.t[0];
+        blk->v[i].vy = *(u16*)&blk->work.vy + *(u16*)&arg0->workm.t[1];
+        blk->v[i].vz = *(u16*)&blk->work.vz + *(u16*)&arg0->workm.t[2];
+    }
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_SetTransMatrix(&GsWSMATRIX);
+
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setPolyFT4(prim);
+
+    gte_stsxy2(&blk->sxy[0]);
+
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    prim->tpage = 0x27;
+    prim->clut  = 0x3CCE;
+    prim->u0    = 0x20;
+    prim->v0    = 0x80;
+    prim->u1    = 0x3F;
+    prim->v1    = 0x80;
+    prim->u2    = 0x20;
+    prim->v2    = 0x9F;
+    prim->u3    = 0x3F;
+    prim->v3    = 0x9F;
+    prim->code |= 3;
+
+    gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
+    gte_stszotz(&blk->otz);
+
+    /* Both `vy` loads sign-extend, which the `s32` locals keep: a direct
+       16-bit field copy assembles to `lhu` for either of them. */
+    prim->x0 = blk->sxy[0].vx;
+    sy       = blk->sxy[0].vy;
+    prim->y0 = sy;
+    prim->x1 = blk->sxy[1].vx;
+    sy       = blk->sxy[1].vy;
+    prim->y1 = sy;
+    prim->x2 = blk->sxy[2].vx;
+    sy       = blk->sxy[2].vy;
+    prim->y2 = sy;
+    prim->x3 = blk->sxy[3].vx;
+    sy       = blk->sxy[3].vy;
+    prim->y3 = sy;
+
+    addPrim((u_long*)&Gpu_CurrentOt[blk->otz >> 4], prim);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor800100QuadScratch);
+}
 
 s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
 {

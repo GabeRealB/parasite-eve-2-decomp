@@ -67,6 +67,28 @@ typedef struct _Actor800100LineScratch {
 } Actor800100LineScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
 
+/// One corner of the beam quad `func_actor_800100_801668C0` draws, as an
+/// offset in the placed coordinate's own frame: `vy` straight up, `vz` along
+/// the face. `D_actor_800100_80161F10` is the four of them.
+typedef struct _Actor800100QuadCorner {
+    /* 0x00 */ s16 vy;
+    /* 0x02 */ s16 vz;
+} Actor800100QuadCorner;
+STATIC_ASSERT_SIZEOF(Actor800100QuadCorner, 4);
+
+/// 0x44-byte block from `G_SCRATCH_HEAD` used by `func_actor_800100_801668C0`
+/// to draw the textured sheet `func_actor_800100_80166514` places: the four
+/// `v` corners are the `D_actor_800100_80161F10` (y, z) pairs offset by the
+/// coordinate's world `t`, projected through `GsWSMATRIX` into `sxy`, and
+/// `otz` is the `gte_stszotz` of the last of them.
+typedef struct _Actor800100QuadScratch {
+    /* 0x00 */ DVECTOR sxy[4];
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ VECTOR  work;
+    /* 0x24 */ SVECTOR v[4];
+} Actor800100QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor800100QuadScratch, 0x44);
+
 /// NULL-terminated `GpImgRec*` frame lists for `func_actor_800100_80163A58`,
 /// indexed `table[field_987 - 1][field_989]`; `D_actor_800100_80167210` is
 /// the `field_98A` sequence.
