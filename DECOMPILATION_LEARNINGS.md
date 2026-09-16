@@ -110065,3 +110065,65 @@ Inputs: `base_1.i` (77.745%) SHA256
 target.o SHA256 `16346a4b72614bf119587034e548eea2cec8d4e46f86e0321fc79bfc92634c47`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80136ECC-vacuum`.
+
+## An inline cast folds `0xB28 + 0x5E` into `0xB86`, so a self-store disappears; and the load that feeds it wants an early birth (func_actor_110600_801369D8, 2026-09-16)
+
+**Problem.** `func_actor_110600_801369D8` (actors, `actor_110600`) is the last
+handler of the family whose walker block lives at `work + 0xB28`. That block's
+`field_5E` is at `0xB28 + 0x5E = 0xB86` — the same halfword `work->field_B86`
+names, and the field the walker ramps towards. The tail re-seeds the block after
+the two `jal`s, and written with the cast inline
+
+```c
+            ((Actor110600Walker*)((u8*)work + 0xB28))->field_5C = 0;
+            ((Actor110600Walker*)((u8*)work + 0xB28))->field_60 = 2;
+            ((Actor110600Walker*)((u8*)work + 0xB28))->field_5E = work->field_B86;
+```
+
+the `0x5E` store and its load are both absent from the object (`lhu v1,0xB86(s0)`
+/ `sh v1,0x5E(s1)` in the target). The address `(plus (plus work 0xB28) 0x5E)`
+is constant-folded to `(plus work 0xB86)`, the two memory references become
+identical, and cse deletes the pair. The prologue has the same pair
+(`lhu a0,0xB86(s0)` / `sh a0,0x5E(v1)` inside the `if`) and the sibling
+`func_actor_110600_80138980`'s matched body shows the form that keeps both: the
+`ramp` local, which makes the base a register so `(reg walker) + 0x5E` cannot be
+folded against `(reg work) + 0xB86`.
+
+**Why one variable is not enough here.** The prologue's `ramp` dies before the
+two calls and the tail's re-read is a second value, so binding the tail to the
+same `ramp` also re-sorts the prologue (94.4%). Two variables reproduce both
+computations — the prologue's in `$v1` inside the `if`, the tail's in `$s1`
+across the calls. Note also, from the attempt in between: a second assignment of
+the *same expression* to the *same* variable is not two computations — cse sees
+the value still live in the pseudo, turns the assignment into `(set walker
+walker)` and deletes it, so the tail then runs off the prologue's register.
+
+**Then where the load is born decides its register.** With the load written
+inline as the store's right-hand side, last in the block, it is a 2-reference
+quantity spanning two insns: `QTY_CMP_PRI` 10000, tied with the `0x1E` constant
+written three statements above, and the tie goes to the constant born first, so
+the load shares `$v0` and sched2 cannot hoist it past that constant's use.
+97.500%, `regs=1 insert=1 delete=1`. Naming it as a temp at the top of the block
+and storing it last stretches the quantity over the whole block — 2 references
+over 14 half-insns — and the priority falls to the bottom of the block, so it is
+allocated after both constants and takes `$v1` (`108 in 3`, `86 in 2`, `109 in 2`
+in `.greg`). §10.6's live-length lever applied to a load whose store stays where
+it is: the knob is the *load's* position in the source, not the store's.
+
+```c
+            ramp2             = work->field_B86;   /* born at the block top */
+            work->field_892   = 0x1E;
+            work->field_88C   = 2;
+            walker2->field_5C = 0;
+            walker2->field_60 = 2;
+            walker2->field_5E = ramp2;             /* dies in the j delay slot */
+```
+
+Inputs: `base_1.i` (86.768%, cast inline — load and store folded away) SHA256
+`698608780676415610b2681cdb957736e037772277ea89f83a3bbee8dfc34188`; `base_3.i`
+(97.500%, variables, load late) SHA256
+`6e189beb5feb7bfdffb0324ebf2d5a20d49670d3ea39e32d095686add4acdf5a`; `base_6.i`
+(100%) SHA256 `5fc0282967756ecb9e62e72342002815095f8e5f2acdfaf1b5304c41c6704dd4`;
+target.o SHA256 `2504643904e51e32e84c6119cc887e0dd3787a4123478f79af76e324d14a2213`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_801369D8-vacuum`.

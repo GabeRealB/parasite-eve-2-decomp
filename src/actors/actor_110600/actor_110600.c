@@ -218,7 +218,68 @@ void func_actor_110600_80136888(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801369D8);
+/// The walker's handoff stage. Entering on a live actor re-arms it: clear the
+/// model object, take 0x8000 off `field_A90.flags` and put 0x4000 on
+/// `field_950.flags`, tag the enemy's link node, park the stage timer at 0x1D
+/// with `field_896` at 0x10, then re-arm the walker block at 0xB28 to run its
+/// patrol out (`field_5C` = 0xFFFE, `field_5E` reloaded from `field_B86`,
+/// `field_60` = 2) with `field_B90` / `field_B82` / `field_8A4` / `field_8A2`
+/// cleared. Every tick after that steps the walker and the model; at 0x1D the
+/// `field_5C` bit 0 the walker sets on arrival moves the stage to 0x1E and
+/// re-seeds the walker block, and at 0x1E that same bit picks what the actor
+/// does next: 0xB while the enemy's `field_40` is still positive, 0xC once it
+/// has run out.
+void func_actor_110600_801369D8(Actor110600* arg0)
+{
+    Actor110600Work*   work;
+    Actor110600Walker* walker;
+    Actor110600Walker* walker2;
+    GpEnemy*           enemy;
+    u16                ramp;
+    u16                ramp2;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C = 0;
+        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags   = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4     = 8;
+        work->field_88C         = 2;
+        work->field_892         = 0x1D;
+        work->field_896         = 0x10;
+        ramp                    = work->field_B86;
+        walker                  = (Actor110600Walker*)((u8*)work + 0xB28);
+        work->field_B90         = 0;
+        walker->field_5C        = 0xFFFE;
+        walker->field_5E        = ramp;
+        walker->field_60        = 2;
+        work->field_B82         = 0;
+        work->field_8A4         = 0;
+        work->field_8A2         = 0;
+    }
+    walker2 = (Actor110600Walker*)((u8*)work + 0xB28);
+    func_actor_110600_80133A94(walker2);
+    func_actor_110600_80134728(arg0);
+    if (work->field_892 == 0x1D) {
+        if (work->field_5C & 1) {
+            ramp2             = work->field_B86;
+            work->field_892   = 0x1E;
+            work->field_88C   = 2;
+            walker2->field_5C = 0;
+            walker2->field_60 = 2;
+            walker2->field_5E = ramp2;
+            return;
+        }
+    }
+    if ((work->field_892 == 0x1E) && (work->field_5C & 1)) {
+        if (enemy->field_40 > 0) {
+            work->field_0 = 0xB;
+        } else {
+            work->field_0 = 0xC;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80136B20);
 
