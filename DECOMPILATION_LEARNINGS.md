@@ -94980,3 +94980,54 @@ compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Evidence: `tools/permuter_findings/ActorsShared80131e24Sub0/` (conclusion, retained
 `PERMUTER_ANALYSIS.md`, pass-ordered observations and both trace directories);
 scratch `nonmatchings/ActorsShared80131e24Sub0-vacuum` (session `22d03add1c074301a10a21d6bf399747`).
+
+### `x == 0` makes `x + 1` a constant: cse's jump equivalence, and the copy that survives it
+
+A block reached by the *false* direction of a `!= 0` test has its register
+recorded as equal to zero, and every later arithmetic use of that register is
+folded. `func_actor_341300_80163A10` needs `state + 1` there to stay a
+computation — the target computes it as a copy plus an increment —
+
+```
+addu  $v0, $v1, $zero      /* tmp = state; v1 = the state tested above */
+addiu $v0, $v0, 0x1
+```
+
+but `var = state + 1`, an explicit `tmp = state; var = tmp + 1;` and a re-read
+of the field (`arg0->state + 1`, which cse replaces with a copy of the tested
+register) all compile to `li $v0,1`.
+
+Mechanism, in the bundled `cse.c`: for a conditional jump cse calls
+`record_jump_equiv (insn, 0)` on the fallthrough, which reverses the branch's
+condition and passes it to `record_jump_cond`. For `(ne reg 0)` that reversal is
+an integer `EQ`, and `record_jump_cond` then **merges the equivalence classes**
+of the register and the constant; `insert()` records
+`qty_const[qty(reg)] = 0`, and `fold_rtx`/`equiv_constant` substitutes that 0
+into any arithmetic in the dominated block. A copy is safe — `fold_rtx`'s
+`case REG: return x;` never substitutes a constant for a register operand — but
+the increment that follows it is not, because `insert_regs` merges the copy's
+destination into the source's quantity. Hence the copy survives and the add
+folds, one instruction short.
+
+An empty read/write asm between the two gives the increment a register with a
+*fresh* quantity, whose `qty_const` is unset:
+
+```c
+tmp = arg0->state;
+SOFT_TOUCH_REG(tmp);
+state = tmp + 1;            /* addiu $v0,$v0,1 — not folded */
+```
+
+The asm's output ties to `tmp`'s register, so no instruction is emitted for it.
+`src/rooms/lib/room_util01.c` (`decimals = len; SOFT_TOUCH_REG(decimals);
+decimals += 1;`) and `func_replay_bonus_80115ED0` are the same idiom, already
+matched; this makes three. Keep the m2c block order when porting, not just the
+expressions: an `if/else if` chain that reads naturally (`if (state > 0) ... else
+if (state == 0) ...`) lays the `== 0` body out *after* the other one and misses
+by 20 points, because gcc emits the then-block inline.
+
+`func_actor_341300_80163A10`: 94.55% from the m2c seed, 100.00% (`base_4.c`,
+`base_6.c`) with the asm inserted, all penalties zero. Preprocessed SHA256
+`1d4d0d2820487b1621e40a0f69a5049ad90b260fb08c13801eaa717b54754a03`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_341300_80163A10-vacuum` (`base_4_diff`).

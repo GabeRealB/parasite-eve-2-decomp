@@ -129,4 +129,39 @@ void func_actor_341300_801639CC(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80163A10);
+void func_actor_341300_80163A10(Task* arg0)
+{
+    s16 i;
+    s16 next;
+    s32 tmp;
+    s32 state;
+    u16 count;
+
+    if (arg0->state < 3) {
+        if (arg0->state <= 0) {
+            if (arg0->state == 0) {
+                tmp = arg0->state;
+                SOFT_TOUCH_REG(tmp);
+                state               = tmp + 1;
+                arg0->killCountdown = 0;
+                goto store;
+            }
+        } else {
+            count               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = count;
+            i                   = 0;
+            if ((s16)count >= 0x10) {
+                do {
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, (s32)arg0);
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, (s32)arg0);
+                    next = i + 1;
+                    i    = next;
+                } while (next < 0xA);
+                arg0->killCountdown = 0;
+                state               = arg0->state + 1;
+            store:
+                arg0->state = state;
+            }
+        }
+    }
+}
