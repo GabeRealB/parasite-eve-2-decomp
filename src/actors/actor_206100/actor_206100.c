@@ -732,7 +732,56 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// used by both is a single pseudo whose live range spans both loops, so
 /// local-alloc has to home it in a callee-saved register for the whole
 /// function, where the target's second loop counts in `$a0`.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014DD3C);
+void func_actor_206100_8014DD3C(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* next;
+    GpEnemy*         enemy;
+    s32              i;
+    s32              j;
+    u8               count;
+
+    work = (Actor206100Work*)task->idMap;
+    if ((s16)work->field_51E == 0x1E) {
+        Gp_ArmStateF0(1);
+    } else {
+        work->field_51E = work->field_51E + 1;
+    }
+    func_actor_206100_8014DEAC(task);
+    i = 0;
+    do {
+        if (work->field_551 < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
+            if (D_actor_206100_80158CBC[i].timer == 0) {
+                enemy = func_actor_206100_8014EE2C(work->field_551);
+                if (enemy != NULL) {
+                    D_actor_206100_80158CBC[i].enemy = enemy;
+                    enemy->field_40                  = 1;
+                    work->field_551                  = work->field_551 + 1;
+                }
+            } else {
+                D_actor_206100_80158CBC[i].timer = D_actor_206100_80158CBC[i].timer - 1;
+            }
+        }
+        i++;
+    } while (i < 2);
+    j = 0;
+    do {
+        if (D_actor_206100_80158CBC[j].enemy != NULL &&
+            D_actor_206100_80158CBC[j].enemy->field_40 <= 0) {
+            D_actor_206100_80158CBC[j].enemy = NULL;
+            D_actor_206100_80158CBC[j].timer = 0xB4;
+            count                            = work->field_552 + 1;
+            work->field_552                  = count;
+            if (count >= 5) {
+                next            = (Actor206100Work*)task->idMap;
+                task->state     = 2;
+                next->field_520 = 0;
+                next->field_522 = 0;
+            }
+        }
+        j++;
+    } while (j < 2);
+}
 /// Companion tick every state runs: while the flag `field_550` is up it ramps
 /// the roll `field_440` by 0x20 a frame and clears the flag once the ramp lands
 /// on a 0x1000 boundary, and it walks the actor along the eight-vertex ring
