@@ -8839,6 +8839,58 @@ return 0;
 `andi a1, s1, 0xFFFF` from the not-open fall-through instead of preloading
 `v0 = 0`.
 
+## A second `return 0` is a separate block: route every path to one `return` with `goto`
+
+A `switch` whose `default:` returns 0 *and* whose trailing code returns 0 gives
+GCC two return statements, and it does not merge them. The extra one costs a
+whole `jr ra`:
+
+```
+        andi    v0,v0,0xff7f
+        sh      v0,0xc(v1)
++       jr      ra                 # the target has no such instruction
+        move    v0,zero
+        jr      ra
+```
+
+Both blocks are `[set v0,0][return]`, and `jump.c`'s cross-jump only fires on a
+common range of two insns: matching the return leaves `minimum == 1`, so the
+merge needs the `set` to match as well — and it does not, because one of the two
+blocks carries an `expand_value_return` `(use (reg/i:SI 2 v0))` between the set
+and the return while the other's was already deleted or moved before the target
+label. base_1 (`default: return 0;`) scored 97.06% and base_4
+(`default: child = NULL; break;`) 98.18% on `func_actor_511000_8013287C`; both
+left the second return.
+
+Give every path the *same* return statement instead:
+
+```c
+switch (mode) {
+    case 0:
+        child = work->field_4C4;
+        break;
+    case 1:
+        ...
+        break;
+    default:
+        goto out;          /* not `return 0;` */
+}
+if (child != NULL) {
+    ((TmdObject*)child->extra)->field_C &= 0xFF7F;
+}
+out:
+    return 0;              /* the only return in the function */
+```
+
+That is 100.00%: one return block, and because `out:` is a label on the value
+store, `reorg` cannot pull the store into the `jr` delay slot — the target's
+signature is the pair of labels, one at the store and one at the `jr`, with the
+`default` path's store threaded into the dispatch branch's delay slot
+(`beq ...; addu v0,zero,zero` then `j <jr>`, the same shape as `Stage_GetFadeStatus`
+and `ActorsShared8013288c`, which reach it from three and two plain returns).
+A `goto` into a shared `return` is therefore not a decomp artefact here: it is
+how the source keeps one epilogue.
+
 ## `s16` return types force `sll; beqz` at call sites
 
 Callers that test a halfword return emit:
