@@ -14,9 +14,14 @@ extern GpEnemyTaskFuncTable3 D_actor_205200_80149E30;
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_205200_8014BD4C(Actor205200* arg0);
+void func_actor_205200_8014BF28(Actor205200* arg0);
+void func_actor_205200_8014C0C0(Actor205200* arg0);
 void func_actor_205200_8014C67C(Actor205200* arg0);
+void func_actor_205200_8014C748(Actor205200* arg0);
 void func_actor_205200_8014C7CC(Actor205200* arg0);
 void func_actor_205200_8014C8D4(Actor205200* arg0);
+void func_8017EBA4(Actor205200* arg0);
+void func_80181930(Actor205200* arg0);
 
 extern u8  D_801153F4;
 extern u16 D_80071078;
@@ -186,7 +191,40 @@ case1:
     func_actor_205200_8014C8D4(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C67C);
+/// Per-frame tick of the live state, run from `func_actor_205200_8014C59C`'s
+/// shared body. Bit 0 of `Gp_StateF0.field_1D` is a one-shot re-arm: it clears
+/// itself and drops the actor back to sub-state 1 with the sub-state-0x586
+/// counter restarted, which is what `func_actor_205200_8014C748` drives. The
+/// sub-state at 0x584 then picks the idle or the charge handler, the halfword at
+/// 0x596 which of the two shared ticks follows, and the flag at 0x588 keeps the
+/// attack body running until that body clears it itself.
+void func_actor_205200_8014C67C(Actor205200* arg0)
+{
+    Actor205200Work* work;
+
+    work = arg0->field_1C;
+    if (Gp_StateF0.field_1D & 1) {
+        Gp_StateF0.field_1D &= 0xFE;
+        work->field_584      = 1;
+        work->field_586      = 0;
+    }
+    switch (work->field_584) {
+        case 0:
+            func_actor_205200_8014BF28(arg0);
+            break;
+        case 1:
+            func_actor_205200_8014C748(arg0);
+            break;
+    }
+    if (work->field_596 == 0) {
+        func_8017EBA4(arg0);
+    } else {
+        func_80181930(arg0);
+    }
+    if (work->field_588 != 0) {
+        func_actor_205200_8014C0C0(arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C748);
 

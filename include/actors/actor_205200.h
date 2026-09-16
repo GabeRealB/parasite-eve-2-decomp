@@ -34,8 +34,13 @@ typedef struct Actor205200Work {
     /* 0x47C */ GpObj    field_47C;
     /* 0x49C */ byte     pad_49C[0x48];
     /* 0x4E4 */ GpObj    field_4E4;
-    /* 0x504 */ byte     pad_504[0x90];
+    /* 0x504 */ byte     pad_504[0x80];
+    /* 0x584 */ s16      field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
+    /* 0x586 */ s16      field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
+    /* 0x588 */ s16      field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
+    /* 0x58A */ byte     pad_58A[0xA];
     /* 0x594 */ s16      field_594;
+    /* 0x596 */ s16      field_596; // selects the shared tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
 
 /// The task itself, named for the actor it drives. `field_8` is `Task::parent`
