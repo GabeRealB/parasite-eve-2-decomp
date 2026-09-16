@@ -107837,3 +107837,56 @@ consecutive stores is one-register reuse.
 
 Scratch `nonmatchings/func_actor_403200_80139A60-vacuum`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (func_actor_403200_8013F700, 2026-09-16)
+
+A local `GpAreaKey` is filled from `Game_Session` and its address passed to
+`Gp_SyncAreaKeyIndex` and then to `Gp_GetNestedAreaRec`. The target rematerializes
+the address at both calls (`addiu $a0, $sp, 0x18` twice). Written the obvious way
+both arguments go through `copy_to_mode_reg` (the address costs more than 2, and
+`-fexpensive-optimizations` makes `preserve_subexpressions_p()` return 1), giving
+one pseudo per call; cse then folds the second into the first, because a frame
+address is a plain `(plus (reg $fp) (const_int N))` and nothing invalidates it -
+neither the key's `sb` stores (they set `writes.all`, which skips the per-set
+`invalidate`) nor the call (`invalidate_for_call` only walks *hard* registers).
+The merged pseudo now crosses a call, and **local-alloc runs before global-alloc**,
+so it takes `$s0` for itself: the actor's model pointer drops to `$s1` and every
+`$s0` use in the block follows. Measured with `tools/trace_gcc.py`:
+
+    local b32 q7 [177]: refs=3 span=10 priority=3000 copy=[4] arithmetic=[4,30]
+                        suggested_only=1 -> -1      (a0 rejected: live across a call)
+                        suggested_only=0 -> $s0
+
+**Fix** - the recipe the actors corpus already uses (`actor_120000`/`actor_102000`
+`TintEffect`, `func_actor_401300_8013BB30`): a `SOFT_BARRIER` before the address,
+take it into a pointer local, `TOUCH_REG` that local, pass the *pointer* to the
+first call and a fresh `&key` to the second. The `+r` asm makes the register's
+value "modified", so cse cannot fold the second `&key` into it:
+
+```c
+        areaByte0   = sessionKey->field_0;
+        SOFT_BARRIER();
+        keyp        = &key;
+        TOUCH_REG(keyp);
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyp);
+        entry       = (GpCdRec10*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+```
+
+Each argument then keeps its own single-use pseudo, which dies at its call and
+takes `$a0`; the actor's model pointer gets `$s0` back. 97.437% -> 99.206%
+(2275 -> 220 differences, `regs` 10 -> 4), and the two `addiu a0,sp,0x18` come
+out verbatim. Writing both calls as `&key` (with or without a plain pointer
+local) is folded to a byte-identical object every time.
+
+**Not closed:** the same body wants the *second* and *third* `SVECTOR` stores to
+go through a base register (`addiu $a3, $sp, 0x10` then `sh v0, 2($a3)`), while
+the first store stays `sp`-relative. `find_best_addr` returns early for any
+`(plus (reg $fp) (const_int))` address, so cse never creates that register from
+the field stores; routing the stores through a `SVECTOR*` does produce it, but
+the pointer shifts the third component out of `$a1` into `$v0`, where the
+`lw $v0, 0x2c($s3)` of the following `ratan2` setup clobbers it and reload
+re-reads the component off the stack (98.534%).
+
+Scratch `nonmatchings/func_actor_403200_8013F700-vacuum` (best `base_11.c`),
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
