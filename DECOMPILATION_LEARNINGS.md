@@ -95210,3 +95210,56 @@ Inputs: `base.i`
 `3154baa9fd20dd7f58aeeca96c96ba84af64d853c567cab3f9b052b6bd090af0` (90.833%),
 `base_1.i` `c10b7cfcb1055451f644dda15bf056324a749164eab5e1f8800aaa4e4b765c2e`
 (100.000%).
+
+
+## m2c writes a value at its one use site, so a sum the target computes *before* the branch must become a named local
+
+`func_actor_143900_80132FB0` seeds at 58.196% (`regs=19 delete=11 insert=6
+stack=6 branch=2 reorder=2`) and matches at 100% with the body of
+`func_actor_461800_80132B74`, its twin (see the worked example below). The one
+delta that carried the score is a placement rule, and it is worth checking on
+any m2c seed whose target has an instruction sitting in a branch's delay slot.
+
+The seed computed the parts base where m2c saw its only use:
+
+```c
+    case 0:
+        ...
+        coord->sub = parts + task->spawnArg1;   /* evaluated in the taken arm */
+```
+
+The target instead has `addu $t0, $v1, $v0` in the **`beqz` delay slot** of the
+state test - so the source evaluated it unconditionally, before the switch.
+Hoist it into a named local declared with the others:
+
+```c
+    GsCOORDINATE2* part = parts + task->spawnArg1;   /* before the switch */
+    ...
+    coord->sub = part;
+```
+
+Controlled pair, same typed structs and same `Task*` parameter, that one change
+the only difference: named local before the switch **100.000%**, all penalties
+zero; sum written at the use site **73.702%**
+(`stack=4 branch=2 regs=18 reorder=4 insert=5 delete=4`), and the
+`sll`/`addu`/`sll`/`addu` chain moved inside case 0 exactly as predicted. It is
+not a CSE failure - case 0's block is only reached through the branch, so the
+computation is not available to hoist. The delay slot is the tell: an
+instruction there was live before the branch, and a value m2c has no use for
+outside the arm is the usual reason it is not.
+
+Register shapes downstream of this are not pin candidates. Here the target puts
+the argument in `$a3` and the sum in `$t0` where the twin puts them in `$a2`
+and `$a3`; both fall out of the correct source, and the twin's own allocation
+is what says so.
+
+### Finding the twin: a starred sibling in the brief is the body verbatim
+
+The brief's `Similar matched bodies` list is **cross-overlay**, not "nearby
+functions in this TU" - for this function the same-TU list offered only two
+unrelated neighbours, while the twin lives in `actor_461800`. A candidate
+starred for appearing in **more than one class** at >=0.9 (`shape` 0.92 /
+`fields` 0.95 / `cflow` 1.00 here) is a twin; one class alone is a rhyme. Read
+it before writing anything from the asm, then diff the pair for the deltas
+rather than reconstructing the body - the transcription matched on the first
+build.
