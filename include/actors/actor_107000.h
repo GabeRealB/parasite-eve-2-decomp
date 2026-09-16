@@ -180,10 +180,14 @@ typedef struct Actor107000Spawn2Work {
     /* 0x362 */ u16            field_362;
     /* 0x364 */ s16            field_364; // spawn arg's high half
     /* 0x366 */ u16            field_366; // spawn arg's low half
-    /* 0x368 */ byte           pad_368[0x8];
+    /* 0x368 */ byte           pad_368[0x2];
+    /* 0x36A */ s16            field_36A; // reaction sub-state, as Actor107000Work::field_36A
+    /* 0x36C */ byte           pad_36C[0x4];
     /* 0x370 */ s16            field_370; // animation id the work is playing
     /* 0x372 */ u16            field_372; // id the six helper slots last saw
-    /* 0x374 */ byte           pad_374[0x10];
+    /* 0x374 */ byte           pad_374[0x4];
+    /* 0x378 */ s16            field_378; // seeded to 0xC8 by the reveal arm
+    /* 0x37A */ byte           pad_37A[0xA];
     /* 0x384 */ s16            field_384;
     /* 0x386 */ s16            field_386;
     /* 0x388 */ s16            field_388;
@@ -193,10 +197,21 @@ typedef struct Actor107000Spawn2Work {
     /* 0x390 */ u16            field_390; // frames until the next 0x60080 spawn
     /* 0x392 */ u16            field_392; // spawns so far; the cue fires at 5
     /* 0x394 */ u16            field_394; // non-zero: this frame has spent its reaction
-    /* 0x396 */ u16            field_396;
-    /* 0x398 */ byte           pad_398[0x4];
+    /* 0x396 */ u16            field_396; // armed to 1 by the reveal arm, cleared by the hide
+    /* 0x398 */ s16            field_398; // seeded to 0x64 by the reveal arm
+    /* 0x39A */ s16            field_39A; // cleared by the reveal arm
 } Actor107000Spawn2Work;
 STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
+
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
+/// same 4-byte record as `Actor143900Msg`. The second-form handler
+/// `func_actor_107000_801378D8` reads the halfword at 0x2 as a command word: its
+/// low byte is the mode (1 reveals the specimen, 3 hides it) and bits 8..11
+/// pick the spawn point the reveal places the model at.
+typedef struct Actor107000Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor107000Msg;
 
 /// Free-running linear congruential state every overlay draws its random numbers
 /// from: `state = state * 5 + 0x71357911`, read back through the high halfword.
