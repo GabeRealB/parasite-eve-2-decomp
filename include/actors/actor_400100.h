@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include "main/task.h"
 #include "main/session.h"
@@ -187,6 +188,15 @@ typedef struct Actor00100ProjectScratch {
     /* 0x22 */ s16 pad_22;
 } Actor00100ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
+
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn00A54`:
+/// the `GpDeltaScratch` filled by `func_800E0C10` plus the returned flag,
+/// set when the X or Z delta is nonzero.
+typedef struct Actor00100DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor00100DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor00100DeltaFlag, 0x14);
 
 /// One halfword of an `Actor00100Msg`, which the message system also hands to
 /// handlers as a raw byte triple.

@@ -74916,6 +74916,27 @@ the coalescing.
 `D_actor_202600_80152798` / `…838` / `…850`, so `actor_102600` and `actor_302600`
 keep their own copies.
 
+The same pin is again the whole difference between 98.9% and 100% in
+`Actor00100_Fn00A54`, whose body is byte-identical to the matched
+`Actor01900_Fn00E00` (`src/actors/lib/actor_101900_text.c`) apart from the data
+symbol it latches into — so its source *states* the pin, and the unpinned port
+is the variant to score first only to see the symptom. Here the un-pinned
+`addiu` writes a callee-saved register and the copy is one register further up
+the same file, which grows the whole callee-saved set rather than just dropping
+a `move`:
+
+```
+target:  addiu v1, s1, -0x14 ; move s0, v1 ; sw v1, 0(v0)
+ours:    addiu s0, s2, -0x14 ; move s3, s0 ; sw s0, 0(v0)
+```
+
+`regs=2, delete=1, branch=7` and 98.886%, against 105 target instructions; the
+extra register shows up far from the cause, as a fourth prologue store
+(`sw s3, 0x1C(sp)`) and an `addiu sp, sp, -0x28` frame where the target has
+`-0x20`. Read a frame that is 8 bytes too big together with its prologue
+stores before hunting the body: here the tell is the `sw $s3` the target's
+3-register callee-saved set has no room for.
+
 ## `move sN, v0` after two different calls: the target used *one* variable for both
 
 `func_actor_202600_80149E8C` sat at 98.043% with `insert=3 delete=3 branch=10
