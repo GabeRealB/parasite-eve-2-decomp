@@ -98381,6 +98381,20 @@ SHA256 `fc73e2f0649bab84e93ab1e6aa1865edc36ad4a2376c7c86a8895401a9b3a881`;
 one build, no pins, no permuter. Scratch
 `nonmatchings/Actor04400_Fn06374-vacuum`.
 
+The hidden twin can also be the *already-promoted* shared unit itself rather
+than another overlay's function: `find Actor04400_Fn04A3C` prints `1 copies
+identical bytes: 2`, and the second copy is `ActorsShared80167b70` in
+`src/actors/lib/actors_shared_80167b70.c` (the shared unit for `actor_341700` /
+`actor_342400`). There the promotion has no unit left to name — the body is
+already shared — so the only route is the same mid-overlay re-split, now
+deferred for two functions of `actor_104400_text_tail`, and the practical use
+of the twin is as the *source*: stripping the `/* offset vram encoding */`
+column from both `.s` files and diffing names the delta exactly (here two extra
+`sh $zero` stores and one constant), which is faster and stronger than reading
+the ranked sibling list. The nearer starting point, when it exists, is a matched
+function in the same unit — `Actor04400_Fn04EDC` differed by only those three
+instructions and gave a 100.000% first build.
+
 ## m2c reads a stack-local dispatch table's stores as call arguments (Actor04400_Fn06A78, 2026-09-16)
 
 A state handler that builds its table *on the stack* from two function
