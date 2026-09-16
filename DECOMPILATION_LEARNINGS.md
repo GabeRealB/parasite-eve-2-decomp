@@ -94912,6 +94912,19 @@ ever address-taken. The same seed's `temp_v0 + 0x20` also compiled scaled by
 0x40 / 0x54 / 0x374 are plain byte offsets, which is what a struct-typed work
 pointer gives for free.
 
+**The frame size is the second tell.** The same day's `ActorsShared80131f9cSub0`
+seed built a `VECTOR` one `long` at a time (`sp18` / `sp1C` / `sp20`, with only
+`(VECTOR *)&sp18` escaping) and scored 93.67% with `delete` 4 and `regs` 39:
+one `lw`/`sw` pair where the target has three. Here the surviving member of the
+group is the one whose address escaped, and the **dead scalars still get their
+12 bytes of stack** — so the seed's frame is `sp-0x38` and its saved registers
+sit at 0x20..0x34, where a `VECTOR vec;` (16 bytes) gives the target's
+`sp-0x40` and 0x28..0x3C. A frame that is one 8-byte slot too small, together
+with saved-register offsets that all shifted by 8, points at this shape without
+opening a dump. Declaring the aggregate moves the frame and restores every
+member at once; the `regs` penalty was a consequence of the missing stores, not
+an independent problem.
+
 ## A `regs` penalty that is really statement order: the flag store written before the pointer store decides the load's register (ActorsShared80131e24Sub0, 2026-09-16)
 
 Two adjacent independent stores - a constant into a flag field, and the result of

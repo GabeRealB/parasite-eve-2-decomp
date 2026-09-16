@@ -18,12 +18,13 @@
 /// in those two structs - `Actor143900Work`'s `field_4B6`/`field_4B8` and
 /// `Actor460200Work`'s `field_4B6`/`animId`.
 typedef struct Actor110300Work {
-    /* 0x000 */ GpAnimCtx anim;
-    /* 0x014 */ byte      pad_14[0x460];
-    /* 0x474 */ s16       field_474; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x476 */ s16       field_476; // copy of `animId`, kept for change detection
-    /* 0x478 */ u16       animId;    // animation id the slots are seeded with
-    /* 0x47A */ s16       field_47A;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14]; // the slot array `func_800B3F84` is handed
+    /* 0x334 */ byte       aux[0x140];  // `GpAnimCtx::field_8`, one 0x10-byte record per slot
+    /* 0x474 */ s16        field_474;   // actor step: 1 and 2 select the body to run, which then advances it to 3
+    /* 0x476 */ s16        field_476;   // copy of `animId`, kept for change detection
+    /* 0x478 */ u16        animId;      // animation id the slots are seeded with
+    /* 0x47A */ u16        field_47A;   // bumped once per entry into step 0
 } Actor110300Work;
 
 /// Argument block of the message 0x7D3 handler `func_actor_110300_80132280`
