@@ -2,9 +2,6 @@
 
 #include "actors/actor_107000.h"
 #include "actors/actors_shared_80137cf4.h"
-#include "actors/actors_shared_80137e18.h"
-#include "actors/actors_shared_80137ea8.h"
-#include "actors/actors_shared_80138570.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/sound.h"
@@ -13,7 +10,6 @@
 #include "actors/actors_shared_80136614.h"
 
 void ActorsShared8014fda4(Task* arg0);
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_107000_80135280(Task* arg0, TmdObject* arg1, s32 arg2);
 void func_actor_107000_8013560C(Task* arg0, TmdObject* arg1, s32 arg2);
 void func_actor_107000_80135C28(Task* arg0);
@@ -234,170 +230,5 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
 // were kept apart only because the body's last call was this overlay's own
 // func_actor_107000_80136614. That call now goes to the shared
 // ActorsShared80136614 in both slots, so the objection no longer holds.
-
-/// Per-frame mode handler of the specimen's first state machine; it runs the
-/// same `D_801153F4` switch as `func_actor_107000_80134F84`. Mode 1 skips to the
-/// tail, mode 2 ORs the hidden pose onto the model part's flag word and returns.
-/// The body dispatches the work's `field_36C`: mode 0 cues the death sound, puts
-/// the part in its 2-pose, clears the enemy's `field_54` slot, unlinks the enemy
-/// node and the work's three display nodes (the same three `ActorsShared80138570`
-/// takes off the lists on its own exit path), releases the state slot and steps
-/// to mode 1 with helper id 0xC; mode 1 counts `field_36E` out to 0x3D before
-/// dropping to 2, and hides the part once `field_394` says this frame has already
-/// spent its reaction; mode 2 cues the impact sound, hides the part, re-parents
-/// the model's second coordinate part to the first and puts the task in state 3.
-/// The tail rebinds the work's six helper slots to `field_370`: a changed id
-/// restarts `field_374` and points every slot at it at weight 8, otherwise the id
-/// is advanced and `field_374` counts the frames spent on it. The tail re-reads
-/// the work into `work2` - folding the two reads into one local keeps its live
-/// range running through both loops and moves the dispatch's home for it.
-void func_actor_107000_80136288(GpEnemy* arg0, Task* arg1)
-{
-    Actor107000Work* work;
-    Actor107000Work* work2;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   part;
-    u16              ticks;
-    s32              state;
-    s32              one;
-    s32              i;
-
-    obj   = (TmdObject*)arg1->extra;
-    state = D_801153F4;
-    work  = (Actor107000Work*)arg1->idMap;
-    coord = obj->field_8;
-    part  = &coord[1];
-    one   = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case2:
-    obj->field_C       = obj->field_C | 0x80;
-    arg0->node.field_4 = one;
-    return;
-default_body:
-    switch (work->field_36C) {
-        case 0:
-            if (work->field_394 == 0) {
-                SndEvt_EnqueueType6(0xD, 0, 0);
-                obj->field_C = 2;
-                ActorsShared80137e18((ActorShared80137e18*)arg1);
-            }
-            arg0->field_54 = 0;
-            Gp_UnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&((ActorShared80138570Work*)work)->field_1DC);
-            Gp_UnlinkObj(&((ActorShared80138570Work*)work)->field_22C);
-            Gp_UnlinkObj(&((ActorShared80138570Work*)work)->field_2AC);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2A);
-            work->field_370 = 0xC;
-            work->field_36E = 0;
-            work->field_36C = 1;
-            break;
-        case 1:
-            if (work->field_394 == 0) {
-                ActorsShared80137ea8((ActorShared80137ea8*)arg1);
-            } else {
-                obj->field_C = 0x80;
-            }
-            ticks           = work->field_36E + 1;
-            work->field_36E = ticks;
-            if ((s16)ticks >= 0x3D) {
-                work->field_36C = 2;
-            }
-            break;
-        case 2:
-            SndEvt_EnqueueType7(0xD, 1);
-            obj->field_C = 0x80;
-            part->sub    = coord;
-            arg1->state  = 3;
-            break;
-    }
-    Gp_SetLightMode((GpObj4C*)arg0, 1);
-    work2 = (Actor107000Work*)arg1->idMap;
-    i     = 1;
-    if (work2->field_370 != (s16)work2->field_372) {
-        work2->field_372 = work2->field_370;
-        work2->field_374 = 0;
-        do {
-            func_800B4114((GpAnimCtx*)work2, i, work2->field_370, 0, 8);
-            i++;
-        } while (i < 7);
-        return;
-    }
-    TOUCH_REG(i);
-    work2->field_374 = (u16)(work2->field_374 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work2, i);
-        i++;
-    } while (i < 7);
-case1:
-    return;
-}
-
-// actor_207000 carries the same body as func_actor_207000_8014E4D8, refused for
-// the same reason as func_actor_107000_80136288 above - a reason the shared
-// ActorsShared80136614 has since removed.
-
-/// Both `Gp_LcgState` draws fold `(state >> 16) % 100` down to under 11 for a
-/// hit, and each is taken through its own local so the two divides stay separate
-/// objects: the compiler keeps the second draw's quotient alive across the
-/// scaling chain, and `SCHED_BARRIER` holds the reaction branch's assignment on
-/// the far side of it. The two barriers are load-bearing, not decoration —
-/// dropping either one re-schedules the `branch` write to before the chain and
-/// the whole block's allocation follows it.
-void func_actor_107000_801364D8(Task* arg0)
-{
-    u32              sp10;
-    Actor107000Work* work;
-    u32              rng;
-    u32              rng2;
-    u32              hi;
-    u32              quotient;
-    u32              roll;
-    s32              hit;
-    s16              branch;
-
-    work = (Actor107000Work*)arg0->idMap;
-    ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &sp10);
-    if (Gp_CountRec18Hi(&work->field_214, 0x10000) == 0 || sp10 >= 0xBB8U) {
-        work->field_382 = 0;
-        work->field_36E = 0;
-    } else {
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
-        if ((u16)((rng >> 0x10) % 100U) < 0xBU) {
-            branch = 3;
-        } else if (sp10 >= 0x9C4U) {
-            branch = 2;
-        } else {
-            rng2        = rng * 5 + 0x71357911;
-            Gp_LcgState = rng2;
-            hi          = rng2 >> 0x10;
-            quotient    = hi / 100U;
-            SCHED_BARRIER();
-            roll = (u16)(hi - quotient * 100U);
-            SCHED_BARRIER();
-            hit    = (roll < 0xBU);
-            branch = 2;
-            if (!hit) {
-                branch = 1;
-            }
-        }
-        work->field_382 = branch;
-        work->field_374 = 0;
-        work->field_372 = 0;
-    }
-    Gp_ClearRec18Occupied(&work->field_214);
-}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000_6", ActorsShared80138404Table);

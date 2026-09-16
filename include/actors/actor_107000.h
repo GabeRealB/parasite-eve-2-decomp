@@ -17,7 +17,7 @@
 ///
 /// This is the same object the spawn handler takes as `GpEnemy*`, seen from the
 /// side that needs only that one flag: `field_14` is `GpEnemy::node.field_4`,
-/// and the handlers that also tear the enemy down (`func_actor_107000_80136288`
+/// and the handlers that also tear the enemy down (`ActorsShared80136288`
 /// spends `field_54` and unlinks `node`) spell it as the `GpEnemy` it is.
 typedef struct Actor107000Ctx {
     /* 0x00 */ byte pad_0[0x14];
@@ -89,7 +89,7 @@ typedef struct Actor107000Work {
     /* 0x384 */ byte    pad_384[0xC];
     /* 0x390 */ u16     field_390; // frames until the next 0x60080 spawn
     /* 0x392 */ u16     field_392; // spawns so far; the cue fires at 5
-    /* 0x394 */ u16     field_394; // non-zero: the hit reaction has already been applied
+    /* 0x394 */ u16     field_394; // non-zero: this frame has spent its reaction (see ActorShared80136288Work)
 } Actor107000Work;
 
 /// The same 0x2E4-byte work block as its spawn handler builds it, seen from the
