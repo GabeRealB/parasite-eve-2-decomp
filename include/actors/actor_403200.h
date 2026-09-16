@@ -42,6 +42,21 @@ typedef struct Actor403200HitScratch {
 } Actor403200HitScratch;
 STATIC_ASSERT_SIZEOF(Actor403200HitScratch, 0x30);
 
+/// 0x20-byte scratchpad frame the state-selecting tick
+/// `func_actor_403200_8013EB64` carves off `SCRATCH_SP`. `delta` is the
+/// player-relative offset whose length is `dist`, the range the three
+/// `field_F08` sub-states door the enemy through;
+/// `view` is the camera-relative offset the yaw written to `field_7C4` is
+/// taken from. Both are read back out of the frame rather than kept in
+/// registers, which is what puts them in the scratch in the first place.
+typedef struct Actor403200ApproachScratch {
+    /* 0x00 */ VECTOR  delta; // player position minus this part's, in world units
+    /* 0x10 */ SVECTOR view;  // camera position minus this part's
+    /* 0x18 */ s32     dist;  // length of `delta`
+    /* 0x1C */ byte    pad_1C[0x4];
+} Actor403200ApproachScratch;
+STATIC_ASSERT_SIZEOF(Actor403200ApproachScratch, 0x20);
+
 /// Per-actor state block for the `actor_403200` overlay.
 ///
 /// `func_actor_403200_80138AFC` allocates it with `Mem_Calloc(0xF24, 0)` and
@@ -180,7 +195,12 @@ typedef struct Actor403200Work {
     /// advances it and re-arms `field_0`. Same slot and role as
     /// `Actor444000Work::field_F08`.
     /* 0xF08 */ s16  field_F08;
-    /* 0xF0A */ byte pad_F0A[0xA];
+    /* 0xF0A */ byte pad_F0A[0x6];
+    /// Start-of-state countdown the attack state reads against `field_6`: the
+    /// state body only runs once `field_6` has reached it, and it is seeded to
+    /// 0x28 if still zero. Same slot and role as `Actor444000Work::field_F10`.
+    /* 0xF10 */ s16  field_F10;
+    /* 0xF12 */ byte pad_F12[0x2];
     /// Quarters of it is how many extra re-arm steps the launch state runs,
     /// calling the per-frame body once per step. Same slot and role as
     /// `Actor444000Work::field_F14`.

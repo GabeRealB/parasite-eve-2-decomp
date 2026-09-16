@@ -107997,3 +107997,69 @@ allocation artefact.
 Scratch `nonmatchings/func_actor_403200_8013D78C-vacuum` (`base_1.c` matched,
 `base_2.c` the no-cast control), compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A mirrored comparison flips which operand's load is emitted first
+
+`if (work->field_6 >= work->field_F10)` and
+`if (work->field_F10 <= work->field_6)` are the same test and both canonicalise
+to `f6 < f10`, but the *loads* are emitted in source-operand order and each
+lands in its own register, so the two spellings differ exactly where a target
+does:
+
+```
+lh    v1, 0xf10(s1)      /* f10 -> v1 ... */
+lh    v0, 0x6(s1)
+slt   v0, v0, v1         /* ... then f6 -> v0 */
+bnez  v0, skip
+```
+
+The `>=` spelling emits `lh v0, 6(s1)` / `lh v1, 0xf10(s1)` instead. sched1 does
+not swap the pair: two `lh` off the same base tie on priority and stay in the
+order the expander built them, so this survives to the object. Reach for the
+mirrored spelling when a two-load comparison is the last `regs` leftover on a
+function whose structure already matches — `func_actor_403200_8013EB64` went
+99.92% -> 100% on nothing else.
+
+## The arm that stores the compared value must be the `!=` one to cross-jump
+
+Three `switch` cases ended in `if (work->field_F1D == K) work->field_0 = 2; else
+work->field_0 = K;` with K 3, 7 and 2, and the target shares one
+`bne v0,v1` / `sh v1, 0(s1)` tail across all three. The `==` spelling does not
+reach it: its direct lowering is `beq` to the store-2 arm with the store-K arm
+falling through, which `dbr` then fills with the store itself —
+
+```
+beq   v0, v1, store2
+li    v0, 2
+j     end
+sh    v1, 0(s1)          /* the store, in the jump's delay slot */
+```
+
+— a form with no counterpart at the other sites. Spelling the site as
+
+```c
+if (work->field_F1D != K) {
+    work->field_0 = K;
+} else {
+    work->field_0 = 2;
+}
+```
+
+makes `bne` plus the store-K block the direct lowering, and the post-regalloc
+cross-jump (`.jump2`, on hard registers — see "Duplicate a shared switch-case
+tail in the source") merges it with the others. Same statements in the same
+order, different branch encoding: 99.92% with `insert=0 delete=0` and a
+byte-identical block graph, versus 97.95% with four duplicated tails and three
+extra instructions from the `==` form.
+
+A scratch frame can come out the same way: the target addressed the `SVECTOR`
+member of `func_actor_403200_8013EB64`'s 0x20-byte frame through the
+*pre-decrement* head (`sh v0, -0x10(s0)`, `a2 = s0 - 0x10`) and the rest through
+the frame pointer. Naming the member — `view = &sc->view;` with
+`sc = (T*)(SCRATCH_SP -= sizeof(T))` — is what produces it; addressing
+`sc->view` directly leaves both on the frame pointer. Same mechanism as the
+head-rooted entry above, reached without writing `head - sizeof(T)` out.
+
+Scratch `nonmatchings/func_actor_403200_8013EB64-vacuum` (`base_4.c` matched;
+`base_3.c` the `==`-form control, `base_2.c` the fused member access), compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

@@ -16,6 +16,13 @@
 
 extern s16 D_actor_403200_80141C58;
 
+/// Non-zero while the overlay is shutting down, which is what makes the
+/// state-selecting tick below hold `field_6` at zero and re-roll its sub-state.
+extern s16 D_actor_403200_80141C50;
+
+/// LCG state the state-selecting tick below rolls its sub-state out of.
+extern s32 Gp_LcgState;
+
 /// The script pair the death sequence's frame-0x1C cue spawns.
 extern s32 D_actor_403200_80141C5C;
 extern s32 D_actor_403200_80141C64;
@@ -802,7 +809,159 @@ void func_actor_403200_8013E9C0(Task* arg0)
     SCRATCH_SP += 0xC;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013EB64);
+/// State-selecting tick of the enemy's approach: on the tick the dispatcher has
+/// flagged a state change it re-arms the work block -- the two flags, the
+/// stagger countdown at 0x28, the yaw target at 0xE10 and the animation slot at
+/// 0x10 -- and winds the shared `D_actor_403200_80141C58` counter down by 0xC8
+/// once it has passed 0x190.
+///
+/// It then runs the per-frame body and aims the enemy at the camera: the
+/// camera's translation minus the part's own translation gives the pair
+/// `ratan2` turns into a yaw, taken relative to the part's facing the same way
+/// the group-0 hit handler does it, and the result is wrapped to +/-0x800 into
+/// `field_7C4`. `D_actor_403200_80141C50` holding `field_6` at zero makes the
+/// per-frame body's animation re-arm win the next tick.
+///
+/// Once the `field_F10` stagger countdown has run out it walks the three
+/// `field_F08` sub-states, in which the player-relative range and the enemy's
+/// remaining HP pick the next state, and a roll of `Gp_LcgState` breaks the tie
+/// between the two strafing states; the state already in `field_F1D` is never
+/// re-selected twice in a row. A positive heal counter in `field_F1A` overrides
+/// all of it with the heal state 0xF.
+///
+/// The x range that sub-state 0 tests is the player-relative offset read back
+/// out of the frame, not `dist`: the two share only the frame, and the y test
+/// carries the -0xFA the z one carries +0x25F, the offsets the hit handler puts
+/// on the same pair.
+void func_actor_403200_8013EB64(Task* arg0)
+{
+    Actor403200ApproachScratch* sc;
+    Actor403200Work*            work;
+    GpEnemy*                    enemy;
+    Task*                       player;
+    GsCOORDINATE2*              coord;
+    GsCOORDINATE2*              facing;
+    SVECTOR*                    view;
+    s16                         angle;
+
+    work   = (Actor403200Work*)arg0->idMap;
+    enemy  = arg0->spawnArg2;
+    player = Game_GetPtrSlot(3);
+
+    if (work->field_4 != 0) {
+        work->field_EF6 = 1;
+        work->field_EF4 = 1;
+        work->field_EFE = 0;
+        if (work->field_F10 == 0) {
+            work->field_F10 = 0x28;
+        }
+        work->field_E96 = 0xE10;
+        work->field_7B3 = 1;
+        work->field_7B0 = 1;
+        work->field_EFA = 0;
+        work->field_7B6 = 0x10;
+    }
+    if (D_actor_403200_80141C58 >= 0x191) {
+        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+        work->field_7A4         = 0;
+    }
+    sc = (Actor403200ApproachScratch*)(SCRATCH_SP -= sizeof(Actor403200ApproachScratch));
+    func_actor_403200_80133DD8(arg0);
+
+    coord    = ((TmdObject*)arg0->extra)->field_8;
+    view     = &sc->view;
+    view->vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+    view->vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+    view->vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    facing   = ((TmdObject*)arg0->extra)->field_8;
+    angle    = ratan2(view->vx, view->vz) -
+            ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = angle;
+    if (D_actor_403200_80141C50 == 1) {
+        work->field_6 = 0;
+    }
+    if (work->field_F10 <= work->field_6) {
+        sc->delta.vx = ((TmdObject*)player->extra)->field_8->coord.t[0] -
+                       ((TmdObject*)arg0->extra)->field_8->coord.t[0];
+        sc->delta.vy = (((TmdObject*)player->extra)->field_8->coord.t[1] -
+                        ((TmdObject*)arg0->extra)->field_8->coord.t[1]) -
+                       0xFA;
+        sc->delta.vz = (((TmdObject*)player->extra)->field_8->coord.t[2] -
+                        ((TmdObject*)arg0->extra)->field_8->coord.t[2]) +
+                       0x25F;
+        sc->dist = SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vy * sc->delta.vy +
+                               sc->delta.vz * sc->delta.vz);
+        switch (work->field_F08) {
+            case 0:
+                if (enemy->field_40 < 0x5DC) {
+                    work->field_0 = 9;
+                } else if (((TmdObject*)player->extra)->field_8->coord.t[0] -
+                               ((TmdObject*)arg0->extra)->field_8->coord.t[0] >=
+                           0x2711) {
+                    work->field_0 = 2;
+                } else if (work->field_F1D != 3) {
+                    work->field_0 = 3;
+                } else {
+                    work->field_0 = 2;
+                }
+                break;
+            case 1:
+                if (enemy->field_40 < 0x320) {
+                    work->field_0 = 9;
+                } else {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
+                        work->field_0 = 3;
+                    } else if (sc->dist >= 0x20D1) {
+                        if (work->field_F1D == 6) {
+                            work->field_0 = 2;
+                        } else {
+                            work->field_0 = 6;
+                        }
+                    } else if (sc->dist >= 0x189D) {
+                        if (work->field_F1D == 7) {
+                            work->field_0 = 2;
+                        } else {
+                            work->field_0 = 7;
+                        }
+                    } else {
+                        work->field_0 = 2;
+                    }
+                }
+                break;
+            case 2:
+                if (sc->dist >= 0x2329) {
+                    if (work->field_F1D == 2) {
+                        work->field_0 = 6;
+                    } else {
+                        work->field_0 = 2;
+                    }
+                } else if (work->field_F1D == 2) {
+                    work->field_0 = 0xB;
+                } else {
+                    work->field_0 = 2;
+                }
+                break;
+        }
+        if ((s8)work->field_F1A > 0) {
+            work->field_0 = 0xF;
+        }
+    }
+    SCRATCH_SP += sizeof(Actor403200ApproachScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013EF6C);
 
