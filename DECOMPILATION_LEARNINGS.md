@@ -68569,6 +68569,36 @@ hoist `work + 0x814`: `fold` reassociates `(work + 0x814) + i * 0x18` into
 `work + (i * 0x18 + 0x814)`, and the constant lands on the index
 (`addiu v0,v0,0x814` / `addu v1,s3,v0`) rather than on an invariant base.
 
+## A two-register `and` keeps the source order: swap the terms to fix the last 0.23%
+
+`mask & *flags` and `*flags & mask` are the same value and different insns:
+
+```
+and  v0,s4,v0      /* mask & *flags  - the mask is rs */
+and  v0,v0,s4      /* *flags & mask  - the load is rs */
+```
+
+`expand_binop` (optabs.c:413) swaps a commutative pair to "make the first
+operand a register ... make the last operand a constant", but only when the
+target is a register or absent (`target == 0 || GET_CODE (target) == REG`),
+otherwise it merely tests `rtx_equal_p (op1, target)`. In a pure test - the
+`if (mask & *flags)` here - the target is not a plain register, so no swap
+happens and the tree order survives: the memory operand is then forced into a
+register where it stands, giving `(and (reg mask) (reg loaded))` for one
+spelling and the reverse for the other. Nothing later swaps two pseudos.
+
+This is what was left when a loop body was otherwise exact: 99.77% (regs=10,
+reorder=2, all from that one insn) with `*flags & mask`, 100% after swapping the
+two terms. `func_dryfield_underpass_8017DE30` is the worked example; its sibling
+`func_acropolis_observatory_8017E6F8` reads the same shape as `*flags & mask`
+and matched that way, so the two are genuinely different sources, not two
+spellings of one.
+
+This is the *opposite* of the address `addu` case above, where the operand
+order comes from `expand_expr`'s `both_summands` path - that one is only
+reached while building a MEM address (`EXPAND_SUM` + `ptr_mode`), and an
+ordinary value AND takes `goto binop` and preserves the tree order.
+
 ## A `move` immediately after a load is a *second* read that post-reload CSE collapsed
 
 `parent = task->parent;` compiles to one insn: `expand_assignment` stores the
