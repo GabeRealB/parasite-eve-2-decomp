@@ -35,18 +35,21 @@ typedef struct Actor107000Ctx {
 typedef struct Actor107000Work {
     /* 0x000 */ byte   pad_0[0x28C];
     /* 0x28C */ MATRIX field_28C; // transform folded onto the model part
-    /* 0x2AC */ byte   pad_2AC[8];
+    /* 0x2AC */ s32    field_2AC; // advanced by 0xC8 a frame while the death flag runs
+    /* 0x2B0 */ byte   pad_2B0[2];
+    /* 0x2B2 */ s16    field_2B2; // armed to 3 by the hit branch, with the pair below
     /* 0x2B4 */ s16    field_2B4; // cleared on the death branch
-    /* 0x2B6 */ byte   pad_2B6[2];
+    /* 0x2B6 */ s16    field_2B6; // cleared next to `field_2B2`
     /* 0x2B8 */ s16    field_2B8; // animation id the work is playing
     /* 0x2BA */ s16    field_2BA; // id the three helper slots last saw
     /* 0x2BC */ u16    field_2BC; // frames spent on the current id
-    /* 0x2BE */ byte   pad_2BE[0xC];
+    /* 0x2BE */ s16    field_2BE; // cleared next to the pair above
+    /* 0x2C0 */ byte   pad_2C0[0xA];
     /* 0x2CA */ s16    field_2CA; // angle the transform is scaled by
     /* 0x2CC */ s16    field_2CC; // countdown seeded by the damage branch
     /* 0x2CE */ byte   pad_2CE[4];
     /* 0x2D2 */ s16    field_2D2; // non-zero: the rebind is suppressed
-    /* 0x2D4 */ byte   pad_2D4[2];
+    /* 0x2D4 */ u16    field_2D4; // frames the reaction has run; the death branch fires at 5
     /* 0x2D6 */ s16    field_2D6; // selects the sound event's high half
     /* 0x2D8 */ s16    field_2D8; // latched copy of `field_2B8`
     /* 0x2DA */ byte   pad_2DA[0x90];

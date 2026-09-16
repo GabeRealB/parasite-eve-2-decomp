@@ -111185,3 +111185,34 @@ an edit confined to the second body also repairs the first body's registers,
 which points at something function-wide (global alloc's pass-1 register reuse,
 or `reload`, which in the 97.5% build had already moved both pointers off their
 `local_alloc` homes).
+
+## An m2c call seed can drop the leading argument; the delay slot names the arity (func_actor_107000_801344DC, 2026-09-16)
+
+**Symptom:** a seed at 99.928% whose only difference is one register in the `jal`
+delay slot - target `addu a1,zero,zero`, seed `addu a0,zero,zero`. The `jal`
+target matches and nothing else moves, so it reads like a register tie.
+
+**Cause:** m2c inferred the callee's arity from the argument writes it could see.
+Nothing writes `$a0` before the call - the incoming `Task*` is still live in it -
+and the only visible setup is `$a1 = 0`, so m2c folded the call to one argument
+and put the constant where a lone argument would go:
+
+```c
+M2C_UNK func_actor_107000_801334C8(M2C_UNK);   /* m2c's guess; M2C_UNK is s32 */
+func_actor_107000_801334C8(0);                 /* -> addu a0,zero,zero */
+```
+
+**Fix:** read the arity off the callee's own unit (`src/actors/actor_107000/actor_107000.c`
+already carries `void func_actor_107000_801334C8(Task* arg0, s32 arg1);`) and pass
+every argument:
+
+```c
+void func_actor_107000_801334C8(Task* arg0, s32 arg1);
+func_actor_107000_801334C8(arg0, 0);           /* -> addu a1,zero,zero, a0 untouched */
+```
+
+The object dump cannot show this: it renders the seed's *wrong* call, so the
+missing argument has to come from the target's delay slot. **Tell:** a delay slot
+that initializes `$aN` for N > 0 while nothing in the block writes `$a0`. It is
+m2c's prototype inference, not a codegen decision, and no amount of register or
+scheduling work moves it.
