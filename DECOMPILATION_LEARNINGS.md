@@ -97160,3 +97160,50 @@ the dead store afterwards and it emits nothing. Arm order picks the branch sense
 cmp = (u16)(out.vz + 0x12B) < 0xA27;
 if (cmp == 0) { ret = cmp; ret = 0; } else { ret = cmp; ret = 1; }
 ```
+## m2c drops an unused middle parameter, renumbering the ones after it (func_actor_223600_8014CC04, 2026-09-16)
+
+The m2c seed scored 94.630% with `regs=17 branch=5 insert=2`, and all three
+penalties came from one cause: the function's second argument (`$a1`) is never
+read, so m2c omitted it from the signature. The declaration it emitted was
+`s32 func(void *arg0, s16 arg2)` - the name still says `arg2` (m2c names
+parameters by *register index*), but as a C declaration it is the second
+parameter, so the switch value that really arrives in `$a2` was read from `$a1`.
+
+The `s16` is the second half of the artifact: the value's only uses are
+halfword stores (`work->field_0 = arg2` becomes `sh s0,0(s1)`), and m2c narrows a
+parameter to the width its uses imply. So the seed signed-extended a value the
+original never touched, and `insert=2` is exactly that `sll`/`sra` pair:
+
+```
+target, `s32 arg2`                  seed, `s16 arg2` in $a1
+    move  s0,a2                         move  s1,a1
+    ...                                 sll   v0,s1,0x10
+                                        sra   a1,v0,0x10
+    beq   s0,s2,.L74                    beq   a1,s2,.L78
+```
+
+Both penalties are downstream of that pair: sign-extending the value gives it a
+different birth and a longer life, which is what swapped the homes of the switch
+value and the `0x1C` work pointer (`$s0`/`$s1`), and the condition registers
+follow the values (`branch=5` is `condition_registers_match: false`, not a
+different shape - the block graph and predicates already matched).
+
+Restoring the true arity and typing the switch value `s32` is the whole fix:
+
+```c
+s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
+```
+
+100.000% on the next build, every penalty zero. Note `arg1` need not be *used*
+for this to be right: the handlers in this overlay's `D_actor_223600_80150B28`
+table are all 3-argument, which is where the arity is visible. When an m2c
+signature has fewer parameters than the register numbers in the names suggest -
+or a name like `arg2` sitting in the second slot - read the caller or the
+dispatch table before accepting it. A narrow type m2c inferred from a store
+width is the second thing to re-derive: the value here is a command word and the
+halfword store is just where it lands.
+
+Inputs: `base.i`
+`fa59e1f9adbc85b08fbd1ea2c4272d4494383beea7a1227d849214b9af852be4` (94.630%),
+`base_1.i` `890037663697c5df7b8a5d7d98813212e8453845f3e197d1932469e3e69fd2f3`
+(100.000%).

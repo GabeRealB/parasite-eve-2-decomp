@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_223600.h"
+#include "main/tmd.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014A170);
 
@@ -26,7 +27,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600", ActorsShared80135df4Table);
 
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CC04);
+/// Message handler (id 0x7D5 in `D_actor_223600_80150B28`). Drives the model's
+/// `field_C` flag word and the work block's state word from `arg2`: 0 sets 0x80
+/// and rewrites the buffers, 1 clears it and rewrites the buffers, 2 sets bit
+/// 2, and 3 clears then sets bit 2. Only case 1 keeps `arg2` as the state.
+s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject*       obj  = task->extra;
+    Actor223600Work* work = (Actor223600Work*)task->idMap;
+
+    switch (arg2) {
+        case 0:
+            obj->field_C = 0x80;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 1;
+            break;
+        case 1:
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = arg2;
+            break;
+        case 2:
+            obj->field_C |= 4;
+            work->field_0 = 0;
+            break;
+        case 3:
+            obj->field_C  = 0;
+            work->field_0 = 0;
+            obj->field_C |= 4;
+            break;
+    }
+    return 0;
+}
 
 /// Message handler (id 0x7DB in `D_actor_223600_80150B28`). Copies the first
 /// three bytes of the event packet into the work block, then, for command word

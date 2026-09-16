@@ -26,6 +26,7 @@ typedef union Actor223600Event {
 } Actor223600Event;
 STATIC_ASSERT_SIZEOF(Actor223600Event, 0x4);
 
+s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2);
 s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event);
 
 #endif // ACTOR_223600_H
