@@ -25630,6 +25630,33 @@ found->field_1 = neg;
 
 `Gp_EquipMod` is the example.
 
+### ...and the staging temp has to be a *fresh* quantity
+
+Staging through a variable that already holds a live value does **not** work, and
+fails in a way that looks like an allocation problem rather than a typing one.
+`func_actor_421600_8013E8AC` halves the `u16` `field_832` into `value`, stores
+it, then stores `-0x10` to the same field when `value == 1`. Staging the `-0x10`
+through that same `value` gives the right immediate in the wrong register —
+`li v1,-0x10` where the target has `li v0,-0x10` (`regs=2`, 99.87%) — because
+local-alloc has already homed that pseudo for its earlier lifetime, so the
+second store reuses the home instead of taking a fresh `$v0`.
+
+```c
+value           = (s16)work->field_832 / 2;
+work->field_832 = (u16)value;
+magnitude       = 0x10U;              /* fresh u32 -> $v0 */
+if (value == 1) {
+    work->field_832 = -magnitude;     /* addiu v0,zero,-0x10 / sh v0 */
+}
+```
+
+The negated 32-bit `magnitude` works as well as the negative literal does, and
+it is what the *matched* sibling `Actor00100_Fn0B52C`
+(`src/actors/lib/actor_400100_tail.c`) writes for the identical body — the
+shared-body index groups the two. Read that sibling before hand-rolling a
+staging trick: the idiom is already in the tree, with the same target
+instructions on the other side.
+
 ## Split 0xFFFF sentinels; reuse the id register as the dest pointer
 
 A 2-bit bank writer that walks `-1`-terminated list nodes and

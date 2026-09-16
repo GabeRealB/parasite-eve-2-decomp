@@ -33,10 +33,14 @@
 /// offset); `func_actor_421600_8013E9D8` masks it to 24 bits and compares that
 /// with 0x11402 to pick the state it writes to `field_0`.
 typedef struct Actor421600Work {
-    /* 0x000 */ s16     field_0;
-    /* 0x002 */ byte    pad_2[2];
-    /* 0x004 */ s16     field_4;
-    /* 0x006 */ byte    pad_6[0x62];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ byte pad_2[2];
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ byte pad_6[0x54];
+    /// Animation step counter masked to 0x3FF by the state handlers; the
+    /// model-shrink tails wait for it to read 0xC.
+    /* 0x05A */ u16     field_5A;
+    /* 0x05C */ byte    pad_5C[0xC];
     /* 0x068 */ u16     field_68;
     /* 0x06A */ byte    pad_6A[0x7BE];
     /* 0x828 */ u16     field_828;
