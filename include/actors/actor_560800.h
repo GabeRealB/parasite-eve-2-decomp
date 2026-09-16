@@ -199,6 +199,19 @@ extern Task* D_actor_560800_8017578C;
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern u8 D_actor_560800_8016EA40[];
 
+/// One step of the animation script `func_actor_560800_80132340` walks,
+/// indexed by `Actor560800Work::field_60`: `field_0` is the frame hold counted
+/// in `field_62` (0 waits for the player to report the clip done, message
+/// 0x3ED), and `field_2` is the next animation id sent as message 0x3F4; a
+/// negative `field_2` ends the script.
+typedef struct Actor560800AnimStep {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ s16 field_2;
+} Actor560800AnimStep;
+STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
+
+extern Actor560800AnimStep D_actor_560800_8016EBE8[];
+
 /// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
 /// second argument: a null entry then one animation set per slot of
 /// `Actor560800ModelWork`, indexed by the animation id.

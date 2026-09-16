@@ -119,7 +119,62 @@ L_case5:
     Display_ResetHeapWrapper();
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80132340);
+s32 func_actor_560800_80132340(Task* arg0)
+{
+    Actor560800Work*     work;
+    Actor560800AnimStep* table;
+    Actor560800AnimStep* entry;
+    Actor560800AnimStep* entry2;
+    GpAnimArg            msg;
+    u16                  anim;
+    u16                  anim2;
+
+    work = (Actor560800Work*)arg0->idMap;
+    if (work->field_0 == NULL) {
+        return 1;
+    }
+    table = D_actor_560800_8016EBE8;
+    entry = &table[(u16)work->field_60];
+    if (entry->field_0 != 0) {
+        if (work->field_62 >= entry->field_0) {
+            if (entry->field_2 < 0) {
+                return 1;
+            }
+            anim           = entry->field_2;
+            msg.field_0    = D_actor_560800_8016EA40;
+            work->field_60 = anim;
+            msg.field_4    = anim;
+            msg.field_8    = 1;
+            msg.field_C    = 0xA;
+            msg.field_10   = 1;
+            Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
+            work->field_62 = 0;
+        } else {
+            work->field_62 += 1;
+        }
+    } else {
+        if (Gp_DispatchMsg(work->field_0, 0x3ED, 0, 0) != 0) {
+            return 0;
+        }
+        entry2 = &D_actor_560800_8016EBE8[(u16)work->field_60];
+        if (entry2->field_2 < 0) {
+            return 1;
+        }
+        work = (Actor560800Work*)arg0->idMap;
+        if (work->field_0 != NULL) {
+            anim2          = entry2->field_2;
+            msg.field_0    = D_actor_560800_8016EA40;
+            work->field_60 = anim2;
+            msg.field_4    = anim2;
+            msg.field_8    = 1;
+            msg.field_C    = 0xA;
+            msg.field_10   = 1;
+            Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
+            work->field_62 = 0;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80132498);
 
