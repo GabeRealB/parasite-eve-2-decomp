@@ -176,7 +176,40 @@ void func_actor_511000_80133240(Task* task)
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801332E4);
+/// Tracks the parent model's visibility bit every frame: while the parent model
+/// is hidden (`field_C` bit 0x80 clear) this clears its own bit and, for
+/// spawnArg1 1 or 2, spins the root coordinate's yaw (0x46) by 0x294 or its
+/// pitch (0x44) by 0x3E8, wrapping each to 0x1000. The rotation matrix is then
+/// rebuilt from the angles and the coordinate's `flg` cleared. With the parent
+/// visible the rotation is left alone and the visibility bit is set instead.
+void func_actor_511000_801332E4(Task* task)
+{
+    TmdObject*        extra;
+    TmdObject*        parentExtra;
+    Actor511000Coord* coord;
+
+    extra       = (TmdObject*)task->extra;
+    coord       = (Actor511000Coord*)extra->field_8;
+    parentExtra = (TmdObject*)((Task*)task->spawnArg2)->extra;
+
+    if (!(parentExtra->field_C & 0x80)) {
+        extra->field_C &= 0xFF7F;
+
+        switch (task->spawnArg1) {
+            case 1:
+                coord->rot.vy = ((u16)coord->rot.vy + 0x294) & 0xFFF;
+                break;
+            case 2:
+                coord->rot.vx = ((u16)coord->rot.vx + 0x3E8) & 0xFFF;
+                break;
+        }
+
+        RotMatrix(&coord->rot, &coord->coord);
+        coord->flg = 0;
+        return;
+    }
+    extra->field_C |= 0x80;
+}
 
 void func_actor_511000_801333A4(Task* task)
 {

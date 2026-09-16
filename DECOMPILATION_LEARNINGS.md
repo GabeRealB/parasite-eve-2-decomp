@@ -107277,3 +107277,49 @@ in the duplicate index. Nothing had to be reasoned about - the arms, the
 unreachable ones included, transferred verbatim. When the index reports that
 four-way agreement, transcribe the sibling first and adapt only the overlay-local
 table symbol and the work-struct field names.
+## An `lhu` at a folded offset needs the *field* named unsigned — a pointer to the sub-object moves the load to `2(a1)`
+
+`func_actor_511000_801332E4` spins one Euler angle of a coordinate and the target
+reads and writes it as `lhu v0,0x46(s0)` / `sh v0,0x46(s0)`, with `s0` the
+coordinate pointer and the angle triple at 0x44. With `SVECTOR rot` (an `s16`
+member) both updates load `lh`. Three ways to ask for the unsigned load:
+
+```c
+/* 1 - pointer to the sub-object: materializes the address */
+    Actor511000UVec* rot = (Actor511000UVec*)&coord->rot;
+    rot->vy = (rot->vy + 0x294) & 0xFFF;
+
+/* 2 - re-type the member (STATIC_ASSERT stays 0x4C) */
+    /* 0x44 */ Actor511000UVec rot;
+
+/* 3 - cast at the load site */
+    coord->rot.vy = ((u16)coord->rot.vy + 0x294) & 0xFFF;
+```
+
+1 is wrong for the addressing, not for the `lhu`: `&coord->rot` is a computed
+`s0 + 0x44` pseudo, so nothing folds and the body comes out `lhu v0,2(a1)` /
+`sh v0,2(a1)`, with that pointer live across the switch that follows -
+`reorder=6`, 79.2%.
+
+2 and 3 both give `lhu v0,0x46(s0)` and 100%; `build.sh` reported one source
+reproducing the other, so they compile to the same object. Land 3: it is the
+rule in `CODEGEN_MODEL.md` §3, it keeps the member's real `SVECTOR` type at the
+sibling `RotMatrix` calls, and it leaves the struct's other readers alone. Here
+re-typing was safe - `func_actor_511000_801336E0` and `func_actor_511000_80133760` only ever *store*
+into `rot`, and an `s16` -> `u16` store is the same `sh` - but that is analysis
+of those two callers, not a property of the change.
+
+The narrow point: the offset folds only when the unsigned type *is* the type of
+the field being named. Two working routes name the field; route 1 names an address.
+
+The same match needed the companion change in
+`## A dispatch whose tests sit above the bodies in case order is a switch`:
+m2c's nested `if (x != 1)` chain scored 90.79%, the `switch` 100% with the value
+in `$a0` and the case bodies in case order.
+
+Inputs: `base_3.i` `32bf013e44c016b4786325c8554071b3fcc6209d732d139b3f89fe80323306d8`,
+source `base_3.c` `dd5ad9488c048d4700a7b2155651a9ed7617f6341278e713c05808cfa4ebc258`
+(100.000%). Wrong-addressing variant `base_1.i`
+`7ce669a19de6d53a02f806d455099c6d6e67ca71fa8ac9ba503d435ea26e4bff`, source
+`base_1.c` `293407d2f17036a523783450d71e18ef61b05649f711581c904e785f50b8d82f`
+(79.229%, `reorder=6`). Scratch `nonmatchings/func_actor_511000_801332E4-vacuum`.
