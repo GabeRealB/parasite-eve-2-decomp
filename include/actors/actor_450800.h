@@ -53,9 +53,19 @@ typedef struct Actor450800Work {
     /* 0x4F4 */ Task*     field_4F4;
     /* 0x4F8 */ Task*     field_4F8;
     /* 0x4FC */ s16       field_4FC;
-    /* 0x4FE */ byte      pad_4FE[0x6];
+    /* 0x4FE */ byte      pad_4FE[0x2];
+    /* 0x500 */ u8        field_500;
+    /* 0x501 */ byte      pad_501[0x3];
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
+
+/// Message payload the overlay's message handlers take as `Gp_DispatchMsg`'s
+/// `arg2`, the shape `Actor461800Msg` and `Actor560800Msg` share: only the
+/// halfword at 0x2 is read.
+typedef struct Actor450800Msg {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  field_2;
+} Actor450800Msg;
 
 /// Script args the "start animation" opcode `func_actor_450800_80132B44`
 /// receives: the clip id, a flag choosing the start path, and the reset

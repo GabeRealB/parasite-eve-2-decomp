@@ -91270,6 +91270,24 @@ and the same `lh` → `lw 0x20(a0)` → `beqz` order. When a pointer field is re
 only inside one arm of an `if`, check `overlay_dup_index.py find <func>` for a
 matched sibling of the same body and read its C: the hoisted local is the
 family's house style, so the sibling is the model rather than the m2c form.
+
+The boundary is not about stores. `func_actor_450800_80132CE0` opened at 83.237%
+with one load two instructions into a `switch`'s `case 0` arm and closed at 100%
+once it was hoisted with the other pointer reads above the `switch`:
+
+```c
+    TmdObject*     obj   = (TmdObject*)work->field_4F8->extra;
+    GsCOORDINATE2* coord = obj->field_8;   /* reference loads this in block 0 */
+    ...
+    case 0:
+        Gp_SpawnEff(0x6002B, coord, 0x21, 0);
+```
+
+That load is a *call argument*, not a store address, and it is no more movable:
+sched1's region ends at the `beq` that enters the arm, so an `$a1` live across
+the arm into the `jal` has to be loaded in the same block as the `beq` because
+the C put it there. Writing the argument expression inline in the arm is the m2c
+shape and is what costs the instruction.
 ## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (func_actor_421600_8013E9D8, 2026-09-16)
 
 A spawn tail ends with "state = 2, or 5 when the id word masks down to
