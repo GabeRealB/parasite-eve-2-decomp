@@ -107,7 +107,53 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn045A0
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn04718);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn048A0);
+/// Same body as `Actor04400_Fn05260` at this overlay's own address: counts
+/// `field_412` up and on the first frame plays sound 0x402C0009 (bank from the
+/// enemy's `field_8` high nibble) panned and attenuated from the model root.
+/// Every frame, pushes the root 0x14 forward along the heading `field_7A`.
+/// Once status bit 0 or bits 0x102 of `flags_EC` are set, flags `obj_2CC` with
+/// 0x4000 and switches the task to state 3 with the work block's state 5,
+/// sub-state 0.
+void Actor04400_Fn048A0(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* next;
+    Actor104400Work* next2;
+    s32              soundId;
+    s32              pan;
+    s32              cond;
+    s16              angle;
+    s16              speed;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((s16)++work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    speed                                           = 0x14;
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    work2                                           = (Actor104400Work*)arg0->idMap;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->obj_2CC.flags |= 0x4000;
+        next                 = (Actor104400Work*)arg0->idMap;
+        arg0->state          = 3;
+        next->field_420      = 0;
+        next->field_422      = 0;
+        next2                = (Actor104400Work*)arg0->idMap;
+        next2->field_420     = 5;
+        next2->field_422     = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn04A3C);
 

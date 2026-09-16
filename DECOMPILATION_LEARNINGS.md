@@ -98442,3 +98442,93 @@ m2c-shaped `base.c` SHA256
 `regs=6`); target SHA256
 `821920d491fb026d7cc97ee137795df868bfa09baca7979950cddc3801510890`; two builds,
 no pins, no search performed. Scratch `nonmatchings/Actor04400_Fn06EEC-vacuum`.
+
+## Diff a same-TU sibling's `.s` directly; the file's own "Same body as …" notes do not mark every twin (Actor04400_Fn048A0, 2026-09-16)
+
+`Actor04400_Fn048A0` turned out to be **byte-identical to `Actor04400_Fn05260`,
+in the same unit** (`src/actors/lib/actor_104400_text_tail.c`). Stripping the
+`/* offset vram word */` and label lines from the two
+`asm/USA/actors/*/lib/actor_104400_text_tail/` files leaves an empty diff, so
+the already-matched sibling's C body retyped with the name changed scored
+100.000% with every penalty zero on the first build - one m2c-shaped baseline
+(68.097%, `branch=1 regs=21 reorder=3 insert=13 delete=17`), one ported body,
+done.
+
+Nothing in the tree pointed at that pair. `actor_104400_text_tail.c` annotates
+several of its bodies with a "Same body as `X`" doc comment, and neither
+`Fn048A0` nor `Fn05260` carried one naming the other, so the annotation is a
+partial index rather than a reliable one. `overlay_dup_index.py find
+Actor04400_Fn048A0` also printed only the body itself. What surfaced it was the
+cheap tell from the [Read `find`'s two counts together] entry above:
+
+```
+Actor04400_Fn048A0  (103 instructions, USA/actors/lib)
+  same body: 1 copies   identical bytes: 6
+```
+
+Six, against a one-entry list. Hashing the instruction words out of every
+`asm/USA/**/*.s` body gives the cluster exactly - all 103 words, no label style
+involved:
+
+| carrier | overlay | state |
+|---|---|---|
+| `Actor04400_Fn048A0` | actor_104400 | just matched |
+| `Actor04400_Fn05260` | actor_104400 | matched, same unit |
+| `func_actor_341700_801666F0` | actor_341700 | `INCLUDE_ASM` |
+| `func_actor_341700_801670B0` | actor_341700 | `INCLUDE_ASM` |
+| `func_actor_342400_801679D4` | actor_342400 | matched |
+| `func_actor_342400_80168394` | actor_342400 | matched |
+
+So the rule to carry forward: when `identical bytes:` exceeds the printed copy
+count, the brief's "Similar matched bodies" list at shape 1.00 is worth a
+**direct `.s` diff against the target** even when the sibling is in the same
+unit. A same-unit twin is the cheapest match available - no promotion, no
+manifest change, no re-split - and the notes in the host file are not what finds
+it.
+
+### The body is unpromotable because every carrier holds it twice
+
+The clustering gap is not what stops the promotion here. `promote
+Actor04400_Fn048A0` answers
+
+```
+Actor04400_Fn048A0: every copy is already served by the shared body
+```
+
+and exits 1, which reads as "already handled" and is not what is going on.
+Two causes, in the order the function tests them.
+
+The message itself comes first and is a misreading of the `lib` suffix.
+`promote` takes any copy under `src/<family>/lib/` to be the already-promoted
+shared body (`promoted`), leaving `copies` empty and hitting its `if not copies`
+branch. That is true at *span* granularity and false at *body* granularity:
+`actor_104400_text_tail` is a shared span (0x3538-0x8E14, carrying both
+actor_104400 and actor_342200), and `Fn048A0` is one body inside it, not the
+cluster's shared definition. With the grouping corrected the refusal would be
+the honest one.
+
+That honest refusal is structural, and no tooling fix reaches it: the body's
+own carriers are actor_104400, actor_341700 and actor_342400, and **each of the
+three holds it twice** (see the table). `promote` drops any overlay that
+contains the body more than once - `ld` includes an input object once, so the
+second slot would go unfilled - which leaves `keep` empty and prints "every
+overlay carrying it contains it twice; cannot share". This is the second of the
+two refusal classes the function's docstring counts; the first (an overlay-local
+data reference) does not apply, because this body reads no data at all - its
+only literal is the constant `0x402C0009` and its five callees are all
+main-executable.
+
+The duplicate-pair shape inside one overlay is the normal reading for this
+family rather than a surprise: actor_104400's own pair is the forward-push
+handler (`+0x14`, lands on state 5) reached from two states, the backward one
+(`Fn04D44`, `-0x14`, state 3) being its own separate body.
+
+Inputs: `base.c` SHA256
+`c6d82055026241ec…` (68.097%), `base_1.c` SHA256
+`de3f7490ec88eddf45f9a897f161432bae3f0d9b61cb3996983246f0272377e4` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`9531fcca0903f586b49769760354d9bc4b52f671b1ea27d0ff394d35d8738849`; target
+SHA256 `41fb3e787cf79087b2e50d6f6e0e9969eae3d1015532207a16a6df3b4411b736`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn048A0-vacuum`.
