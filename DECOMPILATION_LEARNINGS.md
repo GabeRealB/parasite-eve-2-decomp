@@ -105102,3 +105102,56 @@ Inputs: base_3.i SHA256
 `402e2a2c6261851b4c66be0cec70fe03e770dc43a98f2c527c857b63d58e6702`; target.o SHA256
 `5e678812427568180108d197f6e7e9d6d1da3839f682fe76bf3837f7fa2c4599`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## One block's locals swap hard registers on a re-spelling that emits the same instructions: `s32` intermediate + `(s32)(s16)` at the use, and a dedicated `u8* head` (func_actor_401000_8013B61C, 2026-09-16)
+
+`func_actor_401000_8013B61C` reached 99.543% with the structure already matching
+(37/37 blocks, `916/917` instructions, `branch=4 regs=23 insert=2 delete=1`).
+Every penalty sat in the single block that rebuilds the root coordinate from the
+model yaw -- `ratan2` -> `Gfx_RotMatrixY` -> `ScaleMatrix` over the 0x34-byte
+rotation scratch. There, `k = 0x1194` was rematerialised (`li v0,0x1194`) after
+`ScaleMatrix` instead of staying live in `$s3`, and `head` had taken `$s3`, the
+register `work` had held; the target has `$s3` for `k` and `$s4` (freed by
+`enemy`) for `head`.
+
+Two re-spellings of that block's locals, each emitting the *same* arithmetic,
+recovered the target allocation. Measured separately against the same tree:
+
+| spelling | score |
+|---|---|
+| `s32 sy;` + `blk->scale.vy = (s32)(s16)sy;`, dedicated `u8* head` | **100.000%** |
+| `s16 sy;` (narrowing at the assignment) + `u8* head` | 99.543% |
+| `s32 sy;` + one reused `void* scratch_base` | 99.945% |
+
+**The width.** `sy = k - (cur - 0x14) * 0xB;` is an `s32` expression stored to a
+halfword slot either way, so both forms end in `sll s0,s0,0x10; sra s0,s0,0x10`.
+Declaring `sy` as `s16` puts the narrowing in the *definition*, leaving an
+`HI`-mode pseudo whose every use re-widens (`sign_extend:SI (subreg:HI ...)`);
+declaring it `s32` and writing the cast at the single use leaves the pseudo
+`SI`-mode with the truncation at the use. The allocator then ranks the two
+pseudo sets differently: with `s16 sy` the product chain and `k` traded places
+(`li s0,0x1194` and the `sll/addu/sll/subu` in `$v0`), which is also what cost
+the extra instruction. This is the same lever as "`lb x` then `sll/sra` of the
+same register" above, read from the other end: there an `s16` local was what
+*kept* the value whole, here an `s32` one is. Which side of the cast the
+narrowing sits on decides the pseudo's mode, and mode decides the allocno.
+
+**The pointer.** Keeping the raw scratch head in one reused `void*`
+(`scratch_base = *(void**)((u8*)scratch_base + 0x3FC);`) instead of chaining a
+`u8* head` off it (`head = scratch_base; head = *(u8**)(head + 0x3FC);`) is
+worth the remaining 0.055%: it swaps `k` and `head` (`li s4,0x1194` with the
+head load into `$s3`, against the target's `li s3,0x1194` and `$s4`). Both forms
+are the same address; only the RTL that produces it differs, and with it the
+address pseudo's allocno.
+
+So when the only leftover is *which* register one block's locals got -- `regs=N`
+with everything else zero and the instructions already identical -- retype and
+re-split that block's locals before reaching for pins. Copying the matched
+twin's declaration shape verbatim (`func_actor_401000_80138D08` here: `void*
+scratch_base; u8* head; u8* tail; s16 cur; s32 k; s32 sy;`) is the cheapest way
+to land on it, because the twin's object *is* the target's allocation.
+
+Inputs: base_5.i SHA256
+`bfd0226f403300a4ee84f4bfa1f9e3c9e42f8e8634c4a5bb2b3b28c9354864a6`; target.o SHA256
+`d16801539777963daac3e52e8465ae00edcb55847dce0c8e2caad49072360709`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

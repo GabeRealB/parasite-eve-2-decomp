@@ -1849,7 +1849,185 @@ void func_actor_401000_8013B1E4(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013B61C);
+/// Rebuild `coord`'s Y rotation from its current yaw at unit scale, the same
+/// body as `Actor401300_ResetYaw` / `Actor01900_ResetYaw` (`coord->coord.m` is
+/// splatted back from the rotation scratch block and `flg` cleared so the local
+/// matrix is recomputed). The state-0x1A body below walks it down the model
+/// root's node run from `+2` to `+10`.
+static __inline__ void Actor401000_ResetYaw(GsCOORDINATE2* coord)
+{
+    void*                  head;
+    Actor401000RotScratch* blk;
+    s16                    ang;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    blk                     = (Actor401000RotScratch*)((u8*)head - 0x34);
+    *(void**)G_SCRATCH_HEAD = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = 1;
+    blk->scale.vy = 1;
+    blk->scale.vx = 1;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0]    = *(u16*)&blk->m.m[0][0];
+    coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]    = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]    = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]    = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]    = *(u16*)&blk->m.m[2][1];
+    coord->coord.m[2][2]    = *(u16*)&blk->m.m[2][2];
+    coord->flg              = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+}
+
+/// State-2 clip body and its 0x1A successor, the 401000 twin of
+/// `func_actor_401300_8013BB30` and `Actor01900_Fn0892C`. On the live-actor flag
+/// it arms the effect node, seeds the 0x8C0 spawn offset and the animation
+/// slots, and spawns clip 0x60030. `field_6` then counts up under `field_89E`:
+/// the state-2 arm waits 0x10 frames on `flags_68` bit 2 before switching to
+/// 0x1A, runs the `0x12C`/0xA range probe and the `field_A30` obstacle slide,
+/// and spawns the three tinted key-frame effects at counts 3, 5 and 6; the
+/// state-0x1A arm gates on `flags_68` bit 0x100, dispatches the one-shot actions
+/// off `field_6 - 0x19`, and from 0x1A on rebuilds the root coordinate through
+/// `ratan2` at scale `0x1194 - (field_6 - 0x14) * 0xB`. Both arms end in
+/// `func_actor_401000_80132EF0` and `Actor401000_ResetYaw` on nodes 2..10.
+void func_actor_401000_8013B61C(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    GpEnemy*               enemy;
+    GsCOORDINATE2*         coord;
+    Actor401000RotScratch* blk;
+    u8*                    head;
+    u8*                    tail;
+    void*                  scratch_base;
+    u16                    next;
+    s16                    ang;
+    s16                    cur;
+    s32                    k;
+    s32                    sy;
+    u16                    m22;
+
+    work         = arg0->field_1C;
+    enemy        = arg0->field_20;
+    scratch_base = PSX_SCRATCH;
+    if (work->field_4 != 0) {
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_A10.flags   |= 0x4000;
+        enemy->node.field_4      = 1;
+        work->field_8C0.vx       = 0x64;
+        work->field_89E          = 2;
+        work->field_898          = 1;
+        work->field_8AE          = 0;
+        work->field_6            = 0;
+        work->field_8C0.vz       = 0;
+        work->field_8C0.vy       = 0;
+        work->field_8A2          = 0x10;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &work->field_8C0);
+        work->field_6 = 0;
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    switch (work->field_89E) {
+        case 2:
+            if ((s16)next >= 0x10 && (work->flags_68.half & 2)) {
+                work->field_89E = 0x1A;
+                work->field_898 = 2;
+                work->field_8A2 = 0x10;
+                work->field_89A = 0;
+            }
+            if ((s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, 0xA) != 0) {
+                Actor401000_MoveForward(arg0->field_2C->field_8, 0xA);
+            }
+            func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC);
+            if ((s16)work->field_6 == 3) {
+                D_80114B78[0]      = &D_actor_401000_80143EB4;
+                work->field_8C0.vz = 0x64;
+                work->field_8C0.vy = 0;
+                work->field_8C0.vx = 0;
+                Actor401000_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &work->field_8C0), enemy);
+            }
+            if ((s16)work->field_6 == 5) {
+                D_80114B78[0] = &D_actor_401000_80146190;
+                Actor401000_TintEffect(Gp_SpawnEff(0xA0000 | 5, arg0->field_2C->field_8 + 1, 0x200, NULL), enemy);
+            }
+            if ((s16)work->field_6 == 6) {
+                D_80114B78[0] = &D_actor_401000_8014599C;
+                Actor401000_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 3, 0x200, NULL), enemy);
+            }
+            break;
+        case 0x1A:
+            if (!(work->flags_68.half & 0x100)) {
+                work->field_6 = 0;
+            }
+            switch ((s16)(work->field_6 - 0x19)) {
+                case 0:
+                    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                    break;
+                case 5:
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SpawnEff(0x600A5, arg0->field_2C->field_8 + 2, 2, NULL);
+                    break;
+                case 23:
+                    arg0->field_2C->field_C = 2;
+                    break;
+                case 17:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+                case 39:
+                    arg0->field_2C->field_C = 0x80;
+                    work->field_0           = 0;
+                    break;
+            }
+            cur = work->field_6;
+            if (cur >= 0x1A) {
+                k                                        = 0x1194;
+                head                                     = scratch_base;
+                head                                     = *(u8**)(head + 0x3FC);
+                coord                                    = arg0->field_2C->field_8;
+                blk                                      = (Actor401000RotScratch*)(head - 0x34);
+                sy                                       = k - (cur - 0x14) * 0xB;
+                *(Actor401000RotScratch**)G_SCRATCH_HEAD = blk;
+                ang                                      = ratan2((s32)-coord->coord.m[2][0], (s32)coord->coord.m[2][2]);
+                blk->angle                               = ang;
+                Gfx_RotMatrixY(&blk->m, (s32)ang, 1);
+                blk->scale.vx = k;
+                blk->scale.vy = (s32)(s16)sy;
+                blk->scale.vz = k;
+                ScaleMatrix(&blk->m, &((Actor401000RotScratch*)(head - 0x34))->scale);
+                coord->coord.m[0][0] = *(u16*)&((Actor401000RotScratch*)(head - 0x34))->m.m[0][0];
+                coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+                coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+                coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+                coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+                coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+                coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+                coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+                __asm__ volatile("lui %0, 0x1F80" : "=r"(tail));
+                tail       = *(u8**)(tail + 0x3FC);
+                m22        = *(u16*)&blk->m.m[2][2];
+                coord->flg = 0;
+                tail       = tail + 0x34;
+                __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
+                coord->coord.m[2][2] = m22;
+            }
+            break;
+    }
+    func_actor_401000_80132EF0(arg0);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 2);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 3);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 4);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 5);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 6);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 7);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 8);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 9);
+    Actor401000_ResetYaw(arg0->field_2C->field_8 + 10);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013C46C);
 
