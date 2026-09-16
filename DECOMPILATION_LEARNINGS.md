@@ -94769,3 +94769,37 @@ reading to spot — the diff shows `lbu`/`sb` against `lhu`/`sh` on the same
 displacements.
 
 Inputs: `base_1.i`
+
+## m2c's scalar locals for a copied table become callee-saved registers across a call
+
+`func_actor_135400_80132B60` copies five words out of a rodata table into a
+local, and copies that local into its work block *after* a `Mem_Calloc`. m2c
+renders the local as five sibling `s32` scalars, and GCC keeps them in
+`$s2`-`$s6` across the call: the object saves five `$s` registers, the frame is
+0x38 where the target's is 0x48, and the table never touches the stack. The
+score stalls at 59% with `regs`/`insert`/`delete` residue while `blocks` and
+`instructions` already match, so the structure diagnostic alone will not point
+at it.
+
+The target stores the words to `sp+0x28` and reloads them after the call, which
+is what an *aggregate* local does - CSE cannot forward a frame slot across a
+call that clobbers memory, so the round trip survives by construction. Give the
+table a record type, declare the local with it, and assign wholesale:
+
+```c
+extern const GpAnimArg D_actor_135400_80131EA0;   /* rodata, 5 words */
+GpAnimArg spawn;
+
+spawn = D_actor_135400_80131EA0;   /* lw t0/t1/t2, sw..., lw t0/t1, sw... */
+...
+work->params = spawn;              /* 5 loads then 5 stores, through the stack */
+```
+
+100% on the next build (`func_actor_135400_80132B60`, 59.539% -> 100.000%, one
+build). This is the mirror of the "m2c's scalar locals for a struct copy die in
+CSE" entry: there the scalars are dead and their stores vanish, here they are
+live and get registers. What decides it is whether the target's own copy
+round-trips through the frame - if it does, the source object is an aggregate
+and no register-level rewrite can match.
+
+Inputs: `base.i` (m2c seed, 59.539%), `base_1.i` (100.000%).
