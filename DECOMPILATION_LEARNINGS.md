@@ -100867,3 +100867,28 @@ obj->field_C   = 0;
 The rest of the function is `Actor01900_OutOfRange`'s scratch-block radius
 test verbatim (see "A scratch push the pop overwrites is deleted by `flow`");
 porting that inline took it from 77% to 97% in one step.
+
+### A `move sN, sM` before a loop: copy the pointer into a local inside the inline helper (func_actor_204000_8014AC8C, 2026-09-16)
+
+Symptom: target copies an already-loaded pointer (`addu $s0,$s3,$zero`, often in
+a branch delay slot) and then uses `$s0` in the loop body while `$s3` serves the
+stores after the loop. Writing the loop inline, or as a `static __inline__`
+helper taking the pointer, collapses both into one register (92.75%): the
+inliner substitutes a pseudo actual directly for an unmodified parameter, so no
+copy is ever emitted.
+
+Fix: take the parameter and immediately copy it into a local in the helper.
+
+```c
+static __inline__ void ResetSlots(Actor104000Work* arg0)
+{
+    Actor104000Work* work = arg0;   /* this copy is the `move s0,s3` */
+    s32 i;
+    for (i = 1; i < 6; i++) { ... work->... }
+    work->field_172 = work->field_174;
+}
+```
+
+The copy survives because cse loses the equivalence at the loop's head label,
+so uses inside the loop keep the local's pseudo. Loop-hoisted givs (`addiu
+s2,s3,0x28`) still use the caller's register. 92.75% -> 100% with this one change.
