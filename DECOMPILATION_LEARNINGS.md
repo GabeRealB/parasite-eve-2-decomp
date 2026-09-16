@@ -87803,3 +87803,43 @@ rec.rot.vz = 0;
 So read a store sitting later than its statement suggests as the scheduler
 having delayed it, and a store that must move *up* as the statement needing to
 move up in the source -- no reordering of the C after it can pull it earlier.
+## The target's extra `move $sN, $v0` off a field load is the field read twice
+
+A second way cse grows a copy, this time from a *load*: the natural C is one
+instruction short of the target. A body whose target opens
+
+```asm
+lw    v0, 0x2C(s2)      /* task->extra */
+lw    s1, 0x1C(s2)
+move  s4, v0            /* the copy the C has to earn */
+lw    s3, 8(s4)         /* the member load is based on the copy's home */
+```
+
+reads `task->extra` twice in the *same basic block*: once inline as the base of
+a member access, once into the pointer variable that survives the frame.
+
+```c
+coord = ((TmdObject*)task->extra)->field_8;   /* the load lands here */
+work  = (NightFactoryWork*)task->idMap;
+obj   = (TmdObject*)task->extra;              /* cse -> move s4, v0 */
+```
+
+CSE folds the second read onto the first load's value, and then re-bases the
+member load on that value. The load itself dies at the copy, so `local_alloc`
+hands it a block-local `$v0`, while the variable it was copied into keeps the
+`$sN` `global_alloc` gave it — a register the function needs to be live across
+every call in between. The single-read spelling (`obj = task->extra;
+coord = obj->field_8;`) is one pseudo and emits no copy at all.
+
+Order matters: the inline read has to come first, so the load is what gets the
+short-lived register. The penalty mix is small -- `regs=1 delete=1` here -- and
+the tell is the `delete`, with a `branch` count equal to the number of branches
+after the missing instruction, since every later offset shifts by 4.
+
+`src/actors/actor_503500/actor_503500_9.c` (`func_actor_503500_8014618C`)
+documents exactly this shape, and `Actor00400_Fn04E18` in
+`src/actors/lib/actor_100400_text.c` is a second instance. To find a sibling
+when the natural C sits at ~98% with `regs=1 delete=1`, scan the family's asm
+for `lw $v0, off(reg)` followed within a couple of instructions by
+`addu $sN, $v0, $zero` and read that function's C body.
+`func_dryfield_night_factory_8017FA08`: 98.61% to 100%.
