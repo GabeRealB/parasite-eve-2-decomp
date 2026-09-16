@@ -4,7 +4,7 @@
 
 #include "main/tmd.h"
 
-s32 ActorsShared801334c4(Task* task, s32 arg1, ActorsShared801334c4Args* args)
+s32 ActorsShared801334c4(Task* task, s32 arg1, ActorsShared801334c4Args* args, s32 arg3)
 {
     ActorsShared801334c4Coord* coord;
     TmdObject*                 extra;

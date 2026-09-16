@@ -34,6 +34,6 @@ STATIC_ASSERT_SIZEOF(ActorsShared801334c4Coord, 0x4C);
 /// `rot` slot, rebuilds the rotation from them, and clears `TmdObject::field_C`
 /// bit 0x80. Clearing `flg` makes `Gp_UpdateCoordTree` recompute the world
 /// matrix from it.
-s32 ActorsShared801334c4(Task* task, s32 arg1, ActorsShared801334c4Args* args);
+s32 ActorsShared801334c4(Task* task, s32 arg1, ActorsShared801334c4Args* args, s32 arg3);
 
 #endif
