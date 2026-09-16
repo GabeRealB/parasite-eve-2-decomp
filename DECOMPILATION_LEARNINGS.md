@@ -93218,3 +93218,41 @@ reaches 100% — the same pin idiom as `func_actor_335800_8016224C`'s
 Diagnosis hint: a `li` for a call argument sitting in a delay slot several
 blocks before its use is evidence about the *source*, not about the call site.
 Count the pseudo's references before reaching for the call.
+
+## An m2c stack temp that aliases the struct field it was extracted from makes the target's stores dead (func_actor_335800_801631A4, 2026-09-16)
+
+`BRIEF.md` ranked `func_actor_141000_80133BD8` 1.00 in **both** `shape` and
+`cflow`. Porting that matched body literally -- declarations, statement order,
+structs and all, changing only names -- hit 100% on the first build. When two
+similar-body classes agree at 1.00, read the sibling's source as *this*
+function's source rather than as inspiration.
+
+The one real difference from the 64.69% m2c seed (`regs=40 delete=17`) was
+where a value lived:
+
+```c
+s16 sp10;  u16 sp12;                      /* m2c: two stack locals, 0x10 / 0x12 */
+Gp_ExtractEuler((SVECTOR *)&sp10, ...);
+temp_v0 = temp_a2 - sp12;                 /* sp12 read but never written */
+...
+sp12 = (s16)sp12 - 0x40;                  /* stored, never read again */
+```
+
+`sp10` is the `SVECTOR` the call fills and `sp12` lands exactly on its `vy`, but
+as two locals GCC cannot see that: every arm of the `if` stores to a slot
+nothing reads, so `.flow` deletes the whole body -- 17 instructions, including
+both `j`-to-join arms. The original held the value in the struct field, so the
+tail's `RotMatrix` reads it back and the arms survive. Declaring `SVECTOR vec`
+and writing `vec.vy` restores the target's 8 blocks and all three stores.
+
+Signature to recognise: instruction count *below* the target with a large
+`delete` and `stack=0`. Nothing is wrong with the frame -- the stores are simply
+unobservable. The slot aliasing is invisible in the C, so reach for the owning
+struct's field, not a pin.
+
+(`overlay_dup_index.py find` lists three more copies -- `actor_120400`,
+`actor_135600`, `actor_350700` -- byte-identical bodies, but `promote` refuses
+the group: the body calls a per-overlay function, so it stays matched per
+overlay rather than promoted.)
+
+Inputs: `base.c` (64.69%), `base_1.c` (100%).

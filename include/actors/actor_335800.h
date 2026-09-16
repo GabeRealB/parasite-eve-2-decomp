@@ -63,14 +63,18 @@ typedef struct Actor335800MainWork {
     /* 0x000 */ byte   pad_0[0x475];
     /* 0x475 */ s8     field_475;
     /* 0x476 */ s8     field_476;
-    /* 0x477 */ byte   pad_477[0x1];
+    /* 0x477 */ s8     field_477; // preset byte the turn-to-face body passes as `field_4`
     /* 0x478 */ MATRIX light;
     /* 0x498 */ MATRIX color;
     /* 0x4B8 */ byte   pad_4B8[0x20];
     /* 0x4D8 */ s32    field_4D8;
     /* 0x4DC */ s32    field_4DC;
     /* 0x4E0 */ s32    field_4E0;
-    /* 0x4E4 */ byte   pad_4E4[0x18];
+    /* 0x4E4 */ byte   pad_4E4[0xE];
+    /* 0x4F2 */ u16    field_4F2; // target yaw the turn-to-face body steers toward
+    /* 0x4F4 */ byte   pad_4F4[0x4];
+    /* 0x4F8 */ s16    field_4F8; // body counters the turn-to-face body clears on arrival
+    /* 0x4FA */ s16    field_4FA;
     /* 0x4FC */ Task*  field_4FC;
     /* 0x500 */ Task*  field_500;
     /* 0x504 */ s16    field_504;
@@ -112,6 +116,32 @@ typedef struct Actor335800SprtRec {
     /* 0x000 */ byte                 pad_0[0x1CC];
     /* 0x1CC */ Actor335800SprtView* field_1CC;
 } Actor335800SprtRec;
+
+/// 0x14-byte animation preset `func_actor_335800_801631A4` builds for
+/// `func_actor_335800_801632A4`: the turn-to-face body fills `field_0` with 0,
+/// `field_4` with the `field_477` byte, `field_8` with 1, `field_C` with 5 and
+/// `field_10` with 0 -- the same five-word shape as `Actor141000AnimPreset`.
+typedef struct Actor335800AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor335800AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor335800AnimPreset, 0x14);
+
+/// A `MATRIX`'s word-wise view, for the identity splat `func_actor_335800_801631A4`
+/// writes over the root coordinate before `RotMatrix` overwrites the 3x3: five
+/// aligned stores rather than nine halfword ones (the same shape as
+/// `Actor141000MatWords`).
+typedef struct Actor335800MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor335800MatWords;
+STATIC_ASSERT_SIZEOF(Actor335800MatWords, 0x14);
 
 void func_actor_335800_80163B34(Task* arg0);
 void func_actor_335800_80163B54(Task* arg0);
