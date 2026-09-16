@@ -71,6 +71,16 @@ typedef struct Actor401300 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor401300;
 
+/// Payload of the message `func_actor_401300_80141494` handles; `field_4`
+/// selects the animation id written to `Actor401300Work::field_8A2`. Same
+/// shape as `Actor01900Msg7D3`.
+typedef struct Actor401300Msg {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ u32 field_4;
+} Actor401300Msg;
+
+s32 func_actor_401300_80141494(Actor401300* arg0, s32 arg1, Actor401300Msg* arg2);
+
 s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placement* placement);
 
 void func_actor_401300_80133A3C(Actor401300* arg0);
