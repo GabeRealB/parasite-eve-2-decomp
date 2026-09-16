@@ -8,23 +8,23 @@
 /// Per-actor work block for the `actor_110300` overlay, reached through the
 /// global `ActorsShared80131f9c` publishes.
 ///
-/// Only the prefix the overlay's matched functions need is reconstructed so
-/// far. `anim` sits at offset 0 here - unlike `Actor143900Work` and
+/// `anim` sits at offset 0 here - unlike `Actor143900Work` and
 /// `Actor151000Work`, where the same 0x14-byte context follows a 0x40-byte
 /// state prefix - so `&ActorsShared80131f9cWork->anim` compiles to the bare
-/// pointer load. The block continues with `GpAnimSlot slots[0x14]` at 0x14
-/// (0x28 apart, as `Gp_AnimResetSlot` is handed `work + i * 0x28`) and the
-/// animation-id pair at 0x476/0x478, 0x40 below the fields of the same name
-/// in those two structs - `Actor143900Work`'s `field_4B6`/`field_4B8` and
-/// `Actor460200Work`'s `field_4B6`/`animId`.
+/// pointer load. `slots` follows it directly, and the animation-id pair sits
+/// at 0x476/0x478, 0x40 below the fields of the same name in
+/// `ActorsShared80132538Work` - `field_4B6`/`field_4B8` there, the same ones
+/// `Actor460200Work` calls `field_4B6`/`animId`.
 typedef struct Actor110300Work {
-    /* 0x000 */ GpAnimCtx anim;
-    /* 0x014 */ byte      pad_14[0x460];
-    /* 0x474 */ s16       field_474; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x476 */ s16       field_476; // copy of `animId`, kept for change detection
-    /* 0x478 */ u16       animId;    // animation id the slots are seeded with
-    /* 0x47A */ s16       field_47A;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       pad_334[0x140];
+    /* 0x474 */ s16        field_474; // actor step: 1 and 2 select the body to run, which then advances it to 3
+    /* 0x476 */ s16        field_476; // copy of `animId`, kept for change detection
+    /* 0x478 */ u16        animId;    // animation id the slots are seeded with
+    /* 0x47A */ s16        field_47A;
 } Actor110300Work;
+STATIC_ASSERT_SIZEOF(Actor110300Work, 0x47C);
 
 /// Argument block of the message 0x7D3 handler `func_actor_110300_80132280`
 /// implements: which animation to start. Same 4-byte-id prefix as
@@ -42,7 +42,11 @@ extern Actor110300Work* ActorsShared80131f9cWork;
 extern GpActorWork* D_actor_110300_8013A0A4;
 
 void func_actor_110300_801320C4(GpActorWork* arg0);
-void func_actor_110300_80132180(void);
+
+/// The shared slot-reseed body `src/actors/lib/actors_shared_80132180.c`,
+/// declared for the same reason as `ActorsShared80132138` below. Its other
+/// carrier is `actor_110800`.
+void ActorsShared80132180(void);
 
 /// The shared tick body `src/actors/lib/actors_shared_80132138.c`. Declared
 /// here rather than through `actors_shared_80132138.h` because that header

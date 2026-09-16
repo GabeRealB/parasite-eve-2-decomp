@@ -40,7 +40,7 @@ void func_actor_110300_801320C4(GpActorWork* arg0)
         return;
     }
     if (ActorsShared80131f9cWork->field_474 == 2) {
-        func_actor_110300_80132180();
+        ActorsShared80132180();
         ActorsShared80131f9cWork->field_474 = 3;
         return;
     }
