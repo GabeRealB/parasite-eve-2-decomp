@@ -86,7 +86,13 @@ typedef struct Actor403000Work {
     /// the animation that drives it is running. `func_actor_403000_8013D72C`
     /// zeroes this one field by field, last element first.
     /* 0xF30 */ MATRIX field_F30;
-    /* 0xF50 */ byte   pad_F50[0x38];
+    /* 0xF50 */ byte   pad_F50[0x24];
+    /// Horizontal target the display object is eased toward while it sits
+    /// below the player (`func_actor_403000_8013BDE0`).
+    /* 0xF74 */ s16  field_F74;
+    /* 0xF76 */ byte pad_F76[0x2];
+    /* 0xF78 */ s16  field_F78;
+    /* 0xF7A */ byte pad_F7A[0xE];
     /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
     /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
     /* 0xF88 */ s16  field_F88;
@@ -189,6 +195,8 @@ extern u32 Gp_LcgState;
 /// `field_AC2` until it catches up with the requested `field_AC6`, copying
 /// `field_ACA` into the four display nodes' clip slot as it goes.
 void func_actor_403000_80133AF8(Actor403000* arg0);
+
+s32 func_actor_403000_80134204(GsCOORDINATE2* coord);
 
 s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
 

@@ -311,7 +311,57 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013B74C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013BDE0);
+/// Ease the display object up toward the player and across to
+/// `field_F74`/`field_F78`, turn the player's third matrix column into the
+/// push vector for the first 8 frames, and once bit 0 of `field_60` is set
+/// after frame 0xB move the state machine to 4.
+void func_actor_403000_8013BDE0(Actor403000* arg0)
+{
+    Actor403000Work*        work;
+    Actor403000*            player;
+    Actor403000PushScratch* scratch;
+    GpEnemy*                enemy;
+    s32                     sound;
+    s32                     pan;
+
+    work                                      = arg0->field_1C;
+    player                                    = Game_GetPtrSlot(3);
+    scratch                                   = *(Actor403000PushScratch**)G_SCRATCH_HEAD - 1;
+    *(Actor403000PushScratch**)G_SCRATCH_HEAD = scratch;
+    if (work->field_4 != 0) {
+        enemy           = arg0->field_20;
+        work->field_FCA = 0;
+        work->field_6   = 0;
+        sound           = ((enemy->field_8 >> 0xC) << 8) | 7;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+    if (arg0->field_2C->field_8->coord.t[1] < player->field_2C->field_8->coord.t[1]) {
+        arg0->field_2C->field_8->coord.t[1] += 0x12C;
+        arg0->field_2C->field_8->coord.t[0] += (work->field_F74 - arg0->field_2C->field_8->coord.t[0]) >> 2;
+        arg0->field_2C->field_8->coord.t[2] += (work->field_F78 - arg0->field_2C->field_8->coord.t[2]) >> 2;
+    }
+    if ((s16)work->field_6 < 8) {
+        Gfx_MatrixCol2(&player->field_2C->field_8->coord, &scratch->dir);
+        VectorNormalSS(&scratch->dir, &scratch->dir);
+        gte_lddp(-0x2A);
+        gte_ldsv(&scratch->dir);
+        gte_gpf12_real();
+        gte_stsv(&scratch->dir);
+    }
+    D_actor_403000_80158DB0.x        = scratch->dir.vx;
+    D_actor_403000_80158DB0.y        = 0;
+    D_actor_403000_80158DB0.z        = scratch->dir.vz;
+    D_actor_403000_80158DB0.field_10 = 7;
+    D_actor_403000_80158DB0.field_12 = 1;
+    if ((work->field_60.half & 1) && (s16)work->field_6 >= 0xB) {
+        work->field_0   = 4;
+        work->field_FD3 = work->field_FD2 = work->field_FD5 = -func_actor_403000_80134204(arg0->field_2C->field_8);
+    }
+    func_actor_403000_80133AF8(arg0);
+    work->field_6++;
+    *(Actor403000PushScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013C050);
 
