@@ -108627,3 +108627,70 @@ address. A store whose value is computed has a data dependence on that
 computation and is unaffected. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_2.i` SHA256 `ad7ce0d6090259e109fccc803c116b05d2196a55abcc798364ac2546b6958751`.
+
+## A loop's comparison constants want a local before the loop when the target keeps them in `$s` registers (func_actor_356100_80163CD4, 2026-09-16)
+
+**Symptom.** A `do`/`goto` loop whose exit test compares a work field against two
+clip ids — `(work->field_97E != 0xB || (work->field_5A & 0x3FF) < 6)` … — with
+`regs=15 branch=8 reorder=2 insert=2 delete=4` at 90.663%. The branch topology is
+already right (`blocks=14/14`, same edges and predicates); what differs is that
+the candidate rematerializes both constants *inside* the loop, in `$v0`, and the
+frame is one save short:
+
+```
+    lh    v1,0x97e($s0)        ; candidate            target
+    li    v0,0xB               ;                  li    $s4,0xB   <- before the loop
+    bne   v1,v0,.L60           ;                  bne   $v1,$s4,.L60
+    li    v0,0xC               ;                  ...
+                               ;                  li    $s3,0xC   <- before the loop
+    bne   v1,v0,.L30           ;                  bne   $v1,$s3,.L30
+```
+
+The tell is the frame: the target saves one register more than the prologue
+"needs" (`sw $s4,0x20($sp)` with `$ra` pushed up to `0x24`) and no code path
+branching off the loop reads `$s4` at all.
+
+**Cause.** Writing the literals in the test leaves a `set` whose *only* use is the
+compare beside it, so its live range is one instruction and
+`move_movables`' desirability test `(threshold * savings * m->lifetime) >= insn_count`
+has `savings` (= `n_times_used`) and `lifetime` both 1: the constant stays in the
+loop (`.flow` / `.loop` / `.cse2` all show the `set` after the `loop_2` label, not
+hoisted before `loop_start`), and local-alloc keeps it in the call-clobbered
+scratch register the compare can reuse. Nothing about the *test* says `$s`.
+
+**Fix.** Materialize the comparison values before the loop, as this state's own
+locals — the state's prologue is the natural place, and both ids are then live
+across the loop *and across the `jal` inside it*, which is what forces a
+callee-saved home:
+
+```c
+        animA             = 0xB;
+        animB             = 0xC;
+        obj               = arg0->field_2C;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_978 = 2;
+        work->field_982 = 0x10;
+    loop_2:
+        func_actor_356100_80163508(arg0);
+        if ((work->field_97E != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) {
+            if ((work->field_97E != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)) {
+                goto loop_2;
+            }
+        }
+```
+
+Both assignments first, immediately after the `if (work->field_4 != 0)` test: the
+first one's `li` is what `reorg` parks in that test's `beqz` delay slot, and the
+second lands after the `lw` of `arg0->field_2C` — which is what the target shows.
+100.00%, all penalties zero; every other instruction and the whole `else` arm were
+already correct. Its sibling `src/actors/actor_110600/actor_110600_2.c:227` is the
+same shape with one condition and one constant.
+
+**Scope.** A constant whose only use is the loop test, in a loop that contains a
+call (so the register must survive it). If the constant is also used outside the
+loop, or the loop has no call, the allocator can already keep it in `$v0` and this
+is not the lever. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
+`base_1.i` SHA256 `bc1eccbb67a322bbf956b04609c90c6d12ca581170809fb8ff5c62942ef12191`.

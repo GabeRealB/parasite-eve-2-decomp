@@ -48,7 +48,58 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8016382C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80163CD4);
+/// Runs the clip the work block's `field_978` halfword selects and holds this
+/// state until it ends: while the actor is live, reset the model (`node.field_4`
+/// / `obj->field_C`, `Tmd_AllocBuffers`), start clip 2 at speed 0x10, and tick
+/// until clip 0xB has reached frame 6 or clip 0xC frame 9, then park `field_982`
+/// at 0x20. Once the actor is no longer live the same slot is halved per frame as
+/// a scale ramp that bounces between 0x10 and -0x10 — ending the state with
+/// `field_0 = 0x11` when `Gp_TickObjFlag2` reports the flag has expired.
+void func_actor_356100_80163CD4(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         ctx;
+    TmdObject*       obj;
+    s16              animA;
+    s16              animB;
+    s32              value;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        animA             = 0xB;
+        animB             = 0xC;
+        obj               = arg0->field_2C;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_978 = 2;
+        work->field_982 = 0x10;
+    loop_2:
+        func_actor_356100_80163508(arg0);
+        if ((work->field_97E != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) {
+            if ((work->field_97E != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)) {
+                goto loop_2;
+            }
+        }
+        work->field_982 = 0x20;
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    value                        = (s16)work->field_982 / 2;
+    work->field_982              = (u16)value;
+    if (value == 1) {
+        work->field_982 = -0x10U;
+    }
+    if ((s16)work->field_982 == -1) {
+        work->field_982 = 0x10;
+    }
+    func_actor_356100_80163508(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)ctx) == 1) {
+        ctx->field_4C &= 0xFD;
+        work->field_0  = 0x11;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80163E2C);
 
