@@ -4,6 +4,21 @@
 #include "common.h"
 
 #include "main/session.h"
+#include "main/task.h"
+
+/// Block `func_dryfield_junk_yard_8017D658` carves off the scratch stack
+/// (`0x1F8003FC`, one `addiu` of `-0x18`) to hold the model's world position
+/// while the ground-effect quad draws it, and hands to `Gp_DrawEffGroundQuad`.
+/// Only `pos` is written; the alloc size is 0x18 rather than the `VECTOR3`'s
+/// 0xC, so the tail is padding here.
+///
+/// Same shape as `Actor01600GroundScratch`, which is the same 0x18 with its
+/// `VECTOR3 pos` at 0x00.
+typedef struct {
+    /* 0x00 */ VECTOR3 pos;
+    /* 0x0C */ byte    pad_C[0xC];
+} DjyGroundQuadScratch;
+STATIC_ASSERT_SIZEOF(DjyGroundQuadScratch, 0x18);
 
 /// Resident routine at the fixed `0x8072xxxx` address the room overlays import
 /// for the game's named-sequence start (`0x80724608`, listed as

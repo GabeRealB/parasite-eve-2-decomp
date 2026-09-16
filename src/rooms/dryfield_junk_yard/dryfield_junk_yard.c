@@ -4,11 +4,16 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "rooms/dryfield_junk_yard.h"
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern s32 D_dryfield_junk_yard_8017DD20;
 extern s32 D_dryfield_junk_yard_8017DD88;
@@ -40,7 +45,33 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
     func_dryfield_junk_yard_8017D658(task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D658);
+/// Per-frame draw for the pickup model: after refreshing the model's world
+/// matrix, draws the ground-effect quad at its position.
+///
+/// Skipped outright once the model is marked for deferred kill (`field_C` bit
+/// 0x80, what `Task_Kill` ORs in for a spawnType-1 task) or before its aux
+/// buffers exist (`field_18`, allocated by `Tmd_AllocBuffers`), so a model
+/// still streaming in draws nothing. `0x1A0` and `0xC0` are the same width and
+/// height the room's other ground quads pass.
+void func_dryfield_junk_yard_8017D658(Task* task)
+{
+    DjyGroundQuadScratch* scratch;
+    GsCOORDINATE2*        coord;
+    TmdObject*            tmd;
+
+    tmd   = (TmdObject*)task->extra;
+    coord = tmd->field_8;
+    if ((tmd->field_C & 0x80) == 0 && tmd->field_18 != 0) {
+        scratch                             = *(DjyGroundQuadScratch**)0x1F8003FC - 1;
+        *(DjyGroundQuadScratch**)0x1F8003FC = scratch;
+        Gp_UpdateCoord(coord);
+        scratch->pos.vx = coord->workm.t[0];
+        scratch->pos.vy = coord->workm.t[1];
+        scratch->pos.vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(&scratch->pos, 0x1A0, 0xC0);
+        *(DjyGroundQuadScratch**)0x1F8003FC += 1;
+    }
+}
 
 void func_dryfield_junk_yard_8017D708(Task* arg0)
 {
