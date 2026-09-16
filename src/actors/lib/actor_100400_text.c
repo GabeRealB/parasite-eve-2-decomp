@@ -913,7 +913,244 @@ void Actor00400_Fn0237C(Actor100400* arg0)
     Gp_SpawnEff(0x60030, &((TmdObject*)arg0->field_2C)->field_8[1], 0x200, NULL);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02648);
+/// Drives the two head/neck coordinates (`base[2]`, `base[3]`) and the aim
+/// coordinate (`base[4]`) from `field_660`, the "actor is aiming" flag.
+///
+/// While aiming, `field_652` walks a small state machine: state 0 snaps the
+/// five part coordinates to their bind pose and records the current Euler
+/// angles, state 1 eases those angles back towards zero (and promotes to
+/// state 2 once all six components are inside 0x30), and state 2 scales the
+/// parts by `field_654` while the aim coordinate keeps its own rotation.
+/// When the flag drops, `field_654` is eased back to 0x1000 with the same
+/// scaling pass until it passes 0xF80, after which the stored angles are
+/// blended halfway towards the live ones and the state resets to 0.
+///
+/// `invScale` is one function-scope variable rather than a local per arm on
+/// purpose: with two assignments the pseudo has two deaths, so local-alloc
+/// skips it and never ties the `divmodsi4` result to its dividend. That is
+/// what leaves the quotient in the divisor's register (`mflo $v1`).
+void Actor00400_Fn02648(Actor100400* arg0, s32 arg1)
+{
+    VECTOR           scale;
+    Actor100400Mat   rot;
+    SVECTOR          euler0;
+    Actor100400Mat   ma;
+    SVECTOR          euler1;
+    Actor100400Mat   mb;
+    SVECTOR          euler2;
+    Actor100400Mat   mc;
+    Actor100400Work* work;
+    GsCOORDINATE2*   base;
+    GsCOORDINATE2*   c2;
+    GsCOORDINATE2*   c3;
+    GsCOORDINATE2*   c4;
+    s32              invScale;
+
+    base = arg0->field_2C->field_8;
+    work = arg0->field_1C;
+    c2   = &base[2];
+    c3   = &base[3];
+    c4   = &base[4];
+    if (work->field_660 != 0) {
+        switch (work->field_652) {
+            case 0:
+                base[0].flg = 0;
+                base[1].flg = 0;
+                base[2].flg = 0;
+                base[3].flg = 0;
+                base[4].flg = 0;
+                Gp_UpdateCoord(c4);
+                Gp_MtxToEuler(&base[2].coord, &work->field_5EC);
+                Gp_MtxToEuler(&base[3].coord, &work->field_5F4);
+                work->field_652 = 1;
+                work->field_654 = 0x1000;
+                /* fallthrough */
+            case 1: {
+                Actor100400MatWords* ir;
+
+                ir                 = &rot.ident;
+                work->field_5EC.vx = (u16)work->field_5EC.vx + ((s32) - (work->field_5EC.vx * 0x10) >> 6);
+                work->field_5EC.vy = (u16)work->field_5EC.vy + ((s32) - (work->field_5EC.vy * 0x10) >> 6);
+                work->field_5EC.vz = (u16)work->field_5EC.vz + ((s32) - (work->field_5EC.vz * 0x10) >> 6);
+                work->field_5F4.vx = (u16)work->field_5F4.vx + ((s32) - (work->field_5F4.vx * 0x10) >> 6);
+                work->field_5F4.vy = (u16)work->field_5F4.vy + ((s32) - (work->field_5F4.vy * 0x10) >> 6);
+                work->field_5F4.vz = (u16)work->field_5F4.vz + ((s32) - (work->field_5F4.vz * 0x10) >> 6);
+                rot.ident.m00_m01  = 0x1000;
+                rot.ident.m02_m10  = 0;
+                ir->m11_m12        = 0x1000;
+                rot.ident.m20_m21  = 0;
+                ir->m22            = 0x1000;
+                RotMatrix(&work->field_5EC, &rot.mat);
+                Actor00400_Fn08A1C(&rot.mat, &c2->coord);
+                rot.ident.m00_m01 = 0x1000;
+                rot.ident.m02_m10 = 0;
+                ir->m11_m12       = 0x1000;
+                rot.ident.m20_m21 = 0;
+                ir->m22           = 0x1000;
+                RotMatrix(&work->field_5F4, &rot.mat);
+                Actor00400_Fn08A1C(&rot.mat, &c3->coord);
+                if ((abs(work->field_5EC.vx) < 0x30) && (abs(work->field_5EC.vy) < 0x30) && (abs(work->field_5EC.vz) < 0x30) &&
+                    (abs(work->field_5F4.vx) < 0x30) && (abs(work->field_5F4.vy) < 0x30) && (abs(work->field_5F4.vz) < 0x30)) {
+                    work->field_652 = 2;
+                }
+                c2->flg = 0;
+                c3->flg = 0;
+                c4->flg = 0;
+                Gp_UpdateCoord(c4);
+                break;
+            }
+            case 2: {
+                Actor100400MatWords* ia;
+                Actor100400MatWords* ib;
+                Actor100400MatWords* ic;
+                Actor100400MatWords* ir;
+
+                Gp_MtxToEuler(&c4->coord, &euler2);
+                work->field_654  = (u16)work->field_654 + ((0x2AA - work->field_654) >> 3);
+                ia               = &ma.ident;
+                ma.ident.m00_m01 = 0x1000;
+                ma.ident.m02_m10 = 0;
+                ia->m11_m12      = 0x1000;
+                ma.ident.m20_m21 = 0;
+                ia->m22          = 0x1000;
+                scale.vx         = 0x1000;
+                scale.vy         = 0x1000;
+                scale.vz         = work->field_654;
+                ScaleMatrix(&ma.mat, &scale);
+                Actor00400_Fn08A1C(&ma.mat, &base[2].coord);
+                ib               = &mb.ident;
+                mb.ident.m00_m01 = 0x1000;
+                mb.ident.m02_m10 = 0;
+                ib->m11_m12      = 0x1000;
+                mb.ident.m20_m21 = 0;
+                ib->m22          = 0x1000;
+                scale.vx         = 0x1000;
+                scale.vy         = 0x1000;
+                scale.vz         = 0x1000;
+                ScaleMatrix(&mb.mat, &scale);
+                Actor00400_Fn08A1C(&mb.mat, &base[3].coord);
+                ic               = &mc.ident;
+                mc.ident.m00_m01 = 0x1000;
+                mc.ident.m02_m10 = 0;
+                ic->m11_m12      = 0x1000;
+                mc.ident.m20_m21 = 0;
+                ic->m22          = 0x1000;
+                scale.vx         = 0x1000;
+                scale.vy         = 0x1000;
+                invScale         = 0x1000000 / work->field_654;
+                scale.vz         = invScale;
+                ScaleMatrix(&mc.mat, &scale);
+                ir                = &rot.ident;
+                rot.ident.m00_m01 = 0x1000;
+                rot.ident.m02_m10 = 0;
+                ir->m11_m12       = 0x1000;
+                rot.ident.m20_m21 = 0;
+                ir->m22           = 0x1000;
+                RotMatrix(&euler2, &rot.mat);
+                MulMatrix(&mc.mat, &rot.mat);
+                Actor00400_Fn08A1C(&mc.mat, &c4->coord);
+                base[2].flg = 0;
+                base[3].flg = 0;
+                base[4].flg = 0;
+                Gp_UpdateCoord(c4);
+                break;
+            }
+        }
+    } else {
+        base[0].flg = 0;
+        base[1].flg = 0;
+        base[2].flg = 0;
+        base[3].flg = 0;
+        base[4].flg = 0;
+        Gp_UpdateCoord(c4);
+        if (work->field_654 < 0xF80) {
+            Actor100400MatWords* ia;
+            Actor100400MatWords* ib;
+            Actor100400MatWords* ic;
+            Actor100400MatWords* ir;
+
+            Gp_MtxToEuler(&c4->coord, &euler2);
+            work->field_654  = (u16)work->field_654 + ((0x1000 - work->field_654) >> 3);
+            ia               = &ma.ident;
+            ma.ident.m00_m01 = 0x1000;
+            ma.ident.m02_m10 = 0;
+            ia->m11_m12      = 0x1000;
+            ma.ident.m20_m21 = 0;
+            ia->m22          = 0x1000;
+            scale.vx         = 0x1000;
+            scale.vy         = 0x1000;
+            scale.vz         = work->field_654;
+            ScaleMatrix(&ma.mat, &scale);
+            Actor00400_Fn08A1C(&ma.mat, &base[2].coord);
+            ib               = &mb.ident;
+            mb.ident.m00_m01 = 0x1000;
+            mb.ident.m02_m10 = 0;
+            ib->m11_m12      = 0x1000;
+            mb.ident.m20_m21 = 0;
+            ib->m22          = 0x1000;
+            scale.vx         = 0x1000;
+            scale.vy         = 0x1000;
+            scale.vz         = 0x1000;
+            ScaleMatrix(&mb.mat, &scale);
+            Actor00400_Fn08A1C(&mb.mat, &base[3].coord);
+            ic               = &mc.ident;
+            mc.ident.m00_m01 = 0x1000;
+            mc.ident.m02_m10 = 0;
+            ic->m11_m12      = 0x1000;
+            mc.ident.m20_m21 = 0;
+            ic->m22          = 0x1000;
+            scale.vx         = 0x1000;
+            scale.vy         = 0x1000;
+            invScale         = 0x1000000 / work->field_654;
+            scale.vz         = invScale;
+            ScaleMatrix(&mc.mat, &scale);
+            ir                = &rot.ident;
+            rot.ident.m00_m01 = 0x1000;
+            rot.ident.m02_m10 = 0;
+            ir->m11_m12       = 0x1000;
+            rot.ident.m20_m21 = 0;
+            ir->m22           = 0x1000;
+            RotMatrix(&euler2, &rot.mat);
+            MulMatrix(&mc.mat, &rot.mat);
+            Actor00400_Fn08A1C(&mc.mat, &c4->coord);
+        } else {
+            Actor100400MatWords* ir;
+            MATRIX*              m2;
+            MATRIX*              m3;
+
+            m2 = &base[2].coord;
+            Gp_MtxToEuler(m2, &euler0);
+            m3 = &base[3].coord;
+            Gp_MtxToEuler(m3, &euler1);
+            work->field_5EC.vx = (u16)work->field_5EC.vx + ((euler0.vx - work->field_5EC.vx) >> 1);
+            work->field_5EC.vy = (u16)work->field_5EC.vy + ((euler0.vy - work->field_5EC.vy) >> 1);
+            work->field_5EC.vz = (u16)work->field_5EC.vz + ((euler0.vz - work->field_5EC.vz) >> 1);
+            work->field_5F4.vx = (u16)work->field_5F4.vx + ((euler1.vx - work->field_5F4.vx) >> 1);
+            work->field_5F4.vy = (u16)work->field_5F4.vy + ((euler1.vy - work->field_5F4.vy) >> 1);
+            work->field_5F4.vz = (u16)work->field_5F4.vz + ((euler1.vz - work->field_5F4.vz) >> 1);
+            ir                 = &rot.ident;
+            rot.ident.m00_m01  = 0x1000;
+            rot.ident.m02_m10  = 0;
+            ir->m11_m12        = 0x1000;
+            rot.ident.m20_m21  = 0;
+            ir->m22            = 0x1000;
+            RotMatrix(&work->field_5EC, &rot.mat);
+            Actor00400_Fn08A1C(&rot.mat, m2);
+            rot.ident.m00_m01 = 0x1000;
+            rot.ident.m02_m10 = 0;
+            ir->m11_m12       = 0x1000;
+            rot.ident.m20_m21 = 0;
+            ir->m22           = 0x1000;
+            RotMatrix(&work->field_5F4, &rot.mat);
+            Actor00400_Fn08A1C(&rot.mat, m3);
+        }
+        base[2].flg = 0;
+        base[3].flg = 0;
+        base[4].flg = 0;
+        Gp_UpdateCoord(c4);
+        work->field_652 = 0;
+    }
+}
 
 /// Per-frame callback of the marker task `Actor00400_SpawnMarker` starts: it
 /// walks the marker up its stored view-space span, then decides whether the

@@ -87270,3 +87270,44 @@ forward to it; the target had the body physically between A and B with B
 branching backwards into it, which is `if (A) { body } else if (B) { body }`
 after cross-jumping. Duplicating the body is what buys that layout, and it costs
 nothing in the object.
+
+## local-alloc only sees single-death pseudos; everything else waits for global-alloc
+
+`local_alloc` marks a pseudo eligible only when
+`REG_BASIC_BLOCK (i) >= 0 && REG_N_DEATHS (i) == 1` (`local-alloc.c`, the loop
+that sets `reg_qty[i] = -2`). A variable assigned in two places has two deaths
+and is therefore handed to `global_alloc`, which runs *second* and takes
+whatever local-alloc left. Reassigning a C variable is not a cosmetic choice:
+it decides which allocator places it.
+
+Three consequences showed up in one function (`Actor00400_Fn02648`):
+
+**A reused pointer variable loses its register to the block's temporaries.**
+Writing one `Actor100400MatWords* ip` and reassigning it for each matrix
+(`&ma.ident`, then `&mb.ident`, then `&rot.ident`) makes it global, so the
+block's own single-assignment temporaries take `$s1`-`$s3` first and `ip`
+lands in `$s4`. Declaring `ia`, `ib`, `ir` as separate single-assignment
+pointers in the same block makes all three local; local-alloc orders
+quantities by `QTY_CMP_PRI` = `floor_log2(n_refs) * n_refs * size /
+(death - birth)`, so short dense ranges go first and the three non-overlapping
+pointers all get `$s1`. That is what a target reusing one register across
+three `addiu $s1, $sp, N` actually means - three pseudos, not one variable.
+
+**A named constant is one wide pseudo; a literal is re-materialised per
+region.** `s32 identity = 0x1000;` assigned in four arms is one global allocno
+that conflicts with everything and can force an extra callee-saved register
+(`$s8` appearing in the prologue). The original wrote the literal, and CSE
+produced a separate short-lived constant per region - visible in the target as
+the same value living in `$s0` in one arm and `$s1` in another. Different
+registers for the same constant in different arms is the tell.
+
+**It also decides which register `mflo` writes.** `block_alloc` tries to tie
+operand 0 of an insn to the first later operand that dies there, and
+`combine_regs` refuses any operand whose `reg_qty` is still negative. For
+`divmodsi4` the dividend is operand 1, so `scale.vz = 0x1000000 / x;` ties the
+quotient to the dividend and emits `div $v0,$v0,$v1` (`mflo $v0` after maspsx
+expands it). Routing the result through a function-scope `s32` assigned in two
+arms makes the quotient ineligible, no tie is attempted, the dividend keeps
+`$v0` and the divisor `$v1`, and global-alloc puts the quotient in `$v1` -
+`div $v1,$v0,$v1`, `mflo $v1`. When a `mflo` picks the wrong one of two dying
+inputs, change the *storage class* of the destination, not the expression.

@@ -188,7 +188,9 @@ typedef struct Actor100400Work {
     /* 0x5BC */ MATRIX             field_5BC;
     /* 0x5DC */ GpEffArg           field_5DC;
     /* 0x5E4 */ SVECTOR            field_5E4;
-    /* 0x5EC */ byte               pad_5EC[0x1C];
+    /* 0x5EC */ SVECTOR            field_5EC;
+    /* 0x5F4 */ SVECTOR            field_5F4;
+    /* 0x5FC */ byte               pad_5FC[0xC];
     /* 0x608 */ Actor100400Record* field_608;
     /* 0x60C */ Actor100400Entry8* field_60C;
     /* 0x610 */ s32                field_610;
@@ -219,7 +221,9 @@ typedef struct Actor100400Work {
     /* 0x64C */ s16                field_64C;
     /* 0x64E */ s16                field_64E;
     /* 0x650 */ s16                field_650;
-    /* 0x652 */ byte               pad_652[6];
+    /* 0x652 */ s16                field_652;
+    /* 0x654 */ s16                field_654;
+    /* 0x656 */ byte               pad_656[2];
     /* 0x658 */ u16                field_658;
     /* 0x65A */ u8                 field_65A;
     /* 0x65B */ u8                 field_65B;
