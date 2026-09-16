@@ -85963,3 +85963,77 @@ into a join; here nothing joins and the fallen-into case is the tell.
 
 Inputs: `base.i` (85%, the m2c switch), `base_1.i` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+## A two-sided range test that stays two `slti`s is a `switch`, because `fold_range_test` eats the `&&` (func_dryfield_night_motel_room_2_8017D990, 2026-09-16)
+
+The function draws one of two disc sets on the stage-visit byte. The target has
+*two* compares per range:
+
+```
+lbu  v1,4(v0)
+slti v0,v1,2 ; bnez -> epilogue     ; v < 2: nothing
+slti v0,v1,4 ; beqz -> case 5/6     ; v >= 4: the other set
+... case 2/3 body ...
+slti v0,v1,7 ; beqz -> epilogue     ; v > 6: nothing
+slti v0,v1,5 ; bnez -> epilogue     ; v < 5: nothing
+... case 5/6 body ...
+```
+
+`if (v < 7 && v >= 5)` does not compile to that. `fold_range_test`
+(fold-const.c, called from `fold` for `TRUTH_ANDIF_EXPR`) merges the two
+comparisons into one unsigned range test as soon as both sides are
+`operand_equal_p`, which for a plain local they always are. The merge is already
+in the front-end `.rtl` dump, before any pass could be blamed:
+
+```
+(insn 53) (reg 94) = (plus:SI (subreg:SI (reg/v:QI 83) 0) (const_int -5))
+(insn 54) (reg 95) = (zero_extend:SI (subreg:QI (reg:SI 94) 0))
+(insn 56) (reg 96) = (ltu:SI (reg:SI 95) (const_int 2))
+```
+
+One test, one block, so the m2c seed comes out a block short (`blocks=7/8`) with
+`branch=3 regs=4 insert=6 delete=5`. Nested `if (v < 7) { if (v >= 5) ... }`
+blocks the fold too, but it is not what the original was here — it is a
+`switch`, and `emit_case_nodes` never sees a `&&`. Two facts pick tree vs table:
+
+- `CASE_VALUES_THRESHOLD` is `HAVE_casesi ? 4 : 5`, so a switch below it gets a
+  comparison tree and at or above it a jump table. The parking lot's five
+  separate cases get a table; these four labels do not.
+- `group_case_nodes` merges consecutive case labels whose successors are the
+  same instruction, so `case 2: case 3:` is *one* node and `count` is 2 — under
+  the threshold even though four labels are written. This is also why nothing
+  lands in `.rodata` and no cut is needed for an overlay with no table.
+
+```c
+    switch (Game_Session->field_4) {
+        case 2:
+        case 3: {
+            SVECTOR* p = D_dryfield_night_motel_room_2_8017DA44;
+            Room_Draw20(&p[0], 1, 0x200);
+            Room_Draw20(&p[1], 1, 0x240);
+            break;
+        }
+        case 5:
+        case 6: {
+            SVECTOR* p = D_dryfield_night_motel_room_2_8017DA54;
+            Room_Draw20(&p[0], 2, 0x180);
+            break;
+        }
+    }
+```
+
+Everything else in the target falls out of the house idiom: the per-case
+`SVECTOR* p` is what keeps the base in `$s0` across the first call and gives
+`addiu a0,$s0,8` for `&p[1]` (see the pointer-local entries; here the second
+case uses `p` once and so materialises straight into `$a0`), and the last call
+of each case is cross-jumped into the one `jal` + `nop` tail.
+
+**Tell.** Two compares in the target where the C wants `&&`: count case *nodes*,
+not labels, and reach for the switch. The sibling in the same family
+(`src/rooms/dryfield_night_parking_lot/dryfield_night_parking_lot_4.c`, matched)
+is the same dispatch with five cases, which is the version that gets the table.
+
+Inputs: `base.c` 68.806% (`branch=3 regs=4 insert=6 delete=5`), `base_1.c`
+100.000% zero penalties, one attempt, preprocessed
+`78ceb42082dfa7dd2a1fa9f55b3891d094a4b179be5d5ef48a5ed6b30dd77d37`, target
+`90e871ba3ac32fe052b7851315cf0b5b01d91abde0e9bb4cec88b1312d69a522`. Compiler
+SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
