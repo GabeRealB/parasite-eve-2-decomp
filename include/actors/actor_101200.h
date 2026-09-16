@@ -34,12 +34,13 @@ typedef struct Actor101200Work {
     /* 0x356 */ u16  field_356;
 } Actor101200Work;
 
-/// Display object hung off `field_2C`; `field_C` is the visibility/alpha value
-/// the state handlers clear when the actor restarts.
+/// Display object hung off `field_2C`; `field_C` is the visibility flag word
+/// the state handlers clear when the actor restarts, and whose bit 0x80 the
+/// teardown state raises.
 typedef struct Actor101200Obj2C {
     /* 0x0 */ byte           pad_0[8];
     /* 0x8 */ GsCOORDINATE2* field_8;
-    /* 0xC */ s16            field_C;
+    /* 0xC */ u16            field_C;
 } Actor101200Obj2C;
 
 typedef struct Actor101200 {

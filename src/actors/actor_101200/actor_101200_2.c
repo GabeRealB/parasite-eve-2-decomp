@@ -2,8 +2,6 @@
 
 #include "actors/actor_101200.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_101200/actor_101200_2", func_actor_101200_80135B78);
-
 /// Restarts the actor once its work block reports ready: clears the caller's
 /// flag and the display object's visibility, asks for animation 4 in motion
 /// state 1, and flips the record flags the run needs. Otherwise it advances

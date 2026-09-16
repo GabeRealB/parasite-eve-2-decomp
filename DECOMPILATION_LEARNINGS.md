@@ -42356,6 +42356,19 @@ against `src/<family>/<overlay>/*.c`: delete the `.c` files with no subsegment,
 rename the ones whose number moved (and the `INCLUDE_ASM` unit paths inside
 them), and re-point any `rodata` cut naming a renamed unit.
 
+A span whose `start` is exactly where the previous shared span *ended* skips all
+of that, because the run it would have split is empty. `emit_run` numbers the
+runs between shared bodies positionally and bumps its counter only when it emits
+one, so no pre-run means the tail takes the number the whole run would have had:
+the unit keeps its name, its `.c`, its `rodata` cuts and its `INCLUDE_ASM`
+paths. Promoting a body that is the **first** function of a unit which itself
+begins at a shared boundary is therefore a two-line change per sharer - delete
+the `INCLUDE_ASM`, and write the body into `src/<family>/lib/<unit>.c` *before*
+re-splitting so splat sorts the function into `matchings/` instead of emitting a
+stub. `func_actor_201200_8014DB78`, the head of `actor_201200_2`
+(0x3D58..0x3FD4) immediately after the `actors_shared_80135a60` span, promoted
+this way with `actor_201200_2` still at 0x3DC0..0x3FD4 afterwards.
+
 Where the shared span lands in the *middle* of a unit that was previously
 whole, the opposite happens: splat writes a brand-new `<overlay>_2.c` containing
 `INCLUDE_ASM` for every function past the cut, while the original `.c` still
