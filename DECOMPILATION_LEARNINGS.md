@@ -95486,3 +95486,46 @@ whose work block is `s8`/`s8`/`s16` at the same three offsets, so this is the
 family's idiom rather than a property of one actor. Evidence: scratch
 `nonmatchings/func_actor_317000_8016267C-vacuum/`, `base_1.c` (100.000%, all
 penalties zero, `Repeated assembly: base_1.c reproduces base.c`).
+
+## A narrow switch index wants an `int` local, and that local is what keeps a byte store off a fresh `lbu`
+
+`func_actor_317000_80162CA0` dispatches a message payload's halfword and writes
+it back into a byte field. Three spellings of the same source give three
+different objects:
+
+```
+lhu    v1,0x2(a2)          /* the index */
+beqz   v1,Lzero
+ li    v0,1
+beq    v1,v0,Lone
+...
+Lzero:
+ sb    zero,0x4c5(a1)
+Lone:
+ sb    v1,0x4c5(a1)         /* the register the index was loaded into */
+```
+
+* `switch (msg->field_2)` with `case 1: work->field_4C5 = msg->field_2;` —
+  expand emits the index as `(set (reg:SI N) (zero_extend:SI (mem/s:HI ...)))`,
+  which folds into the `lhu` (no `andi`), but the *store's* right-hand side is
+  re-expanded as `(set (reg:QI M) (mem/s:QI (plus ... 2)))`: a `subreg` of a
+  `MEM` narrows the access to its own mode, so GCC loads the byte again instead
+  of reusing the register it just loaded. One extra `lbu` (`regs=1 insert=1`,
+  97.900%).
+* `u16 v = msg->field_2; switch (v)` — the index is now
+  `(zero_extend:SI (reg/v:HI v))`, a convertible pattern with no memory to fold
+  into, so GCC emits `lhu` *and* an explicit `andi v,0xffff` (this is what the
+  m2c seed's `opcode_delta {12:0}` was).
+* `s32 mode = msg->field_2; switch (mode) { ... case 1: work->field_4C5 = mode; }`
+  — the zero-extending `lhu` lands in one SI pseudo, the switch needs no
+  conversion, and the byte store is a `subreg` of that *register*, so it reuses
+  it: `sb v1`. 100.000%, all penalties zero.
+
+So when a switch's index is a narrow struct field and a case body stores that
+same field, read it into an `int`-typed local once and use the local for both.
+The family's sibling `func_actor_350500_80162ABC` switches on the field directly
+and gets the right index that way -- because its case bodies store *constants*,
+the store takes the constant's register (`sb $a1`) and the narrowing never
+arises; the two forms are the same mechanism seen from either side. Evidence:
+scratch `nonmatchings/func_actor_317000_80162CA0-vacuum/`, `base_1.c` (97.900%)
+against `base_2.c` (100.000%, all penalties zero).

@@ -34,7 +34,8 @@ typedef struct Actor317000Work {
     /* 0x4AC */ byte    pad_4AC[0x16];
     /* 0x4C2 */ u16     field_4C2;
     /* 0x4C4 */ u8      field_4C4;
-    /* 0x4C5 */ byte    pad_4C5[0x3];
+    /* 0x4C5 */ s8      field_4C5;
+    /* 0x4C6 */ byte    pad_4C6[0x2];
     /* 0x4C8 */ s16     field_4C8;
     /* 0x4CA */ byte    pad_4CA[0x2];
 } Actor317000Work;
@@ -63,6 +64,25 @@ STATIC_ASSERT_SIZEOF(Actor317000AnimPreset, 0x14);
 /// `.rodata`, so the address comes from the per-overlay symbol map.
 extern VECTOR D_actor_317000_80161E40;
 
+/// Debug-print pool `func_actor_317000_80162CA0` uses for its unrecognised
+/// message mode: `D_actor_317000_80161E50` is the `"%s=(%d,%d,%d)\n"` format
+/// and the other two are the `"pos"` and `"rot"` labels it passes as that
+/// format's `%s`. Kept in `.rodata`, so the addresses come from the
+/// per-overlay symbol map.
+extern char D_actor_317000_80161E50[];
+extern char D_actor_317000_80161E60[];
+extern char D_actor_317000_80161E64[];
+
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor335800Msg` and `Actor361100Msg`, whose
+/// halfword at 0x2 selects the mode the handler latches.
+typedef struct Actor317000Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor317000Msg;
+STATIC_ASSERT_SIZEOF(Actor317000Msg, 0x4);
+
 void func_actor_317000_80162744(Task* arg0);
+s32  func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg);
 
 #endif
