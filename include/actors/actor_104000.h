@@ -89,9 +89,9 @@ typedef struct Actor104000Work {
     /* 0x3E8 */ SVECTOR    effOfs;        // offset handed to `func_800FDB18`; `pad` picks the coordinate
     /* 0x3F0 */ SVECTOR    origin;        // model position at spawn
     /* 0x3F8 */ SVECTOR    dir;           // facing direction captured on restart
-    /* 0x400 */ SVECTOR    ahead;         // spawn position plus 1000 units along the facing (XZ)
-    /* 0x408 */ SVECTOR    behind;        // spawn position minus the same offset
-    /* 0x410 */ byte       pad_410[4];
+    /* 0x400 */ SVECTOR    patrol[2];     // spawn position plus (0) / minus (1) 1000 units along the facing (XZ)
+    /* 0x410 */ s16        patrolIdx;     // `patrol` point currently walked toward
+    /* 0x412 */ byte       pad_412[2];
     /* 0x414 */ MATRIX     lightMtx;      // installed at `Actor104000Obj2C.field_1C`
     /* 0x434 */ MATRIX     colorMtx;      // installed at `Actor104000Obj2C.field_20`
     /* 0x454 */ MATRIX     savedColorMtx; // `colorMtx` before the death fade scales it

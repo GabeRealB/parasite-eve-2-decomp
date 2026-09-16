@@ -171,12 +171,12 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     gte_ldsv(q);
     gte_gpf12_real();
     gte_stsv(q);
-    work->ahead.vx  = arg1->field_2C->field_8->coord.t[0] + sv.vx;
-    work->ahead.vy  = arg1->field_2C->field_8->coord.t[1];
-    work->ahead.vz  = arg1->field_2C->field_8->coord.t[2] + sv.vz;
-    work->behind.vx = arg1->field_2C->field_8->coord.t[0] - sv.vx;
-    work->behind.vy = arg1->field_2C->field_8->coord.t[1];
-    work->behind.vz = arg1->field_2C->field_8->coord.t[2] - sv.vz;
+    work->patrol[0].vx = arg1->field_2C->field_8->coord.t[0] + sv.vx;
+    work->patrol[0].vy = arg1->field_2C->field_8->coord.t[1];
+    work->patrol[0].vz = arg1->field_2C->field_8->coord.t[2] + sv.vz;
+    work->patrol[1].vx = arg1->field_2C->field_8->coord.t[0] - sv.vx;
+    work->patrol[1].vy = arg1->field_2C->field_8->coord.t[1];
+    work->patrol[1].vz = arg1->field_2C->field_8->coord.t[2] - sv.vz;
     /* the gameplay prototype takes no argument, but this call site passes 0 */
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     if (arg1->field_36 == 0) {
@@ -422,8 +422,8 @@ void func_actor_204000_8014C51C(Actor104000Ctx* arg0, Actor104000* arg1)
     }
 }
 
-s32  func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* d);
-void func_actor_204000_8014A5B8(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
+s32 func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* d);
+s32 func_actor_204000_8014A5B8(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
 
 /// Chasing state: restarts the actor when `field_4` is set; otherwise turns
 /// toward the camera target by at most 0x10 a frame and steps forward, counting
@@ -926,7 +926,89 @@ found:
     SCRATCH_SP += sizeof(Actor104000HitScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014E14C);
+/// Patrol state: restarts the actor when `field_4` is set; otherwise turns the
+/// model toward the current patrol point by at most 0x20 a frame and steps it
+/// forward, swapping patrol points within 400 units or after 97 blocked frames,
+/// switching to state 4 when the camera target is within 2000 units and either
+/// inside a quarter turn of the facing or within 1000 units, and occasionally to
+/// state 1 once `field_17C` passes 20.
+void func_actor_204000_8014E14C(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work*        work;
+    Actor104000TurnScratch* head;
+    Actor104000TurnScratch* sc;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          target;
+    Actor104000Obj2C*       obj;
+    s16                     angle;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_174     = 2;
+        work->field_170     = 1;
+        work->field_178     = 0;
+        work->patrolIdx     = 0;
+        work->obj350.flags |= 0x8000;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj270.flags |= 0x4000;
+        func_actor_204000_8014AC8C(arg1);
+        work->field_6 = 0;
+        return;
+    }
+    head          = (Actor104000TurnScratch*)SCRATCH_SP;
+    sc            = (Actor104000TurnScratch*)(SCRATCH_SP -= sizeof(Actor104000TurnScratch));
+    head[-1].d.vx = work->patrol[work->patrolIdx].vx - arg1->field_2C->field_8->coord.t[0];
+    sc->d.vy      = 0;
+    sc->d.vz      = work->patrol[work->patrolIdx].vz - arg1->field_2C->field_8->coord.t[2];
+    coord         = arg1->field_2C->field_8;
+    angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle     = Actor204000_WrapAngle(angle);
+    if (sc->angle > 0x20) {
+        sc->angle = 0x20;
+    }
+    if (sc->angle < -0x20) {
+        sc->angle = -0x20;
+    }
+    sc->angle += ratan2(-arg1->field_2C->field_8->coord.m[2][0], arg1->field_2C->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, sc->angle, 1);
+    Actor204000_StepForward(arg1->field_2C->field_8, 5);
+    if (func_actor_204000_8014A5B8(arg1->field_2C->field_8, work->rec1B0, 8)) {
+        work->field_6++;
+    }
+    if (!Actor204000_OutOfRange(&sc->d, 400) || (s16)work->field_6 > 0x60) {
+        if (work->patrolIdx == 0) {
+            work->patrolIdx = 1;
+        } else {
+            work->patrolIdx = 0;
+        }
+        work->field_6 = 0;
+    }
+    func_actor_204000_8014A06C(arg1->field_2C->field_8, work->hits, 8, &sc->d);
+    target   = arg1->field_2C->field_8;
+    sc->d.vx = Wip_SysConfig.field_4->t[0] - target->coord.t[0];
+    sc->d.vy = Wip_SysConfig.field_4->t[1] - target->coord.t[1];
+    sc->d.vz = Wip_SysConfig.field_4->t[2] - target->coord.t[2];
+    if (!Actor204000_OutOfRange(&sc->d, 2000)) {
+        coord = arg1->field_2C->field_8;
+        angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (Actor204000_WrapAngle(angle) < 0x400 || !Actor204000_OutOfRange(&sc->d, 1000)) {
+            work->field_0 = 4;
+        }
+    }
+    func_actor_204000_8014AC8C(arg1);
+    arg1->field_2C->field_8->flg = 0;
+    if ((work->field_58 & 2) && work->field_17C > 0x14) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 0x10) & 7)) {
+            work->field_0 = 1;
+        }
+    }
+    SCRATCH_SP += sizeof(Actor104000TurnScratch);
+}
 
 /// Walking state: restarts the actor when `field_4` is set; otherwise turns the
 /// model toward its spawn point by at most 0x10 a frame and steps it forward,
