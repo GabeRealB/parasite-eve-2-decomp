@@ -36,6 +36,11 @@ extern TaskDesc D_actor_107600_80134F94;
 extern GpPairSrcE D_actor_107600_80135720;
 extern u16        D_actor_107600_80135750[];
 
+/* Remaining-enemy count, and the gallery controller task the room overlay
+ * publishes (its `Task::idMap` is the `MistShootingGalleryWork`). */
+extern s16   D_80073BA0;
+extern Task* D_8018E0C4;
+
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132160);
@@ -315,7 +320,118 @@ void func_actor_107600_80132ED0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133024);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801332D4);
+/// Sub-state machine in `field_15A`: once `Task::spawnArg1` bit 0x10 is set,
+/// grows the `field_168`/`field_169` scales by 0x20 up to 100, plays a cue and
+/// eases `field_50` down, alternates `field_50` for four frames and raises bit
+/// 0x20. From then on, while bit 0x20000000 is set, `field_166` counts frames:
+/// at 120 it switches the light mode, at 210 it spawns an effect on the
+/// `Game_GetPtrSlot(3)` actor's fifth coordinate and updates that actor.
+void func_actor_107600_801332D4(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GpEnemy*         enemy = arg0->spawnArg2;
+    GpActorWork*     player;
+    GameActor*       actor;
+    s32              pan;
+    s32              flags;
+    s16              v;
+
+    if ((s16)func_actor_107600_80134BAC((Actor107600*)arg0) != 0) {
+        return;
+    }
+    switch (work->field_15A) {
+        case 0:
+            if (!(arg0->spawnArg1 & 0x10)) {
+                return;
+            }
+            work->field_15A++;
+        case 1:
+            if (work->field_168 < 100) {
+                work->field_168 += 0x20;
+                return;
+            }
+            work->field_15A++;
+        case 2:
+            if (work->field_169 < 100) {
+                work->field_169 += 0x20;
+                return;
+            }
+            {
+                GpObj38* o = (GpObj38*)((TmdObject*)arg0->extra)->field_8;
+                s32      p;
+                work->field_15A++;
+                p = (s8)Gp_GetObjPan(o);
+                SndEvt_EnqueueType6(0x51140007, p, (s8)Gp_GetObjDepth(o));
+            }
+        case 3: {
+            u16 w = work->field_50;
+            if ((u16)(w - 1) < 0x400) {
+                work->field_50 = w - ((0x420 - (s16)w) >> 2);
+                return;
+            }
+        }
+            work->field_154 = 0;
+            work->field_15A++;
+            return;
+        case 4:
+            v               = work->field_154 + 1;
+            work->field_154 = v;
+            if (v & 1) {
+                work->field_50 = ((v << 16) >> 13) - 0x38;
+            } else {
+                work->field_50 = 0;
+                if ((s16)work->field_154 >= 4) {
+                    work->field_15A++;
+                    arg0->spawnArg1 |= 0x20;
+                    Gp_SetLightMode((GpObj4C*)enemy, 0);
+                    enemy->node.field_4 = 4;
+                    work->obj.flags    |= 0x8000;
+                }
+            }
+        case 5:
+            flags = arg0->spawnArg1;
+            if (flags & 0x40) {
+                func_actor_107600_80134B98((Actor107600*)arg0, 7);
+                return;
+            }
+            if (!(flags & 0x20000000)) {
+                return;
+            }
+            work->field_166++;
+            if ((s16)work->field_166 == 120) {
+                GpObj38* o = (GpObj38*)((TmdObject*)arg0->extra)->field_8;
+                s32      p;
+                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                p = (s8)Gp_GetObjPan(o);
+                SndEvt_EnqueueType6(0x51140013, p, (s8)Gp_GetObjDepth(o));
+            } else if ((s16)work->field_166 == 210) {
+                GpObj38* c;
+                s32      p;
+                player          = Game_GetPtrSlot(3);
+                c               = (GpObj38*)&player->extra->field_8[4];
+                actor           = player->actor;
+                work->field_166 = 0;
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SpawnEff(0x601BD, (GsCOORDINATE2*)c, 0, NULL);
+                p = (s8)Gp_GetObjPan(c);
+                SndEvt_EnqueueType6(0x5114000E, p, (s8)Gp_GetObjDepth(c));
+                if (actor->field_954 != 1) {
+                    if (D_80073BA0 < 11) {
+                        ((MistShootingGalleryWork*)D_8018E0C4->idMap)->field_22 = 1;
+                        actor->field_96E                                        = 0;
+                    } else {
+                        actor->field_96E = 10;
+                    }
+                    actor->field_96C = 1;
+                    actor->field_972 = 5;
+                    func_8010A9D0(player);
+                    pan = (s8)Gp_GetObjPan(c);
+                    SndEvt_EnqueueType6(6, pan, (s8)Gp_GetObjDepth(c));
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133668);
 

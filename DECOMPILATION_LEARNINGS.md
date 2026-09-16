@@ -101014,3 +101014,19 @@ scheduler still emits the `idMap` load first. The case-1 fallthrough store
 through `ext` after a call needed a second pointer (`obj = ext;`) to get the
 target's `move $s3,$a0` in the switch's first delay slot while case 2 kept
 using `$a0`.
+
+## One pan/obj local per sound call site, and `(v << 16) >> 13` keeps a sign-extend a truncating store drops (func_actor_107600_801332D4, 2026-09-16)
+
+Four `pan = (s8)Gp_GetObjPan(o); SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(o));`
+sites sharing one `obj`/`pan` pair of function-scope locals cost an extra
+callee-saved register (`$s4`, 93%). Target reuses `$s0` for each site's object
+and pan because each is a separate short-lived pseudo. Giving every site its
+own block-scoped `GpObj38* o; s32 p;` fixed it; two sites in the same block
+still need *different* pan locals (`p`, then `pan`), otherwise the second site
+emits `sll $v0 / sra $s0,$v0` instead of `sll $s0,$v0 / sra $s0,$s0` and moves
+the `move $a0` after them.
+
+`sll $v0,$v1,16; sra $v0,$v0,13; addiu -0x38` stored with `sh`: both
+`((s16)v << 3) - 0x38` and a `u16` `(s32)(v << 16) >> 13` lose it (the first is
+narrowed to `sll 3`, the second reorders the increment). Declare the counter
+`s16 v = work->field + 1;` and write `((v << 16) >> 13) - 0x38`.

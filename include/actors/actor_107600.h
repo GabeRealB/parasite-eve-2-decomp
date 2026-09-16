@@ -68,7 +68,8 @@ typedef struct Actor107600Work {
     /* 0x15E */ u16  field_15E;
     /* 0x160 */ s16  field_160; // damage of the last hit
     /* 0x162 */ s16  field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
-    /* 0x164 */ byte pad_164[0x4];
+    /* 0x164 */ byte pad_164[0x2];
+    /* 0x166 */ u16  field_166; // frame counter of the post-death light cycle
     /* 0x168 */ u8   field_168; // percent scale applied to coord.m[0][0]
     /* 0x169 */ u8   field_169; // percent scale applied to coord.m[2][1]
     /* 0x16A */ u8   field_16A; // rolled 0..7 alongside field_168
