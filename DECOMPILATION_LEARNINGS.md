@@ -97725,3 +97725,71 @@ Inputs: `c1.i`
 the three-case form), `c6.i`
 `066afd547b32cdb028c8663b1a46e38017c6655b7aebcd17cef48239b5232e0b` (0
 differences, with `case 0` added).
+
+## The model-task `-0x320` part handler: copy the matched sibling, and check whether the part index is a constant (func_actor_420700_801323D8, 2026-09-16)
+
+A 40-instruction two-state handler recurs across the model actors. State 0
+clears the task's own root coordinate frame and the model's `field_C` and parents
+that root to a part of the actor's model, then bumps `task->state`; state 1 hands
+the actor model's root translation, y dropped by 0x320, to `func_800D7A9C`:
+
+```c
+void func_actor_420700_801323D8(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->field_8;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->field_8;
+    GsCOORDINATE2* part  = parts + 4;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg     = 0;
+            extra->field_C = 0;
+            coord->sub     = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}
+```
+
+102 unmatched actor functions call `func_800D7A9C` and 58 of them carry the
+`-0x320` drop, so this whole family is copy-and-substitute work. Matched
+carriers to read: `func_actor_461800_80132B74` (fields score 0.95, cflow 1.00)
+and `func_actor_450800_80132958`. The copies vary in exactly two places:
+
+* **How the actor's own model task is reached.** `D_actor_420700_8013EFE4` /
+  `D_actor_461800_80143898` are `Task*` globals the shared state-0 handler
+  publishes; `func_actor_450800_80132958` uses `task->parent` instead, which
+  shows in the object as `lw $v1, 0x8($a2)` rather than `lui`/`lw` of a global.
+* **The part index.** `task->spawnArg1` costs a `sll`/`addu`/`sll` multiply by
+  the 0x50 `GsCOORDINATE2` stride. A **constant** index instead is a bare
+  `addiu $a3, $v1, 0x140` in the `beqz` delay slot, with no load and no
+  multiply anywhere - `0x140 / 0x50` is 4, so the source is `parts + 4`. Do not
+  go hunting for the index load the sibling has; there is none.
+
+m2c's rendering of this body reaches the right *structure* (`blocks=6/6`,
+predicates and calls match) and scores 77.6%, but it types the argument `void*`,
+reads every field through `M2C_FIELD`, declares the locals in the wrong order,
+and produces a 0x20 frame where the target's is 0x28 - `regs=19 delete=7` is
+that whole difference, not an allocation fight. Retelling m2c's expression list
+in the sibling's shape (typed `Task*`, the four locals above in that declaration
+order, the `switch`) is 100% on the first build. Nothing in the passes needs to
+move, so no `--pass-name` experiment is worth running on this body.
+
+The body does not promote: `overlay_dup_index.py find` reports 2 copies
+(`actor_146300` is instruction-identical modulo its own global) and `promote`
+refuses them because the body references overlay-local data, the documented
+tooling gap. Each carrier needs its own match.
+
+Inputs: `base_1.c`
+`c929588ca20bf279f3f89703929a53b4e916a4807291f3ce176e412069325c35`, `base_1.i`
+`6d6fe685646ba494094f0463f1c92323ba76120cd3a2ccb414306088ad68d0df` (both
+100.000%); the m2c seed `base.i`
+`b06d49d45bc335e0c169bc1f9853026df4114bbc043712808e0f7443fb07c8f2` (77.600%).

@@ -30,6 +30,16 @@ STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
 
 extern Actor420700Work* ActorsShared80131f9cWork;
 
+/// The actor's own task, the `arg1` the shared state-0 handler
+/// `ActorsShared80131f9cSub0` is entered with. Its `Task::extra` holds the
+/// `TmdObject` whose trailing coordinate array `func_actor_420700_801323D8`
+/// hangs the model task's own root off, at frame 4.
+extern Task* D_actor_420700_8013EFE4;
+
+/// The first task the same handler spawns; the model task
+/// `func_actor_420700_8013239C` kills.
+extern Task* D_actor_420700_8013EFE8;
+
 void func_actor_420700_801324EC(void);
 void func_actor_420700_801325C8(void);
 
