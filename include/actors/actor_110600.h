@@ -12,12 +12,13 @@
 #include "main/wipsys.h"
 
 /// One node of the patrol table `Actor110600WalkerNav::nodes` points at. The
-/// three packed coordinates are copied straight out to the caller's `SVECTOR3`,
-/// so they are read back as raw halfwords.
+/// three packed coordinates are copied straight out to the caller's `SVECTOR3`
+/// and printed by the tsv rebuild, so they are signed halfwords; the walker
+/// steps that only carry the bytes over read them through a `u16` cast.
 typedef struct Actor110600WalkerNavNode {
-    /* 0x0 */ u16  x;
-    /* 0x2 */ u16  y;
-    /* 0x4 */ u16  z;
+    /* 0x0 */ s16  x;
+    /* 0x2 */ s16  y;
+    /* 0x4 */ s16  z;
     /* 0x6 */ byte pad_6[0x2];
 } Actor110600WalkerNavNode;
 
@@ -39,11 +40,26 @@ typedef struct Actor110600WalkerNav {
 /// walker reaches the node it was heading for. Same shape as the acropolis
 /// bridge room's route type, which drives the identical walker body.
 typedef struct Actor110600WalkerRoute {
-    /* 0x0 */ u8*  nodes;
-    /* 0x4 */ byte pad_4[0x1];
-    /* 0x5 */ u8   cursor;
-    /* 0x6 */ u8   arrived;
+    /* 0x0 */ u8* nodes;
+    /// Byte the tsv rebuild `func_actor_110600_80133778` clears alongside the
+    /// cursor; the walker's own steps never read it back.
+    /* 0x4 */ u8 field_4;
+    /* 0x5 */ u8 cursor;
+    /* 0x6 */ u8 arrived;
 } Actor110600WalkerRoute;
+
+/// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
+/// `G_SCRATCH_HEAD` to lay one patrol node out: `m` receives a copy of the
+/// walker coordinate's matrix, `v` the facing column `Gfx_MatrixCol2` reads
+/// out of it once it has been rotated and scaled by the GTE, and `i` the node
+/// index the two loops below walk.
+typedef struct Actor110600TsvScratch {
+    /* 0x00 */ SVECTOR v;
+    /* 0x08 */ MATRIX  m;
+    /* 0x28 */ s16     i;
+    /* 0x2A */ byte    pad_2A[0x2];
+} Actor110600TsvScratch;
+STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 
 /// View of the walker block `Actor110600Work` carries at 0xB28 — the shape the
 /// acropolis bridge room drives, including the `D_80073B08` motion config the

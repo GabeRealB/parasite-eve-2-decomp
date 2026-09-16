@@ -15,6 +15,7 @@
 #include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
+#include <psyq/stdio.h>
 
 /// Global freeze flag the walker's turn step bails out on: 1 while the game is
 /// paused.
@@ -318,7 +319,50 @@ void func_actor_110600_80133550(Actor110600Walker* work, SVECTOR3* pos)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80133778);
+/// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
+/// coordinate translation; every node above it takes that translation plus the
+/// coordinate's facing column, rotated to `angle` and scaled by `scale` through
+/// the GTE, and each node laid is logged as it is built. The route is then
+/// re-seeded from the node count -- one node index per step with the 0xFF
+/// terminator after the last -- with `field_4` and the cursor cleared, and the
+/// scratch frame released.
+void func_actor_110600_80133778(Actor110600Walker* work, s16 scale, s16 angle)
+{
+    Actor110600TsvScratch* blk;
+    u8*                    head;
+
+    if (work->nav->count < 2)
+        return;
+    SOFT_COMPILER_BARRIER();
+    work->nav->nodes[0].x = *(u16*)&work->coord->coord.t[0];
+    work->nav->nodes[0].y = *(u16*)&work->coord->coord.t[1];
+    work->nav->nodes[0].z = *(u16*)&work->coord->coord.t[2];
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x2C;
+    blk                   = (Actor110600TsvScratch*)(head - 0x2C);
+    work->nav->field_4[0] = 0;
+    blk->m                = work->coord->coord;
+    for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
+        Gfx_RotMatrixY(&blk->m, (s16)angle, 0);
+        Gfx_MatrixCol2(&blk->m, &blk->v);
+        gte_lddp(scale);
+        gte_ldsv(&blk->v);
+        gte_gpf12_real();
+        gte_stsv(&blk->v);
+        work->nav->nodes[blk->i].x = *(u16*)&work->coord->coord.t[0] + *(u16*)&blk->v.vx;
+        work->nav->nodes[blk->i].y = *(u16*)&work->coord->coord.t[1] + *(u16*)&blk->v.vy;
+        work->nav->nodes[blk->i].z = *(u16*)&work->coord->coord.t[2] + *(u16*)&blk->v.vz;
+        work->nav->field_4[blk->i] = blk->i;
+        printf("emc_m->tsv[%d]( %d, %d, %d )\n", blk->i, work->nav->nodes[blk->i].x, work->nav->nodes[blk->i].y, work->nav->nodes[blk->i].z);
+    }
+    work->route->field_4 = 0;
+    work->route->cursor  = 0;
+    for (blk->i = 0; blk->i < work->nav->count; blk->i++) {
+        work->route->nodes[blk->i] = blk->i;
+    }
+    work->route->nodes[blk->i] = 0xFF;
+    *(u8**)G_SCRATCH_HEAD      = *(u8**)G_SCRATCH_HEAD + 0x2C;
+}
 
 /// The walker's per-tick body, open on the scratch frame `func_actor_110600_80133A94`
 /// hands it. State 1 heads straight for the position the `D_80073B08` motion

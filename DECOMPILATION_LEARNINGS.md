@@ -2895,6 +2895,34 @@ matched this function without disturbing the copies from `field_92`. Do not
 cast at the store: `work->field_86A = (s16)-0x9C4` still converts through
 the unsigned dest.
 
+## Cross-block CSE: a load survives a branch, and only a clobber parts it
+
+`func_actor_110600_80133778` opens on `if (work->nav->count < 2) return;` and
+then reloads `work->nav` for every statement of the body. The candidate managed
+with one load fewer: CSE carried the entry block's load into the block below it,
+because `cse_end_of_basic_block` had extended the block over the branch, and
+`new_basic_block` clears the table only between `cse_basic_block` calls, never
+inside one. Every *later* statement reloads anyway - each stores through a
+pointer first, and `invalidate_memory` drops the table for those. Only the
+first statement is close enough to the check for the merge to happen.
+
+The lever is a clobber, not a store. A `QI` store sets `writes_ptr->all`, so
+`work->nav->field_4[0] = 0;` hoisted above the first store does invalidate the
+table - and scores *worse* (94.1%): sched keeps the `sb` where the source put
+it, so the store order changes and the whole block shifts. A `u16*`-cast access
+is no help either: CSE compares the MEM rtx, and `MEM_IN_STRUCT_P` is not part
+of that comparison (`(*(Actor110600WalkerNav **)work)` merges exactly like
+`work->nav`). What works is a bare `SOFT_COMPILER_BARRIER()` between the check
+and the body - no instruction, all memory entries invalidated, 99.246% ->
+99.950% with every penalty at zero. Nothing else moves, because it touches
+CSE's table and not the insn stream.
+
+Same function: the node table is read as `s16` (the printf logs the three
+packed coordinates with `%d`) while the walker steps carry the same bytes into
+`u16` cells; flipping `Actor110600WalkerNavNode::x/y/z` from `u16` to `s16`
+matched the printf's three `lh` without disturbing any of the five matched
+readers, which load into `u16` and so still emit `lhu`.
+
 ## Leaf `idMap` reloads need a memory clobber, and `ret=1` must stay above it
 
 `func_actor_405800_801373E0` is a leaf that still reloads `arg0->idMap` on
