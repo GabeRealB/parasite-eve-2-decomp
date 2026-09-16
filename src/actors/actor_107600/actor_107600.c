@@ -208,7 +208,33 @@ void func_actor_107600_80132CD4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132D54);
+/// Phase in which the actor waits for its parent's first child to raise bit
+/// 0x80 of `Task::spawnArg1`: the first pass zeroes the model root's Y
+/// translation and resets the `field_14B` scale to 100, then each frame with
+/// the bit set shrinks it by 8 until it reaches 0 and the task state advances.
+void func_actor_107600_80132D54(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GpEnemy*         enemy = arg0->spawnArg2;
+
+    switch (work->field_140.step) {
+        case 0:
+            work->field_140.step++;
+            work->field_14B   = 100;
+            coord->coord.t[1] = 0;
+        case 1:
+            if (enemy->task->firstChild->spawnArg1 & 0x80) {
+                if (work->field_14B > 0) {
+                    work->field_14B -= 8;
+                    return;
+                }
+                work->field_14B = 0;
+                arg0->state++;
+            }
+            break;
+    }
+}
 
 /// Spawns the next instance of this actor's own `D_actor_107600_80134F94`
 /// table (`arg1 + 1` is the index) and adopts it as a child of `arg0`: the new
@@ -266,18 +292,18 @@ void func_actor_107600_80132ED0(Task* arg0)
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
-    arg0->exitCallback = func_actor_107600_80134920;
-    work->field_162    = ((u32)arg0->spawnArg1 >> 16) & 0xF;
-    obj->field_1C      = &work->matrix_20;
-    obj->field_20      = &work->matrix_0;
-    enemy->field_50    = &D_actor_107600_80135720;
-    enemy->field_54    = (s32)work->rec18;
-    work->field_140    = ((TmdObject*)arg0->extra)->field_8;
-    work->field_144    = 0x140;
-    work->field_146    = 2;
-    hp                 = D_actor_107600_80135750[arg0->spawnArg1 & 0xF];
-    enemy->field_42    = hp;
-    enemy->field_40    = hp;
+    arg0->exitCallback    = func_actor_107600_80134920;
+    work->field_162       = ((u32)arg0->spawnArg1 >> 16) & 0xF;
+    obj->field_1C         = &work->matrix_20;
+    obj->field_20         = &work->matrix_0;
+    enemy->field_50       = &D_actor_107600_80135720;
+    enemy->field_54       = (s32)work->rec18;
+    work->field_140.coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_144       = 0x140;
+    work->field_146       = 2;
+    hp                    = D_actor_107600_80135750[arg0->spawnArg1 & 0xF];
+    enemy->field_42       = hp;
+    enemy->field_40       = hp;
     func_actor_107600_80134958(arg0);
     Gp_LinkNode(&enemy->node);
     enemy->field_4      = &coord->workm;
