@@ -86344,3 +86344,38 @@ Evidence: scratch `nonmatchings/func_dryfield_night_cellar_8017DA28-vacuum/`,
 `base_2_diff`; probe compile of the local/global pair under `dump.sh`; no pins,
 no permuter, no tracer. `overlay_dup_index.py find` reports this body as its own
 only copy.
+
+## A dropped first argument already in `$a0` reads as eight register penalties (func_mine_tunnel_8017D6EC, 2026-09-16)
+
+The m2c seed for this room state-0 body called one argument where the target
+passes two:
+
+```
+        addiu  $a1,$zero,0x7      /* target */
+        jal    Game_SetPtrSlot
+        sw     $v0,0x24($s1)      /* delay slot */
+
+        li     $a0,7              /* seed */
+        jal    Game_SetPtrSlot
+        sw     $v0,0x24($s1)
+```
+
+`Game_SetPtrSlot`'s first argument is the task, which is already in `$a0` at the
+call, so nothing in the target's operand stream names it; m2c saw one use site
+and inferred `M2C_UNK Game_SetPtrSlot(M2C_UNK)`. The seed scored 92.941% with
+`regs=8 insert=1 delete=1` and *every* structural diagnostic reporting match -
+topology, predicates, call targets, condition registers and delay-slot words -
+so the object diff reads as a pure allocation problem, and the only tell is the
+argument register itself: `li $a0,7` where the target has `li $a1,7`.
+
+The real prototype is `void Game_SetPtrSlot(void* ptr, s32 index)`
+(`include/main/session.h`). Passing the task as the first argument was 100.000%
+with all penalties zero on the first build, at the same 34 instructions.
+
+Room state-0 bodies open `task->field_24 = <msg table>; Game_SetPtrSlot(task, 7);`,
+so a room seed whose diff carries `li $a0,7` in front of its first call is this
+shape, not an allocation one. An m2c prototype is a guess from the body, never
+evidence about the callee: check `include/` before editing registers.
+
+Inputs: `base_2.i`
+`4938436ada38aca74e031c63da8d241b44707ad37d3365148d41d7adddfb4819` (100%).

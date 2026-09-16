@@ -276,6 +276,9 @@ void Room_Util26(Task* task);
 void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
 s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
 void Room_Util19(Task* task, s32 arg1, s32 arg2);
+/// Latches the room script's argument into the byte `actor_101600_text` reads
+/// back with `lb`, so it is signed.
+void Room_Util36(s32 arg0);
 void Room_SaveUi01(Task* task);
 /// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
 /// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
