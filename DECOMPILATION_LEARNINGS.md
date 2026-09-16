@@ -100211,3 +100211,65 @@ walked *up* to `$t0` once the callee's arity freed it, here the parameter walks
 201100, 204900, 301100) reach it through their own slot's callee at that
 address, and that callee is itself an unpromoted duplicate. Same shape as
 `func_actor_104900_80138E34` above - callee first, or nothing.
+
+## A two-valued `if`/`else` needs its store *inside* each arm: `jump` hoists the other arm's constant before the branch and the value never shares the flag's register (func_actor_104900_801390D8, 2026-09-16)
+
+The handler picks 0xF or 0x10 for `field_BA4` from the flag at 0xBAE, and m2c's
+shape - a local set before/inside the `if` and stored once afterwards - scores
+85.7% with the flag and the value in different registers, no matter which of the
+three equivalent writings it is given:
+
+```c
+v = 0x10; if (work->field_BAE == 0) { v = 0xF; }        /* 85.7% */
+v = (work->field_BAE == 0) ? 0xF : 0x10;                /* 85.7%, same object */
+if (work->field_BAE != 0) { v = 0x10; } else { v = 0xF; }   /* 94.9% */
+```
+
+Retail is `lbu $v0,0xBAE($a2)` / `bnez $v0,JOIN` / `li $v0,0x10` / `li $v0,0xF`
+/ `JOIN: sb $v0,0xBA4($a2)` - *all four* in `$v0`. Two separate things stand in
+the way, and the store-in-each-arm form removes both:
+
+* **`.jump` collapses the if/else into a conditional assignment**, hoisting one
+  arm's `li` to just after the insn before the conditional jump and deleting the
+  then arm's `j` (jump.c:844, `emit_insn_after_with_line_notes (PATTERN
+  (temp2), p, temp2)`; `insn.py <uid>` on that `li` ends at `jump  GONE`).
+  Retail's `bnez` + delayed `li` + fallthrough `li` is what this transform
+  leaves behind once reorg has filled the slot, so it must be *blocked*, not
+  hand-written.
+* **That hoisted `li` is a definition of the value pseudo, placed between the
+  flag's load and the branch**, i.e. inside the flag quantity's live range. The
+  flag is block-local and local-alloc homes it in `$v0`; the value is
+  cross-block, so global-alloc must then find `$v0` free at its birth and
+  cannot - `.greg` shows `r84 used 5/4 -> $v1`. (`grep -n` on `.jump` for the
+  deleted uid says which pass moved it; `lregwalk.py` block 1 shows the two
+  quantities sharing the block.)
+
+Writing the *store* into each arm instead of a shared local fixes both:
+
+```c
+if (work->field_BAE == 0) {
+    work->field_BA4 = 0xF;
+} else {
+    work->field_BA4 = 0x10;
+}                                        /* 100.000%, all penalties zero */
+```
+
+A MEM store dest is not a `single_set`-of-REG, so both of jump.c's arm-collapse
+transforms fail their guard and the arms survive; the two constants are then
+born in arm blocks *after* the flag dies, so global-alloc hands them `$v0`, the
+same register the flag had. Reorg does the rest: `fill_eager_delay_slots` takes
+the else arm's `li` into the `bnez` delay slot, the then arm's `j` now targets
+the next insn and `relax_delay_slots` deletes it, and the shared `sb` lands in
+the join. So the "constant in the delay slot, constant in the fallthrough, one
+store after" shape is a *reorg* result - not the if-conversion the m2c source
+invites.
+
+Two smaller notes from the same body. `field_B8C` is an `s16` in the struct but
+this handler reads it unsigned (`lhu`, then `addiu`, then `sh`), so the read has
+to be written `(u16)work->field_B8C` - the field type stays signed because
+`ActorsShared80138d58` decrements it signed. And the second half wants two
+*nested* `if`s on `(s16)count` against 0x28/0x3C, not a selected constant: each
+arm then carries its own sign-extension, and jump.c's cross-jumping merges only
+the identical `bne`+`sb` tails, which is why retail shows the `sll`/`sra` pair
+twice - the same tail-merge as `func_actor_104900_801356BC` above, one block
+earlier in the pipeline.
