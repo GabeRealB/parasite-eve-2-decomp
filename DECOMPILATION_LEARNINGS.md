@@ -75,6 +75,64 @@ parameter carries the command, so it takes the sibling
 `overlay_dup_index.py promote` refuses it: the table it reads sits at a
 different offset in each room.
 
+## Argument moves are emitted in argument order, so an inline symbol keeps `a0` out of the merged tail
+
+A symbol argument materialises *at its move*, a pointer variable materialises at
+its own statement, and either way decides what `jump.c`'s cross-jump can merge.
+
+`func_dryfield_cellar_8017DAEC` (rooms/dryfield_cellar) picks a two-entry SVECTOR
+table by visit and draws both entries. The target's arms each open with the arg
+setup, *before* the address they use:
+
+```
+addu   a0,s1            /* arm 1: a0 = coord */
+lui    s0,%hi(D_A)
+j      Ljoin
+addiu  s0,s0,%lo(D_A)   /* delay slot */
+...
+Ljoin:                  /* shared tail starts at the second argument's move */
+addu   a1,s0
+```
+
+With a pointer variable — `verts = D_A; Room_Draw35(coord, verts, 1, 0x280);`
+written out per arm — the arm reads `{lui, addiu, a0=coord, a1=verts, ...}`:
+the address is materialised by the assignment, which precedes the call's arg
+moves. The cross-jump walks the two arms backwards and its first mismatch is that
+address pair, so the merged region starts *at* `a0=coord` and both arms lose the
+setup into the shared block — 95.3%, `delete=1`, the arm one instruction short.
+
+Passing the symbol inline instead puts the materialisation in the `a1` move
+itself (`-msplit-addresses` splits `movsi` of a `symbol_ref` into `lui`+`lo_sum`),
+so the block is `{a0=coord, lui, addiu, a1=..., ...}` and the walk's first
+mismatch is the address pair again — this time with the merge starting one insn
+later, at `a1`, which leaves `a0=coord` in each arm and reaches 100%:
+
+```c
+if (Game_Session->field_4 == 2) {
+    Room_Draw35(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
+    Room_Draw35(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
+} else if (Game_Session->field_4 == 3) {
+    ... D_dryfield_cellar_8017DBCC ...
+}
+```
+
+CSE then rewrites the second call's `symbol + 1` against the register already
+holding that symbol's address, which is why the shared tail shows
+`addiu a1,s0,8` and not a second `lui`/`addiu`: the high half's temp is also
+allocated to `$s0`, so the pair is `lui s0` + `addiu s0,s0`.
+
+Two passes can produce this "one call from several sites" shape, so read `.sched2`
+before blaming `reorg`: here it has all four draw calls and `.jump2` has two plus
+a fresh `code_label` before the second arm's `a1` — `jump_optimize` with
+`cross_jump = 1`, which runs after sched2 and before `dbr_schedule` (toplev.c).
+The entry above ("Two literal call sites merge their `jal` in `reorg`") is the
+other pass: there `.sched2` and `.jump2` both still show one call per arm.
+
+All priorities in this function are 1 (`priority()` returns
+`max(1, pred + cost - 1)` and every latency is 1), so the scheduler moves nothing
+and the RTL order is the final order — the arm's `a0`/address order had to come
+from RTL generation, not from scheduling.
+
 ## One shared `ret` decides which arm is the entry fall-through; m2c's early returns do not
 
 A two-arm global guard whose target is:
