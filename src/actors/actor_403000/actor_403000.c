@@ -1415,7 +1415,215 @@ void func_actor_403000_80136D68(Actor403000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80137084);
+static __inline__ void Actor403000_ScaleVec(SVECTOR* v, u16 k)
+{
+    gte_lddp(k);
+    gte_ldsv(v);
+    gte_gpf12_real();
+    gte_stsv(v);
+}
+
+static __inline__ SVECTOR* Actor403000_PushVec(void)
+{
+    SVECTOR* head;
+
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    *(SVECTOR**)G_SCRATCH_HEAD = head - 1;
+    return head - 1;
+}
+
+static __inline__ void Actor403000_PopVec(void)
+{
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+}
+
+static inline s32 Actor403000_Cell(GsCOORDINATE2* coord)
+{
+    s32 x;
+    s32 z;
+    s8  col;
+    s8  row;
+
+    x = coord->coord.t[0];
+    z = coord->coord.t[2];
+    if (x < 0xD48) {
+        col = 4;
+    } else if (x < 0x1A90) {
+        col = 3;
+    } else if (x < 0x2AF8) {
+        col = 2;
+    } else {
+        col = x < 0x3C8C;
+    }
+    row = z >= 0x1068;
+    return (s8)D_actor_403000_80158D48[col + row * 5];
+}
+
+/// Turn toward the camera target (state 4) and, once facing it, walk at it
+/// (state 2): hand off to state 8 or 7 by distance, or to state 4 with a
+/// fresh `field_FD3` direction when the heading error grows past 0x300.
+void func_actor_403000_80137084(Actor403000* arg0)
+{
+    Actor403000Work*         work;
+    Actor403000*             player;
+    Actor403000ChaseScratch* scratch;
+    Actor403000ChaseScratch* head;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           pos;
+    GsCOORDINATE2*           rot;
+    GsCOORDINATE2*           pos2;
+    GsCOORDINATE2*           rot2;
+    SVECTOR*                 dir;
+    SVECTOR*                 t;
+    s16                      angle;
+    s32                      mag;
+    s16                      diff;
+    s32                      dist;
+    s8                       sign;
+    WipSysConfig*            wip;
+    TmdObject*               tmd;
+
+    work                                       = arg0->field_1C;
+    player                                     = Game_GetPtrSlot(3);
+    wip                                        = &Wip_SysConfig;
+    head                                       = *(Actor403000ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor403000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                    = head - 1;
+    if (work->field_4 != 0) {
+        tmd             = arg0->field_2C;
+        work->field_FCA = 0;
+        tmd->field_C    = 0;
+        Tmd_AllocBuffers(tmd);
+        work->objB50.obj.field_1C = 0x3E8;
+        work->field_AC0           = 1;
+        work->field_ACA           = 0x10;
+        work->field_AC6           = 4;
+        work->field_AC2           = 0;
+        work->field_AD6           = 0;
+        work->field_6             = 0;
+        work->field_8             = 0;
+        work->field_FC2           = 0;
+        work->recDD0.field_C      = 0x384;
+        work->objD18.obj.flags   |= 0x4000;
+    }
+    func_actor_403000_80133AF8(arg0);
+    if (work->field_AC6 == 4) {
+        t     = &scratch->target;
+        pos   = arg0->field_2C->field_8;
+        t->vx = wip->field_4->t[0] - pos->coord.t[0];
+        t->vy = wip->field_4->t[1] - pos->coord.t[1];
+        t->vz = wip->field_4->t[2] - pos->coord.t[2];
+        rot   = arg0->field_2C->field_8;
+        angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto loop_neg;
+            }
+        } else {
+        loop_pos:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos;
+            }
+        }
+        scratch->angle = mag = angle;
+        work->field_AD8      = mag;
+        if (scratch->angle > 0x40) {
+            scratch->angle = 0x40;
+        } else if (scratch->angle < -0x40) {
+            scratch->angle = -0x40;
+        }
+        scratch->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+        if (ABS(work->field_AD8) < 0x80) {
+            work->field_AC6 = 2;
+            work->field_AC0 = 1;
+        }
+        func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
+    }
+    if (work->field_AC6 == 2) {
+        func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
+        t     = &scratch->target;
+        pos2  = arg0->field_2C->field_8;
+        t->vx = Wip_SysConfig.field_4->t[0] - pos2->coord.t[0];
+        t->vy = Wip_SysConfig.field_4->t[1] - pos2->coord.t[1];
+        t->vz = Wip_SysConfig.field_4->t[2] - pos2->coord.t[2];
+        rot2  = arg0->field_2C->field_8;
+        angle = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg2:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto loop_neg2;
+            }
+        } else {
+        loop_pos2:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos2;
+            }
+        }
+        scratch->angle = mag = angle;
+        work->field_AD8      = mag;
+        coord                = arg0->field_2C->field_8;
+        if (D_80072729 != 1) {
+            dir = Actor403000_PushVec();
+            Gfx_MatrixCol2(&coord->coord, dir);
+            VectorNormalSS(dir, dir);
+            Actor403000_ScaleVec(dir, 300);
+            coord->coord.t[0] += dir->vx;
+            coord->coord.t[1] += dir->vy;
+            coord->coord.t[2] += dir->vz;
+            coord->flg         = 0;
+            Actor403000_PopVec();
+        }
+        arg0->field_2C->field_8->flg = 0;
+        scratch->d.vx                = wip->field_4->t[0] - arg0->field_2C->field_8->coord.t[0];
+        scratch->d.vy                = 0;
+        scratch->d.vz                = wip->field_4->t[2] - arg0->field_2C->field_8->coord.t[2];
+        scratch->dist = dist = SquareRoot0(scratch->d.vx * scratch->d.vx + scratch->d.vy * scratch->d.vy + scratch->d.vz * scratch->d.vz);
+        dist                -= 0x1964;
+        if (dist < 0) {
+            dist = -dist;
+        }
+        if (dist < 0x1F4 && ABS(scratch->angle) < 0x200) {
+            work->field_0 = 8;
+        }
+        if (scratch->dist < 0x1770 && ABS(scratch->angle) < 0x200) {
+            work->field_0 = 7;
+        }
+        if (ABS(work->field_AD8) > 0x300) {
+            scratch->playerCell = Actor403000_Cell(player->field_2C->field_8);
+            scratch->cell       = Actor403000_Cell(arg0->field_2C->field_8);
+            work->field_0       = 4;
+            diff                = scratch->cell - scratch->playerCell;
+            if (diff < -5) {
+                goto neg;
+            }
+            if (diff < 0) {
+                goto pos;
+            }
+            if (diff < 5) {
+            neg:
+                sign = -1;
+            } else {
+            pos:
+                sign = 1;
+            }
+            work->field_FD5 = work->field_FD3 = -sign;
+        }
+        if (scratch->angle > 0x40) {
+            scratch->angle = 0x40;
+        } else if (scratch->angle < -0x40) {
+            scratch->angle = -0x40;
+        }
+        scratch->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+    }
+    *(Actor403000ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801377C8);
 
@@ -1472,28 +1680,6 @@ void func_actor_403000_801384E8(Actor403000* arg0)
     func_actor_403000_80133AF8(arg0);
     work->field_6++;
     *(Actor403000PushScratch**)G_SCRATCH_HEAD += 1;
-}
-
-static __inline__ void Actor403000_ScaleVec(SVECTOR* v, u16 k)
-{
-    gte_lddp(k);
-    gte_ldsv(v);
-    gte_gpf12_real();
-    gte_stsv(v);
-}
-
-static __inline__ SVECTOR* Actor403000_PushVec(void)
-{
-    SVECTOR* head;
-
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    *(SVECTOR**)G_SCRATCH_HEAD = head - 1;
-    return head - 1;
-}
-
-static __inline__ void Actor403000_PopVec(void)
-{
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
 }
 
 /// Lunge toward the player: on the frame `field_4` is set, record the player's
@@ -1690,28 +1876,6 @@ void func_actor_403000_801399A0(Actor403000* arg0)
 
 /// Waypoint-grid cell under `coord`: column by `coord.t[0]` band, row by
 /// `coord.t[2]`, as `func_actor_403000_80134204` computes it inline.
-static inline s8 Actor403000_Cell(GsCOORDINATE2* coord)
-{
-    s32 x;
-    s32 z;
-    s8  col;
-    s8  row;
-
-    x = coord->coord.t[0];
-    z = coord->coord.t[2];
-    if (x < 0xD48) {
-        col = 4;
-    } else if (x < 0x1A90) {
-        col = 3;
-    } else if (x < 0x2AF8) {
-        col = 2;
-    } else {
-        col = x < 0x3C8C;
-    }
-    row = z >= 0x1068;
-    return D_actor_403000_80158D48[col + row * 5];
-}
-
 void func_actor_403000_80139AE0(Actor403000* arg0)
 {
     Actor403000Work*        work;

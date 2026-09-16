@@ -257,6 +257,23 @@ typedef struct Actor403000LungeScratch {
 } Actor403000LungeScratch;
 STATIC_ASSERT_SIZEOF(Actor403000LungeScratch, 0x28);
 
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_80137084`: `d` is the camera target's offset from the
+/// model and `dist` its length, `target` the same offset for the heading,
+/// `angle` the clamped turn, `cell` / `playerCell` the waypoint-grid cells.
+typedef struct Actor403000ChaseScratch {
+    /* 0x00 */ VECTOR  d;
+    /* 0x10 */ SVECTOR target;
+    /* 0x18 */ s32     dist;
+    /* 0x1C */ byte    pad_1C[0x4];
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ byte    pad_22[0x2];
+    /* 0x24 */ s8      cell;
+    /* 0x25 */ s8      playerCell;
+    /* 0x26 */ byte    pad_26[0x2];
+} Actor403000ChaseScratch;
+STATIC_ASSERT_SIZEOF(Actor403000ChaseScratch, 0x28);
+
 /// Payload of message 0x3E9 `func_actor_403000_801386E8` sends the player:
 /// the player's position and a heading of the model's facing minus 0x400.
 typedef struct Actor403000Msg3E9 {

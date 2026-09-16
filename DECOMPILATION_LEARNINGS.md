@@ -99435,3 +99435,14 @@ ahead of `bgtz v0`). With `s32 r` cse folds the copies away and both arms test
 `$a0` directly (98.4%). Declaring `s16 r` matched: the SImode->HImode narrowing
 leaves a separate pseudo per use that combine does not merge, and no
 sign-extension appears because the `& 0xF` bounds it.
+
+### `lb` from a table copied straight into an `s8` field: the inline returns `s32`
+
+`func_actor_403000_80137084` stores `Actor403000_Cell(coord)` (a `u8` table
+lookup) directly into two `s8` scratch fields, and the ROM loads the byte with
+`lb` before the `sb`. With the inline returning `s8` - as it did for
+`func_actor_403000_80139AE0`, which assigns the result to an `s16` - the load
+became `lbu`: the truncating store makes the extension dead, so combine drops
+it. `(s32)` casts at the call site change nothing. Returning `s32` from the
+inline with `return (s8)table[i];` keeps the `sign_extend` in the RTL and
+reproduces `lb`, and the other caller still matches.
