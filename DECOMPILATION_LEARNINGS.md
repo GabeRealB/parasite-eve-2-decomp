@@ -380,6 +380,47 @@ splat pair with pointer arithmetic through the coincidental symbol.
 `func_actor_342400_8016BA3C` is the same body without the false pair, because
 that overlay's table lo16 is not `0x440`.
 
+## A field reached as `%hi(base + N)` gets its own splat symbol — keep both names
+
+When one field of an object is only written in a block where no base register is
+live, GCC emits a fresh `lui %hi(base + N)` / `%lo(base + N)` pair for just that
+field. Splat names a symbol by the address a relocation resolves to, so the one
+source object surfaces as two: `D_room_80187A20` and `D_room_80187A24`. The data
+`.s` then splits the run between them (4 bytes at one, 8 at the other). Those
+boundaries record which addresses the code references, not where the original
+declarations ended — do not read them as evidence about the struct's size.
+
+Folding that field back into the base struct is the cleaner-looking C and is
+wrong: the instructions are identical, but the relocation becomes
+`%hi(D_room_80187A20 + 4)` instead of `%hi(D_room_80187A24)`. The linked overlay
+is byte-identical, the scratch scorer still reports `blocks=4/4`,
+`predicates_match=True` and all-zero penalties, and the score simply stops at
+99.69% with a diff of two symbol names. Declare the address as its own extern
+and write through it, with the base struct covering the whole run:
+
+```c
+typedef struct RoomSpawn {          /* the compiler reached 0x0..0xB off one base */
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u8  pad_4[4];         /* 0x4 is D_room_80187A24 */
+    /* 0x8 */ u8  field_8;
+    /* 0x9 */ u8  field_9;
+    /* 0xA */ u8  field_A;
+    /* 0xB */ u8  field_B;
+} RoomSpawn;
+
+extern RoomSpawn D_room_80187A20;
+extern s16       D_room_80187A24;   /* the branch-arm store */
+```
+
+`func_neo_ark_submarine_tunnel_8017F318` is the worked example (0x80187A20 /
+0x80187A24, values 1, 0x60, arg0, 1, 0x40, 0x80, 0x80); `shelter_b4_reservoir`
+carries the same body. The same shape recurs in the pointer-to-`CdCmd_Queue`
+idiom: `queue->field_22A = 2` through a local pointer emits `addiu $v1,$v0,%lo(...)`
+plus a `sh …,0x22A($v1)` displacement, where the direct `CdCmd_Queue.field_22A`
+folds into a `%lo(CdCmd_Queue+0x22A)` operand. `func_neo_ark_eve_access_tunnel_8017DFC0`
+is the matched reference for that form.
+
 ## Duplicate the call for delay-slot `lui`; share the volatile-touch body
 
 Two switch arms that share a `jal` with a unique `addiu a1` in the jump delay
