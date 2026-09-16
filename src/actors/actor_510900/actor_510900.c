@@ -62,10 +62,306 @@ extern u8 D_actor_510900_80167AA4[];
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_80180A64(GsCOORDINATE2* arg0);
 
+/// Gameplay-resident camera-shake slot: `field_0` is the frame countdown and
+/// `coord` is set local to `Gfx_ViewWorldMtx` each frame it runs.
+extern GpCoord64 D_80114FF8;
+
 void func_actor_510900_8013B424(s32 arg0);
 void func_actor_510900_8013B524(Actor510900* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80131F24);
+void func_actor_510900_80131F24(Task* arg0)
+{
+    GpEffWork*              mem;
+    GsCOORDINATE2*          coord;
+    GpCoordTail*            slot;
+    GpCoord64*              base;
+    GpEffWork*              eff;
+    Actor510900MatrixWords* mat;
+    s32                     i;
+    s32                     bits;
+    s32                     z;
+
+    mem   = arg0->spawnArg2;
+    coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
+    base  = &D_80114FF8;
+    slot  = (GpCoordTail*)&base->coord;
+    if (Gp_State1C->field_4 != 0) {
+        if (Gp_State1C->field_4 >= 4) {
+            base->field_0 = 0;
+        }
+        if (arg0->spawnArg1 == 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    if (arg0->state == 0) {
+        mat               = (Actor510900MatrixWords*)&coord->coord;
+        coord->sub        = mem->field_8;
+        mat->m00_m01      = 0x1000;
+        mat->m02_m10      = 0;
+        mat->m11_m12      = 0x1000;
+        mat->m20_m21      = 0;
+        mat->m22          = 0x1000;
+        coord->coord.t[0] = mem->field_18;
+        coord->coord.t[1] = mem->field_1A;
+        z                 = mem->field_1C;
+        coord->flg        = 0;
+        coord->coord.t[2] = z;
+        arg0->state       = 1;
+    }
+    Gp_UpdateCoord(coord);
+    if (base->field_0 != 0) {
+        slot->field_50 = 0x1000;
+        slot->field_52 = 0x800;
+        slot->field_54 = 0x400;
+        if (slot->field_58 >= 0x191) {
+            slot->field_58 -= 0x190;
+        }
+        base->field_0--;
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->coord.coord);
+        base->coord.flg = 0;
+        if (base->field_0 == 0) {
+            arg0->spawnArg1 = 0;
+            mem->field_22   = 0;
+            mem->field_24   = 0;
+        }
+    }
+    switch (arg0->spawnArg1) {
+        case 0:
+            break;
+        case 1:
+            mem->field_24 = (mem->field_24 < 0x100) ? mem->field_24 + 0x10 : 0x100;
+            for (i = 0; i < 2; i++) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
+                mem->field_12 = 0x40;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->field_24, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            base->field_0  = 0x10;
+            slot->field_58 = 0x1F40;
+            slot->field_5C = 0x2710;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            bits           = Gp_LcgState >> 16;
+            /* The `field_24 + 0x10000` sums below are evaluated as their own
+             * operand. Written plainly, `fold` reassociates the constant onto
+             * the draw; held in a local, sched1 moves the load ahead of it. */
+            if (!(bits & 3)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0x40;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }),
+                                            (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            bits >>= 1;
+            if (!(bits & 3)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }),
+                                            (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            bits >>= 1;
+            if (!(bits & 3)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->field_24, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            bits >>= 1;
+            if (bits % 3 == 0) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0x80;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            bits >>= 1;
+            if (!(bits & 3)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = -0x80;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            break;
+        case 2:
+            base->field_0  = 0x10;
+            slot->field_58 = 0x1F40;
+            slot->field_5C = 0x2710;
+            for (i = 0; i < 3; i++) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0x40;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            bits        = Gp_LcgState >> 16;
+            if (!(bits & 7)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            bits >>= 1;
+            if (!(bits & 3)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = 0x80;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            bits >>= 1;
+            if (!(bits & 7)) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12 = -0x80;
+                mem->field_14 = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                eff           = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            break;
+        case 3:
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            bits        = Gp_LcgState >> 16;
+            mem->field_22++;
+            if (mem->field_22 < 0x1E) {
+                if (!(bits & 7)) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
+                    mem->field_12 = 0x40;
+                    mem->field_14 = 0;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x80, (SVECTOR*)&mem->field_10);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                bits >>= 1;
+                if (!(bits & 3)) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->field_12 = 0x40;
+                    mem->field_14 = 0;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    eff           = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                for (i = 0; i < 2; i++) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->field_12 = 0;
+                    mem->field_14 = 0;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    eff           = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, (SVECTOR*)&mem->field_10);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                bits >>= 1;
+                if (!(bits & 7)) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->field_12 = 0;
+                    mem->field_14 = 0;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, (SVECTOR*)&mem->field_10);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                bits >>= 1;
+                if (!(bits & 7)) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->field_12 = 0x80;
+                    mem->field_14 = 0;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    eff           = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, (SVECTOR*)&mem->field_10);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                for (i = 0; i < 2; i++) {
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    mem->field_10 = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                    mem->field_12 = -0x80;
+                    mem->field_14 = 0;
+                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                    eff           = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, (SVECTOR*)&mem->field_10);
+                    if (eff != NULL) {
+                        Task_Reparent(arg0, eff->field_0);
+                    }
+                }
+                base->field_0  = 0x10;
+                slot->field_58 = 0x1F40;
+                slot->field_5C = 0x2710;
+            } else if (mem->field_22 < 0x3C) {
+                base->field_0  = 2;
+                slot->field_58 = 0x190;
+                slot->field_5C = 0x190;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10  = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->field_12  = 0x80;
+                mem->field_14  = 0;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                eff            = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, (SVECTOR*)&mem->field_10);
+                if (eff != NULL) {
+                    Task_Reparent(arg0, eff->field_0);
+                }
+            }
+            break;
+        case 4:
+            Gp_ReleaseState1CMem(mem, arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80132D4C);
 

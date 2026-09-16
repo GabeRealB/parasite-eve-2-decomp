@@ -90448,3 +90448,26 @@ bytes (the checksum failed while the scratch score was 100%). `rodata_head`
 cannot help when the earlier table is compiled C, so this needed a `units` cut at
 the function plus a `rodata` cut at its table, renumbering `actor_510900_2..9`
 to `_3..10`.
+
+## `A + (B + CONST)` that must stay grouped: a statement expression, when a local reorders it
+
+`func_actor_510900_80131F24` passes `((rng >> 16) & 0xF0) + (field_24 + 0x10000)`
+to `Gp_SpawnEff`, and the ROM keeps that grouping: the draw is computed first, then
+`lh field_24; lui 1; addu; addu a2,a2,v0`. Neither plain form survives `fold`:
+`A + (B + C)` becomes `(A + C) + B` (the arg1 split at `fold-const.c:4349`) and
+`(B + C) + A` becomes `B + (A + C)`.
+
+The two known workarounds both reorder this one. A local holding the sum
+(`p = field_24 + 0x10000;`, or as an assignment inside the argument) is a
+`REG_USERVAR_P` pseudo, and sched1 moves the `lh`/`lui` ahead of the draw
+(98.75%). A local holding only the constant (learnings entry "`base | (x | CONST)`")
+left the `lui` early too (98.84%), and assigned once at the top it lives in `$s1`.
+
+A statement expression is opaque to `fold` and expands into ordinary temporaries,
+which gave the exact schedule (100%):
+
+```c
+eff = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }), ...);
+```
+
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
