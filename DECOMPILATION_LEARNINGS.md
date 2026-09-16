@@ -250,6 +250,44 @@ All priorities in this function are 1 (`priority()` returns
 `max(1, pred + cost - 1)` and every latency is 1), so the scheduler moves nothing
 and the RTL order is the final order — the arm's `a0`/address order had to come
 from RTL generation, not from scheduling.
+
+## An `if` whose body ends in `j` over an else block holding only the arg setup is two literal call sites
+
+`func_actor_323400_80164BD0` (actors/actor_323400) is an `if` whose body ends
+with `j` to the join, an else block containing nothing but `move a0,s1`, and the
+shared `jal` after it:
+
+```
+        j      .Lactor_323400_80164C30
+        sh     $zero,0x840($s0)     /* delay slot */
+.Lactor_323400_80164C2C:
+        addu   $a0,$s1,$zero        /* the else block is the arg setup alone */
+.Lactor_323400_80164C30:
+        jal    func_actor_323400_80163B58
+        nop
+```
+
+m2c reads that shared `jal` as one call after the `if` and emits the merged
+3-block form — `delete=3`, `branch=1`, 88.4%. The else block is gone, `a0` is
+set once inside the surviving block, and the `j` with it. Writing the call out
+in **both** arms, even though the arms are then textually identical, restores
+the 4-block topology and is 100%:
+
+```c
+        work->field_840 = 0;
+        func_actor_323400_80163B58(task);
+    } else {
+        func_actor_323400_80163B58(task);
+    }
+```
+
+The two entries above give the mechanism (jump.c cross-jump / reorg.c); the
+point here is the diagnosis, and that it reaches an ordinary `if`/`else`. An arm
+that would be exactly the other arm's argument move is not redundant setup to
+fold away — it is the second call site. The sibling handler tables in the actor
+family are written the same way (`func_actor_323000_80164C58`), so read the
+matched twin before restructuring one.
+
 ## `li` + `slt` against a literal range means an inlined helper's parameter, not `x > C`
 
 `Actor00400_Fn06798` ends with the turn-toward-a-point idiom and compares the
