@@ -103512,7 +103512,8 @@ So when a twin's scratch block matches but the function it was pasted into does 
 whether the block belongs in the inlined helper rather than the caller. `actor_401800` needed
 *two* step helpers for this: `Actor401800_MoveForwardNonzero` (its own `gteVec` name for `vec`,
 used where the step is a variable) and `Actor401800_StepForward` (step applied through `vec`
-itself, used by `8013945C` with the constant `-0x57`). Compiling `8013945C` against the
+itself, used by `8013945C` with the constant `-0x57`, and by the chase body
+`80137714` with `0x28` / `0x14`). Compiling `8013945C` against the
 `gteVec` variant scores 96% - the copy `(set reg120 reg118)` survives local-alloc as a real
 `addu s1,s0,zero` the target does not have - and swapping the shared helper to the no-`gteVec`
 body breaks `80139118` instead, which is the mirror image. The zero-amount guard is *not* part
@@ -103752,3 +103753,34 @@ Evidence, `func_actor_401800_80137DDC` (preprocessed sha256 `8feb6a24f5f8be27…
 
 `func_actor_401300_80137D78`, the same swing body in the neighbouring overlay,
 declares it `s32` for the same reason.
+
+## The position-delta inline reads a `long t[i]` with `lhu`: the store is what narrows it
+
+Every actor family's `*_ConfigPositionDelta` writes three halfwords out of two
+`MATRIX` translations, and the object reads them at the very addresses the
+32-bit `t[i]` lives at:
+
+```c
+pos->vx = config->field_4->t[0] - coord->coord.t[0];   /* MATRIX.t is `long` */
+```
+
+```asm
+lhu  $v0, 0x14($v1)      /* Wip_SysConfig.field_4->t[0] */
+lhu  $v1, 0x18($a1)      /* coord->coord.t[0] */
+subu $v0, $v0, $v1
+sh   $v0, -0x10($s0)     /* into pos->vx, an s16 member */
+```
+
+Nothing here is a halfword field and nothing is misaligned: the destination is
+an `s16` SVECTOR member, so the front end narrows the whole expression to
+HImode, and on the little-endian R3000 a HImode load at the field's own address
+*is* the low half of the `long`. Do not go hunting for an `s16 t[3]` struct to
+justify the load — write the plain `long` arithmetic and it comes out. Three
+overlays reproduce it from the same helper with no cast anywhere:
+`func_actor_401800_80137714` (100.000%, all-zero penalties),
+`func_actor_401300_801376E4` and `Actor01900_Fn0551C`.
+
+The narrowing is also why the same field shows up as a signed `lh` elsewhere in
+the same function: the scratch block's `delta.vx` is an `s16` that a later
+`ratan2` argument sign-extends, so the reload is `lh` there — the load width
+tracks the destination, not the field.

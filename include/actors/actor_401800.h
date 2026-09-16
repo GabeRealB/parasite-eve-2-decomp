@@ -109,7 +109,15 @@ typedef struct Actor401800Work {
     /// then GPF-scales by `field_C02` into the offset added to the root
     /// coordinate. Same slot `Actor01900Work.field_C18` keeps.
     /* 0xBE8 */ SVECTOR field_BE8;
-    /* 0xBF0 */ byte    pad_BF0[0xC];
+    /* 0xBF0 */ byte    pad_BF0[8];
+    /// Bearing the chase body of `func_actor_401800_80137714` steers 0x89 a
+    /// frame toward `field_BFA` and hands to `Gfx_RotMatrixY`. Same slot
+    /// `Actor401300Work.field_C94` / `Actor01900Work.field_C20` keep.
+    /* 0xBF8 */ s16 field_BF8;
+    /// Target bearing the same body stores as the actor's facing plus twice
+    /// the wrapped turn toward the player. Same slot
+    /// `Actor401300Work.field_C96` / `Actor01900Work.field_C22` keep.
+    /* 0xBFA */ s16 field_BFA;
     /// Step the aim-and-rescale body walks the actor along its own local Z
     /// axis while `func_actor_401800_80133558` says the path is clear, and
     /// reloads `field_0 = 9` once it has counted down to zero. Same slot
@@ -151,7 +159,10 @@ typedef struct Actor401800Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC14 */ Task* field_C14;
     /* 0xC18 */ Task* field_C18;
-    /* 0xC1C */ byte  pad_C1C[2];
+    /// Contact range the chase body of `func_actor_401800_80137714` tests the
+    /// player offset against: under 2 it takes the 8 state outright. Same slot
+    /// `Actor401300Work.field_D1C` / `Actor01900Work.field_C40` keep.
+    /* 0xC1C */ s16 field_C1C;
     /// Frames the live-actor swing of `func_actor_401800_80137DDC` has run:
     /// it picks the side `field_C00` flips to only while this is zero, and
     /// bumps it once per frame. Same slot `Actor01900Work.field_C42`.
@@ -257,6 +268,19 @@ typedef struct Actor401800TurnScratch {
     /* 0xA */ s16     pad_A;
 } Actor401800TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor401800TurnScratch, 0xC);
+
+/// 0x10-byte scratch `func_actor_401800_80137714` takes from `G_SCRATCH_HEAD`:
+/// the offset from the actor to the player, the wrapped turn toward the
+/// player and the facing yaw the body folds it into. Same shape as
+/// `Actor401300ChaseScratch` / `Actor01900ChaseScratch`.
+typedef struct Actor401800ChaseScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     turn;
+    /* 0xE */ s16     angle;
+} Actor401800ChaseScratch;
+STATIC_ASSERT_SIZEOF(Actor401800ChaseScratch, 0x10);
 
 /// 0x34-byte scratch the yaw rebuild takes from `G_SCRATCH_HEAD`: a `MATRIX`
 /// plus the `VECTOR` handed to `ScaleMatrix` and the yaw stored before

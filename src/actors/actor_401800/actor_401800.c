@@ -640,11 +640,152 @@ s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* recs, s16 count)
     return s->hit;
 }
 
+/// `Actor401800_MoveForwardNonzero` with the step applied through `vec`
+/// rather than a second name for it. Same body as `Actor01900_StepForwardHead`.
+static __inline__ void Actor401800_StepForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(vec);
+            gte_gpf12_real();
+            gte_stsv(vec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
+static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor401800RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor401800RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor401800RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor401800RangeScratch*)(head - 0xC))->dx *= ((Actor401800RangeScratch*)(head - 0xC))->dx;
+    *(Actor401800RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor401800RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80136560);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80136EAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80137714);
+/// Chase body: takes a 0x10 scratch for the player offset and the heading it
+/// folds into the root coordinate. On the live flag it resets the model
+/// buffers, arms the walk state and stores the facing yaw `field_BF8` along
+/// with the target `field_BFA` — the facing plus twice the wrapped turn toward
+/// the player. Otherwise it picks `field_0` from the `field_C1C` contact range
+/// and the `field_8C2` countdown, steers `field_BF8` 0x89 a frame toward
+/// `field_BFA`, rebuilds the root coordinate at scale 0x1194 and steps the
+/// actor 0x28 / 0x14 along its local Z while `func_actor_401800_80133558`
+/// reports the path clear. Same body as `func_actor_401300_801376E4` /
+/// `Actor01900_Fn0551C`, with the step helper's clear-path test added.
+void func_actor_401800_80137714(Actor401800* arg0)
+{
+    Actor401800Work*         work;
+    Actor401800ChaseScratch* head;
+    Actor401800ChaseScratch* s;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        head                                       = *(Actor401800ChaseScratch**)G_SCRATCH_HEAD;
+        obj                                        = arg0->field_2C;
+        *(Actor401800ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+        s                                          = head - 1;
+        arg0->field_20->node.field_4               = 0;
+        obj->field_C                               = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_8AE          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        func_actor_401800_80133EB8(arg0);
+        Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        coord                                       = arg0->field_2C->field_8;
+        s->turn                                     = Actor401800_NormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        facing                                      = arg0->field_2C->field_8;
+        s->angle                                    = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->field_BF8                             = s->angle;
+        work->field_BFA                             = s->angle + (u16)s->turn * 2;
+        *(Actor401800ChaseScratch**)G_SCRATCH_HEAD += 1;
+        return;
+    }
+    head                                       = *(Actor401800ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor401800ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                          = head - 1;
+    func_actor_401800_80133EB8(arg0);
+    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    if (work->field_BF8 == work->field_BFA) {
+        if (work->field_C1C < 2 || Actor401800_OutOfRange(&s->delta, 0x384)) {
+            work->field_0 = 8;
+        } else if (func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+            work->field_0 = 0xB;
+        } else {
+            work->field_0 = 8;
+        }
+    }
+    if (work->field_BF8 > work->field_BFA) {
+        work->field_BF8 -= 0x89;
+        if (work->field_BF8 < work->field_BFA) {
+            work->field_BF8 = work->field_BFA;
+        }
+    }
+    if (work->field_BF8 < work->field_BFA) {
+        work->field_BF8 += 0x89;
+        if (work->field_BF8 > work->field_BFA) {
+            work->field_BF8 = work->field_BFA;
+        }
+    }
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, work->field_BF8, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89A == 0) {
+        if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, 0x28) != 0) {
+            Actor401800_StepForward(arg0->field_2C->field_8, 0x28);
+        }
+    } else {
+        if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, 0x14) != 0) {
+            Actor401800_StepForward(arg0->field_2C->field_8, 0x14);
+        }
+    }
+    if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+        func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+    }
+    if (work->field_8C2 != 0) {
+        work->field_8C2--;
+    }
+    *(Actor401800ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Live-actor swing. On the live flag it resets the model buffers, takes the
 /// swing side `field_C00` from `Gp_LcgState`, offsets the player bearing in
@@ -883,34 +1024,6 @@ static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
             gte_ldsv(gteVec);
             gte_gpf12_real();
             gte_stsv(gteVec);
-            coord->coord.t[0] += head[-1].vx;
-            coord->coord.t[1] += vec->vy;
-            coord->coord.t[2] += vec->vz;
-            coord->flg         = 0;
-        }
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
-
-/// `Actor401800_MoveForwardNonzero` with the step applied through `vec`
-/// rather than a second name for it. Same body as `Actor01900_StepForwardHead`.
-static __inline__ void Actor401800_StepForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
-            Gfx_MatrixCol2(&coord->coord, vec);
-            VectorNormalSS(vec, vec);
-            gte_lddp(amount);
-            gte_ldsv(vec);
-            gte_gpf12_real();
-            gte_stsv(vec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
             coord->coord.t[2] += vec->vz;
@@ -1262,27 +1375,6 @@ void func_actor_401800_80139B18(Actor401800* arg0)
             coord->coord.m[2][2] = m22;
         }
     }
-}
-
-/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
-static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                      head;
-    Actor401800RangeScratch* blk;
-    s32                      ret;
-
-    head                                          = *(u8**)G_SCRATCH_HEAD;
-    ((Actor401800RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                           = (Actor401800RangeScratch*)(head - 0xC);
-    blk->dz                                       = d->vz;
-    blk->r                                        = r;
-    ((Actor401800RangeScratch*)(head - 0xC))->dx *= ((Actor401800RangeScratch*)(head - 0xC))->dx;
-    *(Actor401800RangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                      *= blk->dz;
-    blk->r                                       *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                         = head;
-    ret                                           = ((Actor401800RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
 }
 
 /// Countdown body: on the live-actor flag re-allocates the model's buffers,
