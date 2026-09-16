@@ -1,11 +1,126 @@
 #include "common.h"
 
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "actors/actor_800100.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100", D_actor_800100_80161E20);
+/// Per-frame flare task of the actor: while the player model is visible
+/// (`field_C & 0x80` clear) and the room is not fading out
+/// (`Gp_State1C->field_4 < 2`) it claims room-light slot 3 as the flare's
+/// coordinate. State 0 hangs that coordinate off the actor's own at the fixed
+/// offset and zeroes its `field_22`; state 1 then dispatches on `spawnArg1`:
+///
+/// - 1 draws the flare at the coordinate's `workm.t` every frame and re-aims
+///   the light at a random angle in `0x400..0xB00`, arming the flare width in
+///   `field_24`.
+/// - 2 widens that flare by 0x40 a frame up to 0x180, spawns effect `0x60181`
+///   as a child of this task, and re-claims the light with a much wider
+///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
+/// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
+///
+/// While `Gp_State1C->field_4` is non-zero the two drawing sub-states wind
+/// `field_22` back down instead of advancing.
+void func_actor_800100_80161F20(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    GsCOORDINATE2* light;
+    GpMtxWords*    rot;
+    GpEffWork*     eff;
+    u32            ang;
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80161F20);
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->field_8;
+    base  = &D_8011505C;
+    light = &base->coord;
+    slot  = (GpCoordTail*)light;
+    if ((((GpActorWork*)Game_GetPtrSlot(10))->extra->field_C & 0x80) != 0) {
+        return;
+    }
+    if (Gp_State1C->field_4 >= 2) {
+        return;
+    }
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            rot               = (GpMtxWords*)&coord->coord;
+            coord->sub        = work->field_8;
+            rot->w0           = 0x1000;
+            rot->w1           = 0;
+            rot->w2           = 0x1000;
+            rot->w3           = 0;
+            rot->h4           = 0x1000;
+            coord->coord.t[0] = D_actor_800100_80167128.vx;
+            coord->coord.t[1] = D_actor_800100_80167128.vy;
+            coord->coord.t[2] = D_actor_800100_80167128.vz;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            task->state = 1;
+            break;
+        case 1:
+            Gp_UpdateCoord(coord);
+            switch (task->spawnArg1) {
+                case 0:
+                    break;
+                case 1:
+                    if (Gp_State1C->field_4 != 0) {
+                        work->field_22--;
+                        func_actor_800100_80162264(
+                            (VECTOR3*)&coord->workm.t, work->field_22, 0x80);
+                        break;
+                    }
+                    func_actor_800100_80162264(
+                        (VECTOR3*)&coord->workm.t, work->field_22, 0x80);
+                    base->field_0  = 4;
+                    slot->field_58 = 0x80;
+                    slot->field_5C = 0x400;
+                    ang            = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState    = ang;
+                    slot->field_50 = ((ang >> 16) & 0x700) + 0x400;
+                    slot->field_52 = (u16)slot->field_50 >> 1;
+                    slot->field_54 = slot->field_50 >> 2;
+                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+                    light->flg     = 0;
+                    work->field_24 = 0x40;
+                    break;
+                case 2:
+                    if (Gp_State1C->field_4 != 0) {
+                        work->field_22--;
+                        break;
+                    }
+                    if (work->field_24 < 0x180) {
+                        work->field_24 = (u16)work->field_24 + 0x40;
+                    }
+                    eff = Gp_SpawnEff(0x60181, coord, work->field_24, NULL);
+                    if (eff != NULL) {
+                        Task_Reparent(task, eff->field_0);
+                    }
+                    base->field_0  = 4;
+                    slot->field_58 = 0x400;
+                    slot->field_5C = 0x4000;
+                    ang            = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState    = ang;
+                    slot->field_50 = ((ang >> 16) & 0x700) + 0x800;
+                    slot->field_52 = (u16)slot->field_50 >> 1;
+                    slot->field_54 = slot->field_50 >> 2;
+                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+                    light->flg = 0;
+                    break;
+                case 3:
+                    task->spawnArg1 = 1;
+                    break;
+                case 4:
+                    task->spawnArg1 = 0;
+                    break;
+                case 5:
+                    Gp_ReleaseState1CMem(work, task);
+                    break;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80162264);
 

@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 
 /// 0x5C-byte block from `G_SCRATCH_HEAD` used by
@@ -55,6 +56,18 @@ STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
 extern GpImgRec** D_actor_800100_80167200[];
 extern GpImgRec** D_actor_800100_80167210[];
 
+/// Room-light slot 3 (`&Gp_RoomCoords[3]`) that `func_actor_800100_80161F20`
+/// claims as the coordinate its flare is lit from: `field_0` is the claim
+/// refcount, `coord` the world coordinate driven from the actor's own, and the
+/// tail the rotation and falloff recomputed from `Gp_LcgState` each frame.
+extern GpCoord64 D_8011505C;
+
+extern u32 Gp_LcgState;
+
+/// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
+extern SVECTOR D_actor_800100_80167128;
+
+void func_actor_800100_80162264(VECTOR3* arg0, u16 arg1, s32 arg2);
 void func_actor_800100_80163C04(GpActorWork* arg0);
 void func_actor_800100_80163D54(GpActorWork* arg0);
 void func_actor_800100_801655C0(GpActorWork* arg0);

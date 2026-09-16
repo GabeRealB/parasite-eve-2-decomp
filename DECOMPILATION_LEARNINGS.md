@@ -78998,6 +78998,27 @@ Gp_LinkObj(2, obj);
 zero, with no pins. Input `base_3.i`
 `43cdd05339d043262e6be676e37f75c5cbd84afdb163c762a2bd8212aa8c6c8e`.
 
+**Third effect: the same cause scores as `insert` + `reorder`, not `regs`.**
+`func_actor_800100_80161F20`'s case-0 block is eight stores plus one load, and
+the target emits the load first (`lw v0, 8(s0)` / `li v1, 0x1000` /
+`sw v1, 4(s1)` / `sw v0, 0x4c(s1)`). With the load's statement written after the
+`0x1000` store GCC keeps it there, one instruction behind its use:
+`li` / `sw` / `lw` / `nop` / `sw` — an extra `nop` in the load-delay slot, the
+whole function 4 bytes long, and every branch target in the function off by 4,
+which the scorer reports as `branch=8 insert=1 reorder=1` at 99.200%. The
+`.sched` dump names the blocking store directly: the load's dependency list is
+`(insn_list <uid of the store> (nil))`. Swapping the two statements removes the
+edge and the scheduler emits the target's order unchanged.
+
+So `insert=1 reorder=1 branch=N`, a lone `nop` after a load and branch offsets
+all shifted by the same 4 bytes, is this cause and not a scheduler tie: check
+whether a store whose statement precedes the load shares no base register with
+it. `base_1.c` 99.200% → `base_2.c` 100.000%, all penalties zero, no pins.
+Inputs `base_1.i`
+`2862e7464c2f1a853c24b24f284ef0d50ce3bb4bd3a12a73ce906177947c2cfa` and
+`base_2.i`
+`80af890ba70789ac26745e181714531b1c0938c528acd7596b4ed301276ffd6c`.
+
 ## m2c nested-ifs lose a switch's shared-epilogue default
 
 `func_actor_403200_80141124` takes `(Actor403200Obj*, s16)` and returns `0x13`,
