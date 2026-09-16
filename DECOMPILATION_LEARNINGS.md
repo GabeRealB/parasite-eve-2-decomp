@@ -84778,3 +84778,50 @@ Inputs: `base.c` (98.875%, `regs=9`, sha256
 590a690f3d41c5a8309bd9004c45fed919083348de2b30d779d7ea1c89edae86), `base_1.c`
 and `base_2.c` (both 100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A constant assigned before a call whose use follows it takes a saved register: hoist the call out first
+
+Symptom: the frame is 8 bytes too big and carries a callee-saved pair the
+target does not have (`sw s1, 0x14(sp)` / `lw s1, 0x14(sp)`), while every
+block, branch predicate and call still matches. Inside, the function's own
+parameter has been pushed out of `$s0` into `$s1` to make room for a value
+the target computes straight into an argument register.
+
+The cause is source order, not allocation: an assignment textually *before* a
+`jal` that only the code *after* that `jal` reads is a pseudo live across the
+call, so `global_alloc` may home it only in `$sN`. In the target it is born
+after the call and takes `$a0`.
+
+m2c emits exactly that ordering whenever the condition is itself a call the
+value selection depends on:
+
+```c
+    var_a0 = 0x19;               /* live across the call below */
+    if (Game_GetPtrSlot(0xA) != 0) {
+        var_a0 = 0x18;
+    }
+    Gp_SpawnIfCapIdle(var_a0, 0);
+```
+
+Name the call's result in a local of its own and the constant is born after
+it. Nothing else changes - same blocks, same predicates, same constants:
+
+```c
+    slot = Game_GetPtrSlot(0xA);
+    arg  = 0x19;
+    if (slot != 0) {
+        arg = 0x18;
+    }
+    Gp_SpawnIfCapIdle(arg, 0);
+```
+
+`func_dryfield_general_store_8017DD58` is the example: 77.567% with `regs=14
+branch=3 insert=5 delete=1` and a `-0x20` frame, 100% with every penalty zero
+on the next build. The mirror direction - a value that *must* stay live across
+calls and so has to keep a `$sN` - is the frame-size test in "A pointer field
+read across calls: fold it or hoist it".
+
+Inputs: `base.c` (77.567%, sha256
+ebc8313b4614fe2204966d0840e215247d6fc5747fc098f81c488c4b504d974b), `base_1.c`
+(100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
