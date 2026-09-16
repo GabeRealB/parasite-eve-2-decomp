@@ -5,7 +5,9 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_motel_lobby.h"
 
+extern TaskDesc D_dryfield_night_motel_lobby_801827A8;
 extern s32      D_dryfield_night_motel_lobby_801827CC;
 extern s32      D_dryfield_night_motel_lobby_801844D4;
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
@@ -18,7 +20,32 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_mot
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", RoomsShared8017e8b4PeTitle);
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", RoomsShared8017ea68Title);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", func_dryfield_night_motel_lobby_8017FB7C);
+s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 3) {
+        if (GameFlag_GetNibble(0x16D) == 0) {
+            GameFlag_SetNibble(0x16D, 1);
+            Gp_RunCapCmd1(0xA);
+            return 0;
+        }
+        D_dryfield_night_motel_lobby_801844E0.field_0 = 5;
+        D_dryfield_night_motel_lobby_801844E0.field_1 = 1;
+        if (GameFlag_GetNibble(0x7A) < 4) {
+            D_dryfield_night_motel_lobby_801844E0.field_14 = 0x380;
+            D_dryfield_night_motel_lobby_801844E0.field_3  = 1;
+        } else {
+            D_dryfield_night_motel_lobby_801844E0.field_14 = 0x3C0;
+            D_dryfield_night_motel_lobby_801844E0.field_3  = 2;
+        }
+        D_dryfield_night_motel_lobby_801844E0.field_2  = 0;
+        D_dryfield_night_motel_lobby_801844E0.field_4  = 0x53110003;
+        D_dryfield_night_motel_lobby_801844E0.field_8  = 0x53110004;
+        D_dryfield_night_motel_lobby_801844E0.field_10 = 0x53110005;
+        D_dryfield_night_motel_lobby_801844E0.field_C  = 0x53110006;
+        Task_SpawnFromTable(&D_dryfield_night_motel_lobby_801827A8, 0, 4, (s32)&D_dryfield_night_motel_lobby_801844E0);
+    }
+    return 0;
+}
 
 s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, GpMsg13EF* arg2)
 {

@@ -87954,3 +87954,47 @@ no merge fires. Writing the switch plainly - one call site per arm, literals at
 each - reached 100% in one build. The base address then lands in `$s0` for the
 three arms that use it across a call and in `$a0` for the single-use arm, which
 is the allocation you get from the plain form, not something to write by hand.
+
+## A run of `field = CONST` stores: the `lui`/`ori` order is the *source* order, the store order is not
+
+A cap-script fill writes four consecutive sound ids to one struct and is the
+only case where the two orders come apart, so the asm's store order alone does
+not tell you how the source was written. The target here stores `0x53110004`
+first and `0x53110003` third, but materialises the constants the other way
+round:
+
+```
+    lui   t0, 0x5311 / ori t0, t0, 0x3     # 03 first
+    lui   a2, 0x5311 / ori a2, a2, 0x4
+    lui   v1, 0x5311 / ori v1, v1, 0x5
+    lui   v0, 0x5311 / ori v0, v0, 0x6
+    ...
+    sw    a2, 0x8(a3)                      # stored first
+    addiu a2, zero, 0x4
+    sb    zero, 0x2(a3)
+    sw    t0, 0x4(a3)                      # stored third
+```
+
+Expand emits `addr` / `const` / `store` per statement, CSE deletes all but the
+first address pair, and a pre-reload pass then hoists every constant-load to the
+top of the block while the stores keep their relative order. So the `lui`/`ori`
+run at the top of the block *is* the statement order of the assignments that
+carry the constants, while the store order is that same order plus whatever the
+post-reload scheduler does to it. The matched sibling
+`func_shelter_1f_tent_8017FCA0` shows the split cleanly: its source assigns
+`field_4 = 0x551C0003`, `field_8 = 0x551C0006`, `field_10 = 0x551C0004`,
+`field_C = 0x551C0005` in that order, the asm materialises exactly
+`03, 06, 04, 05`, and the `field_10` store is hoisted to the front because its
+value sits in `$a2`, which the third argument then overwrites.
+
+Writing the four ids ascending (`field_4`, `field_8`, `field_10`, `field_C`)
+with the zeroing byte store written *first* reproduces both runs at once: the
+stores go out `2, 4, 8, 16, 12` pre-schedule and the scheduler hoists the
+`$a2`-held `0x8` store ahead of the `li a2, 4` argument load, giving the target's
+`8, 2, 4, 16, 12`. Ordering the assignments the way the stores are laid out in
+the object (m2c's reading) leaves the two `lui`/`ori` pairs swapped at 99.3%
+with `regs=8` and nothing else wrong.
+
+Example: `func_dryfield_night_motel_lobby_8017FB7C`. Inputs: `base_1.i`
+`7e8b7e80c9511bc09528f9be9e9b73dd730261eaf351f5c235a2d5c778b46e07`, `base_2.i`
+`c2b01570db8190811762a1f9418bc07fd341b547adf77199d9231bae6a89c812`.
