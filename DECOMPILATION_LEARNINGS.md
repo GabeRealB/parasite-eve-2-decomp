@@ -91297,3 +91297,47 @@ Two consequences worth planning for before the edit: the new unit takes the
 `actor_401800_3.c`, with its three `INCLUDE_ASM` folder strings rewritten), and
 the symbol splat had grouped the pad into is dropped from the built object, so
 the cut offsets in the manifest are the only record of the run's length.
+## Promoting a body from the middle of an overlay splits the unit and moves the `rodata` pin with it (func_actor_403000_8013D268, 2026-09-16)
+
+`overlay_dup_index.py promote` writes the span and the shared symbol and stops;
+everything the split does to the carrier is the caller's problem. When the span
+lands *inside* a code unit - here at 0xB448 of `actor_403000`, whose unit 1 ran
+0x528..0xB77C - the run after it becomes a new unit, and every later unit
+renumbers: what was `actor_403000_2` (0xB7D8 onward) became `_3`, and a fresh
+`_2` took 0xB504..0xB7D8.
+
+Two consequences, in the order they bite:
+
+* **The existing unit `.c` files keep the old distribution.** splat creates
+  only the *missing* unit file, and it creates it all-`INCLUDE_ASM` - including
+  for functions already matched in C in the file that used to own them. The
+  build then fails on `can't open asm/USA/<overlay>/<new-unit>/func_X.s` for
+  the moved functions, and on `func_X.s` under the old unit for the ones that
+  stayed. Fix by re-cutting each `.c` at the address boundaries and moving
+  bodies and `INCLUDE_ASM` lines by address, checking every body against the
+  pre-promotion source with `bodies_of` first. `_2` took 8013D324..8013D564
+  (two `INCLUDE_ASM`, four bodies out of unit 1) and `_3` took the tail that
+  `_2` had held, matched bodies included.
+
+* **A `rodata` pin names a unit, and the name it names has moved.** The pin
+  `rodata = [{ start = "0x1F4", unit = "actor_403000_2" }]` was correct while
+  the jump table's function (8013D98C, at 0xBB6C) lived in `_2`; after the
+  split that function is in `_3`, and the pin now names the *other* half of the
+  overlay. What splat emits depends on which unit owns the table: owning unit ==
+  function's unit, and the `.word .Lactor_403000_8013D9B8` table is inlined into
+  the function's own `.s` (what the overlay had before); different unit, and it
+  becomes a standalone `jtbl_*.s` in the pinned unit's directory, whose `.L`
+  references are labels defined in the *other* unit's assembly file - and each
+  unit's `.c` is a separate assembler invocation, so nothing can resolve them.
+  Repointing the pin at the function's new unit (`unit = "actor_403000_3"`)
+  brings back the inlined form. The addresses come out the same either way, so
+  this one does not announce itself as a checksum failure.
+
+`tools/rodata_triage.py` is the check for the same hazard before it happens:
+"a function can only be decompiled in the unit that owns the block its table
+sits in."
+
+Verify a promotion that splits a unit the same way as any other landing: the
+unscoped `./tools/build-and-verify.sh` (which re-splits both carriers and
+checksums every overlay) plus `tools/check_lost_matches.py` for the bodies that
+moved between files.
