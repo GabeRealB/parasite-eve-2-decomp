@@ -1,5 +1,12 @@
 #include "common.h"
 
+#include "actors/actor_401000.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
+#include "main/gfx.h"
+#include "main/session.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801323EC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80132590);
@@ -42,7 +49,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801380B8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801383F0);
+void func_actor_401000_801383F0(Actor401000* arg0)
+{
+    Actor401000Work* work;
+    GpAnimArg*       msg;
+    GpEnemy*         enemy;
+    Task*            player;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_8A2 = 0x10;
+        work->field_89E = 6;
+        work->field_898 = 2;
+        msg             = &D_actor_401000_80154F1C;
+        msg->field_4    = 2;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        player = Game_GetPtrSlot(3);
+        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+        Gp_SpawnPadLerp(5, 0xFF, 8);
+    }
+    if (work->field_68 & 1) {
+        work->field_8B8.field_0 = arg0->field_2C->field_8 + 1;
+        work->field_8B8.field_4 = 0x100;
+        work->field_8B8.field_6 = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, arg0->field_2C->field_8 + 5, NULL, &work->field_8B8);
+        work->field_0 = 0xE;
+    }
+    work->field_894 = work->field_5A & 0x3FF;
+    func_actor_401000_80132EF0(arg0);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[2].coord, -0x80, 0);
+    arg0->field_2C->field_8[4].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
+    arg0->field_2C->field_8[5].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801385B0);
 
