@@ -85450,3 +85450,54 @@ Inputs: `base_1.i`
 `edd911c356c0980568d5782a14beca45bf73fc2a0df696ad7b7a1249cf100ab2` (100.000%,
 first hypothesis), target
 `dc115c261dad60072031dcab72732e1e87d178b3551b4b36fe58645eb688048d`.
+
+## A dispatch whose tests sit above the bodies in case order is a `switch`, not an m2c range chain
+
+`func_dryfield_motel_room_6_80182978` reads a byte and draws one of two things:
+
+```
+slti v0,v1,3 ; bnez -> epilogue      ; view < 3: nothing
+slti v0,v1,5 ; bnez -> case 3/4 body
+li   v0,0xc  ; beq  -> case 12 body
+j epilogue ; nop                     ; not equal: nothing
+case3/4 body ... j epilogue ; nop
+case12 body  (falls through into the epilogue)
+```
+
+m2c renders that as the nested range chain `if (x >= 3) { if (x >= 5) { if (x != 0xC) return; B } else A }`
+- the same three tests, but the arms come out the other way round: the
+`x == 0xC` arm is the fall-through of its own test (so `bne v1,v0,epilogue`, no
+`j`), and the `x < 5` arm is placed last and falls into the epilogue. 26 insns
+instead of 28, `branch=2 delete=3 insert=1 reorder=3`, 79.2%.
+
+Writing it as the switch it is
+
+```c
+    view = Gp_GetViewIndex();
+    switch (view) {
+        case 3:
+        case 4:  Room_Draw32(&D_x[0], 0x60, 0x60); break;
+        case 12: Room_Draw05(&D_x[0], 0x60, 0x80); break;
+    }
+```
+
+matches 100% with no other change. The if-chain and the switch expand to the same
+compares, so `diff.py`-level inspection says "same test, inverted branch" and
+looks like a register or jump-opt problem; it is not. The divergence is already in
+the **front-end** `.rtl` dump: `expand_end_case` (stmt.c, the
+`reorder_insns (before_case, get_last_insn (), thiscase->data.case_stmt.start)`
+after the tree is emitted) moves the whole decision tree in front of the case
+bodies, so the bodies land in case order after the test chain, with the last one
+falling into the epilogue. The if-chain emits each test adjacent to its own arm
+and the block order follows from there - no later pass moves it.
+
+Read it off the `.rtl` dump, not the object: list `code_label`/`jump_insn`/
+`call_insn` in chain order and see whether the tests precede the bodies as a
+group (`switch`) or interleave with them (if-chain). The same test - is there a
+`j`/`nop` pair after a body that is *not* the last one - answers the same question
+from the object dump.
+
+Inputs: `base_1.i`
+`3c18e603b12656d7e4b4653d317328a2882cab207fcb4fb1037ee113d42ba8ad` (100.000%,
+first hypothesis), target
+`a7e0d28dccb3e47cda2115ba118b6bcb60b59ef88355ffe215f50f9850f2baf4`.
