@@ -85837,3 +85837,42 @@ Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
 
 Inputs: `base.c` (97.97%), `base_1.c` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## m2c shortens the parameter list to the registers a body reads, so an `$a2`-only function must have its arity restored
+
+m2c names an argument by its register index, but it only emits the parameters it
+sees used. A function whose sole live incoming register is `$a2` comes out as
+`func(s32 arg2)` — a *one*-parameter function. The name is right and the body is
+right, which is what makes it look finished; the declaration is not, and it
+compiles the body against `$a0` instead of `$a2`. The score is then whatever that
+wrong-register code happens to measure, with `regs` as the visible penalty, and
+no amount of work on the body's control flow can close it.
+
+Restore the full arity first, before touching anything else:
+
+```c
+/* m2c seed - cannot match */
+s32 func_dryfield_night_breezeway_8017D600(s32 arg2) { ... }
+
+/* the same body, matching */
+s32 func_dryfield_night_breezeway_8017D600(s32 arg0, s32 arg1, s32 arg2) { ... }
+```
+
+`func_dryfield_night_breezeway_8017D600` scored 100.000% on the first build this
+way, all penalties zero; the already-matched siblings in the same family show the
+convention (`func_dryfield_night_water_tank_8017D73C` declares all three).
+
+The same seed is also a reminder not to hand-materialize a shared constant. The
+three uses of `1` — the `bne` against `$a2` and both call arguments — unify under
+CSE into one pseudo, so the target's `addiu v0,zero,1` followed by two
+`addu a0,v0,zero` / `addu a1,v0,zero` is what writing the literal `1` in all
+three places already produces:
+
+```c
+if (arg2 == 1) {
+    Gp_SpawnIfCapIdle(1, 1);
+}
+```
+
+Inputs: `base.i` (100%, 11/11 instructions), compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
