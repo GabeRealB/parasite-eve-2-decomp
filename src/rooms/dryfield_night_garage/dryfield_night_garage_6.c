@@ -10,6 +10,7 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -42,7 +43,18 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_6", func_dryfield_night_garage_80180A64);
+Task* func_dryfield_night_garage_80180A64(s32 arg0)
+{
+    GpWorkObj* work;
+    Task*      task;
+
+    work = Gp_FindWorkById(Game_Session->field_6 | ((arg0 << 12) | (Game_Session->field_7 << 8)));
+    task = NULL;
+    if (work != NULL) {
+        task = (Task*)work->field_0;
+    }
+    return task;
+}
 
 void func_dryfield_night_garage_80180AB0(void)
 {
