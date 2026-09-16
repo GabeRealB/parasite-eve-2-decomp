@@ -477,7 +477,35 @@ void Actor04400_Fn06DFC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06EEC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06F50);
+/// Counts `field_412` up, clearing the death flag `field_438` on the way. On
+/// frame 1 it plays the enemy's hit sound at the model's pan and depth, with
+/// the id's high half taken from `GpEnemy::field_8`. Then, when
+/// `Actor04400_Fn06618` accepts the frame, draws `field_44A` as 0x5A..0xD9 from
+/// `Gp_LcgState` and enters state 3.
+void Actor04400_Fn06F50(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    s32              soundId;
+    s32              pan;
+    u32              rand;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    work->field_438 = 0;
+    if ((s16)++work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0004;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        rand             = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState      = rand;
+        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_420 = 3;
+        work2->field_422 = 0;
+    }
+}
 
 /// Same body as `ActorsShared8016a184`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
