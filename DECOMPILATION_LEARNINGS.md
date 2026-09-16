@@ -88355,3 +88355,42 @@ spawned `D_..._801818AC` is 0xC bytes (`TaskDesc`) and the latched
 
 Input `base_1.c`
 `f85275a5b6c2262a0f962858d62e3e88c5340c8c591a6ed5c9a1dc68573f4e5c` (100.000%).
+## A reloc-fold fix re-types the body, and a second flag hides behind it (func_dryfield_night_trailer_coach_8018231C, 2026-09-16)
+
+An m2c seed at 98.292% with `delete=1 branch=3 regs=4` is the reloc-fold shape of
+"The reloc fold's single-field shape": m2c's
+`M2C_FIELD(&Mc_SaveData, u8 *, 8)` rides the offset inside the symbol reloc
+(`lui s0,%hi(Mc_SaveData)` + `lbu v1,%lo(Mc_SaveData+8)(s0)`), so the target's
+`addiu s0,v0,%lo(Mc_SaveData)` is gone and every later branch lands a word
+early. `Mc_SaveData.field_8` through `main/mc.h` fixes that and gives the
+target's bare symbol with the displacement in the memory operand.
+
+That fix re-types the whole body, and the *tail* of this function then wants the
+opposite: the state increment at 0x30 has to compile to `(mem:SI ...)`, not
+`(mem/s:SI ...)`. It is one line away from anything the reloc touches, and it is
+the only access that drives the schedule - the two spellings of the 0x24 store,
+`M2C_FIELD(task, M2C_UNK **, 0x24) = &D_x;` and `task->field_24 = &D_x;`, score
+*identically* (96.236% with a struct-typed state, 100.000% with a cast-typed
+one):
+
+```c
+    D_80071090 = 3;
+    *(s32*)((u8*)task + 0x30) += 1;      /* 100.000%, (mem:SI)   */
+    task->state = task->state + 1;       /*  96.236%, (mem/s:SI) */
+```
+
+Same `MEM_IN_STRUCT_P` mechanism as "A struct-member store is `mem/s`, a
+pointer-cast store is `mem` - and the flag moves instructions"; what is worth
+carrying forward is the *ordering* and the isolation. A reloc-fold fix re-types
+the body, re-typing is never codegen-neutral, and the second cause is a masked
+one rather than a new bug - so read the drop as "one flag on one access", not as
+"the struct spelling was wrong". Two builds that differ only in the *other*
+store isolate the culprit: identical score means the flag that moved is on the
+access they share. `.rtl` then shows it directly - here insns 157 (the load) and
+161 (the store) were the *only* RTL difference between 96.236% and 100.000%,
+one `/s` on each and nothing else in the whole function.
+
+Inputs: `base.i` (m2c, 98.292%)
+`fd927c9d180df292afdb702cd0aad9bdf9ed058200eb44514a00c793db93ec3a`, `base_5.i`
+(`Mc_SaveData.field_8` + `*(s32*)((u8*)task + 0x30) += 1`, 100.000%)
+`e84629213ef9382f2683b363f3a2321b58a6189d43e5f763967b054fbf7dfd00`.
