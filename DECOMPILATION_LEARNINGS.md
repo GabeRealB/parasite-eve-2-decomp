@@ -104588,3 +104588,50 @@ beside its target assembly is the fastest way to recover a family's source shape
 Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c8c74`,
 `base_3.i` `9ca1f486b6fe7035e7065bf1d5dd3bad12fd7b3528ac457b1f0cf333eb56eb7f`
 (100.000%; the folded `default: goto` form scores the same).
+
+## A TU's two near-identical inline helpers differ by one register: the residual `addu $sN,$sM,$zero` names which was inlined (func_actor_401000_801388F4, 2026-09-16)
+
+`func_actor_401000_801388F4` is the actor's state-8 body, the 401000 twin of
+`func_actor_401300_80138CF8`. Both take one forward step through `-0x57` while a
+`0x12C` probe is still in range, and the step block is an inlined helper. The
+catch is that the family carries **two** helpers with that body:
+
+```c
+static __inline__ void Actor401000_MoveForward(GsCOORDINATE2* coord, s16 amount)   /* plain */
+static __inline__ void Actor401000_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+```
+
+The `Nonzero` variant (the only one 401000 had, added when
+`func_actor_401000_801385B0` landed) wraps the same block in an `if (amount != 0)`
+and, above it, `gteVec = vec;` — feeding `gte_ldsv`/`gte_stsv` from that copy.
+Writing this body with `Nonzero` and the constant `-0x57` folds the `amount != 0`
+test away but **keeps the copy**, so it scores 96.000% with `regs=81 insert=3`:
+one extra `addu $sN,$sM,$zero` (the `gteVec = vec`), the gte loads and stores
+addressing `$s1` instead of `$s0`, and — because that extra pseudo is live across
+the whole block — one more saved register, so every other quantity sits one
+$s-number high (`arg0` in `$s5` instead of `$s4`, `work` in `$s3` instead of
+`$s2`, and the prologue saves `ra` at `0x2C` with an extra `$s6`).
+
+The tell is not in the diff's *shape* (blocks, predicates and calls all match);
+it is the count of pushed `$s` registers plus a single move whose source and
+destination are both `$s`. Two reads isolate it fast:
+
+- `sw $s4,0x20($sp)` is the target's **first** prologue store, with `move s4,a0`
+  right after — the accepted-parameter register is the lowest `$s` in play, so
+  the target has six live `$s` values where the seed has seven.
+- `lhu $t4,0($s0)` in the GTE block addresses the carved vector `vec` itself,
+  not a copy of it.
+
+Replacing the call with the plain `MoveForward` (identical to
+`Actor401300_MoveForward` at `src/actors/actor_401300/actor_401300.c:1765`, and
+already present in the 401300 twin's use at `:2197`) scored 100.000% with all six
+penalties zero. The general rule: when a family has `X` and `XNonzero` (or any
+pair of a plain helper and a guarded one), do not reach for the variant the
+already-matched sibling in this TU uses — check whether the target's block has
+the guard's *side effects* (here a live copy), and count the saved registers.
+A helper whose guard folded away still leaves everything the guard's body set up.
+
+Inputs: `base_3.c` `71caf188b2f58c827c2ef36378dffe664905f9e19252691150080782bf6b8cbb`
+(the `.i` of the 100.000% source); target SHA256
+`ba33c338c559e51596a909d1b4b276c2692b58b8952f0c37ef995b6e3ad3aedc`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

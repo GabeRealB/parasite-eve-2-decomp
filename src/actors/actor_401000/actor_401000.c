@@ -14,6 +14,33 @@
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+/// `Actor401300_MoveForward`: the plain forward-step helper, the shape the
+/// state-8 body `func_actor_401000_801388F4` inlines. The `Nonzero` variant
+/// below is the same block with an `amount != 0` test and a `gteVec` copy
+/// wrapped around it.
+static __inline__ void Actor401000_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
 /// `Actor401300_MoveForwardNonzero` and `Actor00100_MoveForwardNonzero`, down
 /// to the `head[-1].vx` read-back; the step lands in `coord` directly rather
 /// than being reported back through the caller's local.
@@ -259,7 +286,63 @@ void func_actor_401000_801385B0(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801388F4);
+/// State 8 body, the 401000 twin of `func_actor_401300_80138CF8`: on the
+/// live-actor flag, reset the two animation nodes, the root coordinate and the
+/// model's facing, then slide the root along both obstacle tables and take one
+/// forward step while the 0x12C probe is still in range. The tail keys the
+/// actor's next state (`field_0`) off `GpEnemy.field_40` / `.field_4C` whenever
+/// the work block's pending-request bit is up.
+void func_actor_401000_801388F4(Actor401000* arg0)
+{
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_898          = 1;
+        work->field_89E          = 0xA;
+        work->field_89A          = 0;
+        work->field_8A2          = 0x10;
+        work->field_8B0          = 0;
+        work->field_8AE          = 0;
+        if (enemy->field_40 < 0) {
+            Gp_SetStateF0Byte3(1);
+        }
+        work->field_8D0.flags |= 0x4000;
+    }
+    func_actor_401000_80132EF0(arg0);
+    func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_8F0, 0xC);
+    func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC);
+    if (work->field_89E == 0xA && (s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, -0x57) != 0) {
+        Actor401000_MoveForward(arg0->field_2C->field_8, -0x57);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_68 & 1) {
+        if (work->field_89E == 0xA) {
+            work->field_89E = 0xB;
+            work->field_898 = 2;
+            func_actor_401000_80132EF0(arg0);
+        }
+        if ((work->field_68 & 1) && work->field_89E == 0xB) {
+            work->field_8D0.flags |= 0x4000;
+            if (enemy->field_40 > 0) {
+                if (enemy->field_4C & 2) {
+                    work->field_0 = 4;
+                } else {
+                    work->field_0 = 0x11;
+                }
+            } else {
+                work->field_0 = 0x15;
+            }
+        }
+    }
+}
 
 /// State 9 body, the 401000 twin of `func_actor_401300_80140300` and
 /// `Actor01900_Fn09BE8`: on the live-actor flag, reset the two animation nodes,
