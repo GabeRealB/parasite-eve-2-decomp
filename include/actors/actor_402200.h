@@ -113,11 +113,19 @@ typedef struct Actor402200Work {
     /* 0x5DC */ s16  field_5DC;
     /* 0x5DE */ s16  field_5DE;
     /* 0x5E0 */ s16  field_5E0;
-    /* 0x5E2 */ byte pad_5E2[0xC2];
-    /* 0x6A4 */ s32  field_6A4;
-    /* 0x6A8 */ s32  field_6A8;
-    /* 0x6AC */ s32  field_6AC;
-    /* 0x6B0 */ byte pad_6B0[4];
+    /* 0x5E2 */ byte pad_5E2[0x12];
+    /// Head of the actor's first `GpRec18` table; `func_actor_402200_801329A4`
+    /// branches on its `field_4` before clearing it.
+    /* 0x5F4 */ GpRec18 field_5F4;
+    /* 0x60C */ byte    pad_60C[0x38];
+    /// Head of a second `GpRec18` table, cleared by state 5 of
+    /// `func_actor_402200_801329A4`.
+    /* 0x644 */ GpRec18 field_644;
+    /* 0x65C */ byte    pad_65C[0x48];
+    /* 0x6A4 */ s32     field_6A4;
+    /* 0x6A8 */ s32     field_6A8;
+    /* 0x6AC */ s32     field_6AC;
+    /* 0x6B0 */ byte    pad_6B0[4];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
@@ -180,16 +188,16 @@ typedef struct Actor402200Work {
     /* 0x6DE */ s16 field_6DE;
     /// Fourth timer `func_actor_402200_801347F4` clears alongside the trio
     /// above when its countdown runs out.
-    /* 0x6E0 */ s16  field_6E0;
-    /* 0x6E2 */ s16  field_6E2;
-    /* 0x6E4 */ byte pad_6E4[2];
-    /* 0x6E6 */ s16  field_6E6;
-    /* 0x6E8 */ s16  field_6E8;
-    /* 0x6EA */ s16  field_6EA;
+    /* 0x6E0 */ s16 field_6E0;
+    /* 0x6E2 */ s16 field_6E2;
+    /* 0x6E4 */ s16 field_6E4;
+    /* 0x6E6 */ s16 field_6E6;
+    /* 0x6E8 */ s16 field_6E8;
+    /* 0x6EA */ s16 field_6EA;
     /// Sequence mode `func_actor_402200_8013539C` tests: the reseed arms the
     /// cue unless it is already 1, and a restart that finds it 1 flips it to 2.
-    /* 0x6EC */ s16  field_6EC;
-    /* 0x6EE */ byte pad_6EE[2];
+    /* 0x6EC */ s16 field_6EC;
+    /* 0x6EE */ s16 field_6EE;
     /// Latch the attack sequences park the slot set in: state 0 stores 1 or 2
     /// next to `field_6C0`, and state 1 reads it back to pick the frame count
     /// it waits for (0x2C for the 0x11 animation, 0x19 otherwise).
@@ -205,7 +213,10 @@ typedef struct Actor402200Work {
     /* 0x6FC */ byte pad_6FC[0xC];
     /// Index of the box the scan last reported a hit on.
     /* 0x708 */ s16  field_708;
-    /* 0x70A */ byte pad_70A[8];
+    /* 0x70A */ byte pad_70A[2];
+    /* 0x70C */ s16  field_70C;
+    /* 0x70E */ s16  field_70E;
+    /* 0x710 */ s16  field_710;
     /* 0x712 */ s16  field_712;
     /// Second per-state latch, read and written as a signed halfword: the
     /// attack sequences raise it to 1 in state 0 and state 1 bumps it to 2 on
@@ -267,5 +278,8 @@ extern s16 D_actor_402200_801383AC[];
 /// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
 /// with the caller taking the bits it wants out of the high half.
 extern u32 Gp_LcgState;
+
+/// Parks the actor's target position off the player; see its definition.
+void func_actor_402200_80132E34(Actor402200* arg0);
 
 #endif

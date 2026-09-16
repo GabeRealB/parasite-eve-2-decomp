@@ -74,12 +74,7 @@ void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131E6C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131E84);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131EA4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131EC4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131EDC);
+/// Alignment pad after `func_actor_402200_801324E8`'s jump table: closes this
+/// unit's `.rodata` so `actor_402200_3`'s table starts at 0x80131E6C. Nothing
+/// reads it.
+const u32 D_actor_402200_80131E68 = 0;
