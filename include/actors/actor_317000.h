@@ -22,7 +22,7 @@ typedef struct Actor317000Work {
     /* 0x000 */ byte    pad_0[0x43D];
     /* 0x43D */ s8      field_43D;
     /* 0x43E */ s8      field_43E;
-    /* 0x43F */ byte    pad_43F[0x1];
+    /* 0x43F */ s8      field_43F; // animation state re-applied by `func_actor_317000_80162950`
     /* 0x440 */ MATRIX  light;
     /* 0x460 */ MATRIX  color;
     /* 0x480 */ byte    pad_480[0x10];
@@ -39,6 +39,24 @@ typedef struct Actor317000Work {
     /* 0x4CA */ byte    pad_4CA[0x2];
 } Actor317000Work;
 STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
+
+/// 0x14-byte animation preset `func_actor_317000_80162950` builds for
+/// `func_actor_317000_80162A10`, which installs it on the task's model through
+/// `func_800B3F84` and the `Gp_AnimResetSlot` / `Gp_AnimTickIndex` slot loops.
+/// That body compares `field_0` against `Actor317000Work::field_43E` and
+/// `field_4` against `field_43D`, latching whichever differs -- `field_0` also
+/// selects the bank in `D_actor_317000_8016CF40`. The state body fills
+/// `field_0` with 0, `field_4` with the `field_43F` byte, `field_8` with 1,
+/// `field_C` with 5 and `field_10` with 0 -- the same five-word shape as
+/// `GpAnimArg` and `Actor141000AnimPreset`.
+typedef struct Actor317000AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor317000AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor317000AnimPreset, 0x14);
 
 /// The constant local-space offset `func_actor_317000_801628D8` rotates,
 /// `{ 0, 0xFF800000, 0x400000, 0 }`. The overlay keeps its own copy in

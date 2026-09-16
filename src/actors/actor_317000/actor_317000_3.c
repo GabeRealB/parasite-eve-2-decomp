@@ -2,8 +2,13 @@
 
 #include "actors/actor_317000.h"
 
+#include "gameplay/3A34.h"
+
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+void func_actor_317000_80162A10(Task* arg0, s32 arg1, Actor317000AnimPreset* arg2, s32 arg3);
 
 void func_actor_317000_80162744(Task* arg0)
 {
@@ -45,7 +50,41 @@ void func_actor_317000_801628D8(Task* task)
     work->field_4C2++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_3", func_actor_317000_80162950);
+/// State handler at index 2 of `D_actor_317000_80161E30`, the step after
+/// `func_actor_317000_801628D8` and reached by the `field_4C2` advance that
+/// body ends with. While the root coordinate's Y is below -0x30 it does
+/// nothing; above it the rise is over: the local-space `work->step` the
+/// previous body wrote is cleared, the animation is re-applied through message
+/// 0x7D3 with the latched `field_43F` state, and sound 0x400A000B is queued
+/// panned and attenuated from the root coordinate's matrix. The `field_4C4`
+/// flag the previous body raised is cleared and the dispatcher advances again.
+void func_actor_317000_80162950(Task* arg0)
+{
+    GsCOORDINATE2*        coord;
+    Actor317000Work*      work;
+    Actor317000AnimPreset preset;
+    s32                   pan;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = (Actor317000Work*)arg0->idMap;
+    if (coord->coord.t[1] < -0x30) {
+        return;
+    }
+    preset.field_0  = 0;
+    preset.field_4  = work->field_43F;
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 0;
+    func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
+    pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+    SndEvt_EnqueueType6(0x400A000B, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+
+    work->step.vx   = 0;
+    work->step.vy   = 0;
+    work->step.vz   = 0;
+    work->field_4C4 = 0;
+    work->field_4C2++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_3", func_actor_317000_80162A10);
 
