@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// Work block of the enemy actors that share `ActorsShared80135a24`, reached
