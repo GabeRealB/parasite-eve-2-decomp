@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "actors/actor_450800.h"
 #include "gameplay/1BC.h"
@@ -158,4 +159,39 @@ void func_actor_450800_80132868(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_801328BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132958);
+/// State handler of one of the actor's model tasks: the spawn tick hangs this
+/// task's own coordinate frame off part `spawnArg1` of the actor's model and
+/// every later tick hands that part's world translation, dropped by 0x320 in y,
+/// to `func_800D7A9C` for the part colour matrix -- the same handler as
+/// `func_actor_461800_80132B74`, which reaches the parts through the global
+/// task `D_actor_461800_80143898`. Here they come from `task->parent`, the
+/// actor task that spawned this one and reparented it
+/// (`func_actor_450800_80132160`, which also tests the same halfword on itself).
+///
+/// The model flags are cleared only for spawn variant 1: the high half of the
+/// parent's `spawnArg1`, the halfword `actor_107600` reads the same way.
+void func_actor_450800_80132958(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->field_8;
+    GsCOORDINATE2* parts = ((TmdObject*)task->parent->extra)->field_8;
+    GsCOORDINATE2* part  = parts + task->spawnArg1;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg = 0;
+            if ((s16)(task->parent->spawnArg1 >> 16) == 1) {
+                extra->field_C = 0;
+            }
+            coord->sub = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}

@@ -92024,3 +92024,45 @@ Inputs: `base_2.i`
 `base_5.i` `7ab282c2e5dcdcd4f88523016acf4a708c433a6e96e0eb18bf8372239076e4af`
 (0 differences), target
 `064ff0df72ca6dbd63ba6836981b3365630043fb0485ffbc54a540a14057282f`.
+
+## m2c's separate scalars for one struct local let GCC delete the stores it never reads
+
+`func_actor_450800_80132958` fills a `VECTOR` for its callee from three words of
+one `GsCOORDINATE2`. m2c models that as three independent locals and passes the
+address of the first with a cast:
+
+```c
+s32 sp10, sp14, sp18;                     /* m2c seed, 60.245% */
+sp10 = *(s32 *)((u8 *)parts + 0x38);
+sp14 = *(s32 *)((u8 *)parts + 0x3C) - 0x320;
+sp18 = *(s32 *)((u8 *)parts + 0x40);
+func_800D7A9C(extra, (VECTOR *)&sp10, 0, 3);
+```
+
+Only `sp10`'s address escapes (into the call); `sp14` and `sp18` are never read
+and never address-taken, so `flow`'s dead-store elimination deletes their stores
+before any pass writes a line note. The seed's `.s` carries no `.loc` for their
+two statements at all, and the one surviving store is `sp10`'s value
+(`lw $2,0x38($7)` then, in the `jal` delay slot, `sw $2,16($sp)`) - not the last
+value written, which is what locals folded into a shared slot would have left.
+The dropped stores also shrink the frame, 0x28 to 0x20, which is most of the
+penalty mix (`stack=11 regs=23 insert=6 delete=11`).
+
+Addressing the whole object fixes it, and is how the same handler is written in
+`func_actor_461800_80132B74`:
+
+```c
+VECTOR vec;
+vec.vx = parts->workm.t[0];
+vec.vy = parts->workm.t[1] - 0x320;
+vec.vz = parts->workm.t[2];
+func_800D7A9C(extra, &vec, 0, 3);
+```
+
+100% with every penalty zero, preprocessed input `base_1.i`.
+
+The general point: when a seed's *object* is short rather than differently
+allocated, the seed is a wrong program, not a structural near-miss. Here
+`.diagnosis.json` still reported `topology: match`, 8 blocks against 8 and the
+same predicates, because the removed stores lived in one block. Read the
+instruction count, not only the topology, before planning from the penalties.
