@@ -84727,4 +84727,54 @@ boundaries, so nothing renumbers.
 Inputs: `base.i` (41.1%, m2c's `M2C_ERROR` placeholders standing in for the
 8-byte `*out = *in` copy - see the `lwl`/`lwr` quad entry above), `base_1.i`
 (100%). Compiler SHA256
+## A `regs` leftover that changes which argument register a call uses is a signature difference, not allocation (func_dryfield_general_store_8017DEAC, 2026-09-16)
+
+The seed called `Game_SetPtrSlot(7)` and scored 98.875% with `regs=9`,
+`topology: match`, every predicate, call target and delay slot identical. Both
+object dumps were 40 instructions with the same opcode counts, and the two
+differences looked like textbook local-alloc tie-breaks:
+
+```
+-li    a1,7                       -lw    v1,0x30(s0)   -li    a0,1
++li    a0,7                       +lw    v0,0x30(s0)   +li    v0,1
+```
+
+The `a0`/`a1` pair is the tell. The project declares
+
+```c
+void  Game_SetPtrSlot(void* ptr, s32 index);   /* include/main/session.h */
+void* Game_GetPtrSlot(s32 index);
+```
+
+and m2c had emitted a one-parameter `extern` for it, so its call dropped `arg0`
+and the constant landed in `$a0` instead of `$a1`. Writing the call the way
+every matched sibling does -
+
+```c
+    arg0->field_24 = D_dryfield_general_store_8017E188;
+    Game_SetPtrSlot(arg0, 7);
+```
+
+- took the function to 100.000% with every penalty zero on the next build, and
+  the whole tail allocation (`$v1` counter, `$v0` address, `$a0` constant)
+  came out right as a side effect: with `$a0` live across the call, it is no
+  longer free to hold a later constant, which is what had pushed the counter
+  and the address into the other two registers.
+
+A controlled variant (`base_2.c`) that keeps the seed's `M2C_UNK` scalar symbol
+forms and only restores `arg0` reproduces base_1.c's assembly byte for byte, so
+the cause is the argument, not the tidier `GpMsgEntry[]` type.
+
+Reordering statements or pinning `$a0` cannot reach this: which register carries
+an argument is fixed by the argument's *position* in the source call. So when a
+`regs` penalty includes a different argument register at a call, check the
+callee's real prototype in `include/` before treating the leftover as
+allocation. This is the undercount direction of the m2c argument guess whose
+overcount direction is recorded in the `func_mine_refuge_8017FC2C` entry above;
+unlike that one it produces a *silently compiling* seed, because a call with
+too few arguments is still a valid C expression.
+
+Inputs: `base.c` (98.875%, `regs=9`, sha256
+590a690f3d41c5a8309bd9004c45fed919083348de2b30d779d7ea1c89edae86), `base_1.c`
+and `base_2.c` (both 100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
