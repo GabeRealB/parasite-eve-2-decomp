@@ -8149,6 +8149,41 @@ void func_80036A1C(void)
 
 No stores are required; do not save `$ra` if the target does not.
 
+## A frame 24 bytes too small is a dead aggregate local, not an allocation bug
+
+A 63-instruction room handler matched instruction for instruction — 99.37%,
+`branch`/`insert`/`delete`/`stack`/`reorder` all zero, `regs` 8 — and the only
+diff was the frame: the target saved at `0x28/0x2c/0x30` with `addiu sp,-0x38`,
+the C saved at `0x10/0x14/0x18` with `-0x20`. Every emitted instruction was
+identical, so nothing in the source was wrong; the target simply had 24 bytes of
+frame that no instruction touches.
+
+`compute_frame_size` (`config/mips/mips.c`) is
+`MIPS_STACK_ALIGN(var_size) + MIPS_STACK_ALIGN(args_size) + MIPS_STACK_ALIGN(gp_reg_size)`
+with `MIPS_STACK_ALIGN(LOC) = (LOC+7) & ~7`, and the saves sit at the top of
+`args_size + var_size + gp_reg_size`, so the `ra` offset gives the gap directly.
+Here both functions make the same calls (`args_size = 0x10`) and both save three
+registers (`gp_reg_size = 0xc`), leaving `var_size`: 0 in the C, 0x18 in the
+target.
+
+That 0x18 is a *dead* local. `expand_decl` (`stmt.c`) gives a pseudo register
+only to a variable that is non-BLKmode, non-addressable and non-volatile; every
+aggregate falls through to `assign_stack_temp`, which advances the frame offset.
+There is no `TREE_USED` check on that path, and `get_frame_size()` is fixed while
+the function is expanded — long before dead-code elimination could notice the
+variable is never read — so an unused aggregate costs frame and nothing else.
+Write one, sized to the gap, in a type that already exists in the family:
+
+```c
+RoomEventReq req; /* untouched; 0x14 rounds up to a 0x18 slot */
+```
+
+`func_dryfield_garage_8017D91C`, whose unwritten sibling handler
+(`rooms_shared_8017d8bc`) uses the same local for real. This is the mechanism
+behind the empty-body stub above, one step further on: there the entire function
+is the frame, here the frame is the only leftover, and the symptom reads like a
+register allocation problem instead.
+
 ## Mid-struct pointer for `addiu sN, a0, N`
 
 When the target keeps `arg + N` in a callee-saved register and then loads

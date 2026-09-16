@@ -9,7 +9,45 @@
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_garage/dryfield_garage", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage", func_dryfield_garage_8017D91C);
+extern TaskDesc D_dryfield_garage_8017DCAC;
+
+s32 func_dryfield_garage_8017D91C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    // Never touched, but its stack slot is load-bearing: `expand_decl` gives
+    // every BLKmode local a frame slot whether or not anything reads it, and
+    // MIPS_STACK_ALIGN(0x14) is what puts the saves at 0x28 and the frame at
+    // 0x38. Dropping it shrinks the frame to 0x20 and the overlay stops
+    // matching. See DECOMPILATION_LEARNINGS.md, "A frame 24 bytes too small is
+    // a dead aggregate local".
+    RoomEventReq req;
+    s32          nib;
+
+    *out = *in;
+    if (in->msgId == 0x1A) {
+        if (GameFlag_GetNibble(0x33) == 0) {
+            if (in->field_5 == 0) {
+                Task_SpawnFromTable(&D_dryfield_garage_8017DCAC, 0, 0, 0);
+            }
+            return 2;
+        }
+        if (GameFlag_GetNibble(0x2F) == 0) {
+            GameFlag_SetNibble(0x2F, 1);
+            GameFlag_SetNibble(0x4B, 3);
+        }
+    }
+    if (in->msgId == 0x17) {
+        if (in->field_5 == 0) {
+            nib = GameFlag_GetNibble(0x47);
+            if (nib == 0) {
+                nib = 1;
+            } else {
+                nib = 2;
+            }
+            out->field_3 = nib;
+        }
+    }
+    return 1;
+}
 
 s32 func_dryfield_garage_8017DA18(s32 arg0, s32 arg1, s32 arg2)
 {
