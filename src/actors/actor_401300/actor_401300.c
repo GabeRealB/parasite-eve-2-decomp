@@ -206,7 +206,29 @@ void func_actor_401300_80133324(Actor401300* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013346C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80133834);
+void func_actor_401300_80133834(Actor401300* arg0, s16 arg1)
+{
+    SVECTOR* sc;
+
+    sc     = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    sc->vx = D_actor_401300_801589F8[1].vx +
+             ((D_actor_401300_801589F8[0].vx - D_actor_401300_801589F8[1].vx) * (0x200 - arg1)) / 512;
+    sc->vy = D_actor_401300_801589F8[1].vy +
+             ((D_actor_401300_801589F8[0].vy - D_actor_401300_801589F8[1].vy) * (0x200 - arg1)) / 512;
+    sc->vz = D_actor_401300_801589F8[1].vz +
+             ((D_actor_401300_801589F8[0].vz - D_actor_401300_801589F8[1].vz) * (0x200 - arg1)) / 512;
+    RotMatrix_gte(sc, &arg0->field_2C->field_8[7].coord);
+    sc->vx = D_actor_401300_80158A08[1].vx +
+             ((D_actor_401300_80158A08[0].vx - D_actor_401300_80158A08[1].vx) * (0x200 - arg1)) / 512;
+    sc->vy = D_actor_401300_80158A08[1].vy +
+             ((D_actor_401300_80158A08[0].vy - D_actor_401300_80158A08[1].vy) * (0x200 - arg1)) / 512;
+    sc->vz = D_actor_401300_80158A08[1].vz +
+             ((D_actor_401300_80158A08[0].vz - D_actor_401300_80158A08[1].vz) * (0x200 - arg1)) / 512;
+    RotMatrix_gte(sc, &arg0->field_2C->field_8[8].coord);
+    arg0->field_2C->field_8[7].flg = 0;
+    *(u32*)G_SCRATCH_HEAD         += 8;
+    arg0->field_2C->field_8[8].flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80133A3C);
 

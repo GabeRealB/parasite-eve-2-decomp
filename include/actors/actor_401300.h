@@ -165,6 +165,11 @@ extern u16 D_actor_401300_80141FA4[];
 /// and the new animation id (`field_8A0`, `field_8A2`).
 extern s8 D_actor_401300_8015804C[][45];
 
+/// Two rest/target rotation pairs `func_actor_401300_80133834` blends by
+/// `0x200 - t` (in 1/512ths) into coord 7 and coord 8.
+extern SVECTOR D_actor_401300_801589F8[2];
+extern SVECTOR D_actor_401300_80158A08[2];
+
 /// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_801397F8` borrows for
 /// its player-in-radius test: the X/Z offset to the camera target and the
 /// radius, each squared in place before `dx + dz < r`. Same shape as
