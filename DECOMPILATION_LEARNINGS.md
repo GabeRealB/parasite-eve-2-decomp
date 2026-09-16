@@ -101913,3 +101913,69 @@ scored 93.597% unpinned and 100.000% once its same two `register asm()`
 declarations were adopted verbatim -- so when a twin appears, take its source
 *including* the declaration list, and expect the remaining work to be an
 immediate, not a statement.
+
+## A `var = temp;` copy survives three passes, not one
+
+`func_actor_800200_801622B0` needs two register copies in its prologue that
+source shape alone does not give you:
+
+```c
+    head     = *scratch;
+    obj      = arg0->extra;     /* -> lw $v1,0x2c($s3)  */
+    *scratch = head - 0x18;     /* the store must be the FIRST use of head-0x18 */
+    extra    = obj;             /* -> addu $s5,$v1,$zero */
+    sc       = (T*)(head - 0x18);   /* -> addu $s2,$v0,$zero */
+```
+
+Each copy is deleted by a different pass, and each pass needs its own
+countermeasure. Three distinct mechanisms were confirmed here.
+
+**CSE's cheapest-register flip** (`cse.c`, "Special handling for (set REG0 REG1)
+where REG0 is the cheapest"): if the insn *immediately preceding* the copy is
+the one that defines the source, CSE rewrites that definition to target the
+copy's destination and turns the copy into a dead store of the source, which
+then disappears. The precondition is `SET_DEST (PATTERN (prev)) ==
+SET_SRC (copy)` with `prev` found by skipping notes. Any real insn between the
+definition and the copy defeats it — an interposed `d4 = actor->field_910;` was
+enough.
+
+**CSE's `src_eqv` substitution**: a copy whose source register holds a plain
+`MEM` is folded to `dest = mem`, and the source's load becomes a dead store.
+This one is *not* defeated by distance. It is defeated by a **store** between
+the load and the copy: CSE cannot prove the memory still holds the same value.
+An interposed store is therefore the single construct that fixes both CSE
+paths at once.
+
+**`combine`'s I1/I2/I3 window**: `combine` reaches back one insn further than
+the copy, so `load; other; copy` still merges (the load feeds the copy and
+`other` touches neither). Two insns of slack were not enough; the same
+interposed store is, because a `MEM` destination cannot serve as the I2 of that
+merge.
+
+So the rule for this family is: keep a **store** between the load and the copy,
+and make sure the insn immediately before the copy is not the load. Distance
+alone is not the lever — one insn and five insns both merged.
+
+**Then local-alloc decides the registers, by priority and not by birth.**
+`block_alloc` sorts quantities with
+
+```c
+#define QTY_CMP_PRI(q) ((int) (((double) (floor_log2 (qty_n_refs[q]) * qty_n_refs[q] * qty_size[q]) \
+        / (qty_death[q] - qty_birth[q])) * 10000))
+```
+
+so a *shorter* live range ranks higher, and equal ranks are broken by the lower
+quantity number. With the copy placed after `sc` and `actor`, the temp's range
+spanned 4 slots and scored `1*2*4/4 = 2` — an exact tie with the
+`(void*)0x1F8003FC` address pseudo (`1*3*4/6 = 2`), which won on its lower
+quantity number and took `$v1`, pushing the temp into `$a0` where the target has
+the address. Moving the copy to sit directly after the store shortened the range
+to 3 slots (`8/3 = 2.67 > 2`) and the two swapped into place. No pin was needed;
+the target's prologue order (`move $s3,$a0` before `lui $a0`) then follows from
+the address living in `$a0`.
+
+**The store's operand order matters too.** With `sc = (T*)(head - 0x18);`
+written *before* `*scratch = head - 0x18;`, CSE gives the store `sc`'s register
+and there is no copy; with the store first, CSE has to materialise a temporary
+for the store and the later `sc` becomes a copy. Which of the two uses is
+written first is a real codegen decision, not style.

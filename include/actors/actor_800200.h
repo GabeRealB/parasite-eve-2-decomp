@@ -16,6 +16,20 @@ typedef struct {
     /* 0x4 */ s32 field_4;
 } GpActorPathStep;
 
+/// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800200_801622B0` takes for the
+/// ground-quad heading it copies into `GameActor.field_88` / `_94` / `_A0`.
+typedef struct {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR vec;
+} Actor800200VecScratch;
+
+/// View of `GameActor.field_973` as the unsigned byte its rotation
+/// multiply sign-extends.
+typedef struct {
+    byte pad[0x973];
+    u8   field_973;
+} ActorDirByte;
+
 void func_actor_800200_80162990(GpActorWork* arg0);
 void func_actor_800200_80162BFC(GpActorWork* arg0);
 void func_actor_800200_80163044(GpActorWork* arg0);
@@ -39,6 +53,7 @@ void func_actor_800200_801653C0(GpActorWork* arg0);
 void func_actor_800200_80165580(GpActorWork* arg0);
 void func_actor_800200_80165644(GpActorWork* arg0);
 void func_actor_800200_80165708(GpActorWork* arg0);
+void func_actor_800200_801652EC(GpActorWork* arg0);
 void func_actor_800200_80165814();
 void func_actor_800200_801658E0();
 void func_actor_800200_8016599C();
