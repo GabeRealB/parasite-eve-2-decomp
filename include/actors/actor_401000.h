@@ -86,10 +86,29 @@ typedef struct Actor401000Msg {
     /* 0x4 */ s32 field_4;
 } Actor401000Msg;
 
+/// Height-clamp row `func_actor_401000_801352DC` scans: `field_0` / `field_2`
+/// are matched against `GameSessionFrom4::field_3` / `field_2`, and when a row
+/// matches the coordinate's Y is clamped to [`lo`, `hi`] and its `flg` is
+/// cleared so the local matrix is rebuilt. Two rows
+/// (`(1, 3, -0x12C, 0)`, `(5, 0x1D, 0, 0x12C)`). Same shape as
+/// `Actor401300HeightClamp` / `Actor01900HeightClamp`.
+typedef struct Actor401000HeightClamp {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  lo;
+    /* 0x6 */ s16  hi;
+    /* 0x8 */ byte pad_8[8];
+} Actor401000HeightClamp;
+STATIC_ASSERT_SIZEOF(Actor401000HeightClamp, 0x10);
+
 /// Message 0x3FF payload of `func_actor_401000_801383F0` and
 /// `func_actor_401000_801385B0`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
+
+/// The two `Actor401000HeightClamp` rows `func_actor_401000_801352DC` and
+/// `func_actor_401000_80135374` walk.
+extern Actor401000HeightClamp D_actor_401000_80154FD0[];
 
 /// Message 0x3E9 payload of `func_actor_401000_801380B8`: the player task's
 /// world position, then the yaw from the actor to it, handed straight to the

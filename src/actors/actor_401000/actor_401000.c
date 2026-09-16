@@ -34,7 +34,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80134F98);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801352DC);
+void func_actor_401000_801352DC(GameSessionFrom4* session, GsCOORDINATE2* coord)
+{
+    Actor401000HeightClamp* row;
+    s32                     offset;
+    s32                     lo;
+    s16                     i;
+
+    for (i = 0; i < 2; i++) {
+        row = &D_actor_401000_80154FD0[i];
+        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+            lo     = row->lo;
+            offset = coord->coord.t[1];
+            if (offset < lo) {
+                coord->coord.t[1] = lo;
+            } else if (row->hi < offset) {
+                coord->coord.t[1] = row->hi;
+            }
+            coord->flg = 0;
+            return;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80135374);
 

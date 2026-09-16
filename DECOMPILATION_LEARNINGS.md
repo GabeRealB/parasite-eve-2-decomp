@@ -104293,3 +104293,47 @@ Inputs: `base_1.i` SHA256
 `ff26ab85fe3cb2a0da077a3a085d1c73e129e2309f415024b90afdb425ceb8eb`; target SHA256
 `e273f832f339b91454463e3630964f27ad20ee11fde83ec2ca9eb60213e93d34`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A twin that differs by one statement still needs the twin: diff the two `.s`, not the two C files
+
+`func_actor_401000_801352DC` is the actor height-clamp scan: walk the actor's
+`*HeightClamp` table, match `(GameSessionFrom4::field_3, ::field_2)` against a
+row's `field_0` / `field_2`, clamp `coord->coord.t[1]` into [`lo`, `hi`] and
+return. Its twins are `func_actor_401300_80132BE4` (`USA/actors/actor_401300`)
+and `Actor01900_Fn03C04` (`src/actors/lib/actor_101900_text.c`), and BRIEF's
+`shape` / `fields` classes rate both 0.99 — but `overlay_dup_index.py find`
+reports this body as its own only copy, because the twins are *not* equivalent:
+the 401000 one clears `coord->flg` before returning and they do not.
+
+That single store is the whole difference, and it is invisible in the C but
+obvious in the `.s`: where the twins end the match arm with
+
+```
+.L...: jr   $ra
+        nop
+```
+
+401000 has the store fill the delay slot of a *shared* return label:
+
+```
+.L...: jr   $ra
+        sw   $zero, 0x0($a1)
+```
+
+So the reading is `coord->flg = 0;` (this project's `GsCOORDINATE2` puts `flg`
+at +0x0 and `coord` at +0x4, so `0x1C` is `coord.t[1]` and `0x0` is `flg`), the
+`if/else` clamp is the twins' source verbatim, and the two must be written in
+that order — the store is outside the `if/else`, immediately before `return`.
+Transporting the twin's source and then adding the missing statement scored
+100.000% with all six penalties zero on the first build; `base.c`'s m2c
+loop-with-`goto` shape scored 47.1% with `insert=10 delete=9`.
+
+The neighbouring unmatched `func_actor_401000_80135374` reads the same
+`D_actor_401000_80154FD0` table and is the twins' `HasHeightClamp` helper.
+`Actor401000HeightClamp` (2 x 0x10 rows, `(1, 3, -0x12C, 0)` and
+`(5, 0x1D, 0, 0x12C)`) now lives in `include/actors/actor_401000.h`.
+
+Inputs: `base_1.i` SHA256
+`9597aa44d1e23a4a69476245709f38d65e3a716124a7da182d4e034a66fcb5cb`; target SHA256
+`101111bdef09f992b82e9ff1bb137e842b982bead64a56a0cc773a54867db1e2`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
