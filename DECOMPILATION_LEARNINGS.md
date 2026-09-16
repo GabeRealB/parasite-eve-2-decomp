@@ -84001,6 +84001,26 @@ Taking `&vec` makes every field address-taken, so each one is reloaded after the
 call. Whenever m2c hands you consecutive same-size stack slots and passes a
 pointer to the first, the original was one struct.
 
+The same declaration also shows up as a `delete` penalty rather than a `regs`
+one, when the call that takes the pointer does not read the other slots: the
+target builds a message record
+
+```
+lbu   $v1, 0x7($v0)     # the two id bytes ...
+sb    $v1, 0x10($sp)
+lbu   $v0, 0x6($v0)
+sh    $zero, 0x12($sp)  # ... and the halfword the receiver switches on
+jal   Game_GetPtrSlot
+sb    $v0, 0x11($sp)
+```
+
+and the compiled body loads only `field_7`, stores only `0x10($sp)`, and drops
+both the `field_6` load and the two remaining stores outright - frame size and
+allocation otherwise identical. `delete = 4` with `stack = 0` is the signature:
+`0x10`, `0x11`, `0x12` were three scalars and only the first's address escaped.
+Worked example: `func_dryfield_night_saloon_g_r_8017DF90`, 90.6% -> 100% by
+declaring the struct (`DnsgrMsg7DA`) and storing through its fields.
+
 ## A constant materialised into `$a1` before a compare chain is a global allocno
 
 **Problem.** m2c writes the constant at its use site, inside the `if` body:
