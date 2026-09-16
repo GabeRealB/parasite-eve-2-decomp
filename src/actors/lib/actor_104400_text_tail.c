@@ -677,7 +677,17 @@ void Actor04400_Fn06870(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn068F8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06964);
+/// Copies this overlay's five-entry `Actor04400_D0009C` dispatcher table onto the
+/// stack and calls the entry `field_422` selects, the same shape as
+/// `Actor04400_Fn06870` without the pending-request handler in front of it.
+void Actor04400_Fn06964(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    TaskFuncTable5   sp;
+
+    sp = Actor04400_D0009C;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 /// Dispatches through a two-entry table built on the stack: entry 0 applies the
 /// encounter's animation (`Actor04400_Fn07A38`, which then advances `field_422`
