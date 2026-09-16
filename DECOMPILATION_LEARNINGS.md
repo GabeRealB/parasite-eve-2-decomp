@@ -88593,3 +88593,48 @@ entry 29 gives: an aggregate gets a slot even when a field is never read, so
 the stores stay. Read the pass that matters before rewriting -- `.rtl` is where
 the four went missing, and `.flow` cannot be blamed for a store that was never
 emitted.
+
+## `base + (idx - 1) * 4` folds the `-4` into the symbol; `arr[idx - 1]` keeps the `addiu -1` / `sll`
+
+m2c renders a pointer-table lookup with explicit byte arithmetic. Written that
+way the `- 1` is lost: the front end distributes `(idx - 1) * 4` into
+`idx * 4 - 4`, and the `-4` then folds into the symbol's `%lo`, so the
+decrement never appears as an instruction and the block is one shorter:
+
+```
+lui    v1, %hi(Gp_SprtTables)
+lbu    v0, 3(a2)
+addiu  v1, v1, %lo(Gp_SprtTables-0x4)   /* -4 absorbed into the symbol */
+sll    v0, v0, 2
+addu   v0, v0, v1
+```
+
+The target decrements first and scales second:
+
+```
+addiu  v1, v1, %lo(Gp_SprtTables)
+addiu  v0, v0, -0x1
+sll    v0, v0, 2
+addu   v0, v0, v1
+```
+
+An `ARRAY_REF` defers the scaling to `expand`, which materializes the index
+expression as a unit and only then shifts it, so the `- 1` survives. Write the
+lookup as an array index on the real type rather than as byte arithmetic:
+
+```c
+rec = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];   /* 100% */
+rec = (*(GpSprtTbl**)((s8*)Gp_SprtTables + (sess->field_3 - 1) * 4))
+          ->field_0[sess->field_2 - 1];                              /* 96.2% */
+```
+
+The two sources differ in nothing else, yet the byte-arithmetic form also costs
+the register penalties: the extra `addu`-visible constant changes the live
+ranges across the following block, and the `arg & 0xFF` mask pseudo moves from
+the target's `$v0` to `$a1` (`regs=3` where the array form has `regs=0`). So
+"the address came out right" does not mean the index arithmetic is
+codegen-neutral — check the decrement and the mask's home together.
+
+Example: `func_dryfield_r08_8017F3B8`. Inputs: `base_1.i`
+`a52724021c0d0dda203a0eeb4f64bfd499c6166bfff7ef0f670c12663c891609`, `base_2.i`
+`903b36038e9083a05163d6128012ef49c9a553305e84a96d80c5821b10de87f4`.
