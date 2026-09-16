@@ -92,6 +92,24 @@ typedef struct Actor403000Work {
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
+/// Animation view of the same work block, as `func_actor_403000_801336B4`
+/// reads it: the `Actor01900AnimWork` layout 8 bytes earlier, with 24 slots
+/// per context. `field_AD4` is the blend weight, `field_AD2` the clip written
+/// to the blend slots and `field_ACA` the clip id (see `Actor403000Work`).
+typedef struct Actor403000AnimWork {
+    /* 0x000 */ byte       pad_0[0x14];
+    /* 0x014 */ GpAnimCtx  anim;
+    /* 0x028 */ GpAnimSlot slots[24];
+    /* 0x3E8 */ byte       pad_3E8[0x180];
+    /* 0x568 */ GpAnimCtx  blendAnim;
+    /* 0x57C */ GpAnimSlot blendSlots[24];
+    /* 0x93C */ byte       pad_93C[0x18E];
+    /* 0xACA */ s16        field_ACA;
+    /* 0xACC */ byte       pad_ACC[6];
+    /* 0xAD2 */ s16        field_AD2;
+    /* 0xAD4 */ s16        field_AD4;
+} Actor403000AnimWork;
+
 /// Actor context handed to this overlay's callbacks: `field_1C` is the work
 /// block above, `field_20` the `GpEnemy` the spawner left in the task's
 /// `Task::spawnArg2` slot, and `field_2C` the display object.
