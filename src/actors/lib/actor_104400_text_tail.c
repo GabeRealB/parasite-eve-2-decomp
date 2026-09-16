@@ -42,8 +42,6 @@ extern TaskFuncTable5 Actor04400_D001C4;
 extern TaskFuncTable7 Actor04400_D001D8;
 extern u32            Gp_LcgState;
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03538);
-
 /// Same body as `ActorsShared80166b20`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
 ///

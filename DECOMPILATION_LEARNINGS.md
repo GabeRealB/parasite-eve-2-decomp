@@ -39979,6 +39979,60 @@ Splat will not rewrite a `src/` file that already exists, and a stale
 `INCLUDE_RODATA` naming the old unit's directory shows up as
 `undefined reference to '.L<overlay>_<addr>'` at link time.
 
+## A jump table inside a later unit's rodata block needs a second `shared` span
+
+"A compiler-generated jump table needs to start its object's `.rodata`" is the
+case where the cut names the unit the table's function lives in. The table can
+equally belong to a unit that already *has* a rodata run of its own elsewhere,
+and then the cut has to be paired with a `.text` cut, not just moved.
+
+`actor_104400`'s `Actor04400_Fn03538` matched its assembly 100% with all-zero
+penalties and the overlay still failed its checksum. `build/USA/out/actor_104400`
+was exactly 24 bytes longer than the package and the link map showed the tail
+unit's `.rodata` as `0x80132014 0x44` where the package has 44 bytes there: the
+function's inner switch table belongs at `0x13C`, in the middle of what was the
+`actor_104400_header_1b` rodata block and ahead of that block's hand-written
+`D00150..D001D8` dispatch tables, but the unit's `.rodata` sits at `0x1F4`, so
+the table went there and pushed everything after it down by 20 + the 4-byte
+`.align 3` pad GCC emits ahead of the *next* table.
+
+Both halves are needed, and neither is a `units` cut:
+
+- The table must start a *fresh object*, so every function ahead of it in the
+  unit's `.rodata` order must be in another object. `units` is ignored for the
+  **trailing** shared span - `emit_run` in `gen_overlay_configs.py` runs only
+  for the gap between shared spans and after the last one - so split the span
+  itself and name the new one after the function:
+
+  ```toml
+  shared = [{ start = "0x3538", end = "0x39EC", unit = "actor_104400_fn03538" },
+            { start = "0x39EC", end = "0x8E14", unit = "actor_104400_text_tail" }],
+  rodata = [{ start = "0x13C", unit = "actor_104400_fn03538" },
+            { start = "0x150", unit = "actor_104400_header_1c" }]
+  ```
+
+- The block's remainder - the tables between the new cut and the tail unit's
+  own run - needs a `rodata` unit of its own, because one unit cannot have two
+  `.rodata` runs and the tail unit still needs `0x1F4`.
+
+Moving those tables into the `.c` instead, so that a single run could cover
+`0x13C..0x220`, does **not** work: splat attaches a data symbol to the `.s` of
+an unmatched function *in the same unit* that references it
+(`nonmatchings/lib/actor_104400_text_tail/Actor04400_Fn03F8C.s` carries
+`dlabel Actor04400_D00184`), the `.c` pulls that `.s` in through `INCLUDE_ASM`,
+and the C definition collides with it as
+`Error: symbol `Actor04400_D00184' is already defined` at assembly time. Keeping
+the tables as generated `rodata` (they are symbol references either way) is the
+move.
+
+The run's start need not be 8-aligned for the layout to come out right: `.align
+3` works on offsets *inside* the section, so a run starting at the unaligned
+`0x13C` reproduces the target's pad words exactly -
+`[jtbl][D tables][jtbl][pad][jtbl]` lands on `0x13C`, `0x150`, `0x1F4`, `0x208`,
+`0x20C`. Check the map's section size against the package before touching the
+code: an overlay that is a few bytes long with a 100% function is this, not
+codegen.
+
 ## A trailing `.rodata` pad word goes in C, not `INCLUDE_RODATA`
 
 The cut that gives a compiler-generated jump table the start of its object
