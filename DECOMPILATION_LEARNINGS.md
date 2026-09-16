@@ -45904,6 +45904,46 @@ registers can only be the copy's temporaries. The body is the ordinary
 exact on the first build from 36.4%. Input: `base_1.i`
 `3138a1bc11de99b6169b0f4c9cd0a72ee8f1b6ba3362b3af7f15eef297a9a917`.
 
+## A *built* stack table reads as the callee's argument list, and costs the load its register
+
+The fourth form, and the one with no `lw` to give it away. Where the copy above
+loads a rodata table and re-stores it, some dispatchers materialise the entries
+as immediate addresses and store them straight into the frame:
+
+```
+lw  $v1,0x1C($a0)          ; the work block
+lui $v0,%hi(Actor04400_Fn07A38) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x10($sp)
+lui $v0,%hi(Actor04400_Fn03390) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x14($sp)
+lh  $v0,0x422($v1) ; sll $v0,$v0,2 ; addu $v0,$sp,$v0 ; lw $v0,0x10($v0) ; jalr $v0
+```
+
+m2c read the two stored addresses as the callee's argument list and wrote the
+whole thing as one nested-`M2C_FIELD` call expression — 76.59% at
+`regs=3 insert=3 delete=2`, one instruction short. The "loaded *and* stored"
+tell of the copy form is unavailable here, but the geometry still settles it:
+the stores target the caller's own frame at exactly the offsets the index
+expression reads back through (`0x10($sp)`/`0x14($sp)`), and the final `lw`'s
+base is `$sp`. An argument would be neither.
+
+The register symptom is the useful part. Because m2c materialised the entries
+*as* arguments, the `idMap` load got deferred past the table stores and reused
+`$v0`, so `lw $v0,0x1C($a0)` sat one instruction from `lh $v0,0x422($v0)` and
+earned a stall `nop`. The sibling `work` local — assigned on its own first line,
+before the table — issues the load ahead of the stores and takes `$v1`, leaving
+`$v0` free for both entries and no `nop` anywhere. Flipping only the *statement
+order* moved 21 instructions to the target's 21:
+
+```c
+work = (Actor104400Work*)arg0->idMap;       /* first, so the load is not deferred */
+void (*states[2])(Task*) = { Actor04400_Fn07A38, Actor04400_Fn03390 };
+states[(s16)work->field_422](arg0);
+```
+
+Exact on the second build. Same overlay family twice over — `Actor04400_Fn0674C`
+is this shape too — so treat a `lui/addiu`-then-`sw` pair into `0x10($sp)` as
+the table long before believing the argument count. Input: `base_1.i`
+`8ed84e325fc0e09f2abd287d2cd84d95ad0235d4e66b420122fd25d77f05d35f`.
+
 ## m2c's synthesized `Task*` field names can be swapped relative to `task.h`
 
 The scratch prelude carries no `Task`, so m2c invents field names for the pointer
