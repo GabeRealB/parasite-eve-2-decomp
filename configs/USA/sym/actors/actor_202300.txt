@@ -8,3 +8,4 @@ ActorsShared8013587c = 0x8014D87C; // shared body, see src/actors/lib/
 Actor00300_Fn04B14 = 0x8014D53C; // shared body, see src/actors/lib/
 ActorsShared80136c4c = 0x8014D7B4; // shared body, see src/actors/lib/
 ActorsShared80136da0 = 0x8014D908; // shared body, see src/actors/lib/
+ActorsShared8014da70 = 0x8014DA70; // shared body, see src/actors/lib/

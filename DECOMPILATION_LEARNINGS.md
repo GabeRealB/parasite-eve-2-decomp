@@ -97532,3 +97532,67 @@ Inputs (preprocessed sha256): `base.i`
 `base_1.i` `d3dc2604f02f98c6c012d57d616940ce8916daa823686321bfad66faecee2413`
 (100.000%). Both changes were made in that one file, so their individual
 contributions are not separated.
+## `overlay_dup_index.py find` clusters a matched copy apart from its byte-identical unmatched twins (func_actor_202300_8014DA70, 2026-09-16)
+
+`Actor02000_Fn03690` (`asm/USA/actors/matchings/lib/actor_102000_text/`) and
+`func_actor_102300_80135A70` / `func_actor_202300_8014DA70` are the same 38
+instructions, word for word. `find` does not say so:
+
+```
+$ overlay_dup_index.py find func_actor_202300_8014DA70
+  same body: 2 copies
+    = USA/actors/actor_102300   func_actor_102300_80135A70
+    = USA/actors/actor_202300   func_actor_202300_8014DA70
+$ overlay_dup_index.py find Actor02000_Fn03690
+  same body: 1 copies
+    = USA/actors/lib            Actor02000_Fn03690 matched
+```
+
+The canonical form folds local labels by pattern - `BRANCH = re.compile(r"\.L\w+")`
+and `LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+):?$")` - and the two
+spellings differ:
+
+```
+nonmatchings/*.s:  bnez $v0, .Lactor_202300_8014DAF8     -> folded to .L0
+matchings/*.s:     bnez $v0, Actor02000_L03718           -> not folded
+LABELDEF.match("  .Lactor_202300_8014DAF8:") -> True
+LABELDEF.match("  Actor02000_L03718:")       -> False
+BRANCH.findall("bnez $v0, Actor02000_L03718") -> []
+```
+
+A matched copy is regenerated through splat from the compiled object, so its
+branch labels come out `<SymbolPrefix>_L<offset>`; an unmatched copy keeps
+splat's own `.L<overlay>_<vram>`. Neither regex matches the former, so the
+matched copy canonicalises to different text and lands in a cluster of its own.
+
+Two consequences.
+
+**For promotion this is harmless**, and the clusters are still the right input:
+promote only has to serve carriers that are still `INCLUDE_ASM`, and a copy that
+is already matched needs nothing. The 2-copy cluster above promoted correctly,
+spanning `0x3C50-0x3CE8` in both overlays as `actors_shared_8014da70`.
+
+**For finding a template it under-reports**, which is where it costs time. The
+brief's "Similar matched bodies" list is what surfaced `Actor02000_Fn03690`
+here (1.00 in the shape, fields *and* calls classes), and a body scoring 1.00 in
+more than one class is worth checking instruction-by-instruction against
+`asm/USA/*/matchings/` - when it is byte-identical, its *source*, retyped onto
+your overlay's own structs and includes, is the match. Here that is the whole
+job: 81.359% -> 100.000% in two builds, the only change being m2c's signature
+folded into the sibling's `(void* arg0, Task* task)` and the sibling's
+`count = (u16)work->field_6D8 - 1` in place of m2c's `M2C_FIELD` form.
+
+**Promote before writing the body, and delete both `INCLUDE_ASM` lines by
+hand.** `promote` writes the manifest span and both sym maps and says "splat
+will write the shared stub on the next split", but the stub is a stub: the
+carriers still name the function in `INCLUDE_ASM`, and since the span no longer
+belongs to their units splat emits no `.s` for it, so the carriers stop
+assembling. Creating `src/actors/lib/actors_shared_8014da70.c` yourself and
+removing the two lines is what makes the split land.
+
+Inputs: `base.c`
+`490b93f7499adfae2515b2918bf6d8bd706cf2159845cf722a90b2b5314efcfa` (81.359%,
+`stack=0 branch=2 regs=5 reorder=0 insert=4 delete=3`), `base_1.c`
+`3135e534cf1ae00772c75e91f32deb788b471ff4d6d261c4bab3f5bc1fe88299` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`eb1a026a1b1316fcf2ae52b2ce8569121165f8a463e8603edfd6dcbc9ac3414d`.

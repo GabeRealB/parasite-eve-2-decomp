@@ -9,8 +9,6 @@ extern GpEnemyTaskFuncTable3 D_actor_102300_80131E8C;
 
 INCLUDE_RODATA("actors/nonmatchings/actor_102300/actor_102300_4", D_actor_102300_80131E8C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_102300/actor_102300_4", func_actor_102300_80135A70);
-
 void func_actor_102300_80135B08(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
