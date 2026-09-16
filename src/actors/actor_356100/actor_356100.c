@@ -1430,7 +1430,134 @@ void func_actor_356100_80169180(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80169854);
+/// The 31 state handlers `func_actor_356100_80169854` dispatches through, in
+/// state order; entry 0x1D has no handler and the `field_0` values the ticks
+/// park (0, 6, 7, 8, 9, 0xB, 0xC, 0x10, 0x11, 0x13, 0x15, 0x16, 0x18, 0x19,
+/// 0x1E) are its live entries. Same role as `Actor01900_D1728C`.
+const Actor356100StateTable D_actor_356100_80161EC4 = {
+    {
+        func_actor_356100_8016A1D8,
+        func_actor_356100_8016A21C,
+        func_actor_356100_8016A2AC,
+        func_actor_356100_8016A340,
+        func_actor_356100_80163CD4,
+        func_actor_356100_8016A3D4,
+        func_actor_356100_80163E2C,
+        func_actor_356100_80164158,
+        func_actor_356100_80164ACC,
+        func_actor_356100_801653F4,
+        func_actor_356100_80165B30,
+        func_actor_356100_80166018,
+        func_actor_356100_801666B4,
+        func_actor_356100_8016A468,
+        func_actor_356100_801668FC,
+        func_actor_356100_8016A550,
+        func_actor_356100_8016A5DC,
+        func_actor_356100_8016A668,
+        func_actor_356100_80166CF0,
+        func_actor_356100_8016A710,
+        func_actor_356100_8016A834,
+        func_actor_356100_80167358,
+        func_actor_356100_80167584,
+        func_actor_356100_80167818,
+        func_actor_356100_80167A7C,
+        func_actor_356100_801684F0,
+        func_actor_356100_8016804C,
+        func_actor_356100_80168AFC,
+        func_actor_356100_80168E44,
+        NULL,
+        func_actor_356100_80169180,
+    }
+};
+
+void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1)
+{
+    VECTOR                  pos;
+    Actor356100StateTable   tbl;
+    Actor356100Work*        work;
+    Actor356100GroundCoord* blk;
+    s16                     next;
+
+    work   = arg1->field_1C;
+    tbl    = D_actor_356100_80161EC4;
+    pos.vx = arg1->field_2C->field_8[1].workm.t[0];
+    pos.vy = arg1->field_2C->field_8[1].workm.t[1];
+    pos.vz = arg1->field_2C->field_8[1].workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    switch (D_801153F4) {
+        case 0:
+            if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            return;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            return;
+    }
+    *(Actor356100GroundCoord**)G_SCRATCH_HEAD -= 1;
+    blk                                        = *(Actor356100GroundCoord**)G_SCRATCH_HEAD;
+    if (work->field_0 == 0x1E) {
+        MATRIX* m;
+
+        blk->v.vx = blk->v.vy = blk->v.vz = 0;
+        Actor356100_TransformToView(&arg1->field_2C->field_8[1], &blk->v);
+        m                     = &blk->coord.coord;
+        *(s32*)&m->m[0][0]    = 0x1000;
+        *(s32*)&m->m[0][2]    = 0;
+        *(s32*)&m->m[1][1]    = 0x1000;
+        *(s32*)&m->m[2][0]    = 0;
+        m->m[2][2]            = 0x1000;
+        blk->coord.sub        = &Gfx_ViewCoord;
+        blk->coord.coord.t[0] = blk->v.vx;
+        blk->coord.coord.t[1] = 0;
+        blk->coord.coord.t[2] = blk->v.vz;
+        blk->coord.flg        = 0;
+        Gp_UpdateCoord(&blk->coord);
+        Gp_DrawEffGroundQuad((VECTOR3*)blk->coord.workm.t, 0x280, Gp_State1C->field_8);
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = work->field_0;
+    tbl.f[work->field_0](arg1);
+    if (D_801153F2[1] == 1) {
+        if (work->field_0 == 0x18) {
+            work->field_0 = 6;
+        }
+    }
+    blk->v.vx = 0;
+    blk->v.vy = 0;
+    blk->v.vz = 0;
+    Actor356100_TransformToView(&arg1->field_2C->field_8[2], &blk->v);
+    work->field_B6C[work->field_BBC].vx        = blk->v.vx;
+    work->field_B6C[work->field_BBC].vy        = blk->v.vy;
+    work->field_B6C[work->field_BBC].vz        = blk->v.vz;
+    *(Actor356100GroundCoord**)G_SCRATCH_HEAD += 1;
+    next                                       = (u16)work->field_BBC + 1;
+    work->field_BBC                            = next;
+    if (next == 7) {
+        work->field_BBC = 0;
+    }
+    if ((u32)((u16)work->field_97E - 0x14) < 2U) {
+        arg0->field_1C.vx = work->field_B6C[work->field_BBC].vx;
+        arg0->field_1C.vy = work->field_B6C[work->field_BBC].vy;
+        arg0->field_1C.vz = work->field_B6C[work->field_BBC].vz;
+    } else {
+        arg0->field_1C.vx = blk->v.vx;
+        arg0->field_1C.vy = blk->v.vy;
+        arg0->field_1C.vz = blk->v.vz;
+    }
+    arg0->field_18 = &Gfx_ViewCoord;
+}
 
 s32 func_actor_356100_80169E5C(void)
 {

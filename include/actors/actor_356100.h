@@ -10,6 +10,13 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include <psyq/inline_c.h>
+
+/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
+/// translation vector. The `inline_c.h` macro of that name assembles to a
+/// different word, so spell the instruction out.
+#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+
 /// One XZ pair of `Actor356100Work::field_C`; same shape as
 /// `Actor01900Waypoint`.
 typedef struct Actor356100Waypoint {
@@ -169,9 +176,16 @@ typedef struct Actor356100Work {
     /// clear after dispatching message 0x3F1, and set so that the next tick
     /// dispatches it once.
     /* 0xB68 */ s16  field_B68;
-    /* 0xB6A */ byte pad_B6A[0x52];
-    /// Zeroed on the state-0x10 entry below the matrices; same tail slot as
-    /// `Actor01900Work.field_C98`.
+    /* 0xB6A */ byte pad_B6A[2];
+    /// Ring buffer of the model root's world positions, one slot per frame:
+    /// `func_actor_356100_80169854` writes the transformed coordinate there at
+    /// the `field_BBC` index and reads the slot back as the enemy's local
+    /// position unless `field_97E` is 0x14 or 0x15.
+    /* 0xB6C */ SVECTOR field_B6C[7];
+    /* 0xBA4 */ byte    pad_BA4[0x18];
+    /// Write index into the `field_B6C` ring above; `func_actor_356100_8016382C`
+    /// zeroes it on the state-0x10 entry and the per-frame tick wraps it at 7.
+    /// Same tail slot as `Actor01900Work.field_C98`.
     /* 0xBBC */ s16  field_BBC;
     /* 0xBBE */ byte pad_BBE[2];
 } Actor356100Work;
@@ -290,6 +304,12 @@ extern u32 Gp_LcgState;
 /// Same slot and role as `Actor00100_MoveForwardNonzero`'s guard.
 extern u8 D_80072729;
 
+/// Two-byte mode pair read by the per-frame tick: `[1] == 1` re-maps the
+/// 0x18 state onto 6, and `D_801153F4` below picks the tick's three-arm switch
+/// (0 leaves the model flag alone, 1 and 2 clear it outright).
+extern u8 D_801153F2[2];
+extern u8 D_801153F4;
+
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
 {
@@ -368,6 +388,57 @@ typedef struct Actor356100DeltaFlag {
     /* 0x10 */ s32            field_10;
 } Actor356100DeltaFlag;
 STATIC_ASSERT_SIZEOF(Actor356100DeltaFlag, 0x14);
+
+/// 0x68-byte `G_SCRATCH_HEAD` block `func_actor_356100_80169854` takes while it
+/// builds the ground coordinate it draws an effect quad on: the coordinate the
+/// function fills (`coord.sub` parented to `Gfx_ViewCoord`) plus the world
+/// position `v` its two parent walks leave there.
+typedef struct Actor356100GroundCoord {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ byte          pad_50[0x10];
+    /* 0x60 */ SVECTOR       v;
+} Actor356100GroundCoord;
+STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
+
+/// The world root every coordinate chain in this overlay hangs off; same
+/// declaration `gameplay/3CD8.h` carries.
+extern GsCOORDINATE2 Gfx_ViewCoord;
+
+/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// coordinate; `out` is left unchanged if the chain ends before the view.
+/// Same body as `Actor01900_TransformToView`.
+static __inline__ void Actor356100_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            gte_rtv0tr_real();
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
+}
 
 /// Wraps a 12-bit angle difference into `[-0x800, 0x800]`.
 static __inline__ s16 Actor356100_NormalizeYaw(s16 input)
@@ -615,5 +686,98 @@ void func_actor_356100_8016A468(Actor356100* arg0);
 /// with `field_9BC` forced to 0x180. Bit 0 of `field_68` forces `field_0` to 7.
 /// Same shape as `Actor01900_Fn0AA78` without its two `GpObj` flag masks.
 void func_actor_356100_8016A5DC(Actor356100* arg0);
+
+/// Per-frame tick run under the death-throes clip 0xB / 0xC pair.
+void func_actor_356100_80163CD4(Actor356100* arg0);
+
+/// Per-frame tick of the state-6 clip run.
+void func_actor_356100_80163E2C(Actor356100* arg0);
+
+/// Per-frame tick of the state-7 clip run.
+void func_actor_356100_80164158(Actor356100* arg0);
+
+/// Per-frame tick of the state-8 clip run.
+void func_actor_356100_80164ACC(Actor356100* arg0);
+
+/// Turn tick that slews the root yaw 0x89 at a time onto `field_B4A`.
+void func_actor_356100_801653F4(Actor356100* arg0);
+
+/// Aim tick: normalises a root colour-matrix column and GPF-scales it by
+/// `field_B52` into the aim scratch.
+void func_actor_356100_80165B30(Actor356100* arg0);
+
+/// Tick of the state-0xB aim run.
+void func_actor_356100_80166018(Actor356100* arg0);
+
+/// Tick that hands `func_800E0C10` the `field_A58` collision record.
+void func_actor_356100_801668FC(Actor356100* arg0);
+
+/// Tick that dispatches message 0x3F1 and clears the `field_B68` latch.
+void func_actor_356100_8016A550(Actor356100* arg0);
+
+/// Tick that decrements `field_6` and reloads it from `field_B54` plus a
+/// 4-bit `Gp_LcgState` draw.
+void func_actor_356100_8016A668(Actor356100* arg0);
+
+/// Tick that runs the `field_978` clip and halves `field_982` once the actor
+/// is no longer live.
+void func_actor_356100_80166CF0(Actor356100* arg0);
+
+/// Tick of the state-0x13 clip run.
+void func_actor_356100_8016A710(Actor356100* arg0);
+
+/// Tick that picks clip 4 or 0x11 off `field_B3A` once the enemy is still
+/// alive.
+void func_actor_356100_8016A834(Actor356100* arg0);
+
+/// Per-frame tick of the state-0x15 clip run.
+void func_actor_356100_80167358(Actor356100* arg0);
+
+/// Per-frame tick of the state-0x16 clip run.
+void func_actor_356100_80167584(Actor356100* arg0);
+
+/// Per-frame tick of the state-0x18 clip run.
+void func_actor_356100_80167A7C(Actor356100* arg0);
+
+/// Per-frame tick of the state-0x19 clip run.
+void func_actor_356100_801684F0(Actor356100* arg0);
+
+/// Tick that pushes the actor off any collision record and turns it onto the
+/// player.
+void func_actor_356100_8016804C(Actor356100* arg0);
+
+/// Turn tick that slews the root yaw onto the player 0x28 at a time.
+void func_actor_356100_80168AFC(Actor356100* arg0);
+
+/// Turn tick that slews the root yaw onto the player in one step and rescales
+/// the root coordinate to 0x1194.
+void func_actor_356100_80168E44(Actor356100* arg0);
+
+/// The death-throes tick: runs the per-frame clip, walks part 1's coordinate
+/// and fires the 0x600FB effect burst over the model's part coordinates.
+void func_actor_356100_80169180(Actor356100* arg0);
+
+/// One entry of the state dispatch table `D_actor_356100_80161EC4`; every
+/// handler takes the actor alone.
+typedef void (*Actor356100StateFn)(Actor356100* arg0);
+
+/// The 31-entry state table the per-frame tick copies onto its own stack
+/// before dispatching `f[work->field_0]`. Entry 0x1D is a null hole.
+typedef struct Actor356100StateTable {
+    /* 0x00 */ Actor356100StateFn f[31];
+} Actor356100StateTable;
+STATIC_ASSERT_SIZEOF(Actor356100StateTable, 0x7C);
+
+/// Draws the ground-shadow quad at `arg0` (a coordinate's `workm.t`), shaded
+/// by `arg2` and scaled by `arg1`.
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// The per-frame tick: rebinds the model colour matrix from part 1's world
+/// translation, draws the ground quad under the model unless the actor is
+/// already dying, walks part 1's parent chain into a scratch coordinate and
+/// draws the second quad there, advances the state and dispatches it through
+/// the table copy, then walks part 2's chain and rings the result into
+/// `Actor356100Work::field_B6C` as the enemy's next local position.
+void func_actor_356100_80169854(GpEnemy* arg0, Actor356100* arg1);
 
 #endif

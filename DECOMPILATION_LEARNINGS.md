@@ -109637,3 +109637,54 @@ if-arm assignment: distance 1468 and `base_4`'s bytes exactly), `base_12.c`
 both stages, per-allocno priority) and the analysis
 (`PERMUTER_ANALYSIS.md`) are cited in the retained conclusion,
 `PERMUTER_EVIDENCE/conclusions/34757a0747784c5aa973c4ca7154a81d/`.
+
+## Local declaration order is the stack-slot order, and a chained assignment reverses the stores (func_actor_356100_80169854)
+
+`func_actor_356100_80169854` has five locals and the target's frame is tight
+enough that both of the following show up as the *only* mismatches, at 98.4%
+and 99.97% respectively.
+
+**Declaration order.** GCC 2.8.1 hands the first-declared local the lowest
+offset, so a `VECTOR` declared before a 0x7C-byte struct table lands at
+`sp+0x10` and the table at `sp+0x20`. Declared the other way round the pair
+comes out `sp+0x10` / `sp+0x90` and every `%hi`/`%lo` in the prologue, the
+`addiu $a1, $sp, 0x10` call argument and the `lw f[state]` index base shift
+with it. The `VECTOR` type here is 16 bytes (`long vx, vy; long vz, pad;` in
+`psyq/libgte.h`), so `0x10 + 0x10 = 0x20` closes exactly with no padding — a
+4-byte hole in a frame usually means a local whose declaration order is wrong
+rather than an untyped gap.
+
+**A chained assignment writes the fields in reverse.** The block that clears
+the 0x68 scratch block's `SVECTOR` before walking the coordinate chain emits
+its three halfword stores in *descending* offset order (`0x64`, `0x62`,
+`0x60`) the first time and *ascending* (`0x60`, `0x62`, `0x64`) the second.
+Both come from the same statement shape; the difference is the statement:
+
+```c
+    blk->v.vx = blk->v.vy = blk->v.vz = 0;   /* stores 0x64, 0x62, 0x60 */
+    /* ... */
+    blk->v.vx = 0;                            /* stores 0x60, 0x62, 0x64 */
+    blk->v.vy = 0;
+    blk->v.vz = 0;
+```
+
+C evaluates the chain right-to-left, so the RTL is emitted `vz`, `vy`, `vx`,
+and `sched2` keeps that order for the three independent stores (equal
+priority, no dependencies, lower LUID first). Writing the chain in the *second*
+block instead moves those three lines and drops the score to 99.974%: the
+store order of an unrolled run of adjacent stores is a scheduler output, but
+which *source form* produced it is not — so when a run of identical stores
+comes out reversed, check for a chained assignment before touching the
+scheduler.
+
+One more lever from the same function: a `const` table defined in the TU is
+emitted in *source order*, so a table the target places after another
+function's compiler-generated jump table has to be defined after that
+function, not in the overlay header.
+
+Inputs: `base_4.i` (100%) SHA256
+`737e0b18847062e92f319b7883d22feb8d7e7ea28484176acb6ab95689131b61`; target
+SHA256 `e38e9b61697d530e5ffbbcbd967fbcaf8ad5b9291b075b675b3e002538d13636`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_80169854-vacuum`.
