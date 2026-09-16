@@ -226,6 +226,16 @@ typedef struct Actor510900ChildFxScratch {
 } Actor510900ChildFxScratch;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFxScratch, 0x38);
 
+/// 0x28-byte scratch `func_actor_510900_80139C10` takes from `G_SCRATCH_HEAD`
+/// every frame the child effect turns: `rot` is the yaw it spins by (and then
+/// the offset the trail effect is spawned along), `mtx` the rotation
+/// `RotMatrix` builds from it and composes into the coordinate.
+typedef struct Actor510900ChildFxTickScratch {
+    /* 0x00 */ SVECTOR rot;
+    /* 0x08 */ MATRIX  mtx;
+} Actor510900ChildFxTickScratch;
+STATIC_ASSERT_SIZEOF(Actor510900ChildFxTickScratch, 0x28);
+
 /// Payload of the 0x3F8 query the hit handler asks the player before it takes
 /// the hold; `field_14` is the range it asks for. The same shape as
 /// `Actor400600Msg3F8`.

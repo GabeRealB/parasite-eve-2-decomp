@@ -1160,7 +1160,121 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor510900ChildFxScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80139C10);
+/// Per-frame handler of the effect child while it is alive: spins the object by
+/// `field_CE` about X, drags it 150 units down its own Y axis and drips a trail
+/// effect every third frame. Once it has fallen past -0x514 and come back up,
+/// or either `GpRec18` table reports a hit, it fires the impact effects,
+/// reparents the task under the spawned one and hands the actor to state 2.
+/// A parent that has stopped (`field_592` == 0) tears the object down the same
+/// way. `D_801153F4` 1 only refreshes the colour and 2 only hides the model.
+void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
+{
+    VECTOR                         pos;
+    GpEffWork*                     eff;
+    GsCOORDINATE2*                 coord;
+    u8*                            head;
+    Actor510900ChildFxTickScratch* scratch;
+    TmdObject*                     tmd;
+    Actor510900ChildFx*            work;
+    Actor510900Work*               parent;
+    s32                            angle;
+    s32                            snd;
+    s32                            done;
+    u16                            tick;
+
+    tmd    = task->extra;
+    work   = (Actor510900ChildFx*)task->idMap;
+    coord  = tmd->field_8;
+    parent = (Actor510900Work*)task->parent->idMap;
+    done   = 0;
+    switch (D_801153F4) {
+        case 0:
+            tmd->field_C = 0;
+            break;
+        case 1:
+            pos.vx = coord->workm.t[0];
+            pos.vy = coord->workm.t[1];
+            pos.vz = coord->workm.t[2];
+            Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+            return;
+        case 2:
+            tmd->field_C = 0x80;
+            return;
+    }
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    scratch               = (Actor510900ChildFxTickScratch*)(head - sizeof(Actor510900ChildFxTickScratch));
+    *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+    angle                 = -work->field_CE;
+    scratch->rot.vx       = angle;
+    scratch->rot.vy       = 0;
+    scratch->rot.vz       = 0;
+    RotMatrix(&scratch->rot, &scratch->mtx);
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldclmv(&scratch->mtx);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord);
+    gte_ldclmv(&scratch->mtx.m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord.m[0][1]);
+    gte_ldclmv(&scratch->mtx.m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord.m[0][2]);
+    coord->flg         = 0;
+    coord->coord.t[0] += -(coord->coord.m[0][1] * 0x96) >> 12;
+    coord->coord.t[1] += -(coord->coord.m[1][1] * 0x96) >> 12;
+    coord->coord.t[2] += -(coord->coord.m[2][1] * 0x96) >> 12;
+    tick               = work->field_C8 + 1;
+    work->field_C8     = tick;
+    if (tick >= 3) {
+        scratch->rot.vx = 0;
+        scratch->rot.vy = 0x64;
+        scratch->rot.vz = 0;
+        Gp_SpawnEff(0x60070, coord, 0x01001600, &scratch->rot);
+        work->field_C8 = 0;
+    }
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+    if (coord->coord.t[1] < -0x514) {
+        work->field_CA = 1;
+    }
+    if (work->field_CA != 0 && coord->coord.t[1] >= -0x513) {
+        done = 1;
+    }
+    if (done != 0 || (work->rec60.field_4 & 0xFFFF0000) == 0x10000 || work->recB0.field_4 != 0) {
+        Gp_SpawnEff(0x6005C, coord, 0x10002200, NULL);
+        Gp_SpawnEff(0x60070, coord, 0xC1001200, NULL);
+        eff = Gp_SpawnEff(0x80060185, coord, 0, NULL);
+        if (eff != NULL) {
+            Task_Reparent(task, eff->field_0);
+        }
+        if (work->rec60.field_4 != 0) {
+            work->field_CA = 2;
+        } else {
+            work->field_CA = 0;
+        }
+        work->obj40.flags &= 0x7FFF;
+        Gp_ClearRec18Occupied(&work->rec60);
+        Gp_UnlinkObj(&work->obj78);
+        work->field_C8                     = 0;
+        ((TmdObject*)task->extra)->field_C = 0x80;
+        snd                                = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x51100009;
+        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+        task->state = 2;
+    }
+    Gp_ClearRec18Occupied(&work->rec60);
+    if (parent->field_592 == 0) {
+        work->obj40.flags &= 0x7FFF;
+        Gp_UnlinkObj(&work->obj78);
+        work->field_C8                     = 0;
+        ((TmdObject*)task->extra)->field_C = 0x80;
+        task->state                        = 2;
+        work->field_CA                     = 3;
+    }
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor510900ChildFxTickScratch);
+}
 
 void func_actor_510900_8013A310(Task* task);
 

@@ -90104,3 +90104,26 @@ nearby load disagree about `mem/s` and the scheduler swaps them, the fix is to
 make the *access form* agree, not to reorder the statements: statement order
 does not move a `sched1` decision that never consults it (see "`sched1` always
 hoists a plain `li` above stores in the same block" for the other half of this).
+
+## `-shortfield` stored into another `short` loads with `lhu`; an `s32` temp restores `lh`
+
+`func_actor_510900_80139C10` negates an `s16` into an `SVECTOR` member. Written
+directly,
+`store_expr` sees a HImode destination and expands the load unextended —
+`lhu` plus `(neg:SI (subreg:SI (reg:HI 95) 0))` — because the high half is
+about to be thrown away:
+
+    scratch->rot.vx = -work->field_CE;   /* lhu */
+
+The target loads `lh`. Routing the value through an `s32` local makes the
+negation a genuine SImode operation on a `sign_extend`, and combine cannot
+narrow it back because MIPS has no `neghi2`:
+
+    angle           = -work->field_CE;   /* lh */
+    scratch->rot.vx = angle;
+
+So `lhu` where the target has `lh` on a signed field is not a struct-type
+mistake; it is the destination's mode reaching back into the load. Note this is
+the opposite direction from the `* 0x96` terms in the same function, whose
+products are added to `s32` translation components and therefore sign-extend on
+their own.
