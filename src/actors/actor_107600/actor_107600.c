@@ -3,7 +3,9 @@
 #include "main/mem.h"
 #include "main/gfx.h"
 #include "main/task.h"
+#include "main/session.h"
 
+#include "gameplay/gameplay.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 
@@ -33,6 +35,8 @@ extern TaskDesc D_actor_107600_80134F94;
  * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
  * 16-entry HP table it indexes with the spawn variant. Both are trailing-blob
  * data, after the collision tables. */
+/* Pair-source record the spawn state hangs off `GpEnemy.field_50`. */
+extern GpPairSrcE D_actor_107600_80134F84;
 extern GpPairSrcE D_actor_107600_80135720;
 extern u16        D_actor_107600_80135750[];
 
@@ -41,7 +45,74 @@ extern u16        D_actor_107600_80135750[];
 extern s16   D_80073BA0;
 extern Task* D_8018E0C4;
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
+/// Spawn state of the `D_actor_107600_80131E24` table. The target is dropped
+/// (and the gallery's live count given back) when the player is within 0x400 on
+/// XZ unless `Task::spawnArg1` bit 0x40000000 forces it, when byte 0 of
+/// `spawnArg1` is the 0xFF marker, or when the work block cannot be allocated.
+/// Otherwise binds the work block's matrices, records the spawn position, and
+/// spawns the child from `func_actor_107600_80132DF0`.
+void func_actor_107600_80131F10(Task* arg0)
+{
+    TmdObject*       obj;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   target;
+    void**           scratch;
+    u8*              head;
+    VECTOR*          block;
+    Actor107600Work* work;
+
+    obj       = arg0->extra;
+    enemy     = arg0->spawnArg2;
+    coord     = obj->field_8;
+    target    = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = target->coord.t[0] - coord->coord.t[0];
+    *scratch  = block;
+    block->vz = target->coord.t[2] - coord->coord.t[2];
+    if ((!(arg0->spawnArg1 & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1 == 0xFF) {
+    fail:
+        if ((arg0->spawnArg1 & 0xF000) != 0x2000) {
+            ((MistShootingGalleryWork*)arg0->parent->idMap)->field_0E--;
+        }
+        *(u8**)G_SCRATCH_HEAD += 0x10;
+        Gp_DestroyEnemy(enemy, arg0);
+        return;
+    }
+    work        = Mem_Calloc(0x14C, false);
+    arg0->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        goto fail;
+    }
+    arg0->exitCallback = func_actor_107600_80132AC0;
+    work->field_146    = (u8)((u32)arg0->spawnArg1 >> 16);
+    work->field_144    = (s32)(arg0->spawnArg1 & 0xF000) >> 12;
+    obj->field_1C      = &work->matrix_20;
+    obj->field_20      = &work->matrix_0;
+    enemy->field_50    = &D_actor_107600_80134F84;
+    coord->sub         = &Gfx_ViewCoord;
+    enemy->field_4     = &((TmdObject*)arg0->extra)->field_8->coord;
+    enemy->field_48    = 0;
+    if (work->field_144 != 2) {
+        /* retail passes a 0 the resident definition ignores */
+        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    }
+    work->field_48 = coord->coord.t[0];
+    work->field_4A = coord->coord.t[1];
+    work->field_4C = coord->coord.t[2];
+    work->yaw      = -0x400;
+    if (work->field_144 == 1) {
+        work->roll += 0x800;
+    }
+    arg0->state++;
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    func_actor_107600_80132DF0(enemy, arg0->spawnArg1 & 0xF,
+                               work->field_144 | (((u32)arg0->spawnArg1 >> 16) & 0x2000));
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132160);
 

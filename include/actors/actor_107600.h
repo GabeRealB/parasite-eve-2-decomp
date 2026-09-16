@@ -35,9 +35,13 @@ typedef struct Actor107600Work {
     /* 0x000 */ MATRIX  matrix_0;  // color matrix for the child models
     /* 0x020 */ MATRIX  matrix_20; // light matrix for the child models
     /* 0x040 */ u16     pitch;     // fed to RotMatrixX
-    /* 0x042 */ u16     yaw;       // fed to func_8004BFF8
+    /* 0x042 */ s16     yaw;       // fed to func_8004BFF8
     /* 0x044 */ u16     roll;      // fed to RotMatrixZ
-    /* 0x046 */ byte    pad_46[0xA];
+    /* 0x046 */ byte    pad_46[0x2];
+    /* 0x048 */ u16     field_48;  // spawn position x
+    /* 0x04A */ u16     field_4A;  // spawn position y
+    /* 0x04C */ u16     field_4C;  // spawn position z
+    /* 0x04E */ byte    pad_4E[0x2];
     /* 0x050 */ u16     field_50;  // fed to Gfx_RotMatrixX
     /* 0x052 */ u16     field_52;  // fed to Gfx_RotMatrixY
     /* 0x054 */ u16     field_54;  // fed to Gfx_RotMatrixZ
