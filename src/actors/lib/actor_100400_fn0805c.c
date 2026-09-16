@@ -67,6 +67,7 @@ extern MATRIX               Gfx_ViewWorldMtx;
 extern const TaskFuncTable3 Actor00400_D0002C;
 extern TaskFuncTable3       Actor00400_D00144;
 extern const TaskFuncTable8 Actor00400_D00038;
+extern TaskFuncTable7       Actor00400_D00178;
 
 void Actor00400_Fn0805C(Actor100400* arg0, s32 arg1, Actor100400Msg* arg2)
 {
@@ -674,7 +675,15 @@ void Actor00400_Fn09BDC(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09C04);
+void Actor00400_Fn09C04(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    TaskFuncTable7   fns;
+
+    work = arg0->field_1C;
+    fns  = Actor00400_D00178;
+    fns.funcs[(s16)work->field_63A]((Task*)arg0);
+}
 
 void Actor00400_Fn09C84(Actor100400* arg0)
 {

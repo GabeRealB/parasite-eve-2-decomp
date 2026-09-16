@@ -48254,6 +48254,34 @@ file-scope `static const` at the point the `INCLUDE_RODATA` line occupied keeps
 GCC's emission order right — the same trick `PowerSupplyMsg` uses in that file.
 `func_acropolis_security_room_8017ED68`.
 
+### m2c reads the frame-table dispatch as a ten-argument call through `sp`
+
+The actor state dispatcher is the plain case of the copy above, and its m2c
+output shares nothing with it. `Actor00400_Fn09C04` is seven words of
+`lw`/`sw`, then the indexed call; m2c takes every store to the frame for an
+outgoing argument and prints a *ten*-argument call through a pointer at
+`sp + field_63A*4 + 0x10`, with `sp` itself undeclared — so the seed does not
+even compile, and the real argument `$a0` never appears in the argument list.
+
+The tail is the recognizer, and it is the same at any table length:
+
+```
+lh   $v0, 0x63A($v1)   ; (s16) on the index: a u16 field gives `lhu` instead
+sll  $v0, $v0, 2
+addu $v0, $sp, $v0     ; the base is the frame, so the table was copied
+lw   $v0, 0x10($v0)
+jalr $v0
+```
+
+`addu $v0, $sp, $v0` where the sibling dispatchers have `lui`/`addiu` of a
+global array is what says *copied*. The source is the overlay's own `.rodata`
+table, declared as a `TaskFuncTableN` extern beside the other table externs
+(`Actor00400_Fn07B98` in `actor_100400_text.c` is the matched precedent) and
+assigned to a local of that type. Beware the one-entry sibling: a `states[1]`
+local initializer never reaches `.rodata` — GCC stores the single address
+straight into the frame slot (`lui`/`addiu`/`sw`, `Actor00400_Fn09C84`) — so it
+is no evidence against the copy form.
+
 ### Statement order that changes nothing means the leftover is sched1's block scope
 
 A long straight-line block that scores in the high 90s on `regs` + `reorder`
