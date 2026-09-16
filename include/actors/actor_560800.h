@@ -223,4 +223,22 @@ extern s32 D_actor_560800_8017579C;
 extern s32 D_actor_560800_801757A0;
 extern s32 D_actor_560800_801757A4;
 
+/// Seed `func_actor_560800_80135D54` loads into `Gp_LcgState` before it hands
+/// control back to gameplay.
+extern u32 D_actor_560800_801757A8;
+
+/// Pair of blocks `func_actor_560800_80135D54` passes to `func_800E8634`.
+extern s32 D_actor_560800_8016F5E0;
+extern s32 D_actor_560800_80171800;
+
+extern u8 D_80071075;
+extern s8 D_8007218A;
+extern u8 D_80073BA9;
+extern s8 D_80114C12;
+
+void func_actor_560800_80133970(Task* arg0);
+void func_actor_560800_80134258(Task* arg0);
+void func_actor_560800_80134384(Task* arg0);
+void func_actor_560800_80134BFC(Task* arg0);
+
 #endif

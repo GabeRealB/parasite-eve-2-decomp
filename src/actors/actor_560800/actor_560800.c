@@ -241,7 +241,60 @@ void func_actor_560800_80135BD8(Task* arg0)
     Gp_SetOverrideVec(&vec);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80135D54);
+void func_actor_560800_80135D54(Task* arg0)
+{
+    s32              msg[5];
+    Actor560800Work* work;
+    s32              val;
+
+    switch (arg0->state) {
+        case 0:
+            if (D_80114C12 == 1 || D_80071075 != 0) {
+                return;
+            }
+            func_actor_560800_80135BD8(arg0);
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(0);
+            func_800E6D4C(0x180, 0);
+            arg0->state++;
+        case 1:
+            Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+            func_800E8634((s32)&D_actor_560800_8016F5E0, 1, (s32)&D_actor_560800_80171800);
+            arg0->state++;
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                Gp_LcgState = D_actor_560800_801757A8;
+                Gp_PulseState1C();
+                val    = D_80073BA9;
+                msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
+                msg[1] = 1;
+                msg[2] = 0;
+                msg[3] = 0;
+                msg[4] = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)msg, 0);
+                Task_RequestKill(arg0, 0);
+                return;
+            }
+            break;
+    }
+    func_actor_560800_80133970(arg0);
+    func_actor_560800_80134258(arg0);
+    func_actor_560800_80134384(arg0);
+    func_actor_560800_80134BFC(arg0);
+    work = (Actor560800Work*)arg0->idMap;
+    switch ((u16)work->field_58) {
+        case 0:
+            break;
+        case 1:
+            if (work->field_4 != NULL) {
+                Task_Kill(work->field_4);
+            }
+            Display_SpawnWithOt(&ActorsShared80136280Desc, 0xC, 0, 0);
+            break;
+    }
+    work->field_58 = 0;
+}
 
 void func_actor_560800_80135F50(Task* arg0)
 {
