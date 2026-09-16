@@ -13,6 +13,14 @@
 
 extern void func_mine_cavern_80182454(void);
 
+/// Current screen id at 0x8007218B.
+extern s8 D_8007218B;
+
+/// The mine task's three state handlers, dispatched through by state. Copied
+/// onto the stack by `func_mine_cavern_80182DC8` before the call, the way every
+/// other room drives its own task family.
+extern const TaskFuncTable3 D_mine_cavern_8017D65C;
+
 /// Sound emitter positions for the cavern's four ambient loops, indexed by the
 /// emitter id `func_mine_cavern_801825C8` and its siblings are called with.
 extern SVECTOR D_mine_cavern_8018E39C[4];
@@ -270,7 +278,17 @@ void func_mine_cavern_80182DA8(void)
     func_mine_cavern_80182454();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182DC8);
+/// Mine task dispatcher: runs the state handler this task's `state` selects,
+/// unless the screen id says the room is being left.
+void func_mine_cavern_80182DC8(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mine_cavern_8017D65C;
+    if (D_8007218B != 3) {
+        sp.funcs[arg0->state](arg0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182E34);
 
