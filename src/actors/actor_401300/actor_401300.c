@@ -17,6 +17,7 @@
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801323B0);
+s32 func_actor_401300_801323B0(GsCOORDINATE2* coord, u8* arg1, s32 arg2);
 
 s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* arg2)
 {
@@ -89,6 +90,7 @@ void func_actor_401300_80132BE4(GameSessionFrom4* session, GsCOORDINATE2* coord)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132C78);
+void func_actor_401300_80132C78(GsCOORDINATE2* coord, u8* arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132FF4);
 
@@ -265,7 +267,47 @@ void func_actor_401300_80138B24(Actor401300* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138CF8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138FCC);
+void func_actor_401300_80138FCC(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_970.field_1C = 0x280;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_89C          = 1;
+        work->field_8A2          = 0xC;
+        work->field_8A6          = 0x10;
+        work->field_8B4          = 0;
+        work->field_8B2          = 0;
+        if (enemy->field_40 <= 0) {
+            Gp_SetStateF0Byte3(1);
+        }
+        work->field_8B6        = 0x20;
+        work->field_8BA        = 8;
+        work->field_970.flags |= 0x4000;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (func_actor_401300_801323B0(arg0->field_2C->field_8, work->field_990, 0xC) == 0) {
+        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_6C & 0x100) {
+        work->field_970.flags &= 0xBFFF;
+        if (enemy->field_40 <= 0) {
+            work->field_0 = 0x15;
+        } else if (enemy->field_4C & 2) {
+            work->field_0 = 4;
+        } else {
+            work->field_0 = 0x11;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139134);
 
