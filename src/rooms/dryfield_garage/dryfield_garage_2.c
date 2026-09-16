@@ -21,7 +21,21 @@ s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017DAA0);
+extern TaskDesc D_80141B6C;
+extern Task*    D_dryfield_garage_8018021C;
+
+void func_dryfield_garage_8017DAA0(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_dryfield_garage_8018021C = Task_SpawnFromTable(&D_80141B6C, 1, 0, 0);
+            arg0->state               += 1;
+            break;
+        case 1:
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017DB18);
 
