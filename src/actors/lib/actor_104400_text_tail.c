@@ -425,7 +425,48 @@ void Actor04400_Fn042C4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn045A0);
+/// Same body as `Actor04400_Fn04A3C` with a slower push and a wider pitch
+/// step: the root moves 0x8C back along the heading `field_7A`, `field_78`
+/// eases an eighth of the way to 0x800 rather than a thirty-second of the way
+/// to 0x200, and the heading turns half a circle before animation 0x11 is
+/// requested at speed 0x10.
+void Actor04400_Fn045A0(Task* arg0)
+{
+    Actor104400Work* work;
+    s16              angle;
+    GsCOORDINATE2*   coord;
+    Actor104400Work* anim;
+    s32              speed;
+    s32              dx;
+
+    work                                            = (Actor104400Work*)arg0->idMap;
+    angle                                           = work->field_7A;
+    coord                                           = ((TmdObject*)arg0->extra)->field_8;
+    dx                                              = rsin(angle) << 4;
+    speed                                           = -0x8C;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += (dx * speed) >> 16;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    work->field_78                                 += (0x800 - work->field_78) >> 3;
+    coord->coord.t[1]                              += work->field_42A;
+    work->field_428                                += 2;
+    work->field_42A                                += work->field_428;
+    if (coord->coord.t[1] > 0) {
+        work->field_451   = 0;
+        work->field_412   = 0;
+        coord->coord.t[1] = -0x3C;
+        work->field_78    = 0;
+        work->field_7C    = 0;
+        work->field_7A   += 0x800;
+        anim              = (Actor104400Work*)arg0->idMap;
+        anim->field_41C   = 0x10;
+        anim->field_418   = 0x11;
+        anim->field_414   = 2;
+        work->field_428   = 0;
+        work->field_42A   = -0x6E;
+        work->field_420++;
+    }
+}
 
 /// Same body as `ActorsShared8016784c` at this overlay's own address, so the
 /// two cannot share one object: the package needs both addresses.
