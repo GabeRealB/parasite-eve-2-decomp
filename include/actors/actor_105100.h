@@ -136,10 +136,20 @@ typedef struct Actor105100Work {
 /// schedule is stepped through. Those bytes are `obj38`, a `GpObj`, to the
 /// list units, so the handler casts the work pointer to this view rather than
 /// reaching them through `Actor105100Work`.
+///
+/// The reaction sub-handlers keep their own state in the same record:
+/// `field_44` is the approach point `Actor105100Work`'s `obj38` vector is
+/// aimed at and `field_46` the pass they are on -- 0 builds that aim, 1 walks
+/// the coordinate along it. A `GpObj` cannot carry either, `field_44` sitting
+/// over its `field_C` collision pointer, which is why
+/// `func_actor_105100_801359B4` reads them here and takes the aim vector
+/// itself from `Actor105100Work::obj38`.
 typedef struct Actor105100Rec {
     /* 0x00 */ byte pad_0[0x40];
     /* 0x40 */ s16  field_40;
-    /* 0x42 */ byte pad_42[6];
+    /* 0x42 */ byte pad_42[2];
+    /* 0x44 */ s16  field_44;
+    /* 0x46 */ s16  field_46;
     /* 0x48 */ s16  field_48;
     /* 0x4A */ byte pad_4A[4];
     /* 0x4E */ u16  field_4E;

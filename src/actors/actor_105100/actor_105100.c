@@ -73,6 +73,12 @@ extern GpPairSrcE D_actor_105100_80141398;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_105100_80141488[];
 
+/// The approach points the `field_40 == 1` reaction walks the model through,
+/// indexed by `Actor105100Rec::field_44`. Only the x and z halves are read: the
+/// reaction subtracts the model's current position and walks the resulting
+/// planar delta.
+extern SVECTOR D_actor_105100_80141418[6];
+
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80131EBC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80132414);
@@ -533,7 +539,50 @@ done:
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135674);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801359B4);
+/// Reaction 1's handler (`field_40 == 1`), which walks the model towards the
+/// approach point `field_44` selects from `D_actor_105100_80141418`. The first
+/// pass (`field_46 == 0`) builds the planar delta in 16 bytes of scratch,
+/// normalises it into the record's own 0x38 vector and stores the step it then
+/// travels per frame -- the delta's length over `obj38.field_10`; the second
+/// (`field_46 == 1`) applies that step to the coordinate every frame.
+void func_actor_105100_801359B4(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    Actor105100Rec*  rec;
+    GsCOORDINATE2*   coord;
+    VECTOR*          head;
+    VECTOR*          vec;
+    s16              state;
+    s32              dx;
+    s32              dz;
+    s32              speed;
+
+    head                  = *(VECTOR**)0x1F8003FC;
+    vec                   = head - 1;
+    *(VECTOR**)0x1F8003FC = vec;
+    work                  = arg0->field_1C;
+    rec                   = (Actor105100Rec*)work;
+    state                 = rec->field_46;
+    coord                 = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
+            vec->vy = 0;
+            vec->vz = D_actor_105100_80141418[rec->field_44].vz - coord->coord.t[2];
+            VectorNormalS(vec, (SVECTOR*)&work->obj38);
+            dx                   = vec->vx;
+            dz                   = vec->vz;
+            speed                = SquareRoot0(dx * dx + dz * dz) / work->obj38.field_10;
+            rec->field_46        = 1;
+            work->obj38.field_14 = speed;
+            break;
+        case 1:
+            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.field_14) >> 12;
+            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.field_14) >> 12;
+            break;
+    }
+    *(VECTOR**)0x1F8003FC += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135B40);
 
