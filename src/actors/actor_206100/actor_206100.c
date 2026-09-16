@@ -692,7 +692,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// the shift) while the addend's high bits are dead, the sum going straight back
 /// through `sh` into the same halfword.  The ramp in case 2, whose operands do
 /// need full width, is where the `(u16)` casts are load-bearing.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014E0C0);
+void func_actor_206100_8014E0C0(Task* task)
+{
+    Actor206100Work* work;
+    s32              sound;
+    s32              pan;
+    s16              phase;
+
+    work = (Actor206100Work*)task->idMap;
+    switch (work->field_554) {
+        case 0:
+            work->field_542 = work->field_542 + ((s32) - (work->field_542 * 0x10) >> 7);
+            break;
+        case 1:
+            sound = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40040006;
+            pan   = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->field_8);
+            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->field_8));
+            work->field_554 = work->field_554 + 1;
+            break;
+        case 2:
+            phase           = (u16)work->field_542 + ((s32)(((u16)work->field_544 - (u16)work->field_542) << 0x14) >> 0x15);
+            work->field_542 = phase;
+            if (phase < work->field_544 - 0x20) {
+                break;
+            }
+            work->field_554 = work->field_554 + 1;
+            break;
+        case 3:
+            phase           = (u16)work->field_542 - 0x10;
+            work->field_542 = phase;
+            if ((phase << 0x10) <= 0) {
+                work->field_554 = 0;
+                work->field_542 = 0;
+            }
+            break;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014E228);
 
 /// Effect-mode tick of the `field_520` state table `D_actor_206100_80149EC0`,
