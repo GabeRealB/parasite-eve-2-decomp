@@ -87130,3 +87130,43 @@ the diff is a pure permutation of `$sN` with `Structure: match`. Read the
 `;; N regs to allocate:` line together with the `Register N used X times across
 Y insns` block at the head of the `.lreg` dump; the two together reproduce the
 order exactly, and the arithmetic says how far a pseudo has to move.
+
+## Two address-taken locals: slots follow declaration order, and a chained assignment stores right-to-left (Actor00400_Fn058C4, 2026-09-16)
+
+**Problem.** `Structure: match`, `blocks=28/28 instructions=271/271`, every
+penalty zero except `regs=9` - and the whole diff was two `SVECTOR` locals
+sitting in each other's stack slots, plus their zero-init emitted in the
+opposite order:
+
+```
+-addiu  a1,sp,0x18     +addiu  a1,sp,0x10
+-sh     zero,0x1c(sp)  +sh     zero,0x10(sp)
+-sh     zero,0x1a(sp)  +sh     zero,0x12(sp)
+ jal    Actor00400_Fn031A4
+-sh     zero,0x18(sp)  +sh     zero,0x14(sp)
+```
+
+Two independent facts produced that, and both are free to control from C.
+
+**Slot order is declaration order, ascending.** Locals whose address is taken
+get frame slots in the order they are *declared*, lowest address first. The
+function needed the vector passed to `Actor00400_Fn031A4` at `0x18` and the
+scratch delta at `0x10`, so the delta has to be declared first - even though
+the other one is used first. Do not reason from use order.
+
+**`a = b = c = 0` emits the stores right-to-left.** C evaluates a chained
+assignment from the rightmost, so
+
+```c
+vec.vx = vec.vy = vec.vz = 0;
+```
+
+emits `sh zero,vz; sh zero,vy; sh zero,vx` - the reverse of what three
+separate statements give. sched1 left both orders alone here, so the emitted
+order *is* the source order and reads straight off the target. The last store
+in the stream is what `.dbr` puts in the `jal`'s delay slot, which is the
+cheapest place to see which form the original used: a delay slot holding
+`vx` after two earlier `vz`/`vy` stores means a chained assignment.
+
+Swapping the two declarations and chaining the init took 99.834% to 100% in
+one build.
