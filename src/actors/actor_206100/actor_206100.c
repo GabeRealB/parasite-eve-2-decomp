@@ -198,7 +198,84 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// and sub-state indices cleared -- the two index pairs written through the two
 /// fresh `Task::idMap` loads, the block-local store shape `func_actor_206100_8014CE60`
 /// uses.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014C274);
+void func_actor_206100_8014C274(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* req;
+    Actor206100Work* anim;
+    Actor206100Work* state;
+    Actor206100Work* tail;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    s16              kind;
+    s32              slot;
+    s32              i;
+
+    enemy       = task->spawnArg2;
+    coord       = ((TmdObject*)task->extra)->field_8;
+    task->idMap = Mem_Calloc(0x558, 0);
+    work        = (Actor206100Work*)task->idMap;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    D_801818B8      = 1;
+    work->field_536 = D_80181A48;
+    for (i = 0; i < 2; i++) {
+        D_actor_206100_80158CBC[i].enemy = NULL;
+        D_actor_206100_80158CBC[i].timer = 0;
+    }
+    func_actor_206100_8014AF74(task);
+    req            = (Actor206100Work*)task->idMap;
+    req->field_51A = 0x10;
+    req->field_510 = 3;
+    req->field_50C = 2;
+    anim           = (Actor206100Work*)task->idMap;
+    kind           = anim->field_50C;
+    if (kind == 1) {
+        if (anim->field_50E != anim->field_510) {
+            anim->field_512 = 0;
+        } else {
+            anim->field_512 = func_actor_206100_8014F3C8(task, anim->field_512);
+        }
+        func_actor_206100_8014F2F0(task);
+        anim->field_50C = 3;
+        goto block_13;
+    }
+    if (kind == 2) {
+        func_actor_206100_8014F284(task);
+        anim->field_50C = 3;
+        anim->field_512 = 0;
+        goto block_13;
+    }
+    slot = 1;
+    if (kind == 3) {
+        TOUCH_REG(slot);
+        anim->field_512 = (s16)((u16)anim->field_512 + 1);
+    block_13:
+        slot = 1;
+    }
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)anim, slot);
+        slot = slot + 1;
+    } while (slot < 0xF);
+    work->field_508   = 0x1000;
+    work->field_50A   = 0x1000;
+    work->field_53E   = 0x1EAA;
+    work->field_54D   = 1;
+    coord->coord.t[0] = 0;
+    work->field_526   = 0x2710;
+    coord->coord.t[1] = 0x2710;
+    coord->coord.t[2] = 0;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    state            = (Actor206100Work*)task->idMap;
+    task->state      = 1;
+    state->field_520 = 0;
+    state->field_522 = 0;
+    tail             = (Actor206100Work*)task->idMap;
+    tail->field_520  = 0;
+    tail->field_522  = 0;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_206100/actor_206100", D_actor_206100_80149E5C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014C458);
