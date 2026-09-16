@@ -225,7 +225,16 @@ void Actor00400_Fn088EC(Actor100400* arg0, s16 arg1, s16 arg2, s16 arg3)
     work->field_624 = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08908);
+/// Same body as src/actors/lib/actors_shared_8016974c.c.
+s16 Actor00400_Fn08908(Actor100400* arg0)
+{
+    Actor100400Work* work = arg0->field_1C;
+
+    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08948);
 

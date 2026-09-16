@@ -2076,6 +2076,34 @@ This is the load-width question in isolation. Where the same value is *also*
 stored back or fed to arithmetic, the signed and unsigned copies are both live
 and the pair is a different problem - see the `lh`+`lhu` section above.
 
+## Two views of one union field are two loads; CSE will not merge `lhu` with `lw`
+
+`Actor100400Work::flags_62C` is a union with a `u32 word` and a `u16 half` over
+the same storage. Naming the narrow view for both tests leaves both reads in
+HImode, and CSE does merge those - one `lhu`, two `andi`s:
+
+    if ((work->flags_62C.half & 1) || (work->flags_62C.half & 0x102)) { ... }
+
+The target held a *second* load at 0x62C and it was a word load, `andi
+$v0,$v0,0x102` after `lw $v0,0x62C($v1)`, because the second test is on the wide
+view and a `lw` has no common subexpression with the `lhu`:
+
+    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) { ... }
+
+The symptom is small - the object is short two instructions (`lw`/`nop`) and the
+block addresses shift, so `branch` is non-zero - and it reads like an allocation
+problem: the m2c seed also puts the work pointer in `$v0` where the target has
+`$v1`, and splitting the members fixes that too, for free.
+`Actor00400_Fn08908` scored 79.6% with both reads narrow (`base.c`) and 100% on
+the member split (`base_1.c`, preprocessed
+`01e987369b28842bf141cdbadec42d1ac945647af4b36a4c14cdc356d0310c37`).
+
+The idiom is common here: `actors_shared_8013a0b0.c` and
+`actors_shared_8016974c.c` are this same body over their own flag unions, and
+ten more copies of the test sit inline in `src/actors/lib/actor_100400_text.c`.
+Before writing such a test from the assembly, grep the codebase for a matched
+sibling - the union's member names are what decide the load widths.
+
 ## A halfword that is incremented before its signed compare still loads `lhu`
 
 `lhu` is the default HImode load (`movhi_internal` → `lhu`); `lh` appears only
