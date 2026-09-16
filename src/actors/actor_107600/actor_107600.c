@@ -7,6 +7,7 @@
 
 #include "gameplay/gameplay.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_107600.h"
@@ -14,6 +15,11 @@
 /* The controller task this actor is reparented to is the Mist shooting
  * gallery's, so the counter at +0xE of its work block is that room's. */
 #include "rooms/mist_shooting_gallery.h"
+
+#include <psyq/inline_c.h>
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 /* Leading-rodata state table. A local initializer would emit the pool at this
  * function's .rodata instead of at D_actor_107600_80131E24. */
@@ -728,7 +734,92 @@ void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134608);
+/// Recolours the model's light matrix from the `field_4E` mode pair, blending
+/// the two remaps by `field_4F` while it counts down; a copy of
+/// `Gp_UpdateActorColor`.
+void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
+{
+    TmdObject*      extra;
+    MATRIX*         colorMtx;
+    s32             mode;
+    u8*             head;
+    GpColorScratch* block;
+    SVECTOR*        col0;
+    SVECTOR*        col1;
+    GpMtxCol*       src;
+    GpMtxCol*       dst;
+    s32             i;
+    s32             w0;
+    s32             w1;
+
+    extra    = (TmdObject*)arg0->task->extra;
+    colorMtx = extra->field_20;
+    mode     = arg0->field_4E & 3;
+    if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (Game_Session->field_65 != 1)) {
+        {
+            void**                   scratch;
+            register GpColorScratch* tmp asm("v0");
+
+            scratch  = (void**)G_SCRATCH_HEAD;
+            head     = *scratch;
+            tmp      = (GpColorScratch*)(head - 0x30);
+            block    = tmp;
+            *scratch = tmp;
+        }
+        func_800D7A9C(extra, arg1, 0, 3);
+        if ((s8)arg0->field_4F <= 0) {
+            func_actor_107600_801344E8(arg0, colorMtx, mode);
+        } else {
+            block->mtx.m[0][0] = colorMtx->m[0][0];
+            block->mtx.m[0][1] = colorMtx->m[0][1];
+            block->mtx.m[0][2] = colorMtx->m[0][2];
+            block->mtx.m[1][0] = colorMtx->m[1][0];
+            block->mtx.m[1][1] = colorMtx->m[1][1];
+            block->mtx.m[1][2] = colorMtx->m[1][2];
+            block->mtx.m[2][0] = colorMtx->m[2][0];
+            block->mtx.m[2][1] = colorMtx->m[2][1];
+            block->mtx.m[2][2] = colorMtx->m[2][2];
+            func_actor_107600_801344E8(arg0, colorMtx, mode);
+            func_actor_107600_801344E8(arg0, &block->mtx, (arg0->field_4E >> 2) & 3);
+            i    = 0;
+            col0 = (SVECTOR*)(head - 0x10);
+            col1 = (SVECTOR*)(head - 8);
+            src  = (GpMtxCol*)colorMtx;
+            w0   = (s8)arg0->field_4F << 8;
+            dst  = (GpMtxCol*)block;
+            w1   = 0x1000 - w0;
+            do {
+                block->col0.vx = src->x;
+                TOUCH_REG(src);
+                block->col0.vy = src->y;
+                TOUCH_REG(src);
+                block->col0.vz = src->z;
+                block->col1.vx = dst->x;
+                TOUCH_REG(dst);
+                block->col1.vy = dst->y;
+                TOUCH_REG(dst);
+                block->col1.vz = dst->z;
+                gte_lddp(w1);
+                gte_ldsv(col0);
+                gte_gpf12_real();
+                gte_lddp(w0);
+                gte_ldsv(col1);
+                gte_gpl12_real();
+                gte_stsv(col0);
+                src->x = block->col0.vx;
+                dst    = (GpMtxCol*)&dst->_0;
+                src->y = block->col0.vy;
+                i++;
+                src->z = block->col0.vz;
+                src    = (GpMtxCol*)&src->_0;
+            } while (i < 3);
+            if (D_801153F4 == 0) {
+                arg0->field_4F--;
+            }
+        }
+        *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    }
+}
 
 void func_actor_107600_801348A0(Task* arg0)
 {
