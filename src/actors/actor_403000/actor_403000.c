@@ -8,6 +8,7 @@
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -33,8 +34,20 @@ extern u32        D_actor_403000_80158DD0;
 extern u8         D_80071075;
 extern s8         D_80114C12;
 extern s8         D_actor_403000_80158364[];
+extern void*      Gp_PlayerAnimBlkTbl[];
+extern u16        Gp_WeaponIdBase[];
+extern u8         D_80073BA9;
+extern u8         D_801153F4;
+extern s32        D_80070F70;
 
 void func_800B4114(GpAnimCtx* anim, s32 slot, s16 animation, s32 arg3, s32 arg4);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_actor_403000_80132AE0(GsCOORDINATE2* coord);
+void func_actor_403000_80134F44(Actor403000* arg0);
+void func_actor_403000_8013D72C(Actor403000* arg0);
+void func_actor_403000_8013D648(Actor403000* arg0);
+void func_actor_403000_801377C8(Actor403000* arg0);
+void func_actor_403000_8013B74C(Actor403000* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
@@ -145,7 +158,7 @@ s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* ar
     return 0;
 }
 
-void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos)
+void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos, s32 arg2)
 {
     s32       sxy;
     s32       flag;
@@ -2940,7 +2953,266 @@ void func_actor_403000_8013C2D4(Actor403000* arg0)
     *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013C864);
+const Actor403000StateTable D_actor_403000_80131F44 = {
+    {
+        func_actor_403000_8013D5F8,
+        func_actor_403000_8013D72C,
+        func_actor_403000_8013A678,
+        func_actor_403000_8013ACBC,
+        func_actor_403000_8013B238,
+        func_actor_403000_80137084,
+        func_actor_403000_801384E8,
+        func_actor_403000_801377C8,
+        func_actor_403000_801386E8,
+        func_actor_403000_80138DB0,
+        func_actor_403000_8013A08C,
+        func_actor_403000_80139AE0,
+        func_actor_403000_8013B74C,
+        func_actor_403000_8013BDE0,
+        func_actor_403000_8013C2D4,
+        func_actor_403000_8013C050,
+        func_actor_403000_80135F08,
+        func_actor_403000_801399A0,
+        func_actor_403000_8013D910,
+        func_actor_403000_8013D850,
+        func_actor_403000_8013603C,
+        func_actor_403000_80136B14,
+        func_actor_403000_801365D0,
+        func_actor_403000_80136D68,
+        func_actor_403000_8013D648,
+    }
+};
+
+void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
+{
+    VECTOR3                   pos;
+    Actor403000Work*          work;
+    Actor403000*              player;
+    Actor403000UpdateScratch* scratch;
+    Actor403000StateTable     states;
+    WipSysConfig*             config;
+    u32                       sound;
+    s32                       pan;
+
+    work                         = arg1->field_1C;
+    player                       = Game_GetPtrSlot(3);
+    config                       = &Wip_SysConfig;
+    states                       = D_actor_403000_80131F44;
+    arg1->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(arg1->field_2C->field_8);
+    pos.vx = arg1->field_2C->field_8->workm.t[0];
+    pos.vy = arg1->field_2C->field_8->workm.t[1];
+    pos.vz = arg1->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(arg0, (VECTOR*)&pos, 0, 0);
+    arg1->field_2C->field_8->flg = 0;
+    switch (D_801153F4) {
+        case 0:
+            if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            Gp_ClearRec18Occupied(work->objD18.rec);
+            Gp_ClearRec18Occupied(work->objB50.rec);
+            Gp_ClearRec18Occupied(work->objBE8.rec);
+            Gp_ClearRec18Occupied(work->objC80.rec);
+            Gp_ClearRec18Occupied(work->records);
+            Gp_ClearRec18Occupied(work->recordsE98);
+            return;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            Gp_ClearRec18Occupied(work->objD18.rec);
+            Gp_ClearRec18Occupied(work->objB50.rec);
+            Gp_ClearRec18Occupied(work->objBE8.rec);
+            Gp_ClearRec18Occupied(work->objC80.rec);
+            Gp_ClearRec18Occupied(work->records);
+            Gp_ClearRec18Occupied(work->recordsE98);
+            return;
+    }
+    scratch = (*(Actor403000UpdateScratch**)G_SCRATCH_HEAD -= 1);
+    if (config->field_18 > 0) {
+        func_actor_403000_80134F44(arg1);
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = work->field_0;
+    states.funcs[work->field_0](arg1);
+    if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0x15 && work->field_0 != 0) {
+        work->objB50.obj.flags |= 0x8000;
+        work->objBE8.obj.flags |= 0x8000;
+        work->objC80.obj.flags |= 0x8000;
+        work->objE60.flags     |= 0x8000;
+    } else {
+        work->objB50.obj.flags &= 0x7FFF;
+        work->objBE8.obj.flags &= 0x7FFF;
+        work->objC80.obj.flags &= 0x7FFF;
+        work->objE60.flags     &= 0x7FFF;
+    }
+    if (work->field_FCA == 0) {
+        if (work->field_FD8 == 1 && work->field_FD7 == 1) {
+            arg0->node.field_4 = 0xC;
+        } else {
+            arg0->node.field_4 = 0xD;
+            Gp_ClearNodeSlots(&arg0->node);
+        }
+    }
+    if (!(D_80070F70 & 1)) {
+        scratch->d.vx = player->field_2C->field_8->coord.t[0] - arg1->field_2C->field_8->coord.t[0];
+        scratch->d.vy = player->field_2C->field_8->coord.t[1] - arg1->field_2C->field_8->coord.t[1];
+        scratch->d.vz = player->field_2C->field_8->coord.t[2] - arg1->field_2C->field_8->coord.t[2];
+        scratch->dist = SquareRoot0(scratch->d.vx * scratch->d.vx + scratch->d.vy * scratch->d.vy + scratch->d.vz * scratch->d.vz);
+        if (scratch->dist > 9000) {
+            work->field_FD8 = 0;
+        } else {
+            work->field_FD8 = 1;
+        }
+    } else {
+        scratch->to.vx   = player->field_2C->field_8->workm.t[0];
+        scratch->to.vy   = player->field_2C->field_8->workm.t[1];
+        scratch->to.vz   = player->field_2C->field_8->workm.t[2];
+        scratch->from.vx = arg1->field_2C->field_8->workm.t[0];
+        scratch->from.vy = arg1->field_2C->field_8->workm.t[1];
+        scratch->from.vz = arg1->field_2C->field_8->workm.t[2];
+        if (func_800E0308(&scratch->from, &scratch->to) != 1) {
+            work->field_FD7 = 1;
+        } else {
+            work->field_FD7 = 0;
+        }
+    }
+    if (work->field_FC0 == 1) {
+        work->field_FCC++;
+        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9]) {
+            switch (work->field_F94) {
+                case 1:
+                    if (work->field_FCC == 42) {
+                        Gp_SpawnPadLerp(0xC, 0xFF, 0x80);
+                    }
+                    if (work->field_FCC == 52) {
+                        sound   = arg0->field_8;
+                        sound >>= 12;
+                        sound <<= 8;
+                        sound  |= 0x401E000A;
+                        pan     = Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8) << 24;
+                        pan   >>= 24;
+                        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+                    }
+                    break;
+                case 3:
+                    if (work->field_FCC == 4) {
+                        Gp_SpawnPadLerp(0xC, 0x58, 0xFF);
+                    }
+                    if (work->field_FCC == 15) {
+                        sound   = arg0->field_8;
+                        sound >>= 12;
+                        sound <<= 8;
+                        sound  |= 0x401E000A;
+                        pan     = Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8) << 24;
+                        pan   >>= 24;
+                        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+                    }
+                    break;
+                case 5:
+                    if (work->field_FCC == 1) {
+                        Gp_SpawnPadLerp(0xC, 0x58, 0xFF);
+                    }
+                    if (work->field_FCC == 10) {
+                        sound   = arg0->field_8;
+                        sound >>= 12;
+                        sound <<= 8;
+                        sound  |= 0x401E000A;
+                        pan     = Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8) << 24;
+                        pan   >>= 24;
+                        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+                    }
+                    break;
+                case 2:
+                case 4:
+                case 6:
+                    break;
+            }
+        }
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            work->field_FCC = 0;
+            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9]) {
+                switch (work->field_F94) {
+                    case 1:
+                        work->field_F94 = 2;
+                        work->field_F98 = 1;
+                        work->field_F9C = 0;
+                        work->field_FA0 = 1;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        break;
+                    case 3:
+                        work->field_F94 = 4;
+                        work->field_F98 = 1;
+                        work->field_F9C = 0;
+                        work->field_FA0 = 1;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        break;
+                    case 5:
+                        work->field_F94 = 6;
+                        work->field_F98 = 1;
+                        work->field_F9C = 0;
+                        work->field_FA0 = 1;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        break;
+                    case 2:
+                    case 4:
+                    case 6:
+                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + D_80073BA9];
+                        work->field_F94 = 7;
+                        work->field_F9C = 0x10;
+                        work->field_F98 = 0;
+                        work->field_FA0 = 1;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+                        break;
+                }
+            } else {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+                work->field_FC0 = 0;
+            }
+        }
+    }
+    scratch->ofs.vx = -60;
+    scratch->ofs.vy = -40;
+    scratch->ofs.vz = 300;
+    if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0x15) {
+        func_actor_403000_801327B0(&arg1->field_2C->field_8[4], &scratch->ofs, 0);
+        func_actor_403000_80132AE0(&arg1->field_2C->field_8[4]);
+    } else {
+        func_actor_403000_801330D4(&arg1->field_2C->field_8[4]);
+    }
+    Gp_ClearRec18Occupied(work->objD18.rec);
+    Gp_ClearRec18Occupied(work->objB50.rec);
+    Gp_ClearRec18Occupied(work->objBE8.rec);
+    Gp_ClearRec18Occupied(work->objC80.rec);
+    Gp_ClearRec18Occupied(work->records);
+    Gp_ClearRec18Occupied(work->recordsE98);
+    if (player->field_2C->field_8->coord.t[1] > 3) {
+        player->field_2C->field_8->coord.t[1] = 3;
+    }
+    if (player->field_2C->field_8->coord.t[2] > 0x2260) {
+        player->field_2C->field_8->coord.t[2] = 0x2260;
+    }
+    if (player->field_2C->field_8->coord.t[2] < -400) {
+        player->field_2C->field_8->coord.t[2] = -400;
+    }
+    if (player->field_2C->field_8->coord.t[0] < 250) {
+        player->field_2C->field_8->coord.t[0] = 250;
+    }
+    if (player->field_2C->field_8->coord.t[0] > 0x477C) {
+        player->field_2C->field_8->coord.t[0] = 0x477C;
+    }
+    *(Actor403000UpdateScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", ActorsShared80135df4Table);
 

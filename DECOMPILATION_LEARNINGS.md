@@ -99461,3 +99461,34 @@ diff = (s8)cell - scratch->playerCell;` with the inline written as
 previous entry's `s32`-returning form gave `lb` but folded the re-extension;
 returning `s8` directly (`return (s8)table[i];`) gave `lbu`. The `s32`
 intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
+
+### A store scheduled past an absolute-byte load: read the byte through its struct
+
+`func_actor_403000_8013C864` clears `work->field_FCC` and then indexes
+`Gp_WeaponIdBase[D_8007218A - 1]`. The ROM keeps `sh zero,0xFCC(s2)` between
+`lui v0,%hi(D_8007218A)` and the `lb`; with `extern s8 D_8007218A` sched2
+moved the store after the `lb` (reorder=1, everything else zero). `D_8007218A`
+is `Mc_SaveData + 0x22`, and writing `Mc_SaveData.field_22` makes the load a
+struct-flagged `mem/s`, which the scheduler treats as possibly aliasing the
+`mem/s:HI` store, so the store has to stay ahead of the load. The relocation
+changes to `Mc_SaveData+0x22`, but the linked bytes are the same. Before chasing
+a store/load reorder through `sched.c`, check whether the absolute symbol is a
+field of a known struct.
+
+### A handler table migrated into the function's `.s` has no `INCLUDE_RODATA` file
+
+With `migrate_rodata_to_functions`, a `.rodata` symbol only one function
+references is written into that function's `.s`, not into a file of its own.
+When the function becomes C, `INCLUDE_RODATA(..., D_x)` fails at assembly
+("can't open ... D_x.s"). For a function-pointer table (`sp = D_x;
+sp.funcs[state](arg)`), define it in C just before the function:
+`const Actor403000StateTable D_actor_403000_80131F44 = { { f1, f2, ... } };`.
+It lands in the unit's `.rodata` ahead of the function's jump tables, in the
+same order as before. Declare any `INCLUDE_ASM` handlers the initializer names.
+
+### Check scratch diffs with the mnemonic column kept
+
+At 99.6% the only real difference was `srl` vs `sra` on `sound >>= 12` (the fix
+was `u32 sound`), and it was hidden because the ad-hoc
+`awk '{$1=""; print}'` over `*_object_dump_normalized.s` dropped the
+mnemonic along with the address. Diff whole lines, or strip only the offset.

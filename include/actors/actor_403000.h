@@ -141,14 +141,16 @@ typedef struct Actor403000Work {
     /* 0xFC4 */ byte     pad_FC4[0x4];
     /* 0xFC8 */ s16      field_FC8;
     /* 0xFCA */ s16      field_FCA;
-    /* 0xFCC */ byte     pad_FCC[0x5];
+    /* 0xFCC */ u16      field_FCC;
+    /* 0xFCE */ byte     pad_FCE[0x3];
     /* 0xFD1 */ s8       field_FD1;
     /* 0xFD2 */ s8       field_FD2;
     /* 0xFD3 */ s8       field_FD3;
     /* 0xFD4 */ s8       field_FD4;
     /* 0xFD5 */ s8       field_FD5;
     /* 0xFD6 */ u8       field_FD6;
-    /* 0xFD7 */ byte     pad_FD7[0x2];
+    /* 0xFD7 */ s8       field_FD7;
+    /* 0xFD8 */ s8       field_FD8;
     /* 0xFD9 */ u8       field_FD9;
     /* 0xFDA */ byte     pad_FDA[0x2];
 } Actor403000Work;
@@ -359,6 +361,29 @@ typedef struct Actor403000TrailScratch {
     /* 0x70 */ byte          pad_70[0x44];
 } Actor403000TrailScratch;
 STATIC_ASSERT_SIZEOF(Actor403000TrailScratch, 0xB4);
+
+/// 0x38-byte `G_SCRATCH_HEAD` block `func_actor_403000_8013C864` takes each
+/// frame: `d` and `dist` are the player's offset from the model and its length
+/// (even frames), `to`/`from` the two world positions handed to `func_800E0308`
+/// as the line-of-sight segment (odd frames), `ofs` the flare offset passed to
+/// `func_actor_403000_801327B0`.
+typedef struct Actor403000UpdateScratch {
+    /* 0x00 */ VECTOR  d;
+    /* 0x10 */ byte    pad_10[0x8];
+    /* 0x18 */ SVECTOR to;
+    /* 0x20 */ SVECTOR from;
+    /* 0x28 */ SVECTOR ofs;
+    /* 0x30 */ s32     dist;
+    /* 0x34 */ byte    pad_34[0x4];
+} Actor403000UpdateScratch;
+STATIC_ASSERT_SIZEOF(Actor403000UpdateScratch, 0x38);
+
+/// The animation-state handlers `func_actor_403000_8013C864` copies onto its
+/// stack and calls through, indexed by `Actor403000Work::field_0`.
+typedef struct Actor403000StateTable {
+    void (*funcs[35])(Actor403000*);
+} Actor403000StateTable;
+extern const Actor403000StateTable D_actor_403000_80131F44;
 
 /// Trail history `func_actor_403000_801330D4` shifts down one slot per call,
 /// storing the newest position in slot 0.
