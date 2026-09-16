@@ -142,7 +142,10 @@ typedef struct Actor401000Work {
     /// column, normalised, and finally scaled by the `field_C0A` draw. The same
     /// slot `Actor401300Work` keeps at +0xC8C.
     /* 0xBF0 */ SVECTOR field_BF0;
-    /* 0xBF8 */ byte    pad_BF8[0x8];
+    /// Position `func_actor_401000_8013D044` snaps the root coordinate to when
+    /// a 0xB/0xD state transition arrives: written by the transition handler and
+    /// loaded into `coord.t` with `flg` cleared so the local matrix is rebuilt.
+    /* 0xBF8 */ SVECTOR field_BF8;
     /// Turn angle `func_actor_401000_80136E20` rebuilds the facing from, and
     /// the yaw it is driven to: each entry nudges `field_C00` by 0x89 toward
     /// `field_C02` and stops once they meet, and `Gfx_RotMatrixY` /
@@ -216,7 +219,11 @@ typedef struct Actor401000Work {
     /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
     /// The same slot `Actor00100Work` keeps at +0xC28.
     /* 0xC28 */ s16  field_C28;
-    /* 0xC2A */ byte pad_C2A[0x52];
+    /* 0xC2A */ byte pad_C2A[2];
+    /// Ring of the last seven view-space positions `func_actor_401000_8013D044`
+    /// records, one per step; `field_C7C` is the write cursor.
+    /* 0xC2C */ SVECTOR field_C2C[7];
+    /* 0xC64 */ byte    pad_C64[0x18];
     /// Cleared by `func_actor_401000_80133274` once both obstacle tables have
     /// been dropped; the write cursor `Actor401300Work` keeps at +0xD78.
     /* 0xC7C */ s16  field_C7C;
@@ -239,6 +246,23 @@ typedef struct Actor401000 {
     /// early on the 0x1 arm before it touches the scratch block.
     /* 0x36 */ s16 field_36;
 } Actor401000;
+
+/// The actor's state handlers, indexed by `Actor401000Work::field_0`.
+/// `func_actor_401000_8013D044` copies the table to its frame before
+/// dispatching. Same shape as `Actor01900StateTable` / `Actor401300StateTable`.
+typedef struct Actor401000StateTable {
+    void (*fn[34])(Actor401000*);
+} Actor401000StateTable;
+STATIC_ASSERT_SIZEOF(Actor401000StateTable, 0x88);
+
+/// 0x18-byte scratch `func_actor_401000_8013D044` takes from `G_SCRATCH_HEAD`;
+/// `pos` receives a model coordinate in view space. Same shape as
+/// `Actor01900ViewScratch` / `Actor401300ViewScratch`.
+typedef struct Actor401000ViewScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR pos;
+} Actor401000ViewScratch;
+STATIC_ASSERT_SIZEOF(Actor401000ViewScratch, 0x18);
 
 /// Message payload of `func_actor_401000_8013D694`, the actor's animation
 /// request handler: `field_4` is the requested clip index, which the handler
@@ -394,6 +418,45 @@ extern GpMsg3EE D_actor_401000_80155018;
 /// each spawn in `func_actor_401000_8013B1E4`.
 extern void* D_80114B78[1];
 
+/// Frame state `func_actor_401000_8013D044` switches its whole tail on: 0, 1
+/// and 2 each run their own arm, and the display list is only advanced on the
+/// 0 arm. `D_801153F2[1]` is the same pair's second byte, which forces state 6
+/// on a state-0x18 actor.
+extern u8 D_801153F2[2];
+extern u8 D_801153F4;
+
+/// State handler table `func_actor_401000_8013D044` copies to its frame; the
+/// entries are declared here so the table itself can be written out in
+/// `actor_401000.c`.
+void func_actor_401000_80134DB4(Actor401000* arg0);
+void func_actor_401000_80134F98(Actor401000* arg0);
+void func_actor_401000_80135AA4(Actor401000* arg0);
+void func_actor_401000_801365C8(Actor401000* arg0);
+void func_actor_401000_80136E20(Actor401000* arg0);
+void func_actor_401000_801374D4(Actor401000* arg0);
+void func_actor_401000_801378DC(Actor401000* arg0);
+void func_actor_401000_801380B8(Actor401000* arg0);
+void func_actor_401000_801383F0(Actor401000* arg0);
+void func_actor_401000_801385B0(Actor401000* arg0);
+void func_actor_401000_801388F4(Actor401000* arg0);
+void func_actor_401000_80138BB4(Actor401000* arg0);
+void func_actor_401000_80138D08(Actor401000* arg0);
+void func_actor_401000_80138F50(Actor401000* arg0);
+void func_actor_401000_8013922C(Actor401000* arg0);
+void func_actor_401000_801394EC(Actor401000* arg0);
+void func_actor_401000_80139D10(Actor401000* arg0);
+void func_actor_401000_8013A0C8(Actor401000* arg0);
+void func_actor_401000_8013A5F0(Actor401000* arg0);
+void func_actor_401000_8013A930(Actor401000* arg0);
+void func_actor_401000_8013B1E4(Actor401000* arg0);
+void func_actor_401000_8013B61C(Actor401000* arg0);
+void func_actor_401000_8013C46C(Actor401000* arg0);
+void func_actor_401000_8013CD9C(Actor401000* arg0);
+void func_actor_401000_8013CEF0(Actor401000* arg0);
+void func_actor_401000_8013DE24(Actor401000* arg0);
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
 /// Overlay effect model data `func_actor_401000_8013B1E4` points
 /// `D_80114B78` at before spawning, one per animation-latch key frame
 /// (`field_6` 3, 5, 7, 8).
@@ -407,6 +470,9 @@ extern char D_actor_401000_80146190;
 extern u8 D_80072729;
 
 void func_actor_401000_80132EF0(Actor401000* arg0);
+
+/// Runs the actor's `field_BE8` idle countdown out into its movement chase.
+void func_actor_401000_80133D50(Actor401000* arg0);
 
 /// Range probe `func_actor_401000_801385B0` runs against the actor root: the
 /// same helper as `func_actor_401300_8013267C`, with the step amount in the

@@ -2485,7 +2485,205 @@ void func_actor_401000_8013CEF0(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013D044);
+/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// coordinate; `out` is left unchanged if the chain ends before the view. Same
+/// body as `Actor401300_TransformToView` / `Actor01900_TransformToView`.
+static __inline__ void Actor401000_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
+}
+
+/// The actor's state handlers, indexed by `Actor401000Work::field_0`. Copied to
+/// the frame by `func_actor_401000_8013D044` before the dispatch, so the
+/// handler may overwrite the live table entry.
+static const Actor401000StateTable D_actor_401000_80131FF4 = { {
+    func_actor_401000_8013DB10,
+    func_actor_401000_8013DB6C,
+    func_actor_401000_8013DC14,
+    func_actor_401000_8013DCC0,
+    func_actor_401000_80134DB4,
+    func_actor_401000_8013DD6C,
+    func_actor_401000_80134F98,
+    func_actor_401000_80135AA4,
+    func_actor_401000_801365C8,
+    func_actor_401000_80136E20,
+    func_actor_401000_801374D4,
+    func_actor_401000_801378DC,
+    func_actor_401000_801380B8,
+    func_actor_401000_801383F0,
+    func_actor_401000_801385B0,
+    func_actor_401000_8013DE24,
+    func_actor_401000_8013DEC8,
+    func_actor_401000_8013DF6C,
+    NULL,
+    func_actor_401000_801388F4,
+    func_actor_401000_80138BB4,
+    func_actor_401000_80138D08,
+    func_actor_401000_80138F50,
+    func_actor_401000_8013922C,
+    func_actor_401000_801394EC,
+    func_actor_401000_8013A0C8,
+    func_actor_401000_80139D10,
+    func_actor_401000_8013A5F0,
+    func_actor_401000_8013A930,
+    func_actor_401000_8013B1E4,
+    func_actor_401000_8013C46C,
+    func_actor_401000_8013CD9C,
+    func_actor_401000_8013CEF0,
+    func_actor_401000_8013B61C,
+} };
+
+/// The actor's per-frame tick, the 401000 twin of `func_actor_401300_801405DC`:
+/// copy the state table to the frame, advance the root coordinate and hand it
+/// to `Gp_UpdateActorColor`, then run the `D_801153F4` arm. Arms 1 and 2 only
+/// drop the two obstacle records (2 also opening the `field_C` draw to 0x80)
+/// and return; arm 0 falls through into the common tail, which counts
+/// `field_BE8` down into `func_actor_401000_80133D50`, carries a new
+/// `field_0` into `field_2`/`field_4` (snapping the root to `field_BF8` on a
+/// 0xB/0xD transition), dispatches through the table, re-flags `field_8D0`,
+/// then appends the view-space position to the `field_C2C` ring and publishes
+/// it as the enemy's `field_1C` while the `field_89E` clip is 0x14/0x15.
+void func_actor_401000_8013D044(GpEnemy* enemy, Actor401000* actor)
+{
+    VECTOR                  pos;
+    Actor401000StateTable   states;
+    Actor401000Work*        work;
+    Actor401000ViewScratch* scratch;
+    Actor401000ViewScratch* head;
+    s32                     state;
+
+    work   = actor->field_1C;
+    states = D_actor_401000_80131FF4;
+
+    actor->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(actor->field_2C->field_8);
+    pos.vx = actor->field_2C->field_8->workm.t[0];
+    pos.vy = actor->field_2C->field_8->workm.t[1];
+    pos.vz = actor->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    switch (D_801153F4) {
+        case 0:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
+                actor->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+                state = work->field_0;
+            }
+            if ((state == 0x21) && (work->field_89E == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            state = work->field_0;
+            if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
+                actor->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+                state = work->field_0;
+            }
+            if ((state == 0x21) && (work->field_89E == 2)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)actor->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            Gp_ClearRec18Occupied((GpRec18*)work->field_A30);
+            Gp_ClearRec18Occupied((GpRec18*)work->field_8F0);
+            return;
+        case 2:
+            actor->field_2C->field_C = 0x80;
+            Gp_ClearRec18Occupied((GpRec18*)work->field_A30);
+            Gp_ClearRec18Occupied((GpRec18*)work->field_8F0);
+            return;
+    }
+
+    head                                      = *(Actor401000ViewScratch**)G_SCRATCH_HEAD;
+    *(Actor401000ViewScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                   = head - 1;
+
+    if (work->field_BE8 > 0) {
+        work->field_BE8 = (s16)((u16)work->field_BE8 - 1);
+    } else {
+        func_actor_401000_80133D50(actor);
+    }
+    if (work->field_2 != work->field_0) {
+        if ((work->field_2 == 0xB) || (work->field_2 == 0xD)) {
+            actor->field_2C->field_8->coord.t[0] = work->field_BF8.vx;
+            actor->field_2C->field_8->coord.t[1] = work->field_BF8.vy;
+            actor->field_2C->field_8->coord.t[2] = work->field_BF8.vz;
+            actor->field_2C->field_8->flg        = 0;
+            Gp_UpdateCoord(actor->field_2C->field_8);
+        }
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (u16)work->field_0;
+    states.fn[work->field_0](actor);
+
+    state = work->field_0;
+    if ((state == 0x15) || (state == 0) || (state == 0x1D) || (state == 0x21)) {
+        work->field_8D0.flags &= 0x7FFF;
+    } else {
+        work->field_8D0.flags |= 0x8000;
+    }
+    Gp_ClearRec18Occupied((GpRec18*)work->field_A30);
+    Gp_ClearRec18Occupied((GpRec18*)work->field_8F0);
+
+    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+        work->field_0 = 6;
+    }
+
+    scratch->pos.vx = 0;
+    scratch->pos.vy = 0;
+    scratch->pos.vz = 0;
+    Actor401000_TransformToView(actor->field_2C->field_8 + 2, &scratch->pos);
+
+    work->field_C2C[work->field_C7C].vx = scratch->pos.vx;
+    work->field_C2C[work->field_C7C].vy = scratch->pos.vy;
+    work->field_C2C[work->field_C7C].vz = scratch->pos.vz;
+
+    *(u8**)G_SCRATCH_HEAD += 0x18;
+    work->field_C7C        = (u16)work->field_C7C + 1;
+    if (work->field_C7C == 7) {
+        work->field_C7C = 0;
+    }
+    if ((u32)((u16)work->field_89E - 0x14) < 2U) {
+        enemy->field_1C.vx = work->field_C2C[work->field_C7C].vx;
+        enemy->field_1C.vy = work->field_C2C[work->field_C7C].vy;
+        enemy->field_1C.vz = work->field_C2C[work->field_C7C].vz;
+    } else {
+        enemy->field_1C.vx = scratch->pos.vx;
+        enemy->field_1C.vy = scratch->pos.vy;
+        enemy->field_1C.vz = scratch->pos.vz;
+    }
+    enemy->field_18 = &Gfx_ViewCoord;
+}
 
 void func_actor_401000_8013D68C(void)
 {
