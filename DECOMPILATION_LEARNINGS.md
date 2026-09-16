@@ -44751,6 +44751,15 @@ came back at 97.97% with `regs=1 reorder=1`: the `regs` was m2c's
 the sched1 region's pressure, not its own statement order. Both penalties went
 to zero on that one edit. So an arity error found in one call is worth fixing
 before reading any `reorder` dump, even when it is a different call that moved.
+
+The penalty signature is not a reliable tell, so count the arguments before
+reading a dump at all. `func_dryfield_night_dilapidated_house_8017D970`, the same
+room opener, came back at 99.868% with `regs=1` and nothing else — no `reorder`,
+and both later calls byte-identical. That opener (`field_24 = <msg table>`,
+`Game_SetPtrSlot(arg0, 7)`, `state++`) is the standard room state-entry prologue:
+63 files under `src/rooms/` use it. So for an unmatched room callback of that
+shape, check the m2c seed's `Game_SetPtrSlot` arity first — the fix is one
+argument and it is free.
 ## The same rule at an indirect call, where there is no callee `.s` to check
 
 `func_actor_107600_801348A0` copies a four-entry `TaskFuncTable4` onto the stack
