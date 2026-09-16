@@ -510,6 +510,59 @@ s32 Actor01600_Fn047A0(Actor01600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_rotation", Actor01600_Fn04974);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_rotation", Actor01600_Fn04AD8);
+void Actor01600_Fn04AD8(Actor01600* arg0)
+{
+    Actor01600Ctx*  ctx;
+    Actor01600Work* work;
+    GsCOORDINATE2*  body;
+    s16             state;
+    u16             count;
+    u16             count2;
+
+    work  = arg0->field_1C;
+    ctx   = arg0->field_20;
+    state = work->field_4F2;
+    body  = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_24C.coord.t[0] = body->coord.t[0];
+            work->field_24C.coord.t[2] = body->coord.t[2];
+            ctx->field_18              = body;
+            break;
+        case 1:
+            work->field_24C.coord.t[0] = body->coord.t[0];
+            work->field_24C.coord.t[2] = body->coord.t[2];
+            ctx->field_18              = &work->field_24C;
+            goto advance;
+        case 2:
+            count           = work->field_4F4 + 1;
+            work->field_4F4 = count;
+            if ((s16)count < 8) {
+                break;
+            }
+        advance:
+            work->field_4F4 = 0U;
+            work->field_4F2 = (u16)work->field_4F2 + 1;
+            break;
+        case 3:
+            work->field_4F6 = (s16)((body->coord.t[0] - work->field_24C.coord.t[0]) / 5);
+            work->field_4F8 = (s16)((body->coord.t[2] - work->field_24C.coord.t[2]) / 5);
+            work->field_4F2 = (u16)work->field_4F2 + 1;
+            break;
+        case 4:
+            work->field_24C.coord.t[0] += work->field_4F6;
+            work->field_24C.coord.t[2] += work->field_4F8;
+            count2                      = work->field_4F4 + 1;
+            work->field_4F4             = count2;
+            if ((s16)count2 >= 5) {
+                work->field_4F4 = 0U;
+                work->field_4F2 = 0;
+            }
+            break;
+    }
+    work->field_24C.coord.t[1] = body->coord.t[1];
+    work->field_24C.flg        = 0;
+    Gp_UpdateCoord(&work->field_24C);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_rotation", Actor01600_Fn04C64);

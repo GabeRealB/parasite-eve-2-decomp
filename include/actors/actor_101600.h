@@ -211,7 +211,9 @@ typedef struct Actor01600Work {
     /* 0x4EE */ s16                field_4EE;
     /* 0x4F0 */ s16                field_4F0;
     /* 0x4F2 */ s16                field_4F2;
-    /* 0x4F4 */ byte               pad_4F4[6];
+    /* 0x4F4 */ u16                field_4F4;
+    /* 0x4F6 */ s16                field_4F6;
+    /* 0x4F8 */ s16                field_4F8;
     /* 0x4FA */ s16                field_4FA;
     /* 0x4FC */ s16                field_4FC;
     /* 0x4FE */ s16                field_4FE;

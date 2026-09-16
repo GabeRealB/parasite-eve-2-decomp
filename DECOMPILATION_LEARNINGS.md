@@ -7573,6 +7573,47 @@ identical, plus `undefined reference` for the bodies that moved the other way.
 `touch src/<overlay>/*.c` (or deleting that directory's objects) before the
 build avoids reading the error as a bad cut.
 
+### A twin overlay's jump table: cut it to the shared unit, hand the pad back
+
+The actors family's relocated twins (`actor_101600` / `_201600` / `_301600` are
+one package at three load addresses, with the *whole* `.text` shared) cut their
+leading rodata per owner, so the run holding a function's jump table is owned by
+an asm unit (`actor_101600_header_2b`) while the run ahead of it is the shared
+unit's `.rodata`. Decompiling that function makes GCC emit the table into the
+shared unit's object — at the *end* of its `.rodata`, which is the right address,
+because the object is placed at the earlier cut — but the split still ships the
+extracted table as `asm/USA/actors/data/actor_101600_header_2b.rodata.s`, so the
+bytes land twice and every later unit shifts by the table's size (here `0x14`).
+
+The symptoms are worth recognising: the scratch env scores 100.000% with
+all-zero penalties while `build-and-verify` fails the checksum of *all three
+twins at once* (they link the same shared object), first differing at byte 4 of
+the package — the first dispatch pointer — with every entry after it `+0x14`.
+`tools/rodata_triage.py` reports `0 unmatched functions` throughout, because no
+function is unmatched; the object already matches and only its `.rodata` moved.
+
+Give the table's run to the generating unit — the shared unit's name, which every
+twin's entry uses — and hand the run's *trailing alignment pad* back to the old
+asm unit with a second cut at that offset:
+
+```toml
+rodata = [{ start = "0x14",  unit = "actor_101600_text" },
+          { start = "0x184", unit = "actor_101600_rotation" },
+          { start = "0x1A4", unit = "actor_101600_rotation" },
+          { start = "0x1B8", unit = "actor_101600_header_2b" },
+          { start = "0x1BC", unit = "actor_101600_turn" },
+          { start = "0x1D4", unit = "actor_101600_header_3" }]
+```
+
+Naming the same unit twice emits the object's `.rodata` line twice in the ld
+script; ld places the input section at its first reference and the second line is
+a no-op, so the object's `[earlier table][new table]` lands contiguously at the
+first cut, exactly where the target has it. Cut at the pad rather than at the
+next table: the 4 bytes after this 5-word table are not in the object (GCC emits
+no trailing pad), so dropping them shifts the `turn` unit by four instead. The
+same edit is needed in each twin's entry — `_201600` and `_301600` carry their
+own `<name>_header_2b` and their own copies of the offsets.
+
 ### Generated overlay configs: a rodata cut needs a matching `.text` cut
 
 A `rodata` cut alone does not move a *function* into the new unit, and the
