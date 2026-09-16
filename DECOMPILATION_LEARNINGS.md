@@ -677,15 +677,20 @@ reload is not hoisted into the first matrix `lhu` delay.
 ## Delay-slot table `%hi` paired with a field `lh` is splat, not C
 
 When a `%hi(table)` sits in a branch delay slot and its `%lo` is only used on
-the not-taken path, splat cannot pair them and will attach the `%hi` to the
-next instruction if that instruction's displacement equals some other symbol's
-lo16. `Actor04400_Fn08908` is the worked example: `lh 0x440($s0)` is
-`work->field_440`, `Actor04400_D0E620` happens to be `0x80140440`, and
-`rel.actor_104400.txt` therefore names the delay-slot `lui` as `D0E620`. The
-`lui` belongs to `Actor04400_D10828` (same 64K page). GCC emits
-`lui %hi(table)` / `lh 0x440($s0)` / `addiu %lo(table)`. Scratch differ reports
-`regs=2` on the reloc names; the linked overlay words match. Do not fake the
-splat pair with pointer arithmetic through the coincidental symbol.
+the not-taken path, the instruction after the slot can look like its partner:
+in `Actor04400_Fn08908`, `lh 0x440($s0)` is `work->field_440`, and a symbol at
+`0x80140440` would make it read as `%lo`. The `lui` belongs to
+`Actor04400_D10828` (same 64K page), and GCC emits `lui %hi(table)` /
+`lh 0x440($s0)` / `addiu %lo(table)`. Do not fake the pair with pointer
+arithmetic through a coincidental symbol.
+
+Do not fake it in a reloc override either. spimdisasm follows the branch from
+the delay slot and pairs the `lui` with the real `%lo` on its own. Overrides
+that named page-plus-offset symbols (`Actor04400_D0E620 = 0x80140440`) for
+these pairs reproduced the bytes, so the build stayed green, but the expected
+object then carried a `HI16/LO16` pair the C object does not. objdiff scored
+the four matched functions involved at 99.9%. Removing the overrides and
+their symbols fixed all four with the checksum unchanged.
 
 `func_actor_342400_8016BA3C` is the same body without the false pair, because
 that overlay's table lo16 is not `0x440`.
@@ -83025,8 +83030,10 @@ in a `beqz` delay slot), the words are literal addresses from whichever slot
 split last. The other slot then fails its checksum at the table bytes, off by
 the load-address difference. Fix it in the shared reloc file with one
 `rom:0xOFF reloc:MIPS_32 symbol:<label>` per entry
-(`configs/USA/rel.actor_101900.txt`). Ninja does not rebuild the `.c.o` when an
-included `.s` changes, so `touch` the unit before re-checking.
+(`rel.actor_101900.txt` did this for `Actor01900_Fn02A50`). Ninja does not
+rebuild the `.c.o` when an included `.s` changes, so `touch` the unit before
+re-checking. The override only matters while the function is `INCLUDE_ASM`:
+once it is matched, the compiler emits the table, so remove the entries.
 
 ## Top-tested angle wrap plus `lui`/`ori` and absolute scratch forms: look for the known inline helpers
 
