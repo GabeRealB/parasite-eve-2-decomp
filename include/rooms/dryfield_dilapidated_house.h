@@ -48,6 +48,17 @@ typedef struct DdhRoomRec {
 } DdhRoomRec;
 STATIC_ASSERT_SIZEOF(DdhRoomRec, 0x18);
 
+/// Work block of the handler table at `D_dryfield_dilapidated_house_8017D61C`,
+/// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
+/// `Mem_Malloc(0x24, 0)` and parked in the `Task::idMap` slot. It holds a
+/// snapshot of the placed model coordinate's matrix (`mtx`, copied from
+/// `RoomCoord::coord`) plus one 0x1000 word.
+typedef struct DdhModelWork {
+    /* 0x00 */ MATRIX mtx;
+    /* 0x20 */ s32    field_20;
+} DdhModelWork;
+STATIC_ASSERT_SIZEOF(DdhModelWork, 0x24);
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);

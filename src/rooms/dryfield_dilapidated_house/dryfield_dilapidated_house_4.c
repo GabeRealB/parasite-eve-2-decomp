@@ -75,7 +75,31 @@ void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181134);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_8018118C);
+/// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D61C`:
+/// snapshots the placed model coordinate's matrix into a fresh `DdhModelWork`,
+/// seeds its 0x1000 word, marks the model's `TmdObject` hidden (bit 0x80 of
+/// `field_C`), re-parents the task that spawned this one under it and advances
+/// to state 1.
+void func_dryfield_dilapidated_house_8018118C(Task* arg0)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    DdhModelWork*  work;
+
+    obj   = (TmdObject*)arg0->extra;
+    coord = obj->field_8;
+    work  = (DdhModelWork*)Mem_Malloc(0x24, false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    arg0->idMap    = (TaskIdMap*)work;
+    work->field_20 = 0x1000;
+    work->mtx      = coord->coord;
+    obj->field_C  |= 0x80;
+    Task_Reparent((Task*)arg0->spawnArg2, arg0);
+    arg0->state += 1;
+}
 
 void func_dryfield_dilapidated_house_80181264(Task* arg0)
 {
