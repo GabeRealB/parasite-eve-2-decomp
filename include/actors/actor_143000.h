@@ -45,7 +45,15 @@ typedef struct Actor143000Rect {
 } Actor143000Rect;
 STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
 
+/// State table of the actor's `Task::callback`, `func_actor_143000_801335C8`:
+/// eleven `TaskFunc` entries, one per `Task::state`, which that body copies
+/// onto its stack before indexing. Entry 7 is the step-switch body
+/// `func_actor_143000_80132A04`; the rest are the spawners and per-state
+/// handlers in the sibling units.
+extern TaskFuncTable11 D_actor_143000_80131E84;
+
 void func_actor_143000_80132A04(Actor143000* arg0);
+void func_actor_143000_80132D10(Actor143000* arg0);
 void func_actor_143000_80133334(Actor143000Rect* arg0, u8 r, u8 g, u8 b);
 void func_actor_143000_80133EE4(Task* arg0);
 
