@@ -213,7 +213,18 @@ void Actor00400_Fn085B8(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08624);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn086FC);
+/// Scales `arg1` (a 12-bit angle) by the ratio `work->field_632`, returning 0
+/// while that field is unset.
+s16 Actor00400_Fn086FC(Actor100400* arg0, s16 arg1)
+{
+    Actor100400Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_632 == 0) {
+        return 0;
+    }
+    return ((arg1 << 8) / work->field_632 << 12) >> 16;
+}
 
 /// Turns `work->field_556` toward `arg1` by at most `arg2` per call, but only
 /// once the shortest signed 12-bit angle difference leaves the deadband
