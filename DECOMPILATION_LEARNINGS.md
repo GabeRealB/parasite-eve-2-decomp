@@ -42838,6 +42838,31 @@ before naming a work struct, then decide per function which block its
 `arg0->idMap` points at. Address order is the cheap tell: the functions around
 the `0x80` allocator use the `0x80` block.
 
+## When address order cannot decide a handler's work block, follow its `GpMsgEntry` table
+
+The companion case, and the one that nearly cost a wrong struct. In
+`actor_303600` the overlay's documented work block is the 0x44 light/colour
+matrix pair `func_actor_303600_80162950` allocates, and the 0x7DB handler
+`func_actor_303600_80162870` writes `0x28`, `0x34` and `0x38` of
+`task->idMap` — all three *inside* that pair's second `MATRIX` (0x20..0x3F, at
+`m[1][1]`, `t[0]`, `t[1]`). That reading compiles and is wrong. The block is a
+separate 0x3C-byte structure, and the same task's state-1 handler
+`func_actor_303600_801627B8` reads those three offsets as plain `s32`
+(`field_28 += field_34`, clamped against `field_38`) — a motion triple no matrix
+work produces.
+
+Here the handler and the allocator are in different units of the overlay, so the
+`Mem_Calloc` grep plus address order says nothing. What identifies the task is
+the handler's own address: it is a `.word` in the overlay's data, paired with an
+id in a `GpMsgEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
+`actor_303600_data_2.data.s`). Read the function that stores *that* table into
+`Task::field_24` (`func_actor_303600_801626C0`) — that is the handler's task, and
+it is also where its `Mem_Calloc(0x3C, 0)` names the block the handler sees.
+
+So follow the `(id, handler)` table to the function that installs it whenever the
+handler is not adjacent to the allocator; the offsets are then read against that
+task's block alone.
+
 ## Prove a struct-typing pass with `bulk_m2c`'s own scorer, before taking the lock
 
 Retyping an m2c seed is not codegen-neutral (see "Struct-typing a body changes

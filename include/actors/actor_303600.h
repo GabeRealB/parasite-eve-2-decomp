@@ -34,13 +34,16 @@ STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
 
 /// Payload `func_actor_303600_801624B0` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers:
-/// the session's two id bytes followed by a halfword the receiver switches on,
+/// the session's two id bytes followed by the halfword the receiver switches on,
 /// here the selector 9 that the sender latches into `Actor303600Work::field_C`.
+/// `Gp_SendMsgType9` forwards that same payload under id 0x7DB to the slot-4
+/// task's type-9 children, which is where `func_actor_303600_80162870` reads it;
+/// the senders of the 0 and 1 selectors it arms on are other overlays.
 /// The same four bytes as `Actor444000Msg7DA`.
 typedef struct Actor303600Msg7DA {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
+    /* 0x2 */ u16 field_2;
 } Actor303600Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
 
@@ -55,6 +58,36 @@ typedef struct Actor303600LightMats {
     /* 0x40 */ byte   pad_40[0x4];
 } Actor303600LightMats;
 STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
+
+/// Work block of the task `func_actor_303600_80162A7C` dispatches through
+/// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
+/// `Mem_Calloc(0x3C, 0)`, parks it in `Task::idMap` (0x1C, again not a
+/// `TaskIdMap`), fills `children` with the five model tasks it spawns -- one
+/// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
+/// 8000 units apart in y and spliced under this task's own coordinate, so
+/// `children[i]` owns the light matrices -- and installs the 0x7DB handler
+/// table in `Task::field_24`.  `func_actor_303600_801627B8` then moves the rig
+/// each frame: `field_28` (a 16.16 speed) ramps toward `field_38` at `field_34`
+/// a frame and stops once it passes it, and `field_18` accumulates `field_28`
+/// and is folded back into +/-4000 before its integer part becomes the task
+/// coordinate's `t[1]`.  Reading `field_18`'s upper halfword is what `lh` from
+/// 0x1A in that function does; the words this block does not yet name are the
+/// same shape, so `field_28`/`field_34`/`field_38` are the three the 0x7DB
+/// handler below arms.
+typedef struct Actor303600RigWork {
+    /* 0x00 */ Task* children[5];
+    /* 0x14 */ s32   field_14;
+    /* 0x18 */ s32   field_18;
+    /* 0x1C */ s32   field_1C;
+    /* 0x20 */ s32   field_20;
+    /* 0x24 */ s32   field_24;
+    /* 0x28 */ s32   field_28;
+    /* 0x2C */ s32   field_2C;
+    /* 0x30 */ s32   field_30;
+    /* 0x34 */ s32   field_34;
+    /* 0x38 */ s32   field_38;
+} Actor303600RigWork;
+STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
 
 /// The overlay's three flat lights, loaded into the model by
 /// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
