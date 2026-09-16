@@ -92580,3 +92580,76 @@ the table's bytes having previously been folded into `ActorsShared80135df4Table`
 (0x10C..0x130). Both partitions build to the same overlay sha1; prefer editing
 the file by hand when it holds matched bodies, as the delete-and-re-split note
 says, and expect this drift when it does not.
+
+## A cut unit's jump table lands first only if the function precedes its `INCLUDE_RODATA` (func_actor_201200_8014D8DC, 2026-09-16)
+
+The `rodata` cut from "A promotion leaves the moved function's jump table in the
+*first* unit" was made here - `rodata = [{ start = "0x11C", unit =
+"actor_201200_2" }]` for `actor_201200`, then the two affected `.c` files deleted
+and re-split. It works, and the overlay links byte-identical
+(`7c77d8001db9710ce027a04ba5dad642caca7a6c`, 28812 bytes).
+
+But the cut hands that unit a `.rodata` block holding **two** things: the table
+the compiler generates (0x11C) and a block that stays assembly (`0x130`,
+`func_actor_201200_80149F50` - `lui $v0,%hi(D_8006ED64)` / `lw`, identical in all
+three slot twins). The block is 0x11C..0x138, so the table must come first.
+
+Which of the two is first is decided by the `.c`, not by the split. A `switch`'s
+table is emitted **inline in the function's own output**, right after the
+`tablejump` insn, not appended at the end of the translation unit:
+
+```
+	lw	$2,0($3)
+	j	$2
+	.rdata
+	.align	3
+$L11:
+	.word	$L4
+	.word	$L2
+```
+
+so a top-level `INCLUDE_RODATA` that the assembler reaches *before* the function
+puts its bytes at `.rodata` offset 0 and pushes the table to 0x124. The build
+then fails at `build/USA/out/checksum.ok` with the overlay still 28812 bytes -
+same length, different content, nothing pointing at rodata. Reordering
+`INCLUDE_RODATA(... func_actor_201200_80149F50)` above `func_actor_201200_8014D8DC`
+in `src/actors/actor_201200/actor_201200_2.c` reproduced that exactly
+(`2425eab99846fd0064fbbb2757df41763d5b2bc5` for the same 28812-byte overlay).
+
+splat's generated order is already right - it lists the unit's `INCLUDE_ASM`
+lines, then its `INCLUDE_RODATA`. Keep it when adding the body, and expect this
+whenever a cut's block carries asm rodata after the table.
+
+Input `base_2.c` / `base_2.i`
+`87c0d7d547930859bf75830205bf33fc566385fba9dc9642a45f1f32a4501346` (99.689% in the
+scratch; the whole residue is the `jlabel` labels the target's branches relocate
+against, which objdump.py renders as `.Lactor_201200_8014D988+30` against the
+compiled object's plain target address - the linked bytes are identical).
+
+## `promote` refuses a matched body whose only local reference is its own jump table
+
+`overlay_dup_index.py promote` refuses this body outright:
+
+```
+func_actor_201200_8014D8DC: cannot be shared - the body references its own
+overlay's code or data (USA/actors/actor_101200, USA/actors/actor_201200,
+USA/actors/actor_301200).
+```
+
+The three copies are text-identical (`overlay_dup_index.py find`) and their only
+`refs` entry is their own `jtbl_<overlay>_<vram>` symbol. The check that raises
+it - `localref` in `cmd_promote` - matches any ref starting `func_<unit>_`,
+`D_<unit>_` or `jtbl_<unit>_`, and it runs before the `state != "matched"`
+branch. The comment immediately above states the intent that makes this too
+broad: "A matched body has no such limit: the compiler regenerates it for each
+link address." A `jtbl_` ref is compiler-generated code, not overlay data - the
+C body that produced it names no symbol at all, and the table the shared object
+would emit relocates to each carrier's own `.L` labels.
+
+So a duplicated body containing a `switch` is refused for a reason that does not
+apply once it is matched, and this class is invisible in the "39 refused because
+the body references its own overlay's data" tally. Worth fixing before planning
+around it: exempting `jtbl_*` refs (at least for `state == "matched"`) would
+make this one promotable, and the rodata half is already supported - a `rodata`
+cut naming a shared unit is emitted as `lib/<unit>`, and the 0x130 block above is
+identical across all three carriers.
