@@ -95585,3 +95585,65 @@ value the one that is needed, so the conversion is emitted and the target's
 `sll v0,a0,16; sra v0,v0,16` reappears ahead of the `±0x40` (`regs=8` -> `regs=1`
 in one edit). Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
 `base_1.c`/`base_2.c` before the local was added.
+## A local's address earns a callee-saved register only from the stores written *through* a pointer, and that shifts every other allocation (func_actor_135600_80132B14, 2026-09-16)
+
+The actor overlays splat an identity rotation into a local `MATRIX` with the
+five-word idiom (`*(s32*)&m->m[0][0] = 0x1000;` and friends). There are two ways
+to write it and they are not equivalent to the allocator:
+
+```c
+m.ident.m00_m01      = 0x1000;   /* direct on the object   -> fp-relative store */
+*(s32*)&mtx->m[0][2] = 0;        /* through MATRIX* mtx = &m.mat -> register store */
+```
+
+`.cse` is where the split is visible. Written directly on the object the
+displacement is folded into the store and nothing else refers to the address:
+
+```
+(insn 52 (set (mem:SI (plus:SI (reg:SI 30 $fp) (const_int 16))) (reg:SI 94)))
+(insn 55 (set (mem:SI (plus:SI (reg:SI 30 $fp) (const_int 20))) (const_int 0)))
+```
+
+Written through the pointer, the pointer's value becomes a pseudo of its own and
+the stores use it:
+
+```
+(insn 50 (set (reg/v:SI 81) (plus:SI (reg:SI 30 $fp) (const_int 16))))
+(insn 58 (set (mem:SI (plus:SI (reg/v:SI 81) (const_int 4)))  (const_int 0)))
+(insn 63 (set (mem:SI (plus:SI (reg/v:SI 81) (const_int 8)))  (reg:SI 95)))
+```
+
+For this function the two builds differ by more than five stores. The seed with
+all five written the direct way (`base_1.i`, 72.538%) has no address pseudo, so
+the frame is `0x50`, eight callee-saved slots and no `$s7`. Writing the first
+store direct and the other four through `mtx` (`base_2.i`, 98.769%) gives the
+address a pseudo that `.lreg` reports as "used 7 times ... crosses 1 call" - it
+is live across the `RotMatrixY` call, so `global-alloc` owes it a callee-saved
+register, and **every other value slides up one register**: `parent`
+`$s6`-`$s7`, `parentExtra` `$s4`-`$s6`, `extra` `$s3`-`$s5`, `dest`
+`$s2`-`$s4`, the `0x1000` constant `$s5`-`$s3`, frame `0x50`-`0x58`.
+
+The mix in the source is legible in the target object. Here the target's first
+store is `sw $s3,0x10($sp)` and the rest are on the same register the two calls
+pass in `a1`, i.e. one direct store then four through the pointer - and that is
+exactly what the source has to say. Both splits appear among matched siblings:
+`func_actor_206100_8014EB60` writes two direct (`matrix.ident.m00_m01`,
+`matrix.ident.m02_m10`) and three through `mtx`, and its target asm shows the
+same two `($sp)` / three `($s1)` split; `actor_107600` and `actor_403600` write
+all five through a pointer that is a runtime value already. Read a sibling's
+target asm before choosing - the store bases say which form each line used.
+
+Two orderings were the rest of the delta (`base_2.i` 98.769% -> `base_3.i`
+100%): the load of `extra` comes before `part`, so assign `extra` before
+`part`; and `extra->field_E = 0;` is written *after* `extra->field_20 = ...`,
+which puts the `sb` after the `field_20` load rather than before the
+`field_1C` store. Both are the statement-order lever the entry above describes,
+one level down: a `regs` penalty on the loads of two independent locals is their
+assignment order, not their registers.
+
+Inputs: `base_1.i` SHA256 `f1b9961c610821315fec0e4a700e1ce5cdda54eccc4f51d6eb537b9098e1afec`;
+`base_2.i` SHA256 `aa1b353d5961b9680db392c214e493ea3270f3cf72cee00349722f689ba2de94`;
+`base_3.i` SHA256 `0f4e109ce2ee900491ce6251e4af1a8af034ae9d1f5724840fe8b7ab0581b1be`;
+target SHA256 `3a8a89f9a38b67485801fbe14f8f0e6e6b034ee8748827b3a4e1d8a00842b9b8`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_135600_80132B14-vacuum` (session `b3216cb9d136418db1910740c700c717`).
