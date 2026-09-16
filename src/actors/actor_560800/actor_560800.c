@@ -633,7 +633,54 @@ void func_actor_560800_80133750(s32 arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133970);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134258);
+/// Handles the pending request in `field_38` and clears it: 1 and 28 reset the
+/// animation sub-task's `field_4C0` / `field_4CA`, 28 also reseeds its slots
+/// from clip 3 at the 0x10 rate, and 22 / 24 send 0x7D5 to `field_20`.
+void func_actor_560800_80134258(Task* task)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* anim;
+    Actor560800AnimWork* ctx;
+    Actor560800AnimWork* ctx2;
+    SVECTOR              unused;
+    u16                  i;
+    u16                  rate;
+
+    work = (Actor560800Work*)task->idMap;
+    switch ((u16)work->field_38) {
+        case 0:
+        case 38:
+            break;
+        case 1:
+            ctx            = (Actor560800AnimWork*)work->field_4->idMap;
+            ctx->field_4C0 = 0;
+            ctx->field_4CA = 1;
+            break;
+        case 22:
+        case 24:
+            Gp_DispatchMsg(work->field_20, 0x7D5, 2, 0);
+            break;
+        case 28:
+            ctx2            = (Actor560800AnimWork*)work->field_4->idMap;
+            ctx2->field_4C0 = 0;
+            ctx2->field_4CA = 0;
+            anim            = (Actor560800AnimWork*)work->field_4->idMap;
+            i               = 1;
+            anim->field_4B8 = 3;
+            rate            = 0x10;
+            anim->field_4C8 = rate;
+            anim->field_4BE = 0;
+            if (i < anim->field_4BA) {
+                do {
+                    anim->slots[i].field_9 = rate;
+                    Gp_AnimResetSlot(&anim->anim, i, 3);
+                    i++;
+                } while (i < anim->field_4BA);
+            }
+            break;
+    }
+    work->field_38 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134384);
 
