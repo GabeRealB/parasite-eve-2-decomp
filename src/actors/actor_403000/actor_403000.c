@@ -22,13 +22,119 @@
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern GpPairSrcE D_actor_403000_8013DA00;
+extern GpPairSrcE D_actor_403000_8013DA10;
 extern u32        D_actor_403000_80158B50;
 extern u32        D_actor_403000_80158C08;
 extern u32        D_actor_403000_80158CA8;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801324EC);
+s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* arg2)
+{
+    Actor403000Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+
+    work->field_FA4 = arg2->b[0];
+    work->field_FA5 = arg2->b[1];
+    work->field_FA6 = arg2->b[2];
+    if (arg2->w[0] == 0x204) {
+        switch (arg2->w[1]) {
+            case 0:
+                enemy->field_40 = 0;
+                work->field_0   = 0;
+                return 1;
+            case 1:
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                enemy->field_4C = 0;
+                enemy->field_50 = &D_actor_403000_8013DA00;
+                enemy->field_40 = D_actor_403000_8013DA00.field_4;
+                work->field_AC6 = 0x18;
+                work->field_0   = 1;
+                work->field_2   = -1;
+                return 1;
+            case 2:
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                enemy->field_4C = 0;
+                enemy->field_50 = &D_actor_403000_8013DA00;
+                enemy->field_40 = D_actor_403000_8013DA00.field_4;
+                work->field_AC6 = 0x19;
+                work->field_0   = 1;
+                work->field_2   = -1;
+                return 1;
+            case 3:
+                enemy->field_40 = 0;
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                enemy->field_4C = 0;
+                work->field_AC6 = 0x1A;
+                work->field_0   = 1;
+                work->field_2   = -1;
+                enemy->field_4C = 0;
+                enemy->field_40 = D_actor_403000_8013DA10.field_4;
+                enemy->field_50 = &D_actor_403000_8013DA10;
+                return 1;
+            case 4:
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                enemy->field_4C = 0;
+                work->field_AC6 = 0x1B;
+                work->field_0   = 1;
+                work->field_2   = -1;
+                return 1;
+            case 5:
+                work->field_0            = 0x15;
+                work->field_2            = -1;
+                arg0->field_2C->field_24 = 2;
+                arg0->field_2C->field_25 = 4;
+                return 1;
+            case 6:
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                enemy->field_4C = 0;
+                enemy->field_40 = D_actor_403000_8013DA10.field_4;
+                enemy->field_50 = &D_actor_403000_8013DA10;
+                work->field_AC6 = 0x19;
+                work->field_0   = 1;
+                work->field_2   = -1;
+                return 1;
+            case 7:
+                arg0->field_2C->field_24 = 2;
+                arg0->field_2C->field_25 = 4;
+                work->field_0            = 0x14;
+                work->field_2            = -1;
+                return 1;
+            case 10:
+                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                enemy->field_4C = 0;
+                work->field_AC6 = 0x18;
+                work->field_0   = 1;
+                work->field_2   = -1;
+                return 1;
+            case 11:
+                work->field_0   = 4;
+                work->field_2   = -1;
+                work->field_FD3 = -1;
+                work->field_FD2 = 1;
+                work->field_FD5 = 1;
+                if ((s8)arg0->field_2C->field_24 == 2) {
+                    enemy->field_4C = 0;
+                    enemy->field_40 = D_actor_403000_8013DA10.field_4;
+                    enemy->field_50 = &D_actor_403000_8013DA10;
+                }
+                return 1;
+            case 12:
+                arg0->field_2C->field_24 = 2;
+                arg0->field_2C->field_25 = 4;
+                work->field_0            = 0x16;
+                work->field_2            = -1;
+                return 1;
+            case 13:
+                work->field_0            = 0x17;
+                work->field_2            = -1;
+                arg0->field_2C->field_24 = 2;
+                arg0->field_2C->field_25 = 4;
+                return 1;
+        }
+    }
+    return 0;
+}
 
 void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos)
 {

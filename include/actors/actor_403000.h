@@ -119,7 +119,8 @@ typedef struct Actor403000Work {
     /* 0xF98 */ s32   field_F98;
     /* 0xF9C */ s32   field_F9C;
     /* 0xFA0 */ s32   field_FA0;
-    /* 0xFA4 */ byte  pad_FA4[0x2];
+    /* 0xFA4 */ u8    field_FA4;
+    /* 0xFA5 */ u8    field_FA5;
     /* 0xFA6 */ u8    field_FA6;
     /* 0xFA7 */ byte  pad_FA7[0x11];
     /* 0xFB8 */ s16   field_FB8;
@@ -176,6 +177,15 @@ typedef struct Actor403000Msg {
     /* 0x0 */ byte pad_0[0x4];
     /* 0x4 */ u16  field_4;
 } Actor403000Msg;
+
+/// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
+/// event kind (only 0x204 is handled) and `w[1]` its sub-code, and the first
+/// three bytes are also copied raw into `Actor403000Work::field_FA4`..`field_FA6`.
+/// Same shape as `Actor401300Event`.
+typedef union Actor403000Event {
+    u8  b[3];
+    u16 w[2];
+} Actor403000Event;
 
 /// Payload of message 0x3FE, the push the actor asks the player to take:
 /// `x`/`z` are the displacement, `field_10`/`field_12` the kind and count.
