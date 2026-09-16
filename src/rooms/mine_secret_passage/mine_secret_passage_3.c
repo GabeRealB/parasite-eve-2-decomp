@@ -1,3 +1,4 @@
 #include "common.h"
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage_3", RoomsShared8017dcb8Draw);
+INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage_3", func_mine_secret_passage_8017D9D4);

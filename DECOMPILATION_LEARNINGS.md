@@ -7189,6 +7189,59 @@ ActorsShared80134cfc((ActorShared80134cfc*) arg1);
 Two shared units viewing one actor keep separate partial structs, so the cast is
 the seam between them, not a smell.
 
+### A body that loads its own overlay's table *can* be shared, via a per-carrier alias
+
+`overlay_dup_index.py promote` refuses such a body with "cannot be shared - the
+body references its own overlay's code or data", and the `D_<overlay>_` note
+above reads that as final: promotion works only when the shared body references
+imports or nothing at all. It is not final. The per-overlay symbol map is
+already the thing that binds *one name* to *one address* per link, so aliasing
+the data under a shared name lets a single object serve every carrier.
+
+Take the 19-instruction message-task opener, which parks the room's own
+`GpMsgEntry` table in `Task::field_24`:
+
+```c
+void RoomsShared8017d8c8(Task* arg0)
+{
+    arg0->field_24 = &RoomsShared8017d8c8Msgs;   /* not D_<room>_80180E8C */
+    Game_SetPtrSlot(arg0, 7);
+    arg0->state = (s32)(arg0->state + 1);
+    D_80062735  = 1;
+}
+```
+
+and add one line per carrier's `configs/USA/sym/rooms/<room>.txt`:
+
+```
+RoomsShared8017d8c8     = 0x8017D8C8;  // shared body, see src/rooms/lib/
+RoomsShared8017d8c8Msgs = 0x80180E8C;  // shared body data, see src/rooms/lib/
+```
+
+The second carrier binds the same two names to *its* addresses (`0x8017D644`,
+`0x8017DAF0`). Name the data for what it is - `Msgs` here, `Table` in
+`RoomsShared80181e70Table`, `RoomsShared8017d730Msgs` for the `D_80115598`
+variant of the same opener. The alias also satisfies `promote`'s overlay-local
+`refs` check, because the shared name no longer starts with `D_<unit>_`.
+
+**This is a licence to alias, not to merge.** The data has to mean the same
+thing in every carrier - here, each room publishing its own message table from
+state 0 of its message task family. Two dispatchers that read an enemy table in
+one room and a camera table in another are the same shape and different
+functions; leave those in their own overlays. Prefer an existing shared body as
+the evidence: this one is the third instance of an opener the family had already
+promoted twice, differing only in the flag byte it raises.
+
+Verify per carrier by disassembling each built overlay at *its own* offset, not
+by the checksum alone - the bytes are supposed to differ:
+
+```
+$ od -A x -t x4 -j 0x314 -N 8 build/USA/out/mine_secret_passage   # 3c028018 24420e8c
+$ od -A x -t x4 -j 0x90  -N 8 build/USA/out/mine_tunnel_entrance  # 3c028018 2442daf0
+```
+
+`$v0 = 0x80180E8C` in one and `0x8017DAF0` in the other is the alias working.
+
 ### The overlay's *first* function needs `rodata_head`, not a `rodata` cut
 
 A `rodata` cut only works because it pairs with a `.text` cut, and the first
