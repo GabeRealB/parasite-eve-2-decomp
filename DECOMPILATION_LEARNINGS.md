@@ -101220,6 +101220,15 @@ other change and no `li` added anywhere else. Reading the compared field back
 (`= actor->field_960`) also kills the extra `li` but costs a load and flips `predicates_match`; the local
 keeps the constant.
 
+The same shape written as an `if` chain and not a `switch` is the same trade.
+`func_actor_800200_8016436C` compares `state != 0` (the `beqz` the arm is reached by) and then
+`state != 1`, so the constant is again materialised on the path the `beqz` skips: `actor->field_95E = 1;`
+grew its own `(set (reg:HI 111) (const_int 1))` and stopped at 99.24%. One `s32 next = 1;` whose value
+the arm stores makes the store `(set (mem:HI ...) (subreg:HI (reg:SI ...) 0))`, cse gives the compare
+and the store one SImode register, and the scheduler parks its `li` in the `beqz` delay slot - 100%.
+Using `next` in the comparison as well (`state != next`) is *not* the same thing: the two uses then need
+different types of comparison and it drops to 94.2%.
+
 ## A switch's shared tail is emitted where its label sits - an earlier case `goto`s into the later case's branch (func_actor_800200_80163B90, 2026-09-16)
 
 **Symptom:** both arms end in `field_D0 = 1; func_...4EC(arg0, 0);`. Written once after the switch (the

@@ -1,6 +1,9 @@
 #include "common.h"
 
 #include "actors/actor_800200.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
 #include <psyq/abs.h>
 
@@ -9,6 +12,8 @@ extern void func_8010ABD4();
 extern s32 func_80103DD4(VECTOR3*, VECTOR3*);
 
 extern s32 func_8010BC70(GsCOORDINATE2*);
+
+extern s32 func_8010BCF4(Task*, VECTOR3*);
 
 extern void func_8010BE5C(GpActorWork*, VECTOR3*);
 
@@ -523,7 +528,84 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80164180);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_8016436C);
+void func_actor_800200_8016436C(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* target;
+    GpLinkNode*    node;
+    u8*            tmp;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+    u8*            head;
+    s32*           scratch;
+    s8             count;
+    s32            pan;
+    s32            dist;
+    u16            state;
+    s32            next = 1;
+    GameActor*     actor2;
+
+    actor             = arg0->actor;
+    d4                = actor->field_910;
+    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    head              = *(u8**)0x1F8003FC;
+    tmp               = head - 0x10;
+    *(u8**)0x1F8003FC = tmp;
+    vec               = (VECTOR3*)tmp;
+    coord             = arg0->extra->field_8;
+    if (actor->field_90C != NULL) {
+        node             = Gp_FindLockNode(arg0);
+        actor->field_90C = node;
+        if ((node != NULL) && !(node->field_4 & 1)) {
+            Gp_GetLockPos((GpLockPos*)node, vec);
+        } else {
+            d4->field_CC = 1;
+        }
+    } else {
+        ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
+        vec->vy                       = target->coord.t[1];
+        vec->vz                       = target->coord.t[2];
+    }
+    state = actor->field_95E;
+    if (state != 0) {
+        if (state != 1) {
+            scratch = (s32*)0x1F8003FC;
+        } else {
+            goto tick;
+        }
+    } else {
+        actor->field_95E = next;
+        Gp_AnimPlayChildSlotsEx(arg0, actor->field_940 + 0xA, 0, 4);
+        pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(actor->field_940 + 0x40720009, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+    tick:
+        if (func_80105894(arg0, 1, 0, 0) == 0) {
+            dist = func_8010BCF4((Task*)arg0, vec);
+            if (dist < 0) {
+                dist = -dist;
+            }
+            if ((dist >= 0x281) && (func_80103DD4((VECTOR3*)coord->coord.t, vec) >= 0x201)) {
+                actor2            = arg0->actor;
+                actor2->field_954 = 0;
+                actor2->field_956 = 2;
+                actor2->field_95A = 2;
+                actor2->field_95C = 0;
+                actor2->field_95E = 0;
+            } else {
+                count        = d4->field_CC - 1;
+                d4->field_CC = count;
+                if (count <= 0) {
+                    Gp_ResetActorMove(arg0, 0);
+                } else {
+                    actor->field_95E = 0;
+                }
+            }
+        }
+        scratch = (s32*)0x1F8003FC;
+    }
+    *scratch += 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80164598);
 
