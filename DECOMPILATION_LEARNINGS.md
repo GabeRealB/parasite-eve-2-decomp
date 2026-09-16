@@ -85790,3 +85790,50 @@ base_1.i `656bd913c1c85eeba07629a62ce247348ffc94de4f589e9500cbf8818f322438`.
 Evidence: scratch `nonmatchings/func_dryfield_night_toilet_8017D690-vacuum/`,
 `base_diff`; no pins, no permuter, no tracer.
 `overlay_dup_index.py find` reports this body as its own only copy.
+## A `jal` that sets only `$a1` is a two-argument call m2c collapsed to one
+
+`func_dryfield_night_r08_8017D630` (USA/rooms/dryfield_night_r08) opens with a
+call whose setup writes `$a1` and nothing else:
+
+```
+addiu  $a1,$zero,0x7
+lui    $v0,%hi(D_dryfield_night_r08_80180544)
+addiu  $v0,$v0,%lo(D_dryfield_night_r08_80180544)
+sw     $ra,0x14($sp)
+jal    Game_SetPtrSlot
+ sw    $v0,0x24($s0)          /* delay slot */
+```
+
+m2c saw no write to `$a0` and so emitted the one-argument form, `Game_SetPtrSlot(7)`,
+which compiles `addiu $a0,$zero,0x7` — a `regs` penalty. The target's `$a0` is
+the function's *incoming argument*: GCC emits no move for an argument already in
+its register, so `$a0` staying untouched from entry is exactly what a first
+parameter of `arg0` looks like. The fix is to give the call its leading argument
+back:
+
+```c
+arg0->field_24 = &D_dryfield_night_r08_80180544;
+Game_SetPtrSlot(arg0, 7);                        /* addiu $a1,$zero,0x7 */
+Gp_SetStreamBuf((u8*)D_8005C370 + 0x20000);
+```
+
+Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
+
+- **The `reorder` penalty was in a different block.** The swap was `move a1,zero`
+  vs `lui a2,%hi(D_801341E0)` inside the *following* `if` body, which has no
+  dependence on `Game_SetPtrSlot`'s arguments at all. Fixing the argument count
+  cleared it anyway: sched1 ranks by `INSN_PRIORITY`, which is a whole-function
+  quantity, so a register-allocation change anywhere can re-rank two independent
+  instructions several blocks away. A `reorder` penalty in a block whose
+  live-ins were shaped by a mis-typed call is not a scheduling problem; check the
+  calls first. (Contrast the store-order entry above, where the swapped
+  instructions are the source order and nothing else can explain the swap.)
+- **The family already had the answer.** Every room-entry task in the `rooms`
+  overlays calls `Game_SetPtrSlot(task, 7)`; `func_shelter_r49_8017D648`
+  (`src/rooms/shelter_r49/shelter_r49.c`) is the same body minus the
+  `Gp_SetStreamBuf` call, is already matched, and reproduces `addiu $a1,$zero,0x7`
+  byte for byte. When a similar matched sibling exists, copy its argument list
+  before reconstructing one from the RTL.
+
+Inputs: `base.c` (97.97%), `base_1.c` (100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
