@@ -103895,3 +103895,62 @@ built bytes before suspecting rodata.
 Two habits avoid it: put a new inline helper above its first caller, and after a
 100% scratch match, confirm the helper the function relies on is defined before
 the function in the host file.
+
+## Which variable a shared tail assigns through decides the register every implied equality canonicalises to (`func_actor_401800_80133B78`, 2026-09-16)
+
+`func_actor_401800_80133B78` is a 20-case switch over `field_89E` that returns a
+`0x400A00xx` event id when `field_5A & 0x3FF` reaches a value its state cares
+about, latched by `field_8B4`. Its matched sibling `Actor01900_Fn01A7C`
+(`src/actors/lib/actor_101900_text.c`) gives the statement shape, and copying it
+produced 97.067% — every block in place, `regs`/`stack` at zero, and a 2-instruction
+gap: the first of a case's two checks hoisted its `lui` into the `beq` delay slot
+(as the target does), the second left a `nop` there and kept the `lui` after the
+`sw`.
+
+The gap is not in `.dbr`. `./insn.py <uid>` on the equal path's store shows the
+substitution outright:
+
+```
+  rtl     (insn 220 ... (set (mem/s:SI (plus (reg 80) (const_int 2228)))
+                          (reg/v:SI 82)) ...)
+  cse     (insn 220 ... (set (mem/s:SI (plus (reg 80) (const_int 2228)))
+                          (reg/v:SI 81)) ...)
+```
+
+`prev` (82) became `id` (81). The store is `work->field_8B4 = prev;` on the
+fall-through of `if (prev != id)`, so `record_jump_equiv` had recorded the
+implied equality, and `make_regs_eqv` (cse.c) picks the canonical register of the
+merged quantity by lifetime — "Among pseudos, if NEW will live longer than any
+other reg of the same qty, and that is beyond the current basic block, make it
+the new canonical replacement". `id` is assigned in every case including the
+last, `prev` only in the three two-check cases, so `id` outlives it and every
+`prev` use after the branch was rewritten.
+
+The rewritten store could no longer cross-jump with the state-machine tail's
+store (the `field_5A & 0x3FF` one all the other cases fall into), and `reorg`
+then declined to fill the second check's delay slot with the `lui`: the taken
+path of that branch is `sw $v0`, which needs exactly the register the `lui`
+writes. Hence the `nop`, and a two-instruction mismatch that no amount of
+looking at the scheduler explains.
+
+The fix is to give the shared tail the same variable:
+
+```c
+            prev            = work->field_5A & 0x3FF;
+            work->field_8B4 = prev;
+            break;
+```
+
+instead of `work->field_8B4 = work->field_5A & 0x3FF;`. `prev` then lives past
+`id`'s last use, becomes the canonical register, and the store keeps it —
+100.000%, all penalties zero. Both spellings assemble to the same `lhu; andi; sw`
+in the tail itself; which one the source used is only visible two cases away, in
+the register the *other* stores were rewritten to.
+
+Generalised: when a matched sibling exists, copy its variable discipline, not
+just its statements. A store in a tail that several cases share sets the
+canonical register for every equality the branches imply, so changing which
+variable it assigns through is a register-allocation lever even though the tail's
+own instructions are identical either way. `insn.py <uid>` printing `rtl` and
+`cse` with different registers is the tell that the difference is a substitution
+and not an allocation.
