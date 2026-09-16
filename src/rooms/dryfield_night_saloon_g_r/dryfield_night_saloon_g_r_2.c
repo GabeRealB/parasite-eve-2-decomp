@@ -1,10 +1,13 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 #include "rooms/dryfield_night_saloon_g_r.h"
@@ -16,6 +19,9 @@ extern TaskDesc   D_dryfield_night_saloon_g_r_8017F940[];
 extern s32        D_dryfield_night_saloon_g_r_801848DC;
 extern s32        D_dryfield_night_saloon_g_r_80184B34;
 extern s32        D_dryfield_night_saloon_g_r_80184D2C;
+extern s32        D_dryfield_night_saloon_g_r_80183C94;
+extern s32        D_dryfield_night_saloon_g_r_801847A4;
+extern GpObj4A    D_dryfield_night_saloon_g_r_80188BB8;
 
 s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -41,7 +47,37 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_2", func_dryfield_night_saloon_g_r_8017DE68);
+/// Handler for this room's script entry 0x13EF, whose `GpMsg13EF` payload
+/// arrives as `arg2`. `field_2 == 7` plays the room's first-visit cutscene
+/// once (nibble 0x59). Then, in session phase 2 with nibble 0xB0 still clear,
+/// `field_2 == 1` unlinks the room's 4A object and queues sound 0x5312000C,
+/// while the room's own phase (`field_2 == 2`) announces the visit to the
+/// slot-4 task with message 0x7DA carrying the session's two id bytes and a
+/// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
+s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    DnsgrMsg7DA msg;
+    u8          temp_s0;
+
+    if (arg2->field_2 == 7 && GameFlag_GetNibble(0x59) == 0) {
+        func_800E8634((s32)&D_dryfield_night_saloon_g_r_80183C94, 0, (s32)&D_dryfield_night_saloon_g_r_801847A4);
+        GameFlag_SetNibble(0x59, 1);
+    }
+    temp_s0 = Game_Session->field_9;
+    if (temp_s0 == 2 && GameFlag_GetNibble(0xB0) == 0) {
+        if (arg2->field_2 == 1) {
+            Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_80188BB8);
+            SndEvt_EnqueueType6(0x5312000C, 0, 0);
+        } else if (arg2->field_2 == temp_s0) {
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            GameFlag_SetNibble(0xB0, 1);
+        }
+    }
+    return 0;
+}
 
 /// Room entry task tick: park the room's hotspot table in `Task::field_24` -
 /// the table whose 0x13EE entry is the room's own script task - register the

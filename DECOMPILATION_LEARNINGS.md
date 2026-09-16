@@ -84629,3 +84629,41 @@ wrong.
 
 Inputs: `base_1.i`
 `3e9fc45f8f4fa4a93f47eeff62044adfdea72e9502c223c2b289336ca18532f6` (100%).
+## The order of adjacent field stores decides whether the shared constant takes `$a0`
+
+Worked example `func_dryfield_night_saloon_g_r_8017DE68`, the twin of the
+`func_dryfield_night_saloon_g_r_8017DF90` in "An `SVECTOR` local split into
+separate `s16`s" above; that entry's struct fix is what this one starts from.
+
+**Problem.** With the payload fixed, the whole remaining diff was the constant
+`1`, shared by `arg2->field_2 == 1` and `msg.field_2 = 1`. The target had it in
+`$a1`, we had it in `$a0` - and `reorder=5`, `insert=1`, `delete=1` and the
+other `regs=2` were all downstream: with `$a0` holding the constant, dbr cannot
+fill the branch delay slot with `addu $a0,$zero,$zero`, and `li $a0,4` cannot
+sink into the next branch's slot.
+
+**Cause.** The constant is one global allocno, and (per "A constant materialised
+into `$a1` before a compare chain is a global allocno") `find_free_reg` walks
+register numbers, so it lands on `$a1` only when it *conflicts* with `$a0`. That
+conflict is created by `record_one_conflict` when an insn sets `$a0` while the
+allocno is live - here the `(set (reg:SI 4 a0) (const_int 4))` setting up
+`Game_GetPtrSlot(4)`. Whether that insn falls before the store that kills the
+constant, inside the same block, is decided by sched1, and sched1 is fed the
+source statement order.
+
+**Fix.** Write the field stores in the order the original did. m2c had emitted
+them sorted by *address* (`field_0`, `field_2`, `field_1`), and that alone was
+enough to schedule the killing store to the front of the block. The matched
+sibling `func_dryfield_night_saloon_g_r_8017DF90` fills the same struct in order
+`field_0`, `field_1`, `field_2`, and its machine code is the same
+`sb 0x10 / sh 0x12 / sb 0x11` triple - which is the evidence that the order is
+the source's rather than m2c's. Copying it took the function from 93.1% to
+100.0%.
+
+Read a byte-identical store sequence in a matched sibling as a *statement
+order*, not just as a layout hint: here it was worth more than every diagnostic
+on the function itself.
+
+Inputs: `base.i` (87.6%, `insert=2 delete=5`), `base_1.i` (93.1%, `regs=2
+reorder=5 insert=1 delete=1`), `base_2.i` (100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
