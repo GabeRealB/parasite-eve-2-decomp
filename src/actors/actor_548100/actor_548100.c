@@ -228,7 +228,60 @@ void func_actor_548100_80132EA0(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132EA8);
+/// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2` edges linked
+/// into `Gpu_CurrentOt[1]`. Same body as the rooms' `Room_Draw26`.
+void func_actor_548100_80132EA8(RoomRect* rect, u8 r, u8 g, u8 b)
+{
+    LINE_F2* line;
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 1, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 1, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 1, line);
+
+    line           = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(line + 1);
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(Gpu_CurrentOt + 1, line);
+}
 
 void func_actor_548100_801330EC(void)
 {
