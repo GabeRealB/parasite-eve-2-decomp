@@ -132,6 +132,47 @@ All priorities in this function are 1 (`priority()` returns
 `max(1, pred + cost - 1)` and every latency is 1), so the scheduler moves nothing
 and the RTL order is the final order — the arm's `a0`/address order had to come
 from RTL generation, not from scheduling.
+## A CSE copy names the *second* read: the variable that stays live is the one assigned last
+
+`Actor00400_Fn040DC` loads `arg0->field_2C` once and then copies it:
+
+```
+lw    v0,0x2c(s1)
+lw    s0,0x1c(s1)
+move  a1,v0          /* the copy, and a1 is what everything later uses */
+lw    s2,8(a1)
+...
+lhu   v0,0xc(a1)     /* case 2 */
+```
+
+Writing the obvious source — one `ctx` variable, `coord = ctx->field_8;` —
+gives 97.49% with the copy missing: the single pseudo is loaded straight into
+its home. The copy only appears when the member is read **twice** and cse
+collapses the second read, as the `arg0->idMap` entry above describes. The new
+lever here is direction. `$v0` in that dump is dead after the `move`, so the
+*first* read is the throwaway and the surviving register belongs to the
+*second*. Assigning the long-lived variable first,
+
+```c
+ctx   = arg0->field_2C;
+work  = arg0->field_1C;
+coord = arg0->field_2C->field_8;   /* 97.49%: the copy feeds a dead temp */
+```
+
+still scores 97.49%, because the copy lands on the pseudo that dies. Swapping
+the two reads so the surviving variable is the second one matches:
+
+```c
+coord = arg0->field_2C->field_8;   /* first read: its base is dead after */
+work  = arg0->field_1C;
+ctx   = arg0->field_2C;            /* cse -> move a1,v0 ; 100% */
+```
+
+The same swap also re-ordered the whole prologue's allocation — the block copy
+of a `TaskFuncTable11` local picked up `$a0`/`$v1`/`$a2` instead of
+`$v1`/`$v0`/`$a1`, and the `lui %hi(D_801153F4)` moved into the loop tail —
+so a "regs everywhere" prologue is worth checking for a single missing copy
+before touching anything else.
 
 ## One shared `ret` decides which arm is the entry fall-through; m2c's early returns do not
 
