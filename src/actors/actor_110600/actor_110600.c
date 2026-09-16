@@ -107,7 +107,37 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801341A4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134438);
+/// Per-tick animation pass: for each clip id 1..0x12, the first ten (`i < 0xB`)
+/// write the two clip ids into their slot's `field_9` and tick the primary and
+/// blend contexts through `func_800B3448`, then hand both poses to
+/// `Gp_AnimWritePoseCopy` with `weight` at 0x8A0 and its complement; the rest
+/// only rewrite the primary slot and `Gp_AnimTickIndex` it. Same body as
+/// `func_actor_403000_801336B4`, which walks 24 slots instead of 19.
+void func_actor_110600_80134438(Actor110600* arg0)
+{
+    GpAnimPose           pose;
+    GpAnimPose           blendPose;
+    GpAnimCtx*           anim;
+    s16                  weight;
+    s16                  i;
+    Actor110600AnimWork* work;
+
+    work   = (Actor110600AnimWork*)arg0->field_1C;
+    weight = work->field_8A0;
+    anim   = &work->anim;
+    for (i = 1; i < 0x13; i++) {
+        if (i < 0xB) {
+            work->blendSlots[i].field_9 = (u8)work->field_89E;
+            work->slots[i].field_9      = (u8)(work->field_896 - 3);
+            func_800B3448(anim, i, (s32)&pose, 0);
+            func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
+            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+        } else {
+            work->slots[i].field_9 = (u8)(work->field_896 - 3);
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134564);
 

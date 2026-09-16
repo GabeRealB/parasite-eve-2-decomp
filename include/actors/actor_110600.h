@@ -97,6 +97,30 @@ typedef struct Actor110600Work {
 } Actor110600Work;
 STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 
+/// Animation view of the same block `Actor110600Work` describes: a primary
+/// `GpAnimCtx` at 0x10 and a blend context at 0x44C, each followed by its own
+/// 24-entry `GpAnimSlot` array (0x24 / 0x460). `func_actor_110600_80134438`
+/// drives both for clip ids 1..0x12: the blend weight is the halfword at 0x8A0,
+/// the two clip ids the bytes at 0x896 / 0x89E. Same view as
+/// `Actor403000AnimWork`, which is the same body one overlay over; the two
+/// views overlap `Actor110600Work` because the overlay reads the block through
+/// whichever shape a function needs.
+typedef struct Actor110600AnimWork {
+    /* 0x000 */ byte       pad_0[0x10];
+    /* 0x010 */ GpAnimCtx  anim;
+    /* 0x024 */ GpAnimSlot slots[24];
+    /* 0x3E4 */ byte       pad_3E4[0x68];
+    /* 0x44C */ GpAnimCtx  blendAnim;
+    /* 0x460 */ GpAnimSlot blendSlots[24];
+    /* 0x820 */ byte       pad_820[0x76];
+    /* 0x896 */ s16        field_896;
+    /* 0x898 */ byte       pad_898[6];
+    /* 0x89E */ s16        field_89E;
+    /* 0x8A0 */ s16        field_8A0;
+    /* 0x8A2 */ byte       pad_8A2[2];
+} Actor110600AnimWork;
+STATIC_ASSERT_SIZEOF(Actor110600AnimWork, 0x8A4);
+
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as

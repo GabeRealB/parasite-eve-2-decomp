@@ -99482,6 +99482,51 @@ target SHA256 `1632576e4d4442ef2977f5eb6ed5e40cda6501761a28a7583fe60bf05acb00e2`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00100_Fn03340-vacuum`.
 
+## A shape-1.00 sibling that is already matched in `src/`: port its C shape, not m2c's pointer arithmetic (func_actor_110600_80134438, 2026-09-16)
+
+The brief's similar list named `func_actor_403000_801336B4` at shape 1.00 / calls
+1.00 / cflow 1.00 (starred) - and unlike the case above it is a **matched body
+with its source in the tree** (`src/actors/actor_403000/actor_403000.c:394`).
+Normalizing both `.s` files and diffing shows the same 75 instructions with eight
+constants changed (`0xAD4->0x8A0` weight, `0x14->0x10` anim ctx, `0xAD2->0x89E`,
+`0xACA->0x896`, `0x585->0x469`, `0x31->0x2D` slot `field_9`, `0x568->0x44C`
+blend ctx, `0x18->0x13` loop bound): same body, different block layout and trip
+count. The m2c seed of that body scores 98.33% with three residues, and all three
+are properties of the *shape m2c writes*, not of the allocation:
+
+* `lh $v1,0x8A0($s1)` plus `move $s5,$v1` where the ROM loads straight into
+  `$s5`. m2c's `temp_s5 = M2C_FIELD(...)` and the sibling's `weight = work->field_AD4`
+  are the same expression, so this is not a pin candidate.
+* `addu $v0,$v0,$s1` in the second arm against the ROM's `addu $v0,$s1,$v0` -
+  m2c spells the store's address `temp_s1 + var_s2 * 0x28` inline in one arm and
+  through a `temp_v0` in the other, so the two arms do not agree with each other.
+* the loop tail reads the copy destination (`move $s2,$v0` then `sll $v0,$s2,0x10`)
+  where the ROM reads the incremented value (`addu $s2,$v0,$zero` then
+  `sll $v0,$v0,0x10`) - m2c's `var_v0 = var_s2 + 1; ... while (var_v0 < 0x13)`
+  against the sibling's `for (i = 1; i < 0x13; i++)`.
+
+Retyping the sibling's own C against this overlay's struct was 100.000% on the
+first build with all six penalties zero: `work->slots[i].field_9 = (u8)(work->field_896 - 3);`
+- an array index, not a pointer sum - inside a `for` loop. So when a sibling's
+source is available, the residual of an m2c seed is a source-shape difference to
+be *ported*, not a regalloc/tie-break puzzle to be probed; the pins section of the
+brief has nothing to say about a 1.7% residue that eight constants explain.
+
+Layout note, since it will come up for every actor in this family: the animation
+view of the work block **overlaps** the view the rest of the overlay uses, and
+cannot be nested inside it. `Actor110600Work` names a `field_5C` halfword at
+0x5C, which lands inside the animation view's `slots[]` at 0x24 (stride 0x28);
+the sibling has the same overlap, with `Actor403000AnimWork` and `Actor403000Work`
+agreeing only from 0xAC0 up. Declare the second view as its own struct and cast
+`arg0->field_1C` to it, exactly as `func_actor_403000_801336B4` does.
+
+Inputs: `base_1.c` (100.000%)
+SHA256 `7743540ab0342b3505aef12771dfc512f3eacb546c02fc76f85da469ef6eda17`;
+`base_1.i` SHA256 `c79138b460eaf664b3d5393262a27bf9787332fdf83a37762acc8e30c4d29677`;
+target SHA256 `97611ffb2646484e94ebe85a3446d6bd6e2a81ceed5d6e2d6d93cae298f1d6f6`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80134438-vacuum`.
+
 ## A self-assignment is deleted before the first RTL dump; load into a local to reproduce the ROM's dead store (Actor00100_Fn01EEC, 2026-09-16)
 
 `Actor00100_Fn01EEC` (551 insns, actors/lib) re-stores the value it just loaded
