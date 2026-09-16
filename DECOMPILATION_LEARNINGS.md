@@ -109993,3 +109993,40 @@ Inputs: `base_1.i` (99.750%) SHA256
 target.o SHA256 `d963d78d5e58ca85cc047a998c7e32c4c44aeb549a73ae748a4e9831df611209`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80138980-vacuum`.
+
+## A pointer load in the target's prologue means the source named it above the `if`, in that order
+
+`func_actor_110600_80136888` sat at 95.2% with the model object read inside the
+`if` (`lw v0, 0x2C(s1)` after `beqz`, plus a load-delay `nop`), where the target
+has it in the prologue next to the enemy's (`lw v1, 0x2c(s1)` / `lw a0, 0x20(s1)`).
+GCC 2.8.1 will not speculate a load above a conditional branch, so a load the
+target has *before* the `beqz` is a source read: name the pointer at the top of
+the function, not inline at its first use.
+
+```c
+work  = arg0->field_1C;
+obj   = arg0->field_2C;   /* target: lw v1, 0x2c(s1) */
+enemy = arg0->field_20;   /* target: lw a0, 0x20(s1) */
+if (work->field_4 != 0) {
+    obj->field_C = 0;
+```
+
+Naming only the enemy took it to 99.762%, with the three prologue loads in the
+wrong order (`lw a0,0x20(s1)` before `lw v1,0x2c(s1)`, reverse of the target).
+Swapping the two assignments — `obj` first — gave 100%, all penalties zero: for
+independent same-priority loads the scheduler keeps RTL order, so the order in
+the target's prologue is the order the source read them in. `m2c` cannot produce
+either form, because it inlines `arg0->field_2C->field_C = 0;` inside the `if`.
+
+The walker base is the same m2c artefact: `work + 0xB28` on an
+`Actor110600Work*` scales by `sizeof` and emits `li $4,0x850000` /
+`ori $4,0xE0` / `addu`. Use the siblings' `(Actor110600Walker*)((u8*)work +
+0xB28)`, and let `func_actor_110600_80133A94` recompute it rather than reusing
+the local — the target materializes it twice, once in the `jal` delay slot.
+
+Inputs: `base_2.i` (99.762%) SHA256
+`9716d7df0e396655090057700d071656d19b8b3cf3d36215747c193ba272849b`; `base_3.i`
+(100%) SHA256 `7ddbc35d5d5d9dae02caa824a95a7a508133461d583a2c8ace1a2a819387950d`;
+target.o SHA256 `1884bd2880f45dc0aeb9e58e14e1af206de915bc1f0409c38c0fcd3fe8a91a6d`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80136888-vacuum`.
