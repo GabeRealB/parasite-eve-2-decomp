@@ -12,9 +12,12 @@
 
 extern SVECTOR    D_actor_511000_80147344[];
 extern SVECTOR    D_actor_511000_80147704[];
-extern SVECTOR    D_actor_511000_80147AC4;
+extern SVECTOR    D_actor_511000_80147AC4[];
 extern u16*       D_actor_511000_80147EB0;
+extern CVECTOR    D_actor_511000_80149004[];
 extern GpMsgEntry D_actor_511000_80148FC4[];
+
+void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb);
 
 /// Camera path `func_actor_511000_801330F0` walks once the session reaches
 /// mode 0x18, one 0x24-byte `GpViewRec` per step of the kill countdown: the
@@ -159,7 +162,56 @@ s32 func_actor_511000_80132904(GpActorWork* arg0, s32 arg1, s32 mode)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801329C4);
+/// Per-frame tick for a child of the spawner: mirrors the parent model's
+/// visibility bit (`field_C` 0x80) onto its own model, and once the session
+/// reaches mode 0x18 poses its root coordinate from the parent's
+/// `killCountdown` entry in `D_actor_511000_80147AC4`. Within three steps of
+/// countdown 0x59 it also picks that distance's colour from
+/// `D_actor_511000_80149004`, darkened by 0x1E per channel, and hands both to
+/// `func_actor_511000_80132B14`.
+/// The table is loaded into its own local before indexing: `&table[d]` on the
+/// symbol directly shifts `d` ahead of the `lui`/`addiu` pair.
+void func_actor_511000_801329C4(Task* task)
+{
+    Task*             parent;
+    TmdObject*        extra;
+    Actor511000Coord* coord;
+    CVECTOR*          col;
+    CVECTOR*          tbl;
+    s32               d;
+    s8                rgb[3];
+
+    parent = (Task*)task->spawnArg2;
+    extra  = (TmdObject*)task->extra;
+    coord  = (Actor511000Coord*)extra->field_8;
+
+    if (!(((TmdObject*)parent->extra)->field_C & 0x80)) {
+        extra->field_C &= 0xFF7F;
+    } else {
+        extra->field_C |= 0x80;
+    }
+
+    if (Game_Session->field_4 == 0x18) {
+        coord->rot.vx = D_actor_511000_80147AC4[parent->killCountdown].vx;
+        coord->rot.vy = D_actor_511000_80147AC4[parent->killCountdown].vy;
+        coord->rot.vz = D_actor_511000_80147AC4[parent->killCountdown].vz;
+        RotMatrix(&coord->rot, &coord->coord);
+        coord->flg = 0;
+
+        d = parent->killCountdown - 0x59;
+        if (d < 0) {
+            d = 0x59 - parent->killCountdown;
+        }
+        if (d < 4) {
+            tbl    = D_actor_511000_80149004;
+            col    = &tbl[d];
+            rgb[0] = col->r - 0x1E;
+            rgb[1] = col->g - 0x1E;
+            rgb[2] = col->b - 0x1E;
+            func_actor_511000_80132B14(task, col, rgb);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132B14);
 
@@ -337,9 +389,9 @@ void func_actor_511000_801333C4(Task* task)
     func_actor_511000_80133760(task);
     ((GsCOORDINATE2*)coord)->sub = dest;
     Task_Reparent(parent, task);
-    coord->rot.vx = D_actor_511000_80147AC4.vx;
-    coord->rot.vy = D_actor_511000_80147AC4.vy;
-    coord->rot.vz = D_actor_511000_80147AC4.vz;
+    coord->rot.vx = D_actor_511000_80147AC4[0].vx;
+    coord->rot.vy = D_actor_511000_80147AC4[0].vy;
+    coord->rot.vz = D_actor_511000_80147AC4[0].vz;
     RotMatrix(&coord->rot, &coord->coord);
     coord->flg   = 0;
     task->state += 1;
