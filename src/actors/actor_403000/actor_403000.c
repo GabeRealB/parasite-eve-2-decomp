@@ -394,7 +394,75 @@ void func_actor_403000_801336B4(Actor403000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801337E0);
+s32 func_actor_403000_801337E0(s32 arg0, Actor403000AnimWork* work)
+{
+    s32 ret;
+
+    ret = 0;
+    if (work->field_AF0 == (work->slots[1].field_2 & 0x3FF)) {
+        return ret;
+    }
+    switch ((s16)(work->field_AC6 - 1)) {
+        case 0:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x21 && work->field_AF0 < 0x21) {
+                ret = 0x401E0002;
+            }
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x2C && work->field_AF0 < 0x2C) {
+                ret = 0x401E0001;
+            }
+            break;
+        case 8:
+            if ((work->slots[1].field_2 & 0x3FF) >= 5 && work->field_AF0 < 5) {
+                ret = 0x401E0002;
+            }
+            if ((work->slots[1].field_2 & 0x3FF) >= 0xA && work->field_AF0 < 0xA) {
+                ret = 0x401E0001;
+            }
+            break;
+        case 13:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
+                ret = 0x401E000E;
+            }
+            break;
+        case 1:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x1D && work->field_AF0 < 0x1D) {
+                ret = 0x401E0003;
+            }
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x17 && work->field_AF0 < 0x17) {
+                ret = 0x401E0004;
+            }
+            break;
+        case 11:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x13 && work->field_AF0 < 0x13) {
+                ret = 0x401E0008;
+            }
+        case 10:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x12 && work->field_AF0 < 0x12) {
+                ret = 0x401E0007;
+            }
+            if ((work->slots[1].field_2 & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
+                ret = 0x401E000C;
+            }
+            break;
+        case 6:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0x15 && work->field_AF0 < 0x15) {
+                ret = 0x401E0009;
+            }
+            break;
+        case 16:
+            if ((work->slots[1].field_2 & 0x3FF) >= 8 && work->field_AF0 < 8) {
+                ret = 0x401E000B;
+            }
+            break;
+        case 7:
+            if ((work->slots[1].field_2 & 0x3FF) >= 0xD && work->field_AF0 < 0xD) {
+                ret = 0x401E000D;
+            }
+            break;
+    }
+    work->field_AF0 = work->slots[1].field_2 & 0x3FF;
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133AF8);
 

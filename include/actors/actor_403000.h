@@ -153,11 +153,15 @@ typedef struct Actor403000AnimWork {
     /* 0x3E8 */ byte       pad_3E8[0x180];
     /* 0x568 */ GpAnimCtx  blendAnim;
     /* 0x57C */ GpAnimSlot blendSlots[24];
-    /* 0x93C */ byte       pad_93C[0x18E];
+    /* 0x93C */ byte       pad_93C[0x18A];
+    /* 0xAC6 */ s16        field_AC6;
+    /* 0xAC8 */ byte       pad_AC8[2];
     /* 0xACA */ s16        field_ACA;
     /* 0xACC */ byte       pad_ACC[6];
     /* 0xAD2 */ s16        field_AD2;
     /* 0xAD4 */ s16        field_AD4;
+    /* 0xAD6 */ byte       pad_AD6[0x1A];
+    /* 0xAF0 */ u32        field_AF0;
 } Actor403000AnimWork;
 
 /// Actor context handed to this overlay's callbacks: `field_1C` is the work
