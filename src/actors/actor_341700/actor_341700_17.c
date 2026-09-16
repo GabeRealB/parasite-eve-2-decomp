@@ -68,7 +68,28 @@ void func_actor_341700_80169018(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_17", func_actor_341700_8016908C);
+void func_actor_341700_8016908C(Task* arg0)
+{
+    Actor341700Work* work = (Actor341700Work*)arg0->idMap;
+    s16              angle;
+    s16              speed;
+
+    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+        speed                                           = func_actor_341700_80168444(arg0, 0x1E);
+        angle                                           = work->field_7A + 0x400;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    }
+    if ((ActorsShared8016974c(arg0) << 0x10) != 0) {
+        Actor341700Work* next;
+
+        work->field_438 = 0;
+        next            = (Actor341700Work*)arg0->idMap;
+        next->field_420 = 3;
+        next->field_422 = 0;
+    }
+}
 
 /// The four sub-state handlers this branch of the actor dispatches through.
 extern TaskFuncTable4 D_actor_341700_80161ED0;

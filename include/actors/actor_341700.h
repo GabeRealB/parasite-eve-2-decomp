@@ -33,7 +33,9 @@ STATIC_ASSERT_SIZEOF(Actor341700Flags, 0x4);
 /// table walks; `field_412` is the per-state frame counter. `field_414` ..
 /// `field_426` are the animation request the actor hands to its player.
 typedef struct Actor341700Work {
-    /* 0x000 */ byte             pad_0[0x92];
+    /* 0x000 */ byte             pad_0[0x7A];
+    /* 0x07A */ s16              field_7A; // heading fed to rsin / rcos
+    /* 0x07C */ byte             pad_7C[0x16];
     /* 0x092 */ u16              field_92; // low half of root coord.t[1]
     /* 0x094 */ byte             pad_94[0x58];
     /* 0x0EC */ Actor341700Flags flags_EC;
@@ -84,6 +86,10 @@ typedef struct Actor341700SubWork {
     /* 0x06 */ byte pad_6[0x7A];
 } Actor341700SubWork;
 STATIC_ASSERT_SIZEOF(Actor341700SubWork, 0x80);
+
+/// `field_41C * arg1`, fixed point `<< 0xC >> 0x10` — the per-frame walk step
+/// the turning states add to the root coord through `rsin` / `rcos`.
+s32 func_actor_341700_80168444(Task* arg0, s16 arg1);
 
 s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2);
 
