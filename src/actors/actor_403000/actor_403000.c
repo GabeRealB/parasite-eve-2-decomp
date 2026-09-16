@@ -1437,12 +1437,13 @@ static __inline__ void Actor403000_PopVec(void)
     *(SVECTOR**)G_SCRATCH_HEAD += 1;
 }
 
-static inline s32 Actor403000_Cell(GsCOORDINATE2* coord)
+static inline s8 Actor403000_Cell(GsCOORDINATE2* coord)
 {
     s32 x;
     s32 z;
     s8  col;
     s8  row;
+    s32 cell;
 
     x = coord->coord.t[0];
     z = coord->coord.t[2];
@@ -1455,8 +1456,9 @@ static inline s32 Actor403000_Cell(GsCOORDINATE2* coord)
     } else {
         col = x < 0x3C8C;
     }
-    row = z >= 0x1068;
-    return (s8)D_actor_403000_80158D48[col + row * 5];
+    row  = z >= 0x1068;
+    cell = (s8)D_actor_403000_80158D48[col + row * 5];
+    return cell;
 }
 
 /// Turn toward the camera target (state 4) and, once facing it, walk at it
@@ -1833,7 +1835,236 @@ void func_actor_403000_801386E8(Actor403000* arg0)
     work->field_6++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80138DB0);
+/// Lunge-and-shove (animation 0x11): on the frame `field_4` is set, place the
+/// model a fixed distance short of the player along its facing, turn it toward
+/// the camera target and start the hit effect; for the first ten frames step it
+/// forward and push the player with message 0x3FE, turn for the first six, and
+/// on frame 0x29 aim a sideways push that frames 0x2C..0x35 keep resending.
+/// Bit 0 of `field_60` moves the state machine to 4 with a fresh `field_FD3`.
+void func_actor_403000_80138DB0(Actor403000* arg0)
+{
+    Actor403000Work*         work;
+    Actor403000*             player;
+    Actor403000ChaseScratch* scratch;
+    Actor403000ChaseScratch* head;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           rot;
+    GsCOORDINATE2*           pos;
+    GsCOORDINATE2*           pos2;
+    SVECTOR*                 dir;
+    SVECTOR*                 t1;
+    SVECTOR*                 vp;
+    SVECTOR*                 t2;
+    SVECTOR*                 t3;
+    SVECTOR*                 t4;
+    SVECTOR                  v;
+    s16                      angle;
+    s16                      diff;
+    s32                      dist;
+    s32                      ret;
+    s8                       sign;
+    s8                       sign2;
+    s16                      cell;
+
+    work                                       = arg0->field_1C;
+    player                                     = Game_GetPtrSlot(3);
+    head                                       = *(Actor403000ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor403000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    scratch                                    = head - 1;
+    if (work->field_4 != 0) {
+        work->objD18.obj.flags |= 0x4000;
+        work->field_F7C         = player->field_2C->field_8->coord.t[0];
+        work->field_F7E         = player->field_2C->field_8->coord.t[1];
+        work->field_F80         = player->field_2C->field_8->coord.t[2];
+        scratch->d.vx           = player->field_2C->field_8->coord.t[0] - arg0->field_2C->field_8->coord.t[0];
+        scratch->d.vy           = 0;
+        scratch->d.vz           = player->field_2C->field_8->coord.t[2] - arg0->field_2C->field_8->coord.t[2];
+        scratch->dist = dist = SquareRoot0(scratch->d.vx * scratch->d.vx + scratch->d.vy * scratch->d.vy + scratch->d.vz * scratch->d.vz);
+        work->field_AC6      = 0x11;
+        work->field_AC0      = 2;
+        work->field_6        = 0;
+        work->field_F84      = (dist - 900) / 20;
+        t1                   = &scratch->target;
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, t1);
+        VectorNormalSS(t1, t1);
+        Actor403000_ScaleVec(t1, 0x41A);
+        arg0->field_2C->field_8->coord.t[0] = player->field_2C->field_8->coord.t[0] - scratch->target.vx;
+        arg0->field_2C->field_8->coord.t[1] = player->field_2C->field_8->coord.t[1] - scratch->target.vy;
+        arg0->field_2C->field_8->coord.t[2] = player->field_2C->field_8->coord.t[2] - scratch->target.vz;
+        pos                                 = arg0->field_2C->field_8;
+        t1->vx                              = Wip_SysConfig.field_4->t[0] - pos->coord.t[0];
+        t1->vy                              = Wip_SysConfig.field_4->t[1] - pos->coord.t[1];
+        t1->vz                              = Wip_SysConfig.field_4->t[2] - pos->coord.t[2];
+        rot                                 = arg0->field_2C->field_8;
+        angle                               = ratan2(t1->vx, t1->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto loop_neg;
+            }
+        } else {
+        loop_pos:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos;
+            }
+        }
+        scratch->angle  = angle;
+        scratch->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+        arg0->field_2C->field_8->flg = 0;
+        t2                           = &scratch->target;
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, t2);
+        VectorNormalSS(t2, t2);
+        Actor403000_ScaleVec(t2, 0x96);
+        D_actor_403000_80158DB0.x        = scratch->target.vx;
+        D_actor_403000_80158DB0.y        = 0;
+        D_actor_403000_80158DB0.z        = scratch->target.vz;
+        D_actor_403000_80158DB0.field_10 = 7;
+        D_actor_403000_80158DB0.field_12 = 1;
+        Gp_SpawnPadLerp(5, 0xFF, 0x80);
+        work->field_FA8.field_0 = &player->field_2C->field_8[3];
+        work->field_FA8.field_4 = 0x500;
+        work->field_FA8.field_6 = 3;
+        func_800FDB18(Gp_GetIdParam1(0x100F) & 0xFFFF, &player->field_2C->field_8[3], 0, &work->field_FA8);
+    }
+    if ((s16)work->field_6 < 10) {
+        coord = arg0->field_2C->field_8;
+        if (D_80072729 != 1) {
+            dir = Actor403000_PushVec();
+            Gfx_MatrixCol2(&coord->coord, dir);
+            VectorNormalSS(dir, dir);
+            Actor403000_ScaleVec(dir, 0x78);
+            coord->coord.t[0] += dir->vx;
+            coord->coord.t[1] += dir->vy;
+            coord->coord.t[2] += dir->vz;
+            coord->flg         = 0;
+            Actor403000_PopVec();
+        }
+        v.vz = 0;
+        v.vy = 0;
+        v.vx = 0;
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, &v);
+        vp = &v;
+        VectorNormalSS(vp, vp);
+        Actor403000_ScaleVec(vp, 0x546);
+        v.vx = v.vx + arg0->field_2C->field_8->coord.t[0] - player->field_2C->field_8->coord.t[0];
+        v.vy = 0;
+        v.vz = v.vz + arg0->field_2C->field_8->coord.t[2] - player->field_2C->field_8->coord.t[2];
+        VectorNormalSS(vp, vp);
+        Actor403000_ScaleVec(vp, 0x96);
+        D_actor_403000_80158DB0.y        = 0;
+        D_actor_403000_80158DB0.field_10 = 7;
+        D_actor_403000_80158DB0.field_12 = 1;
+        D_actor_403000_80158DB0.x        = v.vx;
+        D_actor_403000_80158DB0.z        = v.vz;
+        Gp_DispatchMsg(player, 0x3FE, (s32)&D_actor_403000_80158DB0, 0);
+    }
+    if ((s16)work->field_6 < 6) {
+        t3     = &scratch->target;
+        pos2   = arg0->field_2C->field_8;
+        t3->vx = Wip_SysConfig.field_4->t[0] - pos2->coord.t[0];
+        t3->vy = Wip_SysConfig.field_4->t[1] - pos2->coord.t[1];
+        t3->vz = Wip_SysConfig.field_4->t[2] - pos2->coord.t[2];
+        rot    = arg0->field_2C->field_8;
+        angle  = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg2:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto loop_neg2;
+            }
+        } else {
+        loop_pos2:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos2;
+            }
+        }
+        scratch->angle  = angle;
+        scratch->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+        arg0->field_2C->field_8->flg = 0;
+    }
+    if ((s16)work->field_6 == 0x29) {
+        t4 = &scratch->target;
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, t4);
+        VectorNormalSS(t4, t4);
+        Actor403000_ScaleVec(t4, 0x21);
+        D_actor_403000_80158DB0.x = scratch->target.vx;
+        D_actor_403000_80158DB0.y = 0;
+        D_actor_403000_80158DB0.z = scratch->target.vz;
+        Gfx_MatrixCol0(&arg0->field_2C->field_8->coord, t4);
+        VectorNormalSS(t4, t4);
+        Actor403000_ScaleVec(t4, 0x7D);
+        D_actor_403000_80158DB0.x       += scratch->target.vx;
+        D_actor_403000_80158DB0.z       += scratch->target.vz;
+        D_actor_403000_80158DB0.field_10 = 7;
+        D_actor_403000_80158DB0.field_12 = 1;
+    }
+    if ((u16)(work->field_6 - 0x2C) < 10) {
+        ret = Gp_DispatchMsg(player, 0x3FE, (s32)&D_actor_403000_80158DB0, 0);
+        if (ret == 1) {
+            D_actor_403000_80158DB0.x        = 0;
+            D_actor_403000_80158DB0.y        = 0;
+            D_actor_403000_80158DB0.z        = 0;
+            D_actor_403000_80158DB0.field_10 = 7;
+            D_actor_403000_80158DB0.field_12 = ret;
+        }
+    }
+    if ((s16)work->field_6 == 0x39) {
+        work->field_F90 = &D_actor_403000_80158C08;
+        work->field_F94 = 2;
+        work->field_F98 = 0;
+        work->field_F9C = 0;
+        work->field_FA0 = 1;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_F90, 0);
+    }
+    if (work->field_60.half & 1) {
+        scratch->playerCell = Actor403000_Cell(player->field_2C->field_8);
+        cell                = Actor403000_Cell(arg0->field_2C->field_8);
+        scratch->cell       = cell;
+        diff                = (s8)cell - scratch->playerCell;
+        if (diff < -5) {
+            goto neg;
+        }
+        if (diff < 0) {
+            goto pos;
+        }
+        if (diff < 5) {
+        neg:
+            sign = -1;
+        } else {
+        pos:
+            sign = 1;
+        }
+        work->field_FD3 = sign;
+        diff            = scratch->cell - scratch->playerCell;
+        if (diff < -5) {
+            goto neg2;
+        }
+        if (diff < 0) {
+            goto pos2;
+        }
+        if (diff < 5) {
+        neg2:
+            sign2 = -1;
+        } else {
+        pos2:
+            sign2 = 1;
+        }
+        work->field_FD5 = work->field_FD3 = -sign2;
+        work->field_0                     = 4;
+    }
+    func_actor_403000_80133AF8(arg0);
+    if ((s16)++work->field_6 < 10) {
+        func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5);
+        func_actor_403000_80132348(arg0->field_2C->field_8, work->objC80.rec, 5);
+    }
+    *(Actor403000ChaseScratch**)G_SCRATCH_HEAD += 1;
+    arg0->field_2C->field_8->flg                = 0;
+}
 
 void func_actor_403000_801399A0(Actor403000* arg0)
 {

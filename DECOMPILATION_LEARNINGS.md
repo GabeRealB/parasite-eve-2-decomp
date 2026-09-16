@@ -99446,3 +99446,18 @@ became `lbu`: the truncating store makes the extension dead, so combine drops
 it. `(s32)` casts at the call site change nothing. Returning `s32` from the
 inline with `return (s8)table[i];` keeps the `sign_extend` in the RTL and
 reproduces `lb`, and the other caller still matches.
+
+### `lb a0` then `sll/sra 24` of the same register: an `s16` local holding the `s8` result
+
+`func_actor_403000_80138DB0` stores `Actor403000_Cell(arg0's coord)` into
+`scratch->cell` and computes `diff = cell - scratch->playerCell` from the same
+value. The ROM loads with `lb a0`, sign-extends `a0` *again* (`sll v0,a0,24;
+sra v0,v0,24`) for the subtraction, and does the `sb a0` in the first branch's
+delay slot. Every `s8`/`s32` local form lets cse fold the second extension (and
+the `sign = ±1` chain then lays out differently, `li v0,-1` preloaded instead of
+a `j` over it). What matched: `s16 cell = Cell(...); scratch->cell = cell;
+diff = (s8)cell - scratch->playerCell;` with the inline written as
+`s8 Cell(...) { s32 cell; ... cell = (s8)table[i]; return cell; }`. The
+previous entry's `s32`-returning form gave `lb` but folded the re-extension;
+returning `s8` directly (`return (s8)table[i];`) gave `lbu`. The `s32`
+intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
