@@ -88664,3 +88664,54 @@ Example: `func_dryfield_r08_8017F340`, whose sibling `func_dryfield_r08_8017F3B8
 in the same unit establishes the stride with `rec[1]` / `rec[2]` reads.
 Input: `base_1.i`
 `3b9e12d4e068e1b36349f777ea5aaba2be5d2267460ab7294e24a6fa77ea6e4c`.
+## A matched function's `.s` is often the only carrier of its rodata, so matching it drops those bytes (func_dryfield_dilapidated_house_8017E014, 2026-09-16)
+
+**Problem.** `migrate_rodata_to_functions: True` in a generated overlay config
+pairs a data run that follows a function with *that function's* `.s` file. Once
+the function is matched, splat writes that file into `matchings/<unit>/`, which
+nothing `.include`s, and emits no standalone `D_<seg>_<addr>.s` for the run - so
+the bytes leave the build. The compile still succeeds and only the link reports
+them, as `undefined reference to D_<seg>_<addr>` together with an overlay whose
+`.rodata` is short by exactly the run.
+
+The tell, before touching anything: the strings live in the `matchings/` copy
+only.
+
+    grep -rl '\.asciz' asm/USA/rooms/nonmatchings/<overlay>/<unit>/
+
+**Fix.** Write the run into C in the matched unit, positioned so its bytes land
+in address order among that file's `INCLUDE_RODATA` / `INCLUDE_ASM` emissions.
+GCC 2.8.1 emits a file-scope initialised object at the point of its
+*declaration*, not in a pool at the end of the file, so a declaration placed
+between two `INCLUDE_RODATA` blocks emits between them:
+
+```c
+INCLUDE_RODATA(..., D_x_8017D5C4);
+const char D_x_8017D5D0[8]  __attribute__((section(".rodata"))) = "AUNT";
+const char D_x_8017D5D8[12] __attribute__((section(".rodata"))) = "Player";
+INCLUDE_ASM(..., func_x_8017E144);   /* its switch table follows at 0x8017D5E4 */
+```
+
+Keep the target's symbol names. The scratch scorer compares `%hi`/`%lo`
+operands as text, so a bare literal (`lui a3,%hi(.rodata)`) scores below one
+that names the symbol (`%hi(D_x_8017D5D0)`) even though both link to the same
+address - 99.737% against 100% for this function, a 4-penalty `regs` leftover
+whose only difference was those two operands.
+
+A run absorbs the padding around its strings: `D_x_8017D5D8[12]` here covers
+`"Player"` plus the four zero bytes that pad the run out to the next function's
+table, because that is how the run divides at its two named addresses.
+
+**The section attribute is load-bearing.** The compiler defaults to `-G8`, so a
+`const char[8]` is emitted into `.sdata` and a 12-byte one into `.rdata`; a
+generated overlay's `section_order` lists neither, and the linker script has no
+place to put them. `__attribute__((section(".rodata")))` emits
+`.section .rodata,"a",@progbits` and lands the bytes where the subsegment
+expects them. Prefer it over padding the object past the threshold, which is not
+a property the layout is free to choose.
+
+`mist_shooting_gallery` solves the same problem one level up
+(`func_mist_shooting_gallery_8017E090`): the whole run is one C literal with
+explicit `\0` padding. That works when the code references only the run's start
+and a `.data` table reaches the later names; when the matched function itself
+references two addresses inside the run, each needs its own named object.
