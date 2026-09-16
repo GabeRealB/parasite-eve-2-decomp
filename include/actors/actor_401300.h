@@ -170,6 +170,28 @@ typedef struct Actor401300RangeScratch {
     /* 0x8 */ s32 r;
 } Actor401300RangeScratch;
 
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013AAE8` takes: the
+/// offset from the actor to the player, then the clamped turn applied to the
+/// root coordinate. Same shape as `Actor01900AimScratch`.
+typedef struct Actor401300AimScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     angle;
+    /* 0xE */ s16     pad_E;
+} Actor401300AimScratch;
+STATIC_ASSERT_SIZEOF(Actor401300AimScratch, 0x10);
+
+/// 0x34-byte `G_SCRATCH_HEAD` block `Actor401300_RescaleYaw` builds its scaled
+/// Y rotation in. Same shape as `Actor01900RotScratch`.
+typedef struct Actor401300RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor401300RotScratch;
+STATIC_ASSERT_SIZEOF(Actor401300RotScratch, 0x34);
+
 extern MATRIX* D_80073B8C;
 
 /// Movement freeze flag: `Actor401300_MoveForward` skips its step when it is 1.
