@@ -758,7 +758,32 @@ void Actor00400_Fn09714(Actor100400* arg0)
     work->field_63A++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn097C8);
+void Actor00400_Fn097C8(Actor100400* arg0)
+{
+    s32              cond;
+    s32              pan;
+    s32              sound;
+    Actor100400Work* work;
+    Actor100400Work* state;
+
+    work = arg0->field_1C;
+    if (work->field_642 != 0) {
+        sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
+        pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+    state = arg0->field_1C;
+    if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        state            = arg0->field_1C;
+        state->field_638 = 2;
+        state->field_63A = 0;
+    }
+}
 
 void Actor00400_Fn098A8(Actor100400* arg0)
 {

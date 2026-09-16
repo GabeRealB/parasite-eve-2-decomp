@@ -99268,3 +99268,34 @@ Inputs: `base.i` (96.296%) SHA256
 target.o SHA256 `b44efee74e98c0419283ae616254f21ab21bf22f1d34d53924d1d70c14b5fb7a`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn08814-vacuum`.
+
+## A block-local pointer can tie a load to its own base register; a global allocno never can
+
+`Actor00400_Fn097C8` tests `work->field_642` before a sound effect, then reloads
+`arg0->field_1C` for the `flags_62C` test and again inside the store. Written as
+one `work` variable, that is one pseudo with three definitions and ranges in
+blocks 0, 2, 3 and 7 - a global allocno, `dies in 3 places`, single home `$v1`.
+The first load then came out `lw v1,0x1C(s2)` / `lh v0,0x642(v1)`, against the
+target's `lw v0,0x1C(s2)` / `lh v0,0x642(v0)` - 99.804%, `branch=1 regs=2`, with
+every other instruction already identical.
+
+The target's pointer dies in the `lh` and the *loaded value* reuses its
+register. That tie is local-alloc's, and local-alloc only considers quantities
+confined to a single block, so an allocno spanning four blocks can never get it
+- no amount of reordering the other ranges will produce `lh v0,0x642(v0)`.
+Giving the guard use its own variable (`work` for the `0x642` test, `state` for
+everything after) turns that pointer into a block-local quantity; local-alloc
+colours it and the `lh` result into `$v0` together, the later ranges keep `$v1`,
+and the function matches. Same lever as "One `reg/v` pseudo with two definitions
+blocks the register the target reuses" above, with a different reason for
+wanting the split: not a conflict to escape, but a tie to be eligible for.
+
+Read the object dump for the signature: a load whose destination register equals
+its base register, where yours loads the base into a different register first.
+
+Inputs: `base_1.i` (99.804%) SHA256
+`23f6e38c63c9af9faf30ff76a818dd1647c87fd21fde11695b5bfb4aab0f301c`; `base_2.i`
+(100%) SHA256 `f71f32d78c8d3f6f7ba6383712b9f5432d6ee11fe7da261a0275a825b2c309ac`;
+target.o SHA256 `718984f6e9ee7d2bef28ae4e84a7b3690269e5f3f6919ea2ca1d4c63938cfc7a`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn097C8-vacuum`.
