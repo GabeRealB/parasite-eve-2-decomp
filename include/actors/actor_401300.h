@@ -33,7 +33,8 @@ typedef struct Actor401300Work {
     /* 0x002 */ s16  field_2;
     /* 0x004 */ s16  field_4;
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x10];
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[0xE];
     /* 0x018 */ s16  yaw;
     /* 0x01A */ byte pad_1A[0x44];
     /* 0x05E */ u16  field_5E;
@@ -93,7 +94,9 @@ typedef struct Actor401300Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xD0C */ Task* field_D0C;
     /* 0xD10 */ Task* field_D10;
-    /* 0xD14 */ byte  pad_D14[0xC];
+    /* 0xD14 */ byte  pad_D14[8];
+    /* 0xD1C */ s16   field_D1C;
+    /* 0xD1E */ byte  pad_D1E[2];
     /* 0xD20 */ s16   field_D20;
     /* 0xD22 */ s16   field_D22;
 } Actor401300Work;

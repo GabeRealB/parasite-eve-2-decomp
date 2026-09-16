@@ -1449,7 +1449,80 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013CBAC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013D2AC);
+void func_actor_401300_8013D2AC(Actor401300* arg0)
+{
+    Actor401300Work*       work;
+    GpEnemy*               enemy;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         coord2;
+    Actor401300AimScratch* aim;
+    s32                    angle;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy               = arg0->field_20;
+        obj                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        obj->field_C        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x280;
+        work->field_89C          = 1;
+        work->field_8A6          = 0x10;
+        work->field_8A2          = 0x19;
+        work->field_89E          = 0;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        func_actor_401300_80133A3C(arg0);
+        work->field_D1C          = 0;
+        work->field_6            = 0;
+        work->field_8            = 0;
+        work->field_BF0.field_18 = Gp_PackObjPair((GpObj50*)enemy, 0);
+        work->field_8B6          = 0x200;
+        work->field_8BA          = 0x80;
+        return;
+    }
+    func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+    if (work->field_6 >= 0x29) {
+        work->field_8B6 = 0;
+        work->field_8BA = 0x40;
+    }
+    work->field_6++;
+    switch (work->field_6) {
+        case 0x19:
+            work->field_BF0.flags |= 0x8000;
+            break;
+        case 0x28:
+            work->field_BF0.flags &= 0x7FFF;
+            break;
+    }
+    *(Actor401300AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
+    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &aim->delta);
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_6 < 0xE) {
+        coord           = arg0->field_2C->field_8;
+        angle           = ratan2(aim->delta.vx, aim->delta.vz);
+        aim->angle      = Actor401300_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8B2 = aim->angle;
+        if (aim->angle > 0x30) {
+            aim->angle = 0x30;
+        }
+        if (aim->angle < -0x30) {
+            aim->angle = -0x30;
+        }
+        coord2      = arg0->field_2C->field_8;
+        aim->angle += ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+        Actor401300_RescaleYaw(arg0->field_2C->field_8, 0x1964);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_6C & 0x100) {
+        work->field_0 = 6;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013D6C4);
 
