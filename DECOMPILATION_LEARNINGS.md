@@ -99090,3 +99090,68 @@ Inputs: `base_1.i` (100.000%, first distinct build) SHA256
 `5231d75349e68d81b4a319e93ccb06cb5e0ae4b8d4c11967b347cf30ab60d1d1`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn0962C-vacuum`.
+
+## Two nested arms with a store each versus one shared body: the live-length half of `pri` is a control-flow knob (Actor00400_Fn0875C, 2026-09-16)
+
+**Problem.** `Actor00400_Fn0875C` (actors, `actor_100400_fn0805c`) turns a
+heading toward a waypoint: normalise the XZ delta, take `ratan2`, wrap the
+difference to 12 bits with `((angle - yaw) << 20) >> 20`, and step the heading
+once the wrapped difference leaves the `arg3 & 0x7FF` deadband. Written the way
+its matched siblings in `actors_shared_80139c00` / `actors_shared_801698d4`
+write it -
+
+```c
+    if (diff > range) {
+        work->field_556 = angle - arg2;
+    } else if (diff < -range) {
+        work->field_556 = angle + arg2;
+    }
+```
+
+- the object is `blocks=4/4 instructions=46/46`, `Structure: match`, 99.348%
+with `regs=6` and every other penalty zero: a clean `$s0`/`$s1` swap between
+`work` and `range`. `.greg` ranked `88 86 84 89 82`, and the `Register N used X
+times across Y insns` block gives `work` 4 refs / 31 insns and `range` 3 / 12,
+i.e. `pri = 2*4/31 = 2580` against `1*3/12 = 2500`. A 3% margin is small but
+neither half of it is reachable the usual way: the spans are pinned by the
+block structure (two arm blocks, one test block, all of which `work` is live
+through), so reordering statements - tried as its own build - produced
+byte-identical output, and the reference counts are what they are.
+
+**Lever.** Give the two arms one body instead of nesting them:
+
+```c
+    if ((diff > range) || (diff < -range)) {
+        work->field_556 = (diff > range) ? (angle - arg2) : (angle + arg2);
+    }
+```
+
+Jump threading folds the retest in both paths, so the arms' `subu`/`addu` still
+land in the two branch delay slots and the object is unchanged: `46/46`, same
+histogram, `Structure: match`. What changes is the CFG. The nested form had
+blocks of 29 / 3 / 3 / 2 instructions; the shared form has 32 / 1 / 3 / 2 with
+the entry block holding the first arm, `work`'s definition at position 5
+instead of 6, and its live length **31 -> 32**. `pri = 8/32 = 0.25` is then
+*exactly* `3/12`, and `allocno_compare` falls through to `return v1 - v2` - the
+allocno index, i.e. the pseudo number, i.e. creation order. Declaring `range`
+ahead of `work` puts it first, and the homes become the target's
+`range -> $s0`, `work -> $s1`: 100%, all penalties zero.
+
+**The general lesson.** `pri` has two independent halves and both are source
+knobs: the reference count through `flow.c`'s `REG_N_REFS (regno) +=
+loop_depth` (the `do{}while(0)` and early-`return` levers above), and the live
+length through the *shape of the control flow*. When a pure `$sN` permutation
+is a few percent off, look for a source form that changes how many blocks the
+value is live through - two nested arms with a store each versus one shared
+body, here - before reaching for a pin. It costs nothing at the object level
+when the arms collapse back together, and it can turn a loss into the exact tie
+that the declaration-order lever then wins.
+
+Inputs: `base_2.i` (99.348%, nested) SHA256
+`f3bdd5ae9eeedef1fa1c20bb35b758d8f14d5a4b6f0293eb9733ed4d579ecef7`; `base_4.i`
+(99.348%, shared body, tied) SHA256
+`a1de5d99ed68048ee9e97d5e1c664657e0fec294f12d336145409a7737711990`; `base_5.i`
+(100%) SHA256 `c6ef7843f7fe5f7e5a4fdf9ec43e3d969f12347204ce70b8dbe157d2dd8d88c0`;
+target SHA256 `8164ce6714022f1130ef12a98fba523bbddbd662052aa50ca51bf4bcdc637c38`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn0875C-vacuum`.

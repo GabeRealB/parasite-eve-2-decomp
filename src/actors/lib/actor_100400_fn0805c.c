@@ -213,7 +213,37 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08624);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn086FC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn0875C);
+/// Turns `work->field_556` toward `arg1` by at most `arg2` per call, but only
+/// once the shortest signed 12-bit angle difference leaves the deadband
+/// `arg3 & 0x7FF`. The two conditions share one arm rather than nesting, which
+/// collapses the arms into the entry block: `work` then lives over 32 insns,
+/// exactly tying its allocator priority with `range`'s, and the tie falls
+/// through to the declaration order - hence `range` is declared ahead of `work`.
+void Actor00400_Fn0875C(Actor100400* arg0, Actor100400Entry8* arg1, s32 arg2, s32 arg3)
+{
+    s32              range;
+    Actor100400Work* work;
+    GsCOORDINATE2*   coords;
+    SVECTOR          vec;
+    s32              diff;
+    s32              yaw;
+    u16              angle;
+
+    work        = arg0->field_1C;
+    coords      = arg0->field_2C->field_8;
+    coords->flg = 0;
+    range       = arg3 & 0x7FF;
+    vec.vx      = arg1->field_0 - coords->coord.t[0];
+    vec.vy      = 0;
+    vec.vz      = arg1->field_4 - coords->coord.t[2];
+    VectorNormalSS(&vec, &vec);
+    yaw   = ratan2(vec.vx, vec.vz);
+    angle = work->field_556;
+    diff  = ((angle - yaw) << 20) >> 20;
+    if ((diff > range) || (diff < -range)) {
+        work->field_556 = (diff > range) ? (angle - arg2) : (angle + arg2);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08814);
 
