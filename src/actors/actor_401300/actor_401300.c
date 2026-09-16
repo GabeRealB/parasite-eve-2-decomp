@@ -1,6 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_401300.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+#include "main/gfx.h"
+#include "main/session.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801323B0);
 
@@ -50,7 +54,39 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138800);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138B24);
+void func_actor_401300_80138B24(Actor401300* arg0)
+{
+    Actor401300Work* work   = arg0->field_1C;
+    GpEnemy*         enemy  = arg0->field_20;
+    Task*            player = Game_GetPtrSlot(3);
+
+    if (work->field_4 != 0) {
+        work->field_8A6 = 0x10;
+        work->field_8A2 = 6;
+        work->field_89C = 2;
+        if ((s16)Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0) == 1) {
+            ((GameActor*)player->idMap)->field_956 = 0xA;
+        }
+        work->field_CB0 = 2;
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&work->field_CAC, 0);
+        work->field_D22 = 0;
+    }
+    if (work->field_6C & 2) {
+        work->field_910.field_0 = &arg0->field_2C->field_8[1];
+        work->field_910.field_4 = 0x300;
+        work->field_910.field_6 = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->field_8[5], NULL, &work->field_910);
+        work->field_0 = 0xE;
+    }
+    work->field_898 = work->field_5E & 0x3FF;
+    func_actor_401300_80133A3C(arg0);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[2].coord, -0x80, 0);
+    arg0->field_2C->field_8[4].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
+    arg0->field_2C->field_8[5].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138CF8);
 
