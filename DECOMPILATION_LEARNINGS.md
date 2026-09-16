@@ -91154,3 +91154,54 @@ and the same `lh` → `lw 0x20(a0)` → `beqz` order. When a pointer field is re
 only inside one arm of an `if`, check `overlay_dup_index.py find <func>` for a
 matched sibling of the same body and read its C: the hoisted local is the
 family's house style, so the sibling is the model rather than the m2c form.
+## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (func_actor_421600_8013E9D8, 2026-09-16)
+
+A spawn tail ends with "state = 2, or 5 when the id word masks down to
+0x11402". The m2c shape names a temp and assigns it before the test, so
+`jump.c` runs its `if (c) x = a; else x = b;` -> `x = b; if (c) x = a;` fold
+(see the `*&state` and junk-yard entries): the `= 2` lands in the block holding
+the test, before the mask constant, the `lw` and the `and`. Born there, the temp
+conflicts with `$v0` -- `;; 83 conflicts: 81 83 2 3 4 29` -- so `find_reg` skips
+`$v0` and takes the first free register, `$a1`:
+
+```
+lw    v0, 0xE90(s0)
+and   v0, v0, a0
+bne   v0, v1, .Lstore
+li    a1, 2          /* target has li v0, 2 */
+li    a1, 5
+.Lstore:
+sh    a1, 0(s0)
+```
+
+99.717%, `regs=3`. No pinning is needed: assign the *masked value itself* to the
+state local and let the arms reassign it, so the test reads X and the fold's
+"nothing in the test modifies B or X" guard fails:
+
+```c
+state = work->field_E90 & 0xFFFFFF;
+if (state == 0x11402) {
+    state = 5;
+} else {
+    state = 2;
+}
+work->field_0 = state;
+```
+
+The else arm keeps its own basic block, so `state` is born *at the `and`* -- by
+then the `lw`'s destination and the mask constant have both died, so
+`hard_regs_live` holds only the comparand: `;; 83 conflicts: 81 83 3 29`, no
+`2`. `$v0` is the first free register, and because the value pseudo is now the
+`and`'s own destination, the store, both `li`s and the `and` all fall out in
+`$v0` with nothing to tie. `reorg` then steals `li v0,2` from the else block --
+the branch's owned target thread, whose `needed` starts empty -- into the `bne`
+delay slot and redirects the branch onto the `sh`, which is why the target's
+else arm shows up as the delay slot rather than the fall-through. 100.000%,
+`regs=0`.
+
+Read it off `.greg`: if the arm value's conflict set names the comparand's
+register, its arms still share the test's block; the fix is to give the test
+something to read. Example: `func_actor_421600_8013E9D8`. Inputs: `base_2.i`
+`a5fac8bb0c991fc5d6b006606a115c03937d73dcabd15bc38780ccf248936585` (100.000%),
+`base.c` `8d046d78a99c4533238d9d50c1355bf918e0348adf343e92340ebf9e76c55ece`
+(99.717%, tried `if/else` with the test on the field: same 99.717%).

@@ -29,6 +29,9 @@
 /// uses; `field_8EC.field_1C` is the 0x908 store. `field_B8C` is the
 /// `GpRec18` table `func_actor_421600_8013285C` walks after the 0x20-byte
 /// `field_B6C` node, matching `Actor00100Obj.field_20` after `objs[2]`.
+/// `field_E90` is read as a word (not the `s16` actor 444000 keeps at the same
+/// offset); `func_actor_421600_8013E9D8` masks it to 24 bits and compares that
+/// with 0x11402 to pick the state it writes to `field_0`.
 typedef struct Actor421600Work {
     /* 0x000 */ s16     field_0;
     /* 0x002 */ byte    pad_2[2];
@@ -52,7 +55,8 @@ typedef struct Actor421600Work {
     /* 0xA4C */ byte    pad_A4C[0x120];
     /* 0xB6C */ GpObj   field_B6C;
     /* 0xB8C */ GpRec18 field_B8C;
-    /* 0xBA4 */ byte    pad_BA4[0x2F0];
+    /* 0xBA4 */ byte    pad_BA4[0x2EC];
+    /* 0xE90 */ s32     field_E90;
     /* 0xE94 */ Task*   field_E94;
     /* 0xE98 */ Task*   field_E98;
     /* 0xE9C */ byte    pad_E9C[0x10];
@@ -95,6 +99,11 @@ void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
 s8 func_actor_421600_8013E830(s32 arg0, s32 arg1);
 
 void func_actor_421600_8013E858(Actor421600* arg0);
+
+/// Write the actor's start state: `field_0` becomes 2, or 5 when the id word
+/// `field_E90` masks down to 0x11402. Also runs the shared spawn/teardown tail
+/// that `func_actor_421600_8013EAAC` / `_8013EB7C` share.
+void func_actor_421600_8013E9D8(Actor421600* arg0);
 
 void func_actor_421600_80134604(Actor421600* arg0);
 
