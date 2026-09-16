@@ -105601,3 +105601,51 @@ Same rule as "Setup before an early-out is source order" above, one construct
 over: an argument only one arm evaluates is still hoisted if the source builds
 it first. All three in one edit took 66.62% to 100.00%. Input: `base_1.i`
 `8f90020d745e1634745797f97d94fa5ee7377f04da6aa6c8d57e24830bf046bd`.
+
+## A store that must not lead its block needs a volatile store to hold it back (func_actor_800100_80164710, 2026-09-16)
+
+**Symptom:** 99.564% (`reorder=1`, `branch=1`). The target's third instruction,
+`sw $zero,0x90C($s1)`, comes out last in its block and lands in the `bne`'s
+delay slot, where the target instead fills that slot with a copy of the
+fall-through block's `addu $a0,$s3,$0`.
+
+**Model (from `.sched2`'s verbose ready list):** the second scheduling pass walks
+each basic block backwards — the launch order is the reverse of the object
+order. The store launches at T-2 because at T-2 the ready list is exactly {the
+store, `li $s0,4`}: those are the block's only two insns whose sole dependent is
+the branch, after the pass that makes every dependent-less insn depend on the
+block's tail (`sched.c`, the `TAIL_PRIORITY` loop), and `schedule_select`'s
+`potential_hazard` promotion then pulls the store ahead of the `li`. A store
+scores `(minb*0x40 + maxb) * ((unit_n_insns[memory] - 1)*0x1000 + 0)`, nonzero
+because the block holds five memory insns, while integer `arith` insns match no
+`define_function_unit` at all — mips.md's unit tests only name
+branch/call/jump/load/store/xfer/hilo/imul/idiv and the FP types — so the `li`
+scores 0 and can never win that group.
+
+**Why the block's own memory ops cannot hold the store back:** `output_dependence`
+between the two stores is false (`memrefs_conflict_p` resolves both
+`(plus (reg s1) (const_int))` addresses to one base and computes the constant
+difference), and `true_dependence`'s "fixed scalar address" exclusion exempts
+the `lbu D_8007272F` load from the SI store — the dump shows that load depending
+on the `sb` (QI mode defeats the exclusion) but *not* on the `sw` (SI mode
+satisfies it, and the message-sized load is neither `in_struct` nor varying).
+
+**Fix:** make that one access volatile.
+
+```c
+*(volatile GpLockPos**)&actor->field_90C = NULL;
+```
+
+`true_dependence`/`output_dependence` return 1 unconditionally when both MEMs
+are volatile, bypassing the address math and the exclusions, so the load becomes
+a dependent of the store and the store is released only at T-4 instead of T-2 —
+which is the target's schedule. The qualifier costs no instruction (still the
+same `sw $zero`).
+
+`output_dependence` needs **both** MEMs volatile: making the `0x97E` store
+volatile instead leaves the score at 99.564%, and only the store that has to
+release the other one needs the cast.
+
+Verified: scratch 100.00% with all-zero penalties, and the unscoped
+`./tools/build-and-verify.sh` passes. `base_5.c`. Input `base_5.i`
+`8597845d1a6f28d0af4af85760b2a432bc004fd78f94ce5cd66b263f7e840135`.

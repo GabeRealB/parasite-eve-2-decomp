@@ -1069,6 +1069,7 @@ void  Gp_StepPlayerMove(GpActorWork* arg0);
 s32   Gp_KillPlayerEffs(void);
 void  Gp_TurnPlayer(GpActorWork* arg0);
 s32   func_801060E0(GpActorWork* arg0);
+void  func_80103C74(GsCOORDINATE2* arg0, VECTOR3* arg1, VECTOR3* arg2);
 s32   func_80103D8C(s32 arg0, s32 arg1);
 void  Gp_AnimPlayChildSlots(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  Gp_TickActorAnimState(GpActorWork* arg0);

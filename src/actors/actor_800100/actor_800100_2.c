@@ -287,7 +287,77 @@ void func_actor_800100_80164580(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164710);
+void func_actor_800100_80164710(GpActorWork* arg0)
+{
+    GameActor*              actor;
+    GameActor*              actor2;
+    GameActor*              actor3;
+    GpActorD4*              d4;
+    GpLinkNode*             node;
+    GpLockPos*              lock;
+    GsCOORDINATE2*          coord;
+    Actor800100LockScratch* scratch;
+    VECTOR3*                head;
+    s32*                    scratchHead;
+    s32                     dist;
+    u16                     state;
+
+    head                    = *(VECTOR3**)G_SCRATCH_HEAD;
+    actor                   = arg0->actor;
+    scratch                 = (Actor800100LockScratch*)((u8*)head - 0x20);
+    *(void**)G_SCRATCH_HEAD = scratch;
+    d4                      = actor->field_910;
+    Gp_TrackAllyLockTarget(arg0, 3);
+    state = actor->field_95E;
+    if (state != 0) {
+        if (state != 1) {
+            scratchHead = (s32*)G_SCRATCH_HEAD;
+        } else {
+            goto block_10;
+        }
+    } else {
+        lock = (GpLockPos*)actor->field_90C;
+        if ((lock == NULL) || (coord = arg0->extra->field_8, Gp_GetLockPos(lock, &scratch->lock), func_80103C74(coord, &scratch->lock, (VECTOR3*)((u8*)head - 0x10)), ((func_80103D8C(scratch->rot.vx, scratch->rot.vz) < 0x301) != 0))) {
+            actor2            = arg0->actor;
+            actor2->field_954 = 0;
+            actor2->field_956 = 4;
+            actor2->field_95C = 0;
+            actor2->field_95E = 0;
+            actor2->field_973 = 0;
+            actor2->field_975 = 0;
+            Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+        } else {
+            dist = func_8010BCF4((Task*)arg0, &scratch->lock);
+            if (dist < 0) {
+                dist = -dist;
+            }
+            if (dist < 0x181) {
+                actor->field_95E += 1;
+            block_10:
+                if (((s8)d4->field_CC <= 0) || (node = actor->field_90C, node == NULL) || (node->field_4 & 1)) {
+                    *(volatile GpLockPos**)&actor->field_90C = NULL;
+                    actor->field_97E                         = 1;
+                    actor->field_12A                        &= 0x3FFF;
+                    if ((u8)D_8007272F == 4) {
+                        func_80106350(arg0, D_actor_800100_80167218[D_8007272F], 0);
+                    }
+                    actor3            = arg0->actor;
+                    actor3->field_954 = 0;
+                    actor3->field_956 = 4;
+                    actor3->field_95C = 0;
+                    actor3->field_95E = 0;
+                    actor3->field_973 = 0;
+                    actor3->field_975 = 0;
+                    Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+                } else if (actor->field_940 == 0) {
+                    func_actor_800100_80166EE8(arg0);
+                }
+            }
+        }
+        scratchHead = (s32*)G_SCRATCH_HEAD;
+    }
+    *scratchHead += 0x20;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164940);
 
