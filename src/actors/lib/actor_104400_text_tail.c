@@ -703,7 +703,33 @@ void Actor04400_Fn06DFC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06EEC);
+/// Same body as `ActorsShared80168d3c`: seeds the model's root coord.t[1] from
+/// the animation's, then resets the whole animation/state block. The `tmp`
+/// variable is deliberate - reusing one halfword for 8 and then 1 is what the
+/// original did, and it is what puts both constants in the same register.
+void Actor04400_Fn06EEC(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    s16              tmp;
+
+    work             = (Actor104400Work*)arg0->idMap;
+    work->field_92   = *(u16*)&((TmdObject*)arg0->extra)->field_8->coord.t[1];
+    work2            = (Actor104400Work*)arg0->idMap;
+    tmp              = 8;
+    work2->field_426 = tmp;
+    work2->field_418 = tmp;
+    work2->field_41C = 0x10;
+    tmp              = 1;
+    work2->field_414 = tmp;
+    work->field_412  = 0;
+    work->field_428  = 0;
+    work->field_42A  = -0x12C;
+    work->field_440  = tmp;
+    work->field_438  = 0;
+    work->field_432  = 0;
+    work->field_422  = work->field_422 + 1;
+}
 
 /// Counts `field_412` up, clearing the death flag `field_438` on the way. On
 /// frame 1 it plays the enemy's hit sound at the model's pan and depth, with
