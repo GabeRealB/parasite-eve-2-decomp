@@ -213,6 +213,15 @@ typedef struct Actor403000TurnScratch {
 } Actor403000TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403000TurnScratch, 0xC);
 
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_403000_80133FC0` takes: the
+/// player's position relative to the model, then the wrapped facing error.
+typedef struct Actor403000FacingScratch {
+    /* 0x00 */ SVECTOR target;
+    /* 0x08 */ s16     angle;
+    /* 0x0A */ byte    pad_A[0x2];
+} Actor403000FacingScratch;
+STATIC_ASSERT_SIZEOF(Actor403000FacingScratch, 0xC);
+
 /// Waypoint grid for `func_actor_403000_80134204`: two rows of five indices
 /// (row by `coord.t[2]`, column by `coord.t[0]` band), each one less than the
 /// `D_actor_403000_80158CE0` entry it selects.

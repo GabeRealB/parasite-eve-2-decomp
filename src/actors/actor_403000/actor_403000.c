@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 #include "psyq/inline_c.h"
 
 /// `gpf 12`. The `inline_c.h` macro of that name assembles to a different
@@ -26,8 +27,6 @@ extern u32        D_actor_403000_80158C08;
 extern u32        D_actor_403000_80158CA8;
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", D_actor_403000_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801324EC);
 
@@ -227,7 +226,95 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133AF8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133FC0);
+s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
+{
+    GsCOORDINATE2*            coord;
+    Actor403000FacingScratch* scratch;
+    s16                       angle;
+    s32                       mag;
+    GsCOORDINATE2*            coord2;
+
+    if (arg1 == arg2) {
+        return 1;
+    }
+    switch (arg1) {
+        case 0:
+            if (arg2 == 9) {
+                goto calc;
+            }
+            if (arg2 < 4) {
+                goto calc;
+            }
+            return 0;
+        case 1:
+        case 2:
+        case 3:
+            if (arg2 < 5) {
+                goto calc;
+            }
+            return 0;
+        case 4:
+            if (arg2 >= 6) {
+                return 0;
+            }
+            if (arg2 != 0) {
+                goto calc;
+            }
+            return 0;
+        case 5:
+            if (arg2 < 4) {
+                return 0;
+            }
+            if (arg2 != 9) {
+                goto calc;
+            }
+            return 0;
+        case 6:
+        case 7:
+        case 8:
+            if (arg2 >= 5) {
+                goto calc;
+            }
+            return 0;
+        case 9:
+        default:
+            if (arg2 >= 6) {
+                goto calc;
+            }
+            if (arg2 != 0) {
+                return 0;
+            }
+            break;
+    }
+calc:
+    scratch            = --*(Actor403000FacingScratch**)G_SCRATCH_HEAD;
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    scratch->target.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+    scratch->target.vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+    scratch->target.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    coord2             = ((TmdObject*)arg0->extra)->field_8;
+    angle              = ratan2(scratch->target.vx, scratch->target.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    scratch->angle = mag = angle;
+    if ((mag < 0 ? -mag : mag) < 0x200) {
+        *(Actor403000FacingScratch**)G_SCRATCH_HEAD += 1;
+        return 1;
+    }
+    *(Actor403000FacingScratch**)G_SCRATCH_HEAD += 1;
+    return 0;
+}
 
 s32 func_actor_403000_80134204(GsCOORDINATE2* arg0)
 {
