@@ -6,6 +6,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "gameplay/1BC.h"
+#include "main/session.h"
 
 /// Payload `func_actor_104000_80138CC8` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
@@ -56,7 +57,8 @@ typedef struct Actor104000Work {
     /* 0x19C */ s16        field_19C;
     /* 0x19E */ byte       pad_19E[0xF0];
     /* 0x28E */ u16        field_28E;
-    /* 0x290 */ byte       pad_290[0xDE];
+    /* 0x290 */ GpRec18    hits[8]; // this frame's collision records, ended by a zero id
+    /* 0x350 */ byte       pad_350[0x1E];
     /* 0x36E */ u16        field_36E;
     /* 0x370 */ byte       pad_370[0x36];
     /* 0x3A6 */ u16        field_3A6;
@@ -70,8 +72,10 @@ typedef struct Actor104000Work {
     /* 0x47B */ byte       pad_47B[1];
     /* 0x47C */ byte       field_47C[0x14];
     /* 0x490 */ s32        field_490;
+    /* 0x494 */ byte       pad_494[2];
+    /* 0x496 */ s16        field_496;
 } Actor104000Work;
-STATIC_ASSERT_SIZEOF(Actor104000Work, 0x494);
+STATIC_ASSERT_SIZEOF(Actor104000Work, 0x498);
 
 /// Display object hung off `field_2C`; `field_C` is the visibility/alpha value
 /// the state handlers clear when the actor restarts.
@@ -109,6 +113,18 @@ typedef struct Actor104000RangeScratch {
     /* 0x8 */ s32 r;
 } Actor104000RangeScratch;
 STATIC_ASSERT_SIZEOF(Actor104000RangeScratch, 0xC);
+
+/// 0x18-byte scratch taken from `0x1F8003FC` while applying a hit: the first
+/// type-2 record's position, its offset from the model origin, the attack id,
+/// the computed damage and the hit's yaw relative to the model's facing.
+typedef struct Actor104000HitScratch {
+    /* 0x00 */ SVECTOR d;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     id;
+    /* 0x14 */ u16     dmg;
+    /* 0x16 */ s16     angle;
+} Actor104000HitScratch;
+STATIC_ASSERT_SIZEOF(Actor104000HitScratch, 0x18);
 
 void func_actor_104000_80132C8C(Actor104000* arg0);
 void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);

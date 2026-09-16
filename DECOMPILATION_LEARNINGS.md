@@ -100904,3 +100904,27 @@ operand on `rot`, but then combine folds the copy into the negate (`negu s0,v1`,
 **Fix.** Both at once: `mag = __builtin_abs(rot); step = rot; SOFT_TOUCH_REG(step); step = -step;`
 (100%). Extending `rot`'s life with a dead late store confirms the CSE half (abs operand returns to
 `v1`) but combine still folds, so the touch is what keeps the copy.
+
+### A struct store that reads the *sign-extended* call argument means the value came back from an inline (func_actor_204000_8014DDD4, 2026-09-16)
+
+The yaw wrap (`if (a < 0) { while (a < -0x800) a += 0x1000; } else ...`) ended
+99.8% with only one pseudo in the wrong register. Target:
+
+```
+sll  a1,a1,16        # wrapped angle already lives in a1
+lw   a2,0x10(s2)
+sra  a1,a1,16
+jal  func_..._8014DB50
+ sh  a1,0x16(s2)     # store reads the extended copy
+```
+
+Ours kept the wrapped `angle` in `v1`, extended into a separate `a1`, and stored
+`v1`. The store reading the extended value says the source stored and passed
+one fresh value, not the loop variable: writing the wrap as
+`static __inline__ s16 WrapAngle(s16 angle)` and
+`sc->angle = WrapAngle(angle); func(arg1, sc->angle, sc->id);` gave 100%. The
+inline's parameter copy is also what explains the target's `move a1,s0` before
+the `bgez s0` sign test. The goto-loop hit scan in the same function is the
+`func_actor_444000_8013C060` shape ("loop.c relocates a loop block that ends in
+a jump out"); `(s8)` on a `s32 pan` local moves the extension before the second
+call, matching `sll s1,v0,24; sra s1,s1,24`.
