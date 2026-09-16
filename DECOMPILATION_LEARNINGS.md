@@ -93338,3 +93338,63 @@ Example: `func_actor_103700_80135318`. Inputs: `base_1.i`
 `c9b5a6ae85c442eed29c51bc4d1c01eb017d892c551415e7763b8402b5ce4f78` (100.000%),
 `base_1.c` `e73497395e399d891415be244c45d06aca1db5b4d6e09ee6dbff6243c93981be`
 (100.000% - the same object as the m2c seed, which already matched).
+
+## `+= i` on a counter known to be 1 is an `addiu` until `TOUCH_REG` hides it - and then the `for` pre-test has to go too
+
+The else arm of `func_actor_103700_80135210` adds the slot counter, which is 1
+at that point: `i = 1` is set in the branch's delay slot and both arms share it.
+
+```
+lhu    v0,0x24c(s1)
+nop
+addu   v0,v0,s0        /* s0 = i = 1 */
+sh     v0,0x24c(s1)
+```
+
+Written the obvious way, `work->field_24C += i;`, the object is one word
+different - `addiu v0,v0,1` for that `addu` - with `regs=0` and only
+`insert=1 delete=1` in the penalty mix, which reads as a scheduling problem and
+is not one. The *first* `cse` did it: `.jump` still shows the register and
+`.cse` has the constant, because `li s0,1` sits in the delay slot of the branch
+the new block is entered through and its quantity is already recorded as
+`const_int 1`. The loop's own `i` uses survive untouched, since the loop body is
+a new basic block and the table does not reach it.
+
+`TOUCH_REG(i);` before the add (`"+r"`, so the empty asm may rewrite `i`) puts
+`addu` back. This idiom is everywhere in this family's animation-slot bodies -
+`ActorsShared8014af2c`, `func_actor_207200_8014D65C`, `Actor03800_Fn02998`
+(`src/actors/lib/actor_103800_text.c`, three times) - and those already-matched
+siblings are the shortest path to the source shape.
+
+The second half is the trap: hiding the value there also hides it at the loop
+entry, so `for (i = 1; i < 6; i++)` can no longer fold its own first test
+(`1 < 6`) away and an extra `slti`/`beqz` pair lands in front of the loop - 46
+instructions against the target's 44, with `structure: different` in the
+diagnosis. The original is bottom-tested, and the siblings say so:
+
+```c
+    } else {
+        TOUCH_REG(i);
+        work->field_24C += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 6);
+    }
+```
+
+The two halves are one idiom, not two independent tricks: hiding the counter and
+bottom-testing the loop are together what make `+= i` compile to the register add
+the original has.
+
+Promoting the matched body afterwards is the ordinary flow (see "A slot twin's
+copy is `~`, not `=`"), with one refinement to the boundary rule: this span,
+`0x33F0..0x34A0`, is the *tail* of unit `actor_103700_3` (`0x3004..0x34A0`)
+rather than a unit's start. That renumbers nothing either - the unit just ends
+earlier - so a promotion is safe wherever the cut falls on a boundary between
+bodies. Only a span that starts inside a unit's text drags the numbering with it.
+
+Example: `func_actor_103700_80135210`. Inputs: `base_5.i`
+`216117408d3869b6c872af6d479af88225d17f05e7bfc19587d64ab6f42fa642` (100.000%),
+`base_5.c` `c4b08db040730d3e061aa0292216de55ac2d8eb9617161fe148bf8f2b642d2dc`
+(100.000%).
