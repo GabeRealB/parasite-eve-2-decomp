@@ -44885,6 +44885,31 @@ const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
 `const` matters - a non-const initialised array lands in `.data`, not
 `.rodata`.
 
+The C route also covers a block in the *middle* of the unit's `.rodata`, not
+just one that is last: the order is the source order, so the definition goes
+between the two `INCLUDE_RODATA` lines that surround it. `actor_311900`'s
+12-byte state table is the worked example - it sits at `0x80161E24`, between
+the overlay id at `0x80161E20` and `ActorsShared80135df4Table` at `0x80161E30`:
+
+```c
+INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E20);
+
+const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
+    func_actor_311900_8016228C,
+    func_actor_311900_801623B0,
+    Gp_DestroyEnemy,
+};
+
+void func_actor_311900_8016222C(Task* task) { ... }
+
+INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", ActorsShared80135df4Table);
+```
+
+cc1 writes the definition to `.rdata` (the same section GNU as calls `.rodata`)
+between the two `.include`s, the overlay still checksums, and no `sym/` entry or
+re-split is needed. `force_not_migration` is the fallback for a block that is
+not expressible as C; a table of function pointers always is.
+
 Either fix leaves the old `.s` on disk, because splat emits `.s` under
 `nonmatchings/` only for functions the sources still pull in with `INCLUDE_ASM`,
 and it never rewrites a file that is already there. So replacing an
@@ -44904,6 +44929,57 @@ does not produce a standalone block either: the next split writes the data to
 `matchings/<overlay>/<unit>/func_<addr>.s` and the whole run to
 `data/<overlay>/<unit>.rodata.s`, and the build assembles neither, so the symbol
 stays undefined and the deletion looks like the thing that lost it.
+
+## A dispatcher's field argument is scheduled by where the source reads it
+
+The stack-copied state dispatcher has two forms that both match, and they place
+the first argument's field load in different halves of the block. Written
+inline,
+
+```c
+sp.funcs[arg0->field_30]((ActorCtx*)arg0->field_20, arg0);
+```
+
+the load follows the copy and drops into the load-delay slot of the index load:
+
+```
+lw     $v0, 0x30($a1)
+lw     $a0, 0x20($a1)
+sll    $v0, $v0, 2
+```
+
+Written into a local ahead of it,
+
+```c
+ctx = arg0->field_20;
+sp  = D_actor_311900_80161E24;
+sp.funcs[arg0->field_30](ctx, arg0);
+```
+
+the load is scheduled to the top of the block and the index load's delay slot
+gets a `nop` instead - one instruction longer:
+
+```
+sw     $ra, 0x20($sp)
+lw     $a0, 0x20($a1)
+lui    $v0, %hi(D_actor_311900_80161E24)
+...
+lw     $v0, 0x30($a1)
+nop
+sll    $v0, $v0, 2
+```
+
+Nothing in sched2 chose between them: the RTL carries the statements in source
+order - base_1's `.sched2` chain puts the `lw $a0` insn after the `movstrsi`
+block copy, base_2's hoists it ahead - and the scheduler's ready list keeps
+same-priority insns in that order. So this is a source question, not a
+scheduling one: do not reach for a scheduler barrier or a `do {} while (0)`
+wrapper. Both forms are in the tree, and the sibling whose disassembly has the
+load in the right place tells you which one to write - `Gp_EnemyDispatch`,
+`Actor00300_Fn04770` and `func_actor_310600_80162A7C` take the inline form,
+`Actor00400_Fn0793C` and `func_actor_311900_8016222C` the local. Matching the
+wrong sibling costs exactly the reorder and the missing `nop` (90.8% with
+`reorder=2 delete=1`, `regs=0`).
 
 ## A compiler-generated jump table is `.align 3`, so it cannot follow other rodata in the same object
 
