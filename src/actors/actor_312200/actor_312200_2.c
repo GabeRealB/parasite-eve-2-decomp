@@ -33,4 +33,23 @@ INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200_2", func_actor_312200
 
 INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200_2", func_actor_312200_80163778);
 
-INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200_2", func_actor_312200_801637CC);
+/// Per-tick state callback. A live actor (`field_4`) re-enters work state 2
+/// with the 0x896 timer armed at 0x10; once the 0x892 timer has counted those
+/// 0x10 ticks and the task's flag bit 0 is set, the state drops to 1 and the
+/// timer to 4. Either way the tick ends in the actor's anim/particle update.
+void func_actor_312200_801637CC(Task* task)
+{
+    Actor312200Work* work;
+
+    work = (Actor312200Work*)task->idMap;
+    if (work->field_4 != 0) {
+        work->field_88C = 2;
+        work->field_896 = 0x10;
+        func_actor_312200_80162FB4(task);
+    }
+    if (work->field_892 == 0x10 && (work->field_5C & 1)) {
+        work->field_892 = 4;
+        work->field_88C = 1;
+    }
+    func_actor_312200_80162FB4(task);
+}

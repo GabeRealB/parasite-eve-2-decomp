@@ -14,9 +14,25 @@
 /// block is much larger - sibling `func_actor_312200_801636CC` writes halfwords
 /// at 0x0, 0x88C, 0x892 and 0x8B4..0x8B8 of the same pointer - so the struct
 /// stays open-ended.
+///
+/// The named tail is the actor state block shared by this family, laid out like
+/// `Actor110600Work`: `field_4` is the live-actor flag every state handler tests
+/// on entry, `field_88C` the work state, `field_892` / `field_896` the two
+/// timers the state handlers arm, and `field_5C` the flag halfword whose bit 0
+/// the callbacks test.
 typedef struct Actor312200Work {
-    /* 0x00 */ byte pad_0[0x8];
-    /* 0x08 */ s16  yaw;
+    /* 0x000 */ byte pad_0[0x4];
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ byte pad_6[0x2];
+    /* 0x008 */ s16  yaw;
+    /* 0x00A */ byte pad_A[0x52];
+    /* 0x05C */ u16  field_5C;
+    /* 0x05E */ byte pad_5E[0x82E];
+    /* 0x88C */ s16  field_88C;
+    /* 0x88E */ byte pad_88E[0x4];
+    /* 0x892 */ s16  field_892;
+    /* 0x894 */ byte pad_894[0x2];
+    /* 0x896 */ s16  field_896;
 } Actor312200Work;
 
 /// Placement opcode: the three longs of `placement->pos` are copied onto the
@@ -24,5 +40,13 @@ typedef struct Actor312200Work {
 /// resulting heading is read back out of the matrix Z-axis with `ratan2` and
 /// cached in the work block.
 s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placement* placement);
+
+/// Per-tick state callback: on a live actor it re-enters state 2 with the
+/// 0x896 timer armed at 0x10, then hands the tick to `func_actor_312200_801637CC`'s
+/// anim/particle update. Once the 0x892 timer has run its 0x10 ticks with the
+/// task's flag bit 0 set, it drops the state to 1 and shorts the timer to 4.
+void func_actor_312200_801637CC(Task* task);
+
+void func_actor_312200_80162FB4(Task* task);
 
 #endif // ACTOR_312200_H
