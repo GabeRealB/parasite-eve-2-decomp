@@ -110829,3 +110829,120 @@ SHA256 `2b5bd7766ffcdebd0e3dc5a030d35a45cd2bd41a2d1d78fb613c4363ab3d3e46`;
 target.o SHA256 `b72ed10478bca8eb826ebe81dbfe79a3cee9344fc3a0f9ea77d71eacb7037ce7`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80134564-vacuum`. Builds: 8.
+
+## A sparse switch's case bodies are emitted in source order, so the target's block layout is a transcript of the source
+
+GCC builds a switch's dispatch tree from the *sorted* case values — the same
+tree for any source order — but the bodies are expanded where the `case` labels
+appear, and `reorder_basic_blocks` then lays them out from there. A target whose
+bodies sit in an order no source reading implies is telling you what the source
+order was. `func_actor_110600_80136B20` has cases 0xC8/0x190 (shared),
+0xE6, 0xFA/0x1A4 (shared), 0x258; written in that order the two jump regions
+did not line up, and the target emits them 0xE6, 0xC8/0x190, 0xFA/0x1A4, 0x258.
+Reordering the `case` labels to match — no other change — took the score from
+77.36% to 85.00% with `blocks=29/29 instructions=235/235` and the C counts
+already equal. Note the tree itself is order-independent, so a `case` order that
+is "natural" and one that matches the target compile to identical *sets* of
+blocks and differ only in their sequence: check `insert`/`delete` alongside the
+diff before rewriting a body.
+
+The same block-order lever explains the neighbouring finding that the two flag
+statements are adjacent in the source: `field_A90.flags &= 0x7FFF` and
+`field_950.flags &= 0xBFFF` sit either side of three zero-stores in the target's
+*emitted* order, but writing them apart in the source (matching that order) put
+the whole first block's schedule in a different shape — `sched` hoisted all
+three loads and deferred every `andi`. Written adjacent, with the timer clears
+after them and `field_8A6 = field_B7C` last, the block matched (92.15% → 94.2%).
+The sibling `func_actor_110600_80136ECC` in the same overlay has the same
+adjacency, which is how the source order was spotted.
+
+Inputs: `base_1.i` SHA256
+`fe410b5c5377fc9079f084b880b9299bf6aecc04572714224bed0083d421bb57` (77.4%);
+`base_2.i` SHA256
+`4735e9a2a37473e8793e9429d86c1392ccdc23e389046dd4948fb0075df7144f` (85.0%);
+`base_2.c` SHA256
+`b8206848d90ea391ef01bffb8299431db499e7ce9c73503e07e8e8daaa5e28ba`;
+target.o SHA256
+`3df6c15641ad3c9b5fb517c55f8634b0346d83ad64210a4e15d2c7ccae3d7a8e`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
+
+## Three identical word stores at descending addresses are a chained assignment, and a negative multiplier is what emits `negu`
+
+A `VECTOR` filled with one value appears three times in the target as
+`sw v0,0x20(sp)` / `sw v0,0x1c(sp)` / `sw v0,0x18(sp)` — descending addresses,
+one register. Three separate assignments (`scale.vx = v; scale.vy = v; scale.vz
+= v;`) emit them in address order; `scale.vx = scale.vy = scale.vz = v;` emits
+them right-to-left, because the chained assignment's inner store happens first
+and the outer two copy that value. The same target computes that value as
+`sll v0,v1,2` / `negu v0,v0` / `addiu v0,v0,0xbb8`: `(plus (const) (neg ...))`,
+not `(minus (const) ...)`. Writing the arithmetic the obvious way,
+`0xBB8 - work->field_BE0 * 4`, gives `li v0,0xbb8` + `subu` instead — the
+subtraction keeps its own form. A negative multiplier in the source,
+`0xBB8 + work->field_BE0 * -4`, expands the multiply as `sll` + `negu` and the
+addition then absorbs the constant as `addiu`, which is the target. Together
+these two rewrites (90.39% → 92.15%) are what made the whole `field_BE0 >= 0xE6`
+block match, including the GTE `gpf 1` sequence after `ScaleMatrix`.
+
+The same trick explains `blk->scale.vz|vy|vx = 0x1964` in the matched
+`Actor401300_InitPose` (`src/actors/actor_401300/actor_401300.c`), which is
+written in descending order for the same reason.
+
+Inputs: `base_3.i` SHA256
+`8cf416d56bd81f307a8018082d43d4d8d3acbf689ae83c00b83a72bf68f85002` (90.4%);
+`base_5.i` SHA256
+`9a6312fedca98d3a2d159d8466d5eb9c60532d1f8e1a721361e813118595ff3f` (92.2%);
+`base_5.c` SHA256
+`f70795a1e22523dd05f1368e8072884910362c41a6fd604e20dd77f1dc65a671`;
+target.o SHA256
+`3df6c15641ad3c9b5fb517c55f8634b0346d83ad64210a4e15d2c7ccae3d7a8e`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
+
+## A constant address in a MEM is a pseudo that only allocation can remove, and a one-use one always is
+
+`memory_address` (explow.c) starts every constant address the same way —
+`if (! cse_not_expected && CONSTANT_P (x) && CONSTANT_ADDRESS_P (x)) x =
+force_reg (Pmode, x);` — so `*(void**)G_SCRATCH_HEAD` expands to
+`(set (reg 85) (const_int 528483324))` plus `(mem (reg 85))`, and only later
+passes can take that register away again. CSE cannot: MIPS defines
+`ADDRESS_COST(ADDR) = REG_P (ADDR) ? 1 : mips_address_cost (ADDR)`, and
+`mips_address_cost` returns 1 for `(plus (reg) (small_const))` against 4 for a
+bare `CONST_INT`, so `find_best_addr`'s `ADDRESS_COST (folded) <
+ADDRESS_COST (addr)` never fires for a `0x1F80xxxx` address. Reload is the only
+way out, and it only fires for a pseudo the allocator left unallocated.
+
+Which pseudos survive is then decided by how many times the address is used.
+`func_actor_110600_80136B20`'s ROM tail rematerialises all four of its
+scratch-word addresses (`lui $s4,(0x1F8003FC>>16)` + `lw
+$s4,(0x1F8003FC&0xFFFF)($s4)` for the load, `lui $at,...` + `sw ...` for the
+store, twice more for the bump). Writing the load as the literal
+`*(void**)G_SCRATCH_HEAD` and the store/bump through a base *variable*
+(`pad = PSX_SCRATCH; *(void**)(pad + 0x3FC) = blk;`) reproduces the load
+exactly — its pseudo has one use, never reaches local-alloc, and the address
+comes out inline with the load's destination register doubling as the base —
+while the store/bump's single three-use `(plus (reg pad) (const 0x3FC))`
+pseudo is allocated a callee-saved register, which is one register more than
+the ROM's tail uses and costs the whole frame. Score 94.196% → 95.111% from
+splitting the shapes, `blocks=29/29 instructions=235/235` both sides.
+
+Two traps on the way there. A base *variable* is what keeps the address a PLUS
+(a literal constant folds at the tree level and gets forced back into a
+register); but a variable whose value already fits the low half of the address
+is worse than useless — GCC folds it to a small constant, and reload then
+substitutes `$zero` for it, which is how a permuter run "improved" this
+function to 96.885% while emitting `sw $16,1020` (`0x3FC($zero)`, a store to
+low memory). Check the emitted `sw`/`lw` base register before believing a
+distance gain on this pattern.
+
+Inputs: `base_27.i` SHA256
+`811572cf0b9b3581323a30f4fa864b4e4acd251c1ac387e47733970d5dc407e0`; the 94.196% seed `base_13.i` (a byte-duplicate of `base_8.i`) SHA256
+`a306f538961be345662d1e955ad06d19ca938ccb7ce2b25e2766474cc2ffd0e8`; `base_27.c` SHA256
+`75a9b82a15ad6e20263dd97e690044eef0444b21d52ad1563a9a82d1e022b833` (95.1%);
+target.o SHA256
+`3df6c15641ad3c9b5fb517c55f8634b0346d83ad64210a4e15d2c7ccae3d7a8e`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
