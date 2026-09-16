@@ -655,6 +655,18 @@ if (enemy->field_40 <= 0) {
 Example: `Actor01900_Fn09BE8` — phi local 99.765% `regs=4`, else-if stores
 100%. Related to the `||` / `return K` delay-slot case, but the leftover
 is a store phi rather than a return.
+
+Second example, `func_actor_356100_8016A834` (actors): m2c's
+`var_v0 = 0x15; if (field_40 > 0) { var_v0 = 4; if (field_B3A <= 0) var_v0 = 0x11; }`
+scored 99.636% with `regs=4` — only the three `li` and the `sh` differed,
+`$v1` for `$v0`. Rewriting it as the nested `if`/`else` chain above changed
+nothing: `build.sh` reported base_1 as an assembly duplicate of base.c. Its
+initial `.rtl` does carry the three arm-local defs, but `jump_optimize`
+(`.jump`) then moves the else arm's assignment above the compare and points
+the branch at the join store, so the phi is live across the compare block
+either way. Storing to `field_0` in each arm instead — the shape the
+family's already-matched `Actor00100_Fn0BB2C` uses — leaves the arms as
+separate blocks, merges to one `sh`, and gave 100%.
 ## m2c types a local from its only store, so a byte store puts an `sll` before the compare
 
 `GameFlag_GetNibble` returns `s32`, but its result is used twice: compared

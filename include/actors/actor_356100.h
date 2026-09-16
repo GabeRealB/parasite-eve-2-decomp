@@ -24,28 +24,33 @@
 /// kills; same pair as `Actor01900Work` at +0xC38 / +0xC3C, without the three
 /// `GpObj` nodes that teardown unlinks.
 typedef struct Actor356100Work {
-    /* 0x000 */ s16   field_0;
-    /* 0x002 */ byte  pad_2[2];
-    /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[0x54];
-    /* 0x05A */ u16   field_5A;
-    /* 0x05C */ byte  pad_5C[0xC];
-    /* 0x068 */ u16   field_68;
-    /* 0x06A */ byte  pad_6A[0x90A];
-    /* 0x974 */ s32   field_974;
-    /* 0x978 */ s16   field_978;
-    /* 0x97A */ s16   field_97A;
-    /* 0x97C */ byte  pad_97C[2];
-    /* 0x97E */ s16   field_97E;
-    /* 0x980 */ byte  pad_980[2];
-    /* 0x982 */ s16   field_982;
-    /* 0x984 */ s16   field_984;
-    /* 0x986 */ byte  pad_986[8];
-    /* 0x98E */ s16   field_98E;
-    /* 0x990 */ s16   field_990;
-    /* 0x992 */ byte  pad_992[0x2A];
-    /* 0x9BC */ s16   field_9BC;
-    /* 0x9BE */ byte  pad_9BE[0x19E];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ byte pad_2[2];
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ byte pad_6[0x54];
+    /* 0x05A */ u16  field_5A;
+    /* 0x05C */ byte pad_5C[0xC];
+    /* 0x068 */ u16  field_68;
+    /* 0x06A */ byte pad_6A[0x90A];
+    /* 0x974 */ s32  field_974;
+    /* 0x978 */ s16  field_978;
+    /* 0x97A */ s16  field_97A;
+    /* 0x97C */ byte pad_97C[2];
+    /* 0x97E */ s16  field_97E;
+    /* 0x980 */ byte pad_980[2];
+    /* 0x982 */ s16  field_982;
+    /* 0x984 */ s16  field_984;
+    /* 0x986 */ byte pad_986[8];
+    /* 0x98E */ s16  field_98E;
+    /* 0x990 */ s16  field_990;
+    /* 0x992 */ byte pad_992[0x2A];
+    /* 0x9BC */ s16  field_9BC;
+    /* 0x9BE */ byte pad_9BE[0x17C];
+    /// Threshold `func_actor_356100_8016A834` tests once the enemy is still
+    /// alive (`field_40 > 0`) to choose clip 4 or 0x11; the analogue of the
+    /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
+    /* 0xB3A */ s16   field_B3A;
+    /* 0xB3C */ byte  pad_B3C[0x20];
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
 } Actor356100Work;
