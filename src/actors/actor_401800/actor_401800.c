@@ -72,7 +72,57 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80134C94);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80135DAC);
+/// Walk-state body, split on the live flag. Live: hand the model back to
+/// `Tmd_AllocBuffers`, restart the 0x898 slot, ramp `field_8A2` to 0x10, remap
+/// the state at 0x89E (11 -> 0x17, 12/25 -> 0x18, anything else -> 0x17) and
+/// hold the two `field_5A` countdowns open until the step helper has run its
+/// course, then drop `field_8A2` to 0x20. Dead: clear the model's coordinate
+/// flag, halve `field_8A2` with the 1 / -1 wrap, and once `Gp_TickObjFlag2`
+/// reports 1 clear the enemy's node bit 1 and move to state 0x11.
+/// Same body as `func_actor_401300_80135DDC`.
+void func_actor_401800_80135DAC(Actor401800* arg0)
+{
+    Actor401800Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+    TmdObject*       tmd;
+
+    if (work->field_4 != 0) {
+        tmd                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        tmd->field_C        = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_898        = 2;
+        work->field_8A2        = 0x10;
+        work->field_A08.flags |= 0x4000;
+        if (work->field_89E == 11) {
+            work->field_89E = 0x17;
+        } else if (work->field_89E == 12 || work->field_89E == 25) {
+            work->field_89E = 0x18;
+        }
+        if ((u16)(work->field_89E - 0x17) >= 2) {
+            work->field_89E = 0x17;
+        }
+        do {
+            func_actor_401800_80133EB8(arg0);
+        } while (!(work->field_89E == 0x17 && (work->field_5A & 0x3FF) >= 6) &&
+                 !(work->field_89E == 0x18 && (work->field_5A & 0x3FF) >= 9));
+        work->field_8A2 = 0x20;
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    work->field_8A2              = work->field_8A2 / 2;
+    if (work->field_8A2 == 1) {
+        work->field_8A2 = -0x10;
+    }
+    if (work->field_8A2 == -1) {
+        work->field_8A2 = 0x10;
+    }
+    func_actor_401800_80133EB8(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+        enemy->field_4C &= ~2;
+        work->field_0    = 0x11;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80135F58);
 
