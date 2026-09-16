@@ -89679,3 +89679,53 @@ build and the extra one holds a pure address, the fix is to give that address a
 longer live range by computing it in an earlier block, not to look for a missing
 value. Count the `sw $sN` prologue stores first — that count is a direct
 statement about how many pseudos cross a call.
+
+## A following statement's load *before* an abs `bgez` proves the source used `ABS()` (func_actor_510900_8013864C, 2026-09-16)
+
+The two existing `ABS()` entries read the difference off the abs itself — an
+unfilled `bgez` delay slot, or a `$v0`/`$v1` inversion around it. There is a
+third tell, and it is the strongest of the three because it is positive rather
+than an absence: **an instruction belonging to a later statement scheduled
+above the `bgez`.** `sched2` never moves an insn across a basic-block boundary,
+so if the ROM has
+
+```
+subu  v0, v0, v1          /* end of the first abs' operand */
+lh    v1, 0x5A8(s0)       /* operand of the *next* statement */
+bgez  v0, .L
+nop
+negu  v0, v0
+sh    v0, 0x5B0(s0)
+```
+
+then no block boundary exists there, and `if (d < 0) { d = -d; }` cannot
+produce it at any register assignment. `ABS()` / `__builtin_abs()` folds to the
+single `abssi2` insn, the tail stays one block, and the scheduler is free to
+interleave the two statements.
+
+The same merge has a second, easily misread consequence. Everything from the
+loop-exit label to the return is then one block, so the `%hi`/`%lo` pair for a
+global referenced only in the *last* statement can be hoisted to the **top** of
+it, far from its use:
+
+```
+.Ljoin:
+    lui   a0, %hi(Wip_SysConfig)
+    lh    v1, 0x5A8(s0)          /* load delay filled by the %lo */
+    addiu a0, a0, %lo(Wip_SysConfig)
+    ...                          /* both abs, then */
+    lw    v0, 0x4(a0)
+```
+
+With the `if` form that address landed two blocks later, leaving a `nop` in the
+join block — the whole visible diff was one `nop` and some reordering, which
+reads like a scheduling problem and is not one. Binding `&Wip_SysConfig` to a
+local right after the loop *does* move the `high`/`lo_sum` into the join block,
+but sched then parks them at its end, splits the pair across the `bgez`, and
+the coalescing that makes `lui a0` / `addiu a0,a0` share a register is lost:
+94.7%, worse than the 97.4% it was meant to fix. Fix the block structure, not
+the reference point.
+
+96.8% -> 100%. Corollary for reading a diff: when a global's address appears
+much earlier than its only use, suspect a merged block rather than
+rematerialization.

@@ -700,7 +700,47 @@ void func_actor_510900_801384C4(Actor510900* arg0)
     work->field_592      = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013864C);
+/// Latches which of the four `D_actor_510900_80167BA4` boxes the player stands
+/// in into `field_5AA`, records how far `field_5A6` is from the near and far
+/// ends of the current patrol side, and measures the straight-line distance
+/// from the actor's attach coordinate to the player into `field_5AC`.
+void func_actor_510900_8013864C(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    VECTOR*           delta;
+    void*             head;
+    s32               i;
+    s32               dx;
+    s32               dz;
+
+    work                = arg0->field_1C;
+    head                = *(void**)0x1F8003FC;
+    coord               = arg0->field_2C->field_8;
+    *(void**)0x1F8003FC = (u8*)head - 0x10;
+    delta               = (VECTOR*)((u8*)head - 0x10);
+
+    for (i = 0; i < 4; i++) {
+        if (D_actor_510900_80167BA4[i].minX < Wip_SysConfig.field_4->t[0] &&
+            Wip_SysConfig.field_4->t[0] < D_actor_510900_80167BA4[i].maxX &&
+            D_actor_510900_80167BA4[i].minZ < Wip_SysConfig.field_4->t[2] &&
+            Wip_SysConfig.field_4->t[2] < D_actor_510900_80167BA4[i].maxZ) {
+            work->field_5AA = i;
+            break;
+        }
+    }
+
+    work->field_5B0 = __builtin_abs(work->field_5A8 * 13200 - work->field_5A6);
+    work->field_5AE = __builtin_abs((work->field_5A8 + 1) * 13200 - work->field_5A6);
+
+    dx                 = Wip_SysConfig.field_4->t[0] - coord->field_0.coord.t[0];
+    delta->vx          = dx;
+    delta->vy          = 0;
+    dz                 = Wip_SysConfig.field_4->t[2] - coord->field_0.coord.t[2];
+    delta->vz          = dz;
+    work->field_5AC    = SquareRoot0(dx * dx + dz * dz);
+    *(u32*)0x1F8003FC += 0x10;
+}
 
 void func_actor_510900_801387F4(Actor510900* arg0)
 {

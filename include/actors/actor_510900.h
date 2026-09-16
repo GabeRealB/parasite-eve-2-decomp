@@ -355,6 +355,20 @@ extern Actor510900PatrolStep D_actor_510900_80167B94[4];
 /// coordinate towards, indexed by `Actor510900Work::field_5A8`.
 extern u16 D_actor_510900_80167B9C[];
 
+/// One of the four world-space x/z boxes `func_actor_510900_8013864C` tests the
+/// player against; the index of the box containing them is latched into
+/// `Actor510900Work::field_5AA`.
+typedef struct Actor510900PatrolBox {
+    /* 0x0 */ s16 minX;
+    /* 0x2 */ s16 maxX;
+    /* 0x4 */ s16 minZ;
+    /* 0x6 */ s16 maxZ;
+} Actor510900PatrolBox;
+STATIC_ASSERT_SIZEOF(Actor510900PatrolBox, 0x8);
+
+/// The four boxes, in the same order as the patrol square's corners.
+extern Actor510900PatrolBox D_actor_510900_80167BA4[4];
+
 /// The three face normals `func_actor_510900_8013B524` copies into
 /// `Gp_GridParams->field_4`, restoring the collision grid this actor edited.
 extern SVECTOR D_actor_510900_80167BC4[3];
