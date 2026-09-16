@@ -45,5 +45,8 @@ void func_actor_202900_8014A260(void);
 void func_actor_202900_8014A304(void);
 s32  func_actor_202900_8014A394(void);
 s32  func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args);
+/// Draw-state handler for message 0x7D5: bit 0 of `flags` selects visible or
+/// hidden, bit 1 marks the colour matrix for a rebuild.
+s32 func_actor_202900_8014A440(Task* task, s32 arg1, s32 flags);
 
 #endif

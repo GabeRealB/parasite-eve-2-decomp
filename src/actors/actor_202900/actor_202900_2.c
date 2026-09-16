@@ -129,4 +129,34 @@ s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args)
     return -1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A440);
+/// Message 0x7D5 handler: applies the draw-state flags to the model the actor's
+/// work block points at and to the one its display task carries. Bit 0 picks
+/// visible (`field_C` cleared) or hidden, the 0x80 `Task_Kill` also ORs in; bit
+/// 1 sets 0x4, the flag `Gp_UpdateActorColor` reads as "rebuild the colour
+/// matrix". The two models are the same object reached two ways, and both are
+/// updated in the same order everywhere.
+///
+/// The handler is declared with the message arguments it does not read so the
+/// flags arrive in `$a2` as they do for every other handler: with a single
+/// parameter the compiler copies the incoming `$a0` into the pseudo global
+/// allocation gave `$a2`, one instruction the target does not have.
+s32 func_actor_202900_8014A440(Task* task, s32 arg1, s32 flags)
+{
+    TmdObject* actorModel;
+    TmdObject* taskModel;
+
+    actorModel = D_actor_202900_80156E58->extra;
+    taskModel  = (TmdObject*)D_actor_202900_80156E5C->extra;
+    if (flags & 1) {
+        actorModel->field_C = 0;
+        taskModel->field_C  = 0;
+    } else {
+        actorModel->field_C = 0x80;
+        taskModel->field_C  = 0x80;
+    }
+    if (flags & 2) {
+        actorModel->field_C |= 4;
+        taskModel->field_C  |= 4;
+    }
+    return 0;
+}
