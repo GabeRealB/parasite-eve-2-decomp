@@ -99609,3 +99609,87 @@ only in whitespace and comments), confirm the checksum, and stop. Seen on
 ActorsShared8013845cSub1, whose retained `base_3.c`
 (`e47ee1677a06f926098b53c6066249096f786f632fd2763d1cd2c3d22e2db1ce`) was already
 the body landed in `src/actors/actor_201100/actor_201100_4.c`.
+
+## A value that survives a merge: two stores to the field instead of a local moves the choice from global-alloc to local-alloc (func_actor_104900_80138EFC, 2026-09-16)
+
+m2c's reconstruction of this handler assigned a local and stored it once:
+
+```c
+s8 var_v0;
+var_v0 = 0xE;
+if (work->field_BAE == 0) var_v0 = 0xB;
+work->field_BA4 = var_v0;      /* 91.92%, regs=2 */
+```
+
+`var_v0` lands in `$v1`; the ROM has `$v0`. Only the register differs, and the
+`.greg` dump says why before any allocation happens:
+
+```
+;; 2 regs to allocate: 82 83
+;; 83 conflicts: 82 83 2 29
+```
+
+Allocno 83 (`var_v0`) already conflicts with hard register 2 (`$v0`), and
+`global.c:find_reg` refuses a conflicting register outright
+(`IOR_HARD_REG_SET (used1, hard_reg_conflicts[allocno])`), so it takes the next
+one in `REG_ALLOC_ORDER`. The conflict was recorded by the *condition*'s load:
+its temp is a block-local quantity that local-alloc homed in `$v0`
+(`;; Register 88 in 2.`), and its live range spans the `li` that gives `var_v0`
+its first value -- the branch that kills it is one instruction later. Every
+`mark_reg_store`/`record_one_conflict` on that temp therefore poisons `$v0` for
+the allocno, in either operand order. This is not a shape you can rearrange
+away: `jump_optimize` canonicalizes `if (c) A; else B;`, the inverted
+`if (!c) B; else A;` and default-then-override into the same RTL, so all three
+scored 91.92% with the same dump.
+
+Writing the two arms as stores to the field instead removes the allocno:
+
+```c
+if (work->field_BAE == 0) {
+    work->field_BA4 = 0xB;
+} else {
+    work->field_BA4 = 0xE;
+}
+```
+
+Each arm's constant is now its own block-local quantity, and local-alloc homes
+each in `$v0` independently (`;; Register 88 in 2.`, `;; Register 89 in 2.`) --
+they are in different basic blocks, so nothing conflicts and global-alloc is
+never consulted. The two `sb` are not what ships: `.sched2` still holds both,
+and `.jump2` merges them into one shared tail (`li $v0, 11` / `li $v0, 14`,
+then a single `sb`) because after reload both arms write the same register, which
+makes the store tails identical. The object ends up byte-identical to the ROM's
+single-store form -- 100.000%, all-zero penalties.
+
+The lasting rule: when the leftover is `regs` alone and the value in question
+crosses a merge, try two stores to the destination rather than one store of a
+local. Who picks the register changes -- local-alloc, per block, with no
+cross-block conflict, instead of global-alloc, which sees every hard register a
+block-local quantity has already claimed. The two sources compile to the *same*
+final assembly, so no amount of staring at the object dump finds this lever;
+only `.lreg`/`.greg` shows which allocator chose the register.
+
+## Promoting a shared body in mid-overlay renumbers every later unit, and the moved stub must be re-pointed at its new unit (toolchain, 2026-09-16)
+
+`tools/overlay_dup_index.py promote` inserts a `shared` span for the promoted
+body into every carrier's manifest entry. When that body does not sit at the end
+of the text -- 0x70DC of 0x74D0 here -- every later `c` subsegment shifts: the
+unit that held the tail functions splits into a new unit for what precedes the
+span and a different one for what follows. splat then creates the *new* unit
+`.c` (correct, since it did not exist) and leaves the existing ones holding the
+old distribution, so the build fails with `can't open asm/.../<unit>/<fn>.s`
+followed by a missing `.o` at link time.
+
+Redistributing is a whole-file move per unit, not a line move: an INCLUDE_ASM
+stub's first argument is the unit *path*, so a stub carried from unit `_4` into
+unit `_5` still names `_4` and fails the same way one round later. Copy the old
+unit's file wholesale and then rewrite that path.
+
+The trap inside the trap is a *matched* body sitting in a renumbered unit:
+`src/actors/actor_201100/actor_201100_4.c` held the decompiled
+`ActorsShared8013845cSub1`, which the new layout puts in `_5`. The generated
+`_5.c` splat wrote is an `INCLUDE_ASM` stub, and putting the body's new unit
+under that stub would have assembled to exactly the bytes the C compiled to --
+green build, checksum intact, body gone. Move the whole file, verify with
+`diff` against the pre-change blob before building, and let the unscoped
+`tools/check_lost_matches.py` pass be the confirmation.
