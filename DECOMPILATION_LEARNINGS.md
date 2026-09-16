@@ -108808,3 +108808,70 @@ baseline. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_2.i` SHA256
 `5d3732963d6a8a885c47e29449b42c04f18468461b5bfa39e52a2bb85fbe0555`.
+
+## A field the target reads *twice in one block* is a `volatile` read: local CSE merges the second one away (func_actor_356100_80169180, 2026-09-16)
+
+`func_actor_356100_80169180` opens its parity arm by reading `field_6` again, and
+the target keeps both loads — three instructions the compiler otherwise deletes:
+
+```
+lhu   $v0, 0x6($s2)        # range test's read
+nop
+addiu $v0, $v0, -0x2E
+sltiu $v0, $v0, 0x4
+beqz  $v0, .Lend
+nop
+lhu   $v0, 0x6($s2)        # <- second read, same address, same block
+nop
+andi  $v0, $v0, 0x1
+bnez  $v0, .Lodd
+```
+
+Written the obvious way (`if (!((u16)work->field_6 & 1))`) the entry is 437
+target / 434 built with `delete=3`: both reads are
+`(zero_extend:SI (mem/s:HI (plus (reg work) (const_int 6))))`, `cse_insn` hashes
+the first into the block's table and rewrites the second to that register, and
+the `andi` moves up into the freed slot. The score sits at 99.275% no matter how
+the second read is spelled:
+
+| spelling of the second read | result |
+|---|---|
+| `(u16)work->field_6 & 1` | merged — the two MEMs are the same expression |
+| `*(u16*)&work->field_6 & 1` | merged — `exp_equiv_p` compares the address and mode, not the alias set or `MEM_IN_STRUCT_P` |
+| a `u16*` local computed as `(u16*)work + 3` | merged — `fold_rtx` canonicalises the address register |
+| `work->field_6 & 1` (signed) | no merge, but `combine` cannot drop the dead sign extension here, so it emits `lh` where the target has `lhu` |
+| `((u16*)&work->field_4)[1] & 1` | merged — the tree fold builds the same `6($s2)` address before CSE runs |
+
+`volatile` is what survives. `canon_hash` sets `do_not_record` for any MEM with
+`MEM_VOLATILE_P` (`cse.c`, the `case MEM` arm), so the load is never entered in
+the table and never replaced; `movhi` still picks the width the *use* wants, so
+the arm stays a bare `lhu` + `andi` — unlike assigning a `volatile u16` to an
+`s32` local, which pays a separate `zero_extendhisi2` (see the
+`func_acropolis_plaza_8017F9EC` entry).
+
+```c
+if ((u32)((u16)work->field_6 - 0x2E) < 4U) {
+    if (!(*(volatile u16*)&work->field_6 & 1)) {   /* the target re-reads */
+```
+
+**Scope.** A field the target loads twice from the same address with no store
+between, in one basic block. The tell is a small `delete` (the dropped load, its
+load-delay `nop`, and the smaller block that follows) with `stack=0` and
+`branch=0`, not the register/scheduling leftovers a spill would leave. Before
+reaching for `volatile`, rule out the two other ways the target can have two
+loads: the same field read signed *and* unsigned (a real `sign_extend` vs
+`zero_extend` pair never merges — `func_actor_356100_80167584` does exactly
+that), and a cross-jumped or skipped block boundary. Neither applies here —
+the epilogue label has two `label_ref`s, so `cse`'s `skip_blocks` path (which
+needs `LABEL_NUSES == 1`) does not fire and the two reads really are in one
+table.
+
+The rest of the match is two levers this corpus already documents, both of which
+had to land before the score cleared 99%: the six-effect arm writes its
+`Gp_SpawnEff` tail out in *both* parity branches (cross-jumping shares the `jal`,
+`func_actor_160900_80133880`), and each block declares its own `s32 pan` rather
+than one shared local, so each becomes a local quantity the `extendhisi` temp can
+join (`func_m4a1_pyke_8011D7D4`). From the 54.396% m2c seed. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
+`base_10.i` SHA256
+`91c445af40512be33c9ac3edbd48bde713ef687821992194b9bcdc0df2975961`.

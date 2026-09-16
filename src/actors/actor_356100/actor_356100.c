@@ -330,7 +330,116 @@ void func_actor_356100_80168E44(Actor356100* arg0)
     *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80169180);
+/// The overlay's death-throes tick, the sibling of `func_actor_356100_80168E44`:
+/// going live re-seeds the model (the enemy's link node, `obj->field_C`, the
+/// 0x978..0x982 animation slots) and queues sound 0x550B0007 against the root
+/// part, whose coordinate the live arm clears outright. Each frame then bumps
+/// `field_6`, runs the clip and walks part 1's coordinate by a fixed 0x1044 /
+/// 0x4AA per frame. Four frames each fire their own sound (0x550B0008 with the
+/// 6/0xFF/0x80 pad rumble, 0x400D0002 with 8/0x7F/0x30, 0x400D0001 with
+/// 6/0x7F/0x30, 0x550B0009 bare), and `field_6` 0x29..0x2D drives a 16-effect
+/// 0x600FB burst over the model's part coordinates — 0x2E..0x31 the same burst
+/// with six effects, alternating on the frame's parity.
+///
+/// The parity test re-reads `field_6` from memory rather than reusing the range
+/// test's value (the two reads are what the original emits), so the read is
+/// spelled volatile.
+void func_actor_356100_80169180(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         ctx;
+    GsCOORDINATE2*   coord;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        s32 pan;
+
+        ctx                     = arg0->field_20;
+        arg0->field_2C->field_C = 0;
+        Tmd_AllocBuffers(arg0->field_2C);
+        ctx->node.field_4 = 1;
+        work->field_97E   = 1;
+        work->field_978   = 2;
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x800, 1);
+        coord                        = arg0->field_2C->field_8;
+        coord->coord.t[2]            = 0;
+        coord->coord.t[1]            = 0;
+        coord->coord.t[0]            = 0;
+        arg0->field_2C->field_8->flg = 0;
+        Gp_UpdateCoord(arg0->field_2C->field_8);
+        work->field_6 = 0;
+        pan           = (s8)Gp_GetObjPan((GpObj38*)&arg0->field_2C->field_8[1]);
+        SndEvt_EnqueueType6(0x550B0007, pan, (s8)Gp_GetObjDepth((GpObj38*)&arg0->field_2C->field_8[1]));
+    }
+    work->field_6 = (s16)((u16)work->field_6 + 1);
+    func_actor_356100_80163508(arg0);
+    arg0->field_2C->field_8[1].coord.t[0] += 0x1044;
+    arg0->field_2C->field_8[1].coord.t[2] += 0x4AA;
+    arg0->field_2C->field_8[1].flg         = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+    if (work->field_6 == 0x31) {
+        s32 pan;
+
+        pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->field_2C->field_8[1]);
+        SndEvt_EnqueueType6(0x550B0008, pan, (s8)Gp_GetObjDepth((GpObj38*)&arg0->field_2C->field_8[1]));
+        Gp_SpawnPadLerp(6, 0xFF, 0x80);
+    }
+    if (work->field_6 == 0x4D) {
+        s32 pan;
+
+        pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->field_2C->field_8[1]);
+        SndEvt_EnqueueType6(0x400D0002, pan, (s8)Gp_GetObjDepth((GpObj38*)&arg0->field_2C->field_8[1]));
+        Gp_SpawnPadLerp(8, 0x7F, 0x30);
+    }
+    if (work->field_6 == 0x58) {
+        s32 pan;
+
+        pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->field_2C->field_8[1]);
+        SndEvt_EnqueueType6(0x400D0001, pan, (s8)Gp_GetObjDepth((GpObj38*)&arg0->field_2C->field_8[1]));
+        Gp_SpawnPadLerp(6, 0x7F, 0x30);
+    }
+    if (work->field_6 == 0xCE) {
+        s32 pan;
+
+        pan = (s8)Gp_GetObjPan((GpObj38*)&arg0->field_2C->field_8[1]);
+        SndEvt_EnqueueType6(0x550B0009, pan, (s8)Gp_GetObjDepth((GpObj38*)&arg0->field_2C->field_8[1]));
+    }
+    if ((u32)((u16)work->field_6 - 0x29) < 5U) {
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[3], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x10], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[1], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x12], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[2], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x11], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[3], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[4], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[5], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x10], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[1], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x13], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x11], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x10], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[5], 0, 0);
+        Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x12], 0, 0);
+    }
+    if ((u32)((u16)work->field_6 - 0x2E) < 4U) {
+        if (!(*(volatile u16*)&work->field_6 & 1)) {
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[2], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x11], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[3], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[4], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[5], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x10], 0, 0);
+        } else {
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[1], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x13], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x11], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x10], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[5], 0, 0);
+            Gp_SpawnEff(0x600FB, &arg0->field_2C->field_8[0x12], 0, 0);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80169854);
 

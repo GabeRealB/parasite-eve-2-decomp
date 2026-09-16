@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
