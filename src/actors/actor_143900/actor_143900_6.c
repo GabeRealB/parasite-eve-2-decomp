@@ -6,7 +6,35 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900_80132F14);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900_80132FB0);
+/// Placement handler of the overlay's own variant, the twin of
+/// `func_actor_461800_80132B74`: state 0 attaches the task's own coordinate
+/// under `part`, the element of the published task's part array that
+/// `spawnArg1` selects, and state 1 stamps that element's translation - lifted
+/// by 0x320 - onto the task's coordinate frame.
+void func_actor_143900_80132FB0(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->field_8;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_143900_801496C8->extra)->field_8;
+    GsCOORDINATE2* part  = parts + task->spawnArg1;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg     = 0;
+            extra->field_C = 0;
+            extra->field_E = 0xF;
+            coord->sub     = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_6", func_actor_143900_80133068);
 
