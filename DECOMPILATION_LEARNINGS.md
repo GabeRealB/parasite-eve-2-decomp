@@ -84151,3 +84151,61 @@ base do not alias, so the stores reorder freely.
 Inputs: `base_6.i` (97.2%, `delete=1`), `base_11.i` (99.4%, `reorder=1`),
 `base_13.i` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A cast-offset store to a global materialises `&global+off`; the typed member keeps `&global`
+
+`func_dryfield_night_motel_loft_8017D808` writes the halfword at 0x2 of a global
+and then passes that same global's address to `Gp_DispatchMsg`. m2c's cast form
+scores 88.929% with `insert=2 delete=2 regs=1 reorder=1`, and the residue is not
+a register choice or a schedule - the *value* in the address register is
+different:
+
+```
+lui   $s0,%hi(D+2)          lui   $s0,%hi(D)
+sh    $v0,%lo(D+2)($s0)     addiu $s0,$s0,%lo(D)
+addiu $s0,$s0,%lo(D+2)      sh    $v0,2($s0)
+addu  $a2,$s0,-2            addu  $a2,$s0,$zero
+```
+
+`.rtl` (one insn after expand/addressof) shows why. The store's MEM operand
+names a *constant* address, and the addressof pass materialises whichever
+address constant that operand holds:
+
+```c
+/* base.c: *(s16*)((u8*)&D + 2) = 1;  &D passed to the call */
+(insn 40 (set (reg:SI 86) (high:SI (const:SI (plus:SI (symbol_ref:SI ("D")) (const_int 2))))))
+(insn 41 (set (reg:SI 85) (lo_sum:SI (reg:SI 86) (const:SI (plus:SI (symbol_ref:SI ("D")) (const_int 2))))))
+(insn 45 (set (mem:HI (lo_sum:SI (reg:SI 86) (const:SI (plus:SI (symbol_ref:SI ("D")) (const_int 2)))))
+        (reg:HI 87)) 187 {movhi_internal2}
+/* the other use of &D, still its own address pair at this point */
+(insn 54 (set (reg:SI 89) (lo_sum:SI (reg:SI 90) (symbol_ref:SI ("D")))) 162 {low})
+
+/* base_1.c: D.field_2 = 1;  (s32)&D passed to the call */
+(insn 40 (set (reg:SI 86) (high:SI (symbol_ref:SI ("D")))))
+(insn 41 (set (reg:SI 85) (lo_sum:SI (reg:SI 86) (symbol_ref:SI ("D")))))
+(insn 45 (set (mem/s:HI (plus:SI (reg:SI 85) (const_int 2))) (reg:HI 87)))
+```
+
+With the cast, the register holds `&D+2`, so cse rewrites the redundant second
+address pair as arithmetic on it - insn 54 becomes
+`(set (reg:SI 89) (plus:SI (reg:SI 85) (const_int -2)))` with
+`REG_EQUAL (symbol_ref D)`, i.e. the `addsi3_internal` that the target does not
+have. With the typed member the register holds `&D`, the `+2` stays a memory
+displacement, and cse deletes the second pair outright - the argument is then a
+plain `move` of the same register.
+
+So the rule is about which address constant is named first, not about the
+register: write the global's field through its own type and the object's address
+is the shared value. This is the same source-level choice the
+`func_dryfield_water_tower_8017DD6C` entry above turns on, and its mechanism is a
+separate one that still applies - the typed member also sets `MEM_IN_STRUCT_P`
+on the store (the `/s`), which sched1 consults. Here the two coincide and the
+typed form is right for both; a `regs`-only residue from a similar rewrite is
+still a sched1 question, so check `.rtl`/`.flow` before assuming this entry
+explains it.
+
+Inputs: `base.c` (m2c casts, 88.929%)
+`4a6e809bbcce6f5cc83317b985e82d2ae4a52f14e6a12116e45911d98c2c8955`,
+`base_1.c` (typed member, 100.000%)
+`503c58ce5b733652de7fc23c1ca34b290d4110eac08248d62c5f1d7f936e9635`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
