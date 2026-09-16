@@ -93806,3 +93806,53 @@ Inputs: `base.c` (79.245%)
 `aa4ba005b8587ff363f719f9cc4ebece878aaff089b7f22de39a815881f480e3`,
 `base_1.c` (100.000%)
 `db35415cff0ec19071fc00175f4a4824209ec758d608c2bf8c04467e81a50dcb`.
+## The enemy actors' `D_801153F4` mode switch: copy the matched sibling's goto form
+
+Most enemy actors share one per-frame handler, a three-state machine on the
+global mode byte `D_801153F4`: mode 0 clears the model part's flag word and the
+ctx flag, mode 2 sets the hidden pose (`TmdObject::field_C = 0x80`) with ctx
+flag 1 and returns, mode 1 runs only the tail, and any other mode runs the
+update body. The dispatch is a comparison tree (`beq` on 1, `slti 2`, `beq` on
+0, `beq` on 2), which m2c reproduces faithfully -- but it renders the shape as
+
+```c
+    switch (D_801153F4) {
+    case 0:  ... ;                      /* no break */
+    default: <update body> ;            /* no break */
+    case 1:  <tail> ; return;
+    case 2:  ... ; return;
+    }
+```
+
+and GCC lays the arms out in source order, so the update body lands right after
+case 0: case 0 falls through into it and case 2's `sh`/`sb` pair ends up last.
+The target instead has `[case0][case2][update body][case1 tail]` -- case 0's arm
+ends in `j <update>` with its `sb` in the delay slot, and case 2 ends in
+`j <epilogue>`. 90.614%, `branch=2 insert=2 delete=2`, and every block after
+the first divergence misaligned.
+
+Write the labels in the target's order and use gotos for the falls-throughs, as
+the already-matched siblings do (`src/actors/lib/actors_shared_80134c2c.c`,
+`func_actor_207200_8014D2DC`): a `case0:` arm ending `goto default_body;`, then
+`case2:` with its `return`, then `default_body:`, then `case1:` last with no
+return -- 100.000% on the first try. The `s32 one = 1` local for both the
+comparison and the later `field = one` store is entry [goto case body order].
+
+The body recurs across `actor_104600` / `actor_107000` / `actor_204600` /
+`actor_207000` (the same actor at two load addresses, each pair its own copy),
+but it is **not** promotable: its five callees are overlay-local
+(`func_actor_107000_80132298` and friends, each with a differently-named twin in
+the other overlays), and `overlay_dup_index.py promote` refuses a shared body
+that references `<unit>`-prefixed symbols. Each carrier needs its own match.
+The mode switch itself is the part to copy, not the callees.
+
+## m2c's scaled pointer arithmetic silently moves the offset it prints
+
+`M2C_FIELD(M2C_FIELD(arg1, void **, 0x2C), s32 **, 8) + 0x50` reads as a +0x50
+field, and compiles to `addiu $a1, $a1, 0x140`: the outer `+` is ordinary
+pointer arithmetic on `s32**`, so it scales by 4. The diff shows only the
+immediate, which reads like a struct-layout error. Type the pointer instead --
+`((TmdObject*)arg1->extra)->field_8` is a `GsCOORDINATE2*`, so
+`&...->field_8[1]` emits the `addiu a1, a1, 0x50` the target has, and the same
+expression serves the `Gp_UpdateCoord` call. Any m2c `+ N` on a
+non-`char`-pointer is suspect before the first build, not after the first diff.
