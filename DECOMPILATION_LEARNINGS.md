@@ -7617,6 +7617,47 @@ identical, plus `undefined reference` for the bodies that moved the other way.
 `touch src/<overlay>/*.c` (or deleting that directory's objects) before the
 build avoids reading the error as a bad cut.
 
+### A twin overlay's jump table: cut it to the shared unit, hand the pad back
+
+The actors family's relocated twins (`actor_101600` / `_201600` / `_301600` are
+one package at three load addresses, with the *whole* `.text` shared) cut their
+leading rodata per owner, so the run holding a function's jump table is owned by
+an asm unit (`actor_101600_header_2b`) while the run ahead of it is the shared
+unit's `.rodata`. Decompiling that function makes GCC emit the table into the
+shared unit's object — at the *end* of its `.rodata`, which is the right address,
+because the object is placed at the earlier cut — but the split still ships the
+extracted table as `asm/USA/actors/data/actor_101600_header_2b.rodata.s`, so the
+bytes land twice and every later unit shifts by the table's size (here `0x14`).
+
+The symptoms are worth recognising: the scratch env scores 100.000% with
+all-zero penalties while `build-and-verify` fails the checksum of *all three
+twins at once* (they link the same shared object), first differing at byte 4 of
+the package — the first dispatch pointer — with every entry after it `+0x14`.
+`tools/rodata_triage.py` reports `0 unmatched functions` throughout, because no
+function is unmatched; the object already matches and only its `.rodata` moved.
+
+Give the table's run to the generating unit — the shared unit's name, which every
+twin's entry uses — and hand the run's *trailing alignment pad* back to the old
+asm unit with a second cut at that offset:
+
+```toml
+rodata = [{ start = "0x14",  unit = "actor_101600_text" },
+          { start = "0x184", unit = "actor_101600_rotation" },
+          { start = "0x1A4", unit = "actor_101600_rotation" },
+          { start = "0x1B8", unit = "actor_101600_header_2b" },
+          { start = "0x1BC", unit = "actor_101600_turn" },
+          { start = "0x1D4", unit = "actor_101600_header_3" }]
+```
+
+Naming the same unit twice emits the object's `.rodata` line twice in the ld
+script; ld places the input section at its first reference and the second line is
+a no-op, so the object's `[earlier table][new table]` lands contiguously at the
+first cut, exactly where the target has it. Cut at the pad rather than at the
+next table: the 4 bytes after this 5-word table are not in the object (GCC emits
+no trailing pad), so dropping them shifts the `turn` unit by four instead. The
+same edit is needed in each twin's entry — `_201600` and `_301600` carry their
+own `<name>_header_2b` and their own copies of the offsets.
+
 ### Generated overlay configs: a rodata cut needs a matching `.text` cut
 
 A `rodata` cut alone does not move a *function* into the new unit, and the
@@ -98682,3 +98723,43 @@ Inputs: `base_1.i`
 `reorder=5`), `base_5.i`
 `5d4a1d61308ba174182b504f827b670cbc73ad669f0590f72a89fdea4735a12d`
 (100.000%). Scratch `nonmatchings/Actor01600_Fn06A84-vacuum`.
+
+## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (Actor01600_Fn04C64, 2026-09-16)
+
+`Actor01600_Fn04C64` ends with `Gp_ClearRec18Occupied(&work->field_444)` and the
+target's tail reads:
+
+```
+jal Gp_ClearRec18Occupied        addu a1,s0 / addu v0,s4,zero   (return value)
+lui a0,0x1f80                    addiu v1,v1,0x30
+ori a0,a0,0x3fc                  sw v1,0(a0)
+lw v1,0(a0)                      lw ra,0x24(sp)
+```
+
+Declaring the callee — the file's own declaration block, or `#include
+"gameplay/3A34.h"`, which declares it `void` — compiles the call as
+`call_internal1` and the epilogue comes out as `lui $v1 / lw $v0 / addu $v0,$v0,0x30
+/ sw $v0 / move $v0,$s20`: six instructions later, and readable only as a
+register-allocation mistake. The retail TU had no prototype for it, so the call
+was implicitly `int`-returning and compiled as `call_value_internal1`, whose RTL
+is `(set (reg:SI 2 v0) (call ...))`. That `$v0` definition is what makes
+local-alloc deny `$v0` to the epilogue's two local quantities (the reloaded
+scratch head and the value it post-increments), which is what puts the head in
+`$a0` and the return move in the load-delay slot.
+
+**Reading it.** `.lreg` at the call insn distinguishes the two directly: a
+`(set (reg:SI 2 v0) (call ...))` with `REG_UNUSED (reg:SI 2 v0)` is
+`call_value_internal1`; a bare `(call ...)` is `call_internal1`. A pointer-sized
+tail difference whose cause is 100 instructions earlier, and that survives
+re-phrasing the tail, is worth checking here before anything else.
+
+**The scratch env can hide it.** The scratch compiles only the seed function, so
+a callee the host file later declares is still implicit there: the same source
+scores 100.000% in the scratch and fails the overlay checksum in the tree. Leave
+the callee undeclared — with a comment saying why, so the next reader does not
+"fix" it — or the match is lost.
+
+Inputs: `base_7.i` (100.000%) SHA256 `c550579a33aa262c076f86b59ce83117363b546ad9b8213f3c9a2f3936330cb9`;
+target SHA256 `4f7afbfde205f7117829679e1b300cf0fb2077d86cda0e853d112a8212b85b59`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor01600_Fn04C64-vacuum`.
