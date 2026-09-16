@@ -1522,7 +1522,144 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013A678);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013ACBC);
+/// Waypoint-grid cell under `coord`: column by `coord.t[0]` band, row by
+/// `coord.t[2]`, as `func_actor_403000_80134204` computes it inline.
+static inline s8 Actor403000_Cell(GsCOORDINATE2* coord)
+{
+    s32 x;
+    s32 z;
+    s8  col;
+    s8  row;
+
+    x = coord->coord.t[0];
+    z = coord->coord.t[2];
+    if (x < 0xD48) {
+        col = 4;
+    } else if (x < 0x1A90) {
+        col = 3;
+    } else if (x < 0x2AF8) {
+        col = 2;
+    } else {
+        col = x < 0x3C8C;
+    }
+    row = z >= 0x1068;
+    return D_actor_403000_80158D48[col + row * 5];
+}
+
+/// Walk the waypoint ring: on the entry frame snap the model onto its cell's
+/// waypoint and face the neighbour in the `field_FD3` direction; every frame
+/// finish (state 2) on reaching the player's cell, give up (14) after 300
+/// frames, or switch to 5 once `func_actor_403000_80133FC0` allows it.
+void func_actor_403000_8013ACBC(Actor403000* arg0)
+{
+    Actor403000Work*        work;
+    Actor403000*            player;
+    Actor403000SeekScratch* scratch;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    SVECTOR*                table;
+    SVECTOR*                v;
+    s16                     angle;
+    s16                     index;
+    s8                      base;
+    SVECTOR*                last;
+
+    work    = arg0->field_1C;
+    player  = Game_GetPtrSlot(3);
+    scratch = (*(Actor403000SeekScratch**)G_SCRATCH_HEAD -= 1);
+    if (work->field_4 != 0) {
+        obj             = arg0->field_2C;
+        work->field_FCA = 0;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->objB50.obj.field_1C = 0x3E8;
+        work->field_AC0           = 1;
+        work->field_ACA           = 0x10;
+        work->field_AC2           = 0;
+        work->field_AC6           = 4;
+        work->field_AD6           = 0;
+        work->objD18.obj.flags   |= 0x4000;
+        func_actor_403000_80133AF8(arg0);
+        base                                = Actor403000_Cell(arg0->field_2C->field_8);
+        scratch->base                       = base;
+        table                               = D_actor_403000_80158CE0;
+        v                                   = &table[base];
+        scratch->vec.vx                     = v->vx;
+        scratch->vec.vy                     = v->vy;
+        scratch->vec.vz                     = v->vz;
+        arg0->field_2C->field_8->coord.t[0] = scratch->vec.vx;
+        arg0->field_2C->field_8->coord.t[1] = scratch->vec.vy;
+        arg0->field_2C->field_8->coord.t[2] = scratch->vec.vz;
+        arg0->field_2C->field_8->flg        = 0;
+        if (work->field_FD3 == 1) {
+            if (scratch->base + 1 >= 10) {
+                scratch->vec.vx = table[0].vx;
+                scratch->vec.vy = table[0].vy;
+                scratch->vec.vz = table[0].vz;
+            } else {
+                index           = scratch->base + 1;
+                scratch->vec.vx = table[index].vx;
+                scratch->vec.vy = table[index].vy;
+                scratch->vec.vz = table[index].vz;
+            }
+        } else {
+            if (scratch->base - 1 < 0) {
+                last            = &table[9];
+                scratch->vec.vx = last->vx;
+                scratch->vec.vy = last->vy;
+                scratch->vec.vz = last->vz;
+            } else {
+                index           = scratch->base - 1;
+                scratch->vec.vx = table[index].vx;
+                scratch->vec.vy = table[index].vy;
+                scratch->vec.vz = table[index].vz;
+            }
+        }
+        scratch->vec.vx -= arg0->field_2C->field_8->coord.t[0];
+        scratch->vec.vy  = 0;
+        scratch->vec.vz -= arg0->field_2C->field_8->coord.t[2];
+        coord            = arg0->field_2C->field_8;
+        angle            = ratan2(scratch->vec.vx, scratch->vec.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (angle < 0) {
+        loop_neg:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto loop_neg;
+            }
+        } else {
+        loop_pos:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto loop_pos;
+            }
+        }
+        scratch->angle  = angle;
+        work->field_AD8 = 0;
+        scratch->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, scratch->angle, 1);
+        work->field_6        = 0;
+        work->field_8        = 0;
+        work->field_FC2      = 0;
+        work->recDD0.field_C = 0x320;
+        scratch->facing      = Actor403000_Cell(player->field_2C->field_8);
+    }
+    work->field_6++;
+    scratch->facing = Actor403000_Cell(player->field_2C->field_8);
+    scratch->base   = Actor403000_Cell(arg0->field_2C->field_8);
+    func_actor_403000_80133AF8(arg0);
+    if ((s16)work->field_6 > 300) {
+        work->field_0 = 14;
+    } else if (scratch->facing == scratch->base) {
+        work->field_0   = 2;
+        work->field_FD2 = work->field_FD3;
+        work->field_FD3 = -work->field_FD3;
+    } else if (func_actor_403000_80133FC0((Task*)arg0, scratch->base, scratch->facing) << 16) {
+        if ((s16)work->field_6 > 60) {
+            work->field_0 = 5;
+        }
+    }
+    *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Turn toward the next waypoint: on the entry frame pick it from the grid
 /// offset by `field_FD5`, set state 2 if it is within a quarter turn, and fold
@@ -1757,30 +1894,6 @@ void func_actor_403000_8013C050(Actor403000* arg0)
         work->field_FBC = arg0->field_2C->field_8->coord.t[2];
     }
     work->field_6++;
-}
-
-/// Waypoint-grid cell under `coord`: column by `coord.t[0]` band, row by
-/// `coord.t[2]`, as `func_actor_403000_80134204` computes it inline.
-static inline s8 Actor403000_Cell(GsCOORDINATE2* coord)
-{
-    s32 x;
-    s32 z;
-    s8  col;
-    s8  row;
-
-    x = coord->coord.t[0];
-    z = coord->coord.t[2];
-    if (x < 0xD48) {
-        col = 4;
-    } else if (x < 0x1A90) {
-        col = 3;
-    } else if (x < 0x2AF8) {
-        col = 2;
-    } else {
-        col = x < 0x3C8C;
-    }
-    row = z >= 0x1068;
-    return D_actor_403000_80158D48[col + row * 5];
 }
 
 /// Seek the next waypoint: on the entry frame restart the animation and latch
