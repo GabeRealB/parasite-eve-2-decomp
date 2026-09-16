@@ -89062,3 +89062,63 @@ arguments do not block a cross-jump"): m2c's joined form - a `var_a0`/`var_a2`
 pair assigned per arm and one `Gp_DispatchMsg` after the `if` - leaves
 `li a1, 0x7DB` hoisted into the join block, where the target has it in both
 arms. One call site per arm, literal at each site, reached 100% in one build.
+
+## Two single-constant `if`/`else` arms: assign through a local and `jump` hoists the arm into the compare's block (func_dryfield_junk_yard_8017DA4C, 2026-09-16)
+
+A room message gate answers msg 0x18 with 2 once nibble 0x7A has reached 4 and 1
+before that, and the ROM keeps the answer in `$v0`:
+
+```
+jal    GameFlag_GetNibble
+li     a0,0x7A
+slti   v0,v0,4
+bnez   v0,.Lend
+li     v0,1          /* delay slot: the taken arm's value */
+li     v0,2
+.Lend: sb v0,0x3(s1)
+```
+
+Written the natural way, through the local the comparison also reads, the whole
+sequence comes out right but the value lands in `$v1` — 99.8%, `regs` 3:
+
+```c
+nib = GameFlag_GetNibble(0x7A);
+if (nib >= 4) {
+    nib = 2;
+} else {
+    nib = 1;
+}
+out->field_3 = nib;
+```
+
+The dumps say why, in two steps. `.rtl` has the textbook shape — the else arm at
+its own label, `insn 56`, after the then arm. `.flow` already shows that else
+arm's `li r84,1` inside the *test* block: `jump` merged it up because a
+single-insn arm costs a block for nothing. `sched` then issues that constant
+load before the `slti` (`.flow` has `insn 43` then `insn 169`, `.lreg` has them
+swapped), so `r84`'s live range starts before the compare, `local_alloc` cannot
+give it `$v0` (`hard-conf $v0` in `.greg`, the mechanism of the entry above) and
+it takes `$v1`.
+
+Writing the store directly in both arms fixes both requirements at once:
+
+```c
+if (GameFlag_GetNibble(0x7A) >= 4) {
+    out->field_3 = 2;
+} else {
+    out->field_3 = 1;
+}
+```
+
+`jump2` cross-jumps the two `sb`s into one at the join, so the value pseudo is
+born in the two arm blocks and never in the test block — nothing to conflict with
+the `slti` result, and it takes `$v0`. `reorg` then steals the single-insn arm
+into the branch's delay slot, which is what puts `li $v0,1` there. 100.000%,
+zero penalties.
+
+The check: when the target has one store fed by a constant in a branch delay
+slot, and the store's register is also the comparison's, the source wrote the
+store in both arms rather than assigning a local that both arms share.
+
+Input `base_5.c`
+`151e4a324aef36393f94993ce58da1a2ee86c58f386181d7511debc956fb10d2` (100.000%).
