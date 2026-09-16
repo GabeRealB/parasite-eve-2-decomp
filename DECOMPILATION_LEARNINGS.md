@@ -98636,3 +98636,49 @@ Inputs: `base_4.i`
 `reorder=4`), `base_5.i`
 `20eeafbc1153139decd8dad0a59e29eb12d5cc70084a7023fd4b0fee89458f95`
 (100.000%). Scratch `nonmatchings/Actor01600_Fn05F80-vacuum`.
+
+## Writing a subexpression out again shifts every later INSN_LUID, and that is the reorder lever (Actor01600_Fn06A84, 2026-09-16)
+
+`Actor01600_Fn06A84` is a `RotMatrix` + `gte_SetRotMatrix`/`gte_ldclmv`/`rtir`/`gte_stclmv`
+matrix product over the actor's scratch pool. The natural C - one `scratch`
+variable holding `head - 0x20`, used both for the pointer store and as the
+`RotMatrix` destination - reached 97.059% with `reorder=5`, all 102 instructions
+present and `blocks=5/5`. Every one of the five was in the entry block: the
+argument-parameter copy `move v1,a0`, the two argument setups (`addiu a0,s3,0x4cc`
+and `move a1,s0`) and the `lw s3,0x1c(v1)` load, all in the wrong slots.
+
+Writing the store's operand out as its own expression instead of reusing the
+variable is worth 100.000%:
+
+```c
+head                      = *(u8**)G_SCRATCH_HEAD;
+*(MATRIX**)G_SCRATCH_HEAD = (MATRIX*)(head - 0x20);
+scratch                   = (MATRIX*)(head - 0x20);
+```
+
+The mechanism is the *set* of insns, not their order. The second
+`G_SCRATCH_HEAD` occurrence expands to its own pseudo for the literal address -
+`.rtl` uid 16 becomes `(set (reg:SI 87) (const_int 528483324))` where the
+shared-variable form had `(set (reg/v:SI 83) (plus:SI (reg/v:SI 84) ...))` - so
+the entry block's RTL gains two insns and every later `INSN_LUID` shifts by two.
+`cse` folds the duplicate constant back, so the emitted instruction count is
+unchanged (102/102) and the diff stays `reorder`-only; but
+`rank_for_schedule`'s last tie-break is `INSN_LUID (tmp) - INSN_LUID (tmp2)`,
+and `INSN_LUID` is a *stream position* assigned by `sched_analyze` at the start
+of each pass (`sched.c:2202`, `INSN_LUID(INSN) (insn_luid[INSN_UID (INSN)])`),
+not the RTL uid. Two positions later is enough to flip the argument copies, and
+`reorg` then fills the `jal` delay slot with `addiu a0,s3,0x4cc` rather than
+`move a1,s0`.
+
+So for a `reorder`-only leftover, permuting equal-priority statements is not the
+only lever and is often the wrong one: materializing an expression twice (or
+folding two occurrences into one variable) perturbs the LUIDs of everything
+after it without changing the instruction set at all. The cheap experiment is to
+write the one expression that is *already shared* - here a scratch pointer
+computed once and stored once - as two separate evaluations.
+
+Inputs: `base_1.i`
+`826c9a071a84f4efa1b294c225cc1820fa642689c6b5b663216248c4964657ba` (97.059%,
+`reorder=5`), `base_5.i`
+`5d4a1d61308ba174182b504f827b670cbc73ad669f0590f72a89fdea4735a12d`
+(100.000%). Scratch `nonmatchings/Actor01600_Fn06A84-vacuum`.

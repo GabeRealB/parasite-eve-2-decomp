@@ -5,6 +5,9 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
+
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 void       Actor01600_Fn00480(Actor01600* arg0);
 s32        Actor01600_Fn05558(Actor01600* arg0);
@@ -464,7 +467,41 @@ void Actor01600_Fn06974(Actor01600* actor, s32 distance)
     *scratch           = (u8*)*scratch + 0x3C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06A84);
+void Actor01600_Fn06A84(Actor01600* arg0)
+{
+    Actor01600Work* work;
+    GsCOORDINATE2*  coord;
+    MATRIX*         scratch;
+    u8*             head;
+    s16             value;
+
+    head                      = *(u8**)G_SCRATCH_HEAD;
+    *(MATRIX**)G_SCRATCH_HEAD = (MATRIX*)(head - 0x20);
+    scratch                   = (MATRIX*)(head - 0x20);
+    work                      = arg0->field_1C;
+    coord                     = arg0->field_2C->field_8;
+    RotMatrix((SVECTOR*)&work->field_4CC, scratch);
+    gte_SetRotMatrix(&coord[1].coord);
+    gte_ldclmv(scratch);
+    gte_rtir_real();
+    gte_stclmv(&coord[1].coord);
+    gte_ldclmv(&scratch->m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&coord[1].coord.m[0][1]);
+    gte_ldclmv(&scratch->m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&coord[1].coord.m[0][2]);
+    value = work->field_4CC;
+    if (value != 0) {
+        if (value < 0x21) {
+            work->field_4CC = 0;
+            work->field_522 = 0;
+        } else {
+            work->field_4CC = (u16)work->field_4CC - 0x20;
+        }
+    }
+    *(MATRIX**)G_SCRATCH_HEAD = (MATRIX*)((u8*)*(MATRIX**)G_SCRATCH_HEAD + 0x20);
+}
 
 s32 Actor01600_Fn06C1C(Actor01600* arg0)
 {
