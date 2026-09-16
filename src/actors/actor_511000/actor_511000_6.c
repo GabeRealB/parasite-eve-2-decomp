@@ -6,7 +6,7 @@
 
 /// Copies the animation id from `preset` into the work block parked in
 /// `task->idMap`, reseeds slots 1..0x12 through `Gp_AnimResetSlot`, and
-/// clears `field_480`.
+/// clears `field_480`'s halfword.
 s32 func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset)
 {
     Actor511000Work2* work;
@@ -19,6 +19,6 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* pres
         Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_47C);
         i++;
     } while (i < 0x13);
-    work->field_480 = 0;
+    work->field_480.half = 0;
     return 0;
 }

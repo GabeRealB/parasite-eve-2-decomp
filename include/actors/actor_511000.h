@@ -52,18 +52,24 @@ typedef struct Actor511000ParentWork {
 /// and is republished onto model part 1, not the root coordinate.
 /// `func_actor_511000_80133DEC` treats the block as a `GpAnimCtx` at offset 0
 /// and reseeds slots from `field_47C`.
+/// The spawn handler seeds the three -1 words at 0x478 / 0x47C / 0x480 and
+/// parks the two spawned tasks at 0x4C4 / 0x4C8; `field_4D2` is cleared.
 typedef struct Actor511000Work2 {
-    /* 0x000 */ byte   pad_0[0x47C];
-    /* 0x47C */ s32    field_47C; ///< animation id handed to `Gp_AnimResetSlot`
-    /* 0x480 */ s16    field_480; ///< cleared after the slot reseed
-    /* 0x482 */ byte   pad_482[2];
+    /* 0x000 */ byte pad_0[0x478];
+    /* 0x478 */ s32  field_478; ///< -1 out of the spawn handler
+    /* 0x47C */ s32  field_47C; ///< animation id handed to `Gp_AnimResetSlot`
+    /* 0x480 */ union {
+        s32 word;               ///< seeded to -1 whole by the spawn handler
+        s16 half;               ///< the halfword `func_actor_511000_80133DEC` clears after the slot reseed
+    } field_480;
     /* 0x484 */ MATRIX light;
     /* 0x4A4 */ MATRIX color;
-    /* 0x4C4 */ byte   pad_4C4[0x8];
+    /* 0x4C4 */ Task*  field_4C4; ///< task spawned from the table's index 1
+    /* 0x4C8 */ Task*  field_4C8; ///< task spawned from the table's index 2
     /* 0x4CC */ s16    field_4CC; ///< set to 1 alongside `field_4D0` by the message-0x7E0 handler's mode 3
     /* 0x4CE */ byte   pad_4CE[0x2];
     /* 0x4D0 */ s16    field_4D0; ///< set to 1 alongside `field_4CC` by the message-0x7E0 handler's mode 3
-    /* 0x4D2 */ byte   pad_4D2[0x2];
+    /* 0x4D2 */ s16    field_4D2; ///< cleared by the spawn handler
 } Actor511000Work2;
 STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
 

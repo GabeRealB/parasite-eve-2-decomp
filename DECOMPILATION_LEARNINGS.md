@@ -92819,3 +92819,57 @@ Input `base_1.c`
 `branch=3 regs=4`, only the two case bodies swapped) and `base_3.c`
 `2241b4184527219a2fc7a2f0fafcecd37048352277f5713805e068a6c58ce8a9` (100.000%,
 zero penalties).
+
+## A scalar stack temp whose address escapes becomes an `addressof` pseudo the allocator pins to `$s0`; an aggregate local rematerialises its address per use instead (func_actor_511000_80132480, 2026-09-16)
+
+m2c's `M2C_UNK sp10;` for a local whose address goes to two calls scored 92.945%
+(`regs=11 reorder=1 insert=2 delete=2`). The frame named the local's size before
+any dump did. The target's prologue is `addiu $sp,$sp,-0x30` with `ra $s2 $s1 $s0`
+at 0x2c/0x28/0x24/0x20 and the local's address taken as `$sp,0x10`. Saved registers
+sit at the top of a MIPS frame and `frame = current_function_outgoing_args_size
+(0x10 here, from `STARTING_FRAME_OFFSET`) + locals + saved`, rounded up to 8, so
+the local occupies 0x10..0x1C: twelve bytes. Twelve bytes is `VECTOR3`, which is
+also the parameter type of both callees, and it explains the address m2c spelled
+`+ 0x88` -- it is `field_8[1].workm.t`, `GsCOORDINATE2` being 0x50. Declaring it
+`VECTOR3 pos;` took the function to 100.000% in one edit, and the register and
+reorder penalties went with it.
+
+The size is not a stack-only detail. `.rtl` (expand) shows the difference. For the
+scalar, the local is not a memory object yet: its address is ADDRESSOF of the
+register that holds it, materialised once per use --
+
+    (insn 79 (set (reg:SI 96) (addressof:SI (reg:SI 92) 81)))
+    ... Mem_Calloc, then the OR/store of field_C ...
+    (insn 93 (set (reg:SI 98) (addressof:SI (reg:SI 92) 81)))
+
+`.cse` merges the two (from then on the second use reads `reg:SI 96`), so one
+pseudo is live across `func_800EA1A8`'s call and global alloc hands it `$s0`
+(`;; 4 regs to allocate: 82 96 80 84`, `96 in 16`); the body reads
+`addiu $s0,$sp,0x10` with `move $a1,$s0` / `move $a0,$s0` at the two uses. The
+spawn table's address wants `$s0` too, so reload rematerialises *that* at the
+join -- an addiu, a nop and two moves away from the target.
+
+A twelve-byte aggregate never lives in a register, so `.rtl` has no ADDRESSOF at
+all: each use materialises its own `addiu $a1,$sp,0x10` / `addiu $a0,$sp,0x10`
+where it is needed, and only three allocnos remain (`;; 3 regs to allocate:
+81 80 83`), yielding the same `$s0`/`$s1`/`$s2` as the target.
+
+Diagnostic order: when `regs` is the leftover and the frame size differs, size the
+locals from the frame first. "One extra callee-saved register" can be a local that
+is too small, and therefore addressof-able, rather than a register problem -- no
+pin is involved or wanted here.
+
+The same function also shows the other half: a local loaded *before* the call
+(`coords = extra->field_8;`) is kept in a fresh callee-saved register across it
+(frame 0x38, `$s3`, 90.865%), because the target re-reads `task->extra` at the
+use point. The host file therefore writes the coordinate expression inline as
+`((TmdObject*)task->extra)->field_8[1].workm.t`.
+
+Inputs: `base.c` (92.945%)
+`6932929cb0f7b786499b3ee2216a8aa9982a531b02893692135b3abec49c999e`,
+`base_1.c` (100.000%)
+`2b942a285e686bf7dba9843f1ea80812e1ce3df959e4a467d21c39fb3b50654c`,
+`base_2.c` (90.865%)
+`6adb81edb56aa0eba94004681e1711030829c70f4a086b90118b5e679baccf90`,
+`base_3.c` (100.000%, reproduces base_1)
+`9884972180d2e95722d756bd97d550475d60f90b4252c59202ff64e1443bd9ee`.
