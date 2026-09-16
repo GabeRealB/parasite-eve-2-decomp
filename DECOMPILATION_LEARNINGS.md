@@ -80293,8 +80293,8 @@ actor_160900 = { rodata_head = "0x4", shared = [...] }
 
 No `units` cut, so no unit renumbering and no `src/` churn; the only source edit
 is deleting the now-dangling `INCLUDE_RODATA` line, because splat never rewrites
-an existing `.c`. `actor_146300` and `actor_161500` are the same shape, as are
-weapons `as12`/`m249`, which need only this key.
+an existing `.c`. `actor_146300`, `actor_161500` and `actor_356100` are the same
+shape, as are weapons `as12`/`m249`, which need only this key.
 
 Diagnose it by size, not by scoring the function: `cmp` the built overlay against
 `assets/USA/pe2pkg/<name>.pe2pkg` and read the first differing offset. A table at
