@@ -1,7 +1,10 @@
 #include "common.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/task.h"
 #include "rooms/room_common.h"
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017D91C);
@@ -37,7 +40,26 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017DB18);
+extern GpObj4A    D_dryfield_garage_8017FD1C;
+extern GpMsgEntry D_dryfield_garage_8017DC7C[];
+extern s32        D_dryfield_garage_8017DCC4;
+
+void func_dryfield_garage_8017DB18(Task* arg0)
+{
+    arg0->field_24 = D_dryfield_garage_8017DC7C;
+    Game_SetPtrSlot(arg0, 7);
+    if ((Game_GetPtrSlot(0xA) != NULL) && (Game_Session->field_8 == 2)) {
+        Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_garage_8017DCC4, 0);
+    }
+    if (GameFlag_GetNibble(0x155) == 1) {
+        GameFlag_SetNibble(3, 0);
+        GameFlag_SetNibble(0x155, 2);
+    }
+    if (Game_Session->field_9 != 1) {
+        D_dryfield_garage_8017FD1C.field_4A &= 0xBF;
+    }
+    arg0->state = arg0->state + 1;
+}
 
 void func_dryfield_garage_8017DC08(void)
 {

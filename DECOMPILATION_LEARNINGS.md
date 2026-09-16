@@ -84539,3 +84539,46 @@ declared `extern` at file scope, e.g. `extern TaskDesc D_80141B6C;` - see
 `src/rooms/mist_shooting_gallery/mist_shooting_gallery.c:59`. Overlay-local data
 above the load address is `<family>/<overlay>.txt` if named, else splat's
 `D_<overlay>_<vram>`.
+
+## The reloc fold's single-field shape: 98% with exactly one `addiu` missing (func_dryfield_garage_8017DB18, 2026-09-16)
+
+The entry "`M2C_FIELD(&global, T*, off)` folds the offset into the symbol reloc"
+shows the fold as a *rebased* store sequence - an `addiu` too many, every later
+displacement relative to the first field's `%lo(sym+off)`. A single field
+reaches the same cause at the opposite extreme: 98.150% with
+`delete=1 branch=1 regs=2`, one instruction *short*, and the normalized object
+diff looks like a branch-target shift rather than an addressing difference.
+
+```
+target (spelled as the normalizer prints it)
+lui   v1,%hi(D_)                    lui   v1,%hi(D_+0x4a)
+addiu v1,v1,%lo(D_)                 lbu   v0,%lo(D_+0x4a)(v1)
+lbu   v0,0x4a(v1)                   nop
+nop                                 andi  v0,v0,0xbf
+andi  v0,v0,0xbf                    sb    v0,%lo(D_+0x4a)(v1)
+sb    v0,0x4a(v1)
+```
+
+Because the offset rides inside the reloc, the `addiu` has nothing to compute
+and is eliminated; the block is one word short and the `beq` that jumps over it
+lands one word earlier, which is where `branch` and `regs` come from. Read a
+penalty mix like this as "one instruction short", and confirm in `.rtl` - the
+fold is at expansion, before any pass: the pair carries
+`(const:SI (plus:SI (symbol_ref:SI ("D_")) (const_int 74)))` where the good
+form has a bare `(symbol_ref:SI ("D_"))` and the displacement in the memory
+operand.
+
+No pointer local is needed for the fix here. A member access on a global whose
+*type* has the field - `extern GpObj4A D_x;` then `D_x.field_4A &= 0xBF;` -
+leaves the symbol bare and puts the displacement in the memory operand. That is
+what the sibling rooms do for the same clear (`func_acropolis_fire_escape_8017FECC`,
+`func_dryfield_night_motel_loft_8017D8B0`, `func_acropolis_helicopter_landing_pad_8017EA6C`,
+all `extern GpObj4A`), so it is also the shape the original source had. One
+build, 100.000%, all penalties zero.
+
+Inputs: `base.i` (m2c `M2C_FIELD`, 98.150%)
+`4a0937e33621fb506cfb700cc3a9c7882ce11f0df6debf9ae01b361983e4e071`, `base_1.i`
+(`GpObj4A` member access, 100.000%)
+`99d91b4e338522d4ec70ce2d8b83357275fd4a5d710408ca6aa2941bef565dc3`, `base_2.i`
+(Task-typed host spelling, 100.000%, same object)
+`c32a2b4118c521c4909348491cbddec9f203966b0e6650f53baf88b14edd48e5`.
