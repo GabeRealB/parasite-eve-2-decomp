@@ -11,3 +11,4 @@ ActorsShared801388e8 = 0x801508E8; // shared body, see src/actors/lib/
 ActorsShared80138efc = 0x80150EFC; // shared body, see src/actors/lib/
 ActorsShared8013898c = 0x8015098C; // shared body, see src/actors/lib/
 ActorsShared8013852c = 0x8015052C; // shared body, see src/actors/lib/
+ActorsShared80138d58 = 0x80150D58; // shared body, see src/actors/lib/
