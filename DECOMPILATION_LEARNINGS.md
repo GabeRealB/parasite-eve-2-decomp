@@ -84946,3 +84946,56 @@ Inputs: `base.c` (86.932%, sha256
 950469a79eb7a9e58d1cb59a70b3816c6a70a17e4e4e87b501def3b748c9901a), `base_1.c`
 (100%, sha256 c086454ed1c3a3f7d4621f555e0324e93d3d6e1174e1540d4d2b13eedef5c6cf).
 Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+## A shared call tail after the *last* switch arm comes from duplicated calls, not from m2c's shared variable (func_dryfield_night_parking_lot_8017DC88, 2026-09-16)
+
+Five arms of a `switch (Game_Session->field_4)` each end in the same
+`Room_Draw20(p, 1, 0x380)`. The ROM keeps **one** call site, and it sits after
+the *last* arm: arms 2..5 `j` into it and arm 6 falls through into it.
+
+m2c renders that CFG as a shared variable plus `goto`, and a `goto`-shaped seed
+emits the tail after the *first* arm that reaches the label - arm 2 here -
+because that is where the labelled block is first generated. The result is the
+same instruction count in a different order, and the branch offsets that go with
+it (`insert`/`delete`/`branch`). Writing the call once per arm is not just
+closer to the source, it is what produces the ROM's layout: jump.c's
+cross-jumping (`jump_optimize`, one-insn minimum for an unconditional jump)
+matches each arm's `jal` + delay `nop` against the exit block and leaves the
+survivor in the block that falls through, which is the arm written last.
+
+This is the positive direction of the two `SOFT_BARRIER` entries above
+(`func_acropolis_plaza_8017DBFC`, `func_acropolis_square_80182148`): there the
+merge had to be *prevented* because the ROM keeps both copies; here it must be
+allowed to happen, and a seed that hand-writes the shared block prevents it
+landing where the ROM puts it.
+
+The same seed also carried m2c's `M2C_UNK` element-size bug (see the
+`func_dryfield_water_tank_8017F084` entry above - same `Gp_State1C->field_A`
+view-table shape). Retyping the view table `u16` and the drawn arrays `SVECTOR`
+together with duplicating the calls took 71.8% to 100.000%, all penalties zero,
+on the first build. The per-arm pointer reset (`SVECTOR* p = D_x;` inside each
+arm, then `&p[k]`) is the idiom the neighbouring matched room draws use
+(`shelter_1f_tent_4.c`) and compiles identically to `&D_x[k]`.
+
+Inputs: `base_1.i` (100.000%), `base_2.i` (same object, house style). Compiler
+SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A jump table's rodata cut changes owner when the function stops being `INCLUDE_ASM` (func_dryfield_night_parking_lot_8017DC88, 2026-09-16)
+
+`configs/USA/overlays.toml` had `rodata = [..., { start = "0x28", unit =
+"dryfield_night_parking_lot_3" }]` - the function's 5-word jump table was
+`.incbin`ed under a *sibling* unit, which is where a cut made for an
+`INCLUDE_ASM` body naturally points, and `_3.c` carried the matching
+`INCLUDE_RODATA(... jtbl_...)`.
+
+Decompiled C generates its own table in its unit's `.rodata`, and the linker
+script lays those out in the order splat lists them, which is the rodata
+addresses - so with the cut left on unit 3, unit 4's table is emitted at the end
+of the rodata list (0x3C here) instead of at 0x28, duplicating unit 3's copy and
+pushing the first shared text unit off its address.
+
+The whole fix is the manifest's `unit` on that cut (→ the function's own unit)
+plus deleting the now-unused `INCLUDE_RODATA` line from the sibling, which
+splat will not remove for you because it never rewrites a `.c` that exists.
+Unlike the `rodata`-cut recipe in CLAUDE.md this needs no delete-and-re-split of
+any unit file, so no matched body in the sibling is at risk. Verified with
+`./tools/build-and-verify.sh`: `✅ BUILD SUCCEEDED`.
