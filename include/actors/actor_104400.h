@@ -123,6 +123,25 @@ typedef struct Actor104400Msg {
 } Actor104400Msg;
 STATIC_ASSERT_SIZEOF(Actor104400Msg, 0x4);
 
+/// A `MATRIX`'s word-wise view, for the identity splat `Actor04400_Fn08C64`
+/// writes over the root coordinate before `ScaleMatrix` scales it: five aligned
+/// stores instead of nine halfword ones, each word holding two adjacent `m[][]`
+/// entries. The same idiom as `ActorsShared8016bd98Mat`, whose body this
+/// function repeats on the `Actor104400Work` layout.
+typedef struct Actor104400MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor104400MatWords;
+
+typedef union Actor104400Mat {
+    MATRIX              mat;
+    Actor104400MatWords ident;
+} Actor104400Mat;
+STATIC_ASSERT_SIZEOF(Actor104400Mat, 0x20);
+
 extern u8             Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
 extern u8             Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
 extern u8             D_801153F4;          // absolute; nonzero skips the controller's state handler

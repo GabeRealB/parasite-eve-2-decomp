@@ -98629,3 +98629,53 @@ all penalties zero); preprocessed input `base_1.i`
 SHA256 `96e6344f15bbf0a0fdd1fd0c766d74a97227a701f2f66325ac96a58ffcf93136`;
 two builds, no pins, no search. Scratch
 `nonmatchings/Actor04400_Fn04718-vacuum`.
+
+## The positive tell for a named `&local`: a stack struct's fields addressed off one saved register (Actor04400_Fn08C64, 2026-09-16)
+
+Another twin of the promoted shared body `ActorsShared8016bd98`
+(`src/actors/lib/actors_shared_8016bd98.c`), the third in this family after
+`Actor04400_Fn04718` and `Actor04400_Fn048A0`. Retyping that body onto
+`Actor104400Work` scored 100.000% on the second build, so the match itself
+teaches nothing new - what is worth keeping is the 99.000% baseline, because it
+isolates the one source fact that separated the two.
+
+The baseline was the m2c seed with real struct types and nothing else changed
+(same statements, same order): 99.000%, `stack=0 branch=0 regs=4 reorder=1
+insert=0 delete=0`, structure already `blocks=5/5 instructions=80/80
+predicates_match=True`, and exactly two hunks of difference. Both are the same
+fact:
+
+```
+target:   addiu s1,sp,0x20 / addu a0,s1,zero      (early, before the stores)
+          sw v0,8(s1)                             (m.ident.m11_m12)
+          sh v0,0x10(s1)                          (ident->m22)
+seed:     sw v0,0x28(sp) / sh v0,0x30(sp)         (same two stores, folded)
+          and sw v0,0x18(sp) emitted before lh v1,0x430(s2)
+```
+
+The fix was to declare and initialise a named pointer exactly as the sibling
+does, `ident = &m.ident;`, and write two of the five splat stores through it
+(`ident->m11_m12`, `ident->m22`). Nothing else changed.
+
+This is the positive form of the rule the "`&local` passed to two back-to-back
+calls" entries state in the negative. There, an `&local` that CSEs across a call
+owes the allocator a callee-saved register and the fix was to remove the live
+value; here the named pointer *is* what the target has, and it makes GCC
+materialise the frame address once into `$s1`, address the struct's fields off
+it (`8(s1)`, `0x10(s1)`) and pass `a0 = $s1` to the first call. So read the
+addressing form as the tell in both directions: `0x28(sp)`-style accesses mean
+the source had no pointer variable, `8(s1)`-style accesses mean it did. The
+second half of the same hunk is an ordering tell, not a register one: the
+sibling writes the scale vector `vx`, `vy`, `vz`, and sched1 then sinks
+`sw v0,0x18(sp)` below the `lh` that feeds `vy`. Writing it `vx`, `vz`, `vy`
+(the way the target's *store* order reads) keeps the three stores together and
+costs the match.
+
+Inputs (source sha256): `base.c`
+`671d4d995e2234619a067adfae4b25a00680477fffbd9945059abb63f570ab05` (99.000%),
+`base_1.c` `eab6d29fd058b8d12bea3f2ce8d088d0aad84e00e17bdb375c7aa77cb4e04867`
+(100.000%, all penalties zero); preprocessed `base_1.i`
+`7cdecdc8b7a6e3f0e59321421faf1b09e6e030c3ead874cea0525c2681cdc638`; target
+`target.s` `9581089644f14ce4a74fcb97edd93f18009b4c1329557ef16c954ffad0ed4427`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn08C64-vacuum`.

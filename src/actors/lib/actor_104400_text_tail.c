@@ -1905,7 +1905,47 @@ void Actor04400_Fn08C08(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08C64);
+/// Squashes the model vertically by the shrinking `field_430`: the root
+/// coordinate takes `matrix_0` scaled by (1, field_430, 1) through a local
+/// identity rotation. Frame 0x10 rotates the light mode to 2; from frame 0x21
+/// the model is flagged 0x80 and the state advances.
+///
+/// Same body as `ActorsShared8016bd98`, which does this for the `actor_341700`
+/// and `actor_342400` work blocks.
+void Actor04400_Fn08C64(Task* arg0)
+{
+    Actor104400Work*     work;
+    TmdObject*           obj;
+    GsCOORDINATE2*       coord;
+    VECTOR               scale;
+    Actor104400Mat       m;
+    Actor104400MatWords* ident;
+
+    work             = (Actor104400Work*)arg0->idMap;
+    ident            = &m.ident;
+    obj              = (TmdObject*)arg0->extra;
+    coord            = obj->field_8;
+    work->field_430 -= 0x40;
+    scale.vx         = 0x1000;
+    scale.vy         = (s16)work->field_430;
+    scale.vz         = 0x1000;
+    coord->coord     = work->matrix_0;
+    m.ident.m00_m01  = 0x1000;
+    m.ident.m02_m10  = 0;
+    ident->m11_m12   = 0x1000;
+    m.ident.m20_m21  = 0;
+    ident->m22       = 0x1000;
+    ScaleMatrix(&m.mat, &scale);
+    MulMatrix(&coord->coord, &m.mat);
+    if ((s16)++work->field_412 == 0x10) {
+        Gp_SetLightMode(arg0->spawnArg2, 2);
+    }
+    if ((s16)work->field_412 >= 0x21) {
+        obj->field_C    = obj->field_C | 0x80;
+        work->field_412 = 0;
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 void Actor04400_Fn08DA4(Task* arg0)
 {
