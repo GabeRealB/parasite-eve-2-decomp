@@ -90733,3 +90733,122 @@ Inputs: `base_2.i`
 `d4837ca091f33e467f78129cd04cdf1b6a965c16f74e4ed3b2dcb53094216871` (98.879%),
 `base_3.i`
 `cfa4bdd28bd87857ae9796d72ab5843f0b9abb2e92f32ec6d8575f38e9a523c1` (100%).
+
+## A switch needs five counted case nodes before GCC 2.8.1 emits a jump table (func_dryfield_night_back_street_8017D7E0, 2026-09-16)
+
+A room effect tick dispatches on four contiguous view values and the target is a
+*comparison tree*, not a jump table:
+
+```
+beq  $v1,3, case3        # root of balance_case_nodes' tree
+slti $v0,$v1,4
+beqz $v0, right          # v1 >= 4
+addiu $v0,$zero,2
+beq  $v1,2, case2        # left subtree {2}
+j    default
+right:
+slti $v0,$v1,6
+beqz $v0, default        # v1 >= 6
+...                      # the 4..5 range node's body
+```
+
+Its sibling `func_mine_tunnel_8017D7D4` dispatches on five contiguous values
+(2..6) and *does* get the `sltiu` + `jtbl` form. Both are what the case values
+imply; the difference is the node count.
+
+`stmt.c:expand_end_case` picks between the two with
+
+```c
+      else if (TREE_INT_CST_HIGH (range) != 0
+	       || count < CASE_VALUES_THRESHOLD      /* → binary decision tree */
+	       || ((unsigned HOST_WIDE_INT) TREE_INT_CST_LOW (range) > 10 * count)
+	       || flag_pic || ...)
+```
+
+and `CASE_VALUES_THRESHOLD` is **5** in this build, not the 4 that
+`HAVE_casesi ? 4 : 5` suggests - mips.md's `casesi` is a `define_expand`, and
+that `#ifdef HAVE_casesi` is not taken. `count` is the number of case *nodes*,
+not labels, and a node covering more than one value counts **twice**:
+
+```c
+	  /* A range counts double, since it requires two compares.  */
+	  if (! tree_int_cst_equal (n->low, n->high))
+	    count++;
+```
+
+A stacked `case 4: case 5:` body is one such range node, so it counts as two.
+Probed with the bundled `cc1` at the project's flags on a `unsigned char` index:
+
+| source cases | counted nodes | dispatch |
+|---|---|---|
+| `2, 3, 4` | 3 | tree |
+| `2, 3, 4, 5` written separately | 4 | tree |
+| `2, 3` + stacked `4: 5` | 4 | tree |
+| `2, 3` + stacked `4: 5` + `6` | 5 | **table** |
+
+So: **four distinct results, or three with one of them a range, is one node
+short of a table**, and a tree is not a mismatch to be fixed. Two consequences:
+
+- The counterpart to "Dense dummy cases force jump tables" is mechanical rather
+  than a heuristic: each stacked dummy *value* widens a range node by one count,
+  so filling the span with stacked labels is what reaches 5. A switch that is
+  already dense (2..6, one node per value) needs no help, and writing `4`/`5` as
+  two separate bodies instead of one stacked label changes nothing - both count 4.
+- When the target *is* a table and yours is a tree, the source is missing case
+  values. Do not add dummy labels to a tree target to "fix" it.
+
+Input `base_1.c`
+`924d143ad94597409454dbdb6b967ad3ce8be362856c767b27d22cad89f8beda` (100.000%,
+zero penalties, first build after the seed).
+
+## splat's `D_<seg>_<addr>` anchor is not the array base: write the earlier elements as negative indices (func_dryfield_night_back_street_8017D7E0, 2026-09-16)
+
+The same function's four draw calls in one case read a contiguous run of
+`SVECTOR`s, and the target computes them from a *single* base register:
+
+```
+lui   $s0,%hi(D_dryfield_night_back_street_8018036C)
+addiu $s0,$s0,%lo(D_dryfield_night_back_street_8018036C)
+move  $a0,$s0                    # &X[4]  (0x8018036C)
+addiu $a0,$s0,0x8                # &X[5]
+addiu $a0,$s0,-0x20              # &X[0]  (0x8018034C)
+addiu $a0,$s0,-0x10              # &X[2]  (0x8018035C)
+```
+
+The data is six 0x10-byte light pairs at 0x8018034C..0x801803AC - and 0x8018036C
+is the *third* pair's first endpoint, not the start of anything. splat names the
+address each `%hi`/`%lo` pair folds to, and only three of them are ever
+materialised (0x8018036C, 0x8018037C, 0x8018038C - one per case block, because
+CSE's table is per basic block), so the named symbol sits in the middle of the
+run.
+
+The C has to match that arithmetic, which means indexing *before* the named
+symbol:
+
+```c
+extern SVECTOR D_dryfield_night_back_street_8018036C[];   /* the third light */
+
+    Room_Draw17(&D_dryfield_night_back_street_8018036C[0], 0, 0x300);
+    Room_Draw17(&D_dryfield_night_back_street_8018036C[1], 0, 0x300);
+    Room_Draw08(&D_dryfield_night_back_street_8018036C[-4], 0x100);
+    Room_Draw08(&D_dryfield_night_back_street_8018036C[-2], 0x100);
+```
+
+A `[-4]` / `[-2]` index on an `extern SVECTOR[]` looks wrong and is right: GCC
+CSEs `symbol + const` against a register already holding the same symbol and
+emits the difference as an `addiu` displacement, in either direction. The
+tempting alternative - declare a second symbol for 0x8018034C (adding it to
+`configs/USA/sym/rooms/<overlay>.txt`) and index *that* from zero - is a
+different symbol, so nothing CSEs against the anchor and GCC emits a fresh
+`lui`/`addiu` pair computing 0x8018034C where the target has `addiu $a0,$s0,-0x20`.
+The same rule then reaches the file's readability: the sixth pair is
+`RoomsShared8017f9e4Pos` / `Pos2` to the shared body that owns it, which is the
+positive-index view of the same run.
+
+The corollary for reading a target: an `addiu rX,rBase,K` with a *negative* K
+whose `rBase` came from `%hi`/`%lo` of one symbol means the source's array (or
+struct) is anchored later than splat named it - look for the data run's real
+start before declaring the symbol an array base.
+
+Input `base_1.c`
+`924d143ad94597409454dbdb6b967ad3ce8be362856c767b27d22cad89f8beda` (100.000%).
