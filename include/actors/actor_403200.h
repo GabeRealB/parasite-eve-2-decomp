@@ -44,16 +44,31 @@ typedef struct Actor403200Work {
     /// latched on, masked to 10 bits, and the same value it publishes to
     /// `field_7D8`. Same slot as `Actor444000Work::slots0[2].field_2`.
     /* 0x072 */ u16  field_72;
-    /* 0x074 */ byte pad_74[0x730];
+    /* 0x074 */ byte pad_74[0x26];
+    /// The animation frame the launch state latches its four one-shot cues on,
+    /// masked to 10 bits against the frame armed last tick in `field_7A8`.
+    /// The third animation slot's frame halfword, the same slot family as
+    /// `field_72`.
+    /* 0x09A */ u16  field_9A;
+    /* 0x09C */ byte pad_9C[0x708];
     /// Escort pose index, written 3 by the re-arm path of the per-frame body
     /// and cleared once the shared countdown below has run out. Same slot and
     /// role as `Actor444000Work::field_7A4`.
     /* 0x7A4 */ s16  field_7A4;
-    /* 0x7A6 */ byte pad_7A6[0xA];
+    /* 0x7A6 */ byte pad_7A6[0x2];
+    /// The masked `field_9A` frame the launch state last saw, so each of its
+    /// four one-shot cues only fires on the step the animation first reaches
+    /// that frame. Same slot and role as `Actor444000Work::field_7A8`.
+    /* 0x7A8 */ s32  field_7A8;
+    /* 0x7AC */ byte pad_7AC[0x4];
     /* 0x7B0 */ s8   field_7B0;
     /* 0x7B1 */ byte pad_7B1[0x2];
     /* 0x7B3 */ s8   field_7B3;
-    /* 0x7B4 */ byte pad_7B4[0x24];
+    /* 0x7B4 */ byte pad_7B4[0x2];
+    /// The animation slot selector the launch state arms to 0x40 and then to
+    /// 0x10. Same slot and role as `Actor444000Work::field_7B6`.
+    /* 0x7B6 */ s16  field_7B6;
+    /* 0x7B8 */ byte pad_7B8[0x20];
     /// The masked `field_72` frame the per-frame body last saw, so each of its
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
@@ -113,7 +128,11 @@ typedef struct Actor403200Work {
     /// advances it and re-arms `field_0`. Same slot and role as
     /// `Actor444000Work::field_F08`.
     /* 0xF08 */ s16  field_F08;
-    /* 0xF0A */ byte pad_F0A[0xC];
+    /* 0xF0A */ byte pad_F0A[0xA];
+    /// Quarters of it is how many extra re-arm steps the launch state runs,
+    /// calling the per-frame body once per step. Same slot and role as
+    /// `Actor444000Work::field_F14`.
+    /* 0xF14 */ s16 field_F14;
     /// Re-armed to 2 by the upkeep handler `func_actor_403200_80141A94` once
     /// the `field_F1C` countdown has run out. Same slot and role as
     /// `Actor444000Work::field_F16`.

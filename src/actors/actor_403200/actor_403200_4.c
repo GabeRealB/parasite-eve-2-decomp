@@ -3,6 +3,7 @@
 #include "actors/actor_403200.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -13,6 +14,10 @@
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s16 D_actor_403200_80141C58;
+
+/// The script pair the death sequence's frame-0x1C cue spawns.
+extern s32 D_actor_403200_80141C5C;
+extern s32 D_actor_403200_80141C64;
 
 /// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
 /// draw from.
@@ -311,7 +316,126 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013E2FC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013E5A8);
+/// State 0x12, the enemy's death sequence: the model is torn down and rebuilt
+/// so the collapse animation can run on it.
+///
+/// A reset request clears the host model's `field_C` and pushes the cleared
+/// word onto each of the seven escorts' own model objects, allocates the host's
+/// and every escort's model buffers, forces `field_F14 / 4` extra per-frame
+/// steps -- stopping early once `field_58` bit 0 is set -- and then re-arms the
+/// animation slot at 0x10, plays the type-7 death cue and leaves the yaw target
+/// at 0xFA0 and the escort pose cleared.
+///
+/// The rest of the tick winds the shared `D_actor_403200_80141C58` counter down
+/// by 0xC8 once it has passed 0x1F4, runs the per-frame body, clears the host
+/// coordinate's rebuild flag, and on frame 0x1C of `field_72` arms the screen
+/// shake at level 3 and spawns the `D_actor_403200_80141C5C` script pair. While
+/// `field_7B3` is still 0x12 four one-shot cues fire on frames 0x33, 0x3D, 0x4E
+/// and 0x71 of `field_9A`, each latching the frame it saw in `field_7A8`.
+void func_actor_403200_8013E5A8(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    GpEnemy*         enemy;
+    GpEnemy*         obj;
+    s16              i;
+    s16              j;
+    s32              state;
+    s32              frame;
+
+    work  = (Actor403200Work*)arg0->idMap;
+    enemy = arg0->spawnArg2;
+    if (work->field_4 != 0) {
+        obj                                = arg0->spawnArg2;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        work->field_7F3                    = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_7B6 = 0x40;
+        work->field_EF4 = 0;
+        work->field_EF6 = 0;
+        j               = 0;
+        while (j < work->field_F14 / 4) {
+            func_actor_403200_80133DD8(arg0);
+            j++;
+            if (work->field_58 & 1) {
+                break;
+            }
+        }
+        work->field_F06 = 7;
+        work->field_7B6 = 0x10;
+        SndEvt_EnqueueType7((((u16)obj->field_8 >> 12) << 8) | 0x4020000A, 1);
+        work->field_7A4 = 0;
+        work->field_E96 = 0xFA0;
+    }
+    if (D_actor_403200_80141C58 >= 0x1F5) {
+        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+    }
+    func_actor_403200_80133DD8(arg0);
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    state                                   = work->field_72 & 0x3FF;
+    if (state == 0x1C && work->field_7D8 != state) {
+        work->field_EAC = 3;
+        Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
+    }
+    work->field_7D8 = work->field_72 & 0x3FF;
+    if (work->field_7B3 == 0x12) {
+        frame = work->field_9A & 0x3FF;
+        if (frame == 0x33 && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200013;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+        frame = work->field_9A & 0x3FF;
+        if (frame == 0x3D && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200003;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+        frame = work->field_9A & 0x3FF;
+        if (frame == 0x4E && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200014;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+        frame = work->field_9A & 0x3FF;
+        if (frame == 0x71 && work->field_7A8 != frame) {
+            s32 id;
+            s32 pan;
+
+            id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200015;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan,
+                                (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        }
+        work->field_7A8 = work->field_9A & 0x3FF;
+    }
+}
 
 /// The enemy's attack-launch body: when the dispatcher has flagged the state
 /// change it re-arms the work block (`field_7A4` at 3, `field_E96` at 0xC80) and

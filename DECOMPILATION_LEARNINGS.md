@@ -107741,3 +107741,49 @@ the loop shapes the asm shows only as GTE sequences.
 Since such a helper is `static __inline__` and inlined at every use, its
 definition can be moved up the unit `.c` to sit above a body that needs it
 without changing the object: definition order is free, function order is not.
+
+## A temp shared by repeated blocks never joins the op's dying input, so the whole chain loses the callee-saved register (func_actor_403200_8013E5A8, 2026-09-16)
+
+A death-state handler repeats the same cue four times, once per animation
+frame:
+
+```c
+        sfx = (((u16)enemy->field_8 >> 12) << 8) | 0x40200013;
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth(...));
+```
+
+with `sfx`/`pan` declared once for the whole function and reassigned in each
+block, the target's `lhu s0,8(s4) / srl s0,s0,0xc / sll s0,s0,0x8 / or
+s0,s0,v1` comes out as `lhu v0,8(s4) / srl v0,v0,0xc / sll v0,v0,0x8 / or
+s1,v0,a1` — 98.6% with `regs=72`, everything else identical.
+
+The `ior`'s output should *join* the dying shift chain that produces its left
+operand (CODEGEN_MODEL §10.3), and the joined quantity's span would then cross
+the two calls, which is what puts it in `$s0`. It does not join here because the
+shared temp is set in four blocks: local-alloc only colours quantities confined
+to one block that die once, so all four are global allocnos, and `combine_regs`
+bails at `reg_qty[sreg] >= -1`.
+
+**Fix.** Declare `s32 id; s32 pan;` inside each block (the shape
+`src/actors/actor_444000/actor_444000_5.c` already uses for the same four
+frames). Each is then one set and one death in one block, the output joins the
+dying input, and the union span lands the whole chain in `$s0`. 98.6% → 100% in
+one edit. Same lever as "A block-local pointer can tie a load to its own base
+register", with the join coming from an arithmetic op rather than a copy, and
+the consequence being the quantity's *call-crossing* status rather than a tie to
+a base register.
+
+Signature to read: an accumulator whose register equals the final op's
+destination in the target, but is a lower call-clobbered register in yours.
+Note this is not a reason to split *every* repeated temp — the counter and the
+frame mask in the same function are deliberately shared across blocks, and
+splitting those breaks the match (the first loop's counter must stay `$a1`).
+
+Inputs: `base_3.i` (98.626%) SHA256
+`cf02ce2625fb4c0b1db344c67e67c27e1aa9408924df0d50ccd01826aa32330e`; `base_4.i` (100%) SHA256
+`955254ac30f03cd6253dcab849df0d8976290861a2debfc067191311d4bd8aa1`; target.o
+SHA256 `2474f6718e7cb8d730fa6e414da2ce01721bbe96f4c7f7ef865ab2d513b54043`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_403200_8013E5A8-vacuum`.
