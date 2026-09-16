@@ -62952,6 +62952,18 @@ a second register: `func_actor_503500_80137048` emitted `move a0,a1` plus
 result into `s32`, not `s8`" above. `func_actor_503500_8013BE48` went from
 94.4% to 100% on this change alone.
 
+Widening to `s32` beats widening to the *unsigned* narrow type, which is the
+nearby trap: `u8 arg0` also removes the `sll`/`sra` pair, but the comparison
+then needs its own zero-extension and comes back as an `andi` + `sltu` pair
+instead. In `func_mine_cavern_8017DFAC` the target tail is a bare
+`slt v0,s0,v0` against an `lbu`, so both narrow types are wrong; `s32 arg0`
+scored 100% where `s8` scored 86.9% and `u8` 92.4%. The `sll` does not have to
+appear as a lone extra instruction, either — here reorg duplicated it into
+*both* `bne` delay slots (the same slot the target fills with a `lui`), so the
+leftover read as `insert=4 delete=3 branch=1` around a 55-vs-56 instruction
+count rather than as one obvious extra insn. Delays slots are a place to look
+when a narrow-parameter seed's penalties do not look like a register problem.
+
 ## Duplicate the whole *call* into both arms when an `if/else` picks one constant argument
 
 The natural source for "call `f` with one of two constants" selects the value
