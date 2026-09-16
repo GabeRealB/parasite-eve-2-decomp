@@ -160,7 +160,53 @@ void func_actor_521100_80135F2C(Task* task)
 /// step 1 runs that body and drops the 0x600A5 effect once the counter reaches
 /// 0xF, and step 2 returns without animating. Every other step falls through
 /// to the slot tick and the colour step.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_801360C4);
+void func_actor_521100_801360C4(void* spawnArg2, Task* task)
+{
+    GsCOORDINATE2    sp10;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    Actor521100Work* work;
+    s32              i;
+
+    obj   = task->extra;
+    coord = obj->field_8;
+    work  = (Actor521100Work*)task->idMap;
+    sp10  = *coord;
+
+    switch (work->field_484) {
+        case 0:
+            work->field_486 = 0;
+            work->field_488 = 0x1000;
+            Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+            work->field_48C = coord->coord;
+            work->field_484 = 1;
+            break;
+
+        case 1:
+            func_actor_521100_801368B0((Actor521100*)task);
+            work->field_486++;
+            if ((s16)work->field_486 == 0xA) {
+                obj->field_C = 2;
+            }
+            if ((s16)work->field_486 == 0xF) {
+                sp10.coord.t[0] -= 0x1F4;
+                sp10.coord.t[2] -= 0x64;
+                Gp_SpawnEff(0x600A5, &sp10, 5, NULL);
+            }
+            break;
+
+        case 2:
+            return;
+    }
+
+    i = 1;
+    do {
+        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i]);
+        i++;
+    } while (i < 0x13);
+
+    func_actor_521100_80136290(spawnArg2, task);
+}
 /// The scale-in's colour step: takes a 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`,
 /// fills it with the world position of the model's *second* attach coordinate
 /// (the one the shrink is scaling) and hands it to `Gp_UpdateActorColor` as the
