@@ -361,7 +361,60 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801684F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80168AFC);
+/// Turn the actor's facing onto the player in one step and rescale the root
+/// coordinate to 0x1194: the live branch resets the model and starts clip 1 at
+/// speed 0x10 with the 0x13 state parked in `field_97E`, otherwise `field_6`
+/// ticks over for the 0xB-frame transition, the aim scratch takes the player
+/// offset, `Actor356100_PositionYaw` gives the wrapped turn, `field_98E`
+/// snapshots it, the turn is clamped to [-0x20, 0x20] and the root yaw is
+/// re-derived from it before `field_0` moves to `state` once the count-down
+/// expires. Same body as `func_actor_401300_8013AAE8`.
+void func_actor_356100_80168AFC(Actor356100* arg0)
+{
+    Actor356100Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor356100AimScratch* aim;
+    int                    state;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0x180;
+        work->field_978 = 1;
+        work->field_982 = 0x10;
+        work->field_97A = 0;
+        work->field_97E = 0x13;
+        func_actor_356100_80163508(arg0);
+        work->field_6 = 0;
+        return;
+    }
+    work->field_6                             = (s16)((u16)work->field_6 + 1);
+    state                                     = 0xB;
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor356100AimScratch**)G_SCRATCH_HEAD;
+    arg0->field_2C->field_8->flg              = 0;
+    if ((work->field_68 & 1) || ((s16)work->field_6 >= state)) {
+        work->field_0 = state;
+    }
+    aim->angle      = Actor356100_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_98E = aim->angle;
+    if (aim->angle >= 0x21) {
+        aim->angle = 0x20;
+    }
+    if (aim->angle < -0x20) {
+        aim->angle = -0x20;
+    }
+    coord      = arg0->field_2C->field_8;
+    aim->angle = (u16)aim->angle + ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    func_actor_356100_80163508(arg0);
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Turn the actor's facing onto the player in 0x28 steps and rescale the root
 /// coordinate to 0x1194: the live branch resets the model and starts clip 2 at

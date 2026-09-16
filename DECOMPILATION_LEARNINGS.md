@@ -108875,3 +108875,79 @@ join (`func_m4a1_pyke_8011D7D4`). From the 54.396% m2c seed. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_10.i` SHA256
 `91c445af40512be33c9ac3edbd48bde713ef687821992194b9bcdc0df2975961`.
+
+## An exact `pri` tie hands the lower `$sN` to the earlier-created pseudo; a named local constant in one comparison is a one-instruction live-length knob (func_actor_356100_80168AFC, 2026-09-16)
+
+**Problem.** `func_actor_356100_80168AFC` (actors) matched `Structure: match`,
+`blocks=17/17 instructions=210/210` and 99.381% with `stack=branch=reorder=
+insert=delete=0` and `regs=26` — a single `$s1` ↔ `$s2` swap. The target keeps
+`work -> $s2`, `aim -> $s1`; the source, written in the style of its matched
+siblings in the same TU, kept giving `work -> $s1`, `aim -> $s2`.
+
+**Mechanism.** `global.c:allocno_compare` ranks allocnos by
+
+```c
+    pri = (int)( floor_log2 (allocno_n_refs[v]) * allocno_n_refs[v]
+                 / allocno_live_length[v] * 10000 * allocno_size[v] );
+    ...
+    return v1 - v2;      /* when the priorities are equal */
+```
+
+and on an exact tie falls through to `v1 - v2`, **the allocno index**, which is
+`max_allocno++` walked over pseudo numbers — i.e. pseudo creation order. Here
+the two quantities tie as exact rationals, not just as truncated integers:
+
+| pseudo | `REG_N_REFS` | `REG_LIVE_LENGTH` | `pri` |
+|---|---|---|---|
+| `work` (81) | 14 | 91 | 42/91 = 6/13 |
+| `aim` (84) | 12 | 78 | 36/78 = 6/13 |
+
+so `work`, created first, won the tie and took `$s1`.
+
+**Read `.lreg`, not `.flow`.** `load-alloc`'s `.lreg` header carries the
+post-local-alloc `REG_N_REFS` / `REG_LIVE_LENGTH`, and those — not the ones
+`.flow` prints — are what `global.c` sees. They disagree, and the disagreement
+is decisive: `.flow` had `work` 14/109 against `aim` 12/109 (prediction: `work`
+first) while `.lreg` had 14/91 against 12/78 (prediction: `aim` first); the
+build followed `.lreg`.
+
+**Lever.** Name a constant the tick already uses. Replacing
+`(s16)work->field_6 >= 0xB` by a named local assigned just before the scratch
+block —
+
+```c
+    int state;
+    ...
+    work->field_6 = (s16)((u16)work->field_6 + 1);
+    state         = 0xB;
+    ...
+    if ((work->field_68 & 1) || ((s16)work->field_6 >= state)) {
+        work->field_0 = state;
+    }
+```
+
+— leaves the object byte-identical to the target, but at RTL time the compare
+becomes a register operand (`slt_si` fed by an `insn_list`) instead of `slti`,
+with a `(set (reg) (const_int 11))` insn that cse folds away later via
+`REG_EQUAL`. That one dead instruction prices `aim` at **L=77**, so
+`pri = 36/77 = 0.46753 > 42/91 = 0.46154`, `.greg` orders the allocnos
+`149 84 81 80`, and the homes become exactly the target's. 100.000%, all
+penalties zero.
+
+**What does not work.** Moving the same statement *within* its basic block (here
+after the `flg` store) changes nothing at all — `.lreg` 78 in, 78 out, and
+byte-identical output. This metric is a block-shape knob, not a statement-order
+knob. Moving it *across* a block edge does move it (`aim` 78 → 64, and the
+allocation deliberately flipped as predicted) but loses the stored value, so
+GCC re-loads it and the instruction count changes.
+
+Inputs: `base_1.i` (99.381%, tied) SHA256
+`296bc17e4892eb824427fab3f5d3010a4ceacaf8784a49607e3ccfe23f3ef556`; `base_4.i`
+(100%) SHA256
+`12c2d5701eade298c8b85c110cad59236e65246b4620fe51b96989b694e09a82`; target
+SHA256 `6396102f5c97dd87a812090f2aff1639afa455d2fc8cb4aaee05ad6f5504751f`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_80168AFC-vacuum`. Related: the
+`Actor00400_Fn0875C` entry above, where the same tie was *manufactured* by a
+control-flow change and then won with declaration order.
