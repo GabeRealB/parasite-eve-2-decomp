@@ -1084,7 +1084,37 @@ void Actor04400_Fn08358(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn083CC);
+/// Same body as `ActorsShared8016b500`, which tests the same `flags_EC` pair
+/// through `ActorsShared8016945c`; this overlay's copy calls `Actor04400_Fn06328`.
+/// Re-requests animation 4 whenever the enemy still carries status flag 1 or
+/// 0x102, and counts `field_422` up.
+void Actor04400_Fn083CC(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* work3;
+    s32              cond;
+
+    work = (Actor104400Work*)arg0->idMap;
+    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
+        work2 = (Actor104400Work*)arg0->idMap;
+        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work->field_412  = 0;
+            work->field_438  = 1;
+            work3            = (Actor104400Work*)arg0->idMap;
+            work3->field_426 = 4;
+            work3->field_41C = 0x10;
+            work3->field_418 = 4;
+            work3->field_414 = 1;
+            work->field_422  = work->field_422 + 1;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn0847C);
 

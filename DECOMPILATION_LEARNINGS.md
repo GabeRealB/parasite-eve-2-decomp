@@ -98039,3 +98039,68 @@ target SHA256 `cd531d94bf77879fd12a67ca200a6d0bde75902c1dec9247431182aa1482c655`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor04400_Fn07B4C-vacuum`; two builds, no pins, no permuter.
 `overlay_dup_index.py find` reports this body as its own only copy.
+
+## A 0/1 in `$v0` cleared by `addu $v0,$zero,$zero` is a source-level `cond = 0`, not a comparison (Actor04400_Fn083CC, 2026-09-16)
+
+m2c reconstructs the flag test of this actor's animation re-request as a
+`var_v0` chain and GCC 2.8.1 gives back a different shape than the target:
+
+```c
+var_v0 = 1;
+if (!(work->flags_EC.half & 1)) {
+    var_v0 = 1;
+    if (!(work->flags_EC.word & 0x102)) { var_v0 = 0; }
+}
+if (var_v0 != 0) { ... }
+```
+
+The `!(a & 1)` negations survive as compares, so the second one if-converts:
+
+```
+and   v0,v0,v1          lhu   v0,0xec(v1)
+bnez  v0,L              andi  v0,v0,0x1
+lw    v0,0xec(a0)       bnez  v0,L0842C
+andi  v0,v0,0x102       addiu v0,$zero,0x1     <- constant 1, in the delay slot
+sltu  v1,zero,v0        lw    v0,0xec(v1)
+beqz  v1,END            andi  v0,v0,0x102
+                        bnez  v0,L0842C
+                        addiu v0,$zero,0x1
+                        addu  v0,$zero,$zero   <- constant 0, not a compare
+                      L0842C:
+                        beqz  v0,END
+```
+
+Six blocks and 44 instructions against the target's seven and 42, so the
+block/predicate diagnostics alone say control flow, and the leftover is `sltu`
+where the target has two `li`-style constants.
+
+The target is decisive by itself: `addu $v0,$zero,$zero` **materialises a
+constant** where a computed predicate would be `sltu` (or `sltiu`). A value that
+is 1 in the taken path and literally 0 in the fall-through only comes from a
+source-level variable assigned a literal in an `else`:
+
+```c
+if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    cond = 1;
+} else {
+    cond = 0;
+}
+if (cond) { ... }
+```
+
+Written this way the two `li`/`addiu $v0,$zero,0x1` land in the delay slots of
+the two `bnez` and the merge label is the `beqz`, which is exactly the target.
+Read the leftover `$v0` producer before rearranging the `if`s: `andi`/`or` chain
+plus `sltu` means a comparison, `addu rd,$zero,$zero` means a literal.
+
+The body is `ActorsShared8016b500` verbatim apart from the callee, so the
+matched twin's C is the whole answer - one build, 79.932% (m2c baseline) to
+100.000%, every penalty zero. `overlay_dup_index.py find` reports this body as
+its own only copy for the callee-spelling reason documented above, while
+`similar` scores the twin 1.00 in `shape`, `fields` and `cflow`.
+
+Inputs: `base_1.i` (100.000%) SHA256 `d28a015ed23af9c06ec9ba7f0cf1db98c71629ecee479f8cd3f3acce701670be`,
+`base.i` (79.932%) SHA256 `0f403f12e0a66cebd5d8deec4e76f27745f2aaf0533aec2b7f2ef05000967924`;
+target SHA256 `5fa00a3204a21d4094b7dfe3a6d07c862af4795a3b17295eece7f5ae87e04561`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn083CC-vacuum`; two builds, no pins, no permuter.
