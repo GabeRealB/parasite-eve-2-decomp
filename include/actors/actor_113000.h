@@ -22,7 +22,9 @@ typedef struct Actor113000Work {
     /* 0x47C */ s32    field_47C; ///< -1 out of the spawn handler
     /* 0x480 */ MATRIX light;
     /* 0x4A0 */ MATRIX color;
-    /* 0x4C0 */ byte   pad_4C0[0x6];
+    /* 0x4C0 */ s16    field_4C0; ///< set to 1 alongside `field_4C4` by mode 3
+    /* 0x4C2 */ byte   pad_4C2[0x2];
+    /* 0x4C4 */ s16    field_4C4; ///< set to 1 alongside `field_4C0` by mode 3
     /* 0x4C6 */ s16    field_4C6; ///< cleared by the spawn handler
     /* 0x4C8 */ s16    field_4C8; ///< -1 out of the spawn handler
     /* 0x4CA */ byte   pad_4CA[0x2];
