@@ -89217,3 +89217,43 @@ run `bodies_of()` from `tools/land_overlay.py` over `git show HEAD:<file>` and
 over the new files and require the function-name sets and body texts to be
 equal. `check_lost_matches.py` cannot see this class of loss — it looks for a
 matched function that reverted to `INCLUDE_ASM` in its own file.
+
+## A room handler's request/answer records stay on the stack because the read goes through a pointer
+
+A handler that builds its own message record rather than receiving one - the
+`Room_Script01` shape - keeps both 8-byte `RoomEventMsg` locals in the frame
+(`src` at `sp+0x10`, `dst` at `sp+0x18`), even though neither address escapes a
+call, and re-reads a byte it has just stored:
+
+```
+li   v0,0x26
+sh   v0,0x10(sp)     /* *(u16*)&src = 0x26 */
+sb   zero,0x15(sp)   /* src.field_5 = 0 */
+lbu  v0,0x15(sp)     /* s->field_5  -- the store is not forwarded */
+addiu s0,sp,0x18     /* d = &dst */
+bnez v0,<end>
+```
+
+The load survives because the store names the field directly and the read goes
+through an alias (`s = &src;`): `mem/s:QI(sp+0x15)` and `mem/s:QI(s+5)` are two
+different rtxs, so CSE cannot forward — the same mechanism as "Copy of a scratch
+pointer to force a reload of a just-stored field", where *one* pointer is enough
+whenever the store and the load do not share a base. The `*(u16*)&src` cast is
+not what causes it: with a plain `src.msgId = 0x26` the read still folds and the
+halfword store stays behind as a dead store, so the cast is only there to write
+the id as a halfword.
+
+Do not "fix" the aliases away. Writing the direct field names on both sides
+folds the condition to a constant, drops the branch and the record's memory
+residency with it, and no later pass restores them.
+
+`func_dryfield_underpass_8017DA08` is `Room_Script01`'s case-2 body without the
+task wrapper: start from `src/rooms/lib/room_script01.c` (the pointer-parameter
+twin is `room_script09.c`), keep the declarations in their order - `src` before
+`dst`, so the slots land as above - and change only the tail (this one publishes
+`Game_Session->field_5` / `D_8007216D` and sets `field_76`, where the script
+saves `Mc_SaveData.field_5` and kills the task). m2c's `? sp18` seed scores
+55.833%; this is 100.000% / zero penalties on the first rewrite.
+
+Input `base_1.c`
+`7fdf4978302f81ce40532dac94bf526fc6bb26562a7b33612ea78282c19aa6a4` (100.000%).

@@ -6,6 +6,7 @@
 #include "main/session.h"
 #include "rooms/room_common.h"
 
+extern u8         D_8007216D;
 extern GpMsgEntry D_dryfield_underpass_8017E830[];
 extern s32        D_dryfield_underpass_8017E89C;
 extern s32        D_dryfield_underpass_8017E8D8;
@@ -36,4 +37,46 @@ void func_dryfield_underpass_8017DA00(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_underpass/dryfield_underpass_2", func_dryfield_underpass_8017DA08);
+/// Builds the message 0x26 record the room asks `Room_Script09` for - the same
+/// nibble 0xC9 / 0x53 / 0x51 answer in `field_3` - and publishes it: the answer
+/// is the room index stored in `Game_Session.field_5` (and the area-record id
+/// `D_8007216D`), then the session is told to rebuild through
+/// `Gp_RoomObjState1`. `Room_Script01`'s script-mode branch is the same code
+/// with a task wrapper around it.
+void func_dryfield_underpass_8017DA08(void)
+{
+    RoomEventMsg  src;
+    RoomEventMsg  dst;
+    RoomEventMsg* s;
+    RoomEventMsg* d;
+    GameSession*  session;
+    u8            room;
+
+    d           = &dst;
+    s           = &src;
+    *(u16*)&src = 0x26;
+    src.field_5 = 0;
+    if (s->field_5 == 0) {
+        if (GameFlag_GetNibble(0xC9) != 0) {
+            if (GameFlag_GetNibble(0x53) != 0) {
+                d->field_3 = 2;
+            } else {
+                d->field_3 = 1;
+            }
+            if (GameFlag_GetNibble(0x51) == 0) {
+                dst.field_3 = dst.field_3 + 2;
+            }
+        } else {
+            if (GameFlag_GetNibble(0x51) != 0) {
+                d->field_3 = 5;
+            } else {
+                d->field_3 = 6;
+            }
+        }
+    }
+    session                = Game_Session;
+    room                   = dst.field_3;
+    session->field_5       = room;
+    D_8007216D             = room;
+    Game_Session->field_76 = 1;
+}
