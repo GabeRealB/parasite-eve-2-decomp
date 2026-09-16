@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
@@ -89,6 +90,12 @@ typedef struct Actor401000Msg {
 /// `func_actor_401000_801385B0`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
+
+/// Message 0x3E9 payload of `func_actor_401000_801380B8`: the player task's
+/// world position, then the yaw from the actor to it, handed straight to the
+/// slot-3 handler. The 401000 twin of the block `func_actor_401300_80138800`
+/// keeps inline at `Actor401300Work.field_CD4` / `.field_CE4`.
+extern GpMsg3EE D_actor_401000_80155018;
 
 void func_actor_401000_80132EF0(Actor401000* arg0);
 

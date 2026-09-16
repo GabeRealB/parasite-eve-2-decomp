@@ -104253,3 +104253,43 @@ a seed well below 99% on instruction count can still be this class underneath. F
 time — the isolation build is what tells you which one is left. `regs` stays non-zero until the tail
 is rewritten, which is the recognition cue when the percentage is otherwise unremarkable.
 Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
+
+## A payload global in the overlay's data is the shared message struct, and the twin may keep it inline instead
+
+`func_actor_401000_801380B8` writes three `sw` at `0`/`4`/`8` and three `sh` at
+`0x10`/`0x12`/`0x14` into `D_actor_401000_80155018`, a 0x20-byte zeroed run in
+the package's `.data` with no symbol anywhere under `src/`. That is `GpMsg3EE`
+(`include/gameplay/1A8.h`) — the same 0x18-byte slot-3 payload the stack-local
+senders use ("A short frame around a `Gp_DispatchMsg` payload means the wrong
+payload type"). Declare it in the overlay header and reach it through a pointer:
+
+```c
+GpMsg3EE* msg;
+...
+msg          = &D_actor_401000_80155018;
+msg->field_0 = ((TmdObject*)player->extra)->field_8->coord.t[0];
+```
+
+The struct supplies the mixed `sw`/`sh` widths on its own, so the position triple
+needs no cast gymnastics — and the pointer form is the one the entry above needed
+for the neighbouring payload global `D_actor_401000_80154F1C`. Writing it that
+way from the start needed no adjustment: 100.000% with all six penalties zero on
+the first build. A global that exists only in the generated package data is not
+evidence the original kept the payload in a work block.
+
+The twin here does. This body is `func_actor_401300_80138800` of
+`USA/actors/actor_401300` with the work-block offsets renamed, and the twin keeps
+the payload *inline* at `Actor401300Work.field_CD4` / `.field_CE4` — the only
+structural divergence between the two. Since the offsets differ,
+`overlay_dup_index.py find` reports this body as its own only copy (`1 copies`,
+and that one is itself), so a twin has to come from BRIEF's similarity classes;
+this one starred in all three (`shape` 0.96, `calls` 0.88, `cflow` 0.97). Read
+the twin's *source*, not a paraphrase: statement order, the
+`gte_lddp` / `gte_ldsv` / `gte_gpf12_real` / `gte_stsv` block and the two-node
+facing tail (`[2].coord`, `[4].flg`, `[2]`, then `[3].coord`, `[5].flg`, `[3]`)
+all transferred unchanged.
+
+Inputs: `base_1.i` SHA256
+`ff26ab85fe3cb2a0da077a3a085d1c73e129e2309f415024b90afdb425ceb8eb`; target SHA256
+`e273f832f339b91454463e3630964f27ad20ee11fde83ec2ca9eb60213e93d34`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
