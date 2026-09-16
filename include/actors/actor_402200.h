@@ -8,6 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 
 /// The actor's per-part attach coordinates, 0x50 apart, hanging off the
 /// display object's 0x08 slot (`TmdObject::field_8`, the trailing per-part
@@ -209,15 +210,18 @@ typedef struct Actor402200Work {
     /* 0x640 */ GpRec18* field_640;
     /// Head of a second `GpRec18` table, cleared by state 5 of
     /// `func_actor_402200_801329A4`.
-    /* 0x644 */ GpRec18           field_644;
-    /* 0x65C */ Actor402200Coord* field_65C;
-    /* 0x660 */ s16               field_660;
-    /* 0x662 */ s16               field_662;
-    /* 0x664 */ byte              pad_664[0x40];
-    /* 0x6A4 */ s32               field_6A4;
-    /* 0x6A8 */ s32               field_6A8;
-    /* 0x6AC */ s32               field_6AC;
-    /* 0x6B0 */ byte              pad_6B0[4];
+    /* 0x644 */ GpRec18 field_644;
+    /// `func_800FDB18` argument record for the hit spark: the fourth part's
+    /// coordinate, 0x500, 2.
+    /* 0x65C */ GpEffArg field_65C;
+    /* 0x664 */ s32      field_664;
+    /* 0x668 */ s32      field_668;
+    /* 0x66C */ s32      field_66C;
+    /* 0x670 */ byte     pad_670[0x34];
+    /* 0x6A4 */ s32      field_6A4;
+    /* 0x6A8 */ s32      field_6A8;
+    /* 0x6AC */ s32      field_6AC;
+    /* 0x6B0 */ byte     pad_6B0[4];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
@@ -401,6 +405,21 @@ typedef struct Actor402200FrameStep {
 STATIC_ASSERT_SIZEOF(Actor402200FrameStep, 4);
 
 extern Actor402200FrameStep D_actor_402200_801383D8[];
+
+/// 0x30-byte block `func_actor_402200_80131F54` takes from `G_SCRATCH_HEAD`:
+/// `delta` receives the `func_800E0C10` push-back and is then reused for the
+/// offset to the player, and `ofs` is the spark offset handed to
+/// `func_800FDB18`.
+typedef struct Actor402200HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ byte           pad_10[0x10];
+    /* 0x20 */ SVECTOR        ofs;
+    /* 0x28 */ byte           pad_28[8];
+} Actor402200HitScratch;
+STATIC_ASSERT_SIZEOF(Actor402200HitScratch, 0x30);
+
+/// Reacts to the damage just taken; see its definition.
+void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1);
 
 /// Aims the actor at the player; see its definition.
 void func_actor_402200_80135D5C(Actor402200* arg0);

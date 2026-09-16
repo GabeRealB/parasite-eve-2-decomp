@@ -436,14 +436,14 @@ void func_actor_402200_80137444(GpEnemy* arg0, Actor402200* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->field_1C     = work;
-    obj->field_C       = 0;
-    coord->field_0.flg = 0;
-    obj->field_1C      = &work->field_45C;
-    obj->field_20      = &work->field_43C;
-    work->field_65C    = &arg1->field_2C->field_8->field_F0;
-    work->field_660    = 0x500;
-    work->field_662    = 2;
+    arg1->field_1C          = work;
+    obj->field_C            = 0;
+    coord->field_0.flg      = 0;
+    obj->field_1C           = &work->field_45C;
+    obj->field_20           = &work->field_43C;
+    work->field_65C.field_0 = &arg1->field_2C->field_8->field_F0;
+    work->field_65C.field_4 = 0x500;
+    work->field_65C.field_6 = 2;
     func_800B3F84((GpAnimCtx*)work, D_actor_402200_80154194, (GpAnimObj*)obj, work->field_30C, &work->field_14);
     work->field_6C0 = 0xB;
     work->field_6C2 = 0xB;
