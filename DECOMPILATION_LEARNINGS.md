@@ -107548,3 +107548,53 @@ Two related notes from the same function:
 * A constant set scheduler-hoisted within the block is a sched1 decision that follows the block's
   dependency graph, not the statement's position: with the loop init already placed early in the
   source, sched1 leaves `li`/`sh` adjacent instead of pulling the `li` two slots toward the top.
+
+## A store's place among its neighbours picks the constant's register, and that register then decides the sched2 store order (func_actor_403200_80134D40, 2026-09-16)
+
+The reset block writes seven fields of one work struct. The target emits them
+`EF4, EF6, 7B0, EFA, 7B3, EFE, E96`; four different source orders all emitted
+`EF4, EF6, 7B0, 7B3, EFA, EFE, E96` — one swapped pair, `reorder=1`, everything
+else zero, stuck at 99.721%.
+
+For a run of stores to one base at provably distinct offsets, sched2 picks
+**the first store in its ready list**: `schedule_select` breaks priority ties
+with `potential_hazard`, which is non-zero only for an insn in a function unit,
+so a store outranks the `li` next to it, and among equal stores the earliest
+list index wins. That list is sorted by descending `INSN_LUID`, i.e. by the RTL
+order sched1 left. So for stores whose value is an immediate, the emitted order
+*is* their RTL order, and `EFA` before `7B3` in the object means `EFA` before
+`7B3` in the RTL.
+
+That constraint alone does not reproduce it. `7B3` is the only store carrying a
+constant that can *share* a register with an earlier live value. Written after
+`EFA` (`EF4, EF6, 7B0, EFA, 7B3, …`), its `li 2` is born after the value-1 pseudo
+died at the `7B0` store, so local-alloc hands it the now-free `$v0`; the store is
+then no free leaf but the tail of a `$v0` chain, and sched2 hoists the whole
+`li`/`sb` pair up to just after `7B0` — before `EFA`, the wrong way. Moving the
+store *earlier* than `EFA` instead (the sibling's order, `EF4, 7B3, EF6, 7B0,
+EFA`) fixes the register (`$v1`) but puts `7B3` before `EFA` in the RTL, which is
+the wrong way for the other reason.
+
+The order that satisfies both at once keeps `EFA` first *and* puts `7B3` before
+one of the value-1 stores:
+
+```c
+work->field_EF4 = 1;
+work->field_EF6 = 1;
+work->field_EFA = 0;
+work->field_7B3 = 2;   /* before 7B0, so its li overlaps the live value 1 */
+work->field_7B0 = 1;
+work->field_EFE = 0;
+work->field_E96 = 0xE74;
+```
+
+The `li 2` now spans the value-1 pseudo's last use, cannot take `$v0`, takes
+`$v1`, and the store is a plain leaf whose LUID lands after `EFA` — 100%.
+
+The general shape: when a swap in a run of constant stores will not move, check
+whether one of the two carries a register-born constant. Its *store position*
+chooses the register (by interference with the value it could otherwise share)
+and the register chooses whether the store is a free leaf; only when it is does
+its LUID order decide the emission.
+
+base_6.c preprocessed SHA256: 90f32fc92970b2767ce0fad080a8fca8c7e67c74c471f420fdf30cb615370fc2

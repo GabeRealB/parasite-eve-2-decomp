@@ -38,7 +38,12 @@ typedef struct Actor403200Work {
     /// the `field_0 = 0xA` re-arm. Same slot as
     /// `Actor444000Work::slots0[1].field_10`.
     /* 0x058 */ u16  field_58;
-    /* 0x05A */ byte pad_5A[0x74A];
+    /* 0x05A */ byte pad_5A[0x18];
+    /// The animation frame the per-frame body's two one-shot sound cues are
+    /// latched on, masked to 10 bits, and the same value it publishes to
+    /// `field_7D8`. Same slot as `Actor444000Work::slots0[2].field_2`.
+    /* 0x072 */ u16  field_72;
+    /* 0x074 */ byte pad_74[0x730];
     /// Escort pose index, written 3 by the re-arm path of the per-frame body
     /// and cleared once the shared countdown below has run out. Same slot and
     /// role as `Actor444000Work::field_7A4`.
@@ -47,7 +52,12 @@ typedef struct Actor403200Work {
     /* 0x7B0 */ s8   field_7B0;
     /* 0x7B1 */ byte pad_7B1[0x2];
     /* 0x7B3 */ s8   field_7B3;
-    /* 0x7B4 */ byte pad_7B4[0x3F];
+    /* 0x7B4 */ byte pad_7B4[0x24];
+    /// The masked `field_72` frame the per-frame body last saw, so each of its
+    /// two one-shot cues only fires on the step the animation first reaches
+    /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
+    /* 0x7D8 */ s32  field_7D8;
+    /* 0x7DC */ byte pad_7DC[0x17];
     /// Cleared by the state-change reset to mark the work block as re-armed.
     /// Same slot and role as `Actor444000Work::field_7F3`.
     /* 0x7F3 */ u8   field_7F3;
@@ -87,11 +97,20 @@ typedef struct Actor403200Work {
     /// Armed to 1 by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFA`.
     /* 0xEFA */ s16  field_EFA;
-    /* 0xEFC */ byte pad_EFC[0xA];
+    /* 0xEFC */ byte pad_EFC[0x2];
+    /// Cleared by the per-frame body's re-arm path. Same slot and role as
+    /// `Actor444000Work::field_EFE`.
+    /* 0xEFE */ s16  field_EFE;
+    /* 0xF00 */ byte pad_F00[0x6];
     /// Cleared by the per-frame body once `field_6` has passed 0x14. Same slot
     /// and role as `Actor444000Work::field_F06`.
-    /* 0xF06 */ s16  field_F06;
-    /* 0xF08 */ byte pad_F08[0xE];
+    /* 0xF06 */ s16 field_F06;
+    /// The step index of the per-frame body's walk-out: state 0 runs the model
+    /// out to x 0x1CCA, state 1 to x 0x2882, and each step that arrives
+    /// advances it and re-arms `field_0`. Same slot and role as
+    /// `Actor444000Work::field_F08`.
+    /* 0xF08 */ s16  field_F08;
+    /* 0xF0A */ byte pad_F0A[0xC];
     /// Re-armed to 2 by the upkeep handler `func_actor_403200_80141A94` once
     /// the `field_F1C` countdown has run out. Same slot and role as
     /// `Actor444000Work::field_F16`.
