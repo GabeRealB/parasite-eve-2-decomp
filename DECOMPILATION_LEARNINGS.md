@@ -1477,6 +1477,65 @@ shape. Inputs: `base_1.i`
 `47502f6350366a23989bbf0916e1e2cdcce62bafa1a5a1c60042d302c2a190e7`.
 
 
+## A store into a byte field narrows its source load at *expand*, so a value shared with a switch index needs an SI local
+
+A `switch` on a `u16` field extends the index straight from memory —
+`(set (reg:SI) (zero_extend:SI (mem:HI ...)))`, one `lhu`, no `andi`. Storing
+that same field to an `s8` field of the same struct reads like the same value,
+but it does not share:
+
+```c
+    switch (actor->field_960) {
+        ...
+        case 1:
+            d4->field_D0 = actor->field_960;   /* lbu v0, 0x960(s0) */
+```
+
+`expand_assignment`/`store_field` expands the RHS in the *field's* mode, so the
+load is born as `(set (reg:QI) (mem/s:QI ...))` — `uid 190 movqi_internal2`
+already in `.rtl`, before any CSE. The two expressions differ in mode, so cse
+never unifies them and the target's single `lhu $v1` feeding both the compare
+and the `sb $v1` is unreachable from that source. Two extra instructions, an
+`insert`, and a store the scheduler is then free to move past the `jal`.
+
+Declaring the local at the narrow width does not help either: a `u16` local is
+an HImode pseudo, and promoting it for the switch emits `zero_extendhisi2` from
+a *register*, which is `andi v1,a1,0xffff` beside the `lhu` (94.6%).
+
+Give the local the full word width. Then the one load IS the zero-extend the
+switch wants, and the byte store subregs it:
+
+```c
+    u32 state;
+
+    state = actor->field_960;
+    switch (state) {
+        ...
+        case 1:
+            d4->field_D0 = state;
+            func_actor_800200_801654EC(arg0, 0);
+            break;
+```
+
+```
+lhu    v1, 0x960(s0)
+...
+beq    v1, v0, case1
+...
+sb     v1, 0xD0(s1)
+```
+
+Same reasoning as the section above, from the other side: there a wider local
+was needed to force a conversion at the assignment, here to stop the assignment
+from forcing one. `func_actor_800200_801659CC` — `u32` 100%, `u16` 94.6%, direct
+field read 94.4%. Inputs: `base_4.i`
+`fa45ea1e4c43aa1c01a7cfa434352445aab61b5d698eb5bc3df6f8c3021dc0b4`,
+`base_3.i`
+`c771b108536317babcc02232df3092d2ea753c0091e0735177d8bd7ac00b0b3e`,
+`base_2.i`
+`b85c269d8205cbb73c7c40a1b1695a2d8478780f5e613b29c8c263b4f4d5ed9b`.
+
+
 ## Loop-only copy of a live-after pointer fills an early delay and adds a saved reg
 
 When a work pointer is used both inside a call-crossing loop and after it,
