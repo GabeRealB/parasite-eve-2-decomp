@@ -88394,3 +88394,63 @@ Inputs: `base.i` (m2c, 98.292%)
 `fd927c9d180df292afdb702cd0aad9bdf9ed058200eb44514a00c793db93ec3a`, `base_5.i`
 (`Mc_SaveData.field_8` + `*(s32*)((u8*)task + 0x30) += 1`, 100.000%)
 `e84629213ef9382f2683b363f3a2321b58a6189d43e5f763967b054fbf7dfd00`.
+
+## A constant assigned before the call forces a callee-saved register; give the else arm its own copy (func_dryfield_gas_station_8017FA20, 2026-09-16)
+
+`func_dryfield_gas_station_8017FA20` opens with the room-script idiom the shared
+`Room_Script02` also uses: copy the 8-byte `RoomEventMsg` (`*out = *in`, which
+the compiler emits as two `lwl`/`lwr` + `swl`/`swr` pairs -- so an m2c seed
+showing `M2C_UNALIGNED32` / a `sb`+`sw` pair has lost the struct assignment),
+then answer message 2 with "3, or nibble 0x61 plus one when nibble 0x7A is
+below 4".
+
+Writing that second half the obvious way --
+
+```c
+v = 3;
+if (GameFlag_GetNibble(0x7A) < 4) {
+    v = GameFlag_GetNibble(0x61) + 1;
+}
+arg3->field_3 = v;
+```
+
+-- scores 93.34% with `regs=32` and one extra saved register (`$s2`, frame
+`0x20` -> three saves). `v` is live from its definition across the
+`GameFlag_GetNibble(0x7A)` call, so local-alloc cannot use a call-clobbered
+register and takes `$s0`. The target instead materialises the constant twice --
+`addiu $v0,$zero,0x3` sits in the delay slot of the `beqz` that guards the call,
+and `$v0` is overwritten immediately after by the call itself. The constant is
+rematerialised, not held, which is only possible when no live range crosses the
+call.
+
+Moving the assignment into the arm that does not call fixes the register: with
+`if (n < 4) { v = ...nibble...; } else { v = 3; }` the value is defined after
+the call on one path and in a block of its own on the other, so it lands in
+`$v0` (`regs=0`, 97.13%). The block layout is then still one block short --
+`reorg` leaves the else block's `li v0,3` in place and jumps over it, so the
+object is 19/20 blocks with an extra `j`.
+
+`Room_Script02`, whose nibble block is byte-identical to this one, was matched
+with a third form, and that is the one that reproduces the target exactly:
+
+```c
+n = GameFlag_GetNibble(0x7A);
+if (n < 4) {
+    v = 3;
+    TOUCH_REG(v);
+    v = GameFlag_GetNibble(0x61) + 1;
+} else {
+    v = 3;
+}
+out->field_3 = v;
+```
+
+`v = 3` now appears in *both* arms, so the then-arm's assignment is dead except
+that `TOUCH_REG` keeps it in the RTL. The block count drops 20 -> 19 and the
+`j` disappears, with `li v0,3` in the `beqz` delay slot and a single `sb` at the
+join: `reorg` fills that delay slot with the else block's only instruction and
+the emptied block merges into the store. 100%, every penalty zero.
+
+So when a target materialises a constant on both sides of a call, the source was
+not the single-assignment form -- one arm holds its own copy. Read the extra
+`li` as evidence about *where the assignment lives*, not as something to pin.
