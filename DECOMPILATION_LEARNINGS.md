@@ -105155,3 +105155,52 @@ Inputs: base_5.i SHA256
 `bfd0226f403300a4ee84f4bfa1f9e3c9e42f8e8634c4a5bb2b3b28c9354864a6`; target.o SHA256
 `d16801539777963daac3e52e8465ae00edcb55847dce0c8e2caad49072360709`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## For the actor_401000 state bodies, port the cross-overlay twin's *declaration block* verbatim; it lands 100% first try (func_actor_401000_8013C46C, 2026-09-16)
+
+`func_actor_401000_8013C46C` matched on the first real attempt (m2c baseline
+69.9%, then `base_1.c` score 100.000% with all penalties zero). Nothing about it
+needed a scheduling or allocation experiment, and the thing that made it cheap is
+worth copying: the function is the 401000 twin of `func_actor_401300_8013CBAC`
+(`overlay_dup_index.py similar` ranked it 0.84 shape) and of
+`Actor01900_Fn042BC` (0.89, starred in two classes). `overlay_dup_index.py find`
+reported no cross-overlay copies, so no promotion was involved — the twin's value
+here is entirely as a *source* to copy from.
+
+Three things made it one-shot:
+
+1. **Port the twin's whole declaration block, including the locals that look
+   redundant.** The target's allocation is: `work` in `$s3`, `arg0` in `$s4`,
+   the scratch chase block in `$s2`, and separate `$s0`/`$s1` for the two
+   temporaries each turn/aim block reuses. Declaring `Actor401000AimScratch* head;`
+   *and* `Actor401000AimScratch* s;` (the same value, `head - 1`) rather than one
+   pointer is what produced the target's `lw v0,0(a0); addiu v0,v0,-0x10; sw v0,0(a0)`
+   followed by `addu s2,v0,$zero` in the `jal` delay slot. As the entry on
+   `func_actor_401000_80138D08` says from the other direction: the twin's object
+   *is* the target's allocation, so its declarations are the cheapest oracle.
+
+2. **Use the *host* overlay's inline helpers, not the twin's.** The 401300 side
+   names them `Actor401300_ConfigPositionDelta` / `_NormalizeYaw` / `_RescaleYaw` /
+   `_OutOfRange` / `_MoveForward`; `src/actors/actor_401000/actor_401000.c` already
+   carries the 401000 copies of all five, and they expand to the same RTL. The one
+   place the two differ is the helper *boundary*, not the body: this target inlines
+   `OutOfRange` straight after the `s->angle < 0x200` test with a `&& work->field_C1B == 0`
+   short-circuit, where the 401300 twin stops at the range call.
+
+3. **Read `else if` constants off the target, not off the twin.** The tail here is
+   `work->flags_68.half & 1` (bit 0) where the 401300 twin tests `field_6C & 0x100`
+   and this overlay's own state-9 bodies test `0x100`. `andi 0x1` versus `andi 0x100`
+   is one instruction's worth of difference and the twin will not tell you which
+   one you have.
+
+Where the twin stops helping is where a helper got *inlined differently*: the
+target's inlined `Actor401000_OutOfRange` stores `blk->r` before `blk->dz` and
+issues both `*G_SCRATCH_HEAD` stores after the three `mult`s, where the helper's
+literal source order is dx, dz, r, square, store-head. That is the scheduler
+moving independent store/load pairs around a `static __inline__` body, not a
+different helper — do not go looking for a second `RangeScratch` function.
+
+Inputs: base_1.i SHA256
+`c36e59db28978b69ec4c25d6e238e8d04becd2217b0492a9d286c9d91f991a21`; target.o SHA256
+`111b1c26c5a674942f160ff8b4e6a7f5179872e9e6f68af80da7ec306c59633b`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

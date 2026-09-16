@@ -2029,7 +2029,136 @@ void func_actor_401000_8013B61C(Actor401000* arg0)
     Actor401000_ResetYaw(arg0->field_2C->field_8 + 10);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013C46C);
+/// State-2 aim body, the 401000 twin of `func_actor_401300_8013CBAC` and
+/// `Actor01900_Fn042BC`: on the live-actor flag it resets the effect node, forks
+/// the first clip and seeds the animation slots, then walks both obstacle tables
+/// and aims the actor at the player with `Gfx_RotMatrixY` / `Actor401000_RescaleYaw`.
+/// `field_6` and `field_8` then count up under the `func_actor_401000_80132824`
+/// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
+/// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
+/// 0x5B frames, while the settled arm draws a turn direction from `Gp_LcgState`
+/// and flips it every 0xF1 frames. The tail takes one forward step off the
+/// 0x12C probe, or re-arms the clip on the `flags_68` bit. `field_C1B` counts
+/// down once per entry.
+void func_actor_401000_8013C46C(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         facing;
+    Actor401000AimScratch* head;
+    Actor401000AimScratch* s;
+    s16                    yaw;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_898          = 1;
+        work->field_8A2          = 0x24;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_C24          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        Gp_ArmStateF0(1);
+        work->field_6 = 0;
+        work->field_8 = 0;
+        if (arg0->field_36 == 0x10) {
+            work->field_8D0.flags |= 0x4000;
+        }
+    }
+    work->field_6++;
+    work->field_8++;
+    head                                     = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                        = head - 1;
+    if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) != 1) {
+        if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_8F0, 0xC) != 1) {
+            func_actor_401000_80135704(arg0, (GpRec18*)work->field_8F0, 0xC);
+        }
+    }
+    Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_401000_80132EF0(arg0);
+    s->pad_8 = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                      ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+    Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    yaw             = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+    s->pad_A        = yaw;
+    s->pad_A        = Actor401000_NormalizeYaw(yaw);
+    coord           = arg0->field_2C->field_8;
+    s->angle        = Actor401000_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->field_8AE = s->angle;
+    if (func_actor_401000_80132824(arg0) != 1) {
+        work->field_6   = 0;
+        coord           = arg0->field_2C->field_8;
+        s->angle        = Actor401000_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = s->angle;
+        if (s->angle < 0x200) {
+            if (!Actor401000_OutOfRange(&s->delta, 0x44C) && work->field_C1B == 0) {
+                work->field_0 = 0xB;
+            }
+        }
+        if (work->field_8 >= 0x5B) {
+            work->field_0 = 0x1B;
+        }
+    } else {
+        work->field_8   = 0;
+        coord           = arg0->field_2C->field_8;
+        s->angle        = Actor401000_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = s->angle;
+        if (work->field_C08 == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                work->field_C08 = -1;
+            } else {
+                work->field_C08 = 1;
+            }
+        }
+        if (work->field_C08 == 1) {
+            s->angle += 0x300;
+        } else {
+            s->angle -= 0x300;
+        }
+        if (work->field_6 >= 0xF1) {
+            work->field_6   = 0;
+            work->field_C08 = -work->field_C08;
+        }
+    }
+    if (s->angle > 0x20) {
+        s->angle = 0x20;
+    }
+    if (s->angle < -0x20) {
+        s->angle = -0x20;
+    }
+    facing    = arg0->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->angle, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89E == 2) {
+        if (work->field_89A == 0) {
+            if ((s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, 0x16) != 0) {
+                Actor401000_MoveForward(arg0->field_2C->field_8, 0x16);
+            }
+        } else {
+            if ((s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, 5) != 0) {
+                Actor401000_MoveForward(arg0->field_2C->field_8, 5);
+            }
+        }
+    } else if (work->flags_68.half & 1) {
+        work->field_89E = 2;
+        work->field_898 = 1;
+    }
+    if (work->field_C1B != 0) {
+        work->field_C1B--;
+    }
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// State 9 clip-0xB body, the 401000 twin of `func_actor_401000_80138BB4` and
 /// `func_actor_401000_8013CEF0`: on the live-actor flag it resets the two

@@ -78,8 +78,11 @@ typedef struct Actor401000Work {
     /// One-shot latch `func_actor_401000_8013922C` raises once the actor's
     /// spawn sound has been queued; the same slot `Actor401300Work` keeps at
     /// +0x6.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[4];
+    /* 0x006 */ s16 field_6;
+    /// Frame counter `func_actor_401000_8013C46C` runs the 0x5B re-arm and the
+    /// 0xF1 turn flip off; the same slot `Actor401300Work` keeps at +0x8.
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[2];
     /// Spawn square and one step along the facing, both narrowed to 16 bits by
     /// `func_actor_401000_80133274`'s normalised heading.
     /* 0x00C */ Actor401000Waypoint field_C[2];
