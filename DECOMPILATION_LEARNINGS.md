@@ -9206,6 +9206,20 @@ identical, and the linked overlay's sha256 matched the reference. Read `regs`
 on a switch body as "operand field", not "allocated register", before reaching
 for a pin.
 
+The bootstrap's own fix for this - fold `jlabel` to a local label and reassemble
+`target.o` (see "Functions with jump tables still need a manual `target.o`") -
+misses the actors family, whose jump-table labels are spelled
+`.Lactor_107000_801351E8` rather than `.L<hex>`: the sed pattern there is
+`\.L[0-9A-F]*`, which matches nothing after the `.L`, so the artifact survives
+the bootstrap. `s/^  jlabel \(\.L\S*\)$/\1:/` is the general form.
+`func_actor_107000_80134F84` read 99.906% with `branch=3 regs=3` for exactly the
+six words described above - the three `j`s into the shared tail, which land in
+`regs`, and the three branches - and 100.000% with every penalty zero once the
+label was made local and `target.o` reassembled. Resolving each placeholder by
+hand (`0xFFFF` -> `0x75`, `0` -> `0x99`) reproduced the compiled word, so the
+body was byte-exact throughout; the overlay and `SLUS_010.42` checksums matched
+in the real build either way.
+
 ## A dispatch rooted at the *lowest* case value needs a fourth, empty case node
 
 Companion to "`slti high+1` between the equality tests means three case nodes,
@@ -111510,3 +111524,26 @@ if (hit->field_12 >= -0xC00) {
 
 Note the shared store block that makes m2c see a variable at all: it is `jump.c`'s cross-jump
 merging the two arms' identical `sw`, not one store the source wrote.
+
+## A value two switch arms pass as an argument must be one local, not an expression per arm
+
+**Symptom:** a `D_801153F4`-style dispatch whose two call arms each pass the
+same thing - `func_X(arg1, ((TmdObject*)arg1->extra), 1)` written at both call
+sites. Each arm then loads `$a1` from `0x2C(arg1)` and materializes `li $a2,1`
+of its own (`insert=4`, `branch=8` against the target), while the target sets
+both registers once in the prologue and each arm only moves `$a0`.
+
+**Cause:** cse is per extended basic block, so two arms of a jump-table switch
+have no shared copy of the load or the constant, and the allocator is free to
+rematerialize the constant in the delay slot. Declaring `TmdObject* obj` and
+`s32 one` before the dispatch and passing *them* makes a single global allocno
+whose live range spans the arms - and because the arms are the only uses,
+`local_alloc`'s argument preference gives them `$a1` and `$a2` and keeps the
+constant in one register for all four uses (`state = D_801153F4; ... if (state
+== one) ... func_X(arg1, obj, one);`).
+
+**Careful with the tail:** the same function's tail re-reads
+`((TmdObject*)arg1->extra)` three times after the helper calls, so `obj` must
+*not* be used there. That is what keeps it out of a callee-saved register or the
+stack: it dies at the arms' calls, so a caller-saved register suffices and the
+frame stays at the saved-register size.

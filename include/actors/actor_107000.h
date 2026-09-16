@@ -62,12 +62,15 @@ typedef struct Actor107000Work {
     /* 0x2DA */ byte    pad_2DA[0x90];
     /* 0x36A */ s16     field_36A; // reaction sub-state, cleared once applied
     /* 0x36C */ s16     field_36C; // cleared next to `field_36A`
-    /* 0x36E */ s16     field_36E; // cleared alongside `field_36A`
+    /* 0x36E */ u16     field_36E; // cleared alongside `field_36A`
     /* 0x370 */ s16     field_370; // animation id the work is playing
     /* 0x372 */ u16     field_372; // id the six helper slots last saw
     /* 0x374 */ u16     field_374; // frames spent on the current id
     /* 0x376 */ byte    pad_376[0xC];
     /* 0x382 */ s16     field_382; // reaction branch the hit handler selects
+    /* 0x384 */ byte    pad_384[0xC];
+    /* 0x390 */ u16     field_390; // frames until the next 0x60080 spawn
+    /* 0x392 */ u16     field_392; // spawns so far; the cue fires at 5
 } Actor107000Work;
 
 /// Free-running linear congruential state every overlay draws its random numbers
