@@ -38,6 +38,7 @@ s32  Actor04400_Fn08DBC(Task* arg0);
 void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
 
 extern TaskFuncTable4 Actor04400_D000B0;
+extern TaskFuncTable6 Actor04400_D00004;
 extern TaskFuncTable5 Actor04400_D001C4;
 extern TaskFuncTable7 Actor04400_D001D8;
 extern u32            Gp_LcgState;
@@ -673,7 +674,15 @@ s16 Actor04400_Fn06618(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06658);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn066DC);
+/// Dispatches this overlay's `Actor04400_D00004` dispatcher table by `Task::state`.
+/// The body is `func_actor_341700_8016852C`'s, byte for byte.
+void Actor04400_Fn066DC(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = Actor04400_D00004;
+    sp.funcs[arg0->state](arg0);
+}
 
 /// Runs the intro's two-state handler table on the work block's state index,
 /// the same shape as `Actor04400_Fn062D4`.
