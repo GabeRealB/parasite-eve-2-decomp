@@ -99492,3 +99492,28 @@ At 99.6% the only real difference was `srl` vs `sra` on `sound >>= 12` (the fix
 was `u32 sound`), and it was hidden because the ad-hoc
 `awk '{$1=""; print}'` over `*_object_dump_normalized.s` dropped the
 mnemonic along with the address. Diff whole lines, or strip only the offset.
+
+## A loop's early-exit stub lands after the nearest *outer* BARRIER - goto-wrap loops before it pull it backward (func_actor_403000_801377C8, 2026-09-16)
+
+A record scan `for (i...) { if (v == 0) break; if (hit) { found = 1; goto done; } } found = 0; done:`
+has its `found = 1; j done` stub moved out of the loop by `find_and_verify_loops`
+(`loop.c`): it searches **backward** from `done` for a BARRIER at the same loop
+depth, then forward. An angle wrap written as goto loops earlier in the function
+(`loop: if (a < -0x800) { a += 0x1000; goto loop; }`) leaves depth-0 barriers, so
+the stub lands right after the wrap (the matched sibling `func_actor_403000_801386E8`
+wants exactly that). When the target puts the stub far *after* the scan instead,
+no depth-0 barrier may precede `done`: write every earlier wrap as a real loop
+that does not get rotated - `for (;;) { if (a >= -0x800) goto wrapped; a += 0x1000; }`
+with `wrapped:` after the if/else. `while`/`break` forms are rotated by
+`expand_end_loop` and leave the if/else jump as a depth-0 barrier.
+
+## `lb x` then `sll/sra` of the same register: an `s16` local between the load and the reread (func_actor_403000_801377C8, 2026-09-16)
+
+Target: `lb $a0, 0(tbl)` ... `sll $v0,$a0,24; sra $v0,$v0,24` for `diff`, with
+`sb $a0, 0x24($s4)` scheduled into a later delay slot. `scratch->cell = Cell();
+diff = scratch->cell - other;` (s8 inline result), an `s32` or `s8` local, and
+`(scratch->cell = Cell()) - other` all let CSE use the already-extended SImode
+value, so the store and `subu` share `$v0` and the store is forced early. An
+`s16 cell = Cell(); scratch->cell = cell; diff = scratch->cell - other;` makes the
+CSE'd reread `sign_extend:SI (subreg:QI (reg:HI))`, which stays as sll/sra and
+leaves the stored value in its own register.

@@ -106,7 +106,7 @@ typedef struct Actor403000Work {
     /// Horizontal target the display object is eased toward while it sits
     /// below the player (`func_actor_403000_8013BDE0`).
     /* 0xF74 */ s16  field_F74;
-    /* 0xF76 */ byte pad_F76[0x2];
+    /* 0xF76 */ s16  field_F76;
     /* 0xF78 */ s16  field_F78;
     /* 0xF7A */ byte pad_F7A[0x2];
     /* 0xF7C */ s16  field_F7C;
@@ -114,7 +114,7 @@ typedef struct Actor403000Work {
     /* 0xF80 */ s16  field_F80;
     /* 0xF82 */ byte pad_F82[0x2];
     /* 0xF84 */ s16  field_F84;
-    /* 0xF86 */ byte pad_F86[0x2];
+    /* 0xF86 */ s16  field_F86;
     /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
     /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
     /* 0xF88 */ s16      field_F88;
@@ -275,6 +275,26 @@ typedef struct Actor403000ChaseScratch {
     /* 0x26 */ byte    pad_26[0x2];
 } Actor403000ChaseScratch;
 STATIC_ASSERT_SIZEOF(Actor403000ChaseScratch, 0x28);
+
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_801377C8`: `d`/`dist` the player's offset from the model
+/// and its length, `target` the camera target relative to the model,
+/// `playerYaw`/`aimYaw` the player's facing and the reversed heading to the
+/// camera target, `angle` the wrapped turn, `ret` the reply to message 0x3F9
+/// and `cell`/`playerCell` the waypoint-grid cells.
+typedef struct Actor403000GrabScratch {
+    /* 0x00 */ VECTOR  d;
+    /* 0x10 */ SVECTOR target;
+    /* 0x18 */ s32     dist;
+    /* 0x1C */ s16     playerYaw;
+    /* 0x1E */ s16     aimYaw;
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     ret;
+    /* 0x24 */ s8      cell;
+    /* 0x25 */ s8      playerCell;
+    /* 0x26 */ byte    pad_26[0x2];
+} Actor403000GrabScratch;
+STATIC_ASSERT_SIZEOF(Actor403000GrabScratch, 0x28);
 
 /// Payload of message 0x3E9 `func_actor_403000_801386E8` sends the player:
 /// the player's position and a heading of the model's facing minus 0x400.
