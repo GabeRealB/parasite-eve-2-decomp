@@ -2,6 +2,8 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/3688.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_4", func_dryfield_night_trailer_coach_801826EC);
@@ -18,7 +20,10 @@ void func_dryfield_night_trailer_coach_8018283C(void)
     Gp_StartCapSlot(9, 0, 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_4", func_dryfield_night_trailer_coach_80182864);
+void func_dryfield_night_trailer_coach_80182864(void)
+{
+    func_800D4D2C((GameFlag_GetNibble(0xE0) == 0) ? 0x20 : 0x21);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_4", func_dryfield_night_trailer_coach_80182898);
 
