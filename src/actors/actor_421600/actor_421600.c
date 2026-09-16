@@ -278,7 +278,74 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80134AD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801350BC);
+/// Picks one of twelve hit positions out of `D_actor_421600_801510B8` by
+/// damage magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the
+/// model part that entry names. Same body as the shared
+/// `Actor00100_Fn03340` / `func_actor_401300_80134BA4` pair, but it reads this
+/// overlay's own table, so it stays a per-overlay copy.
+void func_actor_421600_801350BC(Actor421600* arg0, s16 arg1, s32 arg2)
+{
+    SVECTOR*         sc;
+    s32              mag;
+    Actor421600Work* work;
+
+    sc   = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    mag  = (arg1 >= 0) ? arg1 : -arg1;
+    work = arg0->field_1C;
+    if (mag < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 3) {
+            case 0:
+                *sc = D_actor_421600_801510B8[0];
+                break;
+            case 1:
+                *sc = D_actor_421600_801510B8[1];
+                break;
+            case 2:
+                *sc = D_actor_421600_801510B8[2];
+                break;
+            case 3:
+                *sc = D_actor_421600_801510B8[3];
+                break;
+            default:
+                *sc = D_actor_421600_801510B8[4];
+                break;
+        }
+    } else if (mag >= 0x601) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 2) {
+            case 0:
+                *sc = D_actor_421600_801510B8[5];
+                break;
+            case 1:
+                *sc = D_actor_421600_801510B8[6];
+                break;
+            default:
+                *sc = D_actor_421600_801510B8[7];
+                break;
+        }
+    } else if (arg1 > 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_421600_801510B8[8];
+        } else {
+            *sc = D_actor_421600_801510B8[9];
+        }
+    } else {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_421600_801510B8[10];
+        } else {
+            *sc = D_actor_421600_801510B8[11];
+        }
+    }
+    work->field_890.field_0 = &arg0->field_2C->field_8[sc->pad];
+    work->field_890.field_4 = 0x100;
+    work->field_890.field_6 = 2;
+    work->field_898         = *sc;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->field_898, &work->field_890);
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801354D8);
 

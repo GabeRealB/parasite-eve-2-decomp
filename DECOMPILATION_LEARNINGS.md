@@ -107243,3 +107243,37 @@ Recognise it by the shape of the leftover: an otherwise exact match where
 exactly two callee-saved locals are exchanged and every use of both moves with
 them. The scratch address form is independent of this - see the
 `static __inline__` notes above for why the helper has to stay whole.
+
+## A switch arm the mask makes unreachable is still emitted, so write it
+
+`func_actor_421600_801350BC` dispatches on `switch ((s32)(Gp_LcgState >> 16) & 3)`
+and the target has five arms: cases 0..3 copy table entries 0..3 and the
+`default` copies entry 4. `andi 3` cannot yield anything but 0..3, so that arm
+is provably dead - and it is there all the same, because `expand_end_case`
+builds its decision tree from the *case labels* and emits a body for the
+default label whether or not any value reaches it. Write the `default:`.
+
+The second switch in the same function makes the mirror-image point. It is
+`& 2`, so its value is 0 or 2, and the target is:
+
+```
+    andi  $v1, $v0, 0x2
+    beqz  $v1, .case0          ; -> table[5]
+    addiu $v0, $zero, 0x1
+    beq   $v1, $v0, .case1     ; -> table[6]   (never true)
+    j     .default             ; -> table[7]
+```
+
+The dead `beq $v1, 1` fixes the case labels: the source is `case 0: case 1:
+default:`, not `case 0: case 2:`. Rewriting it as `case 0 / case 2` produces the
+same three bodies and the wrong comparison constant. Read the mask off the
+`andi` to know which arms exist, then read the comparison constants to know what
+the labels were called.
+
+Both fall out of copying a sibling: this function is byte-for-byte the same body
+as the matched `Actor00100_Fn03340` (`src/actors/lib/actor_400100_damage.c`) and
+`func_actor_401300_80134BA4`, which score 1.00 on shape, fields, calls and cflow
+in the duplicate index. Nothing had to be reasoned about - the arms, the
+unreachable ones included, transferred verbatim. When the index reports that
+four-way agreement, transcribe the sibling first and adapt only the overlay-local
+table symbol and the work-struct field names.

@@ -7,6 +7,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -100,7 +101,14 @@ typedef struct Actor421600Work {
     /* 0x840 */ u16  field_840;
     /* 0x842 */ byte pad_842[2];
     /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[0x5A];
+    /* 0x846 */ byte pad_846[0x4A];
+    /// Argument record `func_actor_421600_801350BC` fills for `func_800FDB18`:
+    /// the model part coordinate `sc->pad` names, scale 0x100 and count 2.
+    /// Same slot actor 00100 keeps at its own 0x890.
+    /* 0x890 */ GpEffArg field_890;
+    /// Hit position `func_actor_421600_801350BC` copies out of its scratch
+    /// vector and hands to `func_800FDB18` as the effect rotation.
+    /* 0x898 */ SVECTOR field_898;
     /// Cleared alongside `field_6` on the live-actor edge of the shrink tick
     /// `func_actor_421600_801366F4`, the same place actor 00100 clears its own
     /// 0x8DC byte.
@@ -245,6 +253,11 @@ typedef struct Actor421600 {
 /// keeps a plain-C copy -- `src/actors/actor_403000/actor_403000.c` for the
 /// other.
 extern SVECTOR D_actor_421600_80151158[];
+
+/// Hit-position table `func_actor_421600_801350BC` picks one of twelve entries
+/// from by damage magnitude: the same 8-byte `SVECTOR` records as the pose
+/// table above, at the 0x801510B8 end of the same trailing data run.
+extern SVECTOR D_actor_421600_801510B8[];
 
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
