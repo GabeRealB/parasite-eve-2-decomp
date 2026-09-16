@@ -87,6 +87,25 @@ typedef struct Actor100400TextQuadScratch {
 } Actor100400TextQuadScratch;
 STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
 
+/// 0x1C-byte scratch `Actor00400_Fn005DC` carves off `G_SCRATCH_HEAD` for the
+/// impact-spark billboard. `vec` is the coordinate's `workm.t[]` truncated to
+/// s16 and projected through `GsWSMATRIX` by a single `RTPS`: `flag` is that
+/// projection's `gte_stflg` (a negative value drops the quad), `otz` its
+/// `gte_stszotz` (incremented by one before it becomes both the radius divisor
+/// and the OT bucket) and `sx` / `sy` its `gte_stsxy`. `dx` / `dy` hold the
+/// current `(arg2 * 0x27 / otz) * rsin|rcos(angle) >> 12` half-extents; only
+/// their low halves are read back.
+typedef struct Actor100400SparkScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     dx;
+    /* 0x08 */ s32     dy;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} Actor100400SparkScratch;
+STATIC_ASSERT_SIZEOF(Actor100400SparkScratch, 0x1C);
+
 /// Projects the four `corner` vertices through the view matrix and queues one
 /// semi-transparent textured quad shaded grey `shade` (half intensity on red).
 void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade);

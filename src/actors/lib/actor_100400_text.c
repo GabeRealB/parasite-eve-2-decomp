@@ -14,6 +14,7 @@
 #include "psyq/inline_c.h"
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
@@ -206,7 +207,70 @@ void Actor00400_Fn001AC(GsCOORDINATE2* coord, u16 phase, u16 kind, u32 arg3)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn005DC);
+/// Links one frame of the rotating impact-spark billboard at `arg0`'s world
+/// position. The position is projected through `GsWSMATRIX` by a single `RTPS`
+/// and the quad is dropped when that sets a negative `gte_stflg`. `arg1` picks
+/// one of the six 0x27 x 0x27 texture frames along row 0x38 of tpage 0x2A,
+/// `arg2` sizes the quad and `arg3` spins it: the corners sit `arg2 * 0x27 /
+/// otz` from the projected centre along `arg3` and `arg3 + 0x400`, so the
+/// spark shrinks with depth.
+void Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
+{
+    void**                   scratch;
+    u8*                      head;
+    Actor100400SparkScratch* blk;
+    Actor100400SparkScratch* copy;
+    POLY_FT4*                prim;
+    s32                      ang;
+    u16                      frame;
+    s32                      u;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    blk         = (Actor100400SparkScratch*)(head - sizeof(Actor100400SparkScratch));
+    copy        = blk;
+    blk->vec.vx = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy = *(u16*)&arg0->workm.t[1];
+    blk->vec.vz = *(u16*)&arg0->workm.t[2];
+    *scratch    = blk;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((Actor100400SparkScratch*)(head - 0x1C))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((Actor100400SparkScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((Actor100400SparkScratch*)(head - 0x1C))->flag);
+    if (blk->flag >= 0) {
+        gte_stszotz(copy);
+        ((Actor100400SparkScratch*)(head - 0x1C))->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        prim->code  = 0x2F;
+        prim->tpage = 0x2A;
+        prim->clut  = 0x4293;
+        frame       = arg1 % 6;
+        u           = frame * 0x28;
+        setUV4(prim, u, 0x38, u + 0x27, 0x38, u, 0x5F, u + 0x27, 0x5F);
+        ang      = (s16)arg3;
+        blk->dx  = (((arg2 * 0x27) / ((Actor100400SparkScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((Actor100400SparkScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+        prim->x0 = *(u16*)&blk->sx + *(u16*)&blk->dx;
+        prim->x3 = *(u16*)&blk->sx - *(u16*)&blk->dx;
+        prim->y0 = *(u16*)&blk->sy - *(u16*)&blk->dy;
+        prim->y3 = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        ang      = ang + 0x400;
+        blk->dx  = (((arg2 * 0x27) / ((Actor100400SparkScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((Actor100400SparkScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+        prim->x1 = *(u16*)&blk->sx + *(u16*)&blk->dx;
+        prim->x2 = *(u16*)&blk->sx - *(u16*)&blk->dx;
+        prim->y1 = *(u16*)&blk->sy - *(u16*)&blk->dy;
+        prim->y2 = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        addPrim((u_long*)(((((u32)((Actor100400SparkScratch*)(head - 0x1C))->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + sizeof(Actor100400SparkScratch);
+}
 
 void Actor00400_Fn00A14(Actor100400* arg0)
 {
