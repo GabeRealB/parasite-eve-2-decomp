@@ -86617,3 +86617,36 @@ the exit test, dropping 100% to 75.1% (`insert=15 delete=7`).
 
 Inputs: `base.i` (98.344%), `base_1.i` (99.570%), `base_2.i` (100%). Compiler
 SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## Grep the rare callee when the similarity index finds nothing
+
+`Actor00400_Fn03318`'s brief reported "no similar matched bodies above 0.80",
+so `overlay_dup_index.py similar` handed over no template. But the m2c output
+named `RotTransPers4`, and `grep -rn RotTransPers4 src/` found six matched call
+sites - one of which, `ActorsShared80163354` in
+`src/actors/lib/actors_shared_80163354.c`, ends in exactly the same
+`POLY_FT4` tail: `setlen(poly, 9)`, `poly->code = 0x2E`, the four
+`*(s32*)&poly->xN = s->screenN` stores, the same `setUV4` constants, `tpage`
+`0x48`, `clut` `0x4283`, `setRGB0`, and
+
+```c
+addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC)
+               + (u32)Gpu_CurrentOt), poly);
+```
+
+Transcribing that tail, with a 0x1C scratch struct holding just
+`RotTransPers4`'s ten outputs, matched 100% on the first build.
+
+The index compares whole bodies, so it misses a function that shares only a
+*fragment* with an existing match - here a projection preamble and a primitive
+tail wrapped around different geometry. A `jal` to a library or engine routine
+that appears in single digits across the tree is a much sharper key than body
+similarity: the surrounding idiom is usually copied verbatim by the original
+programmers, including the constants. Do this before writing the first
+attempt, not after the first stalled score - the callee list is already in the
+brief.
+
+This also settles the argument types for free: the sibling's prototype gave
+`u8 shade` (the asm's `andi 0xFF` before `srl 1`, with the plain `sb` of the
+same value for green and blue), where the overlay header had declared the
+parameter `s32`.

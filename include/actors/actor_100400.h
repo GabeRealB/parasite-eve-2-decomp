@@ -48,7 +48,24 @@ typedef struct Actor100400QuadWork {
     /* 0x24 */ u8              intensity;
 } Actor100400QuadWork;
 
-void Actor00400_Fn03318(SVECTOR*, SVECTOR*, SVECTOR*, SVECTOR*, s32);
+/// 0x1C-byte scratch `Actor00400_Fn03318` carves off `G_SCRATCH_HEAD` to hold
+/// `RotTransPers4`'s outputs for the quad it projects: the four screen-space
+/// corners, the perspective term, the clip flags and the average depth used as
+/// the OT key.
+typedef struct Actor100400TextQuadScratch {
+    /* 0x00 */ s32 screen0;
+    /* 0x04 */ s32 screen1;
+    /* 0x08 */ s32 screen2;
+    /* 0x0C */ s32 screen3;
+    /* 0x10 */ s32 perspective;
+    /* 0x14 */ s32 flags;
+    /* 0x18 */ s32 depth;
+} Actor100400TextQuadScratch;
+STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
+
+/// Projects the four `corner` vertices through the view matrix and queues one
+/// semi-transparent textured quad shaded grey `shade` (half intensity on red).
+void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade);
 
 /// 8-byte waypoint record in the `Actor100400Work.field_608` array, walked
 /// until `field_6` is -1. `field_0` / `field_4` are the X and Z the actor

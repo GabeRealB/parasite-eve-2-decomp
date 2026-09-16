@@ -1,9 +1,14 @@
 #include "common.h"
 
 #include "actors/actor_100400.h"
+#include "main/display.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
+
+#include "gameplay/gameplay.h"
+#include "psyq/inline_c.h"
 
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
@@ -801,7 +806,35 @@ loop:
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03318);
+void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade)
+{
+    Actor100400TextQuadScratch* s;
+    POLY_FT4*                   poly;
+
+    s                 = (Actor100400TextQuadScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor100400TextQuadScratch));
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screen0, &s->screen1, &s->screen2, &s->screen3,
+                             &s->perspective, &s->flags);
+    if (s->flags >= 0) {
+        poly           = Gpu_PrimCursor;
+        Gpu_PrimCursor = (u8*)poly + 0x28;
+        setlen(poly, 9);
+        poly->code       = 0x2E;
+        *(s32*)&poly->x0 = s->screen0;
+        *(s32*)&poly->x1 = s->screen1;
+        *(s32*)&poly->x2 = s->screen2;
+        *(s32*)&poly->x3 = s->screen3;
+        setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+        poly->tpage = 0x48;
+        poly->clut  = 0x4283;
+        setRGB0(poly, shade >> 1, shade, shade);
+        addPrim((u32*)((((u32)(s->depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+    }
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor100400TextQuadScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03570);
 
