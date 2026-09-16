@@ -86691,3 +86691,61 @@ This also settles the argument types for free: the sibling's prototype gave
 `u8 shade` (the asm's `andi 0xFF` before `srl 1`, with the plain `sb` of the
 same value for green and blue), where the overlay header had declared the
 parameter `s32`.
+
+## A global's load and an argument's address both have to be *written* before the `if`
+
+`Actor00400_Fn01454` reads the actor's root coordinate, snapshots three
+translation components into the work block, then picks the nearer of
+`Gp_ActorSlots[0..1]`. Written the obvious way - stores first, `if
+(Gp_ActorSlots[0] != NULL)` after - the CFG, predicates and call sites all
+match (`blocks=9/9`, `predicates_match=True`) and the score stops at 90.6%
+with three stray load-delay `nop`s at the top and `regs=25`. Two separate
+block-boundary effects, neither of which the scheduler can fix:
+
+**A load of a global cannot be hoisted above a store through a pointer.**
+Retail's block 0 is
+
+```
+lw   $v0, 0x2C($a0)
+lw   $s0, 0x1C($a0)
+lw   $v1, 0x8($v0)
+lw   $a2, %lo(Gp_ActorSlots)($a1)   <- before the three sh
+lhu  $v0, 0x18($v1)
+```
+
+so the `lw` of `Gp_ActorSlots` fills the delay slots of the `lhu`/`sh` pairs
+that follow. `sched1` will not move it there on its own: 2.8.1's
+`memrefs_conflict_p` cannot disambiguate `MEM(symbol_ref)` from
+`MEM(plus(pseudo, 0x54C))` and conservatively reports a conflict, so the load
+is pinned below every `work->field_xxx = ...` store. Binding it to a local
+*before* the stores - `player = Gp_ActorSlots[0];` - is what puts it in range;
+that one change was 90.6% -> 97.4%.
+
+**`sched1` is a basic-block scheduler, so an insn retail emits before the
+branch was computed before the `if` in the source.** The remaining leftover was
+`addiu $a0, $v1, 0x50` (`&coord[1]`, the first argument of the call *inside*
+the `if`) sitting in block 0 between the last `lhu` and the `beqz`. No
+scheduling or allocation edit can produce that, because the insn is in the
+other block; the source has to compute the address unconditionally:
+
+```c
+player = Gp_ActorSlots[0];
+joint  = &coord[1];          /* dead when player == NULL, and still hoisted */
+work->field_54C = coord->coord.t[0];
+...
+if (player != NULL) {
+    ActorCoordToView(joint, &view);
+```
+
+GCC 2.8.1 has no sinking pass, so the speculative address just stays. This
+also freed `$a0` early, which cascaded through local-alloc: the second `mflo`
+temp moved from `$t2` back to `$a2` and the `lwl`/`lwr` block-copy scratch
+from `$a2`/`$a3` to `$a3`/`$t0`. 97.4% -> 100%. Read a register-only leftover
+as a symptom of the block contents, not as something to pin.
+
+Two smaller confirmations from the same function: assigning a `long` matrix
+translation to an `s16` field emits `lhu`, not `lw` + `sh` - `combine`'s
+`force_to_mode` narrows the load through the truncation - and `delta0 =
+delta1` on two `SVECTOR` locals is the `lwl`/`lwr`/`swl`/`swr` block move,
+because `SVECTOR` is 8 bytes at 2-byte alignment and `movstrsi` cannot assume
+more.
