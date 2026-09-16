@@ -7,6 +7,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -23,9 +24,156 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013285C);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_421600/actor_421600", D_actor_421600_80131E20);
+s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2)
+{
+    Actor421600Work* work;
+    GpEnemy*         enemy;
+    s32              angle;
+    s16              mode;
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132A00);
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+
+    if (arg2->field_0.word == 0x109) {
+        switch (arg2->field_2.word) {
+            case 1:
+                work->field_EAA = work->field_EA8;
+                break;
+            case 2:
+                if (work->field_0 == 0x26) {
+                    work->field_0 = 0x26;
+                }
+                break;
+            case 3:
+                if (work->field_0 == 1) {
+                    work->field_0 = 2;
+                }
+                break;
+        }
+        return 1;
+    }
+
+    work->field_E90.bytes[0] = arg2->field_0.bytes[0];
+    work->field_E90.bytes[1] = arg2->field_0.bytes[1];
+    work->field_E90.bytes[2] = arg2->field_2.bytes[0];
+
+    if (arg2->field_0.word != 0x1402) {
+        return 0;
+    }
+
+    switch (arg2->field_2.word) {
+        case 0:
+            enemy->field_40 = D_actor_421600_8013EF3C;
+            if ((enemy->field_8 >> 12) == 0) {
+                work->field_0 = 2;
+            }
+            return 1;
+
+        case 1:
+            mode            = enemy->field_8 >> 12;
+            enemy->field_40 = D_actor_421600_8013EF3C;
+            switch (mode) {
+                case 0:
+                    if (D_actor_421600_80151268 < 4) {
+                        goto negstate;
+                    }
+                    if (work->field_0 != 0) {
+                        goto tail;
+                    }
+                    arg0->field_2C->field_8->coord.t[0] = 0x1057;
+                    arg0->field_2C->field_8->coord.t[2] = -0x11A3;
+                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x400, 1);
+                    arg0->field_2C->field_8->flg = 0;
+                    Gp_UpdateCoord(arg0->field_2C->field_8);
+                    work->field_0 = 0x20;
+                    work->field_2 = -1;
+                    goto tail;
+                case 1:
+                    if (D_actor_421600_80151268 < 5) {
+                        goto negstate;
+                    }
+                    if (work->field_0 != 0) {
+                        goto tail;
+                    }
+                    arg0->field_2C->field_8->coord.t[0] = 0x1467;
+                    arg0->field_2C->field_8->coord.t[2] = 0x4B9;
+                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x7BC, 1);
+                    arg0->field_2C->field_8->flg = 0;
+                    Gp_UpdateCoord(arg0->field_2C->field_8);
+                    work->field_0 = 0x20;
+                    work->field_2 = -1;
+                    goto tail;
+            }
+            goto tail;
+        negstate:
+            work->field_0 = 0;
+            work->field_2 = -1;
+        tail:
+            Gp_SetLightMode(enemy, 0);
+            enemy->field_4C = 0;
+            enemy->field_40 = D_actor_421600_8013EF3C;
+            return 1;
+
+        case 2:
+            switch (enemy->field_8 >> 12) {
+                case 0:
+                    if (D_actor_421600_80151268 <= 0) {
+                        goto blockDE0;
+                    }
+                    arg0->field_2C->field_8->coord.t[0] = -0xD40;
+                    arg0->field_2C->field_8->coord.t[2] = 0x104F;
+                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x76C, 1);
+                    arg0->field_2C->field_8->flg = 0;
+                    Gp_UpdateCoord(arg0->field_2C->field_8);
+                    Gp_SetLightMode(enemy, 0);
+                    enemy->field_4C = 0;
+                    enemy->field_40 = D_actor_421600_8013EF3C;
+                    work->field_0   = 6;
+                    goto blockDE0;
+                case 1:
+                    if (D_actor_421600_80151268 < 2) {
+                        goto blockDE0;
+                    }
+                    arg0->field_2C->field_8->coord.t[0] = 0x138C;
+                    arg0->field_2C->field_8->coord.t[2] = 0x4B2;
+                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x7BC, 1);
+                    arg0->field_2C->field_8->flg = 0;
+                    Gp_UpdateCoord(arg0->field_2C->field_8);
+                    Gp_SetLightMode(enemy, 0);
+                    enemy->field_4C = 0;
+                    enemy->field_40 = D_actor_421600_8013EF3C;
+                    work->field_0   = 6;
+                    goto blockDE0;
+                default:
+                    goto blockDE0;
+            }
+        blockDE0:
+            if (D_actor_421600_80151268 == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, 0, 0);
+            }
+            return 1;
+
+        case 3:
+            if (work->field_E9C == 1) {
+                work->field_E9C = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 2, 0);
+            }
+            if (work->field_0 != 0x14 && work->field_0 != 0x11 && work->field_0 != 0x15 &&
+                work->field_0 != 0x16 && work->field_0 != 0 && work->field_0 != 8) {
+                work->field_0 = 5;
+                work->field_2 = -1;
+            }
+            return 1;
+
+        case 9:
+            work->field_0 = 0;
+            work->field_2 = -1;
+            return 1;
+
+        default:
+            return 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132EC0);
 

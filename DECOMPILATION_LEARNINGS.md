@@ -99,6 +99,79 @@ register (`$v0`) - exactly what the target does. Check `.lreg` for a
 `crosses N calls` on a pointer that is only used twice before swapping in the
 family's unit-scale helper; the sibling tail in `func_actor_401300_8013BB30`
 compiles from the unit-scale shape and has the target's allocation.
+## A shared tail reached by a *fall-through* merges through jump2's phase 1, not phase 2 - and where it stops is the whole story
+
+GCC 2.8.1 cross-jumps only in the last `jump_optimize` (`.jump2`, after reload,
+before `dbr_schedule`). For a simple jump it tries two pairings in order:
+`find_cross_jump (insn, JUMP_LABEL (insn), 1, ...)` - the insns *before its own
+target label* - and only if that yields nothing, other jumps to the same label
+(`minimum = 2`). Either way the walk goes backwards pairwise and **stops at the
+first insn that differs**, deleting stream 1 from that point to the jump and
+retargeting the jump with `get_label_before (newlpos)`.
+
+`func_actor_421600_80132A00` (304 insns) is three instances of the same shape and
+each one needed a different spelling:
+
+```
+case 1: two arms, each ending [sh v0,0(s0)][li v0,-1][sh v0,2(s0)][j SETMINUS]
+        target keeps BOTH full tails, and `sh v0,2(s0)` is shared with the
+        D-fail path as `.L80132CA0: sh zero,0(s0)` / `.L80132CA4: sh v0,2(s0)`
+case 2: two arms, each ending [lw v0,0x2C(s1)][li a1,ANGLE][lw a0,8(v0)]...
+        target keeps both stores and BOTH `li a1` sites
+case 3: `if ((a != c1) && (a != c2) && ...) { state write } return 1;`
+```
+
+What worked, in each case:
+
+* **case 1** - the arms must carry `work->field_2 = -1;` **inline** and `goto` the
+  *shared tail*, with the D-fail path's `work->field_0 = 0;` as its own
+  fall-into-the-tail block. Then each arm's jump targets the tail and phase 1
+  walks back from it against the code before the label: it matches
+  `[sh v0,2(s0)]` and `[li v0,-1]` and **stops on `[sh v0,0(s0)]` (arm) against
+  `[sh zero,0(s0)]` (D-fail)**, so the merge point lands above the store. The
+  shared label is then created *between* them - which is exactly why the target
+  shows a label in the middle of a block. Routing both arms through a shared
+  `setminus:` label instead (no inline store) makes phase 2 pair the two arms
+  and the merge eats the whole RotMatrixY/Gp_UpdateCoord tail: `delete=27` and
+  83%.
+* **case 2** - the same effect needs the whole tail (Gfx_RotMatrixY, flg,
+  Gp_UpdateCoord, Gp_SetLightMode, field_4C, field_40, the state write) written
+  **in each arm** with the angle as a literal. Sharing the tail and passing a
+  computed `angle` variable puts the walk's first difference 17 insns above the
+  jump instead of one, and the merge takes the two stores with it (`insert=4
+  delete=2`, 96.0%). With the literals inline the walk stops on `[li a1,-0x76C]`
+  vs `[li a1,0x7BC]` and each arm keeps its own.
+* **case 3** - the target's tests each jump to the *shared* `return 1` block, so
+  the source is the `!=`-chain (`beq a,c,L_out` per term, body in the
+  fall-through), not an `==`-chain with `return 1` inside the `if`. The `&&`
+  spelling was the difference between 97.758% and 100.000%, and it also fixed
+  which register holds the written constants (`$v0`, reused from the compare,
+  rather than `$v1`).
+
+Rule of thumb: **look at how far below the shared tail the first differing
+instruction sits in the target, and write the source that puts it there.** A
+merge that ate one store or one `jal` too many is one inline literal away from
+being right, and the fix is never a scheduling barrier.
+
+## `rodata_head` on the overlay that owns the leading jump table, and the `INCLUDE_RODATA` that must go with it
+
+`func_actor_421600_80132A00`'s switch is the first table in the leading rodata,
+so its jump table must start the `actor_421600` unit's `.rodata` - the table is
+at image offset 0x4, immediately after the overlay id word. Two things are
+needed, and the build does not tell you the second one:
+
+1. `rodata_head = "0x4"` in `configs/USA/overlays.toml`. Without it the header
+   word and the table share one subsegment starting at 0x0, the compiler's
+   `.align 3` pads the table to offset 8, and the overlay links 4 bytes long
+   with everything after it shifted - the checksum fails with nothing pointing
+   at rodata. Same failure `ld_bss_is_noload` gives, different cause.
+2. **Delete the unit's `INCLUDE_RODATA` line.** It was there to `.incbin` the
+   assembly table; once the function is C the compiler emits that whole block
+   itself, and its `.s` no longer exists - but its *path* is what the assembler
+   reports ("can't open asm/.../D_actor_421600_80131E20.s"), which reads like a
+   split problem rather than a stale include. Every table in the unit's rodata
+   had a matched body behind it, so after removing the line the image matched
+   byte for byte.
 
 ## `(X - 1) - Y` folds to `X - (Y + 1)`: write the folded spelling when the target subtracts from `X`
 

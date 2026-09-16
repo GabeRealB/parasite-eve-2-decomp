@@ -20,6 +20,22 @@ typedef union Actor421600IdWord {
 } Actor421600IdWord;
 STATIC_ASSERT_SIZEOF(Actor421600IdWord, 0x4);
 
+/// One halfword of an `Actor421600Msg`, which `func_actor_421600_80132A00`
+/// also reads as the raw byte triple it copies into `field_E90`.
+typedef union Actor421600MsgWord {
+    /* 0x00 */ u16 word;
+    /* 0x00 */ u8  bytes[2];
+} Actor421600MsgWord;
+
+/// Payload of the messages `func_actor_421600_80132A00` dispatches on:
+/// `field_0` is the opcode (0x109 drives the state machine, 0x1402 the state
+/// jumps) and `field_2` the sub-command. Same four bytes as `Actor00100Msg`.
+typedef struct Actor421600Msg {
+    /* 0x00 */ Actor421600MsgWord field_0;
+    /* 0x02 */ Actor421600MsgWord field_2;
+} Actor421600Msg;
+STATIC_ASSERT_SIZEOF(Actor421600Msg, 0x4);
+
 /// Per-actor state block for the `actor_421600` overlay's enemy.
 ///
 /// `func_actor_421600_80134AD4` allocates it with `Mem_Calloc(0xEB0, 0)` and
@@ -43,9 +59,12 @@ STATIC_ASSERT_SIZEOF(Actor421600IdWord, 0x4);
 /// offset); `func_actor_421600_8013E9D8` masks it to 24 bits and compares that
 /// with 0x11402 to pick the state it writes to `field_0`.
 typedef struct Actor421600Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[2];
-    /* 0x004 */ s16  field_4;
+    /* 0x000 */ s16 field_0;
+    /// Companion halfword the message handler `func_actor_421600_80132A00`
+    /// clears to -1 whenever it reseeds `field_0`; same pairing as actor 00100's
+    /// `field_0` / `field_2`.
+    /* 0x002 */ s16 field_2;
+    /* 0x004 */ s16 field_4;
     /// Frame counter `func_actor_421600_8013848C` bumps each tick and waits on
     /// to read 0xF; same slot actor 00100 keeps its own tick in.
     /* 0x006 */ u16 field_6;
@@ -122,7 +141,10 @@ typedef struct Actor421600Work {
     /* 0xE90 */ Actor421600IdWord field_E90;
     /* 0xE94 */ Task*             field_E94;
     /* 0xE98 */ Task*             field_E98;
-    /* 0xE9C */ byte              pad_E9C[2];
+    /// One-shot "already reported" latch `func_actor_421600_80132A00` clears
+    /// and dispatches 0x3F1 to slot 3 on, the same handshake actor 00100 keeps
+    /// at its own 0xE9C.
+    /* 0xE9C */ s16 field_E9C;
     /// Distance `func_actor_421600_8013848C` clamps to 0xFA0 after the gte
     /// rotation.
     /* 0xE9E */ s16  field_E9E;
@@ -131,7 +153,12 @@ typedef struct Actor421600Work {
     /// from, adding the low nibble of an `Gp_LcgState` draw while `field_4` is
     /// set.
     /* 0xEA4 */ u16  field_EA4;
-    /* 0xEA6 */ byte pad_EA6[0x6];
+    /* 0xEA6 */ byte pad_EA6[2];
+    /// Halfword pair `func_actor_421600_80132A00` forwards under the 0x109
+    /// message, the same one-step lag its sibling actor 00100 keeps at
+    /// 0xC24 / 0xC26.
+    /* 0xEA8 */ u16  field_EA8;
+    /* 0xEAA */ u16  field_EAA;
     /* 0xEAC */ s16  field_EAC;
     /* 0xEAE */ byte pad_EAE[2];
 } Actor421600Work;
@@ -273,5 +300,19 @@ extern s8 D_actor_421600_801511C0[16];
 
 void func_actor_421600_8013EAAC(Actor421600* arg0);
 void func_actor_421600_8013EB7C(Actor421600* arg0);
+
+/// Idle yaw `func_actor_421600_80132A00` stamps onto the enemy's `field_40`
+/// on every state message, the same slot actor 00100 keeps at 0x8013EF3C.
+extern u16 D_actor_421600_8013EF3C;
+
+/// Progress counter the same handler compares against 4 / 5 / 2 / 0 to pick
+/// the arena corner the actor is dropped into. Written by
+/// `func_actor_421600_80134AD4` at spawn.
+extern s16 D_actor_421600_80151268;
+
+/// State-machine message handler: 0x109 drives `field_0` directly, 0x1402
+/// teleports the actor to the corner its `field_8` mode and the progress
+/// counter select and reseeds the state.
+s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2);
 
 #endif
