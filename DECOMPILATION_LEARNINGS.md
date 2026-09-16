@@ -106274,6 +106274,21 @@ Check `find` first - 0.99 shape similarity is not equality, and a body with no
 copies should not be promoted to a shared lib unit just because a lookalike
 exists.
 
+**The best case is a diff with no instructions in it at all.**
+`func_actor_800100_80162264` (the same overlay, another flare drawer) is
+byte-identical to `func_m4a1_pyke_8011D548`: strip-and-diff leaves three
+differing lines, all of them `.L…` branch labels, 163 instructions each.
+`find` had said so already - `=` in that listing is byte equality, where `~` is
+the same body at a different link offset - so `=` against a `matched` sibling
+predicts a port that needs no code edits, only this overlay's names. Two things
+the port still owes beyond the body: the macro the sibling spells out and this
+overlay's header does not (`actor_800100.h` declared `gte_rtv0_real` for
+`func_actor_800100_801624F0` but not `gte_rtps_real`), and a scratch struct.
+Look for the second in the shared headers before adding a type - the sibling's
+private `M4a1PykeBeamScratch` is exactly the `GpEffFt4Scratch` of
+`include/gameplay/3FB8.h`, and a reused type name costs nothing, because the
+layout is what the compiler sees.
+
 ## The allocator counts source copies that cross-jump later erases
 
 `func_actor_800100_80166190` sat at 99.80% with `branch = insert = delete = 0`,

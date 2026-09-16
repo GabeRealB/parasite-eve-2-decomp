@@ -129,7 +129,82 @@ void func_actor_800100_80161F20(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80162264);
+/// Links one frame of the flare's animated sprite at the world point `pos`.
+/// The point is projected through `GsWSMATRIX` by a single `RTPS` and the quad
+/// is dropped when that sets a negative `gte_stflg`. `frame % 6` picks one of
+/// the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x430D) and
+/// `brightness` sizes it: the corners sit `brightness * 31 / otz` from the
+/// projected centre, so the sprite shrinks with distance. Same 0x18-byte
+/// `GpEffFt4Scratch` block and axis-aligned quad as the gameplay sprite
+/// drawers.
+void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
+{
+    void**           scratch;
+    u8*              head;
+    GpEffFt4Scratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s16              x;
+    s16              y;
+    u16              uv;
+    s32              u0;
+    s32              u1;
+    u16              vz;
+
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
+    block                                     = (GpEffFt4Scratch*)(head - 0x18);
+    block->vec.vy                             = *(u16*)&pos->vy;
+    vz                                        = *(u16*)&pos->vz;
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vec                                       = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x29;
+        prim->clut  = 0x430D;
+        prim->v0    = 0x98;
+        prim->v1    = 0x98;
+        prim->v2    = 0xB7;
+        prim->v3    = 0xB7;
+        uv          = frame % 6;
+        u0          = uv << 5;
+        u1          = u0 + 0x1F;
+        prim->u0    = u0;
+        prim->u1    = u1;
+        prim->u2    = u0;
+        prim->u3    = u1;
+        block->size = ((u16)brightness * 31) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        prim->x2    = x;
+        prim->x0    = x;
+        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        prim->x3    = x;
+        prim->x1    = x;
+        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        prim->y1    = y;
+        prim->y0    = y;
+        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        prim->y3    = y;
+        prim->y2    = y;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x18;
+}
 
 /// Projectile task of the actor: while the state block says a fade-out is not
 /// running it winds `work->field_22` (the animation frame, halved for the

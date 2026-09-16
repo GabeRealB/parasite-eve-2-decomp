@@ -10,6 +10,10 @@
 /// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
+/// `gte_rtps` as the retail build emits it: the full `rtps` word, where the
+/// `inline_c.h` macro of that name assembles to `0x7F`.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
 /// 0x38 block `func_actor_800100_801624F0` allocates with `Mem_Calloc` when
 /// its task enters state 0 and stores at `Task::idMap`: the launched
 /// projectile's object plus its one-entry collision table, whose `field_0` is
