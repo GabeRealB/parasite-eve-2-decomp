@@ -106807,3 +106807,49 @@ Inputs: `base_4.i` (100%) SHA256
 target SHA256 `82d491cedf84dbff512d484e92525a77f3b868e46b98b4ad141541ed85e2ab31`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_8013947C-vacuum`.
+
+## One variable assigned twice is one pseudo and one live range; two variables let the pre-call half take a caller-saved home (func_actor_421600_8013903C, 2026-09-16)
+
+`func_actor_421600_8013903C` reads the same `GsCOORDINATE2*` twenty instructions
+apart: three times to build an XZ offset, then once more after two `ratan2`
+calls for the facing it subtracts that offset's yaw from. The pointer sits in
+`$a1` for the first three reads and is re-loaded into `$s0` for the last, so the
+whole function needs five callee-saved registers and a `0x28` frame:
+
+```
+lw    a1,8(v0)        ; coord, reads 1-3 (no call between them)
+...
+lw    v0,0x2c(s2)     ; re-load arg0->field_2C
+lw    s0,8(v0)        ; coord again, live across both ratan2 calls
+```
+
+Written as one local, every reachable arrangement kept the whole range in
+`$s0` and pushed `head`/`ctx` down a register (`sw s5` and a `0x30` frame,
+95.833%). The reason is not CSE: GCC 2.8.1 gives a variable *one* pseudo, and
+`cse` re-loads it after the intervening stores but still writes that same
+pseudo, so `.lreg` shows two `(set (reg/v:SI 86) (mem ...))` and
+`REG_N_CALLS_CROSSED` covers both. `find_free_reg` (local-alloc.c) then refuses
+every call-clobbered register for the whole range, no matter that the first
+three reads sit entirely before a call.
+
+`coord2 = arg0->field_2C->field_8;` on the line before the `angle` expression
+splits it: the first local dies before the first `ratan2` and takes `$a1`, the
+second crosses it and takes `$s0`. Score 95.833% -> 100%, frame back to `0x28`
+and one fewer `sw`/`lw` pair.
+
+Same lever, opposite direction from "A block-local pointer can tie a load to
+its own base register": that entry splits a reused local so a different
+instruction can take the register, this one splits it to keep
+`qty_n_calls_crossed` at zero for the half that never crosses a call. Read
+`.lreg` for the signature - one pseudo with several sets, its
+`n_calls_crossed` the union of all the ranges the target keeps apart.
+
+Do not chase this with CSE-defeating casts - a pointer cast changes no RTL.
+Two source variables is the whole change.
+
+Inputs: `base_9.i` (97.688%) SHA256
+`9205478a048bb7af497e32b9c20ac7af0e49045e1522153e67257bf93a8245dc`; `base_11.i`
+(100%) SHA256 `82fd840ea6ba4827a54e6d45fd8499d012aabdb18a8214c06ab249b233e7a451`;
+target.o SHA256 `a128ed2a884bc9f92cd16c667e8c9e61eec2102e07b5b2902cca6c9ab9aa721d`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_421600_8013903C-vacuum`.

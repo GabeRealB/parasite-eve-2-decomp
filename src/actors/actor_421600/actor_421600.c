@@ -10,6 +10,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/wipsys.h"
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -234,7 +235,89 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80138D24);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013903C);
+/// Re-arms the model the way `func_actor_421600_8013848C` does -- buffers
+/// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
+/// then walks the 0xB8C `GpRec18` table through `func_actor_421600_8013285C`.
+/// Takes two `SVECTOR`s off `G_SCRATCH_HEAD` and fills the XZ offset of the
+/// model coordinate from `Wip_SysConfig.field_4` (the camera target matrix),
+/// forms the yaw difference against the model's own facing (row 2 of its
+/// matrix), wraps it into `[-0x800, 0x800]` into `field_840` and re-aims the
+/// coordinate with `Gfx_RotMatrixY`. Ends by writing the view index into
+/// `field_0` on the two view transitions.
+///
+/// The coordinate is read twice into two locals: `coord` only feeds the offset
+/// and dies before the first `ratan2`, while `coord2` is live across it, so GCC
+/// 2.8.1 keeps them in a caller-saved and a callee-saved register respectively.
+/// One local assigned twice is one pseudo with one live range and costs a sixth
+/// saved register.
+void func_actor_421600_8013903C(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    TmdObject*       obj;
+    SVECTOR*         head;
+    SVECTOR*         vec;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coord2;
+    s16              angle;
+    s32              view;
+
+    head                        = *(SVECTOR**)G_SCRATCH_HEAD;
+    *(SVECTOR**)G_SCRATCH_HEAD -= 2;
+    vec                         = head - 2;
+    work                        = arg0->field_1C;
+    ctx                         = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj               = arg0->field_2C;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.field_1C = 0x19C;
+        work->field_828          = 1;
+        work->field_832          = 0x10;
+        work->field_82A          = 0;
+        work->field_82E          = 2;
+        work->field_83E          = 0;
+        work->field_B6C.flags   |= 0x4000;
+        func_actor_421600_80134604(arg0);
+        work->field_6 = 0;
+    }
+    func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_B8C, 0xC);
+    arg0->field_2C->field_8->flg = 0;
+    coord                        = arg0->field_2C->field_8;
+    head[-2].vx                  = (u16)Wip_SysConfig.field_4->t[0] - (u16)coord->coord.t[0];
+    vec->vy                      = (u16)Wip_SysConfig.field_4->t[1] - (u16)coord->coord.t[1];
+    vec->vz                      = (u16)Wip_SysConfig.field_4->t[2] - (u16)coord->coord.t[2];
+    coord2                       = arg0->field_2C->field_8;
+    angle                        = ratan2(head[-2].vx, vec->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    work->field_840 = angle;
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, (s16)ratan2(vec->vx, vec->vz), 1);
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_421600_80134604(arg0);
+    if (((u16)ctx->field_8 >> 0xC) == 0) {
+        view = Gp_GetViewIndex() & 0xFF;
+        if (view == 3) {
+            work->field_0 = view;
+        }
+    }
+    if ((((u16)ctx->field_8 >> 0xC) == 1) && ((Gp_GetViewIndex() & 0xFF) == 8)) {
+        work->field_0 = 3;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 2;
+}
 
 /// Re-arms the model buffers and the 0x828 motion block the way
 /// `func_actor_421600_8013848C` does, with clip 0x10 and pose 7, then walks the
