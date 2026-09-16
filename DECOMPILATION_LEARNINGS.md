@@ -98874,3 +98874,69 @@ Inputs: `base.i` (m2c inverted form, 64.05%)
 `31030b4a04a1cee6acfefaabe80efdc5d77e5453a61d9db5baec335c89c64ff8`,
 `base_1.i` (`if (a || b) cond = 1; else cond = 0;`, 100.000%)
 `d1c78279de10ddb062f4cd493def62166e23e9b01beed3af61a3c2770248d581`.
+
+## `find`'s `same body` misses a byte-identical twin whose labels are not `.L`-named (Actor04400_Fn03B34, 2026-09-16)
+
+`Actor04400_Fn03B34` is byte-for-byte the promoted shared body
+`ActorsShared80166c68` (`src/actors/lib/actors_shared_80166c68.c`, the
+`actor_341700` / `actor_342400` pair). Copying that source and retyping its work
+block (`ActorsShared80168d3cWork*` -> `Actor104400Work*`) scored 100.000% on the
+first build with every penalty zero, against a 33% m2c baseline - two builds,
+no search. Its own TU held the closer pointer: the matched sibling
+`Actor04400_Fn03E20` is the same body with the `Actor04400_Fn06328` guard, the
+frame window 0x17, and scale -0x1E, so the brief's `1.00 shape / 1.00 fields /
+1.00 calls / 1.00 cflow` star was real.
+
+The `find` output was the ambiguous one the two entries above also describe:
+
+```
+Actor04400_Fn03B34  (91 instructions, USA/actors/lib)
+  same body: 1 copies   identical bytes: 2
+```
+
+Those entries resolve an excess `identical bytes:` as the shared body itself,
+which `overlay_dup_index.py` excludes from the carrier class by design. **That is
+not what happened here.** The extra carrier was missed by *hashing*, not by
+classification, and the reason is the label naming:
+
+| | branch label |
+|---|---|
+| `actor_104400_text_tail` | `Actor04400_L03C24` |
+| `actors_shared_80166c68` | `.Lactor_342400_80166D58` |
+
+`LABELDEF` and `BRANCH` both require a leading `.L`, so in the first copy neither
+regex matches: the label definition keeps the unit's own name in the canonical
+text and every branch keeps spelling it out. In the second copy both match, so
+the definition normalises and the branches become `.L0` / `.L1` / `.L2`.
+Replaying the tool's own canonicalisation over the two `.s` files gives 94 lines
+each with **every instruction line identical**; the 7 differing lines are exactly
+the three label definitions and the four branches naming them. Two copies of one
+body, one text-class key between them.
+
+So `identical bytes:` exceeding the printed count does not by itself say *which*
+kind of hidden carrier is there. Read the two `.s` files' label lines: if one
+copy's labels lack the `.L` prefix, the twin is real and the body is worth
+copying, retyped. (`overlay_dup_index.py find`'s own footer does print the `raw`
+count it found the twin with - `identical bytes:` is `len(cl_raw[...])`, not a
+restatement of the printed list.)
+
+Promotion is still a no-op, for a third reason: `actor_104400`'s whole `.text` is
+already four shared spans, so `find` files this function under `USA/actors/lib`
+and `promote` takes its `promoted` branch - it prints `already shared as
+Actor04400_Fn03B34, but no file in src/actors/lib defines it` and aborts.
+`Actor04400_Fn03B34` sits at 0x3B34, 0x148 into `actor_104400_text_tail`
+(0x39EC..0x8E14), so carving it out for `actors_shared_80166c68` would split that
+unit in the middle and renumber the tail - for both of its carriers, since the
+span is shared. Landing it in the host unit, as here, leaves the family with two
+shared units carrying one body, which is the pre-existing state and not
+something this match introduces.
+
+Inputs: `base.c` SHA256
+`c3d1eb19de90ba2fa7d2335d2d3a7ceebcf130109500ff65ac50f3dba453fb01` (m2c,
+33%), `base_1.c` SHA256
+`5637558bc601fca4179145da67be46f18987412594c7f24c4bdef9bc944619e6` (100.000%,
+all penalties zero); preprocessed input `base_1.i`
+`ecc0948e8c0dfd1d8706306fb21ff8b6289b562170fb44f88d7d694f8ee161f1`;
+target SHA256 `8a54159a19269822a47a7e97727326d5139de6e971a48d90f00239f58ed40c04`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn03B34-vacuum`.
