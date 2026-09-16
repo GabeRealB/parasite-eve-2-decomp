@@ -107890,3 +107890,58 @@ re-reads the component off the stack (98.534%).
 
 Scratch `nonmatchings/func_actor_403200_8013F700-vacuum` (best `base_11.c`),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## The long-lived clone owns the uses: move a store ahead of a per-case copy to flip two allocnos' registers (func_actor_403200_80138468, 2026-09-16)
+
+Symptom: 99.2%, `regs=29`, and the whole difference is two callee-saved
+registers swapped — `task` in `$s1` and its work-block pointer in `$s2` where the
+ROM has the reverse. Nothing else in 184 instructions differs, so the lever is
+`global_alloc`'s allocno order:
+
+    pri = floor_log2 (n_refs) * n_refs / live_length      (global.c allocno_compare)
+
+highest priority first, each allocno taking the lowest-numbered free register of
+its class. The `.greg` dump prints the allocnos in exactly that order
+(`;; 14 regs to allocate: 97 116 … 87 88 85 82 80 86 83 84`), and the two
+candidates read straight off `.lreg`:
+
+    Register 80 used 18 times across 236 insns    /* task:  4*18/236 = 3051 */
+    Register 83 used  7 times across  76 insns    /* work:  2* 7/76  = 1842 */
+
+so `task` is allocated first and takes `$s1`. The ROM's numbers must therefore
+be the other way round, and the `.greg`-visible difference is one reference:
+`work` needs 8 (`3*8/76 = 3158 > 3051`) — which the object confirms, because the
+ROM's case-2 `field_7F3` store goes through `work`'s register while the other
+three cases go through the per-case copy's.
+
+That asymmetry is cse's per-quantity canonical register: `canon_reg` rewrites
+every use to `qty_first_reg[qty]`, and `make_regs_eqv` hands that title to the
+clone whose `REGNO_LAST_UID` is largest (the "lives longer" rule), so one value's
+uses can be spread over two registers inside one function. The store keeps
+`work` only if it is emitted *before* the case's copy creates the rival clone.
+Two constraints make that reproducible:
+
+1. The copy must be a plain register copy (`escorts = (Actor403200Work*)work;`),
+   not a re-read of `task->idMap`. With the load, the store between them
+   (`sb $zero, 0x7F3(work)`) kills cse's memory equivalence, the copy comes back
+   as a real load, and the extra reference lands on `task` instead — 98.1% with
+   `insert=delete=1` and the pair still unswapped.
+2. The copy must still exist for the loop, since the loop body reads the clone
+   (`addu $v0, $a2, $v0`), not the long-lived register.
+
+With `work` at 8 references the pair swaps exactly as the ROM has it: 99.891%,
+`regs=4`. The remaining two instructions were a reorg choice: the case-3
+dispatch's delay slot is filled with the *first* instruction of the target block,
+and `rank_for_schedule` breaks priority ties by `INSN_LUID`, i.e. emission order,
+so the case-3 `for` init had to be written above the `escorts` copy
+(`i = 0; … for (; i < 7; i++)`) rather than in the `for` head. 100.000%.
+
+Reusable shape: when the only leftover is a two-register permutation, read
+`used N times across M insns` for both candidates, compute the two priorities,
+and work out which side has to move by how many references; then look for the
+ROM instruction that shows the two clones' uses going to the *other* register.
+`learn.py "register allocation"` #26 is the same lever applied through a live
+range instead of a reference count.
+
+Scratch `nonmatchings/func_actor_403200_80138468-vacuum` (best `base_6.c`),
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

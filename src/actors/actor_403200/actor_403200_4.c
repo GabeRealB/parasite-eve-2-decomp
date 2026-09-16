@@ -147,7 +147,87 @@ void func_actor_403200_80138284(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138468);
+/// The escort-group reset the enemy runs whenever its state changes: it turns
+/// the host model's flag word around and pushes it onto all seven escorts'
+/// models, differing in what the word becomes and whether the model buffers are
+/// (re)allocated first. `work->field_7F3` is cleared on every path, and the two
+/// that end with the work block's state index reset are the ones that set the
+/// word to 0x80.
+///
+/// Same body as `func_actor_444000_8013A958` without that sibling's
+/// `TmdObject::field_18` buffer tests, so every escort is re-allocated
+/// unconditionally.
+s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
+{
+    Actor403200Work* work;
+    Actor403200Work* buffers;
+    Actor403200Work* escorts;
+    Actor403200Work* rebuilt;
+    s16              i;
+    s16              j;
+
+    work = (Actor403200Work*)task->idMap;
+    switch (arg2) {
+        case 0:
+            buffers = (Actor403200Work*)task->idMap;
+            Tmd_AllocBuffers((TmdObject*)task->extra);
+            for (j = 0; j < 7; j++) {
+                if (buffers->field_ECC[j] != NULL) {
+                    Tmd_AllocBuffers((TmdObject*)buffers->field_ECC[j]->task->extra);
+                }
+            }
+            escorts                            = (Actor403200Work*)task->idMap;
+            escorts->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0x80;
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            work->field_0 = 0;
+            break;
+        case 1:
+            escorts                            = (Actor403200Work*)task->idMap;
+            escorts->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0;
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            rebuilt = (Actor403200Work*)task->idMap;
+            Tmd_AllocBuffers((TmdObject*)task->extra);
+            for (j = 0; j < 7; j++) {
+                if (rebuilt->field_ECC[j] != NULL) {
+                    Tmd_AllocBuffers((TmdObject*)rebuilt->field_ECC[j]->task->extra);
+                }
+            }
+            break;
+        case 2:
+            work->field_7F3                    = 0;
+            escorts                            = (Actor403200Work*)work;
+            ((TmdObject*)task->extra)->field_C = 0x80;
+            for (i = 0; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            work->field_0 = 0;
+            break;
+        case 3:
+            i                                  = 0;
+            escorts                            = (Actor403200Work*)task->idMap;
+            escorts->field_7F3                 = 0;
+            ((TmdObject*)task->extra)->field_C = 0x80;
+            for (; i < 7; i++) {
+                if (escorts->field_ECC[i] != NULL) {
+                    ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)task->extra)->field_C;
+                }
+            }
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80138748);
 
