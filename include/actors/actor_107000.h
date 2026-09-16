@@ -49,10 +49,12 @@ typedef struct Actor107000Work {
     /* 0x2BA */ s16     field_2BA; // id the three helper slots last saw
     /* 0x2BC */ u16     field_2BC; // frames spent on the current id
     /* 0x2BE */ s16     field_2BE; // cleared next to the pair above
-    /* 0x2C0 */ byte    pad_2C0[0xA];
+    /* 0x2C0 */ byte    pad_2C0[0x8];
+    /* 0x2C8 */ s16     field_2C8; // reaction stage the per-frame handler switches on
     /* 0x2CA */ s16     field_2CA; // angle the transform is scaled by
     /* 0x2CC */ s16     field_2CC; // countdown seeded by the damage branch
-    /* 0x2CE */ byte    pad_2CE[4];
+    /* 0x2CE */ byte    pad_2CE[2];
+    /* 0x2D0 */ u16     field_2D0; // frames until the next sound cue; re-rolled from `Gp_LcgState`
     /* 0x2D2 */ s16     field_2D2; // non-zero: the rebind is suppressed
     /* 0x2D4 */ u16     field_2D4; // frames the reaction has run; the death branch fires at 5
     /* 0x2D6 */ s16     field_2D6; // selects the sound event's high half

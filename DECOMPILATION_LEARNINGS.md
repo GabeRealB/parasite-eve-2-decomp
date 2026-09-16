@@ -111357,3 +111357,48 @@ The first variable must stay live past the `asm` (here a later store through it,
 same register and the move becomes a no-op. Access through the *copy* renders as `base+disp` for
 offset 0 and through the copy's register for the shifted ones - the sibling's `sw $v1,-0x88($s1)` next
 to `sw $zero,4($s4)` is the same split.
+
+## m2c reconstructs the LCG draw's `% 100` as a signed division; `mult` + `sra`/`subu` is the tell (func_actor_107000_80132674, 2026-09-16)
+
+The shared `Gp_LcgState` draw has one spelled-out form in matched bodies across this family:
+
+```c
+    rng         = Gp_LcgState * 5 + 0x71357911;   /* keep the new state in a local; */
+    Gp_LcgState = rng;                            /* the store uses it, not a reread  */
+    work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
+```
+
+m2c renders the same target block from the other direction, as a *signed* division of a signed
+intermediate: `(temp >> 0x10) - ((temp3 / 6553600) * 0x64)`. Compiled, that is `mult a0,a2` with an
+`sra $v0,$v0,0x1f` / `subu` correction pair around it - 8 `insert` + 8 `delete` of noise the target
+does not have. The target's shape is `multu a0,a2` on the `>> 16` value, `mfhi`, `srl $v1,$a3,5`,
+then the `100*` chain (`sll/addu/sll/addu/sll` = `v1*100`) subtracted off `a0`.
+
+**Fix:** type the draw `u32` and write the modulo, never the quotient. One edit took this function
+from 81.8% to 92.6%; the rest of that jump came from narrowing the sound call's pan and depth
+arguments to `(s8)` the way the matched sibling `func_actor_107000_80132D8C` does. A `mult`/`multu`
+mismatch on a magic-multiplier chain is the sign of an intermediate that m2c left signed.
+
+## In the prologue, independent loads keep source order and a dependent load sinks past them (func_actor_107000_80132674, 2026-09-16)
+
+The entry block read five values into callee-saved locals and the target's order was
+
+```
+lw  v0,0x2c(s4)    # arg0->extra
+lw  s1,0x1c(s4)    # arg0->idMap
+lw  s2,0x20(s4)    # arg0->spawnArg2
+lh  s0,0x2c8(s1)   # work->field_2C8
+lw  s3,8(v0)       # extra->field_8
+```
+
+Spelling the statements `work = arg0->idMap; enemy = arg0->spawnArg2; mode = work->field_2C8;
+coord = ((TmdObject*)arg0->extra)->field_8;` emitted `idMap, spawnArg2, extra, mode, field_8` - the
+three *independent* loads in source order, and the pointer-chasing one last, even though the
+`extra` statement was written third. `sched1` hoists an independent load above the dependent `lh`
+that precedes it and sinks the dependent load to the end of the block.
+
+Moving the whole `coord = ((TmdObject*)arg0->extra)->field_8;` statement to the top of the function
+gave the target order exactly (99.74% -> 100%), because only the *base* load moves with the
+statement: `extra` then reads first and its `field_8` load still lands last. So when a prologue's
+load order is wrong, the lever is where each defining statement sits, and a two-load compound
+statement placed first behaves like its first load placed first.
