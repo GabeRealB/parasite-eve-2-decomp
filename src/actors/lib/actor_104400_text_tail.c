@@ -784,7 +784,41 @@ void Actor04400_Fn07984(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07A38);
+/// Same body as `Actor04400_Fn07B4C` up to the two animation requests it
+/// writes: this one asks for animation 0xB at speed 8 when the value overlapped
+/// onto `field_44F` is 1, and animation 0x11 otherwise. Plays the same
+/// encounter sound at the enemy's pan and depth and counts the sub-state up.
+void Actor04400_Fn07A38(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* work3;
+    s32              soundId;
+    s32              pan;
+    u8               kind;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    kind            = Actor04400_D10814[work->field_418 - 1];
+    work->field_44F = kind;
+    if (kind == 1) {
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xB;
+        work2->field_414 = 1;
+        SndEvt_EnqueueType7(0x402C0002, 1);
+    } else {
+        work3            = (Actor104400Work*)arg0->idMap;
+        work3->field_426 = 8;
+        work3->field_41C = 0x10;
+        work3->field_418 = 0x11;
+        work3->field_414 = 1;
+    }
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0003;
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    work->field_422 = (u16)(work->field_422 + 1);
+}
 
 /// Applies the animation `field_418` asks for: overlaps the values at
 /// `Actor04400_D10814[field_418 - 1]` onto `field_44F`, then requests either
