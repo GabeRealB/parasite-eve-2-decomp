@@ -330,7 +330,52 @@ void func_mine_cavern_80183A68(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80183AD4);
+/// Third state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
+/// dispatches it). It republishes the model's world position through
+/// `func_800D7A9C`, then settles the work block's own coordinate: when the
+/// `GameFlag_GetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
+/// coordinate is reset to an identity rotation parked at (0, -0x320, 0) under
+/// the model's own coordinate, `field_148` ticks, and the model's `field_C` is
+/// cleared; otherwise the model is flagged hidden with `field_C = 0x80`.
+///
+/// `ang` is declared and never read - the original build's frame reserved 8
+/// bytes for it ahead of nothing, so dropping it shrinks the frame from 0x38 to
+/// 0x30 and moves every spill.
+void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
+{
+    MineCavernWork* work;
+    MATRIX*         m;
+    VECTOR          vec;
+    SVECTOR         ang;
+
+    work = (MineCavernWork*)task->idMap;
+
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+    vec.vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
+    vec.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    vec.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    func_800D7A9C(task->extra, &vec, 0, 3);
+
+    if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1) & 1)) {
+        ((TmdObject*)task->extra)->field_C = 0x80;
+    } else {
+        m                         = &work->coord.coord;
+        *(s32*)&work->coord.coord = 0x1000;
+        *(s32*)&m->m[0][2]        = 0;
+        *(s32*)&m->m[1][1]        = 0x1000;
+        *(s32*)&m->m[2][0]        = 0;
+        m->m[2][2]                = 0x1000;
+        work->coord.sub           = ((TmdObject*)task->extra)->field_8;
+        work->coord.coord.t[2]    = 0;
+        work->coord.coord.t[0]    = 0;
+        work->coord.coord.t[1]    = -0x320;
+        work->coord.flg           = 0;
+        Gp_UpdateCoord(&work->coord);
+        work->field_148++;
+        ((TmdObject*)task->extra)->field_C = 0;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", RoomsShared80183c10Table);
 
