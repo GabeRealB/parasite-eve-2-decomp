@@ -200,8 +200,88 @@ void func_actor_401300_80132BE4(GameSessionFrom4* session, GsCOORDINATE2* coord)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132C78);
-s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, u8* arg1, s32 arg2, s32 arg3);
+static __inline__ s32 Actor401300_HasHeightClamp(GameSessionFrom4* session)
+{
+    Actor401300HeightClamp* row;
+    s16                     i;
+
+    for (i = 0; i < 2; i++) {
+        row = &D_actor_401300_801589C8[i];
+        if (session->field_3 == row->field_0 && session->field_2 == row->field_2) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
+{
+    Actor401300Delta* head;
+    Actor401300Delta* s;
+    Actor401300Delta* blk;
+    s16               vy;
+    SVECTOR*          step;
+
+    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+        return 0;
+    }
+    head                                = *(Actor401300Delta**)G_SCRATCH_HEAD;
+    blk                                 = head - 1;
+    *(Actor401300Delta**)G_SCRATCH_HEAD = blk;
+    s                                   = blk;
+    s->moved                            = 0;
+    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
+        s->step.vx = head[-1].delta.vx.w >> 16;
+        s->step.vy = s->delta.vy.w >> 16;
+        s->step.vz = s->delta.vz.w >> 16;
+        if (Actor401300_HasHeightClamp(&Game_Session->field_4)) {
+            vy = s->step.vy;
+            if (((vy >= 0) ? vy : -vy) > 0x15E) {
+                s->step.vy = (vy <= 0) ? -0x15E : 0x15E;
+            }
+        }
+        coord->coord.t[1] += s->step.vy;
+        s->len             = s->step.vx * s->step.vx + s->step.vz * s->step.vz;
+        s->len             = SquareRoot0(s->len);
+        step               = &s->step;
+        if (s->len >= 0xAF) {
+            s->step.vy = 0;
+            VectorNormalSS(step, step);
+            gte_lddp(0xAF);
+            gte_ldsv(step);
+            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_stsv(step);
+            coord->coord.t[0] += s->step.vx;
+            coord->coord.t[2] += s->step.vz;
+        } else {
+            coord->coord.t[0] += s->step.vx;
+            coord->coord.t[2] += s->step.vz;
+        }
+        if (s->delta.vx.w & 0xFFFF) {
+            if (s->delta.vx.w > 0) {
+                coord->coord.t[0]++;
+            } else {
+                coord->coord.t[0]--;
+            }
+        }
+        if (s->delta.vz.w & 0xFFFF) {
+            if (s->delta.vz.w > 0) {
+                coord->coord.t[2]++;
+            } else {
+                coord->coord.t[2]--;
+            }
+        }
+    }
+    if (Actor401300_HasHeightClamp(&Game_Session->field_4)) {
+        func_actor_401300_80132BE4(&Game_Session->field_4, coord);
+        coord->coord.t[1] += arg3;
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->moved = 1;
+    }
+    *(Actor401300Delta**)G_SCRATCH_HEAD += 1;
+    return s->moved;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132FF4);
 
@@ -1169,7 +1249,7 @@ void func_actor_401300_801376E4(Actor401300* arg0)
             Actor401300_MoveForward(arg0->field_2C->field_8, 0x14);
         }
     }
-    if (func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57) != 1) {
+    if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) != 1) {
         func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
     }
     *(Actor401300ChaseScratch**)G_SCRATCH_HEAD += 1;
@@ -1264,7 +1344,7 @@ void func_actor_401300_80137D78(Actor401300* arg0)
         coord->coord.t[0] += aim->delta.vx;
         coord              = arg0->field_2C->field_8;
         coord->coord.t[2] += aim->delta.vz;
-        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+        func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
     }
     if (++work->field_6 >= 0x1E) {
         work->field_0 = 7;
@@ -1489,7 +1569,7 @@ void func_actor_401300_80138CF8(Actor401300* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (func_actor_401300_801323B0(arg0->field_2C->field_8, work->field_990, 0xC) == 0) {
-        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+        func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
     }
     arg0->field_2C->field_8->flg = 0;
     if (work->field_6C & 0x100) {
@@ -1538,7 +1618,7 @@ void func_actor_401300_80138FCC(Actor401300* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (func_actor_401300_801323B0(arg0->field_2C->field_8, work->field_990, 0xC) == 0) {
-        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+        func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
     }
     arg0->field_2C->field_8->flg = 0;
     if (work->field_6C & 0x100) {
@@ -1842,7 +1922,7 @@ void func_actor_401300_8013A208(Actor401300* arg0)
     coord        = arg0->field_2C->field_8;
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
-    if (func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57) == 0) {
+    if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
         func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
     }
     if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, work->field_C98) != 0) {
@@ -1915,7 +1995,7 @@ void func_actor_401300_8013A5C0(Actor401300* arg0)
         if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, -0x10) != 0) {
             Actor401300_MoveForward(arg0->field_2C->field_8, -0x10);
         }
-        if (func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57) == 0) {
+        if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
             func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
         }
         arg0->field_2C->field_8->flg = 0;
@@ -2200,7 +2280,7 @@ void func_actor_401300_8013CBAC(Actor401300* arg0)
     head                                     = *(Actor401300AimScratch**)G_SCRATCH_HEAD;
     *(Actor401300AimScratch**)G_SCRATCH_HEAD = head - 1;
     aim                                      = head - 1;
-    if (func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57) == 0) {
+    if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
         func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
     }
     config                       = &Wip_SysConfig;
@@ -2289,7 +2369,7 @@ void func_actor_401300_8013D2AC(Actor401300* arg0)
         work->field_8BA          = 0x80;
         return;
     }
-    func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+    func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
     if (work->field_6 >= 0x29) {
         work->field_8B6 = 0;
         work->field_8BA = 0x40;
@@ -2440,7 +2520,7 @@ void func_actor_401300_80140300(Actor401300* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (func_actor_401300_801323B0(arg0->field_2C->field_8, work->field_990, 0xC) == 0) {
-        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+        func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
     }
     arg0->field_2C->field_8->flg = 0;
     if (work->field_6C & 0x100) {
@@ -2483,7 +2563,7 @@ void func_actor_401300_8014046C(Actor401300* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (func_actor_401300_801323B0(arg0->field_2C->field_8, work->field_990, 0xC) == 0) {
-        func_actor_401300_80132C78(arg0->field_2C->field_8, work->field_AD0, 0xC, 0x57);
+        func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57);
     }
     arg0->field_2C->field_8->flg = 0;
     if (work->field_6C & 0x100) {

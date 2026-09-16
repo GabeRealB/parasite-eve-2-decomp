@@ -207,6 +207,18 @@ STATIC_ASSERT_SIZEOF(Actor401300HeightClamp, 0x10);
 
 extern Actor401300HeightClamp D_actor_401300_801589C8[];
 
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_401300_80132C78`.
+/// Same shape as `Actor01900Delta`: the `GpDeltaScratch` filled by
+/// `func_800E0C10`, its integer `step` (scaled to length 0xAF when longer),
+/// the XZ length `len`, and `moved`, the return value.
+typedef struct Actor401300Delta {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ SVECTOR        step;
+    /* 0x18 */ s32            len;
+    /* 0x1C */ s32            moved;
+} Actor401300Delta;
+STATIC_ASSERT_SIZEOF(Actor401300Delta, 0x20);
+
 /// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
 /// event writes into `GpEnemy::field_40`. Declared as an array: a scalar lets
 /// the scheduler hoist its load above the preceding store.
