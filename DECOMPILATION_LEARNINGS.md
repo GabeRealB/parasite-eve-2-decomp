@@ -105274,3 +105274,58 @@ Worked example: `func_actor_401000_801394EC`, matched at `base_7.c` after
 SHA256 `3c6e5416b9428507050f03e919cc4d0ec7bf2aebe0f0f0c6a12fb72cc23a09cd`;
 target.o SHA256 `011697edbdc0d7ec7feb062aaebfadb649fb782d14c37d76cfffe087b448ed12`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Two loads feeding one subtract: the target's asm order and the target's `$v0` can be mutually exclusive (func_actor_401000_80135AA4, 2026-09-17)
+
+A `regs`-only leftover can be unreachable from the source when a pair of loads
+feeds one non-commutative op. `angle = chase->pad_A - chase->pad_8;` compiles to
+two `lh` into fresh pseudos and one `subu`; the target's shape is
+
+```
+lh   $v0, 0xA($s3)      # chase->pad_A -> $v0
+lh   $v1, 0x8($s3)      # chase->pad_8 -> $v1
+subu $v0, $v0, $v1
+```
+
+and the natural spelling emits the same instructions with the registers swapped
+(`lh $v1,0xa ; lh $v0,8 ; subu $v0,$v1,$v0`). `trace_gcc.py` on the emitted
+`.i` (`--regs 222 225`, block 16) gives the rule local-alloc applied:
+
+```
+local b16 q2 [225 = pad_8] refs=2 span=2 priority=10000 -> $v0
+local b16 q1 [222 = pad_A] refs=2 span=4 priority=5000  -> $v1
+```
+
+Priority is `floor_log2(refs)*refs/span`: **the shorter-lived quantity is
+allocated first and takes the lower register**, so the load emitted *second* in
+the RTL wins `$v0`. Splitting the pair into two source statements
+(`padB = chase->pad_8; angle = chase->pad_A - padB;`) does move `pad_A` into
+`$v0` exactly as the target has it, but the RTL then emits `pad_8` first and
+`sched2` keeps that order, so the pair comes out swapped against the target.
+Both spellings sit at the same distance from the target; neither reaches it.
+
+The two constraints cannot both be expressed: whichever load is born first in
+the RTL keeps the longer span and therefore the higher-numbered register, while
+the emitted order in this build follows the RTL. Reproducing the target would
+need `sched2` to swap two independent loads, which it did in the original and
+does not here — the ready-list ranking, not a constraint, since two loads carry
+no anti-dependency. Worth recognising before another variant: when the only
+leftover is a register number on a load pair, check the *span* the tracer
+reports. If the target's register goes with the longer-lived operand, no source
+spelling will produce it and the function belongs in `tools/difficult_functions`.
+
+Related, from the same session: the scratch-pointer push documented above ("A
+scratch block's `-= 1` push") also appears as an assignment expression —
+`chase = (*(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1);` with the
+delta written from `&head[-1].delta`. Written as two statements the inlined
+`pos` parameter coalesces with `chase` (one `addiu` instead of `addiu`+`move`),
+the function compiles one instruction short and every later branch
+displacement is 4 off: 98.376% -> 99.187%, 712 -> 713 instructions. The
+permuter found it; the fused spelling is the port.
+
+Inputs: `base_9.i` SHA256 `9658585ffff25663ba132d2214d0128c0a68e1587acb48889156525e2150579a`
+(`nonmatchings/func_actor_401000_80135AA4-vacuum/base_9.i`); target.o SHA256
+`36915893463b102e437b41d846c946b414f9a613f0479ee1c2881c9d3ad9c9e0`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence: `tools/permuter_findings/func_actor_401000_80135AA4/`, session
+`LEARNINGS.md` in the scratch directory, `/tmp/gcc-obs-35aa4` (tracer events).
