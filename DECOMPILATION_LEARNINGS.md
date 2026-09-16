@@ -68756,6 +68756,40 @@ than as a scheduling problem to solve. This is the finer-grained case of
 `if`/`else` arms decides how much tail cross-jumps": here the boundary is set
 not by source store order but by a scheduler hoist into the same block.
 
+## A `slti` bound one past a case value, with `bnez`, is the *inverted* fourth-case tree
+
+`func_actor_223600_8014CCD4` dispatches on a `u16` sub-command with arms for 9,
+1 and 2. Written as the obvious three-case switch it scores 53% and opens with
+`beq a2, 2`: three sorted values put the *middle* one in the root. Adding a
+fourth, empty case — `case 0: break;`, sharing the switch's end with the
+default — moves the pivot to 1 and matches exactly:
+
+```c
+switch (event->words[1]) {
+    case 9: work->field_0 = 0; break;
+    case 1: work->field_0 = 2; break;
+    case 2: work->field_0 = 0; break;
+    case 0: break;
+}
+```
+
+The recognition trap is the second test, `slti v0, a2, 2` / `bnez v0, default`.
+Read as a low bound it says `blt(index, 2)`, i.e. a node *valued 2* — but such a
+node would have emitted its own `beq a2, 2` first, and there is none. The
+constant is one past the **root's** value 1: the root's `bgt 1` is `bgt(a, 1)`
+→ `slti v0, a2, 2` + `beqz` (the `+1` in `gen_int_relational`'s `const_add`,
+consistent with the sibling `beq a2, 1` root), and then `jump.c` deletes the
+empty case's `beq a2, 0` — its target is the following `j default` — and inverts
+the jump-around-jump pair that remains, leaving `bnez` straight to the default.
+Both steps are needed: the deletion alone leaves `beqz -> test_label`, the
+inversion alone leaves the range test.
+
+So when a `slti` bound sits one past a case value that is *already present* as
+the first comparison, suspect an empty case below the root rather than a node of
+that bound's value. The hidden value itself is unrecoverable — anything below 1
+gives byte-identical code — and a `u16` index needs no signed temp: the source
+above is byte-identical to the target.
+
 ## A `switch` on 1/2/3 cannot emit an ordered low-bound test: find the fourth case
 
 `switch (x)` over three consecutive values gives a *balanced* decision tree, so
