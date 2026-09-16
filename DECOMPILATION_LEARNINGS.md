@@ -100690,3 +100690,21 @@ reorg copy the shared store into the delay slot and restores the target order
 last index needs those explicit (`case 0: case 38: break;`), otherwise GCC
 builds a compare chain; and an unexplained extra 8 bytes of frame was an unused
 `SVECTOR` local, as in a sibling in the same TU.
+
+### Two switch cases repeating one inline block: give each case its own pointer local so sched1 sees a birthing set (func_actor_560800_80138D04, 2026-09-16)
+
+**Symptom.** A switch has two cases that each repeat the same written-out block
+(`w = task->idMap; c = task->extra->field_8; m = &c[1].coord; stores via m`).
+With one `m` shared by both cases, the target's `lw a1,0x1C(a0)` / `lw a0,0x8(v0)`
+come out swapped. `task` then stays live across the `c` set, conflicts with it,
+and moves to `$a2` for the whole function (98%, regs/branch penalties everywhere).
+
+**Cause.** `birthing_insn_p` (`sched.c`) only gives max priority to a set whose
+pseudo has `REG_N_SETS == 1`. A local assigned in both cases counts two sets, so
+the `m = c + 84` insn loses its birthing priority and sched1 schedules the
+`idMap` reload after the `field_8` load. Splitting `w`, `c` or the constant local
+changed nothing; splitting `m` (`m` in one case, `m2` in the other) matched.
+
+**Also.** A compare `x < 0x1000` emitted as `slt v0,v0,v1` against a register
+already holding 0x1000 from the stores wants a local (`one = 0x1000`) used by
+both the stores and the compare; with plain constants the compare stays `slti`.

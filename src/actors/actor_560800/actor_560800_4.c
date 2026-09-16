@@ -160,7 +160,110 @@ void func_actor_560800_80138BCC(Task* task)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138D04);
+/// Per-frame rise of the model part, driven by `field_282`: phase 0 lifts the
+/// root coordinate until it clears -3000, phase 1 keeps lifting while pulsing
+/// the second coordinate's X/Z scale in steps of 0x32 until -1200, and phase 2
+/// pulses in steps of 0xC8 until `field_278` drops below 0x1000. Phase 3 sinks
+/// this part and the one `Actor560800Work::field_C` names together. Each case
+/// needs its own matrix pointer: a shared one is set twice, loses sched1's
+/// birthing priority, and swaps the `idMap`/`field_8` loads.
+void func_actor_560800_80138D04(Task* task)
+{
+    Actor560800ModelWork* work;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        c;
+    GsCOORDINATE2*        other;
+    Actor560800ModelWork* w;
+    MATRIX*               m;
+    MATRIX*               m2;
+    VECTOR                scale;
+    s32                   one;
+
+    work  = (Actor560800ModelWork*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+    switch (work->field_282) {
+        case 0:
+            if (coord->coord.t[1] >= -3000) {
+                work->field_282++;
+            }
+            break;
+        case 1:
+            if (work->field_278 <= 0x1800) {
+                work->field_27C    = 1;
+                w                  = (Actor560800ModelWork*)task->idMap;
+                c                  = ((TmdObject*)task->extra)->field_8;
+                m                  = &c[1].coord;
+                one                = 0x1000;
+                *(s32*)&m->m[0][0] = one;
+                *(s32*)&m->m[0][2] = 0;
+                *(s32*)&m->m[1][1] = one;
+                *(s32*)&m->m[2][0] = 0;
+                m->m[2][2]         = one;
+                c++;
+                if (w->field_27C == 0) {
+                    w->field_278 -= 0x32;
+                    if (w->field_278 < one) {
+                        w->field_27C = 1;
+                    }
+                } else if (w->field_27C == 1) {
+                    w->field_278 += 0x32;
+                    if (w->field_278 > 0x1800) {
+                        w->field_27C = 0;
+                    }
+                }
+                scale.vx = w->field_278;
+                scale.vy = 0x1000;
+                scale.vz = w->field_278;
+                ScaleMatrix(&c->coord, &scale);
+            }
+            if (coord->coord.t[1] >= -1200) {
+                work->field_282++;
+            }
+            break;
+        case 2:
+            if (work->field_278 >= 0x1000) {
+                work->field_27C     = 0;
+                w                   = (Actor560800ModelWork*)task->idMap;
+                c                   = ((TmdObject*)task->extra)->field_8;
+                m2                  = &c[1].coord;
+                one                 = 0x1000;
+                *(s32*)&m2->m[0][0] = one;
+                *(s32*)&m2->m[0][2] = 0;
+                *(s32*)&m2->m[1][1] = one;
+                *(s32*)&m2->m[2][0] = 0;
+                m2->m[2][2]         = one;
+                c++;
+                if (w->field_27C == 0) {
+                    w->field_278 -= 0xC8;
+                    if (w->field_278 < one) {
+                        w->field_27C = 1;
+                    }
+                } else if (w->field_27C == 1) {
+                    w->field_278 += 0xC8;
+                    if (w->field_278 > 0x1800) {
+                        w->field_27C = 0;
+                    }
+                }
+                scale.vx = w->field_278;
+                scale.vy = 0x1000;
+                scale.vz = w->field_278;
+                ScaleMatrix(&c->coord, &scale);
+            } else {
+                work->field_282++;
+            }
+            coord->flg = 0;
+            return;
+        case 3:
+            other              = ((TmdObject*)((Actor560800Work*)((Task*)task->spawnArg2)->idMap)->field_C->extra)->field_8;
+            coord->coord.t[1] -= 20;
+            other->coord.t[1] -= 20;
+            coord->flg         = 0;
+            other->flg         = 0;
+            return;
+    }
+    coord->flg         = 0;
+    coord->coord.t[1] += 100;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138FC8);
 
