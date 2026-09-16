@@ -41586,6 +41586,15 @@ they are `lui $v0, %hi(sym)` / `lw $v0, %lo(sym)($v0)`, the function is already
 matched and only the span disagrees. `func_actor_535700_80131E2C` is the worked
 example of the scalar form.
 
+The scalar form recurs across overlays at the same address, and a carrier that
+drops the trailing statement is invisible to `overlay_dup_index.py find`: the
+index compares the whole function's disassembly text, so
+`func_actor_151000_80131E2C` (the same 45 instructions, no `D_..--`) reports
+"1 copies" - itself. `similar` still ranks the sibling 1.00 on `fields` and
+`calls`, and copying its body verbatim minus the decrement matches. So a
+first-function plateau with zero finds is not a dead end; check the `similar`
+tier before writing the body from the asm.
+
 ## Read a local struct field through a pointer local to defeat store forwarding
 
 CSE forwards a constant store to a stack slot into the very next load of that
