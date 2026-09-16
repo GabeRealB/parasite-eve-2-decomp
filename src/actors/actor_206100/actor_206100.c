@@ -702,7 +702,39 @@ void func_actor_206100_8014D574(Task* task)
 /// in the other.  See `func_actor_206100_8014D380` for what the steering fold
 /// does and for why the `yaw` load sits after the `jal` and the deadband is a
 /// variable.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014D6F4);
+void func_actor_206100_8014D6F4(Task* task)
+{
+    Actor206100Work* sub    = (Actor206100Work*)task->idMap;
+    TaskFuncTable3   states = D_actor_206100_80149EB4;
+    Actor206100Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    s32              angle;
+    s32              yaw;
+    s32              limit;
+    s32              diff;
+
+    if (take_request(task) == 0) {
+        states.funcs[(s16)sub->field_522](task);
+        work       = (Actor206100Work*)task->idMap;
+        coord      = ((TmdObject*)task->extra)->field_8;
+        coord->flg = 0;
+        vec.vx     = sub->field_4D0 - (u16)coord->coord.t[0];
+        vec.vy     = 0;
+        vec.vz     = sub->field_4D4 - (u16)coord->coord.t[2];
+        VectorNormalSS(&vec, &vec);
+        yaw   = ratan2(vec.vx, vec.vz);
+        limit = 0x28;
+        angle = (u16)work->field_43E;
+        diff  = ((angle - yaw) << 20) >> 20;
+        if (diff > limit) {
+            work->field_43E = angle - 0x18;
+        } else if (diff < -0x28) {
+            work->field_43E = angle + 0x18;
+        }
+        func_actor_206100_8014ED3C(task, 0x14);
+    }
+}
 /// Sub-state 1 of `func_actor_206100_8014D6F4`'s table: the ring of debris the
 /// death throes throw off, and the draw that decides whether the actor
 /// teleports out of them.
