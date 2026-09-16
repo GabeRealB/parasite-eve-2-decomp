@@ -8,7 +8,16 @@
 extern u8 D_801153F4;
 extern u8 D_80115680;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_2", func_dryfield_night_motel_loft_8017D6C4);
+/// `0x13F2` entry of the room's `D_dryfield_night_motel_loft_8017EB1C`
+/// `GpMsgEntry[]`: cues the loft's own sound bank id when the cap script
+/// reaches command 5.
+s32 func_dryfield_night_motel_loft_8017D6C4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    if (arg2 == 5) {
+        Gp_EnqueueStageSnd6(0x531F0000 | 5, 0, 0);
+    }
+    return 0;
+}
 
 void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
 {
