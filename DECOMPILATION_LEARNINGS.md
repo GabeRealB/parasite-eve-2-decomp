@@ -2288,6 +2288,35 @@ second load, and matched 100% first try as
 read nor a `(s16)` cast on the comparison is needed — both spellings compile to
 the same bytes, so prefer the plain field arithmetic.
 
+## A masked halfword loads `lh` only through a named `s32` temporary
+
+`& 0xF` on a halfword field is the commonest switch index in this codebase, and
+by itself it decides which load the target has. Folding the mask into the field
+expression lets the front end narrow the whole expression to HImode, so the load
+is a plain `movhi_internal2` (`lhu`) and the mask an `andsi3` on its `subreg`;
+reading the field into an `s32` first keeps the load signed and the mask a
+separate `andsi3`:
+
+```c
+/* field_36 is s16 */
+kind = actor->field_36;                  /* lh  $v0, 0x36($s5) - extendhisi2_internal */
+switch (kind & 0xF) { ... }              /* andi $v1, $v0, 0xF */
+
+switch (actor->field_36 & 0xF) { ... }   /* lhu $v0, 0x36($s5); andi $v1, $v0, 0xF */
+```
+
+RTL shows the difference before the load is chosen: the direct spelling folds to
+`(set (reg:HI n) (mem:HI))` + `(and:SI (subreg:SI (reg:HI n) 0) 15)` + a
+`ashift`/`ashiftrt` pair that re-extends the *result*, the `s32` spelling keeps
+`(sign_extend:SI (mem:HI))` and extends the *load*. This is the same widening
+rule the `s16`-into-`u16` entry above states, reached through an AND rather than
+a store.
+
+`func_actor_401800_8013423C` needed the `s32` form: the direct spelling is
+`base_2.c` at 99.075% with `lhu` the only code difference (preprocessed
+`4144fed43817de8dc7fc4f18110895f6367336b4284120480952188e265d2c80`), the `s32`
+form `base_3.c` at 100% (`ea5a55313315223846a5748c640bbd457ac2f973d8c7ec32799212ea0909e3dd`).
+
 ## A decremented halfword tested against zero wants a signed temporary
 
 The `>= const` case above folds to `slti` whatever the temporary's type is.

@@ -9,6 +9,26 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// XZ patrol point in `Actor401800Work.field_C`. Same shape as
+/// `Actor01900Waypoint`.
+typedef struct Actor401800Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor401800Waypoint;
+
+/// 0xC-byte row of `D_actor_401800_8013E700`; the init body copies the four
+/// halfwords of the row picked by the spawn argument's low nibble into
+/// `Actor401800Work.field_C08..field_C0E`. Same shape as
+/// `Actor01900TintRow`.
+typedef struct Actor401800TintRow {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  field_4;
+    /* 0x6 */ s16  field_6;
+    /* 0x8 */ byte pad_8[4];
+} Actor401800TintRow;
+STATIC_ASSERT_SIZEOF(Actor401800TintRow, 0xC);
+
 /// Private work block of the actor 401800 task, hanging off `Task::idMap`.
 ///
 /// Only the fields the decompiled code touches are named, so the struct is
@@ -27,23 +47,27 @@ typedef struct Actor401800Work {
     /// Step counter `func_actor_401800_8013E4F0` resets to 0 and bumps once a
     /// frame; the same slot `Actor104000Work.field_6` counts in.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x52];
-    /* 0x05A */ u16  field_5A;
-    /* 0x05C */ byte pad_5C[0xC];
-    /* 0x068 */ u16  field_68;
-    /* 0x06A */ byte pad_6A[0x82A];
-    /* 0x894 */ s32  field_894;
-    /* 0x898 */ s16  field_898;
-    /* 0x89A */ s16  field_89A;
-    /* 0x89C */ byte pad_89C[2];
-    /* 0x89E */ s16  field_89E;
-    /* 0x8A0 */ byte pad_8A0[2];
-    /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ byte pad_8A6[8];
-    /* 0x8AE */ s16  field_8AE;
-    /* 0x8B0 */ s16  field_8B0;
-    /* 0x8B2 */ byte pad_8B2[2];
+    /* 0x008 */ byte pad_8[4];
+    /// XZ patrol points: the spawn position and one step along its facing.
+    /* 0x00C */ Actor401800Waypoint field_C[2];
+    /* 0x014 */ s16                 field_14;
+    /* 0x016 */ byte                pad_16[0x44];
+    /* 0x05A */ u16                 field_5A;
+    /* 0x05C */ byte                pad_5C[0xC];
+    /* 0x068 */ u16                 field_68;
+    /* 0x06A */ byte                pad_6A[0x82A];
+    /* 0x894 */ s32                 field_894;
+    /* 0x898 */ s16                 field_898;
+    /* 0x89A */ s16                 field_89A;
+    /* 0x89C */ byte                pad_89C[2];
+    /* 0x89E */ s16                 field_89E;
+    /* 0x8A0 */ byte                pad_8A0[2];
+    /* 0x8A2 */ s16                 field_8A2;
+    /* 0x8A4 */ s16                 field_8A4;
+    /* 0x8A6 */ byte                pad_8A6[8];
+    /* 0x8AE */ s16                 field_8AE;
+    /* 0x8B0 */ s16                 field_8B0;
+    /* 0x8B2 */ byte                pad_8B2[2];
     /// State the `0x3FF` handler last ran for: `func_actor_401800_8013A034`
     /// sends the actor's 0x200 effect when `field_5A & 0x3FF` is 4 and differs
     /// from this, then stores the mask back. Same slot `Actor01900Work.field_894`
@@ -65,14 +89,21 @@ typedef struct Actor401800Work {
     /* 0xA28 */ GpRec18 field_A28;
     /* 0xA40 */ byte    pad_A40[0x108];
     /* 0xB48 */ GpObj   field_B48;
-    /* 0xB68 */ byte    pad_B68[0x38];
+    /* 0xB68 */ GpRec18 field_B68;
+    /// Light and color matrices the init body binds onto the model object
+    /// (`TmdObject.field_1C` / `field_20`). Same pair `Actor01900Work` keeps
+    /// at `field_BB0` / `field_BD0`.
+    /* 0xB80 */ MATRIX field_B80;
     /// Root-coordinate matrix the live-actor block of the walking body copies
     /// from `field_BC0` back over itself, then re-writes from the pose scratch.
     /* 0xBA0 */ MATRIX field_BA0;
     /// Home of the root-coordinate matrix the live-actor block restores.
     /// Same pair `Actor00100Work.field_BA0` keeps.
     /* 0xBC0 */ MATRIX field_BC0;
-    /* 0xBE0 */ byte   pad_BE0[0x1C];
+    /// Cleared by the init body right after `field_A08` is linked; same slot
+    /// `Actor01900Work.field_C10` / `Actor401300Work.field_C88` clears.
+    /* 0xBE0 */ s16  field_BE0;
+    /* 0xBE2 */ byte pad_BE2[0x1A];
     /// Step the aim-and-rescale body walks the actor along its own local Z
     /// axis while `func_actor_401800_80133558` says the path is clear, and
     /// reloads `field_0 = 9` once it has counted down to zero. Same slot
@@ -89,8 +120,12 @@ typedef struct Actor401800Work {
     /// high half of a fresh `Gp_LcgState` draw masked to 3 bits (`& 7`) is
     /// added to it and stored into `field_6`. Same slot `Actor401300Work`
     /// keeps as `field_CA0`, whose counterpart loads it with `& 0xF`.
-    /* 0xC08 */ u16  field_C08;
-    /* 0xC0A */ byte pad_C0A[4];
+    /* 0xC08 */ u16 field_C08;
+    /// Second and third halfwords of the same `D_actor_401800_8013E700` row the
+    /// init body copies; `field_C0A` / `field_C0C` pair with `field_C08` and
+    /// `field_C0E` as the row's four halfwords.
+    /* 0xC0A */ u16 field_C0A;
+    /* 0xC0C */ u16 field_C0C;
     /// Radius `func_actor_401800_8013A034` hands its scratch distance test:
     /// the player is close enough to arm the actor once the squared XZ offset
     /// fits inside it. Same role `Actor01900Work.field_C32` plays.
@@ -107,7 +142,12 @@ typedef struct Actor401800Work {
     /// Set to 1 by the actors that own the `0x3F1` message and cleared once
     /// `func_actor_401800_80139118` has sent it. Same slot `Actor01900Work`
     /// keeps at 0xC20.
-    /* 0xC20 */ s16 field_C20;
+    /* 0xC20 */ s16  field_C20;
+    /* 0xC22 */ byte pad_C22[0x52];
+    /// Cleared by the init body once the root coordinate has been rescaled;
+    /// same slot `Actor01900Work.field_C98` / `Actor401300Work.field_C98`
+    /// clears at the same point.
+    /* 0xC74 */ s16 field_C74;
 } Actor401800Work;
 
 /// 0x34-byte scratch `func_actor_401800_8013629C` takes from `G_SCRATCH_HEAD`
@@ -222,6 +262,10 @@ typedef struct Actor401800 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ byte             pad_30[6];
+    /// High halfword of `Task::spawnArg1`; the init body picks the starting
+    /// state from its low nibble. Same slot `Actor401300.field_36` keeps.
+    /* 0x36 */ s16 field_36;
 } Actor401800;
 
 /// Payload of the `0x3FF` message `func_actor_401800_80138F5C` sends: the same
@@ -236,6 +280,24 @@ extern GpAnimArg D_actor_401800_80155A0C;
 /// model part index `func_800FDB18` anchors the spawned effect to. Same role
 /// `Actor00100_D1B9F4` plays for `Actor00100_Fn03340`.
 extern SVECTOR D_actor_401800_80155A20[12];
+
+/// Animation bank both `func_800B3F84` contexts are initialised from. Same
+/// role `Actor01900_D17174` plays for actor 01900.
+extern s32 D_actor_401800_80155938;
+
+/// Enemy description record the init body copies `field_4` out of into
+/// `GpEnemy.field_40` and points `GpEnemy.field_50` at. Same role
+/// `D_actor_401300_80141FA0` plays for actor 401300.
+extern GpPairSrcE D_actor_401800_8013E6F0;
+
+/// The three `Actor401800TintRow` variants the init body picks from by the
+/// spawn argument's low nibble: `[0]` when it is 2, `[2]` when it is 1, `[1]`
+/// otherwise. Same table shape as `Actor01900_D0AC64`.
+extern Actor401800TintRow D_actor_401800_8013E700[];
+
+/// Handler table the actor's task receives in `Task::field_24`; same role
+/// `Actor01900_D1728C` plays for actor 01900.
+extern void* D_actor_401800_80155A80;
 
 /// Payload of the `0x3E9` message `func_actor_401800_80138C28` sends: the
 /// slot-3 task's root position followed by the heading `ratan2` derives from
@@ -304,6 +366,11 @@ s32 func_actor_401800_80133918(Actor401800* arg0);
 void func_actor_401800_801348A8(Actor401800* arg0, s16 arg1, s32 arg2);
 s32  func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2);
 void func_actor_401800_80133EB8(Actor401800* arg0);
+/// Enemy init: allocates the work block, binds the model matrices, sets up both
+/// animation contexts and the three hit/body `GpObj` nodes, then picks the
+/// starting state and tint row from the spawn flags and rescales the model.
+/// Same body as `Actor01900_Fn02018` / `func_actor_401300_80134454`.
+void func_actor_401800_8013423C(GpEnemy* enemy, Actor401800* actor);
 void func_actor_401800_8013E0A0(Task* task);
 void func_actor_401800_8013E138(Actor401800* arg0);
 void func_actor_401800_8013E194(Actor401800* arg0);
