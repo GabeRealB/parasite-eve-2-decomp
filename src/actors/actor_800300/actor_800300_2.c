@@ -31,7 +31,41 @@ void func_actor_800300_80162C2C(GpActorWork* arg0)
     actor->field_986 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162C98);
+s32  func_8010BC70(GsCOORDINATE2* arg0);
+s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
+void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
+s32  func_80105ED4(GpActorWork* arg0);
+
+void func_actor_800300_80163048(GpActorWork* arg0);
+void func_actor_800300_80163074(GpActorWork* arg0);
+
+void func_actor_800300_80162C98(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    s32            val;
+
+    actor  = arg0->actor;
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    if (arg0->actor->field_910->field_C4 <= 0) {
+        func_8010BF7C(arg0, 0x14, 0x3F);
+        if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
+            func_actor_800300_80163048(arg0);
+        }
+        val = func_8010BCF4((Task*)arg0, (VECTOR3*)target->coord.t);
+        if (val < 0) {
+            val = -val;
+        }
+        if (val >= 0x200) {
+            actor->field_90C = NULL;
+            func_actor_800300_80163074(arg0);
+        }
+    }
+    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+    func_80105ED4(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162D74);
 
