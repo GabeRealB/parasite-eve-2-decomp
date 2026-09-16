@@ -65,7 +65,30 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// clip either way, which is what lets the next frame tell the two cases apart.
 /// The call sits *inside* the loop and takes a fresh `work` in `$a0` each
 /// iteration, the same shape `func_actor_405800_80138294` has.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F2F0);
+void func_actor_206100_8014F2F0(Task* arg0)
+{
+    Actor206100Work* work;
+    s32              i;
+
+    work = (Actor206100Work*)arg0->idMap;
+    if (work->field_50E == work->field_510) {
+        i = 1;
+        do {
+            ((Actor206100AnimStride*)work)[i].field_1D = (u8)work->field_51A;
+            func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
+            i++;
+        } while (i < 0xF);
+    } else {
+        i = 1;
+        do {
+            ((Actor206100AnimStride*)work)[i].field_1D = (u8)work->field_51A;
+            func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
+            i++;
+        } while (i < 0xF);
+        work->field_524 = 0;
+    }
+    work->field_50E = work->field_510;
+}
 s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
 {
     Actor206100Work* work = (Actor206100Work*)arg0->idMap;
