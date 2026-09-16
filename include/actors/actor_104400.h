@@ -39,7 +39,7 @@ typedef struct Actor104400Work {
     /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
     /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
     /* 0x060 */ VECTOR    field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
-    /* 0x070 */ byte      pad_70[0x8];
+    /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by Actor04400_Fn05B08
     /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX
     /* 0x07A */ s16       field_7A; // heading
     /* 0x07C */ s16       field_7C; // roll, fed to RotMatrixZ
