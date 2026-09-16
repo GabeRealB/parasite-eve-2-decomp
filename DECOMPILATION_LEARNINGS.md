@@ -86037,3 +86037,53 @@ Inputs: `base.c` 68.806% (`branch=3 regs=4 insert=6 delete=5`), `base_1.c`
 `78ceb42082dfa7dd2a1fa9f55b3891d094a4b179be5d5ef48a5ed6b30dd77d37`, target
 `90e871ba3ac32fe052b7851315cf0b5b01d91abde0e9bb4cec88b1312d69a522`. Compiler
 SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+## A rodata ownership cut is a three-line edit when the cut lands on the table's own offset
+
+`func_mine_tunnel_entrance_8017D720` is a `switch` whose extracted
+`jtbl_mine_tunnel_entrance_8017D5D4` sat in the *first* unit's leading rodata
+(`0x14..0x28`, the last of four symbols ahead of the code at `0x30`).
+Decompiling it into unit `_3` makes GCC emit its own table, while unit 1's
+object still carried an `INCLUDE_RODATA` for the extracted one, and the link
+fails with `undefined reference to .Lmine_tunnel_entrance_8017D770`: the case
+labels the old table points at now exist only in the new object.
+
+```toml
+mine_tunnel_entrance = { room = "Tunnel entrance",
+                         rodata = [{ start = "0x14", unit = "mine_tunnel_entrance_3" }],
+                         shared = [...] }
+```
+
+The cut offset is not a guess — it is exactly where GCC's table starts, because
+GCC emits `.align 3` ahead of the table and anything already in the object's
+`.rodata` would pad it forward.
+
+**The delete-and-re-split the generated-config section prescribes is
+unnecessary when the cut already sits at that offset, and it is the destructive
+step.** splat writes only a C file that is missing, so both `src/` files stay as
+they are and neither loses a body; the config change forces a re-split anyway,
+and that regenerates only the `asm/` trees (the stale `jtbl_*.s` goes with
+them). `tools/check_lost_matches.py` confirmed 5911 functions still C
+afterwards. Three edits:
+
+1. drop the moved symbols' `INCLUDE_RODATA` lines from the old unit's file;
+2. add them at the **end** of the new unit's file — after the functions, so the
+   compiler's tables precede them in the object's `.rodata`;
+3. the manifest `rodata` key.
+
+The sizes are checkable before touching anything, and they must add up exactly:
+the linker script concatenates the objects' `.rodata` in subsegment order with
+no padding between them.
+
+```
+unit 1   0x0  + D_..._D5C0 (4) + RoomsShared80181e70Table (0x10)  = 0x14  (the cut)
+unit 3  0x14  + compiler's table (0x14) + D_..._D5E8 (8)          = 0x1C  -> 0x30, code start
+```
+
+The way to get this wrong is a symbol that must stay in the old unit even though
+only the new one reads it (the `static const` trap in the section above). Here
+neither moved symbol is in that position: the two kept ones are read by unit 1's
+own remaining `INCLUDE_RODATA` block, and `jtbl` plus `D_..._D5E8` are exactly
+the run the new unit owns.
+
+Inputs: `base_1.c` (100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
