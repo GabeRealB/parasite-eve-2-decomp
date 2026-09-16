@@ -84361,3 +84361,42 @@ Do not chase `switch` vs `if` for the dispatch when only **one** case is present
 `switch` (see "A switch's shared tail belongs after the switch"); the load-bearing
 shape in both is just that the return value is preset once and every exit shares
 the epilogue.
+
+## A conditional constant handed to a call is a ternary, not an if/else (func_dryfield_garage_8017DA18, 2026-09-16)
+
+The room opcode callbacks that pick between two command ids passed to
+`Gp_RunCapCmd1` are a recurring family: `func_dryfield_garage_8017DA18`
+(`GameFlag_GetNibble(0xFD) != 0 ? 0x16 : 0x10`), `func_mine_mesa_8017DA7C`
+(`>= 2 ? 0xD : 0xC`), `func_shelter_b3_dumping_hole_8017D82C` (`!= 0 ? 0x12 :
+0x17`). Written as the ternary **in the call argument**, GCC 2.8.1 materialises
+the *else* constant into the argument register in the branch delay slot and
+overwrites it with the *then* constant on the fall-through:
+
+```
+jal  GameFlag_GetNibble
+ li  $4,253        # 0xFD
+beqz $2,$L
+ li  $4,16         # the else value, in the delay slot
+li  $4,22          # 0x16, the then value
+$L:
+jal  Gp_RunCapCmd1
+```
+
+m2c renders the same source as a two-arm `if` over a temporary
+(`var_a0 = 0x10; if (…) var_a0 = 0x16;`), which materialises the constant twice
+and moves the store out of the delay slot: 67.667% with
+`branch=2 regs=4 reorder=1 insert=4 delete=1` on a 15-instruction function, all
+zero on the first ternary build. The delay-slot placement is the load-bearing
+part, and it is what the `if` form cannot reach.
+
+The one non-obvious detail is that the branch tests `$a2`, not the `$a0` m2c
+picked: m2c names parameters by register and drops the leading ones the body
+never reads, so the live `arg2` came out as the first parameter. Restoring the
+family arity `s32 f(s32 arg0, s32 arg1, s32 arg2)` puts it back in `$a2` (see
+"An unread parameter still occupies its argument register"). Fix the arity
+first - the `regs` penalty is identical for every variant until it holds.
+
+Inputs: `base.c` (m2c shape, 67.667%)
+`72f24d82f411845bb6841742eb9b706c7a55148a9e5dc29f0005429a462aced6`,
+`base_1.c` (ternary, 100.000%)
+`bb0bc77d58bd7bc0294f5f68850dd8fba0a8fcd3feb7ee8fdc5ccca3a73665ce`.
