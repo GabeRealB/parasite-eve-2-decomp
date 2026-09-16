@@ -133,7 +133,7 @@ void func_actor_403000_801384E8(Actor403000* arg0)
             D_actor_403000_80158DB0.field_12 = ret;
         }
     }
-    if (work->field_60 & 1) {
+    if (work->field_60.half & 1) {
         work->field_0   = 4;
         work->field_FD3 = work->field_FD5 = work->field_FD2 = -work->field_FD3;
     }

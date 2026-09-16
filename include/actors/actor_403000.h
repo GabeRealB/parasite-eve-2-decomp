@@ -43,15 +43,18 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 /// same function bumps, and bit 0x100 of `field_60` is what it watches to tell
 /// that the animation it asked for has arrived.
 typedef struct Actor403000Work {
-    /* 0x000 */ s16            field_0;
-    /* 0x002 */ s16            field_2;
-    /* 0x004 */ s16            field_4;
-    /* 0x006 */ u16            field_6;
-    /* 0x008 */ byte           pad_8[0x4];
-    /* 0x00C */ s16            yaw;
-    /* 0x00E */ byte           pad_E[0x52];
-    /* 0x060 */ u16            field_60;
-    /* 0x062 */ byte           pad_62[0xA5E];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ s16  field_2;
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ u16  field_6;
+    /* 0x008 */ byte pad_8[0x4];
+    /* 0x00C */ s16  yaw;
+    /* 0x00E */ byte pad_E[0x52];
+    /* 0x060 */ union {
+        u16 half;
+        s32 word;
+    } field_60;
+    /* 0x064 */ byte           pad_64[0xA5C];
     /* 0xAC0 */ s16            field_AC0;
     /* 0xAC2 */ s16            field_AC2;
     /* 0xAC4 */ s16            field_AC4;
@@ -81,7 +84,9 @@ typedef struct Actor403000Work {
     /// the animation that drives it is running. `func_actor_403000_8013D72C`
     /// zeroes this one field by field, last element first.
     /* 0xF30 */ MATRIX field_F30;
-    /* 0xF50 */ byte   pad_F50[0x56];
+    /* 0xF50 */ byte   pad_F50[0x3C];
+    /* 0xF8C */ s16    field_F8C;
+    /* 0xF8E */ byte   pad_F8E[0x18];
     /* 0xFA6 */ u8     field_FA6;
     /* 0xFA7 */ byte   pad_FA7[0x23];
     /* 0xFCA */ s16    field_FCA;
