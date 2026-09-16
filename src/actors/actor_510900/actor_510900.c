@@ -438,7 +438,38 @@ void func_actor_510900_801387F4(Actor510900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80138978);
+/// Walks the actor once around a fixed square patrol path: `field_5A6` is the
+/// distance travelled, advanced by `field_5A2` and clamped, and its quotient by
+/// the side length selects the corner (also latched into `field_5A8` for the
+/// turn handler) while the remainder is the offset along that side.
+void func_actor_510900_80138978(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s16               side;
+    s16               along;
+    u16               dist;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+
+    dist            = work->field_5A6 + (u16)work->field_5A2;
+    work->field_5A6 = dist;
+    if (dist < 0xC8) {
+        work->field_5A6 = 0xC8;
+    } else if (dist > 0xB66C) {
+        work->field_5A6 = 0xB66C;
+    }
+
+    side            = work->field_5A6 / 13200;
+    work->field_5A8 = side;
+    along           = work->field_5A6 % 13200;
+
+    coord->field_0.coord.t[0] = D_actor_510900_80167B84[side].x + (along * D_actor_510900_80167B94[side].x);
+    coord->field_0.coord.t[1] = 0;
+    coord->field_0.coord.t[2] =
+        D_actor_510900_80167B84[work->field_5A8].z + (along * D_actor_510900_80167B94[work->field_5A8].z);
+}
 
 /// Fires the actor's step sounds: while the current animation record carries
 /// `field_3` bit 0x20 or 0x10, a sound is queued on the frame that bit has just

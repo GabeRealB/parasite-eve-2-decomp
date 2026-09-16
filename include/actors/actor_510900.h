@@ -85,12 +85,15 @@ typedef struct Actor510900Work {
     /// angle, stepped 0x1E at a time towards the direction `field_5A8` selects.
     /* 0x5A0 */ s16 field_5A0;
     /// Cleared by state 0 on the frame it restarts.
-    /* 0x5A2 */ s16  field_5A2;
-    /* 0x5A4 */ s16  field_5A4;
-    /* 0x5A6 */ byte pad_5A6[2];
-    /* 0x5A8 */ s16  field_5A8;
-    /* 0x5AA */ s16  field_5AA;
-    /* 0x5AC */ s16  field_5AC;
+    /* 0x5A2 */ s16 field_5A2;
+    /* 0x5A4 */ s16 field_5A4;
+    /// Distance travelled around the patrol square, advanced by `field_5A2`
+    /// each frame and clamped to 0xC8..0xB66C. Its quotient by the side length
+    /// picks the corner below, the remainder the offset along that side.
+    /* 0x5A6 */ u16 field_5A6;
+    /* 0x5A8 */ s16 field_5A8;
+    /* 0x5AA */ s16 field_5AA;
+    /* 0x5AC */ s16 field_5AC;
     /// Below 0x3E8 the turn target is taken one entry further along
     /// `D_actor_510900_80167B9C`.
     /* 0x5AE */ s16  field_5AE;
@@ -242,6 +245,27 @@ extern TaskDesc D_actor_510900_80167A18[];
 /// Per-animation-id value `func_actor_510900_8013BB20` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 D_actor_510900_80167B38[];
+
+/// One corner of the square `func_actor_510900_80138978` walks the actor
+/// around, in world x/z.
+typedef struct Actor510900PatrolCorner {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor510900PatrolCorner;
+STATIC_ASSERT_SIZEOF(Actor510900PatrolCorner, 0x4);
+
+/// The unit direction the side leaving that corner runs in.
+typedef struct Actor510900PatrolStep {
+    /* 0x0 */ s8 x;
+    /* 0x1 */ s8 z;
+} Actor510900PatrolStep;
+STATIC_ASSERT_SIZEOF(Actor510900PatrolStep, 0x2);
+
+/// The four corners of the patrol square, indexed by `Actor510900Work::field_5A8`.
+extern Actor510900PatrolCorner D_actor_510900_80167B84[4];
+
+/// The direction of each of its four sides, indexed the same way.
+extern Actor510900PatrolStep D_actor_510900_80167B94[4];
 
 /// The four cardinal yaws `func_actor_510900_801387F4` turns the actor's
 /// coordinate towards, indexed by `Actor510900Work::field_5A8`.

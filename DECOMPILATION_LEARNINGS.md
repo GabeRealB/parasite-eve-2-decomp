@@ -89402,3 +89402,39 @@ the `do/while` back to a `for` puts the init where the original source had it.
 Do not reach for a register pin for this - the allocation follows the lifetime.
 
 Inputs: `base_1.i` (91.4%), `base_2.i` (100%).
+
+## An independent store scheduled into a multiply's latency, and the `regs` penalty it drags along (func_actor_510900_80138978, 2026-09-16)
+
+`func_actor_510900_80138978` writes three words of a `MATRIX::t`, of which the
+middle one is a constant zero and the other two each end in a `mult`/`mflo`.
+With m2c's statement order — the zero store first — the body scored 99.041% at
+`regs=2 reorder=1`, everything else zero and 73/73 instructions:
+
+```
+ sra    a0,a0,0x10
++sw     zero,0x1c(t1)      <- hoisted here
+ mfhi   v0
+...
+ lh     v0,0(a0)
+-sw     zero,0x1c(t1)      <- target has it here
+ mflo   v1
+```
+
+The zero store has no dependencies at all, so sched1 is free to issue it as
+soon as the block opens and uses it to cover the first `mfhi`'s latency. The
+target instead covers the *second* multiply's latency with it, which is what a
+source ordering of `t[0] = …; t[1] = 0; t[2] = …;` produces: the store only
+becomes ready after the `t[0]` expression has been emitted.
+
+The `regs=2` was not an allocation problem. It was `mfhi a2` + `srl a0,a2,0x5`
+where the target has `mfhi a0` + `srl a0,a0,0x5`; the early zero store extended
+a live range across the `mfhi`, so the destination could not be reused. Moving
+the one statement fixed both penalties at once — 99.041% -> 100%.
+
+Rule of thumb: a small `regs` penalty sitting next to a non-zero `reorder` is
+usually downstream of the reorder, not a separate problem. Fix the schedule
+first, and only treat `regs` as its own question once `reorder=0`. A dependency-
+free store is the cheapest thing the scheduler has to fill a latency slot with,
+so its position in the source decides which latency it fills.
+
+Inputs: `base_1.i` (99.041%), `base_2.i` (100%).
