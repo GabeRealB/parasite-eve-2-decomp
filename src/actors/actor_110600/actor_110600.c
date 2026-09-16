@@ -5,6 +5,8 @@
 #include "actors/actors_shared_80135a60.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -220,7 +222,166 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80136B20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80136ECC);
+/// Re-dresses a live actor: take the model object out of draw, drop bit 0x8000
+/// of `field_A90.flags` and bit 0x4000 of `field_950.flags`, tag the enemy's
+/// link node, clear the `field_B82` / `field_8A4` / `field_8A2` timers and hand
+/// the model the 0x80 texture page, then spawn five effects off its part
+/// coordinates 6, 8, 10, 11 and 15 (`Gp_SpawnEff` bank 0xA0005, buffer sizes
+/// 0x200 / 0x200 / 0x200 / 0x300 / 0x300). Each spawned model object takes its
+/// texture page and CLUT from the nested area record the actor's own area key
+/// resolves to, and is streamed twice once its aux buffer exists.
+void func_actor_110600_80136ECC(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GpAreaKey        key;
+    u8               areaByte0;
+    u32              raw1, index1;
+    GpEffWork*       effect1;
+    TmdObject*       model1;
+    GpCdRec10*       entry1;
+    GpAreaKey*       sessionKey1;
+    u32              raw2, index2;
+    GpEffWork*       effect2;
+    TmdObject*       model2;
+    GpCdRec10*       entry2;
+    GpAreaKey*       sessionKey2;
+    u32              raw3, index3;
+    GpEffWork*       effect3;
+    TmdObject*       model3;
+    GpCdRec10*       entry3;
+    GpAreaKey*       sessionKey3;
+    u32              raw4, index4;
+    GpEffWork*       effect4;
+    TmdObject*       model4;
+    GpCdRec10*       entry4;
+    GpAreaKey*       sessionKey4;
+    u32              raw5, index5;
+    GpEffWork*       effect5;
+    TmdObject*       model5;
+    GpCdRec10*       entry5;
+    GpAreaKey*       sessionKey5;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy                  = arg0->field_20;
+        obj                    = arg0->field_2C;
+        obj->field_C           = 0;
+        work->field_A90.flags &= 0x7FFF;
+        work->field_950.flags &= 0xBFFF;
+        enemy->node.field_4    = 1;
+        work->field_B82        = 0;
+        work->field_8A4        = 0;
+        work->field_8A2        = 0;
+        obj->field_C           = 0x80;
+
+        effect1 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[6], 0x200, NULL);
+        if (effect1 != NULL) {
+            sessionKey1 = (GpAreaKey*)&Game_Session->field_4;
+            raw1        = enemy->field_8;
+            model1      = (TmdObject*)effect1->field_0->extra;
+            key.field_3 = sessionKey1->field_3;
+            key.field_2 = sessionKey1->field_2;
+            key.field_1 = sessionKey1->field_1;
+            areaByte0   = Game_Session->field_4;
+            index1      = raw1 >> 12;
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(&key);
+            entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            model1->field_24 = entry1->field_D;
+            model1->field_25 = entry1->field_E;
+            if (model1->field_18 != NULL) {
+                Tmd_ProcessStream(model1);
+                Tmd_ProcessStream(model1);
+            }
+        }
+
+        effect2 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[8], 0x200, NULL);
+        if (effect2 != NULL) {
+            sessionKey2 = (GpAreaKey*)&Game_Session->field_4;
+            raw2        = enemy->field_8;
+            model2      = (TmdObject*)effect2->field_0->extra;
+            key.field_3 = sessionKey2->field_3;
+            key.field_2 = sessionKey2->field_2;
+            key.field_1 = sessionKey2->field_1;
+            areaByte0   = Game_Session->field_4;
+            index2      = raw2 >> 12;
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(&key);
+            entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            model2->field_24 = entry2->field_D;
+            model2->field_25 = entry2->field_E;
+            if (model2->field_18 != NULL) {
+                Tmd_ProcessStream(model2);
+                Tmd_ProcessStream(model2);
+            }
+        }
+
+        effect3 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[10], 0x200, NULL);
+        if (effect3 != NULL) {
+            sessionKey3 = (GpAreaKey*)&Game_Session->field_4;
+            raw3        = enemy->field_8;
+            model3      = (TmdObject*)effect3->field_0->extra;
+            key.field_3 = sessionKey3->field_3;
+            key.field_2 = sessionKey3->field_2;
+            key.field_1 = sessionKey3->field_1;
+            areaByte0   = Game_Session->field_4;
+            index3      = raw3 >> 12;
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(&key);
+            entry3           = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            model3->field_24 = entry3->field_D;
+            model3->field_25 = entry3->field_E;
+            if (model3->field_18 != NULL) {
+                Tmd_ProcessStream(model3);
+                Tmd_ProcessStream(model3);
+            }
+        }
+
+        effect4 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[11], 0x300, NULL);
+        if (effect4 != NULL) {
+            sessionKey4 = (GpAreaKey*)&Game_Session->field_4;
+            raw4        = enemy->field_8;
+            model4      = (TmdObject*)effect4->field_0->extra;
+            key.field_3 = sessionKey4->field_3;
+            key.field_2 = sessionKey4->field_2;
+            key.field_1 = sessionKey4->field_1;
+            areaByte0   = Game_Session->field_4;
+            index4      = raw4 >> 12;
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(&key);
+            entry4           = (GpCdRec10*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            model4->field_24 = entry4->field_D;
+            model4->field_25 = entry4->field_E;
+            if (model4->field_18 != NULL) {
+                Tmd_ProcessStream(model4);
+                Tmd_ProcessStream(model4);
+            }
+        }
+
+        effect5 = Gp_SpawnEff(0xA0005, &arg0->field_2C->field_8[15], 0x300, NULL);
+        if (effect5 != NULL) {
+            sessionKey5 = (GpAreaKey*)&Game_Session->field_4;
+            raw5        = enemy->field_8;
+            model5      = (TmdObject*)effect5->field_0->extra;
+            key.field_3 = sessionKey5->field_3;
+            key.field_2 = sessionKey5->field_2;
+            key.field_1 = sessionKey5->field_1;
+            areaByte0   = Game_Session->field_4;
+            index5      = raw5 >> 12;
+            key.field_0 = areaByte0;
+            Gp_SyncAreaKeyIndex(&key);
+            entry5           = (GpCdRec10*)((index5 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+            model5->field_24 = entry5->field_D;
+            model5->field_25 = entry5->field_E;
+            if (model5->field_18 != NULL) {
+                Tmd_ProcessStream(model5);
+                Tmd_ProcessStream(model5);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801372CC);
 

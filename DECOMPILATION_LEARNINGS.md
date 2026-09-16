@@ -110030,3 +110030,38 @@ Inputs: `base_2.i` (99.762%) SHA256
 target.o SHA256 `1884bd2880f45dc0aeb9e58e14e1af206de915bc1f0409c38c0fcd3fe8a91a6d`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80136888-vacuum`.
+
+## A pointer read through the actor is re-loaded after every store to another of its fields unless the source binds it to a local
+
+`func_actor_110600_80136ECC` writes `arg0->field_2C->field_C` between its reads of
+`arg0->field_1C`, and the target keeps the work pointer in `$a2` across the store
+(`lw a2, 0x1C(s2)` once, then `lhu v0, 0xAAE(a2)` after `sh zero, 0xC(a1)`).
+Written the natural way — `arg0->field_1C->field_A90.flags &= 0x7FFF;` — GCC 2.8.1
+does not CSE it: the store through the other pointer invalidates the memory
+expression, and every later use re-loads (`lw v1, 0x1C(s2)`, five of them). Cost
+22 points (77.7% instead of 100%), and the spare register also cost `$s3` and the
+frame size. Binding the pointer to a local removes the reloads:
+
+```c
+    work = arg0->field_1C;          /* $a2, live across the stores below */
+    if (work->field_4 != 0) {
+        obj            = arg0->field_2C;
+        obj->field_C   = 0;
+        work->field_A90.flags &= 0x7FFF;
+```
+
+m2c's `temp_a2` / `temp_a1` / `temp_s3` locals are exactly this and are therefore
+worth keeping rather than folding inline; the sibling `func_actor_110600_80136888`
+one function up needs the same three names. Which of them are read inside the
+`if` and which above it is read off the target's own load placement — see the
+`80136888` entry above: `work` is above the `beqz` here, `enemy` and `obj` below
+it, so those two are assigned on the first line of the block. GCC 2.8.1 sinks
+neither across a branch, so the target decides.
+
+Inputs: `base_1.i` (77.745%) SHA256
+`dddbccdd64fae9d55dc175c5e6a42698b3f059ccd4b695f95fb85d859ce3854e`;
+`base_2.i` (100%) SHA256
+`2ea94ad16cdd8cacb09ca2b01ce76ce190c66c3948dfca5a4e26068695132f18`;
+target.o SHA256 `16346a4b72614bf119587034e548eea2cec8d4e46f86e0321fc79bfc92634c47`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80136ECC-vacuum`.
