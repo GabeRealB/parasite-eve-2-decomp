@@ -107673,3 +107673,35 @@ insn match. `m2c`'s `goto block_25` / `goto block_36` in this function are real 
 **Not to be confused with** the `func_actor_403000_80134F44` entry above: there, a duplicated
 load in front of a jump into a tail meant duplicated source. Here the discriminator is the
 branch sense (`beq` vs `bne`), which duplicated source cannot produce.
+
+## A `s16` local is what keeps a small switch's index 16-bit (func_actor_403200_8013D9EC, 2026-09-16)
+
+`switch (work->field_6 - 0x39)` with `field_6` declared `s16` looks like it should
+compile the same as the same expression copied into an `s16` local, and does not.
+The subtraction makes the index an `int`, so the extension folds into the load and
+the range test is two instructions shorter than the target's:
+
+```c
+    switch (work->field_6 - 0x39) {        /* lh v0,6(s2) */
+                                           /* addiu v1,v0,-0x39 */
+                                           /* sltiu v0,v1,0x14 */
+```
+```c
+    s16 state;                             /* lhu v0,6(s2) */
+    state = work->field_6 - 0x39;          /* addiu v0,v0,-0x39 */
+    switch (state) {                       /* sll v0,v0,0x10 */
+                                           /* sra v1,v0,0x10 */
+                                           /* sltiu v0,v1,0x14 */
+```
+
+The copy truncates the index to HImode, so `movhi_internal` loads it with `lhu` and
+the extension is materialised afterwards from the register instead of from a second
+load. This is the same `lhu`-vs-`lh` mechanism as the `s32 dir` / `s16 dir` pair in
+`func_actor_503500_80134284`, reached here through the switch's index type rather
+than through a compare's operand. Without the copy the function scored 97.24% at
+146/148 instructions (`insert=1 delete=3`, no register or scheduling penalty at
+all); with it, 100% and every penalty zero.
+
+The same function reads the *same* field as `lh` for its closing
+`if (work->field_6 >= 0x15)`, so two widths of load on one field inside one function
+is expected here and is not evidence about the field's declared signedness.

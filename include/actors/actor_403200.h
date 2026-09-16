@@ -91,7 +91,9 @@ typedef struct Actor403200Work {
     /// and role as `Actor444000Work::field_EE8`.
     /* 0xEE8 */ GpEnemy* field_EE8;
     /* 0xEEC */ GpEnemy* field_EEC;
-    /* 0xEF0 */ byte     pad_EF0[0x4];
+    /// The enemy the state-change reset spawns from `D_actor_403200_8015E858`
+    /// for the three states that launch it.
+    /* 0xEF0 */ GpEnemy* field_EF0;
     /* 0xEF4 */ s16      field_EF4;
     /* 0xEF6 */ s16      field_EF6;
     /* 0xEF8 */ byte     pad_EF8[0x2];
@@ -123,8 +125,11 @@ typedef struct Actor403200Work {
     /* 0xF1B */ byte pad_F1B[0x1];
     /// Countdown, decremented while positive; when it reaches zero the handler
     /// re-arms `field_F16`.
-    /* 0xF1C */ s8   field_F1C;
-    /* 0xF1D */ byte pad_F1D[0x7];
+    /* 0xF1C */ s8 field_F1C;
+    /// Armed to 6 by the state-change reset, the pair shown while the enemy
+    /// stands up.
+    /* 0xF1D */ s8   field_F1D;
+    /* 0xF1E */ byte pad_F1E[0x6];
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 

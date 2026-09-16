@@ -14,6 +14,10 @@
 
 extern s16 D_actor_403200_80141C58;
 
+/// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
+/// draw from.
+extern TaskDesc D_actor_403200_8015E858;
+
 /// This overlay's three task states -- spawn/setup, per-frame tick and
 /// teardown -- dispatched through by state, the same shape as the sibling
 /// enemy actors' tables.
@@ -216,7 +220,92 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013D78C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013D9EC);
+/// State-change reset for the enemy's stand-up. It clears the host model's flag
+/// word, walks the seven escorts pushing that word onto each of their models,
+/// allocates every escort's model buffers and then arms the block -- `field_EF6`
+/// and `field_EF4` at 1, `field_EFA` at 0, `field_E96` at 0xC80 -- before
+/// playing the type-6 cue built from the spawn record's `field_8`. Same shape as
+/// `func_actor_403200_8013B23C`'s reset half, with the buffer allocator on the
+/// second walk in place of the release.
+///
+/// The state then writes its two cue frames, and the three states at 0x39, 0x45
+/// and 0x4C spawn `field_EF0` from `D_actor_403200_8015E858`; every other state
+/// in the 0x39..0x4C window falls through to the dispatcher.
+///
+/// The `state` copy is what keeps the switch index 16-bit: switched on
+/// `field_6 - 0x39` directly the index is an `int`, and the `lh` the load
+/// becomes carries the sign extension the original does with a separate
+/// `sll`/`sra` pair (dropping 2 instructions and 2.8% of the match).
+void func_actor_403200_8013D9EC(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    GpEnemy*         enemy;
+    GpEnemy*         spawned;
+    s16              i;
+    s16              j;
+    s16              state;
+    s32              sfx;
+    s32              pan;
+
+    work  = (Actor403200Work*)arg0->idMap;
+    enemy = arg0->spawnArg2;
+    if (work->field_4 != 0) {
+        work->field_F1D                    = 6;
+        work->field_7B3                    = 6;
+        work->field_7B0                    = 2;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_EF6 = 1;
+        work->field_EF4 = 1;
+        work->field_EFA = 0;
+        work->field_E96 = 0xC80;
+        sfx             = (((u16)enemy->field_8 >> 12) << 8) | 0x40200017;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(sfx, pan,
+                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    state = work->field_6 - 0x39;
+    switch (state) {
+        case 6:
+            work->field_7B3 = 0xC;
+            work->field_7B0 = 1;
+            break;
+        case 13:
+            work->field_7B3 = 0xC;
+            work->field_7B0 = 2;
+            break;
+        case 0:
+        case 12:
+        case 19:
+            spawned          = Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 0, 0, arg0->spawnArg2);
+            spawned->field_A = 0x900;
+            work->field_EF0  = spawned;
+            break;
+    }
+    func_actor_403200_80133DD8(arg0);
+    if (work->field_58 & 1) {
+        work->field_0 = 7;
+    }
+    if (work->field_6 >= 0x15) {
+        work->field_F06 = 3;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013DC3C);
 
