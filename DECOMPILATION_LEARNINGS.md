@@ -83905,10 +83905,29 @@ block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
 ```
 
 The stored value stays a short-lived pseudo (local-alloc colours it `$v0`) and
-the reload CSEs back to it, which is what puts the copy into the `$s2` home.
-Pinning `head` to `$v0` instead scores the same 100.000% and assembles to the
-identical object, so the pin is the readable substitute for this shape rather
-than the mechanism.
+the reload is a second quantity, joined by the register copy. Pinning `head` to
+`$v0` instead scores the same 100.000% and assembles to the identical object, so
+the pin is the readable substitute for this shape rather than the mechanism.
+
+A `trace_gcc.py` run on the unpinned candidate shows it is the *quantity split*
+that produces both the copy and the homes, not CSE: the carve is a local
+(`refs=5 span=16 priority=6250 -> $v0`) and `block` a separate global
+(`refs=4 span=16 priority=5000 -> $s2`), while `coord` is
+`refs=4 span=17 priority=4705 -> $s3`. Against the naive form's single pseudo,
+which the scratch's `.greg` records as block `10/22` and coord `8/15`, taking
+the carve out of the block quantity drops it to `8/16 = 0.50` and the store
+moving later lengthens coord to `8/17 = 0.47`, so the two swap homes. Both
+inputs are needed: refs alone give `8/22 = 0.36`, span alone `10/16 = 0.63`.
+When only the homes are wrong and the copy is present, read the priority table,
+not a missing copy.
+
+Trace inputs: `base_6.i` SHA256
+`1fc6634a1c7ebfc6a043c3467c994dd1ea3c6142b6fd9e947d8e67dcdc6d7f58`; target
+SHA256 `7aeeba52d4564060ba1ea46e3777403df872104b51dde722c120af8f9fbb0185`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
+`nonmatchings/ActorsShared80131e24Sub1-vacuum`. Unverified beyond this function:
+whether the split still inverts the homes when the carve does *not* cross a call.
 
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
 
