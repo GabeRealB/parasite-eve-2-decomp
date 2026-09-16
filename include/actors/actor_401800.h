@@ -104,6 +104,19 @@ typedef struct Actor401800 {
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
 extern GpAnimArg D_actor_401800_80155A0C;
 
+/// Payload of the `0x3E9` message `func_actor_401800_80138C28` sends: the
+/// slot-3 task's root position followed by the heading `ratan2` derives from
+/// the direction to the actor. Same 0x18-byte shape the `Actor401300Work`
+/// fields `field_CD4` / `field_CE4` form.
+typedef struct Actor401800Msg3E9 {
+    /* 0x00 */ VECTOR  field_0;
+    /* 0x10 */ SVECTOR field_10;
+} Actor401800Msg3E9;
+STATIC_ASSERT_SIZEOF(Actor401800Msg3E9, 0x18);
+
+/// Payload `func_actor_401800_80138C28` fills and sends with message 0x3E9.
+extern Actor401800Msg3E9 D_actor_401800_80155AD8;
+
 /// Payload of message `0x7D3`, the "set animation state" request the handler
 /// table `D_actor_401800_80155A80` routes to `func_actor_401800_8013DCBC`:
 /// `field_4` is the requested state, 0..4. The 01900 actor's table entry for

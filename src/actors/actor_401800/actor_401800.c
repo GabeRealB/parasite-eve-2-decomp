@@ -1,11 +1,17 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "actors/actor_401800.h"
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/session.h"
+
+/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_801323D4);
 
@@ -79,7 +85,68 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_801381E4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80138C28);
+/// Live-actor body: arms the animation slots and the two `field_8C8` /
+/// `field_A08` nodes, then aims the actor at the `Game_GetPtrSlot(3)` task's
+/// root position — the XZ offset normalized by `VectorNormalSS` and GPF-scaled
+/// by 0x3E8, the heading taken through `ratan2` — sends it as message 0x3E9
+/// and spawns the 0xC/8/0x8F pad-lerp. On work flag bit 0 while `field_89E` is
+/// 5, restarts the actor's model (`field_0 = 0xD`, the 0x8B8 effect record for
+/// the second coordinate). Same shape as `func_actor_401300_80138800`.
+void func_actor_401800_80138C28(Actor401800* arg0)
+{
+    SVECTOR          dir;
+    Actor401800Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+    Task*            player;
+    SVECTOR*         pdir;
+
+    if (work->field_4 != 0) {
+        player                                    = Game_GetPtrSlot(3);
+        work->field_8C8.field_1C                  = 0x12C;
+        work->field_B48.flags                    &= 0x7FFF;
+        work->field_A08.flags                    |= 0x4000;
+        enemy->node.field_4                       = 0;
+        work->field_898                           = 1;
+        work->field_8A2                           = 0x10;
+        work->field_89E                           = 5;
+        ((TmdObject*)player->extra)->field_8->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)player->extra)->field_8);
+        D_actor_401800_80155AD8.field_0.vx = ((TmdObject*)player->extra)->field_8->coord.t[0];
+        D_actor_401800_80155AD8.field_0.vy = ((TmdObject*)player->extra)->field_8->coord.t[1];
+        D_actor_401800_80155AD8.field_0.vz = ((TmdObject*)player->extra)->field_8->coord.t[2];
+        pdir                               = &dir;
+        dir.vx                             = ((GpCoordXZ*)arg0->field_2C->field_8)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_18;
+        dir.vy                             = 0;
+        dir.vz                             = ((GpCoordXZ*)arg0->field_2C->field_8)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_20;
+        VectorNormalSS(pdir, pdir);
+        gte_lddp(0x3E8);
+        gte_ldsv(pdir);
+        gte_gpf12_real();
+        gte_stsv(pdir);
+        arg0->field_2C->field_8->coord.t[0] = ((TmdObject*)player->extra)->field_8->coord.t[0] + dir.vx;
+        arg0->field_2C->field_8->coord.t[2] = ((TmdObject*)player->extra)->field_8->coord.t[2] + dir.vz;
+        arg0->field_2C->field_8->flg        = 0;
+        D_actor_401800_80155AD8.field_10.vx = 0;
+        D_actor_401800_80155AD8.field_10.vy = ratan2(dir.vx, dir.vz);
+        D_actor_401800_80155AD8.field_10.vz = 0;
+        Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_401800_80155AD8, 0);
+        Gp_SpawnPadLerp(0xC, 8, 0x8F);
+    }
+    func_actor_401800_80133EB8(arg0);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[2].coord, -0x80, 0);
+    arg0->field_2C->field_8[4].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
+    arg0->field_2C->field_8[5].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
+    if (work->field_89E == 5 && (work->field_68 & 1)) {
+        work->field_0           = 0xD;
+        work->field_8B8.field_0 = &arg0->field_2C->field_8[1];
+        work->field_8B8.field_4 = 0x200;
+        work->field_8B8.field_6 = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->field_8[5], 0, &work->field_8B8);
+    }
+}
 
 /// On the live-actor flag, raises the three animation slots, sends the `0x3FF`
 /// animation record and the `0x3F9` object pair to the `Game_GetPtrSlot(3)`
