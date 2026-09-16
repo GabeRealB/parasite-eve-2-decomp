@@ -39204,6 +39204,31 @@ if/else form wins; when it is a *call argument whose condition is itself a
 call*, only the ternary keeps the value out of a callee-saved register.
 `stack` plus `regs` plus a `move aN, sN` where the target has `nop` is the tell.
 
+**Which arm lands in the delay slot is the predicate's polarity, not a detail
+of the target.** Once the argument is a ternary the two halves collapse into
+the same shape the target above has -- one `li` in the branch's delay slot, one
+as the fall-through, branch to the join -- but the *spelling* of the condition
+decides which constant goes where, and the two equivalent spellings are not
+interchangeable:
+
+```c
+Gp_RunCapCmd1(GameFlag_GetNibble(0x141) != 0 ? 6 : 4);   /* beqz v0, .L; li a0,4; li a0,6  */
+Gp_RunCapCmd1(GameFlag_GetNibble(0x141) == 0 ? 4 : 6);   /* bnez v0, .L; li a0,6; li a0,4  */
+```
+
+Both compute the same value. In both, the emitted branch tests the **negation**
+of the condition as written, targets the join, and takes the **else arm** into
+the delay slot while the **then arm** is the fall-through. So the rule for
+reproducing a target is one line: the constant sitting in the delay slot must
+be the *else* arm, which fixes the polarity you have to write.
+
+`func_dryfield_night_trailer_coach_80182864` is the minimal case -- m2c's pre-set
+local scored 54.933% with the `$s0` spill, `!= 0 ? 0x21 : 0x20` scored 83.846%
+with `beqz v0` and `0x20` in the delay slot where the target has `bnez v0` and
+`0x21`, and `== 0 ? 0x20 : 0x21` is 100% with every penalty zero. The
+`predicates_match=False` diagnostic on a `blocks`/`instructions`/`calls` match
+is the signal: flip the predicate before touching anything else.
+
 ## Repeating a trailing constant store in every arm can *block* the tail-merge
 
 The dual of "duplicate the setup so GCC tail-merges one `jal`": when the
