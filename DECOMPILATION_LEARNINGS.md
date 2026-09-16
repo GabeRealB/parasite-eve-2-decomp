@@ -97386,3 +97386,48 @@ is identical, so the second arm writes the cast expression directly. Check
 decided, and no amount of rewriting inside a single arm will move it.
 
 Example: `func_actor_323400_80164C4C` (`base_1.c` 99.75% → `base_2.c` 100%).
+## `lw` then `lhu` from one offset is a truncating store, not two field types
+
+An actor `if (preset->field_4 < K)` guard that then copies the same field into
+a halfword work slot comes out as **two loads of the same address at different
+widths**:
+
+```
+lw   v0, 0x4(a2)        # the s32 field, for the slti
+...
+beqz v0, .Lout
+ lui v0, %hi(Work)      # <- delay slot clobbers $v0, killing the lw
+lw   v1, %lo(Work)(v0)
+lhu  v0, 0x4(a2)        # reloads the SAME field as HImode
+sh   v0, 0x480(v1)
+```
+
+The `lhu` is not evidence of a union or of a second `u16` member: it is what
+GCC 2.8.1 emits for `s16 work->slot = preset->field_4;` once the `lui` in the
+branch delay slot has clobbered the register holding the `lw`, so CSE reloads
+the truncated value as a narrower memory reference. The struct stays a plain
+`s32` preset field and a plain `s16` work field, and the shape reproduces
+exactly. Reading the two widths as two declarations sends you hunting for a
+union that the original never had; the sibling bodies in the same family
+(`func_actor_260400_8014A908`, `func_actor_461800_80133898`) declare it the
+plain way and match.
+
+This is the *store* analogue of `## (u16) cast on an s16 field forces lhu`:
+there the narrowing is spelled in C, here it falls out of the truncation plus
+the delay-slot clobber, and it needs no cast at all.
+
+The surrounding body is a family-wide shape — `s32 f(Task*, s32, Preset*)`
+with an unused task in `$a0` and the preset arriving in `$a2`, an id-range
+guard returning -1, a two-way `field_8` reset-mode latch, and a tail call
+handing `ActorsShared801326b4Task` to the overlay's update. Porting a matched
+sibling's *source* (typed preset, typed work block, early return) beats
+rewriting the m2c seed: m2c's `M2C_FIELD(void*, ...)` form scored 87.184%,
+while the sibling shape hit 100.00% on the first edit. The bodies are not
+byte-identical across carriers (different offsets and id ranges), so
+`overlay_dup_index.py find` reports no copies and nothing is promoted.
+
+`func_actor_260500_8014A6C4`: 87.184% from the m2c seed, 100.00% all-zero
+penalties (`base_1.c`). Preprocessed SHA256
+`565cc7cb7d157f467f298d7be2dbd5fa0ce8aebebcab39962791b15bca1a61d7`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_260500_8014A6C4-vacuum` (`base_1_diff`).
