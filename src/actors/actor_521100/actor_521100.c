@@ -235,7 +235,46 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_8
 /// at sub-state `field_6BC`. Phase 2 latches clip 1 for the blend and picks this
 /// frame's effect out of `D_actor_521100_8015F634`, the same 4-bit draw
 /// `func_actor_521100_8013570C` makes.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80134658);
+void func_actor_521100_80134658(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    u16*             tbl;
+    u32              rng;
+
+    work = arg0->field_1C;
+    switch (work->field_6A0) {
+        case 0:
+            work->field_686     = 0xE;
+            work->field_6A0     = 1;
+            work->field_69A     = 0;
+            work->field_69C     = 0;
+            work->obj57C.flags &= 0x7FFF;
+            work->obj59C.flags &= 0x7FFF;
+            return;
+        case 1:
+            if ((s16)work->field_68A >= 5) {
+                work->field_686 = 0xF;
+                work->field_6A0 = 2;
+            }
+            return;
+        case 2:
+            if ((s16)work->field_68A >= 0x26) {
+                if (work->field_6BA == 0) {
+                    work->field_69E = 0;
+                    work->field_6A0 = 0;
+                } else {
+                    work->field_69E = 6;
+                    work->field_6A0 = work->field_6BC;
+                }
+                work->field_686 = 1;
+                tbl             = D_actor_521100_8015F634;
+                rng             = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_68E = tbl[(rng >> 16) & 0xF];
+            }
+            return;
+    }
+}
 /// State-6 body of the burn-out sequence, the last one the dispatcher
 /// `func_actor_521100_801355C8` runs off `field_69E`. `field_6A0` is a
 /// three-phase latch again and `D_actor_521100_8015F654` holds one waypoint per
