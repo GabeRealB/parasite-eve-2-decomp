@@ -6,6 +6,9 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017d638.h"
+
 /// Cutscene script blob arguments of `func_800E8634`.
 extern s32 D_dryfield_night_dilapidated_house_801868F4;
 extern s32 D_dryfield_night_dilapidated_house_80187134;
@@ -19,7 +22,28 @@ s32 func_dryfield_night_dilapidated_house_8017D8D4(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", func_dryfield_night_dilapidated_house_8017D8DC);
+/// Handler for the room's `0x13EE` message, the warp destination the gameplay
+/// side posts as `Gp_WarpLoc`: copies the incoming payload through to `out` and,
+/// when the destination id is 5, offers the gate a request that plays the
+/// room's pair of stage sounds under flag nibble 0x3F. Returns 1 for a
+/// destination it does not own.
+s32 func_dryfield_night_dilapidated_house_8017D8DC(s32 arg0, s32 arg1, RoomEventMsg* in,
+                                                   RoomEventMsg* out)
+{
+    RoomEventReq req;
+
+    *out = *in;
+    if (in->msgId == 5) {
+        req.field_0 = 0xC;
+        req.field_4 = 0xC;
+        req.field_8 = 0x53090005;
+        req.field_C = 0x53090001;
+        req.flagId  = 0x3F;
+        req.itemId  = 0;
+        return RoomsShared8017d638(&req, in);
+    }
+    return 1;
+}
 
 s32 func_dryfield_night_dilapidated_house_8017D960(void)
 {
