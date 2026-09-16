@@ -28,7 +28,30 @@ MATRIX*    MulMatrix(MATRIX* m0, MATRIX* m1);
 void       Actor01600_Fn06EA4(Actor01600* arg0);
 u8         Actor01600_Fn06F78(Actor01600* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn052C4);
+s32 Actor01600_Fn052C4(Actor01600* arg0)
+{
+    Actor01600CoordPos* coord;
+    Actor01600CoordPos* other;
+    SVECTOR             d;
+    s32                 dist;
+
+    coord = (Actor01600CoordPos*)arg0->field_2C->field_8;
+    if (Gp_ActorSlots[0] != NULL) {
+        other = (Actor01600CoordPos*)Gp_ActorSlots[0]->field_2C->field_8;
+        d.vx  = other->x - coord->x;
+        d.vy  = other->y - coord->y;
+        d.vz  = other->z - coord->z;
+        dist  = SquareRoot0((d.vx * d.vx) + (d.vz * d.vz));
+        if (Gp_ActorSlots[1] != NULL) {
+            other = (Actor01600CoordPos*)Gp_ActorSlots[1]->field_2C->field_8;
+            d.vx  = other->x - coord->x;
+            d.vy  = other->y - coord->y;
+            d.vz  = other->z - coord->z;
+            return SquareRoot0((d.vx * d.vx) + (d.vz * d.vz)) < dist;
+        }
+    }
+    return 0;
+}
 
 void Actor01600_Fn05400(Actor01600* arg0)
 {

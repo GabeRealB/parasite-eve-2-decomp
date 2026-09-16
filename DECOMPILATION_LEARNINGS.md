@@ -98483,3 +98483,41 @@ Inputs: `base.i`
 `base_6.i`
 `dc2abb0341e4ff2df80a38174066942cdd58842df27d7efe1d7187d1bc6a4dec`.
 Scratch `nonmatchings/Actor01600_Fn06974-vacuum`.
+
+## Both arms storing to the *same* stack offsets is one reused local, not two (Actor01600_Fn052C4, 2026-09-16)
+
+`Actor01600_Fn052C4` measures the XZ distance to each of the two `Gp_ActorSlots`
+actors and returns which slot is nearer. Writing the two branches with their own
+scratch vector — `SVECTOR d0; SVECTOR d1;`, one per branch — scored 99.304% with
+`regs=11` and every emitted instruction correct. The diff was six lines: the
+prologue/epilogue, and the three scratch stores, which sat at `0x18/0x1a/0x1c`
+against the target's `0x10/0x12/0x14`, with a `0x30` frame against `0x28`.
+
+The tell was in the target itself: the *second* branch stores to `0x10`, `0x12`
+and `0x14` as well. Two locals of an aggregate type cannot share a slot —
+`assign_stack_local` advances the frame offset once per `expand_decl`, with no
+reuse between distinct variables — so identical offsets in both arms mean the
+source declares **one** vector and overwrites it. Collapsing to a single
+`SVECTOR d` written before each use took it to 100.000%, all penalties zero.
+
+This is the mirror of the "target frame is larger" entries: there an unused
+aggregate explains frame the C does not have, here a *duplicated* one explains
+frame the C has and the target does not. The diagnostic is the same one — read
+the offsets, not the size — but it needs the other question asked first: when
+your frame is 8 (or 16) bytes too big and the gap is exactly the size of one
+more slot than the target needs, count the locals the source declares of that
+type rather than reaching for an unused one.
+
+A useful side-effect of the bug: the dead `d.vy` term is *load-bearing* here.
+The Y difference is computed into the scratch vector and never enters the
+`SquareRoot0` sum, so a tidy rewrite that drops it loses four instructions per
+branch. m2c's seed had dropped it and stored nothing (80.73%, `delete=14`).
+Keep the assignment; it is the source's shape, not a leftover.
+
+Inputs: `base.i`
+`7ee81c91627a13e84cb29b0eb1138d587dc663007c60bd3ac4953856d5cd32d5` (baseline, 80.73%),
+`base_1.i`
+`dcba4392e393b46642e456aaed9a247fbfa57b0c4d00267a61382d4d3ba7d331` (two vectors, 99.304%),
+`base_2.i`
+`f13eb9f96bb853f83bf88657dd9c32831bfac4205939bf37fe97745dc143695a` (one vector, 100.000%).
+Scratch `nonmatchings/Actor01600_Fn052C4-vacuum`.
