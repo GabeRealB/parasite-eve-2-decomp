@@ -40,7 +40,38 @@ void func_actor_511000_8013222C(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_2", func_actor_511000_80132284);
+void func_actor_511000_80132284(Task* task)
+{
+    Task*          parent;
+    TmdObject*     obj;
+    TmdObject*     parentObj;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* root;
+
+    parent        = task->spawnArg2;
+    obj           = task->extra;
+    parentObj     = parent->extra;
+    coords        = parentObj->field_8;
+    obj->field_C |= 0x80;
+    root          = obj->field_8;
+    if (!(parentObj->field_C & 0x80)) {
+        obj->field_C &= 0xFF7F;
+    }
+    if (!(parentObj->field_C & 4)) {
+        obj->field_C &= 0xFFFB;
+        Tmd_AllocBuffers(obj);
+    } else {
+        obj->field_C |= 4;
+    }
+    obj->field_E  = -2;
+    coords       += task->spawnArg1;
+    root->flg     = 0;
+    root->sub     = coords;
+    obj->field_1C = parentObj->field_1C;
+    obj->field_20 = parentObj->field_20;
+    Task_Reparent(parent, task);
+    task->state++;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000_2", D_actor_511000_80131E48);
 
