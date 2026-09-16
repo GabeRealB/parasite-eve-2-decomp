@@ -30,6 +30,12 @@ typedef struct _Actor800100LockScratch {
 } Actor800100LockScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LockScratch, 0x20);
 
+/// NULL-terminated `GpImgRec*` frame lists for `func_actor_800100_80163A58`,
+/// indexed `table[field_987 - 1][field_989]`; `D_actor_800100_80167210` is
+/// the `field_98A` sequence.
+extern GpImgRec** D_actor_800100_80167200[];
+extern GpImgRec** D_actor_800100_80167210[];
+
 void func_actor_800100_80163C04(GpActorWork* arg0);
 void func_actor_800100_80163D54(GpActorWork* arg0);
 void func_actor_800100_801655C0(GpActorWork* arg0);
