@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+#include "gameplay/1BC.h"
+
 /// Per-actor state block for the `actor_210600` overlay. `func_actor_210600_8014B8C8`
 /// is the overlay's allocator: it calls `Mem_Calloc(0x8D8, 0)` and stores the
 /// result in `Task::idMap` (0x1C), which an enemy actor reuses for its own work
@@ -13,15 +15,27 @@
 /// size below is the allocation, not a guess; only the fields this overlay's
 /// matched bodies touch are named.
 typedef struct Actor210600Work {
-    /* 0x000 */ byte pad_0[0x87C];
-    /* 0x87C */ s16  field_87C;
-    /* 0x87E */ byte pad_87E[0x4];
-    /* 0x882 */ u16  field_882;
-    /* 0x884 */ byte pad_884[0x2];
-    /* 0x886 */ s16  field_886;
-    /* 0x888 */ byte pad_888[0x8];
-    /* 0x890 */ s16  field_890;
-    /* 0x892 */ byte pad_892[0x46];
+    /// Animation context the spawn body hands `func_800B3F84` as `anim`, with
+    /// its 19 slots (`0x28` each) directly behind it: the pose buffer that
+    /// function is handed as `poses` starts at 0x30C, exactly `0x14 + 19 *
+    /// 0x28`, the same pack `Actor206100Work` and `Actor151000Work` carry.
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       field_30C[0x570];
+    /* 0x87C */ s16        field_87C;
+    /* 0x87E */ byte       pad_87E[0x4];
+    /* 0x882 */ u16        field_882;
+    /* 0x884 */ byte       pad_884[0x2];
+    /* 0x886 */ s16        field_886;
+    /* 0x888 */ byte       pad_888[0x8];
+    /* 0x890 */ s16        field_890;
+    /* 0x892 */ byte       pad_892[0x6];
+    /// The light / colour matrices the spawn body stores into
+    /// `TmdObject::field_1C` / `field_20`. They sit at the top of the block
+    /// rather than at its head, so the overlay's actor keeps its animation
+    /// state in the first half of the allocation.
+    /* 0x898 */ MATRIX light;
+    /* 0x8B8 */ MATRIX color;
 } Actor210600Work;
 STATIC_ASSERT_SIZEOF(Actor210600Work, 0x8D8);
 
@@ -58,6 +72,18 @@ typedef struct Actor210600DispatchCtx {
 } Actor210600DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
+/// Spawn body: allocates the actor's 0x8D8-byte `Actor210600Work`, hands it to
+/// the task, and seeds the enemy object, the model's root coordinate and the
+/// animation context from the `TmdObject` in `Task::extra`. `enemy` is the
+/// `GpEnemy` the spawner left in the task's 0x20 spawn-argument slot.
+void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task);
+
 s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg);
+
+/// Display-object mode handler: 0 hides the object, 1 shows it, 2 and any
+/// other value set bit 0x4, with modes 0 and 1 reinstating the object's
+/// buffers and modes 0 and 2 arming `Actor210600Work::field_890`. `arg1` is
+/// unused; it exists because the dispatch passes three arguments.
+s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2);
 
 #endif // ACTOR_210600_H

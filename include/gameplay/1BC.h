@@ -61,7 +61,9 @@ typedef struct _GpEnemy {
     /* 0x4C */ u8   field_4C;
     /// Cleared next to `field_4C` by the spawn handler
     /// `func_actor_312200_80163178` and again by the show handler
-    /// `func_actor_312200_80163778`; no matched code reads it back yet.
+    /// `func_actor_312200_80163778`, and alongside `field_4C` by
+    /// `func_actor_210600_8014B8C8`; no matched code reads it back yet, so its
+    /// role is still unknown.
     /* 0x4D */ u8          field_4D;
     /* 0x4E */ u8          field_4E;
     /* 0x4F */ u8          field_4F;
