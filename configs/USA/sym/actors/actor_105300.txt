@@ -8,3 +8,4 @@ Actor05300_Fn01B70 = 0x80133990; // type:func
 ActorsShared80134ff0 = 0x801335B8; // shared body, see src/actors/lib/
 ActorsShared80136574 = 0x801336D4; // shared body, see src/actors/lib/
 ActorsShared80133530 = 0x80133530; // shared body, see src/actors/lib/
+ActorsShared8013391c = 0x8013391C; // shared body, see src/actors/lib/

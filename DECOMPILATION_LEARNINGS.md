@@ -96274,3 +96274,58 @@ which only shows up at assemble time as `can't open
 asm/…/actor_105300_4/func_….s` - rewrite those paths in the same pass. A unit
 whose `.c` was deleted (here `_2`, the promoted one) is the one splat
 regenerates, and its skeleton already carries the new path.
+
+## A four-arm `switch` with an empty first arm pivots on the *second* node
+
+`func_actor_105300_8013391C` dispatches on a halfword with `beq v1,v0(=1),CASE1`
+/ `slti v0,v1,2; bnez v0,TAIL` / `li v0,2; beq v1,v0,CASE2` / `li v0,3; beq
+v1,v0,CASE3` / `j TAIL`, and its three `lhu; …; ori k` arms share one store.
+The obvious `switch (id) { case 1: … case 2: … case 3: … }` is not it: three
+nodes take the `i == 3` branch of `balance_case_nodes`, whose pivot is the
+*middle* node, so that source opens with `li v0,2; beq v1,v0,CASE2` (the m2c
+shape, 73.6%).
+
+Four nodes take the bisect branch instead - `i = (i + ranges + 1) / 2`, then the
+loop decrements once per node - which lands on the **second** node. A case list
+of `0,1,2,3` therefore pivots on 1 and emits exactly the target's order. The
+extra node costs nothing when its arm produces no code: its label ends up where
+the default already points, so jump.c deletes both the probe and the jump that
+followed it, and none of it reaches the object.
+
+```c
+switch (msg->field_2) {
+    case 0:                 /* empty: its only job is to be a fourth node */
+        break;
+    case 1:
+        work->field_33A |= 1;
+        break;
+    case 2:
+        work->field_33A |= 2;
+        break;
+    case 3:
+        work->field_33A |= 3;
+        break;
+}
+return 0;
+```
+
+Byte-exact on the first build (29/29 insns, every penalty zero; the body is
+shared by `actor_105300` and `actor_105400`). `case 0: work->field_33A |= 0;`
+and a trailing `case 0: ;` compile to the same bytes, so the arm's body is not
+recoverable from the object - only the node count is. What that arm must *not*
+be is a fall-through into case 1 and nothing else: two labels on one insn make
+`group_case_nodes` merge `0` and `1` into a range, which is three nodes again
+and puts the `==2` probe back in front.
+
+## Compare the built `.o`, not cc1's `.s`, when prospecting a candidate by hand
+
+cc1 leaves branch delay slots to the assembler: an instruction printed on the
+line after a `beq` in an ordinary (reorder) region is *not* in its delay slot,
+and maspsx/gas moves it there. A hand-written candidate can therefore read like
+the ROM in the `.s` and still assemble to `beq; slt` where the ROM has `beq;
+nop`, or the reverse - and the difference looks like a scheduling clue worth
+chasing when it is only an artifact of stopping one step early. Run the
+candidate through the same pipeline `build.sh` uses (`cc1 -dp` →
+`maspsx --run-assembler`) and compare objdump output before drawing any
+conclusion from the layout. Reading the `.s` is still the way to see RTL uids
+and the `.set noreorder` blocks, but it is not the artifact being matched.
