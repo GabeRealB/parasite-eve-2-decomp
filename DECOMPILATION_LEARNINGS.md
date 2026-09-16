@@ -96547,3 +96547,72 @@ Inputs: `base.i` (m2c seed, 93.912%) SHA256 `70d1a105588491f512a88bed8a006b195d7
 target SHA256 `9f8823a1e208a1a63dc0be03e83a2e344afb9a71a6dc5e87659535a227c26cdf`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_113000_80131F90-vacuum` (session `114148419da64b0fb843f683f2856ea1`).
+
+## A load the target places *after* a `jal` is proof of source order — m2c had hoisted it above the call (func_actor_450200_80131FA8, 2026-09-16)
+
+**Problem.** `func_actor_450200_80131FA8` is a `switch (task->state)` state
+machine whose body first calls `Game_GetPtrSlot(3)`. The target reads the
+selector *after* that call:
+
+```
+jal    Game_GetPtrSlot
+sw     s0,0x10(sp)          <- delay slot
+lw     v1,0x30(s1)          <- the state, read after the call returns
+nop
+beqz   v1, .L
+move   s2,v0
+```
+
+m2c, which emits locals at function scope in the order it first sees a value
+produced, rendered that as an explicit hoist:
+
+```c
+temp_v1  = arg0->state;             /* before the call */
+temp_s2  = Game_GetPtrSlot(3);
+switch (temp_v1) { ... }
+```
+
+Sched1 **cannot** move a memory read across a call — it has no alias information
+for a `(mem:SI (plus:SI (reg) (const_int 48)))` against a `jal` — so the two
+orders are not the same program. Live across the `jal`, the selector needs a
+callee-saved home: it took `$s1`, `arg0` was pushed down to `$s0`, the calloc
+result lost `$s0` for `$v1`, and every branch displacement shifted. Score 90.27%
+at `stack=0 branch=5 regs=21 reorder=2 insert=2 delete=3`, with block topology,
+predicates and calls already matching (14/14 blocks, 75/74 instructions).
+
+**Fix.** Read the field where the target reads it — in the `switch` header,
+after the call, with no local at all:
+
+```c
+looker = Game_GetPtrSlot(3);
+switch (arg0->state) {
+```
+
+100.000% on the first attempt; the selector lands in `$v1` (call-clobbered,
+because it is now born after the call), `arg0` in `$s1` and the record in `$s0`,
+exactly as the target. `base_1.i` differs from `base.c` only in this and in the
+two `rate` tests below.
+
+**The tell.** An `lw` of a live-readable field sitting *below* a `jal` in the
+target, with the same register reused by the following branch, is not a
+scheduling artefact — it is where the original source read the field. Read the
+target's instruction order around every call before trusting m2c's statement
+order; this is the same family as "m2c hoists a loop counter's init above the
+call, and that costs a callee-saved register", one statement earlier in the
+body. Do not pin: the allocation follows the lifetime, and shortening the
+lifetime is what fixes it.
+
+**Two smaller deltas in the same seed**, both already covered above but together
+worth 5 `branch` penalties: m2c's `if (temp_v0_3 & 0x8000)` for the underflow
+test compiles to `andi` + `beqz` where the target has `sll 16` + `bgez` (see
+"`lhu` + `sll 16` + `bgez`: a `u16` countdown tested as signed" — the fix is
+`rate` declared `u16` and compared as `if ((s16)rate < 0)`), and the matching
+`if ((s16)rate >= 0x1001)` on the ramp-up arm. The twin body
+`func_actor_361100_801627D4` is a near-copy of this function and its matched
+source supplies both idioms verbatim; `functions/actors` briefs name it under
+*Similar matched bodies*, and reading it beat reasoning from the asm.
+
+Inputs: `base.i`
+`6c7b0174339124cde7c18122fc685f6789085fc3a8d07d4e23120ea8d0228c82` (90.267%),
+`base_1.i` `fbd6416565fab283242fe180ed51da8827cc4cec6f4e9a474d0546eaa3788764`
+(100.000%).
