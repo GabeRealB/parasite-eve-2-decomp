@@ -110946,3 +110946,35 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
+
+## `promote` is family-scoped, so a cross-family twin is a template rather than a shared body (func_actor_110600_80132D54, 2026-09-17)
+
+`overlay_dup_index.py find` lists copies across the whole tree, but `promote`
+serves only the copies in the body's own family — the shared unit would live in
+`src/<family>/lib/` and the span would go into that family's manifest entries.
+`func_actor_110600_80132D54` is one of two copies, the other being acropolis
+bridge's `func_acropolis_bridge_80184908`; `find` prints `same body: 2 copies`,
+and `promote` then answers `only one copy in actors, nothing to share` and
+writes nothing. That reads like a contradiction but is not one: actors and rooms
+are separate link outputs with their own work-block types, so there is no object
+the two could share. The sibling that reached this state first
+(`func_actor_110600_801327EC`) gets the identical answer, so the boundary is
+general and not a quirk of this pair.
+
+The port is still the fast path, and cheaper than the *same*-family promotion
+would be. The two bodies are instruction-identical (the `~` tier: same body at a
+different link offset), so this one is a type rename of its twin — it went from
+the m2c baseline of 85.982% (`branch=15 regs=14 insert=10 delete=12`,
+`blocks=33/33 instructions=163/161`) to 100.000% with every penalty zero on the
+next build, with the twin's `AcropolisBridgeMoveScratch` re-declared here as
+`Actor110600MoveScratch` and the walker's three unnamed slots given names. Read
+the twin and transcribe it; do not go looking for a promotion.
+
+Inputs: `base_1.i` SHA256
+`5805b84df5ad6d607139be9207224eae7b8d5df871ca05dd92dacdbb054a0805`; `base_1.c`
+SHA256 `ea5abf5889e174bb72ce9e6c6fa31fbfed9f26950bf39ee1b4cc35950d79549d`;
+target.o SHA256
+`a9dda71d041d0c8e416e7099dad0d5f25eda587c7dcae59d60d78ca1e06d7de3`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80132D54-vacuum`.

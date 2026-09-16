@@ -59,24 +59,38 @@ typedef struct Actor110600Walker {
     /* 0x00 */ Actor110600WalkerNav*   nav;
     /* 0x04 */ Actor110600WalkerRoute* route;
     /* 0x08 */ GsCOORDINATE2*          coord;
-    /* 0x0C */ byte                    pad_C[0x10];
+    /// The collision record table the per-frame behaviour step hands
+    /// `func_800E0C10` to measure the walker's movement against: the twelve
+    /// `GpRec18` records `Actor110600Work` carries at 0x970, whose count
+    /// `field_56` holds, reached from here by address (the spawn writes
+    /// `work + 0x970`). The acropolis bridge room's walker type names the same
+    /// slot `field_C`.
+    /* 0x0C */ GpRec18* recs;
+    /* 0x10 */ byte     pad_10[0xC];
     /// How far the walker moves this frame, rebuilt every tick by the
     /// ramp-scaling step and left zeroed while the game is frozen.
     /* 0x1C */ SVECTOR moveStep;
-    /* 0x24 */ byte    pad_24[0x10];
+    /// The whole-unit step the per-frame behaviour step applied to `coord` this
+    /// frame, kept for the state handlers that follow.
+    /* 0x24 */ SVECTOR moveDelta;
+    /* 0x2C */ byte    pad_2C[0x8];
     /// The model's saved rotation, which the turn step copies back onto
     /// `coord` before rebuilding it around the yaw it just turned to.
     /* 0x34 */ MATRIX scaleMtx;
     /* 0x54 */ s16    scale;
-    /* 0x56 */ byte   pad_56[4];
-    /* 0x5A */ s16    field_5A;
-    /* 0x5C */ u16    field_5C;
-    /* 0x5E */ u16    field_5E;
-    /* 0x60 */ u16    field_60;
-    /* 0x62 */ s16    field_62;
-    /* 0x64 */ s16    field_64;
-    /* 0x66 */ byte   pad_66[0x2];
-    /* 0x68 */ u8     state;
+    /// Number of `GpRec18` records in `recs`, handed to `func_800E0C10`
+    /// alongside it and 12 at spawn; the acropolis bridge room's walker type
+    /// names the same slot `field_56`.
+    /* 0x56 */ s16  field_56;
+    /* 0x58 */ byte pad_58[0x2];
+    /* 0x5A */ s16  field_5A;
+    /* 0x5C */ u16  field_5C;
+    /* 0x5E */ u16  field_5E;
+    /* 0x60 */ u16  field_60;
+    /* 0x62 */ s16  field_62;
+    /* 0x64 */ s16  field_64;
+    /* 0x66 */ byte pad_66[0x2];
+    /* 0x68 */ u8   state;
     /// The state the previous tick ran, which the step compares against
     /// `state` to re-resolve the patrol node whenever it changed.
     /* 0x69 */ u8 field_69;
@@ -102,7 +116,11 @@ typedef struct Actor110600Walker {
     /* 0x74 */ byte pad_74[0x2];
     /// Index into `nav`'s byte table of the patrol node the walker heads for.
     /* 0x76 */ u8   cursor;
-    /* 0x77 */ byte pad_77[0x35];
+    /* 0x77 */ byte pad_77[0x1];
+    /// Whether the per-frame behaviour step left the coordinate translation
+    /// non-zero in XZ, i.e. whether the walker moved at all this frame.
+    /* 0x78 */ u8   moving;
+    /* 0x79 */ byte pad_79[0x33];
 } Actor110600Walker;
 STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
 
@@ -220,9 +238,26 @@ u8 func_actor_110600_801327EC(Actor110600Walker* work, s32 actor);
 /// room's `func_acropolis_bridge_80184638`.
 void func_actor_110600_80132A84(Actor110600Walker* work, s16 actor);
 
+/// 0x18-byte scratch the walker's per-frame behaviour step carves off
+/// `G_SCRATCH_HEAD`: the `GpDeltaScratch` `func_800E0C10` fills with the 16.16
+/// step toward the current patrol node, followed by the whole-unit step
+/// actually applied to the walker's coordinate this frame. Same block the
+/// acropolis bridge room's `func_acropolis_bridge_80184908` carves off.
+typedef struct Actor110600MoveScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ SVECTOR        move;
+} Actor110600MoveScratch;
+STATIC_ASSERT_SIZEOF(Actor110600MoveScratch, 0x18);
+
 /// One per-frame behaviour step the walker runs while its `field_6C` gate is
-/// clear. Same body as the acropolis bridge room's
-/// `func_acropolis_bridge_80184908`.
+/// clear: steps it toward its current patrol node. `func_800E0C10` produces the
+/// 16.16 delta; the high half of each component becomes the whole-unit step,
+/// rounded away from zero whenever a fraction is left over. While `field_6B` is
+/// set the walker is pinned vertically, otherwise Y also carries a constant
+/// 0x10 fall. Y is applied in three bands: a +8 hop above 0x20, a -0x20 drop
+/// below -0x20, and the plain step in between. `moving` records whether the
+/// frame produced any XZ motion at all. Same body as the acropolis bridge
+/// room's `func_acropolis_bridge_80184908`.
 void func_actor_110600_80132D54(Actor110600Walker* work);
 
 /// The second per-frame behaviour step, gated on `field_6D`. Same body as the
