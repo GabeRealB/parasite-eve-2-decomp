@@ -8,6 +8,8 @@
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+
 /// `GpMsgEntry` (`gameplay/D4.h`), forward-declared because that header's
 /// four-argument `Gp_DispatchMsg` prototype is not in scope in
 /// `dryfield_breezeway.c`, which calls the dispatcher with only the task.
@@ -60,10 +62,20 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// landed on (whose id it parks at 0x4C) before it picks state 3;
 /// `func_dryfield_breezeway_8017FD9C` forwards it to `func_800D4E78` when it
 /// re-spawns the prompt.
+///
+/// `cursorX` / `cursorY` are the on-screen pair the same scan is hit-tested
+/// against: `func_dryfield_breezeway_8017E464` seeds them with the reset
+/// position (0, 0x20) `func_dryfield_breezeway_8017FD9C` also passes to
+/// `func_dryfield_breezeway_8017EB8C`, and `func_dryfield_breezeway_8017E81C`
+/// feeds them to `RoomsShared8017ecb4`.
 typedef struct DbwEventWork {
     /* 0x00 */ byte pad_0[0x40];
     /* 0x40 */ s32  field_40;
-    /* 0x44 */ byte pad_44[0x18];
+    /* 0x44 */ byte pad_44[0x8];
+    /* 0x4C */ s16  field_4C;
+    /* 0x4E */ s16  cursorX;
+    /* 0x50 */ s16  cursorY;
+    /* 0x52 */ byte pad_52[0xA];
     /* 0x5C */ s8   promptKind;
     /* 0x5D */ byte pad_5D[0x3];
 } DbwEventWork;
@@ -139,6 +151,14 @@ extern Task* D_dryfield_breezeway_801843C0;
 /// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
 extern DbwPlacement D_dryfield_breezeway_80181E28;
+
+/// This room's hotspot table, the 0xFFFF-terminated `RoomHotspot` run
+/// `RoomsShared8017ecb4` hit-tests the action cursor against. Its entries are
+/// the room's interactive props: `func_dryfield_breezeway_8017E464` clears
+/// every entry's `hit` through it before the first frame, and the scans in
+/// `func_dryfield_breezeway_8017E65C` and `func_dryfield_breezeway_8017E81C`
+/// walk it for the entry the cursor landed on.
+extern RoomHotspot D_dryfield_breezeway_80182DDC[];
 
 /// Secondary task spawned from the room data table by
 /// `func_dryfield_breezeway_8017DC3C` (state 0) and cleared again once

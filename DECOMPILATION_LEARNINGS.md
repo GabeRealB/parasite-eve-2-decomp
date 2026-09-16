@@ -88066,3 +88066,70 @@ Generalisation: when a fold rewrites an expression into a shape you cannot
 express directly, the fix is usually a *positional* respelling of the same
 expression, not a semantically different one. Reach for the sibling that
 already matches before restructuring the C.
+
+## The same exemption from the store side: cast the field store to *keep* it in the scheduler's way
+
+The companion of "Write a struct store *before* the loads it shares a base with"
+and of "Struct-typing a body changes GCC 2.8.1's aliasing". There the fix was to
+move the struct store ahead of the load; here the target keeps the store *among*
+the loads and the fix is the opposite — make the store visible to the alias
+tracker again.
+
+`func_dryfield_breezeway_8017E81C` rebuilds its prop's coordinate matrix as five
+stores into `coord->coord`, then loads the frame counter. The target's order is
+
+```
+li     v0,0x1000
+sw     v0,4(s0)      /* *(s32*)&coord->coord.m[0][0] */
+addiu  s0,s0,4
+sw     v0,8(s0)      /* *(s32*)&m->m[1][1]           */
+sh     v0,0x10(s0)   /* m->m[2][2]                   */
+lui    v0,%hi(D_80070F70)
+sw     zero,4(s0)    /* *(s32*)&m->m[0][2]           */
+sw     zero,0xC(s0)  /* *(s32*)&m->m[2][0]           */
+lw     a0,%lo(D_80070F70)(v0)
+```
+
+Everything else — topology, predicates, calls, instruction count, address
+halves — already matched at 93.6% with only `regs=4 reorder=1 insert=2
+delete=2` left, i.e. nothing but this block's order.
+
+**Cause.** `sched.c`'s `true_dependence (mem, x)` clause 1 (the psx patch's
+fixed-scalar/varying-structure exemption): a pending store that is
+`MEM_IN_STRUCT_P`, at a varying address, non-QImode, is exempt from a load whose
+address is fixed and non-struct. `lw %lo(D_80070F70)(v0)` is exactly that load,
+so a struct-typed `sh` is dropped from its dependence list while the four
+`*(s32*)&m->m[i][j]` stores — scalar, so the exemption cannot apply — keep their
+edges. The missing edge is not just a priority difference: `schedule_insn`
+decrements `INSN_REF_COUNT` from `LOG_LINKS`, so the store without the edge is
+released into the ready list on a different cycle. `.sched` prints that release:
+`;; launching 60 before 49 with no stalls at T-18` is the load waiting for the
+store, and the store's own `(mem/s:HI ...)` in the same dump is the flag to
+read. Note also that sched1 fills the block *backwards* (its first pick is the
+block's tail insn, which is emitted last), so a store picked late is emitted
+early — read the pick order as the reverse of the emitted order before deciding
+which instruction "moved".
+
+**Fix.** Write the 16-bit store with the idiom the other four already use, so
+its `MEM_IN_STRUCT_P` is clear:
+
+```c
+    *(s32*)&coord->coord.m[0][0] = 0x1000;
+    *(s32*)&m->m[1][1]           = 0x1000;
+    *(s16*)&m->m[2][2]           = 0x1000;   /* not `m->m[2][2] = 0x1000;` */
+    *(s32*)&m->m[0][2]           = 0;
+    *(s32*)&m->m[2][0]           = 0;
+```
+
+99.867% on the next build, and the object matched at 100% once the last
+instruction below was fixed. The cast is not a cosmetic respelling: it is what
+makes the store a possible alias of the load, and therefore what the scheduler
+orders against. `*(s16*)&` is the spelling to reach for when a *single* store in
+an initializer block sits in the wrong place while its neighbours are right.
+
+**The last instruction.** `lw v0,0x2c(s4)` for `task->extra` where the target
+has `v1` went away by reordering the pointer initializations so the `extra` load
+is born before the `idMap` load. `local-alloc` hands out its scratch registers
+in RTL birth order, so *which* of `$v0`/`$v1` a short-lived temp receives is set
+by the C order of the statements that create it — not visible in the emitted
+code, and cheaper to try than reading `.lreg`.
