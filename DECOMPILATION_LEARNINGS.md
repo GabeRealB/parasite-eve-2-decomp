@@ -103225,5 +103225,13 @@ register *identity* rather than operand order. The other leftover was `lui a1,0x
 a1,a1,0xd960; addu a1,s0,a1` — m2c's `temp_s0 + 0x8E8` — against the target's
 `addiu a1,s0,0x8e8`, which `&work->field_8E8` reproduces; when a twin exists that already names
 the offset as a struct member, the seed's pointer arithmetic is a spelling problem too.
+That `lui`/`ori` pair is the fingerprint: m2c writes a byte offset as `ptr + N` on a *typed*
+pointer, so GCC scales it, and the constant is `N * sizeof(struct)` (`0x6BD960 == 0x8E8 * 0xC1C`,
+which also hands you the struct size). Any `lui`/`ori` + `addu` where the target has a plain
+`addiu` is this, never a real symbol address — `0x6B/0xD960` does not look like one, and the
+wrong instinct is to hunt for the symbol it names. (Third instance of this rule in the TU:
+`func_actor_401800_801399C4` is `func_actor_401800_80139870` with `field_898 = 1`,
+`field_89E = 0xC` and the `field_68` test on bit 0; transcribing the twin and fixing the two
+`+ 0x8E8` / `+ 0xA28` spellings was also 100.000% on the first build.)
 
 Both fixes were applied at once: 100.000% on the first build, all penalties zero.
