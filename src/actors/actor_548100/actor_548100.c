@@ -8,9 +8,12 @@
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 void func_actor_548100_801330EC(void);
 s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
+
+extern Actor548100Hotspot D_actor_548100_801357E8[];
 
 INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E20);
 
@@ -20,7 +23,42 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132420);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132550);
+void func_actor_548100_80132550(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    Actor548100Hotspot* hs     = D_actor_548100_801357E8;
+    Actor548100Work*    work   = (Actor548100Work*)task->idMap;
+
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    work->step       = 0;
+    if (func_actor_548100_801348A4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if (prompt->buttons[0].state == 2) {
+            for (; hs->id != -1; hs++) {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    work->step       = hs->id;
+                    work->field_6    = hs->promptKind;
+                    task->state      = 3;
+                    return;
+                }
+            }
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->buttons[1].state == 2) {
+        task->state = 5;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E54);
 
