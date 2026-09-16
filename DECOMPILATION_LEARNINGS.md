@@ -92480,3 +92480,47 @@ stops at `redefinition of struct Actor205200Work`. Delete the seed's typedef and
 keep the `M2C_FIELD(ptr, s16*, 0x584)` accesses, or convert them to the fields
 named above - either way the generated code is identical, which is what makes
 the seed worth scoring before anything else is rewritten.
+
+## A backward branch's delay slot is filled by stealing the loop body's *first* insn, so the loop's argument-copy order - not the source's - decides what lands there (func_actor_205200_8014C7CC, 2026-09-16)
+
+`func_actor_205200_8014C7CC` is the body already matched as `ActorsShared8014af2c`
+(`src/actors/lib/actors_shared_8014af2c.c`) with a different slot count and id
+offsets; copying that body's shape took the m2c seed from 90.455% to 100% in one
+build. Both of the edits it makes are inert on their own, and the two
+*independent* mechanisms they fix are worth separating:
+
+| seed | loop body | `TOUCH_REG(i)` | score |
+|---|---|---|---|
+| m2c: `t = i; i++; call(..., t, ...)` | | no | 90.455% |
+| same | | yes | 90.455%, byte-identical output |
+| `call(..., i, ...); i++;` | | no | 95.455% |
+| `call(..., i, ...); i++;` | | yes | 100% |
+
+**The loop shape decides the delay slot.** The target carries the loop-invariant
+`a0 = work` in its preheader *and* re-materialises it in the back-branch's delay
+slot, while the m2c shape carries `a1 = i` there instead. Both are one reorg
+decision, not two: `.dbr` steals the **first insn of the loop body** into an
+empty delay slot and leaves a copy at the loop head (the copy is `copy_rtx`, so
+both print with the *same* INSN_UID - do not read that as a cycle). Which insn
+is first is already settled in `.sched`: sched1 orders `a0 = work` first when
+the call takes the counter directly, and the m2c temp-copy form instead forces
+`a1 = i` first, because the counter copy and `i++` are anti-dependent
+(`REG_DEP_ANTI`) and the scheduler keeps them adjacent. So the fix is to write
+the loop the way the call actually reads it - `call(..., i, ...);` then `i++` -
+and let the argument that depends on nothing in the loop lead the body.
+
+**`TOUCH_REG(i)` decides whether the counter folds to an immediate.** The same
+function's second loop does `work->field_582 += i` where `i` is provably 1 on
+that path. `.rtl` is identical in both seeds - the add is
+`(plus:SI (subreg:SI (reg:HI 96) 0) ...)`, the counter - but `.cse` folds that
+operand to `(const_int 1)` without the touch, giving `addiu v0,v0,1` where the
+target has `addu v0,v0,s0`. `TOUCH_REG(i)` leaves the operand a register. That
+is the "empty asm is a scheduling boundary" note one step further: it is also a
+**known-value boundary**, so it is the tool for an operand that must survive cse
+as a register even when the compiler can prove its value.
+
+Evidence: scratch `nonmatchings/func_actor_205200_8014C7CC-vacuum/`, builds
+`base.c`/`base_3.c`/`base_4.c`/`base_5.c`/`base_1.c` (90.455 / 90.455 / 90.455 /
+95.455 / 100) with `.sched`, `.dbr` and `.cse` dumps for each variant. Both
+mechanisms above are read off dump pairs whose inputs differ only by the stated
+edit; the `addiu` operand and the stolen insn are the only two things that move.

@@ -34,7 +34,10 @@ typedef struct Actor205200Work {
     /* 0x47C */ GpObj    field_47C;
     /* 0x49C */ byte     pad_49C[0x48];
     /* 0x4E4 */ GpObj    field_4E4;
-    /* 0x504 */ byte     pad_504[0x80];
+    /* 0x504 */ byte     pad_504[0x7A];
+    /* 0x57E */ s16      field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
+    /* 0x580 */ u16      field_580; // id the three helper slots last saw
+    /* 0x582 */ u16      field_582; // frames spent on the current id
     /* 0x584 */ s16      field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
     /* 0x586 */ s16      field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
     /* 0x588 */ s16      field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes

@@ -12,6 +12,9 @@
 extern GpEnemyTaskFuncTable3 D_actor_205200_80149E24;
 extern GpEnemyTaskFuncTable3 D_actor_205200_80149E30;
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_205200_8014BD4C(Actor205200* arg0);
 void func_actor_205200_8014BF28(Actor205200* arg0);
@@ -228,4 +231,32 @@ void func_actor_205200_8014C67C(Actor205200* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C748);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C7CC);
+/// Keeps the work's animation id bound to its helper slots. When the id has
+/// changed since the last tick the remembered id follows it, the frame counter
+/// at 0x582 restarts and every slot 1..18 is pointed at the new id at weight 8;
+/// otherwise the counter ticks and the slots are simply advanced. The same body
+/// is matched once for the actors that share it as `ActorsShared8014af2c`,
+/// which differs only in the slot count and the id offsets.
+void func_actor_205200_8014C7CC(Actor205200* arg0)
+{
+    Actor205200Work* work;
+    s32              i;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if (work->field_57E != (s16)work->field_580) {
+        work->field_580 = work->field_57E;
+        work->field_582 = 0;
+        do {
+            func_800B4114((GpAnimCtx*)work, i, work->field_57E, 0, 8);
+            i++;
+        } while (i < 0x13);
+        return;
+    }
+    TOUCH_REG(i);
+    work->field_582 = (u16)(work->field_582 + i);
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        i++;
+    } while (i < 0x13);
+}
