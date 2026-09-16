@@ -83,8 +83,10 @@ typedef struct ActorsShared80138efcWork {
     /* 0xBA4 */ s8 field_BA4;
     /// Set alongside `field_BA4` to ask for the motion to be restarted.
     /* 0xBA5 */ s8 field_BA5;
-    /// Set when the trigger at `field_BA9` fires.
-    /* 0xBA6 */ s8 field_BA6;
+    /// Set when the trigger at `field_BA9` fires. The 0x801339B0 handler tests
+    /// it with `lbu` before staging the 0xA state, so it is unsigned even
+    /// though its neighbours at 0xBA4..0xBA9 are signed.
+    /* 0xBA6 */ u8 field_BA6;
     /// Index into the dispatcher's 26-entry handler table, read there with
     /// `lb` and multiplied by 4.
     /* 0xBA7 */ s8 state;
@@ -94,8 +96,11 @@ typedef struct ActorsShared80138efcWork {
     /* 0xBA8 */ s8 field_BA8;
     /// Trigger this handler consumes: nonzero sets `field_BA6`, resets the
     /// countdown at `field_B9C` and selects state 0xF.
-    /* 0xBA9 */ s8   field_BA9;
-    /* 0xBAA */ byte pad_BAA[0x1];
+    /* 0xBA9 */ s8 field_BA9;
+    /// Byte counter the 0x801366E8 body steps by one when it leaves the 0xBA8
+    /// latch at 3; the 0x801339B0 handler zeroes it on the frame it arms, and
+    /// again alongside the state it stages.
+    /* 0xBAA */ u8 field_BAA;
     /// Compared against 1 (`lbu`) by the 0x80138B5C body, which skips its whole
     /// decay block while it is set.
     /* 0xBAB */ u8   field_BAB;

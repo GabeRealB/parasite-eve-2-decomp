@@ -7,6 +7,10 @@
 #include "main/session.h"
 #include "main/task.h"
 
+/// Player flag byte read by the 0x801339B0 handler: when it is 1 the handler
+/// takes its `GameActor::field_958` shortcut instead of measuring distance.
+extern u8 D_801153F2;
+
 /// 0x58-byte work block the body at 0x80137C88 allocates with
 /// `Mem_Calloc(0x58, 0)` and parks in `Task::idMap` (0x1C), which is not a
 /// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four

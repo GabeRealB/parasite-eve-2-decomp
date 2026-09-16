@@ -2,8 +2,10 @@
 
 #include "actors/actor_104900.h"
 #include "actors/actors_shared_801384ac.h"
+#include "actors/actors_shared_801388e8.h"
 #include "actors/actors_shared_80138efc.h"
 #include "actors/actors_shared_801511c8.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -23,6 +25,7 @@ extern GpU16Pair D_actor_104900_801392F0[];
 
 void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 void func_actor_104900_80137FB8(Task* task);
+s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80131F08);
 
@@ -125,7 +128,108 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80132D78);
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_801339B0);
+/// First of the 0xA pair the dispatcher at 0x80134780 runs while the latch at
+/// 0xBA6 is still clear: it re-arms the link transform and decides from the
+/// squared distance `ActorsShared801388e8` measures to the model's part-3
+/// coordinate whether the actor closes in this frame.
+///
+/// The walk offset at 0xB8E steps back toward zero - 0x10 off either end of the
+/// +-0x10 band, or straight to zero inside it - and the counter at 0xBAA is
+/// cleared. `Task::spawnArg1` then picks the threshold: 0 takes 0x5F5E0F
+/// outright, 0x20000 takes 0x3D08FF, and anything else 0xF423FF while the
+/// player's `GameActor::field_958` reads 3 and 0xF423F otherwise; the 0x20000
+/// case also closes in whenever the player flag at `D_801153F2` reads 1
+/// without measuring at all. Either way the link transform is re-armed exactly
+/// as its siblings arm it - model part 3 through `TmdObject::field_8[3]`, the
+/// 0xC8-box local offset through `src` - and the state machine at 0x80132D78
+/// runs last; its nonzero answer also closes the actor in.
+///
+/// Closing in while `field_B92` still counts masks the 0xC000 pair back out of
+/// the two `GpObj` nodes in the motion block and, the first time only, stages
+/// the 0xA state through `field_BA6`: that is what hands the next frame to the
+/// 0x80133BB8 body.
+///
+/// Each arm declares its own player and actor locals: the two arms must reach
+/// the compiler as distinct quantities, since one of them is live across the
+/// flag byte's address and cannot share the call's result register.
+///
+/// Same body as the four twins - `func_actor_101100_801339B0` at the same
+/// address and `func_actor_201100_8014B9B0` / `func_actor_204900_8014B9B0` /
+/// `func_actor_301100_801639B0` 0x18000 past it - but the last call reaches
+/// this overlay's own `func_actor_104900_80132D78`, so the body cannot move
+/// into `src/actors/lib/`.
+void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    GpLinkXform* xform;
+    s32          flag;
+    s32          off;
+    s32          i;
+    u32          dist;
+    s16          walk;
+
+    flag = 0;
+    dist = ActorsShared801388e8(((TmdObject*)task->extra)->field_8);
+    walk = work->field_B8E;
+    if (walk >= 0x11) {
+        work->field_B8E = (s16)((u16)work->field_B8E - 0x10);
+    } else if (walk < -0x10) {
+        work->field_B8E = (s16)((u16)work->field_B8E + 0x10);
+    } else {
+        work->field_B8E = 0;
+    }
+    work->field_BAA = 0;
+
+    if (task->spawnArg1 == 0) {
+        if (dist <= 0x5F5E0F) {
+            flag = 1;
+        }
+    } else if (task->spawnArg1 == 0x20000) {
+        Task*      player = (Task*)Game_GetPtrSlot(3);
+        GameActor* actor;
+
+        if (player != NULL) {
+            actor = (GameActor*)player->idMap;
+            if (((D_801153F2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
+                flag = 1;
+            }
+        }
+    } else {
+        Task*      player = (Task*)Game_GetPtrSlot(3);
+        GameActor* actor;
+
+        if (player != NULL) {
+            actor = (GameActor*)player->idMap;
+            if ((((u16)actor->field_958 == 3) && dist <= 0xF423FF) || dist <= 0xF423F) {
+                flag = 1;
+            }
+        }
+    }
+
+    xform               = (GpLinkXform*)&enemy->node;
+    enemy->node.field_4 = 0;
+    xform->coord        = &((TmdObject*)task->extra)->field_8[3];
+    xform->src.vx       = 0;
+    xform->src.vy       = -0xC8;
+    xform->src.vz       = 0xC8;
+    if (func_actor_104900_80132D78(enemy, task, work, arg) != 0) {
+        flag = 1;
+    }
+    if (flag && (work->field_B92 > 0)) {
+        work->field_BAA = 0;
+        i               = 0;
+        off             = 0x9C8;
+        do {
+            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
+            off                                += 0x20;
+            i++;
+        } while (i < 2);
+        if (work->field_BA6 == 0) {
+            work->field_BA6 = 1;
+            work->state     = 0xA;
+            work->field_BA8 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80133BB8);
 

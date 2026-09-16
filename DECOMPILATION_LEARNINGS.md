@@ -88997,6 +88997,24 @@ changed; 100%. So when a load is duplicated per arm and the target shows it in
 a single register, check whether retail stored it in a variable declared
 outside the `if` rather than in a fresh expression per arm.
 
+**The converse tells you the arms need separate scopes.** `func_actor_104900_801339B0`
+calls `Game_GetPtrSlot(3)` in two arms of an `if`/`else if` chain, tests the raw
+pointer for NULL and then loads `->idMap`. With one function-scope `player` (and
+one `actor`) both arms reach `global_alloc`, which colours the pair once for the
+whole function: `$v1` in *both* arms, and the arm that does not need the move
+pays a stray `move $v1,$v0` - `insert=5`, 92.1%, with one extra instruction. The
+target has the pointer in `$v1` in the arm that reads a global's address in
+between (so `$v0` is busy across its live range) and in `$v0` in the other arm:
+different registers for the same value in two arms is the tell, and it means two
+pseudos, i.e. two declarations. `global_alloc` cannot colour one pseudo twice,
+and `local_alloc` skips any pseudo used in more than one block, so a shared
+variable is *forced* to one register per function. Declaring the pair inside
+each arm's own block - legal C89, a declaration may start any compound
+statement - gives each arm two single-death pseudos, local-alloc colours them
+per block, and the function is 100%. Reach for per-arm declarations whenever the
+target shows a value in a different register per arm; reach for the shared
+function-scope form only when the target shows one register across them.
+
 ## A stray `move sX, vY` after a pointer load means the derived field was read first (Actor00400_Fn04E18, 2026-09-16)
 
 **Problem.** The target opened with an extra copy that no obvious C could produce:
