@@ -8,8 +8,6 @@ extern s32 D_dryfield_night_driveway_8017F7A4;
 extern s32 D_dryfield_night_driveway_8017F998;
 extern s32 D_dryfield_night_driveway_8017FB00;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway_2", func_dryfield_night_driveway_8017DC94);
-
 s32 func_dryfield_night_driveway_8017DCE4(void)
 {
     return 0;
