@@ -280,6 +280,9 @@ extern s32 D_actor_560800_80171800;
 /// Flag word whose bit 0 gates `func_actor_560800_80138BCC`'s sink step.
 extern s32 D_actor_560800_801752E8;
 
+/// Frame counter `func_actor_560800_80138FC8` raises by one per tick.
+extern s32 D_actor_560800_801752EC;
+
 extern Task* D_actor_560800_801757AC;
 
 extern u8 D_80071075;

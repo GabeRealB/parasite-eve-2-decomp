@@ -658,7 +658,171 @@ void func_actor_560800_80138D04(Task* task)
     coord->coord.t[1] += 100;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138FC8);
+/// Per-frame handler of a model task: state 0 allocates its
+/// `Actor560800ModelWork`, parents the root coordinate to `Gfx_ViewCoord`,
+/// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
+/// to identity. States 2/5 lift the root
+/// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
+/// 3 by 1 in steps of 0xA; 4 and 6 hand off to `func_actor_560800_80138BCC` /
+/// `func_actor_560800_80138D04`. Every state but 0 advances the two frame
+/// counters. Each case needs its own matrix pointer (and case 0 its own work
+/// pointer): a pointer shared across cases is a global pseudo, so the local
+/// 0x1000 constant takes `$v0` from it.
+extern void D_actor_560800_80175744;
+
+void func_actor_560800_80138FC8(Task* task)
+{
+    Actor560800ModelWork* work;
+    Actor560800ModelWork* w;
+    Actor560800ModelWork* mem;
+    TmdObject*            obj;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        c;
+    MATRIX*               m0;
+    MATRIX*               m2;
+    MATRIX*               m3;
+    MATRIX*               m5;
+    VECTOR                scale;
+    GsCOORDINATE2*        root;
+
+    switch (task->state) {
+        case 0:
+            obj         = (TmdObject*)task->extra;
+            root        = obj->field_8;
+            task->idMap = Mem_Malloc(0x28C, 0);
+            if (task->idMap == NULL) {
+                Task_Kill(task);
+            } else {
+                Mem_Set(task->idMap, 0, 0x28C);
+                mem            = (Actor560800ModelWork*)task->idMap;
+                root->sub      = &Gfx_ViewCoord;
+                mem->field_26C = (Task*)task->spawnArg2;
+                obj->field_1C  = &mem->light;
+                obj->field_20  = &mem->color;
+                Task_Reparent((Task*)task->spawnArg2, task);
+                task->field_24          = &D_actor_560800_80175744;
+                D_actor_560800_801757AC = task;
+                m0                      = &root->coord;
+                *(s32*)&m0->m[0][0]     = 0x1000;
+                *(s32*)&m0->m[0][2]     = 0;
+                *(s32*)&m0->m[1][1]     = 0x1000;
+                *(s32*)&m0->m[2][0]     = 0;
+                m0->m[2][2]             = 0x1000;
+            }
+            task->state++;
+            return;
+        case 1:
+            ((TmdObject*)task->extra)->field_C |= 0x80;
+            break;
+        case 2:
+            coord              = ((TmdObject*)task->extra)->field_8;
+            work               = (Actor560800ModelWork*)task->idMap;
+            coord->coord.t[1] += 5;
+            if (work->field_278 <= 0x1800) {
+                work->field_27C     = 1;
+                c                   = ((TmdObject*)task->extra)->field_8;
+                w                   = (Actor560800ModelWork*)task->idMap;
+                m2                  = &c[1].coord;
+                *(s32*)&m2->m[0][0] = 0x1000;
+                *(s32*)&m2->m[0][2] = 0;
+                *(s32*)&m2->m[1][1] = 0x1000;
+                *(s32*)&m2->m[2][0] = 0;
+                m2->m[2][2]         = 0x1000;
+                c++;
+                if (w->field_27C == 0) {
+                    w->field_278 -= 0x32;
+                    if (w->field_278 < 0x1000) {
+                        w->field_27C = 1;
+                    }
+                } else if (w->field_27C == 1) {
+                    w->field_278 += 0x32;
+                    if (w->field_278 > 0x1800) {
+                        w->field_27C = 0;
+                    }
+                }
+                scale.vx = w->field_278;
+                scale.vy = 0x1000;
+                scale.vz = w->field_278;
+                ScaleMatrix(&c->coord, &scale);
+            }
+            coord->flg = 0;
+            break;
+        case 3:
+            coord              = ((TmdObject*)task->extra)->field_8;
+            work               = (Actor560800ModelWork*)task->idMap;
+            coord->coord.t[1] += 1;
+            if (work->field_278 >= 0x800) {
+                work->field_27C     = 0;
+                c                   = ((TmdObject*)task->extra)->field_8;
+                w                   = (Actor560800ModelWork*)task->idMap;
+                m3                  = &c[1].coord;
+                *(s32*)&m3->m[0][0] = 0x1000;
+                *(s32*)&m3->m[0][2] = 0;
+                *(s32*)&m3->m[1][1] = 0x1000;
+                *(s32*)&m3->m[2][0] = 0;
+                m3->m[2][2]         = 0x1000;
+                c++;
+                if (w->field_27C == 0) {
+                    w->field_278 -= 0xA;
+                    if (w->field_278 < 0x1000) {
+                        w->field_27C = 1;
+                    }
+                } else if (w->field_27C == 1) {
+                    w->field_278 += 0xA;
+                    if (w->field_278 > 0x1800) {
+                        w->field_27C = 0;
+                    }
+                }
+                scale.vx = w->field_278;
+                scale.vy = 0x1000;
+                scale.vz = w->field_278;
+                ScaleMatrix(&c->coord, &scale);
+            }
+            coord->flg = 0;
+            break;
+        case 4:
+            func_actor_560800_80138BCC(task);
+            break;
+        case 5:
+            coord              = ((TmdObject*)task->extra)->field_8;
+            work               = (Actor560800ModelWork*)task->idMap;
+            coord->coord.t[1] += 5;
+            if (work->field_278 <= 0x1800) {
+                work->field_27C     = 1;
+                c                   = ((TmdObject*)task->extra)->field_8;
+                w                   = (Actor560800ModelWork*)task->idMap;
+                m5                  = &c[1].coord;
+                *(s32*)&m5->m[0][0] = 0x1000;
+                *(s32*)&m5->m[0][2] = 0;
+                *(s32*)&m5->m[1][1] = 0x1000;
+                *(s32*)&m5->m[2][0] = 0;
+                m5->m[2][2]         = 0x1000;
+                c++;
+                if (w->field_27C == 0) {
+                    w->field_278 -= 0x32;
+                    if (w->field_278 < 0x1000) {
+                        w->field_27C = 1;
+                    }
+                } else if (w->field_27C == 1) {
+                    w->field_278 += 0x32;
+                    if (w->field_278 > 0x1800) {
+                        w->field_27C = 0;
+                    }
+                }
+                scale.vx = w->field_278;
+                scale.vy = 0x1000;
+                scale.vz = w->field_278;
+                ScaleMatrix(&c->coord, &scale);
+            }
+            coord->flg = 0;
+            break;
+        case 6:
+            func_actor_560800_80138D04(task);
+            break;
+    }
+    D_actor_560800_801752E8 += 2;
+    D_actor_560800_801752EC += 1;
+}
 
 /// Message 0x7D5 handler of the task `D_actor_560800_801756D4` belongs to: the
 /// visibility switch `func_actor_560800_801393EC` performs on a single model,
