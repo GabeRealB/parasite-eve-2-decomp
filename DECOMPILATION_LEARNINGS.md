@@ -88267,3 +88267,52 @@ Inputs: `base.c` (literal, 93.333%)
 `9696f35390901695c142d36d9cb5ccbb4ab00535219a42ba359897615dd2fefd`,
 `base_2.c` (initializer at function top, 92.774%)
 `b4edd1b0e15b4cf126a319f592ddb684d7d35adfc67e47dda3ec5c93b82255d9`.
+
+## Room event handlers are near-copies the exact-dup index cannot see
+
+Every room overlay carries one handler per entry of its own `GpMsgEntry` table,
+and they are all the same body with three substitutions:
+
+```c
+s32 func_<room>_<addr>(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179A04(src, dst);          /* or func_80179B14 */
+    if (*(u16*)src == <msg>) {        /* the message id, an immediate */
+        if (src->field_5 == 0) {
+            D_<room>_<addr2>.field_2 = dst->field_0;   /* the room's staging GpSaveLoc */
+            D_<room>_<addr2>.field_4 = dst->field_2;
+            D_<room>_<addr2>.field_1 = dst->field_3;
+            Task_SpawnFromTable(&D_<room>_<addr3>, 0, 0, 0);
+        }
+        return 0;                     /* or 1 / 2, and optional Gp_MsgPlayerWeapon(0) */
+    }
+    return 1;
+}
+```
+
+**Symptom.** `overlay_dup_index.py find <fn>` reports no copies, so the shared-body
+route looks closed. It compares splat's disassembly *text*, and the message id is
+an immediate in the `lhu`/`addiu` pair while the latched location and the spawned
+table are different data symbols in every room — enough to make each room's
+handler textually unique even though the body is identical.
+
+**Fix.** Use the BRIEF's `similar` tier instead, which ranks already-matched bodies
+with operands dropped (`fields` compares load/store displacements, `shape` the
+opcode order). A `fields` score of 1.00 on a room handler means: read that
+sibling's C and transplant it, changing only the message constant, the latched
+`GpSaveLoc` and the spawned `TaskDesc` — and check the *return value*, which
+varies (island returns 0 for its message, `shelter_1f_bulwark` 2 for one branch,
+the observatory's event handler always 1) independently of the rest.
+
+`func_neo_ark_submarine_gallery_8017EA0C` was matched this way in one build off
+`func_neo_ark_island_8017E968`, at 100.000% / zero penalties, from an m2c seed at
+57.227%.
+
+Sizing the two data symbols is the one thing to check first: on this overlay the
+spawned `D_..._801818AC` is 0xC bytes (`TaskDesc`) and the latched
+`D_..._80185924` is 8 zero bytes (`GpSaveLoc`), confirmed in
+`asm/USA/rooms/data/<room>_data.data.s`.
+
+Input `base_1.c`
+`f85275a5b6c2262a0f962858d62e3e88c5340c8c591a6ed5c9a1dc68573f4e5c` (100.000%).

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/1A8.h"
 #include "main/display.h"
 #include "gameplay/gameplay.h"
 #include "gameplay/D4.h"
@@ -7,6 +8,15 @@
 
 extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
+extern TaskDesc   D_neo_ark_submarine_gallery_801818AC;
+
+/// Staging save location the gallery commits: `field_2` / `field_4` / `field_1`
+/// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
+/// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
+/// same three bytes into `Mc_SaveData.field_6` / `field_8` / `field_5`.
+extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1);
 
@@ -25,7 +35,25 @@ s32 func_neo_ark_submarine_gallery_8017EA04(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EA0C);
+/// Gallery message handler. Message 0xE, while the incoming location still
+/// reports no pending flag, latches the save location the outgoing message
+/// carries and starts the cutscene the gallery leads out of. Returns 0 for that
+/// message and 1 for every other one.
+s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179B14(src, dst);
+    if (*(u16*)src == 0xE) {
+        if (src->field_5 == 0) {
+            D_neo_ark_submarine_gallery_80185924.field_2 = dst->field_0;
+            D_neo_ark_submarine_gallery_80185924.field_4 = dst->field_2;
+            D_neo_ark_submarine_gallery_80185924.field_1 = dst->field_3;
+            Task_SpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
+        }
+        return 0;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EABC);
 
