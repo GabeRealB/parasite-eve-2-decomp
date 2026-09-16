@@ -1602,7 +1602,60 @@ void Actor00400_Fn064B0(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06798);
+void Actor00400_Fn06798(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+
+    work   = arg0->field_1C;
+    coord  = arg0->field_2C->field_8;
+    vec.vx = work->field_60C[work->field_65B].field_0 - coord->coord.t[0];
+    vec.vy = work->field_60C[work->field_65B].field_2 - coord->coord.t[1];
+    vec.vz = work->field_60C[work->field_65B].field_4 - coord->coord.t[2];
+
+    work->field_63E = work->field_60C[work->field_65B].field_2;
+    if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 1000) {
+        work->field_65B = (work->field_65B + 1) & 7;
+        return;
+    }
+    if (work->field_628 != 3) {
+        Actor100400Work* w;
+        Actor100400Work* a;
+        s32              i;
+
+        w            = arg0->field_1C;
+        w->field_63C = 10;
+        w->field_632 = 0x10;
+        w->field_628 = 3;
+        w->field_624 = 1;
+
+        a = arg0->field_1C;
+        if (a->field_624 == 1) {
+            if (a->field_626 != a->field_628) {
+                a->field_62A = 0;
+            } else {
+                a->field_62A = Actor00400_Fn086FC(arg0, a->field_62A);
+            }
+            Actor00400_Fn08624(arg0);
+            a->field_624 = 3;
+        } else if (a->field_624 == 2) {
+            Actor00400_Fn085B8(arg0);
+            a->field_624 = 3;
+            a->field_62A = 0;
+        } else if (a->field_624 == 3) {
+            a->field_62A++;
+        }
+        i = 1;
+        do {
+            Gp_AnimTickIndex(a, i);
+            i++;
+        } while (i < 0xF);
+    }
+    Actor00400_TurnToward(arg0, (SVECTOR*)&work->field_60C[work->field_65B], 0x2C, 0x100);
+    Actor00400_Fn0762C(arg0, 0x60, work->field_556);
+    Gp_SetLightMode(arg0->field_20, 2);
+}
 
 void Actor00400_Fn06A44(Actor100400* arg0)
 {

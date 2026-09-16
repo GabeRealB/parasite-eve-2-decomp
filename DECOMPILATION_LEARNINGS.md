@@ -132,6 +132,41 @@ All priorities in this function are 1 (`priority()` returns
 `max(1, pred + cost - 1)` and every latency is 1), so the scheduler moves nothing
 and the RTL order is the final order — the arm's `a0`/address order had to come
 from RTL generation, not from scheduling.
+## `li` + `slt` against a literal range means an inlined helper's parameter, not `x > C`
+
+`Actor00400_Fn06798` ends with the turn-toward-a-point idiom and compares the
+clamped heading delta against `0x100`:
+
+```
+sra   v0,v0,0x14
+slt   v1,v1,v0      /* v1 was li v1,0x100 four insns earlier */
+beqz  v1,...
+slti  v0,v0,-0x100  /* the other side folds normally */
+```
+
+Hand-expanding the helper into the caller — the same statements, same order,
+with `0x100` written literally — gives `slti v0,v0,0x101` / `bnez` instead:
+combine canonicalises `x > C` to `!(x < C+1)` and the `li` disappears. The
+asymmetry in the target is the tell. `< -0x100` folded but `> 0x100` did not,
+so the two constants did not reach combine the same way.
+
+They reach it differently because the original wrote the helper as a function.
+GCC 2.8.1 inlining materialises each parameter as its own pseudo initialised
+from the argument, and the `range` pseudo is still a register when combine
+runs, so the `GT` cannot absorb it; `-range` is negated into a fresh constant
+that folds into `slti` as usual. Calling the existing `Actor00400_TurnToward`
+inline with `(0x2C, 0x100)` instead of expanding it matched exactly.
+
+Passing the point as an argument fixes a second thing at the same time. The
+target computes `&work->field_60C[work->field_65B]` once, before the helper's
+`coords->flg = 0` store; expanded inline, the store sits between the two reads
+of the waypoint and each recomputes the `lbu`/`lw`/`sll`/`addu` address. An
+argument is evaluated at the call site, which is where the target evaluates it.
+
+So when a sibling already has a `static inline` for an idiom, reach for it
+before re-expanding the idiom by hand — the parameter pseudos are part of what
+the original compiled to.
+
 ## A CSE copy names the *second* read: the variable that stays live is the one assigned last
 
 `Actor00400_Fn040DC` loads `arg0->field_2C` once and then copies it:
