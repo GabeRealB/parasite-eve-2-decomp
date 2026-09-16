@@ -5,10 +5,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+extern TaskDesc D_actor_521100_8016A388;
+extern Task*    D_actor_521100_8016A3E0;
+extern Task*    D_actor_521100_8016A3E4;
+
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_7", func_actor_521100_80136A64);
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_7", func_actor_521100_80136AE0);
-
 s32 func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target)
 {
     GsCOORDINATE2* coord;

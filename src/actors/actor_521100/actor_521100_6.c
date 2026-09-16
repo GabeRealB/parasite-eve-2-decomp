@@ -48,8 +48,46 @@ void func_actor_521100_80136820(void)
     D_actor_521100_8016A3D8->field_47E = D_actor_521100_8016A3D8->animId;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_6", func_actor_521100_801368B0);
+/// Scale-in step body, run while `field_484` is 1: takes a 0x30-byte scratch
+/// from `G_SCRATCH_HEAD`, splats an identity rotation into it and hands it to
+/// `ScaleMatrix` with a `(0x1000, field_488, 0x1000)` vector, then multiplies
+/// the product into the attach coordinate whose rotation step 0 snapshotted
+/// into `field_48C`. The scale drops 0x10 a frame; under 0x101 the step
+/// advances to 2 and this body stops running.
+///
+/// The scratch pointer is taken with a chained assignment on purpose: the
+/// store and the callee-saved copy are what put the extra `move $s0, $v0`
+/// between the `addiu` and the `sw` (and the `nop` in the load's delay slot).
+void func_actor_521100_801368B0(Actor521100* arg0)
+{
+    MATRIX*                  head;
+    Actor521100ScaleScratch* scratch;
+    Actor521100Work*         work;
+    GsCOORDINATE2*           coord;
 
+    head    = *(MATRIX**)0x1F8003FC;
+    work    = arg0->field_1C;
+    scratch = (*(void**)0x1F8003FC = (Actor521100ScaleScratch*)((u8*)head - 0x30));
+    coord   = arg0->field_2C->field_8;
+    if ((s16)work->field_488 >= 0x101) {
+        work->field_488 = (u16)work->field_488 - 0x10;
+    } else {
+        work->field_484 = 2;
+    }
+    scratch->scale.vx          = 0x1000;
+    scratch->scale.vy          = (s32)(s16)work->field_488;
+    scratch->scale.vz          = 0x1000;
+    coord->coord               = work->field_48C;
+    scratch->mat.ident.m00_m01 = 0x1000;
+    scratch->mat.ident.m02_m10 = 0;
+    scratch->mat.ident.m11_m12 = 0x1000;
+    scratch->mat.ident.m20_m21 = 0;
+    scratch->mat.ident.m22     = 0x1000;
+    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->mat.mat);
+    coord->flg         = 0;
+    *(u8**)0x1F8003FC += 0x30;
+}
 /// Animation-start handler: seeds the work block's `animId` with
 /// `args->animId + 1`, rejecting anything whose incremented id is 0xB or up,
 /// and leaves the actor in step 2 with `field_482` cleared before running the

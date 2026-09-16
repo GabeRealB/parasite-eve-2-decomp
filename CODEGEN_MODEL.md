@@ -80,6 +80,16 @@ the wrong end of it, the C statement order is the fix; register work and priorit
 levers do not reach it (`DECOMPILATION_LEARNINGS.md`, "A load written after a run
 of stores cannot be scheduled before them").
 
+The same-base case is the discriminator when reading a target. Two accesses off
+*one* pseudo or register are separated by `memrefs_conflict_p`'s constant-offset
+recursion (`sched.c:708`), so two stores to different fields of one struct are
+independent of each other and their emitted order says nothing about source
+order — while a load and a store off two different pointers always conflict, so
+*that* pair keeps whatever order the C wrote. Read the load's side; ignore the
+stores' order relative to each other
+(`DECOMPILATION_LEARNINGS.md`, "Which side of a load/store pair is source order,
+and which is not").
+
 That comparator does **not** make the final selection. `schedule_select` scans
 equal-priority groups, queues instructions blocked by `actual_hazard`, then
 prefers the survivor with the largest `potential_hazard` weight. A lower-ranked
