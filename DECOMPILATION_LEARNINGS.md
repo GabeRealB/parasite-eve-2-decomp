@@ -73845,6 +73845,20 @@ Preprocessed SHA256:
 - `base_1.c` (100.000%): `68a26fa87590a7ede5c2d64f7a2441e3324225e078a13bc814ed8c1479c06d03`
 - `base_2.c` (90.118%, controlled isolation): `862b9d3b0d57696d4568d96268946b461bb1240129eea627a3e36487c4a9bcf3`
 
+A second copy of the body, `func_actor_521100_80134D88`, separates the same way
+and is the cheaper read on the rule: m2c's seed scored 89.412% with `regs` 20 /
+`insert` 4 / `delete` 4 and the parked-`$v0` shape above, and moving the `(s8)`
+onto the `Gp_GetObjPan` call took it to 100.000% on the first build, `snd` in
+`$s1` and the extended pan in `$s0`. So on a copy of this body the penalty
+signature alone — a full-topology match whose only difference is which
+callee-saved register holds the raw pan — identifies the fix, before any dump.
+
+Preprocessed SHA256 (actor_521100):
+
+- `base.c` (89.412%): `1644e8913e7f471817f67ad8dbd5b771415a1ff9cdb80a4a168f6f604771ed53`
+- `base_1.c` (100.000%): `2a0d06457bbd2f26738fc69ba9133c3a0e96a149c2b1af2b6c71f93bb1552129`
+- `base_2.c` (100.000%, struct-typed port, same object): `dc4d42ab2ebdaf99c786810446938287778f8939d9536fa791b71a1df2dbf288`
+
 ## `reload_cse` rewrites a constant shift *operand*: `sll ...,1` where the target has `sllv ...,$sN`
 
 The actor family's anim-requeue body reads a `s16` id run at the state stored in

@@ -25,10 +25,15 @@ typedef struct Actor521100Obj2C {
     /* 0x0C */ s16               field_C;
 } Actor521100Obj2C;
 
+/// Actor context handed to this overlay's callbacks: `field_1C` is the work
+/// block below, `field_20` the `GpEnemy` the spawner left in the task's
+/// `Task::spawnArg2` slot, and `field_2C` the display object. Same shape as the
+/// other actor overlays' contexts.
 typedef struct Actor521100 {
     /* 0x00 */ byte                    pad_0[0x1C];
     /* 0x1C */ struct Actor521100Work* field_1C;
-    /* 0x20 */ byte                    pad_20[0xC];
+    /* 0x20 */ GpEnemy*                field_20;
+    /* 0x24 */ byte                    pad_24[8];
     /* 0x2C */ Actor521100Obj2C*       field_2C;
 } Actor521100;
 
@@ -80,6 +85,10 @@ typedef struct Actor521100Work {
     /* 0x6AA */ byte         pad_6AA[6];
     /* 0x6B0 */ s16          field_6B0;
     /* 0x6B2 */ s16          field_6B2;
+    /// The animation record's flag nibble (`rec->field_3 & 0x30`) latched for
+    /// the next frame by the footstep cue body `func_actor_521100_80134D88`, so
+    /// each foot fires on the frame its bit has just dropped.
+    /* 0x6B4 */ u16 field_6B4;
 } Actor521100Work;
 
 /// 4-byte message record; the handler switches on the halfword at 0x2,
