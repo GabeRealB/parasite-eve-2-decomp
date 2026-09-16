@@ -110615,3 +110615,90 @@ Inputs: `base_3.i` SHA256
 SHA256 `0d48fd6f50e88f48391c021f0ba0a02575b7e46b4f7fee8edf040fe7b48b8de0`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80135B84-vacuum`.
+
+## A three-case `switch` balances into a tree rooted at the middle value; source-order compares are an if/else-if chain
+
+`func_actor_110600_80134728` dispatches on a stage word with the values 1, 2 and
+6, and m2c renders the target as a `switch`. Compiling that switch gives a
+*tree*, not the target's linear walk:
+
+```
+/* m2c's switch                    /* target */
+li    v0,2                         li    v0,1
+beq   v1,v0,case2                  bne   v1,v0,case2
+slti  v0,v1,3                      li    v0,2
+beqz  v0,else_arm                  bne   v1,v0,case6
+li    v0,1                         bne   v1,v0,else_arm
+beq   v1,v0,case1
+```
+
+`stmt.c`'s `balance_case_nodes` splits a three-node list at the middle
+(`else if (i == 3) npp = &(*npp)->right;`), and `emit_case_nodes` tests a
+node's own value *before* dispatching to its children, so the middle case is
+always a three-case `switch`'s first comparison. Both branches here are single
+values, and with values 1 / 2 / 6 `estimate_case_costs` returns 0
+(`cost_table[1] < 0`), so the lopsided cost-table path cannot apply either. A
+chain in source order therefore says the source was an if/else-if chain; the
+rewrite alone took this function from 69.9% to 80.0%, with blocks, predicates
+and call targets all matching afterwards.
+
+The tail all three arms reach is the other half of the shape. Each arm ends with
+its own copy of the same three stores, and the post-reload cross-jump
+(`jump_optimize (insns, 1, 1, 0)`) merges them into the *last* arm's copy, so
+the earlier arms jump to a block m2c can only spell `goto block_N`. What decides
+*which* pair merges is register equality, and that is why each arm copies the
+work pointer into a local of its own: with one variable for all three arms the
+cross-jump merged the wrong pair (each arm's trailing clip-id store plus its
+jump), leaving two copies of the tail where the target has one and an object
+three instructions long. Writing the tail into every arm — and giving each arm
+its own copy of the pointer, as the sibling `func_actor_403000_80133AF8` does
+with `seekWork` / `resetWork` / `tickWork` — is what reproduces the target's
+single tail at 100%: 79.96% with the tail shared through `else goto`, 91.9% with
+it duplicated and one variable, 97.4% once each arm had its own copy.
+
+Inputs: `base_6.i` SHA256
+`a11b1de8332abc22e809b68ee81c6a81776d6ae8566d4eff3667033a75789bc1`; target.o
+SHA256 `b1efe505e4bef7407cc166e1ab99993ef1fb04dd27d30e716fc1b9c9ea027085`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80134728-vacuum`.
+
+## A field tested in two blocks around a join gets one load only if a local holds it; reading it per use is `REG_DEAD` at the first compare
+
+The turn clamp in `func_actor_110600_80134728` reads one halfword, tests it for
+zero, then tests it twice more with an arm in between:
+
+```c
+turnNow = work->field_8A4;
+turn    = (u16)work->field_8A4;
+if (turnNow != 0) {
+    if (turnNow >= 0x401) {
+        turn = 0x400;
+    }
+    if (turnNow < -0x400) {
+        turn = -0x400;
+    }
+```
+
+Spelling the second and third tests as `work->field_8A4` (the m2c shape, which
+has no local for the value) still CSEs the first two into one `lh`, but the
+third read becomes a *second* `lh`: `.lreg` shows the sign-extended value as
+`(lt (reg 221) 1025)` with `expr_list:REG_DEAD (reg 221)`, so the quantity dies
+at the first compare and the next block's read has nothing left to reuse. The
+target loads once and uses it for both (`slti v0,v1,0x401` /
+`slti v0,v1,-0x400`, the second hoisted into the first `bnez`'s delay slot).
+Binding the read to a local gives it a live range that spans both tests, and
+with a local for the unsigned read as well the pair of loads and the shared
+`sll s0,s0,16` come out exactly.
+
+This is the mirror of "A temp local for a value re-read across stores collapses
+the reloads": there the target reloaded per statement and inlining was right,
+here the target loads once and the local is right. The rule that covers both is
+to count the target's loads of the field and match that count in the source —
+one load per use site means read the field, one load for several uses means bind
+it to a local.
+
+Inputs: `base_6.i` SHA256
+`a11b1de8332abc22e809b68ee81c6a81776d6ae8566d4eff3667033a75789bc1`; target.o
+SHA256 `b1efe505e4bef7407cc166e1ab99993ef1fb04dd27d30e716fc1b9c9ea027085`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80134728-vacuum`.

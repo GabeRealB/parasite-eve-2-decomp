@@ -344,7 +344,177 @@ void func_actor_110600_80134438(Actor110600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134564);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134728);
+/// Reset argument `func_800B4114` is handed for the clip `field_892` of the
+/// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
+/// data carries at `D_actor_110600_80147D20`, indexed by the clip id. The row
+/// stride is the row's own length, so the load is a signed byte.
+extern s8 D_actor_110600_80147D20[];
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Per-tick animation stage machine driven off the task's work block.
+///
+/// Stages 1, 2 and 6 arm every slot 1..0x12 and then park the stage at 3 with
+/// the frame counter `field_894` and `field_8AC` cleared: stage 1 plays the
+/// clip at `field_892` through `func_800B4114`, taking each slot's reset
+/// argument out of the `field_890` row of `D_actor_110600_80147D20`; stage 2
+/// arms the same clip with `Gp_AnimResetSlot`; stage 6 arms clip 0x10 and then
+/// ticks the context 99 times so the pose settles before it is shown. A
+/// `field_89A` of 2 is the blend stage instead — it arms the blend context with
+/// clip `field_89C` at weight `field_8A0` and parks `field_89A` at 3.
+///
+/// Every tick then steps all slots, either directly or — while `field_88E` is
+/// set — through the blend pass `func_actor_110600_80134438`, which ends the
+/// wait once blend slot 1 reports its clamp. `field_8A4` walks towards
+/// `field_8A2` in 0x100 steps, and the turn that leaves, clamped to ±0x400, is
+/// handed to joints 5 and 3 of the model root (the second a quarter of it).
+/// Finally the id `func_actor_110600_80134564` reports is queued through
+/// `SndEvt_EnqueueType6` with the model root's pan and depth; the bits 12..15
+/// of the enemy's `field_8` are appended to it.
+void func_actor_110600_80134728(Actor110600* arg0)
+{
+    Actor110600AnimWork* work;
+    Actor110600AnimWork* seekWork;
+    Actor110600AnimWork* resetWork;
+    Actor110600AnimWork* warmWork;
+    Actor110600AnimWork* blendWork;
+    Actor110600AnimWork* tickWork;
+    GpEnemy*             enemy;
+    u32                  table;
+    s32                  index;
+    s32                  animation;
+    s32                  seekIndex;
+    s32                  resetIndex;
+    s32                  warmIndex;
+    s32                  blendIndex;
+    s32                  tickIndex;
+    s32                  targetAngle;
+    s32                  currentAngle;
+    s32                  targetAngleBits;
+    s32                  currentAngleBits;
+    s32                  turn;
+    s16                  turnNow;
+    s32                  sound;
+    s32                  soundId;
+    s32                  pan;
+    s16                  state;
+
+    work  = (Actor110600AnimWork*)arg0->field_1C;
+    state = work->field_88C;
+    enemy = arg0->field_20;
+    if (state == 1) {
+        seekWork  = work;
+        seekIndex = 1;
+        table     = (u32)D_actor_110600_80147D20;
+        do {
+            work->slots[seekIndex].field_9 = (u8)seekWork->field_896;
+            animation                      = seekWork->field_892;
+            index                          = seekWork->field_890 * 0x2D;
+            func_800B4114(&seekWork->anim, seekIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+            seekIndex += 1;
+        } while (seekIndex < 0x13);
+        seekWork->field_890 = (u16)seekWork->field_892;
+        work->field_88C     = 3;
+        work->field_894     = 0;
+        work->field_8AC     = 0;
+    } else if (state == 2) {
+        resetWork  = work;
+        resetIndex = 1;
+        do {
+            work->slots[resetIndex].field_9 = (u8)resetWork->field_896;
+            Gp_AnimResetSlot(&resetWork->anim, resetIndex, (s32)resetWork->field_892);
+            resetIndex += 1;
+        } while (resetIndex < 0x13);
+        resetWork->field_890 = (u16)resetWork->field_892;
+        work->field_88C      = 3;
+        work->field_894      = 0;
+        work->field_8AC      = 0;
+    } else if (state == 6) {
+        warmWork  = work;
+        warmIndex = 1;
+        do {
+            work->slots[warmIndex].field_9 = 0x10;
+            Gp_AnimResetSlot(&warmWork->anim, warmIndex, (s32)warmWork->field_892);
+            warmIndex += 1;
+        } while (warmIndex < 0x13);
+        warmWork->field_890 = (u16)warmWork->field_892;
+        warmIndex           = 1;
+        do {
+            tickWork  = (Actor110600AnimWork*)arg0->field_1C;
+            tickIndex = 1;
+            do {
+                tickWork->slots[tickIndex].field_9 = (u8)tickWork->field_896;
+                Gp_AnimTickIndex(&tickWork->anim, tickIndex);
+                tickIndex += 1;
+            } while (tickIndex < 0x13);
+            warmIndex += 1;
+        } while (warmIndex < 0x64);
+        work->field_88C = 3;
+        work->field_894 = 0;
+        work->field_8AC = 0;
+    }
+    if (work->field_89A == 2) {
+        blendWork            = (Actor110600AnimWork*)arg0->field_1C;
+        blendIndex           = 1;
+        blendWork->field_89E = 0x30;
+        blendWork->field_8A0 = 0xB78;
+        do {
+            blendWork->slots[blendIndex].field_9 = (u8)blendWork->field_89E;
+            Gp_AnimResetSlot(&blendWork->blendAnim, blendIndex, (s32)blendWork->field_89C);
+            blendIndex += 1;
+        } while (blendIndex < 0x13);
+        work->field_89A = 3;
+    }
+    work->field_894 = (u16)(work->field_894 + 1);
+    if (work->field_88E == 0) {
+        tickWork  = (Actor110600AnimWork*)arg0->field_1C;
+        tickIndex = 1;
+        do {
+            tickWork->slots[tickIndex].field_9 = (u8)tickWork->field_896;
+            Gp_AnimTickIndex(&tickWork->anim, tickIndex);
+            tickIndex += 1;
+        } while (tickIndex < 0x13);
+    } else {
+        func_actor_110600_80134438(arg0);
+        if (work->blendSlots[1].field_10 & 0x1) {
+            work->field_88E = 0;
+        }
+    }
+    targetAngle      = work->field_8A2;
+    currentAngle     = work->field_8A4;
+    targetAngleBits  = (u16)work->field_8A2;
+    currentAngleBits = (u16)work->field_8A4;
+    if (currentAngle < targetAngle) {
+        if ((targetAngle - currentAngle) >= 0x101) {
+            work->field_8A4 = (s16)(currentAngleBits + 0x100);
+        } else {
+            goto block_31;
+        }
+    } else if ((currentAngle - targetAngle) >= 0x101) {
+        work->field_8A4 = (s16)(currentAngleBits - 0x100);
+    } else {
+    block_31:
+        work->field_8A4 = (s16)targetAngleBits;
+    }
+    turnNow = work->field_8A4;
+    turn    = (u16)work->field_8A4;
+    if (turnNow != 0) {
+        if (turnNow >= 0x401) {
+            turn = 0x400;
+        }
+        if (turnNow < -0x400) {
+            turn = -0x400;
+        }
+        ActorsShared80132808(&arg0->field_2C->field_8[5], (s16)turn);
+        ActorsShared80132808(&arg0->field_2C->field_8[3], (s16)((s32)(turn << 0x10) >> 0x12));
+    }
+    sound = func_actor_110600_80134564((Actor110600Work*)work);
+    if (sound != 0) {
+        soundId = sound | ((enemy->field_8 >> 12) << 8);
+        pan     = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134AB4);
 

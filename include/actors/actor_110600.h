@@ -265,6 +265,13 @@ STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 /// `Actor403000AnimWork`, which is the same body one overlay over; the two
 /// views overlap `Actor110600Work` because the overlay reads the block through
 /// whichever shape a function needs.
+///
+/// `func_actor_110600_80134728` drives this view's slots and contexts and reads
+/// the state words below it through the same pointer, so the view carries the
+/// state halfwords `Actor110600Work` names too: `field_88C` is the stage it
+/// dispatches on, `field_890` / `field_892` the clip pair `func_800B4114` is
+/// armed with, `field_894` the frame counter it bumps, and `field_8AC` the
+/// word its stage setup clears.
 typedef struct Actor110600AnimWork {
     /* 0x000 */ byte       pad_0[0x10];
     /* 0x010 */ GpAnimCtx  anim;
@@ -272,14 +279,29 @@ typedef struct Actor110600AnimWork {
     /* 0x3E4 */ byte       pad_3E4[0x68];
     /* 0x44C */ GpAnimCtx  blendAnim;
     /* 0x460 */ GpAnimSlot blendSlots[24];
-    /* 0x820 */ byte       pad_820[0x76];
-    /* 0x896 */ s16        field_896;
-    /* 0x898 */ byte       pad_898[6];
-    /* 0x89E */ s16        field_89E;
-    /* 0x8A0 */ s16        field_8A0;
-    /* 0x8A2 */ byte       pad_8A2[2];
+    /* 0x820 */ byte       pad_820[0x6C];
+    /* 0x88C */ s16        field_88C;
+    /* 0x88E */ s16        field_88E;
+    /* 0x890 */ s16        field_890;
+    /// Clip id the slots are armed with; read as an unsigned halfword into the
+    /// clamped halfword `field_890` is assigned from.
+    /* 0x892 */ s16 field_892;
+    /* 0x894 */ u16 field_894;
+    /// Clip id written into every slot's `field_9`, read as a byte.
+    /* 0x896 */ s16  field_896;
+    /* 0x898 */ byte pad_898[2];
+    /* 0x89A */ s16  field_89A;
+    /// Blend-animation clip id, which the `field_89A == 2` stage arms the blend
+    /// slots with.
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ s16  field_89E;
+    /* 0x8A0 */ s16  field_8A0;
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ s16  field_8A4;
+    /* 0x8A6 */ byte pad_8A6[6];
+    /* 0x8AC */ s32  field_8AC;
 } Actor110600AnimWork;
-STATIC_ASSERT_SIZEOF(Actor110600AnimWork, 0x8A4);
+STATIC_ASSERT_SIZEOF(Actor110600AnimWork, 0x8B0);
 
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
@@ -351,6 +373,11 @@ void func_actor_110600_801388A4(Actor110600* arg0);
 /// The actor's per-tick model update, driven from `Task::idMap` /
 /// `Task::spawnArg2` off the pointer it is handed.
 void func_actor_110600_80134728(Actor110600* arg0);
+
+/// Reports the sound cue the model is currently owed — 0 while there is none —
+/// which `func_actor_110600_80134728` queues as the id's low byte. Reads the
+/// work block's `field_6` timer and its `field_892` clip.
+s32 func_actor_110600_80134564(Actor110600Work* work);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
 /// target `D_80073B8C` against the coordinate's own yaw into `field_8A2`, ticks
