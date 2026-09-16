@@ -38,6 +38,9 @@ extern u8  D_801153F4;
 extern u32 Gp_LcgState;
 extern s16 D_80073BA0;
 
+/// The player's world matrix; its third column is the direction they face.
+extern MATRIX* D_80073B8C;
+
 /// The pair source the context's `field_50` points at; its `field_4` seeds the
 /// enemy's HP.
 extern GpPairSrcE D_actor_510900_80167980;
@@ -62,7 +65,121 @@ INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900_3", D_actor_510900
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80136184);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013691C);
+/// Picks the handler the patrol hands over to, from the distance `field_5A6`
+/// walked around the patrol square and the player's facing. Two spots on the
+/// lap - 0x4B00 and 0x7F00, each with a 0x120 window - fire once apiece through
+/// the `field_5BE` latch and send the actor into state 2; past 0xB477 the lap is
+/// over and state 6 takes it. Otherwise, only on the frame the corner has been
+/// reached (`field_5A8` == `field_5AA`), the player's range `field_5AC` and
+/// whether they face the actor choose between states 2..5, each with the
+/// animation the handler starts on. Returns 1 when a handler was selected.
+s32 func_actor_510900_8013691C(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s32               diff;
+    s32               ret;
+    s16               dist;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (work->field_5BE == 0) {
+        diff = work->field_5A6 - 0x4B00;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff < 0x120) {
+            work->field_5BE = 1;
+            work->field_58E = 2;
+            work->field_590 = 0;
+            work->field_586 = 0xA;
+            return 1;
+        }
+        diff = work->field_5A6 - 0x7F00;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff < 0x120) {
+            work->field_5BE = 2;
+            work->field_58E = 2;
+            work->field_590 = 0;
+            work->field_586 = 0xA;
+            return 1;
+        }
+    }
+    if (work->field_5A6 > 0xB477U) {
+        work->field_58E = 6;
+        work->field_590 = 0;
+        work->field_586 = 0xE;
+        return 1;
+    }
+    if (work->field_5A6 > 0xAE9CU) {
+        return 0;
+    }
+    if (work->field_5A8 != work->field_5AA) {
+        return 0;
+    }
+    if (D_80073B8C->m[0][2] * coord->field_0.coord.m[0][2] +
+            D_80073B8C->m[2][2] * coord->field_0.coord.m[2][2] <
+        0) {
+        dist = work->field_5AC;
+        if (dist < 0xAF0) {
+            ret             = 1;
+            work->field_58E = 2;
+            work->field_590 = 0;
+            work->field_586 = 0xA;
+            goto done;
+        }
+        if (dist < 0xED8) {
+            ret             = 1;
+            work->field_58E = 3;
+            work->field_590 = 0;
+            work->field_586 = 0xE;
+            goto done;
+        }
+        if (dist < 0x12C0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 0x10) & 1) {
+                work->field_58E = 3;
+                work->field_590 = 0;
+                work->field_586 = 0xE;
+            } else {
+                work->field_58E = 4;
+                work->field_590 = 0;
+                work->field_586 = 0x1B;
+            }
+        } else {
+            ret = 0;
+            if (work->field_5BA == 0) {
+                ret             = 1;
+                work->field_58E = 4;
+                work->field_590 = 0;
+                work->field_586 = 0x1B;
+            }
+            goto done;
+        }
+    } else {
+        if (work->field_5AC < 0xAF0) {
+            work->field_58E = 2;
+            work->field_590 = 0;
+            work->field_586 = 0xA;
+        } else {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (((Gp_LcgState >> 0x10) & 0xF) < 0xAU) {
+                work->field_58E = 4;
+                work->field_590 = 0;
+                work->field_586 = 0x1B;
+            } else {
+                work->field_58E = 5;
+                work->field_590 = 0;
+                work->field_586 = 0xB;
+            }
+        }
+    }
+    ret = 1;
+done:
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80136B70);
 

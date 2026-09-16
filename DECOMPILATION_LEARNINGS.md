@@ -90002,3 +90002,66 @@ arm, split the variable before reaching for scheduling hacks. This is the
 counterpart of the usual advice to prefer one reused variable over a pile of
 temps — that holds for values, but a pointer recomputed identically in two arms
 is two live ranges in the original, not one.
+
+## A join label at the merge point lets cross-jumping keep going; a mid-block one stops it
+
+`func_actor_510900_8013691C` (actors/actor_510900) ends five of its arms with
+`work->field_590 = 0; work->field_586 = <anim>;`. Factoring that pair out of the
+arms — writing it once after the inner `if`/`else`, which is the obvious C — got
+to 95.97% with one arm too few: the `li $v0,4; sh $v0,0x58E; j tail; li $v0,0x1B`
+block of the "player facing away" branch was deleted and the conditional above it
+inverted to branch into the identical block of the other branch.
+
+The two blocks are byte-identical in the target too, so the question is why
+`jump_optimize (insns, 1, 1, 0)` merged them here and not there. `do_cross_jump`
+splits the matched tail off with a label, and reuses an existing label when the
+match point lands exactly on one. Factoring the store pair out put a label there:
+the arms' jumps were redirected onto that *original* label, and jumps to an
+original label are what `jump.c` walks with `jump_chain` —
+
+    if (INSN_UID (JUMP_LABEL (insn)) < max_uid)
+      for (target = jump_chain[INSN_UID (JUMP_LABEL (insn))]; ...)
+        find_cross_jump (insn, target, 2, &newjpos, &newlpos);
+
+so the two `j tail` insns became each other's merge candidates on a later
+iteration. Writing the store pair *inline in every arm* instead makes the merge
+point fall inside the last arm, between its `li $v0,0xB` and its `sh`, where
+there is no label; `do_cross_jump` creates one, its UID is past `max_uid`, the
+`jump_chain` lookup above is skipped, and the arms stay distinct. Same output for
+the shared pair, one extra block kept — 100%.
+
+The rule: to *stop* cross-jumping from merging two arms that converge on a shared
+tail, do not give that tail a label of its own. Duplicating the tail statements
+into each arm is not redundancy here — it is what makes the merge point
+anonymous.
+
+## `sched1` always hoists a plain `li` above stores in the same block
+
+The same function returns through one `return ret;`, and three arms reach it
+having set `ret = 1` *before* their stores while two reach it having set it
+after. Writing `ret = 1;` last in the arm does not produce that: with
+
+    work->field_590 = 0;
+    work->field_586 = anim;
+    ret             = 1;
+
+sched1 emits `li $v1,1` first. All three insns have priority 1 and no
+dependencies, so `schedule_select` falls through to "select the first one with
+the largest potential hazard", and `potential_hazard` is positive for a store
+(it has a function unit) and 0 for `li`, which has none. A store therefore always
+wins the last slot, and the `li` is pushed to the head of the block — no source
+order or store order changes that, because the tie-break never looks at order.
+
+Consequence for the C: an assignment that must stay *after* the stores has to be
+in a basic block of its own. Here that is a `goto` — the arms that set `ret`
+themselves jump past a trailing
+
+    ret = 1;
+    done:
+        return ret;
+
+Once `ret = 1` is its own block, sched1 has nothing to reorder, and the store
+pair schedules in source order. This is also why that `goto` cannot be replaced
+by `return ret;` in the early arms: `ret = 1; ...; return ret;` inside one block
+lets cse2 fold it to `return 1`, which then cross-jumps onto an unrelated
+`return 1` tail elsewhere in the function.
