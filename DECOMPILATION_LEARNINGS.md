@@ -92263,3 +92263,44 @@ Preprocessed SHA256: `base_1.i`
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_521100_80135DDC-vacuum` (`base_1.i.greg`,
 `base_3.i.greg`, `base_1_diff`, `base_3_diff`).
+
+## A zero-init's position is part of the match: it picks the branch delay slot and the prologue save order (func_actor_521100_80135C14, 2026-09-16)
+
+The seed's `frames = 0` sat first, where m2c rendered it; rewriting the body to
+the family's style — `Actor00300_Fn05304` and `func_actor_503500_80135950` write
+that init *after* the work-block field stores — moved it down and cost two hunks
+that look like pure scheduling noise:
+
+```
+target, init first                      init moved down
+    sw   s2,0x20(sp)                       sw   ra,0x24(sp)
+    move s2,zero                           sw   s2,0x20(sp)
+    sw   ra,0x24(sp)              vs.      sw   s1,0x1c(sp)
+    ...
+    beqz v0,L                              beqz v0,L
+    li   s0,1                              move s2,zero
+    lw   s2,0xc(a2)                        lw   s2,0xc(a2)
+                                           li   s0,1
+```
+
+Both follow from one fact: the init defines the register, so it cannot be
+scheduled before the register's own save, which drags `sw s2` ahead of `sw ra` —
+and the init then has a use available earlier, so the scheduler puts it in the
+`beqz` delay slot that the loop counter's `li s0,1` wants. The rest of the body
+is identical (96.263%, `regs=4 reorder=2 branch=2` against 100.000% all-zero for
+a one-statement difference).
+
+The direction is not the rule — the corpus entry for
+`func_dryfield_night_underpass_8017DC3C` is the same mechanism with the init
+hoisted too *high* and needing to move down into its guard. What is general is
+that an `= 0` init's position is load-bearing and m2c's position for it came from
+the target's own schedule. Take from a matched sibling the control flow, the
+signature and the types, but leave every init where the seed put it until the
+target says otherwise.
+
+Preprocessed SHA256 `base_1.i`
+`36db3812f018c085663308dcbbac0f40f57a0caf48f31422fdf74ea75ef4f3de`, `base_2.i`
+`d3d14816b044d6d1623236f9b7b7dcd17f7223382018c67fcfc150eb638285b2`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_521100_80135C14-vacuum` (`base_1_diff`,
+`base_2_diff`).

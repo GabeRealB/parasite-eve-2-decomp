@@ -75,12 +75,20 @@ typedef struct Actor521100Work {
     /* 0x658 */ byte         pad_658[0x28];
     /* 0x680 */ s16          field_680;
     /* 0x682 */ s16          field_682; // non-zero while the tick in func_actor_521100_80135B80 remaps the model's field_C
-    /* 0x684 */ byte         pad_684[8];
-    /* 0x68C */ s16          field_68C;
-    /* 0x68E */ s16          field_68E;
-    /* 0x690 */ s16          field_690;
-    /* 0x692 */ s16          field_692;
-    /* 0x694 */ s16          field_694;
+    /* 0x684 */ byte         pad_684[2];
+    /// The clip the slots are blended to and the clip they currently carry.
+    /// The preset handler `func_actor_521100_80135C14` stores one clip id into
+    /// both, so the blend is skipped; `func_actor_521100_80135964` later walks
+    /// every slot towards `field_686` while the two differ, then ticks them
+    /// once they agree.
+    /* 0x686 */ s16  field_686;
+    /* 0x688 */ s16  field_688;
+    /* 0x68A */ byte pad_68A[2];
+    /* 0x68C */ s16  field_68C;
+    /* 0x68E */ s16  field_68E;
+    /* 0x690 */ s16  field_690;
+    /* 0x692 */ s16  field_692;
+    /* 0x694 */ s16  field_694;
     /// 12-bit angles. The step-1 entry body `func_actor_521100_80135680`
     /// subtracts them, wraps the difference into [-0x800, 0x800] and reads
     /// `field_6AA` when the result is under 0x200.
@@ -130,6 +138,21 @@ typedef struct Actor521100AnimArgs {
     /* 0x0 */ byte pad_0[4];
     /* 0x4 */ s32  animId;
 } Actor521100AnimArgs;
+
+/// Argument block of the "start animation" script opcode 0x7D3, whose handler
+/// is `func_actor_521100_80135C14`. `field_0` is the animation bank and picks
+/// the clip the bank starts at (`0` maps to 0x14, every other bank to 0x1D);
+/// `field_4` is the offset of the clip inside that bank; `field_8`, when
+/// non-zero, blends to it over `field_C` frames instead of snapping. Same
+/// four-word shape as `Actor361100AnimPreset` and `Actor503500AnimPreset`.
+typedef struct Actor521100AnimPreset {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[2];
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ s32  field_C;
+} Actor521100AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor521100AnimPreset, 0x10);
 
 extern Actor521100Work* D_actor_521100_8016A3D8;
 
