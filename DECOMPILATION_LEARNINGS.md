@@ -97898,3 +97898,43 @@ Inputs: `base_9.i` (100.000%) SHA256 `b92cc4ec81705d0f084be818ff5908897eac80a842
 target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
+
+## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (Actor01600_Fn04C64, 2026-09-16)
+
+`Actor01600_Fn04C64` ends with `Gp_ClearRec18Occupied(&work->field_444)` and the
+target's tail reads:
+
+```
+jal Gp_ClearRec18Occupied        addu a1,s0 / addu v0,s4,zero   (return value)
+lui a0,0x1f80                    addiu v1,v1,0x30
+ori a0,a0,0x3fc                  sw v1,0(a0)
+lw v1,0(a0)                      lw ra,0x24(sp)
+```
+
+Declaring the callee — the file's own declaration block, or `#include
+"gameplay/3A34.h"`, which declares it `void` — compiles the call as
+`call_internal1` and the epilogue comes out as `lui $v1 / lw $v0 / addu $v0,$v0,0x30
+/ sw $v0 / move $v0,$s20`: six instructions later, and readable only as a
+register-allocation mistake. The retail TU had no prototype for it, so the call
+was implicitly `int`-returning and compiled as `call_value_internal1`, whose RTL
+is `(set (reg:SI 2 v0) (call ...))`. That `$v0` definition is what makes
+local-alloc deny `$v0` to the epilogue's two local quantities (the reloaded
+scratch head and the value it post-increments), which is what puts the head in
+`$a0` and the return move in the load-delay slot.
+
+**Reading it.** `.lreg` at the call insn distinguishes the two directly: a
+`(set (reg:SI 2 v0) (call ...))` with `REG_UNUSED (reg:SI 2 v0)` is
+`call_value_internal1`; a bare `(call ...)` is `call_internal1`. A pointer-sized
+tail difference whose cause is 100 instructions earlier, and that survives
+re-phrasing the tail, is worth checking here before anything else.
+
+**The scratch env can hide it.** The scratch compiles only the seed function, so
+a callee the host file later declares is still implicit there: the same source
+scores 100.000% in the scratch and fails the overlay checksum in the tree. Leave
+the callee undeclared — with a comment saying why, so the next reader does not
+"fix" it — or the match is lost.
+
+Inputs: `base_7.i` (100.000%) SHA256 `c550579a33aa262c076f86b59ce83117363b546ad9b8213f3c9a2f3936330cb9`;
+target SHA256 `4f7afbfde205f7117829679e1b300cf0fb2077d86cda0e853d112a8212b85b59`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor01600_Fn04C64-vacuum`.

@@ -329,6 +329,20 @@ typedef struct Actor01600RotScratch {
 } Actor01600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
 
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Actor01600_Fn04C64`: `vec`
+/// takes (0, 0, `distance`), `mat` the yaw rotation `func_8004BFF8` builds from
+/// the work block's `field_4EC`, and `out` the `vec` turned by it - the
+/// displacement the actor keeps in `field_42C` / `field_430`.
+typedef struct Actor01600YawScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ SVECTOR out;
+    /* 0x10 */ MATRIX  mat;
+} Actor01600YawScratch;
+STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
+
+/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 s32 Actor01600_Fn052C4(Actor01600* arg0);
 
 /// Payload for message 0x3F8.
@@ -414,6 +428,7 @@ struct _GpU16Pair;
 void                     Gp_LinkObj(s32 kind, struct _GpObj* obj);
 void                     Gp_InitRec18Table(GpRec18* table, s32 count, s32 occupied);
 s32                      Gp_PackPair(struct _GpU16Pair* pair, s32 index);
+void                     func_8004BFF8(s16 angle, MATRIX* matrix);
 extern struct _GpU16Pair Actor01600_D09F04;
 
 #endif // ACTOR_101600_H

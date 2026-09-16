@@ -27,6 +27,11 @@ s32  Gp_GetObjPan(void* arg0);
 s32  Gp_GetObjDepth(void* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
+/// `Gp_ClearRec18Occupied` must stay undeclared here: an implicit declaration
+/// is what makes `Actor01600_Fn04C64`'s call a value-returning one, the way
+/// retail compiled it. Declaring it `void` (as `gameplay/3A34.h` does) drops
+/// the `$v0` definition from the call's RTL and resequences the epilogue.
+
 extern u8  D_801153F4;
 extern s32 Gp_LcgState;
 
@@ -565,4 +570,102 @@ void Actor01600_Fn04AD8(Actor01600* arg0)
     Gp_UpdateCoord(&work->field_24C);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_rotation", Actor01600_Fn04C64);
+/// Allocates the yaw scratch, updates `field_4EC` either by `angle` (clamped
+/// into (-0x800, 0x801]) or, when `angle` is 0, by its own 0x71 / 0xA step -
+/// returning 1 once the degree counter `field_4EE` passes a full turn - then
+/// turns (0, 0, `distance`) by the resulting yaw into `field_42C` / `field_430`
+/// and advances the swept-angle range `ranges[field_4E8]`.
+s32 Actor01600_Fn04C64(Actor01600* arg0, s32 distance, s32 angle)
+{
+    Actor01600YawScratch* allocated;
+    Actor01600YawScratch* scratch;
+    Actor01600Work*       work;
+    MATRIX*               m;
+    SVECTOR*              out;
+    s16                   temp_v0_3;
+    s16                   temp_v0_4;
+    s16                   temp_v0_5;
+    s16                   temp_v1_2;
+    s16                   var_v0;
+    s16                   var_v0_2;
+    s32                   scaled;
+    s32                   temp_a0;
+    s32                   var_s4;
+
+    var_s4                              = 0;
+    allocated                           = *(Actor01600YawScratch**)0x1F8003FC - 1;
+    work                                = arg0->field_1C;
+    *(Actor01600YawScratch**)0x1F8003FC = allocated;
+    scratch                             = allocated;
+    scratch->vec.vx                     = 0;
+    scratch->vec.vy                     = 0;
+    scratch->vec.vz                     = (s16)distance;
+    if (angle == 0) {
+        temp_v1_2       = (u16)work->field_4EE + 0xA;
+        scaled          = temp_v1_2 << 0x10;
+        var_s4          = scaled > 0x01670000;
+        work->field_4EC = (u16)work->field_4EC + 0x71;
+        work->field_4EE = temp_v1_2;
+    } else {
+        work->field_4EC = (s16)angle;
+        if ((s16)angle >= 0x801) {
+            var_v0 = angle - 0x1000;
+            goto block_5;
+        }
+        if ((s16)angle >= -0x800) {
+            goto block_6;
+        }
+        var_v0 = angle + 0x1000;
+    block_5:
+        work->field_4EC = var_v0;
+    block_6:;
+    }
+    m                  = &scratch->mat;
+    *(s32*)&m->m[0][0] = 0x1000;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = 0x1000;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = 0x1000;
+    func_8004BFF8(work->field_4EC, m);
+    out = &scratch->out;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&scratch->vec);
+    gte_rtv0_real();
+    gte_stsv(out);
+    work->field_42C = (s16)scratch->out.vx;
+    work->field_430 = (s16)scratch->out.vz;
+    if ((u16)(work->field_444.field_4 >> 16) != 0x10) {
+        if (angle == 0) {
+            temp_v0_3 = work->field_4E8;
+            if (work->ranges[temp_v0_3].low == 0xFFFF) {
+                work->ranges[temp_v0_3].low = (s32)work->field_4EC;
+            } else {
+                work->ranges[temp_v0_3].high = (s32)work->field_4EC;
+                if (var_s4 == 1) {
+                    var_v0_2 = (u16)work->field_4E8 + 1;
+                    goto block_18;
+                }
+            }
+        } else {
+            var_s4 = 1;
+        }
+    } else if (angle == 0) {
+        temp_v0_4 = work->field_4E8;
+        temp_a0   = work->ranges[temp_v0_4].low;
+        if (temp_a0 != 0xFFFF) {
+            if (work->ranges[temp_v0_4].high == 0xFFFF) {
+                work->ranges[temp_v0_4].high = temp_a0;
+            }
+            temp_v0_5       = (u16)work->field_4E8 + 1;
+            work->field_4E8 = temp_v0_5;
+            if (temp_v0_5 >= 7) {
+                var_v0_2 = 7;
+            block_18:
+                work->field_4E8 = var_v0_2;
+            }
+        }
+    }
+    Gp_ClearRec18Occupied(&work->field_444);
+    *(Actor01600YawScratch**)0x1F8003FC += 1;
+    return var_s4;
+}
