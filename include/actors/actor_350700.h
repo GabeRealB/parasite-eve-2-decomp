@@ -35,6 +35,9 @@ typedef struct Actor350700Work {
 } Actor350700Work;
 STATIC_ASSERT_SIZEOF(Actor350700Work, 0x4C8);
 
+/// Exit callback `func_actor_350700_80162404` installs; tears the task down.
+void func_actor_350700_80162494(Task* arg0);
+
 void func_actor_350700_801624B4(Task* arg0);
 
 #endif
