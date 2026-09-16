@@ -86507,3 +86507,65 @@ rewrites one that exists), so no matched body was lost and
 Inputs: `base_15.i`
 `733499da18bf72f55e469e3731d0554896bcb27b59d6132bd602bbed093fa0b5` (99.339% on
 symbol rendering; the unscoped build matches).
+## `REG_N_REFS` is weighted by loop depth, so a `do { } while (0)` reorders global allocation (Actor00400_Fn07518, 2026-09-16)
+
+Two pseudos swapped hard registers against the target: a `Actor100400Work*`
+came out in `$a0` where the target had `$v1`, and the `s16` it compared against
+four constants came out in `$v1` where the target had `$a0`. No `insert`,
+`delete`, `branch` or `reorder` - `regs=11` and nothing else.
+
+`global.c`'s `allocno_compare` sorts allocnos by
+
+```
+floor_log2 (n_refs) * n_refs / live_length * 10000 * size
+```
+
+and then `find_reg` hands each one the lowest-numbered free register in turn
+(MIPS defines no `REG_ALLOC_ORDER`, so it is plain `regno` order). The pointer
+had 6 refs over 15 insns - `2*6/15` = 8000 - and the compared value 5 refs over
+8 - `2*5/8` = 12500 - so the *value* was allocated first, took `$v1`, and the
+pointer fell through to `$a0`. Getting the target order needs the pointer above
+12500, and the `floor_log2` step at 8 refs is what does it: `3*8/15` = 16000.
+
+The two counts come from different points in the pipeline, which is the lever.
+`REG_LIVE_LENGTH` is recomputed by sched1 (`sched.c`, `sched_reg_live_length`),
+but `REG_N_REFS` is computed once by `flow_analysis`, which `toplev.c` runs
+*before* combine - and flow accumulates it as `REG_N_REFS (regno) += loop_depth`.
+So references inside a loop body count once per nesting level, and a
+`do { ... } while (0)` that emits no instruction at all still doubles the refs
+of everything it encloses:
+
+```c
+set:
+    do {
+        work->field_638 = state;
+        work->field_63A = 0;
+    } while (0);
+other:
+```
+
+That took the pointer from 6 refs to 8 with an unchanged 15-insn live range,
+flipped it ahead of the compared value, and the whole allocation fell out
+right - `$v1`, `$a0`, `$a1`, `$v0` - for 100% with `regs=0`.
+
+Scope: it has to wrap *only* the references you want promoted. Wrapping the
+enclosing `if` instead doubles the compared value's four uses too, which lifts
+it to 33750 and keeps the original order.
+
+The same function needed two unrelated fixes first, both worth recognising:
+
+- m2c's `s16` temporaries produced a second, plain-`HImode` load of each field
+  (`lh` for the comparison, `lhu` for the 16-bit store), because CSE does not
+  unify a sign-extended `SImode` value with the `HImode` one a `sh` needs.
+  Declaring the temporaries `s32` made the store reuse the sign-extended
+  register and removed `insert=3 delete=3` outright.
+- A `flag = 0; if (...) { ...; flag = 1; } if (!flag) { ... }` shape puts the
+  `flag = 0` before the `li $v0,1` that the guard compares against, so the flag
+  allocno conflicts with hard `$v0` and cannot have it. Writing it as
+  `if (...) { ...; flag = 1; } else { flag = 0; }` moves that store into its own
+  block, the conflict disappears, and dbr still folds the `else` block's single
+  instruction into the branch's delay slot - so the emitted code is unchanged
+  and there is no extra `j`.
+
+Inputs: `base_1.i` (98.99%), `base_2.i` (99.20%), `base_5.i` (100%). Compiler
+SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.

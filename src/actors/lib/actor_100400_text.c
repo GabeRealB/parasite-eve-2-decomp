@@ -1331,8 +1331,13 @@ static inline s32 Actor00400_ConsumeStateRequest(Actor100400Work* work)
     if (req != 4)
         goto other;
 set:
-    work->field_638 = state;
-    work->field_63A = 0;
+    /* The do/while(0) is load-bearing: flow.c weights REG_N_REFS by loop
+       depth, and the two extra references it buys `work` are what let the
+       pointer outrank `req` in global.c's allocation order. */
+    do {
+        work->field_638 = state;
+        work->field_63A = 0;
+    } while (0);
 other:
     work->field_644 = 0;
     return 1;
@@ -1375,7 +1380,30 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn070C0);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07400);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn07518);
+void Actor00400_Fn07518(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    s32              phase;
+
+    work = arg0->field_1C;
+    if (work->field_642 != 0 && work->field_644 == 1) {
+        work->field_63C = 2;
+        work->field_632 = 0x10;
+        work->field_628 = 0x12;
+        work->field_624 = 1;
+    }
+    if (Actor00400_ConsumeStateRequest(arg0->field_1C) == 0) {
+        phase           = (u16)work->field_636 + 1;
+        work->field_636 = phase;
+        work->field_63E = work->field_658 + ((u16)work->field_64E + ((rsin(phase << 16 >> 9) * 0x10) >> 9));
+        if (work->field_636 >= 0x79) {
+            work2            = arg0->field_1C;
+            work2->field_638 = 0;
+            work2->field_63A = 0;
+        }
+    }
+}
 
 /* Steps the actor's root coordinate along its heading in the XZ plane and
    marks it dirty. Same body as func_actor_206100_8014EA8C in
