@@ -44407,6 +44407,17 @@ sibling in another overlay usually already shows the right call — here
 `func_mist_r21_8017D61C` all carry `Game_SetPtrSlot(arg0, 7)` verbatim. Compare
 against one of those before reading the dumps.
 
+The `regs` count under-states the damage, so do not read it as a measure of how
+many things are wrong. Restoring the arity redefines `$a0` at the call site, and
+that earlier definition can be what a *later, unrelated* value was avoiding:
+`func_neo_ark_island_8017EA94` scored 99.14% at `regs=5` with the one-argument
+form, and the five penalties were two separate symptoms — `li a1,7`/`li a0,7` at
+the call, and the `D_80115598` address at the tail landing in `$v1` instead of
+`$a0` (with the constant `1` pushed from `$v1` to `$v0`). Passing `arg0` fixed
+both and went straight to 100%. A single call-shape correction clearing an
+allocation difference in a different part of the function is the expected
+outcome, not a coincidence: fix the call before reading any dump.
+
 ## A stack table copy reads as the callee's argument list
 
 The third form of the same invention, and the one where the callee cannot settle
