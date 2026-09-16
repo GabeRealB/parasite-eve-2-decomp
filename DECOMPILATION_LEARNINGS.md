@@ -109489,3 +109489,42 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_356100_80167A7C-vacuum`; best candidate
 `base_9.c` (unresolved: a `cse` jump-threading difference, see the session
 `LEARNINGS.md` there).
+
+## `head[-1].vx` in a scratch-release helper gives the released pointer its own register
+
+A `G_SCRATCH_HEAD` step helper that reads its X component back through the
+pre-release name
+
+```c
+head = *(SVECTOR**)G_SCRATCH_HEAD;
+vec  = head - 1;
+*(SVECTOR**)G_SCRATCH_HEAD = vec;
+...
+coord->coord.t[0] += head[-1].vx;   /* one register too many */
+```
+
+makes `cse` assign `(u8*)*scratch + 0x34` — the value the release stores — a
+pseudo, because that pseudo is the destination of the `head = …` that consumes
+the forwarded store. The register stays live from the release across the
+enclosing branch to the read, so the base is the RotScratch head instead of the
+block, and three instructions differ (`addiu $s0,$s0,0x2c` vs
+`addiu $s0,$s2,0x2c`, then `lh $v1,-0x8(s2)` vs `lh $v1,0x2c(s2)`) at 99.871%.
+
+Spelling the three component reads through `vec` — the form
+`Actor01900_StepForward` already uses — lets the forwarded value stay an
+expression and fold to `blk + 0x2C`, keeping the block pointer in the register
+the release left it in. 100.000% with `regs` 10 → 0.
+
+The same helper pair also wants the release written straight through the macro,
+`*(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;`, rather than through a
+saved `void** scratch`: the saved pointer was what let `lreg` keep the
+`0x1F8003FC` constant in `$s5` for that one store, a `lui`/`ori` pair the target
+does not have (2 `insert` penalties). A *matching* helper in the same TU can
+still use the saved pointer — this is register pressure, not a rule.
+
+`func_actor_356100_801684F0` `base_12.c` (100.000%). Inputs: `base_11.i`
+`1ffdc52579fd98a74a00a1ebcefd7f2235a55c1769e3031335c82f8e7c4a4443`,
+`base_12.i`
+`abc769b81b67f916292d0367477ca9905ef4c19e6b51a1128889e30160d9d538`; target
+`03233a375c70b55c2f3ab33fd13202401c1a74e2b5c77d6c6df9e253b4af5cc7`.
+Scratch `nonmatchings/func_actor_356100_801684F0-vacuum`.

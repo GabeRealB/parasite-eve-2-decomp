@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_356100.h"
+#include "main/mc.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -854,7 +855,179 @@ void func_actor_356100_8016804C(Actor356100* arg0)
     *(Actor356100TurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801684F0);
+/// Wrapped yaw from `coord`'s facing to an offset (`x`, `z`) already in hand.
+/// Same body as `Actor401300_YawTo` / `Actor01900_YawTo`, the pair
+/// `Actor356100_PositionYaw` above is spelled out as.
+static __inline__ s16 Actor356100_YawTo(GsCOORDINATE2* coord, s16 x, s16 z)
+{
+    s32 angle;
+
+    angle = ratan2(x, z);
+    return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+/// `Actor356100_MoveForwardNonzero` testing the freeze flag through a
+/// `McSaveData*` rather than `D_80072729`, and without its zero-amount guard.
+/// Reads the X component back through `vec`, as `Actor01900_StepForward` does —
+/// the `head[-1]` spelling gives the scratch release value a register of its
+/// own and costs three instructions here. Same body as
+/// `Actor401300_MoveForwardSave`.
+static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if ((u8)save->unknown_5C0[1] != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += vec->vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// `Actor356100_PushRecords` testing the freeze flag through a `McSaveData*`,
+/// and giving the 0x14 bytes back through `G_SCRATCH_HEAD` itself rather than a
+/// saved `void**` — the saved pointer keeps the 0x1F8003FC constant live in a
+/// register across the release.
+static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
+{
+    u8*                   head;
+    Actor356100DeltaFlag* s;
+    s32                   val;
+
+    if ((u8)save->unknown_5C0[1] != 1) {
+        head                                     = *(u8**)G_SCRATCH_HEAD;
+        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
+        s->field_10                              = 0;
+        if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
+            coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[1] += s->delta.vy.h.hi;
+            coord->coord.t[2] += s->delta.vz.h.hi;
+            val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[0]++;
+                } else {
+                    coord->coord.t[0]--;
+                }
+            }
+            val = s->delta.vz.w;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[2]++;
+                } else {
+                    coord->coord.t[2]--;
+                }
+            }
+        }
+        coord->coord.t[1] += height;
+        if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+            s->field_10 = 1;
+        }
+        *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;
+    }
+}
+
+/// Turn-and-rescale tick, the sibling of `func_actor_356100_8016804C` above it
+/// and the same body as `func_actor_401300_8013A5C0`. Going live resets the
+/// model and starts clip 1 at speed 0x10 with the 0x13 state parked in
+/// `field_97E`; otherwise the aim scratch takes the player offset,
+/// `Actor356100_YawTo` gives the wrapped turn, `field_98E` snapshots it, it is
+/// clamped to [-0x80, 0x80] and halved, the root yaw is re-derived from it and
+/// the root coordinate rescaled to a uniform 0x1194. Once the state has settled
+/// on 0x11 the collision step pushes the root out of the `field_A58` records
+/// and one normalised unit back along its own Y column, both frozen while the
+/// save flag is set, and past clip 0x13 the actor is leaned by ±0x4B0 into
+/// state 7.
+void func_actor_356100_801684F0(Actor356100* arg0)
+{
+    Actor356100Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         cur;
+    GsCOORDINATE2*         root;
+    SVECTOR**              scratch;
+    Actor356100AimScratch* head;
+    Actor356100AimScratch* aim;
+    McSaveData*            save;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0x180;
+        work->field_978 = 1;
+        work->field_982 = 0x16;
+        work->field_97A = 0;
+        work->field_97E = 2;
+        func_actor_356100_80163508(arg0);
+        return;
+    }
+    func_actor_356100_80163508(arg0);
+    scratch           = (SVECTOR**)G_SCRATCH_HEAD;
+    cur               = arg0->field_2C->field_8;
+    head              = (Actor356100AimScratch*)*scratch;
+    head[-1].delta.vx = Wip_SysConfig.field_4->t[0] - cur->coord.t[0];
+    aim               = (Actor356100AimScratch*)(*scratch = (SVECTOR*)(head - 1));
+    aim->delta.vy     = Wip_SysConfig.field_4->t[1] - cur->coord.t[1];
+    aim->delta.vz     = Wip_SysConfig.field_4->t[2] - cur->coord.t[2];
+    aim->angle        = Actor356100_YawTo(arg0->field_2C->field_8, head[-1].delta.vx, aim->delta.vz);
+    work->field_98E   = aim->angle;
+    if (ABS(aim->angle) <= 0x80 && work->field_97E == 2) {
+        work->field_982 = 0x16;
+        work->field_97E = 0x11;
+        work->field_978 = 1;
+        work->field_6   = 0;
+        func_actor_356100_80163508(arg0);
+    }
+    if (aim->angle > 0x80) {
+        aim->angle = 0x80;
+    }
+    if (aim->angle < -0x80) {
+        aim->angle = -0x80;
+    } else {
+        aim->angle = aim->angle >> 1;
+    }
+    aim->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_97E == 0x11) {
+        work->field_6++;
+        save  = &Mc_SaveData;
+        coord = arg0->field_2C->field_8;
+        if ((u8)save->unknown_5C0[1] != 1) {
+            Actor356100_StepForwardSave(save, coord, -0x10);
+        }
+        root = arg0->field_2C->field_8;
+        if ((u8)save->unknown_5C0[1] != 1) {
+            Actor356100_PushRecordsSave(save, root, &work->field_A58, 3, 0x10);
+        }
+        arg0->field_2C->field_8->flg = 0;
+        if ((s16)work->field_6 >= 0x13) {
+            if (work->field_98E <= 0) {
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x4B0, 0);
+            } else {
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x4B0, 0);
+            }
+            work->field_0 = 7;
+        }
+    }
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Turn the actor's facing onto the player in one step and rescale the root
 /// coordinate to 0x1194: the live branch resets the model and starts clip 1 at
