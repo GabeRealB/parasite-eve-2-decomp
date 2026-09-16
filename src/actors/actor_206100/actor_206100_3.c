@@ -12,6 +12,9 @@
 extern TaskDesc D_801818BC;
 
 void func_actor_206100_8014DEAC(Task* task);
+void func_actor_206100_8014F284(Task* task);
+void func_actor_206100_8014F2F0(Task* task);
+s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
 void func_actor_206100_8014F8BC(Task* task);
 void func_actor_206100_8014F970(Task* task);
 void func_actor_206100_8014F9C4(Task* task);
@@ -221,7 +224,6 @@ void func_actor_206100_8014F9C4(Task* task)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FA08);
-
 /// Ring-spawn state: seeds `field_4F4` and `field_548` from the eight-point ring
 /// `D_actor_206100_80158B68`, copies the current vertex into the root part
 /// coordinate, advances the index modulo 8, and hands the actor the state-1
@@ -290,8 +292,25 @@ void func_actor_206100_8014FBE4(Task* task)
                         (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
 }
 
+/// Idle-state tick: re-arms the animation request, then advances the clip
+/// phase `field_512` -- reset when the requested clip is not the one playing,
+/// otherwise ramped by `func_actor_206100_8014F3C8` -- ticks every animation
+/// slot and bumps the frame counter.
+///
+/// `next` is the same block as `work` loaded a second time: the first four
+/// stores reach it through one local and everything after the request-kind
+/// read through the other, which is what the two loads of `Task::idMap` are.
+///
+/// The loop is written `for (i = 1; i < 0xF; i++)` rather than as the
+/// `do`/`while` its test-at-the-bottom shape suggests, and its initialiser sits
+/// *after* the sub-state chain rather than before it.  Placed before the chain,
+/// the store that materialises `i` is the one the case-3 branch jumps over, and
+/// post-reload CSE then rewrites the phase's `+ 1` into `+ $s0`; after the chain
+/// that store is the branch's own target, reorg copies it into the delay slot
+/// and threads the branch past it.  See `DECOMPILATION_LEARNINGS.md`, "A
+/// constant store in a delay slot decides whether post-reload CSE folds it into
+/// a later increment".
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FCD4);
-
 /// Idle-state tick: advances the actor's two frame counters, keeps the root
 /// coordinate dirty so `GsGetLw` rebuilds it, spawns the shockwave task once the
 /// counter reaches 0x5A and retires the actor four frames later.

@@ -12,7 +12,7 @@ void func_actor_206100_8014F18C(Task* task)
     work = (Actor206100Work*)task->idMap;
 
     work->obj_364.field_8  = &((TmdObject*)task->extra)->field_8[1];
-    work->obj_364.field_C  = (GpRec18*)work->pad_384;
+    work->obj_364.field_C  = work->rec_384;
     work->obj_364.field_10 = 0;
     work->obj_364.field_12 = 0;
     work->obj_364.field_14 = 0;
@@ -20,11 +20,11 @@ void func_actor_206100_8014F18C(Task* task)
     work->obj_364.field_1C = 0x400;
     work->obj_364.flags    = 1;
     Gp_LinkObj(2, &work->obj_364);
-    Gp_InitRec18Table((GpRec18*)work->pad_384, 6, 0);
+    Gp_InitRec18Table(work->rec_384, 6, 0);
     work->obj_364.flags &= 0x7FFF;
 
     work->obj_414.field_8  = &((TmdObject*)task->extra)->field_8[4];
-    work->obj_414.field_C  = (GpRec18*)work->pad_384;
+    work->obj_414.field_C  = work->rec_384;
     work->obj_414.field_10 = 0;
     work->obj_414.field_12 = 0;
     work->obj_414.field_14 = 0;
@@ -53,8 +53,19 @@ void func_actor_206100_8014F284(Task* task)
     work->field_50E = (u16)work->field_510;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F2F0);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
+/// Re-arms every animation slot for the pending request: writes the request's
+/// step scale (`field_51A`) into each slot's `field_1D` and re-seeks the slot to
+/// the requested clip with `func_800B4114`, whose fifth argument is the request's
+/// own value at `field_524`.  When the clip already playing (`field_50E`) is not
+/// the one requested, `field_524` is cleared as well.  `field_50E` latches the
+/// clip either way, which is what lets the next frame tell the two cases apart.
+/// The call sits *inside* the loop and takes a fresh `work` in `$a0` each
+/// iteration, the same shape `func_actor_405800_80138294` has.
+INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F2F0);
 s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
 {
     Actor206100Work* work = (Actor206100Work*)arg0->idMap;

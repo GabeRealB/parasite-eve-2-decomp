@@ -593,6 +593,14 @@ from the instruction listing alone:
   here — 95.3% with matching registers still could not be searched.
 - `blk->vec.vy = 0` sits **between** the two coordinate subtractions, not before
   them; there it fills the load-delay slot they leave open.
+A helper is not the only way to get that register, and the same tell can be
+answered with a local: `func_actor_206100_8014D380`'s deadband is a plain local
+`limit` assigned just before the comparison, and `if (diff > limit)` is enough
+for the `GT` to survive to `gen_int_relational`'s `reverse_regs` arm.  The
+literal spelling of the same row scored 94.96% with every other instruction of
+the 125 identical; the local scored 100%.  Where the assignment sits decides
+which register the `li` lands in and the allocation of the whole block that
+follows it, so place it before the load the comparison reads, not after.
 
 ## A CSE copy names the *second* read: the variable that stays live is the one assigned last
 
@@ -2566,6 +2574,40 @@ This is the load-width question in isolation. Where the same value is *also*
 stored back or fed to arithmetic, the signed and unsigned copies are both live
 and the pair is a different problem - see the `lh`+`lhu` section above.
 
+## The same rule backwards: an equality compare that the target reads `lh` is `s16`
+
+The mirror of the `!= 0` rule above, with the same cause - GCC 2.8.1 emits the
+load the declared *mode* asks for and never notices that EQ/NE makes a
+zero-extension as good as a sign-extension:
+
+```c
+/* field_50E declared u16 */  /* lhu $v1, 0x50E($s0) */
+if (work->field_50E == work->field_510) { ... }
+
+/* field_50E declared s16 */  /* lh  $v1, 0x50E($s0) */
+```
+
+So a target `lh` on a halfword whose only other appearance is a compare means
+the header's `u16` is the wrong half of the pair, exactly as a target `lhu`
+means an `s16` header is wrong. `func_actor_206100_8014F2F0` scored 89.3% on the
+m2c seed with `lh` already against it, and narrowing the field was one of two
+changes in the 100% `base_1.c` (preprocessed
+`673ed3b63566099595c330182a22fd9eecc9f67c3f95082ea6ace7553d352f31`).
+
+What misled the header was the site that *writes* the field: the same overlay's
+`func_actor_206100_8014F284` does `work->field_50E = (u16)work->field_510;` and
+emits `lhu`/`sh`. A HImode store is `movhi` under either signedness, so that
+`lhu` is about the store, not the type, and the `(u16)` cast is a no-op in both
+spellings. A halfword whose only load feeds a `sh` never asks for an extension
+and so says nothing about how the original declared it.
+
+The cheap way to settle it is the sibling: when the body is a copy of another
+overlay's, that overlay's header already answered the question.
+`Actor400600Work::field_744`/`field_746` and
+`Actor405800Work::field_870`/`field_872` are this same "clip now playing" /
+"clip requested" pair, both declared `s16`, and both targets load both halves
+with `lh` - three overlays agreeing beats one ambiguous store.
+
 ## Two views of one union field are two loads; CSE will not merge `lhu` with `lw`
 
 `Actor100400Work::flags_62C` is a union with a `u32 word` and a `u16 half` over
@@ -3923,6 +3965,19 @@ Casting that address to an integer does not defeat the escape.
 aggregate is addressable as a whole. `func_dryfield_water_tower_80180194` is the
 case (m2c's three scalars: 88.1%, `delete=4`; one struct local: 100% first try,
 the same body as `ActorsShared80132724` plus its one-shot latch).
+
+The same scalars-vs-aggregate shape recurs one level up, when the stack object
+is an `SVECTOR` handed to `Gp_SpawnEff`: m2c writes three `s16` locals and casts
+the first one's address, `(SVECTOR*)&sp<off>`.  The middle (`vy`) store is
+dead the same way, so it disappears from the object entirely - and with it the
+callee-saved register the shared height sits in across the call, which is one
+of the frame's saved registers.  Keep one `SVECTOR vec` and write the ring
+coordinates with the project's `(u32)rsin(...) >> 3` (m2c's
+`(s16)(rsin(...) >> 3)` is signed, `sra`, where the target is `srl`).
+`func_actor_206100_8014CE60`: 79.485% (`delete=11`, `regs=49`, frame 0x38, no
+`sh` to `0x12(sp)` anywhere) to 100% with every penalty zero on that one edit,
+first try.  The matched sibling `func_actor_206100_8014D8E8` in the same TU is
+the same ring and the source to copy.
 
 ## Split a shared `Task_Kill` so the kill-arg can occupy `$a0`
 
@@ -7749,6 +7804,20 @@ the twin inlined `Actor01900_CalcPush`, so a local `Actor401800_CalcPush` had to
 be written out. A sibling in `src/<family>/lib/` is also *already promoted*;
 porting does not license a second promotion, and the retry brief can forbid one
 outright while the other carriers are leased.
+**A host TU's `static __inline__` helper is a sibling too, and it is not in
+the scratch's includes.** The candidate keeps the includes and the externs, but
+not the helper the host file defines above the function: call it without a copy
+in the candidate and C89's implicit declaration makes it a real `jal`.
+`build.sh` says so plainly (`calls_match=False`), but the damage reaches much
+further than the call site — an external call clobbers the argument and return
+registers, so the global allocation changes and the schedule pulls apart
+elsewhere in the function. `func_actor_206100_8014D8E8` scored 92.162% with
+`jal set_state` where the target has `lw v1,0x1c(s4)` plus two `sh`, *and* a
+`move a1,s3` sitting two slots late in an unrelated loop body; copying
+`set_state` into the candidate verbatim — the body was already right — took it
+to 100.000% with every penalty zero, the loop's schedule included. Port every
+`static __inline__` the body calls into the candidate before reading a
+scheduling difference as a scheduling story.
 
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
@@ -13060,6 +13129,33 @@ Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so
 `%lo` address stays in a temp across the loop. `Mc_CompareBufferHalves` is the pure
 example (reverse walk of `Mc_BufferSlots[8..1]` comparing each buffer to its
 duplicate half).
+
+`func_actor_206100_8014DEAC` is the version of this where **both** operands come
+from memory and a store sits between the two reads. Its `else` arm reads
+`field_4F4[field_548]` twice with a `vec` store in between, and the target loads
+the index and the base *once* each and folds them offset first
+(`sll v1, v1, 3` / `addu v1, v1, v0`). Left inline, the store invalidates both
+loads (every register-addressed memory entry goes - `cse.c:invalidate_memory`)
+and the address is rebuilt per access; through a pointer to the entry the
+operands flip. Both operands have to be register locals with the subscript
+inline:
+
+```c
+Actor206100RingPos* ring;
+u32                 index;   /* u8 here costs an `andi 0xff` before the shift */
+
+ring  = sub->field_4F4;
+index = sub->field_548;      /* the index load schedules one slot late unless
+                                it is assigned before the other loads */
+vec.vx = (u16)ring[index].field_0 - (u16)coord2->coord.t[0];
+vec.vy = 0;
+vec.vz = (u16)ring[index].field_4 - (u16)coord2->coord.t[2];
+```
+
+The temp's width matters as much as its existence: `u8 index` makes the shift
+require the value truncated (`andi v0, v0, 0xff`), while `u32` leaves the
+`lbu`'s zero-extension alone. Scored on the way up: pointer to the entry
+98.383%, `u8` pair 97.291%, `u32` pair 99.549%, member order fixed 100.000%.
 
 ## Store both halfwords first, then reload one into `s16` for a clamp
 
@@ -41547,6 +41643,31 @@ still fills the `jal`, and the `j advance` keeps its `nop`. 94.0% → 100%.
 Putting it in the *other* copy works identically; prefer the earlier arm, which
 is the copy cross-jumping would have deleted.
 
+## A duplicated tail is stopped by writing the shared statement into *both* arms
+
+The shippable alternative to the `SOFT_BARRIER` above, and usually the shape the
+original source had. `func_actor_206100_8014B0AC` retires the actor in a
+`switch (field_54D)` whose case 1 sub-state 2 and whose `case 0` else arm both
+end in the same fifty instructions — ramp `field_53C`, rebuild three part
+matrices, clear three `flg`s, `Gp_UpdateCoord(c4)`. Written the obvious way, with
+one `work->field_53A = 0;` at the join after the if/else, both arms end in a
+`j` to that join and cross-jumping merges them: the sub-state-2 copy disappears
+and the overlay drops from 97.5% to 79.5% (`delete=77`).
+
+The ROM tells you the source did not do that. Its sub-state-2 tail ends
+`j .L66C` with a `nop` delay slot while the else arm's ends `j .L66C` with the
+`sh zero, 0x53A($s5)` in the delay slot — and the jump's target is the epilogue
+*past* the `sh` that the `func_actor_206100_8014E228` arm falls through. A jump
+that skips its own join block means the store was never at the join: it is
+written inside each arm, and reorg moved the if arm's copy into the delay slot.
+Writing it that way leaves the two tails one instruction apart, which is enough
+— cross-jumping needs an identical suffix, so the merge never happens and the
+match lands at 100%. The sub-state-2 arm does not clear `field_53A` at all.
+
+Read the pattern off the delay slots before reaching for a barrier: `nop` in one
+arm's slot and the shared statement in the other's, with the jump targeting past
+it, is the signature of a statement duplicated in the source.
+
 ## An odd-entry jump table needs the next unit to own its trailing `.word 0`
 
 The pad note under "Compiler-generated jump tables need yaml `.rodata`
@@ -43573,6 +43694,26 @@ The folding rule is what makes this usable: `*(T*)&field` is **folded back to
 which is why the ubiquitous house idiom is codegen-neutral - and keeps the cast
 only when `T` differs. So the cast has to name a type the field is *not*: here
 the field is `void*` and the cast is `TmdObject**`.
+
+When the field's own type is the only cast that reads naturally, the `&field`
+spelling folds away and there is nothing left to cast. `func_actor_206100_8014CD08`
+needs the *load* of `task->spawnArg2` to stay below the fixed-address
+`D_8007216C = 6` store: spelled as the member it schedules the `lw a0,0x20(s2)`
+above the `sb` and scores 97.907% with `reorder=3`, and `*(void**)&task->spawnArg2`
+folds straight back to the member because the field is *already* `void*`.
+Computing the address through the base pointer instead -
+`*(void**)((u8*)task + OFFSET_OF(Task, spawnArg2))` - is not an address-of-a-member
+expression, so the combiner never pairs the `&` with the deref, and the load keeps
+its scalar `mem`, its anti-dependence on the store, and the target's order
+(100.000%). sched1 shows the flag alone carrying the difference:
+
+```
+base_6.c  (set (reg:SI 4 a0) (mem/s:SI (plus:SI (reg/v:SI 80) (const_int 32))))
+base_7.c  (set (reg:SI 4 a0) (mem:SI   (plus:SI (reg/v:SI 80) (const_int 32))))
+```
+
+The same `(u8*)base + OFFSET_OF(...)` shape is what `dryfield_water_tank_4.c`
+uses; reach for it whenever the natural cast would name the field's own type.
 
 One correction for anyone reading the compiler source: in this patched tree the
 clause lives inline in the dependence functions, `sched.c:830/862/890`
@@ -113078,3 +113219,886 @@ Inputs: `base_1.i` (98.609%)
 `d8f9d43161737f5f3239532b8961d4f1839f95a85344b21e0ed0e4c5d892e8d3`,
 `base_2.i` (100.000%)
 `56b315489f09c15dce13c4b289ca88d7922d96188ce9cd1613d2ee8d07b35cc3`.
+
+## A constant store in a branch's delay slot decides whether post-reload CSE folds it into a later increment (func_actor_206100_8014FCD4, 2026-09-16)
+
+**Symptom:** 97.1% with exactly one wrong instruction: `addu v0,v0,s0` where the
+target has `addiu v0,v0,1` - the `$s0` in question is the loop counter the same
+branch's delay slot materialises with `addiu $s0,$zero,1`. Register allocation,
+delay slots and block topology all match.
+
+**Pass:** `./insn.py <uid>` on the `+1` insn shows the operand changed between
+`.greg` and `.sched2` - the post-reload CSE (`reload_cse_regs`), not sched2.
+`reload_cse_regs` keeps `reg_values[]` per hard register and wipes it **only at
+CODE_LABEL** (reload1.c, "Forget all the register values at a code label"); a
+call does not wipe a callee-saved register. `reload_cse_simplify_operands` then
+replaces any non-register operand with a hard register that
+`reload_cse_regno_equal_p` says holds an equal value - *including a constant
+operand* - so a `(set (reg:SI 16 s0) (const_int 1))` anywhere in the same
+label-free stretch rewrites a later `+ 1` into `+ $s0`.
+
+**Fix:** move the loop initialiser out of the block the constant-using
+instruction is reached from. The seed had it twice - once before the `if`,
+once at the label inside the `if`:
+
+```c
+    var_s0 = 1;                       /* block with the branch: reg_values[$s0] = 1 */
+    if (temp_v1 == 3) {
+        field_512 = (s16)((u16)field_512 + 1);   /* folds to + $s0 */
+block_9:
+        var_s0 = 1;
+    }
+```
+
+Writing it as the loop's own initialiser *after* the if-chain drops the store
+from that block and keeps the immediate. The object is unchanged in shape: the
+initialiser is then the merge block the `== 3` test branches to, and reorg
+copies it into the branch's delay slot (`fill_eager_delay_slots`, code
+expansion because the target has other predecessors) and threads the branch
+past it (`relax_delay_slots`), which is what puts `addiu $s0,$zero,1` in the
+delay slot either way. Only the block the store belongs to differs, and that is
+what decides the fold:
+
+```c
+    if (state == 1) { ... } else if (state == 2) { ... } else if (state == 3) {
+        next->field_512 = next->field_512 + 1;   /* stays addiu */
+    }
+    for (i = 1; i < 0xF; i++) {
+        Gp_AnimTickIndex(&next->anim, i);
+    }
+```
+
+The `for` form is also the one that produces the target's test-at-the-bottom
+loop here (GCC inverts it because `1 < 0xF` is provable), so a `do`/`while`
+whose init was hoisted before the branch is a decompiler artefact, not the
+source shape.
+
+**Related trap:** deleting the store instead of moving it also fixes the fold
+but reallocates - `$s0` then spans the whole function and `arg0` is pushed to
+`$s3` (regs=23). Both stores have to exist, in those two blocks.
+
+**Rule of thumb:** when one instruction of a `+ 1`/`+ const` disagrees and the
+constant is materialised somewhere nearby, look for the *block* holding that
+materialisation, not the register: `reload_cse` only reaches across
+label-free stretches, and delay-slot stores in the object may be copies of a
+later block's store.
+
+**How it reaches a seed:** an m2c seed of a test-at-the-bottom loop is the
+trigger, because m2c writes the counter's init as `var_s0 = 1;` on the line
+before the `if` and the loop as a `do`/`while` - so the init lands in the block
+the constant-using instruction is in. `func_actor_206100_8014E964` reached
+97.297% on that seed with the identical one-instruction mismatch (200 distance,
+`insert=1 delete=1`), and rewriting it in the sibling `func_actor_206100_8014FCD4`'s
+shape - struct fields, `for (i = 1; i < 0xF; i++)`, the init after the chain -
+matched on the first build with no other change.
+
+## A constant the target materialises in a branch's block wants a source assignment, not a loop invariant
+
+`func_actor_206100_8014D574` spawns a 32-particle ring when its frame counter
+hits 0x1E and gives every particle `vec.vy = -0x64`. Writing that constant where
+the loop uses it scores 99.375% with one `reorder`: the object is identical
+except that `li s6,-0x64` and `move s1,zero` trade places around the `bne` that
+guards the loop.
+
+```
+bne  v1,v0,.L...D6CC     bne  v1,v0,.L...D6CC
+move s1,zero   <- seed    li   s6,-0x64   <- target
+li   s6,-0x64             move s1,zero
+```
+
+Both orderings are what `loop.c` and `reorg.c` do with the same source, and the
+lever is *block membership*, not scheduling. `loop.c`'s `move_movables` emits a
+hoisted invariant with `emit_insns_before (temp, loop_start)`, where `loop_start`
+is the `NOTE_INSN_LOOP_BEG` note -- so the hoisted `li` always lands at the end
+of the loop's preheader block, after `i = 0` and after the coordinate loads.
+Reorg has a better candidate for that branch: `fill_simple_delay_slots` first
+scans *backwards* from the branch ("Now, scan backwards from the insn to search
+for a potential delay-slot candidate") and only falls through to the
+fall-through block's first insn afterwards. The backward walk skips what the
+branch itself still needs (`lh v1,0x51E` / `li v0,0x1E` collide with `needed`),
+so an `li` anywhere in the branch's own block wins over the fall-through's
+`move s1,zero`.
+
+Give the value a source-level home in that block -- a `s16` assigned between the
+two `if` statements, used by the loop:
+
+```c
+    if ((s16)work->field_51E < 0x1E) { ... }
+    y = -0x64;                       /* its insn lands in the bne's block */
+    if ((s16)work->field_51E == 0x1E) {
+        i = 0;
+        coord = ...;
+        do { vec.vy = y; ... } while (i < 0x20);
+```
+
+The register comes out the same (`$s6`, HImode, live across the loop's calls) and
+nothing else moves: 100.000%, every penalty zero. The statement has to sit
+*after* the previous `if`'s join label, because the backward scan stops at
+labels; anywhere earlier puts it in the wrong block and reproduces the seed.
+
+Two things to carry forward: a leftover `reorder` that is a single `li`/`move`
+swap around a branch is a block-membership question, so look at which block the
+value is materialised in before touching the scheduler; and when that value is
+a constant, the source statement that places it is invisible in the target's
+asm, so any spelling that emits the `li` in the right block will do.
+
+## A constant and the `%hi` of a global's own address die by `qty_size`, not by birth order
+
+`func_actor_206100_8014CB68` writes six fields of one global and ends with a
+`Task_SpawnFromTable` taking that global's address. The target had the constant
+`1` in `$v1` and the `%hi` in `$t0`; every attempt with the two `1` stores in
+declaration order put them the other way round, and swapping two of the six
+statements fixed it. The mechanism is local-alloc's priority, not the schedule.
+
+Both quantities are single-block, so `QTY_CMP_PRI` (local-alloc.c:1727) decides:
+
+```
+Register 125 used 3 times across 20 insns   (%hi of the global)  -> $v1
+Register 126 used 3 times across 20 insns   (the constant 1)     -> $t0
+```
+
+`floor_log2(3)*3*size/span`: the `%hi` is SImode (`size` 4) and the constant the
+narrow mode of the field it is stored to (`size` 2), so with equal refs and
+equal spans the address wins outright — `12/span` against `6/span`. No tie to
+break: the constant only wins if its span is **less than half** the address's.
+The address's death is its last use, the store whose base it is, so its span is
+fixed by where the *first* store sits; the constant's death is its last store.
+Moving the second `1` store up four statements — not a tie-break, a range cut —
+took the constant from `18` to `8` and the address stayed at `18`.
+
+The store order is visible in the target here only because the six stores all
+reuse `$v0` for their literals, which serializes them: the emitted order *is*
+the RTL order, so a target that stores `span, scale, r, blend, g, b` was written
+that way. Verify the chain before trusting that — with independent literals the
+scheduler is free to reorder and the emitted order says nothing.
+
+Give the readers of this a warning sign: a constant and a `%hi` swapping
+registers, where the constant is stored to a narrow field and the address is
+used more than once. `tools/trace_gcc.py --regs` prints both quantities' refs,
+span and priority; `lregwalk.py` gives the list order the spans are measured in.
+The `do { } while (0)` ref-count lever (see the section above) is *not* the fix
+here: it splits the block, the `%hi`/`lo_sum` pair collapses into one register
+and the whole tail reschedules — 93.3% down to 89.4%. Refs cost
+`floor_log2`, size costs a factor of two; only span is free.
+
+Inputs: `base_1.i` (93.317%), `base_3.i` (0 differences), target
+`b1c8550e51018e66b9ee84e23aca113baf2a73c2c3de16e13b5e7879df3b4558`.
+
+## An inlined accessor is the lever that shortens a value's span for local-alloc (func_actor_206100_8014CFF4, 2026-09-16)
+
+`func_actor_206100_8014CFF4` consumes a pending sub-state request and, when
+there was none, runs the current sub-state handler through a two-entry local
+jump table.  The two arms that move the actor to a new state share their tail:
+
+```
+   lw   v1, 0x1c(s1)     ; the work block, reloaded per arm
+   li   v0, 8            ; the new state
+   sh   v0, 0x520(v1)    ; cross-jumped into one shared block
+   sh   zero, 0x522(v1)
+```
+
+Three levers had to line up, and each is a separate register decision.
+
+**1. `state` has to win `$v0` over the pointer.**  Both are single-block
+quantities, so `QTY_CMP_PRI` (CODEGEN_MODEL §10) decides: the pointer has 3
+refs over a span of 8, `state` 2 refs over a span of 10, so the pointer wins
+`$v0` and the pair comes out swapped against the target.  Writing
+`state = 8;` directly above the store does not shorten the span — sched1 hoists
+the constant to the front of the block, ahead of the pointer load.  Moving the
+two stores into an accessor and *calling* it is what works:
+
+```c
+static __inline__ void set_state(Task* task, s32 state)
+{
+    Actor206100Work* next = (Actor206100Work*)task->idMap;
+
+    next->field_520 = state;
+    next->field_522 = 0;
+}
+...
+            set_state(task, 8);   /* one call per arm */
+```
+
+The inlined parameter is a fresh pseudo per call site, defined immediately
+before its store: span 4 against the pointer's 8, `floor_log2(2)*2*4/4` = 2.0
+against `floor_log2(3)*3*4/8` = 1.5, so `state` takes `$v0`.  The accessor also
+reloads the work block per call, which is where the target's per-arm
+`lw $v1, 0x1c($s1)` comes from: one `next = ...` in the arm body instead loads
+once into the register the allocator picks for it, not the target's.
+
+**2. The arms only cross-jump if their stores hold a register, not constants.**
+7 and 8 as literals are different insns and jump2 leaves both copies; through
+`state` they are the same `sh`, and the last arm's tail survives as the shared
+block that both jump into.
+
+**3. The flag is an `s16` return.**  The arms `return 1` past a single
+`return 0` after the switch, which sits between the last arm and the join so
+dbr steals it into the branch delay slots.  With an `s32` return the flag stays
+in `$a0` and is tested there — 96.9%, one instruction short.  With `s16` the
+flag is an HImode pseudo and the caller's promotion of it is the target's
+`addu $v0,$a0,$zero` at the join: the HImode value stays in `$a0`, the promoted
+SImode value takes `$v0`.  `Actor04400_Fn00F7C` with its `s16` inline
+`Actor04400_TakeHit` (`src/actors/lib/actor_104400_text.c`) is a matched
+neighbour with the same shape; its `.greg` is where the flag reads as
+`(set (subreg:SI (reg:HI 4 a0) 0) (const_int 1))`.
+
+Detection: a `$v0`/`$v1` swap between a constant stored to one field and a
+pointer to the same object, where the constant's assignment *looks* adjacent to
+its store in the C.  The `.lreg` header lines ("Register N used R times across
+S insns") give both spans before any rewrite.
+
+Inputs: `base_2.c` (96.860%), `base_3.c` (93.128%), `base_7.c` (0 differences),
+target `d42d84699b29db682eca202e9b7f23b01a87ddb2fb05d4d8171a7dab35adde0f`.
+
+
+
+## The same `lh`+`lhu` pair can come from the use or from a cast - rebuild each one alone (func_actor_206100_8014E0C0, 2026-09-16)
+
+`func_actor_206100_8014E0C0` reads its `s16` `field_542` twice in one statement
+and the target has both a signed and an unsigned load:
+
+```
+lh   v0,0x542(s2)
+lhu  v1,0x542(s2)
+sll  v0,v0,0x4 / negu v0,v0 / sra v0,v0,0x7
+addu v1,v1,v0
+sh   v1,0x542(s2)
+```
+
+Two counterfactuals, from the RTL and from rebuilding each half, and they point
+opposite ways - so the mechanism sections above ("An `s16` compared and stored
+into `u16`", "`lhu` + `sll`/`sra` instead of `lh`", "A cross-overlay sibling body
+matches first try") do not decide the next one by themselves:
+
+- **No cast is needed here.** The multiplicand's extension is real (it feeds the
+  shift) and `combine` folds it into `lh` (`# 20 extendhisi2_internal/1`); the
+  addend's high bits are dead, the sum going back through `sh`, so its load stays
+  a `movhi` (`# 19 movhi_internal2/3`, printed `lhu`).  Written as
+  `field_542 + ((s32) - (field_542 * 0x10) >> 7)` with no cast at all - and with
+  a `(u16)` on the left operand - the object is byte-identical either way.
+- **The casts are load-bearing three cases later.** Case 2's
+  `(u16)work->field_544 - (u16)work->field_542` must keep its two casts: without
+  them both operands are `sign_extend`ed (`lh v1,0x544` / `lh v0,0x542`) and the
+  score drops 6.7 points to 93.264%, where with them they are
+  `zero_extendhisi2` (`lhu`) and it matches.  Nothing in that expression's shape
+  says so.
+
+So: a mixed pair of loads on one field is evidence about *that* operand's use,
+not about the field - and each cast in the neighbourhood has to be built both
+ways before it can be called decoration.
+
+Inputs: `base_2.c` (0 differences), `base_3.c` (0 differences, case-0 cast
+removed), `base_4.c` (93.264%, case-2 casts removed).  Target
+`7e68c98a262c54f5c6d2d777de59f31593dd80b4a5e39c4d67e669f8a56bfc34`.
+
+## A boolean materialised in both arms is what keeps m2c's fold to `sltu` out (func_actor_206100_8014FA08, 2026-09-16)
+
+**Problem.** m2c rendered a two-part flag test as a `var_v0` that the compiler
+then folded away:
+
+```c
+var_v0 = 1;
+if (!(f & 1)) {
+    var_v0 = 1;
+    if (!((s32)f & 0x102)) { var_v0 = 0; }
+}
+if (var_v0 != 0) { ... }
+```
+
+**Symptom.** 76.036%, `insert=3 delete=10 branch=3`, 48 instructions against the
+target's 55.  Because m2c types *both* accesses from the one field it saw, `cse`
+merged the two loads into a single `lhu` and `combine` turned the surviving test
+into `and` + `sltu` + `beqz` - so the target's second load, a *word*-wide
+`lw 0x514($v1)`, and the `li v0,1` shared by both branch delay slots had nowhere
+to come from.  Two widths on one address means two views in the source, and this
+overlay's `Actor206100Flags` union already carried that (`half` / `word`):
+
+```c
+next = (Actor206100Work*)task->idMap;
+if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
+    cond = 1;
+} else {
+    cond = 0;
+}
+if (cond != 0) { ... }
+```
+
+**The local is load-bearing, not decoration.**  Writing the `||` as the `if`
+condition itself scores 90.764% (`branch=3 delete=5`, 8 blocks against the
+target's 10): GCC branches straight on the test result, and the materialised
+0/1, the `addu $v0,$zero,$zero` and the second `beqz` all disappear.  What
+survives is only the two-test sequence's shape - the arms' identical `li v0,1`
+targets are what make both branches jump to one place.  The same source shape
+had already matched `func_actor_206100_8014F970` in the same TU, which is where
+the idiom was read from rather than guessed.
+
+Inputs: `base.c` 76.036%, `base_1.c` 100.000%, `base_3.c` (no `cond`) 90.764%,
+`base_2.c` (style port, 0 differences) 100.000%.  Target
+`d7156695fc45a3f1d12546e98521b662a9f5717a41677c83defa681c91c93d90`.
+
+## A walked pointer's second field becomes a second induction variable
+
+A loop that walks an array of records by pointer and touches *two* of the
+record's fields gives the second field an induction variable of its own, and the
+register it takes displaces every value allocated after it.  `func_actor_206100_8014DD3C`
+walks two 8-byte companion slots, `{ GpEnemy* enemy; s32 timer; }`, and only the
+indexed spelling reproduces the target.
+
+**Mechanism.**  `loop.c` records a `DEST_ADDR` giv for every memory reference
+whose address is a giv with `mult != 1 || add != 0` (`find_mem_givs`), so with a
+walked pointer the timer's read *and* write are two givs with the same
+`mult 1, add 4`.  `combine_givs` merges givs whose `mult_val` and `add_val` are
+`rtx_equal_p` -- two uses of one field always qualify -- and sums the pair's
+`lifetime` and `benefit`:
+
+```
+Insn 69: dest address src reg 83 benefit 2 used 1 lifetime 1 replaceable mult 1 add 4
+Insn 114: dest address src reg 83 benefit 2 used 1 lifetime 1 replaceable mult 1 add 4
+giv at 69 combined with giv at 114
+giv at 114 reduced to (reg:SI 128)
+giv at 69 reduced to (reg:SI 128)
+```
+
+The merged giv carries `lifetime 2 * benefit (4 - add_cost * biv_count)` into the
+"worth while" test (`v->lifetime * threshold * benefit < insn_count` ignores a
+giv), which it passes, so `strength_reduce` emits a register for `slot + 4` and
+increments it by 8 every iteration.  A single-use giv never survives that test
+(`giv of insn 169 not worth while, 0 vs 25`), which is why a field the loop only
+*writes* is safe and a field it reads and writes is not.
+
+**Symptom.**  The extra induction variable takes `$s1`, so `work` -- which the
+target has in `$s1` -- is pushed to `$s2`/`$s3`, `task` past it, and the frame
+grows a slot: 83.061%, `regs=50 stack=0`.
+
+**Fix.**  Index the array (`D[i].field`) instead of walking a pointer.  The
+address is then built as a `DEST_REG` giv (`i*8 + &D`, which strength reduction
+reduces into the walking pointer the target *does* have), and the second field's
+accesses are displacements off that register, not givs of the biv -- so nothing
+is allocated for them and the field stays `4($s0)`:
+
+```c
+    do {
+        if (work->field_551 < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
+            if (D_actor_206100_80158CBC[i].timer == 0) {
+                ...
+            } else {
+                D_actor_206100_80158CBC[i].timer = D_actor_206100_80158CBC[i].timer - 1;
+            }
+        }
+        i++;
+    } while (i < 2);
+```
+
+The indexed form's preheader order follows too: the address init is created by
+strength reduction *after* `move_movables` hoists the loop's invariants to the
+end of the preheader, so the `lui`/`addiu` land behind the hoisted `li`s, where
+the walked-pointer form keeps them ahead.
+
+**One counter per loop, not one shared.**  The same function's two consecutive
+slot walks each need their own index variable.  A single `i` reused by both is
+one pseudo whose live range spans both loops, so local-alloc must home it in a
+callee-saved register for the whole function (`$s1`, which also steals `work`'s
+register); the target counts the first loop in `$s2` and the second in `$a0`.
+Giving the second walk its own variable is the difference between 94.565% and
+98.696%.  Inputs: walking pointer 83.061%, first loop indexed 94.565%, second
+loop indexed 100.000%.  Target `fdc808aca8578d4ac0b9cd1864208f170d45eab46a28622bba17314d2526c7e6`.
+
+## A call result stored straight into a field keeps the store on `$v0`
+
+`func_actor_206100_8014C274` (actors/actor_206100) parks `Mem_Calloc`'s result in
+`Task::idMap` and keeps using that block after the calls that follow, so the
+value has to survive in a callee-saved register:
+
+```
+jal   Mem_Calloc
+ move a1,zero
+move  s2,v0          # the survivor
+bnez  s2,.L
+ sw   v0,0x1C(s3)    # the store still reads the raw call result
+```
+
+m2c's `p = Mem_Calloc(); task->idMap = p;` gives `sw s2,0x1C(s3)` instead: one
+pseudo for the whole live range, homed in the saved register, so the store reads
+that register (`regs=1`).  A second local for the survivor (`work = p;` after the
+null test) is not the fix -- it reallocates the whole function (`regs=35`,
+92.270%, and `task` moves out of `$s3`).  Assign the *field* the call expression
+and read it back into the single local:
+
+```c
+    task->idMap = Mem_Calloc(0x558, 0);
+    work        = (Actor206100Work*)task->idMap;
+    if (work == NULL) { ... }
+```
+
+The front end stores a call result with the hard return register as the store's
+source, and `cse` forwards the read-back into a copy of that value, which is the
+same `move sN,v0` -- now with the store left on `$v0`.  The read-back form gets
+the shape with one variable; `alloc = Mem_Calloc(0x20, 0); task->idMap =
+(TaskIdMap*)alloc; if (alloc == NULL) {...} work = alloc;` in
+`src/actors/actor_160900/actor_160900.c` reaches it with two.
+
+Inputs: m2c 96.901% `452ec82624fcbddf`; the read-back store 97.851%
+`40d669ad834c7f34` (`regs` 1 -> 0).
+
+## An operand-shaped `reload_cse` substitution: the touch goes in the *use's* block
+
+The `regs`-shaped family of `reload_cse` entries above rewrite a constant *set*
+or a copy.  This one is an operand: `func_actor_206100_8014C274` advances a
+halfword with `field_512 = (s16)((u16)field_512 + 1);` and the target keeps the
+immediate --
+
+```
+lhu   v0,0x512(s1)
+nop
+addiu v0,v0,1
+```
+
+-- while the candidate came out `addu v0,v0,s0`.  `insn.py` on the add shows it
+changing between `.greg` and `.sched2` and nothing else: `reload_cse_regs_1` is
+a linear scan that clears `reg_values` only at a `CODE_LABEL`, and the block
+holding the add has no label (it is reached by fall-through), so the `$s0 = 1`
+recorded from the loop counter's `var_s0 = 1` two blocks earlier is still live
+and `reload_cse_simplify_operands` rewrites the constant operand into that
+register.
+
+`TOUCH_REG(slot)` in front of the add replaces the record with the asm's value
+and the immediate survives -- but where it goes decides everything else.  Placed
+next to the counter's assignment, in the block *before* the branch, it changes
+that block's dependency graph and the branch's delay slot loses its `li s0,1`
+(`insert=3 branch=1 reorder=1`, 96.252%).  Placed inside the taken block, as the
+first statement before the add, the scheduling is untouched:
+
+```c
+    slot = 1;
+    if (kind == 3) {
+        TOUCH_REG(slot);
+        anim->field_512 = (s16)((u16)anim->field_512 + 1);
+block_13:
+        slot = 1;
+    }
+```
+
+The counter must stay `s32`; a 16-bit variable records the assignment in HImode
+and blocks the substitution for free, but then every use needs an `andi` the
+target does not have (see "A 16-bit loop counter is what *prevents* a
+`reload_cse` constant substitution").
+
+Inputs: 98.347% `1e5a867a345f32bf` (no touch), 96.252% `d2bb6237a7e74588` (touch
+in the predecessor), 100.000% `16d0c22ccd3db5de` (touch in the taken block).
+
+## A write-only walked pointer still needs the indexed spelling -- for the LUID order
+
+"D_actor_206100_80158CBC": the spawn state `func_actor_206100_8014C274` zeroes
+the same two 8-byte companion slots the tick above walks, `enemy` at 0 and
+`timer` at 4.  Both accesses are *writes*, so no `DEST_ADDR` giv pair merges and
+no second induction variable appears -- the pointer form does produce the
+target's single `addiu a1,a1,8`.  It still does not match: `reorder=1`, with
+`addiu a2,a2,1` scheduled ahead of the two stores where the target has it after
+them, and 1.6% of the class held back.
+
+The cause is the RTL order the scheduler tie-breaks on.  With the source's own
+`p++` in the body the order is stores, `i++`, `p += 8`, compare; with the indexed
+`for` the synthesized increment is inserted at the loop end, ahead of the
+source's `i++` (`.cse2`: `insn 352 (set (reg 149) (plus ... 8))` then `insn 98
+(set (reg 89) (plus ... 1))`).  Backward list scheduling emits the block in
+reverse selection order, and `rank_for_schedule` breaks equal priorities by
+INSN_LUID with the *higher* LUID first, so which of the two increments is picked
+when changes the emitted order.  Index the array:
+
+```c
+    for (i = 0; i < 2; i++) {
+        D_actor_206100_80158CBC[i].enemy = NULL;
+        D_actor_206100_80158CBC[i].timer = 0;
+    }
+```
+
+Inputs: walked pointer 97.851% `40d669ad834c7f34` (`reorder=1`); indexed 98.347%
+`1e5a867a345f32bf` (`reorder=0`).
+
+
+## A constant address folds into the memory operand only inside an inlined body
+
+`G_SCRATCH_HEAD` dereferences compile two ways, and the C expression is not what
+picks between them.  At the top level of a function cc1 forces the constant into
+a pseudo -- `memory_address`, `explow.c`, "By passing constant addresses thru
+registers we get a chance to cse them", taken whenever `!cse_not_expected`, i.e.
+at any `-O` -- so the address costs a `lui`/`ori` in one register and every
+access is a `0($base)` form:
+
+```c
+    head = *(u8**)G_SCRATCH_HEAD;
+    ...
+    *(void**)G_SCRATCH_HEAD = block;
+```
+
+Expanded as a `static __inline__` body the same statements keep
+`(mem (const_int 0x1F8003FC))`, and cc1 prints the absolute address as the whole
+operand:
+
+```
+	lw	$18,528483324      # lw $18,0x1F8003FC
+	sw	$16,528483324
+```
+
+maspsx passes those through (the "e.g. `lhu $2,528482304`" arm) and gas expands
+each one to its own `lui $d,%hi` / `lw $d,%lo($d)` pair -- the per-access
+materialisation a symbol operand would give.  Two accesses that CSE would
+otherwise share with one register come out as four instructions instead of six,
+and the address never occupies a callee-saved register across the call between
+them.
+
+So when a target rematerialises a scratch or other absolute address at every
+use, write the accesses as an inlined helper instead of at the call site:
+
+```c
+static __inline__ void Actor206100_UpdateColor(Task* task)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+
+    coord     = &((TmdObject*)task->extra)->field_8[1];
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    ...
+    *scratch  = block;
+    Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
+```
+
+The `static __inline__` helpers `Actor405800_UpdateColor` and
+`Actor400600_UpdateColor` in their overlay headers are this same body, and this
+is why they are headers rather than call-site code.
+
+`func_actor_206100_8014E7D4` is the worked example.  The tail written at the
+call site (92.540%, `base_2`, `ef536d3e50b6e405`) gives one `lui`/`ori` and four
+`0($base)` accesses with the address held in `$s0` across `Gp_UpdateActorColor`;
+wrapped in the inline helper (100.000%, `base_9`, `9d583cfc4584e3de`) each of the
+four accesses folds and the register pressure drops.  The `__asm__` lo-form
+macros an earlier attempt reached for (`actor_403600_load_scratch_head` and
+friends, and the `lui`/`sw 0x1F8003FC` pair above) fix the same instructions but
+freeze the block against the scheduler: they cap that function at 101
+instructions against the target's 100, because an atomic asm block cannot fill a
+load-delay slot the retail's own `lui` fills.
+
+## A global read moved above a run of field stores relocates the whole `%hi` group
+
+`func_actor_206100_8014B698` is the same shape `ActorsShared801662ec` has: three
+`coord.t[]` halves stored into work fields, then `Gp_ActorSlots[0]` read and
+tested, then the `Gp_ActorSlots[1]` read inside the `else`. The `lui`/`lw` pair
+for slot 0 and the `addiu` for slot 1's `%lo` (CSE'd back into the entry block)
+all tie on `INSN_LUID` with the three store groups, so the tie-break is source
+order -- and because the whole entry block is one scheduling unit, where that
+group lands decides the entry block's length, every later branch target and the
+register the pointer gets.
+
+Written with `player = Gp_ActorSlots[0];` *after* the three stores the group
+schedules last: 91.870%, `regs=4 insert=7 delete=4 branch=2`, and the group's
+`lui`/`lw`/`nop`/`beqz` trail the stores by twelve bytes. Moved above them,
+with nothing else changed, 100.000% -- the group leads the block right after the
+pointer loads, the three `lhu`/`sh` pairs follow, and `$a0` (dead once `task`
+is unloaded) takes the pointer where the late version needed `$v1`.
+
+The register is the tell that the move is the right lever: the two versions
+differ in *where* the group is scheduled, and the allocation follows the
+schedule, not the other way round. Do not reach for a pin.
+
+## A 0x24-wide six-case switch becomes a jump table; the target's `beq` chain is an `||` chain (func_actor_206100_8014D14C, 2026-09-16)
+
+m2c renders the sub-state handler's per-frame cue dispatch as a `switch` with six
+sparse cases, 0x54, 0x5B, 0x62, 0x69, 0x70 and 0x77, all sharing one store. GCC
+2.8.1 expands that switch into a jump table -- `addiu $v0,$v1,-0x54`, `sltiu
+$v0,$v0,0x24`, `lui`/`addiu` of a `.rodata` table, `lw $v0,0($v1)`, `jr $v0` --
+which is what the m2c seed compiles to, and the target has none of it: it
+compares `beq $v1,$s3,.L` / `beq $v1,$v0,.L` down the list in ascending order and
+falls through to the shared store.
+
+Written as a chain
+
+```c
+    if ((s16)sub->field_51E == 0x54 || (s16)sub->field_51E == 0x5B || (s16)sub->field_51E == 0x62 ||
+        (s16)sub->field_51E == 0x69 || (s16)sub->field_51E == 0x70 || (s16)sub->field_51E == 0x77) {
+        sub->field_555 = 1;
+    }
+```
+
+the five `beq` come out in that order. The range is 0x24 wide for six cases, so a
+`switch` is over the threshold GCC 2.8.1 uses to build a table; the chain is not,
+and that is the whole difference. The rule generalises both ways: a `switch` that
+compiles to a `jr` off `.rodata` where the target compares, and a `switch` the
+target *does* dispatch through a table, are two spellings of the same C-level
+idea, and the source picks by shape, not by the case list.
+
+Two constants ride along with it. The 0x54 and 0x77 of the two sound blocks above
+the chain are each materialised once and kept across the intervening calls --
+`$s3` and `$s0`, both callee-saved -- because `cse` sees the constant still live
+in a register the call does not clobber, and the chain's own comparisons then
+reuse it instead of loading their own. That register choice is a consequence of
+the chain existing, not something to arrange separately.
+
+## One variable with three definitions homes every use in the same callee-saved register (func_actor_206100_8014D14C, 2026-09-16)
+
+`func_actor_206100_8014D14C` reads `task->idMap` three times: for the `flags_514`
+test, for the state change its `true` arm makes, and for the steering tail that
+folds `field_43E` toward the walk target. Written through one local, as the
+sibling `func_actor_206100_8014FA08` writes its own two reads:
+
+```c
+    work = (Actor206100Work*)task->idMap;
+    if ((work->flags_514.half & 1) || (work->flags_514.word & 0x102)) { ... }
+    ...
+    work = (Actor206100Work*)task->idMap;
+    work->field_520 = 2;
+    work->field_522 = 0;
+    ...
+    work       = (Actor206100Work*)task->idMap;   /* steering tail */
+```
+
+the three stores are one pseudo with three definitions. `global_alloc` homes the
+whole pseudo in `$s0`, because one of its live ranges -- the tail's -- is live
+across `VectorNormalSS` and `ratan2`; the two short-lived uses that never cross a
+call then get `$s0` as well. The target has `$v1` for both of those and `$s0`
+only for the tail. 99.787%, distance 30, `regs=6`, with the instruction stream
+otherwise identical; splitting the tail's read into its own variable (so the
+flags test and the state change stay one variable, as `func_actor_206100_8014FA08`
+has them) is 100.000% with every penalty zero.
+
+This is the rule in "One variable is one pseudo: reuse serialises a live range"
+above, seen from the allocator's side. The tell is a *register*, not an order:
+`.lreg` reports the whole variable as one register -- "Register 82 used 10 times
+across 40 insns; dies in 4 places; crosses 2 calls" -- where the target alternates
+a call-clobbered and a callee-saved one, and `./insn.py --reg` shows all three
+`task->idMap` loads are the same `(reg/v:SI N)`. Fix the *variable count*, not the
+register: the same three reads through three variables are three pseudos, and the
+two that stay inside a block get the scratch register on their own.
+
+The state change here still goes through the inlined `set_state`, which is a third
+variable and so a third pseudo -- it builds to the same 100.000%.
+
+## A pointer local is what makes a *local* struct's stores register-relative (func_actor_206100_8014DA28, 2026-09-16)
+
+The pose block of `func_actor_206100_8014DA28` builds an identity matrix in a
+frame local, hands it to `RotMatrixZ` / `func_8004BFF8`, copies the result onto
+the model's root coordinate, and scales a second local the same way. The two
+initialisers write the same five words, and the target emits them split:
+
+```
+sw   s1,0x18(sp)      /* matrix.ident.m00_m01   */
+sw   zero,0x1c(sp)    /* matrix.ident.m02_m10   */
+sw   s1,8(s0)         /* *(s32*)&mtx->m[1][1]   */
+sw   zero,0x24(sp)    /* matrix.ident.m20_m21   */
+sh   s1,0x10(s0)      /* mtx->m[2][2]           */
+```
+
+Three of the five are frame-relative, two are displacements off `$s0`, and
+`$s0` is `&matrix` — the same register the two calls get. Writing all five by
+naming the members (or the union's `ident` view) leaves every one of them
+frame-relative and `$s0` is never materialised: 89.822% with the rest of the
+function already correct.
+
+**Cause.** A store that names a member of a *local* has an address rooted at
+`$fp`, and `cse.c`'s `find_best_addr` returns before it looks for a register
+whenever the address is a frame, hard-frame or argument pointer:
+
+```c
+  /* Do not try to replace constant addresses or addresses of local and
+     argument slots. ... It is not safe to clobber them.  */
+  if ((GET_CODE (addr) == PLUS && GET_CODE (XEXP (addr, 0)) == REG
+       && GET_CODE (XEXP (addr, 1)) == CONST_INT
+       && (regno = REGNO (XEXP (addr, 0)),
+	   regno == FRAME_POINTER_REGNUM || regno == HARD_FRAME_POINTER_REGNUM
+	   || regno == ARG_POINTER_REGNUM))
+      || ...)
+    return;
+```
+
+So no amount of reuse turns `0x18($sp)` into `0($s0)` — but the *same* address
+reached through a pointer local is `(plus (reg mtx) (const 8))`, rooted at a
+pseudo, and survives with a register of its own. Two locals in this overlay
+(`func_actor_206100_8014EB60`, `func_actor_403100_801339EC`) and
+`Actor444000_80139C80` already carry the `mtx` form for that reason; the split
+is the tell, not the aliasing.
+
+The nine-halfword copy onto the coordinate has the same shape one level down:
+
+```c
+    dest          = &coord->coord;
+    dest->m[0][0] = matrix.mat.m[0][0];
+    ...
+```
+
+`dest` is `(plus (reg coord) 4)`, so its stores are a register plus a
+displacement — and `find_best_addr` folds the *first* one back onto the base,
+which is why the target's copy is `sh v0,4(s3)` followed by eight off
+`$v1 = $s3 + 4`. Naming `coord->coord.m[i][j]` for all nine gives nine distinct
+sums off one register (`4(s3)`, `6(s3)`, …) and no second base. That first-store
+fold is the same one "Scratch frame: address the pre-decrement head" documents.
+
+Note the mode flags fall out of the same rewrite and agree with "The same
+exemption from the store side": the `.ident` stores are `mem/s:SI`, the
+`mtx->`/`dest->` ones plain `mem:SI`, because a pointer-typed base clears
+`MEM_IN_STRUCT_P`.
+
+## A store inside *both* arms is what keeps a same-field reload (func_actor_206100_8014B8B4, 2026-09-16)
+
+The scale ramp that ends `func_actor_206100_8014B8B4` stores and then reads the
+same field back for the call:
+
+```
+lw    v1,0x64(s0)
+nop
+slti  v0,v1,0x600
+bnez  v0,.LBA64
+addiu v0,v1,0x100
+li    v0,0x600
+.LBA64:
+sw    v0,0x64(s0)
+lui   v0,0x1000
+ori   v0,v0,0x2000
+...
+lw    a3,0x64(s0)
+addu  a3,a3,v0
+```
+
+Computing the value into a local and storing it once after the join scores
+96.83% — one instruction short:
+
+```c
+v = child->field_64;
+if (v < 0x600) {
+    v += 0x100;
+} else {
+    v = 0x600;
+}
+child->field_64 = v;
+func_actor_206100_8014A70C(coord, child->field_60, mode, child->field_64 + 0x10002000);
+```
+
+Here `cse` forwards the store to the read-back: processing a store whose
+destination is a MEM inserts that MEM into the *stored value's* equivalence
+class (`cse.c`, the "insert the destinations" loop), and `invalidate_memory`
+only drops `in_memory` entries whose address varies, so nothing between the two
+can remove it. The read-back becomes a use of the stored register, that register
+then has to stay live to the `jal`, and the store sinks into its delay slot.
+
+Writing the store in each arm instead keeps it:
+
+```c
+v = child->field_64;
+if (v < 0x600) {
+    child->field_64 = v + 0x100;
+} else {
+    child->field_64 = 0x600;
+}
+func_actor_206100_8014A70C(coord, child->field_60, mode, child->field_64 + 0x10002000);
+```
+
+The RTL then holds load / store / store / load — the two arms' stores are no
+longer in the read-back's block, and CSE resets its table at a label with two
+predecessors, so the read is not forwarded. That is visible as an unchanged
+count of the field's `const_int` displacement across `.rtl`, `.jump`, `.cse`,
+`.cse2` and `.flow` (4 refs, against 3 dropping to 2 for the local version).
+Both stores survive `.greg` and `.sched2`; `dbr` (`reorg`) then deletes the
+duplicate and the object comes out with a **single** `sw` plus the reload —
+`lw a3,0x64(s0)` for an argument whose value was just stored over the same
+address.
+
+**Reading it.** A target that stores a field and then reloads that same field a
+few insns later, instead of reusing the stored register, says the source wrote
+the store in each branch of the value's `if`/`else` — not that a value was
+computed and stored at the join. This is the third member of the
+`func_actor_503500_801372C8` family: there a *neighbouring* store killed the
+equivalence, here the two branches put the store on a different CSE path
+entirely. Reach for it before a pin: it costs one build and the score goes from
+96.83% to 100.00%.
+
+## An m2c `x & 0x8000` test is the original's signed compare (func_actor_206100_8014EC54, 2026-09-16)
+
+m2c rendered the target's `sll v0,v0,0x10` / `bltz v0,label` as
+`if (!(temp_v0_2 & 0x8000))`, which compiles to `andi v0,v0,0x8000` / `bnez`:
+`insert=2 delete=2`, 92.98%, on a function whose every other instruction already
+matched. Writing the comparison the target's branch actually encodes --
+`if (value >= 0)`, `value` the `s16` local that was just stored -- is the whole
+fix, 100% on the next build. `bltz` reads bit 31, so `sll 16` alone sign-tests a
+halfword and the `sra 16` a plain `value < 0` would otherwise need is dead.
+
+**Reading it.** A mask test against a sign bit is m2c's rendering of the
+*semantics* of a narrowed compare, not of its codegen. When the target picks a
+sign-testing branch (`bltz` / `bgez`, or `slti` on a value it just extended),
+write the comparison on the narrowed local and expect the bare `sll N` with no
+`sra` in front of the branch.
+
+The same function is the other half of that pair: the header declared its ramp
+phase byte `s8` and the target's dispatch load is `lbu`, so the fix was the
+field's type (`u8`, it has no other reader), not a cast at the use. Both wrong
+guesses showed up as exactly one instruction line in
+`base_object_dump_normalized.s`, which is the cheapest diff to act on.
+
+Inputs: `base_1.c` SHA256 `443c6c74afff8e5671e8b504bb27d512174171c9c79402b384f124edc79f1c81`; target
+SHA256 `f63a7f529a23b690c6bfcb69215f72b9332d21c3e1a118f85a86e4441675477a`.
+
+## A value stored from several blocks needs a local, not a literal (func_actor_206100_8014BAA8, 2026-09-17)
+
+With the record-walk structure of the sibling `Actor00400_Fn01B90` in place the
+function sat at 99.85%, and the whole remaining diff was two lines of prologue:
+
+```
+    sw    s6,0x28(sp)          sw    s8,0x30(sp)
+    li    s6,1                 li    s8,2
+    sw    s8,0x30(sp)          sw    s6,0x28(sp)
+    li    s8,2                 li    s6,1
+    /* built */                /* target */
+```
+
+Both registers hold a small constant the body stores from more than one basic
+block: 1 at five sites, 2 at two (`field_52C = 2` in the heavy-damage arm and
+again in the id-5/6 arm of a jump table). CSE resets its table per block, so a
+*literal* at sites in different blocks becomes a fresh `li reg,C` per block,
+each with a def-to-use span of one instruction. `loop.c`'s `move_movables` will
+hoist such a temp out of the loop — that is where the target's hoisted `li`s
+come from — but only when
+
+    threshold * savings * lifetime >= insn_count
+
+with `threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` (~26),
+`savings` the summed `n_times_used` of the movables `combine_movables` matched,
+and `lifetime` the summed `uid_luid[REGNO_LAST_UID] - uid_luid[REGNO_FIRST_UID]`
+spans. Two matched 2-movables score 26*2*2 = 104 against a 214-insn loop and
+stay put; the target's pairing could only be reached from a single register
+live across the loop.
+
+Declaring the two shared values as locals assigned in the entry block is the
+whole fix (100.00%, all penalties zero on the next build). One register then
+covers every site, the allocator gives it a callee-saved home, and sched2's
+`rank_for_schedule` — priorities, then dependence on the last scheduled insn,
+then `INSN_LUID` — leaves them in source order.
+
+Two boundaries are load-bearing:
+
+- **The assignment cannot move inside the loop.** `move_movables` skips a
+  movable whose scan does not satisfy `!REG_USERVAR_P` (case 2 of its three
+  admission tests) or `!maybe_never` (case 3), and a loop containing a call
+  fails case 3 for every insn, so a C variable is never hoisted — assigning it
+  inside the loop drops the score to 97.6% and the prologue loses the `li`.
+- **Sites the target re-materialises must stay literals.** The tail's
+  `field_52C = 2` and the `field_4C & 0x0C` block's `field_52A` / `field_52C`
+  stores are `addiu $v0,$zero,C` in the target, so the locals' live ranges end
+  at the id-5/6 arm. Storing the local in the tail instead keeps the register
+  live over the whole tail and the store becomes `sh $fp,0x52C` — a 100%
+  function diff, a valid object, and an overlay that comes out 4 bytes short.
+
+**Reading it.** Two `li`s of two different constants in the prologue, in an
+order the source does not explain, mean one of them is a `move_movables` hoist
+(emitted immediately before the loop head, so *last* in the entry block) and
+the other is a source-level assignment. `grep 'const = N' <scratch>/*.i.loop`
+prints the movable list with its savings; `move-insn savings N not desirable`
+is the admission test failing, and `done move-insn matches INSN` says
+`combine_movables` paired it with an earlier one.
+
+Inputs: `base_5.c` SHA256 `c2f22e992788ad019467cc5c4f14389ae40ac48e464f3dcd0e697874353cda82`
+(preprocessed `fcfe8bc55851abcfd4ffa77105f949f0f9e5804364a33de39193230d06433bd6`);
+target `be56732624c165051d3398830f9f47808700b2c833f33e383f1ec3eb574c5062`.

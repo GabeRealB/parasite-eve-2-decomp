@@ -174,6 +174,18 @@ and identical expressions can require separate loads after invalidation. Read
 the MEM mode, address and flags and identify which optimizer performs the
 reuse. Ordinary CSE and post-reload CSE have different invalidation rules (§11).
 
+- **A constant address** — `G_SCRATCH_HEAD`, any absolute — stays
+  `(mem (const_int))` only while an *inlined* body is expanded. At the top level
+  `memory_address` (`explow.c`) forces it into a register instead, "By passing
+  constant addresses thru registers we get a chance to cse them", so the address
+  costs a `lui`/`ori` and every access is a `0($base)` form. The same statements
+  inside a `static __inline__` helper fold the whole absolute address into each
+  operand (`lw $a1,0x1F8003FC`), and the assembler expands each one to its own
+  `lui` + `%lo` pair — four instructions where the call-site spelling shares
+  two, and no callee-saved register held across a call. See
+  `DECOMPILATION_LEARNINGS.md`, "A constant address folds into the memory
+  operand only inside an inlined body".
+
 ---
 
 ## 5. Control-flow shape is inferred from the dispatch, not the source
