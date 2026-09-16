@@ -1,6 +1,13 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
+#include "main/stage.h"
 #include "main/task.h"
+
+/// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
+/// the overlay imports them by absolute address and passes them as `s32`.
+extern s32 D_80114A24;
+extern s32 D_80114A34;
+
 extern TaskDesc D_actor_136300_8013B134;
 extern TaskDesc D_80183380;
 extern s8       D_8007272D;
@@ -14,7 +21,27 @@ INCLUDE_RODATA("actors/nonmatchings/actor_136300/actor_136300", D_actor_136300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_8013267C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_80132854);
+/// Runs once on spawn, then counts `spawnArg1` down; when it goes negative the
+/// ending flag is set and the task kills itself. The decrement is one reused
+/// local: m2c's temp plus per-arm subtract splits the value into three
+/// quantities and the store lands in `$v1` instead of `$v0`.
+void func_actor_136300_80132854(Task* arg0)
+{
+    s32 var_v0;
+
+    if (arg0->state == 0) {
+        Gp_SpawnScript18((s32)&D_80114A24, (s32)&D_80114A34);
+        arg0->state += 1;
+    }
+    var_v0 = arg0->spawnArg1;
+    if (var_v0 < 0) {
+        Stage_SetEndingFlag();
+        Task_Kill(arg0);
+        var_v0 = arg0->spawnArg1;
+    }
+    var_v0          = var_v0 - 1;
+    arg0->spawnArg1 = var_v0;
+}
 
 void func_actor_136300_801328D4(s8 arg0)
 {
