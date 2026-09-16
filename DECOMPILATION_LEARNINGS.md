@@ -109124,3 +109124,76 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_356100_801668FC-vacuum`; retry seed archived at
 `tools/giveups/func_actor_356100_801668FC/`.
+
+## Sibling slot-loops need per-block locals, and dbr picks a delay slot by the candidate's register home (func_actor_356100_80163508, 2026-09-16)
+
+A tick with four near-identical `for (i = 1; i < 0x15; i++)` slot loops (blend
+reseed, reset, blend restart, tick) reaches 99.701% only when each loop owns its
+pointer and counter:
+
+```c
+    if (work->field_978 == 1) {
+        if (work->field_97C != work->field_97E) {
+            Actor356100AnimWork* anim;   /* per block, not per function */
+            s32                  i;
+            anim = (Actor356100AnimWork*)arg0->field_1C;
+            for (i = 1; i < 0x15; i++) { ... }
+```
+
+Declared once at the top, the loops' copies of `arg0->field_1C` are CSE'd into
+one value and the pseudo that carries them spans every loop (`.lreg`:
+`dies in 2 places; crosses 4 calls`), so `global-alloc` colours it once instead
+of `local-alloc` colouring each block's copy. The loops then use that global
+register and the whole allocation drifts: frame 0x30 instead of 0x38, `arg0`,
+`work` and the loop table in the wrong `$s` (`regs=95`, 86.5%). Scoped per
+block, every copy is a single-block single-death pseudo, each loop gets
+`$s0`/`$s1`/`$s2` on its own, and `regs=0`. Function-scoped pointers with
+scoped counters rebuild the same object; scoped pointers with a
+function-scoped counter cost `regs=24` (97.8%); a HImode counter changes the
+loop's insn set outright (91.0%).
+
+The residual instruction - the same two insns in the state-1 preheader,
+`addu $s0,$s3` (the loop's copy of the work pointer) and `li $s1,1` (the
+counter init) - swap positions against the target:
+
+```
+target:  beq $v1,$v0,.L  /  addu $s0,$s3 (delay)  /  li $s1,1
+built:   beq $v1,$v0,.L  /  li $s1,1     (delay)  /  addu $s0,$s3
+```
+
+The state-2 preheader has the same pair and agrees (`addu $s1,$s3` in the
+delay slot in both). Two things about `reorg.c` explain why this is a register
+question and not a source-order one:
+
+- `fill_simple_delay_slots` never accepts a candidate for a *conditional*
+  jump: its forward scan is gated on `if (target == 0 && ...)` (reorg.c:3232)
+  where `target = JUMP_LABEL (insn)`. Only `fill_eager_delay_slots` ->
+  `fill_slots_from_thread` fills those slots.
+- That function's acceptance is
+  `if (condition == const_true_rtx || (! insn_sets_resource_p (trial,
+  &opposite_needed, 1) && ! may_trap_p (pat)))`, with `opposite_needed =
+  mark_target_live_regs (the branch target)`. An insn that sets a register
+  live at the target is skipped, so the *first eligible* candidate wins
+  because of where it lives.
+
+Both spellings of the pair produce the same object (a fresh
+`anim = arg0->field_1C` load that CSE reduces to the copy, and a front-end
+`anim = work` copy), so the source order is not the lever; the copy's home
+`$s0` being (conservatively) live at the branch target is. Reproducing the
+target needs that liveness resolved, not another rearrangement - the timings
+and the full experiment log are in
+`nonmatchings/func_actor_356100_80163508-vacuum/LEARNINGS.md`.
+
+Unrelated but worth repeating: an implicit-declaration call site
+(`ActorsShared80132808` with no prototype in scope) silently drops the `(s16)`
+truncation of its argument, costing `sll $a1,16 / sra $a1,16` before the `jal`.
+Two instructions of a 201-instruction function, and `.diagnosis.json` reports
+them only as `insert=1 delete=2`.
+
+Inputs: `base_4.i` (99.701%) SHA256
+`5c0f5a1905ec66477360b67a11216238d75b3f8c17df61af3104be27b95efeb1`; target
+SHA256 `142cec22db15f0eafa4ed7de40e958d654f35109a90bf9e508c0f9324cd88c96`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
+`nonmatchings/func_actor_356100_80163508-vacuum`; best unpinned candidate
+`base_4.c` / `base_6.c`.

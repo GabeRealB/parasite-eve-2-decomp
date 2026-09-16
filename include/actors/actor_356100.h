@@ -198,11 +198,35 @@ typedef struct Actor356100AnimWork {
     /* 0x3F0 */ byte       pad_3F0[0xD8];
     /* 0x4C8 */ GpAnimCtx  blendAnim;
     /* 0x4DC */ GpAnimSlot blendSlots[24];
-    /* 0x89C */ byte       pad_89C[0xE6];
-    /* 0x982 */ s16        field_982;
-    /* 0x984 */ byte       pad_984[6];
-    /* 0x98A */ s16        field_98A;
-    /* 0x98C */ s16        field_98C;
+    /* 0x89C */ byte       pad_89C[0xDC];
+    /// The animation-state halfwords `func_actor_356100_80163508` drives, the
+    /// same slots `Actor356100Work` names: `field_978` is the state it leaves
+    /// at 3 once the 1/2 entry has been served, `field_97C` the clip id the
+    /// slots were last seeded with, `field_97E` the one being seeded now and
+    /// `field_980` the per-frame counter it bumps. The 0x97C / 0x97E pair is
+    /// what makes the state-1 reseed fire once per clip change.
+    /* 0x978 */ s16 field_978;
+    /* 0x97A */ s16 field_97A;
+    /* 0x97C */ s16 field_97C;
+    /* 0x97E */ s16 field_97E;
+    /* 0x980 */ u16 field_980;
+    /* 0x982 */ s16 field_982;
+    /* 0x984 */ s16 field_984;
+    /// Blend-context state `func_actor_356100_80163508` restarts at 2 with
+    /// speed 0x30 / weight 0x800: `field_986` the state, `field_988` the clip
+    /// id its slots are reset to, and `field_98A` / `field_98C` the pair the
+    /// reset copies into the primary slots and the blend weight.
+    /* 0x986 */ s16 field_986;
+    /* 0x988 */ s16 field_988;
+    /* 0x98A */ s16 field_98A;
+    /* 0x98C */ s16 field_98C;
+    /// The eased yaw pair `func_actor_356100_80163508` walks: `field_98E` is
+    /// the aim the root coordinates are turned to and `field_990` the running
+    /// value moved toward it by 0x100 per frame.
+    /* 0x98E */ s16  field_98E;
+    /* 0x990 */ s16  field_990;
+    /* 0x992 */ byte pad_992[2];
+    /* 0x994 */ s32  field_994;
 } Actor356100AnimWork;
 
 /// Blends pose slots 1..0x14: the first eleven copy the two clip ids into
