@@ -84667,3 +84667,64 @@ on the function itself.
 Inputs: `base.i` (87.6%, `insert=2 delete=5`), `base_1.i` (93.1%, `regs=2
 reorder=5 insert=1 delete=1`), `base_2.i` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A reload after a *conditional call* is plain C — the `volatile` tell is the compare against the saved local
+
+`func_dryfield_night_saloon_g_r_8017DCA4` (0xD8, the message gate shared by the
+day and night Saloon G & R) loads `in->msgId` into `$s0`, compares it against
+0xF, then **loads it again** at the join:
+
+```
+lhu  $s0, 0x0($s1)          # feeds the 0xF compare
+bne  $s0, $v0, .LDD64
+lbu  $v0, 0x5($s1)
+bnez $v0, .LDD10            # field_5 != 0: the call is skipped
+ nop
+jal  GameFlag_GetNibble
+ addiu $a0, $zero, 0x61
+.LDD10:
+lhu  $v0, 0x0($s1)          # reload, reached from *both* arms
+bne  $v0, $s0, .LDD64
+ addiu $v0, $zero, 0x1
+```
+
+"A re-read while the value is still live in a register means `volatile`" is the
+rule in the `func_acropolis_plaza_8017F9EC` entry above, and here it would be
+the wrong call. The re-read happens on a path where no call was made at all, so
+the compiler looks like it declined to reuse a live register. It did not: the
+call in the *other* arm kills the load's availability before the join, so CSE
+reloads at `.LDD10` and the no-call arm gets the reload for free. Plain
+non-volatile C reproduces the function exactly - do not reach for `volatile`
+when the reload sits downstream of a call that only some paths take.
+
+The source does have to *re-read the field*, and the tell is in the compare:
+`bne $v0, $s0` tests the fresh load against the saved local, not against a
+constant. So the shape is
+
+```c
+msgId = in->msgId;
+if (msgId == 0xF) {
+    if (in->field_5 == 0) {
+        out->field_3 = GameFlag_GetNibble(0x61) + 1;
+    }
+    if (in->msgId == msgId) { ... }
+}
+```
+
+The sibling room gates use the same `msgId = in->msgId` local for their later
+compares (`RoomsShared8017d8bc`, `func_acropolis_hallway_8017D5D0`), which is
+what makes `in->msgId == msgId` recognisable rather than a re-read invented to
+fit the assembly.
+
+Both copies of this body are promotable: `overlay_dup_index.py find` reports the
+day Saloon G & R's `func_dryfield_saloon_g_r_8017D8BC`, and while the function
+is still `INCLUDE_ASM` the tool refuses with "2 different byte images" - the
+images differ only in the `jal` to the overlay-local `RoomsShared8017d638`,
+which is exactly what its `text` hash wildcards and its `raw` hash does not.
+Matching it once makes the same cluster promotable, and both spans land on run
+boundaries, so nothing renumbers.
+
+Inputs: `base.i` (41.1%, m2c's `M2C_ERROR` placeholders standing in for the
+8-byte `*out = *in` copy - see the `lwl`/`lwr` quad entry above), `base_1.i`
+(100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
