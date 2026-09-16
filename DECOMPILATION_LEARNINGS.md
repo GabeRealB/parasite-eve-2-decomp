@@ -90590,3 +90590,55 @@ assigned immediately above the `if` that guards its loop.
 
 Input: `base_1.i`
 `f5da0f387b1d4ffa3f573ef3d46e963ad5bcdfba68bd643fd655061b1296ecdc`.
+## A local quantity's def takes a register away from every live allocno (func_neo_ark_shrine_8017F398, 2026-09-16)
+
+**Problem.** A tail whose target register assignment looks arbitrary:
+
+```
+.L414: sb $v0, %lo(D_8007216D)($a0)   # $a0 = the %hi temp, $v0 = the value
+       sb $v0, 5($v1)                 # $v1 = a pointer loaded in both arms
+```
+
+The same C with the same block structure gave `$v0`/`$v1` swapped and the `%hi`
+temp in `$v0` instead of `$a0` (91.773% vs the same shape at 92.909% once the
+store was removed as a probe).
+
+**Mechanism.** `global.c:record_one_conflict` runs over the RTL *after*
+local-alloc has renumbered local pseudos. `mark_reg_store` maps a local's set to
+its hard register and then marks **every currently live allocno** as conflicting
+with it. So a one-instruction local temp born in a join block - `(set (reg) (high
+(symbol_ref X)))` for a store in that block - costs the *global* allocnos $v0
+whenever their live ranges cover it, even though local-alloc and global-alloc
+run in separate passes. Dump evidence, same function:
+
+```
+base_2 (store present) : ;; 81 conflicts: 80 81 82 2 29   # 2 = $v0
+                         ;; 82 conflicts: 80 81 82 2 29
+base_4 (store removed) : ;; 81 conflicts: 80 81 82 29      # no $v0
+                         ;; 82 conflicts: 80 81 82 29      # -> allocno 82 in $v0
+```
+
+local-alloc's own order is `QTY_CMP_PRI = floor_log2(refs)*refs*size /
+(death-birth)`, allocated in decreasing priority with ties by birth order
+(`local-alloc.c:qty_compare`). A temp whose definition and use are adjacent has
+the highest score and therefore always wins the first free register. The matched
+`func_mine_cavern_8017E330` (same three-store idiom) is the control: its
+D-address temp is born first but scores 0.5 because a `lw` of `Game_Session`
+sits between its def and its use, so the constants (score 2) and the load's
+address take `$v0`, and the temp falls to `$a1`.
+
+**Fix / lever.** Anything that lengthens the address temp's live range, or puts
+another quantity in front of it inside the same block, moves it off `$v0`:
+reorder the statements so the load's address computation is born first, or keep
+the temp's def and use apart. Two adjacent instructions give it score 2; three
+insns apart (a hoisted load in between) give ~0.6 and it loses. This is the
+same lever the corpus calls "live length", but through the *conflict* channel
+rather than the ranking: the temp does not have to outrank the allocno, it only
+has to be live across it.
+
+**Open.** A local D-address temp can end up in `$a0` (acropolis_bridge's
+`func_acropolis_bridge_8017DC68`, same `%hi(D_8007216C)` shape) even with no
+allocno in the picture and with the GS load hoisted above the store, which the
+model above does not yet account for. When a `%hi` temp's register is the
+sticking point, compare against that function before assuming the C shape is
+wrong.
