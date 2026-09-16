@@ -9,6 +9,7 @@
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "psyq/abs.h"
 #include "rooms/room_common.h"
 
 void func_actor_548100_801330EC(void);
@@ -501,7 +502,69 @@ void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80134400);
+/// Build the edge graph's derived state: record every edge's id in the
+/// node-pair matrix both ways round, then store its dominant axis in `flag_3`
+/// (0 horizontal, 1 vertical), that axis's two screen-centred endpoint
+/// coordinates in `field_4` / `field_6` and their span less 2 in `dist`.
+/// Finally reset each edge's `state` for the current stage, as
+/// `func_actor_548100_80134BF0` does.
+void func_actor_548100_80134400(void)
+{
+    Actor548100Edge* edge;
+    Actor548100Edge* cell;
+    DVECTOR*         a;
+    DVECTOR*         b;
+    s32              ax;
+    s32              bx;
+    s32              ay;
+    s32              by;
+    s32              dx;
+    u8               i;
+
+    i = 0;
+    for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++, i++) {
+        D_actor_548100_80135B5C[edge->nodeB + edge->nodeA * 100] = i;
+        D_actor_548100_80135B5C[edge->nodeA + edge->nodeB * 100] = i;
+        a                                                        = &D_actor_548100_801358E4[edge->nodeA];
+        b                                                        = &D_actor_548100_801358E4[edge->nodeB];
+        ax                                                       = a->vx - 158;
+        bx                                                       = b->vx - 158;
+        dx                                                       = ax - bx;
+        by                                                       = b->vy - 118;
+        ay                                                       = a->vy - 118;
+        if (dx < 0) {
+            dx = bx - ax;
+        }
+        if (ABS(ay - by) < dx) {
+            edge->dist    = ABS(ax - bx) - 2;
+            edge->flag_3  = 0;
+            edge->field_4 = ax;
+            edge->field_6 = bx;
+        } else {
+            edge->dist    = ABS(ay - by) - 2;
+            edge->flag_3  = 1;
+            edge->field_4 = ay;
+            edge->field_6 = by;
+        }
+    }
+    if (GameFlag_GetNibble(0xBE) == 2) {
+        for (cell = D_actor_548100_801351D0; cell->nodeA != 0; cell++) {
+            if (cell->field_2 == 2) {
+                cell->state = 0;
+            } else {
+                cell->state = 1;
+            }
+        }
+    } else {
+        for (cell = D_actor_548100_801351D0; cell->nodeA != 0; cell++) {
+            if (cell->field_2 == 1) {
+                cell->state = 0;
+            } else {
+                cell->state = 1;
+            }
+        }
+    }
+}
 
 /// Link `rect` into the ordering table as a textured quad, taking the
 /// primitive off the `Gpu_PrimCursor` bump allocator. The same four numbers are

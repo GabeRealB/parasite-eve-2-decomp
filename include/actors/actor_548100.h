@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/task.h"
+#include <psyq/libgte.h>
 
 /// Per-instance work block of actor_548100, parked in `Task::idMap` -- that
 /// slot is not a `TaskIdMap` here, it is the `Mem_Calloc(0x18, 0)` block
@@ -127,7 +128,8 @@ typedef struct Actor548100Edge {
     /* 0x01 */ u8   nodeB;
     /* 0x02 */ u8   field_2;
     /* 0x03 */ u8   flag_3;
-    /* 0x04 */ byte pad_4[0x4];
+    /* 0x04 */ s16  field_4;
+    /* 0x06 */ s16  field_6;
     /* 0x08 */ u8   state;
     /* 0x09 */ byte pad_9[0x1];
     /* 0x0A */ s16  dist;
@@ -136,6 +138,8 @@ typedef struct Actor548100Edge {
 STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
 
 extern Actor548100Edge D_actor_548100_801351D0[];
+/// Node points `(x, y)`, indexed by node id.
+extern DVECTOR D_actor_548100_801358E4[];
 /// Route strings, indexed by route id: node ids, 0xFF-escaped, 0-terminated.
 extern u8* D_actor_548100_80135B24[];
 /// Edge-id matrix keyed `prev * 100 + cur`.
