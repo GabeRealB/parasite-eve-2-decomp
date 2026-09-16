@@ -105765,3 +105765,67 @@ value keeps a register of its own.
 
 Input: `base_11.i`
 `ce6d62ec0d573c5912298781bbef163d5147b09bf42007f993ff4401f516ab35`.
+
+## A constant's source position hoists it into the call block (func_actor_800100_80163A58, 2026-09-16)
+
+`func_actor_800100_80163A58` is the actor's texture-upload state, the same shape
+as the gameplay twin `func_801030CC`: two countdown sequences, each posting its
+image over an 8-byte scratch `RECT`. The natural C reached 97.885% with
+`regs=4 insert=1 delete=1` and exactly one instruction out of place: `li s0,8`,
+the constant shared by `rect->x = 8` and the post-call `field_98B = 8`, came out
+between `li v0,0xD` and its store where the target has it as the block's first
+instruction.
+
+The block's four stores are emitted in source order (`y, w, x, h`) in both, but
+the constant is not. `sched2` breaks equal-priority ties in `rank_for_schedule`
+on `INSN_LUID` - a stream position assigned by `sched_analyze` at the start of
+*each* scheduling pass (`sched.c:2202`), so in `sched2` it reflects the chain
+order entering `sched2`. The lever is the *source* position of the statement:
+writing `rect->x = 8;` first among the rect fields leaves the store itself where
+it was - the class-relative-to-`last_scheduled_insn` rule still sinks it after
+`rect->w` - while its constant, now the block's earliest insn, wins the LUID tie
+and is hoisted ahead of the call. 100.000%, every penalty 0.
+
+This is the counterpart of "Writing a subexpression out again shifts every later
+INSN_LUID" above: there *duplicating* an expression moved the LUIDs, here
+*hoisting one statement* does. Note the two halves of a producer/consumer pair
+can be separated by the ranking rules, because the consumer follows its class
+relative to the previously scheduled insn while the producer follows its LUID.
+
+Input: `base_2.i` (95.962%) `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122ea09`
+matched: `base_6.i` (100.000%) `08ada64d36acdd60552864cc7a3a96cfb6cb13bd1ab464f73dfeffb1d613180c`.
+
+## A chained assignment keeps a copy that the split forms coalesce (func_actor_800100_80163A58, 2026-09-16)
+
+The same function's two index chains allocated `$v0`/`$v1` the other way round
+from the target (`regs=44`, otherwise identical). The permuter's fix was to
+reach the subscript through a second, chained assignment:
+
+```c
+    idx = (row = (s8)actor->field_98A - 1);
+    img = table[row][(s8)actor->field_98C];
+```
+
+Both split forms - `row = ...; idx = row;` and `idx = ...; row = idx;` - compile
+to the *unchanged* 95.962% object: the pseudos coalesce, nothing is left to
+allocate, and declaring the extra variable is by itself irrelevant. Only the
+chained form leaves a copy, and that copy moves the allocation 97.885% toward
+the target.
+
+Observed effect, from `tools/trace_gcc.py` on the matching build: the chain's
+`minus`/`ashift`/`plus`/load pseudos merge into one *local* quantity with the
+pass's highest priority (20000) and take `$v0`, while the address pseudo goes
+*global* to `$v1`; in the 95.962% build the address pseudo was `$v0` and the
+chain `$v1`. The change is not local to the block it is written in - the fix was
+applied to the `field_98A` chain and the `field_987` chain's allocation moved
+with it - so read it as a numbering/pressure perturbation of `local-alloc`, not
+as a per-chain trick.
+
+Status: the copy's presence is established by the counterfactual (`base_7.c`,
+the split form, 98.077% and not a match), the allocation shift by the traces;
+which quantity the copy changes and why the priority moves was not chased
+further, so the accounting is left as observed rather than derived.
+
+Input: `base_2.i` `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122ea09`;
+`base_5.i` (97.885%) `9d1d838c6a05e3f6e57660574a66e859244e3c329e30d2d1c424c89ed523ac99`;
+`base_7.i` (98.077%) `5a865d501912059ad3b84e221af1682fa1a4cb656666375d15532db212532c85`.
