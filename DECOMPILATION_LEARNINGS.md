@@ -6224,6 +6224,20 @@ alternative needs a comma right after `$sp`), so a genuine frame difference is
 still counted — as `regs`, through the parenthesised-field split, not as
 `stack`.
 
+**A scratch candidate must hold only the function being scored.** `build.sh`
+compiles the whole candidate and diffs it against `target.o` from text offset
+zero, so a candidate that also carries sibling functions from the same host
+`.c` is scored against the wrong function. Porting
+`func_dryfield_toilet_8017D940` by putting its whole four-function host file in
+the scratch scored 52.085% with `insert=34` — the three extra bodies read as
+insertions, and the diagnostic said so rather than blaming the body:
+`diagnostics require a single function starting at text offset zero`. Keep the
+includes, the externs and the one function in the candidate, and make the
+sibling functions part of the host-file edit instead. This is the same
+"`target.o` covers only the first text symbol" root cause as the label-fragment
+entry above, reached from the other side: there the target was too small, here
+the candidate is too big.
+
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
 A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /
