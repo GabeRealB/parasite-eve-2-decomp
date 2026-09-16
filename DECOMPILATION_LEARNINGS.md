@@ -93924,3 +93924,69 @@ its rodata cut repointed (`actor_107000_4` to `actor_107000_3`); read the
 regenerated `configs/USA/generated/<overlay>.yaml` after the manifest change and
 before the split, and snapshot the carriers' bodies with `bodies_of()` in
 `tools/land_overlay.py` if any own unit is about to move.
+
+## `jump.c` rewrites a two-arm constant diamond, and a per-arm reload is the way to stop it (func_actor_107000_80132D8C, 2026-09-16)
+
+Writing the natural `x = cond ? K1 : K2;` (or the equivalent `if`/`else`) and
+using `x` afterwards does **not** give the diamond the target shows. GCC 2.8.1's
+`jump_optimize` has a rewrite, "Simplify `if (...) x = a; else x = b;` by
+converting it to `x = b; if (...) x = a;`" (`jump.c`, in the block guarded by
+`this_is_simplejump` + `condjump_p (temp)`), and it fires here:
+
+```
+   lhu  v0, 0x40(s0)
+   lui  v1, 0x402E          ; K2 materialised on the fall-through path
+   beqz v0, .Ljoin
+   lui  v1, 0x4046          ; K1, delay slot of the branch
+   ori  v1, v1, 0xA
+.Ljoin:
+   lhu  v0, 8(v0)           ; the load that feeds the OR is in the join
+```
+
+Retail has each constant in its own arm and the u16 read, both shifts and the
+OR in the join. The rewrite is skipped when the else block's first *active* insn
+is not a simple store of the same register (`SET_DEST` must equal the then arm's,
+and its `SET_SRC` must be a REG/SUBREG/constant). Loading the context pointer
+again in each arm is what does it:
+
+```c
+    if (work->field_2D6 != 0) {
+        enemy   = (GpEnemy*)arg0->spawnArg2;   /* a load first: not a store */
+        var_v1  = 0x4046000A;
+    } else {
+        enemy   = (GpEnemy*)arg0->spawnArg2;
+        var_v1  = 0x402E0002;
+    }
+```
+
+That gets the pointer into both arms, but not the boundary retail has: the
+block split is then decided by the **post-reload cross-jumper** (the last
+`jump_optimize (insns, 1, 1, 0)`, dumped as `.jump2`). `find_cross_jump` walks
+both arms backwards with `rtx_renumbered_equal_p` on the *allocated* registers
+and merges the longest common suffix, stopping at the first differing insn, so
+the position sched2 gave the arm-specific `ori` sets the boundary:
+
+```
+   lw   v0,0x20(s1) ; lui v1,0x4046 ; lhu v0,8(v0) ; ori v1,v1,0xA   sched2 order
+                                            ^ walk stops at the ori -> only srl/sll/or shared
+```
+
+The form that reaches retail's boundary is the one already recorded for
+`func_actor_510900_80137868` ("Duplicating a whole statement into both arms is a
+cross-jumping lever"), taken all the way: duplicate the **whole**
+`SndEvt_EnqueueType6(...)` statement - `Gp_GetObjPan` and `Gp_GetObjDepth`
+included - in both arms. Cross-jumping then folds the identical trailing call
+sequence into the join, each arm keeps only its constant and its reload, and the
+join starts exactly at the `lhu`. This function is a second worked example of
+that entry, and this one scores 100.000% with the duplication and 91.974% with
+only the `snd = (... | K);` part duplicated.
+
+Worth knowing while reading `.greg` on such a body: a pseudo whose defining load
+carries `REG_DEAD (base)` **inherits the base's register preferences**
+(`merge_reg_preferences`, `global.c`), when the two allocnos do not conflict.
+Here the arms' `(set (reg 84) (mem (plus arg0 32)))` takes `REG_DEAD (arg0)`,
+and `arg0` is a copy of the incoming `$a0`, so the reloaded pointer prefers
+`$a0` (`.greg` prints `;; 84 preferences: 4`) and `find_reg`'s pass 0 hands it
+`$a0` even with `$v0` free - retail has it in `$v0` and the constant in `$v1`.
+`prune_preferences` only strips call-clobbered registers from the preferences of
+an allocno that crosses a call, and this reload crosses none.
