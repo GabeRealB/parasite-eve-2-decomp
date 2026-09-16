@@ -18315,6 +18315,29 @@ condition folded the two bound compares into one range test (section "Two
 compares in the object mean the source had nested `if`s") — so the 69.9%
 baseline needed both fixes at once.
 
+The prologue `move` can point the *other* way, and then the same trap reads as
+`insert` rather than a wrong register. `func_actor_461800_80132E14` sits in the
+same `(id, handler)` table as `func_actor_461800_80132F20` — which already reads
+its payload from `$a2` — but m2c emitted the one-parameter `s32 f(s32 arg2)`, so
+the flag arrived in `$a0` and the seed scored 96.297% with `insert=1 regs=7`: an
+extra `move a3,a0`, both `andi`s comparing `$a3` instead of `$a2`, and the second
+extra pointer in `$a2` where retail has it in `$a3`. The tell is any prologue
+`move` feeding the flag, from a later argument register *or* to an
+allocator-chosen home, next to a `regs` residue on the instructions that read it.
+
+The mechanism is a copy preference, not an allocation-order accident, which is
+why arity is the only fix. `set_preference` gives the allocno of
+`(reg/v:82) = (reg:SI 6 a2)` a `hard_reg_copy_preferences` bit for `$a2` and a
+`hard_reg_full_preferences` bit that puts `$a2` into `regs_someone_prefers` for
+every allocno it conflicts with. So in `find_reg`'s pass 0 the pointer pseudo
+allocated *before* it skips `$a2` (global order is by
+`floor_log2(refs)*refs/live_length`, and a 3-ref/40-insn flag pseudo sorts
+last), and the flag pseudo — offered `$a2` when its own turn comes — keeps it.
+Declaring `(Task* arg0, s32 arg1, s32 arg2)` scored 100% on the next build. It is
+still not promotable: the body names `D_actor_461800_80143898` /
+`D_actor_461800_80143894`, and `overlay_dup_index.py promote` refused the
+byte-identical copy in `actor_143900` for exactly that.
+
 ## Split call results: dying temp vs join-live `ret`
 
 Two returns from the same callee where the first is only used in an immediate

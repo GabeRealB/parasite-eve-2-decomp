@@ -107,7 +107,32 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, Actor461800AnimPreset* pres
     return -1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132E14);
+/// Applies a `Tmd_Create` flag word to the three model objects this actor owns:
+/// the one on its own task and the two helper tasks' models in the work block.
+/// `arg2 & 1` picks the base value -- 0x80 normally, 0 when set -- and
+/// `arg2 & 2` ORs bit 0x4 in on top of it.
+s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
+{
+    TmdObject* own    = D_actor_461800_80143898->extra;
+    TmdObject* first  = D_actor_461800_80143894->field_4F0->extra;
+    TmdObject* second = D_actor_461800_80143894->field_4F4->extra;
+
+    if (arg2 & 1) {
+        own->field_C    = 0;
+        first->field_C  = 0;
+        second->field_C = 0;
+    } else {
+        own->field_C    = 0x80;
+        first->field_C  = 0x80;
+        second->field_C = 0x80;
+    }
+    if (arg2 & 2) {
+        own->field_C    |= 4;
+        first->field_C  |= 4;
+        second->field_C |= 4;
+    }
+    return 0;
+}
 
 /// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
 /// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
