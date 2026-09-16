@@ -89831,3 +89831,38 @@ cannot be disambiguated by offset. That is a real mechanism but the wrong one
 here: the target addresses all four MEMs off `$s2`, and two simultaneously live
 pointer pseudos can never share a register. A permuter hit that needs a register
 the target does not have is a hint about the block, not a candidate to port.
+
+## A clamp that keeps `move $v1, $a0` needs the load in its *own* local
+
+`func_actor_510900_80137008` clamps a field to 0x1388 and the ROM keeps the
+loaded value in a second register:
+
+    lh    $a0, 0x5AC($s1)
+    slti  $v0, $a0, 0x1389
+    beqz  $v0, .Ljoin
+     addiu $v1, $zero, 0x1388
+    addu  $v1, $a0, $zero
+  .Ljoin:
+    addiu $v1, $v1, -0x4B0
+
+The natural in-place clamp — one local, loaded then overwritten —
+
+    val = work->field_5AC;
+    if (val >= 0x1389) { val = 0x1388; }
+
+compiles the other way round: the load lands directly in the result register,
+the branch is inverted to `bnez`, there is no `move`, and the `li` falls out of
+the delay slot into the join block (7 instructions instead of 5). Give the load
+a local of its own and write the constant as the *default*:
+
+    cur = work->field_5AC;
+    val = 0x1388;
+    if (cur < 0x1389) { val = cur; }
+
+Two live values means the load cannot be the result register, so the `move` is
+forced; `val = 0x1388` before the branch is the arm `relax_delay_slots` then
+pulls into the `beqz` slot. This is the complement of the `li`-in-delay-slot
+entry above: there the default-first form put the `li` *before* the branch
+because the compare value was still live in the same local; here the compare
+value is a different local, so the same source shape gives the delay slot
+instead.

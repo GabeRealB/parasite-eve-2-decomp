@@ -112,9 +112,12 @@ typedef struct Actor510900Work {
     /* 0x5AC */ s16 field_5AC;
     /// Below 0x3E8 the turn target is taken one entry further along
     /// `D_actor_510900_80167B9C`.
-    /* 0x5AE */ s16  field_5AE;
-    /* 0x5B0 */ s16  field_5B0;
-    /* 0x5B2 */ byte pad_5B2[6];
+    /* 0x5AE */ s16 field_5AE;
+    /* 0x5B0 */ s16 field_5B0;
+    /// Latch that sends the wind-up out to state 8 instead of back to state 1;
+    /// state 3 clears it on the way through.
+    /* 0x5B2 */ s16  field_5B2;
+    /* 0x5B4 */ byte pad_5B4[4];
     /* 0x5B8 */ s16  field_5B8;
     /* 0x5BA */ s16  field_5BA;
     /* 0x5BC */ s16  field_5BC;

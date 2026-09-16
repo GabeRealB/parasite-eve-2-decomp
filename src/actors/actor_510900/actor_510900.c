@@ -378,7 +378,98 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80136B70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137008);
+/// State 3 (sub-state 0/1): the wind-up. Sub-state 0 queues the two-part
+/// charge sound at blend 0x39 - setting `field_594`/`field_598` and pushing
+/// both body objects into their flagged pose - a second cue at 0x41, and past
+/// 0x5A hands sub-state 1 the animation 0xF. Sub-state 1 converts `field_5AC`
+/// into the `field_59C` budget at blend 0xE, feeds `field_5A2` from it over
+/// blends 0x17..0x2F, queues two more cues, and past 0x46 leaves for either
+/// state 8 (when `field_5B2` is set) or state 1 with a fresh `field_59C`,
+/// clearing both flagged poses on the way out.
+void func_actor_510900_80137008(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s32               snd;
+    s32               pair;
+    s32               val;
+    s32               cur;
+    u32               rng;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    switch (work->field_590) {
+        case 0:
+            work->field_5A2 = 0;
+            if (work->field_58A == 0x39) {
+                work->field_594 = 1;
+                work->field_598 = 0x55;
+                snd             = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000E;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_57C = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
+                SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 5);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+            }
+            if (work->field_58A == 0x41) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780006;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x5A) {
+                work->field_586 = 0xF;
+                work->field_590 = 1;
+            }
+            break;
+        case 1:
+            if (work->field_58A == 0xE) {
+                cur = work->field_5AC;
+                val = 0x1388;
+                if (cur < 0x1389) {
+                    val = cur;
+                }
+                work->field_59C = (val - 0x4B0) / 24;
+            }
+            work->field_5A2 = ((u32)((u16)work->field_58A - 0x17) < 0x19U) ? work->field_59C : 0;
+            if (work->field_58A == 0x19) {
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 1);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+                snd                   = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780007;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A == 0x2F) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780008;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x46) {
+                if (work->field_5B2 != 0) {
+                    work->field_58E = 1;
+                    work->field_590 = 8;
+                    work->field_5B2 = 0;
+                    work->field_586 = 5;
+                } else {
+                    work->field_58E = 1;
+                    work->field_586 = 1;
+                    work->field_590 = 0;
+                    work->field_59C = D_actor_510900_801679D0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
+                    Gp_LcgState     = rng;
+                }
+                work->obj4E4.flags &= 0x7FFF;
+                work->obj504.flags &= 0x7FFF;
+            }
+            break;
+    }
+}
 
 /// Handler that spawns the actor's companion enemy once the 0x14 animation has
 /// blended in (`field_58A` == 0x14): the spawned task's model takes its texture
