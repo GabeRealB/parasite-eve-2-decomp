@@ -583,7 +583,60 @@ void func_actor_403000_8013BDE0(Actor403000* arg0)
     *(Actor403000PushScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013C050);
+void func_actor_403000_8013C050(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    Actor403000*     player;
+    GpEnemy*         enemy;
+    s32              sound;
+    s32              pan;
+    s32              sound2;
+    s32              pan2;
+
+    work   = arg0->field_1C;
+    player = Game_GetPtrSlot(3);
+    enemy  = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_FD6                     = 0;
+        arg0->field_2C->field_8->coord.t[0] = 0x2134;
+        arg0->field_2C->field_8->coord.t[1] = player->field_2C->field_8->coord.t[1] - 0x1518;
+        arg0->field_2C->field_8->coord.t[2] = 0x1194;
+        work->field_FCA                     = 1;
+        work->field_AC6                     = 8;
+        work->field_AC0                     = 2;
+        work->field_6                       = 0;
+        work->field_8                       = 0;
+        work->field_ACA                     = 0;
+        func_actor_403000_80133AF8(arg0);
+    }
+    if ((s16)work->field_6 > 0x3C) {
+        work->field_FD9 = 0x14;
+        sound           = ((enemy->field_8 >> 0xC) << 8) | 0x401E0010;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        work->field_0 = 0xC;
+    }
+    if ((s16)work->field_6 > 0x64) {
+        if (work->field_FB8 == arg0->field_2C->field_8->coord.t[0] &&
+            work->field_FBA == arg0->field_2C->field_8->coord.t[1] &&
+            work->field_FBC == arg0->field_2C->field_8->coord.t[2]) {
+            work->field_8++;
+        } else {
+            work->field_8 = 0;
+        }
+        if (work->field_8 > 0x1E) {
+            work->field_FD9 = 0x14;
+            sound2          = ((enemy->field_8 >> 0xC) << 8) | 0x401E0010;
+            pan2            = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+            SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+            work->field_0 = 0xC;
+        }
+        work->field_FB8 = arg0->field_2C->field_8->coord.t[0];
+        work->field_FBA = arg0->field_2C->field_8->coord.t[1];
+        work->field_FBC = arg0->field_2C->field_8->coord.t[2];
+    }
+    work->field_6++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013C2D4);
 

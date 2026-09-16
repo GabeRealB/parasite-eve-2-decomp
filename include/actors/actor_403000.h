@@ -47,7 +47,8 @@ typedef struct Actor403000Work {
     /* 0x002 */ s16  field_2;
     /* 0x004 */ s16  field_4;
     /* 0x006 */ u16  field_6;
-    /* 0x008 */ byte pad_8[0x4];
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[0x2];
     /* 0x00C */ s16  yaw;
     /* 0x00E */ byte pad_E[0x52];
     /* 0x060 */ union {
@@ -118,7 +119,11 @@ typedef struct Actor403000Work {
     /* 0xFA0 */ s32   field_FA0;
     /* 0xFA4 */ byte  pad_FA4[0x2];
     /* 0xFA6 */ u8    field_FA6;
-    /* 0xFA7 */ byte  pad_FA7[0x19];
+    /* 0xFA7 */ byte  pad_FA7[0x11];
+    /* 0xFB8 */ s16   field_FB8;
+    /* 0xFBA */ s16   field_FBA;
+    /* 0xFBC */ s16   field_FBC;
+    /* 0xFBE */ byte  pad_FBE[0x2];
     /* 0xFC0 */ s16   field_FC0;
     /* 0xFC2 */ byte  pad_FC2[0x8];
     /* 0xFCA */ s16   field_FCA;
@@ -127,7 +132,10 @@ typedef struct Actor403000Work {
     /* 0xFD3 */ s8    field_FD3;
     /* 0xFD4 */ byte  pad_FD4[0x1];
     /* 0xFD5 */ s8    field_FD5;
-    /* 0xFD6 */ byte  pad_FD6[0x6];
+    /* 0xFD6 */ u8    field_FD6;
+    /* 0xFD7 */ byte  pad_FD7[0x2];
+    /* 0xFD9 */ u8    field_FD9;
+    /* 0xFDA */ byte  pad_FDA[0x2];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
