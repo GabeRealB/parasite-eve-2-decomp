@@ -41,6 +41,13 @@ extern Actor110300Work* ActorsShared80131f9cWork;
 /// takes its coordinate from `->extra`, and the step dispatcher is handed it.
 extern GpActorWork* D_actor_110300_8013A0A4;
 
+/// The task this actor was paired with when it spawned. The self-kill path
+/// `func_actor_110300_80132088` takes it down, and the visibility control
+/// `func_actor_110300_801322E0` drives its model alongside this actor's own -
+/// the role `ActorsShared80132710Work::field_4B8` plays in the shared variant
+/// of that body.
+extern Task* D_actor_110300_8013A0A8;
+
 void func_actor_110300_801320C4(GpActorWork* arg0);
 
 /// The shared slot-reseed body `src/actors/lib/actors_shared_80132180.c`,

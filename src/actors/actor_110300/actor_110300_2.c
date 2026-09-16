@@ -4,8 +4,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern Task* D_actor_110300_8013A0A8;
-
 void func_actor_110300_80131FF8(GpActorWork* arg0)
 {
     GsCOORDINATE2* parent;
