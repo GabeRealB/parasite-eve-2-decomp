@@ -107492,3 +107492,59 @@ branch instead of once after the `if/else` took this function from 78.9% to 92.0
 insert 15 -> 4). Which copy anchors the merge is still unexplained here: the surviving copy sits at
 case 1's last body in the target and at case 0's first branch in every candidate tried, including
 with case 1's tails duplicated as well.
+
+## Two `li` of the same constant in one basic block: the cse class is keyed on the *source* mode, and reload_cse eats the narrower one (func_actor_403200_8013B23C, 2026-09-16)
+
+The target materialises `0x80` **twice per arm** of an `if`:
+
+```
+li $v0,0x80          li $v0,0x80     (in the beqz delay slot)
+sh $v0,0xC($a0)      sh $v0,0xC($a0)
+...                  ...
+li $v0,0x80          li $v0,0x80
+sh $v0,0xC($v1)      sh $v0,0xC($v1)
+```
+
+while the natural source (`tmd->field_C = 0x80;` ... `((TmdObject*)arg0->extra)->field_C = 0x80;`)
+compiles to a single `li` reused by both stores. The `.rtl` dump shows why: the front end emits
+**one constant pseudo per store** (`(set (reg:HI 90) (const_int 128))` and
+`(set (reg:HI 92) (const_int 128))`), and cse1 merges them, because `cse.c` keys the equivalence
+class on
+
+```c
+  mode = GET_MODE (src) == VOIDmode ? GET_MODE (dest) : GET_MODE (src);   /* cse.c:6481 */
+```
+
+— a bare `VOIDmode` const takes the *destination's* mode, so two `sh` stores of `0x80` land in the
+same class. **Give the later store a wider-typed value and the classes differ**, e.g. through a
+32-bit local:
+
+```c
+    s32 flag;
+    ...
+    flag = 0x80;
+    ((TmdObject*)arg0->extra)->field_C = flag;     /* (set (reg:SI) (const_int 128)) + subreg store */
+```
+
+which leaves both `li`s in place. The *order* matters as well, because `reload_cse_regno_equal_p`
+(reload1.c) deletes a `(set (reg X) (const_int))` when X already holds that constant, allowing it
+when the recorded value is wider and `TRULY_NOOP_TRUNCATION (narrow, wide)`:
+
+* narrow constant first, wide second -> the wide `li` **survives**;
+* wide first, narrow second -> the narrow `li` is **deleted**.
+
+Per arm, use a *separate* copy of the value (`modelFlag = 0x80;` then `(flag = modelFlag)` in the
+second arm). One `s32 flag` shared by both arms is a single pseudo for the whole function, so its
+allocno is global, its live range conflicts with `$v0` (`;; 85 conflicts: ... 2 29` in the `.greg`
+allocno dump), global-alloc parks it in `$v1`, and the store's pointer then takes `$v0` — inverting
+the target's register pair (99.6%, one register swap, `regs=8`). A fresh single-block local materialises
+the constant from a place with no `$v0` conflict, and the pair lands as the target has it.
+
+Two related notes from the same function:
+
+* A pointer both arms of the `if` need must be read **before** the branch in the C
+  (`tmd = (TmdObject*)arg0->extra;`): cse does not hoist a load across a branch, so writing the
+  expression inline at each store reloads it per arm (80.9% -> 88.5% -> 94.2%).
+* A constant set scheduler-hoisted within the block is a sched1 decision that follows the block's
+  dependency graph, not the statement's position: with the loop init already placed early in the
+  source, sched1 leaves `li`/`sh` adjacent instead of pulling the `li` two slots toward the top.

@@ -145,7 +145,64 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013AB70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B23C);
+/// Reset handler: pushes the host model's `field_C` onto each of the seven
+/// escorts, and once the sub-state counter has reached 2 releases the host's and
+/// every escort's model buffers. Same shape as
+/// `func_actor_403200_80141B40` with a second arm keyed on `field_6`.
+///
+/// The `modelFlag` copy is not redundant: the second arm's `0x80` has to reach
+/// the store as a 32-bit value of its own, or the two arms merge it into the
+/// first arm's constant and the second `li $v0, 0x80` disappears.
+void func_actor_403200_8013B23C(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    TmdObject*       tmd;
+    s32              flag;
+    s32              modelFlag;
+    s16              i;
+    s16              j;
+
+    work = (Actor403200Work*)arg0->idMap;
+    tmd  = (TmdObject*)arg0->extra;
+    if (work->field_4 != 0) {
+        tmd->field_C                       = 0x80;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        i                                  = 0;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = (flag = 0x80);
+        for (; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        work->field_6 = 0;
+        return;
+    }
+    if (work->field_6 == 2) {
+        tmd->field_C                       = 0x80;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        modelFlag                          = 0x80;
+        i                                  = 0;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = (flag = modelFlag);
+        for (; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_FreeBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_FreeBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B3C8);
 
