@@ -104104,3 +104104,55 @@ slti    v0,v0,0x20
 Declaring `ang` `s32` gives the target's `nop / negu v0,v0 / slti v0,v0,0x20`.
 The same variable is sign-extended once at the `NormalizeYaw` return either way,
 so nothing else moves. 92.78 % → 93.19 %.
+
+## Promoting a shared body re-cuts the overlays it is promoted *into* (func_actor_401800_80132E0C, 2026-09-17)
+
+`overlay_dup_index.py promote` adds a `shared` span to every overlay carrying the
+body. When that span falls *inside* an overlay's code run it splits the run, so
+every code unit after it is renumbered and — because splat creates a unit `.c`
+that is missing but never rewrites one that exists — the shipping `.c` files keep
+the old distribution and their `INCLUDE_ASM` lines go dangling. The move is
+mechanical but has to be done by hand, per overlay: assign each chunk to the unit
+whose `matchings/<overlay>/<unit>/` or `nonmatchings/<overlay>/<unit>/` now holds
+its `.s`, rewrite the `INCLUDE_ASM` folder to that unit, and drop the chunk the
+shared span now supplies. `tools/check_lost_matches.py` and the checksum both
+catch mistakes here; a body-count diff against a pre-change snapshot catches them
+earlier.
+
+The manifest's explicit `rodata` unit names are *not* renumbered with the code,
+so they go stale in the same move and must be shifted by hand to follow the code
+unit that now owns the tables.
+
+**The part that is easy to miss: the leading `.rodata` can change owner too.**
+It is one subsegment owned by the *first* code unit, and that ownership is
+implicit — there is no `rodata` key naming it. Promote a body into the middle of
+an overlay and the functions whose jump tables live in that block move to a later
+unit, while the block stays with the first one. Nothing fails to compile: the
+matched functions are now in a different object, so GCC regenerates their tables
+into *that* object's `.rodata`, which the linker places at the later unit's
+subsegment instead of the block's address. The tables land at the wrong address
+and their entries reference `.L` labels that the owning object does not define,
+so it surfaces at link time as `undefined reference to .L<overlay>_<addr>` from
+`<first-unit>.c.o(.rodata)`. Adding the `INCLUDE_RODATA` line is the wrong fix —
+it defines the symbol but drags labels that live in another object.
+
+Which unit the block really serves is readable from the split: take the local
+labels the block's `.s` references and look up which code subsegment holds those
+addresses.
+
+```
+python3 - <<'PY'
+import re
+y = open('configs/USA/generated/actor_401800.yaml').read()
+base = int(re.search(r'^    vram: (0x[0-9A-Fa-f]+)', y, re.M).group(1), 16)
+# ... then map each .L<overlay>_<addr> in asm/USA/actors/data/<overlay>/*.rodata.s
+PY
+```
+
+For `actor_401800` all 30 labels resolved into code unit `_2`, so the block at
+`[0x4, 0x254)` belongs to `_2`, not to the first code unit. Fixing that means
+declaring the leading rodata explicitly, which collides with the implicit
+subsegment at the same start, so the promotion is best treated as its own pass
+over the affected overlays rather than as the tail of the match that triggered
+it. The match itself is unaffected: it lands in the overlay's own `.c` and the
+promotion is deferred.
