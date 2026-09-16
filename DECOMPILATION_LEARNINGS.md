@@ -94756,6 +94756,20 @@ body's field accesses first and check each one has a named home at the same offs
 in *this* overlay's types; the `s16`-local variant of the same trap is a separate
 entry above.
 
+The ported body's scratch blocks travel with it too, and the receiving overlay's
+own close-but-different helper must not be substituted for them. The third body
+of this pair, the walker arrival test `func_actor_110600_80132470` =
+`func_acropolis_bridge_80184024`, stages its XZ delta in an 8-byte block of `u16`
+cells and squares it through a `(s16)` cast — which is what the target's
+`lhu -0x8($t0)` reads are. `include/actors/actor_110600.h` already carried
+`Actor110600_OutsideRadius(SVECTOR* pos, s16 radius)`, the same algorithm over an
+`SVECTOR`'s signed `vx`/`vz` cells, written for the aiming stage; re-expressing
+the ported body through it flips those loads to `lh` and misses. Take the
+sibling's source shape verbatim — its scratch structs and helper included, named
+for the receiving overlay — and leave the local one to the function it was
+written for. Naming the delta block `SVECTOR`-shaped is the tempting mistake
+here, because at these offsets the two are byte-for-byte the same block.
+
 Two shortcuts on that confirmation step. First, the sibling's `nm -S` size is a
 one-line pre-check: `func_actor_110600_80133A94` is `func_acropolis_bridge_8018532C`
 and both are 0x3B4 bytes (`nm -S build/USA/src/rooms/acropolis_bridge/*.c.o` against

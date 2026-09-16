@@ -32,7 +32,30 @@ extern WipSysConfig D_80073B08[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801322CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132470);
+s16 func_actor_110600_80132470(Actor110600Walker* walker)
+{
+    Actor110600ArrivalDelta* d;
+    u8*                      head;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x8;
+    d                     = (Actor110600ArrivalDelta*)(head - 0x8);
+
+    d->x = walker->nav->nodes[walker->node].x;
+    d->y = walker->nav->nodes[walker->node].y;
+    d->z = walker->nav->nodes[walker->node].z;
+    d->x = d->x - *(u16*)&walker->coord->coord.t[0];
+    d->y = 0;
+    d->z = d->z - *(u16*)&walker->coord->coord.t[2];
+
+    if (!Actor110600_ArrivalOutOfRange(d, walker->field_5C * 4) ||
+        !Actor110600_ArrivalOutOfRange(d, 300)) {
+        *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x8;
+        return 1;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x8;
+    return 0;
+}
 
 void func_actor_110600_80132654(Actor110600Walker* work, SVECTOR3* pos)
 {

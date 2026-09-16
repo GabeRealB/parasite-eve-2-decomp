@@ -517,10 +517,58 @@ void func_actor_110600_80135E20(Actor110600* arg0, s16 arg1, s32 arg2);
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`.
 void func_actor_110600_80133A94(Actor110600Walker* walker);
 
+/// 8-byte scratch block the walker's arrival test carves off `G_SCRATCH_HEAD`
+/// to stage the delta between the patrol node the walker is heading for and
+/// the walker's own coordinate translation. The node coordinates are copied
+/// over as raw halfwords and then have the translation subtracted from them in
+/// place, so the cells stay unsigned; `y` is flattened to zero because the test
+/// only measures in the XZ plane. Same block the acropolis bridge room's
+/// arrival test stages the identical walker body in.
+typedef struct Actor110600ArrivalDelta {
+    /* 0x0 */ u16  x;
+    /* 0x2 */ u16  y;
+    /* 0x4 */ u16  z;
+    /* 0x6 */ byte pad_6[0x2];
+} Actor110600ArrivalDelta;
+STATIC_ASSERT_SIZEOF(Actor110600ArrivalDelta, 0x8);
+
+/// 0xC-byte scratch block the arrival test's range check squares its three
+/// operands in, nested inside the delta block its caller already holds.
+typedef struct Actor110600ArrivalRange {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor110600ArrivalRange;
+STATIC_ASSERT_SIZEOF(Actor110600ArrivalRange, 0xC);
+
+/// Reports whether the XZ delta staged in `d` is at least `r` long, squaring
+/// both sides in a 0xC-byte scratch block of its own so no comparison is done
+/// on a square root. The same test `Actor110600_OutsideRadius` runs, staged
+/// straight on the delta block rather than on a vector; the acropolis bridge
+/// room's `acropolisBridgeOutOfRange` is the same body.
+static __inline__ s32 Actor110600_ArrivalOutOfRange(Actor110600ArrivalDelta* d, s16 r)
+{
+    Actor110600ArrivalRange* b;
+    u8*                      head;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0xC;
+    b                     = (Actor110600ArrivalRange*)*(u8**)G_SCRATCH_HEAD;
+
+    b->dx                 = (s16)d->x;
+    b->dz                 = (s16)d->z;
+    b->r                  = r;
+    b->dx                 = b->dx * b->dx;
+    b->dz                 = b->dz * b->dz;
+    b->r                  = b->r * b->r;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return b->dx + b->dz >= b->r;
+}
+
 /// Measures the walker's node against the coordinate it is moving towards,
 /// leaving the three per-axis deltas in the scratchpad, and reports whether it
-/// has arrived: 1 once the accumulated distance stops short of the remaining
-/// one, 0 while it is still travelling.
+/// has arrived: 1 while the delta is inside either of two radii -- the walker's
+/// own `field_5C * 4`, or a flat 300 -- and 0 once it is outside both.
 s16 func_actor_110600_80132470(Actor110600Walker* walker);
 
 /// Steers the walker along its patrol route: resolves the node the route
