@@ -72,7 +72,31 @@ void func_actor_560800_80136378(s16 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_2", func_actor_560800_801363F8);
+/// The same animation reseed as `func_actor_560800_801364A0`, reached through
+/// `field_4` instead of `field_C`: the id goes to `field_4B8` with 0x10 as the
+/// restart rate in `field_4C8`, `field_4BE` is cleared, and slots 1..`field_4BA`
+/// are blended through `func_800B4114`.
+void func_actor_560800_801363F8(u16 arg0)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* anim;
+    u16                  i;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    anim = (Actor560800AnimWork*)work->field_4->idMap;
+
+    anim->field_4B8 = arg0;
+    anim->field_4C8 = 0x10;
+    anim->field_4BE = 0;
+    SOFT_BARRIER();
+    i = 1;
+    if (i < anim->field_4BA) {
+        do {
+            func_800B4114(&anim->anim, i, arg0, 0, 10);
+            i++;
+        } while (i < anim->field_4BA);
+    }
+}
 
 /// Reseeds the animation slots of the sub-task at `field_C` from `arg0`: the
 /// id goes to `field_4B8` with 0x10 as the restart rate in `field_4C8`,
