@@ -23,26 +23,33 @@
 /// `Actor01900_Fn0A7C0` writes; `func_actor_401000_8013DB6C` is that body
 /// with `field_A10.flags |= 0x4000` in place of the sibling's `&= 0xBFFF`.
 typedef struct Actor401000Work {
-    /* 0x000 */ s16      field_0;
-    /* 0x002 */ s16      field_2;
-    /* 0x004 */ s16      field_4;
-    /* 0x006 */ byte     pad_6[0x54];
-    /* 0x05A */ u16      field_5A;
-    /* 0x05C */ byte     pad_5C[0xC];
-    /* 0x068 */ u16      field_68;
-    /* 0x06A */ byte     pad_6A[0x82A];
-    /* 0x894 */ s32      field_894;
-    /* 0x898 */ s16      field_898;
-    /* 0x89A */ s16      field_89A;
-    /* 0x89C */ byte     pad_89C[2];
-    /* 0x89E */ s16      field_89E;
-    /* 0x8A0 */ byte     pad_8A0[2];
-    /* 0x8A2 */ s16      field_8A2;
-    /* 0x8A4 */ s16      field_8A4;
-    /* 0x8A6 */ byte     pad_8A6[8];
-    /* 0x8AE */ s16      field_8AE;
-    /* 0x8B0 */ s16      field_8B0;
-    /* 0x8B2 */ byte     pad_8B2[6];
+    /* 0x000 */ s16 field_0;
+    /* 0x002 */ s16 field_2;
+    /* 0x004 */ s16 field_4;
+    /// One-shot latch `func_actor_401000_8013922C` raises once the actor's
+    /// spawn sound has been queued; the same slot `Actor401300Work` keeps at
+    /// +0x6.
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ byte pad_8[0x52];
+    /* 0x05A */ u16  field_5A;
+    /* 0x05C */ byte pad_5C[0xC];
+    /* 0x068 */ u16  field_68;
+    /* 0x06A */ byte pad_6A[0x82A];
+    /* 0x894 */ s32  field_894;
+    /* 0x898 */ s16  field_898;
+    /* 0x89A */ s16  field_89A;
+    /* 0x89C */ byte pad_89C[2];
+    /* 0x89E */ s16  field_89E;
+    /* 0x8A0 */ byte pad_8A0[2];
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ s16  field_8A4;
+    /* 0x8A6 */ byte pad_8A6[8];
+    /* 0x8AE */ s16  field_8AE;
+    /* 0x8B0 */ s16  field_8B0;
+    /* 0x8B2 */ byte pad_8B2[2];
+    /// Last animation state `func_actor_401000_8013922C` acted on; the same
+    /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
+    /* 0x8B4 */ s32      field_8B4;
     /* 0x8B8 */ GpEffArg field_8B8;
     /* 0x8C0 */ byte     pad_8C0[0x10];
     /* 0x8D0 */ GpObj    field_8D0;
@@ -53,7 +60,10 @@ typedef struct Actor401000Work {
     /* 0xA10 */ GpObj field_A10;
     /* 0xA30 */ byte  field_A30[0x120];
     /* 0xB50 */ GpObj field_B50;
-    /* 0xB70 */ byte  pad_B70[0xA8];
+    /* 0xB70 */ byte  pad_B70[0xA6];
+    /// Radius `func_actor_401000_8013922C` tests the actor's distance from
+    /// `D_80073B8C` against.
+    /* 0xC16 */ u16 field_C16;
     /// The three bytes `func_actor_401000_8013D958` copies out of the front of
     /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
     /* 0xC18 */ u8   field_C18[3];
@@ -100,6 +110,24 @@ typedef struct Actor401000HeightClamp {
     /* 0x8 */ byte pad_8[8];
 } Actor401000HeightClamp;
 STATIC_ASSERT_SIZEOF(Actor401000HeightClamp, 0x10);
+
+/// 0xC-byte scratch `func_actor_401000_8013922C` carves off `G_SCRATCH_HEAD`
+/// to hold the actor's XZ offset from `D_80073B8C` and the radius it is
+/// measured against, each squared before the comparison. Same shape as
+/// `Actor01900RangeScratch` / `Actor401300RangeScratch`.
+typedef struct Actor401000RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor401000RangeScratch;
+STATIC_ASSERT_SIZEOF(Actor401000RangeScratch, 0xC);
+
+extern MATRIX* D_80073B8C;
+
+/// Overlay-data word `func_actor_401000_8013922C` points
+/// `D_actor_401000_80154E88` at on entering its state.
+extern s32  D_actor_401000_80154634;
+extern s32* D_actor_401000_80154E88;
 
 /// Message 0x3FF payload of `func_actor_401000_801383F0` and
 /// `func_actor_401000_801385B0`: the animation argument the player task reads

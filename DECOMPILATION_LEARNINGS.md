@@ -104337,3 +104337,53 @@ Inputs: `base_1.i` SHA256
 `9597aa44d1e23a4a69476245709f38d65e3a716124a7da182d4e034a66fcb5cb`; target SHA256
 `101111bdef09f992b82e9ff1bb137e842b982bead64a56a0cc773a54867db1e2`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## An m2c seed's flattened scratch helper is the twin's `static __inline__`, two head stores and all (func_actor_401000_8013922C, 2026-09-16)
+
+The seed for this actor state body scored 76.5% with `insert=16 delete=19
+branch=4 regs=54 reorder=6`, and the whole residual was one inlined helper m2c
+had flattened into pointer arithmetic on `void*` locals:
+
+```c
+temp_a2_2 = *(void **)0x1F8003FC;
+M2C_FIELD(temp_a2_2, s32 *, -0xC) = (s32) temp_a0_2;
+temp_v1_2 = temp_a2_2 - 0xC;
+M2C_FIELD(temp_v1_2, s32 *, 4) = ...;
+M2C_FIELD(temp_v1_2, s32 *, 8) = ...;
+...
+*(void **)0x1F8003FC = temp_v1_2;
+*(void **)0x1F8003FC = temp_a2_2;      /* the tell */
+```
+
+Those two stores to the head — the second putting the *original* pointer back —
+are the signature of the `*_OutOfRange` helper the whole actor family carries:
+it takes a block below `G_SCRATCH_HEAD`, squares `dx`/`dz`/`r` in it, then
+restores the head. `*(T**)G_SCRATCH_HEAD = blk; ... *(u8**)G_SCRATCH_HEAD = head;`
+with the two casts m2c kept is the give-away; nothing else in the corpus stores
+the head twice, once with a `-0xC` value.
+
+The fix is to write the helper back out as the twin has it, as its own
+`static __inline__` with the twin's statement order and its 3-field
+`...RangeScratch` struct (both `Actor01900_OutOfRange` and
+`Actor401300_OutOfRange` are the same body; ours is `Actor401000_OutOfRange`),
+and to read the predicate straight from it — the seed's `(a + b) < c` is
+already the helper's `a + b >= c` negated by the `if (!...)`, not an m2c
+inversion to work around. Transporting the 401300 twin's source with this
+overlay's field offsets and constants scored 100.000% with all six penalties
+zero on the first build.
+
+Two details that are easy to get wrong when retyping:
+
+* The third scratch slot is the **radius**, not a third delta component. 401300
+  passes the literal `3000` there and gets `addiu $v1,$zero,0xBB8 / sw $v1,0x8`;
+  ours passes `work->field_C16`, which comes out as `lhu` + `sll 16`/`sra 16`
+  because the field is `u16` and the helper's parameter is `s16`. Declaring the
+  field `s16` would emit `lh` and lose the pair.
+* `GsCOORDINATE2` in this project is the PSY-Q one (`flg`, then `coord`), so
+  `coord->coord.t[0]` is `0x18($a2)` while `D_80073B8C->t[0]` is `0x14($a1)`;
+  the two offsets differing by 4 is correct and not a mistyped struct.
+
+Inputs: `base_1.i` SHA256
+`ee65157b673f7eb7a5050ef0fe4a0586440c74673e6b9b8d4e097925a7856568`; target SHA256
+`b32c44adb3dd6102c8bb923bf28f868c1cdc1d97c1a1c83606bd5cea3eeec2e4`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
