@@ -56,7 +56,37 @@ void func_actor_107600_801328CC(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132930);
+/// Update state of the `D_actor_107600_80131E24` table, switched on the scene
+/// mode `D_801153F4`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
+/// roll onto the model root, rebuilds its rotation and scales `coord.m[1][1]`
+/// by the `field_14B` percent; modes 0 and 1 then refresh the colour and show
+/// the model, and mode 2 hides it.
+void func_actor_107600_80132930(Task* arg0)
+{
+    TmdObject*       ext      = arg0->extra;
+    GpCoordPose*     coord    = (GpCoordPose*)ext->field_8;
+    Actor107600Work* work     = (Actor107600Work*)arg0->idMap;
+    TaskFunc         funcs[2] = { (TaskFunc)func_actor_107600_80132CB8, func_actor_107600_80132CD4 };
+    TmdObject*       obj;
+
+    obj = ext;
+    switch (D_801153F4) {
+        case 0:
+            funcs[(s16)work->field_13E](arg0);
+            coord->field_46 = work->yaw;
+            coord->field_48 = work->roll;
+            coord->flg      = 0;
+            func_actor_107600_80132B7C(arg0);
+            coord->coord.m[1][1] = work->field_14B * (coord->coord.m[1][1] / 100);
+        case 1:
+            func_actor_107600_80132B0C(arg0);
+            obj->field_C &= ~0x80;
+            break;
+        case 2:
+            ext->field_C |= 0x80;
+            break;
+    }
+}
 
 /// State 2 of the `D_actor_107600_80131E24` table: drops this instance from the
 /// spawning gallery's live-target count unless it was spawned already counted

@@ -51,7 +51,7 @@ typedef struct Actor107600Work {
     /* 0x146 */ s16            field_146; // written 2 beside field_144 by the spawn state
     /* 0x148 */ byte           pad_148[0x2];
     /* 0x14A */ u8             field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
-    /* 0x14B */ byte           pad_14B[0x1];
+    /* 0x14B */ s8             field_14B; // scale percent applied to the model root coord.m[1][1]
     /* 0x14C */ s32            field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
     /* 0x150 */ byte           pad_150[0x6];
     /* 0x156 */ s16            field_156;
@@ -76,6 +76,10 @@ typedef struct Actor107600 {
 /// LCG shared by the actor overlays (`state = state * 5 + 0x71357911`); this
 /// overlay rolls its low 3 bits of the high half into `Actor107600Work.field_16A`.
 extern u32 Gp_LcgState;
+
+/// Global scene mode the actor updates switch on: 0 runs the full update, 1 only
+/// refreshes the colour, 2 hides the model (`TmdObject.field_C` bit 0x80).
+extern u8 D_801153F4;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);

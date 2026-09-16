@@ -100988,3 +100988,29 @@ cross-jumping merges the stores into the shared tail - 100%.
 The jump table sat last in the leading rodata at a non-8-aligned offset, so
 landing it needed a `rodata` cut plus `units` cuts around the function
 (`actor_107600` manifest entry), exactly as in "Compiler-generated jump tables".
+
+## Local function-pointer table interleaved with the loads: put the initialized pointer locals *before* the aggregate initializer (func_actor_107600_80132930, 2026-09-16)
+
+Target prologue: `lui/addiu %lo(tableFn0)`, saves, the three `lw` loads of the
+task's pointers, *then* `sw $v0,0x10($sp)` and the second element. Per-element
+stores (`funcs[0] = ...;` after the loads) hoisted only the `lui` and left the
+`addiu`/`sw` after the loads (`reorder=1`); a top-of-function aggregate
+initializer emitted the whole table before the loads (83%). Declaring the
+pointer locals with initializers first and the table initializer last matched
+the order exactly:
+
+```c
+    TmdObject*       ext      = arg0->extra;
+    GpCoordPose*     coord    = (GpCoordPose*)ext->field_8;
+    Actor107600Work* work     = (Actor107600Work*)arg0->idMap;
+    TaskFunc         funcs[2] = { fnA, fnB };
+```
+
+The `coord`/`work` order is not cosmetic: the target loads `idMap` before
+`field_8` but gives `work` `$s0`. With 5 vs 6 refs the two pseudos' global
+priorities (`log2(refs)*refs/live`) were within 1%, so starting `coord`'s
+life one statement earlier lowered its ratio and swapped the pair; the
+scheduler still emits the `idMap` load first. The case-1 fallthrough store
+through `ext` after a call needed a second pointer (`obj = ext;`) to get the
+target's `move $s3,$a0` in the switch's first delay slot while case 2 kept
+using `$a0`.
