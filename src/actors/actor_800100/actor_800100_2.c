@@ -362,7 +362,110 @@ void func_actor_800100_80164710(GpActorWork* arg0)
     *scratchHead += 0x20;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164940);
+/// Third arm of the lock-on drive, running the actor's `field_95E` state
+/// machine over a `VECTOR3` carved from `G_SCRATCH_HEAD`. Case 0 latches the
+/// state and `field_95A`, aims at the lock node and plays the 5/6 child-slot
+/// animation with a random `field_934` hold; it falls into case 1, which
+/// mirrors `field_93E` into `field_975` and, once the aim distance reaches
+/// `field_934`, advances the state and plays slot 4. Case 2 counts
+/// `field_934` down and, while it runs, asks `func_actor_800100_8016709C` for
+/// the angle to the ally block at `field_910->field_A0`: under 0x281 the actor
+/// hands over to the `0xA` / slot-1 chain (`field_97E` set, `field_956` kept
+/// in `field_960`), otherwise `field_975` is cleared; a spent counter resets
+/// the state to slot 9.
+void func_actor_800100_80164940(GpActorWork* arg0)
+{
+    void**         scratch;
+    u8*            head;
+    VECTOR3*       pos;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GpActorD4*     d4;
+    u16            old;
+    s16            angle;
+    s32            flag;
+    s32            arg;
+    s32            val;
+    s32            count;
+    s32            dist;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = (u8*)head - 0x10;
+    pos      = (VECTOR3*)((u8*)head - 0x10);
+    actor    = arg0->actor;
+    coord    = arg0->extra->field_8;
+    flag     = 1;
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_95E = flag;
+            actor->field_95A = flag;
+            Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
+            if (func_8010BCF4((Task*)arg0, pos) < 0) {
+                actor->field_93E = flag;
+                arg              = 6;
+            } else {
+                actor->field_93E = -1;
+                arg              = 5;
+            }
+            actor->field_934 = (rand() & 0x1FF) + 0x400;
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            /* fallthrough */
+        case 1:
+            actor->field_975 = (u8)actor->field_93E;
+            Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
+            val  = func_8010BCF4((Task*)arg0, pos);
+            dist = actor->field_934;
+            if (val < 0) {
+                val = -val;
+            }
+            if (val >= dist) {
+                actor->field_958  = 3;
+                actor->field_95E += 1;
+                actor->field_934  = (rand() & 0x1F) + 0x14;
+                Gp_AnimPlayChildSlotsEx(arg0, 4, 0, 5);
+            }
+            break;
+        case 2:
+            actor->field_973 = flag;
+            count            = actor->field_934 - 1;
+            actor->field_934 = count;
+            if (count <= 0) {
+                GameActor* actor2 = arg0->actor;
+                actor2->field_954 = 0;
+                actor2->field_956 = 4;
+                actor2->field_95C = 0;
+                actor2->field_95E = 0;
+                actor2->field_973 = 0;
+                actor2->field_975 = 0;
+                Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+            } else {
+                angle = func_actor_800100_8016709C(coord, &actor->field_910->field_A0, NULL);
+                if (angle != 0) {
+                    if (angle < 0x281) {
+                        s16        anim   = 1;
+                        GameActor* actor3 = arg0->actor;
+                        old               = actor3->field_956;
+                        actor3->field_956 = 0xA;
+                        actor3->field_97E = anim;
+                        d4                = actor3->field_910;
+                        actor3->field_954 = 0;
+                        actor3->field_95A = flag;
+                        actor3->field_95C = 0;
+                        actor3->field_95E = 0;
+                        actor3->field_960 = old;
+                        d4->field_CA      = -1;
+                        d4->field_C6      = 0;
+                        Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+                    }
+                } else {
+                    actor->field_975 = 0;
+                }
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164B9C);
 

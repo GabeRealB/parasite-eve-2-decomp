@@ -105728,3 +105728,40 @@ for the mask before widening.) A `lui`/`ori` of the scratch head that appears
 twice, once at the top and once at each switch exit, is just `G_SCRATCH_HEAD`
 used both to bump the pointer and to read it back. Input: `base_12.i`
 `86ee1783f1069ad1cc9e6320a8f21cdd7adea9e9373a52e17371752325243942`.
+
+## An argument's constant needs a register of its own: an HImode local keeps `$a1` (func_actor_800100_80164940, 2026-09-16)
+
+**Symptom:** the target stores a 1 through a copy out of the argument register -
+`addiu a1,$zero,1 / addu v1,a1,zero / sb v1,0x97E(v0)` - and the `jal` that
+follows needs no argument move. Writing the store as `= 1`, or as an `s32`
+local assigned 1, gives the call's `li a1,1` but stores from `$s1`, the register
+the `flag = 1;` local took at the top of the function: one instruction fewer,
+`insert=1 delete=2`, 98.0%.
+
+**Cause:** cse puts `(const_int 1)` and every SImode register known to hold 1 in
+one quantity, and `canon_reg` rewrites *every* register of that quantity to
+`qty_first_reg` - the head, which `make_regs_eqv` hands to the longest-lived
+member. `flag` (live from the entry to the last case) is that head, so both a
+`const_int 1` store and an `s32 x = 1;` local come out as `$s1`. Only the HImode
+quantity is separate (`exp_equiv_p` rejects differing modes), so the original's
+local was declared `s16`.
+
+**Fix:** declare the value `s16`, which is also how the callee consumes it:
+
+```c
+    s16 anim = 1;
+    actor3->field_97E = anim;
+    ...
+    Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
+```
+
+The HImode pseudo keeps its own register; feeding a call argument allocates it
+`$a1`, its definition *is* the `li a1,1` the call needed anyway, the store
+copies out of `$a1`, and the argument's sign-extension folds back to the
+constant. 100.000%, every penalty 0. Same rule as "the same literal stored
+twice" above, used the other way round: there the fix is to break the
+HImode/SImode split so cse can share one constant, here it is to create it so a
+value keeps a register of its own.
+
+Input: `base_11.i`
+`ce6d62ec0d573c5912298781bbef163d5147b09bf42007f993ff4401f516ab35`.
