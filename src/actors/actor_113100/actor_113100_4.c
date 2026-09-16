@@ -3,6 +3,7 @@
 #include "actors/actor_113100.h"
 
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "gameplay/1BC.h"
 

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/abs.h>
+
 #include "actors/actor_113100.h"
 
 #include "main/gameflag.h"

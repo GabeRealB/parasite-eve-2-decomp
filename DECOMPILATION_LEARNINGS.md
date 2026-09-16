@@ -93611,3 +93611,77 @@ Note `b2` is the low half of `mode`, so the byte run straddles both word
 fields: no union can hold this pair of views, and the cast is what the
 compiler emits for the original source anyway. With that plus the selector
 change above the function reached 100.000% in 2 attempts.
+
+## A load that feeds a call argument is dragged to the front of its block by the argument copy
+
+`func_actor_113100_80132B30` was stuck at 99.535% / `regs=4` with a two-line
+diff: the target emits
+
+```
+lw s0,0x2c(s1) ; lw a0,0x20(s1) ; lw a2,0x34(s1) ; lw v0,0x2c(a0) ; lw v1,8(s0) ; lw a1,8(v0)
+```
+
+and every source shape tried emitted the `0x20` load (the one whose value is
+also `Task_Reparent`'s first argument) first, with `0x2C` second - seven
+statement permutations, an intermediate `TmdObject*` local for `parent->extra`,
+and taking the argument inline as `(Task*)task->spawnArg2` (which instead adds a
+second `lw a0,0x20(s1)` before the call) all reproduce the swap. The permuter
+found no discovery either.
+
+The `.sched2` trace names the cause. `expand_call` passes the argument through a
+copy, `a0 := P`, and a backward list schedule emits an insn only once *all* its
+dependents are scheduled, so `P` waits on the copy. The copy cannot win its
+slot: `rank_for_schedule` sorts by `INSN_PRIORITY` first, and `adjust_priority`
+only raises an insn to `max_priority` (≈`LAUNCH_PRIORITY`, 0x7f000001) when
+`birthing_insn_p` is true - which requires `REG_N_SETS (dest) == 1`. The copy's
+destination is hard `$a0`, set at least twice per function (the copy and the
+`li a0,0xF1` of the next call), so it keeps its plain priority 2 and is picked
+after every launched load. Its source is then picked last of all and emitted
+first of all. The drag is a property of the *copy*, not of the load order, which
+is why no reordering reaches it.
+
+A scheduling boundary between the two statements fixes it in one build:
+`SOFT_BARRIER()` (or `USE_REG(x)`/`SCHED_BARRIER()`) after the `extra` load
+makes the model load and the `spawnArg2` load non-reorderable, the drag's
+constraint is exercised against the fence instead of against the block head, and
+`.lreg` comes back `model(11) -> barrier(13) -> parent(16) -> copy(55)`. 100.00%,
+all penalties zero. Reach for this when a diff is exactly one adjacent pair of
+loads whose order survives every C-level rewrite; check `.sched`/`.sched2` for a
+copy sitting between a load and the rest of the block first, since that copy is
+the thing being scheduled around.
+
+Inputs: `base_2.i`
+`fcc6dd6c79530831996e043226351898e0fe76fed29e59560227266ad42d6f6e` (99.535%),
+`base_fF2.i` `22719dadf0a90df350721023122e050eec33c668cce9a07682e26e54197d41e2`
+(100.000%).
+
+## A conditional whose "else" arm falls through means the source spelled the test negated
+
+`func_actor_113100_80132E00` toggles two bits of its own model's `field_C` from
+the parent model's copy, and the target lays the two arms out backwards from the
+obvious source: the `bnez` jumps to the *`|=`* arm and the `&=` arm falls
+through, in both `if`s. Written the natural way - `if (parent->field_C & 0x80) {
+model->field_C |= 0x80; } else { model->field_C &= 0xFF7F; }` - the build comes
+back at 72.105% with `stack=0 branch=0 regs=0 insert=3 delete=4 reorder=6`: every
+instruction, register and constant already right, but `beqz` pointing at the
+else arm and the two arms exchanged. Negating both conditions and swapping the
+arms (`if (!(parent->field_C & 0x80)) { &= } else { |= }`) is byte-exact, all
+penalties zero.
+
+GCC 2.8.1 lays the then-clause out in the fallthrough and branches to the
+else-clause, so the arm *order* in the target is direct evidence about the arm
+order in the original source and cannot be reached by any later pass. When a
+scored candidate has `regs=0` and `branch=0` but nonzero `reorder`/`insert`/
+`delete` and the diff is a mirrored branch, the m2c-style nesting is wrong, not
+the codegen - invert the test and move the arms.
+
+This is the same oracle the matched sibling `func_actor_113100_80132B30` in the
+same TU had already used: its source reads `if (GameFlag_GetNibble(0xF1) == 0)
+{ model->field_C &= 0xFF7F; } else { model->field_C |= 0x80; }` for the
+identical `&= 0xFF7F` / `|= 0x80` pair on the same `field_C`. When a truth-table
+mirror shows up, read the already-matched neighbour first.
+
+Inputs: `base_1.i`
+`f0e5c4f37c7e480cf628cc03abb7154c42745bd211fce906fca7f7129fe9da79` (72.105%),
+`base_2.i` `268d1f98bec12450de84f1f18355138e107324fe5f84e3cf827ef16115092efb`
+(100.000%).

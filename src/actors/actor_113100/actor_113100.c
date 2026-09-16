@@ -18,26 +18,6 @@ extern TaskFuncTable3 D_actor_113100_80131E3C;
 /// call site.
 extern MATRIX* Gp_GetStageView(u8*, s32, void*);
 
-#include "common.h"
-
-#include "actors/actor_113100.h"
-
-#include "main/task.h"
-
-#include "gameplay/1BC.h"
-
-/// The actor's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-extern TaskFuncTable3 D_actor_113100_80131E24;
-extern TaskFuncTable3 D_actor_113100_80131E30;
-extern TaskFuncTable3 D_actor_113100_80131E3C;
-
-/// Declared here rather than taken from `gameplay.h`: the overlays call this
-/// with the part index and the owning task as extra arguments that the body
-/// never reads, so the shared one-argument prototype does not describe this
-/// call site.
-extern MATRIX* Gp_GetStageView(u8*, s32, void*);
-
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80131E58);
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132104);
@@ -66,7 +46,35 @@ void func_actor_113100_80132AD8(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132B30);
+void func_actor_113100_80132B30(Task* task)
+{
+    TmdObject*     model;
+    Task*          parent;
+    s32            index;
+    GsCOORDINATE2* node;
+    GsCOORDINATE2* part;
+
+    model = task->extra;
+    SOFT_BARRIER();
+    parent = (Task*)task->spawnArg2;
+    index  = task->spawnArg1;
+    node   = model->field_8;
+    part   = ((TmdObject*)parent->extra)->field_8;
+
+    node->coord.t[1] = 0x64;
+    node->coord.t[0] = 0;
+    node->coord.t[2] = 0;
+    node->flg        = 0;
+    node->sub        = &part[index];
+
+    Task_Reparent(parent, task);
+    if (GameFlag_GetNibble(0xF1) == 0) {
+        model->field_C &= 0xFF7F;
+    } else {
+        model->field_C |= 0x80;
+    }
+    task->state += 1;
+}
 
 /// Builds the display matrix of the modelled part this actor is posed on.
 /// `spawnArg1` indexes the part in the model task's coordinate array: the part's
