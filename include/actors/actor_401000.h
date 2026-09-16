@@ -219,6 +219,12 @@ extern s32* D_actor_401000_80154E88;
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
 
+/// Twelve `SVECTOR` hit positions `func_actor_401000_80133940` picks from by
+/// damage magnitude. The fourth halfword (`pad`, unused by the effect) is the
+/// model part index the spawned effect anchors to. Same table as the
+/// `Actor00100_D1B9F4` one `Actor00100_Fn03340` reads.
+extern SVECTOR D_actor_401000_80154F30[12];
+
 /// The two `Actor401000HeightClamp` rows `func_actor_401000_801352DC` and
 /// `func_actor_401000_80135374` walk.
 extern Actor401000HeightClamp D_actor_401000_80154FD0[];

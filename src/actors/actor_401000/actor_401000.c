@@ -86,7 +86,79 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80133274);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80133940);
+/// Spawn the effect a hit record `arg2` names at one of twelve model offsets
+/// picked by the signed damage `arg1`: the `Gp_LcgState` draw's low bits
+/// bucket `|arg1|` into below 0x200 / above 0x600 / positive / non-positive,
+/// each selecting from its own run of `D_actor_401000_80154F30`. The chosen
+/// offset goes into the work block's `field_8C0` and the `field_8B8` argument
+/// record, which anchors it at the model's second coordinate part, scale
+/// 0x300 and count 2 — the effect `func_800FDB18` then spawns hangs off the
+/// part the vector's `pad` names. The 8-byte scratch the offset is built in is
+/// carved off and given back around the call. Same body as
+/// `Actor00100_Fn03340`, which keeps its record inline and scales by 0x100.
+void func_actor_401000_80133940(Actor401000* arg0, s16 arg1, s32 arg2)
+{
+    SVECTOR*         sc;
+    s32              mag;
+    Actor401000Work* work;
+
+    sc   = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    mag  = (arg1 >= 0) ? arg1 : -arg1;
+    work = arg0->field_1C;
+    if (mag < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 3) {
+            case 0:
+                *sc = D_actor_401000_80154F30[0];
+                break;
+            case 1:
+                *sc = D_actor_401000_80154F30[1];
+                break;
+            case 2:
+                *sc = D_actor_401000_80154F30[2];
+                break;
+            case 3:
+                *sc = D_actor_401000_80154F30[3];
+                break;
+            default:
+                *sc = D_actor_401000_80154F30[4];
+                break;
+        }
+    } else if (mag > 0x600) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 2) {
+            case 0:
+                *sc = D_actor_401000_80154F30[5];
+                break;
+            case 1:
+                *sc = D_actor_401000_80154F30[6];
+                break;
+            default:
+                *sc = D_actor_401000_80154F30[7];
+                break;
+        }
+    } else if (arg1 > 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_401000_80154F30[8];
+        } else {
+            *sc = D_actor_401000_80154F30[9];
+        }
+    } else {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_401000_80154F30[10];
+        } else {
+            *sc = D_actor_401000_80154F30[11];
+        }
+    }
+    work->field_8B8.field_0 = &arg0->field_2C->field_8[1];
+    work->field_8B8.field_4 = 0x300;
+    work->field_8B8.field_6 = 2;
+    work->field_8C0         = *sc;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->field_8C0, &work->field_8B8);
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80133D50);
 

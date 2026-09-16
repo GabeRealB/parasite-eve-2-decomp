@@ -104788,3 +104788,35 @@ Inputs: base_1.i SHA256
 `27f0041f3ca656bbd892fb46731688d9b5dd30efe37ffe3d2923b883db9adc11`; target.o SHA256
 `b68626bfdfd567400857081926ee082e9188d3d7f9c0683ca9c55931cf94935c`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## An `SVECTOR` copy is invisible to m2c: the seed collapses each `lwl`/`lwr` pair and scores ~30%
+
+m2c has no way to spell an unaligned 8-byte move, so it renders every
+`lwl`/`lwr` ... `swl`/`swr` vector copy as a pair of *aligned* word stores with
+`M2C_ERROR` payloads:
+
+```c
+M2C_FIELD(temp_a3, M2C_UNK *, -5) = M2C_UNALIGNED32(M2C_ERROR(/* Unable to handle lwr */));
+M2C_FIELD(temp_a3, M2C_UNK *, -1) = M2C_UNALIGNED32(M2C_ERROR(/* Unable to handle lwr */));
+```
+
+`M2C_ERROR(desc)` expands to `(0)` and `M2C_UNALIGNED32` to its argument, so the
+seed compiles to two plain `sw`s per 8-byte copy. `func_actor_401000_80133940`
+carries twelve of those copies — one per switch arm — so its m2c seed holds 108
+of the target's 260 instructions and scores 29.585% with `delete=165`. Iterating
+on that seed is hopeless: the missing 152 instructions are not a register or
+scheduling problem, they are an entire instruction class the front end dropped.
+
+**Fix.** Do not try to recover the copies from the seed. When the brief's
+"Similar matched bodies" list has a `calls 1.00` / `cflow 1.00` sibling, treat
+it as the real starting point: copy its source structure (statement order,
+switch shapes, tail) and change only what differs — here the table symbol, the
+`field_4` scale (0x100 -> 0x300) and the tail's work-block offsets. Written that
+way the sibling gave 100.000% on the first attempt with all six penalties zero.
+The `S`-mode copy is just `*sc = T[i];` on an `SVECTOR[12]`, which emits the
+`lwl`/`lwr`/`swl`/`swr` quad natively.
+
+Inputs: base_1.i SHA256
+`2255048c9ce8422e45addf3516cf7a9ac8c6ee448860b1a40144feaeec66410e`; target.o SHA256
+`7b1973d8b57236fdecefecd70d3f9d175ff469d3b19891368db12d6911b3c2d1`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
