@@ -224,6 +224,34 @@ static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
     }
 }
 
+/// `Actor401800_MoveForwardNonzero` with the step applied through `vec`
+/// rather than a second name for it. Same body as `Actor01900_StepForwardHead`.
+static __inline__ void Actor401800_StepForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(vec);
+            gte_gpf12_real();
+            gte_stsv(vec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
 /// Per-frame body of the live actor while it walks: on work flag bit 0 it
 /// raises the `0x10`/7/2 render slots, re-sends the `0x3FF` animation record
 /// with clip 3 to the `Game_GetPtrSlot(3)` task and seeds the walk step
@@ -290,7 +318,61 @@ void func_actor_401800_80139118(Actor401800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013945C);
+/// Per-frame body of the live actor armed into state 1: raises the same
+/// animation slots as `func_actor_401800_8013971C` but leaves `field_89E = 0xA`
+/// (with `field_898 = 1` and `field_89A` cleared), then, while that slot is
+/// still `0xA`, advances the actor along its own local Z by a fixed `-0x57`
+/// once `func_actor_401800_80133558` says the path is clear. The `0xA` branch
+/// then flips the slots to `0xB`/2 and ticks the animation a second time before
+/// the two contact records are rebuilt, after which work bit 0 picks `field_0`
+/// from the enemy's HP sign and its `field_4C` bit 1.
+void func_actor_401800_8013945C(Actor401800* arg0)
+{
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_8C8.field_1C = 0x12C;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_898          = 1;
+        work->field_89E          = 0xA;
+        work->field_89A          = 0;
+        work->field_8A2          = 0x10;
+        work->field_8B0          = 0;
+        work->field_8AE          = 0;
+        if (enemy->field_40 < 0) {
+            Gp_SetStateF0Byte3(1);
+        }
+        work->field_8C8.flags |= 0x4000;
+    }
+    if ((work->field_89E == 0xA) && ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, -0x57) != 0)) {
+        Actor401800_StepForward(arg0->field_2C->field_8, -0x57);
+    }
+    func_actor_401800_80133EB8(arg0);
+    if ((work->field_68 & 1) && (work->field_89E == 0xA)) {
+        work->field_89E = 0xB;
+        work->field_898 = 2;
+        func_actor_401800_80133EB8(arg0);
+    }
+    func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_8E8, 0xC);
+    func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC);
+    arg0->field_2C->field_8->flg = 0;
+    if ((work->field_68 & 1) && (work->field_89E == 0xB)) {
+        work->field_8C8.flags &= 0xBFFF;
+        if (enemy->field_40 <= 0) {
+            work->field_0 = 0x15;
+        } else if (enemy->field_4C & 2) {
+            work->field_0 = 4;
+        } else {
+            work->field_0 = 0x11;
+        }
+    }
+}
 
 /// Per-frame body of the live actor: arms the animation slots and the two
 /// `field_8C8` / `field_A08` nodes, re-seeds the 0x8E8 and 0xA28 contact

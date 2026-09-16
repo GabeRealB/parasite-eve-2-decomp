@@ -103358,3 +103358,36 @@ the wrong way. `cc1` settles it in one command - compile `void f(void) { S = S /
 written, and why the helper's `amount` is a plain `s16` parameter rather than a cast at the call
 site: the same inlined helper compiled from another 401300-family TU shows the identical
 `lh`/`lhu` pair.
+
+## A `G_SCRATCH_HEAD` access only keeps its `lui %hi` / `lw %lo(reg)` form when it lives inside an inline helper (`func_actor_401800_8013945C`, 2026-09-16)
+
+`*(SVECTOR**)G_SCRATCH_HEAD` - i.e. `*(T*)((u8*)((void*)0x1F800000) + 0x3FC)` - compiles two
+different ways depending on whether the statement is written in the body of a
+`static __inline__` function or directly in the function that uses it:
+
+```asm
+/* inside the helper - what the target has            /* written in the body instead */
+lui  s1,0x1f80                                       lui  s1,0x1f80
+lw   s1,0x3fc(s1)                                    ori  s1,s1,0x3fc
+nop                                                  lw   s2,0(s1)
+addiu s0,s1,-0x8                                     addiu s0,s2,-0x8
+```
+
+In the first the address stays the tree `plus (reg 0x1F800000) (const 0x3FC)` and reaches the
+load as a 16-bit displacement. In the second `fold()` collapses it to the single constant
+address `0x1F8003FC`, so it becomes a *value*: `lui`/`ori` into a live register that then also
+serves the store and the `+= 1`. That register is real pressure - the direct-body version saves
+seven `$sN` (s0-s6) where the target saves six, and everything downstream is re-homed:
+91.4% against 100%. The same `lui`/`ori` form appears for the raw `*(SVECTOR**)0x1F8003FC`
+literal; a helper boundary, not the macro, is what buys the displacement form.
+
+So when a twin's scratch block matches but the function it was pasted into does not, check
+whether the block belongs in the inlined helper rather than the caller. `actor_401800` needed
+*two* step helpers for this: `Actor401800_MoveForwardNonzero` (its own `gteVec` name for `vec`,
+used where the step is a variable) and `Actor401800_StepForward` (step applied through `vec`
+itself, used by `8013945C` with the constant `-0x57`). Compiling `8013945C` against the
+`gteVec` variant scores 96% - the copy `(set reg120 reg118)` survives local-alloc as a real
+`addu s1,s0,zero` the target does not have - and swapping the shared helper to the no-`gteVec`
+body breaks `80139118` instead, which is the mirror image. The zero-amount guard is *not* part
+of that difference: dropping `if (amount != 0)` from the helper still matches 100%, because a
+constant `amount` folds the branch away either way.
