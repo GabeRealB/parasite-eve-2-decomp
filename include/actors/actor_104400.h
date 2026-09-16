@@ -155,6 +155,7 @@ extern TaskFuncTable5 Actor04400_D0009C;   // dispatcher table Actor04400_Fn0696
 extern TaskFuncTable3 Actor04400_D00150;   // dispatcher table Actor04400_Fn07CF0 copies onto its stack
 extern TaskFuncTable3 Actor04400_D0015C;   // dispatcher table Actor04400_Fn07D78 copies onto its stack
 extern TaskFuncTable4 Actor04400_D00174;   // dispatcher table Actor04400_Fn07F04 copies onto its stack
+extern TaskFuncTable6 Actor04400_D001AC;   // dispatcher table Actor04400_Fn06B50 copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
 /// so a negated angle is passed without re-truncation to 16 bits. Same

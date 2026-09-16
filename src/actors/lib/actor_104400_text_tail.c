@@ -891,7 +891,17 @@ void Actor04400_Fn06ACC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06B50);
+/// Copies this overlay's six-entry `Actor04400_D001AC` dispatcher table onto the
+/// stack and calls the entry `field_422` selects, the same shape as
+/// `func_actor_342400_80169C84` with the other table.
+void Actor04400_Fn06B50(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    TaskFuncTable6   sp;
+
+    sp = Actor04400_D001AC;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06BC4);
 
