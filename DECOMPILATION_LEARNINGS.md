@@ -94577,3 +94577,50 @@ sibling `func_actor_560800_801393EC` (same overlay, same `TmdObject::field_C`
 0xFF7B / 0x84 edit, `return` where this one has `break`) compiles to exactly
 that tree, which is the cheapest source of the shape for a message handler in
 this family.
+
+## m2c's separate scalars for one message record lose every field whose address is not the one taken — and the payload's literal then CSEs into the sender's own `$s0` (func_actor_303600_801624B0, 2026-09-16)
+
+The seed fills a 0x7DA payload out of three locals m2c emitted one per field —
+`u8 sp10; u8 sp11; s16 sp12;` — and passes only the first by address
+(`Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, &sp10, 0x7DB)`). It scores 78.114%
+with `regs=13 delete=6 insert=1`, and the object is missing `sb $v0,0x11($sp)`
+(0x7DB selector halfword) and `sh $s0,0x12($sp)`, plus the frame, both `$s0`/`$s1`
+saves and the `s1` home of the work pointer.
+
+Only `sp10`'s address is taken. `sp11` and `sp12` stay non-addressable, so their
+stores are dead and `flow` deletes them; nothing downstream can put them back.
+The fix is the ordinary record the matched siblings use
+(`Actor104000Msg7DA`, `ActorsShared80132724Msg`, `Actor341900Msg7DA`) — one
+address-taken 4-byte struct, which is also what makes the payload's fields live:
+
+```c
+    Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+    Actor303600Msg7DA msg;
+
+    if (work->field_E == 0) {
+        msg.field_0 = Game_Session->field_7;
+        msg.field_1 = Game_Session->field_6;
+        msg.field_2 = 9;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        work->field_C = 9;
+        work->field_E = 1;
+    }
+```
+
+100% on the first build, no pins. Two things come out of the same edit and are
+worth reading off the target together. `$s0` is the literal `9` — `addiu
+$s0,$zero,0x9` before the first `jal`, `sh $s0,0xC($s1)` after the second — and
+`$s1` is the idMap pointer: the payload field and the latched `work->field_C`
+are the *same constant*, so cse1 hands both stores one pseudo, that pseudo is
+live across the `Game_GetPtrSlot` call, and local-alloc parks it in a
+callee-saved register. The 0x28 frame and the second save are that pseudo's
+cost, not a second source variable: unlike "A dispatch constant that is also
+stored *and* passed as a call argument must be one C variable"
+(`func_actor_205200_8014B9D4`), where the constant came from a `switch` compare
+and had to be named, here both uses are plain stores of a literal and two
+literal `9`s are enough. So before introducing that variable, check whether the
+target's shared register is just a constant cse1 unified.
+
+The sibling `func_actor_303600_8016253C` in the same unit repeats the block byte
+for byte (`addiu $s0,$zero,0x9` / `sh $s0,0xC($s1)` included, with `$s0` reused
+from an earlier global load), so this body is the template to port it from.

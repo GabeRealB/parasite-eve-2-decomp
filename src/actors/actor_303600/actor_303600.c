@@ -2,7 +2,9 @@
 
 #include "actors/actor_303600.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/session.h"
 #include "main/task.h"
 
 extern Task* D_actor_303600_8016E4C0;
@@ -16,7 +18,24 @@ INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_801623CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_801624B0);
+/// One-shot announcement of the cutscene: while the work block's "message
+/// outstanding" flag is still clear, hand the slot-4 task the session's two id
+/// bytes plus selector 9 as message 0x7DA, record 9 in the work block and raise
+/// the flag so the message goes out only once.
+void func_actor_303600_801624B0(void)
+{
+    Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+    Actor303600Msg7DA msg;
+
+    if (work->field_E == 0) {
+        msg.field_0 = Game_Session->field_7;
+        msg.field_1 = Game_Session->field_6;
+        msg.field_2 = 9;
+        Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        work->field_C = 9;
+        work->field_E = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8016253C);
 

@@ -31,4 +31,16 @@ typedef struct Actor303600Work {
 } Actor303600Work;
 STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
 
+/// Payload `func_actor_303600_801624B0` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers:
+/// the session's two id bytes followed by a halfword the receiver switches on,
+/// here the selector 9 that the sender latches into `Actor303600Work::field_C`.
+/// The same four bytes as `Actor444000Msg7DA`.
+typedef struct Actor303600Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor303600Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
+
 #endif // ACTOR_303600_H
