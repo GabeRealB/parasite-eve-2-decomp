@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "gameplay/1BC.h"
 
 /// Payload `func_actor_104000_80138CC8` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
@@ -30,37 +31,40 @@ extern s32 D_actor_104000_8013E538[8];
 /// records in a 0x38-byte-stride table; the high bit gates one behaviour and
 /// bit 0x4000 another.
 typedef struct Actor104000Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[2];
-    /* 0x004 */ s16  field_4;
-    /* 0x006 */ u16  field_6;
-    /* 0x008 */ byte pad_8[0x42];
-    /* 0x04A */ u16  field_4A; // low ten bits: animation id
-    /* 0x04C */ byte pad_4C[0xC];
-    /* 0x058 */ u16  field_58;
-    /* 0x05A */ byte pad_5A[0x116];
-    /* 0x170 */ s16  field_170;
-    /* 0x172 */ byte pad_172[2];
-    /* 0x174 */ s16  field_174;
-    /* 0x176 */ s16  field_176;
-    /* 0x178 */ s16  field_178;
-    /* 0x17A */ byte pad_17A[2];
-    /* 0x17C */ s16  field_17C;
-    /* 0x17E */ byte pad_17E[0x110];
-    /* 0x28E */ u16  field_28E;
-    /* 0x290 */ byte pad_290[0xDE];
-    /* 0x36E */ u16  field_36E;
-    /* 0x370 */ byte pad_370[0x36];
-    /* 0x3A6 */ u16  field_3A6;
-    /* 0x3A8 */ byte pad_3A8[0x36];
-    /* 0x3DE */ u16  field_3DE;
-    /* 0x3E0 */ byte pad_3E0[0x94];
-    /* 0x474 */ u16  field_474; // animation id that last raised the reaction
-    /* 0x476 */ byte pad_476[4];
-    /* 0x47A */ u8   field_47A;
-    /* 0x47B */ byte pad_47B[1];
-    /* 0x47C */ byte field_47C[0x14];
-    /* 0x490 */ s32  field_490;
+    /* 0x000 */ s16        field_0;
+    /* 0x002 */ byte       pad_2[2];
+    /* 0x004 */ s16        field_4;
+    /* 0x006 */ u16        field_6;
+    /* 0x008 */ byte       pad_8[4];
+    /* 0x00C */ GpAnimCtx  anim;
+    /* 0x020 */ GpAnimSlot slots[1]; // slots 1..5 continue past here, overlapping the fields below
+    /* 0x048 */ byte       pad_48[2];
+    /* 0x04A */ u16        field_4A; // low ten bits: animation id (`slots[1].field_2`)
+    /* 0x04C */ byte       pad_4C[0xC];
+    /* 0x058 */ u16        field_58;
+    /* 0x05A */ byte       pad_5A[0x116];
+    /* 0x170 */ s16        field_170;
+    /* 0x172 */ s16        field_172;
+    /* 0x174 */ s16        field_174;
+    /* 0x176 */ s16        field_176;
+    /* 0x178 */ s16        field_178;
+    /* 0x17A */ s16        field_17A;
+    /* 0x17C */ s16        field_17C;
+    /* 0x17E */ byte       pad_17E[0x110];
+    /* 0x28E */ u16        field_28E;
+    /* 0x290 */ byte       pad_290[0xDE];
+    /* 0x36E */ u16        field_36E;
+    /* 0x370 */ byte       pad_370[0x36];
+    /* 0x3A6 */ u16        field_3A6;
+    /* 0x3A8 */ byte       pad_3A8[0x36];
+    /* 0x3DE */ u16        field_3DE;
+    /* 0x3E0 */ byte       pad_3E0[0x94];
+    /* 0x474 */ u16        field_474; // animation id that last raised the reaction
+    /* 0x476 */ byte       pad_476[4];
+    /* 0x47A */ u8         field_47A;
+    /* 0x47B */ byte       pad_47B[1];
+    /* 0x47C */ byte       field_47C[0x14];
+    /* 0x490 */ s32        field_490;
 } Actor104000Work;
 STATIC_ASSERT_SIZEOF(Actor104000Work, 0x494);
 
