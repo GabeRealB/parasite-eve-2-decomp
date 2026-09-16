@@ -44625,6 +44625,17 @@ and the `0x48` frame exactly. Read the offsets rather than the frame size: two
 functions in the same TU can disagree about where one type lives.
 `func_actor_136100_801347B8` is the same trick without a second local.
 
+**Sizing the missing local.** `func_mine_cavern_80183AD4` is the case where the
+reserved local is never touched at all: the target's `stack_accesses` count
+equals the candidate's, so nothing in the object dump names it, and the frame
+delta is all the evidence there is. cc1 probes against the bundled compiler give
+the arithmetic: `var_size` rounds each slot up to 8 (12 → 16, 20 → 24, a 4-byte
+`DVECTOR` → 8) and then the saved-register block starts on the next 8; a *scalar*
+gets a slot only when its address is taken (an address-taken `s32` is one 8-byte
+slot — the m2c `sp10` shape), while an aggregate gets one even when it is
+declared and never used (`SVECTOR s; g();` is `vars= 8`). So a delta of 0x18
+against a lone `VECTOR vec` is `16 + 8`: an unused `SVECTOR ang;` after it.
+
 ## Chaining across two *different* destinations fixes the `lui` order too
 
 The `r = g = b` trick is usually described as a store-order fix, but it also
