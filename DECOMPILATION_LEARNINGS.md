@@ -111547,3 +111547,69 @@ constant in one register for all four uses (`state = D_801153F4; ... if (state
 *not* be used there. That is what keeps it out of a callee-saved register or the
 stack: it dies at the arms' calls, so a caller-saved register suffices and the
 frame stays at the saved-register size.
+
+## A `1` the target keeps in a callee-saved register is a source local, not a literal
+
+**Symptom:** the target defines the constant `1` once per function in a
+callee-saved register that lives across calls - here `addiu $s7,$zero,1` before
+a guard in block 0, used again by the `bne` and by `sb $s7,0x14($s1)` in block
+4 - while the candidate materializes a fresh `li` per block (`$v0` in the
+guard's block, `$s0` where the store is), for `regs` penalties and a frame one
+register short.
+
+**Cause:** with `== 1` at the guard and `= 1` at the later store, both are
+`const1_rtx`, and `local-alloc.c`'s constant handling turns a *global* register
+that holds a constant and has exactly one use into its value
+(`REG_N_REFS (regno) == 2 && REG_BASIC_BLOCK (regno) < 0` →
+`reg_equiv_replace`); each block then ties what is left locally, in whatever
+register is free there. Nothing keeps one register across the two blocks.
+
+**Fix:** declare the local and assign it before the guard - `one = 1;` then
+`if (... == one)` and, later, `arg0->node.field_4 = one;` (91.9% → 94.0%, with
+the branch penalties going to zero). The same test in the other direction:
+`part = &coord[1];` before the guard is what puts `addiu $s6,$s4,0x50` in the
+guard's delay slot, where the one-use CSE'd expression form puts the `addiu` at
+the store instead - the target hoists it *because* it is a pseudo with a
+cross-block live range and a free callee-saved register.
+
+A knock-on to watch for: a literal `= 1` elsewhere in the same block can be
+retargeted onto whichever register cse saw hold 1 most recently. With `i = 1;`
+(the loop counter) still above the node-flag store, that store took `$s0`, the
+loop counter's home. Writing the loop as a `do { } while` with `i = 1;` just
+before it - where it also belongs - restores the guard's register.
+
+Inputs: `base_3.i`
+`5376381ed249893732af5c502d433282cae4137153ca98114e5dcd8a92fa6820`,
+`base_4.i` `0162c57a7d7623470abadc50afbd802bad2c5670ff74e6b33ff2864af8eabc50`.
+
+## An address chain's statement position is a scheduling lever, and moving one store re-allocates the block
+
+**Symptom:** `func_actor_107000_80133690`'s block 6 (a straight run of ~50
+instructions after a spawn) came out with the right instructions and the wrong
+slots: the two `Gp_LinkObj` argument materializations and the chain that feeds
+`field_284` all fired at their uses while the target fires them near the block
+head, and the chain's three instructions were tied into one register (`$v0`)
+where the target splits them (`$v0` load, `$v1` result). `regs=9 reorder=2`.
+
+**Cause:** sched2 ranks the ready list by priority and then by `INSN_LUID`
+(`rank_for_schedule`, `sched.c`), i.e. by the statement's position in the
+source. A statement written at its use compiles to instructions whose luid is
+late, so an anti-dependency on the register it wants (here `$v0`, also carrying
+three materialized constants) keeps it pinned there; and because `local-alloc`
+and `global-alloc` run before `sched2`, the register the chain ends up in is
+decided from that same early layout.
+
+**Fix:** write the statement where the target's instruction actually fires.
+Moving `work->field_284 = &((TmdObject*)arg1->extra)->field_8[1];` up to just
+after the `field_2CC` store took `regs` 19 → 9 and 94.0% → 96.3%. The permuter
+then found the last slot by moving the neighbouring `arg1->killCountdown = 0;`
+store, and writing that move by hand - `work->field_2CC = 0;` then
+`arg1->killCountdown = 0;` then the chain statement - reached 100% with every
+penalty zero (`base_7.i`
+`9110c26640017588498c873f6ab3e29a8dbac0d5c4d9ef0aa851b4718cc1a76f`).
+
+Worth knowing before trying this by hand: independent stores are emitted in luid
+order, so a store's source position is exactly its slot in the target - but one
+moved store re-runs the whole block's allocation and schedule, which is why the
+same move can fix the block head and the chain register at once (the permuter's
+version, one store earlier, scored 98.97%).

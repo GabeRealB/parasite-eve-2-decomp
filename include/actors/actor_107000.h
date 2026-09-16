@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 /// Owning context of the actor, passed as the first argument of its per-frame
@@ -72,6 +73,56 @@ typedef struct Actor107000Work {
     /* 0x390 */ u16     field_390; // frames until the next 0x60080 spawn
     /* 0x392 */ u16     field_392; // spawns so far; the cue fires at 5
 } Actor107000Work;
+
+/// The same 0x2E4-byte work block as its spawn handler builds it, seen from the
+/// side that names the render nodes: four `GpObj`s at 0xFC / 0x134 / 0x1B4 /
+/// 0x1EC, each followed by the `GpRec18` collision table its `field_C` points
+/// at, `node + 0x20` (`&work->rec11C` and friends, handed to
+/// `Gp_InitRec18Table`), then the transform node at 0x27C whose coordinate the
+/// handler only wires up through `field_284`.
+///
+/// The record table seeded at 0x20C overlaps `Actor107000Work::field_214`: the
+/// handler view starts that run eight bytes later, and the matched
+/// `func_actor_107000_801364D8` keeps its own spelling, so the two views cannot
+/// be merged without moving one of the two offsets.
+typedef struct Actor107000SpawnWork {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[3];
+    /* 0x08C */ byte       field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x0BC */ MATRIX     field_BC;       // colour matrix, TmdObject::field_20
+    /* 0x0DC */ MATRIX     field_DC;       // light matrix, TmdObject::field_1C
+    /* 0x0FC */ GpObj      objFC;
+    /* 0x11C */ GpRec18    rec11C;
+    /* 0x134 */ GpObj      obj134;
+    /* 0x154 */ GpRec18    rec154[4];
+    /* 0x1B4 */ GpObj      obj1B4;
+    /* 0x1D4 */ GpRec18    rec1D4;
+    /* 0x1EC */ GpObj      obj1EC;
+    /* 0x20C */ GpRec18    rec20C;
+    /* 0x224 */ byte       pad_224[0x58];
+    /* 0x27C */ byte       field_27C[8];
+    /* 0x284 */ void*      field_284; // render node at 0x27C: its coordinate
+    /* 0x288 */ u16        field_288;
+    /* 0x28A */ u16        field_28A;
+    /* 0x28C */ byte       pad_28C[0x20];
+    /* 0x2AC */ s32        field_2AC;
+    /* 0x2B0 */ byte       pad_2B0[8];
+    /* 0x2B8 */ s16        field_2B8;
+    /* 0x2BA */ s16        field_2BA;
+    /* 0x2BC */ byte       pad_2BC[0x10];
+    /* 0x2CC */ s16        field_2CC;
+    /* 0x2CE */ s16        field_2CE;
+    /* 0x2D0 */ byte       pad_2D0[2];
+    /* 0x2D2 */ s16        field_2D2;
+    /* 0x2D4 */ u16        field_2D4;
+    /* 0x2D6 */ s16        field_2D6;
+    /* 0x2D8 */ byte       pad_2D8[2];
+    /* 0x2DA */ s16        field_2DA;
+    /* 0x2DC */ s16        field_2DC;
+    /* 0x2DE */ byte       pad_2DE[4];
+    /* 0x2E2 */ s16        field_2E2;
+} Actor107000SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
 /// Free-running linear congruential state every overlay draws its random numbers
 /// from: `state = state * 5 + 0x71357911`, read back through the high halfword.
