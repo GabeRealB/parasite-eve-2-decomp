@@ -381,6 +381,18 @@ extern SVECTOR D_actor_510900_80167BDC[12];
 /// `Gp_GridParams->field_C`.
 extern GpGridFace D_actor_510900_80167C3C[3];
 
+/// The extra face normal `func_actor_510900_8013B424` installs as
+/// `Gp_GridParams->field_4[3]` while the actor's own face is in the grid.
+extern SVECTOR D_actor_510900_80167C60;
+
+/// The four face corners that face uses, copied into
+/// `Gp_GridParams->field_8[12..15]`.
+extern SVECTOR D_actor_510900_80167C68[4];
+
+/// The `GpGridFace` record for that face, copied into
+/// `Gp_GridParams->field_C[3]`.
+extern GpGridFace D_actor_510900_80167C88;
+
 void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
 void func_actor_510900_8013B608(Actor510900* arg0);
 void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1);

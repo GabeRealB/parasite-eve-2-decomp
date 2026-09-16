@@ -1482,7 +1482,33 @@ void func_actor_510900_8013B3D0(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013B424);
+/// Adds (arg0 == 1) or clears the extra collision-grid face this actor edits
+/// in, extending the three faces `func_actor_510900_8013B524` restores with a
+/// fourth. Clearing zeroes only the vertices and normal; the face record stays.
+void func_actor_510900_8013B424(s32 arg0)
+{
+    s32         i;
+    SVECTOR*    normals = Gp_GridParams->field_4;
+    SVECTOR*    verts   = Gp_GridParams->field_8;
+    GpGridFace* faces   = Gp_GridParams->field_C;
+
+    if (arg0 == 1) {
+        for (i = 0; i < 4; i++) {
+            verts[12 + i] = D_actor_510900_80167C68[i];
+        }
+        normals[3] = D_actor_510900_80167C60;
+        faces[3]   = D_actor_510900_80167C88;
+    } else {
+        normals[3].vx = 0;
+        normals[3].vy = 0;
+        normals[3].vz = 0;
+        for (i = 0; i < 4; i++) {
+            verts[12 + i].vx = 0;
+            verts[12 + i].vy = 0;
+            verts[12 + i].vz = 0;
+        }
+    }
+}
 
 /// Restores the collision-grid faces this actor edited. The spawn handler
 /// passes its task, which this never reads; the parameter is kept because the
