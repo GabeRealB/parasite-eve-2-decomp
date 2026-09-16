@@ -59,6 +59,12 @@ extern MATRIX        D_actor_403200_8015F924;
 /// 0x3FF, the same role `D_actor_444000_80161670` has for the arena tick.
 extern GpAnimSet* D_actor_403200_8015E6AC[];
 
+/// Absolute gate the hit handlers share, read as the halfword array its readers
+/// index: the byte at +0 is the mode flag the rest of the game writes, and the
+/// halfword at +2 is the "player hold is armed" gate the group 3-5 hit handler
+/// tests before it lets a landed hit spawn its effect.
+extern u16 D_801153F4[];
+
 /// Reply buffer the stand-up tick passes with its message 0x3F8 before it asks
 /// the player for the hold. Same shape as `D_actor_444000_80161928`.
 extern Actor403200Msg3F8 D_actor_403200_8015FA00;
@@ -649,7 +655,226 @@ out:
     SCRATCH_SP += sizeof(Actor403200HitScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013A4A0);
+/// The hit handler for collision groups 3, 4 and 5 -- `func_actor_403200_80139E94`
+/// done three times over the parts it does not cover, each group only scanned
+/// when the previous one landed nothing and the part it hit reported no attack
+/// id back. Like the sibling actor's `func_actor_444000_8013CA60`, this one runs
+/// no `Gp_GetIdParam0` switch: the call is made and its kind thrown away, so
+/// every hit is treated alike, and the group 3 arm is the one that gives up and
+/// leaves the frame once it comes back empty.
+///
+/// The damage is the distance-scaled hit quadrupled when `Gp_RollEnemyChance`
+/// fires, then divided by six (never down to zero unless it already was), and
+/// comes off the host, the two escorts sharing its pool and `field_F0A`.
+/// Emptying that pool spawns the same effect again and refills it to 0x32. Both
+/// effect spawns and the state change to 0xE are skipped while the boss is in
+/// one of the seven states that ignore hits, while the player hold is armed, or
+/// while `D_801153F4[1]` is clear.
+///
+/// `pos` / `pos2` / `pos3` are all `&sc->pos`, and are not spare: each group's
+/// scan writes the contact point through its own pointer, which is what keeps
+/// the three `sh` pairs in `a3` then `a2` twice. `esc3` / `esc0` / `esc1` and
+/// the `hp` load are the sibling's arrangement, but evaluated before
+/// `func_800DA6E8` so `host->field_40` is still in a register and the three
+/// stores reuse it; the pool subtraction after them carries the same `field_40`
+/// value for the same reason.
+void func_actor_403200_8013A4A0(Task* arg0)
+{
+    Actor403200HitScratch* sc;
+    Actor403200Work*       work;
+    GpEnemy*               host;
+    WipSysConfig*          cfg;
+    GpRec18*               recs;
+    GpRec18*               recs2;
+    GpRec18*               recs3;
+    SVECTOR*               pos;
+    SVECTOR*               pos2;
+    SVECTOR*               pos3;
+    s32                    id;
+    s32                    dx2;
+    s32                    dy2;
+    s32                    dz2;
+    u32                    dmg;
+    s16                    angle;
+    s16                    state;
+    s16                    i;
+    s16                    i2;
+    s16                    i3;
+    s16                    param;
+    u16                    hp;
+    GpEnemy*               esc3;
+    GpEnemy*               esc0;
+    GpEnemy*               esc1;
+
+    cfg  = &Wip_SysConfig;
+    host = (GpEnemy*)arg0->spawnArg2;
+    work = (Actor403200Work*)arg0->idMap;
+    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    pos  = &sc->pos;
+    recs = work->hits[3].recs;
+    for (i = 0; i < 5; i++) {
+        if (recs[i].field_4 == 0) {
+            goto missed1;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+            pos->vx = recs[i].field_8;
+            pos->vy = recs[i].field_A;
+            pos->vz = recs[i].field_C;
+            id      = recs[i].field_4;
+            goto found1;
+        }
+    }
+missed1:
+    id = 0;
+found1:
+    sc->id = id;
+    if (id != 0) {
+        func_actor_403200_80134044(work->hits[3].obj.field_8, id);
+        if (sc->id != 0) {
+            goto body;
+        }
+    }
+
+    pos2  = &sc->pos;
+    recs2 = work->hits[4].recs;
+    for (i2 = 0; i2 < 5; i2++) {
+        if (recs2[i2].field_4 == 0) {
+            goto missed2;
+        }
+        if ((recs2[i2].field_4 & 0xFFFF0000) == 0x20000) {
+            pos2->vx = recs2[i2].field_8;
+            pos2->vy = recs2[i2].field_A;
+            pos2->vz = recs2[i2].field_C;
+            id       = recs2[i2].field_4;
+            goto found2;
+        }
+    }
+missed2:
+    id = 0;
+found2:
+    sc->id = id;
+    if (id != 0) {
+        func_actor_403200_80134044(work->hits[4].obj.field_8, id);
+        if (sc->id != 0) {
+            goto body;
+        }
+    }
+
+    pos3  = &sc->pos;
+    recs3 = work->hits[5].recs;
+    for (i3 = 0; i3 < 5; i3++) {
+        if (recs3[i3].field_4 == 0) {
+            goto missed3;
+        }
+        if ((recs3[i3].field_4 & 0xFFFF0000) == 0x20000) {
+            pos3->vx = recs3[i3].field_8;
+            pos3->vy = recs3[i3].field_A;
+            pos3->vz = recs3[i3].field_C;
+            id       = recs3[i3].field_4;
+            goto found3;
+        }
+    }
+missed3:
+    id = 0;
+found3:
+    sc->id = id;
+    if (id == 0) {
+        goto out;
+    }
+    func_actor_403200_80134044(work->hits[5].obj.field_8, id);
+    if (sc->id == 0) {
+        goto out;
+    }
+body:
+    param           = Gp_GetIdParam2(sc->id);
+    work->field_E90 = param;
+    work->field_E8E = param;
+    work->field_E8C = param;
+    work->field_E92 = param;
+    Gp_GetIdParam0(sc->id);
+
+    sc->delta.vx = (cfg->field_4->t[0] - ((TmdObject*)arg0->extra)->field_8->coord.t[0]) + 0x51F;
+    dx2          = sc->delta.vx * sc->delta.vx;
+    sc->delta.vy = (cfg->field_4->t[1] - ((TmdObject*)arg0->extra)->field_8->coord.t[1]) - 0xFA;
+    dy2          = sc->delta.vy * sc->delta.vy;
+    sc->delta.vz = (cfg->field_4->t[2] - ((TmdObject*)arg0->extra)->field_8->coord.t[2]) + 0x25F;
+    dz2          = sc->delta.vz * sc->delta.vz;
+    sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
+    sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
+
+    if (Gp_RollEnemyChance(work->field_ECC[0], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
+        state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 &&
+        D_801153F4[1] == 1) {
+        sc->rot.vy = 0;
+        sc->rot.vx = 0;
+        sc->rot.vz = 0x320;
+        Gp_SpawnEff(0x6009C, &((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1], 0, &sc->rot);
+        sc->damage   *= 4;
+        work->field_0 = 0xE;
+    }
+
+    dmg = sc->damage / 6;
+    if (dmg == 0) {
+        dmg = 1;
+        if (sc->damage == 0) {
+            sc->damage = 0;
+            goto stored;
+        }
+    }
+    sc->damage = dmg;
+stored:
+    func_800E2C78((GpObj40*)host, sc->id, sc->damage, 0);
+    host->field_40  -= sc->damage;
+    esc3             = work->field_ECC[3];
+    hp               = host->field_40;
+    esc0             = work->field_ECC[0];
+    esc1             = work->field_ECC[1];
+    esc3->field_40   = hp;
+    esc1->field_40   = hp;
+    esc0->field_40   = hp;
+    work->field_F0A -= sc->damage;
+    if ((s16)work->field_F0A <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
+        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && D_801153F4[1] == 1) {
+        sc->rot.vy = 0;
+        sc->rot.vx = 0;
+        sc->rot.vz = 0x320;
+        Gp_SpawnEff(0x6009C, &((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1], 0, &sc->rot);
+        work->field_0   = 0xE;
+        work->field_F0A = 0x32;
+    }
+
+    func_800DA6E8(&work->field_ECC[0]->node, sc->damage, 0);
+    ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)work->field_ECC[0]->task->extra)->field_8);
+    sc->rot.vx = sc->pos.vx - ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->workm.t[0];
+    sc->rot.vy = sc->pos.vy - ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->workm.t[1];
+    sc->rot.vz = sc->pos.vz - ((TmdObject*)work->field_ECC[0]->task->extra)->field_8->workm.t[2];
+    angle      = ratan2(sc->rot.vx, sc->rot.vz) -
+            ratan2(-((TmdObject*)arg0->extra)->field_8->workm.m[2][0],
+                   ((TmdObject*)arg0->extra)->field_8->workm.m[2][2]);
+    do {
+        sc->angle = angle;
+        if (angle < 0) {
+        wrapUp:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto wrapUp;
+            }
+        } else {
+        wrapDown:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto wrapDown;
+            }
+        }
+    } while (0);
+    sc->angle = angle;
+
+    work->field_7C8 = 0;
+    work->field_7C4 = 0;
+out:
+    SCRATCH_SP += sizeof(Actor403200HitScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013AB70);
 

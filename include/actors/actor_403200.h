@@ -265,8 +265,13 @@ typedef struct Actor403200Work {
     /// out to x 0x1CCA, state 1 to x 0x2882, and each step that arrives
     /// advances it and re-arms `field_0`. Same slot and role as
     /// `Actor444000Work::field_F08`.
-    /* 0xF08 */ s16  field_F08;
-    /* 0xF0A */ byte pad_F0A[0x4];
+    /* 0xF08 */ s16 field_F08;
+    /// Damage pool the hit handler for collision groups 3, 4 and 5
+    /// (`func_actor_403200_8013A4A0`) draws down alongside the host's HP, and
+    /// refills to 0x32 when it runs out. Same slot and role as
+    /// `Actor444000Work::field_F0A`.
+    /* 0xF0A */ u16  field_F0A;
+    /* 0xF0C */ byte pad_F0C[0x2];
     /// Damage pool the hit handler for collision groups 1 and 2
     /// (`func_actor_403200_80139E94`) draws down alongside the host's HP. Same
     /// slot and role as `Actor444000Work::field_F0E`.
