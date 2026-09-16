@@ -93533,3 +93533,81 @@ once the sibling's `if`/`else` shape was copied.
 The same function's remaining `regs=8` was the frame-slot local `## An unused
 local still costs frame space` describes: an unused `SVECTOR` (8 bytes at
 `sp+0x10`) took it from 98.86% to 100.000% with no other edit.
+
+## A switch selector kept in a `u16` local re-extends, and the whole case tree changes register
+
+`func_actor_323000_80164A54` was one instruction from a match at 96.64%: the
+case tree ran in `$v1` instead of the target's `$a2` and carried a mask the
+target does not have.
+
+```
+target                      base_1
+lhu   a2,2(a2)              lhu   a2,2(a2)
+li    v0,1                  li    v0,1
+beq   a2,v0,...             andi  v1,a2,0xffff      <- extra
+slti  v0,a2,2               beq   v1,v0,...
+beqz  v0,...                slti  v0,v1,2
+```
+
+The seed had copied the halfword into a local and switched on that:
+
+```c
+    u16 mode;
+    ...
+    mode = msg->mode;
+    switch (mode) { ...; case 3: work->field_0 = mode; ... }
+```
+
+A `u16` local is an object in HImode: the assignment truncates, and every later
+use re-extends it out of the register, which is `zero_extendhisi2/1` - the
+`andi`. The masked value is a different pseudo, and local-alloc homed it in
+`$v1` rather than in the dying `$a2`. Switch on the field expression so the
+`lhu` keeps a single SImode use (`zero_extendhisi2/2`) and no mask exists:
+
+```c
+    switch (msg->mode) { ...; case 3: work->field_0 = msg->mode; ... }
+```
+
+The second read costs nothing: CSE reuses the load, since nothing stores to
+memory between the two uses. Same rule as `## The same invention at a `jalr``,
+where the extra use arrives as a phantom call argument instead of a temp.
+
+## `lbu` at 0/1/2 beside an `lhu` at 0 means the payload has a byte view too
+
+The same handler copies three message bytes and then tests the halfword at the
+same address:
+
+```asm
+lbu   v0,0(a2)
+nop
+sb    v0,0x91c(a0)
+lbu   v0,1(a2)
+nop
+sb    v0,0x91d(a0)
+lbu   v0,2(a2)
+nop
+sb    v0,0x91e(a0)
+lhu   v1,0(a2)
+li    v0,0x202
+bne   v1,v0,...
+```
+
+GCC 2.8.1 does not narrow a halfword load to the width actually used, so a
+plain `{ u16 code; u16 mode; }` payload does not produce those byte loads:
+`work->field_91C = msg->code;` compiles to `lhu` plus `srl 8` where the target
+has `lbu 1(a2)` (measured 92.15%, `insert=2 delete=1`). The source read bytes,
+so it had a byte view as well; declare both and cast the parameter pointer
+once:
+
+```c
+typedef struct Actor323000Msg      { u16 code; u16 mode; } Actor323000Msg;
+typedef struct Actor323000MsgBytes { u8 b0; u8 b1; u8 b2; } Actor323000MsgBytes;
+...
+bytes           = (Actor323000MsgBytes*)msg;
+work->field_91C = bytes->b0;
+```
+
+Note `b2` is the low half of `mode`, so the byte run straddles both word
+fields: no union can hold this pair of views, and the cast is what the
+compiler emits for the original source anyway. With that plus the selector
+change above the function reached 100.000% in 2 attempts.
