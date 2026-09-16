@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "actors/actors_shared_80169f74.h"
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Private work block of the actor 312200 task, hanging off `Task::idMap`.
@@ -20,6 +21,11 @@
 /// on entry, `field_88C` the work state, `field_892` / `field_896` the two
 /// timers the state handlers arm, and `field_5C` the flag halfword whose bit 0
 /// the callbacks test.
+///
+/// `field_8BC` is the display node the spawn handler
+/// `func_actor_312200_80163178` builds in place and hands to `Gp_LinkObj` - the
+/// `GpObj` whose `field_C` it points at a three-entry `GpRec18` table at 0x8DC.
+/// `func_actor_312200_80163778` clears bit 0x8000 of that node's `flags`.
 typedef struct Actor312200Work {
     /* 0x000 */ byte pad_0[0x4];
     /* 0x004 */ s16  field_4;
@@ -33,6 +39,9 @@ typedef struct Actor312200Work {
     /* 0x892 */ s16  field_892;
     /* 0x894 */ byte pad_894[0x2];
     /* 0x896 */ s16  field_896;
+    /* 0x898 */ byte pad_898[0x24];
+    /// Display node: `GpObj` at 0x8BC, its `GpRec18` table at 0x8DC.
+    /* 0x8BC */ GpObj field_8BC;
 } Actor312200Work;
 
 /// Placement opcode: the three longs of `placement->pos` are copied onto the
@@ -46,6 +55,11 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placemen
 /// anim/particle update. Once the 0x892 timer has run its 0x10 ticks with the
 /// task's flag bit 0 set, it drops the state to 1 and shorts the timer to 4.
 void func_actor_312200_801637CC(Task* task);
+
+/// Show handler: on a live actor it sets the enemy's `node.field_4`, raises the
+/// 0x80 draw bit of the model's `TmdObject::field_C`, clears
+/// `GpEnemy::field_4D` and drops bit 0x8000 of the display node's `flags`.
+void func_actor_312200_80163778(Task* task);
 
 void func_actor_312200_80162FB4(Task* task);
 

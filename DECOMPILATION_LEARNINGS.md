@@ -96089,3 +96089,48 @@ Inputs: `base_1.i`
 (100.000%), `base_3.i`
 `6717e4dc5dc85d74c9db2e0dcde214d265bee02bd70603ebd94324d9010dc611` (100.000%,
 callee return type varied).
+## A lone masked halfword in an actor work block is a `GpObj::flags`; the node base comes from the overlay's own `Gp_LinkObj` site (func_actor_312200_80163778, 2026-09-16)
+
+An actor show/hide opcode is a four-store body whose m2c seed retypes cleanly
+except for one line: a halfword read, masked and written back at an offset that
+belongs to no named field. In `func_actor_312200_80163778` that is
+`lhu $v0, 0x8DA($a1)` / `andi 0x7FFF` / `sh`, where `$a1` is `Task::idMap`.
+
+0x8DA is not 4-byte aligned to anything in the work block, and the tempting
+readings - a loose `u16` field, or the `GpRec18` record table - are both wrong.
+It is `GpObj::flags` (+0x1E) of a node whose base is 0x8BC, and the arithmetic
+that concludes that is not the evidence. The evidence is the overlay's spawn
+handler, which builds the node in place and links it:
+
+```
+addiu $s0, $s2, 0x8BC      ; node = work + 0x8BC
+addiu $v0, $s2, 0x8DC
+sw    $v0, 0xC($s0)        ; node->field_C = work + 0x8DC   (GpRec18 table)
+sh    $zero, 0x10($s0)     ; node->field_10 / 0x12 / 0x14
+sw    $a2, 0x18($s0)
+sh    $v0, 0x1C($s0)
+sh    $s1, 0x1E($s0)       ; node->flags
+jal   Gp_LinkObj
+lhu   $v0, 0x1E($s0) / ori 0x8000 / sh
+```
+
+Every one of those deltas is `GpObj`'s, so the base is pinned rather than
+guessed, and `work->field_8BC.flags &= 0x7FFF` is the port. The same call site
+also types `Task::spawnArg2`: the handler's other argument (`$s0` here) gets
+`Gp_LinkNode($s0 + 0x10)`, `sb` at 0x14, `sw $zero` over the three words at
+0x1C and `sb` at 0x48/0x4C/0x4D - all `GpEnemy` - so the ctx is `GpEnemy*`, not
+an overlay-local ctx, and 0x4D is a real field (`pad_4D` renamed to `field_4D`,
+size and offset unchanged). `Gp_AllocEnemy` confirms it from the other side:
+`Mem_Calloc(0x60, 0)` stored into `task->spawnArg2`.
+
+The instruction stream is also the check on the idiom: `func_actor_421600_8013E858`
+is the same body in another overlay, identical for its first 13 instructions,
+and its C (`enemy->node.field_4 = 1;` then `work->field_B6C.flags &= 0xBFFF;`)
+is what the typed port follows. Only the mask constant, its offset and one extra
+store differ, so a sibling from the family is a better template than the seed.
+
+Evidence: scratch `nonmatchings/func_actor_312200_80163778-vacuum/`; `base.c`
+(100.000%) and `base_1.c` (typed port, 100.000%, `Repeated assembly: base_1.c
+reproduces base.c`); `include/actors/actor_312200.h` gained `GpObj field_8BC`
+inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `GpEnemy.pad_4D`
+to `field_4D`.

@@ -31,7 +31,25 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placemen
 
 INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200_2", func_actor_312200_801636CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200_2", func_actor_312200_80163778);
+/// Show handler. On a live actor it flags the enemy's link node, raises the
+/// model's 0x80 draw bit, clears `GpEnemy::field_4D` and drops bit 0x8000 of
+/// the display node's flags, so the actor becomes visible again.
+void func_actor_312200_80163778(Task* task)
+{
+    Actor312200Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+
+    work = (Actor312200Work*)task->idMap;
+    if (work->field_4 != 0) {
+        obj                    = (TmdObject*)task->extra;
+        enemy                  = (GpEnemy*)task->spawnArg2;
+        enemy->node.field_4    = 1;
+        obj->field_C          |= 0x80;
+        enemy->field_4D        = 0;
+        work->field_8BC.flags &= 0x7FFF;
+    }
+}
 
 /// Per-tick state callback. A live actor (`field_4`) re-enters work state 2
 /// with the 0x896 timer armed at 0x10; once the 0x892 timer has counted those
