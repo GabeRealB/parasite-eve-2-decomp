@@ -547,7 +547,134 @@ void func_actor_206100_8014B8B4(Task* task)
 /// its knock-back and asks for the light one -- and every frame ends by
 /// releasing the record table and counting the cooldown down, or clamping it to
 /// 0 so it never goes negative.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014BAA8);
+void func_actor_206100_8014BAA8(Task* task)
+{
+    Actor206100Work* work;
+    GpEnemy*         enemy;
+    s32              kind;
+    s16              amount;
+    s32              dmg;
+    s32              tmp;
+    s32              tick;
+    s32              i;
+    s32              hit;
+    s32              heavy;
+
+    kind            = 0;
+    hit             = 1;
+    heavy           = 2;
+    work            = (Actor206100Work*)task->idMap;
+    enemy           = (GpEnemy*)task->spawnArg2;
+    work->field_52A = 0;
+    for (i = 0; i < 6; i++) {
+        if ((work->rec_384[i].field_4 & 0xFFFF0000) == 0x20000) {
+            if (work->field_504 == 0) {
+                work->field_52A = hit;
+                work->field_54B = hit;
+                dmg             = Gp_ComputeDamage(work->rec_384[i].field_4, work->field_528, 0, 0);
+                amount          = dmg;
+                work->field_504 = Gp_GetIdParam2(work->rec_384[i].field_4);
+                if (Gp_RollEnemyChance(enemy, work->rec_384[i].field_4, 0) != 0) {
+                    amount = ((u32)dmg << 16) >> 14;
+                    kind   = 1;
+                }
+                func_800FDB18(Gp_GetIdParam1(work->rec_384[i].field_4) & 0xFFFF,
+                              &((TmdObject*)task->extra)->field_8[work->field_557], 0, &work->eff_4C0);
+                if (amount >= 0xB4) {
+                    work->field_52C = heavy;
+                } else {
+                    work->field_52C = hit;
+                }
+                switch (Gp_GetIdParam0(work->rec_384[i].field_4) & 0xFFFF) {
+                    case 0:
+                        break;
+                    case 1:
+                        Gp_SetObjFlag1((GpObj4C*)enemy);
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_384[i].field_4, 0);
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_384[i].field_4, 0);
+                        break;
+                    case 4:
+                        work->field_52C = 4;
+                        break;
+                    case 5:
+                    case 6:
+                        work->field_52C = heavy;
+                        break;
+                    case 7:
+                        kind            = 2;
+                        work->field_52C = 2;
+                        amount         += amount;
+                        break;
+                    case 8:
+                        work->field_52C = 0;
+                        work->field_52A = 0;
+                        break;
+                    case 9:
+                        work->field_52C = hit;
+                        break;
+                }
+                if ((work->rec_384[i].field_4 & 0x7F) == 0x1C && (work->rec_384[i].field_4 & 0x8000) == 0) {
+                    enemy->field_4C &= 0xFE;
+                    work->field_52C  = hit;
+                }
+                tmp = kind;
+                switch (tmp) {
+                    case 1:
+                        Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->field_8[work->field_557], 0, 0);
+                        break;
+                    case 2:
+                        Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->field_8[work->field_557], 2, 0);
+                        break;
+                }
+                func_800E2C78((GpObj40*)enemy, work->rec_384[i].field_4, amount, 0);
+                func_800DA6E8(&enemy->node, amount, 0);
+                enemy->field_40 -= amount;
+                if ((s16)enemy->field_40 < 0) {
+                    enemy->field_40 = 0;
+                }
+            } else if ((Gp_GetIdParam1(work->rec_384[i].field_4) & 0xFFFF) == 0xD) {
+                func_800FDB18(0xD, &((TmdObject*)task->extra)->field_8[1], 0, &work->eff_4C0);
+            }
+        }
+        if (work->field_52A != 0) {
+            break;
+        }
+    }
+    if (enemy->field_4C & 1) {
+        enemy->field_4C &= 0xFE;
+        work->field_52C  = 2;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= 0xFD;
+        work->field_52C  = 3;
+    }
+    if (enemy->field_4C & 0xC) {
+        tmp  = Gp_TickObjFlag4((GpObj5C*)enemy);
+        tick = (s16)tmp;
+        if (tick != 0) {
+            enemy->field_40 -= tmp;
+            func_800DA6E8(&enemy->node, tick, 0);
+            if ((s16)enemy->field_40 < 0) {
+                enemy->field_40 = 0;
+            }
+            work->field_52A = 1;
+            work->field_52C = 1;
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec_384);
+    if (work->field_504 > 0) {
+        work->field_504--;
+    } else {
+        work->field_504 = 0;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014BEC4);
 
 /// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
