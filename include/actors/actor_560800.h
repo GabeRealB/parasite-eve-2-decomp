@@ -196,7 +196,9 @@ typedef struct Actor560800PartsWork {
     /* 0x1C */ s32   field_1C;
     /* 0x20 */ Task* parts[8];
     /* 0x40 */ Task* field_40;
-    /* 0x44 */ byte  pad_44[0x6];
+    /* 0x44 */ s16   field_44;
+    /* 0x46 */ s16   field_46;
+    /* 0x48 */ s16   field_48;
     /* 0x4A */ s16   field_4A;
 } Actor560800PartsWork;
 STATIC_ASSERT_SIZEOF(Actor560800PartsWork, 0x4C);

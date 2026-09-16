@@ -55,7 +55,79 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80137F58);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_801384EC);
+/// Message handler of the parts task (`D_actor_560800_801756D4`): command 0
+/// rebuilds each part's colour matrix from its world translation, 5 and 6 put
+/// all eight parts into state 2 / 1, and the rest set this task's state and the
+/// `Actor560800PartsWork` halfwords at 0x44-0x4A.
+void func_actor_560800_801384EC(Task* task, s32 msgId, Actor560800Msg* msg)
+{
+    Actor560800PartsWork* work;
+    Task*                 part;
+    TmdObject*            extra;
+    VECTOR                vec;
+    s32                   i;
+
+    work = (Actor560800PartsWork*)task->idMap;
+    switch (msg->field_2) {
+        case 0:
+            i = 0;
+            do {
+                part = work->parts[i & 0xFFFF];
+                if (part != NULL) {
+                    extra  = (TmdObject*)part->extra;
+                    vec.vx = extra->field_8->workm.t[0];
+                    vec.vy = ((TmdObject*)part->extra)->field_8->workm.t[1];
+                    vec.vz = ((TmdObject*)part->extra)->field_8->workm.t[2];
+                    func_800D7A9C(extra, &vec, 0, 3);
+                }
+                i += 1;
+            } while ((u32)(i & 0xFFFF) < 8U);
+            break;
+        case 1:
+            work->field_46 = 1;
+            work->field_48 = 1;
+            work->field_4A = 0x83;
+            break;
+        case 2:
+            task->state    = 2;
+            work->field_44 = 0;
+            break;
+        case 3:
+            task->state    = 1;
+            work->field_46 = 2;
+            break;
+        case 4:
+            work->field_46 = 0;
+            work->field_48 = 1;
+            break;
+        case 5:
+            task->state    = 1;
+            work->field_46 = 3;
+            i              = 0;
+            do {
+                work->parts[i & 0xFFFF]->state = 2;
+                i                             += 1;
+            } while ((u32)(i & 0xFFFF) < 8U);
+            break;
+        case 6:
+            task->state    = 1;
+            work->field_46 = 4;
+            i              = 0;
+            do {
+                work->parts[i & 0xFFFF]->state = 1;
+                i                             += 1;
+            } while ((u32)(i & 0xFFFF) < 8U);
+            break;
+        case 7:
+            task->state    = 1;
+            work->field_46 = 4;
+            work->field_4A = 0x22;
+            break;
+        case 8:
+            task->state = 3;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_801386D4);
 
