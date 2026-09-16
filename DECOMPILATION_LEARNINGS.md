@@ -6682,6 +6682,21 @@ whole block was `INCLUDE_RODATA`, and wrong the moment a `_5` function is
 decompiled. Re-grep ownership before trusting the cut; here the fix was one
 word, `_2` -> `_5`.
 
+**When only the cut's `unit` is wrong, one manifest word plus deleting the stale
+`INCLUDE_RODATA` line is the whole fix — no delete-and-re-split.** The earlier
+advice to delete the affected `src/` files exists so splat can *place* the
+`INCLUDE_RODATA` lines for you, which is what a fresh cut at a new offset needs.
+A cut that is already at the right offset only misnames its owner, and if you
+are hand-writing the decompiled body anyway, the incoming unit's file already
+exists and splat has nothing to add to either file. `mine_gorge` carried
+`rodata = [{ start = "0x10", unit = "mine_gorge_3" }]` for the 10-word table
+belonging to `func_mine_gorge_8017D9F8` in unit `_4`; the fix was `_3` -> `_4`
+in the manifest plus dropping that one `INCLUDE_RODATA` line from
+`mine_gorge_3.c`. Hand-editing was the safe option here precisely because the
+destructive path is the one that loses matched bodies — its own file's remaining
+bodies (`func_mine_gorge_8017D8D4`, `func_mine_gorge_8017D998`) came through
+untouched, and the unscoped build verified with the compiler's table at 0x10.
+
 **A `units` `.text` cut is only needed when the table would land mid-object.**
 The `mist_parking` case pairs `rodata` with `units` because its table starts the
 original object's `.rodata`. When the generated tables instead sit at 8-aligned
