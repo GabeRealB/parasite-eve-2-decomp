@@ -424,7 +424,77 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100", func_actor_800100_80162E90);
+/// Draws the projectile's ground splash at the traced ground point `pos`: the
+/// unit quad `D_80111E38` scaled to `width` half-size, laid flat by
+/// `Gfx_ViewWorldMtx`, and projected through `GsWSMATRIX` into a 0x30-byte
+/// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
+/// three through one `rtpt`; a negative `gte_stflg` drops the quad.
+void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
+{
+    void**                    scratch;
+    u8*                       head;
+    Actor800100SplashScratch* block;
+    POLY_FT4*                 prim;
+    GpQuadCorner*             tbl;
+    s32                       i;
+    s32                       flag;
+    s32                       otz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = (u8*)*scratch - 0x30;
+    SOFT_TOUCH_REG(head);
+    *scratch = head;
+    block    = (Actor800100SplashScratch*)head;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    i   = 0;
+    tbl = D_80111E38;
+    do {
+        block->vec[i].vx = tbl[i].x * width;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = tbl[i].y * width;
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(&block->vec[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->vec[i]);
+        *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + *(u16*)&pos->vx;
+        *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + *(u16*)&pos->vy;
+        *(u16*)&block->vec[i].vz = *(u16*)&block->vec[i].vz + *(u16*)&pos->vz;
+        i++;
+    } while (i < 4);
+
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec[0]);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy[0]);
+    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&block->sxy[1], &block->sxy[2], &block->sxy[3]);
+    gte_stflg(&flag);
+    if (flag >= 0) {
+        gte_stszotz(&otz);
+        otz++;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2E);
+        setRGB0(prim, 0x40, 0x40, 0x40);
+        prim->tpage = 0x29;
+        prim->clut  = 0x430F;
+        setUV4(prim, 0xE0, 0xC8, 0xFF, 0xC8, 0xE0, 0xE7, 0xFF, 0xE7);
+        prim->x0 = block->sxy[0].vx;
+        prim->y0 = block->sxy[0].vy;
+        prim->x1 = block->sxy[1].vx;
+        prim->y1 = block->sxy[1].vy;
+        prim->x2 = block->sxy[2].vx;
+        prim->y2 = block->sxy[2].vy;
+        prim->x3 = block->sxy[3].vx;
+        prim->y3 = block->sxy[3].vy;
+        addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}
 
 void func_actor_800100_801631C8(Task* arg0)
 {

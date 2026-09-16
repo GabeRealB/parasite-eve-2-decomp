@@ -14,6 +14,9 @@
 /// `inline_c.h` macro of that name assembles to `0x7F`.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+/// `gte_rtpt` as the retail build emits it: the full `rtpt` word.
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+
 /// 0x38 block `func_actor_800100_801624F0` allocates with `Mem_Calloc` when
 /// its task enters state 0 and stores at `Task::idMap`: the launched
 /// projectile's object plus its one-entry collision table, whose `field_0` is
@@ -88,6 +91,20 @@ typedef struct _Actor800100SpinScratch {
     /* 0x18 */ DVECTOR sxy;
 } Actor800100SpinScratch;
 STATIC_ASSERT_SIZEOF(Actor800100SpinScratch, 0x1C);
+
+/// 0x30-byte block from `G_SCRATCH_HEAD` used by
+/// `func_actor_800100_80162E90` to draw the projectile's ground splash: the
+/// four corners of the unit quad `D_80111E38`, each scaled to the splash
+/// half-size, rotated flat into view space by `Gfx_ViewWorldMtx` and moved to
+/// the traced ground point. `sxy` is where they land on screen, `vec[0]`
+/// through a single `RTPS` and the rest through one `RTPT`. Same shape as the
+/// m4a1_pyke dart's splash block, but with `otz` and `flag` kept on the stack
+/// instead of in the block.
+typedef struct _Actor800100SplashScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ DVECTOR sxy[4];
+} Actor800100SplashScratch;
+STATIC_ASSERT_SIZEOF(Actor800100SplashScratch, 0x30);
 
 /// One corner of the beam quad `func_actor_800100_801668C0` draws, as an
 /// offset in the placed coordinate's own frame: `vy` straight up, `vz` along

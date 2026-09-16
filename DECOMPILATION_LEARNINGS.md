@@ -106377,3 +106377,52 @@ dump names is *swapped* rather than wrong, count the source copies of each
 shared tail before reaching for anything else, and remember that the second
 `jump` pass (`.i.jump2`: one call site where `.i.jump` has two) is the one
 that hides them.
+
+## `gte_stszotz` already contains the `>> 2`
+
+A target's OTZ read shows three instructions between the `mfc2` and the store:
+
+```
+mfc2  $t4, $19
+nop
+sra   $t4, $t4, 2
+sw    $t4, 0x0($v0)
+```
+
+That `sra` is inside the macro, not the C. `include/psyq/inline_c.h` defines
+
+```c
+#define gte_stszotz( r0 ) __asm__ volatile ( \
+	"mfc2	$12, $19;" \
+	"nop;" \
+	"sra	$12, $12, 2;" \
+	"sw	$12, 0( %0 )" \
+	: : "r"( r0 ) : "$12", "memory" )
+```
+
+so `gte_stszotz(&otz);` is the whole of it — the `>> 2` the disassembly seems
+to show is already applied. Writing it out again (`otz = otz >> 2;` after the
+call, or `otz = (s32)SZ3 >> 2;` in place of the call) doubles the shift and
+leaves the extra instruction unexplained.
+
+The macro is also a `"memory"` barrier, which makes the order of the
+statements around it observable. `func_m4a1_pyke_8011E168` and
+`func_actor_800100_80162E90` are the same splash drawer — same quad, same
+`POLY_FT4` constants — and differ in exactly that pair:
+
+```c
+    gte_stszotz(&otz);   /* actor_800100: sw, then lw/addiu/sw  */
+    otz++;               /* so the increment lands on the value */
+
+    otz++;               /* m4a1_pyke: lw/addiu/sw, then mfc2/nop/sra/sw */
+    gte_stszotz(&otz);   /* so it lands on garbage and is overwritten     */
+```
+
+Neither is a typo and neither can be reordered by the compiler, so porting a
+sibling's statement order into the other function changes the object. Read the
+two orders in the object to tell which one the ROM used.
+
+More generally: when a brief's *Similar matched bodies* lists a sibling at
+`fields` 1.00 with a high `shape`, read that sibling's C before writing
+anything. Here the whole function was a two-line difference from a matched
+body in another family, and it matched on the first attempt.
