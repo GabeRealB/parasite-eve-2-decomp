@@ -92304,3 +92304,51 @@ Preprocessed SHA256 `base_1.i`
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_521100_80135C14-vacuum` (`base_1_diff`,
 `base_2_diff`).
+
+## A shared span carved off the *head* of a carrier's last code unit renumbers nothing - but every carrier needs the line dropped (func_actor_101500_80134990, 2026-09-16)
+
+The third geometry `overlay_dup_index.py promote` produces, beside the mid-unit
+split and the whole-unit disappearance. Here the span was 0x2B70..0x2C34 of
+`actor_101500` - exactly the promoted function's extent, and exactly the head of
+`actor_101500_5`, the overlay's *last* code unit (0x2B70..0x2D28, up against the
+databins). Nothing below the span exists to renumber and no `rodata` pin moves:
+`gen_overlay_configs` names the carved head after the shared unit and leaves the
+tail under its old index, so every `_5.c` is still the right file and every unit
+after it keeps its name.
+
+The trap is that "nothing moved" is only true of the *units*. Each carrier's
+`_5.c` still opens with the promoted function's `INCLUDE_ASM`, and the split has
+just deleted that `.s` from under it:
+
+```
+{standard input}:28: Error: can't open asm/USA/actors/nonmatchings/actor_201500/actor_201500_5/func_actor_201500_8014C990.s
+ld.bfd: cannot find build/USA/src/actors/actor_201500/actor_201500_5.c.o
+```
+
+The overlay you matched builds and checksums clean; the failure names a
+*different* carrier, which reads as a renumbering bug and sends you looking for
+unit files that never moved. The fix is one line per carrier - delete that
+function's `INCLUDE_ASM` from `<carrier>_5.c` (and from your own), leaving the
+tail's line behind. Both remaining carriers of this body needed it.
+
+Watch for the mirror of the alias clash too: `actors_shared_801342a4.c` already
+called the body as `ActorsShared801342a4_Fn34990`, so promoting it made splat see
+two names at one vram. That `_Fn` line being in use, not garbage, is the case
+`## A promoted body that another shared unit already calls keeps a provisional
+name in the sym map` describes: rename the dispatcher's declaration and call to
+the promoted name, include nothing extra (the signature is already
+`ActorShared801342a4*`), and delete the `_Fn<VRAM>` line from each carrier's sym
+map before the split.
+
+`ActorShared801342a4` was the whole type story - `field_1C` carries `field_35A`
+and `field_2C->field_8` is the `GsCOORDINATE2*` whose `workm.t` is at 0x38, so
+the three `lw`/`sw` pairs are `workm.t[0..2]` and the m2c seed's `lh` on a
+`0x35A` byte offset was the only thing wrong with its frame. `Gp_DrawEffGroundQuad`
+is declared file-locally in the sibling `actor_102600_6.c` and nowhere in a
+header, so `func_800EA1A8`/`func_800EA318` come from `gameplay/3CD8.h` and the
+quad keeps a local prototype.
+
+`func_actor_101500_80134990` matched at 100% on the first attempt (49 insns, 2
+builds; `base_1.i` `a2e617f0005a127770fcc745c691b326b56335166a44e96a3d4ee165f4f592e1`).
+It landed as `ActorsShared80134990` in `src/actors/lib/`, shared by all three of
+`actor_101500` / `actor_201500` / `actor_301500`.

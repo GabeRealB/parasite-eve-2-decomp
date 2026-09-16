@@ -11,7 +11,7 @@ void ActorsShared801342a4_Fn33658(ActorShared801342a4* arg0);
 void ActorsShared801342a4_Fn337A8(ActorShared801342a4* arg0);
 void ActorsShared801342a4_Fn343E8(ActorShared801342a4* arg0, ActorShared801342a4Obj* arg1, s32 arg2);
 void ActorsShared801342a4_Fn34778(ActorShared801342a4* arg0);
-void ActorsShared801342a4_Fn34990(ActorShared801342a4* arg0);
+void ActorsShared80134990(ActorShared801342a4* arg0);
 
 extern u8 D_801153F4;
 
@@ -74,5 +74,5 @@ default_body:
     Gp_UpdateCoord(coord);
 case1:
     ActorsShared80134934((ActorShared80134934*)arg1);
-    ActorsShared801342a4_Fn34990(arg1);
+    ActorsShared80134990(arg1);
 }
