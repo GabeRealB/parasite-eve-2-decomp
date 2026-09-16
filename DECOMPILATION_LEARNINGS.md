@@ -100344,3 +100344,43 @@ first (the m2c order, `field_C` before `field_8`) inverts it and also moves the
 `extra->field_8` loads out of the block head, costing the scheduler match - the
 two objectives pull on the same lever, which is why the barrier was needed for the
 refs and a variable was needed for the init order.
+
+## A scratch store has a third position between two vector stores, and a stack `gte_ldv0` leaves its `addiu` loose
+
+`func_actor_104900_80138774` (now `ActorsShared80138774`) is the 403600 body
+with the two coordinates swapped, so `TransposeMatrix` takes `&arg0->workm` and
+it is the *other* argument that keeps a `workm.t[]` read. Two `reorder`-only
+leftovers, both in the `jal`'s neighbourhood, took it 98.07% -> 98.71% -> 100%
+with block topology and instruction counts matching throughout:
+
+- The `sw <vec>, 0(<scratchptr>)` the entry above ("Copy `&block->vec` after the
+  scratch store") places before or after the last `vec` field store has a
+  **third** position: written between the `vy` and `vz` stores it is emitted
+  between the `vy` store and the `vz` subtraction, which is what frees the `vz`
+  store to take the `jal`'s delay slot. The order that survives is program
+  order, not a scheduling choice: two stores carry an output dependency in the
+  scheduler's `insn_list`, so `reorder` alone does not distinguish the three
+  positions.
+
+```c
+*(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+*(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+*(void**)0x1F8003FC       = vec;   /* between the 2nd and 3rd, not after both */
+*(s16*)((s8*)vec + 4)     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+```
+
+- `gte_ldv0(&local)` on a *stack* local is not the `$v0`-pointer problem that
+  entry describes. The operand is an address GCC materializes itself, as a
+  standalone `addiu $2, $sp, 0x10`, and sched2 hoists that insn several
+  instructions above its `lwc2` pair to the top of the block. Writing the
+  sibling's raw asm keeps the three adjacent, which is what the target has:
+
+```c
+__asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+```
+
+The tell for both is `reorder` non-zero with `stack`/`branch`/`insert`/`delete`
+all zero and `blocks`/`instructions` matching: a statement position, not a
+missing or extra operation. The sibling `func_actor_403600_8013E66C` already
+carries the second fix, so a same-family copy is worth diffing against before
+touching the C.
