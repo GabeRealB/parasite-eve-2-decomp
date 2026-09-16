@@ -42530,6 +42530,23 @@ functions reference it - which restores splat's migration and makes the manual
 `INCLUDE_RODATA` unnecessary - rather than to the unit that happens to hold the
 lower addresses.
 
+One existing cut can also be one cut too few, when the block holds two symbols
+whose referrers part company. `actor_350500`'s leading block (0x10..0x30) is the
+state table `D_actor_350500_80161E30` followed by the constant offset
+`D_actor_350500_80161E40`; after the promote the table's only referrer was
+`func_actor_350500_801624A0`, still in `_2`, while the offset's was
+`func_actor_350500_801625E4`, now `_3`. Naming either unit orphans the other
+symbol - the link reports `undefined reference to D_actor_350500_80161E40` from
+`actor_350500_3.i` - and a manual `INCLUDE_RODATA` in the owning unit links the
+plain block but leaves the split non-self-authoring. Splitting the entry at the
+inner boundary (`0x10`→`_2`, `0x20`→`_3`) restores splat's migration for both:
+the offset lands at the head of `func_actor_350500_801625E4.s` and no `.c` needs
+an `INCLUDE_RODATA` line. The tell is the pair's shape - one symbol arrives
+bundled at the head of a function's `.s`, the other as a standalone `D_*.s`, and
+the standalone file is the one nothing owns. Do not look to
+`asm/<ver>/<family>/data/<overlay>/<unit>.rodata.s` to settle ownership: the
+build assembles neither it nor the `matchings/` copy splat writes beside it.
+
 And when the renumbering shifts a unit, the manifest's existing `rodata` cuts
 have to be renamed with it: a cut reading `unit = "<overlay>_2"` still names the
 object that carried those functions *before* the promotion, which is now
