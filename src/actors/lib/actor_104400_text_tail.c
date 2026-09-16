@@ -1170,7 +1170,52 @@ void Actor04400_Fn07360(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn073C8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07404);
+/// Rebuild the model root's rotation: pitch about X by a sine sway driven by
+/// `field_442`, then turn by the heading `field_7A`, and copy the 3x3 into the
+/// root coordinate. When `field_41E` is 1, latch that pitch into `field_434`,
+/// clear the flag and three motion halfwords, and advance `field_422`.
+/// The same body as `ActorsShared8016a538`, on this overlay's work block; the
+/// `field_442` read is signed even though the field is a `u16`, because the
+/// sway phase turns negative.
+void Actor04400_Fn07404(Task* arg0)
+{
+    Actor104400Work* work;
+    GsCOORDINATE2*   coord;
+    Actor104400Mat   rot;
+    Actor104400Mat*  src;
+    MATRIX*          dst;
+    s16              pitch;
+
+    work               = (Actor104400Work*)arg0->idMap;
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    src                = &rot;
+    src->ident.m00_m01 = 0x1000;
+    src->ident.m02_m10 = 0;
+    src->ident.m11_m12 = 0x1000;
+    src->ident.m20_m21 = 0;
+    src->ident.m22     = 0x1000;
+    pitch              = ((rsin((s16)work->field_442 << 6) * 0x10) >> 7) - 0x400;
+    RotMatrixX(pitch, &src->mat);
+    func_8004BFF8(work->field_7A, &src->mat);
+    dst          = &coord->coord;
+    dst->m[0][0] = src->mat.m[0][0];
+    dst->m[0][1] = src->mat.m[0][1];
+    dst->m[0][2] = src->mat.m[0][2];
+    dst->m[1][0] = src->mat.m[1][0];
+    dst->m[1][1] = src->mat.m[1][1];
+    dst->m[1][2] = src->mat.m[1][2];
+    dst->m[2][0] = src->mat.m[2][0];
+    dst->m[2][1] = src->mat.m[2][1];
+    dst->m[2][2] = src->mat.m[2][2];
+    if (work->field_41E == 1) {
+        work->field_41E = 0;
+        work->field_432 = 0;
+        work->field_428 = 0;
+        work->field_42A = 0;
+        work->field_434 = pitch;
+        work->field_422++;
+    }
+}
 
 void Actor04400_Fn07530(Task* arg0)
 {

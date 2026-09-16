@@ -98679,3 +98679,47 @@ Inputs (source sha256): `base.c`
 `target.s` `9581089644f14ce4a74fcb97edd93f18009b4c1329557ef16c954ffad0ed4427`;
 two builds, no pins, no search. Scratch
 `nonmatchings/Actor04400_Fn08C64-vacuum`.
+
+## The named-`&local` tell can present as `insert`/`delete` and a short frame (Actor04400_Fn07404, 2026-09-16)
+
+`Actor04400_Fn07404` is `ActorsShared8016a538` retyped onto `Actor104400Work`:
+the same 75-instruction body (identity splat, `RotMatrixX` + `func_8004BFF8`,
+copy the 3x3, the `field_41E` latch). Porting that body verbatim matched on the
+second build, and the failed first build is the useful part - the m2c seed's
+statements were already right, so the whole difference was whether `&rot` was
+named:
+
+```c
+    Actor104400Mat   rot;
+    Actor104400Mat*  src;
+    src                = &rot;
+    src->ident.m00_m01 = 0x1000;
+```
+
+The named pointer keeps the frame address live across both calls, so the target
+carries four callee-saved registers (`$s0 = sp + 0x10`, `$s1` coord, `$s2`
+work, `$s3` pitch) and its frame is `0x48`. The seed reached the same
+statements with three, re-materialised `li v0,0x1000` instead of reusing the
+register already holding it, and passed `addiu a1,sp,0x10` where the target
+passes `move a1,s0`.
+
+The same tell that reads as `regs` in the `Actor04400_Fn08C64` entry above
+reads here as `Penalties: stack=0 branch=1 regs=67 reorder=0 insert=2 delete=5`
+at 86.187% with `instructions=75/72`. A *short* instruction count with non-zero
+`insert`/`delete` is the signature, because the missing live value shrinks the
+prologue and epilogue - so read those two against the count before suspecting a
+real structural difference. Here `blocks=3/3 predicates_match=True` was already
+correct, and no pin or search was needed.
+
+One field needed a cast: `field_442` is a `u16` (three other matched functions
+in this unit load it with `lhu`), but this function's sway phase is signed, so
+the source reads `(s16)work->field_442 << 6` to get the `lh`.
+
+Inputs (source sha256): `base.c`
+`5f97a6a16d8c19a6abd7aa7b5e973587ddce43b3a939d1013aa09b7846ef00be` (86.187%),
+`base_1.c` `5d2e39bb95d6fd46c199602b310776db83d4c8582851eab515e69bd1e499ffc0`
+(100.000%, all penalties zero); preprocessed `base_1.i`
+`39249dee6074267a92b50d336ba5b3ea363c21ac6eeef17dfade31618889d8f0`; target
+`target.s` `016397860a40da24b18d26a772e2f513925bbfbef547a3ff335287ba2940559d`;
+two builds, no pins, no search. Scratch
+`nonmatchings/Actor04400_Fn07404-vacuum`.

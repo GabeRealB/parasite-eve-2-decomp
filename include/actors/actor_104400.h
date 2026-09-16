@@ -156,4 +156,10 @@ extern TaskFuncTable3 Actor04400_D00150;   // dispatcher table Actor04400_Fn07CF
 extern TaskFuncTable3 Actor04400_D0015C;   // dispatcher table Actor04400_Fn07D78 copies onto its stack
 extern TaskFuncTable4 Actor04400_D00174;   // dispatcher table Actor04400_Fn07F04 copies onto its stack
 
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
+/// so a negated angle is passed without re-truncation to 16 bits. Same
+/// declaration as `ActorsShared8016a538`, whose body `Actor04400_Fn07404`
+/// repeats on this overlay's work block.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
+
 #endif
