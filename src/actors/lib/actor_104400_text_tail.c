@@ -37,11 +37,12 @@ void Actor04400_Fn087E0(Task* arg0);
 s32  Actor04400_Fn08DBC(Task* arg0);
 void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
 
-extern TaskFuncTable4 Actor04400_D000B0;
-extern TaskFuncTable6 Actor04400_D00004;
-extern TaskFuncTable5 Actor04400_D001C4;
-extern TaskFuncTable7 Actor04400_D001D8;
-extern u32            Gp_LcgState;
+extern TaskFuncTable4  Actor04400_D000B0;
+extern TaskFuncTable6  Actor04400_D00004;
+extern TaskFuncTable10 Actor04400_D0001C;
+extern TaskFuncTable5  Actor04400_D001C4;
+extern TaskFuncTable7  Actor04400_D001D8;
+extern u32             Gp_LcgState;
 
 /// Same body as `ActorsShared80166b20`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
@@ -712,7 +713,15 @@ s16 Actor04400_Fn06618(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06658);
+/// Dispatches this overlay's `Actor04400_D0001C` dispatcher table by `Task::state`.
+/// The body is `func_actor_342400_8016978C`'s, byte for byte.
+void Actor04400_Fn06658(Task* arg0)
+{
+    TaskFuncTable10 sp;
+
+    sp = Actor04400_D0001C;
+    sp.funcs[arg0->state](arg0);
+}
 
 /// Dispatches this overlay's `Actor04400_D00004` dispatcher table by `Task::state`.
 /// The body is `func_actor_341700_8016852C`'s, byte for byte.
