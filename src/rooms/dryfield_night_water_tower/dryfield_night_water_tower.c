@@ -3,5 +3,3 @@
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", func_dryfield_night_water_tower_8017D8E0);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_tower/dryfield_night_water_tower", jtbl_dryfield_night_water_tower_8017D5E8);
