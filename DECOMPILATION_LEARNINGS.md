@@ -60485,6 +60485,37 @@ Two things follow, and both cost a build if missed:
   carrier's own header carries the fuller layout -
   `include/actors/actor_110300.h` against `include/actors/actor_143900.h`).
 
+## A shared name has many carriers, and the brief's "C file" line picks one of them arbitrarily
+
+`tools/decomp_overlay.py find` resolves the host `.c` by symbol *name* alone.
+`find_include_asm_file` walks every `src/**/*.c` and returns the first file with
+an `INCLUDE_ASM(<folder>, <name>)` matching the function - it unpacks the folder
+and then ignores it, so nothing ties the file it returns to the overlay the asm
+path named. In a family where one name has many carriers that is arbitrary.
+
+`ActorsShared80131f9cSub0` has eleven carriers: `actor_110300`, `actor_110800`,
+`actor_143900`, `actor_146300`, `actor_151000`, `actor_202900`, `actor_260400`,
+`actor_260500`, `actor_420700`, `actor_451100` and `actor_535700`. Asked for the
+`actor_110300` copy the tool answered `src/actors/actor_260400/actor_260400.c`
+and the brief printed that file's INCLUDE_ASM site - and 260400's copy is a
+different function, allocating `Mem_Calloc(0x4F8, 0)` where this one allocates
+`0x55C`. Landing the matched body there would have replaced another overlay's
+handler, and the build would still have passed for 260400 only if its own body
+happened to be untouched.
+
+Trust the fields that come from the asm path and cannot be ambiguous: `Unit`,
+`ASM`, `INCLUDE_ASM folder` (`<overlay>/nonmatchings/<unit>`) and `Yaml`. The
+host is `src/<family>/<overlay>/<unit>.c`. Where the name is unique to one
+carrier - the common case - the tool's answer is right.
+
+The same "same name, different function" reading catches a second copy that
+`overlay_dup_index.py find` reports as `~`. `USA/actors/actor_110800`'s copy is
+instruction-for-instruction this body at the same vram address, but its operands
+name `D_actor_110800_80139EC4` / `_80139EDC` / `_80139EF4` at its own data
+offsets against our `D_actor_110300_8013A054` / `_8013A06C` / `_8013A084`, so
+`promote` refuses it - correctly. A `~` pair is a candidate for promotion, not
+an equality: check that the two copies relocate against the same symbols.
+
 ## A stack dispatch table indexed through a pointer needs the pointer in its own local
 
 The stack-built handler table (`ActorsShared80131e24` and friends) usually
