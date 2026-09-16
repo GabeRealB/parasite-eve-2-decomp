@@ -100273,3 +100273,14 @@ arm then carries its own sign-extension, and jump.c's cross-jumping merges only
 the identical `bne`+`sb` tails, which is why retail shows the `sll`/`sra` pair
 twice - the same tail-merge as `func_actor_104900_801356BC` above, one block
 earlier in the pipeline.
+
+**Promotion.** `promote` took this body and the landing rotated nothing. The
+five carriers (101100, 104900, 201100, 204900, 301100) reach it directly, with
+no overlay-local callee in between - unlike 0x80138B5C and 0x80138D58, whose
+promotion stalls on a duplicated callee - and the span `0x72B8-0x736C` ends the
+unit it is cut from: the unit is `[0x7148, 0x736C)` holding 0x...8F68 followed by
+this body, so afterwards it is `[0x7148, 0x72B8)` and the next span (0x736C,
+`actors_shared_8013918c`) already starts the following shared unit. That is why
+the four carriers only need their `INCLUDE_ASM` line removed: a shared span that
+coincides with a unit's tail truncates it, where one in the middle renumbers
+every later unit and moves bodies between files.
