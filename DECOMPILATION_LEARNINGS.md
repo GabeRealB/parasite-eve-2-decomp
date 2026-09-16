@@ -97083,3 +97083,29 @@ setup and the `lw` stays with the call. 99.32% -> 99.97%. The same trick fixed t
 last swap in a hand-written `Actor401300_TransformToView`: create
 `outp = &out` right after `svp = &sv` instead of passing `&out` through a
 second level of inlining.
+
+## A variable shared by two cross-jumped arms is global; give each arm its own (func_actor_401300_80134F90)
+
+**Problem.** Retail picks a sound id in two arms and cross-jumping merges the
+rest: `lui v1; ori v1,8 | ori v1,7`, then `lhu s0; srl s0; sll s0; or s0,s0,v1`
+and pan built in `sll s1,v0; sra s1,s1`. Writing both arms with one `sound`
+and one `pan` variable gets the right branches but builds the shift chain in
+`v0` and ORs it into a separate saved register, which reshuffles every `$sN`.
+
+**Cause.** Calls do not end basic blocks in GCC 2.8.1. A variable set and used
+inside one arm is block-local even though it crosses calls, so local-alloc gives
+it a callee-saved register and ties the shift chain into it. The same variable
+used in *both* arms lives in two blocks, so global-alloc takes it and the chain
+cannot be tied to it.
+
+**Fix.** Declare one variable per arm (`deathSound`/`deathPan`,
+`hitSound`/`hitPan`), as `Actor01900_Fn02A50` does. Folding the arms into
+`if/else` on a constant makes jump turn it into "set the default, then override
+it", and putting the `?:` inside the expression lets commutative reordering load
+the field first. Neither matches.
+
+Same function: an inline helper called twice set its arguments up in the wrong
+order in only one of the two calls (`addiu a2,…,0xad0` before `addiu a1,…,0x38`).
+Swapping the helper's *parameter* order (`FindHit(SVECTOR* pos, GpRec18*
+records)`) fixed it. Inline arguments are bound in parameter order, and the other
+call's order was hidden by scheduling.

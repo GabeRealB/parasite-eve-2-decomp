@@ -291,6 +291,29 @@ typedef struct Actor401300ChaseScratch {
     /* 0xC */ s16     turn;
     /* 0xE */ s16     angle;
 } Actor401300ChaseScratch;
+
+/// 0x54-byte `G_SCRATCH_HEAD` block `func_actor_401300_80134F90` takes while
+/// applying a hit: the model matrix rotated to the hit yaw, the offset to the
+/// player, the knockback direction and hit position, the hit record id and the
+/// derived damage, distance, yaw, critical flag and effect. Same shape as
+/// `Actor01900HitScratch`.
+typedef struct Actor401300HitScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ s32     dx;
+    /* 0x24 */ s32     dy;
+    /* 0x28 */ s32     dz;
+    /* 0x2C */ s32     pad_2C;
+    /* 0x30 */ SVECTOR dir;
+    /* 0x38 */ SVECTOR hitPos;
+    /* 0x40 */ s32     id;
+    /* 0x44 */ s32     damage;
+    /* 0x48 */ s32     dist;
+    /* 0x4C */ s16     yaw;
+    /* 0x4E */ s16     crit;
+    /* 0x50 */ s16     effect;
+    /* 0x52 */ s16     pad_52;
+} Actor401300HitScratch;
+STATIC_ASSERT_SIZEOF(Actor401300HitScratch, 0x54);
 STATIC_ASSERT_SIZEOF(Actor401300AimScratch, 0x10);
 
 /// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013A208` takes: the
