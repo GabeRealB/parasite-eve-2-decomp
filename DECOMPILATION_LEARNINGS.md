@@ -98380,3 +98380,65 @@ Inputs: `base.i` SHA256
 SHA256 `1c02fc6aadb349e25ac5796c3c781c88657c6adbb249ed6266bc2acba6b753b9`;
 two builds (m2c-shaped `base.c` 83.992% `regs=53 insert=8 delete=9`), no pins,
 no permuter. Scratch `nonmatchings/Actor04400_Fn05FC8-vacuum`.
+
+### One variable reused for two *different* constants is one quantity, and it loses `$v0`
+
+`Actor04400_Fn06EEC` (0x6EEC, `actor_104400`) is byte-identical to the matched
+`ActorsShared80168d3c`, so the body ports over - except for one register. m2c
+writes the two `8`s and the `1` as separate literals:
+
+```c
+work2->field_426 = 8;      /* cse merges the two equal 8s into ONE pseudo */
+work2->field_418 = 8;
+work2->field_41C = 0x10;
+work2->field_414 = 1;      /* ...but the 1 gets its own */
+```
+
+which leaves the `8` in `$v0` (`regs` 6, 98.8%). The original reused one scratch
+variable for both values, which is the whole of the difference:
+
+```c
+s16 tmp;
+tmp              = 8;
+work2->field_426 = tmp;
+work2->field_418 = tmp;
+work2->field_41C = 0x10;
+tmp              = 1;
+work2->field_414 = tmp;
+work->field_440  = tmp;
+```
+
+A `reg/v` written twice in the block is **one** quantity: `reg_is_born` only
+clears the pending death (`qty_death[qty] = -1`), it does not start a second
+allocno, so the range runs from the first write to the last read. Both
+consequences push the same way - `(death - birth)` grows, dropping the quantity
+below the short-lived ones in `local_alloc`'s
+`floor_log2(n_refs) * n_refs * size / (death - birth)` sort so it is allocated
+*after* them, and its range now overlaps theirs, so the registers they took are
+still marked. `$v0` and `$v1` are both blocked, the `8` takes `$a1`, and the `1`
+reuses `$a1` after the `8` dies.
+
+cse cannot produce this for you: it merges *equal* constants, and here the values
+differ. So when the only leftover is which register a constant sits in, check
+whether the two literals were really two literals in the original - one scratch
+variable written twice is the commoner shape, and `.lreg`'s
+`used N times across M insns` for that quantity reports the longer span and
+trips it. This is the mirror of "A named index temp can *win* the register
+allocation by shortening a live range".
+
+The router cannot see this shape for you either, and here it failed outright: a
+seed that still does `#include "m2c_macros.h"` gives `permute.sh` (run by
+`tools/vacuum_permute.py` as its setup step) a preprocessing error, because that
+script's include set is `-Iinclude -Iinclude/psyq -I build` with no
+`-I tools/m2c`, which only `build.sh` carries. The router reports it as
+`search finished without a discovery`, which on the console is indistinguishable
+from a search that ran - check `PERMUTER.json`'s per-candidate `status`. Port the
+seed onto real struct access before asking for a search.
+
+Inputs: `base_1.c` SHA256
+`46535fd2411225686b14155652d5779ffcbe7e4ff72b3cf9dcbcad83c65e8bee` (100.000%),
+m2c-shaped `base.c` SHA256
+`75ca5d4905febc470bd39a8f479310a763a1c03045ab7b19748fa2722bec9264` (98.800%
+`regs=6`); target SHA256
+`821920d491fb026d7cc97ee137795df868bfa09baca7979950cddc3801510890`; two builds,
+no pins, no search performed. Scratch `nonmatchings/Actor04400_Fn06EEC-vacuum`.
