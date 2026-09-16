@@ -37,7 +37,11 @@ typedef struct Actor401300Work {
     /* 0x8A2 */ s16   field_8A2;
     /* 0x8A4 */ byte  pad_8A4[2];
     /* 0x8A6 */ s16   field_8A6;
-    /* 0x8A8 */ byte  pad_8A8[0xC8];
+    /* 0x8A8 */ byte  pad_8A8[0xE];
+    /* 0x8B6 */ s16   field_8B6;
+    /* 0x8B8 */ byte  pad_8B8[2];
+    /* 0x8BA */ s16   field_8BA;
+    /* 0x8BC */ byte  pad_8BC[0xB4];
     /* 0x970 */ GpObj field_970;
     /* 0x990 */ byte  pad_990[0x120];
     /* 0xAB0 */ GpObj field_AB0;
