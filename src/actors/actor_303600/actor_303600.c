@@ -18,7 +18,44 @@ INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8016216C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_801622E8);
+/// Fade-out driver: the same eight-byte channel block `func_actor_303600_801623CC`
+/// walks up, walked the other way.  State 0 allocates it and fills all three
+/// channels with 0xFF; a failed allocation kills the task outright.  State 1
+/// draws the overlay tinted `r`/`g`/`r` in mode 1, steps all three channels down
+/// by `Task::spawnArg1` -- the fade rate, not a colour -- and once `r` has gone
+/// below zero clears `D_actor_303600_8016E4C4` before killing the task.
+void func_actor_303600_801622E8(Task* arg0)
+{
+    Actor303600FadeWork* work;
+    Actor303600FadeWork* alloc;
+
+    work = (Actor303600FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor303600FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work         = alloc;
+            work->b      = 0xFF;
+            work->g      = 0xFF;
+            work->r      = 0xFF;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 1);
+            work->r -= (u16)arg0->spawnArg1;
+            work->g -= (u16)arg0->spawnArg1;
+            work->b -= (u16)arg0->spawnArg1;
+            if ((s16)work->r < 0) {
+                D_actor_303600_8016E4C4 = NULL;
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 /// Fade-in driver: state 0 allocates the eight-byte channel block and clears
 /// all three channels; a failed allocation kills the task outright.  State 1

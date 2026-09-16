@@ -94712,3 +94712,44 @@ merge shows up at the same place as the entry above: `.sched2` still has both
 
 Inputs: `base_1.i`
 `2939c045e98d94813eff515ade12f5c7af939d1aa63c86de3df930c9f1133d9a`.
+
+## Equal `insert` and `delete` counts with a matching block/instruction count is
+an operand-width signature, not scheduling (func_actor_303600_801622E8, 2026-09-16)
+
+`func_actor_303600_801622E8` is the fade-out twin of the `func_actor_303600_801623CC`
+entry above, and its m2c seed scored 75.4% with
+
+```
+Penalties: stack=0 branch=0 regs=0 reorder=0 insert=7 delete=7
+Structure: match  blocks=9/9 instructions=57/57 predicates_match=True calls_match=True
+```
+
+Zero register and reorder penalties on a function whose structure, block count
+and instruction count all already match rules out allocation and scheduling
+before you open a dump: nothing is in the wrong register and nothing moved, so
+the seven lines the diff calls inserted and the seven it calls deleted are the
+*same* seven lines. Read `base_diff` directly — it was seven `lbu`/`sb` pairs
+against seven `lhu`/`sh`.
+
+The cause was m2c's field typing, not a GCC decision. m2c had reached the
+channel halfwords as `M2C_FIELD(work, u8*, 2)` / `... u8*, 4`, i.e. every read
+`lbu` and every write `sb`, while the target steps halfwords at 0x2 and 0x4 and
+only the final `lh` sign-extends. The seed's own arithmetic was already right
+(`(s16)((u16)M2C_FIELD(v, u8*, 2) - ...)` reproduces the `sh`), so the whole fix
+is the type.
+
+**The right type was already in the overlay's header.** The twin's match had
+written `Actor303600FadeWork { byte pad_0[2]; u16 r; u16 g; u16 b; }` with a
+`STATIC_ASSERT_SIZEOF(..., 0x8)` and a comment naming this function as the
+other walker of the same block. Porting the twin's body verbatim and swapping
+the three `0xFF` stores' order to b/g/r — which the header's own field order
+makes natural — was 100% on the first build with every penalty zero.
+
+So: when a family has a matched twin, read its *struct* first and treat m2c's
+raw `M2C_FIELD` offsets as anonymous access to fields the twin already names.
+A `u8` where the target has a halfword access is the single most common way an
+m2c seed loses percentage on an otherwise matching shape, and it costs no dump
+reading to spot — the diff shows `lbu`/`sb` against `lhu`/`sh` on the same
+displacements.
+
+Inputs: `base_1.i`
