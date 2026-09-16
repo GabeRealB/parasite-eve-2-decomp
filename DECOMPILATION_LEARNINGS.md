@@ -101094,3 +101094,81 @@ target's `bnez`, at the cost of one load.
 Symptoms to look for: a `sh`/`sb` in one arm using a fresh `li` where the
 matched neighbour uses an existing register, plus a `.lreg` line whose live
 range "crosses N calls" only because a constant was canonicalised into it.
+
+## A switch arm that cannot reach the comparison's constant still shares it through an `SI` local (func_actor_800200_80163B90, 2026-09-16)
+
+**Symptom:** case 0 of `switch (actor->field_960)` writes `actor->field_960 = 1`, and the target stores it
+with the *same* `$v0` the `== 1` test uses, materialised once in the `beqz` delay slot:
+
+```
+beqz   v1, case0
+li     v0, 1
+beq    v1, v0, case1
+...
+case0:
+sh     v0, 0x960(a2)
+```
+
+Written as a literal the arm grows its own `li` (80 instructions against 79, `insert=1`): the arm is
+reached by *following* the `beqz`, the path that skips `[const 1]`, so the narrow constant it stands up
+is the only one in its EBB (see the `switch` + `field = 1` entry above for the cse/EBB mechanics).
+
+**Fix:** borrow the idiom the already-matched `func_8010771C`, `Gp_PlayerMode2StateB` and
+`func_actor_800300_80162F24` use for this shape - an `s32` local that the store subregs:
+
+```c
+    s32 flag;
+    ...
+    case 0:
+        flag             = 1;
+        actor->field_960 = flag;
+```
+
+`.rtl` then holds `(set (mem/s:HI ...) (subreg:HI (reg/v:SI 85) 0))` on a register with
+`REG_EQUIV (const_int 1)` instead of a fresh `(set (reg:HI 86) (const_int 1))`. That register is the one
+the delay slot already carries, so the sharing the target has appears on its own: 92.1% -> 100% with no
+other change and no `li` added anywhere else. Reading the compared field back
+(`= actor->field_960`) also kills the extra `li` but costs a load and flips `predicates_match`; the local
+keeps the constant.
+
+## A switch's shared tail is emitted where its label sits - an earlier case `goto`s into the later case's branch (func_actor_800200_80163B90, 2026-09-16)
+
+**Symptom:** both arms end in `field_D0 = 1; func_...4EC(arg0, 0);`. Written once after the switch (the
+join-point fix recorded above) the instructions are all correct but the block order is not: the tail is
+emitted last, after the `field_CE++` and `func_...5408` blocks, so the branches into it come out mirrored
+(`beq` where the target has `bne`) and the case-0 tail is threaded differently - 92.1% with
+`branch=2 reorder=7 insert=1 delete=1`, every instruction present, 79/79.
+
+**Cause:** a block is emitted where its statements sit, and the target's shared block is not at the
+switch's end - it lies *between* case 1's body and case 1's two inner sub-blocks.
+
+**Fix:** put the label inside case 1's inner then-branch and let case 0 jump to it:
+
+```c
+    case 0:
+        ...
+        if (func_80103DD4(...) < 0x401) {
+            goto arrived;
+        }
+        func_actor_800200_80165534(arg0);
+        return;
+    case 1:
+        ...
+        if (func_80103DD4(...) < 0x201) {
+            if (d4->field_CE == 4) {
+            arrived:
+                d4->field_D0 = 1;
+                func_actor_800200_801654EC(arg0, 0);
+                return;
+            }
+            d4->field_CE++;
+            ...
+        }
+        ...
+```
+
+Two predecessors from the start also make the tail an EBB start, which is what stops cse folding its
+constant into the switch value. Gotos into a nested block are legal C and already used by matched code
+(`src/actors/actor_105100/actor_105100.c`), so a `goto` here is the shape the target wanted. The two
+rules combine: the *position* of the join point decides the layout, and the *cse EBB* it starts decides
+whether its constants stay its own.
