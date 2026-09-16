@@ -8,7 +8,33 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132AD8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132B74);
+/// State handler of the actor's model task: the spawn tick hangs the task's own
+/// coordinate frame off the actor's part `spawnArg1` and steps to state 1, and
+/// every later tick hands that part's world translation, dropped by 0x320 in y,
+/// to `func_800D7A9C` for the part colour matrix.
+void func_actor_461800_80132B74(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->field_8;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_461800_80143898->extra)->field_8;
+    GsCOORDINATE2* part  = parts + task->spawnArg1;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg     = 0;
+            extra->field_C = 0;
+            coord->sub     = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}
 
 /// Ticks animation slots 1..0x13 of the actor's animation context.
 void func_actor_461800_80132C28(void)

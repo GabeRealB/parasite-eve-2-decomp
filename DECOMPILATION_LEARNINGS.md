@@ -91582,3 +91582,70 @@ constant comes back down beside its store, as the target has it.
 Example: `func_actor_204000_801507B4`. Inputs: `base_1.i`
 `1592dd1ea350b581bfe1c56d2633733c510cfbc4bcbc045b1dcb6db99f255a21` (92.588%),
 `base_2.i` `3325da6973b7f0fa42047d3b0863810d90e2d615c26e56ee80c0415215d42d74` (100%).
+
+## A field read twice through one pointer reloads after the store between them; name it before the switch
+
+`func_actor_461800_80132B74` writes two fields of the same coordinate frame and a
+third through the same pointer, and the reference loads that pointer once, in the
+entry block, above the switch:
+
+```
+lw     a0,0x2c(a2)        /* task->extra */
+addu   a3,v1,v0           /* parts + spawnArg1 * 0x50 */
+lw     v0,8(a0)           /* extra->field_8  -- one load, above the branch */
+beqz   a1,Lcase0
+nop
+...
+Lcase0:
+sw     zero,0(v0)         /* coord->flg  */
+sh     zero,0xc(a0)       /* extra->field_C */
+sw     a3,0x4c(v0)        /* coord->sub  -- same register, no reload */
+```
+
+Spelling the same body as two dereferences of the field — `extra->field_8->flg = 0;`
+… `extra->field_8->sub = part;` — reads 93.87% and puts *two* loads in the case
+block, because `sw zero,0(v0)` is a store through the same base and nothing proves
+it cannot alias `extra + 8`. That is CSE doing its job, not a codegen failure, and
+no scheduler knob recovers it: the reference's single load sits above the branch,
+so the front end produced it there. The fix is a named local for each pointer the
+arm reads twice, and — same rule as the `if` case in the previous entry — the
+address arithmetic goes above the switch too, since `base + index * 0x50` is in the
+reference's entry block as well:
+
+```c
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->field_8;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_461800_80143898->extra)->field_8;
+    GsCOORDINATE2* part  = parts + task->spawnArg1;
+
+    switch (task->state) {
+    case 0:
+        coord->flg     = 0;
+        extra->field_C = 0;
+        coord->sub     = part;
+```
+
+The hoist also restores the `beqz` delay slot: with the load demoted into the case
+block, sched2 moves `addu a3,v1,v0` into that slot and the entry block loses its
+`nop`; with the load hoisted there is nothing to fill it. 100% with all penalties
+zero, preprocessed input `base_2.i`. `func_actor_260400_8014A6F8` is the same body
+in another overlay and was matched separately — see the promotion note below.
+
+## `promote`'s overlay-local guard keys on the *unit* prefix, so an overlay-prefixed global slips through
+
+`overlay_dup_index.py promote` refuses a body that reads its own overlay's data by
+testing every reference against `func_<unit>_` / `D_<unit>_` / `jtbl_<unit>_`,
+where `unit` is the *containing unit* (`actor_461800_2`), not the overlay. A
+reference to `D_actor_461800_80143898` — the overlay's own task global, defined in
+that overlay and nowhere else — matches none of those prefixes, so the guard does
+not fire and the promotion would proceed to write the span and the shared symbol
+into every carrier's map. The link is where it then fails, in the overlays that do
+not define the name, after the manifest has already been touched.
+
+`func_actor_461800_80132B74` / `func_actor_260400_8014A6F8` are the worked case:
+byte-equal bodies modulo the link address whose only difference is *which*
+overlay's task global they read (`D_actor_461800_80143898` against
+`D_actor_260400_80154C74`). Two distinct variables, so one shared object cannot
+serve both — matching each copy separately is the correct call, not a pairing.
+Check `build/USA/dup_index.json`'s per-function `refs` before trusting a promote
+run to have refused.
