@@ -782,7 +782,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013B444);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013B784);
+/// Aim the actor at the player and rescale its root coordinate, turning the
+/// stored yaw toward the target by at most 0x28 a frame instead of the hard
+/// clamp `func_actor_401800_80135F58` uses. On the live flag it resets the
+/// model buffers and re-arms the step countdown; otherwise it hands the
+/// player offset and the new yaw to the actor's state body and rebuilds the
+/// matrix at scale 0x1194.
+void func_actor_401800_8013B784(Actor401800* arg0)
+{
+    Actor401800Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor401800AimScratch* aim;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 1;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_898          = 2;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 0x13;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   &= 0xBFFF;
+        func_actor_401800_80133EB8(arg0);
+        func_actor_401800_80133EB8(arg0);
+        work->field_6   = 0;
+        work->field_8B0 = 0;
+        return;
+    }
+    *(Actor401800AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401800AimScratch**)G_SCRATCH_HEAD;
+    aim->angle                                = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    if (work->field_8AE < aim->angle) {
+        if (aim->angle - work->field_8AE >= 0x29) {
+            work->field_8AE = (u16)work->field_8AE + 0x28;
+        } else {
+            work->field_8AE = aim->angle;
+        }
+    } else if (work->field_8AE - aim->angle >= 0x29) {
+        work->field_8AE = (u16)work->field_8AE - 0x28;
+    } else {
+        work->field_8AE = aim->angle;
+    }
+    if (work->field_8AE == aim->angle && func_actor_401800_80133918(arg0) != 1 && work->field_8C2 == 0) {
+        work->field_0 = 0xB;
+    }
+    coord      = arg0->field_2C->field_8;
+    aim->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    work->field_898 = 2;
+    func_actor_401800_80133EB8(arg0);
+    if (work->field_8C2 != 0) {
+        work->field_8C2--;
+    }
+    *(Actor401800AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Tint a freshly spawned effect model from the enemy's area record. Same body
 /// as `Actor401300_TintEffect`, inlined at each of the four spawn sites below.

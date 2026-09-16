@@ -103391,3 +103391,45 @@ itself, used by `8013945C` with the constant `-0x57`). Compiling `8013945C` agai
 body breaks `80139118` instead, which is the mirror image. The zero-amount guard is *not* part
 of that difference: dropping `if (amount != 0)` from the helper still matches 100%, because a
 constant `amount` folds the branch away either way.
+
+## A chain whose arms all end in the same statement: m2c's reversed test is the polarity to write (func_actor_401800_8013B784, 2026-09-16)
+
+`func_actor_401800_8013B784` turns its stored yaw toward the target yaw by at most
+`0x28` a frame, and both arms of the step write the same `work->field_8AE = aim->angle`
+when the gap is under `0x29`. The target branches *both* arms forward to one shared
+store, each arm carrying its own step store in the delay slot of its `j`:
+
+```asm
+bnez v0,1d0          /* arm 1: gap < 0x29 -> the shared store */
+addiu v0,a1,0x28
+j    END
+sh   v0,0x8ae(s3)    /* step store, arm 1 */
+subu v0,a0,v1        /* arm 2 */
+slti v0,v0,0x29
+bnez v0,1d0          /* the same shared store */
+addiu v0,a1,-0x28
+j    END
+sh   v0,0x8ae(s3)    /* step store, arm 2 */
+sh   a2,0x8ae(s3)    /* 1d0: the shared store both arms jump to */
+END:
+```
+
+The natural spelling - `if (gap < 0x29) { x = angle; } else { x = step; }` in both
+arms - compiles to a *different* block layout: GCC keeps the second arm's then-block
+where it is and fills the `j` delay slot with it, giving `beqz` on arm 2 and a merged
+`{j END; sh angle}` block instead of the shared `sh angle`. That is 99.07% with
+`branch=1 insert=1 delete=1` and every other instruction identical, which reads as a
+scheduling problem and is not one.
+
+Writing the test the other way - `if (gap >= 0x29) { x = step; } else { x = angle; }`,
+the step as the then-branch - puts both `bnez` targets on one shared block and matches
+100% with no other change. That is the polarity m2c reconstructs from the target CFG:
+when a run of arms shares a trailing statement, m2c hands back the shared label with the
+test reversed (`>= 0x29` then `else goto shared`), and its shape is the source shape, not
+an artefact to tidy away. The tell is two `bnez`/`beqz` in the target naming the *same*
+label; if your build reaches that block from one arm only, flip the test.
+
+The step arithmetic also needs its own unsigned read: the field is `s16`, and the target
+loads it `lh` for the comparison and `lhu` for the `+-0x28`. One `s16` declaration gives
+both if the step is written `(u16)work->field_8AE + 0x28` (same splitting as the
+`field_C04` entry above), which is why the arm's two loads differ in signedness.

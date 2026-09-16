@@ -52,15 +52,20 @@ typedef struct Actor401800Work {
     /// `func_800FDB18` argument record: the coordinate handed to it plus the
     /// effect scale / count pair. Same slot `Actor01900Work.field_8B8` keeps.
     /* 0x8B8 */ GpEffArg field_8B8;
-    /* 0x8C0 */ byte     pad_8C0[8];
-    /* 0x8C8 */ GpObj    field_8C8;
-    /* 0x8E8 */ GpRec18  field_8E8;
-    /* 0x900 */ byte     pad_900[0x108];
-    /* 0xA08 */ GpObj    field_A08;
-    /* 0xA28 */ GpRec18  field_A28;
-    /* 0xA40 */ byte     pad_A40[0x108];
-    /* 0xB48 */ GpObj    field_B48;
-    /* 0xB68 */ byte     pad_B68[0x9C];
+    /* 0x8C0 */ byte     pad_8C0[2];
+    /// Frame counter the aim-and-rescale body decrements once per frame while
+    /// it is non-zero. Same role `Actor01900Work.field_C37` plays in the
+    /// matching chase body.
+    /* 0x8C2 */ u8      field_8C2;
+    /* 0x8C3 */ byte    pad_8C3[5];
+    /* 0x8C8 */ GpObj   field_8C8;
+    /* 0x8E8 */ GpRec18 field_8E8;
+    /* 0x900 */ byte    pad_900[0x108];
+    /* 0xA08 */ GpObj   field_A08;
+    /* 0xA28 */ GpRec18 field_A28;
+    /* 0xA40 */ byte    pad_A40[0x108];
+    /* 0xB48 */ GpObj   field_B48;
+    /* 0xB68 */ byte    pad_B68[0x9C];
     /// Step the actor walks along its local Z axis: `func_actor_401800_80139118`
     /// seeds it with -0x78, hands it to the step helper while the 0x10 clip is
     /// playing, and halves it each time the `field_A28` contact test fires.
