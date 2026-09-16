@@ -101800,3 +101800,50 @@ also needs the scratch allocator's intermediate pointer pinned
 (`register u8* tmp asm("a0")`, as in its matched gameplay twin
 `Gp_PlayerMode2State4`): unpinned, local-alloc coalesces `tmp` into the
 call-saved `block` it feeds, losing the `move $s1,$a0` the target has.
+
+## A sibling whose *assembly* is instruction-identical can still hide the answer in its C: the `register asm()` pin (func_actor_800200_80164EBC, 2026-09-16)
+
+`func_actor_800200_80164EBC` is `Gp_PlayerMode2State4` with three constants
+changed, and the clean-room rewrite of it reached 95.49% on the first build --
+`regs=19` plus a `branch=4` that traced back to a single register. In the
+`case 2` distance test the target reads
+
+```
+lw  $v0, 0x18($s3)      ; coord->coord.t[0]
+lw  $v1, 0x20($s0)      ; actor->field_20
+subu $v0, $v0, $v1
+bgez $v0, .L54
+nop                     ; <- reorg leaves this slot empty
+negu $v0, $v0
+.L54: slti $v0, $v0, 0x69
+```
+
+while the rewrite put the same value in `$v1`. That one register choice is the
+whole 4.5%: with `$v1` the branch tests `$v1` and the `slti` writes `$v0`, so
+reorg finds no conflict and duplicates the `slti` into the `bgez` delay slot,
+redirecting the branch past the original -- two extra instructions, and the jump
+addresses downstream (`j .text+204` vs `.text+208`) then differ. A second
+symptom, a bare-constant store coming out `sb $4,0x973($s0)` where the target
+has `li $v0,1; sb $v0,0x973($s0)`, is the same cause: CSE had substituted the
+`li a0,1` constant pseudo for the `1`, so the store no longer needed `$v0` at all.
+
+The sibling `Gp_PlayerMode2State4` in `src/gameplay/3FB8.c` is matched, and its
+emitted `case 2` is instruction-identical to this target -- so its **source** is
+the reference, not its assembly. Its declaration list carries
+
+```c
+register u8*       tmp asm("a0");
+register s32       dx  asm("v0");   /* <- invisible in the .s */
+```
+
+`dx` is the leftover live range, and the pin is what puts it in `$v0`. Adopting
+both pins took the next build to 100.00% with every penalty zero.
+
+Two things generalise. First, `similar`/the BRIEF's sibling list is scored on
+assembly; when a sibling's assembly matches your target but your build's registers
+do not, the missing piece is often a `register T x asm("r")` declaration that the
+*asm cannot show you* -- diff the sibling's C, and check for pins before reaching
+for a new hypothesis. Second, an unpinned attempt is what makes the pin
+legitimate: the same function's `dx` and `tmp` both came out correct by copying
+the sibling's pins only after 95.49% had demonstrated that the prologue, switch
+and control flow were already exact and the register was the sole leftover.
