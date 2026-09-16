@@ -4,7 +4,7 @@
 #include "actors/actors_shared_80134934.h"
 #include "actors/actors_shared_8013bbe4.h"
 
-void      Gp_UpdateCoord(Actor521100Coord* arg0);
+void      Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void      func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
 void      func_actor_521100_80134C38(Actor521100* arg0);
 void      func_actor_521100_80134D88(Actor521100* arg0);
@@ -33,7 +33,7 @@ void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1)
 
 void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1)
 {
-    Actor521100Coord* temp_s2;
+    GsCOORDINATE2*    temp_s2;
     Actor521100Obj2C* temp_a1;
     Actor521100Work*  temp_s1;
     s32               state;
@@ -84,8 +84,8 @@ default_body:
     if (temp_s1->field_680 != 0) {
         func_actor_521100_80135024(arg1);
     }
-    temp_s2->field_0                  = 0;
-    arg1->field_2C->field_8->field_50 = 0;
+    temp_s2->flg                   = 0;
+    arg1->field_2C->field_8[1].flg = 0;
     Gp_UpdateCoord(temp_s2);
 case1:
     ActorsShared80134934((ActorShared80134934*)arg1);
