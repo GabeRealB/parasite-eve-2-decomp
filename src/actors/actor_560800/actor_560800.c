@@ -610,7 +610,82 @@ void func_actor_560800_80132F64(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133204);
+void func_actor_560800_80133204(void)
+{
+    Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    Task*            task;
+    VECTOR           pos;
+
+    task = work->field_4;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    task = work->field_8;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    task = work->field_10;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    task = work->field_14;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    task = work->field_18;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    task = work->field_C;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    task = work->field_1C;
+    if (task != NULL) {
+        TmdObject* obj = task->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+    if (work->field_20 != NULL) {
+        Actor560800Work* w = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+
+        ((SVECTOR*)&pos)->vy = 0;
+        Gp_DispatchMsg(w->field_20, 0x7DB, (s32)&pos, 0);
+    }
+}
 
 void func_actor_560800_80133540(u32 arg0)
 {
