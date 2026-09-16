@@ -90491,3 +90491,43 @@ eff = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_2
 ```
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+## m2c's comma-assignment for a read-modify-write lvalue splits the symbol's address into two `high` pseudos (func_neo_ark_power_plant_1_8017D5EC, 2026-09-16)
+
+m2c renders a decrement-and-test on a global as an `&&` carrying an embedded
+assignment:
+
+    temp_v0 = D - 1;
+    if ((D != 0) && (D = temp_v0, (temp_v0 == 0))) { ... }
+
+`temp_v0` becomes a user variable (`reg/v` in `.lreg`) that never coalesces with
+the value the load produced, and - the expensive half - the `D = 4` store this
+sits beside keeps its own `(high (symbol_ref))` pseudo instead of sharing the
+one the load uses. Two `jal`s lie between the store's address and the load's,
+and each clobbers `$a0`/`$v0`/`$v1`, so cse cannot carry the first constant
+register into the load's block and mints a second one. Both survive into
+`.sched2`, and the delay-slot filler replicates each into every branch that
+reaches the load: the `.s` then carries three copies of the load block's `high`
+(in the three branch delay slots) **plus** a fourth, in the other register, in
+the store block, where the target has only the three.
+
+Symptom at 98.708%: `stack=0 branch=6 regs=8 reorder=0 insert=1`, the insert
+being one extra `lui $a0,%hi(D_...)`, and the load block reading its address
+from a different register (`$a0`) than the store block (`$v1`).
+
+Fix - write the lvalue update as one expression, so the address is a single
+pseudo the filler can replicate for every edge:
+
+    if (D != 0) {
+        if (--D == 0) { ... }
+    }
+
+That leaves one `# 215 high` replicated three times, all in `$v1`, shared by the
+store in the fall-through block and the load in the branch target; the `addiu`
+also coalesces onto the loaded `$v0` rather than a fresh `$v1`. One build, 100%.
+Inputs: `base_1.i`
+`cee2a9763458af926a1dcb04c774561afa032a1177903b2dcbe68c2f9421cca6`.
+
+Generalisable: where a symbol's address is used in two blocks separated by a
+call, m2c's re-assignment through a temp is what keeps the two `high`s apart.
+Reach for the single-expression form even when the temp form looks equivalent -
+the register penalties it leaves are not a scheduling problem.
