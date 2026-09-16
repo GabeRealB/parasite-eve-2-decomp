@@ -491,6 +491,11 @@ extern u32 Gp_LcgState;
 extern s16 D_actor_110600_8014865C;
 s32        func_actor_110600_80138900(void);
 
+/// Recoil push stage `func_actor_110600_80137AF4` indexes for the speed it
+/// moves the actor by, and bumps once that push has landed. Reset to 0 first,
+/// so the push only starts on the frame a live actor arrives.
+extern s16 D_actor_110600_80148688;
+
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
 /// `field_54` slot, clear the screen shake, then `Gp_DestroyEnemy`.

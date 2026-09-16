@@ -1306,7 +1306,74 @@ void func_actor_110600_80137980(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80137AF4);
+/// Stage-driven recoil push, one stage per tick. On a live actor it clears the
+/// model's flags, drops bit 0x8000 of `field_A90.flags` and sets 0x4000 of
+/// `field_950.flags`, tags the enemy's link node and restarts the stage at 0.
+/// The push takes column 0 of the model root coordinate, normalises it out of
+/// place and scales it by the stage — 0x320, -0x3E8, 0x190, -0x190, 0xC8,
+/// through the GTE's interpolation register. Only the X and Z components are
+/// added to the coordinate's translation, and the coordinate is marked dirty so
+/// the tree is recomputed. Stage 5 pushes nothing: it moves the actor to state
+/// 3 and leaves the counter parked.
+void func_actor_110600_80137AF4(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    TmdObject*       obj;
+    GpEnemy*         enemy;
+    SVECTOR          vec;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C            = 0;
+        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags   = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4     = 8;
+        D_actor_110600_80148688 = 0;
+    }
+    Gfx_MatrixCol0(&arg0->field_2C->field_8->coord, &vec);
+    VectorNormalSS(&vec, &vec);
+    switch (D_actor_110600_80148688) {
+        case 0:
+            gte_lddp(0x320);
+            gte_ldsv(&vec);
+            gte_gpf12_real();
+            gte_stsv(&vec);
+            break;
+        case 1:
+            gte_lddp(-0x3E8);
+            gte_ldsv(&vec);
+            gte_gpf12_real();
+            gte_stsv(&vec);
+            break;
+        case 2:
+            gte_lddp(0x190);
+            gte_ldsv(&vec);
+            gte_gpf12_real();
+            gte_stsv(&vec);
+            break;
+        case 3:
+            gte_lddp(-0x190);
+            gte_ldsv(&vec);
+            gte_gpf12_real();
+            gte_stsv(&vec);
+            break;
+        case 4:
+            gte_lddp(0xC8);
+            gte_ldsv(&vec);
+            gte_gpf12_real();
+            gte_stsv(&vec);
+            break;
+        case 5:
+            work->field_0 = 3;
+            return;
+    }
+    arg0->field_2C->field_8->coord.t[0] += vec.vx;
+    arg0->field_2C->field_8->coord.t[2] += vec.vz;
+    D_actor_110600_80148688++;
+    arg0->field_2C->field_8->flg = 0;
+}
 
 /// Death stage machine, entering on a live actor: take the model out of draw,
 /// drop bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
