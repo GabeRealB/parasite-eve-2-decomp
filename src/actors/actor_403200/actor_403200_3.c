@@ -16,6 +16,11 @@
 /// the retail build used. Same form as `src/actors/actor_444000/actor_444000_5.c`.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+/// `MVMVA` with `sf = 1` reading the rotation matrix and V0 -- the operation
+/// `gte_RotTrans` performs -- spelled with the COP2 prefix the retail build
+/// used. Same form as `include/actors/actor_444000_view.h`.
+#define gte_rt_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+
 extern MATRIX* D_80073B8C;
 /// Global freeze flag: 1 while the game is halted, which stops the per-frame
 /// body below from walking its model out.
@@ -23,6 +28,11 @@ extern u8 D_80072729;
 /// The script pair the per-frame body's two one-shot sound cues spawn.
 extern s32 D_actor_403200_80141C5C;
 extern s32 D_actor_403200_80141C64;
+/// Non-zero while the overlay is shutting down, which is what makes the spawn
+/// state below tear its enemy down instead of standing it up.
+extern s16 D_actor_403200_80141C50;
+/// LCG state the spawn state below rolls a random yaw out of.
+extern u32 Gp_LcgState;
 
 /// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
 /// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
@@ -360,7 +370,139 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801364F4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_8013669C);
+/// World position of `coord` as seen from `Gfx_ViewCoord`: `out` starts as the
+/// point in `coord`'s own space and is walked up the coordinate hierarchy, one
+/// `gte_rt` per level, until the view coordinate is reached. A hierarchy that
+/// does not end at the view coordinate leaves `out` untouched.
+static __inline__ void Actor403200_LocalToView(GsCOORDINATE2* coord, SVECTOR* out)
+{
+    SVECTOR acc;
+    VECTOR  v;
+    s32     flag;
+
+    acc.vx = out->vx;
+    acc.vy = out->vy;
+    acc.vz = out->vz;
+
+    for (;;) {
+        if (coord->sub == NULL) {
+            return;
+        }
+        if (coord != &Gfx_ViewCoord) {
+            gte_SetTransMatrix(&coord->coord);
+            gte_SetRotMatrix(&coord->coord);
+            gte_ldv0(&acc);
+            gte_rt_real();
+            gte_stlvnl(&v);
+            gte_stflg(&flag);
+            acc.vx = v.vx;
+            acc.vy = v.vy;
+            acc.vz = v.vz;
+            coord  = coord->sub;
+        } else {
+            out->vx = acc.vx;
+            out->vy = acc.vy;
+            out->vz = acc.vz;
+            return;
+        }
+    }
+}
+
+/// Link one of the work block's display nodes: it hangs off the model's own
+/// coordinate, carries `rec` as its collision-record table and sits at `pos`
+/// in that coordinate's space with `field1C` as its extent.
+static __inline__ void Actor403200_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj, GpRec18* rec,
+                                               SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
+{
+    obj->field_8  = coord;
+    obj->field_C  = rec;
+    obj->field_10 = pos->vx;
+    obj->field_12 = pos->vy;
+    obj->field_14 = pos->vz;
+    obj->field_1C = field1C;
+    obj->flags    = 1;
+    Gp_LinkObj(prio, obj);
+    Gp_InitRec18Table(obj->field_C, kind, 0);
+}
+
+/// Spawn state of this enemy: allocate the work block, drop the model onto the
+/// floor of the view coordinate and hang the two display nodes off it.
+///
+/// The model is reparented to `Gfx_ViewCoord` and its translation replaced by
+/// the world position of part 3 of the owning enemy's model, so the body starts
+/// where that part is. `field_1AA` is a ninth of that height and `vel` the
+/// horizontal gap to the player, which the later states spend a fifteenth at a
+/// time. The landing cue is enqueued at the model's own pan and depth with the
+/// owner's id in its high half, the model is spun to a random yaw, and the two
+/// nodes are linked with their collision-record tables before the task's colour
+/// and light matrices are pointed into the work block.
+void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
+{
+    Actor403200GrabWork* work;
+    GpEnemy*             owner;
+    Task*                player;
+    SVECTOR              vec;
+    s32                  sfx;
+    s32                  pan;
+
+    owner  = task->parent->spawnArg2;
+    player = Game_GetPtrSlot(3);
+
+    if (D_actor_403200_80141C50 == 1 ||
+        (work = Mem_Calloc(sizeof(Actor403200GrabWork), false), task->idMap = (TaskIdMap*)work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+
+    ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->field_C      = 0;
+
+    vec.vx = vec.vy = vec.vz = 0;
+    Actor403200_LocalToView(&((TmdObject*)owner->task->extra)->field_8[3], &vec);
+
+    ((TmdObject*)task->extra)->field_8->coord.t[0] = vec.vx;
+    ((TmdObject*)task->extra)->field_8->coord.t[1] = vec.vy;
+    ((TmdObject*)task->extra)->field_8->coord.t[2] = vec.vz;
+    ((TmdObject*)task->extra)->field_8->flg        = 0;
+
+    work->field_1AA = ((TmdObject*)task->extra)->field_8->coord.t[1] / 9;
+    work->vel.vx =
+        ((TmdObject*)player->extra)->field_8->coord.t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
+    work->vel.vy = 0;
+    work->vel.vz =
+        ((TmdObject*)player->extra)->field_8->coord.t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
+    work->field_1AC = 0;
+    task->state++;
+
+    sfx = ((owner->field_8 >> 0xC) << 8) | 0x4020000B;
+    pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+    SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+
+    vec.vx = vec.vy = vec.vz = 0;
+
+    Actor403200_LinkWorkObj(((TmdObject*)task->extra)->field_8, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
+
+    work->obj1.field_8  = ((TmdObject*)task->extra)->field_8;
+    work->obj1.field_C  = &work->rec1;
+    work->obj1.field_10 = 0;
+    work->obj1.field_12 = 0;
+    work->obj1.field_14 = 0;
+    work->obj1.field_18 = 0x3000A;
+    work->obj1.field_1C = 0x100;
+    work->obj1.flags    = 1;
+    Gp_LinkObj(2, &work->obj1);
+
+    work->obj0.flags |= 0x8000;
+    Gp_InitRec18Table(work->obj1.field_C, 3, 0);
+    work->obj1.flags   |= 0x4000;
+    work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 5);
+
+    ((TmdObject*)task->extra)->field_1C = &work->lightMtx;
+    ((TmdObject*)task->extra)->field_20 = &work->colorMtx;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80136ACC);
 

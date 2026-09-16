@@ -1450,6 +1450,39 @@ expression at each use site rather than reaching for a pin or a
 `SOFT_USE_REG`. This is the same CSE invalidation as "A store to a neighbouring
 field kills CSE's memory equivalence", seen from the other side: there a store
 had to sit *between* two reads, here the reads must not be merged into one.
+
+## Caching a *pointer* field in a local costs a callee-saved register, so it re-registers the whole function
+
+The same inline-the-expression rule applies when the cached value is a pointer
+that later loads go through, and there the damage is not just the reload count.
+`func_actor_403200_8013669C` is written like its matched sibling
+`func_actor_444000_80138B94`, which dereferences `task->extra->field_8` at each
+of about fourteen use sites. Caching the head of that chain in a local:
+
+```c
+TmdObject* extra = task->extra;
+extra->field_8->sub = &Gfx_ViewCoord;
+```
+
+scored 85.59% with `stack=0 branch=2 regs=60 reorder=6 insert=6 delete=26`,
+248 instructions against the target's 268. Writing `((TmdObject*)task->extra)`
+at every use site instead scored 100.000% with every penalty zero and 268/268.
+
+**Cause.** Two effects, and the second is the expensive one. The local is a
+quantity live from its definition to the end of the function, so it has to sit
+in a callee-saved register — it took `$s4` — and the target instead reloads
+`lw $v0, 0x2c($s4); nop; lw $v1, 8($v0)` before each use (the `nop` is the
+assembler filling the load-delay hazard). Twenty of the missing instructions
+are those reloads, which is the `delete=26`. But because `$s4` was already the
+target's home for the `task` parameter, the local displaced it: the prologue
+saved `s1` first and put `enemy` there, `task` moved to `$s0`, and every later
+`regs`/`reorder` difference followed from that one substitution.
+
+**Reading it.** A `regs` penalty in the dozens with an instruction *count*
+shortfall is worth reading as "one too few live ranges, one too many", not as
+an allocation tie to break. An extra callee-saved long-lived local is the usual
+cause: find the value the target keeps reloading and inline its memory
+expression, before trying to steer the allocation itself.
 ## Pure in-block order is a chain-order symptom: move the statement, never split it
 
 `func_actor_102400_80134DB4` scored 95.938% with `regs=4 reorder=4` and block

@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 
 typedef struct Actor403200Obj Actor403200Obj;
@@ -126,6 +127,39 @@ typedef struct Actor403200Work {
     /* 0xF1D */ byte pad_F1D[0x7];
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
+
+/// Work block of the enemy `func_actor_403200_8013669C` stands up: that state
+/// allocates it with `Mem_Calloc(0x1C0, 0)` and parks it in its task's
+/// `Task::idMap` slot, so the size below is the allocation, not a guess.
+///
+/// The state drops the model onto the view coordinate and hangs two `GpObj`
+/// display nodes off it. `rec0` is the table the first node carries, `rec1`
+/// the second's; the two matrices are handed back out through the task's
+/// `TmdObject::field_1C` / `field_20`, as the sibling spawn states do.
+/// `field_1AA` is a ninth of the model's height and `field_1AC` the step
+/// counter, both re-read by the states that follow this one.
+typedef struct Actor403200GrabWork {
+    /// Horizontal gap to the player, a fifteenth of which the later states add
+    /// to the model each step; only `vx` and `vz` are filled in here.
+    /* 0x000 */ VECTOR3 vel;
+    /* 0x00C */ byte    pad_C[0xA4];
+    /// The two display nodes, linked with `prio` 3 and 2.
+    /* 0x0B0 */ GpObj obj0;
+    /* 0x0D0 */ GpObj obj1;
+    /// Their collision-record tables.
+    /* 0x0F0 */ GpRec18 rec0;
+    /* 0x108 */ GpRec18 rec1;
+    /* 0x120 */ byte    pad_120[0x30];
+    /// The colour and light matrices: `field_1C` of the task's `TmdObject` is
+    /// handed `lightMtx` and `field_20` `colorMtx`.
+    /* 0x150 */ MATRIX colorMtx;
+    /* 0x170 */ MATRIX lightMtx;
+    /* 0x190 */ byte   pad_190[0x1A];
+    /* 0x1AA */ s16    field_1AA;
+    /* 0x1AC */ s16    field_1AC;
+    /* 0x1AE */ byte   pad_1AE[0x12];
+} Actor403200GrabWork;
+STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 
 s16 func_actor_403200_801344C4(Actor403200Obj* arg0, s16 arg1);
 
