@@ -110252,3 +110252,77 @@ Inputs: `base_6.i` (97.58%) SHA256
 SHA256 `473fe51cfcf0052fd935787ed67443fdeacb8eac1c1c42e599797e282ff089dc`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80135A18-vacuum`.
+
+## Writing the call in both arms of an `if`/`else` also breaks the cse jump-equivalence a *later* identical test would otherwise reuse (func_actor_110600_80137684, 2026-09-16)
+
+`func_actor_110600_80137684` tests `field_892` against `0x16` twice, the second
+time after a `jal`. The m2c-shaped single-call seed scores 80.8% with a frame one
+word too big: `$s2` is saved and restored, and the second test compares the
+reloaded field with the *register holding the first load* instead of a fresh
+`li v0,0x16`.
+
+That shape is `cse`: `record_jump_equiv` on the fall-through of the first `bne`
+records `reg == 0x16` (`record_jump_cond` merges the loaded register into the
+constant's equivalence class), so the later identical test in the same extended
+basic block gets the register as its source. The register must then stay live
+across the `jal`, and `global.c` hands a value live across a call a callee-saved
+home. `fold_rtx` shows it directly in the dumps: the compare's second operand is
+`(reg:SI 98)` at `.cse` where `.jump` still had `(reg:SI 123)` = the constant.
+
+Writing the call out in each arm — with its own constant — fixes it and takes
+the function to 96.08% in one build:
+
+```c
+if (((rng >> 16) & 0xF) < 0xA) {
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x32, 0);
+} else {
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x78, 0);
+}
+```
+
+Two effects, both wanted here. `jump.c`'s cross-jumping merges the two call
+bodies into one `jal` (see "A cross-jumped call block also decides the address's
+register"), and the merged block is reached by a `j` *and* a fall-through, so the
+join is a two-predecessor label — the extended basic block ends there and the
+recorded equivalence is gone. The reload compares against `li v0,0x16` and no
+`$s2` is needed. The duplicated `lw $v0,0x2c($s1)` in each arm of the target is
+the other tell of the two-call source.
+
+## A pointer bound to a local *before* the block's other statements is what puts its load in `$a0` in slot 2 (func_actor_110600_80137684, 2026-09-16)
+
+Same function, after the cross-jump fix: `lw $v1,0x20($s1)` sat immediately
+before its store, one instruction late (a load-delay `nop` above it, every
+forward branch 4 bytes out, 96.08%). The target has `lw $a0,0x20($s1)` second in
+the block, filling the load-delay slot of the `field_2C` load, with the store
+still at its source position.
+
+`local-alloc.c`'s `find_free_reg` ORs `regs_live_at[ins]` over the whole
+`[birth, death)` interval and then takes the first register in numeric order that
+is free — so where the quantity is *born* decides its home. Binding the pointer
+at the top of the `if` block, ahead of the statements that use `$v0` / `$v1`:
+
+```c
+if (work->field_4 != 0) {
+    enemy                   = arg0->field_20;   /* born here */
+    arg0->field_2C->field_C = 0;
+    work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
+    ...
+    enemy->node.field_4     = 1;                /* store still late */
+```
+
+makes the load's interval cover the flag halfwords, where the object load marks
+`$v0` and the `andi` chain marks `$v1`; the scan skips both and takes `$a0`, and
+`sched1` then hoists the load into the load-delay slot. Bind the local at its use
+instead and the interval excludes the flag block, `$v1` is free in that window
+and wins — which costs an instruction, because the scheduler cannot hoist the
+load back over the `lhu $v1` chain. 100% once the binding moves.
+
+So: `lw $a0` as the second instruction of a block means the source bound that
+pointer to a local before the intervening statements, not at its use — the load
+position and the register are the same decision.
+
+Inputs: `base_3.i` (100%) SHA256
+`3fc71084412daadf07ac462b5b4f6ce98462dbb464b4366e9c4f243076d4e3e9`; target.o
+SHA256 `14a6e22ec8603a58a683f5e0f5645d287dd1f153a7cc710df569814f05aad82d`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80137684-vacuum`.

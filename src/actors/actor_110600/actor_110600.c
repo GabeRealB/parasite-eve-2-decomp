@@ -508,7 +508,57 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801372CC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80137684);
+/// The turn-away stage, the pick-up twin of the `field_892` == 0x16 leg of
+/// `func_actor_110600_80136888`: entering on a live actor clears the model
+/// object, takes 0x8000 off `field_A90.flags` and 0x4000 off
+/// `field_950.flags`, tags the enemy's link node with 1 and parks the timer at
+/// `field_896` = 0x20 with `field_88C` re-armed, `field_B82` / `field_8A4` /
+/// `field_8A2` cleared. Every tick after that steps the shared handler and, at
+/// 0x16, rolls `Gp_LcgState` and turns the model's root coordinate by the yaw
+/// the roll's low nibble picks — 0x32 while it is under 0xA, -0x78 past it —
+/// clearing the coordinate's `flg`. Once `field_894` has run up to 0x1F the
+/// stage drops the timer to 0x10, re-arms `field_88C` and steps to 0x21, where
+/// the `field_5C` bit 0 the actor sets walks it on to state 0xC.
+void func_actor_110600_80137684(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    u32              rng;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy                   = arg0->field_20;
+        arg0->field_2C->field_C = 0;
+        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags   = (u16)(work->field_950.flags & 0xBFFF);
+        enemy->node.field_4     = 1;
+        work->field_896         = 0x20;
+        work->field_88C         = 1;
+        work->field_B82         = 0;
+        work->field_8A4         = 0;
+        work->field_8A2         = 0;
+        work->field_892         = 0x16;
+    }
+    func_actor_110600_80134728(arg0);
+    if (work->field_892 == 0x16) {
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rng;
+        if (((rng >> 16) & 0xF) < 0xA) {
+            Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x32, 0);
+        } else {
+            Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x78, 0);
+        }
+        arg0->field_2C->field_8->flg = 0;
+        if ((work->field_892 == 0x16) && (work->field_894 >= 0x1F)) {
+            work->field_896 = 0x10;
+            work->field_88C = 1;
+            work->field_892 = 0x21;
+        }
+    }
+    if ((work->field_892 == 0x21) && (work->field_5C & 1)) {
+        work->field_0 = 0xC;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801377FC);
 
