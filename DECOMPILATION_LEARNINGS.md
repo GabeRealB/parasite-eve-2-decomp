@@ -98326,3 +98326,57 @@ Inputs: `base.i` SHA256
 SHA256 `97545fc1f3d5ed5413b6934ad9fdc0d58a8b6f351baa496d9194ec270265632a`;
 two builds (mid-quilt `base.c` 59.762%), no pins, no permuter. Scratch
 `nonmatchings/Actor04400_Fn06A78-vacuum`.
+
+## m2c passes a copied dispatch table's base register as a second argument
+
+The struct-assignment local jump table (entry [Local jump table via struct
+assignment of function pointers]) has a second m2c artefact, distinct from the
+outgoing-stack-slot one above: m2c reads the **base register of the indexed
+load** as an argument of the indirect call.
+
+```
+lui   v0, %hi(Actor04400_D001D8)
+addiu t3, v0, %lo(Actor04400_D001D8)
+...
+addiu v0, zero, 1
+beq   v1, v0, L060D8
+      addiu a1, sp, 0x18        # <- the table's base address, in the delay slot
+...
+addu  v1, a1, v1                # &sp.funcs + field_420*4
+lw    v0, 0(v1)
+jalr  v0
+      addu a0, s1, zero
+```
+
+comes out as `(&sp18)[temp_s0->unk420](arg0, &sp18)`. The register is not an
+argument — it is the addressing base the compiler happens to have left live
+across the switch, and a matched sibling's one-argument call reproduces it
+exactly:
+
+```c
+    sp.funcs[(s16)work->field_420](arg0);
+```
+
+which register holds it is decided by the object's live range, not by the
+source. `Actor04400_Fn05DE0` and `Actor04400_Fn05FC8` are the same body
+(`field_C |= 0x80` in mode 2, mode 0's count / handler / every-32-frames effect
+/ `coord->flg = 0`, mode 1's inline `Gp_UpdateActorColor` push and part-pair
+rebuild), differing **only** in that `Fn05DE0` clears `obj->field_C &= ~0x80`
+on the mode-1 exit and `Fn05FC8` does not. That one statement keeps `obj` live
+through mode 1's calls, so `Fn05DE0` holds it in `$s2` and the table base lands
+in `$a0`; `Fn05FC8`'s `obj` dies at mode 2's store, stays in `$a0`, and the
+table base moves to `$a1`. Both are correct — do not chase the base register,
+and do not add a pin for it; change which modes reference the object.
+
+Transcribing the sibling wholesale is the fast path for this family: the body
+recurs as `func_actor_342400_80168F14` / `801690FC` (and the `actor_341700`
+twins), so diff the target against the nearest matched one and port only the
+mode-1 exit.
+
+Inputs: `base.i` SHA256
+`e52f99ee4df21c1fc2122fe9a86c7b263b0998ef77617d87272ec6660c41b0bb` (100.000%),
+`base_1.c` SHA256
+`3e4e917ed52fffdc9e67755302e1dd933309d377f47bb0bf45f5c2954b61f661`; target
+SHA256 `1c02fc6aadb349e25ac5796c3c781c88657c6adbb249ed6266bc2acba6b753b9`;
+two builds (m2c-shaped `base.c` 83.992% `regs=53 insert=8 delete=9`), no pins,
+no permuter. Scratch `nonmatchings/Actor04400_Fn05FC8-vacuum`.

@@ -38,6 +38,7 @@ s32  Actor04400_Fn08DBC(Task* arg0);
 void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
 
 extern TaskFuncTable5 Actor04400_D001C4;
+extern TaskFuncTable7 Actor04400_D001D8;
 extern u32            Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03538);
@@ -215,7 +216,41 @@ void Actor04400_Fn05DE0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05FC8);
+/// Same body as `func_actor_342400_801690FC`. This overlay's whole `.text` is
+/// already one shared span, so it cannot join that unit.
+///
+/// `Actor04400_Fn05DE0`'s seven-state counterpart, and the only difference is
+/// the exit: mode 1 ends without clearing bit 0x80 of the model flags, which
+/// leaves `obj` live only as far as mode 2 and lets it stay in `$a0` instead of
+/// a saved register.
+void Actor04400_Fn05FC8(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFuncTable7   sp    = Actor04400_D001D8;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            sp.funcs[(s16)work->field_420](arg0);
+            if (!(work->field_442 & 0x1F)) {
+                func_800FDB18(3, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+            }
+            coord->flg = 0;
+        case 1:
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            if (work->field_451 == 0) {
+                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            }
+            return;
+    }
+}
 
 /// Same body as `ActorsShared801692e8`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
