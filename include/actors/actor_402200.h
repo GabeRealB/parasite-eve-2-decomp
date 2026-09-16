@@ -309,12 +309,12 @@ typedef struct Actor402200Work {
     /* 0x700 */ s16 field_700[2];
     /* 0x704 */ s16 field_704[2];
     /// Index of the box the scan last reported a hit on.
-    /* 0x708 */ s16  field_708;
-    /* 0x70A */ byte pad_70A[2];
-    /* 0x70C */ s16  field_70C;
-    /* 0x70E */ s16  field_70E;
-    /* 0x710 */ s16  field_710;
-    /* 0x712 */ s16  field_712;
+    /* 0x708 */ s16 field_708;
+    /* 0x70A */ s16 field_70A;
+    /* 0x70C */ s16 field_70C;
+    /* 0x70E */ s16 field_70E;
+    /* 0x710 */ s16 field_710;
+    /* 0x712 */ s16 field_712;
     /// Second per-state latch, read and written as a signed halfword: the
     /// attack sequences raise it to 1 in state 0 and state 1 bumps it to 2 on
     /// the frame it still equals the state.
@@ -390,6 +390,20 @@ extern s16 D_actor_402200_801383AC[];
 /// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
 /// with the caller taking the bits it wants out of the high half.
 extern u32 Gp_LcgState;
+
+/// One 4-byte entry of `D_actor_402200_801383D8`: the first entry whose
+/// `frame` is not below the animation frame `Actor402200Work::field_6C4`
+/// supplies `value` for `field_6C8`.
+typedef struct Actor402200FrameStep {
+    /* 0x0 */ s16 frame;
+    /* 0x2 */ u16 value;
+} Actor402200FrameStep;
+STATIC_ASSERT_SIZEOF(Actor402200FrameStep, 4);
+
+extern Actor402200FrameStep D_actor_402200_801383D8[];
+
+/// Aims the actor at the player; see its definition.
+void func_actor_402200_80135D5C(Actor402200* arg0);
 
 /// Parks the actor's target position off the player; see its definition.
 void func_actor_402200_80132E34(Actor402200* arg0);

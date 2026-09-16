@@ -125,11 +125,3 @@ void func_actor_402200_801329A4(Actor402200* arg0)
             break;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_3", jtbl_actor_402200_80131E84);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_3", jtbl_actor_402200_80131EA4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_3", jtbl_actor_402200_80131EC4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_3", jtbl_actor_402200_80131EDC);
