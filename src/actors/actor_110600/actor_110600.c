@@ -149,7 +149,69 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135454);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135A18);
+/// `D_80073B8C` is the camera-target matrix the delta below is measured from.
+extern MATRIX* D_80073B8C;
+
+/// Aiming stage: points the model at the camera target. Entering on a live
+/// actor re-arms it — clear the model object, drop bit 0x8000 of
+/// `field_A90.flags` and set 0x4000 of `field_950.flags`, tag the enemy's link
+/// node, then park the stage timer at 0x15 with `field_896` reloaded from
+/// `field_898`. The yaw of the delta from the model's root coordinate to
+/// `D_80073B8C`'s translation goes through `ratan2`, has the coordinate's own
+/// yaw (`ratan2` of `-m[2][0]`, `m[2][2]`) subtracted, and is wrapped into
+/// [-0x800, 0x800] before it lands in `field_8A2`; the model is ticked and the
+/// actor moves on (state 3) once the `field_5C` bit the walker sets arrives.
+/// Both translations are measured in their low 16 bits, so all three delta
+/// reads are `u16`.
+void func_actor_110600_80135A18(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    TmdObject*       obj;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   facing;
+    SVECTOR          delta;
+    SVECTOR*         d;
+    s16              angle;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C          = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_88C       = 1;
+        work->field_892       = 0x15;
+        work->field_896       = work->field_898;
+    }
+    coord    = arg0->field_2C->field_8;
+    d        = &delta;
+    delta.vx = (u16)D_80073B8C->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)D_80073B8C->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)D_80073B8C->t[2] - (u16)coord->coord.t[2];
+    facing   = arg0->field_2C->field_8;
+    angle    = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    work->field_8A2 = angle;
+    func_actor_110600_80134728(arg0);
+    if (work->field_5C & 1) {
+        work->field_0 = 3;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135B84);
 

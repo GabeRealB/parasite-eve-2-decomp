@@ -169,6 +169,12 @@ void func_actor_110600_801388A4(Actor110600* arg0);
 /// `Task::spawnArg2` off the pointer it is handed.
 void func_actor_110600_80134728(Actor110600* arg0);
 
+/// Aiming stage: wraps the yaw from the model's root coordinate to the camera
+/// target `D_80073B8C` against the coordinate's own yaw into `field_8A2`, ticks
+/// the model, and moves the actor to state 3 once the walker's `field_5C` bit 0
+/// arrives.
+void func_actor_110600_80135A18(Actor110600* arg0);
+
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
 /// resolves the patrol node the `field_6E` byte names against `D_80073B08`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`.

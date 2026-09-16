@@ -110188,3 +110188,67 @@ compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Scratch `nonmatchings/func_actor_110600_80137DB0-vacuum`. Sibling
 `func_actor_110600_80138D7C` is the same halving tail with no switch, and its
 matched body reads the same way.
+
+## A memory chain re-mentioned after a `jal` re-loads; bind the first use to a local and re-state the chain for the second (func_actor_110600_80135A18, 2026-09-16)
+
+**Problem.** `func_actor_110600_80135A18` (actors, `actor_110600`) measures the
+delta from the model to the camera-target matrix and feeds it to two `ratan2`
+calls in a row. The source reads `arg0->field_2C->field_8` twice — once for the
+three `SVECTOR` components, once for the second `ratan2` after the first has
+returned — and the target has two *separate* chain loads:
+
+```
+lw  v1,0x2c(s2)   /  lw  a2,8(v1)     ; delta coord, in $a2, dead before the jal
+lhu a0,0x14(a1)   ...
+lw  v0,0x2c(s2)   /  lw  s0,8(v0)     ; before the jal, read after it in $s0
+jal ratan2
+```
+
+Four independent decisions decide that shape, each worth several points on its
+own, and each was reached by a separate build:
+
+1. **The delta's coordinate is one local, not an inline chain.** Written inline
+   (`d.vx = ... - (u16)obj->field_8->coord.t[0];` on all three lines) every store
+   into the `SVECTOR` — a `sh` to `(sp + const)` — invalidates the CSE'd load, so
+   each line re-loads the whole chain (86.9%). One `coord` local gives the single
+   `$a2` load the target has (90.99%).
+2. **The second `ratan2` re-states the full chain** (`arg0->field_2C->field_8`,
+   not `coord`). `cse` drops memory-derived values at a call, so the second read
+   is a fresh pair of loads — which is what the target has. Reusing the local
+   gives one load and no reload at all (both in `$s0`, 92.9% -> 97.58% with the
+   chain restored).
+3. **That chain must be evaluated before the `jal` in C order** — as an
+   assignment on the line above `angle = ...`, not as the argument itself.
+   Written as the argument it is emitted after the call in a caller-saved
+   register (`lw v1,0x2c(s2)` / `lw v1,8(v1)`, 92.9%); assigned first, the loads
+   sit before the call and `global.c` gives the result a call-preserved `$s0`
+   (97.58%). `sched1` will not move a load *backwards* over a call for you.
+4. **The `SVECTOR` is written partly through a pointer.** `d.vx` direct but
+   `dp->vy` / `dp->vz` through `dp = &d` is what puts `&d` in a register
+   (`addiu a3,sp,0x10`, then `sh v0,2(a3)` / `sh a1,4(a3)`); all-direct access
+   keeps `sh v0,0x12(sp)` / `0x14(sp)` and leaves a load-delay `nop` (97.58% vs
+   100%). This is not a decompiler artefact — `func_actor_401300_8013267C` and
+   `func_actor_300700_801643D0` carry the same `delta.vx` / `d->vy` / `d->vz`
+   shape after `d = &delta;`.
+5. **The argument must be read through the *same* pointer it was stored
+   through.** Storing `dp->vz` but reading the argument as `d.vz` (the direct
+   name, i.e. `(sp + 0x14)`) leaves cse unable to equate the two addresses, and
+   the value is re-loaded from the stack for the call (`lh a1,0x14(sp)`, 95.56%).
+   `ratan2(delta.vx, d->vz)` — pointer read matching the pointer store — keeps it
+   in `$a1` and is the 100% form.
+
+The wrap loop is unrelated to all of that and wants the m2c-shaped `if`/`else`
+with `goto` labels, exactly as `func_actor_401300_8013267C` and
+`func_actor_403000_80134204` have it: `if (angle < 0) { if (angle < -0x800) {
+angle += 0x1000; goto loop_neg; } } else { ... }`. Writing the two passes as
+`while` loops loses the `bgez` on `angle << 16` (81.8% -> 90.99% came mostly
+from this plus the prologue loads).
+
+Inputs: `base_6.i` (97.58%) SHA256
+`1283fad7ac994358da0c036e17462d960edec3b231e987e47cf971d6b4e9dc24`; `base_7.i`
+(95.56%) SHA256 `24249d7544b968ebdd6eaa5afe6a3c2c7dc9dcecbb47bd166948f8319302f66a`;
+`base_9.i` (100%, production naming) SHA256
+`43519b6f340fc9fbec0783834986860873541b3a37c35a1bfb35445262de3c14`; target.o
+SHA256 `473fe51cfcf0052fd935787ed67443fdeacb8eac1c1c42e599797e282ff089dc`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80135A18-vacuum`.
