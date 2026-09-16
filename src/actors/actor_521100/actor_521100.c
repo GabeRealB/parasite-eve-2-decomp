@@ -483,7 +483,69 @@ void func_actor_521100_80134EDC(Actor521100* arg0)
 /// as a `u32` - see that type for why the shape matters.
 ///
 /// Same body as `Actor02000_Fn01698` and `func_actor_510900_80138D38`.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_80135024);
+void func_actor_521100_80135024(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    GsCOORDINATE2*   coord;
+    MATRIX*          matrix;
+    s32              angleX;
+    s32              angleY;
+    s32              absX;
+    s32              nextX;
+    s32              absY;
+    s32              nextY;
+    s32              active;
+
+    matrix                                     = (MATRIX*)(((Actor521100ScratchStack*)0x1F8003FC)->sp - 0x20);
+    ((Actor521100ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+    active                                     = 0;
+    work                                       = arg0->field_1C;
+    coord                                      = arg0->field_2C->field_8;
+    RotMatrix(&work->field_678, matrix);
+    USE_REG(matrix);
+    gte_SetRotMatrix(&coord[3].coord);
+    gte_ldclmv(matrix);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord);
+    gte_ldclmv(&matrix->m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord.m[0][1]);
+    gte_ldclmv(&matrix->m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord.m[0][2]);
+    angleX = work->field_678.vx;
+    if (angleX != 0) {
+        absX = __builtin_abs(angleX);
+        if (absX < 0x21) {
+            work->field_678.vx = 0;
+        } else {
+            nextX = angleX - 0x20;
+            if (angleX <= 0) {
+                nextX = angleX + 0x20;
+            }
+            work->field_678.vx = nextX;
+            active             = 1;
+        }
+    }
+    angleY = work->field_678.vy;
+    if (angleY != 0) {
+        absY = __builtin_abs(angleY);
+        if (absY < 0x21) {
+            work->field_678.vy = 0;
+        } else {
+            nextY = angleY - 0x20;
+            if (angleY <= 0) {
+                nextY = angleY + 0x20;
+            }
+            work->field_678.vy = nextY;
+            active             = 1;
+        }
+    }
+    if (active == 0) {
+        work->field_680 = 0;
+    }
+    SCRATCH_SP += 0x20;
+}
 /// The burn-out tick `func_actor_521100_80135414` runs while the sequence state
 /// `field_68C` is non-zero. `field_68E` counts the frames since the last effect
 /// and fires one once it reaches `D_actor_521100_8015F8CC[field_68C]` — every 7
