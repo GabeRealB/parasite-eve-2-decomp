@@ -8321,6 +8321,21 @@ const u32 D_actor_401000_801320A0 SECTION(".rodata") = 0;
 `INCLUDE_RODATA` - delete that line in the same edit, or the section opens with
 a second copy of it and everything shifts by four.
 
+`rodata_head` is not only for the unit's *first* function, nor only for a table
+that starts the block. `actor_107000`'s `func_actor_107000_80132298` is the
+second function in its unit and its table sits `0x24` bytes into the leading
+block, behind the id word and two asm tables; `rodata_head = "0x4"` fixed it the
+same way, because the compiler emits a function's table into whichever unit owns
+the `.rodata` subsegment that spans it - here the first code unit, which is also
+the one holding the function. The 4-byte pad the `.align 3` then needs ahead of
+the table was already inside the run of the *preceding* symbol
+(`D_actor_107000_80131E30`'s `.s` covers the target's zero word at `0x80131E40`),
+so unlike `actor_401000` no explicit trailing word was needed: the whole edit
+was the one manifest key plus deleting the id's `INCLUDE_RODATA` line, and no
+`src/` file had to be deleted or re-split by hand. Check the subsegment span
+against the sum of the `.s` runs before adding a pad word - `4 + 0xC + 0x14 +
+0x18 + 0x10 + 0x14 = 0x60`, exactly `0x64 - 0x4`.
+
 **Renumbering units with `git mv` leaves ninja building the old objects.**
 `git mv` preserves mtime, so after `_2..._7` become `_4..._9` every renamed file
 is *older* than the `.o` ninja built from the file that used to have its name,

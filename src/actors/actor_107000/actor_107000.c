@@ -10,7 +10,9 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+void func_actor_107000_80132474(Task* arg0);
 void func_actor_107000_801334C8(Task* arg0, s32 arg1);
+void func_actor_107000_80134810(Task* arg0, GsCOORDINATE2* arg1);
 void func_actor_107000_80132E9C(Task* arg0);
 
 /// Node 3's pair record, packed by `Gp_PackPair` into `obj1B4`; the wider view
@@ -25,15 +27,98 @@ extern u8 D_actor_107000_80139E50[];
 /// The animation data `func_800B3F84` seeds the work block's slots from.
 extern u8 D_actor_107000_80139E78[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80131F0C);
+/// Offset the collapse arms spawn the 0x60080 effect at.
+extern SVECTOR D_actor_107000_80139E90;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", D_actor_107000_80131E20);
+INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80131F0C);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", ActorsShared80135df4Table);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", D_actor_107000_80131E30);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132298);
+// actor_104600 (func_actor_104600_801321F4), actor_204600
+// (func_actor_204600_8014A1F4) and actor_207000 (func_actor_207000_8014A298)
+// carry the same body, refused promotion for the reason its sibling below is:
+// its three remaining calls - func_actor_107000_80132474,
+// func_actor_107000_80132674 and func_actor_107000_80134810 - and the effect
+// offset it spawns at are named in this overlay only, so one shared object
+// could not link into the other three.
+
+/// Per-frame dispatch of the caged specimen, on the reaction state in
+/// `field_2B2`: 0 is the dormant arm `func_actor_107000_80132474` and 1 the
+/// live handler `func_actor_107000_80132674`. 3 is the arm the reaction
+/// dispatch shoots when the enemy's flag byte carries bit 0x2 - it suppresses
+/// the rebind, waits out the generic flag-2 helper on the spawn arg and, once
+/// that expires, wakes the specimen: the rebind is released and
+/// `field_2B2`/`field_2C8` move to 1, the live stage. The arm ends in
+/// `ActorsShared8013454c` either way.
+///
+/// 4 and 5 are the two collapse arms. Both drive the model's second coordinate
+/// through `func_actor_107000_80134810`, count `field_2BC` up and spawn the
+/// 0x60080 effect on the model's coordinate every 0x10 frames; 5 also counts
+/// `field_2D4` and, on the third count, writes the same death sequence the
+/// reaction dispatch does - a five-frame countdown, `field_2B4` cleared and the
+/// task moved to state 2 - with the spawn arg's `field_40` cleared alongside.
+/// Both arms end by re-suppressing the rebind, and the join the compiler builds
+/// from their two assignments is what the original binary shows.
+void func_actor_107000_80132298(Task* arg0)
+{
+    Actor107000Work* work;
+    GpEnemy*         enemy;
+    u16              frames;
+
+    work = (Actor107000Work*)arg0->idMap;
+    switch (work->field_2B2) {
+        case 0:
+            func_actor_107000_80132474(arg0);
+            return;
+        case 1:
+            func_actor_107000_80132674(arg0);
+            return;
+        case 3:
+            work->field_2D2 = 1;
+            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+                work->field_2D2 = 0;
+                work->field_2B2 = 1;
+                work->field_2C8 = 1;
+                work->field_2BE = 0;
+            }
+            ActorsShared8013454c(arg0);
+            return;
+        case 4:
+            work->field_2AC = 0x1000;
+            func_actor_107000_80134810(arg0, &((TmdObject*)arg0->extra)->field_8[1]);
+            frames          = work->field_2BC + 1;
+            work->field_2BC = frames;
+            if ((s16)frames >= 0x10) {
+                Gp_SpawnEff(0x60080, ((TmdObject*)arg0->extra)->field_8, 0x400, &D_actor_107000_80139E90);
+                work->field_2BC = 0;
+            }
+            goto suppress_rebind;
+        default:
+            return;
+        case 5:
+            work->field_2AC = 0x1000;
+            func_actor_107000_80134810(arg0, &((TmdObject*)arg0->extra)->field_8[1]);
+            frames          = work->field_2BC + 1;
+            work->field_2BC = frames;
+            if ((s16)frames >= 0x10) {
+                Gp_SpawnEff(0x60080, ((TmdObject*)arg0->extra)->field_8, 0x400, &D_actor_107000_80139E90);
+                work->field_2BC = 0;
+                frames          = work->field_2D4 + 1;
+                work->field_2D4 = frames;
+                if ((s16)frames >= 3) {
+                    enemy               = arg0->spawnArg2;
+                    arg0->killCountdown = 5;
+                    work->field_2B4     = 0;
+                    arg0->state         = 2;
+                    enemy->field_40     = 0;
+                }
+            }
+        suppress_rebind:
+            work->field_2D2 = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132474);
 
