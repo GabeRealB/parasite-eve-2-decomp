@@ -64235,6 +64235,16 @@ stores out. Duplicating the store in the source is what keeps the value local
 long enough for `local-alloc` to see the free register; cross-jumping puts the
 single store back.
 
+The lever is not specific to `?:`. `func_actor_401800_80139118` picks the same
+kind of value from a *three*-arm chain (`if (kind == 1) { if (f(arg0) == kind)
+... } else ...`) and hit the identical `regs=4`: one shared `state` temp spanning
+three blocks collected `;; 84 conflicts: 81 83 84 178 2 29` and lost `$v0` to
+`$v1`, while both the ternary spelling and the nested if/else spelling of that
+chain produced the same object. Writing the store into all three arms - no temp
+- moved each constant into a block-local pseudo and the object matched exactly
+(209/209). Same tail: the target's two `addiu v0,6` turn out to be one insn,
+duplicated by `reorg` into the branch delay slot.
+
 ## `promote` still sees a just-landed body as unmatched until the stale `.s` is gone
 
 **Problem:** `overlay_dup_index.py promote <fn>` refuses with `cannot be shared
@@ -103313,3 +103323,38 @@ re-invented per TU; it is part of the twin's spelling, and copying it reproduced
 block instruction-for-instruction - same registers, same memory offsets, even the same
 scheduler-placed `nop` padding. Removing or "improving" it is where an exact template turns back
 into a search.
+
+## One `s16` field loads `lh` at one use and `lhu` at the next, and both are right (func_actor_401800_80139118, 2026-09-16)
+
+`func_actor_401800_80139118` reads `Actor401800Work.field_C04` three times; the target loads it
+two different ways:
+
+```asm
+lh   a2,0xC04(s2)      /* func_actor_401800_80133558(coord,0x12C,work->field_C04) */
+lhu  s4,0xC04(s2)      /* the same field, handed to the inlined step helper's s16 amount */
+lhu  v0,0xC04(s2)      /* work->field_C04 / 2 */
+```
+
+One `s16` declaration produced all three. GCC 2.8.1 loads an HImode memory operand
+sign-extending (`lh`) only where the value is needed as a full SImode operand - a call argument
+is the everyday case. Wherever the value is used *as* HImode - an inlined helper's `s16`
+parameter, an HImode division, an `x != 0` test - the load stays zero-extending and the sign is
+recovered later with `sll 16` / `sra 16`:
+
+```
+lhu  v0,0xC04(s2)      /* work->field_C04 / 2, field_C04 declared s16 */
+sll  v0,v0,16
+sra  v1,v0,16
+srl  v0,v0,31
+addu v1,v1,v0
+sra  v1,v1,1
+sh   v1,0xC04(s2)
+```
+
+So do not read the mixed pair as evidence for a `(u16)` cast or an `unsigned` member. The
+tempting `(u16)` explanation is worse than wrong: adding the cast is what moves the *other* load
+the wrong way. `cc1` settles it in one command - compile `void f(void) { S = S / 2; }` against
+`extern short S;` - which is how the division sequence above was confirmed before any C was
+written, and why the helper's `amount` is a plain `s16` parameter rather than a cast at the call
+site: the same inlined helper compiled from another 401300-family TU shows the identical
+`lh`/`lhu` pair.

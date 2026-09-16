@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -193,7 +194,101 @@ void func_actor_401800_80138F5C(Actor401800* arg0)
     Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80139118);
+/// Step `coord` `amount` units along its local Z axis unless movement is
+/// frozen. Same body as `Actor01900_MoveForward`.
+static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            gte_gpf12_real();
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Per-frame body of the live actor while it walks: on work flag bit 0 it
+/// raises the `0x10`/7/2 render slots, re-sends the `0x3FF` animation record
+/// with clip 3 to the `Game_GetPtrSlot(3)` task and seeds the walk step
+/// `field_C04` to -0x78; otherwise, while the `field_5A` clip is one of
+/// `0x10..0x16`, it advances the actor along its own local Z by `field_C04`
+/// once `func_actor_401800_80133558` says the path is still clear and halves
+/// that step each time the `field_A28` contact fires. Both paths then tick the
+/// animation, and — on work bit 0 — pick `field_0` from the enemy's state byte
+/// (`6`, or `0xA` when the enemy is not the one `func_actor_401800_80133918`
+/// reports) and release the `0x3F1` message once.
+void func_actor_401800_80139118(Actor401800* arg0)
+{
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+    WipSysConfig*    config;
+    u8               kind;
+
+    work   = arg0->field_1C;
+    enemy  = arg0->field_20;
+    config = &Wip_SysConfig;
+    if (work->field_4 != 0) {
+        work->field_8A2 = 0x10;
+        work->field_89E = 7;
+        work->field_898 = 2;
+        func_actor_401800_80133EB8(arg0);
+        D_actor_401800_80155A0C.field_4 = 3;
+        if (config->field_18 > 0) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_401800_80155A0C, 0);
+        }
+        work->field_C04        = -0x78;
+        work->field_6          = 0;
+        work->field_A08.flags |= 0x4000;
+        return;
+    }
+    if ((Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) && (config->field_18 > 0) && (work->field_C20 == 1)) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        work->field_C20 = 0;
+    }
+    if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7) {
+        if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, work->field_C04) != 0) {
+            Actor401800_MoveForwardNonzero(arg0->field_2C->field_8, work->field_C04);
+        }
+        if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) == 1) {
+            work->field_C04 = work->field_C04 / 2;
+        }
+        arg0->field_2C->field_8->flg = 0;
+    }
+    func_actor_401800_80133EB8(arg0);
+    if (work->field_68 & 1) {
+        kind = enemy->node.field_5;
+        if (kind == 1) {
+            if (func_actor_401800_80133918(arg0) == kind) {
+                work->field_0 = 6;
+            } else {
+                work->field_0 = 0xA;
+            }
+        } else {
+            work->field_0 = 6;
+        }
+        if ((config->field_18 > 0) && (work->field_C20 == 1)) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            work->field_C20 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013945C);
 

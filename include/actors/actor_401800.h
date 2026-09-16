@@ -60,7 +60,13 @@ typedef struct Actor401800Work {
     /* 0xA28 */ GpRec18  field_A28;
     /* 0xA40 */ byte     pad_A40[0x108];
     /* 0xB48 */ GpObj    field_B48;
-    /* 0xB68 */ byte     pad_B68[0xA0];
+    /* 0xB68 */ byte     pad_B68[0x9C];
+    /// Step the actor walks along its local Z axis: `func_actor_401800_80139118`
+    /// seeds it with -0x78, hands it to the step helper while the 0x10 clip is
+    /// playing, and halves it each time the `field_A28` contact test fires.
+    /// Same role `Actor401300Work.field_C98` plays.
+    /* 0xC04 */ s16  field_C04;
+    /* 0xC06 */ byte pad_C06[2];
     /// Per-variant reload the LCG spreads over the idle step countdown: the
     /// high half of a fresh `Gp_LcgState` draw masked to 3 bits (`& 7`) is
     /// added to it and stored into `field_6`. Same slot `Actor401300Work`
@@ -79,6 +85,11 @@ typedef struct Actor401800Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC14 */ Task* field_C14;
     /* 0xC18 */ Task* field_C18;
+    /* 0xC1C */ byte  pad_C1C[4];
+    /// Set to 1 by the actors that own the `0x3F1` message and cleared once
+    /// `func_actor_401800_80139118` has sent it. Same slot `Actor01900Work`
+    /// keeps at 0xC20.
+    /* 0xC20 */ s16 field_C20;
 } Actor401800Work;
 
 /// 0xC-byte scratch `func_actor_401800_8013A034` takes from `G_SCRATCH_HEAD`
@@ -179,7 +190,16 @@ typedef struct Actor401800Msg7D3 {
     /* 0x4 */ s32 field_4;
 } Actor401800Msg7D3;
 
-s32  func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+/// Movement is frozen while this is 1. Same flag `Actor401800_MoveForwardNonzero`
+/// and the other families' step helpers test.
+extern u8 D_80072729;
+
+s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+/// Returns non-zero while `coord` may still travel `arg1` units of its local Z
+/// path; the result is read as a signed halfword (`func_actor_401800_80139118`),
+/// the way `func_actor_401300_8013267C` is.
+s32  func_actor_401800_80133558(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
+s32  func_actor_401800_80133918(Actor401800* arg0);
 s32  func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2);
 void func_actor_401800_80133EB8(Actor401800* arg0);
 void func_actor_401800_8013E0A0(Task* task);
