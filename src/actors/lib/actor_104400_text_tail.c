@@ -4,6 +4,7 @@
 #include "actors/actors_shared_8016945c.h"
 #include "actors/actors_shared_801692e8.h"
 #include "main/fs.h"
+#include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -34,8 +35,10 @@ void Actor04400_Fn0823C(Task* arg0);
 void Actor04400_Fn08718(Task* arg0);
 void Actor04400_Fn087E0(Task* arg0);
 s32  Actor04400_Fn08DBC(Task* arg0);
+void Actor04400_Fn00220(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4, u8 arg5);
 
-extern u32 Gp_LcgState;
+extern TaskFuncTable5 Actor04400_D001C4;
+extern u32            Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03538);
 
@@ -156,7 +159,61 @@ void Actor04400_Fn058F4(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05A40);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05DE0);
+/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
+/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
+/// This overlay's copy lives in `actor_104400_text.c`; the tail unit needs its
+/// own because the two are separate translation units.
+static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
+{
+    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+
+    block->vx                 = coord->workm.t[0];
+    block->vy                 = coord->workm.t[1];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vz                 = coord->workm.t[2];
+    Gp_UpdateActorColor(enemy, block, 0, 0);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Same body as `func_actor_342400_80168F14`. This overlay's whole `.text` is
+/// already one shared span, so it cannot join that unit.
+///
+/// The per-frame callback the actor's AI states are dispatched from: state 0
+/// counts `field_442` up, runs the handler `field_420` selects from
+/// `Actor04400_D001C4` and spawns effect 3 on the model's second coordinate
+/// part every 32 frames, then falls into state 1, which re-pushes that
+/// coordinate's world position for `Gp_UpdateActorColor` and rebuilds the
+/// part-pair colour quads while `field_451` is clear. `D_801153F4` short-
+/// circuits both: nonzero runs state 1 only, 2 hides the model instead.
+void Actor04400_Fn05DE0(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra;
+    Actor104400Work* work  = (Actor104400Work*)arg0->idMap;
+    GsCOORDINATE2*   coord = obj->field_8;
+    TaskFuncTable5   sp    = Actor04400_D001C4;
+
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            work->field_442++;
+            sp.funcs[(s16)work->field_420](arg0);
+            if (!(work->field_442 & 0x1F)) {
+                func_800FDB18(3, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+            }
+            coord->flg = 0;
+        case 1:
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            if (work->field_451 == 0) {
+                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
+                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            }
+            obj->field_C &= ~0x80;
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05FC8);
 
