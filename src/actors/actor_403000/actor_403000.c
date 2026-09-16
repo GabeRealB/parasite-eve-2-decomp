@@ -797,7 +797,102 @@ void func_actor_403000_80135F08(Actor403000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8013603C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801365D0);
+static __inline__ void Actor403000_FaceScale(GsCOORDINATE2* coord, s16 sy)
+{
+    Actor403000ScaleScratch* head;
+    Actor403000ScaleScratch* scratch;
+
+    head                                       = *(Actor403000ScaleScratch**)G_SCRATCH_HEAD;
+    scratch                                    = head - 1;
+    *(Actor403000ScaleScratch**)G_SCRATCH_HEAD = scratch;
+    scratch->angle                             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&scratch->m, scratch->angle, 1);
+    scratch->scale.vx = 0x1000;
+    scratch->scale.vy = sy;
+    scratch->scale.vz = 0x1000;
+    ScaleMatrix(&scratch->m, &scratch->scale);
+    coord->coord.m[0][0]                        = head[-1].m.m[0][0];
+    coord->coord.m[0][1]                        = scratch->m.m[0][1];
+    coord->coord.m[0][2]                        = scratch->m.m[0][2];
+    coord->coord.m[1][0]                        = scratch->m.m[1][0];
+    coord->coord.m[1][1]                        = scratch->m.m[1][1];
+    coord->coord.m[1][2]                        = scratch->m.m[1][2];
+    coord->coord.m[2][0]                        = scratch->m.m[2][0];
+    coord->coord.m[2][1]                        = scratch->m.m[2][1];
+    coord->coord.m[2][2]                        = scratch->m.m[2][2];
+    coord->flg                                  = 0;
+    *(Actor403000ScaleScratch**)G_SCRATCH_HEAD += 1;
+}
+
+void func_actor_403000_801365D0(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+    s16              t;
+
+    work  = arg0->field_1C;
+    tmd   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        tmd->field_C = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_FCA         = 1;
+        work->objD18.obj.flags &= 0xBFFF;
+        Gp_ClearNodeSlots(&enemy->node);
+        work->field_6 = 0;
+        Gp_SetLightMode((GpObj4C*)enemy, 0);
+    }
+    if ((s16)work->field_6 <= 0x1000) {
+        work->field_6++;
+        if ((s16)work->field_6 % 5 == 0 && (s16)work->field_6 < 100) {
+            switch ((s16)((s16)((s16)work->field_6 / 5) % 4)) {
+                case 0:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[1], 0x12600, NULL);
+                    break;
+                case 1:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[4], 0x22400, NULL);
+                    break;
+                case 2:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[1], 0x32600, NULL);
+                    break;
+                case 3:
+                    Gp_SpawnEff(0x60070, &arg0->field_2C->field_8[18], 0x12500, NULL);
+                    break;
+            }
+        }
+        switch ((s16)work->field_6) {
+            case 1:
+                arg0->field_2C->field_C = 0;
+                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                break;
+            case 0x58:
+                Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[1], 2, NULL);
+                Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[4], 1, NULL);
+                Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[18], 1, NULL);
+                break;
+            case 0x5A:
+                arg0->field_2C->field_C = 2;
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                arg0->field_2C->field_24 = 2;
+                arg0->field_2C->field_25 = 4;
+                break;
+            case 0x6A:
+                arg0->field_2C->field_C = 0x80;
+                break;
+        }
+        t = work->field_6;
+        if (t > 0x46) {
+            if ((t - 0x46) * 0x3C < 0x1000) {
+                Actor403000_FaceScale(arg0->field_2C->field_8, 0x1000 - (t - 0x46) * 0x6B);
+            } else {
+                Actor403000_FaceScale(arg0->field_2C->field_8, 0);
+            }
+        } else {
+            Actor403000_FaceScale(arg0->field_2C->field_8, 0x1000);
+        }
+    }
+}
 
 void func_actor_403000_80136B14(Actor403000* arg0)
 {

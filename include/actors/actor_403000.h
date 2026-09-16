@@ -232,6 +232,17 @@ typedef struct Actor403000FacingScratch {
 } Actor403000FacingScratch;
 STATIC_ASSERT_SIZEOF(Actor403000FacingScratch, 0xC);
 
+/// 0x34-byte `G_SCRATCH_HEAD` block `func_actor_403000_801365D0` takes to
+/// rebuild the model's rotation: a yaw-only matrix from the current facing
+/// (`angle`), scaled by `scale`, copied back into the coordinate.
+typedef struct Actor403000ScaleScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ byte   pad_32[0x2];
+} Actor403000ScaleScratch;
+STATIC_ASSERT_SIZEOF(Actor403000ScaleScratch, 0x34);
+
 /// 0xB4-byte `G_SCRATCH_HEAD` block `func_actor_403000_801330D4` takes (and
 /// never returns): a coordinate parented to the caller's, and `pos`, its
 /// origin walked up the parent chain into view space.
