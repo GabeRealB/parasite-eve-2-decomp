@@ -90861,3 +90861,30 @@ start before declaring the symbol an array base.
 
 Input `base_1.c`
 `924d143ad94597409454dbdb6b967ad3ce8be362856c767b27d22cad89f8beda` (100.000%).
+## A switch body's rodata cut can already exist and name the wrong unit
+
+`rodata_triage.py <overlay>` reports a switch body as BLOCKED when the
+`INCLUDE_RODATA` for its jump table lives in a different unit than the function:
+
+```
+  unit dryfield_night_junk_yard_3: table owned by dryfield_night_junk_yard_2
+    func_dryfield_night_junk_yard_8017DA14  (jtbl_dryfield_night_junk_yard_8017D5D0)
+```
+
+Read the block before adding a cut -- the cut can already be there, at the right
+address, naming a unit that is not where the function sits. Here `0x10..0x34` is
+that function's own nine-word table and nothing else, so the fix is to point the
+existing cut at the reader's unit and delete the now-stale `INCLUDE_RODATA` line
+from the old owner's `.c` (leave that file's matched bodies alone):
+
+```
+dryfield_night_junk_yard = { rodata = [{ start = "0x10", unit = "dryfield_night_junk_yard_3" }], ... }
+```
+
+No `units` entry: the `.text` cuts do not move, and `0x10` is 8-aligned, so the
+compiler's `.align 3` table starts its object's `.rodata` with no padding. The
+edit changes the config, so the whole overlay re-splits, and the stale
+`jtbl_*.s` under the old owner disappears with that unit's directory -- unlike
+the promotion case above, where splat leaves the file behind and it has to be
+deleted by hand. Landing the C then puts the compiler-generated table in the
+block, and the triage report comes back clean.
