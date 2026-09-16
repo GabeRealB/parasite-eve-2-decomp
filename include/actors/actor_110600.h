@@ -400,6 +400,11 @@ extern Actor110600Display D_8015C064;
 extern Actor110600Display D_8015C950;
 extern Actor110600Display D_8015D2E8;
 
+/// Twelve `SVECTOR` hit positions `func_actor_110600_80135E20` picks from by
+/// damage magnitude. The fourth halfword (`pad`, unused by the effect) is the
+/// model part index the spawned effect anchors to.
+extern SVECTOR D_actor_110600_801485C4[12];
+
 /// The actor's four display slots, which the 0x401 events repoint at one of the
 /// objects above; `D_actor_110600_80148598` is the one events 2 and 6 swap.
 extern Actor110600Display* D_actor_110600_80148594;
@@ -442,6 +447,11 @@ s32 func_actor_110600_80134564(Actor110600Work* work);
 /// the model, and moves the actor to state 3 once the walker's `field_5C` bit 0
 /// arrives.
 void func_actor_110600_80135A18(Actor110600* arg0);
+
+/// Picks one of twelve hit positions out of `D_actor_110600_801485C4` by damage
+/// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model
+/// part that entry names.
+void func_actor_110600_80135E20(Actor110600* arg0, s16 arg1, s32 arg2);
 
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
 /// resolves the patrol node the `field_6E` byte names against `D_80073B08`,
@@ -495,6 +505,10 @@ s32        func_actor_110600_80138900(void);
 /// moves the actor by, and bumps once that push has landed. Reset to 0 first,
 /// so the push only starts on the frame a live actor arrives.
 extern s16 D_actor_110600_80148688;
+
+/// Argument record `func_actor_110600_80135E20` fills for `func_800FDB18`:
+/// model part 1's coordinate, scale 0x100 and count 3.
+extern GpEffArg D_actor_110600_80148698;
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's

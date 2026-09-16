@@ -898,7 +898,66 @@ void func_actor_110600_80135B84(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135E20);
+void func_actor_110600_80135E20(Actor110600* arg0, s16 arg1, s32 arg2)
+{
+    SVECTOR* sc;
+    s32      mag;
+
+    sc  = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    mag = (arg1 >= 0) ? arg1 : -arg1;
+    if (mag < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 3) {
+            case 0:
+                *sc = D_actor_110600_801485C4[0];
+                break;
+            case 1:
+                *sc = D_actor_110600_801485C4[1];
+                break;
+            case 2:
+                *sc = D_actor_110600_801485C4[2];
+                break;
+            case 3:
+                *sc = D_actor_110600_801485C4[3];
+                break;
+            default:
+                *sc = D_actor_110600_801485C4[4];
+                break;
+        }
+    } else if (mag > 0x600) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 2) {
+            case 0:
+                *sc = D_actor_110600_801485C4[5];
+                break;
+            case 1:
+                *sc = D_actor_110600_801485C4[6];
+                break;
+            default:
+                *sc = D_actor_110600_801485C4[7];
+                break;
+        }
+    } else if (arg1 > 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_110600_801485C4[8];
+        } else {
+            *sc = D_actor_110600_801485C4[9];
+        }
+    } else {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_110600_801485C4[10];
+        } else {
+            *sc = D_actor_110600_801485C4[11];
+        }
+    }
+    D_actor_110600_80148698.field_0 = &arg0->field_2C->field_8[1];
+    D_actor_110600_80148698.field_4 = 0x100;
+    D_actor_110600_80148698.field_6 = 3;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], sc, &D_actor_110600_80148698);
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80136210);
 
