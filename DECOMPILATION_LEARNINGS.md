@@ -98723,3 +98723,24 @@ Inputs (source sha256): `base.c`
 `target.s` `016397860a40da24b18d26a772e2f513925bbfbef547a3ff335287ba2940559d`;
 two builds, no pins, no search. Scratch
 `nonmatchings/Actor04400_Fn07404-vacuum`.
+
+## Landing a `gte_*`-using body into a host TU needs `#include "psyq/inline_c.h"` in that TU (Actor04400_Fn053FC, 2026-09-16)
+**Symptom.** The scratch build of the adapted body is 100%, but the unscoped
+build after replacing `INCLUDE_ASM` in the host `.c` fails at the **link**:
+
+```
+build/USA/src/actors/lib/actor_104400_text_tail.i:(.text+0x1cd8): undefined
+reference to `gte_ldlvl'
+undefined reference to `gte_stlvnl'
+```
+
+**Cause.** Without `<psyq/inline_c.h>` each `gte_*` macro is an implicitly
+declared function, so it survives compilation and dies in the linker. `cc1` runs
+with `-w`, so nothing warns. This is the same missing header the corpus already
+records for a *scratch* source (where it shows up as `jal gte_*` in the diff and
+a ~91% score) — in a host TU it is a link error instead of a score drop, because
+the host file's own include chain does not reach `inline_c.h` even when the
+scratch prelude does.
+
+**Fix.** Add `#include "psyq/inline_c.h"` to the host file. Scratch
+`nonmatchings/Actor04400_Fn053FC-vacuum`.
