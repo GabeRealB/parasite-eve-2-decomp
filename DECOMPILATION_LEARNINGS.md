@@ -99824,3 +99824,68 @@ The rule generalises: a store's position among loads is set by its
 anti-dependence on the *last* load written before it in the source. If the
 target slots it after a later load, move it later in the C rather than looking
 for a barrier.
+
+## The 3-quantity sort in `local-alloc.c` is a no-op: a block with exactly three quantities allocates them in birth order (toolchain, 2026-09-16)
+
+`local_alloc` orders its quantities by `QTY_CMP_PRI` (highest first) and reaches
+`qsort` only for four or more. At three it runs a hand-rolled sort whose steps
+compare **quantity numbers** rather than the entries now in the positions, and
+whose last step runs after the earlier exchanges have already permuted
+`qty_order`:
+
+```c
+case 3:
+  if (qty_compare (0, 1) > 0)  EXCHANGE (0, 1);
+  if (qty_compare (1, 2) > 0)  EXCHANGE (2, 1);
+  /* fall through */
+case 2:
+  if (qty_compare (0, 1) > 0)  EXCHANGE (0, 1);
+```
+`local-alloc.c:1640-1651`
+
+The result is correct only when the priorities strictly increase with quantity
+number (`pri(q2) > pri(q1) > pri(q0)`). In the common shape — the last-born
+quantity is a branch test whose priority ties with or loses to the one before it
+— the first exchange fires, the fall-through undoes it, and `qty_order` comes
+out as the identity: **the three quantities are allocated in birth order and no
+priority lever moves them.** Wrapping statements in `do { } while (0)`, adding
+`TOUCH_REG`, or adding references all leave it unchanged; the priority formula
+is simply not consulted. Reach for those only when the block holds four or more.
+
+**Symptom.** `func_actor_104900_8013852C` (a `for` loop masking a `u16` in each
+of four display nodes, 99.22%) kept the loop's address quantity in `$v0` and the
+value it feeds in `$v1`, mirrored from retail. `trace_gcc.py` reported
+
+```
+local b4 q0 [91]:      refs=6 span=10 -> $v0   (the address, born first)
+local b4 q1 [112,111]: refs=8 span=6  -> $v1   (the loaded/masked value)
+local b4 q2 [107]:     refs=4 span=2  -> $v0   (the slti feeding the branch)
+```
+
+At the real sizes those are 48000, 160000 and 160000, so priority order would
+have placed the value first; birth order is the only explanation. The value and
+the test tie exactly (160000), which is what keeps the fall-through on the
+identity path. Every C shape that left three quantities — a `for` with
+`i * 0x20`, an explicit offset variable, an in-place `&=` — landed on the same
+tie, and the bounded search router found nothing.
+
+**Fix.** Pin the register the target wants instead of reweighting. On the value
+the pin does double duty: it also marks `$v0` live over the value's range, so
+`find_free_reg` skips it for the earlier address quantity, which then takes
+`$v1` as in retail.
+
+```c
+} else {
+    register s32 value asm("v0");
+    ...
+    for (i = 0; i < 4; i++) {
+        value  = obj->flags;
+        value &= 0x3FFF;
+        obj->flags = (u16)value;
+    }
+}
+```
+
+99.22% -> 100%, the pin being the only difference from the unpinned seed. The
+tracer shows the post-pin block down to two quantities (`q0 [91] -> $v1`,
+`q1 [107] -> $v0`), which also sidesteps the broken sort.
