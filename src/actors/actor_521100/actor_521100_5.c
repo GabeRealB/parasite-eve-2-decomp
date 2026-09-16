@@ -265,7 +265,38 @@ void func_actor_521100_80136290(void* arg0, Task* task)
 /// The 0x32 pair is adjusted before the `Gp_LcgState` draw, not after: that is
 /// the source order that lets the draw's store sink below both halfword-field
 /// loads in `sched2`, which is what puts them on $a3 rather than $a0.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80136404);
+void func_actor_521100_80136404(Task* task)
+{
+    Actor521100* ctx;
+
+    ctx = task->spawnArg2;
+    if (!(task->state & 7)) {
+        if (task->spawnArg1 == 0) {
+            D_actor_521100_8016A3E8             = ctx->field_2C->field_8[1];
+            D_actor_521100_8016A3E8.coord.t[2] += 0x32;
+            Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
+            D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)(((u32)Gp_LcgState >> 16) - 0x8000) * 0xC8 / 0x10000;
+            D_actor_521100_8016A3E8.coord.t[0] -= 0x32;
+        } else {
+            D_actor_521100_8016A3E8             = ((Actor521100*)Game_GetPtrSlot(3))->field_2C->field_8[0];
+            D_actor_521100_8016A3E8.coord.t[1] -= 0x384;
+            D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
+        }
+        D_actor_521100_8016A3E8.flg = 0;
+        Gp_UpdateCoord(&D_actor_521100_8016A3E8);
+        D_actor_521100_8016A3CC.field_0 = &D_actor_521100_8016A3E8;
+        func_800FDB18(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
+    }
+    if (task->state >= 0x83) {
+        Task_Kill(task);
+        if (task->spawnArg1 == 0) {
+            D_actor_521100_8016A3E0 = NULL;
+        } else {
+            D_actor_521100_8016A3E4 = NULL;
+        }
+    }
+    task->state++;
+}
 /// splat migrates this table into `func_actor_521100_80136604`'s own `.s`, so
 /// there is no standalone rodata file to `INCLUDE_RODATA`; it is defined here.
 /// The word of 0 after the three handlers is the `.align 3` pad before
