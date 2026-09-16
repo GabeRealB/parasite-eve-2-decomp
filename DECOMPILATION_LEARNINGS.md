@@ -100015,3 +100015,35 @@ template, so this is the family's idiom rather than a one-off.
 The same `associate:` path is worth remembering for any `+`/`|`/`^`/`&`/`min`/
 `max` chain whose emitted operand order looks "reversed": the left-associative
 source is not the tree that reaches `expand`.
+
+## `promote` needs the dup index rebuilt after the match, and a span between units rotates up to four files per carrier (func_actor_104900_80138D58, 2026-09-16)
+
+Two things the promotion of a body out of a carrier's `_3` unit adds to the
+"promoting a shared body renumbers every later unit" entry above.
+
+**The tool refuses a fresh match until the index is rebuilt.** Right after the
+body compiles, `overlay_dup_index.py promote <fn>` answers "cannot be shared
+while unmatched - 3 different byte images", because the index is derived from
+`asm/`, which still holds the pre-match split; `promote` reads it and concludes
+the copies are still stubs. `python3 tools/overlay_dup_index.py --rebuild stats`
+(a second or two) makes the same call succeed and write the spans. Nothing about
+the C changed between the two calls.
+
+**The redistribution is a rotation, not a rename.** The promoted span sits
+*inside* what used to be one unit, so the carrier's files map as
+
+```
+old _3 (0x6C0C..0x7148) -> new _3 (0x6C0C..0x6F38) + new _4 (0x7014..0x70DC, was the tail of _3)
+old _4 (0x7148..0x736C) -> new _5
+old _5 (0x73DC..0x74D0) -> new _6
+```
+
+Per carrier that is four files to settle, and the last hop is the dangerous one:
+the old `_5` is where a matched body can sit (here actor_201100's
+`ActorsShared8013845cSub1`), and splat has already written a fresh `_6.c`
+holding an `INCLUDE_ASM` stub for it. Move the whole file body across - the
+newly written stub assembles to the same bytes as the C did, so only
+`check_lost_matches` and a diff of the file contents distinguish the two. The
+siblings' `_3` files needed no include changes, only the E34 stub cut out; the
+carrier that owns a body needs the extraction to carry its includes and the
+callee declarations to the unit it lands in.
