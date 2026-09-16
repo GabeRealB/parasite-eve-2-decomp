@@ -8,25 +8,35 @@
 
 #include "actors/actor_104600.h"
 
-/// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
-/// world position and hands it to `Gp_UpdateActorColor` with no blend
-/// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_104600_80135CE0(void* arg0, Task* task)
+/// Per-frame tick of the actor's four-way state machine. State 0 hands the
+/// frame to `func_actor_104600_80134EC8` and state 2 idles. State 3 clears the
+/// two flags at 0x292 / 0x2A6 and counts frames: every fourth one it arms
+/// `field_28E`, clears `field_290` and restarts the count. Whatever the count,
+/// state 3 drops back to state 0 once `Gp_TickObjFlag2` fires on the spawn
+/// block.
+void func_actor_104600_80135B74(Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    Actor104600Work* work;
 
-    coord     = &((TmdObject*)task->extra)->field_8[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    work = (Actor104600Work*)task->idMap;
+    switch (work->field_286) {
+        case 0:
+            func_actor_104600_80134EC8(task);
+            break;
+        case 2:
+            break;
+        case 3:
+            work->field_292 = 0;
+            work->field_2A6 = 0;
+            work->field_28A = work->field_28A + 1;
+            if (work->field_28A >= 4) {
+                work->field_28E = 1;
+                work->field_290 = 0;
+                work->field_28A = 0;
+            }
+            if (Gp_TickObjFlag2((GpObj5D*)task->spawnArg2) != 0) {
+                work->field_286 = 0;
+            }
+            break;
+    }
 }

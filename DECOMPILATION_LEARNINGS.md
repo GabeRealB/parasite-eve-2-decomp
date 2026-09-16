@@ -111613,3 +111613,35 @@ order, so a store's source position is exactly its slot in the target - but one
 moved store re-runs the whole block's allocation and schedule, which is why the
 same move can fix the block head and the chain register at once (the permuter's
 version, one store earlier, scored 98.97%).
+
+## A promotion renumbers every later unit in its carriers, and the `rodata` cut does not follow on its own (actors, 2026-09-16)
+
+**Problem:** promoting a shared body into `src/<family>/lib/` (`overlay_dup_index.py
+promote`, then moving the C) broke the build of all four carriers with
+`can't open asm/USA/actors/nonmatchings/<overlay>/<overlay>_N/<fn>.s`, and a later
+run failed to link with `undefined reference to jtbl_<overlay>_<addr>`.
+
+**Cause:** `gen_overlay_configs.py`'s `emit_run` numbers the overlay-local `c`
+units by order of appearance, so inserting the shared span between two units
+shifts every later `<overlay>_N` up by one. splat creates a `.c` that is missing
+but never rewrites one that exists, so the tree keeps the old distribution and
+the carriers' `INCLUDE_*` paths point at unit directories that no longer exist.
+Worse, the skeleton splat writes for the *new* last unit is pure `INCLUDE_ASM`:
+any matched body that belonged in that range loses its C silently, because
+`INCLUDE_ASM` assembles to exactly the bytes the C compiled to and the checksum
+still passes. Separately, the manifest's `rodata` cut names the unit whose
+object supplies the tables at that offset - a compiler-generated table from a
+matched body plus the ones an `INCLUDE_ASM` sibling carries in its own `.s` -
+and that name is a literal in the manifest, so it keeps the *old* number while
+everything around it moves.
+
+**Fix:** renumber the carrier's `.c` files by one (the first unit's tail becomes
+the new `_2`), rehome every `INCLUDE_*` line on the unit that owns the address in
+its symbol's name, and rename the manifest's `rodata` cut to the new number of
+the unit that supplies its tables. Two checks make it safe: the multiset of
+non-`INCLUDE_` lines must be unchanged (`land_overlay.bodies_of`), and
+`mips-linux-gnu-nm --defined-only build/USA/src/actors/<ov>/*.c.o | grep " R jtbl_"`
+says which unit each table set belongs to. For `actor_107000` the cut moved
+0x64's owner from `actor_107000_5` to `actor_107000_6`, and for `actor_207000`
+from `actor_207000_3` to `actor_207000_4`; `actor_104600` and `actor_204600`
+have no cut (their tables come from unit 1, which does not move).

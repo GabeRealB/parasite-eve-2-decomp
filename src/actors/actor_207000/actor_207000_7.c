@@ -1,5 +1,9 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_7", func_actor_207000_8014EE88);
+#include "main/task.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_7", func_actor_207000_8014F220);
+#include "gameplay/1BC.h"
+
+INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_7", func_actor_207000_8014E7E0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_7", func_actor_207000_8014E938);

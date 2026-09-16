@@ -10,7 +10,7 @@
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_104600_80134690(void* arg0, Task* task)
+void func_actor_204600_8014DCE0(void* arg0, Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;
