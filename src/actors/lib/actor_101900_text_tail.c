@@ -334,4 +334,10 @@ void Actor01900_Fn0ABA0(s32 arg0, Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101900_text_tail", Actor01900_Fn0ABE4);
+void Actor01900_Fn0ABE4(Task* arg0)
+{
+    GpEnemyTaskFuncTable4 sp;
+
+    sp = Actor01900_D0023C;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}

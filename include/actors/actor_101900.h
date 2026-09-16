@@ -325,6 +325,7 @@ typedef struct Actor01900TintRow {
 STATIC_ASSERT_SIZEOF(Actor01900TintRow, 0xC);
 
 extern Actor01900StateTable  Actor01900_D001BC;
+extern GpEnemyTaskFuncTable4 Actor01900_D0023C;
 extern GpPairSrcE            Actor01900_D0AC54;
 extern Actor01900TintRow     Actor01900_D0AC64[];
 extern u8                    Actor01900_D17174[];

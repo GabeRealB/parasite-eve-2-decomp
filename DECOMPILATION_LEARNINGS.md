@@ -97869,3 +97869,49 @@ Inputs: `base_9.i` (100.000%) SHA256 `b92cc4ec81705d0f084be818ff5908897eac80a842
 target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
+
+## An actor dispatcher's frame-copied jump table reaches m2c as an eight-argument indirect call based on an undeclared `sp` (Actor01900_Fn0ABE4, 2026-09-16)
+
+m2c renders the whole function as one indirect call whose target is
+`M2C_FIELD((sp + arg0[0x30] * 4), ...)` and which passes eight arguments; it
+does not compile, because `sp` is undeclared. Every one of those eight values
+is real, but none of them is a call argument - the function **copies a 16-byte
+function-pointer table onto its frame and dispatches through the copy**, and
+m2c cannot tell the copy's four stores from outgoing stack arguments:
+
+```c
+void Actor01900_Fn0ABE4(Task* arg0)
+{
+    GpEnemyTaskFuncTable4 sp;
+
+    sp = Actor01900_D0023C;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
+```
+
+**Reading it.** The prologue is `addu $a1,$a0,$zero` (the task pointer kept
+for the call's second argument), one `lui`/`addiu` pair for the table, then
+**four `lw` from the table each stored to `0x10..0x1C($sp)`** - that run is the
+copy, not argument passing - and only then `lw $v0,0x30($a1)` / `sll` /
+`addu $v0,$sp,$v0` / `lw $v0,0x10($v0)` for the target. `sw $v1, 0x10($sp)` is
+the discriminator: 55 unmatched functions under `asm/USA/actors` open with the
+same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
+
+Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
+four words point at `Actor01900_Fn02018`, `Actor01900_Fn0ABA0`,
+`Actor01900_Fn09D3C` and `Gp_DestroyEnemy`, which is `GpEnemyTaskFuncTable4`
+(gameplay/1BC.h). The three-entry `GpEnemyTaskFuncTable3` and five-entry
+`...Table5` forms are the same idiom with a different count, so a table whose
+length does not fit the type guessed from the call is a length error, not an
+argument error.
+
+The twins are exact: the brief starred `Actor00100_Fn0BD28`
+(src/actors/lib/actor_400100_tail.c:507) and `func_actor_104600_80134A8C` at
+shape/fields 1.00, and both compile to this assembly byte for byte. Their own
+local is literally named `sp`, which is presumably the same name m2c invents
+for the unnamed frame slot it then emits as a global.
+
+Inputs: `base_1.i` (100.000%) SHA256 `1ff253e5700579d0423f52dde0436b7d45e54bd43b4eb956491a0804e9313240`;
+target SHA256 `45a5ee82e41e192745ac6d86083202f44ac5e7ab7839de2827e065ab34d86b3f`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor01900_Fn0ABE4-vacuum`.
