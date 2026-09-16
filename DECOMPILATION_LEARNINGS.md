@@ -95781,3 +95781,63 @@ Inputs: `base.i` (m2c seed, 63.603%) SHA256 `7d2b2a3c2b0ccc424233fe98090e917e4f8
 target SHA256 `a4d80ef5810e91ce123de56640f474d60b649ba6756bef63efbcbc9d596ba43f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_135600_80132C80-vacuum` (session `282d171ed39045cd99475934f00bb371`).
+
+## A dead identity splat is still written, and the tail it is overwritten by keeps off the pointer register (func_actor_311900_8016278C, 2026-09-16)
+
+The target materialises an identity light / colour `MATRIX` pair with the usual
+five-store word splat (`sw`/`sw`/`sw`/`sw`/`sh`, see "A `MATRIX` identity splat
+written as `sw`/`sw`/`sw`/`sw`/`sh`") and then writes nine halfword constants
+over the same 18 bytes of each matrix. Both passes are in the ROM, so both
+belong in the source: the second one covers every `m[i][j]` the splat set, which
+makes the splat dead, and "simplifying" it away - or writing the nine entries as
+a second word-wise splat - does not reproduce the target.
+
+The two passes are reached differently, and that is what fixes the base
+registers. The splat's first store comes out on the outer pointer with the full
+displacement (`sw $v0,0x484($v1)`), the other four on a local pointer's register
+with small displacements (`sw $zero,4($a0)`), and *all nine* of the overwriting
+halfwords stay on the outer pointer (`sh $v0,0x4A4($v1)`). That is one local
+word-view pointer for the splat plus direct member writes for the overwrite:
+
+```c
+    light = (Actor311900MatWords*)&work->light;   /* union: MATRIX + the 5 word fields */
+    light->ident.m00_m01 = 0x1000;                /* first store: 0x484($v1) */
+    light->ident.m02_m10 = 0;
+    light->ident.m11_m12 = 0x1000;
+    light->ident.m20_m21 = 0;
+    light->ident.m22     = 0x1000;
+    /* ...the colour matrix, then the republish... */
+    work->color.m[0][0] = 0x1000;                 /* 0x4A4($v1): no pointer involved */
+```
+
+Reaching for the union alone (`work->light.mat`, or a `s16` halfword view) keeps
+the first store on `$v1` too but leaves the other four on `$v1` as well, and the
+`4($a0)`/`8($a0)`/`0xC($a0)`/`0x10($a0)` group never appears. `func_actor_141000_801330C0`
+is the matched precedent for the splat half of this shape.
+
+The m2c seed is worth taking at face value here: it scored **87.78%**, and
+`.diagnosis.json` said `topology: match` with the whole difference in store
+*widths* - `opcode_delta {43:0:+2, 41:0:-2}`, i.e. two `sw` where the target has
+`sh`. m2c had seen the splat's word stores at 0x484/0x4A4 and typed the later
+halfword stores at those same two addresses `s32` as well. Retyping exactly
+those two stores `s16` (`M2C_FIELD(v1, s16 *, 0x4A4) = 0x1000;`) scored 100% on
+the next build, registers, order and delay slot untouched - so a seed whose only
+remaining delta is a store width is a one-word edit, not a search.
+
+Two things about the shape are worth carrying to the sibling overlays. The block
+is not a `TaskIdMap`: the spawn state `Mem_Calloc`s it (0x4CC here) into
+`Task::idMap`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
+`actor_350700`, and this function republishes `&work->light` / `&work->color`
+onto `TmdObject::field_1C` / `field_20` - the pair `Gp_BindDefaultMtx` otherwise
+points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
+`func_actor_350700_801624B4` are the same republish in their own overlays.
+`func_actor_311900_8016281C`, the very next unmatched function in this unit, is
+this body with a different light matrix: `m[0][0]` is `-0x1000` and the two
+entries this one zeroes are `0x1000`.
+
+Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
+`8e2bf86f…` (m2c seed, 87.78%, object `90bf4dd9…`), `base_1.c` `c94933f6…`
+(two store widths retyped, 100.000%), `base_2.c` `57f4a3af…` (typed port, same
+object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
+`60d886cd…` throughout. `include/actors/actor_311900.h` is new, holding
+`Actor311900MatWords` and `Actor311900Work`.

@@ -1,0 +1,52 @@
+#ifndef ACTOR_311900_H
+#define ACTOR_311900_H
+
+#include "common.h"
+
+#include <psyq/libgte.h>
+
+#include "main/task.h"
+#include "main/tmd.h"
+
+/// A `MATRIX` plus the word-wise view `func_actor_311900_8016278C` splats the
+/// light / colour pair through: five aligned stores rather than nine halfword
+/// ones (the same idiom as `ActorsShared8016a538Mat` and `Actor141000MatWords`).
+typedef union Actor311900MatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor311900MatWords;
+STATIC_ASSERT_SIZEOF(Actor311900MatWords, 0x20);
+
+/// Work block allocated by the spawn state `func_actor_311900_8016228C`
+/// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::idMap` slot -- that
+/// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
+/// two matrices onto `TmdObject::field_1C` / `field_20`, the light / colour pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
+/// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
+///
+/// The size is the allocation, and the fields below are the ones the spawn
+/// state seeds: 2 into the halfword at 0x474, 1 into the one at 0x478, and
+/// zero into 0x4C4 / 0x4C6.
+typedef struct Actor311900Work {
+    /* 0x000 */ byte   pad_0[0x474];
+    /* 0x474 */ u16    field_474;
+    /* 0x476 */ byte   pad_476[0x2];
+    /* 0x478 */ u16    field_478;
+    /* 0x47A */ byte   pad_47A[0xA];
+    /* 0x484 */ MATRIX light;
+    /* 0x4A4 */ MATRIX color;
+    /* 0x4C4 */ u16    field_4C4;
+    /* 0x4C6 */ u16    field_4C6;
+    /* 0x4C8 */ byte   pad_4C8[0x4];
+} Actor311900Work;
+STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
+
+void func_actor_311900_8016278C(Task* task);
+
+#endif
