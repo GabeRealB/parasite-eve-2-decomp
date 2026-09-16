@@ -84840,3 +84840,47 @@ Inputs: `base.c` (77.567%, sha256
 ebc8313b4614fe2204966d0840e215247d6fc5747fc098f81c488c4b504d974b), `base_1.c`
 (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## `u16 x & 0x8000` emits `andi`/`beqz`; an `s16` local emits `sll`/`bgez`
+
+A sign test on a decremented 16-bit field reads the same in C whichever way it
+is written, but the two forms are different code. m2c renders the test as an
+unsigned mask, which is what the target's *sibling* function does not do:
+
+```c
+u16 temp_v0;
+temp_v0 = arg0->killCountdown - 1;
+arg0->killCountdown = temp_v0;
+if (temp_v0 & 0x8000) { Task_Kill(arg0); }   /* andi v0,v0,0x8000; beqz */
+```
+
+```
+lhu   v0,0x2a(s0)
+addiu v0,v0,-0x1
+sh    v0,0x2a(s0)
+andi  v0,v0,0x8000
+beqz  v0,...
+```
+
+The target instead re-signs the truncated value with `sll $v0,$v0,16` and tests
+it with `bgez`, which is what an `s16` local produces. Declare the temp as `s16`
+and let the assignment truncate; the subtraction still reads the field through
+`(u16)` so the `lhu` (not `lh`) survives:
+
+```c
+s16 temp_v0;
+temp_v0 = (u16)arg0->killCountdown - 1;
+arg0->killCountdown = temp_v0;
+if (temp_v0 < 0) { Task_Kill(arg0); }        /* sll v0,v0,0x10; bgez */
+```
+
+`func_dryfield_general_store_8017DFB4` is the example: 90.909% with
+`insert=2 delete=2` and every other penalty zero - the diff is exactly the
+`andi`/`beqz` pair against `sll`/`bgez` - and 100% on the next build. Choose the
+temp's signedness before touching control flow; the block and instruction counts
+already matched, so no restructuring is involved.
+
+Inputs: `base.c` (90.909%, sha256
+77872460fba970409657fef568c4acceb2e7e5ecdb74036a834f52ecd5f20382), `base_1.c`
+(100%). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
