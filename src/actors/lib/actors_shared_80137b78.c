@@ -1,9 +1,9 @@
 #include "common.h"
 
+#include "actors/actors_shared_80132688.h"
 #include "actors/actors_shared_80137b78.h"
 #include "actors/actors_shared_80137d78.h"
 
-void ActorsShared80137b78_Fn32688(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn329A4(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn3314C(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn33AEC(ActorShared80137b78* arg0);
@@ -58,7 +58,7 @@ void ActorsShared80137b78(ActorShared80137b78* arg0)
             ActorsShared80137d78((ActorShared80137d78*)arg0);
             break;
         case 11:
-            ActorsShared80137b78_Fn32688(arg0);
+            ActorsShared80132688((ActorShared80132688*)arg0);
             break;
     }
     if (temp_s1->field_6CC != 1) {

@@ -74,9 +74,7 @@ void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200_2", func_actor_402200_80132688);
-
-INCLUDE_ASM("actors/nonmatchings/actor_402200/actor_402200_2", func_actor_402200_801329A4);
+INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131E6C);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131E84);
 
