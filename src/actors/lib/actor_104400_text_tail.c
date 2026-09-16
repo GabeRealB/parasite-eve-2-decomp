@@ -715,7 +715,36 @@ void Actor04400_Fn071C8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn0723C);
+/// Frames 0x1D..0x29 of the state: each frame `Actor04400_Fn065F4` gives the
+/// step speed, which pushes the model's root coordinate along `field_7A` +
+/// 0x400 with `rsin`/`rcos` and clears the root flag. On the frame
+/// `Actor04400_Fn06618` accepts, clears the death flag `field_438` and enters
+/// state 3.
+void Actor04400_Fn0723C(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    s16              angle;
+    s16              speed;
+    u16              ticks;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    ticks           = work->field_412;
+    work->field_412 = ticks + 1;
+    if ((u32)((ticks - 0x1D) & 0xFFFF) < 0xDU) {
+        speed                                           = Actor04400_Fn065F4(arg0, 0x1E);
+        angle                                           = work->field_7A + 0x400;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    }
+    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
+        work->field_438  = 0;
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_420 = 3;
+        work2->field_422 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07360);
 

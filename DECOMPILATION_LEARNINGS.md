@@ -1090,6 +1090,45 @@ reach for a pin: count the definitions in `.greg` first.
 Inputs: `base_4.i` (99.354%), `base_6.i`
 `4e47c39fb129c93da9d143b4ca6b23b1915004a46cdc4c0809c6199d74c7392b`.
 
+## The same two-definition pseudo also fails on *priority*: its two live ranges sum into `live_length`
+
+The entry above is that shape losing on a conflict. It fails a second way, on
+nothing but the rank, in `Actor04400_Fn0723C`. The target keeps the parameter in
+`$s2` and the work pointer in `$s3`; reusing one C variable for the pointer put
+them the other way round (`regs=19`, 98.699%), and the `.lreg` header says why:
+
+```
+Register 80 used 8 times across 94 insns; crosses 4 calls; pointer.   /* arg0  */
+Register 81 used 8 times across 50 insns; dies in 2 places; ...       /* work  */
+```
+
+`;; 4 regs to allocate: 81 117 103 80` — `work` ranks first, so `find_reg`'s
+ascending scan hands it the lower call-saved register, and the parameter takes
+`$s3`. Both have 8 references, so the comparison is purely by live length and
+the shorter one wins.
+
+`REG_N_REFS` and `REG_LIVE_LENGTH` are accumulated *per pseudo*, and the two
+`work = (Actor104400Work*)arg0->idMap;` assignments in different blocks are one
+pseudo — the second definition reuses the number, which is what `dies in 2
+places` reports. So the counts cover both ranges: refs 5 + 3 = 8, and live
+length 46 + 4 = 50. The sum, not the maximum — a maximum is what the
+`reg_may_share` path in `CODEGEN_MODEL.md` §10.4 takes, and no two pseudos share
+an allocno here. Rank `floor_log2(8)*8/50 = 0.48` then beats the parameter's
+`floor_log2(8)*8/94 = 0.255`, though the parameter is live across the whole
+function.
+
+Giving the reload its own variable — `work2`, which the sibling handlers in this
+TU already use — splits the pseudo: `Register 81 used 5 times across 46 insns`,
+rank `floor_log2(5)*5/46 = 0.217`, below the parameter's, and both registers land
+where the target has them. 100%, no other change.
+
+So when a `regs` residue is a clean swap of two call-saved registers, read the
+`used N times across M insns` lines before reaching for a pin: a variable reused
+across a call inflates both of the numbers its rank divides.
+
+Inputs: `base_1.i` (98.699%), `base_2.i`
+`0a02a062356ca578d8535234e6e8550072df4aa86bd74f57b9a01cd71ae58a1f`.
+
 ## `permute.sh` preprocesses without `-I tools/m2c`, so `m2c_macros.h` seeds fail setup
 
 `permute.sh` runs `gcc -E -P -Iinclude -Iinclude/decomp -Iinclude/psyq

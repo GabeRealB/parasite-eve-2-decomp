@@ -468,6 +468,11 @@ pri = floor_log2(n_refs) * n_refs / live_length * 10000 * size        (int)
 descending, ties to the lower **allocno number**. Usually each allocno contains
 one pseudo, but `reg_may_share` can merge them: refs and call counts are summed,
 live length is the maximum, and the printed representative is the last member.
+The same summing happens *inside* one pseudo: a variable assigned in two blocks
+is one `reg/v` with two live ranges (`dies in 2 places`), and its refs add while
+its range lengths **sum** — no maximum is taken on this path, so a pointer
+reused across a call carries a longer `live_length` than either range and can
+outrank a value that is live across the whole function.
 Use the actual allocno membership when reconstructing this sort. Pseudo numbers follow creation
 order: parameters first, user locals in declaration order, compiler temporaries
 (givs, CSE copies) after. Probe 1's header `95 108 84 83 85 81 80 82` is
