@@ -1012,7 +1012,34 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// `func_actor_206100_8014F524` builds, which is what the prologue's four-word
 /// block move out of `.rodata` is.  The tail is `Actor206100_UpdateColor`; see
 /// there for why it stays inline.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014E7D4);
+void func_actor_206100_8014E7D4(Task* task)
+{
+    Actor206100Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor206100StateTable4 states;
+
+    work   = (Actor206100Work*)task->idMap;
+    obj    = (TmdObject*)task->extra;
+    coord  = obj->field_8;
+    states = D_actor_206100_80149EC0;
+    switch (D_801153F4) {
+        case 2:
+            obj->field_C |= 0x80;
+            return;
+        case 0:
+            states.funcs[(s16)work->field_520](task, &states);
+            work->flags_514.half = work->slots[1].field_10;
+            coord->coord.t[0]    = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
+            coord->coord.t[2]    = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
+            coord->coord.t[1] =
+                coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
+            /* fallthrough */
+        case 1:
+            Actor206100_UpdateColor(task);
+            return;
+    }
+}
 /// Teleport-state tick: the same animation request chain
 /// `func_actor_206100_8014FCD4` runs -- re-arm, ramp or reset the clip phase
 /// `field_512` and tick every slot -- but on its own frame counter, and with the
