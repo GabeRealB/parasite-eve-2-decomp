@@ -7,10 +7,10 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-/// Motion sub-object at 0x8C of `ActorsShared80138efcWork`, sized to the
-/// halfword run at 0xB8C that follows it. Fields at 0x02 / 0x06 are read as a
-/// pair by `func_actor_104900_80136F8C`, and the flag word at 0x10 is tested a
-/// bit at a time by the dispatcher and by the handlers.
+/// Motion sub-object at 0x8C of `ActorsShared80138efcWork`, ending at the id
+/// byte at 0xB88 that follows it. Fields at 0x02 / 0x06 are read as a pair by
+/// `func_actor_104900_80136F8C`, and the flag word at 0x10 is tested a bit at a
+/// time by the dispatcher and by the handlers.
 typedef struct ActorsShared80138efcMotion {
     /* 0x000 */ u16  field_0;
     /* 0x002 */ u16  field_2;
@@ -26,9 +26,9 @@ typedef struct ActorsShared80138efcMotion {
     /// the frame `field_B8C` reaches 0x23, next to a `Gp_PackObjPair` result in
     /// `field_18`.
     /* 0x93C */ GpObj objs[2];
-    /* 0x97C */ byte  pad_97C[0x184];
+    /* 0x97C */ byte  pad_97C[0x180];
 } ActorsShared80138efcMotion;
-STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xB00);
+STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xAFC);
 
 /// Work block the body at 0x80138EFC is handed in `$a2`, as five actor slots
 /// lay it out.
@@ -55,6 +55,12 @@ typedef struct ActorsShared80138efcWork {
     /// it is laid out; the body at 0x80138E34 tests bit 1 of the same word, and
     /// keeps the base in a register rather than folding 0x9C into the access.
     /* 0x08C */ ActorsShared80138efcMotion motion;
+    /// Actor id, `spawnArg->field_8 >> 12`, which the slot's setup body at
+    /// 0x8013279C stores as a word and mirrors into `D_actor_104900_80147490`.
+    /// The 0x80138D58 handler reads its low byte and shifts it into bits 8..15
+    /// of the `SndEvt_EnqueueType6` id.
+    /* 0xB88 */ u8   field_B88;
+    /* 0xB89 */ byte pad_B89[0x3];
     /// Countdown a state arms and decrements per frame: `func_actor_104900_80138D58`
     /// posts 0x64 into it and acts when it reaches zero, and this unit's
     /// 0x80138E34 arms 0xA.
@@ -88,13 +94,35 @@ typedef struct ActorsShared80138efcWork {
     /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
     /// trigger then compares against.
     /* 0xBAF */ s8   field_BAF;
-    /* 0xBB0 */ byte pad_BB0[0x19];
+    /* 0xBB0 */ byte pad_BB0[0x8];
+    /// Sound variant bit the slot's setup body at 0x8013279C picks from the
+    /// spawn record, 0 or 1. `func_actor_104900_80138D58` and the bodies at
+    /// 0x80132D78 / 0x80136230 shift it into bit 22 of the id they hand
+    /// `SndEvt_EnqueueType6`.
+    /* 0xBB8 */ u8   field_BB8;
+    /* 0xBB9 */ byte pad_BB9[0x10];
     /// Read as a byte and compared against 1, then against `field_BA9`: the
     /// 0x80138A2C body only runs its restart path when both are 1.
     /* 0xBC9 */ u8   field_BC9;
     /* 0xBCA */ byte pad_BCA[0x2];
 } ActorsShared80138efcWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
+
+/// Block `func_actor_104900_80134780` hands every state handler in `$a3`, one
+/// frame of the actor's own stack. The dispatcher fills `pan` and `depth` from
+/// the model's `GpObj38` (0x50 into `Task::field_2C->field_8`) right before the
+/// indirect call, storing each as a halfword; the handlers read the low byte,
+/// so the pair is laid out as bytes here. Which of them writes what is per
+/// handler - the 0x80138D58 body writes only 0x64.
+typedef struct ActorsShared80138efcArg {
+    /* 0x00 */ byte pad_0[0x60];
+    /* 0x60 */ s8   pan;
+    /* 0x61 */ byte pad_61[0x1];
+    /* 0x62 */ s8   depth;
+    /* 0x63 */ byte pad_63[0x1];
+    /* 0x64 */ s8   field_64;
+} ActorsShared80138efcArg;
+STATIC_ASSERT_SIZEOF(ActorsShared80138efcArg, 0x65);
 
 /// Arms the motion pair for the current sub-state when `field_BA8` is still
 /// clear, and switches to state 0xF when `field_BA9` is set.

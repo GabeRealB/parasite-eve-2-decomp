@@ -99974,3 +99974,44 @@ what makes the tie-break land.
 
 The two levers compose: fix the live lengths so the priorities tie or invert, and
 declare the intended winner first so a remaining tie still resolves the right way.
+
+## `fold` reassociates an `|` chain to put the constant next to the *second* operand, so the source has to be written that way round (func_actor_104900_80138D58, 2026-09-16)
+
+Sound ids in this family are built as `(variant << 22) | template | (id << 8)`,
+and the ROM emits them left to right:
+
+```
+sll   $v0, $v0, 22
+or    $v0, $v0, $v1      # variant | template
+sll   $a0, $a0, 8
+or    $a0, $v0, $a0      # (variant | template) | id
+```
+
+m2c's reading of that - `(x << 22) | 0x400B0004 | (y << 8)`, which is
+`((variant | template) | id)` by C's left associativity - compiles to the
+*other* association:
+
+```
+sll   v0, v0, 0x16
+sll   a0, a0, 0x8
+or    a0, a0, v1         # id | template
+or    a0, v0, a0         # variant | (id | template)
+```
+
+The change is at tree level, not in RTL: the initial `.rtl` dump already shows
+`(ior:SI (reg 100) (ior:SI (reg 102) (reg 104)))`, i.e. `variant | (id |
+template)`, straight out of `expand`. The pass is `fold`, via the `associate:`
+label in `fold-const.c`: `split_tree (arg0, code, &var, &con, &varsign)` splits
+`(VAR op CONST)` for any commutative code - `BIT_IOR_EXPR` included - and the
+`varsign == 1` path then rebuilds the tree as `var op fold (arg1 op con)`. So
+`(A | K) | B` is unconditionally rewritten to `A | (B | K)`.
+
+Writing the source so that fold's output is already the wanted shape is the fix:
+parenthesise the template *with the id*, `a | ((b << 8) | 0x400B0004)`, and fold
+rebuilds it into the left-to-right form the ROM has. The sibling body at
+0x80132D78 (same overlay) has the identical sequence with a `0x400B0006`
+template, so this is the family's idiom rather than a one-off.
+
+The same `associate:` path is worth remembering for any `+`/`|`/`^`/`&`/`min`/
+`max` chain whose emitted operand order looks "reversed": the left-associative
+source is not the tree that reaches `expand`.
