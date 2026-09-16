@@ -50,10 +50,13 @@ typedef struct Actor104000Work {
     /* 0x3A6 */ u16  field_3A6;
     /* 0x3A8 */ byte pad_3A8[0x36];
     /* 0x3DE */ u16  field_3DE;
-    /* 0x3E0 */ byte pad_3E0[0x9C];
+    /* 0x3E0 */ byte pad_3E0[0x9A];
+    /* 0x47A */ u8   field_47A;
+    /* 0x47B */ byte pad_47B[1];
     /* 0x47C */ byte field_47C[0x14];
     /* 0x490 */ s32  field_490;
 } Actor104000Work;
+STATIC_ASSERT_SIZEOF(Actor104000Work, 0x494);
 
 /// Display object hung off `field_2C`; `field_C` is the visibility/alpha value
 /// the state handlers clear when the actor restarts.
@@ -63,20 +66,22 @@ typedef struct Actor104000Obj2C {
     /* 0xC */ s16            field_C;
 } Actor104000Obj2C;
 
-typedef struct Actor104000 {
-    /* 0x00 */ byte              pad_0[0x1C];
-    /* 0x1C */ Actor104000Work*  field_1C;
-    /* 0x20 */ byte              pad_20[0xC];
-    /* 0x2C */ Actor104000Obj2C* field_2C;
-} Actor104000;
-
-/// Caller-owned context passed alongside the actor; `field_14` is the flag the
-/// state handlers clear.
+/// Caller-owned context the actor also keeps a pointer to at `field_20`;
+/// `field_14` is the flag the state handlers clear.
 typedef struct Actor104000Ctx {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ s8   field_14;
     /* 0x15 */ byte pad_15[3];
 } Actor104000Ctx;
+
+typedef struct Actor104000 {
+    /* 0x00 */ byte              pad_0[0x1C];
+    /* 0x1C */ Actor104000Work*  field_1C;
+    /* 0x20 */ Actor104000Ctx*   field_20;
+    /* 0x24 */ byte              pad_24[8];
+    /* 0x2C */ Actor104000Obj2C* field_2C;
+} Actor104000;
+STATIC_ASSERT_SIZEOF(Actor104000, 0x30);
 
 void func_actor_104000_80132C8C(Actor104000* arg0);
 void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);
