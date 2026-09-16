@@ -17584,6 +17584,18 @@ with no calls and no data references makes the body promotable once matched;
 `overlay_dup_index.py promote` then shares it with `actor_160700`, which carries
 the same 25 instructions at `0x8013265C`.
 
+The same arity trap takes out the room `GpMsgHandler`s, where m2c cannot even
+see the convention: the body is reached through a lone `.word` in the room's
+`_data`, so with the message id unused m2c emits a *one*-parameter signature
+and the payload lands in `$a0` instead of `$a2`. `func_mine_secret_passage_8017D898`
+scored 99.583% with `regs=1` that way - every opcode, immediate and operand the
+same bar the compared register in one column (`bne $a0,$v0` against retail's
+`bne $a2,$v0`). The fix is the typedef's own parameter list,
+`(Task* task, s32 msgId, s32 arg2, s32 arg3)`, not a register pin; restoring the
+two leading parameters scored 100% on the next build. A `regs`-only residue on a
+function whose only reference is a data `.word` is arity, so read
+`include/gameplay/D4.h` before touching the register allocation.
+
 ## Split call results: dying temp vs join-live `ret`
 
 Two returns from the same callee where the first is only used in an immediate
