@@ -30,10 +30,8 @@ INCLUDE_ASM("actors/nonmatchings/actor_301200/actor_301200", func_actor_301200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_301200/actor_301200", func_actor_301200_801654D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_301200/actor_301200", func_actor_301200_80165820);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_301200/actor_301200", ActorsShared80135df4Table);
 
-INCLUDE_ASM("actors/nonmatchings/actor_301200/actor_301200", func_actor_301200_801658DC);
+INCLUDE_RODATA("actors/nonmatchings/actor_301200/actor_301200", jtbl_actor_301200_80161F3C);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_301200/actor_301200", func_actor_301200_80161F50);

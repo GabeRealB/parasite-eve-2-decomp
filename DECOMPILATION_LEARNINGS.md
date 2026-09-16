@@ -92537,3 +92537,46 @@ Evidence: scratch `nonmatchings/func_actor_205200_8014C7CC-vacuum/`, builds
 95.455 / 100) with `.sched`, `.dbr` and `.cse` dumps for each variant. Both
 mechanisms above are read off dump pairs whose inputs differ only by the stated
 edit; the `addiu` operand and the stolen insn are the only two things that move.
+## A promotion leaves the moved function's jump table in the *first* unit, and the cross-unit `.word` refs still link (func_actor_201200_8014D820, 2026-09-16)
+
+The variant of "Promoting a body from the middle of an overlay splits the unit
+and moves the `rodata` pin with it" where there is **no `rodata` pin to move**.
+`func_actor_201200_8014D820` sits at 0x3A00 of `actor_201200`, near the end of
+unit 1 (0x138..0x3B70), so promoting it split that unit at the span and pushed
+the tail into a new `_2` (0x3ABC..0x3B70, `func_actor_201200_8014D8DC`). The
+tail function owns a compiler-generated table, `jtbl_actor_201200_80149F3C` at
+0x11C, which lives in the *leading* `.rodata` block - owned by unit 1, not by
+the unit the function moved to. splat therefore emits that table as a standalone
+`jtbl_*.s` in unit 1's `nonmatchings/` directory while its `.L` labels are
+defined in unit 2's file.
+
+That still links, so it is not the failure the other entry's "nothing can
+resolve them" suggests. `jlabel` emits the label with its default
+`visibility=global`, so the definitions are ordinary global symbols and the
+reference is a link-time reloc the assembler never has to resolve:
+
+```
+$ nm build/USA/src/actors/actor_201200/actor_201200.c.o   | grep 8014D944
+         U .Lactor_201200_8014D944
+$ nm build/USA/src/actors/actor_201200/actor_201200_2.c.o | grep 8014D944
+00000068 T .Lactor_201200_8014D944
+```
+
+The hazard is purely for the *next* match of such a function: GCC would emit the
+table into the moved unit's own `.rodata`, which the linker places after unit
+1's block, so `func_actor_201200_8014D8DC` needs the leading-rodata cut from
+"cut the leading rodata where ownership changes" (say
+`rodata = [{ start = "0x11C", unit = "actor_201200_2" }]`) where before the
+promotion it needed none - it was in the unit that owns the block. Same for the
+two sibling carriers, `func_actor_101200_801358DC` and
+`func_actor_301200_801658DC`. Run `tools/rodata_triage.py` before matching one.
+
+One more thing the re-split does here: splat only *creates* a unit `.c` that is
+missing and never refreshes an existing one, so deleting the head unit's file
+(it held nothing but stubs) and letting splat author both halves comes back with
+a diff beyond the promotion - the fresh `actor_201200.c` carries an
+`INCLUDE_RODATA(jtbl_actor_201200_80149F3C)` the deleted one had no line for,
+the table's bytes having previously been folded into `ActorsShared80135df4Table`
+(0x10C..0x130). Both partitions build to the same overlay sha1; prefer editing
+the file by hand when it holds matched bodies, as the delete-and-re-split note
+says, and expect this drift when it does not.
