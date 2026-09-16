@@ -28,6 +28,10 @@ extern s32 D_80165FC0;
 
 extern s32 D_80166098;
 
+extern s32 D_actor_335800_80164EBC;
+
+extern s32 D_actor_335800_80164ED4;
+
 void func_actor_335800_801620C0(void)
 {
     Task_SpawnFromTable(&D_actor_335800_80164DE0, 0, 0, 0);
@@ -39,7 +43,24 @@ void func_actor_335800_801620F0(u8 arg0)
     Game_Session->field_76             = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162114);
+void func_actor_335800_80162114(void)
+{
+    Task*          slot;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+
+    slot = Game_GetPtrSlot(3);
+    if (slot != NULL) {
+        extra = slot->extra;
+        coord = extra->field_8;
+        if ((u32)(coord->coord.t[2] - 0xC53) < 0x96F) {
+            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164ED4, 0);
+        }
+        if ((u32)(coord->coord.t[2] - 0x3E9) < 0x86A) {
+            Gp_DispatchMsg(slot, 0x3E9, (s32)&D_actor_335800_80164EBC, 0);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801621B4);
 
