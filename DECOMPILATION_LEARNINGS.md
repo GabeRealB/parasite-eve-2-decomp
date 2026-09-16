@@ -101377,3 +101377,32 @@ one at `.jump2`. Spelling it hoisted instead - an `if`/`else` that only sets
 sources are therefore indistinguishable from the target, so a shared `jal` is no
 evidence that the original hoisted, and a matched sibling's duplicated tail
 should not be "cleaned up" to match one.
+
+## A stale `(void)` prototype can be renamed around in the scratch env (func_actor_800200_80163180, 2026-09-16)
+
+Landing a `(void)`-stubbed actor function whose body takes `arg0` means giving
+the header the real prototype and passing `arg0` at the call site (see "A staged
+`(void)` stub taking `arg0`"). But in the *scratch* env the header is the shared
+one, so `void f(GpActorWork* arg0) { ... }` fails to compile with `conflicting
+types for 'f'` before the first score - and editing the shared header to iterate
+is exactly what a scratch run should not do.
+
+Rename the stale prototype away for the include, then define normally:
+
+```c
+#define func_actor_800200_80163180 func_actor_800200_80163180_stale_proto
+#include "actors/actor_800200.h"
+#undef func_actor_800200_80163180
+```
+
+The header declares the symbol once, so the macro rewrites nothing else. The
+sibling `func_actor_800200_8016337C` and `func_actor_800200_80163584` are still
+`(void)` stubs in the same header and will each need this until they land.
+
+The landed body itself is the family shape already described here: the m2c seed
+scored 81.273% because it typed the path table as 4-byte elements (an `sll 0x5`
+where the target has `sll 0x3`) and scaled `coord + 0x18` by `sizeof(*coord)`
+into `0x780`. Declaring `GpActorPathStep D_actor_800200_8016A058[]` and writing
+`D_actor_800200_8016A058[1]` / `[d4->field_CE]` with the sibling idiom matched
+100.00% with all-zero penalties on the first typed attempt; the `$s3 = 1` held
+across calls that the seed lacked came out of the source by itself, with no pin.
