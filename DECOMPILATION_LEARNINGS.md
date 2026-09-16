@@ -98143,3 +98143,50 @@ Inputs: `base.i` SHA256
 SHA256 `fc73e2f0649bab84e93ab1e6aa1865edc36ad4a2376c7c86a8895401a9b3a881`;
 one build, no pins, no permuter. Scratch
 `nonmatchings/Actor04400_Fn06374-vacuum`.
+
+## m2c reads a stack-local dispatch table's stores as call arguments (Actor04400_Fn06A78, 2026-09-16)
+
+A state handler that builds its table *on the stack* from two function
+addresses comes out of m2c as a **call with two arguments**:
+
+```c
+M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x422) * 4)),
+          M2C_UNK (**)(M2C_UNK *, void (*)(Task *)), 0x10)
+    (&Actor04400_Fn06BC4, Actor04400_Fn06BF8);
+```
+
+The giveaway is where the stores land: `0x10($sp)` and `0x14($sp)` are the o32
+**outgoing stack-argument slots**, so m2c's calling-convention recovery claims
+them as arguments 5 and 6 of the indirect call. But the `jalr` sets up nothing at
+all — no `$a0`…`$a3` write, and the callee already finds `Task*` in `$a0` — while
+the "arguments" are `lui`/`addiu` pairs forming two *function addresses*, which no
+arg setup would do. They are a local array's initializer:
+
+```c
+void Actor04400_Fn06A78(Task* arg0)
+{
+    Actor104400Work* work                = (Actor104400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        Actor04400_Fn06BC4,
+        Actor04400_Fn06BF8,
+    };
+
+    states[(s16)work->field_422](arg0);
+}
+```
+
+Distinguish the two readings structurally: a stack-argument call writes the args
+*after* the callee's other operands are ready and passes them to a target already
+in a register; a local table writes them *before* the index load (`lh 0x422`
+comes last, after both `sw`s) and the `lw` from `$sp + index*4` *is* the target.
+The 2-element local array is the family idiom, already matched in
+`src/actors/lib/actor_100400_text.c` (`Actor00400_Fn079A8`, `Actor00400_Fn089C8`)
+— check a matched sibling in the same family before writing the body by hand.
+
+Inputs: `base.i` SHA256
+`c75ecb5c5c3b0e602c77a55bddd07a46309cf346cf8cb1530d676accbb59b80c` (100.000%),
+`base.c` SHA256
+`c99c607ec97f031c064506bb3f0f0cded537f8a5c75e6392dc3da020285e1bfe`; target
+SHA256 `97545fc1f3d5ed5413b6934ad9fdc0d58a8b6f351baa496d9194ec270265632a`;
+two builds (mid-quilt `base.c` 59.762%), no pins, no permuter. Scratch
+`nonmatchings/Actor04400_Fn06A78-vacuum`.
