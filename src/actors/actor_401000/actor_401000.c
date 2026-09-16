@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include <psyq/abs.h>
 
 #include "actors/actor_401000.h"
 #include "gameplay/3CD8.h"
@@ -969,7 +970,78 @@ void func_actor_401000_80139D10(Actor401000* arg0)
     *(Actor401000TurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A0C8);
+/// Aim step toward the player, the `func_actor_401300_8013A5C0` twin. Unlike
+/// `func_actor_401000_80134F98` the wrapped turn is halved and clamped to
+/// +-0x80 instead of +-0x10, so the actor turns at half speed and only the
+/// 0x16/2 -> 0x16/0x11 spawn pair keys the follow-up; the spawn arm writes
+/// `field_8D0.field_1C` first and leaves `field_6` alone, and the exit turn
+/// reads the sign of `field_8AE` with the `0x4B0` arm first.
+void func_actor_401000_8013A0C8(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    Actor401000AimScratch* aim;
+    TmdObject*             obj;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_898          = 1;
+        work->field_8A2          = 0x16;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        return;
+    }
+    func_actor_401000_80132EF0(arg0);
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
+    aim->angle                                = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_8AE                           = aim->angle;
+    if (ABS(aim->angle) < 0x81 && work->field_89E == 2) {
+        work->field_8A2 = 0x16;
+        work->field_89E = 0x11;
+        work->field_898 = 1;
+        work->field_6   = 0;
+        func_actor_401000_80132EF0(arg0);
+    }
+    if (aim->angle >= 0x81) {
+        aim->angle = 0x80;
+    }
+    if (aim->angle < -0x80) {
+        aim->angle = -0x80;
+    } else {
+        aim->angle = aim->angle >> 1;
+    }
+    aim->angle += ratan2(-arg0->field_2C->field_8->coord.m[2][0], arg0->field_2C->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89E == 0x11) {
+        work->field_6++;
+        if ((func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, -0x10) << 16) != 0) {
+            Actor401000_MoveForward(arg0->field_2C->field_8, -0x10);
+        }
+        if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) != 1) {
+            func_actor_401000_80135704(arg0, (GpRec18*)work->field_8F0, 0xC);
+        }
+        arg0->field_2C->field_8->flg = 0;
+        if ((s16)work->field_6 >= 0x13) {
+            if (work->field_8AE <= 0) {
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x4B0, 0);
+            } else {
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x4B0, 0);
+            }
+            work->field_0 = 7;
+        }
+    }
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Aim step toward the player: the same body as `func_actor_401000_80134F98`
 /// with three differences. The wrapped turn is clamped to zero-or-negative
