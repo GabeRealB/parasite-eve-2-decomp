@@ -198,6 +198,37 @@ typedef struct Actor00100DeltaFlag {
 } Actor00100DeltaFlag;
 STATIC_ASSERT_SIZEOF(Actor00100DeltaFlag, 0x14);
 
+/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn00508` to push
+/// a coordinate away from the obstacles in a `GpRec18` table. `angle`/`ok` hold
+/// up to eight bearings collected from the records, `i`/`j` are the loop
+/// cursors, and `blocked` is set when any record's kind is 0x10000.
+typedef struct Actor00100AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ u8       blocked;
+} Actor00100AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch, 0x54);
+
+/// 0x10-byte scratch the bearing helpers of `Actor00100_Fn00508` nest inside
+/// `Actor00100AvoidScratch`: an obstacle's offset, widened to words.
+typedef struct Actor00100AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor00100AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor00100AvoidDelta, 0x10);
+
 /// One halfword of an `Actor00100Msg`, which the message system also hands to
 /// handlers as a raw byte triple.
 typedef union Actor00100MsgWord {
@@ -261,6 +292,6 @@ void Actor00100_Fn0B658(Actor00100* arg0);
 s32  Actor00100_Fn0B264(Task* task);
 s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
 
-s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* records, s32 count, SVECTOR* pos);
+s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* records, s16 count, SVECTOR* pos);
 
 #endif

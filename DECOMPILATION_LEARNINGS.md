@@ -98328,3 +98328,70 @@ order GCC emits objects in (function order) rather than assuming the unit's
 Inputs: `base_13.c` 100.000%; the manifest change is
 `configs/USA/overlays.toml` (`actor_400100`, `actor_407500`), both of which
 carry the same package.
+
+### `(s16)` at the use sites does not make the parameter `s16`: the pseudo stays SImode and two callee-saved homes swap
+
+`Actor00100_Fn00508` is a byte-identical copy of `Actor01900_Fn008B4`, so porting
+the sibling's body verbatim scored 99.764% with `blocks=41/41
+instructions=339/339 predicates_match=True calls_match=True` and `regs=16` the
+only penalty. The residual was one exchange of the argument homes: the target has
+`$s4 = count` (`$a2`) and `$s5 = recs` (`$a1`), the attempt had them the other way
+round. No statement reorder moved it.
+
+The cause was the parameter's declared type. The header already said `s32 count`,
+so the first port matched that and wrote `(s16)count` at the two comparison sites.
+That emits the right truncation (`sll 16` / `sra 16`) and the object looks almost
+identical — but the *parameter's own pseudo* is a word. Declaring `s16 count` in
+both the definition and the header gave 100.000%.
+
+The diagnostic is in the `.lreg` header, not in the instruction stream. A HImode
+pseudo is annotated with its size, a SImode one is not:
+
+```
+# s16 count — correct
+Register 82 used 4 times across 149 insns; crosses 6 calls; 2 bytes; GR_REGS or none.
+# s32 count + (s16) casts — $s4/$s5 exchanged
+Register 82 used 4 times across 300 insns; crosses 6 calls; GR_REGS or none.
+```
+
+The mechanism is the one in "Saved-register coloring flipped by a parameter's
+width": the width decides the extension at entry, which decides the register the
+value first lands in, which reshuffles local-alloc's birth/priority ordering over
+the callee-saved candidates. So when a register-coloring tie has to break, try
+narrowing the parameter — and narrow the *declaration*, because rewriting the
+truncation as casts at the use sites reproduces every instruction and still
+allocates as a word.
+
+Inputs: `base_2.c` 100.000% (339/339, all penalties 0); `s16 count` in
+`include/actors/actor_400100.h` and `src/actors/lib/actor_400100_anim.c`.
+
+### A byte-identical body in another overlay can hide from `overlay_dup_index.py`
+
+`overlay_dup_index.py find Actor00100_Fn00508` reports `same body: 1 copies` —
+itself — yet the function is instruction-for-instruction identical to
+`Actor01900_Fn008B4` in `actor_101900_text.c`: all 339 encodings match except 7
+`j` words, which differ only in the low 26 bits of the target because the two
+functions sit at different link addresses. Every `jal` and every `lui %hi` is the
+same, so nothing overlay-local distinguishes them.
+
+The index canonicalises a body to disassembly text and folds local branch labels
+so that copies at different offsets group. Its patterns only match `.L`-prefixed
+labels:
+
+```
+BRANCH   = re.compile(r"\.L\w+")
+LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+):?$")
+```
+
+but splat names these overlays' local labels `<Overlay>_L<vram>`
+(`Actor00100_L00560`), so they survive canonicalisation and every copy hashes
+differently. Reconstructing `scan_function`'s canonicalisation by hand, the two
+bodies differ on 53 lines out of 364 — all of them label names.
+
+Before concluding a body is unique from `find`'s copy count, compare the
+encodings: strip the offset/address columns and diff. Do not widen `BRANCH` to
+fix this lightly — it moves the whole index and every `promote` decision that
+hangs off it.
+
+Inputs: `asm/USA/actors/matchings/lib/actor_101900_text/Actor01900_Fn008B4.s`,
+`asm/USA/actors/matchings/lib/actor_400100_anim/Actor00100_Fn00508.s`.
