@@ -61390,6 +61390,54 @@ A span at the very end of a carrier's text needs neither shift - it just drops
 the last `INCLUDE_ASM` from the final unit (`actor_260500`) - and a span that
 splits the last unit only appends a new one (`actor_260400`).
 
+## A carrier's `rodata` cuts name the *object* that emits the table, so a promotion invalidates them
+
+`promote` renumbers a carrier's overlay-local units, but a manifest `rodata` cut
+is keyed by unit *name*, and a cut means "the `.rodata` of the object built from
+`<name>.c` lands at this offset" (`unit_path()` in `tools/gen_overlay_configs.py`).
+A compiler-generated jump table is emitted by the unit holding its reader, so a
+cut stays correct only while that unit keeps its number - exactly what a
+promotion changes.
+
+`dryfield_night_garage` is the worked example. Two tables - `0x148` (6 words, read
+by `func_dryfield_night_garage_80180B20`) and `0x160` (13 words, read by
+`func_dryfield_night_garage_80181518`) - were cut to units `_5` and `_6`, the two
+units that held those readers. Promoting the garage body at `0x2D40` split unit
+`_2` in two and pushed every later unit up one, so the readers moved to `_6` and
+`_7` while the cuts still named `_5` and `_6`:
+
+```
+cut 0x148 -> dryfield_night_garage_5   now holds 80180414/80180604/801807E4
+cut 0x160 -> dryfield_night_garage_6   now holds 801809A4/80180A64/80180AB0/80180B20
+re-split:   jtbl_..._8017D708 -> nonmatchings/_5, jtbl_..._8017D720 -> nonmatchings/_6
+```
+
+The re-split follows the stale manifest, so each table's `.s` lands in a unit that
+no longer reads it, and `80180B20`'s C-generated table would be emitted into
+`_6`'s object - placed at `0x160`, `0x18` past where it belongs - while `_5`'s
+`.rodata` at `0x148` comes out empty. The overlay then fails its checksum with
+nothing pointing at rodata. Re-point every cut at the unit owning its reader
+before re-splitting, and move the table's `INCLUDE_RODATA`/`INCLUDE_ASM` line into
+that unit's `.c` with it.
+
+## `promote` names a shared unit after the symbol's address, which two bodies can share
+
+`overlay_dup_index.py promote` derives the unit name from the address in the
+symbol (`<family>_shared_<addr>`) and never checks that
+`src/<family>/lib/<unit>.c` is free - but a family's overlays all load at one
+base, so unrelated bodies routinely sit at the same address. The garage's
+three-argument stage-sound hook is `func_dryfield_garage_8017D8BC`; the motel
+balcony's four-argument message handler is already shared as
+`rooms_shared_8017d8bc` at that same `0x8017D8BC`, spanning `0x2FC..0x55C`.
+
+`promote` then prints "2 of 2 copies share `src/rooms/lib/rooms_shared_8017d8bc.c`
+… move its C body into" it, and following that instruction writes the garage hook
+over the balcony handler. The balcony carriers then link the wrong body and fail
+their checksum with the error naming the overlay, not the file that was
+overwritten - the body survives in `git show HEAD:` only because the file is
+tracked. Pass `--unit <name>` for a name that is actually free, and check the
+derived name against `src/<family>/lib/` before moving a body into it.
+
 ## A migrated rodata table whose only reader gets decompiled disappears from the split
 
 `migrate_rodata_to_functions: True` parks a leading-`.rodata` symbol in the `.s`
