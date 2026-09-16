@@ -7796,6 +7796,17 @@ checking that the only difference is at the branch, then verify with the real
 build - `./tools/build-and-verify.sh` is the arbiter, and it linked and
 checksummed this one unchanged.
 
+A switch function hits this once per `j` as well as per branch, and the `j`s do
+not land in `branch` - they land in `regs`, because the differ reads the
+instruction's operand field. `func_neo_ark_observatory_8017F44C` (79
+instructions, 44-entry table) scored 99.63% with `branch=4 regs=5` for
+nine such words: four `R_MIPS_PC16` branches and five `R_MIPS_26` jumps to the
+one label the jump table also points at. Every differing word was in a
+branch/jump immediate; the opcodes, registers and displacements were otherwise
+identical, and the linked overlay's sha256 matched the reference. Read `regs`
+on a switch body as "operand field", not "allocated register", before reaching
+for a pin.
+
 ## A dispatch rooted at the *lowest* case value needs a fourth, empty case node
 
 Companion to "`slti high+1` between the equality tests means three case nodes,
