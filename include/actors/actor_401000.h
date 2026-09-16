@@ -45,11 +45,14 @@ typedef struct Actor401000Work {
     /* 0x8B8 */ GpEffArg field_8B8;
     /* 0x8C0 */ byte     pad_8C0[0x10];
     /* 0x8D0 */ GpObj    field_8D0;
-    /* 0x8F0 */ byte     pad_8F0[0x120];
-    /* 0xA10 */ GpObj    field_A10;
-    /* 0xA30 */ byte     pad_A30[0x120];
-    /* 0xB50 */ GpObj    field_B50;
-    /* 0xB70 */ byte     pad_B70[0xA8];
+    /// The two obstacle-record tables `func_actor_401000_801323EC` slides the
+    /// root coordinate against; the same pair `Actor01900Work` keeps at
+    /// +0x8E8 / +0xA28 and `func_actor_401300_801323B0` walks at +0x990/+0xAD0.
+    /* 0x8F0 */ byte  field_8F0[0x120];
+    /* 0xA10 */ GpObj field_A10;
+    /* 0xA30 */ byte  field_A30[0x120];
+    /* 0xB50 */ GpObj field_B50;
+    /* 0xB70 */ byte  pad_B70[0xA8];
     /// The three bytes `func_actor_401000_8013D958` copies out of the front of
     /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
     /* 0xC18 */ u8   field_C18[3];
@@ -88,7 +91,14 @@ typedef struct Actor401000Msg {
 extern GpAnimArg D_actor_401000_80154F1C;
 
 void func_actor_401000_80132EF0(Actor401000* arg0);
-s32  func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2);
+
+/// Walk a `GpRec18` table and push `coord` back out of the obstacles it
+/// overlaps, returning the record's `field_10`. The same helper as
+/// `func_actor_401300_801323B0`, whose second argument is the sibling's
+/// `field_990` run.
+s32 func_actor_401000_801323EC(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+
+s32 func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2);
 
 /// Message 0x301 / 0x1002 handler: copy the payload's three leading bytes onto
 /// the work block's animation slots, then key the actor's state (`field_0`) off

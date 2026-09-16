@@ -104187,3 +104187,60 @@ The lesson generalises past these two: when a seed is in the 90s with a *uniform
 no pass dump showing a decision to argue with, diff the *operand widths and displacements* in the
 object dump before touching lifetimes or the scheduler. `M2C_FIELD` is a bag of casts with no
 declaration behind it.
+
+## An m2c temp assigned in several arms of one `if`/`else` chain is a *global* allocno; store straight to the destination instead (func_actor_401000_80138BB4, 2026-09-16)
+
+A 99.765% first build whose only penalty was `regs=4` and whose only differing lines were three
+operands of the tail — the state value the target keeps in `$v0` came out in `$v1`:
+
+```
+target:  li v0,0x15 / li v0,4 / li v0,0x11 / sh v0,0(s0)
+seed:    li v1,0x15 / li v1,4 / li v1,0x11 / sh v1,0(s0)
+```
+
+The seed was m2c's shape, one variable written by every arm and stored once at the end:
+
+```c
+var_v0 = 0x15;
+if (enemy->field_40 > 0) { var_v0 = 4; if (!(enemy->field_4C & 2)) var_v0 = 0x11; }
+work->field_0 = var_v0;
+```
+
+Every arm writes that one pseudo and the join block reads it, so it is live across three block
+boundaries — a **global** quantity, and `global.c` gives it a hard register of its own. `.greg` says
+which:
+
+```
+;; 4 regs to allocate: 81 83 80 82      <- 83 is var_v0, and the seed needs a 4th allocno
+;; Register dispositions: … 83 in 3     <- $v1
+```
+
+Writing each arm as a direct store to the destination is the match, and it removes the allocno
+entirely — the same dump on the matching seed reads `;; 3 regs to allocate: 81 80 82`, with no `83`.
+The constants are then materialised *inside the join block* (`li v0,K` next to the `sh`), so they are
+local quantities and `local-alloc` hands them `$v0`, the first register it reaches for:
+
+```c
+if (enemy->field_40 <= 0) {
+    work->field_0 = 0x15;
+} else if (enemy->field_4C & 2) {
+    work->field_0 = 4;
+} else {
+    work->field_0 = 0x11;
+}
+```
+
+This is the mirror image of the `func_actor_361100_801627D4` entry above: there m2c's *split* had to be
+undone by merging two temps so one allocno carried an argument-register preference across both live
+ranges; here m2c's single temp has to be *split* by storing directly, so no allocno spans the join at
+all. Both are read off `.greg` — the tell is the allocno count and a `dispositions` line for a value
+that only ever holds two or three small constants — and in both the repair is a source-form change,
+not a pin.
+
+First build after the rewrite scored 100.000% with all penalties zero; the control was
+`func_actor_401300_80140300`, the already-matched sibling carrying the same tail in the direct-store
+form. Inputs: `base_1.i` SHA256
+`f0167845a9135c6eb48b075d3edf23d1bb1cb78fe9067d0d7d3146640142f982`; target SHA256
+`a79abd137951e3d2ddb037175e14a222c707a46093307202c216ea90bd2c8d9f`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
