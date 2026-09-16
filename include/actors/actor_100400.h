@@ -139,6 +139,9 @@ typedef struct Actor100400MatWords {
 typedef union Actor100400Mat {
     MATRIX              mat;
     Actor100400MatWords ident;
+    /// The same storage reused as the view-space position `ActorCoordToView`
+    /// fills in, once the rotation it held has been handed to the coordinate.
+    SVECTOR vec;
 } Actor100400Mat;
 STATIC_ASSERT_SIZEOF(Actor100400Mat, 0x20);
 

@@ -109,6 +109,7 @@ extern TaskFuncTable3   Actor00400_D0002C;
 extern TaskFuncTable11  Actor00400_D0007C;
 extern TaskFuncTable10  Actor00400_D000A8;
 extern TaskFuncTable10  Actor00400_D000D0;
+extern TaskFuncTable15  Actor00400_D000F8;
 extern TaskFuncTable4   Actor00400_D00134;
 extern TaskFuncTable3   Actor00400_D00144;
 extern TaskFuncTable3   Actor00400_D00150;
@@ -1772,7 +1773,143 @@ void Actor00400_Fn04CF8(Actor100400* arg0)
     work->field_638++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04E18);
+/// Per-frame callback for the boss task. Same `D_801153F4` frame gate as
+/// `Actor00400_Fn04580`, with the model's Y bobbed by two `rsin` terms and the
+/// display object re-pointed at the part coordinate `field_664` selects; the
+/// tail hides the model again while the session sits in the two area-0xA/0xB
+/// rooms of area 0x21.
+void Actor00400_Fn04E18(Actor100400* arg0)
+{
+    Actor100400Work*     work   = arg0->field_1C;
+    GsCOORDINATE2*       coord0 = arg0->field_2C->field_8;
+    Actor100400Obj*      obj    = arg0->field_20;
+    Actor100400Ctx*      ctx    = arg0->field_2C;
+    TaskFuncTable15      fns;
+    Actor100400Mat       m;
+    Actor100400MatWords* ia;
+    Actor100400Work*     w;
+    Actor100400Work*     wA;
+    Actor100400Work*     w2;
+    Actor100400Work*     w3;
+    Actor100400Work*     w4;
+    Actor100400Work*     work2;
+    Actor100400Obj*      obj2;
+    Actor100400Ctx*      ctx2;
+    Actor100400Ctx*      ctx3;
+    Actor100400Ctx*      ctxN;
+    GameSessionFrom4*    sess;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       coordN;
+    MATRIX*              dst;
+    s32                  i;
+
+    fns = Actor00400_D000F8;
+    switch (D_801153F4) {
+        case 2:
+            ctx->field_C |= 0x80;
+            break;
+        case 0:
+            if (work->field_663 != 0) {
+                return;
+            }
+            work->flags_62C.hi.field_62E++;
+            work->field_630++;
+            Actor00400_Fn01454(arg0);
+            fns.funcs[work->field_638]((Task*)arg0);
+            Actor00400_Fn00A14(arg0);
+            wA = arg0->field_1C;
+            if (wA->field_64C != 0) {
+                wA->field_64C--;
+            }
+            w = arg0->field_1C;
+            if (w->field_624 == 1) {
+                if (w->field_626 != w->field_628) {
+                    w->field_62A = 0;
+                } else {
+                    w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
+                }
+                Actor00400_Fn08624(arg0);
+                w->field_624 = 3;
+            } else if (w->field_624 == 2) {
+                Actor00400_Fn085B8(arg0);
+                w->field_624 = 3;
+                w->field_62A = 0;
+            } else if (w->field_624 == 3) {
+                w->field_62A++;
+            }
+            i = 1;
+            do {
+                Gp_AnimTickIndex(w, i);
+                i++;
+            } while (i < 0xF);
+            work->flags_62C.half = work->field_4C;
+            Actor00400_Fn02648(arg0, work->field_660);
+            w2              = arg0->field_1C;
+            coord           = arg0->field_2C->field_8;
+            ia              = &m.ident;
+            m.ident.m00_m01 = 0x1000;
+            m.ident.m02_m10 = 0;
+            ia->m11_m12     = 0x1000;
+            m.ident.m20_m21 = 0;
+            ia->m22         = 0x1000;
+            RotMatrixZ(w2->field_558, &m.mat);
+            func_8004BFF8(w2->field_556, &m.mat);
+            dst          = &coord->coord;
+            dst->m[0][0] = m.mat.m[0][0];
+            dst->m[0][1] = m.mat.m[0][1];
+            dst->m[0][2] = m.mat.m[0][2];
+            dst->m[1][0] = m.mat.m[1][0];
+            dst->m[1][1] = m.mat.m[1][1];
+            dst->m[1][2] = m.mat.m[1][2];
+            dst->m[2][0] = m.mat.m[2][0];
+            dst->m[2][1] = m.mat.m[2][1];
+            dst->m[2][2] = m.mat.m[2][2];
+            coord->flg   = 0;
+            Actor00400_Fn01B90(arg0);
+            if ((s16)obj->field_40 <= 0) {
+                w3             = arg0->field_1C;
+                arg0->field_30 = 4;
+                w3->field_638  = 0;
+                w3->field_63A  = 0;
+            }
+            coord0->coord.t[1] += (work->field_63E - coord0->coord.t[1]) >> 4;
+            if (work->field_638 < 0xB) {
+                coord0->coord.t[1] += (rsin(work->flags_62C.hi.field_62E << 6) * 0x10) >> 12;
+            }
+            if (work->field_650 != 0) {
+                work->field_650--;
+                coord0->coord.t[1] += (rsin(work->field_630 << 0xA) * 0x10) >> 0xA;
+            }
+            obj->field_18 = &arg0->field_2C->field_8[work->field_664];
+            if (work->field_638 < 0xB) {
+                w4       = arg0->field_1C;
+                ctxN     = arg0->field_2C;
+                obj2     = arg0->field_20;
+                coordN   = &ctxN->field_8[w4->field_664];
+                m.vec.vx = 0;
+                m.vec.vy = 0;
+                m.vec.vz = 0;
+                ActorCoordToView(coordN, &m.vec);
+                if (w4->field_64E + 0x190 < m.vec.vy) {
+                    obj2->field_14 = 1;
+                } else {
+                    obj2->field_14 = 0;
+                }
+            }
+            /* fallthrough */
+        case 1:
+            ctx2  = arg0->field_2C;
+            work2 = arg0->field_1C;
+            Actor00400_UpdateColor(arg0, &ctx2->field_8[1], work2, ctx2);
+            ctx->field_C &= ~0x80;
+            break;
+    }
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    ctx3 = arg0->field_2C;
+    if (sess->field_3 == 4 && sess->field_2 == 0x21 && (u32)(Game_Session->field_4 - 0xA) < 2U) {
+        ctx3->field_C |= 0x80;
+    }
+}
 
 static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
 {

@@ -87311,3 +87311,47 @@ arms makes the quotient ineligible, no tie is attempted, the dividend keeps
 `$v0` and the divisor `$v1`, and global-alloc puts the quotient in `$v1` -
 `div $v1,$v0,$v1`, `mflo $v1`. When a `mflo` picks the wrong one of two dying
 inputs, change the *storage class* of the destination, not the expression.
+
+## A stray `move sX, vY` after a pointer load means the derived field was read first (Actor00400_Fn04E18, 2026-09-16)
+
+**Problem.** The target opened with an extra copy that no obvious C could produce:
+
+```
+lw   $v0, 0x2C($s3)
+lw   $s7, 0x20($s3)
+addu $s6, $v0, $zero      # the extra insn
+lw   $s5, 0x8($s6)
+```
+
+Writing the natural `ctx = arg0->field_2C; coord0 = ctx->field_8;` loads straight
+into `$s6` and the copy never appears. Adding an explicit second variable
+(`ctxT = arg0->field_2C; ctx = ctxT;`) does not help either: the RTL dump shows
+the copy at `.cse`, but `.combine` folds `(set r82 (mem 0x2c))` into
+`(set r84 r82)` because `r82` dies at the copy, and the copy disappears.
+
+**Symptom.** One instruction short, plus every short-lived pseudo in the same
+block allocated one register lower than the target (`v0/v1/a0` where the target
+has `v1/a0/a1`) — the missing copy's source pseudo is what consumes the extra
+local quantity.
+
+**Fix.** Read the *derived* field before the base pointer, so the anonymous temp
+is still live when CSE turns the second read into a copy and `combine` can no
+longer fold:
+
+```c
+Actor100400Work* work   = arg0->field_1C;
+GsCOORDINATE2*   coord0 = arg0->field_2C->field_8;   /* temp = 0x2C, then 0x8 */
+Actor100400Obj*  obj    = arg0->field_20;
+Actor100400Ctx*  ctx    = arg0->field_2C;            /* CSE -> move s6, v0 */
+```
+
+The later `->field_8` reference is rewritten onto the copy's destination, which
+is why the load reads `0x8($s6)` and not `0x8($v0)`. `func_actor_310100_801625E4`
+(`coord = ((TmdObject*)task->extra)->field_8; obj = (TmdObject*)task->extra;`)
+is the already-matched worked example of the same shape.
+
+**Finding these.** When an unexplained `addu $sN, $vM, $zero` follows a pointer
+load, grep the matched corpus for the pattern rather than guessing at the C —
+`lw $vM, off($sX)` followed within three instructions by
+`addu $sN, $vM, $zero` turns up ~44 matched functions, and their sources all
+share this ordering.
