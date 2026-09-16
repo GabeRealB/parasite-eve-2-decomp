@@ -765,7 +765,106 @@ void func_actor_401300_80138FCC(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139134);
+/// Rebuild `coord`'s Y rotation from its current yaw, scaled by `xz` on X/Z
+/// and `y` on Y. `Actor401300_RescaleYaw` with a separate Y scale.
+static __inline__ void Actor401300_RescaleYawXZ(GsCOORDINATE2* coord, s32 xz, s16 y)
+{
+    void*                  head;
+    Actor401300RotScratch* blk;
+    s16                    ang;
+    u16                    m22;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    blk                     = (Actor401300RotScratch*)((u8*)head - 0x34);
+    *(void**)G_SCRATCH_HEAD = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vx = xz;
+    blk->scale.vy = y;
+    blk->scale.vz = xz;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0]    = *(u16*)&((Actor401300RotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]    = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]    = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]    = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]    = *(u16*)&blk->m.m[2][1];
+    m22                     = *(u16*)&blk->m.m[2][2];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+    coord->flg              = 0;
+    coord->coord.m[2][2]    = m22;
+}
+
+/// Collapse state: spawns effect 0x600A5 at the actor's view-space position on
+/// frame 30, switches the light mode on 30/42, and from frame 26 squashes the
+/// root coordinate's Y scale; state 0x24 follows after frame 64.
+void func_actor_401300_80139134(Actor401300* arg0)
+{
+    Actor401300Work*     work;
+    GpEnemy*             enemy;
+    TmdObject*           obj;
+    Actor401300MatWords* w;
+    SVECTOR              pos;
+    s16                  t;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C          = 0;
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+        enemy->node.field_4   = 1;
+        work->field_6         = 0;
+        work->field_8A6       = 8;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_6 <= 0x400) {
+        switch (++work->field_6) {
+            case 30:
+                w          = (Actor401300MatWords*)&work->field_8C0.coord;
+                w->m00_m01 = 0x1000;
+                w->m02_m10 = 0;
+                w->m11_m12 = 0x1000;
+                w->m20_m21 = 0;
+                w->m22     = 0x1000;
+                pos.vx     = 0;
+                pos.vy     = 0;
+                pos.vz     = 0;
+                Actor401300_TransformToView(&arg0->field_2C->field_8[2], &pos);
+                work->field_8C0.sub        = &Gfx_ViewCoord;
+                work->field_8C0.coord.t[0] = pos.vx;
+                work->field_8C0.coord.t[1] = arg0->field_2C->field_8->coord.t[1];
+                work->field_8C0.coord.t[2] = pos.vz;
+                work->field_8C0.flg        = 0;
+                Gp_UpdateCoord(&work->field_8C0);
+                Gp_SetLightMode(enemy, 1);
+                Gp_SpawnEff(0x600A5, &work->field_8C0, 3, NULL);
+                break;
+            case 48:
+                arg0->field_2C->field_C = 2;
+                break;
+            case 42:
+                Gp_SetLightMode(enemy, 2);
+                break;
+            case 64:
+                arg0->field_2C->field_C = 0x80;
+                break;
+        }
+        t = work->field_6;
+        if (t >= 0x1A) {
+            Actor401300_RescaleYawXZ(arg0->field_2C->field_8, 0x1964, 0x1964 - (t - 0x14) * 16);
+        }
+        if (work->field_6 > 0x40 && work->field_D20 == 0) {
+            work->field_0 = 0x24;
+        }
+    }
+}
 
 static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)
 {

@@ -7,7 +7,10 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
+#include "main/gfx.h"
 #include "main/task.h"
+
+#include <psyq/inline_c.h>
 
 /// Private work block of the actor 401300 task, hanging off `Task::idMap`.
 ///
@@ -26,41 +29,43 @@
 /// Animation halfwords sit 4 bytes later than `Actor01900Work` (0x89C vs
 /// 0x898); the three `GpObj` nodes sit 0xA8 later (0x970/0xAB0/0xBF0).
 typedef struct Actor401300Work {
-    /* 0x000 */ s16      field_0;
-    /* 0x002 */ s16      field_2;
-    /* 0x004 */ s16      field_4;
-    /* 0x006 */ s16      field_6;
-    /* 0x008 */ byte     pad_8[0x10];
-    /* 0x018 */ s16      yaw;
-    /* 0x01A */ byte     pad_1A[0x44];
-    /* 0x05E */ u16      field_5E;
-    /* 0x060 */ byte     pad_60[0xC];
-    /* 0x06C */ u16      field_6C;
-    /* 0x06E */ byte     pad_6E[0x82A];
-    /* 0x898 */ s32      field_898;
-    /* 0x89C */ s16      field_89C;
-    /* 0x89E */ s16      field_89E;
-    /* 0x8A0 */ byte     pad_8A0[2];
-    /* 0x8A2 */ s16      field_8A2;
-    /* 0x8A4 */ byte     pad_8A4[2];
-    /* 0x8A6 */ s16      field_8A6;
-    /* 0x8A8 */ s16      field_8A8;
-    /* 0x8AA */ byte     pad_8AA[8];
-    /* 0x8B2 */ s16      field_8B2;
-    /* 0x8B4 */ s16      field_8B4;
-    /* 0x8B6 */ s16      field_8B6;
-    /* 0x8B8 */ s16      field_8B8;
-    /* 0x8BA */ s16      field_8BA;
-    /* 0x8BC */ s32      field_8BC;
-    /* 0x8C0 */ byte     pad_8C0[0x50];
-    /* 0x910 */ GpEffArg field_910;
-    /* 0x918 */ byte     pad_918[0x58];
-    /* 0x970 */ GpObj    field_970;
-    /* 0x990 */ byte     field_990[0x120];
-    /* 0xAB0 */ GpObj    field_AB0;
-    /* 0xAD0 */ byte     field_AD0[0x120];
-    /* 0xBF0 */ GpObj    field_BF0;
-    /* 0xC10 */ byte     pad_C10[0x38];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ s16  field_2;
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ byte pad_8[0x10];
+    /* 0x018 */ s16  yaw;
+    /* 0x01A */ byte pad_1A[0x44];
+    /* 0x05E */ u16  field_5E;
+    /* 0x060 */ byte pad_60[0xC];
+    /* 0x06C */ u16  field_6C;
+    /* 0x06E */ byte pad_6E[0x82A];
+    /* 0x898 */ s32  field_898;
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ s16  field_89E;
+    /* 0x8A0 */ byte pad_8A0[2];
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ byte pad_8A4[2];
+    /* 0x8A6 */ s16  field_8A6;
+    /* 0x8A8 */ s16  field_8A8;
+    /* 0x8AA */ byte pad_8AA[8];
+    /* 0x8B2 */ s16  field_8B2;
+    /* 0x8B4 */ s16  field_8B4;
+    /* 0x8B6 */ s16  field_8B6;
+    /* 0x8B8 */ s16  field_8B8;
+    /* 0x8BA */ s16  field_8BA;
+    /* 0x8BC */ s32  field_8BC;
+    /// Effect anchor `func_actor_401300_80139134` places at the actor's
+    /// view-space position before spawning effect 0x600A5.
+    /* 0x8C0 */ GsCOORDINATE2 field_8C0;
+    /* 0x910 */ GpEffArg      field_910;
+    /* 0x918 */ byte          pad_918[0x58];
+    /* 0x970 */ GpObj         field_970;
+    /* 0x990 */ byte          field_990[0x120];
+    /* 0xAB0 */ GpObj         field_AB0;
+    /* 0xAD0 */ byte          field_AD0[0x120];
+    /* 0xBF0 */ GpObj         field_BF0;
+    /* 0xC10 */ byte          pad_C10[0x38];
     /// Saved at 0xC48 and copied over 0xC68 when
     /// `func_actor_401300_80139520` enters its state.
     /* 0xC48 */ MATRIX field_C48;
@@ -229,6 +234,17 @@ typedef struct Actor401300RotScratch {
 } Actor401300RotScratch;
 STATIC_ASSERT_SIZEOF(Actor401300RotScratch, 0x34);
 
+/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
+/// aligned stores instead of nine halfword ones, each word holding two adjacent
+/// `m[][]` entries. Same shape as `Actor206100MatrixWords`.
+typedef struct Actor401300MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor401300MatWords;
+
 extern MATRIX* D_80073B8C;
 
 /// Movement freeze flag: `Actor401300_MoveForward` skips its step when it is 1.
@@ -270,5 +286,40 @@ void func_actor_401300_801419B8(Actor401300* arg0);
 void func_actor_401300_80141A60(Actor401300* arg0);
 
 void func_actor_401300_80141EF8(Task* task);
+
+/// Walks `p` up its parent chain to `Gfx_ViewCoord`, transforming `out` by each
+/// coordinate; `out` is left unchanged if the chain ends before the view.
+static __inline__ void Actor401300_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &Gfx_ViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
+}
 
 #endif // ACTOR_401300_H
