@@ -157,7 +157,29 @@ void func_actor_335800_80162558(void)
     Task_SpawnFromTable(&D_actor_335800_80164DE0, 3, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162588);
+void func_actor_335800_80162588(Task* arg0)
+{
+    s8  var_a0;
+    u8  temp_v1;
+    s32 count;
+
+    if ((Game_Session->field_1 != 0) && (Game_Session->field_5F == 0)) {
+        temp_v1 = Game_Session->field_13B;
+        var_a0  = 0;
+        if (temp_v1 & 1) {
+            count  = (u16)arg0->killCountdown;
+            var_a0 = count & 1;
+        }
+        if ((temp_v1 & 2) && !(arg0->killCountdown & 1)) {
+            var_a0 = -1;
+        }
+        Display_ClampField126(var_a0);
+        arg0->killCountdown += 1;
+        return;
+    }
+    Display_ClampField126(0);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162640);
 

@@ -93082,3 +93082,49 @@ levers are the ones recorded above (reassign vs. declare separately, ref count,
 live length). This also closes the **Open** note above: a local `%hi` temp
 reaching `$a0` means nothing else claimed `$a0`, which is consistent - a hard
 register live across the block, not a missing conflict.
+
+## A mask stored into a narrow local re-reads the field at that width
+
+A halfword field masked with `& 1` and stored **straight into an `s8`/`u8`
+local**:
+
+```c
+s8 v;
+...
+v = arg0->killCountdown & 1;   /* lbu 0x2A(s0) -- target wants lhu */
+```
+
+The assignment's mode becomes the RTL *subtarget* passed down for the AND's
+first operand, so the memory read itself is expanded at the narrow width. The
+`.rtl` dump already shows it before any RTL pass could narrow anything:
+
+```
+(insn 48 (set (reg:QI 99) (mem/s:QI (plus:SI (reg/v:SI 80) (const_int 42)))))
+(insn 49 (set (reg:SI 100) (and:SI (subreg:SI (reg:QI 99) 0) (const_int 1))))
+```
+
+so this is `expand_expr`, not `combine`, and no `.cse`/`.combine` experiment will
+move it. Note the narrowed address is still `+42`: on this big-endian target
+that is the *high* byte, so the narrowed form computes a different bit from the
+un-narrowed use of the very same expression two statements later (which keeps
+`lhu`) -- a GCC 2.8.1 endianness bug in the low-part path, not a shortcut to
+reproduce.
+
+Latch the halfword in a wider local and the load stays `HImode`:
+
+```c
+s32 count;
+...
+count = (u16)arg0->killCountdown;   /* lhu 0x2A(s0) */
+v     = count & 1;                  /* andi a0, v0, 1 */
+```
+
+The `(u16)` cast is what selects the zero-extending load; the AND now has a
+register operand, which cannot be narrowed, and the QI truncation into the `s8`
+is free, so the object is byte-identical to the direct assignment minus the
+narrowing. `func_actor_335800_80162588` is the worked example: the direct
+assignment was 95.65% with `insert=1 delete=1` and exactly one differing line
+(`lbu` for `lhu` at the first of three loads of the same field); the latch
+scored 100.00% on the first build. Same rule stated for a *call argument* is in
+"A ? 1 : 0 into an `s8` call folds" (`func_actor_110600_80138900`), which is
+where `cur = (u16)*p;` first appeared.
