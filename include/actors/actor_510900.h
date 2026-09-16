@@ -370,6 +370,11 @@ extern u16 D_actor_510900_801679F0[];
 /// `Gp_LcgState` draw the same way `D_actor_510900_801679F0` is.
 extern u16 D_actor_510900_801679D0[];
 
+/// Per-cycle threshold the patrol walk in `func_actor_510900_80136B70` compares
+/// a 4-bit `Gp_LcgState` draw against, indexed by the `field_59C` cycle counter;
+/// a draw above the entry ends the walk.
+extern s16 D_actor_510900_80167A10[];
+
 /// `TaskDesc` table the state hands `Gp_SpawnEnemyFromTable` (entry 4).
 extern TaskDesc D_actor_510900_80167A18[];
 

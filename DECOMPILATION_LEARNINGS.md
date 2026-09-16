@@ -90289,3 +90289,63 @@ priority and can swap two argument registers (`$a3` vs `$t0`) far from the code
 being edited. And the sharing has to be written as a copy (`vec = rot;`) inside
 the arm: assigning `Gp_GridParams` straight into the scratch variable at the top
 of the function merges the live ranges instead and scores worse.
+
+## A symbol-based `array[i]` materialises its address *after* the index; a pointer local moves it before
+
+`work->field_59C = D_actor_510900_801679D0[(Gp_LcgState >> 0x10) & 0xF];` puts
+the `lui`/`addiu` pair at the end of the block:
+
+```
+sll   a0,a1,0x2        ; index: Gp_LcgState * 5 + 0x71357911
+addu  a0,a0,a1
+addu  a0,a0,a3
+lui   v1,%hi(D_actor_510900_801679D0)
+addiu v1,v1,%lo(D_actor_510900_801679D0)
+srl   v0,a0,0xf
+```
+
+while the target has the address first. This is RTL emission order, not
+scheduling - the `.combine` dump already has it - and it is not `fold` moving
+the constant to the right either: `ADDR_EXPR` is not an `INTEGER_CST`, so
+`fold-const.c`'s commutative swap leaves the pointer as operand 0. The cause is
+`expand_expr` with `EXPAND_SUM`, which the `INDIRECT_REF` path uses: under
+`EXPAND_SUM` the `ADDR_EXPR` expands to a bare `symbol_ref` rtx and emits *no*
+insns, the index expands into real insns, and the `lui`/`addiu` are only emitted
+at the end by `memory_address`. Give the base its own pointer local and the pair
+is emitted at that assignment instead, ahead of the index:
+
+```c
+u16* tbl = D_actor_510900_801679D0;
+...
+work->field_59C = tbl[(Gp_LcgState >> 0x10) & 0xF];
+```
+
+**Declare that pointer per block, not once per function.** One variable used at
+three sites is one pseudo referenced in three basic blocks, so `reg_basic_block`
+is -1, local-alloc skips it and global alloc gives it a callee-independent
+register of its own while the `high` stays a local temp - `lui v0,%hi(sym)` then
+`addiu a2,v0,%lo(sym)`, two registers. A block-scoped `u16* tbl = sym;` in each
+arm is a local quantity, local-alloc ties it to the `high` that dies into it,
+and the pair comes out in one register as the target has it:
+`lui a0,%hi(sym); addiu a0,a0,%lo(sym)`.
+
+## Two reads of the same field merge unless a store separates them
+
+`if (tbl[work->field_59C] < draw || work->field_59C >= 3)` compiles to one `lh`
+of `0x59C` reused for both the subscript and the compare. The target loads it
+twice, which costs a register elsewhere and changes the whole block's
+allocation. `cse` merges them because nothing between the two reads writes
+memory; the fix is to put the global store that the original had there back
+between them, by embedding the assignment in the comparison:
+
+```c
+if ((D_actor_510900_80167A10[work->field_59C] <
+     (s32)(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
+    (work->field_59C >= 3)) {
+```
+
+The subscript is then read before the store and the `>= 3` test after it, so
+`true_dependence` kills the cached load - `Gp_LcgState` is a `symbol_ref` and
+`work` an unknown pointer, which may alias. Hoisting the assignment to its own
+statement ahead of the `if`, the natural way to write it, puts both reads after
+the store and merges them again.

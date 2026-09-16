@@ -187,7 +187,136 @@ done:
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80136B70);
+/// State 2 (sub-states 0..3): the patrol walk. Sub-state 0 stops the actor and
+/// hands sub-state 1 the animation 8 past blend 0x14. Sub-states 1 and 2 are
+/// the two walk cycles: each feeds `field_5A2` 0x38 over a 0x13-blend window,
+/// mutes it while `field_5B2` is latched and queues the footfall cue; sub-state
+/// 1 also arms `field_5C0` when a grab candidate is pending and pushes both
+/// body objects into their flagged pose at blend 9. At the end of a cycle a
+/// 4-bit `Gp_LcgState` draw against `D_actor_510900_80167A10[field_59C]`
+/// decides whether to walk another cycle - bumping `field_59C`, which sub-state
+/// 2 caps at three - or to leave for state 1 with a fresh `field_59C` from
+/// `D_actor_510900_801679D0`. A latched `field_5B2` instead sends sub-state 3,
+/// the turn, with the animation 0x19; it queues its cue at blend 0x2D and past
+/// 0x5A leaves the same way.
+void func_actor_510900_80136B70(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s32               snd;
+    s32               pair;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    switch (work->field_590) {
+        case 0:
+            work->field_5A2 = 0;
+            if (work->field_58A >= 0x14) {
+                work->field_590 = 1;
+                work->field_586 = 8;
+                work->field_59C = 0;
+            }
+            break;
+        case 1:
+            work->field_5A2 = ((u32)((u16)work->field_58A - 9) < 0x13U) ? 0x38 : 0;
+            if (work->field_5B2 != 0) {
+                work->field_5A2 = 0;
+            }
+            if (work->field_58A == 0xA) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000B;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if ((work->field_5BE > 0) && (work->field_58A == 8)) {
+                work->field_5C0 = 1;
+            }
+            if (work->field_58A == 9) {
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 2);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+            }
+            if (work->field_58A >= 0x1D) {
+                if (work->field_5B2 != 0) {
+                    work->field_590     = 3;
+                    work->field_586     = 0x19;
+                    work->field_5B2     = 0;
+                    work->obj4E4.flags &= 0x7FFF;
+                    work->obj504.flags &= 0x7FFF;
+                } else {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if (D_actor_510900_80167A10[work->field_59C] < (s32)((Gp_LcgState >> 0x10) & 0xF)) {
+                        u16* tbl            = D_actor_510900_801679D0;
+                        work->field_58E     = 1;
+                        work->field_586     = 1;
+                        work->field_590     = 0;
+                        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                        work->field_59C     = tbl[(Gp_LcgState >> 0x10) & 0xF];
+                        work->obj4E4.flags &= 0x7FFF;
+                        work->obj504.flags &= 0x7FFF;
+                    } else {
+                        work->field_590 = 2;
+                        work->field_586 = 9;
+                        work->field_59C++;
+                    }
+                }
+            }
+            break;
+        case 2:
+            work->field_5A2 = ((u32)((u16)work->field_58A - 5) < 0x13U) ? 0x38 : 0;
+            if (work->field_5B2 != 0) {
+                work->field_5A2 = 0;
+            }
+            if (work->field_58A == 6) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000B;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x27) {
+                if (work->field_5B2 != 0) {
+                    work->field_590     = 3;
+                    work->field_586     = 0x19;
+                    work->field_5B2     = 0;
+                    work->obj4E4.flags &= 0x7FFF;
+                    work->obj504.flags &= 0x7FFF;
+                } else {
+                    if ((D_actor_510900_80167A10[work->field_59C] <
+                         (s32)(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
+                        (work->field_59C >= 3)) {
+                        u16* tbl            = D_actor_510900_801679D0;
+                        work->field_58E     = 1;
+                        work->field_590     = 0;
+                        work->field_586     = 1;
+                        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                        work->field_59C     = tbl[(Gp_LcgState >> 0x10) & 0xF];
+                        work->obj4E4.flags &= 0x7FFF;
+                        work->obj504.flags &= 0x7FFF;
+                    } else {
+                        work->field_59C++;
+                        work->field_590 = 1;
+                        work->field_586 = 8;
+                    }
+                }
+            }
+            break;
+        case 3:
+            if (work->field_58A == 0x2D) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000A;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x5A) {
+                u16* tbl        = D_actor_510900_801679D0;
+                work->field_58E = 1;
+                work->field_590 = 0;
+                work->field_586 = 1;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_59C = tbl[(Gp_LcgState >> 0x10) & 0xF];
+            }
+            break;
+    }
+}
 
 /// State 3 (sub-state 0/1): the wind-up. Sub-state 0 queues the two-part
 /// charge sound at blend 0x39 - setting `field_594`/`field_598` and pushing
