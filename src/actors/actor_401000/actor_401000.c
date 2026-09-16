@@ -9,9 +9,41 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/wipsys.h"
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+/// `Actor401300_MoveForwardNonzero` and `Actor00100_MoveForwardNonzero`, down
+/// to the `head[-1].vx` read-back; the step lands in `coord` directly rather
+/// than being reported back through the caller's local.
+static __inline__ void Actor401000_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            gte_gpf12_real();
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801323EC);
 
@@ -169,7 +201,63 @@ void func_actor_401000_801383F0(Actor401000* arg0)
     Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801385B0);
+void func_actor_401000_801385B0(Actor401000* arg0)
+{
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+    GpAnimArg*       msg;
+    WipSysConfig*    cfg;
+    u8               kind;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    cfg   = &Wip_SysConfig;
+    if (work->field_4 != 0) {
+        work->field_8A2 = 0x10;
+        work->field_89E = 7;
+        work->field_898 = 2;
+        func_actor_401000_80132EF0(arg0);
+        msg          = &D_actor_401000_80154F1C;
+        msg->field_4 = 3;
+        if (cfg->field_18 > 0) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        }
+        work->field_C0C        = -0x78;
+        work->field_6          = 0;
+        work->field_A10.flags |= 0x4000;
+        return;
+    }
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0 && cfg->field_18 > 0 && work->field_C28 == 1) {
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+        work->field_C28 = 0;
+    }
+    if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
+        if ((s16)func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, work->field_C0C) != 0) {
+            Actor401000_MoveForwardNonzero(arg0->field_2C->field_8, (u16)work->field_C0C);
+        }
+        if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) == 1) {
+            work->field_C0C = (s16)(u16)work->field_C0C / 2;
+        }
+        arg0->field_2C->field_8->flg = 0;
+    }
+    func_actor_401000_80132EF0(arg0);
+    if (work->field_68 & 1) {
+        kind = enemy->node.field_5;
+        if (kind == 1) {
+            if (func_actor_401000_80132824(arg0) == kind) {
+                work->field_0 = 6;
+            } else {
+                work->field_0 = 0xA;
+            }
+        } else {
+            work->field_0 = 6;
+        }
+        if (cfg->field_18 > 0 && work->field_C28 == 1) {
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            work->field_C28 = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801388F4);
 

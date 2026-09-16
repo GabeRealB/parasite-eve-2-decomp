@@ -65,7 +65,15 @@ typedef struct Actor401000Work {
     /* 0xA10 */ GpObj field_A10;
     /* 0xA30 */ byte  field_A30[0x120];
     /* 0xB50 */ GpObj field_B50;
-    /* 0xB70 */ byte  pad_B70[0xA6];
+    /* 0xB70 */ byte  pad_B70[0x9C];
+    /// Forward step `func_actor_401000_801385B0` walks the root by, feeding the
+    /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
+    /// Set to -0x78 when the live-actor flag goes up, halved while the actor
+    /// overlaps an obstacle record. The three reads widen it differently: the
+    /// `func_actor_401000_80132590` probe takes the signed value, while the
+    /// step helper and the halving read it back through a `(u16)`.
+    /* 0xC0C */ s16  field_C0C;
+    /* 0xC0E */ byte pad_C0E[8];
     /// Radius `func_actor_401000_8013922C` tests the actor's distance from
     /// `D_80073B8C` against.
     /* 0xC16 */ u16 field_C16;
@@ -77,6 +85,11 @@ typedef struct Actor401000Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC1C */ Task* field_C1C;
     /* 0xC20 */ Task* field_C20;
+    /* 0xC24 */ byte  pad_C24[4];
+    /// Latch `func_actor_401000_801385B0` clears after sending the closing
+    /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
+    /// The same slot `Actor00100Work` keeps at +0xC28.
+    /* 0xC28 */ s16 field_C28;
 } Actor401000Work;
 
 /// Per-task actor context: `field_1C` is the work block above (the same
@@ -161,7 +174,20 @@ extern char D_actor_401000_80144830;
 extern char D_actor_401000_8014599C;
 extern char D_actor_401000_80146190;
 
+/// 0 = movement running, 1 = frozen; the same flag byte `Actor01900_StepForward`
+/// and `Actor00100_MoveForward` test.
+extern u8 D_80072729;
+
 void func_actor_401000_80132EF0(Actor401000* arg0);
+
+/// Range probe `func_actor_401000_801385B0` runs against the actor root: the
+/// same helper as `func_actor_401300_8013267C`, with the step amount in the
+/// third argument instead of the second.
+s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
+
+/// Returns the actor's current animation/clip kind, matched against
+/// `GpEnemy.node.field_5` by `func_actor_401000_801385B0`.
+s32 func_actor_401000_80132824(Actor401000* arg0);
 
 /// Walk a `GpRec18` table and push `coord` back out of the obstacles it
 /// overlaps, returning the record's `field_10`. The same helper as

@@ -104437,3 +104437,104 @@ Inputs: `base_2.i` SHA256
 `d679b1d76b8f365db65b01df5a0476677fe2ef4291acd72d465b23c630017bd9`; target SHA256
 `2a9fde3deef65509c1a4e1d9d51c801f77ddc2517d0c52be4f085d12c21443e4`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Jump.c rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x = a;` — the second def lands in the *call* block, so `x` conflicts with `$v0` (func_actor_401000_801385B0, 2026-09-16)
+
+The seed reached 99.880% with `regs=5`; the only differing operands were the state value's register,
+`$v1` in the build against `$v0` in the target, on four lines of the tail:
+
+```c
+/* target */  bne v0,s0,L / li v0,0xa / li v0,6 / sh v0,0(s2)
+/* seed   */  bne v0,s0,L / li v1,0xa / li v1,6 / sh v1,0(s2)
+```
+
+The `.greg` dump explains the register: the state temp is a **global** allocno (12 registers to
+allocate against the target's 11), and `.jump` shows why it is live where it is. Jump.c's
+`jump_optimize` has a documented rewrite — "Simplify `if (...) x = a; else x = b;` by converting it to
+`x = b; if (...) x = a;`" (`local/gcc/gcc-2.8.1-psx/jump.c`, the block that ends in
+`emit_insn_after_with_line_notes (PATTERN (temp2), p, temp2)`). It fires whenever the else arm is a
+single `set` of a register reached through the then arm's unconditional jump, and it inserts that
+`set` immediately after the instruction preceding the first conditional jump to the else label:
+
+```
+before:  <call>; bne ret,kind -> E6b ; x = 6 ; j END ; E6b: x = 0xa ; END
+after:   <call>; x = 0xa ; bne ret,kind -> END ; x = 6 ; j END
+```
+
+The call's return is still live in `$v0` at the conditional jump (the `178 = v0` copy gets coalesced
+away), so `global.c` records a hard conflict between the state allocno and `$v0` and falls through to
+`$v1`. **Storing each arm straight to the destination removes the allocno**, and that is also what
+escapes the rewrite: its guard requires `GET_CODE (SET_DEST) == REG` on both arms, so a `MEM`
+destination is never a candidate. The constants are then materialised inside the join block and the
+target's single `sh` still comes out — GCC merges the arms' stores into one value register:
+
+```c
+if (kind == 1) {
+    if (func_actor_401000_80132824(arg0) == kind) {
+        work->field_0 = 6;
+    } else {
+        work->field_0 = 0xA;
+    }
+} else {
+    work->field_0 = 6;
+}
+```
+
+This is the same repair as the `func_actor_401000_80138BB4` entry above, reached from the other end:
+there the recognition cue was the extra allocno in `.greg`, here it is the `x = b` insn sitting in a
+block whose call result it then conflicts with. Two other shapes were tried and are **not** the fix,
+both scoring 99.880% with the identical five operands: the `else if` chain (`if (kind != 1) { ... }
+else if (f(arg0) == kind) { ... }`), and the outer test inverted (`if (kind != 1) { state = 6; } else
+{ ... }`). An `&&` short-circuit (`if (kind == 1 && f(arg0) != kind)`) also lands on the same CFG.
+GCC canonicalises all four into the same blocks, so only the store form reaches the target.
+
+Confirmed alongside, same function: `(u32)((work->field_5A & 0x3FF) - 0x10) < 7U` is the exact
+range-test idiom (`func_actor_401000_801385B0`'s `sltiu`), matching `Actor01900_Fn05F38`.
+
+Inputs: `base_9.i` SHA256
+`3640a55079bd08537a312231a0c0b1e10df334a846aba76517f5ff6831035931`; target SHA256
+`0d17afd01ddd9ca2f2e0d3b05f1ff1642bf6ba27e7d82eaa1212943d7d057cc8`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A repeated `Wip_SysConfig.field_18` read needs a `WipSysConfig*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (func_actor_401000_801385B0, 2026-09-16)
+
+Two independent source forms, both worth about 20 points on this function.
+
+**The config pointer.** Three `Wip_SysConfig.field_18` reads written as direct member accesses gave
+`lui v0,%hi(Wip_SysConfig)` + `lh v1,%lo(Wip_SysConfig+0x18)(v0)` at each site, three times over, and
+`arg0->field_20` (the `GpEnemy*`) sitting in `$s7`. The target materialises the address once in the
+prologue and reads `lh v1,0x18(s7)`:
+
+```
+target:  lui v0,%hi(Wip_SysConfig) / addiu s7,v0,%lo(Wip_SysConfig) / ... / lh v1,0x18(s7)
+seed:    lui v0,%hi(Wip_SysConfig) / lh v1,%lo(Wip_SysConfig+0x18)(v0)
+```
+
+The idiom is the one `src/gameplay/268.c` and `src/gameplay/4CC.c` already use — a `WipSysConfig*`
+local assigned from `&Wip_SysConfig` at the top of the function:
+
+```c
+WipSysConfig* cfg = &Wip_SysConfig;
+...
+if (cfg->field_18 > 0) { ... }
+```
+
+The address becomes one pseudo live to the last use, so it takes a callee-saved register of its own
+(here `$s7`, pushing the enemy to `$s8`), and the three loads shrink to the `0x18` displacement.
+
+**The widened halfword.** `field_C0C` is read three ways and only one of them is signed — `lh` for the
+`func_actor_401000_80132590` probe, `lhu` for the step helper's amount and for the halving — while the
+write stores `-0x78`. Declaring the field `u16` gets the two `lhu` loads and the `sll 16 / sra 16`
+sign-extension, but turns the store into `li v0,0xff88`; declaring it `s16` fixes the store
+(`addiu v0,zero,-0x78`) and makes the other two `lh` unless the *widening* read is written unsigned:
+
+```c
+work->field_C0C                                        /* lh  */;
+Actor401000_MoveForwardNonzero(coord, (u16)work->field_C0C)  /* lhu */;
+work->field_C0C = (s16)(u16)work->field_C0C / 2;             /* lhu + sll/sra + /2 bias */;
+```
+
+The `(u16)` cast does not survive as an RTL node — both are HImode — but it does set the unsignedp
+flag `expand_expr` widens the load with, which is the whole difference between `lh` and `lhu`. The
+`s16` field with `(u16)` reads is the 100.000% form; the `u16` field with `(s16)` reads scores
+99.976% on the single store constant.
