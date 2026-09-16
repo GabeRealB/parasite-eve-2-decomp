@@ -128,7 +128,48 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013945C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013971C);
+/// Per-frame body of the live actor: arms the animation slots and the two
+/// `field_8C8` / `field_A08` nodes, re-seeds the 0x8E8 and 0xA28 contact
+/// records, then — while work bit 0x100 is set — picks `field_0` from the
+/// enemy's HP sign and its `field_4C` bit 1. Same body as `Actor01900_Fn09BE8`.
+void func_actor_401800_8013971C(Actor401800* arg0)
+{
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0;
+        work->field_8C8.field_1C = 0x12C;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_898          = 2;
+        work->field_89E          = 0xB;
+        work->field_8A2          = 0x10;
+        work->field_8B0          = 0;
+        work->field_8AE          = 0;
+        if (enemy->field_40 < 0) {
+            Gp_SetStateF0Byte3(1);
+        }
+        work->field_8C8.flags |= 0x4000;
+    }
+    func_actor_401800_80133EB8(arg0);
+    func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_8E8, 0xC);
+    func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_68 & 0x100) {
+        work->field_8C8.flags &= 0xBFFF;
+        if (enemy->field_40 <= 0) {
+            work->field_0 = 0x15;
+        } else if (enemy->field_4C & 2) {
+            work->field_0 = 4;
+        } else {
+            work->field_0 = 0x11;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80139870);
 

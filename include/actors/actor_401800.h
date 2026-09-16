@@ -49,9 +49,11 @@ typedef struct Actor401800Work {
     /* 0x8B8 */ GpEffArg field_8B8;
     /* 0x8C0 */ byte     pad_8C0[8];
     /* 0x8C8 */ GpObj    field_8C8;
-    /* 0x8E8 */ byte     pad_8E8[0x120];
+    /* 0x8E8 */ GpRec18  field_8E8;
+    /* 0x900 */ byte     pad_900[0x108];
     /* 0xA08 */ GpObj    field_A08;
-    /* 0xA28 */ byte     pad_A28[0x120];
+    /* 0xA28 */ GpRec18  field_A28;
+    /* 0xA40 */ byte     pad_A40[0x108];
     /* 0xB48 */ GpObj    field_B48;
     /* 0xB68 */ byte     pad_B68[0xA8];
     /// The three bytes `func_actor_401800_8013DF80` copies out of the room
@@ -111,6 +113,7 @@ typedef struct Actor401800Msg7D3 {
     /* 0x4 */ s32 field_4;
 } Actor401800Msg7D3;
 
+s32  func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 s32  func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2);
 void func_actor_401800_80133EB8(Actor401800* arg0);
 void func_actor_401800_8013E0A0(Task* task);
