@@ -46,8 +46,13 @@ typedef struct Actor401800Work {
     /* 0x004 */ s16 field_4;
     /// Step counter `func_actor_401800_8013E4F0` resets to 0 and bumps once a
     /// frame; the same slot `Actor104000Work.field_6` counts in.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[4];
+    /* 0x006 */ s16 field_6;
+    /// Stride counter the walking body bumps once a frame alongside `field_6`
+    /// and clears whenever `func_actor_401800_80133918` reports the actor is on
+    /// target; the walking body picks `field_0 = 0x1B` once it reaches 0x5B.
+    /// Same slot `Actor01900Work.field_8` counts in.
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[2];
     /// XZ patrol points: the spawn position and one step along its facing.
     /* 0x00C */ Actor401800Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
@@ -301,14 +306,16 @@ typedef struct Actor401800TurnScratch {
 } Actor401800TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor401800TurnScratch, 0xC);
 
-/// 0x10-byte scratch `func_actor_401800_80137714` takes from `G_SCRATCH_HEAD`:
-/// the offset from the actor to the player, the wrapped turn toward the
-/// player and the facing yaw the body folds it into. Same shape as
+/// 0x10-byte scratch the walking and chase bodies take from `G_SCRATCH_HEAD`:
+/// the offset from the actor to the player, the player's facing yaw, the yaw
+/// back toward the player, the wrapped turn toward the player and the facing
+/// yaw the body folds it into. Only `delta` and `turn` are read back, and the
+/// chase body uses neither the facing pair nor `angle`. Same shape as
 /// `Actor401300ChaseScratch` / `Actor01900ChaseScratch`.
 typedef struct Actor401800ChaseScratch {
     /* 0x0 */ SVECTOR delta;
-    /* 0x8 */ s16     pad_8;
-    /* 0xA */ s16     pad_A;
+    /* 0x8 */ s16     playerYaw;
+    /* 0xA */ s16     yaw;
     /* 0xC */ s16     turn;
     /* 0xE */ s16     angle;
 } Actor401800ChaseScratch;

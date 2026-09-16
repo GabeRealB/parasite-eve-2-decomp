@@ -103784,3 +103784,35 @@ The narrowing is also why the same field shows up as a signed `lh` elsewhere in
 the same function: the scratch block's `delta.vx` is an `s16` that a later
 `ratan2` argument sign-extends, so the reload is `lh` there — the load width
 tracks the destination, not the field.
+
+## A reused pointer local: give the last short-lived use its own name (`func_actor_401800_8013CD98`, 2026-09-16)
+
+`func_actor_401800_8013CD98`, the walk body of actor 401800 and the twin of
+`Actor01900_Fn042BC`, stalled at 98.339% with `blocks=58/58`,
+`instructions=557/557`, `predicates_match=True`, `calls_match=True` and every
+penalty but `regs` at zero: one `coord = arg0->field_2C->field_8` sat in `$s0`
+where the target has it in `$v0`.
+
+The uses are not one live range. In both arms of the `func_actor_401800_80133918`
+test the pointer survives two `ratan2` calls, so global alloc must home it in a
+callee-saved register — `$s0`, and the target has `$s0` there as well. In the
+tail it dies at the call, because the `Gfx_RotMatrixY` that follows reloads the
+coordinate from `arg0` instead of reusing the pointer:
+
+```c
+s->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->turn, 1);
+```
+
+Written as one `coord` variable the three uses are a single allocno and the tail
+inherits the callee-saved home. Name the tail's copy separately, exactly as the
+01900 twin does:
+
+```c
+facing   = arg0->field_2C->field_8;
+s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+```
+
+That alone took the function to 100.000%. A callee-saved register holding a
+value that is dead at the call is the tell — before touching the allocator,
+check whether the twin used a second name for that use.

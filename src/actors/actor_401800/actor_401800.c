@@ -2014,7 +2014,128 @@ void func_actor_401800_8013BB10(Actor401800* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013BF48);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013CD98);
+/// Walk body: takes a 0x10 scratch for the player offset, the facing yaws and
+/// the wrapped turn toward the player. On the live flag it resets the model
+/// buffers, arms the walk state (`0x12C` animation, step 0x30) and zeroes the
+/// step counters; otherwise it counts both step slots, re-seeds the `field_A28`
+/// / `field_8E8` contacts, folds the turn into the root coordinate's Y rotation
+/// at scale 0x1194 and steps the actor 0x15 / 5 along its own local Z while
+/// `func_actor_401800_80133558` says the path is clear. On the `func_actor_
+/// 401800_80133918` hit it clears the stride, picks a side from the LCG and
+/// flips it every 0xF1 frames instead. Same body as `Actor01900_Fn042BC`.
+void func_actor_401800_8013CD98(Actor401800* arg0)
+{
+    Actor401800Work*         work;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+    Actor401800ChaseScratch* s;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_898          = 1;
+        work->field_8A2          = 0x30;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_C1C          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        Gp_ArmStateF0(1);
+        work->field_6 = 0;
+        work->field_8 = 0;
+        if (arg0->field_36 == 0x10) {
+            work->field_8C8.flags |= 0x4000;
+        }
+    }
+    work->field_6++;
+    work->field_8++;
+    *(Actor401800ChaseScratch**)G_SCRATCH_HEAD -= 1;
+    s                                           = *(Actor401800ChaseScratch**)G_SCRATCH_HEAD;
+    if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+        if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_8E8, 0xC) != 1) {
+            func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+        }
+    }
+    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_401800_80133EB8(arg0);
+    s->playerYaw = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                          ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+    Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
+    s->yaw = Actor401800_NormalizeYaw(s->yaw);
+    if (func_actor_401800_80133918(arg0) != 1) {
+        work->field_6   = 0;
+        coord           = arg0->field_2C->field_8;
+        s->turn         = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) -
+                                                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = s->turn;
+        if (s->turn < 0x200) {
+            if (!Actor401800_OutOfRange(&s->delta, 0x44C) && work->field_8C2 == 0) {
+                work->field_0 = 0xB;
+            }
+        }
+        if (work->field_8 >= 0x5B) {
+            work->field_0 = 0x1B;
+        }
+    } else {
+        work->field_8 = 0;
+        work->field_6++;
+        coord           = arg0->field_2C->field_8;
+        s->turn         = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) -
+                                                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = s->turn;
+        if (work->field_C00 == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                work->field_C00 = -1;
+            } else {
+                work->field_C00 = 1;
+            }
+        }
+        if (work->field_C00 == 1) {
+            s->turn += 0x400;
+        } else {
+            s->turn -= 0x400;
+        }
+        if (work->field_6 >= 0xF1) {
+            work->field_6   = 0;
+            work->field_C00 = -work->field_C00;
+        }
+    }
+    if (s->turn > 0x20) {
+        s->turn = 0x20;
+    }
+    if (s->turn < -0x20) {
+        s->turn = -0x20;
+    }
+    facing   = arg0->field_2C->field_8;
+    s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->turn, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_89E == 2) {
+        if (work->field_89A == 0) {
+            if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, 0x15) != 0) {
+                Actor401800_StepForward(arg0->field_2C->field_8, 0x15);
+            }
+        } else if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, 5) != 0) {
+            Actor401800_StepForward(arg0->field_2C->field_8, 5);
+        }
+    } else if (work->field_68 & 1) {
+        work->field_89E = 2;
+        work->field_898 = 1;
+    }
+    if (work->field_8C2 != 0) {
+        work->field_8C2--;
+    }
+    *(Actor401800ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013D64C);
 
