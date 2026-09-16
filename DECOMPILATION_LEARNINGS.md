@@ -108344,3 +108344,40 @@ local — reproduced the target's per-case argument setup with the cross-jumped
 
 Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Preprocessed input (base_1) `6c071ed29e092d32e53c323ba91e16cf2b574b738ebbdce37eff401c0dd2493d`.
+
+## An interior address the target writes as `SYM + N` needs no new symbol: declare `SYM` as an array and index it
+
+`func_actor_403200_8013A4A0` tests the halfword at `D_801153F4 + 2`, and the
+target disassembles it with the offset folded into the symbol expression:
+
+```
+lui  $v0, %hi(D_801153F4 + 0x2)
+lhu  $v0, %lo(D_801153F4 + 0x2)($v0)
+```
+
+The address *is* its own symbol in one family and not another —
+`D_801153F6 = 0x801153F6` sits in `configs/USA/sym/rooms.imports.txt` but not in
+`actors.imports.txt`, whose own split output never named it. Naming it as a
+separate object would mean editing the family's imports file and keeping that
+edit alive across `tools/gen_overlay_imports.py`. Keep the imported symbol and
+index it instead:
+
+```c
+extern u16 D_801153F4[];            /* absolute, 0x801153F4 */
+...
+if (... && D_801153F4[1] == 1) {    /* the halfword at +2 */
+```
+
+The `+2` rides in the `lhu` immediate, not in a relocation addend, so the
+*relocatable* words are not the target's (`94420002` + `R_MIPS_LO16 D_801153F4`
+against the target ROM's `944253F6`); the linked value is the same address, and
+`build.sh` scored the form 100.000% with every penalty zero, the overlay
+checksumming. Read a differing `lui`/`lhu` immediate pair as a relocation
+packing difference, not a wrong address, when the score is already exact.
+
+The same access is already written this way in the actors family:
+`src/actors/lib/actor_100400_fn0805c.c` declares `extern u8 D_801153F2[2]` and
+writes `D_801153F2[1] = 1`, and `actor_105500_text.c` reads it back as
+`D_801153F2[1] == 2`. The mirror case — the target naming its own interior
+symbol and the `SYM`-based access scoring below 100 — is the
+`D_neo_ark_observatory_8018136A` entry above.
