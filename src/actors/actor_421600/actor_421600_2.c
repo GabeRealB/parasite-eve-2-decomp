@@ -136,7 +136,7 @@ void func_actor_421600_8013E9D8(Actor421600* arg0)
     }
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {
-        state = work->field_E90 & 0xFFFFFF;
+        state = work->field_E90.word & 0xFFFFFF;
         if (state == 0x11402) {
             state = 5;
         } else {

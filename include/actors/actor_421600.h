@@ -10,6 +10,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
+/// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
+/// it with 0x11402, while `func_actor_421600_8013947C` tests its third byte
+/// alone against 2.
+typedef union Actor421600IdWord {
+    /* 0x0 */ s32 word;
+    /* 0x0 */ u8  bytes[4];
+} Actor421600IdWord;
+STATIC_ASSERT_SIZEOF(Actor421600IdWord, 0x4);
+
 /// Per-actor state block for the `actor_421600` overlay's enemy.
 ///
 /// `func_actor_421600_80134AD4` allocates it with `Mem_Calloc(0xEB0, 0)` and
@@ -29,7 +39,7 @@
 /// uses; `field_8EC.field_1C` is the 0x908 store. `field_B8C` is the
 /// `GpRec18` table `func_actor_421600_8013285C` walks after the 0x20-byte
 /// `field_B6C` node, matching `Actor00100Obj.field_20` after `objs[2]`.
-/// `field_E90` is read as a word (not the `s16` actor 444000 keeps at the same
+/// `field_E90` is a word here (not the `s16` actor 444000 keeps at the same
 /// offset); `func_actor_421600_8013E9D8` masks it to 24 bits and compares that
 /// with 0x11402 to pick the state it writes to `field_0`.
 typedef struct Actor421600Work {
@@ -73,20 +83,23 @@ typedef struct Actor421600Work {
     /* 0x8B0 */ byte pad_8B0[4];
     /// Pose id / blend flag pair `func_actor_421600_8013848C` sets to 7 and 1;
     /// actor 00100 has the same pair at 0x8E8 / 0x8EA.
-    /* 0x8B4 */ s16     field_8B4;
-    /* 0x8B6 */ s8      field_8B6;
-    /* 0x8B7 */ byte    pad_8B7[0x35];
-    /* 0x8EC */ GpObj   field_8EC;
-    /* 0x90C */ byte    pad_90C[0x120];
-    /* 0xA2C */ GpObj   field_A2C;
-    /* 0xA4C */ byte    pad_A4C[0x120];
-    /* 0xB6C */ GpObj   field_B6C;
-    /* 0xB8C */ GpRec18 field_B8C;
-    /* 0xBA4 */ byte    pad_BA4[0x2EC];
-    /* 0xE90 */ s32     field_E90;
-    /* 0xE94 */ Task*   field_E94;
-    /* 0xE98 */ Task*   field_E98;
-    /* 0xE9C */ byte    pad_E9C[2];
+    /* 0x8B4 */ s16   field_8B4;
+    /* 0x8B6 */ s8    field_8B6;
+    /* 0x8B7 */ byte  pad_8B7[0x35];
+    /* 0x8EC */ GpObj field_8EC;
+    /// `GpRec18` table paired with `field_8EC`, the same 0x20-byte stride
+    /// `field_B8C` keeps after `field_B6C`.
+    /* 0x90C */ GpRec18           field_90C;
+    /* 0x924 */ byte              pad_924[0x108];
+    /* 0xA2C */ GpObj             field_A2C;
+    /* 0xA4C */ byte              pad_A4C[0x120];
+    /* 0xB6C */ GpObj             field_B6C;
+    /* 0xB8C */ GpRec18           field_B8C;
+    /* 0xBA4 */ byte              pad_BA4[0x2EC];
+    /* 0xE90 */ Actor421600IdWord field_E90;
+    /* 0xE94 */ Task*             field_E94;
+    /* 0xE98 */ Task*             field_E98;
+    /* 0xE9C */ byte              pad_E9C[2];
     /// Distance `func_actor_421600_8013848C` clamps to 0xFA0 after the gte
     /// rotation.
     /* 0xE9E */ s16  field_E9E;
@@ -170,6 +183,12 @@ void func_actor_421600_8013E858(Actor421600* arg0);
 void func_actor_421600_8013E9D8(Actor421600* arg0);
 
 void func_actor_421600_80134604(Actor421600* arg0);
+
+/// Pull the coordinate back inside the 0xC4D-square arena its XZ span is
+/// measured against, folding the X clamp into Z when the actor is only out on
+/// one axis; `func_actor_421600_8013947C` runs it while `field_E90`'s third
+/// byte is not 2.
+void func_actor_421600_80133334(GsCOORDINATE2* arg0);
 
 s32  func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 void func_actor_421600_8013EAAC(Actor421600* arg0);

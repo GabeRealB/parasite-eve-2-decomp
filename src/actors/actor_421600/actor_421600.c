@@ -219,7 +219,7 @@ void func_actor_421600_8013848C(Actor421600* arg0)
     }
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {
-        state = work->field_E90 & 0xFFFFFF;
+        state = work->field_E90.word & 0xFFFFFF;
         if (state == 0x11402) {
             state = 5;
         } else {
@@ -238,7 +238,95 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801392A8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013947C);
+/// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,
+/// fires the 0x40010009 spawn sound and the 0x40010007 tick sound (draining
+/// `field_40` by 0xF and flooring it at 1), then walks the two `GpRec18`
+/// movement tables. While the id word's third byte reads 2 the actor is held
+/// in the arena by clamping X -- and Z only when X was already inside -- and
+/// otherwise `func_actor_421600_80133334` drags it back. Picks the state
+/// `field_0` out of `field_40` / `field_4C`.
+void func_actor_421600_8013947C(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    s32              sound;
+    s32              pan;
+    s32              eventSound;
+    s32              eventPan;
+    s32              x;
+    s32              z;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj               = arg0->field_2C;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.field_1C = 0x19C;
+        work->field_832          = 0x10;
+        work->field_82E          = 0xA;
+        work->field_828          = 1;
+        work->field_82A          = 0;
+        work->field_B6C.flags   |= 0x4000;
+        work->field_8EC.flags   |= 0x4000;
+        func_actor_421600_80134604(arg0);
+        sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010009;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        ctx->field_40 -= 0xF;
+        func_800DA6E8(&ctx->node, 0xF, 0);
+        if (ctx->field_40 <= 0) {
+            ctx->field_40 = 1;
+        }
+        eventSound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010007;
+        eventPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(eventSound, eventPan,
+                            (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+    func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_B8C, 0xC);
+    func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_90C, 0xC);
+    if (work->field_E90.bytes[2] == 2) {
+        coord = arg0->field_2C->field_8;
+        x     = coord->coord.t[0];
+        if (x > 0) {
+            if (x >= 0xBEB) {
+                coord->coord.t[0] = 0xB54;
+            } else {
+                goto block_10;
+            }
+        } else if (x < -0xB22) {
+            coord->coord.t[0] = -0xA8C;
+        } else {
+        block_10:
+            z = coord->coord.t[2];
+            if (z > 0) {
+                if (z >= 0xB23) {
+                    coord->coord.t[2] = 0xA8C;
+                }
+            } else if (z < -0xB22) {
+                coord->coord.t[2] = -0xA8C;
+            }
+        }
+    } else {
+        func_actor_421600_80133334(arg0->field_2C->field_8);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    func_actor_421600_80134604(arg0);
+    if (work->field_68 & 0x100) {
+        if (ctx->field_40 > 0) {
+            if (ctx->field_4C & 2) {
+                work->field_0 = 4;
+            } else {
+                work->field_0 = 0x11;
+            }
+        } else {
+            work->field_0 = 0x15;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80139718);
 

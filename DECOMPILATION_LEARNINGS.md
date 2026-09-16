@@ -106711,3 +106711,50 @@ Inputs: `base_2.i` (100%) SHA256
 target SHA256 `db02ab4dbb61e5a17be778b7d131b38cd2371cd49771cf010f6fbdd76aaa6ddc`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_8013848C-vacuum`.
+
+## A constant stored into one field from every arm is a *single* store the allocator colours - do not write a carrier variable (func_actor_421600_8013947C, 2026-09-16)
+
+`work->field_0` is set from three arms at the tail of `func_actor_421600_8013947C`
+(`= 4` when `field_40 > 0 && field_4C & 2`, `= 0x11` when `field_40 > 0` alone,
+`= 0x15` otherwise). Written that way it compiles to one `sh $v0,0($s2)` fed by
+`li $v0,0x15` in the `blez` delay slot, `li $v0,4` in the `bnez` delay slot and
+`li $v0,0x11` on the fall-through. Writing the same logic with a `s16 state`
+carrier assigned in each arm and stored once gives *the same instruction count
+and branch topology* but `$v1` for all three constants, i.e. a pure register
+leftover that no amount of restructuring the C control flow fixes (an `else`
+arm reads identically at `-O2`; `.lreg` is byte-for-byte the same).
+
+The carrier is worse for two independent reasons:
+
+- It is a **global allocno**, because it is set in one block and used in another
+  (`used 4 times across 7 insns` with no `in block N`, so local-alloc skips it).
+  The direct stores instead leave each arm's `(set (reg:HI N) (const_int K))`
+  with a `REG_EQUIV (mem/s:HI ...)` note; `jump2` sinks the common store to the
+  merge point, so every arm materialises its constant into the *same* register
+  and the store happens once, after the join.
+- It is born **inside** the block that loads `$v0` for the branch test. A local
+  pseudo living in `$v0` (the `lh` feeding `blez`) is still live there, and
+  `global_conflicts` records that as a *hard*-register conflict: `.greg` prints
+  `;; 91 conflicts: 81 82 91 2 29`, whose `2` is `$v0`, so `91` starts its
+  search above it and takes `$v1`. Moving the birth later (an `else` arm) does
+  not help - the merged tail block is where all three assignments end up.
+
+Read the sibling first: `func_actor_421600_8013EC28` in the same TU has the
+identical tail (same field, same three constants, `field_82E == 0xA` gating it)
+and is matched with plain per-arm stores, which is where this shape came from.
+The same two mechanisms explain the earlier `s0`/`s1` swap in this function:
+`sound` and `pan` were each assigned in *both* event blocks, so they were
+`dies in 2 places` and not local-eligible, the shift chain could not join their
+quantity and stayed in `$v0` (`lhu $v0 / srl $v0 / sll $v0 / or $v1`). One
+variable per use site (`sound` / `pan` for the spawn event, `eventSound` /
+`eventPan` for the tick event - the naming the matched sibling already uses)
+lets the whole `lhu / srl / sll / or` chain join one quantity, and it lands in
+`$s0` with pan in `$s1` as the target has it: 98.80% to 99.88% from that alone.
+
+Inputs: `base_4.i` (100%) SHA256
+`2992db24ae6060e23e4fae8a9361b50022343b68042ed5e2a80efce08575ef94`;
+`base_2.i` (99.880%) SHA256
+`6eea2e610c5ff06eabd0f252beccd951b56fc75adea30ec54cc45e77037f030a`;
+target SHA256 `82d491cedf84dbff512d484e92525a77f3b868e46b98b4ad141541ed85e2ab31`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_421600_8013947C-vacuum`.
