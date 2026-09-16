@@ -87651,3 +87651,46 @@ isolated here. The same seed also had the lost `M2C_UNK` scaling above — `sll
 `%lo(Gp_SprtTables)`, because `M2C_UNK` is `s32` and the hand-written `* 4`
 scales again — so when both signatures appear in one seed, look for one lost
 pointer type rather than two bugs.
+
+## One field, three load widths: the use decides, not the declaration (func_dryfield_water_tower_80180038, 2026-09-16)
+
+**Problem.** m2c read a struct field as a byte and everything downstream came out
+wrong at once - `insert=7 delete=7` over 55 instructions, with no branch, block
+or allocation difference:
+
+```
+target                          m2c
+lbu  $a0, 0x2($s0)              lbu  $a0, 0x2($s0)
+...
+lhu  $v0, 0x2($s0)              lbu  $v0, 0x2($s0)
+lhu  $v1, 0x34($s1)             lbu  $v1, 0x34($s1)
+addu $v0, $v0, $v1              addu $v0, $v0, $v1
+sh   $v0, 0x2($s0)              sb   $v0, 0x2($s0)
+...
+lh   $v1, 0x2($s0)              lbu  $v1, 0x2($s0)
+slti $v1, $v1, 0x100            slti $v1, $v1, 0x100
+```
+
+**Symptom.** Three widths on one field in one function: `lbu` for the call
+argument, `lhu`/`sh` for the arithmetic, `lh` before the signed compare. The
+declaration is not ambiguous - each width comes from the *use*:
+
+* `lbu` - the callee's parameter is `u8` (or the call site casts `(u8)`), and
+  `combine` narrows `zero_extend:SI (mem:HI)` to a `mem:QI` load. That is legal
+  because only the low byte survives the truncation, and it is why a `u16` field
+  handed to a `u8` parameter never shows the `lh` + `andi 0xff` you would expect.
+* `lhu`/`sh` - plain `u16` arithmetic against another `u16` field (`arg0->spawnArg1`
+  is `s32`, so that operand needs the `(u16)` cast to load as `lhu`).
+* `lh` - a `(s16)` cast of the same `u16` field for a signed compare. The
+  zero-extended value already in a register is not the RTL the compare wants, so
+  `cse` does not reuse it: the address is loaded again, in the signed mode.
+
+**Fix.** Declare the field at the width its arithmetic uses and put the cast at
+the call and at the compare. Do not follow m2c, which types the field from the
+byte access it happens to see and then emits every access at that width - the
+`sh` stores become `sb` and all seven sites are wrong together. The block here
+is the 8-byte fade work the actors carry as `Actor560800FadeWork`
+(`u16 r, g, b`), and its matched body `func_actor_560800_80135FA0` is the same
+code word for word: reading the sibling turned a 74.5% baseline into an exact
+match on the first edit, where the target's own three widths look contradictory
+until you see which use produced each.

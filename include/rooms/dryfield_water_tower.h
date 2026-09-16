@@ -34,6 +34,29 @@ typedef struct DwtwWork {
 } DwtwWork;
 STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 
+/// Fade block `func_dryfield_water_tower_80180038` allocates with
+/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
+/// block in this room, distinct from `DwtwWork`. Reach it with
+/// `(DwtwFadeWork*)task->idMap`.
+///
+/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
+/// raises all three by `spawnArg1` each frame (so `spawnArg1` is the fade rate,
+/// not a colour) and kills itself once the red channel passes 0x100. `field_0`
+/// is never touched.
+///
+/// The same 8-byte block the actors' fade tasks carry as
+/// `Actor560800FadeWork`, with one difference: this one neither reparents
+/// itself nor clears the display mask before killing the task, so the room sees
+/// the fade end where the actors darken the screen. The task is the second of
+/// the three descriptors in `D_dryfield_water_tower_8018277C`.
+typedef struct DwtwFadeWork {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  r;
+    /* 0x4 */ u16  g;
+    /* 0x6 */ u16  b;
+} DwtwFadeWork;
+STATIC_ASSERT_SIZEOF(DwtwFadeWork, 0x8);
+
 /// Payload `Gp_DispatchMsg` carries for message 0x7DB, the record this room's
 /// script table `D_dryfield_water_tower_80181B00` pairs with
 /// `func_dryfield_water_tower_8017F808` next to its `Room_Util08` 0x7D4 entry.
