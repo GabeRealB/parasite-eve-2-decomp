@@ -153,8 +153,12 @@ typedef struct Actor401000Work {
     /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
     /// actor at the player: the `func_actor_401000_80132590` probe reads it
     /// signed, the step helper and the countdown itself through a `(u16)`.
-    /* 0xC04 */ s16  field_C04;
-    /* 0xC06 */ byte pad_C06[2];
+    /* 0xC04 */ s16 field_C04;
+    /// Clip-phase latch `func_actor_401000_801365C8` runs the 8 / -1 / 0 march
+    /// off: 8 flips to -1 once `field_8A2` reaches 0x18, -1 flips to 0 at 0x12,
+    /// and 0 keys the 5-frame exit window. The same slot `Actor01900Work` keeps
+    /// at +0xC26.
+    /* 0xC06 */ s16 field_C06;
     /// Turn direction `func_actor_401000_801374D4` toggles as it enters: 0 (the
     /// unseeded state) draws a sign from `Gp_LcgState`, and each entry flips it
     /// to the other side. Selects the `field_89E` clip and the `field_C12` sign.
@@ -363,6 +367,12 @@ extern s32* D_actor_401000_80154E88;
 /// `func_actor_401000_801385B0`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
+
+/// Free-running scroll the actor's forward draw accumulates into:
+/// `func_actor_401000_801365C8` adds `field_C04` to it every frame, and the
+/// walk state zeroes it on entry. The same slot `Actor01900` keeps in
+/// `Actor01900_D172FC`.
+extern u16 D_actor_401000_80155000;
 
 /// Twelve `SVECTOR` hit positions `func_actor_401000_80133940` picks from by
 /// damage magnitude. The fourth halfword (`pad`, unused by the effect) is the

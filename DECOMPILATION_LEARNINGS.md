@@ -41382,6 +41382,38 @@ its `addu` ahead of a neighbouring `sw` (`regs=7 reorder=1`, 99.6%). Declaring
 `u8 *p;` and `u8 *slot;` and using one per arm took the same function to 100%
 with no other edit. `func_actor_143000_80133EE4` is the example.
 
+## One temp for both arms of an `if`/`else` can cost a *neighbour* its register
+
+The same split is needed even when the shared local itself is coloured
+correctly, so the diagnostic above (a `$a0` where the target has `$v1`) does
+not fire. `func_actor_401000_801365C8` clamps a turn by 1000 on each side:
+
+```c
+if (turn >= 0) {
+    diff = turn - 1000;
+    if (ABS(diff) < 0x60) { ... } else if (diff > 0) { ... } else { ... }
+} else {
+    diff = turn + 1000;
+    ...
+}
+```
+
+One `diff` scored 99.878% with `regs=13` and a 30-instruction diff that was
+pure register renaming. Both arms had `diff` in one register and agreed with
+each other; what was wrong was a *third* quantity — the narrowed yaw the two
+arms read — which came out in `$a0` where the ROM has `$v1`. In `local_alloc`'s
+numeric order (`$v0`, `$v1`, `$a0`, …, MIPS defines no `REG_ALLOC_ORDER`) the
+shared pseudo's live range spans both arms, so it is ordered against the yaw
+temp differently than two per-arm temps would be, and takes `$v1` first.
+
+Declaring `s32 diffPos; s32 diffNeg;` and using one per arm — the form the
+`Actor01900_Fn04D14` sibling is already written in — moved the yaw temp to
+`$v1` and the arm temp to `$a0` for 100%, with no other edit. When the leftover
+is a two-register swap whose operands are all correct against each other, check
+whether one of them is a temp shared by two symmetric arms before touching the
+expression: the fix is to give each arm its own, and the reused local's own
+colour is not the symptom.
+
 ## `lui $v0 / addiu $a0,$v0` instead of `lui $a0 / addiu $a0,$a0` means the call was duplicated
 
 When an `if`/`else` picks between two static symbols and passes the result to

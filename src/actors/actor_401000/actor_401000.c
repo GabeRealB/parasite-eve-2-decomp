@@ -737,7 +737,142 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80135AA4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801365C8);
+/// Turn-aim state body, the 401000 twin of `Actor01900_Fn04D14`: take a 0x10
+/// chase scratch off `G_SCRATCH_HEAD` and, on the live-actor flag, key the
+/// two animation nodes, the frame counter and the `field_C06` clip phase.
+/// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
+/// toward `Game_GetPtrSlot(3)` goes in `pad_8`, the wrapped yaw toward
+/// `Wip_SysConfig.field_4` in `pad_A` - and the root is turned by the facing
+/// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
+/// `field_C04` is the doubled frame parameter (halved while `field_89A` is
+/// up, forced to 2 while the frame counter runs), and the actor slides along
+/// it when the `0x12C` probe reports the step is clear. `field_C06` walks 8 ->
+/// -1 -> 0 as `field_8A2` passes 0x18 and 0x12, and the 0 arm runs the
+/// five-frame exit window that re-aims once more and picks state 0xB when the
+/// actor faces away from the player, else state 0x1A.
+void func_actor_401000_801365C8(Actor401000* arg0)
+{
+    Actor401000ChaseScratch* chase;
+    Actor401000ChaseScratch* head;
+    Actor401000Work*         work;
+    TmdObject*               obj;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           facing;
+    s32                      turn;
+    s32                      diffPos;
+    s32                      diffNeg;
+    s32                      yaw;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0xD7;
+        work->field_898          = 1;
+        work->field_89E          = 3;
+        work->field_89A          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        work->field_C06         = 8;
+        work->field_6           = 0;
+        work->field_8           = 0;
+        D_actor_401000_80155000 = 0;
+        work->field_C24++;
+        return;
+    }
+    head                                       = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
+    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    chase                                      = head - 1;
+    arg0->field_2C->field_8->flg               = 0;
+    func_actor_401000_80132EF0(arg0);
+    if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) == 1) {
+        work->field_8++;
+    } else {
+        func_actor_401000_80135704(arg0, (GpRec18*)work->field_8F0, 0xC);
+    }
+    Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &chase->delta);
+    if (work->field_8 >= 7) {
+        chase->pad_8  = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                               ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+        chase->pad_A  = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+        chase->pad_A  = Actor401000_NormalizeYaw(chase->pad_A);
+        work->field_0 = 0x1A;
+    }
+    coord       = arg0->field_2C->field_8;
+    chase->turn = Actor401000_NormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn        = chase->turn;
+    if (turn >= 0) {
+        diffPos = turn - 1000;
+        if (ABS(diffPos) < 0x60) {
+            chase->angle = chase->turn - 1000;
+        } else if (diffPos > 0) {
+            chase->angle = 0x60;
+        } else {
+            chase->angle = -0x60;
+        }
+    } else {
+        diffNeg = turn + 1000;
+        if (ABS(diffNeg) < 0x60) {
+            chase->angle = chase->turn + 1000;
+        } else if (diffNeg > 0) {
+            chase->angle = 0x60;
+        } else {
+            chase->angle = -0x60;
+        }
+    }
+    facing        = arg0->field_2C->field_8;
+    chase->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, chase->angle, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    coord                        = arg0->field_2C->field_8;
+    work->field_8AE              = Actor401000_NormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    arg0->field_2C->field_8->flg = 0;
+    work->field_C04              = work->field_8A2 * 8;
+    if (work->field_89A != 0) {
+        work->field_C04 = work->field_C04 >> 1;
+    }
+    if (work->field_8 != 0) {
+        work->field_C04 = 2;
+    }
+    if ((func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, work->field_C04) << 0x10) != 0) {
+        Actor401000_MoveForwardNonzero(arg0->field_2C->field_8, (u16)work->field_C04);
+    }
+    D_actor_401000_80155000 += (u16)work->field_C04;
+    if (work->field_C06 == 8 && work->field_8A2 >= 0x18) {
+        work->field_C06 = -1;
+    }
+    if (work->field_C06 == -1 && work->field_8A2 == 0x12) {
+        work->field_C06 = 0;
+        work->field_6   = 0;
+    }
+    if (work->field_C06 == 0) {
+        if (++work->field_6 == 5) {
+            chase->pad_8 = ratan2(-((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][0],
+                                  ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8->coord.m[2][2]);
+            Actor401000_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &chase->delta);
+            chase->pad_A = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+            chase->pad_A = Actor401000_NormalizeYaw(chase->pad_A);
+            yaw          = chase->pad_A - chase->pad_8;
+            if (yaw < 0) {
+                yaw = -yaw;
+            }
+            if (yaw > 0x400 && work->field_C1B == 0) {
+                work->field_0 = 0xB;
+            } else {
+                work->field_0 = 0x1A;
+                work->field_2 = -1;
+            }
+        }
+    }
+    work->field_8A2 += (u16)work->field_C06;
+    if (work->field_C1B != 0) {
+        work->field_C1B--;
+    }
+    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r)
