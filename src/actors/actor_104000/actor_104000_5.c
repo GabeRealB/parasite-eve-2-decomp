@@ -23,16 +23,16 @@ void func_actor_104000_801389E8(Actor104000Ctx* arg0, Actor104000* arg1)
 
     work = arg1->field_1C;
     if (work->field_4 != 0) {
-        obj              = arg1->field_2C;
-        arg0->field_14   = 0;
-        obj->field_C     = 0;
-        work->field_174  = 4;
-        work->field_170  = 1;
-        work->field_178  = 0;
-        work->field_36E |= 0x8000;
-        work->field_3A6 &= 0x7FFF;
-        work->field_3DE &= 0x7FFF;
-        work->field_28E |= 0x4000;
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_174     = 4;
+        work->field_170     = 1;
+        work->field_178     = 0;
+        work->obj350.flags |= 0x8000;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj270.flags |= 0x4000;
         func_actor_104000_80132C8C(arg1);
     } else {
         func_actor_104000_80132C8C(arg1);
@@ -54,16 +54,16 @@ void func_actor_104000_80138AA0(Actor104000Ctx* arg0, Actor104000* arg1)
 
     work = arg1->field_1C;
     if (work->field_4 != 0) {
-        obj              = arg1->field_2C;
-        arg0->field_14   = 0;
-        obj->field_C     = 0;
-        work->field_174  = 6;
-        work->field_170  = 1;
-        work->field_178  = 0;
-        work->field_36E |= 0x8000;
-        work->field_3A6 &= 0x7FFF;
-        work->field_3DE &= 0x7FFF;
-        work->field_28E |= 0x4000;
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_174     = 6;
+        work->field_170     = 1;
+        work->field_178     = 0;
+        work->obj350.flags |= 0x8000;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj270.flags |= 0x4000;
         func_actor_104000_80132C8C(arg1);
     } else {
         func_actor_104000_80132C8C(arg1);
@@ -92,10 +92,10 @@ void func_actor_104000_80138B58(Actor104000Ctx* arg0, Actor104000* arg1)
         work->field_174         = 1;
         work->field_170         = 2;
         work->field_178         = 0;
-        work->field_36E        |= 0x8000;
-        work->field_3A6        &= 0x7FFF;
-        work->field_3DE        &= 0x7FFF;
-        work->field_28E        |= 0x4000;
+        work->obj350.flags     |= 0x8000;
+        work->obj388.flags     &= 0x7FFF;
+        work->obj3C0.flags     &= 0x7FFF;
+        work->obj270.flags     |= 0x4000;
         func_actor_104000_80132C8C(arg1);
         coord = arg1->field_2C->field_8;
         yaw   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);

@@ -12,14 +12,14 @@ void func_actor_204000_801508E4(Actor104000Ctx* arg0, Actor104000* arg1)
     work = arg1->field_1C;
     obj  = arg1->field_2C;
     if (work->field_4 != 0) {
-        arg0->field_14   = 1;
-        obj->field_C     = 0x80;
-        work->field_174  = 1;
-        work->field_170  = 2;
-        work->field_36E &= 0x7FFF;
-        work->field_3A6 &= 0x7FFF;
-        work->field_3DE &= 0x7FFF;
-        work->field_28E &= 0xBFFF;
+        arg0->field_14      = 1;
+        obj->field_C        = 0x80;
+        work->field_174     = 1;
+        work->field_170     = 2;
+        work->obj350.flags &= 0x7FFF;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj270.flags &= 0xBFFF;
         return;
     }
     func_actor_204000_8014AC8C(arg1);

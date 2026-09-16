@@ -20,7 +20,7 @@ void func_actor_204000_801507B4(Actor104000Ctx* arg0, Actor104000* arg1)
         work->field_176          = 0x10;
         work->field_178          = 0;
         work->field_174          = 0xF;
-        work->field_28E          = (u16)(work->field_28E | 0x4000);
+        work->obj270.flags       = (u16)(work->obj270.flags | 0x4000);
         func_actor_204000_8014AC8C(arg1);
         work->field_6   = 0;
         work->field_47A = (u8)(work->field_47A + 1);

@@ -23,12 +23,12 @@ void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1)
 
     work = arg1->field_1C;
     if (work->field_4 != 0) {
-        obj              = arg1->field_2C;
-        arg0->field_14   = 0;
-        obj->field_C     = 0;
-        work->field_176  = 0x10;
-        work->field_178  = 0;
-        work->field_28E |= 0x4000;
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_176     = 0x10;
+        work->field_178     = 0;
+        work->obj270.flags |= 0x4000;
         func_actor_104000_80132C8C(arg1);
         work->field_6 = 0;
         return;

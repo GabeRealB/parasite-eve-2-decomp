@@ -23,9 +23,9 @@ void ActorsShared8015087c(GpEnemy* enemy, Task* task)
         obj                 = task->extra;
         enemy->node.field_4 = 1;
         obj->field_C        = (u16)(obj->field_C | 0x80);
-        work->field_36E     = (u16)(work->field_36E & 0x7FFF);
-        work->field_3A6     = (u16)(work->field_3A6 & 0x7FFF);
-        work->field_3DE     = (u16)(work->field_3DE & 0x7FFF);
-        work->field_28E     = (u16)(work->field_28E & 0xBFFF);
+        work->obj350.flags  = (u16)(work->obj350.flags & 0x7FFF);
+        work->obj388.flags  = (u16)(work->obj388.flags & 0x7FFF);
+        work->obj3C0.flags  = (u16)(work->obj3C0.flags & 0x7FFF);
+        work->obj270.flags  = (u16)(work->obj270.flags & 0xBFFF);
     }
 }

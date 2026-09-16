@@ -28,23 +28,26 @@ extern s32 D_actor_104000_8013E530[2];
 /// message.
 extern s32 D_actor_104000_8013E538[8];
 
-/// The actor's per-instance work block (`field_1C` of `Actor104000`). The
-/// halfwords at 0x28E / 0x36E / 0x3A6 / 0x3DE are the flag words of four
-/// records in a 0x38-byte-stride table; the high bit gates one behaviour and
-/// bit 0x4000 another.
+/// The actor's per-instance work block (`field_1C` of `Actor104000`),
+/// allocated and filled by `func_actor_204000_8014AED8`. It embeds four
+/// collision objects linked with `Gp_LinkObj`, each followed by the `GpRec18`
+/// table its `field_C` points at; the high bit of their flag words gates one
+/// behaviour and bit 0x4000 another.
 typedef struct Actor104000Work {
     /* 0x000 */ s16        field_0;
     /* 0x002 */ s16        field_2;
     /* 0x004 */ s16        field_4;
     /* 0x006 */ u16        field_6;
-    /* 0x008 */ byte       pad_8[4];
+    /* 0x008 */ byte       pad_8[2];
+    /* 0x00A */ s16        field_A;
     /* 0x00C */ GpAnimCtx  anim;
     /* 0x020 */ GpAnimSlot slots[1]; // slots 1..5 continue past here, overlapping the fields below
     /* 0x048 */ byte       pad_48[2];
     /* 0x04A */ u16        field_4A; // low ten bits: animation id (`slots[1].field_2`)
     /* 0x04C */ byte       pad_4C[0xC];
     /* 0x058 */ u16        field_58;
-    /* 0x05A */ byte       pad_5A[0x116];
+    /* 0x05A */ byte       pad_5A[0xB6];
+    /* 0x110 */ byte       poses[0x60]; // `func_800B3F84` arg3
     /* 0x170 */ s16        field_170;
     /* 0x172 */ s16        field_172;
     /* 0x174 */ s16        field_174;
@@ -52,22 +55,38 @@ typedef struct Actor104000Work {
     /* 0x178 */ s16        field_178;
     /* 0x17A */ s16        field_17A;
     /* 0x17C */ s16        field_17C;
-    /* 0x17E */ byte       pad_17E[0x1A];
+    /* 0x17E */ s16        field_17E;
+    /* 0x180 */ s32        field_180;
+    /* 0x184 */ s32        field_184;
+    /* 0x188 */ s32        field_188;
+    /* 0x18C */ s32        field_18C;
+    /* 0x190 */ s32        field_190;
+    /* 0x194 */ byte       pad_194[4];
     /* 0x198 */ u16        field_198;
     /* 0x19A */ u16        field_19A;
     /* 0x19C */ s16        field_19C;
-    /* 0x19E */ byte       pad_19E[0xF0];
-    /* 0x28E */ u16        field_28E;
+    /* 0x19E */ byte       pad_19E[2];
+    /* 0x1A0 */ s16        field_1A0;
+    /* 0x1A2 */ s16        field_1A2;
+    /* 0x1A4 */ byte       pad_1A4[0xC];
+    /* 0x1B0 */ GpRec18    rec1B0[8];
+    /* 0x270 */ GpObj      obj270;
     /* 0x290 */ GpRec18    hits[8]; // this frame's collision records, ended by a zero id
-    /* 0x350 */ byte       pad_350[0x1E];
-    /* 0x36E */ u16        field_36E;
-    /* 0x370 */ byte       pad_370[0x36];
-    /* 0x3A6 */ u16        field_3A6;
-    /* 0x3A8 */ byte       pad_3A8[0x36];
-    /* 0x3DE */ u16        field_3DE;
+    /* 0x350 */ GpObj      obj350;
+    /* 0x370 */ GpRec18    rec370;
+    /* 0x388 */ GpObj      obj388;
+    /* 0x3A8 */ GpRec18    rec3A8;
+    /* 0x3C0 */ GpObj      obj3C0;
     /* 0x3E0 */ GpEffArg   eff;       // `func_800FDB18` argument record
     /* 0x3E8 */ SVECTOR    effOfs;    // offset handed to `func_800FDB18`; `pad` picks the coordinate
-    /* 0x3F0 */ byte       pad_3F0[0x84];
+    /* 0x3F0 */ SVECTOR    origin;    // model position at spawn
+    /* 0x3F8 */ byte       pad_3F8[8];
+    /* 0x400 */ SVECTOR    ahead;     // spawn position plus 1000 units along the facing (XZ)
+    /* 0x408 */ SVECTOR    behind;    // spawn position minus the same offset
+    /* 0x410 */ byte       pad_410[4];
+    /* 0x414 */ MATRIX     lightMtx;  // installed at `Actor104000Obj2C.field_1C`
+    /* 0x434 */ MATRIX     colorMtx;  // installed at `Actor104000Obj2C.field_20`
+    /* 0x454 */ byte       pad_454[0x20];
     /* 0x474 */ u16        field_474; // animation id that last raised the reaction
     /* 0x476 */ byte       pad_476[3];
     /* 0x479 */ u8         field_479;
@@ -83,9 +102,12 @@ STATIC_ASSERT_SIZEOF(Actor104000Work, 0x498);
 /// Display object hung off `field_2C`; `field_C` is the visibility/alpha value
 /// the state handlers clear when the actor restarts.
 typedef struct Actor104000Obj2C {
-    /* 0x0 */ byte           pad_0[8];
-    /* 0x8 */ GsCOORDINATE2* field_8;
-    /* 0xC */ s16            field_C;
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0xE];
+    /* 0x1C */ MATRIX*        field_1C; // light matrix
+    /* 0x20 */ MATRIX*        field_20; // color matrix
 } Actor104000Obj2C;
 
 /// Caller-owned context the actor also keeps a pointer to at `field_20`;
@@ -103,10 +125,14 @@ typedef struct Actor104000 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor104000Work*  field_1C;
     /* 0x20 */ Actor104000Ctx*   field_20;
-    /* 0x24 */ byte              pad_24[8];
+    /* 0x24 */ void*             field_24;
+    /* 0x28 */ byte              pad_28[4];
     /* 0x2C */ Actor104000Obj2C* field_2C;
+    /* 0x30 */ s32               state;
+    /* 0x34 */ s16               field_34;
+    /* 0x36 */ s16               field_36; // 1 starts in state 2, otherwise 7
 } Actor104000;
-STATIC_ASSERT_SIZEOF(Actor104000, 0x30);
+STATIC_ASSERT_SIZEOF(Actor104000, 0x38);
 
 /// 0xC-byte scratch taken from `0x1F8003FC` for the player-in-radius test:
 /// the X/Z offset to the camera target and the radius, squared in place.

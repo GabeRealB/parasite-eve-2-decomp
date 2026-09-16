@@ -8,6 +8,9 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "actors/actors_shared_8014adfc.h"
+#include <psyq/inline_c.h>
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
@@ -17,7 +20,172 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_204000_8014AC8C(Actor104000* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014AED8);
+extern GpPairSrcE D_actor_204000_80150EA4;
+extern u8         D_actor_204000_801562E4[]; // animation bank handed to `func_800B3F84`
+extern u8         D_actor_204000_801564D0[];
+
+/// Spawn state: allocates the work block, links the four collision objects and
+/// the enemy node, seeds the size and HP from the enemy's level nibble, records
+/// the spawn position and the points 1000 units ahead and behind it, then
+/// starts in state 2 when `field_36` is 1 and state 7 otherwise.
+void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
+{
+    Actor104000Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    Actor104000Work*  work;
+    GpRec18*          hits;
+    SVECTOR           sv;
+    VECTOR            pos;
+    SVECTOR*          p;
+    SVECTOR*          q;
+    GpObj*            o1;
+    GpObj*            o2;
+    GpObj*            o3;
+    GpObj*            o4;
+
+    obj            = arg1->field_2C;
+    coord          = obj->field_8;
+    work           = Mem_Calloc(sizeof(Actor104000Work), 0);
+    arg1->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, (Task*)arg1);
+        return;
+    }
+    coord->sub      = &Gfx_ViewCoord;
+    arg1->field_24  = D_actor_204000_801564D0;
+    work->field_180 = 0;
+    work->field_184 = 1;
+    work->field_18C = 3;
+    work->field_188 = 0;
+    work->field_190 = 1;
+    obj->field_C    = 0;
+    func_800B3F84(&work->anim, D_actor_204000_801562E4, (GpAnimObj*)obj, work->poses, work->slots);
+
+    o1           = &work->obj270;
+    o1->field_8  = arg1->field_2C->field_8 + 1;
+    o1->field_C  = work->rec1B0;
+    o1->field_12 = -0x110;
+    o1->field_10 = 0;
+    o1->field_14 = 0;
+    o1->field_18 = 0x3000C;
+    o1->field_1C = 0x190;
+    o1->flags    = 1;
+    Gp_LinkObj(2, o1);
+    o1->flags |= 0x4000;
+    Gp_InitRec18Table(o1->field_C, 8, 0);
+
+    o2           = &work->obj350;
+    sv.vx        = 0;
+    sv.vy        = -0x168;
+    sv.vz        = 0;
+    p            = &sv;
+    hits         = work->hits;
+    o2->field_8  = arg1->field_2C->field_8 + 2;
+    o2->field_C  = hits;
+    o2->field_10 = p->vx;
+    o2->field_12 = p->vy;
+    o2->field_14 = p->vz;
+    o2->field_18 = 0x3000C;
+    o2->field_1C = 0x168;
+    o2->flags    = 1;
+    Gp_LinkObj(2, o2);
+    o2->flags |= 0x8000;
+    Gp_InitRec18Table(o2->field_C, 8, 0);
+
+    sv.vx        = 0;
+    sv.vy        = 0;
+    sv.vz        = 0;
+    o3           = &work->obj388;
+    o3->field_8  = &Gfx_ViewCoord;
+    o3->field_C  = &work->rec370;
+    o3->field_10 = p->vx;
+    o3->field_12 = p->vy;
+    o3->field_14 = p->vz;
+    o3->field_1C = 0x500;
+    o3->flags    = 1;
+    Gp_LinkObj(3, o3);
+    Gp_InitRec18Table(o3->field_C, 1, 0);
+
+    o4           = &work->obj3C0;
+    o4->field_8  = &Gfx_ViewCoord;
+    o4->field_C  = &work->rec3A8;
+    o4->field_10 = p->vx;
+    o4->field_12 = p->vy;
+    o4->field_14 = p->vz;
+    o4->field_1C = 0x80;
+    o4->flags    = 1;
+    Gp_LinkObj(8, o4);
+    Gp_InitRec18Table(o4->field_C, 1, 0);
+
+    arg0->field_4     = &coord->coord;
+    arg0->field_48    = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_18    = arg1->field_2C->field_8 + 2;
+    Gp_LinkNode(&arg0->node);
+    arg0->node.field_4 = 1;
+    arg0->field_4C     = 0;
+    arg0->field_40 = arg0->field_42 = D_actor_204000_80150EA4.field_4;
+    arg0->field_50                  = &D_actor_204000_80150EA4;
+    arg0->field_54                  = (s32)hits;
+    work->field_170                 = 2;
+    work->field_174                 = 1;
+    work->field_176                 = 0x10;
+    work->field_178                 = 0;
+    func_actor_204000_8014AC8C(arg1);
+    work->field_17E = 0;
+    work->field_A   = 0;
+    obj->field_1C   = &work->lightMtx;
+    obj->field_20   = &work->colorMtx;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    work->field_1A0 = 5;
+    work->field_1A2 = 0x14;
+    if ((u16)(arg0->field_8 >> 12) % 2 == 1) {
+        work->field_176 += arg0->field_8 >> 12;
+        work->field_1A2 += arg0->field_8 >> 12;
+        work->field_1A0 += arg0->field_8 >> 12;
+    } else {
+        work->field_176 -= (u16)(arg0->field_8 >> 12) / 2;
+        work->field_1A2 -= arg0->field_8 >> 13;
+        work->field_1A0 -= arg0->field_8 >> 13;
+    }
+    work->origin.vx = arg1->field_2C->field_8->coord.t[0];
+    work->origin.vy = arg1->field_2C->field_8->coord.t[1];
+    work->origin.vz = arg1->field_2C->field_8->coord.t[2];
+    Gfx_MatrixCol2(&arg1->field_2C->field_8->coord, &sv);
+    sv.vy = 0;
+    q     = &sv;
+    VectorNormalSS(q, q);
+    gte_lddp(1000);
+    gte_ldsv(q);
+    gte_gpf12_real();
+    gte_stsv(q);
+    work->ahead.vx  = arg1->field_2C->field_8->coord.t[0] + sv.vx;
+    work->ahead.vy  = arg1->field_2C->field_8->coord.t[1];
+    work->ahead.vz  = arg1->field_2C->field_8->coord.t[2] + sv.vz;
+    work->behind.vx = arg1->field_2C->field_8->coord.t[0] - sv.vx;
+    work->behind.vy = arg1->field_2C->field_8->coord.t[1];
+    work->behind.vz = arg1->field_2C->field_8->coord.t[2] - sv.vz;
+    /* the gameplay prototype takes no argument, but this call site passes 0 */
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    if (arg1->field_36 == 0) {
+        work->field_0 = 7;
+    } else if (arg1->field_36 == 1) {
+        work->field_0 = 2;
+    } else {
+        work->field_0 = 7;
+    }
+    work->field_2   = -1;
+    work->field_479 = 0;
+    work->field_47A = 0;
+    arg1->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014B4AC);
 
@@ -57,16 +225,16 @@ void func_actor_204000_8014C51C(Actor104000Ctx* arg0, Actor104000* arg1)
 
     work = arg1->field_1C;
     if (work->field_4 != 0) {
-        obj              = arg1->field_2C;
-        arg0->field_14   = 0;
-        obj->field_C     = 0;
-        work->field_174  = 5;
-        work->field_170  = 1;
-        work->field_178  = 0;
-        work->field_36E |= 0x8000;
-        work->field_3A6 &= 0x7FFF;
-        work->field_3DE &= 0x7FFF;
-        work->field_28E |= 0x4000;
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_174     = 5;
+        work->field_170     = 1;
+        work->field_178     = 0;
+        work->obj350.flags |= 0x8000;
+        work->obj388.flags &= 0x7FFF;
+        work->obj3C0.flags &= 0x7FFF;
+        work->obj270.flags |= 0x4000;
         func_actor_204000_8014AC8C(arg1);
         return;
     }
@@ -290,10 +458,10 @@ void func_actor_204000_8014EDC4(Actor104000Ctx* arg0, Actor104000* arg1)
         work->field_174         = 5;
         work->field_170         = 1;
         work->field_178         = 0;
-        work->field_36E        |= 0x8000;
-        work->field_3A6        &= 0x7FFF;
-        work->field_3DE        &= 0x7FFF;
-        work->field_28E        |= 0x4000;
+        work->obj350.flags     |= 0x8000;
+        work->obj388.flags     &= 0x7FFF;
+        work->obj3C0.flags     &= 0x7FFF;
+        work->obj270.flags     |= 0x4000;
         func_actor_204000_8014AC8C(arg1);
         ratan2(-arg1->field_2C->field_8->coord.m[2][0], arg1->field_2C->field_8->coord.m[2][2]);
         arg1->field_2C->field_8->flg = 0;
@@ -442,15 +610,15 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
                 arg1->field_2C->field_C = 0;
                 Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
             }
-            Gp_ClearRec18Occupied((GpRec18*)&work->pad_19E[0x12]);
+            Gp_ClearRec18Occupied(work->rec1B0);
             Gp_ClearRec18Occupied(work->hits);
-            Gp_ClearRec18Occupied((GpRec18*)work->pad_370);
+            Gp_ClearRec18Occupied(&work->rec370);
             return;
         case 2:
             arg1->field_2C->field_C = 0x80;
-            Gp_ClearRec18Occupied((GpRec18*)&work->pad_19E[0x12]);
+            Gp_ClearRec18Occupied(work->rec1B0);
             Gp_ClearRec18Occupied(work->hits);
-            Gp_ClearRec18Occupied((GpRec18*)work->pad_370);
+            Gp_ClearRec18Occupied(&work->rec370);
             return;
     }
     if (work->field_2 != work->field_0) {
@@ -474,9 +642,9 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
             work->field_0 = 6;
         }
     }
-    Gp_ClearRec18Occupied((GpRec18*)&work->pad_19E[0x12]);
+    Gp_ClearRec18Occupied(work->rec1B0);
     Gp_ClearRec18Occupied(work->hits);
-    Gp_ClearRec18Occupied((GpRec18*)work->pad_370);
+    Gp_ClearRec18Occupied(&work->rec370);
     id = ActorsShared8014adfc(work);
     if (id != 0) {
         snd = id | ((arg0->field_8 >> 12) << 8);
