@@ -539,7 +539,24 @@ void Actor00400_Fn094C0(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn094DC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn095D8);
+void Actor00400_Fn095D8(Actor100400* arg0)
+{
+    s32              cond;
+    Actor100400Work* work;
+    Actor100400Work* work2;
+
+    work            = arg0->field_1C;
+    work->field_660 = 1;
+    work2           = arg0->field_1C;
+    if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_63A = 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn0962C);
 

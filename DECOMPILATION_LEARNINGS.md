@@ -98958,3 +98958,77 @@ Inputs: `base_2.i` (100.000%, first distinct build) SHA256
 `6e6c00873ac367f725938ddf5e4ca426b4a516f86cfee272f5418a888c13e59e`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn08948-vacuum`.
+
+## An `||` inside an `if` branches straight to the body; assigning it to a variable materializes 1/0 through a phi
+
+`Actor00400_Fn095D8` (actors, `actor_100400_fn0805c`) tests one halfword twice -
+bit 0, then bits 1 and 8 - and stores a flag when either test hits. The target
+materializes the disjunction instead of branching on it:
+
+```
+    andi       $v0, $v0, 0x1
+    bnez       $v0, .Ljoin        /* delay slot: addiu $v0, $zero, 0x1 */
+    lw         $v0, 0x62C($v1)
+    andi       $v0, $v0, 0x102
+    bnez       $v0, .Ljoin        /* delay slot: addiu $v0, $zero, 0x1 */
+    addu       $v0, $zero, $zero
+  .Ljoin:
+    beqz       $v0, .Lend         /* delay slot: addiu $v0, $zero, 0x1 */
+    sh         $v0, 0x63A($a1)
+```
+
+The `1` in each `bnez` delay slot plus the `addu` at the bottom are a phi: the
+`||` result is a *value*, and a second branch tests it. Writing the same
+condition straight into the `if` gives the other shape - branches that go
+directly to the body, no 0/1, no second branch - so it cannot reach this target
+at all. Two matched siblings in the same TU pin both forms down:
+
+```c
+/* Actor00400_Fn08908: direct branches, no materialization (matched) */
+if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+    return 1;
+}
+return 0;
+```
+
+```c
+/* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
+   to the already-matched Actor00400_Fn04414 */
+w2 = arg0->field_1C;
+if ((w2->flags_62C.half & 1) || (w2->flags_62C.word & 0x102)) {
+    cond = 1;
+} else {
+    cond = 0;
+}
+if (cond) {
+    work->field_63A = 1;
+}
+```
+
+`cond = 1; else cond = 0;` reads like a pointless rewrite of the condition and
+is what forces the value form. The idiom recurs ~20 times across
+`src/actors/lib/actor_100400_text.c` and `actor_100400_text_tail.c`, always as
+this if/else pair followed by a separate `if (cond)`, so in this overlay the
+target shape is a reliable signal of which form the original used.
+
+Two further details this shape pins down:
+
+* **Two access widths at one address.** The first read is `lhu` and the second
+  `lw`, both at `0x62C`, because the source goes through the union
+  `Actor100400Flags`: `.half` for the `& 1`, `.word` for the `& 0x102`. CSE does
+  not equate a `lhu` with a `lw` of the same address, so the two loads stay
+  separate. Reading `.half` twice is the natural thing to write and is the wrong
+  answer: CSE merges the loads into one register and the `andi` pair becomes
+  `and` + `sltu` (43.65%, `branch=2 regs=5 insert=3 delete=8`).
+* **The work pointer is loaded twice on purpose.** `work = arg0->field_1C;
+  work->field_660 = 1;` invalidates the cached `arg0->field_1C`, so the
+  condition needs its own `work2 = arg0->field_1C;`. That is what puts the
+  reloaded pointer in `$v1` while `$a1` still holds the first one for the store
+  at the end; a single pointer variable links to one load and a different
+  allocation.
+
+Inputs: `base_1.i` (100.000%, first distinct build) SHA256
+`c829f79cda60cada56b622073a889d0cfc929506f7658586c97b7ba7ff6e9a47`; target SHA256
+`ed37df1b6c699eb4a3f1a0bd9622b6be5800b25cb8d22be77dd26f0195fdaa06`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn095D8-vacuum`.
