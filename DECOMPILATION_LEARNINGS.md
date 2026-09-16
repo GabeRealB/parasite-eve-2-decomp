@@ -101486,3 +101486,125 @@ twins in the same overlay differ exactly here: `func_actor_800200_80162BFC` comp
 `3` and `func_actor_800200_80163180` against `1` while both store `2`, so no constant is shared and both
 materialise `2` at the store. Reach for the `s32` local only when the stored constant has no other reader
 in the arm's extended basic block.
+
+## An unsigned switch index replaces the decision tree's range check with `beqz` (func_actor_800200_80162750, 2026-09-16)
+
+"`case 0: break;` is visible in the decision tree" reads a `slt`/`slti` bound test ahead of the equality
+compares as an unwritten empty case. The *shape* of that bound test also names the switch index's type,
+and getting the type wrong costs two instructions and the whole dispatch order.
+
+A four-case `switch (state) { case 0: ... case 3: ... }` on an `int` splits the range for the lowest arm
+(90.959%, `branch=6`):
+
+```
+li    v0,1
+beq   s0,v0,case1
+nop
+slti  v0,s0,2              <- the range test
+bnez  v0,case0
+li    v0,2
+beq   s0,v0,case2
+li    v0,3
+beq   s0,v0,case3
+lui   v1,0x1f80
+```
+
+Declaring the index `u32` removes it, and the emitted chain becomes the target's exactly (95.137%, same
+25-block topology, `predicates_match` true):
+
+```
+li    v0,1
+beq   s0,v0,case1
+nop                        <- reorg fills this one no further
+beqz  s0,case0             <- equality, not a range test
+li    v0,2
+beq   s0,v0,case2
+li    v0,3
+beq   s0,v0,case3
+lui   v1,0x1f80
+j     tail
+ori   v1,v1,0x3fc
+```
+
+`stmt.c`'s `node_has_low_bound` returns 1 when `node->low == TYPE_MIN_VALUE (index_type)`, so for an
+unsigned index the lowest case is bounded at the bottom and `emit_case_nodes` takes its
+`node_is_bounded (node->left)` arm: it emits `LT` against the node's `high` — `x < 1` — which
+`simplify_relational_operation` folds, unsigned, to `x == 0`. A signed index has no such bound and the
+same tree falls to the `GT`/`slti` split instead.
+
+So a `beqz` guarding the lowest case body is evidence that the *switch index* is unsigned even when every
+other value in the function is signed, and even though the value arrives via `lbu`: a `u8` index would
+instead put an `andi v1,s0,0xff` in front of each compare, and the case-0 body existing at all is what the
+`state = 0` initialiser above the `switch` says (the random tables only ever hold 1, 2 and 3).
+
+Inputs: `base_3.i` (the `u32` variant), `base_4.i`.
+
+## A call in one operand of `+` is expanded before the other: load the table row in its own statement (func_actor_800200_80162750, 2026-09-16)
+
+"A field lhs whose rhs calls" gives `expr.c`'s `preexpand_calls` for a `MODIFY_EXPR` lhs. The same call
+sits at the `binop:` label, so *any* call inside either operand of a `+` is expanded before both operands,
+including the one written first. The seed
+
+```c
+state = *(u8*)(D_actor_800200_80169FD0[dist] + (rand() & 0xF));
+```
+
+expands the call first — in `.rtl` the `jal rand` is insn 128, the table's `high`/`lo_sum` 131/132 and the
+row's `lw` 140, and the emitted code runs the `lui`/`addiu`/`sll`/`addu`/`lw` of the row *after* the `jal`.
+No later pass repairs it: `sched.c` will not move a load across a call (the `lw` comes back carrying
+`REG_DEP_ANTI` against the call), so the target's `lw s0,0(v0)` before the `jal` cannot be the scheduler's
+doing.
+
+The order drags the allocation with it. The index is then live across the call, `.greg` reports it
+hard-conflicting with `$v0` and `$a0`, and it lands in `$s0` where the target uses `$a0`; the row pointer
+takes a caller-saved register, which `reorg` shows as a `nop` in the `bnez` delay slot instead of the
+target's stolen `lui`. Loading the row in its own statement fixes order, homes and delay slot at once —
+100%, every penalty 0:
+
+```c
+tbl   = D_actor_800200_80169FD0[dist];
+state = *(u8*)(tbl + (rand() & 0xF));
+```
+
+The `$s0` the target holds across the `rand` call is that row pointer: it is live across the call, so
+`global.c` gives it a callee-saved register, and the `dist` feeding it dies before the call — which is
+also why the two arms of the enclosing if/else need two variables, not one (see "One `reg/v` pseudo with
+two definitions blocks the register the target reuses"): the then-arm's bucket and the else-arm's angle
+test read as one `val` there and hard-conflict with `$v0`/`$a0` for the same reason.
+
+Inputs: `base_6.i` (96.414%, one shared `val`), `base_7.i` (100%)
+`aa5629f93a6552506b41a95c99ce455a13da79d677e6581b5305f786028a2c84`.
+
+## A signed `/` by a power of two is the statement, not the expression, when `move a0,v0` must survive (func_actor_800200_80162750, 2026-09-16)
+
+`if (x < 0) x += 0x3FF; x >>= 10;` is `expmed.c`'s signed `/ 1024` expansion (`EXACT_POWER_OF_2_OR_ZERO_P`,
+`BRANCH_COST < 3`), which is why the bias add takes its own register: `copy_to_mode_reg (op0)` for `t1`,
+then `bge`/`expand_inc`/`sra`. One statement still misses the target:
+
+```c
+dist = func_80103D8C(...) / 1024;     /* `bgez v0`, no copy: op0 is the call's result pseudo */
+```
+
+versus the two-statement form that matches:
+
+```c
+dist  = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
+dist /= 1024;
+```
+
+```
+move  a0,v0        <- the assignment; t1 coalesces with the variable's own home
+bgez  a0,L
+nop
+addiu v0,a0,0x3ff
+L: sra a0,v0,0xa
+```
+
+With the division applied to the call directly, the operand is the call's result pseudo, `t1` coalesces
+into it, and the compare reads `$v0` with the quotient landing in the variable's home. Making the division
+its own statement puts the variable between them: the operand is the variable's pseudo, the only `move` is
+the assignment the target shows, and `$a0` carries the whole bias arithmetic. Same reading as "The `+ K`
+belongs in the division statement": which pseudo the division's operand is decides the copy, and the copy
+decides the register.
+
+Inputs: `base_5.i` (95.375%, one-statement divide), `base_6.i` (96.414%).
