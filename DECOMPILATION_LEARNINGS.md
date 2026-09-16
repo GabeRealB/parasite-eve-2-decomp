@@ -84400,3 +84400,70 @@ Inputs: `base.c` (m2c shape, 67.667%)
 `72f24d82f411845bb6841742eb9b706c7a55148a9e5dc29f0005429a462aced6`,
 `base_1.c` (ternary, 100.000%)
 `bb0bc77d58bd7bc0294f5f68850dd8fba0a8fcd3feb7ee8fdc5ccca3a73665ce`.
+
+## A non-void return type alone keeps `$v0` live at the exit, so it blocks a delay-slot `lui` (func_dryfield_garage_8017DA54, 2026-09-16)
+
+A room handler whose body never returns anything:
+
+```c
+s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
+{
+    if ((msg->field_2 == 2) && (Game_Session->field_9 != 1)) {
+        Gp_SpawnIfCapIdle(0x13, 0);
+    }
+}
+```
+
+The target is 19 instructions, and the only thing the natural `void` version gets
+wrong is the first branch's delay slot: the target has `nop` there, while `void`
+fills it with the fall-through's `lui $2,%hi(Game_Session)`, so the whole function
+comes out one instruction short (18) and both branch offsets are 4 low -
+`stack=2 branch=2 delete=1` at 94.526%, all of it gone at 100.000%.
+
+There is no `return` statement to write: the target's exit block is a bare
+`lw ra / nop / jr ra / addiu sp`, with no `li v0,0` anywhere in the function, so
+the family's usual trailing `return 0;` is not it. What the body *does* have to
+reproduce is the **declared** `s32`.
+
+Mechanism, all in the dbr pass. `dbr_schedule` builds `end_of_function_needs`
+with
+
+```c
+  if (current_function_return_rtx != 0)
+    mark_referenced_resources (current_function_return_rtx, &end_of_function_needs, 1);
+```
+
+(`reorg.c:4505`) and `current_function_return_rtx` is `DECL_RTL (DECL_RESULT (fndecl))`
+(`function.c:4490`) whenever the return type is not `void` - it says nothing about
+whether the body ever assigns the result. `mark_target_live_regs` hands that set to
+any block that reaches the function exit, and both delay-slot stealers refuse a
+candidate that sets a register in the opposite thread's needs
+(`insn_sets_resource_p (trial, other_needed, 0)`,
+`steal_delay_list_from_fallthrough` / `steal_delay_list_from_target`). The `bne`'s
+taken target *is* the epilogue, so under `s32` the taken path needs `$v0`, `lui $2`
+is not migratable, and the slot stays `nop`; under `void` `$v0` is dead there and it
+migrates.
+
+Only the value register is affected, which is the tell: the second branch's delay
+slot keeps its `li $a0,0x13` in both versions, because `$a0` is not in the
+end-of-function set. If the nop is in front of a `lui`/`li` that writes `$v0`/`$a0`
+- always check `$v0` first.
+
+Same rule read backwards as two entries that are already in this file ("A duplicated
+`return 0;` is what puts the return-value move in a branch's delay slot", "`ret = 0`
+inside the taken arm keeps `$v0` live so the next `beq` delay is nop"): those keep
+`$v0` live on a *path*, this one on the *function end*, and none of the three is
+visible in the
+instruction stream - only in the declaration or the source's tail.
+
+Fix the arity first, as in the neighbouring `func_dryfield_garage_8017DA18` entry:
+m2c named the pointer `arg2` and put it in `$a0` (94.5%); the family arity
+`s32 f(s32 arg0, s32 arg1, RoomEventMsg* msg)` puts it back in `$a2` and is worth
+0.1% on its own. Only then is the return type the whole remaining difference.
+
+Inputs: `base.i` (m2c, void, 94.526%)
+`5f2516a86f569fc530e00fb1975866b021cb3be46b361b9a317d83fbabc5257d`, `base_1.i`
+(void, 3 args, 94.632%) `d274c2b17d9077ecc6c662522d1265d6cc3f0ff9b10382e1b9e99854b571d188`,
+`base_2.i` (s32, 100.000%)
+`3998bcbfd8fb090b9e3c5145cc9b2abdd5b116c2bd57c45a50849594d40d9877`, target
+`cc8a6560d7a50f65e6a7ac7113a3f809be66fd73bc948bf9195327c903ffc9ff`.

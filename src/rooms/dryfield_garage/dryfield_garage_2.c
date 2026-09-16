@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/session.h"
+#include "rooms/room_common.h"
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017D91C);
 
@@ -12,7 +14,12 @@ s32 func_dryfield_garage_8017DA18(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017DA54);
+s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
+{
+    if ((msg->field_2 == 2) && (Game_Session->field_9 != 1)) {
+        Gp_SpawnIfCapIdle(0x13, 0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_garage/dryfield_garage_2", func_dryfield_garage_8017DAA0);
 
