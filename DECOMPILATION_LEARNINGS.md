@@ -85622,4 +85622,46 @@ once - `func_dryfield_night_factory_801825F0` passes it straight into
 did, and the local is the redundant one.
 
 Inputs: `base.i` (100%), `base_2.i` (53.5%, inline form). Compiler SHA256
+## m2c names parameters by argument register and drops the leading ones it never reads (func_neo_ark_pavilion_8017EB3C, 2026-09-16)
+
+`func_neo_ark_pavilion_8017EB3C` reads no argument but `$a2` (the message id,
+`bne $a2, $v0`), and m2c emitted:
+
+```c
+s32 func_neo_ark_pavilion_8017EB3C(s32 arg2) {
+```
+
+That is m2c's naming convention showing through, not the function's signature.
+`ArchMips.arg_name` (`tools/m2c/m2c/arch_mips.py`) builds the name from the
+register number - `arg0` is `$a0`, `arg2` is `$a2` - and `function_abi` then
+*skips* every register whose lower-numbered neighbour is untouched ("Don't pass
+this register if lower numbered ones are undefined"). The printed prototype has
+one parameter, so `arg2` binds to `$a0` and the function silently reads the
+wrong argument.
+
+The seed compiles and the build stays green; only the score shows it. Filling in
+m2c's `?` placeholders gave 67.000% (`branch=2 regs=5 insert=5 delete=1`), the
+`arg2 == 1` compare standing against `$a0` instead of `$a2`. Padding the list out
+to the highest `argN` m2c named - `(s32 arg0, s32 arg1, s32 arg2)` - was
+100.000% with zero penalties on the next build.
+
+Two tells. In the target, an argument register the body never touches is still
+an argument, because the *callers* pass it in o32 position; check the callee's
+own asm for the highest `$aN` it reads before trusting the seed's arity. And
+`python3 tools/m2c/m2c.py --target mips-gcc-c -f <fn> <asm>` reproduces the
+truncated signature from the asm alone, so this is m2c's behaviour and not a
+hand-trimmed seed.
+
+The body itself came from the brief's "similar matched bodies" list -
+`func_shelter_b3_dumping_hole_8017D82C` scored 1.00 in both `shape` and `calls`
+and is the same code modulo constants (`0x11D`/`0x12`/`0x17` against
+`0x141`/`5`/`1`, and `arg2 == 0x12` against `arg2 == 1`), including the ternary
+that puts the *else* value in the `beqz` delay slot. Its matched C is the body to
+write; only the constants and the padded prototype change.
+
+Inputs: `base.i` 67.000% (`branch=2 regs=5 insert=5 delete=1`)
+`813ad8c88f2dc6eebe37d1eb1505f5892ab97ac6b5180b3607f6b1aea9f05d57`, `base_1.i`
+100.000%, zero penalties
+`ac9fff60e0ad3785a536b3ffac3b77621ae50de22f354f85282115e9eff63571`.
+Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.

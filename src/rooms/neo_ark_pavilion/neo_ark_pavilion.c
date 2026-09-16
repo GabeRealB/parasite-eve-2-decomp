@@ -1,6 +1,8 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -22,7 +24,15 @@ s32 func_neo_ark_pavilion_8017E9EC(void)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017E9F4);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017EB3C);
+/// Room message handler: on message `1`, spawns the pavilion's cap entity —
+/// id `5` once flag `0x141` is set, `1` while it is clear.
+s32 func_neo_ark_pavilion_8017EB3C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x141) != 0 ? 5 : 1, 1);
+    }
+    return 0;
+}
 
 s32 func_neo_ark_pavilion_8017EB78(void)
 {
