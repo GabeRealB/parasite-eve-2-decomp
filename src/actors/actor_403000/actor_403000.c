@@ -17,6 +17,9 @@
 /// word, so spell the instruction out.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+/// `rtps`, spelled out for the same reason.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
 extern GpPairSrcE D_actor_403000_8013DA00;
 extern u32        D_actor_403000_80158B50;
 extern u32        D_actor_403000_80158C08;
@@ -28,7 +31,54 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", D_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801324EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801327B0);
+void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    s32       sxy;
+    s32       flag;
+    s32       otz;
+    POLY_G3*  prim;
+    DR_TPAGE* dr;
+    s32       radius;
+    s32       i;
+    u16       x;
+    u16       y;
+
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    gte_SetRotMatrix(&coord->workm);
+    gte_SetTransMatrix(&coord->workm);
+    gte_ldv0(pos);
+    gte_rtps_real();
+    gte_stsxy(&sxy);
+    gte_stflg(&flag);
+    gte_stszotz(&otz);
+    if (flag >= 0) {
+        x           = sxy;
+        y           = sxy >> 16;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        radius      = (s32)(((Gp_LcgState >> 16) & 0xF) + 0x1E) * 0x160 / (otz * 4);
+        for (i = 0; i < 8; i++) {
+            prim           = (POLY_G3*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)((POLY_GT3*)prim + 1);
+            setPolyG3(prim);
+            setRGB0(prim, 0xFF, 0x60, 0x60);
+            setRGB1(prim, 0xF, 8, 8);
+            setRGB2(prim, 0x2F, 8, 8);
+            prim->x0 = x;
+            prim->y0 = y;
+            setSemiTrans(prim, 1);
+            prim->x1 = x + ((rsin(i << 9) * radius) >> 12);
+            prim->y1 = y + ((rcos(i << 9) * radius) >> 12);
+            prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
+            prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
+            addPrim(&Gpu_CurrentOt[(otz - 6) >> 4], prim);
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)((DR_MODE*)dr + 1);
+            setDrawTPage(dr, 0, 0, 0x2A);
+            addPrim(&Gpu_CurrentOt[(otz - 6) >> 4], dr);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132AE0);
 
