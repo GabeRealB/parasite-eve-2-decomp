@@ -42169,6 +42169,12 @@ facing      = (s16)w->field_82; /*            -> lh  */
 w->field_82 = -0x6B0;           /* -> addiu v0,zero,-1712 */
 ```
 
+The same narrowing applies one size down: `(u8)` of an `s16` field loads `lbu`,
+which is how `func_dryfield_warehouse_8017E308` passes its fade channels to
+`Fade_DrawOverlay((u8)w->r, (u8)w->g, (u8)w->r, 2)` while the increments beside
+it are `(u16)` and load `lhu`. A byte load is therefore not evidence of a `u8`
+field either.
+
 So for a field that is read both ways: signed declaration, `(u16)` at the reads
 m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
 to `s32` before storing it to a `u16` field" is the remedy when the field really
