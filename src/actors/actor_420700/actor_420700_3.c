@@ -56,4 +56,33 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_420700/actor_420700_3", func_actor_420700_801327EC);
+/// `func_actor_420700_801323D8`'s frame-8 twin: the same model-task state
+/// handler, hanging this model's root coordinate off a frame of the actor's own
+/// model (`D_actor_420700_8013EFE4`) rather than off its own, and dropping that
+/// frame's y by 0x320 before handing it to `func_800D7A9C` as the part colour
+/// matrix. This one attaches to frame 8 instead of frame 4, and its spawn tick
+/// also marks the model's `field_E` as -2.
+void func_actor_420700_801327EC(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->field_8;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->field_8;
+    GsCOORDINATE2* part  = parts + 8;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg     = 0;
+            extra->field_C = 0;
+            extra->field_E = -2;
+            coord->sub     = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}
