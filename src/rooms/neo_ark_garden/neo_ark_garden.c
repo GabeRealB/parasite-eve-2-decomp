@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -11,6 +13,10 @@ INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_gar
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
+
+extern GpMsgEntry D_neo_ark_garden_801813B0[];
+extern s32        D_801334EC;
+extern s32        D_80133954;
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017D64C);
 
@@ -62,6 +68,15 @@ s32 func_neo_ark_garden_8017E9AC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E9B4);
+void func_neo_ark_garden_8017E9B4(Task* arg0)
+{
+    arg0->field_24 = D_neo_ark_garden_801813B0;
+    Game_SetPtrSlot(arg0, 7);
+    if (*(u16*)&Game_Session->field_8 == 0x203) {
+        func_800E8634((s32)&D_801334EC, 0, (s32)&D_80133954);
+        func_800E3FAC(0xA2, 0x34);
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", RoomsShared8017d878Table);

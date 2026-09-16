@@ -22263,6 +22263,28 @@ union {
 `Gp_FindChildType9` uses `field_8.as_u16`; `Gp_FindChildExceptType9` uses `field_8.as_u8`
 and inverts the work-type test (`!= 9` instead of `== 9`).
 
+**When not to reach for the union.** The remedy above reshapes the field, so it
+costs one rename per use site. On a shared, heavily-used struct that is not a
+trade worth making: `Game_Session` declares `u8 field_8; u8 field_9;` at 0x8 and
+63 + 29 sites read them as bytes (`field_8 == 4`, `field_9 == 1`, …), while
+`func_neo_ark_garden_8017E9B4` compares the halfword to `0x203`. A union there
+renames 92 matched use sites to gain one function.
+
+If a single site needs a wider unit and the field can stay as declared, type-pun
+through the **named** field — no magic offset, and it is already the idiom here
+(`src/gameplay/D4.c` `*(s32*)&Game_Session->field_4 & ~0xFF`;
+`src/weapons/m4a1_pyke/m4a1_pyke.c` throughout). `check_pointer_arithmetic.py`
+accepts it:
+
+```c
+if (*(u16*)&Game_Session->field_8 == 0x203) {
+```
+
+The giveaway that the original read wider than the declaration is a **constant
+that does not fit the declared type** — a `u8` compared against `0x203` cannot be
+a byte comparison, so the load has to be `lhu`. The union is only needed when the
+same field must *keep* two widths at once.
+
 ## Save `nextSibling` before calling through the iterator
 
 A circular walk that calls a function *on the current node* (`Task_CallExit(arg0)`)
