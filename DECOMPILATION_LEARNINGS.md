@@ -99693,3 +99693,59 @@ under that stub would have assembled to exactly the bytes the C compiled to --
 green build, checksum intact, body gone. Move the whole file, verify with
 `diff` against the pre-change blob before building, and let the unscoped
 `tools/check_lost_matches.py` pass be the confirmation.
+
+## The argument registers are in the allocator's pool, so a parameter the body never reads can still decide a temp's home (func_actor_104900_80138E34, 2026-09-16)
+
+**Problem.** The body reaches into its work block at 0x8C and the target keeps
+that base as a value rather than folding it into each access
+(`addiu $t0,$a2,0x8C` / `lhu $v0,0x10($t0)`), so the source holds it in a
+pointer local. That pointer reproduces both instructions - but it lands in
+`$a1`, and nothing else in the function is wrong: 99.8%, `regs=2`, the object
+dump differing on exactly those two lines.
+
+**Cause.** `$a1` is `$5` and `$t0` is `$8`, and `.greg` says why the walk
+stopped at 5:
+
+```
+;; 3 regs to allocate: 82 83 80
+;; 83 conflicts: 80 82 83 2 3 29
+80 in 4  82 in 6  83 in 5
+```
+
+`global.c` takes the first hard register that is in class, free over the live
+range and not conflicting, walking 2..15 in numeric order; `$v0`/`$v1` are
+claimed by the block's temporaries, `$a0` and `$a2` by the `enemy` and `work`
+parameters, and 5 was free. `$a1`-`$a3` are only excluded *while a live pseudo
+sits in them*, and `$a1` was empty because m2c's two-argument reconstruction
+never mentioned `task`.
+
+**Fix.** Restore the handler's real arity. This family's slot handlers take
+four arguments - `(enemy, task, work, scratch)`, the shape
+`include/actors/actor_101100.h` names `Actor101100StateFunc` - and the callee
+`func_actor_104900_80137498` takes four as well (its prologue saves all of
+`$a0`-`$a3`, `addu $s5,$a3,$zero` among them). Declaring the fourth parameter
+and forwarding all four keeps 5, 6 and 7 live to the call, so the walk reaches
+8: `addiu $t0,$a2,0x8C`, 100.000%, with no other change and no pin.
+
+**Why the dump is the only place this shows.** A forwarded parameter that the
+body never reads emits no instruction at all: `task` and `scratch` are live
+from entry to the call and already in their arrival registers. Both are visible
+only as registers *missing* from `.greg`'s conflict list. So when a lone temp
+is one or two registers too low and a `pin` looks like the answer, count the
+callee's argument registers first - and read the callee's prologue, which names
+the arity that the caller's disassembly hides.
+
+## A duplicated body that only calls its own slot's callee is still refused by `promote` (toolchain, 2026-09-16)
+
+`overlay_dup_index.py promote func_actor_104900_80138E34` refuses - "cannot be
+shared - the body references its own overlay's code or data" - for all five
+slots that carry it (101100, 104900, 201100, 204900, 301100). The single
+reference is a `jal func_actor_104900_80137498`, and that callee is itself
+duplicated across the same five slots at the same offsets, so the pair is
+structurally the case `ActorsShared8013845cSub1` already covers: a shared body
+whose callee is an overlay-local symbol named per overlay in
+`sym/actors/<overlay>.txt`. The check rejects on the reference's name
+(`func_<unit>_*`), not on whether the symbol could resolve per overlay, and the
+two byte-identical copies alone are enough to trip it - `state` and byte-image
+equality are never reached. Bodies of this shape stay landed in their own
+overlay for the promotion pass.

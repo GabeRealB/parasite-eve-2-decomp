@@ -6,6 +6,23 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
+/// Motion sub-object at 0x8C of `ActorsShared80138efcWork`, sized to the
+/// halfword run at 0xB8C that follows it. Fields at 0x02 / 0x06 are read as a
+/// pair by `func_actor_104900_80136F8C`, and the flag word at 0x10 is tested a
+/// bit at a time by the dispatcher and by the handlers.
+typedef struct ActorsShared80138efcMotion {
+    /* 0x000 */ u16  field_0;
+    /* 0x002 */ u16  field_2;
+    /* 0x004 */ u16  field_4;
+    /* 0x006 */ u16  field_6;
+    /* 0x008 */ byte pad_8[0x8];
+    /// Bit 0 arms `field_BA9` in `func_actor_104900_80134780`; bit 1 is the one
+    /// the body at 0x80138E34 tests before it arms its next state.
+    /* 0x010 */ u16  flags;
+    /* 0x012 */ byte pad_12[0xAEE];
+} ActorsShared80138efcMotion;
+STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xB00);
+
 /// Work block the body at 0x80138EFC is handed in `$a2`, as five actor slots
 /// lay it out.
 ///
@@ -23,7 +40,21 @@
 /// and `func_actor_104900_80138F68` use 0xB9C..0xBAE the way this one does, and
 /// `func_actor_104900_80138D58` stores a halfword at 0xB8C.
 typedef struct ActorsShared80138efcWork {
-    /* 0x000 */ byte pad_0[0xB9C];
+    /* 0x000 */ byte pad_0[0x8C];
+    /// Motion sub-object embedded at 0x8C. Its halfwords at 0x00 / 0x02 / 0x06
+    /// are the ones `func_actor_104900_80136F8C` compares against the motion id
+    /// in `field_BA4` and walks, and its flag word at 0x10 (0x9C absolute) is
+    /// what the dispatcher reads bit 0 of to arm `field_BA9`. Only that much of
+    /// it is laid out; the body at 0x80138E34 tests bit 1 of the same word, and
+    /// keeps the base in a register rather than folding 0x9C into the access.
+    /* 0x08C */ ActorsShared80138efcMotion motion;
+    /// Countdown a state arms and decrements per frame: `func_actor_104900_80138D58`
+    /// posts 0x64 into it and acts when it reaches zero, and this unit's
+    /// 0x80138E34 arms 0xA.
+    /* 0xB8C */ s16  field_B8C;
+    /* 0xB8E */ byte pad_B8E[0x4];
+    /* 0xB92 */ s16  field_B92;
+    /* 0xB94 */ byte pad_B94[0x8];
     /* 0xB9C */ s16  field_B9C;
     /* 0xB9E */ byte pad_B9E[0x6];
     /// Motion id armed for the frame; every sibling writes a different pair
@@ -47,7 +78,10 @@ typedef struct ActorsShared80138efcWork {
     /* 0xBAB */ s8   field_BAB;
     /* 0xBAC */ byte pad_BAC[0x2];
     /* 0xBAE */ u8   field_BAE;
-    /* 0xBAF */ byte pad_BAF[0x1D];
+    /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
+    /// trigger then compares against.
+    /* 0xBAF */ s8   field_BAF;
+    /* 0xBB0 */ byte pad_BB0[0x1C];
 } ActorsShared80138efcWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
 
