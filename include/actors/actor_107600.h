@@ -51,8 +51,10 @@ typedef struct Actor107600Work {
     /* 0x05C */ s16     field_5C;  // spin velocity added to field_54
     /* 0x05E */ byte    pad_5E[0x2];
     /* 0x060 */ GpObj   obj;
-    /* 0x080 */ GpRec18 rec18[1]; // collision table; count 8 passed to Gp_InitRec18Table
-    /* 0x098 */ byte    pad_98[0xA6];
+    /* 0x080 */ GpRec18 rec18[1];  // collision table; count 8 passed to Gp_InitRec18Table
+    /* 0x098 */ byte    pad_98[0xA2];
+    /* 0x13A */ u16     field_13A; // frame counter / countdown of func_actor_107600_80132160
+    /* 0x13C */ byte    pad_13C[0x2];
     /* 0x13E */ u16     field_13E;
     /// The spawn state stores the model root here as a word, while
     /// `func_actor_107600_80132D54` counts its sub-phase in the low halfword.
@@ -62,7 +64,7 @@ typedef struct Actor107600Work {
     } field_140;
     /* 0x144 */ s16  field_144;
     /* 0x146 */ s16  field_146; // written 2 beside field_144 by the spawn state
-    /* 0x148 */ byte pad_148[0x2];
+    /* 0x148 */ s16  field_148; // waypoint index into the D_actor_107600_80135624 path
     /* 0x14A */ u8   field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
     /* 0x14B */ s8   field_14B; // scale percent applied to the model root coord.m[1][1]
     /* 0x14C */ s32  field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
@@ -92,6 +94,14 @@ typedef struct Actor107600HitPos {
     /* 0x4 */ s32 vy;
     /* 0x8 */ s32 vz;
 } Actor107600HitPos;
+
+/// One waypoint of the paths in `D_actor_107600_80135624`: the X/Z target the
+/// model root steps towards at `step` units per frame; an `x` of -1 ends the path.
+typedef struct Actor107600Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+    /* 0x4 */ s16 step;
+} Actor107600Waypoint;
 
 /// Entry of the effect-offset table `func_actor_107600_80133024` copies into
 /// an `SVECTOR`'s `vx`/`vy`.
@@ -139,7 +149,11 @@ void func_actor_107600_80132CD4(Task* arg0);
 void func_actor_107600_80132D54(Task* arg0);
 void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
 void func_actor_107600_80132ED0(Task* arg0);
+void func_actor_107600_80133024(Task* arg0);
+void func_actor_107600_801332D4(Task* arg0);
 void func_actor_107600_80133668(Actor107600* arg0);
+void func_actor_107600_801337FC(Task* arg0);
+void func_actor_107600_801339A4(Task* arg0);
 void func_actor_107600_80133FA8(GsCOORDINATE2* arg0, SVECTOR* arg1);
 void func_actor_107600_80134248(GsCOORDINATE2* arg0, SVECTOR* arg1);
 void func_actor_107600_80134608(struct _GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);

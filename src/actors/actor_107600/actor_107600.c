@@ -16,6 +16,7 @@
  * gallery's, so the counter at +0xE of its work block is that room's. */
 #include "rooms/mist_shooting_gallery.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -34,6 +35,10 @@ extern const TaskFuncTable4 D_actor_107600_80131E74;
 /* Third table out of that block, run by `func_actor_107600_80132CD4` and
  * holding one entry per `Actor107600Work.field_144` phase. */
 extern const TaskFuncTable3 D_actor_107600_80131E34;
+
+/* Per-variant waypoint paths `func_actor_107600_80132160` walks, indexed by
+ * `Actor107600Work.field_146`; trailing-blob data. */
+extern Actor107600Waypoint* D_actor_107600_80135624[];
 
 /* Fourth table out of that block, run by `func_actor_107600_80133024` on
  * `Actor107600Work.field_158`. */
@@ -130,9 +135,143 @@ void func_actor_107600_80131F10(Task* arg0)
     *scratch = (u8*)*scratch + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132160);
+/// Path-following phase: grows the
+/// `field_14B` scale to 100, bobs the model root for four frames, then once the
+/// first child raises bit 0x20 steps the root along the `field_146` path of
+/// `D_actor_107600_80135624` one waypoint at a time. A waypoint with no step
+/// holds for `30 *` the spawn nibble instead; the -1 terminator, the countdown
+/// or the child's bit 0x40 stops the path, and bit 0x80 then shrinks the scale
+/// back to 0 and advances the task state.
+void func_actor_107600_80132160(Task* arg0)
+{
+    Actor107600Work*     work  = (Actor107600Work*)arg0->idMap;
+    GpEnemy*             enemy = arg0->spawnArg2;
+    GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->field_8;
+    Actor107600Waypoint* wp;
+    s32                  d;
+    s16                  x;
+    u16                  z;
+    s32                  step;
+
+    switch (work->field_140.step) {
+        case 0:
+            if (work->field_14B < 100) {
+                work->field_14B += 8;
+                return;
+            }
+            work->field_14B = 100;
+            work->field_13A = 0;
+            work->field_140.step++;
+        case 1:
+            if (++work->field_13A & 1) {
+                coord->coord.t[1] = -0x10;
+                return;
+            }
+            coord->coord.t[1] = 0;
+            if ((s16)work->field_13A >= 4) {
+                work->field_140.step++;
+                enemy->task->firstChild->spawnArg1 |= 0x10;
+            }
+            return;
+        case 2:
+            if (!(enemy->task->firstChild->spawnArg1 & 0x20)) {
+                return;
+            }
+            wp  = D_actor_107600_80135624[work->field_146];
+            wp += work->field_148;
+            if (arg0->spawnArg1 & 0x10000000) {
+                work->field_14A = 1;
+            }
+            if (wp->step == 0) {
+                work->field_140.step = 4;
+                work->field_13A      = (((u8*)&arg0->spawnArg1)[3] & 0xF) * 30;
+                return;
+            }
+            work->field_140.step++;
+        case 3:
+            wp  = D_actor_107600_80135624[work->field_146];
+            wp += work->field_148;
+            x   = wp->x;
+            if (x == -1) {
+            stop:
+                work->field_140.step                = 5;
+                work->field_14A                     = 0;
+                enemy->task->firstChild->spawnArg1 |= 0x40;
+                return;
+            }
+            d = (s16)(coord->coord.t[0] - x);
+            if (d != 0) {
+                step = wp->step;
+                if (step >= abs(d)) {
+                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                        goto stop;
+                    }
+                    coord->coord.t[0] = x;
+                    work->field_148++;
+                } else if (d < 0) {
+                    coord->coord.t[0] += step;
+                } else {
+                    coord->coord.t[0] -= step;
+                }
+            }
+            d = (s16)(coord->coord.t[2] - (u16)wp->z);
+            z = wp->z;
+            if (d != 0) {
+                step = wp->step;
+                if (step >= abs(d)) {
+                    if (enemy->task->firstChild->spawnArg1 & 0x40) {
+                        goto stop;
+                    }
+                    coord->coord.t[2] = (s16)z;
+                    work->field_148++;
+                } else if (d < 0) {
+                    coord->coord.t[2] += step;
+                } else {
+                    coord->coord.t[2] -= step;
+                }
+            }
+            return;
+        case 4:
+            if ((s16)work->field_13A != 0 && (s16)--work->field_13A <= 0) {
+                goto stop;
+            }
+        case 5:
+            if (enemy->task->firstChild->spawnArg1 & 0x80) {
+                if (work->field_14B > 0) {
+                    work->field_14B -= 8;
+                    return;
+                }
+                work->field_14B = 0;
+                arg0->state++;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132514);
+
+/* The two tables follow the jump tables of `func_actor_107600_80132160` and
+ * `func_actor_107600_80132514` in this unit's .rodata, so they are defined
+ * here, in address order, rather than included from assembly. */
+const TaskFuncTable4 D_actor_107600_80131E74 = { {
+    func_actor_107600_80132ED0,
+    func_actor_107600_80133024,
+    func_actor_107600_80134904,
+    func_actor_107600_80134920,
+} };
+
+const TaskFuncTable10 D_actor_107600_80131E84 = { {
+    func_actor_107600_80134C54,
+    func_actor_107600_801332D4,
+    (TaskFunc)func_actor_107600_80133668,
+    (TaskFunc)func_actor_107600_80133668,
+    (TaskFunc)func_actor_107600_80134D10,
+    (TaskFunc)func_actor_107600_80134D30,
+    (TaskFunc)func_actor_107600_80134D50,
+    func_actor_107600_801337FC,
+    (TaskFunc)func_actor_107600_80134D70,
+    func_actor_107600_801339A4,
+} };
 
 void func_actor_107600_801328CC(Task* arg0)
 {

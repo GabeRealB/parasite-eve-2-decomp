@@ -101034,3 +101034,22 @@ The same `sll 16; sra 13; addiu -0x38` from a `u16` field read directly
 (func_actor_107600_80133668) matched as `((s16)work->field - 7) * 8`: the
 factored subtraction keeps GCC from narrowing the store to `sll 3`, and
 combine then distributes it back into the shift pair plus `-0x38`.
+
+### Lowering `rodata_head` can hand a unit a table splat hides inside a *matched* function's `.s` (func_actor_107600_80132160, 2026-09-16)
+
+`actor_107600` had `rodata_head = "0x8C"`, so `func_actor_107600_80132160`'s
+jump table at 0x24 sat in the asm header and the C body failed to link
+(`undefined reference to .Lactor_107600_801321D0`). Lowering the head to `0x24`
+is the fix from the `rodata_head` entry above, but it also moved two dispatch
+tables (0x54 `D_…_80131E74`, 0x64 `D_…_80131E84`) into unit 1's `.rodata`.
+Adding `INCLUDE_RODATA` for them failed for one of the two: with
+`migrate_rodata_to_functions`, a symbol only one function references is folded
+into *that function's* `.s`, and when the function is already C that `.s` lives
+under `matchings/`, so there is no `nonmatchings/…/D_….s` to include
+(`can't open … D_actor_107600_80131E84.s`).
+
+Define such tables in C instead, at the source position of their address (after
+the last function whose rodata precedes them). Function-pointer tables are
+program structure, so this is allowed; a global `const TaskFuncTableN` is
+`.align 2`, so it needs no cut of its own. Add prototypes for any handler it
+names that is defined later in the file.
