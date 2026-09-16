@@ -107945,3 +107945,55 @@ range instead of a reference count.
 
 Scratch `nonmatchings/func_actor_403200_80138468-vacuum` (best `base_6.c`),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## An `s16` operand's `% 4` truncates on its own — the `sll 16` / `sra 16` before `slti` is not evidence of a cast (func_actor_403200_8013D78C, 2026-09-16)
+
+`func_actor_403200_8013D78C` steps a coordinate by a signed amount chosen per
+frame, and the ROM computes the frame's position inside its group of four like
+this:
+
+```
+    sra   v0, v0, 2
+    sll   v0, v0, 2
+    subu  v0, v1, v0        # v1 - ((v1 >> 2) << 2)  ==  frame % 4
+    sll   v0, v0, 16
+    sra   v0, v0, 16
+    slti  v0, v0, 2
+```
+
+The `sll`/`sra` pair is on the *result* of the modulo, immediately before the
+comparison, so it looks like an explicit `(s16)` cast on the expression. It is
+not. `frame` is an `s16` local (`frame = work->field_6;`), and GCC 2.8.1 already
+truncates `frame % 4` back to HImode because that is the operand's declared type.
+Writing the plain
+
+```c
+    if (frame >= 0x3D) {
+        coord->coord.t[1] += ((frame % 4) < 2) ? 0x50 : -0x64;
+    }
+```
+
+matches byte for byte, and adding `(s16)(frame % 4)` around it produces an
+*identical object* (checked both ways on this function — `base_1.c` with the cast
+and `base_2.c` without it, same 152 instructions, `build.sh` reports "Repeated
+assembly").
+
+Read the pair as a statement about the operand, not the expression. This is the
+same rule as the `% 48` entry above, where the `sll 16` / `sra 16` sits on the
+*dividend* instead: both times the declared type of the `s16` value is what puts
+the sign extension there, and neither shape needs a cast written out. A
+power-of-two modulo produces the pair too, so its presence says nothing about
+whether the divisor is a constant.
+
+The same function's other 89%→100% jump was structural, not allocational:
+`base.c` (m2c) reported `Structure: match` with `branch=12 insert=9 delete=6`,
+because a `goto` shared the coordinate store between the two threshold arms and
+duplicated temps wrote the step as a compare plus overwrite. Rewriting it as
+`if / else if` with a `+=` ternary against the sibling idioms in the same TU
+recovered every penalty at once, so a nonzero `insert`/`delete` under
+`Structure: match` can be pure control-flow shape rather than a scheduling or
+allocation artefact.
+
+Scratch `nonmatchings/func_actor_403200_8013D78C-vacuum` (`base_1.c` matched,
+`base_2.c` the no-cast control), compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
