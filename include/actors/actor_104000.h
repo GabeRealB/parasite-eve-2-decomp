@@ -34,7 +34,7 @@ extern s32 D_actor_104000_8013E538[8];
 /// bit 0x4000 another.
 typedef struct Actor104000Work {
     /* 0x000 */ s16        field_0;
-    /* 0x002 */ byte       pad_2[2];
+    /* 0x002 */ s16        field_2;
     /* 0x004 */ s16        field_4;
     /* 0x006 */ u16        field_6;
     /* 0x008 */ byte       pad_8[4];
@@ -128,6 +128,25 @@ typedef struct Actor104000HitScratch {
     /* 0x16 */ s16     angle;
 } Actor104000HitScratch;
 STATIC_ASSERT_SIZEOF(Actor104000HitScratch, 0x18);
+
+/// A `MATRIX` rotation block written a word at a time: the identity is stored
+/// as 0x1000 / 0 pairs over the halfword elements, `m22` last.
+typedef struct Actor104000MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor104000MatWords;
+
+/// A per-state handler, indexed by `Actor104000Work.field_0`.
+typedef void (*Actor104000StateFn)(Actor104000Ctx* arg0, Actor104000* arg1);
+
+/// The nineteen handlers the tick copies onto its stack before dispatching.
+typedef struct Actor104000StateTable {
+    /* 0x00 */ Actor104000StateFn fn[19];
+} Actor104000StateTable;
+STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
 void func_actor_104000_80132C8C(Actor104000* arg0);
 void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);

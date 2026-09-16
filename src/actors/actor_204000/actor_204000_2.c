@@ -1,13 +1,19 @@
 #include "common.h"
 #include "actors/actor_104000.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "actors/actors_shared_8014adfc.h"
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
+extern u8      D_801153F4;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_204000_8014AC8C(Actor104000* arg0);
 
@@ -342,7 +348,145 @@ INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F908);
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014FD2C);
+void ActorsShared8015087c(GpEnemy* enemy, Task* task);
+void func_actor_204000_801509E8(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_80150AA0(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014C710(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014CD68(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014D5B8(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014E14C(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014E7E0(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_801508E4(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_80150698(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_801507B4(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014BC3C(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_80150B58(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014F04C(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014F3E8(Actor104000Ctx* arg0, Actor104000* arg1);
+void func_actor_204000_8014F908(Actor104000Ctx* arg0, Actor104000* arg1);
+
+const Actor104000StateTable D_actor_204000_8014A014 = {
+    {
+        (Actor104000StateFn)ActorsShared8015087c,
+        func_actor_204000_801509E8,
+        func_actor_204000_8014C51C,
+        func_actor_204000_80150AA0,
+        func_actor_204000_8014C710,
+        func_actor_204000_8014CD68,
+        func_actor_204000_8014D5B8,
+        func_actor_204000_8014E14C,
+        func_actor_204000_8014E7E0,
+        func_actor_204000_801508E4,
+        func_actor_204000_8014B4AC,
+        func_actor_204000_80150698,
+        func_actor_204000_801507B4,
+        func_actor_204000_8014BC3C,
+        func_actor_204000_80150B58,
+        func_actor_204000_8014EDC4,
+        func_actor_204000_8014F04C,
+        func_actor_204000_8014F3E8,
+        func_actor_204000_8014F908,
+    }
+};
+
+/// Per-frame tick: tints the model from its position, draws the ground shadow
+/// for the current light mode, runs the state handler (flagging a state change
+/// in `field_4`), applies pending hits and plays the queued sound.
+void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
+{
+    VECTOR                pos;
+    SVECTOR               unused; // never written; retail's frame keeps 8 bytes here
+    Actor104000StateTable table;
+    GsCOORDINATE2         coord;
+    Actor104000Work*      work;
+    Actor104000MatWords*  mw;
+    s32                   snd;
+    s32                   pan;
+    s32                   id;
+
+    work                         = arg1->field_1C;
+    table                        = D_actor_204000_8014A014;
+    arg1->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(arg1->field_2C->field_8);
+    pos.vx = arg1->field_2C->field_8->workm.t[0];
+    pos.vy = arg1->field_2C->field_8->workm.t[1];
+    pos.vz = arg1->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    switch (D_801153F4) {
+        case 0:
+            if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5 && work->field_0 != 0xD &&
+                work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x100, Gp_State1C->field_8);
+            }
+            if (work->field_0 == 0xF) {
+                mw                                            = (Actor104000MatWords*)&coord.coord;
+                mw->m00_m01                                   = 0x1000;
+                ((Actor104000MatWords*)&coord.coord)->m02_m10 = 0;
+                mw->m11_m12                                   = 0x1000;
+                ((Actor104000MatWords*)&coord.coord)->m20_m21 = 0;
+                mw->m22                                       = 0x1000;
+                coord.coord.t[0]                              = arg1->field_2C->field_8->coord.t[0];
+                coord.coord.t[1]                              = 0;
+                coord.coord.t[2]                              = arg1->field_2C->field_8->coord.t[2];
+                coord.sub                                     = &Gfx_ViewCoord;
+                coord.flg                                     = 0;
+                Gp_UpdateCoord(&coord);
+                Gp_DrawEffGroundQuad((VECTOR3*)coord.workm.t, 0x60, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 0xD && work->field_0 != 5 &&
+                work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            Gp_ClearRec18Occupied((GpRec18*)&work->pad_19E[0x12]);
+            Gp_ClearRec18Occupied(work->hits);
+            Gp_ClearRec18Occupied((GpRec18*)work->pad_370);
+            return;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            Gp_ClearRec18Occupied((GpRec18*)&work->pad_19E[0x12]);
+            Gp_ClearRec18Occupied(work->hits);
+            Gp_ClearRec18Occupied((GpRec18*)work->pad_370);
+            return;
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = work->field_0;
+    table.fn[work->field_0]((Actor104000Ctx*)arg0, arg1);
+    if (work->field_496 == 1) {
+        if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->field_40 < 0) {
+            if (((GpActorWork*)Game_GetPtrSlot(3))->actor->field_954 == 2) {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            }
+            work->field_496 = 0;
+        }
+    }
+    if (arg0->field_40 > 0) {
+        func_actor_204000_8014DDD4(arg0, arg1);
+        if (arg0->field_40 <= 0) {
+            work->field_0 = 6;
+        }
+    }
+    Gp_ClearRec18Occupied((GpRec18*)&work->pad_19E[0x12]);
+    Gp_ClearRec18Occupied(work->hits);
+    Gp_ClearRec18Occupied((GpRec18*)work->pad_370);
+    id = ActorsShared8014adfc(work);
+    if (id != 0) {
+        snd = id | ((arg0->field_8 >> 12) << 8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+    }
+    if (Game_Session->field_4D != 0) {
+        arg1->field_2C->field_8->flg = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_801501A0);
 
