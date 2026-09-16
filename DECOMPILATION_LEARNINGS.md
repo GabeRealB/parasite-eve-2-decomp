@@ -94166,3 +94166,43 @@ Preprocessed SHA256 `base_1.i`
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_143000_80133C2C-vacuum` (`base_1_diff`,
 `base_2_diff`).
+
+## The phantom argument can be a live global-address base, not just an inlined macro's leftover
+
+The third variant of the "m2c invents callee arguments" family, and the one that
+does not look like an argument problem at all. Reading a pointer-valued global
+leaves its `%hi` base register live across the whole block — `lui $a1,
+%hi(Game_Session)` stays in `$a1` because the *same* symbol is read again after
+the call — and if a `jal` lands while it is live, m2c types that register as an
+argument. In `func_actor_143000_80133800` the real call is one-argument
+`Gp_MsgPlayer3F3(1)` (every matched caller in `src/gameplay/` passes one), but the
+seed emitted
+
+```c
+M2C_UNK Gp_MsgPlayer3F3(M2C_UNK, void **);   /* extern, invented */
+...
+Gp_MsgPlayer3F3(1, &Game_Session);
+```
+
+The two instructions that costs are the familiar `addiu $a3,$a2,%lo(Game_Session)`
+plus a `move $a1,$a3` — but the other 4.7% is not argument traffic. Making the
+address a *value* forces the base into `$a2` (the allocation order shifts), and
+the else arm's `lui $a3,%hi(...)` can no longer hoist into the `bnez` delay slot,
+so it lands late in the arm. Passing the one real argument fixes the base to
+`$a1` and lets the `lui` hoist:
+
+```c
+Display_ReleaseRef();
+Game_Session->field_66 = 0;
+if (work->field_C == 0) { ...; Gp_MsgPlayer3F3(1); }
+```
+
+The tell is a `lui $reg,%hi(SYM)` that is *also* the base of a `%lo(SYM)($reg)`
+load and is still live at a `jal`. `$a1`/`$a2` holding a `%hi` at the call is not
+an argument — check the callee's prototype (a header, or any matched caller)
+before porting m2c's signature. 93.33% at `regs=5 reorder=2 insert=2 stack=1
+branch=1`, exact after dropping the phantom argument. Preprocessed SHA256
+`base.i` `7c9e300c07cc3a79d0262b6de58b81340111f6960474c4f7304519dee69eff0b`,
+`base_1.i` `0feea753586adef0272c43651ee27a00e01bd0352faeace261342751e7bdef62`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_143000_80133800-vacuum` (`base_1_diff`).
