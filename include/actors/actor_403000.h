@@ -64,7 +64,9 @@ typedef struct Actor403000Work {
     /* 0xACC */ byte           pad_ACC[0xA];
     /* 0xAD6 */ s16            field_AD6;
     /* 0xAD8 */ s16            field_AD8;
-    /* 0xADA */ byte           pad_ADA[0x76];
+    /* 0xADA */ byte           pad_ADA[0x6];
+    /* 0xAE0 */ s16            field_AE0;
+    /* 0xAE2 */ byte           pad_AE2[0x6E];
     /* 0xB50 */ Actor403000Obj objB50;
     /* 0xBE8 */ Actor403000Obj objBE8;
     /* 0xC80 */ Actor403000Obj objC80;
@@ -179,6 +181,8 @@ extern u32 Gp_LcgState;
 /// `field_AC2` until it catches up with the requested `field_AC6`, copying
 /// `field_ACA` into the four display nodes' clip slot as it goes.
 void func_actor_403000_80133AF8(Actor403000* arg0);
+
+s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.

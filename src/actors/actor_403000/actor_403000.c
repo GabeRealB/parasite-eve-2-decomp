@@ -146,7 +146,44 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80138DB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801399A0);
+void func_actor_403000_801399A0(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C   = 0;
+        work->objB50.obj.field_1C = 0x3E8;
+        work->field_AC0           = 1;
+        work->field_AC6           = 0xE;
+        work->field_ACA           = 0x10;
+        work->field_FCA           = 0;
+        work->field_AE0           = 0;
+        work->field_AD8           = 0;
+        work->field_AD6           = 0;
+        work->objD18.obj.flags   |= 0x4000;
+        work->objB50.obj.flags   |= 0x4000;
+    }
+    if (func_actor_403000_80132348(arg0->field_2C->field_8, work->objD18.rec, 5) == 0) {
+        func_actor_403000_80132348(arg0->field_2C->field_8, work->objB50.rec, 5);
+    }
+    func_actor_403000_80133AF8(arg0);
+    if ((work->field_60.half & 0x100) && work->field_AC6 == 0xE) {
+        work->objB50.obj.flags &= 0xBFFF;
+        if (enemy->field_40 > 0) {
+            if (enemy->field_4C & 2) {
+                work->field_0 = 0x10;
+            } else {
+                work->field_0 = 0x12;
+            }
+        } else {
+            work->field_F8C = 1;
+            work->field_0   = 0x14;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80139AE0);
 
