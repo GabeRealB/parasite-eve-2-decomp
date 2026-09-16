@@ -123,16 +123,22 @@ log "leased $OVERLAY, worktree $WT"
 # after 70 matches, never reached cleanup, and its archives were then lost with
 # the worktree - 95 attempts at 98.783% and 32 at 99.406% thrown away, which is
 # exactly what the archive exists to prevent.
+#
+# An archive trunk already has is updated, not skipped. The worktree's copy was
+# seeded from trunk's (seed_giveups) and archive_giveup.py only ever adds
+# sessions to it, so it is the newer superset. Skipping it is how
+# func_mine_gorge_8017D5F8's second give-up (97.4%, 9 attempts) was lost: the
+# first run had already created the directory on trunk.
 migrate_giveups() {
     [[ -d "$WT/tools/giveups" ]] || return 0
-    local carried=0 d name
+    local carried=0 d name dst
     for d in "$WT"/tools/giveups/*/; do
         [[ -d "$d" ]] || continue
         name=$(basename "$d")
-        if [[ ! -d "$ROOT/tools/giveups/$name" ]]; then
-            mkdir -p "$ROOT/tools/giveups"
-            cp -r "$d" "$ROOT/tools/giveups/$name" && carried=$((carried+1))
-        fi
+        dst="$ROOT/tools/giveups/$name"
+        cmp -s "$d/meta.json" "$dst/meta.json" && continue
+        mkdir -p "$dst"
+        cp -au "$d/." "$dst/" && carried=$((carried+1))
     done
     [[ $carried -gt 0 ]] && log "carried $carried give-up archive(s) to trunk"
     return 0
@@ -159,6 +165,24 @@ print("\n".join(sorted(f for f, c in d["claims"].items()
                        if c.get("session") == sys.argv[1])))' "$SESSION")
 CLAIMED_N=$(grep -c . <<<"$CLAIMED" || echo 0)
 log "$CLAIMED_N function(s) claimed"
+
+# Give the worktree trunk's give-up archives for what it holds. tools/claude
+# restores prior seeds from its own tree's tools/giveups, which is gitignored and
+# so absent from a fresh worktree: without this every retry of a function under
+# an overlay sweep restarts from m2c, and the archive it writes has none of the
+# earlier sessions in it. vacuum.sh does the same for its per-function worktrees.
+seed_giveups() {
+    local fn seeded=0
+    while read -r fn; do
+        [[ -n "$fn" && -d "$ROOT/tools/giveups/$fn" ]] || continue
+        [[ -d "$WT/tools/giveups/$fn" ]] && continue
+        mkdir -p "$WT/tools/giveups"
+        cp -a "$ROOT/tools/giveups/$fn" "$WT/tools/giveups/" && seeded=$((seeded+1))
+    done <<<"$CLAIMED"
+    [[ $seeded -gt 0 ]] && log "seeded $seeded give-up archive(s) from trunk"
+    return 0
+}
+seed_giveups
 
 # Bind the lease to *this* process. overlay_batch.sh claims as a preparer that
 # exits immediately, so the lease is guarded only by its expiry - and a sweep
@@ -296,6 +320,62 @@ done
 log "matched ${#ALL_MATCHED[@]} function(s), ${#MATCHED[@]} landable in $OVERLAY"
 printf '  %s\n' "${MATCHED[@]}" | tee -a "$LOG_FILE"
 
+carry_bookkeeping() {
+    local files=() f added subject hard
+    for f in tools/difficult_functions DECOMPILATION_LEARNINGS.md; do
+        git -C "$WT" diff --quiet "$BASE" HEAD -- "$f" || files+=("$f")
+    done
+    [[ ${#files[@]} -gt 0 ]] || return 0
+    if ! orch merge-acquire --session "$SESSION" --pid $$ --wait "${VACUUM_MERGE_WAIT:-3600}" \
+         >>"$LOG_FILE" 2>&1; then
+        log "could not take the merge lock; give-up bookkeeping for $OVERLAY is lost"
+        return 0
+    fi
+    if python3 - "$WT" "$ROOT" "${files[@]}" <<'PYEOF' >>"$LOG_FILE" 2>&1
+import sys
+from pathlib import Path
+wt, root = Path(sys.argv[1]), Path(sys.argv[2])
+sys.path.insert(0, str(root / "tools"))
+from land_overlay import merge_sections
+for f in sys.argv[3:]:
+    src, dst = wt / f, root / f
+    if f.endswith("difficult_functions"):
+        # Same union land_overlay.py applies: keyed by name, latest line wins.
+        have = {l.split()[0]: l for l in dst.read_text().splitlines() if l.strip()}
+        for l in src.read_text().splitlines():
+            if l.strip():
+                have[l.split()[0]] = l
+        dst.write_text("\n".join(have[k] for k in sorted(have)) + "\n")
+    else:
+        dst.write_text(merge_sections(dst.read_text(), src.read_text()))
+PYEOF
+    then
+        added=$(git -C "$WT" diff "$BASE" HEAD -- tools/difficult_functions \
+                | awk '/^\+[^+]/{sub(/^\+/,""); print}' | paste -sd, | sed 's/,/, /g')
+        subject="${added:+difficult: $added}"
+        subject="${subject:-learnings: carried from $OVERLAY}"
+        if git -C "$ROOT" diff --quiet -- "${files[@]}"; then
+            log "give-up bookkeeping already on trunk"
+        elif git -C "$ROOT" commit -q -m "$subject" \
+                 -m "Carried from $OVERLAY's sweep, which matched nothing." \
+                 -- "${files[@]}" >>"$LOG_FILE" 2>&1; then
+            log "carried to trunk: $subject"
+        else
+            log "could not commit give-up bookkeeping for $OVERLAY; see $LOG_FILE"
+        fi
+    else
+        log "merging give-up bookkeeping for $OVERLAY failed; see $LOG_FILE"
+    fi
+    orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
+    # Tell the orchestrator too, so the lease release does not return them to
+    # the pool: finish-overlay records them, where relinquish would not.
+    hard=$(git -C "$WT" diff "$BASE" HEAD -- tools/difficult_functions \
+           | awk '/^\+[^+]/{sub(/^\+/,""); print $1}' | sort -u | paste -sd,)
+    [[ -n "$hard" ]] && orch finish-overlay --session "$SESSION" --difficult "$hard" \
+        >>"$LOG_FILE" 2>&1
+    return 0
+}
+
 # Only "nothing matched at all" is a no-op. A batch whose every body was
 # promoted to src/<family>/lib has MATCHED empty but ALL_MATCHED full, and this
 # branch used to discard it: worktree deleted, branch deleted, verified work
@@ -315,6 +395,14 @@ if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#ALL_MATCHED[@]} -eq 0 ]]; t
     # abandoned lease keeps those functions unclaimable until it expires, and
     # `trap - EXIT` here used to skip the release entirely.
     log "nothing matched; releasing the lease"
+    # A run that matched nothing can still have committed something worth
+    # keeping: the give-up line in tools/difficult_functions and any learnings
+    # sections. Deleting the branch threw both away, so the function was never
+    # marked difficult and the next pass of the list claimed it again -
+    # func_mine_gorge_8017D5F8 gave up at 98.8% and 97.4% and was started a
+    # third time. Merge those two files onto trunk the same way a landing does;
+    # nothing else a failed run changed is carried.
+    carry_bookkeeping
     if [[ "$KEEP" == false ]]; then
         "$ROOT/tools/overlay_batch.sh" --cleanup --overlay "$OVERLAY" --session "$SESSION" \
             >>"$LOG_FILE" 2>&1 || log "worktree cleanup refused; see $LOG_FILE"
