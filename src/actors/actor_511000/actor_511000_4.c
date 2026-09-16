@@ -4,6 +4,7 @@
 
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/mem.h"
 #include "main/task.h"
@@ -14,6 +15,14 @@ extern SVECTOR    D_actor_511000_80147704[];
 extern SVECTOR    D_actor_511000_80147AC4;
 extern u16*       D_actor_511000_80147EB0;
 extern GpMsgEntry D_actor_511000_80148FC4[];
+
+/// Camera path `func_actor_511000_801330F0` walks once the session reaches
+/// mode 0x18, one 0x24-byte `GpViewRec` per step of the kill countdown: the
+/// rotation and projection plane repeat down the table while the translation
+/// descends, so the spawn of a view task per index pans the camera as the
+/// actor goes down. Handed straight to `Gp_TrySpawnViewTask`, exactly as
+/// `Gp_SpawnViewTasks` hands its own stage record.
+extern GpViewRec D_actor_511000_80147EE4[];
 
 /// The three texture records the message-0x7E0 handler uploads, one per mode.
 /// Each is a lone `GpImgRec` whose 0x18x0x10 source rect repeats the size the
@@ -184,7 +193,50 @@ void func_actor_511000_80133034(Task* task)
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801330F0);
+/// Per-frame state: while the model is hidden (`field_C` bit 0x80 clear) it
+/// refreshes the root coordinate, rebuilds the colour matrix from that
+/// coordinate's own translation, and runs the work block's follow-up. Once the
+/// session reaches mode 0x18 it walks `killCountdown` up to 0x77, spawning a
+/// view task for the camera record at each index and re-posing the model from
+/// the matching rotations, and finally runs the `Tmd_FreeBuffers` countdown the
+/// spawn state armed at -1, freeing the buffers and latching the field back to
+/// -1 on the frame the countdown reaches zero.
+void func_actor_511000_801330F0(Task* task)
+{
+    Actor511000Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    s32              countdown;
+    s16              frame;
+
+    obj   = (TmdObject*)task->extra;
+    work  = (Actor511000Work*)task->idMap;
+    coord = obj->field_8;
+
+    if (!(obj->field_C & 0x80)) {
+        Gp_UpdateCoord(coord);
+        func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
+        func_actor_511000_80132E6C((Actor511000Work*)task->idMap);
+    }
+    if (Game_Session->field_4 == 0x18) {
+        frame               = task->killCountdown + 1;
+        task->killCountdown = frame;
+        if (frame >= 0x78) {
+            task->killCountdown = 0x77;
+        }
+        Gp_TrySpawnViewTask((s32)&D_actor_511000_80147EE4[task->killCountdown]);
+        func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
+        coord->flg = 0;
+    }
+    countdown = work->field_8;
+    if (countdown >= 0) {
+        if (countdown == 0) {
+            Tmd_FreeBuffers(obj);
+            countdown = work->field_8;
+        }
+        work->field_8 = countdown - 1;
+    }
+}
 
 void func_actor_511000_80133220(Task* task)
 {

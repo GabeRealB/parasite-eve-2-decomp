@@ -92,6 +92,7 @@ typedef struct Actor511000Msg {
 STATIC_ASSERT_SIZEOF(Actor511000Msg, 0x4);
 
 s32  func_actor_511000_8013287C(GpActorWork* arg0, s32 arg1, Actor511000Msg* msg);
+void func_actor_511000_80132E6C(Actor511000Work* work);
 void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
 void func_actor_511000_80133760(Task* task);
 void func_actor_511000_801337F0(Task* task);

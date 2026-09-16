@@ -107362,3 +107362,85 @@ source `base_1.c` `7d66465b9e7705a66239407080a379d4e989b558ef6260adc5d9c68c11a37
 `base_2.c` `37cd3f32c2ae01d0c2ce4d4a19c88b0aa7308268b4afe88383fdb44e95d6e0d4`
 (94.286%). Target `d96cb58530a42fdb3157c15cfacfe13d5535c864e11a49af91267bbbdf99f354`.
 Scratch `nonmatchings/func_actor_511000_801327A0-vacuum`.
+
+## A separate temp for `t - 1` is born while `t` is still live, so `global_conflicts` forces two registers; compute it once, on the same variable, after the join (func_actor_511000_801330F0, 2026-09-17)
+
+The tail of this state handler runs a `Tmd_FreeBuffers` countdown. m2c seeds it
+with the result in its own temp:
+
+```c
+temp_v0_2 = work->field_8;
+if (temp_v0_2 >= 0) {
+    var_v0 = temp_v0_2 - 1;
+    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); var_v0 = work->field_8 - 1; }
+    work->field_8 = var_v0;
+}
+```
+
+and the ROM wants the decrement *in place* on the loaded value:
+
+```
+lw    v0, 8(s3)
+bltz  v0, end
+bnez  v0, store
+addiu v0, v0, -1      # the branch's own register
+jal   Tmd_FreeBuffers
+lw    v0, 8(s3)
+addiu v0, v0, -1
+store: sw v0, 8(s3)
+```
+
+`var_v0` is a second pseudo born at the `addiu`, and `temp_v0_2`'s `REG_DEAD`
+sits on the *branch* two insns later, so `global.c`'s per-block scan really does
+have the two live at once (`mark_reg_clobber`/`mark_reg_death`/`mark_reg_store`
+run in that order, but a plain `SET` is not a clobber, so nothing kills
+`temp_v0_2` at the `addiu`) and they are forced apart: 99.6%, `regs=6` -
+`addiu v0,v1,-1` against the ROM's `addiu v0,v0,-1`. No scheduling, pin or
+statement order reaches it; the conflict is in the RTL.
+
+Writing the decrement **once, on the same variable, after the join** makes it a
+single pseudo with two definitions, and the block falls out at 100%:
+
+```c
+temp_v0_2 = work->field_8;
+if (temp_v0_2 >= 0) {
+    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); temp_v0_2 = work->field_8; }
+    work->field_8 = temp_v0_2 - 1;
+}
+```
+
+The `addiu` then sits in the merge block, and `reorg` *copies* it into the
+`bnez` delay slot (it executes on both paths, where the fall-through's
+`temp_v0_2` is overwritten by the reload before the join - so the copy is
+harmless, and the join keeps its own). So a delay slot holding a computation on
+the branch's own register is not evidence that the allocator overlapped two
+pseudos: it is `reorg` duplicating one pseudo's in-place update.
+
+Read it the other way round when diagnosing: a mismatching `addiu rX, rY, -1`
+where the ROM has `addiu rX, rX, -1` is a second-pseudo conflict in the block
+*before* the branch, and the fix is to delete the temp, not to move code.
+The same shape is worth checking wherever an m2c seed computes `var = x - 1`
+(or `+ 1`) into its own local ahead of a test on `x`.
+
+Inputs: `base_1.i` `b605222d3e1eb8676873d735197109f4fcdea6eaabcb59a93543f3ca50018b69`,
+source `base_1.c` `fac96ecef6e0d3c08d6dd8d81dafc0096a66cdf1e068c40f2f88eeca3c291d2d`
+(99.737%, `regs=4`); `base_2.i`
+`ab11b46de399e8125071faa1b8efec98dd014167bca80f48f27461d5cc0761aa`, source
+`base_2.c` `a15ac4b64fb3d065cabf1f57a91c0cfbfd7b5d152f49822a43e1652328df5d4f`
+(100.000%). Scratch `nonmatchings/func_actor_511000_801330F0-vacuum`.
+
+### The same function's two address legs: derive them from the types, not the m2c casts
+
+The seed also carried both classic m2c type errors, each worth ~2 instructions
+of the 76: `TmdObject::field_8` is a `GsCOORDINATE2*`, so
+`func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3)` gives `addiu a1,s2,0x38`
+(the seed's `s32*` plus `0x38` gave `+0xE0`), and the view table
+`D_actor_511000_80147EE4` is a `GpViewRec[]`, so
+`&D_actor_511000_80147EE4[task->killCountdown]` scales by 0x24 (`sll 3`/`addu`/
+`sll 2`) where the seed's `s32` extern scaled by 0x24*4 (`sll 4`). Both fall out
+of reading the record the data actually holds - `MATRIX` + `u32`, 0x24 bytes,
+translation descending - rather than from the decompiler's placeholder types.
+Calling the unmatched `func_actor_511000_80132E6C` with the live `work` local
+instead of re-reading `task->idMap` at the call site swaps `$s2`/`$s3` for the
+whole function (`lw a0,0x1c(s0)` becomes `move a0,s2` in the delay slot); keep
+the re-read.
