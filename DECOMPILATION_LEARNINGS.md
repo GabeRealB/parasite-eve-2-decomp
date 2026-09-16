@@ -92389,3 +92389,62 @@ the diagnosis showing `0:10` (slti) one short and `0:33` (move) one extra, plus
 a `condition_register` on `$v1` instead of `$v0`. Rewriting it as the two
 sequential `if`s above is the whole fix. Worth trying directly whenever a clamp
 seed shows a `move` from `$zero`, or a shortcut value, in place of a compare.
+
+## A dispatch constant that is also stored *and* passed as a call argument must be one C variable: `s32 one; one = 1;` (func_actor_205200_8014B9D4, 2026-09-16)
+
+The tick handler dispatches on `D_801153F4`, and on two of its paths writes the
+constant `1` - `arg0->node.field_4 = 1` and `func_actor_205200_8014B048(arg1, 1)`.
+The target materialises that `1` once, in the prologue, and uses `$a1` for all
+three purposes: the dispatch compare (`beq $v1,$a1`), the store (`sb $a1,0x14($a0)`)
+and the call's second argument.
+
+Written as a `switch`, the constant the compare uses belongs to the switch
+machinery, not to the source. It did land in `$a1` and CSE did hand it to the
+store, but the call still got its own `li a1,1`, in the `jal`'s delay slot:
+
+```
+move    a0,s0          # arg setup, displaced out of the delay slot
+jal     func_actor_205200_8014B048
+li      a1,1           # the call's own copy of the constant
+```
+
+That one extra insn also moves the merge point's address by 4, and reorg then
+duplicates the displaced `addu a0,s0,zero` into *both* dispatch jumps' delay
+slots (`j .text+74` / `move a0,s0`): 49 insns against the target's 48, 88.5%,
+`insert=3 delete=2 branch=3 reorder=1`.
+
+Holding the constant in a variable fixes all of it. `one` is one pseudo, its
+home is `$a1` (the call's own argument register), so the compare, the store and
+the argument share it and nothing is materialised at the call; the single
+remaining arg setup then falls into the `jal` delay slot, leaving the dispatch
+jumps' slots as `nop`s - 100%:
+
+```c
+    s32 one;
+
+    one = 1;
+    if (state == one) { goto case1; }
+    ...
+case2:
+    arg0->node.field_4 = one;
+    return;
+default_body:
+    func_actor_205200_8014B048(arg1, one);
+```
+
+Controlled check: changing only that call's argument back to the literal `1`
+reproduces the 88.5% shape above exactly (49 insns, `li a1,1` in the delay slot,
+the `a0` setup pushed out and duplicated), so the variable, not the dispatch
+rewrite, is what removes the `li`. The same shape is already matched next door
+in `func_actor_207200_8014D2DC`, which is where the `one` name and the
+goto-shaped dispatch come from - the dispatch itself is written that way because
+mode 0 shares the *default* body, which sits after the last case body, so its
+`break` is a jump into it (see "A switch's shared tail belongs after the
+switch").
+
+The timer halfword at +0x74 is the other half of the match, and confirms the
+`lh` rule three sections up: a *fresh* load of a signed halfword feeding a plain
+`!= 0` folds to `lh`, while `func_actor_205200_8014BA94` counting the same
+halfword down reads it `lhu` through the family's `(u16)field - 1` view. The
+field is therefore declared `s16` and the countdown carries the cast - the
+declared type follows the load that is *not* arithmetic.

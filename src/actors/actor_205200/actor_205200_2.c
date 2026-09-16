@@ -54,7 +54,58 @@ void func_actor_205200_8014B978(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014B9D4);
+/// Per-frame tick of the live states. `D_801153F4` gates the shared body:
+/// mode 1 runs none of it, mode 2 raises the node flag to 1 and returns, mode 0
+/// raises it to 8 before falling in, and any other mode enters it directly.
+/// The body ticks the effect timer and, once the parent actor's 0x7DB flag is
+/// up, pushes this task to state 2 and re-arms `field_72`. The dispatch is
+/// written as gotos because that is the shape the switch's binary decision tree
+/// leaves behind - mode 0 shares the body with the default path, so its `break`
+/// is a jump into it (see `func_actor_207200_8014D2DC`).
+void func_actor_205200_8014B9D4(GpEnemy* arg0, Actor205200* arg1)
+{
+    Actor205200Work* work;
+    Actor205200Work* parentWork;
+    s32              state;
+    s32              one;
+
+    work       = arg1->field_1C;
+    parentWork = (Actor205200Work*)arg1->field_8->idMap;
+    state      = D_801153F4;
+    one        = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    arg0->node.field_4 = 8;
+    goto default_body;
+case2:
+    arg0->node.field_4 = one;
+    return;
+default_body:
+    func_actor_205200_8014B048(arg1, one);
+    if (work->field_74 != 0) {
+        func_actor_205200_8014BA94(arg1);
+    }
+    if (parentWork->field_2E == 1) {
+        arg1->field_30 = 2;
+        work->field_72 = 2;
+    }
+case1:
+    return;
+}
 
 void func_actor_205200_8014BA94(Actor205200* arg0)
 {
@@ -62,7 +113,7 @@ void func_actor_205200_8014BA94(Actor205200* arg0)
     u16              timer;
 
     work           = arg0->field_1C;
-    timer          = work->field_74 - 1;
+    timer          = (u16)work->field_74 - 1;
     work->field_74 = timer;
     if (!(timer & 0x3F)) {
         func_800FDB18(7, arg0->field_2C->field_8, NULL, &work->field_68);

@@ -7,6 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/3A34.h"
+#include "main/task.h"
 
 typedef struct Actor205200Obj2C {
     /* 0x00 */ byte           pad_0[8];
@@ -17,14 +18,18 @@ typedef struct Actor205200Obj2C {
 /// Work block this overlay hangs off `Actor205200.field_1C` (the task's
 /// `Task::idMap` slot, which is not a `TaskIdMap` here). The two display nodes
 /// at +0x47C and +0x4E4 are the ones the exit callback
-/// `func_actor_205200_8014C924` hands back to `Gp_UnlinkObj`.
+/// `func_actor_205200_8014C924` hands back to `Gp_UnlinkObj`. `field_74` is the
+/// effect timer: `func_actor_205200_8014B9D4` only tests it, as the signed
+/// halfword it is, while `func_actor_205200_8014BA94` counts it down through the
+/// family's unsigned `(u16)` view.
 typedef struct Actor205200Work {
     /* 0x000 */ byte     pad_0[0x2E];
     /* 0x02E */ s16      field_2E;
     /* 0x030 */ byte     pad_30[0x38];
     /* 0x068 */ GpEffArg field_68; // `func_800FDB18` argument record
-    /* 0x070 */ byte     pad_70[0x4];
-    /* 0x074 */ u16      field_74; // effect timer, reloaded every 0x40 ticks
+    /* 0x070 */ byte     pad_70[0x2];
+    /* 0x072 */ s16      field_72; // raised to 2 with `Task::state` when the parent's 0x7DB flag is set
+    /* 0x074 */ s16      field_74; // effect timer, reloaded every 0x40 ticks
     /* 0x076 */ byte     pad_76[0x406];
     /* 0x47C */ GpObj    field_47C;
     /* 0x49C */ byte     pad_49C[0x48];
@@ -33,8 +38,12 @@ typedef struct Actor205200Work {
     /* 0x594 */ s16      field_594;
 } Actor205200Work;
 
+/// The task itself, named for the actor it drives. `field_8` is `Task::parent`
+/// - the actor whose work block keeps the 0x7DB flag `field_2E`.
 typedef struct Actor205200 {
-    /* 0x00 */ byte              pad_0[0x1C];
+    /* 0x00 */ byte              pad_0[0x8];
+    /* 0x08 */ struct _Task*     field_8;
+    /* 0x0C */ byte              pad_C[0x10];
     /* 0x1C */ Actor205200Work*  field_1C;
     /* 0x20 */ byte              pad_20[0xC];
     /* 0x2C */ Actor205200Obj2C* field_2C;
@@ -73,5 +82,12 @@ s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* a
 
 void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1);
 void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1);
+
+/// The live states' shared body: moves and draws the actor. `arg1` is the value
+/// the state handlers pass through (`1` from `func_actor_205200_8014B9D4`).
+void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1);
+
+/// Counts the effect timer down and queues effect 7 every 0x40 ticks.
+void func_actor_205200_8014BA94(Actor205200* arg0);
 
 #endif
