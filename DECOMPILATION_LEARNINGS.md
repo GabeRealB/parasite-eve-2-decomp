@@ -100016,6 +100016,15 @@ The same `associate:` path is worth remembering for any `+`/`|`/`^`/`&`/`min`/
 `max` chain whose emitted operand order looks "reversed": the left-associative
 source is not the tree that reaches `expand`.
 
+How it presents when the chain builds a call argument: no `branch` penalty and no
+structural difference, just `regs` with a few `insert`/`delete` pairs, and the
+diff reads as a register choice plus one load moved a slot - the constant-OR is
+attached to the *second* shift instead of the first, so it takes that shift's
+register and drags its load later. Search `associativity`, not the symptom: the
+third carrier of this idiom is `func_actor_104900_80138F68` (0x400B0003
+template, one build from 95.3% to 100%), whose only difference from the m2c text
+was that parenthesisation.
+
 ## `promote` needs the dup index rebuilt after the match, and a span between units rotates up to four files per carrier (func_actor_104900_80138D58, 2026-09-16)
 
 Two things the promotion of a body out of a carrier's `_3` unit adds to the
