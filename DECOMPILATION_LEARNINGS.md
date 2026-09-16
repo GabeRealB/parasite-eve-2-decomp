@@ -44533,6 +44533,15 @@ almost always the enclosing function's own first parameter, so read the callee's
 `.s`: if it never writes `$a0` before the `jal`, `arg0` is being forwarded.
 Restoring it (`Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6)`) took 99.00% to 100.00%
 in one edit. Do not chase the shift with pins or the permuter.
+
+The shift need not stay inside the one call. `func_dryfield_night_driveway_8017DCFC`
+came back at 97.97% with `regs=1 reorder=1`: the `regs` was m2c's
+`Game_SetPtrSlot(7)` against the target's `Game_SetPtrSlot(arg0, 7)`, and the
+`reorder` was an unrelated second call (`func_800E8634(&D_a, 0, &D_b)`) whose
+`li a1,0` and `lui a2` had swapped — the constant sitting in `$a1` had changed
+the sched1 region's pressure, not its own statement order. Both penalties went
+to zero on that one edit. So an arity error found in one call is worth fixing
+before reading any `reorder` dump, even when it is a different call that moved.
 ## The same rule at an indirect call, where there is no callee `.s` to check
 
 `func_actor_107600_801348A0` copies a four-entry `TaskFuncTable4` onto the stack
