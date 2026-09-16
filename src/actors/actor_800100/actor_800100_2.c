@@ -1351,7 +1351,104 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801668C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166B40);
+s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
+{
+    s32 minDist;
+
+    minDist = 0x7FFFFFFF;
+    if (Gp_CountRec18Hi(arg0, 0x30000) == 0) {
+        s32               idx;
+        s32*              pidx;
+        register void**   scratch asm("v1");
+        GpPickScratch*    block;
+        register GpRec18* rec asm("s2");
+        s32               i;
+        s32               bestIdx;
+        s32               dist;
+        GpRec18*          picked;
+
+        scratch = (void**)G_SCRATCH_HEAD;
+        i       = 0;
+        bestIdx = i;
+        pidx    = &idx;
+        rec     = arg0;
+        {
+            register void* p asm("v0");
+            p        = *scratch;
+            p        = (u8*)p - 0x68;
+            block    = p;
+            *scratch = p;
+        }
+        do {
+            if (rec->field_4 & 0x100000) {
+                s32 fy;
+                s32 dy;
+                {
+                    register s32 dx asm("v0");
+                    dx   = arg1->workm.t[0] - rec->field_8;
+                    fy   = rec->field_A;
+                    dist = dx;
+                    if (dx < 0) {
+                        dist = -dist;
+                    }
+                }
+                {
+                    register s32 t2 asm("v0");
+                    register s32 fz asm("a0");
+                    dy = arg1->workm.t[1] - fy;
+                    t2 = arg1->workm.t[2];
+                    if (dy < 0) {
+                        dy = -dy;
+                    }
+                    fz    = rec->field_C;
+                    dist += dy;
+                    t2    = t2 - fz;
+                    TOUCH_REG2(t2, dist);
+                    if (t2 < 0) {
+                        t2 = -t2;
+                    }
+                    dist += t2;
+                }
+                if (dist < minDist) {
+                    func_800E0FEC(rec, (GpDeltaScratch*)block, 1, pidx);
+                    idx = func_800E1ACC((u8*)pidx);
+                    {
+                        GameSession* session = Game_Session;
+                        if (Gp_RoomParamTables[session->field_7 - 1][session->field_6 - 1][idx]->field_2 != 0) {
+                            minDist = dist;
+                            bestIdx = i;
+                        }
+                    }
+                }
+            }
+            i++;
+            rec++;
+        } while (i < 6);
+        if (minDist != 0x7FFFFFFF) {
+            i                = 1;
+            picked           = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
+            block->sub       = 0;
+            block->flg       = i;
+            block->t[0]      = picked->field_8;
+            block->t[1]      = picked->field_A;
+            block->t[2]      = picked->field_C;
+            block->offset.vx = rand() & 7;
+            block->offset.vy = rand() & 7;
+            block->offset.vz = rand() & 7;
+            if (arg2 != 0) {
+                arg2->workm.t[0] = block->t[0] + block->offset.vx;
+                arg2->workm.t[1] = block->t[1] + block->offset.vy;
+                arg2->workm.t[2] = block->t[2] + block->offset.vz;
+            }
+            Gp_SpawnEff(0x6003B, (GsCOORDINATE2*)&block->flg, 0, &block->offset);
+        } else {
+            i = 0;
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x68;
+        return i;
+    }
+    return 0;
+}
 
 void func_actor_800100_80166DD0(GpActorWork* arg0)
 {

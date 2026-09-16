@@ -106118,3 +106118,45 @@ short-lived variable is the one the `addiu` lands in. Address the post-call read
 through the raw pointer and the pre-call GTE arguments through the typed view and
 the ROM's `$s2`/`$a3` split falls out; naming `blk` in the reads keeps it live
 across the `jal` and the copy disappears with it.
+
+## A hard-register pin on the walking pointer suppresses loop.c's address givs
+
+`func_actor_800100_80166B40` is `Gp_PickNearestRec18` minus its `Wip_SysConfig`
+tail: `do { ... rec->field_4/8/A/C ... rec++; } while (i < 6)`. Written
+unpinned the score stops at 83.7% with `regs=54 insert=14 delete=10`, and the
+`.loop` dump shows why:
+
+```
+Insn 68: dest address src reg 89 benefit 2 used 1 lifetime 1 replaceable mult 1 add 4
+Insn 80: ... add 8        Insn 91: ... add 10        Insn 127: ... add 12
+Cannot eliminate biv 89: biv used in insn 164.
+giv at 91 combined with giv at 127   (and 80, 68)
+giv at 127 reduced to (reg:SI 195)
+```
+
+loop.c combines the four `rec + {4,8,A,C}` address givs into one new register,
+`r195 = rec + 0xC`, and expresses the field loads off it with **negative**
+offsets (`lh v1,-4(s2)` for `rec->field_8`) — a second induction variable, an
+extra `addiu` per iteration, and one register too few, so the incoming `arg0`
+(the pointer `picked = bestIdx*0x18 + arg0` needs at the end) is spilled to
+`0x40(sp)` and reloaded twice. All nine caller-saved registers `$s0-$s7`/`$fp`
+were already spoken for by the loop's live values.
+
+Pinning the pointer makes the biv a *hard register* and the combination never
+happens — the loads stay `rec + disp`, there is one `addiu s2,s2,0x18`, and
+`arg0` reaches `$fp`:
+
+```c
+register GpRec18* rec asm("s2");
+```
+
+Measured on the same source, one variable at a time: no pins 83.7%, all pins
+except `rec` 91.9%, all pins except the loop-body `dx`/`t2`/`fz` pins 98.2%,
+all pins except `scratch`/`p` 97.4%, all pins 100.000%. Every pin is
+load-bearing, and the `rec` one is worth 8 points and the two extra
+instructions on its own.
+
+Look at `.i.loop` before reaching for the allocation tools when a loop over a
+walking pointer has an `insert`/`delete` penalty: a giv that got its own
+register is a *structural* difference (extra increment, extra reload), not an
+allocation one, and pinning the pointer is one line.
