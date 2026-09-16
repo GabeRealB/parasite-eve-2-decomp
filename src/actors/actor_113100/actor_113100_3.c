@@ -77,6 +77,48 @@ void func_actor_113100_8013301C(Task* arg0)
     work->field_532++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100_3", func_actor_113100_801330E8);
+void func_actor_113100_801330E8(Task* arg0)
+{
+    Actor113100Work*      work;
+    Actor113100MatWords*  words;
+    GsCOORDINATE2*        coord;
+    SVECTOR               vec;
+    Actor113100AnimPreset preset;
+    s32                   vy;
+    s16                   diff;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = (Actor113100Work*)arg0->idMap;
+
+    Gp_ExtractEuler(&vec, &coord->coord);
+    diff = (u16)work->field_52A - (u16)vec.vy;
+    if (ABS(diff) >= 0x41) {
+        vy = vec.vy;
+        if (diff < 0) {
+            vec.vy = vy - 0x40;
+        } else {
+            vec.vy = vy + 0x40;
+        }
+    } else {
+        vec.vy          = work->field_52A;
+        preset.field_0  = 0;
+        preset.field_4  = work->field_477;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_113100_801331E8(arg0, 0x7D3, &preset, 0);
+        work->field_530 = 0;
+        work->field_532 = 0;
+    }
+
+    words          = (Actor113100MatWords*)&coord->coord;
+    words->m00_m01 = ONE;
+    words->m02_m10 = 0;
+    words->m11_m12 = ONE;
+    words->m20_m21 = 0;
+    words->m22     = ONE;
+    RotMatrix(&vec, &coord->coord);
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100_3", func_actor_113100_801331E8);
