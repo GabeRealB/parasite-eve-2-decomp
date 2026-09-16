@@ -21,10 +21,13 @@
 /// halfwords at 0x898..0x8A2 are the same animation-state slots
 /// `Actor01900_Fn0A7C0` writes; `func_actor_401800_8013E194` is that body.
 typedef struct Actor401800Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ s16  field_2;
-    /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[0x54];
+    /* 0x000 */ s16 field_0;
+    /* 0x002 */ s16 field_2;
+    /* 0x004 */ s16 field_4;
+    /// Step counter `func_actor_401800_8013E4F0` resets to 0 and bumps once a
+    /// frame; the same slot `Actor104000Work.field_6` counts in.
+    /* 0x006 */ u16  field_6;
+    /* 0x008 */ byte pad_8[0x52];
     /* 0x05A */ u16  field_5A;
     /* 0x05C */ byte pad_5C[0xC];
     /* 0x068 */ u16  field_68;
@@ -92,5 +95,6 @@ void func_actor_401800_8013E23C(Actor401800* arg0);
 void func_actor_401800_8013E2E8(Actor401800* arg0);
 void func_actor_401800_8013E394(Actor401800* arg0);
 void func_actor_401800_8013E44C(Actor401800* arg0);
+void func_actor_401800_8013E4F0(Actor401800* arg0);
 
 #endif // ACTOR_401800_H
