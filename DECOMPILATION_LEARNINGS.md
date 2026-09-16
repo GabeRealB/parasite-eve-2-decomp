@@ -7065,6 +7065,26 @@ compiler's tables at exactly the offsets the migrated block occupied — the
 `INCLUDE_ASM`/`INCLUDE_RODATA` order in the file already encodes the layout and
 needs no hand-editing.
 
+**The failure signature is a link error naming the other unit's `.rodata`.** A
+function that scores 100% in the scratch still fails to link when the cut over
+its compiler-generated table names a different unit: the owning unit's `.rodata`
+keeps the extracted table as an `INCLUDE_RODATA`, whose `.word .L<seg>_<addr>`
+entries point at case labels that only ever existed in the `INCLUDE_ASM` the C
+body just replaced. The error names both the file and the label —
+`neo_ark_substation_2.c.o:(.rodata+0x0): undefined reference to
+'.Lneo_ark_substation_8017D8B4'` — so the unit in the object's name is the one
+to compare the cut against. `tools/rodata_triage.py` does not catch this: it
+reported `1 unmatched functions / Free to match: 1` for the overlay throughout.
+
+**Hand the run after the table back with a second cut.** A cut at the table's
+offset gives the incoming unit the table *and every symbol after it*, so a
+following `D_` run that a third unit references would move with it and land at
+the wrong address. `neo_ark_substation` needed two entries —
+`rodata = [{ start = "0x2C", unit = "neo_ark_substation_3" },
+{ start = "0x48", unit = "neo_ark_substation_2" }]` — the 7-word table to the
+unit whose function generates it, and the 2-word `D_8017D608` back to the unit
+whose `.c` carries its `INCLUDE_RODATA`.
+
 **A `units` cut that moves matched bodies into a new file loses the prototypes
 their earlier definitions supplied.** When `actor_400600` gained
 `units = ["0x5188"]` with `rodata = [{ start = "0x1B4", unit = "actor_400600_2" }]`

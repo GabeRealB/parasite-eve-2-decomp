@@ -40,6 +40,4 @@ void func_neo_ark_substation_8017D814(void)
 {
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_substation/neo_ark_substation_2", jtbl_neo_ark_substation_8017D5EC);
-
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_substation/neo_ark_substation_2", D_neo_ark_substation_8017D608);
