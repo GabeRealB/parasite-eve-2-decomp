@@ -101053,3 +101053,44 @@ the last function whose rodata precedes them). Function-pointer tables are
 program structure, so this is allowed; a global `const TaskFuncTableN` is
 `.align 2`, so it needs no cut of its own. Add prototypes for any handler it
 names that is defined later in the file.
+
+## `switch` + `field = 1` reuses the comparison's constant only when the arm is in the same cse EBB
+
+The `record_jump_equiv` sharing described in the `if (f() == K) { x = K; }`
+section above also applies to a `switch`: `case 0: actor->field_960 = 1;` after
+`switch (state)` is emitted as `sh $v0, 0x960($a2)` when `$v0` is the register
+`case 1`'s comparison materialised — one SImode constant-1 pseudo serves the
+comparison and the store (the store's RTL is
+`(set (mem:HI …) (subreg:HI (reg:SI C) 0))`), which is what the matched sibling
+`func_actor_800100_80165C38` does.
+
+It does *not* happen automatically. CSE folds a narrow constant into the wider
+one only if the wider constant's defining insn was scanned earlier **in the same
+extended basic block**. `cse_end_of_basic_block` follows a branch whose target
+label has `LABEL_NUSES == 1` and is preceded by a BARRIER, and
+`cse_basic_block` then processes the target before the insns that follow the
+branch. `expand_end_case` emits the comparison chain *before* the first case
+body, and for two case values `{0, 1}` its root is `== 0` — so the tree is
+`[zext state][beqz → case 0][const 1][beq → case 1][j]` and following the
+`beqz` skips the constant's definition. The case-0 body then gets its own
+HImode constant (`(set (reg:HI 86) (const_int 1))`) and no later pass folds it
+(`insn.py <uid>` walks it unchanged through every dump). A three-case switch
+(roots at the middle value, like `actor_800100`'s `{0,1,2}`) puts the constant
+before the first followed branch and shares it.
+
+Consequence beyond one instruction: the unshared constant can be merged with a
+*second* `= 1` further down (e.g. a shared `field_D0 = 1` tail), and on the arm
+where `state == 1` was proven, `record_jump_equiv` ties `state ≡ const`, after
+which `fold_rtx` canonicalises that tail's store to
+`(subreg:QI (reg:SI <extended state>) 0)`. The zero-extended switch value then
+lives across the call and has to be callee-saved, which pushes the argument
+register up a slot and adds a save/restore — `func_actor_800200_80163A54` sat
+at 86.4% (13/13 blocks, calls matching, two extra frame insns) with
+`Register 129 used 4 times across 30 insns; crosses 1 call` in `.lreg` as the
+tell. Reading the store back to a value that is *not* the compared register
+(`d4->field_D0 = actor->field_960;`) restores `predicates_match=True` and the
+target's `bnez`, at the cost of one load.
+
+Symptoms to look for: a `sh`/`sb` in one arm using a fresh `li` where the
+matched neighbour uses an existing register, plus a `.lreg` line whose live
+range "crosses N calls" only because a constant was canonicalised into it.
