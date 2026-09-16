@@ -105329,3 +105329,48 @@ Inputs: `base_9.i` SHA256 `9658585ffff25663ba132d2214d0128c0a68e1587acb488891565
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Evidence: `tools/permuter_findings/func_actor_401000_80135AA4/`, session
 `LEARNINGS.md` in the scratch directory, `/tmp/gcc-obs-35aa4` (tracer events).
+
+## Every long-lived register wrong by one: a reused local the source wrote once (func_actor_800100_80163214, 2026-09-16)
+
+**Symptom:** the register allocation is a *rotation* of the target's - the same
+values, each one callee-saved register away from where the oracle has it
+(`obj` in `$s0` and `coord` in `$s1` instead of the other way round), with a
+large `regs` penalty and no structural difference.
+
+**Cause:** `local-alloc` allocates a basic block's call-crossing quantities in
+`n_refs / span` order, and three separate `GpObj*` locals (`obj`, `obj2`,
+`obj3`) have a much higher ratio than the values around them. They take the
+lowest callee-saved registers, everything else shifts up by one, and the spill
+that follows changes the frame size. The oracle reused **one** `obj` variable
+for all three render nodes, so only one quantity competes.
+
+**Fix:** collapse sequentially-used pointers into the single variable the
+original source had. Here the three pointers became one `obj` and the score went
+95.18% -> 97.78% (regs 79 -> 10, frame `-0x40` -> `-0x38`). The already-matched
+siblings in the same family (`func_actor_800200_80162088`,
+`func_actor_800300_80161E80`) had the answer in their source all along: copy the
+*source shape*, not just the statements, from a matched sibling.
+
+Related, same function: an `s32 temp;` declared **inside** each object's block
+(also the sibling's form) rather than once at function scope removed the ties in
+the three `temp | packed | 0x80` chains and took `regs` from 24 to 10 by itself.
+
+## The same literal stored twice: one shared constant pseudo, one register (func_actor_800100_80163214, 2026-09-16)
+
+**Symptom:** the oracle materialises `0x14` twice (`li $v0,0x14` at each store)
+while the C source produces a single `li $s5,0x14` hoisted to the top of the
+function, in a callee-saved register.
+
+**Cause:** `actor->field_938 = 0x14;` and `obj2->flags = 0x14;` are both HImode
+stores of 20, so cse gives them one shared pseudo. It lives across ~90
+instructions and therefore has to be callee-saved, where the oracle
+rematerialises the constant at both sites.
+
+**Fix:** make one of the two sites an SImode value so cse cannot equate it with
+the HImode constant: `{ s32 f = 0x14; obj2->flags = f; }` gives two independent
+`li`s. A standalone cc1 test confirms the rule - an SI-typed value at one site
+plus a literal at the other emits two `li`s, while two literals, or two uses of
+the same variable, emit one. The same applies to a `| 0x10000 | 0x80` chain:
+`temp | packed | 0x80` with `packed` assigned per block folds to
+`lui $v1,1 / ori $v1,$v1,0x80 / or`, while `packed = 0x10000;` assigned once
+outside the blocks keeps the oracle's `lui $s0,1 / or / ori $v0,$v0,0x80`.
