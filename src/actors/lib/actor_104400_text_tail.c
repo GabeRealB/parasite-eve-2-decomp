@@ -236,7 +236,47 @@ void Actor04400_Fn048A0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn04A3C);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn04BA8);
+/// Same body as `ActorsShared80167cdc`, which this overlay cannot join: its
+/// whole `.text` is already one shared span.
+///
+/// Counts the frame and decays `field_78` by a thirty-second towards 0. On the
+/// first frame plays sound 0x402C0009 (bank from the enemy's `field_8` high
+/// nibble) panned and attenuated from the model root. Every frame, pushes the
+/// root 0x50 back against the heading `field_7A`. Once the root passes above
+/// y = 0 it is pinned at -0x3C, the frame counter clears and the state
+/// advances.
+void Actor04400_Fn04BA8(Task* arg0)
+{
+    Actor104400Work* work;
+    GsCOORDINATE2*   coord;
+    s32              soundId;
+    s32              pan;
+    s16              angle;
+    s16              speed;
+
+    work  = (Actor104400Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_412++;
+    work->field_78 += -work->field_78 >> 5;
+    if ((s16)work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    speed                                           = -0x50;
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    coord->coord.t[1]                              += work->field_42A;
+    work->field_428                                += 4;
+    work->field_42A                                += work->field_428;
+    if (coord->coord.t[1] > 0) {
+        coord->coord.t[1] = -0x3C;
+        work->field_412   = 0;
+        work->field_420++;
+    }
+}
 
 /// Same body as `ActorsShared80167e78` at this overlay's own address. This
 /// overlay's whole `.text` is already one shared span, so it cannot join that
