@@ -131,6 +131,21 @@ typedef union Actor401300Event {
     u16 w[2];
 } Actor401300Event;
 
+/// Height-clamp row `func_actor_401300_80132BE4` scans: `field_0` / `field_2`
+/// are matched against `GameSessionFrom4::field_3` / `field_2`, and when a row
+/// matches the coordinate's Y is clamped to [`lo`, `hi`]. Same shape as
+/// `Actor01900HeightClamp`.
+typedef struct Actor401300HeightClamp {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  lo;
+    /* 0x6 */ s16  hi;
+    /* 0x8 */ byte pad_8[8];
+} Actor401300HeightClamp;
+STATIC_ASSERT_SIZEOF(Actor401300HeightClamp, 0x10);
+
+extern Actor401300HeightClamp D_actor_401300_801589C8[];
+
 /// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
 /// event writes into `GpEnemy::field_40`. Declared as an array: a scalar lets
 /// the scheduler hoist its load above the preceding store.
