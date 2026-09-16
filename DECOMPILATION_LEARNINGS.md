@@ -85182,3 +85182,35 @@ difference; the source change and the 99.184% -> 100% result are reproducible.
 Inputs: `base.c` 99.082% (`regs=9`), `base_1.c` 99.184% (`regs=8`),
 `base_2.c` 100.000%, zero penalties. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## An m2c seed needing only declarations is already the answer, and two literal `1`s across a call share one `$s0` (func_mine_gorge_8017D828, 2026-09-16)
+
+`func_mine_gorge_8017D828` matched 100.000% with zero penalties on the *first
+scoring build* of its m2c seed. The only edits were filling in m2c's `?`
+placeholders - `void Gp_ClearCollectedBit(s32 arg0);` and plain `extern s32`
+data declarations - so the branch shape m2c recovered was already exact and the
+"write it from the asm first" instinct would only have added risk. Give the
+minimal-edit baseline its score before rewriting anything.
+
+The one codegen detail worth knowing is how the reused constant comes out. The
+target materialises `1` once and stores it twice with a call in between:
+
+```
+li    s0,1
+jal   SetDispMask
+sb    s0,%lo(D_80115768)(v0)     # D_80115768 = 1
+...
+jal   func_800E8634
+sb    s0,0x68(v0)                # Game_Session->field_68 = 1
+```
+
+The source that produces it writes `= 1` twice, plainly, with the call still in
+between: no shared temp, no pin. CSE gives the constant a quantity, and the
+allocator parks it in a *callee-saved* register across the call rather than
+re-materialising it at the second store. So a `$s0` that looks like a program
+variable feeding two byte stores is a shared constant - do not add a `register`
+pin to reproduce it and do not introduce a temp to "share" it.
+
+Inputs: `base.c` 100.000% (zero penalties), unmodified apart from the two
+declaration edits. Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
