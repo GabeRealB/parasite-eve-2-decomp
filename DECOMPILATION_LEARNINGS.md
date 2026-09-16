@@ -99155,3 +99155,76 @@ Inputs: `base_2.i` (99.348%, nested) SHA256
 target SHA256 `8164ce6714022f1130ef12a98fba523bbddbd662052aa50ca51bf4bcdc637c38`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn0875C-vacuum`.
+
+## A merge-block flag copy is a global allocno until every edge reaches it; cse then bypasses the redundant edge and reorg fills the delay slot (Actor00400_Fn09124, 2026-09-16)
+
+`Actor00400_Fn09124` is one register from the target at 99.717%: `regs=3` and
+every other penalty zero, the object differing only in the two copies that
+carry the "we just armed the state" flag. The target has
+
+```
+bnez    v0,<tail>
+addu    v0,a0,zero      <- flag = active, in the branch delay slot
+...
+tail: addu v0,a0,zero   <- the same copy, at the merge
+      bnez v0,<epilogue>
+```
+
+and the seed's branch-slot copy came out in `$v1`. `global.c` decides that, and
+the cause is not the flag's own liveness: `local-alloc` homed bb1's temporaries
+(the range test's `lhu`/`addiu`/`sltiu` results, one block-local quantity) in
+`$v0`, and `global_conflicts` treats a pseudo local-alloc has already
+renumbered as a hard register - `mark_reg_store` -> `record_one_conflict (2)` -
+so the flag, whose def sits between the `lhu` and the `addiu` in sched1's
+chain, collects `hard_reg_conflicts |= {$v0}` and `find_reg` hands it `$v1`.
+The `.greg` dump says it outright: `;; 85 conflicts: 80 81 85 2 29`, and a
+block-local quantity stored while a global is live is the only way a *hard*
+register gets into that set.
+
+**Lever.** Give the merge-block copy every edge, so the flag's only live def is
+the copy:
+
+```c
+    work   = arg0->field_1C;
+    active = 0;
+    if (work->field_640 >= 0xDAC) {
+        goto set;               /* the seed had this goto inside the oob body */
+    }
+    done = 0;
+    if ((u32)(work->field_634 - 0x600) >= 0x400U) { ...; active = 1; ... }
+set:
+    done = active;
+    if (done == 0) { ... }
+```
+
+The in-range edge now arrives at `set` with `done == 0` already true, so `cse`
+proves the copy redundant on that edge and redirects the branch past it (which
+is why the object is unchanged up there), `flow` then deletes the `done = 0`
+store as dead, and the flag stops being an allocno at all: `.greg` goes from
+`4 regs to allocate: 85 84 81 80` to `3 regs to allocate: 81 84 80`, and
+local-alloc homes the flag in `$v0` by itself. The delay slot then fills
+itself: `reorg` copies the merge `move` into the branch slot because the flag
+is dead on the fall-through path, and the `.dbr` dump shows the slot's uid is
+the *same* insn as the merge copy - the target's two `move v0,a0` are one move
+in the RTL. Removing just the dead `done = 0` store breaks it (94.9%,
+`branch=5 insert=0 delete=2`), which is the evidence that the store's job is
+the cse knowledge and not the value; moving that store into the entry block
+still matches.
+
+**The general lesson.** When a copy at a merge point lands in the wrong
+register, check whether it is the *only* def of its pseudo. If an earlier def
+exists, the pseudo is an allocno, and the block-local quantities of the
+intervening blocks - which local-alloc has already given the call-clobbered
+registers to, `$v0` first - will hard-conflict it out of exactly those
+registers. Making every edge reach the merge copy turns the pseudo into a
+block-local quantity instead, and reorg duplicates it back into the delay
+slots for free.
+
+Inputs: `base.i` (99.717%) SHA256
+`da9ced1d7a16746f4f2334e92cfe4513f725592c04c842f23ad45b28cd1f511d`; `base_6.i`
+(100%) SHA256 `7d75034b94ef545404c158820d9939cb1b7ff63d57f8898088ca08a32b179803`;
+`base_8.i` (100%, dead store moved to the entry block) SHA256
+`62f4e3763c890786a9b8ab5f2367e3ea89700a8f45615e1898318783c73f8a2f`; target.o
+SHA256 `580bf3d944f4f5101d1328ced5e67b487b51a47ad906ca48dce07587bd485923`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn09124-vacuum`.

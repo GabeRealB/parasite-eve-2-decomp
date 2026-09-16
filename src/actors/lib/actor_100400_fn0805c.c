@@ -5,6 +5,7 @@
 #include "main/task.h"
 
 extern u32 Gp_LcgState;
+extern u8  D_801153F2[2];
 
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
@@ -27,6 +28,7 @@ void       func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 s32        func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 void       Gp_ClearRec18Occupied(GpRec18* arg0);
 void       Gp_SetLightMode(Actor100400Obj* arg0, s32 arg1);
+void       Gp_ArmStateF0(s32 active);
 void       Actor00400_Fn0237C(Actor100400* arg0);
 void       Actor00400_Fn02FF8(Actor100400* arg0);
 void       Gp_IncStateF0Ref(s32 arg0);
@@ -469,7 +471,47 @@ void Actor00400_Fn090B4(Actor100400* arg0)
     state2->field_63A            = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09124);
+/// Every path out of the range test funnels through `set`, where the arm flag
+/// is copied for the test below: the in-range edge arrives with the same value
+/// (0), so the copy is redundant there and cse drops it, which leaves `done`
+/// defined only here - and reorg then fills the branch's delay slot with a copy
+/// of that one move.
+void Actor00400_Fn09124(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* state;
+    Actor100400Work* state2;
+    s32              active;
+    s32              done;
+
+    work   = arg0->field_1C;
+    active = 0;
+    if (work->field_640 >= 0xDAC) {
+        goto set;
+    }
+    done = 0;
+    if ((u32)(work->field_634 - 0x600) >= 0x400U) {
+        D_801153F2[1] = 1;
+        Gp_ArmStateF0(1);
+        active           = 1;
+        state            = arg0->field_1C;
+        state->field_638 = 2;
+        state->field_63A = 0;
+    }
+set:
+    done = active;
+    if (done == 0) {
+        if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
+            Gp_ArmStateF0(1);
+            return;
+        }
+        if (work->field_642 != 0) {
+            state2            = arg0->field_1C;
+            state2->field_638 = 2;
+            state2->field_63A = 0;
+        }
+    }
+}
 
 void Actor00400_Fn091F8(Actor100400* arg0)
 {
