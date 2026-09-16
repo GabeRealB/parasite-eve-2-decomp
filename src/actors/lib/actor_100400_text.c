@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_100400.h"
+#include "actors/coord_to_view.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -251,7 +252,74 @@ void Actor00400_Fn012B0(Actor100400* arg0, s16 arg1, s32 arg2)
     Actor00400_Fn00E3C(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn01454);
+/* Tracks the nearer of the two party members and stores the result in the
+   actor's work block.
+
+   `field_54C`..`field_550` snapshot the actor's own root translation. The
+   second coordinate of the model (`coord[1]`) is taken into view space and
+   each slot's root translation measured against it; the closer of the two
+   lands in `field_5E4` with its XZ distance in `field_640`. The chosen
+   offset is then normalised and turned into a yaw relative to the actor's
+   own heading (`field_556`) in `field_634`. */
+void Actor00400_Fn01454(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   c0;
+    GsCOORDINATE2*   c1;
+    GpActorWork*     player;
+    GsCOORDINATE2*   joint;
+    SVECTOR          delta0;
+    SVECTOR          delta1;
+    SVECTOR          view;
+    s32              dist0;
+    s32              dist1;
+
+    work            = arg0->field_1C;
+    coord           = arg0->field_2C->field_8;
+    player          = Gp_ActorSlots[0];
+    joint           = &coord[1];
+    work->field_54C = coord->coord.t[0];
+    work->field_54E = coord->coord.t[1];
+    work->field_550 = coord->coord.t[2];
+    if (player != NULL) {
+        c0      = player->extra->field_8;
+        view.vx = 0;
+        view.vy = 0;
+        view.vz = 0;
+        ActorCoordToView(joint, &view);
+        delta0.vx = c0->coord.t[0] - view.vx;
+        delta0.vy = c0->coord.t[1] - view.vy;
+        delta0.vz = c0->coord.t[2] - view.vz;
+        dist0     = SquareRoot0(delta0.vx * delta0.vx + delta0.vz * delta0.vz);
+        if (Gp_ActorSlots[1] == NULL) {
+            work->field_5E4.vx = c0->coord.t[0];
+            work->field_5E4.vy = c0->coord.t[1];
+            work->field_5E4.vz = c0->coord.t[2];
+            work->field_640    = dist0;
+        } else {
+            c1        = Gp_ActorSlots[1]->extra->field_8;
+            delta1.vx = c1->coord.t[0] - view.vx;
+            delta1.vy = c1->coord.t[1] - view.vy;
+            delta1.vz = c1->coord.t[2] - view.vz;
+            dist1     = SquareRoot0(delta1.vx * delta1.vx + delta1.vz * delta1.vz);
+            if (dist1 < dist0) {
+                work->field_5E4.vx = c1->coord.t[0];
+                work->field_5E4.vy = c1->coord.t[1];
+                work->field_5E4.vz = c1->coord.t[2];
+                delta0             = delta1;
+                dist0              = dist1;
+            } else {
+                work->field_5E4.vx = c0->coord.t[0];
+                work->field_5E4.vy = c0->coord.t[1];
+                work->field_5E4.vz = c0->coord.t[2];
+            }
+            work->field_640 = dist0;
+        }
+        VectorNormalSS(&delta0, &delta0);
+        work->field_634 = (ratan2(delta0.vx, delta0.vz) - work->field_556) & 0xFFF;
+    }
+}
 
 /* Re-aims the two upper body coordinates at the target yaw held in
    `field_546` and folds the result back into the model root.
