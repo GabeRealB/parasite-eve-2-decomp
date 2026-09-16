@@ -2,10 +2,12 @@
 
 #include "actors/actor_100400.h"
 #include "main/gameflag.h"
+#include "main/mem.h"
 #include "main/task.h"
 
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
+extern u8  D_801153F4;
 void       Gp_ArmStateF0(s32 active);
 extern s32 D_80115738;
 
@@ -37,6 +39,8 @@ void       Actor00400_Fn02FF8(Actor100400* arg0);
 void       Gp_IncStateF0Ref(s32 arg0);
 s32        Gp_GetObjPan(GsCOORDINATE2* arg0);
 s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
+void       Gp_UpdateActorColor(Actor100400Obj* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void       Gp_SetObjTrans(Actor100400Ctx* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32        SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void       Gp_AnimTickIndex(Actor100400Work* arg0, s32 arg1);
 void       Actor00400_Fn085B8(Actor100400* arg0);
@@ -87,6 +91,7 @@ void       func_8004BFF8(s32 angle, MATRIX* matrix);
 extern GsCOORDINATE2    Gfx_ViewCoord;
 extern MATRIX           Gfx_ViewWorldMtx;
 extern TaskFuncTable3   Actor00400_D0002C;
+extern TaskFuncTable10  Actor00400_D000D0;
 extern TaskFuncTable4   Actor00400_D00134;
 extern TaskFuncTable3   Actor00400_D00144;
 extern TaskFuncTable3   Actor00400_D00150;
@@ -917,7 +922,60 @@ void Actor00400_Fn04A1C(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04B48);
+/// Colours the actor from the second attach coordinate of its model through a
+/// 0x10-byte `VECTOR` taken off `G_SCRATCH_HEAD`, then hides the root
+/// coordinate while `field_65F` is set.
+static __inline__ void Actor00400_UpdateColor(Actor100400* arg0, GsCOORDINATE2* coord,
+                                              Actor100400Work* work, Actor100400Ctx* ctx)
+{
+    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+
+    block->vx                 = coord->workm.t[0];
+    block->vy                 = coord->workm.t[1];
+    block->vz                 = coord->workm.t[2];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    Gp_UpdateActorColor(arg0->field_20, block, 0, 0);
+    if (work->field_65F != 0) {
+        Gp_SetObjTrans(ctx, 0, 0, 0);
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Per-frame callback for the main actor task. `D_801153F4` gates the frame:
+/// 2 only flags the model hidden, 0 runs this frame's state handler before
+/// falling through to the draw half, and 1 is the draw half on its own.
+void Actor00400_Fn04B48(Actor100400* arg0)
+{
+    TaskFuncTable10  fns;
+    Actor100400Work* work;
+    Actor100400Ctx*  ctx;
+    Actor100400Ctx*  ctx2;
+    Actor100400Work* work2;
+    GsCOORDINATE2*   coord;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_2C;
+    fns  = Actor00400_D000D0;
+    switch (D_801153F4) {
+        case 2:
+            ctx->field_C |= 0x80;
+            break;
+        case 0:
+            if (work->field_663 != 0) {
+                break;
+            }
+            fns.funcs[work->field_638]((Task*)arg0);
+            work->flags_62C.half = work->field_4C;
+            /* fallthrough */
+        case 1:
+            ctx2  = arg0->field_2C;
+            work2 = arg0->field_1C;
+            coord = &ctx2->field_8[1];
+            Actor00400_UpdateColor(arg0, coord, work2, ctx2);
+            Actor00400_Fn012B0(arg0, arg0->field_2C->field_8->coord.t[1], (u8)work->field_648);
+            break;
+    }
+}
 
 void Actor00400_Fn04CF8(Actor100400* arg0)
 {

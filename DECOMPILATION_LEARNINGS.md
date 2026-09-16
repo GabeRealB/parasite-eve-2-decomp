@@ -67987,6 +67987,14 @@ register-based in the ones that carve the frame in line. If the target loads or
 stores against a fixed address and your attempt materialises the address,
 move the accesses into a `static __inline__`.
 
+Declaring an `extern` variable at the address instead is a third shape, not a
+fix: with split addresses on, GCC emits `lui $s3,%hi(sym)` once and reuses
+`%lo(sym)($s3)` at every access, so a callee-saved register is still burned and
+the `lui` is no longer rematerialised per access. `Actor00400_Fn04B48` walked
+all three - 88.4% open-coded (`lui`/`ori` pseudo), 90.1% through an
+`extern u8* D_1F8003FC` (`%hi`/`%lo` split), 100% with the same statements moved
+verbatim into a `static __inline__` helper.
+
 ## `lui %hi(sym)` + `addiu %lo(sym)` + `lh x,OFF(reg)` means a pointer local
 
 Three instructions for one member read - the symbol address built into a

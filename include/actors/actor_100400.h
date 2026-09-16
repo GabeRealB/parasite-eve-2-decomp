@@ -95,7 +95,9 @@ typedef struct Actor100400Work {
     /* 0x000 */ byte               pad_0[8];
     /* 0x008 */ byte               field_8[0xC];
     /* 0x014 */ byte               field_14[0x14];
-    /* 0x028 */ byte               pad_28[0x244];
+    /* 0x028 */ byte               pad_28[0x24];
+    /* 0x04C */ u16                field_4C;
+    /* 0x04E */ byte               pad_4E[0x21E];
     /* 0x26C */ byte               field_26C[0xF0];
     /* 0x35C */ GpObj              obj_35C;
     /* 0x37C */ GpObj              obj_37C;
@@ -164,10 +166,11 @@ typedef struct Actor100400Work {
     /* 0x65C */ byte               pad_65C[1];
     /* 0x65D */ u8                 field_65D;
     /* 0x65E */ u8                 field_65E;
-    /* 0x65F */ byte               pad_65F[1];
+    /* 0x65F */ u8                 field_65F;
     /* 0x660 */ u8                 field_660;
     /* 0x661 */ u8                 field_661;
-    /* 0x662 */ byte               pad_662[2];
+    /* 0x662 */ byte               pad_662[1];
+    /* 0x663 */ u8                 field_663;
     /* 0x664 */ u8                 field_664;
     /* 0x665 */ s8                 field_665;
     /* 0x666 */ u8                 field_666;
