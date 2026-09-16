@@ -44487,7 +44487,16 @@ The fix costs **zero instructions**, which is exactly why the wrong-arity seed
 sits at 99.78% instead of failing outright — `move s0,a0` happens either way and
 the `$a0` argument setup is empty in both forms. So a `li` into `$a1` with an
 untouched `$a0` is a missing leading argument, not a scheduling or allocation
-quirk, and the penalty label (`regs`) says nothing about it. These room
+quirk, and the penalty label (`regs`) says nothing about it.
+
+That label is not even stable. `func_dryfield_night_parking_lot_8017DBB0` is the
+same seed — `Game_SetPtrSlot(7)` against a real `Game_SetPtrSlot(arg0, 7)` — and
+scores 93.33% on `insert=1 delete=1` at 0 penalty otherwise, because the constant
+also *moves*: `li $a0,7` sits ahead of the `lui`/`addiu` pair in the seed and
+`li $a1,7` behind it in the target, so a scorer aligning on opcode and operands
+sees a delete plus an insert rather than a register change. A seed whose only
+defect is the arity therefore reports as a two-instruction structural difference;
+check `$a0` at the `jal` before reading the scheduler dumps. These room
 `INCLUDE_ASM` seeds are the same body copied across a family, so a matched
 sibling in another overlay usually already shows the right call — here
 `func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
