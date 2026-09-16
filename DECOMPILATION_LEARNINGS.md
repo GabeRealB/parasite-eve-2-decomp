@@ -10551,6 +10551,29 @@ bare `sll`/`addu` — a `s16` field instead gets an `lh` (compare
 `func_actor_403100_8013DD78`, the same 0x2C copy off a sibling overlay's table
 at the same link address, indexed by an `lh`).
 
+**The copy's load destinations are not the call's arguments.** When the three
+words land in `$a1`/`$a2` with the table base in `$a3`, those registers still
+hold them at the `jalr`, so the call site *reads* as four arguments — m2c emits
+exactly that and a wider prototype is the wrong fix:
+
+```
+addiu a3, v0, %lo(D)     ; copy source, stays live to the call
+lw    v1, 0x0(a3)
+lw    a1, 0x4(a3)
+lw    a2, 0x8(a3)
+sw    v1, 0x10(sp)
+sw    a1, 0x14(sp)
+sw    a2, 0x18(sp)
+...
+jalr  v0                 ; a1/a2 still hold D[1]/D[2], a3 the table address
+```
+
+They are local-alloc's choice of destination registers for the multi-load, which
+is why they coincide with the argument registers; the source is the plain
+one-argument dispatch of the sibling (`func_actor_800100_80165528`) with the
+table copy above it. `func_actor_800300_80162C2C` matched at 100% written that
+way, on the first attempt after the m2c baseline.
+
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
 A byte-copy loop that increments both a counter and a destination pointer can
