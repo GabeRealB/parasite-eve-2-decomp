@@ -111708,3 +111708,43 @@ is not the fix - merging them lengthened the pseudo's live range and took
 `a09d4416393e607e020993efc8e6dd98eaee674081cc706195e9f0ed9708ac8f`, the
 `regs=6` form `base_4.i`
 `938e910d5127d87ebf085436ab7ff720acd40e7028fc5fe038690d88edf0ee1a`.
+
+## A promoted span renumbers every later unit; the .c files have to be moved by hand
+
+`overlay_dup_index.py promote` writes the shared span and the symbols, then says
+to move the body into `src/<family>/lib/`. What it does not do is the unit
+renumbering that follows: the span is carved out of the middle of the unit whose
+range contains it, so every unit *after* that point shifts up by one index while
+splat only creates the units that are missing and never rewrites one that
+exists. The tree then holds the old distribution under the new names, and the
+build fails with `can't open asm/.../actor_X_N/func_....s` - the .c for unit N
+names functions that now live in unit N+1.
+
+The recipe, run for each carrier of the promoted body:
+
+1. Work from `HEAD`, not the working tree - once the shifted files are written
+   the pre-promotion content is gone.
+2. New unit N (for every N past the span) takes old unit N-1's file whole, with
+   `actors/nonmatchings/<overlay>/<overlay>_<n>` in its `INCLUDE_ASM` paths
+   rewritten to N. Walking N downwards writes each file from a source that has
+   not been overwritten yet.
+3. The unit the span sits in splits at the span: the bodies before it stay, and
+   everything from the span's end on - a matched body as much as an `INCLUDE_ASM`
+   line - moves to N+1 with its comments. `func_actor_107000_801364D8` sits
+   exactly at the promoted body's end and moved that way.
+4. The new *last* unit's `.c` is splat's own fresh file, so it lists every
+   function there as `INCLUDE_ASM` - including any that was matched before the
+   promotion. Put those bodies back (`func_actor_107000_8013844C` was one) or
+   the body is silently lost: `INCLUDE_ASM` assembles to the same bytes, so only
+   `tools/check_lost_matches.py` in the unscoped build notices.
+5. A unit's `.c` may name a function in a forward declaration for a caller that
+   lives elsewhere; the check that catches a bad redistribution is per-unit: for
+   every unit, the `INCLUDE_ASM` names and the definitions in its `.c` must all
+   appear under `asm/<ver>/<family>/{matchings,nonmatchings}/<overlay>/<unit>/`.
+
+Done as one atomic edit, the whole promotion - `func_actor_107000_80136288` to
+`ActorsShared80136288`, both carriers, units 6-12 each - is a clean build. Done
+by editing one carrier and re-splitting, it is the same destruction `Never
+rewrite a whole .c` warns about, with the extra twist that a marker-based edit
+can take the wrong function: a search for a doc-comment line matched the
+*sibling's* comment, which deleted a matched body three functions away.
