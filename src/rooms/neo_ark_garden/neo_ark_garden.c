@@ -4,8 +4,11 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "rooms/room_common.h"
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_garden_8017D5C0);
+
+extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 
@@ -18,7 +21,23 @@ s32 func_neo_ark_garden_8017E840(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", func_neo_ark_garden_8017E848);
+s32 func_neo_ark_garden_8017E848(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    if (in->msgId != 0x21) {
+        return 1;
+    }
+    if (GameFlag_GetNibble(0xDC) != 0) {
+        return 1;
+    }
+    if (in->field_5 != 0) {
+        return 0;
+    }
+    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_RunCapCmd1(1);
+    return 0;
+}
 
 s32 func_neo_ark_garden_8017E8DC(s32 arg0, s32 arg1, s32 arg2)
 {
