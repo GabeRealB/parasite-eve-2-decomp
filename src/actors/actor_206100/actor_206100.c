@@ -190,7 +190,203 @@ void func_actor_206100_8014AF74(Task* task)
 /// join after them: written once after the `if`, the else arm's tail becomes
 /// instruction-for-instruction the case-2 tail and the jump optimiser merges
 /// the two, costing the case-2 copy of the last fifty instructions.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014B0AC);
+void func_actor_206100_8014B0AC(Task* task, u8 arg1)
+{
+    VECTOR            scale;
+    Actor206100Matrix rot;
+    Actor206100Matrix ma;
+    Actor206100Matrix mb;
+    SVECTOR           euler;
+    Actor206100Matrix mc;
+    Actor206100Work*  work;
+    GsCOORDINATE2*    base;
+    GsCOORDINATE2*    c2;
+    GsCOORDINATE2*    c3;
+    GsCOORDINATE2*    c4;
+    s32               invScale;
+
+    base = ((TmdObject*)task->extra)->field_8;
+    work = (Actor206100Work*)task->idMap;
+    c2   = &base[2];
+    c3   = &base[3];
+    c4   = &base[4];
+
+    switch (work->field_54D) {
+        case 1:
+            switch (work->field_53A) {
+                case 0:
+                    base[0].flg = 0;
+                    base[1].flg = 0;
+                    base[2].flg = 0;
+                    base[3].flg = 0;
+                    base[4].flg = 0;
+                    Gp_UpdateCoord(c4);
+                    Gp_MtxToEuler(&c2->coord, &work->field_4D8);
+                    Gp_MtxToEuler(&c3->coord, &work->field_4E0);
+                    work->field_53A = 1;
+                    work->field_53C = 0x1000;
+                    /* fallthrough */
+                case 1: {
+                    Actor206100MatrixWords* ir;
+
+                    work->field_4D8.vx = (u16)work->field_4D8.vx + ((s32) - (work->field_4D8.vx * 0x10) >> 7);
+                    work->field_4D8.vy = (u16)work->field_4D8.vy + ((s32) - (work->field_4D8.vy * 0x10) >> 7);
+                    work->field_4D8.vz = (u16)work->field_4D8.vz + ((s32) - (work->field_4D8.vz * 0x10) >> 7);
+                    work->field_4E0.vx = (u16)work->field_4E0.vx + ((s32) - (work->field_4E0.vx * 0x10) >> 7);
+                    work->field_4E0.vy = (u16)work->field_4E0.vy + ((s32) - (work->field_4E0.vy * 0x10) >> 7);
+                    work->field_4E0.vz = (u16)work->field_4E0.vz + ((s32) - (work->field_4E0.vz * 0x10) >> 7);
+                    ir                 = &rot.ident;
+                    rot.ident.m00_m01  = 0x1000;
+                    rot.ident.m02_m10  = 0;
+                    ir->m11_m12        = 0x1000;
+                    rot.ident.m20_m21  = 0;
+                    ir->m22            = 0x1000;
+                    RotMatrix(&work->field_4D8, &rot.mat);
+                    ActorsShared80132c4c(&rot.mat, &c2->coord);
+                    rot.ident.m00_m01 = 0x1000;
+                    rot.ident.m02_m10 = 0;
+                    ir->m11_m12       = 0x1000;
+                    rot.ident.m20_m21 = 0;
+                    ir->m22           = 0x1000;
+                    RotMatrix(&work->field_4E0, &rot.mat);
+                    ActorsShared80132c4c(&rot.mat, &c3->coord);
+                    if ((abs(work->field_4D8.vx) < 0x30) && (abs(work->field_4D8.vy) < 0x30) && (abs(work->field_4D8.vz) < 0x30) &&
+                        (abs(work->field_4E0.vx) < 0x30) && (abs(work->field_4E0.vy) < 0x30) && (abs(work->field_4E0.vz) < 0x30)) {
+                        work->field_53A = 2;
+                    }
+                    c2->flg = 0;
+                    c3->flg = 0;
+                    c4->flg = 0;
+                    Gp_UpdateCoord(c4);
+                    break;
+                }
+                case 2: {
+                    Actor206100MatrixWords* ia;
+                    Actor206100MatrixWords* ib;
+                    Actor206100MatrixWords* ic;
+                    Actor206100MatrixWords* ir;
+
+                    Gp_MtxToEuler(&c4->coord, &euler);
+                    work->field_53C  = (u16)work->field_53C + ((0x2AA - work->field_53C) >> 3);
+                    ia               = &ma.ident;
+                    ma.ident.m00_m01 = 0x1000;
+                    ma.ident.m02_m10 = 0;
+                    ia->m11_m12      = 0x1000;
+                    ma.ident.m20_m21 = 0;
+                    ia->m22          = 0x1000;
+                    scale.vx         = 0x1000;
+                    scale.vy         = 0x1000;
+                    scale.vz         = work->field_53C;
+                    ScaleMatrix(&ma.mat, &scale);
+                    ActorsShared80132c4c(&ma.mat, &c2->coord);
+                    ib               = &mb.ident;
+                    mb.ident.m00_m01 = 0x1000;
+                    mb.ident.m02_m10 = 0;
+                    ib->m11_m12      = 0x1000;
+                    mb.ident.m20_m21 = 0;
+                    ib->m22          = 0x1000;
+                    scale.vx         = 0x1000;
+                    scale.vy         = 0x1000;
+                    scale.vz         = 0x1000;
+                    ScaleMatrix(&mb.mat, &scale);
+                    ActorsShared80132c4c(&mb.mat, &c3->coord);
+                    ic               = &mc.ident;
+                    mc.ident.m00_m01 = 0x1000;
+                    mc.ident.m02_m10 = 0;
+                    ic->m11_m12      = 0x1000;
+                    mc.ident.m20_m21 = 0;
+                    ic->m22          = 0x1000;
+                    scale.vx         = 0x1000;
+                    scale.vy         = 0x1000;
+                    invScale         = 0x1000000 / work->field_53C;
+                    scale.vz         = invScale;
+                    ScaleMatrix(&mc.mat, &scale);
+                    ir                = &rot.ident;
+                    rot.ident.m00_m01 = 0x1000;
+                    rot.ident.m02_m10 = 0;
+                    ir->m11_m12       = 0x1000;
+                    rot.ident.m20_m21 = 0;
+                    ir->m22           = 0x1000;
+                    RotMatrix(&euler, &rot.mat);
+                    MulMatrix(&mc.mat, &rot.mat);
+                    ActorsShared80132c4c(&mc.mat, &c4->coord);
+                    base[2].flg = 0;
+                    base[3].flg = 0;
+                    base[4].flg = 0;
+                    Gp_UpdateCoord(c4);
+                    break;
+                }
+            }
+            break;
+        case 0:
+            base[0].flg = 0;
+            base[1].flg = 0;
+            base[2].flg = 0;
+            base[3].flg = 0;
+            base[4].flg = 0;
+            Gp_UpdateCoord(c4);
+            if (work->field_53C < 0xF80) {
+                Actor206100MatrixWords* ia;
+                Actor206100MatrixWords* ib;
+                Actor206100MatrixWords* ic;
+                Actor206100MatrixWords* ir;
+
+                Gp_MtxToEuler(&c4->coord, &euler);
+                work->field_53C  = (u16)work->field_53C + ((0x1000 - work->field_53C) >> 2);
+                ia               = &ma.ident;
+                ma.ident.m00_m01 = 0x1000;
+                ma.ident.m02_m10 = 0;
+                ia->m11_m12      = 0x1000;
+                ma.ident.m20_m21 = 0;
+                ia->m22          = 0x1000;
+                scale.vx         = 0x1000;
+                scale.vy         = 0x1000;
+                scale.vz         = work->field_53C;
+                ScaleMatrix(&ma.mat, &scale);
+                ActorsShared80132c4c(&ma.mat, &c2->coord);
+                ib               = &mb.ident;
+                mb.ident.m00_m01 = 0x1000;
+                mb.ident.m02_m10 = 0;
+                ib->m11_m12      = 0x1000;
+                mb.ident.m20_m21 = 0;
+                ib->m22          = 0x1000;
+                scale.vx         = 0x1000;
+                scale.vy         = 0x1000;
+                scale.vz         = 0x1000;
+                ScaleMatrix(&mb.mat, &scale);
+                ActorsShared80132c4c(&mb.mat, &c3->coord);
+                ic               = &mc.ident;
+                mc.ident.m00_m01 = 0x1000;
+                mc.ident.m02_m10 = 0;
+                ic->m11_m12      = 0x1000;
+                mc.ident.m20_m21 = 0;
+                ic->m22          = 0x1000;
+                scale.vx         = 0x1000;
+                scale.vy         = 0x1000;
+                invScale         = 0x1000000 / work->field_53C;
+                scale.vz         = invScale;
+                ScaleMatrix(&mc.mat, &scale);
+                ir                = &rot.ident;
+                rot.ident.m00_m01 = 0x1000;
+                rot.ident.m02_m10 = 0;
+                ir->m11_m12       = 0x1000;
+                rot.ident.m20_m21 = 0;
+                ir->m22           = 0x1000;
+                RotMatrix(&euler, &rot.mat);
+                MulMatrix(&mc.mat, &rot.mat);
+                ActorsShared80132c4c(&mc.mat, &c4->coord);
+                base[2].flg = 0;
+                base[3].flg = 0;
+                base[4].flg = 0;
+                Gp_UpdateCoord(c4);
+                work->field_53A = 0;
+            } else {
+                func_actor_206100_8014E228(task);
+                work->field_53A = 0;
+            }
+            break;
+    }
+}
 /// Latches the actor's position and picks the nearer of the two `Gp_ActorSlots`
 /// actors as its walk target: it stores the standing post in `field_434` /
 /// `field_438`, then measures the XZ distance to each slot from the root
