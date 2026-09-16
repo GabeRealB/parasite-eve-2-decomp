@@ -96919,3 +96919,36 @@ between the `dx` and `dz` squares, and `ret = dx + dz >= r` returned; call it as
 `if (!Inline(d, r))` with `d = &delta` written as in its caller. Statement order
 inside the helper (`dz` store before `r`) is load-bearing. Grep for an existing
 inline by this asm signature before reconstructing it.
+
+## One `sll` feeding a `sra` in both arms: hoist the shift before the branch
+
+**Symptom:** target puts the first half of an s16 sign extension in a delay slot,
+in a callee-saved register, and each arm starts with just the `sra`:
+
+```
+bltz  $v0, else          # branch on another value
+sll   $s0, $v1, 16       # delay slot, $s0 although nothing crosses a call
+    sra  $v0, $s0, 16    # then-arm
+    ...
+else:
+    sra  $v0, $s0, 16    # else-arm
+```
+
+Writing `abs(angle)` / `abs = angle` in each arm (angle an `s16`) gives the same
+shape but `sll $v0` - each arm's shift is block-local, so local-alloc ties it to
+`$v0`. The target's register means the shift pseudo lives across the branch,
+i.e. it was computed once before it. Hoisting a plain `s32 abs = angle` moves the
+`sra` out too; only the shift itself has to move:
+
+```c
+x = angle << 16;
+if (arg2 >= 0) {
+    if (abs(x >> 16) > 0x400) return 1;
+} else {
+    if (abs(x >> 16) < 0x400) return 1;
+}
+```
+
+Found on `func_actor_401300_8013267C` (99.91% -> 100%). The same function also
+needed `s16` parameters, not `s32` with casts: `(s16)arg` casts left the
+`move $s4,$a1` prologue copy after `$s3`, and `s16 arg1` alone only half-fixed it.

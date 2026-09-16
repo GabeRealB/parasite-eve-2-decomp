@@ -65,8 +65,59 @@ s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* ar
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013267C);
-s32 func_actor_401300_8013267C(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
+s32 func_actor_401300_8013267C(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
+{
+    SVECTOR  v;
+    SVECTOR  d;
+    VECTOR   e;
+    Task*    player;
+    s16      angle;
+    SVECTOR* pv;
+    s32      x;
+
+    player = Game_GetPtrSlot(3);
+    d.vx   = ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_18 - ((GpCoordXZ*)coord)->field_18;
+    d.vy   = (u16)((TmdObject*)player->extra)->field_8->coord.t[1] - (u16)coord->coord.t[1];
+    d.vz   = ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_20 - ((GpCoordXZ*)coord)->field_20;
+    angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    x = angle << 16;
+    if (arg2 >= 0) {
+        if (abs(x >> 16) > 0x400) {
+            return 1;
+        }
+    } else {
+        if (abs(x >> 16) < 0x400) {
+            return 1;
+        }
+    }
+    Gfx_MatrixCol2(&coord->coord, &v);
+    pv = &v;
+    VectorNormalSS(pv, pv);
+    gte_lddp(arg2);
+    gte_ldsv(pv);
+    gte_gpf12_real();
+    gte_stsv(pv);
+    v.vx += (u16)coord->coord.t[0];
+    v.vy += (u16)coord->coord.t[1];
+    v.vz += (u16)coord->coord.t[2];
+    e.vx  = ((TmdObject*)player->extra)->field_8->coord.t[0] - v.vx;
+    e.vy  = ((TmdObject*)player->extra)->field_8->coord.t[1] - v.vy;
+    e.vz  = ((TmdObject*)player->extra)->field_8->coord.t[2] - v.vz;
+    return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= arg1 + 0x96;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132910);
 
