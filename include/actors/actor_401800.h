@@ -229,6 +229,14 @@ typedef struct Actor401800 {
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
 extern GpAnimArg D_actor_401800_80155A0C;
 
+/// Twelve `SVECTOR` hit positions `func_actor_401800_801348A8` picks from by
+/// damage magnitude: the low four when the hit is light, the high two when it
+/// is heavy, and the last four on the `arg1 > 0` / `arg1 <= 0` split in
+/// between. The fourth halfword (`pad`, unused by the effect itself) is the
+/// model part index `func_800FDB18` anchors the spawned effect to. Same role
+/// `Actor00100_D1B9F4` plays for `Actor00100_Fn03340`.
+extern SVECTOR D_actor_401800_80155A20[12];
+
 /// Payload of the `0x3E9` message `func_actor_401800_80138C28` sends: the
 /// slot-3 task's root position followed by the heading `ratan2` derives from
 /// the direction to the actor. Same 0x18-byte shape the `Actor401300Work`
@@ -289,8 +297,11 @@ s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* rec, s16 count);
 /// Returns non-zero while `coord` may still travel `arg1` units of its local Z
 /// path; the result is read as a signed halfword (`func_actor_401800_80139118`),
 /// the way `func_actor_401300_8013267C` is.
-s32  func_actor_401800_80133558(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
-s32  func_actor_401800_80133918(Actor401800* arg0);
+s32 func_actor_401800_80133558(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
+s32 func_actor_401800_80133918(Actor401800* arg0);
+/// Spawns the impact effect for a hit of magnitude `arg1` on `arg0`, effect id
+/// `Gp_GetIdParam1(arg2)`. Same body `Actor00100_Fn03340` runs for actor 00100.
+void func_actor_401800_801348A8(Actor401800* arg0, s16 arg1, s32 arg2);
 s32  func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2);
 void func_actor_401800_80133EB8(Actor401800* arg0);
 void func_actor_401800_8013E0A0(Task* task);

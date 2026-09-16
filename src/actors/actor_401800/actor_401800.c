@@ -149,7 +149,75 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013423C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_801348A8);
+/// Picks one of twelve hit positions out of `D_actor_401800_80155A20` by damage
+/// magnitude `arg1`, copies it to an 8-byte scratch vector, then arms the
+/// `field_8B8` spawn record with the actor's part-1 coordinate as its anchor
+/// and hands it to `func_800FDB18` to spawn effect `Gp_GetIdParam1(arg2)`.
+/// Scale 0x300 and count 2 are the effect's; the record's coordinate comes from
+/// `TmdObject.field_8[sc->pad]`, so the effect follows the part the table entry
+/// names. Same body as `Actor00100_Fn03340` (actors/lib/actor_400100_damage.c).
+void func_actor_401800_801348A8(Actor401800* arg0, s16 arg1, s32 arg2)
+{
+    SVECTOR*         sc;
+    s32              mag;
+    Actor401800Work* work;
+
+    sc   = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    mag  = (arg1 >= 0) ? arg1 : -arg1;
+    work = (Actor401800Work*)arg0->field_1C;
+    if (mag < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 3) {
+            case 0:
+                *sc = D_actor_401800_80155A20[0];
+                break;
+            case 1:
+                *sc = D_actor_401800_80155A20[1];
+                break;
+            case 2:
+                *sc = D_actor_401800_80155A20[2];
+                break;
+            case 3:
+                *sc = D_actor_401800_80155A20[3];
+                break;
+            default:
+                *sc = D_actor_401800_80155A20[4];
+                break;
+        }
+    } else if (mag > 0x600) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 2) {
+            case 0:
+                *sc = D_actor_401800_80155A20[5];
+                break;
+            case 1:
+                *sc = D_actor_401800_80155A20[6];
+                break;
+            default:
+                *sc = D_actor_401800_80155A20[7];
+                break;
+        }
+    } else if (arg1 > 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_401800_80155A20[8];
+        } else {
+            *sc = D_actor_401800_80155A20[9];
+        }
+    } else {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = D_actor_401800_80155A20[10];
+        } else {
+            *sc = D_actor_401800_80155A20[11];
+        }
+    }
+    work->field_8B8.field_0 = &arg0->field_2C->field_8[1];
+    work->field_8B8.field_4 = 0x300;
+    work->field_8B8.field_6 = 2;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], sc, &work->field_8B8);
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80134C94);
 
