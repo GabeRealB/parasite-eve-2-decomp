@@ -1853,7 +1853,89 @@ void func_actor_401300_801397F8(Actor401300* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139AB0);
+void func_actor_401300_80139AB0(Actor401300* arg0)
+{
+    Actor401300Work*        work;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    Actor401300TurnScratch* s;
+    GsCOORDINATE2*          facing;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x280;
+        work->field_89C          = 1;
+        work->field_8A6          = 0x10;
+        work->field_8A2          = 2;
+        work->field_8B6          = 0x60;
+        work->field_8BA          = 8;
+        work->field_89E          = 0;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        func_actor_401300_80133A3C(arg0);
+        return;
+    }
+    if (work->field_8B6 == work->field_8B8) {
+        if (work->field_8B6 == 0x60) {
+            work->field_8B6 = 0x20;
+        } else {
+            work->field_8B6 = 0x60;
+        }
+    }
+    *(Actor401300TurnScratch**)G_SCRATCH_HEAD -= 1;
+    s                                          = *(Actor401300TurnScratch**)G_SCRATCH_HEAD;
+    s->delta.vx                                = work->field_C[work->field_16].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vy                                = 0;
+    s->delta.vz                                = work->field_C[work->field_16].z - arg0->field_2C->field_8->coord.t[2];
+    if (!Actor401300_OutOfRange(&s->delta, 0xA0)) {
+        if (work->field_16 == 0) {
+            work->field_16 = 1;
+        } else {
+            work->field_16 = 0;
+        }
+    }
+    func_actor_401300_80133A3C(arg0);
+    coord           = arg0->field_2C->field_8;
+    s->angle        = Actor401300_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->field_8B2 = s->angle;
+    if (s->angle > 0x20) {
+        s->angle = 0x20;
+    }
+    if (s->angle < -0x20) {
+        s->angle = -0x20;
+    }
+    facing    = arg0->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->angle, 1);
+    Actor401300_RescaleYaw(arg0->field_2C->field_8, 0x1964);
+    if (work->field_89E == 0) {
+        if ((s16)func_actor_401300_8013267C(arg0->field_2C->field_8, 0x15E, 0xA) != 0) {
+            Actor401300_MoveForward(arg0->field_2C->field_8, 0xA);
+        }
+    }
+    if (func_actor_401300_80132C78(arg0->field_2C->field_8, (GpRec18*)work->field_AD0, 0xC, 0x57) == 0) {
+        func_actor_401300_80132910(arg0, (GpRec18*)work->field_990, 0xC);
+    }
+    arg0->field_2C->field_8->flg = 0;
+    Actor401300_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+    if (!Actor401300_OutOfRange(&s->delta, 0x7D0)) {
+        work->field_0 = 6;
+    } else if (!Actor401300_OutOfRange(&s->delta, 0xFA0)) {
+        coord    = arg0->field_2C->field_8;
+        s->angle = Actor401300_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        if (ABS(s->angle) < 0x300) {
+            work->field_0 = 6;
+        }
+    }
+    if (*(u32*)&Gp_StateF0 & 0xD0000) {
+        work->field_0 = 6;
+    }
+    *(Actor401300TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// `Actor401300_MoveForward` with a zero-amount guard, the X component read
 /// back through `head`. Same body as `Actor01900_MoveForward`.
