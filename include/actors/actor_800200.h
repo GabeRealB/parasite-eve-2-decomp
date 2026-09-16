@@ -18,7 +18,7 @@ typedef struct {
 
 void func_actor_800200_80162990(void);
 void func_actor_800200_80162BFC(void);
-void func_actor_800200_80163044(void);
+void func_actor_800200_80163044(GpActorWork* arg0);
 void func_actor_800200_80163180(void);
 void func_actor_800200_8016337C(void);
 void func_actor_800200_80163584(void);

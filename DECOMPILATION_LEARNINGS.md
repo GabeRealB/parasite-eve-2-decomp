@@ -9786,6 +9786,22 @@ be a prototype; here the definition is fine and only the declaration matters.
 example (matched 100% on the first typed attempt, 80.283% as the m2c seed, whose
 `M2C_ERROR` for the unset `$a0` had cost the whole `$s1` frame).
 
+**This holds only while the definition stays *after* its call sites in the
+translation unit.** The worked example is the file's last function, so nothing
+downstream of it sees the prototype; unprototyping the header really is enough.
+For a function whose *definition* precedes its caller — the normal case in an
+address-ordered file, `func_actor_800200_80163044` (matched 100% on the first
+typed attempt at `0x80163044`) against its caller `func_actor_800200_80165644`
+(`0x80165644`) — the definition's own prototype is already in scope at the call
+and the old-style header declaration cannot undo it. The bare `f()` is a hard
+`too few arguments` again, and dropping the `void` from the header changes
+nothing. There the two options are passing `arg0` (what the sibling
+`func_actor_800200_80163CCC` does; `$a0` already holds it, so the call still
+assembles to the target's `jal` + `nop`, confirmed by the unscoped build) or a
+K&R definition from the entry above. Reading a call site's `nop` delay slot as
+proof that the target passed no argument is the trap: it only shows the argument
+was already in `$a0`.
+
 ## `switch` for equality chains that branch *to* case bodies
 
 When the target does positive equality tests that jump *to* handlers
