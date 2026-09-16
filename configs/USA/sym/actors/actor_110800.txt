@@ -4,3 +4,5 @@ ActorsShared80131f9cSub1 = 0x80131F9C; // shared body's overlay-local callee, se
 ActorsShared80131f9cWork = 0x80139F10; // shared body data, see src/actors/lib/
 ActorsShared80131f9c = 0x801322A0; // shared body, see src/actors/lib/
 ActorsShared80132138 = 0x801323DC; // shared body, see src/actors/lib/
+ActorsShared80132208 = 0x801324AC; // shared body, see src/actors/lib/
+ActorsShared80132180 = 0x80132424; // shared body, see src/actors/lib/

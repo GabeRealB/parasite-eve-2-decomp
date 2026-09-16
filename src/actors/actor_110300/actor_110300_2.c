@@ -4,8 +4,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern Task* D_actor_110300_8013A0A8;
-
 void func_actor_110300_80131FF8(GpActorWork* arg0)
 {
     GsCOORDINATE2* parent;
@@ -35,12 +33,12 @@ void func_actor_110300_80132088(Task* arg0)
 void func_actor_110300_801320C4(GpActorWork* arg0)
 {
     if (ActorsShared80131f9cWork->field_474 == 1) {
-        func_actor_110300_80132208();
+        ActorsShared80132208();
         ActorsShared80131f9cWork->field_474 = 3;
         return;
     }
     if (ActorsShared80131f9cWork->field_474 == 2) {
-        func_actor_110300_80132180();
+        ActorsShared80132180();
         ActorsShared80131f9cWork->field_474 = 3;
         return;
     }

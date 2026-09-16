@@ -60688,6 +60688,37 @@ Two things follow, and both cost a build if missed:
   carrier's own header carries the fuller layout -
   `include/actors/actor_110300.h` against `include/actors/actor_143900.h`).
 
+## A shared name has many carriers, and the brief's "C file" line picks one of them arbitrarily
+
+`tools/decomp_overlay.py find` resolves the host `.c` by symbol *name* alone.
+`find_include_asm_file` walks every `src/**/*.c` and returns the first file with
+an `INCLUDE_ASM(<folder>, <name>)` matching the function - it unpacks the folder
+and then ignores it, so nothing ties the file it returns to the overlay the asm
+path named. In a family where one name has many carriers that is arbitrary.
+
+`ActorsShared80131f9cSub0` has eleven carriers: `actor_110300`, `actor_110800`,
+`actor_143900`, `actor_146300`, `actor_151000`, `actor_202900`, `actor_260400`,
+`actor_260500`, `actor_420700`, `actor_451100` and `actor_535700`. Asked for the
+`actor_110300` copy the tool answered `src/actors/actor_260400/actor_260400.c`
+and the brief printed that file's INCLUDE_ASM site - and 260400's copy is a
+different function, allocating `Mem_Calloc(0x4F8, 0)` where this one allocates
+`0x55C`. Landing the matched body there would have replaced another overlay's
+handler, and the build would still have passed for 260400 only if its own body
+happened to be untouched.
+
+Trust the fields that come from the asm path and cannot be ambiguous: `Unit`,
+`ASM`, `INCLUDE_ASM folder` (`<overlay>/nonmatchings/<unit>`) and `Yaml`. The
+host is `src/<family>/<overlay>/<unit>.c`. Where the name is unique to one
+carrier - the common case - the tool's answer is right.
+
+The same "same name, different function" reading catches a second copy that
+`overlay_dup_index.py find` reports as `~`. `USA/actors/actor_110800`'s copy is
+instruction-for-instruction this body at the same vram address, but its operands
+name `D_actor_110800_80139EC4` / `_80139EDC` / `_80139EF4` at its own data
+offsets against our `D_actor_110300_8013A054` / `_8013A06C` / `_8013A084`, so
+`promote` refuses it - correctly. A `~` pair is a candidate for promotion, not
+an equality: check that the two copies relocate against the same symbols.
+
 ## A stack dispatch table indexed through a pointer needs the pointer in its own local
 
 The stack-built handler table (`ActorsShared80131e24` and friends) usually
@@ -96616,3 +96647,76 @@ Inputs: `base.i`
 `6c7b0174339124cde7c18122fc685f6789085fc3a8d07d4e23120ea8d0228c82` (90.267%),
 `base_1.i` `fbd6416565fab283242fe180ed51da8827cc4cec6f4e9a474d0546eaa3788764`
 (100.000%).
+## A lone `reorder=1` in the prologue: m2c's duplicated loop counter is a second pseudo, and the scheduler places its copy early
+
+The m2c seed for `func_actor_110300_80132208` scored 98.000% with every penalty
+zero except `reorder=1`, and exactly one instruction in the wrong place: the
+loop counter copied into the call's argument register (`addu a1,s0`) sat six
+slots early, in the middle of the prologue, where the target has it immediately
+before the loop label.
+
+m2c renders a one-counter loop as **two variables** - `var_s0 = 1; var_a1 = 1;`
+... `var_a1 = var_s0;` - so the quantity exists as two pseudos. GCC allocates
+them separately (`$s0` and `$a1`), which makes the copy a free-standing insn in
+the entry block whose position sched1 may choose, and it chose the prologue.
+Writing the loop with a single counter instead - the form the matched sibling
+`func_actor_521100_80136820` uses:
+
+```c
+i = 1;
+do {
+    func_800B4114(&work->anim, i, (s16)work->animId, 0, 8);
+    i++;
+} while (i < 0x14);
+```
+
+turns that copy into the loop's own argument copy (preheader plus back-edge),
+where the target has it. 100% on the next build.
+
+Read a lone `reorder` as "one instruction is in a different place", not as "the
+statements are in the wrong order": here nothing was mis-ordered, a variable
+that should not have existed was. Check whether the misplaced insn is a copy
+between two registers holding the *same* loop quantity before touching
+statement order at all.
+
+Inputs: `base.i` (m2c seed, 98.000%, `b2fc9e83…` -> `70c2399e…` after the
+prototype fix), `base_1.i` (100.000%, `8d18817b…`).
+
+## A body that reads its carrier's published work global is still promotable
+
+`overlay_dup_index.py promote`'s docstring reports that 39 of the 42 clusters it
+measured were refused "because the body references its own overlay's data", and
+that not one was promotable - which reads as "any overlay-local reference kills a
+promotion". It does not. `func_actor_110300_80132180` reads
+`ActorsShared80131f9cWork`, a genuinely overlay-local pointer global that
+resolves to `0x8013A0A0` in `actor_110300` and `0x80139F10` in `actor_110800`,
+and it promoted cleanly: both carriers checksum with the one shared object.
+
+The guard that implements the refusal (`localref`) only tests whether a
+referenced name starts with `func_<unit>_`, `D_<unit>_` or `jtbl_<unit>_` - a
+bare overlay-local symbol. A global the *family already declares per carrier* in
+`configs/USA/sym/<family>/<ov>.txt` (the `ActorsShared80131f9cWork = …; // shared
+body data` line every actor carrier writes) leaves the shared object with an
+undefined reference that each link resolves to its own address, which is the
+mechanism the existing `src/actors/lib/` bodies already rely on.
+
+So the question for a candidate is not "does it read its overlay's data" but
+**"is that symbol defined in every carrier's symbol map"**. Two more conditions
+come with it, both met by construction here:
+
+- The copies must touch the same offsets, since one object serves all carriers;
+  the shared unit declares its own view of the block (`ActorsShared80132180Work`
+  names the 0x14 slots, 0x476 and 0x478 fields the body uses), exactly as
+  `ActorsShared80132208Work` does for the sibling body.
+- The reference must be the *same* symbol in each carrier, not just the same
+  offset - a `D_<room>_8017D620` style name exists in one overlay only.
+
+That makes the actors family's 384 `solved` bodies (`overlay_dup_index.py solved
+--family actors`) worth triaging by symbol rather than dismissing in bulk: the
+ones whose only overlay-local reference is the published work global promote the
+way this one did. Position still decides the file work - this body occupied its
+whole unit in *both* carriers, so each overlay's `_4.c` became `_3.c` and the
+`INCLUDE_ASM` paths inside moved with it (mechanics in the renumbering entries
+above).
+
+Inputs: `base.i` (m2c seed, 85.111%), `base_1.i` (100.000%).

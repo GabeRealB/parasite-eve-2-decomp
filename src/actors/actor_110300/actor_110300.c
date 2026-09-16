@@ -1,19 +1,13 @@
 #include "common.h"
 
 #include "actors/actor_110300.h"
+
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-extern TaskDesc D_actor_110300_8013A06C;
-extern u8       D_actor_110300_8013A084[];
-extern u8       D_actor_110300_8013A054[];
-extern Task*    D_actor_110300_8013A0A8;
-
-void func_actor_110300_80132088(Task* task);
 
 /// Step 0 of the `ActorsShared80131f9c` dispatcher: allocate the work block,
 /// publish it, and hand the model's animation context its slot array.
@@ -47,7 +41,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     obj->field_E            = 0;
     coord->flg              = 0;
     D_actor_110300_8013A0A4 = (GpActorWork*)task;
-    D_actor_110300_8013A0A8 = Task_SpawnFromTable(&D_actor_110300_8013A06C, 1, 0, 0);
+    D_actor_110300_8013A0A8 = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
     func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_110300_8013A084, (GpAnimObj*)obj,
                   ActorsShared80131f9cWork->aux, ActorsShared80131f9cWork->slots);
     ActorsShared80131f9cWork->animId    = 1;

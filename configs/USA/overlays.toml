@@ -436,10 +436,10 @@ actor_107200 = { note = "empty actor slot; the id resolves, the package has no c
 actor_107500 = { note = "empty actor slot; the id resolves, the package has no code" }
 actor_107600 = { }
 actor_109300 = { note = "empty actor slot; the id resolves, the package has no code" }
-actor_110300 = { shared = [{ start = "0x17C", end = "0x1D8", unit = "actors_shared_80131f9c" }, { start = "0x318", end = "0x360", unit = "actors_shared_80132138" }] }
+actor_110300 = { shared = [{ start = "0x17C", end = "0x1D8", unit = "actors_shared_80131f9c" }, { start = "0x318", end = "0x360", unit = "actors_shared_80132138" }, { start = "0x360", end = "0x3E8", unit = "actors_shared_80132180" }, { start = "0x3E8", end = "0x460", unit = "actors_shared_80132208" }] }
 actor_110600 = { shared = [{ start = "0x1A0", end = "0x4AC", unit = "actors_shared_80132808" }, { start = "0x6748", end = "0x6860", unit = "actors_shared_80135a60" }, { start = "0x7088", end = "0x70E4", unit = "actors_shared_80135df4" }] }
 actor_110700 = { shared = [{ start = "0x4", end = "0x58", unit = "actors_shared_80131e24" }, { start = "0x254", end = "0x2B8", unit = "actors_shared_80132074" }, { start = "0x2B8", end = "0x300", unit = "actors_shared_80133eac" }] }
-actor_110800 = { shared = [{ start = "0x480", end = "0x4DC", unit = "actors_shared_80131f9c" }, { start = "0x5BC", end = "0x604", unit = "actors_shared_80132138" }] }
+actor_110800 = { shared = [{ start = "0x480", end = "0x4DC", unit = "actors_shared_80131f9c" }, { start = "0x5BC", end = "0x604", unit = "actors_shared_80132138" }, { start = "0x604", end = "0x68C", unit = "actors_shared_80132180" }, { start = "0x68C", end = "0x704", unit = "actors_shared_80132208" }] }
 actor_111800 = { shared = [{ start = "0x20", end = "0x32C", unit = "actors_shared_80132808" }] }
 actor_113000 = { shared = [{ start = "0x118", end = "0x170", unit = "actors_shared_80138404" }, { start = "0x4FC", end = "0x578", unit = "actors_shared_8013231c" }] }
 actor_113100 = { rodata = [{ start = "0x28", unit = "actor_113100_3" }], shared = [{ start = "0xFE0", end = "0x1078", unit = "actors_shared_80132390" }, { start = "0x1104", end = "0x1120", unit = "actors_shared_80132f24" }, { start = "0x151C", end = "0x1598", unit = "actors_shared_8013231c" }] }
