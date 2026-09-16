@@ -1,5 +1,14 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+
+extern s32 Gp_LcgState;
+
+extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
+
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017F6C8);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017F84C);
@@ -24,4 +33,20 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_mote
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8018257C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_80182730);
+/// Rolls the room LCG (`Gp_LcgState`) once and, on a draw whose upper half is
+/// a multiple of three, rolls it again and spawns effect 0x6007E at part 3 of
+/// the model owned by the slot-4 task's child, carrying the second draw's low
+/// nine bits in the upper half of the spawn argument.
+void func_dryfield_night_motel_balcony_80182730(void)
+{
+    Task* task;
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
+        task        = Game_GetPtrSlot(4);
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        Gp_SpawnEff(0x6007E, ((TmdObject*)task->firstChild->extra)->field_8 + 3,
+                    (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x80000100,
+                    &D_dryfield_night_motel_balcony_80182D20);
+    }
+}

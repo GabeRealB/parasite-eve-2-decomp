@@ -87571,3 +87571,42 @@ cse replaces each load with the value it knows was stored, which is a
 register-to-register copy rather than a `lw`, and the copies carry their own
 allocnos. That is what drops the reference count on the outer pointer and
 restores the target's `s0`/`s1`/`s2`/`s3` assignment.
+
+## An m2c seed that emits `mult` where the target has `multu` was unsigned in the original (func_dryfield_night_motel_balcony_80182730, 2026-09-16)
+
+**Problem.** The LCG draw is tested for a multiple of three, and the target
+divides with the *unsigned* magic — no sign correction after `mfhi`:
+
+```
+sll   v0,v1,0x2 ; addu v0,v0,v1 ; addu v0,v0,s1   # state * 5 + 0x71357911
+srl   a0,v0,0x10
+lui   v1,0xAAAA ; ori v1,v1,0xAAAB
+multu a0,v1 ; mfhi t1 ; srl v1,t1,1
+sll   v0,v1,0x1 ; addu v0,v0,v1 ; subu a0,a0,v0
+andi  a0,a0,0xFFFF
+```
+
+m2c modelled those bytes as a *signed* modulo of a 32-bit quantity,
+`(rng >> 16) - ((rng / 196608) * 3)`, so the seed compiled `mult` plus the
+`sra 31` / `sra 15` / `subu` correction tail — two instructions too many, with
+the magic constant in `$a0` instead of `$v1`. It scored 77.7% (`insert=6
+delete=4 regs=8`) while the structural diagnostic still read `blocks=3/3
+instructions=50/52`, because the control flow was never wrong: only the
+divide's signedness was.
+
+**Fix.** Write the draw as the matched sibling `3FB8_7E28.c:281` does. The
+`multu` follows from the `(u32)` cast and the trailing `andi 0xFFFF` from the
+`(u16)`, and the same edit scored 100%:
+
+```c
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
+```
+
+`antibody.c` and `energyshot.c` carry the `((u32)rng >> 16) & mask` sibling
+form. `python3 tools/learn.py LCG` lists those `Gp_LcgState` idiom entries, so
+the corpus is the first place to look rather than the last — but the rule
+generalises past the LCG: when an m2c seed's `/` or `%` compiles to `mult`
+where the target has `multu`, the original operand was unsigned, and a `(u32)`
+cast (or the project's own matched spelling) is the fix. Do not hand-write the
+magic constant, and do not chase the operand's register home — it follows.
