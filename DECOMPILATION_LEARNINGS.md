@@ -111216,3 +111216,41 @@ missing argument has to come from the target's delay slot. **Tell:** a delay slo
 that initializes `$aN` for N > 0 while nothing in the block writes `$a0`. It is
 m2c's prototype inference, not a codegen decision, and no amount of register or
 scheduling work moves it.
+
+## One variable in two arms is one global allocno; m2c's per-arm temps are local (func_actor_107000_80136094, 2026-09-16)
+
+**Symptom:** every callee-saved value in the function sits one register off -
+`work` in `$s2` where the target has `$s1`, `coord` in `$s1` where the target has
+`$s3`, `arg0`/`arg1` in `$s3`/`$s4` where the target has `$s4`/`$s5`. `regs`
+dominates the penalties and `reorder`/`insert`/`delete` ride along; the topology,
+the predicates and every call already match.
+
+**Cause:** m2c emitted one variable per arm (`temp_s2`, then `temp_s2_2`) for what
+the original wrote as a single variable. A C variable that is not address-taken is
+**one pseudo**, so assigning it in both arms gives it 4 references and **dies in 2
+places**; `local_alloc` only takes pseudos with `REG_N_DEATHS == 1`, so it goes to
+`global_alloc` and is placed after every local quantity. Split into per-arm temps,
+each has 2 references and 1 death and is local-eligible - and a local-eligible
+output of a two-operand op **joins the quantity of the dying input**, so the
+`>> 12 << 8` chain and the `| 0x40460005` become one quantity. That quantity
+crosses the two calls, takes the lowest free callee-saved register, and every
+global allocated after it slides up one.
+
+The `.greg` header names the count directly - 6 allocnos to allocate before, 7
+after - and `.lreg` shows the storage class flip:
+
+```
+base:    Register 85 used 2 times across 6 insns in block 1; crosses 2 calls   85 in 16 ($s0)
+fixed:   Register 87 used 4 times across 14 insns; dies in 2 places; crosses 4 calls   87 in 18 ($s2)
+```
+
+In the object dump the tell is that the shift chain moved out of the callee-saved
+register the `|` writes: `srl s0,s0,0xc; sll s0,s0,0x8; ... or s0,s0,v1` became
+`srl v0,v0,0xc; sll v0,v0,0x8; ... or s2,v0,v1`. A chain in `$v0` feeding a `$sN`
+`or` means the two are separate quantities, which is what you want.
+
+**Fix:** write the one variable the original had - an assignment in each arm and one
+use of it, not a fresh temp per arm. The matched sibling in the same overlay,
+`func_actor_107000_80132D8C`, writes the same call statement in both arms over one
+`soundId` and shows the unjoined pattern, so read the sibling before restructuring
+m2c's temps. No register or scheduling work moves this; the source decides it.
