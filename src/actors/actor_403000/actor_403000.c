@@ -108,7 +108,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133FC0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134204);
+s32 func_actor_403000_80134204(GsCOORDINATE2* arg0)
+{
+    GsCOORDINATE2*          coord;
+    Actor403000TurnScratch* scratch;
+    SVECTOR*                table;
+    SVECTOR*                v;
+    s32                     x;
+    s32                     z;
+    s8                      col;
+    s8                      row;
+    s16                     angle;
+
+    scratch = --*(Actor403000TurnScratch**)G_SCRATCH_HEAD;
+    coord   = arg0;
+    x       = coord->coord.t[0];
+    z       = coord->coord.t[2];
+    col     = 4;
+    if (x >= 0xD48) {
+        col = 3;
+        if (x >= 0x1A90) {
+            col = 2;
+            if (x >= 0x2AF8) {
+                col = x < 0x3C8C;
+            }
+        }
+    }
+    row            = z >= 0x1068;
+    scratch->index = D_actor_403000_80158D48[col + row * 5] + 1;
+    if (scratch->index == 10) {
+        scratch->index = 0;
+    }
+    table               = D_actor_403000_80158CE0;
+    v                   = &table[scratch->index];
+    scratch->target.vx  = v->vx;
+    scratch->target.vy  = v->vy;
+    scratch->target.vz  = v->vz;
+    scratch->target.vx -= coord->coord.t[0];
+    scratch->target.vz -= coord->coord.t[2];
+    angle               = ratan2(scratch->target.vx, scratch->target.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    if (angle < 0x400) {
+        scratch->turn = 1;
+    } else {
+        scratch->turn = -1;
+    }
+    *(Actor403000TurnScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->turn;
+}
 
 void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
 {

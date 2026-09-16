@@ -99326,3 +99326,16 @@ still holds `&D`.
 Unresolved: sched.c only ties a pseudo's set to the preceding call when the
 pseudo crosses no calls, and `dirp` still crosses `VectorNormalSS`, so that rule
 does not explain why the split stopped the move. I did not trace it.
+
+### A comparison stored into a narrow (`s8`) local keeps its temp and `move`
+
+`func_actor_403000_80134204`: the target computed `slti v0,a0,C` then `move a1,v0`
+for `col = x < C`, and emitted the `xori` of `row = z >= C` *after* the next
+table's `lui/addiu` instead of right after its `slti`. With `s32 col`/`row`,
+combine folds the store-flag straight into the variable (`slti a1,a0,C`) and
+keeps `slt`+`xori` adjacent. Declaring both locals `s8` blocks that fold (the
+scc result goes through a QImode lowpart), reproducing the separate temp, the
+`move`, and the late `xori` - with no extra `andi`/sign-extension, since the
+values are 0..5. Same function: `v = &D[idx]` put the result in the table's
+register (`addu v0,v1,v0`); a separate `table = D; v = &table[idx];` let `v` tie
+to the shifted index instead (`addu v0,v0,v1`).

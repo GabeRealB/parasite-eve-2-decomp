@@ -199,6 +199,23 @@ typedef struct Actor403000PushScratch {
 } Actor403000PushScratch;
 STATIC_ASSERT_SIZEOF(Actor403000PushScratch, 0x28);
 
+/// 0xC-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_80134204`: `index` picks the next waypoint out of
+/// `D_actor_403000_80158CE0`, `target` is it relative to the coordinate and
+/// `turn` the +1/-1 steering result.
+typedef struct Actor403000TurnScratch {
+    /* 0x00 */ SVECTOR target;
+    /* 0x08 */ s8      index;
+    /* 0x09 */ s8      turn;
+    /* 0x0A */ byte    pad_A[0x2];
+} Actor403000TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor403000TurnScratch, 0xC);
+
+/// Waypoint grid for `func_actor_403000_80134204`: two rows of five indices
+/// (row by `coord.t[2]`, column by `coord.t[0]` band), each one less than the
+/// `D_actor_403000_80158CE0` entry it selects.
+extern u8 D_actor_403000_80158D48[];
+
 /// The push message `func_actor_403000_801384E8` keeps resending to the
 /// player.
 extern Actor403000Msg3FE D_actor_403000_80158DB0;
