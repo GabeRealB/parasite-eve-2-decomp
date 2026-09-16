@@ -927,7 +927,7 @@ void func_actor_800200_80165580(GpActorWork* arg0)
     temp_v1 = Game_Session->field_6;
     switch (temp_v1) {
         case 26:
-            func_actor_800200_80162990();
+            func_actor_800200_80162990(arg0);
             return;
         case 24:
             func_actor_800200_80165814();

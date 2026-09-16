@@ -16,7 +16,7 @@ typedef struct {
     /* 0x4 */ s32 field_4;
 } GpActorPathStep;
 
-void func_actor_800200_80162990(void);
+void func_actor_800200_80162990(GpActorWork* arg0);
 void func_actor_800200_80162BFC(GpActorWork* arg0);
 void func_actor_800200_80163044(GpActorWork* arg0);
 void func_actor_800200_80163180(GpActorWork* arg0);
