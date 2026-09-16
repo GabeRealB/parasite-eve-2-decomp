@@ -91672,3 +91672,61 @@ overlay's task global they read (`D_actor_461800_80143898` against
 serve both — matching each copy separately is the correct call, not a pairing.
 Check `build/USA/dup_index.json`'s per-function `refs` before trusting a promote
 run to have refused.
+## A global's address is materialised from the first *use*, so a folded cast address makes `&D+4` the base (func_actor_401000_801383F0, 2026-09-16)
+
+m2c's seed wrote both halves of one global through the same cast expression —
+`M2C_FIELD(&D_actor_401000_80154F1C, s32 *, 4) = 2;` then
+`Gp_DispatchMsg(…, &D_actor_401000_80154F1C, 0);` — and came out at 92.32%
+(`regs=4 reorder=4 insert=3 delete=3`) with the base register holding the
+*wrong* address:
+
+```
+lui    s0,%hi(D+4)          target:  lui    s0,%hi(D)
+sw     v0,%lo(D+4)(s0)               addiu  s0,s0,%lo(D)
+addiu  s0,s0,%lo(D+4)                sw     v0,0x4(s0)
+addiu  a2,s0,-0x4                    move   a2,s0
+```
+
+`(u8*)&D + 4` folds into one constant address at expansion, so `.rtl` already
+holds *two* independent symbolic addresses — `(plus (symbol_ref D) 4)` for the
+store and `(symbol_ref D)` for the argument — and CSE picks the store's as the
+canonical one and derives `&D` from it as `-4`. Reaching the field through a
+pointer instead makes the *object's* address the value that is materialised and
+the `+4` a store displacement, which is what the target does (96.47%, then the
+block below to 100%):
+
+```c
+GpAnimArg* msg = &D_actor_401000_80154F1C;
+msg->field_4   = 2;
+Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)msg, 0);
+```
+
+The fix came from the matched sibling `func_actor_356100_8016A468`
+(`src/actors/actor_356100/actor_356100_2.c`), whose object is the same 5-word
+`GpAnimArg` and whose asm block is instruction-for-instruction this one. Neither
+`overlay_dup_index.py find` (reporting the body as its own only copy) nor
+BRIEF's "similar matched bodies" list (none above 0.80) surfaces such a sibling,
+because both compare splat's disassembly *text* and these actors carry the idiom
+at different addresses. Grepping `src/` for a distinctive callee chain does —
+here `Gp_GetIdParam1(0x1001)` next to `func_800FDB18`, or `Gp_PackObjPair((GpObj50*)…, 0)`
+with message `0x3FF`. Read that sibling's *source*, not just its asm: it also
+carried the statement order the next paragraph needed.
+
+The neighbouring `field_8B8` block (a `GpEffArg` the effect call fills) needed
+that order rather than a different register: with the pointer store written
+*first*, `work->field_8B8.field_0 = arg0->field_2C->field_8 + 5;` before the two
+constant halfword stores, sched1 issues the `field_8` load chain early, the
+value is born while `$v0` still holds the `0x2C` pointer and lands in `$v1`, and
+the store sinks into the following call's delay slot — the target's order. With
+the constants first the block stays in source order, `$v0` takes both loads with
+a `nop` filler, and the penalties are `reorder=3 regs=3 insert=1 delete=1`. Same
+tie-break lever as the `func_actor_206100_8014EEC0` entry above, but there it
+moved a local-alloc birth and left the instruction order alone; here it decides
+the emitted order itself.
+
+Inputs: `base.i` (m2c cast form, 92.32%)
+`f4225fa10db44fc968f7d4b2ab0828cf65851f234112b59762d6451f7e01527a`,
+`base_1.i` (pointer form, 96.47%)
+`2b26d12563f628f8d057fcb4df40a6442609fc152b29932a7456acdba08e8d7c`,
+`base_2.i` (statement order fixed, 100.000%)
+`c4604ec98c2786347c8b41de7e4072bca93a1a9a7d5fe969878aa7c41c346e10`.
