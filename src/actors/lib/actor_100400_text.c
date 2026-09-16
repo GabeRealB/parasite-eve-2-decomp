@@ -106,6 +106,8 @@ extern TaskFuncTable3   Actor00400_D00150;
 extern TaskFuncTable3   Actor00400_D0015C;
 extern TaskFuncTable4   Actor00400_D00168;
 extern Actor100400Stats Actor00400_D0FDC8;
+extern TaskDesc         Actor00400_D16028;
+extern u16              Actor00400_D1609C[8];
 extern byte             Actor00400_D1604C[];
 extern u8               Actor00400_D0E5B8[];
 extern u8               Actor00400_D0E970[];
@@ -1461,7 +1463,94 @@ void Actor00400_Fn06380(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn064B0);
+/// Spawns the marker task from `Actor00400_D16028[1]` and hands it a 0x64-byte
+/// work block: coordinate 5 gives the task's root translation, and the view
+/// space span from coordinate 4's base to the same point raised by `height` -
+/// the per-enemy value `Actor00400_D1609C` selects - is stored in the work.
+static inline void Actor00400_SpawnMarker(Actor100400* arg0)
+{
+    Actor100400Params*     params;
+    Actor100400MarkerWork* marker;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         origin;
+    GsCOORDINATE2*         span;
+    GsCOORDINATE2*         dst;
+    Task*                  task;
+    SVECTOR                pos;
+    SVECTOR                base;
+    SVECTOR                tip;
+    u16                    height;
+
+    params = arg0->field_20->field_3C;
+    if (params != NULL) {
+        height = Actor00400_D1609C[params->field_F & 7];
+    } else {
+        height = 0xBE;
+    }
+    coords = arg0->field_2C->field_8;
+    origin = &coords[5];
+    span   = &coords[4];
+    task   = Task_SpawnFromTable(&Actor00400_D16028, 1, 0, 0);
+    if (task != NULL) {
+        marker = Mem_Calloc(sizeof(Actor100400MarkerWork), false);
+        if (marker == NULL) {
+            Task_Kill(task);
+        } else {
+            base.vx = 0;
+            base.vy = 0;
+            base.vz = 0;
+            tip.vx  = 0;
+            tip.vy  = 0;
+            tip.vz  = height;
+            ActorCoordToView(span, &base);
+            ActorCoordToView(span, &tip);
+            task->idMap = (TaskIdMap*)marker;
+            dst         = ((Actor100400Ctx*)task->extra)->field_8;
+            pos.vx      = 0;
+            pos.vy      = 0;
+            pos.vz      = 0;
+            ActorCoordToView(origin, &pos);
+            dst->coord.t[0]  = pos.vx;
+            dst->coord.t[1]  = pos.vy;
+            dst->coord.t[2]  = pos.vz;
+            marker->field_58 = tip.vx - base.vx;
+            marker->field_5A = tip.vy - base.vy;
+            marker->field_5C = tip.vz - base.vz;
+        }
+    }
+}
+
+void Actor00400_Fn064B0(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    s32              id;
+    s32              pan;
+    s32              cond;
+
+    work = arg0->field_1C;
+    work->field_636++;
+    Actor00400_TurnToward(arg0, &work->field_5E4, 0x10, 0x20);
+    if (work->field_636 == 0x29) {
+        id  = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x4004000A;
+        pan = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+    if (work->field_636 == 0x2B) {
+        Actor00400_SpawnMarker(arg0);
+    }
+    work2 = arg0->field_1C;
+    if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work2            = arg0->field_1C;
+        work2->field_638 = 2;
+        work2->field_63A = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn06798);
 

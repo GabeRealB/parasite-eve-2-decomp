@@ -86749,3 +86749,51 @@ translation to an `s16` field emits `lhu`, not `lw` + `sh` - `combine`'s
 delta1` on two `SVECTOR` locals is the `lwl`/`lwr`/`swl`/`swr` block move,
 because `SVECTOR` is 8 bytes at 2-byte alignment and `movstrsi` cannot assume
 more.
+
+## An inline function's stack temp survives a later inline expansion, but an ordinary block-scope local recycles it (Actor00400_Fn064B0, 2026-09-16)
+
+`Actor00400_Fn064B0` needs four 8-byte `SVECTOR` slots in a 0x50 frame, in the
+order `vec` 0x10 (the scratch of the inlined `Actor00400_TurnToward` at the top
+of the function), then `pos` 0x18, `base` 0x20, `tip` 0x28 for the marker task
+it spawns near the end. Three arrangements of the same source give three
+different frames:
+
+| where `pos` / `base` / `tip` are declared | result |
+|---|---|
+| function scope | they take 0x10/0x18/0x20 and the inline's `vec` lands last at 0x28 |
+| block scope inside the `if` | `vec` gets 0x10, then `pos` **reuses** 0x10 and the frame shrinks to 0x48 |
+| locals of a second `static inline` | `vec` keeps 0x10 and `pos`/`base`/`tip` get 0x18/0x20/0x28 — the target |
+
+Function-scope locals get their slots during the declarations, before any
+statement, so an inline expanded in the body can only be given space after
+them. Block-scope locals are allocated when the block is reached, by which
+point the earlier inline's temp has been released and is reused. An inline
+expansion's own temps are not handed a previously released inline temp, so two
+inlines in sequence stack up. Read a frame whose first slot belongs to an
+inline called from the middle of the function as evidence that *everything
+else* on the frame is inlined too.
+
+The second lever in the same function is the comparison constant. Written out
+as literals the guard folds:
+
+```c
+if (diff > 0x20)        /* slti $v0, $a0, 0x21 */
+```
+
+but reaching the body through an inline with `s32 step, s32 range` parameters
+keeps the bound in a register:
+
+```c
+if (diff > range)       /* li $v1, 0x20 ; slt $v1, $v1, $v0 */
+```
+
+2.8.1 materialises an inline parameter into a pseudo and does not propagate it
+back into the compare. So `li reg, k` followed by `slt` — rather than `slti`
+with `k + 1` — says the bound arrived as a parameter of an inlined helper, and
+is worth reading before trying to force the comparison by hand.
+
+Passing the scratch vector into the helper by pointer keeps that `slt` while
+moving the slot, but is not equivalent: GCC then pins `sp + 0x10` in a
+callee-saved register and addresses the vector as `0($s0)` / `2($s0)` /
+`4($s0)`, and sign-extends a field read after the call with `lhu` + `sll` +
+`sra` instead of `lh`.
