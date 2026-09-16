@@ -87920,3 +87920,37 @@ assignment to 1 already sits in the branch's delay slot:
 object dump": which pseudo holds it is decided before the block's own
 quantities are placed, so moving the return out of the branch is the fix and a
 register pin is not needed.
+## Differing call arguments do not block a cross-jump; the merge only needs the shared tail (func_dryfield_night_motel_lobby_801812F8, 2026-09-16)
+
+The rule in "Cross-jumping merges duplicate *call* blocks too, not just stores"
+applies to `switch` arms as well, and the arms do not have to be textually
+identical. Three arms of this switch end in the same call with *different*
+arguments:
+
+```c
+case 2: ...; func_2200(&E0[3], 1, 0x300); break;
+case 3: ...; func_2200(&E8[3], 1, 0x300); break;
+case 4: ...; func_2200(&E0[1], 2, 0x300); break;
+```
+
+Only `a2 = 0x300` is common, yet the target has one shared block for all three:
+
+```
+.Ltail:
+    jal   func_2200
+     addiu a2, zero, 0x300
+```
+
+reached by `j .Ltail` from cases 2 and 3 (each setting its own `a0` first and
+its own `a1` in the jump's delay slot) and by fallthrough from case 4. The
+cross-jumper compares the tail instructions, and the per-arm `a0`/`a1` values
+were already set *before* the merge point in the same registers, so they do not
+block it.
+
+The m2c seed sat at 86.8% with the same control flow written through
+`var_a0`/`var_a1` locals and a shared `goto block_10` (`insert=1 delete=5`):
+one pseudo with three defs, so nothing is textually equal at the RTL level and
+no merge fires. Writing the switch plainly - one call site per arm, literals at
+each - reached 100% in one build. The base address then lands in `$s0` for the
+three arms that use it across a call and in `$a0` for the single-use arm, which
+is the allocation you get from the plain form, not something to write by hand.
