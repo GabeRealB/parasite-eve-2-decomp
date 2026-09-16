@@ -1,8 +1,49 @@
 #include "common.h"
 
 #include "actors/actor_401000.h"
+#include "main/gfx.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000_2", func_actor_401000_8013D958);
+s32 func_actor_401000_8013D958(Actor401000* arg0, s32 arg1, u16* arg2)
+{
+    u16              room;
+    u16              state;
+    u16              state2;
+    Actor401000Work* work;
+
+    work               = arg0->field_1C;
+    work->field_C18[0] = ((u8*)arg2)[0];
+    work->field_C18[1] = ((u8*)arg2)[1];
+    work->field_C18[2] = ((u8*)arg2)[2];
+    room               = arg2[0];
+    if (room == 0x301) {
+        state = arg2[1];
+        if (state == 1) {
+            work->field_0 = 0x17;
+            return 1;
+        }
+        return 0;
+    }
+    if (room == 0x1002) {
+        state2 = arg2[1];
+        switch (state2) {
+            case 0:
+                work->field_0 = 0;
+                return 1;
+            case 2:
+                work->field_0                       = 0x1C;
+                arg0->field_2C->field_8->coord.t[0] = -0x595;
+                arg0->field_2C->field_8->coord.t[1] = 0;
+                arg0->field_2C->field_8->coord.t[2] = -0x5B1;
+                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x400, 1);
+                arg0->field_2C->field_8->flg = 0;
+                return 1;
+            default:
+                return 0;
+        }
+    } else {
+        return 0;
+    }
+}
 
 void func_actor_401000_8013DA78(Task* task)
 {

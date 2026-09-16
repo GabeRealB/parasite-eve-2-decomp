@@ -104156,3 +104156,34 @@ subsegment at the same start, so the promotion is best treated as its own pass
 over the affected overlays rather than as the tail of the match that triggered
 it. The match itself is unaffected: it lands in the overlay's own `.c` and the
 promotion is deferred.
+
+## An m2c seed's *widths* and *strides* are guesses too, not just its parameters (func_actor_401000_8013D958, 2026-09-16)
+
+The companion to the section above: that one is the seed dropping a parameter, this one is the seed
+reading the right address at the wrong width or stride. Both leave a 91% seed whose penalties
+(`stack`/`regs`/`insert`/`delete` all 3) point at nothing, because no register or schedule is wrong —
+only two load widths and one immediate. A sibling body that matches makes this a first-build fix.
+
+**Widths.** m2c renders an `lhu` as a *byte* load plus a cast: `(u16) M2C_FIELD(arg2, u8 *, 0x0)`.
+Rewriting that seed faithfully — a `u8` field — gives `lbu` everywhere the target has `lhu`:
+
+```
+target:  lbu  v0,0x0(a2) / sb v0,0xC18(a0)    <- three bytes stored
+         lhu  v1,0x0(a2) / li v0,0x301        <- then compared a halfword at a time
+```
+
+Only the *comparisons* are halfword; the stores really are bytes. A `u16* arg2` with bytes read as
+`((u8*)arg2)[i]` and compares as `arg2[0]` / `arg2[1]` reproduces both widths from one parameter —
+the same shape `Actor01900_Fn0A5A4`, the matching sibling, already had.
+
+**Strides.** `&obj->field_8->coord` came out of m2c as `M2C_FIELD(..., s32 **, 8) + 4`, which in C is
+`+0x10`, and the object dump showed `addiu a0,a0,0x10` against the target's `addiu a0,a0,4`.
+`GsCOORDINATE2` is `{ u_long flg; MATRIX coord; ... }`, so `coord` is at **+4** — the offset is a
+struct member, not arithmetic on a pointer of m2c's invention. Writing the real type
+(`TmdObject::field_8` is already `GsCOORDINATE2*` in `include/main/tmd.h`) gives the `+4` back, and
+`->flg = 0` / `->coord.t[0]` land on the same object m2c split into two expressions.
+
+The lesson generalises past these two: when a seed is in the 90s with a *uniform* penalty spread and
+no pass dump showing a decision to argue with, diff the *operand widths and displacements* in the
+object dump before touching lifetimes or the scheduler. `M2C_FIELD` is a bag of casts with no
+declaration behind it.

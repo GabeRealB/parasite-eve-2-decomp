@@ -49,7 +49,11 @@ typedef struct Actor401000Work {
     /* 0xA10 */ GpObj    field_A10;
     /* 0xA30 */ byte     pad_A30[0x120];
     /* 0xB50 */ GpObj    field_B50;
-    /* 0xB70 */ byte     pad_B70[0xAC];
+    /* 0xB70 */ byte     pad_B70[0xA8];
+    /// The three bytes `func_actor_401000_8013D958` copies out of the front of
+    /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
+    /* 0xC18 */ u8   field_C18[3];
+    /* 0xC1B */ byte pad_C1B;
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC1C */ Task* field_C1C;
@@ -85,6 +89,13 @@ extern GpAnimArg D_actor_401000_80154F1C;
 
 void func_actor_401000_80132EF0(Actor401000* arg0);
 s32  func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2);
+
+/// Message 0x301 / 0x1002 handler: copy the payload's three leading bytes onto
+/// the work block's animation slots, then key the actor's state (`field_0`) off
+/// the message id and sub-id. The 0x1002/2 arm also drops the model root to
+/// `(-0x595, 0, -0x5B1)` and rebuilds its yaw. Same body as
+/// `Actor01900_Fn0A5A4`, minus that one's 0x301/0 arm.
+s32 func_actor_401000_8013D958(Actor401000* arg0, s32 arg1, u16* arg2);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, unlink the three
 /// display nodes, drop the enemy's `field_54` slot, then `Gp_DestroyEnemy`.
