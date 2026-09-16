@@ -60,11 +60,16 @@ typedef struct Actor401300Work {
     /* 0xAB0 */ GpObj    field_AB0;
     /* 0xAD0 */ byte     field_AD0[0x120];
     /* 0xBF0 */ GpObj    field_BF0;
-    /* 0xC10 */ byte     pad_C10[0x7A];
-    /* 0xC8A */ s16      field_C8A;
-    /* 0xC8C */ byte     pad_C8C[0x14];
-    /* 0xCA0 */ u16      field_CA0;
-    /* 0xCA2 */ byte     pad_CA2[6];
+    /* 0xC10 */ byte     pad_C10[0x38];
+    /// Saved at 0xC48 and copied over 0xC68 when
+    /// `func_actor_401300_80139520` enters its state.
+    /* 0xC48 */ MATRIX field_C48;
+    /* 0xC68 */ MATRIX field_C68;
+    /* 0xC88 */ byte   pad_C88[2];
+    /* 0xC8A */ s16    field_C8A;
+    /* 0xC8C */ byte   pad_C8C[0x14];
+    /* 0xCA0 */ u16    field_CA0;
+    /* 0xCA2 */ byte   pad_CA2[6];
     /// Copy of the first three bytes of the last event
     /// `func_actor_401300_80132554` handled.
     /* 0xCA8 */ u8   field_CA8[3];

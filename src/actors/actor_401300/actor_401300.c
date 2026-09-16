@@ -691,8 +691,6 @@ void func_actor_401300_80138FCC(Actor401300* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139134);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139520);
-
 static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)
 {
     u8*                      head;
@@ -711,6 +709,67 @@ static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)
     *(u8**)G_SCRATCH_HEAD                         = head;
     ret                                           = ((Actor401300RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
+}
+
+void func_actor_401300_80139520(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj          = arg0->field_2C;
+        enemy        = arg0->field_20;
+        obj->field_C = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x280;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   &= 0xBFFF;
+        enemy->node.field_4      = 0;
+        work->field_6            = 0;
+        work->field_C68          = work->field_C48;
+        work->field_8A2          = 0xE;
+        work->field_89C          = 1;
+        work->field_8A6          = work->field_8A8;
+    }
+    if (work->field_6 > 0x960) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (!((Gp_LcgState >> 16) & 0xF)) {
+            return;
+        }
+    } else {
+        work->field_6++;
+    }
+    coord    = arg0->field_2C->field_8;
+    d        = &delta;
+    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    if (!Actor401300_OutOfRange(d, 3000)) {
+        work->field_0 = 6;
+    }
+    if (D_801153F2[0] & 1) {
+        Gp_ArmStateF0(1);
+        work->field_0 = 6;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_8A2 == 0xE && (work->field_6C & 2)) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            work->field_8A2 = 0xF;
+            work->field_89C = 1;
+            func_actor_401300_80133A3C(arg0);
+        }
+    }
+    if (work->field_8A2 == 0xF && (work->field_6C & 0x100)) {
+        work->field_8A2 = 0xE;
+        work->field_89C = 1;
+        func_actor_401300_80133A3C(arg0);
+    }
 }
 
 void func_actor_401300_801397F8(Actor401300* arg0)
