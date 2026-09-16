@@ -109030,3 +109030,97 @@ SHA256 `7956b8a717eae7d8486bc4db20a453720d701360f33e8d4ec30601b001c87c7a`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_356100_8016382C-vacuum`.
+
+## `G_SCRATCH_HEAD` wants the address expanded at every use, not cached in a register (func_actor_356100_801668FC, 2026-09-16)
+
+**Problem.** Every function in this overlay family that walks a scratch block
+starts from `G_SCRATCH_HEAD` (`0x1F8003FC`). Written the obvious way — the
+`G_SCRATCH_HEAD` macro, or the literal `*(u8**)0x1F8003FC` — `cse` hoists the
+constant into a pseudo and the allocator parks it in a callee-saved register for
+the whole function:
+
+```
+lui    s2,0x1f80
+ori    s2,s2,0x3fc          ; the full address as a value
+lw     s1,0(s2)             ; = head
+```
+
+Retail re-materialises the address at *every* access instead, using the
+destination register for loads and `$at` for stores:
+
+```
+lui    s1,0x1f80
+lw     s1,0x3fc(s1)         ; head
+lui    at,0x1f80
+sw     s0,0x3fc(at)         ; head - 8
+```
+
+That is 6 more instructions across eight accesses — retail pays it, because the
+register is needed elsewhere: in `func_actor_356100_801668FC` the freed `$sN`
+is what lets `arg0->field_20` (the `GpEnemy*`) stay live for the whole tick.
+Without it the enemy pointer spills to the stack, the frame grows 0x38 -> 0x40,
+and every register in the function shifts: 85.4% -> 91.9% (base_7) from this
+change alone.
+
+**Mechanism.** The per-use form appears when the address stays an *unfolded*
+`(plus (const_int 0x1F800000) (const_int 0x3FC))` in the MEM operand. `cse`
+produces exactly that when it substitutes a *register that it knows holds*
+`0x1F800000` into the address — and the register must not itself be allocated.
+A function-scoped `u8* base = PSX_SCRATCH;` is a `reg/v` user variable with a
+long live range, so `global_alloc` gives it a register and the accesses become
+`0x3fc(sN)`. What works is a copy that dies at the access:
+
+```c
+base = PSX_SCRATCH;               /* short-lived copy of the constant */
+slot = *(u8**)(base + 0x3FC);     /* the rest of the function reads slot */
+...
+base = PSX_SCRATCH;               /* fresh copy for the store */
+*(SVECTOR**)(base + 0x3FC) = v;
+base = slot;                      /* the assignment that kills it */
+```
+
+The `base = slot;` lines matter: without something overwriting the copy, `cse`
+merges all the copies into one long-lived pseudo and the hoist comes back
+(base_5, base_6, base_16 all regress). With them, each copy has a one-to-two
+instruction live range, `reload` expands the constant per use, and the access
+shapes fall out as `lui r,0x1f80` + `0x3fc(r)` / `0x3fc($at)`.
+
+**Split the scratch locals per block too.** One `slot`/`base`/`next` shared by
+two scratch blocks becomes one pseudo spanning both, which retail keeps in
+different registers (`$s1` for the first block, `$s2` for the second). Giving
+each block its own variable — `slot`/`base`/`next` and `slot2`/`base2`/`next2`,
+`coord`/`root` for the two coordinate reads — is worth 92.7% -> 95.1% -> 98.5%.
+GCC will not split them for you: a shared local is one pseudo, and its live
+range covers the whole middle of the function.
+
+**Copy the record pointer again when the target does.** Retail's second scratch
+block computes the record (`addiu v0,s2,-0x14`) and then copies it
+(`move s1,v0`), i.e. the source keeps a `blk`/`s` pair like the matched
+`func_actor_401300_80132C78`. Adding `s = blk;` and putting the trailing
+reads/writes through `s` reproduces the pair and the exact 253-instruction
+count: 98.5% -> 99.0% (`base_25`).
+
+**What is left.** The tick's final `field_68 & 1` arm has two comparisons
+against literal 1; retail materialises `li v0,1` for each, mine materialises
+one and reuses `a0` for both. The two `(set (reg) (const_int 1))` sets are in
+different basic blocks, and `.cse` folds them into one (9 constant sets in
+`.rtl`, 7 in `.cse`), so the surviving pseudo spans both uses and `global-alloc`
+can keep it across the `lh v0,0x18(s7)` that would otherwise clobber it. Every
+spelling that should have prevented the fold — `(s16)` casts on both sides,
+operand order, a named `s16 one` local (function- and block-scoped), nested
+`if`s instead of `&&`, declaration reordering — produced the identical object.
+See the `func_actor_356100_80169180` entry above for the `volatile` hammer that
+works for merged *loads*; it does not apply to a constant. 99.012%, all
+`branch`/`reorder` penalties zero, `regs=10 insert=1 delete=1`.
+
+Inputs: `base_25.i` (99.012%) SHA256
+`80daba59e5ac2f72ceec83d9c5ea64dd66f1f04954283c437d5ba1c19943c210`; `base_17.i`
+(98.506%) SHA256
+`b59b6b6cfa2b6b2a9ba15ed8374683b2ab272083c58add936dd1896c5a1439bb`; `base_7.i`
+(91.901%) SHA256
+`7c4fe0eab016701ded06158aed363a8693a82104ff2e7a3960eb5492daf1a381`; target
+SHA256 `0eb3eb429c17ccd3426ac1ed9a56c8c1288003f17adacb78badd28028ebf6265`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_801668FC-vacuum`; retry seed archived at
+`tools/giveups/func_actor_356100_801668FC/`.

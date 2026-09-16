@@ -91,7 +91,12 @@ typedef struct Actor356100Work {
     /// `func_actor_356100_8016382C` publishes in the enemy's `field_54` slot
     /// and the exit callback drops. Same slot as `Actor01900Work.field_8E8`.
     /* 0x9C0 */ GpRec18 field_9C0;
-    /* 0x9D8 */ byte    pad_9D8[0x100];
+    /* 0x9D8 */ byte    pad_9D8[0x80];
+    /// Collision record `func_actor_356100_801668FC` hands `func_800E0C10`,
+    /// 0x98 past `field_9C0` — one body-part record rather than one `GpRec18`,
+    /// the stride `Actor00100Obj` gives the same table in the 00100 overlay.
+    /* 0xA58 */ GpRec18 field_A58;
+    /* 0xA70 */ byte    pad_A70[0x68];
     /// Light matrix `func_actor_356100_8016382C` binds to the model's
     /// `TmdObject::field_1C` (the color matrix is `field_AF8`).
     /* 0xAD8 */ MATRIX field_AD8;
@@ -118,7 +123,12 @@ typedef struct Actor356100Work {
     /* 0xB5B */ byte  pad_B5B;
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
-    /* 0xB64 */ byte  pad_B64[0x58];
+    /* 0xB64 */ byte  pad_B64[4];
+    /// Latch `func_actor_356100_801668FC` and `func_actor_356100_80166018`
+    /// clear after dispatching message 0x3F1, and set so that the next tick
+    /// dispatches it once.
+    /* 0xB68 */ s16  field_B68;
+    /* 0xB6A */ byte pad_B6A[0x52];
     /// Zeroed on the state-0x10 entry below the matrices; same tail slot as
     /// `Actor01900Work.field_C98`.
     /* 0xBBC */ s16  field_BBC;
@@ -275,6 +285,16 @@ typedef struct Actor356100RotScratch {
     /* 0x32 */ s16    pad_32;
 } Actor356100RotScratch;
 STATIC_ASSERT_SIZEOF(Actor356100RotScratch, 0x34);
+
+/// 0x14-byte `G_SCRATCH_HEAD` block `func_actor_356100_801668FC` gives
+/// `func_800E0C10`: the `GpDeltaScratch` it fills plus the returned flag, set
+/// when the X or Z delta is nonzero. Same shape as `Actor01900DeltaFlag` /
+/// `Actor00100DeltaFlag`.
+typedef struct Actor356100DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor356100DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor356100DeltaFlag, 0x14);
 
 /// Wraps a 12-bit angle difference into `[-0x800, 0x800]`.
 static __inline__ s16 Actor356100_NormalizeYaw(s16 input)
