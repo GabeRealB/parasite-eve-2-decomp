@@ -111872,3 +111872,87 @@ names `D_actor_207000_80151*` and this one names `D_actor_107000_80139E*` /
 Inputs: `base.c` (77.433%), `base_1.c` (93.913%, struct view), `base_7.c`
 (94.261%, `field_40` before `field_54`), `base_8.c` (99.087%), `base_11.c`
 (100.000%)
+
+## A local that outlives a call holds a pointer chain the target reloads, and pays a callee-saved register for it (func_actor_107000_801378D8, 2026-09-17)
+
+The handler reads `Task::extra` and the model coordinate hung off it at six
+places, and the target reloads the whole chain at each one - `lw v0,0x2C(s4)` /
+`lw v0,8(v0)` before `sw zero,0(v0)`, again before `jal Gp_UpdateCoord`, again for
+the `Tmd_AllocBuffers` argument and each `field_C` read-modify-write. Holding
+`TmdObject* obj = arg0->extra` in a local makes it one register instead, and
+because it is then live across every call in the function the allocator spends a
+callee-saved register on it: the frame grows, `s6` appears, and the two long-lived
+locals swap homes (`s2`/`s3`), which the differ reports as `regs=65` against half
+the function's instructions. Writing the chain out at each use - `((TmdObject*)
+arg0->extra)->field_C &= 0xFF7F;`, `Gp_UpdateCoord(((TmdObject*)arg0->extra)->
+field_8);`, with no local - is what matches (`regs=6`, then 100% once the two
+orderings below were fixed).
+
+The tell is a store the target puts in a call or branch delay slot from a value it
+has just reloaded: `sw zero,0(v0)` in `jal Gp_UpdateCoord`'s delay slot can only be
+the `coord->flg = 0` statement loading `v0` for itself, never `flg = 0` on a live
+`coord`. Same for the argument setup - the target's `lw a0,0x2C(s4)` / `lw a0,8(v0)`
+immediately before the `jal` is a reload, not a `move a0,sN`.
+
+A local that *dies* before the next call is fine, and is what this target shows:
+the entry's `obj = (TmdObject*)arg0->extra` survives only to `coord = obj->field_8`,
+so it lands in `$a0`, which the case-3 arm then reuses for `obj->field_C |= 0x80`
+on its call-free path. The rule is about locals that outlive a call, not about
+locals as such.
+
+Inputs: `base.c` (85.958%), `base_2.c` (82.823%, `obj`/`enemy` locals),
+`base_3.c` (89.684%), `base_4.c` (98.515%), `base_5.c` (100.000%, all penalties 0)
+
+## A halfword used at two widths has to stay a `u16` local, or every use loses its `andi` (func_actor_107000_801378D8, 2026-09-17)
+
+The handler tests one message halfword twice as a halfword and twice as a byte
+(`(u16)word == 4`, `== 5`, `(word & 0xFF) == 1`, `== 3`). The target loads it once
+and materialises each test with an explicit extension:
+
+    lhu  $2,2($5)      # 13 movhi_internal2/3
+    andi $6,$2,0xffff  # 24 zero_extendhisi2/1
+    andi $4,$2,0x00ff  # 64 zero_extendqisi2/1
+
+That needs the value in a `u16` *local*: GCC keeps the pseudo in `HImode` and
+cannot prove the upper bits, so every SImode use re-extends it. Both near misses
+were scored. An `s32 word = arg2->field_2;` gives one load, no `andi`, and - worse
+- the four spawn-point lookups that follow CSE into a single address computation,
+45 instructions short of the target (66.743%). Reading the *field* at each test
+instead folds the extension into the load, so the `andi` never appears and the
+reload pair the target shows never does either.
+
+The table index is the same rule from the other side. The target re-reads
+`lhu v0,2(a2)` before *each* of the four `D_8018B74C[...]` / `D_801874C4[...]`
+lookups, because the coordinate store that precedes them can alias the payload
+pointer, and pays a `srl`/`sll`/`addu` chain each time. Any local for the index
+(`s32 idx = word >> 8`) or for the payload word collapses those four loads and
+their four chains; writing `arg2->field_2 >> 8` out at every use keeps them.
+The index is also *not* masked here - the target is `srl $v0,$v0,0x8` straight
+into `sll $v0,$v0,0x3`, where the sibling `ActorsShared801673f8` does mask with
+`& 0xF`, so the mask comes from the source and not from the struct.
+
+Inputs: `base_1.c` (66.743%), `base_2.c` (82.823%), `base_5.c` (100.000%)
+
+## A store written before a load it does not depend on schedules ahead of it, so order the fields as the target's delay slots show (func_actor_107000_801378D8, 2026-09-17)
+
+The reveal arm fills an `SVECTOR` from a spawn point and three stores of the same
+record go to the model coordinate in between. The target emits `rot.vx = 0`, then
+the whole heading load chain, then `sh zero,0x14(sp)` / `sh v0,0x12(sp)` - the `vz`
+store *last written* and yet emitted first of the two, filling the heading load's
+delay slot. Written before the heading expression instead (m2c's order, and what
+the decompiler produced), the `vz` store issues ahead of the whole chain and the
+delay slot is a `nop`; the two are otherwise identical, 2 insert + 2 reorder of
+penalty and 1.5% of score. This is the rule already noted in
+`src/actors/lib/actors_shared_801673f8.c` ("The 7C store follows 7A here; written
+first, it schedules ahead of the heading load"), now with a second independent
+confirmation - order the two stores so the one that should fill the load delay is
+written *after* the load, and the scheduler puts it there on its own.
+
+The same handler's entry loads are order-sensitive for the same reason and were
+recovered from the seed rather than derived: `word, extra, spawnArg2, idMap,
+mode, coord` is the sequence the target issues, and swapping `idMap` ahead of
+`extra` moves `s2`/`s3` between the two long-lived locals for the rest of the
+function.
+
+Inputs: `base_4.c` (98.515%, `reorder=2 insert=2`), `base_5.c` (100.000%, all
+penalties 0)
