@@ -7,7 +7,9 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
+extern TaskDesc D_8013843C;
 extern TaskDesc D_dryfield_motel_room_6_80182D78;
+extern Task*    D_dryfield_motel_room_6_80186828;
 
 void func_dryfield_motel_room_6_80181910(void)
 {
@@ -62,4 +64,25 @@ s32 func_dryfield_motel_room_6_80181A00(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_6/dryfield_motel_room_6_4", func_dryfield_motel_room_6_80181A08);
+/// Spawns this room's event task from entry 1 of `D_8013843C`, keeps it in
+/// `D_dryfield_motel_room_6_80186828`, waits for it to be killed and then kills
+/// this task. Same shape as `func_dryfield_gas_station_8017FE20`.
+void func_dryfield_motel_room_6_80181A08(Task* arg0)
+{
+    s32 out;
+
+    switch (arg0->state) {
+        case 0:
+            D_dryfield_motel_room_6_80186828 = Task_SpawnFromTable(&D_8013843C, 1, 0, 0);
+            arg0->state++;
+            break;
+        case 1:
+            if (Task_PollKill(D_dryfield_motel_room_6_80186828, &out) != 0) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            Task_Kill(arg0);
+            break;
+    }
+}
