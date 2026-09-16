@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "main/task.h"
 
 /// Parameter block of `func_dryfield_night_water_hole_8017D6AC`, the room-local
@@ -56,6 +57,30 @@ extern TaskDesc D_dryfield_night_water_hole_801805EC;
 
 /// The staged event descriptor, read by the task spawned above.
 extern DnwhEventDesc D_dryfield_night_water_hole_80183630;
+
+/// One entry of the NULL-terminated override list
+/// `func_dryfield_night_water_hole_8017DE88` walks: the record the entry
+/// installs in the room's parameter table, `Gp_RoomParamTables[stage][room]`,
+/// and the slot it goes in.
+typedef struct DnwhParamOverride {
+    /* 0x0 */ GpRoomParamRec* rec;
+    /* 0x4 */ s32             index;
+} DnwhParamOverride;
+STATIC_ASSERT_SIZEOF(DnwhParamOverride, 0x8);
+
+/// Replaces the room's parameter slots with the overrides in `list`, both the
+/// `GpRoomParamRec` pointer and the byte `Gp_LoadRoomParams` would have copied
+/// out of it. `func_dryfield_night_water_hole_8017D958` applies it on the visit
+/// that has already latched progress nibble 0xB8.
+void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
+
+/// Room entry task tick: publishes the message table and claims game pointer
+/// slot 7, then takes whichever opening move progress nibble 0xB8 leaves -
+/// the room's event task while the nibble is clear, the parameter overrides
+/// above once it is set - announces the room to the slot-4 task with message
+/// 0x7DB on the visit whose sub-id is 1, and spawns the ending task on sub-id
+/// 0xA with nibble 0xCF still clear. Then advances state.
+void func_dryfield_night_water_hole_8017D958(Task* arg0);
 
 /// Resolves the code in `in->field_0` and writes the resulting byte to
 /// `out->field_3`. `func_dryfield_night_water_hole_8017DC28` is its only caller

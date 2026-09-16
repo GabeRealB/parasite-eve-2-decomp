@@ -88957,3 +88957,34 @@ every access `$sp`-relative because its function pointer already holds `$s0`.
 Example: `func_dryfield_night_water_hole_8017DC28`. Inputs: `base_6.i`
 `324fea05cdda758d428a948329cce0362ae15e230c3c92469af40dac72fb672a` (the winning
 `base_3.i`; `base_2.i` and `base_4.i` differ only in type and parameter names).
+
+## Landing a matched body: it has to go where its `INCLUDE_ASM` line was (func_dryfield_night_water_hole_8017D958, 2026-09-16)
+
+Replacing `INCLUDE_ASM(...)` with the function's C body is an **in-place** edit.
+A unit's functions are emitted in source order into one `.text` run, so a body
+written anywhere else in the file moves every function after it - and the move
+is invisible to every tool in the matching loop.
+
+`dryfield_night_water_hole` put the body at the top of the file, next to the
+includes. The function's own bytes were still correct: the scratch scorer said
+100% and the object disassembled instruction-for-instruction against the
+target. The overlay linked, and only the checksum failed.
+
+The signature is a *size that has not changed*. The built overlay was the same
+24700 bytes as `assets/USA/pe2pkg/dryfield_night_water_hole.pe2pkg`, so the
+usual "overlay is too long" reading does not apply - but `cmp` between the two
+shows a difference every 4 bytes from offset 4 onward. Those are the room's own
+pointer tables (the jump table at offset 4, the room's function-pointer runs),
+and every address in them was high by 0x17C, exactly the body's size, because
+the two `INCLUDE_ASM` functions that used to precede it had moved up by that
+much. Read the pointer *values*, not the length.
+
+Fix: put the body back between the `INCLUDE_ASM` / `INCLUDE_RODATA` lines it
+replaces. Declarations, doc comments and `#include`s emit nothing and can sit
+wherever they read best; only code-producing lines are positional.
+
+The same function's codegen lesson is the cross-jump one above ("Differing call
+arguments do not block a cross-jump"): m2c's joined form - a `var_a0`/`var_a2`
+pair assigned per arm and one `Gp_DispatchMsg` after the `if` - leaves
+`li a1, 0x7DB` hoisted into the join block, where the target has it in both
+arms. One call site per arm, literal at each site, reached 100% in one build.
