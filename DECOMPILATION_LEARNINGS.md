@@ -83403,6 +83403,29 @@ never declared means the seed *undercounts* parameters (see the
 `func_mine_mesa_8017DA7C` entry above), while an `$a3` fed by a delay-slot store
 usually means it is overcounting.
 
+## A value that merely *lands* in an argument register is a third way m2c overcounts parameters (func_dryfield_night_garage_80180A64, 2026-09-16)
+
+The seed for this one-argument function came out two-argument:
+
+```c
+Task **Gp_FindWorkById(s32, GameSession *);
+/* ... */ Gp_FindWorkById(/* id */, Game_Session);
+```
+
+because the target loads `Game_Session` once into `$a1`, reads `field_6` and
+`field_7` through it, and reaches `jal Gp_FindWorkById` with `$a1` still
+holding it. That is not an argument setup: the pointer's live range ends at the
+call, so the allocator picks `$a1` for it unprompted, and no delay-slot store is
+involved.
+
+The real prototype is `GpWorkObj* Gp_FindWorkById(u16 arg0)`
+(`include/gameplay/1BC.h`). The natural one-argument body written against it
+compiles byte-identically - 100.000%, same 19 instructions, same block count -
+so the seed was not wrong enough to fail, only misleading. An argument register
+live at a call is therefore a third shape to check next to the delay-slot store
+and the dropped already-in-`$a0` argument: before believing a callee has a
+hidden parameter, write the one-argument form and rescore it.
+
 ## Concurrent lanes share the regenerated asset store, so a build can overlap an extraction (build-and-verify, 2026-09-16)
 
 Every overlay lane works in its own worktree, but `assets/` and `rom/` are
