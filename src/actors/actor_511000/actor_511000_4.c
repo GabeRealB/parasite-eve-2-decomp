@@ -2,110 +2,141 @@
 
 #include "actors/actor_511000.h"
 
-#include "gameplay/3A34.h"
-#include "gameplay/gameplay.h"
+#include "gameplay/D4.h"
 
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// The actor's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-extern TaskFuncTable3 D_actor_511000_80131E48;
-extern TaskFuncTable3 D_actor_511000_80131E54;
-extern TaskFuncTable3 D_actor_511000_80131E60;
+extern SVECTOR    D_actor_511000_80147344[];
+extern SVECTOR    D_actor_511000_80147704[];
+extern SVECTOR    D_actor_511000_80147AC4;
+extern u16*       D_actor_511000_80147EB0;
+extern GpMsgEntry D_actor_511000_80148FC4[];
 
-/// Translation presets `func_actor_511000_80133760` copies onto the root
-/// coordinate; `Task::spawnArg1` selects the entry.
-extern SVECTOR D_actor_511000_80148FE4[];
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801327A0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80133554);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_8013287C);
 
-/// Places the task's model at the indexed rotation and translation: copies
-/// `rots[index]` onto the root coordinate's Euler angles, `trans[index]` into
-/// its local translation, rebuilds the rotation matrix and marks the
-/// coordinate dirty.
-void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132904);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801329C4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132B14);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132E6C);
+
+/// Spawn/setup state: allocates the 0x70 work block, parks it in `idMap`,
+/// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
+/// 0x80), places it at rot/trans index 0, binds light/color, installs the
+/// message table, and publishes `work->field_C` through
+/// `D_actor_511000_80147EB0` before advancing to the per-frame state.
+void func_actor_511000_80133034(Task* task)
 {
-    Actor511000Coord* coord;
-    SVECTOR*          rot;
-    SVECTOR*          pos;
-    s32               off;
-
-    off               = (index << 16) >> 13;
-    rot               = (SVECTOR*)(off + (s32)rots);
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
-    coord->rot.vx     = rot->vx;
-    coord->rot.vy     = rot->vy;
-    pos               = (SVECTOR*)(off + (s32)trans);
-    coord->rot.vz     = rot->vz;
-    coord->coord.t[0] = pos->vx;
-    coord->coord.t[1] = pos->vy;
-    coord->coord.t[2] = pos->vz;
-    RotMatrix(&coord->rot, &coord->coord);
-    coord->flg = 0;
-}
-
-/// Places the task's model at the indexed translation: copies
-/// `D_actor_511000_80148FE4[spawnArg1]` into the root coordinate's local
-/// translation, zeros the Euler angles, rebuilds the rotation matrix and
-/// marks the coordinate dirty.
-void func_actor_511000_80133760(Task* task)
-{
-    Actor511000Coord* coord;
-
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
-    coord->coord.t[0] = D_actor_511000_80148FE4[task->spawnArg1].vx;
-    coord->coord.t[1] = D_actor_511000_80148FE4[task->spawnArg1].vy;
-    coord->coord.t[2] = D_actor_511000_80148FE4[task->spawnArg1].vz;
-    coord->rot.vx     = 0;
-    coord->rot.vy     = 0;
-    coord->rot.vz     = 0;
-    RotMatrix(&coord->rot, &coord->coord);
-    coord->flg = 0;
-}
-
-/// Binds the task's TMD object to the work-block light/color matrices, clears
-/// the root coordinate flag, and rebuilds lighting from the world translation.
-void func_actor_511000_801337F0(Task* task)
-{
-    GsCOORDINATE2*   coord;
     Actor511000Work* work;
     TmdObject*       extra;
 
-    work            = (Actor511000Work*)task->idMap;
+    extra = (TmdObject*)task->extra;
+    work  = (Actor511000Work*)Mem_Calloc(0x70, 0);
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    task->idMap     = (TaskIdMap*)work;
+    work->field_8   = -1;
+    extra->field_C |= 0x80;
+    func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
+    func_actor_511000_801337F0(task);
+    do {
+        task->field_24          = D_actor_511000_80148FC4;
+        D_actor_511000_80147EB0 = &work->field_C;
+    } while (0);
+    task->state += 1;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801330F0);
+
+void func_actor_511000_80133220(Task* task)
+{
+    Task_Kill(task);
+}
+
+/// Inherits the parent model's light/color and visibility bit, chains this
+/// actor's root coordinate under the parent's, places it at the spawnArg1
+/// translation, and reparents the task.
+void func_actor_511000_80133240(Task* task)
+{
+    Task*          parent;
+    TmdObject*     extra;
+    TmdObject*     parentExtra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* dest;
+
+    parent          = (Task*)task->spawnArg2;
+    parentExtra     = (TmdObject*)parent->extra;
     extra           = (TmdObject*)task->extra;
+    dest            = parentExtra->field_8;
+    extra->field_1C = parentExtra->field_1C;
+    extra->field_20 = parentExtra->field_20;
+    extra->field_C  = 0x80;
     coord           = extra->field_8;
-    extra->field_1C = &work->light;
-    extra->field_20 = &work->color;
-    coord->flg      = 0;
-    Gp_UpdateCoord(coord);
-    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+    if (!(parentExtra->field_C & 0x80)) {
+        extra->field_C = 0;
+    }
+    func_actor_511000_80133760(task);
+    coord->sub = dest;
+    Task_Reparent(parent, task);
+    task->state += 1;
 }
 
-void func_actor_511000_80133850(Task* task)
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_801332E4);
+
+void func_actor_511000_801333A4(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_actor_511000_80131E48;
-    sp.funcs[task->state](task);
+    Task_Kill(task);
 }
 
-void func_actor_511000_801338A8(Task* task)
+/// Inherits the parent model's light/color and visibility bit, chains this
+/// actor's root coordinate under the parent's, places it at the spawnArg1
+/// translation, copies `D_actor_511000_80147AC4` onto the Euler angles,
+/// rebuilds the rotation matrix, and reparents the task.
+void func_actor_511000_801333C4(Task* task)
 {
-    TaskFuncTable3 sp;
+    Task*             parent;
+    TmdObject*        extra;
+    TmdObject*        parentExtra;
+    Actor511000Coord* coord;
+    GsCOORDINATE2*    dest;
 
-    sp = D_actor_511000_80131E54;
-    sp.funcs[task->state](task);
+    parent          = (Task*)task->spawnArg2;
+    parentExtra     = (TmdObject*)parent->extra;
+    extra           = (TmdObject*)task->extra;
+    dest            = parentExtra->field_8;
+    extra->field_1C = parentExtra->field_1C;
+    extra->field_20 = parentExtra->field_20;
+    extra->field_C  = 0x80;
+    coord           = (Actor511000Coord*)extra->field_8;
+    if (!(parentExtra->field_C & 0x80)) {
+        extra->field_C = 0;
+    }
+    func_actor_511000_80133760(task);
+    ((GsCOORDINATE2*)coord)->sub = dest;
+    Task_Reparent(parent, task);
+    coord->rot.vx = D_actor_511000_80147AC4.vx;
+    coord->rot.vy = D_actor_511000_80147AC4.vy;
+    coord->rot.vz = D_actor_511000_80147AC4.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg   = 0;
+    task->state += 1;
 }
 
-void func_actor_511000_80133900(Task* task)
+void func_actor_511000_80133498(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_actor_511000_80131E60;
-    sp.funcs[task->state](task);
+    Task_Kill(task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80133958);
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80133B80);
+s32 func_actor_511000_801334B8(Task* arg0)
+{
+    arg0->killCountdown = 0;
+    return 0;
+}

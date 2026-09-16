@@ -2,141 +2,44 @@
 
 #include "actors/actor_511000.h"
 
-#include "gameplay/D4.h"
+#include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
 
-#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern SVECTOR    D_actor_511000_80147344[];
-extern SVECTOR    D_actor_511000_80147704[];
-extern SVECTOR    D_actor_511000_80147AC4;
-extern u16*       D_actor_511000_80147EB0;
-extern GpMsgEntry D_actor_511000_80148FC4[];
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_511000_80131E30;
+extern TaskFuncTable3 D_actor_511000_80131E3C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801327A0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_8013287C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132904);
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801329C4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132B14);
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132E6C);
-
-/// Spawn/setup state: allocates the 0x70 work block, parks it in `idMap`,
-/// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
-/// 0x80), places it at rot/trans index 0, binds light/color, installs the
-/// message table, and publishes `work->field_C` through
-/// `D_actor_511000_80147EB0` before advancing to the per-frame state.
-void func_actor_511000_80133034(Task* task)
+void func_actor_511000_80132428(Task* task)
 {
-    Actor511000Work* work;
-    TmdObject*       extra;
+    TaskFuncTable3 sp;
 
-    extra = (TmdObject*)task->extra;
-    work  = (Actor511000Work*)Mem_Calloc(0x70, 0);
-    if (work == NULL) {
-        Task_Kill(task);
-        return;
-    }
-    task->idMap     = (TaskIdMap*)work;
-    work->field_8   = -1;
-    extra->field_C |= 0x80;
-    func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
-    func_actor_511000_801337F0(task);
-    do {
-        task->field_24          = D_actor_511000_80148FC4;
-        D_actor_511000_80147EB0 = &work->field_C;
-    } while (0);
-    task->state += 1;
+    sp = D_actor_511000_80131E3C;
+    sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801330F0);
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132480);
 
-void func_actor_511000_80133220(Task* task)
+/// Republishes the work block's light/color matrices onto the TMD object and
+/// rebuilds model part 1's world matrix from it, then hands that part's
+/// translation to the ground-shadow helper.
+void func_actor_511000_801325A4(Task* task)
 {
-    Task_Kill(task);
-}
-
-/// Inherits the parent model's light/color and visibility bit, chains this
-/// actor's root coordinate under the parent's, places it at the spawnArg1
-/// translation, and reparents the task.
-void func_actor_511000_80133240(Task* task)
-{
-    Task*          parent;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
-
-    parent          = (Task*)task->spawnArg2;
-    parentExtra     = (TmdObject*)parent->extra;
-    extra           = (TmdObject*)task->extra;
-    dest            = parentExtra->field_8;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
-    extra->field_C  = 0x80;
-    coord           = extra->field_8;
-    if (!(parentExtra->field_C & 0x80)) {
-        extra->field_C = 0;
-    }
-    func_actor_511000_80133760(task);
-    coord->sub = dest;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_801332E4);
-
-void func_actor_511000_801333A4(Task* task)
-{
-    Task_Kill(task);
-}
-
-/// Inherits the parent model's light/color and visibility bit, chains this
-/// actor's root coordinate under the parent's, places it at the spawnArg1
-/// translation, copies `D_actor_511000_80147AC4` onto the Euler angles,
-/// rebuilds the rotation matrix, and reparents the task.
-void func_actor_511000_801333C4(Task* task)
-{
-    Task*             parent;
+    Actor511000Work2* work;
+    GsCOORDINATE2*    coords;
     TmdObject*        extra;
-    TmdObject*        parentExtra;
-    Actor511000Coord* coord;
-    GsCOORDINATE2*    dest;
 
-    parent          = (Task*)task->spawnArg2;
-    parentExtra     = (TmdObject*)parent->extra;
+    work            = (Actor511000Work2*)task->idMap;
     extra           = (TmdObject*)task->extra;
-    dest            = parentExtra->field_8;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
-    extra->field_C  = 0x80;
-    coord           = (Actor511000Coord*)extra->field_8;
-    if (!(parentExtra->field_C & 0x80)) {
-        extra->field_C = 0;
-    }
-    func_actor_511000_80133760(task);
-    ((GsCOORDINATE2*)coord)->sub = dest;
-    Task_Reparent(parent, task);
-    coord->rot.vx = D_actor_511000_80147AC4.vx;
-    coord->rot.vy = D_actor_511000_80147AC4.vy;
-    coord->rot.vz = D_actor_511000_80147AC4.vz;
-    RotMatrix(&coord->rot, &coord->coord);
-    coord->flg   = 0;
-    task->state += 1;
+    coords          = extra->field_8;
+    extra->field_1C = &work->light;
+    extra->field_20 = &work->color;
+    coords[1].flg   = 0;
+    Gp_UpdateCoord(&coords[1]);
+    func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
-void func_actor_511000_80133498(Task* task)
-{
-    Task_Kill(task);
-}
-
-s32 func_actor_511000_801334B8(Task* arg0)
-{
-    arg0->killCountdown = 0;
-    return 0;
-}
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_3", func_actor_511000_80132604);

@@ -1,24 +1,111 @@
 #include "common.h"
 
 #include "actors/actor_511000.h"
-#include "gameplay/1BC.h"
+
+#include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
+
 #include "main/task.h"
+#include "main/tmd.h"
 
-/// Copies the animation id from `preset` into the work block parked in
-/// `task->idMap`, reseeds slots 1..0x12 through `Gp_AnimResetSlot`, and
-/// clears `field_480`.
-s32 func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset)
+/// The actor's three state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by state.
+extern TaskFuncTable3 D_actor_511000_80131E48;
+extern TaskFuncTable3 D_actor_511000_80131E54;
+extern TaskFuncTable3 D_actor_511000_80131E60;
+
+/// Translation presets `func_actor_511000_80133760` copies onto the root
+/// coordinate; `Task::spawnArg1` selects the entry.
+extern SVECTOR D_actor_511000_80148FE4[];
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_80133554);
+
+/// Places the task's model at the indexed rotation and translation: copies
+/// `rots[index]` onto the root coordinate's Euler angles, `trans[index]` into
+/// its local translation, rebuilds the rotation matrix and marks the
+/// coordinate dirty.
+void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
 {
-    Actor511000Work2* work;
-    s32               i;
+    Actor511000Coord* coord;
+    SVECTOR*          rot;
+    SVECTOR*          pos;
+    s32               off;
 
-    work            = (Actor511000Work2*)task->idMap;
-    work->field_47C = preset->field_4;
-    i               = 1;
-    do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_47C);
-        i++;
-    } while (i < 0x13);
-    work->field_480 = 0;
-    return 0;
+    off               = (index << 16) >> 13;
+    rot               = (SVECTOR*)(off + (s32)rots);
+    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
+    coord->rot.vx     = rot->vx;
+    coord->rot.vy     = rot->vy;
+    pos               = (SVECTOR*)(off + (s32)trans);
+    coord->rot.vz     = rot->vz;
+    coord->coord.t[0] = pos->vx;
+    coord->coord.t[1] = pos->vy;
+    coord->coord.t[2] = pos->vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
 }
+
+/// Places the task's model at the indexed translation: copies
+/// `D_actor_511000_80148FE4[spawnArg1]` into the root coordinate's local
+/// translation, zeros the Euler angles, rebuilds the rotation matrix and
+/// marks the coordinate dirty.
+void func_actor_511000_80133760(Task* task)
+{
+    Actor511000Coord* coord;
+
+    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
+    coord->coord.t[0] = D_actor_511000_80148FE4[task->spawnArg1].vx;
+    coord->coord.t[1] = D_actor_511000_80148FE4[task->spawnArg1].vy;
+    coord->coord.t[2] = D_actor_511000_80148FE4[task->spawnArg1].vz;
+    coord->rot.vx     = 0;
+    coord->rot.vy     = 0;
+    coord->rot.vz     = 0;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+}
+
+/// Binds the task's TMD object to the work-block light/color matrices, clears
+/// the root coordinate flag, and rebuilds lighting from the world translation.
+void func_actor_511000_801337F0(Task* task)
+{
+    GsCOORDINATE2*   coord;
+    Actor511000Work* work;
+    TmdObject*       extra;
+
+    work            = (Actor511000Work*)task->idMap;
+    extra           = (TmdObject*)task->extra;
+    coord           = extra->field_8;
+    extra->field_1C = &work->light;
+    extra->field_20 = &work->color;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+}
+
+void func_actor_511000_80133850(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_511000_80131E48;
+    sp.funcs[task->state](task);
+}
+
+void func_actor_511000_801338A8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_511000_80131E54;
+    sp.funcs[task->state](task);
+}
+
+void func_actor_511000_80133900(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_511000_80131E60;
+    sp.funcs[task->state](task);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_80133958);
+
+INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_80133B80);
