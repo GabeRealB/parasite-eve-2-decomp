@@ -599,7 +599,69 @@ void func_actor_206100_8014CFF4(Task* task)
 ///   tail, which is the register only the tail's load crosses calls for.
 /// - the state change goes through the inlined `set_state`, the same reloading
 ///   helper `func_actor_206100_8014D8E8` calls.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014D14C);
+void func_actor_206100_8014D14C(Task* task)
+{
+    Actor206100Work* sub = (Actor206100Work*)task->idMap;
+    Actor206100Work* work;
+    Actor206100Work* next;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    u16              ease;
+    s32              pan;
+    s32              cond;
+    s32              angle;
+    s32              yaw;
+    s32              limit;
+    s32              diff;
+
+    sub->field_51E = sub->field_51E + 1;
+    if ((s16)sub->field_51E == 1) {
+        sub->field_52E = 0x18;
+    }
+    if ((u32)(sub->field_51E - 0x29) < 0x25U) {
+        ease           = sub->field_35C;
+        sub->field_35C = ease + ((s32)((0x4000 - (ease * 0x10)) << 0x10) >> 0x16);
+    }
+    if ((s16)sub->field_51E == 0x54) {
+        pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(0x551E0002, pan,
+                            (s8)Gp_GetObjDepth(((TmdObject*)task->extra)->field_8));
+    }
+    if ((s16)sub->field_51E == 0x77) {
+        SndEvt_EnqueueType7(0x551E0002, 1);
+    }
+    if ((s16)sub->field_51E == 0x54 || (s16)sub->field_51E == 0x5B || (s16)sub->field_51E == 0x62 ||
+        (s16)sub->field_51E == 0x69 || (s16)sub->field_51E == 0x70 || (s16)sub->field_51E == 0x77) {
+        sub->field_555 = 1;
+    }
+    next = (Actor206100Work*)task->idMap;
+    if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond != 0) {
+        SndEvt_EnqueueType7(0x551E0002, 1);
+        set_state(task, 2);
+    }
+    work       = (Actor206100Work*)task->idMap;
+    coord      = ((TmdObject*)task->extra)->field_8;
+    coord->flg = 0;
+    vec.vx     = sub->field_4D0 - (u16)coord->coord.t[0];
+    vec.vy     = 0;
+    vec.vz     = sub->field_4D4 - (u16)coord->coord.t[2];
+    VectorNormalSS(&vec, &vec);
+    yaw   = ratan2(vec.vx, vec.vz);
+    limit = 0x18;
+    angle = (u16)work->field_43E;
+    diff  = ((angle - yaw) << 20) >> 20;
+    if (diff > limit) {
+        work->field_43E = angle - 0xC;
+    } else if (diff < -0x18) {
+        work->field_43E = angle + 0xC;
+    }
+    func_actor_206100_8014ED3C(task, 0x10);
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_206100/actor_206100", D_actor_206100_80149E94);
 
 /// The state-0 dispatcher's sub-state table, a table in its own right rather
