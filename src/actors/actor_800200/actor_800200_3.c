@@ -36,6 +36,8 @@ extern GpActorPathStep D_actor_800200_8016A058[];
 
 extern GpActorPathStep D_actor_800200_8016A068[];
 
+extern GpActorPathStep D_actor_800200_8016A080[];
+
 extern GpActorPathStep D_actor_800200_8016A090[];
 
 extern GpActorPathStep D_actor_800200_8016A098[];
@@ -214,7 +216,74 @@ void func_actor_800200_8016337C(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80163584);
+void func_actor_800200_80163584(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    u16            state;
+    s32            mode;
+    s32            delay;
+
+    actor = arg0->actor;
+    coord = arg0->extra->field_8;
+    state = actor->field_960;
+    d4    = actor->field_910;
+    switch (state) {
+        case 0:
+            actor->field_960 = 1;
+            actor->field_20  = D_actor_800200_8016A080[1].field_0;
+            actor->field_24  = coord->coord.t[1];
+            actor->field_28  = D_actor_800200_8016A080[1].field_4;
+            if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
+                goto arrived;
+            }
+        case 1:
+            actor->field_960++;
+            func_actor_800200_80165534(arg0);
+            return;
+        case 2:
+            actor->field_20 = D_actor_800200_8016A080[d4->field_CE].field_0;
+            actor->field_24 = coord->coord.t[1];
+            actor->field_28 = D_actor_800200_8016A080[d4->field_CE].field_4;
+            if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
+                if (d4->field_CE == 1) {
+                arrived:
+                    d4->field_D0 = 1;
+                    func_actor_800200_801654EC(arg0, 0);
+                    return;
+                }
+                if (func_8010BC70(coord) >= 0xC00) {
+                    actor->field_960 = 3;
+                    actor->field_934 = 0;
+                    actor->field_90C = NULL;
+                    func_actor_800200_801653A0(arg0);
+                    return;
+                }
+                d4->field_CE++;
+                return;
+            }
+            mode = 6;
+            if (d4->field_CE == 1) {
+                mode = 5;
+            }
+            func_actor_800200_80165408(arg0, mode);
+            return;
+        case 3:
+            if (func_8010BC70(coord) < 0x901) {
+                d4->field_CE++;
+                actor->field_960 = 1;
+                return;
+            }
+            delay            = actor->field_934 - 1;
+            actor->field_934 = delay;
+            if (delay <= 0) {
+                actor->field_934 = rand() & 0x7F;
+                func_actor_800200_8016545C(arg0, 1);
+            }
+            return;
+    }
+}
 
 void func_actor_800200_801637B4(GpActorWork* arg0)
 {
@@ -671,7 +740,7 @@ void func_actor_800200_80165708(GpActorWork* arg0)
             func_actor_800200_801659CC();
             return;
         case 4:
-            func_actor_800200_80163584();
+            func_actor_800200_80163584(arg0);
             return;
         case 5:
             func_actor_800200_8016390C(arg0);
