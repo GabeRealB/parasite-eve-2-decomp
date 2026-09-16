@@ -756,7 +756,50 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02D48);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn02FF8);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn031A4);
+/// Finds the nearest eligible waypoint record in `field_608` and returns its
+/// XZ in `arg1`. Records with `field_6 == 1` are only considered when they are
+/// the one `field_64A` points at, and the walk ends at the `-1` terminator.
+void Actor00400_Fn031A4(Actor100400* arg0, SVECTOR* arg1)
+{
+    Actor100400NearestScratch* scratch;
+    Actor100400Work*           work;
+    Actor100400Record*         record;
+    u8*                        head;
+    s16                        index;
+    s16                        kind;
+    s32                        dx;
+    s32                        dz;
+    s32                        distance;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
+    scratch               = (Actor100400NearestScratch*)*(u8**)G_SCRATCH_HEAD;
+    work                  = arg0->field_1C;
+    scratch->index        = 1;
+    scratch->bestIndex    = 0;
+    scratch->best         = 0x7FFFFFFF;
+loop:
+    index  = scratch->index;
+    record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->field_608);
+    kind   = record->field_6;
+    if (kind != -1) {
+        if ((kind != 1) || (index == work->field_64A)) {
+            scratch->delta.vx = dx = work->field_5E4.vx - record->field_0;
+            scratch->delta.vz = dz = work->field_5E4.vz - work->field_608[scratch->index].field_4;
+            distance               = SquareRoot0((dx * dx) + (dz * dz));
+            scratch->dist          = distance;
+            if (distance < scratch->best) {
+                arg1->vx           = work->field_608[scratch->index].field_0;
+                arg1->vz           = work->field_608[scratch->index].field_4;
+                scratch->best      = scratch->dist;
+                scratch->bestIndex = scratch->index;
+            }
+        }
+        scratch->index = scratch->index + 1;
+        goto loop;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03318);
 

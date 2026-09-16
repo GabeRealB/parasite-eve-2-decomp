@@ -86569,3 +86569,51 @@ The same function needed two unrelated fixes first, both worth recognising:
 
 Inputs: `base_1.i` (98.99%), `base_2.i` (99.20%), `base_5.i` (100%). Compiler
 SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## `base[i]` and `i * sizeof(T) + (u32)base` build the `addu` operands in opposite orders (Actor00400_Fn031A4, 2026-09-16)
+
+Both spellings of an array element address are the same arithmetic, but expand
+emits the `plus` with its operands in the order the source evaluates them, and
+`addsi3_internal` prints them in that order - so the choice is visible in the
+object and, worse, it moves the allocation.
+
+`record = &work->field_608[index];` evaluated the base load first:
+
+```
+(insn 55 (set (reg 101) (mem/s:SI (plus (reg 83) (const_int 1544)))))   ; base
+(insn 57 (set (reg 84)  (plus (reg 101) (reg 100))))                    ; base + scaled
+```
+
+which came out as `addu a0,v0,v1` with the element pointer in `$a0` and the
+field it then loads in `$v1`. Target had `addu v1,v1,v0`, the pointer in `$v1`
+and the load in `$a0`. Writing the element address the other way round -
+
+```c
+record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->field_608);
+```
+
+- put the shift first, `(plus scaled base)`, and the whole allocation fell out
+right for 100% with `regs=0`. Nothing else changed.
+
+The mechanism is local-alloc's copy preference: `addsi3_internal` ties the
+destination to the *first* input operand when that input dies there, so which
+addend comes first decides which pseudo the element pointer inherits a register
+from. It is worth trying whenever the only leftover is a two-register swap
+around an array access, and it costs one build.
+
+Note the two forms are not interchangeable for style purposes: this is a typed
+array of a known struct either way, so `check_pointer_arithmetic.py` accepts
+both, and the cast form was already the idiom in `actor_100400_text_tail.c`.
+Prefer `base[i]` and reach for the cast form only when the dump says the operand
+order is the leftover.
+
+Same function, unrelated and already covered above: the scratchpad prologue
+needed the store-then-re-read shape
+(`head = *(u8**)G_SCRATCH_HEAD; *(u8**)G_SCRATCH_HEAD = head - 0x1C;
+scratch = *(u8**)G_SCRATCH_HEAD;`) to keep `addiu v0 / move s0,v0 / sw v0`
+rather than fusing into `addiu s0,v0,-0x1c`, and rewriting its `goto` loop as
+`for (;;) { ... if (kind == -1) break; ... }` rotated the loop and duplicated
+the exit test, dropping 100% to 75.1% (`insert=15 delete=7`).
+
+Inputs: `base.i` (98.344%), `base_1.i` (99.570%), `base_2.i` (100%). Compiler
+SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.

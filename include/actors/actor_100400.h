@@ -50,10 +50,29 @@ typedef struct Actor100400QuadWork {
 
 void Actor00400_Fn03318(SVECTOR*, SVECTOR*, SVECTOR*, SVECTOR*, s32);
 
+/// 8-byte waypoint record in the `Actor100400Work.field_608` array, walked
+/// until `field_6` is -1. `field_0` / `field_4` are the X and Z the actor
+/// steers toward; `field_6` selects the kind, where 1 is only eligible for
+/// the record `field_64A` already points at.
 typedef struct Actor100400Record {
-    /* 0x00 */ byte pad_0[6];
+    /* 0x00 */ s16  field_0;
+    /* 0x02 */ byte pad_2[2];
+    /* 0x04 */ s16  field_4;
     /* 0x06 */ s16  field_6;
 } Actor100400Record;
+
+/// 0x1C-byte scratch taken off `G_SCRATCH_HEAD` by `Actor00400_Fn031A4` while
+/// it searches `Actor100400Work.field_608` for the nearest record: `delta`
+/// holds the XZ difference from `field_5E4`, `best` the smallest distance seen
+/// so far and `index` the record being tested.
+typedef struct Actor100400NearestScratch {
+    /* 0x00 */ VECTOR delta;
+    /* 0x10 */ s32    best;
+    /* 0x14 */ s32    dist;
+    /* 0x18 */ s16    index;
+    /* 0x1A */ s16    bestIndex;
+} Actor100400NearestScratch;
+STATIC_ASSERT_SIZEOF(Actor100400NearestScratch, 0x1C);
 
 /// 8-byte waypoint indexed by `Actor100400Work.field_65B` (wraps at 8);
 /// `field_2` offsets the Y base in `Actor00400_Fn05D00`, and
