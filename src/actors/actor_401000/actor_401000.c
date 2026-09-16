@@ -92,7 +92,138 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80134DB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80134F98);
+/// Wrap `input` into the -0x800..0x800 turn range. Same body as
+/// `Actor01900_NormalizeYaw` / `Actor401300_NormalizeYaw`.
+static __inline__ s16 Actor401000_NormalizeYaw(s16 input)
+{
+    s16 value = input;
+
+    if (input < 0) {
+        while (1) {
+            if (value >= -0x800) {
+                break;
+            }
+            value += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (value <= 0x800) {
+                break;
+            }
+            value -= 0x1000;
+        }
+    }
+    return value;
+}
+
+/// Offset from `config`'s player position to `coord`'s, halfwords only. Same
+/// body as `Actor401300_ConfigPositionDelta`.
+static __inline__ void Actor401000_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = config->field_4->t[0] - coord->coord.t[0];
+    pos->vy = config->field_4->t[1] - coord->coord.t[1];
+    pos->vz = config->field_4->t[2] - coord->coord.t[2];
+}
+
+/// Yaw from the actor's facing to the player, wrapped; `pos` receives the
+/// offset. Same body as `Actor01900_PositionYaw` / `Actor401300_PositionYaw`.
+static __inline__ s16 Actor401000_PositionYaw(Actor401000* actor, SVECTOR* pos, WipSysConfig* config)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+
+    Actor401000_ConfigPositionDelta(config, actor->field_2C->field_8, pos);
+    coord = actor->field_2C->field_8;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor401000_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+/// Rebuild `coord`'s Y rotation from its current yaw, uniformly scaled by
+/// `scale`. Same body as `Actor01900_RescaleYaw` / `Actor401300_RescaleYaw`.
+static __inline__ void Actor401000_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
+{
+    void**                 scratch;
+    void*                  head;
+    Actor401000RotScratch* blk;
+    s16                    ang;
+    u16                    m22;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (Actor401000RotScratch*)((u8*)head - 0x34);
+    *scratch = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = scale;
+    blk->scale.vy = scale;
+    blk->scale.vx = scale;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0] = *(u16*)&((Actor401000RotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    m22                  = *(u16*)&blk->m.m[2][2];
+    *scratch             = (u8*)*scratch + 0x34;
+    coord->flg           = 0;
+    coord->coord.m[2][2] = m22;
+}
+
+/// Turn the actor toward the player, clamped to +-0x10 past its current facing,
+/// then rebuild the root coordinate scaled by 0x1194. Same body as
+/// `func_actor_401300_80136238`, minus that one's `field_8B6` state pair and
+/// its message-id gate, which the 401000 sibling keeps in `field_C10`.
+void func_actor_401000_80134F98(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    Actor401000AimScratch* aim;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_898        = 1;
+        work->field_8A2        = 0x10;
+        work->field_89E        = 9;
+        work->field_89A        = 0;
+        work->field_B50.flags &= 0x7FFF;
+        work->field_A10.flags |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        work->field_8D0.field_1C = 0x1AE;
+        Gp_ArmStateF0(1);
+        return;
+    }
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
+    arg0->field_2C->field_8->flg              = 0;
+    if (work->field_68 & 1) {
+        work->field_0 = 7;
+    }
+    aim->angle      = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_8AE = aim->angle;
+    if (aim->angle > 0x10) {
+        aim->angle = 0x10;
+    }
+    if (aim->angle < -0x10) {
+        aim->angle = -0x10;
+    }
+    coord       = arg0->field_2C->field_8;
+    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    func_actor_401000_80132EF0(arg0);
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_401000_801352DC(GameSessionFrom4* session, GsCOORDINATE2* coord)
 {

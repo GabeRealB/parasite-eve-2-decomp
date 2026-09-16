@@ -135,6 +135,31 @@ typedef struct Actor401000HeightClamp {
 } Actor401000HeightClamp;
 STATIC_ASSERT_SIZEOF(Actor401000HeightClamp, 0x10);
 
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80134F98` carves off
+/// for the offset from the actor to `Wip_SysConfig.field_4`, the wrapped turn
+/// toward it and the facing yaw. Same shape as `Actor01900AimScratch` /
+/// `Actor401300AimScratch`.
+typedef struct Actor401000AimScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     angle;
+    /* 0xE */ s16     pad_E;
+} Actor401000AimScratch;
+STATIC_ASSERT_SIZEOF(Actor401000AimScratch, 0x10);
+
+/// 0x34-byte `G_SCRATCH_HEAD` block `func_actor_401000_80134F98` carves off to
+/// rebuild the root coordinate: a Y rotation, the uniform scale `ScaleMatrix`
+/// takes, and the angle it was built from. Same shape as
+/// `Actor401300RotScratch`.
+typedef struct Actor401000RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor401000RotScratch;
+STATIC_ASSERT_SIZEOF(Actor401000RotScratch, 0x34);
+
 /// 0xC-byte scratch `func_actor_401000_8013922C` carves off `G_SCRATCH_HEAD`
 /// to hold the actor's XZ offset from `D_80073B8C` and the radius it is
 /// measured against, each squared before the comparison. Same shape as

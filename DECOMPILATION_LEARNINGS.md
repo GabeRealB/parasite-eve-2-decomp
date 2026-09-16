@@ -104635,3 +104635,58 @@ Inputs: `base_3.c` `71caf188b2f58c827c2ef36378dffe664905f9e19252691150080782bf6b
 (the `.i` of the 100.000% source); target SHA256
 `ba33c338c559e51596a909d1b4b276c2692b58b8952f0c37ef995b6e3ad3aedc`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (func_actor_401000_80134F98, 2026-09-16)
+
+The 401300 twin of this turn-toward-the-player body (`func_actor_401300_80136238`,
+0.93 shape) is built out of four `static __inline__` helpers — `PositionYaw`,
+`ConfigPositionDelta`, `NormalizeYaw`, `RescaleYaw`. Writing the same code flat,
+with the scratch blocks retyped and the addressing already correct, still scored
+short of a match:
+
+| seed | score | penalties | frame |
+|---|---|---|---|
+| flat, `MATRIX*` scratch, per m2c | 80.55 | regs=40 insert=17 delete=18 | |
+| flat, `Aim`/`RotScratch` structs | 84.15 | regs=82 | `sp-0x30`, s0-s5 |
+| flat, scratch address not cached | 86.02 | regs=79 | `sp-0x30`, s0-s5 |
+| twin's four inline helpers | **100.000** | all zero | `sp-0x28`, s0-s3 |
+
+The flat bodies were not merely scheduled differently: they needed two extra
+callee-saved registers. Every `coord = arg0->field_2C->field_8;` in the body is
+a separate pseudo, but each sits live across a call, so global.c gives their
+single allocno a callee-saved register — and the copies the inlined helpers
+introduce keep the pseudos *distinct* instead. `.greg` names the failure
+directly:
+
+```
+;; 6 regs to allocate: 150 85 81 82 86 80     ← flat
+;; Hard regs used:  2 3 4 5 6 16 17 18 19 20 21
+```
+
+Six globals for a function the ROM runs out of four. `85` is one allocno with
+four `set`s (the four coord assignments, `uid 125 169 342 405`), i.e. local-alloc
+merged four short pseudos into one span covering the whole body. The twin's
+helpers keep the same four loads as four independent allocnos, which then reuse
+`s0`/`s1`/`a1`/`v0` because their ranges are disjoint.
+
+So when `regs` dominates with `blocks` already matching and the frame is one or
+two words too big, count the `.greg` "regs to allocate" against the target's
+callee-saved set before touching the C: a flattened inlined helper is the usual
+cause, and the fix is to restore the helper boundary, not to reorder statements.
+
+Two smaller tells that the helper boundary was the thing being missed:
+
+* The scratch address stays in a register across the helper's calls in the flat
+  body (`lui $s2 / ori $s2` early, reused at the tail) where the ROM remakes it
+  per use (`lui $v0 / lw $v0,0x3FC($v0)`). That extra live-across-call value is
+  the same allocno-inflation symptom.
+* `AimScratch`/`RotScratch` are per-overlay types (this one needed
+  `Actor401000AimScratch` 0x10 and `Actor401000RotScratch` 0x34 in
+  `include/actors/actor_401000.h`); they are structural twins of
+  `Actor01900AimScratch` / `Actor401300RotScratch`, so the tx/Rx siblings'
+  headers give both the layout and the doc-comment wording.
+
+Inputs: `base_4.i` SHA256
+`e5880a492847c50f2aff74a5b6052a1205ba7248d8b2b341aa32cacc1ea90cad`; target SHA256
+`cbad33dbd533ce6c57fe1fdc3c7eab85c920518f6fbd9ad4aef5a993fabeefda`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
