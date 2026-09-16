@@ -109822,3 +109822,55 @@ first, and the move is free.
 
 Inputs: `base_2.i` (87.527%, helpers present) and `base_9.i` (100%); see the
 hashes above. Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.
+
+## Two equality tests on the same value with *different* targets are duplicate arm bodies, not a compound condition (func_actor_110600_80138448, 2026-09-16)
+
+**Symptom:** one arm of a `switch` tests the same byte twice, and the two tests branch to different
+labels — the first test's taken target `X` is also where the second test's *untaken* path goes:
+
+```
+lbu   v1, 0x4B(v1)
+nop
+beqz  v1, X            /* v1 == 0 -> X */
+addiu v0, zero, 4
+beq   v1, v0, Y        /* v1 == 4 -> Y */
+addiu v0, zero, 0x80
+X: sh zero, 0xC(a1)    /* reset + Tmd_AllocBuffers, reached two ways */
+```
+
+Only a `regs`-free leftover gives this away as a structure problem rather than an allocation one:
+base_1 was 96.6% with `branch=4 insert=0 delete=2 regs=0`, and the whole delta was two instructions in
+this arm (every later jump shifted 8 bytes).
+
+m2c reads the pair as `if (v1 == 0 || v1 != 4) X else Y`, and the matching `&&` reading is
+`if (v1 != 0 && v1 == 4) Y else X`. **Both are wrong here, and they fail the same way:** each compound
+sends both of its tests to a *single* label (the true label for `||`, the false label for `&&`), so
+neither can produce two tests with different targets. Compiled, both spellings reassemble base_1 byte
+for byte (96.6%), i.e. `fold`/`do_jump` collapse them to the one compare.
+
+**Fix:** write the arm as an `if` / `else if` / `else` chain whose first and third arms are textually
+identical. jump2 cross-jumps the two copies into one block, and that block is what both the first
+test's taken path and the second test's untaken path arrive at:
+
+```c
+    case 1:
+        if (enemy->field_4B == 0) {            /* first arm */
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+        } else if (enemy->field_4B == 4) {     /* second arm */
+            obj->field_C = 0x80;
+            work->field_0 = 0;
+        } else {                               /* same text as the first arm */
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+        }
+        break;
+```
+
+100.00% (`branch=0 regs=0`), the same shape as matched `ActorsShared8013d268` one overlay over, which
+differs only in having no `field_4B` test in its arms.
+
+**Reading rule:** a test whose taken target is another test's untaken destination means the two arms
+carry the same body — write it twice and let cross-jumping merge it. A semantically redundant test
+(`v1 == 0` before `v1 == 4`, where `4` already implies `!= 0`) is a normal thing to find in the
+original source, not evidence of a misread; do not "simplify" it away.

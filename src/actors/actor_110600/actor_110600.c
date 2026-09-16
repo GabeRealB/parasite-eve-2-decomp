@@ -187,7 +187,57 @@ INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", ActorsShared8013
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8013839C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80138448);
+/// Display-object handler, the same shape as `ActorsShared8013d268` one overlay
+/// over: `arg2` selects the mode and `GpEnemy.field_4B` -- the occupancy tag
+/// `Gp_SaveEnemyPose` writes -- decides whether mode 1 shows the object again.
+/// Mode 0 hides it (bit 0x80 of `TmdObject.field_C`) and reinstates its buffers;
+/// 1 hides it and restarts the work block's `field_0` while the tag reads 4, and
+/// otherwise clears `field_C` and reinstates the buffers; 2 only sets bit 0x4;
+/// 3 clears `field_C`, restarts `field_0` and then sets bit 0x4. `arg1` is
+/// unused; it exists because the dispatch passes three arguments.
+s32 func_actor_110600_80138448(Actor110600* arg0, s32 arg1, s32 arg2)
+{
+    TmdObject*       obj;
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    switch (arg2) {
+        case 0:
+            obj->field_C = 0x80;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0;
+            break;
+        case 1:
+            if (enemy->field_4B == 0) {
+                obj->field_C = 0;
+                Tmd_AllocBuffers(obj);
+            } else if (enemy->field_4B == 4) {
+                obj->field_C  = 0x80;
+                work->field_0 = 0;
+            } else {
+                obj->field_C = 0;
+                Tmd_AllocBuffers(obj);
+            }
+            break;
+        case 2:
+            obj->field_C |= 4;
+            work->field_0 = 0;
+            break;
+        case 3:
+            if (enemy->field_4B == 4) {
+                obj->field_C = 0x80;
+            } else {
+                obj->field_C = 0;
+            }
+            work->field_0 = 0;
+            obj->field_C |= 4;
+            break;
+    }
+    return 0;
+}
 
 s32 func_actor_110600_80138538(Task* arg0)
 {
