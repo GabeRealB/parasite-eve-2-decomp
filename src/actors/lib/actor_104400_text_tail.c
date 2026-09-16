@@ -23,8 +23,10 @@ s16  Actor04400_Fn06618(Task* arg0);
 void Actor04400_Fn067A0(Task* arg0, s32 step);
 void Actor04400_Fn06BC4(Task* arg0);
 void Actor04400_Fn06BF8(Task* arg0);
+void Actor04400_Fn03390(Task* arg0);
 void Actor04400_Fn07968(Task* arg0);
 void Actor04400_Fn07984(Task* arg0);
+void Actor04400_Fn07A38(Task* arg0);
 void Actor04400_Fn07B4C(Task* arg0);
 void Actor04400_Fn07C60(Task* arg0);
 void Actor04400_Fn08208(Task* arg0);
@@ -441,7 +443,20 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn068F8
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn06964);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn069D0);
+/// Dispatches through a two-entry table built on the stack: entry 0 applies the
+/// encounter's animation (`Actor04400_Fn07A38`, which then advances `field_422`
+/// itself), entry 1 runs the handler that answers a pending request or a hit
+/// (`Actor04400_Fn03390`), chosen by the sub-state index `field_422`.
+void Actor04400_Fn069D0(Task* arg0)
+{
+    Actor104400Work* work                = (Actor104400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        Actor04400_Fn07A38,
+        Actor04400_Fn03390,
+    };
+
+    states[(s16)work->field_422](arg0);
+}
 
 /// Dispatches through a two-entry table built on the stack: entry 0 applies the
 /// animation the encounter asked for (`Actor04400_Fn07B4C`), entry 1 finishes
