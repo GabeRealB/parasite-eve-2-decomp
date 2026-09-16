@@ -422,7 +422,7 @@ void func_actor_204000_8014C51C(Actor104000Ctx* arg0, Actor104000* arg1)
     }
 }
 
-void func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s32 count, SVECTOR* d);
+s32  func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* d);
 void func_actor_204000_8014A5B8(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
 
 /// Chasing state: restarts the actor when `field_4` is set; otherwise turns
@@ -1373,5 +1373,3 @@ void func_actor_204000_801501A0(Actor204000Task* arg0)
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_204000/actor_204000_2", ActorsShared80135df4Table);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014A06C);

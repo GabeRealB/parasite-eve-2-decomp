@@ -218,6 +218,38 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
+/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_204000_8014A06C` to push a coordinate away from the obstacles in
+/// a `GpRec18` table. `angle`/`ok` hold up to eight bearings collected from the
+/// records, `i`/`j` are the loop cursors, and `blocked` is set when any record's
+/// kind is 0x10000.
+typedef struct Actor104000AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ u8       blocked;
+} Actor104000AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor104000AvoidScratch, 0x54);
+
+/// 0x10-byte scratch the bearing helpers of the avoid walk nest inside
+/// `Actor104000AvoidScratch`: an obstacle's offset, widened to words.
+typedef struct Actor104000AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor104000AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor104000AvoidDelta, 0x10);
+
 void func_actor_104000_80132C8C(Actor104000* arg0);
 void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);
 void func_actor_104000_80138AA0(Actor104000Ctx* arg0, Actor104000* arg1);
