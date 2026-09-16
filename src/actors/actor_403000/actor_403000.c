@@ -3,6 +3,7 @@
 #include "actors/actor_403000.h"
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -69,7 +70,31 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134910);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134E00);
+s32 func_actor_403000_80134E00(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    s16              flags;
+    s16              i;
+    VECTOR           d;
+
+    work  = arg0->field_1C;
+    flags = GameFlag_GetNibble(0xE2);
+    if (flags == work->field_F88) {
+        return 0;
+    }
+    for (i = 0; i < 4; i++) {
+        if (((flags >> i) & 1) && !((work->field_F88 >> i) & 1)) {
+            d.vx = arg0->field_2C->field_8->coord.t[0] - D_actor_403000_80158D64[i].vx;
+            d.vz = arg0->field_2C->field_8->coord.t[2] - D_actor_403000_80158D64[i].vz;
+            if (SquareRoot0(d.vx * d.vx + d.vz * d.vz) < 3000) {
+                work->field_F88 = flags;
+                return 1;
+            }
+        }
+    }
+    work->field_F88 = flags;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134F44);
 

@@ -86,18 +86,22 @@ typedef struct Actor403000Work {
     /// the animation that drives it is running. `func_actor_403000_8013D72C`
     /// zeroes this one field by field, last element first.
     /* 0xF30 */ MATRIX field_F30;
-    /* 0xF50 */ byte   pad_F50[0x3C];
-    /* 0xF8C */ s16    field_F8C;
-    /* 0xF8E */ byte   pad_F8E[0x18];
-    /* 0xFA6 */ u8     field_FA6;
-    /* 0xFA7 */ byte   pad_FA7[0x23];
-    /* 0xFCA */ s16    field_FCA;
-    /* 0xFCC */ byte   pad_FCC[0x6];
-    /* 0xFD2 */ s8     field_FD2;
-    /* 0xFD3 */ s8     field_FD3;
-    /* 0xFD4 */ byte   pad_FD4[0x1];
-    /* 0xFD5 */ s8     field_FD5;
-    /* 0xFD6 */ byte   pad_FD6[0x6];
+    /* 0xF50 */ byte   pad_F50[0x38];
+    /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
+    /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
+    /* 0xF88 */ s16  field_F88;
+    /* 0xF8A */ byte pad_F8A[0x2];
+    /* 0xF8C */ s16  field_F8C;
+    /* 0xF8E */ byte pad_F8E[0x18];
+    /* 0xFA6 */ u8   field_FA6;
+    /* 0xFA7 */ byte pad_FA7[0x23];
+    /* 0xFCA */ s16  field_FCA;
+    /* 0xFCC */ byte pad_FCC[0x6];
+    /* 0xFD2 */ s8   field_FD2;
+    /* 0xFD3 */ s8   field_FD3;
+    /* 0xFD4 */ byte pad_FD4[0x1];
+    /* 0xFD5 */ s8   field_FD5;
+    /* 0xFD6 */ byte pad_FD6[0x6];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -171,6 +175,10 @@ extern Actor403000Msg3FE D_actor_403000_80158DB0;
 /// the same way -- so a record's `vx`/`vy`/`vz` are the vector an actor's
 /// handlers copy out of it. Lives in the overlay's trailing data region.
 extern SVECTOR D_actor_403000_80158CE0[];
+
+/// Four trigger points (`vx`/`vz` used) `func_actor_403000_80134E00` measures
+/// the display object against, one per bit of `GameFlag_GetNibble(0xE2)`.
+extern SVECTOR D_actor_403000_80158D64[];
 
 /// The game's shared 32-bit LCG state: a draw is
 /// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
