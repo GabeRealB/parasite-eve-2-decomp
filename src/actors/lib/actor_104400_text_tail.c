@@ -27,6 +27,8 @@ void Actor04400_Fn07B4C(Task* arg0);
 void Actor04400_Fn07C60(Task* arg0);
 void Actor04400_Fn08208(Task* arg0);
 void Actor04400_Fn0823C(Task* arg0);
+void Actor04400_Fn08718(Task* arg0);
+void Actor04400_Fn087E0(Task* arg0);
 s32  Actor04400_Fn08DBC(Task* arg0);
 
 extern u32 Gp_LcgState;
@@ -201,7 +203,18 @@ void Actor04400_Fn061B4(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn062D4);
+/// Walks the death sequence's two-state handler table on the work block's
+/// state index, the same shape as `func_actor_341700_80168124`.
+void Actor04400_Fn062D4(Task* arg0)
+{
+    Actor104400Work* work                = (Actor104400Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        Actor04400_Fn08718,
+        Actor04400_Fn087E0,
+    };
+
+    states[(s16)work->field_420](arg0);
+}
 
 /// Same body as `ActorsShared8016945c`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
