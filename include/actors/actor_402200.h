@@ -104,11 +104,13 @@ typedef struct Actor402200Work {
     /// both `func_actor_402200_80135630` and `func_actor_402200_80135A24`,
     /// alongside clearing bit 0x4000 of the 0x502 word below.
     /* 0x502 */ u16  field_502;
-    /* 0x504 */ byte pad_504[0x1B0];
+    /* 0x504 */ byte pad_504[0x7E];
+    /* 0x582 */ u16  field_582;
+    /* 0x584 */ byte pad_584[0x130];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
-    /* 0x6B8 */ byte               pad_6B8[4];
+    /* 0x6B8 */ s32                field_6B8;
     /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
     /// overlay's cue word `D_actor_402200_80138468` with the `GpEnemy` work id's
     /// high nibble in bits 8-11, the same construction the cue body
