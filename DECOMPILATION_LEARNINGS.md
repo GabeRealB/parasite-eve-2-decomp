@@ -105374,3 +105374,39 @@ the same variable, emit one. The same applies to a `| 0x10000 | 0x80` chain:
 `temp | packed | 0x80` with `packed` assigned per block folds to
 `lui $v1,1 / ori $v1,$v1,0x80 / or`, while `packed = 0x10000;` assigned once
 outside the blocks keeps the oracle's `lui $s0,1 / or / ori $v0,$v0,0x80`.
+
+## Store before assignment: the computed value keeps a temp and gains a `move` (func_actor_800100_801643F4, 2026-09-16)
+
+**Symptom:** the target builds the scratch pointer as
+`addiu a0,a1,-0x10 / move s1,a0 / sw a0,0(v1)`, while the natural C emits
+`addiu s1,a1,-0x10 / sw s1,0(v1)` - one instruction fewer, `pos` in `$s1`
+throughout, no copy. 99 vs 100 instructions, `regs=2 branch=8 delete=1`.
+
+**Cause:** a MEM destination cannot be a binop target, so
+
+```c
+    *scratch = (u8*)head - 0x10;          /* expands the subtract into a FRESH pseudo */
+    pos      = (VECTOR3*)((u8*)head - 0x10);
+```
+
+materialises `head - 0x10` into a new pseudo at RTL generation. cse records that
+pseudo as the value of the expression, so the later assignment is rewritten to
+`(set (reg pos) (reg temp))` - a real copy. `pos` is live across the following
+`jal`s and lands in a callee-saved register, the temp stays in `$a0`, and the
+copy survives.
+
+Writing the two statements the other way round collapses it to one pseudo and
+loses the match: with `pos = (u8*)head - 0x10;` first, cse gives the first
+occurrence the register and folds the *store's* source to it; replacing the
+store's operand with the same expression (`pos = expr; *scratch = expr;`) does
+not help either, because the second occurrence is the one that gets rewritten.
+The same shape appears whenever a computed value is written to memory and also
+kept in a named local - put the store first.
+
+Same function, second mechanism (inverse of the "same literal stored twice"
+entry above): `actor->field_95E = 1;` for a `u16` field expands to an **HImode**
+`li` (a distinct pseudo that cse cannot equate with the switch's SImode `li $v0,1`
+for the case compare), so it took a callee-saved register and pushed the
+parameter into an extra saved reg. Making the stored value SImode - the matched
+sibling `func_actor_800300_80162F24`'s `flag = 1; actor->field_95E = flag;` - let
+cse share the switch's constant and removed both.
