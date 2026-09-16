@@ -97969,3 +97969,78 @@ Inputs: `base_2.i` (100.000%) SHA256 `f2a31136eb4679f998623b10494d0ab27cce7c51a9
 target SHA256 `2e02638c67bd05c65c2a7de7761d1e07e1f6554d15d5bdb0dfcad1bad6e56fc9`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00700_Fn00060-vacuum`.
+### A parameter competes in local-alloc on its raw span, not its doubled `REG_LIVE_LENGTH` (Actor00400_Fn0A190, 2026-09-16)
+
+`Actor00400_Fn0A190` (63 insns, one block, 5 calls) sat at 98.73% with
+`regs=16` and nothing else: the `Task*` parameter in `$s2` where the target has
+it in `$s1`, and the `GsCOORDINATE2*` coordinate in `$s1` where the target has
+`$s2`. Everything else — the whole instruction sequence, every delay slot,
+including a repeated `task->extra` walk that survives as a reload — was already
+identical.
+
+The `.lreg` line that invites the wrong reading is the parameter's:
+
+```
+Register 80 used 7 times across 96 insns in block 0; crosses 5 calls; pointer.
+```
+
+96 is the `REG_EQUIV` arrival-copy doubling from `update_equiv_regs` (`.flow`
+says 53, sched1 recounts 48, ×2 = 96), and 2×7/96 = 1458 does predict the
+*global* rank. It does not predict the local one, and this function never
+reaches global: **`QTY_CMP_PRI` divides by `qty_death - qty_birth`**, the raw
+distance in half-insns between the defining insn and the last use in the
+block's post-sched1 order. The source says so next to the doubling itself
+("Note that the statement below does not affect the priority in local-alloc!").
+A parameter is a quantity like any other local; only its *global*-alloc rank
+sees the doubled length, and a single-block leaf never gets there.
+
+`tools/trace_gcc.py` gives the two numbers that matter, and the whole
+allocation follows from them:
+
+| quantity | refs | span | priority | got |
+|---|---|---|---|---|
+| task pointer | 7 | 96 | 1458 | `$s2` |
+| coordinate | 5 | 68 | 1470 | `$s1` |
+| `&work->recs` | 3 | 22 | 1363 | `$s3` |
+| work pointer | 16 | 78 | 8205 | `$s0` |
+
+Phase 1 (suggested-only) fails for all four: the only suggestions are `$a0`
+(from the arrival copy and the call argument setups) and `$a1` (from
+`&work->obj`), all call-used, so every call-crossing quantity falls to phase 2,
+which is pure descending priority. The coordinate's 1470 beats the task
+pointer's 1458 by twelve units and takes `$s1`; swap those two numbers and the
+`$s0`-`$s3` assignment is the target's.
+
+The fix is a statement reorder with no other edit: write `coord = ...` **before**
+`work = ...`.
+
+```c
+    coord = ((Actor100400Ctx*)task->extra)->field_8;
+    work  = (Actor100400MarkerWork*)task->idMap;
+```
+
+sched1 emits each load where the source order puts it, and that position *is*
+`birth` (the trace's spans are 2 × insn positions). Writing the coordinate
+second lands its `lw` one insn later — birth 5 → 6 at the same death — so the
+span *shrinks* 70 → 68 and the priority *rises* 1428 → 1470, above the task
+pointer's 1458. Moving a definition **earlier** lengthens its span and lowers
+its priority: the same lever as the `ARRAY_REF` entry above, here between two
+plain loads rather than a base and its index.
+
+Two tempting non-fixes. A local for the `Gp_PackPair` result adds a statement
+but no RTL insn — cse folds the copy into the store before local-alloc runs, so
+the block stays 49 insns and nothing moves. And reasoning from `.lreg`'s
+`across N` for a parameter gets the sign of the comparison right by accident
+here (96 and 68 are both spans, just in different units), which is exactly the
+trap: check `trace_gcc.py`'s span column, not the `REG_LIVE_LENGTH` line.
+
+For contrast, the near-identical sibling `func_actor_206100_8014EEC0` never
+hits this: its task pointer spans 102 against a coordinate's 78, 1372 > 1282,
+so the parameter takes `$s1` on its own. The race only surfaces when the two
+quantities are within a few percent of each other.
+
+Inputs: `base_3.i` (100.000%) SHA256 `67c4b652460c2217c608fb61c79ecc2113439d9d21c762d5d38e0481821ebb78`;
+`base_1.i` (98.730%, the failing order) SHA256 `bef48d7edc1a130f24f8037e2319ed930b7199939053464d5bc757438f972d20`;
+target SHA256 `498a3a58f1992279eee8c22b98e6740d99370002ba58e746f99aa65f8d9b6791`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn0A190-vacuum`.
