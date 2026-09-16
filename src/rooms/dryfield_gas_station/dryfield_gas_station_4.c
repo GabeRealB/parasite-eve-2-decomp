@@ -19,7 +19,11 @@
 
 extern s32      D_dryfield_gas_station_80182E30;
 extern s32      D_dryfield_gas_station_80182E74;
+extern s32      D_dryfield_gas_station_80182E8C;
+extern s32      D_dryfield_gas_station_8018303C;
 extern s8       D_8007106B;
+extern u8       D_80071075;
+extern s8       D_80114C12;
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern TaskDesc D_dryfield_gas_station_8018312C[];
@@ -174,7 +178,60 @@ L_kill:
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_801803C0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_801807E0);
+/// Spawns the gas station's cutscene owner. State 0 refuses to run twice (a
+/// `D_80114C12` of 1 and a live `D_80071075` both mean the cutscene is already
+/// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
+/// `Task::idMap`, fills `owner` from pointer slot 3 and republishes this task as
+/// `RoomsShared80180b2cTask` so the room's script helpers can reach that block.
+/// Two kills: a failed `Mem_Malloc` kills the task outright, and state 1 kills
+/// it once the session has torn down (`Game_Session->field_1`). Between the two
+/// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
+/// 0x3F4 -- only when a previous state 0 already found an owner, since the
+/// reloaded `idMap` is dereferenced unconditionally.
+void func_dryfield_gas_station_801807E0(Task* task)
+{
+    DgsWork* work;
+    DgsWork* work2;
+    GpRec14  script;
+
+    switch (task->state) {
+        case 0:
+            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+                work        = Mem_Malloc(0x10, false);
+                task->idMap = (TaskIdMap*)work;
+                if (work == NULL) {
+                    Task_Kill(task);
+                } else {
+                    Mem_Set(work, 0, 0x10);
+                    work->owner             = Game_GetPtrSlot(3);
+                    RoomsShared80180b2cTask = task;
+                }
+                work2 = (DgsWork*)task->idMap;
+                if (work2->owner != 0) {
+                    script.field_0  = (s32)&D_dryfield_gas_station_80182E30;
+                    script.field_4  = 0;
+                    script.field_8  = 0;
+                    script.field_C  = 0;
+                    script.field_10 = 0;
+                    Gp_DispatchMsg((Task*)work2->owner, 0x3F4, (s32)&script, 0);
+                }
+                func_800E3FAC(0xA2, 9);
+                func_800E8634((s32)&D_dryfield_gas_station_80182E8C, 0,
+                              (s32)&D_dryfield_gas_station_8018303C);
+                task->state = task->state + 1;
+                return;
+            }
+            return;
+
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                Task_RequestKill(task, 0);
+                return;
+            }
+            func_dryfield_gas_station_801803C0(task);
+            break;
+    }
+}
 
 /// Latches the player-effect flag and kills the effects once. The 1 is loaded
 /// before the branch and stored in the `jal` delay slot.

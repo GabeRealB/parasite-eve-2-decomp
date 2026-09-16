@@ -88539,3 +88539,57 @@ into the block state 0 allocated on an earlier call. When a target hoists a
 field load above the dispatch, write the local -- casting it to the work struct
 the overlay header names, as the other room bodies do -- and keep every later use
 on that pointer, which is what makes one callee-saved register cover the call.
+
+## An m2c five-scalar stack record keeps one slot, not five: `delete=N` with a short frame (func_dryfield_gas_station_801807E0, 2026-09-16)
+
+m2c renders a small stack record as sibling scalars --
+
+```c
+s32 *sp10;
+s32 sp14;
+s32 sp18;
+s32 sp1C;
+s32 sp20;
+...
+sp10 = &D_dryfield_gas_station_80182E30;
+sp14 = 0;
+sp18 = 0;
+sp1C = 0;
+sp20 = 0;
+Gp_DispatchMsg(*temp_a0, 0x3F4, (s32) &sp10, 0);
+```
+
+-- and that shape is a **trap**: only `sp10` has its address taken (the `&sp10`
+argument), so only `sp10` gets a stack slot. The other four are scalars whose
+address is never taken, so they become pseudos -- `sp14 = 0;` is `(set
+(reg/v:SI 82) (const_int 0))` in the very first `.rtl` dump, not a `mem`. All
+four are dead, so they vanish.
+
+**Symptom.** `delete=4`, `stack=0`, and a frame exactly `0x10` short (0x28
+against the target's 0x38) with the saved registers pushed down to match. The
+`stack` penalty stays at zero because no slot was ever *mistakenly* sized -- the
+slots were never requested. The four missing instructions are `sw $zero` at
+`0x14/0x18/0x1C/0x20($sp)`. When `delete=N` comes with `branch` penalties that
+are only address shifts and a prologue that is short by `4*N` bytes, suspect a
+record the source never made into an aggregate.
+
+**Fix.** One aggregate whose address is taken, which is what the original
+surely had -- here the room's `GpRec14`, the same record the sibling
+`func_dryfield_gas_station_80180A60` passes:
+
+```c
+GpRec14 script;
+...
+script.field_0  = (s32) &D_dryfield_gas_station_80182E30;
+script.field_4  = 0;
+script.field_8  = 0;
+script.field_C  = 0;
+script.field_10 = 0;
+Gp_DispatchMsg((Task*) work2->owner, 0x3F4, (s32) &script, 0);
+```
+
+95.0% -> 100% with no other change. Note the zeros survive here for the reason
+entry 29 gives: an aggregate gets a slot even when a field is never read, so
+the stores stay. Read the pass that matters before rewriting -- `.rtl` is where
+the four went missing, and `.flow` cannot be blamed for a store that was never
+emitted.
