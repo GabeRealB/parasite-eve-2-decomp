@@ -60,6 +60,27 @@ typedef struct Actor401800Work {
     /* 0xC18 */ Task* field_C18;
 } Actor401800Work;
 
+/// Animation view of the same task work block: the pose context at 0x1C and
+/// its slot array, then the blend context the actor keeps beside it. The
+/// arrays cover the slot indices `func_actor_401800_801337EC` walks, which is
+/// the identical body of `Actor01900_Fn01950`; the offsets all match
+/// `Actor01900AnimWork`, and the tail overlays the work block's
+/// `field_8A2` / `field_8A4` (the state the slot writes step down by 3).
+typedef struct Actor401800AnimWork {
+    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[19];
+    /* 0x328 */ byte       pad_328[0x130];
+    /* 0x458 */ GpAnimCtx  blendAnim;
+    /* 0x46C */ GpAnimSlot blendSlots[19];
+    /* 0x764 */ byte       pad_764[0x13E];
+    /* 0x8A2 */ s16        field_8A2;
+    /* 0x8A4 */ s16        field_8A4;
+    /* 0x8A6 */ byte       pad_8A6[4];
+    /* 0x8AA */ s16        field_8AA;
+    /* 0x8AC */ s16        field_8AC;
+} Actor401800AnimWork;
+
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
 /// `Task::spawnArg2`, and `field_2C` the actor's `TmdObject`. Same shape as

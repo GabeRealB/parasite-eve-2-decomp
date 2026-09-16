@@ -17,7 +17,37 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80133558);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_801337EC);
+/// Per-frame animation tick: walk the actor's pose slots, copy each slot's
+/// state byte down by three and, for the first ten slots, blend the pose pair
+/// `func_800B3448` builds out of the pose and blend contexts — weighted by
+/// `field_8AC` against its `0x1000` complement. Slots `0xB` and up only carry
+/// the state byte and are advanced by `Gp_AnimTickIndex`.
+/// Same body as `func_actor_401000_80132A84`.
+void func_actor_401800_801337EC(Actor401800* arg0)
+{
+    GpAnimPose           pose;
+    GpAnimPose           blendPose;
+    GpAnimCtx*           anim;
+    s16                  weight;
+    s16                  i;
+    Actor401800AnimWork* work;
+
+    work   = (Actor401800AnimWork*)arg0->field_1C;
+    weight = work->field_8AC;
+    anim   = &work->anim;
+    for (i = 1; i < 0x13; i++) {
+        if (i < 0xB) {
+            work->blendSlots[i].field_9 = (u8)work->field_8AA;
+            work->slots[i].field_9      = (u8)(work->field_8A2 - 3);
+            func_800B3448(anim, i, (s32)&pose, 0);
+            func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
+            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+        } else {
+            work->slots[i].field_9 = (u8)(work->field_8A2 - 3);
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80133918);
 

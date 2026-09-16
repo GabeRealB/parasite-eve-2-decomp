@@ -103163,3 +103163,38 @@ inside the overlay's own `src/` directory that no function in the batch maps
 into has to ride along with the header. Landing it as its own small commit
 leaves the `matched <fn> <attempts>` commits - and their attempt counts, which
 `fit_difficulty_model.py` trains on - untouched.
+
+## A 98% m2c seed whose `.diagnosis.json` says `topology: match` is still not near a match (func_actor_401800_801337EC, 2026-09-16)
+
+The m2c seed scored **98.329%** with `topology: match`, 75/75 instructions, penalties
+`branch=2 regs=5 insert=1` — and every leftover was a *spelling* difference from m2c's
+temporaries, not a scheduling or allocation problem:
+
+```c
+/* m2c: */  temp_s5 = M2C_FIELD(temp_s1, s16*, 0x8AC);
+            temp_s6 = 0x1000 - temp_s5;            /* separate statements   */
+            ... (s32) temp_s5, temp_s6);           /* call args             */
+/* target: */lh $s5,0x8AC($s1) ... subu $s6,$v0,$s5       (no `move $s5,$v1`)
+```
+
+m2c's `lh v1,0x8AC(s1); subu s6,v0,v1; move s5,v1` comes from giving the subtraction its own
+statement after the load: local-alloc needs the sum first and copies. Writing
+`weight = work->field_8AC;` with `0x1000 - weight` **inline at the call** leaves one register -
+loop.c hoists the invariant subtraction before the loop, which is where the target computes it.
+The other two leftovers were the same class: `addu $v0,$v0,$s1` (m2c's inline
+`M2C_FIELD(temp_s1 + i*0x28, ...)`) where the target has `addu $v0,$s1,$v0` (the canonical
+`work->slots[i]`), and `sll $v0,$s2,0x10` at the loop bottom where the target re-reads the
+increment's own result, `sll $v0,$v0,0x10` (m2c's `var_s2 = var_v0; while (var_v0 < 0x13)`
+tests the copy; `for (i = 1; i < 0x13; i++)` tests the value the `addiu` produced).
+
+So a ~98% m2c seed is not "one edit from a match" when a matched twin exists: the residual
+`insert`/`regs`/`branch` are all the seed's expression spelling. Check the brief's `similar
+matched bodies` list (here `Actor01900_Fn01950`, `1.00` in all four classes) or
+`overlay_dup_index.py find` first, and transcribe the twin's committed body — 100.000% on the
+first build here. The body's offsets are the twin's (`anim` at `0x1C`, `slots[19]` at `0x30`,
+`blendAnim` at `0x458`, `blendSlots[19]` at `0x46C`, a `0x13E` gap to `field_8A2`), so only the
+per-overlay struct names change; `(u8)(work->field_8A2 - 3)` on an `s16` member still emits
+`lbu`, not `lh`+`andi` (combine narrows the subreg-of-MEM load), so the width in the target's
+`.s` is not evidence about the member's declared type. The twin in `actor_401000`
+(`func_actor_401000_80132A84`) is an unmatched, leased duplicate, so this stayed an overlay-local
+body rather than a `promote`.
