@@ -88915,3 +88915,45 @@ emits the target's `bnez $v0, epilogue` / `j release` — the shape
 produce for the identical handler family. It cleared all three `branch`
 penalties, which the `insert`/`delete` pair from the swapped loads had been
 riding along with.
+
+## A struct that is both field-accessed and copied wholesale needs a pointer for one of the two
+
+A local struct whose fields are read and written *and* whose whole value is
+copied to a global compiles with the frame address in a callee-saved register
+for the field accesses while the copy stays `$sp`-relative, and the two only
+agree when the source reaches the fields through a pointer of its own:
+
+```
+addiu  s0,sp,0x10       /* &work */
+lbu    v0,0x1(s0)       /* work.field_1, read through the pointer */
+sh     v0,0x20(sp)
+...
+sb     v0,0x1(s0)       /* and written back through it */
+...
+lw     t0,0x10(sp)      /* the 12-byte copy out of the same struct stays $sp-based */
+lw     t1,0x14(sp)
+lw     t2,0x18(sp)
+sw     t0,0x0(t3)
+sw     t1,0x4(t3)
+sw     t2,0x8(t3)
+```
+
+Writing `work.field_1` on both sides of the call leaves all six accesses
+`$sp`-relative, one callee-saved register short, and the frame 8 bytes small
+(`stack=0 branch=2 regs=29 insert=6 delete=11`, 75.2%). Adding a pointer and
+switching those six uses to `wp->field_1` reproduces `addiu s0,sp,0x10` and is
+exact. Where the pointer is assigned does not matter - at the top of the block
+or just before the accesses both match; what matters is that the fill's
+`field_N = CONST` stores keep the struct's own name, so they stay `$sp`-relative
+with the copy.
+
+`cse` never folds the block move's addresses onto the pointer's register, so
+"copy is `$sp`-relative while the field accesses are not" is the signature to
+look for, not a reason to doubt the pointer.
+
+The same body is staged in eight room overlays - `func_neo_ark_observatory_8017F6F8`
+and `func_shelter_b4_water_supply_8017DC28` carry it verbatim, the latter with
+every access `$sp`-relative because its function pointer already holds `$s0`.
+Example: `func_dryfield_night_water_hole_8017DC28`. Inputs: `base_6.i`
+`324fea05cdda758d428a948329cce0362ae15e230c3c92469af40dac72fb672a` (the winning
+`base_3.i`; `base_2.i` and `base_4.i` differ only in type and parameter names).
