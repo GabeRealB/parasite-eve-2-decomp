@@ -101342,3 +101342,38 @@ the already-matched sibling's body and changing only those gave 100% on the
 first attempt, where m2c's rendering of the same function scored 78.6%. The
 brief's `similar` search ranks `calls`/`cflow` at 1.00 for exactly this pair; a
 near-duplicate across overlays is worth reading as a seed, not just as a hint.
+
+## Cross-jumping runs in `jump2`, after reload and `sched2`
+
+The second `jump_optimize` pass is what the dumps call `.jump2`; `toplev.c` calls
+it as `jump_optimize (insns, 1, 1, 0)` under the comment "One more attempt to
+remove jumps to .+1 ... Also do cross-jumping this time". `cross_jump` is that
+second argument, and the first pass (`jump_optimize (insns, 0, 0, 1)`) does not
+cross-jump at all.
+
+Consequence for reading a target: one `jal` reached from two paths does not mean
+the source called once. `func_actor_800200_80163E14` (`actor_800200`) shows a
+single `jal func_actor_800200_80165534`, entered both by its `arrived` label
+(case 0's `< 0x401` test, and case 1's `field_CE == 4`) and by the `field_CE++`
+path, with the `field_D0 = 1` store in the `j`'s delay slot. The sibling bodies
+in the same file duplicate the call, and so does the source that matches:
+
+```c
+    if (d4->field_CE == 4) {
+    arrived:
+        d4->field_D0 = 1;
+        func_actor_800200_80165534(arg0);
+        return;
+    }
+    d4->field_CE++;
+    func_actor_800200_80165534(arg0);
+    return;
+```
+
+The call is still two `(call ...)` insns in `.rtl` through `.sched2` and becomes
+one at `.jump2`. Spelling it hoisted instead - an `if`/`else` that only sets
+`field_D0` or increments `field_CE`, then one call after it - scores the same
+100.00% with all-zero penalties and produces byte-identical assembly. The two
+sources are therefore indistinguishable from the target, so a shared `jal` is no
+evidence that the original hoisted, and a matched sibling's duplicated tail
+should not be "cleaned up" to match one.
