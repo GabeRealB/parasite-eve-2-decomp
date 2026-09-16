@@ -1038,12 +1038,12 @@ static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
     s32                      ret;
 
     head                                          = *(u8**)G_SCRATCH_HEAD;
-    ((Actor401800RangeScratch*)(head - 0xC))->dx  = d->vx;
     blk                                           = (Actor401800RangeScratch*)(head - 0xC);
+    ((Actor401800RangeScratch*)(head - 0xC))->dx  = d->vx;
+    *(Actor401800RangeScratch**)G_SCRATCH_HEAD    = blk;
     blk->dz                                       = d->vz;
     blk->r                                        = r;
     ((Actor401800RangeScratch*)(head - 0xC))->dx *= ((Actor401800RangeScratch*)(head - 0xC))->dx;
-    *(Actor401800RangeScratch**)G_SCRATCH_HEAD    = blk;
     blk->dz                                      *= blk->dz;
     blk->r                                       *= blk->r;
     *(u8**)G_SCRATCH_HEAD                         = head;
@@ -2017,7 +2017,113 @@ void func_actor_401800_8013A034(Actor401800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013A2E8);
+/// Patrol state: walks toward the waypoint `field_14` selects, turning at most
+/// 0x18 per step and swapping waypoints once the waypoint is inside 0xA0 or
+/// `field_6` has run 0x15 frames. The turn is folded into the root coordinate,
+/// which is rebuilt at scale 0x1194, and the actor steps 7 units along its own
+/// local Z while `func_actor_401800_80133558` reports the path clear. The
+/// `field_A28` / `field_8E8` contact records then decide whether `field_6`
+/// counts up or `func_actor_401800_8013629C` re-seeds them. In the tail the
+/// `Wip_SysConfig` offset arms state 6 within `field_C0E`, or within 0xFA0 when
+/// the aim toward the player is under 0x300. Same body as
+/// `Actor01900_Fn06F40` / `func_actor_401300_80139AB0`, with the aim and step
+/// helpers inlined. The waypoint delta is written twice; the retail build keeps
+/// both sets of stores.
+void func_actor_401800_8013A2E8(Actor401800* arg0)
+{
+    Actor401800Work*        work;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          facing;
+    Actor401800TurnScratch* s;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 2;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        func_actor_401800_80133EB8(arg0);
+        work->field_6 = 0;
+        if (arg0->field_36 == 0x10) {
+            work->field_8C8.flags |= 0x4000;
+        }
+        return;
+    }
+    *(Actor401800TurnScratch**)G_SCRATCH_HEAD -= 1;
+    s                                          = *(Actor401800TurnScratch**)G_SCRATCH_HEAD;
+    s->delta.vx                                = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vy                                = 0;
+    s->delta.vz                                = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+    s->delta.vx                                = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vy                                = 0;
+    s->delta.vz                                = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+    if (!Actor401800_OutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15) {
+        if (work->field_14 == 0) {
+            work->field_14 = 1;
+        } else {
+            work->field_14 = 0;
+        }
+        work->field_6 = 0;
+    }
+    func_actor_401800_80133EB8(arg0);
+    coord           = arg0->field_2C->field_8;
+    s->angle        = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->field_8AE = s->angle;
+    if (s->angle > 0x18) {
+        s->angle = 0x18;
+    }
+    if (s->angle < -0x18) {
+        s->angle = -0x18;
+    }
+    facing    = arg0->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->angle, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    if (work->field_89A == 0 && (s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, 7) != 0) {
+        Actor401800_StepForward(arg0->field_2C->field_8, 7);
+    }
+    if (arg0->field_36 != 0x10) {
+        if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) == 1 &&
+            ABS(work->field_8AE) < 0x80) {
+            work->field_6++;
+        } else {
+            func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+        }
+    } else {
+        if ((func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) == 1 ||
+             func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_8E8, 0xC) == 1) &&
+            ABS(work->field_8AE) < 0x80) {
+            work->field_6++;
+        } else {
+            func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+        }
+    }
+    arg0->field_2C->field_8->flg = 0;
+    if (func_actor_401800_80133918(arg0) != 1) {
+        Actor401800_ConfigPositionDelta(&Wip_SysConfig, arg0->field_2C->field_8, &s->delta);
+        if (!Actor401800_OutOfRange(&s->delta, work->field_C0E)) {
+            work->field_0 = 6;
+        } else if (!Actor401800_OutOfRange(&s->delta, 0xFA0)) {
+            coord    = arg0->field_2C->field_8;
+            s->angle = Actor401800_NormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+            if (ABS(s->angle) < 0x300) {
+                work->field_0 = 6;
+            }
+        }
+    }
+    if (*(u32*)&Gp_StateF0 & 0xD0000) {
+        work->field_0 = 6;
+    }
+    *(Actor401800TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Aim the actor at the player, fold the clamped turn into the root
 /// coordinate's Y rotation, then step it along its own local Z while

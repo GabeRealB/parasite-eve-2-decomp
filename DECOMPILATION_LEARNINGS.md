@@ -103954,3 +103954,71 @@ variable it assigns through is a register-allocation lever even though the tail'
 own instructions are identical either way. `insn.py <uid>` printing `rtl` and
 `cse` with different registers is the tell that the difference is a substitution
 and not an allocation.
+
+## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`func_actor_401800_8013A2E8`, 2026-09-16)
+
+`func_actor_401800_8013A2E8` is the patrol body its twins `Actor01900_Fn06F40`
+and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
+way — the waypoint delta into `s->delta`, then
+`if (!Actor401800_OutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15)` — it
+scored 95.168% with 22 instructions too few, all of the loss inside one block:
+the target stores the three delta fields **twice**, re-materialising
+`work->field_C[work->field_14].x - coord->t[0]` for the second store of each.
+
+CSE does not remove it. A second *load* from the same address is forwarded (that
+is the mechanism behind the store-forwarding entries above), but a second
+*store* of an equal value to an equal address is only dropped when the pass can
+see the value is already in memory, and here it cannot: the value is a
+re-materialisable `lhu`-`lhu` expression rather than a register the pass keeps
+live. Writing the three assignments out twice reproduces the target exactly, and
+the two sets of stores are the block's whole deficit:
+
+```c
+    s->delta.vx = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vy = 0;
+    s->delta.vz = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+    s->delta.vx = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vy = 0;
+    s->delta.vz = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+```
+
+So a block that is a few instructions *short* of the target, with `delete`
+penalties and matching structure, is worth re-reading for a repeated statement
+before the scheduler is suspected. The deltas here were not identical either:
+the duplicated triplet accounts for three stores plus the five instructions that
+re-materialise the two expressions feeding them.
+
+## An inlined helper's statement order is a scheduling lever (`func_actor_401800_8013A2E8`, 2026-09-16)
+
+With the triplet duplicated the score was 99.779%: two instructions left, both
+the same store. The TU's `Actor401800_OutOfRange` helper writes
+`*(Actor401800RangeScratch**)G_SCRATCH_HEAD = blk;` after `blk->dz` / `blk->r`
+and after `dx *= dx`; the target has it immediately after the `dx` store, before
+`dz` and `r`.
+
+No dependency rule lets the scheduler make that move. `sched.c` adds a
+conservative memory anti-dependency between stores whose addresses it cannot
+prove disjoint, and `(mem:SI (const_int 528483324))` against
+`(mem/s:SI (plus:SI (reg/v:SI 160) (const_int 4)))` is exactly that case, so the
+two orders are frozen in RTL program order — which, for an inlined helper, is
+the helper's *source* order. `.sched` shows it in the insn's own list, where the
+store can only follow the `r` store:
+
+```
+(insn/i 244 242 255 (set (mem:SI (const_int 528483324)) (reg/v:SI 160))
+     (insn_list 227 (insn_list:REG_DEP_ANTI 236 (nil))))
+```
+
+Moving the statement up one slot in the helper —
+`blk = (...)  (head - 0xC); blk->dx = d->vx; *(RangeScratch**)G_SCRATCH_HEAD = blk; blk->dz = d->vz; ...` —
+gave 100.000% with every penalty zero, and the unscoped build still matched the
+helper's two other call sites in the same TU (`func_actor_401800_8013A034`,
+`func_actor_80137714`), which turn out to be insensitive to the order.
+
+Two consequences. Reordering statements *inside* an inlined helper is the lever
+— no spelling at the call site can move a store past a later one. And when a
+matched sibling's helper does not need the change (`Actor401300_OutOfRange`
+keeps the other order, and its twin's store still lands late), take the target's
+order as the retail order of *this* TU rather than treating it as a local hack:
+the helper is one function with one source order, and the siblings that matched
+without it were insensitive, not contradictory.
