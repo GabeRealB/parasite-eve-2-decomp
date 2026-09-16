@@ -42807,6 +42807,15 @@ while two nearby `addiu`s were scaled. m2c only scales explicit pointer
 arithmetic, so a seed can mix right byte offsets from `M2C_FIELD` with wrong ones
 from `ptr + n`, and the diff shows only the latter.
 
+One `addiu` alone is enough. `func_actor_213000_8014A5D0`'s seed wrote
+`temp_s3->field_8 + 0x50` against a `GsCOORDINATE2*` (0x50 bytes, so the
+immediate came out `0x1900`), scoring 99.909% with `regs=1` over 55 instructions
+- one wrong constant, wearing an allocation penalty. `0x1900 / 0x50 = 0x50`
+recovers it, and `&extra->field_8[1]` is the C that emits the target's
+`addiu s1,v0,0x50`; the round's `field_8` walk is a per-part index, so the
+operand is `[n]`, never a byte offset. `func_actor_213000_8014A5D0 1 attempt,
+base_1.c 100.00%`.
+
 ## Diff the whole object, not your functions: a retyped global rescales old code
 
 A typing pass on `actor_403100` gave the overlay's work-block global its real

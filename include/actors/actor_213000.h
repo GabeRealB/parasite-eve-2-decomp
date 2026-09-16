@@ -12,11 +12,13 @@
 /// Work block this actor parks in `Task::idMap`. `field_474` / `field_477`
 /// drive the animation teardown, the animation context `Gp_AnimTickIndex`
 /// walks starts the block, and `light` / `color` are the matrices the TMD
-/// object's `field_1C` / `field_20` are republished from. Only that pair is
-/// spelled out here; the prefix fields are unreferenced by the bodies that
-/// write them.
+/// object's `field_1C` / `field_20` are republished from.
 typedef struct Actor213000Work {
-    /* 0x000 */ byte   pad_0[0x47C];
+    /* 0x000 */ byte   pad_0[0x474];
+    /* 0x474 */ s8     field_474; // nonzero while the animation context is live
+    /* 0x475 */ byte   pad_475[0x2];
+    /* 0x477 */ s8     field_477; // counts down to the buffer teardown
+    /* 0x478 */ byte   pad_478[0x4];
     /* 0x47C */ MATRIX light;
     /* 0x49C */ MATRIX color;
 } Actor213000Work;
