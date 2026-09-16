@@ -34,7 +34,45 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801330D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801332E8);
+void func_actor_403000_801332E8(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    s16              target;
+    s16              orig;
+    s32              diff;
+
+    work   = arg0->field_1C;
+    orig   = work->field_ADA;
+    target = orig;
+    if (orig > 700) {
+        target = 700;
+    }
+    if (orig < -700) {
+        target = -700;
+    }
+    if (work->field_AE2 < target) {
+        if (target - work->field_AE2 > 64) {
+            work->field_AE2 += 64;
+        } else {
+            work->field_AE2 = target;
+        }
+    }
+    if (target < work->field_AE2) {
+        diff = work->field_AE2 - target;
+        if (diff < 0) {
+            diff = -diff;
+        }
+        if (diff > 64) {
+            work->field_AE2 -= 64;
+        } else {
+            work->field_AE2 = target;
+        }
+    }
+    Gfx_RotMatrixZ(&arg0->field_2C->field_8[22].coord, work->field_AE2 / 2, 1);
+    arg0->field_2C->field_8[22].flg = 0;
+    Gfx_RotMatrixZ(&arg0->field_2C->field_8[23].coord, work->field_AE2 * 3 / 4, 1);
+    arg0->field_2C->field_8[23].flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133444);
 
