@@ -715,7 +715,27 @@ void Actor00400_Fn09D3C(Actor100400* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09D98);
+void Actor00400_Fn09D98(Actor100400* arg0)
+{
+    u16              count;
+    s32              sound;
+    s32              pan;
+    Actor100400Work* work;
+
+    work            = arg0->field_1C;
+    count           = work->field_636 + 1;
+    work->field_636 = count;
+    if ((s16)count < 0x30) {
+        Actor00400_Fn0762C(arg0, 0x60, work->field_556);
+        if (!(work->field_630 & 0xF)) {
+            sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040001;
+            pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+            SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        }
+    } else {
+        work->field_63A += 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn09E70);
 
