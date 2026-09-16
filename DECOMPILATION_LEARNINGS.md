@@ -112902,3 +112902,74 @@ in `splat/segtypes/common/c.py` - and anything else falls through to
 `matching_asm_out_dir`. The `.s` itself still says `nonmatching`, and
 `nonmatchings/` remains the unmatched list; `matchings/` there means only "this
 file no longer declares it".
+
+## A struct store's place in the final order is its priority, and that priority is an anti-dependence (func_actor_105100_8013329C, 2026-09-16)
+
+`func_actor_105100_8013329C` is the enemy's aim-reroll step: it advances the
+LCG, reads the new pose out of a 16-entry `u16` table, and steps a
+`field_5B2` interval counter. Four independent levers each moved the score, and
+all four are about *where an instruction lands in sched1's output*.
+
+**Take the table pointer as a local, and index it.** The matched sibling
+`actor_510900` writes this same LCG-plus-table pattern as
+
+```c
+    u16* tbl        = D_actor_510900_801679D0;
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->field_59C = tbl[(Gp_LcgState >> 0x10) & 0xF];
+```
+
+With the array reached directly (`D_...[idx]`) the address computation lands
+wherever the statement sits; hoisted into a local declared *first* in the case
+block it is at the top of the block, which is where the target has it. Copying
+the idiom wholesale took this function from 77.9% to 97.5% — the sibling's C is
+evidence about how these were written, not just about what compiles.
+
+**The element type is the index's scale.** m2c had typed the table `M2C_UNK`
+(`s32`) because nothing declared it, so the index came out scaled by four
+(`srl 0xd` + `andi 0x78`); the real symbol is `u16[16]`, and `tbl[(rnd >> 16) &
+0xF]` gives `srl 0xf` + `andi 0x1e` — GCC folds the element scaling into the
+mask. Declare overlay tables with their real element type before touching the
+indexing expression.
+
+**`priority()` walks LOG_LINKS, and the anti-dependence is worth 1.** At the
+start of a block everything independent is priority 1, so `rank_for_schedule`
+falls through to the class rule and then to `INSN_LUID` — the original insn
+order. A store of a constant is a leaf: priority 1, issued last, placed first.
+`sh $zero, 0x598($s0)` in the target is *not* at the front, because it carries
+`(insn_list:REG_DEP_ANTI <the table load>)`: a load through a *register*
+(`lhu $a0, 0($v0)`) has `rtx_addr_varies_p` true, which is exactly what stops
+`true_dependence` (`sched.c:846`) from discarding the dependence against an
+in-struct varying store. A load through a symbol -- `lw Gp_LcgState` -- is the
+other side of that same exemption and contributes nothing. So the fix for a
+store that schedules too early is to make sure a varying-address load precedes
+it in the RTL; here that meant reading the pose *before* the `field_598` store
+(`var = tbl[...]; field_598 = 0; ...`) rather than writing the lookup last.
+
+**A whole read-modify-write statement can be split to place its two halves.**
+The counter had to load before the `sw` of the LCG state and store after the
+`field_598` store. `x = field; ... x = x + 1; field = x;` puts the load where
+the read is written and the store at the end of the block, which one
+`field++`-style statement cannot express. With the halves placed,
+`reorder` went to zero.
+
+**sched1's launch bump beats priority.** `schedule_insn` sets the scheduled
+insn's priority to `LAUNCH_PRIORITY` (0x7f000001) and `adjust_priority` hands
+that same value to an insn with no `REG_DEAD` note that becomes ready right
+after it; the queued insn then leaves the queue at the head of the ready list.
+The final order is the **reverse** of the issue order, so an insn that is
+launched ahead of its neighbours lands *earlier* in the block. `./dump.sh` plus
+one `cc1 -dS` run prints the ready list per cycle (`;; ready list at T-n:`) and
+naming the winning insn there is what identified this; reading the post-sched1
+`.sched` dump alone does not show it, because its LOG_LINKS have been rebuilt
+into the *post*-scheduling form.
+
+**The switch variable can carry the case's constant.** The last 0.1% was one
+register: case 0's 1/2 constant. Sharing one variable between case 0 and case 1
+makes the pseudo global, so `global_alloc` pins both uses to `$a0`; the target
+has `$v1` in case 0 and `$a0` in case 1, i.e. two pseudos. Reusing the *switch*
+variable (`state = 2; if (...) state = 1; work->field_598 = state;`) leaves the
+case-1 pose variable single-block for `lreg`, which then picks `$a0`, and the
+switch variable keeps `$v1` from the dispatch. That reuse is this overlay's own
+style (`func_actor_105100_80135F50` writes `state = work->field_598` and uses
+`state` inside the cases), which is why it reads naturally.

@@ -118,7 +118,8 @@ typedef struct Actor105100Work {
     /* 0x5AA */ s16            field_5AA;
     /* 0x5AC */ s16            field_5AC;
     /* 0x5AE */ u16            field_5AE;
-    /* 0x5B0 */ byte           pad_5B0[4];
+    /* 0x5B0 */ byte           pad_5B0[2];
+    /* 0x5B2 */ s16            field_5B2;
     /* 0x5B4 */ s16            field_5B4;
     /* 0x5B6 */ s16            field_5B6;
     /* 0x5B8 */ u16            field_5B8;
@@ -143,6 +144,17 @@ typedef struct Actor105100Rec {
     /* 0x4A */ byte pad_4A[4];
     /* 0x4E */ u16  field_4E;
 } Actor105100Rec;
+
+/// Third view of the work area, held by the schedule entry
+/// `func_actor_105100_8013329C`: the `field_5A8` / `field_5AA` pair taken as
+/// one word. Every other handler reads the halves apart, so they are `s16`
+/// fields of `Actor105100Work`; this entry gates on both at once (a single
+/// `lw` at 0x5A8) and therefore reaches the pair through this view.
+typedef struct Actor105100Gate {
+    /* 0x000 */ byte pad_0[0x5A8];
+    /* 0x5A8 */ s32  field_5A8;
+} Actor105100Gate;
+STATIC_ASSERT_SIZEOF(Actor105100Gate, 0x5AC);
 
 /// List entry at +0x10 of `Actor105100Ctx`, linked by the state-0 setup.
 /// `field_4` is the flag byte previously named `field_14` (`sb` at 0x14).
@@ -197,6 +209,12 @@ typedef struct Actor105100 {
     /* 0x2C */ Actor105100Obj2C* field_2C;
     /* 0x30 */ s32               state;
 } Actor105100;
+
+/// The gameplay LCG the reroll steps draw from, `state = state * 5 + 0x71357911`.
+/// Unsigned here for the same reason as `Gp_LcgState` elsewhere: the draws are
+/// logical shifts of the high half (`srl`), which a signed declaration would
+/// turn into an arithmetic one.
+extern u32 Gp_LcgState;
 
 void func_actor_105100_80132AA0(Actor105100Ctx* arg0, Actor105100* arg1);
 

@@ -314,7 +314,99 @@ void func_actor_105100_80133134(Actor105100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013329C);
+/// The run of poses at 0x801413A8 this step's reroll picks from, one `s16`
+/// entry per draw. Declared as an aggregate on purpose: a bare `extern u16`
+/// makes `true_dependence` (`sched.c:846`) drop the dependence between the
+/// entry load and the `sh` to `Actor105100Work::field_598`, and sched2 then
+/// sinks that store past the `sw` of the LCG state instead of leaving the
+/// lookup and the pose store adjacent at the end of the block.
+extern u16 D_actor_105100_801413A8[16];
+
+/// The enemy's aim-retry step, run every frame the schedule is on step 1.
+///
+/// The `field_59E` countdown at the top is the aim timer: it is stepped down
+/// whenever the battle is not paused (`Gp_StateF0::field_0`), and on the frame
+/// it runs out the arming state drops to 1 (aimed) and the 0xA-frame hold is
+/// armed through `D_80062735`. `field_5A8` is the pair of gate flags and is
+/// tested as one word -- see `Actor105100Gate`.
+///
+/// The reroll itself is the LCG: the state advances, the pose is the table
+/// entry the high nibble selects, and the `field_5B2` interval counter counts
+/// attempts until it reaches 3, which sends the schedule on to step 3 (the
+/// thrown pose) instead of back to the reroll.
+void func_actor_105100_8013329C(Actor105100* arg0, Actor105100Ctx* arg1)
+{
+    Actor105100Work* work;
+    Actor105100Gate* gate;
+    s16              state;
+    s16              pose;
+    u16              timer;
+    u16              count;
+
+    work = arg0->field_1C;
+    if (Gp_StateF0.field_0 == 0) {
+        timer           = work->field_59E - 1;
+        work->field_59E = timer;
+        if ((timer << 16) <= 0) {
+            Gp_ArmStateF0(1);
+            D_80062735 = 0xA;
+        }
+    }
+    gate = (Actor105100Gate*)work;
+    if (gate->field_5A8 == 0) {
+        work->field_596 = 4;
+        work->field_598 = 0;
+        return;
+    }
+    state = work->field_598;
+    switch (state) {
+        case 0:
+            count           = work->field_59A - 1;
+            work->field_59A = count;
+            if ((count << 16) <= 0) {
+                work->field_59A = 0;
+                if (work->field_5B6 == 0) {
+                    state = 2;
+                    if (work->field_5B2 < 3) {
+                        state = 1;
+                    }
+                    work->field_598 = state;
+                    return;
+                }
+                work->field_598 = 3;
+                work->field_5B6 = 0;
+                return;
+            }
+            return;
+        case 1: {
+            u16* tbl = D_actor_105100_801413A8;
+            u32  rnd = (Gp_LcgState * 5) + 0x71357911;
+
+            pose            = (s16)tbl[(rnd >> 16) & 0xF];
+            count           = (u16)work->field_5B2;
+            Gp_LcgState     = rnd;
+            work->field_598 = 0;
+            count           = count + 1;
+            work->field_5B2 = count;
+            work->field_596 = pose;
+            return;
+        }
+        case 2:
+            work->field_596 = 3;
+            work->field_598 = 0;
+            work->field_5B2 = 0;
+            return;
+        case 3: {
+            u16* tbl = D_actor_105100_801413A8;
+            u32  rnd = (Gp_LcgState * 5) + 0x71357911;
+
+            Gp_LcgState     = rnd;
+            work->field_596 = (s16)tbl[(rnd >> 16) & 0xF];
+            work->field_598 = 0;
+            break;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8013345C);
 
