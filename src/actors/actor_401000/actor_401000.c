@@ -580,7 +580,100 @@ void func_actor_401000_80138BB4(Actor401000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80138D08);
+/// Emergence tick: `field_6` counts up from the state's 0x18 seed and the
+/// deltas dispatch the one-shot actions — release state F0 at 0x18, the
+/// light-mode pair at 0x1D / 0x29, the 0x600A5 spawn at 0x1D, and the
+/// `TmdObject.field_C` writes at 0x2F / 0x3F. From 0x1A on the tail rebuilds
+/// the actor's root coordinate: a Y rotation taken from the model root's
+/// facing, scaled by 0x1194 less 0xB per tick past 0x14, written back through
+/// `coord.m` with `flg` cleared so the local matrix is recomputed.
+/// Same body as `Actor01900_Fn06904`, minus that one's 0x13 release argument
+/// and with `field_A10.flags |= 0x4000` in place of its `&= 0xBFFF`.
+void func_actor_401000_80138D08(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    GpEnemy*               enemy;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor401000RotScratch* blk;
+    u8*                    head;
+    u8*                    tail;
+    void*                  scratch_base;
+    s16                    temp_v0;
+    s16                    ang;
+    s16                    cur;
+    s32                    k;
+    s32                    sy;
+    u16                    temp_v1;
+    u16                    m22;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C          = 0;
+        work->field_B50.flags = (u16)(work->field_B50.flags & 0x7FFF);
+        work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
+        enemy->node.field_4   = 1;
+        work->field_6         = 0;
+    }
+    temp_v1      = (u16)work->field_6;
+    scratch_base = PSX_SCRATCH;
+    if (work->field_6 < 0x401) {
+        work->field_6 = (s16)(temp_v1 + 1);
+        temp_v0       = temp_v1 - 0x18;
+        switch (temp_v0) {
+            case 0:
+                Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                break;
+            case 5:
+                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SpawnEff(0x600A5, arg0->field_2C->field_8 + 2, 3, NULL);
+                break;
+            case 23:
+                arg0->field_2C->field_C = 2;
+                break;
+            case 17:
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                break;
+            case 39:
+                arg0->field_2C->field_C = 0x80;
+                break;
+        }
+        cur = work->field_6;
+        if (cur >= 0x1A) {
+            k                                        = 0x1194;
+            head                                     = scratch_base;
+            head                                     = *(u8**)(head + 0x3FC);
+            coord                                    = arg0->field_2C->field_8;
+            blk                                      = (Actor401000RotScratch*)(head - 0x34);
+            sy                                       = k - (cur - 0x14) * 0xB;
+            *(Actor401000RotScratch**)G_SCRATCH_HEAD = blk;
+            ang                                      = ratan2((s32)-coord->coord.m[2][0], (s32)coord->coord.m[2][2]);
+            blk->angle                               = ang;
+            Gfx_RotMatrixY(&blk->m, (s32)ang, 1);
+            blk->scale.vx = k;
+            blk->scale.vy = (s32)(s16)sy;
+            blk->scale.vz = k;
+            ScaleMatrix(&blk->m, &((Actor401000RotScratch*)(head - 0x34))->scale);
+            coord->coord.m[0][0] = *(u16*)&((Actor401000RotScratch*)(head - 0x34))->m.m[0][0];
+            coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+            coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+            coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+            coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+            coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+            coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+            coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(tail));
+            tail       = *(u8**)(tail + 0x3FC);
+            m22        = *(u16*)&blk->m.m[2][2];
+            coord->flg = 0;
+            tail       = tail + 0x34;
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
+            coord->coord.m[2][2] = m22;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80138F50);
 
