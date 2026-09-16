@@ -40,7 +40,40 @@ void func_actor_510900_8013B988(Actor510900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_8013BA58);
+void func_actor_510900_8013BA58(Actor510900* arg0)
+{
+    Actor510900Work* work;
+    s32              state;
+    GpEnemy*         enemy;
+    s32              rng;
+
+    work  = arg0->field_1C;
+    state = work->field_590;
+    enemy = arg0->field_20;
+    switch (state) {
+        case 0:
+            work->field_586 = 0x11;
+            work->field_5A2 = 0;
+            work->field_590 = 1;
+            break;
+        case 1:
+            if (work->field_58A >= 0x50) {
+                if (enemy->field_40 <= 0) {
+                    work->field_58E = 0xC;
+                    work->field_590 = 0;
+                    work->field_586 = 0x18;
+                } else {
+                    work->field_58E = state;
+                    work->field_590 = 0;
+                    work->field_586 = state;
+                    work->field_59C =
+                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                    Gp_LcgState = rng;
+                }
+            }
+            break;
+    }
+}
 
 void func_actor_510900_8013BB20(Actor510900* arg0)
 {
