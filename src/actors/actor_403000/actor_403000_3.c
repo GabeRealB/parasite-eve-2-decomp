@@ -146,4 +146,24 @@ void func_actor_403000_8013D910(Actor403000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_3", func_actor_403000_8013D98C);
+s32 func_actor_403000_8013D98C(s32 arg0)
+{
+    switch (arg0 & 0xFF) {
+        case 0:
+        case 1:
+        case 2:
+            return 5;
+        case 3:
+        case 4:
+            return 9;
+        case 5:
+        case 6:
+        case 7:
+            return 0;
+        case 8:
+        case 9:
+            return 4;
+        default:
+            return -1;
+    }
+}
