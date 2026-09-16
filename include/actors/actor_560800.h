@@ -94,6 +94,46 @@ typedef struct Actor560800AnimWork {
 } Actor560800AnimWork;
 STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
+/// Work block `func_actor_560800_801376E0` allocates with `Mem_Malloc(0x28C, 0)`
+/// and stores in its own `Task::idMap` (0x1C), so the size below is the
+/// allocation, not a guess. A fourth idMap block in this overlay, distinct from
+/// `Actor560800Work`, `Actor560800AnimWork` and `Actor560800FadeWork`, and the
+/// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
+///
+/// It opens with the animation context - the context at 0, its slots at +0x14 -
+/// the way every actor carries it, then the pose buffer `func_800B3F84` takes as
+/// its `arg3` at +0x12C. Seven slots is what fits between the two: 0x12C - 0x14
+/// is 7 * 0x28, and `D_actor_560800_801752F0` carries seven animation sets after
+/// its leading null. `light` / `color` go to the object's `field_1C` / `field_20`
+/// (the lower offset is the light matrix, as in every actor).
+///
+/// `field_26C` is the task the spawn argument named, handed to `Task_Reparent`;
+/// `field_270` / `field_274` / `field_278` are the three `Gp_LcgState` draws
+/// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
+/// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
+/// walks 1..count with `Gp_AnimResetSlot`. `field_27C` / `field_27E` and the
+/// 0x38 bytes at `field_1DC` (`Mem_CopyUnaligned`'s source and destination in
+/// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
+typedef struct Actor560800ModelWork {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[7];
+    /* 0x12C */ byte       poseBuf[0x50];
+    /* 0x17C */ MATRIX     field_17C;
+    /* 0x19C */ MATRIX     light;
+    /* 0x1BC */ MATRIX     color;
+    /* 0x1DC */ byte       field_1DC[0x90];
+    /* 0x26C */ Task*      field_26C;
+    /* 0x270 */ u32        field_270;
+    /* 0x274 */ u32        field_274;
+    /* 0x278 */ s16        field_278;
+    /* 0x27A */ byte       pad_27A[2];
+    /* 0x27C */ s16        field_27C;
+    /* 0x27E */ s16        field_27E;
+    /* 0x280 */ u16        field_280;
+    /* 0x282 */ byte       pad_282[0xA];
+} Actor560800ModelWork;
+STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
+
 /// 8-byte fade block `func_actor_560800_80135FA0` allocates with
 /// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
 /// block in this overlay, distinct from `Actor560800Work` and owned by the
@@ -129,6 +169,14 @@ extern Task* D_actor_560800_8017578C;
 /// `GpAnimArg` at when it sends message 0x3F4 - the same role
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern u8 D_actor_560800_8016EA40[];
+
+/// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
+/// second argument: a null entry then one animation set per slot of
+/// `Actor560800ModelWork`, indexed by the animation id.
+extern GpAnimSet* D_actor_560800_801752F0[];
+
+/// The game's shared 32-bit LCG state - same global the other actors draw from.
+extern u32 Gp_LcgState;
 
 /// Phase timestamps, one per phase id 1..3: `func_actor_560800_80136930`
 /// stamps `Display_State.field_0` (the frame counter) into the slot its argument
