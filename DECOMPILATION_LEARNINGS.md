@@ -1179,6 +1179,61 @@ Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
 `base_2.i` `c89ff53043af044bf5c881600217eb4a630b437486bd5ea021d530efdcbfeea3`,
 `base_3.i` `1b1ba6e3b905016c9873f1a99a4b1b56adbb8ee01239826ad6adbcd6bfad2e1a`.
 
+## One local reused across switch arms: `$v1` is in its *conflict* set, so split it per arm
+
+Same symptom as the entry above — a shared work/child pointer sits in `$a0`
+where the target has `$v1` — but a different cause, and the `.greg` conflicts
+line tells them apart.
+
+`func_actor_510900_8013B0D8` is a switch whose arms 2, 3 and 4 each reload
+`work->field_70` and write `child->state`. One `child` across all three is a
+multi-death global allocno:
+
+```
+Register 86 used 12 times across 30 insns; dies in 4 places   .lreg
+;; 86 conflicts: 81 86 2 3 29                                 .greg
+86 in 4
+```
+
+Hard reg `3` (`$v1`) is *in the conflict set*, so `find_reg` cannot take it and
+falls to `$a0` — 96.9%, `regs=12`, structure already matching. Per
+`CODEGEN_MODEL.md` §10.4 a global allocno conflicts with "every register
+local-alloc handed out over R's range"; local-alloc runs first and colours each
+arm's block-local temps (the `li 4`/`li 5` phase constants, the `lhu 0x56` flag
+temp) into `$v0`/`$v1`. The shared `child` is live across all of them.
+
+Give each arm its own local. Four ranges of `3 times across 6 insns` no longer
+span a `$v1` temp, `$v1` leaves every conflict set, and all four take it — 100%:
+
+```
+;; 86 conflicts: 81 86 2 29     86 in 3      (and 87, 88, 89 identically)
+```
+
+**The split must cover the arm that owns the `$v1` temp**, not merely introduce
+another variable. A controlled two-way split — one local for case 2, one shared
+by the three sites in cases 3 and 4 — was predicted to repair only the first,
+and did: `childA` (`3/6`) → `2 29` → `$v1`; `childB` (`9 times across 24 insns;
+dies in 3 places`) → `2 3 29` → `$a0`; distance 565 with `regs=9`, still not a
+match.
+
+Contrast with "One work pointer in three tails prefers `$a0`" above, where
+`;; 82 conflicts: 81 82 2 29` has no `3` and the pointer lost `$v1` to a copy
+`preferences: 4` instead. Read the conflicts line first: a `3` present means
+shorten the range past the competing temp; a `3` absent means kill the copy
+preference.
+
+A permuter run reached 97.7% on this function by aliasing `work` into a second
+pointer, which displaced the case-3 block-local allocation and cleared `$v1` the
+same way — but the alias claimed a callee-saved register, reshuffling the
+prologue. An extra pseudo that happens to relieve the conflict is the accidental
+form of this fix; splitting the offending local is the free one.
+
+Example: `func_actor_510900_8013B0D8`. Inputs: `base_5.i`
+`0f85c97c5b542f1c32508d1e6b3211d82836372b831e08bf1768f0374c4c08c8` (shared,
+96.9%), `base_11.i` `b6752347472058bd2581f14e5889997d039377e5adb15246310077e3af7d7146`
+(four-way, 100%), `base_12.i` `0ed003682fd63bf7763dd4c8c89eece1d621e1a346b5ac74990606c29d5f7d99`
+(two-way, 97.0%).
+
 ## Split the A4A work pointer from the later anim `work2`; put `skip = 0` in the else
 
 A state dispatcher that copies a `TaskFuncTableN` onto the stack, then either
