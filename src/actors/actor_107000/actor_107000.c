@@ -252,6 +252,18 @@ void func_actor_107000_80132298(Task* arg0)
     }
 }
 
+// actor_104600 (func_actor_104600_801323D0), actor_204600
+// (func_actor_204600_8014A3D0) and actor_207000 (func_actor_207000_8014A474)
+// carry the same body. Unlike the siblings around it, nothing this one names is
+// overlay-local - every call it makes is already shared, so one shared object
+// *would* link into all four carriers. It is the span that cannot be placed:
+// 0x654..0x854 sits inside this overlay's first code unit, and this overlay and
+// actor_207000 already carry a hand-placed `rodata` cut, which is the layout
+// `bulk_m2c_promote.py` refuses to re-derive (`already has hand-placed
+// rodata/units cuts; splitting a unit there needs them re-derived by hand`).
+// So the body stays matched in each carrier until that pass is done with a
+// person re-deriving the cut.
+
 /// Dormant arm of the caged specimen: the `field_2B2 == 0` arm of the per-frame
 /// dispatch, run while the specimen is still caged. The collision record at
 /// `field_11C` is polled for a 0x10000-kind occupant and, when one appears,
