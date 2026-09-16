@@ -258,6 +258,26 @@ return ret;                                 /* 100% */
 byte-for-byte, so the statement shape, not the types, decides the layout.
 `func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
 is the sibling to read first; `func_dryfield_breezeway_8017D90C` is a third copy.
+
+The same lever works when the guard is not the whole function. In
+`func_dryfield_warehouse_8017D764` the guard arm is a search loop rather than a
+value, and m2c wrote the tail as an early return:
+
+```c
+if (arg2 != 0x111) return 0;
+...search, `found`...
+if (found) { ...; return 1; }
+return 0;                                   /* 93.2%, nonzero regs already gone */
+```
+
+That leaves two return-0 blocks, so the entry test becomes `beq a2,v0,body` plus
+a `j` to the first one. Nesting the body under `if (arg2 == 0x111)` and leaving
+one trailing `return 0` merges them into the block the target branches *to* —
+`bne a2,v0,ret` with the body falling through (`found = 0` at the bottom of the
+loop body is not redundant: it is what puts `move v0,zero` in the back-edge
+delay slot). The nesting, not the parameter typing, is what moved it from 93.2%
+to 100%; adding the two unused leading parameters to put the message id in `$a2`
+was a separate, earlier fix (85.4% → 93.2%).
 ## Box two address-materializing stores in one `do-while(0)`; leave the next load outside
 
 A calloc result that is nearly tied with the `Task*` argument (`work` 5/23 vs

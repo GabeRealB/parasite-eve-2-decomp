@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -21,7 +22,36 @@ extern Task* D_dryfield_warehouse_801821B4;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D5E8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D764);
+/// Message handler: on msg 0x111, walks the `Gp_PendingObj4C` list looking for
+/// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
+/// on a hit sets event nibble 0x3C, flips `Game_Session->field_1` and spawns the
+/// warehouse cutscene task. Answers 1 only when it found one.
+s32 func_dryfield_warehouse_8017D764(s32 arg0, s32 arg1, s32 arg2)
+{
+    GpObj4C* node;
+    s32      found;
+
+    if (arg2 == 0x111) {
+        found = 0;
+        node  = Gp_PendingObj4C;
+        while (node != NULL) {
+            if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                found = 1;
+                break;
+            }
+            node  = node->next;
+            found = 0;
+        }
+
+        if (found != 0) {
+            GameFlag_SetNibble(0x3C, 1);
+            Game_Session->field_1 = 1;
+            Task_SpawnOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
+            return 1;
+        }
+    }
+    return 0;
+}
 
 /// Copies the room message, then answers msg 9 by running CAP command 3 and
 /// setting the event's nibble. field_5 suppresses the side effects (the
