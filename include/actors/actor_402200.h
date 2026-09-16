@@ -27,6 +27,12 @@ typedef struct Actor402200Coord {
 typedef struct Actor402200Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor402200Coord* field_8;
+    /* 0x0C */ s16               field_C;
+    /* 0x0E */ byte              pad_E[0xE];
+    /* 0x1C */ MATRIX*           field_1C;
+    /* 0x20 */ MATRIX*           field_20;
+    /* 0x24 */ byte              pad_24[8];
+    /* 0x2C */ s32               field_2C;
 } Actor402200Obj2C;
 
 /// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`, the same
@@ -43,6 +49,18 @@ typedef struct Actor402200Region {
     /* 0xE */ s16 field_E;
 } Actor402200Region;
 STATIC_ASSERT_SIZEOF(Actor402200Region, 0x10);
+
+/// One 8-byte entry of the spawn's placement run `D_actor_402200_80153C78`,
+/// terminated by a zero `field_0`: when the session's stage (`field_2`) and
+/// room (`field_4`) match, `field_0` indexes the box tables and `field_6` is
+/// the box count stored to `Actor402200Work::field_6FA`.
+typedef struct Actor402200Spot {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ u16 field_6;
+} Actor402200Spot;
+STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 
 /// Per-instance work block the overlay's setup `func_actor_402200_80137444`
 /// allocates with `Mem_Calloc(0x71C)` and parks in the 0x1C slot below (the
@@ -77,9 +95,18 @@ STATIC_ASSERT_SIZEOF(Actor402200Region, 0x10);
 /// is set the two adjacent words `[field_712 * 2 - 1]` and `[field_712 * 2]`
 /// are the cue ids it plays.
 typedef struct Actor402200Work {
-    /* 0x000 */ byte       pad_0[0x3C];
+    /* 0x000 */ byte       pad_0[0x14];
+    /* 0x014 */ GpAnimSlot field_14;
     /* 0x03C */ GpAnimSlot field_3C;
-    /* 0x064 */ byte       pad_64[0x42C];
+    /* 0x064 */ byte       pad_64[0x2A8];
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ MATRIX     field_43C;
+    /* 0x45C */ MATRIX     field_45C;
+    /* 0x47C */ byte       field_47C[8];
+    /* 0x484 */ void*      field_484;
+    /* 0x488 */ GpRec18*   field_488;
+    /* 0x48C */ s16        field_48C;
+    /* 0x48E */ s16        field_48E;
     /// Halfword the attack sequences park alongside the timers: state 0 stores
     /// -0xA7 when `field_6D2` is clear and 0x109 when it is set. The branch
     /// sequence `func_actor_402200_80135630` stores the same pair, so it is the
@@ -98,34 +125,99 @@ typedef struct Actor402200Work {
     /// body `ActorsShared80137a20` tests the same bit through its own work
     /// block, and `func_actor_402200_80131F54` clears `field_6C6` as it raises
     /// it.
-    /* 0x49A */ u16  field_49A;
-    /* 0x49C */ byte pad_49C[0x66];
+    /* 0x49A */ u16      field_49A;
+    /* 0x49C */ GpRec18  field_49C[3];
+    /* 0x4E4 */ byte     field_4E4[8];
+    /* 0x4EC */ void*    field_4EC;
+    /* 0x4F0 */ GpRec18* field_4F0;
+    /* 0x4F4 */ s16      field_4F4;
+    /* 0x4F6 */ s16      field_4F6;
+    /* 0x4F8 */ s16      field_4F8;
+    /* 0x4FA */ byte     pad_4FA[2];
+    /* 0x4FC */ s32      field_4FC;
+    /* 0x500 */ s16      field_500;
     /// Flag word the attack sequences raise: bit 0x4000 is set by state 0 of
     /// both `func_actor_402200_80135630` and `func_actor_402200_80135A24`,
     /// alongside clearing bit 0x4000 of the 0x502 word below.
-    /* 0x502 */ u16  field_502;
-    /* 0x504 */ byte pad_504[0x7E];
-    /* 0x582 */ u16  field_582;
-    /* 0x584 */ byte pad_584[0x36];
-    /* 0x5BA */ u16  field_5BA;
-    /* 0x5BC */ byte pad_5BC[0x1E];
-    /* 0x5DA */ u16  field_5DA;
-    /* 0x5DC */ s16  field_5DC;
-    /* 0x5DE */ s16  field_5DE;
-    /* 0x5E0 */ s16  field_5E0;
-    /* 0x5E2 */ byte pad_5E2[0x12];
+    /* 0x502 */ u16      field_502;
+    /* 0x504 */ GpRec18  field_504[4];
+    /* 0x564 */ byte     field_564[8];
+    /* 0x56C */ void*    field_56C;
+    /* 0x570 */ GpRec18* field_570;
+    /* 0x574 */ s16      field_574;
+    /* 0x576 */ s16      field_576;
+    /* 0x578 */ s16      field_578;
+    /* 0x57A */ byte     pad_57A[2];
+    /* 0x57C */ s32      field_57C;
+    /* 0x580 */ s16      field_580;
+    /* 0x582 */ u16      field_582;
+    /* 0x584 */ GpRec18  field_584;
+    /* 0x59C */ byte     field_59C[8];
+    /* 0x5A4 */ void*    field_5A4;
+    /* 0x5A8 */ void*    field_5A8;
+    /* 0x5AC */ s16      field_5AC;
+    /* 0x5AE */ s16      field_5AE;
+    /* 0x5B0 */ s16      field_5B0;
+    /* 0x5B2 */ byte     pad_5B2[2];
+    /* 0x5B4 */ s32      field_5B4;
+    /* 0x5B8 */ s16      field_5B8;
+    /* 0x5BA */ u16      field_5BA;
+    /* 0x5BC */ byte     field_5BC[8];
+    /* 0x5C4 */ void*    field_5C4;
+    /* 0x5C8 */ GpRec18* field_5C8;
+    /* 0x5CC */ s16      field_5CC;
+    /* 0x5CE */ s16      field_5CE;
+    /* 0x5D0 */ s16      field_5D0;
+    /* 0x5D2 */ byte     pad_5D2[2];
+    /* 0x5D4 */ s32      field_5D4;
+    /* 0x5D8 */ s16      field_5D8;
+    /* 0x5DA */ u16      field_5DA;
+    /* 0x5DC */ s16      field_5DC;
+    /* 0x5DE */ s16      field_5DE;
+    /* 0x5E0 */ s16      field_5E0;
+    /* 0x5E2 */ byte     pad_5E2[2];
+    /* 0x5E4 */ s16      field_5E4;
+    /* 0x5E6 */ s16      field_5E6;
+    /* 0x5E8 */ s16      field_5E8;
+    /* 0x5EA */ byte     pad_5EA[2];
+    /* 0x5EC */ s16      field_5EC;
+    /* 0x5EE */ s16      field_5EE;
+    /* 0x5F0 */ GpRec18* field_5F0;
     /// Head of the actor's first `GpRec18` table; `func_actor_402200_801329A4`
     /// branches on its `field_4` before clearing it.
-    /* 0x5F4 */ GpRec18 field_5F4;
-    /* 0x60C */ byte    pad_60C[0x38];
+    /* 0x5F4 */ GpRec18  field_5F4;
+    /* 0x60C */ byte     field_60C[8];
+    /* 0x614 */ void*    field_614;
+    /* 0x618 */ void*    field_618;
+    /* 0x61C */ s16      field_61C;
+    /* 0x61E */ s16      field_61E;
+    /* 0x620 */ s16      field_620;
+    /* 0x622 */ byte     pad_622[2];
+    /* 0x624 */ s32      field_624;
+    /* 0x628 */ s16      field_628;
+    /* 0x62A */ u16      field_62A;
+    /* 0x62C */ s16      field_62C;
+    /* 0x62E */ s16      field_62E;
+    /* 0x630 */ s16      field_630;
+    /* 0x632 */ byte     pad_632[2];
+    /* 0x634 */ s16      field_634;
+    /* 0x636 */ s16      field_636;
+    /* 0x638 */ s16      field_638;
+    /* 0x63A */ byte     pad_63A[2];
+    /* 0x63C */ s16      field_63C;
+    /* 0x63E */ s16      field_63E;
+    /* 0x640 */ GpRec18* field_640;
     /// Head of a second `GpRec18` table, cleared by state 5 of
     /// `func_actor_402200_801329A4`.
-    /* 0x644 */ GpRec18 field_644;
-    /* 0x65C */ byte    pad_65C[0x48];
-    /* 0x6A4 */ s32     field_6A4;
-    /* 0x6A8 */ s32     field_6A8;
-    /* 0x6AC */ s32     field_6AC;
-    /* 0x6B0 */ byte    pad_6B0[4];
+    /* 0x644 */ GpRec18           field_644;
+    /* 0x65C */ Actor402200Coord* field_65C;
+    /* 0x660 */ s16               field_660;
+    /* 0x662 */ s16               field_662;
+    /* 0x664 */ byte              pad_664[0x40];
+    /* 0x6A4 */ s32               field_6A4;
+    /* 0x6A8 */ s32               field_6A8;
+    /* 0x6AC */ s32               field_6AC;
+    /* 0x6B0 */ byte              pad_6B0[4];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
@@ -180,7 +272,8 @@ typedef struct Actor402200Work {
     /// (0x4B..0x6A) when it reseeds the animation, and ticks down a frame at a
     /// time until it runs out and the cue fires.
     /* 0x6D4 */ u16  field_6D4;
-    /* 0x6D6 */ byte pad_6D6[4];
+    /* 0x6D6 */ byte pad_6D6[2];
+    /* 0x6D8 */ s16  field_6D8;
     /// Timer pair the reseed arms alongside `field_6DE`.
     /* 0x6DA */ s16 field_6DA;
     /* 0x6DC */ s16 field_6DC;
@@ -238,7 +331,8 @@ typedef struct Actor402200 {
     /* 0x00 */ byte              pad_0[0x1C];
     /* 0x1C */ Actor402200Work*  field_1C;
     /* 0x20 */ GpEnemy*          field_20;
-    /* 0x24 */ byte              pad_24[8];
+    /* 0x24 */ void*             field_24;
+    /* 0x28 */ byte              pad_28[4];
     /* 0x2C */ Actor402200Obj2C* field_2C;
     /// Sequence state the overlay's body parks for the frame dispatcher, the
     /// same slot the other actor contexts keep at 0x30.
