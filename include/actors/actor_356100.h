@@ -127,7 +127,13 @@ typedef struct Actor356100Work {
     /// then GPF-scales it by `field_B52` into its aim scratch, the same
     /// normalise-then-scale pair `Actor01900_MoveForward` runs.
     /* 0xB40 */ SVECTOR field_B40;
-    /* 0xB48 */ byte    pad_B48[4];
+    /// The yaw pair `func_actor_356100_801653F4` walks: `field_B48` is the
+    /// angle fed to `Gfx_RotMatrixY` and slewed 0x89 at a time toward
+    /// `field_B4A`, the target it re-derives each entry as the root's facing
+    /// plus twice the wrapped turn. Same slots as `Actor01900Work.field_C20` /
+    /// `field_C22`.
+    /* 0xB48 */ s16 field_B48;
+    /* 0xB4A */ s16 field_B4A;
     /// Push distance `func_actor_356100_8016804C` normalises the root's own
     /// colour-matrix column by and walks down by 0xA per frame until the
     /// state moves on; same role as `Actor401300Work.field_C98`.
@@ -336,7 +342,10 @@ typedef struct Actor356100AimScratch {
     /* 0x8 */ s16     pad_8;
     /* 0xA */ s16     pad_A;
     /* 0xC */ s16     angle;
-    /* 0xE */ s16     pad_E;
+    /// The root's facing yaw `func_actor_356100_801653F4` reads back to seed
+    /// `Actor356100Work::field_B48`; `Actor01900ChaseScratch` names the same
+    /// pair `turn` / `angle`.
+    /* 0xE */ s16 facing;
 } Actor356100AimScratch;
 STATIC_ASSERT_SIZEOF(Actor356100AimScratch, 0x10);
 

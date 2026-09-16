@@ -84543,6 +84543,26 @@ left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
 reason. Fix in `Actor01900_Fn06100`: `Actor01900_StepForward` (reads `vec->vx`)
 instead of `Actor01900_StepForwardHead`.
 
+## A base-register + displacement residual at ≥99%: grep the corpus for the address, not the mechanism
+
+`func_actor_356100_801653F4` (actor_356100) sat at 99.881%, `regs=11`, with
+every instruction count, block and predicate matching and three changed sites:
+the scratch pop's released value staying live in `$s2` (target reloads into
+`$s2` and leaves the release in `$v0`), and the step's X read as `lh v1,
+-8($s2)` where the target has `lh v1, 0x2C($s2)`. The fix is the one already
+recorded above — `Actor356100_StepForward`, which reads `vec->vx`, instead of a
+`head[-1]` copy. Three builds went into `.lreg`/`.jump`/`.combine` dumps,
+`find_best_addr` cost arithmetic and allocno priorities before a two-line
+corpus search turned up the answer that was already there
+(`python3 tools/learn.py "head[-1]"`).
+
+Search the corpus by the residual's *spelling* — the offset and the register
+form (`0x2C`, `-8(head)`, `head[-1]`, `vec->vx`) — before reasoning from the
+dumps. A base register plus displacement that differs while the instruction
+count matches is a spelling choice in the C, and this project has usually
+already matched one. The dumps then confirm the mechanism; they are a poor
+place to *discover* it.
+
 ## `addiu v0,head,-K` + `move sN,v0` at a scratch push: `*(T**)G_SCRATCH_HEAD -= 1; s = *G_SCRATCH_HEAD`
 
 `Actor01900_Fn06F40` opens a 0xC block with the head load scheduled late (after

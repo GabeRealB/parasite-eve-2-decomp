@@ -263,7 +263,47 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80164ACC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801653F4);
+/// Wrapped yaw from `coord`'s facing to an offset (`x`, `z`) already in hand.
+/// Same body as `Actor401300_YawTo` / `Actor01900_YawTo`, the pair
+/// `Actor356100_PositionYaw` above is spelled out as. The enter tick below and
+/// the collapse tick further down both read its turn back out of the scratch
+/// block they already hold, so it sits above them; `MoveForwardNonzero` is
+/// only reached after the first `func_actor_356100_801653F4` caller.
+static __inline__ s16 Actor356100_YawTo(GsCOORDINATE2* coord, s16 x, s16 z)
+{
+    s32 angle;
+
+    angle = ratan2(x, z);
+    return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+/// Steps `coord` `amount` units along its own root colour-matrix column unless
+/// movement is frozen, normalising the column with the GTE first and giving the
+/// 8-byte `G_SCRATCH_HEAD` block back afterwards. The guardless sibling of
+/// `Actor356100_MoveForwardNonzero`, reading the X component back through
+/// `vec`; same body as `Actor01900_StepForward` / `Actor00100_MoveForward`.
+static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        *(SVECTOR**)G_SCRATCH_HEAD = head - 1;
+        vec                        = head - 1;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += vec->vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 /// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
 /// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
@@ -312,6 +352,94 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
         }
         *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
     }
+}
+
+/// Aim tick: going live resets the model and starts clip 1 at speed 0x10 with
+/// the 3 state parked in `field_97E` and `field_98E` cleared; otherwise the
+/// aim scratch takes the player offset, and the wrapped turn from it is paired
+/// with the root's own facing yaw — snapshotted into `field_B48` and, plus
+/// twice the turn, into the `field_B4A` the yaw is then slewed toward. Same
+/// body as `Actor01900_Fn0551C`, whose aim tick this is the live-arm half of:
+/// the settling yaw is re-derived from the player each entry while that one
+/// only re-seeds the pair.
+void func_actor_356100_801653F4(Actor356100* arg0)
+{
+    Actor356100Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         cur;
+    GsCOORDINATE2*         facing;
+    Actor356100AimScratch* head;
+    Actor356100AimScratch* s;
+    s32                    value;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        head                                     = *(Actor356100AimScratch**)G_SCRATCH_HEAD;
+        obj                                      = arg0->field_2C;
+        *(Actor356100AimScratch**)G_SCRATCH_HEAD = head - 1;
+        s                                        = head - 1;
+        arg0->field_20->node.field_4             = 0;
+        obj->field_C                             = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0x180;
+        work->field_978 = 1;
+        work->field_982 = 0x10;
+        work->field_97A = 0;
+        work->field_97E = 3;
+        work->field_98E = 0;
+        func_actor_356100_80163508(arg0);
+        cur                                       = arg0->field_2C->field_8;
+        head[-1].delta.vx                         = Wip_SysConfig.field_4->t[0] - cur->coord.t[0];
+        s->delta.vy                               = Wip_SysConfig.field_4->t[1] - cur->coord.t[1];
+        s->delta.vz                               = Wip_SysConfig.field_4->t[2] - cur->coord.t[2];
+        coord                                     = arg0->field_2C->field_8;
+        s->angle                                  = Actor356100_YawTo(coord, head[-1].delta.vx, s->delta.vz);
+        facing                                    = arg0->field_2C->field_8;
+        s->facing                                 = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->field_B48                           = s->facing;
+        work->field_B4A                           = s->facing + (u16)s->angle * 2;
+        *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
+        return;
+    }
+    head                                     = *(Actor356100AimScratch**)G_SCRATCH_HEAD;
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                        = head - 1;
+    func_actor_356100_80163508(arg0);
+    cur               = arg0->field_2C->field_8;
+    head[-1].delta.vx = Wip_SysConfig.field_4->t[0] - cur->coord.t[0];
+    s->delta.vy       = Wip_SysConfig.field_4->t[1] - cur->coord.t[1];
+    s->delta.vz       = Wip_SysConfig.field_4->t[2] - cur->coord.t[2];
+    if (work->field_B48 == work->field_B4A) {
+        if (work->field_B64 < 2 || Actor356100_OutOfRange(&s->delta, 0x384)) {
+            value = 8;
+        } else {
+            value = 0xB;
+        }
+        work->field_0 = value;
+    }
+    if (work->field_B48 > work->field_B4A) {
+        work->field_B48 -= 0x89;
+        if (work->field_B48 < work->field_B4A) {
+            work->field_B48 = work->field_B4A;
+        }
+    }
+    if (work->field_B48 < work->field_B4A) {
+        work->field_B48 += 0x89;
+        if (work->field_B48 > work->field_B4A) {
+            work->field_B48 = work->field_B4A;
+        }
+    }
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, work->field_B48, 1);
+    Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    arg0->field_2C->field_8->flg = 0;
+    if (work->field_97A == 0) {
+        Actor356100_StepForward(arg0->field_2C->field_8, 0x28);
+    } else {
+        Actor356100_StepForward(arg0->field_2C->field_8, 0x14);
+    }
+    Actor356100_PushRecords(arg0->field_2C->field_8, &work->field_A58, 3, 0x10);
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Turn-and-close tick: going live writes the 0x978..0x982 animation slots with
@@ -552,47 +680,6 @@ void func_actor_356100_801666B4(Actor356100* arg0)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801668FC);
-
-/// Wrapped yaw from `coord`'s facing to an offset (`x`, `z`) already in hand.
-/// Same body as `Actor401300_YawTo` / `Actor01900_YawTo`, the pair
-/// `Actor356100_PositionYaw` above is spelled out as. Defined here rather than
-/// beside `MoveForwardNonzero` because the collapse tick below reads its turn
-/// back out of the scratch block it already holds.
-static __inline__ s16 Actor356100_YawTo(GsCOORDINATE2* coord, s16 x, s16 z)
-{
-    s32 angle;
-
-    angle = ratan2(x, z);
-    return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-}
-
-/// Steps `coord` `amount` units along its own root colour-matrix column unless
-/// movement is frozen, normalising the column with the GTE first and giving the
-/// 8-byte `G_SCRATCH_HEAD` block back afterwards. The guardless sibling of
-/// `Actor356100_MoveForwardNonzero`, reading the X component back through
-/// `vec`; same body as `Actor01900_StepForward` / `Actor00100_MoveForward`.
-static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        *(SVECTOR**)G_SCRATCH_HEAD = head - 1;
-        vec                        = head - 1;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12_real();
-        gte_stsv(vec);
-        coord->coord.t[0]          += vec->vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
 
 /// Release tick, the sibling of `func_actor_356100_801684F0` below it and the
 /// same body as `Actor01900_Fn06100`. Going live resets the model and starts
