@@ -85230,6 +85230,28 @@ Inputs: `base.c` 99.082% (`regs=9`), `base_1.c` 99.184% (`regs=8`),
 `base_2.c` 100.000%, zero penalties. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
+The same wrong callee arity does not have to surface as `regs`.
+`func_neo_ark_power_plant_1_8017D928` (2026-09-16) hit the identical mistake -
+the seed's `Game_SetPtrSlot(7)` against the real `(void*, s32)` - and scored
+94.737% with **every penalty zero except `insert=1 delete=1`**. The scorer
+aligned `li a0,7` with nothing, because in the target that constant sits after
+the `lui`/`addiu` symbol pair and ours sat before it, so the shifted constant
+read as one stray insert plus one stray delete rather than as a register
+difference:
+
+```
++li    a0,7        (ours, before the symbol)
+ lui   v0,%hi(D_neo_ark_power_plant_1_8017EB18)
+ addiu v0,v0,%lo(D_neo_ark_power_plant_1_8017EB18)
+-li    a1,7        (target, after it)
+```
+
+A constant load feeding a `jal` that appears in the insert/delete set - with no
+`regs` penalty at all - is the same signature as a `regs` complaint about a
+call argument. `Game_SetPtrSlot(task, 7)` was 100.000% on the next build, with
+no other source change. Inputs: `base.c` 94.737% (`insert=1 delete=1`),
+`base_1.c` 100.000%.
+
 ## An m2c seed needing only declarations is already the answer, and two literal `1`s across a call share one `$s0` (func_mine_gorge_8017D828, 2026-09-16)
 
 `func_mine_gorge_8017D828` matched 100.000% with zero penalties on the *first
