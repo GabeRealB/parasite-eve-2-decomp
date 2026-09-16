@@ -15,12 +15,15 @@
 /// allocates it with `Mem_Calloc(0x70, 0)`. `light` / `color` are the matrices
 /// the TMD object's `field_1C` / `field_20` are republished from.
 /// `field_8` is the Tmd_FreeBuffers countdown (`-1` disables it);
-/// `field_C` is the dest buffer published through `D_actor_511000_80147EB0`.
+/// `field_C` is the 16-colour CLUT published through `D_actor_511000_80147EB0`,
+/// written byte by byte as little-endian 15-bit colours by the palette fade
+/// `func_actor_511000_80132E6C`, which steps `field_2C` and waits on `field_2E`.
 typedef struct Actor511000Work {
     /* 0x00 */ byte   pad_0[8];
     /* 0x08 */ s32    field_8;
-    /* 0x0C */ u16    field_C;
-    /* 0x0E */ byte   pad_E[0x21];
+    /* 0x0C */ u8     field_C[0x20];
+    /* 0x2C */ s16    field_2C;
+    /* 0x2E */ s8     field_2E;
     /* 0x2F */ s8     field_2F;
     /* 0x30 */ MATRIX light;
     /* 0x50 */ MATRIX color;

@@ -13,7 +13,10 @@
 extern SVECTOR    D_actor_511000_80147344[];
 extern SVECTOR    D_actor_511000_80147704[];
 extern SVECTOR    D_actor_511000_80147AC4[];
+extern u8         D_actor_511000_80147E84[];
+extern GpImgRec   D_actor_511000_80147EA4;
 extern u16*       D_actor_511000_80147EB0;
+extern u8         D_actor_511000_80147EC4[];
 extern CVECTOR    D_actor_511000_80149004[];
 extern GpMsgEntry D_actor_511000_80148FC4[];
 
@@ -215,7 +218,65 @@ void func_actor_511000_801329C4(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132B14);
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_4", func_actor_511000_80132E6C);
+/// Palette fade: steps `field_2C` up by 0x555 per frame while the
+/// `field_2E` hold counter is live (counting it down once the blend saturates
+/// at 0x1000), otherwise snaps it back to 0 and re-arms the hold at 0x1E. Each
+/// of the 16 little-endian 15-bit colours is then blended between
+/// `D_actor_511000_80147E84` and `D_actor_511000_80147EC4` by that weight into
+/// the `field_C` CLUT, which `D_actor_511000_80147EA4` uploads.
+/// The destination is formed as `work + i` before the field offset so the
+/// `addu` keeps the index first and CSE cannot fold the 0xC into a store.
+void func_actor_511000_80132E6C(Actor511000Work* work)
+{
+    CVECTOR col[3];
+    s32     i;
+    s32     c;
+    s32     inv;
+    s32     fade;
+    u8*     src0;
+    u8*     src1;
+    u8*     dst;
+
+    if (work->field_2E != 0) {
+        work->field_2C += 0x555;
+        i               = 0;
+        if (work->field_2C >= 0x1000) {
+            work->field_2C = 0x1000;
+            if (--work->field_2E < 0) {
+                work->field_2E = 0;
+            }
+        }
+    } else {
+        work->field_2C -= 0x1000;
+        i               = 0;
+        if (work->field_2C <= 0) {
+            work->field_2C = 0;
+            work->field_2E = 0x1E;
+        }
+    }
+    inv  = 0x1000 - work->field_2C;
+    fade = work->field_2C;
+    do {
+        dst      = (u8*)(i + (s32)work);
+        dst      = ((Actor511000Work*)dst)->field_C;
+        src0     = &D_actor_511000_80147E84[i];
+        src1     = &D_actor_511000_80147EC4[i];
+        c        = src0[0] | (src0[1] << 8);
+        col[0].r = ((u16)c >> 10) & 0x1F;
+        col[0].g = ((u16)c >> 5) & 0x1F;
+        col[0].b = c & 0x1F;
+        c        = src1[0] | (src1[1] << 8);
+        col[1].r = ((u16)c >> 10) & 0x1F;
+        col[1].g = ((u16)c >> 5) & 0x1F;
+        col[1].b = c & 0x1F;
+        LoadAverageCol(&col[0], &col[1], inv, fade, &col[2]);
+        c      = col[2].b + ((col[2].r << 10) + (col[2].g << 5));
+        dst[1] = (u32)c >> 8;
+        i     += 2;
+        dst[0] = c;
+    } while (i < 0x20);
+    Gp_LoadImages(&D_actor_511000_80147EA4);
+}
 
 /// Spawn/setup state: allocates the 0x70 work block, parks it in `idMap`,
 /// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
@@ -240,7 +301,7 @@ void func_actor_511000_80133034(Task* task)
     func_actor_511000_801337F0(task);
     do {
         task->field_24          = D_actor_511000_80148FC4;
-        D_actor_511000_80147EB0 = &work->field_C;
+        D_actor_511000_80147EB0 = (u16*)work->field_C;
     } while (0);
     task->state += 1;
 }

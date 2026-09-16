@@ -114121,3 +114121,21 @@ keeps the early `lw v0,0(v0)` that a chained `spawned->task->extra` loses, and
 went straight to 100%. The byte temp itself (`areaByte3 = key->field_3; model =
 ...; key.field_3 = areaByte3;`) was needed because it is set in both blocks, so
 combine cannot fold it into the store.
+
+## `addu s0, i, base` then `addiu s0, s0, 0xC` kept apart: build the member address in two statements into one pointer (func_actor_511000_80132E6C, 2026-09-17)
+
+The target forms a byte-array member address as `(i + work) + 0xC` in one register and uses `1(s0)` / `0(s0)`:
+
+```
+addu  $s0, $s1, $s2    # i + work
+addiu $s0, $s0, 0xC
+```
+
+`&work->field_C[i]` expands as `work + (i + 12)` (wrong association). `(u8*)(i + (s32)work + 0xC)` fixes the operand order, but CSE sees the `i + work` pseudo still available and rewrites the second store as `0xC(s0)`, splitting the pointer into `$v1`. Assigning the pointer in two statements overwrites the intermediate, so nothing is left for CSE to substitute:
+
+```c
+dst = (u8*)(i + (s32)work);
+dst = ((Actor511000Work*)dst)->field_C;   /* same as dst += 0xC */
+```
+
+The remaining one-instruction reorder (`addiu a0, sp, 0x18` for `&col[0]` scheduled after `i += 2`) was fixed by the permuter moving `i += 2` between `dst[1] = ...` and `dst[0] = ...`. Separately: three 4-byte `CVECTOR` locals took 8-byte slots (frame 0x50 instead of 0x48); one `CVECTOR col[3]` packs them at 0x18/0x1C/0x20.
