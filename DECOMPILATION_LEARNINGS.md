@@ -104243,4 +104243,13 @@ form. Inputs: `base_1.i` SHA256
 `f0167845a9135c6eb48b075d3edf23d1bb1cb78fe9067d0d7d3146640142f982`; target SHA256
 `a79abd137951e3d2ddb037175e14a222c707a46093307202c216ea90bd2c8d9f`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+Confirmed independently on `func_actor_401000_8013CEF0` (2026-09-16), the same TU's state-10 twin.
+Its m2c seed carried *two* artifacts, this one and the `ptr + K`-scales-by-`sizeof` shape from the
+`func_actor_323300_80163510` entry above (`temp_s0 + 0x8F0` on a 0xC24-byte struct, which GCC
+materialised as `lui`/`ori`/`addu` rather than an `addiu`). Repairing only the scaling moved the seed
+90.75% → 99.765% with the three `$v1` operands untouched, so the two symptoms are **independent**:
+a seed well below 99% on instruction count can still be this class underneath. Fix them one at a
+time — the isolation build is what tells you which one is left. `regs` stays non-zero until the tail
+is rewritten, which is the recognition cue when the percentage is otherwise unremarkable.
 Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
