@@ -103654,3 +103654,36 @@ the source that produces the target is the negated spelling, `if (work->field_6
 clause and the LCG in the fall-through (100%). The corpus entry "If/else branch
 polarity" is this same rule for `== 0`, where the test is a simple branch and no
 `slt` is materialised.
+
+## A `shape` 0.99 sibling in another overlay is a source *template*, not a near-miss
+
+`overlay_dup_index.py find func_actor_401800_8013AF1C` reported one copy — the
+function itself — but the brief's similar tier ranked `func_actor_401300_8013A5C0`
+0.99 on shape and 0.97 on cflow. That sibling is matched, and its C is the whole
+answer: the `ABS()` ternary (which compiles to `bgez` / `negu` / `slti`, so an
+`if (x < 0) x = -x;` spelling is not the same source), the
+`if (x < -0x80) x = -0x80; else x = x >> 1;` clamp whose else arm is what
+produces the `lhu` / `sll 16` / `sra 17` shape, and the typed 0x10 scratch
+struct. The m2c seed scored 71.9%; the same body transcribed onto 401300's shape
+and renamed for this overlay scored 100% on the third build, every penalty zero
+and no pins.
+
+The difference from the two entries above — "`shape` 1.00 is an equality" and
+"a verified sibling `.s` turns a matching job into a port" — is that at 0.99 the
+two functions are the same body with **different constants, different state
+slots and different callees**, so an `.s` diff comes back dirty and the `.s`
+recipe will not fire. 401300 arms `field_970.field_1C` with 0x280 where this one
+arms `field_8C8.field_1C` with 0x12C, rescales at 0x1964 against 0x1194, tests a
+4-argument contact helper for `== 0` where this one tests a 3-argument one for
+`!= 1`, and names its aim state slots shifted by one (`field_8A2` / `field_8A6` /
+`field_89C` against `field_89E` / `field_8A2` / `field_898`). Port the sibling's
+C as a template and check every constant and call against this function's own
+listing; do not expect the text to transfer unchanged.
+
+Two mechanical traps in the scratch TU, both already covered above but hit here
+together: the seed's include list omits `<psyq/abs.h>` and `<psyq/inline_c.h>`,
+so `ABS` and every `gte_*` macro compile as implicitly declared *calls* with no
+error under `-w`. That shows up in `.diagnosis.json` as `calls_match=False` with
+`ABS+0` and `gte_lddp+0` in the candidate's call list, and it costs about eleven
+instructions — the seed sat at 98.7% with the remaining diff being nothing but
+branch-target offsets.
