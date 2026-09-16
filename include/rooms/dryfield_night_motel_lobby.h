@@ -55,6 +55,22 @@ STATIC_ASSERT_SIZEOF(DnmlCapScript, 0x18);
 
 extern DnmlCapScript D_dryfield_night_motel_lobby_801844E0;
 
+/// The lobby's eleven-entry task state table, in the room's leading rodata.
+/// The dispatcher below copies it onto the stack, so the handler runs from the
+/// copy rather than from here.
+///
+/// The same body carries the same-shaped table in `shelter_r47` (eleven
+/// handlers at `0x8017D7DC`) and in `aya/replay_bonus`, which is why the three
+/// copies are one body in the duplicate index. They cannot share an object as
+/// things stand: the shared unit would have to reach each room's own table, and
+/// `tools/overlay_dup_index.py promote` refuses exactly that (`RoomsShared8017d878`
+/// shows the manual per-carrier name this would need).
+extern const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0;
+
+/// Dispatches the room's main task through the table above: the eleven handlers
+/// are copied onto the stack and the one named by `Task::state` is called.
+void func_dryfield_night_motel_lobby_80180D58(Task* task);
+
 /// Draws the examine cursor over the room's hotspot table and, on a confirm,
 /// raises the phase flag cap slot 9 waits on.
 void func_dryfield_night_motel_lobby_801802A8(Task* task);
