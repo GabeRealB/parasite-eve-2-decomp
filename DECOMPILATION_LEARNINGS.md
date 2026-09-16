@@ -111813,3 +111813,62 @@ with `sll`/`sra` rather than reloading it after the intervening stores.
 
 Inputs: `base.i` (the `M2C_FIELD` spelling, `lhu` where the target has `lh`),
 `base_1.c` (100.000%)
+
+## A clean `reorder` penalty is a statement-order problem: sched2 ties break on LUID
+
+With an all-latency-1 schedule, `sched.c`'s `priority()` (2.8.1, line ~1453)
+computes `priority (x) + insn_cost (x, link, insn) - 1`, so every priority
+collapses to 1 - the source comment says as much ("all instructions will end up
+with a priority of one, and hence no scheduling will be done"). `rank_for_schedule`
+then falls through the "data dependent on the last scheduled insn" class test
+(also inert at latency 1) to `INSN_LUID`, the *original* order of the block. So a
+`reorder=` penalty with all instructions present is the scheduler telling you the
+statements are in a different order than retail's, and the fix is to move
+statements, not to pin.
+
+`func_actor_107000_80136E88` walked 77.4% -> 93.9% (m2c raw offsets -> the
+`Actor107000Spawn2Work` struct) and then lost only 5 reordered insns across two
+blocks. Three statement moves closed it:
+
+1. **A load between two stores is only reachable if the load's statement is
+   first.** `true_dependence` is conservative - a load gets a `LOG_LINKS` entry
+   for *every* earlier store to the same base register - but `output_dependence`
+   is precise, so two stores at different offsets do not conflict. Retail has
+   `sw 0x50`, `lhu`, `sw 0x54`, `sh 0x40`; with
+
+   ```c
+   arg0->field_50 = &D_actor_107000_80139EA0;
+   arg0->field_54 = (s32)&work->field_24C[0];
+   arg0->field_40 = D_actor_107000_80139EA0.field_4;
+   ```
+
+   the `lhu` carries a dependence on `sw 0x54` and can never be scheduled before
+   it (dump-confirmed: insn 147's `LOG_LINKS` lists 119/122/125/128/131/137/142,
+   the whole store run). Swapping the last two statements *removes* that link and
+   reproduces retail's interleave exactly. The sibling `func_actor_107000_80131F0C`
+   in the same TU spells the same three stores the other way round - statement
+   order is per-function, so do not carry it over.
+
+2. **Which statement first names a CSE'd address decides where its `addiu` lands.**
+   `work->field_214` is named twice (`field_1FC.field_14 = work->field_214;` and
+   `Gp_InitRec18Table(work->field_214, 1, 0)`), so CSE materialises one `addiu`.
+   With `obj1.field_C = (GpRec18*)&work->field_1FC;` written first, that `addiu`
+   sits one slot too late and the last insn lands after `addiu v0, s2, 0x1FC`
+   instead of before `sh v0, 0x20E`. Moving the `field_14` assignment above the
+   `field_C` assignment moved it one slot earlier and the function went to
+   100.000%.
+
+3. Everything else was already right: the `one` local (a named `s32 one = 1`)
+   keeps `$s5` live across `Gp_LinkNode`, `part = &coord[6]` lands in `$s7` in
+   the `bne` delay slot, and the work block's 0x1FC run is a `GpActorD4Rec`
+   whose `field_14` names the single `GpRec18` beside it - not, as the m2c
+   spelling suggests, a `GpRec18` at 0x1FC plus a stray word store at 0x210.
+
+The body is byte-identical to `func_actor_207000_8014EE88`, but promotion is
+refused for the reason `func_actor_107000_80131F0C` already records: the twin
+names `D_actor_207000_80151*` and this one names `D_actor_107000_80139E*` /
+`D_actor_107000_8013F5*`, so one shared object could not link into both.
+
+Inputs: `base.c` (77.433%), `base_1.c` (93.913%, struct view), `base_7.c`
+(94.261%, `field_40` before `field_54`), `base_8.c` (99.087%), `base_11.c`
+(100.000%)

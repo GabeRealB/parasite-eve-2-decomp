@@ -144,6 +144,56 @@ typedef struct Actor107000SpawnWork {
 } Actor107000SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
+/// The 0x39C-byte work block the actor's *other* spawn handler
+/// (`func_actor_107000_80136E88`) allocates, next to `Actor107000SpawnWork`:
+/// the same `GpAnimCtx`, seven animation slots instead of three, then three
+/// `GpObj` render nodes where that one has four.
+///
+/// Node 1's `field_C` is not a record table but the `GpActorD4Rec` at 0x1FC -
+/// the shape `GpActorD4` keeps, where the record's own `field_14` points at the
+/// `GpRec18` run beside it (here the single record at 0x214). Nodes 2 and 3
+/// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
+///
+/// The tail from 0x360 is the same run `Actor107000Work` names from 0x360:
+/// `field_370`/`field_372` are its animation id and the id the six helper slots
+/// last saw, which is why the reset loop walks slots 1..6 and not 1..2.
+typedef struct Actor107000Spawn2Work {
+    /* 0x000 */ GpAnimCtx      context;
+    /* 0x014 */ GpAnimSlot     slots[7];        // six helper slots + slot 0
+    /* 0x12C */ byte           field_12C[0x70]; // pose buffer, func_800B3F84 arg3
+    /* 0x19C */ MATRIX         field_19C;       // colour matrix, TmdObject::field_20
+    /* 0x1BC */ MATRIX         field_1BC;       // light matrix, TmdObject::field_1C
+    /* 0x1DC */ GpObj          obj1;
+    /* 0x1FC */ GpActorD4Rec   field_1FC;
+    /* 0x214 */ GpRec18        field_214[1]; // the table `field_1FC` names
+    /* 0x22C */ GpObj          obj2;
+    /* 0x24C */ GpRec18        field_24C[4];
+    /* 0x2AC */ GpObj          obj3;
+    /* 0x2CC */ GpRec18        field_2CC[1];
+    /* 0x2E4 */ byte           pad_2E4[0x78];
+    /* 0x35C */ GsCOORDINATE2* field_35C; // the model's second coordinate
+    /* 0x360 */ u16            field_360;
+    /* 0x362 */ u16            field_362;
+    /* 0x364 */ s16            field_364; // spawn arg's high half
+    /* 0x366 */ u16            field_366; // spawn arg's low half
+    /* 0x368 */ byte           pad_368[0x8];
+    /* 0x370 */ s16            field_370; // animation id the work is playing
+    /* 0x372 */ u16            field_372; // id the six helper slots last saw
+    /* 0x374 */ byte           pad_374[0x10];
+    /* 0x384 */ s16            field_384;
+    /* 0x386 */ s16            field_386;
+    /* 0x388 */ s16            field_388;
+    /* 0x38A */ s16            field_38A;
+    /* 0x38C */ s16            field_38C;
+    /* 0x38E */ s16            field_38E;
+    /* 0x390 */ u16            field_390; // frames until the next 0x60080 spawn
+    /* 0x392 */ u16            field_392; // spawns so far; the cue fires at 5
+    /* 0x394 */ u16            field_394; // non-zero: this frame has spent its reaction
+    /* 0x396 */ u16            field_396;
+    /* 0x398 */ byte           pad_398[0x4];
+} Actor107000Spawn2Work;
+STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
+
 /// Free-running linear congruential state every overlay draws its random numbers
 /// from: `state = state * 5 + 0x71357911`, read back through the high halfword.
 extern u32 Gp_LcgState;
