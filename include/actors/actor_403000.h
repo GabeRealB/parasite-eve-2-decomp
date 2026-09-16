@@ -88,7 +88,9 @@ typedef struct Actor403000Work {
     /* 0xFCC */ byte   pad_FCC[0x6];
     /* 0xFD2 */ s8     field_FD2;
     /* 0xFD3 */ s8     field_FD3;
-    /* 0xFD4 */ byte   pad_FD4[0x8];
+    /* 0xFD4 */ byte   pad_FD4[0x1];
+    /* 0xFD5 */ s8     field_FD5;
+    /* 0xFD6 */ byte   pad_FD6[0x6];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -127,6 +129,34 @@ typedef struct Actor403000Msg {
     /* 0x0 */ byte pad_0[0x4];
     /* 0x4 */ u16  field_4;
 } Actor403000Msg;
+
+/// Payload of message 0x3FE, the push the actor asks the player to take:
+/// `x`/`z` are the displacement, `field_10`/`field_12` the kind and count.
+/// `func_actor_403000_801384E8` clears the vector once the player accepts it.
+typedef struct Actor403000Msg3FE {
+    /* 0x00 */ s32  x;
+    /* 0x04 */ s32  y;
+    /* 0x08 */ s32  z;
+    /* 0x0C */ byte pad_C[0x4];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s8   field_12;
+    /* 0x13 */ byte pad_13[0x1];
+} Actor403000Msg3FE;
+STATIC_ASSERT_SIZEOF(Actor403000Msg3FE, 0x14);
+
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
+/// `func_actor_403000_801384E8`: `dir` holds the display object's first
+/// matrix column, normalised and scaled down into the push vector.
+typedef struct Actor403000PushScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR dir;
+    /* 0x18 */ byte    pad_18[0x10];
+} Actor403000PushScratch;
+STATIC_ASSERT_SIZEOF(Actor403000PushScratch, 0x28);
+
+/// The push message `func_actor_403000_801384E8` keeps resending to the
+/// player.
+extern Actor403000Msg3FE D_actor_403000_80158DB0;
 
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the

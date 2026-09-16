@@ -2,9 +2,18 @@
 
 #include "actors/actor_403000.h"
 #include "gameplay/1BC.h"
+#include "gameplay/D4.h"
 #include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "psyq/inline_c.h"
+
+/// `gpf 12`. The `inline_c.h` macro of that name assembles to a different
+/// word, so spell the instruction out.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
@@ -78,7 +87,60 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801377C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801384E8);
+/// Per-frame push: on the frame `field_4` is set, turn the display object's
+/// first matrix column into a short push vector and play the enemy's sound,
+/// then send it to the player as message 0x3FE for the first 0x28 frames.
+/// Bit 0 of `field_60` moves the state machine to 4 and flips `field_FD3`.
+void func_actor_403000_801384E8(Actor403000* arg0)
+{
+    Actor403000Work*        work;
+    GpEnemy*                enemy;
+    Task*                   player;
+    Actor403000PushScratch* scratch;
+    s32                     sound;
+    s32                     pan;
+    s32                     ret;
+
+    work                                      = arg0->field_1C;
+    player                                    = Game_GetPtrSlot(3);
+    scratch                                   = *(Actor403000PushScratch**)G_SCRATCH_HEAD - 1;
+    *(Actor403000PushScratch**)G_SCRATCH_HEAD = scratch;
+    if (work->field_4 != 0) {
+        enemy         = arg0->field_20;
+        work->field_6 = 0;
+        Gfx_MatrixCol0(&arg0->field_2C->field_8->coord, &scratch->dir);
+        VectorNormalSS(&scratch->dir, &scratch->dir);
+        gte_lddp(0x55);
+        gte_ldsv(&scratch->dir);
+        gte_gpf12_real();
+        gte_stsv(&scratch->dir);
+        D_actor_403000_80158DB0.x        = scratch->dir.vx;
+        D_actor_403000_80158DB0.y        = 0;
+        D_actor_403000_80158DB0.z        = scratch->dir.vz;
+        D_actor_403000_80158DB0.field_10 = 7;
+        D_actor_403000_80158DB0.field_12 = 1;
+        sound                            = ((enemy->field_8 >> 0xC) << 8) | 7;
+        pan                              = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+    if ((s16)work->field_6 < 0x28) {
+        ret = Gp_DispatchMsg(player, 0x3FE, (s32)&D_actor_403000_80158DB0, 0);
+        if (ret == 1) {
+            D_actor_403000_80158DB0.x        = 0;
+            D_actor_403000_80158DB0.y        = 0;
+            D_actor_403000_80158DB0.z        = 0;
+            D_actor_403000_80158DB0.field_10 = 7;
+            D_actor_403000_80158DB0.field_12 = ret;
+        }
+    }
+    if (work->field_60 & 1) {
+        work->field_0   = 4;
+        work->field_FD3 = work->field_FD5 = work->field_FD2 = -work->field_FD3;
+    }
+    func_actor_403000_80133AF8(arg0);
+    work->field_6++;
+    *(Actor403000PushScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801386E8);
 
