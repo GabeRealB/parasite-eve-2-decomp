@@ -111143,3 +111143,45 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80132A84-vacuum`.
+## A pointer C assigns in two blocks stays one cross-block pseudo, and that pseudo takes the register the block-local values needed (func_actor_335800_80162640, 2026-09-17)
+
+Two sibling `if` bodies that each build the same `GpAreaKey` from the session
+(`sessionKey = (GpAreaKey*)&Game_Session->field_4;` then four byte loads) sat at
+97.504% with `regs=16 stack=2 reorder=4`, the whole delta in *both* bodies a
+rotation of three registers - the `Game_Session` load, the `session+4` pointer
+and the first key byte. `sessionKey` was a function-scope variable assigned in
+each body, so its value was one pseudo live in two blocks: `.lreg` reports it
+as `8 refs / 18 insns; dies in 2 places` and `.greg` counts it as an allocno,
+allocated second behind the spawn result.
+
+The fix is to stop it being one value. Renaming one side through a second
+variable and re-reading the address expression for two of the four bytes
+(behaviour-preserving: same reads, same order, no writes between) goes to 100%:
+
+```c
+        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&Game_Session->field_4);
+        key.field_3 = sessionKey->field_3;
+        key.field_2 = sessionKey->field_2;
+        key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
+        key.field_0 = ((GpAreaKey*)(&Game_Session->field_4))->field_0;
+```
+
+`.greg` then reads `;; 5 regs to allocate:` where the parent had 6, and the
+replacement entries are `4 refs across 9 insns in block 3` / `in block 6`, i.e.
+block-local - so `local_alloc` hands them their registers before global
+allocation runs, and the s-class homes come out in the target order. This is
+the same lever as "per-loop temporaries stay block-local": a value that a
+target keeps in the first callee-saved registers must not be a pseudo spanning
+two blocks. Unlike the loop case there is no redeclaration involved - the
+variable is still function-scope - so read `.lreg`'s `N refs / M insns; dies in
+2 places` and check whether that pseudo is in the `.greg` allocation list.
+`base_4.c` (only the direct `key.field_0 = Game_Session->field_4;`) stays at
+97.5%, so the extra name is load-bearing, not incidental.
+
+Two things stay open: which pass splits the value (the expander emits one
+`reg/v` per variable - `.cse` shows both defs of the *other* shared variable
+writing a single register - so it happens between `.rtl` and `.lreg`), and why
+an edit confined to the second body also repairs the first body's registers,
+which points at something function-wide (global alloc's pass-1 register reuse,
+or `reload`, which in the 97.5% build had already moved both pointers off their
+`local_alloc` homes).

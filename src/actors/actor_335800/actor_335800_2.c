@@ -4,6 +4,8 @@
 
 #include "gameplay/1A8.h"
 
+#include "gameplay/1BC.h"
+
 #include "gameplay/3CD8.h"
 
 #include "gameplay/D4.h"
@@ -41,6 +43,16 @@ extern GpMsg3EE D_actor_335800_80164EA4[];
 extern s32 D_actor_335800_80164EBC;
 
 extern s32 D_actor_335800_80164ED4;
+
+/// The two child tasks the parent actor spawns, and the message table its
+/// `field_24` is pointed at; both live in this overlay's trailing data.
+extern TaskDesc D_actor_335800_8016EADC;
+
+extern GpMsgEntry D_actor_335800_8016EB00[];
+
+void func_actor_335800_80162F7C(Task* arg0);
+
+void func_actor_335800_80162F9C(Task* arg0);
 
 void func_actor_335800_801620C0(void)
 {
@@ -242,7 +254,81 @@ void func_actor_335800_80162588(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162640);
+void func_actor_335800_80162640(Task* arg0)
+{
+    Actor335800MainWork* work;
+    GpAreaKey            key;
+    GpAreaKey*           sessionKey;
+    u8*                  keyAddr;
+    Task*                spawned;
+
+    work = (Actor335800MainWork*)Mem_Calloc(0x50C, false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_475 = -1;
+    work->field_476 = -1;
+    work->field_506 = -1;
+    work->field_4D8 = 0;
+    work->field_4DC = 0;
+    work->field_4E0 = 0;
+    spawned         = Task_SpawnFromTable(&D_actor_335800_8016EADC, 1, 4, (s32)arg0);
+    if (spawned != NULL) {
+        TmdObject*   model;
+        GpAreaRec*   rec;
+        GpAreaPlace* place;
+        s32          idx;
+
+        work->field_4FC = spawned;
+        model           = (TmdObject*)spawned->extra;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+        key.field_3     = sessionKey->field_3;
+        key.field_2     = sessionKey->field_2;
+        key.field_1     = sessionKey->field_1;
+        key.field_0     = sessionKey->field_0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec             = Gp_GetNestedAreaRec(&key);
+        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = place->field_D;
+        model->field_25 = place->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+    spawned = Task_SpawnFromTable(&D_actor_335800_8016EADC, 2, 8, (s32)arg0);
+    if (spawned != NULL) {
+        TmdObject*   model;
+        GpAreaRec*   rec;
+        GpAreaPlace* place;
+        s32          idx;
+
+        work->field_500 = spawned;
+        model           = (TmdObject*)spawned->extra;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        sessionKey      = (GpAreaKey*)(keyAddr = (u8*)&Game_Session->field_4);
+        key.field_3     = sessionKey->field_3;
+        key.field_2     = sessionKey->field_2;
+        key.field_1     = ((GpAreaKey*)keyAddr)->field_1;
+        key.field_0     = ((GpAreaKey*)(&Game_Session->field_4))->field_0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec             = Gp_GetNestedAreaRec(&key);
+        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = place->field_D;
+        model->field_25 = place->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+    func_actor_335800_80162F9C(arg0);
+    arg0->field_24     = D_actor_335800_8016EB00;
+    arg0->exitCallback = func_actor_335800_80162F7C;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162844);
 
