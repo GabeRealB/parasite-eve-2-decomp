@@ -2420,6 +2420,41 @@ Rule: when the target shows one shared tail reached from two source branches,
 write the literals *in* each branch - do not merge them through a local - and
 let the cross-jumper build the tail. This is the same rule as the store entry
 above, extended to identical multi-instruction call blocks.
+
+### The arm that differs caps how far jump2 walks back
+
+`func_dryfield_night_gas_station_80180604` is a three-case switch whose arms all
+end `Gp_SpawnEff(0x600E0, coord, arg2, &offset); <notify>(1);` with only `arg2`
+and the offset vector differing, and the target keeps **three** `jal
+Gp_SpawnEff` sites. Writing the notify value through a local -
+
+```c
+s16 state;
+switch (arg0) { case 0: ...; state = 1; break; ... default: state = 0; }
+<notify>(state);
+```
+
+- leaves each arm ending in the same `[set a0 1][j tail]` pair while the block
+  *before* the tail is the `state = 0` arm. The post-reload cross-jump then
+  walks back from the tail past `[set a0 1]`, past the shared store and past the
+  `jal Gp_SpawnEff`, and merges the effect calls too: 86.761%, `delete=8
+  branch=5`, 63 of 71 insns.
+
+Calling the notify **inline in each arm** (`<notify>(1);` in each case,
+`<notify>(0);` in the default) is what the target wants. The arms now end
+`[set a0 1][jal <notify>][j tail]`, and the block immediately before the epilogue
+label is the default's `[set a0 0][jal <notify>]`, so the backward walk matches
+the `jal` and stops on the very next insn - `set a0 0` against `set a0 1`. The
+merge point is therefore the shared *notify* call and nothing earlier: each arm
+keeps its own `jal Gp_SpawnEff` and its own stores, and the arm's `set a0 1` is
+left in place to be copied into the `j`'s delay slot by `dbr_schedule`. 100%.
+
+The generalisation: the merge stops at the first insn that differs walking
+backwards, so whichever arm supplies the differing insn right below the shared
+tail is the one that limits the merge. A shared tail fed only by arms that agree
+all the way down gets eaten whole; give the diverging arm its instruction as
+close to the tail as the target shows it.
+
 ## A cross-jumped call block also decides the address's register: `lui $a0`, not `lui $v0`
 
 `func_actor_161500_80132110` picks one of two symbol addresses and passes it to
