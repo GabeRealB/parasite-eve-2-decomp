@@ -49,6 +49,12 @@ STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 /// itself nor clears the display mask before killing the task, so the room sees
 /// the fade end where the actors darken the screen. The task is the second of
 /// the three descriptors in `D_dryfield_water_tower_8018277C`.
+///
+/// This layout is the fade-*out* direction only. Entry 2 of that table runs it
+/// backwards, from 0xFF down past zero, and the water tower shares that body
+/// with the warehouse as `RoomsShared8017ff5c` (`src/rooms/lib/`), which
+/// carries its own copy of these three halfwords rather than including this
+/// header.
 typedef struct DwtwFadeWork {
     /* 0x0 */ byte pad_0[2];
     /* 0x2 */ u16  r;
