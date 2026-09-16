@@ -67,7 +67,12 @@ typedef struct Actor401300Work {
     /* 0xCAB */ byte pad_CAB;
     /* 0xCAC */ s32  field_CAC;
     /* 0xCB0 */ s32  field_CB0;
-    /* 0xCB4 */ byte pad_CB4[0x58];
+    /* 0xCB4 */ byte pad_CB4[0x20];
+    /// Player position and facing sent with message 0x3E9 by
+    /// `func_actor_401300_80138800`.
+    /* 0xCD4 */ VECTOR  field_CD4;
+    /* 0xCE4 */ SVECTOR field_CE4;
+    /* 0xCEC */ byte    pad_CEC[0x20];
     /// The two helper tasks killed before the nodes are unlinked; the same
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xD0C */ Task* field_D0C;

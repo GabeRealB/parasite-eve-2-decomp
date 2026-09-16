@@ -1,10 +1,17 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "actors/actor_401300.h"
+#include "gameplay/1A8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/session.h"
+#include "main/tmd.h"
+
+/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801323B0);
 
@@ -123,7 +130,60 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138160);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80138800);
+void func_actor_401300_80138800(Actor401300* arg0)
+{
+    SVECTOR          dir;
+    Actor401300Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+    Task*            player;
+    SVECTOR*         pdir;
+
+    if (work->field_4 != 0) {
+        player                                    = Game_GetPtrSlot(3);
+        work->field_970.field_1C                  = 0x280;
+        work->field_BF0.flags                    &= 0x7FFF;
+        work->field_AB0.flags                    |= 0x4000;
+        enemy->node.field_4                       = 0;
+        work->field_89C                           = 1;
+        work->field_8A6                           = 0x10;
+        work->field_8A2                           = 5;
+        ((TmdObject*)player->extra)->field_8->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)player->extra)->field_8);
+        work->field_CD4.vx = ((TmdObject*)player->extra)->field_8->coord.t[0];
+        work->field_CD4.vy = ((TmdObject*)player->extra)->field_8->coord.t[1];
+        work->field_CD4.vz = ((TmdObject*)player->extra)->field_8->coord.t[2];
+        pdir               = &dir;
+        dir.vx             = ((GpCoordXZ*)arg0->field_2C->field_8)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_18;
+        dir.vy             = 0;
+        dir.vz             = ((GpCoordXZ*)arg0->field_2C->field_8)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_20;
+        VectorNormalSS(pdir, pdir);
+        gte_lddp(0x3E8);
+        gte_ldsv(pdir);
+        gte_gpf12_real();
+        gte_stsv(pdir);
+        arg0->field_2C->field_8->coord.t[0] = ((TmdObject*)player->extra)->field_8->coord.t[0] + dir.vx;
+        arg0->field_2C->field_8->coord.t[2] = ((TmdObject*)player->extra)->field_8->coord.t[2] + dir.vz;
+        arg0->field_2C->field_8->flg        = 0;
+        work->field_CE4.vx                  = 0;
+        work->field_CE4.vy                  = ratan2(dir.vx, dir.vz);
+        work->field_CE4.vz                  = 0;
+        Gp_DispatchMsg(player, 0x3E9, (s32)&work->field_CD4, 0);
+    }
+    func_actor_401300_80133A3C(arg0);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[2].coord, -0x80, 0);
+    arg0->field_2C->field_8[4].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
+    Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
+    arg0->field_2C->field_8[5].flg = 0;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
+    if (work->field_8A2 == 5 && (work->field_6C & 0x100)) {
+        work->field_910.field_0 = &arg0->field_2C->field_8[1];
+        work->field_910.field_4 = 0x300;
+        work->field_910.field_6 = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->field_8[5], NULL, &work->field_910);
+        work->field_0 = 0xD;
+    }
+}
 
 void func_actor_401300_80138B24(Actor401300* arg0)
 {
