@@ -68,7 +68,7 @@ typedef struct Actor511000Work2 {
     /* 0x4C4 */ Task*  field_4C4; ///< task spawned from the table's index 1
     /* 0x4C8 */ Task*  field_4C8; ///< task spawned from the table's index 2
     /* 0x4CC */ s16    field_4CC; ///< set to 1 alongside `field_4D0` by the message-0x7E0 handler's mode 3
-    /* 0x4CE */ byte   pad_4CE[0x2];
+    /* 0x4CE */ u16    field_4CE; ///< upload countdown the state handlers at 0x80131E78 / 0x80132048 run down, reloaded from `field_4CC` on underflow
     /* 0x4D0 */ s16    field_4D0; ///< set to 1 alongside `field_4CC` by the message-0x7E0 handler's mode 3
     /* 0x4D2 */ s16    field_4D2; ///< cleared by the spawn handler
 } Actor511000Work2;
