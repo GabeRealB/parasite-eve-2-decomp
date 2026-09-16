@@ -3,6 +3,50 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `(X - 1) - Y` folds to `X - (Y + 1)`: write the folded spelling when the target subtracts from `X`
+
+m2c renders `addiu v0,a0,-0x1` / `subu v0,v0,a1` as `(X - 1) - Y`, and compiling
+that gives the other instruction selection — `addiu v0,a0,1` / `subu
+v0,a1,v0`, i.e. `X - (Y + 1)`. `fold-const.c`'s `associate()` (reached from the
+`MINUS_EXPR` case of `fold()`) does exactly this rewrite: `split_tree` sees
+`arg0` as `(VAR + CON)`, so it rebuilds the node as `VAR +- (ARG1 +- CON)`.
+
+```
+insn 36: reg96 = reg95 + 1        /* D + 1 -- the source said (X - 1) - D */
+insn 40: reg98 = reg97 - reg96
+```
+
+The fold cannot be suppressed from the source side (a cast is stripped by
+`split_tree` when the modes match), so write the row the compiler would have
+produced — `X - (Y + 1)`, or the equivalent `X + (-1 - Y)` — and it comes out as
+the target's two-instruction chain. `func_actor_560800_80135AEC`: 97.2% with the
+m2c spelling, 98.5% with this one.
+
+## A comparison's operand order picks which side's address and load are expanded first — and with them the register homes
+
+In `if ((u32)X < (u32)Y)` the first operand is expanded first, so `X`'s `lui`/
+`lo_sum`/`lw` group is emitted before `Y`'s. Swapping to the semantically
+identical `(u32)Y > (u32)X` swaps that whole group, and local-alloc's home for
+the two loads follows it:
+
+```
+/* (u32)X < (u32)Y            /* (u32)Y > (u32)X  -- target */
+lui v0,%hi(X)                lui v0,%hi(Y)
+lui v1,%hi(Y)                lui v1,%hi(X)
+lw  a0,X(v0)                 lw  a1,Y(v0)
+lw  a1,Y(v1)                 lw  a0,X(v1)
+sltu v0,a0,a1                sltu v0,a0,a1      /* same compare, same regs */
+```
+
+`do_compare` only swaps its operands when one is a constant, and `do_jump` emits
+the `sltu` with the operands in canonical order regardless, so the emitted
+compare is unchanged — only the expansion order and the resulting homes move.
+Writing `D_actor_560800_8017579C > Display_State.field_0` instead of
+`Display_State.field_0 < D_actor_560800_8017579C` was the last 1.5% of
+`func_actor_560800_80135AEC` (98.5% → 100%). When a `regs=` penalty shows both
+loads right but *swapped*, and both same-order spellings of the compare are
+available, try the swap before reaching for pins.
+
 ## Two literal call sites merge their `jal` in `reorg`; m2c's shared block mirrors the layout
 
 A switch whose arms converge on one `jal`, with the *argument setup repeated in
