@@ -100047,3 +100047,64 @@ newly written stub assembles to the same bytes as the C did, so only
 siblings' `_3` files needed no include changes, only the E34 stub cut out; the
 carrier that owns a body needs the extraction to carry its includes and the
 callee declarations to the unit it lands in.
+
+## A chain that stores to the field in each arm: `jump2` merges the tails, the constants move to local-alloc, and the pointer's reference count doubles (func_actor_104900_801356BC, 2026-09-16)
+
+m2c's reconstruction of this handler picked the spin rate into a local and stored
+it once after the chain:
+
+```c
+v = 0x200;
+if (idx >= 3) { v = -0x200; if (idx >= 6) { ... } }
+work->field_B8C = v;
+if (work->field_B8C == 0) { ... }      /* 91.14%, regs=31 */
+```
+
+Retail has the same instruction *sequence* but three things are wrong with it:
+the constants sit in `$a2` where the ROM has `$v0`, the work pointer and the
+model pointer are swapped (`$s1`/`$s0` for `$s0`/`$s1`), and the reload comes out
+as `sll v0,v0,0x10` where the ROM has a real `lh 0xB8C(s0)`. Writing the chain as
+stores to the field instead fixes all three at once:
+
+```c
+if (idx < 3) {
+    work->field_B8C = 0x200;
+} else if (idx < 6) {
+    work->field_B8C = -0x200;
+} else { ... }
+if (work->field_B8C == 0) { ... }      /* 100.000%, all penalties zero */
+```
+
+The six stores are not what ships: `.jump2` merges the identical arm tails into
+the one `sh v0,0xB8C(s0)` the ROM has, exactly as in the `field_BA4` case above.
+What changes is everything the merge had been deciding:
+
+* **Each arm's constant becomes its own block-local quantity**, so local-alloc
+  homes each in `$v0` per block with no cross-block conflict, instead of one
+  global allocno that conflicted with the `$v0` the `slti` temps already held.
+* **The merge value disappears**, so there is no allocno spanning the chain.
+* **The store and the reload land in different basic blocks**, so cse cannot
+  forward the store into the load and the ROM's genuine `lh` survives. (m2c's
+  single store sat in the same block as the reload and folded.)
+* **The arms add a reference each to the work pointer.** Its global-alloc
+  priority is `floor_log2(n_refs) * n_refs / live_length` (global.c:594), and the
+  step function is what matters: 13 refs over the same 134-insn span gives
+  `3*13/134 = 2910`, 18 gives `4*18/134 = 5373`, which is finally above the
+  model pointer's `3*8/55 = 4363`. `trace_gcc.py` prints both numbers directly:
+
+  ```
+  global a5 [90]: refs=8  span=55  priority=4363 -> $s0
+  global a0 [82]: refs=13 span=134 priority=2910 -> $s1
+  ```
+
+  Adding three `SOFT_USE_REG`s to the pointer flips the pair without touching
+  the source shape (`base_7.c`), which confirms the mechanism — but an empty asm
+  is a scheduling boundary, so it costs 79 instructions and reorders the prologue
+  block. The stores buy the same references for free.
+
+Before reaching for the store form, `*(volatile s16*)&work->field_B8C = v;` also
+reproduces the `lh` (cse skips the lookup when `sets[i].src_volatile`,
+cse.c:6599, and a volatile MEM hashes to `do_not_record`, cse.c:1972) — 93.23%,
+and it is a useful *diagnostic* that the fold is what separates the two objects.
+It is not the source: it buys the reload but not the register pair, and the arms
+explain both.
