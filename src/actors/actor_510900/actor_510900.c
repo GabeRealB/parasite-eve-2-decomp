@@ -271,7 +271,79 @@ void func_actor_510900_801373B8(Actor510900* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801375D8);
+/// State 5 (animation 0xB): the actor rears up, holds, then either drops back
+/// to state 1 or commits. Sub-state 0 ramps `field_5A2` at blend 0x47, queues
+/// the rear-up sound at 0x4A and hands sub-state 1 the animation 0xC at 0x52.
+/// Sub-state 1 pushes both body objects into their flagged pose while
+/// `field_5AC` is short; otherwise it bleeds `field_59C` down by 0x84 a frame
+/// and, once that runs out (or `field_5AE` drops below 0x384), returns to
+/// state 1 with a fresh `Gp_LcgState` draw. Sub-state 2 queues the landing
+/// sound at blend 0xE and leaves for state 8 past 0x3B.
+void func_actor_510900_801375D8(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    s32               snd;
+    s32               pair;
+    s32               val;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    switch (work->field_590) {
+        case 0:
+            work->field_5A2 = (work->field_58A < 0x47) ? 0 : 0x84;
+            if (work->field_58A == 0x4A) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000F;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x52) {
+                work->field_586 = 0xC;
+                work->field_590 = 1;
+                work->field_59C = 0xEA6;
+            }
+            break;
+        case 1:
+            work->field_5A2 = 0x84;
+            if (work->field_5AC < 0x514) {
+                work->field_590       = 2;
+                work->field_586       = 0xD;
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 0);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+            } else {
+                work->field_59C -= 0x84;
+                if (work->field_59C < 0 || work->field_5AE < 0x384) {
+                    work->field_58E     = 1;
+                    work->field_590     = 0;
+                    work->field_586     = 1;
+                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                    val                 = D_actor_510900_801679D0[(Gp_LcgState >> 16) & 0xF];
+                    work->obj4E4.flags &= 0x7FFF;
+                    work->obj504.flags &= 0x7FFF;
+                    work->field_59C     = val;
+                }
+            }
+            break;
+        case 2:
+            work->field_5A2 = 0;
+            if (work->field_58A == 0xE) {
+                snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000C;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_58A >= 0x3B) {
+                work->field_590     = 8;
+                work->field_586     = 5;
+                work->field_58E     = 1;
+                work->obj4E4.flags &= 0x7FFF;
+                work->obj504.flags &= 0x7FFF;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137868);
 

@@ -89438,3 +89438,85 @@ free store is the cheapest thing the scheduler has to fill a latency slot with,
 so its position in the source decides which latency it fills.
 
 Inputs: `base_1.i` (99.041%), `base_2.i` (100%).
+
+## A temp between two calls costs a callee-saved register; inlining it as an argument does not (func_actor_510900_801375D8, 2026-09-16)
+
+The overlay's sound idiom is three calls, the first two sharing one pointer
+argument:
+
+```c
+pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+```
+
+That form matches elsewhere in the same TU, but here it scored 85.5% with one
+callee-saved register too many — the function saved `$s0`..`$s4` where the
+target saves `$s0`..`$s3`, and the extra save/restore pair was the whole
+instruction-count difference (166 vs 164).
+
+The cause is statement boundaries, not allocation. `pan = …` is its own
+statement, so the `sll`/`sra` sign-extend of the return value is expanded
+before the next statement begins, and only then does the argument setup for
+`Gp_GetObjDepth` appear:
+
+```
+jal  Gp_GetObjPan
+ sll v0,v0,0x18
+ sra s1,v0,0x18      <- pan born here, coord still live
+ move a0,s3          <- coord dies here
+jal  Gp_GetObjDepth
+```
+
+`coord` is still live when `pan` is born, so they conflict and `pan` needs its
+own register. Dropping the temp makes both calls arguments of the outer call,
+and `expand_call` precomputes an argument containing a call as a unit — the
+`a0 = coord` setup for `Gp_GetObjDepth` is emitted first:
+
+```c
+SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+```
+
+```
+jal  Gp_GetObjPan
+ move a0,s0          <- coord dies here
+ sll  s0,v0,0x18     <- pan born here, reusing coord's register
+ sra  s0,s0,0x18
+jal  Gp_GetObjDepth
+```
+
+`coord` now dies one instruction before `pan` is born, the two share `$s0`, and
+the fifth callee-saved register disappears. 85.5% -> 93.6%.
+
+Do not try to fix this with the scheduler. sched1 will not move the argument
+setup up on its own: `priority()` is depth-from-block-start, the sign-extend and
+the `a0` setup both hang off the same call with cost-1 links, and the resulting
+tie is broken by `INSN_LUID` — original order. The order has to come from the
+source.
+
+The converse of the same rule closed the last 6%. A table lookup whose result
+goes to a struct field:
+
+```c
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+work->obj4E4.flags &= 0x7FFF;
+work->obj504.flags &= 0x7FFF;
+work->field_59C = D_actor_510900_801679D0[(Gp_LcgState >> 16) & 0xF];
+```
+
+put the `lhu` after the flag updates, while the target has it before them and
+only the `sh` last. Stores through the same base pointer cannot be reordered
+against each other, so the `sh` pins the whole expression; giving the load its
+own temp lets it float ahead while the store stays last:
+
+```c
+val = D_actor_510900_801679D0[(Gp_LcgState >> 16) & 0xF];
+work->obj4E4.flags &= 0x7FFF;
+work->obj504.flags &= 0x7FFF;
+work->field_59C = val;
+```
+
+93.6% -> 100%. Reading the global back instead of keeping the product in a
+local (the trick `func_actor_510900_801373B8` needs) made no difference here.
+
+Inputs: `base_2.i` (85.6%), `base_4.i` (93.6%), `base_5.i` (100%).
