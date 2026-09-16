@@ -90888,3 +90888,58 @@ edit changes the config, so the whole overlay re-splits, and the stale
 the promotion case above, where splat leaves the file behind and it has to be
 deleted by hand. Landing the C then puts the compiler-generated table in the
 block, and the triage report comes back clean.
+
+## Two arms storing different constants to one field are one store plus a compiler-made temp (func_dryfield_night_junk_yard_8017D6AC, 2026-09-16)
+
+The room-message idiom "answer 1 below nibble 0x7A == 4, else 2" compiles to
+
+```
+slti  $v0, $v0, 4
+bnez  $v0, .L
+ li   $v0, 1
+li    $v0, 2
+.L:   sb   $v0, 3($s2)
+```
+
+with the answer register equal to the comparison's own `$v0` -- the register the
+`GameFlag_GetNibble` call left its result in. Writing the obvious C, with one
+named temp assigned in each arm and stored once at the join, gets 99.84%
+(`regs=3`) and that same register comes out `$v1` instead.
+
+The two forms are not equivalent RTL. With a named temp, `jump.c`'s
+if-then-else simplification ("`if (...) { x = a; goto l; } x = b;`" ->
+"`x = a; if (...) goto l; x = b;`") moves one arm's assignment *to just before
+the conditional branch*, and `sched` then hoists that `li` above the comparison.
+It is then born while `$v0` still holds the call's return, so local-alloc cannot
+use `$v0` and takes the first free register, `$v1`.
+
+With both arms storing to the field directly --
+
+```c
+if (GameFlag_GetNibble(0x7A) >= 4) {
+    out->field_3 = 2;
+} else {
+    out->field_3 = 1;
+}
+```
+
+-- no temp exists to hoist. A different `jump.c` rule merges the two
+same-destination stores into one store whose source is a temp it creates itself,
+and it places that temp's definitions *after* the comparison. Born past the
+`slti`, `$v0` is free again, and the temp takes it. `reorg` then fills the
+branch delay slot from the else block, which is why the target's `li v0,1` sits
+in the delay slot while `li v0,2` is the fall-through.
+
+So the discriminator is *when the answer value is born*, and it is readable from
+the dumps without pinning: in `.jump` the named-temp form has the arm's `li`
+before the `bnez`; in the merged form the temp's definitions appear only after
+it. Confirmed by isolating the shape in a standalone file -- the two-store form
+compiles to the target's block for any comparison (`slti`/`bne` against a
+constant), while `if (nib == 0) { nib = 1; } else { nib = 2; }` on a variable
+that held the call result reaches the same `$v0` by a third route (`jump.c`
+cannot move the arm's assignment because the branch references that register).
+
+Compare the entry above on `func_dryfield_gas_station_8017FA20`: same family of
+idiom, same conclusion that a constant appearing on both paths means one arm
+holds its own copy, but there the duplication is in the *source* and here it is
+in the *store*.
