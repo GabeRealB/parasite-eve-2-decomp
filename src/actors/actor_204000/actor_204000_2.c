@@ -1,6 +1,8 @@
 #include "common.h"
 #include "actors/actor_104000.h"
 #include "gameplay/3A34.h"
+#include "main/gfx.h"
+#include "main/sound.h"
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
@@ -92,7 +94,75 @@ INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014E7E0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014EDC4);
+/// Restarts the actor when `field_4` is set; otherwise waits 50 frames, then
+/// drops the model with growing speed, unwinding its Z roll by at most 0x92 a
+/// frame, and on landing plays the impact sound and switches to state 3.
+void func_actor_204000_8014EDC4(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work* work;
+    s32              id;
+    s32              pan;
+    s32              mag;
+    s32              rot;
+    s32              step;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        arg1->field_2C->field_C = 0;
+        work->field_174         = 5;
+        work->field_170         = 1;
+        work->field_178         = 0;
+        work->field_36E        |= 0x8000;
+        work->field_3A6        &= 0x7FFF;
+        work->field_3DE        &= 0x7FFF;
+        work->field_28E        |= 0x4000;
+        func_actor_204000_8014AC8C(arg1);
+        ratan2(-arg1->field_2C->field_8->coord.m[2][0], arg1->field_2C->field_8->coord.m[2][2]);
+        arg1->field_2C->field_8->flg = 0;
+        work->field_19A              = 10;
+        work->field_198              = 0;
+        work->field_6                = 0;
+        work->field_19C              = 0x800;
+        work->field_479              = 1;
+        return;
+    }
+    if ((s16)work->field_6 < 0x32) {
+        work->field_6++;
+        return;
+    }
+    work->field_19A                     += 4;
+    work->field_198                     += work->field_19A;
+    arg1->field_2C->field_8->coord.t[1] += (s16)work->field_198;
+    if (arg1->field_2C->field_8->coord.t[1] >= -0x12B) {
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x03100000) {
+            id  = ((arg0->field_8 >> 12) << 8) | 0x53100006;
+            pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+        }
+        arg1->field_2C->field_8->coord.t[1] = 0;
+        work->field_0                       = 3;
+        work->field_479                     = 0;
+        Gfx_RotMatrixZ(&arg1->field_2C->field_8->coord, -work->field_19C, 0);
+    } else {
+        rot = work->field_19C;
+        if (rot != 0) {
+            mag  = __builtin_abs(rot);
+            step = rot;
+            SOFT_TOUCH_REG(step);
+            step = -step;
+            if (mag >= 0x93) {
+                step = -0x92;
+                if (rot < 0) {
+                    step = 0x92;
+                }
+            }
+            Gfx_RotMatrixZ(&arg1->field_2C->field_8->coord, (s16)step, 0);
+            work->field_19C += step;
+        }
+    }
+    arg1->field_2C->field_8->flg = 0;
+    func_actor_204000_8014AC8C(arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F04C);
 

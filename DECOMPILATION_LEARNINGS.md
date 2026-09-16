@@ -100892,3 +100892,15 @@ static __inline__ void ResetSlots(Actor104000Work* arg0)
 The copy survives because cse loses the equivalence at the loop's head label,
 so uses inside the loop keep the local's pseudo. Loop-hoisted givs (`addiu
 s2,s3,0x28`) still use the caller's register. 92.75% -> 100% with this one change.
+
+### Copy, `abs()`, negate of one value: put `abs()` first and touch the copy (func_actor_204000_8014EDC4, 2026-09-16)
+
+**Symptom.** Target `lh v1; beqz v1 / move s0,v1; bgez v1 / move v0,v1; negu v0,v0; slti v0,0x93; bnez / negu s0,s0`
+- a clamped step `step = rot; ... step = -step` beside `abs(rot)`. `step = rot; mag = abs(rot); step = -step;`
+reached 99.94% with `bgez s0 / move v0,s0`: `step` outlives `rot`, so `make_regs_eqv` makes it the
+canonical member and CSE rewrites the `abssi2` operand to it. Moving `abs()` above the copy keeps the
+operand on `rot`, but then combine folds the copy into the negate (`negu s0,v1`, the `move` disappears).
+
+**Fix.** Both at once: `mag = __builtin_abs(rot); step = rot; SOFT_TOUCH_REG(step); step = -step;`
+(100%). Extending `rot`'s life with a dead late store confirms the CSE half (abs operand returns to
+`v1`) but combine still folds, so the touch is what keeps the copy.

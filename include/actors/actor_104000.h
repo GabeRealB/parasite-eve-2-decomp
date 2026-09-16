@@ -50,7 +50,11 @@ typedef struct Actor104000Work {
     /* 0x178 */ s16        field_178;
     /* 0x17A */ s16        field_17A;
     /* 0x17C */ s16        field_17C;
-    /* 0x17E */ byte       pad_17E[0x110];
+    /* 0x17E */ byte       pad_17E[0x1A];
+    /* 0x198 */ u16        field_198;
+    /* 0x19A */ u16        field_19A;
+    /* 0x19C */ s16        field_19C;
+    /* 0x19E */ byte       pad_19E[0xF0];
     /* 0x28E */ u16        field_28E;
     /* 0x290 */ byte       pad_290[0xDE];
     /* 0x36E */ u16        field_36E;
@@ -60,7 +64,8 @@ typedef struct Actor104000Work {
     /* 0x3DE */ u16        field_3DE;
     /* 0x3E0 */ byte       pad_3E0[0x94];
     /* 0x474 */ u16        field_474; // animation id that last raised the reaction
-    /* 0x476 */ byte       pad_476[4];
+    /* 0x476 */ byte       pad_476[3];
+    /* 0x479 */ u8         field_479;
     /* 0x47A */ u8         field_47A;
     /* 0x47B */ byte       pad_47B[1];
     /* 0x47C */ byte       field_47C[0x14];
