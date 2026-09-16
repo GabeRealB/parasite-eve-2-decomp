@@ -100432,3 +100432,34 @@ matching, so the `refs`/`span`/`priority` lines `trace_gcc.py --regs` prints are
 what to read (see "`QTY_CMP_PRI` in `local-alloc.c` is ..."): the quantities that
 matter here are block-local, and the `.lreg` header shows them only as
 "`;; Register N in M`" with no membership or priority.
+
+## A rotated unit file keeps its old mtime, so nothing rebuilds and maspsx opens a path the file no longer has (func_actor_104900_801385E0, 2026-09-16)
+
+The promotion in the entry above rotates `src/<ov>/<ov>_N.c` down one number per
+carrier (`_3` -> `_2`, `_4` -> `_3`, ...). `git mv` moves the file with its
+mtime, so the file that lands as `_3` still carries the timestamp of the `_4` it
+came from - older than the `build/USA/src/<ov>/<ov>_3.c.s` the previous build
+left behind. Ninja sees the object as up to date, keeps it, and maspsx assembles
+the **stale** `.s`, whose `.include` names the unit and function the old file
+held:
+
+    {standard input}:433: Error: can't open \
+      asm/USA/actors/nonmatchings/actor_104900/actor_104900_3/func_actor_104900_80138C6C.s
+
+`func_actor_104900_80138C6C` is not in the new `actor_104900_3.c` at all, and the
+re-split has no such path, so the message points at nothing in the tree. The link
+then adds the symptom that reads like a config problem:
+
+    cannot find build/USA/src/actors/actor_104900/actor_104900_3.c.o
+
+`touch` the rotated sources (or wipe `build/`) and rebuild. Nothing else is
+wrong: the `.c` content, its `INCLUDE_ASM` paths and the split are all correct.
+
+One reading trap from the same investigation, since it looks like the opposite
+conclusion: a unit whose `.c` is empty shows its functions under `matchings/`,
+not `nonmatchings/`. splat places a function by whether it is in the file's
+`INCLUDE_ASM` set - `entry.function.getNameUnquoted() in self.global_asm_funcs`
+in `splat/segtypes/common/c.py` - and anything else falls through to
+`matching_asm_out_dir`. The `.s` itself still says `nonmatching`, and
+`nonmatchings/` remains the unmatched list; `matchings/` there means only "this
+file no longer declares it".
