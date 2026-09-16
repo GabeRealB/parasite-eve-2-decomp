@@ -402,7 +402,47 @@ void func_actor_560800_80135FA0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80136094);
+void func_actor_560800_80136094(Task* arg0)
+{
+    Actor560800FadeWork* work;
+    Actor560800FadeWork* alloc;
+
+    work = (Actor560800FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor560800FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work    = alloc;
+            work->b = 0xFF;
+            work->g = 0xFF;
+            work->r = 0xFF;
+            Task_Reparent(D_actor_560800_8017578C, arg0);
+            goto state_inc;
+        case 6:
+            SetDispMask(1);
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        state_inc:
+            arg0->state += 1;
+            /* fallthrough */
+        case 7:
+            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, 2);
+            work->r -= (u16)arg0->spawnArg1;
+            work->g -= (u16)arg0->spawnArg1;
+            work->b -= (u16)arg0->spawnArg1;
+            if ((s16)work->r < 0) {
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
 {
