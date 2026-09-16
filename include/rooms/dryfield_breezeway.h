@@ -155,4 +155,11 @@ extern Task* D_dryfield_breezeway_801843A8;
 /// hotspot, 2 = confirmed) as well as advancing the hotspot's own animation.
 void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
 
+/// Parks the room task's display object on the hotspot cursor. `arg1` / `arg2`
+/// are the cursor position the scan above advanced to, written into the
+/// object's own coordinate scaled by the depth it is placed at (`0x5DC` over
+/// 680); clearing `flg` is what makes the next coord-tree update rebuild the
+/// world matrix from the new translation.
+void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
+
 #endif // ROOMS_DRYFIELD_BREEZEWAY_H

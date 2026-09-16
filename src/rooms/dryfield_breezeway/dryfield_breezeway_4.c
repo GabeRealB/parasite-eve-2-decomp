@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "main/tmd.h"
 #include "rooms/dryfield_breezeway.h"
 
 /// 1 when `pos` is closer than 9 units to `target`: a real distance, since the
@@ -18,7 +19,20 @@ s32 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
     return SquareRoot0((dx * dx) + (dy * dy)) < 9;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_4", func_dryfield_breezeway_8017FB30);
+/// Parks the room task's display object on the hotspot cursor: the position the
+/// scan `func_dryfield_breezeway_8017EB8C` advanced to is carried into the
+/// object's coordinate scaled by the depth it is placed at (`0x5DC` over 680),
+/// and `flg` is cleared so the next coord-tree update rebuilds the world matrix
+/// from the new translation. The scan calls this once, as it leaves its loop.
+void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
+{
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+
+    coord->coord.t[2] = 0x5DC;
+    coord->flg        = 0;
+    coord->coord.t[0] = (arg1 * 0x5DC) / 680;
+    coord->coord.t[1] = (arg2 * 0x5DC) / 680;
+}
 
 /// `GpMsgEntry` handler for message 0x13F1, the "can this key item be used
 /// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
