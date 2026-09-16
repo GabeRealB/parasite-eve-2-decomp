@@ -214,7 +214,57 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80134F90);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80135DDC);
+void func_actor_401300_80135DDC(Actor401300* arg0)
+{
+    Actor401300Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+    TmdObject*       tmd;
+
+    if (work->field_4 != 0) {
+        tmd                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        tmd->field_C        = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_89C        = 2;
+        work->field_8A6        = 0x10;
+        work->field_AB0.flags |= 0x4000;
+        if (work->field_8A2 == 11 || work->field_8A2 == 23) {
+            work->field_8A2 = 0x17;
+        } else if (work->field_8A2 == 12 || work->field_8A2 == 34 || work->field_8A2 == 24) {
+            work->field_8A2 = 0x18;
+        }
+        if ((u16)(work->field_8A2 - 0x17) >= 2) {
+            work->field_8A2 = 0x17;
+        }
+        do {
+            func_actor_401300_80133A3C(arg0);
+        } while (!(work->field_8A2 == 0x17 && (work->field_5E & 0x3FF) >= 6) &&
+                 !(work->field_8A2 == 0x18 && (work->field_5E & 0x3FF) >= 9));
+        work->field_8A6 = 0x20;
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    work->field_8A6              = work->field_8A6 / 2;
+    if (work->field_8A6 == 1) {
+        work->field_8A6 = -0x10;
+    }
+    if (work->field_8A6 == -1) {
+        work->field_8A6 = 0x10;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+        enemy->field_4C &= ~2;
+        work->field_8A6  = 0x10;
+        if (arg0->field_36 == 0x20) {
+            work->field_0 = 0x27;
+        } else {
+            work->field_0 = 0x11;
+        }
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x15;
+    }
+}
 
 void func_actor_401300_80135FC4(Actor401300* arg0)
 {
