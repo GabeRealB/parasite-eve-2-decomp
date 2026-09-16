@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
+#include "actors/actors_shared_80134680.h"
 #include "actors/actors_shared_80134700.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -12,7 +13,6 @@ void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_107000_80132298(Task* arg0);
 void func_actor_107000_8013283C(Task* arg0);
 void func_actor_107000_801344DC(Task* arg0);
-void func_actor_107000_80134680(Task* arg0);
 void func_actor_107000_80134810(Task* arg0, GsCOORDINATE2* arg1);
 
 extern u8 D_801153F4;
@@ -58,7 +58,7 @@ default_body:
     func_actor_107000_80132298(arg1);
     func_actor_107000_801344DC(arg1);
     func_actor_107000_8013283C(arg1);
-    func_actor_107000_80134680(arg1);
+    ActorsShared80134680(arg1);
     func_actor_107000_80134810(arg1, &((TmdObject*)arg1->extra)->field_8[1]);
     ((TmdObject*)arg1->extra)->field_8[0].flg = 0;
     ((TmdObject*)arg1->extra)->field_8[1].flg = 0;

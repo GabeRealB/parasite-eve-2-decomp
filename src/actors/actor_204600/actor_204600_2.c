@@ -6,8 +6,6 @@
 
 #include "gameplay/1BC.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_204600/actor_204600_2", func_actor_204600_8014C5DC);
-
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend

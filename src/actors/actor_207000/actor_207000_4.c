@@ -1,15 +1,19 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_4", func_actor_207000_8014C810);
+#include "main/task.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_4", func_actor_207000_8014C9D8);
+#include "gameplay/1BC.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149E84);
+/// The enemy's four main-body handlers, dispatched through by state. Two
+/// separate state machines in this overlay run the same dispatch shape over
+/// their own table.
+extern GpEnemyTaskFuncTable4 D_actor_207000_80149E30;
+extern GpEnemyTaskFuncTable4 D_actor_207000_80149E5C;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149E9C);
+void func_actor_207000_8014CB30(Task* arg0)
+{
+    GpEnemyTaskFuncTable4 sp;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149EC4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149EDC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", ActorsShared80138404Table);
+    sp = D_actor_207000_80149E30;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}

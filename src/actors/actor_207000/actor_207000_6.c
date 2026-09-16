@@ -4,49 +4,30 @@
 
 #include "gameplay/1BC.h"
 
-/// The enemy's four main-body handlers, dispatched through by state. Two
-/// separate state machines in this overlay run the same dispatch shape over
-/// their own table.
-extern GpEnemyTaskFuncTable4 D_actor_207000_80149E5C;
+#include "actors/actor_207000.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014CC2C);
+extern TaskDesc D_actor_207000_801575F0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014CF84);
+INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FF1C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014D280);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014D60C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014DC28);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014E094);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014E288);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014E4D8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014E614);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014E7E0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014E938);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014EC80);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014EE88);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014F220);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014F77C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014F8D8);
-
-void func_actor_207000_8014FC8C(Task* arg0)
+void func_actor_207000_801500C8(Actor207000* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
+    SVECTOR        sp10;
+    s32            sp18;
+    s32            arg2;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* dst;
+    Task*          spawned;
 
-    sp = D_actor_207000_80149E5C;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    coord   = arg0->field_2C->field_8;
+    dst     = coord + 1;
+    arg2    = func_actor_207000_8014E614(coord, &sp18);
+    sp10.vz = 0;
+    sp10.vy = 0;
+    sp10.vx = 0;
+    spawned = Task_SpawnFromTable(&D_actor_207000_801575F0, 1, arg2, 0);
+    if (spawned != 0) {
+        Gp_CopyCoordOffset(spawned, dst, &sp10);
+        Task_Reparent((Task*)arg0, spawned);
+    }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_6", func_actor_207000_8014FCF4);
