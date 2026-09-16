@@ -96,4 +96,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_34170
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169CC4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169D54);
+/// The four handlers of the actor's final state, dispatched on the same
+/// `field_422` sub-state index the earlier tables use.
+extern TaskFuncTable4 D_actor_341700_80161F94;
+
+void func_actor_341700_80169D54(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable4   sp;
+
+    work = (Actor341700Work*)arg0->idMap;
+    sp   = D_actor_341700_80161F94;
+    sp.funcs[(s16)work->field_422](arg0);
+}
