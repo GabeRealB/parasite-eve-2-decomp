@@ -98887,3 +98887,46 @@ Inputs: `base_1.i` (100.000%) SHA256
 target SHA256 `69d43542a055091f7aef7a7be3c4cd11469b044e0f3552fd1f1f4c5c25eee1e9`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn09260-vacuum`.
+
+## A stack-copied dispatcher sizes the table by the copy, so its extern goes in the consuming TU
+
+`Actor00400_Fn08948` (actors, `actor_100400_fn0805c`) is the per-frame entry shape
+above, but it copies from a *named* global rather than a per-unit anonymous one:
+
+```c
+extern const TaskFuncTable8 Actor00400_D00038;   /* 8 entries, see below */
+
+void Actor00400_Fn08948(Actor100400* arg0)
+{
+    TaskFuncTable8 fns;
+
+    fns = Actor00400_D00038;
+    fns.funcs[arg0->field_30]((Task*)arg0);
+}
+```
+
+The same symbol is *defined* in the sibling TU `src/actors/lib/actor_100400_text.c`
+as a `TaskFuncTable9`: eight states plus the NULL the resident dispatcher walks
+down to. The copy is eight `lw`/`sw` pairs, so the local can only be
+`TaskFuncTable8`, and the ninth entry exists to put that trailing zero word at
+`0x80149E58 + 0x20`, where the owning unit's `.rodata` needs it.
+
+Two widths for one symbol is therefore the correct reading, and it forces the
+extern into the *consuming* TU rather than the overlay's shared header: a
+`TaskFuncTable9` declaration there makes the initializer ill-typed, and a
+`TaskFuncTable8` one collides with the definition in `actor_100400_text.c`, which
+includes that header. `actor_100400_fn0805c.c` already carries its `D0002C` /
+`D00144` externs for exactly this reason.
+
+Sibling TUs in this overlay write the same dispatcher as
+`fns.funcs[(s16)work->field_63A]((Task*)arg0);`. Here the index is `Task::state`
+at offset 0x30 reached through the overlay's `Actor100400.field_30` (a plain
+`s32`), so there is no cast on the index and the target emits `sll $v0,$v0,2`
+straight off the `lw`; `(s16)` here would add the sign-extension the target does
+not have.
+
+Inputs: `base_2.i` (100.000%, first distinct build) SHA256
+`8da478fd390ae116241b4a3d34bd35311adb45d07532d0bc3d95f51d7863654a`; target SHA256
+`6e6c00873ac367f725938ddf5e4ca426b4a516f86cfee272f5418a888c13e59e`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn08948-vacuum`.
