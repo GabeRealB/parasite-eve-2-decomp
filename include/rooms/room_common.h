@@ -375,6 +375,14 @@ void Room_Draw14(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `(arg2, arg2, arg2)`. Same 0x38 scratch layout as `GpQuadScratch`
 /// (`otz` is not incremented).
 void Room_Draw16(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+/// Rotates the local offset `arg1` out of `arg0`'s space and translates it by
+/// the coordinate, then projects it through `GsWSMATRIX`. When the OTZ is at
+/// least 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
+/// `(arg2 & 0x3F) | 0x4380`) whose `arg2`-selected 40-texel UV column sits at
+/// v 0..0x27, with RGB 0x20 / 0x30 alternating on the parity of
+/// `Display_State.field_8`. `arg3` is a signed half-extent; the on-screen
+/// radius is `(s16)arg3 * 39 / otz`.
+void Room_Draw35(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
 /// with `Gfx_ViewWorldMtx` and adds `arg0->workm.t`, then projects the four
 /// corners through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
