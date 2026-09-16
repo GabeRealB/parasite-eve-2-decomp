@@ -85300,3 +85300,29 @@ the slot was written ahead of the branch.
 Inputs: `base_1.i` (91.76%, `branch=1 insert=1 delete=1 regs=1`), `base_2.i`
 (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A local that carries a compare-proven value must survive the port out of `M2C_FIELD` (func_neo_ark_power_plant_2_8017D6F4, 2026-09-16)
+
+Like the entry above, this m2c seed was already exact: `base.c` scored 100.000%
+with zero penalties on the first build, and the only work was porting it into
+project style (`Task*` and `->` instead of `M2C_FIELD`). The port also scored
+100.000%, but only because it kept m2c's temporary:
+
+```c
+temp_v1 = Game_Session->field_9;      /* lbu $v1, 0x9($a0) */
+if (temp_v1 == 1) {
+    Game_Session->field_69 = temp_v1; /* sb $v1, 0x69($a0) - the LOADED reg */
+}
+```
+
+Rewriting that to the "obvious" `Game_Session->field_69 = Game_Session->field_9;`
+loses the store: the preceding compare has already proven the value is `1`, so
+the folder replaces the store's source with the constant and emits `li`+`sb`
+instead of the target's `sb $v1`. The tell is a delay slot or a store whose
+operand register is the one the branch just compared - when the target stores a
+value it can prove, the source needed a name for it. Keep m2c's temp rather than
+tidying it away.
+
+Inputs: `base.c` 100.000%, `base_1.c` (struct-typed port, temp kept) 100.000%,
+both zero penalties. Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
