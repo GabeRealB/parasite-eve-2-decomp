@@ -1253,7 +1253,68 @@ void func_actor_510900_80138D38(Actor510900* arg0)
     (*(u32*)G_SCRATCH_HEAD) += 0x20;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80138F44);
+/// Rebuilds the three collision faces this actor occupies in the grid, at the
+/// body's current position and facing. `center` is the fixed local footprint
+/// offset rotated into world space, translated by the coordinate and clamped to
+/// the grid extent; the twelve corners in `D_actor_510900_80167BDC` are rotated
+/// and offset from it into `Gp_GridParams->field_8`, and the three face normals
+/// in `D_actor_510900_80167BC4` are rotated in place into `field_4`.
+void func_actor_510900_80138F44(Actor510900* arg0)
+{
+    Actor510900GridScratch* scratch;
+    GsCOORDINATE2*          coord;
+    SVECTOR*                normals;
+    SVECTOR*                corners;
+    s32                     i;
+
+    scratch = (Actor510900GridScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor510900GridScratch));
+    coord   = &arg0->field_2C->field_8->field_0;
+    normals = Gp_GridParams->field_4;
+    corners = Gp_GridParams->field_8;
+
+    scratch->center.vx = -0x258;
+    scratch->center.vy = 0;
+    scratch->center.vz = 0x280;
+
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldv0(&scratch->center);
+    gte_rtv0_real();
+    gte_stsv(&scratch->rotated);
+
+    scratch->center.vx = coord->coord.t[0] + scratch->rotated.vx;
+    scratch->center.vy = coord->coord.t[1] + scratch->rotated.vy;
+    scratch->center.vz = coord->coord.t[2] + scratch->rotated.vz;
+
+    if (scratch->center.vx > 0x1770) {
+        scratch->center.vx = 0x1770;
+    } else if (scratch->center.vx < -0x1770) {
+        scratch->center.vx = -0x1770;
+    }
+    if (scratch->center.vz > 0x1770) {
+        scratch->center.vz = 0x1770;
+    } else if (scratch->center.vz < -0x1770) {
+        scratch->center.vz = -0x1770;
+    }
+
+    for (i = 0; i < 12; i++) {
+        gte_SetRotMatrix(&coord->coord);
+        gte_ldv0(&D_actor_510900_80167BDC[i]);
+        gte_rtv0_real();
+        gte_stsv(&scratch->rotated);
+        corners[i].vx = scratch->rotated.vx + scratch->center.vx;
+        corners[i].vy = scratch->rotated.vy + scratch->center.vy;
+        corners[i].vz = scratch->rotated.vz + scratch->center.vz;
+    }
+
+    for (i = 0; i < 3; i++) {
+        gte_SetRotMatrix(&coord->coord);
+        gte_ldv0(&D_actor_510900_80167BC4[i]);
+        gte_rtv0_real();
+        gte_stsv(&normals[i]);
+    }
+
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor510900GridScratch);
+}
 
 /// Message 0x7D7 handler (entry in `D_actor_510900_80167A6C`). `arg2` picks
 /// between three visibility/liveness states of the boss and its two companion

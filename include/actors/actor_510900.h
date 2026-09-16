@@ -34,6 +34,17 @@ typedef struct Actor510900AimScratch {
 } Actor510900AimScratch;
 STATIC_ASSERT_SIZEOF(Actor510900AimScratch, 0x40);
 
+/// 0x10-byte scratch `func_actor_510900_80138F44` takes from `G_SCRATCH_HEAD`
+/// to rebuild the collision face this actor occupies. `center` starts as the
+/// fixed local offset of the body's footprint and becomes that offset rotated
+/// into world space, translated by the actor coordinate and clamped to the
+/// grid; `rotated` receives each `rtv0` result in turn.
+typedef struct Actor510900GridScratch {
+    /* 0x00 */ SVECTOR center;
+    /* 0x08 */ SVECTOR rotated;
+} Actor510900GridScratch;
+STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
+
 /// 0x24-byte scratch `func_actor_510900_80134284` takes from `G_SCRATCH_HEAD`
 /// to draw one frame of the debris trail. `vec0` is the effect coordinate's
 /// `workm.t[]` before the per-frame drift is added and `vec1` the same after,
