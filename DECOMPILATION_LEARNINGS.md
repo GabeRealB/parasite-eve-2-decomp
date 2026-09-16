@@ -111254,3 +111254,47 @@ use of it, not a fresh temp per arm. The matched sibling in the same overlay,
 `func_actor_107000_80132D8C`, writes the same call statement in both arms over one
 `soundId` and shows the unjoined pattern, so read the sibling before restructuring
 m2c's temps. No register or scheduling work moves this; the source decides it.
+
+## A store's place in the block fixes which hard regs the stored value can ever get (func_actor_107000_801364D8, 2026-09-16)
+
+**Symptom:** one pseudo is a pure `regs` penalty - everything else matches, the instruction count is
+exact, but the task's reaction-branch value reads `a1` where the target reads `v0`, in all four of its
+assignments (`li a1,3` / `li a1,2` / `li a1,2` / `li a1,1`) and in the final `sh`. `diff.py` reports
+nothing but `li` register changes.
+
+**Cause:** `global.c`'s `record_one_conflict` ORs `hard_regs_live` into an allocno's
+`hard_reg_conflicts` every time that allocno is *stored* (global.c:1281-1320), and
+`mark_reg_store` puts a hard register into `hard_regs_live` whenever an insn writes it - including a
+pseudo `local-alloc` already homed, via `reg_renumber` (global.c:1420-1431). So **every hard register
+written while the value's live range is open becomes a permanent conflict for it**, wherever in the
+block the write happens. This value is written in four blocks; the other three have clean block-start
+live sets, so only the block whose assignment sits *before* a divide-by-100 expansion matters: that
+chain's `$v0` accumulator closes `$v0` off, and the value lands on `$a1` instead. The target's build
+had the assignment scheduled after the chain, so it never saw those writes.
+
+**Fix:** move the value's birth past the writes whose registers it must be allowed to use - a
+scheduling fix, not an allocation one. `;; N conflicts:` in the `.greg` dump names the registers
+directly; `tools/trace_gcc.py` prints the same set per pseudo. Do not reach for a register pin.
+
+## Pinning a `li` late wants a WAR predecessor, and the barrier that gives it costs `QTY_CMP_PRI` (func_actor_107000_801364D8, 2026-09-16)
+
+**Symptom:** a constant assignment (`var_v0 = 2;`) is in the target's delay slot but schedules into the
+first latency bubble instead (right after the `multu`/store, before the divide chain). Everything the
+scheduler picks by priority (`;; insn[N]: priority = P` in the `.sched` dump) explains it: `sched.c`
+schedules each block *backwards*, the branch takes `TAIL_PRIORITY`, the chain's insns take the depth
+(12), and a dep-free `li` gets priority 1 - so it is picked last and lands in front of them.
+`adjust_priority` (sched.c:2530-2580) only boosts an insn whose destination is live where it becomes
+ready *and* has `REG_N_SETS == 1`; a variable assigned in four places never qualifies.
+
+**Fix:** give the `li` a predecessor. `SCHED_BARRIER()` (`__asm__ volatile("")`) does it: `sched.c`
+treats a volatile asm as clobbering every register, so the `li` gets a `REG_DEP_OUTPUT` on it (visible
+via `./insn.py <uid>`) and cannot be scheduled before it. **But** the barrier is an insn, and
+`local-alloc.c`'s `QTY_CMP_PRI` divides by the quantity's live span (local-alloc.c:1727-1729), so
+inserting it inside a tied group's range halves that group's priority and can flip a *different*
+quantity's register. The measured numbers here: the tied group goes refs 9 span 26 (pri 10384) to
+span 28 (pri 9642) against a rival at 10000 - a 3.8% margin lost to a 7.7% cost, and the chain inverts
+`v1`/`a0`. **The counter-move is the same trick applied to the rival:** split the source so a second
+barrier lands *inside* the rival's live range (`temp_q = temp_hi / 100U; BARRIER; roll = (u16)(temp_hi
+- temp_q * 100U);` reproduces `% 100U` exactly), which lengthens its span 8 to 10 and drops it to
+8000. Both groups then lose the same insn, the ordering survives, and the function matches. Send the
+barrier count with the finding: two barriers, both load-bearing, one per allocation side.
