@@ -469,7 +469,73 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013D028);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013D78C);
+/// State-change reset for the enemy's stand-up, and the height servo that runs
+/// on every tick afterwards. The reset half is `func_actor_403200_8013B23C`'s
+/// with the buffer allocator on the second walk in place of the release: it
+/// clears the host model's flag word, walks the seven escorts pushing that word
+/// onto each of their models, allocates the host's and every escort's buffers
+/// and then parks the root coordinate at x 0x1068, y 0x7D0, z -0x1770, arming
+/// `field_E96` at 0xFA0.
+///
+/// The servo steps that root y by +0x50 / -0x64 while `field_6` is at or past
+/// 0x3D, and by the gentler +0x14 / -0x1E while it is between 0x15 and 0x3D, so
+/// the enemy eases back to the ground as it finishes standing up; below 0x15 it
+/// stops moving. Which way each step goes is the frame's position inside its
+/// group of four -- `frame % 4 < 2` on the `s16` local, whose 16-bit
+/// truncation is what puts the `sll 16` / `sra 16` pair in front of the `slti`.
+void func_actor_403200_8013D78C(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    s16              i;
+    s16              j;
+    s16              frame;
+
+    work = (Actor403200Work*)arg0->idMap;
+    if (work->field_4 != 0) {
+        work->field_7B3                    = 1;
+        work->field_7B0                    = 2;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        ((TmdObject*)arg0->extra)->field_8->coord.t[1] = 0x7D0;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[0] = 0x1068;
+        ((TmdObject*)arg0->extra)->field_8->coord.t[2] = -0x1770;
+        work->field_E96                                = 0xFA0;
+    }
+    func_actor_403200_80133DD8(arg0);
+    if (work->field_58 & 1) {
+        work->field_0 = 1;
+    }
+    if (((TmdObject*)arg0->extra)->field_8->coord.t[1] > 0) {
+        frame = work->field_6;
+        if (frame >= 0x3D) {
+            ((TmdObject*)arg0->extra)->field_8->coord.t[1] +=
+                ((frame % 4) < 2) ? 0x50 : -0x64;
+        } else if (frame >= 0x15) {
+            ((TmdObject*)arg0->extra)->field_8->coord.t[1] +=
+                ((frame % 4) < 2) ? 0x14 : -0x1E;
+        }
+    }
+    if (((TmdObject*)arg0->extra)->field_8->coord.t[1] < 0) {
+        ((TmdObject*)arg0->extra)->field_8->coord.t[1] = 0;
+    }
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+}
 
 /// State-change reset for the enemy's stand-up. It clears the host model's flag
 /// word, walks the seven escorts pushing that word onto each of their models,
