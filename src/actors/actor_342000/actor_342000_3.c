@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/fs.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -133,4 +134,45 @@ void func_actor_342000_80164364(s32 arg0)
     Gp_DispatchMsg(work->field_48, 0x3F3, arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000_3", func_actor_342000_8016439C);
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// base weapon id records are numbered from, and `D_8007218A` selects the
+/// alternate set -- 1 means the second block, anything else the `+0x22` one.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
+
+/// Fixed placement this function warps slot 3 to, sent as message 0x3E9 and
+/// again as 0x3F2 by `func_actor_342000_80162BBC`.
+extern Actor342000Move D_actor_342000_80164948;
+
+extern void func_8018507C(void);
+
+/// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
+/// the animation set the current weapon selects (`D_80073BA9 + 1` for the
+/// alternate block, `+ 0x22` for the base one, sent as 0x3E8 to the slot
+/// `Game_GetPtrSlot(3)` returns), raises 0x3F3, kills the child in
+/// `field_64`, and cancels any pending CD command replacement.
+void func_actor_342000_8016439C(void)
+{
+    Actor342000EventWork* work;
+    GpAnimArg             msg;
+    s32                   weaponId;
+    s32                   anim;
+
+    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
+    func_8018507C();
+    weaponId     = D_80073BA9;
+    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0  = (void*)anim;
+    msg.field_4  = 1;
+    msg.field_8  = 0;
+    msg.field_C  = 0;
+    msg.field_10 = 0;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->idMap)->field_48, 0x3F3, 1, 0);
+    if (work->field_64 != NULL) {
+        Task_Kill(work->field_64);
+        work->field_64 = NULL;
+    }
+    CdCmd_CancelReplaceAndActivate();
+}

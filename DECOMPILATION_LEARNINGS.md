@@ -93685,3 +93685,43 @@ Inputs: `base_1.i`
 `f0e5c4f37c7e480cf628cc03abb7154c42745bd211fce906fca7f7129fe9da79` (72.105%),
 `base_2.i` `268d1f98bec12450de84f1f18355138e107324fe5f84e3cf827ef16115092efb`
 (100.000%).
+## Frame slots whose address is never taken lose their stores in `flow`
+
+A five-word outgoing message built from *scalar* locals comes out of the
+compiler with four of its five stores gone:
+
+```c
+s32 sp10, sp14, sp18, sp1C, sp20;
+sp10 = var_v0;
+sp14 = 1;
+sp18 = 0;
+sp1C = 0;
+sp20 = 0;
+Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&sp10, 0);
+```
+
+`.frame $sp,40,$31  # vars= 8` - the frame is two words, not five - and only
+`sp10` gets a `sw` (78%, `delete: 7`). Only `sp10`'s address is taken, so
+`flow`'s dead-store pass deletes the other four: a store to a frame slot that
+nothing in the function reads and whose address never escapes is dead. Passing
+`&sp10` to an opaque call does not keep `sp14..sp20` alive; the escaped pointer
+is taken to reach only the slot it names.
+
+Give the block a *type* and take the address of the whole thing. The sibling
+overlays' `GpAnimArg` (0x14 bytes - five words) is exactly this shape, and
+`func_actor_341900_801635A4` is the worked example to copy:
+
+```c
+GpAnimArg msg;
+msg.field_0 = (void*)anim;   /* all five stores survive, in order */
+msg.field_4 = 1;
+...
+Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+```
+
+100% with no `delete` penalty (`func_actor_342000_8016439C`). Any aggregate
+whose address is taken as a unit keeps every field store; the `delete` count
+equalling the number of dropped stores, with the frame short by the slots they
+needed, is the signature to sight-read. Note this is the mirror of the two
+"dead store" entries above - there a store is *written* to steer `cse`, here a
+store the source has is *deleted* because nothing addresses the slot.
