@@ -43,11 +43,15 @@ extern GpActorWork* D_actor_110300_8013A0A4;
 
 void func_actor_110300_801320C4(GpActorWork* arg0);
 void func_actor_110300_80132180(void);
-void func_actor_110300_80132208(void);
 
 /// The shared tick body `src/actors/lib/actors_shared_80132138.c`. Declared
 /// here rather than through `actors_shared_80132138.h` because that header
 /// publishes `ActorsShared80131f9cWork` with its own work type.
 void ActorsShared80132138(void);
+
+/// The shared reseed body `src/actors/lib/actors_shared_80132208.c`, declared
+/// for the same reason as `ActorsShared80132138` above. Its other carrier is
+/// `actor_110800`.
+void ActorsShared80132208(void);
 
 #endif

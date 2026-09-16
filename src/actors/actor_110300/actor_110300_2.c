@@ -35,7 +35,7 @@ void func_actor_110300_80132088(Task* arg0)
 void func_actor_110300_801320C4(GpActorWork* arg0)
 {
     if (ActorsShared80131f9cWork->field_474 == 1) {
-        func_actor_110300_80132208();
+        ActorsShared80132208();
         ActorsShared80131f9cWork->field_474 = 3;
         return;
     }

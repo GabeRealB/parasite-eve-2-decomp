@@ -94803,3 +94803,38 @@ round-trips through the frame - if it does, the source object is an aggregate
 and no register-level rewrite can match.
 
 Inputs: `base.i` (m2c seed, 59.539%), `base_1.i` (100.000%).
+
+## A lone `reorder=1` in the prologue: m2c's duplicated loop counter is a second pseudo, and the scheduler places its copy early
+
+The m2c seed for `func_actor_110300_80132208` scored 98.000% with every penalty
+zero except `reorder=1`, and exactly one instruction in the wrong place: the
+loop counter copied into the call's argument register (`addu a1,s0`) sat six
+slots early, in the middle of the prologue, where the target has it immediately
+before the loop label.
+
+m2c renders a one-counter loop as **two variables** - `var_s0 = 1; var_a1 = 1;`
+... `var_a1 = var_s0;` - so the quantity exists as two pseudos. GCC allocates
+them separately (`$s0` and `$a1`), which makes the copy a free-standing insn in
+the entry block whose position sched1 may choose, and it chose the prologue.
+Writing the loop with a single counter instead - the form the matched sibling
+`func_actor_521100_80136820` uses:
+
+```c
+i = 1;
+do {
+    func_800B4114(&work->anim, i, (s16)work->animId, 0, 8);
+    i++;
+} while (i < 0x14);
+```
+
+turns that copy into the loop's own argument copy (preheader plus back-edge),
+where the target has it. 100% on the next build.
+
+Read a lone `reorder` as "one instruction is in a different place", not as "the
+statements are in the wrong order": here nothing was mis-ordered, a variable
+that should not have existed was. Check whether the misplaced insn is a copy
+between two registers holding the *same* loop quantity before touching
+statement order at all.
+
+Inputs: `base.i` (m2c seed, 98.000%, `b2fc9e83…` -> `70c2399e…` after the
+prototype fix), `base_1.i` (100.000%, `8d18817b…`).
