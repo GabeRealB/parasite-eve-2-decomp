@@ -1,9 +1,12 @@
 #include "common.h"
 
+#include "actors/actor_450900.h"
+
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -135,7 +138,55 @@ void func_actor_450900_80132518(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132548);
+/// State handler of the save-point capture task `func_actor_450900_80131E38`
+/// spawns. State 0 allocates the head-aim record the capture cursor sweeps with
+/// (`Mem_Calloc(0xC, false)` into `Task::idMap`); state 1 ramps its `rate` one
+/// 0x200 step per frame, up or down according to `Task::spawnArg1` (the flag
+/// `func_actor_450900_80132518` arms), and hands the record to `func_800B17D4`
+/// between the slot-3 task and the ally's own slot-0xA task. Any other state
+/// kills the task and drops the overlay's handle to it.
+void func_actor_450900_80132548(Task* task)
+{
+    Actor450900HeadAim* aim;
+    void*               slot;
+    u16                 rate;
+
+    slot = Game_GetPtrSlot(3);
+    switch (task->state) {
+        case 0:
+            aim = Mem_Calloc(sizeof(Actor450900HeadAim), false);
+            if (aim == NULL) {
+                Task_Kill(task);
+                return;
+            }
+            task->idMap     = (TaskIdMap*)aim;
+            aim->yawLimit   = 0x100;
+            aim->pitchLimit = 0x200;
+            task->state++;
+            /* fallthrough */
+        case 1:
+            aim = (Actor450900HeadAim*)task->idMap;
+            if (task->spawnArg1 != 0) {
+                rate      = aim->rate + 0x200;
+                aim->rate = rate;
+                if ((s16)rate >= 0x1001) {
+                    aim->rate = 0x1000;
+                }
+            } else {
+                rate      = aim->rate - 0x200;
+                aim->rate = rate;
+                if ((s16)rate < 0) {
+                    aim->rate = 0;
+                }
+            }
+            func_800B17D4(slot, Game_GetPtrSlot(0xA), (GpHeadAim*)aim);
+            return;
+        default:
+            Task_Kill(task);
+            D_actor_450900_80136C9C = NULL;
+            return;
+    }
+}
 
 void func_actor_450900_80132678(u8 arg0)
 {

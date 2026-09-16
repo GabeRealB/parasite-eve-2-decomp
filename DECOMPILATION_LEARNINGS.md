@@ -96828,3 +96828,75 @@ and `f0e59f99810c60ec5b88edf3b9669192742ceb17681826dd4aae85771da8d067`
 (`base_3`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Session:
 `nonmatchings/func_actor_450900_80132684-vacuum` (`base_2_diff`, `base_3_diff`).
+
+## An m2c seed that reads a field before a call the source read after: that live range alone owns several callee-saved registers
+
+**Problem.** `func_actor_450900_80132548` (save-point capture state handler,
+`actor_450900`) came out of m2c at 90.395% with `regs=21 branch=5 insert=2
+delete=3 reorder=2`. The asm diff was almost entirely register homes: the
+target keeps `arg0` in `$s1`, the allocated head-aim record in `$s0` and the
+slot-3 task in `$s2`, while the seed had `arg0` in `$s0`, the record in `$v1`
+and the state in `$s1`.
+
+**Why.** m2c wrote the state read ahead of the call:
+
+```c
+temp_v1 = arg0->state;
+temp_s2 = Game_GetPtrSlot(3);
+switch (temp_v1) {
+```
+
+The target reads the state *after* the `jal`. That is not a scheduling detail
+the compiler can undo in either direction: a load may not move up across a call
+(the callee may write that memory), so whichever side of the call the source
+puts it on is where it stays. In the seed the state value is born before the
+`jal` and dies at the second compare, so its live range **crosses the call** and
+local-alloc cannot give it a caller-saved register - it takes `$s1`. That is
+one of the three callee-saved registers this body needs, and the pressure pushes
+`arg0` down to `$s0` and the `Mem_Calloc` result out of the saved set entirely.
+
+**Fix.** Write the call first and switch on the field directly:
+
+```c
+slot = Game_GetPtrSlot(3);
+switch (task->state) {
+```
+
+The load is then born after the call, dies in two compares, and takes `$v1`;
+`arg0` takes `$s1`, the record `$s0`, the slot `$s2`. 100.00%, every penalty
+zero, no pins.
+
+**Evidence, and a wrong prediction.** The variation `base_2.c` is the 100%
+source with *only* the ordering reverted (`s32 state = task->state;` before the
+call). It scores 96.829% and its whole diff is the one register home:
+
+```
+target:  li a0,3 / jal Game_GetPtrSlot / [ds] sw s0,0x10(sp) / lw v1,0x30(s1) / beqz v1,...
+base_2:  lw s0,0x30(s1) / jal / [ds] li a0,3 / beqz s0,...
+```
+
+`regs=3`. The `branch=6 reorder=2` in that same diff are the address shift of
+the extra instruction, not a control-flow difference - the diagnosis tool says
+as much, and no branch predicate or target changed. The plan recorded before
+that build predicted "regs returns to ~21" and it returned 3: the mechanism was
+right, the *cascade size* was not. With `arg0` already in `$s1` the rest of the
+allocation held, so only the one value moved. Predict the register home; do not
+predict how many penalties it is worth.
+
+**The shortcut.** `BRIEF.md`'s similar-body list named `func_actor_361100_801627D4`
+at `fields` 0.96, and that matched body is this same 0xC head-aim record and
+state machine. It opens with `looker = Game_GetPtrSlot(3);` **before** the
+switch and writes the clamp as `if ((s16)rate < 0)`. Porting its statement
+order verbatim - call first, and the signed cast in place of m2c's `rate &
+0x8000` (the `andi`/`beqz` against `sll`/`bgez` rule already recorded above) -
+was 100.00% on the first build. With a sibling that close, the sibling's
+*statement order* is as much of the answer as its types.
+
+`base_1.c` preprocessed SHA256
+`ec9212158a822f4887eef6c7c363f30def40d5e586bb5a9e82ec9e4b2af80642` (100%),
+`base_2.c` `ee87c18223f51836bdee2a0abdcd3d5f933682413a8dac14030f553ec83196f1`
+(96.829%), m2c seed `base.c`
+`83439da8d5693f71fbe5c282cc45985e4f107a45e7d35e6d09356cb0a9034bc4` (90.395%).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+No pins, no empty asm, no permuter run. Session:
+`nonmatchings/func_actor_450900_80132548-vacuum`.
