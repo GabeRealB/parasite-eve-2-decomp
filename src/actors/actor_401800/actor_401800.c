@@ -780,7 +780,59 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013AF1C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013B444);
+/// Aim the actor at the player and rescale its root coordinate. Same body as
+/// `Actor01900_Fn080A8`, and as `func_actor_401800_80135F58` apart from the
+/// live-flag block's constants and mask, the 0x12C it arms `field_8C8` with,
+/// and a turn clamp whose two tests both write zero where its sibling clamps
+/// to +-0x10: on the live flag it resets the model buffers and re-arms the
+/// step countdown; otherwise it hands the player offset and the new yaw to
+/// the actor's state body and rebuilds the matrix at scale 0x1194.
+void func_actor_401800_8013B444(Actor401800* arg0)
+{
+    Actor401800Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor401800AimScratch* aim;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_898          = 1;
+        work->field_8A2          = 0x10;
+        work->field_89E          = 9;
+        work->field_89A          = 0;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   &= 0xBFFF;
+        func_actor_401800_80133EB8(arg0);
+        work->field_6 = 0;
+        return;
+    }
+    work->field_6++;
+    *(Actor401800AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401800AimScratch**)G_SCRATCH_HEAD;
+    arg0->field_2C->field_8->flg              = 0;
+    if (work->field_68 & 1) {
+        work->field_0 = 7;
+    }
+    aim->angle      = Actor401800_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    work->field_8AE = aim->angle;
+    if (aim->angle > 0) {
+        aim->angle = 0;
+    }
+    if (aim->angle < 0) {
+        aim->angle = 0;
+    }
+    coord       = arg0->field_2C->field_8;
+    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401800_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    func_actor_401800_80133EB8(arg0);
+    *(Actor401800AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Aim the actor at the player and rescale its root coordinate, turning the
 /// stored yaw toward the target by at most 0x28 a frame instead of the hard

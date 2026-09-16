@@ -103433,3 +103433,25 @@ The step arithmetic also needs its own unsigned read: the field is `s16`, and th
 loads it `lh` for the comparison and `lhu` for the `+-0x28`. One `s16` declaration gives
 both if the step is written `(u16)work->field_8AE + 0x28` (same splitting as the
 `field_C04` entry above), which is why the arm's two loads differ in signedness.
+
+## The BRIEF's `INCLUDE_ASM site` block quotes the *next* function's doc comment (func_actor_401800_8013B444, 2026-09-16)
+
+`BRIEF.md` prints seven lines either side of the `INCLUDE_ASM` line, and in this
+tree the line after it is always blank and the one after that is the `///` block
+of the *following* function. Reading it as a description of your own target is
+easy to do and expensive to believe.
+
+`func_actor_401800_8013B444`'s brief carried "turning the stored yaw toward the
+target by at most 0x28 a frame instead of the hard clamp
+`func_actor_401800_80135F58` uses" - which is `func_actor_401800_8013B784`, the
+function that begins at the line below the snippet. The target itself does the
+opposite of what that sentence implies: both of its yaw tests write zero
+(`lh`/`blez`/`sh $zero`/`lh`/`bgez`/`sh $zero`), so the turn is dropped, not
+limited to 0x28. The m2c seed renders that as two `if`s that look like a
+decompilation artefact and are the real source; an agent that "fixed" them to
++-0x28 on the strength of the brief would never match.
+
+The neighbouring comment is still worth having - it is how you learn the next
+function is a near-twin - but attach it to *that* function's name before using
+its arithmetic. When the snippet's comment and the asm disagree about a
+constant, the asm wins and the comment belongs to someone else.
