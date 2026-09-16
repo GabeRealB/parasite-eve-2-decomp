@@ -4,6 +4,7 @@
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 
 extern u8 D_80071075;
@@ -12,10 +13,22 @@ extern s8 D_80114C12;
 
 extern s32            D_neo_ark_power_plant_2_801802A8;
 extern s32            D_neo_ark_power_plant_2_80180560;
+extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
 extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F70[];
 extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F94[];
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_power_plant_2/neo_ark_power_plant_2_2", func_neo_ark_power_plant_2_8017D6F4);
+void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
+{
+    u8 temp_v1;
+
+    arg0->field_24 = D_neo_ark_power_plant_2_801801F8;
+    Game_SetPtrSlot(arg0, 7);
+    temp_v1 = Game_Session->field_9;
+    if (temp_v1 == 1) {
+        Game_Session->field_69 = temp_v1;
+    }
+    arg0->state = arg0->state + 1;
+}
 
 void func_neo_ark_power_plant_2_8017D758(void)
 {
