@@ -110498,3 +110498,47 @@ Inputs: `base_15.i` SHA256
 SHA256 `8393ef6319ff70979f7156863e8f337e69f4b7598a4bce5b40f7fdf326fa79c6`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80134040-vacuum`.
+
+## Two field updates of one block: a store written after a load holds the load's index span open, and that alone picks $v0 vs $v1 (func_actor_110600_80135194, 2026-09-16)
+
+Symptom: 97.5% with `stack=0 branch=0 reorder=0 insert=2 delete=2`, and the whole
+difference is a six-instruction window — two independent `lhu`/`ori`/`sh` and
+`lhu`/`andi`/`sh` chains over the same base pointer, swapping which one gets
+`$v1` and which reuses `$v0`:
+
+```
+target                          emitted with the two updates swapped
+lhu   v0,0x898(s1)              lhu   v0,0x898(s1)
+lhu   v1,0x96e(s1)              lhu   v1,0xaae(s1)
+sh    v0,0x896(s1)              sh    v0,0x896(s1)
+lhu   v0,0xaae(s1)              lhu   v0,0x96e(s1)
+```
+
+The two sources are semantically identical and compile to the same *set* of
+instructions; only the assignment differs. It is local-alloc, not the
+scheduler: `find_free_reg` unions `regs_live_at[]` over `[qty_birth,
+qty_death)` — the quantity's *insn-index* span, not its real live range — so a
+store written after a load keeps that load's span open across every instruction
+between them, and any later quantity born inside the span cannot reuse the
+register. Here the `field_896 = field_898` store sits between the `$v0` load and
+the two flag chains, so the `field_A90` chain's load (born second) finds `$v0`
+still marked and takes `$v1`; the `field_950` chain is born after the store, so
+it reuses `$v0`. Swap the two flag statements and both chains move to the other
+register. `QTY_CMP_PRI = floor_log2(refs) * refs * size / (death - birth)` is
+what keeps the short-lived first quantity first (see the `func_actor_110600_80137980`
+entry above for the same formula driving a load's home).
+
+Fix: copy the statement order from an already-matched sibling in the same unit
+that writes the same fields. Both `func_actor_110600_80135A18` and
+`func_actor_110600_80136888` write `field_A90.flags` before `field_950.flags`,
+and that order — not the one the m2c dump or the target's own instruction order
+suggests — is the one that matches. Reading the siblings first would have saved
+the five builds spent modelling sched1/sched2 ready-list classes; the scheduler
+cannot reorder the two chains *relative to the store*, so every ordering
+hypothesis that ignored the store's position was dead on arrival.
+
+Inputs: `base_4.i` SHA256
+`87978a5904735b2aa1aa886391a12d055f89b28ba315a18281453eda76ed5d27`; target.o
+SHA256 `bc4db433ef0de7980a8db1e3139e19a7e1417e0ba5595bb9bcd3a645d1a994a1`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80135194-vacuum`.

@@ -6,6 +6,7 @@
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -95,6 +96,40 @@ typedef struct Actor110600TurnScratch {
 } Actor110600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor110600TurnScratch, 0x1C);
 
+/// 0xC-byte scratch block the aiming stage carves off `G_SCRATCH_HEAD` to
+/// measure the camera-target delta against one hit sphere: the two XZ
+/// components and the radius, squared in place and compared in the XZ plane.
+/// Same block `Actor00100_OutsideRadius` measures with in
+/// `actor_400100_motion.h`, which is the same helper one overlay over.
+typedef struct Actor110600RadiusScratch {
+    /* 0x0 */ s32 x;
+    /* 0x4 */ s32 z;
+    /* 0x8 */ s32 radius;
+} Actor110600RadiusScratch;
+STATIC_ASSERT_SIZEOF(Actor110600RadiusScratch, 0xC);
+
+/// Whether the XZ delta in `pos` falls outside the sphere of `radius`: the two
+/// components and the radius are squared through the scratch block, and the
+/// comparison is returned as a value — the `>=` is what makes the caller test
+/// the result against 0. The radius is a halfword so a `u16` cell can be fed
+/// in directly.
+static __inline__ s32 Actor110600_OutsideRadius(SVECTOR* pos, s16 radius)
+{
+    Actor110600RadiusScratch* head;
+    Actor110600RadiusScratch* scratch;
+    head                                         = *(Actor110600RadiusScratch**)G_SCRATCH_HEAD;
+    scratch                                      = head - 1;
+    *(Actor110600RadiusScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->x                                   = pos->vx;
+    scratch->z                                   = pos->vz;
+    scratch->radius                              = radius;
+    scratch->x                                  *= scratch->x;
+    scratch->z                                  *= scratch->z;
+    scratch->radius                             *= scratch->radius;
+    *(Actor110600RadiusScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->x + scratch->z >= scratch->radius;
+}
+
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
@@ -122,7 +157,13 @@ typedef struct Actor110600Work {
     /// the actor is live, and reseeds from `Gp_LcgState` when `field_4` is set.
     /* 0x006 */ u16  field_6;
     /* 0x008 */ s16  field_8;
-    /* 0x00A */ byte pad_A[0x44];
+    /* 0x00A */ byte pad_A[0x2];
+    /// The two hit-sphere radii the aiming stage measures the camera-target
+    /// delta against in the XZ plane: `field_C` only while the target is
+    /// within 0x3E8 angle units of the model's heading, `field_E` always.
+    /* 0x00C */ u16  field_C;
+    /* 0x00E */ u16  field_E;
+    /* 0x010 */ byte pad_10[0x3E];
     /// Pose the model has reached, the same `& 0x3FF` frame index
     /// `func_actor_110600_80137DB0` tests for 4 before it advances the
     /// `field_BE2` stage from 0 to 1.
@@ -131,19 +172,22 @@ typedef struct Actor110600Work {
     /// Flag halfword the state handlers test on entry: bit 0 moves the actor
     /// on (`field_0 = 3`), bit 1 is the timer gate
     /// `func_actor_110600_80136888` retimes on.
-    /* 0x05C */ u16   field_5C;
-    /* 0x05E */ byte  pad_5E[0x82E];
-    /* 0x88C */ s16   field_88C;
-    /* 0x88E */ s16   field_88E;
-    /* 0x890 */ byte  pad_890[2];
-    /* 0x892 */ s16   field_892;
-    /* 0x894 */ s16   field_894;
-    /* 0x896 */ s16   field_896;
-    /* 0x898 */ u16   field_898;
-    /* 0x89A */ byte  pad_89A[8];
-    /* 0x8A2 */ s16   field_8A2;
-    /* 0x8A4 */ s16   field_8A4;
-    /* 0x8A6 */ byte  pad_8A6[0x12];
+    /* 0x05C */ u16  field_5C;
+    /* 0x05E */ byte pad_5E[0x82E];
+    /* 0x88C */ s16  field_88C;
+    /* 0x88E */ s16  field_88E;
+    /* 0x890 */ byte pad_890[2];
+    /* 0x892 */ s16  field_892;
+    /* 0x894 */ s16  field_894;
+    /* 0x896 */ s16  field_896;
+    /* 0x898 */ u16  field_898;
+    /* 0x89A */ byte pad_89A[8];
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ s16  field_8A4;
+    /* 0x8A6 */ byte pad_8A6[0x10];
+    /// Per-state walk speed the spawn handler seeds (0xA / 8 / 0xE); the aiming
+    /// stage hands it to the walker as its `field_5E` ramp target.
+    /* 0x8B6 */ u16   field_8B6;
     /* 0x8B8 */ GpObj field_8B8;
     /* 0x8D8 */ byte  pad_8D8[0x78];
     /* 0x950 */ GpObj field_950;

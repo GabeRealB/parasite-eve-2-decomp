@@ -320,12 +320,76 @@ INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80134AB4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135194);
-
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135454);
-
 /// `D_80073B8C` is the camera-target matrix the delta below is measured from.
 extern MATRIX* D_80073B8C;
+
+/// Aiming stage: re-arms the aim on a live actor — clear the model object, drop
+/// bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`, tag the
+/// enemy's link node, reload `field_896` from `field_898`, park the stage at 2
+/// (`field_88C` / `field_892`) and the walker at state 3 with its turn limit at
+/// 0x10. The aim itself is one bearing: the yaw of the camera-target delta from
+/// the model's root coordinate, minus that coordinate's own yaw, wrapped into
+/// [-0x800, 0x800]. While it is under 0x3E8 and again unconditionally, the XZ
+/// delta is measured against the `field_C` / `field_E` hit spheres, and falling
+/// inside either moves the actor to state 4. Every tick the walker is stepped
+/// first and the model ticked last.
+void func_actor_110600_80135194(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    TmdObject*       obj;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   facing;
+    SVECTOR          delta;
+    SVECTOR*         d;
+    s16              angle;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C          = 0;
+        work->field_896       = work->field_898;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_88C       = 2;
+        work->field_892       = 2;
+        work->field_B90       = 3;
+        work->field_B82       = 0x10;
+    }
+    work->field_B86 = work->field_8B6;
+    func_actor_110600_80133A94((Actor110600Walker*)((u8*)work + 0xB28));
+    coord    = arg0->field_2C->field_8;
+    d        = &delta;
+    delta.vx = (u16)D_80073B8C->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)D_80073B8C->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)D_80073B8C->t[2] - (u16)coord->coord.t[2];
+    facing   = arg0->field_2C->field_8;
+    angle    = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    if (abs(angle) < 0x3E8) {
+        if (Actor110600_OutsideRadius(&delta, work->field_C) == 0)
+            work->field_0 = 4;
+    }
+    if (Actor110600_OutsideRadius(&delta, work->field_E) == 0)
+        work->field_0 = 4;
+    func_actor_110600_80134728(arg0);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135454);
 
 /// Aiming stage: points the model at the camera target. Entering on a live
 /// actor re-arms it — clear the model object, drop bit 0x8000 of
