@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_403000.h"
+#include "actors/actors_shared_80132808.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -29,6 +30,9 @@ extern u32        D_actor_403000_80158C08;
 extern u32        D_actor_403000_80158CA8;
 extern u8         D_80071075;
 extern s8         D_80114C12;
+extern s8         D_actor_403000_80158364[];
+
+void func_800B4114(GpAnimCtx* anim, s32 slot, s16 animation, s32 arg3, s32 arg4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
 
@@ -465,7 +469,200 @@ s32 func_actor_403000_801337E0(s32 arg0, Actor403000AnimWork* work)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80133AF8);
+void func_actor_403000_80133AF8(Actor403000* arg0)
+{
+    Actor403000AnimWork* seekWork;
+    Actor403000AnimWork* resetWork;
+    Actor403000AnimWork* turnWork;
+    Actor403000AnimWork* secondaryWork;
+    Actor403000AnimWork* tickWork;
+    Actor403000AnimWork* work;
+    u32                  table;
+    s32                  index;
+    s32                  animation;
+    s32                  updatedTurn;
+    s16                  currentTurn;
+    s16                  thirdAngle;
+    s16                  state;
+    s32                  currentAngle;
+    s32                  targetAngle;
+    s16                  angle;
+    s32                  seekSlotIndex;
+    s32                  resetSlotIndex;
+    s32                  secondarySlotIndex;
+    s32                  tickSlotIndex;
+    s32                  signedTurn;
+    s32                  sound;
+    s32                  resetIndex;
+    s32                  secondaryIndex;
+    s32                  tickIndex;
+    s32                  seekIndex;
+    s32                  delta;
+    GpAnimSlot*          tickSlot;
+    GpAnimSlot*          seekSlot;
+    GpAnimSlot*          resetSlot;
+    GpAnimSlot*          secondarySlot;
+    s32                  pan;
+    s32                  currentAngleBits;
+    u16                  originalTurn;
+    s32                  targetAngleBits;
+    u16                  updatedTurnBits;
+    s16                  clampedAngle;
+    s32                  targetTurn;
+
+    work  = (Actor403000AnimWork*)arg0->field_1C;
+    state = work->field_AC0;
+    if (state == 1) {
+        if (work->field_AC4 != work->field_AC6) {
+            seekWork = work;
+            TOUCH_REG(seekWork);
+            seekIndex = 1;
+            table     = (u32)D_actor_403000_80158364;
+            seekSlot  = work->slots;
+            do {
+                seekSlotIndex       = seekIndex;
+                seekSlot[1].field_9 = (u8)seekWork->field_ACA;
+                animation           = seekWork->field_AC6;
+                seekSlot           += 1;
+                index               = seekWork->field_AC4 * 0x2D;
+                func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+                seekIndex += 1;
+            } while (seekIndex < 0x18);
+            seekWork->field_AC4 = seekWork->field_AC6;
+        }
+        work->field_AC0 = 3;
+        work->field_AC8 = 0;
+        Mem_Set(work->pad_AEC, 0U, 0x60U);
+    } else if (state == 2) {
+        resetWork = work;
+        TOUCH_REG(resetWork);
+        resetIndex = 1;
+        resetSlot  = work->slots;
+        do {
+            resetSlotIndex       = resetIndex;
+            resetSlot[1].field_9 = (u8)resetWork->field_ACA;
+            resetSlot           += 1;
+            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_AC6);
+            resetIndex += 1;
+        } while (resetIndex < 0x18);
+        resetWork->field_AC4 = resetWork->field_AC6;
+        work->field_AC0      = 3;
+        work->field_AC8      = 0U;
+        Mem_Set(work->pad_AEC, 0U, 0x60U);
+    }
+    if (work->field_ACE == 2) {
+        secondaryWork            = (Actor403000AnimWork*)arg0->field_1C;
+        secondaryIndex           = 1;
+        secondarySlot            = secondaryWork->slots;
+        secondaryWork->field_AD2 = 0x20;
+        secondaryWork->field_AD4 = 0x800;
+        do {
+            secondarySlotIndex       = secondaryIndex;
+            secondarySlot[1].field_9 = (u8)secondaryWork->field_AD2;
+            secondarySlot           += 1;
+            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_AD0);
+            secondaryIndex += 1;
+        } while (secondaryIndex < 0x18);
+        work->field_ACE = 3;
+    }
+    work->field_AC8 = (u16)(work->field_AC8 + 1);
+    if (work->field_AC2 == 0) {
+        tickWork  = (Actor403000AnimWork*)arg0->field_1C;
+        tickIndex = 1;
+        tickSlot  = tickWork->slots;
+        do {
+            tickSlotIndex       = tickIndex;
+            tickSlot[1].field_9 = (u8)tickWork->field_ACA;
+            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            tickSlot  += 1;
+            tickIndex += 1;
+        } while (tickIndex < 0x18);
+    } else {
+        func_actor_403000_801336B4(arg0);
+        if (work->blendSlots[1].field_10 & 0x100) {
+            work->field_AC2 = 0;
+        }
+    }
+    targetAngle      = (s16)work->field_AD8;
+    currentAngle     = (s16)work->field_AE0;
+    targetAngleBits  = work->field_AD8;
+    currentAngleBits = work->field_AE0;
+    if (currentAngle < targetAngle) {
+        if ((targetAngle - currentAngle) >= 0x72) {
+            work->field_AE0 = currentAngleBits + 0x71;
+        } else {
+            goto block_26;
+        }
+    } else if ((currentAngle - targetAngle) >= 0x72) {
+        work->field_AE0 = currentAngleBits - 0x71;
+    } else {
+    block_26:
+        work->field_AE0 = targetAngleBits;
+    }
+    if (work->field_AE8 == 1) {
+        angle        = (s16)work->field_AE0;
+        clampedAngle = angle;
+        if (angle >= 0x501) {
+            clampedAngle = 0x500;
+        }
+        if (angle < -0x500) {
+            clampedAngle = -0x500;
+        }
+        thirdAngle = (s16)clampedAngle / 3;
+        ActorsShared80132808(&arg0->field_2C->field_8[2], thirdAngle);
+        arg0->field_2C->field_8[2].flg = 0;
+        ActorsShared80132808(&arg0->field_2C->field_8[3], thirdAngle);
+        arg0->field_2C->field_8[3].flg = 0;
+        ActorsShared80132808(&arg0->field_2C->field_8[4], (s16)clampedAngle / 2);
+        arg0->field_2C->field_8[4].flg = 0;
+    }
+    if (work->field_AE9 == 1) {
+        func_actor_403000_80133444(arg0);
+    }
+    if (work->field_AEA == 1) {
+        turnWork     = (Actor403000AnimWork*)arg0->field_1C;
+        targetTurn   = turnWork->field_AD6;
+        originalTurn = targetTurn;
+        if ((s16)targetTurn >= 0x201) {
+            targetTurn = 0x200;
+        }
+        if ((s16)originalTurn < -0x200) {
+            targetTurn = -0x200;
+        }
+        signedTurn  = (s16)targetTurn;
+        currentTurn = turnWork->field_ADE;
+        if (currentTurn < signedTurn) {
+            if ((signedTurn - currentTurn) >= 0xD) {
+                turnWork->field_ADE = (s16)((u16)turnWork->field_ADE + 0xC);
+            } else {
+                turnWork->field_ADE = (s16)targetTurn;
+            }
+        }
+        updatedTurn     = turnWork->field_ADE;
+        updatedTurnBits = (u16)turnWork->field_ADE;
+        if ((s16)targetTurn < updatedTurn) {
+            delta = updatedTurn - (s16)targetTurn;
+            if (delta < 0) {
+                delta = -delta;
+            }
+            if (delta >= 0xD) {
+                turnWork->field_ADE = (s16)(updatedTurnBits - 0xC);
+            } else {
+                turnWork->field_ADE = (s16)targetTurn;
+            }
+        }
+        ActorsShared80132808(&arg0->field_2C->field_8[10], (s16)((s32)(u16)turnWork->field_ADE * -1));
+        arg0->field_2C->field_8[10].flg = 0;
+    }
+    if (work->field_AEB == 1) {
+        func_actor_403000_801332E8(arg0);
+    }
+    sound = func_actor_403000_801337E0((s32)arg0, work);
+    if (sound != 0) {
+        pan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+}
 
 s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
 {
