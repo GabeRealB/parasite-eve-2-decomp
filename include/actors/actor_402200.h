@@ -106,7 +106,18 @@ typedef struct Actor402200Work {
     /* 0x502 */ u16  field_502;
     /* 0x504 */ byte pad_504[0x7E];
     /* 0x582 */ u16  field_582;
-    /* 0x584 */ byte pad_584[0x130];
+    /* 0x584 */ byte pad_584[0x36];
+    /* 0x5BA */ u16  field_5BA;
+    /* 0x5BC */ byte pad_5BC[0x1E];
+    /* 0x5DA */ u16  field_5DA;
+    /* 0x5DC */ s16  field_5DC;
+    /* 0x5DE */ s16  field_5DE;
+    /* 0x5E0 */ s16  field_5E0;
+    /* 0x5E2 */ byte pad_5E2[0xC2];
+    /* 0x6A4 */ s32  field_6A4;
+    /* 0x6A8 */ s32  field_6A8;
+    /* 0x6AC */ s32  field_6AC;
+    /* 0x6B0 */ byte pad_6B0[4];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
@@ -171,7 +182,9 @@ typedef struct Actor402200Work {
     /// above when its countdown runs out.
     /* 0x6E0 */ s16  field_6E0;
     /* 0x6E2 */ s16  field_6E2;
-    /* 0x6E4 */ byte pad_6E4[6];
+    /* 0x6E4 */ byte pad_6E4[2];
+    /* 0x6E6 */ s16  field_6E6;
+    /* 0x6E8 */ s16  field_6E8;
     /* 0x6EA */ s16  field_6EA;
     /// Sequence mode `func_actor_402200_8013539C` tests: the reseed arms the
     /// cue unless it is already 1, and a restart that finds it 1 flips it to 2.
@@ -236,6 +249,15 @@ typedef struct Actor402200ProjectScratch {
     /* 0x14 */ s32     otz;
 } Actor402200ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor402200ProjectScratch, 0x18);
+
+/// 0x18-byte block `func_actor_402200_80132E34` takes from `G_SCRATCH_HEAD`
+/// to place the actor relative to the player: `in` is the offset rotated
+/// through the player's root coordinate into `out`.
+typedef struct Actor402200OffsetScratch {
+    /* 0x00 */ VECTOR  out;
+    /* 0x10 */ SVECTOR in;
+} Actor402200OffsetScratch;
+STATIC_ASSERT_SIZEOF(Actor402200OffsetScratch, 0x18);
 
 /// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
