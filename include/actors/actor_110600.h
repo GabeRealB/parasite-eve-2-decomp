@@ -21,9 +21,15 @@ typedef struct Actor110600WalkerNavNode {
 } Actor110600WalkerNavNode;
 
 /// The walker's patrol node table: the array `node` indexes, and the list
-/// `func_actor_110600_80132470` measures the current step against.
+/// `func_actor_110600_80132470` measures the current step against. `count` is
+/// the bound the nearest-node scan `func_actor_110600_80132958` walks; the word
+/// between it and `nodes` is a second byte table the walker does not reach
+/// through this pointer, so it is only padded over here. Same shape as the
+/// acropolis bridge room's `AcropolisBridgeNavData`.
 typedef struct Actor110600WalkerNav {
     /* 0x0 */ Actor110600WalkerNavNode* nodes;
+    /* 0x4 */ byte                      pad_4[0x4];
+    /* 0x8 */ u8                        count;
 } Actor110600WalkerNav;
 
 /// One patrol route: a 0xFF-terminated list of node indices plus the cursor
@@ -129,6 +135,30 @@ static __inline__ s32 Actor110600_OutsideRadius(SVECTOR* pos, s16 radius)
     *(Actor110600RadiusScratch**)G_SCRATCH_HEAD += 1;
     return scratch->x + scratch->z >= scratch->radius;
 }
+
+/// 0x14-byte scratch block `func_actor_110600_80132958` carves off
+/// `G_SCRATCH_HEAD` to pick the patrol node nearest the walker. `dx` / `dz` are
+/// the axis deltas for the node under test and `dist` their squared sum, which
+/// is compared against the running `best` -- initialised to `-1` so the first
+/// node always wins -- and `nearest` is the winning node's index. Same block
+/// the acropolis bridge room's `func_acropolis_bridge_8018450C` scans in.
+typedef struct Actor110600NearScratch {
+    /* 0x00 */ s16  dx;
+    /* 0x02 */ byte pad_2[0x2];
+    /* 0x04 */ s16  dz;
+    /* 0x06 */ byte pad_6[0x2];
+    /* 0x08 */ u32  best;
+    /* 0x0C */ u32  dist;
+    /* 0x10 */ u8   node;
+    /* 0x11 */ u8   nearest;
+    /* 0x12 */ byte pad_12[0x2];
+} Actor110600NearScratch;
+STATIC_ASSERT_SIZEOF(Actor110600NearScratch, 0x14);
+
+/// Returns the patrol node nearest the walker: the squared XZ distance between
+/// each node and the low halfwords of the walker coordinate's translation,
+/// with the running best and the cursor staged in the scratch block above.
+u8 func_actor_110600_80132958(Actor110600Walker* work);
 
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then

@@ -59,7 +59,34 @@ void func_actor_110600_80132654(Actor110600Walker* work, SVECTOR3* pos)
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801327EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132958);
+/// Returns the patrol node nearest the walker: the squared XZ distance between
+/// each node and the low halfwords of the walker coordinate's translation,
+/// with the running best and the cursor staged in a scratch block. Same body
+/// as the acropolis bridge room's `func_acropolis_bridge_8018450C`.
+u8 func_actor_110600_80132958(Actor110600Walker* work)
+{
+    Actor110600NearScratch* block;
+    u8*                     head;
+    s16                     dz;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x14;
+    block                 = (Actor110600NearScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    block->best = -1;
+    for (block->node = 0; block->node < work->nav->count; block->node++) {
+        block->dx   = *(u16*)&work->coord->coord.t[0] - work->nav->nodes[block->node].x;
+        dz          = *(u16*)&work->coord->coord.t[2] - work->nav->nodes[block->node].z;
+        block->dz   = dz;
+        block->dist = block->dx * block->dx + dz * dz;
+        if (block->dist < block->best || block->best == -1) {
+            block->best    = block->dist;
+            block->nearest = block->node;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;
+    return block->nearest;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132A84);
 
