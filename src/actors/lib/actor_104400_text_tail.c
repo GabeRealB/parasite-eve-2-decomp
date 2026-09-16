@@ -1149,7 +1149,25 @@ void Actor04400_Fn08B3C(Task* arg0)
     work->field_420++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08C08);
+/// Waits 0x18 frames on `field_412`, then hides the model by setting bit 1 of
+/// `TmdObject.field_C`. Body is identical to `Actor04400_Fn0781C`'s.
+void Actor04400_Fn08C08(Task* arg0)
+{
+    Actor104400Work* work;
+    TmdObject*       model;
+    u16              ticks;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    model           = (TmdObject*)arg0->extra;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 0x18) {
+        model->field_C |= 2;
+        work->field_412 = 0;
+        work->field_451 = 1;
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn08C64);
 
