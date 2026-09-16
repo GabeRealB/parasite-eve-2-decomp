@@ -94756,6 +94756,24 @@ body's field accesses first and check each one has a named home at the same offs
 in *this* overlay's types; the `s16`-local variant of the same trap is a separate
 entry above.
 
+Two shortcuts on that confirmation step. First, the sibling's `nm -S` size is a
+one-line pre-check: `func_actor_110600_80133A94` is `func_acropolis_bridge_8018532C`
+and both are 0x3B4 bytes (`nm -S build/USA/src/rooms/acropolis_bridge/*.c.o` against
+the size on the `nonmatching` line of the target `.s`). Different sizes mean the two
+bodies are not the same stream, and `find`'s `~` only promised that they were equal
+at some point. Second, diff the sibling's *compiled object* rather than its `.s`:
+`objdump -d --reloc` over the `nm` address range, with the address, encoding and
+relocation lines stripped. That is the same instruction-level check against the
+target bytes, except on the artifact the C actually produced, so it also catches a
+sibling whose source no longer compiles to its own ROM listing after a header
+change - which a `.s`-versus-`.s` diff cannot.
+
+Padding comments are not evidence either. `Actor110600WalkerNav` padded the word at
+0x4 with "a second byte table the walker does not reach through this pointer, so it
+is only padded over here" - it is exactly the table that body indexes as
+`nav->field_4[walker->cursor]`. Carve the field out and correct the comment; the
+offsets do not move, so the neighbouring matched bodies stay matched.
+
 ## m2c's masked loop variable is a `(u16)i` cast at each use site, not a variable of its own
 
 `func_actor_120300_80133330` opens by walking animation slots 1..19 through

@@ -22,13 +22,13 @@ typedef struct Actor110600WalkerNavNode {
 
 /// The walker's patrol node table: the array `node` indexes, and the list
 /// `func_actor_110600_80132470` measures the current step against. `count` is
-/// the bound the nearest-node scan `func_actor_110600_80132958` walks; the word
-/// between it and `nodes` is a second byte table the walker does not reach
-/// through this pointer, so it is only padded over here. Same shape as the
-/// acropolis bridge room's `AcropolisBridgeNavData`.
+/// the bound the nearest-node scan `func_actor_110600_80132958` walks.
+/// `field_4` is the second byte table, the one the walker's own `cursor`
+/// indexes to resolve the node it heads for next, one entry per patrol step.
+/// Same shape as the acropolis bridge room's `AcropolisBridgeNavData`.
 typedef struct Actor110600WalkerNav {
     /* 0x0 */ Actor110600WalkerNavNode* nodes;
-    /* 0x4 */ byte                      pad_4[0x4];
+    /* 0x4 */ u8*                       field_4;
     /* 0x8 */ u8                        count;
 } Actor110600WalkerNav;
 
@@ -58,7 +58,11 @@ typedef struct Actor110600Walker {
     /* 0x00 */ Actor110600WalkerNav*   nav;
     /* 0x04 */ Actor110600WalkerRoute* route;
     /* 0x08 */ GsCOORDINATE2*          coord;
-    /* 0x0C */ byte                    pad_C[0x28];
+    /* 0x0C */ byte                    pad_C[0x10];
+    /// How far the walker moves this frame, rebuilt every tick by the
+    /// ramp-scaling step and left zeroed while the game is frozen.
+    /* 0x1C */ SVECTOR moveStep;
+    /* 0x24 */ byte    pad_24[0x10];
     /// The model's saved rotation, which the turn step copies back onto
     /// `coord` before rebuilding it around the yaw it just turned to.
     /* 0x34 */ MATRIX scaleMtx;
@@ -72,9 +76,32 @@ typedef struct Actor110600Walker {
     /* 0x64 */ s16    field_64;
     /* 0x66 */ byte   pad_66[0x2];
     /* 0x68 */ u8     state;
-    /* 0x69 */ byte   pad_69[0x1];
-    /* 0x6A */ u8     node;
-    /* 0x6B */ byte   pad_6B[0x41];
+    /// The state the previous tick ran, which the step compares against
+    /// `state` to re-resolve the patrol node whenever it changed.
+    /* 0x69 */ u8 field_69;
+    /* 0x6A */ u8 node;
+    /* 0x6B */ u8 field_6B;
+    /// The step's own byte gates: `field_6C` / `field_6D` skip the two
+    /// per-frame sub-steps while non-zero.
+    /* 0x6C */ u8 field_6C;
+    /* 0x6D */ u8 field_6D;
+    /// Index into the `D_80073B08` motion config table `Actor110600WalkerNav`
+    /// positions are read from.
+    /* 0x6E */ u8 field_6E;
+    /// The node bytes the step keeps from the previous tick -- the spawn-side
+    /// node, the nearest-node scan's answer and the live node -- so it can
+    /// tell when any of them moved.
+    /* 0x6F */ u8 field_6F;
+    /* 0x70 */ u8 field_70;
+    /* 0x71 */ u8 field_71;
+    /* 0x72 */ u8 field_72;
+    /// Per-step advance applied to `cursor` once the walker reaches its node;
+    /// signed, so a route can be walked backwards.
+    /* 0x73 */ s8   field_73;
+    /* 0x74 */ byte pad_74[0x2];
+    /// Index into `nav`'s byte table of the patrol node the walker heads for.
+    /* 0x76 */ u8   cursor;
+    /* 0x77 */ byte pad_77[0x35];
 } Actor110600Walker;
 STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
 
@@ -159,6 +186,37 @@ STATIC_ASSERT_SIZEOF(Actor110600NearScratch, 0x14);
 /// each node and the low halfwords of the walker coordinate's translation,
 /// with the running best and the cursor staged in the scratch block above.
 u8 func_actor_110600_80132958(Actor110600Walker* work);
+
+/// Returns the node the walker's route cursor steps onto, reseeding the scan's
+/// stored node byte for the `actor` variant of the walker. Same body as the
+/// acropolis bridge room's `func_acropolis_bridge_801843A0`.
+u8 func_actor_110600_801327EC(Actor110600Walker* work, s32 actor);
+
+/// Re-resolves the walker's patrol node against the route's byte table once
+/// the state or the node bytes have moved. Same body as the acropolis bridge
+/// room's `func_acropolis_bridge_80184638`.
+void func_actor_110600_80132A84(Actor110600Walker* work, s16 actor);
+
+/// One per-frame behaviour step the walker runs while its `field_6C` gate is
+/// clear. Same body as the acropolis bridge room's
+/// `func_acropolis_bridge_80184908`.
+void func_actor_110600_80132D54(Actor110600Walker* work);
+
+/// The second per-frame behaviour step, gated on `field_6D`. Same body as the
+/// acropolis bridge room's `func_acropolis_bridge_80184B94`.
+void func_actor_110600_80132FE0(Actor110600Walker* work);
+
+/// 0x28-byte scratch frame `func_actor_110600_80133A94` opens on
+/// `G_SCRATCH_HEAD`: only the `SVECTOR3` at +4 is used, the position the step
+/// steers the walker towards, which the turn step consumes and the behaviour
+/// steps below overwrite. Same block as the acropolis bridge room's
+/// `AcropolisBridgeWalkScratch`.
+typedef struct Actor110600WalkScratch {
+    /* 0x00 */ s32      field_0;
+    /* 0x04 */ SVECTOR3 pos;
+    /* 0x0A */ byte     pad_A[0x1E];
+} Actor110600WalkScratch;
+STATIC_ASSERT_SIZEOF(Actor110600WalkScratch, 0x28);
 
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
