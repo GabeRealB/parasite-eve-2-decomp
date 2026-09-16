@@ -51,6 +51,7 @@ void       Actor00400_Fn0A414(Actor100400* arg0);
 void       Actor00400_Fn098A8(Actor100400* arg0);
 void       Actor00400_Fn09924(Actor100400* arg0);
 s16        Actor00400_Fn02154(Actor100400* arg0);
+s32        Actor00400_Fn02208(Actor100400* arg0);
 void       Actor00400_Fn0A5B8(Actor100400* arg0);
 void       Actor00400_Fn0A680(Actor100400* arg0);
 void       Actor00400_Fn0A6B0(Actor100400* arg0);
@@ -537,7 +538,35 @@ void Actor00400_Fn094C0(Actor100400* arg0)
     work->field_63A = work->field_63A + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn094DC);
+void Actor00400_Fn094DC(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* work2;
+    s32              pan;
+    s32              sound;
+
+    work = arg0->field_1C;
+    if ((Actor00400_Fn02208(arg0) << 0x10) != 0) {
+        if (work->field_628 != 5) {
+            work2            = arg0->field_1C;
+            work2->field_63C = 0x10;
+            work2->field_632 = 0x10;
+            work2->field_628 = 5;
+            work2->field_624 = 1;
+        }
+        work->field_63E = work->field_64E;
+        Gp_SetLightMode(arg0->field_20, 0);
+        work->field_636 = 0;
+        work->field_63A = work->field_63A + 1;
+        return;
+    }
+    work->field_660 = 1;
+    if (!(work->field_630 & 0xF)) {
+        sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040001;
+        pan   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+}
 
 void Actor00400_Fn095D8(Actor100400* arg0)
 {
