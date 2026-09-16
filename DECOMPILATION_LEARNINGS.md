@@ -84218,3 +84218,38 @@ Inputs: `base.c` (m2c casts, 88.929%)
 `base_1.c` (typed member, 100.000%)
 `503c58ce5b733652de7fc23c1ca34b290d4110eac08248d62c5f1d7f936e9635`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## Aliasing a carrier's own content is not the `promote` fix; the shared body's own data is
+
+The entry above, "Alias a shared body's overlay-local data before `promote`",
+is about the shared body's *own* bookkeeping: its task descriptor, the slot it
+stores a spawned `Task*` into, the table it dispatches through. Those are the
+shared function's data in every carrier by construction, so the same name at
+each carrier's address is a statement the promotion already makes.
+
+It does not carry over to the carrier's content, passed in as arguments.
+`func_dryfield_night_driveway_8017DAF4` (night) and
+`func_dryfield_driveway_8017DAD0` (day) are the same 38 instructions apart
+from two addresses - `D_dryfield_night_driveway_8017F54C` / `...F6CC` against
+`D_dryfield_driveway_8017E4FC` / `...E67C`, the model and animation banks the
+body hands to `func_800E8634`. `find` reports `~` (same body, different link
+offset) and `promote` refuses:
+
+```
+func_dryfield_night_driveway_8017DAF4: cannot be shared - the body references
+its own overlay's code or data (USA/rooms/dryfield_driveway, USA/rooms/dryfield_night_driveway).
+```
+
+Aliasing those two names across the day and night symbol maps would get past
+that and link, and it would assert the two banks are one piece of data - which
+code equality cannot show, since the same shape reads an enemy table in one
+room and a camera table in another. Two rooms being day and night variants of
+one location is a reason to expect identity, not evidence of it.
+
+The cheap move is the other one: match each copy separately. The body is a
+`Task*` callback with two room-local data arguments, so the second copy is one
+edit, and matching it produces the naming evidence that would settle the
+promotion later.
+
+Scratch `nonmatchings/func_dryfield_night_driveway_8017DAF4-vacuum`; target
+SHA256 `36881b06e1c0fa5cf8e07e2028a24ea9d4ea56d803cc1b88e2a910bf50dc1bbc`,
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
