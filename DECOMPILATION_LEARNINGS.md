@@ -95866,6 +95866,15 @@ points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
 this body with a different light matrix: `m[0][0]` is `-0x1000` and the two
 entries this one zeroes are `0x1000`.
 
+That prediction landed. Its m2c seed opened at **88.108%** with the same
+`opcode_delta {43:0:+2, 41:0:-2}` narrow-store signature, and writing the body
+straight from this entry's shape - the same union, the same two phases, only the
+constants changed - scored 100.000% on the first build, clearing the
+insert/delete pair and all 8 register differences together. When a matched
+sibling in the same unit has already been written up, the sibling's *source* is
+the seed, not its m2c dump: the remaining work is the constant diff and nothing
+else.
+
 Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
 `8e2bf86f…` (m2c seed, 87.78%, object `90bf4dd9…`), `base_1.c` `c94933f6…`
 (two store widths retyped, 100.000%), `base_2.c` `57f4a3af…` (typed port, same
