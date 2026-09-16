@@ -153,6 +153,29 @@ typedef struct Actor510900ChildFx {
 } Actor510900ChildFx;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
 
+/// Payload of the 0x3F8 query the hit handler asks the player before it takes
+/// the hold; `field_14` is the range it asks for. The same shape as
+/// `Actor400600Msg3F8`.
+typedef struct Actor510900Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor510900Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor510900Msg3F8, 0x18);
+
+/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_510900_8013A310`:
+/// the 0x3F8 query buffer followed by the `GpAnimArg` it sends as message 0x3FF.
+typedef struct Actor510900HitScratch {
+    /* 0x00 */ Actor510900Msg3F8 query;
+    /* 0x18 */ GpAnimArg         anim;
+} Actor510900HitScratch;
+STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
+
+/// The pair `Gp_PackPair` packs entry 4 of for the 0x3F9 message the hold sends.
+extern GpU16Pair D_actor_510900_80167968;
+
+/// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
+extern GpAnimSet* D_actor_510900_80167B2C[];
+
 /// Spawn position of the child, indexed by its `Task::spawnArg1`.
 extern SVECTOR D_actor_510900_80167CB8[];
 /// Spawn rotation about Y, indexed the same way.

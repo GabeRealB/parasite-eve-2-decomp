@@ -635,7 +635,83 @@ void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013A310);
+/// Runs the player-hold sequence the effect's state 2 drives, on a 0x2C-byte
+/// scratch block: `field_CC` 0 asks the player for the hold (message 0x3F8) and
+/// on success starts the grab animation and its sound, 1 holds until the parent
+/// reports the hit or 0x3C frames pass and then switches to the second
+/// animation, and 2 waits 0x14 frames before releasing the player. Any refused
+/// message leaves the effect in state 3 so the caller tears it down.
+void func_actor_510900_8013A310(Task* task)
+{
+    Actor510900ChildFx*    work;
+    Actor510900Work*       parent;
+    Task*                  player;
+    void*                  head;
+    Actor510900HitScratch* scratch;
+    GpObj38*               obj;
+    u16                    tick;
+    s32                    snd;
+    s32                    pan;
+
+    work                    = (Actor510900ChildFx*)task->idMap;
+    parent                  = (Actor510900Work*)task->parent->idMap;
+    player                  = Game_GetPtrSlot(3);
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor510900HitScratch);
+    scratch                 = (Actor510900HitScratch*)*(void**)G_SCRATCH_HEAD;
+
+    switch (work->field_CC) {
+        case 0:
+            if (((GpActorWork*)player)->actor->field_954 != 2) {
+                scratch->query.field_14 = 0xC;
+                if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) != 0) {
+                    work->field_CA = 3;
+                    break;
+                }
+                Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
+                scratch->anim.field_0  = D_actor_510900_80167B2C;
+                scratch->anim.field_4  = 1;
+                scratch->anim.field_8  = 0;
+                scratch->anim.field_C  = 0;
+                scratch->anim.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+                work->field_CC = 1;
+                work->field_CE = 0;
+                obj            = (GpObj38*)((TmdObject*)player->extra)->field_8;
+                snd            = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x5110000A;
+                pan            = (s8)Gp_GetObjPan(obj);
+                SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(obj));
+            }
+            break;
+        case 1:
+            tick           = work->field_CE + 1;
+            work->field_CE = tick;
+            if ((s16)tick < 0x3D && parent->field_5BC != 1 && parent->field_592 != 0) {
+                break;
+            }
+            parent->field_5BC      = 0;
+            scratch->anim.field_0  = D_actor_510900_80167B2C;
+            scratch->anim.field_4  = 2;
+            scratch->anim.field_8  = 0;
+            scratch->anim.field_C  = 0;
+            scratch->anim.field_10 = 1;
+            Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+            work->field_CC = 2;
+            work->field_CE = 0;
+            break;
+        case 2:
+            tick           = work->field_CE + 1;
+            work->field_CE = tick;
+            if ((s16)tick >= 0x15) {
+                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                    work->field_CA = 3;
+                }
+            }
+            break;
+    }
+    *(u32*)G_SCRATCH_HEAD += sizeof(Actor510900HitScratch);
+}
 
 /// Spawn handler of the child task: allocates the animation work block, seeds
 /// the model's root coordinate from the spawn-index tables, resets animation
