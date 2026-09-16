@@ -86989,6 +86989,37 @@ Inputs: `base.c` 100.000%, `base_1.c` (struct-typed port, temp kept) 100.000%,
 both zero penalties. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
+## The port out of `M2C_FIELD` carries the *load width* too, not just the value (func_actor_311900_801623B0, 2026-09-16)
+
+The same situation as the entry above - `base.c` an exact m2c seed (100.000%,
+zero penalties, first build) and only the port into struct style left - but the
+hazard is signedness rather than liveness. `base.c` read the counter latch as
+
+```c
+if (M2C_FIELD(work, s16 *, 0x4C6) == 1) { ... }   /* lh  $v1, 0x4C6($s1) */
+```
+
+and the overlay header already declared that field `u16`, so the "natural" port
+`if (work->field_4C6 == 1)` scored 96.610% with `insert=1 delete=1` on an
+otherwise identical 59/59-instruction function (blocks, predicates and calls all
+matching): a single `lhu $v1, 0x4C6($s1)` where the target has `lh`. m2c's cast
+type is the load's signedness, so it has to be re-encoded at the use site:
+
+```c
+if ((s16)work->field_4C6 == 1) { ... }            /* lh  $v1, 0x4C6($s1) */
+```
+
+The neighbouring `work->field_4C4++` keeps its `lhu`, which is what makes the
+field's declared type `u16` - read each use separately, exactly as "One `u16`
+field read as both `lhu` and `lh`" says. A one-instruction `insert`/`delete` pair
+on a structurally matching function is worth reading as a load-width mismatch
+(also `lb`/`lbu`, `lh`/`lhu`) before anything else.
+
+Inputs: `base.c` 100.000%, `base_1.c` (`u16` field, no cast) 96.610% -
+`insert=1 delete=1`; `base_2.c` (`(s16)` cast) 100.000%, zero penalties.
+Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
 ## The room message-handler gate is one body with three constants changed, and m2c's `var_v0` hides it
 
 A whole family of room message handlers is the same body: copy the record out,
