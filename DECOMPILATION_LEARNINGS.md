@@ -103235,3 +103235,39 @@ wrong instinct is to hunt for the symbol it names. (Third instance of this rule 
 `+ 0x8E8` / `+ 0xA28` spellings was also 100.000% on the first build.)
 
 Both fixes were applied at once: 100.000% on the first build, all penalties zero.
+
+## A halfword field's signedness is pinned by the read nothing can narrow (func_actor_401800_8013A034, 2026-09-16)
+
+The twin transcription above was again worth six attempts' worth of progress: the m2c seed
+scored 74.948% and a straight transcription of `func_actor_401300_801397F8` (the brief's
+`similar matched bodies` hit, 0.95/0.97/0.84) reached 98.844% on the first build. One
+instruction was left:
+
+```asm
+lh  v0,0x6(s2)      /* target   */
+lhu v0,0x6(s2)      /* candidate */
+```
+
+`Actor401800Work.field_6` was declared `u16` (copied from the 401800 header). Declaring it
+`s16` — as both twins do (`Actor401300Work.field_6`, `Actor01900Work.field_6`) — made the
+build 100.000%, and the overlay's own checksum still passed with no change to the other
+matched reader of that field.
+
+That other reader is the trap. `func_actor_401800_8013E4F0` (matched, same overlay) reads the
+field with `lhu`:
+
+```c
+work->field_6 = (u16)(work->field_6 + 1);   /* lhu; addiu; sh */
+```
+
+which reads like evidence for `u16`. It is not evidence at all: combine narrows
+`(u16)(s16 + 1)` to an HImode add, and an HImode add does not care about the top bits, so the
+load may stay zero-extending and the `(u16)` cast absorbs the signed declaration without
+changing a single instruction. (Same mechanism as the `(u8)(work->field_8A2 - 3)` note above:
+a narrowing cast around arithmetic hides the member's real signedness.)
+
+A bare comparison does not narrow — `field_6 == 0` needs the whole sign-extended SImode value,
+so the load's signedness is the declaration's and nothing else. Rule: when two reads of one
+halfword disagree, the declaration is decided by the read no narrowing can explain; re-check
+the narrowing readers by rebuilding rather than by reading their `.s`, because their casts are
+expected to absorb the change.

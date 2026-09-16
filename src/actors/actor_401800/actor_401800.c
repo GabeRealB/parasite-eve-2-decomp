@@ -8,7 +8,9 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -327,7 +329,93 @@ INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80139D60);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013A034);
+/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
+static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor401800RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor401800RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor401800RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor401800RangeScratch*)(head - 0xC))->dx *= ((Actor401800RangeScratch*)(head - 0xC))->dx;
+    *(Actor401800RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor401800RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+/// Walking body: on the live-actor flag re-allocates the model's buffers,
+/// hands the actor the `D_actor_401800_80155124` animation block and zeroes the
+/// step counter and the 0x8A2..0x8B0 pose slots, otherwise plays the actor's
+/// 0x51030008 spawn sound once on the first frame. After the shared per-frame
+/// tick, a `field_5A` state of 4 that differs from the last handled one
+/// (`field_8B4`) sends the 0x200-scale effect for the second coordinate part.
+/// Then, if the squared XZ offset to the camera target fits inside
+/// `field_C0E`, the actor plays 0x51030008 and arms `Gp_StateF0` in state 6 —
+/// bit 0x50000 of `Gp_StateF0` arms it the same way. Same shape as
+/// `Actor01900_Fn06B4C` and `func_actor_401300_801397F8`.
+void func_actor_401800_8013A034(Actor401800* arg0)
+{
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+    s32              sound;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                     = arg0->field_2C;
+        D_actor_401800_80155978 = &D_actor_401800_80155124;
+        work->field_89E         = 0x10;
+        work->field_898         = 2;
+        obj->field_C            = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_8B0          = 0;
+        work->field_8A2          = 0x10;
+        work->field_8AE          = 0;
+        work->field_6            = 0;
+    } else if (work->field_6 == 0) {
+        sound = ((enemy->field_8 >> 0xC) << 8) | 0x51030008;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        work->field_6 = 1;
+    }
+    func_actor_401800_80133EB8(arg0);
+    if ((work->field_5A & 0x3FF) == 4 && work->field_8B4 != (work->field_5A & 0x3FF)) {
+        work->field_8B8.field_0 = arg0->field_2C->field_8 + 1;
+        work->field_8B8.field_4 = 0x200;
+        work->field_8B8.field_6 = 2;
+        func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->field_8 + 5, NULL, &work->field_8B8);
+    }
+    work->field_8B4 = work->field_5A & 0x3FF;
+    coord           = arg0->field_2C->field_8;
+    d               = &delta;
+    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    if (!Actor401800_OutOfRange(d, work->field_C0E)) {
+        SndEvt_EnqueueType7(0x51030008, 1);
+        Gp_ArmStateF0(1);
+        work->field_0 = 6;
+    }
+    if (*(u32*)&Gp_StateF0 & 0x50000) {
+        work->field_0 = 6;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013A2E8);
 

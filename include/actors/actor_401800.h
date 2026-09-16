@@ -26,7 +26,7 @@ typedef struct Actor401800Work {
     /* 0x004 */ s16 field_4;
     /// Step counter `func_actor_401800_8013E4F0` resets to 0 and bumps once a
     /// frame; the same slot `Actor104000Work.field_6` counts in.
-    /* 0x006 */ u16  field_6;
+    /* 0x006 */ s16  field_6;
     /* 0x008 */ byte pad_8[0x52];
     /* 0x05A */ u16  field_5A;
     /* 0x05C */ byte pad_5C[0xC];
@@ -43,7 +43,12 @@ typedef struct Actor401800Work {
     /* 0x8A6 */ byte pad_8A6[8];
     /* 0x8AE */ s16  field_8AE;
     /* 0x8B0 */ s16  field_8B0;
-    /* 0x8B2 */ byte pad_8B2[6];
+    /* 0x8B2 */ byte pad_8B2[2];
+    /// State the `0x3FF` handler last ran for: `func_actor_401800_8013A034`
+    /// sends the actor's 0x200 effect when `field_5A & 0x3FF` is 4 and differs
+    /// from this, then stores the mask back. Same slot `Actor01900Work.field_894`
+    /// compares against.
+    /* 0x8B4 */ s32 field_8B4;
     /// `func_800FDB18` argument record: the coordinate handed to it plus the
     /// effect scale / count pair. Same slot `Actor01900Work.field_8B8` keeps.
     /* 0x8B8 */ GpEffArg field_8B8;
@@ -55,7 +60,11 @@ typedef struct Actor401800Work {
     /* 0xA28 */ GpRec18  field_A28;
     /* 0xA40 */ byte     pad_A40[0x108];
     /* 0xB48 */ GpObj    field_B48;
-    /* 0xB68 */ byte     pad_B68[0xA8];
+    /* 0xB68 */ byte     pad_B68[0xA6];
+    /// Radius `func_actor_401800_8013A034` hands its scratch distance test:
+    /// the player is close enough to arm the actor once the squared XZ offset
+    /// fits inside it. Same role `Actor01900Work.field_C32` plays.
+    /* 0xC0E */ u16 field_C0E;
     /// The three bytes `func_actor_401800_8013DF80` copies out of the room
     /// request record it is handed; same slot as `Actor01900Work.field_C34`.
     /* 0xC10 */ u8   field_C10[3];
@@ -65,6 +74,17 @@ typedef struct Actor401800Work {
     /* 0xC14 */ Task* field_C14;
     /* 0xC18 */ Task* field_C18;
 } Actor401800Work;
+
+/// 0xC-byte scratch `func_actor_401800_8013A034` takes from `G_SCRATCH_HEAD`
+/// for its player-in-radius test: the X/Z offset to the camera target and the
+/// radius, each squared in place before `dx + dz < r`. Same shape as
+/// `Actor01900RangeScratch` / `Actor401300RangeScratch`.
+typedef struct Actor401800RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor401800RangeScratch;
+STATIC_ASSERT_SIZEOF(Actor401800RangeScratch, 0xC);
 
 /// Animation view of the same task work block: the pose context at 0x1C and
 /// its slot array, then the blend context the actor keeps beside it. The
@@ -116,6 +136,17 @@ STATIC_ASSERT_SIZEOF(Actor401800Msg3E9, 0x18);
 
 /// Payload `func_actor_401800_80138C28` fills and sends with message 0x3E9.
 extern Actor401800Msg3E9 D_actor_401800_80155AD8;
+
+/// Camera-target matrix `func_actor_401800_8013A034` measures the actor's root
+/// coordinate against for its proximity test. Same global `Actor401300` reads.
+extern MATRIX* D_80073B8C;
+
+/// The block `func_actor_401800_8013A034` posts into `D_actor_401800_80155978`
+/// when the actor's live flag is set, taking over the animation the actor had
+/// been running. Same pair `Actor401300` keeps as `D_actor_401300_80158878` /
+/// `D_actor_401300_80152BB8`.
+extern s32  D_actor_401800_80155124;
+extern s32* D_actor_401800_80155978;
 
 /// Payload of message `0x7D3`, the "set animation state" request the handler
 /// table `D_actor_401800_80155A80` routes to `func_actor_401800_8013DCBC`:
