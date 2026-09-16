@@ -13,6 +13,7 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_341700.h"
+#include "actors/actors_shared_80165cc0.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_23", func_actor_341700_8016A2CC);
 
@@ -79,4 +80,21 @@ void func_actor_341700_8016A6C0(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_23", func_actor_341700_8016A758);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_23", func_actor_341700_8016A810);
+void func_actor_341700_8016A810(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+    s32              cond;
+
+    work = (Actor341700Work*)arg0->idMap;
+    ActorsShared80165cc0(arg0);
+    work2 = (Actor341700Work*)arg0->idMap;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_420 = work->field_420 + 1;
+    }
+}
