@@ -12,7 +12,7 @@ void ActorsShared80137b78_Fn347F4(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn3539C(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn354B0(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn35630(ActorShared80137b78* arg0);
-void ActorsShared80137b78_Fn3592C(ActorShared80137b78* arg0);
+void ActorsShared8013592c(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn35A24(ActorShared80137b78* arg0);
 void ActorsShared80137b78_Fn380DC(ActorShared80137b78* arg0);
 
@@ -49,7 +49,7 @@ void ActorsShared80137b78(ActorShared80137b78* arg0)
             ActorsShared80137b78_Fn35630(arg0);
             break;
         case 8:
-            ActorsShared80137b78_Fn3592C(arg0);
+            ActorsShared8013592c(arg0);
             break;
         case 9:
             ActorsShared80137b78_Fn35A24(arg0);
