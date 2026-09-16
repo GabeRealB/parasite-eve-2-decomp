@@ -258,6 +258,26 @@ return ret;                                 /* 100% */
 byte-for-byte, so the statement shape, not the types, decides the layout.
 `func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
 is the sibling to read first; `func_dryfield_breezeway_8017D90C` is a third copy.
+
+The same lever works when the guard is not the whole function. In
+`func_dryfield_warehouse_8017D764` the guard arm is a search loop rather than a
+value, and m2c wrote the tail as an early return:
+
+```c
+if (arg2 != 0x111) return 0;
+...search, `found`...
+if (found) { ...; return 1; }
+return 0;                                   /* 93.2%, nonzero regs already gone */
+```
+
+That leaves two return-0 blocks, so the entry test becomes `beq a2,v0,body` plus
+a `j` to the first one. Nesting the body under `if (arg2 == 0x111)` and leaving
+one trailing `return 0` merges them into the block the target branches *to* —
+`bne a2,v0,ret` with the body falling through (`found = 0` at the bottom of the
+loop body is not redundant: it is what puts `move v0,zero` in the back-edge
+delay slot). The nesting, not the parameter typing, is what moved it from 93.2%
+to 100%; adding the two unused leading parameters to put the message id in `$a2`
+was a separate, earlier fix (85.4% → 93.2%).
 ## Box two address-materializing stores in one `do-while(0)`; leave the next load outside
 
 A calloc result that is nearly tied with the `Task*` argument (`work` 5/23 vs
@@ -912,6 +932,19 @@ reports the candidate as a skip rather than a failure to compile — a whole
 search can come back `PERMUTER_MISS` with the real cause three lines up in
 `PERMUTER.txt`. Retype the seed to real struct fields (usually wanted anyway,
 see the aliasing entry) before asking the router to search it.
+
+## A candidate needing `GsCOORDINATE2` must include a project header, not `<psyq/libgs.h>`
+
+`include/psyq/libgs.h` is vendored without its own includes, so adding it
+directly dies on a wall of parse errors: `VECTOR` / `MATRIX` / `SVECTOR` (from
+`libgte.h`) and `POLY_*` / `CVECTOR` / `GsDRAWENV` (from `libgpu.h`) are all
+undefined, and `GsCOORDINATE2` ends up undeclared even though its typedef is
+right there in the file. Including the three in the order `libgte.h`,
+`libgpu.h`, `libgs.h` works - but any project header that mentions a coordinate
+already does exactly that, so include one of those instead: `main/tmd.h` pulls
+the trio in that order and is what a `TmdObject::field_8` candidate wants
+anyway. Two builds, both ending in `parse error before 'VECTOR'`, is what it
+costs to find out the other way.
 ## A temp local for a value re-read across stores collapses the reloads
 
 `func_actor_136100_80134588` steps three `s16` channels by the task's
@@ -42166,6 +42199,12 @@ facingU     = w->field_82;      /* u16 lvalue -> lhu */
 facing      = (s16)w->field_82; /*            -> lh  */
 w->field_82 = -0x6B0;           /* -> addiu v0,zero,-1712 */
 ```
+
+The same narrowing applies one size down: `(u8)` of an `s16` field loads `lbu`,
+which is how `func_dryfield_warehouse_8017E308` passes its fade channels to
+`Fade_DrawOverlay((u8)w->r, (u8)w->g, (u8)w->r, 2)` while the increments beside
+it are `(u16)` and load `lhu`. A byte load is therefore not evidence of a `u8`
+field either.
 
 So for a field that is read both ways: signed declaration, `(u16)` at the reads
 m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
