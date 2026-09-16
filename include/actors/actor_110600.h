@@ -50,9 +50,11 @@ typedef struct Actor110600Work {
     /* 0x000 */ s16 field_0;
     /// Second halfword of the state word above: the `0x7D3` display handler
     /// clears it to -1 whenever it parks the actor in state 0x11.
-    /* 0x002 */ s16  field_2;
-    /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[2];
+    /* 0x002 */ s16 field_2;
+    /* 0x004 */ s16 field_4;
+    /// The `field_5C`-style tick `func_actor_110600_80138A70` counts down once
+    /// the actor is live, and reseeds from `Gp_LcgState` when `field_4` is set.
+    /* 0x006 */ u16  field_6;
     /* 0x008 */ s16  field_8;
     /* 0x00A */ byte pad_A[0x52];
     /// Flag halfword the state handlers test on entry: bit 0 moves the actor
@@ -182,6 +184,11 @@ void func_actor_110600_80138D7C(Actor110600* arg0);
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
+
+/// The game's shared 32-bit LCG state: a draw is
+/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
+/// with the caller taking the bits it wants out of the high half.
+extern u32 Gp_LcgState;
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.

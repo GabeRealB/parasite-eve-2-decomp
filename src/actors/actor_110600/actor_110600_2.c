@@ -155,7 +155,31 @@ void func_actor_110600_80138980(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600_2", func_actor_110600_80138A70);
+void func_actor_110600_80138A70(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    u32              rng;
+    s16              timer;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        rng           = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng;
+        work->field_6 = (rng >> 16) & 0x1F;
+    }
+    timer         = work->field_6 - 1;
+    work->field_6 = timer;
+    if (timer < 0) {
+        switch (work->field_892) {
+            case 30:
+                work->field_0 = 9;
+                return;
+            case 12:
+                work->field_0 = 0xA;
+                break;
+        }
+    }
+}
 
 void func_actor_110600_80138AFC(Actor110600* arg0)
 {
