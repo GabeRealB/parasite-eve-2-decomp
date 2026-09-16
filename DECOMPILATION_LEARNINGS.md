@@ -87355,3 +87355,183 @@ load, grep the matched corpus for the pattern rather than guessing at the C —
 `lw $vM, off($sX)` followed within three instructions by
 `addu $sN, $vM, $zero` turns up ~44 matched functions, and their sources all
 share this ordering.
+
+## A global store does not stop a struct-field load from floating above it (Actor00400_Fn03920, 2026-09-16)
+
+**Problem.** The target opened with the store first and the flag load after it:
+
+```
+sb   $v0, %lo(D_80062735)($v1)
+lh   $v0, 0x36($s2)
+```
+
+The obvious `D_80062735 = 0xB; ... if (arg0->field_36 & 1)` schedules the `lh`
+*above* the `sb`, and every register in the block shifts with it.
+
+**Symptom.** `reorder` on the opening block only, with the same instruction
+multiset and one caller-saved register renamed throughout the prologue.
+
+**Cause.** `sched.c`'s `true_dependence` has an explicit exemption: a
+`MEM_IN_STRUCT_P` read at a *varying* (register-based) address, in a mode other
+than `QImode`, never conflicts with a non-`MEM_IN_STRUCT_P` reference at a
+*fixed* address. `arg0->field_36` is a `COMPONENT_REF` (in-struct, varying) and
+a plain `extern u8 D_80062735;` is a scalar at a symbol (not in-struct, fixed),
+so the two are declared independent and the scheduler is free to swap them.
+
+**Fix.** Give the store a member reference so `MEM_IN_STRUCT_P` is set on it
+too, which kills the exemption in both directions:
+
+```c
+extern u8 D_80062735[];     /* the byte is inside a larger block */
+...
+D_80062735[0] = 0xB;
+```
+
+`expand_expr` sets `MEM_IN_STRUCT_P` for `COMPONENT_REF`, `ARRAY_REF` and
+`BIT_FIELD_REF` only — an `INDIRECT_REF` of a scalar type does not qualify, so
+casting the address to a pointer and dereferencing it does *not* work. The
+original almost certainly wrote this byte as a field of a larger object; the
+array form is how the decomp says the same thing with the symbol splat named.
+
+## `scan_loop` will not hoist a conditional invariant whose destination is a user variable (Actor00400_Fn03920, 2026-09-16)
+
+**Problem.** An inlined lookup helper returning 0 on success and 1 on failure
+put its `return 0` constant in the loop preheader:
+
+```
+beq  $v1, $v0, .Lexit
+ move $t1, $zero          # the 0 hoisted out of the loop
+```
+
+while the target materialises it at the success point, in the delay slot of the
+jump to the merge (`j .Lmerge ; addu $v0, $zero, $zero`).
+
+**Cause.** `scan_loop` accepts a conditionally executed invariant as a movable
+when any of three things holds, and the second is
+`! REG_USERVAR_P (SET_DEST (set)) && ! REG_LOOP_TEST_P (...)`. An inline
+function's return-value pseudo is a compiler temporary, so that test passes and
+`move_movables` lifts the constant into the preheader (`threshold * savings *
+lifetime >= insn_count` is true for anything in a small loop).
+
+**Fix.** Assign the call to a declared local instead of testing it directly:
+
+```c
+/* hoists the 0 into the preheader */
+if (Actor00400_ApplyAreaConfig(arg0)) { ... }
+
+/* keeps it at the success point */
+failed = Actor00400_ApplyAreaConfig(arg0);
+if (failed) { ... }
+```
+
+The local carries `REG_USERVAR_P`, all three `scan_loop` conditions fail, and
+the constant stays where the source put it.
+
+## A local caching a field the loop also tests makes CSE share the sign-extension (Actor00400_Fn03920, 2026-09-16)
+
+**Problem.** A table walk whose terminator and whose comparison both read the
+same `s16` field:
+
+```
+loop:  lbu  $v1, 0x3($t0)
+       sll  $v0, $a0, 16
+       sra  $v0, $v0, 16      # (s16) of a loop-carried halfword
+       bne  $v1, $v0, next
+next:  addiu $a1, $a1, 0x14
+       lh   $v0, 0x0($a1)     # terminator, its own load
+       lhu  $a0, 0x0($a1)     # the value the body sign-extends
+```
+
+Writing it with a cached local (`area = cfg->area; while (cfg->area != 0xFF)`)
+produces one load plus a `sll` in the preheader *and* the latch, and only a
+`sra` in the body — one instruction longer and a different loop-carried value.
+
+**Cause.** `extendhisi2` on MIPS calls `force_not_mem` at `-O`, so every
+`(s16)` of memory expands to a `movhi` (`lhu`) into a HImode pseudo plus a
+shift pair; `combine` folds that triple back into `lh` only when the HImode
+pseudo dies there. With a cached local in the same block, cse1 gives the
+terminator's load the local's register, the shift pair survives, and the loop
+then carries `value << 16` instead of the value.
+
+**Fix.** Drop the local and read the field directly in both places:
+
+```c
+for (cfg = Actor00400_D15F20; cfg->area != 0xFF; cfg++) {
+    if (ses->field_3 == cfg->area && ses->field_2 == cfg->room) { ... }
+}
+```
+
+cse then spans the preheader into the body (the body's load becomes the
+preheader's value, carried in a register) while the terminator keeps its own
+`lh`, which is the target's shape. The general rule: an extra local that caches
+what a loop condition also reads is not free — it decides which of the two
+loads `combine` gets to narrow.
+
+## CSE hashes a constant under its destination's mode, so a widened parameter materialises it twice (Actor00400_Fn03920, 2026-09-16)
+
+**Problem.** The target writes `1` into two `u8` fields seven instructions
+apart and materialises the constant twice:
+
+```
+li  $v0, 1
+sb  $v0, 0x664($s3)
+...
+li  $v0, 1
+sb  $v0, 0x661($s3)
+```
+
+Any straightforward C shares one `li` in a callee-saved-adjacent register,
+because within a basic block cse merges the two `(set (reg:QI) (const_int 1))`
+quantities and `canon_reg` rewrites the second use onto the first pseudo.
+
+**Fix.** Make the two constants live in different modes. Factoring the second
+store into an inline helper whose parameter is `s32` rather than `u8` puts its
+literal in an `SImode` quantity, which hashes separately from the `QImode` one:
+
+```c
+static __inline__ void Actor00400_AttachHead(Actor100400* arg0, Actor100400Obj* obj,
+                                             Actor100400Work* work, s32 hide)
+{
+    obj->field_18   = &arg0->field_2C->field_8[1];
+    obj->field_14   = 0;
+    work->field_661 = hide;   /* SImode 1, stored through a QImode subreg */
+}
+```
+
+An inline helper with a `u8` parameter does *not* work — the constant is
+substituted at the same width and merges as before. This is worth trying
+whenever a short-lived constant is shared in your output but rematerialised in
+the target.
+
+## Reading a pointer back out of the struct you just stored it into is a register copy (Actor00400_Fn03920, 2026-09-16)
+
+**Problem.** The target keeps the allocation result in three places:
+
+```
+move $s3, $v0            # the work pointer
+beqz $s3, .Ldestroy
+ sw  $v0, 0x1C($s2)      # the store uses the raw call value
+...
+beq  $v1, $v0, .Lexit
+ move $a3, $s3           # a second copy, used only inside the lookup loop
+```
+
+Assigning `work = Mem_Calloc(...); arg0->field_1C = work;` gives one pseudo, so
+the store reads `$s3` and no `$a3` copy exists — and with the lookup loop using
+`work` directly, `work` outranks `arg0` in allocation priority and every
+callee-saved register comes out permuted.
+
+**Fix.** Store first and read the field back, in the caller and again wherever
+a later region needs it:
+
+```c
+arg0->field_1C = Mem_Calloc(sizeof(Actor100400Work), 0);
+work           = arg0->field_1C;          /* cse -> move s3, v0 */
+...
+Actor100400Work* work = arg0->field_1C;   /* inside the helper: move a3, s3 */
+```
+
+cse replaces each load with the value it knows was stored, which is a
+register-to-register copy rather than a `lw`, and the copies carry their own
+allocnos. That is what drops the reference count on the outer pointer and
+restores the target's `s0`/`s1`/`s2`/`s3` assignment.

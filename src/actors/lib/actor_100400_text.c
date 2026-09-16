@@ -50,6 +50,17 @@ void       Actor00400_Fn088EC(Actor100400* arg0, s16 arg1, s16 arg2, s16 arg3);
 void       Actor00400_Fn02648(Actor100400* arg0, s32 arg1);
 void       Actor00400_Fn0237C(Actor100400* arg0);
 void       Actor00400_Fn02FF8(Actor100400* arg0);
+void       Gp_DestroyEnemy(Actor100400Obj* arg0, Actor100400* arg1);
+void       Actor00400_Fn0A190(Task* arg0);
+void       Actor00400_Fn0A28C(Task* arg0);
+void       Actor00400_Fn089C8(Actor100400* arg0);
+void       Actor00400_Fn03920(Actor100400* arg0);
+void       Actor00400_Fn04580(Actor100400* arg0);
+void       Actor00400_Fn04B48(Actor100400* arg0);
+void       Actor00400_Fn04E18(Actor100400* arg0);
+void       Actor00400_Fn040DC(Actor100400* arg0);
+void       Actor00400_Fn06B7C(Actor100400* arg0);
+void       Actor00400_Fn070C0(Actor100400* arg0);
 void       Gp_IncStateF0Ref(s32 arg0);
 s32        Gp_GetObjPan(GsCOORDINATE2* arg0);
 s32        Gp_GetObjDepth(GsCOORDINATE2* arg0);
@@ -104,29 +115,34 @@ void       Actor00400_Fn03570(GsCOORDINATE2* arg0, s16 arg1);
 void       Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
 void       func_8004BFF8(s32 angle, MATRIX* matrix);
 
-extern GsCOORDINATE2    Gfx_ViewCoord;
-extern MATRIX           Gfx_ViewWorldMtx;
-extern TaskFuncTable3   Actor00400_D0002C;
-extern TaskFuncTable11  Actor00400_D0007C;
-extern TaskFuncTable10  Actor00400_D000A8;
-extern TaskFuncTable10  Actor00400_D000D0;
-extern TaskFuncTable15  Actor00400_D000F8;
-extern TaskFuncTable4   Actor00400_D00134;
-extern TaskFuncTable3   Actor00400_D00144;
-extern TaskFuncTable3   Actor00400_D00150;
-extern TaskFuncTable3   Actor00400_D0015C;
-extern TaskFuncTable4   Actor00400_D00168;
-extern Actor100400Stats Actor00400_D0FDC8;
-extern TaskDesc         Actor00400_D16028;
-extern u16              Actor00400_D1609C[8];
-extern byte             Actor00400_D1604C[];
-extern u8               Actor00400_D0E5B8[];
-extern u8               Actor00400_D0E970[];
-extern u8               Actor00400_D0ED28[];
-extern u8               Actor00400_D0F25C[];
-extern u8               Actor00400_D0F790[];
-extern u8               Actor00400_D0FD9C[];
-extern void*            D_800678F0[1];
+extern GsCOORDINATE2         Gfx_ViewCoord;
+extern MATRIX                Gfx_ViewWorldMtx;
+extern TaskFuncTable11       Actor00400_D0007C;
+extern TaskFuncTable10       Actor00400_D000A8;
+extern TaskFuncTable10       Actor00400_D000D0;
+extern TaskFuncTable15       Actor00400_D000F8;
+extern TaskFuncTable4        Actor00400_D00134;
+extern TaskFuncTable3        Actor00400_D00144;
+extern TaskFuncTable3        Actor00400_D00150;
+extern TaskFuncTable3        Actor00400_D0015C;
+extern TaskFuncTable4        Actor00400_D00168;
+extern Actor100400Stats      Actor00400_D0FDC8;
+extern TaskDesc              Actor00400_D16028;
+extern Actor100400AreaConfig Actor00400_D15F20[];
+extern u32                   Actor00400_D16010;
+/* The byte at 0x80062735 sits inside a larger block (`D_80062730`), and the
+   entry state's flag read only keeps its `lh` when the write ahead of it is a
+   member reference the scheduler cannot look past. */
+extern u8    D_80062735[];
+extern u16   Actor00400_D1609C[8];
+extern byte  Actor00400_D1604C[];
+extern u8    Actor00400_D0E5B8[];
+extern u8    Actor00400_D0E970[];
+extern u8    Actor00400_D0ED28[];
+extern u8    Actor00400_D0F25C[];
+extern u8    Actor00400_D0F790[];
+extern u8    Actor00400_D0FD9C[];
+extern void* D_800678F0[1];
 
 /// Spawns the hit/impact effect burst for `coord`. `arg3` packs an effect
 /// parameter in its low 12 bits and a 4-bit variant index at bits 12..15;
@@ -1455,7 +1471,356 @@ void Actor00400_Fn03570(GsCOORDINATE2* coord, s16 yaw)
     *(MATRIX**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03920);
+/* `Actor00400_D0002C` and `Actor00400_D00038` are this overlay's own dispatch
+   tables, so they are program structure rather than game content and belong in
+   C. They sit between `Actor00400_Fn01B90`'s jump table and the one
+   `Actor00400_Fn03920` generates, which is why they are defined here rather
+   than beside the other declarations: `.rodata` follows source order. */
+
+/// Kill-path states, indexed by `Task::state` in `Actor00400_Fn08004`.
+const TaskFuncTable3 Actor00400_D0002C = { {
+    Actor00400_Fn0A190,
+    Actor00400_Fn02D48,
+    Actor00400_Fn0A28C,
+} };
+
+/// The eight spawn / idle states the resident dispatcher walks, null-terminated.
+const TaskFuncTable9 Actor00400_D00038 = { {
+    (TaskFunc)Actor00400_Fn03920,
+    (TaskFunc)Actor00400_Fn04580,
+    (TaskFunc)Actor00400_Fn04B48,
+    (TaskFunc)Actor00400_Fn04E18,
+    (TaskFunc)Actor00400_Fn040DC,
+    (TaskFunc)Actor00400_Fn089C8,
+    (TaskFunc)Actor00400_Fn06B7C,
+    (TaskFunc)Actor00400_Fn070C0,
+    NULL,
+} };
+
+/// Applies the row of `Actor00400_D15F20` that matches the session's current
+/// area and room to the freshly allocated work block: the row can hide the root
+/// coordinate, override the waypoint set the spawn argument selects, hand the
+/// actor its record list and seed its height. Returns non-zero when the actor
+/// does not belong in this room - no row matched, or the matching row's `flags`
+/// bit 1 rejects it - which makes the entry state destroy the enemy instead.
+static __inline__ s32 Actor00400_ApplyAreaConfig(Actor100400* arg0)
+{
+    Actor100400AreaConfig* cfg;
+    Actor100400Work*       work;
+    GameSessionFrom4*      ses;
+    u16                    flags;
+
+    work = arg0->field_1C;
+    ses  = (GameSessionFrom4*)&Game_Session->field_4;
+    cfg  = Actor00400_D15F20;
+    while (cfg->area != 0xFF) {
+        if ((ses->field_3 == cfg->area) && (ses->field_2 == cfg->room)) {
+            flags = cfg->flags;
+            if (flags & 1) {
+                return 1;
+            }
+            if (flags & 2) {
+                work->field_661 = 1;
+            }
+            if (cfg->waypointSets != NULL) {
+                work->field_60C = cfg->waypointSets[(arg0->field_34.word >> 4) & 3];
+            }
+            if (cfg->records != NULL) {
+                work->field_608 = cfg->records;
+            }
+            if (cfg->height != NULL) {
+                work->field_64E = *cfg->height;
+            }
+            return 0;
+        }
+        cfg++;
+    }
+    return 1;
+}
+
+/// Points the object at the second part coordinate of the model and clears its
+/// pending-hit byte, then sets whether the root coordinate stays hidden. Shared
+/// by the two spawn states that attach the actor to its head.
+///
+/// `hide` is `s32` rather than `u8` so its literal lands in a different CSE mode
+/// class from the `1` the callers store into `field_664`, which is what makes
+/// state 6 materialise the constant twice the way retail does.
+static __inline__ void Actor00400_AttachHead(Actor100400* arg0, Actor100400Obj* obj,
+                                             Actor100400Work* work, s32 hide)
+{
+    obj->field_18   = &arg0->field_2C->field_8[1];
+    obj->field_14   = 0;
+    work->field_661 = hide;
+}
+
+void Actor00400_Fn03920(Actor100400* arg0)
+{
+    Actor100400Work*     work;
+    Actor100400Work*     w;
+    Actor100400Work*     anim;
+    Actor100400Obj*      obj;
+    Actor100400QuadWork* quad;
+    Actor100400Obj*      quadOwner;
+    Actor100400CoordPos* pos;
+    GsCOORDINATE2*       coord;
+    Task*                task;
+    s32                  failed;
+    s32                  nibble;
+    s32                  index;
+    u16                  y;
+
+    D_80062735[0] = 0xB;
+    obj           = arg0->field_20;
+    coord         = arg0->field_2C->field_8;
+    /* The shift pair keeps the `lh`: masking the halfword directly lets combine
+       rewrite the sign extension into a plain `lhu`. */
+    if (((arg0->field_34.half.hi << 16) >> 16) & 1) {
+        Gp_DestroyEnemy(obj, arg0);
+        return;
+    }
+    arg0->field_1C = Mem_Calloc(sizeof(Actor100400Work), 0);
+    work           = arg0->field_1C;
+    if (work == NULL) {
+        Gp_DestroyEnemy(obj, arg0);
+        return;
+    }
+
+    failed = Actor00400_ApplyAreaConfig(arg0);
+    if (failed) {
+        Gp_DestroyEnemy(obj, arg0);
+        return;
+    }
+
+    if ((arg0->field_34.word & 0xF) == 0) {
+        work->field_661 = 1;
+    }
+    Actor00400_Fn00B48(arg0);
+    arg0->field_24 = &Actor00400_D16010;
+    switch (arg0->field_34.word & 0xF) {
+        case 7:
+            work->field_658 = 0xC8;
+            work->field_666 = 1;
+            work->field_664 = 1;
+            work->field_63E = (u16)work->field_64E;
+            Actor00400_AttachHead(arg0, obj, work, 0);
+            w              = arg0->field_1C;
+            w->field_632   = 0x10;
+            w->field_628   = 0x10;
+            w->field_624   = 2;
+            w              = arg0->field_1C;
+            arg0->field_30 = 7;
+            w->field_638   = 0;
+            w->field_63A   = 0;
+            Gp_IncStateF0Ref(0);
+            obj->field_40 = (s16)obj->field_42 / 8;
+            break;
+        case 6:
+            work->field_666 = 0;
+            work->field_664 = 1;
+            Actor00400_AttachHead(arg0, obj, work, 1);
+            w              = arg0->field_1C;
+            w->field_632   = 0x10;
+            w->field_628   = 0xF;
+            w->field_624   = 2;
+            w              = arg0->field_1C;
+            arg0->field_30 = 6;
+            w->field_638   = 0;
+            w->field_63A   = 0;
+            Gp_IncStateF0Ref(0);
+            obj->field_40 = (s16)obj->field_42 / 8;
+            pos           = (Actor100400CoordPos*)arg0->field_2C->field_8;
+            quadOwner     = arg0->field_20;
+            y             = pos->y;
+            task          = Task_SpawnFromTable(&Actor00400_D16028, 2, 0, 0);
+            if (task != NULL) {
+                quad = Mem_Calloc(sizeof(Actor100400QuadWork), 0);
+                if (quad == NULL) {
+                    Task_Kill(task);
+                } else {
+                    task->idMap          = (TaskIdMap*)quad;
+                    quad->vertices[0].vx = pos->x - 0x5DC;
+                    quad->vertices[0].vy = y;
+                    quad->vertices[0].vz = pos->z - 0x5DC;
+                    quad->vertices[1].vx = pos->x + 0x5DC;
+                    quad->vertices[1].vy = y;
+                    quad->vertices[1].vz = pos->z - 0x5DC;
+                    quad->vertices[2].vx = pos->x - 0x5DC;
+                    quad->vertices[2].vy = y;
+                    quad->vertices[2].vz = pos->z + 0x5DC;
+                    quad->vertices[3].vx = pos->x + 0x5DC;
+                    quad->vertices[3].vy = y;
+                    quad->vertices[3].vz = pos->z + 0x5DC;
+                    quad->intensity      = 0xFF;
+                    quad->field_0        = quadOwner;
+                }
+            }
+            break;
+        case 0:
+            work->field_666 = 0;
+            work->field_661 = 1;
+            w               = arg0->field_1C;
+            w->field_632    = 0x10;
+            w->field_628    = 2;
+            w->field_624    = 2;
+            arg0->field_30  = arg0->field_30 + 1;
+            break;
+        case 4:
+            work->field_666 = 1;
+            nibble          = GameFlag_GetNibble(0xEB);
+            if (nibble != 2) {
+                obj->field_14  = 1;
+                w              = arg0->field_1C;
+                w->field_632   = 0x10;
+                w->field_628   = 1;
+                w->field_624   = 2;
+                w              = arg0->field_1C;
+                arg0->field_30 = 3;
+                w->field_638   = 0;
+                w->field_63A   = 0;
+                w              = arg0->field_1C;
+                w->field_638   = 0xD;
+                w->field_63A   = 0;
+            } else {
+                w              = arg0->field_1C;
+                w->field_632   = 0x10;
+                w->field_628   = 1;
+                w->field_624   = nibble;
+                w              = arg0->field_1C;
+                arg0->field_30 = 3;
+                w->field_638   = 0;
+                w->field_63A   = 0;
+            }
+            break;
+        case 5:
+            work->field_666 = 1;
+            nibble          = GameFlag_GetNibble(0xEB);
+            if (nibble != 2) {
+                obj->field_14   = 1;
+                work->field_666 = 1;
+                w               = arg0->field_1C;
+                w->field_632    = 0x10;
+                w->field_628    = 1;
+                w->field_624    = 2;
+                w               = arg0->field_1C;
+                arg0->field_30  = 3;
+                w->field_638    = 0;
+                w->field_63A    = 0;
+                w               = arg0->field_1C;
+                w->field_638    = 0xE;
+                w->field_63A    = 0;
+            } else {
+                w              = arg0->field_1C;
+                w->field_632   = 0x10;
+                w->field_628   = 1;
+                w->field_624   = nibble;
+                w              = arg0->field_1C;
+                arg0->field_30 = 3;
+                w->field_638   = 0;
+                w->field_63A   = 0;
+            }
+            break;
+        case 1:
+            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x042D0000) {
+                if (GameFlag_GetNibble(0xB7) == 0) {
+                    work->field_666 = 1;
+                    w               = arg0->field_1C;
+                    w->field_632    = 0x10;
+                    w->field_628    = 1;
+                    w->field_624    = 2;
+                    w               = arg0->field_1C;
+                    arg0->field_30  = 3;
+                    w->field_638    = 0;
+                    w->field_63A    = 0;
+                } else {
+                    work->field_661   = 1;
+                    w                 = arg0->field_1C;
+                    w->field_632      = 0x10;
+                    w->field_628      = 2;
+                    w->field_624      = 2;
+                    work->field_666   = 0;
+                    coord->coord.t[1] = 0;
+                    w                 = arg0->field_1C;
+                    arg0->field_30    = 1;
+                    w->field_638      = 0;
+                    w->field_63A      = 0;
+                }
+            } else {
+                work->field_666 = 1;
+                w               = arg0->field_1C;
+                w->field_632    = 0x10;
+                w->field_628    = 1;
+                w->field_624    = 2;
+                w               = arg0->field_1C;
+                arg0->field_30  = 3;
+                w->field_638    = 0;
+                w->field_63A    = 0;
+            }
+            break;
+        case 3:
+            work->field_666 = 1;
+            w               = arg0->field_1C;
+            w->field_632    = 0x10;
+            w->field_628    = 3;
+            w->field_624    = 2;
+            Actor00400_Fn02FF8(arg0);
+            coord->coord.t[0] = work->field_56C.vx;
+            work->field_63E   = (u16)work->field_64E;
+            coord->coord.t[1] = work->field_56C.vy + work->field_64E + 0x7D0;
+            coord->coord.t[2] = work->field_56C.vz;
+            Gp_IncStateF0Ref(0);
+            w              = arg0->field_1C;
+            arg0->field_30 = 3;
+            w->field_638   = 0;
+            w->field_63A   = 0;
+            w              = arg0->field_1C;
+            w->field_638   = 4;
+            w->field_63A   = 0;
+            break;
+        case 2:
+            work->field_666 = 1;
+            work->field_65F = 1;
+            w               = arg0->field_1C;
+            w->field_632    = 0x10;
+            w->field_628    = 3;
+            w->field_624    = 2;
+            w               = arg0->field_1C;
+            arg0->field_30  = 3;
+            w->field_638    = 0;
+            w->field_63A    = 0;
+            if ((arg0->field_34.word & 0xF0) == 0) {
+                w            = arg0->field_1C;
+                w->field_638 = 0xC;
+                w->field_63A = 0;
+            } else {
+                w            = arg0->field_1C;
+                w->field_638 = 0xB;
+                w->field_63A = 0;
+            }
+            break;
+    }
+
+    anim = arg0->field_1C;
+    if (anim->field_624 == 1) {
+        if (anim->field_626 != anim->field_628) {
+            anim->field_62A = 0;
+        } else {
+            anim->field_62A = Actor00400_Fn086FC(arg0, anim->field_62A);
+        }
+        Actor00400_Fn08624(arg0);
+        anim->field_624 = 3;
+    } else if (anim->field_624 == 2) {
+        Actor00400_Fn085B8(arg0);
+        anim->field_624 = 3;
+        anim->field_62A = 0;
+    } else if (anim->field_624 == 3) {
+        anim->field_62A = (u16)anim->field_62A + 1;
+    }
+    for (index = 1; index < 0xF; index++) {
+        Gp_AnimTickIndex(anim, index);
+    }
+    work->field_620 = 0x1000;
+    work->field_622 = 0x1000;
+}
 
 /// Colours the actor from the second attach coordinate of its model through a
 /// 0x10-byte `VECTOR` taken off `G_SCRATCH_HEAD`, then hides the root
@@ -1544,7 +1909,7 @@ void Actor00400_Fn042C0(Actor100400* arg0)
         w->field_63A       = 0;
         return;
     }
-    if (arg0->field_34 != 7) {
+    if (arg0->field_34.word != 7) {
         Actor100400Work* w;
         id = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40040006;
         SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(arg0->field_2C->field_8),
@@ -1588,7 +1953,7 @@ void Actor00400_Fn04414(Actor100400* arg0)
         Gp_AnimTickIndex(w, i);
         i++;
     } while (i < 0xF);
-    if (arg0->field_34 != 7) {
+    if (arg0->field_34.word != 7) {
         w2 = arg0->field_1C;
         if ((w2->flags_62C.half & 1) || (w2->flags_62C.word & 0x102)) {
             cond = 1;

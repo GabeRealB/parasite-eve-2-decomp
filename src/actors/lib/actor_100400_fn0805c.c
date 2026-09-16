@@ -56,10 +56,10 @@ void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
-extern GsCOORDINATE2  Gfx_ViewCoord;
-extern MATRIX         Gfx_ViewWorldMtx;
-extern TaskFuncTable3 Actor00400_D0002C;
-extern TaskFuncTable3 Actor00400_D00144;
+extern GsCOORDINATE2        Gfx_ViewCoord;
+extern MATRIX               Gfx_ViewWorldMtx;
+extern const TaskFuncTable3 Actor00400_D0002C;
+extern TaskFuncTable3       Actor00400_D00144;
 
 void Actor00400_Fn0805C(Actor100400* arg0, s32 arg1, Actor100400Msg* arg2)
 {

@@ -220,7 +220,8 @@ typedef struct Actor100400Work {
     /* 0x61A */ byte               pad_61A[2];
     /* 0x61C */ s16                field_61C;
     /* 0x61E */ s16                field_61E;
-    /* 0x620 */ byte               pad_620[4];
+    /* 0x620 */ s16                field_620;
+    /* 0x622 */ s16                field_622;
     /* 0x624 */ s16                field_624;
     /* 0x626 */ s16                field_626;
     /* 0x628 */ s16                field_628;
@@ -285,15 +286,59 @@ typedef struct Actor100400Msg {
     /* 0x02 */ u16 field_2;
 } Actor100400Msg;
 
+/// `Task::spawnArg1` as this overlay reads it: the whole word selects the spawn
+/// state, while the high half carries the "already dead" bit the entry state
+/// tests before it allocates anything.
+typedef union Actor100400SpawnArg {
+    s32 word;
+    struct {
+        /* 0x0 */ u16 lo;
+        /* 0x2 */ s16 hi;
+    } half;
+} Actor100400SpawnArg;
+
 typedef struct Actor100400 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor100400Work* field_1C;
-    /* 0x20 */ Actor100400Obj*  field_20;
-    /* 0x24 */ byte             pad_24[8];
-    /* 0x2C */ Actor100400Ctx*  field_2C;
-    /* 0x30 */ s32              field_30;
-    /* 0x34 */ s32              field_34;
+    /* 0x00 */ byte                pad_0[0x1C];
+    /* 0x1C */ Actor100400Work*    field_1C;
+    /* 0x20 */ Actor100400Obj*     field_20;
+    /* 0x24 */ void*               field_24; // Task::field_24, the message handler table
+    /* 0x28 */ byte                pad_28[4];
+    /* 0x2C */ Actor100400Ctx*     field_2C;
+    /* 0x30 */ s32                 field_30;
+    /* 0x34 */ Actor100400SpawnArg field_34;
 } Actor100400;
+
+/// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
+/// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
+/// equal `GameSession.field_7` / `field_6`; `flags` bit 1 rejects the actor
+/// outright and bit 2 hides its root coordinate. The three pointers are
+/// optional overrides taken from the room overlay: `waypointSets` is indexed by
+/// the spawn argument's second nibble, `records` becomes
+/// `Actor100400Work.field_608` and `height` seeds `field_64E`.
+typedef struct Actor100400AreaConfig {
+    /* 0x00 */ Actor100400Entry8** waypointSets;
+    /* 0x04 */ Actor100400Record*  records;
+    /* 0x08 */ u16*                height;
+    /* 0x0C */ s16                 area;
+    /* 0x0E */ s16                 room;
+    /* 0x10 */ u16                 flags;
+    /* 0x12 */ byte                pad_12[2];
+} Actor100400AreaConfig;
+STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
+
+/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so the quad the
+/// spawn state builds around the actor loads each world coordinate with `lhu`.
+/// The same narrowing `GpCoordXZ` does for X and Z, extended to Y.
+typedef struct Actor100400CoordPos {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ u16  x;
+    /* 0x1A */ byte pad_1A[2];
+    /* 0x1C */ u16  y;
+    /* 0x1E */ byte pad_1E[2];
+    /* 0x20 */ u16  z;
+    /* 0x22 */ byte pad_22[2];
+} Actor100400CoordPos;
+STATIC_ASSERT_SIZEOF(Actor100400CoordPos, 0x24);
 
 void Actor00400_Fn00C84(Actor100400*);
 void Actor00400_Fn07400(Actor100400*);
