@@ -55,7 +55,79 @@ void func_actor_206100_8014E228(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_80149ED0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014A70C);
+void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 arg3)
+{
+    SVECTOR vec;
+    s32     i;
+    u16     variant;
+    u16     param;
+
+    if (Gp_State1C->field_4 != 0) {
+        func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, 0x400, 0);
+        if (Gp_State1C->field_4 >= 4) {
+            return;
+        }
+    }
+
+    variant = (arg3 >> 12) & 0xF;
+    param   = arg3 & 0xFFF;
+
+    switch (arg2) {
+        case 0:
+            Gp_SpawnEff(D_80115738, coord, 0x14001000 + param + variant, NULL);
+            break;
+
+        case 1:
+            func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, param, 0);
+            if (!(arg1 & 1)) {
+                Gp_SpawnEff(D_80115738, coord, 0x01000000 + param + variant, NULL);
+            }
+            if (!(arg1 & 7)) {
+                SVECTOR* dir;
+
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+
+                dir = &vec;
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x40);
+                gte_ldsv(dir);
+                gte_gpf12_real();
+                gte_stsv(dir);
+                Gp_SpawnEff(0x600E0, coord, param, dir);
+            }
+            break;
+
+        case 2:
+            func_actor_206100_8014AB3C(coord, ((u32)arg1 >> 1) % 6, param, 0);
+            Gp_SpawnEff(D_80115738, coord, 0x10001000 + param + variant, NULL);
+            for (i = 0; i < 4; i++) {
+                SVECTOR* dir;
+
+                Gp_SpawnEff(D_80115738, coord, 0x02001000 + param + variant, NULL);
+
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+
+                dir = &vec;
+                VectorNormalSS(dir, dir);
+                gte_lddp(0x40);
+                gte_ldsv(dir);
+                gte_gpf12_real();
+                gte_stsv(dir);
+                Gp_SpawnEff(0x600E0, coord, param, dir);
+            }
+            break;
+    }
+}
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014AB3C);
 
 void func_actor_206100_8014AF74(Task* task)
