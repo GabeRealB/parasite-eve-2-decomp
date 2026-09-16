@@ -59,11 +59,12 @@ typedef struct Actor107600Work {
     /* 0x14B */ s8   field_14B; // scale percent applied to the model root coord.m[1][1]
     /* 0x14C */ s32  field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
     /* 0x150 */ s16  field_150; // Gp_GetIdParam2 of the last hit's id
-    /* 0x152 */ byte pad_152[0x4];
+    /* 0x152 */ byte pad_152[0x2];
+    /* 0x154 */ u16  field_154; // countdown before the sub-state's sound cue
     /* 0x156 */ s16  field_156;
     /* 0x158 */ s16  field_158;
     /* 0x15A */ s16  field_15A;
-    /* 0x15C */ byte pad_15C[0x2];
+    /* 0x15C */ s16  field_15C;
     /* 0x15E */ u16  field_15E;
     /* 0x160 */ s16  field_160; // damage of the last hit
     /* 0x162 */ s16  field_162; // spawn variant; 1 selects the 0x220 obj.field_1C

@@ -38,12 +38,6 @@ extern u16        D_actor_107600_80135750[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80131F10);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E20);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E24);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E34);
-
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132160);
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80132514);
@@ -319,15 +313,66 @@ void func_actor_107600_80132ED0(Task* arg0)
     arg0->state += 1;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_107600/actor_107600", D_actor_107600_80131E74);
-
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133024);
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801332D4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133668);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801337FC);
+/// Death sequence sub-state machine in `field_15A`: unlinks the enemy node and
+/// waits seven frames, plays the death cue, ramps `field_50` up to 0x400, then
+/// shrinks the `field_169`/`field_168` scales by 0x20 until both are <= 20 and
+/// raises bit 0x80 of `Task::spawnArg1`.
+void func_actor_107600_801337FC(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->idMap;
+    GpEnemy*         enemy = arg0->spawnArg2;
+    GpObj38*         obj;
+    s32              pan;
+
+    switch (work->field_15A) {
+        case 0:
+            work->field_15A++;
+            arg0->spawnArg1 |= 0x40;
+            work->field_154  = 7;
+            Gp_UnlinkNode(&enemy->node);
+            enemy->field_54  = 0;
+            work->obj.flags &= 0x7FFF;
+        case 1:
+            work->field_154--;
+            if ((s16)work->field_154 <= 0) {
+                obj = (GpObj38*)((TmdObject*)arg0->extra)->field_8;
+                work->field_15A++;
+                work->field_16B = 0;
+                work->field_15C = 0;
+                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                pan = (s8)Gp_GetObjPan(obj);
+                SndEvt_EnqueueType6(0x51140009, pan, (s8)Gp_GetObjDepth(obj));
+            }
+            break;
+        case 2:
+            if ((s16)work->field_50 < 0x400) {
+                work->field_50 += 0x80;
+                return;
+            }
+            work->field_50 = 0x400;
+            work->field_15A++;
+        case 3:
+            if (work->field_169 > 20) {
+                work->field_169 -= 0x20;
+                return;
+            }
+            if (work->field_168 > 20) {
+                work->field_168 -= 0x20;
+                return;
+            }
+            work->field_15A++;
+            arg0->spawnArg1 |= 0x80;
+            break;
+        case 4:
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_801339A4);
 
