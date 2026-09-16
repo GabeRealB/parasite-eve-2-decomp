@@ -305,8 +305,31 @@ def _ensure_maspsx_label_patch() -> None:
     print(f"Applied {patch.name} to tools/maspsx")
 
 
+def _ensure_maspsx_li_d_patch() -> None:
+    """Let `li.d` target any even-numbered GP register pair.
+
+    cc1 prints registers numerically, so a 64-bit constant that has to survive
+    a call reaches maspsx as `li.d $16,<c>` - the s0/s1 pair. The upstream
+    register table lists only the pairs it has been given, and `$16` was not
+    among them, so expansion aborted with "Unknown mapping for $16". Any even
+    number below 30 has exactly one possible partner, so derive it instead.
+    """
+    import subprocess
+
+    sub = TOOLS_DIR / "maspsx"
+    patch = (TOOLS_DIR / "maspsx-li-d-register-pair.patch").resolve()
+    marker = sub / "maspsx" / "__init__.py"
+    if not patch.is_file() or not marker.is_file():
+        return
+    if "has not seen yet still has" in marker.read_text():
+        return
+    subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
+    print(f"Applied {patch.name} to tools/maspsx")
+
+
 _ensure_maspsx_patch()
 _ensure_maspsx_label_patch()
+_ensure_maspsx_li_d_patch()
 match PLATFORM:
     case Platform.Windows:
         BINUTILS_DIR = OS_DIR / "binutils"

@@ -1,0 +1,18 @@
+diff --git a/maspsx/__init__.py b/maspsx/__init__.py
+index 4eba469..0b4bb7fd333ae2f7ff7e3b7892b74bcbe6a98098 100644
+@@ -320,6 +320,15 @@
+         "$18": "$19",  # s2
+     }
+     next_reg = lut.get(reg)
++    if next_reg is None:
++        # A 64-bit value lives in an even-numbered GP register and its odd
++        # neighbour, so any even number the table has not seen yet still has
++        # exactly one possible partner.  cc1 prints registers numerically, so
++        # e.g. `li.d $16,<c>` is the common callee-saved pair and reaches here.
++        pair = re.fullmatch(r"\$(\d+)", reg)
++        if pair and int(pair.group(1)) % 2 == 0 and int(pair.group(1)) < 30:
++            next_reg = f"${int(pair.group(1)) + 1}"
++
+     assert next_reg is not None, f"Unknown mapping for {reg}"
+     return next_reg
+ 

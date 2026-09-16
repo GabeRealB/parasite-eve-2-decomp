@@ -95263,3 +95263,55 @@ starred for appearing in **more than one class** at >=0.9 (`shape` 0.92 /
 it before writing anything from the asm, then diff the pair for the deltas
 rather than reconstructing the body - the transcription matched on the first
 build.
+
+## Matching a function from C removes the carrier of the rodata splat migrated into it (func_actor_350700_8016261C, 2026-09-16)
+
+`migrate_rodata_to_functions: True` pairs every rodata run with a function - the
+one that references it - and writes the run at the top of that function's `.s`.
+While the function is `INCLUDE_ASM` that single line is the only thing putting
+those bytes in the image, so replacing it with C removes the carrier too:
+
+- if the C names the symbol, the split cannot place it and the link says
+  `undefined reference to D_<seg>_<addr>`;
+- if nothing names it, the run is simply absent, the overlay comes out short and
+  everything after it shifts - the checksum catches that, but nothing points at
+  the function just matched.
+
+Fix it by giving the run an object of its own. A symbol listed in
+`configs/USA/sym/<family>/<overlay>.txt` is what makes splat write
+`nonmatchings/<unit>/<sym>.s` instead of folding the run into the function's
+file; add `force_not_migration:True` when the run sits in the middle of the
+block, then add the matching
+
+```c
+INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700", D_actor_350700_80161E40);
+```
+
+**at the source line the removed `INCLUDE_ASM` occupied**, not next to an
+address neighbour. The unit's `.rodata` is emitted in `.c` source order, so
+placing it in address order instead (beside `D_actor_350700_80161E20`, 0x1E24
+ahead of it) pushes every later run down by the symbol's size and the overlay
+checksums wrong. The line belongs between the
+`func_actor_350700_80162540` and `func_actor_350700_80162764` entries, which is
+where the carried run sat.
+
+One syntax trap while editing the symbol map: splat asserts the line has
+exactly one `;`, so a semicolon anywhere in the comment aborts the split with
+`Line must contain a single semi-colon` before it reads anything else.
+
+## A double constant reused across calls reaches maspsx as `li.d $16`, which its register table lacks
+
+`vec.vx * -0.4` on an `int` compiles to `__floatsidf` / `__muldf3` /
+`__fixdfsi` per component, with the `-0.4` materialised once into a
+callee-saved pair because it has to survive those calls. cc1 prints registers
+numerically, so maspsx sees `li.d $16,-0.4` and `get_next_register` aborted with
+`Unknown mapping for $16`: its table lists the pairs it has been handed case by
+case, and the s0/s1 pair - the one a value held across calls lands in - was not
+among them.
+
+Tracked as `tools/maspsx-li-d-register-pair.patch` and applied by
+`ninja_config.py`, the same way as the other two maspsx fixes. It derives the
+partner for any even GP number below 30, which is the only one a 64-bit value
+can have, so the omission cannot recur for `$20`/`$22`/`$24`. A constant that
+goes straight into `$6`/`$7` for a single call was already covered, which is why
+this only surfaces on a repeated one.

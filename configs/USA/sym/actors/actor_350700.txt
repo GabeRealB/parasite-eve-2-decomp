@@ -1,4 +1,5 @@
 // Overlay-local symbols for actor_350700.
+D_actor_350700_80161E40 = 0x80161E40; // const local-space offset func_actor_350700_8016261C rotates -- force_not_migration:True
 ActorsShared801327f8 = 0x80163400; // shared body, see src/actors/lib/
 ActorsShared801327f8Table = 0x80161E68; // force_not_migration:True shared body data, see src/actors/lib/
 ActorsShared80132f24 = 0x801633DC; // shared body, see src/actors/lib/
