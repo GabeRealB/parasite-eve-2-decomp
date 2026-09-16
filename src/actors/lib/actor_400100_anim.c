@@ -1,11 +1,28 @@
 #include "common.h"
 #include "actors/actor_400100.h"
 #include "actors/actor_400100_facing.h"
+#include "actors/actors_shared_80132808.h"
 #include "gameplay/1BC.h"
 #include "main/mem.h"
 #include "psyq/abs.h"
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_anim", Actor00100_Fn001FC);
+/// Same body as `ActorsShared80132808`: re-aim one joint by `yaw` about Y in
+/// world space and write the result back in its parent's frame.
+void Actor00100_Fn001FC(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    ActorsShared80132808_Accumulate(coord, rotation, &Gfx_ViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = ActorsShared80132808_Localize(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 /// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
 /// own that is released before `ratan2` runs.
