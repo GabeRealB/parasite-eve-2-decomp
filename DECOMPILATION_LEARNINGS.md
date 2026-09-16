@@ -109190,10 +109190,49 @@ truncation of its argument, costing `sll $a1,16 / sra $a1,16` before the `jal`.
 Two instructions of a 201-instruction function, and `.diagnosis.json` reports
 them only as `insert=1 delete=2`.
 
+The permuter reached the same object from `base_3.c` (321, no prototype) by
+materialising the argument in a `short` local, and three sources are provably
+equivalent here - each built to the *same* object (`dup_of base_4.c`, 60):
+
+```c
+#include "actors/actors_shared_80132808.h"   /* base_4.c, base_11.c: prototype */
+ActorsShared80132808(p, (yaw * 2) / 3);      /* the conversion is implicit */
+short new_var = (yaw * 2) / 3;               /* base_perm_2f8eba3e02704e9e.c */
+ActorsShared80132808(p, new_var);
+ActorsShared80132808(p, (s16)((yaw * 2) / 3));   /* base_10.c: cast, no header */
+```
+
+`base_10.c` was predicted (plan filed before the build) to reproduce the
+candidate exactly and did, which pins the mechanism to the *narrowing* and not
+to the permuter's spare declarator. Only the first call needs it: the sibling
+`yaw / 2` argument already carries its `sign_extend` in the seed's RTL, because
+the quotient of an `s16` is known to fit the halfword (`base_11.c` adds the
+redundant cast and the object does not move).
+
+Two more pieces of evidence for the delay-slot rule above, from
+`base_4.i.greg`: the block live sets reorg reads are *pre-regalloc* and are
+mapped through the final allocation - "Register dispositions" (`:48-56`) has
+`93 in 16, 94 in 17, 130 in 17, 131 in 16, 149 in 16, 150 in 17, 170 in 18,
+171 in 16`, so `$16` is live at the loop heads of all four loops (`:206`)
+(`:791`) (`:1014`), while `$17` is live at fewer of them. And across the nine
+builds that put both insns in that preheader (`base_2`…`base_11`), the slot is
+always filled by the insn that writes `$17` - the copy in `base_2`/`base_5`
+(`anim` in `$17`), the counter in the rest. What the walk in
+`find_dead_or_set_registers`/`mark_target_live_regs` does to leave `$16` in and
+drop `$17` was not pinned: the joining block's own set is
+`{sp, fp, arg0(s4), work(s3)}` (`base_4.i.greg:423`), so the bit is added along
+the walk, and the dumps do not expose it.
+
 Inputs: `base_4.i` (99.701%) SHA256
-`5c0f5a1905ec66477360b67a11216238d75b3f8c17df61af3104be27b95efeb1`; target
+`5c0f5a1905ec66477360b67a11216238d75b3f8c17df61af3104be27b95efeb1`; `base_10.i`
+`ef2df2a08f9c0b53f76a84b2a8141d7f15eb522b82fa04355fcfed07585472a7`; `base_11.i`
+`e7e97a0e22db99a7c41f16f545fadefdb05d2b61cf47c7a6e8efbe9c9d934397`; the
+permuter pair `base_perm_2f8eba3e02704e9e_parent.i`
+`318ccd806273aaaf39bcd06cc4c34650cc165daec30354cada1e72398fee9b4a` (321) and
+`base_perm_2f8eba3e02704e9e.i`
+`31fc8d287cc9e603cab1a04c0f7b16cbecbf8b9c439b8857bac145f5f5886a3a` (60); target
 SHA256 `142cec22db15f0eafa4ed7de40e958d654f35109a90bf9e508c0f9324cd88c96`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_80163508-vacuum`; best unpinned candidate
-`base_4.c` / `base_6.c`.
+`base_4.c` / `base_6.c` / `base_10.c` / `base_11.c`.
