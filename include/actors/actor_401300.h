@@ -91,7 +91,10 @@ typedef struct Actor401300AnimWork {
     /* 0x32C */ byte       pad_32C[0x130];
     /* 0x45C */ GpAnimCtx  blendAnim;
     /* 0x470 */ GpAnimSlot blendSlots[19];
-    /* 0x768 */ byte       pad_768[0x13E];
+    /* 0x768 */ byte       pad_768[0x138];
+    /* 0x8A0 */ s16        field_8A0;
+    /* 0x8A2 */ s16        field_8A2;
+    /* 0x8A4 */ byte       pad_8A4[2];
     /* 0x8A6 */ s16        field_8A6;
     /* 0x8A8 */ byte       pad_8A8[6];
     /* 0x8AE */ s16        field_8AE;
@@ -132,6 +135,10 @@ typedef union Actor401300Event {
 /// event writes into `GpEnemy::field_40`. Declared as an array: a scalar lets
 /// the scheduler hoist its load above the preceding store.
 extern u16 D_actor_401300_80141FA4[];
+
+/// Per-animation reset argument for `func_800B4114`, indexed by the previous
+/// and the new animation id (`field_8A0`, `field_8A2`).
+extern s8 D_actor_401300_8015804C[][45];
 
 s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* arg2);
 

@@ -13,6 +13,9 @@
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+/// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801323B0);
 
 s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* arg2)
@@ -69,7 +72,28 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80132FF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80133254);
+void func_actor_401300_80133254(Actor401300* arg0)
+{
+    s32                  i;
+    Actor401300AnimWork* work;
+
+    work = (Actor401300AnimWork*)arg0->field_1C;
+    TOUCH_REG(work);
+
+    if (work->field_8A0 != work->field_8A2) {
+        for (i = 1; i < 0x13; i++) {
+            work->slots[i].field_9 = work->field_8A6;
+            if (i >= 7) {
+                if (i < 9) {
+                    continue;
+                }
+            }
+            func_800B4114(&work->anim, i, work->field_8A2, 0,
+                          D_actor_401300_8015804C[work->field_8A0][work->field_8A2]);
+        }
+        work->field_8A0 = work->field_8A2;
+    }
+}
 
 void func_actor_401300_80133324(Actor401300* arg0)
 {
