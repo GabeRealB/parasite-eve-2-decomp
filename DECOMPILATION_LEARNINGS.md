@@ -92682,3 +92682,44 @@ there), which is what made the actor copy a port rather than a decompilation.
 Check `find` before starting: the brief's "similar matched bodies" list is the fuzzy
 `similar` tier and says as much, while `find`'s equality is exact and marks which
 copies are already matched.
+
+## m2c's masked loop variable is a `(u16)i` cast at each use site, not a variable of its own
+
+`func_actor_120300_80133330` opens by walking animation slots 1..19 through
+`Gp_AnimResetSlot`. m2c renders that as a `var_s1`/`var_a1` pair — a counter and a
+separate `var_a1 = var_s1 & 0xFFFF` re-derived at the loop bottom — and the seed
+scores 80.892% with `regs=31 delete=10`. The source is the ordinary shape:
+
+```c
+i = 1;
+do {
+    animWork->slots[(u16)i].field_9 = 0x10;
+    Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+    i++;
+} while ((u16)i < 0x14U);
+```
+
+which is 98.925% — `branch`, `insert` and `delete` all zero at once, with the
+`regs` penalty down from 31 to the 20 the remaining frame difference costs. **The
+discriminator is the second `andi`.** The mask at the loop test survives as a
+pseudo of its own, so the target ends
+
+```
+andi  v0,s1,0xFFFF      sltu  v0,v0,20      bnez  v0,L      andi  a1,s1,0xFFFF
+                        ^ the test's mask    (delay slot)  ^ the index's mask
+```
+
+— the same `s1 & 0xFFFF` computed twice, two instructions apart, in one block. A
+masked *variable* gives `move a1,v0` off the first one instead; CSE only fails to
+merge these because the source has two separate `(u16)` casts, so treat a
+recomputed mask in a branch delay slot as evidence the cast is at the use site.
+The same `var_a1` shape appears wherever m2c lifts a cast out of a loop, and the
+sibling `func_actor_136100_8013379C` — matched earlier with this source shape — is
+worth reading before rewriting one by hand.
+
+Two further points about this function, both already covered elsewhere: the
+0x40 frame against the target's 0x48 is the unused-`SVECTOR` slot (`An unused
+local still costs frame space`), and the `GpRec14` it fills is the same record
+`func_actor_136100_8013379C` fills. The work block is 0x4E4 bytes, which
+`Mem_Malloc` in `func_actor_120300_80132004` states outright — read that before
+inferring a block size from its last accessed field.
