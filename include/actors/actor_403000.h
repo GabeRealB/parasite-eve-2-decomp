@@ -6,6 +6,7 @@
 #include "actors/actors_shared_80164954.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -110,35 +111,37 @@ typedef struct Actor403000Work {
     /* 0xF7A */ byte pad_F7A[0xE];
     /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
     /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
-    /* 0xF88 */ s16   field_F88;
-    /* 0xF8A */ byte  pad_F8A[0x2];
-    /* 0xF8C */ s16   field_F8C;
-    /* 0xF8E */ byte  pad_F8E[0x2];
-    /* 0xF90 */ void* field_F90;
-    /* 0xF94 */ s32   field_F94;
-    /* 0xF98 */ s32   field_F98;
-    /* 0xF9C */ s32   field_F9C;
-    /* 0xFA0 */ s32   field_FA0;
-    /* 0xFA4 */ u8    field_FA4;
-    /* 0xFA5 */ u8    field_FA5;
-    /* 0xFA6 */ u8    field_FA6;
-    /* 0xFA7 */ byte  pad_FA7[0x11];
-    /* 0xFB8 */ s16   field_FB8;
-    /* 0xFBA */ s16   field_FBA;
-    /* 0xFBC */ s16   field_FBC;
-    /* 0xFBE */ byte  pad_FBE[0x2];
-    /* 0xFC0 */ s16   field_FC0;
-    /* 0xFC2 */ byte  pad_FC2[0x8];
-    /* 0xFCA */ s16   field_FCA;
-    /* 0xFCC */ byte  pad_FCC[0x6];
-    /* 0xFD2 */ s8    field_FD2;
-    /* 0xFD3 */ s8    field_FD3;
-    /* 0xFD4 */ byte  pad_FD4[0x1];
-    /* 0xFD5 */ s8    field_FD5;
-    /* 0xFD6 */ u8    field_FD6;
-    /* 0xFD7 */ byte  pad_FD7[0x2];
-    /* 0xFD9 */ u8    field_FD9;
-    /* 0xFDA */ byte  pad_FDA[0x2];
+    /* 0xF88 */ s16      field_F88;
+    /* 0xF8A */ byte     pad_F8A[0x2];
+    /* 0xF8C */ s16      field_F8C;
+    /* 0xF8E */ byte     pad_F8E[0x2];
+    /* 0xF90 */ void*    field_F90;
+    /* 0xF94 */ s32      field_F94;
+    /* 0xF98 */ s32      field_F98;
+    /* 0xF9C */ s32      field_F9C;
+    /* 0xFA0 */ s32      field_FA0;
+    /* 0xFA4 */ u8       field_FA4;
+    /* 0xFA5 */ u8       field_FA5;
+    /* 0xFA6 */ u8       field_FA6;
+    /* 0xFA7 */ byte     pad_FA7[0x1];
+    /* 0xFA8 */ GpEffArg field_FA8; // `func_800FDB18` argument record
+    /* 0xFB0 */ byte     pad_FB0[0x8];
+    /* 0xFB8 */ s16      field_FB8;
+    /* 0xFBA */ s16      field_FBA;
+    /* 0xFBC */ s16      field_FBC;
+    /* 0xFBE */ byte     pad_FBE[0x2];
+    /* 0xFC0 */ s16      field_FC0;
+    /* 0xFC2 */ byte     pad_FC2[0x8];
+    /* 0xFCA */ s16      field_FCA;
+    /* 0xFCC */ byte     pad_FCC[0x6];
+    /* 0xFD2 */ s8       field_FD2;
+    /* 0xFD3 */ s8       field_FD3;
+    /* 0xFD4 */ byte     pad_FD4[0x1];
+    /* 0xFD5 */ s8       field_FD5;
+    /* 0xFD6 */ u8       field_FD6;
+    /* 0xFD7 */ byte     pad_FD7[0x2];
+    /* 0xFD9 */ u8       field_FD9;
+    /* 0xFDA */ byte     pad_FDA[0x2];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -270,6 +273,10 @@ extern u8 D_actor_403000_80158D48[];
 /// The push message `func_actor_403000_801384E8` keeps resending to the
 /// player.
 extern Actor403000Msg3FE D_actor_403000_80158DB0;
+
+/// Pairs of hit-effect vectors `func_actor_403000_80134910` picks from by
+/// turn magnitude; `pad` indexes the display object's coordinate parts.
+extern SVECTOR D_actor_403000_80158C48[];
 
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the

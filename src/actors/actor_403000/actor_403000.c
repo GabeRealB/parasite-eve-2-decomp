@@ -796,7 +796,71 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80134910);
+void func_actor_403000_80134910(Actor403000* arg0, s16 arg1, s32 arg2)
+{
+    SVECTOR*         scratch;
+    Actor403000Work* work;
+    GpEffArg*        eff;
+    s32              mag;
+
+    scratch = (*(SVECTOR**)G_SCRATCH_HEAD -= 2);
+    mag     = (arg1 >= 0) ? arg1 : -arg1;
+    work    = arg0->field_1C;
+    if (mag < 0x200) {
+        switch ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) {
+            case 0:
+                scratch[0] = D_actor_403000_80158C48[0];
+                scratch[1] = D_actor_403000_80158C48[3];
+                break;
+            case 1:
+                scratch[0] = D_actor_403000_80158C48[1];
+                scratch[1] = D_actor_403000_80158C48[2];
+                break;
+            case 2:
+                scratch[0] = D_actor_403000_80158C48[2];
+                scratch[1] = D_actor_403000_80158C48[0];
+                break;
+            case 3:
+                scratch[0] = D_actor_403000_80158C48[3];
+                scratch[1] = D_actor_403000_80158C48[1];
+                break;
+            default:
+                scratch[0] = D_actor_403000_80158C48[4];
+                break;
+        }
+    } else if (mag > 0x600) {
+        switch ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 2) {
+            case 0:
+                scratch[0] = D_actor_403000_80158C48[5];
+                scratch[1] = D_actor_403000_80158C48[6];
+                break;
+            case 1:
+                scratch[0] = D_actor_403000_80158C48[6];
+                scratch[1] = D_actor_403000_80158C48[7];
+                break;
+            default:
+                scratch[0] = D_actor_403000_80158C48[7];
+                scratch[1] = D_actor_403000_80158C48[5];
+                break;
+        }
+    } else if (arg1 > 0) {
+        scratch[0] = D_actor_403000_80158C48[8];
+        scratch[1] = D_actor_403000_80158C48[9];
+    } else {
+        scratch[0] = D_actor_403000_80158C48[10];
+        scratch[1] = D_actor_403000_80158C48[11];
+    }
+    work->field_FA8.field_0 = &arg0->field_2C->field_8[scratch[0].pad];
+    work->field_FA8.field_4 = 0x500;
+    work->field_FA8.field_6 = 3;
+    eff                     = &work->field_FA8;
+    func_800FDB18((u16)Gp_GetIdParam1(arg2), &arg0->field_2C->field_8[scratch[0].pad], &scratch[0], eff);
+    work->field_FA8.field_0 = &arg0->field_2C->field_8[scratch[1].pad];
+    work->field_FA8.field_4 = 0x400;
+    work->field_FA8.field_6 = 2;
+    func_800FDB18((u16)Gp_GetIdParam1(arg2), &arg0->field_2C->field_8[scratch[1].pad], &scratch[1], eff);
+    *(SVECTOR**)G_SCRATCH_HEAD += 2;
+}
 
 s32 func_actor_403000_80134E00(Actor403000* arg0)
 {
