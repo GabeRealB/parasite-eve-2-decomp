@@ -15,6 +15,8 @@ extern Task* D_actor_341300_80165AA4;
 
 extern s8 D_8007272D;
 
+void func_actor_341300_80161E84(void);
+
 void func_actor_341300_8016398C(s32 arg0);
 
 void func_actor_341300_801639CC(s32 arg0);
@@ -33,7 +35,34 @@ void func_actor_341300_80162450(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162478);
+void func_actor_341300_80162478(Task* arg0)
+{
+    s16 next;
+    s16 count;
+
+    switch (arg0->state) {
+        case 0:
+            next                = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = next;
+            if (next != 0x3D) {
+                func_actor_341300_80161E84();
+                return;
+            }
+            return;
+        case 1:
+            count = arg0->killCountdown;
+            if (count < 0x1E) {
+                if ((count != 0xA) && (count != 0x14)) {
+                    func_actor_341300_80161E84();
+                }
+                arg0->killCountdown = (u16)arg0->killCountdown + 1;
+                return;
+            }
+        default:
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 void func_actor_341300_80162530(void)
 {
