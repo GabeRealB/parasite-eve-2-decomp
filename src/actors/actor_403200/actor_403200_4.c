@@ -55,6 +55,14 @@ extern TaskDesc D_actor_403200_8015E858;
 extern GsCOORDINATE2 D_actor_403200_8015F920;
 extern MATRIX        D_actor_403200_8015F924;
 
+/// Animation table the stand-up tick publishes to the player in its message
+/// 0x3FF, the same role `D_actor_444000_80161670` has for the arena tick.
+extern GpAnimSet* D_actor_403200_8015E6AC[];
+
+/// Reply buffer the stand-up tick passes with its message 0x3F8 before it asks
+/// the player for the hold. Same shape as `D_actor_444000_80161928`.
+extern Actor403200Msg3F8 D_actor_403200_8015FA00;
+
 /// This overlay's three task states -- spawn/setup, per-frame tick and
 /// teardown -- dispatched through by state, the same shape as the sibling
 /// enemy actors' tables.
@@ -690,7 +698,242 @@ void func_actor_403200_8013C84C(Task* arg0)
     SCRATCH_SP += 0x3C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013D028);
+/// State-change reset for the enemy's stand-up, plus the swipe tick that runs
+/// on every step afterwards. The reset half is `func_actor_403200_8013B23C`'s
+/// with the buffer allocator on the second walk in place of the release: it
+/// clears the host model's flag word, walks the seven escorts pushing that word
+/// onto each of their models, allocates the host's and every escort's buffers,
+/// rebuilds the free coordinate `field_E3C` from `field_7C8` and arms `field_E96`
+/// at 0xC80 before playing the entry cue.
+///
+/// Every step then clears that coordinate's flag and updates it, and each of the
+/// two swipe sub-states watches one animation slot's frame: sub-state 4 raises
+/// bit 0x8000 of the tenth collision object's `flags` and fires its two cues once
+/// `slots0[1]` reaches frame 0xC, sub-state 5 clears `field_EFA` and fires its
+/// single cue on `slots0[2]` frame 0x1C. Both cues are positioned on the first
+/// escort's second coordinate at half depth, and whichever sub-state is live is
+/// the one whose frame `field_7AC` is refreshed from -- the shared mask is what
+/// makes the pair one-shot. The switch on `field_6` arms the escort pose index
+/// `field_7A4` for seven states, 0x14 and 0xDC also seeding the shared countdown
+/// `D_actor_403200_80141C58` and re-arming `field_0`, and the 0x29..0x2E window
+/// raises that countdown by 0x258 while it is still under 0x1770.
+///
+/// The tail runs the per-frame body, scans the tenth collision object's five
+/// `recs2` records for one whose high half is 0x10000, and -- when it finds one,
+/// the enemy's HP is positive and the player's 0x3F8 query comes back zero --
+/// asks the player for the hold (0x3F9) and re-sends it the animation, stamping
+/// the player's `field_956` when the hold was taken. Past frame 0x39 the shared
+/// countdown is walked down 0x1E, or 0xC8 once it is past 0xBB9, and past 0x15
+/// the state arms `field_F06`.
+///
+/// The countdown's two arms are load-bearing: the `>= 0xBB9` test reads the
+/// halfword signed (`lh`) while each arm subtracts from it zero-extended
+/// (`lhu`), and writing the pair as one assignment off a shared temp lets CSE
+/// fold the compare onto the earlier zero-extended load, which costs an
+/// `sll`/`sra` re-extension pair the original does not have.
+void func_actor_403200_8013D028(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    GpRec18*         recs;
+    GpEnemy*         enemy;
+    Task*            task;
+    Task*            target;
+    s16              i;
+    s16              j;
+    s16              k;
+    s16              frame;
+    s16              frame2;
+    s16              reply;
+    s32              found;
+    s32              resetId;
+    s32              resetPan;
+    s32              swipeId;
+    s32              swipePan;
+    s32              swipe2Id;
+    s32              swipe2Pan;
+    s32              hitId;
+    s32              hitPan;
+    s32              cueId;
+    s32              cuePan;
+
+    work        = (Actor403200Work*)arg0->idMap;
+    enemy       = arg0->spawnArg2;
+    task        = Game_GetPtrSlot(3);
+    SCRATCH_SP -= 0x30;
+
+    if (work->field_4 != 0) {
+        work->field_F1D                    = 0xB;
+        work->field_7B3                    = 4;
+        work->field_7B0                    = 2;
+        escorts                            = (Actor403200Work*)arg0->idMap;
+        escorts->field_7F3                 = 0;
+        ((TmdObject*)arg0->extra)->field_C = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
+                    ((TmdObject*)arg0->extra)->field_C;
+            }
+        }
+        dying = (Actor403200Work*)arg0->idMap;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_EF6 = 1;
+        work->field_EF4 = 0;
+        work->field_EFA = 1;
+        work->field_EF8 = 1;
+        Gfx_RotMatrixY(&work->field_E3C.coord, work->field_7C8, 1);
+        work->field_E3C.flg = 0;
+        Gp_UpdateCoord(&work->field_E3C);
+        work->field_E96 = 0xC80;
+        resetId         = (((u16)enemy->field_8 >> 12) << 8) | 0x40200017;
+        resetPan        = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(resetId, resetPan,
+                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+
+    work->field_E3C.flg = 0;
+    Gp_UpdateCoord(&work->field_E3C);
+
+    if (work->field_7B3 == 4 && (frame = work->field_4A & 0x3FF) == 0xC &&
+        work->field_7AC != frame) {
+        work->field_EAC  = 3;
+        work->obj.flags |= 0x8000;
+        Gp_SpawnPadLerp(0x30, 0xFF, 8);
+        swipeId  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200019;
+        swipePan = (s8)Gp_GetObjPan(
+            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            swipeId, swipePan,
+            (s8)(Gp_GetObjDepth(
+                     (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) /
+                 2));
+        swipe2Id  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020001A;
+        swipe2Pan = (s8)Gp_GetObjPan(
+            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            swipe2Id, swipe2Pan,
+            (s8)(Gp_GetObjDepth(
+                     (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) /
+                 2));
+    } else {
+        work->obj.flags &= 0x7FFF;
+    }
+
+    if (work->field_7B3 == 5 && (frame2 = work->field_72 & 0x3FF) == 0x1C &&
+        work->field_7AC != frame2) {
+        work->field_EFA = 0;
+        work->field_EAC = 3;
+        Gp_SpawnPadLerp(0x20, 0x7F, 8);
+        hitId  = (((u16)enemy->field_8 >> 12) << 8) | 0x4020001B;
+        hitPan = (s8)Gp_GetObjPan(
+            (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+        SndEvt_EnqueueType6(
+            hitId, hitPan,
+            (s8)(Gp_GetObjDepth(
+                     (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) /
+                 2));
+    }
+
+    if (work->field_7B3 == 4) {
+        work->field_7AC = work->field_4A & 0x3FF;
+    } else {
+        work->field_7AC = work->field_72 & 0x3FF;
+    }
+
+    switch (work->field_6) {
+        case 0x14:
+            D_actor_403200_80141C58 = 0x640;
+            work->field_7A4         = 0;
+            break;
+        case 0x22:
+            work->field_7A4 = 1;
+            break;
+        case 0x2B:
+            work->field_7A4 = 5;
+            cueId           = (((u16)enemy->field_8 >> 12) << 8) | 0x40200018;
+            cuePan          = (s8)Gp_GetObjPan(
+                (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]);
+            SndEvt_EnqueueType6(
+                cueId, cuePan,
+                (s8)(Gp_GetObjDepth(
+                         (GpObj38*)&((TmdObject*)work->field_ECC[0]->task->extra)->field_8[1]) /
+                     2));
+            break;
+        case 0x2D:
+            work->field_7A4 = 2;
+            break;
+        case 0x38:
+            work->field_7A4 = 4;
+            break;
+        case 0x44:
+            work->field_7A4 = 3;
+            break;
+        case 0xDC:
+            work->field_0 = 0xA;
+            break;
+    }
+
+    if ((u32)((u16)work->field_6 - 0x29) < 6 && D_actor_403200_80141C58 < 0x1770) {
+        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 + 0x258;
+    }
+
+    func_actor_403200_80133DD8(arg0);
+
+    recs = work->recs2;
+    for (k = 0; k < 5; k++) {
+        if (recs[k].field_4 == 0) {
+            goto missed;
+        }
+        if ((recs[k].field_4 & 0xFFFF0000) == 0x10000) {
+            found = 1;
+            goto scanned;
+        }
+    }
+missed:
+    found = 0;
+scanned:
+    if (found != 0 && enemy->field_40 > 0 &&
+        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0) {
+        target          = Game_GetPtrSlot(3);
+        reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0);
+        work->field_ECA = reply;
+        if (reply == 1) {
+            ((GameActor*)task->idMap)->field_956 = 0xA;
+        }
+        work->field_EB0.field_0 = D_actor_403200_8015E6AC;
+        work->field_EC8         = 1;
+        work->field_EB0.field_4 = 2;
+        work->field_EB0.field_8 = 0;
+        work->field_EB0.field_C = 0;
+        Gp_DispatchMsg(task, 0x3FF, (s32)&work->field_EB0, 0);
+        work->field_7CA = 0;
+    }
+
+    if (work->field_6 == 0x3C && work->field_7B3 == 4) {
+        work->field_7B3 = 5;
+        work->field_7B0 = 1;
+    }
+
+    if (work->field_6 >= 0x39) {
+        if (D_actor_403200_80141C58 >= 0xBB9) {
+            D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+        } else {
+            D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0x1E;
+        }
+    }
+
+    if (work->field_6 >= 0x15) {
+        work->field_F06 = 4;
+    }
+
+    SCRATCH_SP += 0x30;
+}
 
 /// State-change reset for the enemy's stand-up, and the height servo that runs
 /// on every tick afterwards. The reset half is `func_actor_403200_8013B23C`'s

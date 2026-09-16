@@ -108182,3 +108182,70 @@ yaw;` store above it computes its address first and the pair lands in the target
 order — the `yaw` store itself still schedules after both `lui`s. Worth trying
 before anything else when a lone `lui`/`lui` pair is the leftover: the store order
 inside the block and the address order at its head are two separate levers.
+
+## The `if` / `else` around a conditional halfword update is what gives the signed compare its own `lh` (func_actor_403200_8013D028, 2026-09-17)
+
+`func_actor_403200_8013D028` walks a shared `s16` countdown down once `field_6`
+passes 0x39, by 0xC8 past 0xBB9 and by 0x1E below it, and the ROM loads the
+halfword **twice**:
+
+```
+    lh    v0, %lo(D)(a0)      # the compare, sign-extended
+    lhu   v1, %lo(D)(a0)      # the arithmetic, zero-extended
+    slti  v0, v0, 0xBB9
+    bnez  v0, .Ljoin
+      addiu v0, v1, -0x1E
+    addiu v0, v1, -0xC8
+  .Ljoin:
+    sh    v0, %lo(D)(a0)
+```
+
+Read the single `sh` at the join as "one assignment after the branch" and you
+write the temp form — and get a *different* compare:
+
+```c
+    cur = (u16)D - 0x1E;          /* zero-extended load first */
+    if (D >= 0xBB9) {
+        cur = (u16)D - 0xC8;
+    }
+    D = cur;
+```
+
+```
+    lhu   v1, %lo(D)(a1)
+    nop
+    sll   v0, v1, 0x10            # CSE reused the zero-extended load for the
+    sra   v0, v0, 0x10            # signed compare and re-extended it
+    slti  v0, v0, 0xbb9
+```
+
+CSE substitutes the *earlier* load into the compare, and because the value it
+has is HImode zero-extended while the compare needs it sign-extended, the
+substitution costs the `sll 16` / `sra 16` pair (99.088%, `insert=3`). Written
+compare-first, as an `if` / `else` whose arms each assign the same halfword, the
+compare issues its own `lh`, each arm keeps its `lhu`, and the two arm stores
+still merge into the one `sh` at the join — 100% on the change:
+
+```c
+    if (D >= 0xBB9) {
+        D = (u16)D - 0xC8;
+    } else {
+        D = (u16)D - 0x1E;
+    }
+```
+
+The merge is GCC's, not the source's: a single store in the source does not buy
+a single store in the object, and a *pair* of stores in the source does not cost
+one either. Decide this shape by the extension modes the two uses need, not by
+counting stores. `func_actor_444000_8013FB74`, the sibling arena tick, matched
+this same tail from this same if/else form.
+
+The rest of the function needed nothing beyond the sibling's idioms: the reset
+half is `func_actor_403200_8013D9EC`'s, the cue blocks are
+`func_actor_403200_8013DC3C`'s `field_8[1]` shape with `/ 2` on the depth, and
+the five-record scan is `func_actor_444000_8013FB74`'s `recs2` loop verbatim.
+Two builds: 86.239% from m2c, 86.239% -> 99.088% on the project-style rewrite,
+99.088% -> 100% on this tail.
+
+Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed input (base_2) `0d031abe936fcefcb9d8486907b591088af85ee6055987a37bcfa367878bd8f2`.

@@ -22,6 +22,15 @@ typedef struct Actor403200Msg7DA {
 } Actor403200Msg7DA;
 STATIC_ASSERT_SIZEOF(Actor403200Msg7DA, 0x4);
 
+/// Payload of the 0x3F8 query the stand-up state's swipe tick sends the player
+/// before it asks for the hold; `field_14` is the range it asks for. The same
+/// shape as `Actor103700Msg3F8` and `Actor444000Msg3F8`.
+typedef struct Actor403200Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor403200Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor403200Msg3F8, 0x18);
+
 /// One of the nine back-to-back collision groups in `Actor403200Work` at
 /// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
 /// is the `GpRec18` table it fills in for that part, which is why the stride is
@@ -93,7 +102,12 @@ typedef struct Actor403200Work {
     /// (saturating at 0x7FFF). State handlers fire one-shot cues on the ticks
     /// it reaches a given value.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x50];
+    /* 0x008 */ byte pad_8[0x42];
+    /// The animation frame the stand-up state latches its swipe cue on, masked
+    /// to 10 bits against the frame armed last tick in `field_7AC`. Same slot
+    /// as `Actor444000Work::slots0[1].field_2`.
+    /* 0x04A */ u16  field_4A;
+    /* 0x04C */ byte pad_4C[0xC];
     /// The trailing halfword of the animation slot the per-frame body tests for
     /// the `field_0 = 0xA` re-arm. Same slot as
     /// `Actor444000Work::slots0[1].field_10`.
@@ -119,7 +133,10 @@ typedef struct Actor403200Work {
     /// four one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7A8`.
     /* 0x7A8 */ s32  field_7A8;
-    /* 0x7AC */ byte pad_7AC[0x4];
+    /// The masked `field_4A` / `field_72` frame the stand-up tick last saw, so
+    /// each of its one-shot cues only fires on the step the animation first
+    /// reaches that frame. Same slot and role as `Actor444000Work::field_7AC`.
+    /* 0x7AC */ s32  field_7AC;
     /* 0x7B0 */ s8   field_7B0;
     /* 0x7B1 */ byte pad_7B1[0x2];
     /* 0x7B3 */ s8   field_7B3;
@@ -152,7 +169,21 @@ typedef struct Actor403200Work {
     /// run `Actor444000Work::hits` holds: each is the `GpObj` the gameplay
     /// collision list carries plus the `GpRec18` table it fills in.
     /* 0x7F4 */ Actor403200HitGroup hits[9];
-    /* 0xD4C */ byte                pad_D4C[0x140];
+    /// The tenth collision object, the one the swipe tick raises `flags` bit
+    /// 0x8000 on while the swipe is live. Same slot and role as
+    /// `Actor444000Work::obj`.
+    /* 0xD4C */ GpObj obj;
+    /* 0xD6C */ byte  pad_D6C[0x18];
+    /// The five records the tenth collision object carries, walked by the swipe
+    /// tick for the one whose high half is 0x10000. Same slots and role as
+    /// `Actor444000Work::recs2`.
+    /* 0xD84 */ GpRec18 recs2[5];
+    /* 0xDFC */ byte    pad_DFC[0x40];
+    /// Free coordinate the swipe tick clears and pushes through
+    /// `Gp_UpdateCoord` every step; `coord` is the matrix `Gfx_RotMatrixY`
+    /// rebuilds from `field_7C8`. Same slot and role as
+    /// `Actor444000Work::field_E3C`.
+    /* 0xE3C */ GsCOORDINATE2 field_E3C;
     /// `Gp_GetIdParam2` of the hit the group-0 handler took this frame; the
     /// sibling slots carry the other groups' ids. Same slots and role as
     /// `Actor444000Work::field_E8C`.
@@ -181,7 +212,15 @@ typedef struct Actor403200Work {
     /// Message 0x3FF payload the launch state sends the player. Same slot and
     /// role as `Actor444000Work::anim`.
     /* 0xEB0 */ GpAnimArg field_EB0;
-    /* 0xEC4 */ byte      pad_EC4[0x8];
+    /* 0xEC4 */ byte      pad_EC4[0x4];
+    /// Set to 1 while the player holds the animation the stand-up state hands
+    /// over in its message 0x3FF. Same slot and role as
+    /// `Actor444000Work::field_EC8`.
+    /* 0xEC8 */ s16 field_EC8;
+    /// The reply the swipe tick's hold request (message 0x3F9) came back with,
+    /// 1 when the player took it. Same slot and role as
+    /// `Actor444000Work::field_ECA`.
+    /* 0xECA */ s16 field_ECA;
     /// The escorts the state-change reset walks to push the host's
     /// `TmdObject::field_C` onto each escort's own model object; the same
     /// seven-slot run as `Actor444000Work::field_ECC`.
@@ -196,7 +235,9 @@ typedef struct Actor403200Work {
     /* 0xEF0 */ GpEnemy* field_EF0;
     /* 0xEF4 */ s16      field_EF4;
     /* 0xEF6 */ s16      field_EF6;
-    /* 0xEF8 */ byte     pad_EF8[0x2];
+    /// Armed to 1 alongside `field_EF6` by the swipe tick's reset half. Same
+    /// slot and role as `Actor444000Work::field_EF8`.
+    /* 0xEF8 */ s16 field_EF8;
     /// Armed to 1 by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFA`.
     /* 0xEFA */ s16  field_EFA;
