@@ -106426,3 +106426,65 @@ More generally: when a brief's *Similar matched bodies* lists a sibling at
 `fields` 1.00 with a high `shape`, read that sibling's C before writing
 anything. Here the whole function was a two-line difference from a matched
 body in another family, and it matched on the first attempt.
+
+## A value assigned in several branches is a global allocno; storing it in each branch keeps it block-local and jump2 merges the stores (func_actor_421600_8013ED24, 2026-09-16)
+
+**Symptom.** The tail of the actor state handlers reads `field_68 & 0x100`, then
+picks 0x15 / 4 / 0x24 from a nested test and stores the result once at the end.
+`base.c` (m2c's shape) is one register off at 99.655%, `regs=4` and every other
+penalty zero: the target materialises **all three** constants in `$v0`
+
+```
+lh      v0,0x40(s1)
+blez    v0,<store>
+addiu   v0,zero,0x15     <- branch delay slot
+lbu     v0,0x4c(s1)
+andi    v0,v0,0x2
+bnez    v0,<store>
+addiu   v0,zero,0x4      <- branch delay slot
+addiu   v0,zero,0x24
+<store>: sh v0,0x0(s0)
+```
+
+while the seed's `s16 v = 0x15; if (...) { v = 4; if (...) v = 0x24; } field_0 = v;`
+puts the same three `li`s in `$v1`. `.greg` gives the reason directly:
+`;; 83 conflicts: 81 82 83 2 29` - the value is a **global** pseudo (it spans the
+three arms and the store), so `global.c` homes it, and `global_conflicts` has
+already marked `$v0` against it: each arm's own condition temporaries (`lh`,
+`lbu`/`andi`) are block-local quantities that `local-alloc` homed in `$v0`, and
+`global_conflicts` turns a renumbered pseudo into a hard register
+(`record_one_conflict (2)`) for every live allocno. Same mechanism as the
+merge-block flag copy in `Actor00400_Fn09124`, one register over.
+
+**Lever.** Store the field in each arm instead of through a shared variable:
+
+```c
+    if (work->field_68 & 0x100) {
+        if (enemy->field_40 > 0) {
+            if (enemy->field_4C & 2) { work->field_0 = 4; }
+            else                     { work->field_0 = 0x24; }
+        } else                       { work->field_0 = 0x15; }
+    }
+```
+
+Each arm's constant is now its own block-local pseudo - `local-alloc` gives all
+three `$v0`, since no two of them are live at once - and the three arms end in
+*identical* `sh v0,0x0(s0)` insns. jump2 cross-jumps after reload, so it deletes
+two of the three stores and repoints their jumps at the survivor, producing the
+target's single `sh` with no extra `move`: the `.lreg` shows the seed's one
+`set 83 = const; set mem = 83` per arm plus a jump to an **empty** merge block,
+which is the pre-cross-jump shape to look for.
+
+This is the shape the rest of the family uses, so prefer it over m2c's variable:
+`src/actors/lib/actor_400100_tail.c` carries the same tail matched as
+`Actor00100_Fn0B98C` / `Actor00100_Fn0BB2C`, whose object is instruction-for-
+instruction the target above. The reverse (a single assignment on a merge edge)
+is `Actor00400_Fn09124`'s lever; both come down to "which arm's pseudo gets to
+be block-local".
+
+Inputs: `base.i` (99.655%) SHA256
+`a41053b81990a2c6fe85fef995229d3118811d43fc13ecd223077493bf3c73f8`; `base_1.i`
+(100%) SHA256 `07148a52983c8b168cb4f1013effd8842b668a857e0288e91c7c7827ef0fab1f`;
+target.o SHA256 `a08d530d47b8025d7965c08a9a3343244a172e04511b2d0a8403eb963bd04a46`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_421600_8013ED24-vacuum`.
