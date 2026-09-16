@@ -96329,3 +96329,31 @@ candidate through the same pipeline `build.sh` uses (`cc1 -dp` →
 `maspsx --run-assembler`) and compare objdump output before drawing any
 conclusion from the layout. Reading the `.s` is still the way to see RTL uids
 and the `.set noreorder` blocks, but it is not the artifact being matched.
+
+## m2c's `arg0 + 0xNN` is a byte offset, and C scales it by `sizeof(*arg0)`
+
+**Symptom.** Exactly one instruction differs across the whole function, and it
+is a displacement: the object has `addiu a0,s0,0x600` where the ROM has
+`addiu a0,s0,0x10`. Block topology, predicates and every other instruction
+agree, so the report reads `regs=1` at 99.912% and looks like an allocation
+problem.
+
+**Cause.** The assembly passes a pointer 0x10 bytes into the argument
+(`addiu $a0,$s2,0x10`). m2c renders a bare offset on a *typed* pointer as
+`arg0 + 0x10`, and C scales that by `sizeof(*arg0)` — 0x60 for a `GpEnemy`,
+hence 0x600. m2c only does this where it has a struct type for the parameter;
+the number it printed is the raw byte offset from the disassembly.
+
+**Fix.** Name the member that lives there and take its address. Here
+`GpEnemy::node` is the `GpLinkNode` at +0x10:
+
+```c
+-        Gp_UnlinkNode(arg0 + 0x10);
++        Gp_UnlinkNode(&arg0->node);
+```
+
+Sweep the m2c seed for every remaining `p + N` before the first build rather
+than after the first mismatch: the tell is one wrong immediate in an otherwise
+perfect function, and it never is a register-allocation difference.
+
+Example: `func_actor_105300_80133838`.
