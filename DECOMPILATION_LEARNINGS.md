@@ -86797,3 +86797,57 @@ moving the slot, but is not equivalent: GCC then pins `sp + 0x10` in a
 callee-saved register and addresses the vector as `0($s0)` / `2($s0)` /
 `4($s0)`, and sign-extends a field read after the call with `lhu` + `sll` +
 `sra` instead of `lh`.
+
+## A loop the tail re-reads from needs `goto` out of `for (;;)`, not `break` and not a bare `goto` loop (Actor00400_Fn02FF8, 2026-09-16)
+
+`Actor00400_Fn02FF8` walks a waypoint array to the `-1` terminator and then, in
+the code after the loop, reloads the array base it had just loaded at the loop
+top:
+
+```
+.Lloop:
+    lh   $a1, 0x18($s0)
+    lw   $v0, 0x608($s1)        # work->field_608
+    ...
+    beq  $a0, $v0, .Ltail
+    ...
+    j    .Lloop
+.Ltail:
+    lh   $a0, 0x64A($s1)
+    lh   $v0, 0x1A($s0)
+    beq  $a0, $v0, .Lend
+     sll $v0, $a0, 3
+    lw   $v1, 0x608($s1)        # loaded again, with a load-delay nop
+```
+
+Written as a `goto` loop the tail's `lw` disappears and the loop-top load is
+kept alive in `$a2` instead, which also re-colours the whole loop (97.47%,
+`regs=14`, two instructions short). The cause is `cse_end_of_basic_block`
+(`cse.c`): with `-fcse-follow-jumps` it extends a basic block *through* a
+conditional branch when the branch is the only use of its label and the label is
+preceded by a BARRIER. A `goto` loop ends with `j .Lloop` + BARRIER immediately
+before the exit label, so both hold, and the tail is CSE'd with the loop-top's
+table still live. The `;; Processing block from 43 to 0` line in the `.cse` dump
+is the tell — the loop block ran to the end of the function.
+
+The backward BARRIER scan stops at a `NOTE_INSN_LOOP_END`, so a loop construct
+puts that note between the back-edge barrier and the tail label and the
+extension is refused. But the obvious constructs make it worse:
+
+| form | what happens |
+|---|---|
+| `goto` loop | no loop notes; cse follows the exit branch into the tail |
+| `for (;;) { … if (x) break; … }` | `break` targets the loop's `end_label`, so `expand_end_loop` (`stmt.c`) rolls the leading exit test to the bottom — 78%, a preheader copy of the test and a `j` into the middle |
+| `for (;;) { … if (x) goto done; … } done:` | matches |
+
+`expand_end_loop`'s rotation only fires for a conditional branch to
+`end_label` / `alt_end_label`, which is what `break` and a `while`/`for`
+condition compile to; a `goto` to a user label is invisible to it. So the loop
+stays in source order, `loop.c` finds nothing to hoist (a store through an
+unrelated pointer in the body sets `unknown_address_altered`, which is also why
+the base is re-read three times *inside* the loop), and the `NOTE_INSN_LOOP_END`
+still lands where CSE needs it.
+
+Read a re-load right after a loop, of something the loop top had in a register,
+as this note being present — and reach for `goto` out of `for (;;)` rather than
+trying to lengthen or shorten a live range.
