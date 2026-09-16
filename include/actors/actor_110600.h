@@ -27,7 +27,16 @@ typedef struct Actor110600Work {
     /* 0x004 */ s16   field_4;
     /* 0x006 */ byte  pad_6[2];
     /* 0x008 */ s16   field_8;
-    /* 0x00A */ byte  pad_A[0x8AE];
+    /* 0x00A */ byte  pad_A[0x882];
+    /* 0x88C */ s16   field_88C;
+    /* 0x88E */ s16   field_88E;
+    /* 0x890 */ byte  pad_890[2];
+    /* 0x892 */ s16   field_892;
+    /* 0x894 */ byte  pad_894[2];
+    /* 0x896 */ s16   field_896;
+    /* 0x898 */ byte  pad_898[0xC];
+    /* 0x8A4 */ s16   field_8A4;
+    /* 0x8A6 */ byte  pad_8A6[0x12];
     /* 0x8B8 */ GpObj field_8B8;
     /* 0x8D8 */ byte  pad_8D8[0x78];
     /* 0x950 */ GpObj field_950;
@@ -35,10 +44,14 @@ typedef struct Actor110600Work {
     /* 0xA90 */ GpObj field_A90;
     /* 0xAB0 */ byte  pad_AB0[0xCC];
     /* 0xB7C */ u16   field_B7C;
-    /* 0xB7E */ byte  pad_B7E[0x56];
+    /* 0xB7E */ byte  pad_B7E[4];
+    /* 0xB82 */ s16   field_B82;
+    /* 0xB84 */ byte  pad_B84[0x50];
     /* 0xBD4 */ Task* field_BD4;
     /* 0xBD8 */ Task* field_BD8;
-    /* 0xBDC */ byte  pad_BDC[8];
+    /* 0xBDC */ byte  pad_BDC[4];
+    /* 0xBE0 */ s16   field_BE0;
+    /* 0xBE2 */ byte  pad_BE2[2];
     /* 0xBE4 */ s16   field_BE4;
     /* 0xBE6 */ s16   field_BE6;
     /* 0xBE8 */ byte  pad_BE8[4];
@@ -64,6 +77,16 @@ void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz);
 
 s32  func_actor_110600_801387C0(Task* arg0);
 void func_actor_110600_801388A4(Actor110600* arg0);
+
+/// The actor's per-tick model update, driven from `Task::idMap` /
+/// `Task::spawnArg2` off the pointer it is handed.
+void func_actor_110600_80134728(Actor110600* arg0);
+
+/// Enters work state 2 (`field_88C`) on a live actor: clear the model object,
+/// clear bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
+/// tag the enemy's link node, arm the `field_892` / `field_896` timers, then run
+/// 20 update ticks before parking `field_896` at -8 and ticking once more.
+void func_actor_110600_80138CA4(Actor110600* arg0);
 
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.

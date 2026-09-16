@@ -91872,3 +91872,65 @@ idiom) must be kept: the target reads `-0x34($s4)` from the surviving `head`, no
 
 So before reaching for asm or pins on a fixed-address access, look for a
 duplicated close-out in the target: an inline is usually cheaper than the pin.
+
+## A call that passes the incoming parameter needs no argument move, yet its operand still reweights the allocno rank
+
+**Symptom.** `func_actor_110600_80138CA4` sat at 96.52% with the actor pointer in
+`$s2` and the loop counter in `$s1` where retail has the pointer in `$s1` and the
+counter in `$s2` (`regs=17`), the `arg0->field_20` pointer loading into `$a0`
+instead of `$a1`, and one load-delay `nop` missing (`0:0` opcode delta -1). The
+whole function is three calls to `func_actor_110600_80134728(arg0)`, a `beqz`
+guard and a 20-iteration loop.
+
+**Cause: what the first call passes.** m2c had seeded the first call with the
+`field_20` pointer it had just loaded for the `node.field_4 = 1` store. The ROM
+passes `arg0` itself: `$a0` is written exactly three times in the whole function
+-- the entry copy `addu $s1,$a0,$zero` and the two later argument setups
+`addu $a0,$s1,$zero` -- so the *first* call consumes `$a0` still holding the
+parameter. Passing `arg0` there is what makes the two derived effects fall out:
+
+- `jump.c`'s post-reload `noop_moves` pass (`jump_optimize`, via
+  `find_equiv_reg (NULL_RTX, insn, 0, sreg, NULL_PTR, dreg, mode)`) deletes the
+  argument copy `(set (reg:SI 4 a0) (reg/v:SI 80))` -- `$a0` provably still holds
+  that value, since `reg 80` is its copy from entry and nothing has written `$a0`
+  since. The insn is gone by `.jump2` and the object has no `move a0,s1` at all.
+- `flow` runs *before* reload, so that deleted insn's operand was already counted.
+  `reg 80`'s refs go 7 -> 8 over an unchanged 76-insn live range, and
+  `allocno_compare` (`global.c:594`) ranks by
+  `floor_log2 (n_refs) * n_refs / live_length * 10000`:
+
+  ```
+  reg 80 (arg0)      refs 7  len 76  ->  1842   (before: loses to the counter)
+  reg 82 (s16 i)     refs 5  len 33  ->  3030
+  reg 80 (arg0)      refs 8  len 76  ->  3157   (after: wins $s1)
+  ```
+
+  `.greg` prints the rank order directly: `;; 3 regs to allocate: 84 82 80`
+  becomes `84 80 82`, and the dispositions follow (`80 in 17`, `82 in 18`,
+  `84 in 16`). With `$a0` no longer claimed by the call's argument, the
+  `field_20` pointer's pseudo also drops from `83 in 4` to `83 in 5` -- `$a1` --
+  which is what restores the load order and the delay-slot `nop`
+  (`lw $a1,0x20($s1)` / `lw $v0,0x2C($s1)` / `nop` / `sh $zero,0xC($v0)`).
+
+**Fix.** Pass the parameter, not a pointer derived from it:
+
+```c
+func_actor_110600_80134728(arg0);        /* 100% */
+func_actor_110600_80134728(temp_a1);     /* 96.5%: $a0 taken, rank lost */
+```
+
+Raising refs 7 -> 8 crosses `floor_log2`, so the numerator gains more than the
+one extra reference looks like; a same-shape call whose argument is *not* the
+parameter cannot be used to reweight it.
+
+**Also:** the m2c `do { t = i + 1; i = t; } while (t < 0x14)` and a plain
+`for (i = 0; i < 0x14; i++)` over `s16 i` compile to the same 54 instructions
+(`base_2.i` and `base_3.i` agree byte-for-byte with `base_1.i`), so the loop
+shape was never part of this one.
+
+Inputs: `base.i`
+`93397e7681f3d84a7907c683c48da19aad29b82b236863be4ac03ad62e675c59` (96.5185%,
+`regs=17 stack=1 branch=2 delete=1`), `base_1.i`
+`aa8cf5c1f1b334d5d6ab8d9a62fb82a8f3516486babcae34186a3b03c31c991f` (0
+differences), target
+`7d3ab20d058ab702b3d5cd2deb495c7f5580449b629ed56a5be55cad94a83997`.
