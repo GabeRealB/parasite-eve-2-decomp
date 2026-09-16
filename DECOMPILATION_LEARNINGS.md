@@ -100815,3 +100815,38 @@ the permuter found nothing.
 Fix: `if (abs(a - b) < 300)` with `<psyq/abs.h>`. The builtin expansion ties the
 difference to the abs result, so the `a` load lands in `$v0`. Try `abs()` whenever
 an if/negate absolute value is exact except for the subtract's operand registers.
+
+## Two identical `if (x == K) goto check; clear; break;` tails: jump into one tail's label to keep both (func_actor_204000_8014ADFC)
+
+Two switch cases each ended `li v0,K; beq v1,v0,check; nop; j end; sh zero,0x474(a0)`
+with different `K`. Written as two independent `if (v == K) goto check; field = 0;
+break;` tails, jump2's cross-jump matched `beq` + `sh` (the 2 insns it needs) and
+merged them, leaving case 2 as `bne 0x15 -> <case 3's beq>` with `li 0x11` in the
+slot - 4 instructions short. Giving case 2's tail a return (`return 0`) avoided the
+merge but inlined the epilogue (`move v0,zero; jr ra`) instead of `j end`.
+
+Fix: put a label on case 2's store and make case 3 jump to it, with case 3's own
+test inverted so its last compare is not a `goto check` next to that label:
+
+```c
+    not15:
+        if (v == 0x11) goto check;
+    clear:
+        arg0->field_474 = 0;
+        break;
+    case 3:
+        ...
+        if (v != 0xD && v != 0x12) goto clear;
+        goto check;
+```
+
+`find_cross_jump` stops at a `CODE_LABEL`, so case 2 keeps its `beq`; case 3's
+`goto clear` is then filled by dbr stealing the `sh` into the jump's slot and
+retargeting to `end`, which reproduces the second copy. Writing case 3 as
+`if (v == 0xD || v == 0x12) goto check; goto clear;` instead lets the jump to
+`clear` cross-jump its own `beq` against case 2's (`j <case 2 beq>`).
+
+Also in this function: a `u16 id` masked from `field_4A & 0x3FF` plus an explicit
+`s32 v = id;` used for every compare swapped the two `andi` registers into place
+(`a1` = masked, `v1` = extension); with the implicit extension the u16 pseudo had
+more refs and won `v1`.
