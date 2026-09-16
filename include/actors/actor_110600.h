@@ -51,22 +51,54 @@ typedef struct Actor110600Walker {
     /* 0x00 */ Actor110600WalkerNav*   nav;
     /* 0x04 */ Actor110600WalkerRoute* route;
     /* 0x08 */ GsCOORDINATE2*          coord;
-    /* 0x0C */ byte                    pad_C[0x48];
-    /* 0x54 */ s16                     scale;
-    /* 0x56 */ byte                    pad_56[4];
-    /* 0x5A */ s16                     field_5A;
-    /* 0x5C */ u16                     field_5C;
-    /* 0x5E */ u16                     field_5E;
-    /* 0x60 */ u16                     field_60;
-    /* 0x62 */ s16                     field_62;
-    /* 0x64 */ s16                     field_64;
-    /* 0x66 */ byte                    pad_66[0x2];
-    /* 0x68 */ u8                      state;
-    /* 0x69 */ byte                    pad_69[0x1];
-    /* 0x6A */ u8                      node;
-    /* 0x6B */ byte                    pad_6B[0x41];
+    /* 0x0C */ byte                    pad_C[0x28];
+    /// The model's saved rotation, which the turn step copies back onto
+    /// `coord` before rebuilding it around the yaw it just turned to.
+    /* 0x34 */ MATRIX scaleMtx;
+    /* 0x54 */ s16    scale;
+    /* 0x56 */ byte   pad_56[4];
+    /* 0x5A */ s16    field_5A;
+    /* 0x5C */ u16    field_5C;
+    /* 0x5E */ u16    field_5E;
+    /* 0x60 */ u16    field_60;
+    /* 0x62 */ s16    field_62;
+    /* 0x64 */ s16    field_64;
+    /* 0x66 */ byte   pad_66[0x2];
+    /* 0x68 */ u8     state;
+    /* 0x69 */ byte   pad_69[0x1];
+    /* 0x6A */ u8     node;
+    /* 0x6B */ byte   pad_6B[0x41];
 } Actor110600Walker;
 STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
+
+/// 0x10-byte scratch block the turn step carves off the frame it already
+/// holds to stage the XZ offset between the position it is turning towards and
+/// the walker's own coordinate translation. The offset is kept at full width
+/// because the walker's translation is, and the block is released before
+/// `ratan2` runs.
+typedef struct Actor110600AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor110600AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor110600AvoidDelta, 0x10);
+
+/// 0x1C-byte scratch frame the turn step opens on `G_SCRATCH_HEAD`, nested
+/// over the delta block above. `angle` is the yaw the walker ends the frame
+/// facing: the wrapped bearing the turn counter just measured, clamped to the
+/// per-frame limit and made absolute against the coordinate's own yaw.
+typedef struct Actor110600TurnScratch {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ s16  angle;
+    /* 0x1A */ byte pad_1A[0x2];
+} Actor110600TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor110600TurnScratch, 0x1C);
+
+/// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
+/// The wrapped relative bearing drives the consecutive-turn counter, then
+/// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
+void func_actor_110600_80133550(Actor110600Walker* work, SVECTOR3* pos);
 
 /// Work block this overlay parks in the task's `Task::idMap` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
