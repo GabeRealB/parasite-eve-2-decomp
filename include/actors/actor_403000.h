@@ -33,22 +33,42 @@ STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 /// rather than `ActorShared80164af0Work::field_16`); `field_AC6` is the
 /// requested animation id, written by the handlers and read back by the
 /// handlers that tick the current state.
+///
+/// `field_AC0` is the playback state `func_actor_403000_80133AF8` switches on
+/// (1 is the running state, whose per-frame branch compares `field_AC4`, the
+/// animation in progress, against `field_AC6`) and `field_AC2` the frame
+/// counter it advances; `field_ACA` is the clip id that tick copies into each
+/// display node, so `func_actor_403000_8013D850` starting the actor rewrites
+/// `field_AC6` and `field_ACA` together. `field_6` is the per-frame tick that
+/// same function bumps, and bit 0x100 of `field_60` is what it watches to tell
+/// that the animation it asked for has arrived.
 typedef struct Actor403000Work {
     /* 0x000 */ s16            field_0;
     /* 0x002 */ s16            field_2;
     /* 0x004 */ s16            field_4;
-    /* 0x006 */ byte           pad_6[0x6];
+    /* 0x006 */ u16            field_6;
+    /* 0x008 */ byte           pad_8[0x4];
     /* 0x00C */ s16            yaw;
-    /* 0x00E */ byte           pad_E[0xAB8];
+    /* 0x00E */ byte           pad_E[0x52];
+    /* 0x060 */ u16            field_60;
+    /* 0x062 */ byte           pad_62[0xA5E];
+    /* 0xAC0 */ s16            field_AC0;
+    /* 0xAC2 */ s16            field_AC2;
+    /* 0xAC4 */ s16            field_AC4;
     /* 0xAC6 */ u16            field_AC6;
-    /* 0xAC8 */ byte           pad_AC8[0x88];
+    /* 0xAC8 */ byte           pad_AC8[2];
+    /* 0xACA */ s16            field_ACA;
+    /* 0xACC */ byte           pad_ACC[0x84];
     /* 0xB50 */ Actor403000Obj objB50;
     /* 0xBE8 */ Actor403000Obj objBE8;
     /* 0xC80 */ Actor403000Obj objC80;
     /* 0xD18 */ Actor403000Obj objD18;
     /* 0xDB0 */ byte           pad_DB0[0x21A];
     /* 0xFCA */ s16            field_FCA;
-    /* 0xFCC */ byte           pad_FCC[0x10];
+    /* 0xFCC */ byte           pad_FCC[0x6];
+    /* 0xFD2 */ s8             field_FD2;
+    /* 0xFD3 */ s8             field_FD3;
+    /* 0xFD4 */ byte           pad_FD4[0x8];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -77,6 +97,11 @@ typedef struct Actor403000Msg {
 /// handlers copy out of it. Lives in the overlay's trailing data region.
 extern SVECTOR D_actor_403000_80158CE0[];
 
+/// Tick the work block's animation playback: state `field_AC0` 1 advances
+/// `field_AC2` until it catches up with the requested `field_AC6`, copying
+/// `field_ACA` into the four display nodes' clip slot as it goes.
+void func_actor_403000_80133AF8(Actor403000* arg0);
+
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.
 s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placement* placement);
@@ -94,5 +119,12 @@ void func_actor_403000_8013D4F4(Task* task);
 void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
 
 void func_actor_403000_8013D5F8(Actor403000* arg0);
+
+/// Per-frame update for the actor once its work block exists: on the frame
+/// `field_4` is set, reinstate the display object's buffers and restart the
+/// animation state machine on clip 0x10, then tick `field_6` and the playback
+/// state, and when bit 0x100 of `field_60` reports the clip has arrived, raise
+/// `field_FD2`/`field_FD3` and move the state machine to state 2.
+void func_actor_403000_8013D850(Actor403000* arg0);
 
 #endif // ACTOR_403000_H
