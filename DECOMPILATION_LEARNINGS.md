@@ -89287,3 +89287,45 @@ saves `Mc_SaveData.field_5` and kills the task). m2c's `? sp18` seed scores
 
 Input `base_1.c`
 `7fdf4978302f81ce40532dac94bf526fc6bb26562a7b33612ea78282c19aa6a4` (100.000%).
+## A store of the compared constant comes out as a store of the compared variable (func_neo_ark_power_plant_2_8017FD88, 2026-09-16)
+
+`if (mode == 1) { cmd[2].field_4 = 1; }` compiles to
+
+```
+bne $a0, $v0, .L     # $v0 = li 1, the comparison constant
+nop
+sb  $a0, 0x14($v1)   # $a0 = mode, not $v0
+```
+
+so the store reads as `field_4 = mode`, and m2c writes exactly that
+(`case 1: M2C_FIELD(temp_v1, s8 *, 0x14) = temp_a0;`). With two compares
+sharing a tail it also renders the whole function as an irregular two-case
+`switch`. That reading scores 43%; the real source is the plain if/else-if
+whose arm stores the *literal* 1, and it scores 100%.
+
+The mechanism is already in the first `.cse` dump, so no later pass is
+responsible. The compare needs its constant in a register, and that load
+carries its value as a note; cse then records the compared variable as equal
+to the constant along the branch edge and rewrites the arm's literal store to
+the variable's register:
+
+```
+(insn 56 (set (reg:SI 102) (const_int 1)) ... (expr_list:REG_EQUAL (const_int 1) ...))
+(jump_insn 57 (set (pc) (if_then_else (ne:SI (reg/v:SI 86) (reg:SI 102)) ...)))
+(insn 63 (set (mem/s:QI (plus:SI (reg/v:SI 85) (const_int 20)))
+              (subreg:QI (reg/v:SI 86) 0)))   /* (const_int 1) in the source */
+```
+
+`= 1` and `= mode` are therefore the same RTL by then and compile identically -
+either matches, and neither is the "fix" for the other. Do not rewrite the
+store to the variable because the `sb` names it.
+
+What differs between such near-copies is only the index and the displacement:
+the brief's "Similar matched bodies" put `func_shelter_b6_nursery_80180038` at
+shape 1.00 - the same 26 instructions with `0x94`/`0xC` where this one has
+`0x40`/`0x14` (`rec[12].field_4` / `cmd[1].field_4` against `rec[5].field_4` /
+`cmd[2].field_4`). Porting that already-matched body's source form, indices
+adjusted, was one build to 100%. Read the shape-1.00 neighbour before
+reconstructing control flow from the asm.
+Input: `base_1.i`
+`c8221e0783cefa316b541c72c2e2da159d233b4618966f9a014c38fedc9e50cf`.
