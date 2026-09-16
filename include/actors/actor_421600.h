@@ -106,7 +106,12 @@ typedef struct Actor421600Work {
     /// Distance `func_actor_421600_8013848C` clamps to 0xFA0 after the gte
     /// rotation.
     /* 0xE9E */ s16  field_E9E;
-    /* 0xEA0 */ byte pad_EA0[0xC];
+    /* 0xEA0 */ byte pad_EA0[0x4];
+    /// Halfword the idle tick `func_actor_421600_8013A404` reseeds `field_6`
+    /// from, adding the low nibble of an `Gp_LcgState` draw while `field_4` is
+    /// set.
+    /* 0xEA4 */ u16  field_EA4;
+    /* 0xEA6 */ byte pad_EA6[0x6];
     /* 0xEAC */ s16  field_EAC;
     /* 0xEAE */ byte pad_EAE[2];
 } Actor421600Work;
@@ -205,6 +210,13 @@ s32 func_actor_421600_80132310(GsCOORDINATE2* arg0, GpRec18* arg1, s16 arg2, SVE
 /// Camera-target matrix the actor measures its offset from; see
 /// `D_80073B8C[0]->t[]` in the other enemy overlays.
 extern MATRIX* D_80073B8C;
+
+extern u32 Gp_LcgState;
+
+/// 4x4 zone table `func_actor_421600_8013A404` samples with the X and Z
+/// buckets of the actor's position, cell `x | z * 4`; the sample is compared
+/// against 0xB to pick between the 6 and 0x24 states.
+extern s8 D_actor_421600_801511C0[16];
 
 void func_actor_421600_8013EAAC(Actor421600* arg0);
 void func_actor_421600_8013EB7C(Actor421600* arg0);

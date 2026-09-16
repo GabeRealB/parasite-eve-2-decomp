@@ -106938,3 +106938,44 @@ register names short. Inputs: `base_3.i` (91.129%) SHA256
 (98.603%) SHA256 `018f75e1c12e8e8fc288444c466911b779871a8f023e834d6783e109f3d6f727`;
 target.o SHA256
 `2843270708690f47f8f092622d80c4080e183db7d5dfc4bf4c3d99f04045fad9`.
+
+## The arm-fold guard skips a one-insn test, so an arm may not hold the tested value (func_actor_421600_8013A404, 2026-09-16)
+
+The idle tick ends with a table sample feeding one shared store:
+
+```
+lb    v0,0(v1)
+slti  v0,v0,0xB
+bnez  v0,.Lstore
+li    v0,6          /* the taken arm */
+li    v0,0x24
+.Lstore: sh v0,0(s0)
+```
+
+Written with a local that both arms assign, `jump.c` runs its `if (c) x = a;
+else x = b;` -> `x = b; if (c) x = a;` fold and the arm lands in the test's
+block, where the `slti` result also wants `$v0`: `;; 83 conflicts: 81 83 2 29`,
+`regs=9` at 99.46%. The two recipes already in this file do not rescue it here.
+Giving the test something to read (the 8013E9D8 entry: `x = sample; if (x >=
+0xB) ...`) fails twice over. With `s16 x` the front end routes the sample
+through a sign-extend copy, so the test still does not read `x`. With `s32 x`
+the fold fires anyway, because the "nothing in the test modifies B or X" guard
+is `! reg_referenced_between_p (x, p, NEXT_INSN (temp3))` and
+`reg_referenced_between_p` starts scanning at `NEXT_INSN (p)`: `p` is the insn
+before the condjump, so for a single-insn test (`slti`) the one reference *is*
+`p` and is skipped. The moved arm then sits between the `slti` and the `bnez` —
+after the sample's death, but still inside the `slti` result's live range, which
+is the same conflict one instruction later (`regs=7`).
+
+The fix is the junk-yard recipe below, and it is worth reaching for on the first
+pass when the store's register is the comparison's: write the store in *every*
+arm. `jump2` cross-jumps the four `sh`s into one at the join, so the value
+pseudo is born in the arm blocks and never in the test block, and `reorg`
+steals the single-insn arm into the `bnez` delay slot. 93.08% -> 100.000%,
+zero penalties, over eight builds (the first one alone, typing the table `s8`
+rather than `M2C_UNK`, removed a second `sll` and a `lw`-for-`lb`: 93.08% ->
+99.46%). Inputs: `base_7.i` SHA256
+`edf69b43d74a24ae4746b13917f6075c75520927842bfc9ec815ef5bc3ec43c0` (100.000%),
+`base_2.i` SHA256
+`8b02d33aea1389c687bd19e3062d9ec75351291fba026a75e7353a7479856e0c` (99.702%,
+`regs=5`).

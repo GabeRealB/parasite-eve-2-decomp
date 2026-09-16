@@ -477,7 +477,60 @@ void func_actor_421600_8013947C(Actor421600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80139718);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013A404);
+void func_actor_421600_8013A404(Actor421600* arg0)
+{
+    Actor421600Work* temp_s0;
+    GsCOORDINATE2*   temp_v0_2;
+    s32              temp_a0;
+    s32              temp_a1;
+    s32              var_a0;
+    s32              var_v1;
+    u32              temp_v0;
+    u8               temp_v1;
+
+    temp_s0 = arg0->field_1C;
+    if (temp_s0->field_4 != 0) {
+        temp_v0          = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState      = temp_v0;
+        temp_s0->field_6 = temp_s0->field_EA4 + ((temp_v0 >> 0x10) & 0xF);
+    }
+    temp_s0->field_6 -= 1;
+    func_actor_421600_80134604(arg0);
+    if ((s16)temp_s0->field_6 < 0) {
+        temp_v1 = temp_s0->field_E90.bytes[2];
+        if ((temp_v1 == 1) || (temp_v1 == 3)) {
+            temp_s0->field_0 = 5;
+        } else if (temp_v1 == 2) {
+            temp_v0_2 = arg0->field_2C->field_8;
+            temp_a0   = temp_v0_2->coord.t[0];
+            temp_a1   = temp_v0_2->coord.t[2];
+            if (temp_a0 >= 0xD49) {
+                var_a0 = 3;
+            } else if (temp_a0 > 0) {
+                var_a0 = 2;
+            } else {
+                var_a0 = temp_a0 >= -0xC7F;
+            }
+            var_v1 = 0;
+            if (temp_a1 < 0xBB9) {
+                var_v1 = 1;
+                if (temp_a1 <= 0) {
+                    var_v1 = 3;
+                    if (temp_a1 >= -0xBB7) {
+                        var_v1 = 2;
+                    }
+                }
+            }
+            if (D_actor_421600_801511C0[var_a0 | (var_v1 * 4)] >= 0xB) {
+                temp_s0->field_0 = 0x24;
+            } else {
+                temp_s0->field_0 = 6;
+            }
+        } else {
+            temp_s0->field_0 = 0x24;
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013A554);
 
