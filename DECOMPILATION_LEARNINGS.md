@@ -101675,3 +101675,53 @@ gives the target's `addiu $a1,$a1,0xA0`. Read `GpActorD4`'s field list before de
 
 Inputs: `base_2.i` (96.343%, `< 0xE00` polarity), `base_3.i` (100%)
 `99fc539087a26265b047311d06b188fc4c7a72c4729ebb460579fe61de6ac2fe`.
+
+## The boolean a reset block stores comes from a `u16` local read *before* the store block
+
+The family's state-reset block ends with a boolean derived from a pointer:
+
+```
+lw    a0,0x90C(s0)      /* pointer load, *first* in the block */
+lw    v0,0x1C(s3)
+sltu  a0,zero,a0
+sh    zero,0x954(v0)
+...  five more halfword stores ...
+j     .text+0x1a4
+sh    a0,0x940(v0)      /* boolean store, in the jump delay slot */
+```
+
+Written the way m2c renders it, as the block's trailing statement
+`actor2->field_940 = (actor->field_90C != NULL);`, the load sits *after* the six
+stores in the RTL, and nothing can move it up: a load may not cross a
+may-aliasing store, and the target's load precedes all of them. The read must
+therefore be evaluated before the store block in the source. The matched sibling
+`func_actor_800200_80165408` (same file) shows the shape the original used - a
+`u16` local, so declared:
+
+```c
+    u16 flag;
+    ...
+                flag              = actor->field_90C != 0;
+                actor2            = arg0->actor;
+                actor2->field_954 = 0;
+                ... five more stores ...
+                actor2->field_940 = flag;
+```
+
+The flag local is also what fixed the *allocation*: the constant-`1` pseudo the
+three `field_95E/973/975 = 1` stores share had been taking `$s0` and pushing
+`actor` to `$s1`; with the comparison hoisted into its own pseudo the order
+`global.c` computes flips and the target's `$s0`/`$s1` split appears. The
+trailing-statement form scored 94.4% (`regs=19 branch=4 insert=4 delete=2`,
+structure already matching) and the flag form 100%, with no other source change.
+
+Same function, second leftover, same cause as the entry above it: reusing the
+later distance local for the `Gp_AnimPlayChildSlotsEx` argument emitted
+`li v0,5` / `li v0,6` plus a `move a1,v0` at the join; a local that only the two
+arms assign gives the target's `li a1,5` / `li a1,6` directly.
+
+Example: `func_actor_800200_80164180` — 94.4% with the compared expression
+trailing, 100% with the `u16` flag. Inputs: `base_2.i`
+`0461c71fa0443937c7091fb279985815ea3c37d7c4c8120f225765b1816a3e10`,
+`base_3.i`
+`a3b62537f8e076078766805af03c54a984a8f670634bac8cfafc85f4846bb76c`.

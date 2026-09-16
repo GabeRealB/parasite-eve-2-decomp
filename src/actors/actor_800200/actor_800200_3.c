@@ -617,7 +617,80 @@ void func_actor_800200_80163F5C(GpActorWork* arg0)
     func_8010BE5C(arg0, vec);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_80164180);
+void func_actor_800200_80164180(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* target;
+    GpLinkNode*    node;
+    u8*            head;
+    u8*            tmp;
+    VECTOR3*       vec;
+    GameActor*     actor2;
+    s32            dist;
+    s32            anim;
+    u16            flag;
+
+    actor             = arg0->actor;
+    d4                = actor->field_910;
+    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    head              = *(u8**)0x1F8003FC;
+    tmp               = head - 0x10;
+    *(u8**)0x1F8003FC = tmp;
+    vec               = (VECTOR3*)tmp;
+    node              = actor->field_90C;
+    if (node != NULL) {
+        if (!(node->field_4 & 1)) {
+            Gp_GetLockPos((GpLockPos*)node, vec);
+        } else {
+            actor->field_95E = 2;
+        }
+    } else {
+        ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
+        vec->vy                       = target->coord.t[1];
+        vec->vz                       = target->coord.t[2];
+    }
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_95E = 1;
+            actor->field_958 = 5;
+            actor->field_973 = 1;
+            if (func_8010BCF4((Task*)arg0, vec) < 0) {
+                actor->field_975 = -1;
+                anim             = 5;
+            } else {
+                actor->field_975 = 1;
+                anim             = 6;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, anim, 1, 5);
+        case 1:
+        case 2:
+            dist = func_8010BCF4((Task*)arg0, vec);
+            if (dist < 0) {
+                dist = -dist;
+            }
+            if ((dist < 0x101) || (actor->field_95E == 2)) {
+                if ((s8)d4->field_CC > 0) {
+                    flag              = actor->field_90C != 0;
+                    actor2            = arg0->actor;
+                    actor2->field_954 = 0;
+                    actor2->field_956 = 4;
+                    actor2->field_958 = 0;
+                    actor2->field_95A = 0;
+                    actor2->field_95C = 0;
+                    actor2->field_95E = 0;
+                    actor2->field_940 = flag;
+                } else {
+                    Gp_ResetActorMove(arg0, 0);
+                }
+            }
+            break;
+        default:
+            break;
+    }
+    func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
+    *(u32*)0x1F8003FC += 0x10;
+}
 
 void func_actor_800200_8016436C(GpActorWork* arg0)
 {
