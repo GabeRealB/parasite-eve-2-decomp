@@ -108429,3 +108429,48 @@ substituting the offsets reproduced 75/75 instructions on the first attempt from
 m2c seed at 87.57% (`regs=36` - the whole penalty was the seed's `M2C_FIELD` temps).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
 input `base_1.i` SHA256 `a32c8ba0831d91f4eb0c5d8ec62b874b5b1a8b68b999cb9e9bad8afac64d1113`.
+
+## Three direct stores to one field beat m2c's joined temp: the arms merge in the delay-slot pass and keep `$v0` (func_actor_356100_8016A710, 2026-09-16)
+
+**Symptom.** The m2c seed sits at 99.73% with `regs=4` and nothing else: blocks 13/13,
+instructions 73/73, predicates and calls equal. The whole penalty is the value stored to
+`work->field_0` - the build has `li $v1,0x15` / `li $v1,4` / `li $v1,0x11` / `sh $v1,0x0($s0)`
+where the target has the same four with `$v0`.
+
+**Cause.** m2c had joined the three arms into one `s16` temp:
+
+```c
+    var_v0 = 0x15;                    /* the original stores in each arm instead */
+    if (enemy->field_40 > 0) {
+        var_v0 = 4;
+        if (work->field_B3A <= 0) {
+            var_v0 = 0x11;
+        }
+    }
+    work->field_0 = var_v0;
+```
+
+That temp is **one** allocno live from the first arm through the store, and `.greg` shows it
+hard-conflicting with `$v0` (`;; 83 conflicts: 81 83 2 29`): the two field loads
+(`lh $v0,0x40($s2)`, `lh $v0,0xB3A($s0)`) are block-local pseudos that local-alloc put in
+`$v0`, and each is live at one of the temp's defs. Writing the store per arm instead - the
+shape the matched sibling `func_actor_356100_8016A834` uses for the identical 0x15/4/0x11
+choice - makes each arm's value its own block-local HImode pseudo, so all three land in
+`$v0` and the target reproduces at 100.00% on the next build.
+
+**Where the three stores go.** They are still three in `.sched2`
+(`(set (mem/s:HI (reg/v:SI 16 s0)) (reg:HI 2 v0))` in each arm's block) and one in `.dbr`:
+the delay-branch pass deletes the per-arm stores and lets the values flow to the join's
+single store, leaving each value-set insn carrying the mips const-store expansion's two
+notes, `REG_EQUIV (mem ...)` and `REG_EQUIV (const_int ...)`. The 2.8.1 cross-jumping in
+`jump2` cannot do it - the three stores are not identical insns - and `reload_cse_regs`
+runs before `.sched2` and leaves them alone, so the elimination is inside `reorg`.
+
+**Reading it.** Several branches converging on **one** store, whose stored value is in the
+same register one of the branch-condition loads also used, says the original stored per arm
+and the arms were merged. A joined temp allocated on its own is an m2c artefact: it is one
+longer-lived allocno where the original had three short local ones, and the register it can
+take shrinks accordingly. Check whether a sibling in the same TU writes the same choice as
+direct stores before trying to fix the register. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input `base_1.i`
+SHA256 `1ccb46d1b31aa54030431c458481d03d3ad55c09e570caca394b26b8283384e6`.
