@@ -82,7 +82,12 @@ typedef struct Actor401000Work {
     /// `Actor401300Work` keeps at +0xC48 / +0xC68.
     /* 0xBA8 */ MATRIX field_BA8;
     /* 0xBC8 */ MATRIX field_BC8;
-    /* 0xBE8 */ byte   pad_BE8[0x24];
+    /* 0xBE8 */ byte   pad_BE8[0x1C];
+    /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
+    /// actor at the player: the `func_actor_401000_80132590` probe reads it
+    /// signed, the step helper and the countdown itself through a `(u16)`.
+    /* 0xC04 */ s16  field_C04;
+    /* 0xC06 */ byte pad_C06[6];
     /// Forward step `func_actor_401000_801385B0` walks the root by, feeding the
     /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
     /// Set to -0x78 when the live-actor flag goes up, halved while the actor
@@ -164,6 +169,16 @@ typedef struct Actor401000AimScratch {
     /* 0xE */ s16     pad_E;
 } Actor401000AimScratch;
 STATIC_ASSERT_SIZEOF(Actor401000AimScratch, 0x10);
+
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401000_80139D10` carves off for
+/// the offset from the actor to `Wip_SysConfig.field_4` and the wrapped turn
+/// toward it. Same shape as `Actor401300TurnScratch` / `Actor01900TurnScratch`.
+typedef struct Actor401000TurnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor401000TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor401000TurnScratch, 0xC);
 
 /// 0x34-byte `G_SCRATCH_HEAD` block `func_actor_401000_80134F98` carves off to
 /// rebuild the root coordinate: a Y rotation, the uniform scale `ScaleMatrix`

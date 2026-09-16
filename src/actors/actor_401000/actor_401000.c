@@ -310,6 +310,8 @@ void func_actor_401000_801352DC(GameSessionFrom4* session, GsCOORDINATE2* coord)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80135374);
 
+void func_actor_401000_80135704(Actor401000* arg0, GpRec18* rec, s32 arg2);
+
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80135704);
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80135AA4);
@@ -829,7 +831,71 @@ void func_actor_401000_8013922C(Actor401000* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_801394EC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80139D10);
+/// Walk the actor at the player: on the live-actor flag it restarts the
+/// 0x12 clip and clears the spawn pose, then takes a 0xC-byte `G_SCRATCH_HEAD`
+/// turn block, aims it at `Wip_SysConfig.field_4` through
+/// `Actor401000_PositionYaw`, clamps the turn to +-0x40 and adds the facing
+/// yaw back in before rebuilding the root coordinate. The obstacle walk
+/// `func_actor_401000_801323EC` runs against `field_A30` and hands
+/// `field_8F0` to `func_actor_401000_80135704` when it reports a hit, the
+/// `func_actor_401000_80132590` probe takes one forward step out of
+/// `field_C04`, and that same countdown then runs down by 0xA a frame. The
+/// tail drops the actor to state 9 on the `flags_68` bit or once the
+/// countdown is spent.
+void func_actor_401000_80139D10(Actor401000* arg0)
+{
+    Actor401000Work*        work;
+    GpEnemy*                enemy;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    Actor401000TurnScratch* turn;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy           = arg0->field_20;
+        obj             = arg0->field_2C;
+        work->field_89E = 0x12;
+        work->field_898 = 1;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_8B0          = 0;
+        work->field_8A2          = 0x1E;
+    }
+    *(Actor401000TurnScratch**)G_SCRATCH_HEAD -= 1;
+    turn                                       = *(Actor401000TurnScratch**)G_SCRATCH_HEAD;
+    turn->angle                                = Actor401000_PositionYaw(arg0, &turn->delta, &Wip_SysConfig);
+    work->field_8AE                            = turn->angle;
+    if (turn->angle > 0x40) {
+        turn->angle = 0x40;
+    }
+    if (turn->angle < -0x40) {
+        turn->angle = -0x40;
+    }
+    coord        = arg0->field_2C->field_8;
+    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
+    if (func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC) != 1) {
+        func_actor_401000_80135704(arg0, (GpRec18*)work->field_8F0, 0xC);
+    }
+    if ((func_actor_401000_80132590(arg0->field_2C->field_8, 0x12C, work->field_C04) << 0x10) != 0) {
+        Actor401000_MoveForwardNonzero(arg0->field_2C->field_8, (u16)work->field_C04);
+    }
+    if (work->field_C04 > 0) {
+        work->field_C04 = (u16)work->field_C04 - 0xA;
+        if (work->field_C04 < 0) {
+            work->field_C04 = 0;
+        }
+    }
+    func_actor_401000_80132EF0(arg0);
+    if ((work->flags_68.half & 1) || work->field_C04 == 0) {
+        work->field_0 = 9;
+    }
+    *(Actor401000TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A0C8);
 
