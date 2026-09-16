@@ -1,9 +1,16 @@
 #include "common.h"
 
 #include "actors/actor_521100.h"
+#include "actors/actors_shared_801326b4.h"
+#include "actors/actors_shared_801366fc.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern u8 D_actor_521100_8016A358;
+extern u8 D_actor_521100_8016A3A0;
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_521100_80135DDC(void* spawnArg2, Task* task);
@@ -59,7 +66,45 @@ s16 func_actor_521100_80135DC8(Actor521100* arg0)
     return arg0->field_1C->field_6B2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135DDC);
+void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
+{
+    VECTOR           vec;
+    Actor521100Work* mem;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+
+    enemy                   = (GpEnemy*)spawnArg2;
+    obj                     = task->extra;
+    coord                   = obj->field_8;
+    mem                     = Mem_Calloc(0x4B4, 0);
+    D_actor_521100_8016A3D8 = mem;
+    task->idMap             = (TaskIdMap*)mem;
+    if (mem == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback       = ActorsShared801366fc;
+    coord->sub               = &Gfx_ViewCoord;
+    enemy->field_4           = &coord->coord;
+    enemy->field_48          = 0;
+    enemy->node.field_5      = 0;
+    enemy->node.field_4      = 1;
+    obj->field_E             = 1;
+    obj->field_1C            = (MATRIX*)D_actor_521100_8016A3D8;
+    obj->field_20            = (MATRIX*)D_actor_521100_8016A3D8 + 1;
+    vec.vx                   = coord->workm.t[0];
+    vec.vy                   = coord->workm.t[1] - 0x320;
+    ActorsShared801326b4Task = task;
+    vec.vz                   = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, (GpAnimObj*)obj, D_actor_521100_8016A3D8->pad_34C);
+    D_actor_521100_8016A3D8->animId    = 1;
+    D_actor_521100_8016A3D8->field_47C = 2;
+    task->field_24                     = &D_actor_521100_8016A358;
+    func_actor_521100_80135F2C(task);
+    task->state += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80135F2C);
 

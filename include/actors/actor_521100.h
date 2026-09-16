@@ -49,6 +49,11 @@ typedef struct Actor521100 {
 /// the heading it applied to the root coordinate and the remaining distance,
 /// scaled by 20. Same offsets as `ActorsShared80133678Work`.
 typedef struct Actor521100Work {
+    /// The block opens with the two matrices the spawn body hands to
+    /// `TmdObject::field_1C` / `field_20` (a `light` / `color` pair, as in the
+    /// family's other work blocks), but the overlay's own step bodies view the
+    /// same bytes as their animation context plus slots, so the region stays
+    /// byte-addressed.
     /* 0x000 */ byte         pad_0[0x40];
     /* 0x040 */ GpAnimCtx    anim;
     /* 0x054 */ GpAnimSlot   slots[0x13];

@@ -92212,3 +92212,54 @@ Preprocessed SHA256: `base_2.i`
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_521100_80135680-vacuum` (`base_2.i.greg`,
 `base_3.i.greg`, `base_3_diff`).
+
+## A pointer cached in a local is its own allocno: read the global the target reloads (func_actor_521100_80135DDC, 2026-09-16)
+
+The create body calls `Mem_Calloc`, publishes the result as the overlay's
+work-block global `D_actor_521100_8016A3D8` and in `Task::idMap`, then fills
+two matrices *inside* that block. m2c's seed reached the block through the
+calloc local instead:
+
+```c
+mem = Mem_Calloc(0x4B4, 0);
+D_actor_521100_8016A3D8 = mem;
+...
+obj->field_1C = &mem->light;     /* target: lw v0,%lo(glob)(s4), no register */
+obj->field_20 = &mem->color;     /* holding the work pointer */
+```
+
+The target reloads the global at the use, so the original reads the global
+too. Keeping the local costs more than one `move`: 93.62%, with `move v1,v0`
+after the `jal` (`delete=2 insert=2`) **and** the two arguments in the wrong
+saved registers — `$s2` = `task`, `$s3` = `enemy`, where the target has
+`$s2` = `enemy`, `$s3` = `task`. Writing the stores as
+`obj->field_1C = (MATRIX*)D_actor_521100_8016A3D8;` and `... + 1` for the
+second is 100%.
+
+Both arguments are long-lived, so both are global allocnos whose homes come
+from `global_alloc`'s order, `floor_log2(n_refs) * n_refs / live_length`
+(§10). `.greg` shows the same two pseudos, one build apart:
+
+| build | `r80` (`enemy`) | pri | `r81` (`task`) | pri | homes |
+|---|---|---|---|---|---|
+| local cached | `6/50` | 2400 | `10/124` | 2419 | `$s3` / `$s2` |
+| global reloaded | `6/48` | 2500 | `10/126` | 2381 | `$s2` / `$s3` |
+
+Their priorities differ by under 1%, so the extra `move` moving each live
+range by two instructions is decisive. The register swap is not an
+independent symptom: no rearrangement of the argument statements fixes it
+while the cached local stays. When a target reloads a global it has just
+stored, drop the local and read the global.
+
+The earlier step of the same function repeats the corpus entry "m2c's scalar
+stack locals for an address-taken struct lose their dead stores": the seed's
+three `s32` locals for the `func_800D7A9C` position vector scored 87.5% with
+`delete=6` and a 0x30 frame, and one `VECTOR vec;` restored the two
+`lw`/`sw` pairs, the `addiu -0x320` and the 0x38 frame (93.62%).
+
+Preprocessed SHA256: `base_1.i`
+`3ebf77d762eb97dc9fb2dbd4bd5c2142386ee52a3235d533527d1da292e5c9e7`, `base_3.i`
+`e4e3d7e7037fdbeed47a90ca7f8d3ce77f20ffef4495bfdc8ed851b779c79722`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Session: `nonmatchings/func_actor_521100_80135DDC-vacuum` (`base_1.i.greg`,
+`base_3.i.greg`, `base_1_diff`, `base_3_diff`).
