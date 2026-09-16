@@ -2,167 +2,44 @@
 
 #include "actors/actor_401800.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_2", func_actor_401800_8013DF80);
-
-void func_actor_401800_8013E0A0(Task* task)
+/// The `0x7D3` handler of the `D_actor_401800_80155A80` table: maps the
+/// requested state onto the work block's `field_89E` animation slot (5 selects
+/// nothing), then resets the actor to state `0x11` with `field_2` cleared.
+///
+/// The table GCC emits for this switch is what puts the function in this unit:
+/// it owns the rodata run at 0x254, so the table starts this object's `.rodata`
+/// and its `.align 3` is a no-op there, and the byte of padding that follows it
+/// (`D_actor_401800_80132088`, the original object's pad before the next unit's
+/// table) is defined below as the data it is.
+s32 func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2)
 {
-    Actor401800Work* work;
-    GpEnemy*         enemy;
+    Actor401800Work* work = arg0->field_1C;
 
-    work  = (Actor401800Work*)task->idMap;
-    enemy = (GpEnemy*)task->spawnArg2;
-    if (work != NULL) {
-        if (work->field_C14 != NULL) {
-            Task_Kill(work->field_C14);
-        }
-        if (work->field_C18 != NULL) {
-            Task_Kill(work->field_C18);
-        }
-        Gp_UnlinkObj(&work->field_B48);
-        Gp_UnlinkObj(&work->field_8C8);
-        Gp_UnlinkObj(&work->field_A08);
-        enemy->field_54 = 0;
+    switch (arg2->field_4) {
+        case 0:
+            work->field_89E = 0x22;
+            break;
+        case 1:
+            work->field_89E = 0x23;
+            break;
+        case 2:
+            work->field_89E = 0x24;
+            break;
+        case 3:
+            work->field_89E = 0x25;
+            break;
+        case 4:
+            work->field_89E = 0x27;
+            break;
     }
-    Gp_DestroyEnemy(enemy, task);
+    work->field_0 = 0x11;
+    work->field_2 = -1;
+    return 0;
 }
 
-void func_actor_401800_8013E138(Actor401800* arg0)
-{
-    TmdObject*       obj;
-    Actor401800Work* work;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 1;
-        obj->field_C                 = (u16)(obj->field_C | 0x80);
-        work->field_B48.flags        = (u16)(work->field_B48.flags & 0x7FFF);
-        work->field_A08.flags        = (u16)(work->field_A08.flags & 0xBFFF);
-    }
-}
-
-void func_actor_401800_8013E194(Actor401800* arg0)
-{
-    TmdObject*       obj;
-    Actor401800Work* work;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x10;
-        work->field_89E       = 2;
-        work->field_89A       = 0;
-        work->field_B48.flags = (u16)(work->field_B48.flags & 0x7FFF);
-        work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
-        func_actor_401800_80133EB8(arg0);
-    } else {
-        arg0->field_2C->field_8->flg = 0;
-        func_actor_401800_80133EB8(arg0);
-    }
-}
-
-void func_actor_401800_8013E23C(Actor401800* arg0)
-{
-    TmdObject*       obj;
-    Actor401800Work* work;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x10;
-        work->field_89E       = 3;
-        work->field_89A       = 0;
-        work->field_B48.flags = (u16)(work->field_B48.flags & 0x7FFF);
-        work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
-        func_actor_401800_80133EB8(arg0);
-    } else {
-        arg0->field_2C->field_8->flg = 0;
-        func_actor_401800_80133EB8(arg0);
-    }
-}
-
-void func_actor_401800_8013E2E8(Actor401800* arg0)
-{
-    TmdObject*       obj;
-    Actor401800Work* work;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x10;
-        work->field_89E       = 0xB;
-        work->field_89A       = 0;
-        work->field_B48.flags = (u16)(work->field_B48.flags & 0x7FFF);
-        work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
-        func_actor_401800_80133EB8(arg0);
-    } else {
-        arg0->field_2C->field_8->flg = 0;
-        func_actor_401800_80133EB8(arg0);
-    }
-}
-
-void func_actor_401800_8013E394(Actor401800* arg0)
-{
-    TmdObject*       obj;
-    Actor401800Work* work;
-
-    work = arg0->field_1C;
-    if (work->field_4 != 0) {
-        obj                          = arg0->field_2C;
-        arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x12;
-        work->field_89E       = 0xD;
-        work->field_89A       = 0;
-        work->field_B48.flags = (u16)(work->field_B48.flags & 0x7FFF);
-        work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
-    }
-    arg0->field_2C->field_8->flg = 0;
-    func_actor_401800_80133EB8(arg0);
-    if (work->field_68 & 1) {
-        work->field_0 = 7;
-    }
-}
-
-void func_actor_401800_8013E44C(Actor401800* arg0)
-{
-    Actor401800Work* work;
-    GpEnemy*         enemy;
-
-    work  = arg0->field_1C;
-    enemy = arg0->field_20;
-    if (work->field_4 != 0) {
-        arg0->field_2C->field_C  = 0;
-        work->field_8C8.field_1C = 0x12C;
-        work->field_B48.flags   &= 0x7FFF;
-        work->field_A08.flags   |= 0x4000;
-        enemy->node.field_4      = 0;
-        work->field_898          = 2;
-        work->field_89E          = 8;
-        work->field_8B0          = 0;
-        work->field_8AE          = 0;
-        work->field_8A2          = work->field_8A4;
-    }
-    func_actor_401800_80133EB8(arg0);
-    if (work->field_68 & 1) {
-        work->field_0 = 7;
-    }
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_2", func_actor_401800_8013E4F0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_2", func_actor_401800_8013E5A4);
+/// The `.align 3` pad that closes this unit's rodata: the switch table above
+/// ends at a 4-mod-8 offset, so the original object's next table carried four
+/// bytes of padding, and splat grouped them into the table's own symbol. The
+/// compiler regenerates the table here, so the pad is written out as the word
+/// of data it is; it is what keeps the next unit's `.rodata` at 0x26C.
+const s32 D_actor_401800_80132088 = 0;

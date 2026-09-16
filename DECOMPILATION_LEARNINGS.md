@@ -91255,3 +91255,45 @@ Read the twin first when the brief lists one. `Actor01900_Fn0AA78` in
 and it has the shape above; its `.s` under
 `asm/USA/actors/matchings/lib/actor_101900_text_tail/` shows the hoisted
 `lw $a1,0x20($a0)` directly, in a body that is already verified.
+
+## The pad on the far side of a compiler-generated table puts the cut *and* the word in the table's own unit (func_actor_401800_8013DCBC, 2026-09-16)
+
+A run in the package can end with the `.align 3` pad for the table *after* it
+rather than the one before: `jtbl_actor_401800_80132074` (5 entries, image
+`0x254..0x268`), a zero word at `0x268`, then the next unit's table at `0x26C`.
+The pad is on the far side, so the geometry decides the fix, and the two
+answers are opposite:
+
+- **Pad ahead of the table** (`A trailing .rodata pad word goes in C, not
+  INCLUDE_RODATA`): the table already sits at a `.align 3`-aligned offset
+  inside the previous unit's object. Leave the cut at the table, keep the pad
+  with the previous unit, and write it there in C — no `units` cut, so no unit
+  renumbering.
+- **Pad behind the table** (`func_actor_401800_8013DCBC`): the table is at a
+  4-mod-8 address, so it can only be reproduced in an object whose `.rodata`
+  *starts* there. The cut is unavoidable, and it has to move the function too
+  (`units = ["0xBE9C"]` for a function at image `0xBE9C`), because the table is
+  emitted by the object that holds the body. The pad cannot come from the asm
+  either — with the function in C nothing emits the `dlabel` that carries it —
+  so the new unit writes it as data, *after* the function so it follows the
+  table:
+
+```c
+/* actor_401800_2.c — the table's 5 entries, then the original object's pad. */
+s32 func_actor_401800_8013DCBC(...) { ... }
+
+const s32 D_actor_401800_80132088 = 0;
+```
+
+Getting this wrong is quiet in a specific way: the function scores 100.00% with
+all-zero penalties, and the overlay is 4 bytes *too long* with everything after
+the table shifted, because GCC's `.align 3` produced the pad in the wrong place.
+`cmp -l` against the package shows one run of differences at the table and one
+further down at the `%lo` immediate of its `lui`/`addiu` pair — that pair of
+symptoms together is the tell.
+
+Two consequences worth planning for before the edit: the new unit takes the
+`_2` name and every later run shifts up (`actor_401800_2.c` became
+`actor_401800_3.c`, with its three `INCLUDE_ASM` folder strings rewritten), and
+the symbol splat had grouped the pad into is dropped from the built object, so
+the cut offsets in the manifest are the only record of the run's length.

@@ -22,7 +22,7 @@
 /// `Actor01900_Fn0A7C0` writes; `func_actor_401800_8013E194` is that body.
 typedef struct Actor401800Work {
     /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[2];
+    /* 0x002 */ s16  field_2;
     /* 0x004 */ s16  field_4;
     /* 0x006 */ byte pad_6[0x54];
     /* 0x05A */ u16  field_5A;
@@ -74,6 +74,16 @@ typedef struct Actor401800 {
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
 extern GpAnimArg D_actor_401800_80155A0C;
 
+/// Payload of message `0x7D3`, the "set animation state" request the handler
+/// table `D_actor_401800_80155A80` routes to `func_actor_401800_8013DCBC`:
+/// `field_4` is the requested state, 0..4. The 01900 actor's table entry for
+/// the same message id carries the identical record as `Actor01900Msg7D3`.
+typedef struct Actor401800Msg7D3 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+} Actor401800Msg7D3;
+
+s32  func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2);
 void func_actor_401800_80133EB8(Actor401800* arg0);
 void func_actor_401800_8013E0A0(Task* task);
 void func_actor_401800_8013E138(Actor401800* arg0);

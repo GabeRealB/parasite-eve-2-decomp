@@ -134,4 +134,6 @@ void func_actor_401800_8013DCB4(void)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_401800/actor_401800", ActorsShared80135df4Table);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013DCBC);
+/* func_actor_401800_8013DCBC (the 0x7D3 message handler) lives in
+ * actor_401800_2.c: the jump table GCC emits for its switch is what owns the
+ * rodata run at 0x254, so the function belongs to the unit that starts there. */
