@@ -110720,3 +110720,36 @@ Inputs: `base_6.i` SHA256
 SHA256 `b1efe505e4bef7407cc166e1ab99993ef1fb04dd27d30e716fc1b9c9ea027085`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80134728-vacuum`.
+
+## A cross-family twin ports verbatim, but its helper structs must be re-declared and the header must name their module headers (func_actor_110600_801327EC, 2026-09-16)
+
+The brief's *Similar matched bodies* list is scored on opcode shape, fields and
+call flow, so a `1.00` in all three classes is an exact twin and not merely a
+resemblance. `func_actor_110600_801327EC` is the acropolis bridge room's
+`func_acropolis_bridge_801843A0` (the brief files it under a different overlay,
+`USA/rooms/acropolis_bridge`); `overlay_dup_index.py find` calls the pair
+`identical bytes: 2`, so the port is a type rename, not a rewrite. Porting it
+took the m2c baseline from 85.70% (`regs=33 insert=5 delete=5 stack=1`) to
+100.00% with every penalty zero on the first build, and the scratch body was
+`func_actor_110600_80132958`'s shape one function down the same file — the
+already-matched neighbour in the *same* TU is worth as much as the twin.
+
+Two things the port has to carry that a `sed` of the type names does not:
+
+- The twin's scratch/helper structs are declared in the twin's own source or
+  header, so this overlay needs its own copy — here a 0x18-byte
+  `Actor110600NearCfgScratch` (`dx`/`dy`/`dz`, the config pointer, `best`,
+  `dist`, `node`, `nearest`) alongside the 0x14-byte `Actor110600NearScratch`
+  the same scan uses without a config. Same layout, different name; the twin's
+  type is not reachable from here.
+- That struct names `WipSysConfig`, so this overlay's header must
+  `#include "main/wipsys.h"`. Without it the failure is a `parse error before
+  'WipSysConfig'` inside the preprocessed input, reported against *this*
+  overlay's TU while the twin's overlay builds fine — the include belongs in
+  the header that declares the struct, not in the one `.c` being edited.
+
+Inputs: `base_1.i` SHA256
+`3a7d90348e37ffdeee703f85dcf9befdd605902d53b344f7f65d1443b0cbc23a`; target.o
+SHA256 `7f463d67729cf193e6a692651ca656a06fe06807ad998540d48b5c9e78eb0f3f`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_801327EC-vacuum`.

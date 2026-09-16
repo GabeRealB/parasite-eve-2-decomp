@@ -71,7 +71,37 @@ void func_actor_110600_80132654(Actor110600Walker* work, SVECTOR3* pos)
     pos->vz    = work->nav->nodes[work->node].z;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801327EC);
+/// Scans the walker's patrol node table for the node nearest actor `actor` and
+/// returns its index. Same scan as `func_actor_110600_80132958`, but measured
+/// from the translation of the actor config's matrix rather than from the
+/// walker's own coordinate; the walker uses it with the player (entry 1) to
+/// pick the node it retreats to.
+u8 func_actor_110600_801327EC(Actor110600Walker* work, s32 actor)
+{
+    Actor110600NearCfgScratch* block;
+    u8*                        head;
+    s16                        dz;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x18;
+    block                 = (Actor110600NearCfgScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    block->cfg  = &D_80073B08[(s16)actor];
+    block->best = -1;
+    for (block->node = 0; block->node < work->nav->count; block->node++) {
+        block->dx   = *(u16*)&block->cfg->field_4->t[0] - work->nav->nodes[block->node].x;
+        block->dy   = *(u16*)&block->cfg->field_4->t[1] - work->nav->nodes[block->node].y;
+        dz          = *(u16*)&block->cfg->field_4->t[2] - work->nav->nodes[block->node].z;
+        block->dz   = dz;
+        block->dist = block->dx * block->dx + dz * dz;
+        if (block->dist < block->best || block->best == -1) {
+            block->best    = block->dist;
+            block->nearest = block->node;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+    return block->nearest;
+}
 
 /// Returns the patrol node nearest the walker: the squared XZ distance between
 /// each node and the low halfwords of the walker coordinate's translation,

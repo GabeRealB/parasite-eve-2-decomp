@@ -9,6 +9,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// One node of the patrol table `Actor110600WalkerNav::nodes` points at. The
 /// three packed coordinates are copied straight out to the caller's `SVECTOR3`,
@@ -181,6 +182,28 @@ typedef struct Actor110600NearScratch {
     /* 0x12 */ byte pad_12[0x2];
 } Actor110600NearScratch;
 STATIC_ASSERT_SIZEOF(Actor110600NearScratch, 0x14);
+
+/// 0x18-byte scratch block the actor-relative variant of the scan carves off
+/// `G_SCRATCH_HEAD`: the same nearest-node scan as above, but measured from the
+/// translation of an actor config's matrix instead of the walker's own
+/// coordinate. `cfg` is the `D_80073B08` entry being measured from -- the walker
+/// runs it with the player (entry 1) to pick the node it retreats to -- `dy` is
+/// staged but never enters the distance, and `best` / `nearest` carry the same
+/// meaning as in the block above. Same block the acropolis bridge room's
+/// `func_acropolis_bridge_801843A0` scans in.
+typedef struct Actor110600NearCfgScratch {
+    /* 0x00 */ s16           dx;
+    /* 0x02 */ s16           dy;
+    /* 0x04 */ s16           dz;
+    /* 0x06 */ byte          pad_6[0x2];
+    /* 0x08 */ WipSysConfig* cfg;
+    /* 0x0C */ u32           best;
+    /* 0x10 */ u32           dist;
+    /* 0x14 */ u8            node;
+    /* 0x15 */ u8            nearest;
+    /* 0x16 */ byte          pad_16[0x2];
+} Actor110600NearCfgScratch;
+STATIC_ASSERT_SIZEOF(Actor110600NearCfgScratch, 0x18);
 
 /// Returns the patrol node nearest the walker: the squared XZ distance between
 /// each node and the low halfwords of the walker coordinate's translation,
