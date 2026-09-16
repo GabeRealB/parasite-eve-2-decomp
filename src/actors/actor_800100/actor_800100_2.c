@@ -19,6 +19,9 @@ extern s16                D_80072830;
 extern s8                 D_8007272F;
 extern s16                D_actor_800100_80167218[];
 extern u8                 D_actor_800100_80167230[];
+extern u8*                D_actor_800100_801672F8[];
+extern u8                 D_actor_800100_80167308[];
+extern u8                 D_actor_800100_80167310[];
 
 void func_actor_800100_80163D54(GpActorWork* arg0)
 {
@@ -663,7 +666,94 @@ void func_actor_800100_80165930(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_801659EC);
+void func_actor_800100_801659EC(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GpLinkNode*    node;
+    GsCOORDINATE2* coord;
+    VECTOR3*       lock;
+    VECTOR3*       head;
+    s32            entry;
+    s32            offset;
+    s32            kind;
+    s32            angle;
+    s32            index;
+    s32            inRange;
+    s32            mode;
+
+    head                       = *(VECTOR3**)G_SCRATCH_HEAD;
+    lock                       = (VECTOR3*)((u8*)head - 0x10);
+    *(VECTOR3**)G_SCRATCH_HEAD = lock;
+    actor                      = arg0->actor;
+    d4                         = actor->field_910;
+    coord                      = arg0->extra->field_8;
+    node                       = Gp_FindLockNode(arg0);
+    actor->field_90C           = node;
+    if (node != NULL) {
+        Gp_GetLockPos((GpLockPos*)node, lock);
+        func_80103C74(coord, lock, lock);
+        kind = func_80103D8C(*(s32*)lock, lock->vz);
+        mode = 2;
+        if (kind >= 0x381) {
+            if (kind < 0) {
+                index  = kind;
+                index += 0x3FF;
+            } else {
+                index = kind;
+            }
+            angle = index >> 0xA;
+            if (angle >= 3) {
+                if (angle < 5) {
+                    angle = 3;
+                }
+            }
+            inRange = angle < 4;
+            if (inRange != 0) {
+                entry  = (s32)D_actor_800100_801672F8[angle];
+                offset = entry + (func_8010C058() * 0x10);
+                mode   = *(u8*)(offset + (rand() & 0xF));
+            } else {
+                mode = 3;
+            }
+        } else {
+            mode = 2;
+        }
+    } else {
+        if ((s8)actor->field_97E == 2) {
+            actor->field_97E = 1;
+        }
+        mode = D_actor_800100_80167308[rand() & 7];
+        if (mode == 3) {
+            actor->field_90C = NULL;
+        }
+    }
+    switch (mode) {
+        case 0:
+            break;
+        case 1:
+            if ((s8)d4->field_CD <= 0) {
+                func_actor_800100_80166E94(arg0, 0);
+            } else {
+                actor->field_97E = 2;
+                actor->field_940 = (rand() & 0x1F) + 0xF;
+                d4->field_CC     = D_actor_800100_80167310[rand() & 7];
+                func_actor_800100_80166DD0(arg0);
+            }
+            break;
+        case 2:
+            func_actor_800100_80166DF0(arg0);
+            func_8010BF7C(arg0, 0x14, 0x3F);
+            break;
+        case 3:
+            func_actor_800100_80165630(arg0);
+            break;
+        case 4:
+            func_actor_800100_80165664(arg0);
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x10;
+}
 
 void func_actor_800100_80165C38(GpActorWork* arg0)
 {

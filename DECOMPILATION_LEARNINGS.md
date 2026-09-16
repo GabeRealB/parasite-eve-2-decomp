@@ -105649,3 +105649,82 @@ release the other one needs the cast.
 Verified: scratch 100.00% with all-zero penalties, and the unscoped
 `./tools/build-and-verify.sh` passes. `base_5.c`. Input `base_5.i`
 `8597845d1a6f28d0af4af85760b2a432bc004fd78f94ce5cd66b263f7e840135`.
+
+## A phi copy placed by `jump.c` after the branch survives `cse`; one placed before it does not (func_actor_800100_801659EC, 2026-09-16)
+
+**Symptom:** 97.878%, `insert=2 delete=1 regs=1 branch=9`, and every mismatch in
+the object diff except one block was a 4-byte address shift. The block is the
+sign fix for a division by a power of two:
+
+```
+bgez   a0, .L          addu   v0, a0, $zero      addiu  v0, a0, 0x3FF
+.L: sra a0, v0, 10
+```
+
+Every natural spelling of it — `x / 0x400`, `x >> 10` after a hand-written
+`if (x < 0) v = x + 0x3FF;`, the same as an if/else, the same as a ternary —
+compiled to the *other* shape, and the object was byte-identical across all of
+them:
+
+```
+move v0, a0      bgez v0, .L      sra a0, v0, 10   (delay)   addiu v0, v0, 0x3FF   sra a0, v0, 10
+```
+
+**The RTL is identical; two later passes disagree about the spelling.**
+`expand_divmod` (and every manual spelling, which `cse`/`combine` canonicalize
+onto it) emits
+
+```
+(insn)     98 = 89
+(jump)     ge (reg 89) 0 -> L
+(insn)     98 = plus (reg 89) 1023
+(label L)  (insn) 90 = ashr (98) 10
+```
+
+`cse.c`'s `insert_regs` calls `make_regs_eqv (98, 89)` for the copy, and
+`make_regs_eqv` makes the register that **dies later** the canonical
+representative of the class (`qty_first_reg`) when either is live past the end of
+the CSE basic block. 98 dies at the `ashr`, 89 at the `plus`, so 98 wins and
+`canon_reg` rewrites the branch and the `plus` onto 98 — the first shape above.
+`cse_end_of_basic_block` stops at the first `CODE_LABEL`, so the join's label
+guarantees 98 is live "past the end" no matter where the block ends.
+
+**The fix is to stop the copy being in the branch's block at all.** `jump.c` has
+a transform (`find_insert_position`, the `if (...) x = exp;` → `t = exp;
+if (...) x = t;` rewrite) that emits `x = t` with `emit_insn_after (…, insn)` —
+i.e. **after** the branch — when the two instructions following a conditional
+branch assign to the same destination (`rtx_equal_p (SET_DEST (temp4), temp2)`).
+Writing the sign fix as two consecutive assignments to the same variable in the
+`then` arm is what makes that condition hold:
+
+```c
+    if (kind < 0) {
+        index  = kind;          /* 1st assignment ...  */
+        index += 0x3FF;         /* ... 2nd, same dest */
+    } else {
+        index = kind;
+    }
+    angle = index >> 0xA;
+```
+
+Now the copy `index = kind` lands after the branch, `cse` never sees it in the
+same block as the branch and the `plus`, the operands keep the original `$a0`,
+and `reorg` fills the `bgez` delay slot with it: 100.000%, every penalty 0.
+
+**Reading the rule the other way:** a single assignment in the `then` arm puts
+the phi copy *before* the branch, and `cse` will always rename the branch and the
+body onto it. When a target keeps the branch on the original register and puts
+the copy in its delay slot, the source had two assignments to the same
+destination, not one. This is not the `dbr` copy-into-a-delay-slot behaviour —
+`dbr` sinks a *free* instruction; here the copy only becomes sinkable because
+`jump.c` already put it after the branch.
+
+**Two smaller artefacts in the same function.** m2c typed the dispatch's
+selector `u8`, taken from an `lbu`: a QImode local is re-extended at every
+SImode use, so `sltiu $v0,$v1,5` came out as `andi v1,v1,0xff` plus a duplicated
+`j`. Widening it to `s32` removed both and took the score from 91.792% to
+97.878%. (The existing `u8`-local entry above is the converse — check the target
+for the mask before widening.) A `lui`/`ori` of the scratch head that appears
+twice, once at the top and once at each switch exit, is just `G_SCRATCH_HEAD`
+used both to bump the pointer and to read it back. Input: `base_12.i`
+`86ee1783f1069ad1cc9e6320a8f21cdd7adea9e9373a52e17371752325243942`.
