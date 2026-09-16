@@ -42,7 +42,10 @@ typedef struct Actor421600Work {
     /* 0x82E */ u16     field_82E;
     /* 0x830 */ byte    pad_830[2];
     /* 0x832 */ u16     field_832;
-    /* 0x834 */ byte    pad_834[0xB8];
+    /* 0x834 */ byte    pad_834[0xA];
+    /* 0x83E */ u16     field_83E;
+    /* 0x840 */ u16     field_840;
+    /* 0x842 */ byte    pad_842[0xAA];
     /* 0x8EC */ GpObj   field_8EC;
     /* 0x90C */ byte    pad_90C[0x120];
     /* 0xA2C */ GpObj   field_A2C;
