@@ -614,7 +614,147 @@ void func_actor_356100_80167818(Actor356100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167A7C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8016804C);
+/// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
+/// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
+/// 0x14-byte `Actor356100DeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
+/// the two spellings of the block in the body reach it the same way the
+/// original does — the negative offsets off `head` for the X component and the
+/// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
+/// its mask argument.
+static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor356100DeltaFlag* s;
+    s32                   val;
+
+    if (D_80072729 != 1) {
+        scratch                                  = (void**)G_SCRATCH_HEAD;
+        head                                     = *scratch;
+        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
+        s->field_10                              = 0;
+        if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
+            coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[1] += s->delta.vy.h.hi;
+            coord->coord.t[2] += s->delta.vz.h.hi;
+            val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[0]++;
+                } else {
+                    coord->coord.t[0]--;
+                }
+            }
+            val = s->delta.vz.w;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[2]++;
+                } else {
+                    coord->coord.t[2]--;
+                }
+            }
+        }
+        coord->coord.t[1] += height;
+        if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+            s->field_10 = 1;
+        }
+        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Steps `coord` `amount` units along its own root colour-matrix column unless
+/// movement is frozen (`D_80072729`) or `amount` is zero, the column
+/// normalised by the GTE first. Same body as `Actor01900_MoveForward` /
+/// `Actor401300_MoveForwardNonzero`.
+static __inline__ void Actor356100_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gteVec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        gteVec                     = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(gteVec);
+            gte_gpf12_real();
+            gte_stsv(gteVec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Turn-and-push tick, the sibling of `func_actor_356100_80163E2C` above it and
+/// the same body as `func_actor_401300_8013A208`. The live branch resets the
+/// model and starts clip 1 at speed 0x10 with the 0x12 state parked in
+/// `field_97E`; otherwise the turn scratch takes the player offset,
+/// `Actor356100_PositionYaw` gives the wrapped turn, `field_98E` snapshots it,
+/// it is clamped to [-0x40, 0x40] and the root yaw is re-derived from it. The
+/// root is then pushed out of the `field_A58` collision records and one
+/// normalised unit along its own Y column scaled by `field_B4C`, which decays
+/// by 0xA per frame — once it reaches zero, or bit 0 of `field_68` is set, the
+/// state moves to 9 and the turn scratch is given back.
+void func_actor_356100_8016804C(Actor356100* arg0)
+{
+    Actor356100Work*        work;
+    GpEnemy*                enemy;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    Actor356100TurnScratch* turn;
+    u16                     next;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy           = arg0->field_20;
+        obj             = arg0->field_2C;
+        work->field_97E = 0x12;
+        work->field_978 = 1;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC     = 0x180;
+        enemy->node.field_4 = 0;
+        work->field_990     = 0;
+        work->field_982     = 0x1E;
+    }
+    *(Actor356100TurnScratch**)G_SCRATCH_HEAD -= 1;
+    turn                                       = *(Actor356100TurnScratch**)G_SCRATCH_HEAD;
+    turn->angle                                = Actor356100_PositionYaw(arg0, &turn->delta, &Wip_SysConfig);
+    work->field_98E                            = turn->angle;
+    if (turn->angle > 0x40) {
+        turn->angle = 0x40;
+    }
+    if (turn->angle < -0x40) {
+        turn->angle = -0x40;
+    }
+    coord        = arg0->field_2C->field_8;
+    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
+    Actor356100_PushRecords(arg0->field_2C->field_8, &work->field_A58, 3, 0x10);
+    Actor356100_MoveForwardNonzero(arg0->field_2C->field_8, work->field_B4C);
+    if (work->field_B4C > 0) {
+        next            = work->field_B4C - 0xA;
+        work->field_B4C = next;
+        if ((s16)next < 0) {
+            work->field_B4C = 0;
+        }
+    }
+    func_actor_356100_80163508(arg0);
+    if ((work->field_68 & 1) || work->field_B4C == 0) {
+        work->field_0 = 9;
+    }
+    *(Actor356100TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801684F0);
 

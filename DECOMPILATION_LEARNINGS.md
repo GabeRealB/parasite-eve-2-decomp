@@ -109287,3 +109287,84 @@ target SHA256 `fee99d8299ff7b2d2cbcda61e2ac22b3a1fd9d6acef867d8fa61556c894d35bd`
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_80166018-vacuum`; matching candidate `base_2.c`.
+
+## A scratch reserve written as `*(T**)G_SCRATCH_HEAD -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
+
+**Problem.** This tick takes a 0xC-byte turn block and, inside it, a 0x14-byte
+`Actor356100DeltaFlag`. The turn block matched immediately; the delta block was
+off by exactly one instruction, an `addiu` into a temporary followed by a copy:
+
+```
+addiu  v0,s2,-0x14        ; retail: the block, in a temp
+move   s1,v0              ;         copied into the call-crossing home
+move   a1,s1              ;         and from there into the argument
+sw     s1,0x3fc(at)       ;         the reserve store, off s1
+```
+
+Writing the reserve the obvious way — a local holding the decremented head —
+gives one instruction fewer, because `cse` folds the temp away:
+
+```
+/* 99.599% — no pair */
+s = (Actor356100DeltaFlag*)(head - 0x14);
+*scratch = s;
+
+/* v0/s1 shape, but the copies run the wrong way: move a1,v0 / move s1,a1 /
+   sw a1 (99.933%, regs=4) */
+register void* p asm("v0");
+p = head - 0x14;
+s = p;
+*scratch = s;
+
+/* 100.000% — the reserve as the overlay writes it everywhere else */
+scratch = (void**)G_SCRATCH_HEAD;
+head    = *scratch;
+*(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
+s       = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
+```
+
+**Mechanism.** The compound assignment leaves the decremented pointer in a
+block-local quantity whose only consumer is the follow-up reload, so `cse`
+forwards that reload into a copy and then, in the same insn, prefers the
+cheaper pseudo over the hard register as the store's source (`COST` ranks
+pseudos at 1 and other hard registers at 2). The store and the call argument
+both end up reading the pseudo, and `local_alloc` carries it into the argument
+register — `move s1,v0`, `move a1,s1`, `sw s1`. Spelling the temp as a local
+gives the folding path instead: `cse` propagates the definition into `s` and
+the `addiu` writes `s`'s home directly.
+
+**Pinning does not substitute for it.** With `register void* p asm("v0")` the
+pair appears, but mirrored: the hard register stays the head of the quantity
+(`cse.c`'s `make_regs_eqv` only demotes a *fixed* register, and `$v0`/`$v1` are
+not in this configuration's `FIXED_REGISTERS`), and `canon_reg` never rewrites
+a hard-register reference, so every use of `s` is rewritten to `v0` instead of
+the other way. Two candidates (pinned, 99.933%, `regs=4`) sit closer to the
+target than any unpinned one, which is exactly why the search router's
+`pinned=0` filter skipped them; the unpinned seed it did search could not
+reach the shape, because no unpinned spelling of an explicit temp keeps the
+pair. Reach for the reserve idiom, not a pin.
+
+Note the contrast with the `func_actor_356100_801668FC` entry above: that
+function needed the `PSX_SCRATCH` address kept unfolded per use. Here the plain
+`G_SCRATCH_HEAD` macro produced retail's `lui at,0x1f80` + `0x3fc($at)` store
+shape with no `base`/`slot` splitting at all — the address was never hoisted,
+because the two blocks that use it are short and the value dies at each use.
+
+**Toolchain note.** The same session's search router reported
+`search finished without a discovery`, but `PERMUTER.txt` showed the real
+cause: `setup failed: m2c_macros.h: No such file or directory`. The router
+recompiles a normalized copy of the seed without `-I tools/m2c`, so an
+m2c-generated scratch seed that still carries m2c's includes never reaches a
+search. Read `PERMUTER.txt`, not the summary line, before concluding a search
+was exhausted.
+
+Inputs: `base_6.i` (100.000%) SHA256
+`b00aa82b34bcd5cc5b5c4aa0cfb739b675beacc819736c784a1bd14248c956f8`; `base_4.i`
+(99.933%) SHA256
+`fe0ca9b729a1c2bed205f57ee74e8f767d2eca469893114b9077ab4d4c7776e9`; `base_2.i`
+(99.599%) SHA256
+`64643e3c754f4182c7041bd55301305e376aec6939cc9576e7f7849bd583f917`; target
+SHA256 `b3302290c7f0bb26674ea62d8b0d8da8e10ddda0293df687832ca57f641a6c62`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
+`nonmatchings/func_actor_356100_8016804C-vacuum`; matching candidate `base_6.c`.

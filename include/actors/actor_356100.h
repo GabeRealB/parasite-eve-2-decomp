@@ -28,6 +28,17 @@ typedef struct Actor356100TintRow {
 } Actor356100TintRow;
 STATIC_ASSERT_SIZEOF(Actor356100TintRow, 0x8);
 
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_356100_8016804C` takes: the
+/// offset from the actor to the player, then the clamped turn applied to the
+/// root coordinate. Same shape as `Actor401300TurnScratch` /
+/// `Actor01900TurnScratch`.
+typedef struct Actor356100TurnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor356100TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor356100TurnScratch, 0xC);
+
 /// Head of the work block this overlay hangs off `Task::idMap`. `field_4` is
 /// the live-actor flag `func_actor_356100_8016A1D8` tests, where
 /// `Actor00100Work::field_4` sits. `field_0` / `field_5A` / `field_68` are the
@@ -110,7 +121,12 @@ typedef struct Actor356100Work {
     /// alive (`field_40 > 0`) to choose clip 4 or 0x11; the analogue of the
     /// `Actor00100Ctx.field_4C & 2` bit `Actor00100_Fn0BB2C` tests there.
     /* 0xB3A */ s16  field_B3A;
-    /* 0xB3C */ byte pad_B3C[0x18];
+    /* 0xB3C */ byte pad_B3C[0x10];
+    /// Push distance `func_actor_356100_8016804C` normalises the root's own
+    /// colour-matrix column by and walks down by 0xA per frame until the
+    /// state moves on; same role as `Actor401300Work.field_C98`.
+    /* 0xB4C */ s16  field_B4C;
+    /* 0xB4E */ byte pad_B4E[6];
     /// Random reload `func_actor_356100_8016A668` adds a 4-bit `Gp_LcgState`
     /// draw to when the work block's `field_4` flag is set.
     /* 0xB54 */ u16 field_B54;
@@ -246,6 +262,11 @@ void func_actor_356100_80163508(Actor356100* arg0);
 extern MATRIX* D_80073B8C;
 
 extern u32 Gp_LcgState;
+
+/// Movement-freeze flag: when it is 1 the root coordinate is left alone, so
+/// `func_actor_356100_8016804C`'s two collision pushes are skipped entirely.
+/// Same slot and role as `Actor00100_MoveForwardNonzero`'s guard.
+extern u8 D_80072729;
 
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
