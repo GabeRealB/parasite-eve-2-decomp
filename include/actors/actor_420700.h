@@ -40,6 +40,10 @@ extern Task* D_actor_420700_8013EFE4;
 /// `func_actor_420700_8013239C` kills.
 extern Task* D_actor_420700_8013EFE8;
 
+/// The second task the same handler spawns, the frame-8 twin
+/// `func_actor_420700_801327EC`.
+extern Task* D_actor_420700_8013EFEC;
+
 void func_actor_420700_801324EC(void);
 void func_actor_420700_801325C8(void);
 

@@ -23,7 +23,36 @@ void func_actor_420700_801325C8(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_420700/actor_420700_3", func_actor_420700_80132644);
 
-INCLUDE_ASM("actors/nonmatchings/actor_420700/actor_420700_3", func_actor_420700_801326F4);
+/// Message 0x7D5 handler: rewrites `field_C` of every model object the state-0
+/// handler owns -- the actor's own task, its model task and the frame-8 twin.
+/// Bit 0 of the argument picks the value all three are set to, 0 or the 0x80
+/// `Tmd_Create` leaves behind; bit 1 then ORs 0x4 into all three, the same flag
+/// `Gp_ApplyAreaTmdFlags` sets. Always returns 0.
+///
+/// The argument is the handler table's third slot, not the second, so the three
+/// objects it loads land in `$a3` / `$a0` / `$v1` rather than shifted one down.
+s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* actor = D_actor_420700_8013EFE4->extra;
+    TmdObject* model = D_actor_420700_8013EFE8->extra;
+    TmdObject* twin  = D_actor_420700_8013EFEC->extra;
+
+    if (arg2 & 1) {
+        actor->field_C = 0;
+        model->field_C = 0;
+        twin->field_C  = 0;
+    } else {
+        actor->field_C = 0x80;
+        model->field_C = 0x80;
+        twin->field_C  = 0x80;
+    }
+    if (arg2 & 2) {
+        actor->field_C |= 4;
+        model->field_C |= 4;
+        twin->field_C  |= 4;
+    }
+    return 0;
+}
 
 /// Message 0x7DB handler: records the `field_4BA` mode the ramp
 /// `ActorsShared80131f9cSub1` runs and seeds `field_4BC` at the end that mode
