@@ -84515,3 +84515,27 @@ Inputs: `base.i` (m2c, void, 94.526%)
 `base_2.i` (s32, 100.000%)
 `3998bcbfd8fb090b9e3c5145cc9b2abdd5b116c2bd57c45a50849594d40d9877`, target
 `cc8a6560d7a50f65e6a7ac7113a3f809be66fd73bc948bf9195327c903ffc9ff`.
+
+## Data an overlay's code references but its sym `.txt` does not list is named by splat (`D_<overlay>_<vram>`), and C must spell it that way (func_dryfield_garage_8017DAA0, 2026-09-16)
+
+Writing an `extern` for an overlay-local datum, the natural instinct is to invent a
+descriptive name, or to look the symbol up in `configs/USA/sym/rooms/<overlay>.txt`
+and find nothing. Only *named* data is in that file. Everything else the code
+touches - work words, an overlay's own saved task pointer - gets an auto-generated
+name from the family rule in `configs/USA/overlay.template.yaml`:
+
+```yaml
+  symbol_name_format: $SEG_$VRAM
+```
+
+so a reference to `0x8018021C` in segment `dryfield_garage` is
+`D_dryfield_garage_8018021C`. That is what the nonmatchings `.s` shows and what the
+relocation must say; a hand-picked name compiles fine and then fails to resolve, or
+resolves to a different address. Read the name out of the `.s`, never invent it.
+
+The distinction to hold onto: family-wide imports (`D_8014xxxx`, addresses *below*
+every room's load address) are named in `configs/USA/sym/<family>.imports.txt` and
+declared `extern` at file scope, e.g. `extern TaskDesc D_80141B6C;` - see
+`src/rooms/mist_shooting_gallery/mist_shooting_gallery.c:59`. Overlay-local data
+above the load address is `<family>/<overlay>.txt` if named, else splat's
+`D_<overlay>_<vram>`.
