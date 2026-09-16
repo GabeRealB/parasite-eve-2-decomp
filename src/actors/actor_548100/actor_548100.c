@@ -13,10 +13,32 @@
 
 void func_actor_548100_801330EC(void);
 s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
+void func_actor_548100_8013461C(Actor548100TexRect* rect);
+void func_actor_548100_80133BBC(s32 arg0);
+void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
+void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
+void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
+void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
+void func_actor_548100_80134AE0(s32 id, u8 stop);
+void func_actor_548100_80134BA8(void);
+void func_actor_548100_80134BF0(void);
 
 extern Actor548100Hotspot D_actor_548100_801357E8[];
 extern Actor548100Route   D_actor_548100_801356D8;
 extern Actor548100Route   D_actor_548100_80135750;
+extern Actor548100TexRect D_actor_548100_801357C0[];
+extern Actor548100TexRect D_actor_548100_801357E0;
+extern s16                D_actor_548100_80135B50;
+extern u8                 D_actor_548100_80135B52;
+extern s8                 D_actor_548100_80135B53;
+extern s8                 D_actor_548100_80135B54;
+extern s8                 D_actor_548100_80135B55;
+extern s8                 D_actor_548100_80135B56;
+extern s8                 D_actor_548100_80135B57;
+extern s8                 D_actor_548100_80135B58;
+extern s8                 D_actor_548100_80135B59;
+extern s8                 D_actor_548100_80135B5A;
+extern s8                 D_actor_548100_80135B5B;
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", ActorsShared8013845cSub1);
 
@@ -222,7 +244,119 @@ void func_actor_548100_80132808(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132A14);
+void func_actor_548100_80132A14(Task* task)
+{
+    Actor548100Work*    work;
+    Actor548100TexRect* rect;
+    DR_MODE*            prim;
+    Actor548100Route*   route;
+    s32                 i;
+    s32                 flagA;
+    s32                 flagB;
+
+    i    = 0;
+    rect = D_actor_548100_801357C0;
+    work = (Actor548100Work*)task->idMap;
+    for (; i < 4; i++, rect++) {
+        if (GameFlag_GetNibble(i + 0xBF) != 0) {
+            func_actor_548100_8013461C(rect);
+        }
+    }
+
+    prim           = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 1);
+    prim->code[0] = 0xE100022A;
+    addPrim(&Gpu_CurrentOt[0x3FD], prim);
+
+    func_actor_548100_80134960(D_actor_548100_80135B50, &D_actor_548100_80135B53, &D_actor_548100_80135B54, &D_actor_548100_80135B55);
+    func_actor_548100_801349E0(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
+    func_actor_548100_80134A60(D_actor_548100_80135B50, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
+    func_actor_548100_80134BF0();
+    GameFlag_SetNibble(0xBB, 0);
+    GameFlag_SetNibble(0xB5, 0);
+
+    if (GameFlag_GetNibble(0xC3) != 0) {
+        if (task->state != 9) {
+            route = D_actor_548100_80135B4C;
+            if (route->leg[0].nodeA != 0) {
+                func_actor_548100_80134AE0(route->leg[0].nodeA, route->leg[0].nodeB);
+                route = D_actor_548100_80135B4C;
+            }
+            if (route->leg[1].nodeA != 0) {
+                func_actor_548100_80134AE0(route->leg[1].nodeA, route->leg[1].nodeB);
+            }
+            route = D_actor_548100_80135B4C;
+            if (route->leg[2].nodeA != 0) {
+                func_actor_548100_80134AE0(route->leg[2].nodeA, route->leg[2].nodeB);
+            }
+            if (D_actor_548100_80135B4C->flag_8 != 0) {
+                func_actor_548100_80133BBC(1);
+                GameFlag_SetNibble(0xB5, 1);
+            }
+            if (D_actor_548100_80135B4C->flag_9 != 0) {
+                func_actor_548100_80133BBC(2);
+                if (GameFlag_GetNibble(0xBE) == 2) {
+                    GameFlag_SetNibble(0xBB, 3);
+                } else {
+                    GameFlag_SetNibble(0xBB, 2);
+                }
+            }
+        } else {
+            route = D_actor_548100_80135B4C;
+            flagA = 0;
+            flagB = 0;
+            if (route->leg[2].nodeA != 0) {
+                func_actor_548100_801342D8(route->leg[2].nodeA, route->leg[2].nodeB, work->field_12);
+                flagB = work->field_12 == work->field_10;
+            }
+            if (work->farFrom != 0) {
+                if (work->field_A != work->field_8) {
+                    func_actor_548100_801342D8(work->farFrom, work->farTo, work->field_A);
+                } else {
+                    func_actor_548100_80134AE0(work->farFrom, work->farTo);
+                }
+            }
+            if (work->nearFrom != 0) {
+                if (work->field_E != work->field_C) {
+                    func_actor_548100_801342D8(work->nearFrom, work->nearTo, work->field_E);
+                } else {
+                    func_actor_548100_80134AE0(work->nearFrom, work->nearTo);
+                }
+            }
+            if (work->field_A == work->field_8 && work->farTo == 0 && work->farFrom != 0) {
+                flagA = D_actor_548100_80135B4C->flag_8;
+                flagB = flagB || D_actor_548100_80135B4C->flag_9;
+            }
+            if (flagA != 0) {
+                func_actor_548100_80133BBC(1);
+            }
+            if (flagB != 0) {
+                func_actor_548100_80133BBC(2);
+            }
+        }
+    }
+
+    func_actor_548100_80134BA8();
+    if (GameFlag_GetNibble(0xC3) == 0) {
+        GameFlag_SetNibble(0xBB, 0);
+        GameFlag_SetNibble(0xB5, 0);
+    } else {
+        func_actor_548100_8013461C(&D_actor_548100_801357E0);
+    }
+
+    if (D_actor_548100_80135B52 == 0) {
+        if (++D_actor_548100_80135B50 >= 0x20) {
+            D_actor_548100_80135B52 = 1;
+        }
+    } else if (D_actor_548100_80135B52 == 1) {
+        if (--D_actor_548100_80135B50 <= 0x10) {
+            D_actor_548100_80135B52 = 0;
+        }
+    } else if (D_actor_548100_80135B50 > 0) {
+        D_actor_548100_80135B50--;
+    }
+}
 
 void func_actor_548100_80132EA0(void)
 {
