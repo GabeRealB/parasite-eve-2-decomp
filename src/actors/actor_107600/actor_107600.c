@@ -27,6 +27,14 @@ extern const TaskFuncTable4 D_actor_107600_80131E74;
  * holding one entry per `Actor107600Work.field_144` phase. */
 extern const TaskFuncTable3 D_actor_107600_80131E34;
 
+/* Fourth table out of that block, run by `func_actor_107600_80133024` on
+ * `Actor107600Work.field_158`. */
+extern const TaskFuncTable10 D_actor_107600_80131E84;
+
+/* Eight effect offsets `func_actor_107600_80133024` cycles through from
+ * `Actor107600Work.field_16A`. */
+extern Actor107600Pair D_actor_107600_80135730[];
+
 /* Table `func_actor_107600_80132DF0` spawns from, indexed with `arg1 + 1`; it
  * is the trailing animation/data blob, not the leading rodata. */
 extern TaskDesc D_actor_107600_80134F94;
@@ -389,7 +397,73 @@ void func_actor_107600_80132ED0(Task* arg0)
     arg0->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133024);
+/// Per-frame update switched on the scene mode `D_801153F4`, like
+/// `func_actor_107600_80132930`. Mode 0 runs the `field_158` state out of
+/// `D_actor_107600_80131E84`, then (below state 7) takes hits, clears the collision records and enters state 9 once the enemy's
+/// HP is gone. Afterwards publishes the enemy's slot mask to the gallery and
+/// emits one effect per `field_16B` hit, the last one upward when dead.
+void func_actor_107600_80133024(Task* arg0)
+{
+    TaskFuncTable10  sp;
+    GpEnemy*         enemy;
+    TmdObject*       ext;
+    TmdObject*       obj;
+    Actor107600Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         v;
+    s32              i;
+
+    enemy                  = arg0->spawnArg2;
+    ext                    = arg0->extra;
+    work                   = (Actor107600Work*)arg0->idMap;
+    coord                  = ext->field_8;
+    obj                    = ext;
+    sp                     = D_actor_107600_80131E84;
+    *(s32*)G_SCRATCH_HEAD -= 8;
+    v                      = *(SVECTOR**)G_SCRATCH_HEAD;
+    switch (D_801153F4) {
+        case 0:
+            sp.funcs[work->field_158](arg0);
+            if (work->field_158 < 7) {
+                if (work->field_150 == 0) {
+                    func_actor_107600_80133DC4(arg0);
+                } else {
+                    work->field_150--;
+                }
+                Gp_ClearRec18Occupied(work->rec18);
+                if (enemy->field_40 <= 0) {
+                    func_actor_107600_80134B98((Actor107600*)arg0, 9);
+                }
+            }
+        case 1:
+            func_actor_107600_801349E0(arg0);
+            obj->field_C &= ~0x80;
+            break;
+        case 2:
+            obj->field_C |= 0x80;
+            break;
+    }
+    if (work->field_162 != 2) {
+        ((MistShootingGalleryWork*)D_8018E0C4->idMap)->field_1D = Gp_NodeSlotMask(&enemy->node);
+    }
+    coord->flg = 0;
+    func_actor_107600_80134A50(arg0);
+    func_actor_107600_80134EF4(arg0);
+    for (i = 0; i < work->field_16B; i++) {
+        if (i == work->field_16B - 1 && enemy->field_40 <= 0) {
+            v->vx = 0;
+            v->vy = -0xE0;
+            v->vz = 0;
+            func_actor_107600_80133FA8(coord, v);
+        } else {
+            v->vx = D_actor_107600_80135730[(work->field_16A + i) & 7].vx;
+            v->vy = D_actor_107600_80135730[(work->field_16A + i) & 7].vy;
+            v->vz = 0;
+            func_actor_107600_80134248(coord, v);
+        }
+    }
+    *(s32*)G_SCRATCH_HEAD += 8;
+}
 
 /// Sub-state machine in `field_15A`: once `Task::spawnArg1` bit 0x10 is set,
 /// grows the `field_168`/`field_169` scales by 0x20 up to 100, plays a cue and

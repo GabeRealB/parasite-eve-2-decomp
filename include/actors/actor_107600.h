@@ -89,6 +89,13 @@ typedef struct Actor107600HitPos {
     /* 0x8 */ s32 vz;
 } Actor107600HitPos;
 
+/// Entry of the effect-offset table `func_actor_107600_80133024` copies into
+/// an `SVECTOR`'s `vx`/`vy`.
+typedef struct Actor107600Pair {
+    /* 0x0 */ u16 vx;
+    /* 0x2 */ u16 vy;
+} Actor107600Pair;
+
 typedef struct Actor107600 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor107600Work* field_1C;
@@ -116,6 +123,8 @@ void func_actor_107600_80132CD4(Task* arg0);
 void func_actor_107600_80132D54(Task* arg0);
 void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
 void func_actor_107600_80132ED0(Task* arg0);
+void func_actor_107600_80133FA8(GsCOORDINATE2* arg0, SVECTOR* arg1);
+void func_actor_107600_80134248(GsCOORDINATE2* arg0, SVECTOR* arg1);
 void func_actor_107600_80134608(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_107600_801348A0(Task* arg0);
 void func_actor_107600_80134904(Task* arg0);
