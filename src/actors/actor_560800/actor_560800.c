@@ -36,7 +36,10 @@ extern void     D_actor_560800_8016EC1C;
 extern void     D_actor_560800_8016ECC4;
 extern void     D_actor_560800_8016F34C;
 
-void func_actor_560800_80132498(Task* arg0);
+s32 func_actor_560800_80132498(Task* arg0);
+
+/// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_actor_560800_801321A0(Task* arg0)
 {
@@ -183,7 +186,73 @@ s32 func_actor_560800_80132340(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80132498);
+/// Reseeds the animation slots of the task's own `Actor560800AnimWork`: the
+/// id goes to `field_4B8` with `rate` in `field_4C8`, `field_4BE` is cleared,
+/// and slots 1..`field_4BA` are blended through `func_800B4114`. The
+/// `SOFT_BARRIER()` is the same sched1 pin `func_actor_560800_801364A0` needs.
+static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
+{
+    Actor560800AnimWork* w;
+    u16                  i;
+
+    w            = (Actor560800AnimWork*)arg0->idMap;
+    w->field_4B8 = id;
+    w->field_4C8 = rate;
+    w->field_4BE = 0;
+    SOFT_BARRIER();
+    for (i = 1; i < w->field_4BA; i++) {
+        func_800B4114(&w->anim, i, id, 0, 10);
+    }
+}
+
+/// Ticks every animation slot, then advances the script at `field_4B4`: a step
+/// with a non-zero hold waits `field_0` frames in `field_4BE`, a zero hold waits
+/// for every slot to finish (bit 0x100 of `field_10`). Returns 1 when the next
+/// step's id is negative (the script ended), 0 otherwise.
+///
+/// The step is re-indexed at every use rather than held in a local, and the
+/// negative test is written as `>= 0` with an `else return 1`; both are needed
+/// for the register choice and the jump layout.
+s32 func_actor_560800_80132498(Task* arg0)
+{
+    Actor560800AnimWork* work;
+    u16                  i;
+    u16                  done;
+
+    work = (Actor560800AnimWork*)arg0->idMap;
+    if (((TmdObject*)arg0->extra)->field_C & 0x80) {
+        return 0;
+    }
+    for (i = 1; i < work->field_4BA; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    i    = 1;
+    done = 1;
+    for (; i < work->field_4BA; i++) {
+        if (!(work->slots[i].field_10 & 0x100)) {
+            done = 0;
+            break;
+        }
+    }
+    if (work->field_4B4[(u16)work->field_4B8].field_0 != 0) {
+        if ((u16)work->field_4BE >= work->field_4B4[(u16)work->field_4B8].field_0) {
+            if (work->field_4B4[(u16)work->field_4B8].field_2 >= 0) {
+                Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].field_2, work->field_4C8);
+            } else {
+                return 1;
+            }
+        } else {
+            work->field_4BE++;
+        }
+    } else if (done) {
+        if (work->field_4B4[(u16)work->field_4B8].field_2 >= 0) {
+            Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].field_2, work->field_4C8);
+        } else {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801326C4);
 

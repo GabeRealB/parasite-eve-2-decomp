@@ -59,6 +59,17 @@ typedef struct Actor560800Work {
 } Actor560800Work;
 STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 
+/// One step of the animation script `func_actor_560800_80132340` walks,
+/// indexed by `Actor560800Work::field_60`: `field_0` is the frame hold counted
+/// in `field_62` (0 waits for the player to report the clip done, message
+/// 0x3ED), and `field_2` is the next animation id sent as message 0x3F4; a
+/// negative `field_2` ends the script.
+typedef struct Actor560800AnimStep {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ s16 field_2;
+} Actor560800AnimStep;
+STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
+
 /// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
 /// from `ActorsShared80136280Desc` index 5 (`func_actor_560800_80132C60`).
 /// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
@@ -78,24 +89,26 @@ STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 /// `ActorsShared80132514Work::field_4B8` plays), `field_4BA` the slot count
 /// the reset loop walks 1..count, and `field_4C8` the 0x10 written into each
 /// slot's `field_9`. `field_4CA` is a phase counter the same handler reads.
+/// `field_4B4` is the animation script `func_actor_560800_80132498` walks by
+/// `field_4B8`, with `field_4BE` as its hold counter.
 typedef struct Actor560800AnimWork {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       animAux[0x90];
-    /* 0x3C4 */ byte       pad_3C4[0xB0];
-    /* 0x474 */ MATRIX     light;
-    /* 0x494 */ MATRIX     color;
-    /* 0x4B4 */ void*      field_4B4;
-    /* 0x4B8 */ s16        field_4B8;
-    /* 0x4BA */ u16        field_4BA;
-    /* 0x4BC */ u16        field_4BC;
-    /* 0x4BE */ s16        field_4BE;
-    /* 0x4C0 */ s16        field_4C0;
-    /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ s16        field_4C4;
-    /* 0x4C6 */ s16        field_4C6;
-    /* 0x4C8 */ s16        field_4C8;
-    /* 0x4CA */ s16        field_4CA;
+    /* 0x000 */ GpAnimCtx            anim;
+    /* 0x014 */ GpAnimSlot           slots[0x14];
+    /* 0x334 */ byte                 animAux[0x90];
+    /* 0x3C4 */ byte                 pad_3C4[0xB0];
+    /* 0x474 */ MATRIX               light;
+    /* 0x494 */ MATRIX               color;
+    /* 0x4B4 */ Actor560800AnimStep* field_4B4;
+    /* 0x4B8 */ s16                  field_4B8;
+    /* 0x4BA */ u16                  field_4BA;
+    /* 0x4BC */ u16                  field_4BC;
+    /* 0x4BE */ s16                  field_4BE;
+    /* 0x4C0 */ s16                  field_4C0;
+    /* 0x4C2 */ s16                  field_4C2;
+    /* 0x4C4 */ s16                  field_4C4;
+    /* 0x4C6 */ s16                  field_4C6;
+    /* 0x4C8 */ s16                  field_4C8;
+    /* 0x4CA */ s16                  field_4CA;
 } Actor560800AnimWork;
 STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
@@ -206,17 +219,6 @@ extern Task* D_actor_560800_8017578C;
 /// `GpAnimArg` at when it sends message 0x3F4 - the same role
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern u8 D_actor_560800_8016EA40[];
-
-/// One step of the animation script `func_actor_560800_80132340` walks,
-/// indexed by `Actor560800Work::field_60`: `field_0` is the frame hold counted
-/// in `field_62` (0 waits for the player to report the clip done, message
-/// 0x3ED), and `field_2` is the next animation id sent as message 0x3F4; a
-/// negative `field_2` ends the script.
-typedef struct Actor560800AnimStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ s16 field_2;
-} Actor560800AnimStep;
-STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 
 extern Actor560800AnimStep D_actor_560800_8016EBE8[];
 

@@ -100656,3 +100656,24 @@ half (`w = work;` before `w = (W*)task->idMap;`). Flow deletes the copy, so no
 code is emitted, but the pseudo still counts two sets: the entry load stays
 birthing and the reload does not. Placing the copy right after the entry
 statements worked; placing it just before the reload did not change anything.
+
+### `if (x >= 0) { inlined tail } else return 1;` leaves a `j` over the deleted return block (func_actor_560800_80132498, 2026-09-16)
+
+**Symptom.** Every path the target expects matches except that a loop exit which
+should fall into the shared `move v0,zero` instead ends with `j epilogue` +
+`move v0,zero` in the delay slot (one extra jump, `branch`/`delete` penalties),
+and the other arm jumps to a label 8 bytes later than yours.
+
+**Cause.** With `if (x < 0) return 1; tail;` the tail falls into the shared
+`return 0`. Written as `if (x >= 0) { tail } else { return 1; }` the `return 1`
+block is emitted between the tail and `return 0`; jump threading then folds it
+into the `bltz` (`li v0,1` in the delay slot) and deletes it, but the tail has
+already been given a jump over it, which dbr retargets to the epilogue.
+
+**Fix.** Flip the polarity of the arm whose loop exit carries the extra jump
+(here only the first of two identical arms needed it).
+
+A related register fix in the same function: holding the script step in a
+local (`entry = &table[idx]`) put it in `$v1`; re-indexing
+`work->field_4B4[(u16)work->field_4B8]` at every use (CSE merges them) gave
+the target's `$a0`/`$v1`/`$a2` choice for the step, the hold counter and the id.
