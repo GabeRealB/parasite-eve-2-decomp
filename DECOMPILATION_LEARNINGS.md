@@ -105829,3 +105829,105 @@ further, so the accounting is left as observed rather than derived.
 Input: `base_2.i` `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122ea09`;
 `base_5.i` (97.885%) `9d1d838c6a05e3f6e57660574a66e859244e3c329e30d2d1c424c89ed523ac99`;
 `base_7.i` (98.077%) `5a865d501912059ad3b84e221af1682fa1a4cb656666375d15532db212532c85`.
+
+## `bltz` against a zero-extended load is a `switch` decision tree, not an `if` chain (func_actor_800100_80164184, 2026-09-16)
+
+A state machine dispatching on the `u16` `GameActor::field_95E` opens
+
+```
+lhu   v0, 0x95E(s0)
+nop
+beqz  v0, .case0
+nop
+bltz  v0, .default
+slti  v0, v0, 4
+beqz  v0, .default
+li    v0, 1
+j     .case123
+sb    v0, 0x973(s0)
+```
+
+That `bltz` cannot be written in C as a chain of `if`s on a `u16` field. The
+front end folds the sign test away: m2c's `if ((s32)v < 0) goto` / `if ((s32)v
+>= 4) goto` version of exactly these three tests compiles to `beqz` + `sltiu
+v0,v0,4` + `beqz` and nothing else, because the value is a zero-extended load.
+The `bltz` comes from `emit_case_nodes`, which compares at the RTL level, where
+that range information no longer exists: for a single-valued root node `{0}`
+with a right child, `!node_has_low_bound` makes it emit `emit_cmp_insn (index,
+node->high /* == 0 */, LT)` → `bltz` **to the default label**, followed by the
+right child (a `{1..3}` range node) emitting its own high bound
+`slti index,4; beqz default` and then `j` to the case label.
+
+So read the `bltz` as two facts at once: the dispatch is a `switch`, and its
+target is the switch's **end**. `expand_end_case` places the implicit default
+label after the last case body, so where the out-of-range branch lands says
+where the case bodies stop. Here it lands after the whole drive sequence, which
+is what proves that sequence sits inside the last case body — `case 0:` written
+*after* `case 1: case 2: case 3:` — and that the later cases reach it through a
+label (`goto drive;`) rather than a shared tail after the switch.
+
+Reading it as an `if` chain instead matches the dispatch shape but sends
+out-of-range values *into* the drive instead of past it: 86.5% with
+`branch=11 insert=13 delete=5` and no exact penalty pointing at the cause. The
+switch is 92.3% on the first build, with `predicates_match=True`,
+`calls_match=True` and all 29 blocks aligned.
+
+## One call, two arms, one differing argument: the target says which side of the merge the setup is on (func_actor_800100_80164184, 2026-09-16)
+
+Both arms of the distance test end in the same child-slot call, and the target
+has one call site whose *whole* argument setup is inside the shared block:
+
+```
+bnez  v0, .L42C0          # distance < 0x1600
+li    a1, 4               # arm 1's argument, in the delay slot
+li    v0, 2 / sh v0, 0x95E(s0) / li v0, 3 / j .L42E0 / sh v0, 0x958(s0)
+.L42C0:
+lhu   v1, 0x95E(s0) / li v0, 3 / beq v1, v0, .L42D4 / li v0, 1
+sh    v0, 0x95E(s0)
+.L42D4:
+li    v0, 1 / sh v0, 0x958(s0) / li a1, 2
+.L42E0:
+addu  a0, s4, zero        # <- a0/a2/a3 are set here, after the merge point
+addu  a2, zero, zero
+jal   Gp_AnimPlayChildSlotsEx
+li    a3, 5               # <- and the last argument is the jal's delay slot
+```
+
+Two full calls with literals — `Gp_AnimPlayChildSlotsEx(arg0, 4, 0, 5);` and
+`(arg0, 2, 0, 5);` — *are* cross-jumped to one `jal`, so the shape looks right,
+but sched1 has already interleaved `a0`/`a2`/`a3` into the first arm by then, so
+jump2's backward walk stops short of them: arm 1 carries three dead setup
+instructions and jumps into arm 2's copy, and the `jal` gets a `nop` where the
+target has `li a3, 5`. 96.019%, `branch=12 regs=21 insert=4`, 160 instructions
+against 156.
+
+Setting only the differing argument in each arm and calling once is exact:
+
+```c
+            if (func_8010BC70(coord) >= 0x1600) {
+                actor->field_95E = 2; actor->field_958 = 3; arg = 4;
+            } else {
+            enter:
+                if (actor->field_95E != 3) { actor->field_95E = 1; }
+                actor->field_958 = 1; arg = 2;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+```
+
+This is m2c's `var_a1` shape, and it is the same question as "sched1 sets the
+cross-jump boundary" read from the other end: the arms' tails are *not*
+textually identical here (the differing value is an argument the merge point
+sits below), so the fix is the opposite of that entry's. The test is where the
+target puts the argument setup — in each predecessor (`addiu a2, zero, 0x300`
+per arm), repeat the call; inside the shared block with the last argument in the
+`jal`'s delay slot, use a local and call once.
+
+The same if/else shows why a shared local is not merely a style choice: with the
+decremented timer held in one `var` assigned in both arms and stored once after,
+`base_1`'s `.lreg` reports `Register 88 used 3 times across 86 insns; crosses 7
+calls` — three references across the whole switch region — so it takes `$s5`,
+adds a seventh saved register to a frame the target keeps at six, and shifts
+every other callee-saved home. Writing the store into each arm (see
+"Cross-jumping merges duplicate *call* blocks too") removes the pseudo; the two
+stores then merge into the one the target has, the surviving then-block is a
+single `addiu`, and its branch's delay slot absorbs it as `lh/lhu/bgtz/addiu`.

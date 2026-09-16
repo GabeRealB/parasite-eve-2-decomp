@@ -7,6 +7,7 @@
 
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
+void func_8010BD88(GpActorWork* arg0, VECTOR3* arg1);
 void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
 s32  func_80105ED4(GpActorWork* arg0);
 void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
@@ -151,7 +152,101 @@ void func_actor_800100_80163F04(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164184);
+/// Lock-on entry and step of the actor's `field_95E` state machine. An aim
+/// within `0x301` of the lock node re-arms the actor: `field_956` takes the
+/// 10-frame delay, `field_95A`/`field_97E` latch the turn and decay, `field_960`
+/// keeps the old `field_956`, and the `field_910` record's `field_CA`/`field_C6`
+/// are reset before the slot-1 child animation. Otherwise state 0 zeroes
+/// `field_934` and picks state 2 (with `field_958` 3) or state 1 (with
+/// `field_958` 1) from `func_8010BC70`'s distance, states 1-3 only raise
+/// `field_973`. The shared drive then resets the move when the target is within
+/// `0x301`, counts `field_934` up to `0xB4` before latching state 3 through the
+/// state-1 entry, and otherwise drops `field_93E` while it is positive, re-arming
+/// it to `0x3C` from a `rand()` window and returning to state 0. The target's
+/// coordinate goes to `func_8010BD88` and `func_8010BE5C`.
+void func_actor_800100_80164184(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    s32            flag;
+    s32            dist;
+    s32            r;
+    s32            arg;
+    u16            timer;
+
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    actor  = arg0->actor;
+    flag   = (*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x042A0000;
+    dist   = func_actor_800100_8016709C(coord, &actor->field_910->field_A0, NULL);
+    if (dist != 0 && dist < 0x301 && flag == 0) {
+        GameActor* actor2 = arg0->actor;
+
+        timer             = actor2->field_956;
+        actor2->field_956 = 0xA;
+        actor2->field_95A = 1;
+        actor2->field_97E = 1;
+        d4                = actor2->field_910;
+        actor2->field_954 = 0;
+        actor2->field_95C = 0;
+        actor2->field_95E = 0;
+        actor2->field_960 = timer;
+        d4->field_CA      = -1;
+        d4->field_C6      = 0;
+        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
+        return;
+    }
+    switch (actor->field_95E) {
+        case 1:
+        case 2:
+        case 3:
+            actor->field_973 = 1;
+            goto drive;
+        case 0:
+            actor->field_934 = 0;
+            if (func_8010BC70(coord) >= 0x1600) {
+                actor->field_95E = 2;
+                actor->field_958 = 3;
+                arg              = 4;
+            } else {
+            enter:
+                if (actor->field_95E != 3) {
+                    actor->field_95E = 1;
+                }
+                actor->field_958 = 1;
+                arg              = 2;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            actor->field_973 = 1;
+        drive:
+            dist = func_8010BC70(coord);
+            if (dist < 0x301) {
+                Gp_ResetActorMove(arg0, 0);
+            } else if (actor->field_95E != 3) {
+                if (++actor->field_934 == 0xB4) {
+                    actor->field_95E = 3;
+                    goto enter;
+                }
+                if (actor->field_93E > 0) {
+                    actor->field_93E = (u16)actor->field_93E - 1;
+                } else {
+                    r = rand() & 0x3FF;
+                    if ((0x1000 - r) < dist || actor->field_95E != 2) {
+                        if (dist < r + 0x1400 || actor->field_95E != 1) {
+                            goto done;
+                        }
+                    }
+                    actor->field_95E = 0;
+                    actor->field_93E = 0x3C;
+                }
+            }
+    }
+done:
+    func_8010BD88(arg0, (VECTOR3*)target->coord.t);
+    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+}
 
 /// Lock-on drive for the actor's `field_95E` state machine. Builds a `VECTOR3`
 /// at `G_SCRATCH_HEAD - 0x10` from the lock node (`Gp_GetLockPos`, or the
