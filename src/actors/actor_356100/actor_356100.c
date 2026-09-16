@@ -2,6 +2,7 @@
 
 #include "actors/actor_356100.h"
 #include "gameplay/1A8.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
@@ -46,7 +47,115 @@ void func_actor_356100_801633DC(Actor356100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80163508);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8016382C);
+/// Initialisation for the state-0x10 clip run: allocates the work block, binds
+/// the model's light / colour matrices, re-seeds the enemy descriptor and both
+/// animation contexts, copies the model root's XZ pair into the work block and
+/// rebuilds the root's Y rotation as a uniform 0x1194 scale. The `field_36`
+/// sub-type picks the clip and the spawn argument the re-entry pair, and the
+/// finished entry advances the state. Same body as `Actor01900_Fn02018`.
+void func_actor_356100_8016382C(GpEnemy* enemy, Actor356100* actor)
+{
+    SVECTOR          dir;
+    SVECTOR*         v;
+    VECTOR           pos;
+    TmdObject*       obj;
+    GsCOORDINATE2*   root;
+    Actor356100Work* work;
+    s32              kind;
+
+    root            = actor->field_2C->field_8;
+    obj             = actor->field_2C;
+    work            = Mem_Calloc(0xBC0, 0);
+    actor->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, (Task*)actor);
+        return;
+    }
+    actor->field_18 = func_actor_356100_8016A158;
+    Actor356100_BindMatrices(actor);
+    enemy->field_4     = &actor->field_2C->field_8->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &actor->field_2C->field_8[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_4C     = 0;
+    enemy->field_40     = (s16)D_actor_356100_8016A984.field_4;
+    enemy->field_50     = &D_actor_356100_8016A984;
+    enemy->field_54     = (s32)&work->field_9C0;
+    func_800B3F84(&((Actor356100AnimWork*)work)->anim, D_actor_356100_801730B8, (GpAnimObj*)obj,
+                  &((Actor356100AnimWork*)work)->slots[21], ((Actor356100AnimWork*)work)->slots);
+    func_800B3F84(&((Actor356100AnimWork*)work)->blendAnim, D_actor_356100_801730B8, (GpAnimObj*)obj,
+                  &((Actor356100AnimWork*)work)->blendSlots[21], ((Actor356100AnimWork*)work)->blendSlots);
+    work->field_978 = 2;
+    work->field_97E = 1;
+    work->field_97A = 0;
+    work->field_990 = 0;
+    work->field_98E = 0;
+    work->field_984 = 0x10;
+    work->field_982 = 0x10;
+    func_actor_356100_80163508(actor);
+    work->field_14     = 0;
+    work->field_C[0].x = actor->field_2C->field_8->coord.t[0];
+    work->field_C[0].z = actor->field_2C->field_8->coord.t[2];
+    Gfx_MatrixCol2(&actor->field_2C->field_8->coord, &dir);
+    dir.vy = 0;
+    v      = &dir;
+    VectorNormalSS(v, v);
+    gte_lddp(2000);
+    gte_ldsv(v);
+    gte_gpf12_real();
+    gte_stsv(v);
+    work->field_C[1].x = actor->field_2C->field_8->coord.t[0] + dir.vx;
+    work->field_C[1].z = actor->field_2C->field_8->coord.t[2] + dir.vz;
+    actor->field_24    = &D_actor_356100_80173258;
+    root->sub          = &Gfx_ViewCoord;
+    root->flg          = 0;
+    Gp_UpdateCoord(root);
+    pos.vx = root->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    D_actor_356100_801732A8.field_0 = actor->field_2C->field_8;
+    D_actor_356100_801732A8.field_4 = 0x100;
+    D_actor_356100_801732A8.field_6 = 2;
+    kind                            = actor->field_36;
+    switch (kind & 0xF) {
+        case 2:
+            work->field_2 = -1;
+            work->field_0 = 0;
+            break;
+        case 4:
+            work->field_2 = -1;
+            work->field_0 = 0x16;
+            break;
+        default:
+            work->field_2 = -1;
+            work->field_0 = 0x18;
+            Tmd_AllocBuffers(obj);
+            break;
+    }
+    switch (((Task*)actor)->spawnArg1 & 0xF) {
+        case 2:
+            work->field_B54 = D_actor_356100_8016A994[0].field_0;
+            work->field_B56 = D_actor_356100_8016A994[0].field_2;
+            break;
+        case 1:
+            work->field_B54 = D_actor_356100_8016A994[2].field_0;
+            work->field_B56 = D_actor_356100_8016A994[2].field_2;
+            break;
+        case 0:
+        default:
+            work->field_B54 = D_actor_356100_8016A994[1].field_0;
+            work->field_B56 = D_actor_356100_8016A994[2].field_2;
+            break;
+    }
+    Actor356100_RescaleYaw(actor->field_2C->field_8, 0x1194);
+    work->field_BBC = 0;
+    actor->field_30++;
+}
 
 /// Runs the clip the work block's `field_978` halfword selects and holds this
 /// state until it ends: while the actor is live, reset the model (`node.field_4`

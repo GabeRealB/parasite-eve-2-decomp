@@ -10,6 +10,24 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+/// One XZ pair of `Actor356100Work::field_C`; same shape as
+/// `Actor01900Waypoint`.
+typedef struct Actor356100Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor356100Waypoint;
+
+/// 8-byte row of the `D_actor_356100_8016A994` table `func_actor_356100_8016382C`
+/// picks the re-entry pair from on the spawn argument; the same role
+/// `Actor01900TintRow` has for `Actor01900_D0AC64`.
+typedef struct Actor356100TintRow {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} Actor356100TintRow;
+STATIC_ASSERT_SIZEOF(Actor356100TintRow, 0x8);
+
 /// Head of the work block this overlay hangs off `Task::idMap`. `field_4` is
 /// the live-actor flag `func_actor_356100_8016A1D8` tests, where
 /// `Actor00100Work::field_4` sits. `field_0` / `field_5A` / `field_68` are the
@@ -27,9 +45,9 @@
 /// kills; same pair as `Actor01900Work` at +0xC38 / +0xC3C, without the three
 /// `GpObj` nodes that teardown unlinks.
 typedef struct Actor356100Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[2];
-    /* 0x004 */ s16  field_4;
+    /* 0x000 */ s16 field_0;
+    /* 0x002 */ s16 field_2;
+    /* 0x004 */ s16 field_4;
     /// Countdown `func_actor_356100_8016A668` decrements every frame and
     /// tests with `(s16)` — the 0x0F / 0x10 state it picks when the counter
     /// wraps is the transition into the state 0xB / 0xC clip it is running.
@@ -37,7 +55,15 @@ typedef struct Actor356100Work {
     /// `func_actor_356100_80167584` reads the same slot as a `u16` when it
     /// increments it, so it casts there.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x52];
+    /* 0x008 */ byte pad_8[4];
+    /// The two XZ pairs `func_actor_356100_8016382C` seeds on entering state
+    /// 0x10: the model root's X/Z, then the same pair pushed one normalised
+    /// unit along the facing. Same role as `Actor01900Work.field_C`.
+    /* 0x00C */ Actor356100Waypoint field_C[2];
+    /// Zeroed on the same entry, next to the pair above; same slot as
+    /// `Actor01900Work.field_14`.
+    /* 0x014 */ s16  field_14;
+    /* 0x016 */ byte pad_16[0x44];
     /* 0x05A */ u16  field_5A;
     /* 0x05C */ byte pad_5C[0xC];
     /* 0x068 */ u16  field_68;
@@ -60,7 +86,12 @@ typedef struct Actor356100Work {
     /* 0x994 */ s32  field_994;
     /* 0x998 */ byte pad_998[0x24];
     /* 0x9BC */ s16  field_9BC;
-    /* 0x9BE */ byte pad_9BE[0x11A];
+    /* 0x9BE */ byte pad_9BE[2];
+    /// First `GpRec18` of the body-part record table, the address
+    /// `func_actor_356100_8016382C` publishes in the enemy's `field_54` slot
+    /// and the exit callback drops. Same slot as `Actor01900Work.field_8E8`.
+    /* 0x9C0 */ GpRec18 field_9C0;
+    /* 0x9D8 */ byte    pad_9D8[0x100];
     /// Light matrix `func_actor_356100_8016382C` binds to the model's
     /// `TmdObject::field_1C` (the color matrix is `field_AF8`).
     /* 0xAD8 */ MATRIX field_AD8;
@@ -77,15 +108,23 @@ typedef struct Actor356100Work {
     /* 0xB3C */ byte pad_B3C[0x18];
     /// Random reload `func_actor_356100_8016A668` adds a 4-bit `Gp_LcgState`
     /// draw to when the work block's `field_4` flag is set.
-    /* 0xB54 */ u16  field_B54;
-    /* 0xB56 */ byte pad_B56[2];
+    /* 0xB54 */ u16 field_B54;
+    /// Second half of the pair: the re-entry delay `func_actor_356100_8016382C`
+    /// copies off `D_actor_356100_8016A994` next to `field_B54`.
+    /* 0xB56 */ u16 field_B56;
     /// Copy of the first three bytes of the last event
     /// `func_actor_356100_8016A0B8` handled.
     /* 0xB58 */ u8    field_B58[3];
     /* 0xB5B */ byte  pad_B5B;
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
+    /* 0xB64 */ byte  pad_B64[0x58];
+    /// Zeroed on the state-0x10 entry below the matrices; same tail slot as
+    /// `Actor01900Work.field_C98`.
+    /* 0xBBC */ s16  field_BBC;
+    /* 0xBBE */ byte pad_BBE[2];
 } Actor356100Work;
+STATIC_ASSERT_SIZEOF(Actor356100Work, 0xBC0);
 
 /// Event record `func_actor_356100_8016A0B8` dispatches on: the first three
 /// bytes are copied raw into `Actor356100Work::field_B58`, `w[0]` is the
@@ -101,12 +140,39 @@ typedef union Actor356100Event {
 /// `Actor01900` / `Actor401000`. The sibling teardown
 /// `func_actor_356100_8016A158` reaches those same slots as a `Task*`.
 typedef struct Actor356100 {
-    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x00 */ byte pad_0[0x18];
+    /// Teardown `func_actor_356100_8016382C` installs; same slot as
+    /// `Task::exitCallback` / `Actor01900.field_18`.
+    /* 0x18 */ TaskFunc         field_18;
     /* 0x1C */ Actor356100Work* field_1C;
     /* 0x20 */ GpEnemy*         field_20;
-    /* 0x24 */ byte             pad_24[8];
-    /* 0x2C */ TmdObject*       field_2C;
+    /// Event-handler table installed on entry; same slot as
+    /// `Task::field_24` / `Actor01900.field_24`.
+    /* 0x24 */ void*      field_24;
+    /* 0x28 */ byte       pad_28[4];
+    /* 0x2C */ TmdObject* field_2C;
+    /// State index `func_actor_356100_8016382C` advances once its entry has
+    /// run; same slot as `Task::state` / `Actor01900.field_30`.
+    /* 0x30 */ s32  field_30;
+    /* 0x34 */ byte pad_34[2];
+    /// Spawn sub-type `func_actor_356100_8016382C` switches on to pick the
+    /// re-entry pair; same slot and role as `Actor01900.field_36`, the high
+    /// half of `Task::spawnArg1`.
+    /* 0x36 */ s16 field_36;
 } Actor356100;
+
+/// Binds the model's light and colour matrices to the pair kept in the work
+/// block. Same body as `Actor01900_BindMatrices`.
+static __inline__ void Actor356100_BindMatrices(Actor356100* actor)
+{
+    Actor356100Work* work;
+    TmdObject*       obj;
+
+    work          = actor->field_1C;
+    obj           = actor->field_2C;
+    obj->field_1C = &work->field_AD8;
+    obj->field_20 = &work->field_AF8;
+}
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
 /// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two
@@ -322,6 +388,30 @@ extern s32 D_actor_356100_801731B0;
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
 /// roles as `Actor401300Work.field_910`.
 extern GpEffArg D_actor_356100_801732A8;
+
+/// Animation bank `func_800B3F84` seeds both of the work block's slot arrays
+/// from. Same role as `Actor01900_D17174`.
+extern u8 D_actor_356100_801730B8[];
+
+/// Enemy descriptor `func_actor_356100_8016382C` publishes in the enemy's
+/// `field_50` slot and takes `field_40` off. Same role as `Actor01900_D0AC54`.
+extern GpPairSrcE D_actor_356100_8016A984;
+
+/// The three rows `func_actor_356100_8016382C` picks its re-entry pair from on
+/// the spawn sub-type. Same role as `Actor01900_D0AC64`.
+extern Actor356100TintRow D_actor_356100_8016A994[];
+
+/// Event-handler table `func_actor_356100_8016382C` hands the task as
+/// `Task::field_24`. Same shape and role as `Actor01900_D1728C`.
+extern void* D_actor_356100_80173258;
+
+/// Initialisation for the state-0x10 clip run: allocates the work block, binds
+/// the light / colour matrices, re-seeds the enemy descriptor and both
+/// animation contexts, copies the model root's XZ pair into the work block and
+/// rebuilds the root's Y rotation as a uniform 0x1194 scale. The spawn
+/// sub-type picks the clip and re-entry pair, and the finished entry advances
+/// the state.
+void func_actor_356100_8016382C(GpEnemy* enemy, Actor356100* actor);
 
 /// Separation tick: when the work block's `field_4` flag is set, pushes this
 /// actor one normalised unit away from the player along the player-to-actor

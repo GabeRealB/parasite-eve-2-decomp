@@ -108983,3 +108983,50 @@ to the same `lhu` / `addiu` / `sh`, and `func_actor_356100_80167584` scores
 A target `lhu` on an increment is therefore not evidence that the original cast
 through `u16` - look for the missing `lh` somewhere else. An `s32` context is
 what forces `lh`; the `(u16)` cast only makes the read unsigned explicitly.
+
+## Two independent `li`s keep their source order while their stores do not
+
+`func_actor_356100_8016382C` writes seven animation slots in a row and the
+target's store order is `0x97E`, `0x978`, `0x97A`, `0x990`, `0x98E`, `0x984`,
+`0x982`. Writing the C in exactly that order scores 99.93%: everything matches
+except that the two `li`s are emitted the other way round.
+
+```
+ target                      base_4 (99.93%)
+ li    s1,2                  li    v0,1
+ li    v0,1                  li    s1,2
+ sh    v0,0x97e(s3)          sh    v0,0x97e(s3)
+ li    v0,0x10               li    v0,0x10
+ sh    s1,0x978(s3)          sh    s1,0x978(s3)
+```
+
+The stores are already in the target's order, so the store order is *not* what
+differs here — the two constant materialisations are. In `.greg` the two `li`s
+differ in one respect: the one that lands in the caller-saved `$v0` carries
+`(insn_list:REG_DEP_ANTI 177 (nil))` against the preceding `jal` (the call
+clobbers it), the one that lands in `$s1` carries `(nil)`.  `sched2` reorders
+the stores around them but leaves the two `li`s in RTL order, and that order is
+the source order.
+
+Fix: keep the stores where they are and move the *assignment* that owns the
+earlier `li` to the front, letting the scheduler put the stores back:
+
+```c
+    work->field_978 = 2;      /* writes $s1 - the target emits its `li` first */
+    work->field_97E = 1;      /* writes $v0 - the target emits its `li` second */
+    work->field_97A = 0;
+    ...
+```
+
+That one swap is 99.93% -> 100%. The general rule: when a run of adjacent
+stores matches but the constants feeding them are emitted in a different
+order, the target's store order is a `sched2` output and only the assignment
+order is input — so permute the assignments until the `li`s line up, and let
+the scheduler reproduce the store order.
+
+Inputs: `base_5.i` (100%) SHA256
+`15f5be3bcb30dd1a67b3499af0160bb50c74b8f910eb5591a4747cfab9464315`; target
+SHA256 `7956b8a717eae7d8486bc4db20a453720d701360f33e8d4ec30601b001c87c7a`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_356100_8016382C-vacuum`.
