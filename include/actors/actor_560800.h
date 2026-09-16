@@ -131,7 +131,9 @@ typedef struct Actor560800ModelWork {
     /* 0x27E */ s16        field_27E;
     /* 0x280 */ u16        field_280;
     /* 0x282 */ s16        field_282;
-    /* 0x284 */ byte       pad_284[8];
+    /* 0x284 */ byte       pad_284[2];
+    /* 0x286 */ s16        field_286;
+    /* 0x288 */ byte       pad_288[4];
 } Actor560800ModelWork;
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
@@ -244,6 +246,9 @@ extern u32 D_actor_560800_801757A8;
 /// Pair of blocks `func_actor_560800_80135D54` passes to `func_800E8634`.
 extern s32 D_actor_560800_8016F5E0;
 extern s32 D_actor_560800_80171800;
+
+/// Flag word whose bit 0 gates `func_actor_560800_80138BCC`'s sink step.
+extern s32 D_actor_560800_801752E8;
 
 extern u8 D_80071075;
 extern s8 D_8007218A;

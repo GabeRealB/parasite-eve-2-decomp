@@ -100641,3 +100641,18 @@ all penalties zero); preprocessed input `base_1.i`
 target SHA256 `8a54159a19269822a47a7e97727326d5139de6e971a48d90f00239f58ed40c04`;
 two builds, no pins, no search. Scratch
 `nonmatchings/Actor04400_Fn03B34-vacuum`.
+
+## A dead copy `w = work;` makes a reload pseudo non-birthing without emitting code (func_actor_560800_80138BCC)
+
+**Problem.** A function loads `task->idMap` once at entry and again after a
+store. With one local for both loads, both sets share a pseudo with
+`REG_N_SETS == 2`, so neither is a birthing insn (`birthing_insn_p`, `sched.c`)
+and sched1 hoists the entry load ahead of the prologue order. With two locals,
+both are set once, both get `LAUNCH_PRIORITY`, and the second block's loads
+swap order, so `a0`/`a1` swap.
+
+**Fix.** Keep two locals, and add a dead store to the second one in the first
+half (`w = work;` before `w = (W*)task->idMap;`). Flow deletes the copy, so no
+code is emitted, but the pseudo still counts two sets: the entry load stays
+birthing and the reload does not. Placing the copy right after the entry
+statements worked; placing it just before the reload did not change anything.

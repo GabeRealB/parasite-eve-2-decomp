@@ -108,7 +108,57 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, Actor560800Msg* msg)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138BCC);
+/// Per-frame pulse of the model part: while bit 0 of
+/// `D_actor_560800_801752E8` is set it raises `field_286`, which sinks the root
+/// coordinate. Once `field_278` has reached 0x800 the second coordinate is reset
+/// to identity and scaled on X/Z by `field_278`, which swings between 0x1000 and
+/// 0x1800 in steps of 0x32 with `field_27C` as the direction. The dead `w = work`
+/// store is what the match needs: see DECOMPILATION_LEARNINGS.md, "birthing".
+void func_actor_560800_80138BCC(Task* task)
+{
+    Actor560800ModelWork* work;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        c;
+    Actor560800ModelWork* w;
+    MATRIX*               m;
+    VECTOR                scale;
+
+    work  = (Actor560800ModelWork*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (D_actor_560800_801752E8 & 1) {
+        work->field_286++;
+    }
+    w                  = work;
+    coord->coord.t[1] -= work->field_286;
+    if (work->field_278 >= 0x800) {
+        work->field_27C    = 0;
+        w                  = (Actor560800ModelWork*)task->idMap;
+        c                  = ((TmdObject*)task->extra)->field_8;
+        m                  = &c[1].coord;
+        *(s32*)&m->m[0][0] = 0x1000;
+        *(s32*)&m->m[0][2] = 0;
+        *(s32*)&m->m[1][1] = 0x1000;
+        *(s32*)&m->m[2][0] = 0;
+        m->m[2][2]         = 0x1000;
+        c++;
+        if (w->field_27C == 0) {
+            w->field_278 -= 0x32;
+            if (w->field_278 < 0x1000) {
+                w->field_27C = 1;
+            }
+        } else if (w->field_27C == 1) {
+            w->field_278 += 0x32;
+            if (w->field_278 > 0x1800) {
+                w->field_27C = 0;
+            }
+        }
+        scale.vx = w->field_278;
+        scale.vy = 0x1000;
+        scale.vz = w->field_278;
+        ScaleMatrix(&c->coord, &scale);
+    }
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138D04);
 
