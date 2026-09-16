@@ -2,6 +2,7 @@
 
 #include "actors/actor_403000.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -141,7 +142,58 @@ INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_801365D0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80136B14);
+void func_actor_403000_80136B14(Actor403000* arg0)
+{
+    Actor403000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+
+    work  = arg0->field_1C;
+    tmd   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        tmd->field_C = 0;
+        Tmd_AllocBuffers(tmd);
+        work->objD18.obj.flags |= 0x4000;
+        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        enemy->field_4C     = 0;
+        work->field_ACA     = 0x10;
+        work->field_AC6     = 0x1C;
+        work->field_AC0     = 2;
+        enemy->node.field_4 = 1;
+        work->field_FCA     = 1;
+        Gp_ClearNodeSlots(&enemy->node);
+        arg0->field_2C->field_E = 8;
+        work->field_6           = 0;
+    }
+    func_actor_403000_80133AF8(arg0);
+    if ((s16)work->field_6 < 0x28) {
+        work->field_6++;
+    }
+    switch ((s16)work->field_6) {
+        case 2:
+            arg0->field_2C->field_8[1].flg = 0;
+            Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+            Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[1], 2, NULL);
+            break;
+        case 5:
+            arg0->field_2C->field_8[12].flg = 0;
+            Gp_UpdateCoord(&arg0->field_2C->field_8[12]);
+            Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[12], 1, NULL);
+            break;
+        case 15:
+            arg0->field_2C->field_8[16].flg = 0;
+            Gp_UpdateCoord(&arg0->field_2C->field_8[16]);
+            Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[16], 1, NULL);
+            break;
+        case 30:
+            arg0->field_2C->field_8[1].flg = 0;
+            Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+            Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[1], 2, NULL);
+            arg0->field_2C->field_E = 0;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80136D68);
 
