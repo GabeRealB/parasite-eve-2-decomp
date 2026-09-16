@@ -553,7 +553,7 @@ void func_actor_800200_80165580(GpActorWork* arg0)
             func_actor_800200_80165814();
             return;
         case 23:
-            func_actor_800200_80162BFC();
+            func_actor_800200_80162BFC(arg0);
             return;
         case 25:
             func_actor_800200_801658E0();

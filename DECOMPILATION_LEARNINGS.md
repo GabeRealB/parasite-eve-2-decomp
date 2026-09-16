@@ -101406,3 +101406,59 @@ into `0x780`. Declaring `GpActorPathStep D_actor_800200_8016A058[]` and writing
 `D_actor_800200_8016A058[1]` / `[d4->field_CE]` with the sibling idiom matched
 100.00% with all-zero penalties on the first typed attempt; the `$s3 = 1` held
 across calls that the seed lacked came out of the source by itself, with no pin.
+
+## A duplicated call whose constant *argument* differs is not cross-jumped: hoist it into a variable (func_actor_800200_80162BFC, 2026-09-16)
+
+`func_actor_800200_80162BFC` ends `case 1` with a call whose second argument is
+`5` or `6` depending on `d4->field_CE == 3`, and the ROM has **one** `jal`:
+
+```asm
+    lb    $v1, 0xCE($s1)
+    bne   $v1, $v0, .L
+     addiu $a1, $zero, 6        /* fall-through value, rides the delay slot */
+    addiu $a1, $zero, 5         /* taken when field_CE == 3 */
+.L:
+    jal   func_actor_800200_80165408
+     addu $a0, $s4, $zero
+```
+
+"Cross-jumping merges identical switch-arm tails; write them out twice" does not
+apply here, and writing it as an `if`/`else` of the two calls is **not** merged
+either: `.jump2` leaves two `jal`s (96.407%, `branch=5 insert=3 reorder=3` - the
+second call with its `j`/`nop`). The difference from the store case is where the
+differing constant sits. There the arms compute `v0` *before* the merge point, so
+the differing `li` rides the entering `j`'s delay slot and the shared region
+starts after it. Here the constant is consumed *by* the `jal`, so it is inside
+the region that would have to be shared and the two tails are not identical.
+
+So a shared `jal` proves the *call* is shared, not the argument. When the value
+was hoisted instead, the source selected it into a variable first:
+
+```c
+            mode = 6;
+            if (d4->field_CE == 3) {
+                mode = 5;
+            }
+            func_actor_800200_80165408(arg0, mode);
+```
+
+100.00% with all-zero penalties, and the same idiom already lands in the matched
+sibling `func_actor_800200_801637B4` (`mode = 6; if (d4->field_CE == 1) mode = 5;`).
+
+## Widening a stale `(void)` prototype does not disturb a matched caller whose argument is still in `$a0`
+
+"A stale `(void)` prototype can be renamed around in the scratch env" gives the
+scratch-env workaround. When the match lands, the shared header does have to get
+the real prototype and the call site does have to pass the argument - and that
+second edit is safe: in `func_actor_800200_80165580` the changed call still
+compiles to `jal func_actor_800200_80162BFC` + `nop`, byte-identical to the ROM,
+because `arg0` is that caller's own parameter, never written, and so already
+lives in `$a0`; GCC drops the self-move. Check the caller's prologue for a write
+to `$a0` before assuming the same, and confirm in the built object
+(`mipsel-linux-gnu-objdump -dr <obj> | grep <callee>`) rather than trusting the
+build's silence.
+
+`func_actor_800200_80162BFC` itself then matched on the first typed attempt after
+the two mechanical edits, following the `D_actor_800200_8016A020[3]` /
+`[d4->field_CE]` `GpActorPathStep` idiom of its siblings; the seed had typed the
+table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GsCOORDINATE2)`.
