@@ -12,6 +12,21 @@
 
 #include <psyq/inline_c.h>
 
+/// XZ patrol point in `Actor401300Work::field_C`. Same shape as
+/// `Actor01900Waypoint`.
+typedef struct Actor401300Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor401300Waypoint;
+
+/// Payload `func_actor_401300_80138B24` sends with message 0x3FF, seeded from
+/// `D_actor_401300_80158914` at init; `field_4` is the sub-code.
+typedef struct Actor401300Msg3FF {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8[3];
+} Actor401300Msg3FF;
+
 /// Private work block of the actor 401300 task, hanging off `Task::idMap`.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x18
@@ -34,44 +49,54 @@ typedef struct Actor401300Work {
     /* 0x004 */ s16  field_4;
     /* 0x006 */ s16  field_6;
     /* 0x008 */ s16  field_8;
-    /* 0x00A */ byte pad_A[0xE];
-    /* 0x018 */ s16  yaw;
-    /* 0x01A */ byte pad_1A[0x44];
-    /* 0x05E */ u16  field_5E;
-    /* 0x060 */ byte pad_60[0xC];
-    /* 0x06C */ u16  field_6C;
-    /* 0x06E */ byte pad_6E[0x82A];
-    /* 0x898 */ s32  field_898;
-    /* 0x89C */ s16  field_89C;
-    /* 0x89E */ s16  field_89E;
-    /* 0x8A0 */ byte pad_8A0[2];
-    /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ byte pad_8A4[2];
-    /* 0x8A6 */ s16  field_8A6;
-    /* 0x8A8 */ s16  field_8A8;
-    /* 0x8AA */ byte pad_8AA[8];
-    /* 0x8B2 */ s16  field_8B2;
-    /* 0x8B4 */ s16  field_8B4;
-    /* 0x8B6 */ s16  field_8B6;
-    /* 0x8B8 */ s16  field_8B8;
-    /* 0x8BA */ s16  field_8BA;
-    /* 0x8BC */ s32  field_8BC;
+    /* 0x00A */ byte pad_A[2];
+    /// XZ patrol points: the spawn position and one step along its facing.
+    /* 0x00C */ Actor401300Waypoint field_C[2];
+    /* 0x014 */ byte                pad_14[2];
+    /* 0x016 */ s16                 field_16;
+    /* 0x018 */ s16                 yaw;
+    /* 0x01A */ byte                pad_1A[0x44];
+    /* 0x05E */ u16                 field_5E;
+    /* 0x060 */ byte                pad_60[0xC];
+    /* 0x06C */ u16                 field_6C;
+    /* 0x06E */ byte                pad_6E[0x82A];
+    /* 0x898 */ s32                 field_898;
+    /* 0x89C */ s16                 field_89C;
+    /* 0x89E */ s16                 field_89E;
+    /* 0x8A0 */ byte                pad_8A0[2];
+    /* 0x8A2 */ s16                 field_8A2;
+    /* 0x8A4 */ byte                pad_8A4[2];
+    /* 0x8A6 */ s16                 field_8A6;
+    /* 0x8A8 */ s16                 field_8A8;
+    /* 0x8AA */ byte                pad_8AA[8];
+    /* 0x8B2 */ s16                 field_8B2;
+    /* 0x8B4 */ s16                 field_8B4;
+    /* 0x8B6 */ s16                 field_8B6;
+    /* 0x8B8 */ s16                 field_8B8;
+    /* 0x8BA */ s16                 field_8BA;
+    /* 0x8BC */ s32                 field_8BC;
     /// Effect anchor `func_actor_401300_80139134` places at the actor's
     /// view-space position before spawning effect 0x600A5.
     /* 0x8C0 */ GsCOORDINATE2 field_8C0;
     /* 0x910 */ GpEffArg      field_910;
-    /* 0x918 */ byte          pad_918[0x58];
+    /* 0x918 */ byte          pad_918[8];
+    /// Fixed pose `func_actor_401300_80134454` anchors above the root
+    /// coordinate (identity rotation, 0x15E up) for the `field_AB0` node.
+    /* 0x920 */ GsCOORDINATE2 field_920;
     /* 0x970 */ GpObj         field_970;
     /* 0x990 */ byte          field_990[0x120];
     /* 0xAB0 */ GpObj         field_AB0;
     /* 0xAD0 */ byte          field_AD0[0x120];
     /* 0xBF0 */ GpObj         field_BF0;
-    /* 0xC10 */ byte          pad_C10[0x38];
+    /* 0xC10 */ byte          pad_C10[0x18];
+    /// Light matrix `func_actor_401300_80134454` binds to the model's
+    /// `TmdObject::field_1C` (the color matrix is `field_C48`).
+    /* 0xC28 */ MATRIX field_C28;
     /// Saved at 0xC48 and copied over 0xC68 when
     /// `func_actor_401300_80139520` enters its state.
     /* 0xC48 */ MATRIX  field_C48;
     /* 0xC68 */ MATRIX  field_C68;
-    /* 0xC88 */ byte    pad_C88[2];
+    /* 0xC88 */ s16     field_C88;
     /* 0xC8A */ s16     field_C8A;
     /* 0xC8C */ SVECTOR field_C8C;
     /* 0xC94 */ s16     field_C94;
@@ -82,14 +107,14 @@ typedef struct Actor401300Work {
     /* 0xC9E */ s16     field_C9E;
     /* 0xCA0 */ u16     field_CA0;
     /* 0xCA2 */ s16     field_CA2;
-    /* 0xCA4 */ byte    pad_CA4[4];
+    /* 0xCA4 */ s16     field_CA4;
+    /* 0xCA6 */ byte    pad_CA6[2];
     /// Copy of the first three bytes of the last event
     /// `func_actor_401300_80132554` handled.
-    /* 0xCA8 */ u8   field_CA8[3];
-    /* 0xCAB */ byte pad_CAB;
-    /* 0xCAC */ s32  field_CAC;
-    /* 0xCB0 */ s32  field_CB0;
-    /* 0xCB4 */ byte pad_CB4[0x20];
+    /* 0xCA8 */ u8                field_CA8[3];
+    /* 0xCAB */ byte              pad_CAB;
+    /* 0xCAC */ Actor401300Msg3FF field_CAC;
+    /* 0xCC0 */ byte              pad_CC0[0x14];
     /// Player position and facing sent with message 0x3E9 by
     /// `func_actor_401300_80138800`.
     /* 0xCD4 */ VECTOR  field_CD4;
@@ -104,7 +129,11 @@ typedef struct Actor401300Work {
     /* 0xD1E */ s16   field_D1E;
     /* 0xD20 */ s16   field_D20;
     /* 0xD22 */ s16   field_D22;
+    /* 0xD24 */ byte  pad_D24[0x54];
+    /* 0xD78 */ s16   field_D78;
+    /* 0xD7A */ byte  pad_D7A[2];
 } Actor401300Work;
+STATIC_ASSERT_SIZEOF(Actor401300Work, 0xD7C);
 
 /// Animation view of the same work block, as `func_actor_401300_80133324`
 /// reads it: the `Actor01900AnimWork` layout shifted 4 bytes later, like the
@@ -184,6 +213,16 @@ extern s8 D_actor_401300_8015804C[][45];
 /// `0x200 - t` (in 1/512ths) into coord 7 and coord 8.
 extern SVECTOR D_actor_401300_801589F8[2];
 extern SVECTOR D_actor_401300_80158A08[2];
+
+/// Data `func_actor_401300_80134454` wires up at init: the enemy parameter
+/// record (`GpEnemy::field_50`), the three per-variant `field_CA0..CA4`
+/// triples selected by `spawnArg1 & 0xF`, the animation bank passed to
+/// `Gp_AnimInitCtxSlots`, the 0x3FF message seed, and the task's `field_24`.
+extern GpPairSrcE        D_actor_401300_80141FA0;
+extern SVECTOR           D_actor_401300_80141FB0[3];
+extern s32               D_actor_401300_80158838;
+extern Actor401300Msg3FF D_actor_401300_80158914;
+extern s32               D_actor_401300_80158988;
 
 /// Twelve vectors `func_actor_401300_80134BA4` picks from by LCG, grouped by
 /// `|arg1|`: 0-4 below 0x200, 5-7 above 0x600, else 8-9 / 10-11 by sign.
