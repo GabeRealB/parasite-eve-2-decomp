@@ -48,8 +48,12 @@ typedef struct Actor421600Work {
     /* 0x004 */ s16  field_4;
     /// Frame counter `func_actor_421600_8013848C` bumps each tick and waits on
     /// to read 0xF; same slot actor 00100 keeps its own tick in.
-    /* 0x006 */ u16  field_6;
-    /* 0x008 */ byte pad_8[0x52];
+    /* 0x006 */ u16 field_6;
+    /// Retry counter `func_actor_421600_80138D24` bumps while the 0xB8C walk
+    /// reports a hit and reads with `(s16)` in its 9..0x18 frame window; the
+    /// live-actor edge clears it.
+    /* 0x008 */ u16  field_8;
+    /* 0x00A */ byte pad_A[0x50];
     /// Animation step counter masked to 0x3FF by the state handlers; the
     /// model-shrink tails wait for it to read 0xC.
     /* 0x05A */ u16  field_5A;
@@ -99,11 +103,22 @@ typedef struct Actor421600Work {
     /* 0xA2C */ GpObj   field_A2C;
     /// `GpRec18` table paired with `field_A2C`, the middle of the three the
     /// death tick `func_actor_421600_801392A8` walks (0x90C / 0xA4C / 0xB8C).
-    /* 0xA4C */ GpRec18           field_A4C;
-    /* 0xA64 */ byte              pad_A64[0x108];
-    /* 0xB6C */ GpObj             field_B6C;
-    /* 0xB8C */ GpRec18           field_B8C;
-    /* 0xBA4 */ byte              pad_BA4[0x2EC];
+    /* 0xA4C */ GpRec18 field_A4C;
+    /* 0xA64 */ byte    pad_A64[0x108];
+    /* 0xB6C */ GpObj   field_B6C;
+    /* 0xB8C */ GpRec18 field_B8C;
+    /* 0xBA4 */ byte    pad_BA4[0x134];
+    /// Y offset `func_actor_421600_80138D24` seeds to -0x320 (0x320 the other
+    /// way in `func_actor_421600_80138750`, 0x2BC at spawn); `func_actor_421600_8013848C`
+    /// clamps the distance it relates to at 0xFA0.
+    /* 0xCD8 */ s16  field_CD8;
+    /* 0xCDA */ byte pad_CDA[0xA];
+    /// The 12 0x18-byte slots `func_actor_421600_80138D24` scans for one whose
+    /// `field_4` reads 0x100000, stopping at the first empty one. A cursor into
+    /// the same run sits at 0xCE0, which `func_actor_421600_80134AD4` points at
+    /// `field_CE4` itself.
+    /* 0xCE4 */ GpRec18           field_CE4[12];
+    /* 0xE04 */ byte              pad_E04[0x8C];
     /* 0xE90 */ Actor421600IdWord field_E90;
     /* 0xE94 */ Task*             field_E94;
     /* 0xE98 */ Task*             field_E98;
@@ -243,6 +258,11 @@ s32 func_actor_421600_80132310(GsCOORDINATE2* arg0, GpRec18* arg1, s16 arg2, SVE
 /// Camera-target matrix the actor measures its offset from; see
 /// `D_80073B8C[0]->t[]` in the other enemy overlays.
 extern MATRIX* D_80073B8C;
+
+/// Non-1 while the model is being aimed rather than left alone; the guards
+/// `func_actor_421600_80138D24` runs around its gte scale are the same test
+/// `Actor00100_MoveForward` makes before touching a coordinate.
+extern u8 D_80072729;
 
 extern u32 Gp_LcgState;
 

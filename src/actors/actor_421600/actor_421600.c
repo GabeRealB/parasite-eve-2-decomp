@@ -330,7 +330,117 @@ void func_actor_421600_8013848C(Actor421600* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80138750);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80138D24);
+/// Scans the 12 0x18-byte records at 0xCE4 for one whose `field_4` carries the
+/// 0x100000 kind, stopping at the first empty record. The 5-record twin of
+/// this body is `Actor00100_HasRecord10`, which reads the same halves of
+/// `field_0` instead; `func_actor_421600_80138D24` picks its aim scale with it.
+static __inline__ s16 Actor421600_HasRecord10(Actor421600* arg0)
+{
+    Actor421600Work* work  = arg0->field_1C;
+    s16              found = 0;
+    s16              i;
+
+    for (i = 0; i < 0xC; i++) {
+        if (!work->field_CE4[i].field_4) {
+            break;
+        }
+        if ((work->field_CE4[i].field_4 & 0xFFFF0000) == 0x100000) {
+            found = 1;
+        }
+    }
+    return found;
+}
+
+/// Takes an `SVECTOR` off `G_SCRATCH_HEAD`, runs `coord` through
+/// `Gfx_MatrixCol2` and `VectorNormalSS`, scales the resulting direction by
+/// `amount` with the gte `gpf 12` (`-0x55` / `-0xC8` are the two aims
+/// `func_actor_421600_80138D24` picks) and folds the scaled X/Y/Z back into
+/// the coordinate's translation before handing the slot back. Same body and
+/// same gte op as `Actor00100_MoveForward`, sized for one `SVECTOR` of scratch.
+///
+/// Keeping the alloc/use/free block whole matters: `G_SCRATCH_HEAD` is the bare
+/// constant 0x1F8003FC, so an access written straight into a caller that touches
+/// it twice CSEs the address into a callee-saved register, while the inliner
+/// re-expands this body and each access keeps the `lw`/`sw` against the constant
+/// that the assembler turns into the `lui`/`lw` (and `lui $at`/`sw`) pair the
+/// ROM has.
+static __inline__ void Actor421600_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Aim tick: on the live-actor edge it re-arms the model the way
+/// `func_actor_421600_8013848C` does -- buffers reallocated, clip 0x10,
+/// `field_82E` 6, the 0xB6C node's 0x4000 flag up -- with `field_8` and the
+/// 0xCD8 offset it owns reseeded, then, while `field_6` is inside 9..0x18 and
+/// `field_8` below 5, walks the 0xB8C table and counts a retry for every hit.
+/// The 0xCE4 records decide which way the model is aimed: one carrying the
+/// 0x100000 kind turns it by `-0x55`, none by `-0xC8`, through
+/// `Actor421600_MoveForward`. Outside that frame window, and in both aim arms,
+/// the 0xB8C walk is what runs.
+void func_actor_421600_80138D24(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    TmdObject*       obj;
+    s16              found;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj               = arg0->field_2C;
+        ctx               = arg0->field_20;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.field_1C = 0x19C;
+        work->field_828          = 1;
+        work->field_832          = 0x10;
+        work->field_82A          = 0;
+        work->field_82E          = 6;
+        work->field_B6C.flags   |= 0x4000;
+        func_actor_421600_80134604(arg0);
+        work->field_6   = 0;
+        work->field_8   = 0;
+        work->field_CD8 = -0x320;
+    }
+    work->field_6++;
+    func_actor_421600_80134604(arg0);
+    if (work->field_68 & 0x100) {
+        work->field_0 = 2;
+    }
+    if (((u32)(work->field_6 - 9) < 0x10) && ((s16)work->field_8 < 5)) {
+        if (func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_B8C, 0xC) != 0) {
+            work->field_8++;
+        }
+        found = Actor421600_HasRecord10(arg0);
+        if (found != 0) {
+            Actor421600_MoveForward(arg0->field_2C->field_8, -0x55);
+        } else {
+            Actor421600_MoveForward(arg0->field_2C->field_8, -0xC8);
+        }
+    } else {
+        func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_B8C, 0xC);
+    }
+    arg0->field_2C->field_8->flg = 0;
+}
 
 /// Re-arms the model the way `func_actor_421600_8013848C` does -- buffers
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --

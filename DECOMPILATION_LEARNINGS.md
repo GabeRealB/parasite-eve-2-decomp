@@ -107089,3 +107089,37 @@ call argument, `local_alloc` ties each to `$a0`, and both rematerialise as
 `addiu a0,sp,N` with no extra instruction and no saved register. 89.338% with
 the plain form, 100.000% / zero penalties with this one - and the frame slots
 stay where the target has them.
+
+## The scratch-head tail reload decides which local gets the lower `$s` register
+
+An `static __inline__` helper that borrows and returns a scratch slot is
+inlined twice per aim arm, and each copy has two locals competing for
+callee-saved registers: the coordinate (live across `Gfx_MatrixCol2` /
+`VectorNormalSS`) and the scratch `head` (live from the load to `head[-1].vx`).
+`func_actor_421600_80138D24` wants `head` in `$s1` and the coordinate in
+`$s2`.
+
+Writing the tail as `*(SVECTOR**)G_SCRATCH_HEAD += 1;` is correct and produces
+the right instructions, but if the reload is written out into `head` itself
+
+```c
+        head                       = *(SVECTOR**)(scratch + 0x3FC);
+        *(SVECTOR**)G_SCRATCH_HEAD = head + 1;
+```
+
+`head`'s live range stretches past the gte block and gains two references, so
+`global_alloc`'s `floor_log2(n_refs) * n_refs / live_length` ranks it below the
+coordinate and the two registers come out reversed - `regs=22` and 95.586% with
+every other penalty already zero. Its value is the same either way: give the
+reload its own local and the range stops at the last real use of `head`, which
+takes `$s1` back and drops the function to 100.000%.
+
+```c
+        top                        = *(SVECTOR**)(scratch2 + 0x3FC);
+        *(SVECTOR**)G_SCRATCH_HEAD = top + 1;
+```
+
+Recognise it by the shape of the leftover: an otherwise exact match where
+exactly two callee-saved locals are exchanged and every use of both moves with
+them. The scratch address form is independent of this - see the
+`static __inline__` notes above for why the helper has to stay whole.
