@@ -403,7 +403,93 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013AE48);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013B6E8);
+/// Tint a freshly spawned effect model from the enemy's area record.
+static __inline__ void Actor401300_TintEffect(GpEffWork* eff, GpEnemy* enemy)
+{
+    GpAreaKey  key;
+    GpAreaKey* sessionKey;
+    GpAreaKey* keyPtr;
+    u8         areaByte0;
+    GpAreaRec* rec;
+    GpCdRec10* entry;
+    TmdObject* model;
+    s32        idx;
+    u32        raw;
+
+    if (eff != NULL) {
+        sessionKey  = (GpAreaKey*)&Game_Session->field_4;
+        raw         = enemy->field_8;
+        model       = (TmdObject*)eff->field_0->extra;
+        key.field_3 = sessionKey->field_3;
+        key.field_2 = sessionKey->field_2;
+        key.field_1 = sessionKey->field_1;
+        areaByte0   = Game_Session->field_4;
+        idx         = raw >> 12;
+        SOFT_BARRIER();
+        keyPtr = &key;
+        TOUCH_REG(keyPtr);
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyPtr);
+        rec             = Gp_GetNestedAreaRec(&key);
+        entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = entry->field_D;
+        model->field_25 = entry->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+}
+
+void func_actor_401300_8013B6E8(Actor401300* arg0)
+{
+    SVECTOR          vec;
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    u16              next;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->field_C  = 0x80;
+        work->field_970.field_1C = 0x280;
+        work->field_AB0.flags    = (u16)(work->field_AB0.flags & 0xBFFF);
+        work->field_BF0.flags    = (u16)(work->field_BF0.flags & 0x7FFF);
+        enemy->node.field_4      = 1;
+        work->field_8B2          = 0;
+        work->field_6            = 0U;
+        vec.vx                   = 0x64;
+        vec.vz                   = 0;
+        vec.vy                   = 0;
+        Gp_SpawnEff(0x60030, arg0->field_2C->field_8 + 1, 0x10300, &vec);
+    }
+    next          = work->field_6 + 1;
+    work->field_6 = next;
+    if ((s16)next == 3) {
+        D_80114B78[0] = &D_actor_401300_80147894;
+        vec.vz        = 0x64;
+        vec.vy        = 0;
+        vec.vx        = 0;
+        Actor401300_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 9, 0x200, &vec), enemy);
+    }
+    if (work->field_6 == 5) {
+        D_80114B78[0] = &D_actor_401300_80147894;
+        vec.vy        = 0;
+        vec.vx        = 0;
+        Actor401300_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 12, 0x200, &vec), enemy);
+    }
+    if (work->field_6 == 7) {
+        D_80114B78[0] = &D_actor_401300_80148A14;
+        Actor401300_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 1, 0x200, NULL), enemy);
+    }
+    if (work->field_6 == 8) {
+        D_80114B78[0] = &D_actor_401300_80148808;
+        Actor401300_TintEffect(Gp_SpawnEff(0xA0005, arg0->field_2C->field_8 + 3, 0x200, NULL), enemy);
+    }
+    if (work->field_6 >= 0x3D && work->field_D20 == 0) {
+        work->field_0 = 0x24;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8013BB30);
 

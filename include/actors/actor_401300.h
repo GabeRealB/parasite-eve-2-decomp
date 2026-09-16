@@ -79,7 +79,8 @@ typedef struct Actor401300Work {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xD0C */ Task* field_D0C;
     /* 0xD10 */ Task* field_D10;
-    /* 0xD14 */ byte  pad_D14[0xE];
+    /* 0xD14 */ byte  pad_D14[0xC];
+    /* 0xD20 */ s16   field_D20;
     /* 0xD22 */ s16   field_D22;
 } Actor401300Work;
 
@@ -168,7 +169,17 @@ typedef struct Actor401300RangeScratch {
 } Actor401300RangeScratch;
 
 extern MATRIX* D_80073B8C;
-extern u8      D_801153F2[2];
+
+/// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
+/// each spawn in `func_actor_401300_8013B6E8`.
+extern void* D_80114B78[1];
+
+/// Overlay effect model data `func_actor_401300_8013B6E8` points
+/// `D_80114B78` at before spawning.
+extern char D_actor_401300_80147894;
+extern char D_actor_401300_80148808;
+extern char D_actor_401300_80148A14;
+extern u8   D_801153F2[2];
 
 /// Overlay-data word `func_actor_401300_801397F8` points
 /// `D_actor_401300_80158878` at on entering its state.
@@ -182,6 +193,8 @@ s32 func_actor_401300_80141494(Actor401300* arg0, s32 arg1, Actor401300Msg* arg2
 s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placement* placement);
 
 void func_actor_401300_80133A3C(Actor401300* arg0);
+
+void func_actor_401300_8013B6E8(Actor401300* arg0);
 
 void func_actor_401300_80141758(Task* task);
 
