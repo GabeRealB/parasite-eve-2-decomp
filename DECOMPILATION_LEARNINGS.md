@@ -92723,3 +92723,57 @@ local still costs frame space`), and the `GpRec14` it fills is the same record
 `func_actor_136100_8013379C` fills. The work block is 0x4E4 bytes, which
 `Mem_Malloc` in `func_actor_120300_80132004` states outright — read that before
 inferring a block size from its last accessed field.
+## `cse` forwards a merge-block store into the loads after it; arms that write the field themselves keep their reloads (func_actor_511000_80132390, 2026-09-16)
+
+A function that mirrors two bits of one object's `field_C` onto another's --
+same shape twice, `if (src->field_C & bit) dst->field_C |= bit; else
+dst->field_C &= ~bit;` -- scores 80.63% (`delete=6 insert=1 regs=7`) from
+m2c's version, which computes the first result into one shared temp and stores
+it once at the join:
+
+```c
+if (!(src->field_C & 0x80)) var = dst->field_C & 0xFF7F;
+else                        var = dst->field_C | 0x80;
+dst->field_C = var;
+if (!(src->field_C & 4)) {
+    dst->field_C &= 0xFFFB;
+    Tmd_AllocBuffers(dst);
+    return;
+}
+dst->field_C |= 4;
+```
+
+The target reloads `dst->field_C` in *both* arms of the second `if`. In the
+dumps the second `if` never loads it: `.rtl` has insn 57 `(set (reg:HI 95)
+(mem/s:HI (plus (reg/v:SI 81) (const_int 12))))` feeding insn 58's `and
+0xFFFB`, and `.flow`/`.cse` show that same insn 58 reading `(reg/v:HI 82)` --
+the temp the join stored from. So this is cse store-to-load forwarding, not a
+combine or a reload effect: `cse_insn` inserts the store's destination into the
+value class of its source (`elt = insert (dest, sets[i].src_elt, ...)` in
+cse.c), so a later load of that address is replaced by the register.
+
+What decides it is *which block holds the store*. `cse_basic_block` starts with
+`new_basic_block()`, i.e. an empty table, and it only continues past a label
+when `--LABEL_NUSES == to_usage` -- a join with two predecessors does not
+qualify. A store in the merge block is therefore in the same path as the loads
+that follow it and is forwarded; a store that stays inside each arm is in a
+path cse has already left, so the merge block starts clean and the loads
+survive. Writing the arms as their own read-modify-write:
+
+```c
+if (!(src->field_C & 0x80)) {
+    dst->field_C &= 0xFF7F;
+} else {
+    dst->field_C |= 0x80;
+}
+```
+
+still compiles to a *single* shared `sh` -- `jump2`'s cross-jumping merges the
+two identical arm stores after cse has run, which is what the target's block
+layout shows -- but the merge no longer knows any value. That reached 91.58%,
+and negating the condition (`if (!(src->field_C & 0x80))`, so the branch is
+`bnez` to the set arm and the clear arm is the fall-through) reached 100%.
+
+The second `if` keeps m2c's `if (!(x & 4)) { ...; Tmd_AllocBuffers(x); return; }
+x |= 4;` shape, which is what leaves its `bnez` on the *set* arm with the
+clearing arm, call and all, as the fall-through.
