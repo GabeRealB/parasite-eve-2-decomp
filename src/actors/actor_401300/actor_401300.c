@@ -216,7 +216,73 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80135DDC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80135FC4);
+void func_actor_401300_80135FC4(Actor401300* arg0)
+{
+    Actor401300Work* work  = arg0->field_1C;
+    GpEnemy*         enemy = arg0->field_20;
+    s16              i     = 0;
+    u16              r;
+    TmdObject*       tmd;
+
+    if (work->field_4 != 0) {
+        tmd                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        tmd->field_C        = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_89C        = 2;
+        work->field_8A6        = 0x10;
+        work->field_8A2        = 0x17;
+        work->field_8B6        = 0x40;
+        work->field_8B8        = 0x40;
+        work->field_8BA        = 0x20;
+        work->field_AB0.flags |= 0x4000;
+        do {
+            func_actor_401300_80133A3C(arg0);
+        } while (!(work->field_6C & 0x100) && ++i < 0xFF);
+        work->field_8A6 = 0x20;
+        return;
+    }
+    if (++work->field_6 == 0) {
+        work->field_89C = 2;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        r               = (Gp_LcgState >> 16) % 3;
+        switch (r) {
+            case 0:
+                work->field_8A6 = 0x20;
+                break;
+            case 1:
+                work->field_8A6 = 0x30;
+                break;
+            case 2:
+            default:
+                work->field_8A6 = 0x40;
+                break;
+        }
+        func_actor_401300_80133A3C(arg0);
+        func_actor_401300_80133A3C(arg0);
+        work->field_8A6 = 0x10;
+    } else if (work->field_6 > 0) {
+        arg0->field_2C->field_8->flg = 0;
+        work->field_8A6              = work->field_8A6 / 2;
+        if (work->field_8A6 == 1) {
+            work->field_8A6 = -0x10;
+        }
+        if (work->field_8A6 == -1) {
+            work->field_8A6 = 0x10;
+        }
+        func_actor_401300_80133A3C(arg0);
+    } else if (work->field_89E == 1 || !(work->field_6C & 0x100)) {
+        work->field_8A6 = 0x10;
+        func_actor_401300_80133A3C(arg0);
+    }
+    if (work->field_6 >= 7) {
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        work->field_6 = -((Gp_LcgState >> 16) & 0xFF);
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x11;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80136238);
 
