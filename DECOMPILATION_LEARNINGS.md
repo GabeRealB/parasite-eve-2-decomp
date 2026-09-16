@@ -101990,3 +101990,17 @@ cross-jumps the identical tails into one load at the join, but only after CSE, s
 comparison's own read in the next block survives. The same function also needed
 `edge = B5C[cur + prev * 100]; D_1D0[edge].state = s;` instead of the nested
 `D_1D0[B5C[...]]` to hoist `B5C`'s address ahead of `D_1D0`'s in the loop preheader.
+
+### Load the tested field into the result variable when both share `$v0` (func_actor_548100_80132684, 2026-09-16)
+
+**Symptom.** Target: `lh v0,4(s0); bnez v0,end; li v0,6` / `li v0,2` / `end: sw v0,0x30(s2)` — the tested
+field and the stored result share `$v0`. `if (w->f != 0) state = 6; else state = 2;` (or `state = 6;
+if (w->f == 0) state = 2;`) scores 99.6% with `state` in `$v1`: `.lreg` sets `state = 6` before the
+branch while the load's local pseudo is still live, so global alloc records a conflict with reg 2.
+
+**Fix.** Make the load *be* the result pseudo: `state = w->f; if (state != 0) state = 6; else state = 2;`.
+No second pseudo overlaps, `state` takes `$v0`, and dbr still puts `li v0,6` in the branch's slot.
+
+Same function: the `rodata_head` entry above applied — its jump table at 0x7C sat behind three
+`INCLUDE_RODATA` symbols in the first unit; `rodata_head = "0x7C"` plus deleting those lines fixed the
+4-byte `.align 3` shift with no unit renumbering.

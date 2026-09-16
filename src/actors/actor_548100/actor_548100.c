@@ -3,6 +3,7 @@
 #include "actors/actor_548100.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gameflag.h"
@@ -14,8 +15,6 @@ void func_actor_548100_801330EC(void);
 s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
 
 extern Actor548100Hotspot D_actor_548100_801357E8[];
-
-INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", ActorsShared8013845cSub1);
 
@@ -60,11 +59,73 @@ void func_actor_548100_80132550(Task* task)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E54);
+void func_actor_548100_80132684(Task* task)
+{
+    Actor548100Work* work = (Actor548100Work*)task->idMap;
+    s32              kind;
+    s32              state;
+    s32              cmd;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E6C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80132684);
+    D_80114D28.mode     = 0;
+    D_80114D28.targetId = 0;
+    if (func_800D4EC0() != 0) {
+        switch (work->step) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
+                    Gp_StartCapSlot(6, 0, 0);
+                    state = 2;
+                } else if (GameFlag_GetNibble(0xC3) != 0) {
+                    Gp_StartCapSlot(6, 1, 3);
+                    state = 2;
+                } else {
+                    if (GameFlag_GetNibble(work->step + 0xBE) == 1) {
+                        work->bit2Slot = 4;
+                        kind           = 2;
+                    } else {
+                        work->bit2Slot = 5;
+                        kind           = 5;
+                    }
+                    Gp_SetCurBit2Flag(work->bit2Slot, 1);
+                    Gp_StartCapSlot(6, 0, kind);
+                    state = 7;
+                }
+                break;
+            case 5:
+                Gp_RunCapCmd(5, 0);
+                state = 8;
+                break;
+            case 6:
+                cmd = 4;
+                goto run;
+            case 7:
+                cmd = 7;
+                goto run;
+            case 8:
+                cmd = 9;
+                goto run;
+            case 9:
+                cmd = 8;
+            run:
+                Gp_RunCapCmd(cmd, 0);
+                state = 2;
+                break;
+            default:
+                goto def;
+        }
+    } else {
+        state = work->collectBitId;
+        if (state != 0) {
+            state = 6;
+        } else {
+        def:
+            state = 2;
+        }
+    }
+    task->state = state;
+}
 
 /// Player pressed the action button on this actor's map marker with the marker
 /// route done: record the route leg the ramp runs along and hand the actor on to
