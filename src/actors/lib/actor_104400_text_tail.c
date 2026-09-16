@@ -332,7 +332,61 @@ void Actor04400_Fn04D44(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn04EDC);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn05040);
+/// Same body as `ActorsShared80168174`. This overlay's whole `.text` is already
+/// one shared span, so it cannot join that unit.
+///
+/// Counts `field_412` up and eases `field_78` an eighth of the way to 0x800. On
+/// the first frame plays sounds 0x402C0009 and 0x402C0003 (bank from the
+/// enemy's `field_8` high nibble) panned and attenuated from the model root.
+/// Every frame, pushes the root 0x5A back against the heading `field_7A` and
+/// falls as `Actor04400_Fn04BA8` does. Once the root passes above y = 0 it is
+/// pinned at -0x3C, `field_78` / `field_7C` clear, the heading turns half a
+/// circle, animation 0x11 is requested at speed 0x10 and the state advances.
+void Actor04400_Fn05040(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* anim;
+    GsCOORDINATE2*   coord;
+    s32              soundId;
+    s32              pan;
+    s32              soundId2;
+    s32              pan2;
+    s16              angle;
+    s16              speed;
+
+    work  = (Actor104400Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work->field_412++;
+    work->field_78 += (0x800 - work->field_78) >> 3;
+    if ((s16)work->field_412 == 1) {
+        soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0009;
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        soundId2 = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0003;
+        pan2     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        SndEvt_EnqueueType6(soundId2, pan2, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    }
+    speed                                           = -0x5A;
+    angle                                           = work->field_7A;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    coord->coord.t[1]                              += work->field_42A;
+    work->field_428                                += 4;
+    work->field_42A                                += work->field_428;
+    if (coord->coord.t[1] > 0) {
+        coord->coord.t[1] = -0x3C;
+        work->field_78    = 0;
+        work->field_7C    = 0;
+        work->field_7A   += 0x800;
+        anim              = (Actor104400Work*)arg0->idMap;
+        anim->field_41C   = 0x10;
+        anim->field_418   = 0x11;
+        anim->field_414   = 2;
+        work->field_412   = 0;
+        work->field_420++;
+    }
+}
 
 /// Same body as `Actor04400_Fn04D44` with the opposite step: the push is 0x14
 /// forward along the heading and the state it lands on is 5 rather than 3.
