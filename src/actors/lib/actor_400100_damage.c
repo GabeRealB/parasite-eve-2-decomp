@@ -219,7 +219,72 @@ void Actor00100_Fn02788(Actor00100* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_damage", Actor00100_Fn02C54);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_400100_damage", Actor00100_Fn03340);
+/// Picks one of twelve hit positions out of `Actor00100_D1B9F4` by damage
+/// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model
+/// part that entry names.
+void Actor00100_Fn03340(Actor00100* arg0, s16 arg1, s32 arg2)
+{
+    SVECTOR*              sc;
+    s32                   mag;
+    Actor00100DamageWork* work;
+
+    sc   = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    mag  = (arg1 >= 0) ? arg1 : -arg1;
+    work = (Actor00100DamageWork*)arg0->field_1C;
+    if (mag < 0x200) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 3) {
+            case 0:
+                *sc = Actor00100_D1B9F4[0];
+                break;
+            case 1:
+                *sc = Actor00100_D1B9F4[1];
+                break;
+            case 2:
+                *sc = Actor00100_D1B9F4[2];
+                break;
+            case 3:
+                *sc = Actor00100_D1B9F4[3];
+                break;
+            default:
+                *sc = Actor00100_D1B9F4[4];
+                break;
+        }
+    } else if (mag > 0x600) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        switch ((s32)(Gp_LcgState >> 16) & 2) {
+            case 0:
+                *sc = Actor00100_D1B9F4[5];
+                break;
+            case 1:
+                *sc = Actor00100_D1B9F4[6];
+                break;
+            default:
+                *sc = Actor00100_D1B9F4[7];
+                break;
+        }
+    } else if (arg1 > 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = Actor00100_D1B9F4[8];
+        } else {
+            *sc = Actor00100_D1B9F4[9];
+        }
+    } else {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((Gp_LcgState >> 16) & 1) {
+            *sc = Actor00100_D1B9F4[10];
+        } else {
+            *sc = Actor00100_D1B9F4[11];
+        }
+    }
+    work->field_890.field_0 = &arg0->field_2C->field_8[sc->pad];
+    work->field_890.field_4 = 0x100;
+    work->field_890.field_6 = 2;
+    work->field_8A0         = *sc;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->field_8A0, &work->field_890);
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
 void Actor00100_Fn0375C(Actor00100* arg0)
 {

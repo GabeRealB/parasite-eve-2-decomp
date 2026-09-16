@@ -97857,3 +97857,49 @@ Inputs: `base_9.i` (100.000%) SHA256 `b92cc4ec81705d0f084be818ff5908897eac80a842
 target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
+
+## A `similar` candidate that stars in both `calls` and `cflow` is instruction-identical outside one region, even across overlays (Actor00100_Fn03340, 2026-09-16)
+
+The brief's similar-body list for `Actor00100_Fn03340` named a single candidate,
+`func_actor_401300_80134BA4`, scoring shape 0.96 / calls 1.00 / cflow 1.00 - a
+sibling in a **different overlay** (`actor_401300`) that happens to load at the
+same address. Stripping the address and comment columns and the local label
+names from the two `.s` files and diffing them shows they are
+instruction-for-instruction identical for 190 of 210 instructions: the whole
+`Gp_LcgState` xorshift, the four-arm decision tree over the magnitude, the
+scratchpad allocate/free and the prologue need no experiment at all. Only the
+block after the magnitude switch differs, and only in three places:
+
+* the table symbol (`Actor00100_D1B9F4` against `D_actor_401300_80158928`),
+* the part index - a constant 1 in the sibling (`addiu $v1, $v1, 0x50`), here
+  `sc->pad` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
+  `GsCOORDINATE2` stride),
+* the third `func_800FDB18` argument - `sc` itself in the sibling, here a copy
+  saved into the work block (`work->field_8A0 = *sc;` then `&work->field_8A0`),
+  which is the `lwl`/`lwr` quad decribed in "`lwl`/`lwr` + `swl`/`swr` quads are
+  a whole-struct assignment" - the member's *declared* alignment is what picks
+  the byte-lane form, so at 0x8A0 it has to be an `SVECTOR` (alignment 2),
+  not a word-aligned field.
+
+Retelling the sibling's body with those three substitutions is 100.000% on the
+first build with all six penalties zero. `overlay_dup_index.py find` reports
+only one copy (the function itself), because those three differences are enough
+to keep it out of the exact-equality index - so the fuzzy `similar` classes and
+the exact index are complementary, and class agreement (`calls` + `cflow` at
+1.00, marked `*`) is the predictor worth acting on: it compares the `jal`
+sequence and the branch skeleton, which is exactly what "same body, different
+constants" looks like. A sibling in another overlay is no obstacle, since every
+actor overlay sees the same library globals.
+
+Method, for reuse:
+
+    norm() { sed -e 's#/\*.*\*/##' -e 's/\.L[a-z0-9_]*/LB/g' \
+                  -e 's/<Prefix>_L[0-9A-F]*/LB/g' -e 's/^[[:space:]]*//' "$1" | grep -v '^$'; }
+    diff <(norm target.s) <(norm sibling_matchings.s)
+
+Inputs: `base.c` (100.000%)
+SHA256 `2c6763f71eee3dfeb59bb89d04932c63dc773f264b51b2ce999f8dbe8ad7debd`;
+`base.i` SHA256 `9df605a9649d390ee3f538936f90a92e521dca44e189d2dbc19a851c88f88ebb`;
+target SHA256 `1632576e4d4442ef2977f5eb6ed5e40cda6501761a28a7583fe60bf05acb00e2`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00100_Fn03340-vacuum`.
