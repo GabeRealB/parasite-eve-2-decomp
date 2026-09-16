@@ -20,7 +20,7 @@ void func_actor_800200_80162990(void);
 void func_actor_800200_80162BFC(GpActorWork* arg0);
 void func_actor_800200_80163044(GpActorWork* arg0);
 void func_actor_800200_80163180(GpActorWork* arg0);
-void func_actor_800200_8016337C(void);
+void func_actor_800200_8016337C(GpActorWork* arg0);
 void func_actor_800200_80163584(void);
 void func_actor_800200_801637B4(GpActorWork* arg0);
 void func_actor_800200_8016390C(GpActorWork* arg0);

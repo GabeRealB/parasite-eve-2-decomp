@@ -101462,3 +101462,27 @@ build's silence.
 the two mechanical edits, following the `D_actor_800200_8016A020[3]` /
 `[d4->field_CE]` `GpActorPathStep` idiom of its siblings; the seed had typed the
 table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GsCOORDINATE2)`.
+
+## A stored literal the arm also compares against needs no `SC` local (func_actor_800200_8016337C, 2026-09-16)
+
+"A switch arm that cannot reach the comparison's constant still shares it through an `SI` local" records
+the arm that grew its own `li` for `field_960 = 1` and needed the local. The neighbouring shadow function,
+`func_actor_800200_8016337C`, has the same shape and matched 100% on the first attempt with plain
+literals, because the value its arm stores is also the constant a nearby test compares against:
+
+```c
+    if (d4->field_CE == 2) {
+    arrived:
+        ...
+    }
+    if (func_8010BC70(coord) >= 0xC00) {
+        actor->field_960 = 2;
+```
+
+cse gives the constant `2` one register for both uses, so the arm materialises nothing of its own: the
+store is `sh $s3,0x960($s0)` - the same `$s3` the `bne $v0,$s3` tests - and its definition is the
+`addiu $s3,$zero,2` the scheduler parks in the `beqz` delay slot two branches above. The two byte-shape
+twins in the same overlay differ exactly here: `func_actor_800200_80162BFC` compares `field_CE` against
+`3` and `func_actor_800200_80163180` against `1` while both store `2`, so no constant is shared and both
+materialise `2` at the store. Reach for the `s32` local only when the stored constant has no other reader
+in the arm's extended basic block.
