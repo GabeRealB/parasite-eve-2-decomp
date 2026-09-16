@@ -8,6 +8,9 @@
 #include "gameplay/3CD8.h"
 #include "actors/actor_206100.h"
 
+/// Task table `func_actor_206100_8014FDE8` spawns the shockwave from.
+extern TaskDesc D_801818BC;
+
 void func_actor_206100_8014DEAC(Task* task);
 void func_actor_206100_8014F8BC(Task* task);
 void func_actor_206100_8014F970(Task* task);
@@ -289,4 +292,36 @@ void func_actor_206100_8014FBE4(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FCD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_3", func_actor_206100_8014FDE8);
+/// Idle-state tick: advances the actor's two frame counters, keeps the root
+/// coordinate dirty so `GsGetLw` rebuilds it, spawns the shockwave task once the
+/// counter reaches 0x5A and retires the actor four frames later.
+///
+/// `coord` is a local rather than the inline
+/// `((TmdObject*)task->extra)->field_8->flg = 0;` because the fused form loads
+/// `task->extra` *after* the two counter stores, and sched1 will not lift a load
+/// above an earlier store; its address load stays with the stores and both pick
+/// up load-delay nops.  Binding the pointer above the counters frees the two
+/// loads to be scheduled first, which is the target's order; see
+/// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
+/// with its store".
+void func_actor_206100_8014FDE8(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* next;
+    GsCOORDINATE2*   coord;
+
+    coord           = ((TmdObject*)task->extra)->field_8;
+    work            = (Actor206100Work*)task->idMap;
+    work->field_51E = work->field_51E + 1;
+    work->field_526 = work->field_526 + 0x10;
+    coord->flg      = 0;
+    if ((s16)work->field_51E == 0x5A) {
+        Task_SpawnFromTable(&D_801818BC, 0, 0, 0);
+    }
+    if ((s16)work->field_51E >= 0x10E) {
+        task->state     = 4;
+        next            = (Actor206100Work*)task->idMap;
+        next->field_520 = 0;
+        next->field_522 = 0;
+    }
+}

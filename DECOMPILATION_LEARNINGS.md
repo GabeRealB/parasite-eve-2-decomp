@@ -62901,6 +62901,38 @@ order — and all three carry `LAUNCH_PRIORITY` (`7f000001`). Which comparator
 entry sends the fused form's load to the wrong end of that list was not traced.
 The source-level rule above is what reproduces the target.
 
+The sibling `func_actor_206100_8014FDE8` stores through the same chain and shows
+what that comparator is competing with, because there the block *ends* with the
+store and two halfword counter stores precede it:
+
+```c
+work->field_51E = work->field_51E + 1;
+work->field_526 = work->field_526 + 0x10;
+((TmdObject*)task->extra)->field_8->flg = 0;
+```
+
+That is 82.5% (`insert=5`), and the whole difference is that the
+`lw 0x2C` / `lw 8(v0)` / `sw zero, 0(v0)` chain cannot rise above the two
+stores — a load after a store is an anti-dependence, which sched1 honours even
+though `[s1+0x2C]` and `[s0+0x51E]` cannot really alias. Pinned at the bottom,
+the store's address is loaded one insn before its use, so the block carries
+three load-delay `nop`s instead of the target's 38 instructions. Binding the
+pointer above the counters is the whole fix:
+
+```c
+coord           = ((TmdObject*)task->extra)->field_8;
+work            = (Actor206100Work*)task->idMap;
+work->field_51E = work->field_51E + 1;
+work->field_526 = work->field_526 + 0x10;
+coord->flg      = 0;
+```
+
+100.000% with every penalty zero, and the emitted order is the target's:
+`lw 0x2C`, `lw 0x1C`, `lw 8(v0)`, the two `lhu`/`addiu`/`sh` pairs, `sw` last.
+So a load-delay `nop` in a block that is otherwise the right shape is not a
+scheduling mystery to chase in `.sched2`: it means the address behind a store is
+still fused to it, and belongs in a local above whatever stores block it.
+
 ## sched1 reorders whole word stores too, so a short RMW chain can be moved to a later statement
 
 `ActorsShared8013454c` reads a `GsCOORDINATE2`'s three translation words into a
