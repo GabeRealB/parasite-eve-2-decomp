@@ -18,6 +18,8 @@ extern GpActorFuncTable9 D_actor_800200_80161EC8;
 
 extern GpActorPathStep D_actor_800200_8016A018[];
 
+extern GpActorPathStep D_actor_800200_8016A108[];
+
 extern GpActorPathStep D_actor_800200_8016A128[];
 
 extern GpActorPathStep D_actor_800200_8016A040[];
@@ -138,7 +140,49 @@ void func_actor_800200_80163B90(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80163CCC);
+void func_actor_800200_80163CCC(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    u16            state;
+    s32            flag;
+
+    actor = arg0->actor;
+    coord = arg0->extra->field_8;
+    state = actor->field_960;
+    d4    = actor->field_910;
+    switch (state) {
+        case 0:
+            flag             = 1;
+            actor->field_960 = flag;
+            actor->field_20  = D_actor_800200_8016A108[3].field_0;
+            actor->field_24  = coord->coord.t[1];
+            actor->field_28  = D_actor_800200_8016A108[3].field_4;
+            if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x401) {
+                goto arrived;
+            }
+        case 1:
+            actor->field_20 = D_actor_800200_8016A108[d4->field_CE].field_0;
+            actor->field_24 = coord->coord.t[1];
+            actor->field_28 = D_actor_800200_8016A108[d4->field_CE].field_4;
+            if (func_80103DD4((VECTOR3*)coord->coord.t, (VECTOR3*)&actor->field_20) < 0x201) {
+                if (d4->field_CE == 3) {
+                arrived:
+                    d4->field_D0 = 1;
+                    func_actor_800200_801654EC(arg0, 0);
+                    return;
+                }
+                d4->field_CE++;
+                func_actor_800200_80165534(arg0);
+                return;
+            }
+            func_actor_800200_80165408(arg0, 6);
+            return;
+        default:
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_2", func_actor_800200_80163E14);
 
@@ -364,7 +408,7 @@ void func_actor_800200_80165708(GpActorWork* arg0)
             func_actor_800200_80163E14();
             return;
         case 19:
-            func_actor_800200_80163CCC();
+            func_actor_800200_80163CCC(arg0);
             return;
         case 20:
             func_actor_800200_80163B90(arg0);

@@ -26,7 +26,7 @@ void func_actor_800200_801637B4(void);
 void func_actor_800200_8016390C(GpActorWork* arg0);
 void func_actor_800200_80163A54(void);
 void func_actor_800200_80163B90();
-void func_actor_800200_80163CCC(void);
+void func_actor_800200_80163CCC(GpActorWork* arg0);
 void func_actor_800200_80163E14(void);
 void func_actor_800200_80165408(GpActorWork* arg0, s32 arg1);
 void func_actor_800200_80165434(GpActorWork* arg0, s16 arg1);
