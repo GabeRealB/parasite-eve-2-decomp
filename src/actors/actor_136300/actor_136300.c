@@ -1,5 +1,7 @@
 #include "common.h"
+#include "actors/actor_136300.h"
 #include "gameplay/3CD8.h"
+#include "main/fs.h"
 #include "main/stage.h"
 #include "main/task.h"
 
@@ -53,7 +55,37 @@ void func_actor_136300_801328E0(s32 arg0)
     Task_SpawnFromTable(&D_80183380, 0, arg0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_80132910);
+/// Message handler for the start-countdown cue. A positive argument is latched
+/// and nothing else happens; otherwise the CD command queue is dropped into
+/// Mdec_DecodeToVram mode 2 and -- except for the -2 "already ran" message --
+/// the spawn block is filled and the `D_actor_136300_80132AC4` entry started.
+///
+/// Both halves of the block are written in *each* arm of the countdown test so
+/// that each arm is a complete two-store address session: jump optimization
+/// then merges the identical tails and the countdown collapses to one `li` per
+/// arm, which is what puts the block's `lui` in the delay slot of the entry
+/// test. Hoisting `unk2` out of the arms compiles to a different allocation.
+void func_actor_136300_80132910(s32 arg0)
+{
+    CdCmdQueue* queue;
+
+    queue = &CdCmd_Queue;
+    if (arg0 <= 0) {
+        queue->field_22A = 2;
+        if (arg0 != -2) {
+            if (arg0 == 0) {
+                D_actor_136300_8013C99C.field_0 = 0x64;
+                D_actor_136300_8013C99C.field_2 = 0x100;
+            } else {
+                D_actor_136300_8013C99C.field_0 = 5;
+                D_actor_136300_8013C99C.field_2 = 0x100;
+            }
+            Task_SpawnFromTable(&D_actor_136300_80132AC4, 0, 0, (s32)&D_actor_136300_8013C99C);
+        }
+    } else {
+        D_actor_136300_8013C9A0 = arg0;
+    }
+}
 
 void func_actor_136300_80132998(void)
 {

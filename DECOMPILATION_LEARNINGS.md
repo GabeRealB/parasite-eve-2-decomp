@@ -97793,3 +97793,67 @@ Inputs: `base_1.c`
 `6d6fe685646ba494094f0463f1c92323ba76120cd3a2ccb414306088ad68d0df` (both
 100.000%); the m2c seed `base.i`
 `b06d49d45bc335e0c169bc1f9853026df4114bbc043712808e0f7443fb07c8f2` (77.600%).
+## A duplicated store block inside each arm keeps the address session, so the arms collapse to one `li` (func_actor_136300_80132910, 2026-09-16)
+
+An if/else that fills a two-halfword struct collapses, in the target, to one
+`li` per arm and a shared address register:
+
+```
+bnez a0, .L48
+lui  v0,%hi(D_S99C)          # the block's hi, in the branch delay slot
+j    .L4C
+li   v1,0x64
+.L48: li v1,5
+.L4C: sh v1,%lo(D_S99C)(v0)
+      addiu v0,v0,%lo(D_S99C)
+      li v1,0x100
+      sh v1,2(v0)
+```
+
+Writing the store *once*, after the if/else, is not the same program. That
+version keeps the `lui`+`addiu`+two stores as one address session too, but the
+else arm's assignment becomes a plain register move, and the first
+`jump_optimize` rewrites `if (c) x = a; else x = b;` into
+`x = b; if (c') goto join; x = a;` -- the `j` over the else disappears and the
+whole function reallocates.
+
+Writing the store in the arms instead (one store per arm) preserves the `j`,
+because the arms are now constant stores: the mips const-store expansion hangs
+two notes on the const-load insn, `REG_EQUIV (mem ...)` and
+`REG_EQUIV (const_int ...)`, and jump.c's guard
+
+```c
+	      && (REG_NOTES (temp2) == 0
+		  || (... && XEXP (REG_NOTES (temp2), 1) == 0 && ...))
+```
+
+requires at most one note, so the simplification is refused. That version
+still differs: each arm carries its own `lui`+`addiu`, and the join's second
+store materializes a second address in `$a3` (33 instructions against 34).
+
+What matches is writing **both halves in each arm**, so each arm is a complete
+two-store session and the two arms differ only in one constant:
+
+```c
+    if (arg0 == 0) {
+        D_S99C.field_0 = 0x64;
+        D_S99C.field_2 = 0x100;
+    } else {
+        D_S99C.field_0 = 5;
+        D_S99C.field_2 = 0x100;
+    }
+```
+
+The identical tails are then merged by cross-jumping, which is what leaves one
+`lui` per arm and one completed register for both stores.
+
+**Reading it.** A `lui` in a branch delay slot with an `addiu reg,reg,%lo` a
+few instructions later, and both stores sharing `reg`, says the target's arms
+and join were *one* address session. If your build gives each arm its own
+`lui`+`addiu`, the C split the session; duplicate the whole store block into
+the arms rather than moving it out.
+
+Inputs: `base_9.i` (100.000%) SHA256 `b92cc4ec81705d0f084be818ff5908897eac80a842d7074516796fb94aedf493`;
+target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
