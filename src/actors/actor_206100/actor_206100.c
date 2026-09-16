@@ -996,7 +996,67 @@ void func_actor_206100_8014DD3C(Task* task)
 /// and it also puts the base in the `addu`'s first operand.  See
 /// `DECOMPILATION_LEARNINGS.md`, "Array index vs intermediate pointer for
 /// `addu` operand order".
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014DEAC);
+void func_actor_206100_8014DEAC(Task* task)
+{
+    Actor206100Work*    sub = (Actor206100Work*)task->idMap;
+    Actor206100Work*    work;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      coord2;
+    Actor206100RingPos* ring;
+    u32                 index;
+    SVECTOR             delta;
+    SVECTOR             vec;
+    u16                 roll;
+    u8                  count;
+    s32                 angle;
+    s32                 yaw;
+    s32                 diff;
+    s32                 limit;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (sub->field_54F == 0) {
+        sub->field_550 = 1;
+    }
+    if (sub->field_550 == 1) {
+        roll           = sub->field_440 + 0x20;
+        sub->field_440 = roll;
+        if ((roll & 0xFFF) == 0) {
+            sub->field_550 = 0;
+        }
+    }
+    delta.vx       = (u16)sub->field_4F4[sub->field_548].field_0 - (u16)coord->coord.t[0];
+    delta.vy       = (u16)sub->field_4F4[sub->field_548].field_2 - (u16)coord->coord.t[1];
+    delta.vz       = (u16)sub->field_4F4[sub->field_548].field_4 - (u16)coord->coord.t[2];
+    sub->field_526 = (u16)sub->field_4F4[sub->field_548].field_2;
+    if ((s16)SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) < 0x3E8) {
+        sub->field_548 = (sub->field_548 + 1) & 7;
+        count          = sub->field_54F + 1;
+        sub->field_54F = count;
+        if (count >= 6) {
+            sub->field_54F = 0;
+        }
+    } else {
+        ring        = sub->field_4F4;
+        index       = sub->field_548;
+        work        = (Actor206100Work*)task->idMap;
+        coord2      = ((TmdObject*)task->extra)->field_8;
+        coord2->flg = 0;
+        vec.vx      = (u16)ring[index].field_0 - (u16)coord2->coord.t[0];
+        vec.vy      = 0;
+        vec.vz      = (u16)ring[index].field_4 - (u16)coord2->coord.t[2];
+        VectorNormalSS(&vec, &vec);
+        yaw   = ratan2(vec.vx, vec.vz);
+        limit = 0x100;
+        angle = (u16)work->field_43E;
+        diff  = ((angle - yaw) << 20) >> 20;
+        if (diff > limit) {
+            work->field_43E = angle - 0x2C;
+        } else if (diff < -0x100) {
+            work->field_43E = angle + 0x2C;
+        }
+        func_actor_206100_8014EA8C(task, 0x40, sub->field_43E);
+    }
+}
 /// Retarget tick: `func_actor_206100_8014EB48` arms the state to 1 with the
 /// clip it wants in `field_544`, and this walks the three phases it takes to
 /// get there -- fire the switch sound, ramp the phase `field_542` half the
