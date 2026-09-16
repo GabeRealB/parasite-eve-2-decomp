@@ -118,6 +118,36 @@ void func_actor_356100_801633DC(Actor356100* arg0);
 
 void func_actor_356100_80163508(Actor356100* arg0);
 
+/// Payload of message 0x3E9 `func_actor_356100_801666B4` sends the player:
+/// the player's own position, then the heading away from this actor, so the
+/// player ends up moved one normalised unit along that direction. Same shape
+/// and roles as `Actor403000Msg3E9`, whose `field_10` / `field_12` are the
+/// flag and angle pair its sender writes there.
+typedef struct Actor356100Msg3E9 {
+    /* 0x00 */ s32  x;
+    /* 0x04 */ s32  y;
+    /* 0x08 */ s32  z;
+    /* 0x0C */ byte pad_C[0x4];
+    /* 0x10 */ s16  field_10;
+    /// Heading `ratan2` produces from the normalised player-to-actor vector,
+    /// where `Actor356100Work::field_5A` holds this actor's own facing.
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ byte pad_16[0x2];
+} Actor356100Msg3E9;
+STATIC_ASSERT_SIZEOF(Actor356100Msg3E9, 0x18);
+
+/// The overlay's only message-0x3E9 instance; all eight words are zero in the
+/// image, so it is a work area rather than a table.
+extern Actor356100Msg3E9 D_actor_356100_801732B0;
+
+/// Separation tick: when the work block's `field_4` flag is set, pushes this
+/// actor one normalised unit away from the player along the player-to-actor
+/// direction in XZ (recentring it on the player first), clears the model's
+/// root `flg`, and sends the player message 0x3E9 with its own position and
+/// the resulting heading. Bit 0 of `field_68` then forces `field_0` to 0xD.
+void func_actor_356100_801666B4(Actor356100* arg0);
+
 /// Event handler: copies the event's first three bytes into the work block's
 /// `field_B58`, then dispatches on `w[0] == 0xB05` and `w[1]` — sub-code 1
 /// puts the actor in state 0x1E, 0 and 2 in state 0. Anything else returns 0.

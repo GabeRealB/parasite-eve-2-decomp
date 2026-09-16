@@ -1,6 +1,14 @@
 #include "common.h"
 
 #include "actors/actor_356100.h"
+#include "gameplay/1A8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+
+#include <psyq/inline_c.h>
+
+/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80162258);
 
@@ -54,7 +62,53 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80166018);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801666B4);
+void func_actor_356100_801666B4(Actor356100* arg0)
+{
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+    Task*            player;
+    SVECTOR*         vecp;
+    SVECTOR          vec;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        player                                    = Game_GetPtrSlot(3);
+        work->field_9BC                           = 0x180;
+        enemy->node.field_4                       = 0;
+        work->field_978                           = 1;
+        work->field_982                           = 0x10;
+        work->field_97E                           = 5;
+        ((TmdObject*)player->extra)->field_8->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)player->extra)->field_8);
+        D_actor_356100_801732B0.x = ((TmdObject*)player->extra)->field_8->coord.t[0];
+        D_actor_356100_801732B0.y = ((TmdObject*)player->extra)->field_8->coord.t[1];
+        D_actor_356100_801732B0.z = ((TmdObject*)player->extra)->field_8->coord.t[2];
+        vecp                      = &vec;
+        /* Order matters: the vy store must follow the vx loads in RTL, or
+           sched1 fills its anti-dependency chain from the earlier stores and
+           hoists it above the D.z store. */
+        vec.vx = ((GpCoordXZ*)arg0->field_2C->field_8)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_18;
+        vec.vy = 0;
+        vec.vz = ((GpCoordXZ*)arg0->field_2C->field_8)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->field_8)->field_20;
+        VectorNormalSS(vecp, vecp);
+        gte_lddp(0x3E8);
+        gte_ldsv(vecp);
+        gte_gpf12_real();
+        gte_stsv(vecp);
+        arg0->field_2C->field_8->coord.t[0] = ((TmdObject*)player->extra)->field_8->coord.t[0] + vec.vx;
+        arg0->field_2C->field_8->coord.t[2] = ((TmdObject*)player->extra)->field_8->coord.t[2] + vec.vz;
+        arg0->field_2C->field_8->flg        = 0;
+        D_actor_356100_801732B0.field_10    = 0;
+        D_actor_356100_801732B0.field_12    = ratan2(vec.vx, vec.vz);
+        D_actor_356100_801732B0.field_14    = 0;
+        Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_356100_801732B0, 0);
+    }
+    func_actor_356100_80163508(arg0);
+    if (work->field_97E == 5 && (work->field_68 & 1)) {
+        work->field_0 = 0xD;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_801668FC);
 

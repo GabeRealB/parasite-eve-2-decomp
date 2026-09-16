@@ -108574,3 +108574,56 @@ declared `u16`, which is what gives the target's `lhu` + `addiu -1` + `sh` + `sl
 bare `bltz`, and the `sll` has nowhere to come from. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input `base_2.i`
 SHA256 `9972e59abfff660c2fefcf39e0623ba79f72954553ff04a2d8b8d597cf2307c6`.
+
+## A constant store written early only knows about the loads written before it
+
+**Problem.** `func_actor_356100_801666B4` matched at 99.589% with `reorder=1`: the
+single difference in the whole function was `sh zero, 0x12(sp)` (a `vec.vy = 0`
+component of a local `SVECTOR`) emitted six instructions early — right after the
+`&vec` materialisation, where the target has it after the loads feeding the other
+two components and after the `VectorNormalSS` argument move. Every register and
+every other instruction agreed.
+
+**Cause.** The store writes a distinct stack slot and its value is a constant, so
+it has no data dependence at all. The only thing that holds it in place is its
+WAR (anti-) dependence on the memory references that *precede it in the RTL
+stream* — `sched1` records those as `REG_DEP_ANTI` log links, which is what gives
+the insn its `INSN_PRIORITY`. Written first,
+
+```c
+vec.vy = 0;
+vec.vx = a->field_18 - b->field_18;
+vec.vz = a->field_20 - b->field_20;
+```
+
+its uid is the lowest of the three, its `LOG_LINKS` stop at the loads of the
+*previous statement*, and the loads of `vec.vx` — which come after it in RTL —
+impose nothing. `sched1` is then free to hoist it above them. Its `.sched` dump
+shows exactly this: `(insn_list:REG_DEP_ANTI 66 ... 93 95 97)` and no link to
+108..118. Writing the same constant **after** the loads it must follow,
+
+```c
+vec.vx = a->field_18 - b->field_18;
+vec.vy = 0;
+vec.vz = a->field_20 - b->field_20;
+```
+
+adds those loads to its anti-dependence chain, its priority rises with them, and
+it can no longer launch before them. 100.00%, all penalties zero, one source
+line moved.
+
+**How to spot it.** When the only diff is a constant store a few instructions
+early, do not reach for a barrier or a pin. Open that insn in `.sched` and read
+its `LOG_LINKS`; if they are `REG_DEP_ANTI` chain entries that stop short of the
+loads the target has it after, the statement's *source position* is the lever —
+move the store after those loads. This is the mirror of the section
+"A constant store scheduled too early: move the assignment last": there the
+block was all stores to distinct slots and moving the constant store last
+re-valued the *loads*; here the loads belong to a sibling store and moving the
+constant store later gives it the anti-dependences it was missing.
+
+**Scope.** Stack slots reached with a fixed `(plus (reg $fp) (const_int))`
+address. A store whose value is computed has a data dependence on that
+computation and is unaffected. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
+`base_2.i` SHA256 `ad7ce0d6090259e109fccc803c116b05d2196a55abcc798364ac2546b6958751`.
