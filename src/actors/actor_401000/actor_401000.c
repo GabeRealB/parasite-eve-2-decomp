@@ -1536,7 +1536,111 @@ void func_actor_401000_8013A5F0(Actor401000* arg0)
     *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8013A930);
+/// Turn the actor toward the player in two stages: while the `field_6`
+/// countdown is under 0x32 the five part coordinates are reset to fixed
+/// pitches, and afterwards each one unwinds by shifting its pitch down a step
+/// every four frames; the turn itself is clamped to +-0x24 and drops the actor
+/// to state 7 once it lines up. The `field_8AE` slot it drives is what
+/// `func_actor_401000_8013A5F0` writes whole; here it slides toward the target
+/// by at most 0x28 a frame. Same body as `func_actor_401300_8013AE48`, with the
+/// spawn arm arming the 0x13 clip, `field_8D0.field_1C` written before the other
+/// state words, and `field_A10.flags |= 0x4000` in place of the sibling's
+/// `&= 0xBFFF`.
+void func_actor_401000_8013A930(Actor401000* arg0)
+{
+    Actor401000Work*       work;
+    Actor401000AimScratch* aim;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 0;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8D0.field_1C = 0x1AE;
+        work->field_898          = 2;
+        work->field_8A2          = 8;
+        work->field_89E          = 0x13;
+        work->field_89A          = 0;
+        work->field_B50.flags   &= 0x7FFF;
+        work->field_A10.flags   |= 0x4000;
+        func_actor_401000_80132EF0(arg0);
+        func_actor_401000_80132EF0(arg0);
+        work->field_6   = 0;
+        work->field_8B0 = 0;
+        return;
+    }
+    work->field_6++;
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
+    aim->angle                                = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    if (work->field_8AE < aim->angle) {
+        if (aim->angle - work->field_8AE > 0x28) {
+            work->field_8AE += 0x28;
+        } else {
+            work->field_8AE = aim->angle;
+        }
+    } else if (work->field_8AE - aim->angle > 0x28) {
+        work->field_8AE -= 0x28;
+    } else {
+        work->field_8AE = aim->angle;
+    }
+    coord      = arg0->field_2C->field_8;
+    aim->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    func_actor_401000_80132EF0(arg0);
+    if (work->field_6 < 0x32) {
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[1].coord, 0x40, 0);
+        arg0->field_2C->field_8[1].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[2].coord, 0x80, 0);
+        arg0->field_2C->field_8[2].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, 0x80, 0);
+        arg0->field_2C->field_8[3].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[4].coord, 0x80, 0);
+        arg0->field_2C->field_8[4].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[4]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[5].coord, 0x100, 0);
+        arg0->field_2C->field_8[4].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[4]);
+    } else {
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[1].coord, 0x40 >> ((work->field_6 - 0x31) / 4), 0);
+        arg0->field_2C->field_8[1].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[2].coord, 0x80 >> ((work->field_6 - 0x30) / 4), 0);
+        arg0->field_2C->field_8[2].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[2]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, 0x80 >> ((work->field_6 - 0x2F) / 4), 0);
+        arg0->field_2C->field_8[3].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[4].coord, 0x80 >> ((work->field_6 - 0x2E) / 4), 0);
+        arg0->field_2C->field_8[4].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[4]);
+        Gfx_RotMatrixX(&arg0->field_2C->field_8[5].coord, 0x100 >> ((work->field_6 - 0x31) / 4), 0);
+        arg0->field_2C->field_8[4].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->field_8[4]);
+        aim->angle = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+        if (aim->angle > 0x24) {
+            aim->angle = 0x24;
+        } else if (aim->angle < -0x24) {
+            aim->angle = -0x24;
+        }
+        if (ABS(aim->angle) < 0x24 || work->field_6 >= 0x4F) {
+            work->field_0 = 7;
+        }
+        coord       = arg0->field_2C->field_8;
+        aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+        Actor401000_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+        arg0->field_2C->field_8->flg = 0;
+    }
+    *(Actor401000AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 /// Tint a freshly spawned effect model from the enemy's area record: read the
 /// session's location key, let `Gp_SyncAreaKeyIndex` fill its table index, and
