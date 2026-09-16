@@ -87843,3 +87843,80 @@ when the natural C sits at ~98% with `regs=1 delete=1`, scan the family's asm
 for `lw $v0, off(reg)` followed within a couple of instructions by
 `addu $sN, $v0, $zero` and read that function's C body.
 `func_dryfield_night_factory_8017FA08`: 98.61% to 100%.
+## A struct-member store is `mem/s`, a pointer-cast store is `mem` - and the flag moves instructions (func_neo_ark_woodland_path_80180B18, 2026-09-16)
+
+**Problem.** Store a halfword to a field of the object a `void*` points at, and
+the neighbouring stores are scheduled in a different order from the target's:
+
+```
+target:  lui  v1,%hi(D_...A60)      got:  lui  v0,%hi(D_...A60)
+         lhu  v0,%lo(D_...A60)(v1)        lhu  v1,%lo(D_...A60)(v0)
+         nop                              sh   zero,%lo(D_...A60)(v0)
+         sh   v0,0x40(s0)                 sb   zero,0x4c(s0)
+         sh   zero,%lo(D_...A60)(v1)      sh   v1,0x40(s0)
+         sb   zero,0x4c(s0)
+```
+
+The function is one instruction short (84 vs 85: the target's `nop` is a
+load-delay stall nothing could fill), so "reorder" is the wrong first guess.
+
+**Cause.** The RTL differs by one flag. `obj->field_40` is a `COMPONENT_REF`,
+and `expr.c:5891` sets `MEM_IN_STRUCT_P (op0) = 1` for *any* component
+reference - the dump shows `(mem/s:HI (plus:SI (reg/v:SI 85) (const_int 64)))`.
+`*(u16 *)((u8 *)obj + 0x40)` reaches the same address through an INDIRECT_REF
+of a scalar type and yields `(mem:HI ...)`. `MEM_IN_STRUCT_P` feeds the
+scheduler's dependence analysis, so in the `/s` version the store is free to
+move down past the independent stores and in the other it is not.
+
+**Fix.** Write the field through the cast form the original used:
+
+```c
+*(u16 *)((u8 *)obj + 0x40) = D_neo_ark_woodland_path_80184A60;
+```
+
+Only the *access form* matters, not the type's name. Measured on this
+function: `obj->field_40` 96.200%, `*(u16 *)&obj->field_40` 96.200%,
+`u16 field_40[1]; obj->field_40[0]` 96.200% (all three are component
+references), `*(u16 *)((u8 *)obj + 0x40)` 100.000%. A byte field at the same
+object - `obj->field_4C` - matched either way. When a `store`/`lhu` group
+schedules differently but the instruction *count* moved too, compare the
+`.cse2` dumps for `/s` before rewriting the C.
+
+## `return <constant>` inside a switch case takes the return register out of the block's tail (func_neo_ark_woodland_path_80180B18, 2026-09-16)
+
+**Problem.** A `case` that ends by storing a global and then returning a
+constant:
+
+```c
+case 2:
+    ...
+    if (Gp_LookupSlot4(0) != 0) {
+        ...
+        D_neo_ark_woodland_path_8018498E = 0x5A;
+        return 1;
+    }
+    return var_v0;
+```
+
+compiled to `li v0,1` *first*, `lui a0`/`li v1,0x5a` after it, and the store in
+the jump's delay slot - the target has `lui v1`/`li v0,0x5a`/`sh v0,(v1)` and
+`li v0,1` in the delay slot. `trace_gcc.py` shows the block's local quantities
+allocating `[129] -> $v1` (priority 10000, the value) and then `[128] -> $a0`
+(the address), i.e. `$v0` was unavailable to the value quantity; the earlier
+`result = 1` in the branch's delay slot is what holds it.
+
+**Fix.** Let the block end with the store and return the shared variable, whose
+assignment to 1 already sits in the branch's delay slot:
+
+```c
+    if (Gp_LookupSlot4(0) != 0) {
+        ...
+        D_neo_ark_woodland_path_8018498E.s = 0x5A;
+    }
+    return result;      /* result >= 1 was set before the branch */
+```
+
+100.000% with all-zero penalties. The register `$v0` was never "wrong in the
+object dump": which pseudo holds it is decided before the block's own
+quantities are placed, so moving the return out of the branch is the fix and a
+register pin is not needed.
