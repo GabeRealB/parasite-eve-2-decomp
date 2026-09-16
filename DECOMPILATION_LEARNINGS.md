@@ -103524,3 +103524,42 @@ stores. Both fixes together took the function from m2c's 82.5% to 99.7%; the
 same clamp shape is in the matched `Actor00100_Fn02788`
 (`src/actors/lib/actor_400100_damage.c`), which uses `s32 clampedAngle` for
 exactly this reason.
+
+## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`func_actor_401800_8013629C`, 2026-09-16)
+
+The record-walking push body writes its coordinate update in both arms of the
+length test, which `jump2` (`-fcross-jumping`, on at `-O2`) merges back into one
+shared block, so removing the duplication looks free:
+
+```
+if (s->len >= 0x96) { ...normalise...; coord.t[0] += vx / 2; coord.t[2] += vz / 2; }
+else                {                coord.t[0] += vx / 2; coord.t[2] += vz / 2; }
+```
+
+Both spellings give the same update block and the same instruction count for
+that block, but they do not give the same *loop*. The loop is `for (s->i = 0;
+s->i < count; s->i++)` with `s16 i` in memory and an `s16 count` parameter, and
+the extra arm is what keeps `count`'s sign extension out of the loop:
+
+```
+/* shared tail (93.5%)                          /* duplicated tail (target, 100%) */
+sll  v0,s2,0x10                                 sw   s4,0x20(sp)
+sra  v0,v0,0x10                                 move s4,s2
+blez v0,...                                     ...
+move s2,v0            <- count sign-extended    lhu  v0,0x18(s0)
+lhu  v0,0x18(s0)        out of the loop         sll  v1,s4,0x10     <- count stays raw
+nop                                             addiu v0,v0,0x1
+addiu v0,v0,0x1                                 sh   v0,0x18(s0)
+sh   v0,0x18(s0)                                sll  v0,v0,0x10
+sll  v0,v0,0x10                                 slt  v0,v0,v1
+sra  v0,v0,0x10  <- kept                        bnez v0,...
+slt  v0,v0,s2
+```
+
+With the shared tail the loop is small enough for `loop.c` to hoist the
+promotion of `count` and compare the already-widened pair; with the duplicated
+tail it cannot, so the test shifts both halfwords left by 16 and compares those
+(`slt` on two values with the same low 16 bits is the 16-bit signed compare),
+which needs a second live copy of `count` in `$s4` and the extra stack slot.
+`func_actor_401300_80132910` carries the duplication in its matched source with
+this note on it; the m2c seed has the shared spelling and scores 73.4%.

@@ -103,6 +103,23 @@ typedef struct Actor401800Work {
     /* 0xC20 */ s16 field_C20;
 } Actor401800Work;
 
+/// 0x34-byte scratch `func_actor_401800_8013629C` takes from `G_SCRATCH_HEAD`
+/// to push the root coordinate away from the kind 0x10000 / 0x30000 records of
+/// a `GpRec18` table: `pos` is the world translation, `offset` the push
+/// (clamped to length 0x96), `i` the record cursor and `hit` the return value.
+/// `dist` gets 0x7FFE at the terminating record.
+/// Same shape as `Actor01900PushScratch` / `Actor401300PushScratch`.
+typedef struct Actor401800PushScratch {
+    /* 0x00 */ SVECTOR offset;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     kind;
+    /* 0x14 */ s32     len;
+    /* 0x18 */ s16     i;
+    /* 0x1A */ s16     hit;
+    /* 0x1C */ s16     dist[12];
+} Actor401800PushScratch;
+STATIC_ASSERT_SIZEOF(Actor401800PushScratch, 0x34);
+
 /// 0xC-byte scratch `func_actor_401800_8013A034` takes from `G_SCRATCH_HEAD`
 /// for its player-in-radius test: the X/Z offset to the camera target and the
 /// radius, each squared in place before `dx + dz < r`. Same shape as
@@ -241,7 +258,7 @@ extern u8 D_80072729;
 s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 /// Re-seeds the `rec` contact record the aim-and-rescale body arms for the
 /// actor's root coordinate. Same role `func_actor_401300_80132910` plays.
-void func_actor_401800_8013629C(Actor401800* arg0, GpRec18* rec, s32 arg2);
+s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* rec, s16 count);
 /// Returns non-zero while `coord` may still travel `arg1` units of its local Z
 /// path; the result is read as a signed halfword (`func_actor_401800_80139118`),
 /// the way `func_actor_401300_8013267C` is.

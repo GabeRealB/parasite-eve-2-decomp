@@ -254,7 +254,62 @@ void func_actor_401800_80135F58(Actor401800* arg0)
     *(Actor401800AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013629C);
+/// Push the root coordinate out of a `GpRec18` table: take a 0x34 scratch, seed
+/// its position from the second coordinate, then walk the records until `count`
+/// or a zero `field_4`. Each kind 0x10000 / 0x30000 record contributes half its
+/// offset along X and Z, normalised to length 0x96 first when it is longer than
+/// that; `hit` reports whether one was seen.
+/// Same body as `Actor01900_Fn03FF8` / `func_actor_401300_80132910`, with the
+/// coordinate update written out in both arms of the length test.
+s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* recs, s16 count)
+{
+    Actor401800PushScratch* head;
+    Actor401800PushScratch* s;
+    Actor401800PushScratch* blk;
+
+    if (D_80072729 == 1 || Game_Session->field_4D == 1) {
+        return 0;
+    }
+    arg0->field_2C->field_8[1].flg            = 0;
+    head                                      = *(Actor401800PushScratch**)G_SCRATCH_HEAD;
+    blk                                       = head - 1;
+    *(Actor401800PushScratch**)G_SCRATCH_HEAD = blk;
+    s                                         = blk;
+    Gp_UpdateCoord(&arg0->field_2C->field_8[1]);
+    s->pos.vx = arg0->field_2C->field_8[1].workm.t[0];
+    s->pos.vy = arg0->field_2C->field_8[1].workm.t[1];
+    s->pos.vz = arg0->field_2C->field_8[1].workm.t[2];
+    s->hit    = 0;
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].field_4 == 0) {
+            s->dist[s->i] = 0x7FFE;
+            break;
+        }
+        s->kind = recs[s->i].field_4 & 0xFFFF0000;
+        if (s->kind == 0x10000 || s->kind == 0x30000) {
+            s->hit = 1;
+            Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);
+            s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
+            s->len = SquareRoot0(s->len);
+            if (s->len >= 0x96) {
+                s->offset.vy = 0;
+                VectorNormalSS(&s->offset, &s->offset);
+                gte_lddp(0x96);
+                gte_ldsv(&s->offset);
+                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_stsv(&s->offset);
+                arg0->field_2C->field_8->coord.t[0] += s->offset.vx / 2;
+                arg0->field_2C->field_8->coord.t[2] += s->offset.vz / 2;
+            } else {
+                arg0->field_2C->field_8->coord.t[0] += s->offset.vx / 2;
+                arg0->field_2C->field_8->coord.t[2] += s->offset.vz / 2;
+            }
+            arg0->field_2C->field_8->flg = 0;
+        }
+    }
+    *(Actor401800PushScratch**)G_SCRATCH_HEAD += 1;
+    return s->hit;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_80136560);
 
