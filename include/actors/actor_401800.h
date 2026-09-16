@@ -65,7 +65,13 @@ typedef struct Actor401800Work {
     /* 0xA28 */ GpRec18 field_A28;
     /* 0xA40 */ byte    pad_A40[0x108];
     /* 0xB48 */ GpObj   field_B48;
-    /* 0xB68 */ byte    pad_B68[0x9C];
+    /* 0xB68 */ byte    pad_B68[0x94];
+    /// Step the aim-and-rescale body walks the actor along its own local Z
+    /// axis while `func_actor_401800_80133558` says the path is clear, and
+    /// reloads `field_0 = 9` once it has counted down to zero. Same slot
+    /// `Actor401300Work.field_C98` keeps.
+    /* 0xBFC */ s16  field_BFC;
+    /* 0xBFE */ byte pad_BFE[6];
     /// Step the actor walks along its local Z axis: `func_actor_401800_80139118`
     /// seeds it with -0x78, hands it to the step helper while the 0x10 clip is
     /// playing, and halves it each time the `field_A28` contact test fires.
@@ -140,6 +146,16 @@ typedef struct Actor401800AimScratch {
     /* 0xE */ s16     pad_E;
 } Actor401800AimScratch;
 STATIC_ASSERT_SIZEOF(Actor401800AimScratch, 0x10);
+
+/// 0xC-byte scratch `func_actor_401800_8013AB64` takes from `G_SCRATCH_HEAD`:
+/// the offset from the actor to the player, then the clamped turn folded into
+/// the root coordinate's Y rotation. Same layout as `Actor401300TurnScratch`.
+typedef struct Actor401800TurnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor401800TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor401800TurnScratch, 0xC);
 
 /// 0x34-byte scratch the yaw rebuild takes from `G_SCRATCH_HEAD`: a `MATRIX`
 /// plus the `VECTOR` handed to `ScaleMatrix` and the yaw stored before
@@ -223,6 +239,9 @@ typedef struct Actor401800Msg7D3 {
 extern u8 D_80072729;
 
 s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+/// Re-seeds the `rec` contact record the aim-and-rescale body arms for the
+/// actor's root coordinate. Same role `func_actor_401300_80132910` plays.
+void func_actor_401800_8013629C(Actor401800* arg0, GpRec18* rec, s32 arg2);
 /// Returns non-zero while `coord` may still travel `arg1` units of its local Z
 /// path; the result is read as a signed halfword (`func_actor_401800_80139118`),
 /// the way `func_actor_401300_8013267C` is.

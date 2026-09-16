@@ -866,7 +866,67 @@ void func_actor_401800_8013A034(Actor401800* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013A2E8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013AB64);
+/// Aim the actor at the player, fold the clamped turn into the root
+/// coordinate's Y rotation, then step it along its own local Z while
+/// `func_actor_401800_80133558` says the path is clear — reloading
+/// `field_0 = 9` once the `field_BFC` step countdown runs out. Same body as
+/// `func_actor_401300_8013A208`, with the aim and step helpers inlined.
+void func_actor_401800_8013AB64(Actor401800* arg0)
+{
+    Actor401800Work*        work;
+    GpEnemy*                enemy;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    Actor401800TurnScratch* turn;
+    u16                     next;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy           = arg0->field_20;
+        obj             = arg0->field_2C;
+        work->field_89E = 0x12;
+        work->field_898 = 1;
+        obj->field_C    = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8C8.field_1C = 0x12C;
+        work->field_B48.flags   &= 0x7FFF;
+        work->field_A08.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_8B0          = 0;
+        work->field_8A2          = 0x1E;
+    }
+    *(Actor401800TurnScratch**)G_SCRATCH_HEAD -= 1;
+    turn                                       = *(Actor401800TurnScratch**)G_SCRATCH_HEAD;
+    turn->angle                                = Actor401800_PositionYaw(arg0, &turn->delta, &Wip_SysConfig);
+    work->field_8AE                            = turn->angle;
+    if (turn->angle > 0x40) {
+        turn->angle = 0x40;
+    }
+    if (turn->angle < -0x40) {
+        turn->angle = -0x40;
+    }
+    coord        = arg0->field_2C->field_8;
+    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, turn->angle, 1);
+    if (func_actor_401800_80132C68(arg0->field_2C->field_8, &work->field_A28, 0xC) != 1) {
+        func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+    }
+    if ((s16)func_actor_401800_80133558(arg0->field_2C->field_8, 0x12C, work->field_BFC) != 0) {
+        Actor401800_MoveForwardNonzero(arg0->field_2C->field_8, work->field_BFC);
+    }
+    if (work->field_BFC > 0) {
+        next            = work->field_BFC - 0xA;
+        work->field_BFC = next;
+        if ((s16)next < 0) {
+            work->field_BFC = 0;
+        }
+    }
+    func_actor_401800_80133EB8(arg0);
+    if ((work->field_68 & 1) || work->field_BFC == 0) {
+        work->field_0 = 9;
+    }
+    *(Actor401800TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800", func_actor_401800_8013AF1C);
 

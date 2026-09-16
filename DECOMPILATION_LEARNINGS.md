@@ -7190,6 +7190,27 @@ deserves. Copy the helper definitions verbatim into the scratch file — they ar
 already in scope when the body lands back in the host file, so do not add them
 there.
 
+**A GTE macro that becomes a `jal` means the candidate is missing the host
+`.c`'s `<psyq/inline_c.h>`.** No header an overlay's host `.c` includes pulls
+`psyq/inline_c.h` in transitively — the TU includes it itself, next to a local
+`gte_gpf12_real()` define (`inline_c.h`'s own macro of that name assembles to a
+different word). A candidate carrying only the m2c include block therefore
+compiles `gte_lddp` / `gte_ldsv` / `gte_gpf12_real` / `gte_stsv` as external
+calls, and the GTE block comes out
+
+```
+jal    gte_lddp
+move    a0,s3
+```
+
+instead of the six `mtc2`/`lhu` pairs. The object is ~25 instructions short and
+scores ~89% with `delete=16` against a body that is otherwise structurally
+right and reports `blocks=27/27`. Copy the host file's include block —
+`#include <psyq/inline_c.h>` after `common.h`, plus the `gte_gpf12_real`
+define — and it goes to 100% unchanged. `gte_gpf12_real` is also defined in
+`include/rooms/rooms_shared_80182078.h`, but the per-TU define is the one the
+actor TUs use.
+
 **Piping `build.sh` into `head` records a failure and can disqualify the seed.**
 `build.sh` journals its result from an `EXIT` trap, so a `./build.sh base_1.c |
 head -5` that closes the pipe early records `failure: 141` (SIGPIPE) as the
