@@ -120,4 +120,31 @@ void func_actor_521100_801358D4(Actor521100* arg0)
 /// the blend runs the nineteen slots through `func_800B4114` with the length
 /// `D_actor_521100_8015F894` gives the incoming clip, and the tick counts the
 /// agreeing frames in `field_68A`.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_80135964);
+void func_actor_521100_80135964(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    s32              i;
+    s32              val;
+
+    work = arg0->field_1C;
+    val  = 0;
+    if (work->field_686 != work->field_688) {
+        work->field_688 = work->field_686;
+        work->field_68A = 0;
+        if (work->field_686 < 0x15) {
+            val = D_actor_521100_8015F894[work->field_686];
+        }
+        i = 1;
+        do {
+            func_800B4114((GpAnimCtx*)work, i, work->field_686, 0, val);
+            i++;
+        } while (i < 0x13);
+        return;
+    }
+    i                = 1;
+    work->field_68A += i;
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        i++;
+    } while (i < 0x13);
+}
