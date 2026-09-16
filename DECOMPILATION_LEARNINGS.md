@@ -108381,3 +108381,17 @@ writes `D_801153F2[1] = 1`, and `actor_105500_text.c` reads it back as
 `D_801153F2[1] == 2`. The mirror case — the target naming its own interior
 symbol and the `SYM`-based access scoring below 100 — is the
 `D_neo_ark_observatory_8018136A` entry above.
+### A signed `lh` of a word's high half is `(s32 >> 16)`, not an `s16` field (func_actor_402200_80135D5C, 2026-09-17)
+
+**Symptom.** Target copies a `gte_stsxy` result out as `lhu v0,0x40(s0); sh v0,0x6FC(a0); lh v0,0x42(s0); sh v0,0x700(a0)`.
+Splitting the word into `u16 sx; s16 sy;` (any dest type, s16 or u16) gives `lhu` for both loads: a
+HImode-to-HImode copy always zero-extends.
+
+**Fix.** Keep the slot an `s32 sxy` and write `dst_x = sc->sxy; dst_y = sc->sxy >> 16;`. Combine folds the
+shift of the loaded word into a sign-extending load of the upper half (`lh 0x42`), while the truncating
+low copy stays `lhu 0x40`.
+
+Same function: a group of three computed stores followed by a constant/flag store scheduled correctly only
+when the flag/constant statements came *after* the third computed store in C (`t[0]`, `t[1]`, `t[2]`, then
+`|= 0xC000`); written before it, sched interleaved them with the second store. And the scratch carve
+needed `*head_ptr = head - N; sc = head - N;` (two pseudos) to get `addiu v0,s2,-N; move s0,v0; sw v0`.

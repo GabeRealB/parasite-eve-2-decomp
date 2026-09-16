@@ -271,9 +271,9 @@ typedef struct Actor402200Work {
     /// Countdown `func_actor_402200_801347F4` rolls from the `Gp_LcgState` LCG
     /// (0x4B..0x6A) when it reseeds the animation, and ticks down a frame at a
     /// time until it runs out and the cue fires.
-    /* 0x6D4 */ u16  field_6D4;
-    /* 0x6D6 */ byte pad_6D6[2];
-    /* 0x6D8 */ s16  field_6D8;
+    /* 0x6D4 */ u16 field_6D4;
+    /* 0x6D6 */ s16 field_6D6;
+    /* 0x6D8 */ s16 field_6D8;
     /// Timer pair the reseed arms alongside `field_6DE`.
     /* 0x6DA */ s16 field_6DA;
     /* 0x6DC */ s16 field_6DC;
@@ -302,8 +302,12 @@ typedef struct Actor402200Work {
     /* 0x6F6 */ byte pad_6F6[4];
     /// Entry count of the box table at `field_6B4`, read as a signed halfword;
     /// a non-positive count disarms the scan.
-    /* 0x6FA */ s16  field_6FA;
-    /* 0x6FC */ byte pad_6FC[0xC];
+    /* 0x6FA */ s16 field_6FA;
+    /// Screen x / y and quartered depth of the two points
+    /// `func_actor_402200_80135D5C` projects.
+    /* 0x6FC */ s16 field_6FC[2];
+    /* 0x700 */ s16 field_700[2];
+    /* 0x704 */ s16 field_704[2];
     /// Index of the box the scan last reported a hit on.
     /* 0x708 */ s16  field_708;
     /* 0x70A */ byte pad_70A[2];
@@ -363,6 +367,20 @@ typedef struct Actor402200OffsetScratch {
     /* 0x10 */ SVECTOR in;
 } Actor402200OffsetScratch;
 STATIC_ASSERT_SIZEOF(Actor402200OffsetScratch, 0x18);
+
+/// 0x48-byte block `func_actor_402200_80135D5C` takes from `G_SCRATCH_HEAD`
+/// to aim the actor: `m` is the root's world matrix brought local to the
+/// fourth part, `out` the GTE's rotated offset, and `pts` the two world points
+/// (root-based aim point, fourth-part offset) projected through `GsWSMATRIX`
+/// into `sxy` and the quartered screen z `otz`.
+typedef struct Actor402200AimScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ VECTOR  out;
+    /* 0x30 */ SVECTOR pts[2];
+    /* 0x40 */ s32     sxy;
+    /* 0x44 */ s32     otz;
+} Actor402200AimScratch;
+STATIC_ASSERT_SIZEOF(Actor402200AimScratch, 0x48);
 
 /// Per-animation-id value `func_actor_402200_80137EEC` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
