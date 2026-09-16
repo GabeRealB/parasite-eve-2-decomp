@@ -10,6 +10,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// Status flags at `Actor401000Work` + 0x68, read through two widths: the
+/// guards in this overlay test bit 0 or bit 0x100 as a halfword, while
+/// `func_actor_401000_80134DB4` tests bits 0x102 as a word, so both views are
+/// modelled explicitly rather than casting at the use site. The same shape as
+/// `Actor341700Flags` / `Actor342400Flags` / `Actor400500HitFlags`.
+typedef union Actor401000Flags68 {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+} Actor401000Flags68;
+STATIC_ASSERT_SIZEOF(Actor401000Flags68, 0x4);
+
 /// Private work block of the actor 401000 task, hanging off `Task::idMap`.
 ///
 /// Only the fields the decompiled code touches are named, so the struct is
@@ -29,24 +40,24 @@ typedef struct Actor401000Work {
     /// One-shot latch `func_actor_401000_8013922C` raises once the actor's
     /// spawn sound has been queued; the same slot `Actor401300Work` keeps at
     /// +0x6.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x52];
-    /* 0x05A */ u16  field_5A;
-    /* 0x05C */ byte pad_5C[0xC];
-    /* 0x068 */ u16  field_68;
-    /* 0x06A */ byte pad_6A[0x82A];
-    /* 0x894 */ s32  field_894;
-    /* 0x898 */ s16  field_898;
-    /* 0x89A */ s16  field_89A;
-    /* 0x89C */ byte pad_89C[2];
-    /* 0x89E */ s16  field_89E;
-    /* 0x8A0 */ byte pad_8A0[2];
-    /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ byte pad_8A6[8];
-    /* 0x8AE */ s16  field_8AE;
-    /* 0x8B0 */ s16  field_8B0;
-    /* 0x8B2 */ byte pad_8B2[2];
+    /* 0x006 */ s16                field_6;
+    /* 0x008 */ byte               pad_8[0x52];
+    /* 0x05A */ u16                field_5A;
+    /* 0x05C */ byte               pad_5C[0xC];
+    /* 0x068 */ Actor401000Flags68 flags_68;
+    /* 0x06C */ byte               pad_6C[0x828];
+    /* 0x894 */ s32                field_894;
+    /* 0x898 */ s16                field_898;
+    /* 0x89A */ s16                field_89A;
+    /* 0x89C */ byte               pad_89C[2];
+    /* 0x89E */ s16                field_89E;
+    /* 0x8A0 */ byte               pad_8A0[2];
+    /* 0x8A2 */ s16                field_8A2;
+    /* 0x8A4 */ s16                field_8A4;
+    /* 0x8A6 */ byte               pad_8A6[8];
+    /* 0x8AE */ s16                field_8AE;
+    /* 0x8B0 */ s16                field_8B0;
+    /* 0x8B2 */ byte               pad_8B2[2];
     /// Last animation state `func_actor_401000_8013922C` acted on; the same
     /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
     /* 0x8B4 */ s32      field_8B4;

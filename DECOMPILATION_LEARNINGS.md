@@ -23800,6 +23800,24 @@ that does not fit the declared type** — a `u8` compared against `0x203` cannot
 a byte comparison, so the load has to be `lhu`. The union is only needed when the
 same field must *keep* two widths at once.
 
+**`lhu` vs `lw` is the same class, and its tell is the opcode alone.** In
+`func_actor_401000_80134DB4` the loop guard tests bits `0x102` at
+`Actor401000Work` + 0x68, and the target loads a **word** (`lw $v0, 0x68($s0)`)
+while 13 guards in the same overlay read that offset with `lhu`. `0x102` fits a
+`u16`, so the constant-fits-the-type tell above stays silent: only the opcode
+says the original read wider. The rename cost then picks the shape — 13 use
+sites is cheap enough for the union, and the same `0x102`-word / bit-0-halfword
+guard already has three union precedents (`Actor341700Flags`,
+`Actor342400Flags`, `Actor400500HitFlags`), where `Game_Session`'s 92 sites were
+not. The scratch build was one `lhu` away from 100% before the union landed.
+
+```c
+typedef union Actor401000Flags68 {
+    /* 0x0 */ u32 word;
+    /* 0x0 */ u16 half;
+} Actor401000Flags68;
+```
+
 ## Save `nextSibling` before calling through the iterator
 
 A circular walk that calls a function *on the current node* (`Task_CallExit(arg0)`)

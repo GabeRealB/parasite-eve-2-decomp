@@ -90,7 +90,67 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80133D50);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80134DB4);
+/// Enter the live-actor state: reinstate the model buffers, seed the
+/// `field_898` / `field_8A2` animation pair, fold the current `field_89E`
+/// state onto the 0x17/0x18 pair, then hold in `func_actor_401000_80132EF0`
+/// until the clip's `field_5A` frame count passes 6 (state 0x17) or 9 (state
+/// 0x18), or the `flags_68` word reports the actor gone. The un-flagged path
+/// halves `field_8A2` down to the +-0x10 turntable step and retires the actor
+/// once the enemy is spent. Same body as `func_actor_401300_80135DDC`, which
+/// drops the frame-count loop's `flags_68` guard and its own 0x36 test.
+void func_actor_401000_80134DB4(Actor401000* arg0)
+{
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       tmd;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        tmd                 = arg0->field_2C;
+        enemy->node.field_4 = 0;
+        tmd->field_C        = 0;
+        Tmd_AllocBuffers(tmd);
+        work->field_898        = 2;
+        work->field_8A2        = 0x10;
+        work->field_A10.flags |= 0x4000;
+        if (work->field_89E == 11 || work->field_89E == 23) {
+            work->field_89E = 0x17;
+        } else if (work->field_89E == 12 || work->field_89E == 25 || work->field_89E == 24) {
+            work->field_89E = 0x18;
+        }
+        if ((u16)(work->field_89E - 0x17) >= 2) {
+            work->field_89E = 0x17;
+        }
+        do {
+            func_actor_401000_80132EF0(arg0);
+            if (work->field_89E == 0x17 && (work->field_5A & 0x3FF) >= 6) {
+                break;
+            }
+            if (work->field_89E == 0x18 && (work->field_5A & 0x3FF) >= 9) {
+                break;
+            }
+        } while (!(work->flags_68.word & 0x102));
+        work->field_8A2 = 0x20;
+        return;
+    }
+    arg0->field_2C->field_8->flg = 0;
+    work->field_8A2              = work->field_8A2 / 2;
+    if (work->field_8A2 == 1) {
+        work->field_8A2 = -0x10;
+    }
+    if (work->field_8A2 == -1) {
+        work->field_8A2 = 0x10;
+    }
+    func_actor_401000_80132EF0(arg0);
+    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+        enemy->field_4C &= ~2;
+        work->field_0    = 0x11;
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x11;
+    }
+}
 
 /// Wrap `input` into the -0x800..0x800 turn range. Same body as
 /// `Actor01900_NormalizeYaw` / `Actor401300_NormalizeYaw`.
@@ -206,7 +266,7 @@ void func_actor_401000_80134F98(Actor401000* arg0)
     *(Actor401000AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
     arg0->field_2C->field_8->flg              = 0;
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
     aim->angle      = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
@@ -313,7 +373,7 @@ void func_actor_401000_801380B8(Actor401000* arg0)
     Gfx_RotMatrixX(&arg0->field_2C->field_8[3].coord, -0x80, 0);
     arg0->field_2C->field_8[5].flg = 0;
     Gp_UpdateCoord(&arg0->field_2C->field_8[3]);
-    if (work->field_89E == 5 && (work->field_68 & 1)) {
+    if (work->field_89E == 5 && (work->flags_68.half & 1)) {
         work->field_8B8.field_0 = arg0->field_2C->field_8 + 5;
         work->field_8B8.field_4 = 0x200;
         work->field_8B8.field_6 = 2;
@@ -342,7 +402,7 @@ void func_actor_401000_801383F0(Actor401000* arg0)
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_8B8.field_0 = arg0->field_2C->field_8 + 1;
         work->field_8B8.field_4 = 0x100;
         work->field_8B8.field_6 = 2;
@@ -399,7 +459,7 @@ void func_actor_401000_801385B0(Actor401000* arg0)
         arg0->field_2C->field_8->flg = 0;
     }
     func_actor_401000_80132EF0(arg0);
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         kind = enemy->node.field_5;
         if (kind == 1) {
             if (func_actor_401000_80132824(arg0) == kind) {
@@ -454,13 +514,13 @@ void func_actor_401000_801388F4(Actor401000* arg0)
         Actor401000_MoveForward(arg0->field_2C->field_8, -0x57);
     }
     arg0->field_2C->field_8->flg = 0;
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         if (work->field_89E == 0xA) {
             work->field_89E = 0xB;
             work->field_898 = 2;
             func_actor_401000_80132EF0(arg0);
         }
-        if ((work->field_68 & 1) && work->field_89E == 0xB) {
+        if ((work->flags_68.half & 1) && work->field_89E == 0xB) {
             work->field_8D0.flags |= 0x4000;
             if (enemy->field_40 > 0) {
                 if (enemy->field_4C & 2) {
@@ -508,7 +568,7 @@ void func_actor_401000_80138BB4(Actor401000* arg0)
     func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_8F0, 0xC);
     func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC);
     arg0->field_2C->field_8->flg = 0;
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_8D0.flags |= 0x4000;
         if (enemy->field_40 <= 0) {
             work->field_0 = 0x15;
@@ -643,7 +703,7 @@ void func_actor_401000_8013A5F0(Actor401000* arg0)
     *(Actor401000AimScratch**)G_SCRATCH_HEAD -= 1;
     aim                                       = *(Actor401000AimScratch**)G_SCRATCH_HEAD;
     arg0->field_2C->field_8->flg              = 0;
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
     aim->angle      = Actor401000_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
@@ -802,7 +862,7 @@ void func_actor_401000_8013CD9C(Actor401000* arg0)
     func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_8F0, 0xC);
     func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC);
     arg0->field_2C->field_8->flg = 0;
-    if (work->field_68 & 0x100) {
+    if (work->flags_68.half & 0x100) {
         work->field_8D0.flags |= 0x4000;
         if (enemy->field_40 <= 0) {
             work->field_0 = 0x15;
@@ -847,7 +907,7 @@ void func_actor_401000_8013CEF0(Actor401000* arg0)
     func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_8F0, 0xC);
     func_actor_401000_801323EC(arg0->field_2C->field_8, (GpRec18*)work->field_A30, 0xC);
     arg0->field_2C->field_8->flg = 0;
-    if (work->field_68 & 0x100) {
+    if (work->flags_68.half & 0x100) {
         work->field_8D0.flags |= 0x4000;
         if (enemy->field_40 <= 0) {
             work->field_0 = 0x15;

@@ -174,7 +174,7 @@ void func_actor_401000_8013DD6C(Actor401000* arg0)
     }
     arg0->field_2C->field_8->flg = 0;
     func_actor_401000_80132EF0(arg0);
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
 }
@@ -199,7 +199,7 @@ void func_actor_401000_8013DE24(Actor401000* arg0)
         work->field_8A2          = work->field_8A4;
     }
     func_actor_401000_80132EF0(arg0);
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
 }
@@ -224,7 +224,7 @@ void func_actor_401000_8013DEC8(Actor401000* arg0)
         work->field_8A2          = work->field_8A4;
     }
     func_actor_401000_80132EF0(arg0);
-    if (work->field_68 & 1) {
+    if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
 }
