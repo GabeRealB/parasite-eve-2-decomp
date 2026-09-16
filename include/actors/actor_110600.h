@@ -346,21 +346,49 @@ typedef struct Actor110600Work {
     /* 0x89A */ byte pad_89A[8];
     /* 0x8A2 */ s16  field_8A2;
     /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ byte pad_8A6[0x10];
+    /* 0x8A6 */ byte pad_8A6[4];
+    /// Timer `func_actor_110600_80137F2C` counts down once the actor is live,
+    /// handing off to `func_actor_110600_80136210` on the frame it reaches
+    /// zero; the same slot the `Actor01900Work` dispatcher keeps at 0xC10.
+    /* 0x8AA */ s16  field_8AA;
+    /* 0x8AC */ byte pad_8AC[5];
+    /// Live flag `func_actor_110600_80137F2C` raises once the model root's
+    /// coordinate has been cleared at the end of the tick.
+    /* 0x8B1 */ s8   field_8B1;
+    /* 0x8B2 */ byte pad_8B2[4];
     /// Per-state walk speed the spawn handler seeds (0xA / 8 / 0xE); the aiming
     /// stage hands it to the walker as its `field_5E` ramp target.
     /* 0x8B6 */ u16   field_8B6;
     /* 0x8B8 */ GpObj field_8B8;
-    /* 0x8D8 */ byte  pad_8D8[0x78];
+    /// The `GpRec18` table the spawn handler links behind `field_8B8`: five
+    /// records, cleared first by the tick's teardown.
+    /* 0x8D8 */ GpRec18 recs_8D8[5];
+    /// The second display node, whose `field_10` / `field_12` / `field_14`
+    /// carry a model position: the spawn handler seeds the three halfwords
+    /// from a stack `SVECTOR` and the tick restamps the model root's
+    /// translation onto them every frame.
     /* 0x950 */ GpObj field_950;
-    /* 0x970 */ byte  pad_970[0x120];
-    /* 0xA90 */ GpObj field_A90;
-    /// The actor's own `GpRec18` table, filling the gap between the display
-    /// node above and the walker block at 0xB28 exactly: five 0x18 records.
-    /// `func_actor_110600_80135B84` reads the first one's `field_4` as the
+    /// The walker's own collision table, the twelve records its `recs` pointer
+    /// names; cleared alongside the two tables around it.
+    /* 0x970 */ GpRec18 recs_970[12];
+    /* 0xA90 */ GpObj   field_A90;
+    /// The actor's own `GpRec18` table, the one the spawn handler links behind
+    /// `field_A90` and initialises with a count of **one** record, so it spans
+    /// 0xAB0..0xAC8 and the three matrices below start where it ends.
+    /// `func_actor_110600_80135B84` reads the only record's `field_4` as the
     /// 0x10000 kind tag the sound cue is gated on.
-    /* 0xAB0 */ GpRec18 recs[5];
-    /* 0xB28 */ byte    pad_B28[0x54];
+    /* 0xAB0 */ GpRec18 recs[1];
+    /// The light matrix the spawn handler binds to the model object's
+    /// `field_1C`.
+    /* 0xAC8 */ MATRIX field_AC8;
+    /// The colour matrix the spawn handler binds to the model object's
+    /// `field_20`; the tick shifts its translation down by the shrink amount
+    /// `field_BE4` as the actor dies.
+    /* 0xAE8 */ MATRIX field_AE8;
+    /// Saved copy of `field_AE8` the state-12 handler `func_actor_110600_80136B20`
+    /// swaps in and out around each `ScaleMatrix` call.
+    /* 0xB08 */ MATRIX field_B08;
+    /* 0xB28 */ byte   pad_B28[0x54];
     /// The walker's own names for these four halfwords are `scale`,
     /// `field_5A`, `field_5E` and `state`; the work side reads them back
     /// through its own pointer, so both spellings are live in the code.
@@ -447,6 +475,17 @@ typedef struct Actor110600 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor110600;
 
+/// The actor's state handlers, indexed by `Actor110600Work::field_0`.
+/// `func_actor_110600_80137F2C` copies the table to its frame before
+/// dispatching, the same local jump table `Gp_EnemyDispatch` builds for the
+/// shared `Gp_EnemyWaitFuncs`; four of the 25 slots are still unused.
+typedef struct Actor110600StateTable {
+    void (*fn[0x19])(Actor110600*);
+} Actor110600StateTable;
+STATIC_ASSERT_SIZEOF(Actor110600StateTable, 0x64);
+
+extern const Actor110600StateTable D_actor_110600_80131F3C;
+
 /// Message payload the `0x7D3` display handler is handed: `field_4` is the
 /// requested state, `field_0` unused here. The same message id carries the
 /// identical record as `Actor01900Msg7D3` / `Actor401800Msg7D3`.
@@ -506,6 +545,18 @@ void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz);
 
 s32  func_actor_110600_801387C0(Task* arg0);
 void func_actor_110600_801388A4(Actor110600* arg0);
+
+/// The remaining entries of `D_actor_110600_80131F3C` that are still only
+/// present as assembly, so that the table can name them. `func_actor_110600_80135A18`
+/// (state 4) and the ones above carry their own documentation.
+void func_actor_110600_80135454(Actor110600* arg0);
+void func_actor_110600_80136B20(Actor110600* arg0);
+void func_actor_110600_801372CC(Actor110600* arg0);
+void func_actor_110600_801377FC(Actor110600* arg0);
+void func_actor_110600_80138980(Actor110600* arg0);
+void func_actor_110600_80138A70(Actor110600* arg0);
+void func_actor_110600_80138AFC(Actor110600* arg0);
+void func_actor_110600_80138BD0(Actor110600* arg0);
 
 /// The actor's per-tick model update, driven from `Task::idMap` /
 /// `Task::spawnArg2` off the pointer it is handed.

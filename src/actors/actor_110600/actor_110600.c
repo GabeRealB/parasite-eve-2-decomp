@@ -1769,7 +1769,165 @@ void func_actor_110600_80137DB0(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80137F2C);
+/// Remaining-enemy count: once it has run out the tick hands the enemy 1 HP
+/// back rather than letting the death it just took stand. Same "the fight is
+/// over" global `func_actor_105100_80136318` gates on.
+extern s16 D_80073BA0;
+
+/// Mode switch the tick runs on: 0 zeroes the model part's `field_C`, 2 sets it
+/// to 0x80 for the hidden pose, and 1 leaves it alone. Same switch the sibling
+/// `Actor01900_Fn09D3C` runs.
+extern u8 D_801153F4;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
+/// zero.
+void func_actor_110600_80136210(Actor110600* arg0);
+
+/// The actor's state handlers, indexed by `Actor110600Work::field_0`. splat
+/// migrates the table into the `.s` of the function that reads it, so it is
+/// written out here to keep the block in the unit's `.rodata` now that
+/// `func_actor_110600_80137F2C` is decompiled.
+const Actor110600StateTable D_actor_110600_80131F3C = {
+    func_actor_110600_801388A4,
+    NULL,
+    func_actor_110600_80135194,
+    func_actor_110600_80135454,
+    func_actor_110600_80135A18,
+    func_actor_110600_80135B84,
+    func_actor_110600_80136888,
+    func_actor_110600_801369D8,
+    func_actor_110600_80138980,
+    func_actor_110600_80138AFC,
+    func_actor_110600_80138BD0,
+    func_actor_110600_80138A70,
+    func_actor_110600_80136B20,
+    func_actor_110600_80136ECC,
+    func_actor_110600_80138D7C,
+    NULL,
+    NULL,
+    func_actor_110600_801372CC,
+    NULL,
+    func_actor_110600_80137684,
+    func_actor_110600_801377FC,
+    func_actor_110600_80137980,
+    func_actor_110600_80137AF4,
+    func_actor_110600_80138CA4,
+    func_actor_110600_80137DB0,
+};
+
+/// The actor's enemy tick, the middle entry of the `ActorsShared80135df4Table`
+/// triple `func_actor_110600_80134AB4` / this / `Gp_DestroyEnemy`: copies
+/// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
+/// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
+/// on `D_801153F4`.
+///
+/// Modes 1 and 2 skip the state handler entirely — each clears the three
+/// `GpRec18` tables and returns, mode 2 stamping `field_C` to 0x80 for the
+/// hidden pose first, and mode 1 drawing the ground quad on the way unless the
+/// model sits in the death or hit pose. Mode 0 draws the quad the same way with
+/// `field_C` zeroed and then falls through.
+///
+/// The fall-through stages the model root's translation into the `field_950`
+/// display node, runs the handler `field_0` selects out of the stack copy,
+/// restages the same three halfwords with Y dropped by 0x124 for the pose it
+/// just advanced into, and gives the enemy 1 HP back once the remaining-enemy
+/// count has run out. The tail clears the three tables again, marks the root
+/// clean, shifts the colour matrix's translation down by the shrink `field_BE4`
+/// — the matrix state 12 scales — and keeps `field_8B8` out of the ground
+/// effect's way by clearing bit 0x8000 while the actor is in a death or hit
+/// pose.
+void func_actor_110600_80137F2C(GpEnemy* arg0, Actor110600* arg1)
+{
+    VECTOR                pos;
+    Actor110600StateTable states;
+    Actor110600Work*      work;
+
+    work   = arg1->field_1C;
+    states = D_actor_110600_80131F3C;
+
+    arg1->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(arg1->field_2C->field_8);
+    pos.vx = arg1->field_2C->field_8->workm.t[0];
+    pos.vy = arg1->field_2C->field_8->workm.t[1];
+    pos.vz = arg1->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+
+    switch (D_801153F4) {
+        case 0:
+            if ((work->field_0 != 0) && (work->field_0 != 0xC)) {
+                arg1->field_2C->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x280, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            if ((work->field_0 != 0xC) && (work->field_0 != 0)) {
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x280, Gp_State1C->field_8);
+            }
+            Gp_ClearRec18Occupied(work->recs_970);
+            Gp_ClearRec18Occupied(work->recs_8D8);
+            Gp_ClearRec18Occupied(work->recs);
+            return;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            Gp_ClearRec18Occupied(work->recs_970);
+            Gp_ClearRec18Occupied(work->recs_8D8);
+            Gp_ClearRec18Occupied(work->recs);
+            return;
+    }
+
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (u16)work->field_0;
+
+    work->field_950.field_10 = *(u16*)&arg1->field_2C->field_8->coord.t[0];
+    work->field_950.field_12 = *(u16*)&arg1->field_2C->field_8->coord.t[1];
+    work->field_950.field_14 = *(u16*)&arg1->field_2C->field_8->coord.t[2];
+    states.fn[work->field_0](arg1);
+    work->field_950.field_10 = *(u16*)&arg1->field_2C->field_8->coord.t[0];
+    work->field_950.field_12 = (u16)(*(u16*)&arg1->field_2C->field_8->coord.t[1] - 0x124);
+    work->field_950.field_14 = *(u16*)&arg1->field_2C->field_8->coord.t[2];
+
+    if (arg0->field_40 > 0) {
+        if (work->field_8AA > 0) {
+            work->field_8AA = (s16)((u16)work->field_8AA - 1);
+        } else {
+            func_actor_110600_80136210(arg1);
+        }
+        if (arg0->field_40 > 0) {
+            goto block_24;
+        }
+    }
+    if (D_80073BA0 <= 0) {
+        arg0->field_40 = 1;
+    }
+block_24:
+    Gp_ClearRec18Occupied(work->recs_970);
+    Gp_ClearRec18Occupied(work->recs_8D8);
+    Gp_ClearRec18Occupied(work->recs);
+    if (Game_Session->field_4D != 0) {
+        arg1->field_2C->field_8->flg = 0;
+    }
+    if (arg1->field_2C->field_8->flg == 0) {
+        work->field_8B1 = 1;
+    } else {
+        work->field_8B1 = 0;
+    }
+    arg1->field_2C->field_8->flg = 0;
+    Gp_UpdateCoord(arg1->field_2C->field_8);
+    work->field_AE8.t[1] -= work->field_BE4;
+    work->field_AE8.t[2] -= work->field_BE4;
+    work->field_AE8.t[0] -= (work->field_BE4 * 2) / 3;
+    if ((work->field_0 == 0xC) || (work->field_0 == 0) || (work->field_0 == 0xD) || (work->field_0 == 0x13)) {
+        work->field_8B8.flags &= 0x7FFF;
+    } else {
+        work->field_8B8.flags |= 0x8000;
+    }
+}
 
 void func_actor_110600_80138394(void)
 {

@@ -111020,3 +111020,61 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80132D54-vacuum`.
+
+## Two read-modify-writes on one object are emitted in the scheduler's order, not the source's; the reload scratch pairing is what identifies the source order (func_actor_110600_80137F2C, 2026-09-17)
+
+The tick's tail shifts three words of a colour matrix down by the shrink amount:
+
+```c
+work->field_AE8.t[2] -= work->field_BE4;
+work->field_AE8.t[1] -= work->field_BE4;
+work->field_AE8.t[0] -= (work->field_BE4 * 2) / 3;
+```
+
+99.929%, `regs=4` — and the four differences are the *offsets* of the first two,
+with their scratch registers attached:
+
+```
+target (100.000%)          base_2 order (99.929%)
+  lw    v1,0xb04(s0)         lw    v1,0xb00(s0)
+  subu  v1,v1,a2             subu  v1,v1,a2
+  lw    v0,0xb00(s0)         lw    v0,0xb04(s0)
+  sw    v1,0xb04(s0)         sw    v1,0xb00(s0)
+  lw    v0,0xafc(s0)         lw    v0,0xafc(s0)
+```
+
+`-dp`'d `.greg` shows the RTL already in source order — the `0xb04` load (2820)
+into `$v0`, then the `0xb00` load (2816) into `$v1` — so reload hands its scratch
+registers out in RTL order and sched2 then frees the pair to swap. The target
+pairs `$v1` with `0xb04` and `$v0` with `0xb00`, i.e. its RTL order is the
+reverse of what it emits. Writing the two statements in the reverse of the
+target's assembly order:
+
+```c
+work->field_AE8.t[1] -= work->field_BE4;
+work->field_AE8.t[2] -= work->field_BE4;
+```
+
+is the whole fix — 100.000%, every penalty zero. Reload now takes `0xb00` first
+and gives it `$v0`, sched2 swaps the pair back, and the target's pairing falls
+out.
+
+Both loads are `(plus (reg s0) (const_int …))`, so `memrefs_conflict_p` proves
+they do not overlap and the scheduler is free to reorder them: the emitted order
+carries no source information here. The *pairing of the reload temps* does,
+because reload allocates them in RTL order. That is the diagnostic to reach for
+when two same-object statements come out swapped — read which scratch register
+each address got, and write the statements in the opposite order to the target's
+asm. It pairs with "A store written after the other stores to one object is
+emitted after them", where sched2's dependency-chain depth does carry the order;
+that reasoning applies only when the statements are chained, not when they are
+independent like these two.
+
+Inputs: `base_3.i` SHA256
+`6f36c675c768c52640640b65927f43f500f660e0a575b966109baaa9c79558dc`; `base_3.c`
+SHA256 `461a0d2d1fc6344fa24bd09fe0cb3956d60831dad62d0c053d8cb6091e0a0029`;
+target.o SHA256
+`b009318c70f4c60d781ff65ca1358f3930006525aca5b768f90553376588bb79`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80137F2C-vacuum`.
