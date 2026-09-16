@@ -78,5 +78,6 @@ void func_actor_401000_8013DB10(Actor401000* arg0);
 void func_actor_401000_8013DB6C(Actor401000* arg0);
 void func_actor_401000_8013DC14(Actor401000* arg0);
 void func_actor_401000_8013DCC0(Actor401000* arg0);
+void func_actor_401000_8013DD6C(Actor401000* arg0);
 
 #endif // ACTOR_401000_H
