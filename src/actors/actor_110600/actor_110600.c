@@ -14,6 +14,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/stdio.h>
 
@@ -28,6 +29,11 @@ extern u8 D_80072729;
 /// Table of 0x80-byte actor config blocks the walker's `field_6E` byte indexes
 /// for the position state 1 steers towards.
 extern WipSysConfig D_80073B08[];
+
+/// The complaint the route re-plan prints when the two node lists share no
+/// slot at all. The string is spelled out rather than left a literal so the
+/// re-plan reaches it by name, the way the original object does.
+const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -156,7 +162,77 @@ u8 func_actor_110600_80132958(Actor110600Walker* work)
     return block->nearest;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132A84);
+/// Re-plans the walker's position in the room's route byte table so that it
+/// heads towards actor `actor`. It collects every slot of that table naming
+/// the node nearest the actor and every slot naming the node nearest the
+/// walker, then picks the pair of slots that are closest together: the
+/// walker's cursor becomes the slot on its own side, `field_75` records the
+/// slot on the actor's side, and `field_73` becomes the +1 / -1 direction the
+/// cursor has to travel along the table to close the gap -- which the caller
+/// then applies, as does the last line here. Both lists hold at most eight
+/// slots, so a table with more matches than that is silently truncated; if no
+/// pair was found at all the routine only complains and leaves the cursor
+/// where it was.
+void func_actor_110600_80132A84(Actor110600Walker* work, s16 actor)
+{
+    Actor110600RouteScratch* s;
+    u8*                      head;
+    s32                      diff;
+    s32                      best;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
+    s                     = (Actor110600RouteScratch*)(head - 0x1C);
+
+    s->nodeA  = func_actor_110600_801327EC(work, actor);
+    s->nodeB  = func_actor_110600_80132958(work);
+    s->countA = 0;
+    s->countB = 0;
+    for (s->i = 0; s->i < work->nav->field_9; s->i++) {
+        if (work->nav->field_4[s->i] == s->nodeA && s->countA < 8) {
+            s->listA[s->countA] = s->i;
+            s->countA++;
+        }
+        if (work->nav->field_4[s->i] == s->nodeB && s->countB < 8) {
+            s->listB[s->countB] = s->i;
+            s->countB++;
+        }
+    }
+
+    s->listA[s->countA] = 0xFF;
+    s->listB[s->countB] = 0xFF;
+    s->best             = 0xFF;
+    for (s->i = 0; s->i < 8; s->i++) {
+        if (s->listA[s->i] == 0xFF) {
+            break;
+        }
+        for (s->j = 0; s->j < 8; s->j++) {
+            if (s->listB[s->j] == 0xFF) {
+                break;
+            }
+            diff    = s->listA[s->i] - s->listB[s->j];
+            best    = s->best;
+            s->diff = diff;
+            diff    = ABS(diff);
+            if (diff < best) {
+                s->best        = diff;
+                work->cursor   = s->listB[s->j];
+                work->field_75 = s->listA[s->i];
+                if (s->diff < 0) {
+                    work->field_73 = -1;
+                } else {
+                    work->field_73 = 1;
+                }
+            }
+        }
+    }
+
+    if (s->best == 0xFF) {
+        printf(D_actor_110600_80131E24);
+    }
+    work->cursor         += (u8)work->field_73;
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+}
 
 void func_actor_110600_80132D54(Actor110600Walker* work)
 {

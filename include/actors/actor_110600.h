@@ -32,6 +32,11 @@ typedef struct Actor110600WalkerNav {
     /* 0x0 */ Actor110600WalkerNavNode* nodes;
     /* 0x4 */ u8*                       field_4;
     /* 0x8 */ u8                        count;
+    /// Number of entries in `field_4`, the bound the route re-plan
+    /// `func_actor_110600_80132A84` walks that byte table with. `count` bounds
+    /// the node table, `field_9` the step table that indexes it.
+    /* 0x9 */ u8   field_9;
+    /* 0xA */ byte pad_A[0x2];
 } Actor110600WalkerNav;
 
 /// One patrol route: a 0xFF-terminated list of node indices plus the cursor
@@ -129,7 +134,11 @@ typedef struct Actor110600Walker {
     /// Per-step advance applied to `cursor` once the walker reaches its node;
     /// signed, so a route can be walked backwards.
     /* 0x73 */ s8   field_73;
-    /* 0x74 */ byte pad_74[0x2];
+    /* 0x74 */ byte pad_74[0x1];
+    /// Slot of `nav`'s byte table naming the node nearest the actor the route
+    /// re-plan was steered towards; the re-plan pairs it with `cursor` and
+    /// leaves `field_73` to carry the cursor across the gap.
+    /* 0x75 */ u8 field_75;
     /// Index into `nav`'s byte table of the patrol node the walker heads for.
     /* 0x76 */ u8   cursor;
     /* 0x77 */ byte pad_77[0x1];
@@ -253,6 +262,31 @@ u8 func_actor_110600_801327EC(Actor110600Walker* work, s32 actor);
 /// the state or the node bytes have moved. Same body as the acropolis bridge
 /// room's `func_acropolis_bridge_80184638`.
 void func_actor_110600_80132A84(Actor110600Walker* work, s16 actor);
+
+/// 0x1C-byte scratch block the route re-plan carves off `G_SCRATCH_HEAD`.
+/// `nodeA` is the patrol node nearest the actor the walker is reacting to and
+/// `nodeB` the node nearest the walker itself; `listA` / `listB` collect every
+/// slot of `nav`'s byte table that names each of them -- terminated by `0xFF`,
+/// which is also why each list is only filled to eight entries -- and `i` / `j`
+/// walk the two lists. `diff` is the signed step between the pair under test
+/// and `best` the smallest absolute step seen so far, starting at `0xFF` so the
+/// first pair always wins. Same block the acropolis bridge room's
+/// `func_acropolis_bridge_80184638` carves off.
+typedef struct Actor110600RouteScratch {
+    /* 0x00 */ s16  diff;
+    /* 0x02 */ byte pad_2[0x2];
+    /* 0x04 */ u8   nodeA;
+    /* 0x05 */ u8   nodeB;
+    /* 0x06 */ u8   i;
+    /* 0x07 */ u8   j;
+    /* 0x08 */ u8   best;
+    /* 0x09 */ u8   countA;
+    /* 0x0A */ u8   countB;
+    /* 0x0B */ byte pad_B[0x1];
+    /* 0x0C */ u8   listB[8];
+    /* 0x14 */ u8   listA[8];
+} Actor110600RouteScratch;
+STATIC_ASSERT_SIZEOF(Actor110600RouteScratch, 0x1C);
 
 /// 0x18-byte scratch the walker's per-frame behaviour step carves off
 /// `G_SCRATCH_HEAD`: the `GpDeltaScratch` `func_800E0C10` fills with the 16.16

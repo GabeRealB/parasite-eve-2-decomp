@@ -111078,3 +111078,68 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80137F2C-vacuum`.
+
+## A retired `.s` takes a string symbol with it; naming it in C reaches 100% where a literal caps at 99.9% (func_actor_110600_80132A84, 2026-09-17)
+
+The reader-retires-its-own-`.s` case above, with a string instead of a scalar,
+and one consequence the scalar example does not show.
+
+`func_actor_110600_80132A84` prints `"s->root_cnt == 0xff about \n"`, and
+`migrate_rodata_to_functions` had folded that string into the function's own
+`.s` as `D_actor_110600_80131E24` - text and rodata shared one file. Matching
+the body retires that `.s`, so the link fails exactly as the scalar case does:
+
+```
+build/USA/src/actors/actor_110600/actor_110600.i:(.text+0xa40):
+    undefined reference to `D_actor_110600_80131E24'
+```
+
+Writing the call as `printf("s->root_cnt == 0xff about \n")` builds and lands -
+the bytes are right, because splat writes the block's view to
+`asm/USA/actors/data/actor_110600/actor_110600.rodata.s` and that file is not in
+the linker script. But scratch reports **99.944%, `regs=2`**, whose only
+difference is the usual
+
+```
+-lui    a0,%hi(D_actor_110600_80131E24)
++lui    a0,%hi(.rodata)
+```
+
+The `regs` framing here invites the opposite conclusion to "A 99.x% score with
+`regs` and an identical objdump is a symbol-name artifact", which says the
+scratch cannot reach 100% on this shape and the linked checksum is the only
+judge. That holds for a *compiler-generated* local aggregate, which no C name
+can reach. It does not hold when the object is one the C can name: declaring it
+as its splat symbol
+
+```c
+const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
+...
+        printf(D_actor_110600_80131E24);
+```
+
+scores **100.000%, all penalties zero**, and links the same bytes - the
+definition supplies the string at the head of the unit's `.rodata` and the
+relocation goes back to being symbolic. So the two fixes are one edit: a body
+whose retired `.s` carried its string does not have to choose between a matching
+relocation and a defined symbol. `src/main/fs.c` (`D_800132F4[] = ".CDF"`) and
+`dryfield_dilapidated_house.c` (`D_..._8017D5D0[8]
+__attribute__((section(".rodata"))) = "AUNT"`) are the existing precedent; a
+plain `const char[]` already lands in `.rodata`, so the attribute is only worth
+writing when the `.c` cannot order it there by declaration position.
+
+The rest of the body is a cross-family twin (`func_acropolis_bridge_80184638`,
+instruction-identical, same string text): read the twin, `promote` answers
+`only one copy in actors, nothing to share`, and the port is a type rename - the
+m2c baseline 82.557% (`branch=12 regs=48 insert=15 delete=12`) went to 100.000%
+on the first transcription, the only changes being `field_9` on the nav table,
+`field_75` on the walker (the `pad_74[0x2]` it was hidden in), and the string.
+
+Inputs: `base_3.i` SHA256
+`679bdcfd03884ec9624757622fc8d9c3ae033dd68a024a49cb145d8621a8552f`; `base_3.c`
+SHA256 `584a47dcde7e6510b9212110c3f5b2d619727b2f20f75ccf1785570d746e029f`;
+target.o SHA256
+`9a9bb392d1a1330a35f3e9575910c7897471e696e278ef5249fb8c737925577a`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_110600_80132A84-vacuum`.
