@@ -70,7 +70,50 @@ void func_actor_421600_80133444(GsCOORDINATE2* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801335BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80133B30);
+void func_actor_421600_80133B30(Actor421600* arg0)
+{
+    GpAnimPose           pose;
+    GpAnimPose           blendPose;
+    Actor421600AnimWork* work;
+    s32                  blend;
+    s32                  invBlend;
+    s16                  index;
+    s16                  next;
+
+    index = 1;
+    work  = (Actor421600AnimWork*)arg0->field_1C;
+    do {
+        switch (index) {
+            case 1:
+                blend = 0xC00;
+                break;
+            case 2:
+                blend = 0x800;
+                break;
+            case 3:
+            case 4:
+            case 5:
+                blend = 0x5DE;
+                break;
+            default:
+                blend = 0xBD0;
+                break;
+        }
+        invBlend = 0x1000 - blend;
+        if (index < 0xB) {
+            work->blendSlots[index].field_9 = (u8)work->field_83A;
+            work->slots[index].field_9      = (s8)(work->field_832 - 3);
+            func_800B3448(&work->anim, index, (s32)&pose, 0);
+            func_800B3448(&work->blendAnim, index, (s32)&blendPose, 0);
+            Gp_AnimWritePoseCopy(&work->anim, index, &pose, &blendPose, blend, invBlend);
+        } else {
+            work->slots[index].field_9 = (s8)(work->field_832 - 3);
+            Gp_AnimTickIndex(&work->anim, index);
+        }
+        next  = index + 1;
+        index = next;
+    } while (next < 0x12);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80133CAC);
 

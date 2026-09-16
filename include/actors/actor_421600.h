@@ -39,17 +39,20 @@ typedef struct Actor421600Work {
     /* 0x006 */ byte pad_6[0x54];
     /// Animation step counter masked to 0x3FF by the state handlers; the
     /// model-shrink tails wait for it to read 0xC.
-    /* 0x05A */ u16     field_5A;
-    /* 0x05C */ byte    pad_5C[0xC];
-    /* 0x068 */ u16     field_68;
-    /* 0x06A */ byte    pad_6A[0x7BE];
-    /* 0x828 */ u16     field_828;
-    /* 0x82A */ u16     field_82A;
-    /* 0x82C */ byte    pad_82C[2];
-    /* 0x82E */ s16     field_82E;
-    /* 0x830 */ byte    pad_830[2];
-    /* 0x832 */ u16     field_832;
-    /* 0x834 */ byte    pad_834[0xA];
+    /* 0x05A */ u16  field_5A;
+    /* 0x05C */ byte pad_5C[0xC];
+    /* 0x068 */ u16  field_68;
+    /* 0x06A */ byte pad_6A[0x7BE];
+    /* 0x828 */ u16  field_828;
+    /* 0x82A */ u16  field_82A;
+    /* 0x82C */ byte pad_82C[2];
+    /* 0x82E */ s16  field_82E;
+    /* 0x830 */ byte pad_830[2];
+    /* 0x832 */ u16  field_832;
+    /* 0x834 */ byte pad_834[6];
+    /// Clip id `func_actor_421600_80133B30` copies into the blend slots.
+    /* 0x83A */ u16     field_83A;
+    /* 0x83C */ byte    pad_83C[2];
     /* 0x83E */ u16     field_83E;
     /* 0x840 */ u16     field_840;
     /* 0x842 */ byte    pad_842[2];
@@ -70,6 +73,25 @@ typedef struct Actor421600Work {
     /* 0xEAE */ byte    pad_EAE[2];
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
+
+/// Animation view of the same work block, as `func_actor_421600_80133B30`
+/// reads it: the pose context at 0x1C and its blend twin at 0x420, each
+/// followed by 0x28-byte `GpAnimSlot`s, plus the two clip ids the loop copies
+/// into them. The pads stand in for the rest of the block -- a slot array
+/// cannot span the fields `Actor421600Work` names at 0x5A / 0x68, and 0x420 is
+/// not a whole number of slots past 0x30.
+typedef struct Actor421600AnimWork {
+    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[25];
+    /* 0x418 */ byte       pad_418[8];
+    /* 0x420 */ GpAnimCtx  blendAnim;
+    /* 0x434 */ GpAnimSlot blendSlots[25];
+    /* 0x81C */ byte       pad_81C[0x16];
+    /* 0x832 */ u16        field_832;
+    /* 0x834 */ byte       pad_834[6];
+    /* 0x83A */ u16        field_83A;
+} Actor421600AnimWork;
 
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_421600_80133444`
 /// to hold the XZ offset of a `GsCOORDINATE2` from the centre of its circular

@@ -106591,3 +106591,61 @@ Inputs: `base_9.i` (100%) SHA256
 `c2e1cea4b65af3d461201f4abdf03186cd0c81c9ae492c160d041553898e45b3`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_80133444-vacuum`.
+
+## Case labels that share a body must be *fallthrough* labels: the grouping decides jump table vs comparison tree (func_actor_421600_80133B30, 2026-09-16)
+
+`stmt.c` counts the case list before it picks a dispatch. `count` is the number
+of grouped case nodes plus one more for every node covering a range, and a count
+below the table threshold becomes a balanced comparison tree instead of a
+`casesi` jump table. `group_case_nodes` merges only *consecutive* nodes whose
+code labels reach the same instruction, so the same values written twice --
+`case 3: blend = X; break; case 4: blend = X; break;` and
+`case 3: case 4: blend = X; break;` -- count differently: five nodes (a table)
+against three nodes and a range (a tree). Compiled side by side from one file:
+
+```c
+    case 0: blend = 0xC00; break;                 /* 5 nodes, no range  */
+    case 1: blend = 0xC00; break;
+    ...  (through case 4)
+    --> sltu $2,$4,5 / lui %hi / lw / j $2                    (table)
+
+    case 0: case 1: case 2: blend = 0xC00; break; /* 2 nodes, 2 ranges  */
+    case 3: case 4:         blend = 0x5DE; break;
+    --> slt $2,$4,3 / bne .. / slt $2,$4,5 / bne ..           (tree)
+```
+
+`actor_421600`'s `func_actor_421600_80133B30` is the same 17-slot pose-blend
+loop as `actor_400100`'s `Actor00100_Fn01D74` -- same `GpAnimCtx` pair, same
+`Gp_AnimWritePoseCopy` tail -- but the first dispatches through compares and the
+second through a five-word table (`Actor00100_Jt00044`). The table's source
+repeats a body per case; the tree's groups the labels. When the target's blend
+select is compares, write `case 3: case 4: case 5:` over one body.
+
+The tree's shape follows from the node list, not the values: with exactly three
+nodes `balance_case_nodes` splits at the middle one, so
+
+```c
+    case 1: blend = 0xC00; break;
+    case 2: blend = 0x800; break;
+    case 3: case 4: case 5: blend = 0x5DE; break;
+    default: blend = 0xBD0; break;
+```
+
+comes out as `beq v1,2` to 0x800, `slti v1,3` splitting `{1}` off, `beq v1,1` to
+0xC00 for the left leaf, and `slti v1,6` to 0x5DE with the default reached from
+both leaves. Reading the same bytes as the if-chain m2c prints (`if (s3 != 2) {
+if (s3 < 3) { ... } else { ... } }`) scores 85.17% with 13 blocks against the
+target's 16; the switch scores 100.00%.
+
+The same function's other half: `invBlend` must be a named variable assigned
+before the `if (index < 0xB)`, not `0x1000 - blend` written inline at the call.
+Inline, the subtraction sinks into the branch that uses it (89.78%, one saved
+register short of the target's frame); named, it stays at the join, takes `$s4`,
+and the two `j` delay slots fill with `li v0,0x1000` as the target has them.
+
+Inputs: `base_2.i` (100%) SHA256
+`87b79c57ba192e2c3be7d1dd64ed7aacc2317b4ed30e24dfd5367efb9a569b19`;
+`base_1.i` (89.779%) SHA256
+`c55a4939f0b00a332e9d318d158d2b2e56977f462da40ba99da0350c4e757444`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_421600_80133B30-vacuum`.
