@@ -22,6 +22,7 @@ void       Gp_ReleaseStateF0Add(void* arg0, s32 arg1);
 void       Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void*      Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
 void       Gp_DispatchMsg(void* arg0, s32 arg1, void* arg2, s32 arg3);
+void       func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, void* arg3);
 void       Actor01600_Fn06880(Actor01600* arg0);
 MATRIX*    ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX*    MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -108,7 +109,169 @@ INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn05558);
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn05B08);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn05F80);
+void Actor01600_Fn05F80(Actor01600* arg0)
+{
+    SVECTOR         rot;
+    GsCOORDINATE2*  coord;
+    Actor01600Work* work;
+    GsCOORDINATE2*  part1;
+    u32             variant;
+    s32             anim;
+    u16             timer;
+    s32             value;
+
+    coord   = arg0->field_2C->field_8;
+    work    = arg0->field_1C;
+    variant = arg0->field_20->field_3C->field_1;
+    part1   = &arg0->field_2C->field_8[1];
+
+    if (variant == 1) {
+        switch (work->field_506) {
+            case 0x1A:
+                work->field_54A = variant;
+                if ((u32)((u16)work->field_50A - 6) < 0xEU) {
+                    coord->coord.t[1] -= 0xC8;
+                }
+                if ((u32)((u16)work->field_50A - 0x14) < 0xFU) {
+                    value             = coord->coord.t[1] + 0x96;
+                    coord->coord.t[1] = value;
+                    if (value >= -0x497) {
+                        coord->coord.t[1] = -0x498;
+                    }
+                }
+                if ((u32)((u16)work->field_50A - 0xB) < 0x14U) {
+                    value             = coord->coord.t[0] + ((coord->coord.m[0][2] * 0x4B) >> 0xB);
+                    coord->coord.t[0] = value;
+                    if (value < 0x3B23) {
+                        coord->coord.t[0] = 0x3B23;
+                    }
+                    value             = coord->coord.t[2] + ((coord->coord.m[2][2] * 0x4B) >> 0xB);
+                    coord->coord.t[2] = value;
+                    if (value >= -0xD11) {
+                        coord->coord.t[2] = -0xD12;
+                    }
+                }
+                if ((s16)work->field_50A >= 0x31) {
+                    work->field_506 = 8;
+                    work->field_508 = 0;
+                    work->field_50A = 0;
+                }
+                break;
+            case 8:
+                if ((u32)((u16)work->field_50A - 4) < 0x11U) {
+                    work->field_4D8  = 0;
+                    work->field_4DC  = 0;
+                    work->field_4DA += 0x32;
+                    RotMatrix((SVECTOR*)&work->field_4D8, &coord->coord);
+                }
+                if ((s16)work->field_50A >= 0x1C) {
+                    work->field_506 = 9;
+                    work->field_508 = 0;
+                    work->field_50A = 0;
+                }
+                break;
+            case 0xFF:
+                anim = work->field_50A;
+                if (anim == 2) {
+                    work->field_404 = part1;
+                    work->field_408 = 0x100;
+                    work->field_40A = anim;
+                    func_800FDB18(1, part1, 0, &work->field_404);
+                    Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[1], 0, NULL);
+                }
+                if ((u32)((u16)work->field_50A - 0xF) < 8U) {
+                    coord->coord.t[1] += 0x80;
+                }
+                if ((s16)work->field_50A >= 3) {
+                    coord->coord.t[0] += 0x10E;
+                    coord->coord.t[2] -= 0xC8;
+                    coord              = &arg0->field_2C->field_8[6];
+                    rot.vx             = -0x400;
+                    rot.vy             = 0;
+                    rot.vz             = 0;
+                    RotMatrix(&rot, &coord->coord);
+                    coord  = &arg0->field_2C->field_8[8];
+                    rot.vx = -0x400;
+                    rot.vy = 0;
+                    rot.vz = 0;
+                    RotMatrix(&rot, &coord->coord);
+                    if ((s16)work->field_50A >= 3) {
+                        work->field_4D8  = 0x384;
+                        work->field_4DA += 0x96;
+                        timer            = work->field_4DC + 0x64;
+                        work->field_4DC  = timer;
+                        if ((s16)timer >= 0x384) {
+                            work->field_4DC = 0x384;
+                        }
+                        coord = &arg0->field_2C->field_8[1];
+                        RotMatrix((SVECTOR*)&work->field_4D8, &coord->coord);
+                    }
+                }
+                if ((s16)work->field_50A >= 0x12) {
+                    Actor01600_Fn06FDC(arg0, 0);
+                }
+                work->field_50A += 1;
+                break;
+        }
+    }
+    if (variant == 2) {
+        timer           = work->field_524 - 1;
+        work->field_524 = timer;
+        if ((s16)timer < 0) {
+            anim            = work->field_546;
+            work->field_524 = 1;
+            switch (anim) {
+                case 7:
+                    work->field_506 = anim;
+                    if ((u32)((u16)work->field_50A - 4) < 0x11U) {
+                        work->field_4D8  = 0;
+                        work->field_4DC  = 0;
+                        work->field_4DA += 0x32;
+                        RotMatrix((SVECTOR*)&work->field_4D8, &coord->coord);
+                    }
+                    if ((s16)work->field_50A >= 0x1C) {
+                        work->field_546 = 9;
+                        work->field_506 = 9;
+                        work->field_508 = 0;
+                        work->field_50A = 0;
+                    }
+                    break;
+                case 9:
+                    work->field_506 = anim;
+                    if ((s16)work->field_50A >= 0x32) {
+                        work->field_50A = 0;
+                        work->field_508 = 0;
+                        work->field_506 = 3;
+                        work->field_546 = 0;
+                    }
+                    break;
+            }
+        }
+    }
+    if (variant == 4) {
+        timer           = work->field_524 - 1;
+        work->field_524 = timer;
+        if ((s16)timer < 0) {
+            anim            = work->field_546;
+            work->field_524 = 1;
+            if (anim == 7) {
+                work->field_506 = anim;
+                if ((u32)((u16)work->field_50A - 4) < 0x11U) {
+                    work->field_4D8  = 0;
+                    work->field_4DC  = 0;
+                    work->field_4DA -= 0xFA;
+                    RotMatrix((SVECTOR*)&work->field_4D8, &coord->coord);
+                }
+                if ((s16)work->field_50A >= 0x1C) {
+                    work->field_546 = 9;
+                    work->field_506 = 9;
+                    work->field_508 = 0;
+                    work->field_50A = 0;
+                }
+            }
+        }
+    }
+}
 
 void Actor01600_Fn0646C(Actor01600* arg0)
 {

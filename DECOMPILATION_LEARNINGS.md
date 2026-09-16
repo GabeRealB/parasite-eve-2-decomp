@@ -98521,3 +98521,118 @@ Inputs: `base.i`
 `base_2.i`
 `f13eb9f96bb853f83bf88657dd9c32831bfac4205939bf37fe97745dc143695a` (one vector, 100.000%).
 Scratch `nonmatchings/Actor01600_Fn052C4-vacuum`.
+
+## A 16-bit temporary is an HImode pseudo, and a store of it costs a second load (Actor01600_Fn05F80, 2026-09-16)
+
+A halfword field read into a *short* local and then both compared and stored
+loads twice where the target loads once. `Actor01600_Fn05F80` switches on
+`work->field_546` and stores that same value into `work->field_506` in each
+case arm:
+
+```c
+s16 state;                       /* HImode pseudo */
+state = work->field_546;         /* (set (reg/v:HI N) (mem/s:HI ...)) */
+switch (state) {
+    case 7:
+        work->field_506 = state; /* needs the HI pseudo */
+```
+
+The load RTL is a plain HImode move, so the backend picks `movhi_internal2/3`
+(`lhu`), and the SImode sign extension the comparison needs is materialized from
+the register afterwards:
+
+```asm
+lhu   a0,0x546(s1)      # movhi_internal2/3
+lhu   v1,0x546(s1)      # a *second* load for the store
+sll   v0,a0,0x10
+sra   v1,v0,0x10
+beq   a0,v0,...
+sh    v1,0x506(s1)
+```
+
+The target has one `lh v1,0x546(s1)`, and the store reads that register. Reading
+the field through an *int*-sized local gets it, because then the value is one
+SImode pseudo whose HImode store is a plain truncation:
+
+```c
+s32 state;                      /* SImode pseudo */
+state = work->field_546;        /* lh: (sign_extend:SI (mem:HI)) */
+work->field_506 = state;        /* sh of the same register */
+```
+
+Symptom to recognise: the diff is one extra `lhu` of a field you also store, per
+site, on a function whose structure already matches. It is not a reload and not
+a scheduling wobble - the extra load sits *before* the intervening call, so no
+eviction is involved. The same shape appears one level up: assigning
+`work->field_50A` straight to a halfword field re-loads it with `lhu` even though
+an `lh` of the same address is already live in a register.
+
+The mirror case is a *narrow* value widening for a store. `kind`, loaded with
+`lbu` from a `u8` and used in `kind == 1` / `== 2` / `== 4`, was declared `u8`;
+the store `work->field_54A = kind` (a halfword field) then zero-extends the byte
+into a new HImode pseudo, and CSE hands that pseudo to the comparisons - which
+puts an `andi v1,s3,0xff` at the head of *every* path that reaches them, five
+times over. Declaring the local `u32` makes the load `lbu` into SImode, the
+store a truncation, and the comparisons use `$s3` directly, as the target does.
+Rule of thumb: match the *width of the value*, not the width of the field it
+came from, and let a widening store truncate.
+
+Inputs: `base_4.i`
+`9fe16cea7d762765f8a36d4f98555a42526d3e0a505c5fb96419e263c671bdb0` (98.556%,
+`regs=3`), `base_5.i`
+`20eeafbc1153139decd8dad0a59e29eb12d5cc70084a7023fd4b0fee89458f95`
+(100.000%). Scratch `nonmatchings/Actor01600_Fn05F80-vacuum`.
+
+## A load and a store are a dependence to sched1, so the C statement order fixes their order (Actor01600_Fn05F80, 2026-09-16)
+
+`Actor01600_Fn05F80` builds a rotation `SVECTOR` in a local and hands
+`RotMatrix` a pointer into the actor's coordinate array. The target schedules the
+two argument loads for `arg0->field_2C->field_8` *above* the three `sh` stores
+that build the vector; the seed had them below, for `reorder=4` on an otherwise
+perfect function:
+
+```asm
+# target                          # seed
+lw    v0,0x2c(s2)                 li    s0,-0x400
+nop                               sh    s0,0x10(sp)
+lw    a1,8(v0)                    sh    zero,0x12(sp)
+li    s0,-0x400                   sh    zero,0x14(sp)
+sh    s0,0x10(sp)                 lw    v0,0x2c(s2)
+...                               ...
+jal   RotMatrix                   jal   RotMatrix
+```
+
+The `.sched` dump settles it: the load carries dependencies on the stores
+(`(insn_list 349 (insn_list 352 (insn_list 355 ...`)), so it cannot be hoisted
+however the ready list is ranked. sched1 creates the pair in whichever direction
+the RTL already had them - a store followed by a load gives the load a
+dependency on the store, and the reverse gives the store a dependency on the
+load - so with either order legal C, the *source* decides the output.
+
+The fix was to evaluate the coordinate pointer into the variable the function
+already keeps live for it, before the vector stores:
+
+```c
+coord  = &arg0->field_2C->field_8[6];   /* loads land here */
+rot.vx = -0x400;
+rot.vy = 0;
+rot.vz = 0;
+RotMatrix(&rot, &coord->coord);
+```
+
+Assigning the pointer is free where its only use folds into the address
+(`&coord->coord` becomes `field_8 + 0x1E4` in one `addiu`, and the dead pseudo
+never materializes). When the variable *is* live across the call, the
+materialization still lands late - `addiu s0,a1,0x280` sits after the stores in
+the target too - so this does not fight the allocator.
+
+Recognise it by the penalty mix: `reorder` alone, every instruction present,
+`blocks` and `instructions` equal, and a `.sched` dump where the stray pair has
+a dependency edge rather than a priority difference. Reordering *equal-priority*
+statements is the lever only when the dump shows no edge between them.
+
+Inputs: `base_4.i`
+`9fe16cea7d762765f8a36d4f98555a42526d3e0a505c5fb96419e263c671bdb0` (98.556%,
+`reorder=4`), `base_5.i`
+`20eeafbc1153139decd8dad0a59e29eb12d5cc70084a7023fd4b0fee89458f95`
+(100.000%). Scratch `nonmatchings/Actor01600_Fn05F80-vacuum`.

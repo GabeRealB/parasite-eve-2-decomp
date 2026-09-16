@@ -19,9 +19,13 @@ typedef struct Actor01600Node {
 } Actor01600Node;
 STATIC_ASSERT_SIZEOF(Actor01600Node, 0x8);
 
-/// Fields read from this actor's spawn parameter record.
+/// Fields read from this actor's spawn parameter record. Byte 1 selects the
+/// variant `Actor01600_Fn05F80` runs: 1 is the main state machine, 2 and 4 run
+/// their own countdown on `Actor01600Work.field_524` (byte 2 is the kind
+/// `Actor01600_Fn05400` switches on).
 typedef struct Actor01600Params {
-    /* 0x00 */ byte pad_0[2];
+    /* 0x00 */ byte pad_0[1];
+    /* 0x01 */ u8   field_1;
     /* 0x02 */ u16  field_2;
     /* 0x04 */ byte pad_4[6];
     /* 0x0A */ s16  field_A;
@@ -250,15 +254,20 @@ typedef struct Actor01600Work {
     /* 0x540 */ s16                field_540;
     /* 0x542 */ u16                field_542;
     /* 0x544 */ s16                field_544;
-    /* 0x546 */ byte               pad_546[2];
-    /* 0x548 */ u16                field_548;
-    /* 0x54A */ byte               pad_54A[2];
-    /* 0x54C */ u16                field_54C;
-    /* 0x54E */ s16                field_54E;
-    /* 0x550 */ s16                field_550;
-    /* 0x552 */ byte               pad_552[2];
-    /* 0x554 */ s16                field_554;
-    /* 0x556 */ s16                field_556;
+    /// Second animation id the `variant == 2` and `variant == 4` paths of
+    /// `Actor01600_Fn05F80` run their countdown against: it is stored into
+    /// `field_506` and steps 7 -> 9.
+    /* 0x546 */ s16 field_546;
+    /* 0x548 */ u16 field_548;
+    /// Copy of the spawn variant `Actor01600_Fn05F80` takes its `case 0x1A`
+    /// path for.
+    /* 0x54A */ u16  field_54A;
+    /* 0x54C */ u16  field_54C;
+    /* 0x54E */ s16  field_54E;
+    /* 0x550 */ s16  field_550;
+    /* 0x552 */ byte pad_552[2];
+    /* 0x554 */ s16  field_554;
+    /* 0x556 */ s16  field_556;
 } Actor01600Work;
 STATIC_ASSERT_SIZEOF(Actor01600Work, 0x558);
 
