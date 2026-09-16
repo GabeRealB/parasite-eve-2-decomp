@@ -95881,3 +95881,65 @@ Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
 object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
 `60d886cd…` throughout. `include/actors/actor_311900.h` is new, holding
 `Actor311900MatWords` and `Actor311900Work`.
+
+## `regs` counts every operand field, so an immediate mismatch is a types bug, not allocation (func_actor_311900_801624F8, 2026-09-16)
+
+`dist.py` - the scorer `build.sh` prints - is decomp-permuter's, and it charges
+a `regs` penalty for **any** differing comma-separated operand field on an
+opcode-matched line: register *or* immediate (`num_regalloc_penalties += 1`
+right after `if nf != of`). So a near-match whose only object diff is a wrong
+constant offset reports `regs=N` with every other penalty at zero, and the
+brief's leftover table sends you to `.lreg` / `.greg` for an allocation story
+that is not there.
+
+Here the m2c seed typed the `Mem_Calloc(0x4CC, 0)` result as `GpAnimCtx*`
+(propagated back from `func_800B3F84`'s first parameter), so the two offsets
+into that block which the assembly writes as plain byte offsets scaled by
+`sizeof(GpAnimCtx) == 0x14`:
+
+```
+  addiu    v0,s0,0x14        ->  addiu    v0,s0,0x190
+  addiu    a3,s0,0x334       ->  addiu    a3,s0,0x4010
+```
+
+99.839%, `regs=2`, `topology: match`, empty delete/insert/reorder. Casting
+both expressions to `(u8*)` - or naming them as struct members - scored
+100.000%: no pin, no scheduler change, no lifetime work.
+
+**Read the object diff before the RTL dumps when `regs` is the only penalty
+left, and treat a differing immediate / `%hi` / `%lo` field as a types or
+constants question.** Only a differing *register name* on an otherwise
+matching line is actually about allocation.
+
+The struct that fixes it here is also the layout worth reusing in this family:
+`Actor311900Work` opens with a 0x474-byte animation prefix -
+
+```c
+typedef struct Actor311900Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
+    /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx::field_8, GpPackedSvec at a 0x10 stride */
+} Actor311900Anim;
+STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
+```
+
+so the spawn hands `func_800B3F84` the block as `(GpAnimCtx*)work`,
+`work->anim.slots` as arg4 and `work->anim.poses` as arg3. **Derive a slot
+count by filling the gap, and re-check it against the assert:** `0x334 - 0x14
+= 0x320` is 20 slots of 0x28, not 32 - the same 20 `actor_160600` and
+`actor_503500` carry. Getting that wrong fails `STATIC_ASSERT_SIZEOF` on both
+the prefix and the work struct, which is the cheap place to find out.
+
+**Prediction, not yet run:** `func_actor_311900_8016228C` (the unit's other
+spawn, still `INCLUDE_ASM`) is this body with `GameFlag_GetNibble(0xA) & 2`
+for `GameFlag_GetNibble(1) >= 3`, `func_actor_311900_8016278C` for
+`func_actor_311900_8016281C`, `D_actor_311900_8016EBE8` for
+`D_actor_311900_8016EBF4`, plus two extra stores (`field_4C4` / `field_4C6`
+to 0) and a view-dependent `obj->field_C` seed before the closing
+`func_actor_311900_80162100`. Its asm is the same shape up to those six
+edits, so porting this source with them should land it.
+
+Evidence: scratch `nonmatchings/func_actor_311900_801624F8-vacuum/`. `base.c`
+`d2ab9a49…` (m2c seed, 99.839%, `regs=2`), `base_1.c` `d6212210…` (byte-offset
+casts, 100.000%), `base_2.c` `db5edc54…` (typed port, same object `bec5e572…`
+as `base_1.c`). Compiler `60d886cd…` throughout.

@@ -3,6 +3,9 @@
 #include "actors/actor_311900.h"
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -10,7 +13,51 @@ void func_actor_311900_80161E3C(Task* task, s32 arg1, s32 arg2);
 
 void func_actor_311900_80162100(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_311900/actor_311900_2", func_actor_311900_801624F8);
+/// The animation data `func_800B3F84` builds the work block's clip context
+/// from; the spawn hands it over whole, so it is only ever a byte address here.
+extern u8 D_actor_311900_8016EBF4[];
+
+/// The `ActorsShared80135df4Table` spawn handler -- the actor's second setup
+/// path, reached through the three-entry table whose tick is
+/// `func_actor_311900_801625F0`. It is the same setup `func_actor_311900_8016228C`
+/// performs for the first table, under different conditions: the enemy is torn
+/// down instead while game flag 1 has already reached nibble 3, and the work
+/// block gets the light / colour pair `func_actor_311900_8016281C` splats
+/// (rather than `func_actor_311900_8016278C`'s) from a different animation run
+/// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
+///
+/// The 0x4CC-byte block goes into `Task::idMap` -- that slot is not a
+/// `TaskIdMap` here. `GpEnemy::field_4` takes the model's root coordinate's
+/// matrix, the root's `sub` is re-parented to `Gfx_ViewCoord`, the animation
+/// context is built over the block's slot array and packed-pose run, and the
+/// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
+/// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
+/// or the model's `field_C`.
+void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
+{
+    Actor311900Work* work;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->field_8;
+    if (GameFlag_GetNibble(1) >= 3 ||
+        (work = Mem_Calloc(0x4CC, 0), task->idMap = (TaskIdMap*)work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    func_actor_311900_8016281C(task);
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    obj->field_C    = 0;
+    func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBF4, (GpAnimObj*)obj, work->anim.poses,
+                  work->anim.slots);
+    coord->sub      = &Gfx_ViewCoord;
+    work->field_474 = 2;
+    work->field_478 = 1;
+    func_actor_311900_80162100(task);
+    task->state += 1;
+}
 
 void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 {

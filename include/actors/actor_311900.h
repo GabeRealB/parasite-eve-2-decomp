@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -23,6 +24,19 @@ typedef union Actor311900MatWords {
 } Actor311900MatWords;
 STATIC_ASSERT_SIZEOF(Actor311900MatWords, 0x20);
 
+/// Animation view of the work block's 0x474-byte prefix. The spawn handler
+/// hands the block itself to `func_800B3F84` as a `GpAnimCtx`, the
+/// `GpAnimSlot` array at 0x14 as its fourth argument and the packed-pose run
+/// at 0x334 as its third -- `func_800B3448` reaches that run as `GpPackedSvec`
+/// at a 0x10 stride, one group per slot. Both counts are what fills the gap:
+/// the 20 slots of 0x28 reach 0x334 and the 20 pose groups reach 0x474.
+typedef struct Actor311900Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       poses[0x140];
+} Actor311900Anim;
+STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
+
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::idMap` slot -- that
 /// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
@@ -34,16 +48,16 @@ STATIC_ASSERT_SIZEOF(Actor311900MatWords, 0x20);
 /// state seeds: 2 into the halfword at 0x474, 1 into the one at 0x478, and
 /// zero into 0x4C4 / 0x4C6.
 typedef struct Actor311900Work {
-    /* 0x000 */ byte   pad_0[0x474];
-    /* 0x474 */ u16    field_474;
-    /* 0x476 */ byte   pad_476[0x2];
-    /* 0x478 */ u16    field_478;
-    /* 0x47A */ byte   pad_47A[0xA];
-    /* 0x484 */ MATRIX light;
-    /* 0x4A4 */ MATRIX color;
-    /* 0x4C4 */ u16    field_4C4;
-    /* 0x4C6 */ u16    field_4C6;
-    /* 0x4C8 */ byte   pad_4C8[0x4];
+    /* 0x000 */ Actor311900Anim anim;
+    /* 0x474 */ u16             field_474;
+    /* 0x476 */ byte            pad_476[0x2];
+    /* 0x478 */ u16             field_478;
+    /* 0x47A */ byte            pad_47A[0xA];
+    /* 0x484 */ MATRIX          light;
+    /* 0x4A4 */ MATRIX          color;
+    /* 0x4C4 */ u16             field_4C4;
+    /* 0x4C6 */ u16             field_4C6;
+    /* 0x4C8 */ byte            pad_4C8[0x4];
 } Actor311900Work;
 STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
 
