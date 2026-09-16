@@ -109528,3 +109528,58 @@ still use the saved pointer — this is register pressure, not a rule.
 `abc769b81b67f916292d0367477ca9905ef4c19e6b51a1128889e30160d9d538`; target
 `03233a375c70b55c2f3ab33fd13202401c1a74e2b5c77d6c6df9e253b4af5cc7`.
 Scratch `nonmatchings/func_actor_356100_801684F0-vacuum`.
+
+## A local shared by two call sites costs a register; the expression at each call site does not
+
+When the same pointer is passed to an inlined helper from two mutually exclusive
+branches, storing it in a local first is not free. Each *assignment* to a C
+local makes its own pseudo, but the helper's parameter is the same variable in
+both expansions, so the value stays live from the first assignment through the
+branch and both bodies. It lands in a callee-saved register for the whole
+region, and the surrounding block then has one fewer scratch register for
+`dbr` to work with — which shows up as `branch` / `insert` / `delete` penalties
+that look structural but are not.
+
+For `func_actor_356100_80166CF0` the two spellings of one call site moved
+16.45%:
+
+```c
+    if (work->field_97A == 0) {
+        coord = arg0->field_2C->field_8;      /* 96.454%: branch=3 insert=9 delete=5 */
+        Actor356100_StepForward(coord, 0x78);
+    } else {
+        coord = arg0->field_2C->field_8;
+        Actor356100_StepForward(coord, 0x3C);
+    }
+```
+versus
+```c
+    if (work->field_97A == 0) {
+        Actor356100_StepForward(arg0->field_2C->field_8, 0x78);   /* 99.866%, all four at 0 */
+    } else {
+        Actor356100_StepForward(arg0->field_2C->field_8, 0x3C);
+    }
+```
+
+Nothing else changed between the two: same helpers, same statements, same
+constants. The direct form gives each expansion its own pseudo, which dies
+inside its branch, so `lbu` fills the second load-delay slot, the
+`lui %hi(D_80072729)` in the `bnez` delay slot is shared by both arms, and the
+`li $a0,1` hoists out of the fallthrough block exactly as the target has it.
+
+The cross-overlay twin is what pointed at it. The brief's shape-similar list
+offered `Actor01900_Fn06100` at 0.86; it is the same body with different field
+offsets and constants, and its two call sites pass `arg0->field_2C->field_8`
+directly. Read the similar-body candidate's *source* even when it is not a
+byte-identical twin — the constants differ, the call shape did not.
+
+The tail spelling that finishes the job (`vec->vx`, not `head[-1].vx`, so the
+release value stays an expression) is the same one the `func_actor_356100_801684F0`
+entry above describes; this function is a second instance of it, reached
+independently before that entry was consulted.
+
+`func_actor_356100_80166CF0` `base_9.c` (100.000%). Inputs: `base_7.i`
+`fcf97c2d01994f1bdaefba73243effc500885c5c4b50a0e70c69875d2daec91c`, `base_9.i`
+`a693088194f54f04b21fe283dd1b33868b92ee69e71339a93a27b5386b03293c`; target
+`1032f066099e68f8cafdc52399aac250eb85432bd49e12a47d3e01c70044e529`.
+Scratch `nonmatchings/func_actor_356100_80166CF0-vacuum`.

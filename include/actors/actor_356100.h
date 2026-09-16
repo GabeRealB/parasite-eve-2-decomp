@@ -152,7 +152,10 @@ typedef struct Actor356100Work {
     /* 0xB5B */ byte  pad_B5B;
     /* 0xB5C */ Task* field_B5C;
     /* 0xB60 */ Task* field_B60;
-    /* 0xB64 */ byte  pad_B64[2];
+    /// Halfword `func_actor_356100_80166CF0` clears after its state entry has
+    /// run, next to the `field_B66` / `field_B68` latch pair the state-4 tick
+    /// clears; same slot as `Actor401300Work.field_D1C`.
+    /* 0xB64 */ s16 field_B64;
     /// Cleared next to `field_B68` on the state-4 entry; same slot as
     /// `Actor401300Work.field_D1E`.
     /* 0xB66 */ s16 field_B66;
