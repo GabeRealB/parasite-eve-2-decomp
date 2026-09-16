@@ -12,6 +12,8 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
+
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -134,7 +136,100 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80136138);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801366F4);
+/// Rebuild `coord`'s Y rotation from its current yaw (`ratan2` of
+/// `-m[2][0], m[2][2]`), scaled by `y` on Y and left at 1.0 on X and Z, through
+/// a 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
+/// Same body as `Actor401300_RescaleYaw` / `ActorsShared80135a60`, per-axis
+/// instead of uniform, which is why `y` arrives already narrowed to `s16`.
+static __inline__ void Actor421600_ShrinkCoord(GsCOORDINATE2* coord, s16 y)
+{
+    void*                     head;
+    Actor421600ShrinkScratch* blk;
+    s16                       ang;
+    u16                       m22;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    blk                     = (Actor421600ShrinkScratch*)((u8*)head - 0x34);
+    *(void**)G_SCRATCH_HEAD = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vx = 0x1000;
+    blk->scale.vy = y;
+    blk->scale.vz = 0x1000;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0] =
+        *(u16*)&((Actor421600ShrinkScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]    = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]    = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]    = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]    = *(u16*)&blk->m.m[2][1];
+    m22                     = *(u16*)&blk->m.m[2][2];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+    coord->flg              = 0;
+    coord->coord.m[2][2]    = m22;
+}
+
+/// Shrink tick: on the live-actor edge it drops the model's dirty flag, clears
+/// the 0x4000 bit on the 0xB6C node, marks the enemy's list node and resets
+/// `field_6` / `field_8A0`. Then it counts frames in `field_6` and, from frame
+/// 0xB on, scales the model's coordinate Y by `0x1000 - (frame - 0xA) * 0x6B`
+/// until that factor runs out at 0, through `Actor421600_ShrinkCoord`. The
+/// frame counter also drives the light state: 1 sets modes 0 and 1, 20 (and
+/// the fall-through from 1) sets mode 2, 38 sets `field_C` 0x80 and the
+/// `field_0` state 0x16. Counting stops at 0x401.
+void func_actor_421600_801366F4(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    TmdObject*       obj;
+    s32              t;
+    u16              tick;
+
+    work = arg0->field_1C;
+    obj  = arg0->field_2C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->field_C           = 0;
+        work->field_B6C.flags &= 0xBFFF;
+        ctx->node.field_4      = 1;
+        work->field_6          = 0;
+        work->field_8A0        = 0;
+    }
+    if ((s16)work->field_6 < 0x401) {
+        tick          = work->field_6 + 1;
+        work->field_6 = tick;
+        switch ((s16)tick) {
+            case 1:
+                Gp_SetLightMode((GpObj4C*)ctx, 0);
+                Gp_SetLightMode((GpObj4C*)ctx, 1);
+                /* fallthrough */
+            case 20:
+                arg0->field_2C->field_C = 2;
+                Gp_SetLightMode((GpObj4C*)ctx, 2);
+                break;
+            case 22:
+                break;
+            case 38:
+                arg0->field_2C->field_C = 0x80;
+                work->field_0           = 0x16;
+                break;
+        }
+        if ((s16)work->field_6 >= 0xB) {
+            t = ((s16)work->field_6 - 10) * 0x6B;
+            if (t < 0x1000) {
+                Actor421600_ShrinkCoord(arg0->field_2C->field_8, 0x1000 - t);
+            } else {
+                Actor421600_ShrinkCoord(arg0->field_2C->field_8, 0);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801369A0);
 

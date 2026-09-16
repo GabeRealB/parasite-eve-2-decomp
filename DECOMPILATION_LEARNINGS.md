@@ -106979,3 +106979,63 @@ rather than `M2C_UNK`, removed a second `sll` and a `lw`-for-`lb`: 93.08% ->
 `base_2.i` SHA256
 `8b02d33aea1389c687bd19e3062d9ec75351291fba026a75e7353a7479856e0c` (99.702%,
 `regs=5`).
+
+## A body repeated in both arms that *shares its tail* is two inlined calls, not a shared tail (func_actor_421600_801366F4, 2026-09-16)
+
+The shrink tick's two arms each carry a 20-instruction body (scratch setup,
+`ratan2`, `Gfx_RotMatrixY`, three scale stores, `ScaleMatrix`), but the 9-store
+copy into the coordinate appears **once**, after a label that sits in the middle
+of the else-arm, with the if-arm jumping to it. That shape is not source: it is
+the last jump pass, `jump_optimize (insns, 1, 1, 0)` in `toplev.c`, which runs
+*after* sched2/dbr and is the only call with cross-jumping on. `find_cross_jump`
+walks backwards from the branch and from the target label and stops at the first
+pair of instructions whose patterns differ — with hard registers already
+assigned, so the merge point is exactly where the two arms' allocation diverges.
+Here the if-arm holds `head` in `$s4` (its `$s2` is taken by the narrowed scale
+factor) and the else-arm in `$s2`, so the walk stops on
+`lhu $v0,-0x34($s4)` vs `lhu $v0,-0x34($s2)` and every instruction after it is
+shared; `get_label_before` then reuses the if/else's own join label.
+
+The source that produces this is a `static __inline__` helper called from both
+arms — the same idiom this overlay family already uses for the uniform-scale
+twin (`Actor401300_RescaleYaw`, `ActorsShared80135a60`), with the per-axis
+factor as an `s16` parameter:
+
+    if (t < 0x1000) {
+        Actor421600_ShrinkCoord(arg0->field_2C->field_8, 0x1000 - t);
+    } else {
+        Actor421600_ShrinkCoord(arg0->field_2C->field_8, 0);
+    }
+
+Duplicating the body by hand instead (all nine stores in both arms) reached
+70.4%: the arms then agree on the tail's registers and the cross-jump swallows
+the `ScaleMatrix` calls too. A single shared tail in the source cannot produce
+the two `jal`s. Passing the factor as a parameter is also what puts the
+subtraction *before* the two calls (argument evaluation) and lets `t` die there,
+so the arm needs no sixth callee-saved register — computing `0x1000 - t` at the
+store site instead cost the frame 0x30 instead of 0x28. Inputs: `base_5.i`
+SHA256 `69328ee6f110a64cbc8931aa797d4718893f6179ee30e69baf8e297ef8a13557`
+(100.000%), `base_4.i` SHA256
+`930a13398ccc4a60401c481290d7f7153784116c3f7c9c09546a8a105b546bf8`
+(95.272%, `branch=8 insert=5 delete=3`, all of it the tick block below).
+
+## Two reads of one halfword stay two loads only across a block boundary (same function, 2026-09-16)
+
+The frame counter is tested signed and incremented unsigned, and the ROM has
+both loads:
+
+```
+lh    $v0,0x6($s0)      /* (s16)field_6 < 0x401 */
+lhu   $v1,0x6($s0)      /* field_6 + 1          */
+slti  $v0,$v0,0x401
+beqz  $v0,.L
+addiu $v0,$v1,1
+sh    $v0,0x6($s0)
+```
+
+With `tick = work->field_6 + 1;` written *before* the `if`, both reads sit in
+one basic block and cse collapses them into a single `lhu`, building the signed
+compare with `sll/sra` (`insert=5 delete=3`, 95.27%). Moving the increment
+inside the `if` keeps them in different blocks, cse leaves both, and dbr then
+fills the branch delay slot with the `addiu` while the load it feeds stays
+before the branch. Zero regressions: 100.000%, zero penalties.

@@ -73,7 +73,12 @@ typedef struct Actor421600Work {
     /* 0x840 */ u16  field_840;
     /* 0x842 */ byte pad_842[2];
     /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[0x5E];
+    /* 0x846 */ byte pad_846[0x5A];
+    /// Cleared alongside `field_6` on the live-actor edge of the shrink tick
+    /// `func_actor_421600_801366F4`, the same place actor 00100 clears its own
+    /// 0x8DC byte.
+    /* 0x8A0 */ s8   field_8A0;
+    /* 0x8A1 */ byte pad_8A1[3];
     /// World X and Z `func_actor_421600_8013848C` takes off the gte-rotated
     /// vec (`field_8A4` from its `vx`, `field_8AC` from its `vz`), around the
     /// zeroed `field_8A8` actor 00100 keeps at its own 0x8DC.
@@ -135,6 +140,19 @@ typedef struct Actor421600AnimWork {
     /* 0x834 */ byte       pad_834[6];
     /* 0x83A */ u16        field_83A;
 } Actor421600AnimWork;
+
+/// 0x34-byte block taken from the scratchpad head by the shrink tick
+/// `func_actor_421600_801366F4`: a `MATRIX`, the per-axis scale `VECTOR`
+/// `ScaleMatrix` folds into it (1.0 / the shrinking factor / 1.0), and the yaw
+/// stored just before `Gfx_RotMatrixY` rebuilds the rotation. Same shape as
+/// `ActorShared80135a60Scratch`, whose body is the uniform-scale twin.
+typedef struct Actor421600ShrinkScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor421600ShrinkScratch;
+STATIC_ASSERT_SIZEOF(Actor421600ShrinkScratch, 0x34);
 
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_421600_80133444`
 /// to hold the XZ offset of a `GsCOORDINATE2` from the centre of its circular
