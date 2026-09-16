@@ -100677,3 +100677,16 @@ A related register fix in the same function: holding the script step in a
 local (`entry = &table[idx]`) put it in `$v1`; re-indexing
 `work->field_4B4[(u16)work->field_4B8]` at every use (CSE merges them) gave
 the target's `$a0`/`$v1`/`$a2` choice for the step, the hold counter and the id.
+
+### Switch case: `j` to the epilogue with the shared tail store in its delay slot means `break`, not `store; return`
+
+Symptom (`func_actor_560800_80134258`): a case ends `jal f` / `j epilogue` with
+`sh zero,0x38($s2)` in the delay slot, and every other case falls into that same
+`sh` just before the epilogue. Writing the case as `f(...); work->field_38 = 0;
+return;` produces the same instructions but schedules the call's memory-loaded
+`a0` after the constant arguments (reorder=1). Writing `f(...); break;` lets
+reorg copy the shared store into the delay slot and restores the target order
+(`lw a0` first). Also: a jump table whose unused entries include index 0 and the
+last index needs those explicit (`case 0: case 38: break;`), otherwise GCC
+builds a compare chain; and an unexplained extra 8 bytes of frame was an unused
+`SVECTOR` local, as in a sibling in the same TU.
