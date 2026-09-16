@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
@@ -38,14 +39,23 @@ typedef struct Actor511000Coord {
 STATIC_ASSERT_SIZEOF(Actor511000Coord, 0x4C);
 
 /// Work block of the spawner this overlay's model-attach handlers parent to,
-/// reached through the parent task's `Task::idMap`. Only the two matrices the
-/// model object is pointed at are modelled here; the same pair sits at the
-/// same offsets in `ActorsShared80135b64Work` / `Actor02000Work`.
+/// reached through the parent task's `Task::idMap`. The spawn handler
+/// `func_actor_511000_80133958` allocates it (`Mem_Calloc(0x488, 0)`), hands
+/// `anim` / `slots` / `field_30C` to `func_800B3F84`, and points its own model
+/// at the two matrices; the three children it spawns do the same. The same
+/// pair sits at the same offsets in `ActorsShared80135b64Work` /
+/// `Actor02000Work`.
 typedef struct Actor511000ParentWork {
-    /* 0x000 */ byte   pad_0[0x43C];
-    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
-    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[1];
+    /* 0x03C */ byte       pad_3C[0x2D0];
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ MATRIX     field_43C; ///< colour matrix, handed to TmdObject::field_20
+    /* 0x45C */ MATRIX     field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x47C */ s32        field_47C; ///< cleared by the spawn handler
+    /* 0x480 */ byte       pad_480[8];
 } Actor511000ParentWork;
+STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 
 /// Work block `func_actor_511000_80132480` allocates (`Mem_Calloc(0x4D4, 0)`)
 /// and parks in that task's `Task::idMap` slot. Distinct from

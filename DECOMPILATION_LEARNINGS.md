@@ -114102,3 +114102,22 @@ is the admission test failing, and `done move-insn matches INSN` says
 Inputs: `base_5.c` SHA256 `c2f22e992788ad019467cc5c4f14389ae40ac48e464f3dcd0e697874353cda82`
 (preprocessed `fcfe8bc55851abcfd4ffa77105f949f0f9e5804364a33de39193230d06433bd6`);
 target `be56732624c165051d3398830f9f47808700b2c833f33e383f1ec3eb574c5062`.
+### A new local for an intermediate pointer adds an allocno whose preferences push a neighbour off its register (func_actor_511000_80133958, 2026-09-17)
+
+**Symptom:** the area-key tint block (`Game_Session` bytes copied into a stack
+`GpAreaKey`, repeated twice) was at 97.96% with `regs` only: the session pointer
+landed in `$a2` instead of `$a1` and the `field_3` byte temp in `$a1` instead of
+`$a0`, which also moved `addiu a0,sp,0x18` earlier.
+
+**Cause (greg):** `Task* child = spawned->task;` was a global pseudo loaded from
+`mem($v0)`, so `set_preference` gave it `$v0`, and REG_DEAD merging added
+`$a0`/`$a2`. Because it conflicts with the (higher-priority) byte temp,
+`prune_preferences` put those into the byte temp's `regs_someone_prefers`, and
+`find_reg` skipped `$a0`.
+
+**Fix:** no new allocno. Reassign the existing pointer
+(`spawned = (GpEnemy*)spawned->task; model = ((Task*)spawned)->extra;`) - this
+keeps the early `lw v0,0(v0)` that a chained `spawned->task->extra` loses, and
+went straight to 100%. The byte temp itself (`areaByte3 = key->field_3; model =
+...; key.field_3 = areaByte3;`) was needed because it is set in both blocks, so
+combine cannot fold it into the store.
