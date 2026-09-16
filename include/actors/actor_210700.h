@@ -25,7 +25,10 @@ typedef struct Actor210700Work {
     /* 0x47C */ s32    field_47C; // init'd to -1
     /* 0x480 */ MATRIX light;
     /* 0x4A0 */ MATRIX color;
-    /* 0x4C0 */ byte   pad_4C0[0x7E];
+    /* 0x4C0 */ byte   pad_4C0[0x78];
+    /* 0x538 */ s16    field_538; // set to 1 by the 0x7E0 image handler's mode 3
+    /* 0x53A */ byte   pad_53A[2];
+    /* 0x53C */ s16    field_53C; // set to 1 by the 0x7E0 image handler's mode 3
     /* 0x53E */ s16    field_53E; // init'd to -1
 } Actor210700Work;
 STATIC_ASSERT_SIZEOF(Actor210700Work, 0x540);
