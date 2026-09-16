@@ -67,7 +67,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80138FC8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800_4", func_actor_560800_80139360);
+/// Message 0x7D5 handler of the task `D_actor_560800_801756D4` belongs to: the
+/// visibility switch `func_actor_560800_801393EC` performs on a single model,
+/// applied to every part task its `Actor560800PartsWork` still holds. `arg2` is
+/// the sub-command - 1 clears the 0x84 pair of bits in the part's
+/// `TmdObject::field_C` and 2 sets it, anything else leaves the parts alone.
+void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2)
+{
+    Actor560800PartsWork* work;
+    TmdObject*            obj;
+    Task*                 part;
+    s32                   i;
+
+    work = (Actor560800PartsWork*)task->idMap;
+    i    = 0;
+    do {
+        part = work->parts[i & 0xFFFF];
+        if (part != NULL) {
+            obj = (TmdObject*)part->extra;
+            switch (arg2) {
+                case 0:
+                    break;
+                case 1:
+                    obj->field_C = obj->field_C & 0xFF7B;
+                    break;
+                case 2:
+                    obj->field_C = obj->field_C | 0x84;
+                    break;
+            }
+        }
+        i += 1;
+    } while ((u32)(i & 0xFFFF) < 8U);
+}
 
 void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
 {

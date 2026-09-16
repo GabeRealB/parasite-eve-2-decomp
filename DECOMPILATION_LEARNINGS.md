@@ -94476,3 +94476,60 @@ one-instruction constant initializer has to stay *late* in its block:
 moving the statement around the source changes nothing here (`i = 1;` as a
 declaration initializer, as a statement before or after the stores, and a `u16`
 local copied from the argument all compile to the same object).
+
+## m2c fuses a masked index with its counter; the source indexes `arr[i & 0xFFFF]` and counts `i` unmodified (func_actor_560800_80139360, 2026-09-16)
+
+The seed scored 61.353% (`branch=4 regs=14 reorder=4 insert=4 delete=6`) because
+m2c read the u16 mask as a second variable recomputed at the loop bottom:
+
+```c
+var_a0 = 0;
+var_v0 = 0 & 0xFFFF;
+do {
+    temp_v0 = M2C_FIELD((M2C_FIELD(arg0, s32 *, 0x1C) + (var_v0 * 4)), void **, 0x20);
+    ...
+    var_v0 = var_a0 & 0xFFFF;          /* the index for the *next* iteration */
+} while ((u32)(var_a0 & 0xFFFF) < 8U);
+```
+
+The target instead keeps one counter and masks it at each use:
+
+```
+0x14: andi v0,a0,0xffff     # index mask, at the loop head
+0x18: sll  v0,v0,0x2
+0x1c: addu v0,a3,v0
+0x20: lw   v0,32(v0)        # -> work->parts[i & 0xFFFF]
+...
+0x74: andi v0,a0,0xffff     # a *second* mask, for the compare
+0x78: sltiu v0,v0,8
+0x7c: bnez v0,0x18
+0x80: andi v0,a0,0xffff     # delay slot: the next iteration's index
+```
+
+so the loop's source is the project idiom - the array access masks the index,
+the counter does not:
+
+```c
+i = 0;
+do {
+    part = work->parts[i & 0xFFFF];
+    ...
+    i += 1;
+} while ((u32)(i & 0xFFFF) < 8U);
+```
+
+That is 100.000% with every penalty zero, and it is the shape to reach for
+whenever an object has `andi` + `sll` + `sltiu` around one counter:
+`func_actor_560800_801386D4` in the same overlay writes its slot array the same
+way, as does the matched `func_actor_310100_80162EC8`.
+
+Two things follow from the split that are *not* source differences. The single
+`i += 1;` appears twice in the object - once at the join (`addiu a0,a0,1`) and
+once in a `j`'s delay slot on the switch's default exit - because reorg filled
+that slot from the latch block, which both paths reach. And a `case 0: break;`
+written ahead of `case 1`/`case 2` never gets its own test: the tree is
+`beq ==1` / `slti <2` / `beq ==2`, so 0 lands in the default arm. The matched
+sibling `func_actor_560800_801393EC` (same overlay, same `TmdObject::field_C`
+0xFF7B / 0x84 edit, `return` where this one has `break`) compiles to exactly
+that tree, which is the cheapest source of the shape for a message handler in
+this family.

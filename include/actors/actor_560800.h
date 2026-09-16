@@ -151,6 +151,35 @@ typedef struct Actor560800FadeWork {
 } Actor560800FadeWork;
 STATIC_ASSERT_SIZEOF(Actor560800FadeWork, 0x8);
 
+/// Work block of the message-handler task whose `Task::field_24` table is
+/// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
+/// `Mem_Malloc(0x4C, 0)`, `Mem_Set`s the same 0x4C bytes and stores it in that
+/// task's `Task::idMap` (0x1C), so the size below is the allocation, not a
+/// guess. A fifth idMap block in this overlay, distinct from `Actor560800Work`,
+/// `Actor560800AnimWork`, `Actor560800ModelWork` and `Actor560800FadeWork`.
+///
+/// `parts` is the eight part tasks the same function spawns from
+/// `D_actor_560800_8017575C` (index 1, spawn arg `i + 1`) and parks one per
+/// slot; its teardown path clears a slot back to NULL after parking the part
+/// task it names in state 4. `func_actor_560800_80139360` walks the slots and
+/// applies message 0x7D5 to the `TmdObject` each part carries.
+///
+/// `field_40` is the task the spawner passed as `Task::spawnArg2`, reparented
+/// to this one - the same role `Actor560800ModelWork::field_26C` plays - and
+/// `field_14` / `field_18` / `field_1C` are the world position that function
+/// copies out of `Gp_ComposeParentWorld`, `field_18` biased by -0x78.
+typedef struct Actor560800PartsWork {
+    /* 0x00 */ byte  pad_0[0x14];
+    /* 0x14 */ s32   field_14;
+    /* 0x18 */ s32   field_18;
+    /* 0x1C */ s32   field_1C;
+    /* 0x20 */ Task* parts[8];
+    /* 0x40 */ Task* field_40;
+    /* 0x44 */ byte  pad_44[0x6];
+    /* 0x4A */ s16   field_4A;
+} Actor560800PartsWork;
+STATIC_ASSERT_SIZEOF(Actor560800PartsWork, 0x4C);
+
 /// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
 /// message 0x7DB: the same 4-byte record the other actors send, whose halfword
 /// at 0x2 carries the value the receiver reads.
