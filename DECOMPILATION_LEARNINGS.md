@@ -103074,3 +103074,25 @@ source `base_6.c`
 `nonmatchings/func_actor_521100_80134774-vacuum`; the block emission order (`goto
 game`) and the second scratch pointer were already in the seed from earlier
 builds, so the search only had the weight left to find.
+
+## A landing carries bodies, but not the sibling unit a header change needs
+
+`tools/land_overlay.py` reconstructs a sweep on trunk one function at a time: it
+maps each name in `--functions` onto the trunk file still holding that
+`INCLUDE_ASM`, and copies `--extra` paths wholesale. A sweep that also refactors
+its overlay's header usually has to adapt *another* unit of the same overlay to
+it - `actor_521100.h` replaced a hand-rolled `Actor521100Coord` with the real
+`GsCOORDINATE2`, and `actor_521100_2.c` had to read `flg` and index `field_8`
+instead of naming its `0x50` field. That unit holds none of the batch's
+functions, so nothing carries it: it is not an extra (it sits under
+`src/<family>/<overlay>/`, which the landing expects to rebuild from bodies) and
+it is not a body, and what gets committed is a header its sibling no longer
+compiles against.
+
+The symptom is one `parse error before '*'` with a cascade of phantom
+`undeclared` errors under it, and it arrives only after every per-function
+commit is already on trunk. Check before landing: a file the worktree changed
+inside the overlay's own `src/` directory that no function in the batch maps
+into has to ride along with the header. Landing it as its own small commit
+leaves the `matched <fn> <attempts>` commits - and their attempt counts, which
+`fit_difficulty_model.py` trains on - untouched.
