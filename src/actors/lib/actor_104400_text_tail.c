@@ -27,7 +27,55 @@ extern u32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03538);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn039EC);
+/// Same body as `ActorsShared80166b20`. This overlay's whole `.text` is already
+/// one shared span, so it cannot join that unit.
+///
+/// Counts `field_412` up against the `field_446` hold and enters state 2 once
+/// it runs out; over its last 0x30 frames, eases the yaw `field_424` back to
+/// zero. Before that, while `field_43A` (the distance to the nearer player
+/// actor) is under 0xDAC and the heading `field_444` is outside 0x3C0..0xC40,
+/// eases the yaw toward it and enters state 3 (arming `Gp_ArmStateF0`) after
+/// 16 such frames; otherwise swings it toward +-0x380 on bit 6 of
+/// `field_442`.
+void Actor04400_Fn039EC(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+    Actor104400Work* state;
+    Actor104400Work* state2;
+    s32              angle;
+    s32              cur;
+    s32              aim;
+
+    if ((s16)++work->field_412 > work->field_446) {
+        state            = (Actor104400Work*)arg0->idMap;
+        state->field_420 = 2;
+        state->field_422 = 0;
+        return;
+    }
+    if (work->field_446 - 0x30 < (s16)work->field_412) {
+        cur             = (u16)work->field_424;
+        work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
+        return;
+    }
+    if (work->field_43A < 0xDAC && (aim = (u16)work->field_444, (aim < 0x3C0 || aim > 0xC40))) {
+        angle           = (u16)work->field_424;
+        work->field_424 = angle + ((s16)((aim - angle) * 16) >> 6);
+        if (++work->field_42C >= 0x10) {
+            Gp_ArmStateF0(1);
+            state2            = (Actor104400Work*)arg0->idMap;
+            state2->field_420 = 3;
+            state2->field_422 = 0;
+        }
+    } else {
+        // Both arms are spelled out: the cross-jumped tail leaves each its own
+        // load of `field_424`, which a single update after an if/else lacks.
+        if (!(((u16)work->field_442 >> 6) & 1)) {
+            work->field_424 = (u16)work->field_424 + ((s16)(0x3800 - (u16)work->field_424 * 16) >> 9);
+        } else {
+            work->field_424 = (u16)work->field_424 + ((s16)(-0x3800 - (u16)work->field_424 * 16) >> 9);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn03B34);
 

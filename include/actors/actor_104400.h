@@ -88,7 +88,8 @@ typedef struct Actor104400Work {
     /* 0x426 */ s16              field_426;
     /* 0x428 */ s16              field_428;
     /* 0x42A */ s16              field_42A;
-    /* 0x42C */ byte             pad_42C[0x4];
+    /* 0x42C */ s16              field_42C; // frames spent turning toward field_444; 16 enters state 3
+    /* 0x42E */ byte             pad_42E[0x2];
     /* 0x430 */ s16              field_430;
     /* 0x432 */ s16              field_432; // 1 runs Actor04400_Fn06520 on the spawn position
     /* 0x434 */ s16              field_434; // pitch, eased back to zero while falling
