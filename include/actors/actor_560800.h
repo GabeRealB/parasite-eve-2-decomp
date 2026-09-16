@@ -39,7 +39,8 @@ typedef struct Actor560800Work {
     /* 0x24 */ Task* field_24;
     /* 0x28 */ s16   field_28;
     /* 0x2A */ s16   field_2A;
-    /* 0x2C */ byte  pad_2C[4];
+    /* 0x2C */ s16   field_2C;
+    /* 0x2E */ byte  pad_2E[2];
     /* 0x30 */ s16   field_30;
     /* 0x32 */ s16   field_32;
     /* 0x34 */ byte  pad_34[4];
@@ -307,10 +308,11 @@ extern s32 D_actor_560800_801752EC;
 
 extern Task* D_actor_560800_801757AC;
 
-extern u8 D_80071075;
-extern s8 D_8007218A;
-extern u8 D_80073BA9;
-extern s8 D_80114C12;
+extern u8      D_80071075;
+extern s8      D_8007218A;
+extern MATRIX* D_80073B8C[1];
+extern u8      D_80073BA9;
+extern s8      D_80114C12;
 
 void func_actor_560800_80133970(Task* arg0);
 void func_actor_560800_80134258(Task* arg0);

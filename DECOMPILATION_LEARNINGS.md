@@ -100774,3 +100774,30 @@ The halfword store still comes out between the two global stores, but no longer
 last, so nothing cross-jumps (99.54% -> 100%). When a tail `j` lands 4 bytes
 early on another path's last store, reorder that store earlier in source before
 restructuring the control flow.
+
+## Inline helpers: constant arguments still become pseudos, and cross-jump partners follow `return` placement
+
+Seen in `func_actor_560800_80133970` (a 570-insn request switch built from inline helpers).
+
+- **Constant arguments are copied into a register.** `expand_inline_function`
+  (integrate.c ~1575) runs `copy_to_mode_reg` for every parameter held in a register,
+  constants included. CSE then reuses that pseudo for equal constants in the body. The
+  sign was `li a1,1` loaded before the `D_8007218A == 1` compare and reused later for
+  `msg[2] = 1`, where the target loaded 1 again. Fix: helpers should take only the
+  arguments that vary (`PlaySe(kind)` / `PlaySeB(kind)`) and write the fixed values in
+  the body. `const` on the parameter changes nothing. An `s16` parameter also works,
+  because an HImode pseudo is not merged with an SImode constant.
+- **Scalar symbol loads skip store dependencies.** In sched1, a store to
+  `work->field_2C` (in-struct MEM) does not conflict with a later load of a plain
+  `extern MATRIX* D_80073B8C` (scalar MEM). The load was therefore moved ahead of the
+  add and store. Declaring `extern MATRIX* D_80073B8C[1]` and reading `D_80073B8C[0]`
+  makes the load in-struct, which keeps it after the store.
+- **Which tails get cross-jumped depends on the chain.** jump2 runs after sched2. Each
+  simple jump first tries the code just before its label, then `jump_chain` in reverse
+  insn order, and takes the first candidate with at least 2 matching insns. Jumps
+  redirected to a new label (uid >= max_uid) are not searched again. With identical
+  anim tails in cases 16/19/28/33, the target merged only 16 into 33. The fix was
+  `work->field_28 = 0; return;` in cases 19, 28 and the last step of 35, in place of
+  `break`. This moves their jumps to the return label, so the chain offers different
+  partners. The explicit clears are cross-jumped back into the shared clear. They also
+  add refs to `work`, which moved `work` ahead of `arg0` in global allocation (s3/s4).

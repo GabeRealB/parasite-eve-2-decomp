@@ -816,7 +816,219 @@ void func_actor_560800_80133750(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133970);
+static inline void Actor560800_PlayAnim(Task* task, u16 anim)
+{
+    Actor560800Work* work;
+    GpAnimArg        msg;
+
+    work = (Actor560800Work*)task->idMap;
+    if (work->field_0 != NULL) {
+        msg.field_0    = D_actor_560800_8016EA40;
+        work->field_60 = anim;
+        msg.field_4    = anim;
+        msg.field_8    = 0;
+        msg.field_C    = 0;
+        msg.field_10   = 1;
+        Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
+        work->field_62 = 0;
+    }
+}
+
+static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC)
+{
+    Actor560800Work* work;
+    GpAnimArg        msg;
+
+    work = (Actor560800Work*)task->idMap;
+    if (work->field_0 != NULL) {
+        msg.field_0    = D_actor_560800_8016EA40;
+        work->field_60 = anim;
+        msg.field_4    = anim;
+        msg.field_8    = 1;
+        msg.field_C    = argC;
+        msg.field_10   = 1;
+        Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
+        work->field_62 = 0;
+    }
+}
+
+static inline void Actor560800_PlaySe(s16 arg4)
+{
+    s32 msg[5];
+    s32 val;
+
+    val    = D_80073BA9;
+    msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
+    msg[1] = arg4;
+    msg[2] = 0;
+    msg[3] = 0;
+    msg[4] = 0;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)msg, 0);
+}
+
+static inline void Actor560800_PlaySeB(s32 arg4)
+{
+    s32 msg[5];
+    s32 val;
+
+    val    = D_80073BA9;
+    msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
+    msg[1] = arg4;
+    msg[2] = 1;
+    msg[3] = 0xA;
+    msg[4] = 0;
+    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)msg, 0);
+}
+
+static inline void Actor560800_SpawnSparksA(Task* task)
+{
+    Actor560800Work* work;
+    SVECTOR          vec;
+
+    work   = (Actor560800Work*)task->idMap;
+    vec.vx = 0x12C;
+    vec.vy = 0;
+    vec.vz = -0x1F4;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000040, &vec);
+    vec.vx = 0x190;
+    vec.vy = 0;
+    vec.vz = -0x258;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000030, &vec);
+    vec.vx = 0x12C;
+    vec.vy = 0;
+    vec.vz = -0x2BC;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000020, &vec);
+    vec.vx = 0x1C2;
+    vec.vy = 0;
+    vec.vz = -0x320;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000020, &vec);
+}
+
+static inline void Actor560800_SpawnSparksB(Task* task)
+{
+    Actor560800Work* work;
+    SVECTOR          vec;
+
+    work   = (Actor560800Work*)task->idMap;
+    vec.vx = 0x12C;
+    vec.vy = 0;
+    vec.vz = -0xC8;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000040, &vec);
+    vec.vx = 0x1F4;
+    vec.vy = 0;
+    vec.vz = -0x64;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000020, &vec);
+    vec.vx = 0x1C2;
+    vec.vy = 0;
+    vec.vz = 0;
+    Gp_SpawnEff(0x60046, ((TmdObject*)work->field_0->extra)->field_8, 0x20000020, &vec);
+}
+
+/// Requests driven by `field_28`, cleared once handled: the inline helpers play
+/// an animation on the task at `field_0` (0x3F4), post a sound through
+/// `Game_GetPtrSlot(3)` (0x3E8) or spawn the 0x60046 spark effects on its part
+/// coordinates. 18 and 35 are two-step sequences on `field_2A` / `field_2C`.
+///
+/// Shape notes, all needed for the match: helpers take only the arguments that
+/// vary, because an inlined parameter is copied to a pseudo even when constant
+/// and CSE would then share it; `D_80073B8C` is read as an array so the load is
+/// in-struct and schedules after the `field_2C` store; the explicit clears in 19,
+/// 28 and the last step of 35 decide which anim tails cross-jump together.
+void func_actor_560800_80133970(Task* arg0)
+{
+    Actor560800Work* work;
+
+    work = (Actor560800Work*)arg0->idMap;
+    func_actor_560800_80132340(arg0);
+    switch ((u16)work->field_28) {
+        case 0:
+        case 38:
+            break;
+        case 1:
+            Actor560800_PlaySe(1);
+            break;
+        case 3:
+            Actor560800_PlaySeB(7);
+            break;
+        case 9:
+            Actor560800_PlayAnimB(arg0, 0, 0xA);
+            break;
+        case 12:
+            Actor560800_PlaySe(9);
+            break;
+        case 16:
+            Actor560800_PlayAnim(arg0, 0xC);
+            break;
+        case 18:
+            switch ((u16)work->field_2A) {
+                case 0:
+                    Actor560800_PlaySe(3);
+                    Gp_DispatchMsg(work->field_0, 0x3FD, 8, 0);
+                    work->field_2C = 0;
+                    work->field_2A++;
+                    return;
+                case 1:
+                    if (work->field_2C < 100) {
+                        work->field_2C      += 5;
+                        D_80073B8C[0]->t[0] -= 5;
+                        return;
+                    }
+                    Actor560800_PlayAnimB(arg0, 0xC, 0xA);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 19:
+            Actor560800_PlayAnim(arg0, 1);
+            work->field_28 = 0;
+            return;
+        case 21:
+            Actor560800_PlayAnim(arg0, 3);
+            Actor560800_SpawnSparksA(arg0);
+            work->field_66 = 1;
+            break;
+        case 28:
+            Actor560800_PlayAnim(arg0, 4);
+            work->field_28 = 0;
+            return;
+        case 29:
+            Actor560800_SpawnSparksA(arg0);
+            Actor560800_SpawnSparksB(arg0);
+            work->field_66 = 1;
+            break;
+        case 22:
+        case 32:
+            work->field_66 = 0;
+            break;
+        case 33:
+            Actor560800_SpawnSparksA(arg0);
+            Actor560800_SpawnSparksB(arg0);
+            work->field_66 = 1;
+            Actor560800_PlayAnim(arg0, 5);
+            break;
+        case 35:
+            switch ((u16)work->field_2A) {
+                case 0:
+                    Actor560800_PlaySeB(8);
+                    Gp_DispatchMsg(work->field_0, 0x3FD, 8, 0);
+                    work->field_2C = 0;
+                    work->field_2A++;
+                    return;
+                case 1:
+                    if (++work->field_2C < 11) {
+                        return;
+                    }
+                    Actor560800_PlayAnimB(arg0, 0xC, 0x1E);
+                    work->field_28 = 0;
+                    return;
+                default:
+                    return;
+            }
+            break;
+    }
+    work->field_28 = 0;
+}
 
 /// Handles the pending request in `field_38` and clears it: 1 and 28 reset the
 /// animation sub-task's `field_4C0` / `field_4CA`, 28 also reseeds its slots
