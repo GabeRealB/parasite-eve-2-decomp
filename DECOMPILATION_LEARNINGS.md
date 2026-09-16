@@ -46,6 +46,41 @@ Writing `D_actor_560800_8017579C > Display_State.field_0` instead of
 `func_actor_560800_80135AEC` (98.5% → 100%). When a `regs=` penalty shows both
 loads right but *swapped*, and both same-order spellings of the compare are
 available, try the swap before reaching for pins.
+## A lone `arg2` in the seed is an arity undercount, and it reads as a register problem
+
+m2c names a parameter after the register the target reads it from, so a seed with
+**one** parameter called `arg2` is the target's `$a2`, with two unused ones in
+front of it. Dropping them makes GCC assign that pointer to `$a0`, and the seed
+still compiles - so the whole difference arrives as register and scheduling
+leftovers and looks like a body problem. `func_actor_143900_80132624` read
+87.184% (`stack=6 branch=1 regs=4 reorder=1 insert=3 delete=1`) with all 7 blocks
+and both predicates already matching.
+
+Restoring the arity is the entire fix - 100.000% on the first build, every
+penalty zero:
+
+```c
+s32 func_actor_143900_80132624(Task* task, s32 arg1, Actor143900AnimPreset* preset)
+```
+
+The register identity is what drives the schedule, not the other way round. With
+the payload in `$a0` the `sh $zero,0x4BA(v0)` cannot be shuffled into the `jal`
+delay slot: `$v0` is free after the store, so GCC reuses it for the callee's
+global address and emits the store a block early with a load-delay `nop` behind
+it - two extra instructions that read as a `reorder`/`insert` penalty but are
+downstream of the parameter register.
+
+This is the definition-side mirror of "A register in the compare names the
+arity". There the seed never declared the parameter at all and the tell is a
+register in the target; here m2c kept the name and dropped the ones before it, so
+the tell is the seed's own parameter *name*. Read `arg0`/`arg1`/`arg2` in the
+seed as positions, not as labels.
+
+Inputs: `base.i` (one `void *arg2`, 87.184%)
+`ffae4569c617415d64046890e8b836ae46a7185a716e37703ee8e15fdddbac98`,
+`base_1.i` (three parameters, 100.000%)
+`b95e05a308e10b675fb3d9e49f546c8b273ba01ec5b6661051afa43924f9d366`.
+
 ## One `jr ra` shared by every arm is one `return` statement, not one per arm
 
 `HAVE_return` is defined for this target, so `stmt.c`'s `expand_null_return_1`

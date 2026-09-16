@@ -20,10 +20,12 @@ typedef struct Actor143900Work {
     /* 0x000 */ byte       pad_0[0x40];
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pad_374[0x142];
+    /* 0x374 */ byte       pad_374[0x140];
+    /* 0x4B4 */ s16        field_4B4; // reset mode `func_actor_143900_80132624` selects (1 or 2)
     /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ byte       pad_4BA[0x2C];
+    /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_143900_80132624` before the reseed
+    /* 0x4BC */ byte       pad_4BC[0x2A];
     /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
     /* 0x4E8 */ byte       pad_4E8[4];
     /* 0x4EC */ s16        field_4EC; // animation reset argument, latched by the 0x7DB handler
@@ -51,7 +53,22 @@ typedef struct Actor143900Msg {
 } Actor143900Msg;
 STATIC_ASSERT_SIZEOF(Actor143900Msg, 0x4);
 
+/// Animation preset the overlay's "play animation" message handler applies to
+/// the work block: `field_4` is the animation id, `field_8` picks the reset
+/// path -- 1 for the blended `func_800B4114` reseed, 2 for a plain one -- and
+/// `field_C` becomes the reset argument the reseed forwards. The id range is
+/// the handler's own: `func_actor_143900_80132624` takes the first 0x14.
+typedef struct Actor143900AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+} Actor143900AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor143900AnimPreset, 0x10);
+
+void func_actor_143900_80131FD4(Task* task);
 void func_actor_143900_801324C8(void);
+s32  func_actor_143900_80132624(Task* task, s32 arg1, Actor143900AnimPreset* preset);
 s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32  func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg);
 void func_actor_143900_801328D4(GpEnemy* enemy, Task* task);
