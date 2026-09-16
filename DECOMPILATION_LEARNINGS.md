@@ -95450,3 +95450,39 @@ Inputs: `base.i`
 `75f9fbb3983a4ebd00d81c87eac429a85f52619277cb506f5352cf0750a10687` (95.000%),
 `base_1.i` `cad5783bf08d48a08087b419551d9e0c8549be2c16e0ab3a77ede263accb054`
 (100.000%).
+
+## Two `-1` seeds of different widths each materialize, and that is the plain C (func_actor_317000_8016267C, 2026-09-16)
+
+The enemy actors' spawn state seeds `-1` into the work block with two byte
+stores and one halfword store - `field_43D`/`field_43E` are `s8`, `field_4C8` is
+`s16`. Retail materializes the constant **twice**:
+
+```
+    addiu      $v0, $zero, -0x1
+    sb         $v0, 0x43D($v1)
+    sb         $v0, 0x43E($v1)
+    addiu      $v0, $zero, -0x1
+    sh         $v0, 0x4C8($v1)
+```
+
+Reading that as two different source constants, and hunting for a form the
+compiler will share, is the wrong move. Expand already emits it as two sets on
+distinct pseudos in different machine modes - `(set (reg:QI 82) (const_int -1))`
+and `(set (reg:HI 84) (const_int -1))`, each with a `REG_EQUAL` - and nothing
+merges them: uids 37 and 47 are both still present, at the same positions, in
+`.rtl`, `.cse`, `.cse2`, `.combine`, `.lreg`, `.greg`, `.sched` and `.sched2`
+(`.combine` reports 0 successes, and they reach the assembler as
+`movqi_internal2` / `movhi_internal2`). The source is the three plain
+assignments:
+
+```c
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4C8 = -1;
+```
+
+The same two-`addiu` shape is in the already-matched `func_actor_335800_80163AA0`,
+whose work block is `s8`/`s8`/`s16` at the same three offsets, so this is the
+family's idiom rather than a property of one actor. Evidence: scratch
+`nonmatchings/func_actor_317000_8016267C-vacuum/`, `base_1.c` (100.000%, all
+penalties zero, `Repeated assembly: base_1.c reproduces base.c`).
