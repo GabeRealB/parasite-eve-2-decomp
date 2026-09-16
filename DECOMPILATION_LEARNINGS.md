@@ -87055,3 +87055,78 @@ the top of the block.
 in one arm and `$s1` in the other, i.e. two pseudos. Two block-scoped
 declarations — one inside the `if`, one inside the loop body — reproduce that
 and were the last 0.26%.
+
+## Two zero-cost levers on the allocno order: an early `return` inside a loop, and naming `&local` (Actor00400_Fn03570, 2026-09-16)
+
+`Actor00400_Fn03570` is `ActorsShared80132808` with one extra step - each
+ancestor rotation is copied out and renormalised before it is fed to the GTE -
+so the shared header's helper pair ports over almost unchanged. It compiled to
+`Structure: match`, `blocks=13/13 instructions=236/236`, and 99.195% with
+`regs=26`: the six callee-saved values were the right six, in the wrong homes.
+
+Reconstructing the `-dg` order (`floor_log2(n_refs) * n_refs / live_length`,
+CODEGEN_MODEL §10.5) named both faults exactly:
+
+| pseudo | what | refs | len | pri |
+|---|---|---|---|---|
+| 80 | `arg0` | 5 | 122 | .0820 |
+| 108 | `view` of the second loop | 3 | 36 | .0833 |
+| 110 | `&matrix` (`$sp+0x50`) | 2 | 24 | .0833 |
+
+`arg0` sorted *below* both scratch pointers, so it took `$s5` instead of the
+target's `$s3`; and 108 vs 110 was an exact tie, which `allocno_compare` breaks
+toward the lower allocno - the wrong one.
+
+**Lever 1, for the long-lived parameter: return early from inside the loop.**
+`arg0`'s five references are all at depth 1, and its live range is the whole
+function, so there is nothing to shorten. Changing the end-of-chain exit of the
+inlined `Localize` helper from
+
+```c
+            if (coord == NULL) {
+                break;                /* falls out to the single `return arg0;` */
+            }
+```
+
+to `return arg0;` puts a second `set (retval) (arg0)` *inside* the loop, where
+`flow.c`'s `REG_N_REFS (regno) += loop_depth` counts it twice. Refs go 5 -> 7,
+priority .0820 -> .1148, and `arg0` sorts first and takes `$s3`. **The object is
+unchanged in size**: jump2 cross-jumps the two return tails back together and
+dbr puts the survivor in the branch delay slot, which is what the target's two
+`addu $a0, $s3, $zero` were all along. 99.195% -> 99.492%.
+
+This is the `do { } while (0)` reweighting trick (see the `REG_N_REFS` entry
+above) applied to an inlined helper, where the once-loop has nowhere to go: the
+helper's own loop is already there, and an early `return` is the natural way to
+put a reference to a *parameter* inside it.
+
+**Lever 2, for the tie: give the stack local's address its own pointer
+variable.** Pseudo numbers follow creation order, and a `T *p` gets its pseudo
+when the *declaration* is expanded, whereas the addressof pseudo for `&local`
+appears only where the address is first needed - always later. So
+
+```c
+    MATRIX         matrix;
+    MATRIX         local;
+    ...
+    MATRIX*        mp;          /* declared before `view` -> lower pseudo */
+    MATRIX*        lp;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+    ...
+        mp     = &matrix;
+        view   = &Gfx_ViewCoord;
+        lp     = &local;
+```
+
+with `"r"(mp)` in the transpose asm and `gte_SetRotMatrix(lp)` in the loop.
+`mp` now out-ranks `view` on the tie and takes `$s4`, pushing `view` to `$s5`:
+`regs` 12 -> 0. Naming `lp` did the *scheduling* half of the same job - the
+hoisted `addiu $s2, $sp, 0x70` moved from after the ancestor copy to before it,
+where the source assignment now sits, clearing the last `reorder=1`. 100%.
+
+Both levers are free at the object level, so reach for them before a pin when
+the diff is a pure permutation of `$sN` with `Structure: match`. Read the
+`;; N regs to allocate:` line together with the `Register N used X times across
+Y insns` block at the head of the `.lreg` dump; the two together reproduce the
+order exactly, and the arithmetic says how far a pseudo has to move.

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_100400.h"
+#include "actors/actor_100400_rotation.h"
 #include "actors/coord_to_view.h"
 #include "main/display.h"
 #include "main/gameflag.h"
@@ -1042,7 +1043,25 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor100400TextQuadScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03570);
+/// Re-aim one joint by `yaw` about Y in world space: build the joint's
+/// absolute rotation from its parent chain, turn it, then express the result
+/// back in the parent's frame and write the 3x3 into the joint. The working
+/// matrix is one 0x20-byte frame carved off the scratchpad head.
+void Actor00400_Fn03570(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    Actor00400_AccumulateRotation(coord, rotation, &Gfx_ViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = Actor00400_LocalizeRotation(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn03920);
 
