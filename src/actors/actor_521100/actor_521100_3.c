@@ -126,7 +126,40 @@ void func_actor_521100_8013570C(Actor521100* arg0)
 /// idle state or, when `field_6BA` asks for it, on to state 6 at sub-state
 /// `field_6BC`. Either way it latches clip 1 for the blend and picks this
 /// frame's effect out of `D_actor_521100_8015F5F4`.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_3", func_actor_521100_801357F0);
+void func_actor_521100_801357F0(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    u16*             tbl;
+    u32              rng;
+
+    work = arg0->field_1C;
+    switch (work->field_6A0) {
+        case 0:
+            work->field_686     = 0x11;
+            work->field_6A0     = 1;
+            work->field_69A     = 0;
+            work->field_69C     = 0;
+            work->obj57C.flags &= 0x7FFF;
+            work->obj59C.flags &= 0x7FFF;
+            return;
+        case 1:
+            if ((s16)work->field_68A >= 0x48) {
+                if (work->field_6BA == 0) {
+                    work->field_69E = 0;
+                    work->field_6A0 = 0;
+                } else {
+                    work->field_69E = 6;
+                    work->field_6A0 = work->field_6BC;
+                }
+                work->field_686 = 1;
+                tbl             = D_actor_521100_8015F5F4;
+                rng             = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_68E = tbl[(rng >> 16) & 0xF];
+            }
+            return;
+    }
+}
 /// Snapshots the attach coordinate's translation into the work block, then
 /// walks the coordinate forward: 0x80 up, and along its own facing axis
 /// (`m[0][2]` / `m[2][2]`) scaled by the work block's speed in 12-bit fixed
