@@ -3,19 +3,22 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 /// Work block this overlay hangs off `Actor120500.field_1C`; the pairs at
 /// 0x4B8, 0x4C0 and 0x4C8 are each a request code plus its phase counter,
 /// reset together.
 typedef struct Actor120500Work {
-    /* 0x000 */ byte pad_0[0x4B8];
-    /* 0x4B8 */ s16  field_4B8;
-    /* 0x4BA */ s16  field_4BA;
-    /* 0x4BC */ byte pad_4BC[0x4];
-    /* 0x4C0 */ s16  field_4C0;
-    /* 0x4C2 */ s16  field_4C2;
-    /* 0x4C4 */ byte pad_4C4[0x4];
-    /* 0x4C8 */ s16  field_4C8;
-    /* 0x4CA */ s16  field_4CA;
+    /* 0x000 */ byte  pad_0[0x4B4];
+    /* 0x4B4 */ Task* field_4B4; // Gp_DispatchMsg target for msgs 0x3F4/0x3F3/0x3E9
+    /* 0x4B8 */ s16   field_4B8;
+    /* 0x4BA */ s16   field_4BA;
+    /* 0x4BC */ byte  pad_4BC[0x4];
+    /* 0x4C0 */ s16   field_4C0;
+    /* 0x4C2 */ s16   field_4C2;
+    /* 0x4C4 */ byte  pad_4C4[0x4];
+    /* 0x4C8 */ s16   field_4C8;
+    /* 0x4CA */ s16   field_4CA;
 } Actor120500Work;
 
 /// `Task` as this overlay uses it: only the slot at 0x1C is retyped, holding

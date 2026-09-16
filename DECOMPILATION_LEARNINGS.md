@@ -96720,3 +96720,51 @@ whole unit in *both* carriers, so each overlay's `_4.c` became `_3.c` and the
 above).
 
 Inputs: `base.i` (m2c seed, 85.111%), `base_1.i` (100.000%).
+## One pseudo per C variable, not per assignment: reusing the function's pointer local denies a reload a caller-saved home (func_actor_120500_80132920, 2026-09-16)
+
+An `if (p->work->field_4B4 != 0) { ...; Gp_DispatchMsg(p->work->field_4B4, ...); }`
+where the target loads `p->work` **once** and reuses it for the call argument
+scores 88.75% from the m2c seed and 96.97% after the payload is made one
+struct — both times with the wrong shape in the same place. The m2c seed writes
+the member expression twice, and GCC keeps two loads: CSE does not carry a
+`(mem (reg) 0x1C)` across the five stores into the message struct, so the
+reload is a *second* `lw`, and `local_alloc` homes the two block-local copies in
+`$v0` — the same register the stores' constants want — so `reload` rematerializes
+the second one (`insert=1`, and a `reorder` from the address setup moving down).
+
+Assigning the member expression to the variable the function already uses for
+the work pointer fixes the count (57/57) but puts the load in `$s0` (99.72%),
+because **GCC 2.8.1 gives a register-resident C variable one pseudo for all of
+its assignments** — no SSA, no renaming. The `.lreg` header says it outright:
+`Register 81 used 10 times across 36 insns; dies in 3 places; crosses 4 calls`.
+The union live range therefore crosses the calls that separate the assignments
+even though this particular value lives only across the message stores, so
+`global_alloc` has to find a callee-saved register, and `$s0` is the one it
+already gave the variable.
+
+A distinct local for the if-block — its own pseudo, live from the load to the
+call and crossing no call — is a non-call-crossing allocno, and `global.c`'s
+`find_reg` may then take the lowest free caller-saved register. That is the
+target's `$v1`, and it is 100.000% with all penalties zero:
+
+```c
+    animWork = actor->field_1C;
+    if (animWork->field_4B4 != NULL) {
+        msg.field_0 = D_actor_120500_8013807C;
+        ...
+        Gp_DispatchMsg(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
+    }
+    work = actor->field_1C;
+```
+
+So when the target reloads a pointer the seed also reloads but into a
+*callee-saved* register, and the value's own live range spans no call, do not
+reach for a pin: check whether the C value shares a variable with a
+call-crossing one, and split it out. The same reading applies to the seed's
+extra `lw` — one pseudo re-set at two sites is CSE plus a rematerialization, not
+two source statements.
+
+Evidence: scratch `nonmatchings/func_actor_120500_80132920-vacuum/`; `base.c`
+88.754%, `base_1.c` 96.966% (two loads, `insert=1 reorder=1`), `base_2.c`
+99.719% (`$s0`), `base_3.c` 100.000%; `base_2.i.lreg` shows insn 44 writing
+pseudo 81, the same pseudo as the other two assignments.
