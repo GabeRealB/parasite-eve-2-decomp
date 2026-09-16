@@ -80320,6 +80320,23 @@ twin with the overlay's *table* before writing the fields: the counter, the
 `VECTOR3 step` `ApplyMatrixLV` writes and the `SVECTOR limit` it opens are three
 offsets, and only the dispatcher says which is the state.
 
+Most of those `alabel`s are not entry points at all. In the `actors` family they
+are one address: `configs/USA/sym/actors.imports.txt` line 455 carries
+`func_80138C9C = 0x80138C9C; // absolute:True`, a **gameplay** symbol whose
+address falls inside the actors overlays' own load range. splat emits the symbol
+as an `alabel` in every overlay body that happens to span that VRAM, so 18
+actor `.s` files borrow the label for a mid-body instruction and the copies
+that do not cross the address are missed by `find` for that reason alone.
+
+`func_actor_521100_80134EDC` (0x80134EDC, 0x148 long) is one: its instruction
+stream is byte-identical to the matched `func_actor_510900_80138BF0`, which
+starts at 0x80138BF0 and so *does* span 0x80138C9C and *does* carry the label.
+`diff` on the two `.s` files with the address column and labels stripped leaves
+nothing but that one `alabel` line. So the rule for the family is: an `alabel`
+whose name is a bare `func_<addr>` is a symbol-map borrow, not a second entry -
+strip it before concluding the bodies differ, and check the imports file before
+believing a `j` somewhere targets it.
+
 ## m2c's separate `s32 spN` locals for one aggregate lose every store but the address-taken one
 
 **Problem.** `func_actor_205200_8014C8D4` seeded at 67.750% with
