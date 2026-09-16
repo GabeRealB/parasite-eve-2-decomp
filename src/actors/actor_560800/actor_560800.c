@@ -201,7 +201,66 @@ void func_actor_560800_80133648(u32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133750);
+extern s32* D_actor_560800_8016F35C[];
+extern s32* D_actor_560800_8016F3E4[];
+extern s32* D_actor_560800_8016F46C[];
+extern s32* D_actor_560800_8016F4F4[];
+
+void func_actor_560800_80133750(s32 arg0)
+{
+    Actor560800Work* work;
+    s32*             msg;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    if (work->field_66 == 0) {
+        Gp_PulseState1C();
+    }
+    if (work->field_0 != NULL) {
+        msg = D_actor_560800_8016F35C[arg0];
+        if (*msg != 0) {
+            func_actor_560800_80133540(0);
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)msg, 0);
+        } else {
+            func_actor_560800_80133648(0);
+        }
+    }
+    if (work->field_8 != NULL) {
+        msg = D_actor_560800_8016F46C[arg0];
+        if (*msg != 0) {
+            func_actor_560800_80133540(2);
+            Gp_DispatchMsg(work->field_8, 0x7D4, (s32)msg, 0);
+        } else {
+            func_actor_560800_80133648(2);
+        }
+    }
+    if (work->field_C != NULL) {
+        msg = D_actor_560800_8016F3E4[arg0];
+        if (*msg != 0) {
+            func_actor_560800_80133540(3);
+            Gp_DispatchMsg(work->field_C, 0x7D4, (s32)msg, 0);
+        } else {
+            func_actor_560800_80133648(3);
+        }
+    }
+    if (work->field_4 != NULL) {
+        msg = D_actor_560800_8016F4F4[arg0];
+        if (*msg != 0) {
+            func_actor_560800_80133540(1);
+            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)msg, 0);
+        } else {
+            func_actor_560800_80133648(1);
+        }
+    }
+    if (work->field_20 != NULL) {
+        // No table of its own: reuses the payload picked for field_4.
+        if (*msg != 0) {
+            func_actor_560800_80133540(4);
+            Gp_DispatchMsg(work->field_20, 0x7D4, (s32)msg, 0);
+        } else {
+            func_actor_560800_80133648(4);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80133970);
 

@@ -55,7 +55,7 @@ typedef struct Actor560800Work {
     /* 0x60 */ s16   field_60;
     /* 0x62 */ s16   field_62;
     /* 0x64 */ s16   field_64;
-    /* 0x66 */ byte  pad_66[2];
+    /* 0x66 */ s16   field_66;
 } Actor560800Work;
 STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 
