@@ -93496,3 +93496,40 @@ Example: `func_actor_103700_80133C1C`. Inputs: `base_2.i`
 `base_2.c` `1ba30f4a572ab4675b7afecd9d2356a9d27fdfd13f306520a4f89703363495dc`
 (100.000%); the 91.30% parent is `base_1.i`
 `1fb2a8663f5685781ec83106331a88da6507694350f2ad21ccdfd63aed12d5e0`.
+## A tail call the source wrote in *both* arms survives as a `j` over one copy
+
+`func_actor_323000_80164C58` (35 insns) reproduced every instruction but three:
+the target's if-body ended `j .L<join>` with the last store in its delay slot,
+the else path held a lone `addu $a0,$s1,$zero`, and the shared `jal` followed.
+m2c's seed - one call after the `if`/`else` - has no `j`, keeps a single copy,
+and fills the `jal`'s delay slot with that copy instead of a `nop`. The scorer
+reports that as `branch=1 delete=3 regs=8` with `Structure: different`, and the
+temptation is to read it as a register problem.
+
+The source wrote the call in both arms:
+
+```c
+    if (work->field_4 != 0) {
+        ...
+        func_actor_323000_80163A30(task);
+    } else {
+        func_actor_323000_80163A30(task);
+    }
+```
+
+GCC emits the identical `a0 = task; jal` in each arm and cross-jumps the two
+call blocks, leaving the argument copy in *both* predecessors and one shared
+`jal`; the if-body reaches it by `j`, whose delay slot stays free for the last
+store. So the signature is a `j` over exactly one instruction that is a copy
+into the call's argument register, with that same copy at the head of the
+fall-through path.
+
+This is the house idiom of the actor state handlers: `func_actor_356100_8016A21C`
+and `Actor00100_Fn0B52C` both call their tick function from both arms, and
+`overlay_dup_index.py similar <fn>` lists them for this shape. Read a matched
+sibling before rewriting the control flow - finishing this one took one edit
+once the sibling's `if`/`else` shape was copied.
+
+The same function's remaining `regs=8` was the frame-slot local `## An unused
+local still costs frame space` describes: an unused `SVECTOR` (8 bytes at
+`sp+0x10`) took it from 98.86% to 100.000% with no other edit.
