@@ -97045,3 +97045,41 @@ Also in this function: a constant `1` held in `$s5` for both a `bne` and a
 later `sb` after calls means the compare sits in the extended basic block of
 the store - two `if ((s16)Dispatch(...) == 1)` arms (later cross-jumped) had to
 become `ret = Dispatch(...)` in each arm and one `if (ret == 1)` after the join.
+
+### A 0/1 flag kept as `sltiu; bnez; li 1 / move zero; move v1,v0` needs the test to read the variable, plus an early set of the copy (func_actor_401300_80133A3C, 2026-09-16)
+
+**Symptom.** Target: `sltiu v0,v0,0xA27; bnez v0,L; li v0,1; move v0,zero; L: move v1,v0`,
+then `li v0,1; bne v1,v0`. Every form of `if (c) return 1; return 0;`,
+`ret = 1; if (!c) ret = 0;` or `if/else` collapsed to a bare `sltiu v1`.
+
+**Cause.** `jump.c` rewrites `if (c) x = a; else x = b;` as `x = b; if (c) x = a;`
+and then turns that into a store-flag. The rewrite is skipped when `x` is
+referenced inside the test (`reg_referenced_between_p`). The copy into the caller's
+variable then disappears in CSE: `make_regs_eqv` makes the new register canonical
+only if it lives past the CSE block **or was first set before it**
+(`REGNO_FIRST_UID < cse_basic_block_start`). If not, its uses become the helper's
+register and flow deletes the copy.
+
+**Fix.**
+```c
+ret = (u16)(out.vz + 0x12B) < 0xA27;   /* inside the inline */
+if (ret != 0) { ret = 1; } else { ret = 0; }
+return ret;
+...
+inRange = 0;                            /* top of the caller: dead, but keeps the copy */
+...
+inRange = Actor401300_InRange(arg0);
+```
+
+### Pass a global to an inline by address to move its load after the other arguments (func_actor_401300_80133A3C, 2026-09-16)
+
+**Symptom.** An inline effect helper `Spawn(s32 id, coord, flags, x, y, z)` fed
+`D_8011574C`. The target's order was `li a2; lui v0,%hi(D); addiu a3,sp,0x18; lw 0x2C(s4); lw a0,%lo(D)(v0)`.
+We got `addiu a3` before the `lui`. With a constant id (`0x60054`), the same helper already matched.
+
+**Fix.** `SpawnVar(s32* id, ...)` with `Gp_SpawnEff(*id, ...)` in the body, called as
+`SpawnVar(&D_8011574C, ...)`. The address's `lui` moves up with the argument
+setup and the `lw` stays with the call. 99.32% -> 99.97%. The same trick fixed the
+last swap in a hand-written `Actor401300_TransformToView`: create
+`outp = &out` right after `svp = &sv` instead of passing `&out` through a
+second level of inlining.

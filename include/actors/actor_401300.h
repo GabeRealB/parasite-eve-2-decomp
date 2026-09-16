@@ -65,12 +65,15 @@ typedef struct Actor401300Work {
     /* 0x898 */ s32  field_898;
     /* 0x89C */ s16  field_89C;
     /* 0x89E */ s16  field_89E;
-    /* 0x8A0 */ byte pad_8A0[2];
+    /* 0x8A0 */ s16  field_8A0;
     /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ byte pad_8A4[2];
+    /* 0x8A4 */ s16  field_8A4;
     /* 0x8A6 */ s16  field_8A6;
     /* 0x8A8 */ s16  field_8A8;
-    /* 0x8AA */ byte pad_8AA[8];
+    /* 0x8AA */ s16  field_8AA;
+    /* 0x8AC */ s16  field_8AC;
+    /* 0x8AE */ s16  field_8AE;
+    /* 0x8B0 */ s16  field_8B0;
     /* 0x8B2 */ s16  field_8B2;
     /* 0x8B4 */ s16  field_8B4;
     /* 0x8B6 */ s16  field_8B6;
@@ -163,7 +166,8 @@ typedef struct Actor401300AnimWork {
     /* 0x8A2 */ s16        field_8A2;
     /* 0x8A4 */ byte       pad_8A4[2];
     /* 0x8A6 */ s16        field_8A6;
-    /* 0x8A8 */ byte       pad_8A8[6];
+    /* 0x8A8 */ byte       pad_8A8[4];
+    /* 0x8AC */ s16        field_8AC;
     /* 0x8AE */ s16        field_8AE;
     /* 0x8B0 */ s16        field_8B0;
 } Actor401300AnimWork;

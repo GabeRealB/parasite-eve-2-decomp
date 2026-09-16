@@ -4,6 +4,7 @@
 #include "psyq/abs.h"
 
 #include "actors/actor_401300.h"
+#include "actors/actors_shared_80132808.h"
 #include "gameplay/1A8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -578,7 +579,309 @@ void func_actor_401300_80133834(Actor401300* arg0, s16 arg1)
     arg0->field_2C->field_8[8].flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80133A3C);
+extern s32 D_80115738;
+extern s32 D_8011574C;
+
+/// Spawns effect `id` on `coord` at the offset (`x`, `y`, `z`).
+static __inline__ void Actor401300_SpawnEff(s32 id, GsCOORDINATE2* coord, s32 flags, s16 x, s16 y, s16 z)
+{
+    SVECTOR pos;
+
+    pos.vx = x;
+    pos.vy = y;
+    pos.vz = z;
+    Gp_SpawnEff(id, coord, flags, &pos);
+}
+
+static __inline__ void Actor401300_SpawnEffZero(s32 id, GsCOORDINATE2* coord, s32 flags)
+{
+    SVECTOR pos;
+
+    pos.vx = pos.vy = pos.vz = 0;
+    Gp_SpawnEff(id, coord, flags, &pos);
+}
+
+/// `Actor401300_SpawnEff` for an effect id held in a global. Taking the
+/// global's address rather than its value is a matching requirement: the `lui`
+/// is then evaluated with the arguments and the load itself after them, which
+/// is the order the scheduler needs.
+static __inline__ void Actor401300_SpawnEffVar(s32* id, GsCOORDINATE2* coord, s32 flags, s16 x, s16 y, s16 z)
+{
+    SVECTOR pos;
+
+    pos.vx = x;
+    pos.vy = y;
+    pos.vz = z;
+    Gp_SpawnEff(*id, coord, flags, &pos);
+}
+
+static __inline__ void Actor401300_SpawnEffZeroVar(s32* id, GsCOORDINATE2* coord, s32 flags)
+{
+    SVECTOR pos;
+
+    pos.vx = pos.vy = pos.vz = 0;
+    Gp_SpawnEff(*id, coord, flags, &pos);
+}
+
+/// 1 when coordinate 1's view-space Z is in [-299, 2300): the body of
+/// `func_actor_401300_801417F0`, with `Actor401300_TransformToView` written
+/// out so `outp` is initialised after `svp`. The `if` that re-tests `ret` keeps
+/// jump from folding the result into a bare `sltiu`.
+static __inline__ s32 Actor401300_InRange(Actor401300* arg0)
+{
+    SVECTOR        out;
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp;
+    GsCOORDINATE2* view;
+    VECTOR*        vecp;
+    s32*           flagp;
+    SVECTOR*       outp;
+    GsCOORDINATE2* p;
+    s32            ret;
+
+    memset(&out, 0, 8);
+    p     = &arg0->field_2C->field_8[1];
+    svp   = &sv;
+    outp  = &out;
+    view  = &Gfx_ViewCoord;
+    vecp  = &vec;
+    flagp = &flag;
+    sv.vx = outp->vx;
+    sv.vy = outp->vy;
+    sv.vz = outp->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        outp->vx = sv.vx;
+        outp->vy = sv.vy;
+        outp->vz = sv.vz;
+    }
+    ret = (u16)(out.vz + 0x12B) < 0xA27;
+    if (ret != 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+    return ret;
+}
+
+static __inline__ void Actor401300_ResetAnim(Actor401300* arg0)
+{
+    s32                  i;
+    Actor401300AnimWork* work;
+
+    work = (Actor401300AnimWork*)arg0->field_1C;
+    for (i = 1; i < 0x13; i++) {
+        work->slots[i].field_9 = work->field_8A6;
+        if (i < 7) {
+            Gp_AnimResetSlotEx(&work->anim, i, work->field_8A2, i, i);
+        } else if (i >= 9) {
+            Gp_AnimResetSlotEx(&work->anim, i, work->field_8A2, i - 2, i);
+        }
+    }
+    work->field_8A0 = work->field_8A2;
+}
+
+static __inline__ void Actor401300_ResetBlendAnim(Actor401300* arg0)
+{
+    s32                  i;
+    Actor401300AnimWork* work;
+
+    work            = (Actor401300AnimWork*)arg0->field_1C;
+    work->field_8AE = 0x30;
+    work->field_8B0 = 0x800;
+    for (i = 1; i < 0x13; i++) {
+        work->slots[i].field_9 = work->field_8AE;
+        if (i < 7) {
+            Gp_AnimResetSlotEx(&work->blendAnim, i, work->field_8AC, i, i);
+        } else if (i >= 9) {
+            Gp_AnimResetSlotEx(&work->blendAnim, i, work->field_8AC, i - 2, i);
+        }
+    }
+}
+
+static __inline__ void Actor401300_TickAnim(Actor401300* arg0)
+{
+    s32                  i;
+    Actor401300AnimWork* work;
+
+    work = (Actor401300AnimWork*)arg0->field_1C;
+    for (i = 1; i < 0x13; i++) {
+        work->slots[i].field_9 = work->field_8A6;
+        if (i < 7) {
+            Gp_AnimTickIndex(&work->anim, i);
+        } else if (i >= 9) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+}
+
+/// Per-frame animation and effect update: restarts or ticks the animation
+/// slots, eases the yaw of coordinates 5/2 and the blend weight, then spawns
+/// the current animation's effects and plays its cue sound.
+void func_actor_401300_80133A3C(Actor401300* arg0)
+{
+    s32              i;
+    s32              snd;
+    s16              yaw;
+    s32              inRange;
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    /* Set here so CSE keeps `inRange` distinct from the helper's result. */
+    inRange = 0;
+    work    = arg0->field_1C;
+    enemy   = arg0->field_20;
+    if (work->field_89C == 1) {
+        func_actor_401300_80133254(arg0);
+        work->field_89C = 3;
+        work->field_8A4 = 0;
+        work->field_8BC = 0;
+    } else if (work->field_89C == 2) {
+        Actor401300_ResetAnim(arg0);
+        work->field_89C = 3;
+        work->field_8A4 = 0;
+        work->field_8BC = 0;
+    }
+    if (work->field_8AA == 2) {
+        Actor401300_ResetBlendAnim(arg0);
+        work->field_8AA = 3;
+    }
+    work->field_8A4++;
+    if (work->field_89E == 0) {
+        Actor401300_TickAnim(arg0);
+    } else {
+        func_actor_401300_80133324(arg0);
+        if (((Actor401300AnimWork*)work)->blendSlots[1].field_10 & 0x100) {
+            work->field_89E = 0;
+        }
+    }
+    if (work->field_8B2 > work->field_8B4) {
+        if (work->field_8B2 - work->field_8B4 > 0x100) {
+            work->field_8B4 += 0x100;
+        } else {
+            work->field_8B4 = work->field_8B2;
+        }
+    } else if (-(work->field_8B2 - work->field_8B4) > 0x100) {
+        work->field_8B4 -= 0x100;
+    } else {
+        work->field_8B4 = work->field_8B2;
+    }
+    if (work->field_8B4 != 0) {
+        yaw = work->field_8B4;
+        if (work->field_8B4 > 0x400) {
+            yaw = 0x400;
+        }
+        if (work->field_8B4 < -0x400) {
+            yaw = -0x400;
+        }
+        ActorsShared80132808(&arg0->field_2C->field_8[5], (yaw * 2) / 3);
+        ActorsShared80132808(&arg0->field_2C->field_8[2], yaw / 2);
+        arg0->field_2C->field_8[5].flg = 0;
+        arg0->field_2C->field_8[4].flg = 0;
+        arg0->field_2C->field_8[3].flg = 0;
+        arg0->field_2C->field_8[2].flg = 0;
+    }
+    if (work->field_8B8 != work->field_8B6) {
+        if (work->field_8B6 < work->field_8B8) {
+            work->field_8B8 -= work->field_8BA;
+            if (work->field_8B8 < work->field_8B6) {
+                work->field_8B8 = work->field_8B6;
+            }
+        } else {
+            work->field_8B8 += work->field_8BA;
+            if (work->field_8B6 < work->field_8B8) {
+                work->field_8B8 = work->field_8B6;
+            }
+        }
+    }
+    func_actor_401300_80133834(arg0, work->field_8B8);
+    snd     = func_actor_401300_8013346C(work);
+    inRange = Actor401300_InRange(arg0);
+    if (inRange == 1) {
+        if (work->field_8A2 == 2) {
+            if ((u32)Display_State.field_8 % 6 == 0) {
+                Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[18], 0x40, 0, 0x1C2, -100);
+            }
+            if ((u32)Display_State.field_8 % 6 == 3) {
+                Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
+            }
+        } else if (work->field_8A2 == 3) {
+            if ((Display_State.field_8 & 1) == inRange) {
+                Actor401300_SpawnEffVar(&D_80115738, &arg0->field_2C->field_8[18], 0x1202180, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[18], 0x40, 0, 0x1C2, -100);
+            }
+            if (!(Display_State.field_8 & 1)) {
+                Actor401300_SpawnEffVar(&D_80115738, &arg0->field_2C->field_8[15], 0x1202180, 0, 0x1C2, -100);
+                Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
+            }
+        } else if (work->field_8A2 == 9 || work->field_8A2 == 25 || work->field_8A2 == 26) {
+            if ((u32)Display_State.field_8 % 5 == 0) {
+                Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[18], 0x40, 0, 0x1C2, -100);
+            }
+            if ((u32)Display_State.field_8 % 6 == 3) {
+                Actor401300_SpawnEffVar(&D_8011574C, &arg0->field_2C->field_8[15], 0x40, 0, 0x1C2, -100);
+            }
+        }
+        if (snd != 0 && (*(s32*)&Game_Session->field_4 & 0xFFFF0000) == 0x051D0000) {
+            switch (snd) {
+                case 0x400D0001:
+                case 0x400D0003:
+                    Actor401300_SpawnEffVar(&D_80115738, &arg0->field_2C->field_8[18], 0x1202180, 0, 0x1C2, -100);
+                    snd = 0x551D0006;
+                    break;
+                case 0x400D0002:
+                case 0x400D0004:
+                    Actor401300_SpawnEffVar(&D_80115738, &arg0->field_2C->field_8[15], 0x1202180, 0, 0x1C2, -100);
+                    snd = 0x551D0007;
+                    break;
+                case 0x400D0005:
+                case 0x400D000B:
+                    Actor401300_SpawnEffZeroVar(&D_80115738, &arg0->field_2C->field_8[1], 0x1202180);
+                    Actor401300_SpawnEffZeroVar(&D_80115738, &arg0->field_2C->field_8[1], 0x1202180);
+                    Actor401300_SpawnEffZeroVar(&D_80115738, &arg0->field_2C->field_8[1], 0x1202180);
+                    snd = 0x551D0005;
+                    break;
+            }
+        }
+    }
+    if (Gp_State1C->field_A == 2) {
+        switch (snd) {
+            case 0x400D0001:
+            case 0x400D0003:
+                Actor401300_SpawnEff(0x60054, &arg0->field_2C->field_8[18], 0x800022C0, 0, 0x15E, -100);
+                break;
+            case 0x400D0002:
+            case 0x400D0004:
+                Actor401300_SpawnEff(0x60054, &arg0->field_2C->field_8[15], 0x800022F0, 0, 0x15E, -100);
+                break;
+            case 0x400D0005:
+            case 0x400D000B:
+                Actor401300_SpawnEffZero(0x60054, &arg0->field_2C->field_8[1], 0x80004800);
+                Actor401300_SpawnEffZero(0x60054, &arg0->field_2C->field_8[1], 0x80004800);
+                break;
+        }
+    }
+    if (snd != 0) {
+        i = snd | ((enemy->field_8 >> 12) << 8);
+        SndEvt_EnqueueType6(i, (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8),
+                            (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+}
 
 /// Points the model's light and color matrices at the work block's copies.
 static __inline__ void Actor401300_BindMatrices(Actor401300* actor)
