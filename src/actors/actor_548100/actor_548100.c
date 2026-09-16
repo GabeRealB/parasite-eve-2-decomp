@@ -228,7 +228,49 @@ INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133F88);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_801342D8);
+void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
+{
+    u8* route;
+    u8* head;
+    u8  prev;
+    s32 edge;
+    s32 total;
+    s32 start;
+
+    total = 0;
+    head  = D_actor_548100_80135B24[id];
+    start = total;
+    prev  = head[0];
+    route = head + 1;
+    while (*route != 0) {
+
+        if (*route != 0xFF) {
+            edge   = D_actor_548100_80135B5C[*route + prev * 100];
+            total += D_actor_548100_801351D0[edge].dist;
+            if (pos >= total) {
+                D_actor_548100_801351D0[edge].state = 2;
+            } else if (start < pos) {
+                if (D_actor_548100_801351D0[edge].nodeA == prev) {
+                    D_actor_548100_801351D0[edge].state = 4;
+                } else {
+                    D_actor_548100_801351D0[edge].state = 5;
+                }
+                D_actor_548100_801351D0[edge].field_C = pos - start;
+            } else {
+                D_actor_548100_801351D0[edge].state = 1;
+            }
+            start = total;
+            prev  = *route;
+        } else {
+            route++;
+            prev = *route;
+        }
+        if (*route == (stop & 0xFF)) {
+            break;
+        }
+        route++;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80134400);
 

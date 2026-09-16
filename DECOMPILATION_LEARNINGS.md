@@ -102004,3 +102004,7 @@ No second pseudo overlaps, `state` takes `$v0`, and dbr still puts `li v0,6` in 
 Same function: the `rodata_head` entry above applied — its jump table at 0x7C sat behind three
 `INCLUDE_RODATA` symbols in the first unit; `rodata_head = "0x7C"` plus deleting those lines fixed the
 4-byte `.align 3` shift with no unit renumbering.
+
+## `if (*p++ == (x & 0xFF)) break;` hoists the mask; split the increment out to keep it in the loop
+
+`func_actor_548100_801342D8` ends its route walk with `lbu v1,0(a3); andi v0,a1,0xFF; beq v1,v0,exit; addiu a3,a3,1` (the increment in the delay slot), then `while (*p != 0)`. Written `if (*p++ == (stop & 0xFF)) break;`, the post-increment insn lands between the `and` and the jump, giving the mask a lifetime of 2 in `.loop` (`savings 1 moved`) and `move_movables` hoists it (`andi a1,a1,0xFF` before the loop). Writing `if (*p == (stop & 0xFF)) break; p++;` makes the lifetime 1 (`not desirable`), the mask stays in the loop, and reorg still pulls `p++` into the delay slot because `p` is dead at the exit. Same function: dropping a `u8 cur = *p;` local for direct `*p` reads fixed the last register (`cur + prev*100` summed into `cur`'s register).
