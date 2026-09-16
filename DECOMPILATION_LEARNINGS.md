@@ -98434,3 +98434,52 @@ hangs off it.
 
 Inputs: `asm/USA/actors/matchings/lib/actor_101900_text/Actor01900_Fn008B4.s`,
 `asm/USA/actors/matchings/lib/actor_400100_anim/Actor00100_Fn00508.s`.
+## The scratch free's C position and a struct-member store's `mem/s` flag decide the tail schedule (Actor01600_Fn06974, 2026-09-16)
+
+An m2c seed of this 68-instruction scratch-pad stepper scored 96.54% with four
+`addiu` immediates scaled by `sizeof(VECTOR)` (`-0x3c0`/`-0x2c0`/`-0x240`/
+`+0x3c0`) and **one** instruction out of place in the tail: the target issues
+`lw v1,0x20(s3)` one slot earlier, before `sw v0,0x1c(s3)`.
+
+Fixing only the scale — byte casts on the head pointer, `M2C_FIELD` left alone —
+took it to 96.84%, tail still off by that slot. The tail order is not a
+scheduling detail to clean up later: sched1 seeds its ready list in RTL order,
+so where the free sits in C picks which of the two equal-length chains (the
+scratch-pointer update vs the last `coord->t[]` add) is released first. The
+seed had m2c's statement order, with the free *between* the `t[1]` and `t[2]`
+updates because that is where the asm's instructions sit; moving it after all
+three updates — as the sibling `Actor01600_Fn06810` writes it — is the 100%
+move (`base_3.i` 96.84% → `base_4.i` 100%). Do not read the asm's instruction
+order back into statement order for an independent chain like this.
+
+The other half of the same function: `temp_s1->vy = 0;` (a struct member store)
+marks the MEM `mem/s` (MEM_IN_STRUCT_P) from the expander onward, while the
+identical store spelled `*(s32*)((u8*)temp_s1 + 4) = 0;` is plain `mem`. Two
+sources with the *same statement order*, differing only in that spelling, had
+identical RTL apart from three constants and five `mem/s` flags — and still
+allocated the tail differently (`regs=7` at 96.54% vs `reorder=2 insert=3
+delete=3` at 88.90%). Constants cannot move an allocation, so when a
+semantically equivalent rewrite shifts registers or the schedule, diff the
+earliest `.flow`/`.rtl` dumps for the `mem/s` flag before touching anything
+else. Write the accesses as struct members (or through the word-view union)
+and the flag comes out right by itself.
+
+A pointer that holds `head - N` still yields head-based addressing for its
+*first* (offset 0) access: `work->move.vx` and `M2C_FIELD(head, s32*, -0x3C)`
+compile to the same `sw a1,-0x3c(s2)`, while `work->move.vy` stays `sw
+zero,4(s1)` on the `work` register. That mixture is what the target asm shows
+(`-0x3c(s2)` next to `4(s1)`), so a clean struct rewrite can reproduce an m2c
+reconstruction byte for byte: `base_6.c` (struct fields plus head-derived
+`mat`/`work` pointers) assembles identically to `base_4.c` (all `M2C_FIELD`).
+
+Inputs: `base.i`
+`92b4d768d9af565cc8223572f0d8ab9d8353d4ed3b11fe2faf3e544d64c947e8`,
+`base_2.i`
+`10890e899d739fa22c394153f88906149c21431e7571a5d057fa57e26b6c5320`,
+`base_3.i`
+`227a52c6a044d1c944af3e93f07d29252942902eced5bda0339b2246a7deb728`,
+`base_4.i`
+`663aa1d2b54e8def0acc9fbc36f49c3d438d2473119f5eefcfc98c9790128ce7`,
+`base_6.i`
+`dc2abb0341e4ff2df80a38174066942cdd58842df27d7efe1d7187d1bc6a4dec`.
+Scratch `nonmatchings/Actor01600_Fn06974-vacuum`.

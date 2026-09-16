@@ -391,6 +391,38 @@ typedef struct Actor01600GroundScratch {
 } Actor01600GroundScratch;
 STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 
+/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
+/// aligned stores instead of nine halfword ones, each word holding two adjacent
+/// `m[][]` entries. Same shape as `Actor206100MatrixWords`.
+typedef struct Actor01600MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor01600MatWords;
+
+typedef union Actor01600Matrix {
+    MATRIX             mat;
+    Actor01600MatWords ident;
+} Actor01600Matrix;
+STATIC_ASSERT_SIZEOF(Actor01600Matrix, 0x20);
+
+/// 0x3C-byte `G_SCRATCH_HEAD` block `Actor01600_Fn06974` steps the attachment
+/// coordinate in: the step vector the coordinate's facing is rotated into, the
+/// `SVECTOR` `Gfx_MatrixCol2` reads that facing into, the rotation
+/// `func_8004BFF8` builds for the yaw and the yaw itself.
+typedef struct Actor01600StepScratch {
+    /* 0x00 */ VECTOR           move;
+    /* 0x10 */ SVECTOR          dir;
+    /* 0x18 */ Actor01600Matrix mat;
+    /* 0x38 */ s16              yaw;
+    /* 0x3A */ byte             pad_3A[2];
+} Actor01600StepScratch;
+STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
+
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
 void Actor01600_Fn03A60(Actor01600* actor);
 void Gp_ArmStateF0(s32 active);
 s32  Gp_CountRec18Hi(GpRec18* rec, s32 mask);
@@ -407,7 +439,7 @@ extern Actor01600MsgState Actor01600_D127D8;
 
 s32  Actor01600_Fn047A0(Actor01600* actor);
 s32  Actor01600_Fn04974(Actor01600* actor, s32 angle, s32 distance, s32 flags);
-void Actor01600_Fn06974(Actor01600* actor, s32 angle);
+void Actor01600_Fn06974(Actor01600* actor, s32 distance);
 s32  Actor01600_Fn06C1C(Actor01600* actor);
 s32  Actor01600_Fn06C94(Actor01600* actor, s32 angle, s32 distance);
 s32  Actor01600_Fn06D74(Actor01600* actor, s32 angle, s32 distance);

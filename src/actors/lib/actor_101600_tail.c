@@ -181,7 +181,42 @@ void Actor01600_Fn06810(Actor01600Ctx* arg0, Actor01600* arg1)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06880);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06974);
+/// Steps the attachment coordinate `distance` units along the model's facing:
+/// `Gfx_MatrixCol2` reads that coordinate's column into `dir`, `ratan2` turns it
+/// into a yaw, `func_8004BFF8` builds the rotation for the yaw and
+/// `ApplyMatrixLV` rotates the step vector `(distance, 0, 0)` by it before the
+/// result is added to `coord.t`.
+void Actor01600_Fn06974(Actor01600* actor, s32 distance)
+{
+    Actor01600Matrix*      mat;
+    Actor01600StepScratch* work;
+    GsCOORDINATE2*         coord;
+    VECTOR*                head;
+    void**                 scratch;
+
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    coord         = actor->field_2C->field_8;
+    work          = (Actor01600StepScratch*)((u8*)head - 0x3C);
+    work->move.vx = (s16)distance;
+    work->move.vy = 0;
+    work->move.vz = 0;
+    *scratch      = work;
+    Gfx_MatrixCol2(&actor->field_2C->field_8->coord, (SVECTOR*)((u8*)head - 0x2C));
+    mat                = (Actor01600Matrix*)((u8*)head - 0x24);
+    work->yaw          = ratan2(work->dir.vx, work->dir.vz);
+    mat->ident.m00_m01 = 0x1000;
+    mat->ident.m02_m10 = 0;
+    mat->ident.m11_m12 = 0x1000;
+    mat->ident.m20_m21 = 0;
+    mat->ident.m22     = 0x1000;
+    func_8004BFF8(work->yaw, &mat->mat);
+    ApplyMatrixLV(&mat->mat, &work->move, &work->move);
+    coord->coord.t[0] += work->move.vx;
+    coord->coord.t[1] += work->move.vy;
+    coord->coord.t[2] += work->move.vz;
+    *scratch           = (u8*)*scratch + 0x3C;
+}
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_101600_tail", Actor01600_Fn06A84);
 
