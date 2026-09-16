@@ -85,7 +85,3 @@ INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402
 INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131EC4);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131EDC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", jtbl_actor_402200_80131F04);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_2", ActorsShared80135df4Table);

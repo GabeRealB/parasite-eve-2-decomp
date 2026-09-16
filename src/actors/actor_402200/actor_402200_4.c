@@ -12,6 +12,8 @@
 /// for the 0x10 one.
 extern s32 D_actor_402200_80138420[];
 
+INCLUDE_RODATA("actors/nonmatchings/actor_402200/actor_402200_4", ActorsShared80135df4Table);
+
 void func_actor_402200_80135A24(Actor402200* arg0)
 {
     Actor402200Work*  work;
