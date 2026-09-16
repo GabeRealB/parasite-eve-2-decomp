@@ -171,7 +171,34 @@ INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100
 /// Each draw reads `Gp_LcgState` back from the global: the initialiser's store
 /// is what the next draw's shift sees, and it is why one `lw` feeds all three
 /// and each draw's value gets its own register.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_5", func_actor_521100_80136290);
+void func_actor_521100_80136290(void* arg0, Task* task)
+{
+    Actor521100Work* work;
+    GsCOORDINATE2*   coord;
+    void**           scratch;
+    u8*              head;
+    VECTOR*          block;
+
+    coord    = &((TmdObject*)task->extra)->field_8[1];
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (VECTOR*)(head - 0x10);
+    *scratch = block;
+    Gp_UpdateCoord(coord);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0, block, 0, 0);
+    work        = D_actor_521100_8016A3D8;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    block->vx   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    block->vy   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    block->vz   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
+    ScaleMatrixL((MATRIX*)&work->pad_0[0x20], block);
+    *scratch = (u8*)*scratch + 0x10;
+}
 /// Companion task body: the two tasks the `0x7DB` handler
 /// `func_actor_521100_80136AE0` spawns out of the `D_actor_521100_8016A388`
 /// table, which differ only in `Task::spawnArg1` and in the slot they are kept
