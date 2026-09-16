@@ -1748,6 +1748,53 @@ field read 94.4%. Inputs: `base_4.i`
 `b85c269d8205cbb73c7c40a1b1695a2d8478780f5e613b29c8c263b4f4d5ed9b`.
 
 
+## A narrow literal store needs its own `li`; route it through a **single-use** `s32` local so allocation puts it in the compare's `$v0`
+
+The other side of the section above: nothing has been loaded yet, the constant
+has not been materialized. `actor->field_960 = 1;` into a `u16` field expands
+the RHS *in the field's mode*, so `emit_move_insn` finds no
+`(set (mem:HI) (const_int 1))` pattern and forces a pseudo — `.rtl` already
+carries `(set (reg:HI 86) (const_int 1))` with `REG_EQUAL (const_int 1)`,
+`movhi`, before any pass. The `switch` on that same field promotes its index to
+`SI`, so its comparison constant is `(set (reg:SI 129) (const_int 1))`. Two
+modes, and (for a two-case switch) the EBB-following described in the
+`actor_800100` section means cse never unifies them either, so the narrow store
+gets a second `li` and every branch after it shifts:
+
+```
+lui    v1,%hi(...)          li     v0,1        /* 0x1B20, the comparison's */
+addiu  v1,v1,%lo(...)  vs.  lui    v1,%hi(...)
+sh     v0,0x960(s0)         addiu  v1,v1,%lo(...)
+                            sh     v0,0x960(s0)
+```
+
+Write the value through an `s32` local instead and the store's RTL becomes
+`(set (mem/s:HI ...) (subreg:HI (reg/v:SI 85) 0))` with
+`(set (reg/v:SI 85) (const_int 1))` in the same block. Global-alloc then homes
+that pseudo in `$v0` — the register the comparison's constant already has — and
+the one `li $v0,1` in the dispatch delay slot feeds both `beq v1,v0` and the
+`sh`. `.greg`'s disposition list is the evidence: `85 in 2` beside `129 in 2`.
+
+**The local must be referenced exactly twice** (one set, one use). With a second
+use — here `d4->field_D0 = flag;` at a label reached both from `case 0`'s `goto`
+and straight from the dispatch — the pseudo is live across blocks instead of
+block-local, global-alloc cannot give it `$v0`, and it takes a callee-saved
+register: `li s4,1` / `sh s4,0x960(s0)` / `sb s4,0xD0(s2)`, `regs=12`, 93.2%.
+That is exactly the `update_equiv_regs` precondition in `local-alloc.c`
+(`REG_N_REFS (regno) == 2`); at three refs the equivalence is not recorded. Give
+the second store its own literal — it is 1 on both paths anyway — and the first
+one collapses.
+
+`func_actor_800200_8016390C`: literals in both stores 98.7% (`insert=1`, the
+spare `li`, everything else identical), `s32 flag = 1` into the field plus a
+literal at the second store 100% / 82 instructions. Inputs: `base_1.i`
+`446182eceb20d58928a31b6c243cc7bdbf22a96652ec244c260da9fc00717a85` (two-use
+`flag`, `$s4`), `base_2.i`
+`b979a0462d0b993723bed36c322ff71b93c09415f604b3401e8eb63a1478cdb9` (literals),
+`base_3.i`
+`97bd629e69ec75f2b8e79a2b13d9bef041bfaed889e0ecb725f7af243fed1a7e`.
+
+
 ## Loop-only copy of a live-after pointer fills an early delay and adds a saved reg
 
 When a work pointer is used both inside a call-crossing loop and after it,
