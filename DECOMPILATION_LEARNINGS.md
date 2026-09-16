@@ -91461,3 +91461,75 @@ base over as a bare `addiu` the compiler cannot fold away.
 scored 49.19% with `regs=24 insert=6 delete=6` — a right-shape, wrong-addresses
 baseline, which is what an m2c pointer-arithmetic version of this idiom looks
 like.
+## A store through *any* pointer clears CSE's memory entries, so an unrelated store keeps a reload (func_actor_204000_801503B0, 2026-09-16)
+
+Case 3 of a mode switch in this actor writes a display-object field, zeroes a
+work field and then ORs a bit into the first field again:
+
+```
+sh    $zero, 0xC($v1)     # obj->field_C = 0
+sh    $zero, 0x0($a0)     # work->field_0 = 0
+lhu   $v0, 0xC($v1)       # ... and read it back
+ori   $v0, $v0, 4
+sh    $v0, 0xC($v1)
+```
+
+The `lhu` looks foldable - the value just stored is 0, so `p->f = 0; p->f |= 4;`
+is `p->f = 4` in one instruction. It is not foldable *in this position*, and the
+second store is what decides it: with only those two statements GCC does fold
+them, and adding any third store through a different pointer between them brings
+the read back.
+
+That follows from `cse.c`. `note_mem_written` records what a store invalidates,
+and `invalidate_memory` then drops every table entry for which
+
+```c
+	if (p->in_memory
+	    && (all
+		|| (nonscalar && p->in_struct)
+		|| cse_rtx_addr_varies_p (p->exp)))
+	  remove_from_table (p, i);
+```
+
+`cse_rtx_addr_varies_p` returns 0 only for an address the compiler has *proved
+constant* - a bare register, or a register plus displacement, whose quantity
+holds a known constant. A loaded pointer is not that, so the recorded
+`(mem:HI (plus:SI (reg v1) (const_int 12)))` counts as varying and any store at
+all clears it, whether or not the addresses could alias. The C-level reading is:
+a pointer store is a CSE barrier for every other pointer's field, so a
+read-modify-write survives exactly when some other store sits between its halves.
+
+Two consequences for matching. A target's "redundant" reload of a field it just
+wrote is evidence about statement *order*, not a codegen quirk - look for the
+store that separates them, and reproduce the order rather than folding it by
+hand. And when the fold *is* expected, check that nothing was left between the
+two halves: this case needed `obj->field_C = 0;` and `work->field_0 = 0;` in
+that order, with the `|= 4` last.
+
+## The register a value arrives in names its parameter index; m2c can undercount parameters (func_actor_204000_801503B0, 2026-09-16)
+
+m2c read this body as two parameters - `(void *arg0, s32 arg2)` - because only
+`$a0` and the dispatch value are ever *used*. The dispatch value is tested as
+`$a2`, so the second declared parameter would sit in `$a1` and nothing in the
+body names it; the target's `$a2` is the third. Declaring
+
+```c
+s32 func_actor_204000_801503B0(Task* task, s32 arg1, s32 arg2)
+```
+
+took the function from 58.40% (`branch=4 regs=4 reorder=9 insert=5 delete=6`,
+selector in `$a1`, every condition register mismatched) to 100% in one edit.
+The rule is simply that the MIPS argument registers are fixed by position, so
+the register a value arrives in is a *count*, and an unused parameter still has
+to be declared to put the used ones where the target has them. A callee that
+reads `$a2` has three parameters even when the source never mentions the second
+- which is exactly the shape of a dispatched handler called with
+`(task, arg1, opcode)` from a table.
+
+The same function shows the mirror-image trap in its returns: `default: return 0;`
+inside the switch plus a `return 0;` after it produce *two* `addu $v0,$zero,$zero`
+sites in the target - one on the case tree's failure path, one at the join where
+the `break`s land. Writing only one of them merges the blocks and moves the
+`v0 = 0`. Each `return` is threaded to the shared epilogue by `jump.c` rather
+than cross-jumped with the other, so the count of `v0 = 0` instructions is the
+count of `return 0` statements.
