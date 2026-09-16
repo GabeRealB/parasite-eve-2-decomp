@@ -1126,7 +1126,145 @@ void func_actor_510900_80138D38(Actor510900* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_80138F44);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900_3", func_actor_510900_801391B8);
+/// Message 0x7D7 handler (entry in `D_actor_510900_80167A6C`). `arg2` picks
+/// between three visibility/liveness states of the boss and its two companion
+/// enemies, whose models are reached through `field_568` / `field_56C`.
+///
+/// 0 parks the actor: both models and its own drop to blend 0 and `field_5A4`
+/// becomes 1, after taking a `Gp_StateF0` reference (release id 0x1B).
+/// 1 wakes it: the same blend reset, then the patrol is restarted from
+/// distance 0x11F8 with animation 0x1A and yaw 0x400, the head coordinate is
+/// rebuilt from that yaw with its translation cleared, and slots 1..0x12 are
+/// reseeded. The first wake (`field_594` still 0) also pushes both body objects
+/// into their flagged pose and queues the charge cue.
+/// 2 puts it away: blend 0x80 everywhere, the linked task is handed state 4 and
+/// dropped, the flagged poses are cleared, and the collision grid this actor
+/// edited is restored - the three faces `func_actor_510900_8013B524` copies back
+/// plus the fourth `func_actor_510900_8013B424` zeroes, both written out inline.
+///
+/// `vec` is one `SVECTOR*` serving two unrelated roles - the scratch rotation
+/// state 1 builds the head matrix from, and the extra face normal state 2
+/// clears - which is what puts it in `$a0` in both. The `do`/`while (0)` cuts
+/// the basic block so the second `Gp_GridParams->field_4` read is scheduled on
+/// its own; without it the corner pointer and its walking copy coalesce.
+s32 func_actor_510900_801391B8(Actor510900* arg0, s32 arg1, s32 arg2)
+{
+    Actor510900Work*  work;
+    Actor510900Obj2C* obj;
+    Actor510900Coord* coord;
+    GpEnemy*          enemy;
+    SVECTOR*          rot;
+    void*             head;
+    SVECTOR*          normals;
+    SVECTOR*          verts;
+    GpGridFace*       faces;
+    s32               pair;
+    s32               i;
+    s32               j;
+    s32               k;
+    SVECTOR*          vec;
+    SVECTOR*          corners;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(SVECTOR);
+    rot                     = (SVECTOR*)*(void**)G_SCRATCH_HEAD;
+    obj                     = arg0->field_2C;
+    work                    = arg0->field_1C;
+    enemy                   = arg0->field_20;
+    coord                   = obj->field_8;
+
+    switch (arg2) {
+        case 0:
+            ((void (*)(s32))Gp_IncStateF0Ref)(0x1B);
+            obj->field_C                                  = 0;
+            ((TmdObject*)work->field_568->extra)->field_C = 0;
+            ((TmdObject*)work->field_56C->extra)->field_C = 0;
+            work->field_5A4                               = 1;
+            break;
+        case 1:
+            obj->field_C                                  = 0;
+            ((TmdObject*)work->field_568->extra)->field_C = 0;
+            ((TmdObject*)work->field_56C->extra)->field_C = 0;
+            work->field_5A4                               = 2;
+            work->field_5A6                               = 0x11F8;
+            vec                                           = rot;
+            work->field_586                               = 0x1A;
+            work->field_588                               = 0x1A;
+            work->field_5A0                               = 0x400;
+            work->field_58E                               = 0;
+            work->field_590                               = 0;
+            work->field_5A2                               = 0;
+            work->field_58A                               = 0;
+            work->obj47C.flags                           |= 0x8000;
+            enemy->node.field_4                           = 8;
+            vec->vx                                       = 0;
+            vec->vy                                       = work->field_5A0;
+            vec->vz                                       = 0;
+            RotMatrix(vec, &coord->field_0.coord);
+            coord->field_0.coord.t[0] = 0;
+            coord->field_0.coord.t[1] = 0;
+            coord->field_0.coord.t[2] = 0;
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_586);
+            }
+            if (work->field_594 == 0) {
+                work->field_594 = 1;
+                if (work->field_564 != NULL) {
+                    work->field_564[0xD] = 1;
+                }
+                work->field_598       = 0xF0;
+                work->obj4E4.flags   |= 0x8000;
+                work->obj504.flags   |= 0x8000;
+                pair                  = Gp_PackPair(&D_actor_510900_80167968, 5);
+                work->obj4E4.field_18 = pair;
+                work->obj504.field_18 = pair;
+                work->field_57C       = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x4078000D;
+                SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            break;
+        case 2:
+            obj->field_C                                  = 0x80;
+            ((TmdObject*)work->field_568->extra)->field_C = 0x80;
+            ((TmdObject*)work->field_56C->extra)->field_C = 0x80;
+            work->field_5A4                               = 0;
+            if (work->field_564 != NULL) {
+                work->field_564[0xD] = 4;
+            }
+            work->field_564     = NULL;
+            work->obj47C.flags &= 0x7FFF;
+            work->obj4E4.flags &= 0x7FFF;
+            work->obj504.flags &= 0x7FFF;
+            enemy->node.field_4 = 1;
+
+            normals = Gp_GridParams->field_4;
+            verts   = Gp_GridParams->field_8;
+            faces   = Gp_GridParams->field_C;
+            for (j = 0; j < 12; j++) {
+                verts[j] = D_actor_510900_80167BDC[j];
+            }
+            for (j = 0; j < 3; j++) {
+                normals[j] = D_actor_510900_80167BC4[j];
+                faces[j]   = D_actor_510900_80167C3C[j];
+            }
+
+            do {
+                vec = Gp_GridParams->field_4;
+            } while (0);
+            corners   = Gp_GridParams->field_8;
+            vec[3].vx = 0;
+            vec[3].vy = 0;
+            vec[3].vz = 0;
+            for (k = 0; k < 4; k++) {
+                corners[12 + k].vx = 0;
+                corners[12 + k].vy = 0;
+                corners[12 + k].vz = 0;
+            }
+            break;
+    }
+    *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
+    return 0;
+}
 
 /// Frame handler of the muzzle-flash child task, dispatched from
 /// `func_actor_510900_8013BE98` once the spawn has run. The parent's animation

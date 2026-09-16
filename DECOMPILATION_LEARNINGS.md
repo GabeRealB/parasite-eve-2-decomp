@@ -90234,3 +90234,58 @@ masking to the declared `u16` return. Nothing warns, the overlay just ends up 4
 bytes shorter and the checksum fails away from the edited function. Compare the
 scratch's include list against the host file's before hunting for a codegen
 difference.
+
+## The load that feeds a loop's pointer copy is always scheduled first, and it decides who gets `$v0`
+
+`sched.c` schedules a block **backwards**: `ready` holds the insns with no
+remaining successors, and an insn released by a scheduled successor is *queued*
+for `insn_cost` cycles before it can be picked (the `;; launching N before M`
+lines in a `-dS` dump). A preheader like
+
+```c
+normals = Gp_GridParams->field_4;
+verts   = Gp_GridParams->field_8;
+normals[3].vx = 0; normals[3].vy = 0; normals[3].vz = 0;
+for (k = 0; k < 4; k++) { verts[12 + k].vx = 0; ... }
+```
+
+therefore has a fixed order. The three stores win the equal-priority tie
+(`schedule_select` prefers the larger `potential_hazard`, and only memory insns
+have one), so they take T-1..T-3 and release `normals` at T-3. The giv copy
+`giv = verts` goes at T-4 and releases `verts` one cycle later, so `verts` is
+launched last and lands *earlier* in the block - which makes `normals` the final
+use of the `Gp_GridParams` temp. Local-alloc then gives `normals` that temp's
+`$v0` and `verts` `$v1`, and because the giv prefers its copy source, `giv` also
+takes `$v1` and the copy is deleted:
+
+```
+lw    v1, 8(v0)        ; instead of  lw   a0, 4(v0)
+lw    v0, 4(v0)        ;             lw   v0, 8(v0)
+                       ;             move v1, v0
+```
+
+Swapping the two source statements changes nothing: the order is decided by
+which pointer feeds the stores and which feeds the loop, not by LUID. Wrapping
+the second `Gp_GridParams->field_4` read in `do { ... } while (0)` cuts the
+basic block so it is scheduled on its own; `verts` then ends the temp's live
+range, takes `$v0`, and the giv - which conflicts with `$v0` through the loop
+body's scratch - is forced to `$v1`, restoring the `move`.
+
+## A local shared between two mutually exclusive paths is how a pointer reaches `$a0`
+
+Local-alloc only assigns pseudos whose references all sit in one basic block, so
+a fresh pointer used once in a preheader can only come out as `$v0` or `$v1` -
+whichever the surrounding temp does not hold. A pointer the target puts in an
+argument register is usually a *global* allocno: one C variable reused for two
+unrelated jobs on paths that never overlap. Here the same `SVECTOR*` is the
+scratch rotation vector one `switch` arm builds a matrix from and the grid
+normal pointer another arm clears, which is what pins both to `$a0`.
+
+Two knock-on effects are worth knowing. `enemy->node.field_4 = 8;` carries a
+`REG_EQUIV` note on the QImode constant load, and that note counts in
+`REG_N_REFS`; `allocno_compare` weights by `floor_log2(n_refs) * n_refs /
+live_length`, so going from 3 to 4 references more than doubles an allocno's
+priority and can swap two argument registers (`$a3` vs `$t0`) far from the code
+being edited. And the sharing has to be written as a copy (`vec = rot;`) inside
+the arm: assigning `Gp_GridParams` straight into the scratch variable at the top
+of the function merges the live ranges instead and scores worse.
