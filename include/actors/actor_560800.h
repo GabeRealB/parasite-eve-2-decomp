@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Work block this overlay hangs off the task's `Task::idMap` slot (0x1C),
@@ -57,6 +58,41 @@ typedef struct Actor560800Work {
     /* 0x66 */ byte  pad_66[2];
 } Actor560800Work;
 STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
+
+/// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
+/// from `ActorsShared80136280Desc` index 5 (`func_actor_560800_80132C60`).
+/// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
+/// 0x4CC bytes and stores it in its own `Task::idMap` (0x1C), so the size below
+/// is the allocation, not a guess. It is a third idMap block in this overlay,
+/// distinct from `Actor560800Work` and `Actor560800FadeWork`.
+///
+/// `anim` is the animation context the block itself is handed to
+/// `Gp_AnimResetSlot` as, laid out the way every actor carries it: the context
+/// at 0, its 0x14 slots at +0x14 and the 0x90-byte scratch `func_800B3F84`
+/// takes as its `arg3` at +0x334. `func_actor_560800_80132C60` passes exactly
+/// `block`, `block + 0x334` and `block + 0x14` to that call and then stores
+/// 0x14 in `field_4BA`, which is why the slots array is sized 0x14 and the
+/// scratch sits where it does.
+///
+/// `field_4B8` is the animation id the slots are seeded with (the same role
+/// `ActorsShared80132514Work::field_4B8` plays), `field_4BA` the slot count
+/// the reset loop walks 1..count, and `field_4C8` the 0x10 written into each
+/// slot's `field_9`. `field_4CA` is a phase counter the same handler reads.
+typedef struct Actor560800AnimWork {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       animAux[0x90];
+    /* 0x3C4 */ byte       pad_3C4[0xF0];
+    /* 0x4B4 */ void*      field_4B4;
+    /* 0x4B8 */ s16        field_4B8;
+    /* 0x4BA */ u16        field_4BA;
+    /* 0x4BC */ byte       pad_4BC[0x2];
+    /* 0x4BE */ s16        field_4BE;
+    /* 0x4C0 */ byte       pad_4C0[0x8];
+    /* 0x4C8 */ s16        field_4C8;
+    /* 0x4CA */ s16        field_4CA;
+} Actor560800AnimWork;
+STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
 /// 8-byte fade block `func_actor_560800_80135FA0` allocates with
 /// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap

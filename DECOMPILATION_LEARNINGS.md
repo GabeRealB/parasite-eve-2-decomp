@@ -94284,3 +94284,85 @@ SHA256 `base_1.i` `6e361f563828da9a9fa358f3ebc2937ca4810f3f54a07b258ea1784e734dc
 `base_3.i` `b6795aa5b383b9663b37665d5d41a7be4d4cbbeb9c5e00a7340686359c93728d`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_143000_801339CC-vacuum` (`base_3_diff`).
+## A pre-loop guard written with a constant folds to `sltiu`; written with the loop variable it stays `li` + `sltu`
+
+`func_actor_560800_80134B14` opens its `do`/`while` with
+
+```
+li    v0,1
+sltu  v0,v0,v1      # v1 = the count just loaded
+beqz  v0, end
+```
+
+m2c's `if ((u16)count > 1U) { do {...} while (i < count); }` gives the mirror
+shape instead -- `sltiu v1,v1,2` + `bnez v1,end` -- and no rearrangement of the
+`u16` casts changes that. The fix is to write the guard with the counter:
+
+```c
+u16 i = 1;
+if (i < count) {            /* -> li v0,1 / sltu v0,v0,v1 / beqz */
+    do { ... } while (i < count);
+}
+```
+
+The mechanism is the insn's own constraints, `config/mips/mips.md`:
+
+```
+(define_insn "sltu_si"
+  [(set (match_operand:SI 0 "register_operand" "=d")
+	(ltu:SI (match_operand:SI 1 "register_operand" "d")
+		(match_operand:SI 2 "arith_operand" "dI")))]
+```
+
+Operand 2 may be an immediate and becomes `sltiu`; operand 1 may **not**, so a
+constant there is forced into a register -- which is the target's `li v0,1`.
+The value is a constant at all only because it is `i`'s initializer: GCC
+propagates `i = 1` into the guard, keeping it in operand 1's position.
+
+Both operand orders appear in the same target: the guard compares the constant
+(`1 < count`) while the loop back-edge compares the variable (`sltu v0,s1,v1`).
+`func_actor_560800_80132C60` -- the handler of the task `field_8` points at, and
+the function that allocates the block this one reseeds -- carries the identical
+guard and loop, so the shape is the original source's, not a local quirk.
+
+## A constant used before a loop and inside it needs one local, not two literals
+
+The same function writes 0x10 to `field_4C8` and to every slot's `field_9`
+inside the loop. The target materializes it once, early, and both uses read that
+register (`sh s2,0x4c8(s0)`, `sb s2,0x1d(v0)`); two literal `0x10`s instead give
+
+```
+li    v0,0x10        # the field_4C8 store
+sh    v0,0x4c8(s0)
+...
+li    s3,0x10        # a second materialization in the loop preheader
+jal   Gp_AnimResetSlot
+sb    s3,0x1d(v0)
+```
+
+-- two `li`s and two registers. Declaring `u16 rate; rate = 0x10;` and using
+`rate` at both sites collapses them into one quantity with one home, at which
+point the scheduler also hoists its `li` next to the count load as the target
+has it. Verified by compiling both spellings side by side as standalone
+functions: CSE substitutes a literal at each store site, which is why the two
+literals stay independent; the loop use is in a different block, so nothing
+merges it with the first.
+
+This is the loop counterpart of the corpus entry "Interleave two stores of the
+same constant around another to keep it live": there the fix is store order in
+straight-line code, here the fix is a named local, and the reason a local works
+here and not there is that the second use is inside the loop body.
+
+## The +8 frame: `args=16` is the floor, so an 8-byte delta is one local
+
+The frame arithmetic from `compute_frame_size` is
+`total = MIPS_STACK_ALIGN(vars) + MIPS_STACK_ALIGN(args) + extra + MIPS_STACK_ALIGN(gp_reg_size)`,
+and `STACK_ARGS_ADJUST` forces `args_size` to at least 4 words, so every
+function that calls anything has `args= 16` whether or not it passes a stack
+argument. The target's 0x30 against the candidate's 0x28 is therefore 8 bytes of
+*locals*, not args: 16 + 8 + align(20) = 48. `stack_accesses` matched between the
+two and the penalty was `regs` (all eleven differing instructions are `$sp`
+displacements), so nothing in the object dump names the local -- an unreferenced
+aggregate is the only candidate. A declared-and-unused `SVECTOR unused;` supplies
+it; cc1 probes confirm a never-referenced aggregate still gets a slot
+(`SVECTOR s;` is `vars= 8`) while an unused scalar does not.

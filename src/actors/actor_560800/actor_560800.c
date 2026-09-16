@@ -2,6 +2,8 @@
 
 #include "actors/actor_560800.h"
 
+#include "gameplay/1BC.h"
+
 #include "gameplay/3A34.h"
 
 #include "gameplay/3CD8.h"
@@ -143,7 +145,41 @@ INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134384);
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134B14);
+/// Reseeds the sub-task's animation slots from clip 0x20 -- writing the slot
+/// count with the 0x10 restart rate and every slot's `field_9` -- then spawns
+/// effect 0x6002B on the ninth per-part coordinate of the task at `field_8`
+/// and posts the pad event that releases the input lock.
+///
+/// The rate is held in a local rather than written as two literals: both uses
+/// have to reach the same register, and 0x10 is live across the loop's
+/// `Gp_AnimResetSlot` call. `unused` is declared and never referenced - the
+/// ROM's frame is 0x30 and the local is what reserves its 8 bytes.
+void func_actor_560800_80134B14(void)
+{
+    Actor560800Work*     work;
+    Actor560800AnimWork* anim;
+    SVECTOR              unused;
+    u16                  i;
+    u16                  rate;
+
+    work = (Actor560800Work*)D_actor_560800_8017578C->idMap;
+    anim = (Actor560800AnimWork*)work->field_8->idMap;
+
+    anim->field_4B8 = 0x20;
+    rate            = 0x10;
+    anim->field_4C8 = rate;
+    anim->field_4BE = 0;
+    i               = 1;
+    if (i < anim->field_4BA) {
+        do {
+            anim->slots[i].field_9 = rate;
+            Gp_AnimResetSlot(&anim->anim, i, 0x20);
+            i++;
+        } while (i < anim->field_4BA);
+    }
+    Gp_SpawnEff(0x6002B, &((TmdObject*)work->field_8->extra)->field_8[8], 0x21, NULL);
+    Pad_PostEvent(0, 1, 0xFF, 2);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_80134BFC);
 
