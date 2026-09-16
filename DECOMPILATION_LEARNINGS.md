@@ -84326,3 +84326,38 @@ live switch value came out as the first parameter. Restoring the family's arity
 `func_acropolis_hallway_8017D734` and the other sound-key handlers - moves it to
 `$a2`. Both fixes together scored 100.00% with every penalty zero on the first
 build.
+
+## m2c cannot emit the unaligned 8-byte struct copy that opens a room handler (func_neo_ark_island_8017E968, 2026-09-16)
+
+Every room message handler in the `neo_ark` family opens by copying the incoming
+save location over the outgoing one, which GCC expands to `lwl`/`lwr` +
+`swl`/`swr`:
+
+```
+lwl $t0, 0x3($s0) ; lwr $t0, 0x0($s0)
+lwl $t1, 0x7($s0) ; lwr $t1, 0x4($s0)
+swl $t0, 0x3($s1) ; swr $t0, 0x0($s1)
+swl $t1, 0x7($s1) ; swr $t1, 0x4($s1)
+```
+
+m2c has no `lwl`/`lwr` decomposition to emit, so it renders all eight
+instructions as `M2C_FIELD(arg3, u8 *, 3) = M2C_UNALIGNED32(M2C_ERROR(...))`, and
+because the copy is untyped it leaves the parameters as `void *`. The seed scored
+58.6% with `regs=17 delete=13 insert=5 branch=2` - no penalty names the cause.
+Writing the copy as `*dst = *src;` against the family's `GpSaveLoc *` (an 8-byte
+struct carrying `STATIC_ASSERT_SIZEOF`) produces exactly those eight
+instructions, and the rest of the function then follows the sibling
+`func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `func_80179B14(src,
+dst)`, a dispatch on `*(u16*)src`, the same three `dst->field_0/2/3` stores into
+the overlay's staging `GpSaveLoc`, `Gp_MsgPlayerWeapon(0)`, then
+`Task_SpawnFromTable`. That port scored 100.00% with every penalty zero on the
+first build.
+
+Do not chase `switch` vs `if` for the dispatch when only **one** case is present.
+`switch (*(u16*)src) { case 0x1E: ...; return 0; } return 1;` and
+`if (*(u16*)src == 0x1E) { ...; return 0; } return 1;` compile to
+**byte-identical** assembly here - a controlled variation confirmed it, both at
+100.00%. Only the multi-case neighbour `func_neo_ark_island_8017EA34` needs the
+`switch` (see "A switch's shared tail belongs after the switch"); the load-bearing
+shape in both is just that the return value is preset once and every exit shares
+the epilogue.

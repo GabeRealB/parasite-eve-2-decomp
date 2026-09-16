@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
@@ -8,6 +9,16 @@
 
 extern u8         D_80115598;
 extern GpMsgEntry D_neo_ark_island_80181B48[];
+
+/// Staging save location the island commits: `field_2` / `field_4` / `field_1`
+/// hold what `func_neo_ark_island_8017E968` copies out of the incoming
+/// location, and `func_neo_ark_island_8017E844` moves those same three bytes
+/// into `Mc_SaveData.field_6` / `field_8` / `field_5`.
+extern GpSaveLoc D_neo_ark_island_80184008;
+
+extern TaskDesc D_neo_ark_island_80181B78;
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", D_neo_ark_island_8017D5C0);
 
@@ -24,7 +35,26 @@ s32 func_neo_ark_island_8017E960(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E968);
+/// Island message handler. Message 0x1E, while the incoming location still
+/// reports no pending flag, latches the save location the outgoing message
+/// carries and starts the cutscene that leads to the island's arrival. Returns
+/// 1 for every other message and for a location that is already latched.
+s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179B14(src, dst);
+    if (*(u16*)src == 0x1E) {
+        if (src->field_5 == 0) {
+            D_neo_ark_island_80184008.field_2 = dst->field_0;
+            D_neo_ark_island_80184008.field_4 = dst->field_2;
+            D_neo_ark_island_80184008.field_1 = dst->field_3;
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
+        }
+        return 0;
+    }
+    return 1;
+}
 
 s32 func_neo_ark_island_8017EA24(void)
 {
