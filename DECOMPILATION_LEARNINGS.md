@@ -84236,6 +84236,37 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/ActorsShared80131e24Sub1-vacuum`. Unverified beyond this function:
 whether the split still inverts the homes when the carve does *not* cross a call.
+**The copy is also an allocno-rank lever, and that is sometimes the only visible
+symptom.** `func_actor_800100_80165F50` (93.72% -> 100%, `regs=17`) has no
+scheduling complaint at all: the scratch push is written the way its matched
+sibling `func_actor_800100_80165C38` writes it,
+
+```c
+    place                            = (GsCOORDINATE2*)((u8*)*(void**)G_SCRATCH_HEAD - 0x50);
+    *(GsCOORDINATE2**)G_SCRATCH_HEAD = place;
+```
+
+one pseudo carries both the later uses and the memory store, and `.greg` shows
+it at `used 4/30` (rank `2*4/30` = 0.2667) against the work block's `d4` at
+`used 7/65` (0.2154). The sibling's registers are `place`->`$s1`, `d4`->`$s2`;
+this function's ROM has the pair swapped, and the only way to give `d4` the
+lower register is to move the store off the global pseudo. Spelling the push as
+two expressions of the same value
+
+```c
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = (u8*)head - 0x50;
+    place    = (GsCOORDINATE2*)((u8*)head - 0x50);
+```
+
+leaves `head - 0x50` stored to memory as its own block-0-local pseudo (`.rtl`
+keeps both `(plus (reg/v:SI 87) (const_int -80))` insns; the second is the one
+that lands in `$s2`) and drops `place` to `used 3/27` -- below 0.2154, so `d4`
+takes `$s1`. So when a `$sN` pair is swapped between a scratch pointer and a
+value used next to it, check the *ref count* of the pointer before touching its
+live range: the memory-bound value must not be the same pseudo as the one the
+body uses later.
 
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
 

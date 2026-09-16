@@ -1046,7 +1046,78 @@ void func_actor_800100_80165DE8(GpActorWork* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100_2", D_actor_800100_80161EC8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165F50);
+void func_actor_800100_80165F50(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* place;
+    u16            state;
+    void**         scratch;
+    void*          head;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = (u8*)head - 0x50;
+    place    = (GsCOORDINATE2*)((u8*)head - 0x50);
+
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    state = actor->field_960;
+    coord = ((TmdObject*)actor->field_91C->extra)->field_8;
+
+    switch (state) {
+        case 0:
+            actor->field_954  = 0;
+            actor->field_958  = 0;
+            actor->field_95A  = 2;
+            actor->field_95C  = 0;
+            d4->field_CC      = (rand() & 7) + 3;
+            actor->field_12A |= 0x800;
+            /* fallthrough */
+
+        case 1:
+        block_4:
+            actor->field_960 = 2;
+            actor->field_940 = 0;
+            actor->field_934 = 3;
+            func_80106238(arg0, 0, 0);
+            /* fallthrough */
+
+        case 2:
+            actor->field_934 -= 1;
+            if (actor->field_934 == 0) {
+                actor->field_960 += 1;
+                d4->field_CD     -= 1;
+                actor->field_12A |= 0xC000;
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x40670001, 1);
+                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[D_8007272F] | 0x10000, NULL);
+                Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
+            }
+            break;
+
+        case 3:
+            actor->field_960 += 1;
+            actor->field_12A &= 0x3FFF;
+            if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                Gp_PlayObjSfx((GpObj38*)place, 0x17, 1);
+            }
+            /* fallthrough */
+
+        case 4:
+            d4->field_CC -= 1;
+            if ((s8)d4->field_CC > 0) {
+                if ((s8)d4->field_CD > 0) {
+                    goto block_4;
+                }
+            }
+            if (func_80105894(arg0, 8, 0, 0) == 0) {
+                func_actor_800100_80166DD0(arg0);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166190);
 
