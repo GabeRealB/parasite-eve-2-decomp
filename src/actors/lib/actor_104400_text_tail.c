@@ -214,7 +214,35 @@ s32 Actor04400_Fn063E4(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn0648C);
+/// Message handler: on message 0x2C00 whose low nibble is 1..5, store the
+/// message halfword in `field_44C`. The five identical case bodies are
+/// cross-jumped into one, but only separate bodies keep the jump table; a
+/// single `case 1 ... 5` becomes a range test. `arg1` is the dispatch's
+/// handler index and is unused here.
+void Actor04400_Fn0648C(Task* arg0, s32 arg1, Actor104400Msg* arg2)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->idMap;
+
+    if (arg2->field_0 == 0x2C00) {
+        switch (arg2->field_2 & 0xF) {
+            case 1:
+                work->field_44C = arg2->field_2;
+                break;
+            case 2:
+                work->field_44C = arg2->field_2;
+                break;
+            case 3:
+                work->field_44C = arg2->field_2;
+                break;
+            case 4:
+                work->field_44C = arg2->field_2;
+                break;
+            case 5:
+                work->field_44C = arg2->field_2;
+                break;
+        }
+    }
+}
 
 void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
 {

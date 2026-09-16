@@ -113,6 +113,16 @@ typedef struct Actor104400Work {
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
+/// Payload the sender of message 0x2C00 passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor342400Msg` and `Actor335800Msg`. The
+/// overlay's 0x2C00 handler, `Actor04400_Fn0648C`, tests the id at 0x0 and
+/// stores the halfword at 0x2 in `Actor104400Work::field_44C`.
+typedef struct Actor104400Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor104400Msg;
+STATIC_ASSERT_SIZEOF(Actor104400Msg, 0x4);
+
 extern u8             Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
 extern u8             Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
 extern u8             D_801153F4;          // absolute; nonzero skips the controller's state handler

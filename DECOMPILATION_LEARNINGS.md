@@ -97899,3 +97899,58 @@ Inputs: `base_1.i` SHA256 `06dbb7008e9e7c50dd8756ebb4ca331f7c4fef3d2b712d565fbd6
 target SHA256 `fae26ba6aaf1de804dd38244c8809cf76aac0049c74e912cbc70c72fccf5a24c`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor04400_Fn06C70-vacuum`.
+
+## A jump table in a *shared* unit needs its `rodata` cut in every package that links it
+
+`Actor04400_Fn0648C` (USA/actors/lib/actor_104400_text_tail) is a 24-instruction
+message handler whose twin `func_actor_342400_801695C0` was already matched, so
+the body was a port: separate `case 1:`..`case 5:` bodies that all store
+`arg2->field_2` into `field_44C`. A single `case 1 ... 5` folds into
+`addiu -1` / `sltiu` / range test and loses the table (46.9%, `delete=10`,
+`unresolved indirect jump`); five identical bodies cross-jump into one and keep
+it (100.00%, all penalties zero).
+
+Its table is *not* the first thing in its unit's `.rodata`, so the usual "give
+the table the start of the object" rule does not apply. `Jt0020C` sits at file
+offset `0x20C` and a named zero word, `D_actor_104400_80132028`, sits at `0x208`
+between it and `Jt001F4`; `0x1F4 + 0x14` is `4 mod 8`, so that word is the real
+`.align 3` pad ahead of the second table, not an artefact. GCC reproduces the
+run byte for byte once the function is in the unit — the object's `.rodata`
+comes out `0x14` table + 4 pad + `0x14` table = `0x2C` — provided the whole run
+belongs to that unit, which means dropping the cut that split it:
+
+```toml
+# before: { start = "0x1F4", unit = "actor_104400_text_tail" },
+#         { start = "0x208", unit = "actor_104400_header_2" }
+# after:
+rodata = [..., { start = "0x1F4", unit = "actor_104400_text_tail" }]
+```
+
+The cut then runs to the start of `.text`, and `actor_104400_header_2`
+disappears. Distinguishing this from the incinerator case above — where the pad
+*was* an artefact and needed a `units` cut — is what the extracted rodata says:
+a pad that is genuine ROM content is a named symbol of its own.
+
+The expensive part is that `actor_104400_text_tail` is a **shared** unit:
+`src/actors/lib/actor_104400_text_tail.c` compiles once and links into every
+package that lists the span. `actor_342200`, the same actor in the other RAM
+slot (`load_addr = 0x80161E20`), lists the same three spans and carried its own
+`{ start = "0x208", unit = "actor_342200_header_2" }`. The object's `.rodata`
+grows by 0x18 for *all* of them at once, so fixing only the package being
+matched leaves the other slots shifted:
+
+```
+FAILED: build/USA/out/checksum.ok        <- the only symptom
+build/USA/out/actor_104400: FAILED
+$ ls -la build/USA/out/actor_104400      <- exactly 0x18 bytes too long
+```
+
+The check is `grep -n "<unit>" configs/USA/overlays.toml` — every entry that
+names the unit needs the same cut, and the sibling's cut names *its* header
+(`<other_slot>_header_2`), not this one's, so it does not look like a match.
+A scoped `--only <overlay>` build says nothing about the other slots.
+
+Inputs: `base_1.i` SHA256 `c7b1119a0f8bb4f4b7ab640fb37b549d102f6cec33549a25b54f6d5d961c092f`;
+target SHA256 `18b53dab655dbc16dd16e54216ea292bbeeb34e1e9ed9c203e2f056bafa5c5ef`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn0648C-vacuum`.
