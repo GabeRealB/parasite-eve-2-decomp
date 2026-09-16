@@ -61,7 +61,26 @@ void func_actor_202900_8014A208(void)
     } while (i < 0x13);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", func_actor_202900_8014A260);
+/// Reseeds animation slots 1..0x12 from `animId`, forcing each slot's set
+/// index to 1 first, and latches that id into `field_47E` as the one now
+/// playing.
+///
+/// The same body as `func_actor_521100_8013677C`: the third argument is the
+/// loop counter itself, and the two scaled induction variables are the
+/// compiler's own, not a pair of source level pointers.
+void func_actor_202900_8014A260(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        ActorsShared80131f9cWork->slots[i].field_9 = 1;
+        Gp_AnimInitSlot(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i], i,
+                        (s16)ActorsShared80131f9cWork->animId);
+        i++;
+    } while (i < 0x13);
+    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+}
 
 /// Reseeds animation slots 1..0x12 from `animId` and latches that id into
 /// `field_47E` as the one now playing.
