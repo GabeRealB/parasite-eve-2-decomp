@@ -317,7 +317,56 @@ void func_actor_206100_8014CD08(Task* task)
 /// The frame-0x46 block reads `task->idMap` again rather than reusing `work`,
 /// the fresh load that keeps the pair of stores a block-local quantity -- the
 /// same reload `set_state` below makes.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014CE60);
+void func_actor_206100_8014CE60(Task* task)
+{
+    Actor206100Work* work;
+    Actor206100Work* next;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   ring;
+    SVECTOR          vec;
+    s32              i;
+    s16              y;
+    s16              frame;
+
+    work            = (Actor206100Work*)task->idMap;
+    D_801818B8      = 0;
+    coord           = ((TmdObject*)task->extra)->field_8;
+    work->field_51E = work->field_51E + 1;
+    if ((s16)work->field_51E == 1) {
+        D_actor_206100_80158CD0 = 2;
+    }
+    frame = (s16)work->field_51E;
+    if (frame == 3) {
+        if (work->field_4F8 != NULL) {
+            Task_Kill(work->field_4F8);
+        }
+        if ((s16)work->field_51E == frame) {
+            SndEvt_EnqueueType6(0x551E0003, 0, 0);
+        }
+    }
+    if ((s16)work->field_51E == 0xC) {
+        y    = -0x294;
+        i    = 0;
+        ring = ((TmdObject*)task->extra)->field_8;
+        do {
+            vec.vx = (u32)rsin(i << 7) >> 3;
+            vec.vy = y;
+            vec.vz = (u32)rcos(i << 7) >> 3;
+            Gp_SpawnEff(D_80115738, ring, 0x01202148, &vec);
+            i++;
+        } while (i < 0x20);
+    }
+    if ((s16)work->field_51E == 0x46) {
+        Gp_MsgPlayerWeapon(1);
+        Gp_MsgPlayer3F3(1);
+        D_8007216C        = 2;
+        coord->coord.t[0] = 0;
+        coord->coord.t[2] = 0;
+        next              = (Actor206100Work*)task->idMap;
+        next->field_520   = 1;
+        next->field_522   = 0;
+    }
+}
 /// Clears `field_522` and hands `field_520` the new state, reloading the work
 /// block through the task rather than taking the caller's pointer: the fresh
 /// load is what makes `state` a block-local quantity, which is what lets
