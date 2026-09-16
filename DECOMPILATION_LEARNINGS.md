@@ -86948,3 +86948,61 @@ shape and were written this way; read a stack table built from `lui`/`addiu`
 pairs (rather than copied from a global, as `TaskFuncTable11 fns = D_…;` does)
 as a brace initializer, and keep everything that must stay above it in
 declarations of its own.
+
+## Repeated inline expansions share one stack temp, and a one-slot frame is evidence of several helpers (Actor00400_Fn05320, 2026-09-16)
+
+`Actor00400_Fn05320` needs a scratch `SVECTOR` in three separate places — the
+turn toward the current waypoint, and two identical 16-way effect rings — and
+retail's frame is 0x40 with a single 8-byte slot at `sp + 0x10`. The obvious
+reading, one function-scope `SVECTOR vec` reused by all three, is wrong, and
+costs more than the slot: with a function-scope local the turn's bound folds
+(`slti $v0, $a0, 0x31` instead of `li $v1, 0x30` + `slt`), and the waypoint
+address ties its `addu` to the base register (`addu $v1,$v1,$v0`) rather than
+to the shifted index (`addu $v0,$v0,$v1`).
+
+Putting all three in `static inline` helpers, each declaring its own `SVECTOR`,
+gives the target exactly — one slot for all three expansions:
+
+```c
+static inline void Actor00400_SpawnRing(Actor100400* arg0, Actor100400Work* work,
+                                        GsCOORDINATE2* coord)
+{
+    SVECTOR vec;    /* shares sp+0x10 with Actor00400_TurnToward's vec */
+    ...
+}
+```
+
+This refines the `Actor00400_Fn064B0` entry above, which observed two inlines
+in sequence *stacking* their temps. Both happen; which one you are looking at
+is decided by the frame. Read one slot serving several unrelated scratch uses
+as several expansions of inline helpers, not as one shared local — and expect
+the `slt`-with-register compare and the index-tied `addu` to come with it,
+since both follow from the address and the bound arriving as call arguments.
+
+## A lone `move` before a join-point `bnez` is a *signed* char flag (Actor00400_Fn05320, 2026-09-16)
+
+The same function sets a 0/1 flag in one branch and tests it after the join:
+
+```
+b4:  move  $v0, $a0
+b8:  bnez  $v0, <epilogue>
+```
+
+That copy cannot be written with an `s32` flag. `cse` puts the copy and the
+test in one basic block, substitutes the source register into the branch, and
+`flow` deletes the copy — every `s32` phrasing, including an explicit second
+variable and an inlined helper returning the flag, produced byte-identical
+output with no copy at all. The copy is a mode widening, which `cse` records as
+`zero_extend`/`sign_extend` rather than as an equivalence, so it survives:
+
+| flag type | insn emitted |
+|---|---|
+| `s32` | none — `bnez $a0` directly |
+| `u8`  | `andi $v0, $a0, 0xff` |
+| `s8`  | `move $v0, $a0` |
+
+`s8` wins because the widening reaches `.greg` as
+`(set (reg:SI 2) (subreg:SI (reg/v:QI 4) 0))` — a `movsi_internal2`. The
+widening insn is also what splits the join into its own basic block, so a
+diagnosis showing one extra single-instruction block in front of a flag test is
+the same finding seen from the other side.

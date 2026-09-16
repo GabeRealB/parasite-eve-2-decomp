@@ -1347,7 +1347,123 @@ void Actor00400_Fn04CF8(Actor100400* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn04E18);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn05320);
+static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
+{
+    Actor100400Work* work = arg0->field_1C;
+    GsCOORDINATE2*   coords;
+    SVECTOR          vec;
+    s32              diff;
+    s32              yaw;
+    u16              angle;
+
+    coords      = arg0->field_2C->field_8;
+    coords->flg = 0;
+    vec.vx      = target->vx - coords->coord.t[0];
+    vec.vy      = 0;
+    vec.vz      = target->vz - coords->coord.t[2];
+    VectorNormalSS(&vec, &vec);
+    yaw   = ratan2(vec.vx, vec.vz);
+    angle = work->field_556;
+    diff  = ((angle - yaw) << 20) >> 20;
+    if (diff > range) {
+        work->field_556 = angle - step;
+    } else if (diff < -range) {
+        work->field_556 = angle + step;
+    }
+}
+
+/// Spawns the 16-way ring of `0x01202148` effects the boss uses when it lands
+/// and when it is knocked down: one per 1/16 turn, at the height `field_64E`
+/// gives above the root coordinate.
+static inline void Actor00400_SpawnRing(Actor100400* arg0, Actor100400Work* work, GsCOORDINATE2* coord)
+{
+    GsCOORDINATE2* coord2;
+    SVECTOR        vec;
+    s32            i;
+    s16            y;
+
+    i      = 0;
+    y      = work->field_64E - coord->coord.t[1] + 0xFA;
+    coord2 = arg0->field_2C->field_8;
+    do {
+        vec.vx = (u32)rsin(i << 8) >> 3;
+        vec.vy = y;
+        vec.vz = (u32)rcos(i << 8) >> 3;
+        Gp_SpawnEff(D_80115738, coord2, 0x01202148, &vec);
+        i++;
+    } while (i < 16);
+}
+
+void Actor00400_Fn05320(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    Actor100400Work* w1;
+    Actor100400Work* w2;
+    Actor100400Work* w4;
+    Actor100400Work* w5;
+    GsCOORDINATE2*   coord;
+    s8               armed;
+    s32              cond;
+    s32              sound;
+    s32              pan;
+    s32              sound2;
+    s32              pan2;
+    s32              sound3;
+    s32              pan3;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    work->field_636++;
+    if (work->field_636 >= 0x14) {
+        w1    = arg0->field_1C;
+        armed = 0;
+        if (w1->field_640 < 0xDAC && (u32)(w1->field_634 - 0x600) >= 0x400U) {
+            D_801153F2[1] = 1;
+            Gp_ArmStateF0(1);
+            armed         = 1;
+            w2            = arg0->field_1C;
+            w2->field_638 = 4;
+            w2->field_63A = 0;
+        }
+        if (armed) {
+            return;
+        }
+        Actor00400_TurnToward(arg0, (SVECTOR*)&work->field_60C[work->field_65B & 7], 0x20, 0x30);
+    }
+    if (work->field_636 == 8) {
+        work->field_660 = 0;
+        sound           = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040007;
+        pan             = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+    if (work->field_636 == 0xC) {
+        Actor00400_SpawnRing(arg0, work, coord);
+    }
+    if (work->field_636 == 0x14) {
+        sound2 = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040004;
+        pan2   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+    }
+    w4 = arg0->field_1C;
+    if ((w4->flags_62C.half & 1) || (w4->flags_62C.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        Actor00400_SpawnRing(arg0, work, coord);
+        sound3 = ((arg0->field_20->field_8 >> 12) << 8) | 0x40040008;
+        pan3   = (s8)Gp_GetObjPan(arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound3, pan3, (s8)Gp_GetObjDepth(arg0->field_2C->field_8));
+        work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
+        w5              = arg0->field_1C;
+        w5->field_63C   = 4;
+        w5->field_632   = 0x10;
+        w5->field_628   = 1;
+        w5->field_624   = 1;
+        work->field_63A++;
+    }
+}
 
 void Actor00400_Fn05728(Actor100400* arg0)
 {
@@ -1447,31 +1563,6 @@ void Actor00400_Fn05D00(Actor100400* arg0)
         work->field_63A++;
     }
     work->field_63A++;
-}
-
-static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
-{
-    Actor100400Work* work = arg0->field_1C;
-    GsCOORDINATE2*   coords;
-    SVECTOR          vec;
-    s32              diff;
-    s32              yaw;
-    u16              angle;
-
-    coords      = arg0->field_2C->field_8;
-    coords->flg = 0;
-    vec.vx      = target->vx - coords->coord.t[0];
-    vec.vy      = 0;
-    vec.vz      = target->vz - coords->coord.t[2];
-    VectorNormalSS(&vec, &vec);
-    yaw   = ratan2(vec.vx, vec.vz);
-    angle = work->field_556;
-    diff  = ((angle - yaw) << 20) >> 20;
-    if (diff > range) {
-        work->field_556 = angle - step;
-    } else if (diff < -range) {
-        work->field_556 = angle + step;
-    }
 }
 
 void Actor00400_Fn05EA4(Actor100400* arg0)
