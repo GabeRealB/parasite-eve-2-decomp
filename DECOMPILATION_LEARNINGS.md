@@ -90349,3 +90349,52 @@ The subscript is then read before the store and the `>= 3` test after it, so
 `work` an unknown pointer, which may alias. Hoisting the assignment to its own
 statement ahead of the `if`, the natural way to write it, puts both reads after
 the store and merges them again.
+
+## Two back-to-back counted loops: where the second `i = 0` sits decides `slt` vs `beqz`
+
+`func_actor_510900_8013482C` spawns `D_80070F70 & 3` of one effect and then
+`D_80070F70 & 1` of another. The target guards the two loops differently:
+
+```
+    andi  $s2, $v0, 0x3
+    beqz  $s2, skip1          # first loop: tests the count
+     move $s0, $zero
+    ...
+    lw    $v0, %lo(D_80070F70)($v0)
+    move  $s0, $zero
+    andi  $s2, $v0, 0x1
+    slt   $v0, $s0, $s2       # second loop: tests the counter
+    beqz  $v0, done
+```
+
+Both loops are ordinary counted loops, so the asymmetry is not in the loop
+shape. `duplicate_loop_exit_test` (jump.c, in the *jump* pass) copies the
+bottom test into the entry block, and combine then folds `(lt i n) == 0` into
+`n == 0` whenever it has a `LOG_LINK` back to the `i = 0` that precedes it -
+flow.c only creates that link when the next use of the register is in the same
+basic block. So the first loop's guard collapses to `beqz $s2` while the second
+must keep its `slt`, and the only thing that can stop the fold is putting the
+reset out of link range.
+
+Writing the reset *after* the count load is enough:
+
+```c
+n = D_80070F70 & 3;
+i = 0;
+if (n != 0) {
+    do { ... } while (i < n);
+}
+n = D_80070F70 & 1;   /* count first ... */
+i = 0;                /* ... then the reset */
+if (i < n) {
+    do { ... } while (i < n);
+}
+```
+
+With `i = 0;` before `n = ...` the guard folds to `beqz $s2` (99.06%); with it
+after, combine leaves the `slt` alone and sched1 has a spare insn to fill the
+`lw` load-delay slot with, which is what puts `move $s0, $zero` between the load
+and the `andi`. Both effects come from the one statement swap, so try it before
+reaching for a soft use or a pin. The neighbouring
+"A loop entry test that reads a *copy* of the count" entry is the harder version
+of the same fold, where the guard has to be steered onto a different register.

@@ -16,13 +16,15 @@
 
 #include <psyq/inline_c.h>
 
-/* `gte_ApplyMatrix` / `gte_MulMatrix0` / `gte_RotTransPers` from
- * `psyq/gtemac.h`, except with the real `rtv0` / `rtir` / `rtps` encodings this
- * toolchain assembles correctly. */
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+/* `gte_ApplyMatrix` / `gte_MulMatrix0` / `gte_RotTransPers` / `gte_LoadAverageShort12`
+ * from `psyq/gtemac.h`, except with the real `rtv0` / `rtir` / `rtps` / `gpf`
+ * encodings this toolchain assembles correctly. */
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtir_real()  __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_actor_510900_80135744(Actor510900* arg0);
 void func_actor_510900_8013864C(Actor510900* arg0);
 void func_actor_510900_801387F4(Actor510900* arg0);
@@ -39,6 +41,7 @@ void func_actor_510900_8013BC80(Actor510900* arg0);
 extern u8  D_801153F4;
 extern u32 Gp_LcgState;
 extern s16 D_80073BA0;
+extern s32 D_80070F70;
 
 /// The pair source the context's `field_50` points at; its `field_4` seeds the
 /// enemy's HP.
@@ -263,7 +266,101 @@ void func_actor_510900_801346D4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8013482C);
+void func_actor_510900_8013482C(Task* arg0)
+{
+    GpEffWork*     eff;
+    GpEffWork*     spawned;
+    GsCOORDINATE2* coord;
+    s16            mode;
+    s16            scale;
+    s16            step;
+    s32            tmp;
+    s32            i;
+    s32            n;
+
+    eff   = arg0->spawnArg2;
+    mode  = Gp_State1C->field_4;
+    coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
+    if (mode != 0) {
+        if (mode >= 4) {
+            Gp_ReleaseState1CMem(eff, arg0);
+        }
+        return;
+    }
+    eff->field_22++;
+    if (arg0->state == 0) {
+        scale = 0x300;
+        if (arg0->spawnArg1 & 0xFFF) {
+            scale = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+        }
+        eff->field_24 = scale;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        eff->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+        if (arg0->spawnArg1 & 0xF000) {
+            step = (arg0->spawnArg1 >> 12) & 0xF;
+        } else {
+            step = 2;
+        }
+        eff->field_28 = step;
+        eff->field_2A = (s32)(*(u16*)&eff->field_24 << 16) >> 23;
+        tmp           = ((GpEffSpawnArgHi*)&arg0->spawnArg1)->field_3;
+        eff->field_20 = tmp & 0xF;
+        if (eff->field_20 != 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            eff->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            eff->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            eff->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            gte_lddp(eff->field_24 << 3);
+            gte_ldsv((SVECTOR*)&eff->field_10);
+            gte_gpf12_real();
+            gte_stsv((SVECTOR*)&eff->field_10);
+            gte_lddp(eff->field_20 << 12);
+            gte_ldsv((SVECTOR*)&eff->field_10);
+            gte_gpf12_real();
+            gte_stsv((SVECTOR*)&eff->field_10);
+            gte_SetRotMatrix(&eff->field_8->coord);
+            gte_ldv0((SVECTOR*)&eff->field_10);
+            gte_rtv0_real();
+            gte_stsv((SVECTOR*)&eff->field_10);
+        } else if (!(arg0->spawnArg1 & 0xF0000000)) {
+            n = D_80070F70 & 3;
+            i = 0;
+            if (n != 0) {
+                do {
+                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)(*(u16*)&eff->field_24 << 16) >> 17) | 0x02001000, NULL);
+                    if (spawned != NULL) {
+                        Task_Reparent(arg0, spawned->field_0);
+                    }
+                    i += 1;
+                } while (i < n);
+            }
+            n = D_80070F70 & 1;
+            i = 0;
+            if (i < n) {
+                do {
+                    spawned = Gp_SpawnEff(0x60184, coord, ((s32)(*(u16*)&eff->field_24 << 16) >> 17) | 0x01002000, NULL);
+                    if (spawned != NULL) {
+                        Task_Reparent(arg0, spawned->field_0);
+                    }
+                    i += 1;
+                } while (i < n);
+            }
+        }
+        eff->field_22--;
+        arg0->state = 1;
+    }
+    func_actor_510900_80134C90(coord, eff->field_22 / eff->field_28, eff->field_24, eff->field_26);
+    coord->coord.t[0] += eff->field_10;
+    coord->coord.t[1] += eff->field_12;
+    coord->coord.t[2] += eff->field_14;
+    coord->flg         = 0;
+    eff->field_24     += eff->field_2A;
+    if (eff->field_22 > eff->field_28 * 11 - 1) {
+        Gp_ReleaseState1CMem(eff, arg0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80134C90);
 
