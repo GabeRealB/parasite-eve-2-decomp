@@ -3,8 +3,12 @@
 #include <psyq/inline_c.h>
 
 #include "actors/actor_421600.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
@@ -137,7 +141,94 @@ INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801373D4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013848C);
+/// Spawn/aim tick: on the live-actor edge it resets the display objects, runs
+/// the arena vector through the gte rotation, stores the world X (`field_8A4`)
+/// and Z (`field_8AC`) it produces, plays the spawn sound, then bumps the
+/// `field_6` frame counter. On frame 0xF of the 7 pose it enqueues the second
+/// sound and, outside a live-game state, spawns the effect on the player's
+/// coordinate. The `field_E90` id picks `field_0` on the 0x100 flag, 5 for
+/// 0x11402 and 0x1F otherwise -- the same pair `func_actor_421600_8013E9D8`
+/// writes.
+void func_actor_421600_8013848C(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    SVECTOR*         head;
+    SVECTOR*         vec;
+    SVECTOR*         gteVec;
+    TmdObject*       obj;
+    Task*            player;
+    s32              x;
+    s32              z;
+    s32              sound;
+    s32              pan;
+    s32              eventPan;
+    s32              state;
+    u16              tick;
+
+    work                       = arg0->field_1C;
+    player                     = Game_GetPtrSlot(3);
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 2;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    ctx                        = arg0->field_20;
+    gteVec                     = vec;
+    if (work->field_4 != 0) {
+        TOUCH_REG(gteVec);
+        obj               = arg0->field_2C;
+        ctx->node.field_4 = 0;
+        obj->field_C      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.field_1C = 0x19C;
+        work->field_82E          = 5;
+        work->field_828          = 1;
+        work->field_82A          = 0;
+        work->field_83E          = 0;
+        work->field_B6C.flags   |= 0x4000;
+        work->field_832          = work->field_834;
+        func_actor_421600_80134604(arg0);
+        Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, vec);
+        work->field_6 = 0;
+        VectorNormalSS(vec, vec);
+        if (work->field_E9E >= 0xFA1) {
+            work->field_E9E = 0xFA0;
+        }
+        gte_lddp(0x85);
+        gte_ldsv(gteVec);
+        gte_gpf12_real();
+        gte_stsv(gteVec);
+        x               = head[-2].vx;
+        work->field_8A8 = 0;
+        work->field_8A4 = x;
+        z               = vec->vz;
+        work->field_8B4 = 7;
+        work->field_8B6 = 1;
+        work->field_8AC = z;
+        pan             = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+    }
+    tick          = work->field_6 + 1;
+    work->field_6 = tick;
+    if (((s16)tick == 0xF) && (work->field_8B4 == 7)) {
+        sound    = (((u16)ctx->field_8 >> 0xC) << 8) | 0x4001000A;
+        eventPan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        if (Gp_State1C->field_A == 2) {
+            Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->field_8 + 1, 0x80003A00, NULL);
+        }
+    }
+    func_actor_421600_80134604(arg0);
+    if (work->field_68 & 0x100) {
+        state = work->field_E90 & 0xFFFFFF;
+        if (state == 0x11402) {
+            state = 5;
+        } else {
+            state = 0x1F;
+        }
+        work->field_0 = state;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 2;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80138750);
 

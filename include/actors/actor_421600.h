@@ -36,7 +36,10 @@ typedef struct Actor421600Work {
     /* 0x000 */ s16  field_0;
     /* 0x002 */ byte pad_2[2];
     /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[0x54];
+    /// Frame counter `func_actor_421600_8013848C` bumps each tick and waits on
+    /// to read 0xF; same slot actor 00100 keeps its own tick in.
+    /* 0x006 */ u16  field_6;
+    /* 0x008 */ byte pad_8[0x52];
     /// Animation step counter masked to 0x3FF by the state handlers; the
     /// model-shrink tails wait for it to read 0xC.
     /* 0x05A */ u16  field_5A;
@@ -49,15 +52,30 @@ typedef struct Actor421600Work {
     /* 0x82E */ s16  field_82E;
     /* 0x830 */ byte pad_830[2];
     /* 0x832 */ u16  field_832;
-    /* 0x834 */ byte pad_834[6];
+    /// Source `func_actor_421600_8013848C` copies into `field_832`; the anim
+    /// view above still reaches it through its own padding.
+    /* 0x834 */ u16  field_834;
+    /* 0x836 */ byte pad_836[4];
     /// Clip id `func_actor_421600_80133B30` copies into the blend slots.
-    /* 0x83A */ u16     field_83A;
-    /* 0x83C */ byte    pad_83C[2];
-    /* 0x83E */ u16     field_83E;
-    /* 0x840 */ u16     field_840;
-    /* 0x842 */ byte    pad_842[2];
-    /* 0x844 */ s16     field_844;
-    /* 0x846 */ byte    pad_846[0xA6];
+    /* 0x83A */ u16  field_83A;
+    /* 0x83C */ byte pad_83C[2];
+    /* 0x83E */ u16  field_83E;
+    /* 0x840 */ u16  field_840;
+    /* 0x842 */ byte pad_842[2];
+    /* 0x844 */ s16  field_844;
+    /* 0x846 */ byte pad_846[0x5E];
+    /// World X and Z `func_actor_421600_8013848C` takes off the gte-rotated
+    /// vec (`field_8A4` from its `vx`, `field_8AC` from its `vz`), around the
+    /// zeroed `field_8A8` actor 00100 keeps at its own 0x8DC.
+    /* 0x8A4 */ s32  field_8A4;
+    /* 0x8A8 */ s32  field_8A8;
+    /* 0x8AC */ s32  field_8AC;
+    /* 0x8B0 */ byte pad_8B0[4];
+    /// Pose id / blend flag pair `func_actor_421600_8013848C` sets to 7 and 1;
+    /// actor 00100 has the same pair at 0x8E8 / 0x8EA.
+    /* 0x8B4 */ s16     field_8B4;
+    /* 0x8B6 */ s8      field_8B6;
+    /* 0x8B7 */ byte    pad_8B7[0x35];
     /* 0x8EC */ GpObj   field_8EC;
     /* 0x90C */ byte    pad_90C[0x120];
     /* 0xA2C */ GpObj   field_A2C;
@@ -68,9 +86,13 @@ typedef struct Actor421600Work {
     /* 0xE90 */ s32     field_E90;
     /* 0xE94 */ Task*   field_E94;
     /* 0xE98 */ Task*   field_E98;
-    /* 0xE9C */ byte    pad_E9C[0x10];
-    /* 0xEAC */ s16     field_EAC;
-    /* 0xEAE */ byte    pad_EAE[2];
+    /* 0xE9C */ byte    pad_E9C[2];
+    /// Distance `func_actor_421600_8013848C` clamps to 0xFA0 after the gte
+    /// rotation.
+    /* 0xE9E */ s16  field_E9E;
+    /* 0xEA0 */ byte pad_EA0[0xC];
+    /* 0xEAC */ s16  field_EAC;
+    /* 0xEAE */ byte pad_EAE[2];
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 

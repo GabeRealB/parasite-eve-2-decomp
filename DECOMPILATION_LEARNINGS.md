@@ -106649,3 +106649,65 @@ Inputs: `base_2.i` (100%) SHA256
 `c55a4939f0b00a332e9d318d158d2b2e56977f462da40ba99da0350c4e757444`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_80133B30-vacuum`.
+
+## A conditionally stored constant's register follows the variable, so the tested value must be assigned into it (func_actor_421600_8013848C, 2026-09-16)
+
+The tail of this function picks `field_0` from the id word and stores it once.
+The target:
+
+```
+lui  a0,0xffffff>16
+ori  a0,a0,0xffff
+lui  v1,0x1
+lw   v0,0xE90(s2)
+ori  v1,v1,0x1402
+and  v0,v0,a0
+bne  v0,v1,.L
+li   v0,0x1f          # delay slot
+li   v0,5
+.L:  sh   v0,0(s2)
+```
+
+Every branch and the single store match a "default then override" source, and
+that is what was written first (99.915%, `regs=3`):
+
+```c
+if (work->field_68 & 0x100) {
+    state = 0x1F;                                     /* -> $a1, not $v0 */
+    if ((work->field_E90 & 0xFFFFFF) == 0x11402) {
+        state = 5;
+    }
+    work->field_0 = state;
+}
+```
+
+`state` there is a fresh pseudo whose live range begins at `li a1,0x1f`, so
+local-alloc has nothing tying it to `$v0` and picks `$a1` — same instructions,
+same structure, three register differences. Assigning the *tested* value into
+the same variable makes the pseudo the one the `and` already wrote, so both
+constants land in `$v0` and the store reads it:
+
+```c
+state = work->field_E90 & 0xFFFFFF;
+if (state == 0x11402) {
+    state = 5;
+} else {
+    state = 0x1F;
+}
+work->field_0 = state;
+```
+
+The sibling `func_actor_421600_8013E9D8` in the same TU does the same E90 test
+and its compiled `bne ... / li $2,2 / li $2,5 / sh $2,0($16)` shows exactly this
+shape with a different default, which is where the fix came from: when the
+leftover is only the register of a conditionally stored constant, the sibling
+that shares the test already records the original's variable structure. Reach
+for it before pinning anything.
+
+Inputs: `base_2.i` (100%) SHA256
+`98dd96ebc516bf9d958367c14b8c00270113f034a728e408170d57d6a5ff4483`;
+`base_1.i` (99.915%) SHA256
+`45d16cc7e2f382b34c433609515e7271d7b7758d69dec8b8ea34df942dbe15d7`;
+target SHA256 `db02ab4dbb61e5a17be778b7d131b38cd2371cd49771cf010f6fbdd76aaa6ddc`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_actor_421600_8013848C-vacuum`.
