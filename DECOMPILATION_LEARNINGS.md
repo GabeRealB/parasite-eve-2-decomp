@@ -85070,3 +85070,34 @@ dead, here the missing one is the live pointer.
 
 Inputs: `base.c` (98.45%, `regs=1 reorder=1`), `base_1.c` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+
+## A 1-based global table from an m2c byte-pointer seed: the `-1` folds into the symbol
+
+`func_dryfield_night_junk_yard_8017D9B8` walks
+`Gp_SprtTables[Game_Session->field_7 - 1][0].field_0[Game_Session->field_6 - 1]`,
+and m2c seeded the first level as byte arithmetic,
+`(u8 *)&Gp_SprtTables + (idx - 1) * 4`. That spelling lets `pointer_int_sum`
+apply the distributive law, so combine emerges with `idx * 4 + (%lo(SYM) - 4)`:
+the target's `addiu v0,v0,-0x1` / `sll v0,v0,0x2` / `addu v0,v0,v1` comes out as
+`sll v1,v1,0x2` / `addu v1,v1,v0` against a single
+`addiu v0,v0,%lo(Gp_SprtTables-0x4)` - two instructions short of the target, at
+89.09% with `regs=10 delete=2 branch=1`.
+
+Writing the real index, `Gp_SprtTables[sess->field_3 - 1]`, is an `ARRAY_REF`
+and does not distribute, so the `addiu` stays. Same rule as "A table address
+that is not CSE'd with an identical earlier one: `&other[x - K]` folded into the
+symbol", reached from the other end: there the fold renamed the symbol, here it
+only drops an instruction, so the whole symptom is the missing `-1`.
+`func_shelter_b6_nursery_80180038` (the 0.90-shape sibling) is the same chain
+instruction for instruction and the template to copy - 100% on the first typed
+attempt, all-zero penalties.
+
+The parameter type is not part of the match: `u8 arg0` with `arg0 == 0`, and
+`s32 arg0` with `arg0 & 0xFF`, compile to identical objects here, because the
+`andi` is the u8 parameter's own narrowing either way. The caller's matched asm
+truncates at the call site (`andi a0,v0,0xFF`), which is what settles it as
+`u8`; do not spend builds on the alternative.
+
+Inputs: `base.c` (89.09%, `regs=10 delete=2 branch=1`), `base_1.c` (100%),
+`base_2.c` / `base_3.c` (same object, parameter-type variants). Compiler SHA256
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
