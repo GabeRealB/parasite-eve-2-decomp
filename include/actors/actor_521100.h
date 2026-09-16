@@ -64,7 +64,8 @@ typedef struct Actor521100Work {
     /* 0x654 */ Actor521100* field_654;
     /* 0x658 */ byte         pad_658[0x28];
     /* 0x680 */ s16          field_680;
-    /* 0x682 */ byte         pad_682[0xA];
+    /* 0x682 */ s16          field_682; // non-zero while the tick in func_actor_521100_80135B80 remaps the model's field_C
+    /* 0x684 */ byte         pad_684[8];
     /* 0x68C */ s16          field_68C;
     /* 0x68E */ s16          field_68E;
     /* 0x690 */ s16          field_690;
