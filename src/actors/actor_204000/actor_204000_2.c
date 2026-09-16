@@ -192,9 +192,7 @@ void func_actor_204000_8014AED8(GpEnemy* arg0, Actor104000* arg1)
     arg1->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014B4AC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014BC3C);
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor204000_OutOfRange(SVECTOR* d, s16 r)
@@ -216,6 +214,169 @@ static __inline__ s32 Actor204000_OutOfRange(SVECTOR* d, s16 r)
     ret                                           = ((Actor104000RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
+
+/// Wraps a 12-bit angle difference into [-0x800, 0x800].
+static __inline__ s16 Actor204000_WrapAngle(s16 angle)
+{
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    return angle;
+}
+
+extern u8 D_80072729;
+
+/// Step `coord` `amount` units along its local Z axis unless movement is
+/// frozen. Same body as `Actor01900_StepForwardHead`.
+static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+extern Actor104000MsgArg D_actor_204000_80156350;
+extern byte              D_actor_204000_80156330[];
+extern byte              D_actor_204000_80156340[];
+
+/// Lunge state: steps forward on frames 8 and 9, then from frame 9 on grabs
+/// the player when within 600 units and a quarter turn of the facing, dispatches
+/// the side-dependent grab message and snaps the model beside and facing them.
+void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work*       work;
+    GpActorWork*           player;
+    GameActor*             actor;
+    Actor104000Obj2C*      obj;
+    Actor104000AimScratch* head;
+    Actor104000AimScratch* sc;
+    GsCOORDINATE2*         coord;
+    GsCOORDINATE2*         pos;
+    s16                    angle;
+    s32                    mag;
+
+    work   = arg1->field_1C;
+    player = (GpActorWork*)Game_GetPtrSlot(3);
+    actor  = player->actor;
+    if (work->field_4 != 0) {
+        obj                      = arg1->field_2C;
+        arg1->field_20->field_14 = 0;
+        Gp_ArmStateF0(1);
+        obj->field_C        = 0;
+        work->field_170     = 1;
+        work->field_176     = 0x10;
+        work->field_178     = 0;
+        work->field_174     = 0xD;
+        work->obj270.flags |= 0x4000;
+        func_actor_204000_8014AC8C(arg1);
+        work->field_6 = 0;
+        return;
+    }
+    func_actor_204000_8014AC8C(arg1);
+    work->field_6++;
+    if ((s16)work->field_6 < 8) {
+        return;
+    }
+    if ((s16)work->field_6 == 8) {
+        Actor204000_StepForward(arg1->field_2C->field_8, 0x32);
+        return;
+    }
+    if ((s16)work->field_6 == 9) {
+        Actor204000_StepForward(arg1->field_2C->field_8, 0x32);
+    }
+    work->field_0 = 0xC;
+    head          = (Actor104000AimScratch*)SCRATCH_SP;
+    sc            = (Actor104000AimScratch*)(SCRATCH_SP -= sizeof(Actor104000AimScratch));
+    pos           = arg1->field_2C->field_8;
+    head[-1].d.vx = Wip_SysConfig.field_4->t[0] - pos->coord.t[0];
+    sc->d.vy      = Wip_SysConfig.field_4->t[1] - pos->coord.t[1];
+    sc->d.vz      = Wip_SysConfig.field_4->t[2] - pos->coord.t[2];
+    coord         = arg1->field_2C->field_8;
+    angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle     = Actor204000_WrapAngle(angle);
+    if (!Actor204000_OutOfRange(&sc->d, 600)) {
+        mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
+        if (mag < 0x200) {
+            if (actor->field_954 != 2) {
+                work->field_490 = 0xC;
+                if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
+                    coord     = player->extra->field_8;
+                    angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+                    sc->angle = Actor204000_WrapAngle(angle);
+                    if (sc->angle < 0) {
+                        D_actor_204000_80156350.field_0 = D_actor_204000_80156330;
+                    } else {
+                        D_actor_204000_80156350.field_0 = D_actor_204000_80156340;
+                    }
+                    D_actor_204000_80156350.field_4 = 1;
+                    Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_204000_80156350, 0);
+                    work->field_0   = 0xB;
+                    work->field_496 = 1;
+                    Gfx_MatrixCol0(&player->extra->field_8->coord, &sc->d);
+                    sc->d.vy = 0;
+                    VectorNormalSS(&sc->d, &sc->d);
+                    if (sc->angle < 0) {
+                        gte_lddp(-0x3C);
+                        gte_ldsv(&sc->d);
+                        gte_gpf12_real();
+                        gte_stsv(&sc->d);
+                    } else {
+                        gte_lddp(0x3C);
+                        gte_ldsv(&sc->d);
+                        gte_gpf12_real();
+                        gte_stsv(&sc->d);
+                    }
+                    arg1->field_2C->field_8->coord.t[0] = player->extra->field_8->coord.t[0] + sc->d.vx;
+                    arg1->field_2C->field_8->coord.t[1] = player->extra->field_8->coord.t[1];
+                    arg1->field_2C->field_8->coord.t[2] = player->extra->field_8->coord.t[2] + sc->d.vz;
+                    sc->d.vy                            = 0;
+                    VectorNormalSS(&sc->d, &sc->d);
+                    gte_lddp(-0x258);
+                    gte_ldsv(&sc->d);
+                    gte_gpf12_real();
+                    gte_stsv(&sc->d);
+                    arg1->field_2C->field_8->coord.t[0] += sc->d.vx;
+                    arg1->field_2C->field_8->coord.t[2] += sc->d.vz;
+                    sc->d.vx                             = -sc->d.vx;
+                    sc->d.vy                             = -sc->d.vy;
+                    sc->d.vz                             = -sc->d.vz;
+                    sc->yaw                              = ratan2(sc->d.vx, sc->d.vz);
+                    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, sc->yaw, 1);
+                    arg1->field_2C->field_8->flg = 0;
+                }
+            }
+        }
+    }
+    SCRATCH_SP += sizeof(Actor104000AimScratch);
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014BC3C);
 
 /// Restarts the actor when `field_4` is set; otherwise steps it, occasionally
 /// switches to state 3 on a random roll, and arms the player state when the
@@ -402,8 +563,6 @@ void func_actor_204000_8014D5B8(Actor104000Ctx* arg0, Actor104000* arg1)
     }
 }
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 /// Picks a random offset and coordinate index for an effect from the hit
 /// angle `arg1` (front, back, right or left), copies it into `work->eff` and
 /// spawns the effect for hit id `arg2`.
@@ -477,25 +636,6 @@ void func_actor_204000_8014DB50(Actor104000* arg0, s16 arg1, u32 arg2)
     work->eff.field_0 = coord;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->effOfs, &work->eff);
     SCRATCH_SP += sizeof(SVECTOR);
-}
-
-/// Wraps a 12-bit angle difference into [-0x800, 0x800].
-static __inline__ s16 Actor204000_WrapAngle(s16 angle)
-{
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    return angle;
 }
 
 /// Applies the first type-2 hit in `work->hits`: computes its damage, turns the
@@ -577,33 +717,6 @@ found:
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014E14C);
-
-extern u8 D_80072729;
-
-/// Step `coord` `amount` units along its local Z axis unless movement is
-/// frozen. Same body as `Actor01900_StepForwardHead`.
-static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
 
 void func_actor_204000_8014A06C(GsCOORDINATE2* coord, GpRec18* recs, s32 count, SVECTOR* d);
 void func_actor_204000_8014A5B8(GsCOORDINATE2* coord, GpRec18* recs, s32 count);

@@ -100953,3 +100953,23 @@ first store.
 `field_180 = 0; field_184 = 1; field_18C = 3; field_188 = 0; field_190 = 1;`
 gave 100%. The stores kept source order, so try orders that keep the
 target's store sequence consistent with the constant's first use.
+
+### `addiu aN, head, -size` + `move sN, aN`: the scratch push is `sc = (T*)(SCRATCH_SP -= size)` (func_actor_204000_8014B4AC, 2026-09-16)
+
+A scratch block that lives across calls came out as `addiu $s2, $a2, -0x14` when
+written `head = *G; sc = head - 1; ...; *G = sc;`, while the target computed the
+new head into a short-lived argument register and copied it: `addiu $a1, $a3,
+-0x14` ... `move $s2, $a1`. Adding a separate `tmp = head - 1; sc = tmp;` does
+nothing (combine folds the copy). The compound-assignment form keeps it, because
+the `-=` result pseudo is stored to `0x1F8003FC` and then assigned:
+
+```c
+head = (T*)SCRATCH_SP;
+sc   = (T*)(SCRATCH_SP -= sizeof(T));
+head[-1].d.vx = ...;   /* first store still goes through head */
+```
+
+The extra local pseudo also pushed the `lui/ori 0x1F8003FC` register from `$a3`
+to `$t0`, and the GTE `lddp` constants from `$t0` to `$t1`. Separately, in the
+same function, `mag = (x >= 0) ? x : -x;` (s32) instead of `if (mag < 0) mag = -mag;`
+was what let the *preceding* range-test branch take `lui $v1` into its delay slot.

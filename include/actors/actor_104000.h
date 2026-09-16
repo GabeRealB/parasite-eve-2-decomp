@@ -173,6 +173,23 @@ typedef struct Actor104000TurnScratch {
 } Actor104000TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor104000TurnScratch, 0xC);
 
+/// 0x14-byte scratch taken from `0x1F8003FC` by the lunge state: the offset to
+/// the player (later the snap direction), the final yaw and the relative yaw.
+typedef struct Actor104000AimScratch {
+    /* 0x00 */ SVECTOR d;
+    /* 0x08 */ byte    pad_8[8];
+    /* 0x10 */ s16     yaw;
+    /* 0x12 */ s16     angle;
+} Actor104000AimScratch;
+STATIC_ASSERT_SIZEOF(Actor104000AimScratch, 0x14);
+
+/// Argument block for the lunge state's message 0x3FF: the side-dependent
+/// animation data and a count.
+typedef struct Actor104000MsgArg {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ s32   field_4;
+} Actor104000MsgArg;
+
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
 /// rebuild: the rotation, the uniform scale applied to it and the yaw.
 typedef struct Actor104000FaceScratch {
