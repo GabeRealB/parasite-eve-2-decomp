@@ -16,6 +16,7 @@ void func_actor_548100_801330EC(void);
 s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
 void func_actor_548100_8013461C(Actor548100TexRect* rect);
 void func_actor_548100_80133BBC(s32 arg0);
+void func_actor_548100_80133200(u8 nodeA, u8 nodeB, u8 r, u8 g, u8 b);
 void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
 void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
 void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
@@ -24,6 +25,7 @@ void func_actor_548100_80134AE0(s32 id, u8 stop);
 void func_actor_548100_80134BA8(void);
 void func_actor_548100_80134BF0(void);
 
+extern u8                 D_80070F87;
 extern Actor548100Hotspot D_actor_548100_801357E8[];
 extern Actor548100Route   D_actor_548100_801356D8;
 extern Actor548100Route   D_actor_548100_80135750;
@@ -452,7 +454,106 @@ void func_actor_548100_801330EC(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133200);
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100", func_actor_548100_80133684);
+/// Draws `edge` between its two nodes in the colour its `state` selects (1-3).
+/// States 4 and 5 (5 swaps the nodes) split the line at `field_C` along x, or
+/// along y when `flag_3` is set, clipping each half with a `DR_AREA` linked into
+/// `Gpu_CurrentOt[0x3FC]` and drawing one half per colour.
+void func_actor_548100_80133684(Actor548100Edge* edge)
+{
+    RECT     rect;
+    DR_AREA* area;
+    s32      ax;
+    s32      ay;
+    s32      bx;
+    s32      by;
+    s32      pos;
+    s32      sign;
+    s32      a;
+    s32      b;
+
+    a = edge->nodeA;
+    b = edge->nodeB;
+    switch (edge->state) {
+        case 3:
+            func_actor_548100_80133200(a, b, D_actor_548100_80135B59, D_actor_548100_80135B5A, D_actor_548100_80135B5B);
+            break;
+        case 2:
+            func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+            break;
+        case 1:
+            func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+            break;
+        case 5:
+            a = edge->nodeB;
+            b = edge->nodeA;
+        case 4:
+            area           = (DR_AREA*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+            ax             = D_actor_548100_801358E4[a].vx - 0x9E;
+            ay             = D_actor_548100_801358E4[a].vy - 0x76;
+            bx             = D_actor_548100_801358E4[b].vx - 0x9E;
+            by             = D_actor_548100_801358E4[b].vy - 0x76;
+            setRECT(&rect, 0, 0, 0x140, 0xF0);
+            rect.y += D_80070F87 * 0x110;
+            SetDrawArea(area, &rect);
+            addPrim(&Gpu_CurrentOt[0x3FC], area);
+            if (edge->flag_3 == 0) {
+                sign = 1;
+                if (bx < ax) {
+                    sign = -1;
+                }
+                pos = ax + sign * edge->field_C;
+                func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+                area           = (DR_AREA*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                if (ax < bx) {
+                    setRECT(&rect, 0, 0, pos + 0xA0, 0xF0);
+                } else {
+                    setRECT(&rect, pos + 0xA0, 0, 0xA0 - pos, 0xF0);
+                }
+                rect.y += D_80070F87 * 0x110;
+                SetDrawArea(area, &rect);
+                addPrim(&Gpu_CurrentOt[0x3FC], area);
+                func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+                area           = (DR_AREA*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                if (ax < bx) {
+                    setRECT(&rect, pos + 0xA0, 0, 0xA0 - pos, 0xF0);
+                } else {
+                    setRECT(&rect, 0, 0, pos + 0xA0, 0xF0);
+                }
+            } else {
+                sign = 1;
+                if (by < ay) {
+                    sign = -1;
+                }
+                pos = ay + sign * edge->field_C;
+                func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+                area           = (DR_AREA*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                if (ay < by) {
+                    setRECT(&rect, 0, 0, 0x140, pos + 0x78);
+                } else {
+                    setRECT(&rect, 0, pos + 0x78, 0x140, 0x78 - pos);
+                }
+                rect.y += D_80070F87 * 0x110;
+                SetDrawArea(area, &rect);
+                addPrim(&Gpu_CurrentOt[0x3FC], area);
+                func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+                area           = (DR_AREA*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(area + 1);
+                if (ay < by) {
+                    setRECT(&rect, 0, pos + 0x78, 0x140, 0x78 - pos);
+                } else {
+                    setRECT(&rect, 0, 0, 0x140, pos + 0x78);
+                }
+            }
+            rect.y += D_80070F87 * 0x110;
+            SetDrawArea(area, &rect);
+            addPrim(&Gpu_CurrentOt[0x3FC], area);
+            break;
+    }
+}
 
 /// Draws a translucent flat quad in the (`D_..._80135B53`..`55`) colour at
 /// x 0x43..0x68, on row 1 (`arg0 == 1`) or row 2, framed by four `POLY_G4`
