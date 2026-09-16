@@ -44940,6 +44940,16 @@ slot — the m2c `sp10` shape), while an aggregate gets one even when it is
 declared and never used (`SVECTOR s; g();` is `vars= 8`). So a delta of 0x18
 against a lone `VECTOR vec` is `16 + 8`: an unused `SVECTOR ang;` after it.
 
+**The penalty bucket for this is `regs`, not `stack`.** The frame difference is
+six lines — `addiu sp` at both ends, the two saved-register stores, the two
+loads — and every one of them differs only in its `$sp` displacement, which the
+scorer reports as `regs=6` with `stack=0`. `func_dryfield_night_water_tank_8017D5D0`
+sat at 99.620% that way, its only difference a `0x20` frame against the
+candidate's `0x18`; one unused `SVECTOR3 unused;` took it to 100.000% with no
+other edit. So before reading a small `regs` penalty as an allocation problem,
+check whether every differing line is `$sp`-relative: if they all are, size the
+local rather than reaching for a pin.
+
 ## Chaining across two *different* destinations fixes the `lui` order too
 
 The `r = g = b` trick is usually described as a store-order fix, but it also
