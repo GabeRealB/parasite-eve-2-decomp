@@ -100928,3 +100928,28 @@ the `bgez s0` sign test. The goto-loop hit scan in the same function is the
 `func_actor_444000_8013C060` shape ("loop.c relocates a loop block that ends in
 a jump out"); `(s8)` on a `s32 pan` local moves the extension before the second
 call, matching `sll s1,v0,24; sra s1,s1,24`.
+
+## A shared constant register's load position follows where its *first* use sits among the neighbouring stores (func_actor_204000_8014AED8, 2026-09-16)
+
+**Symptom.** 99.44% with every penalty from one line: `li s2,1` (a constant 1
+that CSE kept in a callee-saved register for ten later uses) came out after
+`li v0,3` instead of before the first store of the block:
+
+```
+target: la t0; la v0; li s2,1; sw t0,0x4c(s5); sw v0,0x24(fp); li v0,3; sw v0,0x18c(s6); sw zero,0x180(s6); sw s2,0x184(s6)
+ours:   la t0; la v0;          sw t0,0x4c(s5); sw v0,0x24(fp); li v0,3; li s2,1; sw v0,0x18c(s6); ...
+```
+
+**Mechanism (sched2 dump).** Scheduling runs backwards. A constant load joins
+the ready list when its last-scheduled (earliest forward) user is placed, and
+ties at equal priority keep list order, while memory stores win over it by
+"greater potential hazard". With `field_18C = 3; field_180 = 0; field_184 = 1;`
+the load became ready *before* `li 3` and won the tie, landing right below it.
+Moving the first use of 1 ahead of the 3 in the source delays its release, so it
+loses the tie to `li 3`, then loses to each store by hazard, and ends above the
+first store.
+
+**Fix.** Reorder constant stores that GCC does not reorder itself:
+`field_180 = 0; field_184 = 1; field_18C = 3; field_188 = 0; field_190 = 1;`
+gave 100%. The stores kept source order, so try orders that keep the
+target's store sequence consistent with the constant's first use.
