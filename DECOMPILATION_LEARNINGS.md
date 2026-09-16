@@ -8229,6 +8229,24 @@ after the body is C as well, because the copies name different callees
 same 64 instructions, one `~` body), so the twin has to be matched in its own
 overlay with the local name.
 
+**A jump table trips the same test after matching, and there the refusal is
+wrong.** `refs` is read from the disassembly, where a switch body still names
+its table as `jtbl_<overlay>_<addr>`, so the `jtbl_{f['unit']}_` clause fires on
+every such body - matched or not (`f['unit']` is the *overlay*, not the unit).
+The compiled object has no such undefined symbol; GCC regenerates the table as
+local `.rodata`. `func_actor_421600_8013E700` (0x48 bytes of table, 18 words)
+built with only `Gp_State1C` and `Gp_SpawnEff` undefined, both gameplay imports,
+and still got "cannot be shared - the body references its own overlay's code or
+data (USA/actors/actor_323400, USA/actors/actor_421600)". So a
+`promote`-refusal naming an overlay says nothing about whether a switch body can
+be shared: check `objdump -t <scratch>.o | grep '\*UND\*'` for a `jtbl_` symbol,
+and if there is none write the plumbing by hand - the `rodata` cut paired with
+the `shared` span below is the whole of it. `actor_403900` is the working
+example (`rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }]` with
+the shared span at `[0x5D58, 0x5E88)`, and `actors_shared_80137b78.c` is a
+switch). A sweep that trusts the refusal will miscount every switch body as
+unshareable.
+
 **"Same body" is not "same object" when the body loads its own overlay's
 table.** The dup index treats an overlay-local reference as a wildcard, so every
 weapon's per-frame state dispatcher hashes alike and the vacuum's port brief
