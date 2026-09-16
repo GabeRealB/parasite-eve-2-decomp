@@ -37716,6 +37716,16 @@ CSE still folds each read back to the register just stored, so there is one
 `lw` and three `sw`s, and the store keeps each draw anchored where it was
 written. This took the function from 84.8% to 98.2% in one edit.
 
+The single *reused* variable is the same trap with a different symptom.
+`rng = rng * 5 + 0x71357911;` written three times keeps one `reg/v` pseudo for
+the whole run, so each draw's write-back is a `REG_DEP_ANTI` (WAR) against the
+previous draw's readers: all three draws are pinned to one register (`$a1`) and
+sched1 answers the WAR by hoisting draw N+1's `sll` above draw N's `sra` and
+`sw`. Reading the global back instead gives each draw its own pseudo, and the
+target's per-draw register (`$a1`, `$a0`, `$v1` in
+`func_actor_521100_80136290`) falls out of the allocator. 89.4% to 100% on that
+one edit; the `.lreg`/`.sched` pair is where the WAR shows up.
+
 ## Bump the scratch head in place (`-=`) rather than storing a precomputed block pointer
 
 Allocating from `G_SCRATCH_HEAD` as
