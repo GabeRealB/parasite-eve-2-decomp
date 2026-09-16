@@ -68,10 +68,6 @@ typedef struct Actor107000Work {
     /* 0x382 */ s16     field_382; // reaction branch the hit handler selects
 } Actor107000Work;
 
-/// Writes the distance measured between `arg0`'s translation and the caller's
-/// own coordinate into `arg1`, and returns the matching angle difference.
-void func_actor_107000_80136614(GpObj38* arg0, u32* arg1);
-
 /// Free-running linear congruential state every overlay draws its random numbers
 /// from: `state = state * 5 + 0x71357911`, read back through the high halfword.
 extern u32 Gp_LcgState;

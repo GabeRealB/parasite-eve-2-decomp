@@ -111298,3 +111298,48 @@ barrier lands *inside* the rival's live range (`temp_q = temp_hi / 100U; BARRIER
 - temp_q * 100U);` reproduces `% 100U` exactly), which lengthens its span 8 to 10 and drops it to
 8000. Both groups then lose the same insn, the ordering survives, and the function matches. Send the
 barrier count with the finding: two barriers, both load-bearing, one per allocation side.
+
+## A store then a load of the same scratch halfword is forwarded by `cse` unless a `memory` clobber sits between them (func_actor_107000_80136614, 2026-09-16)
+
+**Symptom:** the target writes the delta into the scratch block and immediately reads it back into the
+same register - `sh $v0,0x0($s2)` / `lh $v0,0x0($s2)` / `mult $v0,$v0` - with no `sll`/`sra`. The
+natural C (`*(s16*)vec = coord->coord.t[0] - arg0->coord.t[0]; x = *(s16*)((s8*)vec + 0);`) compiles to
+`subu` / `sll` / `sra` / `mult`, because `cse` replaces the load with the stored value and the backend
+then has to sign-extend it explicitly.
+
+**Cause:** `cse_insn` records a scalar store's destination in its hash table and replaces any later load
+from the same address in the same block (`cse.c` `exp_equiv_p` MEM case); the replacement is what turns
+1 instruction into 3. The load only survives as `lh` - whose sign extension is free - when the store's
+entry is gone or the load is never looked up.
+
+**Fix:** put `COMPILER_BARRIER()` (`__asm__ volatile("" ::: "memory")`, `include/decomp/common.h`)
+between the store and the load. The clobber invalidates every in-memory entry in `cse`, so the load is
+emitted as written, and it doubles as a scheduling fence that keeps the two adjacent. Two details:
+spelling the load head-relative (`*(s16*)((s8*)head - 0x40)` rather than through `vec`) is *not* enough
+in this shape - the addresses differ but reload still folds the load's base into `head`'s register, so
+the count stays wrong; and a plain `__asm__ volatile("")` (no clobber) changes nothing, the forwarding
+still happens. `SOFT_BARRIER`/`SCHED_BARRIER` are the wrong helpers here: they are register-clobbering,
+not memory-clobbering.
+
+## A forced `asm` move is how a compute-then-copy pair survives coalescing (func_actor_107000_80136614, 2026-09-16)
+
+**Symptom:** the target computes a pointer and then copies it - `addiu $a1, $s0, -0x40` / `addu $s2,
+$a1, $zero` - while the C spells the value once (`vec = head - 0x40;`). Reordering the statements,
+respelling the expression (cast through `s8`/`s32`/`u8*`, array index, an intermediate variable) and
+even reading the scratch pointer twice all compile to a single `addiu`: `cse` puts the source and the
+copy in one class and the allocator coalesces them.
+
+**Fix:** the idiom the project already uses at `func_actor_403100_8013B5E0` - compute into one variable,
+then force the copy with an `asm` whose output is the second:
+
+```c
+    base = head - 0x40;
+    __asm__("move %0,%1" : "=r"(vec) : "r"(base));
+    *(s16*)((s8*)base + 0) = ...;   /* the offset-0 access still renders head-relative */
+```
+
+The first variable must stay live past the `asm` (here a later store through it, in 403100 a later
+`angles = allocated + 0x80`); if it dies at the `asm`, GCC is free to give the output and the input the
+same register and the move becomes a no-op. Access through the *copy* renders as `base+disp` for
+offset 0 and through the copy's register for the shifted ones - the sibling's `sw $v1,-0x88($s1)` next
+to `sw $zero,4($s4)` is the same split.

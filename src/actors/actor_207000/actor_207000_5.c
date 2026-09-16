@@ -24,30 +24,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000
 INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014E288);
 
 INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014E4D8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014E614);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014E7E0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014E938);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014EC80);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014EE88);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014F220);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014F77C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_5", func_actor_207000_8014F8D8);
-
-void func_actor_207000_8014FC8C(Task* arg0)
-{
-    GpEnemyTaskFuncTable4 sp;
-
-    sp = D_actor_207000_80149E5C;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
-}
-
-// func_actor_207000_8014FCF4 is shared with actor_107000; see
-// src/actors/lib/actors_shared_80137cf4.c.

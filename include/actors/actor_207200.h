@@ -98,6 +98,5 @@ void func_actor_207200_8014DB4C(Actor207200* arg0);
 void func_actor_207200_8014CFEC(Actor207200* arg0);
 /// Angle from `coord` to the player, plus the horizontal distance between them
 /// written through `dist`; the result is a 4096-unit circle angle.
-s32 func_actor_207200_8014CE20(GsCOORDINATE2* coord, s32* dist);
 
 #endif

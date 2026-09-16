@@ -6,6 +6,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "actors/actors_shared_80136614.h"
 
 /// The enemy's four main-body handlers, dispatched through by state. Two
 /// separate state machines in this overlay run the same dispatch shape over
@@ -33,7 +34,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000
 /// 0x33 lands on the long recoil (sub-state 1, animation 4) and 0x15 or above
 /// on the short one (sub-state 0, animation 6). Below both, an idle sub-state
 /// with no branch selected re-measures the coordinate with
-/// `func_actor_107000_80136614` and picks branch 2 once the target is 2500
+/// `ActorsShared80136614` and picks branch 2 once the target is 2500
 /// units away, branch 1 otherwise.
 void func_actor_107000_80136094(Task* arg0, s32 arg1)
 {
@@ -80,7 +81,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
             return;
         }
         if (state == 0 || work->field_382 == 0) {
-            func_actor_107000_80136614((GpObj38*)((TmdObject*)arg0->extra)->field_8, &sp10);
+            ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &sp10);
             work->field_36A = 1;
             work->field_36E = 0;
             if (sp10 >= 0x9C4) {
@@ -92,17 +93,16 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
     }
 }
 
-// actor_207000 carries the same body as func_actor_207000_8014E094. Promotion
-// is refused: the body's last call is this overlay's own
-// func_actor_107000_80136614, which actor_207000 links as its own
-// func_actor_207000_8014E614.
+// actor_207000 carries the same body as func_actor_207000_8014E094; the two
+// were kept apart only because the body's last call was this overlay's own
+// func_actor_107000_80136614. That call now goes to the shared
+// ActorsShared80136614 in both slots, so the objection no longer holds.
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80136288);
 
-// actor_207000 carries the same body as func_actor_207000_8014E4D8. Promotion
-// is refused for the same reason as func_actor_107000_80136288 above: the body
-// calls this overlay's own func_actor_107000_80136614, which actor_207000 links
-// as its own func_actor_207000_8014E614.
+// actor_207000 carries the same body as func_actor_207000_8014E4D8, refused for
+// the same reason as func_actor_107000_80136288 above - a reason the shared
+// ActorsShared80136614 has since removed.
 
 /// Both `Gp_LcgState` draws fold `(state >> 16) % 100` down to under 11 for a
 /// hit, and each is taken through its own local so the two divides stay separate
@@ -124,7 +124,7 @@ void func_actor_107000_801364D8(Task* arg0)
     s16              branch;
 
     work = (Actor107000Work*)arg0->idMap;
-    func_actor_107000_80136614(((TmdObject*)arg0->extra)->field_8, &sp10);
+    ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &sp10);
     if (Gp_CountRec18Hi(&work->field_214, 0x10000) == 0 || sp10 >= 0xBB8U) {
         work->field_382 = 0;
         work->field_36E = 0;
@@ -155,30 +155,3 @@ void func_actor_107000_801364D8(Task* arg0)
     }
     Gp_ClearRec18Occupied(&work->field_214);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80136614);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_801367E0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80136938);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80136C80);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80136E88);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_80137220);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_8013777C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_5", func_actor_107000_801378D8);
-
-void func_actor_107000_80137C8C(Task* arg0)
-{
-    GpEnemyTaskFuncTable4 sp;
-
-    sp = D_actor_107000_80131E5C;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
-}
-
-// func_actor_107000_80137CF4 is shared with actor_207000; see
-// src/actors/lib/actors_shared_80137cf4.c.

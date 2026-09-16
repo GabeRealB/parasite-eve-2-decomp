@@ -21,6 +21,4 @@ typedef struct Actor207000 {
     /* 0x2C */ Actor207000Obj2C* field_2C;
 } Actor207000;
 
-s32 func_actor_207000_8014E614(GsCOORDINATE2* arg0, s32* arg1);
-
 #endif // ACTOR_207000_H
