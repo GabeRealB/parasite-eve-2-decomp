@@ -8,6 +8,8 @@
 
 #include "gameplay/gameplay.h"
 
+#include "main/gameflag.h"
+
 #include "main/sound.h"
 
 #include "main/task.h"
@@ -88,7 +90,30 @@ void func_actor_335800_8016224C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801622C0);
+void func_actor_335800_801622C0(s32 arg0)
+{
+    GameSession*         g;
+    GameSessionFrom4*    sess;
+    Actor335800SprtRec*  rec;
+    Actor335800SprtView* view;
+
+    g    = Game_Session;
+    sess = (GameSessionFrom4*)&g->field_4;
+    rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+    switch (arg0) {
+        case 0:
+            view           = rec->field_1CC;
+            view->field_14 = 0;
+            view->field_1C = 0;
+            break;
+        case 1:
+            view           = rec->field_1CC;
+            view->field_14 = arg0;
+            view->field_1C = arg0;
+            GameFlag_SetNibble(0x7F, 1);
+            break;
+    }
+}
 
 void func_actor_335800_80162364(Task* arg0)
 {

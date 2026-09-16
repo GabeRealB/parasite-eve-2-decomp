@@ -93128,3 +93128,40 @@ assignment was 95.65% with `insert=1 delete=1` and exactly one differing line
 scored 100.00% on the first build. Same rule stated for a *call argument* is in
 "A ? 1 : 0 into an `s8` call folds" (`func_actor_110600_80138900`), which is
 where `cur = (u16)*p;` first appeared.
+
+## m2c's `s8` parameter guess from `sb` stores adds a sign extension the target does not have
+
+m2c typed this function's only argument `s8`, from the two `sb $a2,0x14($v0)` /
+`sb $a2,0x1C($v0)` stores it feeds:
+
+```c
+void func_actor_335800_801622C0(s8 arg0) { ... }   /* 81.50% */
+```
+
+A QImode parameter has to be widened before the tests, so the object grew
+`sll $v1,$a1,0x18; sra $v1,$a1,0x18`, held the argument in `$a1`, and put the
+record pointer in `$a0` -- while the target had `move $a2,$a0` as its very
+second instruction and no extension at all. Storing into a byte field needs no
+widening and neither does an equality test against a constant, so **an incoming
+argument the target never extends is 32-bit**: `s32 arg0` is the whole fix, and
+it scored 100.00% on the next build. Read the extension off the *incoming*
+register before the first use; a narrow type that only ever reaches an `sb` is
+unobservable in m2c's output and m2c guesses there.
+
+The same build settled the field accesses. The target computes
+`addiu $a1,$a0,4` and then reads `lbu 3($a1)` / `lbu 2($a1)`, not `lbu 7($a0)` /
+`lbu 6($a0)`: `GameSession.field_6` / `field_7` are reached through the
+`&Game_Session->field_4` overlay, exactly as `GameSessionFrom4` exists for:
+
+```c
+g    = Game_Session;
+sess = (GameSessionFrom4*)&g->field_4;
+rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
+```
+
+Keeping `g` for `g->field_74` matters as much as taking `sess` for the two
+bytes -- the halfword load stays on the un-adjusted base (`lhu $v1,0x74($a0)`),
+which is what pins `$a0` to `Game_Session` and frees `$a2` for the argument.
+The record itself is declared `GpSprtRec*` by the table but is far larger, so
+the tail pointer at 0x1CC needs the private overlay-local cast the room family
+already uses (`DwtwSprtRec`, `MineForkedTunnelSprtRec`).

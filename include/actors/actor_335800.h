@@ -89,6 +89,30 @@ typedef struct Actor335800Msg {
 } Actor335800Msg;
 STATIC_ASSERT_SIZEOF(Actor335800Msg, 0x4);
 
+/// Per-view state the actor reaches through the sprite table
+/// (`Gp_SprtTables[stage - 1][room - 1].field_0[view - 1]->field_1CC`).
+/// `func_actor_335800_801622C0` writes both bytes to the same value -- 0 for
+/// its 0 argument, otherwise the argument itself, alongside game flag 0x7F
+/// nibble 1. The byte at 0x14 is the one the room family carrying the same
+/// object writes (`DwtwSprtViewState.field_C`'s neighbour); 0x1C is written
+/// with it, the pair the views' two sprite commands are gated on.
+typedef struct Actor335800SprtView {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ u8   field_14;
+    /* 0x15 */ byte pad_15[0x7];
+    /* 0x1C */ u8   field_1C;
+} Actor335800SprtView;
+
+/// The record `Gp_SprtTables[stage - 1][room - 1].field_0[view - 1]` really
+/// points at: a view-sized block, far larger than the 0xC-byte `GpSprtRec` the
+/// table's element type declares, so the caller reaches its tail through a
+/// cast -- as the rooms carrying the same record do (`DwtwSprtRec`,
+/// `MineForkedTunnelSprtRec`). Its tail is the `Actor335800SprtView` pointer.
+typedef struct Actor335800SprtRec {
+    /* 0x000 */ byte                 pad_0[0x1CC];
+    /* 0x1CC */ Actor335800SprtView* field_1CC;
+} Actor335800SprtRec;
+
 void func_actor_335800_80163B34(Task* arg0);
 void func_actor_335800_80163B54(Task* arg0);
 
