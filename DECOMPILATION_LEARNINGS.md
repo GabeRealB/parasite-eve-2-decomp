@@ -87535,3 +87535,68 @@ cse replaces each load with the value it knows was stored, which is a
 register-to-register copy rather than a `lw`, and the copies carry their own
 allocnos. That is what drops the reference count on the outer pointer and
 restores the target's `s0`/`s1`/`s2`/`s3` assignment.
+
+## A duplicated room block is often already matched in `src/rooms/lib` (func_dryfield_night_gas_station_8017F544, 2026-09-16)
+
+**Problem.** The first block of the night gas station's slot-7 msg `0x13EE`
+handler —
+
+```
+jal GameFlag_GetNibble / li $a0,0x7A
+slti $v0, $v0, 4
+beqz $v0, .Lstore
+ li   $v0, 3                     # the else arm lands in the delay slot
+jal GameFlag_GetNibble / li $a0,0x61
+addiu $v0, $v0, 1
+.Lstore: sb $v0, 0x3($s1)
+```
+
+— did not come out of the obvious `val = 3; if (nib(0x7A) < 4) val = nib(0x61) + 1;`,
+which scored 97% with `val` in `$s0`: the constant is defined before the
+`nib(0x7A)` call, so its live range crosses one, `global.c` gives it a
+callee-saved register, and `dbr` hoists the whole assignment out of the block.
+
+**Fix.** That sequence is the *entire* body of the promoted shared unit
+`Room_Script02` (`src/rooms/lib/room_script02.c`):
+
+```c
+n = GameFlag_GetNibble(0x7A);
+if (n < 4) {
+    val = 3;
+    TOUCH_REG(val);
+    val = GameFlag_GetNibble(0x61) + 1;
+} else {
+    val = 3;
+}
+out->field_3 = val;
+```
+
+The comparison is hoisted into its own statement, so the `slti` result is
+already in `$v0` and `val` is defined on *both* arms after the call: no live
+range crosses one, the allocator keeps it in the call-clobbered `$v0`, and the
+`3`-arm is a single-insn block that reorg moves into the branch delay slot.
+Before writing a room handler block, grep `src/rooms/lib` for its constants —
+the family's idioms are already matched there, and `overlay_dup_index.py find`
+cannot point at them, because it only reports bodies duplicated *between*
+overlays and a shared unit's body is one overlay's copy by construction.
+
+## Promoting a body renames units, and two things must follow (2026-09-16)
+
+`overlay_dup_index.py promote` writes the span into `configs/USA/overlays.toml`
+and the shared symbol into every carrier's sym file. When the span sits mid-unit,
+every later unit of that overlay shifts one index, and a redistribution of the
+bodies alone is not enough:
+
+- the `INCLUDE_ASM("rooms/nonmatchings/<overlay>/<unit>", …)` path compiled into
+  each renumbered `.c` still names the *old* unit, so `gas` cannot open the `.s`
+  ("can't open … : No such file or directory"). Rewrite each file's INCLUDE
+  paths to its own new unit name;
+- `build/` still holds objects compiled from the pre-rename files, and ninja
+  treats them as current, so `maspsx` runs on a stale `.s`. `rm -rf
+  build/USA/src/rooms/<overlay>` (and the other carrier's directory) first.
+
+The redistribution itself is lossless if it is done by text rather than by hand:
+run `bodies_of()` from `tools/land_overlay.py` over `git show HEAD:<file>` and
+over the new files and require the function-name sets and body texts to be
+equal. `check_lost_matches.py` cannot see this class of loss — it looks for a
+matched function that reverted to `INCLUDE_ASM` in its own file.

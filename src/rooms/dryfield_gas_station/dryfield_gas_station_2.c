@@ -2,8 +2,6 @@
 
 #include "gameplay/3CD8.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_2", func_dryfield_gas_station_8017FA20);
-
 /// Maps a cap (cutscene) script event key to the stage sound it should play in
 /// the gas station, then enqueues it as a type-6 sound event. Event key 0x83
 /// only plays if a cap script is still reporting an event key. Keys with no

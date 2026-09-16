@@ -1,45 +1,130 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/rand.h>
+
 #include "main/task.h"
 
-#include "gameplay/D4.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "rooms/rooms_shared_801807d4.h"
+extern TaskDesc RoomsShared8017e320Desc;
+extern Task*    RoomsShared8017e320Task;
+extern Task*    D_dryfield_night_gas_station_801907AC;
+extern SVECTOR  D_dryfield_night_gas_station_80188580[];
 
-extern Task* RoomsShared8017e320Task;
-extern Task* D_dryfield_night_gas_station_801907AC;
+extern void func_dryfield_night_gas_station_8017FD80(s16);
+extern void func_dryfield_night_gas_station_801802EC(s16);
+extern void func_dryfield_night_gas_station_80180DC8(s16);
 
-void func_dryfield_night_gas_station_80180C20(void)
+/// Retires the room's third tracked task and drops the room's reference to it.
+/// The `-1` state is the task's own exit request, so the task frees itself on
+/// its next tick.
+void func_dryfield_night_gas_station_80180974(void)
 {
-    RoomsShared801807d4Task               = 0;
-    RoomsShared8017e320Task               = 0;
-    D_dryfield_night_gas_station_801907AC = 0;
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_6", func_dryfield_night_gas_station_80180C3C);
-
-/// Gates the room's two sprite command records on game flag nibble 0x8D: a
-/// zero nibble clears both commands' skip-link flag, a one sets it. The two
-/// records are views 10 and 19 of the current room's sprite record array, and
-/// the flag both write is command 6's.
-void func_dryfield_night_gas_station_80180D1C(void)
-{
-    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
-    GpSprtRec*        view = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
-    s32               flag = GameFlag_GetNibble(0x8D);
-
-    switch (flag) {
-        case 0:
-            view[10].field_4[6].field_4 = 0;
-            view[19].field_4[6].field_4 = 0;
-            break;
-        case 1:
-            view[10].field_4[6].field_4 = flag;
-            view[19].field_4[6].field_4 = flag;
-            break;
+    if (RoomsShared8017e320Task != NULL) {
+        RoomsShared8017e320Task->state = -1;
+        RoomsShared8017e320Task        = NULL;
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_6", func_dryfield_night_gas_station_80180DC8);
+/// Runs the room's countdown timer task: for its first 100 ticks it pulses
+/// `func_dryfield_night_gas_station_8017FD80` and counts up, then kills itself.
+void func_dryfield_night_gas_station_80180998(Task* arg0)
+{
+    s16 temp_a0;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_6", func_dryfield_night_gas_station_80180E9C);
+    if (arg0->state == 0) {
+        temp_a0 = arg0->killCountdown;
+        if (temp_a0 < 0x64) {
+            func_dryfield_night_gas_station_8017FD80(temp_a0);
+            arg0->killCountdown = (u16)arg0->killCountdown + 1;
+            return;
+        }
+    }
+    Task_Kill(arg0);
+}
+
+/// Spawns the room's second tracked task (slot 2 of the shared table) and
+/// stores it beside `RoomsShared8017e320Task`.
+void func_dryfield_night_gas_station_80180A00(void)
+{
+    D_dryfield_night_gas_station_801907AC = Task_SpawnFromTable(&RoomsShared8017e320Desc, 2, 0, 0);
+}
+
+/// Advances the room's second tracked task by one state and drops the room's
+/// reference to it: the task carries on with its own schedule, untracked.
+void func_dryfield_night_gas_station_80180A34(void)
+{
+    if (D_dryfield_night_gas_station_801907AC != NULL) {
+        D_dryfield_night_gas_station_801907AC->state++;
+        D_dryfield_night_gas_station_801907AC = NULL;
+    }
+}
+
+/// Steps the room's blinking-light table: each tick it re-derives whether the
+/// current entry's `vx` is odd, and when that flag flips it republishes it to
+/// `func_dryfield_night_gas_station_80180DC8` (which switches the lamp effect
+/// between its on and off appearance, or back to dark for the -1 state). The
+/// index runs to 100 and then wraps.
+void func_dryfield_night_gas_station_80180A60(Task* arg0)
+{
+    s16 temp_v0_2;
+    s32 temp_v0;
+
+    if (arg0->state == 0) {
+        temp_v0 = (D_dryfield_night_gas_station_80188580[arg0->killCountdown].vx & 1) ^ 1;
+        if (arg0->spawnArg1 != temp_v0) {
+            arg0->spawnArg1 = temp_v0;
+            func_dryfield_night_gas_station_80180DC8((s16)arg0->spawnArg1);
+        }
+        temp_v0_2           = (u16)arg0->killCountdown + 1;
+        arg0->killCountdown = temp_v0_2;
+        if (temp_v0_2 >= 0x64) {
+            arg0->killCountdown = 0;
+        }
+    } else {
+        func_dryfield_night_gas_station_80180DC8(0);
+        Task_Kill(arg0);
+    }
+}
+
+/// Spawns the room's third tracked task (slot 3 of the shared table) and stores
+/// it in `RoomsShared8017e320Task`, the slot the room's teardown clears.
+void func_dryfield_night_gas_station_80180B04(void)
+{
+    RoomsShared8017e320Task = Task_SpawnFromTable(&RoomsShared8017e320Desc, 3, 0, 0);
+}
+
+/// Second teardown entry point for `RoomsShared8017e320Task`: requests the
+/// task's exit and drops the room's reference to it, exactly as
+/// `func_dryfield_night_gas_station_80180974` does.
+void func_dryfield_night_gas_station_80180B38(void)
+{
+    if (RoomsShared8017e320Task != NULL) {
+        RoomsShared8017e320Task->state = -1;
+        RoomsShared8017e320Task        = NULL;
+    }
+}
+
+/// Runs the room's countdown task: seeds the RNG on its first tick, then for
+/// 100 ticks pulses `func_dryfield_night_gas_station_801802EC` and counts up,
+/// then kills itself.
+void func_dryfield_night_gas_station_80180B5C(Task* arg0)
+{
+    s16 temp_a0;
+
+    switch (arg0->state) {
+        case 0:
+            srand(1);
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            temp_a0 = arg0->killCountdown;
+            if (temp_a0 < 0x64) {
+                func_dryfield_night_gas_station_801802EC(temp_a0);
+                arg0->killCountdown = (u16)arg0->killCountdown + 1;
+                return;
+            }
+        default:
+            Task_Kill(arg0);
+            return;
+    }
+}

@@ -1,13 +1,26 @@
 #include "common.h"
+
 #include "main/task.h"
 
-#include "rooms/rooms_shared_801807d4.h"
+void func_dryfield_night_gas_station_80180D1C(void);
 
-extern TaskDesc RoomsShared8017e320Desc;
+extern TaskFuncTable3 D_dryfield_night_gas_station_8017D644;
 
-/// Spawns the room's first tracked task (slot 0 of the shared table) and stores
-/// it in `RoomsShared801807d4Task`.
-void func_dryfield_night_gas_station_801807A0(void)
+/// Gates the room's two sprite records on nibble 0x8D, then dispatches the task
+/// through the room's own three-state table, copied onto the stack first.
+void func_dryfield_night_gas_station_8017FB70(Task* arg0)
 {
-    RoomsShared801807d4Task = Task_SpawnFromTable(&RoomsShared8017e320Desc, 0, 0, 0);
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_night_gas_station_8017D644;
+    func_dryfield_night_gas_station_80180D1C();
+    sp.funcs[arg0->state](arg0);
 }
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_3", func_dryfield_night_gas_station_8017FBD4);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_3", func_dryfield_night_gas_station_8017FD80);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_3", func_dryfield_night_gas_station_801802EC);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_3", func_dryfield_night_gas_station_80180604);
