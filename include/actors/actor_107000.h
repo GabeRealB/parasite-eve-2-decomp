@@ -124,7 +124,9 @@ typedef struct Actor107000SpawnWork {
     /* 0x28A */ u16        field_28A;
     /* 0x28C */ byte       pad_28C[0x20];
     /* 0x2AC */ s32        field_2AC;
-    /* 0x2B0 */ byte       pad_2B0[8];
+    /* 0x2B0 */ byte       pad_2B0[4];
+    /* 0x2B4 */ s16        field_2B4; // cleared by the spawn handler, as Actor107000Work::field_2B4
+    /* 0x2B6 */ byte       pad_2B6[2];
     /* 0x2B8 */ s16        field_2B8;
     /* 0x2BA */ s16        field_2BA;
     /* 0x2BC */ byte       pad_2BC[0x10];

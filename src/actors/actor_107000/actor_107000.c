@@ -2,6 +2,7 @@
 
 #include "actors/actor_107000.h"
 #include "actors/actors_shared_8013454c.h"
+#include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/mem.h"
@@ -30,7 +31,138 @@ extern u8 D_actor_107000_80139E78[];
 /// Offset the collapse arms spawn the 0x60080 effect at.
 extern SVECTOR D_actor_107000_80139E90;
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80131F0C);
+// actor_104600 (func_actor_104600_80131E68), actor_204600
+// (func_actor_204600_80149E68) and actor_207000 (func_actor_207000_80149F0C)
+// carry the same body, refused promotion for the reason its sibling below is:
+// the pair table, the animation bank and the node-3 record it names -
+// D_actor_107000_80138744, D_actor_107000_80138748 and
+// D_actor_107000_80139E78 - are this overlay's own data, so one shared object
+// could not link into the other three.
+
+/// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
+/// first: it allocates the `Actor107000SpawnWork` block, wires the enemy's four
+/// `GpObj` render nodes and their `GpRec18` tables into it and hands the task
+/// over to `ActorsShared8014ca28`. The spawn arg's high halfword is the variant
+/// the model was spawned as - when it is 1 the specimen is killed instead, and
+/// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
+/// with a matching `spawnType` is the one that carries a streamed model: its
+/// texture page and CLUT row are stepped before the model is re-streamed twice.
+void func_actor_107000_80131F0C(GpEnemy* arg0, Task* arg1)
+{
+    Actor107000SpawnWork* work;
+    TmdObject*            obj;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        part;
+    u16                   v;
+    s32                   i;
+
+    obj   = (TmdObject*)arg1->extra;
+    coord = obj->field_8;
+    part  = &coord[1];
+    if ((s16)(arg1->spawnArg1 >> 16) == 1) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    work = Mem_Calloc(0x2E4U, false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap    = (TaskIdMap*)work;
+    obj->field_C   = 0;
+    coord->flg     = 0;
+    obj->field_1C  = &work->field_DC;
+    obj->field_20  = &work->field_BC;
+    arg0->field_4  = &coord[1].coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->field_18     = part;
+    arg0->node.field_4 = 0;
+    arg0->field_1C.vx  = 0;
+    arg0->field_1C.vy  = 0;
+    arg0->field_1C.vz  = 0;
+    arg0->field_50     = &D_actor_107000_80138748;
+    arg0->field_54     = (s32)&work->rec154[0];
+    arg0->field_40     = D_actor_107000_80138748.field_4;
+    func_800B3F84((GpAnimCtx*)work, D_actor_107000_80139E78, (GpAnimObj*)obj, work->field_8C,
+                  (GpAnimSlot*)work->slots);
+    i = 1;
+    do {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        i += 1;
+    } while (i < 3);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    work->field_2B8      = 1;
+    work->field_2BA      = 1;
+    work->field_2AC      = 0x1000;
+    work->field_2DA      = 0;
+    work->field_2CE      = 0;
+    work->field_2D4      = 0;
+    work->field_2D2      = 0;
+    work->field_2CC      = 0;
+    arg1->killCountdown  = 0;
+    work->field_284      = &((TmdObject*)arg1->extra)->field_8[1];
+    work->field_288      = 0x100;
+    work->field_28A      = 1;
+    work->objFC.field_8  = coord;
+    work->objFC.field_C  = &work->rec11C;
+    work->objFC.field_10 = 0;
+    work->objFC.field_12 = 0;
+    work->objFC.field_14 = 0;
+    work->objFC.field_18 = 0;
+    work->objFC.field_1C = 0xBB8;
+    work->objFC.flags    = 1U;
+    Gp_LinkObj(3, &work->objFC);
+    Gp_InitRec18Table(&work->rec11C, 1, 0);
+    work->obj134.field_8  = coord;
+    work->obj134.field_C  = &work->rec154[0];
+    work->obj134.field_10 = 0;
+    work->obj134.field_12 = -0xC8;
+    work->obj134.field_14 = 0;
+    work->obj134.field_18 = 0x3002E;
+    work->obj134.field_1C = 0xC8;
+    work->obj134.flags    = 1U;
+    work->objFC.flags     = (u16)(work->objFC.flags | 0x8000);
+    Gp_LinkObj(2, &work->obj134);
+    Gp_InitRec18Table(&work->rec154[0], 4, 0);
+    work->obj1B4.field_8  = coord;
+    work->obj1B4.field_C  = &work->rec1D4;
+    work->obj1B4.field_10 = 0;
+    work->obj1B4.field_12 = 0;
+    work->obj1B4.field_14 = 0;
+    work->obj134.flags    = (u16)(work->obj134.flags | 0xC200);
+    work->obj1B4.field_18 = Gp_PackPair(&D_actor_107000_80138744, 0);
+    work->obj1B4.field_1C = 0x3E8;
+    work->obj1B4.flags    = 1U;
+    Gp_LinkObj(3, &work->obj1B4);
+    Gp_InitRec18Table(&work->rec1D4, 1, 0);
+    work->obj1EC.field_8  = coord;
+    work->obj1EC.field_C  = &work->rec20C;
+    work->obj1EC.field_10 = 0;
+    work->obj1EC.field_12 = 0;
+    work->obj1EC.field_14 = 0;
+    work->obj1EC.field_18 = 0x22323;
+    work->obj1EC.field_1C = 0x3E8;
+    work->obj1EC.flags    = 1U;
+    work->obj1B4.flags    = (u16)(work->obj1B4.flags & 0x7FFF);
+    Gp_LinkObj(8, &work->obj1EC);
+    Gp_InitRec18Table(&work->rec20C, 1, 0);
+    work->obj1EC.flags = (u16)(work->obj1EC.flags & 0x7FFF);
+    work->field_2DC    = (s16)(arg1->spawnArg1 >> 16);
+    v                  = (u16)arg1->spawnArg1;
+    work->field_2D6    = v;
+    if ((s16)v == 1 && arg1->spawnType == (s16)v) {
+        obj->field_24 = obj->field_24 + 1;
+        obj->field_25 = obj->field_25 + 1;
+        if (obj->field_18 != 0) {
+            Tmd_ProcessStream(obj);
+            Tmd_ProcessStream(obj);
+        }
+    }
+    work->field_2B4    = 0;
+    arg1->exitCallback = ActorsShared8014ca28;
+    arg1->state       += 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_107000/actor_107000", ActorsShared80135df4Table);
 
