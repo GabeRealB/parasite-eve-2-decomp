@@ -92458,3 +92458,25 @@ belonged to the field above. Keep the explanation in the struct's own doc
 comment and leave each field a short trailing `//` - and re-read a file after a
 build before quoting it back, since the format pass can move lines you did not
 touch.
+
+## Naming a field inside a header's pad run is layout-neutral; m2c's own typedef of the same type is not (func_actor_205200_8014C67C, 2026-09-16)
+
+An overlay header that has only been reached by some of its functions carries
+its work block as a chain of `pad_XXX[n]` runs, and the next function to match
+touches offsets inside one of them (`Actor205200Work.pad_504[0x90]` held the
+sub-state at 0x584, the counter at 0x586, the running flag at 0x588 and the
+tick selector at 0x596). Splitting the run into named `s16` fields is
+layout-neutral as long as the byte arithmetic is preserved - name the fields in
+address order and put the leftover bytes back as their own pad, checking each
+step against the next named offset (`0x504 + 0x80 = 0x584`, `0x58A + 0xA =
+0x594`). Nothing already matched moves, so this is safe to do in the same
+commit as the new body; a `STATIC_ASSERT_SIZEOF` on the surrounding type, where
+the header has one, is the check.
+
+The matching m2c seed for the same function will not compile until the opposite
+edit is made: m2c emits its own `typedef struct Actor205200Work` (same name,
+its own field layout) and the header's definition is already in scope, so cc1
+stops at `redefinition of struct Actor205200Work`. Delete the seed's typedef and
+keep the `M2C_FIELD(ptr, s16*, 0x584)` accesses, or convert them to the fields
+named above - either way the generated code is identical, which is what makes
+the seed worth scoring before anything else is rewritten.
