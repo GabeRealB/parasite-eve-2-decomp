@@ -111645,3 +111645,39 @@ says which unit each table set belongs to. For `actor_107000` the cut moved
 0x64's owner from `actor_107000_5` to `actor_107000_6`, and for `actor_207000`
 from `actor_207000_3` to `actor_207000_4`; `actor_104600` and `actor_204600`
 have no cut (their tables come from unit 1, which does not move).
+
+## A compare's materialised sign extension is what re-arms `$v0`, so statement order decides the pair (func_actor_107000_80132E9C, 2026-09-16)
+
+The `$v0` poisoning above has a common carrier in `actors`: the sign extension
+`if (x <= 0)` materialises for an `s16` compare, `sll $v0,$a3,16` / `bgtz $v0`,
+is itself a local temp coloured `$v0`. Its store re-arms `$v0` at its position
+in the block, so which C statements precede the compare decides which values
+inherit the conflict.
+
+`func_actor_107000_80132E9C` stopped at 99.6% (`regs=6`) with only a register
+pair wrong: the loaded value in `$a0` where the target has `$v1`, its neighbour
+in `$v1` where the target has `$v0`. Both spellings below emit the *same* six
+instructions in the same order - reorg fills the `bgtz` delay slot from the
+fall-through path either way, so the object diff shows nothing but register
+names - but only the second is 100%:
+
+```c
+/* cur -> $v1, current -> $a0: the add is expanded before the compare */
+current = work->field_2B0;
+cur     = current + 0x20;
+if (turn <= 0) { cur = current - 0x20; }
+
+/* cur -> $v0, current -> $v1: the compare is expanded first */
+current = work->field_2B0;
+if (turn <= 0) { cur = current - 0x20; }
+else           { cur = current + 0x20; }
+```
+
+Read the order off `.lreg` rather than guessing: whichever of the compare and
+the assignment is expanded first is the one that owns the conflict. Writing
+`current` and `cur` as one variable (`cur = work->field_2B0; current = cur;`)
+is not the fix - merging them lengthened the pseudo's live range and took
+`regs` to 19. Inputs: `base_6.i` (100.000%)
+`a09d4416393e607e020993efc8e6dd98eaee674081cc706195e9f0ed9708ac8f`, the
+`regs=6` form `base_4.i`
+`938e910d5127d87ebf085436ab7ff720acd40e7028fc5fe038690d88edf0ee1a`.

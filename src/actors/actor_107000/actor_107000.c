@@ -167,6 +167,14 @@ void func_actor_107000_80132D8C(Task* arg0, s32 arg1)
     }
 }
 
+// actor_104600 (func_actor_104600_80132DF8), actor_204600
+// (func_actor_204600_8014ADF8) and actor_207000 (func_actor_207000_8014AE9C)
+// carry the same body. It is promotable - its only externals are `Wip_SysConfig`
+// and the libgte pair, none of them overlay-local - but the shared span
+// renumbers every unit after it in this overlay and in the three carriers, and
+// splat never rewrites a `.c` that exists, so it needs the pass that rehomes
+// the carriers' `INCLUDE_*` lines at the same time.
+
 /// Turns the caged specimen toward the player, one 0x20 step a frame. The
 /// 0x18-byte scratch the model's heading is rebuilt in carries the XZ offset
 /// from the model's coordinate to the player (`Wip_SysConfig.field_4`), and the
