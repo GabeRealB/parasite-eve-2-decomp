@@ -28,16 +28,17 @@
 /// they have re-aimed every slot, so it records the set now playing. `anim` is
 /// the animation context those walks reseed.
 typedef struct Actor451100Work {
-    /* 0x000 */ byte      pad_0[0x40];
-    /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x428];
-    /* 0x47C */ s16       state;
-    /* 0x47E */ u16       field_47E;
-    /* 0x480 */ u16       animId;
-    /* 0x482 */ s16       field_482;
-    /* 0x484 */ byte      pad_484[0x30];
-    /* 0x4B4 */ u16       animArg;
-    /* 0x4B6 */ byte      pad_4B6[0xA];
+    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x108];
+    /* 0x47C */ s16        state;
+    /* 0x47E */ u16        field_47E;
+    /* 0x480 */ u16        animId;
+    /* 0x482 */ s16        field_482;
+    /* 0x484 */ byte       pad_484[0x30];
+    /* 0x4B4 */ u16        animArg;
+    /* 0x4B6 */ byte       pad_4B6[0xA];
 } Actor451100Work;
 STATIC_ASSERT_SIZEOF(Actor451100Work, 0x4C0);
 

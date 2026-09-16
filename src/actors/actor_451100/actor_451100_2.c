@@ -20,7 +20,21 @@ void func_actor_451100_801323B4(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_801323DC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_2", func_actor_451100_80132428);
+/// The `Gp_AnimResetSlot` twin of the walk below: marks animation slots
+/// 1..0x12 as reset-pending and reseeds each of them from the current animation
+/// id, then records that id as the one now playing.
+void func_actor_451100_80132428(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        ActorsShared80131f9cWork->slots[i].field_9 = 1;
+        Gp_AnimResetSlot(&ActorsShared80131f9cWork->anim, i, (s16)ActorsShared80131f9cWork->animId);
+        i++;
+    } while (i < 0x13);
+    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+}
 
 /// Reseeds animation slots 1..0x12 from the current animation id and records
 /// that id as the one now playing.
