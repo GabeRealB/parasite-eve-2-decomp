@@ -99889,3 +99889,88 @@ the pin does double duty: it also marks `$v0` live over the value's range, so
 99.22% -> 100%, the pin being the only difference from the unpinned seed. The
 tracer shows the post-pin block down to two quantities (`q0 [91] -> $v1`,
 `q1 [107] -> $v0`), which also sidesteps the broken sort.
+
+## `arr[i]` strength-reduces to a walking pointer; a scalar byte offset does not (toolchain, 2026-09-16)
+
+The same two-element masking loop compiles two ways in GCC 2.8.1, and which one
+retail used is visible in the object before any register question comes up.
+
+`arr[i]`, where `arr` sits at a fixed offset from a pointer, builds the address
+`(plus (plus base CONST) (mult i STRIDE))`. `simplify_giv_expr` canonicalizes that
+to `(plus (mult i STRIDE) base)`, so the **base** becomes the giv's `add_val` and
+the constant moves into the memory displacement. One walking IV replaces the
+address and the counter survives only for the loop test:
+
+```
+move  v1,s0            # v1 = work, the giv's init
+lhu   v0,0x9e6(v1)     # 0x9E6 = 0x9C8 + 0x1E, the constant folded in
+...
+addiu v1,v1,0x20
+```
+
+A scalar offset variable - `off = 0x9C8;` before the loop, `off += 0x20;` in the
+body - builds `(plus (plus base off) 0x1E)` instead, and `simplify_giv_expr`
+returns **0** for it: the inner `(plus off 0x1E)` lands in the `case USE` arm of the
+invariant-plus-constant branch, strips the `USE`, then fails `CONSTANT_P (arg0)`
+because what is left is a plain REG (`loop.c:5290`). No giv is recorded for the
+mem ref at all, so the offset stays an ordinary biv and the base is added per
+iteration:
+
+```
+move  a1,zero          # i = 0
+li    a0,0x9c8         # off
+.L:
+addu  v0,s0,a0
+lhu   v1,0x1e(v0)
+...
+addiu a0,a0,0x20
+```
+
+**Symptom.** `func_actor_104900_80138A2C` masks `0x3FFF` out of two 0x20-byte
+`GpObj` nodes at `work + 0x9C8`. Written as `work->motion.objs[i].flags &= 0x3FFF`
+it scored 96.9% - the shape above, base folded, constant in the displacement - and
+nothing about the surrounding C moved it. The `.loop` dump says why: the `arr[i]`
+form records a giv (`Insn 104: giv reg 105 src reg 83 ... mult 32 add (reg/v:SI 82)`),
+the target records none, only two bivs (`possible biv, reg 85, const = 32` and
+`reg 84, const = 1`).
+
+**Rule.** When the target adds base and offset every iteration rather than walking a
+strength-reduced pointer, the source held a scalar offset variable. Write the loop
+that way even though `arr[i]` is the better-looking C; keep the field access a
+struct access on the walked address so nothing else changes.
+
+## Two global allocnos on equal `refs` are separated by live length; the tie-break is the pseudo number (toolchain, 2026-09-16)
+
+`allocno_compare` (`global.c:594`) orders global allocnos by
+
+```
+pri = floor_log2 (n_refs) * n_refs / live_length * 10000 * size
+```
+
+descending, breaking an exact tie by **register number ascending**. `find_reg`
+(`global.c:962`) then scans `REG_ALLOC_ORDER`, so of the allocnos it is handed the
+first to be satisfied takes the lowest-ranked free register - `$a0` before `$a1`
+here. `tools/trace_gcc.py` prints both quantities per allocno:
+
+```
+global a2 [84]: refs=7 span=9  priority=15555 -> $a0
+global a3 [85]: refs=7 span=10 priority=14000 -> $a1
+```
+
+**Symptom.** In `func_actor_104900_80138A2C` the two loop variables - a counter
+walking 0..2 and a byte offset stepping `0x20` - tied at `refs=7`, so the one with
+the shorter live range won `$a0`. Retail has them the other way round. No C shape
+that only reorders uses helps, because the priorities are computed from liveness,
+not from statement order.
+
+**Levers, in order.** (1) `live_length`: move the initialisation of the variable
+that must win so its live range is shorter, and/or move its last use so it dies
+earlier. Initialising the counter first and the offset second flipped `span` from
+9/10 to 10/7 and the offset took `$a0`. (2) The pseudo number, for the case where
+they tie exactly: for locals it follows **declaration order**, verified by swapping
+two declarations of an otherwise unchanged function, which swapped the pseudo
+numbers with the object byte-identical. Declaring the intended winner first is
+what makes the tie-break land.
+
+The two levers compose: fix the live lengths so the priorities tie or invert, and
+declare the intended winner first so a remaining tie still resolves the right way.

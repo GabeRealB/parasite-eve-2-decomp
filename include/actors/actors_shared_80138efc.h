@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 
 /// Motion sub-object at 0x8C of `ActorsShared80138efcWork`, sized to the
@@ -19,7 +20,13 @@ typedef struct ActorsShared80138efcMotion {
     /// Bit 0 arms `field_BA9` in `func_actor_104900_80134780`; bit 1 is the one
     /// the body at 0x80138E34 tests before it arms its next state.
     /* 0x010 */ u16  flags;
-    /* 0x012 */ byte pad_12[0xAEE];
+    /* 0x012 */ byte pad_12[0x92A];
+    /// Two `GpObj` list nodes. The 0x80138A2C body masks the 0xC000 pair out of
+    /// both `flags`; `func_actor_104900_801366E8` ORs it back into the second on
+    /// the frame `field_B8C` reaches 0x23, next to a `Gp_PackObjPair` result in
+    /// `field_18`.
+    /* 0x93C */ GpObj objs[2];
+    /* 0x97C */ byte  pad_97C[0x184];
 } ActorsShared80138efcMotion;
 STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xB00);
 
@@ -81,7 +88,11 @@ typedef struct ActorsShared80138efcWork {
     /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
     /// trigger then compares against.
     /* 0xBAF */ s8   field_BAF;
-    /* 0xBB0 */ byte pad_BB0[0x1C];
+    /* 0xBB0 */ byte pad_BB0[0x19];
+    /// Read as a byte and compared against 1, then against `field_BA9`: the
+    /// 0x80138A2C body only runs its restart path when both are 1.
+    /* 0xBC9 */ u8   field_BC9;
+    /* 0xBCA */ byte pad_BCA[0x2];
 } ActorsShared80138efcWork;
 STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
 
