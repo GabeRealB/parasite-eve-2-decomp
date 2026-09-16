@@ -60,7 +60,13 @@ typedef struct Actor401800Work {
     /* 0xA28 */ GpRec18  field_A28;
     /* 0xA40 */ byte     pad_A40[0x108];
     /* 0xB48 */ GpObj    field_B48;
-    /* 0xB68 */ byte     pad_B68[0xA6];
+    /* 0xB68 */ byte     pad_B68[0xA0];
+    /// Per-variant reload the LCG spreads over the idle step countdown: the
+    /// high half of a fresh `Gp_LcgState` draw masked to 3 bits (`& 7`) is
+    /// added to it and stored into `field_6`. Same slot `Actor401300Work`
+    /// keeps as `field_CA0`, whose counterpart loads it with `& 0xF`.
+    /* 0xC08 */ u16  field_C08;
+    /* 0xC0A */ byte pad_C0A[4];
     /// Radius `func_actor_401800_8013A034` hands its scratch distance test:
     /// the player is close enough to arm the actor once the squared XZ offset
     /// fits inside it. Same role `Actor01900Work.field_C32` plays.
@@ -140,6 +146,11 @@ extern Actor401800Msg3E9 D_actor_401800_80155AD8;
 /// Camera-target matrix `func_actor_401800_8013A034` measures the actor's root
 /// coordinate against for its proximity test. Same global `Actor401300` reads.
 extern MATRIX* D_80073B8C;
+
+/// LCG seed the actor handlers `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`
+/// step and read the high half of; `func_actor_401800_8013E5A4` takes 3 bits
+/// of it as the extra idle steps it adds to `Actor401800Work.field_6`.
+extern u32 Gp_LcgState;
 
 /// The block `func_actor_401800_8013A034` posts into `D_actor_401800_80155978`
 /// when the actor's live flag is set, taking over the animation the actor had

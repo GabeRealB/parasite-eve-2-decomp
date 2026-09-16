@@ -243,4 +243,38 @@ void func_actor_401800_8013E4F0(Actor401800* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_3", func_actor_401800_8013E5A4);
+/// Idle-step handler: with the live flag set a fresh `Gp_LcgState` draw is
+/// spread over the step countdown as 0..7 extra steps, and once the countdown
+/// underflows the animation state at `field_89E` picks the actor's next
+/// `field_0` (0xF for states 11/23, 0x10 for 12/24/25); a target with no HP
+/// left forces 0x15 over that. Same body as `func_actor_401300_80141DF4`,
+/// whose counterpart masks the LCG draw with 0xF instead of 7.
+void func_actor_401800_8013E5A4(Actor401800* arg0)
+{
+    Actor401800Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        work->field_6 = work->field_C08 + ((Gp_LcgState >> 16) & 7);
+    }
+    if (--work->field_6 < 0) {
+        switch (work->field_89E) {
+            case 11:
+            case 23:
+                work->field_0 = 0xF;
+                break;
+            case 12:
+            case 24:
+            case 25:
+                work->field_0 = 0x10;
+                break;
+        }
+    }
+    if (enemy->field_40 <= 0) {
+        work->field_0 = 0x15;
+    }
+    func_actor_401800_80133EB8(arg0);
+}
