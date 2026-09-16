@@ -155,12 +155,12 @@ typedef struct _GpActorD4 {
     /* 0xB8 */ byte         pad_B8[0xC];
     /* 0xC4 */ s16          field_C4;
     /* 0xC6 */ s16          field_C6;
-    /* 0xC8 */ byte         pad_C8[2];
+    /* 0xC8 */ s16          field_C8;
     /* 0xCA */ s16          field_CA;
     /* 0xCC */ u8           field_CC;
     /* 0xCD */ u8           field_CD;
     /* 0xCE */ s8           field_CE; // path-table step index; `lb`/`sb`
-    /* 0xCF */ byte         pad_CF;
+    /* 0xCF */ s8           field_CF; // turn direction latched in state 0 (+1/-1)
     /* 0xD0 */ s8           field_D0;
     /* 0xD1 */ byte         pad_D1[3];
 } GpActorD4;
