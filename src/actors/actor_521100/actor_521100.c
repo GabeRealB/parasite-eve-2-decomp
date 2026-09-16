@@ -221,7 +221,110 @@ void func_actor_521100_8013334C(Actor521100* arg0)
 /// picks the finish off `coord->coord.t[0]`: under -0xFA0 the actor stays
 /// burning (phase 2 of the latch, or 1 in the session's mode 2), otherwise it
 /// resets to idle with the clip-1 draw.
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_801335B4);
+void func_actor_521100_801335B4(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    GsCOORDINATE2*   coord;
+    u32              rng;
+    u16              timer;
+    s16              turn;
+    s32              snd;
+    s32              pair;
+
+    SCRATCH_SP -= 0x18;
+    work        = arg0->field_1C;
+    coord       = arg0->field_2C->field_8;
+
+    switch (work->field_6A2) {
+        case 0:
+            if ((s16)work->field_68A >= D_actor_521100_8015F894[work->field_686] + 0x38) {
+                u16* tbl        = D_actor_521100_8015F5D4;
+                work->field_686 = 4;
+                work->field_6A2 = 1;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+                snd             = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x401C0007;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            break;
+        case 1:
+            timer           = work->field_68E - 1;
+            work->field_68E = timer;
+            if ((s16)timer > 0) {
+                break;
+            }
+            if (work->field_6AA >= 0xDAC) {
+                u16* tbl        = D_actor_521100_8015F5F4;
+                work->field_69E = 0;
+                work->field_6A0 = 0;
+                work->field_6A2 = 0;
+                work->field_686 = 1;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+            } else {
+                work->field_6A2       = 2;
+                work->field_686       = 8;
+                pair                  = Gp_PackPair(&D_actor_521100_8015F550, 2);
+                work->obj57C.field_18 = pair;
+                work->obj59C.field_18 = pair;
+            }
+            break;
+        case 2:
+            turn = 0;
+            if ((s16)work->field_68A < 0x20) {
+                turn = 0x3C;
+            }
+            work->field_69C = turn;
+            if ((s16)work->field_68A == 0x20) {
+                work->field_6AE     = 1;
+                work->obj57C.flags |= 0x8000;
+                snd                 = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x401C0009;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord),
+                                    (s8)Gp_GetObjDepth((GpObj38*)coord));
+                Gp_SpawnEff(0x60188, arg0->field_2C->field_8 + 8, 8, NULL);
+                Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
+            }
+            if ((u32)(work->field_68A - 0x22) < 5) {
+                work->field_69A = 0x64;
+            } else {
+                work->field_69A = 0;
+            }
+            if ((s16)work->field_68A >= 0x27) {
+                work->field_6A2     = 3;
+                work->field_686     = 7;
+                work->field_6A6     = 0;
+                work->obj57C.flags &= 0x7FFF;
+                work->obj59C.flags &= 0x7FFF;
+            }
+            break;
+        case 3:
+            if ((s16)work->field_68A < 0x5E) {
+                break;
+            }
+            if (Game_Session->field_4 == 2) {
+                work->field_69E = 6;
+                if (coord->coord.t[0] < -0xFA0) {
+                    work->field_6A0 = 1;
+                } else {
+                    work->field_6A0 = 0;
+                }
+            } else if (coord->coord.t[0] < -0xFA0) {
+                work->field_69E = 6;
+                work->field_6A0 = 2;
+            } else {
+                u16* tbl        = D_actor_521100_8015F5F4;
+                work->field_69E = 0;
+                work->field_6A0 = 0;
+                work->field_686 = 1;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+            }
+            work->field_6AE = 0;
+            break;
+    }
+    SCRATCH_SP += 0x18;
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100", D_actor_521100_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_801339B0);
