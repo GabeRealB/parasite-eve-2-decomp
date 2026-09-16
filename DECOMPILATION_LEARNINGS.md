@@ -105511,6 +105511,18 @@ pattern already in the same file), placed between the neighbouring
 stays in address order. Point the words at the overlay's own symbols:
 `.word func_actor_800100_80165748` and friends, as the split `.s` did.
 
+When the table is plain scalars rather than symbol words, a `const` array in the
+`.c` is the shorter re-emission - and it is what the table would have been had
+it been written in C. `func_actor_800100_801668C0`'s `D_actor_800100_80161F10`
+(4 x `{s16 vy, vz}`) came back that way: define it at the matched function's
+position in the file, after every `INCLUDE_RODATA` and `INCLUDE_ASM` above it,
+and GCC emits its `.rodata` in source order, so the table still lands last in
+the unit's `.rodata` (0xF0..0x100 here, immediately under `.text`) and the
+checksum holds. Diagnostics: the `.s` that carried the table is gone from
+`asm/.../nonmatchings/` and the link fails with `undefined reference to
+'D_...'` while `asm/USA/<family>/data/<overlay>/<unit>.rodata.s` still holds the
+bytes - the same on-disk-but-unlinked shape as above.
+
 ## A callee-saved tie is decided by the allocno priority, and the ref count is source-reachable (func_actor_800100_80164580, 2026-09-16)
 
 **Symptom:** every instruction matched except the two callee-saved registers the
@@ -105881,6 +105893,48 @@ further, so the accounting is left as observed rather than derived.
 Input: `base_2.i` `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122ea09`;
 `base_5.i` (97.885%) `9d1d838c6a05e3f6e57660574a66e859244e3c329e30d2d1c424c89ed523ac99`;
 `base_7.i` (98.077%) `5a865d501912059ad3b84e221af1682fa1a4cb656666375d15532db212532c85`.
+
+**The accounting, from a second instance** (`func_actor_800100_801668C0`,
+2026-09-17). The scratch block here was the same shape:
+
+```c
+/* 98.650% */
+    head     = *scratch;
+    blk      = (T*)((u8*)head - sizeof(T));
+    *scratch = blk;
+
+/* 100.000% - the stored pointer comes from the assignment's own temporary */
+    blk      = (*scratch = (T*)((u8*)*scratch - sizeof(T)));
+```
+
+The quantity the copy changes is the **scratch-address constant**, and the
+priority it moves is `QTY_CMP_PRI` - `floor_log2(n_refs) * n_refs * size /
+(death - birth)` (`local-alloc.c:1727`), the key `block_alloc` orders a block's
+quantities by. `.lreg` reads it off directly: the constant is "used 3 times
+across 9 insns" in the split form (13333) and "3 times across **10** insns" in
+the chained form (12000) - writing the pointer back inside the assignment puts
+the store's address operand after the pointer arithmetic, so the constant's
+live range grows by the one instruction that the temporary's copy occupies.
+
+That one step decides the whole entry block. Against the loaded head (2 refs /
+6 insns, also 13333) the split form **ties** and wins on qty number (its insn
+is first in the block), so `find_free_reg`'s upward scan hands it `$v0`, the
+head takes `$a0`, and the incoming argument - which has a copy-suggestion for
+`$a0` - is pushed to `$a3`. The chained form drops *below* the head, the head
+is allocated first and takes `$v0`, the constant takes `$a0`, and the argument
+is pushed to `$t0`, which is the ROM's allocation (`move t0,a0` first, `lui
+a0,0x1f80` for the scratch pointer). The same change also leaves the stored
+temporary live across the copy, which is the ROM's extra `move $t1,$v0` - the
+split form's object is one instruction short (159 against 160) without it.
+
+So the rule to carry forward: a source edit that moves a live-range *boundary*
+by a single instruction can reorder a priority tie, and a tie in one entry-block
+block-local can pin `$a0` and displace the argument register for the whole
+function. Read `.lreg`'s "used N times across M insns" for both quantities
+before reaching for a register pin.
+
+Input: `base_17.i` (98.650%) `8b706a23c2a0b24ae8b73a191ce4c0be735b993bd2f03d3328ccaa12beec5494`;
+`base_21.i` (100.000%) `cc90e1dcb5dd9eed39a9e025bc242ab6b4c9e72746ed003144711d8404b8284a`.
 
 ## `bltz` against a zero-extended load is a `switch` decision tree, not an `if` chain (func_actor_800100_80164184, 2026-09-16)
 

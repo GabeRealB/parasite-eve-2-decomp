@@ -1526,14 +1526,7 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     gte_rtpt_real();
     prim->tpage = 0x27;
     prim->clut  = 0x3CCE;
-    prim->u0    = 0x20;
-    prim->v0    = 0x80;
-    prim->u1    = 0x3F;
-    prim->v1    = 0x80;
-    prim->u2    = 0x20;
-    prim->v2    = 0x9F;
-    prim->u3    = 0x3F;
-    prim->v3    = 0x9F;
+    setUV4(prim, 0x20, 0x80, 0x3F, 0x80, 0x20, 0x9F, 0x3F, 0x9F);
     prim->code |= 3;
 
     gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
