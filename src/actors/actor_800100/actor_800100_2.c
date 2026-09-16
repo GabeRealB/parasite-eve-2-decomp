@@ -212,7 +212,77 @@ void func_actor_800100_801643F4(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164580);
+/// Second arm of the lock-on drive: builds the lock position at
+/// `G_SCRATCH_HEAD - 0x10` (`Gp_GetLockPos`, or `Gp_FindLockNodePad` when
+/// `field_90C` is flagged) and measures the distance to it with
+/// `func_8010BCF4`. Close enough latches `field_95E` to 1 and plays the slot-7
+/// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
+/// with 1. `field_95E` 2/3 waits for the chain to reach 3, which resets the
+/// move fields and plays the slots 9/6 pair.
+///
+/// `track:` sits between the state store and `case 1` so the hand-off is
+/// emitted after the store; the store's fall into case 1 is therefore a jump.
+void func_actor_800100_80164580(GpActorWork* arg0)
+{
+    void**     scratch;
+    u8*        head;
+    VECTOR3*   pos;
+    GameActor* actor;
+    s32        flag;
+    s32        arg;
+    s32        val;
+
+    actor    = arg0->actor;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = (u8*)head - 0x10;
+    pos      = (VECTOR3*)((u8*)head - 0x10);
+    flag     = 1;
+
+    switch (actor->field_95E) {
+        case 0:
+            if (actor->field_90C != NULL) {
+                if (actor->field_90C->field_4 & 1) {
+                    actor->field_90C = Gp_FindLockNodePad(arg0);
+                }
+                Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
+                val = func_8010BCF4((Task*)arg0, pos);
+                if (val < 0) {
+                    val = -val;
+                }
+                if (val >= 0x201) {
+                    goto track;
+                }
+            }
+            actor->field_95E = flag;
+            goto caseOne;
+        track:
+            Gp_TrackAllyLockTarget(arg0, 1);
+            break;
+        caseOne:
+        case 1:
+            arg               = 7;
+            actor->field_95C  = arg;
+            actor->field_95E += 1;
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
+            /* fallthrough */
+        case 2:
+        case 3:
+            Gp_TrackAllyLockTarget(arg0, 3);
+            if (actor->field_95E == 3) {
+                GameActor* actor2 = arg0->actor;
+                actor2->field_954 = 0;
+                actor2->field_956 = 4;
+                actor2->field_95C = 0;
+                actor2->field_95E = 0;
+                actor2->field_973 = 0;
+                actor2->field_975 = 0;
+                Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164710);
 

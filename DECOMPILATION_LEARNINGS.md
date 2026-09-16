@@ -105458,3 +105458,116 @@ pattern already in the same file), placed between the neighbouring
 `INCLUDE_RODATA` line and the unit's later tables so the object's `.rodata`
 stays in address order. Point the words at the overlay's own symbols:
 `.word func_actor_800100_80165748` and friends, as the split `.s` did.
+
+## A callee-saved tie is decided by the allocno priority, and the ref count is source-reachable (func_actor_800100_80164580, 2026-09-16)
+
+**Symptom:** every instruction matched except the two callee-saved registers the
+constant `1` and the parameter occupy. The oracle has `addiu $s2,$a0,0` (the
+parameter) and `addiu $s3,$zero,1`; the C produced the mirror image - parameter
+in `$s3`, the shared constant in `$s2` - so 7 `regs` rows and nothing else.
+
+**Cause:** global-alloc sorts allocnos by
+`floor_log2 (allocno_n_refs) * allocno_n_refs / allocno_live_length * 10000 *
+allocno_size` and hands out the lowest free callee-saved register first, so the
+allocno with the higher priority takes `$s2`. Doing the same statement twice with
+one variable (`flag = 1; ... actor->field_95E = flag;` and later
+`flag = 7; actor->field_95C = flag;`) makes cse give the `1` one pseudo with
+**five** references - its own define/compare/store plus the 7's define and store -
+and `refs=5 span=37` (priority 2702) beats the parameter's `refs=8 span=109`
+(priority 2201). Giving the `7` its own local drops the constant to three
+references, priority 1621, and the parameter wins `$s2` on its own.
+
+Two things make this visible where the usual dumps hide it:
+
+* `tools/trace_gcc.py <scratch>/base_N.i --output-dir DIR --function F` prints
+  `global aN [regs]: refs=… span=… priority=… calls=… -> $reg` for every allocno,
+  i.e. the comparator's actual inputs. The `.flow` dump's
+  `Register N used X times across Y insns` line is **not** those inputs: it is a
+  different pass, and its span for the same pseudo differed by 3x (64 vs 109).
+* poking the priority does not need a pin. Lengthening the constant's live span
+  does not work either - moving its definition from just before the switch to a
+  declaration initialiser at the top of the function changed the span by 2
+  (37 -> 39), because the span counts insns the value is live at in the blocks
+  that use it, not the distance from the define.
+
+**Fix:** `arg = 7;` as a second local, so the `1`'s pseudo keeps only the
+references it needs. 100.00% with all-zero penalties.
+
+`base_4.c`. Inputs: `base_4.i`
+`54e78e1023de60978bb8249d49d7cb6525bcca75c189d139d13b0d7574b4a7f9`.
+
+## The if/else emission order cannot place a merged tail, and cross-jumping keeps the later copy (func_actor_800100_80164580, 2026-09-16)
+
+**Symptom:** the oracle's case-0 store block sits *between* the distance test and
+the `Gp_TrackAllyLockTarget(arg0, 1)` block, and ends with `j case-1`:
+
+```
+slti  $v0,$v0,0x201
+beqz  $v0,.L64654        ; >= 0x201 -> the hand-off block
+addu  $a0,$s2,$0
+j     .L64664            ; the store's jump over the hand-off
+sh    $s3,0x95E($s0)     ; delay slot
+.L64654: jal Gp_TrackAllyLockTarget
+```
+
+The natural C (`if (val >= 0x201) { Gp_TrackAllyLockTarget(arg0, 1); break; }`
+then `actor->field_95E = flag;`) emits the *then* arm first, so the store lands
+after the hand-off block and the test inverts to `bnez $v0,<store>`.
+
+**Cause and dead ends:** GCC 2.8.1 emits `if (c) THEN else ELSE` as
+`[if !c goto ELSE][THEN][goto end][ELSE]`, so only a structure whose *then* arm is
+the store puts it first. Writing the store twice (once in the then arm, once in
+the NULL-path else) does not: the second call to `jump_optimize`, which is the
+one with cross-jumping on (`-dJ` / `.jump2`), merges the two tails with
+`do_cross_jump`, which deletes the **first** block's matching insns and redirects
+its jump to a label before the second - the surviving store is always the later
+copy. The duplicated-store build produced byte-identical assembly to the single
+store one.
+
+**Fix:** place the blocks explicitly. The hand-off statement sits after the store
+in the source, and reaching it is a forward `goto`; the store's own fall into
+case 1 becomes a `goto` to a plain label just before `case 1:`, which is what
+makes its block end in a jump:
+
+```c
+        case 0:
+            if (actor->field_90C != NULL) {
+                ...
+                if (val >= 0x201) {
+                    goto track;
+                }
+            }
+            actor->field_95E = flag;
+            goto caseOne;
+        track:
+            Gp_TrackAllyLockTarget(arg0, 1);
+            break;
+        caseOne:
+        case 1:
+```
+
+The `.rtl` order is what the object shows - no pass reorders these blocks (checked
+across all 13 dumps).
+
+`base_6.c`. Inputs: `base_6.i`
+`7e3592f25ac5d9a9ba586710dc638784d73098d68a2473cf315a31b0fcfe8978`.
+
+## Re-reading the same object needs a distinct block-local, or the reload reuses the global pseudo (func_actor_800100_80164580, 2026-09-16)
+
+**Symptom:** the last mismatch was one load. The oracle reloads the actor inside
+the `field_95E == 3` arm as `lw $v1,0x1C($a0)` and writes six fields through
+`$v1`; the C produced `lw $s0,0x1C($a0)` and wrote them through `$s0`, the
+register holding the function-wide `actor` pseudo.
+
+**Cause:** `actor = arg0->actor;` assigns to the existing variable, so the
+reloaded value *is* that pseudo and keeps its home. A fresh block-scope handle is
+a new pseudo whose live range ends inside that block (its last use is the store
+in the `Gp_AnimPlayChildSlotsEx` delay slot), so local-alloc gives it a
+caller-saved register: `GameActor* actor2 = arg0->actor;`.
+
+The same reload keeps `lw` after the four argument setups, so the scheduler -
+not the statement order - decides where it lands; do not move the declaration to
+chase it.
+
+`base_7.c`. Inputs: `base_7.i`
+`aaf6efedd648721c49583fbbaa45d37e80aec961d048086dfcdc71dd3cca35ba`.
