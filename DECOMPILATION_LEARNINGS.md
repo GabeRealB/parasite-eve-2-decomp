@@ -91533,3 +91533,52 @@ the `break`s land. Writing only one of them merges the blocks and moves the
 `v0 = 0`. Each `return` is threaded to the shared epilogue by `jump.c` rather
 than cross-jumped with the other, so the count of `v0 = 0` instructions is the
 count of `return 0` statements.
+
+## A pointer load written after a store gets a sched1 dependence on it and can never hoist
+
+`func_actor_204000_801507B4` was one instruction too long and had two loads in
+the wrong place: `regs=3 reorder=1` at 92.588%, with the block reading
+
+```
+lw v0,0x20(s1) ; nop ; sb zero,0x14(v0) ; lw v0,0x2c(s1) ; nop ; sh zero,0xc(v0)
+```
+
+where the target has
+
+```
+lw v1,0x2c(s1) ; lw v0,0x20(s1) ; nop ; sb zero,0x14(v0) ; li v0,2 ; sh zero,0xc(v1)
+```
+
+The obvious reading - register pressure, the 0x2C pointer sharing `$v0` with the
+0x20 one - is backwards. `.flow` shows the RTL in source order, `24: r86=[81+32]`
+/ `26: [86+20]=0` / `29: r87=[81+44]` / `31: [87+12]=0`, and `.sched` shows why
+the scheduler left `29` where it was: its dependency list had become
+`(insn_list 26 (nil))`, a **true dependence on the preceding store**. The two
+addresses are unrelated, but both are `(plus (reg) (const_int))` off registers
+the alias analysis cannot separate, so `lw` may not cross the `sb` and no
+ranking or register freeing would help. Sharing `$v0` and the extra load-delay
+nop are *consequences* of that position, not the cause.
+
+The lever is C statement order, not allocation: evaluate the later store's
+pointer before the earlier store. In the source this means the 0x2C pointer
+assignment - `obj = arg1->field_2C;` - written above the `arg1->field_20->field_14 = 0;`
+line, even though `obj`'s store stays second. That removes the dependence, the
+load schedules to the block head (the `sb` follows it instead of preceding it),
+and its span drops from three insns to two. It now outranks the 0x20 load in
+local-alloc's `QTY_CMP_PRI` and takes `$v1` while `$v0` goes to the shorter-lived
+0x20 pointer - the target's exact assignment, and the second nop disappears with
+it. 100.00%, all penalties zero.
+
+Two readings this rules out: the target's load order being "wrong" relative to
+its stores (it is not - the stores are in source order and only the loads moved),
+and reaching for `register ... asm()` on the shared pointer.
+
+Worth recognising early, because the symptom points at the wrong stage: a
+constant hoisted into the branch's delay slot is often the *other* half of the
+same fact. Here `li v1,0xf` sat in the branch delay slot only because `$v1` was
+free over the whole block; fixing the load puts a live pointer there and the
+constant comes back down beside its store, as the target has it.
+
+Example: `func_actor_204000_801507B4`. Inputs: `base_1.i`
+`1592dd1ea350b581bfe1c56d2633733c510cfbc4bcbc045b1dcb6db99f255a21` (92.588%),
+`base_2.i` `3325da6973b7f0fa42047d3b0863810d90e2d615c26e56ee80c0415215d42d74` (100%).
