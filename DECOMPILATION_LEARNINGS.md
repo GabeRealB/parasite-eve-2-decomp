@@ -106020,3 +106020,101 @@ common-subexpression-eliminated across the intervening stores, so it buys the
 schedule at the price of an extra `lw`, and it only moves `old`. When a block's
 registers are rotated wholesale rather than one home being wrong, look for a
 variable shared between blocks before adding anything.
+
+## A signed 16-bit load (`lh`) needs the value in an `s32` local; a 16-bit field copy is always `lhu`
+
+When a scratch block holds a screen point and the target primitive is filled
+from it, the two halves of a `DVECTOR` can load differently:
+
+```
+lhu   v0,-0x1c(a2)      /* x0 = blk->sxy0.vx  */
+lh    v0,-0x1a(a2)      /* y0 = blk->sxy0.vy  -- sign-extends */
+```
+
+Both fields are `short`, and `prim->x0`/`prim->y0` are `short`, so the obvious
+`prim->y0 = blk->sxy0.vy;` is *not* what the first load wants: it assembles to
+`lhu` (the `movhi_internal2` HImode path, which `mips_move_1word` emits with
+`unsignedp` true). `lh` only comes from `extendhisi2_internal`, i.e. an
+`(set (reg:SI) (sign_extend:SI (mem:HI)))`, so the source has to make the value
+SI-mode — an `s32` local:
+
+```c
+    s32 sy;                     /* -> lh */
+    sy = blk->sxy0.vy;
+    prim->y0 = sy;
+```
+
+A pure field-to-field copy is the case where casts do *not* help: `(short)field`,
+`(s16)field`, `*&field`, `*(short*)&field` and a *16-bit* temporary all still come
+out `lhu` (the cast is a no-op once both sides are 16 bits, so nothing forces the
+widening). What the source needs is a value that is genuinely *used* in `int`
+context — the `s32`/`long` temporary above, or an arithmetic use like the `s16`
+subtraction in `acropolis_bridge_80184024` — and then the whole load is `lh`.
+Assigning the whole pair to `int` locals gives four `lh`, not the two-of-each the
+ROM wants. `func_actor_800100_8016666C` has both `vy` loads `lh` and both `vx`
+loads `lhu`.
+
+## Which base register a scratch-block read uses is decided by the address expression, not the pointer variable
+
+The same block pointer can assemble as `-0x1c(a2)` (raw head) in one read and
+`4(s2)` (block pointer) in the next. CSE's `find_best_addr` is what moves them,
+and it treats the two address shapes differently:
+
+- A **bare register** address is looked up in the equivalence class of the
+  register's value. The class holds the expression that computed it, and since
+  `ADDRESS_COST` is equal for both the tie-break prefers the *higher* `rtx_cost`
+  — so `(reg blk)` (cost 1) is replaced by `(plus head -28)` (cost 3), and the
+  load is emitted off `head`.
+- A **`(plus reg const)`** address goes through `fold_rtx` first, whose PLUS
+  operand rule (cse.c) refuses to substitute a register whose known value is a
+  `REG` or a `PLUS`. So `blk + 2` keeps the block pointer as its base, and only a
+  source that spells the address off `head` (`head - 0x1A`, i.e.
+  `((T*)(head - sizeof(T)))->field`) gets the folded form the ROM uses.
+
+That is why a block whose `+0` reads are head-based can still have `+4`/`+6`
+reads off the pointer variable: the first is a bare register, the rest are
+`plus`es. `func_actor_800100_8016666C` needs exactly that mix.
+
+## Reading a byte field back splits an arithmetic op into copy-then-add; a local fuses the constants
+
+```
+        addiu v0,v0,-0x80      /* col            */
+        sb    v0,4(s0)         /* prim->r0 = col */
+        addu  v1,v0,zero       /* ^ the ROM keeps a copy ... */
+        addiu v0,zero,0x20
+        addiu v1,v1,-0x50      /* ... then subtracts */
+```
+
+Given a local `col`, GCC combines `col - 0x50` with the `- 0x80` that defined it
+and emits a single `addiu v0,v0,-0xd0` off the pre-truncation value, leaving `$v0`
+and `$v1` swapped relative to the ROM. Writing the read-back instead —
+
+```c
+        prim->r0 = (rcos(Display_State.field_4) & 0x1F) - 0x80;
+        ...
+        prim->r1 = prim->r0 - 0x50;
+```
+
+— makes CSE forward the store, and the forwarded value is a `QI` subreg that needs
+its own register, so the copy reappears and the constant stays 0x50. The store of
+`r1` also sinks below `g1`/`b1`, as in the ROM. `func_actor_800100_8016666C`.
+
+## A scratch block held as both a raw pointer and a typed view keeps the ROM's register copy
+
+`addiu s2,a2,-0x1C` / `addu a3,s2,zero` — the ROM computes the block once and
+copies it for the first `gte_stsxy`. One variable for the block cannot produce
+that: GCC uses the register directly. Two variables can, and which one gets the
+callee-saved register follows the live range, not the declaration:
+
+```c
+    newhead  = head - sizeof(Actor800100LineScratch);  /* crosses the call -> $s2 */
+    blk      = (Actor800100LineScratch*)newhead;       /* used pre-call only -> $a3 */
+    *scratch = newhead;
+```
+
+With `blk` used on both sides of the call (and `newhead` only for the store) the
+copy comes out inverted — `addiu v0,...` then `move s2,v0` — because the
+short-lived variable is the one the `addiu` lands in. Address the post-call reads
+through the raw pointer and the pre-call GTE arguments through the typed view and
+the ROM's `$s2`/`$a3` split falls out; naming `blk` in the reads keeps it live
+across the `jal` and the copy disappears with it.
