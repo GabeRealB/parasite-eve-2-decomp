@@ -14,6 +14,13 @@
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_8013bbe4.h"
 
+#include <psyq/inline_c.h>
+
+/* `gte_ApplyMatrix` / `gte_MulMatrix0` from `psyq/gtemac.h`, except with the
+ * real `rtv0` / `rtir` encodings this toolchain assembles correctly. */
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+
 void func_actor_510900_80135744(Actor510900* arg0);
 void func_actor_510900_8013864C(Actor510900* arg0);
 void func_actor_510900_801387F4(Actor510900* arg0);
@@ -875,7 +882,118 @@ INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801395AC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_801397F0);
+/// Spawn state of the child effect task: allocates its `Actor510900ChildFx`
+/// work block, places the child on the parent's fourth coordinate offset by a
+/// fixed local vector and yawed -0x160, and links its two collision objects.
+/// `field_CE` comes from `D_actor_510900_80167C94` indexed by the horizontal
+/// distance to the player in units of 1000, clamped to the last entry.
+void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
+{
+    Actor510900ChildFx*        work;
+    Actor510900ChildFxScratch* scratch;
+    TmdObject*                 tmd;
+    GsCOORDINATE2*             coord;
+    GsCOORDINATE2*             parentCoords;
+    GsCOORDINATE2*             parentCoord;
+    s32                        dx;
+    s32                        dz;
+    s32                        idx;
+
+    tmd          = arg1->extra;
+    coord        = tmd->field_8;
+    parentCoords = ((TmdObject*)arg1->parent->extra)->field_8;
+    parentCoord  = &parentCoords[3];
+    work         = Mem_Calloc(sizeof(Actor510900ChildFx), false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap   = (TaskIdMap*)work;
+    tmd->field_C  = 0;
+    scratch       = (Actor510900ChildFxScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor510900ChildFxScratch));
+    tmd->field_1C = &work->lightMtx;
+    tmd->field_20 = &work->colorMtx;
+
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    parentCoord->flg = 0;
+    Gp_UpdateCoord(parentCoord);
+    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &parentCoord->workm, &coord->coord);
+
+    scratch->rot.vx = -0xA5;
+    scratch->rot.vy = -0x235;
+    scratch->rot.vz = 0xA0;
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldv0(&scratch->rot);
+    gte_rtv0_real();
+    gte_stlvnl(&scratch->pos);
+    coord->sub         = &Gfx_ViewCoord;
+    coord->coord.t[0] += scratch->pos.vx;
+    coord->coord.t[1] += scratch->pos.vy;
+    coord->coord.t[2] += scratch->pos.vz;
+
+    scratch->rot.vx = -0x160;
+    scratch->rot.vy = 0;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &scratch->mtx);
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldclmv(&scratch->mtx);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord);
+    gte_ldclmv(&scratch->mtx.m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord.m[0][1]);
+    gte_ldclmv(&scratch->mtx.m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&coord->coord.m[0][2]);
+
+    dx              = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+    scratch->pos.vy = 0;
+    scratch->pos.vx = dx;
+    dz              = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    scratch->pos.vz = dz;
+    idx             = SquareRoot0((dx * dx) + (dz * dz)) / 1000;
+    if (idx >= 0xC) {
+        idx = 0xB;
+    }
+
+    work->field_CE       = D_actor_510900_80167C94[idx];
+    work->obj40.field_8  = coord;
+    work->obj40.field_C  = &work->rec60;
+    work->obj40.field_10 = 0;
+    work->obj40.field_12 = 0;
+    work->obj40.field_14 = 0;
+    work->obj40.field_18 = 0;
+    work->obj40.field_1C = 0xC8;
+    work->obj40.flags    = 1;
+    Gp_LinkObj(3, &work->obj40);
+    Gp_InitRec18Table(&work->rec60, 1, 0);
+
+    work->d4rec.field_0  = 0;
+    work->d4rec.field_2  = 0;
+    work->d4rec.field_4  = 0;
+    work->d4rec.field_8  = 0;
+    work->d4rec.field_A  = 0x1F4;
+    work->d4rec.field_C  = 0;
+    work->d4rec.field_10 = 1;
+    work->d4rec.field_12 = 1;
+    work->d4rec.field_14 = &work->recB0;
+    work->obj78.field_C  = (GpRec18*)&work->d4rec;
+    work->obj78.field_8  = coord;
+    work->obj78.field_10 = 0;
+    work->obj78.field_12 = 0;
+    work->obj78.field_14 = 0;
+    work->obj78.field_18 = 0;
+    work->obj78.field_1C = 0;
+    work->obj78.flags    = 3;
+    work->obj40.flags   |= 0x8000;
+    Gp_LinkObj(3, &work->obj78);
+    Gp_InitRec18Table(&work->recB0, 1, 0);
+    work->obj78.flags |= 0x4000;
+
+    arg1->state            = 1;
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor510900ChildFxScratch);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80139C10);
 

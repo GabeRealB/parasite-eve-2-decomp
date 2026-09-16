@@ -169,19 +169,31 @@ STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
 /// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
 /// teardown state machine on.
 typedef struct Actor510900ChildFx {
-    /* 0x00 */ MATRIX  colorMtx;
-    /* 0x20 */ MATRIX  lightMtx;
-    /* 0x40 */ GpObj   obj40;
-    /* 0x60 */ GpRec18 rec60;
-    /* 0x78 */ GpObj   obj78;
-    /* 0x98 */ GpRec18 rec98;
-    /* 0xB0 */ GpRec18 recB0;
-    /* 0xC8 */ u16     field_C8; ///< frame counter, reset at every state change
-    /* 0xCA */ s16     field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
-    /* 0xCC */ s16     field_CC;
-    /* 0xCE */ s16     field_CE;
+    /* 0x00 */ MATRIX       colorMtx;
+    /* 0x20 */ MATRIX       lightMtx;
+    /* 0x40 */ GpObj        obj40;
+    /* 0x60 */ GpRec18      rec60;
+    /* 0x78 */ GpObj        obj78;
+    /* 0x98 */ GpActorD4Rec d4rec;
+    /* 0xB0 */ GpRec18      recB0;
+    /* 0xC8 */ u16          field_C8; ///< frame counter, reset at every state change
+    /* 0xCA */ s16          field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
+    /* 0xCC */ s16          field_CC;
+    /* 0xCE */ s16          field_CE;
 } Actor510900ChildFx;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
+
+/// 0x38-byte scratch `func_actor_510900_801397F0` takes from `G_SCRATCH_HEAD`
+/// to place the child effect: `rot` is first the local spawn offset and then
+/// the yaw the model is turned by, `pos` that offset rotated into world space
+/// and afterwards the player's XZ delta the distance is measured from, and
+/// `mtx` the rotation `RotMatrix` builds and composes into the coordinate.
+typedef struct Actor510900ChildFxScratch {
+    /* 0x00 */ SVECTOR rot;
+    /* 0x08 */ VECTOR  pos;
+    /* 0x18 */ MATRIX  mtx;
+} Actor510900ChildFxScratch;
+STATIC_ASSERT_SIZEOF(Actor510900ChildFxScratch, 0x38);
 
 /// Payload of the 0x3F8 query the hit handler asks the player before it takes
 /// the hold; `field_14` is the range it asks for. The same shape as
@@ -212,6 +224,10 @@ extern SVECTOR D_actor_510900_80167CB8[];
 extern u16 D_actor_510900_80167CD0[];
 /// Animation set table `func_800B3F84` installs in the context above.
 extern GpAnimSet* D_actor_510900_80167CAC[];
+
+/// `Actor510900ChildFx::field_CE` per 1000 units of distance between the child
+/// and the player, clamped to the last entry.
+extern u16 D_actor_510900_80167C94[12];
 
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent

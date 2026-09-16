@@ -89619,3 +89619,63 @@ shared variable spanning both blocks dropped to 1918 and left `$s3` alone.
 The already-matched bodies of this idiom (`src/actors/lib/actor_102500_tail.c`,
 `src/actors/lib/actor_100300_text.c`) all use numbered per-block locals, which is
 worth taking as the default shape for a repeated sequence.
+
+## One callee-saved register too few: an argument address that must be born before the previous call
+
+`func_actor_510900_801397F0` sat at 96.7% with every block, predicate and call
+matching. The whole difference was that the target saves `$s0`..`$s8` while the
+attempt saved `$s0`..`$s7`: one extra callee-saved register, which shifted the
+frame slots and pushed the `Task*` argument from `$s7` into `$s8`.
+
+The register in question held a single address, `&parentCoords[3]`, whose only
+consumer is the second of two consecutive calls:
+
+```
+target                          attempt
+addiu s6,s2,0xf0   <- delay     lui s6,0x1f80
+...                             ...
+jal Gp_UpdateCoord (ViewCoord)  jal Gp_UpdateCoord (ViewCoord)
+move a0,s6                      addiu a0,s2,0xf0
+jal Gp_UpdateCoord              jal Gp_UpdateCoord
+```
+
+The pseudo exists in both — `.combine` shows `(set (reg a0) (reg/v 87))` either
+way, so this is not a CSE difference. What differs is which basic block insn 51,
+`(set (reg 87) (plus (reg 86) (const_int 240)))`, ends up in. `.lreg` says it
+plainly:
+
+```
+Register 87 used 2 times across 2 insns in block 2; GR_REGS or none; pointer.
+;; Register 87 in 4.
+```
+
+Both insns in one block, no call crossed, so local-alloc tied the quantity
+straight to `$a0` and the `addiu` wrote the argument register directly. In the
+target the same pseudo is born in block 1 — before the `bnez` on the allocation
+failure — so it crosses two calls, global-alloc has to give it a saved register,
+and the copy `move a0,s6` survives.
+
+Writing the address into a named local does **not** move it: assigning
+`parentCoord = &parentCoords[3]` anywhere inside the success path still leaves
+insn 51 in block 2, and sched1 sinks it next to its use because
+`priority()` ranks it only one above the `move` it feeds. Three source forms
+(`&parentCoords[3]` inline at the call, a local assigned after the NULL check,
+and that local used for every access) all produced byte-identical assembly.
+Hoisting the assignment *above* the allocation it is unrelated to is what works:
+
+```c
+parentCoords = ((TmdObject*)arg1->parent->extra)->field_8;
+parentCoord  = &parentCoords[3];          /* block 1 */
+work         = Mem_Calloc(sizeof(Actor510900ChildFx), false);
+if (work == NULL) { ... return; }
+```
+
+96.7% -> 100%. The delay-slot filler then pulls the `addiu` into the `bnez`
+slot, which is why it reads as if it came after the allocation.
+
+The general rule is the mirror of "a temp between two calls costs a
+callee-saved register": when the target saves **one more** register than the
+build and the extra one holds a pure address, the fix is to give that address a
+longer live range by computing it in an earlier block, not to look for a missing
+value. Count the `sw $sN` prologue stores first — that count is a direct
+statement about how many pseudos cross a call.
