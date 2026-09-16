@@ -53,10 +53,13 @@ typedef struct Actor107600Work {
     /* 0x14A */ u8             field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
     /* 0x14B */ byte           pad_14B[0x1];
     /* 0x14C */ s32            field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
-    /* 0x150 */ byte           pad_150[0x8];
+    /* 0x150 */ byte           pad_150[0x6];
+    /* 0x156 */ s16            field_156;
     /* 0x158 */ s16            field_158;
     /* 0x15A */ s16            field_15A;
-    /* 0x15C */ byte           pad_15C[0x6];
+    /* 0x15C */ byte           pad_15C[0x2];
+    /* 0x15E */ u16            field_15E;
+    /* 0x160 */ byte           pad_160[0x2];
     /* 0x162 */ s16            field_162; // spawn variant; 1 selects the 0x220 obj.field_1C
     /* 0x164 */ byte           pad_164[0x4];
     /* 0x168 */ u8             field_168; // percent scale applied to coord.m[0][0]
@@ -93,8 +96,10 @@ void func_actor_107600_80134904(Task* arg0);
 void func_actor_107600_80134920(Task* arg0);
 void func_actor_107600_80134958(Task* arg0);
 void func_actor_107600_801349E0(Task* arg0);
+void func_actor_107600_80134A50(Task* arg0);
 void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst);
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
+s32  func_actor_107600_80134BAC(Actor107600* arg0);
 void func_actor_107600_80134C54(Task* arg0);
 void func_actor_107600_80134D10(Actor107600* arg0);
 void func_actor_107600_80134D30(Actor107600* arg0);

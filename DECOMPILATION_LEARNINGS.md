@@ -100973,3 +100973,18 @@ The extra local pseudo also pushed the `lui/ori 0x1F8003FC` register from `$a3`
 to `$t0`, and the GTE `lddp` constants from `$t0` to `$t1`. Separately, in the
 same function, `mag = (x >= 0) ? x : -x;` (s32) instead of `if (mag < 0) mag = -mag;`
 was what let the *preceding* range-test branch take `lui $v1` into its delay slot.
+
+### A per-case `lw` of the same pointer plus a shared store tail is a hand-inlined setter: give each case its own block local
+
+`func_actor_107600_80134BAC` switches on a request and, in every case, reloads
+`arg0->field_1C` and jumps to one shared `sh v0,0x158(v1); sh zero,0x15A(v1)`
+tail - the body of the sibling setter `func_actor_107600_80134B98`, which GCC
+2.8.1 does not inline on its own (the plain call builds a frame). Writing
+`arg0->field_1C->field_158 = 2; arg0->field_1C->field_15A = 0;` per case keeps
+two loads (93%). A block-scoped `{ Actor107600Work* w = arg0->field_1C;
+w->field_158 = N; w->field_15A = 0; break; }` per case loads once, and
+cross-jumping merges the stores into the shared tail - 100%.
+
+The jump table sat last in the leading rodata at a non-8-aligned offset, so
+landing it needed a `rodata` cut plus `units` cuts around the function
+(`actor_107600` manifest entry), exactly as in "Compiler-generated jump tables".
