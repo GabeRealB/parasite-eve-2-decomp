@@ -103474,3 +103474,32 @@ The neighbouring comment is still worth having - it is how you learn the next
 function is a near-twin - but attach it to *that* function's name before using
 its arithmetic. When the snippet's comment and the asm disagree about a
 constant, the asm wins and the comment belongs to someone else.
+
+## A clamped halfword that feeds a division needs an `s32` local (func_actor_401800_80133EB8, 2026-09-16)
+
+The per-frame heading body clamps its turn to `+-0x400` and spreads it over the
+model's coordinate array as `(s16)clampedAngle * 2 / 3` and `(s16)clampedAngle / 2`.
+With the clamped value in an `s16` or `u16` local - or in a `u16` loaded straight
+into a `s32` without a cast - two instructions come out wrong:
+
+```
+ li   s0,-0x400        <- s16/u16 local gives `li s0,0xfc00` (64,512, not -1,024)
+ jal  ActorsShared80132808
+ sra  a1,a1,0x10       <- this (s16) truncation of the *2/3 quotient is dropped
+```
+
+The fix is to declare the clamp local `s32` and load it with an explicit cast:
+`s32 clampedAngle = (u16)work->field_8B0;` (the `(u16)` keeps the load `lhu`,
+which is what the target has). A signed `s32` makes `clampedAngle = -0x400` a
+signed constant, and because the value is now wider than the field, GCC cannot
+elide the `sll 16 / sra 16` the s16 parameter forces on the quotient.
+
+The same block's two compared quantities need `s32` too: with
+`targetAngle`/`currentAngle`/`targetAngleBits`/`currentAngleBits` declared
+`s16`/`u16`, local-alloc puts the pair on `$v0`/`$a0`; as `s32` locals holding
+the `(u16)`/`(s16)`-cast values it matches, giving `$a0` for the target and
+`$v1` for the current one, `lhu` for the two `...Bits` reads and `sh` for the
+stores. Both fixes together took the function from m2c's 82.5% to 99.7%; the
+same clamp shape is in the matched `Actor00100_Fn02788`
+(`src/actors/lib/actor_400100_damage.c`), which uses `s32 clampedAngle` for
+exactly this reason.
