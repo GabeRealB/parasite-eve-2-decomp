@@ -25,7 +25,18 @@ void func_actor_342000_801640C0(Task* arg0, s32 arg1, Actor342000Move* arg2)
     work->coord.flg   = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000_3", func_actor_342000_80164110);
+void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, Actor342000Move* arg3)
+{
+    Actor342000Work* work;
+
+    work = (Actor342000Work*)arg0->idMap;
+    if (arg2->field_2 == 0xA) {
+        work->field_264.vx = arg3->field_0;
+        work->field_264.vy = arg3->field_4;
+        work->field_264.vz = arg3->field_8;
+    }
+    work->field_2AA = arg2->field_2;
+}
 
 extern s8             D_8007216D;
 extern GpAreaApplyRec D_8018FB6C[];

@@ -22,6 +22,16 @@ typedef struct _Actor342000Move {
 } Actor342000Move;
 STATIC_ASSERT_SIZEOF(Actor342000Move, 0x18);
 
+/// Script command payload of the overlay's message handlers -- the `arg2` of
+/// the id 0x7DB handler `func_actor_342000_80164110`, which reads `field_2`
+/// and latches it in `Actor342000Work::field_2AA`. Same shape as the
+/// neighbouring overlays' command payloads.
+typedef struct _Actor342000Cmd {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  field_2;
+} Actor342000Cmd;
+STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
+
 /// Per-instance work block for the overlay's model actor.
 ///
 /// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
@@ -40,6 +50,10 @@ STATIC_ASSERT_SIZEOF(Actor342000Move, 0x18);
 /// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads)
 /// and clears `coord.flg`; `func_actor_342000_801640C0` writes all of it from
 /// an `Actor342000Move`.
+///
+/// `field_2AA` latches the `Actor342000Cmd::field_2` the id 0x7DB handler was
+/// last called with; command 0xA additionally refills `field_264` from the
+/// handler's second payload.
 typedef struct Actor342000Work {
     /* 0x000 */ byte           pad_0[0x214];
     /* 0x214 */ GsCOORDINATE2  coord;
@@ -49,7 +63,8 @@ typedef struct Actor342000Work {
     /* 0x27C */ s32            field_27C;
     /* 0x280 */ byte           pad_280[0x24];
     /* 0x2A4 */ GsCOORDINATE2* field_2A4;
-    /* 0x2A8 */ byte           pad_2A8[0x4];
+    /* 0x2A8 */ byte           pad_2A8[0x2];
+    /* 0x2AA */ u16            field_2AA;
 } Actor342000Work;
 STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 
