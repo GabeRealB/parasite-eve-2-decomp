@@ -108748,3 +108748,63 @@ matching input `base_5.i` SHA256
 (the 400100-helper variant, `base_2.i` SHA256
 `4044e198377abc8678ebeaf403c5fd0d9d8994c5b5bb47fc7a0254122348f93f`, is the
 97.778% one).
+
+## An `lhu` read out of a 32-bit field is the `short` destination narrowing the expression, not a `u16` view (func_actor_356100_80168E44, 2026-09-16)
+
+**Symptom.** The target computes a player-to-actor offset with `lhu` load pairs
+out of `MATRIX::t[]` — a `long t[3]`, `0x14` in a bare `MATRIX` and `0x18` in a
+`GsCOORDINATE2`, whose `coord` starts at +4:
+
+```
+    lhu   v0,0x14($v1)         ; Wip_SysConfig.field_4->t[0]
+    lhu   v1,0x18($a2)         ; coord->coord.t[0]
+    subu  v0,v0,v1
+    sh    v0,-0x10($a3)
+```
+
+The natural reading — "the source must be reading these through a `u16` view
+like `GpCoordXZ`, so build one" — is wrong, and building one costs a rewrite of
+the whole helper chain for nothing.
+
+**Cause.** The destination is an `SVECTOR` field, a `short`, and GCC 2.8.1
+narrows the whole reduction to HImode: `(short)(a - b)` over two `mem:SI` loads
+comes out of expansion already as
+
+```
+(insn 112 (set (reg:HI 105) (mem/s:HI (plus:SI (reg:SI 104) (const_int 20))))
+(insn 113 (set (reg:HI 106) (mem/s:HI (plus:SI (reg/v:SI 103) (const_int 24))))
+(insn 114 (set (reg:SI 107)
+        (minus:SI (subreg:SI (reg:HI 105) 0) (subreg:SI (reg:HI 106) 0)))
+```
+
+Note *which* dump that is: the `.rtl` file, the first one, written after expand
+and before any optimization pass. This is not a `combine` or `cse` fold to go
+looking for; by the time either runs the `lhu` is already there. `movhi_internal2`
+on a load is `lhu`.
+
+**Fix.** Write the plain 32-bit read:
+
+```c
+pos->vx = config->field_4->t[0] - coord->coord.t[0];
+```
+
+`Actor401300_ConfigPositionDelta` / `Actor01900_ConfigPositionDelta` say the same
+thing and are matched bodies; `func_actor_401300_8013AE48` is the independent
+replication — same `lhu` pair, same offsets, same matched source line.
+
+**Scope.** Any expression in a 16-bit field position whose operands are wider.
+Read the destination's type before reaching for a typed view of the source. This
+does not say a `u16` view is always wrong — where the *result* needs the unsigned
+value (`GpPosXZ`, the `GpCoordXZ` reads in `func_actor_356100_801666B4`) it is
+the only thing that works — only that a narrow destination explains the narrow
+load by itself.
+
+The match needed nothing else: `func_actor_356100_80168E44` is
+`func_actor_401300_8013AE48`'s body with this overlay's field names, five
+constants and the `field_98E` step-clamp, and lifting the sibling's
+`AimScratch` + `PositionYaw` + `NormalizeYaw` + `RescaleYaw` inlines wholesale
+scored 100.00% on the first attempt with all penalties zero, from a 76.79% m2c
+baseline. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
+`base_2.i` SHA256
+`5d3732963d6a8a885c47e29449b42c04f18468461b5bfa39e52a2bb85fbe0555`.

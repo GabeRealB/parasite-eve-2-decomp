@@ -7,6 +7,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// Head of the work block this overlay hangs off `Task::idMap`. `field_4` is
 /// the live-actor flag `func_actor_356100_8016A1D8` tests, where
@@ -173,6 +174,108 @@ static __inline__ s32 Actor356100_OutOfRange(SVECTOR* d, s16 r)
     *(u8**)G_SCRATCH_HEAD                         = head;
     ret                                           = ((Actor356100RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
+}
+
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_356100_80168E44` takes: the
+/// offset from the actor to the player, then the facing yaw it settles on.
+/// Same shape as `Actor401300AimScratch` / `Actor01900AimScratch`.
+typedef struct Actor356100AimScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     angle;
+    /* 0xE */ s16     pad_E;
+} Actor356100AimScratch;
+STATIC_ASSERT_SIZEOF(Actor356100AimScratch, 0x10);
+
+/// 0x34-byte `G_SCRATCH_HEAD` block `Actor356100_RescaleYaw` builds its scaled
+/// Y rotation in. Same shape as `Actor401300RotScratch` / `Actor01900RotScratch`.
+typedef struct Actor356100RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor356100RotScratch;
+STATIC_ASSERT_SIZEOF(Actor356100RotScratch, 0x34);
+
+/// Wraps a 12-bit angle difference into `[-0x800, 0x800]`.
+static __inline__ s16 Actor356100_NormalizeYaw(s16 input)
+{
+    s16 value = input;
+
+    if (input < 0) {
+        while (1) {
+            if (value >= -0x800)
+                break;
+            value += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (value <= 0x800)
+                break;
+            value -= 0x1000;
+        }
+    }
+    return value;
+}
+
+/// `Actor356100_PositionDelta` against an explicit config block rather than
+/// the overlay's own `D_80073B8C` copy of the player coordinate.
+static __inline__ void Actor356100_ConfigPositionDelta(WipSysConfig* config, GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    pos->vx = config->field_4->t[0] - coord->coord.t[0];
+    pos->vy = config->field_4->t[1] - coord->coord.t[1];
+    pos->vz = config->field_4->t[2] - coord->coord.t[2];
+}
+
+/// Yaw from the actor's facing to the player, wrapped; `pos` receives the
+/// offset. Same body as `Actor401300_PositionYaw` / `Actor01900_PositionYaw`.
+static __inline__ s16 Actor356100_PositionYaw(Actor356100* actor, SVECTOR* pos, WipSysConfig* config)
+{
+    GsCOORDINATE2* coord;
+    s32            angle;
+
+    Actor356100_ConfigPositionDelta(config, actor->field_2C->field_8, pos);
+    coord = actor->field_2C->field_8;
+    angle = ratan2(pos->vx, pos->vz);
+    return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+/// Rebuilds `coord`'s Y rotation from the yaw it already faces, uniformly
+/// scaled by `scale`. Same body as `Actor401300_RescaleYaw` / `Actor01900_RescaleYaw`.
+static __inline__ void Actor356100_RescaleYaw(GsCOORDINATE2* coord, s16 scale)
+{
+    void**                 scratch;
+    void*                  head;
+    Actor356100RotScratch* blk;
+    s16                    ang;
+    u16                    m22;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (Actor356100RotScratch*)((u8*)head - 0x34);
+    *scratch = blk;
+
+    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = scale;
+    blk->scale.vy = scale;
+    blk->scale.vx = scale;
+    ScaleMatrix(&blk->m, &blk->scale);
+
+    coord->coord.m[0][0] = *(u16*)&((Actor356100RotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    m22                  = *(u16*)&blk->m.m[2][2];
+    *scratch             = (u8*)*scratch + 0x34;
+    coord->flg           = 0;
+    coord->coord.m[2][2] = m22;
 }
 
 /// Payload of message 0x3E9 `func_actor_356100_801666B4` sends the player:

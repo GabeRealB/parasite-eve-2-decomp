@@ -226,7 +226,61 @@ INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80168AFC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80168E44);
+/// Turn the actor's facing onto the player in 0x28 steps and rescale the root
+/// coordinate to 0x1194: the live branch resets the model and starts clip 2 at
+/// speed 0x10 with the 0x13 state parked in `field_97E`, otherwise the aim
+/// scratch takes the player offset, `Actor356100_PositionYaw` gives the wrapped
+/// turn, `field_98E` walks toward it by at most 0x28 and the state flips to 0xB
+/// once it has caught up. Same body as `func_actor_401300_8013AE48`.
+void func_actor_356100_80168E44(Actor356100* arg0)
+{
+    Actor356100Work*       work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    Actor356100AimScratch* aim;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                          = arg0->field_2C;
+        arg0->field_20->node.field_4 = 1;
+        obj->field_C                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0x180;
+        work->field_978 = 2;
+        work->field_982 = 0x10;
+        work->field_97A = 0;
+        work->field_97E = 0x13;
+        func_actor_356100_80163508(arg0);
+        func_actor_356100_80163508(arg0);
+        work->field_6   = 0;
+        work->field_990 = 0;
+        return;
+    }
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                       = *(Actor356100AimScratch**)G_SCRATCH_HEAD;
+    aim->angle                                = Actor356100_PositionYaw(arg0, &aim->delta, &Wip_SysConfig);
+    if (work->field_98E < aim->angle) {
+        if (aim->angle - work->field_98E > 0x28) {
+            work->field_98E += 0x28;
+        } else {
+            work->field_98E = aim->angle;
+        }
+    } else if (work->field_98E - aim->angle > 0x28) {
+        work->field_98E -= 0x28;
+    } else {
+        work->field_98E = aim->angle;
+    }
+    if (work->field_98E == aim->angle) {
+        work->field_0 = 0xB;
+    }
+    coord      = arg0->field_2C->field_8;
+    aim->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, aim->angle, 1);
+    Actor356100_RescaleYaw(arg0->field_2C->field_8, 0x1194);
+    work->field_978 = 2;
+    func_actor_356100_80163508(arg0);
+    *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80169180);
 
