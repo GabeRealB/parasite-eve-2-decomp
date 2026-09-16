@@ -60,4 +60,10 @@ STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
 s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg);
 
+/// Display-object mode handler: 0 hides the object, 1 shows it, 2 and any
+/// other value set bit 0x4, with modes 0 and 1 reinstating the object's
+/// buffers and modes 0 and 2 arming `Actor210600Work::field_890`. `arg1` is
+/// unused; it exists because the dispatch passes three arguments.
+s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2);
+
 #endif // ACTOR_210600_H
