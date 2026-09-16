@@ -250,6 +250,29 @@ typedef struct Actor00100AvoidDelta {
 } Actor00100AvoidDelta;
 STATIC_ASSERT_SIZEOF(Actor00100AvoidDelta, 0x10);
 
+/// 0x8C-byte scratch from `G_SCRATCH_HEAD` for `Actor00100_Fn01900`, the beam
+/// drawn between two of the actor's coordinate parts. `first`/`second` are the
+/// two ends in view space, `corner0`..`corner3` the widened quad around them,
+/// and `screen0`..`screen3` the projected corners that become a `POLY_FT4`.
+typedef struct Actor00100BeamScratch {
+    /* 0x00 */ MATRIX  firstMatrix;  // first part's `workm` in view space
+    /* 0x20 */ MATRIX  secondMatrix; // second part's `workm` in view space
+    /* 0x40 */ SVECTOR first;
+    /* 0x48 */ SVECTOR second;
+    /* 0x50 */ SVECTOR corner0;
+    /* 0x58 */ SVECTOR corner1;
+    /* 0x60 */ SVECTOR corner2;
+    /* 0x68 */ SVECTOR corner3;
+    /* 0x70 */ s32     screen0;
+    /* 0x74 */ s32     screen1;
+    /* 0x78 */ s32     screen2;
+    /* 0x7C */ s32     screen3;
+    /* 0x80 */ s32     perspective;
+    /* 0x84 */ s32     flags;
+    /* 0x88 */ s32     depth;
+} Actor00100BeamScratch;
+STATIC_ASSERT_SIZEOF(Actor00100BeamScratch, 0x8C);
+
 /// One halfword of an `Actor00100Msg`, which the message system also hands to
 /// handlers as a raw byte triple.
 typedef union Actor00100MsgWord {
