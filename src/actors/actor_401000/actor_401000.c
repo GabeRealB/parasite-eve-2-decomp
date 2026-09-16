@@ -85,7 +85,249 @@ INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80132EF0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000", func_actor_401000_80133274);
+/// Points the model's light and color matrices at the work block's copies.
+static __inline__ void Actor401000_BindMatrices(Actor401000* actor)
+{
+    Actor401000Work* work;
+    TmdObject*       obj;
+
+    work          = actor->field_1C;
+    obj           = actor->field_2C;
+    obj->field_1C = &work->field_B88;
+    obj->field_20 = &work->field_BA8;
+}
+
+/// Rebuilds the root coordinate's scaled Y rotation and drops both obstacle
+/// tables while the rotation scratch block is still held.
+static __inline__ void Actor401000_InitPose(GsCOORDINATE2* coord, Actor401000Work* work)
+{
+    void*                  scratch_base;
+    u8*                    head;
+    u8*                    tail;
+    Actor401000RotScratch* blk;
+    GpRec18*               rec;
+    s16                    ang;
+    u16                    m22;
+
+    scratch_base                             = PSX_SCRATCH;
+    head                                     = scratch_base;
+    head                                     = *(u8**)(head + 0x3FC);
+    blk                                      = (Actor401000RotScratch*)(head - 0x34);
+    *(Actor401000RotScratch**)G_SCRATCH_HEAD = blk;
+    ang                                      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                               = ang;
+    Gfx_RotMatrixY(&blk->m, (s32)ang, 1);
+    blk->scale.vz = 0x1194;
+    blk->scale.vy = 0x1194;
+    blk->scale.vx = 0x1194;
+    ScaleMatrix(&blk->m, &blk->scale);
+    coord->coord.m[0][0] = *(u16*)&((Actor401000RotScratch*)(head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    __asm__ volatile("lui %0, 0x1F80" : "=r"(tail));
+    tail       = *(u8**)(tail + 0x3FC);
+    m22        = *(u16*)&blk->m.m[2][2];
+    rec        = (GpRec18*)work->field_A30;
+    coord->flg = 0;
+    tail       = tail + 0x34;
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
+    coord->coord.m[2][2] = m22;
+    work->field_C7C      = 0;
+    Gp_ClearRec18Occupied(rec);
+    Gp_ClearRec18Occupied((GpRec18*)work->field_8F0);
+}
+
+/// Enemy init: allocates the 0xC80-byte work block, binds the model's light
+/// and colour matrices to its copies, seeds both animation contexts and the
+/// three `GpObj` nodes, then picks the opening clip from the low bits of
+/// `GpEnemy::field_8` and the `field_C10` parameter run from the spawn flags.
+/// The tail rebuilds the root coordinate through `Actor401000_InitPose`.
+void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
+{
+    SVECTOR          dir;
+    VECTOR           pos;
+    SVECTOR*         v;
+    TmdObject*       obj;
+    GsCOORDINATE2*   root;
+    Actor401000Work* work;
+    GpObj*           body;
+    GpObj*           head;
+    u16              kind;
+    s16              clip;
+    s32              variant;
+
+    root            = actor->field_2C->field_8;
+    obj             = actor->field_2C;
+    work            = Mem_Calloc(0xC80, 0);
+    actor->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, (Task*)actor);
+        return;
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    ((Task*)actor)->exitCallback = func_actor_401000_8013DA78;
+    Actor401000_BindMatrices(actor);
+    enemy->field_4     = &actor->field_2C->field_8->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &actor->field_2C->field_8[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_4C     = 0;
+    enemy->field_40     = (s16)D_actor_401000_8013E09C.field_4;
+    enemy->field_50     = &D_actor_401000_8013E09C;
+    enemy->field_54     = (s32)&work->field_8F0;
+    func_800B3F84(&((Actor401000AnimWork*)work)->anim, &D_actor_401000_80154E48, (GpAnimObj*)obj,
+                  ((Actor401000AnimWork*)work)->pad_328, ((Actor401000AnimWork*)work)->slots);
+    func_800B3F84(&((Actor401000AnimWork*)work)->blendAnim, &D_actor_401000_80154E48,
+                  (GpAnimObj*)obj, ((Actor401000AnimWork*)work)->pad_764,
+                  ((Actor401000AnimWork*)work)->blendSlots);
+    work->field_898 = 2;
+    work->field_89E = 2;
+    work->field_89A = 0;
+    work->field_8B0 = 0;
+    work->field_8AE = 0;
+    work->field_8A4 = 0x10;
+    work->field_8A2 = 0x10;
+    kind            = ((u16)enemy->field_8 >> 12) % 5;
+    switch (kind) {
+        case 0:
+            clip = 0x11;
+            break;
+        case 1:
+            clip = 0xF;
+            break;
+        case 2:
+            clip = 0x10;
+            break;
+        case 3:
+            clip = 0x12;
+            break;
+        case 4:
+        default:
+            clip = 0xE;
+            break;
+    }
+    work->field_8A4 = clip;
+    SCHED_BARRIER();
+    func_actor_401000_80132EF0(actor);
+
+    work->field_A10.field_C  = (GpRec18*)&work->field_A30;
+    work->field_A10.field_8  = root;
+    work->field_A10.field_10 = 0;
+    work->field_A10.field_12 = -0xAC;
+    work->field_A10.field_14 = 0;
+    work->field_A10.field_18 = 0x30000;
+    work->field_A10.field_1C = 0x12C;
+    work->field_A10.flags    = 1;
+    Gp_LinkObj(2, &work->field_A10);
+    work->field_BE8        = 0;
+    work->field_A10.flags |= 0x4000;
+    Gp_InitRec18Table(work->field_A10.field_C, 0xC, 0);
+
+    body           = &work->field_8D0;
+    body->field_8  = &actor->field_2C->field_8[2];
+    body->field_C  = (GpRec18*)&work->field_8F0;
+    body->field_10 = 0;
+    body->field_12 = 0;
+    body->field_14 = 0;
+    body->field_18 = 0x3000A;
+    body->field_1C = 0x1AE;
+    body->flags    = 1;
+    Gp_LinkObj(2, body);
+    body->flags |= 0x8000;
+    Gp_InitRec18Table(body->field_C, 0xC, 0);
+    work->field_8D0.field_18 = 0x30000;
+
+    dir.vx         = 0;
+    dir.vy         = 0;
+    dir.vz         = 0;
+    head           = &work->field_B50;
+    head->field_8  = &actor->field_2C->field_8[6];
+    head->field_C  = &work->field_B70;
+    v              = &dir;
+    head->field_10 = v->vx;
+    head->field_12 = v->vy;
+    head->field_14 = v->vz;
+    head->field_1C = 0x180;
+    head->flags    = 1;
+    Gp_LinkObj(3, head);
+    Gp_InitRec18Table(head->field_C, 1, 0);
+
+    work->field_14     = 0;
+    work->field_C[0].x = actor->field_2C->field_8->coord.t[0];
+    work->field_C[0].z = actor->field_2C->field_8->coord.t[2];
+    Gfx_MatrixCol2(&actor->field_2C->field_8->coord, v);
+    dir.vy = 0;
+    VectorNormalSS(v, v);
+    gte_lddp(2000);
+    gte_ldsv(v);
+    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_stsv(v);
+    work->field_C[1].x = actor->field_2C->field_8->coord.t[0] + dir.vx;
+    work->field_C[1].z = actor->field_2C->field_8->coord.t[2] + dir.vz;
+
+    ((Task*)actor)->field_24 = &D_actor_401000_80154F90;
+    root->sub                = &Gfx_ViewCoord;
+    root->flg                = 0;
+    Gp_UpdateCoord(root);
+    pos.vx = root->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+
+    work->field_8B8.field_0 = &actor->field_2C->field_8[1];
+    work->field_8B8.field_4 = 0x300;
+    work->field_8B8.field_6 = 2;
+    variant                 = actor->field_36;
+    switch (variant & 0xF) {
+        case 2:
+            work->field_2 = -1;
+            work->field_0 = 0;
+            break;
+        case 4:
+            work->field_2 = -1;
+            work->field_0 = 0x16;
+            break;
+        default:
+            work->field_2 = -1;
+            work->field_0 = 0x18;
+            Tmd_AllocBuffers(obj);
+            break;
+    }
+    switch (((Task*)actor)->spawnArg1 & 0xF) {
+        case 2:
+            work->field_C10 = D_actor_401000_8013E0AC[0].field_0;
+            work->field_C12 = D_actor_401000_8013E0AC[0].field_2;
+            work->field_C14 = D_actor_401000_8013E0AC[0].field_4;
+            work->field_C16 = D_actor_401000_8013E0AC[0].field_6;
+            break;
+        case 1:
+            work->field_C10 = D_actor_401000_8013E0AC[2].field_0;
+            work->field_C12 = D_actor_401000_8013E0AC[2].field_2;
+            work->field_C14 = D_actor_401000_8013E0AC[2].field_4;
+            work->field_C16 = D_actor_401000_8013E0AC[2].field_6;
+            break;
+        case 0:
+        default:
+            work->field_C10 = D_actor_401000_8013E0AC[1].field_0;
+            work->field_C12 = D_actor_401000_8013E0AC[1].field_2;
+            work->field_C14 = D_actor_401000_8013E0AC[1].field_4;
+            work->field_C16 = D_actor_401000_8013E0AC[1].field_6;
+            break;
+    }
+
+    Actor401000_InitPose(actor->field_2C->field_8, work);
+
+    ((Task*)actor)->state++;
+}
 
 /// Spawn the effect a hit record `arg2` names at one of twelve model offsets
 /// picked by the signed damage `arg1`: the `Gp_LcgState` draw's low bits

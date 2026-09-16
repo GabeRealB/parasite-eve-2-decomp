@@ -10,6 +10,44 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include <psyq/inline_c.h>
+
+/// An XZ pair: `field_C[0]` is the actor's spawn square and `field_C[1]` one
+/// step along its facing, both rebuilt by `func_actor_401000_80133274`. Same
+/// shape as `Actor401300Waypoint` / `Actor01900Waypoint`.
+typedef struct Actor401000Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor401000Waypoint;
+
+/// One 0xC-byte combat-parameter record `func_actor_401000_80133274` selects
+/// with `Task::spawnArg1 & 0xF` and copies into `Actor401000Work.field_C10`
+/// through `field_C16`; the four halfwords are the frame bias, the turn step,
+/// a third parameter and the radius, and the tail is not copied.
+typedef struct Actor401000SeedRec {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  field_4;
+    /* 0x6 */ s16  field_6;
+    /* 0x8 */ byte pad_8[4];
+} Actor401000SeedRec;
+STATIC_ASSERT_SIZEOF(Actor401000SeedRec, 0xC);
+
+/// Animation view of `Actor401000Work`'s prefix. `func_800B3F84` is handed the
+/// context, the pose buffer just past its slot array, and the array itself;
+/// the work block's own fields at 0x898 and up are not repeated here. Same
+/// shape as `Actor401300AnimWork`, 4 bytes earlier.
+typedef struct Actor401000AnimWork {
+    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[19];
+    /* 0x328 */ byte       pad_328[0x130];
+    /* 0x458 */ GpAnimCtx  blendAnim;
+    /* 0x46C */ GpAnimSlot blendSlots[19];
+    /* 0x764 */ byte       pad_764[0x134];
+} Actor401000AnimWork;
+STATIC_ASSERT_SIZEOF(Actor401000AnimWork, 0x898);
+
 /// Status flags at `Actor401000Work` + 0x68, read through two widths: the
 /// guards in this overlay test bit 0 or bit 0x100 as a halfword, while
 /// `func_actor_401000_80134DB4` tests bits 0x102 as a word, so both views are
@@ -40,24 +78,29 @@ typedef struct Actor401000Work {
     /// One-shot latch `func_actor_401000_8013922C` raises once the actor's
     /// spawn sound has been queued; the same slot `Actor401300Work` keeps at
     /// +0x6.
-    /* 0x006 */ s16                field_6;
-    /* 0x008 */ byte               pad_8[0x52];
-    /* 0x05A */ u16                field_5A;
-    /* 0x05C */ byte               pad_5C[0xC];
-    /* 0x068 */ Actor401000Flags68 flags_68;
-    /* 0x06C */ byte               pad_6C[0x828];
-    /* 0x894 */ s32                field_894;
-    /* 0x898 */ s16                field_898;
-    /* 0x89A */ s16                field_89A;
-    /* 0x89C */ byte               pad_89C[2];
-    /* 0x89E */ s16                field_89E;
-    /* 0x8A0 */ byte               pad_8A0[2];
-    /* 0x8A2 */ s16                field_8A2;
-    /* 0x8A4 */ s16                field_8A4;
-    /* 0x8A6 */ byte               pad_8A6[8];
-    /* 0x8AE */ s16                field_8AE;
-    /* 0x8B0 */ s16                field_8B0;
-    /* 0x8B2 */ byte               pad_8B2[2];
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ byte pad_8[4];
+    /// Spawn square and one step along the facing, both narrowed to 16 bits by
+    /// `func_actor_401000_80133274`'s normalised heading.
+    /* 0x00C */ Actor401000Waypoint field_C[2];
+    /* 0x014 */ s16                 field_14;
+    /* 0x016 */ byte                pad_16[0x44];
+    /* 0x05A */ u16                 field_5A;
+    /* 0x05C */ byte                pad_5C[0xC];
+    /* 0x068 */ Actor401000Flags68  flags_68;
+    /* 0x06C */ byte                pad_6C[0x828];
+    /* 0x894 */ s32                 field_894;
+    /* 0x898 */ s16                 field_898;
+    /* 0x89A */ s16                 field_89A;
+    /* 0x89C */ byte                pad_89C[2];
+    /* 0x89E */ s16                 field_89E;
+    /* 0x8A0 */ byte                pad_8A0[2];
+    /* 0x8A2 */ s16                 field_8A2;
+    /* 0x8A4 */ s16                 field_8A4;
+    /* 0x8A6 */ byte                pad_8A6[8];
+    /* 0x8AE */ s16                 field_8AE;
+    /* 0x8B0 */ s16                 field_8B0;
+    /* 0x8B2 */ byte                pad_8B2[2];
     /// Last animation state `func_actor_401000_8013922C` acted on; the same
     /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
     /* 0x8B4 */ s32      field_8B4;
@@ -76,13 +119,21 @@ typedef struct Actor401000Work {
     /* 0xA10 */ GpObj field_A10;
     /* 0xA30 */ byte  field_A30[0x120];
     /* 0xB50 */ GpObj field_B50;
-    /* 0xB70 */ byte  pad_B70[0x38];
+    /// The single obstacle record the `field_B50` node is registered against.
+    /* 0xB70 */ GpRec18 field_B70;
+    /// Light matrix `func_actor_401000_80133274` binds to the model's
+    /// `TmdObject::field_1C` (the color matrix is `field_BA8`, which is the
+    /// same pair `Actor401300Work` keeps at +0xC28 / +0xC48).
+    /* 0xB88 */ MATRIX field_B88;
     /// Saved at 0xBA8 and copied over 0xBC8 when
     /// `func_actor_401000_80138F50` enters its state; the same pair
     /// `Actor401300Work` keeps at +0xC48 / +0xC68.
     /* 0xBA8 */ MATRIX field_BA8;
     /* 0xBC8 */ MATRIX field_BC8;
-    /* 0xBE8 */ byte   pad_BE8[8];
+    /// Cleared by `func_actor_401000_80133274` right after the `field_A10`
+    /// node is linked; the same slot `Actor401300Work` keeps at +0xC88.
+    /* 0xBE8 */ s16  field_BE8;
+    /* 0xBEA */ byte pad_BEA[6];
     /// Forward direction `func_actor_401000_801374D4` rebuilds from the wrapped
     /// turn toward the player: `Gfx_RotMatrixY` on the turn then its second
     /// column, normalised, and finally scaled by the `field_C0A` draw. The same
@@ -120,8 +171,10 @@ typedef struct Actor401000Work {
     /// Turn step `func_actor_401000_801374D4` adds to (or subtracts from) the
     /// wrapped facing each entry; the same slot `Actor401300Work` keeps at
     /// +0xCA2 and `Actor01900Work` at +0xC14.
-    /* 0xC12 */ s16  field_C12;
-    /* 0xC14 */ byte pad_C14[2];
+    /* 0xC12 */ s16 field_C12;
+    /// Third of the four halfwords `func_actor_401000_80133274` copies out of
+    /// the `spawnArg1`-selected record; not read anywhere yet.
+    /* 0xC14 */ s16 field_C14;
     /// Radius `func_actor_401000_8013922C` and `func_actor_401000_80138F50`
     /// test the actor's distance from `D_80073B8C` against.
     /* 0xC16 */ u16 field_C16;
@@ -141,8 +194,14 @@ typedef struct Actor401000Work {
     /// Latch `func_actor_401000_801385B0` clears after sending the closing
     /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
     /// The same slot `Actor00100Work` keeps at +0xC28.
-    /* 0xC28 */ s16 field_C28;
+    /* 0xC28 */ s16  field_C28;
+    /* 0xC2A */ byte pad_C2A[0x52];
+    /// Cleared by `func_actor_401000_80133274` once both obstacle tables have
+    /// been dropped; the write cursor `Actor401300Work` keeps at +0xD78.
+    /* 0xC7C */ s16  field_C7C;
+    /* 0xC7E */ byte pad_C7E[2];
 } Actor401000Work;
+STATIC_ASSERT_SIZEOF(Actor401000Work, 0xC80);
 
 /// Per-task actor context: `field_1C` is the work block above (the same
 /// pointer `Task::idMap` holds), `field_20` the `GpEnemy` in
@@ -232,6 +291,21 @@ typedef struct Actor401000RangeScratch {
 STATIC_ASSERT_SIZEOF(Actor401000RangeScratch, 0xC);
 
 extern MATRIX* D_80073B8C;
+
+/// Animation bank `func_actor_401000_80133274` hands to both `func_800B3F84`
+/// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
+extern s32 D_actor_401000_80154E48;
+
+/// Parameter pair `func_actor_401000_80133274` installs as `GpEnemy::field_50`
+/// and reads `field_4` out of as the actor's initial `field_40`.
+extern GpPairSrcE D_actor_401000_8013E09C;
+
+/// Three combat-parameter records `func_actor_401000_80133274` picks between
+/// with `Task::spawnArg1 & 0xF`.
+extern Actor401000SeedRec D_actor_401000_8013E0AC[3];
+
+/// Animation table `func_actor_401000_80133274` writes to `Task::field_24`.
+extern s32 D_actor_401000_80154F90;
 
 /// Linear congruential generator state `func_actor_401000_8013DF6C` advances
 /// with the same `(x * 5 + 0x71357911) >> 16` draw the 401300 sibling uses.

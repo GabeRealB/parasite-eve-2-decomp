@@ -104834,3 +104834,144 @@ Inputs: base_1.i SHA256
 `2255048c9ce8422e45addf3516cf7a9ac8c6ee448860b1a40144feaeec66410e`; target.o SHA256
 `7b1973d8b57236fdecefecd70d3f9d175ff469d3b19891368db12d6911b3c2d1`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## This build's switch table needs five case values, not four (func_actor_401000_80133274, 2026-09-16)
+
+`expand_end_case` (`gcc/stmt.c`) takes the `casesi` / `tablejump` branch only when
+the case list is long enough; otherwise `balance_case_nodes` builds a comparison
+tree however dense the range is. In the bundled compiler the gate behaves as
+`count >= 5` — four case values are a tree, five are a table:
+
+```
+pick4:  beq $4,$2,$L4 / beq $2,$0,$L9 / beq $4,$0,$L3 ...      no table
+pick5:  sltiu ... / jr ... + 5 x .word                          table
+```
+
+(Recheck with a two-function test file before relying on the number: the
+`CASE_VALUES_THRESHOLD` default is `HAVE_casesi ? 4 : 5`, and mips.md does carry
+a `define_expand "casesi"`.)
+
+The target's dispatch is
+`sltiu v0,v1,5` + `beq` to the default + a five-entry `jtbl_*`, and its last
+entry points at the default body, so the source has a fifth *case value* whose
+label is the default's. Here `kind` is `% 5`, so the fifth value is the
+remainder 4, and writing it out is what the original did:
+
+```c
+    case 4:
+    default:
+        clip = 0xE;
+        break;
+```
+
+Reading the case count off the target is the check: a `sltiu N` whose N is one
+greater than the number of distinct case values means the source names the
+extra value explicitly. Four values scored 87.046% with a `beq`/`slti` cascade;
+five scored 87.733% with the block topology matching.
+
+## A `SCHED_BARRIER()` before a call keeps its argument `move` in the delay slot (func_actor_401000_80133274, 2026-09-16)
+
+A store followed by a call whose argument needs a register copy:
+
+```c
+work->field_8A4 = clip;
+func_actor_401000_80132EF0(actor);
+```
+
+The Haifa scheduler's ready-list tie-break picks the larger LUID first, so it
+hoists the call's `move a0,s5` above the store; `fill_simple_delay_slots`
+(`reorg.c`) then walks backward from the call, finds the *store* immediately
+before it and uses that as the delay slot:
+
+```
+move  a0,s5
+jal   func_actor_401000_80132EF0
+ sh   v0,0x8A4(s3)        # the store, not the target's move
+```
+
+The target has `sh` in its own slot and `move a0,s5` in the delay.
+`SCHED_BARRIER()` (`__asm__ volatile("")`, an `ASM_INPUT`) between the two
+statements is a hard fence in `sched_analyze`, so the copy cannot cross the
+store and stays adjacent to the call:
+
+```
+sh    v0,0x8A4(s3)
+jal   func_actor_401000_80132EF0
+ move a0,s5
+```
+
+`reorder` 3 -> 1 and 99.586% -> 99.862%. A barrier is also a *register* fence:
+an insn that defines a register cannot cross it either, which is what pinned the
+last hunk here — the target's `addiu a0,s3,0xA30` sits on the far side of the
+`sw %0, 0x1F8003FC` scratch-release asm, so the source must compute that pointer
+into a named local before the release:
+
+```c
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
+    coord->coord.m[2][2] = m22;
+    work->field_C7C      = 0;
+    Gp_ClearRec18Occupied(rec);      /* rec set above the asm */
+```
+
+Only the first of the two `Gp_ClearRec18Occupied` arguments is hoisted that way;
+the second stays an expression and lands in the second call's delay slot, as the
+target shows.
+
+## A cached pointer local suppresses reloads the target's full chains force (func_actor_401000_80133274, 2026-09-16)
+
+`root` and `obj` are live in callee-saved registers for the whole init, so every
+`root->...` / `obj->...` reads them directly and no load appears. The target
+instead reloads the chain after each call —
+
+```
+lw  v0,0x2C($s5)      # actor->field_2C
+lw  v0,8(v0)          # ->field_8
+lhu v0,0x18(v0)       # ->coord.t[0]
+```
+
+— which only happens when the source spells the chain out at each use site:
+`actor->field_2C->field_8->coord.t[0]`. Write the chain where the target reloads
+and keep the local where it does not (here `field_A10.field_8 = root`,
+`root->sub` / `root->flg` / `Gp_UpdateCoord` / `root->workm.t[]`).
+
+The same choice moves a *base register*, and that can reorder a store. The second
+`body->field_18` write sits after the node's `Gp_InitRec18Table`, next to the
+`head = &work->field_B50` that reloads `$s0`:
+
+```c
+    body->field_18           = 0x30000;   /* 0x18($s0), WAR on $s0 */
+    work->field_8D0.field_18 = 0x30000;   /* 0x8E8($s3), no conflict */
+```
+
+With `body->...` the store must stay before the `addiu $s0,$s3,0xB50` that
+clobbers its base (`reorder=4`, 98.793%); the `work->field_8D0....` form addresses
+from `$s3` and lets the `addiu` go first, matching the target (98.954%).
+`body->field_8` / `field_C` / the rest keep the local, which is why only this one
+store names the node through `work`.
+
+## An `s32` intermediate is what makes a masked `s16` field load with `lh` (func_actor_401000_80133274, 2026-09-16)
+
+`switch (actor->field_36 & 0xF)` on an `s16` field loads with `lhu`: the `& 0xF`
+kills every bit the sign extension would set, so combine is free to pick the
+zero-extending load, and it does. The target wants `lh` with the same `andi`:
+
+```
+lh    v0,0x36(s5)
+nop
+andi  v1,v0,0xf
+```
+
+Storing the field into an `s32` local first forces the sign extension:
+
+```c
+    variant = actor->field_36;
+    switch (variant & 0xF) {
+```
+
+The intermediate must be at least `s32`; an `s16` local still lets the mask
+collapse the extension. `variant` is otherwise unused and writes no code.
+
+Inputs: base_14.i SHA256
+`3c0e87417c17f3acaea38fed745878c02af0ef780ed2691efbaf21ef559703e8`; target.o SHA256
+`b9d7dca55f8e146e91190e59d0d42dd303a8f1c274cb1c856290d793579ae0cb`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
