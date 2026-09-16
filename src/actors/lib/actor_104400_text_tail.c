@@ -786,7 +786,42 @@ void Actor04400_Fn07984(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07A38);
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_104400_text_tail", Actor04400_Fn07B4C);
+/// Applies the animation `field_418` asks for: overlaps the values at
+/// `Actor04400_D10814[field_418 - 1]` onto `field_44F`, then requests either
+/// animation 0xC (kind 1, with sound 0x402C0002) or animation 0x11 for the
+/// enemy encountered, and plays the encounter sound at its pan and depth.
+/// Counts the sub-state up.
+void Actor04400_Fn07B4C(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+    Actor104400Work* work3;
+    s32              soundId;
+    s32              pan;
+    u8               kind;
+
+    work            = (Actor104400Work*)arg0->idMap;
+    kind            = Actor04400_D10814[work->field_418 - 1];
+    work->field_44F = kind;
+    if (kind == 1) {
+        work2            = (Actor104400Work*)arg0->idMap;
+        work2->field_426 = 2;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xC;
+        work2->field_414 = 1;
+        SndEvt_EnqueueType7(0x402C0002, 1);
+    } else {
+        work3            = (Actor104400Work*)arg0->idMap;
+        work3->field_426 = 8;
+        work3->field_41C = 0x10;
+        work3->field_418 = 0x11;
+        work3->field_414 = 1;
+    }
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0003;
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    work->field_422 = (u16)(work->field_422 + 1);
+}
 
 void Actor04400_Fn07C60(Task* arg0)
 {

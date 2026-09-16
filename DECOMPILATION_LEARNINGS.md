@@ -97992,3 +97992,50 @@ Inputs: `base_1.i` SHA256 `c7b1119a0f8bb4f4b7ab640fb37b549d102f6cec33549a25b54f6
 target SHA256 `18b53dab655dbc16dd16e54216ea292bbeeb34e1e9ed9c203e2f056bafa5c5ef`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor04400_Fn0648C-vacuum`.
+
+## m2c's narrow type for a sign-extended call result keeps the raw value out of `$v0` (Actor04400_Fn07B4C, 2026-09-16)
+
+`temp = (s8)Gp_GetObjPan(...)` came out of m2c as `s8 temp_s1`, because the only
+thing the assembly shows is the pair that *sign-extends* the call result:
+
+```
+jal   Gp_GetObjPan
+move  s1,v0        <- a copy the target does not have
+...
+sll   s1,s1,0x18
+sra   a1,s1,0x18   <- and the extension lands in the *argument* register
+```
+
+Two penalties follow from that one word, `regs=4 insert=3 delete=2`, 92.571%:
+the raw result needs a register of its own (`move s1,v0`), which also displaces
+the `sll` out of the load-delay slot that the target fills with it
+(`lw v1,0x2c(s1); sll s1,v0,0x18; lw a0,8(v1)`), leaving a `nop` behind.
+
+The `s8` declaration makes the pseudo QImode, so the extension has a QI source
+and a SI result — two pseudos, and local-alloc can tie neither to `$v0`. m2c is
+right that a byte is sign-extended, but the local is not a byte: the *store*
+(the call argument) wants a word. Declaring it `s32`, exactly as the already
+matched sibling in the same TU does
+
+```c
+s32 pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(...));
+```
+
+collapses it to one SI sign-extension of the call result, which is what keeps
+the raw value in `$v0` and puts `sll $s1,$v0,24` in the delay slot. One-line
+change from the 92.571% baseline to 100.000%, every penalty zero.
+
+Same family as the `GameFlag_GetNibble` entry above — m2c types a local from the
+sub-expression it can see rather than from the use that consumes it — but the
+symptom inverts: there an over-narrow local *added* a shift ahead of a compare,
+here it *added a copy* and cost a delay slot. Read a matched sibling in the same
+TU before rewriting the seed: `Actor04400_Fn07050` carries this exact call
+sequence and shows which declaration the target was compiled from.
+
+Inputs: `base_1.i` (100.000%) SHA256 `eec33a072d1d31ba4e2b2a71a453391de75ae151cc67e25de4c5bf5df7411068`,
+`base.i` (92.571%) SHA256 `5b5dc36ff6529a1451f374941c3988d141177b4b77e23743487fc4f175324eb0`;
+target SHA256 `cd531d94bf77879fd12a67ca200a6d0bde75902c1dec9247431182aa1482c655`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor04400_Fn07B4C-vacuum`; two builds, no pins, no permuter.
+`overlay_dup_index.py find` reports this body as its own only copy.
