@@ -207,7 +207,58 @@ INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8
 /// once it is fully up, hands slot 3 the actor's new position and re-arms the
 /// actor on the far side, spawning the screen tint `D_actor_206100_80158CCC`
 /// describes as it goes.
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014CB68);
+void func_actor_206100_8014CB68(Task* task)
+{
+    Actor206100Work*  work;
+    Actor206100Work*  work2;
+    TmdObject*        tmd;
+    GsCOORDINATE2*    coord;
+    Actor206100Msg3E9 msg;
+
+    work  = (Actor206100Work*)task->idMap;
+    tmd   = task->extra;
+    coord = tmd->field_8;
+    func_actor_206100_8014DEAC(task);
+    work->field_51E = work->field_51E + 6;
+    if ((s16)work->field_51E >= 0x100) {
+        work->field_51E = 0xFF;
+    }
+    Fade_DrawOverlay((u8)work->field_51E, (u8)work->field_51E, (u8)work->field_51E, 2);
+    if ((s16)work->field_51E == 0xFF) {
+        work->obj_364.flags |= 0x8000;
+        work->obj_414.flags |= 0x8000;
+        msg.pos.vx           = 0x690;
+        msg.pos.vy           = 0x1388;
+        msg.pos.vz           = 0x898;
+        msg.rot.vx           = 0;
+        msg.rot.vy           = 0x200;
+        msg.rot.vz           = 0;
+        Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+        work2                         = (Actor206100Work*)task->idMap;
+        work2->field_51A              = 0x10;
+        work2->field_510              = 3;
+        work2->field_50C              = 2;
+        coord->coord.t[1]             = 0xDAC;
+        work->field_526               = 0xDAC;
+        coord->coord.t[0]             = 0x157C;
+        coord->coord.t[2]             = 0x157C;
+        work->field_43C               = 0;
+        work->field_43E               = 0xA00;
+        work->field_440               = 0;
+        work->field_553               = Mc_SaveData.field_4;
+        Mc_SaveData.field_4           = 7;
+        work->field_51E               = 0;
+        work->field_54D               = 0;
+        work->field_522               = work->field_522 + 1;
+        D_actor_206100_80158CCC.span  = 1;
+        D_actor_206100_80158CCC.scale = 0x60;
+        D_actor_206100_80158CCC.r     = 0x40;
+        D_actor_206100_80158CCC.blend = 1;
+        D_actor_206100_80158CCC.g     = 0x80;
+        D_actor_206100_80158CCC.b     = 0x80;
+        work->field_4F8               = Task_SpawnFromTable(&D_actor_206100_80158AF0, 0, 0, (s32)&D_actor_206100_80158CCC);
+    }
+}
 void func_actor_206100_8014CD08(Task* task)
 {
     Actor206100Work*  work;
