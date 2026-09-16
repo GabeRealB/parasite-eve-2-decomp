@@ -99228,3 +99228,43 @@ Inputs: `base.i` (99.717%) SHA256
 SHA256 `580bf3d944f4f5101d1328ced5e67b487b51a47ad906ca48dce07587bd485923`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn09124-vacuum`.
+
+## Where a loop counter's init sits decides `addiu v0,v0,1` vs `addu v0,v0,s0`
+
+The other direction of the `reload_cse` constant-substitution sections: this
+time the target wants the **immediate** and the candidate produced the register.
+`Actor00400_Fn08814`'s third state arm is `w->field_62A++`, and m2c hoists the
+tail loop's `var_s0 = 1` above the three-way state chain (its `goto block_9`
+rendering). That puts the SImode `(set (reg/v:SI 83) (const_int 1))` in the same
+straight-line region as the increment, so `reload_cse_simplify_operands` finds
+the value in `$s0` and rewrites the add's constant operand:
+
+```
+.sched  : (insn 115 (set (reg:SI 106) (plus:SI (subreg:SI (reg:HI 105) 0) (const_int 1))))
+.sched2 : (insn 115 (set (reg:SI 2 v0) (plus:SI (subreg:SI (reg:HI 2 v0) 0) (reg:SI 16 s0))))
+```
+
+`addsi3_internal`'s operand 2 is the single alternative `"dI"` (`mips.md:509`),
+so nothing competes with the register: any alternative that accepts `$s0` is the
+matching alternative, and the operand is substituted. The counter is not the
+only `1` in the function either - `i++)` itself is still an immediate.
+
+Writing `i = 1` *after* the chain, which is how the family's already-matched
+siblings are written (`Actor00400_Fn07CC4` in `src/actors/lib/actor_100400_text.c`,
+whose tail is instruction-for-instruction identical to this target), leaves a
+`CODE_LABEL` at the merge point - and `reload_cse_regs_1` clears all of
+`reg_values` at every label, so the constant is unknown at the increment and
+`addiu v0,v0,1` survives. 96.296% with `insert=1 delete=1` (one word off) to
+100% on the first build of the reshaped source.
+
+The transferable part is the search order: this body is inlined ~10 times in
+`actor_100400_text.c` alone, so the sibling in the same overlay is a stronger
+seed than the m2c transcription, and copying its shape settles the CFG, the
+label placement and the reload_cse exposure in one edit.
+
+Inputs: `base.i` (96.296%) SHA256
+`d6509612bc3355b7ca8a9a09f03268241e652df08c2f03a3431abbff8053be84`; `base_1.i`
+(100%) SHA256 `3388da5ddb2e81e9aede649d7e054f21c38b1a51a13b00cae8da04d27e5a2fb3`;
+target.o SHA256 `b44efee74e98c0419283ae616254f21ab21bf22f1d34d53924d1d70c14b5fb7a`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/Actor00400_Fn08814-vacuum`.

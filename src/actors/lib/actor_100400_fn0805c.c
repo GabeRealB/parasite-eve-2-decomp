@@ -41,6 +41,8 @@ void       Actor00400_Fn06EA4(Actor100400* arg0);
 void       Actor00400_Fn08ADC(Actor100400* arg0);
 void       Actor00400_Fn08B94(Actor100400* arg0);
 void       Gp_AnimResetSlot(Actor100400Work* anim, s32 slot, s32 active);
+void       Gp_AnimTickIndex(Actor100400Work* anim, s32 slot);
+void       Actor00400_Fn08624(Actor100400* arg0);
 void       Actor00400_Fn06F64(Actor100400* arg0);
 void       Actor00400_Fn0A880(Actor100400* arg0);
 void       Actor00400_Fn04900(Actor100400* arg0);
@@ -258,7 +260,38 @@ void Actor00400_Fn0875C(Actor100400* arg0, Actor100400Entry8* arg1, s32 arg2, s3
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_fn0805c", Actor00400_Fn08814);
+/// One animation-step: state 1 starts the clip `field_628` (or advances the
+/// current one through `Actor00400_Fn086FC` when it is already in place, and
+/// resets `field_62A` when it is not), state 2 finishes the old clip and state
+/// 3 counts `field_62A` up a frame at a time. All three land in state 3 and
+/// then tick animation slots 1..14.
+void Actor00400_Fn08814(Actor100400* arg0)
+{
+    Actor100400Work* work;
+    s32              i;
+
+    work = arg0->field_1C;
+    if (work->field_624 == 1) {
+        if (work->field_626 != work->field_628) {
+            work->field_62A = 0;
+        } else {
+            work->field_62A = Actor00400_Fn086FC(arg0, work->field_62A);
+        }
+        Actor00400_Fn08624(arg0);
+        work->field_624 = 3;
+    } else if (work->field_624 == 2) {
+        Actor00400_Fn085B8(arg0);
+        work->field_624 = 3;
+        work->field_62A = 0;
+    } else if (work->field_624 == 3) {
+        work->field_62A++;
+    }
+    i = 1;
+    do {
+        Gp_AnimTickIndex(work, i);
+        i++;
+    } while (i < 0xF);
+}
 
 void Actor00400_Fn088EC(Actor100400* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
