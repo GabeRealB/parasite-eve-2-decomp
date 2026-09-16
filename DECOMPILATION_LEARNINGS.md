@@ -52404,6 +52404,42 @@ both registers at once. The same split is what keeps `(depth + 0x200) + spin`
 from being folded to `(spin + 0x200) + depth`; GCC's tree folder reassociates a
 single expression but leaves two statements alone.
 
+## In a run of constant stores, the *statement order* decides each constant's register
+
+The same ranking that made the split statement above work also makes a plain
+reorder work, and there the whole decision is `death - birth`.
+`func_mine_refuge_8017FE78` fills a cap-script global with four sound ids and
+sat at 98.3% (`regs=6`) with control flow, instruction order and store order
+otherwise exact: the ROM builds `0x54060006` in `$a1`, `0x54060004` in `$v1`,
+`0x54060005` in `$v0`, and the decompile had `$a1` and `$v1` the other way
+round.
+
+Each constant is one `li` pair with one def and one use, so `n_refs` and `size`
+cancel and the quantities rank purely by span: 9, 10 and 11 insns for
+`0x54060005`, `0x54060004` and `0x54060006`. Shortest first, tie broken by qty
+number, gives exactly `$v0`, `$v1`, `$a1`.
+
+m2c had written the four tail stores in the order the *scheduler* left them in
+the object (`field_8`, `field_2`, `field_10`, `field_C`). That order gives
+`0x54060006` and `0x54060004` the same span, and the qty-number tie-break then
+hands `0x54060006` the *lower* register — the swap. Putting `field_2 = 0` first,
+which is the order every sibling room's cap-script filler uses (`field_1`,
+`field_3`, `field_2`, `field_4`, `field_8`, `field_10`, `field_C`), makes
+`field_8`'s constant the longest-lived and so the last allocated, and the
+function then matched at 100%:
+
+```c
+    script->field_2  = 0;
+    script->field_8  = 0x54060006;
+    script->field_10 = 0x54060004;
+    script->field_C  = 0x54060005;
+```
+
+The object's store order is evidence about scheduling, not about the source.
+When a `regs` leftover sits inside a run of constant stores, permute the
+statements before reaching for a pin — and prefer the order a matched sibling
+of the same function shape already uses.
+
 ## A prologue local that only ever feeds a halfword store may have to be `u16`
 
 The last register in the same function refused to settle until the flare width,
