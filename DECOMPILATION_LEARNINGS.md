@@ -46629,6 +46629,38 @@ mattered, but writing the per-case locals was the actual fix. When a pointer is
 hoisted to the top of a block, check whether the same C variable is also
 assigned in another `case` or branch.
 
+### The same twice-set local can cost a callee-saved register, not just an order
+
+`func_actor_510900_80138250` dispatches on a state word and plays a sound in
+two of the three cases, each written the way the matched sibling
+`func_actor_510900_801384C4` is:
+
+```c
+pan = (s8)Gp_GetObjPan((GpObj38*)coord);
+SndEvt_EnqueueType6(work->field_578, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+```
+
+That stalled at 94.97% saving `ra/s2/s1/s0` where the target saves `ra/s1/s0`,
+so it read as a `regs`/`stack` problem rather than a scheduling one. The two
+call sites emit `[X = v0<<24][pan = X>>24][a0 = coord][jal Gp_GetObjDepth]`;
+the target emits `[a0 = coord][X = v0<<24][pan = X>>24][jal]`. Only in the
+target does `coord` die *before* `pan` is born, so the two share `$s0`;
+ours needs a third callee-saved register for `coord`, and that is the whole
+four-instruction diff.
+
+`.sched`'s trace named the tie directly - `ready list at T-8: 74 (2) 77 (2),
+now 77 74` - two priority-2 insns broken by luid, so the later `a0 = coord`
+won. The sibling's equivalent line reads `196 (7f000001) 199 (3)`, because one
+`pan` assignment makes `REG_N_SETS == 1` and `birthing_insn_p` hands the
+`ashiftrt` the launch boost. Sharing one `pan` local across both cases is what
+removes it. Two locals, `startPan` and `loopPan`, matched.
+
+The general shape: when an extra callee-saved register appears and the object
+diff is a swapped pair around a call, do not go looking at `.greg` conflicts
+first. Check `.sched` for a plain priority sitting next to a `7f000001`
+column, then check whether the C local behind it is assigned in more than one
+arm.
+
 ## Which call-argument copy sits next to the `jal` is decided by hard-register set counts
 
 Two zero arguments after a run of stores looked like a register-colouring miss:

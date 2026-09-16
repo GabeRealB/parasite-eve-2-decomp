@@ -400,7 +400,75 @@ void func_actor_510900_80137E20(Actor510900* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80137FBC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_510900/actor_510900", func_actor_510900_80138250);
+void func_actor_510900_80138250(Actor510900* arg0)
+{
+    Actor510900Work*  work;
+    Actor510900Coord* coord;
+    GpEnemy*          enemy;
+    SVECTOR*          rot;
+    void*             head;
+    s32               startPan;
+    s32               loopPan;
+    u32               rng;
+
+    head                = *(void**)0x1F8003FC;
+    *(void**)0x1F8003FC = (u8*)head - 8;
+    work                = arg0->field_1C;
+    enemy               = arg0->field_20;
+    coord               = arg0->field_2C->field_8;
+    switch (work->field_590) {
+        case 0:
+            work->field_5A2 = 0;
+            work->field_586 = 0x13;
+            work->field_590 = 1;
+            work->field_59C = 0;
+            work->field_578 = ((enemy->field_8 >> 0xC) << 8) | 0x40780009;
+            startPan        = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(work->field_578, startPan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            break;
+        case 1:
+            if (work->field_58A & 1) {
+                rot         = (SVECTOR*)((u8*)head - 8);
+                rot->vx     = 0;
+                rot->vz     = 0;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                rot->vy     = ((Gp_LcgState >> 0x10) & 0x2FF) - 0x680;
+                Gp_SpawnEff(0x600E0, &coord->field_0, 0x100, rot);
+            }
+            work->field_59C++;
+            if (work->field_59C >= 3) {
+                loopPan = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueTypeA(work->field_578, loopPan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_59C = 0;
+            }
+            if (work->field_58A >= 0x1E) {
+                if (work->field_578 != 0) {
+                    SndEvt_EnqueueType7(work->field_578, 0);
+                    work->field_578 = 0;
+                }
+                work->field_586 = 0x14;
+                work->field_590 = 2;
+            }
+            break;
+        case 2:
+            if (work->field_58A >= 0x3B) {
+                if (enemy->field_40 <= 0) {
+                    work->field_58E = 0xC;
+                    work->field_590 = 0;
+                    work->field_586 = 0x18;
+                } else {
+                    work->field_58E = 1;
+                    work->field_586 = 1;
+                    work->field_590 = 0;
+                    work->field_59C =
+                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
+                    Gp_LcgState = rng;
+                }
+            }
+            break;
+    }
+    *(u32*)0x1F8003FC += 8;
+}
 
 void func_actor_510900_801384C4(Actor510900* arg0)
 {
