@@ -1,9 +1,16 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3CD8.h"
 #include "main/session.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tank/dryfield_night_water_tank_2", func_dryfield_night_water_tank_8017D73C);
+s32 func_dryfield_night_water_tank_8017D73C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xE) {
+        Gp_StartCapSlot(0xE, 1, 1);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tank/dryfield_night_water_tank_2", func_dryfield_night_water_tank_8017D76C);
 

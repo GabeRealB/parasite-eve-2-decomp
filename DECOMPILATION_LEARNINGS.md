@@ -84474,3 +84474,46 @@ Inputs: base.i `37a2a067ece339296551877a47e3af55fbb6a3a792465ef607b9dc13871e28b9
 base_1.i `0dd655fdcac8e6c6febf4a01f82faa9fa754d262f32fc2e0369057fbc692ef5c`.
 Evidence: scratch `nonmatchings/func_dryfield_underpass_8017D908-vacuum/`,
 `base_diff`; no pins, no permuter, no tracer.
+
+## m2c emits only the parameters it sees used, so a single wrong `$aN` in a compare is an arity problem
+
+`func_dryfield_night_water_tank_8017D73C` is a 12-instruction room script
+callback: `if (arg2 == 0xE) Gp_StartCapSlot(0xE, 1, 1); return 0;`. m2c ran
+liveness across the arguments and declared the one it saw used, so its output
+takes a *single* parameter - which lands in `$a0`, and the compare is one
+register off:
+
+```
+              target (100%)                 m2c base.c (99.583%)
+addiu  sp,sp,-0x18                     addiu  sp,sp,-0x18
+li     v0,0xe                          li     v0,0xe
+bne    a2,v0,20                        bne    a0,v0,20
+sw     ra,0x10(sp)                     sw     ra,0x10(sp)
+move   a0,v0                           move   a0,v0
+li     a1,1                            li     a1,1
+jal    Gp_StartCapSlot                 jal    Gp_StartCapSlot
+move   a2,a1                           move   a2,a1
+```
+
+`Penalties: regs=1`, structure match, 0 of 12 instructions differing otherwise.
+Spelling out the two leading parameters the body never reads -
+`s32 f(s32 arg0, s32 arg1, s32 arg2)`, the shape the sibling
+`func_acropolis_east_elevator_hall_8017F420` already uses, whose asm is
+instruction-for-instruction the same modulo the callee - moves the compare to
+`$a2` and scores 100.000% with no other change. The `move a0,v0` / `move a2,a1`
+argument setup is not a hint that the source reuses a variable: cse is reusing
+the constants `0xE` and `1` already materialised for the compare and for `$a1`,
+so `Gp_StartCapSlot(0xE, 1, 1)` written with literals is correct.
+
+Read this before chasing the register: an otherwise-perfect diff whose only
+difference is which argument register a value sits in is a signature error, not
+an allocation one, and unpinning or restructuring the body cannot fix it. Note
+the arity is invisible in the object dump - only the register tells you. Three-
+and four-parameter forms both match here (the trailing ones are unread), so pick
+the one the family's other callbacks use.
+
+Inputs: `base.c` (one-parameter m2c, 99.583%)
+`a0fb0a90e3cf630525552a29c7040ff25d7a313b71954545d4815ab0e2850bd8`,
+`base_1.c` (three-parameter, 100.000%)
+`cc22ba5650347c7ef01e08b0910606a8bc56f844e2d377dac1655678cc15391f`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
