@@ -197,4 +197,31 @@ void func_actor_548100_80134BF0(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_2", func_actor_548100_80134CB8);
+s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
+{
+    u8* route;
+    u8* head;
+    u8  prev;
+    s32 dist;
+
+    if (nodeA == 0) {
+        return 1;
+    }
+    head  = D_actor_548100_80135B24[nodeA];
+    dist  = 0;
+    prev  = head[0];
+    route = head + 1;
+    while (*route != 0) {
+        if (*route != 0xFF) {
+            dist += D_actor_548100_801351D0[D_actor_548100_80135B5C[*route + prev * 100]].dist;
+            prev  = *route;
+        } else {
+            route++;
+            prev = *route;
+        }
+        if (*route++ == nodeB) {
+            break;
+        }
+    }
+    return dist;
+}
