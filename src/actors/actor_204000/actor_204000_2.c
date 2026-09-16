@@ -511,10 +511,6 @@ void func_actor_204000_8014EDC4(Actor104000Ctx* arg0, Actor104000* arg1)
     func_actor_204000_8014AC8C(arg1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F04C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F3E8);
-
 extern u8 D_80072729;
 
 /// Step `coord` `amount` units along its local Z axis unless movement is
@@ -541,6 +537,76 @@ static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
         *(SVECTOR**)G_SCRATCH_HEAD += 1;
     }
 }
+
+/// Restarts the actor when `field_4` is set; otherwise cycles `field_6` through
+/// a 32-frame loop that resets the model position, steps it back and forth
+/// and changes `field_176`, then spins it and raises `field_14` in view 5.
+void func_actor_204000_8014F04C(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work* work;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        arg1->field_2C->field_C = 0;
+        work->obj350.flags     |= 0x8000;
+        work->obj388.flags     &= 0x7FFF;
+        work->obj3C0.flags     &= 0x7FFF;
+        work->obj270.flags     |= 0x4000;
+        arg0->field_14          = 0;
+        work->field_174         = 3;
+        work->field_170         = 2;
+        work->field_178         = 0;
+        func_actor_204000_8014AC8C(arg1);
+        Gfx_RotMatrixX(&arg1->field_2C->field_8->coord, 0x400, 0);
+        arg1->field_2C->field_8->flg = 0;
+        work->field_479              = 1;
+        work->obj350.field_8         = &Gfx_ViewCoord;
+        work->obj350.field_10        = -0x3AC;
+        work->obj350.field_12        = -0xF0;
+        work->field_6                = 0;
+        work->obj350.field_14        = 0x166C;
+        return;
+    }
+    switch ((s16)++work->field_6 % 32) {
+        case 0:
+            work->field_176                     = 0x40;
+            arg1->field_2C->field_8->coord.t[0] = -0x3AC;
+            arg1->field_2C->field_8->coord.t[1] = -0xF0;
+            arg1->field_2C->field_8->coord.t[2] = 0x166C;
+            break;
+        case 1:
+        case 2:
+        case 4:
+        case 5:
+        case 7:
+        case 8:
+            Actor204000_StepForward(arg1->field_2C->field_8, -0x78);
+            break;
+        case 11:
+        case 12:
+        case 14:
+            Actor204000_StepForward(arg1->field_2C->field_8, 0xC8);
+            break;
+        case 17:
+            work->field_176 = 0x10;
+            break;
+        case 25:
+            work->field_176 = 8;
+            break;
+    }
+    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, 0x44C, 1);
+    Gfx_RotMatrixX(&arg1->field_2C->field_8->coord, 0x190, 0);
+    arg1->field_2C->field_8->flg = 0;
+    func_actor_204000_8014AC8C(arg1);
+    if ((u8)Gp_GetViewIndex() == 5) {
+        arg0->field_14 = 1;
+        Gp_ClearNodeSlots(&((GpEnemy*)arg0)->node);
+        return;
+    }
+    arg0->field_14 = 0;
+}
+
+INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_8014F3E8);
 
 /// Resets the actor when `field_4` is set; otherwise advances the `field_6`
 /// timer, stepping the model forward in three speed bands and switching to
