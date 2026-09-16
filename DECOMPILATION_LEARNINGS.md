@@ -8355,6 +8355,25 @@ the header word pushed `jtbl_m249_8011D1C4` to `0x8011D1C8`. Adding
 m249 = { item = 0x90, weapon = "M249", rodata_head = "0x4" }
 ```
 
+A table that is *neither* first nor last in the leading block is the same rule
+read off the object: `rodata_head` alone suffices whenever the bytes unit 1's
+`.rodata` already holds ahead of the generated table are a multiple of 8, since
+`.align 3` then pads nothing. `actor_401800` is that shape - `rodata_head =
+"0x4"` moves the id word into `actor_401800_hdr`, unit 1's `.rodata` starts at
+`0x4` with the 30-word table (`0x78` bytes) of the still-asm function ahead of
+`func_actor_401800_80139B18`, and `jtbl_actor_401800_80131E9C` lands at `0x7C`
+with no pad - so no `units`/`rodata` pair is needed even though four more
+tables follow it.
+
+The tell for a pad the compiler *inserted* is the mirror of the short-case tell
+above: the built overlay is 4 bytes longer than its package and every pointer
+in the leading tables reads 4 high (check with `cur[i+4] == ref[i]` against
+`assets/USA/pe2pkg/<name>.pe2pkg`, or just `nm` a symbol - `.text` starts 4
+late). The measurement that settles it is the unit object's `.rodata` size
+against its subsegment span: `0x258` against `0x254`, i.e. the header word plus
+one pad word too many, and the pad is visible as the gap in the object's
+`R_MIPS_32` run offsets (`...0x78`, then `0x80...`).
+
 ### A read from an unset register is a late `.text` start, not a pin
 
 `text_span()` looks for the *first stack-frame prologue*, so code that begins
