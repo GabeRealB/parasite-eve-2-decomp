@@ -118,7 +118,8 @@ typedef struct Actor104000Ctx {
     /* 0x08 */ u16  field_8;
     /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ s8   field_14;
-    /* 0x15 */ byte pad_15[3];
+    /* 0x15 */ byte pad_15[0x2B];
+    /* 0x40 */ s16  field_40; // 0 or below frees the actor's lead slot (`func_actor_204000_801501A0`)
 } Actor104000Ctx;
 
 typedef struct Actor104000 {

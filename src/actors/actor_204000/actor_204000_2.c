@@ -8,6 +8,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 #include "actors/actors_shared_8014adfc.h"
 #include <psyq/inline_c.h>
 
@@ -906,7 +907,71 @@ void func_actor_204000_8014FD2C(GpEnemy* arg0, Actor104000* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_204000/actor_204000_2", func_actor_204000_801501A0);
+/// Task-like caller whose `field_30` counts the frames no candidate was found.
+typedef struct Actor204000Task {
+    /* 0x00 */ byte pad_0[0x30];
+    /* 0x30 */ s32  field_30;
+} Actor204000Task;
+
+extern Actor104000* D_actor_204000_80156530[2];
+extern Actor104000* D_actor_204000_80156538[6];
+
+/// Refills the two lead slots: a slot whose actor's `field_40` has run out is
+/// cleared, and an empty one takes the pooled actor in state 0xE farthest from
+/// the player, moving it to state 0xF.
+void func_actor_204000_801501A0(Actor204000Task* arg0)
+{
+    s32            dist[8];
+    SVECTOR        d;
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+    WipSysConfig*  cfg;
+    s32            best;
+    s16            i;
+    s16            j;
+    s16            bi;
+
+    bi = 0;
+    for (i = 0; i < 2; i++) {
+        if (D_actor_204000_80156530[i] != NULL) {
+            if (D_actor_204000_80156530[i]->field_20->field_40 <= 0) {
+                D_actor_204000_80156530[i] = NULL;
+            }
+            if (D_actor_204000_80156530[i] != NULL) {
+                continue;
+            }
+        }
+        j   = 0;
+        cfg = &Wip_SysConfig;
+        for (; j < 6; j++) {
+            if (D_actor_204000_80156538[j] != NULL && D_actor_204000_80156538[j]->field_1C->field_0 == 0xE) {
+                coord    = D_actor_204000_80156538[j]->field_2C->field_8;
+                m        = cfg->field_4;
+                d.vx     = m->t[0] - coord->coord.t[0];
+                d.vy     = m->t[1] - coord->coord.t[1];
+                d.vz     = m->t[2] - coord->coord.t[2];
+                dist[j]  = d.vx * d.vx;
+                dist[j] += d.vz * d.vz;
+            } else {
+                dist[j] = -1;
+            }
+        }
+        best = -1;
+        for (j = 0; j < 6; j++) {
+            if (best < dist[j]) {
+                best = dist[j];
+                bi   = j;
+            }
+        }
+        if (best == -1) {
+            arg0->field_30++;
+            return;
+        }
+        D_actor_204000_80156538[bi]->field_1C->field_0 = 0xF;
+        D_actor_204000_80156530[i]                     = D_actor_204000_80156538[bi];
+        D_actor_204000_80156538[bi]                    = NULL;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_204000/actor_204000_2", ActorsShared80135df4Table);
 
