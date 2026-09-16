@@ -2,7 +2,9 @@
 
 #include "gameplay/3FB8.h"
 
+extern s16               D_80072830;
 extern GpActorFuncTable3 D_actor_800300_80161E34;
+extern GpActorFuncTable7 D_actor_800300_80161E64;
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E20);
 
@@ -99,7 +101,19 @@ void func_actor_800300_80162F24(GpActorWork* arg0)
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E64);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162F98);
+void func_actor_800300_80162F98(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable7 sp;
+
+    sp    = D_actor_800300_80161E64;
+    actor = arg0->actor;
+    sp.funcs[(u16)actor->field_956](arg0);
+    Gp_TurnPlayer(arg0);
+    if (D_80072830 <= 0) {
+        Gp_StopPlayerAnim(arg0, 0);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80163048);
 
