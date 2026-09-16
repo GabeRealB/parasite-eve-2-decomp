@@ -2,6 +2,8 @@
 
 #include "actors/actor_335800.h"
 
+#include "gameplay/1A8.h"
+
 #include "gameplay/3CD8.h"
 
 #include "gameplay/D4.h"
@@ -31,6 +33,10 @@ extern GpRec14 D_actor_335800_80164E7C;
 extern s32 D_80165FC0;
 
 extern s32 D_80166098;
+
+/// The warp-payload table the two dispatchers above reach by entry:
+/// `func_actor_335800_801621B4` selects `n * 3` 8-byte units of it.
+extern GpMsg3EE D_actor_335800_80164EA4[];
 
 extern s32 D_actor_335800_80164EBC;
 
@@ -66,7 +72,37 @@ void func_actor_335800_80162114(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_801621B4);
+void func_actor_335800_801621B4(s32 arg0)
+{
+    Task*          slot;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+    s32            msgId;
+    s32            lowIdx;
+    s32            highIdx;
+    s32            unit;
+
+    slot = Game_GetPtrSlot(3);
+    if (slot != NULL) {
+        extra  = slot->extra;
+        coord  = extra->field_8;
+        lowIdx = 1;
+        if (arg0 != 0) {
+            highIdx = 2;
+        } else {
+            lowIdx  = 3;
+            highIdx = 4;
+        }
+        msgId = 0x3E9;
+        if (coord->coord.t[2] >= 0xC53) {
+            unit = highIdx * 3;
+        } else {
+            unit = lowIdx * 3;
+            SOFT_USE_REG(msgId);
+        }
+        Gp_DispatchMsg(slot, msgId, (s32)((unit * 8) + (s32)D_actor_335800_80164EA4), 0);
+    }
+}
 
 void func_actor_335800_8016224C(void)
 {

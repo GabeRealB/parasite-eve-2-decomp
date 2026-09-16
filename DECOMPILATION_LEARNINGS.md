@@ -93165,3 +93165,56 @@ which is what pins `$a0` to `Game_Session` and frees `$a2` for the argument.
 The record itself is declared `GpSprtRec*` by the table but is far larger, so
 the tail pointer at 0x1CC needs the private overlay-local cast the room family
 already uses (`DwtwSprtRec`, `MineForkedTunnelSprtRec`).
+
+## A constant in a branch's delay slot means it was live in a register from an earlier block
+
+`func_actor_335800_801621B4` picks one of four warp payloads and dispatches it.
+The target carries the message id in the delay slot of the *position* test,
+three blocks before the call that uses it:
+
+```
+lw    v0,0x20(v0)
+slti  v0,v0,0xC53
+bnez  v0,L
+ li   a1,0x3E9        # the id, materialised here
+```
+
+Writing the id inline in the call scored 97.87% (`regs=4 reorder=3`): the `li`
+materialised beside the `jal` and the index pseudo coloured `$a1`. The steal is
+`reorg.c`'s `fill_simple_delay_slots`, which scans **backward from the branch
+within its own basic block** before it looks at the fall-through path, so the
+id has to be a pseudo defined in the test's block. The side effect is the
+point: a value live in `$a1` from there to the call conflicts with the index
+pseudo and pushes it to `$a2`, the register the target multiplies in
+(`sll v0,a2,1; addu v0,v0,a2`). Moving the id into that block fixes both
+penalties at once.
+
+The catch is `update_equiv_regs` (`local-alloc.c`): a pseudo with
+`REG_N_REFS == 2` (set once, used once) whose use is in another basic block is
+the case where the constant replaces the use, or the init is moved next to the
+use. Either way the init leaves the block and the `li` returns to the `jal` —
+so `msgId = 0x3E9;` scores exactly the same as the inline constant. A third
+reference pins the init where it was written:
+
+```c
+        msgId = 0x3E9;
+        if (coord->coord.t[2] >= 0xC53) {
+            unit = highIdx * 3;
+        } else {
+            unit = lowIdx * 3;
+            SOFT_USE_REG(msgId);       /* ref 3, emits nothing */
+        }
+        Gp_DispatchMsg(slot, msgId, (s32)((unit * 8) + (s32)D_actor_335800_80164EA4), 0);
+```
+
+The soft use must not sit *between* the init and the branch: the backward scan
+accumulates the resources every rejected candidate references, so an `$a1`
+read there makes it reject the `li` and steal the fall-through `sll` instead
+(98.42%, `reorder=1`). From the else arm it is out of the scan's path and the
+delay slot fills as the target has it. `register s32 msgId asm("a1")` also
+reaches 100% — the same pin idiom as `func_actor_335800_8016224C`'s
+`areaId asm("a0")` in the same file — but the soft use keeps the unit unpinned.
+
+Diagnosis hint: a `li` for a call argument sitting in a delay slot several
+blocks before its use is evidence about the *source*, not about the call site.
+Count the pseudo's references before reaching for the call.
