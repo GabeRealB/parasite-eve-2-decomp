@@ -66,7 +66,15 @@ typedef struct Actor403000Work {
     /* 0xBE8 */ Actor403000Obj objBE8;
     /* 0xC80 */ Actor403000Obj objC80;
     /* 0xD18 */ Actor403000Obj objD18;
-    /* 0xDB0 */ byte           pad_DB0[0x180];
+    /* 0xDB0 */ byte           pad_DB0[0x38];
+    /// Record table `func_actor_403000_8013D48C` scans: the same five-entry
+    /// `GpRec18` run the display nodes carry at +0x20, here standing on its own
+    /// after the four nodes. `func_actor_403000_8013C864` hands it back to
+    /// `Gp_ClearRec18Occupied` twice, and the scan reads a record's `field_4`
+    /// the way the shared hit-record walkers do -- 0 means the run has ended,
+    /// high half 0x10 is the kind that counts as present.
+    /* 0xDE8 */ GpRec18 records[5];
+    /* 0xE60 */ byte    pad_E60[0xD0];
     /// The second of the two default matrices the spawn handler binds to the
     /// display object -- `&work->field_F10` and this one are what it writes to
     /// `TmdObject::field_1C` / `field_20` -- so it is a `MATRIX` whether or not
@@ -125,6 +133,11 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placemen
 
 /// Latch the requested animation and restart the animation state machine.
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
+
+/// Report whether the work block's five-entry record run holds a live entry:
+/// the walk stops at the first empty `field_4` and answers 1 if any record it
+/// passed carried the 0x10 kind bits.
+s16 func_actor_403000_8013D48C(Task* task);
 
 /// `Task::exitCallback` installed by the spawn handler, for the teardown path
 /// where the enemy was created: hand the four display nodes back to

@@ -40,7 +40,24 @@ s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_2", func_actor_403000_8013D48C);
+s16 func_actor_403000_8013D48C(Task* task)
+{
+    Actor403000Work* work  = (Actor403000Work*)task->idMap;
+    s16              found = 0;
+    s16              i;
+    s32              value;
+
+    for (i = 0; i < 5; i++) {
+        value = work->records[i].field_4;
+        if (value == 0) {
+            break;
+        }
+        if ((value & 0xFFFF0000) == 0x100000) {
+            found = 1;
+        }
+    }
+    return found;
+}
 
 void func_actor_403000_8013D4F4(Task* task)
 {

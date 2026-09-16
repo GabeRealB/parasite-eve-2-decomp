@@ -91412,3 +91412,44 @@ last element first, not a clear in natural order.
 version and the `M2C_FIELD` version compile to identical bytes: `base_1.i`
 `027be4dca73845d7719f1afb4410e702b75d7a589519e049a73197273b51dc6c`, `base_2.i`
 `3ea6fabb3a3da035f583fdacb2bd3aba8a58379bcebe7fe9ca0760f781ab58ca`.
+
+## A twin body's invented record struct is not evidence for which field the scan reads (func_actor_403000_8013D48C, 2026-09-16)
+
+A body copied between families fixes the *addresses* it touches and nothing
+else. `func_actor_403000_8013D48C` is 26 instructions that differ from the
+already-matched `Actor00100_Fn0B13C` in one displacement — `lw $v0, 0xDEC($v0)`
+against `lw $v0, 0xB0C($v0)` — and `overlay_dup_index.py` does not flag that,
+because its equality test is the disassembly *text* and a different displacement
+is a different text. That twin is written as
+
+```c
+s32 value = work->records[i].field_0;   /* Actor00100Record: field_0 at +0 */
+```
+
+so `work->records` sits at the scanned displacement itself. Adopting that shape
+here would place the scan's own word at 0xDEC and call it `field_0` of a record
+based at 0xDEC. The overlay's other callers say it is not:
+
+```
+func_actor_403000_8013C864:  jal Gp_ClearRec18Occupied ; a0 = work + 0xDE8
+func_actor_403000_801343B8:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
+```
+
+`Gp_ClearRec18Occupied` takes a table *start* and walks to the last-element bit,
+so 0xDE8 is the base — and 0xDEC is then 0xDE8 + 4, i.e. `GpRec18.field_4`, which
+is also the field the 0x100000 test belongs to: 3A34.h documents `field_4`'s high
+halfword as the record *kind*, and the hit-record walkers read it that way
+(`(records[i].field_4 & 0xFFFF0000) == 0x20000` in `actor_101900_text.c`).
+
+Both spellings compile to the identical `lw 0xDEC($v0)` — GCC folds the `+4` into
+the displacement — so the match cannot choose between them and a 100% score is
+not evidence that the struct is right. When a body is shared across overlays,
+take the *shape* from the twin and the *field* from this overlay's own
+`Gp_InitRec18Table` / `Gp_ClearRec18Occupied` call site, which hands the table
+base over as a bare `addiu` the compiler cannot fold away.
+
+`func_actor_403000_8013D48C` matched at 100% (26 insns, 2 builds; `base_1.i`
+`f856884c7efe4d1ed91fca47e758638a65e150296eb27e11818dc915233b421e`). The m2c seed
+scored 49.19% with `regs=24 insert=6 delete=6` — a right-shape, wrong-addresses
+baseline, which is what an m2c pointer-arithmetic version of this idiom looks
+like.
