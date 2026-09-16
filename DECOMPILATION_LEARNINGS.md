@@ -105571,3 +105571,33 @@ chase it.
 
 `base_7.c`. Inputs: `base_7.i`
 `aaf6efedd648721c49583fbbaa45d37e80aec961d048086dfcdc71dd3cca35ba`.
+
+## A load the dispatch cannot reach was written before the `switch`; m2c's scaled `+ 0xNN`
+
+Three m2c artefacts in one function, all read off the object diff rather than a
+dump (`func_actor_800100_80164E60`):
+
+- An argument m2c typed as a byte pointer — `Gp_AnimGetRec(temp_s0 + 0x424, …)`
+  — compiles to `lui`/`ori` plus `addu`, because m2c prints a *typed* pointer
+  plus a byte offset and the offset is then scaled by `sizeof(*temp_s0)`. The
+  target's bare `addiu $a0, $s0, 0x424` is the tell: a two-instruction constant
+  where the target has a one-instruction small immediate means the argument's
+  cast is missing. Use the project idiom (`(GpAnimCtx*)actor->field_424`,
+  `(GpAnimSlot*)actor->field_438 + 1`) so the pointee is byte-sized.
+- A `sll $v0, $v0, 2` before the `addu` that the target does not have means the
+  indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
+  scalar m2c invents for `*(idx + &sym)`, and the scale disappears.
+- `coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;`
+  sits in the entry block although only `case 12` calls `Gp_SpawnEff` with it.
+  sched1 cannot have moved it there: `schedule_insns` schedules per basic block
+  ("Schedule each basic block, block by block", `sched.c`, one
+  `schedule_block (b, …)` per `b`; there is no extended-basic-block formation),
+  so a load no path out of the dispatch block can reach was a statement in the
+  source above the `switch`. Writing it inline as the call argument reproduces
+  m2c's placement and the arm-local loads; a local assigned before the `switch`
+  reproduces the target.
+
+Same rule as "Setup before an early-out is source order" above, one construct
+over: an argument only one arm evaluates is still hoisted if the source builds
+it first. All three in one edit took 66.62% to 100.00%. Input: `base_1.i`
+`8f90020d745e1634745797f97d94fa5ee7377f04da6aa6c8d57e24830bf046bd`.

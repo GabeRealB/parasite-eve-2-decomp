@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_800100.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -16,6 +17,8 @@ extern s32                D_80115738;
 extern s32                D_8011574C;
 extern s16                D_80072830;
 extern s8                 D_8007272F;
+extern s16                D_actor_800100_80167218[];
+extern u8                 D_actor_800100_80167230[];
 
 void func_actor_800100_80163D54(GpActorWork* arg0)
 {
@@ -290,7 +293,70 @@ INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164B9C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80164E60);
+void func_actor_800100_80164E60(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GameActor*     target;
+    GpActorD4*     d4;
+    GpAnimRec*     rec;
+    GsCOORDINATE2* coord;
+    s16            sel;
+
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
+    coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
+    sel   = D_actor_800100_80167218[D_8007272F];
+
+    switch (sel) {
+        case 3:
+            if (rec != NULL) {
+                if (rec != actor->field_92C) {
+                    actor->field_92C = rec;
+                    if ((rec->field_3 & 0x30) == 0x30) {
+                        if (actor->field_95E == 0) {
+                            actor->field_95E = 1;
+                        }
+                    }
+                }
+            }
+            break;
+        case 12:
+            if (actor->field_95E == 0) {
+                actor->field_95E = 1;
+                Gp_SpawnEff(0x6006E, coord, 0xC, NULL);
+            }
+            if (rec != NULL) {
+                if (rec != actor->field_92C) {
+                    actor->field_92C = rec;
+                }
+            }
+            break;
+        default:
+            if (actor->field_95E == 0) {
+                actor->field_95E = 1;
+            } else {
+                if (rec != NULL) {
+                    if (rec != actor->field_92C) {
+                        actor->field_92C = rec;
+                    }
+                }
+            }
+            break;
+    }
+
+    d4->field_CD = D_actor_800100_80167230[D_8007272F];
+    if (rec != NULL && func_80105894(arg0, 1, 0, 0) == 0) {
+        target            = arg0->actor;
+        target->field_954 = 0;
+        target->field_956 = 4;
+        target->field_95C = 0;
+        target->field_95E = 0;
+        target->field_973 = 0;
+        target->field_975 = 0;
+        Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165010);
 
@@ -578,8 +644,6 @@ void func_actor_800100_80165C38(GpActorWork* arg0)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
 }
-
-extern s16 D_actor_800100_80167218[];
 
 void func_actor_800100_80165DE8(GpActorWork* arg0)
 {
