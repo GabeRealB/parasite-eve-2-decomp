@@ -96004,3 +96004,64 @@ Evidence: scratch `nonmatchings/func_actor_311900_8016228C-vacuum/`. `base.c`
 `4bccef77…` (m2c seed, 90.521%), `base_1.c` `5939d5da…` (preprocessed
 `6f10329a…`, 100.000%, object `b6b63c49…`). Compiler `60d886cd…`, unchanged
 from the sibling's session.
+
+## A call result that is both tested and kept needs two locals, not one
+
+**Problem:** m2c's spawn-body shape puts `Mem_Calloc`'s result in one local and
+uses it for the null test, the `Task::idMap` store and every later use:
+
+```c
+temp_v0 = Mem_Calloc(0x8D8, 0);
+M2C_FIELD(arg1, void **, 0x1C) = temp_v0;
+if (temp_v0 == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
+...
+func_800B3F84(temp_v0, ...);
+```
+
+**Symptom:** `regs=2` and nothing else, 99.892%, on a body whose instruction
+count, blocks, calls and predicates already match. The whole difference is:
+
+```
+target:   move s0,v0 / bnez v0, .L / sw v0, 0x1c(s3)
+object:   move s0,v0 / bnez s0, .L / sw s0, 0x1c(s3)
+```
+
+**Cause:** one variable makes the value live across every later call, so
+`global_alloc` has to home it in a callee-saved register and all three uses
+read that register. The target tests and stores the raw return value, so the
+source had a second, short-lived local for those two uses: a pseudo whose live
+range ends before the next call has `calls_crossed == 0`, keeps `$v0` (where
+the call already left the value) and needs no copy of its own - the same rule
+as "Which register that divisor lands in is decided by whether it crosses a
+call" above.
+
+**Fix:** split the value into the one that dies in the entry block and the one
+that lives on.
+
+```c
+mem         = (Actor210600Work*)Mem_Calloc(0x8D8, false);
+work        = mem;
+task->idMap = (TaskIdMap*)mem;
+if (mem == NULL) {
+    Gp_DestroyEnemy(enemy, task);
+    return;
+}
+```
+
+`mem` dies at the branch (`$v0`); `work` crosses the rest (`$s0`). This is the
+retail shape, not a per-function trick: the already-matched
+`ActorsShared80131e24Sub0` carries the same `mem` / `work` pair and compiles to
+`move s0,v0 / bnez v0, .L / sw v0, 0x28(s4)`. The reload that follows in the
+same body is the same rule again - `task->extra` re-read after the allocation
+into its own variable, which then only feeds two stores, lands in `$v1` while
+the pre-call value stays in `$s4` for the call argument.
+
+**Check first:** a `regs`-only penalty on a body that is otherwise exact, where
+the target branches and stores with `$v0` but also copies it to a saved
+register. One source value used at two different live lengths is the tell.
+
+Evidence: scratch `nonmatchings/func_actor_210600_8014B8C8-vacuum/`. `base.c`
+`3a61147c...` (m2c seed, 92.634%), `base_1.c` `b9197345...` (99.892%, the
+address-taken `VECTOR` fix above), `base_2.c` `9aa3a97f...` (100.000%,
+preprocessed `b03db8ba...`), `base_3.c` `750273c6...` (typed port of
+`base_2.c`, identical object). Compiler `60d886cd...`.
