@@ -18,9 +18,22 @@ void func_actor_205200_8014C67C(Actor205200* arg0);
 void func_actor_205200_8014C7CC(Actor205200* arg0);
 void func_actor_205200_8014C8D4(Actor205200* arg0);
 
-extern u8 D_801153F4;
+extern u8  D_801153F4;
+extern u16 D_80071078;
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014B914);
+s32 func_actor_205200_8014B914(s32 arg0)
+{
+    s32 delta;
+
+    delta = arg0 - D_80071078;
+    if (delta >= 0x7FFF) {
+        delta = 0x7FFF;
+    }
+    if (delta < -0x7FFF) {
+        delta = -0x7FFF;
+    }
+    return delta >> 8;
+}
 
 s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* arg2)
 {

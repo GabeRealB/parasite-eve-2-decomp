@@ -92352,3 +92352,40 @@ quad keeps a local prototype.
 builds; `base_1.i` `a2e617f0005a127770fcc745c691b326b56335166a44e96a3d4ee165f4f592e1`).
 It landed as `ActorsShared80134990` in `src/actors/lib/`, shared by all three of
 `actor_101500` / `actor_201500` / `actor_301500`.
+
+## Two-sided clamp as two `if`s: the bound test is emitted twice, and one test hoisted into the first body folds away (func_actor_205200_8014B914, 2026-09-16)
+
+```c
+s32 f(s32 a)
+{
+    s32 d = a - D;
+    if (d >= 0x7FFF) d = 0x7FFF;
+    if (d < -0x7FFF) d = -0x7FFF;
+    return d >> 8;
+}
+```
+
+The original computes the *second* test twice: `slti $v0,$a0,-0x7FFF` sits in
+the delay slot of the first `bnez` — reading the pre-clamp `$a0` — and a second
+`slti $v0,$a0,-0x7FFF` follows the `addiu $a0,$zero,0x7FFF`. Two independent
+`if`s give exactly that: the compare feeds the second `beqz`, which dominates
+the merge, so the copy on the not-taken edge is still valid (that edge assigned)
+and only the taken edge recomputes it.
+
+m2c phrases the same clamp as one shared result, hoisted above both tests:
+
+```c
+var_v0 = var_a0 < -0x7FFF;          /* lifted out of the second if body */
+if (var_a0 >= 0x7FFF) {
+    var_a0 = 0x7FFF;
+    var_v0 = 0x7FFF < -0x7FFF;      /* constant-folds to `move $v1,$zero` */
+}
+if (var_v0 != 0) var_a0 = -0x7FFF;
+```
+
+That is one pseudo, not two, and the constant-fold emits `move $v1,$zero` where
+the original has an `slti $v0,...` — 85.00% with `regs=2 insert=1 delete=1`,
+the diagnosis showing `0:10` (slti) one short and `0:33` (move) one extra, plus
+a `condition_register` on `$v1` instead of `$v0`. Rewriting it as the two
+sequential `if`s above is the whole fix. Worth trying directly whenever a clamp
+seed shows a `move` from `$zero`, or a shortcut value, in place of a compare.
