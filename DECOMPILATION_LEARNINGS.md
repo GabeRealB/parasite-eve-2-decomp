@@ -94803,3 +94803,32 @@ round-trips through the frame - if it does, the source object is an aggregate
 and no register-level rewrite can match.
 
 Inputs: `base.i` (m2c seed, 59.539%), `base_1.i` (100.000%).
+
+## A cross-overlay sibling body matches first try; m2c's nesting of the same code does not (func_actor_121300_8013400C, 2026-09-16)
+
+The BRIEF's "similar matched bodies" list is not restricted to this TU, and a
+candidate that tops `calls` *and* `fields` (here `func_actor_136100_80134588`,
+1.00/1.00) is the same function body: clone its statements and its casts
+verbatim and change only the overlay's own literals. The m2c seed scored 60.9%
+because it nested the `case 1` arm inside the allocation-failure test -- the
+usual m2c `switch`/fallthrough damage, 9 `insert` + 12 `delete` -- while the
+sibling's shape (allocate, `Task_Kill` and `return` on failure, fall through
+into `case 1`) matched 100% on the first build.
+
+The sibling's cast spellings are part of that, not decoration. Both read the
+same `s16` channel twice, and the target shows the two readings as two loads of
+different width:
+
+```c
+Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);   /* lhu */
+...
+if ((s16)fade->r < 0x100) { return; }                   /* lh  */
+```
+
+`(u16)` on the accumulation's read keeps that load a plain HImode `lhu`; the
+comparison is a *fresh* read of the field, so combine folds its sign extension
+into `extendhisi2_internal` and emits `lh`. Two widths on one field are the cast
+spelling, not evidence of two declarations -- the `lhu`/`lh` section above
+covers the neighbouring case where the compared value comes out of the store
+instead, and no second load exists at all.
