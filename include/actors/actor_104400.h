@@ -131,6 +131,7 @@ extern u8             Actor04400_D10778[]; // animation bank handed to `func_800
 extern u8             Actor04400_D107CC[]; // stored into `Task::field_24` by Actor04400_Fn00B24
 extern TaskFuncTable3 Actor04400_D00070;   // dispatcher table Actor04400_Fn06ACC copies onto its stack
 extern TaskFuncTable3 Actor04400_D0007C;   // dispatcher table Actor04400_Fn06870 copies onto its stack
+extern TaskFuncTable3 Actor04400_D00150;   // dispatcher table Actor04400_Fn07CF0 copies onto its stack
 extern TaskFuncTable3 Actor04400_D0015C;   // dispatcher table Actor04400_Fn07D78 copies onto its stack
 
 #endif
