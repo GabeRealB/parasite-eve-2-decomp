@@ -85100,4 +85100,37 @@ truncates at the call site (`andi a0,v0,0xFF`), which is what settles it as
 
 Inputs: `base.c` (89.09%, `regs=10 delete=2 branch=1`), `base_1.c` (100%),
 `base_2.c` / `base_3.c` (same object, parameter-type variants). Compiler SHA256
+## The "similar matched bodies" list is cross-overlay, so an empty "same TU" section is not a dead end (func_mine_gorge_8017D6E8, 2026-09-16)
+
+The twin entry above scopes itself to "when the twin is in the same TU". That is
+narrower than the brief's data: the list comes from `overlay_dup_index.py
+similar`, which ranks *already-matched* bodies across every overlay, so a room
+function can print `Nearby matched functions in this TU: (none)` and still be
+handed its answer.
+
+`func_mine_gorge_8017D6E8` is `1.00 shape` / `1.00 fields` / `1.00 calls`
+against `func_shelter_b3_incinerator_control_room_8017FA8C` - a different
+overlay, a different link address, sharing no data symbol. Only two constants
+differ (`msgId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `Gp_RunCapCmd1(3)`
+is identical in both. The `.s` diff that made `func_dryfield_water_tank_8017ED30`
+provable does not transfer, because two overlays' disassembly texts differ in
+every address; what transfers is the sibling's *C source shape*. Porting it
+verbatim - `RoomEventMsg*` params, `*out = *in;` first, then the `func_80179A04`
+forward, then the two return-1 guards and the `return 0` tail - gave 100.000%
+with zero penalties on `base_1.c`, against an m2c seed at 55.32% whose penalty
+line was `branch=3 regs=10 insert=5 delete=11`.
+
+The signal to trust is the `*` (a class agreement), and here it was `calls`:
+the same callee sequence at the same argument registers is what says two bodies
+are one source. `shape` alone is cheap, and `fields` alone equates
+`lw $v0,0x4($t0)` with `lw $v0,0xC($t0)` - the old 56% error - but a `calls`
+hit means the same `jal` sequence *and* the same constants in the argument
+registers, which survived here despite the differing data constants.
+
+The diagnostic to read off the m2c seed: `sw zero,3(a1)` where the target has
+`swl $t0,3($a1)` / `swr $t0,0($a1)` means m2c dropped a whole-record struct
+copy, i.e. the parameter is an untyped `void*` and the source had
+`*out = *in;`.
+
+Input: `base_1.i`, 100.000%, zero penalties, first build. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
