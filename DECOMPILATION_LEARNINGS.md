@@ -99749,3 +99749,78 @@ whose callee is an overlay-local symbol named per overlay in
 two byte-identical copies alone are enough to trip it - `state` and byte-image
 equality are never reached. Bodies of this shape stay landed in their own
 overlay for the promotion pass.
+
+## Registers the allocator would not have chosen are the tell for an inline-asm macro the source hides (codegen, 2026-09-16)
+
+`func_actor_104900_8013898C` is 40 instructions of GTE work. Everything after
+the vector load is ordinary C - `gte_lddp` / `gte_ldsv` / `gpf 12` / `gte_stsv`
+and two translation updates - but the first block is not:
+
+```
+addiu v1, a0, 4          # &arg0->coord, not a struct access
+addiu v0, a1, 0x10       # &arg1->vec
+lhu   t4, 0x4(v1)
+lhu   t5, 0xA(v1)
+lhu   t6, 0x10(v1)
+sh    t4, 0x0(v0)
+sh    t5, 0x2(v0)
+sh    t6, 0x4(v0)
+```
+
+Written as C - three loads into locals, three stores - it compiles to the same
+instructions in the wrong registers: `lhu v0, 4(v1)` / `sh v0, 0x10(a1)`, one
+temp reused, and the delay-slot fillers move with it. 67.6%, `regs=25 insert=9`.
+
+Two things in that block are not codegen, they are the source:
+
+- **A base register holding `p+4` used with displacements 4 / 0xA / 0x10.** A
+  struct member access at offset 8 compiles to `lhu $t4, 8($a0)`; it costs an
+  extra `addiu` to materialise `a0+4` first, so the compiler only does it when
+  the *value* `a0+4` is needed as an operand - here because an asm operand
+  `"r"(r0)` forces the pointer into a register.
+- **Three loads in `$t4` / `$t5` / `$t6`.** Those are `$12` / `$13` / `$14`, the
+  registers Psy-Q's own `gte_ldsv` / `gte_stsv` hardcode and clobber. C-level
+  loads would land in `$v0` / `$a3` / `$t0` first.
+
+The macro is in the tree already: `ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0,
+o1, o2)` in `src/actors/actor_403600/actor_403600_2.c` is `lhu $12,%2(%0)` /
+`lhu $13,%3(%0)` / `lhu $14,%4(%0)` / `sh $12,0(%1)` / `sh $13,2(%1)` /
+`sh $14,4(%1)` with the offsets as immediate operands - 100.000% once the body
+uses it, with the column's offsets `4, 10, 16`.
+
+**Finding it.** `grep -rlF '$t5, 0xA($v1)' asm/USA/` over the whole asm tree
+locates every body with the same block, matched or not; two were already
+matched, and one of them (`actor_403600`) had the macro. A fixed-string search
+for the *operands* beats a search for the mnemonic - and beats reading the
+dumps, which only say the compiler put the loads in `$v0`.
+
+## A store written between two load/accumulate pairs lands in the first pair's delay slot (codegen, 2026-09-16)
+
+The same function ends with `coord.t[0] += v.vx; coord.flg = 0; coord.t[2] +=
+v.vz;`. The target puts the flag store in the *second* load's delay slot:
+
+```
+lh    v1, 0x10(a1)
+lw    v0, 0x18(a0)
+nop                      # nothing eligible after this load
+addu  v0, v0, v1
+sw    v0, 0x18(a0)
+lh    v1, 0x14(a1)
+lw    v0, 0x20(a0)
+sw    zero, 0(a0)        # the flag store, slotted here
+addu  v0, v0, v1
+sw    v0, 0x20(a0)
+```
+
+With the store written in the middle, sched2 places it in the *first* load's
+slot and the second one gets the `nop` - 96.9%, `reorder=2`, the only
+difference left. Writing it after both accumulations - `t[0] += vx; t[2] += vz;
+flg = 0;`, the order the sibling `func_lifedrain_8012FAF8` uses for the same
+coordinate update - makes its anti-dependence cover both loads, so it cannot be
+scheduled before the second one and reorg fills that slot with it instead.
+100.000%.
+
+The rule generalises: a store's position among loads is set by its
+anti-dependence on the *last* load written before it in the source. If the
+target slots it after a later load, move it later in the C rather than looking
+for a barrier.

@@ -9,3 +9,4 @@ ActorsShared80138404Table = 0x80149EFC; // force_not_migration:True shared body 
 ActorsShared80138404 = 0x80150404; // shared body, see src/actors/lib/
 ActorsShared801388e8 = 0x801508E8; // shared body, see src/actors/lib/
 ActorsShared80138efc = 0x80150EFC; // shared body, see src/actors/lib/
+ActorsShared8013898c = 0x8015098C; // shared body, see src/actors/lib/
