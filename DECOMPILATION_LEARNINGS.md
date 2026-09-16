@@ -94832,3 +94832,41 @@ into `extendhisi2_internal` and emits `lh`. Two widths on one field are the cast
 spelling, not evidence of two declarations -- the `lhu`/`lh` section above
 covers the neighbouring case where the compared value comes out of the store
 instead, and no second load exists at all.
+
+## The m2c temp-copy loop also mis-schedules the pre-header argument copy, not just a delay slot (func_actor_451100_801324B8, 2026-09-16)
+
+The two loop shapes from the `func_actor_205200_8014C7CC` entry above -
+m2c's `t = i; i++; call(..., t, ...)` against `call(..., i, ...); i++;` - with a
+different symptom and a smaller footprint. Here the loop body *and* its
+back-branch delay slot are already byte-identical between the two seeds, and the
+whole difference is one instruction: the pre-header `addu a1,s0`. The m2c form
+schedules it fourth, immediately after the counter's `li s0,1`; the direct form
+schedules it last, after the `sw ra` that ends the prologue. `.sched` carries
+both seeds' insns in source order - only `.sched2` moves it - so the score reads
+`reorder=1` at 98.125% on a function whose loop is otherwise exact, which is a
+signature that points at the scheduler while the fix is the source form.
+
+The reason is the same one: passing the counter directly leaves no separate live
+value for the argument, so loop.c moves the bump to the loop top (`addiu s0,s0,1`
+becomes the body's first insn) and the argument the call reads is re-derived into
+the back-edge delay slot. The pre-header copy is then only the *first*
+iteration's argument and has nothing holding it early, whereas the m2c temp-copy
+form gives that copy a live range that starts next to the counter's init.
+
+This body is carried by many actors, and the matched carriers are the template -
+`ActorsShared80132640` in `src/actors/lib/`, `func_actor_143900_801325A4`,
+`func_actor_461800_80132D04`:
+
+```c
+    i = 1;
+    do {
+        func_800B4114(&ActorsShared80131f9cWork->anim, i,
+                      (s16)ActorsShared80131f9cWork->animId, 0, D_actor_451100_8013F700);
+        i++;
+    } while (i < 0x13);
+    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+```
+
+98.125% -> 100% on the first build after copying it, with `base.i.sched` (both
+insns in source order) and `base.i.sched2`/`base.i.dbr` (the moved copy) as the
+dumps that locate it.
