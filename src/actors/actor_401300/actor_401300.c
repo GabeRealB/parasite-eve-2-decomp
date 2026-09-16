@@ -7,7 +7,9 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/tmd.h"
 
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
@@ -313,7 +315,83 @@ INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139520);
 
-INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_801397F8);
+static __inline__ s32 Actor401300_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor401300RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((Actor401300RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor401300RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor401300RangeScratch*)(head - 0xC))->dx *= ((Actor401300RangeScratch*)(head - 0xC))->dx;
+    *(Actor401300RangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((Actor401300RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+void func_actor_401300_801397F8(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    SVECTOR          delta;
+    SVECTOR*         d;
+    s32              sound;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                     = arg0->field_2C;
+        D_actor_401300_80158878 = &D_actor_401300_80152BB8;
+        work->field_8A2         = 0x10;
+        work->field_89C         = 2;
+        obj->field_C            = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_970.field_1C = 0x280;
+        work->field_BF0.flags   &= 0x7FFF;
+        work->field_AB0.flags   |= 0x4000;
+        enemy->node.field_4      = 0;
+        work->field_8B4          = 0;
+        work->field_8A6          = 0x10;
+        work->field_8B2          = 0;
+        work->field_6            = 0;
+    } else if (work->field_6 == 0) {
+        sound = ((enemy->field_8 >> 0xC) << 8) | 0x51030008;
+        pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        work->field_6 = 1;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if ((work->field_5E & 0x3FF) == 4 && work->field_8BC != (work->field_5E & 0x3FF)) {
+        work->field_910.field_0 = arg0->field_2C->field_8 + 1;
+        work->field_910.field_4 = 0x300;
+        work->field_910.field_6 = 2;
+        func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->field_2C->field_8 + 5, NULL, &work->field_910);
+    }
+    work->field_8BC = work->field_5E & 0x3FF;
+    coord           = arg0->field_2C->field_8;
+    d               = &delta;
+    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
+    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
+    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    if (!Actor401300_OutOfRange(d, 3000)) {
+        SndEvt_EnqueueType7(0x51030008, 1);
+        Gp_ArmStateF0(1);
+        work->field_0 = 6;
+    }
+    if (D_801153F2[0] & 1) {
+        Gp_ArmStateF0(1);
+        work->field_0 = 6;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401300/actor_401300", func_actor_401300_80139AB0);
 

@@ -96900,3 +96900,22 @@ was 100.00% on the first build. With a sibling that close, the sibling's
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 No pins, no empty asm, no permuter run. Session:
 `nonmatchings/func_actor_450900_80132548-vacuum`.
+
+### Two back-to-back `sw …, 0x3FC($at)` after three `mult`s is the scratch range-test inline (func_actor_401300_801397F8, 2026-09-16)
+
+**Symptom.** A delta `SVECTOR` is squared through a 0xC-byte `G_SCRATCH_HEAD`
+block: `lw a1,0x3fc(a1)`, `sw dx,-0xc(a1)`, `addiu a0,a1,-0xc`, three
+`mult`/`mflo`, then `lui at; sw a0,0x3fc(at)` / `lui at; sw a1,0x3fc(at)`
+adjacent, the compare reloading only `dx` from memory, and `slt; xori 1; bnez`.
+Hand-writing it (one pointer, push/pop together) either lets flow delete the
+first head write as dead, or lets CSE share one pseudo for the constant address
+so the writes go through a hard register instead of `$at` - 15+ builds of
+reordering never converged.
+
+**Fix.** Reuse the matched `Actor01900_OutOfRange` inline
+(`src/actors/lib/actor_101900_text.c`) verbatim, including its mix of
+`((Scratch*)(head - 0xC))->dx` and `blk->dz` accesses, the head push placed
+between the `dx` and `dz` squares, and `ret = dx + dz >= r` returned; call it as
+`if (!Inline(d, r))` with `d = &delta` written as in its caller. Statement order
+inside the helper (`dz` store before `r`) is load-bearing. Grep for an existing
+inline by this asm signature before reconstructing it.

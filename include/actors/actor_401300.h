@@ -29,7 +29,8 @@ typedef struct Actor401300Work {
     /* 0x000 */ s16      field_0;
     /* 0x002 */ s16      field_2;
     /* 0x004 */ s16      field_4;
-    /* 0x006 */ byte     pad_6[0x12];
+    /* 0x006 */ s16      field_6;
+    /* 0x008 */ byte     pad_8[0x10];
     /* 0x018 */ s16      yaw;
     /* 0x01A */ byte     pad_1A[0x44];
     /* 0x05E */ u16      field_5E;
@@ -50,7 +51,8 @@ typedef struct Actor401300Work {
     /* 0x8B6 */ s16      field_8B6;
     /* 0x8B8 */ s16      field_8B8;
     /* 0x8BA */ s16      field_8BA;
-    /* 0x8BC */ byte     pad_8BC[0x54];
+    /* 0x8BC */ s32      field_8BC;
+    /* 0x8C0 */ byte     pad_8C0[0x50];
     /* 0x910 */ GpEffArg field_910;
     /* 0x918 */ byte     pad_918[0x58];
     /* 0x970 */ GpObj    field_970;
@@ -154,6 +156,24 @@ extern u16 D_actor_401300_80141FA4[];
 /// Per-animation reset argument for `func_800B4114`, indexed by the previous
 /// and the new animation id (`field_8A0`, `field_8A2`).
 extern s8 D_actor_401300_8015804C[][45];
+
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_801397F8` borrows for
+/// its player-in-radius test: the X/Z offset to the camera target and the
+/// radius, each squared in place before `dx + dz < r`. Same shape as
+/// `Actor01900RangeScratch`.
+typedef struct Actor401300RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor401300RangeScratch;
+
+extern MATRIX* D_80073B8C;
+extern u8      D_801153F2[2];
+
+/// Overlay-data word `func_actor_401300_801397F8` points
+/// `D_actor_401300_80158878` at on entering its state.
+extern s32  D_actor_401300_80152BB8;
+extern s32* D_actor_401300_80158878;
 
 s32 func_actor_401300_80132554(Actor401300* arg0, s32 arg1, Actor401300Event* arg2);
 
