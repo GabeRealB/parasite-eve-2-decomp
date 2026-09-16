@@ -584,7 +584,54 @@ void func_actor_107600_801332D4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80133668);
+/// Hit-flinch sub-state machine in `field_15A`: swings `field_50` for six
+/// frames with a step scaled by `field_160` (capped at 0x200), then flickers it
+/// on odd frames and hands off to state 1 / sub-state 3.
+void func_actor_107600_80133668(Actor107600* arg0)
+{
+    Actor107600Work* work = arg0->field_1C;
+    s32              step;
+    s16              count;
+
+    switch (work->field_15A) {
+        case 0:
+            work->field_15A++;
+            work->field_154 = 6;
+        case 1:
+            step = work->field_160 * 6;
+            if (step > 0x200) {
+                step = 0x200;
+            }
+            count = work->field_154;
+            step /= 3;
+            if (count >= 4) {
+                if ((s16)work->field_50 < 0x200) {
+                    work->field_50 += step - step / 3 * (6 - count);
+                }
+            } else if (count <= 0) {
+                work->field_50  = 0;
+                work->field_154 = 0;
+                work->field_15A++;
+            } else if ((s16)work->field_50 > 0) {
+                work->field_50 -= step + step / 3 * (3 - count);
+            }
+            work->field_154--;
+            break;
+        case 2:
+            work->field_154++;
+            if (work->field_154 & 1) {
+                work->field_50 = ((s16)work->field_154 - 7) * 8;
+                return;
+            }
+            work->field_50  = 0;
+            work->field_160 = 0;
+            if ((s16)work->field_154 >= 4) {
+                work->field_158 = 1;
+                work->field_15A = 3;
+            }
+            break;
+    }
+}
 
 /// Death sequence sub-state machine in `field_15A`: unlinks the enemy node and
 /// waits seven frames, plays the death cue, ramps `field_50` up to 0x400, then

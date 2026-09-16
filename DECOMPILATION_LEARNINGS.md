@@ -101030,3 +101030,7 @@ the `move $a0` after them.
 `((s16)v << 3) - 0x38` and a `u16` `(s32)(v << 16) >> 13` lose it (the first is
 narrowed to `sll 3`, the second reorders the increment). Declare the counter
 `s16 v = work->field + 1;` and write `((v << 16) >> 13) - 0x38`.
+The same `sll 16; sra 13; addiu -0x38` from a `u16` field read directly
+(func_actor_107600_80133668) matched as `((s16)work->field - 7) * 8`: the
+factored subtraction keeps GCC from narrowing the store to `sll 3`, and
+combine then distributes it back into the shift pair plus `-0x38`.
