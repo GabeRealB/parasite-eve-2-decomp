@@ -91730,3 +91730,51 @@ Inputs: `base.i` (m2c cast form, 92.32%)
 `2b26d12563f628f8d057fcb4df40a6442609fc152b29932a7456acdba08e8d7c`,
 `base_2.i` (statement order fixed, 100.000%)
 `c4604ec98c2786347c8b41de7e4072bca93a1a9a7d5fe969878aa7c41c346e10`.
+
+## A load between the condition and the branch proves the source computed it unconditionally
+
+`sched1` schedules one basic block at a time, so nothing inside an `if` body can
+appear above the branch that guards it — read *backwards*, that makes an
+instruction's position a witness about the C. `func_actor_401000_8013DEC8`'s
+target loads the `GpEnemy*` at `0x20` in the gap the seed fills with a `nop`:
+
+```
+lh    $v0,0x4($s0)      # work->field_4, the condition
+lw    $a1,0x20($a0)     # <- unconditional, in the pre-branch block
+beqz  $v0,.Lactor_401000_8013DF3C
+ nop
+...
+sb    $zero,0x14($a1)   # the store stays down here, 4th in the body
+```
+
+m2c writes the whole thing as one guarded statement, `arg0->field_20->node.field_4 = 0;`
+inside the body — which scores **90.535%** (`branch=2 regs=1 insert=3 delete=1`),
+because the load can only be born next to its store, late and in `$v0`.
+
+**Fix.** Hoist the pointer into a local of its own, assigned before the `if`:
+
+```c
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        ...
+        enemy->node.field_4 = 0;
+```
+
+100.000%, 41 instructions. Both symptoms have the one cause: with the load in
+the entry block, sched1 has somewhere to put it, and the value is live *across*
+the branch — so it cannot share `$v0` with the condition and takes `$a1`. A
+register like `$a1` on a value whose only use is far below the branch is the
+tell that the load was hoisted at the C level, not by the scheduler.
+
+This is the mirror of the `func_actor_310100_801631B0` entry above (a chase that
+must move *out* of an arm for the same reason). Before reconstructing it by hand,
+check the family's shared bodies: `Actor01900_Fn0AA78` in
+`src/actors/lib/actor_101900_text_tail.c` is this body one actor over, and its
+source already spells the hoisted `enemy` — the two functions differ only in
+addresses and constants.
+
+Inputs: `base.i` (m2c statement inside the `if`, 90.53%)
+`29d418658066d0510b3b1c442957e9e900b0b641bc26a6ec299091695763079e`,
+`base_1.i` (hoisted pointer local, 100.000%)
+`d57d6bbb6dc390b9cdef2d10eceed035f95c738412bf321e619b612ebd5210f7`.

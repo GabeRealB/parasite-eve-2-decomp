@@ -37,7 +37,11 @@ typedef struct Actor401000Work {
     /* 0x89E */ s16      field_89E;
     /* 0x8A0 */ byte     pad_8A0[2];
     /* 0x8A2 */ s16      field_8A2;
-    /* 0x8A4 */ byte     pad_8A4[0x14];
+    /* 0x8A4 */ s16      field_8A4;
+    /* 0x8A6 */ byte     pad_8A6[8];
+    /* 0x8AE */ s16      field_8AE;
+    /* 0x8B0 */ s16      field_8B0;
+    /* 0x8B2 */ byte     pad_8B2[6];
     /* 0x8B8 */ GpEffArg field_8B8;
     /* 0x8C0 */ byte     pad_8C0[0x10];
     /* 0x8D0 */ GpObj    field_8D0;
@@ -79,5 +83,6 @@ void func_actor_401000_8013DB6C(Actor401000* arg0);
 void func_actor_401000_8013DC14(Actor401000* arg0);
 void func_actor_401000_8013DCC0(Actor401000* arg0);
 void func_actor_401000_8013DD6C(Actor401000* arg0);
+void func_actor_401000_8013DEC8(Actor401000* arg0);
 
 #endif // ACTOR_401000_H
