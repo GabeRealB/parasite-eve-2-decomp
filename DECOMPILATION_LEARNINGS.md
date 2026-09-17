@@ -119041,3 +119041,77 @@ The same function's jump table also had to start its unit's `.rodata`; see the
 `rodata_head` sections above - `rodata_head = "0x14"` with the existing `0x30`
 cut moves the overlay id and `RoomsShared80181e70Table` into the asm header
 segment, which is why their `INCLUDE_RODATA` lines had to be deleted.
+
+## A tail the *first* arm falls into and the second jumps back to cannot come from `else if`
+
+`func_neo_ark_savanna_zone_8017D77C` dispatches two save-location messages onto
+one tail (fill the event, clear the running flag, call `GameFlag_GetNibble`, and
+so on). Written the way this room family's siblings are —
+
+```c
+if (*(u16*)in == 0x13)      { A }
+else if (*(u16*)in == 0x15) { B }
+else                        { return 1; }
+tail;
+```
+
+— it scores 86.8%, and the object says why:
+
+```
+target                        else-if form
+bne  v1,v0,<15-test>          bne  v1,v0,<15-test>
+li   v0,0x15                  lui  v0,0x5512
+<A>                           <A>
+<TAIL, entered by fallthru>   j    <end>
+<15-test>                     <15-test>
+<B>                           <B>
+j    <TAIL>   (backward)      <TAIL, entered by fallthru>
+```
+
+`expand_start_elseif` (`stmt.c`) ends the then-part with
+`emit_jump (endif_label)` *before* emitting the else label, so an `else if` arm
+always leaves a jump over the else and the join label is emitted last. jump.c
+deletes that jump only when the join is the next instruction, which it never is
+with an else arm in between. Neither `switch` fits either: `emit_case_nodes`
+emits `beq` to the case label, and the whole decision tree is contiguous, so two
+tests separated by the tail rule both out.
+
+Write the first arm as an early-`goto` guard, with the tail label between the
+arms:
+
+```c
+    if (*(u16*)in != 0x13) {
+        goto message15;
+    }
+    snd = 0x55120003; cmd = 3; event.field_4 = snd; flag = 0x15E;
+start_event:
+    tail;
+    return NeoArkSavannaZone_StartEvent(out, &event);
+message15:
+    if (*(u16*)in == 0x15) { snd = 0x55120001; cmd = 2; event.field_4 = snd; flag = 0x15F; goto start_event; }
+    return 1;
+}
+```
+
+100.000%, every penalty zero. The guard's own `j message15` is threaded away
+(jump.c retargets the `bne` that reached it past it), so the arm falls straight
+into the tail, and the second arm's `goto` is exactly the backward `j` the
+target shows. This is the mirror of the cross-jump sections above: there a
+shared *call* tail wants the calls written out in every arm, here a tail that
+the arms reach by fall-through and by a backward jump wants a `goto`. The tell
+is the tail's position relative to the arms — read it off the object, because
+sched1 does no reordering at all when every insn has latency 1 (`priority()` in
+`sched.c` propagates 1 to everything and the rank falls through to `INSN_LUID`,
+i.e. emission order), so what the object shows is the order the front end
+emitted.
+
+The same rule settles the `li` inside each arm: the target orders the arm
+`lui, ori, li cmd, sw field_4, li flag`, so the sound's constant has to be
+materialised before `cmd` is assigned and stored after it — one `snd` local
+holding the constant, stored into the field between the two. Assigning the
+field directly and `cmd` after it puts the `sw` one slot early, and assigning
+`cmd` first lets cse substitute the register holding `3` for the constant's low
+half (`or v0,v0,v1` instead of `ori`).
+
+Inputs: `base_5.i` (100%, all penalties zero), `base_3.i` (`goto` guard with the
+stores before `cmd`, 98.71%) and `base_2.i` (`else if`, 86.83%).
