@@ -119266,3 +119266,83 @@ Inputs: `base.i` `9b28280544f552bdf1e97375d1c240a97338548a40c5578dd62b3088577aec
 (m2c seed, 84.333%), `base_1.i`
 `d8d086dd924879716c81c8b3c18ee9913d16162b01347c524d3d71f4fe990610` (match,
 100.000%).
+
+### A variable assigned on both sides of an if splits the callee-saved register
+
+`func_dryfield_water_tower_8017DAF8` (rooms, 91 instructions) is a message
+handler whose first half returns the gate result and whose second half returns
+a boolean. Writing the second half as `ret = 1; if (msgId == 0x15) ret = ...;
+return ret;` with one `ret` declared at the top gave `82 conflicts: 82 84 ...`
+- `msg` (the third parameter) and `ret` could not share, so the frame grew to
+`0x38` and a second callee-saved register (`$s1`) appeared, at 91.330%.
+
+The conflict is not an allocator quirk: `ret = 1` sits in the second half
+*after* `msg`'s last use only if the compiler puts it there. GCC emitted it
+before the `msgId == 0x15` test, so `ret` was live across the test's reads of
+`msg`, and the two allocnos really do overlap. Making the second half return
+directly - `return 1;` and `return (a) || (b);` - removes the second-half `ret`
+pseudo entirely, leaving `ret` live only inside the first half, where `msg` is
+already dead at the gate call. Both then land in `$s0` and the frame drops to
+`0x30` (95.418%).
+
+The general shape: **a variable that is live in a branch you did not think
+about keeps its register.** Dump `.greg` and read the `conflicts:` line - two
+allocnos that look disjoint in the final assembly can be listed as conflicting,
+and the line says which.
+
+### Two `return 1`s that must cross-jump: write the condition as early returns
+
+Same function, 96.626% to 100%. The tail is
+
+```c
+if (msg->msgId == 0x15) {
+    ...
+    if (Game_Session->field_7 == 3 || GameFlag_GetNibble(0x32) == 2) {
+        return 1;
+    }
+    return 0;
+}
+return 1;
+```
+
+and it compiled one instruction too long (90 vs 91), with `regs=1 insert=1
+delete=2`. The `||`-true block and the function's trailing `return 1` are two
+separate `v0 = 1` blocks, and reorg stole a *copy* of one into the `beq`'s delay
+slot (`reorg_redirect_jump` in `reorg.c`, which fills a slot from `j
+<target>`'s destination and copies rather than moves when the destination has
+another predecessor). The target has a single `li v0,1` with a `nop` in the
+branch's delay slot.
+
+Writing the two conditions as their own early returns
+
+```c
+        if (Game_Session->field_7 == 3) {
+            return 1;
+        }
+        if (GameFlag_GetNibble(0x32) != 2) {
+            return 0;
+        }
+    }
+    return 1;
+```
+
+makes the two `return 1` tails byte-identical - `v0 = 1` then the shared
+epilogue - so jump2 cross-jumps them into one block, and the duplicate
+disappears. 100.000%, all penalties zero, on the next build. Note the second
+test is written `!= 2` with `return 0`, not `== 2` with `return 1`: that is what
+puts the `v0 = 0` on the branch that goes to the epilogue, matching the target's
+`bne`/`addu $v0,$zero,$zero` pair.
+
+A related trap on the way: `return (a) || (b);` as the trailing statement is
+*not* interchangeable with `if (a || b) return 1; return 0;`. The value form
+puts `t = 0` before the call (`grep 'set (reg/i:SI 2 v0)' *.rtl` showed two
+`v0 = 1` from `.rtl` on), which makes the value live across the call and forces
+a callee-saved register again; the value form of the last test alone
+(`return GameFlag_GetNibble(0x32) == 2;`) instead lowers to `xori`/`sltiu`
+(92.286%). The jump-context `||` is the one that matches.
+
+Inputs: `base_3.i`
+`8149348e89207466c62b9420cc350002b530b40d49cf38815f3332c2bb42d393`
+(96.626%), `base_5.i`
+`6b833d923fd833a5b00ea3610a3b2777f14d54780488e3311c8917cc703b4f05`
+(match, 100.000%).
