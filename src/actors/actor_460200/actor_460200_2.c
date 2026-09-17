@@ -2,6 +2,7 @@
 
 #include "actors/actor_460200.h"
 #include "actors/actors_shared_80132514.h"
+#include "actors/actors_shared_8014c874.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
@@ -66,7 +67,45 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80132F0C);
+void func_actor_460200_801333A4(Task* task);
+void func_actor_460200_8013332C(Task* task);
+void func_actor_460200_801332E0(Task* task);
+
+/// The same step body as `ActorsShared8014c874`, moving 0x1E per frame and
+/// also returning to state 1 when the travel count runs out.
+void func_actor_460200_80132F0C(Task* task)
+{
+    ActorsShared8014c874Work* work;
+    s16                       animId;
+
+    work = (ActorsShared8014c874Work*)task->idMap;
+    if (work->state == 1) {
+        func_actor_460200_801333A4(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 2) {
+        func_actor_460200_8013332C(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 3) {
+        do {
+        } while (0);
+        animId = work->animId;
+        if (animId == 4 && work->travel != 0) {
+            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->field_8, 0x1E);
+            work->travel = (u16)work->travel - 1;
+            if (work->travel == 0) {
+                work->state   = 1;
+                work->animArg = 0xA;
+                work->animId  = 1;
+            }
+        }
+        func_actor_460200_801332E0(task);
+        return;
+    }
+}
 
 void func_actor_460200_80133254(Task* task);
 void func_actor_460200_8013311C(void* enemy, Task* task);
