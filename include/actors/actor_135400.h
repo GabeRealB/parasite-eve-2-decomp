@@ -27,17 +27,22 @@
 /// `field_43C` is the per-slot flag `func_actor_135400_80132D24` raises once it
 /// has set the actor up; `field_43D` / `field_43E` latch the `field_4` / `field_0`
 /// of the `GpAnimArg` that call was handed (`-1` until then), and `params` holds
-/// the `D_actor_135400_80131EA0` defaults.
+/// the `D_actor_135400_80131EA0` defaults. The block opens with its own
+/// animation context and the twenty 0x28-byte slots that follow it, the same
+/// 0x334-byte prefix `Actor136100Work` carries: `func_actor_135400_801329B0`
+/// ticks those slots through `Gp_AnimTickIndex` once `field_43C` is set.
 typedef struct Actor135400Work {
-    /* 0x000 */ byte      pad_0[0x43C];
-    /* 0x43C */ s8        field_43C;
-    /* 0x43D */ s8        field_43D;
-    /* 0x43E */ s8        field_43E;
-    /* 0x43F */ byte      pad_43F[0x1];
-    /* 0x440 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
-    /* 0x460 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
-    /* 0x480 */ GpAnimArg params;
-    /* 0x494 */ s32       field_494;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       pad_334[0x108];
+    /* 0x43C */ s8         field_43C;
+    /* 0x43D */ s8         field_43D;
+    /* 0x43E */ s8         field_43E;
+    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x440 */ MATRIX     lightMtx; // the model's `TmdObject::field_1C`
+    /* 0x460 */ MATRIX     colorMtx; // the model's `TmdObject::field_20`
+    /* 0x480 */ GpAnimArg  params;
+    /* 0x494 */ s32        field_494;
 } Actor135400Work;
 STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 

@@ -124555,3 +124555,112 @@ build from the sibling's C, against an m2c seed at 74.279%.
 Inputs: scratch `nonmatchings/func_actor_135400_801327E8-vacuum`, `base.c`
 74.279%, `base_1.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## m2c splits a load that feeds both an index and a later `+1`, and the split makes the load die in the shift (func_actor_135400_801329B0, 2026-09-17)
+
+The actor tick reads `GpAnimArg::field_4` twice: once as the index of the
+per-step frame table and once to advance the step by one. Retail shares the
+load, and its last use is the `+1`:
+
+```
+lw    a1,0x484(s1)      /* one load ... */
+sll   v1,v1,0x10
+sll   v0,a1,0x1         /* ... used as the table index */
+addu  v0,v0,a0
+lh    v0,0(v0)
+sra   v1,v1,0x10
+slt   v0,v0,v1
+beqz  v0, ...
+addiu v0,a1,1           /* ... and again for the step, inside the branch body */
+sw    v0,0x484(s1)
+```
+
+m2c renders the same bytes as two temps with the arithmetic hoisted above the
+branch, which moves the load's death into the shift:
+
+```c
+    temp_a1 = temp_s1->params.field_4;
+    temp_v0 = temp_a1 + 1;                                  /* before the if */
+    if (D_actor_135400_8013F8C4[temp_a1] < (s16) temp_v1) {
+        temp_s1->params.field_4 = temp_v0;
+```
+
+`temp_a1` then dies producing the `sll`, so per `CODEGEN_MODEL.md` §10.3 the
+shift result joins its quantity and inherits its register. The chain
+`load + sll + addu + lh` takes `$a0`, which pushes the `%hi` of the symbolic
+table address into `$v0` - and `$v0` being free over the branch lets `reorg`
+pull that `lui` into an *earlier* branch's delay slot and re-target the branch
+past it, adding a 16th block to the 15-block target. The diff's first hunk is
+that hoisted `lui`; the penalty line is `branch=5 regs=15 reorder=2 insert=3
+delete=2`, 91.463%.
+
+Reading the two uses back as two reads of the same lvalue is the whole fix -
+`cse` folds them into one load whose last use is the `addiu`:
+
+```c
+    if (D_actor_135400_8013F8C4[work->params.field_4] < (s16) count) {
+        work->params.field_4 = work->params.field_4 + 1;
+        if (work->params.field_4 >= 7) {
+            work->params.field_4 = 1;
+        }
+```
+
+99.753%, `regs=4`, everything else zero: the load stays live past the shift, so
+nothing dies in it and the shift result takes the low free register instead.
+Expect this shape whenever m2c prints a `temp_a`/`temp_v` pair whose two
+members are one load and one `+ 1` of it, and the target's `sw` is fed from the
+load's register.
+
+Inputs: scratch `nonmatchings/func_actor_135400_801329B0-vacuum`, `base.c`
+91.463%, `base_1.c` 99.753%, `base_2.c` 100.000%, compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A decrement placed above the branch that still reads the value cannot tie into it (same function)
+
+`Actor135400Work::field_494` counts down across a join: `bltz` skips a negative
+value, `bnez` jumps to the store, the fall-through path frees the model's aux
+buffers and reloads, and one `sw` serves both paths. m2c's shape computes the
+result *before* the `v == 0` test:
+
+```c
+    temp_v0_2 = temp_s1->field_494;
+    if (temp_v0_2 >= 0) {
+        var_v0 = temp_v0_2 - 1;                 /* here */
+        if (temp_v0_2 == 0) {
+            Tmd_FreeBuffers(temp_s3);
+            var_v0 = temp_s1->field_494 - 1;
+        }
+        temp_s1->field_494 = var_v0;
+    }
+```
+
+and the target's `addiu v0,v0,-1` (source and destination one register) becomes
+`addiu v0,v1,-0x1` with the load in `$v1` - 99.753%, `regs=4`, ten instructions
+of the last block. `temp_v0_2` is still live there (it is the `bnez` operand), so
+it cannot die in the decrement and the result gets its own register instead of
+sharing one.
+
+Putting the decrement where the value actually dies - after the test, or as a
+compound assignment on the field - makes both paths land in one register:
+
+```c
+    step = work->field_494;
+    if (step >= 0) {
+        if (step == 0) {
+            Tmd_FreeBuffers(ext);
+            step = work->field_494;
+        }
+        step -= 1;
+        work->field_494 = step;
+    }
+```
+
+`work->field_494 -= 1;` with no variable at all scores the same 100.000% (the
+memory read-modify-write ties its own temp), so the lever is not one variable
+versus two here: it is *which side of the branch the arithmetic sits on*. A
+prediction that the compound form would fail was recorded and measured wrong;
+`lw v0,0x494(s1)` + `bltz v0` + `addiu v0,v0,-1` in both the `bnez` delay slot
+and after the reload is the signal that the value's live range ends at the
+decrement.
+
+Inputs: as above; `base_3.c` and `base_4.c` both 100.000%.

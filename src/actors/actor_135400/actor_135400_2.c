@@ -9,6 +9,7 @@
 #include "main/tmd.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 
 /// The three flat lights `func_actor_135400_80132CB0` loads into the model's
 /// light / colour matrices: an axis-aligned light on X, Y and Z (`vy` / `vx` /
@@ -19,6 +20,13 @@ extern GsF_LIGHT D_actor_135400_8013F904[3];
 /// 0x7D5, ended by `0x7FFFFFFF`. `func_actor_135400_80132B60` parks its address
 /// in `Task::field_24` (0x24).
 extern s32 D_actor_135400_8013F8E4;
+
+/// Per-step frame counts of the actor's 0x7D3 animation: eight `s16` entries
+/// indexed by `Actor135400Work::params.field_4`. `func_actor_135400_801329B0`
+/// runs the task's `killCountdown` up and, once it passes the entry for the
+/// current step, advances that step -- wrapping at 7 -- and re-issues the
+/// animation. The first and last entries are zero, so neither ever expires.
+extern s16 D_actor_135400_8013F8C4[];
 
 /// The actor's default animation arguments; defined at the end of this file so
 /// its `.rodata` lands after the other units' tables.
@@ -119,7 +127,53 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_801329B0);
+/// The actor's per-frame tick. Once `func_actor_135400_80132D24` has raised
+/// `field_43C` it ticks the work block's twenty animation slots through
+/// `Gp_AnimTickIndex`; while the model is drawn (bit 0x80 of
+/// `TmdObject::field_C` clear) it draws the ground shadow under the model's
+/// root part, as `func_actor_135400_801322A8` does for the main task. It then
+/// steps the 0x7D3 animation on the `D_actor_135400_8013F8C4` frame counts, and
+/// finally runs `field_494` down -- at zero the model's aux buffers are freed
+/// and the countdown carries on to -1, so that free happens once.
+void func_actor_135400_801329B0(Task* task)
+{
+    Actor135400Work* work;
+    TmdObject*       ext;
+    VECTOR3          pos;
+    s32              i;
+    s32              step;
+    u16              count;
+
+    work = (Actor135400Work*)task->idMap;
+    ext  = task->extra;
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->field_C & 0x80) && (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[0].workm.t, &pos) != 0)) {
+        Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->field_8);
+    }
+    count               = task->killCountdown + 1;
+    task->killCountdown = count;
+    if (D_actor_135400_8013F8C4[work->params.field_4] < (s16)count) {
+        work->params.field_4 = work->params.field_4 + 1;
+        if (work->params.field_4 >= 7) {
+            work->params.field_4 = 1;
+        }
+        func_actor_135400_80132D24(task, 0x7D3, &work->params, 0);
+        task->killCountdown = 0;
+    }
+    step = work->field_494;
+    if (step >= 0) {
+        if (step == 0) {
+            Tmd_FreeBuffers(ext);
+            step = work->field_494;
+        }
+        step           -= 1;
+        work->field_494 = step;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132AF4);
 
