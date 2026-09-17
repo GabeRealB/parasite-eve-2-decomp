@@ -49,20 +49,24 @@ typedef struct Actor323000Work {
     /// the same eight halfwords `Actor01900AnimWork` names `field_978`..
     /// `field_990`: the state to run, the clip id the slots were last seeded
     /// with, the one being seeded now, and the two 0x10 speeds.
-    /* 0x828 */ s16  field_828;
-    /* 0x82A */ s16  field_82A;
-    /* 0x82C */ byte pad_82C[2];
-    /* 0x82E */ s16  field_82E;
-    /* 0x830 */ byte pad_830[2];
-    /* 0x832 */ s16  field_832;
-    /* 0x834 */ s16  field_834;
-    /* 0x836 */ byte pad_836[8];
-    /* 0x83E */ s16  field_83E;
-    /* 0x840 */ s16  field_840;
-    /* 0x842 */ byte pad_842[2];
+    /* 0x828 */ s16 field_828;
+    /* 0x82A */ s16 field_82A;
+    /* 0x82C */ s16 field_82C;
+    /* 0x82E */ s16 field_82E;
+    /* 0x830 */ u16 field_830;
+    /* 0x832 */ s16 field_832;
+    /* 0x834 */ s16 field_834;
+    /* 0x836 */ s16 field_836;
+    /* 0x838 */ s16 field_838;
+    /* 0x83A */ s16 field_83A;
+    /* 0x83C */ s16 field_83C;
+    /* 0x83E */ s16 field_83E;
+    /* 0x840 */ s16 field_840;
+    /* 0x842 */ s16 field_842;
     /// Cleared next to `field_840` by the spawn handler below.
     /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[0x4E];
+    /* 0x846 */ byte pad_846[2];
+    /* 0x848 */ byte field_848[0x4C];
     /// Light / colour matrices `func_actor_323000_80163EA0` binds to the
     /// model, the same pair `Actor356100_BindMatrices` points at.
     /* 0x894 */ MATRIX light;
@@ -133,6 +137,14 @@ extern GpPairSrcE D_actor_323000_80164D54;
 /// the `GPEnemyWait` link node; `field_1C` is zeroed because the link
 /// transforms fill it. The finished entry advances the task's state.
 void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task);
+
+/// Per-state animation table `func_actor_323000_80163A30` reads when it
+/// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
+extern s8 D_actor_323000_80173090[];
+
+/// Sound step of the tick: returns the `SndEvt_EnqueueType6` id to play for
+/// this frame, or 0.
+s32 func_actor_323000_80163448(Task* task, Actor323000Work* work);
 
 /// Per-frame tick of the live actor, run once the work block's animation
 /// slots are set up.

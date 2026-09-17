@@ -2,12 +2,189 @@
 
 #include "actors/actor_323000.h"
 #include "actors/actors_shared_801366fc.h"
+#include "actors/actors_shared_80132808.h"
+#include "actors/actors_shared_8016331c.h"
 #include "gameplay/3CD8.h"
 #include "psyq/inline_c.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_80163448);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_80163A30);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
+void func_actor_323000_80163A30(Task* task)
+{
+    Actor323000Work* work;
+    Actor323000Work* seekWork;
+    Actor323000Work* resetWork;
+    Actor323000Work* secondaryWork;
+    Actor323000Work* tickWork;
+    Actor323000Work* turnWork;
+    u32              table;
+    s16              state;
+    s32              seekIndex;
+    s32              seekSlotIndex;
+    s32              animation;
+    s32              index;
+    s32              resetIndex;
+    s32              resetSlotIndex;
+    s32              secondaryIndex;
+    s32              secondarySlotIndex;
+    s32              tickIndex;
+    s32              tickSlotIndex;
+    s32              targetAngle;
+    s32              currentAngle;
+    s32              targetAngleBits;
+    s32              currentAngleBits;
+    s16              angle;
+    s32              clampedAngle;
+    s16              thirdAngle;
+    s32              targetTurn;
+    u16              originalTurn;
+    s32              signedTurn;
+    s16              currentTurn;
+    s32              updatedTurn;
+    u16              updatedTurnBits;
+    s32              delta;
+    s32              sound;
+    s32              pan;
+
+    work  = (Actor323000Work*)task->idMap;
+    state = work->field_828;
+    if (state == 1) {
+        if (work->field_82C != work->field_82E) {
+            seekWork = work;
+            TOUCH_REG(seekWork);
+            seekIndex = 1;
+            table     = (u32)D_actor_323000_80173090;
+            do {
+                seekSlotIndex                  = seekIndex;
+                work->slots[seekIndex].field_9 = (u8)seekWork->field_832;
+                animation                      = seekWork->field_82E;
+                index                          = seekWork->field_82C * 0x2D;
+                func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
+                seekIndex += 1;
+            } while (seekIndex < 0x12);
+            seekWork->field_82C = seekWork->field_82E;
+        }
+        work->field_828 = 3;
+        work->field_830 = 0;
+        Mem_Set(work->field_848, 0U, 0x48U);
+    } else if (state == 2) {
+        resetWork = work;
+        TOUCH_REG(resetWork);
+        resetIndex = 1;
+        do {
+            resetSlotIndex                  = resetIndex;
+            work->slots[resetIndex].field_9 = (u8)resetWork->field_832;
+            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
+            resetIndex += 1;
+        } while (resetIndex < 0x12);
+        resetWork->field_82C = resetWork->field_82E;
+        work->field_828      = 3;
+        work->field_830      = 0U;
+        Mem_Set(work->field_848, 0U, 0x48U);
+    }
+    if (work->field_836 == 2) {
+        secondaryWork            = (Actor323000Work*)task->idMap;
+        secondaryIndex           = 1;
+        secondaryWork->field_83A = 0x20;
+        secondaryWork->field_83C = 0x800;
+        do {
+            secondarySlotIndex                           = secondaryIndex;
+            secondaryWork->slots[secondaryIndex].field_9 = (u8)secondaryWork->field_83A;
+            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
+            secondaryIndex += 1;
+        } while (secondaryIndex < 0x12);
+        work->field_836 = 3;
+    }
+    work->field_830 = (u16)(work->field_830 + 1);
+    if (work->field_82A == 0) {
+        tickWork  = (Actor323000Work*)task->idMap;
+        tickIndex = 1;
+        do {
+            tickSlotIndex                      = tickIndex;
+            tickWork->slots[tickIndex].field_9 = (u8)tickWork->field_832;
+            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            tickIndex += 1;
+        } while (tickIndex < 0x12);
+    } else {
+        ActorsShared8016331c(task);
+        if (work->blendSlots[1].field_10 & 1) {
+            work->field_82A = 0;
+        }
+    }
+    targetAngle      = work->field_840;
+    currentAngle     = work->field_844;
+    targetAngleBits  = (u16)work->field_840;
+    currentAngleBits = (u16)work->field_844;
+    if (currentAngle < targetAngle) {
+        if ((targetAngle - currentAngle) >= 0x72) {
+            work->field_844 = currentAngleBits + 0x71;
+        } else {
+            goto snap;
+        }
+    } else if ((currentAngle - targetAngle) >= 0x72) {
+        work->field_844 = currentAngleBits - 0x71;
+    } else {
+    snap:
+        work->field_844 = targetAngleBits;
+    }
+    angle        = work->field_844;
+    clampedAngle = (u16)work->field_844;
+    if (angle != 0) {
+        if (angle >= 0x501) {
+            clampedAngle = 0x500;
+        }
+        if (angle < -0x500) {
+            clampedAngle = -0x500;
+        }
+        thirdAngle = (s16)clampedAngle / 3;
+        ActorsShared80132808(&((TmdObject*)task->extra)->field_8[2], thirdAngle);
+        ((TmdObject*)task->extra)->field_8[2].flg = 0;
+        ActorsShared80132808(&((TmdObject*)task->extra)->field_8[3], thirdAngle);
+        ((TmdObject*)task->extra)->field_8[3].flg = 0;
+        ActorsShared80132808(&((TmdObject*)task->extra)->field_8[4], (s16)clampedAngle / 2);
+        ((TmdObject*)task->extra)->field_8[4].flg = 0;
+    }
+    turnWork     = (Actor323000Work*)task->idMap;
+    targetTurn   = (u16)turnWork->field_83E;
+    originalTurn = targetTurn;
+    if ((s16)targetTurn >= 0x201) {
+        targetTurn = 0x200;
+    }
+    if ((s16)originalTurn < -0x200) {
+        targetTurn = -0x200;
+    }
+    signedTurn  = (s16)targetTurn;
+    currentTurn = turnWork->field_842;
+    if (currentTurn < signedTurn) {
+        if ((signedTurn - currentTurn) >= 0xD) {
+            turnWork->field_842 = (s16)((u16)turnWork->field_842 + 0xC);
+        } else {
+            turnWork->field_842 = (s16)targetTurn;
+        }
+    }
+    updatedTurn     = turnWork->field_842;
+    updatedTurnBits = (u16)turnWork->field_842;
+    if ((s16)targetTurn < updatedTurn) {
+        delta = updatedTurn - (s16)targetTurn;
+        if (delta < 0) {
+            delta = -delta;
+        }
+        if (delta >= 0xD) {
+            turnWork->field_842 = (s16)(updatedTurnBits - 0xC);
+        } else {
+            turnWork->field_842 = (s16)targetTurn;
+        }
+    }
+    ActorsShared80132808(&((TmdObject*)task->extra)->field_8[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    ((TmdObject*)task->extra)->field_8[10].flg = 0;
+    sound                                      = func_actor_323000_80163448(task, work);
+    if (sound != 0) {
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+    }
+}
 
 void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
 {
