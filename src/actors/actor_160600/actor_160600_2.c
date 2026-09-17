@@ -10,6 +10,7 @@
 
 #include "actors/actor_160600.h"
 #include "actors/actors_shared_801366fc.h"
+#include "actors/actors_shared_8014c874.h"
 
 extern u8 D_actor_160600_8013DFAC[];
 extern u8 D_actor_160600_8013DF70[];
@@ -51,6 +52,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   &work->field_374, work->slots);
     work->state    = 2;
     task->field_24 = D_actor_160600_8013DF70;
-    func_actor_160600_80131FFC(task);
+    ActorsShared8014c874(task);
     task->state++;
 }

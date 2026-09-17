@@ -11,6 +11,7 @@
 
 #include "actors/actor_160700.h"
 #include "actors/actors_shared_801366fc.h"
+#include "actors/actors_shared_8014c874.h"
 
 extern TaskDesc D_actor_160700_801416A8[];
 extern u8       D_actor_160700_801416C0[];
@@ -129,10 +130,8 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   &work->slots[0x14], work->slots);
     work->state    = 2;
     task->field_24 = D_actor_160700_80141678;
-    func_actor_160700_80132184(task);
+    ActorsShared8014c874(task);
     task->state += 1;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_160700/actor_160700", func_actor_160700_80132184);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_160700/actor_160700", D_actor_160700_80131E20);

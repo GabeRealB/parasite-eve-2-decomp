@@ -33,10 +33,10 @@ STATIC_ASSERT_SIZEOF(Actor215100Caption, 0xC);
 
 /// Work block this overlay hangs off its task's `Task::idMap` slot (0x1C),
 /// which is not a `TaskIdMap` here. Only the prefix the animation script opcode
-/// `func_actor_215100_8014CCE0` and `func_actor_215100_8014C874` reach is
+/// `func_actor_215100_8014CCE0` and `ActorsShared8014c874` reach is
 /// described.
 ///
-/// `state` selects the start path `func_actor_215100_8014C874` takes: 1 runs
+/// `state` selects the start path `ActorsShared8014c874` takes: 1 runs
 /// the animated one and 2 the plain one, and the same layout appears in
 /// `Actor150400Work` thirty-six bytes lower (`state` at 0x47C there), so the two
 /// overlays carry separate structs.
@@ -117,8 +117,6 @@ typedef struct Actor215100 {
     /* 0x30 */ s32  state;
     /* 0x34 */ s16  spawnArg1Lo;
 } Actor215100;
-
-void func_actor_215100_8014C874(Task* task);
 
 s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args);
 

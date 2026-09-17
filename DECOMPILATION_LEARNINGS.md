@@ -114231,3 +114231,20 @@ make the benefit threshold matter.
 **Clamp through a copy.** `x = a - b; if (x <= 0) x = 0;` gave `move s2,zero`;
 the target's `move a0,s2 / move a0,zero / move s2,a0` came from
 `y = x; if (x <= 0) y = 0; x = y;`.
+
+### A constant the target reloads (`li a0,1`) where the build reuses an earlier `$s` copy: end cse1's block with a loop note (`func_actor_215100_8014C874`)
+
+**Symptom.** 98.7% with one wrong operand. `if (state == 1)` loads 1 into `$s5`,
+which a later `animId = 1` store keeps using (`sh s5`), but the target reloads
+1 into `a0` for the inlined `D_80072729 == 1` pause test between them; the build
+compares against `$s5` there too.
+
+**Cause.** cse1's extended block ran from insn 1 through the whole state-3
+body (`;; Processing block from 1 to 164` in `.cse`), so the pause test's
+`(set (reg) (const_int 1))` was replaced by the older pseudo. Before loop.c,
+`cse_end_of_basic_block` stops at a `NOTE_INSN_LOOP_END` (cse.c:8236); cse2
+ignores it, so the later store can still share the pseudo.
+
+**Fix.** An empty `do { } while (0);` at the top of the state-3 body split the
+block (`1..80`, `82..208`) and matched at 100%, found by the permuter and
+confirmed from `.cse`. Prediction was made before the build.

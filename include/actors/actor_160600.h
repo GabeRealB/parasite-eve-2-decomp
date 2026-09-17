@@ -28,6 +28,4 @@ typedef struct Actor160600Work {
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
 
-void func_actor_160600_80131FFC(Task* task);
-
 #endif

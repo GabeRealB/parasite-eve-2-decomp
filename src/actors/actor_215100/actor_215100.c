@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_215100.h"
+#include "actors/actors_shared_8014c874.h"
 #include "actors/actors_shared_801366fc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -829,8 +830,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   &work->field_374, work->slots);
     work->state    = 2;
     task->field_24 = D_actor_215100_8015E5A0;
-    func_actor_215100_8014C874(task);
+    ActorsShared8014c874(task);
     task->state++;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C874);

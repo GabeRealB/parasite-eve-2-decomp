@@ -1,10 +1,11 @@
 #include "common.h"
 
 #include "actors/actor_215100.h"
+#include "actors/actors_shared_8014c874.h"
 
 /// Script opcode: start animation `args->animId` on this actor.
 ///
-/// `withArg` selects between the two start paths `func_actor_215100_8014C874`
+/// `withArg` selects between the two start paths `ActorsShared8014c874`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
 /// touching the work block, when the clip id is out of range.
 ///
@@ -32,6 +33,6 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args)
         work->state = 2;
     }
     work->field_4BA = 0;
-    func_actor_215100_8014C874(task);
+    ActorsShared8014c874(task);
     return 0;
 }
