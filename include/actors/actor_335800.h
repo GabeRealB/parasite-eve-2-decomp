@@ -8,6 +8,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/1BC.h"
+
 /// Work block allocated by `func_actor_335800_80163AA0` (`Mem_Calloc(0x4C8)`)
 /// and parked in that task's `Task::idMap` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_335800_80163B54` republishes the two matrices
@@ -19,25 +21,28 @@
 /// seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at 0x4C4 are set to
 /// -1, and the three words at 0x4A0..0x4A8 are cleared.
 typedef struct Actor335800Work {
-    /* 0x000 */ byte    pad_0[0x43D];
-    /* 0x43D */ s8      field_43D;
-    /* 0x43E */ s8      field_43E;
-    /* 0x43F */ byte    pad_43F[0x1];
-    /* 0x440 */ MATRIX  light;
-    /* 0x460 */ MATRIX  color;
-    /* 0x480 */ VECTOR3 target; // world position the shared turn-to-face body steers toward
-    /* 0x48C */ byte    pad_48C[0x4];
-    /* 0x490 */ VECTOR3 step;   // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x49C */ byte    pad_49C[0x4];
-    /* 0x4A0 */ s32     field_4A0;
-    /* 0x4A4 */ s32     field_4A4;
-    /* 0x4A8 */ s32     field_4A8;
-    /* 0x4AC */ byte    pad_4AC[0x4];
-    /* 0x4B0 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4B8 */ byte    pad_4B8[0xA];
-    /* 0x4C2 */ u16     field_4C2; // index into the state-handler table `D_actor_335800_80161E68`
-    /* 0x4C4 */ s16     field_4C4;
-    /* 0x4C6 */ byte    pad_4C6[0x2];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ s8         field_43C;
+    /* 0x43D */ s8         field_43D;
+    /* 0x43E */ s8         field_43E;
+    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x440 */ MATRIX     light;
+    /* 0x460 */ MATRIX     color;
+    /* 0x480 */ VECTOR3    target; // world position the shared turn-to-face body steers toward
+    /* 0x48C */ byte       pad_48C[0x4];
+    /* 0x490 */ VECTOR3    step;   // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x49C */ byte       pad_49C[0x4];
+    /* 0x4A0 */ s32        field_4A0;
+    /* 0x4A4 */ s32        field_4A4;
+    /* 0x4A8 */ s32        field_4A8;
+    /* 0x4AC */ byte       pad_4AC[0x4];
+    /* 0x4B0 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4B8 */ byte       pad_4B8[0xA];
+    /* 0x4C2 */ u16        field_4C2; // index into the state-handler table `D_actor_335800_80161E68`
+    /* 0x4C4 */ s16        field_4C4;
+    /* 0x4C6 */ byte       pad_4C6[0x2];
 } Actor335800Work;
 STATIC_ASSERT_SIZEOF(Actor335800Work, 0x4C8);
 

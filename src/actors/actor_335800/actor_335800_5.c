@@ -35,7 +35,40 @@ void func_actor_335800_80163CA0(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_5", func_actor_335800_80163D20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_5", func_actor_335800_80163E20);
+extern void* D_actor_335800_80172E98[];
+
+/// Animation preset handler, the same body as `func_actor_361100_801634D0`:
+/// re-seeds the slot array off bank table `D_actor_335800_80172E98` when the
+/// preset's bank index changes, then restarts or resets every slot and ticks them.
+s32 func_actor_335800_80163E20(Task* task, s32 arg1, Actor335800AnimPreset* msg)
+{
+    Actor335800Work* work;
+    TmdObject*       ext;
+    s32              i;
+
+    work = (Actor335800Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        func_800B3F84(&work->anim, D_actor_335800_80172E98[work->field_43E], (GpAnimObj*)ext, work->field_30C,
+                      work->slots);
+    }
+    work->field_43D = msg->field_4;
+    if (msg->field_8 != 0 && work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+        }
+    }
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_43C = 1;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_5", func_actor_335800_80163F3C);
 
