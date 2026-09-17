@@ -3967,6 +3967,38 @@ one variable, which costs `regs`, `reorder` and `insert` at once. The `$s0` that
 serves four different runs is the tell that the merge is post-reload: pre-
 allocation there is no single register to name.
 
+## A shared `case X: case Y:` body leaves *one* jtbl label; a duplicated body leaves two
+
+`func_dryfield_night_general_store_8017E6C8` dispatches on
+`Game_Session->field_4` and draws one `Room_Draw08` wedge pair per view, views 4
+and 8 drawing the same pair. Its jump table repeats that pair's label **twice**,
+at two distinct labels (`E728` and `E744`) whose bodies are identical, and that
+is the source form:
+
+```c
+case 4: Room_Draw08(&D_...E7EC[0], 0x100); Room_Draw08(&D_...E7EC[2], 0x100); break;
+case 8: Room_Draw08(&D_...E7EC[0], 0x100); Room_Draw08(&D_...E7EC[2], 0x100); break;
+```
+
+100.00% with every penalty zero. Sharing one body between the two labels
+(`case 4: case 8:`) scores 85.5% with the case-8 block simply absent - 42 insns
+against 49, `insert=0 delete=7`.
+
+GCC 2.8.1 never expands a multi-value case twice: `expand_end_case` hangs every
+value of a case off the same `code_label`, so the table repeats *one* label.
+`func_dryfield_night_water_tower_8017DB80`'s `case 7: case 10:` shows the other
+side - entries 5 and 8 of its table are both `.Ldryfield_night_water_tower_8017DC38`.
+
+So the jtbl in the function's own `.s` decides this before any build: **two
+identical case bodies under two distinct table labels means the source spelled
+the body out twice, and one label repeated in the table means it wrote
+`case X: case Y:`.** The duplicated form is also what reproduces the target's
+block order, per the section above: every case's *last* draw merges into one
+tail, and the surviving copy is the last case's, so `.L774` lands after case 13
+and case 13 falls into it. Case 4's and case 8's second draw merges that way
+too - each keeps its first `jal` inline and jumps to the tail with its own
+`addiu a0,$s0,0x10` in the delay slot.
+
 ## Actor step dispatcher: an if-chain with an explicit `return` per arm, never a `switch`
 
 The `field_47C`-style step field is dispatched the same way in actor overlay
