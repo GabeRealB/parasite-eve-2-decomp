@@ -116472,3 +116472,33 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (the router skipped: the frame difference
 made the block connections differ). Scratch
 `nonmatchings/func_neo_ark_altar_8017DF0C-vacuum`.
+
+## A two-value default written as a ternary becomes a skip block cse follows; an if/else into a stack field ends the path (func_actor_141000_801336DC, 2026-09-17)
+
+**Symptom.** `w->field_4C0 = 1;` at the top, then in the `anim == NULL` arm
+`preset.field_4 = w->field_4C8 == 0 ? 0xA : 2; w->field_43F = 1;`. Everything
+matched except the `field_43F` store: ours reused the first `li 1` register
+(`sb t0,0x43f`), the target reloads `li v0,1`.
+
+**Cause.** jump1 turns the ternary (and an if/else into a *register* temp) into
+`v = 2; if (!x) v = 10;`, a one-insn block cse's `-fcse-skip-blocks` path
+skips over, so the table from the function entry still holds `(reg:HI) = 1`
+and the QImode store picks it up through the wider-mode lookup (cse.c ~6697).
+Declaring `field_43F` `u8`, `if (anim == NULL)` as a second `if`, or pre-setting
+the temp all leave that path intact.
+
+**Fix.** Assign both arms straight into the stack field:
+
+```c
+if (w->field_4C8 != 0) {
+    preset.field_4 = 2;
+} else {
+    preset.field_4 = 0xA;
+}
+w->field_43F = 1;
+```
+
+jump1 cannot if-convert a MEM destination, so the if/else keeps its join label
+(two uses), the cse path ends there, and the constant is rematerialised. Cross
+jumping and dbr later fold the two stores to the same `bnez; li 2 (slot); li 10;
+sw` shape the ternary produced. Either arm order matches.

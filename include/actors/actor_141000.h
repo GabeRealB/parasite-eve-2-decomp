@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 typedef struct Actor141000 Actor141000;
@@ -29,38 +30,41 @@ typedef struct Actor141000Point {
 /// three words at 0x4A0..0x4A8 are cleared. `target` is the world position the
 /// actor turns to face, written by the state handler at 0x801336DC.
 typedef struct Actor141000Work {
-    /* 0x000 */ byte    pad_0[0x8];
-    /* 0x008 */ byte    pad_8[0x2];
-    /* 0x00A */ u16     field_A;   // Z scale the state-0 ramp at 0x80132E24 climbs by 0x100 a frame and clamps at 0x1000
-    /* 0x00C */ u16     field_C;   // state index; `func_actor_141000_80132D3C` dispatches through it as `(s16)`
-    /* 0x00E */ u16     field_E;   // per-state frame counter
-    /* 0x010 */ byte    pad_10[0x42C];
-    /* 0x43C */ s8      field_43C; // non-zero while the animation slots tick
-    /* 0x43D */ s8      field_43D;
-    /* 0x43E */ s8      field_43E;
-    /* 0x43F */ s8      field_43F;
-    /* 0x440 */ MATRIX  light;
-    /* 0x460 */ MATRIX  color;
-    /* 0x480 */ VECTOR3 target;
-    /* 0x48C */ byte    pad_48C[0x4];
-    /* 0x490 */ VECTOR3 step; // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x49C */ byte    pad_49C[0x4];
-    /* 0x4A0 */ s32     field_4A0;
-    /* 0x4A4 */ s32     field_4A4;
-    /* 0x4A8 */ s32     field_4A8;
-    /* 0x4AC */ byte    pad_4AC[0x4];
-    /* 0x4B0 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4B8 */ byte    pad_4B8[0x2];
-    /* 0x4BA */ u16     field_4BA; // target yaw the turn-to-face body steers toward
-    /* 0x4BC */ byte    pad_4BC[0x4];
-    /* 0x4C0 */ u16     field_4C0;
-    /* 0x4C2 */ u16     field_4C2; // main-body state index; the dispatcher reads it back sign-extending
-    /* 0x4C4 */ u16     field_4C4; // source rect the upload countdown at 0x4C6 reloads from
-    /* 0x4C6 */ u16     field_4C6; // upload countdown; `func_actor_141000_801335D4` runs it down and an underflow starts the next upload
-    /* 0x4C8 */ s8      field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
-    /* 0x4C9 */ s8      field_4C9;
-    /* 0x4CA */ s8      field_4CA; // upload step the switch at 0x801335D4 dispatches on
-    /* 0x4CB */ byte    pad_4CB;
+    /* 0x000 */ byte       pad_0[0x8];
+    /* 0x008 */ byte       pad_8[0x2];
+    /* 0x00A */ u16        field_A;      // Z scale the state-0 ramp at 0x80132E24 climbs by 0x100 a frame and clamps at 0x1000
+    /* 0x00C */ u16        field_C;      // state index; `func_actor_141000_80132D3C` dispatches through it as `(s16)`
+    /* 0x00E */ u16        field_E;      // per-state frame counter
+    /* 0x010 */ byte       pad_10[0x4];
+    /* 0x014 */ GpAnimSlot slots[0x13];  // the slot array `func_800B3F84` is handed
+    /* 0x30C */ byte       poses[0x130]; // pose buffer `func_800B3F84` is handed
+    /* 0x43C */ s8         field_43C;    // non-zero while the animation slots tick
+    /* 0x43D */ s8         field_43D;
+    /* 0x43E */ s8         field_43E;
+    /* 0x43F */ s8         field_43F;
+    /* 0x440 */ MATRIX     light;
+    /* 0x460 */ MATRIX     color;
+    /* 0x480 */ VECTOR3    target;
+    /* 0x48C */ byte       pad_48C[0x4];
+    /* 0x490 */ VECTOR3    step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x49C */ byte       pad_49C[0x4];
+    /* 0x4A0 */ s32        field_4A0;
+    /* 0x4A4 */ s32        field_4A4;
+    /* 0x4A8 */ s32        field_4A8;
+    /* 0x4AC */ byte       pad_4AC[0x4];
+    /* 0x4B0 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4B8 */ u16        field_4B8;
+    /* 0x4BA */ u16        field_4BA; // target yaw the turn-to-face body steers toward
+    /* 0x4BC */ u16        field_4BC;
+    /* 0x4BE */ byte       pad_4BE[0x2];
+    /* 0x4C0 */ u16        field_4C0;
+    /* 0x4C2 */ u16        field_4C2; // main-body state index; the dispatcher reads it back sign-extending
+    /* 0x4C4 */ u16        field_4C4; // source rect the upload countdown at 0x4C6 reloads from
+    /* 0x4C6 */ u16        field_4C6; // upload countdown; `func_actor_141000_801335D4` runs it down and an underflow starts the next upload
+    /* 0x4C8 */ s8         field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
+    /* 0x4C9 */ s8         field_4C9;
+    /* 0x4CA */ s8         field_4CA; // upload step the switch at 0x801335D4 dispatches on
+    /* 0x4CB */ byte       pad_4CB;
 } Actor141000Work;
 STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
 
@@ -123,6 +127,23 @@ typedef struct Actor141000AnimPreset {
     /* 0x10 */ s32 field_10;
 } Actor141000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor141000AnimPreset, 0x14);
+
+/// Spawn placement `func_actor_141000_801336DC` copies into the work block:
+/// the position into `Actor141000Work::target`, the rotation into
+/// `field_4B8..field_4BC` (the yaw being the turn-to-face target).
+typedef struct Actor141000Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor141000Placement;
+STATIC_ASSERT_SIZEOF(Actor141000Placement, 0x18);
+
+/// Optional start animation for the same handler: the preset's `field_4`
+/// and the `field_43F` byte. Absent, the defaults are anim 10 (or 2 once
+/// `field_4C8` is latched) and 1.
+typedef struct Actor141000SpawnAnim {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  field_4;
+} Actor141000SpawnAnim;
 
 /// A `MATRIX`'s word-wise view, for the identity splat
 /// `func_actor_141000_80132FD0` writes over the root coordinate: five aligned
