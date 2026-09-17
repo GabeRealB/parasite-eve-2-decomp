@@ -87,7 +87,8 @@ typedef struct Actor105700Work {
     /// State-0 branch selector: 1 picks the short dwell and animation 1,
     /// 2 the long dwell and animation 2.
     /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ byte pad_6BA[8];
+    /* 0x6BA */ byte pad_6BA[6];
+    /* 0x6C0 */ s16  field_6C0;
     /* 0x6C2 */ s16  field_6C2;
     /* 0x6C4 */ s16  field_6C4;
     /* 0x6C6 */ byte pad_6C6[4];
@@ -106,7 +107,7 @@ typedef struct Actor105700Work {
     /* 0x6D6 */ s16  field_6D6; ///< animation index, used as a table row
     /* 0x6D8 */ byte pad_6D8[2];
     /* 0x6DA */ s16  field_6DA; ///< state-0 frame budget, drained by `field_69C`
-    /* 0x6DC */ byte pad_6DC[2];
+    /* 0x6DC */ s16  field_6DC;
     /// State-1 step gate: 1 while the state-0 exit is still to be seen, 2
     /// once it has been.
     /* 0x6DE */ s16 field_6DE;
