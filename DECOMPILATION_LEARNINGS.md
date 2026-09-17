@@ -118292,3 +118292,63 @@ Input hashes: `base_2.c`
 `ba55ccd67e935ee7cf89e3dc83e30b8f8735204a50f735537c99e6490bb51183` (case 0 and u16, 95.904%), `base_3.c`
 `9be92a8b61adf0508c04b9863ce3db0e819a7b281a4c8f1f1fb905415e4e5666` (the cast deref above, 100.000%), both in the scratch env
 `nonmatchings/func_dryfield_water_tank_8017DEA4-vacuum/`.
+
+### A load the pointer variable must copy: cse.c's `(set REG0 REG1)` destination swap
+
+`func_dryfield_water_tank_8017EDF4` reads a `Task::extra`, uses it as a
+`TmdObject*` for the rest of the frame, and the ROM loads it **twice**:
+
+```
+lw    $v0, 0x2C($a0)
+lw    $v1, 0x30($a0)
+addu  $s1, $v0, $zero        # the pointer variable's home
+lw    $s0, 0x8($s1)
+```
+
+The natural spelling puts the variable first and gets 99.125%, one `addu`
+short - `insert=0 delete=1 regs=1`, and the diagnosis' `opcode_delta` names the
+missing opcode alone (`{"0:33": -1}`, `addu`). Letting the load write `$s1`
+directly is not a scheduling choice; it is `cse.c`'s
+
+```c
+  /* Special handling for (set REG0 REG1)
+     where REG0 is the "cheapest", cheaper than REG1.
+     ... change this insn to (set REG1 REG0) and
+     replace REG1 with REG0 in the previous insn that computed their value.  */
+```
+
+in `cse_insn` (cse.c:7610). It fires when the copy's *destination* is the
+quantity's canonical register - `make_regs_eqv` gives that honour to the
+register whose live range reaches past the current basic block, i.e. the pointer
+variable, never the temp - **and** the insn immediately before the copy is the
+one that set its source. Then CSE rewrites the *load's* destination to the
+variable and the copy becomes a dead self-assignment. A pinned `asm("v0")` temp
+does not dodge it either: it survives CSE but `combine` folds the pair, since
+`dead_or_set_p (i2, i1dest)` holds when the temp's only use is the copy.
+
+The copy survives when the temp is still needed between the load and the copy.
+Put the *use* of the loaded pointer first, through the cast expression, and the
+variable's own assignment second:
+
+```c
+    coord = ((TmdObject*)arg0->extra)->field_8;   /* the load, kept in a temp */
+    obj   = (TmdObject*)arg0->extra;              /* now a register copy */
+```
+
+The coordinate load sits between them, so CSE's swap is blocked (its `prev` is
+that load, whose destination is not the temp) and `combine` cannot merge
+non-adjacent insns. `reload_cse_regs` then rewrites the coordinate load's base
+from the temp's `$v0` to the variable's `$s1`, which is what the ROM has. Both
+orders read the same memory and mean the same thing; only the expression-first
+order leaves the `addu` in the image.
+
+Input hashes: `base_1.c`
+`0136d438433170a12a99d289d833156ea73d24d690a06df5b6b4ba7a198b48b0` (variable
+first, 99.125%), `base_4.c`
+`fcb84b8caffd57a4179b127819a1260b275ee92a17a3bdbed85a209a5232851a`
+(expression first, 100.000%), both in the scratch env
+`nonmatchings/func_dryfield_water_tank_8017EDF4-vacuum/`. The
+`dryfield_night_water_tank` twin (`func_dryfield_night_water_tank_8017DB8C`) is
+the same body over its own four room words, so `overlay_dup_index promote`
+refuses it: "cannot be shared - the body references its own overlay's code or
+data".

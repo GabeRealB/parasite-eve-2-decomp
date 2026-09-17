@@ -2,12 +2,17 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/rand.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
+#include "main/gfx.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room_common.h"
@@ -18,6 +23,15 @@ extern TaskDesc D_dryfield_water_tank_80184DF4;
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
 /// the room publishes as its `Gp_State1C::field_A` variant index.
 extern u16 D_dryfield_water_tank_801868CC[];
+
+/// The tank's wobble spring, the four words at 0x801868BC: `801868BC` is the
+/// accumulated yaw `Gfx_RotMatrixY` is handed (`>> 8`), `801868C0` its velocity,
+/// `801868C4` the yaw it steps toward and `801868C8` the target that step
+/// chases.
+extern s32 D_dryfield_water_tank_801868BC;
+extern s32 D_dryfield_water_tank_801868C0;
+extern s32 D_dryfield_water_tank_801868C4;
+extern s32 D_dryfield_water_tank_801868C8;
 
 /// The placement the room sends slot 3 with message 0x3E9.
 extern RoomPlacement D_dryfield_water_tank_801804F4;
@@ -113,7 +127,71 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017EDF4);
+/// Per-frame model update for the tank: the callback word at 0x801868A8 in the
+/// room's task table `D_dryfield_water_tank_801868A4`. State 0 parents the
+/// model's coordinate to `Gfx_ViewCoord` and places it against the room's north
+/// wall, then advances to state 1. State 1 drives the tank's slow wobble about
+/// `y`:
+/// an occasional roll re-picks the target yaw, the step moves toward it 0x100
+/// at a time, and the velocity follows 19/20 of the way to that step. Either
+/// way the frame ends by publishing the model's `workm` translation as a
+/// `VECTOR` to `func_800D7A9C`, rebuilding the coordinate's yaw matrix from the
+/// accumulated angle, and clearing `flg` so the parent recomputes the world
+/// matrix next frame.
+///
+/// The coordinate's load is written through the cast expression, *before* the
+/// object pointer is assigned, because the pointer assignment has to stay a
+/// separate register copy: assigned first, cse.c's `(set REG0 REG1)` swap folds
+/// the load and the copy into one and the overlay comes up an `addu` short (see
+/// DECOMPILATION_LEARNINGS.md, "A load the pointer variable must copy").
+void func_dryfield_water_tank_8017EDF4(Task* arg0)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    obj   = (TmdObject*)arg0->extra;
+    switch (arg0->state) {
+        case 0:
+            obj->field_C      = 0;
+            coord->sub        = &Gfx_ViewCoord;
+            coord->coord.t[0] = 0xBB8;
+            coord->coord.t[1] = -0x34A8;
+            coord->coord.t[2] = -0x4D8;
+            arg0->state++;
+            break;
+        case 1:
+            if (((s32)(rand() * 100) >> 15) <= 0) {
+                if (((s32)(rand() * 100) >> 15) < 0x50) {
+                    D_dryfield_water_tank_801868C8 = (s32)(rand() * 20) >> 7;
+                } else {
+                    D_dryfield_water_tank_801868C8 = 0;
+                }
+            }
+            if (D_dryfield_water_tank_801868C4 < D_dryfield_water_tank_801868C8) {
+                D_dryfield_water_tank_801868C4 += 0x100;
+            } else if (D_dryfield_water_tank_801868C8 < D_dryfield_water_tank_801868C4) {
+                D_dryfield_water_tank_801868C4 -= 0x100;
+            }
+            D_dryfield_water_tank_801868C0 =
+                (D_dryfield_water_tank_801868C0 + D_dryfield_water_tank_801868C4) * 19 / 20;
+            D_dryfield_water_tank_801868BC += D_dryfield_water_tank_801868C0;
+            break;
+    }
+    if (Game_Session->field_4 == 7) {
+        obj->field_C = 0x80;
+    } else {
+        obj->field_C = 0;
+    }
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    Gfx_RotMatrixY(&coord->coord, D_dryfield_water_tank_801868BC >> 8, 1);
+    coord->flg = 0;
+}
 
 /// Toggle the room's cutscene-“watched” state over the view's two per-view
 /// objects. Every use goes through one pointer variable: the compiler keeps it
