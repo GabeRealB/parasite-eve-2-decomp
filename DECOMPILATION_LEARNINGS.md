@@ -126876,3 +126876,91 @@ sha256 `af1f3d8aa05712e46bf5db055ea30e972bfb680301d3b475709a1818ffb1c678`
 `4a4059e648eca796e0fd30ab1b9a1e7b877621da23b7f7febf1c79d6f1048c30` (100.000%).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
+
+## Two reads of one `short` member: `lh` or `lhu` is decided by the *store width*, not by the source type (func_actor_105400_8013310C, 2026-09-17)
+
+**Symptom.** One function reads the same halfword triple twice, and the target
+loads it signed in one place and unsigned in the other:
+
+```
+lh    v1,8(v0)     lh v1,0xa(v0)     lh t0,0xc(v0)     # -> GpEnemy::field_1C.vx/vy/vz (long)
+lhu   v0,8(v1)     lhu v0,0xa(v1)    lhu v1,0xc(v1)    # -> GpObj::field_10/12/14   (s16)
+```
+
+Both groups use the *same base register shape* - the symbol materialised whole
+(`lui %hi`, `addiu %lo`, then a displacement) - so the source held a pointer and
+the reads were member accesses at offsets 8/0xA/0xC. m2c's seed had flattened
+the unsigned ones into `M2C_FIELD(&sym, u16*, off)`, which does not reproduce
+that shape: folding an explicit `+8` into the address makes GCC compute
+`%lo(sym+8)` as the base, with displacements 0/2/4 instead.
+
+The obvious repair is a cast - `*(u16*)&pose->field_8.vx` - which does give
+`lhu`, but it changes the dependency the scheduler sees (see below), and it is
+not what the original wrote.
+
+**Cause.** The front end builds `sign_extend(load)` for a `short`; when the
+result is stored straight into a 16-bit field the extension is dead, and GCC
+strips it, leaving a plain HImode load that prints as `lhu`. Store the same
+expression into a 32-bit field and the extension is live, so it stays `lh`. The
+two groups are one expression compiled in two truncating contexts. A ten-line
+cc1 probe confirms it: with the store targets declared `short`, all of
+
+```c
+w.f10 = *((unsigned short*)&p->field_8.vx);
+w.f12 = *((unsigned short*)&p->field_8.vy);
+w.f14 = *(&p->field_8.vz);          /* plain s16 lvalue */
+```
+
+emit `lhu`. So do not read a target's `lh`/`lhu` split as evidence of two struct
+types over one address, and do not reach for a cast to force `lhu` - write the
+member access and let the store width decide.
+
+**Second consequence: the cast costs `MEM_IN_STRUCT_P`.** `pose->field_8.vz` is
+a `COMPONENT_REF`, so the RTL `MEM` is marked in-struct; `*(u16*)&pose->...vz`
+is an indirection through a converted pointer and is not. In this function the
+three group-2 loads read `lhu 8/0xA/0xC(v1)` each followed immediately by its
+`sh` - they do not move. With the casts the same loads were hoisted above the
+block's in-struct stores (`lhu a1,8(v1); lhu a2,0xa(v1); ... sh a1,0x2b4(s3)`),
+which is what the 99.9%-vs-100% diff consisted of. `true_dependence` now sees
+in-struct against in-struct and keeps them in place.
+
+**The last two instructions were a constant-materialisation order.** With the
+member form in place the object was exact except that the target emits
+`li s1,1` before `li v0,0x1000` and the seed emitted them the other way. Both
+constants are stores to the work block a few instructions apart, and the
+scheduler is free to reorder the *stores*; what it does not reorder is each
+constant's `set` RTL uid, which `expand` numbers at the first use. sched2 ranks
+two equal-priority insns by `INSN_LUID (tmp) - INSN_LUID (tmp2)` in
+`rank_for_schedule`, and a block is emitted in the reverse of its selection
+order, so the *later-numbered* constant is selected first and printed first.
+Writing the two stores in the target's later order,
+
+```c
+work->field_334 = 1;        /* was second */
+work->field_326 = 0x1000;   /* was first  */
+```
+
+numbers the `1` earlier and lands 100.000%, with the two stores themselves still
+coming out `sh v0,0x326(s3)` then `sh s1,0x334(s3)` exactly as the target has
+them. When a diff is two adjacent constant loads, try the C order of the
+statements whose values they are, not the emitted store order.
+
+**Two views need two declarations.** The pointer that reaches the offset data is
+used before the block's calls and again after them, and the target rematerialises
+it into a caller-saved register each time (`$v0`, then `$v1`). One `pose`
+variable assigned twice is a single pseudo with two definitions - `.lreg` prints
+`dies in 2 places` - so `global_alloc` sees one allocno crossing every call, the
+home falls to `$t0`, and both materialisations share it. Two declarations
+(`pose`, `pose2`) are two block-local pseudos, and each takes the first free
+call-clobbered register in its own block. Same lesson as the `$s1`/`$s2` tie
+above: the number of *declarations* is the allocation input, not the number of
+assignments.
+
+Inputs: scratch `nonmatchings/func_actor_105400_8013310C-vacuum`, `base_5.c`
+95.605% (casts, loads hoisted, `regs=21`), `base_6.c` 99.907% (member access,
+`regs=4`), `base_7.c` 100.000%; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, preprocessed
+base_6 SHA256 `670b9af66d93e4f4177384c571156b8b2b52702b2055ff39b6c79f650857b82a`,
+base_7 SHA256 `30218c0461cb7a61657f42b23f7129e3d3ec78fccb174ab568a67295aebc7c1e`.
+The permuter's retained output for this function is what removed the first cast
+(`PERMUTER_EVIDENCE/2ada3b86d3a54916`); the cc1 probe is in the session notes.
