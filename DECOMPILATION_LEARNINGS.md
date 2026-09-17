@@ -126757,3 +126757,71 @@ intermediate `base_1.i` is `05ec8da215be264e6d0093ff0b78ea74486576510197d8df1ba0
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, `expr.c`
 (`expand_expr` / `store_expr`), `config/mips/mips.md` (`extendhisi2`).
 
+## m2c's `ptr + N` is element arithmetic, and its split of an address-taken aggregate drops stores (ActorsShared80131f9cSub0, 2026-09-17)
+
+A 90.225% m2c seed (`stack=0 branch=0 regs=38 reorder=3 delete=5`) held two
+independent defects, both from m2c's flat model of memory, and both fixed by
+writing the real struct.
+
+**1. `ptr + N` scales by the pointee, not the byte offset.** The target stores
+the model coordinate's first matrix into the enemy:
+
+```asm
+addiu  $v0,$s1,0x4
+sw     $v0,0x4($s2)
+```
+
+The seed wrote `arg0->field_4 = temp_s1 + 4;` with `temp_s1` typed
+`GsCOORDINATE2*`, so the `4` was read as four elements of a 0x50-byte struct and
+compiled to `addiu $v0,$s1,0x140`. Signature: a small target offset coming out
+multiplied by the seed's element size. The source is the field address, not an
+offset from the base:
+
+```c
+enemy->field_4 = &coord->coord;   /* GsCOORDINATE2::coord is the MATRIX at 0x04 */
+```
+
+`enemy->field_4` is a `MATRIX*`, which is what makes the field address - rather
+than a cast - the natural reading.
+
+**2. Only the scalar the cast names is address-taken.** The seed's light-solve
+position is three adjacent `s32` locals with the first punning the group:
+
+```c
+s32 sp18, sp1C, sp20;
+    sp18 = coord->workm.t[0];
+    sp1C = coord->workm.t[1] - 0x320;
+    sp20 = coord->workm.t[2];
+    func_800D7A9C(obj, (VECTOR *) &sp18, 0, 3);
+```
+
+`&sp18` makes `sp18` addressable, not its neighbours, and neither `sp1C` nor
+`sp20` is ever read under its own name - so `delete` drops both stores and the
+seed emits one, `sw v1,24(sp)`, where the target has three. The frame is 8 bytes
+short as well (0x38 against 0x40) because three words are not the 0x10-byte
+`VECTOR` the callee is promised. One declaration restores the stores and the
+frame together:
+
+```c
+VECTOR vec;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+```
+
+That is worth reaching for before reading anything else in such a seed: the
+disappearing stores are the signature, and a seed whose `delete` penalty is not
+a multiple of the stores it is missing is telling you the same thing.
+
+Both edits took the seed to 100.000% with every penalty zero on the first build.
+The residual `regs=38` went with them - both argument pseudos are live across
+every call in this body, so an m2c seed's register penalty is worth re-measuring
+after a structural fix rather than attacked with a pin or a search.
+
+Inputs: scratch `nonmatchings/ActorsShared80131f9cSub0-vacuum`, `base.i` sha256
+`2cf3bd97bcdaeba072039b78b3cede5cabd65aae480683d06640b609b7673f64` (90.225%) and
+`base_1.i` sha256
+`b77803435c0b0cc0d7892c0f3d7f1695c8b4857b74ce74a17066538c0b56a7a6` (100.000%).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+

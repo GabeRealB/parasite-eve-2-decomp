@@ -3,6 +3,7 @@
 #include "actors/actor_143900.h"
 #include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_801366fc.h"
+
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -31,24 +32,22 @@ void func_actor_143900_80131E24(void)
     }
 }
 
-/// Message table this handler publishes as the task's `field_24`, the same
-/// 8-byte `GpMsgEntry` records the 110300/110800 carriers park there.
-extern GpMsgEntry D_actor_143900_801413BC[];
-
-/// Animation bank `func_800B3F84` seeds the work block's slots from, the pair
-/// to `D_actor_143900_80149688` the overlay's own variant hands over.
-extern u8 D_actor_143900_801413F8[];
-
 /// State 0 of the `ActorsShared80131f9c` dispatcher: allocate the work block,
 /// publish it in `ActorsShared80131f9cWork` and on the task's 0x1C slot, point
-/// the model's light and color matrices and its animation context at it, and
-/// hand the task on to state 1. Every later access to the block goes through
-/// the global, which is why the pointer is reloaded at each use instead of
-/// staying in a callee-saved register.
+/// the model's light and color matrices and its animation context at it, the
+/// same way the step-1 handler is handed its slot array.
+///
+/// Every access to the block goes through `ActorsShared80131f9cWork` rather
+/// than the `Mem_Calloc` result, which is why the pointer is reloaded at each
+/// use instead of staying in a callee-saved register; the same two loads
+/// publish the block's matrices, which go to the object's `field_1C` /
+/// `field_20`. `task->field_24` takes the message table
+/// `D_actor_143900_801413BC`.
 ///
 /// The position it forwards to `func_800D7A9C` is the model root's translation
-/// with its Y dropped by 0x320 - the ground offset every carrier of this body
-/// applies.
+/// with its Y dropped by 0x320 - the standing height the light solve is cast
+/// from, the ground offset every carrier of this body applies; the other two
+/// components are the raw ones.
 void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;

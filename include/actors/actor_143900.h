@@ -5,6 +5,7 @@
 #include "actors/actors_shared_80132ecc.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
+#include "gameplay/D4.h"
 #include "main/task.h"
 
 /// Per-actor work block for the `actor_143900` overlay.
@@ -18,8 +19,10 @@
 /// `light` and `color` are the two matrices the block itself supplies to the
 /// model: `ActorsShared80131f9cSub0` publishes `&work->light` / `&work->color`
 /// into `TmdObject::field_1C` / `field_20`, which is what `Tmd_SetupDraw` loads
-/// in place of `GsLIGHTWSMATRIX` and `D_80074080`. `anim` is the animation
-/// context `Gp_AnimTickIndex` and friends walk.
+/// in place of `GsLIGHTWSMATRIX` and `D_80074080` - the same pair
+/// `Actor161500Work` and `Actor160600Work` hand over. `anim` is the animation
+/// context `Gp_AnimTickIndex` and friends walk, and `slots` and `pad_374` are
+/// what `func_800B3F84` fills in beside it.
 typedef struct Actor143900Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
@@ -78,6 +81,18 @@ extern TaskDesc D_actor_143900_80149664[];
 /// context with `func_800B3F84` (its `arg1`), the overlay's own standing
 /// stream; the shared body's carriers hand over their own.
 extern u8 D_actor_143900_80149688[];
+
+/// Animation stream `ActorsShared80131f9cSub0` seeds the shared body's slots
+/// from - the second `func_800B3F84` source in the overlay, 0x20 below
+/// `D_actor_143900_80149688`'s. The overlay's own spawn routine binds the
+/// stream above instead.
+extern u8 D_actor_143900_801413F8[];
+
+/// Message table `ActorsShared80131f9cSub0` publishes as `Task::field_24`,
+/// the same role `D_actor_143900_80149634` plays in the overlay's own spawn
+/// routine. Three `GpMsgEntry` records, the same 8-byte shape the
+/// 110300/110800 carriers park there.
+extern GpMsgEntry D_actor_143900_801413BC[];
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. This
