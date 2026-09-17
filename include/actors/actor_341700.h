@@ -35,9 +35,10 @@ STATIC_ASSERT_SIZEOF(Actor341700Flags, 0x4);
 typedef struct Actor341700Work {
     /* 0x000 */ byte             pad_0[0x70];
     /* 0x070 */ SVECTOR          field_70; // origin of slot 4 entry 0's coords[3], carried into view space by func_actor_341700_8016A2CC
-    /* 0x078 */ byte             pad_78[0x2];
+    /* 0x078 */ s16              field_78; // pitch, fed to RotMatrixX by func_actor_341700_80165DDC
     /* 0x07A */ s16              field_7A; // heading fed to rsin / rcos
-    /* 0x07C */ byte             pad_7C[0x14];
+    /* 0x07C */ s16              field_7C; // roll, fed to RotMatrixZ by func_actor_341700_80165DDC
+    /* 0x07E */ byte             pad_7E[0x12];
     /* 0x090 */ u16              field_90; // root coord.t[0], snapshotted by func_actor_341700_8016A2CC
     /* 0x092 */ u16              field_92; // low half of root coord.t[1]
     /* 0x094 */ u16              field_94; // root coord.t[2]
@@ -72,7 +73,9 @@ typedef struct Actor341700Work {
     /* 0x442 */ u16              field_442; // per-state frame counter
     /* 0x444 */ byte             pad_444[0x4];
     /* 0x448 */ s16              field_448;
-    /* 0x44A */ byte             pad_44A[0x5];
+    /* 0x44A */ byte             pad_44A[0x2];
+    /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
+    /* 0x44E */ byte             pad_44E[0x1];
     /* 0x44F */ u8               field_44F;
     /* 0x450 */ byte             pad_450[0x1];
     /* 0x451 */ u8               field_451;
@@ -136,8 +139,16 @@ extern u8 D_801153F4;
 /// stack before dispatch, as the sibling `D_actor_342400_80161F50` is.
 extern TaskFuncTable9 D_actor_341700_80161F0C;
 
+/// Ten state handlers for `func_actor_341700_80165DDC`, indexed by
+/// `Actor341700Work::field_420`; copied onto the stack before dispatch.
+extern TaskFuncTable10 D_actor_341700_80161FA4;
+
 /// `field_41C * arg1`, fixed point `<< 0xC >> 0x10` — the per-frame walk step
 /// the turning states add to the root coord through `rsin` / `rcos`.
+/// Root-coordinate update run after the rotation rebuild; see
+/// `func_actor_342400_801653DC`.
+void func_actor_341700_801640F8(Task* arg0, s16 arg1);
+
 s32 func_actor_341700_80168444(Task* arg0, s16 arg1);
 
 s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2);
