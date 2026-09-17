@@ -117555,3 +117555,50 @@ Inputs: `base_1.c` SHA256 `e99a82a721484ab5900a917569451863601554f1a74af7535a681
 source against the header's `RoomPlacement` type, byte-identical object.
 `target.s` SHA256 `0f92b81219939223dbf73c67681009c22f709dda4035d62d368ef067060fa655`.
 Scratch `nonmatchings/func_mine_forked_tunnel_8017DAB8-vacuum`.
+
+## A delay-slot fill can hinge on the allocation: reorg refuses a trial whose register an earlier insn in the same thread set
+
+`fill_slots_from_thread` walks the branch target's insns accumulating `set` and
+rejects any trial that *references or sets* a register already in it
+(`! insn_references_resource_p (trial, &set, 1) && ! insn_sets_resource_p
+(trial, &set, 1)`, reorg.c:3532). Which register an instruction writes is
+therefore a delay-slot question, and the allocator two passes earlier is what
+decides it: the same `lui` is stolen or refused depending on the home of the
+quantity it writes.
+
+**Symptom.** `func_mine_forked_tunnel_8017D8EC`'s switch command 3 materialises
+`D_mine_forked_tunnel_80181BBC` (`lui`, `addiu`, five loads) in a block that
+opens with the destination pointer's load into `$v0`, and the branch into that
+block is the switch's fourth, so its delay slot is the one in question. At
+96.629% the object reads
+
+```
+lw    v0,0x2c(s1)          /* sets $v0 in the thread */
+lw    s0,8(v0)
+lui   v0,%hi(D_..._80181BBC)   /* refused: $v0 was set ahead of it */
+lw    v1,%lo(D_..._80181BBC)(v0)
+```
+
+where the target has `lui $v1` in the delay slot and `lw v0,%lo(...)($v1)` with
+`addiu $v1,$v1,%lo(...)` after it.
+
+**Fix.** Not the slot - the allocation. Two quantities in that block sit within
+4% of each other in `QTY_CMP_PRI`: the address's tied `{high, lo_sum}` scores
+`3*9*4/13 = 8.31` against the six loaded values' `1*2*4/1 = 8`, and the address
+is born first, so it takes `$v0` (the tracer: `q1 [84, 127]: refs=9 span=26
+priority=10384 -> $v0` against `10000`). Wrapping the command's body in
+`do { } while (0)` - the loop-depth lever documented above - reweights *both*,
+and the values' numerator grows faster (`floor_log2(4)*4 = 8` against
+`floor_log2(18)*18 = 72`), so the values take `$v0`, the address takes `$v1`, and
+reorg then takes the `lui` for the slot. The block's instruction order does not
+change at all; only the quantity ranks do.
+
+The permuter router found the wrapper; two controls separate it from the hit's
+other difference (its statements also collapsed onto one source line, i.e. fewer
+line notes): the collapsed lines alone score 96.629%, untouched, while the
+wrapper re-expanded into normal formatting scores 0 differences.
+
+Inputs: `base_4.i` SHA256 `f0b9e7eda1392817d7ec48d7a3644c15db0edb150b46e6b5bff00d8369d17771`
+(96.629%), `base_6.i` SHA256 `2aa329fd9d3044830a2a735caf5275e1ffca77258a5ff86a0555b3632becfaae`
+(0 differences); `target.s` SHA256 `51ce14d617120b89c2cc71bb2287ab0c2b5381ccabb7074baa682d1721ad9f7c`.
+Scratch `nonmatchings/func_mine_forked_tunnel_8017D8EC-vacuum`.

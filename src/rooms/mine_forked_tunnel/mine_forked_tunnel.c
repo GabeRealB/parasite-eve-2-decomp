@@ -48,7 +48,70 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017D724);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017D8EC);
+s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7DB* msg)
+{
+    RoomPlacement         placement;
+    RoomPlacement*        place;
+    RoomPlacement*        src;
+    RoomCoord*            coord;
+    MineForkedTunnelWork* work;
+
+    switch (msg->field_2) {
+        case 0:
+            work                = task->idMap;
+            task->spawnArg1     = 0;
+            task->killCountdown = 0;
+            if (work->field_40 != 0) {
+                ((Task*)work->field_40)->spawnArg1     = 0;
+                ((Task*)work->field_40)->killCountdown = 0;
+            }
+            placement.pos.vx = D_mine_forked_tunnel_80181244.vx;
+            placement.pos.vy = D_mine_forked_tunnel_80181244.vy;
+            placement.pos.vz = D_mine_forked_tunnel_80181244.vz;
+            placement.rot.vx = D_mine_forked_tunnel_80180AC4.vx;
+            placement.rot.vy = D_mine_forked_tunnel_80180AC4.vy;
+            placement.rot.vz = D_mine_forked_tunnel_80180AC4.vz;
+
+            place             = &placement;
+            coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+            coord->coord.t[0] = place->pos.vx;
+            coord->coord.t[1] = place->pos.vy;
+            coord->coord.t[2] = place->pos.vz;
+            coord->rot.vx     = place->rot.vx;
+            coord->rot.vy     = place->rot.vy;
+            coord->rot.vz     = place->rot.vz;
+            RotMatrixZYX(&coord->rot, &coord->coord);
+            coord->flg = 0;
+            break;
+        case 1:
+            work = task->idMap;
+            if (work->field_40 != 0) {
+                ((Task*)work->field_40)->spawnArg1 = 1;
+            }
+            break;
+        case 2:
+            task->spawnArg1 = 1;
+            break;
+            do {
+                case 3:
+                    src               = &D_mine_forked_tunnel_80181BBC;
+                    coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+                    coord->coord.t[0] = src->pos.vx;
+                    coord->coord.t[1] = src->pos.vy;
+                    coord->coord.t[2] = src->pos.vz;
+                    coord->rot.vx     = src->rot.vx;
+                    coord->rot.vy     = src->rot.vy;
+                    coord->rot.vz     = src->rot.vz;
+                    RotMatrixZYX(&coord->rot, &coord->coord);
+                    coord->flg = 0;
+
+                    func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
+                    task->spawnArg1 = 0;
+                    break;
+            } while (0);
+    }
+    return 0;
+}
 
 void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 {
