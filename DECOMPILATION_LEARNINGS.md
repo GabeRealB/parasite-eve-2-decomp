@@ -117737,3 +117737,51 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. The body is shared with
 `dryfield_water_hole` and now lives in `src/rooms/lib/rooms_shared_8017dadc.c`.
 Scratch `nonmatchings/func_dryfield_night_water_hole_8017DADC-vacuum`.
+
+## A front-end pointer walk makes `loop.c` buy a `DEST_ADDR` giv; the index form leaves one walking register and the `+const` as a displacement
+
+`func_dryfield_night_water_hole_8017DE88` walks a NULL-terminated array of
+8-byte records and reads the `s32` at +4 twice. Spelled as a pointer walk
+(`for (p = list; p->rec != 0; p++)`) the build carries one register too many:
+the preheader materializes `p + 4` (`addiu $a1,$a2,4`) and every iteration keeps
+it current (`addiu $a1,$a1,8`, which the scheduler pushes into the branch delay
+slot). The target has no such register - `lw $v0,4($a1)` twice, one walking
+register incremented once.
+
+That register is `loop.c`'s: `find_mem_givs` records a `DEST_ADDR` giv for a
+`MEM` whose address reduces to `biv * mult + add` "unless `mult == 1 &&
+add == 0`", so `MEM(p)` (the record field at offset 0) is skipped while
+`MEM(p + 4)` is recorded - and since the loop's biv is the pointer itself,
+reducing that giv needs a register of its own. The index form never offers that
+choice: `list[i].rec` and `list[i].index` are `base + 8*i` and `base + 8*i + 4`,
+two givs over the same integer biv, so `loop.c` strength-reduces them into a
+single walking pointer (`addu $a1,$a0,$zero` in the preheader) and leaves the
++4 as a load displacement. Same instruction count, same loop, one register
+fewer.
+
+Symptom to look for: an `addiu $x,$y,<small const>` in the preheader that the
+target does not have, paired with a second `addiu $x,$x,<stride>` whose
+displacement the target reads directly (`4($reg)`). Reach for the index spelling
+over the pointer walk - and note the register choice that falls out with it is
+not cosmetic: it moves the walk pointer into `$a1` and the session pointer into
+`$a2`, matching the target's whole allocation.
+
+```c
+for (i = 0; list[i].rec != 0; i++) {              /* not  for (p = list; p->rec; p++) */
+    recs = Gp_RoomParamTables[sess->field_3 - 1][sess->field_2 - 1];
+    recs[list[i].index] = list[i].rec;
+    Gp_RoomParams[list[i].index] = recs[list[i].index]->field_3;
+}
+```
+
+The session addressing in the same function is the `GameSessionFrom4` overlay
+documented above (`sess = (GameSessionFrom4*)&Game_Session->field_4`), which is
+what turns `lbu 6/7($a0)` into `addiu $a2,$v0,4` plus `lbu 2($a2)` / `lbu
+3($a2)`. 80.359% (pointer walk, flat session fields) -> 86.425% (overlay cast
+only) -> 100.00% (index form), every penalty zero.
+
+Inputs: `base_3.i` (100%) SHA256
+`874583871108a60746a7d23e79d6a11fec69fb7d8acd87937dc469436dff92d1`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_dryfield_night_water_hole_8017DE88-vacuum`.
