@@ -56,20 +56,28 @@ typedef struct Actor102300Work {
     /* 0x69A */ byte           pad_69A[2];
     /* 0x69C */ s16            field_69C;
     /* 0x69E */ s16            field_69E;
-    /* 0x6A0 */ byte           pad_6A0[4];
-    /* 0x6A4 */ s16            field_6A4;
-    /* 0x6A6 */ s16            field_6A6;
-    /* 0x6A8 */ s16            field_6A8;
-    /* 0x6AA */ byte           pad_6AA[2];
+    /* 0x6A0 */ byte           pad_6A0[2];
+    /// Facing angle the lunge steers `field_6A4` towards; the tick compares the
+    /// two and only commits once they are within 0x100.
+    /* 0x6A2 */ u16  field_6A2;
+    /* 0x6A4 */ s16  field_6A4;
+    /* 0x6A6 */ s16  field_6A6;
+    /* 0x6A8 */ s16  field_6A8;
+    /* 0x6AA */ byte pad_6AA[2];
     /// Awake variant this enemy starts in, taken from bit 0 of the spawn
     /// record's `field_2`.
     /* 0x6AC */ s16  field_6AC;
-    /* 0x6AE */ byte pad_6AE[0x16];
+    /* 0x6AE */ byte pad_6AE[8];
+    /// Frames spent in the current lunge cycle; at 0x4C the tick gives up and
+    /// falls back to animation 8.
+    /* 0x6B6 */ s16  field_6B6;
+    /* 0x6B8 */ byte pad_6B8[0xC];
     /// 1 or 2, picked from bit 16 of the next LCG draw.
     /* 0x6C4 */ s16  field_6C4;
     /* 0x6C6 */ byte pad_6C6[4];
     /* 0x6CA */ s16  field_6CA;
-    /* 0x6CC */ byte pad_6CC[4];
+    /* 0x6CC */ s16  field_6CC;
+    /* 0x6CE */ s16  field_6CE;
     /* 0x6D0 */ s16  field_6D0;
     /* 0x6D2 */ byte pad_6D2[4];
     /// Sector id of the enemy's voice stream, looked up per room from
