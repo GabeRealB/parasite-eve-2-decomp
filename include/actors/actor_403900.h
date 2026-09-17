@@ -21,6 +21,7 @@ typedef struct Actor403900Coord {
     /* 0x000 */ GsCOORDINATE2 field_0;
     /* 0x050 */ byte          pad_50[0xA0];
     /* 0x0F0 */ GsCOORDINATE2 field_F0;
+    /* 0x140 */ GsCOORDINATE2 field_140;
 } Actor403900Coord;
 
 /// One 0x10-byte entry of the box table `Actor403900Work::field_6B4`, the same
@@ -281,6 +282,20 @@ typedef struct Actor403900Obj2C {
     /* 0x24 */ byte              pad_24[8];
     /* 0x2C */ s32               field_2C;
 } Actor403900Obj2C;
+
+/// 0x48-byte block `func_actor_403900_80135D5C` takes from `G_SCRATCH_HEAD`
+/// to aim the actor: `m` is the root's world matrix brought local to the
+/// fourth part, `out` the GTE's rotated offset, and `pts` the two world points
+/// (root-based aim point, fourth-part offset) projected through `GsWSMATRIX`
+/// into `sxy` and the quartered screen z `otz`.
+typedef struct Actor403900AimScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ VECTOR  out;
+    /* 0x30 */ SVECTOR pts[2];
+    /* 0x40 */ s32     sxy;
+    /* 0x44 */ s32     otz;
+} Actor403900AimScratch;
+STATIC_ASSERT_SIZEOF(Actor403900AimScratch, 0x48);
 
 /// Actor context handed to this overlay's callbacks: `field_1C` is the work
 /// block above, `field_20` the `GpEnemy` the spawner left in the task's
