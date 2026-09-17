@@ -122985,3 +122985,65 @@ Inputs: `base_1.i` (100.000%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the second build). Scratch
 `nonmatchings/func_actor_341300_80163028-vacuum`.
+
+## An m2c `extern` with a narrowed *return type* sign-extends every call result; the game's own callees have no prototype here (func_actor_341300_80162278, 2026-09-17)
+
+**Symptom:** the raw m2c seed scores 96.227% with `branch=8 insert=2 regs=3
+reorder=1` and no block, predicate or call difference at all. The whole diff is
+two instructions and the branch displacements that shift behind them:
+
+```
+move a0,v0                          lh   v1,0x52(s1)
+sll  v0,a0,0x10                     move a0,v0
+sra  v0,v0,0x10          vs.        subu v1,a0,v1
+lh   v1,0x52(s1)
+subu v1,v0,v1
+```
+
+**Cause:** the one line m2c left carrying the type is its own guess at the
+callee's signature — `s16 ratan2(s32, s32, s32);`. It types the call result
+HImode, so the SI compare against `field_52` needs a widening, and with no
+register-form `extendqisi2`/`extendhisi2` expand emits the classic shift pair
+(`base.i.rtl` insns 86/87):
+
+```
+(set (reg:SI 120)
+    (ashiftrt:SI (reg:SI 121) (const_int 16)))
+    (expr_list:REG_EQUAL (sign_extend:SI (reg/v:HI 81)) (nil)))
+```
+
+`reg/v:HI 81` is m2c's `s16 temp_v0_2`, holding the `ratan2` return. Nothing in
+the ROM asks for that widening: `ratan2` has no prototype anywhere in this
+project, every other caller leaves it implicitly `int`, and retail's compare
+reads the return register directly.
+
+**Fix:** delete the seed's `extern` for the callee entirely — a scratch env is
+not the place to add one — and keep the rest of the seed. 100.000% with every
+penalty zero on the very next build; the `negu $v0,$v0` vs `negu $v0,$v1`
+difference in the same block falls out with the shift pair, because without the
+extension the negate is on the copy `ABS()` materialized rather than on a fresh
+pseudo.
+
+This is the *callee-side* twin of "m2c types a local from its only store": there
+the fix is `s32 local = GameFlag_GetNibble(...)`, here it is to take the callee's
+return at its real width. Both read as register problems in an asm-differ pass
+and both are a declared width in the seed. The tell for this one is a
+`sll`/`sra` pair on the *first* arithmetic after a `jal`, with no cast in the
+source asking for a truncation — a real `(s16)` cast and a phantom one look
+identical in the object.
+
+`func_actor_341300_80162278` has no twin: `overlay_dup_index.py find` reports it
+as its own only copy, so nothing was promoted. Its body otherwise matches
+`func_dryfield_main_street_8017E1C0` (`src/rooms/dryfield_main_street/`), which
+is a matched sibling of the same algorithm — the aim angle, the `-0x800..0x800`
+unwrap and the `0x80`-per-frame step are the same code; only the target
+coordinate differs (a global placement record vs. the work object's second
+`GsCOORDINATE2` node). Copy the sibling's C shape when one exists.
+
+Inputs: `base.i` (96.227%) SHA256
+`6eeb6fb06acdef004bfed607e069d9df6c511a77064235a91a4fb904573218f2`;
+`base_1.i` (100.000%) SHA256
+`5f09ad11b3c561f8e5a5f0566ca3c0ad16fe8523cb1d9365d0885132d030162b`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run (matched on the second build). Scratch
+`nonmatchings/func_actor_341300_80162278-vacuum`.
