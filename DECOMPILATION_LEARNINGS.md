@@ -126140,3 +126140,38 @@ SHA256 `f6670e81612b14e9a7c3dd4009cb9d33f2b1088fba34dbf1e7d53aa59b65e661`,
 base_3 SHA256
 `f8360fc83acb057763a1fc3c40acbc68e5637786878968b05fb61ecc3ea85af8`, compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A returned constant expands straight into `$v0`; an m2c `var_v0` accumulator colours it into a free `$aN`
+
+`func_actor_160600_8013252C` returns -1 for an out-of-range clip id and 0 on the
+work path, so the ROM carries `addiu $v0,$zero,-0x1` in the `beqz` delay slot and
+`addu $v0,$zero,$zero` after the call. The m2c seed's
+`var_v0 = -1; … var_v0 = 0; return var_v0;` is 84.30% (`regs=4 insert=2
+delete=2`): the accumulator is a real pseudo, local-alloc colours it into `$a2`,
+and the exits become `li $a2,-1` plus a tail `move $v0,$a2`. Writing the two bare
+`return`s instead — `return -1;` above the work, `return 0;` after the call —
+expands each constant directly into the return register (`expand_return` needs no
+pseudo for a literal) and takes the same body to 92.37%.
+
+The half of that shape that looks like the cause is not. This function's argument
+block arrives in `$a2`, so the m2c prototype is missing a parameter, and
+restoring it frees the `$a2` the accumulator had taken — but with the third
+parameter back the same accumulator body is 84.59%, not 100%: the result simply
+moves off `$a2` and onto `$a1`, the *other* unused argument register. An unused
+trailing parameter is a free, high-priority home, so the accumulator is
+miscoloured either way; the parameter count only decides which one takes it.
+Write the return form first and treat the signature as a separate question. (The
+ROM's own tail independent of colouring: `move $v0,$aN` after the call and a
+copy in the delay slot mean the value is a variable in the original too — see
+"`move $v0,$sN` in every exit's delay slot".)
+
+The last 92.37% → 100% was the `SOFT_BARRIER()` lever on the second `beqz`,
+unchanged: without it the fall-through arm's `state = 1` fills the slot, with it
+the else arm's `state = 2` does, exactly as that section describes. The sibling
+bodies `func_actor_150400_801326A4` and `func_actor_215100_8014CCE0` are this
+same function in other overlays.
+
+Inputs: scratch `nonmatchings/func_actor_160600_8013252C-vacuum`; `base_1.c`
+100.000% (`21c58db11475135b0efae4ec737fcf225fe80ff1d5fed8112fcc6de7dee2c892`,
+preprocessed `52cdf55d75e571dd4e731605b31c11d87033d70eb8135d4a08b4ea50113a4365`);
+`base_2.c` (3-arg accumulator) 84.593%; `base_3.c` (no barrier) 92.370%.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

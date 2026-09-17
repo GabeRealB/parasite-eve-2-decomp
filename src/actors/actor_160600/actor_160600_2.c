@@ -40,7 +40,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     enemy->node.field_4 = 1;
     obj->field_E        = 1;
     obj->field_C        = 0;
-    work->field_4B8     = 10;
+    work->animId        = 10;
     work->enemy         = enemy;
     obj->field_1C       = &work->light;
     obj->field_20       = &work->color;
