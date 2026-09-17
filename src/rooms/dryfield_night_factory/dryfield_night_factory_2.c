@@ -5,6 +5,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -12,6 +13,7 @@
 
 extern void Room_Util16(s32);
 extern void Room_Util17(s32);
+extern u8   D_8007216D;
 
 /// Cutscene driver for the night factory room: silences both weapons, runs the
 /// cap (cutscene) command in `Task::spawnArg1`, then waits for the cap to
@@ -79,7 +81,86 @@ void func_dryfield_night_factory_8017F330(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_2", func_dryfield_night_factory_8017F4F4);
+/// The room's second cutscene: states 0..2 silence both weapons, run the cap in
+/// `Task::spawnArg1` and wait for it to report event key 1; states 3 and 6 count
+/// `Task::killCountdown` up to and back down from 0x1E and tint the screen with
+/// the count scaled to 0xFF over 30 steps; states 4 and 5 publish the progress
+/// flags and tint it white, and anything past 6 restores the weapons and kills
+/// the task.
+///
+/// `fade` does two jobs on purpose: state 4 reads the session variant through
+/// it before testing it. That cross-block use is what makes the state-3/6 tint
+/// value a *global* pseudo, and `local-alloc` only folds the `(u8)fade`
+/// conversion into the division's quantity when that pseudo is local to one
+/// block -- global, the conversion keeps its own quantity and takes `$a0` from
+/// the argument move, while the division chain keeps `$v1`.
+void func_dryfield_night_factory_8017F4F4(Task* task)
+{
+    u8 fade;
+
+    switch (task->state) {
+        case 0:
+            if (GameFlag_GetNibble(0x47) != 0) {
+                goto kill;
+            }
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgAllyWeapon(0);
+            Gp_RunCapCmd1(task->spawnArg1);
+            goto advance;
+        case 2:
+            if (Gp_GetCapEventKey() == 1) {
+                task->killCountdown = 0;
+                if (Game_Session->field_7 == 2) {
+                    Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
+                }
+                goto advance;
+            }
+            task->state = -1;
+            return;
+        case 3:
+            task->killCountdown = task->killCountdown + 1;
+            if (task->killCountdown < 0x1E) {
+                goto draw;
+            }
+            goto bump;
+        case 4:
+            Game_Session->field_52 = 1;
+            GameFlag_SetNibble(0x47, 1);
+            fade = Game_Session->field_7;
+            if (fade == 2) {
+                Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
+            }
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            goto advance;
+        case 5:
+            D_8007216D             = 2;
+            Game_Session->field_5  = 2;
+            Game_Session->field_76 = 1;
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            goto advance;
+        case 1:
+        advance:
+            task->state = task->state + 1;
+            return;
+        case 6:
+            task->killCountdown = task->killCountdown - 1;
+            if (task->killCountdown > 0) {
+                goto draw;
+            }
+        bump:
+            task->state = task->state + 1;
+        draw:
+            fade = (task->killCountdown * 255) / 30;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            return;
+        default:
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgAllyWeapon(1);
+        kill:
+            Task_Kill(task);
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_2", func_dryfield_night_factory_8017F734);
 

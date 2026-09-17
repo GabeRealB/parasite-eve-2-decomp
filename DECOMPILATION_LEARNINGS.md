@@ -120154,3 +120154,76 @@ sections: "A three-arm `switch` whose last arm is empty is what emits
 Inputs: `base.i` `c0d8b900b9f4adff3241240083d4e576690f51b65eb8e7e10080872310fdbc06`
 (33.319%, the m2c if/else chain), `base_1.i`
 `b690abd6e97ea3e9ef9f73b0a01de6e8deaf67e2e9b6b112e1ee40c1a1aecade` (100%).
+
+## A local-alloc quantity merge is refused when the variable is referenced from a second block (func_dryfield_night_factory_8017F4F4, 2026-09-17)
+
+Symptom: everything matches but one `andi`. The target computes a tint value into
+`$v1` and masks it into the argument register (`andi $a0,$v1,0xff`); every C
+spelling of the expression produced `andi $a0,$a0,0xff`, i.e. the `(u8)` mask
+in-place. `regs=6`, every other penalty zero.
+
+The mask is `(set (reg:SI 139) (zero_extend:SI (subreg:QI (reg/v:SI 81) 0)))` and
+`local_alloc`'s `combine_regs` merges that destination into the source's quantity
+because the source dies at the insn, so the whole chain — the `mult`, `addu`,
+`sra`, `subu` and the mask — becomes one quantity. `find_free_reg` then honours
+that quantity's copy suggestion (the argument move `(set (reg:SI 4 a0) (reg:SI
+139))` suggests `$a0`) and the conversion is written in place.
+
+`combine_regs` refuses that merge in two ways that a C variable can trigger
+(`local-alloc.c`):
+
+- `reg_qty[ureg] < 0` — the source is not a local quantity.
+- `reg_qty[sreg] == -1` — the destination is not.
+
+`reg_qty[i]` is `-2` only when `REG_BASIC_BLOCK (i) >= 0 && REG_N_DEATHS (i) == 1`
+(the pseudo is used in exactly one block and dies once), otherwise `-1`. So a C
+variable referenced from a **second basic block** stops being a local quantity
+and the merge is refused: the conversion keeps its own quantity, takes `$a0` from
+its copy suggestion, and the arithmetic chain takes the first free register — the
+one the previous value just freed, `$v1`.
+
+Here the trigger was a variable doing two jobs. State 4 of the switch reads the
+session variant through the same `fade` variable the tint math uses:
+
+```c
+case 4:
+    Game_Session->field_52 = 1;
+    GameFlag_SetNibble(0x47, 1);
+    fade = Game_Session->field_7;   /* the cross-block reference */
+    if (fade == 2) {
+        Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
+    }
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    goto advance;
+...
+draw:
+    fade = (task->killCountdown * 255) / 30;
+    Fade_DrawOverlay(fade, fade, fade, 2);
+```
+
+The reuse costs nothing: the `lbu` of `field_7` already lands in the register the
+chain later reuses, so the extra reference is invisible in the `.s` — which is
+why no spelling of the tint expression alone could recover the target.
+
+A *dead* store to the variable in another block does not do it: `cse` folds the
+constant into the uses and `flow` deletes the store, leaving the pseudo
+single-block again. The reference has to survive — a read whose result is used.
+
+`tools/trace_gcc.py` prints the distinction directly. Failing version:
+`local b18 q5 [139, 81, 137, 136]: ... copy=[4] suggested_only=1 -> $a0`.
+Matching version: `global a1 [81]: ... -> $v1` with the mask as its own local
+quantity. Two controlled variations confirmed the mechanism before the final
+source was found: referencing the variable from the case-2 block (`base_9.c`)
+turned the `andi` into the target's form with `regs=0` on everything else, and a
+keep-alive empty asm in case 4 (`c1.c`) did the same.
+
+Found by `tools/vacuum_permute.py`; the reuse in case 4 was its only source change.
+The same body also exists in `USA/rooms/dryfield_factory`
+(`func_dryfield_factory_8017FDDC`, same text, different link offset), but
+`overlay_dup_index.py promote` refuses it: like 39 of the 42 measured clusters,
+it reads its own overlay's rodata jump table, so it cannot be served by one
+shared object yet.
+
+Inputs: `base_3.i` `08c073323b9b602668a3192065b5dc3e177174cc5965001502c32d220a35fc2c`
+(99.792%, merged `andi`), `base_10.i`
+`b1af1e29bf8ed02078e4234a92e2e8f1371743d2df4aaf23a655027dd185ae60` (100%).
