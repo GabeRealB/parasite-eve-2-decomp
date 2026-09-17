@@ -127751,3 +127751,85 @@ Note also that `overlay_dup_index.py find` correctly reported "1 copies" here,
 covering only actor_161500: it compares bodies, so the same-named actor_535700
 function is not a copy and does not show up. A `find` that lists fewer overlays
 than `grep -rn <name> src/` is the same signal.
+
+## Two callee-saved registers swapped: compute the global-alloc priorities, then move one empty asm (ActorsShared80131f9cSub0, 2026-09-17)
+
+**Symptom.** A body that is otherwise byte-exact - `insert`, `delete`, `branch`
+and `reorder` all 0 - with every reference to two locals swapped between two
+callee-saved registers. Here `task` sat in `$s3` and `coord` in `$s4`; the ROM
+has them the other way round, and nothing in the instruction stream differs.
+
+**Diagnosis.** That is purely the `global_alloc` rank, so read it out of the
+`.greg` summary rather than guessing. `build.sh`'s dump summary prints
+`used n/L` per allocno, which is exactly what `allocno_compare` uses
+(CODEGEN_MODEL.md section 10.4):
+
+```
+pri = floor_log2(n_refs) * n_refs / live_length * 10000 * size   (truncated to int)
+```
+
+```
+r81 task   11/224 -> 3*11/224 = 1473
+r85 coord   6/82  -> 2*6 /82  = 1463
+```
+
+Ten units apart on a 1470-ish scale, so the order is decided in the third digit
+and any one-instruction change to either live range can flip it.
+
+**Fix.** The lever is that a *parameter*'s live length is doubled:
+`update_equiv_regs` gives the arrival copy a `REG_EQUIV (mem <arg slot>)` note
+and then does `REG_LIVE_LENGTH (regno) *= 2` (CODEGEN_MODEL.md section 10.1).
+`task` is `arg1`, so 224 is twice its real 112, and **one** extra RTL insn
+inside its range moves the stored length by **2**, while a non-parameter's moves
+by 1. Place that insn where the longer allocno is still live and the shorter one
+is already dead - here a `SOFT_BARRIER()` in the tail, after `coord`'s last
+read:
+
+```c
+    func_actor_146300_801327CC(task);
+    SOFT_BARRIER();
+    task->state++;
+```
+
+`L81` 224 -> 226, priority 1460 < 1463, `coord` is now ranked first and takes
+`$s3` while `task` takes `$s4` (99.23% -> 100%). An empty asm emits nothing, so
+the instruction stream is unchanged; only the ranking moves.
+
+The arithmetic also says which direction is even reachable. Removing insns from
+*both* ranges cannot help when the longer range is a doubled parameter: dropping
+one instruction took 224/82 to 222/81, and 33/222 is still above 12/81. Only
+lengthening the parameter (tail insn) or adding a reference to the other allocno
+changes the sign.
+
+## Two calls on `&local` in a row: CSE parks the address in a callee-saved register (ActorsShared80131f9cSub0, 2026-09-17)
+
+**Symptom.** `Gp_SyncAreaKeyIndex(&key); rec = Gp_GetNestedAreaRec(&key);` on a
+stack `GpAreaKey`. At expand these are two separate `(set (reg N) (plus (reg
+<frame>) (const_int off)))` insns; `cse` unifies them, the surviving pseudo is
+live across the first call, and it costs a whole extra callee-saved register -
+which then renumbers every other `$sN` and adds a save/restore pair and 8 bytes
+of frame. The ROM instead rematerializes `addiu a0, sp, off` at each call.
+
+**Fix.** The same shape `Actor02000_Fn0251C` already carries: split the last
+field store off into a temporary so the barrier can sit before it, then break
+the value with a `"+r"` touch.
+
+```c
+    key.field_1 = sessionKey->field_1;
+    areaByte0   = sessionKey->field_0;
+    SOFT_BARRIER();
+    keyPtr = &key;
+    TOUCH_REG(keyPtr);
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(keyPtr);
+    rec = Gp_GetNestedAreaRec(&key);
+```
+
+`TOUCH_REG` makes `keyPtr`'s value opaque, so `cse` cannot answer the second
+`&key` from it and emits a fresh `addiu`. Both parts are load-bearing: with the
+touch alone (no `SOFT_BARRIER`) the address materialization and the `srl` each
+scheduled one slot early, because the barrier is also what keeps the last field
+store available for the `jal`'s delay slot. 92.09% -> 98.79%.
+
+Watch the cost: those two asm insns lengthen every live range they sit inside,
+which is how this function then needed the `.greg` priority analysis above.

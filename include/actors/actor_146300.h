@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
+#include "gameplay/D4.h"
 #include "main/task.h"
 
 /// Per-actor work block for the `actor_146300` overlay.
@@ -16,14 +18,18 @@
 /// The animation context the reseed walks starts at 0x40, the same place
 /// `Actor143900Work` keeps it; this overlay's block is 4 bytes shorter.
 typedef struct Actor146300Work {
-    /* 0x000 */ byte pad_0[0x4B4];
-    /* 0x4B4 */ s16  field_4B4; // animation reset mode `func_actor_146300_8013299C` latches (1 or 2)
-    /* 0x4B6 */ s16  field_4B6; // copy of `field_4B8`, kept for change detection
-    /* 0x4B8 */ s16  field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ s16  field_4BA; // cleared by `func_actor_146300_8013299C` before the reseed
-    /* 0x4BC */ byte pad_4BC[0x2A];
-    /* 0x4E6 */ u16  yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4E8 */ byte pad_4E8[0x4];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x140];
+    /* 0x4B4 */ s16        field_4B4; // animation reset mode `func_actor_146300_8013299C` latches (1 or 2)
+    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
+    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
+    /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_146300_8013299C` before the reseed
+    /* 0x4BC */ byte       pad_4BC[0x2A];
+    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4E8 */ byte       pad_4E8[0x4];
 } Actor146300Work;
 STATIC_ASSERT_SIZEOF(Actor146300Work, 0x4EC);
 
@@ -56,6 +62,34 @@ extern Task* D_actor_146300_8014282C;
 /// `func_actor_146300_8013291C`: the play-animation handler latches the preset's
 /// `field_C` here.
 extern s16 D_actor_146300_8014279C;
+
+/// 0x10-byte per-room record in the nested list `Gp_GetNestedAreaRec` reaches
+/// through `GpAreaRec::field_0`, the same table `Actor02000AreaRec` describes.
+/// `field_D` / `field_E` are the texture page and CLUT row the spawn handler
+/// copies into the companion model object.
+typedef struct Actor146300AreaRec {
+    /* 0x00 */ byte pad_0[0xD];
+    /* 0x0D */ u8   field_D;
+    /* 0x0E */ u8   field_E;
+    /* 0x0F */ byte pad_F[1];
+} Actor146300AreaRec;
+STATIC_ASSERT_SIZEOF(Actor146300AreaRec, 0x10);
+
+/// The companion task `ActorsShared80131f9cSub0` starts from
+/// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
+/// CLUT row come out of the area record, and the actor's own task is reparented
+/// under it.
+extern Task* D_actor_146300_80142830;
+
+/// Spawn table the state-0 handler starts the companion task from, index 1.
+extern TaskDesc D_actor_146300_801427C8[];
+
+/// Animation stream the state-0 handler binds into the work block's animation
+/// context with `func_800B3F84`.
+extern u8 D_actor_146300_801427E0[];
+
+/// Message handler table the state-0 handler publishes as `Task::field_24`.
+extern GpMsgEntry D_actor_146300_801427A0[];
 
 void func_actor_146300_801327CC(Task* task);
 
