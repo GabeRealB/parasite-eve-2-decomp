@@ -412,7 +412,73 @@ done:
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_801334F0);
+/// Applies the work block's decaying tilt (`field_688`) to the root
+/// coordinate: the tilt's rotation matrix is multiplied column by column into
+/// the fourth coordinate's matrix, then X and Y each step 0x20 toward zero,
+/// snapping once within 0x20. `field_6B4` is cleared when both have settled.
+void func_actor_105700_801334F0(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    GsCOORDINATE2*   coord;
+    MATRIX*          matrix;
+    s32              angleX;
+    s32              angleY;
+    s32              absX;
+    s32              nextX;
+    s32              absY;
+    s32              nextY;
+    s32              active;
+
+    matrix                                         = (MATRIX*)(((Actor105700ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((Actor105700ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    active                                         = 0;
+    work                                           = arg0->field_1C;
+    coord                                          = arg0->field_2C->field_8;
+    RotMatrix(&work->field_688, matrix);
+    USE_REG(matrix);
+    gte_SetRotMatrix(&coord[3].coord);
+    gte_ldclmv(matrix);
+    gte_rtir_real();
+    gte_stclmv(&coord[3].coord);
+    gte_ldclmv((char*)matrix + 2);
+    gte_rtir_real();
+    gte_stclmv((char*)&coord[3].coord + 2);
+    gte_ldclmv((char*)matrix + 4);
+    gte_rtir_real();
+    gte_stclmv((char*)&coord[3].coord + 4);
+    angleX = work->field_688.vx;
+    if (angleX != 0) {
+        absX = __builtin_abs(angleX);
+        if (absX < 0x21) {
+            work->field_688.vx = 0;
+        } else {
+            nextX = angleX - 0x20;
+            if (angleX <= 0) {
+                nextX = angleX + 0x20;
+            }
+            work->field_688.vx = nextX;
+            active             = 1;
+        }
+    }
+    angleY = work->field_688.vy;
+    if (angleY != 0) {
+        absY = __builtin_abs(angleY);
+        if (absY < 0x21) {
+            work->field_688.vy = 0;
+        } else {
+            nextY = angleY - 0x20;
+            if (angleY <= 0) {
+                nextY = angleY + 0x20;
+            }
+            work->field_688.vy = nextY;
+            active             = 1;
+        }
+    }
+    if (active == 0) {
+        work->field_6B4 = 0;
+    }
+    *(u32*)G_SCRATCH_HEAD += 0x20;
+}
 
 /// Plays the actor's "appear"/"disappear" cue when the animation record's
 /// flags gain bit 5 or bit 4, then mirrors those two bits back into the work

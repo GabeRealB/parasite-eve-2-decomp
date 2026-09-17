@@ -42,17 +42,19 @@ typedef struct Actor105700Work {
     /* 0x5E4 */ GpObj field_5E4;
     /* 0x604 */ byte  pad_604[0x18];
     /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
-    /* 0x61C */ GpObj              field_61C;
-    /* 0x63C */ s16                field_63C;
-    /* 0x63E */ s16                field_63E;
-    /* 0x640 */ s16                field_640;
-    /* 0x642 */ byte               pad_642[2];
-    /* 0x644 */ s16                field_644;
-    /* 0x646 */ s16                field_646;
-    /* 0x648 */ s16                field_648;
-    /* 0x64A */ byte               pad_64A[0xA];
-    /* 0x654 */ GpRec18            field_654[1];
-    /* 0x66C */ byte               pad_66C[0x24];
+    /* 0x61C */ GpObj   field_61C;
+    /* 0x63C */ s16     field_63C;
+    /* 0x63E */ s16     field_63E;
+    /* 0x640 */ s16     field_640;
+    /* 0x642 */ byte    pad_642[2];
+    /* 0x644 */ s16     field_644;
+    /* 0x646 */ s16     field_646;
+    /* 0x648 */ s16     field_648;
+    /* 0x64A */ byte    pad_64A[0xA];
+    /* 0x654 */ GpRec18 field_654[1];
+    /* 0x66C */ byte    pad_66C[0x1C];
+    /// Tilt angles decayed toward zero by `func_actor_105700_801334F0`.
+    /* 0x688 */ SVECTOR            field_688;
     /* 0x690 */ struct _GpEffWork* field_690;
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `func_actor_105700_80136AE0`'s state 0.
@@ -76,7 +78,7 @@ typedef struct Actor105700Work {
     /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
     /* 0x6B0 */ byte pad_6B0[2];
     /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
-    /* 0x6B4 */ byte pad_6B4[2];
+    /* 0x6B4 */ s16  field_6B4; ///< cleared once the tilt has settled
     /* 0x6B6 */ s16  field_6B6;
     /// State-0 branch selector: 1 picks the short dwell and animation 1,
     /// 2 the long dwell and animation 2.
@@ -169,6 +171,13 @@ typedef struct Actor105700PlaceSrc {
     /* 0x12 */ u16       field_12;
 } Actor105700PlaceSrc;
 STATIC_ASSERT_SIZEOF(Actor105700PlaceSrc, 0x14);
+
+/// `G_SCRATCH_HEAD` viewed as a struct. The member access, not a plain `u32`
+/// dereference, is what `func_actor_105700_801334F0` needs to schedule its
+/// argument setup around `RotMatrix`.
+typedef struct Actor105700ScratchStack {
+    u32 sp;
+} Actor105700ScratchStack;
 
 /// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
 /// `func_actor_105700_80134FDC`. `rot` first holds the local offset the root
