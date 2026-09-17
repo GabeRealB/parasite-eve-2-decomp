@@ -332,7 +332,50 @@ void func_actor_335800_80162640(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162844);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162B3C);
+s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3);
+
+/// Arrival check for the parent block: once both planar distances to the
+/// root coordinate stop shrinking, plays anim 0x7D3 and advances `field_4FA`;
+/// otherwise records the new distances.
+void func_actor_335800_80162B3C(Task* arg0)
+{
+    Actor335800MainWork*  work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor335800AnimPreset preset;
+
+    work  = (Actor335800MainWork*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (work->field_4B8 - coord->coord.t[0] >= 0) {
+        dx = (u16)work->field_4B8 - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->field_4B8;
+    }
+    d.vx = dx;
+    if (work->field_4C0 - coord->coord.t[2] >= 0) {
+        dz = (u16)work->field_4C0 - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->field_4C0;
+    }
+    d.vz = dz;
+    if (d.vx >= work->field_4E8 && d.vz >= work->field_4EC) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_477;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_335800_801632A4(arg0, 0x7D3, &preset, 0);
+        work->field_4C8 = 0;
+        work->field_4CC = 0;
+        work->field_4D0 = 0;
+        work->field_4FA++;
+        return;
+    }
+    work->field_4E8 = d.vx < 0 ? -d.vx : d.vx;
+    work->field_4EC = d.vz < 0 ? -d.vz : d.vz;
+}
 
 void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void* D_actor_335800_8016EAD8[];

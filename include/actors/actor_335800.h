@@ -81,11 +81,19 @@ typedef struct Actor335800MainWork {
     /* 0x4B8 */ s32        field_4B8;
     /* 0x4BC */ s32        field_4BC;
     /* 0x4C0 */ s32        field_4C0;
-    /* 0x4C4 */ byte       pad_4C4[0x14];
+    /* 0x4C4 */ byte       pad_4C4[0x4];
+    /* 0x4C8 */ s32        field_4C8;
+    /* 0x4CC */ s32        field_4CC;
+    /* 0x4D0 */ s32        field_4D0;
+    /* 0x4D4 */ byte       pad_4D4[0x4];
     /* 0x4D8 */ s32        field_4D8;
     /* 0x4DC */ s32        field_4DC;
     /* 0x4E0 */ s32        field_4E0;
-    /* 0x4E4 */ byte       pad_4E4[0xC];
+    /* 0x4E4 */ byte       pad_4E4[0x4];
+    /* 0x4E8 */ s16        field_4E8;
+    /* 0x4EA */ byte       pad_4EA[0x2];
+    /* 0x4EC */ s16        field_4EC;
+    /* 0x4EE */ byte       pad_4EE[0x2];
     /* 0x4F0 */ u16        field_4F0;
     /* 0x4F2 */ u16        field_4F2; // target yaw the turn-to-face body steers toward
     /* 0x4F4 */ u16        field_4F4;
