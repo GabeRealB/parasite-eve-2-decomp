@@ -128,7 +128,81 @@ s32 func_actor_342100_801629B8(Task* arg0)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162AB0);
+/// State 0 allocates the overlay's effect record -- eight bytes, scale 0x100,
+/// count 1, aimed at the model's root coordinate -- through `arg0->idMap`,
+/// which is also where the null check reads it back: that is what leaves the
+/// copy into `eff` after the branch instead of before it. State 1 waits out
+/// `spawnArg1` and steps to 2. State 2 runs on every fourth frame, and builds
+/// the effect's offset vector out of five LCG rolls: two per signed component
+/// (the value from one roll, its sign from the next) plus a third that is
+/// always negative. Only the three rolls whose value goes into `Gp_LcgState`
+/// are stored, so the two temporary rolls are separate variables -- one `rng`
+/// would be a single long-lived pseudo and take a register the constant needs.
+///
+/// Where `vec.vx = vx` sits is load-bearing. Placed with the last roll it is
+/// scheduled past the argument setup, which lengthens `vx`'s live range enough
+/// that global-alloc prefers the `0x71357911` constant and hands the component
+/// $a2 (99.49%); between the third roll and the `vec.vy` store it stays short
+/// and takes $a1, the constant falling to $a2 (100.00%).
+void func_actor_342100_80162AB0(Task* arg0)
+{
+    GpEffArg*      eff;
+    GsCOORDINATE2* coord;
+    SVECTOR        vec;
+    s32            rng;
+    s32            rng2;
+    s32            vx;
+    s32            vz;
+
+    eff   = (GpEffArg*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    switch (arg0->state) {
+        case 0:
+            arg0->idMap = (TaskIdMap*)Mem_Malloc(8, 0);
+            if (arg0->idMap == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            eff = (GpEffArg*)arg0->idMap;
+            Mem_Set(eff, 0, 8);
+            eff->field_4 = 0x100;
+            eff->field_0 = ((TmdObject*)arg0->extra)->field_8;
+            eff->field_6 = 1;
+            arg0->state++;
+            return;
+        case 1:
+            if (arg0->spawnArg1 <= 0) {
+                arg0->state = 2;
+                return;
+            }
+            arg0->spawnArg1--;
+            return;
+        case 2:
+            if (D_80070F70 & 0xF) {
+                return;
+            }
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            vx          = ((u32)rng >> 16) & 0x3F;
+            Gp_LcgState = rng * 5 + 0x71357911;
+            if (((u32)Gp_LcgState >> 16) & 1) {
+                vx = -vx;
+            }
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            vec.vx      = vx;
+            vec.vy      = -(((u32)Gp_LcgState >> 16) & 0x3F);
+            rng2        = Gp_LcgState * 5 + 0x71357911;
+            vz          = ((u32)rng2 >> 16) & 0x3F;
+            Gp_LcgState = rng2 * 5 + 0x71357911;
+            if (((u32)Gp_LcgState >> 16) & 1) {
+                vz = -vz;
+            }
+            vec.vz = vz;
+            func_800FDB18(3, coord, &vec, eff);
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162C88);
 

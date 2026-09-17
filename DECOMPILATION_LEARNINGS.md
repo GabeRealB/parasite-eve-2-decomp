@@ -125598,3 +125598,53 @@ Inputs: `base_2.i`
 `base_11.i` (99.016%), `base_12.i` (100.000%, the match). Compiler source:
 `jump.c:707`, `jump.c:1898`, `jump.c:2528` (`find_cross_jump`), `jump.c:3418`
 (`do_cross_jump`), `toplev.c:3548`.
+
+## A store statement's *position* sets the live length that decides a register -- same instructions, different `$aN` (func_actor_342100_80162AB0, 2026-09-17)
+
+`func_actor_342100_80162AB0` stalled at 99.49% with `branch = insert = delete =
+reorder = 0` and 12 register penalties: its `vx` component and the `0x71357911`
+constant had swapped `$a1`/`$a2`. Every instruction was otherwise identical, so
+nothing in the schedule was wrong — only which of two quantities `global_alloc`
+handed the lower register to.
+
+The three long-lived quantities (a `vz` component, the constant, `vx`) are
+ranked by the same `floor_log2(n_refs) * n_refs / live_length` ratio
+`local_alloc` uses, and `.lreg` prints both terms directly:
+
+```
+Register 85  used 4 times across 27 insns;   /* vx     4/27 -> 0.296 */
+Register 110 used 6 times across 33 insns;   /* const  6/33 -> 0.364 */
+```
+
+The constant wins `$a1` and `vx` is pushed to `$a2`. The ref counts are pinned
+by the arithmetic, so the span is the only lever — and here the lever was the
+*position of a store statement*, not any computation. Written with the last LCG
+roll, `vec.vx = vx;` is scheduled past the call's argument setup and the
+register lives 27 insns; moved up between the third roll and the `vec.vy`
+store, `.lreg` reports `used 4 times across 19 insns`, the ratio passes the
+constant's, and the two registers swap:
+
+```
+Register 85  used 4 times across 19 insns;   /* vx     4/19 -> 0.421 */
+Register 110 used 6 times across 34 insns;   /* const  6/34 -> 0.353 */
+```
+
+The emitted instructions do not change — `sched2` puts the store back next to
+the last roll's test, so the delay slot and every other insn stay where the
+target has them — but the function goes to 100.000% (`base_7` 99.492% ->
+`base_15` 100.000% on the one statement move).
+
+Two things make this worth reaching for early. A store *statement* changes the
+live range without changing the value, the dependence graph or the output, so
+it is a safe lever when the arithmetic leaves no headroom. And the pre-`sched`
+numbers `.flow` prints are *not* the deciding ones — `sched.c` overwrites
+`REG_LIVE_LENGTH` with its own count — so read the `.lreg`/`.greg` pair, and
+when they disagree with `.flow` (27 vs 28, 19 vs 15 here) trust `.lreg`: both
+of its terms are the ones the allocator compares.
+
+Inputs: `base_7.i`
+`8936cdb7a5aed24601acd1a0c5cba83fc32297ef59490aebeea22c104fd8aaa9` (99.492%),
+`base_15.i`
+`b7e781cb43e051e900cd15e0736e4316884d0959621faeeb1139ffd4671f6b75` (100.000%, the match). Compiler source: `global.c:597`
+(`allocno_compare`), `global.c:423` (`REG_LIVE_LENGTH`), `sched.c:5035`
+(`REG_LIVE_LENGTH` replaced by `sched_reg_live_length`).
