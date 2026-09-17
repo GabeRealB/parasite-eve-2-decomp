@@ -122272,3 +122272,33 @@ carried an inert `vec.vy` split.
 Scratch input `base_16.c` SHA256
 `464d7aac04826ba6a7fd3a999031236738a99ee9212e79a6e5ae55292de37f10`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## `build-and-verify.sh` clang-formats every overlay header, so a hand-edit there comes back reshaped after the build (2026-09-17)
+
+**Symptom.** A doc comment added to `include/actors/actor_450800.h` between two
+struct fields looked right in the editor and wrong in `git diff` a build later.
+The header had not reverted: the build had reformatted it.
+
+**Why.** `tools/build-and-verify.sh` runs `clang-format -i` over `src/` plus
+*every* directory directly under `include/` except `psyq` and `decomp` — not
+just `include/main/`, which is what the summary at the top of the script
+suggests. An overlay header is therefore a formatted file like any other.
+
+The specific trap is a `///` block placed immediately after a field whose line
+already ends in a `//` trailing comment. `AlignTrailingComments` reads it as a
+continuation of that trailing comment and indents it to the trailing column:
+
+```c
+    /* 0x4EA */ s16 field_4EA; // distance to the target over the step count
+
+                                      /// Reset argument handed to `func_800B4114` ...
+    /// `Actor461800Work` keeps at 0x4EA / 0x4EC. ...
+```
+
+which reads as if the second line were a stray fragment. Move the note into the
+struct's leading `///` block, or leave a field between them.
+
+**Check.** `clang-format --dry-run --style=file <header>` prints nothing when the
+file is already in the build's shape; run it after editing an overlay header
+rather than waiting for a build to disagree with you. Re-running the build twice
+and diffing `md5sum` is the slower equivalent.
