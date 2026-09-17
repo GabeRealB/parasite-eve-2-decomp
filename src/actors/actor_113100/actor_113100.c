@@ -23,6 +23,10 @@ extern TaskFuncTable3 D_actor_113100_80131E3C;
 /// call site.
 extern MATRIX* Gp_GetStageView(u8*, s32, void*);
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
 /// three "no id yet" sentinels and spawns the actor's children from
 /// `D_actor_113100_80144308` -- index 1 only in arena mode
@@ -344,7 +348,70 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_801328EC);
+/// The 0x7DD entry of `D_actor_113100_80144338`: the placement command. It
+/// latches its payload's position and rotation into the work block, flags the
+/// actor as placed through `field_530` / `field_532`, then applies the start
+/// preset in place -- the body of the 0x7D3 handler
+/// `func_actor_113100_801331E8` written out inline against a preset built on
+/// this function's own stack, `anim` picking the preset's `field_4`.
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* place, Actor113100SpawnAnim* anim)
+{
+    Actor113100Work*       work;
+    Actor113100Work*       w;
+    Actor113100AnimPreset  preset;
+    Actor113100AnimPreset* msg;
+    s32                    i;
+    TmdObject*             ext;
+
+    w              = (Actor113100Work*)task->idMap;
+    w->field_530   = 1;
+    w->field_532   = 0;
+    w->field_4F0   = place->pos.vx;
+    w->field_4F4   = place->pos.vy;
+    w->field_4F8   = place->pos.vz;
+    w->field_528   = place->rot.vx;
+    w->field_52A   = place->rot.vy;
+    w->field_52C   = place->rot.vz;
+    preset.field_0 = 0;
+    if (anim != NULL) {
+        preset.field_4 = anim->field_0;
+        w->field_477   = anim->field_4;
+    } else {
+        preset.field_4 = 2;
+        w->field_477   = 1;
+    }
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 1;
+
+    msg  = &preset;
+    work = (Actor113100Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_476) {
+        work->field_476 = msg->field_0;
+        work->field_475 = -1;
+        func_800B3F84(&work->anim, D_actor_113100_801442E0[work->field_476], (GpAnimObj*)ext, work->field_334,
+                      work->slots);
+    }
+    if (msg->field_4 != work->field_475) {
+        work->field_475 = msg->field_4;
+        if (msg->field_8 != 0 && work->field_474 != 0) {
+            for (i = 1; i < 0x14; i++) {
+                func_800B4114(&work->anim, i, work->field_475, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x14; i++) {
+                Gp_AnimResetSlot(&work->anim, i, work->field_475);
+            }
+        }
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+        work->field_474 = 1;
+    }
+    work->field_53C = D_actor_113100_801442E4[msg->field_4];
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E20);
 

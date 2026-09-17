@@ -65,15 +65,20 @@ typedef struct Actor113100Work {
     /// Raised to 0x7FFF on all three halves by `func_actor_113100_801324DC`
     /// just before it publishes the 0x7D3 preset.
     /* 0x520 */ SVECTOR field_520;
-    /* 0x528 */ byte    pad_528[0x2];
-    /* 0x52A */ u16     field_52A;
-    /* 0x52C */ byte    pad_52C[0x4];
-    /* 0x530 */ s16     field_530;
-    /* 0x532 */ u16     field_532;
-    /* 0x534 */ Task*   field_534;
-    /* 0x538 */ s16     field_538;
-    /* 0x53A */ s16     field_53A;
-    /* 0x53C */ u8      field_53C;
+    /// The rotation triple the 0x7DD placement handler
+    /// `func_actor_113100_801328EC` latches from its payload, beside the
+    /// translation it drops into `field_4F0`..`field_4F8`. `field_52A` is the
+    /// yaw it holds there.
+    /* 0x528 */ u16   field_528;
+    /* 0x52A */ u16   field_52A;
+    /* 0x52C */ u16   field_52C;
+    /* 0x52E */ byte  pad_52E[0x2];
+    /* 0x530 */ s16   field_530;
+    /* 0x532 */ u16   field_532;
+    /* 0x534 */ Task* field_534;
+    /* 0x538 */ s16   field_538;
+    /* 0x53A */ s16   field_53A;
+    /* 0x53C */ u8    field_53C;
     /// -1 sentinel written with `field_475` / `field_476`; the 0x7D5 visibility
     /// handler `func_actor_113100_80132790` re-arms it to 2 in its hide-and-free
     /// mode. `func_actor_113100_80132104` walks it down: negative does nothing,
@@ -93,6 +98,32 @@ typedef struct Actor113100Msg7DB {
     /* 0x2 */ u16 field_2;
 } Actor113100Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor113100Msg7DB, 0x4);
+
+/// Spawn placement the 0x7DD handler `func_actor_113100_801328EC` copies into
+/// the work block: the position into `field_4F0`..`field_4F8`, the rotation
+/// into `field_528`..`field_52C` (the yaw being the turn-to-face target). The
+/// same 0x18-byte record as `Actor141000Placement`, whose placement handler is
+/// the same body for its own overlay.
+typedef struct Actor113100Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor113100Placement;
+STATIC_ASSERT_SIZEOF(Actor113100Placement, 0x18);
+
+/// Optional start animation for the same handler: the preset's `field_4` and
+/// the `field_477` id byte. Absent, the defaults are anim 2 and id 1.
+typedef struct Actor113100SpawnAnim {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  field_4;
+} Actor113100SpawnAnim;
+
+/// The 0x7DD entry of `D_actor_113100_80144338`: the placement command. It
+/// latches its payload's position and rotation into the work block, flags the
+/// actor as placed (`field_530` / `field_532`), then applies the start preset
+/// in place -- the body of the 0x7D3 handler `func_actor_113100_801331E8`
+/// written out inline against a preset built on this function's own stack.
+/// `anim` picking the preset's `field_4` is what selects the animation id.
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* place, Actor113100SpawnAnim* anim);
 
 /// Message 0x7DB handler, listed in `D_actor_113100_80144338` after the 0x7D3 /
 /// 0x7D5 / 0x7DD ones. The payload halfword selects one of four actions: 0 and
