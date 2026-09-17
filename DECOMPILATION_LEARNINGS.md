@@ -126269,3 +126269,51 @@ Read the two dumps rather than the source when checking this: the address is a
 pseudo at sched1 and the hard register `$s2` only after reload, where it *does*
 vary. The decision belongs to the first scheduling pass, and `.sched` carries the
 load's `LOG_LINKS` -- the missing `insn_list 107` on insn 112 is the whole bug.
+## m2c's phi-merged `var_vN` countdown keeps the loaded value in `$v1`; the compound statement puts it in `$v0` (func_actor_213100_80149E3C, 2026-09-17)
+
+`m2c` lowers a "count down, free at zero" tail into an explicit phi variable so
+the recomputation after the call has a home:
+
+```c
+    temp_v0 = work->field_484;
+    if (temp_v0 >= 0) {
+        var_v0_2 = temp_v0 - 1;
+        if (temp_v0 == 0) {
+            Tmd_FreeBuffers(extra);
+            var_v0_2 = work->field_484 - 1;
+        }
+        work->field_484 = var_v0_2;
+    }
+```
+
+It is a faithful reading of the target's instructions, and it is written the way
+the target reads: the loaded value in `$v1` and the decrement in `$v0`
+(`lw $v1,0x484($s2)` / `addiu $v0,$v1,-0x1`). The ROM keeps *one* register —
+`lw $v0,0x484($s2)` feeds `bltz`, `bnez` and its own `addiu $v0,$v0,-0x1`. The
+source form that compiles that way is the plain statement the phi variable was
+spelling out:
+
+```c
+    if (work->field_484 >= 0) {
+        if (work->field_484 == 0) {
+            Tmd_FreeBuffers(extra);
+        }
+        work->field_484--;
+    }
+```
+
+Splitting `temp_v0` from `var_v0_2` hands `local-alloc` two quantities where
+`x--` hands it one whose value dies at the subtract, so the subtract's
+destination can share the load's register. `func_actor_213000_8014A5D0` and
+`func_actor_335800_80163568` are the same tail written the plain way. Worth
+checking on any seed whose tail carries a `var_vN` assigned in two branches, and
+it is cheap: that one statement was the last 0.19% (`base_6` 99.811% ->
+`base_5` 100.000%). The other 8 bytes of this function's frame were the
+`M2C_UNK` cold-slot size above — `M2C_UNK sp10` is a 4-byte address-taken scalar
+(one 8-byte slot) against the real 12-byte `VECTOR3`, which cost the prologue,
+the epilogue, every `$sp` displacement *and* the materialization of `&pos`.
+
+Inputs: `base_6.i`
+`eb4df25afd253d5a45efa2192a4d341fa9ce7e9820495e753c4a5a85ca6fdaf0` (99.811%),
+`base_5.i`
+`5cf3885a51647b8b632550bfd225a9bfc1af43c696739733fb01b1508d5d131e` (100.000%).
