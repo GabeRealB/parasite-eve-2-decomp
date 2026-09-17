@@ -114944,3 +114944,34 @@ jumping to a shared label. Semantics are identical (both skip the code in
 between) and the build goes to 100.00% with every penalty zero. Same pass and
 same tell as "A call's `a0` setup in the delay slot of the *preceding* `if`
 branch means the call is duplicated in both arms" above.
+## Argument-register setup follows source order: swapping two arguments moves one `move`, and a 100% scratch score does not cover the port (func_mine_mesa_8017E2A4, 2026-09-17)
+
+Target tail: `jal Game_GetPtrSlot; li a0,3; move a0,s2; move a1,v0; jal
+func_800B17D4`. The two setup instructions are in that order, and the function
+scored 100.00% in the scratch env. Porting it, the two arguments were renamed
+and written swapped --
+
+```c
+    looker = Game_GetPtrSlot(0xA);              /* s2 */
+    ...
+    func_800B17D4(Game_GetPtrSlot(3), target, (MineMesaHeadAim*)aim);  /* WRONG */
+    func_800B17D4(looker, Game_GetPtrSlot(3), (MineMesaHeadAim*)aim);  /* matches */
+```
+
+-- which emits `move a0,v0; move a1,s2` instead. Same mnemonics, same count,
+same *values*; only which `move` comes first changes, because GCC 2.8.1 fills
+the argument registers in source argument order. The function still *looked*
+identical in a mnemonic-by-mnemonic diff (`move a0,v0` vs `addu $a0,$s2,$zero`
+is easy to read past), and the whole overlay failed its checksum by exactly two
+bytes: `cmp -l assets/USA/pe2pkg/<overlay>.pe2pkg build/USA/out/<overlay>`.
+
+Two lessons, and the second is the general one:
+
+- When a call's arguments are two same-typed values, the *order they are
+  written in* is a matching input, not a style choice. If a per-function score
+  is 100% but the ported version's checksum fails by a handful of bytes, check
+  the argument order of every call before anything else.
+- A scratch score of 100% proves the *bytes of the candidate file as written*.
+  Renaming a variable is free, but reordering arguments, changing a literal's
+  spelling that alters its type, or re-associating an expression is a new
+  source and needs a fresh score. Re-score the exact landed text.

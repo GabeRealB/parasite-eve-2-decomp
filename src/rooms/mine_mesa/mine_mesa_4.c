@@ -1,15 +1,46 @@
 #include "common.h"
+#include "gameplay/1BC.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
+extern u8       D_801156F9;
 extern s8       D_8007106B;
 extern TaskDesc D_mine_mesa_80181990;
 
 /// The mesa's run: one `SVECTOR` position per frame, sent as a `RoomPlacement`.
 extern SVECTOR D_mine_mesa_80184184[];
+
+extern Task* D_mine_mesa_80189B58;
+
+/// Head-aim record `func_mine_mesa_8017E2A4` allocates and parks in
+/// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
+/// pitch clamps that function widens against the head's current pose, and the
+/// `rate` fraction of the remaining angle this overlay ramps one 0x100 step per
+/// frame.
+///
+/// The field roles are `GpHeadAim`'s, but the two readings of the record are
+/// not the same size. This overlay allocates 12 bytes where `GpHeadAim` is 10,
+/// and the other `func_800B17D4` callers that build the record the same way --
+/// `func_mine_mesa_8017E15C`, `func_actor_361100_801627D4` and
+/// `func_actor_450200_80131FA8` -- also allocate 12, so 12 is the record's size
+/// and gameplay's 10 is the most `func_800B17D4` alone can see of it.
+///
+/// `rate` is `u16` here because the body reads it as an unsigned halfword and
+/// reinterprets the stored value as `s16` for the clamp, which is what the
+/// `lhu` / `sll` / `sra` sequence in the ROM says.
+typedef struct MineMesaHeadAim {
+    /* 0x0 */ s16  yawLimit;
+    /* 0x2 */ s16  pitchLimit;
+    /* 0x4 */ u16  rate;
+    /* 0x6 */ s16  lastPitch;
+    /* 0x8 */ s8   inited;
+    /* 0x9 */ byte pad_9[0x3];
+} MineMesaHeadAim;
+STATIC_ASSERT_SIZEOF(MineMesaHeadAim, 0xC);
 
 void func_mine_mesa_8017E024(Task* arg0)
 {
@@ -46,6 +77,62 @@ void func_mine_mesa_8017E074(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E15C);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E2A4);
+/// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
+/// clear: a missing `Game_GetPtrSlot(0xA)` task parks the state machine on -1.
+/// State 0 allocates the `MineMesaHeadAim` record into `Task::idMap` and seeds
+/// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
+/// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
+/// not, then hands the record to `func_800B17D4` between the
+/// `Game_GetPtrSlot(0xA)` task whose head turns and the slot-3 task it turns
+/// toward -- the reverse of `func_mine_mesa_8017E15C` and of
+/// `func_actor_450200_80131FA8`, which look from slot 3. Every other state
+/// kills the task and clears `D_mine_mesa_80189B58`, and a state-0 NULL
+/// allocation falls out of its own `if` into that same kill.
+void func_mine_mesa_8017E2A4(Task* arg0)
+{
+    Task*            looker;
+    MineMesaHeadAim* aim;
+    u16              rate;
+
+    looker = Game_GetPtrSlot(0xA);
+    if (D_801156F9 == 0) {
+        if (looker == NULL) {
+            arg0->state = -1;
+        }
+        switch (arg0->state) {
+            case 0:
+                aim = Mem_Calloc(sizeof(MineMesaHeadAim), false);
+                if (aim != NULL) {
+                    arg0->idMap     = (TaskIdMap*)aim;
+                    aim->yawLimit   = 0x300;
+                    aim->pitchLimit = 0x100;
+                    arg0->state++;
+                        /* fallthrough */
+                    case 1:
+                        aim = (MineMesaHeadAim*)arg0->idMap;
+                        if (arg0->spawnArg1 != 0) {
+                            rate      = aim->rate + 0x100;
+                            aim->rate = rate;
+                            if ((s16)rate >= 0x1001) {
+                                aim->rate = 0x1000;
+                            }
+                        } else {
+                            rate      = aim->rate - 0x100;
+                            aim->rate = rate;
+                            if ((s16)rate < 0) {
+                                aim->rate = 0;
+                            }
+                        }
+                        func_800B17D4(looker, Game_GetPtrSlot(3), (GpHeadAim*)aim);
+                        return;
+                }
+                /* fallthrough */
+            default:
+                Task_Kill(arg0);
+                D_mine_mesa_80189B58 = NULL;
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E3E0);
