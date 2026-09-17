@@ -6,6 +6,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 
 #include "main/mem.h"
 #include "main/task.h"
@@ -62,4 +63,44 @@ void func_actor_210700_80149F90(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_210700/actor_210700_2", func_actor_210700_8014A0AC);
+/// Per-frame tick of the actor: while the work block's `field_474` is set,
+/// ticks animation slots 1..0x13 off the context at the head of the block, then
+/// draws the ground shadow under the model's second part. While the session's
+/// `field_4D` is set it republishes that second part's coordinate -- clearing
+/// its `flg` to invalidate the cached matrix, rebuilding it from its `workm`
+/// and handing it to `func_800D7A9C` -- which is the same block
+/// `func_actor_335800_80163568` and `func_actor_361100_801631A4` run against
+/// their own child part. The overlay's texture-upload handler runs next, and
+/// `field_53E` counts down to the frame its zero value frees the model buffers.
+void func_actor_210700_8014A0AC(Task* task)
+{
+    Actor210700Work* work;
+    TmdObject*       ext;
+    VECTOR3          pos;
+    s16              count;
+    s32              i;
+
+    work = (Actor210700Work*)task->idMap;
+    ext  = task->extra;
+    if (work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+        Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->field_8);
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)task->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    func_actor_210700_80149E30((GpActorWork*)task);
+    count = work->field_53E;
+    if (count >= 0) {
+        if (count == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_53E = (s16)((u16)work->field_53E - 1);
+    }
+}

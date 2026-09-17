@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
 #include "main/task.h"
@@ -17,10 +18,16 @@
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
 /// -- so this actor lights itself out of its own block.
 ///
-/// The three fields named below are the ones that init writes before the
+/// `Gp_AnimCtx` sits at the head of the block, as it does in `Actor335800Work`
+/// and `Actor361100Work`: `func_actor_210700_8014A0AC` hands the block base
+/// straight to `Gp_AnimTickIndex` for slots 1..0x13.
+///
+/// The four fields named below are the ones that init writes before the
 /// state machine runs; everything else is still padding.
 typedef struct Actor210700Work {
-    /* 0x000 */ byte   pad_0[0x478];
+    /* 0x000 */ byte pad_0[0x474];
+    /// Non-zero gates the per-frame animation tick loop.
+    /* 0x474 */ s32    field_474;
     /* 0x478 */ s32    field_478; // init'd to -1
     /* 0x47C */ s32    field_47C; // init'd to -1
     /* 0x480 */ MATRIX light;
@@ -59,6 +66,7 @@ STATIC_ASSERT_SIZEOF(Actor210700Anim, 0x18);
 /// `func_actor_210700_8014A3D4`, 0x7E0 `func_actor_210700_8014A4B0`.
 extern GpMsgEntry D_actor_210700_801585D8[];
 
+void func_actor_210700_80149E30(GpActorWork* arg0);
 void func_actor_210700_8014A208(Task* arg0);
 s32  func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* args, s32 arg3);
 
