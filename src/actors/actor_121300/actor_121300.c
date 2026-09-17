@@ -110,7 +110,46 @@ INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013322C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013343C);
+/// Effect spawner: on every fourth frame, walks one of the two arena-ring
+/// position tables `D_actor_121300_8013CCB8` / `D_actor_121300_8013CD48`
+/// (`arg1` non-zero picks the lowered one) and spawns effect 0x601B7 at each
+/// entry, jittered along `vx` by up to +/-70 -- two LCG draws, the second only
+/// when the first one's bit 16 is set, which is also the sign of the step.
+/// The walk stops on the zeroed `SVECTOR` that ends both tables.
+void func_actor_121300_8013343C(Task* arg0, s16 arg1)
+{
+    SVECTOR  pos;
+    SVECTOR* pts;
+    s16      x;
+    s32      flags;
+    u32      seed;
+    s32      vx;
+
+    if (!(D_actor_121300_8013CC00 & 3)) {
+        if (arg1 == 0) {
+            pts = D_actor_121300_8013CCB8;
+        } else {
+            pts = D_actor_121300_8013CD48;
+        }
+        x = pts->vx;
+        if (pts->vx != 0) {
+            flags = 0x81202400;
+            do {
+                seed        = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState = seed;
+                vx          = x + (((seed >> 16) & 1) ? ((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7
+                                                      : -(((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7)) *
+                             10;
+                pos.vx = vx;
+                pos.vy = pts->vy;
+                pos.vz = pts->vz;
+                Gp_SpawnEff(0x601B7, NULL, flags, &pos);
+                pts++;
+                x = pts->vx;
+            } while (pts->vx != 0);
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133580);
 
@@ -233,7 +272,6 @@ extern s8  D_8007218A;
 extern s8  D_80114C12;
 extern s16 D_80071076;
 
-extern s32 D_actor_121300_8013CC00;
 extern s32 D_actor_121300_8013CE08;
 extern s32 D_actor_121300_8013D2E8;
 

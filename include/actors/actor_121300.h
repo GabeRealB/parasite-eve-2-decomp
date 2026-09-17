@@ -101,4 +101,22 @@ typedef struct Actor121300FadeWork {
 } Actor121300FadeWork;
 STATIC_ASSERT_SIZEOF(Actor121300FadeWork, 0x8);
 
+/// Frame counter `func_actor_121300_80133D98` bumps once a frame and the
+/// effect spawners gate on: `func_actor_121300_8013343C` only runs on every
+/// fourth frame (`& 3`), `func_actor_121300_80133580` on every eighth (`& 7`).
+extern s32 D_actor_121300_8013CC00;
+
+/// The gameplay LCG the effect spawners draw their jitter from,
+/// `state = state * 5 + 0x71357911`; the draws are logical shifts of the high
+/// half (`srl`), which a signed declaration would turn into arithmetic ones.
+extern u32 Gp_LcgState;
+
+/// The two position tables `func_actor_121300_8013343C` walks, each an array
+/// of `SVECTOR`s ending on a zeroed one -- the walker's guard is `vx != 0`, so
+/// the sentinel is read with the position.  Both trace the same ring around
+/// the arena (`vx` 2500..6500 at `vz` 4700, then back at 1500) and differ only
+/// in height: `8013CCB8` sits at ground level, `8013CD48` at `vy` -0xC8.
+extern SVECTOR D_actor_121300_8013CCB8[];
+extern SVECTOR D_actor_121300_8013CD48[];
+
 #endif
