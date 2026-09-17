@@ -9,6 +9,8 @@
 #include "rooms/dryfield_dilapidated_house.h"
 #include "main/tmd.h"
 
+#include <psyq/inline_c.h>
+
 /// Unsigned: the original shifts the register right and then masks, so the
 /// shift has to compile to `srl` rather than `sra`.
 extern u32 Gp_LcgState;
@@ -21,6 +23,7 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
 void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
+void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
 extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
 
@@ -219,7 +222,109 @@ void func_dryfield_dilapidated_house_801815B8(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801815E8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181F08);
+/// Near and far trail offsets. `[0]` seeds the object's coordinate on the first
+/// frame and `[1]` the second ring; `D_dryfield_dilapidated_house_8018694C` is
+/// `[1]` under its own name, because the per-frame path in state 1 rebuilds
+/// its address from scratch.
+extern SVECTOR D_dryfield_dilapidated_house_80186944[1];
+extern SVECTOR D_dryfield_dilapidated_house_8018694C;
+
+/// Eight-slot trail coordinates, one array per end of the pair. Every entry is
+/// parented to `Gfx_ViewCoord`.
+extern GsCOORDINATE2 D_dryfield_dilapidated_house_80189DE0[8];
+extern GsCOORDINATE2 D_dryfield_dilapidated_house_8018A060[8];
+
+/// Per-frame twin trail. State 0 places the object's coordinate at
+/// `D_dryfield_dilapidated_house_80186944[0]` and the second ring at `[1]`,
+/// then seeds all sixteen trail slots with that pose. State 1 re-poses both
+/// frames every frame, writes them into slot `field_22 & 7`, re-runs the whole
+/// ring so the older slots follow their parents, and hands the ribbon to
+/// `func_dryfield_dilapidated_house_801823B8`. The task frees itself once
+/// `field_22` reaches spawn arg 1. It idles whole while `Gp_State1C->field_4`
+/// is 2 or more.
+void func_dryfield_dilapidated_house_80181F08(Task* task)
+{
+    GsCOORDINATE2  coord;
+    GsCOORDINATE2* objCoord;
+    GsCOORDINATE2* dst;
+    GpEffWork*     work;
+    SVECTOR*       vec;
+    s32            i;
+
+    work     = (GpEffWork*)task->spawnArg2;
+    objCoord = ((TmdObject*)task->extra)->field_8;
+
+    if (Gp_State1C->field_4 < 2) {
+        work->field_22++;
+        switch (task->state) {
+            case 0:
+                objCoord->sub        = work->field_8;
+                objCoord->coord.t[0] = D_dryfield_dilapidated_house_80186944[0].vx;
+                objCoord->coord.t[1] = D_dryfield_dilapidated_house_80186944[0].vy;
+                objCoord->coord.t[2] = D_dryfield_dilapidated_house_80186944[0].vz;
+                objCoord->flg        = 0;
+                Gp_UpdateCoord(objCoord);
+                task->state      = 1;
+                coord.sub        = work->field_8;
+                vec              = &D_dryfield_dilapidated_house_80186944[1];
+                coord.coord.t[0] = vec->vx;
+                coord.coord.t[1] = vec->vy;
+                coord.coord.t[2] = vec->vz;
+                coord.flg        = 0;
+                Gp_UpdateCoord(&coord);
+                for (i = 0; i < 8; i++) {
+                    dst        = &D_dryfield_dilapidated_house_80189DE0[i];
+                    dst->sub   = &Gfx_ViewCoord;
+                    dst->workm = objCoord->workm;
+                    gte_SetRotMatrix(&objCoord->workm);
+                    gte_SetTransMatrix(&objCoord->workm);
+                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                    dst        = &D_dryfield_dilapidated_house_8018A060[i];
+                    dst->sub   = &Gfx_ViewCoord;
+                    dst->workm = coord.workm;
+                    gte_SetRotMatrix(&coord.workm);
+                    gte_SetTransMatrix(&coord.workm);
+                    Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                }
+                return;
+
+            case 1:
+                objCoord->flg = 0;
+                Gp_UpdateCoord(objCoord);
+                coord.sub        = work->field_8;
+                coord.coord.t[0] = D_dryfield_dilapidated_house_8018694C.vx;
+                coord.coord.t[1] = D_dryfield_dilapidated_house_8018694C.vy;
+                coord.coord.t[2] = D_dryfield_dilapidated_house_8018694C.vz;
+                coord.flg        = 0;
+                Gp_UpdateCoord(&coord);
+                dst        = &D_dryfield_dilapidated_house_80189DE0[work->field_22 & 7];
+                dst->sub   = &Gfx_ViewCoord;
+                dst->workm = objCoord->workm;
+                gte_SetRotMatrix(&objCoord->workm);
+                gte_SetTransMatrix(&objCoord->workm);
+                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                dst        = &D_dryfield_dilapidated_house_8018A060[work->field_22 & 7];
+                dst->sub   = &Gfx_ViewCoord;
+                dst->workm = coord.workm;
+                gte_SetRotMatrix(&coord.workm);
+                gte_SetTransMatrix(&coord.workm);
+                Gp_WorldToLocal(&Gfx_ViewCoord.workm, &dst->workm, &dst->coord);
+                for (i = 0; i < 8; i++) {
+                    dst      = &D_dryfield_dilapidated_house_80189DE0[i];
+                    dst->flg = 0;
+                    Gp_UpdateCoord(dst);
+                    dst      = &D_dryfield_dilapidated_house_8018A060[i];
+                    dst->flg = 0;
+                    Gp_UpdateCoord(dst);
+                }
+                func_dryfield_dilapidated_house_801823B8(work->field_22 & 7, 0x210);
+                if (work->field_22 == task->spawnArg1 && work->field_22 != 0) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801823B8);
 
