@@ -118902,3 +118902,44 @@ compiler SHA256
 `rodata_head = "0x14"` cut and the deleted `INCLUDE_RODATA` lines from the
 `rodata_head` section above - the compiler's table has to start this unit's
 `.rodata`, and the 0x14-byte header is `4 mod 8`.
+## A sibling room's *whole* handler can be the drop-in, and the dup index will not say so (func_dryfield_parking_lot_8017D8BC, 2026-09-17)
+
+`func_dryfield_parking_lot_8017D8BC` (the day parking lot) and the matched
+`func_dryfield_night_parking_lot_8017D8D0` are the same function: all **121
+instruction words are byte-identical**, and the day body matched first try
+(100.000%, all penalties zero) as the night's C verbatim with one line changed —
+the `Gp_ApplyAreaRecs` argument.
+
+`python3 tools/overlay_dup_index.py find func_dryfield_parking_lot_8017D8BC`
+reports `same body: 1 copies` and lists only the function itself, because
+equality there is decided on splat's disassembly **text**. The two bodies differ
+only in a symbol name (`D_8018155C` vs
+`D_dryfield_night_parking_lot_8018155C`) and in splat's per-overlay branch
+labels, so every line differs while every word agrees. A day/night (or any
+two-variant) room pair is therefore invisible to the index precisely when it is
+a perfect copy.
+
+Check it by hand before decompiling a room handler — compare the words, not the
+text:
+
+```sh
+for f in DAY.s NIGHT.s; do
+  grep -oE '/\* [0-9A-F]{3} [0-9A-F]{8} [0-9A-F]{8} \*/' $f | awk '{print $NF}'
+done | ... # a/b split, then diff the word columns
+```
+
+The pair is not a *shared body*: the day's data address sits past the end of its
+package (day package 0x25B0 ends at 0x8017FB70; the address is 0x8018155C, inside
+the night package's tail), so splat puts it in the linker's auto-generated
+undefined-symbols file as an absolute `D_8018155C` while the night owns its own
+array at the same address. `overlay_dup_index.py promote` is not applicable —
+there is nothing to share — and the two bodies must stay matched separately, one
+per overlay.
+
+Inputs: `base_1.i` (100.000%) SHA256
+`2a1148707beeef2bdc14aa238bebdc00b498dde512390c986b99c5763d5baf01`; `base_1.c`
+SHA256 `aa22991039a256be320143e0135f56eb9a3b64cbf28d3db17c510b93baeed608`;
+target.o SHA256
+`011928013091eabe3bd8d5cbd2fe4eca06d28fb1de39106b09c7f58d6ac4906a`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_dryfield_parking_lot_8017D8BC-vacuum`.
