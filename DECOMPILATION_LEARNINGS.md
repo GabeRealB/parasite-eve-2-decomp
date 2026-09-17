@@ -117418,3 +117418,46 @@ target.o SHA256
 `3734384ca471469b592638f7a437074d20eacf09aafdd6c7a16b49dae7c6d691`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017E090-vacuum`.
+
+## A guard of `slti` on a `sll 16`/`sra 16` of the *incremented* temp means the loop counter is `s16` (func_neo_ark_submarine_gallery_8017EC24, 2026-09-17)
+
+`func_neo_ark_submarine_gallery_8017EC24` swept 32 wedges of a disc and the
+back edge read
+
+```
+addiu $v0, $s4, 1
+addu  $s4, $v0, $zero      ; i = i + 1, untruncated
+sll   $v0, $v0, 16
+sra   $v0, $v0, 16         ; (s16) of the increment's *value*
+slti  $v0, $v0, 0x20
+bnez  $v0, .L
+```
+
+A `s32` counter compares the register it increments (`addiu $s4,$s4,1;
+slti $v0,$s4,0x20`) and a `u16` one compares `andi`-masked; here the
+truncation lands on the temp holding `i + 1` while the counter's home keeps the
+raw value, so the counter is a **16-bit signed** variable compared in `int`.
+The `addu` copy is the s16 CSE assignment of "A 16-bit loop counter is what
+*prevents* a `reload_cse` constant substitution" — that section's
+`addiu v0,t0,1` / `move t0,v0` — and the guard reuses the same temp, which is
+why nothing reads `$s4` back.
+
+So: a `sll`/`sra` pair *around the compare* is the counter's type, not a
+stray cast. Declaring `s16 i;` and leaving the loop a plain
+`for (i = 0; i < N; i++)` reproduced the whole 5-instruction back edge (the
+`s32` form was not built as a control, but the `slti` operand above is the
+`addiu` destination, so it cannot be the `s32` shape); the bottom-tested loop
+is GCC's rotation of the constant-trip-count `for`, so do not reach for a
+`do`/`while`.
+
+Two further orderings in the same function, both already covered above but
+worth pairing: the `li reg, 0x14B4` sits *above* the `gte_SetRotMatrix` asm
+blocks, which no hoist can produce (see "A hoisted invariant lands last in the
+preheader"), so the height is a live `s16` local assigned right after
+`Gp_UpdateCoord`; and the drawing-mode packet advances `Gpu_PrimCursor` by
+`0xC`, i.e. `DR_MODE`, not `DR_TPAGE` (see "The prim-cursor advance names the
+psyq primitive").
+
+Inputs: `base_2.i` (100.000%) `0b99abadd8c2ccc8`, `base_1.i` (99.624%, same
+loop with the `0x14B4` written in the body and a `DR_TPAGE`-typed cursor)
+`163ec4787dd2231b`.

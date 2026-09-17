@@ -4,9 +4,12 @@
 #include "gameplay/gameplay.h"
 #include "gameplay/D4.h"
 #include "gameplay/3FB8.h"
+#include "main/gfx.h"
 #include "main/task.h"
 #include "main/mc.h"
 #include "main/sound.h"
+
+#include <psyq/inline_c.h>
 
 extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
@@ -27,8 +30,6 @@ extern GpStateBD8 D_neo_ark_submarine_gallery_8018591C;
 extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
-
-extern s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017D678);
 
@@ -138,7 +139,65 @@ void func_neo_ark_submarine_gallery_8017EBC4(void)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EBCC);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EC24);
+/// Sweeps a 32-wedge red disc of radius `arg0` through the view matrix: each
+/// step projects the fan's centre and the two rim points 0x80 apart and, when
+/// the projection passes, queues one semi-transparent `POLY_G3` plus its
+/// drawing-mode packet (tpage 0x2A) into `Gpu_CurrentOt[(otz >> 4) + 0x18]`.
+/// The disc sits at view-space height 0x14B4.
+s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
+{
+    SVECTOR  p0;
+    SVECTOR  p1;
+    SVECTOR  p2;
+    s32      sxy0;
+    s32      sxy1;
+    s32      sxy2;
+    s32      p;
+    s32      flag;
+    POLY_G3* prim;
+    DR_MODE* dr;
+    s32      otz;
+    s32      ang;
+    s16      i;
+    s16      y;
+
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    y = 0x14B4;
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    for (i = 0; i < 0x20; i++) {
+        p0.vx = 0;
+        p0.vy = y;
+        p0.vz = 0;
+        ang   = (i << 16) >> 9;
+        p1.vx = (rsin(ang) * arg0) >> 12;
+        p1.vy = y;
+        p1.vz = (rcos(ang) * arg0) >> 12;
+        ang   = ang + 0x80;
+        p2.vx = (rsin(ang) * arg0) >> 12;
+        p2.vy = y;
+        p2.vz = (rcos(ang) * arg0) >> 12;
+        otz   = RotTransPers3(&p0, &p1, &p2, &sxy0, &sxy1, &sxy2, &p, &flag);
+        if (flag >= 0) {
+            prim           = (POLY_G3*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyG3(prim);
+            setRGB0(prim, 0xFF, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, 0, 0, 0);
+            setSemiTrans(prim, 1);
+            *(s32*)&prim->x0 = sxy0;
+            *(s32*)&prim->x1 = sxy1;
+            *(s32*)&prim->x2 = sxy2;
+            addPrim(&Gpu_CurrentOt[(otz >> 4) + 0x18], prim);
+            dr             = (DR_MODE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+            setDrawTPage(dr, 0, 0, 0x2A);
+            addPrim(&Gpu_CurrentOt[(otz >> 4) + 0x18], dr);
+        }
+    }
+}
 
 void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 {
