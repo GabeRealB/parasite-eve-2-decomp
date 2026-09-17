@@ -80555,6 +80555,32 @@ from block order, not from the source.
 `base_1.c` (100%; preprocessed
 `2080c3c04da416567d8cdd2507bce9049fc1581bda5717ced214c8d89e9a10f6`).
 
+**The merge boundary is the first instruction the arms differ in, and `reorg`
+then puts it in the jump's delay slot.** The tail here is a *call*, so the arms
+differ one instruction earlier than in the store case above: `case 3` sets up
+`addiu $a0,$s0,0x98` where `case 4` sets `0xa8`. That differing constant is in
+the *same* register, so the two instructions do not match and cross-jumping
+stops right there; the shared suffix is only `li $a1,0x200` / `jal` /
+`li $a2,0x444` / return. `reorg` afterwards fills the `j` to that suffix with
+the orphaned `addiu`, so the target reads
+
+```asm
+j   .L8017F1F8          # case 3, forwards into case 4's block
+addiu $a0,$s0,0x98      # the differing constant, in the delay slot
+```
+
+which looks like a source-level construct (an argument computed for a shared
+tail) and is not: it is the merge point plus delay-slot filling. The matching
+source is the plain sequence of calls per arm — `func_neo_ark_submarine_gallery_8017EFEC`
+went 87.8% (m2c shape, `regs`/`insert` heavy) → 89.2% (structs sized so the
+table displacements were 8-byte strides) → 100% (gotos dropped). The `goto`
+form is not merely slower to converge, it is wrong: it fixes the shared block
+to the *earlier* arm and mirrors the target's layout.
+
+`base_2.c` (100%; preprocessed
+`1239a1afb45e5f740c618cb901f2380d0a7b6193444fcd8c82a9003b1de876df`),
+`base_3.c` (100% after the host-style port; `80b7364100721ef84923b385180fdde40f225721cfc70899452928ccf9a5e5ce`).
+
 ## An m2c seed can need two of its temps *merged*: the argument-register preference is on the other one
 
 **Symptom.** `func_actor_361100_801627D4` sat at 94.817% with `regs=5` and
