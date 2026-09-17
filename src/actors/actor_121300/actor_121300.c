@@ -102,8 +102,183 @@ check:
     return 0;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_121300/actor_121300", D_actor_121300_80131E20);
+extern s16 D_actor_121300_8013CC04;
+extern u16 D_actor_121300_8013D41C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_8013293C);
+void func_actor_121300_8013293C(Task* arg0)
+{
+    Actor121300DebrisWork* work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    VECTOR                 pos;
+    Actor121300DebrisWork* alloc;
+    s16                    r;
+    TmdObject*             tail;
+
+    work  = (Actor121300DebrisWork*)arg0->idMap;
+    obj   = arg0->extra;
+    coord = obj->field_8;
+    if (D_actor_121300_8013D41C == 0) {
+        Task_Kill(arg0);
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor121300DebrisWork*)Mem_Malloc(0x5C, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work = alloc;
+            Mem_Set(work, 0, 0x5C);
+            coord->sub        = &Gfx_ViewCoord;
+            coord->coord.t[0] = D_actor_121300_8013CC20[arg0->spawnArg1].x;
+            coord->coord.t[1] = D_actor_121300_8013CC20[arg0->spawnArg1].y;
+            coord->coord.t[2] = D_actor_121300_8013CC20[arg0->spawnArg1].z;
+            switch ((u32)arg0->spawnArg2) {
+                case 0:
+                case 14:
+                    break;
+                case 1:
+                    coord->coord.t[0] += 50;
+                    coord->coord.t[1] += 50;
+                    break;
+                case 2:
+                    coord->coord.t[0] -= 50;
+                    coord->coord.t[1] += 50;
+                    break;
+                case 3:
+                    coord->coord.t[0] += 50;
+                    coord->coord.t[1] -= 50;
+                    break;
+                case 4:
+                    coord->coord.t[0] -= 50;
+                    coord->coord.t[1] -= 50;
+                    break;
+                case 5:
+                    coord->coord.t[0] += 80;
+                    coord->coord.t[1] += 80;
+                    break;
+                case 6:
+                    coord->coord.t[0] -= 80;
+                    coord->coord.t[1] += 80;
+                    break;
+                case 7:
+                    coord->coord.t[0] += 80;
+                    coord->coord.t[1] -= 80;
+                    break;
+                case 8:
+                    coord->coord.t[0] -= 80;
+                    coord->coord.t[1] -= 80;
+                    break;
+                case 10:
+                    coord->coord.t[0] += 120;
+                    coord->coord.t[1] += 120;
+                    break;
+                case 11:
+                    coord->coord.t[0] -= 120;
+                    coord->coord.t[1] += 120;
+                    break;
+                case 12:
+                    coord->coord.t[0] += 120;
+                    coord->coord.t[1] -= 120;
+                    break;
+                case 13:
+                    coord->coord.t[0] -= 120;
+                    coord->coord.t[1] -= 120;
+                    break;
+            }
+            obj->field_1C = &work->lightMtx;
+            obj->field_20 = &work->colorMtx;
+
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = ((Gp_LcgState >> 16) + 10) & 7;
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = -10 - ((Gp_LcgState >> 16) & 7);
+            }
+            work->velX  = r;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->velY  = ((Gp_LcgState >> 16) & 3) + 3;
+
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = ((Gp_LcgState >> 16) + 10) & 7;
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = -10 - ((Gp_LcgState >> 16) & 7);
+            }
+            work->velZ = r;
+
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = (Gp_LcgState >> 16) & 0x7F;
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = -((Gp_LcgState >> 16) & 0x7F);
+            }
+            work->spinX = r;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = (Gp_LcgState >> 16) & 0x7F;
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = -((Gp_LcgState >> 16) & 0x7F);
+            }
+            work->spinY = r;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((Gp_LcgState >> 16) & 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = (Gp_LcgState >> 16) & 0x7F;
+            } else {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                r           = -((Gp_LcgState >> 16) & 0x7F);
+            }
+            work->spinZ = r;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->delay = (Gp_LcgState >> 16) & 3;
+            arg0->state++;
+            break;
+        case 1:
+            if (work->delay == 0) {
+                Tmd_AllocBuffers(obj);
+                obj->field_C = 0;
+                arg0->state++;
+            } else {
+                work->delay--;
+            }
+            break;
+        case 2:
+            work->velY        += D_actor_121300_8013CC04 * 3 / 100;
+            coord->coord.t[0] += work->velX * D_actor_121300_8013CC04 / 100;
+            coord->coord.t[1] += work->velY * D_actor_121300_8013CC04 / 100;
+            coord->coord.t[2] += work->velZ * D_actor_121300_8013CC04 / 100;
+            work->rotX        += work->spinX * D_actor_121300_8013CC04 / 100;
+            work->rotY        += work->spinY * D_actor_121300_8013CC04 / 100;
+            work->rotZ        += work->spinZ * D_actor_121300_8013CC04 / 100;
+            Gfx_RotMatrixY(&coord->coord, work->rotY, 1);
+            Gfx_RotMatrixX(&coord->coord, work->rotX, 0);
+            Gfx_RotMatrixZ(&coord->coord, work->rotZ, 0);
+            coord->flg = 0;
+            if (coord->coord.t[1] >= -499) {
+                Task_Kill(arg0);
+            }
+            break;
+    }
+    tail   = arg0->extra;
+    pos.vx = tail->field_8->workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    func_800D7A9C(tail, &pos, 0, 3);
+}
+
+/// The `.align 3` pad after `func_actor_121300_8013293C`'s 15-entry jump table.
+const s32 D_actor_121300_80131E60 = 0;
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133064);

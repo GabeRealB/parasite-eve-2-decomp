@@ -124300,3 +124300,18 @@ source `d9df6763…`, preprocessed `4d1e7dbd…`; target `4b1ee1b1…`, compiler
 `60d886cd…`. Dumps and sources are in the scratch
 `nonmatchings/func_actor_451100_80132A1C-vacuum/` (`.i.cse`, `.i.rtl`,
 `./insn.py 23`).
+
+## Source order of two field `+=` lines is not their store order: scheduling can emit the later line's store first (func_actor_121300_8013293C, 2026-09-17)
+
+Three `rot += spin * dt / 100` updates. The target *stores* `rotY` (0x42), then
+`rotX` (0x40), then `rotZ`, but *loads and multiplies* `spinX` before `spinY`.
+Writing the lines in store order (Y, X, Z) matched everything but that block
+(98.7%, `regs=17 reorder=5`, the `spinY` load/mult emitted first). Writing them
+X, Y, Z matched 100%: the independent multiply chains keep source order, and the
+scheduler still puts the `rotY` store ahead of `rotX`'s. When the loads/mults
+disagree with the stores, follow the loads.
+
+Same function: its jump table is the first word after the id in the leading
+rodata, so it needed `rodata_head = "0x4"` (deleting the id's `INCLUDE_RODATA`)
+*and* a trailing `const s32 ... = 0;` after the function, because the 15-entry
+table leaves a 4-byte `.align 3` gap that retail's object owned.
