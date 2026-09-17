@@ -120759,3 +120759,56 @@ problem, and it disappeared with the fold restored.
 Inputs: base_4.i `b42dd0cf77ba8dae052d497d700dbd98818252b633f0d0b913c9eee0f27070e5`
 (98.15%, `delete=2`), base_6.i
 `9764bfe0afe744f38d7ea24e934a64bae9b6c088b55b872fa99dc34047464a4a` (100%).
+
+## m2c splits one address-taken aggregate into scalars, and the extra stores are dead
+
+**Problem.** An m2c seed that hands a callee a pointer to a scratch aggregate
+declares the scratch as one named local per word:
+
+```c
+    s32 sp10;
+    s32 sp14;
+    s32 sp18;
+    ...
+    sp10 = temp_s2->workm.t[0];
+    sp14 = temp_s2->workm.t[1];
+    sp18 = temp_s2->workm.t[2];
+    Gp_UpdateActorColor(enemy, (VECTOR *)&sp10, 0, 0);
+```
+
+Only `sp10`'s address escapes, and it escapes into a *call*, so `sp14` and
+`sp18` are never read as scalars: GCC deletes both stores as dead. The frame
+comes out 8 bytes smaller than the target's, the callee reads whatever was on
+the stack, and the score lands in the high 80s with `stack: 0` -- because the
+frame the candidate *did* build is internally consistent, just short two slots.
+
+**Symptom.** A frame 8 (or 4) bytes smaller than the target with no `stack`
+penalty, and one `sw` to `sp` where the target has three. Worth checking the
+m2c seed's local declarations before hunting the diff.
+
+**Fix.** Declare the aggregate itself and assign its members, exactly as the
+matched sibling does:
+
+```c
+    VECTOR pos;
+    ...
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+```
+
+**Related trap in the same seed.** m2c also emits a chain of independent
+read-modify-writes in the order the *scheduler* happened to place the stores,
+not the source order. In `func_actor_361100_80162B18` three accumulator adds
+(`0x480 += 0x490`, `0x484 += 0x494`, `0x488 += 0x498`) came out of m2c as
+`0x480`, `0x488`, `0x484`, and feeding that back reproduced a *different*
+store order than the target. The loads are the tells: they keep the source
+order (step words `0x490`, `0x498`, `0x494` load in exactly that order), and
+the store order is the schedule. Write the statements in the natural order --
+the same order the sibling function and the following `(u16)` mask run use --
+and the scheduler reproduces the target's stores on its own.
+
+Worked example: `func_actor_361100_80162B18`, whose matched twin
+`func_actor_361100_801631C4` has the identical body with the two accumulator
+groups swapped -- 88.79% -> 100.00% in one edit, `stack` never penalised.
