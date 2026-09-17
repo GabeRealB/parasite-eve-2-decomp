@@ -34,7 +34,8 @@ typedef struct Actor136100Work {
     /* 0x4C0 */ Task*      field_4C0; // second dispatch task (NULL-checked senders)
     /* 0x4C4 */ s16        field_4C4; // set by func_actor_136100_80134838
     /* 0x4C6 */ s16        field_4C6; // cleared alongside field_4C4
-    /* 0x4C8 */ byte       pad_4C8[0x4];
+    /* 0x4C8 */ s16        field_4C8; // tick counter: func_actor_136100_801323F8
+    /* 0x4CA */ byte       pad_4CA[0x2];
     /* 0x4CC */ s16        field_4CC; // set by func_actor_136100_80134858
     /* 0x4CE */ s16        field_4CE; // cleared alongside field_4CC
     /* 0x4D0 */ byte       pad_4D0[0x4];

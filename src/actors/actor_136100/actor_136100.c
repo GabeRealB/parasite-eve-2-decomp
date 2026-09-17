@@ -21,8 +21,10 @@ extern s32   D_actor_136100_8013F1A0;
 extern s32   D_actor_136100_8013F1D4;
 extern s16   D_actor_136100_8013F218[];
 extern s32   D_actor_136100_8013F2F4;
+extern s32   D_actor_136100_8013F304[];
 extern s32   D_actor_136100_8013F31C;
 extern s32   D_actor_136100_8013F334;
+extern s32   D_actor_136100_8013F37C;
 extern s32   D_actor_136100_8013F3AC;
 extern s32   D_actor_136100_8013F3F4;
 extern s32   D_actor_136100_8013F40C;
@@ -37,6 +39,7 @@ extern s32   D_actor_136100_8014063C;
 extern Task* D_actor_136100_8014078C;
 extern s8    D_80114C12;
 
+void func_actor_136100_80131EC4(void);
 void func_actor_136100_80134A18(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131EC4);
@@ -147,9 +150,88 @@ void func_actor_136100_80132284(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_136100/actor_136100", D_actor_136100_80131E20);
+/// Build the 0x3E8 weapon record (`GpRec14`) for `anim` from the equip-slot
+/// addend (`D_80073BA9`), arm `field_4DE` with it and send it to slot 3.
+///
+/// A macro rather than an inline: the record must be one frame slot shared by
+/// every expansion, while the work pointer and the id stay per-expansion
+/// pseudos -- shared, they globalise into one register across the switch.
+#define func_actor_136100_SendWeaponRec(task, anim, a, b)                        \
+    {                                                                            \
+        Actor136100Work* msgWork;                                                \
+        s32              weaponId;                                               \
+        s32              id;                                                     \
+                                                                                 \
+        msgWork            = (Actor136100Work*)(task)->idMap;                    \
+        weaponId           = D_80073BA9;                                         \
+        id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22; \
+        rec.field_0        = id;                                                 \
+        msgWork->field_4DE = anim;                                               \
+        rec.field_4        = anim;                                               \
+        rec.field_8        = a;                                                  \
+        rec.field_C        = b;                                                  \
+        rec.field_10       = 0;                                                  \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);               \
+    }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_801323F8);
+/// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
+/// sequence on `field_4C6` (send the 0x3E9 / 0x3F2 placement, wait for 0x3F0,
+/// then wait six ticks on `field_4C8`) before sending the weapon record; 2..6
+/// send it straight away with their own animation.  A finished request is
+/// cleared.
+void func_actor_136100_801323F8(Task* arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)arg0->idMap;
+    GpRec14          rec;
+
+    if (Game_Session->field_1 != 0) {
+        func_actor_136100_80131EC4();
+    }
+    switch ((u16)work->field_4C4) {
+        case 0:
+            break;
+        case 1:
+            switch ((u16)work->field_4C6) {
+                case 0:
+                    Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F304[0], 0);
+                    Gp_DispatchMsg(work->field_4B4, 0x3F2, (s32)&D_actor_136100_8013F304[6], 0);
+                    work->field_4C8 = 0;
+                    work->field_4C6++;
+                    return;
+                case 1:
+                    if (Gp_DispatchMsg(work->field_4B4, 0x3F0, 0, 0) == 0) {
+                        work->field_4C6++;
+                    }
+                    return;
+                case 2:
+                    if (++work->field_4C8 < 6) {
+                        return;
+                    }
+                    func_actor_136100_SendWeaponRec(arg0, 0x2F, 1, 5);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 2:
+            func_actor_136100_SendWeaponRec(arg0, 0x32, 1, 0xA);
+            break;
+        case 3:
+            func_actor_136100_SendWeaponRec(arg0, 0x34, 1, 0xA);
+            break;
+        case 4:
+            Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F37C, 0);
+            func_actor_136100_SendWeaponRec(arg0, 0x2F, 0, 0);
+            break;
+        case 5:
+            func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+            break;
+        case 6:
+            func_actor_136100_SendWeaponRec(arg0, 1, 0, 0);
+            break;
+    }
+    work->field_4C4 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80132748);
 
