@@ -81,10 +81,10 @@ typedef struct Actor205200Part {
     /* 0x68 */ GsCOORDINATE2* field_68;
     /* 0x6C */ s16            field_6C;
     /* 0x6E */ s16            field_6E;
-    /* 0x70 */ byte           pad_70[2];
+    /* 0x70 */ s16            field_70; // hit-stun countdown; hits are ignored while non-zero
     /* 0x72 */ s16            field_72;
     /* 0x74 */ u16            field_74;
-    /* 0x76 */ u16            field_76;
+    /* 0x76 */ s16            field_76;
     /* 0x78 */ s16            field_78;
     /* 0x7A */ byte           pad_7A[2];
 } Actor205200Part;
@@ -149,8 +149,11 @@ s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* a
 void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1);
 void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1);
 
-/// The live states' shared body: moves and draws the actor. `arg1` is the value
-/// the state handlers pass through (`1` from `func_actor_205200_8014B9D4`).
+/// The live states' shared body: applies the part's damage-kind hits
+/// (`recs[].field_4` kind 2) to the owning enemy's HP, killing the part at zero,
+/// and otherwise arms the hit-stun timer `field_70` and spark cooldown
+/// `field_76`. `arg1` is the value the state handlers pass through (`1` from
+/// `func_actor_205200_8014B9D4`); it is unused.
 void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1);
 
 /// Counts the effect timer down and queues effect 7 every 0x40 ticks.

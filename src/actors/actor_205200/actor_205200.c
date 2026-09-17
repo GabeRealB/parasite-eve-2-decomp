@@ -7,6 +7,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 extern u16                 D_actor_205200_8014C9CC[];
 extern s16                 D_actor_205200_8014CA1C[];
@@ -205,7 +206,90 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     arg1->state      = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014B048);
+void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
+{
+    VECTOR*          vec;
+    Actor205200Part* part;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    Actor205200Work* parentWork;
+    s32              damage;
+    s32              i;
+    s32              snd;
+    s32              hitTime;
+    s32              clamped;
+
+    vec   = --*(VECTOR**)0x1F8003FC;
+    coord = arg0->field_2C->field_8;
+    part  = (Actor205200Part*)arg0->field_1C;
+    enemy = (GpEnemy*)arg0->field_20;
+    if (part->field_70 != 0) {
+        part->field_70--;
+        if (part->field_70 <= 0) {
+            part->field_70 = 0;
+        }
+    }
+    if (part->field_76 != 0) {
+        part->field_76--;
+    }
+    if (part->field_70 == 0) {
+        for (i = 0; i < 3; i++) {
+            if ((part->recs[i].field_4 & 0xFFFF0000) != 0x20000) {
+                continue;
+            }
+            if (part->recs[i].field_4 & 0x8000) {
+                func_800DA6E8(&enemy->node, 0, 0);
+                break;
+            }
+            vec->vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec->vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+            vec->vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            damage  = Gp_ComputeDamage(part->recs[i].field_4, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(enemy, part->recs[i].field_4, 0) != 0) {
+                damage *= 4;
+                Gp_SpawnEff(0x6009C, coord, 0, NULL);
+            }
+            func_800DA6E8(&enemy->node, damage, 0);
+            enemy->field_40 -= damage;
+            if (enemy->field_40 <= 0) {
+                arg0->field_30                                                     = 2;
+                part->field_72                                                     = 0;
+                ((Actor205200Work*)arg0->field_8->idMap)->field_18[part->field_78] = 0;
+                ((Actor205200Work*)arg0->field_8->idMap)->field_0[part->field_78]  = NULL;
+                Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
+                Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
+                Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
+                Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
+                Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
+                snd = ((enemy->field_8 >> 12) << 8) | 0x40340004;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                Gp_SpawnPadLerp(10, 0xFF, 0x80);
+            } else if (damage > 0) {
+                if (part->field_76 == 0) {
+                    if ((Gp_GetIdParam0(part->recs[i].field_4) & 0xFFFF) == 7) {
+                        func_800FDB18(3, coord, NULL, (GpEffArg*)&part->field_68);
+                    }
+                    func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_68);
+                    part->field_76 = 10;
+                }
+                if (damage < 201) {
+                    clamped = damage;
+                } else {
+                    clamped = 200;
+                }
+                part->field_74 = (clamped * 120) / 200 + 30;
+                hitTime        = Gp_GetIdParam2(part->recs[i].field_4);
+                if (hitTime > 0) {
+                    part->field_70 = hitTime;
+                }
+                snd = ((enemy->field_8 >> 12) << 8) | 0x40340003;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+        }
+    }
+    Gp_ClearRec18Occupied(part->recs);
+    *(VECTOR**)0x1F8003FC += 1;
+}
 
 void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
 {
