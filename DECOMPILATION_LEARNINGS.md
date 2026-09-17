@@ -121184,3 +121184,55 @@ Inputs: scratch `nonmatchings/func_actor_120300_80131EE0-vacuum`, `base.c`
 72.918% (`branch=2 regs=51 reorder=2 insert=8 delete=8`), `base_1.c` 89.338%,
 `base_2.c` 92.041%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A never-read m2c scalar is not a dead store you can ignore: its assignment is a register write, so the whole redundant pointer chain is deleted (func_actor_342000_8016201C, 2026-09-17)
+
+m2c splits a three-word stack slot into separate scalars, and only the first
+one's address escapes:
+
+```c
+s32 sp10, sp14, sp18;
+sp10 = extra->field_8->workm.t[0];    /* 0x10(sp) */
+sp14 = extra->field_8->workm.t[1];    /* 0x14(sp) */
+sp18 = extra->field_8->workm.t[2];    /* 0x18(sp) */
+func_800D7A9C(extra, &sp10, 0, 3);
+```
+
+`sp14` / `sp18` are never read and their addresses are never taken, so they are
+ordinary register pseudos, not stack slots. The initial RTL for the tail is
+three complete chains, each re-loading `0x2C(arg0)` and `8(...)`, plus exactly
+one memory store (the `sp10` slot). The pre-cse `jump_optimize` deletes the two
+field assignments (their pseudos are dead), and `cse_main`'s trailing sweep
+(`live_insn` / `count_reg_usage` / `delete_insn`, cse.c ~8980) then deletes the
+four orphaned address computations - the `reg:SI 101..104` insns are simply
+absent from the `.cse` dump. One chain survives, the frame keeps only 0x10, and
+the object is 65 instructions instead of 79: `delete=14`, 81.39%.
+
+Symptom: the candidate loads a pointer once and reuses it, where the target
+re-loads it per statement; `delete` is about the instruction-count gap and the
+missing stores are not reported by any penalty of their own.
+
+Fix: write the three words as one object whose address is **taken**, exactly as
+the neighbouring matched body does (`func_actor_341900_80162200`):
+
+```c
+VECTOR pos;
+pos.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
+pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+func_800D7A9C(mdl, &pos, 0, 3);
+```
+
+Every assignment is now a live store, nothing is dead, all three chains reach
+`.flow`, the stores land at 0x10/0x14/0x18 and the frame is 0x30 - 100.000% with
+no other change. `VECTOR` is 0x10 bytes (`long vx, vy, vz` plus a pad word), so
+`pos` occupies exactly the 0x10 the target reserves for the trio.
+
+Note the two directions this cuts. cse1's memory table drops every entry whose
+address is `reg + offset` when *any* store is seen (`note_mem_written` sets
+`write_data.var` for any MEM store; `invalidate_memory` then removes entries
+with a varying address), so a live frame store is itself what makes the next
+statement re-load the pointer instead of reusing the register - the store is
+part of the target's shape, not a side effect. And the opposite of the entry
+that has a dead store *fix* cse canonicalisation (section 28): there the store
+had to stay live long enough to be seen by `reg_scan`; here the store exists
+only if its destination is a real object.
