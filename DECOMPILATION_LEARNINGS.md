@@ -123514,3 +123514,34 @@ started right after a match still sees the pre-match split and refuses with
 `overlay_dup_index.py --rebuild <subcommand>`. And `promote` only needs *one*
 carrier matched — the compiler regenerates the body per link address, so the
 other carrier's copy can still be `INCLUDE_ASM`, as `actor_113000`'s was.
+## A load in the target's entry block is where the source put it -- sched1 cannot move one across a branch (func_actor_317000_80162BC4, 2026-09-17)
+
+`func_actor_317000_80162BC4` loads the work pointer (`lw $v1, 0x1C($a0)`) at the
+top of the function, before the switch dispatch, and uses it once in case 2
+(`sh $a2, 0x4C8($v1)`). Its byte-shaped matched siblings
+`func_actor_335800_80163FB8` and `func_actor_503500_801466E0` load the same
+pointer *inside* case 2 as `lw $v0, 0x1C($a0)` followed by a `nop`, because their
+sources spell the cast at the use site:
+
+```c
+((Actor503500Effect4CC*)task->idMap)->field_4C8 = mode;
+```
+
+GCC 2.8.1 schedules strictly one basic block at a time -- `schedule_insns` is
+`for (b = 0; b < n_basic_blocks; b++)` around `schedule_block`, for sched1 and
+sched2 alike (`sched.c`) -- so no priority, order or hazard lever can move a load
+backwards across the dispatch branch. An instruction sitting in an earlier block
+than the C statement that produces it is therefore a **source** difference, not a
+scheduling one: name the value in the block the target loads it in.
+
+```c
+obj  = task->extra;
+work = (Actor317000Work*)task->idMap;   /* the entry-block load */
+```
+
+That reproduced the target exactly, `$v1` as its home. A caller-saved temp is
+the right home here because the only path from the load to its use, entry ->
+case 2, does not cross case 1's `Tmd_AllocBuffers` call -- so hoisting the load
+into case 2 is not a pure relocation, it frees the register. Two byte-shaped
+siblings are not enough to settle which form a third carrier used; read the
+block the load sits in.
