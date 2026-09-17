@@ -120546,3 +120546,69 @@ matching body into the local idiom reproduced the object byte for byte
 it is a second build, and the `pos->vx` / `((VECTOR3*)(head - 0x10))->vx`
 choice between the two siblings is a codegen-relevant difference, not a
 stylistic one.
+
+## A small `switch` on a `u16` field tests its index *signed* (`bltz` + `slti`); m2c's if-chain rendering tests it `sltiu` (func_actor_800300_801628D0, 2026-09-17)
+
+**Symptom.** The case dispatch in the target reads
+
+```
+beqz  $v1, CASE0
+bltz  $v1, DEFAULT
+slti  $v0, $v1, 0x4
+beqz  $v0, DEFAULT
+```
+
+— a *signed* negative test **and** a signed upper bound — on a value just
+loaded from a `u16` field with `lhu`, where negative is impossible. m2c, which
+renders a four-case `switch` as an if-chain, emits `sltiu` and no negative test
+at all.
+
+**Why.** m2c names its temporary from the field, so the chain is written
+`if ((s32)temp_v1 < 0) … if ((s32)temp_v1 >= 4)` with `temp_v1` declared `u16`.
+GCC folds the always-false negative test away and keeps the bound test in the
+*unsigned* domain. A real `switch` promotes its controlling expression to `int`
+before `expand_end_case` sees it, so the range check it builds is signed no
+matter how narrow the field is. The signed test is therefore a positive signal
+that the original source has a `switch`, not an if-chain — read it before
+believing m2c's control flow. (The `u16` temporary costs a second instruction on
+its own, `andi $s0,$s0,0xffff`: see "A store into a byte field narrows its
+source load at *expand*".)
+
+**Fix.** Switch on the field directly, no temporary, then use either the
+compare-chain shape or the fallthrough shape as the target's layout requires:
+
+```c
+    switch (actor->field_95E) {
+        case 0:
+            ...
+        case 1:
+        case 2:
+        case 3:
+            actor->field_973 = 1;
+            dist             = func_8010BC70(coord);
+```
+
+Here that one change took the m2c baseline from 79.590% (`regs=44 branch=7
+insert=9 delete=9`) to 95.430% with `regs=0`, and it also fixed the register
+homes: the discarded state temporary had been taking `$s0`, pushing `actor` to
+`$s1` and everything downstream with it.
+
+**Where the shared statement goes.** The two remaining hunks were both the
+`actor->field_973 = 1` that case 0 and cases 1-3 share. The sibling
+(`func_actor_800200_80163F5C`) writes it as the *last* statement of case 0,
+before the fallthrough; the target wants it as the **first** statement of the
+1/2/3 body, so case 0 reaches it after its call and the dispatch's `j` can carry
+the `sb` in its delay slot:
+
+```
+    jal   Gp_AnimPlayChildSlotsEx     j     DRIVE
+    li    v0,1                        sb    v0,0x973(s0)   ; case 1/2/3
+    sb    v0,0x973(s0)          →     DRIVE:
+DRIVE:                                jal   func_8010BC70
+```
+
+The same function also had m2c inventing a call argument: it renders the
+no-argument `rand()` as `rand(3)` (from its `s32 rand(M2C_UNK);` prototype), and
+the resulting `li $a0,3` is one of the `insert` penalties. Read the target's
+`jal` delay slot — a `nop` there means no argument is set up, whatever m2c
+wrote.

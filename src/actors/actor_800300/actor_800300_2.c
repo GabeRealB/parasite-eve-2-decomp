@@ -3,6 +3,8 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 
+#include <psyq/rand.h>
+
 extern s16               D_80072830;
 extern GpActorFuncTable3 D_actor_800300_80161E34;
 extern GpActorFuncTable7 D_actor_800300_80161E64;
@@ -17,7 +19,81 @@ INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162658);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_801628D0);
+void func_actor_800300_801628D0(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    VECTOR3*       vec;
+    s32            dist;
+    s32            angle;
+    s32            arg;
+
+    coord  = arg0->extra->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    actor  = arg0->actor;
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_934 = 0;
+            if (func_8010BC70(coord) >= 0xE00) {
+                arg              = 4;
+                actor->field_95E = 2;
+                actor->field_958 = 3;
+            } else {
+            resume:
+                if (actor->field_95E != 3) {
+                    actor->field_95E = 1;
+                }
+                actor->field_958 = 7;
+                arg              = 2;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            /* fallthrough */
+        case 1:
+        case 2:
+        case 3:
+            actor->field_973 = 1;
+            dist             = func_8010BC70(coord);
+            if (dist < 0x301) {
+                Gp_ResetActorMove(arg0, 0);
+                break;
+            }
+            if (actor->field_95E == 3) {
+                break;
+            }
+            actor->field_934++;
+            if (actor->field_934 == 0xB4) {
+                actor->field_95E = 3;
+                goto resume;
+            }
+            if (actor->field_93E > 0) {
+                actor->field_93E = (u16)actor->field_93E - 1;
+            } else {
+                angle = rand() & 0x3FF;
+                if ((0x800 - angle) < dist) {
+                    goto in_range;
+                }
+                if (actor->field_95E == 2) {
+                    goto reset;
+                }
+            in_range:
+                if (dist < angle + 0xC00) {
+                    break;
+                }
+                if (actor->field_95E != 1) {
+                    break;
+                }
+            reset:
+                actor->field_95E = 0;
+                actor->field_93E = 0x3C;
+            }
+            break;
+    }
+    vec = (VECTOR3*)target->coord.t;
+    func_8010BD88(arg0, vec);
+    func_8010BE5C(arg0, vec);
+    func_80105ED4(arg0);
+}
 
 void func_actor_800300_80162A98(GpActorWork* arg0)
 {
