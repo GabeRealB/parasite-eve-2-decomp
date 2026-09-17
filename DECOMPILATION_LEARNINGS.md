@@ -115412,3 +115412,16 @@ one to stay: `rtx_addr_varies_p` is false for a `lo_sum` symbol but true for a
 register.
 
 Inputs: as above (`base_1.i` through `base_3.i`).
+
+### `promote` can name a unit that already exists in `src/actors/lib`
+
+`overlay_dup_index.py promote` names the unit `actors_shared_<vram>`, and actor
+vrams repeat across overlays, so the name can belong to an unrelated shared
+body (`func_actor_102400_80133EAC` got `actors_shared_80133eac`, which already
+held a TMD-flag helper linked into `actor_110700` / `actor_511000`). Writing
+the new `.c`/`.h` over it builds, but those overlays then fail the checksum and
+the symbol resolves to the wrong object. Before writing, `ls
+src/actors/lib/<unit>.c`; on a clash use an overlay-scoped name
+(`actor_102400_fn0208c`, symbol `Actor02400_Fn0208C`). Also drop any existing
+caller-side alias at that address (`ActorsShared80134c2c_Fn33EAC`) from the
+sym files, or splat rejects the duplicate symbol.
