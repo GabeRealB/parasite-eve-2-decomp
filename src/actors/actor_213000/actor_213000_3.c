@@ -51,4 +51,50 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_3", func_actor_213000_8014A980);
+/// Message handler: the visibility switch of the two model tasks the work
+/// block parks at `field_4BC` / `field_4C0`. Mode 0 hides the first model
+/// (clears bit 0x80 of the `TmdObject::field_C` parked in that task's
+/// `Task::extra`) and 1 shows it; 2 and 3 hide and show the second. An
+/// unknown mode touches nothing. Every path returns 0.
+/// Both `field_C |= 0x80` arms are written out in the source; the post-reload
+/// `jump2` cross-jump folds mode 1's copy into mode 3's, which is why retail's
+/// mode-1 arm is only the `lw` plus a jump while modes 0 and 2 each keep their
+/// own `& 0xFF7F` copy. Which tails jump2 merges is decided by which jumps
+/// share a target label, not by how alike the bodies are.
+s32 func_actor_213000_8014A980(Task* task, s32 arg1, Actor213000Msg* msg)
+{
+    Actor213000Work* work;
+    Task*            child;
+    u16              mode;
+
+    mode = msg->field_2;
+    work = (Actor213000Work*)task->idMap;
+
+    switch (mode) {
+        case 0:
+            child = work->field_4BC;
+            if (child != NULL) {
+                ((TmdObject*)child->extra)->field_C &= 0xFF7F;
+            }
+            break;
+        case 1:
+            child = work->field_4BC;
+            if (child != NULL) {
+                ((TmdObject*)child->extra)->field_C |= 0x80;
+            }
+            break;
+        case 2:
+            child = work->field_4C0;
+            if (child != NULL) {
+                ((TmdObject*)child->extra)->field_C &= 0xFF7F;
+            }
+            break;
+        case 3:
+            child = work->field_4C0;
+            if (child != NULL) {
+                ((TmdObject*)child->extra)->field_C |= 0x80;
+            }
+            break;
+    }
+    return 0;
+}
