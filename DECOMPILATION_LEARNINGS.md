@@ -120514,3 +120514,35 @@ both objects and compare, then checksum the overlay -
 or just `./tools/build-and-verify.sh`. Here the overlay came back `OK`, so the
 0.011% was the listing, not the code. The mirror image is already recorded: a
 genuine `j`-target miss can score a perfect 100.000%.
+
+## `overlay_dup_index find` cannot see a near-twin that differs by one call; `similar` is what finds it, and its *source* is the whole match (func_actor_800300_80162A98, 2026-09-17)
+
+`func_actor_800300_80162A98` is `func_actor_800100_801643F4`'s body with a
+single extra `func_80105ED4(arg0)` call before the scratch restore - 101
+instructions against the twin's 98. One extra call is enough to defeat the
+same-body test, so `find` reported only the function itself ("1 copies,
+identical bytes: 1", its own entry) and the exact-copy route - promote into
+`lib/` - correctly did not apply. What pointed at the twin was `similar`, which
+is fuzzy by construction: `shape` 0.99, `fields` 1.00, `calls` 0.93, `cflow`
+0.98, starred because it scored in more than one class. Treat `find` as "match
+once and promote" and `similar` as "there is a sibling whose *C* is the answer",
+and run the second even when the first says nothing.
+
+The baseline says which of the two the difference is. m2c's version scored
+93.422% with `blocks=18/18 instructions=101/102 predicates_match=True
+calls_match=True` and only `regs`/`insert`/`delete` left: topology and call
+targets already right, so the residual was source *shape*, not structure.
+Porting the sibling's exact source - its `flag = 1; actor->field_95E = flag;`
+constant-sharing trick, its `head`/`pos` split, its `-0x10($a1)` store form -
+plus the one extra call scored 100.000% on the first attempt.
+
+Port the source, not the asm, but re-score after conforming it to the host TU.
+The scratch idiom differs between sibling overlays and compiles the same either
+way: `actor_800100` writes `scratch = (void**)G_SCRATCH_HEAD;` from
+`main/mem.h`, while `actor_800200` and this overlay's own
+`func_actor_800300_80162D74` write `*(u8**)0x1F8003FC` directly. Rewriting the
+matching body into the local idiom reproduced the object byte for byte
+(`build.sh` reported "Reproduces base_1.c"), so the conformance is free - but
+it is a second build, and the `pos->vx` / `((VECTOR3*)(head - 0x10))->vx`
+choice between the two siblings is a codegen-relevant difference, not a
+stylistic one.
