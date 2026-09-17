@@ -118568,3 +118568,58 @@ unit's two `INCLUDE_RODATA` lines goes with it, as that section says.
 Inputs: `base_2.i` (100%) SHA256
 `e6c931027d397f8fa3bf4ea5961a9985bcfc6eaf1532e42b2d295bcd31a9e7b9`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## An unsigned narrowing into a local defers its `andi` to the use; mask in an `s32` local instead
+
+`func_neo_ark_power_plant_1_8017E524` dispatches on `arg0 & 0xFF`, and the
+target materialises the mask once, immediately after the argument is live:
+
+```
+lbu    v0,0x3(a1)
+andi   a0,a0,0xFF          /* a0 = arg0 & 0xFF, before the table walk */
+```
+
+The seed wrote the narrowing the obvious way, into an `u8` local:
+
+```c
+    u8  v;
+    ...
+    v = arg0;               /* 82.382%, penalties regs=7 branch=2 */
+```
+
+GCC keeps `v` as the *raw* argument and defers the zero-extension: a byte store
+does not need the mask, so only the comparisons pay for it, and they pay late.
+The object shows the whole consequence in one line each — a `move a1,a0` to
+preserve the untruncated value, the pointer chain displaced into `$a0`, the
+`andi a0,a1,0xFF` sunk to just before the first test, both stores reading the
+widened register:
+
+```
+move  a1,a0                    /* a1 = v (raw arg0) */
+lw    a0,%lo(Game_Session)(v0)
+...
+andi  a0,a1,0xff               /* late: only the compares need it */
+...
+sb    a1,0xc(v0)               /* and the stores use the raw value */
+```
+
+Giving the local the *wider* type and masking explicitly at the assignment
+forces a full SI definition there, and the two swaps disappear at once —
+82.382% → 100.000%, all penalties zero:
+
+```c
+    s32 v;
+    ...
+    v = arg0 & 0xFF;
+```
+
+Same rule as "A narrowing cast into a *wider* local materialises the
+sign-extend at the assignment", reached from the unsigned side and from a
+parameter rather than a call result. The tell is the pair: an `andi`/`sll`/`sra`
+that appears *after* the code that could have used it, and the value's source
+register still live in a second home. `func_mine_cavern_8017E3A0` and
+`func_dryfield_water_tank_8017EFF4` — the two matched siblings of this body —
+both spell it the wider way.
+
+Inputs: `base_1.c` (82.382%, `regs=7 branch=2`), `base_2.c` (100.000%).
+Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
