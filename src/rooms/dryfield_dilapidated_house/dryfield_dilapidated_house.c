@@ -5,12 +5,14 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/task.h"
 
+#include "rooms/dryfield_dilapidated_house.h"
 #include "rooms/room_common.h"
 
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
@@ -20,6 +22,10 @@ extern s16 D_8007107A;
 extern s8  D_80114C12;
 extern s16 D_80071076;
 extern s8  D_801153F1;
+extern u8  D_801156F9;
+
+extern RECT D_dryfield_dilapidated_house_80183E7C;
+extern RECT D_dryfield_dilapidated_house_80183E84;
 
 extern s32            D_dryfield_dilapidated_house_80189B6C;
 extern s32            D_dryfield_dilapidated_house_80183EFC;
@@ -33,7 +39,68 @@ extern GpAreaApplyRec D_dryfield_dilapidated_house_80189B24;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017DE88);
+/// The room's capture task, the body the actor family also carries as
+/// `func_actor_460200_80131E2C`: the whole image area is written into the
+/// display buffer strip by strip and then desaturated in place.
+///
+/// It is spawned from entry 0 of `D_dryfield_dilapidated_house_80183E64` with
+/// the `DdhCaptureArgs` block as its `spawnArg2`. State 0 seeds the countdown
+/// from the block's duration, picks the strip origin's y out of `Display_State`
+/// (`field_1f` non-zero selects 0, clear selects 0x110) and hands the twenty
+/// 0x1E00-byte strips of `Fs_ImgBuffers` to `StoreImage` -- or, while the buffer
+/// is being read back (`field_112` is negative), only the single flat
+/// `D_dryfield_dilapidated_house_80183E7C` rectangle -- and then marks the
+/// display busy in `field_104`. State 1 waits for the transfer with `DrawSync`
+/// and runs the desaturating invert. State 2 counts the duration down in
+/// `Task::killCountdown`, raises the block's `done` when it runs out, and on
+/// `done` releases `field_104` and kills the task.
+void func_dryfield_dilapidated_house_8017DE88(Task* task)
+{
+    DdhCaptureArgs* args;
+    s32             i;
+    u32*            strip;
+
+    args = task->spawnArg2;
+    if (D_801156F9 == 0) {
+        switch (task->state) {
+            case 0:
+                args->done          = 0;
+                task->killCountdown = args->duration;
+                if (Display_State.field_1f != 0) {
+                    D_dryfield_dilapidated_house_80183E84.y = 0;
+                } else {
+                    D_dryfield_dilapidated_house_80183E84.y = 0x110;
+                }
+                if (Display_State.field_112 < 0) {
+                    StoreImage(&D_dryfield_dilapidated_house_80183E7C, Fs_ImgBuffers->buffers[0]);
+                } else {
+                    strip = Fs_ImgBuffers->buffers[0];
+                    for (i = 0; i < 20; i++) {
+                        D_dryfield_dilapidated_house_80183E84.x = i * 16;
+                        StoreImage(&D_dryfield_dilapidated_house_80183E84, strip);
+                        strip += 1920;
+                    }
+                }
+                Display_State.field_104 = 1;
+                goto advance;
+            case 1:
+                DrawSync(0);
+                func_dryfield_dilapidated_house_8017E48C();
+            advance:
+                task->state++;
+                break;
+            case 2:
+                if (--task->killCountdown <= 0) {
+                    args->done = 1;
+                }
+                if (args->done != 0) {
+                    Task_Kill(task);
+                    Display_State.field_104 = 0;
+                }
+                break;
+        }
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D5C4);
 

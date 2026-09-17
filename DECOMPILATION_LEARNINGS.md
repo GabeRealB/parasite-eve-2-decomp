@@ -43998,6 +43998,48 @@ target schedules above the store. 99.773% on the scratch scorer, the residue
 being the `%hi(Mc_SaveData)` / `%lo(Mc_SaveData+4)` symbol pair; the unscoped
 `build-and-verify.sh` checksums.
 
+## A global shared with another family is a struct member: the scalar form costs the *schedule*
+
+The entry above reached the in-struct/scalar rule from a store that had to stop
+moving. This is the same mechanism from the other side, where the *load* of a
+foreign global is what the target keeps below the stores and the scalar form is
+what moves it.
+
+`func_dryfield_dilapidated_house_8017DE88` is the actor family's
+`func_actor_460200_80131E2C` under the room's symbols - same body, and the twin
+is already matched. Transcribed with the room's own bare `extern u8 D_80070F87;`
+it scores 92.990% with `branch=9 insert=1 delete=4`, and every one of those
+instructions is ~40 bytes away from the global: the switch dispatch is missing
+three `nop`s and has the constant and the case-0 `lui` pulled into the delay
+slots. Nothing at the access itself differs, so the penalties point at control
+flow that is not wrong.
+
+`-dS` (cc1's scheduler trace - `-da` writes plain RTL to `.sched`, so the trace
+needs its own run) gives the reason as one line of priorities:
+
+```
+;; insn[  38]: priority = 1, ref_count = 1      # ours: lbu of D_80070F87
+    (insn_list 34 (nil))                        # ... waits only on its lui
+;; insn[  33]: priority = 2, ref_count = 1      # twin: lbu of Display_State.field_1f
+    (insn_list 22 (insn_list 27 (insn_list 30 (nil))))   # ... and on both stores
+```
+
+`sched.c`'s `true_dependence` exempts an in-struct store at a *varying* address
+from conflicting with a non-in-struct reference at a fixed one, so the scalar
+load loses its two predecessors, `priority()` drops to 1, and sched1's ready
+list hoists it to the head of the block. Reading the same addresses as
+`Display_State.field_1f` / `field_104` / `field_112` - the struct the game
+declares for them, based at 0x80070F68, so the field offsets *are* the symbols
+0x80070F87 / 0x8007106C / 0x8007107A - keeps the dependence and is exact:
+99.343% on the scratch scorer, `regs=13`, instructions 99/99.
+
+That residue is the naming pair, not code: `%hi(Display_State)` +
+`%lo(Display_State+0x1f)` against the target's `%hi(D_80070F87)`, and
+`%lo(D_..._80183E84+2)` for the y store against splat's separate
+`D_..._80183E86` label. Both resolve to the same absolute addresses
+(`Display_State = 0x80070F68` is in `configs/USA/sym/rooms.imports.txt`) and the
+unscoped `build-and-verify.sh` checksums.
+
 ## Promoting a matched body into a family's shared library
 
 Moving a repeated body into `src/<family>/lib/` is not just "delete the

@@ -85,6 +85,19 @@ typedef struct DdhEffWork {
     /* 0x26 */ s16  field_26;
 } DdhEffWork;
 
+/// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
+/// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,
+/// whose first halfword it has just set to that call's argument and whose second
+/// is the flag the same function's cancel path raises. So the task spawned from
+/// entry 0 of `D_dryfield_dilapidated_house_80183E64` runs for `duration` frames
+/// and ends early once `func_dryfield_dilapidated_house_8017E9A4` is called with
+/// 0. Same layout the actor family's `Actor460200CaptureArgs` describes.
+typedef struct DdhCaptureArgs {
+    /* 0x0 */ u16 duration;
+    /* 0x2 */ s16 done;
+} DdhCaptureArgs;
+STATIC_ASSERT_SIZEOF(DdhCaptureArgs, 0x4);
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);
