@@ -4,6 +4,8 @@
 
 #include "actors/actor_323300.h"
 
+#include "gameplay/3CD8.h"
+
 #include "gameplay/gameplay.h"
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
@@ -49,7 +51,62 @@ void func_actor_323300_80161E78(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80161FE8);
+/// Per-frame runner for the `Actor323300Work` block: dispatches on
+/// `field_4FC` through the two-entry handler table it builds on the stack,
+/// walks the 18 animation slots and, while `field_500` is set, posts one of the
+/// two sound cues -- the pan/depth pair the session's `field_4` picks between
+/// is built twice so the two calls cross-jump into a shared `jal`. Then, unless
+/// `TmdObject::field_C` says the model is hidden, draws the ground shadow under
+/// coordinate 1, refreshes that coordinate's matrix and colour, and ticks the
+/// `field_502` countdown that frees the model's buffers when it reaches zero.
+void func_actor_323300_80161FE8(Task* arg0)
+{
+    TmdObject*       extra               = (TmdObject*)arg0->extra;
+    Actor323300Work* work                = (Actor323300Work*)arg0->idMap;
+    void             (*states[2])(Task*) = {
+        func_actor_323300_801626EC,
+        func_actor_323300_801626F4,
+    };
+    VECTOR vec;
+    s32    i;
+
+    states[(s16)work->field_4FC](arg0);
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+        if (work->field_500 != 0) {
+            if (work->slots[1].field_10 & 2) {
+                if (Game_Session->field_4 == 2) {
+                    SndEvt_EnqueueType6(0x52100006, 0, 0x28);
+                } else {
+                    SndEvt_EnqueueType6(0x52100006, 0, 0);
+                }
+            } else if (Game_Session->field_4D != 0) {
+                if (Game_Session->field_4 == 2) {
+                    SndEvt_EnqueueTypeA(0x52100006, 0, 0x28);
+                } else {
+                    SndEvt_EnqueueTypeA(0x52100006, 0, 0);
+                }
+            }
+        }
+    }
+    if (!(extra->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, (VECTOR3*)&vec) != 0) {
+            Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->field_8);
+        }
+        Gp_ClearRec18Occupied(&work->rec);
+        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
+        func_800D7A9C(extra, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_502 >= 0) {
+        if (work->field_502 == 0) {
+            Tmd_FreeBuffers(extra);
+        }
+        work->field_502--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162208);
 
@@ -78,7 +135,7 @@ void func_actor_323300_801626D0(Task* arg0)
     ext->field_20 = &work->color;
 }
 
-void func_actor_323300_801626EC(void)
+void func_actor_323300_801626EC(Task* arg0)
 {
 }
 

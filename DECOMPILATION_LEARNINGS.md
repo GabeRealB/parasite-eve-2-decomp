@@ -798,6 +798,41 @@ fold away — it is the second call site. The sibling handler tables in the acto
 family are written the same way (`func_actor_323000_80164C58`), so read the
 matched twin before restructuring one.
 
+The same diagnosis applies to the form where the arms assign a *local* and one
+call follows — and there the collapse is not jump.c's at all. `func_actor_323300_80161FE8`
+had
+
+```c
+if (Game_Session->field_4 == 2) {
+    depth = 0x28;
+} else {
+    depth = 0;
+}
+SndEvt_EnqueueTypeA(0x52100006, 0, depth);
+```
+
+93.3%, and its signature is a store in a *branch delay slot*: the else value
+becomes `move a2,zero` in the `bne`'s delay slot with the then value left as the
+fall-through's `li a2,0x28`, so the branch now targets the join directly and the
+block is three instructions short (`delete=5`). `.jump2` already shows the else
+assignment sitting in the *same block as the compare*, before it — the merge
+here is the ordinary if/else emission, not the post-reload cross-jump, so `.dbr`
+is not needed to see it. Writing the call out in both arms is again the fix, and
+this time the arms differ only in the literal third argument:
+
+```c
+if (Game_Session->field_4 == 2) {
+    SndEvt_EnqueueTypeA(0x52100006, 0, 0x28);
+} else {
+    SndEvt_EnqueueTypeA(0x52100006, 0, 0);
+}
+```
+
+100%. Note the sibling `Type6` call two lines above keeps its *two* `jal`s in
+the target — that pair is genuinely both in the source, so the presence of one
+shared `jal` in the target and two in the twin is the thing to read, not the
+similarity of the two `if`s.
+
 ## `li` + `slt` against a literal range means an inlined helper's parameter, not `x > C`
 
 `Actor00400_Fn06798` ends with the turn-toward-a-point idiom and compares the

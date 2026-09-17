@@ -159,6 +159,11 @@ extern void* D_actor_323300_80174A70[];
 
 void func_actor_323300_801626D0(Task* arg0);
 void func_actor_323300_8016269C(Task* arg0);
+/// The two-entry dispatch table `func_actor_323300_80161FE8` builds on its own
+/// stack: index 0 is the empty "hold" handler, index 1 the runner
+/// `func_actor_323300_801626F4` that re-dispatches on `field_4FE`.
+void func_actor_323300_801626EC(Task* arg0);
+void func_actor_323300_801626F4(Task* arg0);
 void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
