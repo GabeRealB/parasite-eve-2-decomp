@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actors_shared_801326f0.h"
+#include "actors/actors_shared_801343e8.h"
 #include "actors/actors_shared_801345fc.h"
 
 void Gp_ClearRec18Occupied(void*);
@@ -14,7 +15,6 @@ void ActorsShared801326f0_Fn32FD4(ActorShared801326f0*);
 void ActorsShared801326f0_Fn33370(ActorShared801326f0*);
 void ActorsShared801326f0_Fn336E8(ActorShared801326f0*);
 void ActorsShared801326f0_Fn33AB4(ActorShared801326f0*);
-void ActorsShared801326f0_Fn343E8(ActorShared801326f0*);
 void ActorsShared801326f0_Fn347E0(ActorShared801326f0*);
 void ActorsShared801326f0_Fn3537C(ActorShared801326f0*);
 
@@ -131,7 +131,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
             if (work->field_266 != 0) {
                 ActorsShared801326f0_Fn3537C(arg0);
             }
-            ActorsShared801326f0_Fn343E8(arg0);
+            ActorsShared801343e8((Task*)arg0);
             ret = 1;
             break;
         case 8:
