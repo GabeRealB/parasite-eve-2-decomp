@@ -118756,3 +118756,48 @@ alone, which is enough to fail the scorer while the ROM matches.
 Inputs: `base_1.c` (100.000%, all penalties zero), `base_3.c` (99.286%,
 `regs=6`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A switch's zeros belong in `default:`, not in an init before the switch - and the default code is inlined per tree leaf (dryfield_back_street, 2026-09-17)
+
+`func_dryfield_back_street_8017D5D0` is the warehouse ambience sibling
+(`func_dryfield_warehouse_8017D5E8`, "a switch's shared tail belongs after the
+switch") with one difference: the view it maps comes from `Gp_GetViewIndex()`
+instead of `Game_Session->field_4`, it also carries a stereo pan, and its two
+zeroes come from the `default:` case rather than from an assignment before the
+switch. Writing it the warehouse way - `vol = 0; pan = 0;` ahead of the
+`switch`, no `default:` - scores 85.98% with the two leaf fall-throughs emitting
+`lui %hi(global)`/`nop` where the target has a `move` pair.
+
+The tell is in the dispatch block: the warehouse emits `move $s0,$zero` in the
+`bnez` delay *before* the first comparison, because its init precedes the
+switch. Here the delay slot is a bare `nop` and no zeroing appears before the
+dispatch, so the zeros can only come from the default case:
+
+```c
+    switch (Gp_GetViewIndex()) {
+        case 3:
+            vol = 0x1E;
+            pan = 4;
+            break;
+        ...
+        default:
+            pan = 0;
+            vol = 0;
+            break;
+    }
+```
+
+With the `default:` present the decision-tree leaves fall through to a *copy* of
+the default code each - the tree's last block before the join is
+`move a1,zero` / `j` / `move s0,a1` on both the `v < 5` and the `v >= 5` side -
+rather than jumping to one shared block. Reaching 99.68% with that, the only
+leftover was the pair's order: `vol = 0` first gives `move s0,zero; move a1,s0`
+(CSE folds the second constant into the first register), and the target's
+`move a1,zero; move s0,a1` means the default assigns **pan** first. Flipping
+those two lines is the 100%.
+
+Inputs: `base_3.i` (100%) SHA256
+`b0c24cbb89d96d7207573c1ec1ee1716ddb912448ea92e972d16c9e18845f215`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_dryfield_back_street_8017D5D0-vacuum`.
