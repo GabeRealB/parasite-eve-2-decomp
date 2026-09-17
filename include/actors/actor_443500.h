@@ -63,4 +63,19 @@ extern void* D_actor_443500_80158724[];
 /// ticks them, latching `field_474`. Built by `actor_443500_2`.
 s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
 
+/// Message-0x7D5 handler: the four-way switch on `mode` over the `TmdObject`
+/// parked in `Task::extra`. `mode` drives `TmdObject::field_C`: bit 0x80 marks
+/// the actor hidden and bit 0x4 the display buffers being live.
+///
+///   mode 0  hide, drop 0x4
+///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
+///   mode 2  hide, latch `mode` in the work block's `field_4BC`, raise 0x4
+///   mode 3  show, raise 0x4
+///
+/// Any other mode returns 1; the four known ones return 0. Either way the
+/// resulting `field_C` is mirrored onto `Actor443500Work::field_4C0`, the slot
+/// the spawn handler seeds from the model's own flags. `anim` and `arg3` are
+/// unused -- the dispatch passes four arguments.
+s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3);
+
 #endif // ACTOR_443500_H

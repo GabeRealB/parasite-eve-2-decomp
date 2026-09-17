@@ -126094,3 +126094,49 @@ Strip each pick's `.md` half with `git restore --source=HEAD --staged --worktree
 commits stay code-only and keep the attempt counts `fit_difficulty_model.py`
 trains on. `actor_260400`'s landing: a wholesale copy would have reverted four
 includes and a paragraph trunk had added to `actor_110800.c`.
+
+### Two locals tie for one callee-saved register: the *declaration* order picks the winner (func_actor_443500_8013297C, 2026-09-17)
+
+`func_actor_443500_8013297C` is `ActorsShared80162bc4`'s four-way 0x7D5 switch
+with a work block instead of a second `TmdObject`. Taken straight from the
+matched sibling it scored 99.068%, `regs=11`, with everything else zero - the
+whole diff being that `work` and `ret` had swapped `$s1`/`$s2`:
+
+```
+- sw    s1,0x14(sp)   lw s2,0x1c(a0) ... sw a2,0x4bc(s2)   move v0,s1
++ sw    s2,0x18(sp)   lw s1,0x1c(a0) ... sw a2,0x4bc(s1)   move v0,s2
+```
+
+Both cross the mode-1 `Tmd_AllocBuffers` call (the trailing `field_4C0` mirror
+is reachable from it), so both need a `$s` register, and `.lreg` shows them
+*exactly* tied: `Register 85 used 3 times across 42 insns; crosses 1 call;
+pointer.` against `Register 86 used 3 times across 42 insns; crosses 1 call.`
+`allocno_compare` only divides `floor_log2(refs)*refs/live_length`, so equal
+ratios fall through to its last line, `return v1 - v2` - the lower **pseudo
+regno** is allocated first, and `find_reg` gives the first acceptable register
+in `reg_alloc_order`, so the lower pseudo takes `$s1`.
+
+**The pseudo regno comes from the declaration, not the statement.** Swapping
+the two assignments (`work = ...; ret = 0;` → `ret = 0; work = ...;`) produced a
+*byte-identical* object with the same numbers, because `expand_decl`
+(`stmt.c:3611`) runs `DECL_RTL (decl) = gen_reg_rtx (...)` for every
+non-addressable automatic variable as its declaration is reached. Reordering
+the *declarations* - `TmdObject* obj; s32 ret; Actor443500Work* work;` - numbers
+`ret` 85 and `work` 86 and lands 100.000%, with the statement order left exactly
+as the sibling writes it (`obj`, `work`, `ret = 0`).
+
+Symptom to recognise: a `regs`-only diff in which two locals that both cross a
+call sit in adjacent `$s` registers, and `.lreg` gives them the same
+`used N times across M insns` line. Check the `;; N regs to allocate:` line in
+`.greg` - it is printed in allocation order - then declare the one that must
+take the lower register first. A `register ... asm("")` pin is not needed and
+would not help: the tie is decided before any pin could apply.
+
+Inputs: scratch `nonmatchings/func_actor_443500_8013297C-vacuum`, `base_1.c`
+99.068% (`regs=11`), `base_2.c` same object (statement order), `base_3.c`
+100.000%, preprocessed base_1 SHA256
+`ac4da102e34470bfbdc9f6d5b0d889ce055ab475f0a8376ebdffff2550306087`, base_2
+SHA256 `f6670e81612b14e9a7c3dd4009cb9d33f2b1088fba34dbf1e7d53aa59b65e661`,
+base_3 SHA256
+`f8360fc83acb057763a1fc3c40acbc68e5637786878968b05fb61ecc3ea85af8`, compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
