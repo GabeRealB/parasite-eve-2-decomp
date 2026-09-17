@@ -122357,3 +122357,52 @@ struct's leading `///` block, or leave a field between them.
 file is already in the build's shape; run it after editing an overlay header
 rather than waiting for a build to disagree with you. Re-running the build twice
 and diffing `md5sum` is the slower equivalent.
+
+## Sibling `p->child->field` chains emit in the *reverse* of their statement order
+
+`func_actor_350700_80163840` is the `func_actor_335800_8016343C` body shape with
+one more child: a four-way switch over `TmdObject::field_C`, then a republish of
+the result onto the objects of the three child tasks at `field_4FC` / `field_500`
+/ `field_504`. The target emits the three child loads `0x4FC`, `0x504`, `0x500`:
+
+```
+lw    v0,0x4FC(a3)
+lw    v1,0x504(a3)
+lw    s4,0x2C(v0)
+lw    v0,0x500(a3)
+lw    s3,0x2C(v1)
+lw    s2,0x2C(v0)
+```
+
+Feeding that back as the statement order — which is what m2c does, and it is the
+natural thing to write — reproduces `0x4FC`, `0x500`, `0x504` instead. The score
+is 99.859% with `regs=2` and every other penalty zero: the instruction shapes,
+blocks, predicates and every register home are already right, and only the two
+address-loads have traded places.
+
+The three chains are the same length, so `rank_for_schedule`'s priority test
+ties and its `INSN_LUID` tie-break — statement order — decides. What the object
+shows for the last two is *reversed* relative to that order, both ways round:
+
+| statement order | object emits |
+|---|---|
+| `4FC, 504, 500` | `4FC, 500, 504` |
+| `4FC, 500, 504` | `4FC, 504, 500` |
+
+So writing the three statements in natural field order is what matches:
+
+```c
+    objA = work->field_4FC->extra;
+    objB = work->field_500->extra;   /* object emits 4FC, 504, 500 from this */
+    objC = work->field_504->extra;   /* order -- the tail two swap */
+```
+
+The matched sibling is the authority on which order is the source: it declares
+its two children `field_4FC` then `field_500`, in field order, and the extra
+child here is `field_504` between them, so field order is the order a copy of
+this body would be written in. This is the load-side twin of the m2c-store-order
+trap ("Related trap" in the aggregate-store entry above): for equal-length
+sibling chains the object dump's order is the schedule, not the source, and the
+fix is to permute the statements rather than transcribe the dump. The reversal
+is not explained by the LUID tie-break alone — treat the direction as something
+to test, not to derive.
