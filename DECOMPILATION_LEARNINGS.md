@@ -127025,3 +127025,21 @@ read's own register, as the target does (`andi v0,v0,0xffff`). Separately, an
 `s16 arg2` parameter (instead of `s32` with `(s16)arg2` casts) is what produced
 the target's entry copy of the argument into a call-clobbered register
 (`move t3,a2`), freeing `$a2` for a loop variable.
+
+### Projected screen coords as `long sxy[]`, a `k = i * 4` local, and `setUV4` order (func_actor_341300_80161E84, 2026-09-17)
+
+**Problem.** A loop draws two POLY_FT4s from `RotTransPers`/`RotTransPers3` into an
+8-entry screen-coord array, copies them into `s16 x[8]`/`y[8]`, then fills the prim.
+Three separate symptoms, each from a different source choice:
+
+- The copy loop read `lhu 0(p)` then `lh 2(p)`. `DVECTOR sxy[8]` gives `lhu` twice.
+  **Fix:** `long sxy[8]` (the PsyQ prototype's type) with `x[j] = sxy[j]; y[j] = sxy[j] >> 16;`.
+- `x[i*4]`/`y[i*4]` were strength-reduced to spilled pointer givs in the target
+  (stack 0x100 vs 0xF8); writing `i * 4` inline makes loop.c print `giv of insn N
+  not worth while, 124 vs 172`. **Fix:** `k = i * 4;` at the top of the body and
+  `k`, `k + 1`, `for (j = k; j < k + 4; j++)` everywhere (80% -> 94%). `j < i*4 + 4`
+  instead folds the pre-check to `li v0,1`; a separate `k += 4` biv is worse.
+- The UV constants were loaded early into `$a1`/`$v1` and stored late. Per-field
+  `u0 = u2 = 0x23` style assignments do not do it. **Fix:** `setUV4(prim, u0, v0, u1,
+  v1, u2, v2, u3, v3)` *before* `setRGB0`, then clut, then tpage (94% -> 100%);
+  `setRGB0` first scores 99.05%.
