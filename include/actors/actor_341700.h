@@ -65,12 +65,13 @@ typedef struct Actor341700Work {
     /* 0x438 */ s16              field_438;
     /* 0x43A */ byte             pad_43A[0x6];
     /* 0x440 */ s16              field_440;
-    /* 0x442 */ byte             pad_442[0x6];
+    /* 0x442 */ u16              field_442; // per-state frame counter
+    /* 0x444 */ byte             pad_444[0x4];
     /* 0x448 */ s16              field_448;
     /* 0x44A */ byte             pad_44A[0x5];
     /* 0x44F */ u8               field_44F;
     /* 0x450 */ byte             pad_450[0x1];
-    /* 0x451 */ s8               field_451;
+    /* 0x451 */ u8               field_451;
     /* 0x452 */ byte             pad_452[0x2];
 } Actor341700Work;
 STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
@@ -122,6 +123,14 @@ typedef union Actor341700Cmd {
     /* 0x0 */ u16                 halfs[2];
 } Actor341700Cmd;
 STATIC_ASSERT_SIZEOF(Actor341700Cmd, 0x4);
+
+/// Global render mode: 2 hides the model, 0 runs the state handler then
+/// colours it, 1 only colours it.
+extern u8 D_801153F4;
+
+/// Nine state handlers, indexed by `Actor341700Work::field_420`; copied onto the
+/// stack before dispatch, as the sibling `D_actor_342400_80161F50` is.
+extern TaskFuncTable9 D_actor_341700_80161F0C;
 
 /// `field_41C * arg1`, fixed point `<< 0xC >> 0x10` — the per-frame walk step
 /// the turning states add to the root coord through `rsin` / `rcos`.

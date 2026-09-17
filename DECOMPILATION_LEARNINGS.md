@@ -2881,6 +2881,20 @@ This is the load-width question in isolation. Where the same value is *also*
 stored back or fed to arithmetic, the signed and unsigned copies are both live
 and the pair is a different problem - see the `lh`+`lhu` section above.
 
+The rule is the same one width down: an `s8` flag tested only with `== 0` is
+still `lb`, and only the declaration makes it `lbu`. `func_actor_341700_80164CDC`
+is a port of the matched `func_actor_342400_80165FC0` and read 98.21%
+(`insert=1 delete=1`) purely because `Actor341700Work::field_451` was declared
+`s8` where the sibling's `Actor342400Work::field_451` is `u8`; widening it was
+the whole match (`base_1.c` 98.21%, preprocessed
+`ac559602b6ae5ce0dbc19aec9d51d20815011e6383c6de59df66805dc9db4bea`; `base_2.c`
+100%, preprocessed
+`77e323befd716fd7523bcbcc469d4d075d1be71f2763e4f6393d0f41445c2fd4`). Nothing
+else in the overlay contradicted the `s8`: the only other references to that
+field are `field_451 = 1` stores, which are `sb` either way. When a byte flag is
+read only to be tested, the target's `lb`/`lbu` is the only evidence of its
+signedness - a store elsewhere in the overlay is not counter-evidence.
+
 ## The same rule backwards: an equality compare that the target reads `lh` is `s16`
 
 The mirror of the `!= 0` rule above, with the same cause - GCC 2.8.1 emits the
