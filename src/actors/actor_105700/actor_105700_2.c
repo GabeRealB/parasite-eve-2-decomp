@@ -18,6 +18,7 @@
  * encodings this toolchain assembles correctly. */
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -926,7 +927,117 @@ void func_actor_105700_80134374(Actor105700* arg0)
     *(u8**)G_SCRATCH_HEAD += 0x40;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700_2", func_actor_105700_8013477C);
+extern s16 D_actor_105700_801491E8[][4];
+
+/// Draws the aim beam from `arg2` to `arg1` in eight projected steps. Each
+/// step nearer than OTZ 30 is skipped; otherwise the segment's screen normal
+/// (`VectorNormalS`) offsets the ends by a depth-scaled width into two
+/// semi-transparent red-to-black `POLY_G4`s (corner order from
+/// `D_actor_105700_801491E8`), a red `LINE_F2` core and a blend `DR_TPAGE`.
+void func_actor_105700_8013477C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2)
+{
+    Actor105700BeamScratch* s;
+    GsCOORDINATE2*          self;
+    POLY_G4*                poly;
+    LINE_F2*                line;
+    DR_TPAGE*               page;
+    s32                     i;
+    s32                     j;
+    s32                     depth;
+
+    s          = (Actor105700BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x48);
+    self       = arg0->field_2C->field_8;
+    s->step.vx = (arg1->vx - arg2->vx) / 8;
+    s->step.vy = (arg1->vy - arg2->vy) / 8;
+    s->step.vz = (arg1->vz - arg2->vz) / 8;
+    gte_SetRotMatrix(&self->workm);
+    gte_SetTransMatrix(&self->workm);
+    gte_ldv0(arg2);
+    gte_rtps_real();
+    gte_stsxy(&s->prev);
+    gte_stszotz(&s->prevZ);
+    for (i = 1; i < 8; i++) {
+        s->pt.vx = arg2->vx + s->step.vx * i;
+        s->pt.vy = arg2->vy + s->step.vy * i;
+        s->pt.vz = arg2->vz + s->step.vz * i;
+        gte_SetRotMatrix(&self->workm);
+        gte_SetTransMatrix(&self->workm);
+        gte_ldv0(&s->pt);
+        gte_rtps_real();
+        gte_stsxy(&s->cur);
+        gte_stszotz(&s->curZ);
+        depth = (s->prevZ + s->curZ) / 2;
+        if (depth < 30) {
+            s->prev  = s->cur;
+            s->prevZ = s->curZ;
+            continue;
+        }
+        s->vec.vz = 0;
+        s->xs[0]  = s->prev;
+        s->ys[0]  = s->prev >> 16;
+        s->xs[1]  = s->cur;
+        s->ys[1]  = s->cur >> 16;
+        s->vec.vx = s->xs[1] - s->xs[0];
+        s->vec.vy = s->ys[1] - s->ys[0];
+        VectorNormalS(&s->vec, &s->pt);
+        s->pt.vy *= -1;
+        s->xs[2]  = s->xs[0] + (-(s->pt.vy * 0x900) >> 12) / depth;
+        s->xs[3]  = s->xs[1] + (-(s->pt.vy * 0x900) >> 12) / depth;
+        s->xs[4]  = s->xs[0] + ((s->pt.vy * 9) >> 4) / depth;
+        s->ys[2]  = s->ys[0] + (-(s->pt.vx * 0x900) >> 12) / depth;
+        s->ys[3]  = s->ys[1] + (-(s->pt.vx * 0x900) >> 12) / depth;
+        s->ys[4]  = s->ys[0] + ((s->pt.vx * 9) >> 4) / depth;
+        s->ys[5]  = s->ys[1] + ((s->pt.vx * 9) >> 4) / depth;
+        s->xs[5]  = s->xs[1] + ((s->pt.vy * 9) >> 4) / depth;
+        for (j = 0; j < 2; j++) {
+            poly           = Gpu_PrimCursor;
+            Gpu_PrimCursor = (u8*)poly + sizeof(POLY_G4);
+            setPolyG4(poly);
+            setSemiTrans(poly, 1);
+            poly->x0 = s->xs[D_actor_105700_801491E8[j][0]];
+            poly->y0 = s->ys[D_actor_105700_801491E8[j][0]];
+            poly->x1 = s->xs[D_actor_105700_801491E8[j][1]];
+            poly->y1 = s->ys[D_actor_105700_801491E8[j][1]];
+            poly->x2 = s->xs[D_actor_105700_801491E8[j][2]];
+            poly->y2 = s->ys[D_actor_105700_801491E8[j][2]];
+            poly->x3 = s->xs[D_actor_105700_801491E8[j][3]];
+            poly->y3 = s->ys[D_actor_105700_801491E8[j][3]];
+            poly->r0 = 0xFF;
+            poly->g0 = 0;
+            poly->b0 = 0;
+            poly->r1 = 0xFF;
+            poly->g1 = 0;
+            poly->b1 = 0;
+            poly->r2 = 0;
+            poly->g2 = 0;
+            poly->b2 = 0;
+            poly->r3 = 0;
+            poly->g3 = 0;
+            poly->b3 = 0;
+            addPrim((u32*)((((u32)(depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), poly);
+        }
+        line           = Gpu_PrimCursor;
+        Gpu_PrimCursor = (u8*)line + sizeof(LINE_F2);
+        setLineF2(line);
+        setSemiTrans(line, 1);
+        line->x0 = s->prev;
+        line->y0 = s->prev >> 16;
+        line->x1 = s->cur;
+        line->y1 = s->cur >> 16;
+        line->r0 = 0xFF;
+        line->g0 = 0;
+        line->b0 = 0;
+        addPrim((u32*)((((u32)(depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), line);
+        page           = Gpu_PrimCursor;
+        Gpu_PrimCursor = (u8*)page + sizeof(DR_TPAGE);
+        setlen(page, 1);
+        page->code[0] = 0xE1000620;
+        addPrim((u32*)((((u32)(depth << Display_State.field_128) >> 2) & 0xFFC) + (u32)Gpu_CurrentOt), page);
+        s->prev  = s->cur;
+        s->prevZ = s->curZ;
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x48;
+}
 
 /// Places a fresh body block for the actor: allocates the 0xF0-byte work
 /// block, builds the root coordinate by rotating the local spawn offset through

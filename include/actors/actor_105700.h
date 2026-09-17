@@ -224,6 +224,24 @@ typedef struct Actor105700AimScratch {
 } Actor105700AimScratch;
 STATIC_ASSERT_SIZEOF(Actor105700AimScratch, 0x40);
 
+/// 0x48-byte scratch carved off `G_SCRATCH_HEAD` by
+/// `func_actor_105700_8013477C`: the beam is walked in eight steps from `vec`
+/// to `rot`, each step projected into `cur` (packed screen xy) and `curZ`
+/// (OTZ). `xs`/`ys` hold the two projected ends followed by the four
+/// offset corners the ribbon polygons are cut from.
+typedef struct Actor105700BeamScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR pt;
+    /* 0x18 */ SVECTOR step;
+    /* 0x20 */ s32     prev;
+    /* 0x24 */ s32     cur;
+    /* 0x28 */ s32     prevZ;
+    /* 0x2C */ s32     curZ;
+    /* 0x30 */ s16     xs[6];
+    /* 0x3C */ s16     ys[6];
+} Actor105700BeamScratch;
+STATIC_ASSERT_SIZEOF(Actor105700BeamScratch, 0x48);
+
 /// 0xF0-byte body block `func_actor_105700_80134FDC` parks at `Task::idMap`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`

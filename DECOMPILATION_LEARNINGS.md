@@ -114172,3 +114172,23 @@ Same function, for the overlay: its two tables sit in the first unit's leading
 rodata, so it needed `rodata_head = "0x4"` (dropping unit 1's `INCLUDE_RODATA` of
 the id), and the 7-entry second table's trailing zero word written after the
 function as `const s32 D_actor_105700_80131E68 = 0;`.
+
+### A loop-latch store the scheduler will not put before `i++`: duplicate the tail behind an early `continue` (func_actor_105700_8013477C, 2026-09-17)
+
+**Symptom.** A loop body ends `prev = cur; prevZ = curZ;` and the target latch is
+`lw v0,0x24; lw v1,0x2C; sw v0,0x20; addiu s2,s2,1; slti; bnez; sw v1,0x28`.
+With `if (depth >= 30) { draw } prev = cur; prevZ = curZ;` every build gave
+`addiu` *before* `sw v0,0x20` (99.888%, `reorder=1`); moving `i++` in the source,
+`do/while (++i < 8)`, swapping the two copies and the permuter all failed.
+
+**Cause (sched1 `.sched` trace).** `priority()` is the longest producer chain in
+the block: each store sits one load (cost 2) deep and gets priority 2, while
+`i++` has no in-block producer and stays at 1. Backward scheduling always takes
+both stores first, so forward `i++` always precedes them - no statement or luid
+order can change that.
+
+**Fix.** Write the skip as `if (depth < 30) { prev = cur; prevZ = curZ; continue; }`
+and keep the copies after the draw too. Cross-jumping merges the two tails after
+sched1, so the merged block's order comes from a different schedule and lands on
+the target exactly. When a single-block reorder is priority-locked, suspect a
+duplicated source tail rather than statement order.
