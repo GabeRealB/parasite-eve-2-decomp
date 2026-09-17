@@ -16,7 +16,10 @@ typedef struct Actor205200Obj2C {
 } Actor205200Obj2C;
 
 /// Work block this overlay hangs off `Actor205200.field_1C` (the task's
-/// `Task::idMap` slot, which is not a `TaskIdMap` here). The two display nodes
+/// `Task::idMap` slot, which is not a `TaskIdMap` here). The spawn handler
+/// `func_actor_205200_8014BAE8` allocates it and treats its head as the
+/// animation context (slots from +0x14), which is why the animation calls cast
+/// the block itself to `GpAnimCtx`. The two display nodes
 /// at +0x47C and +0x4E4 are the ones the exit callback
 /// `func_actor_205200_8014C924` hands back to `Gp_UnlinkObj`. `field_74` is the
 /// effect timer: `func_actor_205200_8014B9D4` only tests it, as the signed
@@ -37,15 +40,23 @@ typedef struct Actor205200Work {
     /* 0x02A */ byte           pad_2A[4];
     /* 0x02E */ s16            field_2E;
     /* 0x030 */ byte           pad_30[0x38];
-    /* 0x068 */ GpEffArg       field_68; // `func_800FDB18` argument record
+    /* 0x068 */ GpEffArg       field_68;         // `func_800FDB18` argument record
     /* 0x070 */ byte           pad_70[0x2];
-    /* 0x072 */ s16            field_72; // raised to 2 with `Task::state` when the parent's 0x7DB flag is set
-    /* 0x074 */ s16            field_74; // effect timer, reloaded every 0x40 ticks
-    /* 0x076 */ byte           pad_76[0x406];
+    /* 0x072 */ s16            field_72;         // raised to 2 with `Task::state` when the parent's 0x7DB flag is set
+    /* 0x074 */ s16            field_74;         // effect timer, reloaded every 0x40 ticks
+    /* 0x076 */ byte           pad_76[0x296];
+    /* 0x30C */ byte           field_30C[0x130]; // pose buffer `func_actor_205200_8014BAE8` hands `func_800B3F84`
+    /* 0x43C */ MATRIX         field_43C;        // color matrix, `TmdObject.field_20`
+    /* 0x45C */ MATRIX         field_45C;        // light matrix, `TmdObject.field_1C`
     /* 0x47C */ GpObj          field_47C;
-    /* 0x49C */ byte           pad_49C[0x48];
+    /* 0x49C */ GpRec18        field_49C[3];
     /* 0x4E4 */ GpObj          field_4E4;
-    /* 0x504 */ byte           pad_504[0x7A];
+    /* 0x504 */ GpRec18        field_504;
+    /* 0x51C */ byte           pad_51C[0x38];
+    /* 0x554 */ GsCOORDINATE2* field_554;
+    /* 0x558 */ s16            field_558;
+    /* 0x55A */ s16            field_55A;
+    /* 0x55C */ byte           pad_55C[0x22];
     /* 0x57E */ s16            field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
     /* 0x580 */ u16            field_580; // id the three helper slots last saw
     /* 0x582 */ u16            field_582; // frames spent on the current id
