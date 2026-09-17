@@ -127339,3 +127339,116 @@ Writing `arg0->field_1C->field_4D0` inline instead leaves the reload next to the
 
 Inputs: `base_1.c` 87.853% (stores first), `e1.c` 91.379% (`field_0` first),
 `f1.c` 95.674% (the reload as its own statement).
+
+## A `flag = 1` / `flag = 0` pair is folded by `jump`'s store-flag path, and where you put the two stores decides the register (func_actor_311500_80162C34, 2026-09-17)
+
+`case 2` ends
+
+```
+   lhu  v0,0x4C(s2)
+   andi v0,v0,1
+   bnez v0,DA4
+   li   v0,1          ; delay slot
+   move v0,zero
+DA4: andi v0,v0,0xFFFF
+   beqz v0,DC0
+```
+
+i.e. the explicit 1/0 flag survives. Writing it the natural way loses it:
+
+```c
+v = 1;
+if (!(anim2->field_4C & 1)) { asm(""); v = 0; }
+if (v) { ... }
+```
+
+`jump.c`'s store-flag transformation (`emit_store_flag` for `x = a; if (c) x = b;`)
+fires even with `BRANCH_COST == 1` (the PSX CPU is not R4000/R6000): its first
+alternative only needs `STORE_FLAG_VALUE == 1` (MIPS) *and* `exact_log2 (a) >= 0`,
+i.e. a power-of-two initial value such as `1`, plus `b == 0`. It then rebuilds
+the flag from the comparison and the two `li`/`move` disappear (98.4% with the
+fold, and the `v0` the bit test used is gone with it).
+
+Two ways to keep it: an empty `asm("")` in the `if` body (the insn after the
+branch is then no longer a `SET`, so `temp = next_nonnote_insn (insn)` fails),
+as the sibling `func_actor_311500_80162F28` does; or the same thing as an
+if/else. The if/else is strictly better for allocation:
+
+```c
+if (!(anim2->field_4C & 1)) { asm(""); v = 0; } else { v = 1; }
+if (v) { ... }
+```
+
+Both assignments then sit *after* the branch, so the flag is born after the
+bit-test temporary dies. With the `v = 1` before the branch the flag conflicts
+with `$v0` (`.greg`: `;; 85 conflicts: 81 85 2 29`) and lands in `$v1`; with the
+if/else it takes `$v0` and the tail matches byte for byte. That was the
+difference between 99.575% and 99.717% on the same function.
+
+## Frame arithmetic reads as evidence: `var_size` vs `args_size` tells you whether a hidden local exists (func_actor_311500_80162C34, 2026-09-17)
+
+`compute_frame_size` (mips.c) sums `MIPS_STACK_ALIGN (var_size) +
+MIPS_STACK_ALIGN (current_function_outgoing_args_size) + MIPS_STACK_ALIGN
+(saved gp regs)`. Here the target's frame is 0x30 and m2c's is 0x28 with the
+same five saved registers, and the calls take 2 and 3 arguments — so
+`args_size` is 16 in both and the 8 bytes are `var_size`: a local the code never
+touches. Adding one unused 8-byte aggregate reproduced the target frame exactly
+and took the function from 79.0% to 93.2%. The same arithmetic in the siblings
+(`func_actor_311500_801629D8` 0x38, `func_actor_311500_80163334` 0x38) is
+*outgoing args* instead: their `sw $v0,0x10($sp)` is the 5th argument slot.
+Check which term moves before inventing a local.
+
+## Two pointers where the source has one: `global.c` priority decides `$s1` vs `$s2` (func_actor_311500_80162C34, 2026-09-17)
+
+Three quantities want a call-saved register here: `work` (the actor's work
+block), and the slot pointer each of case 0's re-arm loop and case 2's tick
+loop walks. `allocno_compare` ranks them by
+`floor_log2 (n_refs) * n_refs / live_length`, and `find_reg` hands the
+lowest-numbered free register to the first one processed. One `anim` variable
+assigned in both arms is a single pseudo with 9 refs / 27 insns = 1.0 against
+`work`'s 4*18/82 = 0.878, so it takes `$s1` and `work` is pushed to `$s2` — the
+mirror of the target. The sibling's idiom fixes it:
+
+```c
+case 0:  ... anim  = arg0->field_1C;  /* reload, 6 refs / 35 insns */  ...
+case 2:  ... anim2 = work;            /* copy,   3 refs /  9 insns */  ...
+```
+
+0.34 and 0.33 lose to `work`, so `work` takes `$s1` and the two short-lived
+pseudos share `$s2` (their live ranges are disjoint), which is exactly the
+target's `lw $s2,0x1C(a2)` in case 0 and `addu $s2,$s1,$zero` in case 2.
+
+## `arr[i]` and `base + i` are different operand orders in the final `addu` (func_actor_311500_80162C34, 2026-09-17)
+
+The target's loop recomputes `i * 0x28` and adds it with the base first —
+`addu $v0,$s2,$v0` — while `((Actor311500AnimStride*)anim)[i & 0xFFFF].field_1D
+= 0x20;` expands to `(plus (accum) (base))` and gives `addu $v0,$v0,$s2`: one
+instruction off, everything else identical. Naming the element restores the
+tree's `(plus base scaled_index)`:
+
+```c
+stride = (Actor311500AnimStride*)anim + (i & 0xFFFF);
+stride->field_1D = 0x20;
+```
+
+99.717% -> 99.811%, no other change to the object. When one `addu` in an
+otherwise matching loop is transposed, look at the address expression's shape
+before the scheduler.
+
+## A subexpression hoisted into its own local moves `sched2`/`dbr`'s choices for the whole block (func_actor_311500_80162C34, 2026-09-17)
+
+Case 0 advances `Gp_LcgState` and then tests its high half. Writing
+`} else if (((u32)Gp_LcgState >> 16) & 1) {` leaves the shift inside the arm
+and the block schedules badly: `sw $v0,Gp_LcgState` is pushed into the `bnez`'s
+delay slot and `srl $v0,$v0,0x10` falls into the bit-test block, against a
+target that keeps the store before the `slti` and puts the `srl` in the delay
+slot (`branch=3 reorder=2`). Giving the high half its own statement —
+
+```c
+rng = (u32)Gp_LcgState >> 16;
+if (work->field_4C8 >= 2) { ... } else if (rng & 1) { ... } ...
+```
+
+— drops both penalties to 0 and takes 98.434% to 99.575%. The permuter found
+it; the mechanism is that the shift is no longer confined to the arm's block,
+so the store keeps its place and `dbr` has a thread candidate for the slot.
