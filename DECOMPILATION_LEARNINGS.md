@@ -8596,6 +8596,31 @@ was the one manifest key plus deleting the id's `INCLUDE_RODATA` line, and no
 against the sum of the `.s` runs before adding a pad word - `4 + 0xC + 0x14 +
 0x18 + 0x10 + 0x14 = 0x60`, exactly `0x64 - 0x4`.
 
+**`rodata_head` is not limited to the id word - it takes the whole assembly run
+ahead of the table.** `neo_ark_submarine_gallery`'s
+`func_neo_ark_submarine_gallery_8017E86C` scored 100.00% with all-zero penalties
+and failed only its own overlay, which came out 8 bytes longer than the package.
+Its table sits at `0x64`, behind *two* rodata runs that live in the same unit's
+`.c`: the 0x54-byte header blob and the 0x10-byte `D_..._8017D614` pointer
+table. So the value is `rodata_head = "0x64"`, not `"0x4"` - everything ahead of
+the table has to leave the unit before the section base is far enough along for
+the `.align 3` to go quiet. That table was also the `4 mod 8` case the same
+entry describes: with the base at `0x0` GCC padded 4 bytes ahead of it, which
+pushed `D_..._8017D63C` from `0x7C` to `0x80` and then cost a *second* 4 bytes
+at `jtbl_..._8017D648`, whose `.align 3` no longer found its `0x88`. Only the
+first pad is real; the second vanishes with it.
+
+The re-split moves both `INCLUDE_RODATA` symbols into the header's new
+`asm/<ver>/<family>/data/<overlay>_hdr.rodata.s`, and splat does not rewrite a
+`.c` that exists, so those two lines have to be deleted by hand - otherwise the
+section opens with a second copy of the header. That was the whole hand-edit: no
+`src/` file was deleted, no `units` cut was needed (the table keeps the object
+of the unit that owns it), and the generator's `c` subsegments are untouched, so
+nothing renumbers. Matching the reference run's shape against the sum of
+`.s` runs still pays: `0x54 + 0x10 = 0x64`, and `0x64 + 0x18 + 0xC + 0x18 =
+0xA0`, exactly where unit `_2`'s cut sits - no explicit pad word, before or
+after the table.
+
 **Renumbering units with `git mv` leaves ninja building the old objects.**
 `git mv` preserves mtime, so after `_2..._7` become `_4..._9` every renamed file
 is *older* than the `.o` ninja built from the file that used to have its name,
