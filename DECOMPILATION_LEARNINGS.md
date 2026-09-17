@@ -115696,3 +115696,52 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_mine_refuge_8017FA08-vacuum`.
+## A `lui` in a branch delay slot is not a call argument: m2c invents the parameter from a split address (func_dryfield_warehouse_8017DA58, 2026-09-17)
+
+The seed for this room message handler declared `M2C_UNK Gp_SpawnWeaponEff(u8 *)`
+and called it as `Gp_SpawnWeaponEff(&D_80073BA9)`. The callee takes no arguments
+at all (`s32 Gp_SpawnWeaponEff(void)`, `include/gameplay/3FB8.h`), and the
+argument was read out of this target shape:
+
+```
+beqz   $v0, .L8017DAE0
+  lui    $a0, %hi(D_80073BA9)   /* delay slot */
+jal    Gp_SpawnWeaponEff
+  nop
+sh     $zero, 0xC($s0)
+jal    Gp_MsgPlayerWeapon
+  addu   $a0, $zero, $zero
+lui    $a0, %hi(D_80073BA9)     /* the fallthrough copy */
+.L8017DAE0:
+lbu    $a0, %lo(D_80073BA9)($a0)
+```
+
+The two `lui $a0` halves are one address, and it belongs to the *load* three
+insns later: `%lo(D_80073BA9)` is folded into the load's displacement, so the
+base register only ever needs the high half. The join block has two
+predecessors, and the call between them clobbers `$a0`, so sched2 needs a copy
+of the `lui` in each tail - one filling the `beqz` delay slot, one on the
+fallthrough. m2c read the first as the call's argument.
+
+Symptom: the object diff carries an extra `addiu $a0,$a0,%lo(D_80073BA9)` in the
+call's delay slot where the target has `nop`, and one `insert`. Everything else
+- topology, predicates, call targets, the record stores - already read as
+matching, so it looks like an allocation or a scheduling leftover. Dropping the
+argument was not the whole 100% here (the frame and the `s16` parameter were
+also wrong), but it was the only source of the `addiu`.
+
+The tell is that the annotated `%hi` has no `%lo` partner of its own: search
+forward for `%lo(X)($r)` naming the same register. When a `lui`-only address
+setup sits before a call, the address is usually the base of a later load, not a
+pointer argument - m2c's prototype is a guess from the body, so check the
+callee's real header before writing the call.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `147320d11de672b465a674f6a414d5572490735c244350d18ee813a8eea4c122`,
+base_1.i `e3af7ab9c9ea935327e769ae46d7369ee13bb59d04a98a82172ba851c2c41120`,
+base_2.i `fb1332303792ee8c20a477f4729eece9817d8be49b3c2751334437d4886a28fb`.
+Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017DA58-vacuum/`,
+`base_1_diff` (the lone `lh`/`lhu` line) and `base_2.score.json`; no pins, no
+permuter, no tracer. The record-payload and ternary halves of this function are
+sections 25 and 28 above, and were already documented. `overlay_dup_index.py
+find` reports the body as its own only copy.
