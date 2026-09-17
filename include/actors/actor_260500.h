@@ -19,7 +19,11 @@ typedef struct Actor260500Work {
     /* 0x47E */ byte pad_47E[0x2];
     /* 0x480 */ s16  field_480; // animation id the reset is seeded with, latched from the preset's `field_4`
     /* 0x482 */ s16  field_482; // cleared before the reset is handed to `func_actor_260500_8014A110`
-    /* 0x484 */ byte pad_484[0x34];
+    /* 0x484 */ byte pad_484[0x2A];
+    /* 0x4AE */ s16  field_4AE; // yaw the model is turned to face the target
+    /* 0x4B0 */ byte pad_4B0[0x2];
+    /* 0x4B2 */ s16  field_4B2; // planar distance over the step count below
+    /* 0x4B4 */ byte pad_4B4[0x4];
 } Actor260500Work;
 STATIC_ASSERT_SIZEOF(Actor260500Work, 0x4B8);
 
