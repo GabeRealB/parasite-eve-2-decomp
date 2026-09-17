@@ -122926,3 +122926,62 @@ Inputs: scratch `nonmatchings/func_actor_113100_801328EC-vacuum`, `base.c`
 100.000% (`a2f2e103a7145db75e3d764375540fa3b2355a161405358b92bc0ec617b8e644`,
 preprocessed `5414d536d8423c61ed8b862534f11243921512130c3b726931e8f60e80df47da`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A shared tail m2c renders as `goto block_N` sits *inside the first arm*; repeat the statement in every arm and jump2 folds it behind the last one (func_actor_341300_80163028, 2026-09-17)
+
+**Symptom:** 87.3%, `branch=4 regs=14 insert=5 delete=6`. All three arms store
+the same field, and retail shares the store — one `sw` reached by case 0's and
+case 1's `j` while case 2 falls into it:
+
+```
+case 0:  lw v0,0x30(s1) / sh zero,0x2a(s1) / j .L…A4 / addiu v0,v0,1
+case 2:  lw v0,0x30(s1) / nop / addiu v0,v0,-1        (falls through)
+.L…A4:   sw v0,0x30(s1)
+```
+
+The seed also shares one `sw`, but its block sits *between case 0 and case 1*
+and every arm jumps to it, so every branch offset after it moves.
+
+**Cause:** m2c expresses the shared tail as `var = …; goto block_11;` with
+`block_11:` written inside case 0's body, and GCC emits a labeled block where
+the label stands. Cross jumping cannot help — there is one store in the RTL, not
+three, so `find_cross_jump` has nothing to fold and the block keeps case 0's
+position.
+
+**Fix:** give each arm its own store (`arg0->state = arg0->state + 1;` in case 0
+and case 1, `- 1` in case 2) and let jump2 fold them: `find_cross_jump`
+(`jump.c`, the `simplejump_p` path, `minimum = 1`) matches the trailing `sw`
+against the code before the switch's exit label, redirects case 0's and case 1's
+jumps to a new label placed immediately before case 2's store, and case 2 falls
+through it. 100.000%, all penalties zero on the second build. Same pass as the
+`goto`-to-a-shared-call entry above, one level down: there the fold *creates* the
+label retail has, here it *moves* it. Check for a shared-tail `block_N` label
+inside the first arm whenever the arms' branch offsets are all shifted but the
+instruction multiset matches.
+
+## `(s16)count % 3` on an incremented `u16` load: the cast belongs on the local, not on the sum m2c hands you (func_actor_341300_80163028, 2026-09-17)
+
+m2c rendered the modulo test as `((temp_v0 + 1) % 3) << 0x10` — the operand is
+the zero-extended `u16` plus one, so the codegen is `andi a0,v0,0xffff;
+addu a0,a0,1; mult a0,<magic>; sra v1,a0,0x1f` and the magic constant lands in
+whatever register is free. Retail sign-extends the incremented value *before*
+the multiply — `sll v1,v0,0x10; sra a0,v1,0x10; mult a0,a1; sra v1,v1,0x1f` —
+with the magic in `$a1`. Spelling it as the matched twin in the same TU does,
+
+```c
+    count               = (u16)arg0->killCountdown + 1;
+    arg0->killCountdown = count;
+    if ((s16)count % 3 == 0) {
+```
+
+gives the retail sequence exactly (`func_actor_341300_80163A10` uses the same
+`u16 count` / `(s16)count` pair for its `>= 0x10` test). Note the two casts do
+different jobs: `(u16)` on the `s16` field forces the zero-extending `lhu` (the
+field alone would load `lh`), and `(s16)` on the stored local emits the
+`sll`/`sra` that the signed `%` needs. When a twin in the same TU already
+matches the same field idiom, copy its casts rather than re-deriving them.
+
+Inputs: `base_1.i` (100.000%) SHA256
+`3890a6b708eabc1a2928eaa1801f571d8e99b09ab6ea281b226db28747502ca0`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run (matched on the second build). Scratch
+`nonmatchings/func_actor_341300_80163028-vacuum`.
