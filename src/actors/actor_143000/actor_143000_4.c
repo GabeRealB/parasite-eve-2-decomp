@@ -4,6 +4,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -18,11 +19,15 @@ extern GpAreaApplyRec   D_80186488;
 extern GpAreaApplyRec   D_8018649C;
 extern char             D_actor_143000_80131EB0[];
 extern char             D_actor_143000_80131EBC[];
+extern s32              D_actor_143000_80135124;
+extern s32              D_actor_143000_8013514C;
+extern u8               D_actor_143000_801351AC;
 extern s32              D_actor_143000_801351B0;
 extern s32              D_actor_143000_80135870;
 extern s32              D_actor_143000_80135A20;
 extern s32              D_actor_143000_80135AE0;
 extern Actor143000Spawn D_actor_143000_80135C08;
+extern s32              D_actor_143000_80135C10;
 extern s32              D_actor_143000_80135C14;
 extern s32              D_actor_143000_80135C18;
 extern s32              D_actor_143000_80135C1C;
@@ -184,7 +189,34 @@ void func_actor_143000_80133EE4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_4", func_actor_143000_801342F8);
+void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active)
+{
+    POLY_F4* prim;
+
+    if (y < 0x59) {
+        if (active != 0) {
+            if ((codes[index] & 0xF000) == 0x3000) {
+                Gp_PlayerWeaponId(&D_actor_143000_80135124);
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_actor_143000_80135124, 0);
+                D_actor_143000_801351AC = 1;
+            }
+            if (codes[index] == 0xFFFE && D_actor_143000_801351AC == 1) {
+                D_actor_143000_801351AC = 0;
+                Gp_PlayerWeaponId(&D_actor_143000_8013514C);
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_actor_143000_8013514C, 0);
+            }
+        }
+        prim           = (POLY_F4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+        setPolyF4(prim);
+        setRGB0(prim, 0, 0x7C, 0x2C);
+        setXY4(prim, x + 4, y - 15, x + 19, y - 15, x + 4, y, x + 19, y);
+        if (D_actor_143000_80135C10 & 4) {
+            addPrim(&Gpu_CurrentOt[2], prim);
+        }
+        D_actor_143000_80135C10++;
+    }
+}
 
 void func_actor_143000_801344A8(s32 arg0)
 {
