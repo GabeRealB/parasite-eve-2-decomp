@@ -55,6 +55,20 @@ STATIC_ASSERT_SIZEOF(DnmlCapScript, 0x18);
 
 extern DnmlCapScript D_dryfield_night_motel_lobby_801844E0;
 
+/// The lobby's hotspot table: fifteen `RoomHotspot` entries, the last of them
+/// (index 14) the `id == -1` terminator the scans stop on. The room's init
+/// clears every entry's `hit` flag on the way in.
+extern RoomHotspot D_dryfield_night_motel_lobby_80182820[];
+
+/// The seven digits of the lobby keypad code as entered so far, oldest first
+/// and most recent at index 6; `0xA` marks a slot the player has not filled.
+/// The room's init resets all seven to `0xA`,
+/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in (its own
+/// count of digits entered is bounded by 7) and
+/// `func_dryfield_night_motel_lobby_80180734` tests the filled slots against
+/// the code. The datum's eighth byte is padding before the cap script.
+extern u8 D_dryfield_night_motel_lobby_801844D8[7];
+
 /// The lobby's eleven-entry task state table, in the room's leading rodata.
 /// The dispatcher below copies it onto the stack, so the handler runs from the
 /// copy rather than from here.
@@ -74,6 +88,12 @@ void func_dryfield_night_motel_lobby_80180D58(Task* task);
 /// Draws the examine cursor over the room's hotspot table and, on a confirm,
 /// raises the phase flag cap slot 9 waits on.
 void func_dryfield_night_motel_lobby_801802A8(Task* task);
+
+/// Task callback of the descriptor at `D_dryfield_night_motel_lobby_80182814`:
+/// allocates the examine work at `Task::idMap`, spawns the examine child task,
+/// bumps the state once and resets the room's per-visit state -- the hotspot
+/// hits, the keypad digits and three session flags.
+void func_dryfield_night_motel_lobby_80180E98(Task* task);
 
 /// Message handler for the lobby's `arg2 == 3` event: on the first visit it
 /// latches the visit flag and starts the scene, otherwise it fills in the cap

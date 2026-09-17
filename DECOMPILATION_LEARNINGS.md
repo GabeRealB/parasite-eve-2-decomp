@@ -114831,3 +114831,58 @@ by `beqz $v0` turned up `func_actor_403100_8013AC04`, whose C is
 `if ((completed = finished != 0))`. That function's dumps show the three-insn
 RTL the fold eats, and name the mechanism. Reach for the matched corpus before
 guessing at a one-instruction shape like this.
+
+### A preheader constant emitted before the loop's own init is a source variable, not a hoisted literal; and a descending fill wants a pointer local (func_dryfield_night_motel_lobby_80180E98, 2026-09-17)
+
+**Symptom.** A seven-byte descending fill, `for (i = 6; i >= 0; i--) arr[i] = 0xA;`,
+came out with the preheader in the wrong order:
+
+```
+li    v1,6              # i = 6
+lui   v0,%hi(arr)
+addiu v0,v0,%lo(arr)
+addu  v0,v0,v1          # the address
+li    a0,0xA            # the fill value, last
+```
+
+where the target has the same five instructions with `li a0,0xA` first, and the
+address built as `addu v0,v0,v1` from the counter rather than folded into the
+symbol as `%lo(arr+6)`.
+
+**Two independent causes.**
+
+* *The constant's slot.* `move_movables` takes a loop-invariant
+  `(set (reg) (const_int))` out of the body with
+  `emit_insn_before (..., loop_start)`, and `strength_reduce` emits the IV inits
+  at that same anchor afterwards, so a hoisted constant always lands *last*
+  among the preheader's setup insns. Nothing written inside the loop moves it.
+  sched1 does not either: when every preheader insn sits at priority 1 (a
+  constant feeding a single store is the usual case) its ready list plays the
+  RTL order back unchanged. Assigning the value to a local *before* the loop
+  puts the `(set (reg) (const))` in the source's own preheader, ahead of the
+  counter init, and the whole run comes out in the target's order.
+
+* *The address.* `arr[i] = 0xA` on its own leaves the giv unreduced: `.loop`
+  reports `giv of insn 120 not worth while, 0 vs 7` and the body rebuilds
+  `base + i` every iteration. A pointer local built from the index
+  (`p = &arr[i];`) is a biv of its own, so the address is computed once and
+  decremented in step with the counter -- the target's `addu v0,v0,v1` /
+  `addiu v0,v0,-1` pair.
+
+Both are needed here, and the subscript must be the index: `&arr[6]` folds into
+the symbol and the walk changes again (see "A lone `p = base + const` is never
+strength-reduced").
+
+```c
+empty = 0xA;
+i = 6;
+p = &arr[i];
+for (; i >= 0; i--) {
+    *p-- = empty;
+}
+```
+
+**Reading it back.** When the target materialises an invariant constant *before*
+the loop's counter/IV setup, the original held it in a variable, not as a
+literal in the loop body. `./insn.py <uid>` shows which pass created the
+constant's insn: a uid born at `.loop` is a `move_movables` hoist.
