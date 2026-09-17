@@ -123664,3 +123664,92 @@ Inputs: scratch `nonmatchings/func_actor_105300_80132BAC-vacuum`. `base.c` (m2c)
 the original's, not an artefact. Ported as struct field access: `base_land.c`
 (the natural local) 95.109%, `base_land2.c` (re-derived) 100.000%, which is what
 `src/actors/actor_105300/actor_105300.c` now holds.
+
+## An intermediate pointer local keeps the table address out of the block: indexing inline lets CSE hand it the target's registers (func_actor_105300_8013222C, 2026-09-17)
+
+The body walks two 4-byte clip tables and every instruction of both lookups
+matched except the two registers: the ROM has the address base in `$v0` and the
+scaled index in `$v1`,
+
+```
+lui    v0,%hi(D_actor_105300_8013D3E0)
+lh     v1,0x328(s2)
+addiu  v0,v0,%lo(D_actor_105300_8013D3E0)
+sll    v1,v1,0x2
+addu   v1,v1,v0
+```
+
+while the natural C — one `Actor05300Clip* clip;` declared at the top of the
+function and assigned in both `switch` arms — put the index in `$v0` and the
+base in `$v1`, 99.236% with `regs=22`. Declaring the pointer once makes it a
+*user variable*: one quantity born at the declaration, alive across both arms,
+so the address is a global pseudo the block's own allocation cannot decide. The
+lookup's address is then not a block-local quantity and `local-alloc`'s
+priority order (`QTY_CMP_PRI`, shortest life first — `CODEGEN_MODEL.md` §10)
+never gets to place it.
+
+Reading the table at each use site instead — no pointer at all, the same
+subscript written twice — lets `cse` give each block one address temp, and the
+two lookups then allocate exactly as the ROM does. 100.000%, all penalties
+zero. The scale and the terminator flag stay in the target's order because
+`cse` still merges the two subscript expressions into that one temp.
+
+```c
+    scale = D_actor_105300_8013D3E0[(s16)work->field_328].field_2;
+    if (D_actor_105300_8013D3E0[(s16)work->field_328].field_0 != 0) {
+```
+
+The rewrite is worth trying whenever a table lookup differs from the ROM only
+in which of the address base and the index took `$v0`: re-deriving the
+expression is free here, because the compiler folds it back into one address.
+
+## Assigning the LCG straight to the global keeps the chain in one register, a `rnd` local does not (func_actor_105300_8013222C, 2026-09-17)
+
+Both LCG sites of the body compute `(Gp_LcgState * 5) + 0x71357911` and read its
+high half. Written as a local,
+
+```c
+    rnd             = (Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState     = rnd;
+    work->field_32A = ((rnd >> 16) & 0x3F) + 0x1E;
+```
+
+the ROM's in-place chain came out one register wider — `sll $v0,$v1,2`,
+`addu $v0,$v0,$v1`, `addu $v1,$v0,$a1` — so the shift and the store read a
+second home and the schedule around them moved with it (99.236% → the pair
+cost `regs=22`). Writing the idiom as the already-matched `actor_201200` bodies
+do, straight into the global and read back,
+
+```c
+    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+```
+
+makes the final add write the register its dying input held (`addu $v0,$v0,$a1`)
+and both sites match. `rnd` is declared at the top of the function, so its
+pseudo exists from the declaration and cannot tie at that insn; the destination
+of the direct form is a fresh temp born there, which is the same tie rule the
+"one local assigned twice" entry above describes. Reach for the direct form
+whenever the ROM's LCG chain stays in one register.
+
+Inputs: scratch `nonmatchings/func_actor_105300_8013222C-vacuum`. `base.c` (m2c)
+70.639% (`stack=1 branch=7 regs=64 reorder=15 insert=13 delete=17`); `base_1.c`
+typed tables (4-byte rows, not m2c's `s32` scalars, which scaled every index by
+16) 79.250%; `base_2.c` `u32 rnd` for the `srl` and the sound id into a local
+before `Gp_GetObjPan` 95.312%; `base_3.c` the `field_32A` test inverted so the
+table path is the then-block (`bgtz` to an out-of-line decrement) 97.535%;
+`base_4.c` the LCG direct-global form 99.236%; `base_5.c` symbol-first pointer
+arithmetic for the address — identical assembly, no new search result;
+`base_6.c` the pointer dropped, 100.000% SHA256
+`5e17e0e1abe14c88c3e7f5c36c148550449b9c9af89245d21c423746ae615d18`, which is
+what `src/actors/actor_105300/actor_105300.c` now holds. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+`overlay_dup_index.py find` reports the body twice — `actor_105400` carries a
+byte-identical copy at the same link offset — but `promote` refuses it: the
+tables it reads are overlay-local (`D_actor_105300_8013D3E0`), and unlike
+`ActorsShared80133610Table` they do *not* sit at the same address in the two
+carriers (`0x8013D3E0` / `0x8013D3EC` / `0x8013D3BC` / `0x8013D3C4` against
+`0x8013CE84` / `0x8013CE90` / `0x8013CE5C`). Sharing the body needs those four
+names to become shared symbols emitted at each carrier's own address, which is
+the mechanism `promote`'s docstring records as missing.
