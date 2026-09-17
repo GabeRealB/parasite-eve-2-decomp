@@ -714,6 +714,20 @@ Inputs: `base.i` (two parameters, `s16` mode, 59.655%)
 `a72dcad9025ff92a43941dca8ab3a172e2b470db9c0610bfcbc43b7a359704a8`,
 `base_1.i` (four parameters, 100.000%)
 `717145565dd4d7766d5e952b32178b2e52a1b38b0ee490932d51acd941599514`.
+The undercount is not a low-score phenomenon, and the tell above is easy to skip
+when it arrives clean: the same dropped parameter in
+`func_actor_120500_80132A04` scored **99.259%** with `regs=4` and every other
+penalty zero, and the entire object differed from the target at four comparison
+operands (`beq $a1,$v0` / `slti $v0,$a1,0x2` / `beqz $a1,…` / `bne $a1,$v0,…`
+where the target reads `$a2`). A single-penalty `regs` leftover that close to
+100% is cheaper to rule out by counting the parameter list against the argument
+registers the body actually reads than to diagnose in `.lreg` - here one
+inserted parameter was the whole function.
+
+Inputs: `base.i` (two parameters, 99.259%)
+`cf73a7fb68894e91ef7fd7bbbbce895466c56ce116c0a0248eb1605c518dc879`,
+`base_1.i` (three parameters, 100.000%)
+`4e34bad5ee52d1179b3fc15d1577f9949ba9f623cfa0c20517d3c06056a6c621`.
 
 ## One `jr ra` shared by every arm is one `return` statement, not one per arm
 
