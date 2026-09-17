@@ -63,12 +63,6 @@ STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
 
 void func_actor_311900_8016278C(Task* task);
 
-/// Takes `arg1` as a signed 16-bit step, builds a direction vector from
-/// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
-/// `VectorNormalSS`, adds it to `arg0->coord.t` and clears `arg0->flg`.
-/// Returns the step, or 0 having touched nothing while the game is paused
-/// (`D_80072729 == 1`) or when the step is zero. `arg0` is the per-part
-/// `GsCOORDINATE2` the caller takes from `TmdObject::field_8`.
-void func_actor_311900_80162658(GsCOORDINATE2* arg0, s32 arg1);
+s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1);
 
 #endif

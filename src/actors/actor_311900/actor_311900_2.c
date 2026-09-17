@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "actors/actor_311900.h"
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
@@ -16,6 +18,12 @@ void func_actor_311900_80162100(Task* task);
 /// The animation data `func_800B3F84` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_311900_8016EBF4[];
+
+/// Non-zero while the game is paused, which freezes the per-frame step below.
+extern u8 D_80072729;
+
+/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// The `ActorsShared80135df4Table` spawn handler -- the actor's second setup
 /// path, reached through the three-entry table whose tick is
@@ -73,7 +81,47 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
     func_actor_311900_80162100(task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_311900/actor_311900_2", func_actor_311900_80162658);
+/// Takes `arg1` as a signed 16-bit step, builds a direction vector from
+/// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
+/// `VectorNormalSS`, scales it by the step on the GTE, adds it to
+/// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
+/// touched nothing while the game is paused (`D_80072729 == 1`) or when the
+/// step is zero. `arg0` is the per-part `GsCOORDINATE2` the caller takes from
+/// `TmdObject::field_8`.
+///
+/// The scratch-pad vector is carved out under two names: `vec`, which the
+/// frame update stores and the calls normalize, and `gte`, which the GTE round
+/// trip reads and writes back. The object keeps them apart, and that is what
+/// the copy ahead of the `if` is.
+s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gte;
+
+    if (D_80072729 == 1) {
+        return 0;
+    }
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 1;
+    gte                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    if (arg1 != 0) {
+        SOFT_TOUCH_REG(vec);
+        Gfx_MatrixCol2(&arg0->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(arg1);
+        gte_ldsv(gte);
+        gte_gpf12_real();
+        gte_stsv(gte);
+        arg0->coord.t[0] += head[-1].vx;
+        arg0->coord.t[1] += vec->vy;
+        arg0->coord.t[2] += vec->vz;
+        arg0->flg         = 0;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    return arg1;
+}
 
 /// Splats an identity light / colour matrix pair into the work block the spawn
 /// state carved out of `Task::idMap`, republishes both onto the

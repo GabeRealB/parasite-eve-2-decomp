@@ -122500,3 +122500,88 @@ rotation that followed from it.
 `overlay_dup_index.py promote` refuses this one, and the refusal is the useful
 answer: both carriers reference their own overlay's data, so there is no single
 object to share - land it in the overlay `ASM:` names and leave the twin alone.
+
+## A narrow parameter signs its extension on the incoming `$aN`; widening it plus a cast signs the promoted copy instead
+
+`func_actor_311900_80162658` reads its step twice: as a 16-bit test and return
+value, and as the raw word `gte_lddp` loads into `IR0` *after* two calls that
+would have clobbered `$a1`. The ROM spends two registers on it:
+
+```
+sll   v0,a1,16        /* the extension reads the incoming argument */
+sra   s5,v0,16
+...
+mtc2  s6,$8           /* the raw word, from a call-crossing promoted copy */
+```
+
+m2c's reading — `s32 arg1` with `(s16)arg1` casts — gets the promoted copy right
+and the extension wrong: both uses are then one `reg:SI` pseudo, which the
+call-crossing `mtc2` already forces into `$s6`, so the extension reads `$s6`
+too (`sll v0,s6,16`). That single instruction was the whole difference
+(99.935%, `regs=1`, everything else byte-identical).
+
+Declaring the parameter `s16 arg1` splits them, because the narrow parameter is
+not itself call-crossing — only the promoted copy the asm operand needs is:
+
+```c
+s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)   /* 100% */
+```
+
+The pre-reload RTL already differs. With `s16` the extension is
+`(ashift:SI (subreg:SI (reg/v:HI P) 0) 16)` and the asm operand is
+`(reg/v:HI P)` — the same narrow parameter, which GCC extends off the incoming
+register. With `s32` plus a cast the extension is `(ashift:SI (reg/v:SI P) 16)`
+with the same `P` as the asm operand, so the register chosen for the
+call-crossing use is the one it extends.
+
+So when the target signs its extension on `$aN` while an asm operand or a
+post-call use reads a callee-saved register holding the same value, reach for
+the narrow parameter type before any pin: `s16`/`u8` parameters carry their own
+promoted copy, `s32` plus casts do not. (`-W` is off, and the caller is
+unaffected: passing a literal like `0x24` emits the same `addiu` — but check
+callers that pass a *variable*, since the widening changes their code.)
+
+Inputs: `base_3.i` (100.000%)
+`be5278e5193cd52ff818635b5237aa3bc916208d33285a231401b2a906f08936`;
+`base_2.i` (99.935%)
+`6a79fd929317a1e0f3b8a9eaf621f04447f11b675ba08d4f5a10c289b4ce34d9`.
+
+## The scratch vector's second name is a re-derived expression, and cse makes the copy
+
+The "step forward" idiom every actor family carries — scratch vector off
+`G_SCRATCH_HEAD`, `Gfx_MatrixCol2` + `VectorNormalSS`, `gpf 12`, store back,
+add into `coord.t` — is one variable in the inline copies
+(`Actor201200_StepForward` and friends). `func_actor_311900_80162658` is the
+standalone version and keeps the pointer in *two* registers, `$s0` for the
+frame update and `$s3` for the GTE round trip, joined by a copy at the
+definition:
+
+```
+lw    s4,0(s2)        /* head */
+addiu s0,s4,-8        /* vec = head - 1 */
+move  s3,s0           /* the second name */
+```
+
+`SOFT_TOUCH_REG(vec)` does not produce it — its `.lreg` entry is a self-set,
+`(set (reg/v:SI 83) (asm_operands ("") ("=r") 0 [(reg/v:SI 83)] ...))` — and no
+`"+r"` operand can: `expand_asm_operands` copies `output_rtx[j]` straight into
+the argvec, so input and output are one rtx and there is nothing to copy. What
+does produce it is writing the address expression a second time:
+
+```c
+head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+vec                        = head - 1;
+gte                        = head - 1;   /* cse -> move s3,s0 */
+*(SVECTOR**)G_SCRATCH_HEAD = vec;
+```
+
+Both definitions are `(set (reg) (plus (reg 82) (const_int -8)))` in the
+initial RTL; by the `.addressof` dump the second has become
+`(set (reg/v:SI 84) (reg/v:SI 83))`, and the register allocator keeps it
+because the first value is still live (the store and both call arguments use
+`vec`). The GTE operands then read the copy. Same lever as "A CSE copy names
+the *second* read": the second read is what gets the copy, so put the name the
+GTE round trip uses *second*.
+
+Inputs: `base_2.i` (99.935%)
+`6a79fd929317a1e0f3b8a9eaf621f04447f11b675ba08d4f5a10c289b4ce34d9`.
