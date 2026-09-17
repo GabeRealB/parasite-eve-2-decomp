@@ -90976,6 +90976,29 @@ per block, and the function is 100%. Reach for per-arm declarations whenever the
 target shows a value in a different register per arm; reach for the shared
 function-scope form only when the target shows one register across them.
 
+**A tied chain inherits its destination's range, so a long-lived destination
+lifts the whole chain to a higher register.** `func_neo_ark_bridge_8017E954`
+(rooms, 2026-09-17) rolls the LCG twice in one arm:
+
+```c
+    rndSpawn    = Gp_LcgState * 5 + 0x71357911;
+    Gp_LcgState = rndSpawn;
+    Gp_SpawnEff(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200, &D_...F60);
+```
+
+`block_alloc` tries to tie operand 0 of each insn to a later operand that dies
+there, so the `sll`/`addu` chain and `rndSpawn` become one quantity whose range
+runs to the *last* use of `rndSpawn` - past the `lui`/`ori` pairs that
+materialise the call arguments into `$v0`, `$a0` and `$a1`. `find_free_reg`
+scans `$v0` upward excluding every register live anywhere inside that range, so
+the whole chain lands in `$a2` (retail: `sll $a2,$v1,2; addu $a2,$a2,$v1;
+addu $a2,$a2,$s0`). Sharing one `rnd2` between the arm's two rolls gives it two
+deaths; `global_alloc` places it and `combine_regs` refuses the tie into a
+pseudo whose `reg_qty` is -1 (`reg_qty[sreg] >= -1`), leaving a short chain that
+scans free and takes `$v0` for its two steps: `sll $v0,$v1,2; addu $v0,$v0,$v1;
+addu $a2,$v0,$s0`, `regs=8`, 99.633%. One declaration per roll - same
+expression, same order - fixed it.
+
 ## A stray `move sX, vY` after a pointer load means the derived field was read first (Actor00400_Fn04E18, 2026-09-16)
 
 **Problem.** The target opened with an extra copy that no obvious C could produce:
