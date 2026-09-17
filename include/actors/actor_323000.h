@@ -40,6 +40,33 @@ typedef struct Actor323000Work {
     /* 0x91E */ u8 field_91E;
 } Actor323000Work;
 
+/// Animation view of the same work block, as `func_actor_323000_8016331C`
+/// reads it: the pose context at 0x1C and its blend twin at 0x420, each
+/// followed by 0x28-byte `GpAnimSlot`s, plus the weight and the two clip-id
+/// bytes the loop copies into them. The pads stand in for the rest of the
+/// block -- a slot array cannot span the fields `Actor323000Work` names at
+/// 0x828..0x830, and 0x420 is not a whole number of slots past 0x30. The clip
+/// ids are bytes here where `Actor323000Work.field_832` is the halfword
+/// `func_actor_323000_80164C58` writes.
+typedef struct Actor323000AnimWork {
+    /* 0x000 */ byte       pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[25];
+    /* 0x418 */ byte       pad_418[8];
+    /* 0x420 */ GpAnimCtx  blendAnim;
+    /* 0x434 */ GpAnimSlot blendSlots[25];
+    /* 0x81C */ byte       pad_81C[0x16];
+    /// Clip id the primary slots are seeded from, three behind the one they
+    /// play.
+    /* 0x832 */ u8   field_832;
+    /* 0x833 */ byte pad_833[7];
+    /// Clip id the blend slots are seeded from as it stands.
+    /* 0x83A */ u8   field_83A;
+    /* 0x83B */ byte pad_83B;
+    /// Blend weight written into the two pose-context copies.
+    /* 0x83C */ s16 field_83C;
+} Actor323000AnimWork;
+
 /// Payload of message 0x7DB, the handler table `D_actor_323000_801739D0`
 /// carries for this overlay. `code` is the sub-command the handler selects on
 /// (0x202 here) and `mode` its variation; the sender writes both as words, and
@@ -76,5 +103,12 @@ void func_actor_323000_80164C58(GpEnemy* enemy, Task* task);
 /// restart state 0, and 3 keeps state `mode` as it stands. Every other code
 /// only stores the bytes. Reached as `fns[code](task, arg1, msg, arg3)`.
 s32 func_actor_323000_80164A54(Task* task, s32 arg1, Actor323000Msg* msg, s32 arg3);
+
+/// Blends pose slots 1..0x11: the first eleven copy the two clip-id bytes into
+/// their slot records and are written from both animation contexts with
+/// `0x1000 - field_83C` as the blend weight, the rest only tick. Same body as
+/// `func_actor_356100_801633DC` / `func_actor_421600_80133B30` with this
+/// overlay's slot count and a blend weight read from the work block.
+void func_actor_323000_8016331C(Task* task);
 
 #endif
