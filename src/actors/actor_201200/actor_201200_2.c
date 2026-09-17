@@ -16,7 +16,7 @@ extern u32     Gp_LcgState;
 
 void Gp_ArmStateF0(s32 active);
 s16  func_actor_201200_80149F50(GsCOORDINATE2* coord, GpRec18* rec, s32 n, SVECTOR* d);
-void func_actor_201200_8014A49C(GsCOORDINATE2* coord, GpRec18* rec, s32 n);
+s32  func_actor_201200_8014A49C(GsCOORDINATE2* coord, GpRec18* rec, s32 n);
 void func_actor_201200_8014A640(Actor201200* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1);

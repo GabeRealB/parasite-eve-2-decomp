@@ -50,9 +50,10 @@ typedef struct Actor201200Work {
     /* 0x300 */ GpObj      obj300;
     /* 0x320 */ byte       pad_320[0x18];
     /* 0x338 */ GpObj      obj338;
-    /* 0x358 */ SVECTOR    origin;        // model position at spawn
-    /* 0x360 */ SVECTOR    patrol[2];     // spawn position plus (0) / minus (1) 1000 units along the facing (XZ)
-    /* 0x370 */ byte       pad_370[4];
+    /* 0x358 */ SVECTOR    origin;    // model position at spawn
+    /* 0x360 */ SVECTOR    patrol[2]; // spawn position plus (0) / minus (1) 1000 units along the facing (XZ)
+    /* 0x370 */ s16        patrolIdx;
+    /* 0x372 */ byte       pad_372[2];
     /* 0x374 */ MATRIX     lightMtx;      // installed at `TmdObject.field_1C`
     /* 0x394 */ MATRIX     colorMtx;
     /* 0x3B4 */ MATRIX     savedColorMtx; // colorMtx as it was on entering the death state
