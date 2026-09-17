@@ -122873,3 +122873,56 @@ Inputs: scratch `nonmatchings/func_actor_113100_80132790-vacuum`, `base_1.c`
 `base_4.c` 100.000%
 (`6af09fb4fb1931a6df32358aa91d24a9a12c22af521f17c3edf9887ce03e1541`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Porting a twin across families: the arm the twin has and the target does not is a codegen change, not just a semantic one (func_actor_113100_801328EC, 2026-09-17)
+
+The 0x7DD placement handler is the 0x7D3 handler `func_actor_113100_801331E8`
+written out inline against a stack preset, and the brief's `calls` tier reaches
+its cross-family twin `func_actor_141000_801336DC` at 1.00 -- the same body for
+actor_141000. Porting it is mechanical except that its `anim == NULL` arm is one
+branch longer:
+
+```c
+} else {
+    if (w->field_4C8 != 0) {   /* absent in 113100 */
+        preset.field_4 = 2;
+    } else {
+        preset.field_4 = 0xA;
+    }
+    w->field_477 = 1;
+}
+```
+
+Dropping that inner if/else is not only a semantic trim. Both the twin and the
+target load `1` once at the top for the flag store and then store `1` again into
+the id byte, but only the target shares one register between the two:
+
+```asm
+/* 113100 target */            /* 141000 twin */
+addiu $a1,$zero,0x1            addiu $v0,$zero,0x1
+sh    $a1,0x530($v1)           sh    $v0,0x4C0($v1)
+...                            ...
+sb    $a1,0x477($v1)           addiu $v0,$zero,0x1     <- rematerialised
+                               sb    $v0,0x43F($v1)
+```
+
+That is the same cse path the note on `func_actor_141000_801336DC` describes
+from the other side: a branch between the two stores ends cse's skip-block
+walk, so the constant cannot be carried across and is rematerialised. Keeping
+the twin's branch to "preserve the shape", or adding a temp to force a fresh
+`li`, breaks it in both directions. Port the *target's* control flow and then
+re-read the stores the removed branch sat between.
+
+The payload type is worth re-deriving rather than copying, too.
+`Actor113100Placement` is the same 0x18 `VECTOR pos` / `SVECTOR rot` record as
+`Actor141000Placement`, but its destination is three loose `u16` words at
+0x528/0x52A/0x52C rather than the twin's `u16 field_4B8/4BA/4BC`: declare the
+halves `u16` and write the plain member assignment. The `lhu` that comes out is
+the default HImode load (see "A halfword field read through a pointer expands to
+`lhu` + `ashl`/`ashr`"), not evidence that the source halves are unsigned.
+
+Inputs: scratch `nonmatchings/func_actor_113100_801328EC-vacuum`, `base.c`
+76.341% (`stack=7 branch=8 regs=51 reorder=4 insert=9 delete=15`), `base_1.c`
+100.000% (`a2f2e103a7145db75e3d764375540fa3b2355a161405358b92bc0ec617b8e644`,
+preprocessed `5414d536d8423c61ed8b862534f11243921512130c3b726931e8f60e80df47da`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
