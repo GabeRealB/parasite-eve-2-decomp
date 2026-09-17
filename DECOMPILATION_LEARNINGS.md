@@ -114268,3 +114268,9 @@ actor_215100 = { rodata_head = "0x4", units = ["0x578"], rodata = [{ start = "0x
 The cut renumbers every later unit, so rename `_2`→`_3` and so on, fix their
 `INCLUDE_ASM` paths, and move the bodies after the cut into the new `_2.c`.
 Before committing, count `bodies_of()` across the files to make sure none were lost.
+
+### A `sltu` result copied through a callee-saved home and back into `$v0` means a narrow flag local (func_actor_136100_80133904, 2026-09-17)
+
+**Symptom.** Target computes a flag as `sltu $v0,$zero,$v0; addu $s1,$v0,$zero; addu $v0,$s1,$zero`, and every earlier branch into the join carries `addu $v0,$s1,$zero` in its delay slot. With `s32 ready = 0; ... ready = D != 0; if (ready == 0 || ...)` GCC fuses the `sltu` straight into `$s1` and tests `$s1`, losing both copies (93.5%, branch=12). An inline helper returning the flag, or an extra `ok = ready;` copy, is copy-propagated away and changes nothing; `u8` adds masking.
+
+**Fix.** Declare the flag `s16`. The HImode store keeps the SImode `sltu` in its own pseudo and the SImode test reads it back through a copy, which is exactly the three-insn shape; dbr then steals the join's copy into each delay slot. Matched at 100% with no other change.

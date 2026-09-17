@@ -12,7 +12,9 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
+extern u8    D_80071075;
 extern s8    D_8007218A;
+extern u8    D_80073BAC;
 extern u8    D_80073BA9;
 extern s32   D_actor_136100_8013F1A0;
 extern s32   D_actor_136100_8013F1D4;
@@ -24,7 +26,16 @@ extern s32   D_actor_136100_8013F3AC;
 extern s32   D_actor_136100_8013F40C;
 extern s32   D_actor_136100_8013F424;
 extern s32   D_actor_136100_8013F43C;
+extern s32   D_actor_136100_8013F94C;
+extern s32   D_actor_136100_8013FAE4;
+extern s32   D_actor_136100_8013FC64;
+extern s32   D_actor_136100_801402C4;
+extern s32   D_actor_136100_801404EC;
+extern s32   D_actor_136100_8014063C;
 extern Task* D_actor_136100_8014078C;
+extern s8    D_80114C12;
+
+void func_actor_136100_80134A18(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131EC4);
 
@@ -305,7 +316,56 @@ void func_actor_136100_8013379C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133904);
+/// Cue handler: when the pending `Gp_TakePendingObj4C` event is a positive
+/// id 5 (and `D_80073BAC` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
+/// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
+/// the first hit (`func_800E8634`, advancing `field_4DC`) or its repeat cue after.
+/// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
+/// home and the join copy into `$v0` disappears.
+s32 func_actor_136100_80133904(Task* task)
+{
+    Actor136100Work* work = (Actor136100Work*)task->idMap;
+    u16              evtId;
+    u8               evtKind;
+    u8               evtSub;
+    s16              ready;
+
+    ready = 0;
+    if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
+        if (!((s16)evtId & 0x8000)) {
+            if ((evtId & 0x7FFF) == 5) {
+                ready = D_80073BAC != 0;
+            }
+        }
+    }
+    if (ready == 0 || D_80114C12 == 1) {
+        return 0;
+    }
+    if (D_80071075 != 0) {
+        return 0;
+    }
+    if ((s8)evtKind == 0x12 && work->field_4E4 == 0) {
+        func_actor_136100_80134A18(task);
+        if (work->field_4DC == 0) {
+            func_800E8634((s32)&D_actor_136100_8013F94C, 0, (s32)&D_actor_136100_8013FAE4);
+            work->field_4DC++;
+        } else {
+            func_800E8614((s32)&D_actor_136100_8013FC64, 0);
+        }
+        return 1;
+    }
+    if ((s8)evtKind == 0x13 && work->field_4E4 == 1) {
+        func_actor_136100_80134A18(task);
+        if (work->field_4DC == 0) {
+            func_800E8634((s32)&D_actor_136100_801402C4, 0, (s32)&D_actor_136100_801404EC);
+            work->field_4DC++;
+        } else {
+            func_800E8614((s32)&D_actor_136100_8014063C, 0);
+        }
+        return 1;
+    }
+    return 0;
+}
 
 /// First tick of the cutscene actor: allocates the 0x4F0-byte
 /// `Actor136100Work` block, zeroes it and parks it in `Task::idMap`, then wires
