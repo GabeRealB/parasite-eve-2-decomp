@@ -4,6 +4,7 @@
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -16,7 +17,11 @@
 extern s16 D_80071076;
 extern u8  D_801153F4;
 extern s32 D_8017A99C;
+extern s8  D_actor_450900_80135E70;
 extern s32 D_actor_450900_80135E74;
+extern s32 D_actor_450900_80135F00;
+extern s32 D_actor_450900_80135F24;
+extern s32 D_actor_450900_801360B4;
 extern s32 D_actor_450900_80136470;
 extern s32 D_actor_450900_80136680;
 extern s32 D_actor_450900_80136890;
@@ -37,7 +42,68 @@ extern Task* D_actor_450900_80136C9C;
 /// walked past the trigger line.
 extern TaskDesc D_actor_450900_80135E78;
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80131E38);
+/// State handler that runs the save-point capture. State 0 spawns the capture
+/// task `func_actor_450900_80132548` into `D_actor_450900_80136C9C`; state 1
+/// waits for `D_8017A99C`, the AI tick counter, to pass 0x30C with save data in
+/// the slot, then arms the flag `func_actor_450900_80132518` toggles and, on
+/// every 210th tick, plays the ally's voice cue at its own pan and depth and
+/// posts the `0x3F7` / `0x3E8` / `0x3F9` messages to the slot-0xA task; 0x3C
+/// ticks later it posts `0x3E8` alone, with the capture-indicator animation.
+/// The one-shot `D_actor_450900_80135E74` retires the handler after one pass.
+void func_actor_450900_80131E38(Task* task)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
+    s32            t;
+    s8             pan;
+    s8             depth;
+    void*          slot;
+
+    slot  = Game_GetPtrSlot(0xA);
+    state = task->state;
+    switch (state) {
+        case 0:
+            D_actor_450900_80135E70 = 0;
+            D_actor_450900_80136C9C = Task_SpawnFromTable(&D_actor_450900_80135E78, 5, 0, 0);
+            task->state             = task->state + 1;
+            break;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            if (Game_Session->field_1 != 0) {
+                break;
+            }
+            if (D_801153F4 != 0) {
+                break;
+            }
+            if (Mc_SaveData.field_23 != 0xB) {
+                D_8017A99C = D_8017A99C + 1;
+            }
+            t = D_8017A99C - 0x30C;
+            if (D_actor_450900_80135E74 == 0 && (s16)Mc_SaveData.field_6C8 > 0 && t >= 0) {
+                D_actor_450900_80135E70 = state;
+                if (t % 210 == 0) {
+                    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
+                    if (rand() & 1) {
+                        SndEvt_EnqueueType6(0x55170005, pan, depth);
+                    } else {
+                        SndEvt_EnqueueType6(0x55170006, pan, depth);
+                    }
+                    Gp_AllyAnimId(&D_actor_450900_80135F24);
+                    Gp_DispatchMsg(slot, 0x3F7, &D_actor_450900_80135F00, 0);
+                    Gp_DispatchMsg(slot, 0x3E8, &D_actor_450900_80135F24, 0);
+                    Gp_DispatchMsg(slot, 0x3F9, (s32*)0x40010, 0);
+                } else if (t % 210 == 0x3C) {
+                    Gp_AllyAnimId(&D_actor_450900_801360B4);
+                    Gp_DispatchMsg(slot, 0x3E8, &D_actor_450900_801360B4, 0);
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_8013207C);
 

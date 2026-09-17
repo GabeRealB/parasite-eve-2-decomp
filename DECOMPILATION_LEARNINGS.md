@@ -124955,3 +124955,51 @@ up even when the load and its call are in different blocks.
 
 Inputs: `base_2.c` 94.141%, `base_1.c` 100.000%; `base_2_object_dump.s` of the
 former.
+
+## A `%` written in the comparison leaves `expand_divmod` no destination, so the quotient stops sharing the remainder's pseudo
+
+`func_actor_450900_80131E38` (145 insns) keeps a signed constant remainder in
+`$v1`, its quotient in `$v0`, and the dividend `D_8017A99C - 0x30C` in `$a0`
+across both. Assigning the modulo to a local first -
+
+```c
+rem = t % 210;
+if (rem == 0) { ... } else if (rem == 0x3C) { ... }
+```
+
+- scores 99.538% with `regs=13`. `expmed.c:2816` keeps `tquotient = target`
+when the requested destination is a register the dividend does not mention
+(the rejection test is `expmed.c:2760-2772`), so the quotient and the
+remainder are one allocno: `.lreg` reports r84 "used 6 times across 7 insns;
+dies in 2 places", the quotient at UID 165 and the remainder at UID 176. One
+allocno, one home. `;; 84 conflicts:` lists pseudos 83 84 87 and hard regs
+`$v0 $v1 $sp`, so both scratch registers are excluded by the block-local
+division temps and the lowest-numbered candidate left is `$a0`; the dividend
+(r83, 6 refs / 20 insns) is then placed in `$a1`.
+
+Writing the same modulo in the comparisons passes `target == 0`, so
+`tquotient = gen_reg_rtx (compute_mode)` and the remainder is a fresh pseudo:
+
+```c
+if (t % 210 == 0) { ... } else if (t % 210 == 0x3C) { ... }
+```
+
+The remainder is now 3 refs / 4 insns conflicting only with `$v0`, so it takes
+`$v1` (register 3, below `$a0`'s 4) and leaves `$a0` for the dividend - the
+target exactly, 100.000% with every penalty zero and no pins. `cse` folds the
+second `%` into the first, so the single `mult`/`mfhi` sequence in the ROM does
+not mean the source had one modulo expression: both variants have one, and the
+`.lreg` `mult:DI` count is identical.
+
+Symptom to recognise: a `regs`-only diff in which one home serves the quotient
+and the remainder while a scratch register is free for the remainder. The
+corpus' `Actor05500_Fn02FFC` entry separates the two lifetimes from the other
+side (`q = x / 10; r = x - q * 10;`); this is the spelling to try when the
+comparison is the modulo's only consumer.
+
+Inputs: scratch `nonmatchings/func_actor_450900_80131E38-vacuum`, `base_2.c`
+99.538% (`regs=13`), `base_3.c` 100.000%, preprocessed base_2 SHA256
+`fd96dc8d592e2dcc0ad39bfaa4e126b70bb13f6c684c24a5095e4a5b36de6466`, base_3
+SHA256 `30f4e6e2cbde1adb2f31d908cc1e25b33aeb6d8fedca89ab162c7e5e7eaaee00`,
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
