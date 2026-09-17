@@ -122048,3 +122048,15 @@ Inputs: `base_1.i` (100.000%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the first candidate). Scratch
 `nonmatchings/func_actor_161500_8013252C-vacuum`.
+
+## A constant-zero store through a pointer local does not collapse to `sp` form (func_actor_323000_8016420C, 2026-09-17)
+
+With `SVECTOR* p = &ofs;` the target stored nonzero `vz`/`vy` as `sh $s2, 4($s0)`
+but zero `vz` as `sh $zero, 0x1C($sp)`, while `vx` (offset 0) was always
+`0x18($sp)`. Writing every field through `p` gave `sh $zero, 4($s0)` for the
+zero stores (99.9%, regs=4); writing the zero stores by name (`ofs.vz = 0;`)
+and the rest through `p` matched. So mixed `sp`/pointer bases in one run of
+stores mean mixed spellings in the source, not a CSE choice. The pointer had to
+be declared per `case` block (`case 29: { SVECTOR* p = &ofs; ...`) so it stays
+block-local and takes `$s0` from local-alloc; see the entry on pointers assigned
+in two blocks.

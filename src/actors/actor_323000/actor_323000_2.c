@@ -119,7 +119,91 @@ void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_8016420C);
+void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
+{
+    Actor323000Work* work;
+    TmdObject*       obj;
+    s32              id;
+    s32              pan;
+    SVECTOR          ofs2;
+    SVECTOR          ofs;
+
+    work = (Actor323000Work*)task->idMap;
+    if (work->field_4 != 0) {
+        obj                 = (TmdObject*)task->extra;
+        enemy->node.field_4 = 1;
+        obj->field_C        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_832 = 0x10;
+        work->field_82E = 0xE;
+        work->field_828 = 2;
+        work->field_83E = 0;
+        work->field_840 = 0;
+        work->field_6   = 0;
+        func_actor_323000_80163A30(task);
+        return;
+    }
+    func_actor_323000_80163A30(task);
+    switch (++work->field_6) {
+        case 29: {
+            SVECTOR* p = &ofs;
+            p->vx      = -0x1F4;
+            p->vz      = 0xC8;
+            p->vy      = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[9], 0x80005600, p);
+            p->vx = -0x3E8;
+            p->vz = 0xC8;
+            p->vy = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80005A00, p);
+        } break;
+        case 32: {
+            SVECTOR* p = &ofs;
+            p->vx      = -0x3E8;
+            p->vz      = 0xC8;
+            p->vy      = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80005A80, p);
+            p->vx = -0x1F4;
+            p->vz = 0xC8;
+            p->vy = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[9], 0x80006800, p);
+            id  = ((enemy->field_8 >> 12) << 8) | 0x4001000D;
+            pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+            ofs2.vy = -0x258;
+            ofs2.vx = 0;
+            ofs2.vz = -0x384;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[1], 0x80005A00, &ofs2);
+        } break;
+        case 33: {
+            SVECTOR* p = &ofs;
+            p->vx      = -0x1F4;
+            p->vz      = 0xC8;
+            p->vy      = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[9], 0x80006800, p);
+            p->vx = -0x3E8;
+            p->vz = 0xC8;
+            p->vy = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80006B00, p);
+            p->vx = -0x3E8;
+            p->vz = 0xC8;
+            p->vy = 0x28A;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80004400, p);
+            ofs.vz = 0;
+            p->vx  = 0;
+            p->vy  = 0x258;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[14], 0x80003800, p);
+            ofs.vz = 0;
+            p->vx  = 0;
+            p->vy  = 0x258;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[17], 0x80004900, p);
+            ofs2.vy = -0x2BC;
+            ofs2.vx = 0;
+            ofs2.vz = -0x258;
+            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[1], 0x80005A00, &ofs2);
+        } break;
+    }
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_801645A4);
 
