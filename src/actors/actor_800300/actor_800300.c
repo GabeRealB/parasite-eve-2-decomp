@@ -5,11 +5,15 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern void         D_actor_800300_80168880;
 extern GpActorWork* D_80115764;
+
+extern GpImgRec** D_actor_800300_80168950[];
+extern GpImgRec** D_actor_800300_80168960[];
 
 void func_actor_800300_80161E80(GpActorWork* arg0)
 {
@@ -92,7 +96,67 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300", func_actor_800300_80162064);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300", func_actor_800300_801623F8);
+void func_actor_800300_801623F8(GpActorWork* arg0)
+{
+    void**      scratch;
+    u8*         head;
+    s32         temp;
+    RECT*       rect;
+    GameActor*  actor;
+    GpImgRec*** table;
+    s32         idx;
+    u32         row;
+    GpImgRec*   img;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    actor    = arg0->actor;
+    temp     = (s32)(head - 8);
+    *scratch = (void*)temp;
+    rect     = (RECT*)temp;
+
+    if ((s8)actor->field_987 != 0) {
+        actor->field_988--;
+        if ((s8)actor->field_988 <= 0) {
+            table = D_actor_800300_80168950;
+            idx   = (s8)actor->field_987 - 1;
+            img   = table[idx][(s8)actor->field_989];
+            if (img != NULL) {
+                ((RECT*)head)[-1].x = 0;
+                rect->y             = 0x40;
+                rect->w             = 0x19;
+                rect->h             = 0x14;
+                Gp_LoadActorImage(arg0, img, rect);
+                actor->field_988 = 4;
+                actor->field_989++;
+            } else {
+                actor->field_987 = 0;
+            }
+        }
+    }
+
+    if ((s8)actor->field_98A != 0) {
+        actor->field_98B--;
+        if ((s8)actor->field_98B <= 0) {
+            table = D_actor_800300_80168960;
+            idx   = (row = (s8)actor->field_98A - 1);
+            img   = table[row][(s8)actor->field_98C];
+            if (img != NULL) {
+                rect->x = 0xC;
+                rect->y = 0x60;
+                rect->w = 0xE;
+                rect->h = 0x14;
+                Gp_LoadActorImage(arg0, img, rect);
+                actor->field_98B = 8;
+                actor->field_98C++;
+            } else {
+                actor->field_98A = 0;
+            }
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 void func_actor_800300_8016259C(Task* arg0)
 {
