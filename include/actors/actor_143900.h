@@ -120,6 +120,7 @@ STATIC_ASSERT_SIZEOF(Actor143900AnimPreset, 0x10);
 void func_actor_143900_80131FD4(Task* task);
 void func_actor_143900_8013242C(Task* task);
 void func_actor_143900_801324C8(void);
+void func_actor_143900_801325A4(void);
 void func_actor_143900_80132A9C(Task* task);
 s32  func_actor_143900_80132624(Task* task, s32 arg1, Actor143900AnimPreset* preset);
 s32  func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);

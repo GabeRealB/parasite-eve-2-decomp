@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_143900.h"
+#include "actors/actor_461800_move.h"
 #include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_801366fc.h"
 
@@ -90,6 +91,56 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900", func_actor_143900_80131FD4);
+void ActorsShared80132538(void);
+
+extern s16 D_actor_143900_801413B8;
+extern s16 D_actor_143900_801496C0;
+
+/// Per-frame update of the shared body: modes 1 and 2 run their one-shot
+/// reseed and switch to mode 3; mode 3 walks the model while `field_4EA`
+/// counts down (distance picked by `D_actor_143900_801496C0`), turns it while
+/// `field_4EC` counts down in animation 3, then ticks the animation. Same body
+/// as `func_actor_461800_80132660`.
+void func_actor_143900_80131FD4(Task* task)
+{
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
+    Actor143900Work* work  = (Actor143900Work*)task->idMap;
+
+    if (ActorsShared80131f9cWork->field_4B4 == 1) {
+        func_actor_143900_801325A4();
+        ActorsShared80131f9cWork->field_4B4 = 3;
+    } else if (ActorsShared80131f9cWork->field_4B4 == 2) {
+        ActorsShared80132538();
+        ActorsShared80131f9cWork->field_4B4 = 3;
+    } else if (ActorsShared80131f9cWork->field_4B4 == 3) {
+        if (work->field_4B8 == 0xE || work->field_4B8 == 2 || work->field_4B8 == 0xF) {
+            if (work->field_4EA != 0) {
+                switch (D_actor_143900_801496C0) {
+                    case 0:
+                        Actor461800_MoveForward(task, 0x3C);
+                        break;
+                    case 1:
+                        Actor461800_MoveForward(task, -0xF);
+                        break;
+                    case 2:
+                        Actor461800_MoveForward(task, 0x19);
+                        break;
+                }
+                if (--work->field_4EA == 0) {
+                    work->field_4B4         = 1;
+                    D_actor_143900_801413B8 = 10;
+                    work->field_4B8         = 0xD;
+                }
+            }
+        }
+        if (work->field_4B8 == 3 && work->field_4EC != 0) {
+            work->yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+            coord->flg = 0;
+            work->field_4EC--;
+        }
+        func_actor_143900_801324C8();
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_143900/actor_143900", D_actor_143900_80131E20);
