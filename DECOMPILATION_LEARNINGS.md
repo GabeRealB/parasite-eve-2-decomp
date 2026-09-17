@@ -114248,3 +114248,23 @@ ignores it, so the later store can still share the pseudo.
 **Fix.** An empty `do { } while (0);` at the top of the state-3 body split the
 block (`1..80`, `82..208`) and matched at 100%, found by the permuter and
 confirmed from `.cse`. Prediction was made before the build.
+
+### A second compiled jump table in the first unit can force `rodata_head` *and* a `units` cut (func_actor_215100_80149F2C, 2026-09-17)
+
+`func_actor_215100_80149F2C` matched at 100% with all penalties zero. Its table
+sits at `0x4`, so it needed `rodata_head = "0x4"`. The overlay still built 4 bytes
+long, though. The same unit already held a matched C switch
+(`func_actor_215100_8014ABAC`), whose table is at `0xD8`. Before this change that
+table was aligned because the unit's `.rodata` began at `0x0`, with the id word
+and an asm table in front of it. Once `.rodata` began at `0x4`, the table was at
+section offset `0xD4`, so `.align 3` inserted a pad word. The two tables cannot
+both align in one object, so the original had them in separate TUs. The fix was
+a `units` cut right after the function plus a rodata cut at the second table:
+
+```toml
+actor_215100 = { rodata_head = "0x4", units = ["0x578"], rodata = [{ start = "0xD8", unit = "actor_215100_2" }], ... }
+```
+
+The cut renumbers every later unit, so rename `_2`→`_3` and so on, fix their
+`INCLUDE_ASM` paths, and move the bodies after the cut into the new `_2.c`.
+Before committing, count `bodies_of()` across the files to make sure none were lost.
