@@ -14,7 +14,8 @@
 /// compiles the same instructions but marks every access `in_struct`, and that
 /// flag decides the scheduler's dependence analysis - it pinned a load after a
 /// store in `func_neo_ark_woodland_path_80180C6C`. See
-/// `DECOMPILATION_LEARNINGS.md`, "Scalar memory references".
+/// `DECOMPILATION_LEARNINGS.md`, "A union that only names a view costs
+/// `in_struct`".
 extern s16 D_neo_ark_woodland_path_8018498E;
 
 /// Payload the 0x7DB handlers take as `Gp_DispatchMsg`'s `arg2`: the two-byte
@@ -69,10 +70,11 @@ extern u16 D_neo_ark_woodland_path_80184A60[5];
 extern u16 D_neo_ark_woodland_path_8018494C[18];
 
 /// The same run reached through its leading label, which is how
-/// `func_neo_ark_woodland_path_80180C6C` reads the ceiling: element 2 lands on
-/// the halfword above (`D_...8494C[0]`, 420 frames). splat names both addresses
-/// because the compiled code names both, and the two are different code - an
-/// index emits the array's address plus 8, naming one emits its own.
+/// `func_neo_ark_woodland_path_80180C6C` reads the ceiling: element 2 is
+/// `D_...8494C[0]`, 420 frames. splat names both addresses because the compiled
+/// code names both, and the two are different code - an index keeps this
+/// symbol in a register and takes the offset as the load's displacement, while
+/// naming `D_...8494C` addresses it directly.
 extern u16 D_neo_ark_woodland_path_80184948[];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
