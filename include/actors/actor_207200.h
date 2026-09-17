@@ -60,12 +60,16 @@ typedef struct Actor207200Work {
     /* 0x48E */ u16            field_48E; // id the six helper slots last saw
     /* 0x490 */ u16            field_490; // frames spent on the current id
     /* 0x492 */ s16            field_492;
-    /* 0x494 */ byte           pad_494[8];
+    /* 0x494 */ byte           pad_494[4];
+    /* 0x498 */ s16            field_498;
+    /* 0x49A */ s16            field_49A;
     /* 0x49C */ s16            field_49C;
     /* 0x49E */ byte           pad_49E[4];
     /* 0x4A2 */ s16            field_4A2;
     /* 0x4A4 */ s16            field_4A4;
     /* 0x4A6 */ s16            field_4A6;
+    /* 0x4A8 */ byte           pad_4A8[2];
+    /* 0x4AA */ s16            field_4AA;
 } Actor207200Work;
 
 /// The 0x4AC-byte allocation `func_actor_207200_8014B278` makes with

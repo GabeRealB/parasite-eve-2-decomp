@@ -24,6 +24,9 @@ extern GpU16Pair  D_actor_207200_8014E7CC;
 extern GpPairSrcE D_actor_207200_8014E7D4;
 extern s32        D_actor_207200_80153ED4;
 
+extern u8  D_801153F2[2];
+extern u32 Gp_LcgState;
+
 void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {
     Actor207200SpawnWork* work;
@@ -148,7 +151,70 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014B628);
+/// Helper-slot state 0 of the enemy: while it is still alive, a hit recorded in
+/// the first render node's table (or the global flag `D_801153F2[1]`) arms the
+/// death sequence - helper state 1, a random 0..89 delay in `field_4AA` and
+/// `Gp_ArmStateF0(1)`. Then runs the idle cycle in `field_48C`: state 1 waits
+/// 0x5B frames and rolls a 30% chance of moving to 9, which plays the
+/// room-tagged sound on frame 5 and returns to 1 after 0x2D frames.
+void func_actor_207200_8014B628(Task* arg0)
+{
+    Actor207200Work* work;
+    GpObj38*         obj;
+    s32              id;
+    s32              pan;
+    u32              rnd;
+    u16              hi;
+
+    *(u8**)G_SCRATCH_HEAD -= 8;
+    work                   = (Actor207200Work*)arg0->idMap;
+    obj                    = (GpObj38*)((TmdObject*)arg0->extra)->field_8;
+    if (work->field_4A6 == 0) {
+        if (Gp_CountRec18Hi((GpRec18*)work->field_1DC.field_20, 0x10000) != 0) {
+            work->field_4A2 = 1;
+        }
+        if (work->field_4A2 != 0 || D_801153F2[1] != 0) {
+            rnd                        = Gp_LcgState * 5 + 0x71357911;
+            hi                         = rnd >> 16;
+            work->field_49A            = 0;
+            work->field_492            = 0;
+            work->field_486            = 1;
+            Gp_LcgState                = rnd;
+            work->field_1DC.obj.flags &= 0x7FFF;
+            work->field_4AA            = hi % 90;
+            Gp_ArmStateF0(1);
+        }
+        Gp_ClearRec18Occupied((GpRec18*)work->field_1DC.field_20);
+    }
+    switch (work->field_48C) {
+        case 1:
+            work->field_498 = 1;
+            work->field_492 = 0;
+            if ((s16)work->field_490 >= 0x5B) {
+                work->field_490 = 0;
+                work->field_48E = 0;
+                if (work->field_4A6 == 0) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if ((u16)((Gp_LcgState >> 16) % 100) < 30) {
+                        work->field_48C = 9;
+                    }
+                }
+            }
+            break;
+        case 9:
+            if ((s16)work->field_490 == 5) {
+                id  = ((((Actor207200Ctx*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40480004;
+                pan = (s8)Gp_GetObjPan(obj);
+                SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth(obj));
+            }
+            if ((s16)work->field_490 >= 0x2D) {
+                work->field_48C = 1;
+                work->field_490 = 0;
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014B87C);
 
