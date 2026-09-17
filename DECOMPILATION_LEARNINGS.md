@@ -116203,3 +116203,62 @@ in one function, both fixed by writing the statements in the original's order.
 case, not as one `goto` — see "Write `state++; return;` out in every switch
 case, not one shared `goto advance`". Getting only one of the two right lands
 in the low 80s with a plausible-looking `branch`/`delete` mix.
+
+## A shared body's caller turns out to be an inlined helper: the `$sp`-relative staging plus a `jalr` are the tell (func_neo_ark_observatory_8017F6F8, 2026-09-17)
+
+**Symptom.** A room handler stages a struct on its own stack and hands it to a
+shared resolver. Written straight out — locals in the caller, one call — the
+compiler emits direct `jal`, every access `$sp`-relative, and the function sits
+in the low 80s: `regs` plus `insert`/`delete`, no `branch` penalty, topology
+already matching.
+
+**Cause.** Two tells in the target say the staging is not in the caller at all
+but in a `static __inline__` helper the caller passes a pointer to:
+
+1. the staged struct is read back through a **base register** (`addiu $s0,$sp,0x10`
+   then `lbu 1($s0)` / `sb v0,3($s0)`) while the caller's own stores to it stay
+   `$sp`-relative — an inlined pointer parameter keeps `&local` in a register
+   (`birthing_insn_p` in `sched.c` skips hard-register destinations, so it is
+   the pseudo parameter, not the address arithmetic, that gets the boost) and
+   the inliner rewrites only the accesses made *through* the parameter;
+2. the resolver call is **`jalr`** (`lui $s1,%hi; addiu $s1,...; jalr $s1`),
+   which needs the callee in a register. A call to a bare function name always
+   comes out direct: `expand_call` in `mips.md` only forces the address into a
+   register (`call_internal1` -> `jal $31,$reg`) when it is not
+   `CONSTANT_ADDRESS_P`. Substituting the *value* through a parameter does not
+   help either: the inliner substitutes a constant argument into the body and
+   the call becomes direct again.
+
+**Fix.** Write the helper and pass a **variable** holding the resolver, assigned
+before the call that separates it from the helper invocation:
+
+```c
+static __inline__ void NeoArk_StageMarker(NeoArkObservatoryEventDesc* desc, MapMarkerResolve resolve)
+{
+    MapMarkerRec rec;
+
+    rec.field_0  = desc->field_1;      /* u16 = u8   -> lbu + sh  */
+    rec.pad_2[0] = desc->field_2;
+    rec.pad_2[1] = desc->field_3;
+    rec.field_5  = 0;
+    resolve(&rec, (MapMarkerOut*)&rec);   /* jalr */
+    desc->field_1 = rec.field_0;       /* u8 = u16 -> lbu (little-endian low half) */
+    desc->field_2 = rec.pad_2[0];
+    desc->field_3 = rec.pad_2[1];
+}
+```
+
+with `resolve = func_...; Gp_MsgPlayerWeapon(0); NeoArk_StageMarker(&desc, resolve);`
+in each arm. CSE folds the value back into a direct `jal` if the assignment and
+the helper call are adjacent in the same block (`cse`'s table does not survive
+the intervening call), so the separating call is what keeps the call indirect —
+and hoisting the assignment above that call is what makes the resolver pseudo
+live across it, hence callee-saved. 66.7% -> 95.2%; the remaining delta is
+`sched.c` ranking the address materialisation four slots earlier than the ROM
+does. Little-endian matters for the copy-back: `lbu` of a `u16` field's byte 0
+is the low half, on big-endian it would be `lbu` at offset 1.
+
+**Related.** "A second label on the same run is a second object" covers the
+record's `u16`-in-a-`u16` field shape; the two-record staging itself is the
+`*dst = *src; func_80179A04(src, dst);` idiom already documented for the map
+resolvers, with the caller's descriptor playing `src`.
