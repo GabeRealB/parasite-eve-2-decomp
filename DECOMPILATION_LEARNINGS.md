@@ -444,6 +444,17 @@ base register for all three stores.
 model restored) → 97.1% → 100.0%, the last being the twin ported
 field-for-field.
 
+`overlay_dup_index.py find` and the brief's similar-body list answer different
+questions, and the exact one is silent on twins that are real: equality there is
+splat's disassembly *text*, so one differing displacement drops the twin out of
+`find` altogether. `func_actor_342000_80161EA4` and
+`func_actor_341900_80161E58` are 94 instructions of identical text apart from
+`lw v1, 0x288(s2)` against `lw v1, 0x218(s2)` — the anim-id field of each
+overlay's own work block — so `find` reported only the function itself, while
+`similar` scored the twin 1.00 in shape, calls and cflow. A candidate starred in
+more than one class is the signal to act on: that port needed no experiment at
+all, one build, 100.000%.
+
 ## `(X - 1) - Y` folds to `X - (Y + 1)`: write the folded spelling when the target subtracts from `X`
 
 m2c renders `addiu v0,a0,-0x1` / `subu v0,v0,a1` as `(X - 1) - Y`, and compiling

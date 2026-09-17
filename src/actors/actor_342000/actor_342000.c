@@ -18,7 +18,60 @@
 
 extern GpMsgEntry D_actor_342000_801648A8[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80161EA4);
+/// Animation-id bank `Actor342000Work::field_288` indexes; a negative entry
+/// means the bank is empty and the slots are left alone.
+extern s16 D_actor_342000_80164810[];
+
+/// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0 is
+/// skipped for the eight-slot actor). If every one of them then has
+/// `GpAnimSlot::field_10` bit 0x100 set, passes them the
+/// `D_actor_342000_80164810` id and returns 1; otherwise returns 0. The gotos
+/// reproduce retail's block layout.
+s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
+{
+    Actor342000Work* work;
+    Actor342000Work* ctx;
+    u16              i;
+    u16              done;
+    u16              start;
+    u16              anim;
+    s32              first;
+
+    anim  = arg1 == 8;
+    start = anim;
+    work  = (Actor342000Work*)arg0->idMap;
+    for (i = start; i < arg1; i++) {
+        Gp_AnimTickIndex(&work->ctx, i);
+    }
+    i    = start;
+    done = 1;
+    for (; i < arg1; i++) {
+        if (!(work->slots[i].field_10 & 0x100)) {
+            goto fail;
+        }
+    }
+check:
+    if (done) {
+        if (D_actor_342000_80164810[work->field_288] >= 0) {
+            anim  = D_actor_342000_80164810[work->field_288];
+            ctx   = (Actor342000Work*)arg0->idMap;
+            first = arg1 == 8;
+            goto loop;
+        fail:
+            done = 0;
+            goto check;
+        loop:
+            for (i = first; i < arg1; i++) {
+                func_800B4114(&ctx->ctx, i, anim, 0, 10);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
 
 void func_actor_342000_8016201C(Task* arg0)
 {

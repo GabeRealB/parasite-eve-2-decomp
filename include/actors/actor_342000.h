@@ -3,7 +3,9 @@
 
 #include "common.h"
 #include <psyq/libgs.h>
+#include <psyq/libgte.h>
 #include "main/task.h"
+#include "gameplay/1BC.h"
 
 /// Position + rotation argument for the overlay's message handlers -- the
 /// `arg2` of the `GpMsgEntry` table `D_actor_342000_801648E8` (id 0x7D4,
@@ -77,14 +79,29 @@ STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
 /// `field_2AA` latches the `Actor342000Cmd::field_2` the id 0x7DB handler was
 /// last called with; command 0xA additionally refills `field_264` from the
 /// handler's second payload.
+///
+/// The block opens with the actor's animation context -- `ctx` and the eight
+/// `GpAnimSlot`s `func_800B3F84` initialises from this overlay's banks -- so the
+/// block pointer is also the `GpAnimCtx*` the animation helpers take:
+/// `func_actor_342000_80161EA4` ticks it and passes the id bank
+/// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
+/// `color` at 0x1D4 / 0x1F4 are the pair `func_actor_342000_80162158`
+/// republishes onto the model's `TmdObject::field_1C` / `field_20`, exactly as
+/// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
-    /* 0x000 */ byte           pad_0[0x214];
+    /* 0x000 */ GpAnimCtx      ctx;
+    /* 0x014 */ GpAnimSlot     slots[8];
+    /* 0x154 */ byte           pad_154[0x80];
+    /* 0x1D4 */ MATRIX         light;
+    /* 0x1F4 */ MATRIX         color;
     /* 0x214 */ GsCOORDINATE2  coord;
     /* 0x264 */ VECTOR         field_264;
     /* 0x274 */ s32            field_274;
     /* 0x278 */ s32            field_278;
     /* 0x27C */ s32            field_27C;
-    /* 0x280 */ byte           pad_280[0x1C];
+    /* 0x280 */ byte           pad_280[0x8];
+    /* 0x288 */ s32            field_288;
+    /* 0x28C */ byte           pad_28C[0x10];
     /* 0x29C */ Task*          field_29C;
     /* 0x2A0 */ Task*          field_2A0;
     /* 0x2A4 */ GsCOORDINATE2* field_2A4;
@@ -160,6 +177,6 @@ void func_actor_342000_80162158(Task* arg0);
 /// ticks, one `Gp_AnimTickIndex` per bank, and reports whether a bank needed a
 /// re-scan. `arg1` is the overlay's tick count -- 8 for the actor's own model
 /// and 4 for the two child tasks at `Actor342000Work::field_29C`/`field_2A0`.
-s32 func_actor_342000_80161EA4(Task* arg0, s32 arg1);
+s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1);
 
 #endif
