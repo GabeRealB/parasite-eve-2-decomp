@@ -1,9 +1,14 @@
 #include "common.h"
 #include "actors/actor_136300.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/268.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "psyq/libgpu.h"
 
 /// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
 /// the overlay imports them by absolute address and passes them as `s32`.
@@ -13,15 +18,82 @@ extern s32 D_80114A34;
 extern TaskDesc D_actor_136300_8013B134;
 extern TaskDesc D_80183380;
 extern s8       D_8007272D;
+extern s16      D_80071076;
 
 extern s32 D_actor_136300_8013B208;
 extern s32 D_actor_136300_8013B230;
 
+/// Script pair handed to `func_800E8614` -- the first while the ending is being
+/// armed, the second when the capture event is cancelled.
+extern s32 D_actor_136300_8013C5C8;
+extern s32 D_actor_136300_8013C6C0;
+
 INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_80131E40);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_136300/actor_136300", D_actor_136300_80131E20);
-
-INCLUDE_ASM("actors/nonmatchings/actor_136300/actor_136300", func_actor_136300_8013267C);
+/// State machine for the capture-event actor: arms the ending, waits for the
+/// capture key, then hands control to the boot loader and spawns the drop-in
+/// task. The two `func_800E8614` calls and the `arg0->state += 1` blocks are
+/// written out in every arm that needs them; jump optimization merges the
+/// identical tails, so one copy of the increment lands between case 3 and case
+/// 6 and one copy of the call lands after case 0. Hoisting either tail into a
+/// shared `goto` target compiles to a different allocation - the call's address
+/// then reaches `$a0` through `$v0` instead of being built there directly.
+void func_actor_136300_8013267C(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            Game_Session->field_68 = 1;
+            Gp_MsgPlayerWeapon(0);
+            func_800E8614((s32)&D_actor_136300_8013C5C8, 1);
+            arg0->state += 1;
+            return;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                arg0->state += 1;
+            }
+            return;
+        case 2:
+            if (Gp_GetCapEventKey() == 2) {
+                Game_Session->field_68 = 0;
+                Gp_MsgPlayerWeapon(1);
+                Task_Kill(arg0);
+                return;
+            }
+            func_800E8614((s32)&D_actor_136300_8013C6C0, 1);
+            arg0->state += 1;
+            return;
+        case 3:
+            if (Game_Session->field_1 != 1) {
+                arg0->state += 1;
+            }
+            return;
+        case 4:
+        case 5:
+            arg0->state += 1;
+            return;
+        case 6:
+            SetDispMask(1);
+            SndEvt_EnqueueType7(0x80000000, 0);
+            GameFlag_SetNibble(0x7A, 4);
+            GameFlag_SetNibble(0x97, 0);
+            GameFlag_SetNibble(0x98, 1);
+            GameFlag_SetNibble(0x9A, 1);
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 0xF);
+            GameFlag_SetNibble(0x4C, 4);
+            Mc_SaveData.field_5C5 = 9;
+            Mc_SaveData.field_7   = 4;
+            Mc_SaveData.field_6   = 1;
+            Mc_SaveData.field_8   = 1;
+            Mc_SaveData.field_5   = 1;
+            Fs_BeginBootLoad(&Mc_SaveData.field_4, 0);
+            Gp_ClearCollectedBit(0x116);
+            D_80071076 = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            Task_Kill(arg0);
+            return;
+    }
+}
 
 /// Runs once on spawn, then counts `spawnArg1` down; when it goes negative the
 /// ending flag is set and the task kills itself. The decrement is one reused
