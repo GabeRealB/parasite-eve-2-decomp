@@ -118966,3 +118966,78 @@ target.o SHA256
 `011928013091eabe3bd8d5cbd2fe4eca06d28fb1de39106b09c7f58d6ac4906a`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_dryfield_parking_lot_8017D8BC-vacuum`.
+## A shared `advance:` tail is what the post-reload cross-jump needs; inline `state++` in every case can lose a load to `sched1` (func_mine_secret_passage_8017D60C, 2026-09-17)
+
+A room save sequence - `switch (task->state)` where most cases end in
+`task->state++` - has its increment blocks merged by `jump2`'s *cross-jumping*,
+which runs post-reload with `cross_jump = 1` (`jump.c`: the early
+`jump_optimize` passes are called with it clear). `find_cross_jump` compares
+**backwards** from the jump insn, so what it can merge is a *suffix* of the
+block: the run of insns immediately before the jump whose bodies match the
+target block's opening run. A compiler-generated state load sitting at the head
+of the block instead of next to the add/store shrinks that match.
+
+`func_mine_secret_passage_8017D60C` had every case written with an inline
+`arg0->state++` (the m2c shape, and a 92.964% baseline once the gotos became
+real `break`s). Cases 0, 3, 4 and 5 matched and merged: their increments follow
+a `jal`, and the scheduler will not move a load across a call, so each block
+stayed `lw / addiu / sw` with the cross-jump matching all three. Case 1 is the
+one whose block is `lui %hi(D_801153F4) / sb / lw / addiu / sw` - store first,
+no call - and there `sched1` hoists the load to the head of the block:
+
+    ;; ready list at T-5: 40 (7f000001) 46 (7f000001)
+    ;; blocking insn 46 for 1 cycles, now 40
+    ;; ready list at T-6: 46 (7f000001), now 46
+
+`40` is the `lui` and `46` the `lw`; the load is queued behind the `addiu`
+because `priority(addiu) = 2` in the same dump's header, and `priority()` adds
+`insn_cost(load) - 1`, so the MIPS `memory` function unit's two-cycle result
+cost sets `INSN_TICK = clock + 2` (the `-1` in the formula means every
+unit-latency insn is flat at 1, which is why an R3000 load is the exception).
+The store then lands *between* the load and the add, the match drops to two
+insns, and the case keeps a `lw` it should have shared - 98.964%, with the
+whole difference being that one load and the jump target it implies.
+
+The fix is the shape this family's own matched siblings use
+(`shelter_b3_elevator_hall` and `mine_mesa`): put the increment behind an
+explicit shared label and `goto` it from the cases that advance, so no case's
+increment block carries a store at all.
+
+```c
+    case 1:
+        if (Gp_CapBusy() != 0) {
+            break;
+        }
+        D_801153F4 = 0;
+        goto advance;
+    ...
+    case 5:
+        if (SndVoice_HasActiveId(0x54080003) != 0) {
+            break;
+        }
+    advance:
+        arg0->state++;
+        break;
+```
+
+100% with zero penalties. Two details of the target's layout are worth knowing
+because they look like counter-evidence while writing it: the label belongs
+*inside* the last advancing case (that is what places the shared block between
+case 5 and case 6), and the `goto advance` and the inline `state++` are not
+interchangeable — one case in the ROM genuinely keeps its own load, and it is
+the one whose increment is written inline there. Reach for the label form first
+and inline only where the diff says the target kept a per-case load.
+
+Inputs: `base_5.i` (100%) SHA256
+`2f0890003d32efc790ac8e462962fb55660d867630ac5f3933e8e5e2288127bb`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; source
+SHA256 `99d9615aaa1aa6278a0715075b28bd4d8ca849de17997681ffcdd738f43ae884`. No
+pins, no empty asm, no permuter run (the router skipped at 98.96% because the
+block-connection diagnostic read the extra load as unknown structure - the
+`.jump2`/`.sched` pair is what says otherwise). Scratch
+`nonmatchings/func_mine_secret_passage_8017D60C-vacuum`.
+
+The same function's jump table also had to start its unit's `.rodata`; see the
+`rodata_head` sections above - `rodata_head = "0x14"` with the existing `0x30`
+cut moves the overlay id and `RoomsShared80181e70Table` into the asm header
+segment, which is why their `INCLUDE_RODATA` lines had to be deleted.
