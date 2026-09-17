@@ -21386,6 +21386,45 @@ When a matched function grows a switch jump table, give C the jtbl range with
 Without the pad word owned by the next asm unit, later functions shift and the
 whole checksum fails even if the C text matches.
 
+## Room overlays: a compiled table pads itself from the next item's `.align 3`
+
+The generated configs of the rooms family (`configs/USA/overlays.toml`) take the
+same cut, but the pad comes from the other end, because a unit's `.rodata` run
+is a contiguous `start` in the manifest and the *next* run's items are asm:
+
+```toml
+rodata = [{ start = "0x28", unit = "dryfield_water_tower_3" },   # jtbl, compiled
+          { start = "0x58", unit = "dryfield_water_tower_5" }]   # jtbl618, 630, ...
+```
+
+`splat` writes an `.align 3` at the head of every jump-table item, and the
+compiling unit's `.c` may `INCLUDE_RODATA` an item that lives in *another*
+unit's directory (the path is only a file reference -- `dryfield_water_tower_3.c`
+includes `.../dryfield_water_tower_5/jtbl_..._8017D618`). Whichever `.c` the
+item is assembled into, its `.align 3` pads the *section-relative* offset, so
+the 44-byte table at 0x28 is followed by four zero bytes and jtbl618 lands at
+0x58 with no cut of its own:
+
+```
+dryfield_water_tower_3.c.o(.rodata): [table 44][pad 4 from .align 3][618 24][630 40]
+```
+
+The pad cannot come from the linker. `SUBALIGN(4)` in the generated script
+forces every input section to 4, so `dryfield_water_tower_5.c.o(.rodata)` --
+8-aligned on its own, since it too holds jump tables -- still lands at 0x54 and
+the overlay comes out 4 bytes short, with every later address (and every table
+entry) 4 low. Two more consequences worth keeping in mind:
+
+- Where an item's owning function sits in *another* unit, `splat` cannot pair
+  the item with a body, so it stays a standalone `.s` in the run's unit
+  directory and the function's `.s` keeps `jlabel` labels -- and its branches
+  assemble as `R_MIPS_PC16` against them. A match can then score 99.958% in the
+  scratch (`beqz v0,.L<overlay>_8017EB64+24` vs `beqz v0,228`) while the object
+  bytes are identical; the real check is the overlay checksum.
+- Give such an item the range *with* its owner and `splat` writes the whole run
+  as one `asm/<ver>/<overlay>/data/<name>.rodata.s` instead, which no `.c` can
+  include without duplicating the compiled table.
+
 ## Scratch alloc via `v0` temp so store fills the `jal` delay slot
 
 When the target opens a scratch-arena function as:

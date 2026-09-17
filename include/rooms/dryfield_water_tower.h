@@ -134,14 +134,19 @@ STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 /// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
 /// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
 /// `D_..._80182384` -- the 0x7D4 (`Room_Util08`) targets -- and `field_4C` is
-/// the task it spawns off a second table, `D_..._8018277C`.
+/// the task it spawns off a second table, `D_..._8018277C`. `field_50` is the
+/// script-18 task `func_dryfield_water_tower_8017E93C` spawns when the cap
+/// script reaches one of its last three states, one of the room's three
+/// `Gp_SpawnScript18` pairs.
 ///
 /// The tail is halfword slots -- the pairs are timers the instructions above
 /// the state switch count down -- and the ones the decomp has named so far are
 /// `field_58` / `field_5A` / `field_60`, the three
 /// `func_dryfield_water_tower_8017F808` clears on message 0x7DB, and
 /// `field_5C` / `field_5E`, which `func_dryfield_water_tower_8017F8E8` writes
-/// together, and `field_6A`, the cap props' displacement accumulator: the prop
+/// together -- `field_5C` is the cap script's command index, the value
+/// `func_dryfield_water_tower_8017E93C` switches on and every one of its states
+/// resets to zero -- and `field_6A`, the cap props' displacement accumulator: the prop
 /// task `func_dryfield_water_tower_8017DE30` advances it by 4 a frame and adds
 /// the result to the cap coordinate's Y, so the cap accelerates downwards.
 /// `field_6C` / `field_6E` are 0/1 latches set by
@@ -163,10 +168,11 @@ typedef struct DryfieldWaterTowerState {
     /* 0x44 */ Task* field_44;
     /* 0x48 */ Task* field_48;
     /* 0x4C */ Task* field_4C;
-    /* 0x50 */ u8    pad_50[0x8];
+    /* 0x50 */ Task* field_50;
+    /* 0x54 */ u8    pad_54[0x4];
     /* 0x58 */ u16   field_58;
     /* 0x5A */ s16   field_5A;
-    /* 0x5C */ s16   field_5C;
+    /* 0x5C */ u16   field_5C;
     /* 0x5E */ s16   field_5E;
     /* 0x60 */ s16   field_60;
     /* 0x62 */ u8    pad_62[0x4];
