@@ -122744,3 +122744,55 @@ Inputs: scratch `nonmatchings/func_actor_113100_801324DC-vacuum`, `base_6.c`
 `base_10.c` 100.000% (`4215eaee5ec22fb2dfa273135124957d62831b82cb0246f6d5d24e51e7ae2263`,
 preprocessed `ee89473c9906514e093a329796193d1f2458894a9c80536be4a1ce31bc0622bd`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A reload of a just-written byte field survives only if no other store stands between the write and the read
+
+`func_actor_113100_801331E8` latches the animation id (`sb` to `work+0x476`) and
+reads it straight back with `lb` to index the bank table (`sll $v1,$v1,2` before
+the `lw`). The m2c baseline emitted no `lb` at all: the index came from the byte
+still in a register (`lbu` + `sll 24` / `sra 20`). Retyping the work block as its
+animation head -- `GpAnimCtx anim; GpAnimSlot slots[20]; byte field_334[0x140];
+s8 field_474; s8 field_475; s8 field_476;` replacing a `byte pad_0[0x475]`, which
+keeps every later offset -- and writing the body the way the matched sibling
+`func_actor_503500_8014652C` writes it (two field stores, then
+`D_actor_113100_801442E0[work->field_476]`) reached 100.000% in one build. That
+sibling's *store order* is the part that decides the reload, which is why it is
+worth copying rather than re-deriving:
+
+    work->field_476 = preset->field_0;   /* sb 0x476, then read back with lb */
+    work->field_475 = -1;
+
+Testing the two halves separately took two more builds. Compiling the same source
+with m2c's cast form on the store's source (`work->field_476 = (s8)(u8)preset->field_0;`)
+reproduced the matching object byte for byte -- that hypothesis is falsified.
+Swapping only the two stores dropped the reload and the score with it (100.000% ->
+92.235%, `regs=12 insert=3 delete=3`); the `.cse` dump shows `(insn 45 ... (set
+(reg:QI 96) (mem/s:QI (plus:SI (reg/v:SI 84) (const_int 1142)))))` deleted, its
+value replaced by `(reg:QI 92)`, the register the store wrote.
+
+The mechanism is cse.c's store-value forwarding plus its invalidation rule. A
+store to a varying address is recorded by `note_mem_written` with
+`writes_ptr->var = 1` (cse.c:7709), and `invalidate_memory` (cse.c:1732), run for
+every insn through `invalidate_from_clobbers`, removes every in-memory table entry
+whose address `cse_rtx_addr_varies_p` -- and for `(mem:QI (plus (reg) (const_int)))`
+with a plain pseudo base that is *every* struct-field access, because the "does
+not vary" answer at cse.c:2533-2541 needs the base register to hold a known
+constant quantity. So the `sb` to 0x475 invalidates what the `sb` to 0x476
+recorded, and the load that follows keeps its `mem`; with the two stores adjacent
+nothing invalidates the entry and the load folds into the stored register.
+
+Two consequences for the next function. A target that reloads a field it has just
+written is evidence about the *source order* of the writes around it, and "the
+field is re-read in the C" is not enough to reproduce it -- the re-read folds away
+unless another store sits between the two. And the reload's absence does not
+contradict the source either, because sched2 reorders independent stores: the
+target's `sb 0x475` before `sb 0x476` is fully compatible with the source writing
+`field_476` first.
+
+Inputs: scratch `nonmatchings/func_actor_113100_801331E8-vacuum`, `base_1.c`
+100.000% (`7a6b46a23f0b7cbe63c10583f1aa714a4dd041a161aa4fdef6358fc69a615429`),
+`base_2.c` 100.000% with the `(s8)(u8)` store source
+(`75b930cc020488efb10631f2a49a9ad6221903ccd0e8a6271da6d4bd5526be0e`, same object
+as `base_1.c`), `base_3.c` 92.235% with the two stores swapped
+(`8a1664c5491640a2ff7a05fc4e1b8fbed79f7791a5a6da6088350ac9eefbd2c5`). Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

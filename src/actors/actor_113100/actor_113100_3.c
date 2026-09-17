@@ -12,6 +12,10 @@
 
 INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100_3", D_actor_113100_80131E48);
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 void func_actor_113100_80132F40(Task* arg0)
 {
     Actor113100Work* work;
@@ -117,4 +121,47 @@ void func_actor_113100_801330E8(Task* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100_3", func_actor_113100_801331E8);
+/// The 0x7D3 animation-preset handler: the preset `func_actor_113100_8013301C`
+/// / `func_actor_113100_801330E8` / `func_actor_113100_801324DC` build on their
+/// own stacks. `field_0` is the animation id and `field_4` the slot id, each
+/// latched into its work-block field with the pair's -1 sentinel left behind
+/// it. When the animation id changes the whole bank is re-seeded through
+/// `func_800B3F84`,
+/// and when the slot id changes every slot is started either through
+/// `func_800B4114` -- the path `field_8` selects, and the only one that reads
+/// `field_C` -- or cleared through `Gp_AnimResetSlot`; either way all of them
+/// are advanced once by `Gp_AnimTickIndex` and the `field_474` latch is set.
+/// The trailing store is the mode byte `func_actor_113100_801333B8` reads.
+s32 func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* preset, s32 arg3)
+{
+    Actor113100Work* work;
+    TmdObject*       ext;
+    s32              i;
+
+    work = (Actor113100Work*)task->idMap;
+    ext  = task->extra;
+    if (preset->field_0 != work->field_476) {
+        work->field_476 = preset->field_0;
+        work->field_475 = -1;
+        func_800B3F84(&work->anim, D_actor_113100_801442E0[work->field_476], (GpAnimObj*)ext, work->field_334,
+                      work->slots);
+    }
+    if (preset->field_4 != work->field_475) {
+        work->field_475 = preset->field_4;
+        if (preset->field_8 != 0 && work->field_474 != 0) {
+            for (i = 1; i < 0x14; i++) {
+                func_800B4114(&work->anim, i, work->field_475, 0, preset->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x14; i++) {
+                Gp_AnimResetSlot(&work->anim, i, work->field_475);
+            }
+        }
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+        work->field_474 = 1;
+    }
+    work->field_53C = D_actor_113100_801442E4[preset->field_4];
+    return 0;
+}

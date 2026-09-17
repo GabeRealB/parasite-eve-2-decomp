@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 
@@ -24,8 +25,19 @@
 /// steps the root coordinate's yaw toward, 0x40 a frame, snapping to it once
 /// within 0x41, and `field_477` is the animation id that body puts in the
 /// preset it sends when it snaps. Both reset `field_530` / `field_532` there.
+/// The block is fronted by a `GpAnimCtx` -- `func_actor_113100_801331E8` and
+/// `func_actor_113100_801328EC` pass the block itself, its `slots` array and
+/// its `GpAnimMtxRec` table at 0x334 to `func_800B3F84`, the same three
+/// addresses `Actor503500WorkBoss` hands over. Twenty 0x28-byte slots fit
+/// exactly between 0x14 and 0x334, and both tick loops walk indices 1..0x13.
 typedef struct Actor113100Work {
-    /* 0x000 */ byte pad_0[0x475];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[20];
+    /// The matrix table `func_800B3F84` fills, immediately after the slots.
+    /// `field_474` is the latch the 0x7D3 handler raises once the slots have
+    /// been started; `func_actor_113100_801328EC` seeds it the same way.
+    /* 0x334 */ byte field_334[0x140];
+    /* 0x474 */ s8   field_474;
     /// Cleared to -1 by the setup handler, next to `field_476` and `field_53D`;
     /// `field_477` is the animation id that body puts in the preset it sends,
     /// so the three sentinels are the same "no id yet" default.
@@ -133,6 +145,15 @@ extern TaskDesc D_actor_113100_80144308;
 /// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
 extern GpMsgEntry D_actor_113100_80144338[];
 
+/// Animation bank table the 0x7D3 handler `func_actor_113100_801331E8` indexes
+/// by the animation id it has latched into `Actor113100Work::field_476`; the
+/// entry is the `void*` its `func_800B3F84` call passes on.
+extern void* D_actor_113100_801442E0[];
+
+/// Per-animation byte the same handler copies into
+/// `Actor113100Work::field_53C` from `Actor113100AnimPreset::field_4`.
+extern u8 D_actor_113100_801442E4[];
+
 /// Builds the yaw rotation for `angle` (4096 = a full turn) over a `MATRIX`,
 /// the Psy-Q `RotMatrix`-family helper this overlay shares with every other
 /// actor family; two call sites here re-splat the 3x3 to the identity first.
@@ -140,8 +161,9 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// The 0x7D3 entry of `D_actor_113100_80144338`: applies the animation preset
 /// `arg2` to `arg0`'s parts. `arg1` is the message id and `arg3` an unused
-/// extra the overlay's call sites pass as zero.
-void func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* preset, s32 arg3);
+/// extra the overlay's call sites pass as zero. Like the 0x7DB handler it
+/// returns zero.
+s32 func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* preset, s32 arg3);
 
 /// The task's exit callback: it unlinks the work block's display node and
 /// destroys the task.
