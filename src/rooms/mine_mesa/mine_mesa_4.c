@@ -196,4 +196,57 @@ void func_mine_mesa_8017E2A4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E3E0);
+/// State machine of the mesa's flare: a full-screen semi-transparent tile
+/// whose colour is `Task::killCountdown`, dimmed 8 a frame from state 2 until
+/// it goes negative and the task kills itself; the other states are the run-in
+/// (0 seeds the countdown at 0xFF, 1 waits out `Task::spawnArg1`) and anything
+/// else kills the task outright. The tile and a `DR_TPAGE` for it are carved
+/// off `Gpu_PrimCursor` and linked into `Gpu_CurrentOt[3]` every frame,
+/// including the frames the switch kills the task on -- only the colours differ
+/// there, since `r`/`g`/`b` are read before the switch.
+///
+/// This is `func_actor_503500_80132990` minus its `D_801153F4` gate and minus
+/// the `Game_Session->field_5F != 0` term of its state-1 test; the tile packet
+/// itself is built byte-for-byte the same way.
+void func_mine_mesa_8017E3E0(Task* arg0)
+{
+    TILE*     tile;
+    DR_TPAGE* dr;
+    u8        r, g, b;
+
+    r = g = b = arg0->killCountdown;
+    switch (arg0->state) {
+        case 0:
+            arg0->killCountdown = 0xFF;
+            arg0->state++;
+            break;
+        case 1:
+            if (--arg0->spawnArg1 < 0) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            arg0->killCountdown -= 8;
+            if (arg0->killCountdown < 0) {
+                Task_Kill(arg0);
+            }
+            break;
+        default:
+            Task_Kill(arg0);
+            break;
+    }
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    setTile(tile);
+    SetSemiTrans(tile, 1);
+    tile->x0 = -160;
+    tile->y0 = -120;
+    tile->w  = 320;
+    tile->h  = 240;
+    setRGB0(tile, r, g, b);
+    addPrim(Gpu_CurrentOt + 3, tile);
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
+    addPrim(Gpu_CurrentOt + 3, dr);
+}
