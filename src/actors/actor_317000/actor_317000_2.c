@@ -35,9 +35,9 @@ void func_actor_317000_8016267C(Task* arg0)
     work->field_43D = -1;
     work->field_43E = -1;
     work->field_4C8 = -1;
-    work->field_4A0 = 0;
-    work->field_4A4 = 0;
-    work->field_4A8 = 0;
+    work->pos[0].v  = 0;
+    work->pos[1].v  = 0;
+    work->pos[2].v  = 0;
 
     func_actor_317000_80162744(arg0);
     ActorsShared80162bc4(arg0, 0x7D5, 0, 0);

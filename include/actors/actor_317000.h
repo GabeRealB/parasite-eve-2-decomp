@@ -9,6 +9,15 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// A 16.16 fixed-point word, read whole or as its fraction/integer halves.
+typedef union Actor317000Fixed {
+    s32 v;
+    struct {
+        u16 lo;
+        s16 hi;
+    } p;
+} Actor317000Fixed;
+
 /// Work block allocated by `func_actor_317000_8016267C` (`Mem_Calloc(0x4CC)`)
 /// and parked in that task's `Task::idMap` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_317000_80162744` republishes the two matrices
@@ -35,34 +44,32 @@
 /// `target` is the placement position `func_actor_317000_80162458` copies in;
 /// `step` is the local-space offset `ApplyMatrixLV` rotates into world space.
 typedef struct Actor317000Work {
-    /* 0x000 */ GpAnimCtx  ctx;
-    /* 0x014 */ GpAnimSlot slots[0x13];  // slot array `func_800B3F84` is handed
-    /* 0x30C */ byte       poses[0x130]; // pose buffer `func_800B3F84` is handed
-    /* 0x43C */ s8         field_43C;    // non-zero while the animation slots tick
-    /* 0x43D */ s8         field_43D;
-    /* 0x43E */ s8         field_43E;
-    /* 0x43F */ s8         field_43F; // animation state re-applied by `func_actor_317000_80162950`
-    /* 0x440 */ MATRIX     light;
-    /* 0x460 */ MATRIX     color;
-    /* 0x480 */ VECTOR3    target; // placement position copied in by `func_actor_317000_80162458`
-    /* 0x48C */ byte       pad_48C[0x4];
-    /* 0x490 */ VECTOR3    step;   // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x49C */ byte       pad_49C[0x4];
-    /* 0x4A0 */ s32        field_4A0;
-    /* 0x4A4 */ s32        field_4A4;
-    /* 0x4A8 */ s32        field_4A8;
-    /* 0x4AC */ byte       pad_4AC[0xC];
-    /* 0x4B8 */ u16        field_4B8; // placement rotation copied in by `func_actor_317000_80162458`
-    /* 0x4BA */ u16        field_4BA; // target yaw `func_actor_317000_801627D0` steers toward
-    /* 0x4BC */ u16        field_4BC; // placement rotation copied in by `func_actor_317000_80162458`
-    /* 0x4BE */ byte       pad_4BE[0x2];
-    /* 0x4C0 */ u16        field_4C0;
-    /* 0x4C2 */ u16        field_4C2;
-    /* 0x4C4 */ u8         field_4C4;
-    /* 0x4C5 */ s8         field_4C5;
-    /* 0x4C6 */ byte       pad_4C6[0x2];
-    /* 0x4C8 */ s16        field_4C8;
-    /* 0x4CA */ byte       pad_4CA[0x2];
+    /* 0x000 */ GpAnimCtx        ctx;
+    /* 0x014 */ GpAnimSlot       slots[0x13];  // slot array `func_800B3F84` is handed
+    /* 0x30C */ byte             poses[0x130]; // pose buffer `func_800B3F84` is handed
+    /* 0x43C */ s8               field_43C;    // non-zero while the animation slots tick
+    /* 0x43D */ s8               field_43D;
+    /* 0x43E */ s8               field_43E;
+    /* 0x43F */ s8               field_43F; // animation state re-applied by `func_actor_317000_80162950`
+    /* 0x440 */ MATRIX           light;
+    /* 0x460 */ MATRIX           color;
+    /* 0x480 */ VECTOR3          target;    // placement position copied in by `func_actor_317000_80162458`
+    /* 0x48C */ byte             pad_48C[0x4];
+    /* 0x490 */ VECTOR3          step;      // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x49C */ byte             pad_49C[0x4];
+    /* 0x4A0 */ Actor317000Fixed pos[3];    // 16.16 position, integer part added to the root coordinate
+    /* 0x4AC */ byte             pad_4AC[0xC];
+    /* 0x4B8 */ u16              field_4B8; // placement rotation copied in by `func_actor_317000_80162458`
+    /* 0x4BA */ u16              field_4BA; // target yaw `func_actor_317000_801627D0` steers toward
+    /* 0x4BC */ u16              field_4BC; // placement rotation copied in by `func_actor_317000_80162458`
+    /* 0x4BE */ byte             pad_4BE[0x2];
+    /* 0x4C0 */ u16              field_4C0;
+    /* 0x4C2 */ u16              field_4C2;
+    /* 0x4C4 */ s8               field_4C4;
+    /* 0x4C5 */ s8               field_4C5;
+    /* 0x4C6 */ s16              field_4C6;
+    /* 0x4C8 */ s16              field_4C8;
+    /* 0x4CA */ byte             pad_4CA[0x2];
 } Actor317000Work;
 STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
 

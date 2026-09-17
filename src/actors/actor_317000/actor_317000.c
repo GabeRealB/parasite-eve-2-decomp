@@ -3,6 +3,8 @@
 #include "actors/actor_317000.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -10,7 +12,71 @@
 #include <psyq/abs.h>
 #include <psyq/libgte.h>
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000", func_actor_317000_80161E68);
+void func_actor_317000_80162760(Task* task);
+void func_actor_317000_80162768(Task* task);
+void func_actor_317000_801621F4();
+
+/// Per-frame tick. Runs the state body `Actor317000Work::field_4C0` selects
+/// from a two-entry stack table, then integrates the 16.16 position: `step` is
+/// added to `pos`, `step.vy` gains 0x120000 while `field_4C4` is raised, the
+/// integer halves move the root coordinate and only the fractions are kept.
+/// The animation slots tick, the second coordinate is refreshed while
+/// `Game_Session->field_4D` is set, `field_4C6` ramps up by 0x40 to 0x1000 or
+/// down by 0x80 to 0 on `field_4C5`, and the aim body runs against slot 3.
+/// A non-negative `field_4C8` counts down and frees the model buffers at 0.
+void func_actor_317000_80161E68(Task* task)
+{
+    TmdObject*       ext                 = task->extra;
+    Actor317000Work* work                = (Actor317000Work*)task->idMap;
+    void             (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
+    GsCOORDINATE2*   coord;
+    s32              i;
+
+    states[(s16)work->field_4C0](task);
+
+    coord           = ((TmdObject*)task->extra)->field_8;
+    work->pos[0].v += work->step.vx;
+    work->pos[1].v += work->step.vy;
+    work->pos[2].v += work->step.vz;
+    if (work->field_4C4 != 0) {
+        work->step.vy += 0x120000;
+    }
+    coord->coord.t[0] += work->pos[0].p.hi;
+    coord->coord.t[1] += work->pos[1].p.hi;
+    coord->coord.t[2] += work->pos[2].p.hi;
+    coord->flg         = 0;
+    work->pos[0].v     = work->pos[0].p.lo;
+    work->pos[1].v     = work->pos[1].p.lo;
+    work->pos[2].v     = work->pos[2].p.lo;
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)task->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)&((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_4C5 != 0) {
+        work->field_4C6 += 0x40;
+        if (work->field_4C6 > 0x1000) {
+            work->field_4C6 = 0x1000;
+        }
+    } else {
+        work->field_4C6 -= 0x80;
+        if (work->field_4C6 < 0) {
+            work->field_4C6 = 0;
+        }
+    }
+    func_actor_317000_801621F4(task, Game_GetPtrSlot(3), 0x400, 0x200, work->field_4C6);
+    if (work->field_4C8 >= 0) {
+        if (work->field_4C8 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4C8--;
+    }
+}
 
 /// Turn-toward-target body of the facing state `func_actor_317000_80161E68`
 /// dispatches on. The actor's own coordinate and the `Game_GetPtrSlot(3)` task's
