@@ -121122,3 +121122,65 @@ same spot is only its target block having nothing the filler can use.
 Inputs: scratch `nonmatchings/func_actor_120300_80132004-vacuum`, `base.c`
 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`), `base_1.c` 100.000%,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Re-assigning one C variable for a reload keeps both loads in one pseudo (func_actor_120300_80131EE0, 2026-09-17)
+
+`func_actor_120300_80131EE0` reloads `arg0->idMap` after the tick loop that
+clobbers memory, and retail's two loads land in *different* registers:
+
+```
+lw   s1,0x1c(s2)     <- first load, into $s1
+...
+lw   s2,0x1c(s2)     <- reload, tied to its own base register
+```
+
+Writing both loads through one C variable reproduces the first load and leaves
+the second eight penalties off (`92.041%`, `branch=4 regs=5 reorder=1 insert=3
+delete=2`): the `.lreg` dump shows a **single** pseudo with two `set`s, so both
+loads take `$s1` and the value the reload is expected to free cannot have it. The
+tail then diverges in three places at once - the animation id and the reloaded
+pointer exchange registers (`move s2,v1` / `lw s1,0x1c(s2)`), which reorders
+`lh`-vs-`lhu` scheduling, and `reorg` responds by pulling the `v0 = 1` return
+value out of the shared tail block and into the delay slots of both branches
+(`bltz $2,$L23; li $2,1` and a second copy in the loop's `bne` slot) instead of
+leaving it in the `j`'s slot as retail does.
+
+Declaring a second variable for the reload - `work` then `animWork`, the pair
+this overlay already uses in `func_actor_120300_80133330` /
+`func_actor_120300_801335D8` - makes two pseudos. The reload's birth at
+`lw` ties it to the dying `arg0` in `$s2` (`lw $s2,0x1c($s2)`), which leaves
+`$s1` free for the animation id, and the whole tail falls into place:
+`92.041%` -> `100.000%` with every penalty zero and no other edit.
+
+**Reading it.** Two loads of the same expression into the same register in the
+target do *not* mean one variable; ask whether the target's second load is
+`lw $r,off($r)` (destination tied to its own base). That tie is what a
+separately-declared reload gives and what a reused variable cannot, because
+`expand` keeps the variable's single pseudo. The rule is narrow and does not
+contradict "prefer one reused variable over a pile of temps": it applies when
+the reused value is load-bearing for a later allocation (here the reload is what
+frees `$s1`), and the symptom is a swapped pair plus duplicated delay-slot
+constants, not a lone `regs` penalty.
+
+## `lh` versus `lhu` on a struct field is decided by the use, and a cast is equivalent to retyping the field (same function)
+
+The same function indexes a `-1`-terminated `s16` table by
+`Actor120300Work::field_4D4`, and retail zero-extends that index:
+
+```
+lhu  v1,0x4d4(s1)    /* target */
+lh   v1,0x4d4(s1)    /* field declared s16 */
+```
+
+Two edits both produce the `lhu` and both measured 100.000%: declaring the field
+`u16`, or leaving it `s16` and writing `table[(u16)work->field_4D4]`. GCC
+re-selects the load mode for the unsigned use instead of emitting `lh` + `andi`,
+so the cast costs nothing - contrary to the usual "the mask survives" intuition
+for an explicit truncation. The field type is the better edit when the field has
+exactly one reader (here the overlay's three units), since the two writers store
+small positive ids and the `sh` is unaffected either way.
+
+Inputs: scratch `nonmatchings/func_actor_120300_80131EE0-vacuum`, `base.c`
+72.918% (`branch=2 regs=51 reorder=2 insert=8 delete=8`), `base_1.c` 89.338%,
+`base_2.c` 92.041%, `base_3.c` 100.000%, compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

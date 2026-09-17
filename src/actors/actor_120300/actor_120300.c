@@ -21,9 +21,54 @@ extern s32 D_actor_120300_801417AC;
 extern s32 D_actor_120300_80141884;
 extern s32 D_actor_120300_80141A34;
 
+/// Animation id per `Actor120300Work::field_4D4`; -1 skips the restart.
+extern s16 D_actor_120300_80140980[];
+
 extern TaskDesc ActorsShared80134898Desc;
 
-INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_80131EE0);
+/// Ticks slots 1..19 of a task's animation context and, if every one of them
+/// then has `GpAnimSlot::field_10` bit 0x100 set, re-reads the work block and
+/// restarts all twenty slots on the id `D_actor_120300_80140980` selects for
+/// `field_4D4`, returning 1; a negative entry or an unset slot returns 0. The
+/// gotos reproduce retail's block layout.
+s32 func_actor_120300_80131EE0(Task* arg0)
+{
+    Actor120300Work* work;
+    Actor120300Work* animWork;
+    u16              anim;
+    u16              i;
+    u16              done;
+
+    work = (Actor120300Work*)arg0->idMap;
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    i    = 1;
+    done = 1;
+    for (; i < 0x14; i++) {
+        if (!(work->slots[i].field_10 & 0x100)) {
+            goto fail;
+        }
+    }
+check:
+    if (done) {
+        if (D_actor_120300_80140980[work->field_4D4] >= 0) {
+            anim                = D_actor_120300_80140980[work->field_4D4];
+            animWork            = (Actor120300Work*)arg0->idMap;
+            animWork->field_4D4 = anim;
+            goto loop;
+        fail:
+            done = 0;
+            goto check;
+        loop:
+            for (i = 1; i < 0x14; i++) {
+                func_800B4114(&animWork->anim, i, anim, 0, 10);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
 
 /// Spawn tick of a child actor that keeps the model facing the player: state 0
 /// allocates the 0x4E4-byte `Actor120300Work` block, parks it in

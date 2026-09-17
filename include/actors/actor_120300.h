@@ -38,7 +38,7 @@ typedef struct Actor120300Work {
     /* 0x4C8 */ s16        field_4C8;
     /* 0x4CA */ s16        field_4CA;
     /* 0x4CC */ byte       pad_4CC[0x8];
-    /* 0x4D4 */ s16        field_4D4; // written by func_actor_120300_80133330
+    /* 0x4D4 */ u16        field_4D4; // animation id, indexed into the -1-terminated table below; written by func_actor_120300_80133330
     /* 0x4D6 */ u16        field_4D6;
     /* 0x4D8 */ u16        field_4D8;
     /* 0x4DA */ u16        field_4DA;
@@ -57,6 +57,11 @@ typedef struct Actor120300 {
 } Actor120300;
 
 extern Actor120300* D_actor_120300_80141BA8;
+
+/// `func_800B4114` is deliberately not declared in `gameplay/1BC.h` (see its
+/// note): this overlay hands it a `u16` animation id, so the `s32` `arg2` here
+/// is what keeps the caller's zero-extension.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_actor_120300_80133E14(s16 arg0);
 void func_actor_120300_80133E34(s16 arg0);
