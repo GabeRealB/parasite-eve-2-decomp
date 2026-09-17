@@ -58559,6 +58559,37 @@ The same reasoning applies to any shared switch tail — prefer duplicated
 statements over `goto` when the merged prefix would be more than the tail
 itself.
 
+### The merge stops at the differing instruction — a per-arm `lui`/`addiu` is the signature
+
+`func_actor_342100_80162DDC` is that lesson with the difference on the *stored
+value* rather than on an address. Its two state-1 arms aim the overlay's effect
+record at the same part table and store a different scale, so the arms are
+equal from the table-base `lui` on and cross-jumping merges that suffix into one
+block. What stays in each arm is not just the scale but the whole address
+materialization of the store it feeds, and the arm that jumps keeps its scale in
+the delay slot:
+
+```
+bnez  $v0, .L162EDC        ; arm B
+andi  $a0, $a0, 0x3
+lui   $a2, %hi(D_actor_342100_801649A0)   ; per-arm, not in the shared tail
+addiu $a3, $a2, %lo(D_actor_342100_801649A0)
+j     .L162EFC
+ addiu $v0, $zero, 0x10   ; the scale, in the delay slot
+```
+
+So a target that repeats the `lui`/`addiu` of one global in every arm is evidence
+that the statements were duplicated in the source, not that the address was
+hoisted. Folding the arms into a `goto`-shared block instead compiles the merge
+by hand — one copy, with the scale live in a register — and scores 95.02% with
+a `delete`/`insert` pair where the target has three address copies.
+
+The other half of that 95% was the mask: an in-place `andi $a0,$a0,0x3` is
+`idx &= 3;` on the *same* variable, while the inline form `TBL[idx & 3]` makes a
+fresh pseudo the allocator is free to put elsewhere — the object then carries
+`andi $v0,$a0,0x3`, and the mask moves down to where the value is used. Check
+which register an `andi` writes before changing anything else about the index.
+
 ## A compiler-generated jump table needs its own `.text` cut, not just a `rodata` one
 
 Matching a `switch` in the middle of a room unit can move the unit's `.rodata`

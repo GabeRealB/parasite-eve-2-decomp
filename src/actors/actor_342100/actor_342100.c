@@ -42,6 +42,29 @@ extern s16 D_actor_342100_80164910[];
 /// `func_800E8614` on the same arm; a byte address is all the installer sees.
 extern u8 D_actor_342100_801649C8[];
 
+/// Effect record `func_actor_342100_80162DDC` hands `func_800FDB18` together
+/// with one part of the player's model: `field_0` is that part's coordinate
+/// and `field_4` the scale that goes with it (0x100 for the wide pick, 0x10
+/// for the narrow one). Ships as `{ NULL, 0, 1 }` in the data blob, directly
+/// before the part table below.
+extern GpEffArg D_actor_342100_801649A0;
+
+/// The player-model parts the effect record above is aimed at, as indices into
+/// the player's coordinate array (`TmdObject::field_8`): sixteen `u16`s
+/// running 1..0x12, of which `func_actor_342100_80162DDC` takes the first four
+/// (2, 4, 6, 0xA) when it masks the LCG draw with 3 and all sixteen when it
+/// masks with 0xF.
+extern u16 D_actor_342100_801649A8[];
+
+/// Frame counter the narrow arm of `func_actor_342100_80162DDC`'s state 1 is
+/// gated on: it aims the effect only on the frames where the low nibble (or,
+/// for the other arm, the low three bits) of this global is clear.
+extern s32 D_80070F70;
+
+/// Random-number state the overlay's spawn task rolls once per tick: the
+/// product's high halfword picks the model part.
+extern u32 Gp_LcgState;
+
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_342100/actor_342100", D_actor_342100_80161E20);
@@ -109,7 +132,63 @@ INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162C88);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162DDC);
+/// Spawn task of the overlay's spawn table (`func_actor_342100_80162748`'s
+/// neighbour entry, started with the encounter): each tick rolls the LCG and
+/// aims the overlay's effect record at one part of the player's model, taken
+/// from the coordinate array `Game_GetPtrSlot(3)`'s display object owns.
+///
+/// State 0 fires unconditionally -- the wide pick, scale 0x100 -- and steps to
+/// state 1. State 1 fires only on a frame the `D_80070F70` gate lets through,
+/// and which pick that is depends on the task's `spawnArg1`: the zero arm
+/// takes the same four parts as state 0 at scale 0x10, the non-zero arm the
+/// whole table at scale 0x100.
+///
+/// The three arms each spell the aim-and-fire sequence out. That is what the
+/// target's shape is: the two state-1 arms are byte-for-byte equal from the
+/// table-base `lui` on, so `jump.c`'s cross-jumping (the `jump_optimize` that
+/// runs after reload) merges that suffix into one block and leaves each arm
+/// its own copy of the address and scale in front of the jump -- the address
+/// and scale cannot merge because the scale differs. Folding the arms into one
+/// `goto`-shared block instead compiles them into a single copy with a live
+/// scale value, which is a different object (95.02%).
+void func_actor_342100_80162DDC(Task* arg0)
+{
+    Task* slot;
+    s32   idx;
+
+    slot        = Game_GetPtrSlot(3);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    idx         = Gp_LcgState >> 16;
+
+    switch (arg0->state) {
+        case 0:
+            idx                            &= 3;
+            D_actor_342100_801649A0.field_4 = 0x100;
+            D_actor_342100_801649A0.field_0 = &((TmdObject*)slot->extra)->field_8[D_actor_342100_801649A8[idx]];
+            func_800FDB18(3, ((TmdObject*)slot->extra)->field_8, NULL, &D_actor_342100_801649A0);
+            arg0->state++;
+            return;
+        case 1:
+            if (arg0->spawnArg1 == 0) {
+                if (D_80070F70 & 0xF) {
+                    return;
+                }
+                idx                            &= 3;
+                D_actor_342100_801649A0.field_4 = 0x10;
+                D_actor_342100_801649A0.field_0 = &((TmdObject*)slot->extra)->field_8[D_actor_342100_801649A8[idx]];
+                func_800FDB18(3, ((TmdObject*)slot->extra)->field_8, NULL, &D_actor_342100_801649A0);
+                return;
+            }
+            if (D_80070F70 & 7) {
+                return;
+            }
+            idx                            &= 0xF;
+            D_actor_342100_801649A0.field_4 = 0x100;
+            D_actor_342100_801649A0.field_0 = &((TmdObject*)slot->extra)->field_8[D_actor_342100_801649A8[idx]];
+            func_800FDB18(3, ((TmdObject*)slot->extra)->field_8, NULL, &D_actor_342100_801649A0);
+            return;
+    }
+}
 
 /// First tick of the overlay's event/controller task, the one that arms the
 /// encounter as state 0 and then waits for the player's arrival as state 1.
