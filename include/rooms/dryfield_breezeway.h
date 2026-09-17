@@ -68,18 +68,52 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// position (0, 0x20) `func_dryfield_breezeway_8017FD9C` also passes to
 /// `func_dryfield_breezeway_8017EB8C`, and `func_dryfield_breezeway_8017E81C`
 /// feeds them to `RoomsShared8017ecb4`.
+///
+/// `light` / `color` are the room's own lighting pair, the block's whole first
+/// 0x40 bytes: `func_dryfield_breezeway_8017E464` publishes them onto
+/// `TmdObject::field_1C` / `field_20` -- the slots `Gp_BindDefaultMtx` otherwise
+/// points at `Gp_DefaultMtx` / `Gp_DefaultMtx2` -- so the event object draws
+/// with this lighting rather than the shared defaults, and
+/// `Gp_SetObjTrans` writes the 0x800 translation into `color.t`.
 typedef struct DbwEventWork {
-    /* 0x00 */ byte pad_0[0x40];
-    /* 0x40 */ s32  field_40;
-    /* 0x44 */ byte pad_44[0x8];
-    /* 0x4C */ s16  field_4C;
-    /* 0x4E */ s16  cursorX;
-    /* 0x50 */ s16  cursorY;
-    /* 0x52 */ byte pad_52[0xA];
-    /* 0x5C */ s8   promptKind;
-    /* 0x5D */ byte pad_5D[0x3];
+    /* 0x00 */ MATRIX light;
+    /* 0x20 */ MATRIX color;
+    /* 0x40 */ s32    field_40;
+    /* 0x44 */ byte   pad_44[0x8];
+    /* 0x4C */ s16    field_4C;
+    /* 0x4E */ s16    cursorX;
+    /* 0x50 */ s16    cursorY;
+    /* 0x52 */ byte   pad_52[0xA];
+    /* 0x5C */ s8     promptKind;
+    /* 0x5D */ byte   pad_5D[0x3];
 } DbwEventWork;
 STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
+
+/// A `MATRIX` plus the word-wise view `func_dryfield_breezeway_8017E464` splats
+/// the light / colour pair through: five aligned stores rather than nine
+/// halfword ones (the same idiom as `Actor311900MatWords`). The pairs the
+/// compiler folds are the ones whose two halfwords are both 0x1000 or both
+/// zero -- the only two adjacent pairs of either splat that agree -- which is
+/// why `m02_m10` and `m22` sit between them.
+typedef union DbwMatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} DbwMatWords;
+STATIC_ASSERT_SIZEOF(DbwMatWords, 0x20);
+
+/// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns from as the room's
+/// event task, and the single-entry `GpMsgEntry[]` it parks in `Task::field_24`
+/// so `Gp_DispatchMsg` routes the family's messages (the 0x13F1 "can this key
+/// item be used here?" query) into it. Both sit in the room's trailing data
+/// blob, the table immediately after the descriptor.
+extern TaskDesc           D_dryfield_breezeway_80182DC0;
+extern struct _GpMsgEntry D_dryfield_breezeway_80182DCC[];
 
 /// 4-byte payload this room sends as `Gp_DispatchMsg`'s `arg2` for message
 /// 0x7DA, which the slot-4 task forwards to the 0x7DB handlers tagged with the

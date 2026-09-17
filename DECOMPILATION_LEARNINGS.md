@@ -116710,3 +116710,53 @@ birth, and the register with it" (stores); this is the same freedom for two
 loads whose consumers are equidistant. Note it is not the load-delay rule from
 the first of those: the dependent `lw 8(v1)` is the *last* of the four in both
 builds, so the delay-slot argument does not order this pair.
+
+## A `do { } while (0)` note mid-block is a *sched1 barrier*, not only a ref reweight
+
+The once-loop entries above use `do { } while (0)` for its loop-depth accounting
+in `flow.c`, and one of them notes the loop is "not a sched1 barrier" there.
+That holds only where the note does not land in the middle of a scheduled
+region. `sched_analyze_insn` (`sched.c`: "If there is a
+{LOOP,EHREGION}_{BEG,END} note in the middle of a basic block, then we must be
+sure that no instructions are scheduled across it. Otherwise, the reg_n_refs
+info (which depends on loop_depth) would become incorrect") adds an
+anti-dependence from every pending last-use and a dependence from every
+last-set onto the insn following the note, and flushes the pending memory
+lists. Everything after the note is pinned behind everything before it.
+
+**Symptom.** `func_dryfield_breezeway_8017E464` sat at 98.540% with `stack=0
+insert=0 delete=1 branch=4 regs=4 reorder=1` and a structure match: one
+instruction short (a load-delay `nop`) and four registers in a ten-instruction
+window. The target runs
+
+```
+lui  v1,%hi(D_8007216C) ... sw v0,0x24(s1); li v0,6; sw s0,0x1c(s1)
+sb   v0,%lo(D_8007216C)(v1); lw v0,0x30(s1); nop; addiu v0,v0,1; sw v0,0x30(s1)
+```
+
+while the build hoisted `lw v0,0x30(s1)` above the `li`/`sb` pair and put the 6
+in `$v1`.
+
+**Chain.** With the three descriptor stores (`Task::field_24`, `Task::idMap`,
+the global) as plain statements, the state reload's only dependence is the
+`Mem_Calloc` call insn, so sched1 is free to hoist it; its live range then
+covers the `6`'s position, local-alloc hands the reload `$v0` first, and the
+`6` falls through to `$v1` (an exact `QTY_CMP_PRI` tie is broken by quantity
+number, i.e. birth order). Wrapping exactly those three statements in a
+once-loop puts the loop's `NOTE_INSN_LOOP_END` between the `sb` and the reload:
+sched1 then lists the reload's dependences as the `6`, the `%hi` and
+`REG_DEP_ANTI` on the `sb`, so it stays where retail put it, the `6` takes
+`$v0`, and a `$v0` redefinition is what then keeps sched2 from hoisting the
+reload. The same wrapper doubles the three stores' ref weights -- the mechanism
+the entries above describe -- so both levers come from the one construct.
+
+**Extent matters.** Pulling `arg0->state += 1` inside the wrapper as well was
+predicted to reweight the reloaded quantity too and scored 97.389%, so it is
+the wrapper, not its position, that is the whole difference: `do { } while (0)`
+around exactly those three stores is what retail's source had.
+
+Inputs: `base_4.i`
+`c4d3af9acc91bdb2e549f9acf15e4c17926f7529fd0fc4f963b28f0892f8bf3a` (98.540%),
+`base_5.i` `dbfce3ce5b2d1c4f4a3be579302bd931e46607e1d1369322807bdeaac1a8ea38`
+(100.000%), `base_6.i`
+`a485234089531794d20d9d3d129b425776d56006ac2a260e5619dab452f9d47a` (97.389%).

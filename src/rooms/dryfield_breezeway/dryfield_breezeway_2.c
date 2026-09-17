@@ -235,7 +235,129 @@ void func_dryfield_breezeway_8017E390(void)
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017E464);
+/// Brings up the room's second task family, the key-item event the prompt in
+/// `func_dryfield_breezeway_8017E65C` rides on. The 0x60 `DbwEventWork` block
+/// is allocated and published in `Task::idMap`, the family's own `GpMsgEntry[]`
+/// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
+/// `Task::field_24` -- which is what routes the key-item query into this room
+/// at all -- and the room's own event task is spawned from
+/// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `D_8007216C` is
+/// stamped with 6, the area-record index the view gate reads back.
+///
+/// The event object then draws with the room's lighting rather than the shared
+/// defaults: the work block's `light` / `color` pair is splatted onto
+/// `TmdObject::field_1C` / `field_20` (the slots `Gp_BindDefaultMtx` otherwise
+/// points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`), the 0x800 translation goes
+/// into the colour matrix, and the hotspot scan's cursor is seeded with the
+/// reset pair (0, 0x20). Both hotspot tables are walked to clear `hit`, so the
+/// prompt and the prop cursor both start the room with nothing highlighted.
+///
+/// The three descriptor stores sit in a one-iteration `do { } while (0)`
+/// because retail's source had them there, and the loop note that leaves
+/// behind is load-bearing twice: its loop depth doubles those stores' ref
+/// weights, which is what lifts the 6 above the state reload in `local-alloc`'s
+/// quantity order, and it stops that reload being hoisted above the
+/// `D_8007216C` store once it holds `$v0`. Three plain statements instead of
+/// the wrapper score 98.5%; wrapping a fourth statement reweights it too and
+/// does not match.
+///
+/// The block at the end is deliberately written against the task rather than
+/// against `work` and `ext`: it re-reads both slots, which is what makes its
+/// base pointers fresh values rather than the ones the middle of the function
+/// already holds.
+void func_dryfield_breezeway_8017E464(Task* arg0)
+{
+    TmdObject*     ext;
+    GsCOORDINATE2* coord;
+    DbwEventWork*  work;
+    RoomHotspot*   hs;
+
+    ext   = arg0->extra;
+    coord = ext->field_8;
+
+    work = (DbwEventWork*)Mem_Calloc(0x60, false);
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+
+    arg0->spawnArg2 = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
+    do {
+        arg0->field_24 = D_dryfield_breezeway_80182DCC;
+        arg0->idMap    = (TaskIdMap*)work;
+        D_8007216C     = 6;
+    } while (0);
+    arg0->state   += 1;
+    work->field_40 = 0;
+    Display_AcquireRef();
+
+    hs = D_dryfield_breezeway_80182E00;
+    while (hs->id != -1) {
+        hs->hit = 0;
+        hs++;
+    }
+
+    hs = D_dryfield_breezeway_80182DDC;
+    while (hs->id != -1) {
+        hs->hit = 0;
+        hs++;
+    }
+
+    ext->field_20 = &work->color;
+    ext->field_C  = 0;
+    ext->field_1C = &work->light;
+    coord->sub    = NULL;
+
+    Game_Session->field_1  = 1;
+    Game_Session->field_66 = 1;
+    Game_Session->field_68 = 1;
+    work->cursorX          = 0;
+    work->cursorY          = 0x20;
+
+    {
+        DbwEventWork* eventWork = (DbwEventWork*)arg0->idMap;
+        TmdObject*    eventObj  = (TmdObject*)arg0->extra;
+        DbwMatWords*  light     = (DbwMatWords*)&eventWork->light;
+        DbwMatWords*  color     = (DbwMatWords*)&eventWork->color;
+
+        light->ident.m00_m01 = 0x1000;
+        light->ident.m02_m10 = 0;
+        light->ident.m11_m12 = 0x1000;
+        light->ident.m20_m21 = 0;
+        light->ident.m22     = 0x1000;
+
+        color->ident.m00_m01 = 0x1000;
+        color->ident.m02_m10 = 0;
+        color->ident.m11_m12 = 0x1000;
+        color->ident.m20_m21 = 0;
+        color->ident.m22     = 0x1000;
+
+        eventObj->field_1C = &eventWork->light;
+
+        eventWork->color.m[0][0] = 0x1000;
+        eventWork->color.m[0][1] = 0x1000;
+        eventWork->color.m[0][2] = 0x1000;
+        eventWork->color.m[1][0] = 0x1000;
+        eventWork->color.m[1][1] = 0x1000;
+        eventWork->color.m[1][2] = 0x1000;
+        eventWork->color.m[2][0] = 0x1000;
+        eventWork->color.m[2][1] = 0x1000;
+        eventWork->color.m[2][2] = 0x1000;
+
+        eventWork->light.m[0][0] = 0x1000;
+        eventWork->light.m[0][1] = 0x1000;
+        eventWork->light.m[0][2] = 0x1000;
+        eventWork->light.m[1][0] = 0;
+        eventWork->light.m[1][1] = 0x1000;
+        eventWork->light.m[1][2] = 0x1000;
+        eventWork->light.m[2][0] = 0x1000;
+        eventWork->light.m[2][1] = 0x1000;
+        eventWork->light.m[2][2] = 0;
+
+        eventObj->field_20 = &eventWork->color;
+        Gp_SetObjTrans((GpObj20*)eventObj, 0x800, 0x800, 0x800);
+    }
+}
 
 /// Main-executable symbols with no module header yet: `D_80070F70` is the
 /// frame counter the prop's swing angle is derived from, and `func_8004BFF8`
