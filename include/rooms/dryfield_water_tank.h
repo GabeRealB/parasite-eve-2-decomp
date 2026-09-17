@@ -59,7 +59,7 @@ typedef struct DwtScriptWork {
     /* 0x48 */ byte  pad_48[0x4];
     /* 0x4C */ s16   field_4C;
     /* 0x4E */ byte  pad_4E[0x2];
-    /* 0x50 */ s16   field_50;
+    /* 0x50 */ u16   field_50;
     /* 0x52 */ s16   field_52;
     /* 0x54 */ s16   field_54;
     /* 0x56 */ byte  pad_56[0x2];

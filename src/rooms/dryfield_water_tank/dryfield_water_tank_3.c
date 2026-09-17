@@ -8,14 +8,20 @@
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/dryfield_water_tank.h"
 
+extern s8             D_8007216C;
 extern TaskDesc       D_dryfield_water_tank_8017F34C;
 extern s32            D_dryfield_water_tank_8017F114;
 extern s32            D_dryfield_water_tank_8017F21C;
+extern s32            D_dryfield_water_tank_8017FD60;
 extern GpMsgEntry     D_dryfield_water_tank_8017FD90[];
+extern s32            D_dryfield_water_tank_8017FDC0;
+extern s32            D_dryfield_water_tank_8017FEC8;
+extern TaskDesc       D_dryfield_water_tank_8017FF88;
 extern s32            D_dryfield_water_tank_80184E0C;
 extern s32            D_dryfield_water_tank_801859DC;
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
@@ -88,7 +94,79 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017DEA4);
+/// Per-frame script driver for the water-tank scene. It is the task parked in
+/// `D_dryfield_water_tank_80188D4C`, which is how the room's two sibling entry
+/// points reach the 0x58-byte `DwtScriptWork` it hangs off `Task::idMap`.
+/// State 0 allocates that block, registers it with the slot-3 game task and
+/// spawns the model task from `D_dryfield_water_tank_8017FF88` as its `child`;
+/// state 1 sends the intro messages to both tasks; state 2 asks to be killed
+/// once the session is gone. Every frame it then runs at most one request off
+/// `field_50` and clears it: 1 rewinds the scene through owner 0x3F3 and child
+/// 0x7D5 and hands 0x7DB the payload that moves the receiver to script state 2,
+/// 2 publishes the view switch (the body `func_dryfield_water_tank_8017E1B4`
+/// runs on its own) and 3 fires the scene's sound events.
+void func_dryfield_water_tank_8017DEA4(Task* arg0)
+{
+    DwtScriptWork* work;
+    DwtMsg7DB      msg;
+
+    work = (DwtScriptWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            work        = (DwtScriptWork*)Mem_Malloc(0x58, 0);
+            arg0->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x58);
+                work->owner                    = (Task*)Game_GetPtrSlot(3);
+                D_dryfield_water_tank_80188D4C = arg0;
+            }
+            work        = (DwtScriptWork*)arg0->idMap;
+            work->child = Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 1, 0, 0);
+            arg0->state = arg0->state + 1;
+            break;
+        case 1:
+            Gp_DispatchMsg(work->child, 0x7D4, (s32)&D_dryfield_water_tank_8017FD60, 0);
+            func_800E8634((s32)&D_dryfield_water_tank_8017FDC0, 0, (s32)&D_dryfield_water_tank_8017FEC8);
+            arg0->state = arg0->state + 1;
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                Task_RequestKill(arg0, 0);
+            }
+            break;
+    }
+
+    work = (DwtScriptWork*)arg0->idMap;
+    switch (work->field_50) {
+        /* This arm does nothing, and the switch needs it as written: it is what
+         * puts four values in the case list, so the decision tree roots at the
+         * request-1 node the way the ROM's does. */
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(work->owner, 0x3F3, 0, 0);
+            Gp_DispatchMsg(work->child, 0x7D5, 1, 0);
+            msg.field_2 = 2;
+            Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
+            break;
+        case 2:
+            D_8007216C             = Gp_FindViewIndex(3);
+            Game_Session->field_52 = 1;
+            /* The raw load is what makes this match: as `work->owner` it carries
+             * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it
+             * against D_8007216C's store, so the store sinks into the call's
+             * delay slot and the two request tails stop cross-jumping. */
+            Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+            break;
+        case 3:
+            SndEvt_EnqueueType6(0x52150002, 0, 0);
+            SndEvt_EnqueueType6(0x52150008, 0, 0);
+            break;
+    }
+    work->field_50 = 0;
+}
 
 /// Hides the task's `TmdObject` (bit 0x80 of `field_C`) while `arg2` is zero,
 /// and clears that bit otherwise. `arg1` is unused; the flag is the *third*

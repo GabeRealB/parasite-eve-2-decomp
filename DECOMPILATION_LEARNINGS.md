@@ -118176,3 +118176,119 @@ The near-miss seeds — `base_2.c`, the shared-constant variable at 98.43%, and
 `base_3.c`, one pointer variable over two distinct view types at 97.86% — live
 in the scratch env `nonmatchings/func_dryfield_water_tank_8017EFF4-vacuum/`,
 next to `mine_oracle.c`, the sibling compiled as the oracle.
+
+
+## A store sunk into a call's delay slot blocks the cross-jump of two identical call tails (func_dryfield_water_tank_8017DEA4, 2026-09-17)
+
+The `func_dryfield_water_tank_8017E1B4` entry above is the same clause with a
+`reorder`-only symptom. Here the identical one-access change fixes a
+*structural* difference instead, so it is worth recognising in that disguise.
+
+Two arms of a switch end in the same call and a `break`:
+
+```c
+        case 1:
+            ...
+            Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
+            break;
+        case 2:
+            ...
+            Gp_DispatchMsg(work->owner, 0x3F3, 1, 0);
+            break;
+```
+
+The target has **one** call site for both (case 1 `j`s to it, case 2 falls into
+it, and the block after it holds the `sh $zero,0x50($s0)` both arms want):
+
+```
+.LDFE068:  jal Gp_DispatchMsg; addu a3,zero,zero; j <epilogue>; sh zero,0x50(s0)
+```
+
+That merge is `jump.c`'s cross-jumping, and it runs in the *last*
+`jump_optimize (insns, 1, 1, 0)` call only - after reload, before `.sched2`.
+For two jumps to one label `find_cross_jump` walks backwards from each jump
+comparing insns pairwise; each match decrements `minimum`, which starts at 2 for
+that jump-chain path and at 1 for the "code before the label" path. Case 1's
+block ends `[call][j]` and case 2's ends `[call][jump]`, so the walk should
+match on the call and fire.
+
+It does not when case 2's `sb $v0,%lo(D_8007216C)` has been sunk into the call's
+delay slot, because then case 2's block ends `[call][sb][j]`: the walk's first
+pair is `CALL_INSN` vs a store, which breaks out of the loop with `minimum`
+still 2, and nothing merges. In the object that shows up as the call appearing
+twice, every switch-dispatch branch offset past it shifted, and
+`insert`/`delete` non-zero - not as a reorder, which is why the store's own
+position looks like a separate problem until the dumps are read.
+
+The sink is the MEM_IN_STRUCT_P `true_dependence` clause from the entry above
+(`work->owner` is in-struct and varying, the `D_8007216C` store is a fixed-`LO_SUM`
+scalar), so the fix is that entry's cast deref on that one access - nothing else
+in the arm changes:
+
+```c
+    Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+```
+
+95.904% (`branch=3 regs=2 reorder=4 insert=3 delete=0`) to 100.000%, one build.
+
+To tell this apart from an ordinary missing cross-jump, read the `.sched2`
+dump's block ends rather than the object: both tails there still `(label_ref N)`
+the same label, and the difference is the insn between the `call_insn` and the
+`jump_insn`. `find_cross_jump` also refuses when the pair is any two different
+`GET_CODE`s, and on `CALL_INSN` specifically when `CALL_INSN_FUNCTION_USAGE`
+differs - in this case both calls' usage lists are `(use a3)(use a2)(use a1)(use a0)`
+and match, so the store was the whole cause.
+
+## The first comparison of a switch's dispatch chain names the case *set*: an empty `case 0` can be required (func_dryfield_water_tank_8017DEA4, 2026-09-17)
+
+`balance_case_nodes` (`stmt.c`) splits the sorted case list into a decision tree
+before `emit_case_nodes` walks it, and for a list of `i` single-value nodes with
+no cost table the root is fixed: `i <= 2` not at all (one chain), `i == 3` the
+middle node, `i >= 4` the `ceil(i/2)`-th node. Each node's own test is emitted
+first, so **the first comparison in the target's dispatch chain identifies the
+`ceil(i/2)`-th smallest case value**, and the number of case values follows from
+the position of that value in the chain.
+
+The room driver's request word has cases 1, 2, 3 in the source I first wrote -
+and building that gave a balanced tree rooted at 2 (`li s1,2; beq v1,s1,...`
+first). The target roots at the value-1 node:
+
+```
+lhu   v1,0x50(s0)
+li    s1,1
+beq   v1,s1,<case 1>      ; root = the value-1 node
+slti  v0,v1,2
+bnez  v0,<default>        ; the right subtree's lower-bound test
+li    v0,2
+beq   v1,v0,<case 2>
+li    v0,3
+beq   v1,v0,<case 3>
+```
+
+A root of 1 with `i >= 4` means there is a case value *below* 1 - so the source
+has a four-value set `{0,1,2,3}`, and the missing source line is an empty arm the
+switch needs even though it does nothing:
+
+```c
+        case 0:
+            break;
+```
+
+With it, the split lands on the second node and the chain comes out exactly as
+the target has it (branches 0 `j`/3 `j` included). `estimate_case_costs` only
+switches on the cost table when every case value has a non-negative cost in
+`cost_table`, i.e. is printable ASCII (or `\0 \t \n \f \v \b`); small
+integers are all control characters and take the fixed split above, so the rule
+applies to every ordinary state/request word.
+
+The neighbouring tell is the load: `lhu` on a halfword field means the source
+field is **unsigned**, and `switch` on it builds unsigned branches (`sltiu`).
+Here the target's `slti` with an `lhu` load is the pair the header was wrong
+about - `field_50` was declared `s16` and had to become `u16` for the load to
+zero-extend (the compare folds to a signed one because the value is known
+non-negative).
+
+Input hashes: `base_2.c`
+`ba55ccd67e935ee7cf89e3dc83e30b8f8735204a50f735537c99e6490bb51183` (case 0 and u16, 95.904%), `base_3.c`
+`9be92a8b61adf0508c04b9863ce3db0e819a7b281a4c8f1f1fb905415e4e5666` (the cast deref above, 100.000%), both in the scratch env
+`nonmatchings/func_dryfield_water_tank_8017DEA4-vacuum/`.
