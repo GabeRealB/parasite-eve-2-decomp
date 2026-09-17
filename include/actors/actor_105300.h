@@ -37,24 +37,26 @@ typedef struct Actor05300Obj2C {
 /// model's own coordinate each frame. `field_320` / `field_324` are unsigned
 /// here: every signed read of them casts at the use.
 typedef struct Actor05300Work {
-    /* 0x000 */ byte   pad_0[0x29C];
-    /* 0x29C */ s32    field_29C;
-    /* 0x2A0 */ byte   pad_2A0[0x5C];
-    /* 0x2FC */ MATRIX field_2FC;
-    /* 0x31C */ s32    field_31C;
-    /* 0x320 */ u16    field_320;
-    /* 0x322 */ s16    field_322;
-    /* 0x324 */ u16    field_324;
-    /* 0x326 */ u16    field_326;
-    /* 0x328 */ u16    field_328;
-    /* 0x32A */ u16    field_32A;
-    /* 0x32C */ u16    field_32C;
-    /* 0x32E */ u16    field_32E;
-    /* 0x330 */ u16    field_330;
-    /* 0x332 */ byte   pad_332[2];
-    /* 0x334 */ s16    field_334;
-    /* 0x336 */ s16    field_336;
-    /* 0x338 */ s16    field_338;
+    /* 0x000 */ byte     pad_0[0x29C];
+    /* 0x29C */ s32      field_29C;
+    /* 0x2A0 */ byte     pad_2A0[0x24];
+    /* 0x2C4 */ GpRec18  rec18[2];
+    /* 0x2F4 */ GpEffArg field_2F4;
+    /* 0x2FC */ MATRIX   field_2FC;
+    /* 0x31C */ s32      field_31C;
+    /* 0x320 */ u16      field_320;
+    /* 0x322 */ s16      field_322;
+    /* 0x324 */ u16      field_324;
+    /* 0x326 */ u16      field_326;
+    /* 0x328 */ u16      field_328;
+    /* 0x32A */ u16      field_32A;
+    /* 0x32C */ u16      field_32C;
+    /* 0x32E */ u16      field_32E;
+    /* 0x330 */ u16      field_330;
+    /* 0x332 */ s16      field_332;
+    /* 0x334 */ s16      field_334;
+    /* 0x336 */ s16      field_336;
+    /* 0x338 */ s16      field_338;
 } Actor05300Work;
 
 /// 0x48-byte part object the spawn allocates with `Mem_Calloc` and parks in
@@ -88,7 +90,17 @@ typedef struct Actor05300 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ Actor05300Obj2C* field_2C;
+    /* 0x30 */ s32              field_30;
 } Actor05300;
+
+/// The 0x18-byte block the hit handler pushes on the scratchpad stack at
+/// `0x1F8003FC`: the player-to-enemy delta and the effect offset it hands
+/// `Gp_SpawnEff` / `func_800FDB18`.
+typedef struct Actor05300Scratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR ofs;
+} Actor05300Scratch;
+STATIC_ASSERT_SIZEOF(Actor05300Scratch, 0x18);
 
 /// Spawn position copied into a coordinate's translation, one entry per
 /// `Actor05300Work::field_334` sub-state.

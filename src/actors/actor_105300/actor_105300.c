@@ -18,13 +18,97 @@ extern Actor05300Clip     D_actor_105300_8013D3EC[];
 extern Actor05300SndRow   D_actor_105300_8013D3C4[];
 extern u32                D_actor_105300_8013D3BC;
 extern u8                 D_801153F4;
-extern s32                D_actor_105300_8013D3B0;
+extern s32                D_actor_105300_8013D3B0[];
+extern SVECTOR            D_actor_105300_80133A40[];
 extern s32                D_actor_105300_8013D3B4;
 
 void func_8017E524(s32 arg0);
 void func_8017FD88(s32 arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105300/actor_105300", func_actor_105300_80131E3C);
+void func_actor_105300_80131E3C(Actor05300* arg0)
+{
+    Actor05300Scratch* scr;
+    Actor05300Work*    work;
+    GpEnemy*           enemy;
+    GsCOORDINATE2*     coord;
+    s32                damage;
+    s32                lastId;
+    s32                val;
+    s32                snd;
+    s32                i;
+
+    scr    = --*(Actor05300Scratch**)0x1F8003FC;
+    coord  = arg0->field_2C->field_8;
+    work   = arg0->field_1C;
+    enemy  = arg0->field_20;
+    lastId = 0;
+    if (work->field_332 != 0) {
+        work->field_332--;
+        if ((work->field_332 << 0x10) <= 0) {
+            work->field_332 = 0;
+        }
+        if (work->field_332 != 0) {
+            goto end;
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        if ((work->rec18[i].field_4 & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        scr->delta.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+        scr->delta.vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+        scr->delta.vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+        damage        = Gp_ComputeDamage(work->rec18[i].field_4, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
+        if (work->field_336 == 0) {
+            damage /= 10;
+        } else if (Gp_RollEnemyChance(enemy, work->rec18[i].field_4, 0) != 0) {
+            damage     *= 4;
+            scr->ofs.vx = D_actor_105300_80133A40[work->field_334].vx;
+            scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
+            scr->ofs.vz = D_actor_105300_80133A40[work->field_334].vz;
+            Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
+        }
+        func_800DA6E8(&enemy->node, damage, 0);
+        func_800E2C78((GpObj40*)enemy, work->rec18[i].field_4, damage, 0);
+        enemy->field_40 -= damage;
+        if (enemy->field_40 <= 0) {
+            if (work->field_336 == 0) {
+                enemy->field_40 = 1;
+            } else {
+                arg0->field_30  = 2;
+                work->field_32E = 3;
+                work->field_330 = 2;
+                work->field_338 = 0;
+                work->field_320 = 3;
+            }
+        } else {
+            work->field_32C = 1;
+            work->field_328 = 0;
+            work->field_320 = 2;
+        }
+        if (lastId != work->rec18[i].field_4) {
+            lastId      = work->rec18[i].field_4;
+            val         = Gp_GetIdParam1(lastId) & 0xFFFF;
+            scr->ofs.vx = D_actor_105300_80133A40[work->field_334].vx;
+            scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
+            scr->ofs.vz = D_actor_105300_80133A40[work->field_334].vz;
+            if (val == 3) {
+                Gp_SpawnEff(0x6007F, coord, work->field_2F4.field_4 | (work->field_2F4.field_6 << 16), &scr->ofs);
+            } else {
+                func_800FDB18((u16)val, coord, &scr->ofs, &work->field_2F4);
+            }
+        }
+        val = Gp_GetIdParam2(work->rec18[i].field_4);
+        if (val > 0) {
+            work->field_332 = val;
+        }
+        snd = D_actor_105300_8013D3B0[2] | ((arg0->field_20->field_8 >> 12) << 8);
+        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+    }
+end:
+    Gp_ClearRec18Occupied(work->rec18);
+    *(Actor05300Scratch**)0x1F8003FC += 1;
+}
 
 /// Per-frame animation schedule of the enemy, one of the three handlers the
 /// shared dispatcher `ActorsShared80133468` runs each frame. The sub-state
@@ -230,7 +314,7 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
                 if (hitTime > 0) {
                     part->field_40 = hitTime;
                 }
-                snd  = D_actor_105300_8013D3B0;
+                snd  = D_actor_105300_8013D3B0[0];
                 snd |= (arg0->field_8 >> 12) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
             }

@@ -126994,3 +126994,20 @@ same body as a `static inline void helper(Task* arg0, Actor* w)` placed each
 short-lived `ctx = (Work*)arg0->idMap` local *per case* instead of one shared
 across three loops, which dropped its global-alloc priority below the work
 pointer so the work pointer took `$s1` (100%).
+
+### A decrement-clamp-recheck keeps its reload only when the clamp test is written `(field << 0x10) <= 0` (func_actor_105300_80131E3C, 2026-09-17)
+
+**Symptom.** Target: `lh`/`lhu` of `field`, `beqz`, `addiu -1`, `sh`, `sll 16`,
+`bgtz L`, `sh $zero`, `L: lh field; bnez end`. With
+`field--; if (field <= 0) field = 0; if (field != 0) goto end;` the `L:` reload
+and its `bnez` vanish (the `bgtz` goes straight to `end`, ~1.6% short).
+
+**Cause.** `field <= 0` on the `s16` expands with a `REG_EQUAL (sign_extend:SI
+(reg:HI))` note; cse maps the reloaded `mem` to that register, and jump threading
+then turns `gt 0` into `ne 0` and deletes the recheck. An explicit shift carries
+no `sign_extend` equivalence, so the reload survives.
+
+**Fix.** Keep `field--;` (it shares the test's HI pseudo, giving the paired
+`lh`/`lhu` before the `beqz`) and write only the clamp test as
+`if ((work->field << 0x10) <= 0)`. A `timer = (u16)field - 1` temp also keeps the
+reload but loads `lhu` in a separate block below the `beqz`.
