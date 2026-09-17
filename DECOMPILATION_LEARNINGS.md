@@ -127241,3 +127241,101 @@ already recorded above ("`addu` operand order: a MEM address puts the multiply
 first"): the target's `addu $v1,$v0,$a2` needs the indexing written in place,
 not through a `rec = &recs[i]` local, which gives `addu $v1,$a2,$v0` and
 99.880%.
+
+## A `0`/`1` flag's zero-extension register is decided by the source's *line structure* (func_actor_311500_80162F28, 2026-09-17)
+
+`func_actor_311500_80162F28` ends case 1 with a 0/1 flag built branchily and then
+tested. Two sources that preprocess to the *same token stream* (verified by
+diffing the `.i` files with all whitespace stripped: the only differences were
+`long vx, vy;` vs `long vx; long vy;`) compile to objects that differ in exactly
+two instructions:
+
+```
+bnez  v0,L          andi  v1,v1,0xffff     <- target
+ li   v1,1          bnez  v1,L
+move  v1,zero       li    v0,1
+andi  v0,v1,0xffff  move  v0,zero
+```
+
+The zero-extension of the flag lands in `$v0` (a fresh pseudo, copied out of
+`$v1`) in one and in place in `$v1` in the other. The deciding input is the
+number of line notes between the flag's insns: `local-alloc`'s
+
+```c
+#define QTY_CMP_PRI(q) \
+  ((int) (((double) (floor_log2 (qty_n_refs[q]) * qty_n_refs[q] * qty_size[q]) \
+          / (qty_death[q] - qty_birth[q])) * 10000))
+```
+
+ranks by `qty_death - qty_birth` in **INSN_UIDs**, and every source line the
+statements sit on becomes a note consuming a uid. The tie between the flag and
+the extension's destination is close enough that the formatter's own output
+decides it: the same function written in the permuter's normalized style (2-space
+indent, Allman braces — four extra lines in the block) matches, while the
+project's clang-format style (braces attached) does not.
+
+This matters because `tools/build-and-verify.sh` runs `clang-format -i` **before**
+ninja, so the text that reaches cc1 is the formatter's, not the author's. The
+landed source therefore keeps the winning layout inside a
+
+```c
+/* clang-format off */
+...function...
+/* clang-format on */
+```
+
+region; without it the next build reformats the body and the overlay checksum
+fails with nothing pointing at the formatting. The match does *not* depend on the
+function's absolute position: inserting two comment lines above the region left
+it matching, because only the uid *differences* inside the block matter.
+
+Inputs: `w1.c` 99.895% (`andi $v0,$v1,0xffff`), `w8.c` 100.000% (in place), both
+from the same tokens.
+
+## A pre-branch store refuses jump.c's store-flag rewrite only when the asm sits *inside* the branch (func_actor_311500_80162F28, 2026-09-17)
+
+The documented `asm("")` before the `x = 1` (see "`BRANCH_COST` is 1 here…") means
+the assignment that *follows* the branch — which for `x = 1; if (!(f & 1)) x = 0;`
+is the `x = 0` inside the `if`, not the `x = 1` before it. `jump.c` tests
+`temp = next_nonnote_insn (insn)` on the branch, so a barrier before the `x = 1`
+or between `x = 1` and the `if` changes nothing (both scored 95.674%); the one
+that works is
+
+```c
+var_v1 = 1;
+if (!(work->field_4C & 1)) {
+    SOFT_BARRIER();
+    var_v1 = 0;
+}
+```
+
+which took the same function from 95.674% to 99.895% with `branch=0 insert=0
+delete=0`.
+
+Inputs: `h2.c` (barrier before `x = 1`) 95.674%, `h3.c` (between `x = 1` and the
+`if`) 95.674%, `w1.c` (inside the `if`) 99.895%.
+
+## Assignment order inside a straight-line block is the scheduler's load hoisting (func_actor_311500_80162F28, 2026-09-17)
+
+Case 0 fills an `SVECTOR` and a `GpEffArg` and passes both, plus
+`&arg0->field_2C->field_8[2]`, to `func_800FDB18`. The target's block opens with
+the three loads that feed those expressions and only then runs the five constant
+stores; writing the stores first (the natural reading order) left them first and
+the loads at the bottom behind `nop`s. The flag is the *reload*: giving
+`arg0->field_1C` its own statement before the coordinate is what makes the
+compiler emit it where the scheduler can hoist it between the `field_2C` and
+`field_8` loads.
+
+```c
+anim2       = arg0->field_1C;                    /* reload, after the loop's calls */
+eff.field_0 = &arg0->field_2C->field_8[2];       /* the two loads it sits between */
+eff.field_4 = 0x100;
+...
+```
+
+Writing `arg0->field_1C->field_4D0` inline instead leaves the reload next to the
+`lw $a0,0x4D0($a0)` that consumes it and the block schedules differently
+(87.853% -> 91.379% -> 95.674% across the two shapes).
+
+Inputs: `base_1.c` 87.853% (stores first), `e1.c` 91.379% (`field_0` first),
+`f1.c` 95.674% (the reload as its own statement).
