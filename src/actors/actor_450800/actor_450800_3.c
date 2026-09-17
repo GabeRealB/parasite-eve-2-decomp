@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -49,7 +52,55 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, Actor450800Msg* msg, s32 ar
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_3", func_actor_450800_80132D74);
+/// Message handler 0x7DD of `D_actor_450800_8014AC58`, the payload's first two
+/// words being the target position: turns the actor's model to face it -- away
+/// from it in mode 1 -- and latches the per-step distance over the step count
+/// the mode selects, 60 in mode 0, 15 in mode 1 and 25 otherwise. The mode and
+/// both results are kept on the work block, which is the one difference from
+/// this handler's twin `func_actor_461800_80132F44`: there the mode lives in a
+/// module global, since that overlay keeps a single instance of the actor.
+///
+/// The mode store sits after the two differences on purpose. Its place in the
+/// source sets its RTL uid, and the uid is what the scheduler's ready-list
+/// tie-break compares once `-O2` has CSE'd the constant 1 into a register and
+/// every candidate carries the same priority; from before them the whole entry
+/// block comes out in a different order and on different registers.
+s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
+{
+    Actor450800Work* work;
+    GsCOORDINATE2*   coord;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
+
+    coord           = ((TmdObject*)task->extra)->field_8;
+    work            = (Actor450800Work*)task->idMap;
+    dx              = target->vx - coord->coord.t[0];
+    dz              = target->vz - coord->coord.t[2];
+    work->field_4FE = mode;
+    angle           = ratan2(dx, dz);
+    work->field_4E6 = angle;
+    if (work->field_4FE == 1) {
+        work->field_4E6 = angle + 0x800;
+    }
+    Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+    dist  = SquareRoot0(dx * dx + dz * dz);
+    steps = 0x19;
+    switch (work->field_4FE) {
+        case 0:
+            steps = 0x3C;
+            break;
+        case 1:
+            steps = 0xF;
+            break;
+        case 2:
+            break;
+    }
+    work->field_4EA = dist / steps;
+    return 0;
+}
 
 void func_actor_450800_801330AC(Task* task);
 

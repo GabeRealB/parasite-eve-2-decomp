@@ -48,12 +48,16 @@ typedef struct Actor450800Work {
     /* 0x4B6 */ s16       field_4B6;
     /* 0x4B8 */ s16       field_4B8;
     /* 0x4BA */ s16       field_4BA;
-    /* 0x4BC */ byte      pad_4BC[0x34];
+    /* 0x4BC */ byte      pad_4BC[0x2A];
+    /* 0x4E6 */ s16       field_4E6; // yaw seeding the root coordinate
+    /* 0x4E8 */ byte      pad_4E8[0x2];
+    /* 0x4EA */ s16       field_4EA; // distance to the target over the step count
+    /* 0x4EC */ byte      pad_4EC[0x4];
     /* 0x4F0 */ Task*     field_4F0;
     /* 0x4F4 */ Task*     field_4F4;
     /* 0x4F8 */ Task*     field_4F8;
     /* 0x4FC */ s16       field_4FC;
-    /* 0x4FE */ byte      pad_4FE[0x2];
+    /* 0x4FE */ s16       field_4FE; // approach mode the last call selected
     /* 0x500 */ u8        field_500;
     /* 0x501 */ byte      pad_501[0x3];
 } Actor450800Work;

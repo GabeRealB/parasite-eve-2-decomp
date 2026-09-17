@@ -122111,3 +122111,67 @@ Inputs: scratch `nonmatchings/func_actor_450800_80132E9C-vacuum`, `base.c`
 71.356% (`regs=88`), `base_1.c` 91.664% (`regs=63`, one extra callee-saved
 register), `base_2.c` 100.000%. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A store the schedule never touches still picks the entry block's order and registers: its source position sets its RTL uid (func_actor_450800_80132D74, 2026-09-17)
+
+**Symptom.** 93.77% with `regs=20`, `insert=2`, `delete=1`, `reorder=1`, and the
+only structural difference is the entry block of a 74-insn function whose every
+other instruction already matches byte for byte. Two independent things are
+wrong at once, which is what makes it worth writing down:
+
+```
+mine:   lw v0,0x2c(a0)  lw s0,0x1c(a0)  lw s2,8(v0)  sh a3,0x4fe(s0)
+        lw v1,0(a2)     lw v0,0x18(s2)  nop  subu s3,v1,v0 ...
+target: lw v0,0x2c(a0)  lw s0,0x1c(a0)  lw a0,0(a2)  lw s3,8(v0)
+        lw a1,8(a2)     lw v0,0x18(s3)  lw v1,0x20(s3)  sh a3,0x4fe(s0) ...
+```
+
+The target's `coord` is `$s3` where mine is `$s2`, its `dx` is `$s2` where mine
+is `$s3`, and its two `target->v*` loads land in `$a0`/`$a1` where mine both take
+`$v1` - a *schedule* difference and an *allocation* difference, with the extra
+`nop` a consequence of the first.
+
+**Mechanism.** `sched1` runs before `local_alloc`, so its emitted order is the
+order local-alloc's quantities are born in. Its ready list is sorted by
+`rank_for_schedule`, which compares `INSN_PRIORITY`, then the class relative to
+the last scheduled insn, then `INSN_LUID` - the pre-sched RTL position
+(`INSN_LUID (insn) = luid++` over the incoming chain). Here every candidate of
+the deciding cycle carries `LAUNCH_PRIORITY` (0x7f000001): `schedule_insn` sets
+that on the insn it is scheduling and `adjust_priority` hands it to each
+released insn whose `birthing_insn_p` holds, which is the case for `dx`, `dz`
+and both `target` loads (set once, live at block end). Priorities tie, so the
+uid decides, and the uid is set by *where the statement sits in the source*.
+
+**Fix.** Move the one statement whose producers make it ready last - the
+`work->field_4FE = mode;` store, whose only predecessor is the `task->idMap`
+load - to *after* the two difference computations:
+
+```c
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = (Actor450800Work*)task->idMap;
+    dx    = target->vx - coord->coord.t[0];
+    dz    = target->vz - coord->coord.t[2];
+    work->field_4FE = mode;          /* was before dx/dz: 93.77% */
+    angle = ratan2(dx, dz);
+```
+
+One edit took it to 100.000%, schedule and allocation both. The target's store
+sits between the last load and the first `subu`, and no amount of argument about
+the comparator produces that - the store's own uid has to move.
+
+**What does not work.** Transposing the two difference statements (dz before dx)
+changes the RTL order but only relabels it: the DAG is symmetric, the emitted
+uids land in the same slots, and the object comes out byte-identical (`build.sh`
+reports "repeated assembly"). An experiment that looks like it moves the RTL
+order can be a no-op, so check the reported duplicate before drawing anything
+from it.
+
+This is the same knob as the `LAUNCH_PRIORITY` entry above and the "for equal
+scheduler priorities the emitted order *is* the RTL order" rule: when a block's
+leftover is a permutation of independent insns plus its register homes, look for
+a statement whose position in the source is free to move.
+
+Inputs: scratch `nonmatchings/func_actor_450800_80132D74-vacuum`, `base.c`
+74.067% (m2c seed), `base_1.c` 93.773% (`regs=20`), `base_3.c` 100.000%.
+Source SHA256 `9922fe240af2f61d798981be2fe3b67923488cbd2c6362f06660e71f9b1e337d`,
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
