@@ -126964,3 +126964,17 @@ base_6 SHA256 `670b9af66d93e4f4177384c571156b8b2b52702b2055ff39b6c79f650857b82a`
 base_7 SHA256 `30218c0461cb7a61657f42b23f7129e3d3ec78fccb174ab568a67295aebc7c1e`.
 The permuter's retained output for this function is what removed the first cast
 (`PERMUTER_EVIDENCE/2ada3b86d3a54916`); the cc1 probe is in the session notes.
+### `TOUCH_REG(ptr)` stops cse re-addressing `0(ptr)` as `off(base)` after stores through it (func_actor_342000_801625D8, 2026-09-17)
+
+**Symptom.** `mtx = &work->coord.coord` (0x218), five identity stores through
+`mtx`, then GTE column reads: target reads `lhu $t4, 0($v1)`, ours reads
+`lhu $t4, 0x218($a2)` - only the offset-0 reads, `+6`/`+0xC` stay on `$v1`.
+The matched sibling `func_actor_342000_801628C8` never showed it because calls
+sat between the stores and the reads.
+
+**Cause.** cse still holds `mtx == (plus work 0x218)` and folds the zero-offset
+address back to the base form. **Fix.** `TOUCH_REG(mtx);` right after the
+stores (the `"+r"` output kills the equivalence); the first store keeps its
+`0x218($a2)` form as in retail. In the same function the identity's `0x1000`
+had to be a named local (`one = 0x1000;` at the top of the case) so its load
+leads the block and fills the dispatch `beq`'s delay slot in `$a0`.

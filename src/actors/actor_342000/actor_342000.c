@@ -22,6 +22,9 @@ extern GpMsgEntry D_actor_342000_801648A8[];
 /// means the bank is empty and the slots are left alone.
 extern s16 D_actor_342000_80164810[];
 
+/// Per-`spawnArg1` translation seeds for the child model's part coordinate.
+extern SVECTOR D_actor_342000_80164900[];
+
 /// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
@@ -111,7 +114,132 @@ void func_actor_342000_8016201C(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162158);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_801625D8);
+/// Display handler of the actor's child model. The spawn tick seeds the
+/// model's part coordinate translation from the `D_actor_342000_80164900` entry
+/// `Task::spawnArg1` selects; state 1 resets the work block's coordinate to
+/// identity and scales each column by the parent's `Actor342000Work::field_264`
+/// through `gpf 12` (the same scratchpad idiom as `func_actor_342000_801628C8`).
+/// Every tick then mirrors the parent model's `TmdObject::field_C` flags and
+/// hands the second part translation to `func_800D7A9C`.
+///
+/// `one` is a named pseudo so the 0x1000 load leads state 1 (it fills the
+/// dispatch branch's delay slot); `TOUCH_REG(mtx)` stops cse re-addressing the
+/// first column read through the work block.
+void func_actor_342000_801625D8(Task* arg0)
+{
+    register short       t4 asm("t4");
+    register short       t5 asm("t5");
+    register short       t6 asm("t6");
+    Actor342000Work*     work;
+    Actor342000MatWords* mtx;
+    Actor342000Work*     data;
+    s32                  one;
+    GsCOORDINATE2*       coord;
+    VECTOR*              sc;
+    TmdObject*           extra;
+    u8*                  head;
+    SVECTOR*             sv;
+    u32                  scratch;
+    VECTOR               pos;
+
+    work = (Actor342000Work*)arg0->idMap;
+
+    switch (arg0->state) {
+        case 0:
+            func_actor_342000_80162158(arg0);
+            work              = (Actor342000Work*)arg0->idMap;
+            coord             = ((TmdObject*)arg0->extra)->field_8;
+            coord->coord.t[0] = D_actor_342000_80164900[arg0->spawnArg1].vx;
+            coord->coord.t[1] = D_actor_342000_80164900[arg0->spawnArg1].vy;
+            coord->coord.t[2] = D_actor_342000_80164900[arg0->spawnArg1].vz;
+            coord->flg        = 0;
+            arg0->state      += 1;
+            break;
+        case 1:
+            one  = 0x1000;
+            data = (Actor342000Work*)work->field_298->idMap;
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+            scratch            = *(u32*)(head + 0x3FC);
+            mtx                = (Actor342000MatWords*)&work->coord.coord;
+            mtx->ident.m00_m01 = one;
+            mtx->ident.m02_m10 = 0;
+            mtx->ident.m11_m12 = one;
+            mtx->ident.m20_m21 = 0;
+            mtx->ident.m22     = one;
+            TOUCH_REG(mtx);
+            sv = (SVECTOR*)(scratch - 8);
+            sc = &data->field_264;
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+            TOUCH_REG(sv);
+
+            COMPILER_BARRIER();
+            t4     = mtx->mat.m[0][0];
+            t5     = mtx->mat.m[1][0];
+            t6     = mtx->mat.m[2][0];
+            sv->vx = t4;
+            sv->vy = t5;
+            sv->vz = t6;
+            gte_lddp(sc->vx);
+            gte_ldsv(sv);
+            gte_gpf12_real();
+            gte_stsv(sv);
+            t4               = sv->vx;
+            t5               = sv->vy;
+            t6               = sv->vz;
+            mtx->mat.m[0][0] = t4;
+            mtx->mat.m[1][0] = t5;
+            mtx->mat.m[2][0] = t6;
+
+            COMPILER_BARRIER();
+            t4     = mtx->mat.m[0][1];
+            t5     = mtx->mat.m[1][1];
+            t6     = mtx->mat.m[2][1];
+            sv->vx = t4;
+            sv->vy = t5;
+            sv->vz = t6;
+            gte_lddp(sc->vy);
+            gte_ldsv(sv);
+            gte_gpf12_real();
+            gte_stsv(sv);
+            t4               = sv->vx;
+            t5               = sv->vy;
+            t6               = sv->vz;
+            mtx->mat.m[0][1] = t4;
+            mtx->mat.m[1][1] = t5;
+            mtx->mat.m[2][1] = t6;
+
+            COMPILER_BARRIER();
+            t4     = mtx->mat.m[0][2];
+            t5     = mtx->mat.m[1][2];
+            t6     = mtx->mat.m[2][2];
+            sv->vx = t4;
+            sv->vy = t5;
+            sv->vz = t6;
+            gte_lddp(sc->vz);
+            gte_ldsv(sv);
+            gte_gpf12_real();
+            gte_stsv(sv);
+            t4               = sv->vx;
+            t5               = sv->vy;
+            t6               = sv->vz;
+            mtx->mat.m[0][2] = t4;
+            mtx->mat.m[1][2] = t5;
+            mtx->mat.m[2][2] = t6;
+
+            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+            scratch         = *(u32*)(head + 0x3FC);
+            work->coord.flg = 0;
+            scratch        += 8;
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
+            break;
+    }
+    ((TmdObject*)arg0->extra)->field_C = ((TmdObject*)work->field_298->extra)->field_C;
+    extra                              = (TmdObject*)arg0->extra;
+    pos.vx                             = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
+    pos.vy                             = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
+    pos.vz                             = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    func_800D7A9C(extra, &pos, 0, 3);
+}
 
 /// Display state 1 rebuilds the actor coordinate: an identity rotation is
 /// splatted through `Actor342000MatWords`, the euler angles below it are

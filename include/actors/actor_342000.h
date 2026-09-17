@@ -73,6 +73,9 @@ STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
 /// multiplies: each column `j` is gathered into a scratchpad `SVECTOR`, run
 /// through `GPF` against `field_264[j]` and written back.
 ///
+/// `field_298` is the parent actor task a child model display handler
+/// (`func_actor_342000_801625D8`) mirrors its flags and column scale from.
+///
 /// `field_29C` / `field_2A0` are the actor's two child tasks; the per-frame tail
 /// of `func_actor_342000_801628C8` ticks them with `func_actor_342000_80161EA4`.
 ///
@@ -101,7 +104,8 @@ typedef struct Actor342000Work {
     /* 0x27C */ s32            field_27C;
     /* 0x280 */ byte           pad_280[0x8];
     /* 0x288 */ s32            field_288;
-    /* 0x28C */ byte           pad_28C[0x10];
+    /* 0x28C */ byte           pad_28C[0xC];
+    /* 0x298 */ Task*          field_298;
     /* 0x29C */ Task*          field_29C;
     /* 0x2A0 */ Task*          field_2A0;
     /* 0x2A4 */ GsCOORDINATE2* field_2A4;
