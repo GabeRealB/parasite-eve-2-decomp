@@ -1,2 +1,3 @@
 // Overlay-local symbols for actor_300700.
 D_actor_300700_80161E24 = 0x80161E24; // force_not_migration:True enemy state table, read from C
+func_actor_300700_80162BC8 = 0x80162BC8; // type:func

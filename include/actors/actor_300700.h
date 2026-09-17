@@ -44,7 +44,11 @@ typedef struct Actor300700Work {
     /* 0x214 */ byte                      pad_214[0x10];
     /* 0x224 */ GpEffArg                  field_224;
     /* 0x22C */ Actor300700ContactStorage field_22C;
-    /* 0x27C */ byte                      field_27C[0x40];
+    /* 0x27C */ byte                      field_27C[0x30];
+    /* 0x2AC */ s32                       field_2AC;
+    /* 0x2B0 */ s32                       field_2B0;
+    /* 0x2B4 */ s32                       field_2B4;
+    /* 0x2B8 */ byte                      pad_2B8[4];
     /* 0x2BC */ s32                       field_2BC;
     /* 0x2C0 */ s32                       field_2C0;
     /* 0x2C4 */ s32                       field_2C4;
