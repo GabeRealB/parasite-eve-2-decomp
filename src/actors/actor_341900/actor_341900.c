@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
 #include "actors/actor_341900.h"
@@ -278,9 +279,97 @@ void func_actor_341900_80162708(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_341900/actor_341900", D_actor_341900_80161E20);
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
+/// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
+extern s32 D_actor_341900_801639A4;
+/// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`.
+extern Actor341900MsgPos D_actor_341900_80163AC8;
+extern Actor341900MsgPos D_actor_341900_80163AE0;
+extern Actor341900MsgPos D_actor_341900_80163AF8;
+extern Actor341900MsgPos D_actor_341900_80163B10;
+extern Actor341900MsgPos D_actor_341900_80163B28;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_801628B8);
+/// Runs the one-shot request in `Actor341900Work::field_5C` against the slot-3
+/// task after pinging it with message 0x3ED, then clears the request. States 1
+/// and 5 install an animation set (message 0x3E8) around a placement (0x3E9),
+/// 2 sends 0x3F2, 3 and 4 send 0x3F4 and 6 is a bare placement.
+void func_actor_341900_801628B8(Task* arg0)
+{
+    Actor341900Work* work;
+    Actor341900Work* w;
+    GpAnimArg        msg;
+
+    work = (Actor341900Work*)arg0->idMap;
+    if (work->field_0 != NULL) {
+        Gp_DispatchMsg(work->field_0, 0x3ED, 0, 0);
+    }
+    switch ((u16)work->field_5C) {
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163AC8, 0);
+            {
+                s32 weaponId;
+                s32 anim;
+
+                weaponId     = D_80073BA9;
+                anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.field_0  = (void*)anim;
+                msg.field_4  = 1;
+                msg.field_8  = 0;
+                msg.field_C  = 0;
+                msg.field_10 = 0;
+                Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            }
+            break;
+        case 2:
+            Gp_DispatchMsg(work->field_0, 0x3F2, (s32)&D_actor_341900_80163AE0, 0);
+            break;
+        case 3:
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163AF8, 0);
+            w = (Actor341900Work*)arg0->idMap;
+            if (w->field_0 != NULL) {
+                msg.field_0  = &D_actor_341900_801639A4;
+                msg.field_4  = 0;
+                msg.field_8  = 0;
+                msg.field_C  = 0;
+                msg.field_10 = 0;
+                Gp_DispatchMsg(w->field_0, 0x3F4, (s32)&msg, 0);
+            }
+            break;
+        case 4:
+            w = (Actor341900Work*)arg0->idMap;
+            if (w->field_0 != NULL) {
+                msg.field_0  = &D_actor_341900_801639A4;
+                msg.field_4  = 1;
+                msg.field_8  = 1;
+                msg.field_C  = 10;
+                msg.field_10 = 0;
+                Gp_DispatchMsg(w->field_0, 0x3F4, (s32)&msg, 0);
+            }
+            break;
+        case 5: {
+            s32 weaponId;
+            s32 anim;
+
+            weaponId     = D_80073BA9;
+            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.field_0  = (void*)anim;
+            msg.field_4  = 9;
+            msg.field_8  = 0;
+            msg.field_C  = 0;
+            msg.field_10 = 0;
+            Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+        }
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B10, 0);
+            break;
+        case 6:
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B28, 0);
+            break;
+    }
+    work->field_5C = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80162AD4);
 
