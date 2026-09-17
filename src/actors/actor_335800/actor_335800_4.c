@@ -4,6 +4,8 @@
 
 #include "actors/actor_335800.h"
 
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
@@ -159,7 +161,55 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, Actor335800Msg* arg2, s32 a
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_80163568);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_actor_335800_80163B70(void);
+void func_actor_335800_80163B78(Task* arg0);
+
+/// Per-frame tick of the child block: runs the motion handler `field_4C0`
+/// selects, adds the 16.16 velocity `step` onto the accumulator `field_4A0`,
+/// moves the coordinate by the integer part and keeps only the fraction, then
+/// ticks the animation slots, draws the ground shadow and rebuilds the colour
+/// matrix while visible, and counts `field_4C4` down to the buffer free.
+void func_actor_335800_80163568(Task* task)
+{
+    TmdObject*       ext      = task->extra;
+    Actor335800Work* work     = (Actor335800Work*)task->idMap;
+    TaskFunc         funcs[2] = { (TaskFunc)func_actor_335800_80163B70, func_actor_335800_80163B78 };
+    VECTOR3          pos;
+    GsCOORDINATE2*   coord;
+    s32              i;
+
+    funcs[work->field_4C0](task);
+    coord              = ((TmdObject*)task->extra)->field_8;
+    work->field_4A0   += work->step.vx;
+    work->field_4A4   += work->step.vy;
+    work->field_4A8   += work->step.vz;
+    coord->coord.t[0] += (s16)(work->field_4A0 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4A4 >> 16);
+    coord->coord.t[2] += (s16)(work->field_4A8 >> 16);
+    coord->flg         = 0;
+    work->field_4A0    = (u16)work->field_4A0;
+    work->field_4A4    = (u16)work->field_4A4;
+    work->field_4A8    = (u16)work->field_4A8;
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
+        }
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_4C4 >= 0) {
+        if (work->field_4C4 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4C4--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_8016373C);
 
