@@ -1,5 +1,4 @@
 #include "common.h"
-
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -7,6 +6,12 @@
 #include "main/task.h"
 #include "rooms/dryfield_night_water_hole.h"
 
+extern GpMsgEntry        D_dryfield_night_water_hole_801805F8[];
+extern s32               D_dryfield_night_water_hole_8018065C;
+extern s32               D_dryfield_night_water_hole_80180660;
+extern TaskDesc          D_dryfield_night_water_hole_80180964[];
+extern DnwhParamOverride D_dryfield_night_water_hole_801835D8[];
+extern TaskDesc          D_801351FC[];
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole", D_dryfield_night_water_hole_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole", func_dryfield_night_water_hole_8017D6AC);

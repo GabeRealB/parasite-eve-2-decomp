@@ -1,13 +1,11 @@
 #include "common.h"
-
 #include "main/session.h"
 #include "main/task.h"
-
 #include "rooms/rooms_shared_8017e690.h"
 
-void func_dryfield_night_water_hole_8017DF28(Task* task);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole_3", func_dryfield_night_water_hole_8017DE88);
+
+void func_dryfield_night_water_hole_8017DF28(Task* task);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole_3", func_dryfield_night_water_hole_8017DF28);
 

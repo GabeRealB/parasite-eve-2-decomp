@@ -29,3 +29,4 @@ RoomsShared8017e890Draw = 0x8018139C; // shared body callee, see src/rooms/lib/
 RoomsShared801807c4 = 0x80184C20; // shared body, see src/rooms/lib/
 RoomsShared8017dcb8 = 0x80180110; // shared body, see src/rooms/lib/
 RoomsShared8017dcb8Draw = 0x801803DC; // shared body callee, see src/rooms/lib/
+RoomsShared8017f4a0 = 0x8017E8B8; // shared body, see src/rooms/lib/

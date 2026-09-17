@@ -1,7 +1,5 @@
 #include "common.h"
-
 #include "gameplay/3CD8.h"
-
 #include "main/gameflag.h"
 #include "main/sound.h"
 

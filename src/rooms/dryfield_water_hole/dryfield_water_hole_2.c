@@ -1,15 +1,12 @@
 #include "common.h"
-
 #include "gameplay/D4.h"
-
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
 extern GpMsgEntry D_dryfield_water_hole_8017FC5C[];
 extern TaskDesc   D_dryfield_water_hole_8017FC8C[];
-
-s32 func_dryfield_water_hole_8017D78C(s32 arg0, s32 arg1, s32 arg2)
+s32               func_dryfield_water_hole_8017D78C(s32 arg0, s32 arg1, s32 arg2)
 {
     switch (arg2) {
         case 4:

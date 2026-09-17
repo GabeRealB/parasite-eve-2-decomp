@@ -1,5 +1,4 @@
 #include "common.h"
-
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -9,7 +8,6 @@
 
 extern s32 D_dryfield_night_water_hole_8018067C;
 extern s32 D_dryfield_night_water_hole_801807FC;
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole_2", func_dryfield_night_water_hole_8017DADC);
 
 /// Message 0x13F0 handler. Slot 7 dispatches it with the sender's command in
