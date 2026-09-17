@@ -80377,6 +80377,25 @@ The same overlay can carry more than one work block: `arg0->idMap` is the
 argument at the allocation site before assuming a function's `idMap` is the
 overlay's named work struct.
 
+**The mirror case: an offset m2c left unscaled.** `func_actor_135400_801322A8`
+reaches the same three calls on `field_8[1]`, but its seed printed the offsets as
+raw byte arithmetic (`field_8 + 0x88`) because `Task::extra` is `void*` and m2c
+never typed the pointer — so the seed's immediates already *were* the target's,
+and casting them to `(u8*)` to make it compile scored 94.941%. The penalty line
+misleads in the opposite direction (`branch=5 regs=13`, not `regs: 2`), but the
+fix is the same typed form either way: compiling clean without touching the
+offsets is not evidence that the byte arithmetic was the original. Here the
+residual gap was entirely m2c's control-flow shape — its `do`/`while` rotation
+of `for (i = 1; i < 0x14; i++)` — and the body turned out to be the actors'
+shared per-frame tick, so copying the already-matched sibling
+(`func_actor_335800_80163568`, `func_actor_361100_801631C4`) reached 100% with
+every penalty zero in one build.
+
+Inputs: `base_1.i`
+`2db0be8379a6a576e0307069e6052f811608440071392b6f3d929c511ef196ba` (100.000%),
+`base.i` `4d8cc677985d23462ad5095bbcd50988a58a280f40d5431ac16d1bf5f19c714b`
+(94.941%).
+
 ## m2c renders a frame-local function-pointer table as the call's arguments
 
 A two-entry dispatch table built on the frame and indexed by a signed

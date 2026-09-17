@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
@@ -47,16 +48,42 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 /// function parks the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB handler table
 /// `D_actor_135400_8013A4D0` in that task's `field_24`.
 ///
+/// The block opens with its own animation context and the twenty 0x28-byte
+/// slots that follow it, the same 0x474-byte prefix `Actor311900Anim` and
+/// `Actor136100Work` carry: `func_actor_135400_80132650`, the tick's animation
+/// setter, hands `func_800B3F84` the block itself, `work + 0x14` and
+/// `work + 0x334`. `field_474` is the live flag that setter raises once it has
+/// run the slots -- `func_actor_135400_801322A8` only ticks them while it is
+/// set -- and `field_475` / `field_476` are the two bytes it latches out of the
+/// animation request: `field_476` indexes `D_actor_135400_8013A4A8` for the
+/// load and `field_475` is passed on as the slot functions' third argument.
+///
 /// `field_4B8` / `field_4BC` are the two part tasks the same spawn creates
 /// through `Task_SpawnFromTable` (part 1 and part 2), each of which reparents
-/// itself onto this task in `func_actor_135400_80132450`. Only the fields
-/// decompiled bodies reach are described.
+/// itself onto this task in `func_actor_135400_80132450`. `headAim` is the
+/// on/off latch the command handler `func_actor_135400_801328DC` sets and
+/// clears (its cases 2 and 3), and `headRate` the 0x000..0xFFF ramp toward the
+/// slot-3 skeleton's head `func_800B0928` steps by. Only the fields decompiled
+/// bodies reach are described.
 typedef struct Actor135400MainWork {
-    /* 0x000 */ byte  pad_0[0x4B8];
-    /* 0x4B8 */ Task* field_4B8;
-    /* 0x4BC */ Task* field_4BC;
-    /* 0x4C0 */ byte  pad_4C0[0x8];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       pad_334[0x140];
+    /* 0x474 */ s8         field_474;
+    /* 0x475 */ s8         field_475;
+    /* 0x476 */ s8         field_476;
+    /* 0x477 */ byte       pad_477[0x41];
+    /* 0x4B8 */ Task*      field_4B8;
+    /* 0x4BC */ Task*      field_4BC;
+    /* 0x4C0 */ s32        headAim;
+    /* 0x4C4 */ s32        headRate;
 } Actor135400MainWork;
 STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
+
+/// The actors' ground shadow (`src/gameplay/3E9C.c`): `arg0` is the point the
+/// quad is centred on, `arg1` its size -- the corner table is scaled by it --
+/// and `arg2` the shade, negative to skip the draw. Declared per overlay, as
+/// the sibling packages do.
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 #endif
