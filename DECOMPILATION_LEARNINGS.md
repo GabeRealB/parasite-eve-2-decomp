@@ -114397,3 +114397,31 @@ no `SOFT_BARRIER` - that order puts `addiu $a0,$sp,0x28` before the `sb` of
 `field_1`, as in the target. Its 5-entry jump table also needed a trailing
 `const u32 ... = 0;` pad word after the function (see "A trailing `.rodata` pad
 word goes in C").
+
+## `$s3`/`$s4` swap between a scratch pointer and a coordinate: read the squares back through the scratch (func_actor_103700_8013224C, 2026-09-17)
+
+A collision loop stores three differences into a `G_SCRATCH_HEAD` block and
+passes their squared length to `SquareRoot0`. Written with locals
+(`dx = ...; scratch->delta.vx.w = dx; ... SquareRoot0(dx * dx + ...)`), every
+instruction matched except that the scratch pointer and `coord` had swapped
+callee-saved registers (99.39%). In `.lreg` the scratch pseudo had 23 weighted
+refs over 203 insns and `coord` 27 over 207, so global alloc ranked `coord`
+first. A permuter hit made case 1 read `coord->workm` from an unreachable
+stack copy: that cut `coord`'s refs and flipped the registers, though the code
+it produced was wrong.
+
+The fix is to add refs to the scratch pointer without changing the code it
+emits. Store the differences straight into the struct and read them back
+through it:
+
+```c
+scratch->delta.vx.w = coord->workm.t[0] - rec->field_8;
+...
+reach = rec->field_2 - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + ...);
+```
+
+The emitted instructions are the same (`subu`, `mult v0,v0`, `sw` into the
+scratch), but the extra references to the pointer inside the loop give the
+scratch pseudo the higher priority, and it matched 100%. So when two pointers
+that both cross calls swap registers, count their refs in `.lreg` and look for
+places where a read through one of them folds away without changing the code.

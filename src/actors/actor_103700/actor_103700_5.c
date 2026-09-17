@@ -7,7 +7,6 @@ void      Gp_UpdateCoord(GsCOORDINATE2* arg0);
 s32       ActorsShared801326f0(Task* arg0);
 void      ActorsShared80134ff0(Task* arg0);
 void      ActorsShared80135210(Task* arg0);
-void      func_actor_103700_8013224C(Task* arg0, TmdObject* arg1, s32 arg2);
 void      ActorsShared80133d68(Task* arg0);
 void      ActorsShared8013503c(Task* arg0);
 void      func_actor_103700_8013537C(Task* arg0);

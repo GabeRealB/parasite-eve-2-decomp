@@ -114,7 +114,131 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     task->state      = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700", func_actor_103700_8013224C);
+/// Collision step. Applies the `func_800E0C10` push-back to the root coordinate
+/// (a delta for 1, an absolute reset to `field_22C` for 2), then walks the four
+/// records: kind 1 records push the actor out along the deepest overlap, kind 2
+/// records are hits from a player slot, which take damage, spawn the hit spark
+/// and move the actor into its flinch / knockdown modes.
+void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2)
+{
+    Actor103700PushScratch* scratch;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          src;
+    Actor103700Work*        work;
+    s32                     push;
+    s32                     reach;
+    s32                     res;
+    s32                     i;
+    s32                     z;
+    s32                     val;
+    s32                     ex;
+    s32                     ey;
+    s32                     ez;
+    s32                     broke;
+    u32                     id;
+    u32                     damage;
+
+    push    = 0;
+    broke   = 0;
+    work    = (Actor103700Work*)task->idMap;
+    scratch = (Actor103700PushScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
+    coord   = ((TmdObject*)task->extra)->field_8;
+    res     = func_800E0C10(work->records, &scratch->delta, 4, NULL);
+    if (res == 1)
+        goto move_delta;
+    if (res < 2)
+        goto move_done;
+    if (res == 2)
+        goto move_absolute;
+    goto move_done;
+move_delta:
+    coord->coord.t[0] += scratch->delta.vx.h.hi;
+    coord->coord.t[1] += scratch->delta.vy.h.hi;
+    z                  = coord->coord.t[2] + scratch->delta.vz.h.hi;
+    goto move_z;
+move_absolute:
+    coord->coord.t[0] = work->field_22C.vx;
+    coord->coord.t[1] = work->field_22C.vy;
+    z                 = work->field_22C.vz;
+move_z:
+    coord->coord.t[2] = z;
+move_done:
+    i               = 0;
+    work->field_264 = 0;
+    do {
+        id = work->records[i].field_4;
+        switch (id >> 16) {
+            case 0:
+                break;
+            case 1:
+                work->field_264     = id >> 16;
+                scratch->delta.vx.w = coord->workm.t[0] - work->records[i].field_8;
+                scratch->delta.vy.w = coord->workm.t[1] - work->records[i].field_A;
+                scratch->delta.vz.w = coord->workm.t[2] - work->records[i].field_C;
+                reach               = work->records[i].field_2 - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
+                val                 = reach;
+                if (reach <= 0) {
+                    val = 0;
+                }
+                reach = val;
+                if (push < reach) {
+                    push = reach;
+                    VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->dir);
+                }
+                break;
+            case 2:
+                src                 = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+                ex                  = src->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vx.w = ex;
+                ey                  = src->coord.t[1] - coord->coord.t[1];
+                scratch->delta.vy.w = ey;
+                ez                  = src->coord.t[2] - coord->coord.t[2];
+                scratch->delta.vz.w = ez;
+                damage              = Gp_ComputeDamage(work->records[i].field_4, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
+                id                  = work->records[i].field_4;
+                if (id & 0x8000) {
+                    if (D_actor_103700_80139E94[id & 0x7F] == 3) {
+                        broke  = 1;
+                        damage = 0;
+                    } else {
+                        broke = Gp_GetIdParam1(id) & 0xFFFF;
+                        if ((u32)(broke - 0xC) < 2) {
+                            func_800FDB18(broke, coord, NULL, &work->field_224);
+                        }
+                        work->field_268 = D_actor_103700_80139E94[work->records[i].field_4 & 0x7F];
+                        broke           = 0;
+                    }
+                } else {
+                    work->field_268 = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
+                }
+                func_800DA6E8(&((GpEnemy*)task->spawnArg2)->node, damage, 0);
+                func_800E2C78((GpObj40*)task->spawnArg2, work->records[i].field_4, damage, 0);
+                if ((s32)damage > 0) {
+                    ((GpEnemy*)task->spawnArg2)->field_40 = 0;
+                    work->field_24E                       = 6;
+                    work->field_250                       = 0;
+                    task->state                           = 2;
+                } else if (((Gp_GetIdParam0(work->records[i].field_4) & 0xFFFF) == 8 || broke == 1) &&
+                           (u16)(work->field_24E - 1) >= 2) {
+                    if (work->field_262 == 0) {
+                        work->field_24E = 5;
+                        work->field_250 = 3;
+                    } else {
+                        work->field_24E = 11;
+                        work->field_250 = 0;
+                    }
+                }
+                break;
+        }
+    } while (++i < 4);
+    if (push > 0) {
+        coord->coord.t[0] += (push * scratch->dir.vx) >> 12;
+        coord->coord.t[2] += (push * scratch->dir.vz) >> 12;
+    }
+    Gp_ClearRec18Occupied(work->records);
+    *(u8**)G_SCRATCH_HEAD += 0x58;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_103700/actor_103700", D_actor_103700_80131E20);
 

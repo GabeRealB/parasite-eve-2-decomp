@@ -30,7 +30,7 @@ typedef struct Actor103700Work {
     /* 0x1A4 */ GpObj      obj;
     /* 0x1C4 */ GpRec18    records[4];
     /* 0x224 */ GpEffArg   field_224; // hit-spark record for `func_800FDB18`
-    /* 0x22C */ byte       pad_22C[0x8];
+    /* 0x22C */ SVECTOR    field_22C;
     /* 0x234 */ SVECTOR    field_234;
     /* 0x23C */ SVECTOR    field_23C;
     /* 0x244 */ s16        field_244;
@@ -152,5 +152,23 @@ s32  func_actor_103700_80134F50(Task* task);
 
 /// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
 extern GpAnimSet* D_actor_103700_80139F1C[];
+
+/// 0x58-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_103700_8013224C`:
+/// `delta` receives the `func_800E0C10` push-back and is then reused for each
+/// record's offset, `normal` is its `VectorNormal`, and `dir` that normal
+/// transformed by the grid's `workm`.
+typedef struct Actor103700PushScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ VECTOR         normal;
+    /* 0x40 */ VECTOR         dir;
+    /* 0x50 */ byte           pad_50[0x8];
+} Actor103700PushScratch;
+STATIC_ASSERT_SIZEOF(Actor103700PushScratch, 0x58);
+
+/// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
+extern s16 D_actor_103700_80139E94[];
+
+void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2);
 
 #endif // ACTOR_103700_H
