@@ -5,10 +5,53 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 extern TaskDesc D_mine_cavern_80183CA4[];
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_8017D908);
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+
+s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179A04(in, out);
+
+    if (in->msgId == 8) {
+        if (GameFlag_GetNibble(0xBB) != 1) {
+            if (in->field_5 != 0) {
+                return 0;
+            }
+            Gp_SetNibbleIf(in->field_6, 2);
+            if (Gp_StateF0.field_0 == 1 && Game_Session->field_9 == Gp_StateF0.field_0) {
+                Gp_RunCapCmd1(9);
+                return 0;
+            }
+            Gp_RunCapCmd1(0xD);
+            if (GameFlag_GetNibble(0x11A) != 0) {
+                return 0;
+            }
+            GameFlag_SetNibble(0x11A, 1);
+            return 0;
+        }
+        if (in->field_5 == 0 && GameFlag_GetNibble(0x11A) != 2) {
+            GameFlag_SetNibble(0x11A, 2);
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 0);
+        }
+    }
+
+    if (in->msgId == 5) {
+        if (Game_Session->field_9 == 1 || Game_Session->field_9 == 4) {
+            if (Gp_StateF0.field_0 == 1) {
+                if (in->field_5 == 0) {
+                    Gp_RunCapCmd1(0xB);
+                }
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
 
 s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {

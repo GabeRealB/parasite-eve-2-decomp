@@ -115906,3 +115906,39 @@ Inputs: base.i `3e3dc04cf769dd87192a1e778d5f1fbbf420462fc2c8df09dc2729cbb25afc6f
 Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017D5E8-vacuum/`,
 `base_2_diff` vs `base_3_diff`, and the two object dumps' leaf order. No pins,
 no permuter. `overlay_dup_index.py find` reports the body as its own only copy.
+## A room overlay's leading unaligned 8-byte copy is `*out = *in` on `RoomEventMsg` (func_mine_cavern_8017D908, 2026-09-17)
+
+A room function that opens like this
+
+```
+addu s0,a2 / addu a1,a3 / addu a0,s0
+lwl  t0,3(s0) / lwr t0,0(s0) / lwl t1,7(s0) / lwr t1,4(s0)
+swl  t0,3(a1) / swr t0,0(a1) / swl t1,7(a1) / swr t1,4(a1)
+jal  func_80179A04
+```
+
+is a room event handler of type `(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)`
+whose first two statements are `*out = *in; func_80179A04(in, out);`. m2c reads the
+lwl/lwr pairs as two unaligned 32-bit *stores of unknown values* and emits
+`M2C_FIELD(arg3, ..., 3) = M2C_UNALIGNED32(M2C_ERROR(...))`, which compiles to
+`sw zero,3(a1); sw zero,7(a1)` - two stores where the target has an 8-byte copy, the
+second landing after the `jal` because it fills the call's shadow. `RoomEventMsg`
+(`include/rooms/room_common.h`) is 8 bytes at *alignment 1*, which is why the copy is
+unaligned at all: a plain 8-byte struct assignment.
+
+Two more tells in the same prologue: `$a0`/`$a1` are dead because m2c's two-argument
+prototype parks the message in them, so the seed says `move s0,a0` where the target
+says `move s0,a2`; and m2c models the literal returns as one `var_v0 = 1` plus gotos,
+which materialises the 1 into `$a0` once instead of re-emitting `li $v0,1` in each
+exit's delay slot. Real `return 1;` statements reproduce the target (see the
+`move $v0,$sN` entry above for the inverse tell).
+
+Read the two matched templates before the seed: `Room_Util02`
+(`src/rooms/lib/room_util02.c`) is the bare copy-and-forward, `func_mine_gorge_8017D6E8`
+(`src/rooms/mine_gorge/mine_gorge.c`) is the "check `msgId`, act, `return 1`/`0`" tail
+with the same `Gp_SetNibbleIf(in->field_6, 2)` / `Gp_RunCapCmd1` shape. Between them the
+whole prologue and the tail's constant materialisation are pinned. Here the m2c seed
+already had the block topology right (score 81.049%, `branch=13 insert=6 delete=13`),
+and the single rewrite that fixed the copy and the returns scored 100.000% with all
+penalties zero - so check `tools/overlay_dup_index.py find <fn>` too, since these
+handlers repeat across rooms.
