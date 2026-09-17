@@ -38,7 +38,7 @@ typedef struct Actor205200Work {
     /* 0x026 */ s16            field_26;    // sub-state of `func_actor_205200_8014AB98`
     /* 0x028 */ s16            field_28;
     /* 0x02A */ s16            field_2A;
-    /* 0x02C */ byte           pad_2C[2];
+    /* 0x02C */ s16            field_2C;
     /* 0x02E */ s16            field_2E;
     /* 0x030 */ byte           pad_30[0x38];
     /* 0x068 */ GpEffArg       field_68;         // `func_800FDB18` argument record
@@ -81,7 +81,10 @@ typedef struct Actor205200Part {
     /* 0x68 */ GsCOORDINATE2* field_68;
     /* 0x6C */ s16            field_6C;
     /* 0x6E */ s16            field_6E;
-    /* 0x70 */ byte           pad_70[8];
+    /* 0x70 */ byte           pad_70[2];
+    /* 0x72 */ s16            field_72;
+    /* 0x74 */ u16            field_74;
+    /* 0x76 */ u16            field_76;
     /* 0x78 */ s16            field_78;
     /* 0x7A */ byte           pad_7A[2];
 } Actor205200Part;

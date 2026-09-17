@@ -18,6 +18,8 @@ extern GpPairSrcE          D_actor_205200_8014C9BC;
 extern SVECTOR*            D_actor_205200_8014CA24[];
 extern u16*                D_actor_205200_8014CA34[];
 extern GsCOORDINATE2       Gfx_ViewCoord;
+extern u16                 D_80071078;
+extern u32                 Gp_LcgState;
 
 void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
@@ -205,7 +207,94 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014B048);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014B484);
+void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
+{
+    Actor205200Part* part;
+    GsCOORDINATE2*   coord;
+    Actor205200Work* work;
+    GpViewRec*       view;
+    VECTOR           d;
+    s32              dist;
+    s32              snd;
+    s32              pan;
+    s32              vol;
+
+    part  = (Actor205200Part*)arg1->idMap;
+    coord = ((TmdObject*)arg1->extra)->field_8;
+    work  = (Actor205200Work*)arg1->parent->idMap;
+    if (Gp_StateF0.field_4 != 0) {
+        return;
+    }
+    switch (part->field_72) {
+        case 0:
+            Gp_SpawnEff(0x60070, coord, 0x32001400, NULL);
+            Gp_SpawnEff(0x60070, coord, 0x32001400, NULL);
+            Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+            Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(&part->obj);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x34);
+            arg0->field_54 = 0;
+            work->field_2C = 1;
+            work->field_20--;
+            Gp_StateF0.field_1D |= 1;
+            switch (work->field_1E) {
+                case 1:
+                    func_8017E090((u8)part->field_78, 1);
+                    GameFlag_SetNibble(part->field_78 + 0x142, 1);
+                    break;
+                case 2:
+                    func_8017EE08((u8)part->field_78, 1);
+                    GameFlag_SetNibble(part->field_78 + 0x144, 1);
+                    break;
+                case 3:
+                    func_80182A14((u8)part->field_78, 1);
+                    GameFlag_SetNibble(part->field_78 + 0x153, 1);
+                    break;
+                case 0:
+                    break;
+            }
+            part->field_72 = 1;
+            part->field_74 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F) + 0x1E;
+            part->field_76 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F) + 0x1E;
+            break;
+        case 1:
+            if ((s16)--part->field_74 <= 0) {
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                part->field_74 = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+                func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_68);
+                Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+                view = Gp_GetStageView(&Game_Session->field_4);
+                d.vx = view->mtx.t[0] + coord->coord.t[0];
+                d.vy = view->mtx.t[1] + coord->coord.t[1];
+                d.vz = view->mtx.t[2] + coord->coord.t[2];
+                dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
+                snd  = ((arg0->field_8 >> 12) << 8) | 0x40340005;
+                pan  = (s8)Gp_GetObjPan((GpObj38*)coord);
+                vol  = dist - D_80071078;
+                if (vol >= 0x7FFF) {
+                    vol = 0x7FFF;
+                }
+                if (vol < -0x7FFF) {
+                    vol = -0x7FFF;
+                }
+                SndEvt_EnqueueType6(snd, pan, (s16)vol >> 8);
+            }
+            if ((s16)--part->field_76 <= 0) {
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                part->field_76 = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+                Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
+            }
+            break;
+        case 2:
+            ((void (*)(Task*, s32))Gp_ReleaseStateF0)(arg1, 0x34);
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(&part->obj);
+            part->field_72 = 3;
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_80149E20);
 
