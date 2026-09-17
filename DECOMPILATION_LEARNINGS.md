@@ -127974,3 +127974,71 @@ GCC 2.8.1 accepts this and applies only the default argument promotions, so an
 it (`actor_800200.h`, `actor_403100.h`, `src/gameplay/3E9C.c`). Read a
 mismatched argument register as a question about the *declaration* before
 treating it as an allocation problem.
+
+## A `switch` whose lowest case is 0 tests it with `<` when the index is unsigned and with `==` when it is signed (func_actor_223600_8014BBF4, 2026-09-17)
+
+`func_actor_223600_8014BBF4` opens with a three-case dispatch on the top nibble
+of `GpEnemy::field_8`. Written the way its already-matched sibling
+`func_actor_223600_8014B840` writes the same expression,
+
+```c
+u32 mode = enemy->field_8 >> 12;
+switch (mode) { case 0: ... case 1: ... case 2: ... }
+```
+
+GCC emits three plain equality tests - `beq s5,s0` (==1), `beqz s5` (==0),
+`li v0,2; beq s5,v0` - while the target splits the tree first:
+
+```
+beq  s5,s0,case1          # == 1
+slti v0,s5,2
+beqz v0,ge2               # > 1, i.e. the right subtree
+beqz s5,case0             # == 0
+j    default
+ge2: li v0,2; beq s5,v0,case2
+```
+
+`balance_case_nodes` makes `case 1` the root either way; the difference is
+`node_is_bounded` in `emit_case_nodes` (`stmt.c`). For an **unsigned** index the
+left leaf `case 0` is bounded below, because 0 *is* `TYPE_MIN_VALUE`, so GCC
+takes the "one side is bounded" path and emits a single `index < node->high`
+test for it - which `emit_cmp_insn` then simplifies from `LTU x,1` to `x == 0`,
+hiding the range test entirely. For a **signed** index neither leaf is bounded
+(`TYPE_MIN_VALUE` is `INT_MIN`), so GCC takes the "neither node is bounded"
+path, which emits the `index > node->high` split before descending. Declaring
+the index `s32` restored the target exactly.
+
+`enemy->field_8 >> 12` still assembles as `srl`, not `sra`, with a signed
+index: the field is `u16`, so combine sees `nonzero_bits` clear at the sign bit
+and rewrites the arithmetic shift. Signedness of the *switch index* is therefore
+free to choose on this kind of expression, and it is the thing to change when a
+small switch's tree has the right root but the wrong number of tests. Two cases
+are a different shape again - see "A two-case `switch`'s decision tree is a
+linear list".
+
+## A large absolute address is `lui $at` inline but `lui`+`ori` through a pointer variable, and one variable per use site keeps each range short (func_actor_223600_8014BBF4, 2026-09-17)
+
+Scratch-pad code reaches `G_SCRATCH_HEAD` (`0x1F8003FC`) two ways in the same
+function, and they are different code. Written inline,
+
+```c
+head = *(Actor223600Turn**)G_SCRATCH_HEAD;
+```
+
+GCC hands the assembler a MEM with an absolute address and gets its `$at`
+expansion - `lui $s1,0x1f80; lw $s1,0x3fc($s1)` for the load, a second
+`lui $at,0x1f80; sw ...,0x3fc($at)` for the store. Assigned to a pointer
+variable first, the constant becomes a *value*, so it is materialised with
+`lui`+`ori` and every access is `0($reg)`. Both forms appear in this one
+function - the inlined `Actor223600_MoveForward` uses the inline form, the body
+around it the variable form - so copy whichever the target shows rather than
+picking one.
+
+The variable form then has a second degree of freedom. This function carves its
+scratch block near the top and releases it at the very bottom, with every call
+in between; one variable spanning both is live across all of them and lands in a
+callee-saved register (`$s6` here, which also widens the frame by 4 and shifts
+every save slot). The target materialises the address twice, in `$v0` and in
+`$a0` - two short-lived pseudos, which means two *variables*, not one reused.
+Reassigning a single variable does not work either: a pseudo with two sets still
+gets one hard register. Declare one pointer per use site.

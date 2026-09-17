@@ -19,7 +19,7 @@ typedef struct Actor223600Work {
     /* 0x000 */ s16        field_0; ///< state
     /* 0x002 */ s16        field_2; ///< state at the previous dispatch
     /* 0x004 */ s16        field_4; ///< set when `field_0` moved away from `field_2`
-    /* 0x006 */ u16        field_6; ///< frames spent in the approach state
+    /* 0x006 */ s16        field_6; ///< frames spent in the approach state
     /* 0x008 */ s16        field_8;
     /* 0x00A */ byte       pad_A[0x2];
     /* 0x00C */ GpAnimCtx  anim;     ///< `func_800B3F84` arg0
@@ -62,7 +62,10 @@ typedef struct Actor223600Work {
     /* 0x208 */ u16    field_208; ///< animation id that last raised the reaction
     /* 0x20A */ byte   pad_20A[0x2];
     /* 0x20C */ s8     field_20C; ///< 1 while the model's coordinate is zeroed
-    /* 0x20D */ byte   pad_20D[0x7];
+    /* 0x20D */ byte   pad_20D[0x5];
+    /// Per-frame height step the parked state adds to the model's world Y,
+    /// seeded by the motion the tick enters and retuned as it advances.
+    /* 0x212 */ s16 field_212;
 } Actor223600Work;
 STATIC_ASSERT_SIZEOF(Actor223600Work, 0x214);
 
