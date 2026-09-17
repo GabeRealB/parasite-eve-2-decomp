@@ -3,8 +3,6 @@
 #include "actors/actor_101500.h"
 #include "gameplay/1BC.h"
 
-void func_800B4114(Actor101500Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-
 /// Countdown pose. Requests pose 9 and clears the move state each frame; when
 /// `field_362` runs out it switches to pose 7 and reloads the countdown from a
 /// `Gp_LcgState` draw into `D_actor_101500_8013BDE8`.
