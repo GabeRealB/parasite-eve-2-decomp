@@ -124315,3 +124315,70 @@ Same function: its jump table is the first word after the id in the leading
 rodata, so it needed `rodata_head = "0x4"` (deleting the id's `INCLUDE_RODATA`)
 *and* a trailing `const s32 ... = 0;` after the function, because the 15-entry
 table leaves a 4-byte `.align 3` gap that retail's object owned.
+## A `QImode` store to a pointer+offset drops *every* cse memory equivalence, so the order of two byte stores decides whether the next read is a reload (func_actor_310600_8016246C, 2026-09-17)
+
+The target stores a byte into a work block and immediately reads it back, and
+the read is a genuine load, not a reuse of the register that was stored:
+
+```
+lbu   v1,0(s2)        # (u8)cmd->animId
+sb    v0,0x475(s1)    # work->field_475 = -1
+sb    v1,0x476(s1)    # work->field_476 = cmd->animId
+lb    v1,0x476(s1)    # <- reload
+sll   v1,v1,2         # ... index into the bank table
+```
+
+The natural source (`work->field_475 = -1; work->field_476 = cmd->animId;` then
+`D[work->field_476]`) instead *forwards* the stored register — 93.2% with
+`regs=12`, the read coming out as `sll 0x18` / `sra 0x16` off the `lbu`
+register. Both come from the same three statements; only their order differs.
+
+**Why.** `cse.c`'s `note_mem_written` classifies a store by whether its address
+varies:
+
+```c
+      else if (cse_rtx_addr_varies_p (written))
+	{
+	  if (! ((MEM_IN_STRUCT_P (written)
+		  || GET_CODE (XEXP (written, 0)) == PLUS)
+		 && GET_MODE (written) != QImode      /* <- the QImode escape */
+		 && GET_CODE (XEXP (written, 0)) != AND))
+	    writes_ptr->all = 1;
+	  writes_ptr->nonscalar = 1;
+	}
+```
+
+`cse_rtx_addr_varies_p` is true for any address that is not a `FIXED_BASE_PLUS`
+— a pointer register plus a constant counts as varying — so a `sb` to
+`field(reg)` is a "character store" and, per the ANSI aliasing allowance in the
+comment above it, sets `writes.all`. `invalidate_from_clobbers` then runs
+`invalidate_memory (&everything)`, which removes **every** entry with
+`in_memory`, not just the ones that overlap.
+
+Within `cse_insn` the invalidation (cse.c:7404) runs *before* the destinations
+are inserted (:7480), so a store's own entry survives its own `writes.all`, but
+not the *next* QImode store's. That makes the source order load-bearing:
+
+* `sb field_475` then `sb field_476` then read -> the 476 entry is inserted
+  after the last invalidation and the read forwards to the register;
+* `sb field_476` then `sb field_475` then read -> the 475 store wipes the 476
+  entry, the read has nothing to fold to, and it stays a load.
+
+Fix: store the value **first**, then the unrelated byte, then read. The emitted
+order does not betray this — sched1 is free to reorder the two independent
+stores, and the target's asm lists `0x475` before `0x476` either way. The
+`.cse` dump is what tells the two apart: in it, the forwarded build has the
+read gone and the register's sign-extension (`ashl`/`ashiftrt` pair) feeding the
+index, the reload build still has the `(mem/s:QI (plus (reg N) (const_int 1142)))`
+load followed by `{extendqisi2_insn}`.
+
+This is why a store/reload of a byte can look like a register-allocation puzzle
+and not be one: the allocator has nothing to do with it, and no pin, local split
+or `VOLATILE`/`TOUCH_REG` addition will recover the load. Suspect cse first
+whenever a target reads back a byte it just wrote and the natural source folds
+the two together.
+
+Inputs: `base_3.i` (100.000%) SHA256
+`250a6b7d81b764d2b7e7a2887f797ff56fef5a468260047246392c0b8e509f72`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run; `.cse` dumps retained in the scratch.
