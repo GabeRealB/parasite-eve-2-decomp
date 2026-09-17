@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
+#include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -12,11 +14,78 @@ extern GpSaveLoc D_mine_secret_passage_80183448;
 
 extern TaskDesc D_mine_secret_passage_80180EBC;
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", D_mine_secret_passage_8017D5C0);
+extern s16 D_80071076;
+extern s8  D_801153F4;
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", RoomsShared80181e70Table);
+/// 0x1E pair this room hands `Task_Spawn` for the helper it raises in state 4,
+/// the same shape `D_mine_mesa_80189B38` has.
+extern GpStateBD8 D_mine_secret_passage_80183440;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D60C);
+/// Runs the room's save sequence. State 0 asks for the caption, state 1 waits
+/// for it and drops the periscope overlay, state 2 takes the confirm key or
+/// backs out, state 3 counts the armed-shot window down before raising the PE
+/// prompt, state 4 raises the helper task 0x31 and queues the sound event,
+/// state 5 waits for that voice, and state 6 - the commit - copies the staged
+/// location into `Mc_SaveData` and reloads. Every state but the commit advances
+/// through the shared `advance` tail; a confirmed cancel stops without it.
+void func_mine_secret_passage_8017D60C(Task* arg0)
+{
+    s16 temp_v0;
+
+    switch (arg0->state) {
+        case 0:
+            Gp_RunCapCmd(2, 0);
+            goto advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            D_801153F4 = 0;
+            goto advance;
+        case 2:
+            if (Gp_GetCapEventKey() != 0xA) {
+                Task_Kill(arg0);
+                Gp_MsgPlayerWeapon(1);
+                D_801153F4 = 0;
+                break;
+            }
+            D_801153F4          = 1;
+            arg0->killCountdown = 3;
+            arg0->state++;
+            break;
+        case 3:
+            temp_v0             = (u16)arg0->killCountdown - 1;
+            arg0->killCountdown = temp_v0;
+            if ((temp_v0 << 0x10) != 0) {
+                break;
+            }
+            Gp_TriggerPeIfArmed();
+            goto advance;
+        case 4:
+            D_mine_secret_passage_80183440.field_0 = 0;
+            D_mine_secret_passage_80183440.field_1 = 0;
+            D_mine_secret_passage_80183440.field_2 = 0x1E;
+            Task_Spawn(1, 0x31, 0, (s32)&D_mine_secret_passage_80183440);
+            SndEvt_EnqueueType6(0x54080003, 0, 0);
+            goto advance;
+        case 5:
+            if (SndVoice_HasActiveId(0x54080003) != 0) {
+                break;
+            }
+        advance:
+            arg0->state++;
+            break;
+        case 6:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076          = 1;
+            Mc_SaveData.field_6 = (u8)D_mine_secret_passage_80183448.field_2;
+            Mc_SaveData.field_8 = (u8)D_mine_secret_passage_80183448.field_4;
+            Mc_SaveData.field_5 = (u8)D_mine_secret_passage_80183448.field_1;
+            Task_Spawn(0, 0x11, 0x10, 0);
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 s32 func_mine_secret_passage_8017D7C4(void)
 {
