@@ -58,7 +58,7 @@ typedef struct Actor450800Work {
     /* 0x4F8 */ Task*     field_4F8;
     /* 0x4FC */ s16       field_4FC;
     /* 0x4FE */ s16       field_4FE; // approach mode the last call selected
-    /* 0x500 */ u8        field_500;
+    /* 0x500 */ u8        field_500; // 0x7DB mode 1 latches the copied flags here, 2 the 0x84 state
     /* 0x501 */ byte      pad_501[0x3];
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);

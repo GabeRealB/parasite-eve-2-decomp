@@ -56,4 +56,47 @@ s32 func_actor_450800_80132B44(Task* task, s32 arg1, Actor450800AnimArgs* args)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_2", func_actor_450800_80132BB0);
+/// Message handler 0x7D5 of `D_actor_450800_8014AC58`: sets the visibility
+/// flags on this actor's own model and on the three helper tasks' ones at once.
+///
+/// `arg2` bit 0 hides -- `field_C = 0` -- rather than shows (`0x80`), and bit 1
+/// ORs 4 in, so the payload 0 `Gp_MsgSlot4Chain` sends for the first chain entry
+/// shows all four. `Actor450800Work::field_500` overrides the last of them:
+/// while it is 0 the helper at `field_4F8` keeps the 0x84 appearance handler
+/// 0x7DB's mode 2 gave it, instead of the flags just computed.
+s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
+{
+    Actor450800Work* work;
+    TmdObject*       self;
+    TmdObject*       first;
+    TmdObject*       second;
+    TmdObject*       third;
+
+    work   = (Actor450800Work*)task->idMap;
+    self   = (TmdObject*)task->extra;
+    first  = (TmdObject*)work->field_4F0->extra;
+    second = (TmdObject*)work->field_4F4->extra;
+    third  = (TmdObject*)work->field_4F8->extra;
+
+    if (arg2 & 1) {
+        self->field_C   = 0;
+        first->field_C  = 0;
+        second->field_C = 0;
+        third->field_C  = 0;
+    } else {
+        self->field_C   = 0x80;
+        first->field_C  = 0x80;
+        second->field_C = 0x80;
+        third->field_C  = 0x80;
+    }
+    if (arg2 & 2) {
+        self->field_C   |= 4;
+        first->field_C  |= 4;
+        second->field_C |= 4;
+        third->field_C  |= 4;
+    }
+    if (work->field_500 == 0) {
+        third->field_C = 0x84;
+    }
+    return 0;
+}
