@@ -85,7 +85,43 @@ check:
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161FD0);
+/// Points `n` slots of a task's animation context at `anim`, skipping slot 0
+/// on the eight-slot actor: a zero `blend` resets each slot, otherwise
+/// `func_800B4114` blends into it.
+static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
+{
+    Actor341900AnimWork* ctx;
+    u16                  i;
+
+    ctx = (Actor341900AnimWork*)task->idMap;
+    if (blend == 0) {
+        for (i = n == 8; i < n; i++) {
+            ctx->slots[i].field_9 = 0x10;
+            Gp_AnimResetSlot(&ctx->ctx, i, anim);
+        }
+    } else {
+        for (i = n == 8; i < n; i++) {
+            func_800B4114(&ctx->ctx, i, anim, 0, blend);
+        }
+    }
+}
+
+/// Records an animation command in the work block and applies it to the
+/// actor and both of its child tasks.
+void func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd)
+{
+    Actor341900AnimWork* work;
+
+    work            = (Actor341900AnimWork*)arg0->idMap;
+    work->field_214 = cmd->field_0;
+    work->field_218 = work->field_254 = cmd->field_4;
+    work->field_21C                   = cmd->field_8;
+    work->field_220                   = cmd->field_C;
+    work->field_224                   = cmd->field_10;
+    Actor341900_SetAnim(arg0, cmd->field_4, cmd->field_C, 8);
+    Actor341900_SetAnim(work->field_24C, cmd->field_4, cmd->field_C, 4);
+    Actor341900_SetAnim(work->field_250, cmd->field_4, cmd->field_C, 4);
+}
 
 /// Turns the model's world translation into the light/colour matrix pair the
 /// actor draws with, allocating that pair on the first frame.

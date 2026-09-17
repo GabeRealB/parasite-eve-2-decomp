@@ -149,9 +149,12 @@ typedef struct Actor341900AnimWork {
     /* 0x154 */ byte       pad_154[0x80];
     /* 0x1D4 */ MATRIX     light;
     /* 0x1F4 */ MATRIX     color;
-    /* 0x214 */ byte       pad_214[0x4];
+    /* 0x214 */ s32        field_214;
     /* 0x218 */ s32        field_218;
-    /* 0x21C */ byte       pad_21C[0x2C];
+    /* 0x21C */ s32        field_21C;
+    /* 0x220 */ s32        field_220;
+    /* 0x224 */ s32        field_224;
+    /* 0x228 */ byte       pad_228[0x20];
     /* 0x248 */ Task*      field_248;
     /* 0x24C */ Task*      field_24C;
     /* 0x250 */ Task*      field_250;
@@ -159,6 +162,22 @@ typedef struct Actor341900AnimWork {
     /* 0x256 */ byte       pad_256[0x2];
 } Actor341900AnimWork;
 STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
+
+/// Animation command `func_actor_341900_80161FD0` copies into
+/// `Actor341900AnimWork::field_214..field_224`: `field_4` is the animation id
+/// and the low half of `field_C` the blend handed to `func_800B4114` (0 resets
+/// the slots instead).
+typedef struct Actor341900AnimCmd {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u16 field_4;
+    /* 0x06 */ u16 pad_6;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor341900AnimCmd;
+STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
+
+void func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd);
 
 void func_actor_341900_80162330(Task* arg0);
 
