@@ -149,7 +149,9 @@ typedef struct Actor341900AnimWork {
     /* 0x154 */ byte       pad_154[0x80];
     /* 0x1D4 */ MATRIX     light;
     /* 0x1F4 */ MATRIX     color;
-    /* 0x214 */ byte       pad_214[0x34];
+    /* 0x214 */ byte       pad_214[0x4];
+    /* 0x218 */ s32        field_218;
+    /* 0x21C */ byte       pad_21C[0x2C];
     /* 0x248 */ Task*      field_248;
     /* 0x24C */ Task*      field_24C;
     /* 0x250 */ Task*      field_250;
@@ -160,7 +162,7 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
 
 void func_actor_341900_80162330(Task* arg0);
 
-void func_actor_341900_80161E58(Task* arg0, s32 arg1);
+s32 func_actor_341900_80161E58(Task* arg0, u16 arg1);
 
 void func_actor_341900_801628B8(Task* arg0);
 

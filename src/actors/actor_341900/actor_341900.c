@@ -29,7 +29,60 @@ extern u8 D_actor_341900_80163FB0[];
 /// beside the stage-3 `D_80062735` mode byte.
 extern s8 D_8007272D;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161E58);
+/// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Animation id `func_actor_341900_80161E58` hands every slot to
+/// `func_800B4114`, indexed by `Actor341900AnimWork::field_218`; a negative
+/// entry skips the call.
+extern s16 D_actor_341900_801639D0[];
+
+/// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0
+/// is skipped for the eight-slot actor). If every one of them then has
+/// `field_10` bit 0x100 set, passes them the `D_actor_341900_801639D0` id and
+/// returns 1; otherwise returns 0. The gotos reproduce retail's block layout.
+s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
+{
+    Actor341900AnimWork* work;
+    Actor341900AnimWork* ctx;
+    u16                  i;
+    u16                  done;
+    u16                  start;
+    u16                  anim;
+    s32                  first;
+
+    anim  = arg1 == 8;
+    start = anim;
+    work  = (Actor341900AnimWork*)arg0->idMap;
+    for (i = start; i < arg1; i++) {
+        Gp_AnimTickIndex(&work->ctx, i);
+    }
+    i    = start;
+    done = 1;
+    for (; i < arg1; i++) {
+        if (!(work->slots[i].field_10 & 0x100)) {
+            goto fail;
+        }
+    }
+check:
+    if (done) {
+        if (D_actor_341900_801639D0[work->field_218] >= 0) {
+            anim  = D_actor_341900_801639D0[work->field_218];
+            ctx   = (Actor341900AnimWork*)arg0->idMap;
+            first = arg1 == 8;
+            goto loop;
+        fail:
+            done = 0;
+            goto check;
+        loop:
+            for (i = first; i < arg1; i++) {
+                func_800B4114(&ctx->ctx, i, anim, 0, 10);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80161FD0);
 

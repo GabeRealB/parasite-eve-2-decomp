@@ -114531,3 +114531,34 @@ prediction -1).
 Inputs: `base_11.i` `741c10dd8b6c451ce19c4ec6d378fbaacb1231ba90442042463c7d62e0a84db6`
 (exact), `base_12.i` `440b56937eba4f1e7f4c832e129163e783a8ca5a1fb7bb6069423cca0f48dfbb`
 (control); archived with the function's permuter findings.
+
+## A loop-exit block sitting between an unconditional `j` and the next loop's init is loop.c's block move: give it a barrier there with `goto` (func_actor_341900_80161E58, 2026-09-17)
+
+Target shape: `...sltiu v0; j L; [move a1,zero; j done_test]; L: move s0,v0; <loop 3>`.
+The middle block is loop 2's `done = 0; break;`. `find_and_verify_loops`
+(`loop.c`) moves a block that ends in a jump out of its loop to the first
+BARRIER at the *jump target's* loop depth - searching backward from the target
+label, then forward. With a plain `for`/`break` the only forward barrier is the
+`return 1` jump after loop 3, so the block lands at the end of the function
+(92.7%, `branch=8`). No goto-free shape tried (`?:`/`if` init, `while`,
+`do/while` guard, block-scoped locals, `continue` form, `ret` variable)
+created a barrier before loop 3's init.
+
+Fix: write the block where retail placed it, computing the init before the jump
+and assigning it after the label, so the compare lands in the `j`'s delay slot:
+
+```c
+            first = arg1 == 8;
+            goto loop;
+        fail:
+            done = 0;
+            goto check;
+        loop:
+            for (i = first; i < arg1; i++) { ... }
+```
+
+Loop 2 does `goto fail;` and `check:` labels the `if (done)`. Two register
+fixes followed: a `u16` parameter (not `s32` with `(u16)` casts) so one
+`andi` feeds both the `== 8` test and the loop bound, and a second pointer local
+for the reloaded `arg0->idMap` so the first one's shorter life swaps it with
+the loop bound's callee-saved register.
