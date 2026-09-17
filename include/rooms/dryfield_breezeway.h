@@ -177,6 +177,25 @@ typedef struct DbwVec {
 } DbwVec;
 STATIC_ASSERT_SIZEOF(DbwVec, 0x8);
 
+/// The edge a breezeway prompt beam starts from, and the mode that selects it.
+///
+/// `func_dryfield_breezeway_8017F1F4` draws the beam's cursor segment: a
+/// raw-textured quad whose near edge is either the `arg2` origin (the first
+/// segment of a beam, `mode` 0) or the two corners recorded here, and whose
+/// far edge is always `arg2` plus the `arg1`-rotated offsets. The tail of
+/// every call writes that far edge back into the two corners, so a beam that
+/// is redrawn each frame grows from where the previous segment ended; the
+/// caller's scan (`func_dryfield_breezeway_8017EB8C`) passes mode 0 on the
+/// first step of a beam and mode 1 on the rest. The corners are `DbwVec`s
+/// because the scan reads the tip it advances to as unsigned, the same way
+/// `func_dryfield_breezeway_8017FAD0` reads its points.
+typedef struct DbwBeamEdge {
+    /* 0x00 */ DbwVec fromA;
+    /* 0x08 */ DbwVec fromB;
+    /* 0x10 */ s16    mode;
+} DbwBeamEdge;
+STATIC_ASSERT_SIZEOF(DbwBeamEdge, 0x12);
+
 /// Room task published by `func_dryfield_breezeway_8017E010` and
 /// `func_dryfield_breezeway_8017E114` once they have built its work block.
 extern Task* D_dryfield_breezeway_801843C0;

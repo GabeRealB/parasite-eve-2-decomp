@@ -114234,6 +114234,21 @@ exemption from the store side": the `.ident` stores are `mem/s:SI`, the
 `mtx->`/`dest->` ones plain `mem:SI`, because a pointer-typed base clears
 `MEM_IN_STRUCT_P`.
 
+The rule crosses families unchanged: `func_dryfield_breezeway_8017F1F4` (a room
+overlay) builds the same identity splat for its `RotMatrixZ` and shows the same
+3-frame + 2-`$s0` split, so its `DbwMatWords` union (the room's word-wise view,
+`dryfield_breezeway.h`) is named for the three words it can pair and the two
+diagonal ones go through a `MATRIX* mtx = &matw.mat` instead. Reading all five
+off the union gives all five frame-relative (98.756%); the split is the tell
+here too, and `func_actor_403100_801339EC` is the matched sibling to copy the
+spelling from. *Why* the original wrote two of the five through a pointer is not
+recoverable from the bytes -- the union names all five words, so the pairing
+argument does not explain it -- which is the useful part: the mix is evidence
+about the source's shape that no amount of reordering reproduces. Corollary
+when reading an unfamiliar identity splat: a frame-relative store is member
+access, a register-relative one is a pointer expression, and the ROM's *mix*
+tells you which of the five the original wrote each way.
+
 ## A store inside *both* arms is what keeps a same-field reload (func_actor_206100_8014B8B4, 2026-09-16)
 
 The scale ramp that ends `func_actor_206100_8014B8B4` stores and then reads the
