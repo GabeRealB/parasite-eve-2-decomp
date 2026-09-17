@@ -15,6 +15,7 @@
 
 extern char             D_actor_143000_80131EB0[];
 extern Actor143000Rect  D_actor_143000_80134580[];
+extern char*            D_actor_143000_801345F8[];
 extern TaskDesc         D_actor_143000_801350B0;
 extern Actor143000Spawn D_actor_143000_80135C08;
 extern u8               D_actor_143000_80135C0C;
@@ -97,7 +98,33 @@ void func_actor_143000_801338C8(Actor143000* arg0)
     arg0->field_30          = 2;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_801338E0);
+void func_actor_143000_801338E0(Actor143000* arg0)
+{
+    Actor143000Work* work = arg0->field_1C;
+    s32              col  = (work->field_8 + 0x80) / 16;
+    s32              row  = (work->field_A - 0x20) / 16;
+    char*            key;
+
+    if ((u32)col < 13) {
+        if (row >= 0) {
+            if (row < 3) {
+                key = D_actor_143000_801345F8[row] + col;
+                if ((s8)*key == '#') {
+                    work->field_10 = 0;
+                } else if ((s8)*key == '-') {
+                    if (work->field_10 > 0) {
+                        work->field_10--;
+                    }
+                } else if (work->field_10 < 20) {
+                    D_actor_143000_80135C20[work->field_10] = *key;
+                    work->field_10++;
+                }
+                work->field_18 = 0x30;
+            }
+        }
+    }
+    arg0->field_30 = 2;
+}
 
 void func_actor_143000_801339CC(Actor143000* arg0)
 {

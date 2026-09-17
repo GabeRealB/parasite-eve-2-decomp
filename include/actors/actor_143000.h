@@ -11,7 +11,8 @@ typedef struct Actor143000Work {
     /* 0x04 */ s16  field_4;
     /* 0x06 */ byte pad_6[1];
     /* 0x07 */ s8   field_7;
-    /* 0x08 */ byte pad_8[4];
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
     /* 0x0C */ s32  field_C;
     /* 0x10 */ s16  field_10;
     /* 0x12 */ s8   field_12;
