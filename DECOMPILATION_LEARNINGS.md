@@ -117878,3 +117878,52 @@ case 4. Read the `.jump` / `.jump2` pair to see it: nine jumps to the epilogue l
 Rule: to keep an arm's call site separate, give the arms different tails (`return`, not a
 shared `goto` label) so they enter the jump chain through a different partner. Rewriting
 the arms' bodies is not what changes the merge — which jumps point where is.
+
+## A three-arm `if`/`else if` chain needs a redundant arm assignment kept alive by `TOUCH_REG` before reorg will steal the else constant (func_dryfield_general_store_8017D8D4, 2026-09-17)
+
+The rooms-family follow-up to "The 99.8% near-miss of the two-valued `if`/`else`"
+above. The two-store form that matches a *two*-valued `if`/`else` in one move
+does not match a *three*-arm chain: the chain's last two arms both assign, so
+jump.c merges their identical `sb` tails into a join block placed after the final
+arm, the final arm then falls into it with no jump of its own, and reorg has
+nothing to steal. The result is 97.816% with `insert=2` - the else's `li` stays
+in its own block and the *then* arm grows the `j` over it:
+
+```
+        slti   $v0, $v0, 0x4              slti   $v0, $v0, 0x4
+        beqz   $v0, .Ljoin                beqz   $v0, .Lelse
+        li     $v0, 4        (delay)      nop
+        jal    GameFlag_GetNibble(0x61)   jal    GameFlag_GetNibble(0x61)
+        addiu  $v0, $v0, 2                j      .Ljoin
+  .Ljoin: sb    $v0, 0x3($s1)             addiu  $v0, $v0, 2
+                                     .Lelse:  li     $v0, 4
+                                     .Ljoin:  sb     $v0, 0x3($s1)
+```
+
+The move that fixes it is to give the *then* arm its own assignment of the same
+constant, kept alive across the call so `flow` cannot delete it:
+
+```c
+if (GameFlag_GetNibble(0x7A) < 4) {
+    v = 4;
+    TOUCH_REG(v);
+    v = GameFlag_GetNibble(0x61) + 2;
+} else {
+    v = 4;
+}
+out->field_3 = v;
+```
+
+Both `v = 4` definitions are the same constant in the same pseudo, so they merge
+into one definition that serves both arms; `.dbr` then prints that single
+`(set (reg/v:SI 2 v0) (const_int 4))` as part of the `beqz`'s delay-slot
+sequence, the else block is left empty, and the branch is redirected to the join
+- the target's exact shape. Without the `TOUCH_REG` the then arm's assignment is
+a dead store and is eliminated, leaving the else block as the only definition and
+the 97.816% layout above. `func_dryfield_general_store_8017D8D4` scored 97.816%
+for both the shared-local and the store-in-each-arm writing of the chain, so the
+redundant assignment is not a stylistic variant of the same object: it is the
+thing that decides which block owns the definition.
+`Room_Script02` (`src/rooms/lib/room_script02.c`) is the already-matched sibling
+carrying this idiom on its own copy of the same sub-computation - read it before
+re-deriving it.
