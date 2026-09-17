@@ -119535,3 +119535,54 @@ when a block is in source order in the ROM and reordered in yours, do not look
 for the missing dependency in the C's control flow — the ROM's own scheduling
 was decided by pseudos the final code no longer contains, and a dead local in
 the right block is a legitimate way to put them back.
+
+---
+
+## A struct-member store does not conflict with a later plain-scalar load (func_dryfield_water_tower_8017DFAC, 2026-09-17)
+
+`sched_analyze` builds memory dependencies from statement order, but only when its
+aliasing test lets the pair conflict. `true_dependence` (sched.c) drops a
+store/load pair when the store's MEM is a struct member with a varying address and
+the load's MEM is neither a struct member nor a varying address:
+
+```c
+    ! (MEM_IN_STRUCT_P (mem) && rtx_addr_varies_p (mem) && GET_MODE (mem) != QImode
+       && GET_CODE (XEXP (mem, 0)) != AND
+       && ! MEM_IN_STRUCT_P (x) && ! rtx_addr_varies_p (x))
+```
+
+A coordinate store (`coord->coord.t[1] += k`, a `mem/s` on a register-based
+address) followed by a load of a room global (`%hi`/`%lo` of a symbol: not in a
+struct, not varying) hits that clause, so **no dependence is created** and sched1
+is free to hoist the global's address (`lui`) above the store.
+
+That is the whole leftover in `func_dryfield_water_tower_8017DFAC`: its case-1 and
+case-2 blocks both keep the store ahead of the load's `lui`, and a C whose loads
+are bare scalars cannot reproduce them -- the block comes out
+`lui; lw; sw; lui; lw` with a load-delay `nop` where the target has
+`lw; lui; sw; lw`. Reaching the same symbol through a struct- or array-typed
+lvalue sets `MEM_IN_STRUCT_P` on the load and restores the dependence:
+
+```c
+    extern s32 D_x[];                  /* declared as a run, complete at the use */
+    ...
+    if (D_x[0] < coord->coord.t[1]) {  /* was: if (D_x < coord->coord.t[1]) */
+```
+
+The emitted address is unchanged (`%hi(D_x)` / `%lo(D_x)(reg)`), so nothing else
+moves; only the scheduler's view of the pair does. The symbol must stay the
+*field's own*: `D_placement[2].pos.vy` through the record type produces the same
+address but a `%lo(D_placement+0x34)` relocation, which no longer matches the
+target's line (99.4% in the scratch metrics, identical bytes). Making the *store*
+non-struct instead (`*(s32*)&coord->coord.t[1] += 0x12C;`) also defeats the clause
+and also reaches 100%.
+
+A `do { store; } while (0)` around the store is a weaker workaround: the loop
+notes wall the store in and everything after depends on it, which carried a
+stalled seed from 91.6% to 97.7%. It cannot finish -- the notes order the whole
+tail after the store, so the store's own dependents move too, and the load's `lui`
+still lands one slot late.
+
+Archived: `tools/giveups/func_dryfield_water_tower_8017DFAC/`, input hash
+`83fb80b338de2813d4321ae4d61c33a1878909485f153349e6aec1c42ecb0254` (100.000%, all
+penalties zero).
