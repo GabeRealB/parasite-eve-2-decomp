@@ -119929,3 +119929,51 @@ is unchanged, so the object dump alone cannot show it.
 Inputs: `base_2.i` `5875a9651f9dc9cc7a36f05756c7667983db5b480ea181330def041191094f8b`
 (99.747%), `base_4.i` `b1ca9760b4705024c71afaade0aad84cbd41e1e3e7091b7bca41fc319363ab8b`
 (100%), archived with the function's permuter findings.
+
+## A `u8` field assigned -1 folds to `li $v0,0xff`; the target's `li $v0,-1` says the field is `s8` (func_dryfield_night_factory_8017D6F8, 2026-09-17)
+
+Two byte fields seeded to -1 in the same function, stored as `sb $v0,0x16($s0)` /
+`sb $v0,0x17($s0)` off one shared `li`. With the fields declared `u8`, the
+assignment converts the constant into the field's mode first, so the `li` is
+`0xff` - the same *byte* in memory and a different *immediate* in the object:
+
+```
+li    v0,-0x1     /* target */        li    v0,0xff   /* u8 field */
+sb    v0,0x16(s0)                     sb    v0,0x16(s0)
+```
+
+`.diagnosis.json` shows only `regs=1` and the object diff is one line, which
+reads like a register wobble; it is the header. The field is `s8` - which the
+same overlay's handler confirms independently, loading it with `lb $a0,0x17($s1)`
+for a sign-dependent test. This is the store-side mirror of "A bare `!= 0` test on
+a halfword field still follows the declared signedness": there the *load*'s width
+names the field, here the *constant's fold* does. Both are the same rule - the
+constant and the load are expanded in the field's mode - so when a store of a
+negative literal does not look like the field's unsigned fold, the field is signed.
+
+## A 32-bit store plus a load of its high half is one union member, not a plain field (func_dryfield_night_factory_8017D6F8, 2026-09-17)
+
+`NightFactoryWork` at 0xC holds a 16.16 accumulator: the model's state 0 writes
+the whole word (`sw $v0,0xC($s0)`, 0xFDC60000 = -570.0) and the two handlers read
+its integer part as a signed halfword (`lh $v1,0xE($s0)`, then -570 reaches the
+model's Y translation). No single plain field declaration produces both - a `s32`
+gives a `lw` where the target has `lh`, and two `s16`s give two `sh`s where the
+target has one `sw`:
+
+```c
+    /* 0x0C */ union {
+                   s32 value;
+                   struct { s16 frac; s16 whole; } part;
+               } field_C;
+```
+
+`work->field_C.value = 0xFDC60000;` is the `sw`; `work->field_C.part.whole` is
+the `lh`. The wide/narrow pair is the tell - one `sw` and one `lh` at `+2` of the
+same offset is a union, where the existing "Two views of one union field are two
+loads" case is both reads narrow. A 16.16 accumulator read through its integer
+half is common in this engine (the same room's `func_dryfield_night_factory_8017E13C`
+adds a velocity to this field and clamps it), so expect the shape again.
+
+Inputs: `base_1.i` `d16cf27d939b2c391f0b7bce0863a665c1d7deecddc5a5867ef7ba10d774c1da`
+(97.432%, union already in, `u8` still), `base_3.i` `bcfa78cb79caca789b0e1f61b5f737a19004409c70fd6a611636442cf7b5d487`
+(100%, `s8`).

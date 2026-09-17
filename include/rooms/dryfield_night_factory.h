@@ -52,12 +52,27 @@ extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 /// counts the frames since that nibble changed, and `field_16` / `field_17`
 /// latch its two low bits -- `func_dryfield_night_factory_8017D6F8` seeds both
 /// to -1 when it allocates the block.
+///
+/// `field_C` is a 16.16 accumulator: the handler `func_dryfield_night_factory_8017E13C`
+/// adds `field_4` to it and clamps the result, and the two seeders read its
+/// integer part (`field_C.whole`) straight out into the model's Y translation.
+/// That integer part is the same two bytes, so both views live in one union --
+/// the target stores the whole 32 bits and loads the high half.
 typedef struct NightFactoryWork {
     /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x10];
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte pad_8[0x4];
+    /* 0x0C */ union {
+        /* 0x0C */ s32 value;
+        struct {
+            /* 0x0C */ s16 frac;
+            /* 0x0E */ s16 whole;
+        } part;
+    } field_C;
+    /* 0x10 */ s32  field_10;
     /* 0x14 */ u16  field_14;
-    /* 0x16 */ u8   field_16;
-    /* 0x17 */ u8   field_17;
+    /* 0x16 */ s8   field_16;
+    /* 0x17 */ s8   field_17;
     /* 0x18 */ byte pad_18[0x40];
 } NightFactoryWork;
 STATIC_ASSERT_SIZEOF(NightFactoryWork, 0x58);
