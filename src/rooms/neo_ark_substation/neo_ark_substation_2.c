@@ -39,5 +39,3 @@ void func_neo_ark_substation_8017D7AC(Task* task)
 void func_neo_ark_substation_8017D814(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_substation/neo_ark_substation_2", D_neo_ark_substation_8017D608);

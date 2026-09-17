@@ -118480,3 +118480,68 @@ below the second `work = task->idMap` reload raised its luid and gave the target
 order, 100%. When a whole block of a function looks like it was built from
 parameters (the `failed` 0/1 + `andi 0xFFFF` shape is another inline tell), try an
 inline parameter before scheduler barriers.
+## A halfword table field loads `lhu` into an `s16` local and `lh` into an `s32` one - the local's width picks the load, not the field (func_neo_ark_substation_8017D608, 2026-09-17)
+
+`func_neo_ark_substation_8017D608` reads a `(pan, vol)` pair out of an `s16` table
+and hands both to `SndEvt_EnqueueType6` as signed bytes:
+
+```
+lh   $a1,0x0($v0)        target: signed halfword loads, byte-extracted at the call
+lh   $a2,0x4($v0)
+...
+sll  $a1,$a1,24
+sra  $a1,$a1,24
+```
+
+Declaring the two locals `s16` - the width that matches the fields, and what m2c
+picks - compiles the *same* source to `lhu` and scores 94.203%, `insert=2
+delete=2`, with those two loads the whole difference. The `(s8)` casts at the
+call site emit the same `sll`/`sra 24` either way; only the load differs.
+
+`extendhisi2`'s `force_not_mem` (the mechanism in "A halfword field read through
+a pointer expands to `lhu` + `ashl`/`ashr`, not `lh`") only runs when a
+`sign_extend` is there to force. `s16 x = tbl[i].f;` is a plain HImode load, and
+`movhi_internal2` takes its unsigned arm; `s32 x = tbl[i].f;` sign-extends out
+of memory and lands on `extendhisi2_internal`'s `lh`. So a `lhu` where the target
+has `lh` is a statement about the *local that receives the read*, not about the
+field: widen the local to `s32` and the load turns signed, with nothing else in
+the function moving. 100.00% (`base_2.c`), every penalty zero.
+
+Inputs: `base_2.i` (100%) SHA256
+`e6c931027d397f8fa3bf4ea5961a9985bcfc6eaf1532e42b2d295bcd31a9e7b9`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_neo_ark_substation_8017D610-vacuum` (vacuum names the scratch
+before the span pin renames the function).
+
+## A span pin on the overlay's first function also forces `rodata_head` once that function is matched in C (neo_ark_substation, 2026-09-17)
+
+`neo_ark_substation` is the hoisted-`Game_Session` case: `lui $v0,%hi(Game_Session)`
+/ `lw $v0,%lo(Game_Session)($v0)` at 0x48 sit above the `addiu $sp` prologue at
+0x50, so the span detector starts `.text` 8 bytes late and the function splits as
+`func_neo_ark_substation_8017D610`, whose fifth instruction reads the `$v0` those
+two set. `text = [0x48, 0xCD4]` is the fix ("A hoisted global load above the
+prologue starts the overlay `.text` too late"), and it renames the function to
+`func_neo_ark_substation_8017D608`.
+
+That alone gets the C to 100.00% in the scratch and still fails the scoped build,
+4 bytes long - the second half is the table. The function's `switch (task->state)`
+now emits its own jump table, and the leading rodata ahead of it is
+
+```
+- [0x0,  .rodata, ...]      id word 0x8017D5C0 + the shared TaskFuncTable3 at 0x4 (0x14 bytes)
+- [0x14, .rodata, ...]      the compiler's table, which needs .align 3
+```
+
+0x14 is 4 mod 8, so the `.align 3` pads four bytes and everything after shifts -
+the same four-bytes-long, nothing-points-at-rodata failure the `rodata_head`
+section describes for `actor_421600`. The head there was the id word alone; here
+it carries a shared data table as well, and `rodata_head = "0x14"` still covers
+it: 0x0..0x14 becomes `neo_ark_substation_hdr.rodata.s`, which keeps both
+`dlabel`s (including `RoomsShared8017d878Table`, named out of the symbol file) at
+their addresses, and the unit's `.rodata` now begins with the table. Dropping the
+unit's two `INCLUDE_RODATA` lines goes with it, as that section says.
+
+Inputs: `base_2.i` (100%) SHA256
+`e6c931027d397f8fa3bf4ea5961a9985bcfc6eaf1532e42b2d295bcd31a9e7b9`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
