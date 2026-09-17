@@ -115144,3 +115144,59 @@ Inputs: `base_1.c` SHA256 `4b40e09f2905a5c21905a19a757c60767a756a97d5b2a879626a1
 `target.s` SHA256 `aa9adf25894be6a624fd06d98559dcfec719a6652adf5b9e90a2051300225151`;
 two builds, no pins, no search. Scratch
 `nonmatchings/func_mine_mesa_8017D8F8-vacuum`.
+
+## m2c address arithmetic is scaled by the pointee type: `M2C_UNK` is `s32` (func_mine_mesa_801811C4, 2026-09-17)
+
+m2c renders a byte-offset address as an integer expression added to a symbol or
+pointer, and the C front end then scales it by whatever type it decides that
+operand has. `M2C_UNK` is `typedef s32 M2C_UNK` (`tools/m2c/m2c_macros.h`), so
+
+    extern M2C_UNK D_mine_mesa_80189A9C;
+    temp_a2 = (var_s0 * 0x18) + &D_mine_mesa_80189A9C;
+
+is not a 24-byte stride: the whole `var_s0 * 0x18` offset is multiplied by
+`sizeof (M2C_UNK)` = 4, and the emitted index is `sll 1; addu; sll 5`
+(`REG_EQUAL (mult (reg) (const_int 96))` in the `.rtl`/`.cse` dumps) instead of
+the target's `sll 1; addu; sll 3`. The same trap fires for a typed pointer -
+`(var_t0 << 5) + temp_s3` with `temp_s3` an `SVECTOR*` becomes a 256-byte stride
+where the target wants 32 - and it is easy to misread as a scheduling or
+allocation problem, because the two extra shifts keep the instruction count and
+the block topology identical and only the constants differ.
+
+Read the offset off the dump, not off the asm the diff shows: `sll N` on the
+index means stride `2^N`, and after multiplying out the m2c scale the intended
+stride is `2^N / sizeof (pointee)`. Fix by making the base a byte pointer
+(`extern u8 D[];`) or by indexing a correctly sized struct/typed pointer, which
+also keeps the two diff lines matching. Both fixes in this function - the 96-vs
+24 source stride and the 256-vs-32 destination stride - were worth 86.6% ->
+88.0% on their own, and the remaining diff (a preheader `addiu` and a loop-tail
+register) is unrelated to them.
+
+## A preheader value the C cannot explain was created after cse (func_mine_mesa_801811C4, 2026-09-17)
+
+When the target's loop preheader has a *computed* value where your build has a
+constant - here the target computes `addiu $t0,$s0,3` once before the loop label
+where the candidate emits `li $t0,3` - do not write the expression into the
+source: any spelling of it is folded away before the loop passes run. Writing
+`var_t0 = var_s0 + 3;` (with `var_s0 = 0` immediately above it, exactly as the
+target's registers imply) produces `(insn: r110 = (subreg:SI (reg/v:HI 87)) + 3)`
+in the `.rtl` dump and `(set (reg/v:HI 88) (const_int 3))` in the `.cse` dump:
+the expander emits the plus, the first cse pass folds it. The fold also survives
+an intervening branch (checked with a minimal test), so a block boundary in the
+source is not the explanation either.
+
+That leaves only a pass after cse as the origin, and the shape to look for is
+loop.c's `emit_iv_add_mult (bl->initial_value, v->mult_val, v->add_val,
+v->new_reg, loop_start)` (loop.c:4136), which emits `new_reg = biv_initial * mult
++ add` directly in front of the loop start - exactly where the target's
+instruction sits. It only runs for a giv of a *verified biv*, so check the
+`.loop` dump first: it prints `Insn %d: possible biv, reg %d` for every
+candidate and `Reg %d: biv discarded, ...` / `Reg %d: biv verified` for the
+outcome. A loop counter that is a `short` local never becomes a biv in this
+compiler - MIPS defines no `PROMOTE_MODE`, so `stmt.c:3609` gives the variable
+an HImode pseudo, the increment compiles to `r = (subreg:SI (reg/v:HI i)) + 1;
+i = (subreg:HI r)`, and `basic_induction_var` (loop.c:5015/5043) needs
+`XEXP (x, 0) == dest_reg` or a `SUBREG_PROMOTED_VAR_P` inner register, neither
+of which the truncating temp provides. With no verified biv, `loop_iv_list` is
+empty and loop.c returns before recording a single giv, so no preheader
+computation can come from it - which is the state this function is left in.
