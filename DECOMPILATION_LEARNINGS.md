@@ -123047,3 +123047,59 @@ Inputs: `base.i` (96.227%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the second build). Scratch
 `nonmatchings/func_actor_341300_80162278-vacuum`.
+## Write an `s16` division as `/ 2`; m2c's `(u32)(x << 16) >> 31` spelling re-derives the shift after the narrowing
+
+The target of `func_actor_323300_8016359C` narrows a clamped `s16` into a *new*
+register and keeps the sign-extension's shift alive to sign-test it:
+
+```
+sll   s0,s0,0x10     ; var << 16, stays live across the first call
+sra   s1,s0,0x10     ; (s16)var, the value both call args are built from
+...
+srl   s0,s0,0x1f     ; (u32)(var << 16) >> 31: the sign bit of that same shift
+addu  s1,s1,s0
+sra   a1,s1,0x1
+```
+
+`sll 16` + `srl 31` on the *un-narrowed* value is the sign bit of the low 16
+bits, which is what GCC 2.8.1's own expansion of `s16 x / 2` produces:
+`t1 = x >> 31` (arith) / `t2 = (u32)t1 >> 31` / `t3 = x + t2` / `t3 >> 1`
+(`expmed.c`, `BRANCH_COST < 3` branchless path), and `simplify_shift_const`
+then folds the two shifts through the sign-extension, giving `(var << 16) >> 31`.
+Because the shift the sign-extension already computed is the operand, the
+narrowing has to go somewhere else and the shift stays live - which is what
+costs the target its third call-saved register.
+
+m2c renders that same instruction pair as the literal expression
+`(s32)(x + ((u32)(x << 0x10) >> 0x1F)) >> 1`, and GCC then emits the shift
+*after* the narrowing, on the narrowed value:
+
+```
+sll   s0,s0,0x10
+sra   s0,s0,0x10     ; narrowed in place: the shift is dead
+...
+sll   v0,s0,0x10     ; recomputed, one extra instruction
+srl   v0,v0,0x1f
+```
+
+That is 63 instructions to the target's 64, `regs=28`, and only two
+call-saved registers. Writing the division as the C it came from - `var / 2`
+on the `s16` local - 93.094% -> 96.727% (`regs=3`) with no other change.
+
+The second clamp in the same function is the other half: the target tests the
+*promoted parameter* (`if (arg1 < -0x400)`, `slti v0,a1,-0x400`), not the
+clamped copy. Testing the copy re-sign-extends the phi's `s16` value in front
+of the compare (`sll v0,s0,16` / `sra v0,v0,16`, two extra instructions) and
+reuses `$a1` for the setcc result, because the copy's own register is the one
+still holding the parameter. Testing `arg1` keeps `$a1` live into the join
+block, so the setcc lands in `$v0` and the two shifts are not emitted at all.
+Both are the same predicate - the upper clamp has already pinned the copy to
+0x400 whenever `arg1` is out of range upwards - and the target's assembly is
+what says which spelling the source used.
+
+Inputs: scratch `nonmatchings/func_actor_323300_8016359C-vacuum`, `base.c` (m2c)
+93.094% (`regs=28`, `insert=1`), `base_2.c` 96.727% (`regs=3`, `insert=2`),
+`base_3.c` 100.000%. Preprocessed `base_2.i`
+`ba6475a6987f2dcf...`, `base_3.i` `f3ad0714aec5e589...`, assembly
+`d47e45f71fddb317...` / `7b0ea0bc1dcddb97...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

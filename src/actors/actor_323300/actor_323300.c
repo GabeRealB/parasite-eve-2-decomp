@@ -231,7 +231,33 @@ void func_actor_323300_80163510(Task* arg0)
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8016359C);
+/// Re-aims the per-part coordinate nodes at index 5 and index 2 from one turn
+/// angle: the angle is clamped to +-0x400 -- a quarter turn either way -- then
+/// `func_actor_323300_80163188` rebuilds node 5 from two thirds of it and node
+/// 2 from half, and nodes 5 down to 2 have their dirty flag cleared so the next
+/// `Gp_UpdateCoord` re-derives them. The lower clamp tests `arg1` rather than
+/// the clamped copy; that is the same test, because the upper clamp has already
+/// pinned the copy to 0x400 whenever the angle was out of range upwards.
+void func_actor_323300_8016359C(Task* arg0, s16 arg1)
+{
+    s16 var;
+
+    var = arg1;
+    if (var > 0x400) {
+        var = 0x400;
+    }
+    if (arg1 < -0x400) {
+        var = -0x400;
+    }
+
+    func_actor_323300_80163188(&((TmdObject*)arg0->extra)->field_8[5], (var * 2) / 3);
+    func_actor_323300_80163188(&((TmdObject*)arg0->extra)->field_8[2], var / 2);
+
+    ((TmdObject*)arg0->extra)->field_8[5].flg = 0;
+    ((TmdObject*)arg0->extra)->field_8[4].flg = 0;
+    ((TmdObject*)arg0->extra)->field_8[3].flg = 0;
+    ((TmdObject*)arg0->extra)->field_8[2].flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8016369C);
 

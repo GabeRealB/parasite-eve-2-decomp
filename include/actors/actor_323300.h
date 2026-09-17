@@ -136,6 +136,7 @@ extern Actor323300AnimPreset D_actor_323300_801725DC;
 
 void func_actor_323300_801626D0(Task* arg0);
 void func_actor_323300_8016269C(Task* arg0);
+void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
 void func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
