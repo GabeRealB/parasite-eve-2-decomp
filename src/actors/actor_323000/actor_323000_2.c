@@ -3,6 +3,7 @@
 #include "actors/actor_323000.h"
 #include "actors/actors_shared_801366fc.h"
 #include "gameplay/3CD8.h"
+#include "psyq/inline_c.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_80163448);
 
@@ -205,7 +206,82 @@ void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
     ((TmdObject*)task->extra)->field_8->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_801645A4);
+/// Per-frame driver of the live actor: brings the model root's coordinate up
+/// to date, takes its world position as the actor colour, flags a state change
+/// in `field_4`, and runs the state handler `field_0` selects from a stack copy
+/// of `D_actor_323000_80161E24`. Afterwards it walks the origin of the model's
+/// third part coordinate up to `Gfx_ViewCoord` and stores it as the enemy's
+/// local position, parented to the view.
+void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
+{
+    Actor323000Work*        work;
+    GpEnemyTaskFuncTable4   sp;
+    Actor323000TickScratch* scratch;
+    u8*                     head;
+    GsCOORDINATE2*          walker;
+    SVECTOR*                pos;
+
+    work = (Actor323000Work*)task->idMap;
+    Game_GetPtrSlot(3);
+    sp                                      = D_actor_323000_80161E24;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+    head                                    = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD                   = head - 0x1C;
+    scratch                                 = (Actor323000TickScratch*)(head - 0x1C);
+    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+    scratch->pos.vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
+    scratch->pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    scratch->pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &scratch->pos, 0, 0);
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = work->field_0;
+    sp.funcs[work->field_0](enemy, task);
+    scratch->local.vx = 0;
+    scratch->local.vy = 0;
+    scratch->local.vz = 0;
+    {
+        SVECTOR  local;
+        VECTOR   result;
+        s32      flag;
+        SVECTOR* localp = &local;
+
+        walker   = &((TmdObject*)task->extra)->field_8[2];
+        pos      = &scratch->local;
+        local.vx = scratch->local.vx;
+        local.vy = pos->vy;
+        local.vz = pos->vz;
+        while (1) {
+            if (walker->sub == NULL)
+                break;
+            if (walker != &Gfx_ViewCoord) {
+                gte_SetTransMatrix(&walker->coord);
+                gte_SetRotMatrix(&walker->coord);
+                gte_ldv0(localp);
+                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_stlvnl(&result);
+                gte_stflg(&flag);
+                local.vx = result.vx;
+                local.vy = result.vy;
+                local.vz = result.vz;
+                walker   = walker->sub;
+                continue;
+            }
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            break;
+        }
+    }
+    enemy->field_1C.vx     = scratch->local.vx;
+    enemy->field_1C.vy     = scratch->local.vy;
+    enemy->field_1C.vz     = scratch->local.vz;
+    enemy->field_18        = &Gfx_ViewCoord;
+    *(u8**)G_SCRATCH_HEAD += 0x1C;
+}
 
 void func_actor_323000_8016483C(void)
 {

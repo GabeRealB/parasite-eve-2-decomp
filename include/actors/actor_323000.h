@@ -28,9 +28,11 @@ typedef struct Actor323000Work {
     /// Animation state, the same slot `ActorShared80164af0Work` names
     /// `field_0`; `func_actor_323000_80164A54` picks it from a message, and
     /// the animation handler `ActorsShared80164af0` restarts it.
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[2];
-    /* 0x004 */ s16  field_4;
+    /* 0x000 */ s16 field_0;
+    /// State `func_actor_323000_801645A4` ran last frame; `field_4` is set
+    /// when `field_0` differs from it.
+    /* 0x002 */ s16 field_2;
+    /* 0x004 */ s16 field_4;
     /// Frame counter `func_actor_323000_80163A30` advances; zeroed by the
     /// re-init handler below.
     /* 0x006 */ s16        field_6;
@@ -92,6 +94,20 @@ typedef struct Actor323000MsgBytes {
     /* 0x1 */ u8 b1;
     /* 0x2 */ u8 b2;
 } Actor323000MsgBytes;
+
+/// 0x1C-byte block `func_actor_323000_801645A4` pushes on `G_SCRATCH_HEAD`:
+/// the model root's world position for `Gp_UpdateActorColor`, and the local
+/// point walked up the coordinate chain into view space.
+typedef struct Actor323000TickScratch {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR local;
+    /* 0x18 */ s32     pad_18;
+} Actor323000TickScratch;
+STATIC_ASSERT_SIZEOF(Actor323000TickScratch, 0x1C);
+
+/// State handlers `func_actor_323000_801645A4` dispatches through by
+/// `Actor323000Work::field_0`.
+extern GpEnemyTaskFuncTable4 D_actor_323000_80161E24;
 
 /// Animation source `func_800B3F84` is handed for both of the work block's
 /// contexts.
