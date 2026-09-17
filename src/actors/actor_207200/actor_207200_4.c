@@ -5,6 +5,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -30,6 +31,11 @@ extern u8  D_801153F2[2];
 extern u32 Gp_LcgState;
 /// `field_492` value for frames 20..39 of helper stage 1, indexed by frame - 20.
 extern s16 D_actor_207200_80153F20[];
+/// Base damage the shatter hit doubles, before a 0..99 roll is added.
+extern u16 D_actor_207200_8014E7D8;
+/// Effect offsets `func_800FDB18` is handed for the two hit tables.
+extern SVECTOR D_actor_207200_80153F08;
+extern SVECTOR D_actor_207200_80153F10;
 
 void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {
@@ -424,7 +430,224 @@ void func_actor_207200_8014B87C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014BEF4);
+/// Per-frame collision handling. Each six-record table's `func_800E0C10`
+/// result pushes the model back (1) or snaps it to `field_454` (2). Records of
+/// the first table then dispatch on their kind: 1 sets the turn state when the
+/// player is off-angle and near, 2 applies damage from the player's distance,
+/// 3 pushes the model out of the record's radius. Unless `field_4A6` is set,
+/// each 0x20000 record of the second table applies damage too, and some ids
+/// end the tick through `func_actor_207200_8014D128` / `8014CFEC`. The tables
+/// and, when `field_49A` is set, the two part records are cleared last.
+void func_actor_207200_8014BEF4(Task* arg0)
+{
+    Actor207200Work*       work;
+    Actor207200DmgScratch* sc;
+    Actor207200DmgScratch* head;
+    GsCOORDINATE2*         coord;
+    u32                    dist;
+    GpEnemy*               enemy;
+    s32                    i;
+    s32                    angle;
+    s32                    damage;
+    s32                    push;
+    s32                    param;
+    s32                    n;
+    s32                    snd;
+
+    work                                     = (Actor207200Work*)arg0->idMap;
+    head                                     = *(Actor207200DmgScratch**)G_SCRATCH_HEAD;
+    *(Actor207200DmgScratch**)G_SCRATCH_HEAD = head - 1;
+    sc                                       = head - 1;
+    coord                                    = ((TmdObject*)arg0->extra)->field_8;
+    enemy                                    = arg0->spawnArg2;
+
+    switch (func_800E0C10((GpRec18*)work->field_2C4.field_20, &head[-1].d.delta, 6, NULL)) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] += sc->d.delta.vx.h.hi;
+            coord->coord.t[1] += sc->d.delta.vy.h.hi;
+            coord->coord.t[2] += sc->d.delta.vz.h.hi;
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_454;
+            coord->coord.t[1] = work->field_458;
+            coord->coord.t[2] = work->field_45C;
+            if (work->field_4A6 == 0 && work->field_494 == 0) {
+                work->field_494 = 1;
+            }
+            break;
+    }
+    switch (func_800E0C10((GpRec18*)work->field_214.field_20, &sc->d.delta, 6, NULL)) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] += sc->d.delta.vx.h.hi;
+            coord->coord.t[1] += sc->d.delta.vy.h.hi;
+            coord->coord.t[2] += sc->d.delta.vz.h.hi;
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_454;
+            coord->coord.t[1] = work->field_458;
+            coord->coord.t[2] = work->field_45C;
+            if (work->field_4A6 == 0 && work->field_494 == 0) {
+                work->field_494 = 1;
+            }
+            break;
+    }
+    if (work->field_49E != 0 && --work->field_49E <= 0) {
+        work->field_49E = 0;
+    }
+
+    for (i = 0; i < 6; i++) {
+        switch ((u32)((Actor207200HitView*)work)->rec2[i].hit.kind) {
+            case 1:
+                if (work->field_4A6 == 0 && (u16)work->field_49A - 1U < 3) {
+                    angle = ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &dist);
+                    if (abs(angle) > 0x200 && dist < 2000) {
+                        work->field_48C = angle < 0 ? 7 : 6;
+                        work->field_490 = 0;
+                        work->field_49A = 5;
+                    }
+                }
+                break;
+            case 2:
+                if (work->field_49E != 0) {
+                    break;
+                }
+                sc->d.delta.vx.w = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+                sc->d.delta.vy.w = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+                sc->d.delta.vz.w = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+                damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w +
+                                               sc->d.delta.vy.w * sc->d.delta.vy.w +
+                                               sc->d.delta.vz.w * sc->d.delta.vz.w);
+                Gp_GetIdParam0(((Actor207200HitView*)work)->rec2[i].rec.field_4);
+                damage = Gp_ComputeDamage(((Actor207200HitView*)work)->rec2[i].rec.field_4, damage, 0, 0);
+                func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec2[i].rec.field_4),
+                              ((TmdObject*)arg0->extra)->field_8 + 1, &D_actor_207200_80153F10, &work->field_3EC);
+                n = Gp_GetIdParam2(((Actor207200HitView*)work)->rec2[i].rec.field_4);
+                if ((s16)n > 0) {
+                    work->field_49E = n;
+                }
+                if (work->field_4A6 != 0 && arg0->killCountdown == 0) {
+                    func_800DA6E8(&enemy->node, damage, 0);
+                    if (damage != 0) {
+                        arg0->state++;
+                        work->field_48C                          = 0xB;
+                        *(Actor207200DmgScratch**)G_SCRATCH_HEAD = *(Actor207200DmgScratch**)G_SCRATCH_HEAD + 1;
+                        return;
+                    }
+                } else {
+                    func_800DA6E8(&enemy->node, 0, 0);
+                }
+                if (work->field_486 == 0) {
+                    snd = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40480006;
+                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                    work->field_48C = 5;
+                    work->field_490 = 0;
+                    work->field_486 = 4;
+                    work->field_492 = 0;
+                    work->field_4A2 = 0;
+                }
+                break;
+            case 3:
+                sc->d.delta.vx.w = coord->workm.t[0] - ((Actor207200HitView*)work)->rec2[i].hit.x;
+                sc->d.delta.vy.w = 0;
+                sc->d.delta.vz.w = coord->workm.t[2] - ((Actor207200HitView*)work)->rec2[i].hit.z;
+                damage           = ((Actor207200HitView*)work)->rec2[i].hit.dist -
+                         SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w + sc->d.delta.vz.w * sc->d.delta.vz.w);
+                // Clamped through a second variable: clamping `damage` in
+                // place drops the copy the original makes.
+                push = damage;
+                if (damage <= 0) {
+                    push = 0;
+                }
+                damage           = push;
+                sc->d.delta.vx.w = coord->workm.t[0] - ((Actor207200HitView*)work)->rec2[i].hit.x;
+                sc->d.delta.vy.w = coord->workm.t[1] - ((Actor207200HitView*)work)->rec2[i].hit.y;
+                sc->d.delta.vz.w = coord->workm.t[2] - ((Actor207200HitView*)work)->rec2[i].hit.z;
+                VectorNormal(&sc->d.vec, &sc->norm);
+                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &sc->norm, &sc->d.vec);
+                if (work->field_48C == 2) {
+                    coord->coord.t[0] += (damage * sc->d.vec.vx) >> 12;
+                    n                  = damage * sc->d.vec.vy;
+                    if (n < 0) {
+                        coord->coord.t[1] += n >> 12;
+                    }
+                    coord->coord.t[2] += (damage * sc->d.vec.vz) >> 12;
+                }
+                break;
+        }
+    }
+
+    if (work->field_4A6 == 0) {
+        for (i = 0; i < 6; i++) {
+            if ((((Actor207200HitView*)work)->rec3[i].rec.field_4 & 0xFFFF0000) != 0x20000) {
+                continue;
+            }
+            if (work->field_49E != 0) {
+                break;
+            }
+            sc->d.delta.vx.w = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            sc->d.delta.vy.w = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+            sc->d.delta.vz.w = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            damage           = SquareRoot0(sc->d.delta.vx.w * sc->d.delta.vx.w + sc->d.delta.vy.w * sc->d.delta.vy.w +
+                                           sc->d.delta.vz.w * sc->d.delta.vz.w);
+            param            = Gp_GetIdParam0(((Actor207200HitView*)work)->rec3[i].rec.field_4);
+            damage           = Gp_ComputeDamage(((Actor207200HitView*)work)->rec3[i].rec.field_4, damage, 0, 0);
+            switch ((u16)param) {
+                case 1:
+                case 4:
+                case 5:
+                case 6:
+                    Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->field_8, 2, NULL);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    func_800DA6E8(&enemy->node, D_actor_207200_8014E7D8 * 2 + (u16)((Gp_LcgState >> 16) % 100), 0);
+                    func_actor_207200_8014D128((Actor207200*)arg0);
+                    work->field_4A8 = 1;
+                    arg0->state++;
+                    return;
+                case 8:
+                case 9:
+                    Gp_SetObjFlag2((GpObj5D*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.field_4, 0);
+                default:
+                    if ((Gp_RollEnemyChance(arg0->spawnArg2, ((Actor207200HitView*)work)->rec3[i].rec.field_4, 0) != 0 ||
+                         work->field_486 == 3) &&
+                        damage != 0) {
+                        func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.field_4, damage, 0);
+                        func_actor_207200_8014CFEC((Actor207200*)arg0);
+                        return;
+                    }
+                    func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.field_4, damage, 0);
+                    func_actor_207200_8014C870((Actor207200*)arg0, damage);
+                    func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec3[i].rec.field_4),
+                                  ((TmdObject*)arg0->extra)->field_8 + 3, &D_actor_207200_80153F08, &work->field_3E4);
+                    n = Gp_GetIdParam2(((Actor207200HitView*)work)->rec3[i].rec.field_4);
+                    if ((s16)n > 0) {
+                        work->field_49E = n;
+                    }
+                    break;
+            }
+        }
+    } else {
+        work->field_374.obj.flags &= 0x7FFF;
+        work->field_3AC.obj.flags &= 0x7FFF;
+    }
+    Gp_ClearRec18Occupied((GpRec18*)work->field_214.field_20);
+    Gp_ClearRec18Occupied((GpRec18*)work->field_2C4.field_20);
+    if (work->field_49A != 0) {
+        if (Gp_FindRec18((GpRec18*)work->field_374.field_20, 0) != 0) {
+            work->field_4A0            = 1;
+            work->field_374.obj.flags &= 0x7FFF;
+            Gp_ClearRec18Occupied((GpRec18*)work->field_374.field_20);
+        }
+        if (Gp_FindRec18((GpRec18*)work->field_3AC.field_20, 0) != 0) {
+            work->field_3AC.obj.flags &= 0x7FFF;
+            Gp_ClearRec18Occupied((GpRec18*)work->field_3AC.field_20);
+        }
+    }
+    *(Actor207200DmgScratch**)G_SCRATCH_HEAD = *(Actor207200DmgScratch**)G_SCRATCH_HEAD + 1;
+}
 
 /// Ticks the shatter timers the enemy runs while it dies. Every time a timer
 /// runs out the work is armed with a fresh sound effect - one per stage of the

@@ -114212,3 +114212,22 @@ the retail allocation order (`regs` went to 0 in the same build).
 arms. The remaining stack-store order of spilled constants (`sw zero,0x14(sp)`
 before `sw t0,0x1c(sp)`) followed from writing `i = 0;` ahead of the two
 constant assignments with a `do/while`.
+
+### `((T*)s->bytes)[i].f` does not strength-reduce where `((View*)s)->arr[i].f` does (`func_actor_207200_8014BEF4`)
+
+**Symptom.** Target walks `$s6 = work` by 0x18 and reads `lhu 0x23A($s6)`,
+`lw 0x238($s6)`; the build recomputes `i*24 + work + 0x234` every iteration.
+
+**Cause.** Indexing a *cast of an address* (`((GpHitRec*)work->field_214.field_20)[i]`)
+expands to `reg390 = i*24 + work; reg391 = reg390 + 0x234` and every later
+access CSEs onto `reg391`, which is not recorded as a giv. The one giv left
+(`reg390`) has `used 1 lifetime 1`, and the `.loop` dump says
+`giv of insn 967 not worth while, 186 vs 253`. With the table as a real struct
+member (`((Actor207200HitView*)work)->rec2[i].hit.kind`) the 0x234 folds into
+each MEM offset, the `i*24 + work` giv gets many uses, and it is reduced to the
+walker. 93.8% -> 98.6% from that change alone. Big loop bodies (253 insns here)
+make the benefit threshold matter.
+
+**Clamp through a copy.** `x = a - b; if (x <= 0) x = 0;` gave `move s2,zero`;
+the target's `move a0,s2 / move a0,zero / move s2,a0` came from
+`y = x; if (x <= 0) y = 0; x = y;`.

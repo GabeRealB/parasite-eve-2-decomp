@@ -44,7 +44,8 @@ typedef struct Actor207200Work {
     /* 0x2FC */ byte           pad_2FC[0x78];
     /* 0x374 */ Actor207200Obj field_374;
     /* 0x3AC */ Actor207200Obj field_3AC;
-    /* 0x3E4 */ byte           pad_3E4[0x10];
+    /* 0x3E4 */ GpEffArg       field_3E4; // `func_800FDB18` argument record
+    /* 0x3EC */ GpEffArg       field_3EC; // `func_800FDB18` argument record
     /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
     /* 0x3FC */ byte           pad_3FC[0x50];
     /* 0x44C */ SVECTOR        field_44C; // rotation `field_484` turns about y
@@ -66,7 +67,7 @@ typedef struct Actor207200Work {
     /* 0x498 */ s16            field_498;
     /* 0x49A */ s16            field_49A;
     /* 0x49C */ s16            field_49C;
-    /* 0x49E */ byte           pad_49E[2];
+    /* 0x49E */ s16            field_49E;
     /* 0x4A0 */ s16            field_4A0;
     /* 0x4A2 */ s16            field_4A2;
     /* 0x4A4 */ s16            field_4A4;
@@ -153,6 +154,40 @@ typedef struct Actor207200HitScratch {
 } Actor207200HitScratch;
 STATIC_ASSERT_SIZEOF(Actor207200HitScratch, 0x38);
 
+/// 0x48-byte block `func_actor_207200_8014BEF4` takes from `G_SCRATCH_HEAD`:
+/// `d` receives the `func_800E0C10` push-back, then the offset to the player
+/// or to a push record, which `norm` holds normalised.
+typedef struct Actor207200DmgScratch {
+    /* 0x00 */ byte pad_0[0x20];
+    /* 0x20 */ union {
+        GpDeltaScratch delta;
+        VECTOR         vec;
+    } d;
+    /* 0x30 */ byte   pad_30[8];
+    /* 0x38 */ VECTOR norm;
+} Actor207200DmgScratch;
+STATIC_ASSERT_SIZEOF(Actor207200DmgScratch, 0x48);
+
+/// A `GpRec18` collision record read either whole (`rec.field_4` is the hit
+/// id) or split as a `GpHitRec` (`hit.kind` is the id's high half).
+typedef union Actor207200HitRec {
+    GpRec18  rec;
+    GpHitRec hit;
+} Actor207200HitRec;
+STATIC_ASSERT_SIZEOF(Actor207200HitRec, 0x18);
+
+/// `Actor207200Work` seen through the `Actor207200SpawnWork` layout over the
+/// two six-record tables, which `Actor207200Work` does not yet describe. The
+/// tables have to be struct members rather than casts of an address: the hit
+/// loops only strength-reduce to a walker over `work` itself that way.
+typedef struct Actor207200HitView {
+    /* 0x000 */ byte              pad_0[0x234];
+    /* 0x234 */ Actor207200HitRec rec2[6];
+    /* 0x2C4 */ GpObj             obj3;
+    /* 0x2E4 */ Actor207200HitRec rec3[6];
+} Actor207200HitView;
+STATIC_ASSERT_SIZEOF(Actor207200HitView, 0x374);
+
 /// Effect-setup record handed to the spawned task through `D_80062730`.
 extern u8      D_actor_207200_801517F8[];
 extern SVECTOR D_actor_207200_80153F18;
@@ -161,6 +196,8 @@ extern s32 D_80062730;
 
 void func_actor_207200_8014DB4C(Actor207200* arg0);
 void func_actor_207200_8014CFEC(Actor207200* arg0);
+void func_actor_207200_8014C870(Actor207200* arg0, s32 arg1);
+void func_actor_207200_8014D128(Actor207200* arg0);
 /// Angle from `coord` to the player, plus the horizontal distance between them
 /// written through `dist`; the result is a 4096-unit circle angle.
 
