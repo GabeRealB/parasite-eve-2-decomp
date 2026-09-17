@@ -102785,6 +102785,41 @@ the ranked sibling list. The nearer starting point, when it exists, is a matched
 function in the same unit — `Actor04400_Fn04EDC` differed by only those three
 instructions and gave a 100.000% first build.
 
+The `identical bytes:` tell stays silent when the twin links at a different
+address *and* its listing carries a directive the canonicaliser keeps, because
+then both hashes are broken for reasons that have nothing to do with the body.
+`find func_actor_205600_8014CFD0` prints `same body: 2 copies   identical
+bytes: 1` — equal, not greater, so nothing looks wrong — while a third copy,
+`func_actor_105600_80134FD0` in `actor_105600`, is the same body exactly. Its
+`raw` differs because a different link address changes every `lui %hi`/`%lo`
+immediate of the twin's own data; its `text` differs because that listing
+carries an `alabel func_801353D0` at 0x35B0 which the 205600 listing has not,
+and `alabel` is neither in `SKIP` nor a form `LABELDEF` folds. The index does
+list `func_actor_205700_8014CFDC` (`~`), so the under-report is partial: the
+cluster it groups is a lower bound on the carriers, and `promote`'s refusal
+naming two overlays is a lower bound for the same reason.
+
+So treat the ranked sibling list as a lead, never as the answer, and settle
+equality with the instruction-stream diff the paragraph above describes: strip
+the `/* offset vram encoding */` column from both `.s` files and diff. Here it
+came back 272/272 lines equal apart from symbol names, so the twin's matched C
+*was* the whole answer — retyped to this overlay's own structs and externals, it
+scored 100.000% on the first build with all penalties zero. Two per-overlay
+externals (`D_actor_205600_8015FFDC`, `D_actor_205600_80160110`) are the only
+thing that differs, and they are exactly what makes `promote` refuse the body
+("references its own overlay's code or data"), so it stays a per-overlay match.
+
+Inputs: `base.i` (63.860%, m2c baseline) SHA256
+`72c2000d0597906065a38bbd45f37e2e05b0fb8fc4f57e5b41a3d7ec6a6ca2ed`; `base_1.i`
+(100.000%) SHA256
+`7409bcc7d71e285ec3b2f4c5e5d71e1cee2e01cfe39db7e36f6920eab4b1dfaf`; twin's
+target SHA256 `14c614d153737707bda2b848ee66295404ae46857b58282e48868ad06efb6619`;
+target SHA256
+`8ec2d717836421f1db2c2c4120436d52a395b02109c1c6443d26eb16a86a458a`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Two
+builds, no pins, no permuter. Scratch
+`nonmatchings/func_actor_205600_8014CFD0-vacuum`.
+
 ## m2c reads a stack-local dispatch table's stores as call arguments (Actor04400_Fn06A78, 2026-09-16)
 
 A state handler that builds its table *on the stack* from two function
