@@ -5,6 +5,8 @@
 
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
+#include "main/session.h"
 #include "main/task.h"
 
 /// 0x40-byte `G_SCRATCH_HEAD` block used by `Actor02400_Fn0208C`: an identity
@@ -33,33 +35,42 @@ STATIC_ASSERT_SIZEOF(Actor02400FacingScratch, 0x18);
 /// scale toward its floor, releases the `field_130` task (state 4) and counts
 /// `field_140` up, re-arming it at a random 30..61 once it passes 360.
 typedef struct Actor02400ScaleWork {
-    /* 0x000 */ byte   pad_0[0x52];
-    /* 0x052 */ s16    field_52;
-    /* 0x054 */ byte   pad_54[0x80];
-    /* 0x0D4 */ s16    field_D4;
-    /* 0x0D6 */ byte   pad_D6[8];
-    /* 0x0DE */ u16    field_DE;
-    /* 0x0E0 */ byte   pad_E0[0x20];
-    /* 0x100 */ MATRIX field_100;
-    /* 0x120 */ byte   pad_120[8];
-    /* 0x128 */ s16    field_128;
-    /* 0x12A */ s16    field_12A;
-    /* 0x12C */ s16    field_12C;
-    /* 0x12E */ byte   pad_12E[2];
-    /* 0x130 */ Task** field_130;
-    /* 0x134 */ byte   pad_134[4];
-    /* 0x138 */ s16    field_138;
-    /* 0x13A */ s16    field_13A;
-    /* 0x13C */ s16    field_13C;
-    /* 0x13E */ s16    field_13E;
-    /* 0x140 */ s16    field_140;
-    /* 0x142 */ s16    field_142;
-    /* 0x144 */ byte   pad_144[2];
-    /* 0x146 */ s16    field_146;
-    /* 0x148 */ s16    field_148;
-    /* 0x14A */ byte   pad_14A[2];
-    /* 0x14C */ s16    field_14C;
-    /* 0x14E */ s16    field_14E;
+    /* 0x000 */ byte     pad_0[0x52];
+    /* 0x052 */ s16      field_52;
+    /* 0x054 */ byte     pad_54[0xC];
+    /* 0x060 */ GpRec18  records[4];
+    /* 0x0C0 */ byte     pad_C0[0x14];
+    /* 0x0D4 */ s16      field_D4;
+    /* 0x0D6 */ byte     pad_D6[8];
+    /* 0x0DE */ u16      field_DE;
+    /* 0x0E0 */ GpRec18  field_E0;
+    /* 0x0F8 */ GpEffArg field_F8;
+    /* 0x100 */ MATRIX   field_100;
+    /* 0x120 */ s16      field_120;
+    /* 0x122 */ s16      field_122;
+    /* 0x124 */ s16      field_124;
+    /* 0x126 */ byte     pad_126[2];
+    /* 0x128 */ s16      field_128;
+    /* 0x12A */ s16      field_12A;
+    /* 0x12C */ s16      field_12C;
+    /* 0x12E */ byte     pad_12E[2];
+    /* 0x130 */ Task**   field_130;
+    /* 0x134 */ s16      field_134;
+    /* 0x136 */ s16      field_136;
+    /* 0x138 */ s16      field_138;
+    /* 0x13A */ s16      field_13A;
+    /* 0x13C */ s16      field_13C;
+    /* 0x13E */ s16      field_13E;
+    /* 0x140 */ s16      field_140;
+    /* 0x142 */ s16      field_142;
+    /* 0x144 */ byte     pad_144[2];
+    /* 0x146 */ s16      field_146;
+    /* 0x148 */ s16      field_148;
+    /* 0x14A */ byte     pad_14A[2];
+    /* 0x14C */ s16      field_14C;
+    /* 0x14E */ s16      field_14E;
+    /* 0x150 */ u16      field_150;
+    /* 0x152 */ s16      field_152;
 } Actor02400ScaleWork;
 
 typedef struct Actor02400Scale {
@@ -68,7 +79,21 @@ typedef struct Actor02400Scale {
     /* 0x20 */ GpEnemy*                  field_20;
     /* 0x24 */ byte                      pad_24[8];
     /* 0x2C */ ActorShared80135b58Obj2C* field_2C;
+    /* 0x30 */ s32                       field_30;
 } Actor02400Scale;
+
+/// 0x58-byte `G_SCRATCH_HEAD` block used by `func_actor_102400_80132A28`:
+/// `delta` receives the `func_800E0C10` push-back and is then reused for each
+/// record's offset, `normal` is its `VectorNormal`, and `dir` that normal
+/// transformed by the grid's `workm`.
+typedef struct Actor02400PushScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ VECTOR         normal;
+    /* 0x40 */ VECTOR         dir;
+    /* 0x50 */ byte           pad_50[0x8];
+} Actor02400PushScratch;
+STATIC_ASSERT_SIZEOF(Actor02400PushScratch, 0x58);
 
 void Actor02400_Fn0208C(Actor02400Scale* arg0);
 void ActorsShared801333b0(Actor02400Scale* arg0);

@@ -115425,3 +115425,29 @@ src/actors/lib/<unit>.c`; on a clash use an overlay-scoped name
 (`actor_102400_fn0208c`, symbol `Actor02400_Fn0208C`). Also drop any existing
 caller-side alias at that address (`ActorsShared80134c2c_Fn33EAC`) from the
 sym files, or splat rejects the duplicate symbol.
+
+### Where a plain field load is expanded decides sched1's order of the scratch-head copy (func_actor_102400_80132A28, 2026-09-17)
+
+Symptom at 99.18%: after `scratch = (…)(*(u8**)G_SCRATCH_HEAD -= 0x58)`, the jal
+delay slot held `addiu a0,s2,0x60` and a `nop` sat early on. The target hoists
+`addiu a0`, loads `arg0->field_2C` into v1 rather than v0, and puts `move s3,v0`
+(the scratch copy) in the slot.
+
+The permuter's only real change was swapping two prologue statements: evaluate
+`enemy = arg0->field_20;` *after* `coord = arg0->field_2C->field_8;`. In
+`.sched`, the copy `reg81 = reg103` then moves after the `field_2C` load, so v0
+is live across that load (which takes v1), and reorg can move the copy into the
+slot. The swap is exact.
+
+- Moving `enemy` before `scratch`, so `coord` directly follows it, reproduces the
+  seed exactly. Being adjacent in the source is not the cause.
+- Moving the load after the call gives the target prologue as predicted.
+
+Rule of thumb: if a copy of a just-stored value lands too early (or the wrong insn
+fills a delay slot), move an unrelated `x = arg->field` load after the pointer
+dereference. Why sched1's tie-break works this way was not traced. Evidence:
+`tools/permuter_findings/func_actor_102400_80132A28/`; `.i` sha256 seed
+`993f7cc3…`, match `58a806f9…`.
+
+Integrating the match also needed `rodata_head = "0x4"`: the function's jump
+table sits at `0x14` in unit 1 (see "The prepended package id…").
