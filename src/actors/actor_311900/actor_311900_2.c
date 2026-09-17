@@ -11,7 +11,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void func_actor_311900_80161E3C(Task* task, s32 arg1, s32 arg2);
+void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
 
 void func_actor_311900_80162100(Task* task);
 

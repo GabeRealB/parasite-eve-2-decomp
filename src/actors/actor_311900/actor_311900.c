@@ -16,14 +16,100 @@ extern u8 D_actor_311900_8016EBE8[];
 void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
 void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
 
-void func_actor_311900_80161E3C(Task* task, s32 arg1, s32 arg2);
+void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
 void func_actor_311900_80162100(Task* task);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_311900/actor_311900", func_actor_311900_80161E3C);
+extern u16 D_actor_311900_8016EC18[][0x100];
+
+/// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
+/// to grey, one step per call in the work block's `field_4C8`: step 0 reads the
+/// VRAM rows `arg1 + 0xF5` / `arg1 + 0xF6` back into the table, step 1 sets each
+/// entry's three 5-bit channels to their maximum (keeping the STP bit set), and
+/// step 2 uploads the rows again, leaving 3.
+void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
+{
+    RECT             rect;
+    Actor311900Work* work;
+    s32              i;
+    u16              r;
+    u16              g;
+    u16              b;
+
+    work = (Actor311900Work*)task->idMap;
+    if (work->field_4C8 == 0) {
+        rect.x = 0;
+        rect.y = arg1 + 0xF5;
+        rect.w = 0x100;
+        rect.h = 1;
+        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2]);
+        rect.x = 0;
+        rect.y = arg1 + 0xF6;
+        rect.w = 0x100;
+        rect.h = 1;
+        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2 + 1]);
+        work->field_4C8 = 1;
+    } else if (work->field_4C8 == 1) {
+        for (i = 0; i < 0x100; i++) {
+            r = D_actor_311900_8016EC18[arg2][i] & 0x1F;
+            g = (D_actor_311900_8016EC18[arg2][i] >> 5) & 0x1F;
+            b = (D_actor_311900_8016EC18[arg2][i] >> 10) & 0x1F;
+            if (r < g) {
+                r = g;
+            } else {
+                g = r;
+            }
+            if (g < b) {
+                g = b;
+            } else {
+                b = g;
+            }
+            if (b < r) {
+                b = r;
+            } else {
+                r = b;
+            }
+            D_actor_311900_8016EC18[arg2][i] = r | (g << 5) | (b << 10) | 0x8000;
+        }
+        for (i = 0; i < 0x100; i++) {
+            r = D_actor_311900_8016EC18[arg2 + 1][i] & 0x1F;
+            g = (D_actor_311900_8016EC18[arg2 + 1][i] >> 5) & 0x1F;
+            b = (D_actor_311900_8016EC18[arg2 + 1][i] >> 10) & 0x1F;
+            if (r < g) {
+                r = g;
+            } else {
+                g = r;
+            }
+            if (g < b) {
+                g = b;
+            } else {
+                b = g;
+            }
+            if (b < r) {
+                b = r;
+            } else {
+                r = b;
+            }
+            D_actor_311900_8016EC18[arg2 + 1][i] = r | (g << 5) | (b << 10) | 0x8000;
+        }
+        work->field_4C8 = 2;
+    } else if (work->field_4C8 == 2) {
+        rect.x = 0;
+        rect.y = arg1 + 0xF5;
+        rect.w = 0x100;
+        rect.h = 1;
+        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2]);
+        rect.x = 0;
+        rect.y = arg1 + 0xF6;
+        rect.w = 0x100;
+        rect.h = 1;
+        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2 + 1]);
+        work->field_4C8 = 3;
+    }
+}
 
 /// Applies the animation request in the work block's `field_474` to slots 1..19
 /// of its context, which is where the block itself begins. Step 1 seeks every

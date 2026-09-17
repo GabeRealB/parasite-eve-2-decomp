@@ -65,7 +65,8 @@ typedef struct Actor311900Work {
     /* 0x4A4 */ MATRIX          color;
     /* 0x4C4 */ u16             field_4C4;
     /* 0x4C6 */ u16             field_4C6;
-    /* 0x4C8 */ byte            pad_4C8[0x4];
+    /* 0x4C8 */ u8              field_4C8; ///< CLUT grey-fade step, func_actor_311900_80161E3C
+    /* 0x4C9 */ byte            pad_4C9[0x3];
 } Actor311900Work;
 STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
 

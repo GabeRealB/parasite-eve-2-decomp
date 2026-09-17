@@ -127011,3 +127011,17 @@ no `sign_extend` equivalence, so the reload survives.
 `lh`/`lhu` before the `beqz`) and write only the clamp test as
 `if ((work->field << 0x10) <= 0)`. A `timer = (u16)field - 1` temp also keeps the
 reload but loads `lhu` in a separate block below the `beqz`.
+
+### Re-read the element in each channel extract instead of caching it in a `u16` local (func_actor_311900_80161E3C, 2026-09-17)
+
+**Problem.** A 15-bit colour grey-fade loop splits `D[row][i]` into r/g/b. With
+`u16 c = D[row][i]; r = c & 0x1F; g = (c >> 5) & 0x1F; ...` the extracts land one
+register off (r0 in `$t0`, `c`'s zero-extension in `$v1`) and `b` drops into a delay
+slot, stuck at ~95%.
+
+**Fix.** Write `r = D[row][i] & 0x1F; g = (D[row][i] >> 5) & 0x1F; ...`; cse
+merges the three reads into one `lhu` but the zero-extension then reuses the
+read's own register, as the target does (`andi v0,v0,0xffff`). Separately, an
+`s16 arg2` parameter (instead of `s32` with `(s16)arg2` casts) is what produced
+the target's entry copy of the argument into a call-clobbered register
+(`move t3,a2`), freeing `$a2` for a loop variable.
