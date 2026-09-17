@@ -8,7 +8,10 @@
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "rooms/mine_mesa.h"
 
+extern s32        func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
+extern TaskDesc   D_mine_mesa_801818F8;
 extern TaskDesc   D_mine_mesa_80189B2C;
 extern Task*      D_mine_mesa_80189B4C;
 extern s32        D_mine_mesa_80189B50;
@@ -29,7 +32,52 @@ void func_mine_mesa_8017DD44(void);
 void func_mine_mesa_8017EB38(void);
 void func_mine_mesa_801817BC(void);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_2", func_mine_mesa_8017D8F8);
+static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, MineMesaEvent* event)
+{
+    D_mine_mesa_80189B48 = 0;
+    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+        if (dst->field_5 == 0) {
+            D_mine_mesa_80189B40 = *dst;
+            D_mine_mesa_80189B60 = *event;
+            if (event->field_8 != 0) {
+                GameFlag_SetNibble(event->field_8, 1);
+            }
+            Task_SpawnFromTable(&D_mine_mesa_801818F8, 0, 0, 0);
+            D_mine_mesa_80189B48 = 1;
+        }
+        return 2;
+    }
+    return 1;
+}
+
+/// Handler id 0x13EE of this room's copy of the `GpMsgEntry` table
+/// `D_mine_mesa_80181904`: copies the requested location to `dst` and forwards
+/// both to `func_80179A04`. A stage-3 request latches the outgoing location and
+/// the event parameters below into the room's pending event and starts the
+/// controller task; `field_5` set only suppresses that side effect. Answers 0
+/// without side effects while the request is already in flight (`field_9` is 1
+/// and `Gp_StateF0.field_0` agrees with it), 2 for a stage-3 request and 1 for
+/// every other one.
+s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    MineMesaEvent event;
+    u8            field9;
+
+    *out = *in;
+    func_80179A04(in, out);
+    if (*(u16*)in != 3) {
+        return 1;
+    }
+    field9 = Game_Session->field_9;
+    if (field9 == 1 && Gp_StateF0.field_0 == field9) {
+        return 0;
+    }
+    event.field_0 = 0xE;
+    event.field_4 = 0x54010001;
+    event.field_8 = 0x171;
+    event.field_A = 0;
+    return MineMesa_StartEvent(out, &event);
+}
 
 s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
 {

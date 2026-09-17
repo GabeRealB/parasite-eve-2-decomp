@@ -115051,3 +115051,54 @@ this function were one-line source edits on a 94.817% baseline whose block and
 instruction counts already matched exactly -- when `Structure: match` and
 `insert`/`delete` are small, read the two-line diffs as variable-count and
 type-shape problems, not as allocation or scheduling ones.
+
+## A stack object's address sits in a register because the source passed it to an inlined helper (func_mine_mesa_8017D8F8, 2026-09-17)
+
+The corpus's named-`&local` tell ("`0x28(sp)` accesses mean the source had no
+pointer variable, `8(s1)` accesses mean it did") has a third route besides a
+pointer local the source writes: the address passed to a `static __inline__`
+helper, whose by-pointer parameter becomes a pseudo holding the frame address.
+`mine_mesa`'s 0x13EE warp handler is the `shelter_1f_bulwark` shape, and that
+matched sibling says which route it was - its `Bulwark_StartEvent` takes
+`BulwarkEvent*` and its target builds the event address once
+(`addiu s0,sp,0x10`) and reads the fields off it (`lh a0,8(s0)`, `lh v0,8(s0)`
+after the `GameFlag_GetNibble` call, where the address is *not* recomputed).
+
+Writing the same tail inline, with the event a plain local, scored 88.278%
+(`regs=14 insert=3 delete=7`, structure already 11/11 with predicates matching):
+every field read folds to `lh v0,0x18(sp)`, so no address pseudo exists, the
+frame is one callee-saved slot short (`sw ra,0x28(sp)`, no `$s2`), and the
+`lh a0` for `GameFlag_SetNibble` is hoisted above the two struct copies instead
+of sitting just before its `beqz`. Moving the tail into
+
+```c
+static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, MineMesaEvent* event)
+{
+    D_mine_mesa_80189B48 = 0;
+    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+        ...
+    }
+    return 1;
+}
+```
+
+and calling it with `return MineMesa_StartEvent(out, &event);` scored 100.000%
+with every penalty zero on the first build, unpinned, no search. The prediction
+(`addiu s0,sp,0x10` + `lh 8(s0)`, four saved registers, frame 0x30) held exactly.
+
+Two consequences worth reading as a rule: the address pseudo is live across the
+helper's calls (`GameFlag_GetNibble`, `GameFlag_SetNibble`,
+`Task_SpawnFromTable`), which is what makes `global-alloc` owe it a
+callee-saved register; and because the helper's parameter is an argument, GCC
+does not fold the field reads back to sp-relative, so the memory traffic stays
+in the target's shape. Prefer this to a named `event = &local` pointer when a
+matched sibling in the same family has the helper - the inline form is what the
+sibling's own source says, and it is the one that keeps the *call* sites intact.
+
+Inputs: `base_1.c` SHA256 `4b40e09f2905a5c21905a19a757c60767a756a97d5b2a879626a1a431bd83f26`
+(88.278%); `base_2.c` SHA256 `a0e6f5a667a2ed48c327546167fee66dc3b07270261cc4b9e9032c5b14b5e4ea`
+(100.000%, all penalties zero); preprocessed `base_2.i` SHA256
+`6ce3b375bd8d2acdd9c565b16a8de34561552793219cc07fcb187dca41b82c39`; target
+`target.s` SHA256 `aa9adf25894be6a624fd06d98559dcfec719a6652adf5b9e90a2051300225151`;
+two builds, no pins, no search. Scratch
+`nonmatchings/func_mine_mesa_8017D8F8-vacuum`.
