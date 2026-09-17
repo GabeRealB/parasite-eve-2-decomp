@@ -74,11 +74,23 @@ extern RoomPlacement D_dryfield_water_tower_80181A70[];
 /// The first record of that same placement run, at 0x80181A40, and the one
 /// `func_dryfield_water_tower_8017E5B0` drives the cap from: its `pos.vz` is the
 /// Z the cap has to sink past, its `pos.vy` the Y it is snapped to while
-/// lowering and its `pos.vx` the X state 1 pulls it to. The sibling
-/// `func_dryfield_water_tower_8017E428` reaches the record two steps down the
-/// same run through `D_..._80181A58[]` instead, so the run is named from its
-/// head here.
-extern RoomPlacement D_dryfield_water_tower_80181A40;
+/// lowering and its `pos.vx` the X state 1 pulls it to.
+///
+/// The length is one, not two, because the run continues with the record below
+/// and the original reaches that record both ways: as `[1]` -- the sibling
+/// `func_dryfield_water_tower_8017E428` reads its `pos.vy` and `pos.vz` with the
+/// offsets still measured from this head, which is why those loads carry the
+/// run's own address and a displacement -- and by naming its own symbol where
+/// the address is the record's. Declaring two elements would fold `[1]` into
+/// the address constant and lose the head-based form.
+extern RoomPlacement D_dryfield_water_tower_80181A40[1];
+
+/// The run's second record, at 0x80181A58: the lowered position
+/// `func_dryfield_water_tower_8017E428` sinks the cap to (`pos.vy`), tests the
+/// cap's Z against (`pos.vz`) and pulls the cap's X to (`pos.vx`), and the
+/// 0x7D4 placement that same function publishes to itself once its state 1
+/// counter runs out.
+extern RoomPlacement D_dryfield_water_tower_80181A58;
 
 /// The effect offsets `func_dryfield_water_tower_8017E5B0` spawns 0x60054
 /// with, at 0x80181C60: twelve halfwords, indexed by the 0..9 `killCountdown`
@@ -378,7 +390,78 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E428);
+/// A second cap-arrival body, the sibling of `func_dryfield_water_tower_8017E5B0`
+/// and `func_dryfield_water_tower_8017DFAC`: its `Task::idMap` is the same
+/// 0x7C-byte `DryfieldWaterTowerState` the cap script allocates and its
+/// `extra->field_8` the cap's own coordinate, and it reports arrival the same
+/// way the cap-arrival test does, by returning 1.
+///
+/// State 0 is the lowering tick: it sinks the cap's Z by 0x14 a frame and snaps
+/// its Y to the run's lowered record, nudged by 5 while the `D_80070F6C` flag
+/// bit 2 is raised; once the cap's Z has passed that record's `pos.vz` it steps
+/// to state 1. Every frame of the state also spawns effect 0x60054 at the cap,
+/// offset in X by the room's per-frame table entry
+/// `D_..._80181C60[killCountdown]`, and wraps that 0..9 counter. State 1 counts
+/// `field_5A`; on its 0x3D-th tick it publishes the 0x7D4 record at 0x80181A58
+/// and returns 1, and until then mirrors that record's `pos.vx` into the cap's
+/// X, nudged by the same flag. Every path clears `coord->flg`, leaving the
+/// coordinate dirty for the next `Gp_UpdateCoord` pass.
+///
+/// Where the sibling `func_dryfield_water_tower_8017E5B0` drives the run's head
+/// and queues two `SndEvt_EnqueueType*` calls per lowering, this one drives the
+/// record below it and queues nothing, and that is the whole of the difference
+/// between the two bodies.
+///
+/// Two shapes here are the original's rather than stylistic. `effCoord` is
+/// filled from `arg0->extra` *before* the counter update, which is what puts the
+/// coordinate load `Gp_SpawnEff` takes into that block instead of the join
+/// block; and the Z test is written `coord->coord.t[2] > record.pos.vz` rather
+/// than the mirrored `<`, which is what makes `sgt_si` load the coordinate first
+/// and emit `slt` with its operands swapped.
+s32 func_dryfield_water_tower_8017E428(Task* arg0)
+{
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->idMap;
+    GsCOORDINATE2*           coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*           effCoord;
+    SVECTOR                  pos;
+
+    switch (state->field_58) {
+        case 0:
+            coord->coord.t[2] += 0x14;
+            coord->coord.t[1]  = D_dryfield_water_tower_80181A40[1].pos.vy;
+            if (D_80070F6C[0] & 4) {
+                coord->coord.t[1] += 5;
+            }
+            if (coord->coord.t[2] > D_dryfield_water_tower_80181A40[1].pos.vz) {
+                state->field_58++;
+            }
+            effCoord = ((TmdObject*)arg0->extra)->field_8;
+            if (arg0->killCountdown >= 0xA) {
+                arg0->killCountdown = 0;
+            } else {
+                arg0->killCountdown = (u16)arg0->killCountdown + 1;
+            }
+            pos.vy = 0;
+            pos.vz = 0;
+            pos.vx = D_dryfield_water_tower_80181C60[arg0->killCountdown];
+            Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+            break;
+
+        case 1:
+            state->field_5A++;
+            if ((s16)state->field_5A >= 0x3D) {
+                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
+                return 1;
+            }
+            coord->coord.t[0] = D_dryfield_water_tower_80181A58.pos.vx;
+            if (D_80070F6C[0] & 4) {
+                coord->coord.t[0] += 5;
+            }
+            break;
+    }
+    coord->flg = 0;
+    return 0;
+}
 
 /// A third cap-arrival body, the sibling of `func_dryfield_water_tower_8017DFAC`
 /// and `func_dryfield_water_tower_8017E428`: its `Task::idMap` is the same
@@ -416,11 +499,11 @@ s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
         case 0:
             SndEvt_EnqueueTypeB(0x5214000C, 0x7F);
             coord->coord.t[2] -= 0x14;
-            coord->coord.t[1]  = D_dryfield_water_tower_80181A40.pos.vy;
+            coord->coord.t[1]  = D_dryfield_water_tower_80181A40[0].pos.vy;
             if (D_80070F6C[0] & 4) {
                 coord->coord.t[1] += 5;
             }
-            if (coord->coord.t[2] < D_dryfield_water_tower_80181A40.pos.vz) {
+            if (coord->coord.t[2] < D_dryfield_water_tower_80181A40[0].pos.vz) {
                 SndEvt_EnqueueType7(0x5214000C, 0xA);
                 state->field_58++;
             }
@@ -442,7 +525,7 @@ s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
                 Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
                 return 1;
             }
-            coord->coord.t[0] = D_dryfield_water_tower_80181A40.pos.vx;
+            coord->coord.t[0] = D_dryfield_water_tower_80181A40[0].pos.vx;
             if (D_80070F6C[0] & 4) {
                 coord->coord.t[0] += 5;
             }

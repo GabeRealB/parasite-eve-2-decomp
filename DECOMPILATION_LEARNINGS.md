@@ -119656,3 +119656,44 @@ still lands one slot late.
 Archived: `tools/giveups/func_dryfield_water_tower_8017DFAC/`, input hash
 `83fb80b338de2813d4321ae4d61c33a1878909485f153349e6aec1c42ecb0254` (100.000%, all
 penalties zero).
+
+## A comparison's two loads follow the C operand order: mirror the test, `a > b` is not `b < a` (func_dryfield_water_tower_8017E428, 2026-09-17)
+
+`func_dryfield_water_tower_8017E428` ends state 0 by testing the cap's Z against
+the placement record's, and the target loads the *coordinate* first:
+
+```
+lw    v1,0x20(s0)     # coord->coord.t[2]
+lw    v0,0x20(a1)     # record.pos.vz
+nop
+slt   v0,v0,v1
+```
+
+Written the natural way round — `if (record.pos.vz < coord->coord.t[2])` — the
+same two loads come out in the opposite order (`lw v0,0x20(a1)` first) with the
+whole rest of the function byte-identical: 99.796%, the leftover scored as
+`regs=4` because the two lines swap. The addresses are independent and the
+scheduler does not touch them, because the order is already fixed at expansion:
+a relational expression's operands are expanded left to right, so the loads are
+emitted in the order the operands are written. Nothing about the *test* depends
+on that order, so mirror it:
+
+```c
+    if (coord->coord.t[2] > record.pos.vz) {   /* was: record.pos.vz < ... */
+```
+
+`.lreg` shows the split: `insn 56` loads the written-first operand (the
+coordinate) into `98`, `insn 58` the record into `99`, and the test has become
+`(lt (reg:SI 99) (reg:SI 98))` — `lt` with its operands reversed, the shape
+`mips.md`'s `sgt_si` emits as `slt %0,%z2,%1`. The register roles follow the
+values, the load order follows the source, and `.sched2` preserves both. 100.000%,
+all penalties zero, from the one mirrored line.
+
+Reach for this whenever a comparison's two loads are in an order the scheduler
+will not produce on its own: it is free, it leaves every other instruction alone,
+and the mirrored spelling reads as the same test.
+
+Inputs: `base_1.i` (99.796%) SHA256
+`ef1e458ede2ba62b8e67575b888cfbf3f6473f9bca4da8adb19e451be541c374`; `base_2.i`
+(100%) SHA256
+`05efbeccbae974a07073df63ae7a0b4618e458e550d9089aafa55303b0f95d53`.
