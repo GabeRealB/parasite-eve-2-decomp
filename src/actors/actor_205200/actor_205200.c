@@ -4,10 +4,14 @@
 #include "actors/actors_shared_80134ff0.h"
 #include "gameplay/1BC.h"
 #include "gameplay/gameplay.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 
 extern u16                 D_actor_205200_8014C9CC[];
+extern s16                 D_actor_205200_8014CA1C[];
+extern TaskDesc            D_actor_205200_8014CA60;
+extern u8                  D_actor_205200_8014CA78[];
 extern TaskDesc            D_actor_205200_8014CA44;
 extern Actor205200SpawnRec D_actor_205200_8015B458;
 extern GpPairSrcE          D_actor_205200_8014C9BC;
@@ -15,9 +19,66 @@ extern SVECTOR*            D_actor_205200_8014CA24[];
 extern u16*                D_actor_205200_8014CA34[];
 extern GsCOORDINATE2       Gfx_ViewCoord;
 
+void func_8017E090(s32, s32);
+void func_8017EE08(s32, s32);
+void func_80182A14(s32, s32);
+
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_80149E54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", ActorsShared80131e24Sub0);
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    Actor205200Work* work;
+    u16              kind;
+    s32              i;
+    u16              timer;
+
+    kind = ((u16*)enemy->field_3C)[1];
+    if ((u16)(kind - 1) >= 3) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    work = Mem_Calloc(0x30, false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->idMap                     = (TaskIdMap*)work;
+    work->field_1E                  = kind;
+    D_actor_205200_8015B458.field_4 = 2;
+    for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {
+        Gp_SpawnEnemyFromTable(&D_actor_205200_8014CA60, 1, 0, enemy);
+    }
+    timer          = D_actor_205200_8014C9CC[D_actor_205200_8014CA1C[work->field_1E]];
+    work->field_2A = 5;
+    work->field_22 = timer;
+    /* The empty `case 0` is load-bearing: a fourth case node makes GCC root
+       the decision tree at 1 (`beq 1; slti <2`) instead of at 2. */
+    switch (work->field_1E) {
+        case 1:
+            func_8017E090(0, 0);
+            func_8017E090(1, 0);
+            GameFlag_SetNibble(0x142, 0);
+            GameFlag_SetNibble(0x143, 0);
+            break;
+        case 2:
+            func_8017EE08(0, 0);
+            func_8017EE08(1, 0);
+            func_8017EE08(2, 0);
+            GameFlag_SetNibble(0x144, 0);
+            GameFlag_SetNibble(0x145, 0);
+            break;
+        case 3:
+            func_80182A14(0, 0);
+            func_80182A14(1, 0);
+            GameFlag_SetNibble(0x153, 0);
+            GameFlag_SetNibble(0x154, 0);
+            break;
+        case 0:
+            break;
+    }
+    task->field_24 = D_actor_205200_8014CA78;
+    task->state    = 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", ActorsShared80131e24Sub1);
 
