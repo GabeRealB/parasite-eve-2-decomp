@@ -74,7 +74,10 @@ typedef struct Actor113100Work {
     /* 0x538 */ s16     field_538;
     /* 0x53A */ s16     field_53A;
     /* 0x53C */ u8      field_53C;
-    /// -1 sentinel written with `field_475` / `field_476`.
+    /// -1 sentinel written with `field_475` / `field_476`; the 0x7D5 visibility
+    /// handler `func_actor_113100_80132790` re-arms it to 2 in its hide-and-free
+    /// mode. `func_actor_113100_80132104` walks it down: negative does nothing,
+    /// 0 calls `Tmd_FreeBuffers`, and every non-negative value is decremented.
     /* 0x53D */ s8   field_53D;
     /* 0x53E */ s8   field_53E;
     /* 0x53F */ byte pad_53F[1];
@@ -169,10 +172,14 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* pre
 /// destroys the task.
 void func_actor_113100_80132EF0(Task* task);
 
-/// Overlay-local function, also the 0x7D5 entry of `D_actor_113100_80144338`.
-/// The setup handler calls it with zeroes, `func_actor_113100_80132F40` with
-/// (task, 0, 1, 0) next to `func_80183BAC(0)`.
-void func_actor_113100_80132790(Task* task, s32 arg1, s32 arg2, s32 arg3);
+/// The 0x7D5 entry of `D_actor_113100_80144338`: the actor's own visibility,
+/// switched on the `mode` its payload carries rather than on a pointer. Both
+/// overlay call sites are plain calls that leave `msgId` at zero -- the setup
+/// handler with (task, 0, 0, 0) and `func_actor_113100_80132F40` with
+/// (task, 0, 1, 0) next to `func_80183BAC(0)`. Modes 0..3 are handled and
+/// return 0; anything else returns 1. Its body documents what each mode does to
+/// `TmdObject::field_C`, the display node and `field_53D`.
+s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// Gameplay import (`actors.imports.txt`), called with 1 by the setup handler
 /// and with 0 by `func_actor_113100_80132F40`.

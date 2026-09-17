@@ -263,7 +263,86 @@ void func_actor_113100_8013264C(Task* task)
     work->field_520.vz = d.vz < 0 ? -d.vz : d.vz;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132790);
+/// The 0x7D5 entry of `D_actor_113100_80144338`: the visibility control the
+/// setup handler and `func_actor_113100_80132F40` drive. This one takes its
+/// payload as a mode word rather than a pointer -- both call sites pass a
+/// literal, and a mode outside 0..3 is answered with 1, the "not handled"
+/// return the dispatch expects. All four modes lift the 0x8000 bit the setup
+/// handler raised on the work block's display node and then rewrite the
+/// actor's own `TmdObject::field_C`, whose bit 0x80 is `Task_Kill`'s type-1
+/// deferred kill and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
+/// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
+/// `Tmd_AllocBuffers` and clears 0x4; mode 2 hides it, latches 2 into
+/// `field_53D` -- the countdown `func_actor_113100_80132104` walks down to
+/// `Tmd_FreeBuffers` -- and raises 0x4; mode 3 shows it and raises 0x4.
+///
+/// `work` and `work2` are the same `Task::idMap` read twice. The second read
+/// becomes a register copy at the entry, which is what leaves the block in
+/// `$v1` for the node base mode 3 folds out of `work` while the hoisted `head`
+/// and the `field_53D` latch run off the copy in `$a1`; one read and one local
+/// for the node instead collapses all four arms onto a single register
+/// (98.517%).
+s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
+{
+    Actor113100Work* work;
+    Actor113100Work* work2;
+    GpObj*           head;
+    GpObj*           node;
+    TmdObject*       obj;
+    s32              i;
+    s32              ret;
+
+    work  = (Actor113100Work*)task->idMap;
+    obj   = task->extra;
+    work2 = (Actor113100Work*)task->idMap;
+    head  = &work2->obj;
+    ret   = 0;
+
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            node          = head;
+            for (i = 0; i <= 0; i++) {
+                node->flags &= 0x7FFF;
+                node++;
+            }
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            node          = head;
+            for (i = 0; i <= 0; i++) {
+                node->flags &= 0x7FFF;
+                node++;
+            }
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C |= 0x80;
+            node          = head;
+            for (i = 0; i <= 0; i++) {
+                node->flags &= 0x7FFF;
+                node++;
+            }
+            work2->field_53D = 2;
+            obj->field_C    |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            node          = &work->obj;
+            for (i = 0; i <= 0; i++) {
+                node->flags &= 0x7FFF;
+                node++;
+            }
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_801328EC);
 

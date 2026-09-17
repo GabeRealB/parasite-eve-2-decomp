@@ -122829,3 +122829,47 @@ Inputs: scratch `nonmatchings/func_actor_113100_8013264C-vacuum`, `base.c`
 (`6f16643aa9c13c90474ba05864c02a639863d1663147223e351e4d7ba2e1bd91`), `base_1.c`
 100.000% (`101b4219bf7d268836e9ec37bb802eb4b9ea5dd99f72a7e53f18a78740454b9b`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A second read of the same pointer is what splits a value across two registers; hoist the loop's base node from the *copy* (func_actor_113100_80132790, 2026-09-17)
+
+The 0x7D5 visibility handler walks the work block's display node once in each of
+its four mode arms. The target keeps the block in `$v1` for the arm that folds
+its node base out of the *load* (`addiu $v1,$v1,0x4d6`) and in a copy of it in
+`$a1` for the other three (`addiu $v1,$a1,0x4d6`), so the entry is
+`lw $v1,0x1C($a0)` followed by `addu $a1,$v1,$zero`.
+
+One local for the block -- `work = (Actor113100Work*)task->idMap;`, the shape
+the 141000 / 503500 / 511000 siblings use -- scores 98.517%: every arm reads
+`$a1` and there is no copy at all. A second read used directly by the arms
+(`work` for one arm, `work2` for the others) reaches 99.828% and stalls with
+`addiu $v1,$v1,0x4d6` where the target has `addiu $v1,$a1,0x4d6`: `cse` turns the
+second load into `(set (reg 85) (reg 84))`, merges the two pseudos into one
+quantity and `canon_reg` rewrites every use to `qty_first_reg`, which is 84, the
+load's register. The merge is forced in this direction: `new_reg_into_qty`
+promotes the copy's register only when it outlives the load's, and the arm that
+reads the load is the last body emitted.
+
+Hoisting the node base as a local computed from the *second* read fixes it:
+`head = &work2->obj;` before the switch, `node = head;` in the three arms that
+take the copy, `node = &work->obj;` in the arm that takes the load. `head` is a
+distinct value -- a `plus`, not a register copy inside the load's quantity -- so
+`cse` leaves both groups alone: `.lreg` then shows three
+`(plus (reg/v:SI 85) (const_int 1238))` and one `(plus (reg/v:SI 84) ...)`, and
+the two homes fall out as `$v1` (the load's pseudo) and `$a1` (the copy's), with
+all four loop-pointer givs in `$v1` as before. 100.000%, every penalty zero.
+
+Found by the search router, but only on its third run: the first two never
+searched. The seeds still carried m2c's `#include "m2c_macros.h"` and the
+router's own preprocessing has no `-I tools/m2c`, so both candidates failed with
+`setup failed: m2c_macros.h: No such file or directory` and the run was reported
+as `PERMUTER_MISS`. **A router MISS whose log shows `setup failed` is not a
+search result** -- strip the m2c leftovers from the seeds and run it again before
+recording a miss.
+
+Inputs: scratch `nonmatchings/func_actor_113100_80132790-vacuum`, `base_1.c`
+98.517% (`0172ee7427a4d733330cc03db36ae80470a764be57d0bc0d5c21366eb84014bd`),
+`base_3.c` 99.828%
+(`ef5dcc14de8821416c037205da55be0a6b34c5bc21320b9b8ef396ab2ceb36cd`),
+`base_4.c` 100.000%
+(`6af09fb4fb1931a6df32358aa91d24a9a12c22af521f17c3edf9887ce03e1541`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
