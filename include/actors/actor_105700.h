@@ -52,7 +52,11 @@ typedef struct Actor105700Work {
     /* 0x648 */ s16     field_648;
     /* 0x64A */ byte    pad_64A[0xA];
     /* 0x654 */ GpRec18 field_654[1];
-    /* 0x66C */ byte    pad_66C[0x1C];
+    /* 0x66C */ byte    pad_66C[0xC];
+    /* 0x678 */ s32     field_678;
+    /* 0x67C */ s32     field_67C;
+    /* 0x680 */ s32     field_680;
+    /* 0x684 */ byte    pad_684[4];
     /// Tilt angles decayed toward zero by `func_actor_105700_801334F0`.
     /* 0x688 */ SVECTOR            field_688;
     /* 0x690 */ struct _GpEffWork* field_690;
@@ -76,7 +80,7 @@ typedef struct Actor105700Work {
     /* 0x6AA */ s16  field_6AA; ///< animation the state-0 branch picks
     /* 0x6AC */ byte pad_6AC[2];
     /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
-    /* 0x6B0 */ byte pad_6B0[2];
+    /* 0x6B0 */ s16  field_6B0;
     /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
     /* 0x6B4 */ s16  field_6B4; ///< cleared once the tilt has settled
     /* 0x6B6 */ s16  field_6B6;

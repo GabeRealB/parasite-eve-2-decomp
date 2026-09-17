@@ -1091,6 +1091,136 @@ void func_actor_105700_80135750(Actor105700* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80135AE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136158);
+/// Per-state handlers of the approach cycle, indexed by `field_6A6`.
+extern void (*D_actor_105700_801492A4[])(Actor105700*);
+
+void func_actor_105700_80131ED0(Actor105700* arg0);
+
+/// Every third frame while `field_6C4` is clear, kicks a dust effect off the
+/// fourth body coordinate with a random upward velocity.
+static __inline__ void Actor105700_SpawnDust(Actor105700* actor)
+{
+    Actor105700Work* work;
+    SVECTOR*         head;
+    SVECTOR*         rot;
+
+    work                       = actor->field_1C;
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    rot                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = rot;
+    if (++work->field_6B0 >= 3) {
+        work->field_6B0 = 0;
+        head[-1].vx     = 0;
+        rot->vz         = 0;
+        rot->vy         = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF);
+        Gp_SpawnEff(0x600E0, &actor->field_2C->field_8[3], 0x100, rot);
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
+}
+
+/// Per-frame tick: runs the state handler, integrates the forward step,
+/// advances or reseeds the animation slots, then draws. The same body as
+/// `Actor02000_Fn02A34` plus the dust effect.
+void func_actor_105700_80136158(GpEnemy* ctx, Actor105700* actor)
+{
+    VECTOR3          pos;
+    Actor105700Ctx*  spawn;
+    Actor105700Obj*  model;
+    Actor105700Work* moveWork;
+    Actor105700Work* animWork;
+    Actor105700Work* work;
+    Actor105700Work* flagWork;
+    GsCOORDINATE2*   moveCoord;
+    GsCOORDINATE2*   part;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    s16              duration;
+    s32              i;
+    u8               flags;
+
+    work  = actor->field_1C;
+    model = actor->field_2C;
+    coord = model->field_8;
+    switch (D_801153F4) {
+        case 0:
+            model->field_C    = 0;
+            ctx->node.field_4 = 0;
+            break;
+        case 1:
+            goto draw;
+        case 2:
+            model->field_C    = 0x80;
+            ctx->node.field_4 = 1;
+            return;
+    }
+
+    if (ctx->field_4C != 0) {
+        spawn    = actor->field_20;
+        flags    = spawn->field_4C;
+        flagWork = actor->field_1C;
+        if ((flags & 2) && (flagWork->field_6B8 == 0)) {
+            spawn->field_4C     = flags & 0xFD;
+            flagWork->field_6A6 = 0xA;
+            flagWork->field_694 = 0x14;
+            flagWork->field_6A8 = 0;
+            flagWork->field_6E0 = 1;
+        }
+    }
+    func_actor_105700_80131ED0(actor);
+    D_actor_105700_801492A4[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        func_actor_105700_80133364(actor);
+    }
+    moveCoord              = actor->field_2C->field_8;
+    moveWork               = actor->field_1C;
+    moveWork->field_678    = moveCoord->coord.t[0];
+    moveWork->field_67C    = moveCoord->coord.t[1];
+    moveWork->field_680    = moveCoord->coord.t[2];
+    moveCoord->coord.t[0] += (s32)(moveCoord->coord.m[0][2] * moveWork->field_69C) >> 0xC;
+    if (moveWork->field_6DE < 2) {
+        moveCoord->coord.t[1] += 0x80;
+    }
+    moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
+    animWork               = actor->field_1C;
+    i                      = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0;
+        duration            = D_actor_105700_801372EC[animWork->field_694];
+        do {
+            func_800B4114(&animWork->ctx, i, animWork->field_694, 0, duration);
+            i += 1;
+        } while (i < 0x13);
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)animWork->field_698 + i;
+        do {
+            Gp_AnimTickIndex(&animWork->ctx, i);
+            i += 1;
+        } while (i < 0x13);
+    }
+    if (work->field_6B4 != 0) {
+        func_actor_105700_801334F0(actor);
+    }
+    func_actor_105700_801336FC(actor);
+    coord->flg                      = 0;
+    actor->field_2C->field_8[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    if (work->field_6C4 == 0) {
+        Actor105700_SpawnDust(actor);
+    }
+draw:
+    USE_REG(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)actor->field_20, (VECTOR*)&pos, 0, 0);
+    root   = actor->field_2C->field_8;
+    part   = root + 3;
+    pos.vx = part->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80136534);

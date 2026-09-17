@@ -114139,3 +114139,16 @@ dst = ((Actor511000Work*)dst)->field_C;   /* same as dst += 0xC */
 ```
 
 The remaining one-instruction reorder (`addiu a0, sp, 0x18` for `&col[0]` scheduled after `i += 2`) was fixed by the permuter moving `i += 2` between `dst[1] = ...` and `dst[0] = ...`. Separately: three 4-byte `CVECTOR` locals took 8-byte slots (frame 0x50 instead of 0x48); one `CVECTOR col[3]` packs them at 0x18/0x1C/0x20.
+
+### Buying one allocno ref: `USE_REG` leaves scheduling alone where `TOUCH_REG` does not (func_actor_105700_80136158, 2026-09-17)
+
+**Problem.** Same body as matched `Actor02000_Fn02A34` plus an inlined dust spawn;
+99.78% with only `work`/`coord` swapped between `$s4`/`$s5`. `.greg`/`.lreg`:
+`work` 5 refs / 125 insns (`2*5/125 = 0.080`) beat `coord` 6 / 166 (`0.072`).
+**Tried.** `TOUCH_REG(coord)` (at `draw:` or after `Gp_UpdateCoord`) flipped the
+homes but moved `work`'s entry load one slot later in sched (99.15%): `"+r"` is an
+in/out operand, so the pseudo gains a second set and block-0 dependencies change.
+**Fix.** `USE_REG(coord)` at the `draw:` label - input-only, one extra ref
+(`2*7/166 = 0.084`), no new set - gave 100%. Non-volatile `SOFT_USE_REG` after the
+last call had no effect (dropped). When a ref is the only lever, try the
+input-only form before `TOUCH_REG`.
