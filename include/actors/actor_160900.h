@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 
 #include "main/task.h"
+#include "gameplay/1BC.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `Mem_Calloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -66,10 +67,16 @@ STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
 /// as `func_actor_160900_8013358C` reaches into it: it is also the anim context
 /// handed to `func_800B4114`.
 typedef struct Actor160900Child3Work {
-    /* 0x000 */ byte pad_0[0x4B8];
-    /* 0x4B8 */ s16  field_4B8;
-    /* 0x4BA */ s16  field_4BA;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14]; // the slot array `func_800B3F84` is handed
+    /* 0x334 */ byte       aux[0x140];  // `func_800B3F84` arg3
+    /* 0x474 */ MATRIX     light;       // `TmdObject::field_1C`
+    /* 0x494 */ MATRIX     color;       // `TmdObject::field_20`
+    /* 0x4B4 */ void*      field_4B4;
+    /* 0x4B8 */ s16        field_4B8;
+    /* 0x4BA */ s16        field_4BA;
 } Actor160900Child3Work;
+STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
 
 /// One step of the animation script `D_actor_160900_8013F1CC`
 /// `func_actor_160900_801326EC` walks: `field_0` is how many frames to hold the

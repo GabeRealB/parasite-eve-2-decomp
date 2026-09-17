@@ -13,6 +13,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3A34.h"
 
 extern TaskDesc ActorsShared80136280Desc;
 
@@ -81,7 +82,87 @@ INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132A14);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132C08);
+void func_actor_160900_80132844(Task* arg0);
+
+/// Animation source `func_800B3F84` seeds the child's slots from, the table
+/// published as `Actor160900Child3Work::field_4B4`, and the message table
+/// published as `Task::field_24`.
+extern u8 D_actor_160900_8013F1C4[];
+extern u8 D_actor_160900_8013F1F8[];
+extern u8 D_actor_160900_8013F200[];
+
+/// Binds the child's animation context and resets slots 1-19. Taking the model
+/// as a parameter is what schedules its load after the work-block load.
+static inline void func_actor_160900_InitAnim(Task* task, GpAnimObj* obj)
+{
+    Actor160900Child3Work* work;
+    s32                    i;
+
+    work = (Actor160900Child3Work*)task->idMap;
+    func_800B3F84(&work->anim, D_actor_160900_8013F1C4, obj, work->aux, work->slots);
+    work->field_4B4 = D_actor_160900_8013F1F8;
+    work            = (Actor160900Child3Work*)task->idMap;
+    i               = 1;
+    work->field_4B8 = 0;
+    work->field_4BA = 0;
+    do {
+        work->slots[(u16)i].field_9 = 0x10;
+        Gp_AnimResetSlot(&work->anim, (u16)i, 0);
+        i++;
+    } while ((u16)i < 0x14U);
+}
+
+void func_actor_160900_80132C08(Task* task)
+{
+    TmdObject*             obj;
+    TmdObject*             obj2;
+    GsCOORDINATE2*         coord;
+    Actor160900Child3Work* work;
+    GpAreaPlace*           place;
+    VECTOR                 pos;
+    s32                    failed;
+
+    if (task->state == 0) {
+        obj         = (TmdObject*)task->extra;
+        coord       = obj->field_8;
+        work        = (Actor160900Child3Work*)Mem_Malloc(0x4BC, false);
+        task->idMap = (TaskIdMap*)work;
+        if (work == NULL) {
+            failed = 1;
+        } else {
+            coord->sub = &Gfx_ViewCoord;
+            Mem_Set(task->idMap, 0, 0x4BC);
+            obj->field_1C  = &work->light;
+            obj->field_20  = &work->color;
+            obj->field_C  |= 0x84;
+            task->field_24 = D_actor_160900_8013F200;
+            place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+            while (place->field_0 != 0xFF && place->field_0 != 0x65) {
+                place++;
+            }
+            Gp_SetTmdBytes((TmdObject*)task->extra, (s8)place->field_D, (s8)place->field_E);
+            Task_Reparent(D_actor_160900_8013FBB4, task);
+            failed = 0;
+        }
+        if ((u16)failed) {
+            Task_Kill(task);
+            return;
+        }
+        func_actor_160900_InitAnim(task, (GpAnimObj*)task->extra);
+        task->state++;
+    }
+    func_actor_160900_80132844(task);
+    if (Game_Session->field_4 == 0x2E) {
+        Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8[18].coord, 0x800, 1);
+    } else {
+        Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8[18].coord, 0x79C, 1);
+    }
+    obj2   = (TmdObject*)task->extra;
+    pos.vx = obj2->field_8->workm.t[0];
+    pos.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
+    pos.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    func_800D7A9C(obj2, &pos, 0, 3);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132E80);
 

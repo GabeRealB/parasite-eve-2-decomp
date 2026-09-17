@@ -118460,3 +118460,23 @@ barrier, placed before `i = 1`; moving it after the stores fixed the order). Tha
 reload CSE substitution in the other direction, legal because the counter and the stored value were both HImode.
 An `s32` counter written `for (i = 1; (u16)i < 20; i++) f(child, (u16)i, ...)` makes the use wider than the recorded
 HI value, the substitution is rejected and `li s0,1` survives. 94.9% -> 100%. `base_15.i` SHA256 `e3e159c3ac8505a4dba61a33fb9ca78447841f65d8e540307cbbec95eb0473a9`.
+
+### A call-argument memory load emitted too late: pass it through an inline helper's parameter (func_actor_160900_80132C08, 2026-09-17)
+
+**Symptom.** 96.8%, `reorder=5`, confined to one call's setup. Target:
+`lui/addiu a1,D ; li s1,1 ; lw s0,0x1c(s2) ; lw a2,0x2c(s2) ; move a0,s0 ; addiu a3 ; addiu v0 ; jal ; sw v0,0x10(sp)`.
+The build emitted `task->extra`'s load (`lw a2,0x2c`) last, in the jal's delay slot,
+and `li s1,1` ahead of the `D` address. Statement reordering, a separate `work2`
+local, a comma expression and a plain `obj` local (which spilled into `$s3`) did
+not fix it.
+
+**Cause/fix.** `expand_call` loads a `MEM` argument straight into the hard
+register at the end of the setup, so sched keeps it late. Writing the anim-init
+tail as a `static inline` helper that takes `GpAnimObj* obj` and calling it with
+`(GpAnimObj*)task->extra` evaluates the load into the parameter's pseudo *before*
+the body, which reached 99.24% (`reorder=2`). A constant parameter (`D` address)
+did nothing - it is substituted, not stored. The last pair was `i = 1`: moving it
+below the second `work = task->idMap` reload raised its luid and gave the target
+order, 100%. When a whole block of a function looks like it was built from
+parameters (the `failed` 0/1 + `andi 0xFFFF` shape is another inline tell), try an
+inline parameter before scheduler barriers.
