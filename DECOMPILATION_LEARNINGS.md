@@ -40,6 +40,91 @@ matched the same way — `next = D_80114C68; TOUCH_REG(next);` ahead of
 (Found by scanning the disassembly for the encoding `21106000` followed by
 `beqz $v0`: four sites in the whole ROM, two of them this overlay's spawn
 ticks.)
+## A loop that walks one field per step needs the *field* address computed before the index, or the member offset stays a displacement
+
+`func_actor_323300_80162208` (actors/actor_323300) sets or clears bit 0x8000 of
+the halfword at 0x49E of its 0x504 work block, stepped by 0x20: one `GpObj`'s
+`flags` (`GpObj` is 0x20 bytes, `flags` at 0x1E) on the display node at 0x480.
+Retail's induction variable is the *field* address, carrying both offsets:
+
+```
+addiu  $v1,$a1,0x49E
+lhu    $v0,0x0($v1)
+...
+addiu  $v1,$v1,0x20
+```
+
+Neither obvious spelling produces that. A struct pointer, `GpObj* obj =
+&work->obj;` with `obj[i].flags`, scores 88.99% with `addiu $v1,$a1,0x480` and
+`lhu $v0,0x1E($v1)`: the loop pass takes the invariant part of the address
+(`work + 0x480`) as the giv base and leaves the member offset as the memory
+displacement. Inlining the same access so that no pointer local exists
+(`(&work->obj)[i].flags`) folds nothing either - the address tree is
+`(work + 0x480) + i*0x20 + 0x1E`, the two constants are not reassociated across
+the index term, and the loop pass then also builds a spare `addiu $a1,$a1,0x20`
+biv: 68.36%, worse than the pointer form.
+
+Computing the field's address *first* folds both constants at expand, because a
+pointer plus two constant offsets is one `addsi`:
+
+```c
+u16* flags = &work->obj.flags;      /* (plus (reg work) (const 0x49E)) */
+for (i = 0; i < 1; i++) {
+    flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
+}
+```
+
+The giv base becomes that sum with a 0x20 step - 99.767%. The remainder was the
+entry block's load order rather than the loop: `extra = arg0->extra;` has to
+precede `work = (Actor323300Work*)arg0->idMap;`, the order the sibling handlers
+of the actor family use (`func_actor_511000_801327A0`), for 100.000% with
+all-zero penalties.
+
+The per-case tails here are `jump2`'s cross-jump, not source structure: the
+`field_C &= ~4` that cases 0 and 1 both end with is emitted once, at the *later*
+case's position, with case 0 jumping into it (`j` with a `nop` in the delay
+slot), and the same for the `|= 4` tail of cases 2 and 3. See "Cross-jumping runs
+in `jump2`, after reload and `sched2`" above; writing the store out in every case
+is what matches.
+
+Inputs: scratch `nonmatchings/func_actor_323300_80162208-vacuum`, `base_1.c`
+88.988%, `base_2.c` 68.356%, `base_3.c` 99.767%, `base_4.c` and the renamed
+`base_5.c` 100.000% and byte-identical to each other. Preprocessed `base_3.i`
+`bb2accbef022260f...`, `base_4.i` `2c39bf304a0adcb6...`; assembly
+`9be2193900b753d6...` / `8641862bac313968...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A four-case switch's decision tree tests case 1 first, then splits at 2
+
+The dispatch of `func_actor_323300_80162208` compares in the order `a2 == 1`,
+then `a2 < 2`, then `a2 == 0`, and only then `a2 == 2` / `a2 == 3`:
+
+```
+beq    $a2,$v0(1),.L90
+slti   $v0,$a2,0x2
+beqz   $v0,.L248
+beqz   $a2,.L260
+...
+.L248: beq $a2,$v0(2),.L2D8
+       beq $a2,$v0(3),.L310
+```
+
+As source that looks like a hand-written `if (mode == 1) ... else if (mode < 2)`,
+and m2c reads it that way. It is a plain four-case `switch`, and the order is
+`balance_case_nodes` (`stmt.c`): with four single-value nodes and no cost table
+it computes `i = (4 + ranges + 1) / 2 = 2` and then walks one link down the chain
+per decrement of `i` until it reaches 0, which leaves the **root at index 1** -
+the case for value 1 - with `[0]` left and `[2,3]` right. The `a2 < 2` test is
+the emitter's range split, and its branch target is a `test_label` the emitter
+invents, so the label the target shows there names no case body.
+
+The rule for reading a target: a comparison chain that tests a *middle* value
+first and then splits on a range is a switch, whatever source shape it suggests.
+Source case order does not matter (GCC sorts the values); what stays in source
+order is the case *bodies*, which is how the family of four-way visibility
+handlers is spelled throughout the actors (`func_actor_141000_80133E8C`,
+`func_actor_503500_80132584`, `func_actor_511000_801327A0`) - read a matched one
+before writing the next.
 
 ## One local assigned twice is one quantity: the reused definition cannot tie to its source, and that is what keeps both halves in one register
 

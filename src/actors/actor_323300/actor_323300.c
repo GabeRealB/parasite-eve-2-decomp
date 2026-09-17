@@ -108,7 +108,79 @@ void func_actor_323300_80161FE8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162208);
+/// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
+/// mode word, the same body `func_actor_141000_80133E8C`,
+/// `func_actor_503500_80132584` and `func_actor_511000_801327A0` are, plus the
+/// display-node toggles the 0x504 work block's own `GpObj` needs.
+///
+/// Mode 0 hides the model -- `TmdObject::field_C` bit 0x80, the bit
+/// `func_actor_323300_80161FE8` tests before drawing the ground shadow -- and
+/// clears bit 4 so the buffers get reallocated; 1 shows it, puts the node back
+/// in the pair walk and allocates the aux buffers; 2 hides it and arms the
+/// `field_502` countdown that same per-frame runner frees the buffers with; 3
+/// shows it while keeping them. Modes 2 and 3 set bit 4, so the update path
+/// skips the realloc for the two frames the countdown runs. Anything else
+/// returns 1 and leaves the object alone; the handled modes return 0.
+///
+/// The node's `GpObj::flags` halfword is the induction variable, strided by one
+/// `GpObj` per step: the block owns a single node, so the walk covers one
+/// element, but retail keeps the array shape. Bit 0x8000 is the one
+/// `Gp_RunPairHandler` tests before pairing the node up, so this switch is what
+/// takes the node in and out of the pair walk.
+s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
+{
+    Actor323300Work* work;
+    TmdObject*       extra;
+    u16*             flags;
+    s32              i;
+    s32              ret;
+
+    extra = arg0->extra;
+    work  = (Actor323300Work*)arg0->idMap;
+    ret   = 0;
+
+    switch (mode) {
+        case 0:
+            extra->field_C |= 0x80;
+            flags           = &work->obj.flags;
+            for (i = 0; i < 1; i++) {
+                flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
+            }
+            extra->field_C &= ~4;
+            break;
+        case 1:
+            extra->field_C &= ~0x80;
+            flags           = &work->obj.flags;
+            for (i = 0; i < 1; i++) {
+                flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
+            }
+            Tmd_AllocBuffers(extra);
+            extra->field_C &= ~4;
+            break;
+        case 2:
+            extra->field_C |= 0x80;
+            flags           = &work->obj.flags;
+            for (i = 0; i < 1; i++) {
+                flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
+            }
+            work->field_502 = 2;
+            extra->field_C |= 4;
+            break;
+        case 3:
+            extra->field_C &= ~0x80;
+            flags           = &work->obj.flags;
+            for (i = 0; i < 1; i++) {
+                flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
+            }
+            extra->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+
+    return ret;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_323300/actor_323300", D_actor_323300_80161E20);
 

@@ -169,7 +169,9 @@ void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
 void func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
 s32  func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
-s32  func_actor_323300_80162208(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, Actor323300Placement* arg2, s32 arg3);
+/// Message-0x7D5 handler; `mode` is the four-way visibility switch
+/// `func_actor_511000_801327A0` and its twins take.
+s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3);
+s32 func_actor_323300_801629F0(Task* arg0, s32 arg1, Actor323300Placement* arg2, s32 arg3);
 
 #endif
