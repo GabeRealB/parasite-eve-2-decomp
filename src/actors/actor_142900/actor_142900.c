@@ -4,11 +4,39 @@
 #include "main/mc.h"
 #include "main/task.h"
 extern TaskDesc       D_actor_142900_80137600;
+extern s32            D_actor_142900_801382A8;
 extern s32            D_actor_142900_801382AC;
 extern s16            D_80071076;
 extern GpAreaApplyRec D_8017E9F8;
 
-INCLUDE_ASM("actors/nonmatchings/actor_142900/actor_142900", func_actor_142900_80131E24);
+void func_actor_142900_80131E24(Task* arg0)
+{
+    extern void Display_ClampField126();
+    s32         var_a0;
+
+    if (D_actor_142900_801382AC == 2) {
+        D_actor_142900_801382AC = 3;
+        D_actor_142900_801382A8 = 0x14;
+    }
+    var_a0 = rsin((arg0->killCountdown << 0xC) / 60) / 1024;
+    if (D_actor_142900_801382AC == 1) {
+        arg0->killCountdown = arg0->killCountdown + 1;
+    }
+    if (D_actor_142900_801382AC == 3) {
+        var_a0                  = var_a0 * D_actor_142900_801382A8 / 20;
+        D_actor_142900_801382A8 = D_actor_142900_801382A8 - 1;
+        arg0->killCountdown     = arg0->killCountdown + 5;
+        if (D_actor_142900_801382A8 == 0) {
+            D_actor_142900_801382AC = 0;
+        }
+    }
+    if (D_actor_142900_801382AC == 0) {
+        Display_ClampField126(0);
+        Task_Kill(arg0);
+    } else {
+        Display_ClampField126(var_a0);
+    }
+}
 
 void func_actor_142900_80131F5C(void)
 {

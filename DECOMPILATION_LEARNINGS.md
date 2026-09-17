@@ -126317,3 +126317,59 @@ Inputs: `base_6.i`
 `eb4df25afd253d5a45efa2192a4d341fa9ce7e9820495e753c4a5a85ca6fdaf0` (99.811%),
 `base_5.i`
 `5cf3885a51647b8b632550bfd225a9bfc1af43c696739733fb01b1508d5d131e` (100.000%).
+## A narrow prototype parameter sign-extends at *every* call site; a block-scope old-style declaration is what removes it (func_actor_142900_80131E24, 2026-09-17)
+
+The caller-side complement of the `s16`/`s32` parameter entry above. `Display_ClampField126`
+is declared `void Display_ClampField126(s8 arg0)` in `include/main/display.h`, and it
+sign-extends that byte on *entry* (`sll a0,a0,24; sra a0,a0,24`), so a caller that hands it
+a full SImode value behaves identically. GCC emits the call-site conversion anyway. The mips
+port defines `PROMOTE_PROTOTYPES` (`config/mips/mips.h`), so `convert_arguments`
+(`c-typeck.c`) runs `convert_for_assignment(s8, val)` and then `default_conversion` on the
+result — net `sign_extend:SI (subreg:QI (reg/v:SI 81) 0)`, which expands to an
+`sll a0,a0,0x18 / sra a0,a0,0x18` pair. In `func_actor_142900_80131E24` that pair is the
+*only* difference from the target across all 78 instructions: everything else — home
+registers, sched order, block layout — is already identical, so the pair is pure noise the
+register allocator does not react to.
+
+Most matched call sites do not show it, which is what makes it easy to miss. `combine` folds
+the conversion whenever the low byte provably sign-extends to the whole value, and the
+shapes that fold are exactly the common ones: `x >> 24` becomes a bare `sra a0,v0,24`,
+`x & 1` a bare `andi a0,a0,0x1` (both seen in matched `actor_403100` / `actor_503500` bodies),
+and a constant folds outright. A genuine conversion therefore only ever appears on a
+*computed* value, as here and in `Gp_ShakeTask` / `actor_335800_80162588`.
+
+Fix, when the target has no conversion and the header cannot be relaxed (here `display.h` is
+pulled in by `gameplay/D4.h`, which needs `Display_State`, and narrowing the shared prototype
+would break the callee and the call sites that legitimately convert): re-declare the callee
+at *block* scope inside the function with an empty parameter list, which is compatible with
+the prototype and hides it from that call.
+
+```c
+void func_actor_142900_80131E24(Task* arg0)
+{
+    extern void Display_ClampField126();   /* no prototype here -> no conversion */
+    s32         var_a0;
+```
+
+Scope is the whole trick, so the near misses need ruling out explicitly. A file-scope
+old-style declaration does *not* work: when an old-style declaration meets a prototype,
+`duplicate_decls` keeps the prototype, so the call still converts. A block-scope `s32`
+prototype is a hard `conflicting types` error, not a silent override. Only the block-scope
+empty-list form removes the prototype in effect at the call.
+
+Inputs: scratch `nonmatchings/func_actor_142900_80131E24-vacuum`; `base_3.c` 100.000%
+(`83ddb76d87cbfa99303bc4ec0a55a2c09af568f2ef7ca803f1d025ab915da52b`,
+preprocessed `c9ddb4019c73e0e76a4fc7a67c9297e85ee911f20e5a53f7175fe9d24bcfc77c`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## The magic constant does not name the divisor — the shift after `mfhi` does (func_actor_142900_80131E24, 2026-09-17)
+
+m2c renders a signed division by a constant as `MULT_HI(x, magic)` plus a `>>`, and both of
+those it prints are its own reconstruction, not the target's instruction. `sra a3,3` on a
+`0x66666667` product is `2^35 / 0x66666667` = **20**, while `sra a3,2` is 10 — the same magic
+serves both divisors at different shifts, because `mfhi` leaves the high half of a
+`2^(32+k)`-scaled product and the shift supplies the `k`. Taking m2c's `MULT_HI(temp, 0x66666667)
+>> 3` at face value and writing `/ 10` produced the right magic with the wrong shift
+(`sra v0,a3,0x2`), one instruction off in the middle of an otherwise exact 78-instruction
+function. Read the shift operand off the target and write the division in C as
+`var_a0 * D_actor_142900_801382A8 / 20`; GCC regenerates magic and shift together.
