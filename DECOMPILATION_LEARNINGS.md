@@ -122450,3 +122450,41 @@ So an operand-free store has no dependency to hang it anywhere; its source
 position is the only lever on which gap it fills. Reach for that before any
 barrier — a `SOFT_BARRIER` here would pin it in the wrong gap and cost the
 scheduling of the surrounding chain.
+
+## The scratch `BRIEF.md` can name a host file in a different overlay than the unit it hands you (ActorsShared80131f9cSub0, 2026-09-17)
+
+A vacuum brief carries four path fields that are supposed to agree: `ASM:`,
+`INCLUDE_ASM folder:`, `C file:` and `Yaml:`. For a symbol that exists in many
+overlays they can disagree. `ActorsShared80131f9cSub0` came with
+
+```
+- Unit: `actor_110800`
+- ASM: `asm/USA/actors/nonmatchings/actor_110800/actor_110800/ActorsShared80131f9cSub0.s`
+- INCLUDE_ASM folder: `actors/nonmatchings/actor_110800/actor_110800`
+- C file: `src/actors/actor_260400/actor_260400.c`
+```
+
+`C file:` comes from `find_include_asm_file` (`tools/decomp_overlay.py:266`),
+which walks `src_root.rglob("*.c")` and returns the *first* file whose
+`INCLUDE_ASM(folder, name)` names the symbol — with no reference to the unit
+splat split. This one is `INCLUDE_ASM`'d in eleven overlays, and those eleven
+are not one body: `actor_110800` holds 94 instructions and `actor_260400` 136.
+Writing the matched C over the `actor_260400` site would have replaced a live
+`INCLUDE_ASM` with a body that cannot match it, and the only thing that catches
+it is the overlay checksum, long after the edit. Take the unit from `ASM:` /
+`INCLUDE_ASM folder:` - it is the one the scratch `target.s` was built from, so
+`head -3 target.s` confirms it - and treat `C file:` as a hint only.
+
+The same brief's `Similar matched bodies` line printed "(none above 0.80)" for
+this function. It is not evidence of absence: that line renders the fuzzy
+`similar` tier, while `python3 tools/overlay_dup_index.py find
+ActorsShared80131f9cSub0` reported a byte-identical copy already matched in
+`actor_110300`. Porting that body with this overlay's symbol names (`D_actor_110300_*`
+→ `D_actor_110800_*`, `func_actor_110300_*` → `func_actor_110800_*`, plus the
+work-struct typedef) scored 100.000% on the first build, against an m2c baseline
+of 93.776% whose whole `base_diff` was the deleted VECTOR copy and the register
+rotation that followed from it.
+
+`overlay_dup_index.py promote` refuses this one, and the refusal is the useful
+answer: both carriers reference their own overlay's data, so there is no single
+object to share - land it in the overlay `ASM:` names and leave the twin alone.
