@@ -106,7 +106,68 @@ void func_actor_341300_8016268C(void)
     D_actor_341300_80165AA4 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162698);
+void func_actor_341300_80162698(Task* arg0)
+{
+    s16 i;
+    s16 next;
+    u16 count;
+
+    switch (arg0->state) {
+        case 0:
+            i = 0;
+            do {
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, (s32)arg0);
+                next = i + 1;
+                i    = next;
+            } while (next < 0xA);
+            goto done;
+        case 1:
+            count               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = count;
+            i                   = 0;
+            if ((s16)count >= 0x1F) {
+                do {
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 0, (s32)arg0);
+                    next = i + 1;
+                    i    = next;
+                } while (next < 0xA);
+                goto done;
+            }
+            break;
+        case 2:
+            count               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = count;
+            i                   = 0;
+            if ((s16)count >= 0x10) {
+                do {
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, (s32)arg0);
+                    next = i + 1;
+                    i    = next;
+                } while (next < 0xA);
+                goto done;
+            }
+            break;
+        case 3:
+        case 4:
+            count               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = count;
+            i                   = 0;
+            if ((s16)count >= 0x10) {
+                do {
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 3, (s32)arg0);
+                    Task_SpawnFromTable(&D_actor_341300_80165A68, 1, 1, (s32)arg0);
+                    next = i + 1;
+                    i    = next;
+                } while (next < 0xA);
+            done:
+                arg0->killCountdown = 0;
+                arg0->state         = arg0->state + 1;
+            }
+            break;
+        case 5:
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162878);
 
