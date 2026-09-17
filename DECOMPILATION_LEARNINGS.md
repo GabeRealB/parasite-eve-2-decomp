@@ -114442,3 +114442,39 @@ Gp_SpawnEff(0x60070, part, low + high, NULL);
 Also: two LCG draws written as `x = x*5+K; lo = ...; x = x*5+K;` on the global
 itself match the single final store, where `r1`/`r2` locals kept the wrong
 compute order.
+
+## Loop counter kept (`slti s2,3`) where the target compares a walking pointer (`addiu v0,s1,0x48; slt`): split CSE with a `switch` (func_actor_205200_8014BD4C)
+
+**Symptom.** A `for (i = 0; i < 3; i++)` over a 0x18-byte record array
+(`work->field_49C[i]`) compiled with the counter still live (`addiu s2,s2,1;
+slti v0,s2,3`) and one more saved register. The target has no counter: its
+exit test is `addiu v0,s1,0x48; slt v0,s0,v0`, which is `maybe_eliminate_biv`
+rewriting `i < 3` against the reduced `work + 24*i` giv.
+
+**Mechanism.** `i*24` expands as `t=i<<1; t+=i; t<<=3`. The `.loop` dump shows
+the `i<<1` giv with `benefit 2`, which drops to 0 after `add_cost`, so it is
+"not worth while", `all_reduced` is cleared, and the biv cannot be eliminated.
+It only survives the worth-while test when two copies of the chain exist and
+`combine_givs` sums their benefit. With plain `if` blocks in the body CSE
+(`-fcse-skip-blocks`) folds every `work->field_49C[i]` into one chain, so there
+is only ever one copy. Every matched sibling that got the pointer compare
+(`actor_510900_2`, `actor_402200`) has a `switch` in the body; its case
+labels have several uses, CSE cannot skip over them, and the next access
+builds a second chain.
+
+**Fix.** Write the inner test as a `switch` whose extra case is empty:
+
+```c
+switch (Gp_GetIdParam0(work->field_49C[i].field_4) & 0xFFFF) {
+    case 1:
+        found = 1;
+        break;
+    case 2:
+        break;
+}
+```
+
+`case 2: break;` leaves no code behind (89% -> 99.5%). `case 0: break;` does
+leave code: a `beqz` survives. So do a bare single `case 1` and `default: break;`,
+which are no different from the `if`. If you see the kept counter, check the
+`.loop` dump for `giv of insn N not worth while, 0 vs M` on a `mult 2 add 0` giv.

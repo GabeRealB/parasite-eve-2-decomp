@@ -57,7 +57,8 @@ typedef struct Actor205200Work {
     /* 0x554 */ GsCOORDINATE2* field_554;
     /* 0x558 */ s16            field_558;
     /* 0x55A */ s16            field_55A;
-    /* 0x55C */ byte           pad_55C[0x22];
+    /* 0x55C */ byte           pad_55C[0x20];
+    /* 0x57C */ s16            field_57C;
     /* 0x57E */ s16            field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
     /* 0x580 */ u16            field_580; // id the three helper slots last saw
     /* 0x582 */ u16            field_582; // frames spent on the current id

@@ -8,6 +8,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/mem.h"
+#include "gameplay/gameplay.h"
 
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
@@ -30,6 +31,7 @@ void func_80181930(Actor205200* arg0);
 
 extern u8  D_801153F4;
 extern u16 D_80071078;
+extern s16 D_80073BA0;
 
 s32 func_actor_205200_8014B914(s32 arg0)
 {
@@ -205,7 +207,62 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     task->state            = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014BD4C);
+void func_actor_205200_8014BD4C(Actor205200* arg0)
+{
+    Actor205200Work* work;
+    s32              i;
+    s32              found;
+    s32              last;
+    s32              n;
+
+    found                  = 0;
+    work                   = arg0->field_1C;
+    last                   = 0;
+    *(u32*)G_SCRATCH_HEAD -= 0x10;
+    if (work->field_57C != 0) {
+        if (--work->field_57C <= 0) {
+            work->field_57C = 0;
+        }
+        if (work->field_57C != 0) {
+            goto end;
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        if ((work->field_49C[i].field_4 & 0xFFFF0000) == 0x20000) {
+            func_800DA6E8(&arg0->field_20->node, 0, 0);
+            switch (Gp_GetIdParam0(work->field_49C[i].field_4) & 0xFFFF) {
+                case 1:
+                    found = 1;
+                    break;
+                case 2:
+                    break;
+            }
+            if (found == 0) {
+                break;
+            }
+            work->field_584 = 1;
+            work->field_586 = 0;
+            if (last != work->field_49C[i].field_4) {
+                last = work->field_49C[i].field_4;
+                func_800FDB18(Gp_GetIdParam1(last) & 0xFFFF, &arg0->field_2C->field_8[3], NULL,
+                              (GpEffArg*)&work->field_554);
+            }
+            if ((n = Gp_GetIdParam2(work->field_49C[i].field_4)) > 0) {
+                work->field_57C = n;
+            }
+        }
+    }
+end:
+    Gp_ClearRec18Occupied(work->field_49C);
+    if (work->field_504.field_0 & 1) {
+        if ((work->field_504.field_4 & 0xFFFF0000) == 0x10000 && D_80073BA0 > 0) {
+            work->field_588      = 1;
+            Gp_StateC08.field_6 |= 1;
+        }
+        Gp_ClearRec18Occupied(&work->field_504);
+    }
+    *(u32*)G_SCRATCH_HEAD += 0x10;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014BF28);
 
