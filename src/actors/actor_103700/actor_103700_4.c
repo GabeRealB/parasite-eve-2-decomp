@@ -9,7 +9,7 @@ void      ActorsShared80134ff0(Task* arg0);
 void      ActorsShared80135210(Task* arg0);
 void      func_actor_103700_8013224C(Task* arg0, TmdObject* arg1, s32 arg2);
 void      func_actor_103700_80133D68(Task* arg0);
-void      func_actor_103700_8013503C(Task* arg0);
+void      ActorsShared8013503c(Task* arg0);
 void      func_actor_103700_8013537C(Task* arg0);
 extern u8 D_801153F4;
 
@@ -60,7 +60,7 @@ default_body:
         func_actor_103700_80133D68(task);
     }
     if (work->field_252 != 0) {
-        func_actor_103700_8013503C(task);
+        ActorsShared8013503c(task);
     }
     if (work->field_266 != 0) {
         func_actor_103700_8013537C(task);
@@ -108,24 +108,3 @@ s32 func_actor_103700_80134F50(Task* task)
     *(u32*)G_SCRATCH_HEAD += sizeof(Actor103700HoldScratch);
     return ret;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_4", func_actor_103700_8013503C);
-
-void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2)
-{
-    Actor103700Work* work;
-    GsCOORDINATE2*   coord;
-    u16              frame;
-
-    work  = (Actor103700Work*)task->idMap;
-    coord = ((TmdObject*)task->extra)->field_8;
-
-    frame           = work->field_25E + 1;
-    work->field_25E = frame;
-    if (arg2 < (s16)frame) {
-        work->field_25E = 0;
-    }
-    coord->coord.t[1] += D_actor_103700_80139DB8[(arg1 * 15) + (s16)work->field_25E];
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_4", func_actor_103700_80135140);
