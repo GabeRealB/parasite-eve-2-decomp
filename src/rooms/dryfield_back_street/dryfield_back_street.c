@@ -12,11 +12,68 @@
 extern GpMsgEntry D_dryfield_back_street_8017F964[];
 extern TaskDesc   D_dryfield_back_street_8017F98C[];
 
+/// Volume last asked of the back street's ambience, or 0 when none is playing.
+/// Written by `func_dryfield_back_street_8017D5D0` and cleared by state 0 of the
+/// same task.
+extern s32 D_dryfield_back_street_80181054;
+
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_back_street/dryfield_back_street", func_dryfield_back_street_8017D5D0);
+/// Back street ambience: state 0 clears the recorded volume and advances, state
+/// 1 maps the current camera view to a target volume and stereo pan - 0x1E/+4,
+/// 0x32/-8 and 0x64/-0xC for views 3/4/5, 0 and centre elsewhere - and, whenever
+/// the volume differs from the recorded one, enqueues the matching fade event:
+/// type 6 to start the track, type 7 to stop it, type A to retune it, then
+/// records the new volume.
+void func_dryfield_back_street_8017D5D0(Task* task)
+{
+    s32 vol;
+    s32 pan;
+
+    switch (task->state) {
+        case 0:
+            D_dryfield_back_street_80181054 = 0;
+            task->state                     = task->state + 1;
+            return;
+        case 1:
+            break;
+        default:
+            return;
+    }
+
+    switch (Gp_GetViewIndex()) {
+        case 3:
+            vol = 0x1E;
+            pan = 4;
+            break;
+        case 4:
+            vol = 0x32;
+            pan = -8;
+            break;
+        case 5:
+            vol = 0x64;
+            pan = -0xC;
+            break;
+        default:
+            pan = 0;
+            vol = 0;
+            break;
+    }
+
+    if (vol == D_dryfield_back_street_80181054) {
+        return;
+    }
+    if (D_dryfield_back_street_80181054 == 0) {
+        SndEvt_EnqueueType6(0x52050006, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
+    } else if (vol == 0) {
+        SndEvt_EnqueueType7(0x52050006, 0x1E);
+    } else {
+        SndEvt_EnqueueTypeA(0x52050006, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
+    }
+    D_dryfield_back_street_80181054 = vol;
+}
 
 /// Message gate for the room's hotspot. It copies the incoming record to the
 /// outgoing one and writes the answer the caller acts on to the copy's
