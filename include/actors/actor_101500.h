@@ -32,10 +32,19 @@ typedef struct Actor101500Work {
     /* 0x380 */ s16  field_380;
 } Actor101500Work;
 
+/// Display object hung off `Actor101500.field_2C`; `field_8` is the actor's
+/// coordinate array, which effects are spawned against.
+typedef struct Actor101500Obj2C {
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ GsCOORDINATE2* field_8;
+} Actor101500Obj2C;
+
 typedef struct Actor101500 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor101500Work* field_1C;
-    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x00 */ byte              pad_0[0x1C];
+    /* 0x1C */ Actor101500Work*  field_1C;
+    /* 0x20 */ GpEnemy*          field_20;
+    /* 0x24 */ byte              pad_24[8];
+    /* 0x2C */ Actor101500Obj2C* field_2C;
 } Actor101500;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
