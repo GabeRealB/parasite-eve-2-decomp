@@ -11,6 +11,9 @@ typedef struct Actor300700Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0x16];
+    /* 0x24 */ s8             field_24;
+    /* 0x25 */ s8             field_25;
 } Actor300700Obj2C;
 
 /// The first collision record of the work block, viewed both as a plain
@@ -31,6 +34,10 @@ typedef union Actor300700ContactStorage {
         byte    pad_0[8];
         GpRec18 recs[3];
     } contacts;
+    struct {
+        /* 0x00 */ byte   pad_0[0x20];
+        /* 0x20 */ MATRIX rotation;
+    } quad;
 } Actor300700ContactStorage;
 
 typedef struct Actor300700Work {
@@ -99,6 +106,24 @@ typedef struct Actor300700RotScratch {
     /* 0x10 */ SVECTOR rot;
 } Actor300700RotScratch;
 STATIC_ASSERT_SIZEOF(Actor300700RotScratch, 0x18);
+
+/// Four rotated corners and the projected center/depth on the scratchpad.
+typedef struct Actor300700QuadScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     sxy;
+    /* 0x24 */ s32     otz;
+} Actor300700QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor300700QuadScratch, 0x28);
+
+typedef struct Actor300700TexEntry {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 pad_1;
+    /* 0x2 */ u8 v;
+    /* 0x3 */ u8 pad_3;
+} Actor300700TexEntry;
+STATIC_ASSERT_SIZEOF(Actor300700TexEntry, 4);
+
+extern Actor300700TexEntry D_actor_300700_80165B9C[];
 
 /// Spawn parameter block reached through `Actor300700Ctx.field_3C`; `field_A`
 /// is the halfword `func_actor_300700_80161E80` copies into
