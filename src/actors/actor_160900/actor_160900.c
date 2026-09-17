@@ -80,8 +80,6 @@ s32 func_actor_160900_801326EC(Task* arg0)
 }
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132844);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132A14);
-
 void func_actor_160900_80132844(Task* arg0);
 
 /// Animation source `func_800B3F84` seeds the child's slots from, the table
@@ -90,6 +88,66 @@ void func_actor_160900_80132844(Task* arg0);
 extern u8 D_actor_160900_8013F1C4[];
 extern u8 D_actor_160900_8013F1F8[];
 extern u8 D_actor_160900_8013F200[];
+
+void func_actor_160900_80132A14(Task* arg0)
+{
+    VECTOR pos;
+
+    if (arg0->state == 0) {
+        TmdObject*             tmd    = arg0->extra;
+        Task*                  parent = arg0->spawnArg2;
+        GsCOORDINATE2*         coord  = tmd->field_8;
+        Actor160900Child3Work* work;
+        Actor160900Child3Work* block;
+        GpAreaPlace*           place;
+        u8                     id;
+
+        block       = Mem_Malloc(0x4BC, 0);
+        arg0->idMap = (TaskIdMap*)block;
+        if (block == NULL) {
+            Task_Kill(arg0);
+            return;
+        }
+        work = block;
+        switch (arg0->spawnArg1) {
+            case 0:
+                coord->sub = &((TmdObject*)parent->extra)->field_8[12];
+                break;
+            case 1:
+            case 2:
+                coord->sub = &((TmdObject*)parent->extra)->field_8[8];
+                break;
+        }
+        Mem_Set(arg0->idMap, 0, 0x4BC);
+        tmd->field_1C = &work->light;
+        tmd->field_20 = &work->color;
+        if (arg0->spawnArg1 < 2) {
+            place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+            id    = place->field_0;
+            while (id != 0xFF) {
+                if (id == 0x65) {
+                    break;
+                }
+                place++;
+                id = place->field_0;
+            }
+            Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->field_D, (s8)place->field_E);
+        } else if (arg0->spawnArg1 == 2) {
+            Gp_SetTmdBytes((TmdObject*)arg0->extra, 0, 0);
+        }
+        Task_Reparent(parent, arg0);
+        arg0->field_24 = D_actor_160900_8013F200;
+        arg0->state   += 1;
+        return;
+    } else {
+        TmdObject* obj = arg0->extra;
+
+        pos.vx = obj->field_8->workm.t[0];
+        pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+        pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+        func_800D7A9C(obj, &pos, 0, 3);
+    }
+}
 
 /// Binds the child's animation context and resets slots 1-19. Taking the model
 /// as a parameter is what schedules its load after the work-block load.
