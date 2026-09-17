@@ -71,6 +71,35 @@ typedef struct Actor350700MatWords {
 } Actor350700MatWords;
 STATIC_ASSERT_SIZEOF(Actor350700MatWords, 0x14);
 
+/// Work block allocated by `func_actor_350700_80162B30` (`Mem_Calloc(0x50C)`)
+/// and parked in that task's `Task::idMap` slot -- that slot is not a
+/// `TaskIdMap` here, just as with `Actor350700Work`. This is the parent
+/// actor's block, the same shape as `Actor335800MainWork`: the init seeds the
+/// two `sb` bytes at 0x475/0x476 and the word at 0x508 to -1, clears the
+/// three words at 0x4D8..0x4E0, and stores the three child tasks it spawns
+/// from `D_actor_350700_801708DC` at 0x4FC/0x500/0x504. `ActorsShared80132f24`
+/// then republishes the light/colour matrix pair onto the parent's
+/// `TmdObject::field_1C` / `field_20`, exactly as `func_actor_350700_801624B4`
+/// does for `Actor350700Work`.
+///
+/// The size is the allocation; the fields below are the ones the init and the
+/// spawned-task bookkeeping touch.
+typedef struct Actor350700MainWork {
+    /* 0x000 */ byte  pad_0[0x475];
+    /* 0x475 */ s8    field_475;
+    /* 0x476 */ s8    field_476;
+    /* 0x477 */ byte  pad_477[0x61];
+    /* 0x4D8 */ s32   field_4D8;
+    /* 0x4DC */ s32   field_4DC;
+    /* 0x4E0 */ s32   field_4E0;
+    /* 0x4E4 */ byte  pad_4E4[0x18];
+    /* 0x4FC */ Task* field_4FC;
+    /* 0x500 */ Task* field_500;
+    /* 0x504 */ Task* field_504;
+    /* 0x508 */ s32   field_508;
+} Actor350700MainWork;
+STATIC_ASSERT_SIZEOF(Actor350700MainWork, 0x50C);
+
 /// The constant local-space offset `func_actor_350700_8016261C` rotates,
 /// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z, the same
 /// offset body `ActorsShared80132920` uses. The overlay keeps its own copy in
@@ -85,5 +114,9 @@ void func_actor_350700_80162860(Task* arg0, s32 arg1, Actor350700AnimPreset* arg
 void func_actor_350700_80162494(Task* arg0);
 
 void func_actor_350700_801624B4(Task* arg0);
+
+/// Exit callback `func_actor_350700_80162B30` installs, the same
+/// `Gp_EnemyTaskExit` teardown `func_actor_350700_80162494` performs.
+void func_actor_350700_801633BC(Task* arg0);
 
 #endif

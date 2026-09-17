@@ -120435,6 +120435,61 @@ Inputs: `base_3.i` `08c073323b9b602668a3192065b5dc3e177174cc5965001502c32d220a35
 (99.792%, merged `andi`), `base_10.i`
 `b1af1e29bf8ed02078e4234a92e2e8f1371743d2df4aaf23a655027dd185ae60` (100%).
 
+## A variable assigned in two sibling blocks is *one* global allocno; re-deriving the second block's value keeps each block's temp local (func_actor_350700_80162B30, 2026-09-17)
+
+Symptom: `insert`/`delete`/`branch` all zero — the control flow and even the
+delay slots are already right — but `regs=27` and `reorder=4`, and every
+difference is a register name. The target spawns its child tasks with
+`addu $a2,$v0,$zero` where ours said `$a1`, and the area key both spawn blocks
+build sat in `$a2` where the target had it in `$v1`; the instruction order moved
+too, because `addiu $a0,$sp,0x10` (the `&key` argument) can only be hoisted once
+the register holding that block's area key is free.
+
+Both blocks fill a `GpAreaKey` from `&Game_Session->field_4`, and the first
+attempt spelled them the same way:
+
+```c
+sessionKey = (GpAreaKey*)&Game_Session->field_4;
+key.field_3 = sessionKey->field_3;
+...
+key.field_0 = sessionKey->field_0;
+```
+
+`.lreg` then reports **one** pseudo for that address, `used 8 times across 18
+insns; dies in 2 places` — no `in block N` suffix, so it is not a local quantity
+in either block (`REG_BASIC_BLOCK` again, see the `combine_regs` entry above).
+`global.c` allocates it as a global: it takes `$a1`, and the spawn result — which
+is only live up to its first use in each block — is pushed to the register the
+next pass left it, `$a2`. The whole function is then off by one register.
+
+The fix is to stop the two blocks sharing a value. The near-twin
+`func_actor_335800_80162640` in `USA/actors/actor_335800` does exactly this in its
+*second* block, and its source is the match:
+
+```c
+sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&Game_Session->field_4);
+key.field_3 = sessionKey->field_3;
+key.field_2 = sessionKey->field_2;
+key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
+key.field_0 = ((GpAreaKey*)(&Game_Session->field_4))->field_0;
+```
+
+With that, `.lreg` shows the address as two entries — `Register 82 used 4 times
+across 9 insns in block 3` and `Register 83 used 4 times across 9 insns in block
+6` — each allocated to `$v1` (`82 in 3  83 in 3`), and `.greg` has five allocnos
+instead of six: `;; 5 regs to allocate: 84 90 113 81 80`, the spawn result `84 in
+6` (`$a2`), with `$a1` now in its conflict set (`;; 84 conflicts: 80 81 84 2 3 4
+5 29`). 97.288% → 100.000%, every penalty zero.
+
+Note the *asymmetry* is what matters, not the cast: the block-1 form left alone
+still matches. Only the second block's accesses have to be re-derived, and the
+second block is not the one whose `.lreg` entry looked wrong.
+
+Inputs: `base_1.i`
+`7738c02065f5d512aea99fc816c468cbfcdf9a5142c8406f1803fffb023b676a` (97.288%, one
+cross-block address pseudo), `base_2.i`
+`8a5190eb33f8769005b5c9bc037b0972a1c029464014ee9659c48094d5261f00` (100%).
+
 ## A case's compare constant and its `state = 2` store merge in `cse`, and the merged value crosses the case's calls — global-alloc then refuses `$v0` and every compare in the function homes elsewhere (func_dryfield_night_factory_80180DE8, 2026-09-17)
 
 The const-2 analogue of the `8017FBF4` signedness merge above, with the case

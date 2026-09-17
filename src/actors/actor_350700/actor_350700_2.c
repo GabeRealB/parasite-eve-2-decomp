@@ -3,9 +3,20 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_350700.h"
+#include "actors/actors_shared_80132f24.h"
+#include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "gameplay/1BC.h"
+#include "gameplay/D4.h"
+
+/// The four `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks
+/// from, and the message table it points the parent's `Task::field_24` at:
+/// ids 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
+/// `func_actor_350700_801636A8`, terminated by 0x7FFFFFFF.
+extern TaskDesc   D_actor_350700_801708DC;
+extern GpMsgEntry D_actor_350700_8017090C[];
 
 /// State handler at index 1 of `D_actor_350700_80161E30`, the move body that
 /// mirrors `ActorsShared80132920`: rotates the constant local-space offset
@@ -134,7 +145,101 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162AF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162B30);
+/// The parent's spawn handler, the same body `func_actor_335800_80162640` runs.
+/// Allocates the 0x50C `Actor350700MainWork` block, seeds it, and spawns the
+/// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
+/// parking them at `field_4FC` / `field_500` / `field_504`. The first two are
+/// models: each has `TmdObject::field_24` / `field_25` loaded with the texture
+/// page and CLUT row of the `GpAreaPlace` that entry selects, reached through
+/// the area key `&Game_Session->field_4` and indexed by the model id the child's
+/// own `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
+/// texture stream processed twice when it has an aux buffer. The body ends by
+/// handing the parent to `ActorsShared80132f24`, pointing `field_24` at the
+/// message table and installing `func_actor_350700_801633BC` as its exit
+/// callback.
+void func_actor_350700_80162B30(Task* arg0)
+{
+    Actor350700MainWork* work;
+    GpAreaKey            key;
+    GpAreaKey*           sessionKey;
+    u8*                  keyAddr;
+    Task*                spawned;
+
+    work = (Actor350700MainWork*)Mem_Calloc(0x50C, false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_475 = -1;
+    work->field_476 = -1;
+    work->field_508 = -1;
+    work->field_4D8 = 0;
+    work->field_4DC = 0;
+    work->field_4E0 = 0;
+    spawned         = Task_SpawnFromTable(&D_actor_350700_801708DC, 1, 8, (s32)arg0);
+    if (spawned != NULL) {
+        TmdObject*   model;
+        GpAreaRec*   rec;
+        GpAreaPlace* place;
+        s32          idx;
+
+        work->field_4FC = spawned;
+        model           = (TmdObject*)spawned->extra;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+        key.field_3     = sessionKey->field_3;
+        key.field_2     = sessionKey->field_2;
+        key.field_1     = sessionKey->field_1;
+        key.field_0     = sessionKey->field_0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec             = Gp_GetNestedAreaRec(&key);
+        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = place->field_D;
+        model->field_25 = place->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+    spawned = Task_SpawnFromTable(&D_actor_350700_801708DC, 2, 0xC, (s32)arg0);
+    if (spawned != NULL) {
+        TmdObject*   model;
+        GpAreaRec*   rec;
+        GpAreaPlace* place;
+        s32          idx;
+
+        work->field_500 = spawned;
+        model           = (TmdObject*)spawned->extra;
+        idx             = ((GpEnemy*)arg0->spawnArg2)->field_8 >> 12;
+        /* Re-derived address, not the block-1 form: with `sessionKey->field_0`
+           for the last byte, global CSE merges this block's area key with the
+           one above into a single cross-block pseudo, and the allocation of
+           `spawned` and every address temp after it shifts. */
+        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&Game_Session->field_4);
+        key.field_3 = sessionKey->field_3;
+        key.field_2 = sessionKey->field_2;
+        key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
+        key.field_0 = ((GpAreaKey*)(&Game_Session->field_4))->field_0;
+        Gp_SyncAreaKeyIndex(&key);
+        rec             = Gp_GetNestedAreaRec(&key);
+        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = place->field_D;
+        model->field_25 = place->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+    spawned = Task_SpawnFromTable(&D_actor_350700_801708DC, 3, 8, (s32)arg0);
+    if (spawned != NULL) {
+        work->field_504 = spawned;
+    }
+    ActorsShared80132f24(arg0);
+    arg0->field_24     = D_actor_350700_8017090C;
+    arg0->exitCallback = func_actor_350700_801633BC;
+    arg0->state       += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162D5C);
 
