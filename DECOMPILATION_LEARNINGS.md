@@ -114296,3 +114296,49 @@ Related in the same function: an inline classifier returning `s32` had its retur
 pseudo merged into the caller's variable and turned into `sllv` branchless code.
 Returning `s16` kept a separate pseudo, and with it the target's per-branch
 `li v0,K` + `move a0,v0` join.
+
+## A `.s` far longer than its C: a function reached only through a rodata table
+
+`func_actor_300700_801628C8` was listed as 0x634 bytes, but the asm held a second
+function after its last `jr ra` (a full `addiu $sp,-0x30` prologue at `0x80162BC8`).
+That address appears only as `.word 0x80162BC8` in a state table in `.rodata`, so
+splat never saw a `jal` and folded it into the previous function. Symptom in the
+scratch env: the base score cannot rise past ~35% and diagnostics say "requires a
+single function starting at text offset zero". Fix: add
+`func_<overlay>_<addr> = 0x<addr>; // type:func` to `configs/USA/sym/<family>/<overlay>.txt`,
+add its `INCLUDE_ASM` line after the host function yourself (splat never rewrites
+an existing `.c`), rebuild, then regenerate the scratch `target.s`/`target.o` from
+the new asm (`cat prelude.inc include/macro.inc <asm> > target.s; mips-linux-gnu-as ...`,
+as `tools/claude` does).
+
+## Store placed after the first branch, later branches `j` back to it
+
+Target shape of an if/else-if chain that ends in one store:
+
+```
+bnez cond1, L2      ; first then-block falls through
+... subu v0,a0,v0
+L_store: jr ra
+ sw v0,0x1c(t0)
+L2: ... j L_store   ; every later branch jumps back up
+```
+
+A single store after the chain (`newY = ...; ... ; p->y = newY;`) puts the store
+at the end, and a store in every branch gives each its own `jr ra; sw`. The match
+was a first branch that stores directly and an `else` that computes a temp and
+stores once:
+
+```c
+if (y >= base + 400) {
+    p->y = y - (r & 0xF);
+} else {
+    if (base - 400 >= y) newY = y + (r & 0xF);
+    else { ... newY = ...; }
+    p->y = newY;
+}
+```
+
+Jump optimization cross-jumps the else tail's `sw; return` into the first block's
+copy. Same function: a random value that looks shared between two `switch` cases
+had to be a separate variable in each case (the target had it in `$v1` in one case
+and `$a1` in the other). One pseudo spanning both cases conflicts with both registers.
