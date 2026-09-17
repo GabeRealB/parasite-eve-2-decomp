@@ -31,7 +31,65 @@ void func_actor_361100_80162B0C(void)
     D_actor_361100_80171BE0 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162B18);
+/// Per-frame tick of the armed variant: integrates the 16.16 accumulator at
+/// 0x480 three words at a time into the root part's local translation -- whole
+/// part onto `coord.t`, then it is truncated back to its fraction -- runs the
+/// `field_4A0` countdown that zeroes the 0x490 step while it is at 0, ticks the
+/// animation slots once `field_43C` has latched, and while the part is visible
+/// rebuilds its world matrix and hands the result to `Gp_UpdateActorColor`.
+/// `field_4A2` counts the root part's buffers down to the free.
+///
+/// The twin of `func_actor_361100_801631C4` with the two groups swapped: that
+/// one integrates the 0x490 group `func_actor_361100_801630D4` arms onto
+/// `field_8[1]` and draws a ground shadow, this one the 0x480 group
+/// `func_actor_361100_80163750` arms, onto `field_8[0]`.
+void func_actor_361100_80162B18(Task* task)
+{
+    TmdObject*       ext  = task->extra;
+    Actor361100Work* work = (Actor361100Work*)task->idMap;
+    GsCOORDINATE2*   coord;
+    VECTOR           pos;
+    s32              i;
+
+    coord              = ext->field_8;
+    work->field_480   += work->field_490;
+    work->field_484   += work->field_494;
+    work->field_488   += work->field_498;
+    coord->coord.t[0] += (s16)(work->field_480 >> 16);
+    coord->coord.t[1] += (s16)(work->field_484 >> 16);
+    coord->coord.t[2] += (s16)(work->field_488 >> 16);
+    coord->flg         = 0;
+    work->field_480    = (u16)work->field_480;
+    work->field_484    = (u16)work->field_484;
+    work->field_488    = (u16)work->field_488;
+    if (work->field_4A0 >= 0) {
+        if (work->field_4A0 == 0) {
+            work->field_490 = 0;
+            work->field_494 = 0;
+            work->field_498 = 0;
+        }
+        work->field_4A0--;
+    }
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        pos.vx = coord->workm.t[0];
+        pos.vy = coord->workm.t[1];
+        pos.vz = coord->workm.t[2];
+        Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+    }
+    if (work->field_4A2 >= 0) {
+        if (work->field_4A2 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4A2--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162CBC);
 
