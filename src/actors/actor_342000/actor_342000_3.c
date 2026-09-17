@@ -140,10 +140,6 @@ void func_actor_342000_80164364(s32 arg0)
 extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
-/// Fixed placement this function warps slot 3 to, sent as message 0x3E9 and
-/// again as 0x3F2 by `func_actor_342000_80162BBC`.
-extern Actor342000Move D_actor_342000_80164948;
-
 extern void func_8018507C(void);
 
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs

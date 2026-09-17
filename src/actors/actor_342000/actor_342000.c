@@ -2,11 +2,16 @@
 
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actor_342000.h"
 
@@ -369,9 +374,135 @@ void func_actor_342000_801628C8(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_342000/actor_342000", D_actor_342000_80161E20);
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// base weapon id, `D_8007218A` selects the alternate animation block.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162BBC);
+/// Animation payload of the 0x3F4 messages sent to the slot-3 task.
+extern u8 D_actor_342000_801647E8[];
+
+/// Placement sent as message 0x3E9 by sequence step 1.
+extern Actor342000Move D_actor_342000_80164930;
+
+/// Per-tick sequence driver of the event task: raises 0x3ED on `field_48`,
+/// then runs the one-shot step latched in `field_68` (warps, animation
+/// changes for the slot-3 task, the step-2 wait on 0x3F0 plus an 11-tick
+/// delay, and step 8's sound cue) and clears it. Cases 5 and 7 keep their
+/// weapon id locals block-scoped; sharing one pseudo across both cases moves
+/// the `D_80073BA9` load ahead of the flag load.
+void func_actor_342000_80162BBC(Task* arg0)
+{
+    Actor342000EventWork* work;
+    Actor342000EventWork* ev;
+    GpAnimArg             msg;
+
+    work = (Actor342000EventWork*)arg0->idMap;
+    if (work->field_48 != NULL) {
+        Gp_DispatchMsg(work->field_48, 0x3ED, 0, 0);
+    }
+    switch (work->field_68) {
+        case 0:
+            break;
+        case 1:
+            Gp_PulseState1C();
+            Gp_StateC08.field_6 |= 1;
+            Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164930, 0);
+            break;
+        case 2:
+            switch (work->field_6A) {
+                case 0:
+                    Gp_DispatchMsg(work->field_48, 0x3F2, (s32)&D_actor_342000_80164948, 0);
+                    work->field_6A++;
+                    return;
+                case 1:
+                    if (Gp_DispatchMsg(work->field_48, 0x3F0, 0, 0) == 0) {
+                        work->field_6C = 0;
+                        work->field_6A++;
+                    }
+                    return;
+                case 2:
+                    if (++work->field_6C > 10) {
+                        work->field_68 = 0;
+                        msg.field_0    = D_actor_342000_801647E8;
+                        msg.field_4    = 0;
+                        msg.field_8    = 0;
+                        msg.field_C    = 0;
+                        msg.field_10   = 0;
+                        Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+                    }
+                    return;
+            }
+            return;
+        case 3:
+            Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
+            msg.field_0  = D_actor_342000_801647E8;
+            msg.field_4  = 0;
+            msg.field_8  = 0;
+            msg.field_C  = 0;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            break;
+        case 4:
+            msg.field_0  = D_actor_342000_801647E8;
+            msg.field_4  = 1;
+            msg.field_8  = 1;
+            msg.field_C  = 10;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            break;
+        case 5: {
+            s32 weaponId;
+            s32 anim;
+
+            weaponId     = D_80073BA9;
+            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.field_0  = (void*)anim;
+            msg.field_4  = 1;
+            msg.field_8  = 0;
+            msg.field_C  = 0;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            break;
+        }
+        case 6:
+            msg.field_0  = D_actor_342000_801647E8;
+            msg.field_4  = 2;
+            msg.field_8  = 1;
+            msg.field_C  = 10;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            break;
+        case 7: {
+            s32 weaponId;
+            s32 anim;
+
+            weaponId     = D_80073BA9;
+            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.field_0  = (void*)anim;
+            msg.field_4  = 1;
+            msg.field_8  = 1;
+            msg.field_C  = 10;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            break;
+        }
+        case 8:
+            msg.field_0  = D_actor_342000_801647E8;
+            msg.field_4  = 3;
+            msg.field_8  = 0;
+            msg.field_C  = 0;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+            ev = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+            if (ev->field_7A == 0) {
+                SndEvt_EnqueueType6(0x54280005, 0, 0);
+                ev->field_7A = 1;
+            }
+            break;
+    }
+    work->field_68 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162F28);
 

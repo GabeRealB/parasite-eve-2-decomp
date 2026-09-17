@@ -136,9 +136,10 @@ typedef struct Actor342000EventWork {
     /* 0x5C */ Task* field_5C;
     /* 0x60 */ Task* field_60;
     /* 0x64 */ Task* field_64;
-    /* 0x68 */ s16   field_68;
-    /* 0x6A */ s16   field_6A;
-    /* 0x6C */ byte  pad_6C[0x4];
+    /* 0x68 */ u16   field_68;
+    /* 0x6A */ u16   field_6A;
+    /* 0x6C */ u16   field_6C;
+    /* 0x6E */ byte  pad_6E[0x2];
     /* 0x70 */ s16   field_70;
     /* 0x72 */ s16   field_72;
     /* 0x74 */ byte  pad_74[0x6];
@@ -171,6 +172,10 @@ extern Task* D_actor_342000_80165070;
 /// Message 0x7D4's static payload, handed to `Gp_DispatchMsg` by the actor's
 /// spawn tick. Same shape as the `Actor342000Move` the handler takes.
 extern Actor342000Move D_actor_342000_801648B8;
+
+/// Fixed placement `func_actor_342000_8016439C` warps slot 3 to, sent as
+/// message 0x3E9 and again as 0x3F2 by `func_actor_342000_80162BBC`.
+extern Actor342000Move D_actor_342000_80164948;
 
 /// Spawns the actor's work block (`Mem_Malloc(0x2AC, 0)`, zeroed over the same
 /// size), parks it in `Task::idMap`, seeds `field_2A4` and the model's part
