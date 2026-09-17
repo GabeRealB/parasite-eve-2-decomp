@@ -95,5 +95,6 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
 s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 void func_dryfield_dilapidated_house_80181028(Task* task);
 void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);
+void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
 #endif // ROOMS_DRYFIELD_DILAPIDATED_HOUSE_H

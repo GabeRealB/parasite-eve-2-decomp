@@ -34,7 +34,31 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017EE58);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017F418);
+/// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
+/// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`
+/// reaches `len`. Writes the X/Y/Z result to `out`.
+void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
+{
+    SVECTOR  coeff[3];
+    SVECTOR* p1;
+    SVECTOR* p2;
+    s32      t;
+    s32      i;
+    s32*     o;
+
+    if (len != 0) {
+        t  = ((len - pos) * 0xFFFF) / len;
+        p1 = &pts[1];
+        p2 = &pts[2];
+        func_dryfield_dilapidated_house_80181290(pts->vx, p1->vx, p2->vx, p3->vx, &coeff[0]);
+        func_dryfield_dilapidated_house_80181290(pts->vy, p1->vy, p2->vy, p3->vy, &coeff[1]);
+        func_dryfield_dilapidated_house_80181290(pts->vz, p1->vz, p2->vz, p3->vz, &coeff[2]);
+        o = out;
+        for (i = 0; i < 3; i++) {
+            *o++ = ((((((coeff[i].vx * t) >> 16) + coeff[i].vy) * t >> 16) + coeff[i].vz) * t >> 16) + coeff[i].pad;
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017F568);
 

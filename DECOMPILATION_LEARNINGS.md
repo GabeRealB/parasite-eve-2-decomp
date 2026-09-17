@@ -116968,3 +116968,35 @@ cannot produce an inline `jr ra` by the route described there. The recipe in
 that section (`break` out of the switch and return once) may still be right for
 the function it was written for, but re-derive it from that function's dumps
 rather than from `HAVE_return` before applying it.
+
+## A dup-index `~` sibling is a drop-in body: the `=`/`~` split is the callee's link offset, not a source difference (func_dryfield_dilapidated_house_8017F418, 2026-09-17)
+
+`overlay_dup_index.py find` reports a body copied into another overlay as `=`
+(identical bytes) or `~` (same body, different link offset), and `~` reads like
+"close, so some work needed". It is not: equality there is decided on splat's
+disassembly *text*, and the only line a cross-overlay copy can differ on is the
+`jal` displacement to a callee that itself lives at a different link offset.
+Transcribe the matched sibling's C verbatim, rename the callee, and it matches -
+no matching loop at all.
+
+`func_dryfield_dilapidated_house_8017F418` is `~`-equal to
+`func_actor_503500_8013A7B0` (and to `func_actor_503500_80141A44`), 84
+instructions. The two disassemblies are identical word for word apart from the
+two `jal` displacements and the label names; the callee
+`func_dryfield_dilapidated_house_80181290` is likewise `func_actor_503500_8013AC6C`
+with the same body (the Bezier coefficient helper). m2c's own body is
+structurally right and scores 89.864% (`regs=34 reorder=2 insert=5 delete=1`) -
+all of it allocation the sibling's C form had already solved - and the sibling's
+body scores 100.000% on the first attempt, penalties all zero.
+
+The brief's "Similar matched bodies" list and the dup index are two views of the
+same lead and agree on how much to trust it. `find` decides it: a starred
+`similar` candidate (shape + fields + cflow all matching) that `find` also lists
+is a copy, and its C is worth reading before anything is written. A starred
+candidate `find` does not list is only a resemblance, and the `similar` classes
+were built to generate candidates, never equalities - dropping operands equates
+`lw $v0, 0x4($t0)` with `lw $v0, 0xC($t0)`.
+
+`promote` does not apply to this shape: it is family-scoped ("only one copy in
+rooms, nothing to share"), and the copies in the other family are already
+matched in their own overlay, so each overlay owns its body and nothing moves.
