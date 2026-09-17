@@ -69,6 +69,17 @@ STATIC_ASSERT_SIZEOF(Actor121300Waypoint, 0x8);
 
 extern Actor121300Waypoint D_actor_121300_8013CC20[];
 
+/// Scratch `func_actor_121300_80133D98` stages the three states that build a
+/// payload in.  Their live ranges do not overlap -- the state-0 message 0x3E8
+/// record is dead once the state advances, and state 3 kills the task without
+/// reaching the tail -- so the three share one stack slot and the frame stays
+/// 0x38 bytes.
+typedef union Actor121300Scratch {
+    /* 0x0 */ GpAnimArg msg;  // state 0: slot-3 weapon record, message 0x3E8
+    /* 0x0 */ RECT      rect; // state 3: the area ClearImage blanks
+    /* 0x0 */ VECTOR    vec;  // tail: model part-1 translation for func_800D7A9C
+} Actor121300Scratch;
+
 /// 8-byte fade block `func_actor_121300_8013400C` and
 /// `func_actor_121300_801326EC` each allocate with `Mem_Malloc(8, 0)` and park
 /// in `Task::idMap` -- a second, smaller idMap block in this overlay, distinct

@@ -121796,3 +121796,47 @@ scheduling rather than guessed: `tmd->field_1C`, `tmd->field_C = 0`,
 between the two `sw`s (`func_actor_105100_801327B4` shows this compiler keeps
 adjacent TmdObject stores in source order), and the search loop's early exit
 adds `0x84` to the `0xFF` terminator scan of `func_actor_136100_80133A88`.
+
+## A `case N:` materialized by the switch tree seeds a register that `cse` then reuses for every other use of N in the function (func_actor_121300_80133D98, 2026-09-17)
+
+`func_actor_121300_80133D98` holds the constant 1 in `$s2` from its second
+instruction to its last, and uses it in three unrelated places: the `case 1`
+comparison of `switch (state)`, the `D_8007218A == 1` test in state 0 and the
+`D_80071076 = 1` store in state 3. Nothing in the source does that; the switch
+built it, and `cse` spread it.
+
+The case tree compares the discriminant against a *register* -- `do_jump_if_equal`
+(`stmt.c`) calls `emit_cmp_insn`, not a bare `beq` -- so expanding the tree emits
+`(set (reg:SI 138) (const_int 1))` with `REG_EQUAL (const_int 1)` right before the
+`case 1` branch. `case 0` folds to `beqz`, and cases 2 / 3 carry their constants
+in a temporary `$v0`, so only the one that is *also* written elsewhere survives:
+the two other `1`s are `(const_int 1)` in `.rtl` and only become `(reg:SI 138)`
+in `.cse`.
+
+```
+.rtl  (insn 279 12 280 (set (reg:SI 138) (const_int 1)) ...)          ; case 1
+      (jump_insn 280 ... (eq:SI (reg/v:SI 82) (reg:SI 138)) ...)
+.cse  (jump_insn 47  ... (ne:SI (reg:SI 100)  (reg:SI 138)) ...)      ; D_8007218A == 1
+      (insn 256 ... (set (mem:HI (lo_sum (reg:SI 136) D_80071076))
+                         (subreg:HI (reg:SI 138) 0)))                 ; D_80071076 = 1
+```
+
+`reg/v:SI 82` is the discriminant and lands in `$s0`; 138 is live across every
+call in the function, so `global.c` gives it the callee-saved `$s2`. Write the
+three `1`s as literals and leave them alone: a "simplification" of the case
+comparison to an immediate, or a source variable invented to explain `sh $s2,…`,
+moves the whole function away from retail. Only a case value the tree
+materializes this way can end up in a saved register -- `case 0`'s is a `beqz`.
+
+The other direction is just as uninformative: a literal equal to the *case's own*
+value needs no separate `li`, because the compare already proved it. `case 3:`'s
+`Mc_SaveData.field_7 = 3;` and `Mc_SaveData.field_7 = state;` (the discriminant
+local) build byte-identical objects here -- both `sb $s0` -- so a store of the
+case's own number says nothing about whether retail named it.
+
+One layout note on the same function: its three `arg0->state += 1` copies (cases
+0, 1, 2, all of them written inline, none behind a shared label) cross-jump into
+one block, and the survivor sits *where the last one was written* -- between case
+2's body and case 3's. That position is the evidence that the source repeated the
+increment rather than jumping to it; see the `func_mine_secret_passage_8017D60C`
+entry for when the inline form instead loses the merge to `sched1`.

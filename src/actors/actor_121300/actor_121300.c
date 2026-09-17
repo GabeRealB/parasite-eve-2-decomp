@@ -2,9 +2,12 @@
 
 #include "actors/actor_121300.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -220,7 +223,99 @@ void func_actor_121300_80133BFC(Task* arg0)
     arg0->field_24 = &D_actor_121300_8013CC88;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133D98);
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
+/// `D_8007218A` picks which of the two weapon-id bases that record uses, and
+/// `D_80071075` / `D_80114C12` (the cutscene mode flag) gate the actor's setup.
+extern u8  D_80073BA9;
+extern u8  D_80071075;
+extern s8  D_8007218A;
+extern s8  D_80114C12;
+extern s16 D_80071076;
+
+extern s32 D_actor_121300_8013CC00;
+extern s32 D_actor_121300_8013CE08;
+extern s32 D_actor_121300_8013D2E8;
+
+void func_actor_121300_80133854(Task* arg0);
+
+/// State machine of the cutscene actor, run once per frame from its slot.
+/// State 0 waits until no other cutscene is up -- a `D_80114C12` of 1 or a live
+/// `D_80071075` means one is -- and then builds the work block through
+/// `func_actor_121300_80133BFC` and arms the player's weapon: the slot-3
+/// message 0x3E8 record is `D_80073BA9` plus 1 in the alternate weapon block
+/// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
+/// zero.  State 1 hands the cutscene's two script blocks to `func_800E8634`,
+/// state 2 spawns the `ActorsShared80136280Desc[9]` child while the session is
+/// still down, and state 3 blanks the display, marks save slot 9 / the state
+/// and re-arms the first tick before killing the task.
+///
+/// States 0, 1 and 2 all leave through the same `Task::state` increment; the
+/// compiler cross-jumps the three copies, so it appears once, after state 2's
+/// body.  Every path but state 3 also steps the actor through
+/// `func_actor_121300_80133854` and hands the model's part-1 translation to
+/// `func_800D7A9C`.
+void func_actor_121300_80133D98(Task* arg0)
+{
+    Actor121300Scratch scratch;
+    TmdObject*         extra;
+    s32                state;
+    s32                weaponId;
+    s32                anim;
+
+    state = arg0->state;
+    switch (state) {
+        case 0:
+            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+                weaponId             = D_80073BA9;
+                anim                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                scratch.msg.field_0  = (void*)anim;
+                scratch.msg.field_4  = 1;
+                scratch.msg.field_8  = 0;
+                scratch.msg.field_C  = 0;
+                scratch.msg.field_10 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&scratch.msg, 0);
+                func_actor_121300_80133BFC(arg0);
+                arg0->state += 1;
+                break;
+            }
+            return;
+        case 1:
+            func_800E8634((s32)&D_actor_121300_8013CE08, 0, (s32)&D_actor_121300_8013D2E8);
+            arg0->state += 1;
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                Task_SpawnFromTable(&ActorsShared80136280Desc, 9, 0, 0);
+                arg0->state += 1;
+            }
+            break;
+        case 3:
+            scratch.rect.x = 0;
+            scratch.rect.y = 0;
+            scratch.rect.w = 0x140;
+            scratch.rect.h = 0xF0;
+            ClearImage(&scratch.rect, 0, 0, 0);
+            scratch.rect.y = 0x110;
+            ClearImage(&scratch.rect, 0, 0, 0);
+            Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+            SetDispMask(1);
+            Mc_SaveData.field_7 = state;
+            Mc_SaveData.field_6 = 9;
+            Mc_SaveData.field_8 = state;
+            D_80071076          = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            Task_Kill(arg0);
+            return;
+    }
+    func_actor_121300_80133854(arg0);
+    extra          = (TmdObject*)arg0->extra;
+    scratch.vec.vx = extra->field_8[1].workm.t[0];
+    scratch.vec.vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
+    scratch.vec.vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    func_800D7A9C(extra, &scratch.vec, 0, 3);
+    D_actor_121300_8013CC00 += 1;
+}
 
 void func_actor_121300_8013400C(Task* arg0)
 {
