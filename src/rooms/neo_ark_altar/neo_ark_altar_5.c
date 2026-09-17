@@ -1,17 +1,25 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/neo_ark_altar.h"
+
+#include <psyq/inline_c.h>
 
 extern TaskDesc RoomsShared8018397cDesc;
 
 extern u8 D_8007216D;
 
+extern NeoArkAltarTile D_neo_ark_altar_8017F014[];
+
 extern void func_neo_ark_altar_8017E148(void);
+void        func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DC40);
 
@@ -23,7 +31,92 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_alt
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E658);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E92C);
+/// Walls in one altar tile. The view matrix is re-derived from
+/// `Gfx_ViewCoord` and `Gfx_ViewWorldMtx` pushed into the GTE first, then each
+/// of the tile's four sides goes to `func_neo_ark_altar_8017E658` as its two
+/// corners at the floor height `y0` and at `y0 - arg1`, so `arg1` is how far a
+/// side drops below the tile. The sides walk the tile rectangle
+/// `(x, z) -> (x + w, z) -> (x + w, z + d) -> (x, z + d)` as `arg0` selects
+/// the tile in the table.
+void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
+{
+    NeoArkAltarTile* tile;
+    NeoArkAltarTile* base;
+    SVECTOR          p0;
+    SVECTOR          p1;
+    SVECTOR          p2;
+    SVECTOR          p3;
+    s16              y0;
+    s16              y1;
+
+    base = D_neo_ark_altar_8017F014;
+    y0   = -0x1086;
+
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+
+    tile = &base[arg0];
+    y1   = y0 - arg1;
+
+    p0.vx = tile->x;
+    p0.vy = y0;
+    p0.vz = tile->z;
+    p1.vx = tile->x + tile->w;
+    p1.vy = y0;
+    p1.vz = tile->z;
+    p2.vx = tile->x;
+    p2.vy = y1;
+    p2.vz = tile->z;
+    p3.vx = tile->x + tile->w;
+    p3.vy = y1;
+    p3.vz = tile->z;
+    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+
+    p0.vx = tile->x + tile->w;
+    p0.vy = y0;
+    p0.vz = tile->z;
+    p1.vx = tile->x + tile->w;
+    p1.vy = y0;
+    p1.vz = tile->z + tile->d;
+    p2.vx = tile->x + tile->w;
+    p2.vy = y1;
+    p2.vz = tile->z;
+    p3.vx = tile->x + tile->w;
+    p3.vy = y1;
+    p3.vz = tile->z + tile->d;
+    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+
+    p0.vx = tile->x;
+    p0.vy = y0;
+    p0.vz = tile->z + tile->d;
+    p1.vx = tile->x + tile->w;
+    p1.vy = y0;
+    p1.vz = tile->z + tile->d;
+    p2.vx = tile->x;
+    p2.vy = y1;
+    p2.vz = tile->z + tile->d;
+    p3.vx = tile->x + tile->w;
+    p3.vy = y1;
+    p3.vz = tile->z + tile->d;
+    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+
+    p0.vx = tile->x;
+    p0.vy = y0;
+    p0.vz = tile->z;
+    p1.vx = tile->x;
+    p1.vy = y0;
+    p1.vz = tile->z + tile->d;
+    p2.vx = tile->x;
+    p2.vy = y1;
+    p2.vz = tile->z;
+    p3.vx = tile->x;
+    p3.vy = y1;
+    p3.vz = tile->z + tile->d;
+    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EC34);
 

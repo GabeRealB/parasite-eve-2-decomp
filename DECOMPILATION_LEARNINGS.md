@@ -116262,3 +116262,71 @@ is the low half, on big-endian it would be `lbu` at offset 1.
 record's `u16`-in-a-`u16` field shape; the two-record staging itself is the
 `*dst = *src; func_80179A04(src, dst);` idiom already documented for the map
 resolvers, with the caller's descriptor playing `src`.
+## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (func_neo_ark_altar_8017E92C, 2026-09-17)
+
+Target: `lui s2,%hi(D_table)` / `addiu s2,s2,%lo(D_table)` sit *before* the
+`jal Gp_UpdateCoord`, while the index math that consumes them
+(`sll`/`addu`/`sll`, then `addu s0,s0,s2`) sits after the GTE asm block. The
+whole function is one basic block and nothing branches, so only where those two
+halves were written distinguishes them.
+
+The natural `t = &D_neo_ark_altar_8017F014[arg0];` placed after the GTE block
+gives `lui v0` / `addiu v0` in the same position but into a **caller-saved**
+scratch register, and 96.989% - a `regs`-only residue otherwise: the allocator
+then hands the three stack-vector addresses a different set of callee-saved
+registers as well, so one wrong home cascades through the whole prologue.
+
+Mechanism, from `sched.c`'s `sched_analyze_1`: for a set of a pseudo,
+
+```c
+	  /* Don't let it cross a call after scheduling if it doesn't
+	     already cross one.  */
+	  if (REG_N_CALLS_CROSSED (regno) == 0 && last_function_call)
+	    add_dependence (insn, last_function_call, REG_DEP_ANTI);
+```
+
+A definition that does not already cross a call acquires a dependence on the
+last preceding call, so the scheduler can never hoist it above that call. It
+therefore also never *becomes* live across one, and `find_free_reg` is free to
+choose a call-clobbered register for it - the register is a symptom, not the
+cause. `cse`/`combine` cannot help either: the value has one definition, and
+moving it is a scheduling decision.
+
+A `__asm__ volatile` is a hard barrier in **both** directions here, not just
+one: `sched_analyze_2`'s `ASM_OPERANDS` case sets `reg_pending_sets_all`, so
+every later set depends on the asm insn and cannot be scheduled above it. That
+is why the GTE block fixes the two halves apart at all - the index math cannot
+drift up to meet the address.
+
+Fix - split the address in the source, not with casts or barriers: take the
+array base before the call, index it after.
+
+```c
+    base = D_neo_ark_altar_8017F014;   /* before the call: base is live across it */
+    y0   = -0x1086;
+
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+
+    tile = &base[arg0];                /* after: only the scaled index is */
+```
+
+`base` now crosses the call, so it must take a callee-saved home (`$s2` here,
+reused for a stack-vector address once it dies) and its `lui`/`addiu` are
+emitted where they were written. 96.989% -> 100%, all penalties zero.
+
+Read it as the scheduler side of the same `REG_N_CALLS_CROSSED` flag the
+local-alloc entry above uses from the allocator side: there two sets in one
+variable unioned the ranges and refused every call-clobbered register; here one
+set that never crosses a call is pinned below the call that follows it.
+
+Inputs: `base_2.i` (95.902%) SHA256
+`b7138a103d74be0d68292627c01eaf3ee6741c1c93d3870bc6049c4901e7cf3b`, `base_3.i`
+(96.985%) SHA256 `bb4491047beb5af7ae920b5b6481715ecbcb1f02c84b98ab4300b6bacfb04ccf`,
+`base_4.i` (100%) SHA256
+`42fc71a198bb50cc37755760c8ea7e9502fcf743cf93a3a7eb149c06e7906a89`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_neo_ark_altar_8017E92C-vacuum`.
