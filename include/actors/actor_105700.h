@@ -131,7 +131,9 @@ typedef struct Actor105700Ctx {
     /* 0x08 */ u16                field_8;
     /* 0x0A */ byte               pad_A[0x32];
     /* 0x3C */ Actor105700Params* field_3C;
-    /* 0x40 */ byte               pad_40[0xC];
+    /// Positive while the actor keeps dwelling after an approach cycle.
+    /* 0x40 */ s16  field_40;
+    /* 0x42 */ byte pad_42[0xA];
     /// Cleared by `func_actor_105700_80133138` on state-0 entry.
     /* 0x4C */ u8   field_4C;
     /* 0x4D */ byte pad_4D[3];
