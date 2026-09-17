@@ -125819,3 +125819,52 @@ Inputs: scratch `nonmatchings/func_actor_135600_80132234-vacuum`, `base.c`
 (`c86db82a96aa297c8b00566010e4beceda1aacfd924cbc25e9be7e4e07fa24b3`,
 preprocessed `4657de0c5406af8d12a8a55c74436c633d1af2825be9934f378a71a14159235c`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Equivalent pointer loads: their *source order* is what picks each one's call-saved register
+
+`func_actor_135600_80133240` is `func_actor_350700_80163840`'s body over one
+more child: `work->field_4FC` / `field_500` / `field_504` are read into three
+`TmdObject*` locals, and the tail republishes `obj->field_C` onto all three. The
+first attempt matched everything except which of `$s2` / `$s3` / `$s4` holds
+which pointer (`regs=7`, 99.533%); the tail's store order was already right, so
+the only freedom left was the order of the three loads at the top.
+
+`global.c`'s `allocno_compare` ranks allocnos by
+`floor_log2 (n_refs) * n_refs / live_length`, ties broken by allocno number, and
+`find_reg`'s ascending scan hands the best-ranked allocno the lowest free
+call-saved register. All three locals have `n_refs == 2`, so the rank is purely
+`1 / live_length`: **the shortest-lived pointer takes `$s2`.** Their deaths are
+fixed (the target's tail stores them in one order), so the birth order set by
+the three assignment statements is the whole decision.
+
+The `.lreg` header reports those lengths directly, and it is worth reading them
+before predicting: with the source order `500, 4FC, 504` they came out 45 / 44 /
+46 insns, i.e. the second-born `4FC` won `$s2` — which is exactly the target's
+mapping (`4FC`→`$s2`, `500`→`$s3`, `504`→`$s4`), and the build went 99.733% →
+100.000% with nothing else changed. Two orders that differ only in the middle
+statement gave 99.53% and 100%.
+
+```c
+objB = work->field_500->extra;   /* born 1st -> longest  -> $s3 */
+objA = work->field_4FC->extra;   /* born 2nd -> shortest -> $s2 */
+objC = work->field_504->extra;   /* born 3rd -> longest  -> $s4 */
+```
+
+Two cautions. The birth order that matters is the one in the **scheduled** RTL
+(`sched1` runs before `local_alloc` / `global_alloc`), not the source order as
+written — here sched1 interleaved the block as
+`500addr, obj, 500extra, 4FCaddr, 504addr, 4FCextra, 504extra`, so reconstructing
+lengths from raw uid spans predicted an exact tie and the wrong winner, while
+the reported `used 2 times across N insns` lines were right. And this is the
+lever to reach for *before* a pin whenever the residue is a clean permutation of
+otherwise-identical live-across-call pointers; the same body shape in
+`func_actor_350700_80163840` arrived at a different permutation from a different
+statement order, which is why two "identical" twins can disagree on register
+names.
+
+Inputs: scratch `nonmatchings/func_actor_135600_80133240-vacuum`, `base.c`
+80.120%, `base_1.c` 99.533% (`regs=7`), `base_2.c` 99.733% (`regs=4`),
+`base_3.c` 100.000%
+(`8215259b0a728cfc3d45f37f742aa68504f2a1e093bb9a8712d46ac75c7cb500`,
+preprocessed `519733a8f6be48d8987ebb4bd60f60b31c4402ef6f1e084212388e1fb9b8cff8`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
