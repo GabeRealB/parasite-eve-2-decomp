@@ -51,9 +51,22 @@ extern u8  D_8007216D;
 extern s8  D_80115410;
 extern s16 D_80114D08;
 
-extern s16      D_neo_ark_shrine_80186868;
-extern s16      D_neo_ark_shrine_8018686A;
-extern TaskDesc D_neo_ark_shrine_80182508;
+/// One slot of the shrine's 16-slot arrangement puzzle, as a pair of 16-bit
+/// board coordinates. `D_neo_ark_shrine_8018256C` / `_8018252C` hold the room's
+/// initial and target layouts; `_8018688C` / `_801868CC` are the work copies
+/// the puzzle animates between.
+typedef struct {
+    /* 0x00 */ u16 x;
+    /* 0x02 */ u16 y;
+} NeoArkShrineSlot;
+
+extern s16              D_neo_ark_shrine_80186868;
+extern s16              D_neo_ark_shrine_8018686A;
+extern TaskDesc         D_neo_ark_shrine_80182508;
+extern u16              D_neo_ark_shrine_80182410[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_8018256C[16];
+extern s16              D_neo_ark_shrine_8018686C[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_8018688C[16];
 
 /// Spawns the action prompt for the script's current step: runs the shrine's
 /// per-step helper, clears the prompt's highlight state, then re-spawns the
@@ -248,7 +261,45 @@ void func_neo_ark_shrine_8017F320(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F398);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F448);
+/// Resets the shrine's 16-slot arrangement puzzle to its starting state: clears
+/// the two puzzle flags, reloads the work copy of the slot layout from the
+/// room's initial-layout table, and re-seeds the slot arrangement with the
+/// room's starting order.
+void func_neo_ark_shrine_8017F448(void)
+{
+    NeoArkShrineSlot* dstSlot;
+    NeoArkShrineSlot* srcSlot;
+    s16*              dstOrder;
+    u16*              srcOrder;
+    s32               i;
+    u16               y;
+    u16               order;
+
+    i                         = 0;
+    dstSlot                   = D_neo_ark_shrine_8018688C;
+    srcSlot                   = D_neo_ark_shrine_8018256C;
+    D_neo_ark_shrine_8018686A = 0;
+    D_neo_ark_shrine_80186868 = 0;
+    do {
+        i++;
+        dstSlot->x = srcSlot->x;
+        y          = srcSlot->y;
+        srcSlot++;
+        dstSlot->y = y;
+        dstSlot++;
+    } while (i < 0x10);
+
+    i        = 0;
+    dstOrder = D_neo_ark_shrine_8018686C;
+    srcOrder = D_neo_ark_shrine_80182410;
+    do {
+        order = *srcOrder;
+        srcOrder++;
+        i++;
+        *dstOrder = order;
+        dstOrder++;
+    } while (i < 0x10);
+}
 
 /// Second state of the shrine's first falling prop: allocates its 0x48-byte
 /// scratch block, republishes the block's light / colour matrices onto the

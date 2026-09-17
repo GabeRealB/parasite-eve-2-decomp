@@ -114685,3 +114685,38 @@ displacement, and biv elimination rewrites the exit test to
 `addiu v0,s2,0x48` / `slt v0,s1,v0` - the signature to read as an index loop.
 With the loop real, every `USE_REG` priority hack the goto form needed became
 unnecessary; the match is plain C apart from the two-variable depth clamp.
+## An m2c walking pointer steps by the *square* of its element size: fix the seed's increments before touching the allocator (func_neo_ark_shrine_8017F448, 2026-09-17)
+
+Symptom: the seed scores 99.35% with `regs=4` and **no** `stack`/`branch`/`reorder`,
+and the object dump differs from the target only in the pointer-increment
+immediates — every `addiu $a0,$a0,N` / `addiu $v1,$v1,N` is off by a power of
+two, the loads, stores, `slti 0x10`, block layout and branch polarity all agree.
+
+Cause: m2c emits the increment as a **byte count** for the step it saw, while
+declaring the pointer with a real element type. `s32` times a byte count is
+element-size² per iteration. Two loops in the same seed demonstrate it:
+
+| element | m2c emitted | compiled to | target |
+|---|---|---|---|
+| 4 bytes (`M2C_UNK*`, and `typedef s32 M2C_UNK`) | `+= 4` | `addiu ...,0x10` | `addiu ...,4` |
+| 2 bytes (`u16*`) | `+= 2` | `addiu ...,4` | `addiu ...,2` |
+
+Note the second row: the seed's `u16*` is already the right type, so this is not
+"m2c guessed the type wrong" — the *count* is scaled, and it stays scaled after
+the type is right.
+
+Fix: divide the increment by the element size, i.e. `var += 1` for both, then
+re-type the pointers. Decisive, single-edit move: 99.35% → 100.00% with all
+penalties zero. Two checks before editing anything else: the immediates should
+differ by exactly a power of two, and the ratio of m2c's increment to the
+target's should equal the element size in both loops. When it does, this is a
+seed-scale bug, not allocation — no pin or permuter pass can reach it.
+
+The `regs` penalty is what misleads here. The scorer files an immediate
+difference under `regs` because the operand is a register-plus-immediate pair,
+so the journal says "allocation" while the RTL is asking for a different
+constant. Read the dump before believing the penalty category.
+
+Corpus note: the same class of seed defect as entry 27's "parameters m2c could
+not see used" — m2c's inferred *types* are the first thing to distrust in a
+near-miss seed, ahead of any pass-level mechanism.
