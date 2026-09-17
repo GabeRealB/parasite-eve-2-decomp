@@ -118156,5 +118156,7 @@ sibling's C is known-good, compile it and read *its* dumps.
 
 Input hash: `base_4.c`
 `99aef3994fd0315579cd95b7f5c003ed3b14a5381e04612baa6747228a128474`.
-The give-up seed `base_2.c` (98.43%, shared-constant variable) is archived at
-`tools/giveups/func_dryfield_water_tank_8017EFF4/`.
+The near-miss seeds — `base_2.c`, the shared-constant variable at 98.43%, and
+`base_3.c`, one pointer variable over two distinct view types at 97.86% — live
+in the scratch env `nonmatchings/func_dryfield_water_tank_8017EFF4-vacuum/`,
+next to `mine_oracle.c`, the sibling compiled as the oracle.
