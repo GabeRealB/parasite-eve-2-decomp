@@ -14,7 +14,6 @@
 extern Task*    D_actor_303600_8016E4C0;
 extern Task*    D_actor_303600_8016E4C4;
 extern TaskDesc D_actor_303600_80162E98;
-INCLUDE_RODATA("actors/nonmatchings/actor_303600/actor_303600", D_actor_303600_80161E20);
 
 /// The cutscene's two script blocks, handed to `func_800E8634` together when the
 /// controller below arms the cutscene.
@@ -30,7 +29,83 @@ extern s8  D_80114C12;
 
 void func_actor_303600_80161F40(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_80161F40);
+/// Command dispatcher the cutscene controller steps while the cutscene is up.
+/// Commands 1-5 send the slot-4 task message 0x7DA carrying the session's two id
+/// bytes and the command as selector, latching it in the published work block's
+/// `field_C`; 4 then kills the fade in `D_actor_303600_8016E4C4` and spawns
+/// `D_actor_303600_80162E98` entry 1. 6 and 7 spawn entry 2, and 8 kills the fade
+/// and spawns entries 3 and 1. The command is cleared on the way out.
+void func_actor_303600_80161F40(Task* arg0)
+{
+    Actor303600Work*  work = (Actor303600Work*)arg0->idMap;
+    Actor303600Work*  w;
+    Actor303600Msg7DA msg;
+
+    switch (work->command) {
+        case 0:
+            break;
+        case 1:
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            w->field_C = 1;
+            break;
+        case 2:
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 2;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            w->field_C = 2;
+            break;
+        case 3:
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 3;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            w->field_C = 3;
+            break;
+        case 4:
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 4;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            w->field_C = 4;
+            if (D_actor_303600_8016E4C4 != NULL) {
+                Task_Kill(D_actor_303600_8016E4C4);
+                D_actor_303600_8016E4C4 = NULL;
+            }
+            Task_SpawnFromTable(&D_actor_303600_80162E98, 1, 4, 0);
+            break;
+        case 5:
+            w           = (Actor303600Work*)D_actor_303600_8016E4C0->idMap;
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 5;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            w->field_C = 5;
+            break;
+        case 6:
+            Task_SpawnFromTable(&D_actor_303600_80162E98, 2, 8, 0);
+            break;
+        case 7:
+            Task_SpawnFromTable(&D_actor_303600_80162E98, 2, 4, 0);
+            break;
+        case 8:
+            if (D_actor_303600_8016E4C4 != NULL) {
+                Task_Kill(D_actor_303600_8016E4C4);
+                D_actor_303600_8016E4C4 = NULL;
+            }
+            Task_SpawnFromTable(&D_actor_303600_80162E98, 3, 0, 0);
+            Task_SpawnFromTable(&D_actor_303600_80162E98, 1, 4, 0);
+            break;
+    }
+    work->command = 0;
+}
 
 /// Cutscene controller for the overlay. State 0 arms it once: a `D_80114C12` of
 /// 1 or a live `D_80071075` both mean a cutscene is already up, so the state is

@@ -24,7 +24,7 @@
 /// sending another.
 typedef struct Actor303600Work {
     /* 0x0 */ Task* field_0; // Game_GetPtrSlot(3) task
-    /* 0x4 */ s16   command; // state-machine request, see jtbl_actor_303600_80161E24
+    /* 0x4 */ u16   command; // state-machine request, see jtbl_actor_303600_80161E24
     /* 0x6 */ s16   field_6; // cleared alongside command
     /* 0x8 */ byte  pad_8[0x4];
     /* 0xC */ s16   field_C; // message id last dispatched
