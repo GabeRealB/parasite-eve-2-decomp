@@ -30,7 +30,54 @@ INCLUDE_RODATA("actors/nonmatchings/actor_461800/actor_461800", D_actor_461800_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80131E38);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132048);
+/// Full-screen fade overlay: `Task::state` picks the ramp (0 snaps it to 90,
+/// 1 clears it, 2 counts down, 3 counts up) held in `Task::killCountdown`, which
+/// then scales a grey semi-transparent `TILE` linked with its `DR_TPAGE` into
+/// OT slot 5.
+void func_actor_461800_80132048(Task* task)
+{
+    TILE*     tile;
+    DR_TPAGE* dr;
+    u8        c;
+
+    switch (task->state) {
+        case 1:
+            task->killCountdown = 0;
+            break;
+        case 3:
+            if (task->killCountdown < 90) {
+                task->killCountdown++;
+            }
+            break;
+        case 2:
+            if (task->killCountdown > 0) {
+                task->killCountdown--;
+            }
+            break;
+        case 0:
+            task->killCountdown = 90;
+            break;
+    }
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+    c              = (task->killCountdown * 0xFF) / 90;
+    setlen(tile, 3);
+    setcode(tile, 0x62);
+    tile->x0 = -0xA0;
+    tile->y0 = -0x80;
+    tile->w  = 0x140;
+    tile->h  = 0x100;
+    tile->r0 = c;
+    tile->g0 = c;
+    tile->b0 = c;
+    addPrim(Gpu_CurrentOt + 5, tile);
+
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000240;
+    addPrim(Gpu_CurrentOt + 5, dr);
+}
 
 void func_actor_461800_801321DC(s32 arg0)
 {
