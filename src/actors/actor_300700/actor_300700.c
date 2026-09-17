@@ -34,6 +34,7 @@ void func_actor_300700_801651A0(Actor300700* arg0);
 void func_actor_300700_80165230(Actor300700* arg0);
 void func_actor_300700_801652F4(Actor300700* arg0);
 void func_actor_300700_8016534C(Actor300700* arg0);
+void func_actor_300700_8016539C(Actor300700* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
@@ -904,7 +905,144 @@ done:
     SCRATCH_SP += 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801648E4);
+void func_actor_300700_801648E4(GpEnemy* arg0, Actor300700* arg1)
+{
+    Actor300700Work*  work;
+    Actor300700Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    Actor300700Work*  work2;
+    GsCOORDINATE2*    c;
+    VECTOR            vec;
+    s32               state;
+    s32               i;
+    s16               st;
+    s16               phase;
+    s16               val;
+    s32               snd;
+    s32               pan;
+
+    obj   = arg1->field_2C;
+    work  = arg1->field_1C;
+    state = D_801153F4;
+    coord = obj->field_8;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state < 2) {
+        goto default_body;
+    }
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case1:
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
+    return;
+case2:
+    obj->field_C = 0x80;
+    return;
+default_body:
+    st = work->field_37C;
+    if (st == 1) {
+        goto dying;
+    }
+    if (st >= 2) {
+        goto ge2;
+    }
+    if (st == 0) {
+        goto death;
+    }
+    return;
+ge2:
+    if (st == 2) {
+        goto destroy;
+    }
+    return;
+death:
+    work->field_37E = 6;
+    work->field_38C = 0;
+    work->field_390 = 0x1000;
+    work->field_340 = coord->coord;
+    arg0->field_54  = 0;
+    Gp_UnlinkNode(&arg0->node);
+    Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj1);
+    Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj2);
+    Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj3);
+    Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj4);
+    Gp_SetLightMode((GpObj4C*)arg0, 1);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 7);
+    work->field_37C = 1;
+    work2           = arg1->field_1C;
+    i               = 1;
+    if ((s16)work2->field_37E != work2->field_380) {
+        work2->field_380 = work2->field_37E;
+        work2->field_382 = 0;
+        val              = D_actor_300700_801693E4[(s16)work2->field_37E];
+        do {
+            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            i++;
+        } while (i < 7);
+    } else {
+        TOUCH_REG(i);
+        work2->field_382 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
+            i++;
+        } while (i < 7);
+    }
+    c      = arg1->field_2C->field_8;
+    vec.vx = c->workm.t[0];
+    vec.vy = c->workm.t[1];
+    vec.vz = c->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
+    snd = ((arg1->field_20->field_8 >> 12) << 8) | 0x40070005;
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    return;
+dying:
+    func_actor_300700_8016539C(arg1);
+    phase           = work->field_38C + 1;
+    work->field_38C = phase;
+    if (phase == 10) {
+        obj->field_C = 2;
+    }
+    if ((s16)work->field_38C == 15) {
+        Gp_SpawnEff(0x600A5, coord, 1, NULL);
+    }
+    if ((s16)work->field_38C >= 0x3C) {
+        work->field_37C = 2;
+    }
+    work2 = arg1->field_1C;
+    i     = 1;
+    if ((s16)work2->field_37E != work2->field_380) {
+        work2->field_380 = work2->field_37E;
+        work2->field_382 = 0;
+        val              = D_actor_300700_801693E4[(s16)work2->field_37E];
+        do {
+            func_800B4114(work2, i, (s16)work2->field_37E, 0, val);
+            i++;
+        } while (i < 7);
+    } else {
+        TOUCH_REG(i);
+        work2->field_382 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
+            i++;
+        } while (i < 7);
+    }
+    c      = arg1->field_2C->field_8;
+    vec.vx = c->workm.t[0];
+    vec.vy = c->workm.t[1];
+    vec.vz = c->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg1->field_20, &vec, 0, 0);
+    return;
+destroy:
+    Gp_DestroyEnemy(arg0, (Task*)arg1);
+    return;
+}
 
 void func_actor_300700_80164CE0(Task* arg0)
 {
