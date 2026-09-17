@@ -123589,3 +123589,40 @@ the array base folds into one `lw $v1, 0x178($a1)` and loses the target's
 argument: it feeds both `Gp_ExtractEuler` and `RotMatrix`, so the target computes
 `addiu $s1,$v0,0xF4` once and passes `move a1,s1` twice; as a naked argument GCC
 folds it into `addiu a1,a1,0xF4` and drops the instruction.
+
+## A message handler's only reference is a `.word` in the family's `data` subsegment (func_actor_317000_80162458, 2026-09-17)
+
+`BRIEF.md` reported `Callers: (none found in src/)`, and grepping the overlay's
+own `asm/USA/actors/nonmatchings/actor_317000/` for the name finds nothing at
+all — no `jal`, no `lui`/`addiu` pair. The single reference is a data word:
+
+    asm/USA/actors/data/actor_317000_data.data.s:5071: .word func_actor_317000_80162458
+
+so the search has to span the family's `data/` tree (`asm/<ver>/<family>/`, not
+just `<family>/nonmatchings/<overlay>/`), where the neighbours name it: it is
+the handler half of a `GpMsgEntry` pair, id `0x7DD` in `D_actor_317000_8016CF50`
+(the same table the overlay's 0x7DB handler, 0x7D4 and `ActorsShared80162bc4`
+sit in). The matched installer names that table directly —
+`arg0->field_24 = D_actor_317000_8016CF50;` in `func_actor_317000_8016267C` — so
+"which table is this handler in" is readable from `src/` without the binary.
+
+Worth doing before writing any C, because it settles what the empty caller list
+raises: a `GpMsgEntry` handler is called as `(Task*, s32 msgId, s32 arg2, s32
+arg3)` (`GpMsgHandler`), and the overlay's neighbouring handler is the house
+spelling of the last two arguments —
+`s32 func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg)`.
+
+The body then came straight from the family's already-matched near-twin,
+`func_actor_141000_801336DC` (`overlay_dup_index.py similar` ranks it 1.00 on
+the call sequence, 0.97 shape): 115 instructions against 121, the difference
+being one `field_4C2` store this carrier does not make and one `field_4C8` test
+its else-branch does not. Transcribing the matched C verbatim — including its
+redundant `msg = &preset; work = task->idMap; ext = task->extra;`
+source-placement lines — scored 100% on the first build, headers adjusted only
+for this overlay's names.
+
+The one prologue instruction the two carriers do not share is
+`addiu $a1, $zero, 0x1` here against `addiu $v0, $zero, 0x1` there, for the same
+two constant-`1` stores. The identical C produces both, so it is allocation,
+not a source-level value: do not introduce a variable or a pin for a constant
+parked in a dead incoming argument register.
