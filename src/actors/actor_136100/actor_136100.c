@@ -13,34 +13,52 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
-extern u8    D_80071075;
-extern s8    D_8007218A;
-extern u8    D_80073BAC;
-extern u8    D_80073BA9;
-extern s32   D_actor_136100_8013F1A0;
-extern s32   D_actor_136100_8013F1D4;
-extern s16   D_actor_136100_8013F218[];
-extern s32   D_actor_136100_8013F2F4;
-extern s32   D_actor_136100_8013F304[];
-extern s32   D_actor_136100_8013F31C;
-extern s32   D_actor_136100_8013F334[];
-extern s32   D_actor_136100_8013F364;
-extern s32   D_actor_136100_8013F37C;
-extern s32   D_actor_136100_8013F3AC;
-extern s32   D_actor_136100_8013F3F4;
-extern s32   D_actor_136100_8013F40C;
-extern s32   D_actor_136100_8013F424;
-extern s32   D_actor_136100_8013F43C;
-extern s32   D_actor_136100_8013F94C;
-extern s32   D_actor_136100_8013FAE4;
-extern s32   D_actor_136100_8013FC64;
-extern s32   D_actor_136100_801402C4;
-extern s32   D_actor_136100_801404EC;
-extern s32   D_actor_136100_8014063C;
-extern Task* D_actor_136100_8014078C;
-extern s8    D_80114C12;
+extern u8       D_80071075;
+extern s8       D_8007218A;
+extern u8       D_80073BAC;
+extern u8       D_80073BA9;
+extern s32      D_801833F4;
+extern s32      D_801834AC;
+extern s32      D_80183ACC;
+extern GpObj4A  D_801884AC;
+extern GpObj4A  D_801884F8;
+extern s32      D_actor_136100_8013F180[];
+extern s32      D_actor_136100_8013F1A0;
+extern s32      D_actor_136100_8013F1D4;
+extern s16      D_actor_136100_8013F218[];
+extern s32      D_actor_136100_8013F224;
+extern s32      D_actor_136100_8013F244;
+extern s32      D_actor_136100_8013F2C4;
+extern s32      D_actor_136100_8013F2F4;
+extern s32      D_actor_136100_8013F304[];
+extern s32      D_actor_136100_8013F31C;
+extern s32      D_actor_136100_8013F334[];
+extern s32      D_actor_136100_8013F364;
+extern s32      D_actor_136100_8013F37C;
+extern s32      D_actor_136100_8013F394;
+extern s32      D_actor_136100_8013F3AC;
+extern s32      D_actor_136100_8013F3F4;
+extern s32      D_actor_136100_8013F40C;
+extern s32      D_actor_136100_8013F424;
+extern s32      D_actor_136100_8013F43C;
+extern s32      D_actor_136100_8013F454;
+extern s32      D_actor_136100_8013F46C;
+extern s32      D_actor_136100_8013F784;
+extern s32      D_actor_136100_8013F94C;
+extern s32      D_actor_136100_8013FAE4;
+extern s32      D_actor_136100_8013FC64;
+extern s32      D_actor_136100_8013FD84;
+extern s32      D_actor_136100_80140114;
+extern s32      D_actor_136100_801402C4;
+extern s32      D_actor_136100_801404EC;
+extern s32      D_actor_136100_8014063C;
+extern Task*    D_actor_136100_8014078C;
+extern TaskDesc ActorsShared80134898Desc;
+extern s8       D_80114C12;
 
 void func_actor_136100_80131EC4(void);
+void func_actor_136100_80132748(Task* arg0);
+void func_actor_136100_80133238(Task* arg0);
 void func_actor_136100_80134A18(Task* task);
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131EC4);
@@ -633,4 +651,224 @@ void func_actor_136100_80133A88(Task* arg0)
     arg0->field_24 = &D_actor_136100_8013F2F4;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133BC8);
+/// Classify the pending `Gp_TakePendingObj4C` event for the cutscene's start
+/// cue: id 5 with kind 0x10 is 1 (phase 0), kind 0x11 is 2 (phase 1), anything
+/// else 0.  The `s16` return is what keeps the result in its own pseudo, copied
+/// into the caller's compare register after the join.
+static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* evtSub)
+{
+    if (Gp_TakePendingObj4C(evtId, evtKind, evtSub) != 0) {
+        if ((*evtId & 0x7FFF) == 5) {
+            if ((s8)*evtKind == 0x10) {
+                return 1;
+            }
+            if ((s8)*evtKind == 0x11) {
+                return 2;
+            }
+        }
+    }
+    return 0;
+}
+
+/// Re-arm animation slots 1..19 with slot count `count`
+/// (`func_actor_136100_801347B8`'s loop, reaching the work block through `task`).
+static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
+{
+    Actor136100Work* work = (Actor136100Work*)task->idMap;
+    s32              i;
+
+    work->field_4E0 = count;
+    i               = 1;
+    do {
+        work->slots[(u16)i].field_9 = 0x10;
+        Gp_AnimResetSlot(&work->anim, (u16)i, count);
+        i++;
+    } while ((u16)i < 0x14U);
+}
+
+/// Send the 0x3F4 animation record for `anim` to the `field_4C0` task, if any.
+/// A macro: `anim` must stay a literal per expansion, or both constant loads
+/// share one register and the two branches cross-jump earlier.
+#define func_actor_136100_SendAnimRec(task, anim)                       \
+    {                                                                   \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->idMap;    \
+                                                                        \
+        if (animWork->field_4C0 != NULL) {                              \
+            rec.field_0         = (s32) & D_actor_136100_8013F1D4;      \
+            animWork->field_4E2 = anim;                                 \
+            rec.field_4         = anim;                                 \
+            rec.field_8         = 0;                                    \
+            rec.field_C         = 0;                                    \
+            rec.field_10        = 0;                                    \
+            Gp_DispatchMsg(animWork->field_4C0, 0x3F4, (s32) & rec, 0); \
+        }                                                               \
+    }
+
+/// `func_actor_136100_80134A18`'s body over the shared `rec` slot: count the
+/// live entries of `D_actor_136100_8013F180` and send them with message 0x3F7.
+#define func_actor_136100_SendTable(task)                           \
+    {                                                               \
+        Actor136100Work* msgWork = (Actor136100Work*)(task)->idMap; \
+        s32              n;                                         \
+                                                                    \
+        n = 0;                                                      \
+        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {          \
+            n += 1;                                                 \
+        }                                                           \
+        rec.field_0 = (s32) & D_actor_136100_8013F180[0];           \
+        rec.field_4 = n & 0xFFFF;                                   \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3F7, (s32) & rec, 0);  \
+    }
+
+/// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.
+/// `vec` is a parameter rather than a local so the caller's buffer address
+/// stays out of the CSE class of the `Gp_DrawFloorQuad` argument that follows.
+static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
+{
+    TmdObject* obj = arg0->extra;
+
+    Gp_UpdateCoord(&obj->field_8[1]);
+    vec->vx = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
+    vec->vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
+    vec->vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    func_800D7A9C(obj, vec, 0, 3);
+}
+
+/// Main tick of the cutscene actor.  State 0 allocates the work block, picks
+/// the phase (`field_4E4`, from game flag 0x73) and spawns the two helper tasks;
+/// state 1 sends the phase's opening cues; state 2 waits for the matching start
+/// cue, sends the weapon record and table and sets game flag 0x7C; states 3..5
+/// wait on `Game_Session->field_1` and `func_actor_136100_80133904`.  Every
+/// state then runs the phase's three per-frame handlers and redraws the shadow.
+///
+/// Every message record, the shadow `VECTOR` and the floor-quad `SVECTOR` share
+/// the one `rec` frame slot; the dead `SVECTOR` reserves the 8-byte local below
+/// it (see `func_actor_136100_80133690`).
+void func_actor_136100_80133BC8(Task* arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)arg0->idMap;
+    SVECTOR          unused;
+    GpRec14          rec;
+    s32              cue;
+    u16              evtId;
+    u8               evtKind;
+    u8               evtSub;
+    u16              evtId2;
+    u8               evtKind2;
+    u8               evtSub2;
+
+    switch (arg0->state) {
+        case 0:
+            if (GameFlag_GetNibble(0x7C) != 0) {
+                Task_Kill(arg0);
+                return;
+            }
+            func_actor_136100_80133A88(arg0);
+            work            = (Actor136100Work*)arg0->idMap;
+            work->field_4E4 = GameFlag_GetNibble(0x73) == 0;
+            work->field_4B8 = Task_SpawnFromTable(&ActorsShared80134898Desc, 2, 0,
+                                                  (s32)((TmdObject*)arg0->extra)->field_8 + 0x140);
+            if (work->field_4E4 == 0) {
+                func_actor_136100_ResetSlots(arg0, 1);
+                work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 0, (s32)&Gfx_ViewCoord);
+            } else {
+                func_actor_136100_ResetSlots(arg0, 3);
+                work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 1,
+                                                      (s32)((TmdObject*)arg0->extra)->field_8 + 0x280);
+                Mem_CopyUnaligned(&D_actor_136100_8013F224, &D_801833F4, 0x20);
+                Mem_CopyUnaligned(&D_actor_136100_8013F2C4, &D_80183ACC, 0x30);
+                Mem_CopyUnaligned(&D_actor_136100_8013F244, &D_801834AC, 0x80);
+            }
+            work->field_4C0 = Game_GetPtrSlot(0xA);
+            arg0->state++;
+            break;
+        case 1:
+            if (work->field_4E4 == 0) {
+                func_800E3FAC(0xA2, 0x19);
+                Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
+                Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
+                Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+                Gp_DispatchMsg(work->field_4BC, 0x7D4, (s32)&D_actor_136100_8013F454, 0);
+                if (work->field_4C0 != NULL) {
+                    Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F3F4, 0);
+                }
+                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F394, 0);
+                func_actor_136100_ResetSlots(arg0, 1);
+                func_actor_136100_SendAnimRec(arg0, 1);
+            } else {
+                func_800E3FAC(0xA2, 0x1A);
+                Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
+                Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
+                Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+                if (work->field_4C0 != NULL) {
+                    Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
+                }
+                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_136100_8013F3AC, 0);
+                func_actor_136100_ResetSlots(arg0, 3);
+                func_actor_136100_SendAnimRec(arg0, 5);
+            }
+            arg0->state++;
+            break;
+        case 2:
+            cue = func_actor_136100_TakeStartCue(&evtId, &evtKind, &evtSub);
+            if (cue == 1 && work->field_4E4 == 0) {
+                if (D_80114C12 == 1) {
+                    return;
+                }
+                if (D_80071075 != 0) {
+                    return;
+                }
+                func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+                func_800E8634((s32)&D_actor_136100_8013F46C, 0, (s32)&D_actor_136100_8013F784);
+                Gp_UnlinkObj4A(0, &D_801884AC);
+                func_actor_136100_SendTable(arg0);
+                GameFlag_SetNibble(0x7C, 1);
+                arg0->state++;
+                break;
+            }
+            if (func_actor_136100_TakeStartCue(&evtId2, &evtKind2, &evtSub2) == 2 && work->field_4E4 == 1) {
+                if (D_80114C12 == 1) {
+                    return;
+                }
+                if (D_80071075 != 0) {
+                    return;
+                }
+                func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
+                func_800E8634((s32)&D_actor_136100_8013FD84, 0, (s32)&D_actor_136100_80140114);
+                Gp_UnlinkObj4A(0, &D_801884F8);
+                func_actor_136100_SendTable(arg0);
+                GameFlag_SetNibble(0x7C, 1);
+                arg0->state++;
+            }
+            break;
+        case 3:
+            if (Game_Session->field_1 == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            if ((s16)func_actor_136100_80133904(arg0) != 0) {
+                arg0->state++;
+            }
+            break;
+        case 5:
+            if (Game_Session->field_1 == 0) {
+                arg0->state--;
+            }
+            break;
+    }
+    if (work->field_4E4 == 0) {
+        func_actor_136100_801323F8(arg0);
+        func_actor_136100_80132748(arg0);
+        func_actor_136100_80132BC0(arg0);
+    } else {
+        func_actor_136100_80132E78(arg0);
+        func_actor_136100_80133238(arg0);
+        func_actor_136100_80133558(arg0);
+    }
+    func_actor_136100_UpdateShadow(arg0, (VECTOR*)&rec);
+    ((SVECTOR*)&rec)->vx = 0;
+    ((SVECTOR*)&rec)->vy = 0x380;
+    ((SVECTOR*)&rec)->vz = 0;
+    Gp_DrawFloorQuad(&((TmdObject*)arg0->extra)->field_8[1], 0x300, (SVECTOR*)&rec);
+}

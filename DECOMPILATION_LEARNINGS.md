@@ -114274,3 +114274,25 @@ Before committing, count `bodies_of()` across the files to make sure none were l
 **Symptom.** Target computes a flag as `sltu $v0,$zero,$v0; addu $s1,$v0,$zero; addu $v0,$s1,$zero`, and every earlier branch into the join carries `addu $v0,$s1,$zero` in its delay slot. With `s32 ready = 0; ... ready = D != 0; if (ready == 0 || ...)` GCC fuses the `sltu` straight into `$s1` and tests `$s1`, losing both copies (93.5%, branch=12). An inline helper returning the flag, or an extra `ok = ready;` copy, is copy-propagated away and changes nothing; `u8` adds masking.
 
 **Fix.** Declare the flag `s16`. The HImode store keeps the SImode `sltu` in its own pseudo and the SImode test reads it back through a copy, which is exactly the three-insn shape; dbr then steals the join's copy into each delay slot. Matched at 100% with no other change.
+
+## Frame-offset buffer address merged into a callee-saved pseudo across a call
+
+**Problem:** one function-scope buffer passed by address to two consecutive calls
+(`func_800D7A9C(obj, &buf.vec, ...)` then `Gp_DrawFloorQuad(..., &buf.rot)`).
+The target reloads `addiu a2,sp,0x18` for the second call; ours emitted
+`addiu s0,sp,0x18` before the first call and `move a2,s0` afterwards.
+
+**Cause:** both arguments expand to `(plus fp 8)`. cse replaces the second with
+the first argument's pseudo, which then lives across the call and lands in `$s0`.
+A buffer at frame offset 0 avoids it (plain `fp`, no pseudo), but moves the slot.
+
+**Fix:** pass the first address through an inline helper's pointer parameter
+(`static inline void UpdateShadow(Task*, VECTOR* vec)` called with
+`(VECTOR*)&rec`). The slot stays shared and the later address is recomputed.
+Giving the helper a *local* `VECTOR` also avoids the merge, but the inline local
+gets a fresh frame slot. (`func_actor_136100_80133BC8`)
+
+Related in the same function: an inline classifier returning `s32` had its return
+pseudo merged into the caller's variable and turned into `sllv` branchless code.
+Returning `s16` kept a separate pseudo, and with it the target's per-branch
+`li v0,K` + `move a0,v0` join.
