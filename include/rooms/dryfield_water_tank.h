@@ -112,6 +112,20 @@ typedef struct _DwtSprtRec {
 } DwtSprtRec;
 STATIC_ASSERT_SIZEOF(DwtSprtRec, 0x5C);
 
+/// Work block of the room's fade task `func_dryfield_water_tank_8017E3C4`, an
+/// 8-byte `Mem_Malloc(8, 0)` parked in `Task::idMap` (0x1C) -- that slot is not
+/// a `TaskIdMap` here. The same three-channel ramp the shared fade-up
+/// `RoomsShared8017da58` keeps at its own `idMap`: all three channels step
+/// together and the tile takes its blue from `r`, so `b` is only ever stepped.
+/// This is the fade-out half, which stays private to each room.
+typedef struct DwtFadeWork {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ s16  r;
+    /* 0x4 */ s16  g;
+    /* 0x6 */ s16  b;
+} DwtFadeWork;
+STATIC_ASSERT_SIZEOF(DwtFadeWork, 0x8);
+
 /// Toggle the room's cutscene-“watched” state over the view's two per-view
 /// objects: `arg0 != 0` sets the first object's `field_1C` and clears the
 /// second's `field_C` (so the view's sprites draw), `arg0 == 0` does the
