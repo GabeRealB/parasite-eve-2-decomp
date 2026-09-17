@@ -36,7 +36,9 @@ typedef struct Actor120400MainWork {
     /* 0x4B8 */ s32        field_4B8;    // placement position, copied verbatim
     /* 0x4BC */ s32        field_4BC;
     /* 0x4C0 */ s32        field_4C0;
-    /* 0x4C4 */ byte       pad_4C4[0x4D8 - 0x4C4];
+    /* 0x4C4 */ byte       pad_4C4[0x4C8 - 0x4C4];
+    /* 0x4C8 */ VECTOR3    step; // per-frame 16.16 step, added to the accumulators
+    /* 0x4D4 */ byte       pad_4D4[0x4D8 - 0x4D4];
     /* 0x4D8 */ s32        field_4D8;
     /* 0x4DC */ s32        field_4DC;
     /* 0x4E0 */ s32        field_4E0;
@@ -90,6 +92,17 @@ typedef struct Actor120400SpawnAnim {
     /* 0x04 */ u8  field_4;
 } Actor120400SpawnAnim;
 STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
+
+/// The empty handler that fills entry 0 of the parent's per-frame handler pair:
+/// `func_actor_120400_80132050` selects `{func_actor_120400_801327F0,
+/// ActorsShared801327f8}[work->field_4F8]`, so the pair's address is also the
+/// switch the placement handler leaves in `field_4F8`. Its counterparts in the
+/// sibling actors are `func_actor_350700_801633F8` / `func_actor_335800_80163B70`.
+void func_actor_120400_801327F0(void);
+
+/// Draws the ground-effect quad `func_800EA1A8` filled in, at the splash id
+/// the caller selects and the current ground-shade row `Gp_State1C->field_8`.
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Placement handler for the parent block: stores the spawn position and
 /// rotation, then applies a start preset. Returns 0.

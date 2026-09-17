@@ -2,9 +2,13 @@
 
 #include "actors/actor_120400.h"
 #include "actors/actors_shared_801327b4.h"
+#include "actors/actors_shared_801327f8.h"
 #include "actors/actors_shared_80132f24.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -104,7 +108,63 @@ void func_actor_120400_80131E5C(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132050);
+/// The parent's per-frame update, the same body `func_actor_350700_80162D5C`
+/// and `func_actor_335800_80163568` run, without their duplicated
+/// `func_800D7A9C`: the model's own state handler -- entry `field_4F8` of the
+/// pair `{func_actor_120400_801327F0, ActorsShared801327f8}` -- runs first, then
+/// the three 16.16 step accumulators at 0x4D8..0x4E0 take this frame's `step`,
+/// their integer halves are added onto the root coordinate's translation and
+/// the fraction is dropped, and `flg` is cleared so the tree rebuilds. With
+/// `field_474` set every animation slot is ticked. Unless the model is hidden
+/// (bit 0x80 of `TmdObject::field_C`), the second coordinate's work matrix
+/// feeds `func_800EA1A8` and a non-zero result draws the ground-effect quad;
+/// when `Game_Session->field_4D` is set the same coordinate is flagged stale,
+/// updated and re-ranked through `func_800D7A9C`. The body ends decrementing
+/// the `field_500` teardown timer, freeing the model's buffers on the frame it
+/// reaches zero.
+void func_actor_120400_80132050(Task* arg0)
+{
+    TmdObject*           ext      = arg0->extra;
+    Actor120400MainWork* work     = (Actor120400MainWork*)arg0->idMap;
+    TaskFunc             funcs[2] = { (TaskFunc)func_actor_120400_801327F0, ActorsShared801327f8 };
+    VECTOR3              pos;
+    GsCOORDINATE2*       coord;
+    s32                  i;
+
+    funcs[work->field_4F8](arg0);
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    work->field_4D8   += work->step.vx;
+    work->field_4DC   += work->step.vy;
+    work->field_4E0   += work->step.vz;
+    coord->coord.t[0] += (s16)(work->field_4D8 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4DC >> 16);
+    coord->coord.t[2] += (s16)(work->field_4E0 >> 16);
+    coord->flg         = 0;
+    work->field_4D8    = (u16)work->field_4D8;
+    work->field_4DC    = (u16)work->field_4DC;
+    work->field_4E0    = (u16)work->field_4E0;
+    if (work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+        }
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_500 >= 0) {
+        if (work->field_500 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_500--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132254);
 
