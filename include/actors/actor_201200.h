@@ -9,36 +9,42 @@
 /// substate the message handler below switches on; the three bytes at 0x194
 /// are the message echo the dispatcher copies in for every 0xB02 message.
 typedef struct Actor201200Work {
-    /* 0x000 */ s16     field_0;
-    /* 0x002 */ s16     field_2;
-    /* 0x004 */ s16     field_4;
-    /* 0x006 */ byte    pad_6[0x52];
-    /* 0x058 */ u16     field_58;
-    /* 0x05A */ byte    pad_5A[0x116];
-    /* 0x170 */ s16     field_170;
-    /* 0x172 */ s16     field_172;
-    /* 0x174 */ s16     field_174;
-    /* 0x176 */ s16     field_176;
-    /* 0x178 */ s16     field_178;
-    /* 0x17A */ s16     field_17A;
-    /* 0x17C */ s16     field_17C;
-    /* 0x17E */ byte    pad_17E[0x16];
-    /* 0x194 */ u8      field_194;
-    /* 0x195 */ u8      field_195;
-    /* 0x196 */ u8      field_196;
-    /* 0x197 */ byte    pad_197[0x21];
-    /* 0x1B8 */ GpRec18 rec1B8;
-    /* 0x1D0 */ byte    pad_1D0[0x60];
-    /* 0x230 */ GpObj   obj230;
-    /* 0x250 */ GpRec18 rec250;
-    /* 0x268 */ byte    pad_268[0x60];
-    /* 0x2C8 */ GpObj   obj2C8;
-    /* 0x2E8 */ GpRec18 rec2E8;
-    /* 0x300 */ GpObj   obj300;
-    /* 0x320 */ byte    pad_320[0x18];
-    /* 0x338 */ GpObj   obj338;
-    /* 0x358 */ byte    pad_358[0x80];
-    /* 0x3D8 */ s8      field_3D8; // nonzero rebuilds the color matrix each tick
+    /* 0x000 */ s16      field_0;
+    /* 0x002 */ s16      field_2;
+    /* 0x004 */ s16      field_4;
+    /* 0x006 */ s16      field_6; // frame counter within the substate
+    /* 0x008 */ byte     pad_8[0x50];
+    /* 0x058 */ u16      field_58;
+    /* 0x05A */ byte     pad_5A[0x116];
+    /* 0x170 */ s16      field_170;
+    /* 0x172 */ s16      field_172;
+    /* 0x174 */ s16      field_174;
+    /* 0x176 */ s16      field_176;
+    /* 0x178 */ s16      field_178;
+    /* 0x17A */ s16      field_17A;
+    /* 0x17C */ s16      field_17C;
+    /* 0x17E */ byte     pad_17E[0x16];
+    /* 0x194 */ u8       field_194;
+    /* 0x195 */ u8       field_195;
+    /* 0x196 */ u8       field_196;
+    /* 0x197 */ byte     pad_197[0x11];
+    /* 0x1A8 */ GpEffArg eff1A8; // `func_800FDB18`'s argument record
+    /* 0x1B0 */ byte     pad_1B0[0x8];
+    /* 0x1B8 */ GpRec18  rec1B8;
+    /* 0x1D0 */ byte     pad_1D0[0x60];
+    /* 0x230 */ GpObj    obj230;
+    /* 0x250 */ GpRec18  rec250;
+    /* 0x268 */ byte     pad_268[0x60];
+    /* 0x2C8 */ GpObj    obj2C8;
+    /* 0x2E8 */ GpRec18  rec2E8;
+    /* 0x300 */ GpObj    obj300;
+    /* 0x320 */ byte     pad_320[0x18];
+    /* 0x338 */ GpObj    obj338;
+    /* 0x358 */ byte     pad_358[0x3C];
+    /* 0x394 */ MATRIX   colorMtx;
+    /* 0x3B4 */ MATRIX   savedColorMtx; // colorMtx as it was on entering the death state
+    /* 0x3D4 */ byte     pad_3D4[0x4];
+    /* 0x3D8 */ s8       field_3D8;     // nonzero rebuilds the color matrix each tick
 } Actor201200Work;
 
 /// Context block at `Actor201200::field_20`; `field_40` is the counter the
@@ -51,6 +57,15 @@ typedef struct Actor201200Ctx {
     /* 0x15 */ byte pad_15[0x2B];
     /* 0x40 */ s16  field_40;
 } Actor201200Ctx;
+
+/// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
+/// rebuild: the rotation, the uniform scale applied to it and the yaw.
+typedef struct Actor201200FaceScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+} Actor201200FaceScratch;
+STATIC_ASSERT_SIZEOF(Actor201200FaceScratch, 0x34);
 
 struct Actor201200;
 
