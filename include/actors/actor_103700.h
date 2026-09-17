@@ -22,31 +22,37 @@
 /// state 1, and then either flags `field_250` or steps `field_24E` to 5 with the
 /// state copied into `field_248`.
 typedef struct Actor103700Work {
-    /* 0x000 */ byte     pad_0[0x224];
-    /* 0x224 */ GpEffArg field_224; // hit-spark record for `func_800FDB18`
-    /* 0x22C */ byte     pad_22C[0x8];
-    /* 0x234 */ SVECTOR  field_234;
-    /* 0x23C */ SVECTOR  field_23C;
-    /* 0x244 */ s16      field_244;
-    /* 0x246 */ s16      field_246;
-    /* 0x248 */ s16      field_248;
-    /* 0x24A */ byte     pad_24A[0x2];
-    /* 0x24C */ s16      field_24C;
-    /* 0x24E */ s16      field_24E;
-    /* 0x250 */ s16      field_250;
-    /* 0x252 */ s16      field_252;
-    /* 0x254 */ s16      field_254;
-    /* 0x256 */ u16      field_256;
-    /* 0x258 */ byte     pad_258[0x2];
-    /* 0x25A */ s16      field_25A;
-    /* 0x25C */ u16      field_25C;
-    /* 0x25E */ u16      field_25E;
-    /* 0x260 */ byte     pad_260[0x2];
-    /* 0x262 */ s16      field_262;
-    /* 0x264 */ s16      field_264;
-    /* 0x266 */ s16      field_266;
-    /* 0x268 */ byte     pad_268[0x4];
-    /* 0x26C */ u16      field_26C;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[6];
+    /* 0x104 */ byte       poses[0x60]; // pose buffer, `func_800B3F84` arg3
+    /* 0x164 */ MATRIX     colorMtx;
+    /* 0x184 */ MATRIX     lightMtx;
+    /* 0x1A4 */ GpObj      obj;
+    /* 0x1C4 */ GpRec18    records[4];
+    /* 0x224 */ GpEffArg   field_224; // hit-spark record for `func_800FDB18`
+    /* 0x22C */ byte       pad_22C[0x8];
+    /* 0x234 */ SVECTOR    field_234;
+    /* 0x23C */ SVECTOR    field_23C;
+    /* 0x244 */ s16        field_244;
+    /* 0x246 */ s16        field_246;
+    /* 0x248 */ s16        field_248;
+    /* 0x24A */ s16        field_24A;
+    /* 0x24C */ s16        field_24C;
+    /* 0x24E */ s16        field_24E;
+    /* 0x250 */ s16        field_250;
+    /* 0x252 */ s16        field_252;
+    /* 0x254 */ s16        field_254;
+    /* 0x256 */ u16        field_256;
+    /* 0x258 */ byte       pad_258[0x2];
+    /* 0x25A */ s16        field_25A;
+    /* 0x25C */ u16        field_25C;
+    /* 0x25E */ u16        field_25E;
+    /* 0x260 */ byte       pad_260[0x2];
+    /* 0x262 */ s16        field_262;
+    /* 0x264 */ s16        field_264;
+    /* 0x266 */ s16        field_266;
+    /* 0x268 */ byte       pad_268[0x4];
+    /* 0x26C */ u16        field_26C;
 } Actor103700Work;
 
 /// Pose context the `D_801153F4` mode switch in `func_actor_103700_80134E24`
@@ -85,7 +91,11 @@ typedef struct Actor103700Spawn {
 /// Record `Actor103700Spawn::field_3C` points at; `field_F` indexes the
 /// halfword table `D_actor_103700_80139D9C`.
 typedef struct Actor103700Kind {
-    /* 0x0 */ byte pad_0[0xF];
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ u16  field_2; // variant; `/ 10` picks the spawn mode
+    /* 0x4 */ byte pad_4[0x6];
+    /* 0xA */ u16  field_A;
+    /* 0xC */ byte pad_C[0x3];
     /* 0xF */ u8   field_F;
 } Actor103700Kind;
 
@@ -117,6 +127,15 @@ typedef struct Actor103700Rise {
 
 extern Actor103700Rise D_actor_103700_80139E14[];
 extern Actor103700Rise D_actor_103700_80139E4C[];
+
+/// The enemy's pair source; the spawn stores it in `GpEnemy::field_50` and
+/// seeds HP from its `field_4`, which retail addresses as its own label.
+extern GpPairSrcE D_actor_103700_80139D2C;
+extern u16        D_actor_103700_80139D30;
+
+/// Animation data `func_800B3F84` loads, and the task's `field_24` table.
+extern u8    D_actor_103700_80139F04[];
+extern void* D_actor_103700_80139F28;
 
 extern u32 Gp_LcgState;
 
