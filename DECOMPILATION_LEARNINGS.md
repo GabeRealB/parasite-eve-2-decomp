@@ -118051,3 +118051,47 @@ target.o SHA256
 `41e59e9c0ba34f06693ca44081b8e40a17fc1d10a5ea3b89dd93f5b2edd51853`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_dryfield_night_parking_lot_8017D8D0-vacuum`.
+## One leftover `reorder` between two independent insns: the scheduler's LAUNCH_PRIORITY boost, and the fix is an adjacent statement's order (func_dryfield_water_tank_8017DD20, 2026-09-17)
+
+Symptom: 99.38%, `reorder=1`, and the only difference is `lui $v0,%hi(SYM)` and
+`move $a1,$s2` swapped in front of `Task_Reparent(SYM, arg0)` - two insns with
+no dependence between them.
+
+`dump.sh` (and any build >= 90%) leaves the pre-reload scheduler's ready-list
+trace in `<base>.i.sched`. It shows the decision:
+
+```
+;; ready list at T-8: 99 (1) 97 (1), now 99 97        <- 97 = the lw
+;; insn 97 has a greater potential hazard, now 97 99
+;; ready list at T-9: 99 (1) 94 (7f000001), now 94 99 <- 94 = the lui
+```
+
+`94` carries `LAUNCH_PRIORITY` (0x7f000001). sched.c's `schedule_insn`
+(`INSN_PRIORITY (insn) = LAUNCH_PRIORITY; ... schedule_insn (...); = DONE`)
+passes that value as `max_priority` to `adjust_priority` for every insn it
+releases, and `adjust_priority` hands it on when `birthing_insn_p` is true: a
+`(set (reg R) ...)` whose R is live and set exactly once in the function. The
+address-materialising `high` of a global load is exactly that (fresh pseudo,
+one set), while the argument copy `(set (reg:SI 5 a1) (reg/v:SI N))` is not
+(dest is a hard register set many times). So a just-released `lui` wins the
+next cycle by priority, and the arg copy - in the ready list since the previous
+call was scheduled - always loses. sched2 keeps sched1's order because its
+tie-break (`rank_for_schedule`) prefers the larger `INSN_LUID`, and sched2's
+LUIDs are sched1's output order.
+
+Fix, and the point of the entry: do not argue with the comparator, move the
+pair's *timing*. Swapping the source order of two adjacent statements in the
+same block - here `extra->field_1C = &mtx->light;` before
+`extra->field_20 = &mtx->color;`, the order the actor sibling uses - changed
+which insns are scheduled in the cycles before, and the `lw` was then blocked
+for one cycle by a function-unit hazard (`;; blocking insn 97 for 1 cycles`).
+The arg copy issued first, the `lw` released the `lui` one cycle later, and
+sched2's LUID tie-break emitted the target order `lui / move a1 / lw`. The two
+stores are still emitted 0x20-then-0x1C, as the target wants, because the
+scheduler reorders them independently of the source order.
+
+The trace is the fastest way to see which cycle the pair lands in; `-da` writes
+it next to the other dumps, so no extra flags are needed.
+
+Input hash: `base_2.c` `68639f02c31cbab3415297aee8a215926a4d8ba7650f1b07e87987923cd1d046`,
+match at `base_v1.c` (same source with the two store lines transposed).

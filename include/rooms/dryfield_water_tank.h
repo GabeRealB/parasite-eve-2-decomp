@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+#include <psyq/libgte.h>
+
 /// Work block for the water-tank cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::idMap` (0x1C).
 ///
@@ -64,10 +66,34 @@ typedef struct DwtScriptWork {
 } DwtScriptWork;
 STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 
+/// Light/colour matrix pair `func_dryfield_water_tank_8017DD20` allocates for
+/// its `TmdObject` and republishes onto `TmdObject::field_1C` / `field_20` —
+/// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
+/// `Gp_DefaultMtx2`. The task parks the block in `Task::idMap` (0x1C), which is
+/// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
+/// is registered with (`Game_GetPtrSlot(3)`).
+///
+/// A different block from `DwtScriptWork`, which the room's script driver
+/// allocates at the same 0x58 size: this one belongs to the model task and
+/// stops at `owner`, and its 0x44 tail is left unknown rather than folded into
+/// the driver's script fields.
+typedef struct DwtColorMtx {
+    /* 0x00 */ MATRIX light; // TmdObject::field_1C
+    /* 0x20 */ MATRIX color; // TmdObject::field_20
+    /* 0x40 */ Task*  owner; // Game_GetPtrSlot(3)
+    /* 0x44 */ byte   pad_44[0x14];
+} DwtColorMtx;
+STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
+
 /// Toggle the room's cutscene-“played” state: `arg0 != 0` marks the task the
 /// script driver points at as watched and clears the sibling flag, `arg0 == 0`
 /// does the opposite. `func_dryfield_water_tank_8017DB48` passes the game-flag
 /// `0x55` nibble through it, one way per value.
 void func_dryfield_water_tank_8017EFF4(s32 arg0);
+
+/// Per-frame model update `func_dryfield_water_tank_8017DD20` runs while its
+/// state is 2; non-zero (the caller keeps only the low 16 bits) moves the task
+/// back to state 1. Still `INCLUDE_ASM` in this unit.
+s32 func_dryfield_water_tank_8017DB98(Task* arg0);
 
 #endif // ROOMS_DRYFIELD_WATER_TANK_H
