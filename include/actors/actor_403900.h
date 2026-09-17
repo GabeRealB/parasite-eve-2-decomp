@@ -173,7 +173,12 @@ typedef struct Actor403900Work {
     /// `func_800B3F84` argument record for the hit spark: the fourth part's
     /// coordinate, 0x500, 2.
     /* 0x65C */ GpEffArg field_65C;
-    /* 0x664 */ byte     pad_664[0x50];
+    /// The root coordinate's position the push-back restores when a record
+    /// table reports a full block (`func_800E0C10` case 2).
+    /* 0x664 */ s32  field_664;
+    /* 0x668 */ s32  field_668;
+    /* 0x66C */ s32  field_66C;
+    /* 0x670 */ byte pad_670[0x44];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor403900Region* field_6B4;
@@ -283,6 +288,18 @@ typedef struct Actor403900Obj2C {
     /* 0x2C */ s32               field_2C;
 } Actor403900Obj2C;
 
+/// 0x30-byte block `func_actor_403900_80131F54` takes from `G_SCRATCH_HEAD`:
+/// `delta` receives the `func_800E0C10` push-back and is then reused for the
+/// offset to the player, and `ofs` is the spark offset handed to
+/// `func_800FDB18`.
+typedef struct Actor403900HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ byte           pad_10[0x10];
+    /* 0x20 */ SVECTOR        ofs;
+    /* 0x28 */ byte           pad_28[8];
+} Actor403900HitScratch;
+STATIC_ASSERT_SIZEOF(Actor403900HitScratch, 0x30);
+
 /// 0x48-byte block `func_actor_403900_80135D5C` takes from `G_SCRATCH_HEAD`
 /// to aim the actor: `m` is the root's world matrix brought local to the
 /// fourth part, `out` the GTE's rotated offset, and `pts` the two world points
@@ -320,5 +337,8 @@ extern u32 Gp_LcgState;
 
 /// Parks the actor's target position off the player; see its definition.
 void func_actor_403900_80132E34(Actor403900* arg0);
+
+/// Reacts to the damage just taken; see its definition.
+void func_actor_403900_801324E8(Actor403900* arg0, s32 arg1);
 
 #endif /* ACTOR_403900_H */

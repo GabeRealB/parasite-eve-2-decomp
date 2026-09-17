@@ -1,76 +1,125 @@
 #include "common.h"
 
-#include "main/sound.h"
-
 #include "actors/actor_403900.h"
+#include "actors/actors_shared_80132d78.h"
 
-/// Cue word the countdown's expiry queues, a separate `D_` symbol in the
-/// overlay's data.
-extern s32 D_actor_403900_8013846C;
+/// Per-roll wait lengths the wait state scales by `16 - field_70C`, indexed
+/// by a 4-bit `Gp_LcgState` draw.
+extern s16 D_actor_403900_80153C3C[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_80132E34);
+/// Per-roll state offsets the wait state adds to 2 when `field_6E8` is set.
+extern u16 D_actor_403900_80153C5C[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_8013314C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_80133AEC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_80134194);
-
-/// Cue body of the enemy's attack: state 0 arms animation `field_6C0`, sets
-/// the cue state and rolls the countdown `field_6D4` from `Gp_LcgState`,
-/// raising the hit descriptor `field_494`/`field_49A` while no flinch is
-/// already running. State 1 ticks the countdown down and, on the frame it
-/// runs out, arms the `field_6DA`/`field_6DC`/`field_6DE`/`field_6E0` timers,
-/// clears the cue state and `field_6CC`, and queues the actor's cue, panned
-/// and depth-attenuated from the display object.
-void func_actor_403900_801347F4(Actor403900* arg0)
+/// State machine on `field_6CE`: 0 rolls a `field_6D4` wait, 1 counts it
+/// down, 2 picks state 3 or 4 from `field_70E` and an LCG draw offset by
+/// `field_710` (or 5 when `ActorsShared80132d78` reports a box hit), and 3-5
+/// settle the result, walking `field_70C` up to 8.
+void func_actor_403900_801329A4(Actor403900* arg0)
 {
-    Actor403900Work*  work;
-    Actor403900Coord* coord;
-    s32               state;
-    s32               pan;
-    u32               random;
-    s16               timer;
+    Actor403900Work* work;
 
-    *(u32*)0x1F8003FC -= 8;
-    work               = arg0->field_1C;
-    state              = work->field_6CE;
-    coord              = arg0->field_2C->field_8;
-    switch (state) {
+    work = arg0->field_1C;
+    switch (work->field_6CE) {
         case 0:
-            work->field_6C0 = 0xB;
-            work->field_6CE = 1;
-            random          = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState     = random;
-            work->field_6D4 = (u16)(((random >> 16) & 0x1F) + 0x2D);
-            if (work->field_6C6 == 0) {
-                work->field_49A |= 0x8000;
-                work->field_494  = work->field_716 | 0x30000;
+            work->field_6C8 = 0;
+            work->field_6EC = 0;
+            work->field_6EE = 0;
+            if (work->field_6E8 != 0) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6CE = D_actor_403900_80153C5C[(Gp_LcgState >> 16) & 0xF] + 2;
+                work->field_6EE = 1;
+                func_actor_403900_80132E34(arg0);
+                work->field_6E4 = 0;
+            } else if (work->field_6E4 == 0) {
+                work->field_6D4 = (D_actor_403900_80153C3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF] * (0x10 - work->field_70C)) / 16;
+                work->field_6CE = 1;
+            } else {
+                work->field_6D4 = 0;
+                work->field_6CE = 2;
+                work->field_6E4 = 0;
             }
             break;
         case 1:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
-            if (timer <= 0) {
-                work->field_6DA = 3;
-                work->field_6DC = 0xA;
-                work->field_6CC = 0;
+            work->field_6D4--;
+            if ((s16)work->field_6D4 <= 0) {
+                work->field_6CE = 2;
+                work->field_6D4 = 0;
+            }
+            break;
+        case 2:
+            if (work->field_70E != 3 && ActorsShared80132d78((ActorShared80132d78*)arg0) != 0) {
+                work->field_6CE = 5;
+                work->field_710 = 0;
+                break;
+            }
+            if (work->field_70E == 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((s32)((Gp_LcgState >> 16) & 0xF) < work->field_710 + 10) {
+                    work->field_6CE = 4;
+                    work->field_710 = 0;
+                } else {
+                    work->field_6CE = 3;
+                    work->field_710++;
+                }
+            } else if (work->field_70E == 2) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((s32)((Gp_LcgState >> 16) & 0xF) < work->field_710 + 8) {
+                    work->field_6CE = 3;
+                    work->field_710 = 0;
+                } else {
+                    work->field_6CE = 4;
+                    work->field_710++;
+                }
+            } else {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6CE = ((Gp_LcgState >> 16) & 0xF) < 8 ? 3 : 4;
+                work->field_710 = 0;
+            }
+            func_actor_403900_80132E34(arg0);
+            break;
+        case 3:
+            if (work->field_5F4.field_4 == 0) {
+                work->field_6CC = 1;
                 work->field_6CE = 0;
-                work->field_6DE = 5;
-                work->field_6E0 = 0;
-                work->field_6BC = D_actor_403900_8013846C | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
-                pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
-                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                work->field_70E = 1;
+                if (work->field_70C < 8) {
+                    work->field_70C++;
+                }
+            } else {
+                work->field_6CE = 2;
+                if (work->field_710 != 0) {
+                    work->field_710--;
+                }
+            }
+            work->field_5BA &= ~0x4000;
+            work->field_5DA &= ~0x4000;
+            Gp_ClearRec18Occupied(&work->field_5F4);
+            break;
+        case 4:
+            if (work->field_5F4.field_4 == 0) {
+                work->field_6CC = 2;
+                work->field_6CE = 0;
+                work->field_70E = 2;
+                if (work->field_70C < 8) {
+                    work->field_70C++;
+                }
+            } else {
+                work->field_6CE = 2;
+                if (work->field_710 != 0) {
+                    work->field_710--;
+                }
+            }
+            work->field_5BA &= ~0x4000;
+            Gp_ClearRec18Occupied(&work->field_5F4);
+            break;
+        case 5:
+            work->field_6CC = 3;
+            work->field_6CE = 0;
+            work->field_70E = 3;
+            Gp_ClearRec18Occupied(&work->field_644);
+            if (work->field_70C < 8) {
+                work->field_70C++;
             }
             break;
     }
-    *(u32*)0x1F8003FC += 8;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_80134968);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_8013539C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_801354B0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900_80135630);
