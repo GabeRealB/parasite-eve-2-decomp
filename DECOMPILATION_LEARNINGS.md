@@ -126070,3 +126070,27 @@ frame and delete counts were already explained. Evidence: `base_object_dump.s`
 (`0x140`) vs `base_5_object_dump.s` (`4`) vs
 `asm/USA/actors/matchings/actor_143900/actor_143900/ActorsShared80131f9cSub0.s`
 (`0x4`).
+
+## A drift landing merges its code extras; `land_overlay.py` copies them
+
+`tools/land_overlay.py` merges three `--extra` paths and copies every other one
+wholesale: `tools/difficult_functions` by key, `configs/USA/overlays.toml` by
+entry against `--base`, and any `.md` three-way. So a *code* extra - the
+promoted sibling body `vacuum_overlay.sh` hands a landing as `--extra
+src/<family>/<overlay>/<overlay>.c` - overwrites whatever trunk did to that file
+after the worktree was cut, and nothing catches it: both versions are valid C, so
+the build stays green and only trunk's content is gone. That is exactly the case
+`vacuum_overlay.sh` reports as `trunk diverged in:` and hands to an agent rather
+than running the tool itself.
+
+Land those with a three-way merge instead. `git cherry-pick -n <sha>` per
+`matched` commit merges against that commit's own parent, so trunk's edits and
+the branch's both survive; only a hunk both sides inserted at the same place
+conflicts, and keeping both lines resolves it (trunk's `#include "main/task.h"`
+beside the branch's `#include "main/sound.h"`, in the file's sorted order).
+Strip each pick's `.md` half with `git restore --source=HEAD --staged --worktree
+-- DECOMPILATION_LEARNINGS.md` and merge that file once with
+`land_overlay.merge_sections` against the worktree's base, so the per-function
+commits stay code-only and keep the attempt counts `fit_difficulty_model.py`
+trains on. `actor_260400`'s landing: a wholesale copy would have reverted four
+includes and a paragraph trunk had added to `actor_110800.c`.
