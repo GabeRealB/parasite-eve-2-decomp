@@ -33,7 +33,13 @@ typedef struct Actor311500Work {
     /// `func_actor_311500_801629D8`; `field_4CC` below holds the `field_4` of
     /// the entry the damage check picked out.
     /* 0x45C */ GpRec18 rec18[1];
-    /* 0x474 */ byte    pad_474[0x4C];
+    /* 0x474 */ byte    pad_474[0x48];
+    /// Saved copy of the model object's `field_C`, swapped with it when the
+    /// mode byte changes: `func_actor_311500_80163334` restores it into the
+    /// object on entry to mode 0 and captures it again on entry to mode 2.
+    /// Read and written as a word, but only its low half is meaningful, which
+    /// is why the restore loads a halfword.
+    /* 0x4BC */ u32 field_4BC;
     /// State stepped by `func_actor_311500_80162F28`: 0 arms every slot and
     /// spawns the hit effect, 1 only ticks them.
     /* 0x4C0 */ s16  field_4C0;
@@ -52,6 +58,10 @@ typedef struct Actor311500Work {
     /* 0x4CC */ s32  field_4CC;
     /* 0x4D0 */ s32  field_4D0;
     /* 0x4D4 */ u16  field_4D4;
+    /// Last `D_801153F4` mode this handler recorded. Mode 0 restores the
+    /// object's `field_C` only while it is still zero, mode 2 captures it back
+    /// once the mode byte has moved on, and the shared tail stores the mode.
+    /* 0x4D6 */ u16 field_4D6;
 } Actor311500Work;
 
 typedef struct Actor311500 {
@@ -60,7 +70,17 @@ typedef struct Actor311500 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[0x8];
     /* 0x2C */ TmdObject*       field_2C;
+    /// Step within the current mode, driven by `func_actor_311500_80163334`:
+    /// 0 re-arms the animation slots, 1 cues the entry sound and clears the
+    /// collision table, 2 back-steps once the animation flag settles, 3 waits
+    /// for the pose step, 4 returns without touching the shared tail.
+    /* 0x30 */ u32 field_30;
 } Actor311500;
+
+/// Which of the alternate modes the current frame runs, keyed on
+/// `Game_Session`'s scenario id. `func_actor_311500_80163334` dispatches on it
+/// and records the value it saw in the work block's `field_4D6`.
+extern u8 D_801153F4;
 
 void func_actor_311500_801636A0(Actor311500* arg0, s32 arg1, s32 arg2, u32* arg3);
 

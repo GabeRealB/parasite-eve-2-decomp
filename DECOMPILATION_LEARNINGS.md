@@ -474,6 +474,21 @@ needed, and the build does not tell you the second one:
    split problem rather than a stale include. Every table in the unit's rodata
    had a matched body behind it, so after removing the line the image matched
    byte for byte.
+
+When the table at 0x4 belongs to a *later* unit - `actor_311500`'s is
+`actor_311500_2`'s, `func_actor_311500_80163334`'s inner switch - the header
+word and the table still must not share a subsegment, but the block now belongs
+to that unit instead of the overlay's first one:
+
+    rodata_head = "0x4", rodata = [{ start = "0x4", unit = "actor_311500_2" }]
+
+A cut at exactly `head` *renames* the leading block rather than adding a second
+subsegment at the same offset (`gen_overlay_configs.py`'s `lead`), which is the
+only way to give the table to a non-first unit - `actor_800200`'s two tables
+are its unit 2's the same way. The header word becomes the `<name>_hdr` asm
+object, unit 2's `.rodata` starts at 0x4, and step 2 above still applies to the
+first unit: its `INCLUDE_RODATA` lines go, because the whole 0x4..0x18 block is
+now the compiler's table and nothing else emits it.
 ## A rare constant finds the matched twin body; a halfword temp decides which operand carries the constant
 
 When a function's body is a near-copy of another overlay's, the cheapest route
@@ -127522,3 +127537,36 @@ and leaving a single `return 0` after the switch gives that shared block --
 one instruction the extra `move` had cost. The sibling `func_actor_311500_80162F28`
 is written the same way (`break` then a shared tail), so read the whole switch's
 return structure before matching a case's own.
+
+## Global-alloc's allocno race is decided by `floor_log2(n_refs)`, so copy the parameter to flip it (func_actor_311500_80163334, 2026-09-17)
+
+A body can match instruction for instruction and still sit at 99.16% with
+`regs=37` and every other penalty zero: the long-lived actor pointer and an
+eight-instruction loop pointer had swapped `$s1`/`$s2`. That is global-alloc's
+*order*, not a lifetime or scheduling problem, and `.i.greg` prints it:
+
+    ;; 7 regs to allocate: 86 85 149 82 80 81 84
+
+`global.c`'s `allocno_compare` sorts by `floor_log2 (n_refs) * n_refs /
+live_length`, so with the `.i.lreg` counts the two candidates were
+
+    pseudo 80, the parameter   31 refs over 338 insns   4*31/338 = 3690
+    pseudo 82, the loop pointer  3 refs over   8 insns   1*3/8    = 3750
+
+and the short-lived local took the lower register. The lever is `floor_log2`,
+which steps at 32 - one more reference and the parameter is `5*32/338 = 4733`.
+No edit inside the body can add one without adding an instruction, but a copy
+of the parameter at the top adds only its own def:
+
+    void func_actor_311500_80163334(Actor311500 *arg0)
+    {
+        Actor311500 *actor = arg0;      /* the 32nd reference */
+
+`actor` now outranks the loop pointer and takes `$s1`, and the `addu
+$s1,$a0,$zero` the target shows is *that* copy rather than the one reload
+inserts for a parameter it allocates to a callee-saved register. Both spellings
+produce identical machine code, so only the extracted allocation order tells
+them apart - 99.16% -> 99.98%, with the same body otherwise untouched. When a
+`regs`-only diff is a clean swap of two callee-saved homes for values of very
+different lifetime, read the greg order and compute both ratios before
+rewriting anything.

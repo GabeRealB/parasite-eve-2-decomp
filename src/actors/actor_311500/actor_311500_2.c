@@ -8,6 +8,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500
 
 INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_80162C34);
 
+extern s32 D_80181E74;
+extern s32 D_80181EC4;
+extern s32 D_8018207C;
+extern s32 D_actor_311500_801692FC;
+extern s32 D_actor_311500_80169304;
+extern s32 D_actor_311500_80169324;
+
+void func_actor_311500_801629D8(Actor311500* arg0);
+void func_actor_311500_80162C34(Actor311500* arg0, TmdObject* arg1);
+
 s16 func_actor_311500_80162DDC(Actor311500* arg0)
 {
     Actor311500Work* work = arg0->field_1C;
@@ -220,7 +230,118 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_80163334);
+void func_actor_311500_80163334(Actor311500* arg0)
+{
+    Actor311500*     actor = arg0;
+    Actor311500Work* work;
+    Actor311500Work* anim;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    VECTOR           pos;
+    s32              state;
+    s32              i;
+    s32              pan;
+
+    work  = actor->field_1C;
+    obj   = actor->field_2C;
+    state = D_801153F4;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto case1;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto case1;
+
+case0:
+    if (work->field_4D6 != 0) {
+        obj->field_C = work->field_4BC;
+    }
+    switch (actor->field_30) {
+        case 0:
+            Mem_CopyUnaligned(&D_actor_311500_80169304, &D_80181EC4, 0x20);
+            Mem_CopyUnaligned(&D_actor_311500_801692FC, &D_80181E74, 8);
+            Mem_CopyUnaligned(&D_actor_311500_80169324, &D_8018207C, 0xC);
+            func_actor_311500_801629D8(actor);
+            work = actor->field_1C;
+            anim = work;
+            i    = 1;
+            do {
+                Gp_AnimTickIndex(&anim->anim, i & 0xFFFF);
+                i += 1;
+            } while (((u32)(i & 0xFFFF)) < 0x13U);
+            actor->field_30 += 1;
+            goto case1;
+
+        case 1:
+            func_actor_311500_80162C34(actor, obj);
+            if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
+                pan = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->field_8);
+                SndEvt_EnqueueType6(0x400A0007, pan,
+                                    (s8)Gp_GetObjDepth((GpObj38*)actor->field_2C->field_8));
+                work->field_4C0  = 0;
+                actor->field_30 += 1;
+            }
+            Gp_ClearRec18Occupied(work->rec18);
+            goto case1;
+
+        case 2:
+            if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
+                work->field_4C0 = 0;
+            }
+            if ((func_actor_311500_80162F28(actor) << 0x10) > 0) {
+                work->field_4C0  = 0;
+                actor->field_30 -= 1;
+                goto case1;
+            }
+            if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
+                Mem_Set(&D_80181EC4, 0, 0x20);
+                Mem_Set(&D_80181E74, 0, 8);
+                Mem_Set(&D_8018207C, 0, 0xC);
+                work->field_4D4  = 0;
+                work->field_4C0  = 0;
+                actor->field_30 += 1;
+            }
+            goto case1;
+
+        case 3:
+            if ((func_actor_311500_801630A4(actor) << 0x10) != 0) {
+                actor->field_30 += 1;
+                return;
+            }
+            goto tail;
+
+        case 4:
+            return;
+    }
+    goto case1;
+
+case2:
+    if (work->field_4D6 != state) {
+        work->field_4BC = obj->field_C;
+    }
+    actor->field_2C->field_C |= 0x80;
+    goto case1;
+
+case1:
+    work->field_4D6 = D_801153F4;
+tail:
+    enemy = actor->field_20;
+    Gp_UpdateCoord(&actor->field_2C->field_8[1]);
+    pos.vx = actor->field_2C->field_8->workm.t[0];
+    pos.vy = actor->field_2C->field_8->workm.t[1];
+    pos.vz = actor->field_2C->field_8->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    actor->field_2C->field_8->flg = 0;
+}
 
 void func_actor_311500_801636A0(Actor311500* arg0, s32 arg1, s32 arg2, u32* arg3)
 {
