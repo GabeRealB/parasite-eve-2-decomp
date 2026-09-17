@@ -22,8 +22,14 @@
 /// resets it - identity rotation, parked at (0, -0x320, 0) - and hangs the
 /// model's own coordinate (`TmdObject::field_8`) under it as `sub`, which is
 /// what leaves the model's positions relative to that spot.
+///
+/// `light` and `color` are the two matrices the block itself supplies to the
+/// model: `func_mine_cavern_801836D0` publishes `&work->light` / `&work->color`
+/// into `TmdObject::field_1C` / `field_20`, which is what `Tmd_SetupDraw` loads
+/// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
 typedef struct MineCavernWork {
-    /* 0x000 */ byte          pad_0[0x40];
+    /* 0x000 */ MATRIX        light;
+    /* 0x020 */ MATRIX        color;
     /* 0x040 */ GpObj         obj40;
     /* 0x060 */ byte          pad_60[0x60];
     /* 0x0C0 */ GpObj         objC0;

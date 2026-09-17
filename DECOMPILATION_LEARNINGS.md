@@ -90,6 +90,43 @@ Corner-major order (`x0`,`y0`,`x1`,`y1`,…) also emits each pair in RTL order b
 with the lower offset first, which costs four reorderings (98.25% vs 98.76%).
 The paired values must be the same expression for the stores to collapse; two
 different expressions that happen to be equal are two pseudos.
+## Naming one `Mem_Calloc` result twice is how the target keeps it in `$v0` *and* `$a0`
+
+`func_mine_cavern_801836D0` reached 99.900% with only two instructions differing:
+the target tests and parks the allocation through `$v0` (`bnez $v0` then
+`sw $v0, 0x1C($s0)` in the delay slot) and uses `$a0` for that same pointer
+afterwards, where one C variable put all five uses in `$a0`. Everything else
+matched - same frame, same schedule, `stack=0 branch=0 reorder=0 insert=0
+delete=0`, `regs=2`.
+
+One variable is one pseudo, and `.lreg` says so:
+`Register 82 used 5 times across 14 insns` with `82 conflicts: 80 81 82 2 3 29`.
+Conflicting with `$v0` and `$v1` means `global.c` cannot choose the register the
+call already returned in, so the copy `addu $a0,$v0,$zero` stays and every use
+reads its destination. Naming the same block twice,
+
+```c
+mem         = (MineCavernWork*)Mem_Calloc(0x14C, false);
+work        = mem;
+arg1->idMap = (TaskIdMap*)mem;
+if (mem == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
+...
+((TmdObject*)arg1->extra)->field_1C = &work->light;
+```
+
+gives `mem` a block-0-only range, so `local-alloc` keeps it in `$v0` and drops
+the arm of the copy, while the long-lived `work` takes `$a0`. 100.000%.
+
+Note the direction: this is the mirror of the `reg/v` pseudo with two
+*definitions* - there one variable is two pseudos too many, here one variable is
+one pseudo too few. `func_actor_210600_8014B8C8` is the same `mem = Mem_Calloc(...);
+work = mem;` shape already matched, and is worth reading before reaching for a
+pin when a calloc result's register pair looks wrong.
+
+Inputs: `base_1.i` (99.900%)
+`11e46d58981c8a261c3b7749a4d31b9c4583f7f941209d8bbb823eae69183ad9`;
+`base_2.i` (100.000%)
+`8ce298076f44880687d769abcdcb69db94d81f8423056a5d2ff6e080e906645e`.
 
 ## A local's declared *width* decides how many pseudos a `switch (x = expr)` operand costs — and with them the callee-saved home
 
