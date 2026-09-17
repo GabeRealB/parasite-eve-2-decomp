@@ -67340,6 +67340,19 @@ with the call's first argument. Reproduce with an explicit `VECTOR v;`, a local
 `(VECTOR*)coord->workm.t` directly (the `room_util20` form) instead emits no
 stack copy and no reloads.
 
+`func_actor_361100_801631C4` is the same mechanism spread over three uses, and
+shows what caching the *wrong* local costs. Keeping `GsCOORDINATE2* coord =
+ext->field_8` and using it for the tail made the tail's four `field_8` reads a
+single CSE'd base held in `$s0`/`$s2`; that both killed the re-derivation the
+target has and let `task` die at the top, so the target's `$s3 = task` / `$s2 =
+ext` pair came out as `$s3 = ext` with no `task` at all (83.9%, 15 instructions
+short). Spelling the chain out — `((TmdObject*)task->extra)->field_8[1].flg`,
+`Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1])` — while keeping the
+`ext` local for `ext->field_C` and the two calls that pass it reproduces the
+target exactly. The tell is which pointer the reload chain walks: when the tail
+does `lw v0,0x2C(sX)` + `lw a0,8(v0)` with `sX` the *task*, the source re-read
+`task->extra`, not a cached pointer.
+
 ## Transposed rotation copied through two base registers: one inline-asm block
 
 `func_actor_503500_801437D0` transposes the player's `coord` rotation into a

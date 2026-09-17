@@ -7,7 +7,10 @@
 #include "main/mem.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 extern Task* D_actor_361100_80171BE0;
 
@@ -20,6 +23,8 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void* D_actor_361100_8016BAE0[];
 
 extern GpMsgEntry D_actor_361100_8016BAF0[];
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_361100_80162B0C(void)
 {
@@ -207,7 +212,64 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_801631C4);
+/// Per-frame tick of the actor: integrates the 16.16 accumulator at 0x490
+/// three words at a time into the root part's local translation -- whole part
+/// onto `coord.t`, then it is truncated back to its fraction -- runs the
+/// `field_4A0` countdown that zeroes the 0x480 step while it is at 1, ticks the
+/// animation slots once `field_43C` has latched, and while the part is visible
+/// draws its ground shadow, rebuilds the second part's world matrix from it and
+/// re-ranks it through `func_800D7A9C`. `field_4A2` counts the second part's
+/// buffers down to the free. The body is the same tick the family's sibling
+/// packages run (`func_actor_335800_80163568`, `func_actor_141000_801332A0`),
+/// which is why its `field_8[1]` uses are spelled out from `task` at each site
+/// rather than cached.
+void func_actor_361100_801631C4(Task* task)
+{
+    TmdObject*       ext  = task->extra;
+    Actor361100Work* work = (Actor361100Work*)task->idMap;
+    GsCOORDINATE2*   coord;
+    VECTOR3          pos;
+    s32              i;
+
+    coord              = ext->field_8;
+    work->field_490   += work->field_480;
+    work->field_494   += work->field_484;
+    work->field_498   += work->field_488;
+    coord->coord.t[0] += (s16)(work->field_490 >> 16);
+    coord->coord.t[1] += (s16)(work->field_494 >> 16);
+    coord->coord.t[2] += (s16)(work->field_498 >> 16);
+    coord->flg         = 0;
+    work->field_490    = (u16)work->field_490;
+    work->field_494    = (u16)work->field_494;
+    work->field_498    = (u16)work->field_498;
+    if (work->field_4A0 > 0) {
+        if (work->field_4A0 == 1) {
+            work->field_480 = 0;
+            work->field_484 = 0;
+            work->field_488 = 0;
+        }
+        work->field_4A0--;
+    }
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
+        }
+        ((TmdObject*)task->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_4A2 >= 0) {
+        if (work->field_4A2 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4A2--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_801633A4);
 
