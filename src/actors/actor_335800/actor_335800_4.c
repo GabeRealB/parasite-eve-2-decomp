@@ -211,7 +211,50 @@ void func_actor_335800_80163568(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_8016373C);
+s32 func_actor_335800_80163E20(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3);
+
+/// Approach test for the child block, the twin of `func_actor_335800_80162B3C`:
+/// once the X/Z distance to `target` stops shrinking below `limit`, plays anim
+/// 0x7D3, clears `step` and advances the state; otherwise records the distance.
+void func_actor_335800_8016373C(Task* arg0)
+{
+    Actor335800Work*      work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor335800AnimPreset preset;
+
+    work  = (Actor335800Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    if (work->target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
+    }
+    d.vx = dx;
+    if (work->target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
+    }
+    d.vz = dz;
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_43F;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_335800_80163E20(arg0, 0x7D3, &preset, 0);
+        work->step.vx = 0;
+        work->step.vy = 0;
+        work->step.vz = 0;
+        work->field_4C2++;
+        return;
+    }
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+}
 
 extern void* D_actor_335800_80172E98[];
 

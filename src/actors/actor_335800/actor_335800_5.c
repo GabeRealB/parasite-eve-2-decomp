@@ -40,7 +40,7 @@ extern void* D_actor_335800_80172E98[];
 /// Animation preset handler, the same body as `func_actor_361100_801634D0`:
 /// re-seeds the slot array off bank table `D_actor_335800_80172E98` when the
 /// preset's bank index changes, then restarts or resets every slot and ticks them.
-s32 func_actor_335800_80163E20(Task* task, s32 arg1, Actor335800AnimPreset* msg)
+s32 func_actor_335800_80163E20(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3)
 {
     Actor335800Work* work;
     TmdObject*       ext;

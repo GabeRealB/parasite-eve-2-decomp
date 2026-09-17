@@ -27,7 +27,7 @@ typedef struct Actor335800Work {
     /* 0x43C */ s8         field_43C;
     /* 0x43D */ s8         field_43D;
     /* 0x43E */ s8         field_43E;
-    /* 0x43F */ u8         field_43F;
+    /* 0x43F */ s8         field_43F;
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
     /* 0x480 */ VECTOR3    target; // world position the shared turn-to-face body steers toward
