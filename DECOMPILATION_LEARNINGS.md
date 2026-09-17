@@ -127678,3 +127678,49 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
 The parameter is one pseudo used by the call and by all three asm blocks, so the
 address is computed once. 93.9% -> 98.2%, with `regs` dropping from 71 to 6 —
 none of which was addressable by touching the registers themselves.
+
+## Two arms that end in the same store get cross-jumped: give each arm its own reload local
+
+`func_actor_312200_80162FB4` dispatches on a work-block request word, and both
+arms finish by copying the same halfword before falling into a shared tail:
+
+```
+lhu     v0,0x892(s0)         /* arm 1 */
+j       .Lactor_312200_801630A4
+sh      v0,0x890(s0)
+...
+lhu     v0,0x892(s1)         /* arm 2, verbatim but a different register */
+nop
+sh      v0,0x890(s1)
+```
+
+Written with one `work = (Actor312200Work*)task->idMap;` used by both arms, the
+two tails are textually identical, `jump2` cross-jumps them, and the first arm
+jumps straight into the second's copy — 91.0% with `branch=7`, `delete=6` and
+the `lhu` / `sh` pair missing from the first arm entirely. Nothing in the
+register or scheduling dumps points at it; the give-away is the *count* of
+stores, not their operands.
+
+The fix is the shape the matched sibling `func_actor_210600_8014B2C0` already
+uses: each arm reloads the pointer into its own local.
+
+```c
+    if (work->field_88C == 1) {
+        start = (Actor312200Work*)task->idMap;
+        ...
+        start->field_890 = start->field_892;
+        goto advance;
+    }
+    if (work->field_88C == 2) {
+        reset = (Actor312200Work*)task->idMap;
+        ...
+        reset->field_890 = reset->field_892;
+    advance:
+```
+
+cse turns each reload into a copy of the top-level pointer rather than a second
+`lw`, so the arms end up in *different* registers, the tails are no longer
+identical, and cross-jumping cannot fire. 91.0% -> 100.000%. The extra copies
+are also what makes the ROM hold `task` in a fifth saved register across the
+whole body, so the frame grows from 0x30 to 0x38 — a stack penalty of 0 at 91%
+was itself evidence the missing value was a pointer the source never spelled.

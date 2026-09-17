@@ -7,6 +7,16 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
+/// Dual-width view of the animation rate the seeding body
+/// `func_actor_312200_80162FB4` copies into every slot's `GpAnimSlot::field_9`:
+/// the state handlers arm it as a halfword, the seeding body reads back only
+/// its low byte. Same overlap as `Actor210600Rate`.
+typedef union Actor312200Rate {
+    /* 0x0 */ u16 half;
+    /* 0x0 */ u8  byte;
+} Actor312200Rate;
+STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
+
 /// Private work block of the actor 312200 task, hanging off `Task::idMap`,
 /// `Mem_Calloc(sizeof(Actor312200Work), 0)` in the spawn handler.
 ///
@@ -46,13 +56,27 @@ typedef struct Actor312200Work {
     /// The flag halfword the per-tick callback tests: it falls inside the slot
     /// array, being the second slot's `field_10`, because the animation state
     /// runs from 0x24 to the pose buffer.
-    /* 0x31C */ byte poses[0x570];
-    /* 0x88C */ s16  field_88C;
-    /* 0x88E */ byte pad_88E[0x4];
-    /* 0x892 */ s16  field_892;
-    /* 0x894 */ byte pad_894[0x2];
-    /* 0x896 */ s16  field_896;
-    /* 0x898 */ byte pad_898[0x14];
+    /* 0x31C */ byte poses[0x130];
+    /// Second animation context, seeded when the 0x89A request word is 2. It
+    /// lives inside the pose buffer the first context was handed, and the slots
+    /// it resets are the first context's, so the two share their slot array.
+    /* 0x44C */ GpAnimCtx       anim2;
+    /* 0x460 */ byte            poses2[0x42C];
+    /* 0x88C */ s16             field_88C;
+    /* 0x88E */ byte            pad_88E[0x2];
+    /* 0x890 */ s16             field_890;
+    /* 0x892 */ u16             field_892;
+    /* 0x894 */ u16             field_894;
+    /* 0x896 */ Actor312200Rate field_896;
+    /* 0x898 */ byte            pad_898[0x2];
+    /// Request state of the second animation context, laid out like the first:
+    /// 2 seeds every slot and settles on 3.
+    /* 0x89A */ s16             field_89A;
+    /* 0x89C */ s16             field_89C;
+    /* 0x89E */ Actor312200Rate field_89E;
+    /* 0x8A0 */ s16             field_8A0;
+    /* 0x8A2 */ byte            pad_8A2[0x6];
+    /* 0x8A8 */ s32             field_8A8;
     /// The two bytes the spawn handler arms next to the display node; they sit
     /// immediately before the 0x7DB record, so they are the actor's own copy of
     /// that state rather than part of a message. `field_8AD` is read back with
@@ -149,6 +173,17 @@ void func_actor_312200_80163778(Task* task);
 /// `GpEnemy` the spawner left in the task's 0x20 spawn-argument slot.
 void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
 
+/// Step table the seeding body `func_actor_312200_80162FB4` walks: one 5-byte
+/// row per clip the previous request latched in `Actor312200Work::field_890`,
+/// addressed by the requested clip in `field_892`. The byte it reads is handed
+/// to `func_800B4114` as the request's fifth argument.
+extern s8 D_actor_312200_80169F28[][5];
+
+/// Animation seeding body, run once per tick: request state 1 seeks every slot
+/// of the first context to `field_892` through the step table, state 2 resets
+/// them, and both settle on 3 and clear the frame counter at `field_894`.
+/// Request state 2 on the second context resets its slots at rate 0x30, then
+/// the tail counts a frame and ticks every slot of the first context.
 void func_actor_312200_80162FB4(Task* task);
 
 #endif // ACTOR_312200_H

@@ -8,6 +8,10 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 extern u8 D_actor_312200_80169F44[];
 extern u8 D_actor_312200_80169F5C[];
 
@@ -19,7 +23,58 @@ INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_80162868);
 
-INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_80162FB4);
+void func_actor_312200_80162FB4(Task* task)
+{
+    Actor312200Work* work;
+    Actor312200Work* start;
+    Actor312200Work* reset;
+    Actor312200Work* second;
+    Actor312200Work* tick;
+    s32              i;
+    s32              j;
+    s32              k;
+    s32              m;
+
+    work = (Actor312200Work*)task->idMap;
+    if (work->field_88C == 1) {
+        start = (Actor312200Work*)task->idMap;
+        for (i = 1; i < 0x13; i++) {
+            start->slots[i].field_9 = start->field_896.byte;
+            func_800B4114(&start->anim, i, (s16)start->field_892, 0,
+                          D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
+        }
+        start->field_890 = start->field_892;
+        goto advance;
+    }
+    if (work->field_88C == 2) {
+        reset = (Actor312200Work*)task->idMap;
+        for (j = 1; j < 0x13; j++) {
+            reset->slots[j].field_9 = reset->field_896.byte;
+            Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_892);
+        }
+        reset->field_890 = reset->field_892;
+    advance:
+        work->field_88C = 3;
+        work->field_894 = 0;
+        work->field_8A8 = 0;
+    }
+    if (work->field_89A == 2) {
+        second                 = (Actor312200Work*)task->idMap;
+        second->field_89E.half = 0x30;
+        second->field_8A0      = 0x500;
+        for (k = 1; k < 0x13; k++) {
+            second->slots[k].field_9 = second->field_89E.byte;
+            Gp_AnimResetSlot(&second->anim2, k, (s16)second->field_89C);
+        }
+        work->field_89A = 3;
+    }
+    work->field_894++;
+    tick = (Actor312200Work*)task->idMap;
+    for (m = 1; m < 0x13; m++) {
+        tick->slots[m].field_9 = tick->field_896.byte;
+        Gp_AnimTickIndex(&tick->anim, m);
+    }
+}
 
 /// Spawn body: allocates the actor's 0x984-byte `Actor312200Work`, stores it in
 /// `Task::idMap` and seeds the enemy object, the model's root coordinate and the
@@ -64,9 +119,9 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     enemy->field_4C     = 0;
     enemy->field_4D     = 0;
     func_800B3F84(&work->anim, D_actor_312200_80169F44, (GpAnimObj*)obj, work->poses, work->slots);
-    work->field_88C = 2;
-    work->field_892 = 1;
-    work->field_896 = 0x10;
+    work->field_88C      = 2;
+    work->field_892      = 1;
+    work->field_896.half = 0x10;
     func_actor_312200_80162FB4(task);
     node           = &work->field_8BC;
     node->field_8  = &((TmdObject*)task->extra)->field_8[3];
