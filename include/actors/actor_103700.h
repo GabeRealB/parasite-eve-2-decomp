@@ -102,6 +102,11 @@ typedef struct Actor103700Kind {
 
 extern u16 D_actor_103700_80139D9C[];
 
+/// Halfword tables `func_actor_103700_801336E8` indexes by a 4-bit LCG draw:
+/// the countdown seeded into `field_258` and `field_256`.
+extern u16 D_actor_103700_80139D5C[];
+extern u16 D_actor_103700_80139D7C[];
+
 /// Pair `func_actor_103700_80133370` packs with `Gp_PackPair` for message 0x3F9.
 extern GpU16Pair D_actor_103700_80139D28;
 

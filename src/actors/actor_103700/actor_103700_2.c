@@ -303,7 +303,91 @@ void func_actor_103700_80133370(Task* task)
     *(u32*)G_SCRATCH_HEAD += 0x1C;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_801336E8);
+void func_actor_103700_801336E8(Task* task)
+{
+    Actor103700Work* work;
+    GpObj38*         obj;
+    s32              period;
+    s32              i;
+    s32              slot;
+    s32              sound;
+
+    work   = (Actor103700Work*)task->idMap;
+    obj    = (GpObj38*)((TmdObject*)task->extra)->field_8;
+    period = 14;
+
+    switch (work->field_250) {
+        case 0:
+            work->field_250 = 1;
+            work->field_256 = 30;
+            work->field_258 = D_actor_103700_80139D5C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_26C = 0;
+            slot            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 10;
+            for (i = 1; i < 6; i++) {
+                work->slots[i].field_9 = slot;
+            }
+            break;
+        case 1:
+            work->field_23C.vx = Wip_SysConfig.field_4->t[0];
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_23C.vy = Wip_SysConfig.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Wip_SysConfig.field_4->t[2];
+            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            if ((s16)--work->field_258 > 0) {
+                work->field_252 = -50;
+            } else {
+                work->field_252 = 0;
+                func_actor_103700_80135140(task, 20);
+            }
+            if ((s16)--work->field_256 <= 0) {
+                work->field_250 = 2;
+                work->field_256 = 0;
+                work->field_252 = 0;
+            }
+            break;
+        case 2:
+            work->field_23C.vx = Wip_SysConfig.field_4->t[0];
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_23C.vy = Wip_SysConfig.field_4->t[1] - (((Gp_LcgState >> 16) & 0x1FF) + 800);
+            work->field_23C.vz = Wip_SysConfig.field_4->t[2];
+            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            work->field_252    = 5;
+            func_actor_103700_80135140(task, 20);
+            if ((s16)++work->field_256 >= 91) {
+                work->field_256 = 0;
+                work->field_24E = 3;
+                work->field_250 = 0;
+            }
+            break;
+        case 3:
+            work->field_256 = D_actor_103700_80139D7C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_258 = 15;
+            work->field_250 = 4;
+            work->field_254 = 0;
+            sound           = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250003;
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
+            break;
+        case 4:
+            if ((s16)--work->field_258 > 0) {
+                work->field_252 = -125;
+            } else {
+                work->field_252 = 0;
+            }
+            if ((s16)--work->field_256 <= 0) {
+                work->field_256 = 0;
+                work->field_24E = 3;
+                work->field_250 = 0;
+            }
+            func_actor_103700_80135140(task, 80);
+            period = 21;
+            break;
+    }
+    func_actor_103700_801350DC(task, 0, period);
+}
+
+/* Closes this unit's .rodata after the jump table above, so actor_103700_3's
+   table starts at 0x80131E94. Nothing reads it. */
+const u32 D_actor_103700_80131E90 = 0;
 
 void func_actor_103700_80133AB4(Task* task)
 {
