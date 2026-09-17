@@ -127452,3 +127452,73 @@ if (work->field_4C8 >= 2) { ... } else if (rng & 1) { ... } ...
 — drops both penalties to 0 and takes 98.434% to 99.575%. The permuter found
 it; the mechanism is that the shift is no longer confined to the arm's block,
 so the store keeps its place and `dbr` has a thread candidate for the slot.
+
+## A value computed before a call but stored after it needs its own local (func_actor_311500_801630A4, 2026-09-17)
+
+The tail rebuilds the root coordinate: `ScaleMatrix(&mtx, &scale)` needs
+`scale.vy = (s16)(0x1000 - (cur - 0x14) * 0xA)`, and the target computes the
+`* 0xA` chain *before* `ratan2` and `Gfx_RotMatrixY` while storing all three
+`scale` words after them. Written as one expression the value stays live across
+the two calls, so the allocno crosses calls: `global.c` can only give it a
+call-saved register and the arithmetic cannot be hoisted --
+
+```c
+            ang   = ratan2(...);
+            Gfx_RotMatrixY(&mtx, ang, 1);
+            scale.vy = (s16)(0x1000 - (cur - 0x14) * 0xA);   /* 74.3% */
+```
+
+-- while the sibling's idiom (`sy = k - (cur - 0x14) * 0xB;` in
+`func_actor_401800_80139B18`, then `blk->scale.vy = (s32)(s16)sy;`) splits it:
+
+```c
+            sy    = 0x1000 - (cur - 0x14) * 0xA;   /* before the calls */
+            ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+            Gfx_RotMatrixY(&mtx, ang, 1);
+            scale.vy = (s16)sy;                    /* after them */
+```
+
+`cur` now dies before `ratan2`, takes a call-clobbered temp (`$v1`, not `$s1`),
+and `sched1` is free to hoist the arithmetic: 88.139% -> 98.116% in one edit.
+When a value is computed early and stored late, the two halves are two
+statements in the source, not one delayed expression.
+
+## One temp for every element is what keeps a halfword copy interleaved (func_actor_311500_801630A4, 2026-09-17)
+
+The target copies the 3x3 matrix as nine `lhu $v0,(sp); nop; sh $v0,off($s1)`
+pairs -- one register, the pair kept together, the load-delay slot visible. Nine
+independent `coord->coord.m[i][j] = *(u16*)&mtx.m[i][j];` lines let `sched1`
+batch all nine loads first, which forces nine live registers and emits no
+delay-slot `nop` at all (`reorder=4 insert=15 delete=22`, 74.256%). Naming the
+halfword once and storing it each time creates a WAR chain on the temp, so each
+load must follow the previous store:
+
+```c
+            m22                  = *(u16*)&mtx.m[0][0];
+            coord->coord.m[0][0] = m22;
+            m22                  = *(u16*)&mtx.m[0][1];
+            coord->coord.m[0][1] = m22;
+            ...
+            m22                  = *(u16*)&mtx.m[2][2];
+            coord->flg           = 0;
+            coord->coord.m[2][2] = m22;
+```
+
+The last pair keeps the `m22` temp the target itself has (the `flg = 0` store
+sits between the load and the store). 74.256% -> 88.139%, and the eight
+delay-slot `nop`s come back with it. A batched-looking copy in *your* object
+against an interleaved target is a register-count symptom, not a scheduling
+one.
+
+## A switch whose cases `break` into one trailing return keeps `$v0 = 0` shared (func_actor_311500_801630A4, 2026-09-17)
+
+With `case 0: ...; return 0;` and `default: return 0;` the compiler materialises
+the state-0 return value in the case body (`move $v0,$zero` in the `lhu`'s
+load-delay slot) and jumps straight to the epilogue. The target instead has one
+`addu $v0,$zero,$zero` after the increment that both the state-0 `j` and the
+increment block's fall-through reach. Putting the `break` where the returns were
+and leaving a single `return 0` after the switch gives that shared block --
+98.116% -> 100.000%, and every branch target in the function shifts back by the
+one instruction the extra `move` had cost. The sibling `func_actor_311500_80162F28`
+is written the same way (`break` then a shared tail), so read the whole switch's
+return structure before matching a case's own.

@@ -25,7 +25,10 @@ typedef struct Actor311500Work {
     /* 0x014 */ byte      pad_14[0x38];
     /// Enable flag `func_actor_311500_80162F28` polls in bit 0.
     /* 0x04C */ u16  field_4C;
-    /* 0x04E */ byte pad_4E[0x40E];
+    /* 0x04E */ byte pad_4E[0x3EE];
+    /// List node `func_actor_311500_801630A4` unlinks on the first step of
+    /// state 1. Sits directly in front of the collision table.
+    /* 0x43C */ GpObj field_43C;
     /// Collision table set up by `Gp_InitRec18Table(rec18, 1, 0)` in
     /// `func_actor_311500_801629D8`; `field_4CC` below holds the `field_4` of
     /// the entry the damage check picked out.

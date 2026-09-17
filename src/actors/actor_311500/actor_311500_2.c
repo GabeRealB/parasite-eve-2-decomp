@@ -123,7 +123,102 @@ s32 func_actor_311500_80162F28(Actor311500 *arg0)
 }
 /* clang-format on */
 
-INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_801630A4);
+s32 func_actor_311500_801630A4(Actor311500* arg0)
+{
+    Actor311500Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    MATRIX           mtx;
+    VECTOR           scale;
+    u16              m22;
+    s32              state;
+    s16              cur;
+    s32              sy;
+    s16              ang;
+    s32              pan;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    state = work->field_4C0;
+
+    switch (state) {
+        case 0:
+            pan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+            SndEvt_EnqueueType6(0x400A0008, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+            work->field_4C4 = 0;
+            work->field_4C0 = ((u16)work->field_4C0) + 1;
+            break;
+
+        case 1:
+            switch (work->field_4C4) {
+                case 0:
+                    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                    enemy->field_54 = 0;
+                    Gp_UnlinkObj(&work->field_43C);
+                    enemy->node.field_4 = state;
+                    break;
+
+                case 0xA:
+                    Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[2], 3, NULL);
+                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    break;
+
+                case 0x16:
+                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    break;
+
+                case 0x1C:
+                    arg0->field_2C->field_C = 2;
+                    break;
+
+                case 0x50:
+                    arg0->field_2C->field_C = 0x80;
+                    break;
+
+                case 0x104:
+                    return 1;
+            }
+
+            cur = work->field_4C4;
+            if (cur >= 6) {
+                coord = arg0->field_2C->field_8;
+                sy    = 0x1000 - (cur - 0x14) * 0xA;
+                ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+                Gfx_RotMatrixY(&mtx, ang, 1);
+                scale.vx = 0x1000;
+                scale.vy = (s16)sy;
+                scale.vz = 0x1000;
+                ScaleMatrix(&mtx, &scale);
+
+                m22                  = *(u16*)&mtx.m[0][0];
+                coord->coord.m[0][0] = m22;
+                m22                  = *(u16*)&mtx.m[0][1];
+                coord->coord.m[0][1] = m22;
+                m22                  = *(u16*)&mtx.m[0][2];
+                coord->coord.m[0][2] = m22;
+                m22                  = *(u16*)&mtx.m[1][0];
+                coord->coord.m[1][0] = m22;
+                m22                  = *(u16*)&mtx.m[1][1];
+                coord->coord.m[1][1] = m22;
+                m22                  = *(u16*)&mtx.m[1][2];
+                coord->coord.m[1][2] = m22;
+                m22                  = *(u16*)&mtx.m[2][0];
+                coord->coord.m[2][0] = m22;
+                m22                  = *(u16*)&mtx.m[2][1];
+                coord->coord.m[2][1] = m22;
+                m22                  = *(u16*)&mtx.m[2][2];
+                coord->flg           = 0;
+                coord->coord.m[2][2] = m22;
+            }
+
+            work->field_4C4 = ((u16)work->field_4C4) + 1;
+            break;
+
+        default:
+            return 0;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_311500/actor_311500_2", func_actor_311500_80163334);
 
