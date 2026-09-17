@@ -633,6 +633,22 @@ Inputs: `base.i` (one `void *arg2`, 99.963%)
 `base_2.i` (three parameters, 100.000%)
 `e66f75462ecf621c60f94bba5a9a0796fabaedf7cfc650424bd36e9703d8a034`.
 
+Do not gate the check on `regs`, either: an undercount can read with **zero**
+register leftovers, because the allocator re-homes the parameter and the cost
+lands somewhere else. In `func_actor_260400_8014A998` the seed's lone `arg2`
+went to `$a0`, a later pseudo took `$a2`, and the entry grew one
+`move a2,a0` - `insert=1 branch=3`, no `regs` at all, the three `branch` points
+being only the address shift behind the extra word. An entry `move` whose
+destination is the register m2c named the parameter after is the same tell as a
+mismatched `addu $s2`: restoring the two dropped parameters removed the move and
+left every other instruction - including the `andi a0,a2,0x1` the seed already
+had - exactly where it was.
+
+Inputs: `base.i` (one `s32 arg2`, 97.216%, `insert=1 branch=3`)
+`e4f9ca6894d0a33174af1d55321996561a981e1d7e277579d4f7837aa671673e`,
+`base_1.i` (three parameters, 100.000%)
+`c21f28abf90540a97303a8dcf3a377a23dfe90a0e772c829cffe714cc2dfefeb`.
+
 ## m2c's parameter *names* are registers, so a seed can name `arg2` and place it in `$a1`
 
 A parameter list is positional; m2c's names are not. When m2c drops a parameter
@@ -1096,6 +1112,41 @@ penalty of 3 with `branch 0`: every instruction present and in order, only the
 already there and only the *base register of a loop preheader* differs, look for
 a use of the first read that can be sunk or hoisted to change the class canonical
 before touching anything else.
+`ActorsShared80131f9cSub1` is a second instance, and it names the *symptom*
+that should send you here: `insert=0 delete=1 branch=16 regs=1` with the score
+near 99.4%. One missing `move` in the prologue shifts every branch destination
+in the function by 4 bytes, so a single deleted instruction is reported as a
+pile of branch penalties — the branch count is the shift, not N bad
+comparisons. There the two reads were `((TmdObject*)task->extra)->field_8`
+(first, its base dead after) and `task->extra` (second, the surviving `obj`);
+the reverse order scores the same 99.373% with the copy missing entirely, and
+`git grep`-ing the matched corpus for the target's `lw $v0,N($r)` + `nop` +
+`addu $sX,$v0,$zero` triple finds the working bodies when the ordering rule
+alone is not enough to guess which read is which.
+
+The same function's second variation is one instruction wide and about the
+*switch operand*, not the ordering — `insert=1 delete=1` at 98.964%, whose
+whole object difference is
+
+```
+-lh    a0,0x478(v1)      # target
++lhu   a0,0x478(v1)      # the field declared u16 and used directly
+```
+
+A `switch` needs a SImode value, and which extension the promotion uses is
+decided by the **operand's signedness, not the field's declaration**: an
+unsigned `u16` field selects `zero_extendhisi2`, which the MIPS backend emits
+as a bare `lhu`, while a signed value selects `extendhisi2_internal`, which it
+emits as a bare `lh`. `base_4.i.lreg` shows the former on the 0x478 load (the
+insn is `... (const_int 1144) ... {zero_extendhisi2}`) and `extendhisi2_internal`
+only on the `s16 field_47C` compares at `const_int 1148`. So when a header's
+field is already `u16` for other matched bodies, casting at the use site,
+`switch ((s16)work->animId)`, restores the signed load without touching the
+struct: `base_5.c` and the plain `s16`-field `base_3.c` compile to the same
+object (`base_5.c reproduces base_3.c`, 100% both). This is the folding
+counterpart of "A `switch` index off a halfword field wants an `s32` temp"
+below, where the HImode temp stays live and the same extension prints as
+`lhu` + `sll 16` / `sra 16` instead.
 
 ## One shared `ret` decides which arm is the entry fall-through; m2c's early returns do not
 
@@ -125939,3 +125990,83 @@ Inputs: scratch `nonmatchings/func_actor_135600_80131E68-vacuum`; `base_6.c` 100
 (`c97b559658fb8615355255fac13dc61ad862c439f8b29db02328484d97356de3`,
 preprocessed `7924354fb01fcbfb8b57d6837b8f6b760993e258c9fb0bbf4cb16417a503b6ce`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## m2c's scalar temps for a stack aggregate are dead sets, and `jump.c` deletes them: declare the aggregate
+
+`ActorsShared80131f9cSub0` (actor_143900) scored 90.225% from the m2c seed with
+`delete=5` and `regs=38`, and the missing five were not a scheduling or
+allocation problem at all: two `lw`, one `addiu` and two `sw` never reached the
+object. The seed wrote the vector it hands `func_800D7A9C` as three scalars:
+
+```c
+    s32 sp18; s32 sp1C; s32 sp20;
+    ...
+    sp18 = temp_s1->workm.t[0];
+    sp1C = temp_s1->workm.t[1] - 0x320;
+    sp20 = temp_s1->workm.t[2];
+    func_800D7A9C(temp_s0, (VECTOR *) &sp18, 0, 3);
+```
+
+Only `sp18` has its address taken, so only it needs a stack home. `sp1C` and
+`sp20` are assigned and never read anywhere, `reg_scan` records that this insn
+is both their first and their last reference, and `jump_optimize`'s dead-set
+scan deletes them outright (`jump.c`, the loop above the optimization loop that
+runs when `after_regscan`):
+
+```c
+	if (set && GET_CODE (SET_DEST (set)) == REG
+	    && REGNO (SET_DEST (set)) >= FIRST_PSEUDO_REGISTER
+	    && REGNO_FIRST_UID (REGNO (SET_DEST (set))) == INSN_UID (insn)
+	    && REGNO_LAST_NOTE_UID (REGNO (SET_DEST (set))) == INSN_UID (insn)
+	    && ! side_effects_p (SET_SRC (set))
+	    && ! find_reg_note (insn, REG_RETVAL, 0))
+	  delete_insn (insn);
+```
+
+The loads feeding them survive that pass — only the *destination* register is
+tested — and are carried off later by flow/lreg, which is why the object is
+short a `lw` as well as a `sw` per eliminated local. `./insn.py 109` prints the
+whole story: present in `.rtl`, `GONE (deleted by this pass)` at `.jump`.
+
+The fix is the aggregate the m2c temps were split from: assign the members of a
+`VECTOR` local whose address escapes, and the writes become MEM sets, which the
+scan's `GET_CODE (SET_DEST (set)) == REG` test cannot match.
+
+```c
+    VECTOR vec;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+```
+
+100.000%, all penalties zero, frame back to 0x40. Recognize the shape by the
+frame: it is 4 bytes *smaller* per eliminated local than the target's, and the
+`delete` penalty is made of equal numbers of loads and stores — so check whether
+the seed's stack temps are address-taken only through the one that is passed on,
+before reading anything into registers.
+
+Inputs: `base.i` (90.225%)
+`2cf3bd97bcdaeba072039b78b3cede5cabd65aae480683d06640b609b7673f64`;
+`base_1.i` (100.000%)
+`8cd91eb8cb5267d99b4fe9029ee6a2589834a2d71e22289c71d84244c6f1be45`.
+
+Reproduced on demand in the permuter review, from the fixed body alone: a
+byte-identical copy (`base_4.c`, same preprocessed input hash, same object
+`cdcbd162…`) and a one-edit revert of just that declaration (`base_5.c`),
+which falls back to 90.281% with `delete=5 reorder=3 regs=37` and a `0x38`
+frame, losing exactly the two `lw`, the `addiu -0x320` and the two `sw` — the
+surviving store still lands in `0x18(sp)`, so only the frame shrank, by the 8
+bytes of home the two dead locals no longer need.
+
+The same seed carried a second, independent defect worth separating from that
+one. m2c wrote the coordinate pointer as `temp_s1 + 4`, which on a
+`GsCOORDINATE2 *` scales by the struct size and compiles to `addiu v0,s1,0x140`
+where the target has `addiu $v0,$s1,0x4`; the correction is `&coord->coord`
+(the field sits at offset 0x4). An m2c `ptr + N` standing where the target has
+a small `addiu` immediate is a *value* to check against `sizeof`, not
+formatting: it moved the register count by one even after the control flow,
+frame and delete counts were already explained. Evidence: `base_object_dump.s`
+(`0x140`) vs `base_5_object_dump.s` (`4`) vs
+`asm/USA/actors/matchings/actor_143900/actor_143900/ActorsShared80131f9cSub0.s`
+(`0x4`).
