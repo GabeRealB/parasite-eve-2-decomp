@@ -5,7 +5,35 @@
 
 void func_800B4114(Actor101500Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500_4", func_actor_101500_801346D0);
+/// Countdown pose. Requests pose 9 and clears the move state each frame; when
+/// `field_362` runs out it switches to pose 7 and reloads the countdown from a
+/// `Gp_LcgState` draw into `D_actor_101500_8013BDE8`.
+void func_actor_101500_801346D0(Actor101500* actor)
+{
+    Actor101500Work* work = actor->field_1C;
+    u32              rnd;
+    u16              val;
+    u16*             tbl;
+
+    work->field_352 = 9;
+    work->field_34C = 0;
+    work->field_360 = 0;
+    work->field_366 = 0;
+    if (--work->field_362 == 0) {
+        tbl             = D_actor_101500_8013BDE8;
+        work->field_358 = 1;
+        work->field_35A = 2;
+        work->field_352 = 7;
+        work->field_35C = 0;
+        rnd             = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState     = rnd;
+        val             = tbl[(rnd >> 16) & 0xF];
+        work->field_36E = 0;
+        work->field_34C = 0x400F0002;
+        work->field_380 = 15;
+        work->field_362 = val;
+    }
+}
 
 /// Animation tick. When the pose the actor asks for differs from the one its
 /// slots were last queued for, every slot is re-seeded from the per-state
