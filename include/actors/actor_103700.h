@@ -26,14 +26,16 @@ typedef struct Actor103700Work {
     /* 0x234 */ SVECTOR field_234;
     /* 0x23C */ SVECTOR field_23C;
     /* 0x244 */ s16     field_244;
-    /* 0x246 */ byte    pad_246[0x2];
+    /* 0x246 */ s16     field_246;
     /* 0x248 */ s16     field_248;
-    /* 0x24A */ byte    pad_24A[0x4];
+    /* 0x24A */ byte    pad_24A[0x2];
+    /* 0x24C */ s16     field_24C;
     /* 0x24E */ s16     field_24E;
     /* 0x250 */ s16     field_250;
     /* 0x252 */ s16     field_252;
     /* 0x254 */ s16     field_254;
-    /* 0x256 */ byte    pad_256[0x4];
+    /* 0x256 */ u16     field_256;
+    /* 0x258 */ byte    pad_258[0x2];
     /* 0x25A */ s16     field_25A;
     /* 0x25C */ u16     field_25C;
     /* 0x25E */ u16     field_25E;
@@ -93,6 +95,17 @@ extern s16 D_actor_103700_80139DB8[];
 
 /// Halfword wave table `func_actor_103700_80135140` indexes by `field_25C`.
 extern s16 D_actor_103700_80139DF4[];
+
+/// 8-byte rise step: while `field_24C` is below `threshold` the Y and
+/// forward displacements are spread over `steps` frames.
+typedef struct Actor103700Rise {
+    /* 0x0 */ s16 threshold;
+    /* 0x2 */ s16 steps;
+    /* 0x4 */ s16 dy;
+    /* 0x6 */ s16 dist;
+} Actor103700Rise;
+
+extern Actor103700Rise D_actor_103700_80139E14[];
 
 extern u32 Gp_LcgState;
 

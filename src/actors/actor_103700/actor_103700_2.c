@@ -59,7 +59,51 @@ void func_actor_103700_801328DC(Task* task)
     *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_80132B7C);
+void func_actor_103700_80132B7C(Task* task)
+{
+    Actor103700Work* work;
+    GsCOORDINATE2*   coord;
+    s32              dist;
+    s32              i;
+
+    work  = (Actor103700Work*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+
+    switch (work->field_250) {
+        case 0:
+            if (ActorsShared80133c1c((ActorShared80133c1c*)task) != 0) {
+                Gp_StateF0.field_19 |= 1;
+                Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+                work->field_250      = 1;
+                work->field_256      = (Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+        case 1:
+            if ((s16)--work->field_256 <= 0) {
+                work->field_250 = 2;
+                work->field_256 = 0;
+                work->field_248 = 4;
+            }
+            break;
+        case 2:
+            for (i = 0; i < 7; i++) {
+                if (D_actor_103700_80139E14[i].threshold >= work->field_24C) {
+                    coord->coord.t[1] += D_actor_103700_80139E14[i].dy / D_actor_103700_80139E14[i].steps;
+                    dist               = D_actor_103700_80139E14[i].dist / D_actor_103700_80139E14[i].steps;
+                    coord->coord.t[0] += (rsin(work->field_246) * dist) >> 12;
+                    coord->coord.t[2] += (rcos(work->field_246) * dist) >> 12;
+                    break;
+                }
+            }
+            if (work->field_24C >= 50) {
+                work->field_248      = 1;
+                work->field_24E      = 3;
+                work->field_250      = 0;
+                Gp_StateF0.field_19 |= 1;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_80132DA8);
 
