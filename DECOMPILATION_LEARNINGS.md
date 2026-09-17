@@ -126387,3 +126387,109 @@ serves both divisors at different shifts, because `mfhi` leaves the high half of
 (`sra v0,a3,0x2`), one instruction off in the middle of an otherwise exact 78-instruction
 function. Read the shift operand off the target and write the division in C as
 `var_a0 * D_actor_142900_801382A8 / 20`; GCC regenerates magic and shift together.
+## A 100.00% score is normalized text: two `j`s can still name the wrong label, and only the checksum catches it (func_actor_120500_8013241C, 2026-09-17)
+
+`build.sh` scored this body 100.00% with every penalty zero and an empty
+`base_N_diff`, and the full build then failed the *overlay* checksum while
+`SLUS_010.42` stayed OK: `cmp -l` on the extracted package found exactly two
+bytes. Both were the low byte of a `j` encoding — the delay-slot-filled
+`goto`s into the shared clear block:
+
+```
+814: 0804 c9a5   j 80132694     <- target
+814: 0804 c9a4   j 80132690     <- candidate
+```
+
+The scorer compares normalized disassembly, where a local jump's target is
+written `.text+NNN` **relative to the function** and the two texts are then
+equal after label remapping; the object dump this project's `./objdump.py`
+prints alongside (`j .text+278` vs `j .text+274`) is the raw encoding and does
+show it. So: when a body ends in several `goto`s into one shared tail, check the
+raw `j` targets (`./objdump.py base_N.o | grep 'j  *\.text'`), not the score —
+and treat the overlay checksum as the only verdict.
+
+The cause is a source-level one-liner. Writing the epilogue-jumping arms as
+`goto clear_4C8;`, where `clear_4C8:` is the label *on* the shared store, makes
+every arm jump at the store (executing it a second time through its own delay
+slot). Retail jumped *past* it, so the label the arms name has to be the one
+after the store, and only the fall-through arm names the store's label:
+
+```c
+    if (code != 2) {
+        w->field_4C8 = 0;
+        goto done_4C8;      /* done_4C8: is below the store, not on it */
+    } else {
+        goto do_4C8_case2;
+    }
+    ...
+clear_4C8:                  /* the `code < 2` arm branches here */
+    w->field_4C8 = 0;
+done_4C8:
+```
+
+## A scan loop written `while`/`do` is rotated by `duplicate_loop_exit_test`; an explicit `goto` label reproduces retail's test-at-top block (func_actor_120500_8013241C, 2026-09-17)
+
+The body's second loop walks the nineteen animation slots and stops at the
+first whose `field_10` bit 0 is clear. Both `while ((slots[i].field_10 & 1) != 0)
+{ i++; if (i >= 0x14) break; }` and the `do { if (!(… & 1)) break; i++; }
+while (i < 0x14)` spelling compile to the same RTL, and both were rotated: the
+loop's exit test appeared a second time in the preheader with `i == 1` folded in
+(`lhu v0, 0x4c(s1)`), and the back edge re-entered at the increment instead of
+the test.
+
+`jump.c:duplicate_loop_exit_test` runs when a `NOTE_INSN_LOOP_BEG` is followed
+by a plain jump — the shape the front end emits for a `while`/`for` loop — and
+copies the exit code to the loop entry. A `do`/`while` avoids the copy but the
+front end canonicalizes this one back into that shape. Writing the loop with an
+explicit label leaves no loop note at all and emits exactly the block order the
+source has:
+
+```c
+    i = 1;
+loop_slots:
+    if ((slotsWork->slots[(u16)i].field_10 & 1) != 0) {
+        i++;
+        if ((u16)i < 0x14U) {
+            goto loop_slots;
+        }
+    }
+```
+
+That is worth reaching for whenever a target loop has its test at the top and
+its increment below with the back edge between them: no loop note, no rotation.
+
+## `x != 0 && x == 1` folds to one compare, and a two-case `switch` can never emit the `slti`/`bnez` range split (func_actor_120500_8013241C, 2026-09-17)
+
+The request-code dispatch reads `<u16> != 0` then `<u16> == 1` and branches to
+one shared clear store from both. Written as `&&` the front end folds the pair
+into a single `beq`; written as nested `if`s it keeps both branches. The same
+dispatch also tests `>= 2` with `slti` (signed), which a `u16` field does not
+give on its own — the narrowing compare is `sltiu`, as the corpus entry for `u8`
+globals already notes. Reading the field into an `s32` local first
+(`code = w->field_4C8;` then `code >= 2`) produces `lhu` + `slti`, and m2c's
+`(s32) temp_v1_3 >= 2` cast is the tell that retail did this.
+
+With those two tests the body is an if/else chain, not a switch: `emit_case_nodes`
+builds the fixed [1 -> right 2] spine for two cases and emits equality tests
+only, so **no** `switch` on `{1, 2}` can produce the `slti v0, v1, 2; bnez`
+pair at all. Once the tests are ifs, the block layout follows the emission order
+(then before else), which for this dispatch meant putting the two arm bodies
+behind labels with `goto`s, in the order the target has them.
+
+## Two payloads that never overlap share one stack slot: write them as a union (func_actor_120500_8013241C, 2026-09-17)
+
+State 0 fills a 0x14-byte `GpAnimArg` for message 0x3E8 and the epilogue fills a
+0x10-byte `VECTOR` for `func_800D7A9C`; GCC never reuses a stack slot between two
+distinct locals (`assign_stack_local` always allocates), and the target's frame
+has one 0x14 slot carrying both. `Actor310100Vec` already records the idiom, so
+declare the pair as a union and address the two members:
+
+```c
+typedef union Actor120500Args {
+    /* 0x0 */ GpAnimArg msg; // message 0x3E8 payload
+    /* 0x0 */ VECTOR    pos; // model part-1 translation
+} Actor120500Args;
+```
+
+The union's size is the larger member's, so the frame comes out exactly as
+retail's, where two separate locals add 0x10 and a saved register with it.

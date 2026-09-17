@@ -140,4 +140,123 @@ void func_actor_120500_801322A0(Task* arg0)
     } while ((u16)i < 0x14U);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120500/actor_120500", func_actor_120500_8013241C);
+/// Per-frame body of the actor task. State 0 brings it up through
+/// `func_actor_120500_801322A0` -- unless `D_80114C12` is 1 or `D_80071075` is
+/// set -- sends the player task the equipped-weapon animation set as message
+/// 0x3E8 and installs the two `func_800E8634` blocks; state 1 kills the actor
+/// once the session's field_1 clears.
+///
+/// Every state then steps the tick handler, ticks the nineteen animation slots
+/// past slot 0 and walks the slots to the first whose `field_10` bit 0 is
+/// clear. The request/phase pair at 0x4C0 spawns effect 0x601B4 (table entry 1)
+/// plus the placement record, and the one at 0x4C8 spawns table entry 2 or
+/// raises `D_8007106B` and the view tasks before clearing the code. The model's
+/// part-1 translation goes to `func_800D7A9C` last.
+///
+/// The request 0x4C8 dispatch is written with gotos: the labels reproduce
+/// retail's block layout, where the three clear sites sit at the end of their
+/// own arms.
+void func_actor_120500_8013241C(Task* arg0)
+{
+    Actor120500Work* work;
+    Actor120500Work* slotsWork;
+    Actor120500Work* w;
+    Actor120500Args  args;
+    TmdObject*       mdl;
+    s32              anim;
+    s32              code;
+    s32              i;
+
+    switch (arg0->state) {
+        case 0:
+            if (D_80114C12 != 1 && D_80071075 == 0) {
+                func_actor_120500_801322A0(arg0);
+                anim = D_80073BA9;
+                if (D_8007218A == 1) {
+                    anim = anim + 1;
+                } else {
+                    anim = anim + 0x22;
+                }
+                args.msg.field_0  = (u8*)anim;
+                args.msg.field_4  = 1;
+                args.msg.field_8  = 1;
+                args.msg.field_C  = 10;
+                args.msg.field_10 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&args.msg, 0);
+                func_800E3FAC(0xA2, 0xD);
+                func_800E8634((s32)D_actor_120500_801380D8, 0, (s32)D_actor_120500_80138318);
+                arg0->state += 1;
+                break;
+            }
+            return;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                Task_RequestKill(arg0, 0);
+                return;
+            }
+            break;
+    }
+
+    func_actor_120500_80132028(arg0);
+    work      = (Actor120500Work*)arg0->idMap;
+    slotsWork = work;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&slotsWork->anim, (u16)i);
+        i++;
+    } while ((u16)i < 0x14U);
+
+    i = 1;
+loop_slots:
+    if ((slotsWork->slots[(u16)i].field_10 & 1) != 0) {
+        i++;
+        if ((u16)i < 0x14U) {
+            goto loop_slots;
+        }
+    }
+
+    if (work->field_4C0 != 0) {
+        if (work->field_4C0 == 1) {
+            Tmd_AllocBuffers((TmdObject*)arg0->extra);
+            Task_SpawnFromTable(&D_actor_120500_80138418, 1, 8, 0);
+            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120500_801380C0, 0);
+        }
+    }
+    work->field_4C0 = 0;
+
+    w    = (Actor120500Work*)arg0->idMap;
+    code = w->field_4C8;
+    if (code != 1) {
+        if (code >= 2) {
+            if (code != 2) {
+                w->field_4C8 = 0;
+                goto done_4C8;
+            } else {
+                goto do_4C8_case2;
+            }
+        } else {
+            goto clear_4C8;
+        }
+    } else {
+        goto do_4C8_case1;
+    }
+do_4C8_case1:
+    Task_SpawnFromTable(&D_actor_120500_80138418, 2, 8, 0);
+    w->field_4C8 = 0;
+    goto done_4C8;
+do_4C8_case2:
+    Gp_DispatchMsg(w->field_4B4, 0x3F3, 2, 0);
+    Display_SpawnWithOt(&D_actor_120500_80138418, 0, 0, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+clear_4C8:
+    w->field_4C8 = 0;
+done_4C8:
+
+    mdl         = (TmdObject*)arg0->extra;
+    args.pos.vx = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
+    args.pos.vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
+    args.pos.vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    func_800D7A9C(mdl, &args.pos, 0, 3);
+}
