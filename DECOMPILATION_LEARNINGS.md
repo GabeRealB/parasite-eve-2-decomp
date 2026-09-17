@@ -118444,3 +118444,19 @@ argument only hoists to `s4` from a local assigned before the loop (a literal is
 built into `a2` in the loop), and the `sh` of `pos.vx` only lands after the
 argument setup when the sum goes into an `s32` temp first (`pos.vx = x;`), which
 the permuter found; writing `pos.vx = ...` directly schedules the store too early.
+
+### sched1 hoists a loop's counter init above the constant stores before it; a barrier after the stores, then an `s32` counter so reload CSE keeps `li` (func_actor_160900_8013358C, 2026-09-17)
+
+**Symptom:** target preheader in source order - `li v0,1; sh v0,0x4B8(s1); sh zero,0x4BA(s1); li s0,1; li s3,10` -
+but every plain spelling (`for`/`while`/`do`, `u16`/`s16`/`s32` counter) put `li s0,1` and the loop-hoisted
+`li s3,10` *before* `lw s1,0x1C(v0)`, and then `reload_cse_regs` turned the store's `li v0,1` into `move v0,s0`
+(94.9%). Writing `i = 1` before the stores (97.6%) makes the store use `s0` directly.
+
+**Cause:** in `.sched` both constant sets are ready from the start of the backward schedule and lose to the stores,
+so they end up first in the block; with them first, post-reload CSE rewrites the later equal constant as a copy.
+
+**Fix:** a `do {} while (0);` between the stores and the loop keeps the inits after the stores (the permuter found the
+barrier, placed before `i = 1`; moving it after the stores fixed the order). That left `move s0,v0` - the same
+reload CSE substitution in the other direction, legal because the counter and the stored value were both HImode.
+An `s32` counter written `for (i = 1; (u16)i < 20; i++) f(child, (u16)i, ...)` makes the use wider than the recorded
+HI value, the substitution is rejected and `li s0,1` survives. 94.9% -> 100%. `base_15.i` SHA256 `e3e159c3ac8505a4dba61a33fb9ca78447841f65d8e540307cbbec95eb0473a9`.

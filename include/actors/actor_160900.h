@@ -46,7 +46,8 @@ typedef struct Actor160900Work {
     /* 0x38 */ Task* field_38;    // ActorsShared80136280Desc[3]
     /* 0x3C */ Task* field_3C;    // ActorsShared80136280Desc[5]
     /* 0x40 */ Task* field_40;    // ActorsShared80136280Desc[6]
-    /* 0x44 */ byte  pad_44[8];
+    /* 0x44 */ Task* field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
+    /* 0x48 */ byte  pad_48[4];
     /* 0x4C */ s16   field_4C;
     /* 0x4E */ s16   field_4E;
     /* 0x50 */ byte  pad_50[4];
@@ -60,6 +61,15 @@ typedef struct Actor160900Work {
     /* 0x66 */ u16   field_66;
 } Actor160900Work;
 STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
+
+/// Work block of the `ActorsShared80136280Desc[3]` child (`field_38`), as far
+/// as `func_actor_160900_8013358C` reaches into it: it is also the anim context
+/// handed to `func_800B4114`.
+typedef struct Actor160900Child3Work {
+    /* 0x000 */ byte pad_0[0x4B8];
+    /* 0x4B8 */ s16  field_4B8;
+    /* 0x4BA */ s16  field_4BA;
+} Actor160900Child3Work;
 
 /// One step of the animation script `D_actor_160900_8013F1CC`
 /// `func_actor_160900_801326EC` walks: `field_0` is how many frames to hold the

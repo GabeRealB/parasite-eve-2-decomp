@@ -16,6 +16,9 @@
 
 extern TaskDesc ActorsShared80136280Desc;
 
+void      func_800B4114(Actor160900Child3Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+extern u8 D_actor_160900_8013F240[];
+
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80131EB0);
 
 s32 func_actor_160900_801326EC(Task* arg0)
@@ -84,7 +87,53 @@ INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80133238);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8013358C);
+void func_actor_160900_8013358C(Task* arg0)
+{
+    Actor160900Work*       work;
+    Actor160900Child3Work* child;
+    SVECTOR                ofs;
+    SVECTOR                ofs2;
+    s32                    i;
+
+    work = (Actor160900Work*)arg0->idMap;
+    switch ((u16)work->field_54) {
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(work->field_38, 0x7D5, 2, 0);
+            Gp_DispatchMsg(work->field_38, 0x7D4, (s32)D_actor_160900_8013F240, 0);
+            break;
+        case 2:
+            Gp_DispatchMsg(work->field_3C, 0x7D5, 1, 0);
+            Gp_DispatchMsg(work->field_40, 0x7D5, 1, 0);
+            if (work->field_44 != NULL) {
+                Gp_DispatchMsg(work->field_44, 0x7D5, 1, 0);
+            }
+            Gp_DispatchMsg(work->field_38, 0x7D5, 1, 0);
+            ofs.vx = -100;
+            ofs.vy = 100;
+            ofs.vz = -1200;
+            Gp_SpawnEff(0x60046, ((TmdObject*)work->field_38->extra)->field_8, 0x20000100, &ofs);
+            break;
+        case 3:
+            child            = (Actor160900Child3Work*)work->field_38->idMap;
+            child->field_4B8 = 1;
+            child->field_4BA = 0;
+            do {
+            } while (0);
+            for (i = 1; (u16)i < 20; i++) {
+                func_800B4114(child, (u16)i, 1, 0, 10);
+            }
+            break;
+        case 4:
+            ofs2.vx = -200;
+            ofs2.vy = 100;
+            ofs2.vz = -400;
+            Gp_SpawnEff(0x60046, ((TmdObject*)work->field_38->extra)->field_8, 0x20000100, &ofs2);
+            break;
+    }
+    work->field_54 = 0;
+}
 
 void func_actor_160900_80133758(SVECTOR* pts)
 {
