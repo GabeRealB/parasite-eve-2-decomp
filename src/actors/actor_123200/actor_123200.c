@@ -2,8 +2,13 @@
 
 #include "actors/actor_123200.h"
 
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -16,7 +21,11 @@
 
 void func_actor_123200_801332E0(Task* task);
 
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
 extern u8 D_80072729;
+
+extern u8 D_801153F4;
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_8013215C);
 
@@ -145,7 +154,70 @@ void func_actor_123200_80133820(Actor123200Ctx* arg0, Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_801339F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133BA0);
+/// Per-frame tick: flags the model's coordinate for rebuild, refreshes its
+/// colour from the part matrix's translation, then scales that matrix from the
+/// work block's `field_21C`. The render mode in `D_801153F4` runs next -- modes
+/// 0 and 1 draw the ground quad while the display mode is non-zero, and 1 and 2
+/// return without ticking. The rest re-records the display mode in `field_2`
+/// (`field_4` restarting the model when it changed), dispatches the display
+/// mode's handler from `D_actor_123200_80131E24`, and plays the sound that
+/// handler reports, panned and depth-tagged from the model's coordinate. A
+/// raised `Game_Session->field_4D` flags the coordinate for rebuild again.
+void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1)
+{
+    VECTOR                pos;
+    Actor123200StateTable table;
+    Actor123200Work*      work;
+    s32                   snd;
+    s32                   pan;
+    s32                   id;
+
+    work                                    = (Actor123200Work*)arg1->idMap;
+    table                                   = D_actor_123200_80131E24;
+    ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+    pos.vx = ((TmdObject*)arg1->extra)->field_8->workm.t[0];
+    pos.vy = ((TmdObject*)arg1->extra)->field_8->workm.t[1];
+    pos.vz = ((TmdObject*)arg1->extra)->field_8->workm.t[2];
+    Gp_UpdateActorColor((struct _GpEnemy*)arg0, &pos, 0, 0);
+    if (work->field_21C != 0x1000) {
+        pos.vx = pos.vy = pos.vz = work->field_21C;
+        ScaleMatrix(&work->field_1BC, &pos);
+    }
+    switch (D_801153F4) {
+        case 0:
+            if (work->field_0 != 0) {
+                ((TmdObject*)arg1->extra)->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            break;
+        case 1:
+            if (work->field_0 != 0) {
+                ((TmdObject*)arg1->extra)->field_C = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->field_8->workm.t, 0x180, Gp_State1C->field_8);
+            }
+            return;
+        case 2:
+            ((TmdObject*)arg1->extra)->field_C = 0x80;
+            return;
+    }
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = work->field_0;
+    table.fn[work->field_0](arg0, arg1);
+    id = func_actor_123200_80133450(work);
+    if (id != 0) {
+        snd = id | ((arg0->field_8 >> 12) << 8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg1->extra)->field_8);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg1->extra)->field_8));
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)arg1->extra)->field_8->flg = 0;
+    }
+}
 
 s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
 {
