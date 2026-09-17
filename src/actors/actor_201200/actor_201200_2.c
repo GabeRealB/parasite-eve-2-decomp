@@ -312,8 +312,6 @@ void func_actor_201200_8014B054(Actor201200Ctx* arg0, Actor201200* arg1)
     *(Actor201200TurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_2", func_actor_201200_8014B5FC);
-
 static __inline__ void Actor201200_FaceScale(GsCOORDINATE2* coord, s16 s)
 {
     Actor201200FaceScratch* head;
@@ -337,6 +335,137 @@ static __inline__ void Actor201200_FaceScale(GsCOORDINATE2* coord, s16 s)
     coord->coord.m[2][2]                       = sc->m.m[2][2];
     coord->flg                                 = 0;
     *(Actor201200FaceScratch**)G_SCRATCH_HEAD += 1;
+}
+
+void func_actor_201200_8014B5FC(Actor201200Ctx* arg0, Actor201200* arg1)
+{
+    SVECTOR          ofs;
+    VECTOR           scale;
+    Actor201200Work* work;
+    TmdObject*       obj;
+    s16              s;
+    s32              pan;
+    s32              id;
+
+    work = arg1->field_1C;
+    obj  = arg1->field_2C;
+    memset(&ofs, 0, 8);
+    if (work->field_4 != 0) {
+        arg0->field_14        = 1;
+        obj->field_C          = 0;
+        work->obj2C8.flags   &= 0x7FFF;
+        work->obj300.flags   &= 0x7FFF;
+        work->obj338.flags   &= 0x7FFF;
+        work->obj300.field_18 = Gp_PackObjPair((GpObj50*)arg0, 0);
+        work->obj338.field_18 = 0x22121;
+        work->field_6         = 0;
+        work->obj230.flags   |= 0x4000;
+        work->savedColorMtx   = work->colorMtx;
+        work->field_174       = 0xA;
+        work->field_170       = 1;
+        work->field_178       = 8;
+        func_actor_201200_8014A640(arg1);
+        work->obj338.field_10 = arg1->field_2C->field_8->coord.t[0];
+        work->obj338.field_12 = arg1->field_2C->field_8->coord.t[1] - 0x190;
+        work->obj338.field_14 = arg1->field_2C->field_8->coord.t[2];
+        work->obj300.field_10 = arg1->field_2C->field_8->coord.t[0];
+        work->obj300.field_12 = arg1->field_2C->field_8->coord.t[1];
+        work->obj300.field_14 = arg1->field_2C->field_8->coord.t[2];
+        return;
+    }
+    func_actor_201200_8014A640(arg1);
+    switch ((s16)(work->field_6 - 0x29)) {
+        case 0:
+            arg1->field_2C->field_C |= 2;
+            ofs.vx                   = 0x1E;
+            ofs.vz                   = 0x1E;
+            ofs.vy                   = -0xA;
+            Gp_SpawnEff(0x60030, arg1->field_2C->field_8, 0x10100, &ofs);
+            ofs.vy = -0x14;
+            ofs.vz = -0x50;
+            Gp_SpawnEff(0x60030, arg1->field_2C->field_8, 0x10100, &ofs);
+            break;
+        case 1:
+            work->eff1A8.field_0 = &arg1->field_2C->field_8[4];
+            work->eff1A8.field_4 = 0x120;
+            work->eff1A8.field_6 = 2;
+            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->field_8[4], NULL, &work->eff1A8);
+            Gp_SpawnScript18Ex((s32)&D_actor_201200_8014DE64, (s32)&D_actor_201200_8014DE70, (s16)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+            work->obj300.field_1C = 0x320;
+            work->obj338.field_1C = 0xC8;
+            work->obj300.flags   |= 0x8000;
+            work->obj338.flags   |= 0x8000;
+            Gp_SpawnEff(0x6009C, &arg1->field_2C->field_8[2], 1, NULL);
+            break;
+        case 2:
+            work->obj338.field_1C = 0x190;
+            work->obj300.flags   &= 0x7FFF;
+            break;
+        case 3:
+            work->eff1A8.field_0 = &arg1->field_2C->field_8[1];
+            work->eff1A8.field_4 = 0x80;
+            work->eff1A8.field_6 = 2;
+            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->field_8[1], NULL, &work->eff1A8);
+            work->obj338.field_1C = 0x320;
+            break;
+        case 5:
+            work->obj338.flags &= 0x7FFF;
+            break;
+        case 7:
+            work->eff1A8.field_0 = &arg1->field_2C->field_8[1];
+            work->eff1A8.field_4 = 0x200;
+            work->eff1A8.field_6 = 2;
+            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->field_2C->field_8[1], NULL, &work->eff1A8);
+            Gp_SpawnEff(0x6009E, arg1->field_2C->field_8, 0, &ofs);
+            id  = ((arg0->field_8 >> 12) << 8) | 0x400C0004;
+            pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+            break;
+        case 9:
+            obj->field_C = 0x80;
+            break;
+        case 28:
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            work->field_0 = 0;
+            break;
+        default:
+            work->colorMtx = work->savedColorMtx;
+            break;
+    }
+    work->colorMtx = work->savedColorMtx;
+    if ((u16)(work->field_6 - 0x17) < 0x12) {
+        work->colorMtx.t[0] += ((s16)work->field_6 - 0x16) * 0x60;
+    }
+    if ((u16)(work->field_6 - 0x2A) < 9) {
+        s = 0xBB8 - ((s16)work->field_6 - 0x2A) * 0x258;
+        if (s < 0x4B0) {
+            scale.vx = scale.vy = scale.vz = 0;
+            ScaleMatrix(&work->colorMtx, &scale);
+            gte_lddp(0);
+            gte_ldlvl(work->colorMtx.t);
+            gte_gpf12_real();
+            gte_stlvl(work->colorMtx.t);
+            Actor201200_FaceScale(arg1->field_2C->field_8, 0x1000);
+        } else {
+            scale.vx = scale.vy = scale.vz = s;
+            work->colorMtx                 = work->savedColorMtx;
+            ScaleMatrix(&work->colorMtx, &scale);
+            gte_lddp(s);
+            gte_ldlvl(work->colorMtx.t);
+            gte_gpf12_real();
+            gte_stlvl(work->colorMtx.t);
+            s = ((s16)work->field_6 - 0x28) * 0x400 + 0x1000;
+            if (s > 0x2000) {
+                s = 0x2000;
+            }
+            Actor201200_FaceScale(arg1->field_2C->field_8, s);
+        }
+    }
+    if ((s16)work->field_6 < 0x400) {
+        work->field_6++;
+    } else {
+        work->field_0 = 0;
+    }
 }
 
 void func_actor_201200_8014BDFC(Actor201200Ctx* arg0, Actor201200* arg1)
