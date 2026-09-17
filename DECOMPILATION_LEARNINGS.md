@@ -124901,3 +124901,16 @@ reproduces — the idiom `actor_160900`'s and `actor_207000_801500C8`'s matched
 bodies already use. Before reaching for a barrier on an ordering leftover, check
 whether the differing pair is two same-priority siblings in *source* order that
 the object reverses; that fix is the statement permutation, not a fence.
+
+A second instance, and a stronger one: `func_actor_105600_80134FD0` against
+`func_actor_105700_80134FDC` differ in nothing but the two `D_` symbols they
+name, so the masked diff is empty apart from those lines and the port is total -
+the sibling's whole 0xF0-byte work struct, its `GpActorD4Rec` corner and all
+three `Gte` column transforms come across unchanged. `find` again reported
+`same body: 1 copies`. Two consequences worth carrying forward: a same-family
+sibling that scores 1.00 in every `similar` class is worth porting *before*
+reading the m2c seed at all, because the port is one edit per renamed symbol;
+and the two overlays' data tables are overlay-local (each names its own
+`D_actor_1056xx_80147FDC` placement table and sound id), so `promote` is right
+to decline. Inputs: `base.c` 63.860% (`regs=50 reorder=3 insert=14 delete=80`);
+`base_1.c` 100.000% all-zero penalties on its first build.
