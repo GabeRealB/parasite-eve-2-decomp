@@ -121901,3 +121901,100 @@ anything -- drop the include first (it is inert when no `M2C_FIELD` is used) and
 the same seed scores identically.  Evidence under
 `tools/permuter_findings/func_actor_121300_8013343C/`, traces in its
 `analysis/{base_2-96.667pct,winner-100pct,port-100pct}/events.jsonl`.
+
+## A store to a never-read local is deleted by cse, so a stack argument block must be one address-taken object
+
+`ActorsShared80131e24Sub1` (`actors`, the `actor_160700` / `actor_215100` copies)
+fills three words of a stack block and passes its address:
+
+```
+lw     v0, 0x38(s0)
+sw     v0, 0x10(sp)
+lw     v0, 0x3C(s0)
+addiu  v0, v0, -0x320
+sw     v0, 0x14(sp)
+lw     v0, 0x40(s0)
+sw     v0, 0x18(sp)
+```
+
+m2c renders that block as three separate `s32` locals, `sp10`, `sp14` and `sp18`,
+and passes `&sp10`. That scores 81.515% with the *structure* matching and
+`delete=5`: 28 instructions against the target's 33, `branch=0`, `regs` from the
+knock-on allocation, and no penalty naming anything in the source. The five
+missing instructions are exactly the `0x3C` load, the `-0x320` addend, the two
+stores, and the `0x40` load.
+
+Only `sp10` is address-taken, so it becomes a stack slot and its store survives.
+`sp14` and `sp18` are plain pseudos that nothing ever reads, and cse deletes
+them on its final backward sweep (`cse.c`):
+
+```c
+  /* Go from the last insn to the first and delete insns that only set unused
+     registers or copy a register to itself.  */
+  ...
+	  else if (GET_CODE (SET_DEST (PATTERN (insn))) != REG
+		   || REGNO (SET_DEST (PATTERN (insn))) < FIRST_PSEUDO_REGISTER
+		   || counts[REGNO (SET_DEST (PATTERN (insn)))] != 0
+		   || side_effects_p (SET_SRC (PATTERN (insn))))
+	    live_insn = 1;
+```
+
+An insn goes only when its destination is a *pseudo register* with use count
+zero and a side-effect-free source - so the load, the subtraction and the store
+each qualify once the last of them is deleted, and the whole chain disappears.
+Confined to the dumps: the `0x3C` load is insn 25 in `.jump` and is gone from
+`.cse`, with nothing else in the function changing.
+
+Declaring the block as one aggregate whose address is passed - here the project's
+own `VECTOR` - is what keeps every store:
+
+```c
+    VECTOR pos;
+
+    ...
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1] - 0x320;
+    pos.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &pos, 0, 3);
+```
+
+Each store is now `(set (mem:SI (plus:SI (reg) (const_int 16))) (reg))`, whose
+`SET_DEST` is a `mem` and not a `REG`, so the first clause forces `live_insn = 1`
+and the sweep cannot touch it. 100.000%, all penalties zero. The sibling
+`src/actors/actor_160600/actor_160600.c` writes the same block the same way,
+which is the idiom to copy.
+
+The signature to recognise: `delete=N` with `branch=0` and `Structure: match`,
+where the target writes a small argument struct to the stack word by word and
+the seed has it as N scalars. Taking the address of one of them does *not* keep
+its siblings alive - the aggregate is what does.
+
+Inputs: `base_1.i` (100.000%) SHA256
+`8aa86e6f1e86f8f8e61801cc26c1927677a715147ad44b6cd8cf86c0a7386651`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run (matched on the first candidate, `base_1.c`).
+Scratch `nonmatchings/ActorsShared80131e24Sub1-vacuum`.
+
+## `grep` is a shell function that quietly hides matches - use `command grep`
+
+In an agent session in this repo, `grep` is a shell *function* that re-execs the
+Claude Code binary as `ugrep -G --ignore-files --hidden -I ...`. `--ignore-files`
+makes it honour ignore files, and it silently returns nothing for text that is
+present: `grep -n "VECTOR" include/psyq/libgte.h` produced no output for a file
+that defines `VECTOR` on line 146, and `grep -n typedef` on the same file
+likewise. Twenty minutes went into reconstructing Psy-Q's `VECTOR` layout, and a
+wrong detour into `include/decomp/types.h`, from searches that had simply been
+dropped.
+
+`command grep` bypasses the function and behaves like grep. Reach for it
+whenever a negative result is going to steer a decision - "this type is not
+defined anywhere", "nothing declares this callee", "no other overlay carries
+this name" - and for `--include` globs, which the wrapper rejects outright
+(`zsh: no matches found: --include=*.h`). A positive result can still be trusted;
+it is the empty result that is ambiguous, because it means either "no match" or
+"the wrapper filtered the file".
+
+The same applies to any first search that contradicts something already known to
+be true - in this session, `include/gameplay/gameplay.h` referencing `VECTOR`
+with no definition anywhere, and `libgs.h` using `VECTOR` while `libgte.h`
+appeared not to declare it, were both wrapper artefacts rather than facts.
