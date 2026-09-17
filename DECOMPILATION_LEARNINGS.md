@@ -126175,3 +126175,74 @@ Inputs: scratch `nonmatchings/func_actor_160600_8013252C-vacuum`; `base_1.c`
 preprocessed `52cdf55d75e571dd4e731605b31c11d87033d70eb8135d4a08b4ea50113a4365`);
 `base_2.c` (3-arg accumulator) 84.593%; `base_3.c` (no barrier) 92.370%.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## Naming a call result through the field it is stored into puts the caller-side copy *after* the null test
+
+`func_actor_111800_80132390` allocates its work block and keeps it in the task:
+`Mem_Calloc` returns in `$v0`, and the surviving copy of that value into its home
+register (`$s2`) is a real instruction. Where that copy lands is decided by which
+expression the test reads:
+
+```c
+    work        = (Actor111800Work*)Mem_Calloc(0x498, false);   /* copy first */
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) { Task_Kill(task); return; }
+```
+```
+addu    s2,v0,zero          /* the copy, before the test */
+bnez    s2,58
+sw      s2,0x1c(s1)         /* dbr fills the delay slot from the target block */
+```
+against
+```c
+    task->idMap = (TaskIdMap*)Mem_Calloc(0x498, false);         /* copy last */
+    if (task->idMap == NULL) { Task_Kill(task); return; }
+    work = (Actor111800Work*)task->idMap;
+```
+```
+bnez    v0,54               /* the test reads $v0 itself */
+sw      v0,0x1c(s1)         /* ... and so does the store */
+move    s2,v0               /* the copy, in the fall-through block */
+```
+
+The store still names `$v0` in the second form because cse forwards the reload of
+`task->idMap` back through the store that defined it, so the pseudo is born at the
+copy *after* the branch and the branch and store both keep the call's register.
+80.081% -> 98.475% on that one rewrite (the seed had the first form), and it is
+the branch operand that names which form the target used: a `bnez $v0` before the
+copy cannot come from a C local assigned before the test.
+
+The same shape is worth reaching for whenever a target branches and stores on the
+call's own register and only copies afterwards.
+
+## A bare `extern T*` global read next to a struct store needs the one-element-aggregate form to keep its true dependence
+
+`func_actor_111800_80132390` stores `Game_GetPtrSlot(3)` and then `D_80073B8C`
+into two words of its work block. The first store's MEM is in-struct with a PLUS
+address, so `rtx_addr_varies_p` is 1 for it; the global's load is a plain
+`(mem:SI (lo_sum (reg) (symbol_ref)))`, not in-struct, and `rtx_addr_varies_p` is
+0 for it because `LO_SUM` looks only at operand 1. That is exactly the shape the
+*first* suppression clause of `true_dependence` (`sched.c:846`) is written to let
+through, so the load acquires no dependence on the store, sched1 hoists it above
+it, and local-alloc -- which runs after sched1 and therefore sees the reordered
+block -- cannot give the load `$v0` any more, because `$v0` is live across the
+hoisted store. The whole remainder was `regs=4 reorder=1`: `lui $v1`/`lw $v1` and
+the pair swapped, against the target's `sw $v0,0x47C`/`lui $v0`/`lw $v0`.
+
+Declaring the global as a one-element aggregate and indexing it restores the
+dependence (an array element access emits `mem/s:SI`, so the clause needs
+`!MEM_IN_STRUCT_P (x)` and cannot fire, and its second clause needs
+`rtx_addr_varies_p (x)` on a pseudo address, which is also 1):
+
+```c
+extern MATRIX* D_80073B8C[1];
+
+    work->field_480 = D_80073B8C[0];
+```
+
+`include/actors/actor_105500.h`, `actor_560800.h` and `actor_202600.h` already
+declare this symbol that way; this is the case that says why. 99.192% -> 100.000%.
+
+Read the two dumps rather than the source when checking this: the address is a
+pseudo at sched1 and the hard register `$s2` only after reload, where it *does*
+vary. The decision belongs to the first scheduling pass, and `.sched` carries the
+load's `LOG_LINKS` -- the missing `insn_list 107` on insn 112 is the whole bug.
