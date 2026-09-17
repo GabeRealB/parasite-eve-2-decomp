@@ -116907,3 +116907,64 @@ be a multiple of 8 - and note the two facts that make this cheap here:
   and letting the changed config re-split the asm leaves its seven other bodies
   where they are. The re-split does delete `nonmatchings/<unit>` and
   `matchings/<unit>`, which are regenerated.
+
+## A returned accumulator variable is one global allocno; a `return <const>` per exit keeps the value in `$v0`
+
+The "one result variable" idiom m2c emits -- `var_v0 = 0; ... var_v0 = 1; ...
+return var_v0;` -- is a single pseudo spanning several blocks, so `local_alloc`
+rejects it (no `in block N` in `.lreg`) and `global_alloc` places it. It does
+not land in `$v0`, because hard register 2 is already live over its whole span:
+`global_conflicts` records a conflict between every allocno and "each hard reg
+now live", and a pseudo that local-alloc already renumbered to a hard register
+counts as that hard register being live (`reg_renumber[i] >= 0 ->
+mark_reg_live_nc`). The block-local temps every arm produces -- `li`, `lbu`,
+`slt` -- have all been handed `$v0` by local-alloc, so `$v0` is live across the
+accumulator's range and is not a candidate:
+
+```
+;; 5 regs to allocate: 85 86 82 84 83        .greg, base_1.c
+;; 85 conflicts: 85 2 29                     hard reg 2 = $v0
+82 in 16  83 in 18  84 in 17  85 in 3  86 in 4
+```
+```
+	move	$v1,$zero	candidate: in $v1 (reg 3)
+	move	$v0,$v1		the copy the target does not have
+	jr	$ra
+```
+
+Writing a `return <const>` at each exit instead deletes the allocno:
+`expand_value_return` puts each constant into `$v0` inside its own block
+(`(set (reg/i:SI 2 v0) (const_int N))` plus `(use (reg/i:SI 2 v0))` in `.rtl`)
+and jumps to the one epilogue.
+
+`func_dryfield_dilapidated_house_8017E574`: m2c's `var_v0` form is 98.261%
+(`regs=4 insert=1`, `85 in 3` plus the trailing `move v0,v1`); one `return` per
+exit is 100.000% and `.greg` drops to `;; 3 regs to allocate: 82 84 83`.
+Inputs: `base_1.i`
+`8957938b43b2022ccc19f632a65f5abf38e7137f2da68305434b7f73623df2c7`,
+`base_2.i` `e1ff31d96ad3fc2ee54545047e38483274e0424853a1b564c2fc76803064092f`.
+
+## `HAVE_return` is not defined for this target: every `return` reaches one shared `return_label`
+
+Check this before reasoning from `stmt.c`: the bundled `local/gcc/gcc-2.8.1-psx`
+never defines `HAVE_return` (`grep -rn HAVE_return local/gcc/` finds only
+`#ifdef` / `#if` uses, in `stmt.c`, `jump.c` and `function.c`; the psx patches
+do not add one). So the per-statement `emit_jump_insn (gen_return ())` in
+`expand_null_return_1` and the "insert a RETURN insn in front of the epilogue"
+block in `jump_optimize` are both compiled out, and both `return;` and
+`return expr;` leave through `expand_goto_internal (NULL_TREE, return_label, ...)`
+-- one epilogue for the whole function.
+
+The dumps agree. `base_2`'s `.rtl` has three `(set (reg/i:SI 2 v0) (const_int N))`
+/ `(use (reg/i:SI 2 v0))` pairs and no `(return)` at all, and the whole of
+`.jump2` contains exactly one `(return)` -- the `return_internal` epilogue,
+carrying `;; Insn is in multiple basic blocks` notes. The retail
+`func_dryfield_dilapidated_house_8017E574` has one `jr $ra` (`j $31`) for three
+`return` statements, which is the shape this predicts.
+
+This conflicts with the mechanism given in "One `jr ra` shared by every arm is
+one `return` statement". With `HAVE_return` undefined, a per-arm `return 0;`
+cannot produce an inline `jr ra` by the route described there. The recipe in
+that section (`break` out of the switch and return once) may still be right for
+the function it was written for, but re-derive it from that function's dumps
+rather than from `HAVE_return` before applying it.

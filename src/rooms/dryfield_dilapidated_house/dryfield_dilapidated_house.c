@@ -10,6 +10,8 @@
 #include "main/stage.h"
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 extern u8  D_80071075;
@@ -158,7 +160,47 @@ s32 func_dryfield_dilapidated_house_8017E56C(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E574);
+/// Message gate for the room's second hotspot. It copies the incoming record to
+/// the outgoing one and then writes the answer the caller acts on to the copy's
+/// `field_3`, returning 0 when the message was consumed and 1 when it was not.
+///
+/// The copy is the `RoomEventMsg` assignment; the rest is two independent id
+/// checks. While the session is in the room (`Game_Session->field_7` is 2), a
+/// type-7 record with no sub-id answers 1, or the session's own value when flag
+/// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.field_0` is 1) runs
+/// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
+/// clear; everything else is left to the caller and answers 1.
+s32 func_dryfield_dilapidated_house_8017E574(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    u8 s1;
+
+    *out = *in;
+    s1   = Game_Session->field_7;
+    if (s1 == 2) {
+        if (in->msgId == 7) {
+            if (in->field_5 == 0) {
+                if (GameFlag_GetNibble(0x3C) == 0) {
+                    out->field_3 = 1;
+                } else {
+                    out->field_3 = s1;
+                }
+            }
+        }
+    }
+    if ((in->msgId == 7) && (Gp_StateF0.field_0 == 1)) {
+        if (in->field_5 == 0) {
+            Gp_SpawnIfCapIdle(0x14, 0);
+        }
+        return 0;
+    }
+    if (in->msgId == 5) {
+        if (in->field_5 == 0) {
+            Gp_SpawnIfCapIdle(0x13, 0);
+        }
+        return 0;
+    }
+    return 1;
+}
 
 s32 func_dryfield_dilapidated_house_8017E684(void)
 {
