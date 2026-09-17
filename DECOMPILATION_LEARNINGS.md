@@ -119697,3 +119697,62 @@ Inputs: `base_1.i` (99.796%) SHA256
 `ef1e458ede2ba62b8e67575b888cfbf3f6473f9bca4da8adb19e451be541c374`; `base_2.i`
 (100%) SHA256
 `05efbeccbae974a07073df63ae7a0b4618e458e550d9089aafa55303b0f95d53`.
+
+## A merged tail's address is rewritten from its `REG_EQUAL` constant, so `SYMBOL+offset` survives where splat names the symbol
+
+An anchor-drawing switch where one arm sweeps two elements of the same anchor
+run writes them as indexes, and that spelling is what puts the run's base in a
+callee-saved register. `func_dryfield_night_driveway_8017E5CC` (43 insns, the
+`Room_Draw08` sweep family) is the worked example:
+
+```c
+case 3:
+case 10:
+    Room_Draw08(&D_dryfield_night_driveway_801805B0[0], 0x180);
+    Room_Draw08(&D_dryfield_night_driveway_801805B0[2], 0x180);   /* C0 = B0 + 0x10 */
+    break;
+```
+
+`combine` rewrites the second address into `(plus (reg_base) (const_int 16))`
+against the first one's `(lo_sum (reg_h) (symbol_ref B0))`, so the base is live
+across the first `jal`, takes `$s0`, and the arm comes out exactly as the target
+has it - `lui $s0,%hi(B0)` / `addiu $s0,$s0,%lo(B0)` / `move a0,$s0` / `jal`.
+Naming the anchor instead (`&D_..._801805C0`) reads identical in the target's
+`.s` and drops that copy: the two addresses stop being one base plus an offset,
+each materialises into `$a0`, and the `$s0` home is gone (85.4%).
+
+The residual difference is the *spelling* of the merged copy's relocation. The
+last `jump_optimize` merges the third arm's identical call into the block this
+one falls into, and `find_cross_jump` cannot match `(set (a0) (plus (reg s0)
+16))` against the other arm's `(set (a0) (lo_sum ...))` - but both insns carry
+the same `REG_EQUAL` constant, so jump.c replaces both *sources* with that
+constant before merging (`jump.c:2640-2665`, the `CONSTANT_P (equiv1)` branch).
+The surviving copy is therefore a fresh `la a0, B0+16`, i.e. `%hi(B0)` with
+`%lo(B0+0x10)`, where the target `.s` names the address splat gave it,
+`%hi(D_..._801805C0)` / `%lo(D_..._801805C0)`. Same bytes after linking - the
+relocation resolves to the same address - but the scratch scorer counts the two
+symbol names: 99.651%, `branch=insert=delete=reorder=0`, `regs=3`.
+
+The merge also empties the arm it takes the copy from, and that emptied block
+keeps its label and its `j`: `reorg.c`'s `fill_slots_from_thread` fills the
+jump's delay slot with `copy_rtx (trial)` when `own_thread_p()` is 0, which is
+why the target shows the same address `lui` twice in a row - once in the delay
+slot, once at the head of the merged block. The copy carries the reloc, so the
+compiled `.o` has a relocation where the target `.o` (assembled from
+spimdisasm's disassembly, which could not pair that lone `lui`) has a literal
+`lui a0,0x8018`; that is the second scored difference.
+
+Rule: when the target shows `move a0,$s0` for an arm's first call, the source
+must reach the anchor by index so the base is shared; write the name there only
+if no later use in the same arm needs the base. The leftover symbol-name diff
+belongs to the same class as "A field reached as `%hi(base + N)` gets its own
+splat symbol": `./tools/build-and-verify.sh` is the arbiter, and it linked and
+checksummed this one with the diff standing (a negative control - one `0x180`
+flipped to `0x181` - fails the checksum, so the body, not a stale `INCLUDE_ASM`,
+is what the overlay was built from).
+
+Preprocessed input `base_6.i` SHA256
+`99c58bee9a6c31a741a7fc9e5208e874dfd280357f79481f8ef6dd56778ac3c4` (99.651%),
+`base_4.i` `e700b7247e3b5bda…` (99.419% without the named `D0`), `target.s`
+SHA256 `f8b8889a6793df3e27a3cd46e5ff15a00b5eeb849c7da700cb100814092650bf`.
+Scratch `nonmatchings/func_dryfield_night_driveway_8017E5CC-vacuum`.
