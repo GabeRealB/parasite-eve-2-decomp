@@ -407,7 +407,127 @@ void func_actor_341900_801628B8(Task* arg0)
     work->field_5C = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80162AD4);
+/// Placements sent to the two effect children (`field_C` / `field_10`) as
+/// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
+extern Actor341900MsgPos D_actor_341900_801639D8[2];
+extern Actor341900MsgPos D_actor_341900_80163A48;
+extern Actor341900MsgPos D_actor_341900_80163A60;
+
+/// Runs the one-shot request in `Actor341900Work::field_64`, stepping through
+/// `field_66`. States 1 and 2 hand `field_8` an animation (0x7D3) and a
+/// placement (0x7D4); state 1 then slides it along x once `field_68` reaches
+/// 0x10, state 2 spawns four effects on its third coordinate after 0x3C ticks.
+/// State 3 places both effect children and sends `field_4` 0x7D5; state 4
+/// places them and moves them apart along z every tick.
+void func_actor_341900_80162AD4(Task* arg0)
+{
+    Actor341900Work* work;
+    GpAnimArg        msg;
+    GpAnimArg        msg2;
+    SVECTOR          ofs;
+
+    work = (Actor341900Work*)arg0->idMap;
+    switch ((u16)work->field_64) {
+        case 1:
+            switch ((u16)work->field_66) {
+                case 0:
+                    msg.field_4 = 1;
+                    msg.field_8 = 1;
+                    msg.field_0 = 0;
+                    msg.field_C = 10;
+                    Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&msg, 0);
+                    work->field_14.pos.vx = D_actor_341900_80163A48.pos.vx;
+                    work->field_14.pos.vy = D_actor_341900_80163A48.pos.vy;
+                    work->field_14.pos.vz = D_actor_341900_80163A48.pos.vz;
+                    work->field_14.rot.vx = D_actor_341900_80163A48.rot.vx;
+                    work->field_14.rot.vy = D_actor_341900_80163A48.rot.vy;
+                    work->field_14.rot.vz = D_actor_341900_80163A48.rot.vz;
+                    Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&work->field_14, 0);
+                    work->field_68 = 0;
+                    work->field_66++;
+                    break;
+                case 1:
+                    if ((u16)work->field_68 >= 0x10) {
+                        work->field_14.pos.vx += 0x1E;
+                        Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&work->field_14, 0);
+                    } else {
+                        work->field_68++;
+                    }
+                    break;
+            }
+            break;
+        case 2:
+            switch ((u16)work->field_66) {
+                case 0:
+                    msg2.field_4 = 2;
+                    msg2.field_8 = 1;
+                    msg2.field_0 = 0;
+                    msg2.field_C = 10;
+                    Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&msg2, 0);
+                    Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_actor_341900_80163A60, 0);
+                    work->field_68 = 0;
+                    work->field_66++;
+                    break;
+                case 1:
+                    work->field_68++;
+                    if ((u16)work->field_68 > 0x3C) {
+                        ofs.vx = 0;
+                        ofs.vy = -0x64;
+                        ofs.vz = 0x1194;
+                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->field_8[2], 0x04402800, &ofs);
+                        ofs.vx = 0xC8;
+                        ofs.vy = 0xC8;
+                        ofs.vz = 0x1194;
+                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->field_8[2], 0x04402800, &ofs);
+                        ofs.vx = -0xC8;
+                        ofs.vy = 0xC8;
+                        ofs.vz = 0x1194;
+                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->field_8[2], 0x04402800, &ofs);
+                        ofs.vx = 0;
+                        ofs.vy = 0xC8;
+                        ofs.vz = 0x1194;
+                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->field_8[2], 0x04402800, &ofs);
+                        work->field_64 = 0;
+                    }
+                    break;
+            }
+            break;
+        case 3:
+            Gp_DispatchMsg(work->field_C, 0x7D4, (s32)&D_actor_341900_801639D8[0], 0);
+            Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&D_actor_341900_801639D8[1], 0);
+            Gp_DispatchMsg(work->field_4, 0x7D5, 2, 0);
+            work->field_64 = 0;
+            break;
+        case 4:
+            switch ((u16)work->field_66) {
+                case 0:
+                    work->field_2C.pos.vx = D_actor_341900_801639D8[0].pos.vx;
+                    work->field_2C.pos.vy = D_actor_341900_801639D8[0].pos.vy;
+                    work->field_2C.pos.vz = D_actor_341900_801639D8[0].pos.vz;
+                    work->field_2C.rot.vx = D_actor_341900_801639D8[0].rot.vx;
+                    work->field_2C.rot.vy = D_actor_341900_801639D8[0].rot.vy;
+                    work->field_2C.rot.vz = D_actor_341900_801639D8[0].rot.vz;
+                    work->field_44.pos.vx = D_actor_341900_801639D8[0].pos.vx;
+                    work->field_44.pos.vy = D_actor_341900_801639D8[0].pos.vy;
+                    work->field_44.pos.vz = D_actor_341900_801639D8[0].pos.vz;
+                    work->field_44.rot.vx = D_actor_341900_801639D8[0].rot.vx;
+                    work->field_44.rot.vy = D_actor_341900_801639D8[0].rot.vy;
+                    work->field_44.rot.vz = D_actor_341900_801639D8[0].rot.vz;
+                    work->field_66++;
+                case 1:
+                    work->field_2C.pos.vz -= 0x14;
+                    work->field_44.pos.vz += 0x14;
+                    Gp_DispatchMsg(work->field_C, 0x7D4, (s32)&work->field_2C, 0);
+                    Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&work->field_44, 0);
+                    break;
+            }
+            break;
+        case 0:
+        default:
+            work->field_64 = 0;
+            break;
+    }
+}
 
 /// Controller task of the overlay's script sequence, the one published in
 /// `D_actor_341900_80164208`. State 0 clears and publishes the work block,

@@ -9,6 +9,13 @@
 
 #include <psyq/libgte.h>
 
+/// Position and Euler rotation payload sent to slot 3 as message 0x3E9.
+typedef struct Actor341900MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor341900MsgPos;
+STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
+
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
 ///
@@ -39,30 +46,25 @@
 /// `Gp_KillPlayerEffs`) and `func_actor_341900_80163438` (calls
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
-    /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3)
-    /* 0x04 */ Task* field_4; // Gp_FindWorkById(session slot)->field_0
-    /* 0x08 */ Task* field_8;
-    /* 0x0C */ Task* field_C;
-    /* 0x10 */ Task* field_10;
-    /* 0x14 */ byte  pad_14[0x48];
-    /* 0x5C */ s16   field_5C;
-    /* 0x5E */ s16   field_5E;
-    /* 0x60 */ byte  pad_60[0x4];
-    /* 0x64 */ s16   field_64;
-    /* 0x66 */ s16   field_66;
-    /* 0x68 */ s16   field_68;
-    /* 0x6A */ byte  pad_6A[0x2];
-    /* 0x6C */ u16   field_6C;
-    /* 0x6E */ byte  pad_6E[0x2];
+    /* 0x00 */ Task*             field_0; // Game_GetPtrSlot(3)
+    /* 0x04 */ Task*             field_4; // Gp_FindWorkById(session slot)->field_0
+    /* 0x08 */ Task*             field_8;
+    /* 0x0C */ Task*             field_C;
+    /* 0x10 */ Task*             field_10;
+    /* 0x14 */ Actor341900MsgPos field_14;
+    /* 0x2C */ Actor341900MsgPos field_2C;
+    /* 0x44 */ Actor341900MsgPos field_44;
+    /* 0x5C */ s16               field_5C;
+    /* 0x5E */ s16               field_5E;
+    /* 0x60 */ byte              pad_60[0x4];
+    /* 0x64 */ s16               field_64;
+    /* 0x66 */ s16               field_66;
+    /* 0x68 */ s16               field_68;
+    /* 0x6A */ byte              pad_6A[0x2];
+    /* 0x6C */ u16               field_6C;
+    /* 0x6E */ byte              pad_6E[0x2];
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
-
-/// Position and Euler rotation payload sent to slot 3 as message 0x3E9.
-typedef struct Actor341900MsgPos {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor341900MsgPos;
-STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 
 /// Session id payload `func_actor_341900_80162EFC` sends to slot 4 as message
 /// 0x7DA, asking for the 0x7DB reply. `field_0` takes `GameSession.field_7`
