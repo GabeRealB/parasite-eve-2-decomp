@@ -1,15 +1,18 @@
 #include "common.h"
 
 #include "actors/actor_342100.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
@@ -468,7 +471,102 @@ s32 func_actor_342100_80162F54(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_801630A4);
+extern u8       D_80071075;
+extern s8       D_80114C11;
+extern s8       D_80114C12;
+extern u8       D_80114CF8;
+extern u8       D_801153F4;
+extern TaskDesc D_8018B57C;
+extern TaskDesc D_8018B83C;
+
+/// The overlay's event/controller task. Idles while the session or any of
+/// the global pause flags hold it. State 0 allocates the work block and
+/// publishes the task, then picks state 1 or 2 from
+/// `Game_Session->unknown_130[0]`; state 1 waits on flag 0x11E and pending
+/// object 5, and states 1 and 2 both move to 3 once `field_120` has dropped
+/// to zero while the player still has HP. State 3 ticks
+/// `func_actor_342100_80162F54` until it reports done.
+///
+/// `work` is read from `idMap` before state 0 replaces it, so the two
+/// `field_30` stores go through the block the task held on entry.
+void func_actor_342100_801630A4(Task* arg0)
+{
+    u16              id;
+    s8               kind;
+    u8               extra;
+    Actor342100Work* work;
+    Actor342100Work* newWork;
+    s32              ready;
+    WipSysConfig*    cfg;
+
+    work = (Actor342100Work*)arg0->idMap;
+    if (Game_Session->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0 || D_80114CF8 != 0) {
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            if (D_80114C12 == 1 || D_80071075 != 0) {
+                break;
+            }
+            newWork     = Mem_Malloc(0x44, 0);
+            arg0->idMap = (TaskIdMap*)newWork;
+            if (newWork == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(newWork, 0, 0x44);
+                newWork->field_2C       = Game_GetPtrSlot(3);
+                D_actor_342100_80164BB8 = arg0;
+            }
+            Task_SpawnFromTable(&D_8018B57C, 0, 0xD0, 0);
+            SndEvt_EnqueueType6(0x54270007, 0, 0);
+            switch ((u8)Game_Session->unknown_130[0]) {
+                case 0:
+                    arg0->state++;
+                    break;
+                case 1:
+                    work->field_30 = Task_SpawnFromTable(&D_8018B83C, 0, 1, 0);
+                default:
+                    arg0->state = 2;
+                    break;
+            }
+            break;
+        case 1:
+            if (GameFlag_GetNibble(0x11E) != 0) {
+                if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & 0x7FFF) == 5 && kind == 1) {
+                    work->field_30 = Task_SpawnFromTable(&D_8018B83C, 0, 0, 0);
+                    arg0->state++;
+                }
+            }
+            cfg = &Wip_SysConfig;
+            if (Game_Session->field_120 > 0 || cfg->field_18 <= 0) {
+                ready = 0;
+            } else {
+                ready = 1;
+            }
+            if (ready) {
+                arg0->state = 3;
+            }
+            break;
+        case 2:
+            cfg = &Wip_SysConfig;
+            if (Game_Session->field_120 > 0 || cfg->field_18 <= 0) {
+                ready = 0;
+            } else {
+                ready = 1;
+            }
+            if (ready) {
+                arg0->state = 3;
+            }
+            break;
+        case 3:
+            if ((s16)func_actor_342100_80162F54(arg0) != 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            break;
+    }
+}
 
 void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2)
 {
