@@ -4,6 +4,7 @@
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "rooms/dryfield_night_gas_station.h"
 #include "rooms/rooms_shared_801807d4.h"
 
 extern Task* RoomsShared8017e320Task;
@@ -40,6 +41,47 @@ void func_dryfield_night_gas_station_80180D1C(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_7", func_dryfield_night_gas_station_80180DC8);
+/// Switches the room's lamp effect between its lit and dark appearance: the
+/// current room's three lamp views have their three flags written to 1 for the
+/// 0 argument and to 0 for the 1 argument, and any other argument changes
+/// nothing. `func_dryfield_night_gas_station_80180A60` drives it from the
+/// blinking-light table, whose own exit passes 0.
+void func_dryfield_night_gas_station_80180DC8(s16 arg0)
+{
+    GameSessionFrom4*               sess = (GameSessionFrom4*)&Game_Session->field_4;
+    DryfieldNightGasStationSprtRec* rec  = (DryfieldNightGasStationSprtRec*)
+                                              Gp_SprtTables[sess->field_3 - 1][0]
+                                                  .field_0[sess->field_2 - 1];
+    DryfieldNightGasStationSprtView* view;
+
+    switch (arg0) {
+        case 0:
+            view           = rec->field_A0;
+            view->field_44 = 1;
+            view->field_4C = 1;
+            view           = rec->field_AC;
+            view->field_44 = 1;
+            view->field_4C = 1;
+            view->field_54 = 1;
+            view           = rec->field_C4;
+            view->field_44 = 1;
+            view->field_4C = 1;
+            view->field_54 = 1;
+            break;
+        case 1:
+            view           = rec->field_A0;
+            view->field_44 = 0;
+            view->field_4C = 0;
+            view           = rec->field_AC;
+            view->field_44 = 0;
+            view->field_4C = 0;
+            view->field_54 = 0;
+            view           = rec->field_C4;
+            view->field_44 = 0;
+            view->field_4C = 0;
+            view->field_54 = 0;
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_7", func_dryfield_night_gas_station_80180E9C);

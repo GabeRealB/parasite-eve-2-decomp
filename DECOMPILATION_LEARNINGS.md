@@ -115572,3 +115572,65 @@ after it keep `&mtx`, as the target does.
 
 Inputs: `base_6.i` (100.000%) `db58f1bd357d142b`, `base_5.i` (`&mtx` everywhere, 96.025%)
 `ecb6a7bb2e2cb0f4`.
+
+## One pointer variable reused across both `switch` cases, not a temp per store: block-local quantities pin to `$v0` (func_dryfield_night_gas_station_80180DC8, 2026-09-17)
+
+**Symptom.** A 53-instruction `switch (arg0)` whose two case bodies each load three
+view pointers and store a byte through them sat at 98.962% with `regs=11` and nothing
+else: the case-0 body matched exactly (`lw v1,0xa0(a1)` … `sb v0,0x44(v1)` …), and the
+case-1 body used `$v0` for every pointer temp where the target uses `$v1`:
+
+```
+                    /* target */                    /* ours */
+lw   v1,0xa0(a1)                                    lw   v0,0xa0(a1)
+nop                                                 nop
+sb   zero,0x44(v1)                                  sb   zero,0x44(v0)
+```
+
+The tell is the whole function: in the target `$v1` is the pointer temp *everywhere*
+— the `Gp_SprtTables` chain in the prologue as well as all six loads — while `$v0`
+holds the chain's intermediate values and the case-0 constant 1.
+
+**Why.** local-alloc only allocates a quantity for a pseudo that lives in a single
+basic block; `local_alloc` (`local-alloc.c`, the loop above `block_alloc`) gives
+`reg_qty[i] = -2` (allocatable here) only when
+
+```c
+      if (REG_BASIC_BLOCK (i) >= 0 && REG_N_DEATHS (i) == 1
+	  && (reg_alternate_class (i) == NO_REGS
+	      || ! CLASS_LIKELY_SPILLED_P (reg_preferred_class (i))))
+```
+
+and `-1` (leave it to global-alloc) otherwise. Any other pseudo is global. For a
+block-local quantity `find_free_reg` returns the *first free hard register in
+`reg_alloc_order`* — undefined for MIPS, so numeric order, `$v0` before `$v1`; the
+quantities of a block are tried in decreasing `QTY_CMP_PRI`
+(`floor_log2 (n_refs) * n_refs * size / (death - birth)`), so case 0's constant-1
+pseudo, shorter-lived and more-referenced, takes `$v0` first and leaves `$v1` for the
+temps — while in case 1 nothing competes and every temp takes `$v0`.
+
+**Fix.** Write the pointer loads through *one* variable for the whole function:
+
+```c
+    DryfieldNightGasStationSprtView* view;
+
+    switch (arg0) {
+        case 0:
+            view           = rec->field_A0;
+            view->field_44 = 1;
+            view->field_4C = 1;
+            view           = rec->field_AC;
+            …
+```
+
+The single pseudo is now used in two basic blocks, so `REG_BASIC_BLOCK < 0` and
+global-alloc gives it one register for the function (`$v1`), which is exactly the
+target's shape. m2c's per-store temporaries (`temp_v1`, `temp_v1_2`, …) are the
+opposite of what the body needs — and so is the untemped
+`rec->field_A0->field_44 = 1; rec->field_A0->field_4C = 1;`, which reloads the
+pointer for each store (20 `insert`, 66.465%) because a `sb` may alias anything.
+Three temps per case but *shared* between the cases is the other shape that would
+work.
+
+Inputs: `base_3.i` (100.000%) `cde9982b06b559d9`, `base_2.i` (98.962%, m2c's three
+temps per case) `52265102113fd4bd`, `base_1.i` (66.465%, no temps) `455a347ea08533d7`.
