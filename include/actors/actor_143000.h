@@ -6,7 +6,8 @@
 #include "main/task.h"
 
 typedef struct Actor143000Work {
-    /* 0x00 */ byte pad_0[4];
+    /* 0x00 */ byte pad_0[2];
+    /* 0x02 */ u16  field_2;
     /* 0x04 */ s16  field_4;
     /* 0x06 */ byte pad_6[1];
     /* 0x07 */ s8   field_7;
