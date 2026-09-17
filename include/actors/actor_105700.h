@@ -180,7 +180,9 @@ typedef struct Actor105700FxWork {
     /* 0x98 */ GpObj        obj98;
     /* 0xB8 */ GpActorD4Rec d4rec;
     /* 0xD0 */ GpRec18      recD0[1];
-    /* 0xE8 */ byte         pad_E8[6];
+    /* 0xE8 */ s16          field_E8; ///< effect puff frame counter (wraps at 4)
+    /* 0xEA */ s16          field_EA; ///< frame count; the burst ends the cycle at 0x5A
+    /* 0xEC */ byte         pad_EC[2];
     /* 0xEE */ s16          field_EE;
 } Actor105700FxWork;
 STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);

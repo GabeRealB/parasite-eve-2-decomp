@@ -761,7 +761,87 @@ void func_actor_105700_80134FDC(GpEnemy* arg0, Task* arg1)
     *(u8**)G_SCRATCH_HEAD += 0x38;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_8013541C);
+extern s32 D_80115750;
+/// Sound id of the burst cue, with the spawn context's room/channel bits
+/// packed in like `D_actor_105700_80149048`.
+extern s32 D_actor_105700_8014904C;
+
+/// Per-frame tick of the placed effect body from `func_actor_105700_80134FDC`.
+/// Mode 0 of `D_801153F4` drifts the root coordinate along its Y axis, puffs
+/// an effect every fourth frame and ends the cycle - burst, sound cue and
+/// state 2 - on a hit, an empty room-parameter slot, or after 0x5A frames.
+
+void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
+{
+    Actor105700FxWork* work;
+    GsCOORDINATE2*     coord;
+    TmdObject*         tmd;
+    SVECTOR*           scratch;
+    Actor105700Ctx*    ctx;
+    s32                found;
+    s32                idx;
+    s32                sound;
+    s32                pan;
+    VECTOR             pos;
+
+    tmd   = arg1->extra;
+    coord = tmd->field_8;
+    work  = (Actor105700FxWork*)arg1->idMap;
+    found = 0;
+    switch (D_801153F4) {
+        case 0:
+            tmd->field_C = 0;
+            break;
+        case 1:
+            pos.vx = coord->workm.t[0];
+            pos.vy = coord->workm.t[1];
+            pos.vz = coord->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+            return;
+        case 2:
+            tmd->field_C = 0x80;
+            return;
+    }
+
+    coord->flg         = 0;
+    coord->coord.t[0] += (coord->coord.m[0][1] * 75) >> 11;
+    coord->coord.t[1] += (coord->coord.m[1][1] * 75) >> 11;
+    coord->coord.t[2] += (coord->coord.m[2][1] * 75) >> 11;
+
+    scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 0x28);
+    if (++work->field_E8 >= 4) {
+        scratch->vx = 0;
+        scratch->vy = 0x64;
+        scratch->vz = 0;
+        Gp_SpawnEff(0x60070, coord, 0x01001600, scratch);
+        work->field_E8 = 0;
+    }
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
+
+    if (work->recD0[0].field_4 != 0) {
+        idx = func_800E1B24(work->recD0[0].field_4);
+        if (Gp_RoomParamTables[Game_Session->field_7 - 1][Game_Session->field_6 - 1][idx]->field_1 == 0) {
+            found = 1;
+        }
+        Gp_ClearRec18Occupied(work->recD0);
+    }
+    if (work->rec60[0].field_4 != 0 || found || ++work->field_EA >= 0x5A) {
+        Gp_SpawnEff(D_80115750, coord, work->field_EE, NULL);
+        ((TmdObject*)arg1->extra)->field_C = 0x80;
+        ctx                                = arg1->spawnArg2;
+        sound                              = D_actor_105700_8014904C | (((u16)ctx->field_8 >> 0xC) << 8);
+        pan                                = (s8)Gp_GetObjPan((GpObj38*)coord);
+        SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+        arg1->state = 2;
+        if ((work->rec60[0].field_4 & 0xFFFF0080) == 0x10000) {
+            Gp_SpawnPadLerp(0xA, 0xFF, 8);
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x28;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80135750);
 
