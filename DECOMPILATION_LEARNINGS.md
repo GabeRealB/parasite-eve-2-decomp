@@ -119977,3 +119977,50 @@ adds a velocity to this field and clamps it), so expect the shape again.
 Inputs: `base_1.i` `d16cf27d939b2c391f0b7bce0863a665c1d7deecddc5a5867ef7ba10d774c1da`
 (97.432%, union already in, `u8` still), `base_3.i` `bcfa78cb79caca789b0e1f61b5f737a19004409c70fd6a611636442cf7b5d487`
 (100%, `s8`).
+
+## Two byte stores of "the same" value merge in `cse` unless their lvalues differ in signedness — one extra value live, and every callee-saved home shifts (func_dryfield_night_factory_8017FBF4, 2026-09-17)
+
+The store-side rule in "A `u8` field assigned -1 folds to `li $v0,0xff`" read
+backwards, and the reason it is worth reading backwards: a *second* byte store of
+a lookalike constant is not merely a second `li`. The m2c baseline scored 92.934%
+(`regs=28 branch=3 insert=3 delete=2`) and the object diff reads like a pure
+allocation shift - the target uses `$s0`-`$s6` and `addiu $sp,$sp,-0x30`, the
+candidate `$s0`-`$s7` and `-0x38` - because it is one, driven by the constants.
+
+`.rtl` carries the two stores as two pseudos: insn 107 `(set (reg:QI 101)
+(const_int -1))` for `model->field_E = -1` (an `s8` field) and insn 139
+`(set (reg:QI 106) (const_int -1))` for `0xFF` written through an `s8 *`. The
+`s8` lvalue folds the literal into the field's mode *before* the store, so both
+are `const_int -1`, and the EBB-following described in the `actor_800100` section
+lets `cse` unify them: by `.lreg` insn 141 stores `(reg:QI 101)` where `.rtl` had
+106, and `insn.py --reg 101` reports `used 3 times across 24 insns; crosses 1
+call`. `.greg` opens with `9 regs to allocate: 85 89 81 87 84 80 101 82 83` and
+disposes `101 in 21` (`$s5`), so the merged constant is live from the `-1` store
+through `Tmd_AllocBuffers`, `GameFlag_GetNibble` and `RotMatrixX` to the second
+one. One more value live across both calls than the target has, and global-alloc
+re-homes every one of them:
+
+```
+li    s5,-0x1        /* one pseudo */        li    v0,-0x1     /* target: two */
+li    v0,-0x316                              sb    v0,0xe(s0)
+sb    s5,0xe(s0)                             li    v0,-0x316
+...                                          ...
+li    v0,-0x300                              li    v0,0xff
+jal   RotMatrixX                             sb    v0,8(s3)
+sb    s5,8(s3)        /* still live */
+```
+
+Write the second store through the *unsigned* field it actually is - here
+`work->state = 0xFF;` with `u8 state` - and the value stops folding: the RTL
+constant is `255`, `cse` has nothing to unify, and the pseudo dies at its single
+use. 100%, 90 instructions, all penalties zero. So a target `li $v0,0xff` beside
+a `li $v0,-0x1` is evidence of two *unsigned*/*signed* fields, while a single
+`li` feeding two byte stores of a negative constant is evidence that both lvalues
+are signed and that the second one's `0xFF` is not coming from the C spelling you
+think it is. The `.greg` ref/span line (`used 3 times across 24 insns`) is the
+cheapest way to see the merge before reading any RTL.
+
+Inputs: `base.i` `e838b95b5b5663a825f9927bd8feabbcc567e6a14a1ed2facf9dba73b51045c2`
+(92.934%, `M2C_FIELD(temp_v0, s8 *, 8) = 0xFF`), `base_1.i`
+`a293989628499be5bd682010b1539b5712d9869b496c4d4e813575ff7f5d6937` (100%, `u8`
+field).
