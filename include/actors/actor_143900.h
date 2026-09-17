@@ -15,9 +15,14 @@
 /// 0x1C slot, so the size below is the allocation and not a guess. Every
 /// other function in the overlay reaches the block through the global.
 ///
-/// `anim` is the animation context `Gp_AnimTickIndex` and friends walk.
+/// `light` and `color` are the two matrices the block itself supplies to the
+/// model: `ActorsShared80131f9cSub0` publishes `&work->light` / `&work->color`
+/// into `TmdObject::field_1C` / `field_20`, which is what `Tmd_SetupDraw` loads
+/// in place of `GsLIGHTWSMATRIX` and `D_80074080`. `anim` is the animation
+/// context `Gp_AnimTickIndex` and friends walk.
 typedef struct Actor143900Work {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pad_374[0x140];
@@ -27,9 +32,12 @@ typedef struct Actor143900Work {
     /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_143900_80132624` before the reseed
     /* 0x4BC */ byte       pad_4BC[0x2A];
     /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4E8 */ byte       pad_4E8[4];
-    /* 0x4EC */ s16        field_4EC; // animation reset argument, latched by the 0x7DB handler
-    /* 0x4EE */ byte       pad_4EE[2];
+    /* 0x4E8 */ byte       pad_4E8[2];
+    /// Cleared by `ActorsShared80131f9cSub0` beside `field_4EC`; no matched
+    /// code reads it back yet, so its role is still unknown.
+    /* 0x4EA */ s16  field_4EA;
+    /* 0x4EC */ s16  field_4EC; // animation reset argument, latched by the 0x7DB handler
+    /* 0x4EE */ byte pad_4EE[2];
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
