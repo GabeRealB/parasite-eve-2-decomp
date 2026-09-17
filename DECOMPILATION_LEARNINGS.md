@@ -49982,6 +49982,25 @@ if (mem != NULL) {
 `func_mist_parking_8017E90C`; the same shape should apply to any
 `Mem_Calloc` whose pointer is live across the calls that follow.
 
+Two locals *are* enough when the copy's source is still used after the copy.
+Every spawn handler in the actors family stores the allocation into the task
+first, and that use is what keeps the pseudos apart — no asm helper and no
+placement rule, because the block that has to see the two as one pseudo runs
+past a second read of the source:
+
+```c
+mem         = Mem_Calloc(sizeof(Actor312200Work), 0);
+work        = mem;
+task->idMap = (TaskIdMap*)mem;    /* mem is live past the copy */
+if (mem == NULL) { ... }
+```
+
+Gives the target `addu s2,v0,zero` / `bnez v0` / `sw v0,0x1C(s4)` exactly;
+naming only `work` throughout gives `bnez s2` / `sw s2` at the same score
+otherwise (`func_actor_312200_80163178`, `func_actor_210600_8014B8C8`). The
+`mist_parking` case has no such intervening read, which is why it needed the
+soft use.
+
 ## A loop entry test that reads a *copy* of the count: dead store plus a double soft use
 
 Target shape, for `count = 0; if (stackable) count = f(); else for (i = 0; i < n; i++) ...`:
@@ -75044,6 +75063,29 @@ to be the object the target's displacements are measured from.
 The frame size is a cheap tell for which of the two you have: 0x28 with `s0`
 as the work base is the folded form, 0x30 with an `s5` is a base the source
 never had.
+
+**Why the load pins it.** `sched_analyze_1` keeps a pending-write list and adds
+a `true_dependence`-guarded dependence from *every* earlier store to a later
+memory read (`sched_analyze_2`), and an `output_dependence` one from every
+earlier store to a later store. Two `(mem (plus (reg) (const_int N)))` cannot
+be proved disjoint, so the dependences are always created. The load therefore
+cannot be hoisted over any store that precedes it in the RTL, and the store
+cannot be pushed below one that follows it: **the statement position is the
+only knob**, and no barrier, pin or store reordering moves the chain. That is
+the whole reason the fix is "write it first", and it is why the distance is
+exactly the load's position — the stores already there are a wall.
+
+Verified on `func_actor_312200_80163178` (2026-09-17), which is the same shape
+at 126/126 instructions and zero insert/delete: with
+`node->field_8 = &((TmdObject*)task->extra)->field_8[3]` written last the score
+was 96.71% with `regs=7 reorder=3`, the two `lw`s sitting at the bottom of the
+block; moving that one statement to the top of the block — before
+`node->field_C`, with the store still landing in the `jal` delay slot — is an
+exact 100.00%. The other five insns of drift were downstream of it: the chain
+took `$v0`/`$v1` instead of sharing `$v0`, which freed `$v1` and left the
+`0x3000A` constant to `$a2` (the register it is passed in) rather than `$v1`.
+So a single correctly-placed statement can carry a whole block's registers with
+it; fix the ordering before chasing the register penalty.
 
 ## Move the statement that carries a reload chain, not the independent load beside it
 

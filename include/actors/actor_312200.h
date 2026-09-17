@@ -7,18 +7,18 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Private work block of the actor 312200 task, hanging off `Task::idMap`.
+/// Private work block of the actor 312200 task, hanging off `Task::idMap`,
+/// `Mem_Calloc(sizeof(Actor312200Work), 0)` in the spawn handler.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x08 is
 /// the heading `func_actor_312200_801635CC` reads back from the root
-/// coordinate, two halfwords earlier than `ActorsShared80169f74Work::yaw`. The
-/// rest is unmerged padding, so the struct stays open-ended.
+/// coordinate, two halfwords earlier than `ActorsShared80169f74Work::yaw`.
 ///
 /// The named tail is the actor state block shared by this family, laid out like
 /// `Actor110600Work`: `field_0` is the state word the 0x7DB handler raises,
 /// `field_4` the live-actor flag every state handler tests on entry, `field_88C`
-/// the work state, `field_892` / `field_896` the two timers the state handlers
-/// arm, and `field_5C` the flag halfword whose bit 0 the callbacks test.
+/// the work state, and `field_892` / `field_896` the two timers the state
+/// handlers arm.
 ///
 /// `field_8B4` / `field_8B6` / `field_8B8` are the record
 /// `func_actor_312200_801636CC` leaves of the last 0x7DB command it saw: the
@@ -30,27 +30,49 @@
 /// `GpObj` whose `field_C` it points at a three-entry `GpRec18` table at 0x8DC.
 /// `func_actor_312200_80163778` clears bit 0x8000 of that node's `flags`.
 typedef struct Actor312200Work {
-    /* 0x000 */ s16  field_0;
-    /* 0x002 */ byte pad_2[0x2];
+    /* 0x000 */ s16 field_0;
+    /// Second halfword of the state word above, set to -1 by the spawn handler.
+    /* 0x002 */ s16  field_2;
     /* 0x004 */ s16  field_4;
     /* 0x006 */ byte pad_6[0x2];
     /* 0x008 */ s16  yaw;
-    /* 0x00A */ byte pad_A[0x52];
-    /* 0x05C */ u16  field_5C;
-    /* 0x05E */ byte pad_5E[0x82E];
+    /* 0x00A */ byte pad_A[0x6];
+    /// Animation context the spawn body hands `func_800B3F84` first, with its
+    /// 19 slots directly behind it: the pose buffer that function is handed
+    /// fourth starts at 0x31C, exactly 0x10 + 0x14 + 19 * 0x28, the same pack
+    /// `Actor210600Work` and `Actor110600Work` carry.
+    /* 0x010 */ GpAnimCtx  anim;
+    /* 0x024 */ GpAnimSlot slots[0x13];
+    /// The flag halfword the per-tick callback tests: it falls inside the slot
+    /// array, being the second slot's `field_10`, because the animation state
+    /// runs from 0x24 to the pose buffer.
+    /* 0x31C */ byte poses[0x570];
     /* 0x88C */ s16  field_88C;
     /* 0x88E */ byte pad_88E[0x4];
     /* 0x892 */ s16  field_892;
     /* 0x894 */ byte pad_894[0x2];
     /* 0x896 */ s16  field_896;
-    /* 0x898 */ byte pad_898[0x1C];
+    /* 0x898 */ byte pad_898[0x14];
+    /// The two bytes the spawn handler arms next to the display node; they sit
+    /// immediately before the 0x7DB record, so they are the actor's own copy of
+    /// that state rather than part of a message.
+    /* 0x8AC */ u8   field_8AC;
+    /* 0x8AD */ u8   field_8AD;
+    /* 0x8AE */ byte pad_8AE[0x6];
     /* 0x8B4 */ s16  field_8B4;
     /* 0x8B6 */ s16  field_8B6;
     /* 0x8B8 */ u16  field_8B8;
     /* 0x8BA */ byte pad_8BA[0x2];
     /// Display node: `GpObj` at 0x8BC, its `GpRec18` table at 0x8DC.
-    /* 0x8BC */ GpObj field_8BC;
+    /* 0x8BC */ GpObj   field_8BC;
+    /* 0x8DC */ GpRec18 recs[3];
+    /* 0x924 */ byte    pad_924[0x20];
+    /// The light / colour matrices the spawn handler stores into
+    /// `TmdObject::field_1C` / `field_20`, at the top of the block.
+    /* 0x944 */ MATRIX light;
+    /* 0x964 */ MATRIX color;
 } Actor312200Work;
+STATIC_ASSERT_SIZEOF(Actor312200Work, 0x984);
 
 /// The four bytes of the id 0x7DB command, seen from the receiving end: the
 /// handler records the payload a byte at a time but tests the sender id and the
@@ -89,6 +111,15 @@ void func_actor_312200_801637CC(Task* task);
 /// 0x80 draw bit of the model's `TmdObject::field_C`, clears
 /// `GpEnemy::field_4D` and drops bit 0x8000 of the display node's `flags`.
 void func_actor_312200_80163778(Task* task);
+
+/// Spawn handler and the task's create callback: allocates the work block and
+/// stores it in `Task::idMap`, then seeds the enemy object, the model's root
+/// coordinate and the animation context from the `TmdObject` in `Task::extra` -
+/// its `field_1C` / `field_20` are pointed at the block's light and colour
+/// matrices, `GpEnemy::field_4` at the root coordinate's matrix, and
+/// `GpEnemy::field_18` at the model's third part coordinate. `enemy` is the
+/// `GpEnemy` the spawner left in the task's 0x20 spawn-argument slot.
+void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
 
 void func_actor_312200_80162FB4(Task* task);
 
