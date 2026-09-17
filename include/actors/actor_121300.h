@@ -41,7 +41,8 @@ typedef struct Actor121300Work {
     /* 0x4A2 */ u16        field_4A2;        // state of the waypoint walker func_actor_121300_80133730
     /* 0x4A4 */ u16        field_4A4;        // frames spent on the current waypoint
     /* 0x4A6 */ s16        field_4A6;        // waypoint index handed to func_8017F334 / Task_SpawnFromTable
-    /* 0x4A8 */ byte       pad_4A8[0x4];
+    /* 0x4A8 */ s16        field_4A8;        // effect-count reduction, bumped by func_actor_121300_80133580
+    /* 0x4AA */ s16        field_4AA;        // frame counter for field_4A8 (wraps at 20)
     /* 0x4AC */ s16        field_4AC;        // GpAreaPlace::field_D, the TmdObject texture page
     /* 0x4AE */ byte       pad_4AE[0x2];
 } Actor121300Work;
@@ -103,7 +104,7 @@ STATIC_ASSERT_SIZEOF(Actor121300FadeWork, 0x8);
 
 /// Frame counter `func_actor_121300_80133D98` bumps once a frame and the
 /// effect spawners gate on: `func_actor_121300_8013343C` only runs on every
-/// fourth frame (`& 3`), `func_actor_121300_80133580` on every eighth (`& 7`).
+/// fourth frame (`& 3`), `func_actor_121300_80133580` too.
 extern s32 D_actor_121300_8013CC00;
 
 /// The gameplay LCG the effect spawners draw their jitter from,
@@ -118,5 +119,8 @@ extern u32 Gp_LcgState;
 /// in height: `8013CCB8` sits at ground level, `8013CD48` at `vy` -0xC8.
 extern SVECTOR D_actor_121300_8013CCB8[];
 extern SVECTOR D_actor_121300_8013CD48[];
+/// Spawn points of `func_actor_121300_80133580`, of which the first
+/// `6 - Actor121300Work::field_4A8` are used.
+extern SVECTOR D_actor_121300_8013CDC8[];
 
 #endif

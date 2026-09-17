@@ -158,7 +158,43 @@ void func_actor_121300_8013343C(Task* arg0, s16 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300_2", func_actor_121300_80133580);
+/// Effect spawner: bumps the `Actor121300Work::field_4A8` falloff every 20
+/// calls with `arg1` set, then on every fourth frame spawns effect 0x601B7 at
+/// the first `6 - field_4A8` entries of `D_actor_121300_8013CDC8`, jittered
+/// along `vx` by up to +/-70 as in `func_actor_121300_8013343C`.
+void func_actor_121300_80133580(Task* arg0, s16 arg1)
+{
+    SVECTOR          pos;
+    Actor121300Work* work;
+    s16              i;
+    u32              seed;
+    s32              flags;
+    SVECTOR*         tbl;
+    s32              vx;
+
+    work = (Actor121300Work*)arg0->idMap;
+    if (arg1 != 0) {
+        if (++work->field_4AA >= 20) {
+            work->field_4AA = 0;
+            work->field_4A8++;
+        }
+    }
+    if (!(D_actor_121300_8013CC00 & 3)) {
+        for (i = 0; i < 6 - work->field_4A8; i++) {
+            flags       = 0x81202400;
+            tbl         = D_actor_121300_8013CDC8;
+            seed        = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState = seed;
+            vx          = tbl[i].vx + (((seed >> 16) & 1) ? ((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7
+                                                          : -(((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7)) *
+                                 10;
+            pos.vx = vx;
+            pos.vy = tbl[i].vy;
+            pos.vz = tbl[i].vz;
+            Gp_SpawnEff(0x601B7, NULL, flags, &pos);
+        }
+    }
+}
 
 extern void     func_8017F334(s32 arg0);
 extern void     func_8017F340(u8 arg0, u8 arg1);
