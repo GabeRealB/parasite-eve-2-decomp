@@ -261,6 +261,51 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8016369C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163718);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Start-preset handler for the 0x6B0 `Actor323300MtxWork` block
+/// `func_actor_323300_80162BE4` parks in `Task::idMap`, and the twin of
+/// `func_actor_323300_801628B8` (which drives the 0x504 block the same way).
+/// A preset bank the block is not already on re-seeds it: the animation id is
+/// reset to -1, the bank is stored and the bank's animation source goes to
+/// `func_800B3F84` with the block's context, slots and matrix table. A
+/// different animation id then restarts every slot 1..0x12 -- through
+/// `func_800B4114` when the preset asks for it and the block has been started
+/// before, through `Gp_AnimResetSlot` otherwise -- ticks them once and latches
+/// `field_43C` so the next preset takes the first branch.
+s32 func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3)
+{
+    Actor323300MtxWork* work;
+    TmdObject*          ext;
+    s32                 i;
+
+    work = (Actor323300MtxWork*)arg0->idMap;
+    ext  = arg0->extra;
+    if (arg2->field_0 != work->field_440) {
+        work->field_440 = arg2->field_0;
+        work->field_444 = -1;
+        func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], (GpAnimObj*)ext,
+                      work->pad_30C, work->slots);
+    }
+    if (arg2->field_4 != work->field_444) {
+        work->field_444 = arg2->field_4;
+        if (arg2->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&work->anim, i, work->field_444, 0, arg2->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot(&work->anim, i, work->field_444);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163840);

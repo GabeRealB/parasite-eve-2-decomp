@@ -109,10 +109,27 @@ STATIC_ASSERT_SIZEOF(Actor323300Matrix, 0x20);
 /// two are different allocations of different sizes, but both carry a
 /// light/colour `MATRIX` pair republished onto `TmdObject::field_1C` /
 /// `field_20` by the display path -- here at 0x670/0x690, so the trailing
-/// `color` ends flush with the allocation. Only that pair is spelled out;
-/// prefix fields are unreferenced by the bodies that write them.
+/// `color` ends flush with the allocation.
+///
+/// The prefix is the same animation shape the 0x504 block opens with: the
+/// `GpAnimCtx` at 0, the `GpAnimSlot` array inline at 0x14 and the
+/// `GpAnimMtxRec` table at 0x30C -- the three addresses
+/// `func_actor_323300_80163718` hands `func_800B3F84`. Its animation state
+/// sits in the four `s32` words past that table rather than in the byte fields
+/// `Actor323300Work` uses: `field_440` is the preset bank index, `field_444`
+/// the preset animation id (`func_actor_323300_80162BE4` seeds both to -1) and
+/// `field_43C` the once-only flag its tick path sets. `field_44C` is the 0x3000
+/// that same initialiser stores.
 typedef struct Actor323300MtxWork {
-    /* 0x000 */ byte              pad_0[0x670];
+    /* 0x000 */ GpAnimCtx         anim;
+    /* 0x014 */ GpAnimSlot        slots[19];
+    /* 0x30C */ byte              pad_30C[0x130];
+    /* 0x43C */ s32               field_43C; // set once the slots have been started
+    /* 0x440 */ s32               field_440; // animation bank index the slots were seeded with
+    /* 0x444 */ s32               field_444; // animation id the slots were seeded with
+    /* 0x448 */ byte              pad_448[0x4];
+    /* 0x44C */ s32               field_44C;
+    /* 0x450 */ byte              pad_450[0x220];
     /* 0x670 */ Actor323300Matrix light;
     /* 0x690 */ Actor323300Matrix color;
 } Actor323300MtxWork;
@@ -134,12 +151,19 @@ extern Actor323300AnimPreset D_actor_323300_801725B4;
 extern Actor323300AnimPreset D_actor_323300_801725C8;
 extern Actor323300AnimPreset D_actor_323300_801725DC;
 
+/// Animation source table `func_actor_323300_80163718` indexes by the 0x6B0
+/// block's bank index: one `void*` per bank, exactly as `func_actor_335800_80162C80`
+/// indexes `D_actor_335800_8016EAD8`. `func_actor_323300_80162BE4` applies the
+/// preset `D_actor_323300_80174A74` through it on the block's first anim start.
+extern void* D_actor_323300_80174A70[];
+
 void func_actor_323300_801626D0(Task* arg0);
 void func_actor_323300_8016269C(Task* arg0);
 void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
 void func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
+s32  func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
 s32  func_actor_323300_80162208(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, Actor323300Placement* arg2, s32 arg3);
 
