@@ -2129,8 +2129,13 @@ scoped build and then fail the unscoped one: `ninja_config.py` regenerates
 
 Emit the words with file-scope `.section .rodata` / `dlabel` asm in the unit
 that owns the leading rodata, in address order between the neighbouring
-`INCLUDE_RODATA` lines. Do not `const TaskFuncTableN` in C — GCC collects that
-`.rodata` at the end of the object, behind later tables.
+`INCLUDE_RODATA` lines. A `const TaskFuncTableN` in C is the other option, but
+only where its declaration sits in address order: GCC emits the object at the
+*declaration*, not at the use, so one at the top of the file collects ahead of
+the leading rodata, while one declared immediately before the consuming
+function lands immediately before that function's `.text` and matches
+(`func_actor_223600_8014CA00`; see the `## A local array initialiser of *three
+or more* elements becomes a .rdata table plus a block move` section).
 
 Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
 `D_actor_400500_80131EFC`).
@@ -69083,8 +69088,13 @@ scoped build and then fail the unscoped one: `ninja_config.py` regenerates
 
 Emit the words with file-scope `.section .rodata` / `dlabel` asm in the unit
 that owns the leading rodata, in address order between the neighbouring
-`INCLUDE_RODATA` lines. Do not `const TaskFuncTableN` in C — GCC collects that
-`.rodata` at the end of the object, behind later tables.
+`INCLUDE_RODATA` lines. A `const TaskFuncTableN` in C is the other option, but
+only where its declaration sits in address order: GCC emits the object at the
+*declaration*, not at the use, so one at the top of the file collects ahead of
+the leading rodata, while one declared immediately before the consuming
+function lands immediately before that function's `.text` and matches
+(`func_actor_223600_8014CA00`; see the `## A local array initialiser of *three
+or more* elements becomes a .rdata table plus a block move` section).
 
 Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
 `D_actor_400500_80131EFC`).
@@ -123753,3 +123763,90 @@ carriers (`0x8013D3E0` / `0x8013D3EC` / `0x8013D3BC` / `0x8013D3C4` against
 `0x8013CE84` / `0x8013CE90` / `0x8013CE5C`). Sharing the body needs those four
 names to become shared symbols emitted at each carrier's own address, which is
 the mechanism `promote`'s docstring records as missing.
+
+## A local array initialiser of *three or more* elements becomes a `.rdata` table plus a block move; two elements expand inline (func_actor_223600_8014CA00, 2026-09-17)
+
+An automatic aggregate initialised from constants is expanded one of two ways,
+and the element count decides which. Two elements go inline, one
+`lui`/`addiu`/`sw` per element straight to the stack slot
+(`ActorsShared80131e24` builds its `fns[2]` that way):
+
+```c
+void (*fns[2])(GpEnemy*, Task*) = { Sub0, Sub1 };   /* lui/addiu/sw per entry */
+```
+
+Three or more become one anonymous `.rdata` object that a `movstrsi_internal`
+block-moves onto the stack - one `addiu` for the base, three `lw` through it,
+three `sw` to the frame:
+
+```c
+void (*fns[3])(Task*, void*) = { a, b, c };   /* lui/addiu/lw x3/sw x3 */
+```
+
+So a prologue of `lui v0,%hi(D_x)` / `addiu t3,v0,%lo(D_x)` / three `lw` /
+three `sw` is **not** evidence that the source named `D_x`: the symbol may be
+the compiler's own table for a local initialiser, which splat then names after
+the address it is referenced from. The 2-element sibling in the same family,
+whose stores are inline, is what tells the two apart.
+
+When the target's table *is* a real rodata object, a file-scope `const`
+aggregate is emitted where its **declaration** sits in the translation unit,
+not where it is first used: declared at the top of the file it lands at the top
+of the object's `.rdata` even when the only use is the last function, and
+declared immediately before the consuming function it lands immediately before
+that function's `.text`. maspsx rewrites `.rdata` to `.section .rodata`, so a
+`const` placed in address order *between* the surrounding
+`INCLUDE_ASM`/`INCLUDE_RODATA` lines lands exactly where the target has the
+words - `func_actor_223600_8014CA00` declares `D_actor_223600_80149E4C`
+immediately before the tick, which puts its three words at 0x2C, ahead of
+`ActorsShared80135df4Table` at 0x38. A `const` at the *top* of the file instead
+collects ahead of the leading rodata; see `## Migrated D_* tables have no
+D_*.s after a re-split` above.
+
+The same function shows the other two halves of the shape: the pan value is a
+`s32` local assigned `(s8)Gp_GetObjPan(...)`, so the sign extension is emitted
+at the assignment and survives the following call in `$s1` (an `s8` local, as
+m2c types it, defers the extension to the call - see `## A narrow parameter
+signs its extension on the incoming $aN`), and `(TmdObject*)task->extra`
+re-loads per use, as in `src/gameplay/4CC.c`.
+
+Inputs: scratch `nonmatchings/func_actor_223600_8014CA00-vacuum`, `base.c`
+71.460% (m2c's local initialiser over three `D_x[i]` elements: a constructor
+temp and a second copy), `base_1.c` 85.168% (struct assignment `fns = D_x`),
+`base_2.c` 100.000%. Preprocessed `base_2.i` `485649c0ab868d4f...`. Assembly
+`base_2.s` `cf90db0c48bbce5b...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## m2c leaves a dispatcher's shared body in `default:`; the target emits the case bodies in source order and the shared code after the switch (func_actor_223600_8014CA00, 2026-09-17)
+
+m2c renders a switch whose arms fall into a shared tail by putting that tail in
+`default:` and the case bodies after it. GCC emits the default block *before*
+the case bodies, so both the block order and every branch address into the
+shared tail differ from the target, and the instruction count comes out short
+even though the semantics are identical. Writing the case bodies in source
+order with the shared body after the switch reproduces the target's layout:
+
+```c
+switch (D_801153F4) {
+    case 0:                       /* falls through to the shared body */
+        if (work->field_0 != 0) { obj->field_C = 0; }
+        break;
+    case 1:
+        if (work->field_0 != 0) { obj->field_C = 0; }
+        return;                   /* its own arm, straight to the epilogue */
+    case 2:
+        obj->field_C = 0x80;
+        return;
+}
+/* shared body here */
+```
+
+The `return`s matter: m2c's `break` would send the earlier arms into the shared
+body instead of the epilogue. The dispatch tree itself is unchanged (it is
+built from the case *values*), only the body order moves.
+
+Inputs: scratch `nonmatchings/func_actor_223600_8014CA00-vacuum`, `base_1.c`
+85.168% (`branch=8 insert=9 delete=7`, blocks in m2c's order), `base_2.c`
+100.000%. Preprocessed `base_2.i` `485649c0ab868d4f...`. Assembly `base_2.s`
+`cf90db0c48bbce5b...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

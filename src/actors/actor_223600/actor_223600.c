@@ -1,6 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_223600.h"
+#include "actors/actors_shared_80134178.h"
+#include "gameplay/3A34.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/tmd.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014A170);
@@ -69,7 +73,85 @@ INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600", D_actor_223600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014BBF4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014CA00);
+/// The three state handlers the tick below picks between by the work block's
+/// state word, copied onto the stack before the call. The copy is a three-word
+/// block move out of the unit's `.rodata`, which is why the table is a rodata
+/// object rather than a local initialiser.
+const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
+    {
+        ActorsShared80134178,
+        func_actor_223600_8014B840,
+        func_actor_223600_8014BBF4,
+    },
+};
+
+/// Per-frame tick of the park/unpark machine `ActorsShared80135df4` dispatches
+/// to. The game mode word selects a one-shot arm first: mode 0 clears the
+/// model's `field_C` when the work block is parked and then falls through to
+/// the shared body, mode 1 does the same and returns, and mode 2 forces
+/// `field_C` to 0x80 and returns. The shared body records the state change in
+/// `field_4` and the dispatched state in `field_2`, runs the state handler,
+/// turns the animation latch `func_actor_223600_8014B464` raises into a
+/// `SndEvt_EnqueueType6` cue -- the work id from the enemy's `field_8` in its
+/// bits 8-11, with the model's pan and depth -- and finally re-parks the model
+/// through `func_800D7A9C` while `field_20C` is set, latching it once the
+/// non-resident mode or an empty coordinate arrives.
+void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
+{
+    Actor223600Work*      work;
+    GpEnemyTaskFuncTable3 fns;
+    s32                   reaction;
+    s32                   cue;
+    s32                   pan;
+
+    work = (Actor223600Work*)task->idMap;
+    fns  = D_actor_223600_80149E4C;
+
+    switch (D_801153F4) {
+        case 0:
+            if (work->field_0 != 0) {
+                ((TmdObject*)task->extra)->field_C = 0;
+            }
+            break;
+        case 1:
+            if (work->field_0 != 0) {
+                ((TmdObject*)task->extra)->field_C = 0;
+            }
+            return;
+        case 2:
+            ((TmdObject*)task->extra)->field_C = 0x80;
+            return;
+    }
+
+    if (work->field_2 != work->field_0) {
+        work->field_4 = 1;
+    } else {
+        work->field_4 = 0;
+    }
+    work->field_2 = (u16)work->field_0;
+    fns.funcs[work->field_0](enemy, task);
+
+    reaction = func_actor_223600_8014B464(work);
+    if (reaction != 0) {
+        cue = reaction | (((u16)enemy->field_8 >> 12) << 8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+        SndEvt_EnqueueType6(
+            cue, pan,
+            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+    }
+    if (work->field_20C != 0) {
+        func_800D7A9C((TmdObject*)task->extra,
+                      (VECTOR*)((TmdObject*)task->extra)->field_8->workm.t, 0, 3);
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+    }
+    if (((TmdObject*)task->extra)->field_8->flg == 0) {
+        work->field_20C = 1;
+        return;
+    }
+    work->field_20C = 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600", ActorsShared80135df4Table);
 
