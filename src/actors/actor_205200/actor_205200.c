@@ -212,5 +212,3 @@ INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_8
 INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_80149E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_80149E30);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", jtbl_actor_205200_80149E40);

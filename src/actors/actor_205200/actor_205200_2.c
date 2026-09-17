@@ -32,6 +32,7 @@ void func_80181930(Actor205200* arg0);
 extern u8  D_801153F4;
 extern u16 D_80071078;
 extern s16 D_80073BA0;
+extern u32 Gp_LcgState;
 
 s32 func_actor_205200_8014B914(s32 arg0)
 {
@@ -264,7 +265,62 @@ end:
     *(u32*)G_SCRATCH_HEAD += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014BF28);
+/// Charge-handler sub-state machine. States 0 and 3 share a random roll: every
+/// 15-46 frames a 1-in-8 draw switches to state 4 with animation 5. State 2
+/// waits out the animation, raising bit 2 of `Gp_StateF0.field_1D` on frame 60,
+/// and state 4 returns to 3 while the `field_590` cooldown is still running.
+void func_actor_205200_8014BF28(Actor205200* arg0)
+{
+    Actor205200Work* work;
+    s16              next;
+
+    work = arg0->field_1C;
+    switch (work->field_586) {
+        case 0:
+            if (Gp_StateF0.field_1D & 2) {
+                Gp_StateF0.field_1D &= 0xFD;
+                work->field_586      = 1;
+            }
+        tick:
+            if (--work->field_592 <= 0) {
+                work->field_592 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F) + 0xF;
+                if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 7)) {
+                    work->field_586 = 4;
+                    work->field_57E = 5;
+                }
+            }
+            break;
+        case 1:
+            work->field_57E = 2;
+            work->field_586 = 2;
+            break;
+        case 2:
+            if ((s16)work->field_582 == 0x3C) {
+                Gp_StateF0.field_1D |= 4;
+            }
+            if ((s16)work->field_582 >= 0x54) {
+                work->field_57E = 1;
+                work->field_586 = 3;
+                work->field_590 = 0x258;
+            }
+            break;
+        case 3:
+            if (--work->field_590 <= 0) {
+                work->field_586 = 0;
+            }
+            goto tick;
+        case 4:
+            if ((s16)work->field_582 >= 0x40) {
+                next = 0;
+                if (work->field_590 > 0) {
+                    next = 3;
+                }
+                work->field_586 = next;
+                work->field_57E = 1;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C0C0);
 

@@ -67,7 +67,7 @@ typedef struct Actor205200Work {
     /* 0x588 */ s16            field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
     /* 0x58A */ byte           pad_58A[0x6];
     /* 0x590 */ s16            field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
-    /* 0x592 */ byte           pad_592[0x2];
+    /* 0x592 */ s16            field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
     /* 0x594 */ s16            field_594;
     /* 0x596 */ s16            field_596; // selects the shared tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
