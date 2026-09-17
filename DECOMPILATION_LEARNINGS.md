@@ -125020,6 +125020,21 @@ on its first build, from the sibling's body with those two constants changed.
 Do not reach for `promote` on such a pair: `find` is right that it is not a
 shared body, and the differing `D_` symbol is overlay-local data.
 
+The difference can be a single `jal` target: `func_actor_301200_80162E60` came
+out instruction-for-instruction equal to `func_actor_201200_8014AE60` - same
+prologue, same 0x230/0x2C8/0x300/0x338 object flags, same inlined radius test -
+and the two bodies call differently named code, so the diff above still shows
+two `jal` lines and the branch-label lines. Those are name-only: read the
+surviving lines as *callee names and labels are free, constants and `D_` symbols
+are the edits*. The port is the sibling's body verbatim from the sibling's own
+header (`actors/actor_201200.h` scored 100.000% unchanged in scratch); only the
+landed copy moves it onto this overlay's header, whose layout the family
+repeats. Two builds here - the m2c baseline at 80.648% and the port at 100.000%
+(`base_1.c`, `base_2.c` in `nonmatchings/func_actor_301200_80162E60-vacuum`).
+A stray `alabel` in the middle of the target's first basic block
+(`D_80162E98`) does not disturb the match: it marks a data reference, and
+nothing in the C changes for it.
+
 Inputs: scratch `nonmatchings/func_actor_403900_801347F4-vacuum`. `base.c` (m2c)
 93.011% (`regs=2 reorder=4 insert=2 delete=2`, structure already matching);
 `base_1.c` the ported `actor_402200` body with this overlay's two constants,
