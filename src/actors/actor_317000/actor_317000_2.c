@@ -2,6 +2,7 @@
 
 #include "actors/actor_317000.h"
 #include "actors/actors_shared_801327b4.h"
+#include "actors/actors_shared_80162bc4.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
@@ -39,7 +40,7 @@ void func_actor_317000_8016267C(Task* arg0)
     work->field_4A8 = 0;
 
     func_actor_317000_80162744(arg0);
-    func_actor_317000_80162BC4(arg0, 0x7D5, 0, 0);
+    ActorsShared80162bc4(arg0, 0x7D5, 0, 0);
 
     arg0->field_24     = D_actor_317000_8016CF50;
     arg0->exitCallback = ActorsShared801327b4;

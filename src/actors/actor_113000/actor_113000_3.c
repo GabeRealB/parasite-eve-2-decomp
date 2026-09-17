@@ -13,8 +13,6 @@ extern GpImgRec D_actor_113000_8013A32C;
 extern GpImgRec D_actor_113000_8013A74C;
 extern GpImgRec D_actor_113000_8013AB6C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_113000/actor_113000_3", func_actor_113000_80132398);
-
 /// Message-0x7E0 handler: uploads one of the actor's three texture records over
 /// the 0x20x0x10 rect at y 0x28 -- `D_actor_113000_8013AB6C` for mode 1,
 /// `D_actor_113000_8013A32C` for modes 0 and 2, and `D_actor_113000_8013A74C`

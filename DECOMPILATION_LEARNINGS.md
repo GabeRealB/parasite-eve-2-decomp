@@ -123478,3 +123478,39 @@ Each `s32` write covers two halfwords, which is what makes the zero pairs
 headers assert the shape; `base_2.c` is the experiment behind it.  Reach for it
 whenever a `MATRIX` (or any 3x3-plus-halfword region) is splatted with constants
 and the target shows fewer stores than elements.
+## Whether a promotion renumbers units is decided by the span's *start*, and you can read that before running `promote` (func_actor_317000_80162BC4, 2026-09-17)
+
+The `func_actor_323000_8016331C` entry above describes the expensive promotion:
+the new `shared` span cuts the unit that contained it in two, so every later
+unit index shifts and every body has to rotate to a new file. That is a property
+of *where the span falls*, not of promotion, and it is visible before anything
+is written: `overlay_dup_index.py promote` places the span at
+`[vram - load_addr, +4*words)`, and the generated config lists every unit's
+address range.
+
+    sed -n '/subsegments:/,/^  - \[/p' configs/USA/generated/<overlay>.yaml
+
+When the span's start is already the first address of a `c` subsegment and its
+end is the start of the next one, the region simply *shrinks in place*: the
+shared span takes the head, the unit keeps its number and its `.c` keeps its
+name, and no other file moves. Both carriers here were aligned that way —
+`[0xDA4, c, actor_317000/actor_317000_4]` and `[0x578, c,
+actor_113000/actor_113000_3]` — and the re-split produced `[0xDA4, c,
+lib/actors_shared_80162bc4]` / `[0xE80, c, actor_317000/actor_317000_4]` and
+`[0x578, c, lib/actors_shared_80162bc4]` / `[0x654, c,
+actor_113000/actor_113000_3]`. The whole promotion was then: two spans and two
+sym entries written by the tool, the body moved verbatim into
+`src/actors/lib/actors_shared_80162bc4.c`, its `INCLUDE_ASM` deleted from the
+other carrier, and the one call site renamed. No rotation, and no rodata fallout
+— the body references no overlay-local symbol, which is the other thing to check
+first, since a `D_<overlay>_*` reference makes the shared object fail at link
+long after the promotion has touched a dozen files. Where the span lands mid-unit
+it is the 323000 case; where it lands on a boundary it is this one.
+
+Two wrinkles in the tooling. The dup index is cached from `asm/`, so a promotion
+started right after a match still sees the pre-match split and refuses with
+`cannot be shared while unmatched - 2 different byte images`, whose advice
+("match it first") you have already followed: rebuild with
+`overlay_dup_index.py --rebuild <subcommand>`. And `promote` only needs *one*
+carrier matched — the compiler regenerates the body per link address, so the
+other carrier's copy can still be `INCLUDE_ASM`, as `actor_113000`'s was.
