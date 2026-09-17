@@ -29,7 +29,7 @@ typedef struct Actor210700Work {
     /* 0x538 */ s16    field_538; // set to 1 by the 0x7E0 image handler's mode 3
     /* 0x53A */ u16    field_53A; // upload countdown the state handler at 0x80149E30 runs down, reloaded from `field_538` on underflow
     /* 0x53C */ s16    field_53C; // set to 1 by the 0x7E0 image handler's mode 3
-    /* 0x53E */ s16    field_53E; // init'd to -1
+    /* 0x53E */ s16    field_53E; // init'd to -1, latched from the 0x7D5 handler's mode 2
 } Actor210700Work;
 STATIC_ASSERT_SIZEOF(Actor210700Work, 0x540);
 
