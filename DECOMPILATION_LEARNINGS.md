@@ -118801,3 +118801,38 @@ Inputs: `base_3.i` (100%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_dryfield_back_street_8017D5D0-vacuum`.
+
+## A small initialised local array whose target has `li` + `sh` stores wants the element stores, not an initializer (func_neo_ark_pyramid_8017D7F4, 2026-09-17)
+
+`func_neo_ark_pyramid_8017D7F4` rotates a constant `±0x57` square of four
+corners through four `rcos`/`rsin` pairs. Written as an aggregate initializer,
+
+```c
+s16 src[4][2] = { { -0x57, -0x57 }, { 0x57, -0x57 }, { -0x57, 0x57 }, { 0x57, 0x57 } };
+```
+
+the object comes out 9 instructions long: `lui`/`addiu` of a `.rodata`
+template, then four `lwl`/`lwr` + `swl`/`swr` pairs. The `.rtl` dump says why —
+the initializer expands to `(set (mem/s:BLK ...) (mem/s:BLK ...))` off `$LC0`,
+the `output_constant_def` path described in "A local initializer over 8 bytes
+is a `.rodata` copy": 16 bytes at align 2 is four 4-byte moves, over the
+`MOVE_RATIO` of 2, so `expr.c` sends it to memory instead of `store_constructor`.
+
+The target's `li $v0,-0x57` / `li $v1,0x57` and eight `sh` reusing both
+registers is the *element-store* form, so the initializer has to be written out
+as the eight assignments:
+
+```c
+src[0][0] = -0x57;
+src[0][1] = -0x57;
+...
+```
+
+The order of those assignments is visible in the target: the constant that
+appears first in source order is the one materialised first, and the store
+offsets follow it. With the loop and the `POLY_FT4` tail already identical
+apart from a branch displacement, this was the whole difference between 78.67%
+and 100%. The initializer is the right spelling only when the target *also*
+copies from `.rodata` — and then the template is a `.rodata`-cut problem, as in
+"A stack array initializer is rodata, so a later code unit needs a `rodata`
+cut".
