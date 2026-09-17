@@ -23,7 +23,67 @@ INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_80132004);
 
-INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_801321C8);
+/// Spawn tick of a child actor. State 0 allocates the 0x4E4-byte
+/// `Actor120300Work` block, parks it in `Task::idMap`, points the model's
+/// light and colour matrices at the block's `field_474` / `field_494`, clears
+/// `TmdObject::field_C` and anchors the root coordinate `sub` under part 8 of
+/// the spawning task's model (`Task::spawnArg2->extra`). A failed allocation
+/// kills the task rather than stepping to state 1.
+/// Every later tick reads the parent work block's `field_4E0` and primes the
+/// colour matrix with the root coordinate's own translation through
+/// `func_800D7A9C`, then replaces that translation with the parent scale
+/// broadcast over all three axes and folds it in with `ScaleMatrix`.
+void func_actor_120300_801321C8(Task* arg0)
+{
+    VECTOR           vec;
+    GsCOORDINATE2*   coord;
+    TaskIdMap*       map;
+    TmdObject*       tmd;
+    s32              scale;
+    s32              kill;
+    s32              killCopy;
+    u16              scaleRaw;
+    TmdObject*       tmd2;
+    Actor120300Work* work;
+
+    if (arg0->state == 0) {
+        tmd         = arg0->extra;
+        coord       = tmd->field_8;
+        map         = Mem_Malloc(0x4E4, 0);
+        arg0->idMap = map;
+        if (map == NULL) {
+            kill = 1;
+        } else {
+            work = (Actor120300Work*)map;
+            Mem_Set(map, 0, 0x4E4);
+            coord->sub                         = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8 + 8;
+            ((TmdObject*)arg0->extra)->field_C = 0;
+            Tmd_AllocBuffers(tmd);
+            kill           = 0;
+            tmd->field_1C  = &work->field_474;
+            tmd->field_20  = &work->field_494;
+            arg0->field_24 = &D_actor_120300_80140A44;
+        }
+        killCopy = kill;
+        TOUCH_REG(killCopy);
+        if (killCopy != 0) {
+            Task_Kill(arg0);
+            return;
+        }
+        arg0->state += 1;
+    }
+    tmd2     = arg0->extra;
+    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4E0;
+    vec.vx   = tmd2->field_8->workm.t[0];
+    vec.vy   = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+    vec.vz   = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    func_800D7A9C(tmd2, &vec, 0, 3);
+    scale  = scaleRaw & 0xFFFF;
+    vec.vz = scale;
+    vec.vy = scale;
+    vec.vx = scale;
+    ScaleMatrix(tmd2->field_20, &vec);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_120300/actor_120300", D_actor_120300_80131E20);
 

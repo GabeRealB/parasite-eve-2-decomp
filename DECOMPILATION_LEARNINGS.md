@@ -3,6 +3,44 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A `move` into the branch register is a copy cse deletes unless the copied value is opaque: `TOUCH_REG` keeps it
+
+`func_actor_120300_801321C8` sets a kill flag in both arms of an `if`/`else` and
+the ROM branches on a *copy* of it:
+
+```
+addu    v1,zero,zero    /* kill = 0, in the else arm */
+...
+addu    v0,v1,zero      /* the copy */
+beqz    v0,d0
+```
+
+The obvious two-local spelling — `killCopy = kill; if (killCopy != 0)` — scores
+98.837% with the copy missing (`delete=1`, `regs=1`, `branch=2`): cse records
+`killCopy` as equivalent to `kill` and rewrites the branch to read `kill`
+directly. `local-alloc` cannot tie the pair instead — `combine_regs` returns 0
+when the copy's *source* is not local to the block (`reg_qty[ureg] < 0`) — so
+the copy survives only if cse cannot propagate it, which is what `TOUCH_REG` on
+the copied local does:
+
+```c
+    killCopy = kill;
+    TOUCH_REG(killCopy);
+    if (killCopy != 0) {
+        Task_Kill(arg0);
+        return;
+    }
+```
+
+100.000%, 0 differences. The `"+r"` asm makes the copied value opaque, so the
+copy has to be materialized and the branch reads its result. `func_800AA120`
+(`gameplay/D4.c`) is the only other site in the ROM with this shape and is
+matched the same way — `next = D_80114C68; TOUCH_REG(next);` ahead of
+`if (next == NULL)` — so reach for `TOUCH_REG` here rather than a bare copy.
+(Found by scanning the disassembly for the encoding `21106000` followed by
+`beqz $v0`: four sites in the whole ROM, two of them this overlay's spawn
+ticks.)
+
 ## One local assigned twice is one quantity: the reused definition cannot tie to its source, and that is what keeps both halves in one register
 
 `func_dryfield_night_motel_balcony_8017F6C8` builds a quad's half-width and
