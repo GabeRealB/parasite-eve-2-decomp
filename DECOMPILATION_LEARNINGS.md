@@ -116166,3 +116166,40 @@ and all five `sb`s — 100.000% on the next build, no permuter time. General rul
 when the target's byte stores reuse the register a comparison was masked into,
 the source's masked value has to be an `int`, because a `u8` local is only "the
 low byte" and the store never needs to materialise that.
+
+## The argument register moved up because m2c hoisted a field load above the call that precedes the switch (func_neo_ark_observatory_8017F588, 2026-09-17)
+
+**Symptom.** Same tell as "m2c hoists a loop's locals above the enclosing `if`":
+the argument register moves up and the prologue grows. Here `arg0` came out in
+`$s1` instead of `$s0`, a second callee-saved register appeared, and the frame
+went 0x30 -> 0x38 with `ra` pushed from 0x2c to 0x30. Everything else in the
+body was instruction-for-instruction right.
+
+**Cause.** m2c renders a task dispatcher as
+
+```c
+    temp_v1 = arg0->state;              /* m2c hoists this */
+    temp_a0 = Game_GetPtrSlot(3);
+    switch (temp_v1) {
+```
+
+but the ROM loads the state *after* the call (`jal Game_GetPtrSlot` / `li a0,3`
+/ `lw v1,0x30(s0)` / `move a0,v0`). GCC cannot move a load across a call it
+cannot prove does not alias, so with m2c's order the state value is live across
+`Game_GetPtrSlot` and needs a home of its own — the extra callee-saved register
+the target does not have.
+
+**Fix.** Call first and let the switch read the field:
+
+```c
+    slot = Game_GetPtrSlot(3);
+    switch (arg0->state) {
+```
+
+84.5% -> 100.00% once the shared-tail form below was also used. Two m2c idioms
+in one function, both fixed by writing the statements in the original's order.
+
+**Related.** The `state++` tails in the same body have to be written out per
+case, not as one `goto` — see "Write `state++; return;` out in every switch
+case, not one shared `goto advance`". Getting only one of the two right lands
+in the low 80s with a plausible-looking `branch`/`delete` mix.
