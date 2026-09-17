@@ -121840,3 +121840,64 @@ one block, and the survivor sits *where the last one was written* -- between cas
 2's body and case 3's. That position is the evidence that the source repeated the
 increment rather than jumping to it; see the `func_mine_secret_passage_8017D60C`
 entry for when the inline form instead loses the merge to `sched1`.
+
+## Naming the sum before storing it drops a member from the arm's local-alloc quantity, and that is what lets the loop-carried seed take `$v1` (func_actor_121300_8013343C, 2026-09-17)
+
+`func_actor_121300_8013343C` walks one of two arena-ring `SVECTOR` tables and
+spawns effect 0x601B7 at each entry, jittering `vx` with two LCG draws.  Two C
+spellings compile to the same 81 instructions and differ only in `regs`; the
+sum named in a variable first is exact, storing the expression straight into the
+`SVECTOR` field is 42 register differences:
+
+```c
+vx     = x + (((seed >> 16) & 1) ? ((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7
+                                 : -(((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7)) * 10;
+pos.vx = vx;                    /* exact */
+...
+pos.vx = x + ( ... same ternary ... ) * 10;   /* regs=42 */
+```
+
+**Mechanism.**  `pos.vx = <sum>` ties the final `addu`'s destination into the
+quantity of the arm's delta chain (the dying operand's quantity), so that
+quantity gains a member; naming the sum gives it a pseudo of its own, born in the
+merge block and dying in the `sh` there, and the arm's delta quantity keeps three
+members instead of four.  `QTY_CMP_PRI` is `floor_log2(refs) * refs / span *
+10000`, so the extra member is what puts the delta chain over the arm's LCG
+chain.  Traced with `tools/trace_gcc.py` (`--regs` on both variants, block 7):
+
+|                    | quantity                        | refs | span | priority |
+|--------------------|---------------------------------|------|------|----------|
+| unnamed sum, delta | `[122,123,124,125]`             | 16   | 8    | 80000    |
+| unnamed sum, chain | `[114,115,116,119,120]`         | 24   | 14   | 68571    |
+| named sum, delta   | `[123,124,125]`                 | 12   | 6    | 60000    |
+| named sum, chain   | `[115,116,117,120,121]`         | 24   | 14   | 68571    |
+
+`local-alloc` places in that order, so the unnamed sum gives the delta chain
+`$v0` and the LCG chain `$v1`, while the named sum gives the chain `$v0` and the
+delta `$v1`.  Everything downstream follows from that one swap: `seed` is live
+through both arms, `global.c` builds an allocno's hard-register conflicts from
+what `local-alloc` handed out over its live range, so whichever of `$v0`/`$v1`
+the arms hold is denied to `seed`.  Unnamed, both are denied and `seed` falls to
+`$a0` (and `x` to `$a1`); named, `$v1` is free, `seed` lands in it in place
+(`addu $v1,$v0,$s2`) and `x` takes `$a0`.  The false arm flips the same way
+(`b8 q1` `[138,139,140]` at 60000 -> `$v1`, against that arm's chain at 70000 ->
+`$v0`).
+
+**When to reach for it.**  A `regs`-only leftover that mirrors a few registers
+around a loop-carried value, where the mirroring is not explained by the
+expression's own operand order, is a global-alloc conflict list — and the list
+is decided by which register `local-alloc` handed out *in the blocks the value
+spans*.  Naming the operand that the arms' quantity would otherwise absorb is a
+source-level lever on that, in the same family as the `do{ }while(0)` reweighting
+and the cross-block `combine_regs` refusal above: all three move
+`qty_n_refs`/quantity membership rather than any single pseudo's live range.
+Found by the permuter (`new_var = <expr>; pos.vx = new_var;`) after the scratch
+scored 96.667% (`regs=42 reorder=1`).  One scratch-env gotcha from that run:
+the router preprocesses its candidates itself with the scratch dir's includes,
+so a seed that still carries the m2c boilerplate `#include "m2c_macros.h"` fails
+setup with `fatal error: m2c_macros.h: No such file or directory` and the run
+reports `PERMUTER_MISS=search finished without a discovery` without searching
+anything -- drop the include first (it is inert when no `M2C_FIELD` is used) and
+the same seed scores identically.  Evidence under
+`tools/permuter_findings/func_actor_121300_8013343C/`, traces in its
+`analysis/{base_2-96.667pct,winner-100pct,port-100pct}/events.jsonl`.
