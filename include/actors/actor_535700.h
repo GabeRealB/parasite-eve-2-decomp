@@ -27,9 +27,17 @@ typedef struct Actor535700Work {
     /* 0x34C */ byte       pad_34C[0x130];
     /* 0x47C */ s16        state;
     /* 0x47E */ u16        field_47E;
-    /* 0x480 */ u16        animId;
+    /* 0x480 */ s16        animId;
     /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x3C];
+    /* 0x484 */ byte       pad_484[0x2A];
+    /* 0x4AE */ s16        field_4AE; // model yaw the walk turns by 0x33 a frame
+    /* 0x4B0 */ byte       pad_4B0[0x2];
+    /* 0x4B2 */ s16        field_4B2; // frames of walking left
+    /* 0x4B4 */ s16        field_4B4; // frames of turning left
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ s32        field_4B8; // last `Gp_AnimGetRec` result, cleared by the reseed
+    /* 0x4BC */ u8         field_4BC;
+    /* 0x4BD */ byte       pad_4BD[0x3];
 } Actor535700Work;
 STATIC_ASSERT_SIZEOF(Actor535700Work, 0x4C0);
 
@@ -66,6 +74,17 @@ typedef struct Actor535700AnimPreset {
     /* 0x08 */ s32 field_8;
     /* 0x0C */ s32 field_C;
 } Actor535700AnimPreset;
+
+/// Picks the distance `func_actor_535700_80132108` walks the model each frame:
+/// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
+extern s16 D_actor_535700_8014684C;
+
+/// Ticks the animation once the runner has moved and turned the model.
+void func_actor_535700_80132648(void);
+
+/// Restarts the animation with the reset argument in
+/// `D_actor_535700_8013DAA8`; the runner's state 1.
+void func_actor_535700_80132730(void);
 
 /// Drives the actor for one frame off the state the opcode below left in the
 /// work block.
