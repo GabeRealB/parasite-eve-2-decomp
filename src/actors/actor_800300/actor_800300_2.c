@@ -6,8 +6,10 @@
 #include <psyq/rand.h>
 
 extern s16               D_80072830;
+extern s32               D_8017A99C;
 extern GpActorFuncTable3 D_actor_800300_80161E34;
 extern GpActorFuncTable7 D_actor_800300_80161E64;
+extern GpActorFuncTable9 D_actor_800300_80161E40;
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E20);
 
@@ -17,7 +19,76 @@ INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80162658);
+void func_actor_800300_80162658(GpActorWork* arg0)
+{
+    GpActorFuncTable9 sp;
+    GameActor*        actor;
+    GpActorD4*        d4;
+    GpObj38*          obj;
+    s8                cc;
+    s32               pan;
+    s32               depth;
+    s32               anim;
+    s32               sound;
+
+    sp    = D_actor_800300_80161E40;
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    obj   = (GpObj38*)arg0->extra->field_8;
+    if (d4->field_C4 > 0) {
+        d4->field_C4 = (u16)d4->field_C4 - 1;
+    }
+    if (D_8017A99C >= 0x30C) {
+        if (actor->field_956 != 5) {
+            actor->field_942++;
+            if ((s16)actor->field_942 >= (s8)d4->field_CC) {
+                actor->field_942 = 0;
+                d4->field_CD++;
+                cc           = (u8)d4->field_CC - 7;
+                d4->field_CC = cc;
+                if (cc < 0x5A) {
+                    d4->field_CC = 0x3C;
+                }
+                actor->field_95C = 7;
+                actor->field_956 = 5;
+                actor->field_958 = 0;
+                actor->field_95A = 0;
+                actor->field_95E = 0;
+                actor->field_97E = 1;
+                Gp_PlayObjSfx(obj, (rand() & 1) + 0x55170005, 0);
+                if (Gp_HurtAlly(arg0, 0, 0x40010, 0) != 0) {
+                    return;
+                }
+                anim = 0x10;
+                if ((s8)d4->field_CD >= 5) {
+                    anim = 0x11;
+                }
+                Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
+            }
+        }
+    }
+    sp.funcs[actor->field_956](arg0);
+    if ((s8)actor->field_97A == 0) {
+        func_80109BB4(arg0, &actor->field_17C[0]);
+        if ((u16)actor->field_96C != 0) {
+            func_8010B9A4(arg0);
+            pan   = (s8)Gp_GetObjPan(obj);
+            depth = (s8)Gp_GetObjDepth(obj);
+            sound = 7;
+            if ((u16)actor->field_96C == 1) {
+                sound = 6;
+            }
+            SndEvt_EnqueueType6(sound, pan, depth);
+        }
+    }
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
+    if (D_80072830 <= 0) {
+        Gp_StopPlayerAnim(arg0, 0);
+    }
+}
 
 void func_actor_800300_801628D0(GpActorWork* arg0)
 {

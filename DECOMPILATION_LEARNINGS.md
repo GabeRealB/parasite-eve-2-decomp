@@ -120612,3 +120612,76 @@ no-argument `rand()` as `rand(3)` (from its `s32 rand(M2C_UNK);` prototype), and
 the resulting `li $a0,3` is one of the `insert` penalties. Read the target's
 `jal` delay slot — a `nop` there means no argument is set up, whatever m2c
 wrote.
+
+## `addu $a3,$a1,$zero` in a `jal` delay slot says the callee takes a 4th argument, even though the decompiled body ignores it (func_actor_800300_80162658, 2026-09-17)
+
+The target called `Gp_HurtAlly` with an `a3` setup the tree's prototype did not
+account for:
+
+```
+    move  $a0,$s2
+    move  $a1,$zero
+    lui   $a2,0x4
+    ori   $a2,$a2,0x10
+    jal   Gp_HurtAlly
+     addu $a3,$a1,$zero        ; a3 = a1 = 0
+```
+
+A 3-argument call never touches `$a3`. That `addu $a3,$a1,$zero` — *not*
+`addu $a3,$zero,$zero` — is GCC 2.8.1 passing the **same constant 0** twice: the
+fourth argument shares the pseudo that already holds 0 for the second, so the
+allocator emits a register copy. A two-function cc1 probe confirms it is the
+argument count, not any property of the source:
+
+```c
+int f(S* a, int b, int c);              /* 3 args */
+int g(S* a, int b, int c, int d);       /* 4 args */
+void t(S* p) { f(p, 0, 0x40010); }      /* no $7 setup        */
+void u(S* p) { g(p, 0, 0x40010, 0); }   /* move $7,$5; jal g  */
+```
+
+`Gp_HurtAlly`'s body uses only `arg2`, so the 3-parameter prototype had been
+inferred from the body and the fourth was invisible until this caller. The fix
+belongs in the shared header *and* the definition; an unused trailing parameter
+adds nothing to the callee's code, so adding it does not disturb a match.
+
+Read the delay slot of every `jal` before trusting a prototype the decompiled
+body implies: an argument register the body never mentions is a missing
+parameter, not a stray instruction.
+
+## An `s8` local defers the sign-extension to its use; `s32` plus an explicit `(s8)` cast materialises it at the assignment (func_actor_800300_80162658, 2026-09-17)
+
+Two callees return a `s32` that the target narrows to a byte on the way out of
+the call — `sll $v0,24` in the call's delay slot, `sra $sN,$v0,24` right after:
+
+```
+    jal   Gp_GetObjPan                 jal   Gp_GetObjPan
+    move  $a0,$s3                      move  $a0,$s3
+    ...                                move  $a0,$s3
+    jal   Gp_GetObjDepth               sll   $v0,$v0,0x18
+     move $s1,$v0        →             jal   Gp_GetObjDepth
+    ...                                 sra   $s1,$v0,0x18
+    bne   $v1,$v0,...                  ...
+    sll   $a1,$s1,0x18                 bne   $v1,$v0,...
+    sra   $a1,$a1,0x18
+```
+
+Written the obvious way, the local is `QImode`: the assignment stores the raw
+`SImode` return value (`move $s1,$v0`) and the `sll`/`sra` pair appears where the
+variable is *read*:
+
+```c
+    s8 pan;                            s32 pan;
+    pan = Gp_GetObjPan(obj);           pan = (s8)Gp_GetObjPan(obj);
+```
+
+The second form's destination is `SImode` — an explicit narrowing conversion —
+so the shift pair is emitted at the assignment. This is the codebase idiom for a
+byte value that must survive a call (`src/pe/pepper_spray/pepper_spray.c`,
+`src/gameplay/4CC.c`), and it is also what fixes the *load order* in a related
+block: with the truncation deferred, the two `lbu`s of a following field pair
+scheduled in source order instead of the target's order.
+
+Scope: this is about a value used as a whole `int` afterwards. When the
+truncated value is consumed unsigned by a signed comparison the plain `s8` local
+is what the target wants, so read the target's shift placement before choosing.

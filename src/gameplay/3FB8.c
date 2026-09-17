@@ -10180,7 +10180,7 @@ s32 Gp_CopyAllyAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
     return 0;
 }
 
-s32 Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2)
+s32 Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 ret;
 

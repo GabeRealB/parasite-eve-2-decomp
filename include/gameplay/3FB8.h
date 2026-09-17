@@ -1100,7 +1100,7 @@ void  Gp_AimPitchToLock(GpActorWork* arg0);
 void  Gp_PlayerMode2State4(GpActorWork* arg0);
 s32   Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_8010A9D0(GpActorWork* arg0);
-s32   Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2);
+s32   Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_8010B2A0(s32 arg0, s32 arg1);
 s32   func_8010C058(void);
 void  func_8010C180(GpActorWork* arg0);

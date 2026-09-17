@@ -1431,6 +1431,7 @@ void            Gp_LightFalloff(GpObj44* arg0);
 void            Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
 s32             Gp_GetObjDepth(GpObj38* arg0);
 s32             Gp_GetObjPan(GpObj38* arg0);
+void            Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2);
 void            Gp_SetOverrideVec(SVECTOR* arg0);
 void            Gp_SetOverrideVec2(SVECTOR* arg0);
 void            Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
