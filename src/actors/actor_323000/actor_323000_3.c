@@ -30,5 +30,3 @@ s32 func_actor_323000_80164A54(Task* task, s32 arg1, Actor323000Msg* msg, s32 ar
     }
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_323000/actor_323000_3", jtbl_actor_323000_80161E44);
