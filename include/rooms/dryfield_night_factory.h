@@ -84,13 +84,17 @@ STATIC_ASSERT_SIZEOF(NightFactoryWork, 0x58);
 ///
 /// `field_C` is the cap step `func_dryfield_night_factory_80180DE8` switches on
 /// (0..4) to pick the sound, the game flag and the cap slot for the step, and
-/// `field_8` is the short the prompt state arms with 0xA.
+/// `field_8` is the short the prompt state arms with 0xA and the idle state
+/// counts down before it will scan the hotspots. `field_C` and `field_E` are
+/// the hotspot `id` and `promptKind` the idle state copies in when the cursor
+/// confirms one.
 typedef struct NightFactoryScriptWork {
     /* 0x0 */ byte pad_0[0x8];
-    /* 0x8 */ s16  field_8;
+    /* 0x8 */ u16  field_8;
     /* 0xA */ s16  field_A;
     /* 0xC */ s16  field_C;
-    /* 0xE */ byte pad_E[0x2];
+    /* 0xE */ u8   field_E;
+    /* 0xF */ byte pad_F[0x1];
 } NightFactoryScriptWork;
 STATIC_ASSERT_SIZEOF(NightFactoryScriptWork, 0x10);
 

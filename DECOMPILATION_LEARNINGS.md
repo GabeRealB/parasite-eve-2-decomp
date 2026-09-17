@@ -2939,6 +2939,28 @@ second load, and matched 100% first try as
 read nor a `(s16)` cast on the comparison is needed — both spellings compile to
 the same bytes, so prefer the plain field arithmetic.
 
+The one thing that separates the two shapes at a glance is where the *compare's*
+operand comes from. Above it is the `addiu` result in a register, so no
+extension was ever available; but when the read-modify-write is followed by a
+**fresh reload** for the test, that load is a halfword load like any other and
+the signedness rule does apply:
+
+```c
+/* field_8 declared u16 */           /* lhu $v1, 0x8($s2) */
+if (st->field_8 != 0) {              /* beqz $v1, .Lskip */
+    st->field_8 = st->field_8 - 1;   /* addiu $v0, $v1, -0x1 ; sh $v0, 0x8($s2) */
+}
+if ((Gp_CapBusy() != 0) || (st->field_8 != 0)) {   /* lhu $v0, 0x8($s2) again */
+```
+
+The second `lhu` is a load feeding a signed compare on its own, so a `s16`
+header would have folded it to `lh` — `func_dryfield_night_factory_80180A4C`
+(a `rooms` overlay) pins `NightFactoryScriptWork::field_8` to `u16` this way, and
+the same header's store-only users (0 and 0xA) had never asked the question.
+Note also that the second load survives: the store may alias, so CSE keeps both
+reads, and a source that reuses a local for the post-decrement value instead
+compiles to a different shape.
+
 ## A masked halfword loads `lh` only through a named `s32` temporary
 
 `& 0xF` on a halfword field is the commonest switch index in this codebase, and
