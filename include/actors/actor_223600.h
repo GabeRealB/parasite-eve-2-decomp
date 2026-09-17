@@ -19,7 +19,7 @@ typedef struct Actor223600Work {
     /* 0x000 */ s16        field_0; ///< state
     /* 0x002 */ s16        field_2; ///< state at the previous dispatch
     /* 0x004 */ s16        field_4; ///< set when `field_0` moved away from `field_2`
-    /* 0x006 */ byte       pad_6[0x2];
+    /* 0x006 */ u16        field_6; ///< frames spent in the approach state
     /* 0x008 */ s16        field_8;
     /* 0x00A */ byte       pad_A[0x2];
     /* 0x00C */ GpAnimCtx  anim;     ///< `func_800B3F84` arg0
@@ -46,10 +46,16 @@ typedef struct Actor223600Work {
     /* 0x188 */ byte       pad_188[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
     /// handler samples them through `Actor223600CoordPos`.
-    /* 0x194 */ u16    field_194;
-    /* 0x196 */ u16    field_196;
-    /* 0x198 */ u16    field_198;
-    /* 0x19A */ byte   pad_19A[0xE];
+    /* 0x194 */ u16  field_194;
+    /* 0x196 */ u16  field_196;
+    /* 0x198 */ u16  field_198;
+    /* 0x19A */ byte pad_19A[0x2];
+    /// Target the approach state steers towards: world X in `field_19C` and
+    /// world Z in `field_1A0`, both seeded from the spawn point.
+    /* 0x19C */ u16    field_19C;
+    /* 0x19E */ s16    field_19E;
+    /* 0x1A0 */ u16    field_1A0;
+    /* 0x1A2 */ byte   pad_1A2[0x6];
     /* 0x1A8 */ MATRIX field_1A8; ///< installed at `TmdObject.field_1C`
     /* 0x1C8 */ MATRIX field_1C8; ///< installed at `TmdObject.field_20`
     /* 0x1E8 */ byte   pad_1E8[0x20];
@@ -72,6 +78,18 @@ typedef struct Actor223600CoordPos {
     /* 0x22 */ byte pad_22[2];
 } Actor223600CoordPos;
 STATIC_ASSERT_SIZEOF(Actor223600CoordPos, 0x24);
+
+/// 0xC-byte scratch taken from `0x1F8003FC` by the approach state: the XZ
+/// offset from the model to its target, and the yaw step derived from it.
+typedef struct Actor223600Turn {
+    /* 0x0 */ s16  dx;
+    /* 0x2 */ s16  dy;
+    /* 0x4 */ s16  dz;
+    /* 0x6 */ byte pad_6[0x2];
+    /* 0x8 */ s16  yaw;
+    /* 0xA */ byte pad_A[0x2];
+} Actor223600Turn;
+STATIC_ASSERT_SIZEOF(Actor223600Turn, 0xC);
 
 /// Overlay-wide record the spawn handler points at the instance's coordinate,
 /// tagging it with a 0x100 weight and a mode of 1.
@@ -106,6 +124,10 @@ STATIC_ASSERT_SIZEOF(Actor223600Event, 0x4);
 /// from the work block, 2 forces 0x80.
 extern u8 D_801153F4;
 
+/// Set to 1 while world motion is frozen; the approach state skips its forward
+/// step for that frame.
+extern u8 D_80072729;
+
 /// The three state handlers `func_actor_223600_8014CA00` copies onto its stack
 /// before the indirect call, in the order the dispatcher indexes them: entry 0
 /// is the shared idle handler, 1 the show handler and 2 the hide handler. The
@@ -114,7 +136,11 @@ extern u8 D_801153F4;
 /// `ActorsShared80135df4Table`.
 extern const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C;
 
-void func_actor_223600_8014B2F4(Task* task, s32 arg1);
+/// Restarts the model's motion for the work block's current state. Declared
+/// without a prototype because its two call sites pass different argument
+/// counts: the spawn handler hands it the HP it has just installed, while the
+/// approach state calls it with the task alone.
+void func_actor_223600_8014B2F4();
 s32  func_actor_223600_8014B464(Actor223600Work* arg0);
 void func_actor_223600_8014B540(GpEnemy* enemy, Task* task);
 void func_actor_223600_8014B840(GpEnemy* enemy, Task* task);

@@ -71,16 +71,60 @@ s32 func_actor_223600_8014B464(Actor223600Work* arg0)
     return 0;
 }
 
-/// Normalises `dir` in place and scales it to 0x3E8/0x1000 of unit length on
+/// Normalises `dir` in place and scales it to `amount`/0x1000 of unit length on
 /// the GTE. The pointer stays in one register across `VectorNormalSS` because
 /// the GTE loads read it back afterwards.
-static __inline__ void Actor223600_ScaleForward(SVECTOR* dir)
+static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount)
 {
     VectorNormalSS(dir, dir);
-    gte_lddp(0x3E8);
+    gte_lddp(amount);
     gte_ldsv(dir);
     gte_gpf12_real();
     gte_stsv(dir);
+}
+
+/// Steps the model `amount` units along its facing -- the coordinate matrix's z
+/// column, normalised and GTE-scaled in a scratch-pad vector -- and invalidates
+/// the coordinate. Skipped entirely while `D_80072729` is 1.
+static __inline__ void Actor223600_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        Actor223600_ScaleForward(vec, amount);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Folds a yaw difference back into +/-0x800, a twelfth of a turn either way.
+static __inline__ s16 Actor223600_NormalizeYaw(s16 input)
+{
+    s16 value = input;
+    if (input < 0) {
+        while (1) {
+            if (value >= -0x800) {
+                break;
+            }
+            value += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (value <= 0x800) {
+                break;
+            }
+            value -= 0x1000;
+        }
+    }
+    return value;
 }
 
 /// Spawn state of this enemy: allocates the 0x214 work block, publishes it as
@@ -165,7 +209,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
 
     Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, &dir);
     dir.vy = 0;
-    Actor223600_ScaleForward(&dir);
+    Actor223600_ScaleForward(&dir, 0x3E8);
 
     work->field_0 = 0;
     work->field_2 = -1;
@@ -176,7 +220,80 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014B840);
+/// Approach state of this enemy. On the frame it is entered (`field_4` set) it
+/// allocates the model's draw buffers, seeds the target position in
+/// `field_19C`/`field_1A0`, writes the starting world position for this
+/// context's top `field_8` nibble -- two spawn points, a third leaving the
+/// coordinate alone -- faces the model down +Z and restarts its motion. On
+/// every later frame it counts the frame in `field_6`, turns the model by up to
+/// 0x10 towards the target (the clamped yaw kept in the scratch block) and
+/// walks it 5 units forward.
+void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
+{
+    Actor223600Work* work;
+    Actor223600Turn* head;
+    Actor223600Turn* turn;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    u32              mode;
+
+    work = (Actor223600Work*)task->idMap;
+    if (work->field_4 != 0) {
+        obj                 = (TmdObject*)task->extra;
+        enemy->node.field_4 = 1;
+        obj->field_C        = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_19C = 0x115D;
+        work->field_19E = 1;
+        work->field_1A0 = 0x12D5;
+
+        mode = enemy->field_8 >> 12;
+        switch (mode) {
+            case 0:
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = 0xA8C;
+                ((TmdObject*)task->extra)->field_8->coord.t[1] = 1;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA28;
+                break;
+            case 1:
+                ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x384;
+                ((TmdObject*)task->extra)->field_8->coord.t[1] = mode;
+                ((TmdObject*)task->extra)->field_8->coord.t[2] = 0x960;
+                break;
+        }
+        Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, 0, 1);
+        work->field_174 = 2;
+        work->field_170 = 2;
+        func_actor_223600_8014B2F4(task);
+        ((TmdObject*)task->extra)->field_8->flg = 0;
+        work->field_6                           = 0;
+        return;
+    }
+
+    work->field_6++;
+    head                               = *(Actor223600Turn**)G_SCRATCH_HEAD;
+    head[-1].dx                        = work->field_19C - ((Actor223600CoordPos*)((TmdObject*)task->extra)->field_8)->x;
+    *(Actor223600Turn**)G_SCRATCH_HEAD = head - 1;
+    turn                               = head - 1;
+    turn->dy                           = 0;
+    turn->dz                           = work->field_1A0 - ((Actor223600CoordPos*)((TmdObject*)task->extra)->field_8)->z;
+
+    coord     = ((TmdObject*)task->extra)->field_8;
+    turn->yaw = Actor223600_NormalizeYaw(ratan2(head[-1].dx, turn->dz) -
+                                         ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    if (turn->yaw > 0x10) {
+        turn->yaw = 0x10;
+    }
+    if (turn->yaw < -0x10) {
+        turn->yaw = -0x10;
+    }
+    turn->yaw += ratan2(-((TmdObject*)task->extra)->field_8->coord.m[2][0],
+                        ((TmdObject*)task->extra)->field_8->coord.m[2][2]);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, turn->yaw, 1);
+    Actor223600_MoveForward(((TmdObject*)task->extra)->field_8, 5);
+    func_actor_223600_8014B2F4(task);
+    *(Actor223600Turn**)G_SCRATCH_HEAD     += 1;
+    ((TmdObject*)task->extra)->field_8->flg = 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600", D_actor_223600_80149E20);
 

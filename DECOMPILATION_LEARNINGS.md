@@ -127907,3 +127907,70 @@ instructions:
   *between* `enemy->field_4C = 0;` and `enemy->field_50 = ...;` - one statement
   earlier than where the values are used. Put it where the target's load is,
   not where it reads naturally.
+
+## A pointer bump with an extra `move` was materialised by an earlier store, not by an extra variable (func_actor_223600_8014B840, 2026-09-17)
+
+**Symptom.** A scratch-pad block taken by decrementing the arena head is one
+instruction short. The natural order
+
+```c
+head                        = *(Turn**)G_SCRATCH_HEAD;
+head[-1].dx                 = ...;      /* sh $v0, -0xC($a0) */
+turn                        = head - 1;
+*(Turn**)G_SCRATCH_HEAD     = turn;
+```
+
+compiles the bump to a single `addiu $s1, $a0, -0xC`, while the ROM has
+
+```
+addiu $v0, $a0, -0xC
+addu  $s1, $v0, $zero
+```
+
+**Cause.** `turn` is live across the calls that follow, so global alloc gives it
+a callee-saved home; when `turn = head - 1` is the first place the sum is
+materialised, expand writes it straight into that pseudo and there is nothing to
+copy. A second pseudo exists in the ROM, and it is *not* a second variable -
+the same expression was already computed for an earlier statement:
+
+```c
+*(Turn**)G_SCRATCH_HEAD = head - 1;     /* the store operand must be a reg:
+                                           the sum lands in a local temp */
+turn                    = head - 1;     /* cse2 folds to that temp: a copy */
+```
+
+local-alloc will not coalesce the copy away, because its source is local to the
+block while `turn` is a global (call-crossing) pseudo, and quantity merging only
+joins two local quantities.
+
+**Rule.** An unexplained `move` into `$sN` right after an address computation is
+evidence about *statement order*, not about the number of variables: look for an
+earlier statement - usually a store - that needed the same value in a register.
+This is the complement of the entry above, where a second *variable* was what
+created the second pseudo; a cast never does.
+
+## One function called with two different argument counts in a TU needs a K&R declaration (func_actor_223600_8014B840, 2026-09-17)
+
+**Symptom.** `func_actor_223600_8014B2F4` is called twice in `actor_223600`. The
+ROM sets `$a0` and `$a1` at one call site and only `$a0` at the other, with no
+instruction writing `$a1` before the second - and the callee only ever writes
+`$a1`, never reads it. Neither prototype satisfies both sites: the two-argument
+form invents an argument the ROM does not pass, and the one-argument form drops
+the `lhu $a1, 0x4($v0)` that the ROM uses to pass the HP value, moving the value
+to `$v1` and breaking the *other*, already-matched function.
+
+**Fix.** Declare it without a prototype and keep each call site as the ROM has
+it:
+
+```c
+void func_actor_223600_8014B2F4();
+...
+func_actor_223600_8014B2F4(task, hp);   /* spawn state */
+func_actor_223600_8014B2F4(task);       /* approach state */
+```
+
+GCC 2.8.1 accepts this and applies only the default argument promotions, so an
+`s32` local still arrives in `$a1` unconverted. Several overlays already rely on
+it (`actor_800200.h`, `actor_403100.h`, `src/gameplay/3E9C.c`). Read a
+mismatched argument register as a question about the *declaration* before
+treating it as an allocation problem.
