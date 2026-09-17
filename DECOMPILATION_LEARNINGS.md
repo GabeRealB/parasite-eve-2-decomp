@@ -124429,3 +124429,34 @@ Inputs: `base_3.i` (100.000%) SHA256
 `250a6b7d81b764d2b7e7a2887f797ff56fef5a468260047246392c0b8e509f72`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run; `.cse` dumps retained in the scratch.
+
+## A `0.98`-shape sibling is still a whole answer; the `.s` diff names the field (func_actor_135400_80132EBC, 2026-09-17)
+
+"A twin of a matched sibling is provable before you write any C" uses the
+four-class `1.00`/asterisk signal, but the method needs no asterisk: a sibling at
+`shape 0.98 / fields 0.90 / cflow 1.00` is one instruction away.
+`func_actor_141000_80133E8C` (matched) is this actor's 4-way model-mode switch on
+`TmdObject::field_C`; diffing its `matchings/` `.s` against the target's left
+one differing instruction out of 56:
+
+```
+sw a2, 0x494(v0)   /* target */     sb a2, 0x4C9(v0)   /* sibling */
+```
+
+which names both the work field's offset *and* its width, so the sibling's C is
+the answer modulo that one store - 100.000% on the first build, against an m2c
+seed at 71.375% with `branch=3 insert=6 delete=8` (m2c had modelled the switch as
+labels and gotos, which is a structural rewrite the seed score hides).
+
+**Reading it.** The opcode-order similarity classes drop below 1.00 for a single
+differing operand, not only for differing structure, so treat any sibling whose
+`shape` and `cflow` both sit at >= 0.98 as a port until the `.s` diff shows a
+structural difference. The diff also settles the missing type: `sw` versus `sb`
+here is what picks `s32` over `s8` for `Actor135400Work::field_494`.
+`overlay_dup_index.py find` correctly reports only this overlay - the differing
+operand is in the disassembly text, so the two are not equal bodies and there is
+nothing to promote.
+
+Inputs: scratch `nonmatchings/func_actor_135400_80132EBC-vacuum`, `base.c`
+71.375%, `base_1.c` 100.000%, compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

@@ -25,7 +25,7 @@ extern s32 D_actor_135400_8013F8E4;
 extern const GpAnimArg D_actor_135400_80131EA0;
 
 void func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
-void func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
+s32  func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
 void func_actor_135400_80132C90(Task* task);
 void func_actor_135400_80132CB0(Task* task);
 
@@ -90,7 +90,45 @@ INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132E40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132EBC);
+/// `Gp_DispatchMsg` handler for the actor's 4-way model-mode switch, run
+/// against the `TmdObject` parked in `Task::extra`. Mode 0 shows the model and
+/// clears the 4 flag, 1 hides it, frees the aux buffers and clears the flag, 2
+/// does both plus latching the mode into the work block's `field_494`, and 3
+/// hides it while setting the flag. Anything else returns 1 and leaves the
+/// object alone; the handled modes return 0. The same body shape as
+/// `func_actor_141000_80133E8C`.
+s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
+{
+    TmdObject* obj;
+    s32        ret;
+
+    obj = task->extra;
+    ret = 0;
+    switch (arg2) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C                              |= 0x80;
+            ((Actor135400Work*)task->idMap)->field_494 = arg2;
+            obj->field_C                              |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 /* The animation arguments `func_actor_135400_80132B60` copies into
    `Actor135400Work::params` when the actor is created. It closes this unit's
