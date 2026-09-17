@@ -9,6 +9,7 @@
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
@@ -23,6 +24,7 @@ extern s32   D_actor_136100_8013F2F4;
 extern s32   D_actor_136100_8013F31C;
 extern s32   D_actor_136100_8013F334;
 extern s32   D_actor_136100_8013F3AC;
+extern s32   D_actor_136100_8013F3F4;
 extern s32   D_actor_136100_8013F40C;
 extern s32   D_actor_136100_8013F424;
 extern s32   D_actor_136100_8013F43C;
@@ -151,7 +153,78 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80132748);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80132BC0);
+/// Play `anim` on the `field_4C0` task (message 0x3F4) and record it as the
+/// current `field_4E2` chain entry; does nothing while that task is unset.
+static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s32 speed)
+{
+    Actor136100Work* work = (Actor136100Work*)task->idMap;
+    GpAnimArg        msg;
+
+    if (work->field_4C0 != NULL) {
+        msg.field_0     = &D_actor_136100_8013F1D4;
+        work->field_4E2 = anim;
+        msg.field_4     = anim;
+        msg.field_8     = blend;
+        msg.field_C     = speed;
+        msg.field_10    = 0;
+        Gp_DispatchMsg(work->field_4C0, 0x3F4, (s32)&msg, 0);
+    }
+}
+
+/// Advance the animation chain like `func_actor_136100_80133558`, then run the
+/// `field_4D4` request: 1 and 3 play a fixed animation, 2 steps the
+/// `field_4D6` sequence -- three sound-and-animation shots every 15 ticks
+/// (`field_4DA` countdown, `field_4D8` shot count) before a final animation.
+/// Every request that finishes clears `field_4D4`.
+void func_actor_136100_80132BC0(Task* arg0)
+{
+    Actor136100Work* work;
+    s16              anim;
+
+    work = (Actor136100Work*)arg0->idMap;
+    if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
+        anim = D_actor_136100_8013F218[work->field_4E2];
+        if (anim >= 0) {
+            func_actor_136100_PlayAnim(arg0, anim, 1, 0xA);
+        }
+    }
+    switch ((u16)work->field_4D4) {
+        case 0:
+            break;
+        case 1:
+            func_actor_136100_PlayAnim(arg0, 1, 0, 0);
+            break;
+        case 2:
+            switch ((u16)work->field_4D6) {
+                case 0:
+                    work->field_4D8 = 0;
+                    work->field_4DA = 0;
+                    work->field_4D6++;
+                    return;
+                case 1:
+                    if (--work->field_4DA > 0) {
+                        return;
+                    }
+                    if (work->field_4D8 >= 3) {
+                        func_actor_136100_PlayAnim(arg0, 1, 1, 0xA);
+                        break;
+                    }
+                    SndEvt_EnqueueType6(0x40720009, 0, 0);
+                    func_actor_136100_PlayAnim(arg0, 2, 1, 0xA);
+                    work->field_4DA = 0xF;
+                    work->field_4D8++;
+                    return;
+                default:
+                    return;
+            }
+            break;
+        case 3:
+            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F3F4, 0);
+            func_actor_136100_PlayAnim(arg0, 0, 0, 0);
+            break;
+    }
+    work->field_4D4 = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80132E78);
 
