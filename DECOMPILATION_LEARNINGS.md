@@ -119207,3 +119207,62 @@ Inputs: `base_3.i` SHA256
 `e084f4d9b81135a0f783953897a820400875bbc21f5e7918bdaaf287653c3192`; landed source
 SHA256 `4d72540c7789c37a49a4a22685751c69d0f72b1248b25bb1bc0cacdd95a1eec3`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## Count the trailing `-1`s, not the loop's spelling: a guarded scan from a variable takes the `do/while` form with no source decrement (func_dryfield_water_tower_8017FB4C, 2026-09-17)
+
+The writeback entry above ("A lone `addiu r,r,-1` after a scan loop is the
+delay-slot writeback") prescribes a plain `while` whose counter starts at zero
+for the guarded scan, and records the `do { n += 1; } while (...)` form at
+77.355%. That prescription is the case where the guard's entry test folds: with
+`n == 0` the first probe is a bare `lui`/`lw %lo(D)` rather than an indexed
+walk, so the guard disappears into the constant and never appears as a test.
+
+When the guard compares a *variable* it cannot fold, and the target keeps it as
+a real `beqz` before the loop:
+
+```
+    lhu    v0,%lo(D)(a1)      # D[0].field_0, the guard's operand
+    lhu    v1,0x72(v1)
+    sltu   v0,v0,v1
+    beqz   v0,.Lend
+     move  a0,zero            # i = 0
+    addiu  a1,a1,%lo(D)
+    addiu  a0,a0,1            # the body, peeled before the first test
+.Lloop:
+    andi/sll/addu/lhu         # probe D[i]
+    sltu   v0,v0,v1
+    bnez   v0,.Lloop
+     addiu a0,a0,1            # the body, stolen into the back edge's delay slot
+    addiu  a0,a0,-0x1         # writeback only -- exactly one
+.Lend:
+```
+
+The matching source is the `do/while` from the pre-test value, with **no**
+decrement:
+
+```c
+i = 0;
+if (D_dryfield_water_tower_8018767C[0].field_0 < state->field_72) {
+    do {
+        i += 1;
+    } while (D_dryfield_water_tower_8018767C[i].field_0 < state->field_72);
+}
+```
+
+100.000% on the first build, all penalties zero. The m2c seed read the peeled
+body as the loop's initializer (`i = 1`) and, to account for the single `-1`,
+wrote `i = i - 1` as well; GCC then emitted **two** `addiu a0,a0,-1` in a row on
+the exit path (`84.333%`, `delete=1`, `insert=3`, `regs=23`, `branch=2`). The
+count of trailing `-1`s is what separates the two readings - one is the
+writeback alone and means the source's counter is the pre-test value, two means
+one of them is a real statement - and that count is independent of whether the
+loop is written `while` or `do/while`.
+
+The same build also needed the base retyped to the access width (the
+`M2C_UNK` entry above): the seed declared the table `u16*`, scaled the index by
+hand with `* 4`, and the pointer addition turned the file's 4-byte
+`{u16,u16}` element into an 8-byte stride (`sll 3`).
+
+Inputs: `base.i` `9b28280544f552bdf1e97375d1c240a97338548a40c5578dd62b3088577aec26`
+(m2c seed, 84.333%), `base_1.i`
+`d8d086dd924879716c81c8b3c18ee9913d16162b01347c524d3d71f4fe990610` (match,
+100.000%).
