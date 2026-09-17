@@ -83,17 +83,27 @@ STATIC_ASSERT_SIZEOF(Actor350700MatWords, 0x14);
 /// `TmdObject::field_1C` / `field_20`, exactly as `func_actor_350700_801624B4`
 /// does for `Actor350700Work`.
 ///
-/// The size is the allocation; the fields below are the ones the init and the
-/// spawned-task bookkeeping touch.
+/// The size is the allocation; the fields below are the ones the init, the
+/// spawned-task bookkeeping and the per-frame tick touch. The tick keeps a
+/// 16.16 accumulator triple at 0x4D8..0x4E0, fed from the deltas at
+/// 0x4C8..0x4D0; only each accumulator's high half reaches the root
+/// coordinate, and the low half is re-zeroed every frame.
 typedef struct Actor350700MainWork {
-    /* 0x000 */ byte  pad_0[0x475];
+    /* 0x000 */ byte  pad_0[0x474];
+    /* 0x474 */ s8    field_474; // non-zero while the animation slots tick
     /* 0x475 */ s8    field_475;
     /* 0x476 */ s8    field_476;
-    /* 0x477 */ byte  pad_477[0x61];
-    /* 0x4D8 */ s32   field_4D8;
+    /* 0x477 */ byte  pad_477[0x51];
+    /* 0x4C8 */ s32   field_4C8; // per-frame local-space deltas the accumulators take
+    /* 0x4CC */ s32   field_4CC;
+    /* 0x4D0 */ s32   field_4D0;
+    /* 0x4D4 */ byte  pad_4D4[0x4];
+    /* 0x4D8 */ s32   field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
     /* 0x4DC */ s32   field_4DC;
     /* 0x4E0 */ s32   field_4E0;
-    /* 0x4E4 */ byte  pad_4E4[0x18];
+    /* 0x4E4 */ byte  pad_4E4[0x14];
+    /* 0x4F8 */ s16   field_4F8; // selects which of the two handlers the tick runs
+    /* 0x4FA */ byte  pad_4FA[0x2];
     /* 0x4FC */ Task* field_4FC;
     /* 0x500 */ Task* field_500;
     /* 0x504 */ Task* field_504;
@@ -118,6 +128,11 @@ void func_actor_350700_80162860(Task* arg0, s32 arg1, Actor350700AnimPreset* arg
 
 /// Exit callback `func_actor_350700_80162404` installs; tears the task down.
 void func_actor_350700_80162494(Task* arg0);
+
+/// The empty first entry of the parent's two-handler table, selected by
+/// `Actor350700MainWork::field_4F8` -- the no-op half of the pair whose other
+/// entry is the shared `ActorsShared801327f8`.
+void func_actor_350700_801633F8(void);
 
 void func_actor_350700_801624B4(Task* arg0);
 

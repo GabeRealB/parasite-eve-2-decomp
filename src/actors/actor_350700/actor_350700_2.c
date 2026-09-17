@@ -3,13 +3,17 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_350700.h"
+#include "actors/actors_shared_801327f8.h"
 #include "actors/actors_shared_80132f24.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 /// The four `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks
 /// from, and the message table it points the parent's `Task::field_24` at:
@@ -241,7 +245,64 @@ void func_actor_350700_80162B30(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162D5C);
+/// Per-frame tick of the parent actor, the same body as
+/// `func_actor_335800_80162844`: dispatches through the local two-entry table
+/// `field_4F8` indexes -- the empty `func_actor_350700_801633F8` or the shared
+/// `ActorsShared801327f8` -- then integrates the per-frame deltas at
+/// `field_4C8..field_4D0` into the 16.16 accumulators at `field_4D8..field_4E0`,
+/// adds their high halves to the root coordinate's translation, clears `flg`
+/// and truncates the accumulators back to 16 bits. Ticks the animation slots
+/// while `field_474` is set; and, unless the display object's `field_C` carries
+/// 0x80, draws the ground-shadow quad from the second part's world matrix.
+/// While `Game_Session->field_4D` is set it also clears that part's `flg`,
+/// rebuilds its coordinate and rebuilds the actor colour; the colour rebuild
+/// runs once more unconditionally. The `field_508` countdown then runs while it
+/// is non-negative, freeing the model buffers on the frame it reaches zero; the
+/// init's -1 disables it.
+void func_actor_350700_80162D5C(Task* arg0)
+{
+    TmdObject*           ext      = arg0->extra;
+    Actor350700MainWork* work     = (Actor350700MainWork*)arg0->idMap;
+    TaskFunc             funcs[2] = { (TaskFunc)func_actor_350700_801633F8, ActorsShared801327f8 };
+    VECTOR3              pos;
+    GsCOORDINATE2*       coord;
+    s32                  i;
+
+    funcs[work->field_4F8](arg0);
+    coord              = ((TmdObject*)arg0->extra)->field_8;
+    work->field_4D8   += work->field_4C8;
+    work->field_4DC   += work->field_4CC;
+    work->field_4E0   += work->field_4D0;
+    coord->coord.t[0] += (s16)(work->field_4D8 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4DC >> 16);
+    coord->coord.t[2] += (s16)(work->field_4E0 >> 16);
+    coord->flg         = 0;
+    work->field_4D8    = (u16)work->field_4D8;
+    work->field_4DC    = (u16)work->field_4DC;
+    work->field_4E0    = (u16)work->field_4E0;
+    if (work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+        }
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    }
+    func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    if (work->field_508 >= 0) {
+        if (work->field_508 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_508--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162F7C);
 

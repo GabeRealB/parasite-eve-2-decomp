@@ -122406,3 +122406,47 @@ sibling chains the object dump's order is the schedule, not the source, and the
 fix is to permute the statements rather than transcribe the dump. The reversal
 is not explained by the LUID tie-break alone — treat the direction as something
 to test, not to derive.
+
+## The sibling-chain reversal also covers read-modify-write accumulators, and a lone constant store moves by one slot (func_actor_350700_80162D5C, 2026-09-17)
+
+Two leftovers in one build of the parent-actor tick, both pure statement-order.
+
+**Accumulators.** The body integrates three per-frame deltas into three 16.16
+accumulators (`field_4D8/4DC/4E0 += field_4C8/4CC/4D0`) before reading their high
+halves. Writing them in the object dump's own order, `4D8, 4E0, 4DC`, scores
+98.897% with `regs=6 reorder=2`: the compiled object emits `4D8, 4DC, 4E0`. The
+natural field order, `4D8, 4DC, 4E0`, is what matches — it emits `4D8, 4E0, 4DC`,
+the dump's order, with `regs` dropping to 0. This is the third instance of the
+sibling-chain reversal above (see "Sibling `p->child->field` chains emit in the
+*reverse* of their statement order"), and it shows the rule is not about loads:
+these are three read-modify-writes with stores, and the swap takes the register
+assignments with it (`$a1`/`$a2` and `$v0`/`$v1` across the two tails), which is
+why the wrong order costs `regs` as well as `reorder`.
+
+**Lone constant store.** The remaining `reorder=2` was one `sw zero,0(a0)`
+(`coord->flg = 0`). Written between the `t[1]` and `t[2]` updates it lands in the
+`t[1]` gap:
+
+```
+lh    v1,0x4de(s1)
+lw    v0,0x1c(a0)
+sw    zero,0(a0)       # scheduled here
+addu  v0,v0,v1
+sw    v0,0x1c(a0)
+```
+
+Moving the same statement past the `t[2]` update moves it one gap later, into
+the target's slot between `t[2]`'s load and its add:
+
+```
+lh    v1,0x4e2(s1)
+lw    v0,0x20(a0)
+sw    zero,0(a0)       # target position
+addu  v0,v0,v1
+sw    v0,0x20(a0)
+```
+
+So an operand-free store has no dependency to hang it anywhere; its source
+position is the only lever on which gap it fills. Reach for that before any
+barrier — a `SOFT_BARRIER` here would pin it in the wrong gap and cost the
+scheduling of the surrounding chain.
