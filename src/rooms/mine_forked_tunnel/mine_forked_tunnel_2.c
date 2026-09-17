@@ -4,10 +4,51 @@
 #include "main/tmd.h"
 
 #include "rooms/room_common.h"
+#include "rooms/mine_forked_tunnel.h"
 
 extern RoomPlacement D_mine_forked_tunnel_80181BA4;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_2", func_mine_forked_tunnel_8017DD08);
+/// `Task::field_24` handler for message id 0x7D5: switches the draw and
+/// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
+/// clear bit 0x80 - hiding and showing the model - and leave bit 0x4 clear so
+/// the model keeps its buffers, mode 1 reinstating them through
+/// `Tmd_AllocBuffers` first. Modes 2 and 3 set 0x4 instead, skipping that
+/// allocation; mode 2 also stores itself in the work block's lifetime counter,
+/// `MineForkedTunnelWork::field_44`, which `func_mine_forked_tunnel_8017D724`
+/// counts down before freeing the child. Any other mode touches nothing and
+/// reports 1.
+s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
+{
+    TmdObject* ext;
+    s32        ret;
+
+    ext = (TmdObject*)task->extra;
+    ret = 0;
+    switch (mode) {
+        case 0:
+            ext->field_C |= 0x80;
+            ext->field_C &= ~4;
+            break;
+        case 1:
+            ext->field_C &= ~0x80;
+            Tmd_AllocBuffers(ext);
+            ext->field_C &= ~4;
+            break;
+        case 2:
+            ext->field_C                                  |= 0x80;
+            ((MineForkedTunnelWork*)task->idMap)->field_44 = mode;
+            ext->field_C                                  |= 4;
+            break;
+        case 3:
+            ext->field_C &= ~0x80;
+            ext->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_2", func_mine_forked_tunnel_8017DDE8);
 

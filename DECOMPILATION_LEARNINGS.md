@@ -484,6 +484,49 @@ Inputs: `base.i` (one `void *arg2`, 87.184%)
 `base_1.i` (three parameters, 100.000%)
 `b95e05a308e10b675fb3d9e49f546c8b273ba01ec5b6661051afa43924f9d366`.
 
+## m2c's parameter *names* are registers, so a seed can name `arg2` and place it in `$a1`
+
+A parameter list is positional; m2c's names are not. When m2c drops a parameter
+from the *middle* instead of the front it keeps the honest name and puts it in
+the wrong slot, so the name and the position disagree and the seed reads a
+register the target never touches:
+
+```c
+s32 func_mine_forked_tunnel_8017DD08(void *arg0, s32 arg2)   /* arg2 sits in $a1 */
+```
+
+The target switches on `$a2` (`beq $a2,$v0,…`, `slti $v0,$a2,0x2`) and stores
+`$a2`, so the seed dispatched on whatever the caller had left in `$a1` and
+scored 77.607% (`branch=4 regs=6 reorder=7 insert=2 delete=6`) - a penalty mix
+that reads as a body or allocation problem. The tell is the seed's own name
+disagreeing with its position, not the assembly: `arg2` in slot 1.
+
+Insert the dropped parameters, do not rename:
+
+```c
+s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
+```
+
+A *trailing* unused parameter is invisible in the body, so its existence is only
+in the caller's matched assembly and in the handler type: the call site sets
+`addu $a3,$zero,$zero` in the `jal` delay slot, which GCC emits only for a fourth
+argument, and `GpMsgHandler` is `s32 (*)(Task*, s32, s32, s32)` - both give the
+arity 4, and the typedef gives the return type the caller's sloppy `extern void`
+had hidden.
+
+Take the body from the shaped sibling, not from m2c: `func_actor_503500_80132584`
+is byte-identical apart from `sb`/`sw` on the work block's `field_44`, so the
+sibling's case order and two-statement `|= 0x80` then `&= ~0x4` spelling (which
+the target merges into one read-modify-write) are what to copy. One instruction
+apart is invisible to `overlay_dup_index.py find`, which compares disassembly
+text - it reports one copy and offers no promotion, which is right here because
+the field widths differ and the two are not the same function.
+
+Inputs: `base.i` (switch operand at slot 1, 77.607%)
+`6a0a9c1b13181448e9e290e3b20abc26d7a9e97d1c8237c04ec9b76ba9d8fd69`,
+`base_1.i` (four parameters, 100.000%)
+`d7042fad5532df59b80171ce284223c9be6d8c4f7259bc772a41a1dc1d34e097`.
+
 ## One `jr ra` shared by every arm is one `return` statement, not one per arm
 
 `HAVE_return` is defined for this target, so `stmt.c`'s `expand_null_return_1`

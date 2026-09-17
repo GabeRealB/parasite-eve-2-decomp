@@ -8,7 +8,7 @@
 
 extern void func_mine_forked_tunnel_8017DC50(Task* arg0);
 extern void func_mine_forked_tunnel_8017DC70(Task* arg0);
-extern void func_mine_forked_tunnel_8017DD08(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern s32  func_mine_forked_tunnel_8017DD08(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void func_mine_forked_tunnel_8017DF34(s32 arg0);
 
 void func_mine_forked_tunnel_8017D5E8(Task* arg0)
