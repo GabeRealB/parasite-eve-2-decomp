@@ -121443,3 +121443,75 @@ Inputs: `base_4.i` (100.000%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_actor_341700_8016D130-vacuum`.
+
+## Folding a case onto `default` changes a switch tree's *branch polarity*: `case 0: default:` gives `slti`/`bnez` where a bare `default:` gives `slti`/`beqz` (func_actor_341700_8016CC9C, 2026-09-17)
+
+`func_actor_341700_8016CC9C` dispatches `D_801153F4` (a `u8`) over three bodies:
+`case 2` sets `field_C |= 0x80` and returns, `case 1` returns, everything else
+runs the state handler. Written the obvious way, with the body in a bare
+`default:`, it scores 95.36% (`branch=4 regs=11`) and the dispatch comes out as
+
+```
+li   v0,1
+beq  v1,v0,epilogue      # == 1
+slti v0,v1,2
+beqz v0,case2_test       # >= 2
+li   a0,2
+bne  v1,a0,default
+```
+
+The target branches the other way on the same comparison - to the body:
+
+```
+li   v0,1
+beq  v1,v0,epilogue      # == 1
+slti v0,v1,2
+bnez v0,body             # < 2
+li   v0,2
+bne  v1,v0,body          # != 2
+```
+
+Same three-node tree, same root (`case 1`); what differs is the left child's
+code label. With `case 0` folded onto the default, the case-0 node's label *is*
+the default label, so `node_is_bounded` (`stmt.c`) reports the left subtree
+fully bounded and `emit_case_nodes` takes its `node_is_bounded (node->left)`
+arm - `blt` to the left child's label - instead of the `bgt` to a fresh
+test label that the unbounded case emits. `blt` against the constant 1 is
+`slti ...,2` + `bnez`; the `bgt` form is the same `slti` + `beqz`, so the two
+differ only in the branch opcode and its target. The `case 0` body and the
+default body are the same statements here, so writing the fold out is free:
+
+```c
+        case 1:
+            return;
+        case 0:
+        default:
+            ...
+```
+
+This is the same `balance_case_nodes` rule the 8016CEB4 entry records - a case
+list is only split at the middle once it holds more than two nodes, so a
+three-label switch is what puts `case 1` at the root. The corollary worth
+keeping is that folding a case onto `default` also moves the *polarity* of the
+tree, so a 95% with a matching instruction count and a `branch=` penalty can be
+a switch-label question rather than an allocation or scheduling one.
+
+Two more leftovers from the same function, both about the frame:
+
+* `VECTOR block;` has to be declared *before* the struct-copy table
+  (`GpEnemyTaskFuncTable3 sp = D_actor_341700_80162058;`). GCC hands out the
+  local slots in declaration order, so the table came out at 0x10 and the vector
+  at 0x20 where the target has them the other way round - a pure
+  `sw t0,0x10(sp)` vs `0x20(sp)` diff, reported as `branch=4`.
+* The per-use reloads are what the target wants: `((TmdObject*)arg1->extra)->
+  field_8[1]` repeated at every use, never a saved `GsCOORDINATE2* coord` local.
+  Each store through the loaded pointer kills GCC's CSE of the Task field, so
+  the target re-loads `arg1->extra` and `->field_8` for each of the five uses,
+  while a local keeps one `lw` in a callee-saved register. The matched
+  `func_actor_341700_8016D130` in the same overlay is written the same way.
+
+Inputs: `base_2.i` (100.000%) SHA256
+`de39b860a3801a8e4a596c97418984f5de3d6358662f034bb77d04130cfd6b38`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_actor_341700_8016CC9C-vacuum`.

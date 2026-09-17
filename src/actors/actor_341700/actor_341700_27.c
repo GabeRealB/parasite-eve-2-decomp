@@ -26,7 +26,60 @@ INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_27", func_actor_34170
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_27", func_actor_341700_8016C0F4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_27", func_actor_341700_8016CC9C);
+extern void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1);
+extern void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1);
+extern void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1);
+
+/// Three state handlers, indexed by `Actor341700SubWork::field_0`; copied onto
+/// the stack before dispatch, as `D_actor_341700_80161F0C` is.
+const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
+    func_actor_341700_8016D2B8,
+    func_actor_341700_8016D2E8,
+    func_actor_341700_8016C0F4,
+} };
+
+/// Per-frame callback of the `func_actor_341700_8016D130` task. It colours the
+/// model from the world position of its *second* attach coordinate and then,
+/// unless `D_801153F4` hides the model, runs the handler `Actor341700SubWork::
+/// field_0` names.
+///
+/// `case 0` is folded into `default` on purpose. The two bodies are the same,
+/// so the case list keeps three nodes and GCC's tree tests `case 1` at the
+/// root; dropping the case makes `case 2` the root and the emitted branches
+/// come out with the wrong polarity and a stray low-bound test.
+void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
+{
+    VECTOR                block;
+    Actor341700SubWork*   work = (Actor341700SubWork*)arg1->idMap;
+    GpEnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
+
+    ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->field_8[1]);
+    block.vx = ((TmdObject*)arg1->extra)->field_8[1].workm.t[0];
+    block.vy = ((TmdObject*)arg1->extra)->field_8[1].workm.t[1];
+    block.vz = ((TmdObject*)arg1->extra)->field_8[1].workm.t[2];
+    Gp_UpdateActorColor(arg0, &block, 0, 0);
+    switch (D_801153F4) {
+        case 2:
+            ((TmdObject*)arg1->extra)->field_C |= 0x80;
+            return;
+        case 1:
+            return;
+        case 0:
+        default:
+            if (work->field_2 != work->field_0) {
+                work->field_4 = 1;
+            } else {
+                work->field_4 = 0;
+            }
+            work->field_2 = work->field_0;
+            sp.funcs[work->field_0](arg0, arg1);
+            if (Game_Session->field_4D != 0) {
+                ((TmdObject*)arg1->extra)->field_8->flg = 0;
+            }
+            return;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700_27", ActorsShared80135df4Table);
 
