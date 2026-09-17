@@ -28,7 +28,7 @@ typedef struct Actor205200Work {
     /* 0x010 */ u32            field_10;    // its distance
     /* 0x014 */ byte           pad_14[4];
     /* 0x018 */ s16            field_18[3]; // 1 marks the matching `field_0` slot active
-    /* 0x01E */ byte           pad_1E[2];
+    /* 0x01E */ s16            field_1E;    // selects the spawn tables `func_actor_205200_8014AE0C` reads
     /* 0x020 */ s16            field_20;    // index into the timer reload table `D_actor_205200_8014C9CC`
     /* 0x022 */ u16            field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
     /* 0x024 */ byte           pad_24[2];
@@ -58,6 +58,21 @@ typedef struct Actor205200Work {
     /* 0x594 */ s16            field_594;
     /* 0x596 */ s16            field_596; // selects the shared tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
+
+/// Per-part block `func_actor_205200_8014AE0C` allocates for each child task
+/// and hangs off its `Task::idMap`. `field_78` is the slot the part took in the
+/// parent's `Actor205200Work.field_0` / `field_18` arrays.
+typedef struct Actor205200Part {
+    /* 0x00 */ GpObj          obj;
+    /* 0x20 */ GpRec18        recs[3];
+    /* 0x68 */ GsCOORDINATE2* field_68;
+    /* 0x6C */ s16            field_6C;
+    /* 0x6E */ s16            field_6E;
+    /* 0x70 */ byte           pad_70[8];
+    /* 0x78 */ s16            field_78;
+    /* 0x7A */ byte           pad_7A[2];
+} Actor205200Part;
+STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
 /// Owning context. The update entry point does not touch it, but the exit
 /// callback `func_actor_205200_8014C924` unlinks the `GpLinkNode` at +0x10.
