@@ -117226,3 +117226,70 @@ The same rule in this function's shape is why the source task's matrix needs a
 `MATRIX* mtx = &src->mtx;` local: `src->mtx.t[0]` is `0x20($v1)` off the work
 pointer, `mtx->t[0]` is `0x14($v1)` off the materialised `$v1 = $v1 + 0xC` the
 `gte_SetRotMatrix` operand already needs (96.680% -> 97.868%).
+
+## A shared `switch` tail's *source position* is its layout: 2.8.1 has no block-reordering pass, so m2c's `block_N` placement is a choice, not a constraint (func_neo_ark_eve_access_tunnel_8017DB18, 2026-09-17)
+
+`toplev.c` never calls a block reorderer (the `reorder_blocks` in `function.c`
+is the lexical-block note fixup), and `jump.c`'s cross-jumping only *redirects a
+jump* to a label before an identical tail — `do_cross_jump` calls
+`get_label_before (newlpos)` and never moves code. So the emitted block layout
+is the source statement order minus dead blocks, and a target layout that
+differs from m2c's reconstruction has to be written differently, not squeezed
+out of a pass.
+
+m2c renders a shared tail at its **first** user. Here three arms increment the
+same `task->state`, and two of them test a shared result, so base.c came out
+`case 0: Gp_RunCapCmd1(2); block_9: state++; return; case 1: v = Gp_CapBusy();
+block_8: if (v == 0) goto block_9; ...` — 86.07%, `branch=1 reorder=5
+insert=4 delete=4`, with the increment emitted inside case 0's block and case 1
+branching *backwards* to it. The target has both shared blocks after the last
+arm that reaches them (`case 0` and `case 1` jump *forward* to `0x…7DBE8`/`0x…7DBF0`),
+which is exactly where moving the two labels puts them:
+
+```c
+    case 0:
+        Gp_RunCapCmd1(2);
+        goto L_advance;          /* was block_9, written after case 0 */
+    case 1:
+        var_v0 = Gp_CapBusy();
+        goto L_idle;             /* was block_8, written after case 1 */
+    case 2: ...
+    case 3:
+        var_v0 = SndVoice_HasActiveId(0x55080003);
+    L_idle:
+        if (var_v0 != 0) return;
+    L_advance:
+        task->state++;
+        return;
+    case 4: ...
+```
+
+That one move took the score to 94.52% with `branch=0 reorder=0`, leaving only
+`insert=2 delete=2` — case 4's `Mc_SaveData` stores, which were still
+`M2C_FIELD(&Mc_SaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
+idiom (`src/gameplay/1A8.c`'s `Mc_SaveData.field_6 = Gp_WarpLoc.field_0;`) and
+using the `GpSaveLoc`/`McSaveData` struct fields instead fixed those and the
+function:
+
+```c
+        Mc_SaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.field_2;
+```
+
+Diagnostic to reuse: the `.jump` dump prints `;; Start of basic block N` in
+final order and `.jump2` after cross-jumping — compare that order against the
+target's, and when a shared block sits later in the file than in your C, move it
+in the C. `sltiu`-guarded `jr $v0` dispatch means the tables are the switch's own
+and the case bodies are in value order, so the only free variable is where the
+shared statements are written.
+
+Inputs: `base_1.i` SHA256
+`54c33408a903a2ef60f8f795491dbd0ec45c1065942bb77513de1b374689e302`;
+`base_1.c` SHA256
+`bffc36a55ec0c7fdee0231c23c1180290d7ae0fda993a1ae35f41f7974f822a0`;
+`base_3.c` (100%) SHA256
+`f59a48e502f2f13a3fbeb70b7c5159a69aef87427c0d31a4a8cd0b239643a4a7`;
+target.o SHA256
+`c7e36c0888313c886c3eca8491483a355017f8341ffd779accec0b21813f63a0`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017DB18-vacuum`.
