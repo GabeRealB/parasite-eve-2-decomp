@@ -114425,3 +114425,20 @@ scratch), but the extra references to the pointer inside the loop give the
 scratch pseudo the higher priority, and it matched 100%. So when two pointers
 that both cross calls swap registers, count their refs in `.lreg` and look for
 places where a read through one of them folds away without changing the code.
+
+### `a + ((b << 30) + BIGCONST)` is reassociated by combine; a statement temp keeps the grouping (ActorsShared80131e24Sub1, 2026-09-17)
+
+Target adds a register-loaded constant to the shifted term first and then adds
+the low term: `addu a2,a2,t2` / `addu a2,t0,a2`. Every single-expression
+spelling - `low + (hi + C)`, `low + (C + hi)`, `hi + C + low`, even a `(s32)`
+cast around the group - came out as `(low + C) + hi` or with the operands
+swapped (98-99.8%). Assigning the group to its own local first matched:
+
+```c
+high = (((Gp_LcgState >> 16) & 1) << 30) + 0x800231C0;
+Gp_SpawnEff(0x60070, part, low + high, NULL);
+```
+
+Also: two LCG draws written as `x = x*5+K; lo = ...; x = x*5+K;` on the global
+itself match the single final store, where `r1`/`r2` locals kept the wrong
+compute order.

@@ -23,9 +23,13 @@ typedef struct Actor160600Work {
     /* 0x4B4 */ s16        state;
     /* 0x4B6 */ byte       pad_4B6[0x2];
     /* 0x4B8 */ s16        field_4B8;
-    /* 0x4BA */ byte       pad_4BA[0x3A];
+    /* 0x4BA */ byte       pad_4BA[0x34];
+    /* 0x4EE */ s16        field_4EE; // nonzero enables the effect spawns
+    /* 0x4F0 */ byte       pad_4F0[0x4];
     /* 0x4F4 */ GpEnemy*   enemy;
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
+
+extern u32 Gp_LcgState;
 
 #endif
