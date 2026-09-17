@@ -40,20 +40,28 @@ typedef struct Actor113100Work {
     /* 0x4F0 */ s32     field_4F0;
     /* 0x4F4 */ s32     field_4F4;
     /* 0x4F8 */ s32     field_4F8;
-    /* 0x4FC */ byte    pad_4FC[0x14];
+    /* 0x4FC */ byte    pad_4FC[0x4];
+    /// Local-space offset `func_actor_113100_801324DC` hands `ApplyMatrixLV`
+    /// as its source and destination: it rotates the constant (0, 0, 0x200000)
+    /// through the root coordinate and writes the world-space result here.
+    /* 0x500 */ VECTOR field_500;
     /// Zeroed by the setup handler next to `field_514` / `field_518`.
-    /* 0x510 */ s32   field_510;
-    /* 0x514 */ s32   field_514;
-    /* 0x518 */ s32   field_518;
-    /* 0x51C */ byte  pad_51C[0xE];
-    /* 0x52A */ u16   field_52A;
-    /* 0x52C */ byte  pad_52C[0x4];
-    /* 0x530 */ s16   field_530;
-    /* 0x532 */ u16   field_532;
-    /* 0x534 */ Task* field_534;
-    /* 0x538 */ s16   field_538;
-    /* 0x53A */ s16   field_53A;
-    /* 0x53C */ u8    field_53C;
+    /* 0x510 */ s32  field_510;
+    /* 0x514 */ s32  field_514;
+    /* 0x518 */ s32  field_518;
+    /* 0x51C */ byte pad_51C[0x4];
+    /// Raised to 0x7FFF on all three halves by `func_actor_113100_801324DC`
+    /// just before it publishes the 0x7D3 preset.
+    /* 0x520 */ SVECTOR field_520;
+    /* 0x528 */ byte    pad_528[0x2];
+    /* 0x52A */ u16     field_52A;
+    /* 0x52C */ byte    pad_52C[0x4];
+    /* 0x530 */ s16     field_530;
+    /* 0x532 */ u16     field_532;
+    /* 0x534 */ Task*   field_534;
+    /* 0x538 */ s16     field_538;
+    /* 0x53A */ s16     field_53A;
+    /* 0x53C */ u8      field_53C;
     /// -1 sentinel written with `field_475` / `field_476`.
     /* 0x53D */ s8   field_53D;
     /* 0x53E */ s8   field_53E;
@@ -124,6 +132,16 @@ extern TaskDesc D_actor_113100_80144308;
 /// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
 /// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
 extern GpMsgEntry D_actor_113100_80144338[];
+
+/// Builds the yaw rotation for `angle` (4096 = a full turn) over a `MATRIX`,
+/// the Psy-Q `RotMatrix`-family helper this overlay shares with every other
+/// actor family; two call sites here re-splat the 3x3 to the identity first.
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
+/// The 0x7D3 entry of `D_actor_113100_80144338`: applies the animation preset
+/// `arg2` to `arg0`'s parts. `arg1` is the message id and `arg3` an unused
+/// extra the overlay's call sites pass as zero.
+void func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* preset, s32 arg3);
 
 /// The task's exit callback: it unlinks the work block's display node and
 /// destroys the task.

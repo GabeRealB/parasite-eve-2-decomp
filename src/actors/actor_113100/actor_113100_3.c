@@ -10,8 +10,6 @@
 
 #include "gameplay/1BC.h"
 
-extern void func_actor_113100_801331E8(Task*, s32, Actor113100AnimPreset*, s32);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100_3", D_actor_113100_80131E48);
 
 void func_actor_113100_80132F40(Task* arg0)

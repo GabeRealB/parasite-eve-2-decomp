@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/abs.h>
+
 #include "actors/actor_113100.h"
 
 #include "main/mem.h"
@@ -132,7 +134,83 @@ void func_actor_113100_80131E58(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132104);
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_801324DC);
+/// Per-frame turn handler, one of the four bodies `func_actor_113100_80132FB4`
+/// dispatches through `D_actor_113100_80131E48`. It recovers the root
+/// coordinate's yaw from its 3x3 (`m[0][2]` over `m[2][2]`) and compares it
+/// with the heading the work block latched in `field_53A`: more than 0x41 away
+/// it steps `field_53A` 0x40 toward the model and only re-splats the identity
+/// 3x3, within 0x41 it turns the root coordinate to `field_53A` and then
+/// rotates the local forward offset (0, 0, 0x200000) into `field_500` with
+/// `ApplyMatrixLV`, raises the three halves at `field_520` to 0x7FFF and
+/// publishes preset 0x7D3. Both arms clear `GsCOORDINATE2::flg` -- the node's
+/// recompute bit -- and end at the same epilogue.
+///
+/// `yaw` carries two different values on purpose: it holds the work block's
+/// `field_53A` for the comparison, and the snapped heading on the turn arm.
+/// One variable for both is what puts the snapped value in `$a0` -- the
+/// pseudo then spans the whole body, so `$v0` (written by both `ratan2` and
+/// the identity constant) is denied it and the `(s16)angle` temporary takes
+/// `$v0` instead. `words` and `turnWords` are likewise two pointers rather
+/// than one: a single `words` would make the turn arm and the normal arm share
+/// a pseudo, which lengthens its life across the branch and adds a copy.
+void func_actor_113100_801324DC(Task* task)
+{
+    Actor113100Work*      work;
+    GsCOORDINATE2*        coord;
+    Actor113100MatWords*  words;
+    Actor113100MatWords*  turnWords;
+    VECTOR                delta;
+    Actor113100AnimPreset preset;
+    s32                   angle;
+    s32                   angle16;
+    u16                   yaw;
+    s16                   diff;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    work  = (Actor113100Work*)task->idMap;
+    angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    yaw   = (u16)work->field_53A;
+    diff  = yaw - angle;
+    if (ABS(diff) >= 0x41) {
+        angle16 = (s16)angle;
+        if (diff < 0) {
+            yaw = angle16 - 0x40;
+        } else {
+            yaw = angle16 + 0x40;
+        }
+        turnWords          = (Actor113100MatWords*)&coord->coord;
+        turnWords->m00_m01 = ONE;
+        turnWords->m02_m10 = 0;
+        turnWords->m11_m12 = ONE;
+        turnWords->m20_m21 = 0;
+        turnWords->m22     = ONE;
+        func_8004BFF8((s16)yaw, &coord->coord);
+        coord->flg = 0;
+    } else {
+        words          = (Actor113100MatWords*)&coord->coord;
+        words->m00_m01 = ONE;
+        words->m02_m10 = 0;
+        words->m11_m12 = ONE;
+        words->m20_m21 = 0;
+        words->m22     = ONE;
+        func_8004BFF8((s16)yaw, &coord->coord);
+        delta.vx = 0;
+        delta.vy = 0;
+        delta.vz = 0x200000;
+        ApplyMatrixLV(&coord->coord, &delta, &work->field_500);
+        work->field_520.vx = 0x7FFF;
+        work->field_520.vy = 0x7FFF;
+        work->field_520.vz = 0x7FFF;
+        preset.field_0     = 0;
+        preset.field_4     = 2;
+        preset.field_8     = 1;
+        preset.field_C     = 4;
+        preset.field_10    = 0;
+        func_actor_113100_801331E8(task, 0x7D3, &preset, 0);
+        work->field_532++;
+        coord->flg = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_8013264C);
 

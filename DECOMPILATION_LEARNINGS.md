@@ -122692,3 +122692,55 @@ Inputs: scratch `nonmatchings/func_actor_113100_80131E58-vacuum`, `base_1.c`
 `73d1de416306f08f1b99eaf7bb20f6864c410cf69bc1bfcab86ff0cde19525b2`), `base_2.c`
 100.000% (`86d80f5a56e94d4ee159e577b8d015cf84377b9fc4711f4c234d8703962d624e`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## One variable for two roles across branches is what moves a pseudo off `$v0`
+
+`func_actor_113100_801324DC` reached 99.837% with `regs=3` and everything else
+zero: the only diff was that the snapped heading took `$v0` where the target
+has `$a0` (`addiu a0,v0,±0x40` against our `addiu v0,v0,±0x40`, then
+`sll a0,a0,0x10` against `sll a0,v0,0x10`). The `(s16)angle` temporary was
+already in `$v0` in both, and it also has to be: the angle comes back from
+`ratan2` in `$v0`, so `set_preference` gives the angle's pseudo a `$v0`
+preference, `expand_preferences` copies that into the conversion pseudo when the
+angle dies on it, and copies it again into the snapped value when the
+conversion pseudo dies on the arm's `addiu`. Our C had a dedicated local for
+each of the three, so all three carried a `$v0` preference and the last one born
+took it.
+
+Two allocator facts make that a tie rather than a conflict. `global.c`'s
+`build_insn_chain` applies the `REG_DEAD` notes *before* `note_stores`, so an
+input dying on the same insn that sets an output leaves them non-conflicting;
+and `find_reg` scans `hard_reg_preferences` in register-number order, so an
+allocno preferring both `$v0` and `$a0` takes `$v0` whenever `$v0` is free. A
+pseudo born exactly where its producer dies therefore cannot be pushed off that
+producer's register by preference alone -- it needs to *conflict* with it.
+
+Carrying the snapped heading in the variable that already holds
+`work->field_53A` does that. That variable is loaded before the branch and read
+again in the other arm, so the one pseudo spans the whole body; it is live
+across every hard `$v0` write in between (the `ratan2` return move, the `li
+$v0,0x1000` of the identity splat), which puts `$v0` in its conflict set, and it
+lands in `$a0` -- where the target has it -- leaving `$v0` to the conversion
+temporary. Concretely, `u16 yaw = work->field_53A;` is reused as
+`yaw = angle16 ± 0x40` in the turn arm and as `(s16)yaw` at both
+`func_8004BFF8` call sites. This is the conflict-forming counterpart of "Mirror
+the target's register reuse with one variable per hard register": read the
+target's dump as a register-to-role map and check whether two values that share
+a register at *different* points on the same path are one local rather than two.
+
+The same function needed a second such split in the other direction. One
+`words` pointer assigned in both arms is one pseudo *spanning* the branch, so
+global allocation puts it in a callee-saved register and reload adds
+`move a1,s0`; the target's turn arm computes the address straight into `$a1`
+(`addiu a1,s2,4`) because it is not live across anything. Two pointers
+(`words`, `turnWords`) restore it, at 83.03% -> 88.78% -> 99.84% -> 100%, and
+the sched2 delay-slot fill follows: with one pointer the `bnez` slot takes the
+address materialisation, with two it takes the `sll` of the field conversion.
+
+Inputs: scratch `nonmatchings/func_actor_113100_801324DC-vacuum`, `base_6.c`
+99.837% (`kebab` pointer split, source SHA256
+`b0b690325d426cd67484719f63ea2386f4d848e0580f2d7f66e986a0442e000d`), `base_7.c`
+99.837% (`$a0` still wrong, `ea17dcc16240efb1ca9894242f7913a27e9c3dfea2afe71f9ba3e569e4382a4d`),
+`base_10.c` 100.000% (`4215eaee5ec22fb2dfa273135124957d62831b82cb0246f6d5d24e51e7ae2263`,
+preprocessed `ee89473c9906514e093a329796193d1f2458894a9c80536be4a1ce31bc0622bd`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
