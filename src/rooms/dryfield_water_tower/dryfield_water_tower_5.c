@@ -1,7 +1,10 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gameflow.h"
 #include "main/mc.h"
@@ -207,4 +210,93 @@ void func_dryfield_water_tower_8017FBD8(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", func_dryfield_water_tower_8017FBE8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", func_dryfield_water_tower_8017FD64);
+/// Main-executable globals with no room-side header: `D_80073BA9` is the
+/// equipped-weapon index the slot-3 message 0x3E8 record is keyed on and
+/// `D_8007218A` picks which of the two weapon-id bases that record uses; the
+/// alternate block is indexed by `D_80073BA9` plus 1 against the base block's
+/// plus 0x22. `D_80071075` is the flag that, with `Gp_StateC08.field_A`, holds
+/// this room's state 0 back.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
+extern u8 D_80071075;
+
+/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
+/// type 7): the one the running scene starts and the one it parks in
+/// `D_801156D0` for the task that follows it.
+extern s32 D_dryfield_water_tower_80182464;
+extern s32 D_dryfield_water_tower_80182674;
+
+/// The room's per-frame body, run by `func_dryfield_water_tower_8017FD64`
+/// after its state machine has stepped the task on.
+void func_dryfield_water_tower_8017FBE8(Task* task);
+
+/// Room entry point: install the player's weapon animation set on slot 3
+/// (message 0x3E8) unless `Gp_StateC08.field_A` says a battle is running or
+/// `D_80071075` says one has just ended, then allocate the `DwtwWork` the room
+/// task hangs off `Task::idMap` (killing the task if the allocation fails),
+/// zero it, park the slot-3 task in `field_0` and the room task itself in
+/// `D_dryfield_water_tower_801876AC`, and resolve `field_4` / `field_8` from
+/// the session id: the base id, then the id with the 0x1000 index of
+/// `Gp_FindWorkById`'s search key.
+///
+/// State 1 starts the room's cutscene pair and state 2 kills the task once the
+/// scene is over, exactly as the actors' `func_actor_560800_80135D54` pairs
+/// them; the task runs only while the session is not paused
+/// (`GameSession::field_65`) and no cutscene is active (`Gp_StateC08.field_9`,
+/// a signed byte), and every path that is not a kill ends in the room's
+/// per-frame body `func_dryfield_water_tower_8017FBE8`.
+void func_dryfield_water_tower_8017FD64(Task* task)
+{
+    GpAnimArg msg;
+    DwtwWork* work;
+    s32       id;
+    s32       weaponId;
+    s32       anim;
+
+    if (Game_Session->field_65 != 0) {
+        return;
+    }
+    if ((s8)Gp_StateC08.field_9 != 0) {
+        return;
+    }
+    switch (task->state) {
+        case 0:
+            if (Gp_StateC08.field_A == 1 || D_80071075 != 0) {
+                return;
+            }
+            weaponId     = D_80073BA9;
+            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.field_0  = (void*)anim;
+            msg.field_4  = 1;
+            msg.field_8  = 1;
+            msg.field_C  = 0xA;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+            work        = (DwtwWork*)Mem_Malloc(0x18, 0);
+            task->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(task);
+            } else {
+                Mem_Set(work, 0, 0x18);
+                work->field_0                   = (Task*)Game_GetPtrSlot(3);
+                D_dryfield_water_tower_801876AC = task;
+                id                              = Game_Session->field_6 | (Game_Session->field_7 << 8);
+                work->field_4                   = (Task*)Gp_FindWorkById(id)->field_0;
+                id                              = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+                work->field_8                   = (Task*)Gp_FindWorkById(id)->field_0;
+            }
+            task->state++;
+            break;
+        case 1:
+            func_800E8634((s32)&D_dryfield_water_tower_80182464, 0, (s32)&D_dryfield_water_tower_80182674);
+            task->state++;
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                Task_RequestKill(task, 0);
+                return;
+            }
+            break;
+    }
+    func_dryfield_water_tower_8017FBE8(task);
+}

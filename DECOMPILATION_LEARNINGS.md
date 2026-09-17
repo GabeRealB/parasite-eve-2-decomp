@@ -119379,3 +119379,27 @@ Two traps in doing the move by hand:
   definition in a file, and `tools/check_lost_matches.py` is the backstop: it
   fails when a function with a `matched` commit is `INCLUDE_ASM` while its
   overlay still owns a `.s` under `nonmatchings/`.
+
+## A shared struct's `u8` field that the target reads with `lb`: cast `(s8)` at the use site (func_dryfield_water_tower_8017FD64, 2026-09-17)
+
+The target loads `Gp_StateC08.field_9` with `lb`; the struct declares the field
+`u8`, so the seed emits `lbu`. That single instruction was the entire
+`insert=1 delete=1` penalty and 98.41% against 100%.
+
+Casting at the use site flips the load with no edit to the shared header:
+
+```c
+if ((s8)Gp_StateC08.field_9 != 0) {   /* lb  */
+if (Gp_StateC08.field_9 != 0) {       /* lbu */
+```
+
+Prefer this to retyping the field. The struct is included by every overlay that
+uses it, and a field whose other uses are all *stores* carries no signedness
+evidence of its own, so the declaration is not what is wrong — the source read
+it through a signed lvalue. Grep the field's name across `src/` first: a matched
+sibling usually settles the spelling, and here
+`src/actors/actor_444000/actor_444000.c` already writes exactly
+`(s8)Gp_StateC08.field_9`. When a match stalls one instruction short with
+`insert=1 delete=1`, diff the object dumps — `lb` vs `lbu` is a load *type*, not
+a register or scheduling leftover, so no penalty other than those two counts
+points at it.
