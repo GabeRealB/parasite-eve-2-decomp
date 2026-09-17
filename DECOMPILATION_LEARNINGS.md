@@ -122060,3 +122060,17 @@ stores mean mixed spellings in the source, not a CSE choice. The pointer had to
 be declared per `case` block (`case 29: { SVECTOR* p = &ofs; ...`) so it stays
 block-local and takes `$s0` from local-alloc; see the entry on pointers assigned
 in two blocks.
+
+### Edge-detect store: `sw` of the *loaded* value on the unchanged arm means an `old` local (func_actor_323000_80163448, 2026-09-17)
+
+**Symptom.** `lw v0,last; beq v0,v1,L; ... sw v1,last; ...return` and at `L: sw v0,last` - the
+fall-through arm stores the new value, the equal arm stores the value it just loaded. Writing
+`if (work->last != clip) { work->last = clip; ... } work->last = clip;` stores `v1` on both arms
+(and `work->last = work->last` changes the branch layout, 95%).
+
+**Fix.** Load into a local and store it back: `old = work->last; if (old != clip) { work->last =
+clip; ...; return; } work->last = old;` (98.2% -> the rest was register assignment).
+
+**Also.** The eleven copies of this block in one switch shared one `clip`/`old` pair, making them
+cross-case globals that pushed the switch value off `$v1` and the flag off `$a0`. Declaring
+`s32 clip`/`s32 old` in a `{ }` block per copy (the shape a macro expansion gives) matched 100%.

@@ -66,7 +66,9 @@ typedef struct Actor323000Work {
     /// Cleared next to `field_840` by the spawn handler below.
     /* 0x844 */ s16  field_844;
     /* 0x846 */ byte pad_846[2];
-    /* 0x848 */ byte field_848[0x4C];
+    /// Clip id each slot was last seen playing by `func_actor_323000_80163448`,
+    /// indexed like `slots`; zeroed (18 entries) when no watched clip plays.
+    /* 0x848 */ s32 field_848[19];
     /// Light / colour matrices `func_actor_323000_80163EA0` binds to the
     /// model, the same pair `Actor356100_BindMatrices` points at.
     /* 0x894 */ MATRIX light;

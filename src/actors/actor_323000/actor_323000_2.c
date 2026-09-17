@@ -7,7 +7,236 @@
 #include "gameplay/3CD8.h"
 #include "psyq/inline_c.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_323000/actor_323000_2", func_actor_323000_80163448);
+s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
+{
+    SVECTOR vec;
+    s32     reset;
+
+    reset = 1;
+    switch (work->field_82E) {
+        case 0: {
+            s32 clip = work->slots[9].field_2 & 0x3FF;
+            s32 old;
+
+            if (clip == 0x58) {
+                old = work->field_848[9];
+                if (old != clip) {
+                    work->field_848[9] = clip;
+                    vec.vx             = -500;
+                    vec.vz             = 200;
+                    vec.vy             = 650;
+                    Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[9], 0x80002220, &vec);
+                    return 0x40010002;
+                }
+                work->field_848[9] = old;
+                reset              = 0;
+            }
+        }
+            {
+                s32 clip = work->slots[7].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0x3E) {
+                    old = work->field_848[7];
+                    if (old != clip) {
+                        work->field_848[7] = clip;
+                        vec.vx             = -1000;
+                        vec.vz             = 200;
+                        vec.vy             = 650;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80002220, &vec);
+                        return 0x40010001;
+                    }
+                    work->field_848[7] = old;
+                    reset              = 0;
+                }
+            }
+            {
+                s32 clip = work->slots[14].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0x84) {
+                    old = work->field_848[14];
+                    if (old != clip) {
+                        work->field_848[14] = clip;
+                        vec.vz              = 0;
+                        vec.vx              = 0;
+                        vec.vy              = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[14], 0x80002220, &vec);
+                        return 0x40010002;
+                    }
+                    work->field_848[14] = old;
+                    reset               = 0;
+                }
+            }
+            {
+                s32 clip = work->slots[17].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0xA9) {
+                    old = work->field_848[17];
+                    if (old != clip) {
+                        work->field_848[17] = clip;
+                        vec.vz              = 0;
+                        vec.vx              = 0;
+                        vec.vy              = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[17], 0x80002220, &vec);
+                        return 0x40010001;
+                    }
+                    work->field_848[17] = old;
+                    reset               = 0;
+                }
+            }
+            break;
+        case 10: {
+            s32 clip = work->slots[1].field_2 & 0x3FF;
+            s32 old;
+
+            if (clip == 0x9) {
+                old = work->field_848[1];
+                if (old != clip) {
+                    work->field_848[1] = clip;
+                    vec.vz             = 0;
+                    vec.vx             = 0;
+                    vec.vy             = 0;
+                    Gp_SpawnEff(0x60054, ((TmdObject*)task->extra)->field_8, 0x80004A00, &vec);
+                    return 0x40010005;
+                }
+                work->field_848[1] = old;
+                reset              = 0;
+            }
+        } break;
+        case 3: {
+            s32 clip = work->slots[1].field_2 & 0x3FF;
+            s32 old;
+
+            if (clip == 0x4) {
+                reset = 0;
+                old   = work->field_848[1];
+                if (old != clip) {
+                    work->field_848[1] = clip;
+                    return 0x40010004;
+                }
+                work->field_848[1] = old;
+            }
+        }
+            {
+                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0x8) {
+                    old = work->field_848[1];
+                    if (old != clip) {
+                        work->field_848[1] = clip;
+                        return 0x40010003;
+                    }
+                    work->field_848[1] = old;
+                    reset              = 0;
+                }
+            }
+            break;
+        case 6: {
+            s32 clip = work->slots[1].field_2 & 0x3FF;
+            s32 old;
+
+            if (clip == 0x6) {
+                old = work->field_848[1];
+                if (old != clip) {
+                    work->field_848[1] = clip;
+                    vec.vx             = -500;
+                    vec.vz             = 200;
+                    vec.vy             = 650;
+                    Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[9], 0x80003200, &vec);
+                    vec.vx = -1000;
+                    vec.vz = 200;
+                    vec.vy = 650;
+                    Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80003200, &vec);
+                    return 0;
+                }
+                work->field_848[1] = old;
+                reset              = 0;
+            }
+        }
+            {
+                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0xB) {
+                    old = work->field_848[1];
+                    if (old != clip) {
+                        work->field_848[1] = clip;
+                        vec.vz             = 0;
+                        vec.vx             = 0;
+                        vec.vy             = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[14], 0x80004480, &vec);
+                        vec.vz = 0;
+                        vec.vx = 0;
+                        vec.vy = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[17], 0x80004480, &vec);
+                        return 0;
+                    }
+                    work->field_848[1] = old;
+                    reset              = 0;
+                }
+            }
+            {
+                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0xC) {
+                    old = work->field_848[1];
+                    if (old != clip) {
+                        work->field_848[1] = clip;
+                        vec.vx             = -500;
+                        vec.vz             = 200;
+                        vec.vy             = 650;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[9], 0x80002200, &vec);
+                        vec.vx = -1000;
+                        vec.vz = 200;
+                        vec.vy = 650;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[7], 0x80002240, &vec);
+                        vec.vz = 0;
+                        vec.vx = 0;
+                        vec.vy = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[14], 0x80003300, &vec);
+                        vec.vz = 0;
+                        vec.vx = 0;
+                        vec.vy = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[17], 0x80003340, &vec);
+                        return 0;
+                    }
+                    work->field_848[1] = old;
+                    reset              = 0;
+                }
+            }
+            {
+                s32 clip = work->slots[1].field_2 & 0x3FF;
+                s32 old;
+
+                if (clip == 0xD) {
+                    old = work->field_848[1];
+                    if (old != clip) {
+                        work->field_848[1] = clip;
+                        vec.vz             = 0;
+                        vec.vx             = 0;
+                        vec.vy             = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[14], 0x80002200, &vec);
+                        vec.vz = 0;
+                        vec.vx = 0;
+                        vec.vy = 600;
+                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->field_8[17], 0x80002300, &vec);
+                        return 0;
+                    }
+                    work->field_848[1] = old;
+                    reset              = 0;
+                }
+            }
+            break;
+    }
+    if (reset == 1) {
+        Mem_Set(work->field_848, 0, 0x48);
+    }
+    return 0;
+}
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
