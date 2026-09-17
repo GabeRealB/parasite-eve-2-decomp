@@ -1,7 +1,11 @@
 #include "common.h"
 
 #include "actors/actor_143900.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/gfx.h"
+#include "main/mem.h"
+#include "main/task.h"
 #include "main/tmd.h"
 
 /// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
@@ -34,7 +38,63 @@ s32 func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg)
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_8013279C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_801328D4);
+/// State-0 spawn routine of the actor's own variant: allocates the 0x4F8 work
+/// block and publishes it in `D_actor_143900_801496C4` and the task's `idMap`
+/// slot, binds the model's coordinate to the view (`sub`) and hands the object
+/// its light and colour matrices out of the block, then points the object at
+/// the part's world translation, dropped by 0x320 in y, for the colour matrix.
+/// The two helper tasks come from the overlay's spawn table; the block's
+/// animation state is reset to mode 1 / id 2 before the shared tick runs.
+void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
+{
+    VECTOR                    vec;
+    ActorsShared80132eccWork* work;
+    GsCOORDINATE2*            coord;
+    TmdObject*                obj;
+    Task*                     helper;
+
+    obj                     = task->extra;
+    coord                   = obj->field_8;
+    work                    = Mem_Calloc(0x4F8, false);
+    D_actor_143900_801496C4 = work;
+    task->idMap             = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback      = ActorsShared80132ecc;
+    coord->sub              = &Gfx_ViewCoord;
+    enemy->field_4          = &coord->coord;
+    enemy->node.field_4     = 1;
+    enemy->field_48         = 0;
+    enemy->node.field_5     = 0;
+    obj->field_E            = 0x10;
+    obj->field_1C           = &D_actor_143900_801496C4->light;
+    obj->field_20           = &D_actor_143900_801496C4->color;
+    obj->field_C            = 0;
+    vec.vx                  = coord->workm.t[0];
+    vec.vy                  = coord->workm.t[1] - 0x320;
+    vec.vz                  = coord->workm.t[2];
+    D_actor_143900_801496C8 = task;
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&D_actor_143900_801496C4->anim, D_actor_143900_80149688, (GpAnimObj*)obj,
+                  &D_actor_143900_801496C4->pose, D_actor_143900_801496C4->slots);
+    D_actor_143900_801496C4->field_4B8 = 1;
+    D_actor_143900_801496C4->field_4B4 = 2;
+    helper                             = Task_SpawnFromTable(D_actor_143900_80149664, 1, 1, 0);
+    if (helper != NULL) {
+        D_actor_143900_801496C4->field_4F0 = helper;
+    }
+    helper = Task_SpawnFromTable(D_actor_143900_80149664, 2, 0xC, 0);
+    if (helper != NULL) {
+        D_actor_143900_801496C4->field_4F4 = helper;
+    }
+    D_actor_143900_801496C4->field_4EA = 0;
+    D_actor_143900_801496C4->field_4EC = 0;
+    task->field_24                     = D_actor_143900_80149634;
+    func_actor_143900_80132A9C(task);
+    task->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900_80132A9C);
 

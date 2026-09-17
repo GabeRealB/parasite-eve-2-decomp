@@ -56,6 +56,21 @@ extern Task* D_actor_143900_801496C8;
 /// `func_actor_143900_80133144` reads it back.
 extern s16 D_actor_143900_80149630;
 
+/// The overlay's message handler table (entry 0x7DB is
+/// `func_actor_143900_80133360`); the spawn routine parks its address in the
+/// task's `field_24` so the dispatcher can find it, the same slot the shared
+/// body's carriers fill with their own table.
+extern u8 D_actor_143900_80149634[];
+
+/// Spawn table the spawn routine starts its two helper tasks from, indices 1
+/// and 2, whose descriptors are the ones parked in `field_4F0` / `field_4F4`.
+extern TaskDesc D_actor_143900_80149664[];
+
+/// Model stream the spawn routine binds into the work block's animation
+/// context with `func_800B3F84` (its `arg1`), the overlay's own standing
+/// stream; the shared body's carriers hand over their own.
+extern u8 D_actor_143900_80149688[];
+
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`. This
 /// overlay's 0x7DB handler, `func_actor_143900_80132778`, reads the halfword

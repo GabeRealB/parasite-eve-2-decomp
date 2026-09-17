@@ -121061,6 +121061,18 @@ and the scheduler reproduces the target's stores on its own.
 Worked example: `func_actor_361100_80162B18`, whose matched twin
 `func_actor_361100_801631C4` has the identical body with the two accumulator
 groups swapped -- 88.79% -> 100.00% in one edit, `stack` never penalised.
+
+**Second worked example, and the tell is not always the frame.**
+`func_actor_143900_801328D4` had the same seed shape (`s32 sp18; s32 sp1C;
+s32 sp20;` handed to `func_800D7A9C` as a `VECTOR*`), but the deleted stores did
+not show up as a `stack` penalty: `.diagnosis.json` reported the *instruction
+count* 5 short (2 `lw`, 2 `sw`, 1 `addiu`) with `regs: 40` on the remaining
+register work, which reads like an allocation problem. A `VECTOR vec;` local
+with member assignments restored all five and took 92.263% -> 95.351%. Check the
+m2c seed's scalar declarations whenever the candidate is short whole load/store
+pairs and the topology still matches, whatever the penalty mix says -- the two
+seed statements that then had to move (to the source order the target implies)
+were separate, and are the subject of the two entries below.
 ## A ramp stored from the loop index is a giv, not an accumulator: its init lands after the hoisted `lui` (func_actor_303600_801626C0, 2026-09-17)
 
 The rig controller spawns five child models and spreads them 8000 apart in Y,
