@@ -125500,3 +125500,70 @@ Inputs: `base.i`
 84.488%), `base_1.i`
 `7a0284f65936d8b53432a91e92bd19dba70dcb5941e13c5f7fca50e0d6d08a92` (match,
 100.000% on the first build).
+
+## Several identical `return <const>;` blocks are merged by the *last* `jump_optimize` call; a `goto` on the last of them plus a `COMPILER_BARRIER()` after its label is what keeps the target's shape (func_actor_342100_801629B8, 2026-09-17)
+
+A function whose early exits all `return 1;` compiles each one to
+`[v0=1][USE v0][j return_label][barrier][return_label]` (the `USE` is
+`expand_value_return`'s, stmt.c). The target of
+`func_actor_342100_801629B8` keeps the *first* such block where its `if` put it,
+with the last table check's `bltz` branching *back* to it, and the first branch
+staying a `bnez` over it; a plain guard-return chain instead merges every
+`return 1` into one block at the end and inverts the first branch to a `beqz`
+pointing at it, two instructions short (92.36%, `branch=4 insert=1 delete=3`).
+
+Three passes do it, and the dumps name them:
+
+* `.i.jump` -- `jump.c:707`, "an unconditional jump preceded by a USE: put the USE
+  before the target and jump there", fires for the first `return` block (the
+  first simple jump in the chain), re-emits its `USE` after the return label's
+  barrier and creates the label everything then aims at; the later blocks only
+  lose their `USE` (5 -> 1 in the dump). The chain ends `[v0=1][newlabel][USE]`,
+  so the label sits immediately after the *last* `return`'s `v0=1`.
+* `.i.jump2` -- the **only** dump from the cross-jumping pass: the
+  `jump_optimize (insns, 1, 1, 0)` at `toplev.c:3548` that runs after reload and
+  `sched2`, immediately before `dbr_schedule`. `.cse2`, `.greg` and `.sched2`
+  still show the pre-merge instruction count, so a hunk that appears only in
+  `.jump2`/`.dbr` is *this* pass. `find_cross_jump (block_jump, return_label, 1)`
+  matches a `v0=1` against the label's `v0=1` and `do_cross_jump` plants a label
+  in front of the survivor, deleting the duplicate. Its fallback loop walks
+  `jump_chain`, a LIFO list, so the *last* jump to the label is tried first --
+  which is why the survivor is normally the last block.
+* `jump.c:1898`, "conditional jump jumping over an unconditional jump": with the
+  block's `v0=1` gone, `prev_active_insn` of the dangling branch's jump is the
+  branch itself, so `invert_jump` rewrites `bnez a0,<skip>` into
+  `beqz a0,<survivor>`.
+
+Two source levers restore the target:
+
+```c
+    if (work->field_2C == NULL) {
+    ret1:
+        COMPILER_BARRIER();
+        return 1;
+    }
+    ...
+    if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
+        goto ret1;                  /* bare jump, no [v0=1][USE] block */
+    }
+```
+
+* The `goto` leaves the last check's block a bare `j ret1`, so its dangling
+  branch is "a conditional jump over an unconditional jump" and `invert_jump`
+  points it straight at `ret1` -- that is the backward `bltz` the target has.
+* `COMPILER_BARRIER()` (`"" ::: "memory"`, an active RTL insn that emits nothing)
+  sits between the first branch and the jump it dangles over, so
+  `prev_active_insn` is not the branch and no inversion fires there. With the
+  barrier *before* the label instead of after it, the first branch still points
+  at the survivor and the score stays at 99.02% -- the placement matters.
+
+92.36% -> 100.000% on the two changes together (99.02% with the barrier alone).
+Before rewriting statements against a hunk like this, compare `.i.jump2` with
+`.i.greg`: if the instruction count differs only there, the lever is what sits
+between the return block's constant and its jump, not the control flow.
+
+Inputs: `base_2.i`
+`08bda6ba1195a6b08148abcbcb025193033684197a53997ba0051c000023e9b8` (92.355%),
+`base_11.i` (99.016%), `base_12.i` (100.000%, the match). Compiler source:
+`jump.c:707`, `jump.c:1898`, `jump.c:2528` (`find_cross_jump`), `jump.c:3418`
+(`do_cross_jump`), `toplev.c:3548`.

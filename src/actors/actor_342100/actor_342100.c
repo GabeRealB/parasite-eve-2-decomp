@@ -29,11 +29,18 @@ extern TaskDesc D_actor_342100_801648DC;
 /// three live entries and the null word that ends them.
 extern s32 D_actor_342100_80164900[];
 
+/// Animation step table `func_actor_342100_801629B8` walks: `s16` entries
+/// holding the anim id one step on from `field_3C`, sent as the message's
+/// second word with `0x2F` added; the first three entries are `-1`, which ends
+/// the chain, and only the fourth is live. Sits directly after
+/// `D_actor_342100_80164900`'s null word, and its first element is the address
+/// `func_actor_342100_80162F54`'s encounter table of a different size would
+/// have started at, so splat cut it out as a symbol of its own.
+extern s16 D_actor_342100_80164910[];
+
 /// Model/animation set `func_actor_342100_80162F54` installs with
 /// `func_800E8614` on the same arm; a byte address is all the installer sees.
 extern u8 D_actor_342100_801649C8[];
-
-void func_actor_342100_801629B8(Task* arg0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
 
@@ -41,7 +48,62 @@ INCLUDE_RODATA("actors/nonmatchings/actor_342100/actor_342100", D_actor_342100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162748);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_801629B8);
+/// Advance the encounter's animation one step: the work block's `field_2C` is
+/// queried with 0x3ED and a non-zero answer stops the chain with 0; `field_3C`
+/// is range-checked against 0x2F (the first anim id the table can name) and the
+/// table's entry shifted up by 0x2F, a negative entry ending it with 1 as well.
+/// The step that survives re-sends `GpAnimArg {setId, anim, 1, 0xA, 0}` as
+/// message 0x3E8 -- `func_actor_342100_8016334C`'s tail with `field_C` = 0xA --
+/// to the same target, and reports 1.
+///
+/// The `ret1` label and the `goto` are load-bearing, not leftovers. Every
+/// `return 1;` compiles to `[v0=1][use v0][j return_label][barrier]`, and the
+/// last `jump_optimize` pass (the one that runs after reload, `jump.c`'s
+/// cross-jumping) merges those identical blocks into one: the branch that
+/// dangled over the first of them is then rewritten to point at the survivor,
+/// which costs the function an extra `j` and moves the block. Leaving the last
+/// table check a bare `j ret1` instead keeps its branch a plain jump over an
+/// unconditional jump, and `COMPILER_BARRIER()` after the label keeps an active
+/// insn between the first branch and the jump it dangles over, so neither
+/// branch is inverted. Both are needed for the target's shape; see
+/// DECOMPILATION_LEARNINGS.md, "Several identical `return <const>;` blocks".
+s32 func_actor_342100_801629B8(Task* arg0)
+{
+    Actor342100Work* work;
+    Actor342100Work* w;
+    GpAnimArg        msg;
+    s16              anim;
+    s32              weaponId;
+    s32              setId;
+
+    work = (Actor342100Work*)arg0->idMap;
+    if (work->field_2C == NULL) {
+    ret1:
+        COMPILER_BARRIER();
+        return 1;
+    }
+    if (Gp_DispatchMsg(work->field_2C, 0x3ED, 0, 0) != 0) {
+        return 0;
+    }
+    if (work->field_3C < 0x2F) {
+        return 1;
+    }
+    if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
+        goto ret1;
+    }
+    anim         = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
+    w            = (Actor342100Work*)arg0->idMap;
+    weaponId     = D_80073BA9;
+    setId        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0  = (void*)setId;
+    w->field_3C  = anim;
+    msg.field_4  = anim;
+    msg.field_8  = 1;
+    msg.field_C  = 0xA;
+    msg.field_10 = 0;
+    Gp_DispatchMsg(w->field_2C, 0x3E8, (s32)&msg, 0);
+    return 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162AB0);
 
