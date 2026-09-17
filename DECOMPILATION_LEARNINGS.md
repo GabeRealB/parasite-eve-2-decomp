@@ -115200,3 +115200,46 @@ i = (subreg:HI r)`, and `basic_induction_var` (loop.c:5015/5043) needs
 of which the truncating temp provides. With no verified biv, `loop_iv_list` is
 empty and loop.c returns before recording a single giv, so no preheader
 computation can come from it - which is the state this function is left in.
+
+## A truncating assignment narrows the load, and a halfword sign test re-extends with `sll 16` (func_mine_mesa_8017E3E0, 2026-09-17)
+
+One `s16 killCountdown` at `Task::0x2A` is read and written three different ways
+in one function, and all three are the *source's* doing, not a mis-typed field:
+
+```
+lbu  s2,0x2A(a0)      /* u8 r,g,b = task->killCountdown;            */
+sh   v1,0x2A(a0)      /* task->killCountdown = 0xFF;  (v1 = 0xFF)   */
+lhu  v0,0x2A(a0)      /* task->killCountdown -= 8;                  */
+addiu v0,v0,-0x8
+sh   v0,0x2A(a0)
+sll  v0,v0,16         /* if (task->killCountdown < 0)               */
+bgez v0,...
+```
+
+The `lbu` is a *narrowing* load: assigning an `s16` lvalue to a `u8` is
+equivalent to loading only the low byte, so GCC emits the zero-extending byte
+load and drops the `lh` + `andi 0xFF` it would otherwise need. Seeing `lbu` at a
+field the struct says is `s16` is therefore not evidence that the source read
+through a `u8*` or that the field is the wrong width — write the plain
+assignment and check the result.
+
+The `lhu` + `sll 16` pair is the halfword counterpart of the usual
+truncate-then-re-extend: `-=` on an `HImode` field is done in `SImode` and
+stored with a truncating `sh`, and the comparison that follows holds on the
+*stored* value, so the sign must be recovered by shifting bit 15 back up to bit
+31. `lh` + `bltz` is one instruction shorter and would mean the same thing here,
+but it is not what the compiler produces, so a target `bgez` fed by `sll 16` is
+not an unsigned-field bug.
+
+Worked example: `func_mine_mesa_8017E3E0` matched at 100% with no pins and one
+scratch build. It is `func_actor_503500_80132990` (`src/actors/actor_503500/`
+`actor_503500_2.c`, the `similar` hit the brief lists in three classes at once)
+minus that function's `D_801153F4` gate and minus the `Game_Session->field_5F`
+term of its state-1 test; the tile/`DR_TPAGE` packet that follows is byte-for-byte
+the same. Reading the multi-class `similar` hit as a near-copy to be diffed
+rather than as a hint to re-derive got the function in one attempt.
+
+Inputs: `base_1.c` SHA256
+`f83cf91342fed7abcaae2a10a6ff2769fcaef05db2777560012423b2f48f0001`; `target.s` SHA256
+`1d65775104896e8bc9c3ace0c8778138212e70ed05639dda3a81c9c86e4872dc`. Scratch
+`nonmatchings/func_mine_mesa_8017E3E0-vacuum`.
