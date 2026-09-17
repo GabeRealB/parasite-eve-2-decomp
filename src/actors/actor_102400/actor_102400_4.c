@@ -3,9 +3,12 @@
 #include "actors/actors_shared_801351d4.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "main/mem.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include <psyq/libgte.h>
+#include <psyq/inline_c.h>
 
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
@@ -22,8 +25,110 @@ s32  func_800E1B24(s32 arg0);
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_102400_80131E24;
+extern GpU16Pair             D_actor_102400_801363C4;
 
-INCLUDE_ASM("actors/nonmatchings/actor_102400/actor_102400_4", func_actor_102400_801345B0);
+/// Spawn/setup handler (state 0): allocates the work block, attaches the
+/// model 0x15E above the parent through the scratch stack, links the three
+/// display nodes, arms the death timer and moves the task to state 1.
+void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
+{
+    ActorsShared801351d4Parent*  parentWork;
+    Task*                        parent;
+    ActorsShared801351d4Work*    work;
+    ActorsShared801351d4Scratch* scratch;
+    void*                        head;
+    GsCOORDINATE2*               objCoord;
+    GsCOORDINATE2*               objCoord2;
+    GsCOORDINATE2*               objCoord3;
+    SVECTOR*                     offset;
+    GsCOORDINATE2*               coord;
+    GsCOORDINATE2*               parentCoord;
+
+    head                = *(void**)0x1F8003FC;
+    scratch             = (ActorsShared801351d4Scratch*)((u8*)head - 0x18);
+    *(void**)0x1F8003FC = scratch;
+    offset              = &scratch->offset;
+    parent              = arg1->parent;
+    coord               = ((TmdObject*)arg1->extra)->field_8;
+    parentCoord         = ((TmdObject*)parent->extra)->field_8;
+    parentWork          = (ActorsShared801351d4Parent*)parent->idMap;
+    work                = Mem_Calloc(0xB4, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap        = (TaskIdMap*)work;
+    scratch->offset.vx = 0;
+    scratch->offset.vy = -0x15E;
+    scratch->offset.vz = 0;
+    gte_SetRotMatrix(&parentCoord->coord);
+    gte_ldv0(offset);
+    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_stlvnl(&scratch->result);
+    coord->sub        = &Gfx_ViewCoord;
+    coord->coord      = parentCoord->coord;
+    coord->coord.t[0] = parentCoord->coord.t[0] + scratch->result.vx;
+    coord->coord.t[1] = parentCoord->coord.t[1] + scratch->result.vy;
+    coord->coord.t[2] = parentCoord->coord.t[2] + scratch->result.vz;
+    coord->flg        = 0;
+    work->field_A8    = parentCoord->coord.m[0][2];
+    work->field_AA    = parentCoord->coord.m[1][2];
+    work->field_AC    = parentCoord->coord.m[2][2];
+
+    objCoord             = ((TmdObject*)arg1->extra)->field_8;
+    work->obj_0.field_C  = &work->rec_40;
+    work->obj_0.field_10 = 0;
+    work->obj_0.field_12 = 0;
+    work->obj_0.field_14 = 0;
+    work->obj_0.field_8  = objCoord;
+    work->obj_0.field_18 = Gp_PackPair(&D_actor_102400_801363C4, (parentWork->field_14E * 2) | 1);
+    work->obj_0.field_1C = 0xC8;
+    work->obj_0.flags    = 1;
+    Gp_LinkObj(3, &work->obj_0);
+    Gp_InitRec18Table(&work->rec_40, 1, 0);
+    work->obj_0.flags    |= 0x8000;
+    objCoord2             = ((TmdObject*)arg1->extra)->field_8;
+    work->obj_20.field_C  = &work->rec_40;
+    work->obj_20.field_10 = 0;
+    work->obj_20.field_12 = 0;
+    work->obj_20.field_14 = 0;
+    work->obj_20.field_8  = objCoord2;
+    if (parentWork->field_14E == 0) {
+        work->obj_20.field_18 = 0x22D2D;
+    } else {
+        work->obj_20.field_18 = 0x22E2E;
+    }
+    work->obj_20.field_1C = 0xC8;
+    work->obj_20.flags    = 1;
+    Gp_LinkObj(1, &work->obj_20);
+
+    work->pose_78.field_C  = -0xD2;
+    work->pose_78.field_10 = 1;
+    work->pose_78.field_12 = 1;
+    work->pose_78.field_0  = 0;
+    work->pose_78.field_2  = 0;
+    work->pose_78.field_4  = 0;
+    work->pose_78.field_8  = 0;
+    work->pose_78.field_A  = 0;
+    work->pose_78.field_14 = &work->field_90;
+    work->obj_20.flags    |= 0x8000;
+    objCoord3              = ((TmdObject*)arg1->extra)->field_8;
+    work->obj_58.field_C   = (GpRec18*)&work->pose_78;
+    work->obj_58.field_10  = 0;
+    work->obj_58.field_12  = 0;
+    work->obj_58.field_14  = 0;
+    work->obj_58.field_18  = 0;
+    work->obj_58.field_1C  = 0;
+    work->obj_58.flags     = 3;
+    work->obj_58.field_8   = objCoord3;
+    Gp_LinkObj(3, &work->obj_58);
+    Gp_InitRec18Table(&work->field_90, 1, 0);
+    work->field_B0      = 0x5A;
+    work->obj_58.flags |= 0x4400;
+    Task_DetachFromParent(arg1);
+    arg1->state        = 1;
+    *(u8**)0x1F8003FC += 0x18;
+}
 
 /// Per-frame tick of the state-1 handler: it walks the enemy along the step
 /// held in the work block's `field_A8` / `field_AC`, and once the death timer
@@ -67,7 +172,7 @@ void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(&work->field_90);
             timer          = work->field_B0 - 1;
             work->field_B0 = timer;
-            if (((timer << 0x10) <= 0) || (work->field_40 & 1) || (spawn != 0)) {
+            if (((timer << 0x10) <= 0) || (work->rec_40.field_0 & 1) || (spawn != 0)) {
                 Gp_SpawnEff(D_80115754, coord, 0, NULL);
                 arg1->state    = 2;
                 work->field_B2 = 0;
