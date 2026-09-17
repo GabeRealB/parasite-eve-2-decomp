@@ -123545,3 +123545,47 @@ case 2, does not cross case 1's `Tmd_AllocBuffers` call -- so hoisting the load
 into case 2 is not a pure relocation, it frees the register. Two byte-shaped
 siblings are not enough to settle which form a third carrier used; read the
 block the load sits in.
+
+## The same pointer is cached for one use and re-derived for the next two (func_actor_317000_801621F4, 2026-09-17)
+
+The rule "inline the memory expression instead of caching it in a local" has a
+mixed form, and this function is written that way. `arg0->extra->field_8` -- the
+`GsCOORDINATE2*` array at the end of the task's `TmdObject` -- is loaded once
+into `$s3` and used for the `coord[5]` accesses at both ends of the function, but
+is *re-derived from the parameter* at two sites in the middle:
+
+```c
+ApplyTransposeMatrixLV(&((TmdObject*)task->extra)->field_8[2].workm, &delta, &delta);
+...
+arm = &((TmdObject*)task->extra)->field_8[3].coord;
+```
+
+Caching both pointers once each (`coord` and `target`, m2c's shape) scored
+93.582% with `stack=0 branch=7 regs=31 reorder=2 insert=0 delete=7`, 146
+instructions against the target's 153. The shortfall is seven: one `move s1,a0`
+saving the task argument, one `addiu` per pointer local, and two three-instruction
+reloads.
+
+**Cause.** The reloads are not about instruction count, they are what keeps the
+**parameter** live. Reloading `task->extra->field_8` across a call needs `task`
+itself, so `task` sits in `$s1` from the `move s1,a0` in the prologue to the last
+reload; the target's `$s3` is the coord base, and `$s1` is reused for the second
+reload's result once the parameter dies. Cache the pointer instead and the
+parameter dies at its first use, so the allocator hands `$s1` to the cached coord
+and every later `regs` difference follows -- the same "which value owns the
+callee-saved home" substitution as the `func_actor_403200_8013669C` entry, in the
+opposite direction.
+
+**Reading it.** When `regs` is in the tens but the instruction shortfall is single
+digit, ask which value the target keeps in the callee-saved register rather than
+looking for an allocation tie. If the target's leftover register is the
+*parameter register*, the missing reloads are the cause and the answer is a
+re-derivation, not a pin.
+
+Two smaller shape points from the same function. `&coord[5]` and `&target[4]`
+must be real pointer locals (`head`, `aim`): indexing `target[4].workm.t[0]` off
+the array base folds into one `lw $v1, 0x178($a1)` and loses the target's
+`addiu a1,a1,0x140`. And `&coord[3].coord` is a `MATRIX*` *local*, not a call
+argument: it feeds both `Gp_ExtractEuler` and `RotMatrix`, so the target computes
+`addiu $s1,$v0,0xF4` once and passes `move a1,s1` twice; as a naked argument GCC
+folds it into `addiu a1,a1,0xF4` and drops the instruction.
