@@ -7,14 +7,14 @@
 
 #include <psyq/libgte.h>
 
-/// Work block for the water-tank cutscene task, allocated as 0x10 zeroed bytes
-/// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::idMap` (0x1C).
-///
-/// The room's overlay carries the same cutscene-task body as
-/// `dryfield_gas_station` and `dryfield_warehouse`, so the layout is shared:
+/// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
+/// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::idMap` (0x1C): only
+/// `owner` is written by that run, so the block's tail is outside its
+/// allocation. The layout is the one the same cutscene-task body has in
+/// `dryfield_gas_station` (`DgsWork`, which allocates the full 0x10):
 /// `owner` is the slot-3 game pointer (`Game_GetPtrSlot(3)`) the task dispatches
 /// its messages to, and the two shorts at 0x4 are script parameters written
-/// together by `func_dryfield_water_tank_8017EB80`.
+/// together by `RoomsShared80180b2c`.
 typedef struct DwtWork {
     /* 0x00 */ void* owner;
     /* 0x04 */ s16   field_4;

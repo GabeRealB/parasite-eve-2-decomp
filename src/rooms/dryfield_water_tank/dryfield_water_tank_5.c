@@ -10,8 +10,28 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+
+#include "rooms/dryfield_water_tank.h"
+#include "rooms/rooms_shared_80180b2c.h"
+
 /// Spawn table for the task that takes over once the intro stream is done.
 extern TaskDesc D_dryfield_water_tank_80180764;
+
+/// Main-executable globals with no module header yet: `D_80114C12` is the
+/// cutscene/among-us mode flag and `D_80071075` the live-cutscene gate the
+/// cutscene task refuses to start behind. `D_80073BA9` is the base weapon id the
+/// animation set ids are numbered from and `D_8007218A` selects the alternate
+/// block.
+extern s8 D_80114C12;
+extern u8 D_80071075;
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
+
+/// The two blocks `func_800E8634` is handed as raw addresses.
+extern s32 D_dryfield_water_tank_8018050C;
+extern s32 D_dryfield_water_tank_8018068C;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_5", func_dryfield_water_tank_8017E3C4);
 
@@ -88,4 +108,80 @@ void func_dryfield_water_tank_8017E568(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_5", func_dryfield_water_tank_8017E78C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_5", func_dryfield_water_tank_8017E9F8);
+/// Body `func_dryfield_water_tank_8017E9F8` runs from its state 1 while the
+/// session is up. Still `INCLUDE_ASM` in this unit.
+void func_dryfield_water_tank_8017E78C(Task* task);
+
+/// Cutscene task state machine. State 0 refuses to run when the cutscene flag
+/// is already up or one is live, otherwise it parks the freshly zeroed
+/// `DwtWork` block in `Task::idMap`, republishes this task as
+/// `RoomsShared80180b2cTask` so the room's script helpers can reach that block,
+/// and hands slot 3 the 0x3E8 message carrying the animation set of the
+/// equipped weapon: `D_80073BA9 + 1` for the alternate block and
+/// `D_80073BA9 + 0x22` for the base one. A failed `Mem_Malloc` kills the task
+/// outright instead of returning, so the message and the state step still run
+/// on that path. States 2, 3 and 4 only step; state 1 runs the per-frame
+/// driver once the session is up, or steps when it has already torn down;
+/// state 5 asks to be killed.
+void func_dryfield_water_tank_8017E9F8(Task* task)
+{
+    DwtWork* work;
+    GpRec14  script;
+    s32      weaponId;
+    s32      anim;
+
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto advance;
+        case 3:
+            goto advance;
+        case 4:
+            goto advance;
+        case 5:
+            goto L_case5;
+    }
+    return;
+
+L_case0:
+    if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+        work        = Mem_Malloc(0xC, false);
+        task->idMap = (TaskIdMap*)work;
+        if (work == NULL) {
+            Task_Kill(task);
+        } else {
+            Mem_Set(work, 0, 0xC);
+            work->owner             = Game_GetPtrSlot(3);
+            RoomsShared80180b2cTask = task;
+        }
+        weaponId        = D_80073BA9;
+        anim            = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+        script.field_0  = anim;
+        script.field_4  = 1;
+        script.field_8  = 1;
+        script.field_C  = 0xA;
+        script.field_10 = 0;
+        Gp_DispatchMsg((Task*)Game_GetPtrSlot(3), 0x3E8, (s32)&script, 0);
+        func_800E8634((s32)&D_dryfield_water_tank_8018050C, 0,
+                      (s32)&D_dryfield_water_tank_8018068C);
+        goto advance;
+    }
+    return;
+
+L_case1:
+    if (Game_Session->field_1 == 0) {
+        goto advance;
+    }
+    func_dryfield_water_tank_8017E78C(task);
+    return;
+
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case5:
+    Task_RequestKill(task, 0);
+}

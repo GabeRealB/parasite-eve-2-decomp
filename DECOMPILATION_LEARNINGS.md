@@ -77134,6 +77134,22 @@ instruction count and the block count together. Read `regs` together with
 `insert`/`delete` on a conditional like this as one problem, not three; check
 the arms for a duplicated reload before reaching for anything else.
 
+**The same choice also decides whether later constants reuse the compare's
+register, and that shows up as `regs` alone.** `func_dryfield_water_tank_8017E9F8`
+(`base_1.c`, 93.408%, `regs=9`, topology/predicates/calls all matching) keeps the
+result register and the store constants as leftovers beyond the block/delay-slot
+story above: with the default-before-`if` form, `cse` folded the payload's
+`(const_int 1)` stores onto the pseudo holding the compare constant
+(`(set (reg 117) (const_int 1))` + store `reg 117` -> store `reg 113` in the
+`.cse` dump, emitting `sw $v1,0x14($sp)` where retail has `li $v0,1;
+sw $v0,0x14($sp)`), and the result variable took `$a1` where retail has `$v0`.
+The shared-variable ternary keeps one pseudo per store constant (`base_2.c`,
+100.000%, every penalty zero, input `base_2.i`
+`e5ef858e0ef8af12c3f0d448f3697c8e2ac09b1acd92190a853e281c95d1640e`). So when the arms of such a
+conditional compute a value that later statements also store as a bare constant,
+the constant is a second, independent reason to prefer the ternary -- compare the
+`.cse` sources of the stores before concluding the allocation is unfixable.
+
 ## A value used after a call needs a second definition *after* it to stay off the `s` registers
 
 `func_actor_341900_801625B4` reads `arg0->idMap` once at the top and uses it
