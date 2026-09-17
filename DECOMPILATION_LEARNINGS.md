@@ -128158,3 +128158,40 @@ and the early `lw $v1, 0x18($s1)` never got scheduled. Declaring a second copy o
 every per-block local - `idx2`, `rec2`, `entry2`, `sessionKey2`, `keyPtr2` -
 matched exactly. Same rule as "one variable per use site" above: repeated code
 means repeated *variables*, not a reused one.
+
+## The actor angle-tolerance block is one `abs()` ternary, not four `if`s (func_actor_102300_80133C10, 2026-09-18)
+
+Many actor tick handlers ask "is my heading more than N off the stored angle",
+and the assembly is always the same twelve instructions: a `subu` producing the
+raw difference, one `sll`/`sra` pair, an `abs` triple, `slti …,0x800`, a `blez`
+picking `0x1000 - d` or `d + 0x1000`, then a second `sll`/`sra` before the final
+`slti`. The whole block is one statement, and the matched carriers
+`actor_402200_4.c` and `actor_403900_4.c` already spell it:
+
+```c
+s16 diff, dist;
+diff = (ratan2((s32)(s16)delta->vx, (s32)(s16)delta->vz) & 0xFFF) - work->field_6A2;
+dist = (abs(diff) >= 0x800) ? ((diff > 0) ? 0x1000 - diff : diff + 0x1000) : abs(diff);
+if (dist > 0x100) { … }
+```
+
+Three details make it match and each is easy to get wrong when writing it out
+as statements:
+
+* `diff` is `s16`, so the *raw* subtraction stays in its own register and the
+  wrap arms read it un-truncated (`subu v0,v0,v1`, `addiu v0,v1,0x1000`); the
+  single `sll`/`sra` before the final `slti` is the `s16 dist` truncation at the
+  three-way merge. Declaring either as `s32` loses those.
+* `abs(diff)` appears **twice**. The second occurrence CSEs to a plain copy,
+  which `dbr` then steals into the `slti`/`bnez` delay slot - that is the
+  target's `move v0,a0` and why there is no `j` after the `d + 0x1000` arm.
+  Writing `dist = adiff; if (adiff >= 0x800) { … }` puts the copy *before* the
+  `slti`, which clobbers the register and costs a duplicated `sll` instead.
+* The comparison bound is off by one from the `slti`: `slti …,0x101` is
+  `dist > 0x100`.
+
+Missing this cost a long detour through `cse2`'s `make_regs_eqv`
+canonicalisation trying to explain `negu a0,a0` vs `negu a0,v1`; the answer is
+already in "`abs()` and a hand-written absolute value differ by one `move`" -
+`abssi2` is one `multi` insn and nothing can reach inside it. Search the corpus
+for `abs` before modelling the allocator.
