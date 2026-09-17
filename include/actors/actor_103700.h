@@ -106,6 +106,7 @@ typedef struct Actor103700Rise {
 } Actor103700Rise;
 
 extern Actor103700Rise D_actor_103700_80139E14[];
+extern Actor103700Rise D_actor_103700_80139E4C[];
 
 extern u32 Gp_LcgState;
 
