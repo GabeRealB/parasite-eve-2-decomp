@@ -2,6 +2,12 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/D4.h"
+
+#include "main/session.h"
+
+#include "rooms/neo_ark_eve_access_tunnel.h"
+
 extern s32 Gp_GetViewIndex(void);
 void       Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
 
@@ -13,7 +19,43 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB08[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB28[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_4", func_neo_ark_eve_access_tunnel_8017E090);
+void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
+{
+    GameSessionFrom4* sess = (GameSessionFrom4*)&Game_Session->field_4;
+    NaetSprtRec*      rec  = (NaetSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    NaetSprtView*     view;
+    s32               run = arg0 & 0xFF;
+    s32               flag;
+
+    if (run == 0) {
+        flag = arg1 & 0xFF;
+        if (flag == 0) {
+            view           = rec->field_1C;
+            view->field_24 = 1;
+            return;
+        }
+        if (flag == 1) {
+            view           = rec->field_1C;
+            view->field_24 = 0;
+            return;
+        }
+    } else if (run == 1) {
+        flag = arg1 & 0xFF;
+        if (flag == 0) {
+            view           = rec->field_28;
+            view->field_1C = run;
+            view           = rec->field_34;
+            view->field_14 = run;
+            return;
+        }
+        if (flag == run) {
+            view           = rec->field_28;
+            view->field_1C = 0;
+            view           = rec->field_34;
+            view->field_14 = 0;
+        }
+    }
+}
 
 /// Draws whichever emitters the current view shows: two adjacent positions per
 /// drawn wedge, stepping through the view's run. View 4 chains into view 5's

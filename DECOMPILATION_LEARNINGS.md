@@ -117293,3 +117293,77 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017DB18-vacuum`.
+
+## Merging per-block pointer temps into one variable puts *that* value first in `allocno_order`, and it takes the register the tallies had (func_neo_ark_eve_access_tunnel_8017E090, 2026-09-17)
+
+**Symptom.** 98.000% with `regs=20` and nothing else — `blocks=11/11`,
+`instructions=51/51`, `predicates_match=True`. The whole delta is two register
+names, in every block:
+
+```
+                        /* target */              /* ours */
+move  a3,a1                                       move  a2,a1
+lw    a2,-0x4(v0)      ; the record pointer       lw    v1,-0x4(v0)
+lw    v1,0x28(a2)                                 lw    v0,0x28(v1)
+```
+
+The body is four arms that load one pointer from the sprite-table record and
+store a byte through it — the shape of the gas-station sibling below, and the
+first fix was the same one: `switch` on the masked argument lowers to a
+`beqz CASE0` / `beq CASE1` compare chain (60.296%, `blocks=11/13`), while the
+target's `bnez $a1, …` with the body falling through is an `if` chain
+(98.000%). That is the reciprocal of "Two-arm dispatch that falls through to a
+shared tail is `switch`, not `if/else if`" — read the *polarity*: `bnez` on the
+first test means the first body falls through, which is the `if` form.
+
+**Why the registers.** `.greg` on each build names the mechanism, and it is the
+allocation *order*, not a conflict:
+
+```
+98.000%  ;; 4 regs to allocate: 102 101 86 81      100.000%  ;; 5 regs to allocate: 101 103 102 86 81
+         ;; 86 conflicts: 81 86 101 102 2 29                  ;; 86 conflicts: 81 86 101 102 103 2 29
+```
+
+`global_alloc` sorts by `allocno_compare`, `floor_log2 (n_refs) * n_refs /
+live_length`. The target reuses **one** view-pointer variable across all four
+arms, so it is a single global allocno with the most refs over the function —
+it sorts first and `find_reg` (numeric order; the MIPS port sets no
+`REG_ALLOC_ORDER`) hands it `$v1`. `$a0` and `$a1` then go to the two masked
+arguments by their own preferences, so the record pointer, allocated fourth,
+finds `$v0` conflicting and only `$a2` free, and the argument copy takes `$a3`.
+Writing a temp per access instead made each view pointer a *block-local*
+quantity: `local_alloc` runs first and homes them per block (`$v0` in three of
+the four arms), which leaves `$v1` unclaimed when global-alloc reaches the
+record pointer, and the two names swap.
+
+**Fix.** One `view` variable for the whole function, as in
+`func_dryfield_night_gas_station_80180DC8`:
+
+```c
+    NaetSprtView* view;
+
+    if (run == 0) {
+        flag = arg1 & 0xFF;
+        if (flag == 0) {
+            view           = rec->field_1C;
+            view->field_24 = 1;
+            return;
+        }
+```
+
+**Diagnostic to reuse.** When the delta is a swap between a value that spans
+the function and a value local to one arm, read `;; N regs to allocate:` — the
+list is `allocno_order`, so the *first* entry is the one that gets the lowest
+free register. Merging the block-local temps into one C variable moves that
+value to the front of the list; splitting it (the actor_335800 direction) moves
+it out. Same lever, both ends.
+
+Inputs: `base_2.i` (98.000%) SHA256
+`513bf1475685102beb979e176dbee8aa7e16f8070e4fbbb070902a0dfc932844`; `base_3.i`
+(100.000%) SHA256
+`246189947b77c2c8924bbcf62860d04d7bd65063b9b4bf8514b2fb0c31ecf63f`; `base_3.c`
+SHA256 `af9261f264c3eb4f0768ba44ba8f835aed4ebec137ae3f9848fa14cc93fb7e59`;
+target.o SHA256
+`3734384ca471469b592638f7a437074d20eacf09aafdd6c7a16b49dae7c6d691`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017E090-vacuum`.

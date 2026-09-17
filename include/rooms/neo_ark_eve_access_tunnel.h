@@ -46,6 +46,46 @@ typedef struct NaetEventDesc {
 } NaetEventDesc;
 STATIC_ASSERT_SIZEOF(NaetEventDesc, 0xC);
 
+/// One of the per-view objects the tunnel's sprite-table record points at. Its
+/// flag sits at a different offset in each of the record's three pointers --
+/// 0x24 for `field_1C`, 0x1C for `field_28` and 0x14 for `field_34`, eight
+/// bytes apart, one `GpSprtCmd` record each, the same shape the gas station's
+/// `DryfieldNightGasStationSprtView` has. `func_neo_ark_eve_access_tunnel_8017E090`
+/// is the only writer: it sets the flag to 1 or clears it to 0.
+typedef struct NaetSprtView {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ u8   field_14;
+    /* 0x15 */ byte pad_15[0x7];
+    /* 0x1C */ u8   field_1C;
+    /* 0x1D */ byte pad_1D[0x7];
+    /* 0x24 */ u8   field_24;
+} NaetSprtView;
+STATIC_ASSERT_SIZEOF(NaetSprtView, 0x25);
+
+/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at,
+/// reached through a cast for the same reason the neighbouring rooms' records
+/// are: it is a room-sized block, far larger than the 0xC-byte `GpSprtRec` the
+/// table's element type declares. `field_1C` / `field_28` / `field_34` are a
+/// run twelve bytes apart, one `GpSprtRec` each, and each points at one of the
+/// views above -- the first alone, the second and third as a pair.
+typedef struct NaetSprtRec {
+    /* 0x00 */ byte          pad_0[0x1C];
+    /* 0x1C */ NaetSprtView* field_1C;
+    /* 0x20 */ byte          pad_20[0x8];
+    /* 0x28 */ NaetSprtView* field_28;
+    /* 0x2C */ byte          pad_2C[0x8];
+    /* 0x34 */ NaetSprtView* field_34;
+} NaetSprtRec;
+STATIC_ASSERT_SIZEOF(NaetSprtRec, 0x38);
+
+/// Sets the tunnel's view flags: `arg0` picks the run to write (0 the single
+/// view `field_1C` carries, 1 the `field_28` / `field_34` pair) and `arg1`
+/// picks the value -- 0 sets each flag of that run to 1, 1 clears it to 0 --
+/// while any other pair of arguments writes nothing.
+/// `func_neo_ark_eve_access_tunnel_8017DFC0` calls it with (0, 0) and (1, 0)
+/// together while the session is still below state 4, so both runs are set.
+void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1);
+
 /// Descriptor the tunnel's outgoing task is spawned from, index 0 of the table
 /// `func_neo_ark_eve_access_tunnel_8017D980` hands `Task_SpawnFromTable`.
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
