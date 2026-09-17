@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+
 #include "main/task.h"
 
 #include "rooms/room_common.h"
@@ -53,6 +55,18 @@ typedef struct Dmr1Msg7DA {
 } Dmr1Msg7DA;
 STATIC_ASSERT_SIZEOF(Dmr1Msg7DA, 0x4);
 
+/// The one scratch buffer `func_dryfield_motel_room_1_8017DD3C` builds both of
+/// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
+/// slot-3 record message 0x3E8 takes (`GpRec14`, `field_0` the equipped weapon's
+/// animation id, `field_4` / `field_8` 1, `field_C` 5, `field_10` 0) and `msg` the
+/// `Dmr1Msg7DA` the 0x7DA poke takes in states 1 and 2. Same shape as the
+/// breezeway's `DbwMsgBuf`.
+typedef union Dmr1MsgBuf {
+    /* 0x0 */ GpRec14    rec;
+    /* 0x0 */ Dmr1Msg7DA msg;
+} Dmr1MsgBuf;
+STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
+
 /// The room's script-driver task, whose `idMap` holds a `Dmr1Work`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
@@ -67,6 +81,23 @@ extern RoomPlacement D_dryfield_motel_room_1_8017E130[2];
 /// `field_4` .. `field_10` from the session id: the base id, then the id with
 /// the 0x1000 / 0x2000 / 0x3000 index of `Gp_FindWorkById`'s search key.
 void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
+
+/// The room's script driver: switches on `Dmr1Work::field_2C`, the action index
+/// `func_dryfield_motel_room_1_8017DFB0` sets, with `field_2E` as its sub-state,
+/// and runs that action's messages -- the 0x3E8 / 0x3E9 / 0x3F3 / 0x3FD pokes,
+/// the 0x7D4 placements and the 0x7DA prompt. Every path through
+/// `func_dryfield_motel_room_1_8017DD3C` except its early return and its kill
+/// ends here, which is how the cutscene that state machine starts gets stepped.
+void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
+
+/// Main loop of the room's cutscene task. State 0 arms it once -- a `D_80114C12`
+/// of 1 or a live `D_80071075` both mean a cutscene is already up, so the task
+/// only steps the script. Otherwise it builds the work block, sends the slot-3
+/// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
+/// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
+/// state 1 does that only while the session is still up, and state 2 only once
+/// the session's `field_4` has reached 2, which is where the task kills itself.
+void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 
 /// Install the player's weapon animation set on slot 3 (message 0x3E8: the
 /// equip-slot id `D_80073BA9` plus 1 in the alternate weapon block, plus 0x22

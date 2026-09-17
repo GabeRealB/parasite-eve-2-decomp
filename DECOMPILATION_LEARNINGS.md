@@ -320,6 +320,18 @@ is not something to transcribe from m2c. `block_N:` labels are block boundaries
 only where the asm has one, and an empty one disappears into its successor; the
 statement written in each case reproduces the target's merge point.
 
+Where the walk *does* run off the end of both streams, the whole tail merges and
+the `goto` spelling reaches 100% too - so a matching `goto` candidate is not
+evidence the original had one. `func_dryfield_motel_room_1_8017DD3C` (115 insns)
+ends its states 0 and 1 on the same `arg0->state = arg0->state + 1;` with no
+`sb` above it, and m2c's label-plus-`goto` rendering and the statement written in
+each case compile to byte-identical objects. What shows a merge happened at all
+is the dump pair: `.jump` (dumped after `toplev.c`'s `jump_optimize (insns, 0, 0,
+1)`) still holds both increments, `.jump2` (after the only call with cross-jump
+on, `jump_optimize (insns, 1, 1, 0)`) holds one under a `code_label` that pass
+created. Prefer the duplicated statement: it needs no label and matches the
+sibling rooms' style.
+
 ## `rodata_head` on the overlay that owns the leading jump table, and the `INCLUDE_RODATA` that must go with it
 
 `func_actor_421600_80132A00`'s switch is the first table in the leading rodata,

@@ -2,6 +2,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/mem.h"
@@ -11,10 +12,19 @@
 #include "rooms/dryfield_motel_room_1.h"
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
-/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `D_8007218A` picks which of the two weapon-id bases that record uses.
+/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
+/// `D_80071075` and `D_80114C12` (the cutscene mode flag) gate the room task's
+/// setup, and `D_8007218A` picks which of the two weapon-id bases that record
+/// uses.
 extern u8 D_80073BA9;
+extern u8 D_80071075;
 extern s8 D_8007218A;
+extern s8 D_80114C12;
+
+/// The cutscene script's two blocks, handed to `func_800E8634` by the room
+/// task's state 0.
+extern s32 D_dryfield_motel_room_1_8017E160;
+extern s32 D_dryfield_motel_room_1_8017E340;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017D7AC);
 
@@ -41,7 +51,53 @@ void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     id                               = ((Game_Session->field_7 << 8) | 0x3000) | Game_Session->field_6;
     work->field_10                   = (Task*)Gp_FindWorkById(id)->field_0;
 }
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1_2", func_dryfield_motel_room_1_8017DD3C);
+void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
+{
+    Dmr1MsgBuf buf;
+    s32        weaponId;
+    s32        anim;
+
+    switch (arg0->state) {
+        case 0:
+            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+                func_dryfield_motel_room_1_8017DC2C(arg0);
+                weaponId         = D_80073BA9;
+                anim             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                buf.rec.field_0  = anim;
+                buf.rec.field_4  = 1;
+                buf.rec.field_8  = 1;
+                buf.rec.field_C  = 5;
+                buf.rec.field_10 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
+                func_800E8634((s32)&D_dryfield_motel_room_1_8017E160, 0,
+                              (s32)&D_dryfield_motel_room_1_8017E340);
+                arg0->state = arg0->state + 1;
+                break;
+            }
+            return;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                buf.msg.field_0 = Game_Session->field_7;
+                buf.msg.field_1 = Game_Session->field_6;
+                buf.msg.field_2 = 4;
+                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
+                arg0->state = arg0->state + 1;
+                break;
+            }
+            break;
+        case 2:
+            if (Game_Session->field_4 == arg0->state) {
+                buf.msg.field_0 = Game_Session->field_7;
+                buf.msg.field_1 = Game_Session->field_6;
+                buf.msg.field_2 = 3;
+                Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&buf.msg, 0x7DB);
+                Task_Kill(arg0);
+                return;
+            }
+            break;
+    }
+    func_dryfield_motel_room_1_8017D7AC(arg0);
+}
 
 void func_dryfield_motel_room_1_8017DF08(void)
 {
