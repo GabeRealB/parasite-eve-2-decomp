@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_201200.h"
+#include "actors/actor_201200_motion.h"
 #include "actors/actors_shared_8014a7b0.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -7,14 +8,15 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 #include "psyq/inline_c.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
 
 void Gp_ArmStateF0(s32 active);
+s16  func_actor_201200_80149F50(GsCOORDINATE2* coord, GpRec18* rec, s32 n, SVECTOR* d);
+void func_actor_201200_8014A49C(GsCOORDINATE2* coord, GpRec18* rec, s32 n);
 void func_actor_201200_8014A640(Actor201200* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1);
@@ -235,7 +237,80 @@ void func_actor_201200_8014AE60(Actor201200Ctx* arg0, Actor201200* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_2", func_actor_201200_8014B054);
+void func_actor_201200_8014B054(Actor201200Ctx* arg0, Actor201200* arg1)
+{
+    Actor201200Work*        work;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          facing;
+    GsCOORDINATE2*          part;
+    TmdObject*              obj;
+    Actor201200TurnScratch* head;
+    Actor201200TurnScratch* s;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_174     = 3;
+        work->field_170     = 1;
+        work->field_178     = 0x10;
+        work->obj2C8.flags |= 0x8000;
+        work->obj300.flags &= 0x7FFF;
+        work->obj338.flags &= 0x7FFF;
+        work->obj230.flags |= 0x4000;
+        func_actor_201200_8014A640(arg1);
+        work->field_3DC = 0;
+        Gp_ArmStateF0(1);
+        return;
+    }
+    head                                      = *(Actor201200TurnScratch**)G_SCRATCH_HEAD;
+    *(Actor201200TurnScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                         = head - 1;
+    func_actor_201200_8014A640(arg1);
+    coord         = arg1->field_2C->field_8;
+    head[-1].d.vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+    s->d.vy       = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+    s->d.vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+    facing        = arg1->field_2C->field_8;
+    s->angle      = Actor201200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
+    if (s->angle > 0x10) {
+        s->angle = 0x10;
+    }
+    if (s->angle < -0x10) {
+        s->angle = -0x10;
+    }
+    part      = arg1->field_2C->field_8;
+    s->angle += ratan2(-part->coord.m[2][0], part->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, s->angle, 1);
+    Actor201200_StepForward(arg1->field_2C->field_8, 0x14);
+    func_actor_201200_8014A49C(arg1->field_2C->field_8, &work->rec1B8, 5);
+    if (Actor201200_OutOfRange(&s->d, 1000)) {
+        work->field_3DC++;
+    } else {
+        work->field_3DC = 0;
+    }
+    if (!Actor201200_OutOfRange(&s->d, 1000)) {
+        work->field_8++;
+    } else {
+        work->field_8 = 0;
+    }
+    if (work->field_8 >= 0x15) {
+        work->field_0 = 5;
+    }
+    if (func_actor_201200_80149F50(arg1->field_2C->field_8, &work->rec250, 5, &s->d) == 1) {
+        work->field_0 = 6;
+    }
+    arg1->field_2C->field_8->flg = 0;
+    s->d.vx                      = work->origin.vx - arg1->field_2C->field_8->coord.t[0];
+    s->d.vy                      = 0;
+    s->d.vz                      = work->origin.vz - arg1->field_2C->field_8->coord.t[2];
+    Actor201200_OutOfRange(&s->d, 3000);
+    if (work->field_3DC >= 0xF1) {
+        work->field_0 = 8;
+    }
+    *(Actor201200TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_2", func_actor_201200_8014B5FC);
 

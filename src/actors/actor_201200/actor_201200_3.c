@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_201200.h"
+#include "actors/actor_201200_motion.h"
 #include "actors/actors_shared_8014a7b0.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -8,8 +9,6 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "psyq/inline_c.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
@@ -31,57 +30,9 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1);
 void func_actor_201200_8014D0B4(Actor201200Ctx* arg0, Actor201200* arg1);
 void func_actor_201200_8014DD50(Actor201200Ctx* arg0, Actor201200* arg1);
 
-extern u8  D_80072729;
 extern u8  D_801153F4;
 extern s32 D_actor_201200_8014DE64;
 extern s32 D_actor_201200_8014DE70;
-
-/// Yaw wrapped into [-0x800, 0x800].
-static __inline__ s16 Actor201200_NormalizeYaw(s16 input)
-{
-    s16 value = input;
-    if (input < 0) {
-        while (1) {
-            if (value >= -0x800)
-                break;
-            value += 0x1000;
-        }
-    } else {
-        while (1) {
-            if (value <= 0x800)
-                break;
-            value -= 0x1000;
-        }
-    }
-    return value;
-}
-
-/// Step `coord` `amount` units along its local Z unless movement is frozen.
-static __inline__ void Actor201200_StepForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
-            Gfx_MatrixCol2(&coord->coord, vec);
-            VectorNormalSS(vec, vec);
-            gte_lddp(amount);
-            gte_ldsv(vec);
-            gte_gpf12_real();
-            gte_stsv(vec);
-            coord->coord.t[0] += head[-1].vx;
-            coord->coord.t[1] += vec->vy;
-            coord->coord.t[2] += vec->vz;
-            coord->flg         = 0;
-        }
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
 
 INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_3", func_actor_201200_8014CA08);
 
