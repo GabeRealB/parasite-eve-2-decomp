@@ -2,34 +2,44 @@
 #include "actors/actor_101500.h"
 #include "gameplay/3A34.h"
 
-/// Counts `field_362` up, raising the state-F0 flags at frame 60; from frame 90
-/// it switches to pose 7 (8 when `field_36E` is set) and reloads the counter
-/// with a random delay.
-void func_actor_101500_801345D0(Actor101500* actor)
+/// Flag bits 0/1 of `field_4C` knock the actor into pose 13; bits 2/3 tick
+/// the damage-over-time effect and apply each hit.
+void func_actor_101500_801343E8(Actor101500* actor)
 {
-    Actor101500Work* work = actor->field_1C;
-    s16              pose;
-    u32              rnd;
-    u16              val;
+    GpEnemy*         enemy;
+    Actor101500Work* work;
+    s32              damage;
+    u8               flags;
 
-    if (++work->field_362 == 60) {
-        Gp_SetStateF0Byte3(1);
-        Gp_SetStateF0Bit(1);
-    }
-    pose = 7;
-    if (work->field_362 >= 90) {
-        work->field_35A = 2;
-        if (work->field_36E != 0) {
-            pose = 8;
+    enemy = actor->field_20;
+    flags = enemy->field_4C;
+    work  = actor->field_1C;
+    if (flags & 1) {
+        enemy->field_4C = flags & 0xFE;
+        if (work->field_358 != 2) {
+            work->field_35A = 4;
         }
-        work->field_352 = pose;
-        rnd             = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState     = rnd;
-        val             = D_actor_101500_8013BDE8[(rnd >> 16) & 0xF];
-        work->field_358 = 1;
-        work->field_37A = 1;
-        work->field_34C = 0x400F0002;
-        work->field_380 = 15;
-        work->field_362 = val;
+        work->field_362 = 0;
+        work->field_352 = 13;
+        work->field_34C = 0;
+    }
+    if (enemy->field_4C & 2) {
+        enemy->field_4C &= 0xFD;
+        if (work->field_358 != 2) {
+            work->field_35A = 4;
+        }
+        work->field_362 = 0;
+        work->field_352 = 13;
+        work->field_34C = 0;
+    }
+    if (enemy->field_4C & 0xC) {
+        damage = Gp_TickObjFlag4((GpObj5C*)enemy);
+        if (damage != 0) {
+            func_actor_101500_8013291C(actor, damage);
+            func_800DA6E8(&enemy->node, damage, 0);
+        }
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->field_4C &= 0xF3;
+        }
     }
 }

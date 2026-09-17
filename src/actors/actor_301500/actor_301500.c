@@ -11,7 +11,3 @@ INCLUDE_ASM("actors/nonmatchings/actor_301500/actor_301500", func_actor_301500_8
 INCLUDE_ASM("actors/nonmatchings/actor_301500/actor_301500", func_actor_301500_8016291C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_301500/actor_301500", func_actor_301500_80162AC4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_301500/actor_301500", func_actor_301500_80162DE4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_301500/actor_301500", func_actor_301500_80162FD0);

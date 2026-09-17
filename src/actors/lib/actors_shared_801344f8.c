@@ -4,7 +4,7 @@
 #include "actors/actors_shared_801346ac.h"
 
 void ActorsShared801344f8_Fn32AC4(void);
-void ActorsShared801344f8_Fn32DE4(void);
+void ActorsShared80132de4(void);
 void ActorsShared801344f8_Fn32FD0(void);
 void ActorsShared801333fc(ActorShared801344f8* arg0);
 void ActorsShared801344f8_Fn33528(void);
@@ -22,7 +22,7 @@ void ActorsShared801344f8(ActorShared801344f8* arg0)
             ActorsShared801344f8_Fn345D0();
             break;
         case 2:
-            ActorsShared801344f8_Fn32DE4();
+            ActorsShared80132de4();
             break;
         case 3:
             ActorsShared801344f8_Fn32FD0();

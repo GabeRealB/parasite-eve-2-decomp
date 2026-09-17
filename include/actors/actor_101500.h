@@ -22,7 +22,7 @@ typedef struct Actor101500Work {
     /* 0x35E */ byte pad_35E[2];
     /* 0x360 */ s16  field_360;
     /* 0x362 */ s16  field_362;
-    /* 0x364 */ byte pad_364[2];
+    /* 0x364 */ s16  field_364;
     /* 0x366 */ s16  field_366;
     /* 0x368 */ byte pad_368[6];
     /* 0x36E */ s16  field_36E;

@@ -114562,3 +114562,15 @@ fixes followed: a `u16` parameter (not `s32` with `(u16)` casts) so one
 `andi` feeds both the `== 8` test and the loop bound, and a second pointer local
 for the reloaded `arg0->idMap` so the first one's shorter life swaps it with
 the loop bound's callee-saved register.
+
+## Hoist an LCG step above unrelated constant stores to load its constant first
+
+`ActorsShared80132de4` (from `func_actor_101500_80132DE4`) writes five constant
+fields and then draws twice from `Gp_LcgState`. With the draw written after the
+stores, the object had `lui/ori 0x400F0002` ahead of `lui/ori 0x71357911`; the
+ROM loads the LCG multiplier constant first. Computing `rnd = Gp_LcgState * 5 +
+0x71357911;` *before* the field stores (and assigning `Gp_LcgState = rnd`
+after them) moved that load to the front while the stores kept their order:
+99.59% -> 100%. The two `Gp_LcgState` stores also needed the `field_362` store
+between them, or flow deletes the first one (see "Back-to-back writes to the
+same global").
