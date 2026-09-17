@@ -62269,6 +62269,29 @@ data stays standalone either way, and its line belongs in the unit its cut
 names even when no code there mentions it — `actor_141000`'s
 `D_…80131E68` at `0x48` is owned by unit 3 and read only by unit 4.
 
+## A `rodata` cut leaves the old owner's `INCLUDE_RODATA` line dangling
+
+A cut moves the bytes between units, but splat writes an `INCLUDE_RODATA` line
+only into a `.c` it is creating, so the unit that used to own the table keeps
+the line it already had. After the re-split that line names a `.s` that no
+longer exists, and the build fails in the *assembler*, not at the checksum:
+
+```
+{standard input}:45: Error: can't open
+  asm/USA/rooms/nonmatchings/mine_secret_passage/mine_secret_passage/jtbl_mine_secret_passage_8017D5F0.s
+  for reading: No such file or directory
+```
+
+Delete the line from the old owner's `.c`, and add nothing to the new owner's:
+the table now sits in the reader unit's own object, so GCC emits it when that
+unit's C compiles, and an `INCLUDE_RODATA` there would emit the bytes twice.
+`mine_secret_passage` is the worked case — a cut at `0x30` for
+`mine_secret_passage_3`, whose jtbl was `INCLUDE_RODATA`'d from unit 0's `.c`.
+
+Do this by hand rather than by deleting the `.c` for splat to regenerate: the
+new owner's `.c` holds the matched body the cut was made for, and the delete
+step loses it silently.
+
 ## Two independent pointer locals: their assignment order decides whether `p + 4` fuses into `$a0`
 
 `ActorsShared80132920` loads two unrelated pointers out of its `Task*` and only

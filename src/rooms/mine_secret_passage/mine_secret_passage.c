@@ -18,8 +18,6 @@ INCLUDE_RODATA("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", Roo
 
 INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D60C);
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", jtbl_mine_secret_passage_8017D5F0);
-
 s32 func_mine_secret_passage_8017D7C4(void)
 {
     return 0;
