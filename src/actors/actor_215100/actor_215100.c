@@ -705,7 +705,85 @@ s16 func_actor_215100_8014C06C(u16* arg0)
     return (0x140 - width) / 2 - 5;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C17C);
+/// Horizontal centring offset of line `arg1` of the caption text stream
+/// `arg0`: that line's pixel width subtracted from 0x140, halved, minus 5.
+/// Same walk as `func_actor_215100_8014C06C`, but keeps the width of the
+/// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
+/// compiles to the same bytes, pins included.
+s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1)
+{
+    register s32        lineW asm("t1");
+    s32                 selectedW;
+    s32                 i;
+    s32                 lineIndex;
+    register s32        width asm("v1");
+    u16                 code;
+    s32                 shifted;
+    s32                 masked;
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+    GlyphUvwh*          table;
+
+    lineW     = 0;
+    selectedW = lineW;
+    i         = lineW;
+    lineIndex = lineW;
+    code      = arg0[0];
+    shifted   = code << 16;
+    v0tmp     = -1;
+    if (shifted >> 16 != v0tmp) {
+        table = D_actor_215100_8015E654;
+        do {
+            shifted = shifted >> 16;
+            v0tmp   = -2;
+            if (shifted == v0tmp) {
+                if ((s16)lineIndex == arg1) {
+                    selectedW = lineW;
+                }
+                lineW = 0;
+                v0tmp = i + 1;
+                i     = v0tmp;
+                lineIndex++;
+                goto after_inc;
+            }
+            v0tmp = -3;
+            if (shifted == v0tmp) {
+                lineW += 3;
+                goto do_inc;
+            }
+            masked = shifted & 0xFF00;
+            TOUCH_REG(masked);
+            v0tmp = 0x8400;
+            if (masked == v0tmp) {
+                lineW += 0x10;
+                goto do_inc;
+            }
+            if (shifted >= 0) {
+                v0tmp = i + 1;
+                i     = v0tmp;
+                TOUCH_REG(v0tmp);
+                glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+                code  = arg0[(s16)v0tmp];
+                lineW = glyph->w + lineW - 1;
+                goto after_load;
+            }
+            if (shifted < 0) {
+            do_inc:
+                v0tmp = i + 1;
+                i     = v0tmp;
+            after_inc:
+                TOUCH_REG(v0tmp);
+                code = arg0[(s16)v0tmp];
+            }
+        after_load:
+            shifted = code << 16;
+            width   = shifted >> 16;
+            v0tmp   = -1;
+        } while (width != v0tmp);
+    }
+    width = (s16)selectedW;
+    return (0x140 - width) / 2 - 5;
+}
 
 /// Total height of the caption block the text stream `arg0` holds: every `-2`
 /// line break adds the line's height (the tallest glyph's `h + 2`, or 2 when
