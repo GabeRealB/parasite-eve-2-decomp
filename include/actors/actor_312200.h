@@ -55,13 +55,14 @@ typedef struct Actor312200Work {
     /* 0x898 */ byte pad_898[0x14];
     /// The two bytes the spawn handler arms next to the display node; they sit
     /// immediately before the 0x7DB record, so they are the actor's own copy of
-    /// that state rather than part of a message.
+    /// that state rather than part of a message. `field_8AD` is read back with
+    /// `lb` by the tick handler, so it is signed like the record halfwords.
     /* 0x8AC */ u8   field_8AC;
-    /* 0x8AD */ u8   field_8AD;
+    /* 0x8AD */ s8   field_8AD;
     /* 0x8AE */ byte pad_8AE[0x6];
     /* 0x8B4 */ s16  field_8B4;
     /* 0x8B6 */ s16  field_8B6;
-    /* 0x8B8 */ u16  field_8B8;
+    /* 0x8B8 */ s16  field_8B8;
     /* 0x8BA */ byte pad_8BA[0x2];
     /// Display node: `GpObj` at 0x8BC, its `GpRec18` table at 0x8DC.
     /* 0x8BC */ GpObj   field_8BC;
@@ -100,6 +101,33 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placemen
 /// state 1 and latch themselves there. Either way the actor's `field_0` state
 /// word is raised to 1 and the handler reports success.
 s32 func_actor_312200_801636CC(Task* task, s32 msgId, Actor312200Msg7DB* msg);
+
+/// Absolute; nonzero skips the per-frame state handler entirely.
+extern u8 D_801153F4;
+
+/// Per-tick handler, called with the task in the second argument: it builds the
+/// actor's two-entry handler table on the stack - the show handler
+/// `func_actor_312200_80163778` at index 0 and the tick handler
+/// `func_actor_312200_801637CC` at index 1 - and, unless the global
+/// `D_801153F4` holds the actor, dispatches the work block's `field_0` state.
+/// `enemy` is the spawn argument the dispatcher hands in first, unused here.
+///
+/// The state move is recorded on the way in: `field_4` takes 1 when `field_0`
+/// differs from the latched `field_2`, which is then re-latched from `field_0`.
+/// The tail re-syncs the model with the actor: the display node's `GpRec18`
+/// record is cleared while it is occupied (`recs[0].field_4`), the root
+/// coordinate's translation is re-propagated over the three part coordinates
+/// (`func_800D7A9C`, start 0, count 3) while `field_8AD` is set, and `field_8AD`
+/// is then refreshed from that coordinate's `flg` - so the propagation runs on
+/// the frame after the coordinate is dirtied. While the room is live
+/// (`Game_Session->field_4D`) the coordinate's `flg` is dropped first and, from
+/// view 0x10 with the 0x7DB action `field_8B8` at 1, sound 0x51030008 is queued
+/// with the model's pan and depth as `s8`.
+///
+/// The `SOFT_BARRIER` in the body is a matching aid, not the original's: it
+/// keeps the model lookup ahead of the handler table, which the patched
+/// scheduler otherwise pulls that table's first `lui` in front of.
+void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
 
 /// Per-tick state callback: on a live actor it re-enters state 2 with the
 /// 0x896 timer armed at 0x10, then hands the tick to `func_actor_312200_801637CC`'s

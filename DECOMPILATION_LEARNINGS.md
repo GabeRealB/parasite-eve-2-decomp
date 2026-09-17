@@ -124843,3 +124843,61 @@ shapes the `actor_402200` header names - per-overlay work structs with matching
 layouts are the family's existing pattern (`actor_105700` carries its own
 `field_6CE`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A `lui` can be emitted *above* a preceding load: sched's hazard swap prefers loads/stores, and the block is emitted in the reverse of its scheduling order (func_actor_312200_80163370, 2026-09-17)
+
+The matched body built a two-entry `TaskFunc` table on the stack and read the
+task's work pointer first. The target emits the work load *before* the table:
+
+```
+lw    s1,0x1c(s2)                  # work = task->idMap
+lui   v0,%hi(func_actor_312200_80163778)
+addiu v0,v0,%lo(func_actor_312200_80163778)
+sw    v0,0x20(sp)
+```
+
+Every attempt that wrote exactly that order emitted the first `lui` three slots
+early — before `sw ra` — for 99.423% with `reorder=1` and every other penalty
+zero. Two facts from `sched.c` explain it, and both are worth knowing because
+they invert the intuition:
+
+**The block is emitted in the reverse of its scheduling order.** `schedule_block`
+starts with `last = next_tail` and links each scheduled insn *before* the last
+one placed (`NEXT_INSN (insn) = last; last = insn;`), so the first insn the
+scheduler picks ends up last in the block. Its ready list is sorted by
+`rank_for_schedule` — priority, then dependence class against
+`last_scheduled_insn`, then `INSN_LUID` — and consumed from `ready[0]`.
+
+**`schedule_select` then re-picks inside each equal-priority group**, and its
+criterion is `potential_hazard`, which is non-zero only for function-unit insns
+(`sched.c`: `ncost = (minb * 0x40 + maxb) * ((unit_n_insns[unit] - 1) * 0x1000 + unit)`,
+`function_units[memory].max_blockage = 2` for the r3000 config, and a `lui` /
+`addiu` / `addu` has `insn_unit() == -1`). So a load or a store always beats a
+plain ALU insn in that group, and the reversal above turns "scheduled earlier"
+into "emitted later":
+
+```
+;; ready list at T-9: 15 (7f000001) 13 (7f000001), now 15 13
+;; insn 13 has a greater potential hazard, now 13 15
+```
+
+insn 13 is the `lw`, 15 the `lui`; the swap hands the round to the load, which
+is then emitted after the `lui` — the opposite of the source. Nothing in the C
+can express "the `lui` may not be scheduled first", because the dependencies are
+already correct: both are ready, and the hazard rule breaks the tie.
+
+A barrier between them pins it, and the body matches byte for byte:
+
+```c
+    work = (Actor312200Work*)task->idMap;
+    SOFT_BARRIER();                 /* the table's lui may not be scheduled first */
+    states[0] = func_actor_312200_80163778;
+    states[1] = func_actor_312200_801637CC;
+```
+
+The same reversal, read the other way, is why the dead `VECTOR vec` this body
+leaves zeroed at the end is written `vz`, `vy`, `vx`: the object emits the three
+stores descending, and the descending statement order is what the reversal
+reproduces — the idiom `actor_160900`'s and `actor_207000_801500C8`'s matched
+bodies already use. Before reaching for a barrier on an ordering leftover, check
+whether the differing pair is two same-priority siblings in *source* order that
+the object reverses; that fix is the statement permutation, not a fence.
