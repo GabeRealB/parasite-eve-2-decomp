@@ -68,7 +68,7 @@ typedef struct Actor207200Work {
     /* 0x4A2 */ s16            field_4A2;
     /* 0x4A4 */ s16            field_4A4;
     /* 0x4A6 */ s16            field_4A6;
-    /* 0x4A8 */ byte           pad_4A8[2];
+    /* 0x4A8 */ s16            field_4A8;
     /* 0x4AA */ s16            field_4AA;
 } Actor207200Work;
 

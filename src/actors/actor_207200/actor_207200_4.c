@@ -269,4 +269,143 @@ void func_actor_207200_8014C870(Actor207200* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014CA84);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_207200_8014D7E8(Actor207200* arg0);
+void func_actor_207200_8014D97C(Actor207200* arg0, GsCOORDINATE2* arg1);
+
+/// Global mode byte shared by the enemy actors: 1 skips the per-frame update,
+/// 2 puts the model in its hidden pose.
+extern u8 D_801153F4;
+
+/// `func_actor_207200_8014D65C`'s body, inlined: re-arm the six helper slots
+/// when the animation id changed, otherwise advance them by one frame.
+static __inline__ void Actor207200_TickAnim(Actor207200* arg0)
+{
+    Actor207200Work* work;
+    s32              i;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if (work->field_48C != (s16)work->field_48E) {
+        work->field_48E = work->field_48C;
+        work->field_490 = 0;
+        do {
+            func_800B4114((GpAnimCtx*)work, i, work->field_48C, 0, 8);
+            i++;
+        } while (i < 7);
+        return;
+    }
+    TOUCH_REG(i);
+    work->field_490 = (u16)(work->field_490 + i);
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        i++;
+    } while (i < 7);
+}
+
+/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
+/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
+static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Actor207200* actor)
+{
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    VECTOR*        block;
+
+    coord     = &((TmdObject*)actor->field_2C)->field_8[1];
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    block->vx = coord->workm.t[0];
+    block->vy = coord->workm.t[1];
+    block->vz = coord->workm.t[2];
+    *scratch  = block;
+    Gp_UpdateActorColor(enemy, block, 0, 0);
+    *scratch = (u8*)*scratch + 0x10;
+}
+
+/// Teardown tick. Mode 2 of `D_801153F4` hides the model, mode 1 does nothing;
+/// otherwise the teardown stage in `field_488` advances: 0 releases the actor's
+/// state reference, snapshots the model transform and unlinks its node and
+/// five display objects; 1 moves on once animation 5 has run 100 frames (or
+/// at once for any other animation or once `field_4A8` is set); 2 counts 60
+/// frames, spawning an effect on frame 15; 3 destroys the enemy. Every stage
+/// but the last then ticks the animation, the attach coordinates and the colour.
+void func_actor_207200_8014CA84(GpEnemy* arg0, Actor207200* arg1)
+{
+    Actor207200Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    s16              state;
+
+    obj   = (TmdObject*)arg1->field_2C;
+    work  = arg1->field_1C;
+    coord = obj->field_8;
+    switch (D_801153F4) {
+        case 1:
+            break;
+        case 2:
+            obj->field_C      |= 0x80;
+            arg0->node.field_4 = 1;
+            break;
+        case 0:
+        default:
+            state = work->field_488;
+            switch (state) {
+                case 0:
+                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2B);
+                    work->field_488 = 1;
+                    work->field_48A = 0;
+                    work->field_49C = 0x1000;
+                    work->field_464 = coord->coord;
+                    arg0->field_54  = 0;
+                    Gp_UnlinkNode(&arg0->node);
+                    Gp_UnlinkObj(&work->field_1DC.obj);
+                    Gp_UnlinkObj(&work->field_214.obj);
+                    Gp_UnlinkObj(&work->field_2C4.obj);
+                    Gp_UnlinkObj(&work->field_374.obj);
+                    Gp_UnlinkObj(&work->field_3AC.obj);
+                    break;
+                case 1:
+                    if (work->field_4A8 == 0) {
+                        if (work->field_48C == 5) {
+                            if ((s16)work->field_490 >= 100) {
+                                work->field_488 = 2;
+                            }
+                        } else {
+                            work->field_488 = 2;
+                        }
+                    } else {
+                        obj->field_C    = 0x80;
+                        work->field_488 = 2;
+                    }
+                    break;
+                case 2:
+                    work->field_48A++;
+                    if ((s16)work->field_48A >= 0x3D) {
+                        work->field_488 = 3;
+                    }
+                    if (work->field_4A8 == 0) {
+                        func_actor_207200_8014D7E8(arg1);
+                        if ((s16)work->field_48A == 0xA) {
+                            obj->field_C = 2;
+                        }
+                        if ((s16)work->field_48A == 0xF) {
+                            Gp_SpawnEff(0x600A5, coord, 2, NULL);
+                        }
+                    }
+                    break;
+                case 3:
+                    Gp_DestroyEnemy(arg0, (Task*)arg1);
+                    return;
+            }
+            Actor207200_TickAnim(arg1);
+            func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->field_2C)->field_8[2]);
+            func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->field_2C)->field_8[3]);
+            ((TmdObject*)arg1->field_2C)->field_8[0].flg = 0;
+            ((TmdObject*)arg1->field_2C)->field_8[1].flg = 0;
+            Gp_UpdateCoord(&((TmdObject*)arg1->field_2C)->field_8[1]);
+            Actor207200_UpdateColor(arg0, arg1);
+            break;
+    }
+}
