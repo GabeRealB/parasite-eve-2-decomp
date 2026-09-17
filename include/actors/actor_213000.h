@@ -39,6 +39,21 @@ typedef struct Actor213000Work {
 } Actor213000Work;
 STATIC_ASSERT_SIZEOF(Actor213000Work, 0x4C4);
 
+/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`, one slot per model part.
+/// `func_actor_213000_8014A35C` clears three of them and links each to the
+/// spawner's slot nine higher, which is what puts the extra `sub` field at
+/// 0x4C past the four bytes `Actor511000Coord` stops at: offsets 0x44 and 0x48
+/// (libgs `param` and `super`) are the Euler angles the animation writers fill
+/// and then hand straight to `RotMatrix`, the same reuse that header documents.
+typedef struct Actor213000Coord {
+    /* 0x00 */ s32            flg;
+    /* 0x04 */ MATRIX         coord;
+    /* 0x24 */ MATRIX         workm;
+    /* 0x44 */ SVECTOR        rot;
+    /* 0x4C */ GsCOORDINATE2* sub; // spawner's slot 9 higher, see above
+} Actor213000Coord;
+STATIC_ASSERT_SIZEOF(Actor213000Coord, 0x50);
+
 /// The message body the visibility handler reads its mode from: the kind and
 /// the mode halfword pair the other actor headers carry at 0x0 / 0x2.
 typedef struct Actor213000Msg {

@@ -125356,3 +125356,89 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm. Scratch
 `nonmatchings/func_actor_213000_80149E54-vacuum`; permuter evidence
 `PERMUTER_EVIDENCE/c7b2001a645c47ab/`.
+
+## `p[i + 9]` makes a second biv where `p + i + 9` folds the constant into the body (func_actor_213000_8014A35C, 2026-09-17)
+
+`func_actor_213000_8014A35C` clears three `GsCOORDINATE2` slots of the spawned
+model's coord array and links each to its spawner's slot nine higher. The target
+carries **two** loop registers stepping by the same `0x50`, one of them starting
+at the constant:
+
+```
+li    a1,0x2d0          # second IV, init 9 * 0x50
+move  a0,a2             # first IV, init 0
+.L:   lw    v0,0x2c(s1)      # parent->extra
+      lw    v1,8(v0)         # ->field_8, re-loaded every iteration
+      lw    v0,0x2c(s2)      # task->extra
+      lw    v0,8(v0)
+      addu  v1,v1,a1         # source      = base + (9 + i) * 0x50
+      addiu a1,a1,0x50
+      addu  v0,v0,a0         # destination = base + i * 0x50
+      ...
+      addiu a0,a0,0x50       # in the loop's delay slot
+```
+
+Writing the source slot as a pointer sum, `...->field_8 + i + 9`, compiles to
+**one** IV with `0x2D0` added in the body instead, and moves the rest of the
+allocation with it — 88.893%, `regs=26`:
+
+```
+move  a1,a2             # the single IV
+.L:   addu  v1,v1,a1
+      addiu v1,v1,0x2d0 # the 9 stays a run-time add
+```
+
+Writing it as a subscript, `&((Actor213000Coord *)...->field_8)[i + 9]`, restores
+the target's second IV and gives 100.000%. The `.loop` dump says it directly —
+pointer sum:
+
+```
+Insn 38: giv reg 93 src reg 86 benefit 6 ... mult 80 add 0
+giv at 38 reduced to (reg:SI 122)
+```
+
+subscript:
+
+```
+Insn 38: giv reg 93 src reg 86 benefit 6 ... mult 80 add 0
+Insn 40: giv reg 94 src reg 86 benefit 8 ... mult 80 add 720
+giv at 40 reduced to (reg:SI 122)
+giv at 38 reduced to (reg:SI 123)
+```
+
+**Why.** The front end multiplies the *whole* subscript expression, so `p[i + 9]`
+expands to `(plus p (mult (plus i 9) 80))` and `strength_reduce` sees a giv with
+`add 720`; the reduced register is initialised to `9 * 80`. `p + i + 9` scales
+the 9 in the front end instead, leaving `(plus (plus p 720) (mult i 80))`, which
+is the same giv as `p[i]` plus an `addiu` in the body. It matters here because
+the base is re-loaded each iteration rather than loop-invariant, so the `720` can
+never be hoisted onto it.
+
+**Rule.** When the target carries two loop registers stepping by the same stride
+and one of them starts at a non-zero constant, that constant belongs to an index
+*expression*, not to a pointer sum: write the access as `p[i + k]`, not
+`p + i + k`. This is the same `simplify_giv_expr` territory as the `arr[i]` vs
+scalar-offset entry above, one level in: there the choice was index vs offset,
+here it is subscript-with-a-sum vs pointer-sum.
+
+This function needed a second, unrelated reorder. With the m2c statement order
+(`obj->field_1C = ...; t = obj->field_C | 0x80; obj->field_C = t; obj->field_20 = ...`)
+sched1 hoists the `lhu obj->field_C` above the preceding `sw obj->field_1C`,
+which leaves local-alloc free to tie the `ori` result to the load's register and
+costs `regs=8` at 95.200%. Moving the `field_20` copy up so the
+read-modify-write is the **last** of the three statements removes the hoist, the
+tie and the `regs` penalty. The target's emitted order — `lw/sw field_1C`,
+`lhu field_C`, `lw field_20`, `ori`, `sh`, `sw field_20` — is sched2's
+interleaving of that source order, not the source order itself, so it cannot be
+read back as the original statement sequence.
+
+Inputs: `base.i` (95.200%) SHA256
+`0b5d998a70f16cce9ed4edd6269af0021bb7ca10c0353f18aec1f112d2816167`;
+`base_2.i` (100.000%, m2c statement order moved) SHA256
+`8f32d95e34d5fde385634419de688d0f4f296cb9e45f4c83507be2c1744a16a3`;
+`base_5.i` (88.893%, pointer-sum form) SHA256
+`bc89a4e8cf00f6218b83f67985e3e917846ea1960025f95c88e26bd42a60814d`;
+`base_6.i` (100.000%) SHA256
+`67dd8a42b92ff54eaa9c3ec26712d68d453b7400014bdc1dc53f8fbddee05683`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm. Scratch `nonmatchings/func_actor_213000_8014A35C-vacuum`.

@@ -32,7 +32,48 @@ INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000
 
 INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A2C4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A35C);
+void func_actor_213000_8014A35C(Task* task)
+{
+    Task*             parent;
+    TmdObject*        obj;
+    TmdObject*        parentObj;
+    Actor213000Coord* coords;
+    Actor213000Coord* root;
+    s32               i;
+    u16               flags;
+
+    parent    = task->spawnArg2;
+    obj       = task->extra;
+    parentObj = parent->extra;
+    for (i = 0; i < 3; i++) {
+        coords           = &((Actor213000Coord*)((TmdObject*)parent->extra)->field_8)[i + 9];
+        root             = &((Actor213000Coord*)((TmdObject*)task->extra)->field_8)[i];
+        root->sub        = (GsCOORDINATE2*)coords;
+        root->coord.t[0] = 0;
+        root->coord.t[1] = 0;
+        root->coord.t[2] = 0;
+        root->rot.vx     = 0;
+        root->rot.vy     = 0;
+        root->rot.vz     = 0;
+        root->flg        = 0;
+    }
+    obj->field_1C = parentObj->field_1C;
+    obj->field_20 = parentObj->field_20;
+    flags         = obj->field_C | 0x80;
+    obj->field_C  = flags;
+    if (!(parentObj->field_C & 0x80)) {
+        obj->field_C = flags & 0xFF7F;
+    }
+    if (!(parentObj->field_C & 4)) {
+        obj->field_C &= 0xFFFB;
+        Tmd_AllocBuffers(obj);
+    } else {
+        obj->field_C |= 4;
+    }
+    obj->field_E = -4;
+    Task_Reparent(parent, task);
+    task->state += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A488);
 
