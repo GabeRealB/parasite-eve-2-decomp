@@ -116078,3 +116078,53 @@ and `shelter_b3_elevator_hall`, instruction-identical apart from the per-overlay
 ("references its own overlay's code"), and the cheap path is to port the matched
 sibling's C verbatim with the callees swapped. `func_mine_cavern_80180320` went
 in at 100.000% on the first build that way.
+
+## A unit with its own strings *and* a generated jump table: name the strings, blobs before the function
+
+Two independent things go wrong when a matched function's `.s` carried the
+unit's rodata — its literals *and* its jump table — and the unit has further
+rodata as `INCLUDE_RODATA` blobs. `func_mine_cavern_801838F4` shows both.
+
+**The last 4 `regs` penalties are reloc names, not codegen.** With
+`printf("BOMB1\n")` the compiled listing is instruction-for-instruction
+identical to the target and still scores 99.785% (`regs=4`), because the relocs
+read `%hi(.rodata)` / `%hi(.rodata+8)` where the splat target names the symbol:
+`%hi(D_mine_cavern_8017D7E8)`. `dist.py` scores a differing field as a penalty
+unless the *target* row itself contains `.data`/`.rodata`/`.text` — which is why
+the normalizer's `jtbl_*` → `.rodata` rename costs nothing, while a string label
+costs one penalty per `lui`/`addiu`. Writing the strings as named file-scope
+arrays reproduces the target's relocs and takes it to 100.000%:
+
+```c
+const char D_mine_cavern_8017D7E8[8] __attribute__((section(".rodata"))) = "BOMB1\n";
+const char D_mine_cavern_8017D7F0[8] __attribute__((section(".rodata"))) = "BOMB2\n";
+
+    case 0:
+        printf(D_mine_cavern_8017D7E8);
+```
+
+The explicit section attribute is load-bearing (8-byte data falls under the
+small-data threshold and would otherwise be emitted into `.sdata`); the same
+idiom is in `dryfield_dilapidated_house`.
+
+**Ordering does not fall out for free once a generated table is in the unit.**
+GCC emits the constant pool just before the function's `.ent` and emits the jump
+table *inside* the body — the `.rdata` block with `.align 3` follows the
+`j $2 # tablejump_internal1` dispatch, then the case bodies. So in the assembly
+stream both land where the function stands in the source, and every rodata item
+the ROM puts *before* the table has to be declared *before* that function:
+
+```
+unit .rodata, target:  BOMB1  BOMB2  D_...D7F8  RoomsShared80183c10Table  <jump table>
+source order:          arrays, then the two INCLUDE_RODATA lines, then the function
+```
+
+Here the `INCLUDE_RODATA(D_..._8017D7F8)` and `INCLUDE_RODATA(RoomsShared...)`
+lines moved from after the function to before it, and the
+`INCLUDE_RODATA(jtbl_mine_cavern_8017D818)` line went away (the compiler emits
+that table now, so leaving it in duplicates 0xF0 bytes). Declaring the same
+sources after the function instead leaves the table 0x20 bytes early and shifts
+both blobs — a checksum failure with a 100% scratch score. The map is the check:
+`D_mine_cavern_8017D7E8`, `D_mine_cavern_8017D7F0`, `D_mine_cavern_8017D7F8`,
+`RoomsShared80183c10Table` came back at 0x8017D7E8 / 0x8017D7F0 / 0x8017D7F8 /
+0x8017D80C with the unit's `.rodata` still 0x2D8 long.

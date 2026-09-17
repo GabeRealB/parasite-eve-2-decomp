@@ -411,9 +411,81 @@ void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801838F4);
+/// The two cue lines the bomb prints on its first two ticks. They are the run
+/// this function's own assembly file carried at the head of the unit's rodata,
+/// so they are written here, ahead of the two `INCLUDE_RODATA` blobs that
+/// follow them in address order. The section attribute is load-bearing: at 8
+/// bytes these fall under the compiler's small-data threshold and would
+/// otherwise be emitted into `.sdata`, which the linker script does not lay out.
+const char D_mine_cavern_8017D7E8[8] __attribute__((section(".rodata"))) = "BOMB1\n";
+const char D_mine_cavern_8017D7F0[8] __attribute__((section(".rodata"))) = "BOMB2\n";
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", D_mine_cavern_8017D7F8);
+
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", RoomsShared80183c10Table);
+
+/// Fourth state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
+/// dispatches it). It parks the model hidden (`field_C = 0x80`) and walks
+/// `work->field_148` down its 0x3C-step countdown, one case per tick: 0 prints
+/// "BOMB1", drops the model to y = -0x258 and spawns effect 0x01001200; 1
+/// prints "BOMB2" and spawns 0x01000580, parking that effect's own first three
+/// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the hidden bit on the
+/// work block's second object (`objC0`); 9 hands `objC0` to `Gp_UnlinkObj`;
+/// 0x3B advances `Task::state`.
+void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
+{
+    MineCavernWork* work;
+    GpEffWork*      eff;
+    u16             state;
+
+    work = (MineCavernWork*)arg1->idMap;
+
+    ((TmdObject*)arg1->extra)->field_C = 0x80;
+
+    state           = work->field_148;
+    work->field_148 = state + 1;
+
+    switch ((s16)state) {
+        case 0:
+            printf(D_mine_cavern_8017D7E8);
+            ((TmdObject*)arg1->extra)->field_8->coord.t[1] = -0x258;
+            ((TmdObject*)arg1->extra)->field_8->flg        = 0;
+            Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->field_8, 0x01001200, NULL);
+            return;
+
+        case 1:
+            printf(D_mine_cavern_8017D7F0);
+            eff = Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->field_8, 0x01000580, NULL);
+            if (eff != NULL) {
+                eff->field_10 = 0;
+                eff->field_12 = -0xA;
+                eff->field_14 = 0;
+            }
+            return;
+
+        case 2:
+        case 4:
+            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->field_8, 0x01002500, NULL);
+            return;
+
+        case 3:
+        case 5:
+            work->objC0.flags &= 0x7FFF;
+            return;
+
+        case 9:
+            Gp_UnlinkObj(&work->objC0);
+            return;
+
+        case 0x3B:
+            arg1->state++;
+            break;
+
+        default:
+            return;
+    }
+}
 
 void func_mine_cavern_80183A68(Task* arg0)
 {
@@ -469,7 +541,3 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
         ((TmdObject*)task->extra)->field_C = 0;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", RoomsShared80183c10Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", jtbl_mine_cavern_8017D818);
