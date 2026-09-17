@@ -2,6 +2,8 @@
 
 #include "actors/actor_123200.h"
 
+#include "main/tmd.h"
+
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_8013215C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_801324A4);
@@ -62,12 +64,38 @@ INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_801339F0);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_123200/actor_123200", D_actor_123200_80131E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133BA0);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_123200/actor_123200", ActorsShared80135df4Table);
+s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject*       obj;
+    Actor123200Work* work;
 
-INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133E30);
+    obj  = (TmdObject*)task->extra;
+    work = (Actor123200Work*)task->idMap;
+    switch (arg2) {
+        case 0:
+            obj->field_C = 0x80;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 1;
+            break;
+        case 1:
+            obj->field_C = 0;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 1;
+            break;
+        case 2:
+            obj->field_C |= 4;
+            work->field_0 = 0;
+            break;
+        case 3:
+        case 4:
+            obj->field_C  = 0;
+            work->field_0 = 0;
+            obj->field_C |= 4;
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133EDC);

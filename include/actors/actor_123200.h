@@ -3,11 +3,16 @@
 
 #include "common.h"
 
-/// The work block of `actor_123200`'s instances as this check reads it:
+#include "main/task.h"
+
+/// The work block of `actor_123200`'s instances as these two readers see it:
 /// `field_174` is the motion state, `field_4A` the current animation id (low
 /// ten bits), and `field_220` latches the last trigger id reported.
+/// `field_0` is the display mode's recorded state, written by
+/// `func_actor_123200_80133E30`.
 typedef struct Actor123200Work {
-    /* 0x000 */ byte pad_0[0x4A];
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ byte pad_2[0x48];
     /* 0x04A */ u16  field_4A;
     /* 0x04C */ byte pad_4C[0xC];
     /* 0x058 */ u16  field_58;
@@ -22,5 +27,15 @@ typedef struct Actor123200Work {
 /// in state 5, 0x400C0005 while bit 2 of `field_58` is set. Returns 0
 /// otherwise.
 s32 func_actor_123200_80133450(Actor123200Work* arg0);
+
+/// Display handler in the same message-table family as the shared
+/// `ActorsShared80164844` / `ActorsShared8013d268` bodies. `arg2` selects the
+/// mode: 0 hides the display object (`TmdObject.field_C` bit 0x80), 1 clears
+/// `field_C` and so shows it, 2 sets bit 0x4, and 3 and 4 both clear `field_C`
+/// and then set bit 0x4. Modes 0 and 1 reinstate the object's buffers through
+/// `Tmd_AllocBuffers` and restart the work block's `field_0` at 1; modes 2, 3
+/// and 4 restart it at 0. `arg1` is unused; it exists because the dispatch
+/// passes three arguments.
+s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2);
 
 #endif
