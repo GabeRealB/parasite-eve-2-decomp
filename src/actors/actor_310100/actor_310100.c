@@ -16,6 +16,7 @@ extern u32      D_actor_310100_80179754;
 extern u32      D_actor_310100_80179794;
 extern u32      D_actor_310100_801798B4;
 extern u32      D_actor_310100_801797FC;
+extern s16*     D_actor_310100_8017989C[];
 extern s8       D_8007106B;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -60,7 +61,52 @@ s32 func_actor_310100_80161E24(Task* task)
     return work->slots[1].field_10 & 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_80161F80);
+void func_actor_310100_80161F80(Task* task)
+{
+    GpAnimArg        arg;
+    Actor310100Work* work;
+    Actor310100Work* anim;
+    Actor310100Work* msg;
+    Task*            player;
+    u16              seed;
+    u16              ok;
+    s32              i;
+
+    work = (Actor310100Work*)task->idMap;
+    if (func_actor_310100_80161E24(task) & 0xFFFF) {
+        seed = D_actor_310100_8017989C[work->field_4F8][work->field_4FA];
+        if (D_actor_310100_8017989C[work->field_4F8][work->field_4FA] >= 0) {
+            anim = (Actor310100Work*)task->idMap;
+            i    = 1;
+            do {
+                func_800B4114(&anim->anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
+                i += 1;
+            } while ((u32)(i & 0xFFFF) < 0x13U);
+            work->field_4FA = seed;
+        }
+    }
+    player = ((Actor310100Work*)task->idMap)->field_4E8;
+    if (player == NULL || Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+        ok = 1;
+    } else {
+        ok = 0;
+    }
+    if (ok) {
+        seed = D_actor_310100_8017989C[0][work->field_4F6];
+        if (D_actor_310100_8017989C[0][work->field_4F6] >= 0) {
+            msg = (Actor310100Work*)task->idMap;
+            if (msg->field_4E8 != NULL) {
+                arg.field_0  = &D_actor_310100_801797FC;
+                arg.field_4  = seed;
+                arg.field_8  = 1;
+                arg.field_C  = 0xA;
+                arg.field_10 = 1;
+                Gp_DispatchMsg(msg->field_4E8, 0x3F4, (s32)&arg, 0);
+            }
+            work->field_4F6 = seed;
+        }
+    }
+}
 
 /// Spawn tick of the actor task, registered as its task state handler: states 1
 /// and 2 — and state 0, which first parks `D_8007106B` at 2 — only step the
