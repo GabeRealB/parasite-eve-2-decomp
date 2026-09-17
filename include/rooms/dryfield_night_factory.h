@@ -3,7 +3,9 @@
 
 #include "common.h"
 
+#include "gameplay/D4.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Cutscene work block the room's factory task allocates as 0xC zeroed bytes in
 /// its state 0 and parks at `Task::idMap` (0x1C) -- that slot is *not* a
@@ -59,6 +61,37 @@ typedef struct NightFactoryWork {
     /* 0x18 */ byte pad_18[0x40];
 } NightFactoryWork;
 STATIC_ASSERT_SIZEOF(NightFactoryWork, 0x58);
+
+/// Work block `func_dryfield_night_factory_8018182C` allocates (Mem_Calloc(0x10))
+/// and hangs off the `Task::idMap` slot (0x1C) -- that slot is *not* a
+/// `TaskIdMap` here, it is the block the task's init state allocated. Reach it
+/// with `(NightFactoryScriptWork*)task->idMap`.
+///
+/// `field_C` is the cap step `func_dryfield_night_factory_80180DE8` switches on
+/// (0..4) to pick the sound, the game flag and the cap slot for the step, and
+/// `field_8` is the short the prompt state arms with 0xA.
+typedef struct NightFactoryScriptWork {
+    /* 0x0 */ byte pad_0[0x8];
+    /* 0x8 */ s16  field_8;
+    /* 0xA */ s16  field_A;
+    /* 0xC */ s16  field_C;
+    /* 0xE */ byte pad_E[0x2];
+} NightFactoryScriptWork;
+STATIC_ASSERT_SIZEOF(NightFactoryScriptWork, 0x10);
+
+/// The single-entry `TaskDesc` table the room's script task spawns its child
+/// task from: the shared state machine `RoomsShared8017f280`.
+extern TaskDesc D_dryfield_night_factory_80186E94[];
+/// The script's message table, parked in `Task::field_24`.
+extern GpMsgEntry D_dryfield_night_factory_80186EAC[];
+/// The room's 0xFFFF-terminated hotspot table.
+extern RoomHotspot D_dryfield_night_factory_80186EBC[];
+
+/// Task callback of the descriptor at `D_dryfield_night_factory_80186E94`:
+/// allocates the script work block, spawns the room's child task, picks the
+/// global mode byte from game flag 0x48, steps the task on one state and clears
+/// the room's hotspot list.
+void func_dryfield_night_factory_8018182C(Task* task);
 
 /// Runs the factory model for the bit of game flag 0x49 the task last saw: bit
 /// 1 picks the first handler pair and bit 0 the second of the pair, the frame

@@ -1372,6 +1372,27 @@ Example: `Actor01900_Fn09BE8` — phi local 99.765% `regs=4`, else-if stores
 100%. Related to the `||` / `return K` delay-slot case, but the leftover
 is a store phi rather than a return.
 
+Why the register changes, from `tools/trace_gcc.py` on such a phi
+(`func_dryfield_night_factory_8018182C`, 67 insns, `regs=4` until the
+stores went into the arms): the hoisted arm def is born while the
+compare's register is still live, because the compare's `REG_DEAD` note
+sits on the branch *after* the hoisted def. `global_conflicts` then marks
+that register against the value's allocno — the tracer reports
+`hard_conflicts: [2, 29]` (`$v0`, `$sp`) — so `find_reg` drops `$v0` from
+`used1` in **both** passes and the value lands in `$v1`. Note also that
+`find_reg`'s pass 0 allows only registers already in `regs_used_so_far`
+("we never allocate a register for the first time in pass 0"), so an
+earlier, higher-priority allocno — here a loop giv, `priority 54000` —
+takes `$v1` first and the value reuses it there. Keep the defs in the
+arms and both the conflict and the reuse disappear.
+
+The `cond ? A : B` spelling is no help: it expands to the same two
+arm-local defs and gets the same `jump_optimize` hoist. A cheap way to
+test such shape hypotheses without spending scratch builds is to write a
+five-line standalone `.c` that reproduces the construct and run
+`dump.sh` on it, then diff `.rtl` against `.jump`; the transformation
+shows up there in isolation.
+
 Second example, `func_actor_356100_8016A834` (actors): m2c's
 `var_v0 = 0x15; if (field_40 > 0) { var_v0 = 4; if (field_B3A <= 0) var_v0 = 0x11; }`
 scored 99.636% with `regs=4` — only the three `li` and the `sh` differed,
