@@ -3816,6 +3816,19 @@ So the data's declaration and the variable/merge structure are both irrelevant
 here - only the pre-shared single call reproduces `lui $v0`. Do not chase the
 declaration; write the second call and let `jump.c` cross-jump the tails.
 
+`func_dryfield_night_motel_room_5_8017D9A4` is the three-arm instance of the
+same rule, and it shows how the *case order* follows from the merge. Its arms
+are 3/8 and 4/9 (both `Room_Draw20(&p, 1, 0x200)`) and 2/7 (`&p, 1, 0x240`), and
+the ROM lays them out 3/8, 2/7, 4/9 - neither numeric order nor table order.
+Cross-jumping keeps the *later* arm's tail, so the surviving copy is what fixes
+the layout: writing the `case` list in the ROM's body order (3, 8, 2, 7, 4, 9)
+matched in one build. Tails that match to different depths put two labels inside
+the surviving arm's tail - 3/8's `li a1,1` / `li a2,0x200` / `jal` matches all
+three insns of 4/9's tail and jumps to its first, while 2/7 shares only the
+`jal` and jumps to a label on that one insn, entering the merged region
+mid-way. A `j` from an earlier arm into the *middle* of a later arm's tail is
+that depth difference, not a source `goto`.
+
 ## A `nop` in a `jal`'s delay slot is the tell that the call block is a cross-jump head
 
 `func_mine_forked_tunnel_8017D5E8` picks a `RoomPlacement` and hands it to
