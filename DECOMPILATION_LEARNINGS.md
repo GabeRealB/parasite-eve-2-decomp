@@ -120286,3 +120286,125 @@ Inputs: `base_6.i` `7e6d6865ef08636085bdd56b1ffc8fc85168c5e26c3c8e87f2d075dc0b62
 case-local `state`). Overlay also needs the rodata cut moved
 (`overlays.toml`: the `0xD8` run from `_7` to `_8`) plus a 4-byte pad const,
 since the compiler-generated tables must start and end their unit's `.rodata`.
+## Which pseudo gets which saved register: read the two numbers in `.lreg`
+
+`func_dryfield_saloon_g_r_8017DA70` (rooms, unmatched, best 98.765%) is a
+worked example of a register-assignment mismatch that no amount of source
+rearranging fixes, and the reason is visible in one line of the `.lreg` header.
+`global.c`'s `allocno_compare` ranks allocnos by
+
+```
+pri = floor_log2 (REG_N_REFS) * REG_N_REFS / REG_LIVE_LENGTH
+```
+
+and both numbers are printed verbatim by `flow.c`:
+
+```
+Register 83 used 14 times across 45 insns; crosses 2 calls; GR_REGS or none.
+```
+
+`find_reg` then walks `reg_alloc_order` ascending, so **priority order is
+allocation order**: here `flags` (14/35 -> 1.20), `vec` (14/40 -> 1.05) and the
+counter `i` (14/45 -> 0.93) get $s0/$s1/$s2, and the target wants `i` second.
+
+Two properties are worth knowing before touching the C:
+
+* **`REG_N_REFS` is loop-depth weighted and the depth starts at 1**, not 0
+  (`flow.c`: `for (insn = f, i = -1, prev_code = JUMP_INSN, depth = 1; ...)`;
+  `REG_N_REFS (regno) += loop_depth`, and `basic_block_loop_depth[bnum]` feeds
+  it). A use at top level counts 1, a use inside one loop counts 2, and a set
+  inside a loop counts 2 as well. That is why a two-loop counter that is set
+  twice, incremented twice and tested twice reports exactly 14 and not 7.
+  `floor_log2` makes the ratio *step*: 14 refs -> 42/live, 16 refs -> 64/live.
+  Adding one top-level use of a 14-ref variable makes it 15 and *lowers* its
+  priority (45/live < 42/live would be wrong - check the numbers, they do move
+  the wrong way across the boundary), so aim for the power of two.
+* **A tie is a win.** `allocno_compare` breaks equal ratios with `v1 - v2`, the
+  allocno number, and allocnos are numbered in pseudo order. Two variables that
+  both sit at 41 live insns allocate in pseudo order, so making `i`'s live range
+  one insn *shorter* than `vec`'s can be unnecessary - equal is enough.
+
+Live length is `flow.c`'s count of insns where the register is live, so it moves
+with the *position of the definition*, not with the function's total size:
+moving one init statement 4 instructions later in the prologue took `live_i`
+from 45 to 41 while every other variable moved by one. That is the only knob
+that reliably reorders the saved registers here, and it costs the statement
+order in the emitted prologue (next section).
+
+## For equal scheduler priorities the emitted order *is* the RTL order
+
+`func_dryfield_saloon_g_r_8017DA70` needs `sw s1,0x14(sp)` + `move s1,$zero`
+scheduled ahead of two `lui`/`addiu` pointer materialisations. `sched.c`'s
+`rank_for_schedule` sorts the ready list by `INSN_PRIORITY`, then by dependence
+class against `last_scheduled_insn`, and finally by `INSN_LUID (tmp) -
+INSN_LUID (tmp2)` - the original insn order, explicitly "so that we make the
+sort stable". `priority ()` gives an insn `1 + max (priority (dependent))`, so a
+`lui`/`addiu` pair is *structurally one higher* than a flat `i = 0` whose only
+users are in later blocks:
+
+```
+lui   v0,%hi(D_...)        ; priority 2   (chains to the addiu)
+addiu s2,v0,%lo(D_...)     ; priority 1
+move  s1,$zero             ; priority 1   -> tie, LUID keeps it last
+```
+
+Two consequences:
+
+* Reordering the C statements is the *only* lever on this, because it moves the
+  LUIDs. Writing the counter init last in the C (`n = 6; vec = ...; flags = ...;
+  i = 0;`) buys the live-range tie that fixes the allocation, and then the pair
+  can never be hoisted - the two requirements are in direct conflict.
+* An insn only outranks the pair if its chain is longer. Giving the counter a
+  use that survives into a *later* block does it (a second-loop or tail use of
+  the counter lifted `move s1` above the `lui` and the pair came out first,
+  exactly as the target has it) - but the same use changes the block's code.
+  `SOFT_TOUCH_REG`/`SOFT_USE_REG` on the counter moved the allocator numbers
+  (`i` to 16 refs / 60 live) without hoisting the pair, because the value is
+  killed by the second loop's `i = 6` before the tail: the chain breaks at the
+  redefinition. Do not reach for them first.
+
+## A symbol+offset address stays a constant unless `loop.c` has a base register
+
+"Fused const, `lb` vs `lh`" in CLAUDE.md covers `%lo` folding; this is the
+opposite case. The same C statement
+
+```c
+vec = D_dryfield_saloon_g_r_8017ECE4 + 6;
+```
+
+emits two instructions when the destination is a *fresh* variable and three
+when the destination is the variable that already walked the first loop:
+
+```
+lui   v0,%hi(D_...ECE4+0x30)     ; 2 insns: the whole address folds
+addiu s2,v0,%lo(D_...ECE4+0x30)
+```
+```
+lui   v0,%hi(D_...ECE4)          ; 3 insns: symbol into a reg, offset added
+addiu v0,v0,%lo(D_...ECE4)
+addiu s2,v0,0x30
+```
+
+The three-instruction form needs a register equivalent to `&D_...ECE4` at that
+point, and the only thing that creates one is `loop.c`: when a basic induction
+variable is live out of a loop it emits the IV's exit value as
+`high(sym)` / `lo_sum(sym)` / `plus(base, const)` right after
+`NOTE_INSN_LOOP_END` (visible in `.loop`), and `cse2` then folds the C's
+constant address into that register plus offset. **It only does so when one
+pseudo walks both loops** - one C variable re-assigned between them. Splitting
+the second loop's walker into its own variable drops its `n_refs` from 14 to 7
+(which is what fixes the allocation above) and the base disappears with it, so
+the init folds back to two instructions. `vec2 = vec` restores the base but the
+copy coalesces into an already-correct register and the init is deleted;
+`delete: 3`.
+
+Reading the device: `.lreg` shows the shape directly, `(set (reg/v:SI 84)
+(plus:SI (reg:SI 136) (const_int 48)))` versus a `lo_sum` of
+`(const (plus (symbol_ref) (const_int 48)))`, and `loop.c`'s contribution is
+two insns with uids far above their neighbours.
+
+Inputs: scratch `nonmatchings/func_dryfield_saloon_g_r_8017DA70-vacuum`,
+`base_1.c` 97.415% (`regs=22`), `base_7.c` 98.654% (`delete=1`), `base_9.c`
+98.519% (`reorder=2`, every other penalty zero), `base_10.c` 90.437%
+(`insert=7`). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
