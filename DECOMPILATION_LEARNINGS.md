@@ -125181,3 +125181,52 @@ proof at a constant offset. It is the `nonscalar` flag, and it takes out
 unrelated bases too. The sibling `func_actor_323000_80164A54` keeps the
 one-load shape without a local only because nothing is stored between its
 dispatch and its `msg->mode` read.
+
+## Two identical `case` bodies are merged after reload into one copy that the earlier case `j`s into (func_actor_113000_80131E30, 2026-09-17)
+
+The actor texture-upload state switches on a step counter; steps 1 and 2 differ
+only in which image record they post, so their bodies are the same three
+statements. The target has step 2's body sitting directly in front of the `jal`,
+the shared tail after it, and step 1's body ending in a `j` into that tail
+rather than falling through:
+
+```
+.Lstep1:
+    ...
+    bgez   $v0, .Lend
+    lui    $a1, %hi(img1)
+    j      .Ltail                 /* case 1 does not fall through */
+    addiu  $a1, $a1, %lo(img1)
+.Lstep2:
+    ...
+    bgez   $v0, .Lend
+    lui    $a1, %hi(img2)
+    addiu  $a1, $a1, %lo(img2)    /* case 2 falls into .Ltail */
+.Ltail:
+    jal    Gp_LoadActorImage
+```
+
+GCC reaches that shape from *duplicated source*, not from a shared helper and not
+from a source-level fallthrough: both arms are written out in full and the
+compiler merges the code they share. In 2.8.1 that is cross-jumping --
+`jump_optimize (insns, 1, 1, 0)` in `toplev.c`, i.e. the post-reload `jump2`
+pass, whose `find_cross_jump` / `do_cross_jump` in `jump.c` do the merge -- so
+the merge is *not* visible in `.flow` / `.cse` / `.greg` dumps and the `j` only
+appears from `.sched2` / `.jump2` on. Factoring the shared tail into a helper,
+or letting the earlier case fall into the later one, instead changes the block
+graph and the branch count; m2c's rendering of the same function (a `goto` into
+the tail from a case that `return`s) scores 59.030% with `insert=9 delete=15`.
+
+This is one of a family: `func_actor_511000_80132048` and
+`func_actor_141000_801335D4` are the same state over their own image trios and
+assemble to the identical instruction sequence, so a sibling's matched source is
+the fastest route to the shape. What differs between them is the work struct:
+the countdown is a `u16` (so `lhu`, then an `sll $v0,16` / `bgez` test for the
+underflow) and the step is an `s16` (so the dispatch loads it with `lh`), while
+the load in the shared tail is `lhu` either way because only the low halfword of
+the increment is stored.
+
+Inputs: scratch `nonmatchings/func_actor_113000_80131E30-vacuum`, `base.c`
+59.030% (m2c), `base_1.c` 100.000%. Preprocessed `base_1.i`
+`05ba8b7e306371bc...`. Assembly `base_1.s` `30f2b1c2cc27fcae...`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
