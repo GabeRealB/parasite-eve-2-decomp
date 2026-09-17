@@ -168,7 +168,48 @@ s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 a
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132F44);
+/// Approach mode the last `func_actor_461800_80132F44` call selected.
+extern s16 D_actor_461800_8014389C;
+
+/// Turns the model to face `target` -- away from it in mode 1 -- and stores the
+/// per-step distance: the planar distance over 60 steps in mode 0, 15 in
+/// mode 1 and 25 otherwise.
+s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
+{
+    GsCOORDINATE2*   coord;
+    Actor461800Work* work;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
+
+    coord                   = ((TmdObject*)task->extra)->field_8;
+    work                    = (Actor461800Work*)task->idMap;
+    D_actor_461800_8014389C = mode;
+    dx                      = target->vx - coord->coord.t[0];
+    dz                      = target->vz - coord->coord.t[2];
+    angle                   = ratan2(dx, dz);
+    work->field_4E6         = angle;
+    if (D_actor_461800_8014389C == 1) {
+        work->field_4E6 = angle + 0x800;
+    }
+    Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+    dist  = SquareRoot0(dx * dx + dz * dz);
+    steps = 0x19;
+    switch (D_actor_461800_8014389C) {
+        case 0:
+            steps = 0x3C;
+            break;
+        case 1:
+            steps = 0xF;
+            break;
+        case 2:
+            break;
+    }
+    work->field_4EA = dist / steps;
+    return 0;
+}
 
 void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
 {

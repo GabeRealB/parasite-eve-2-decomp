@@ -32,7 +32,8 @@ typedef struct Actor461800Work {
     /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_461800_80132D84` before the reseed
     /* 0x4BC */ byte       pad_4BC[0x2A];
     /* 0x4E6 */ s16        field_4E6; // yaw seeding the root coordinate
-    /* 0x4E8 */ byte       pad_4E8[0x4];
+    /* 0x4E8 */ byte       pad_4E8[0x2];
+    /* 0x4EA */ s16        field_4EA; // distance to the target over the step count
     /* 0x4EC */ s16        field_4EC; // reset argument handed to `func_800B4114`
     /* 0x4EE */ byte       pad_4EE[0x2];
     /* 0x4F0 */ Task*      field_4F0; // first helper task the spawn starts
