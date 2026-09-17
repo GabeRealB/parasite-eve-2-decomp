@@ -51,7 +51,53 @@ void func_actor_121300_801326EC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80132818);
+/// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Slot re-arm of the cutscene actor: ticks all nineteen animation slots, and
+/// once every one of slots 1..18 has `field_10` bit 0x100 set ("finished"),
+/// hands them the animation id `D_actor_121300_8013CC18` holds for the current
+/// `field_4A0`, blending it in over ten frames.  A negative table entry leaves
+/// the slots alone and only the return value follows.  The gotos reproduce
+/// retail's block layout.
+s32 func_actor_121300_80132818(Task* arg0)
+{
+    Actor121300Work* work;
+    Actor121300Work* ctx;
+    u16              i;
+    u16              done;
+    u16              anim;
+
+    work = (Actor121300Work*)arg0->idMap;
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    i    = 1;
+    done = 1;
+    for (; i < 0x13; i++) {
+        if (!(work->slots[i].field_10 & 0x100)) {
+            goto fail;
+        }
+    }
+check:
+    if (done) {
+        if (D_actor_121300_8013CC18[work->field_4A0] >= 0) {
+            anim           = D_actor_121300_8013CC18[work->field_4A0];
+            ctx            = (Actor121300Work*)arg0->idMap;
+            ctx->field_4A0 = anim;
+            goto loop;
+        fail:
+            done = 0;
+            goto check;
+        loop:
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&ctx->anim, i, anim, 0, 10);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_121300/actor_121300", D_actor_121300_80131E20);
 

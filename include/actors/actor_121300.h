@@ -37,7 +37,7 @@ typedef struct Actor121300Work {
     /* 0x49A */ s16        field_49A;        // cleared alongside field_498
     /* 0x49C */ byte       pad_49C[0x2];
     /* 0x49E */ s16        field_49E;        // waypoint cursor: index into D_actor_121300_8013CC20
-    /* 0x4A0 */ s16        field_4A0;        // animation slot count, set by func_actor_121300_80133BFC
+    /* 0x4A0 */ u16        field_4A0;        // animation slot count, set by func_actor_121300_80133BFC
     /* 0x4A2 */ u16        field_4A2;        // state of the waypoint walker func_actor_121300_80133730
     /* 0x4A4 */ u16        field_4A4;        // frames spent on the current waypoint
     /* 0x4A6 */ s16        field_4A6;        // waypoint index handed to func_8017F334 / Task_SpawnFromTable
@@ -46,6 +46,12 @@ typedef struct Actor121300Work {
     /* 0x4AE */ byte       pad_4AE[0x2];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
+
+/// Animation-id table `func_actor_121300_80132818` indexes by
+/// `Actor121300Work::field_4A0`, whose `>= 0` guard is what gates the slot
+/// re-arm; the entry it holds is then written back over `field_4A0`.  All four
+/// of its entries are -1, so the re-arm never runs in practice.
+extern s16 D_actor_121300_8013CC18[];
 
 /// One record of the cutscene's waypoint table `D_actor_121300_8013CC20`: a
 /// position plus a fourth halfword `func_actor_121300_80133730` reads as a
