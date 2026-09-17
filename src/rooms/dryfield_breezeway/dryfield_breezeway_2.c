@@ -12,7 +12,77 @@
 #include "rooms/dryfield_breezeway.h"
 #include "rooms/rooms_shared_8017ecb4.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017DEC0);
+/// Main-executable globals with no module header yet: `D_8007216C` is the
+/// 1-based index of the area record the room is showing, the value
+/// `Gp_FindViewIndex` returns and the view gate reads back next to
+/// `GameSession.field_52`; `D_80073BA9` is the equipped-weapon index the slot-3
+/// msg 0x3E8 record is keyed on; and `D_8007218A` picks which of the two
+/// weapon-id bases that record uses.
+extern s8 D_8007216C;
+extern s8 D_8007218A;
+extern u8 D_80073BA9;
+
+/// The one state machine that arms the breezeway, switched on the room task's
+/// `DbwWork.field_C`:
+///
+/// * 0 does nothing but clear the state (the `case 0: break;` the switch needs
+///   to build its dispatch tree -- reaching the tail is what clears it).
+/// * 1 sends the scene's opening sequence: the session's two id bytes as the
+///   0x7DA prompt payload with the 1 the receiver reads as "armed", the room's
+///   reset placement (`D_dryfield_breezeway_80181E28`) with 0x7D4, and the two
+///   `D_dryfield_breezeway_80181E40` placements -- the message-0x3E9 that moves
+///   the player and the 0x3EE that takes the run's third record -- to the slot-3
+///   game task before publishing view 4's area-record index.
+/// * 2 republishes the player's weapon as slot-3 msg 0x3E8, the same record
+///   `Gp_MsgPlayerWeapon` builds: this room's `field_4` 9, `field_8` 1, a
+///   `field_C` of 0xA and everything else zeroed.
+///
+/// Anything else (`field_C` above 2) clears the state and returns, which is how
+/// a finished arm retires. The pointer into the record is what makes the middle
+/// three field stores go through `$a1` rather than the frame pointer: taking the
+/// address as a value first lets CSE rewrite them as base+offset, the same
+/// allocation the original compiler reached.
+void func_dryfield_breezeway_8017DEC0(Task* arg0)
+{
+    DbwMsg7DA msg;
+    DbwMsgBuf buf;
+    GpRec14*  rec;
+    DbwWork*  work;
+    s32       state;
+    s32       id;
+
+    work  = (DbwWork*)arg0->idMap;
+    state = work->field_C;
+
+    switch (state) {
+        default:
+            work->field_C = 0;
+            return;
+        case 0:
+            break;
+        case 1:
+            msg.field_0 = Game_Session->field_7;
+            msg.field_1 = Game_Session->field_6;
+            msg.field_2 = 1;
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_breezeway_80181E40[0], 0);
+            Gp_DispatchMsg(work->field_0, 0x3EE, (s32)&D_dryfield_breezeway_80181E40[1], 0);
+            D_8007216C = Gp_FindViewIndex(4);
+            break;
+        case 2:
+            rec              = &buf.rec;
+            id               = D_80073BA9;
+            buf.rec.field_0  = (D_8007218A == 1) ? id + 1 : id + 0x22;
+            rec->field_4     = 9;
+            rec->field_8     = 1;
+            rec->field_C     = 0xA;
+            buf.rec.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf, 0);
+            break;
+    }
+    work->field_C = 0;
+}
 
 void func_dryfield_breezeway_8017E010(Task* arg0)
 {
@@ -70,12 +140,6 @@ void func_dryfield_breezeway_8017E370(s16 arg0)
     work->field_C = arg0;
     work->field_E = 0;
 }
-
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
-/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `D_8007218A` picks which of the two weapon-id bases that record uses.
-extern s8 D_8007218A;
-extern u8 D_80073BA9;
 
 void func_dryfield_breezeway_8017E390(void)
 {

@@ -35,7 +35,7 @@ typedef struct DbwWork {
     /* 0x00 */ void* field_0;
     /* 0x04 */ void* field_4;
     /* 0x08 */ void* field_8;
-    /* 0x0C */ s16   field_C;
+    /* 0x0C */ u16   field_C;
     /* 0x0E */ s16   field_E;
     /* 0x10 */ byte  pad_10[0x4];
 } DbwWork;
@@ -151,6 +151,14 @@ extern Task* D_dryfield_breezeway_801843C0;
 /// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
 extern DbwPlacement D_dryfield_breezeway_80181E28;
+
+/// The two placements that follow it in the same three-record run, which
+/// `func_dryfield_breezeway_8017DEC0` sends to slot 3 as the second and third
+/// message of its state-1 sequence: `[0]` is the record message 0x3E9 places the
+/// player with, and `[1]` -- the run's third record -- the one message 0x3EE
+/// does. The label the decomp references is the start of this array, so the
+/// third record is reached as `[1]` rather than by a symbol of its own.
+extern DbwPlacement D_dryfield_breezeway_80181E40[];
 
 /// This room's hotspot table, the 0xFFFF-terminated `RoomHotspot` run
 /// `RoomsShared8017ecb4` hit-tests the action cursor against. Its entries are
