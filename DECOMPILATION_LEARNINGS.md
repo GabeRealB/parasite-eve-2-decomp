@@ -117785,3 +117785,96 @@ Inputs: `base_3.i` (100%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_dryfield_night_water_hole_8017DE88-vacuum`.
+
+## A jump table for the overlay's *first* code unit needs `rodata_head`, not a `rodata` cut (func_dryfield_junk_yard_8017D848, 2026-09-17)
+
+**Symptom.** The function reaches 100.00% in the scratch with every penalty zero and
+`blocks=14/14 predicates_match=True calls_match=True`, and the unscoped build reports
+`build/USA/out/SLUS_010.42: OK` — but the overlay's own checksum fails and the built
+image is **4 bytes too long**. Nothing in the failure names rodata.
+
+**Cause.** The overlay's leading rodata is `0x0..0x34`, owned whole by the first code
+unit: the id word, a shared table, a 4-byte name word, then this function's eight-word
+jump table at `0x14`. `rodata_triage.py` reports nothing, because the function is no
+longer unmatched. Dumping the object shows it directly:
+
+```
+$ mips-linux-gnu-objdump -s -j .rodata build/USA/src/rooms/<overlay>/<overlay>.c.o
+ 0000 4a010000 00000000 00000000 00000000
+ 0010 444f4700 00000000 94020000 b4020000   <- table starts at 0x18
+```
+
+GCC emits its jump table at the **end** of the object's `.rodata`, after the
+`INCLUDE_RODATA` `.incbin`s, and pads it with `.align 3`. `0x14` is not 8-aligned, so
+4 bytes of padding land ahead of the table and everything after shifts. A table that
+starts its object's `.rodata` is instead re-aligned by the linker script's `SUBALIGN(4)`,
+which is why the ROM's table sits at the 4-aligned `0x8017D5D4`.
+
+**Fix.** `rodata_head` plus a `rodata` cut at the *same* offset, as the manifest header
+comment prescribes ("a `rodata` cut pairs with a `.text` cut, so it cannot give a table
+to the overlay's *first* function"):
+
+```toml
+dryfield_junk_yard = { room = "Junk yard", rodata_head = "0x14",
+    rodata = [{ start = "0x14", unit = "dryfield_junk_yard" }], shared = [...] }
+```
+
+That emits `[0x0, rodata, dryfield_junk_yard_hdr]` (the header stays as split assembly)
+and `[0x14, .rodata, dryfield_junk_yard/dryfield_junk_yard]`, so the unit's `.rodata` is
+the table alone at offset 0. The three now-stale `INCLUDE_RODATA` lines move out of the
+unit's `.c` — delete them; the split regenerates the same bytes under `_hdr` and the
+matched bodies in that file are untouched. Note the generator supports the cut at
+exactly `head` on purpose ("A cut at exactly `head` renames this block instead of adding
+a second subsegment at the same offset"), which is what makes the first unit keep its
+name. No `units` cut is needed because the function stays in the unit it was in.
+
+Scratch `nonmatchings/func_dryfield_junk_yard_8017D848-vacuum`. Inputs: `base_3.i`
+SHA256 `3000f3c1e5ac8884446e0eafd26ec8557577a78b53e17a1f56d9b606bd530649` (0
+differences), source `base_3.c` SHA256
+`86c38e21ddb576b24d524dcd86740eaa6796cf490711e665c6402c1f16a45190`; `target.s`
+SHA256 `c285d8d8afd766b1edb7973b59f31808b8c3bd207eabe1c35ce559de1dee7964`.
+
+## Which tails jump2 merges is decided by *which jumps share the label*, not by how similar the bodies are (func_dryfield_junk_yard_8017D848, 2026-09-17)
+
+A switch whose five ordinary cases all end `task->state = task->state + 1; return;` has
+one increment block in the ROM, reached by `j` from cases 0, 3 and 5 and by fall-through
+from case 6's dispatch test. Two spellings of the same program merge differently:
+
+```c
+/* base_2, 95.639% branch=2 delete=3, 80 insns: case 3's tail is eaten */
+case 3: Gp_DispatchMsg(...); goto inc;
+...
+case 6: if (Gp_DispatchMsg(...) != 0) return;
+inc:    task->state = task->state + 1; return;
+```
+
+```c
+/* base_3, 100.000%: every case keeps its own call */
+case 3: Gp_DispatchMsg(...); task->state = task->state + 1; return;
+...
+case 6: if (Gp_DispatchMsg(...) != 0) return;
+        task->state = task->state + 1; return;
+```
+
+**Why.** jump2 (`jump_optimize (insns, 1, 1, 0)`) cross-jumps a simple jump only against
+other jumps to the same label (`jump_chain`, `minimum = 2`): the walk goes backwards
+pairwise from the two jumps and stops at the first differing insn, then deletes stream 1
+from there and retargets its jump.
+
+With `goto inc` the only jumps to `inc` are cases 0, 3 and 5, whose tails are
+`[a3 = 0][jal Gp_DispatchMsg]`. Case 3 therefore pairs with case 5, the walk matches
+those **two** insns, `minimum` reaches 0, and `jal` is deleted from case 3 — 3
+instructions short, `blocks=15/14`.
+
+Written out per case, every case's `return` jumps to the *epilogue* label instead, so
+case 3 pairs with case 6, whose stream above the `lw` is `[bnez v0, epilogue]`. The walk
+still matches `[sw][addiu][lw]` and then hits `jal Gp_DispatchMsg` against a conditional
+branch — `GET_CODE` differ — so it stops *below* the call. Each case keeps its own `jal`
+and the merge produces exactly the ROM's three new labels: the increment block, the
+`bnez` test shared with case 1, and the `a2 = 0 / jal / a3 = a2` dispatch shared with
+case 4. Read the `.jump` / `.jump2` pair to see it: nine jumps to the epilogue label in
+`.jump`, three in `.jump2`, and three `code_label`s that `.jump2` created.
+
+Rule: to keep an arm's call site separate, give the arms different tails (`return`, not a
+shared `goto` label) so they enter the jump chain through a different partner. Rewriting
+the arms' bodies is not what changes the merge — which jumps point where is.
