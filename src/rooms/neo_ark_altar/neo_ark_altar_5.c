@@ -1,8 +1,10 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
@@ -18,14 +20,63 @@ extern u8 D_8007216D;
 
 extern NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
-extern void func_neo_ark_altar_8017E148(void);
-void        func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
+extern s16 D_neo_ark_altar_801800AC;
+extern s16 D_neo_ark_altar_801800AE;
+extern s16 D_neo_ark_altar_801800B0[];
+
+void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DC40);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DF0C);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E148);
+/// Altar state 0: gates the wall sprites of the current view's record on game
+/// flag 0xD9 and resets the altar's work area. The switch state written to
+/// `D_neo_ark_altar_801800AE` is 6 while the flag is clear, 0 otherwise; the
+/// six sprite commands reached through `rec[3]` / `rec[6]` / `rec[4]` are
+/// skipped (1) or linked (0) to match, and the 17 halfwords at
+/// `D_neo_ark_altar_801800B0` are cleared for `func_neo_ark_altar_8017E260`.
+void func_neo_ark_altar_8017E148(void)
+{
+    GameSessionFrom4* sess;
+    GpSprtRec*        rec;
+    GpSprtCmd*        cmd;
+    s32               i;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    rec  = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
+    if (GameFlag_GetNibble(0xD9) == 0) {
+        cmd                      = rec[3].field_4;
+        cmd[1].field_4           = 1;
+        cmd                      = rec[6].field_4;
+        cmd[1].field_4           = 1;
+        cmd                      = rec[4].field_4;
+        cmd[1].field_4           = 0;
+        cmd[2].field_4           = 1;
+        cmd[3].field_4           = 1;
+        cmd[4].field_4           = 1;
+        cmd[5].field_4           = 1;
+        cmd[6].field_4           = 1;
+        D_neo_ark_altar_801800AE = 6;
+    } else {
+        cmd                      = rec[3].field_4;
+        cmd[1].field_4           = 0;
+        cmd                      = rec[6].field_4;
+        cmd[1].field_4           = 0;
+        cmd                      = rec[4].field_4;
+        cmd[1].field_4           = 1;
+        cmd[2].field_4           = 1;
+        cmd[3].field_4           = 1;
+        cmd[4].field_4           = 1;
+        cmd[5].field_4           = 1;
+        cmd[6].field_4           = 0;
+        D_neo_ark_altar_801800AE = 0;
+    }
+    D_neo_ark_altar_801800AC = 0;
+    for (i = 0x10; i >= 0; i--) {
+        D_neo_ark_altar_801800B0[i] = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E260);
 

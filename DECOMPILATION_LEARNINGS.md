@@ -116330,3 +116330,62 @@ Inputs: `base_2.i` (95.902%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_neo_ark_altar_8017E92C-vacuum`.
+
+## One variable read into the same pointer is what keeps a repeated load off `$v0` (func_neo_ark_altar_8017E148, 2026-09-17)
+
+`func_neo_ark_altar_8017E148` reaches six sprite-command pointers through one
+view record -- `rec[3]`, `rec[6]`, `rec[4]` -- and stores a flag byte at `+0xC`
+of each; `rec[4]`'s pointer then takes five more stores at `+0x14 … +0x34`. The
+target loads all six into `$v1` and materialises the flag `1` in `$v0`. m2c's
+shape -- an inline `M2C_FIELD` for the first two, `temp_v1` / `temp_v1_2` for the
+rest -- built 99.714%, `regs=4`, with *only* the else arm's first two loads
+wrong: they took `$v0`, the same register the arm's constant lives in.
+
+**Cause, from the tracer.** With six distinct temporaries, each load is a
+quantity whose whole live range sits in one basic block, so `local_alloc` owns
+it, and `find_free_reg` returns the first suitable register in
+`REG_ALLOC_ORDER` -- `$v0` whenever nothing is marked live over that range yet:
+
+```
+local b2 q3 [117]: refs=6 span=10 priority=12000 -> $v0     /* the constant 1 */
+local b2 q0 [115]: refs=2 span=2  priority=10000 -> $v0     /* first load  */
+local b2 q1 [116]: refs=2 span=2  priority=10000 -> $v0     /* second load */
+local b2 q2 [84]:  refs=7 span=14 priority=10000 -> $v1     /* third load */
+```
+
+The constant's range spans the arm, so the third load must avoid `$v0`; the two
+before it do not overlap it and take `$v0` unopposed. The target's answer is that
+the *whole* function reads through one variable, as the matched room bodies do
+(`func_dryfield_night_motel_balcony_8017E4B8` writes `cmd = rec[16].field_4;
+cmd[2].field_4 = 0;` five times over). One name is one pseudo, and a pseudo with
+a definition in *both* arms is not block-local at all -- it goes to
+`global_alloc`, which homes every one of its ranges in a single register and
+cannot pick `$v0`, because the branch constant has it over an overlapping range.
+
+```c
+    rec = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
+    if (GameFlag_GetNibble(0xD9) == 0) {
+        cmd            = rec[3].field_4;
+        cmd[1].field_4 = 1;
+        cmd            = rec[6].field_4;
+        cmd[1].field_4 = 1;
+        cmd            = rec[4].field_4;
+        cmd[1].field_4 = 0;
+        cmd[2].field_4 = 1;
+        ...
+```
+
+100.000%, all penalties zero. The tell is a `.lreg` that lists the loads as
+separate "in block N" quantities where the target implies one register, and a
+`.greg` allocating fewer globals than the target's uniformity requires. This is
+"One variable is one pseudo" again, in the direction where the source wants
+*more* reuse than m2c left.
+
+Inputs: `base.i` (96.686%) SHA256
+`bff308b0d8385e4d8a8f221d7e70241262ba2f05eeffacc08cb7df9c251d3b47`, `base_1.i`
+(99.714%) SHA256 `61749fad5e7ca041f6360fdbfce3a4c723bda0b00f9a9bd2c72ad049ca56d650`,
+`base_2.i` (100%) SHA256
+`2212e343af30c214839f6a16f666e9e620d283a501bb014dc7ebb88e92377640`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_neo_ark_altar_8017E148-vacuum`.
