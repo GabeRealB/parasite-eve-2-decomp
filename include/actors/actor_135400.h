@@ -80,6 +80,25 @@ typedef struct Actor135400MainWork {
 } Actor135400MainWork;
 STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the same 4-byte record as `Actor205200Msg7DB` / `Actor342400Msg7DB`, whose
+/// halfword at 0x2 is the only part this overlay's handler reads.
+typedef struct Actor135400Msg7DB {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor135400Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor135400Msg7DB, 0x4);
+
+/// Message 0x7DB handler, listed in the work block's `D_actor_135400_8013A4D0`
+/// after the 0x7D3 / 0x7D4 / 0x7D5 ones. The payload halfword picks one of six
+/// actions against the actor's part-task 2 (`Actor135400MainWork::field_4BC`):
+/// 0 and 1 clear and raise bit 0x80 of that task's model `field_C` -- the drawn
+/// flag -- 2 and 3 set and clear `headAim`, 4 hands the part task a
+/// `spawnArg1` of 1, and 5 sets that to 3 and then clears the flag. Nothing
+/// reads the opcode itself, hence `msgId`.
+s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s32 arg3);
+
 /// The actors' ground shadow (`src/gameplay/3E9C.c`): `arg0` is the point the
 /// quad is centred on, `arg1` its size -- the corner table is scaled by it --
 /// and `arg2` the shade, negative to skip the draw. Declared per overlay, as

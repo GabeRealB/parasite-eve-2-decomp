@@ -41327,6 +41327,41 @@ in the case that owns the if/else *and* in `default` (each followed by
 `return`). Cross-jumping then emits that join stub. `func_shelter_b1_sterilization_room_801813A0`
 went 91% (m2c backward goto) → 95% (post-switch tail) → 100% (duplicated call).
 
+## m2c re-reads the guarded pointer *inside* the shared block, so the tail merges one insn too early
+
+The direction above is only half the defect. m2c also fattens the common tail.
+For a switch whose arms each do
+
+```c
+if (work->field_4BC != NULL) {
+    model = (TmdObject*)work->field_4BC->extra;
+    model->field_C &= 0xFF7F;
+}
+```
+
+m2c's `block_12:` spells the tail as
+`M2C_FIELD(M2C_FIELD(arg0, void **, 0x4BC), void **, 0x2C)` - it re-reads the
+guarded pointer - so the block both arms reach begins at that `lw`, and
+`find_cross_jump` matches one insn further back than the ROM did:
+
+```
+target:  ... beqz v0, end / nop / j tail        tail: lw v1,0x2c(v0) ...
+ours:    ... beqz v0, end / lw v0,0x4bc(a0)     tail: lw v0,0x4bc(a0); lw v1,0x2c(v0) ...
+```
+
+The target's guard has already loaded `$v0` before its `beqz`, so the value the
+tail consumes is the *arm's* load; the shared block starts at the `0x2C` load.
+Symptom is a mid-80s score with `insert` / `delete` / `reorder` penalties and
+one block *fewer* than the target's (14 against 15 here, because the two arms
+end in one shared block instead of two); the m2c temps add `stack=1` on top.
+
+Fix: read the guarded pointer once per arm, write the tail out in full in each
+arm, `break`, and let cross-jumping pick the merge point. Do **not** delete the
+in-block read while keeping the `goto` - that is the direction entry above.
+`func_actor_135400_801328DC` (84.5% → 100% first build) is the example; its
+case 5 additionally re-reads the pointer *after* storing `spawnArg1`, and that
+reload has to stay, because the store is what forces it.
+
 ## Two elements of a global array: derive a second base pointer, don't index
 
 Touching two fixed elements of an extern array with the field at a small

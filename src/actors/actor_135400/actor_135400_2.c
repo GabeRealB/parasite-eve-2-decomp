@@ -78,7 +78,46 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
     return ret;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_801328DC);
+s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s32 arg3)
+{
+    Actor135400MainWork* work;
+    TmdObject*           model;
+
+    work = (Actor135400MainWork*)task->idMap;
+    switch (msg->field_2) {
+        case 0:
+            if (work->field_4BC != NULL) {
+                model           = (TmdObject*)work->field_4BC->extra;
+                model->field_C &= 0xFF7F;
+            }
+            break;
+        case 1:
+            if (work->field_4BC != NULL) {
+                model           = (TmdObject*)work->field_4BC->extra;
+                model->field_C |= 0x80;
+            }
+            break;
+        case 2:
+            work->headAim = 1;
+            break;
+        case 3:
+            work->headAim = 0;
+            break;
+        case 4:
+            if (work->field_4BC != NULL) {
+                work->field_4BC->spawnArg1 = 1;
+            }
+            break;
+        case 5:
+            if (work->field_4BC != NULL) {
+                work->field_4BC->spawnArg1 = 3;
+                model                      = (TmdObject*)work->field_4BC->extra;
+                model->field_C            &= 0xFF7F;
+            }
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_801329B0);
 
