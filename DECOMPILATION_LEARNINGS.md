@@ -116775,3 +116775,59 @@ Inputs: `base_4.i`
 `base_5.i` `dbfce3ce5b2d1c4f4a3be579302bd931e46607e1d1369322807bdeaac1a8ea38`
 (100.000%), `base_6.i`
 `a485234089531794d20d9d3d129b425776d56006ac2a260e5619dab452f9d47a` (97.389%).
+## An absolute value written as an `if` collapses to `negu rd,rs`; the `ABS()` macro keeps `negu rd,rd`
+
+`func_dryfield_main_street_8017E1C0` steps a yaw toward a target and takes two
+absolute values of the delta. Written the obvious way, both negations read the
+*original* register:
+
+```c
+var_v0 = var_v1;
+if (var_v1 < 0) {
+    var_v0 = -var_v0;
+}
+```
+
+```asm
+bgez   v1,.L
+move   v0,v1
+negu   v0,v1        # <- operand is the source, not the copy
+```
+
+but the target negates the copy in place, which is the shape a plain
+`x = -x` would have:
+
+```asm
+bgez   v1,.L
+move   v0,v1
+negu   v0,v0
+```
+
+The substitution happens in `cse`, not in the allocator. `cse_insn` records
+`(set (reg 84) (reg 87))` in the equivalence table, and `canon_reg` — reached
+through `fold_rtx` on the `(neg (reg 84))` operand — rewrites a pseudo to
+`qty_first_reg[reg_qty[..]]`, the *head* of its equivalence class. The head is
+whichever register entered the class first, flipping to the newer one only when
+`make_regs_eqv`'s lifetime test passes
+(`uid_cuid[REGNO_LAST_UID (new)] > uid_cuid[REGNO_LAST_UID (firstr)]`), which it
+does not when the source outlives the copy. Both this function's deltas do, so
+the head stays the source and both operands move.
+
+The fix is to write the absolute value with the project's macro
+(`<psyq/abs.h>`, `#define ABS(x) (((x)>=0)?(x):(-(x)))`):
+
+```c
+var_v0 = ABS(var_v1);
+```
+
+That expands to a `COND_EXPR`, so the set has no register for `cse` to equate
+with the source and the operand stays the copy — 99.87% to 100.00%, with the
+`regs` and the address-shift `branch` penalties going with it. Testing the copy
+in the condition (`if (var_v0 < 0)`) instead changes nothing: the branch's own
+operand is canonicalised the same way, and the score stays put.
+
+Check for the idiom elsewhere before hand-writing the `if`: matched bodies that
+already use `ABS()` (`src/gameplay/1BC.c`, `src/rooms/acropolis_bridge/
+acropolis_bridge_12.c`, `src/rooms/acropolis_helicopter_landing_pad/*`) show
+`move` + self-`negu` in their `.s`. `grep -rn "ABS(" src/` plus the target's
+`negu` operand is the quickest way to tell which form a function wants.
