@@ -1,5 +1,7 @@
 #include "common.h"
 #include "actors/actor_101500.h"
+#include "actors/actors_shared_80134a54.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -12,6 +14,7 @@ extern u8    D_actor_101500_801364F0[];
 extern u8    D_actor_101500_801366DC[];
 extern u8    D_actor_101500_801368B4[];
 extern void* D_80067704[1];
+extern u8    D_801153F4;
 
 void func_actor_101500_801338D0(Actor101500* arg0)
 {
@@ -127,6 +130,109 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500_4", func_actor_101500_80133C10);
+/// Per-frame handler for the death sequence. Scene mode 1 only refreshes the
+/// actor colour and mode 2 hides the model. Otherwise `field_35C` steps: state 0
+/// saves the model matrix and unlinks the actor, 1 runs `ActorsShared80134a54`
+/// and spawns an effect at frame 15, 3 frees the model's buffers once
+/// `field_37E` passes 1 and 4 unlinks on its first frame; 1, 3 and 4 move to
+/// 2 once `field_362` runs out, and 2 destroys the enemy.
+void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
+{
+    VECTOR           pos;
+    Actor101500Work* work;
+    TmdObject*       model;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   sub;
+
+    model = arg1->field_2C;
+    work  = arg1->field_1C;
+    coord = model->field_8;
+    switch (D_801153F4) {
+        case 0:
+            break;
+        case 1:
+            sub = &coord[1];
+            goto update;
+        case 2:
+            model->field_C     = 0x80;
+            arg0->node.field_4 = 1;
+            return;
+    }
+    switch (work->field_35C) {
+        case 0:
+            work->field_368 = 0x1000;
+            work->field_32C = coord->coord;
+            arg0->field_54  = 0;
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(&work->field_1DC);
+            Gp_UnlinkObj(&work->field_244);
+            Gp_UnlinkObj(&work->field_2DC);
+            Gp_SetLightMode((GpObj4C*)arg0, 1);
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xF);
+            work->field_362 = 0;
+            work->field_35C = 1;
+            if (work->field_37E != 0) {
+                model->field_C  = 0x80;
+                work->field_35C = 3;
+            }
+            break;
+        case 1:
+            ActorsShared80134a54((ActorShared80134a54*)arg1);
+            work->field_362++;
+            if (work->field_362 == 10) {
+                model->field_C = 2;
+            }
+            if (work->field_362 == 15) {
+                Gp_SpawnEff(0x600A5, coord, 2, NULL);
+            }
+            if (work->field_362 >= 60) {
+                work->field_35C = 2;
+            }
+            break;
+        case 2:
+            Gp_DestroyEnemy(arg0, (Task*)arg1);
+            return;
+        case 3:
+            if (work->field_37E != 0) {
+                if (work->field_37E >= 2) {
+                    work->field_37E = 0;
+                    Tmd_FreeBuffers(model);
+                    model->field_C |= 4;
+                    func_actor_101500_801338D0(arg1);
+                } else {
+                    work->field_37E++;
+                }
+            }
+            work->field_362++;
+            if (work->field_362 >= 60) {
+                work->field_35C = 2;
+            }
+            break;
+        case 4:
+            if (work->field_362 == 0) {
+                Gp_UnlinkNode(&arg0->node);
+                Gp_UnlinkObj(&work->field_1DC);
+                Gp_UnlinkObj(&work->field_244);
+                Gp_UnlinkObj(&work->field_2DC);
+                Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xF);
+            }
+            work->field_362++;
+            if (work->field_362 >= 61) {
+                work->field_35C = 2;
+            }
+            break;
+    }
+    sub = arg1->field_2C->field_8;
+    sub = &sub[1];
+update:
+    pos.vx = sub->workm.t[0];
+    pos.vy = sub->workm.t[1];
+    pos.vz = sub->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, &pos, 0, 0);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500_4", func_actor_101500_80133EF8);
+
+/// Closes this unit's `.rodata` after the jump table above so
+/// `actors_shared_801344f8`'s rodata starts at 0x80131E8C. Nothing reads it.
+const u32 D_actor_101500_80131E88 = 0;

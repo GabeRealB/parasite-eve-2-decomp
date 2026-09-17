@@ -33,9 +33,9 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
     if (enemy->field_40 <= (D_actor_101500_8013BDDC * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
-            work->field_35A = 4;
-            work->field_256 = -300;
-            work->field_258 = 0;
+            work->field_35A          = 4;
+            work->field_244.field_12 = -300;
+            work->field_244.field_14 = 0;
         }
     } else {
         work->field_35A = 7;
