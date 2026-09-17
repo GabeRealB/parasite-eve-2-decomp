@@ -157,7 +157,31 @@ void func_actor_143000_80133AC0(Actor143000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000_3", func_actor_143000_80133AE8);
+s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
+{
+    s32 result = 0;
+
+    if (p->field_8 != -1) {
+        do {
+            if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
+                if (Mc_SaveData.field_23 == 9) {
+                    func_actor_143000_80133334(p, 0, 0, 0);
+                }
+                p->field_B = 1;
+                if (result == 0) {
+                    result = p->field_8;
+                }
+            } else {
+                if (Mc_SaveData.field_23 == 9) {
+                    func_actor_143000_80133334(p, 0xFF, 0, 0);
+                }
+                p->field_B = 0;
+            }
+            p++;
+        } while (p->field_8 != -1);
+    }
+    return result;
+}
 
 void func_actor_143000_80133C2C(void)
 {
