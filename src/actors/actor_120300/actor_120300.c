@@ -25,7 +25,82 @@ extern TaskDesc ActorsShared80134898Desc;
 
 INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_80131EE0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_80132004);
+/// Spawn tick of a child actor that keeps the model facing the player: state 0
+/// allocates the 0x4E4-byte `Actor120300Work` block, parks it in
+/// `Task::idMap`, points the model's light and colour matrices at the block's
+/// `field_474` / `field_494`, clears `TmdObject::field_C` and anchors the root
+/// coordinate `sub` under part 4 of the spawning task's model
+/// (`Task::spawnArg2->extra`); a failed allocation kills the task instead of
+/// stepping to state 1. The texture page / CLUT row then come from the
+/// placement record at the nested area table's `field_0` list whose id matches
+/// neither 0xFF (end) nor 0x6A (the skip marker). Every tick after that reads
+/// the parent work block's `field_4E0` and primes the colour matrix with the
+/// root coordinate's own translation through `func_800D7A9C`, then replaces
+/// that translation with the parent scale broadcast over all three axes and
+/// folds it in with `ScaleMatrix`.
+void func_actor_120300_80132004(Task* arg0)
+{
+    VECTOR           vec;
+    GsCOORDINATE2*   coord;
+    TaskIdMap*       map;
+    TmdObject*       tmd;
+    GpAreaPlace*     place;
+    s32              scale;
+    s32              kill;
+    s32              killCopy;
+    u16              scaleRaw;
+    TmdObject*       tmd2;
+    Actor120300Work* work;
+    u8               id;
+
+    if (arg0->state == 0) {
+        tmd         = arg0->extra;
+        coord       = tmd->field_8;
+        map         = Mem_Malloc(0x4E4, 0);
+        arg0->idMap = map;
+        if (map == NULL) {
+            kill = 1;
+        } else {
+            work = (Actor120300Work*)map;
+            Mem_Set(map, 0, 0x4E4);
+            coord->sub                         = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8 + 4;
+            ((TmdObject*)arg0->extra)->field_C = 0;
+            Tmd_AllocBuffers(tmd);
+            kill           = 0;
+            tmd->field_1C  = &work->field_474;
+            tmd->field_20  = &work->field_494;
+            arg0->field_24 = &D_actor_120300_80140A44;
+        }
+        killCopy = kill;
+        TOUCH_REG(killCopy);
+        if (killCopy != 0) {
+            Task_Kill(arg0);
+            return;
+        }
+        place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+        id    = place->field_0;
+        while (id != 0xFF) {
+            if (id == 0x6A) {
+                break;
+            }
+            place++;
+            id = place->field_0;
+        }
+        Gp_SetTmdBytes(arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+        arg0->state += 1;
+    }
+    tmd2     = arg0->extra;
+    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->idMap)->field_4E0;
+    vec.vx   = tmd2->field_8->workm.t[0];
+    vec.vy   = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
+    vec.vz   = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    func_800D7A9C(tmd2, &vec, 0, 3);
+    scale  = scaleRaw & 0xFFFF;
+    vec.vz = scale;
+    vec.vy = scale;
+    vec.vx = scale;
+    ScaleMatrix(tmd2->field_20, &vec);
+}
 
 /// Spawn tick of a child actor. State 0 allocates the 0x4E4-byte
 /// `Actor120300Work` block, parks it in `Task::idMap`, points the model's

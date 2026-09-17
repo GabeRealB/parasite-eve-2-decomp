@@ -121074,3 +121074,51 @@ a real block instead of one copy per path, which is what the missing eleven
 instructions were. Distinct from the "shared tail reached by a fall-through" case
 above: nothing here needed an explicit label, only the absence of duplicated
 tails.
+
+## A function that is a sibling plus one block is matched by splicing, not by decompiling (func_actor_120300_80132004, 2026-09-17)
+
+`func_actor_120300_80132004` is `func_actor_120300_801321C8` - the next function
+in the same TU, same `0x38` frame, same `Mem_Malloc`/`Mem_Set`/
+`Tmd_AllocBuffers` prologue, same `func_800D7A9C` + `ScaleMatrix` tail - with one
+constant changed and one block inserted before the state step. m2c's rendering
+of it scored 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`, 113 insns
+against the target's 99). Copying the matched sibling's C body and splicing the
+inserted block in *verbatim from wherever else in the same overlay it is already
+matched* scored 100.000% with every penalty zero on the first build.
+
+```c
+/* from func_actor_120300_801335D8, same file, already matched */
+place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+id    = place->field_0;
+while (id != 0xFF) {
+    if (id == 0x6A) { break; }
+    place++;
+    id = place->field_0;
+}
+Gp_SetTmdBytes(arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+```
+
+Three things came along with the splice that would each have cost a build to
+rediscover: the `(s8*)` cast the `u8`-declared `field_D`/`field_E` need (the
+`lb`-versus-`lbu` trap above), the two-variable `kill` / `killCopy` + `TOUCH_REG`
+pair the NULL test needs, and the loop's `while` + `break` shape instead of
+m2c's `goto`. The only genuine edit was the coordinate part index:
+`GsCOORDINATE2` is 0x50 bytes, so the sibling's `field_8 + 8` (0x280) becomes
+`field_8 + 4` (0x140) here.
+
+**Reading it.** A target whose prologue, epilogue and call sequence are a
+near-exact match for a function the overlay already has is not worth decompiling
+from its own assembly: diff the two `.s` files, and if the difference is a
+constant plus blocks that exist elsewhere in the same file, the splice is a
+one-build match. The corpus's per-function entries are searchable precisely
+because the same blocks recur across an overlay family.
+
+The `lui $v0,%hi(Game_Session)` sitting in this function's `beqz` delay slot at
+`0x801320C0` is not source-visible - it is the first instruction of the
+branch-target block, pulled in because the fall-through is the cold kill path.
+The spliced C reproduces it with no extra statement; the sibling's `nop` at the
+same spot is only its target block having nothing the filler can use.
+
+Inputs: scratch `nonmatchings/func_actor_120300_80132004-vacuum`, `base.c`
+73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`), `base_1.c` 100.000%,
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
