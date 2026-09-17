@@ -120942,4 +120942,55 @@ Inputs: scratch `nonmatchings/func_actor_303600_8016216C-vacuum`. `base.c`
 which settles the other half: the m2c nesting (`case 1` inside the case-0 `if`
 body, `return` where the source breaks) is not load-bearing and the flat switch
 compiles to the same 95 instructions and 17 blocks. Compiler SHA256
+## A pointer tested for NULL and then kept across calls needs two C variables (func_actor_120300_801335D8, 2026-09-17)
+
+`func_actor_120300_801335D8` sat at 99.423% with `branch=1 regs=2 reorder=1` and a
+single diff hunk: the candidate copied the `Mem_Malloc` result into its
+callee-saved home *before* the NULL test and branched on that register, where the
+target branches on the returned `$v0` and only then moves it.
+
+```
+target                              candidate
+jal     Mem_Malloc                  jal     Mem_Malloc
+move    a1,zero                     move    a1,zero
+bnez    v0,50                      move    s2,v0
+sw      v0,0x1c(s3)                 bnez    s2,54
+jal     Task_Kill                   sw      s2,0x1c(s3)
+...                                 ...
+move    s2,v0                       move    a0,s2
+move    a0,s2
+```
+
+One C variable held the result, was tested, and stayed live to the end of the
+function, so its single live range needs a callee-saved register: the allocator
+places the copy at the *definition*, one instruction after the call returns, and
+every later use reads `$s2`. Splitting it the way the matched sibling
+`func_actor_136100_80133A88` is written gives the target shape exactly:
+
+```c
+TaskIdMap* map = Mem_Malloc(0x4E4, 0);
+arg0->idMap    = map;
+if (map == NULL) { Task_Kill(arg0); return; }
+work = (Actor120300Work*)map;      /* long-lived copy, only this one needs $s2 */
+```
+
+`map` then dies at the test (`.greg` shows it as the 3-reference quantity in
+`$v0`), the copy `s2 = v0` is emitted on the fallthrough path, and the score goes
+to 100.000% with every penalty zero.
+
+**Reading it.** A lone `move $sN,$v0` displaced from its use, or a predicate that
+names `$sN` where the target names `$v0`, is this shape, not an allocation tie:
+the tested value and the kept value must be two live ranges. Note this runs the
+opposite way from the "caching a pointer field" entry above - there the *extra*
+local was the bug, here the *missing* second local is. The tell in both cases is
+which register the target's predicate reads.
+
+The same function also carried the m2c pointee-scaling trap documented above:
+`temp_v0 + 0x474` with `temp_v0` an `GpAnimCtx*` (0x14) emitted
+`addiu $v0,$s1,0x5910`. Giving the work block named `MATRIX field_474` /
+`field_494` members, as its `Actor136100Work` twin has, removed it.
+
+Inputs: scratch `nonmatchings/func_actor_120300_801335D8-vacuum`, `base.c`
+82.780% (`branch=3 regs=43 insert=8 delete=11`), `base_1.c` 99.423%
+(`branch=1 regs=2 reorder=1`), `base_2.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
