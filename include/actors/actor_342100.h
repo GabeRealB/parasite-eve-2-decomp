@@ -38,9 +38,21 @@ typedef struct Actor342100Work {
     /* 0x34 */ Task* field_34;
     /* 0x38 */ Task* field_38;
     /* 0x3C */ s16   field_3C;
-    /* 0x3E */ byte  pad_3E[0x6];
+    /* 0x3E */ s16   field_3E;
+    /* 0x40 */ byte  pad_40[0x4];
 } Actor342100Work;
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
+
+/// Payload `func_actor_342100_80162F54` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x3F7: the null-terminated pointer table at
+/// `D_actor_342100_80164900` (three live entries followed by a null word) and
+/// the number of live entries the sender counted in it. Same shape as
+/// `Actor136100Msg3F7`.
+typedef struct Actor342100Msg3F7 {
+    /* 0x0 */ s32* table;
+    /* 0x4 */ s32  count;
+} Actor342100Msg3F7;
+STATIC_ASSERT_SIZEOF(Actor342100Msg3F7, 0x8);
 
 /// Payload `func_actor_342100_80163454` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA and then re-sends verbatim as the 0x7DB the slot-4 task

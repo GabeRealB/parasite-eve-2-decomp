@@ -125442,3 +125442,61 @@ Inputs: `base.i` (95.200%) SHA256
 `67dd8a42b92ff54eaa9c3ec26712d68d453b7400014bdc1dc53f8fbddee05683`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm. Scratch `nonmatchings/func_actor_213000_8014A35C-vacuum`.
+
+## Reading the same field through the same pointer twice is what puts `addu $aN,$sN,$zero` in front of a load — `cse` folds the second load into a copy, and it is already at `.lreg` (func_actor_342100_80162F54, 2026-09-17)
+
+The target loads the first dispatch argument through a copy of the work pointer
+that no single statement seems to need:
+
+```
+    beqz   v0,.Lend
+     move  a3,s0        # a3 = work, in the beqz delay slot
+    ...
+    lw     a0,0x2c(a3)  # the call's first argument, 0x2C past the work block
+    jal    Gp_DispatchMsg
+     move  a3,zero
+```
+
+The m2c seed, which uses its one `work` variable for every access, emits
+`lw a0,0x2c(s0)` and no copy at all, so the hunk reads like an allocation
+difference (`regs=4`, `reorder=3`). What produces it is a *second read of the
+same field* in the C, taken at the top of the case:
+
+```c
+    Actor342100Work* work = (Actor342100Work*)arg0->idMap;
+    ...
+    case 0:
+        msgWork = (Actor342100Work*)arg0->idMap;   /* the copy's origin */
+        ...
+        Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
+```
+
+The dumps name the pass: `.rtl` holds two
+`(mem/s:SI (plus:SI (reg/v:SI 80) (const_int 28)))` loads; `.cse` holds one of
+them plus `(insn 17 (set (reg/v:SI 82) (reg/v:SI 81)))`, and the 0x2C load then
+reads `(plus:SI (reg/v:SI 82) (const_int 44))`. So plain `cse` folded the second
+load into a copy of the first load's pseudo — **not** `reload_cse_regs`, whose
+signature is the opposite one (a load that survives to `.greg` and only becomes
+a copy at `.sched2`, per MATCH_LOOP's table). The distinguishing check is which
+dump first holds the copy, and it costs one `grep` per dump. The copy is a
+user-variable pseudo with a single use before the call, so it crosses no call and
+`global_alloc` homes it in `$a3` while the variable that does cross the calls
+takes `$s0`; `dbr` then puts the copy in the `beqz` delay slot, where it is safe
+on both paths because the load it feeds is after the loop either way.
+
+Two further notes from the same function. The double read is not gratuitous —
+it is the sibling idiom: actor_136100's `func_actor_136100_SendTable` macro
+re-derives `(task)->idMap` into its own `msgWork` for this same message 0x3F7,
+and its matched `func_actor_136100_80134A18` loads its dispatch target through
+`$a3` the same way, so the sibling's *source* hands over this detail along with
+the loop. And the loop itself is that sibling's `n = 0; while (table[n & 0xFFFF]
+!= 0) { n += 1; }`, guarded-scan form: its exit path carries exactly one
+`addiu r,r,-1`, the delay-slot writeback, with no decrement in the C - the
+"Count the trailing `-1`s" entry above, reached here from a working sibling
+rather than from the count.
+
+Inputs: `base.i`
+`cf57ab3907b3575a3bb9ddac182c2a05189d195af9808264352190cff89f8133` (m2c seed,
+84.488%), `base_1.i`
+`7a0284f65936d8b53432a91e92bd19dba70dcb5941e13c5f7fca50e0d6d08a92` (match,
+100.000% on the first build).
