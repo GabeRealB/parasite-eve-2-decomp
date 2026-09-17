@@ -121369,3 +121369,63 @@ Inputs: `base_5.i` (100%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_actor_341700_8016CEB4-vacuum`.
+
+## A load cannot be scheduled above the stores that precede it in the source
+
+`func_actor_341700_8016D130` stores `arg0->field_18` from a reload chain —
+`lw v0,0x2c(s2)` (`Task::extra`), `lw v1,8(v0)` (`TmdObject::field_8`),
+`addiu v1,v1,0xa0`, `sw v1,0x18(s1)` — that the target interleaves starting
+immediately after the three `sw zero,0x2c/0x30/0x34` vector stores. m2c emits
+statements in the order the final asm shows them, which there is *after*
+`node.field_4`, `field_4C`, `field_42` and `field_40`, and the result was 94.4%
+with `insert=2 delete=1` and one extra instruction (`.diagnosis.json` reports
+`instructions=99/98` and an `0:0` opcode delta of 1 — a load-delay `nop`):
+
+```
+lw    v0,0x2c(s2)      # ours: chain runs here, after the four stores
+nop                    # lw delay: `lw v0,8(v0)` reads the register just loaded
+lw    v0,8(v0)
+move  a0,s0
+addiu v0,v0,0xa0
+sw    v0,0x18(s1)
+```
+
+sched1 cannot hoist it: it tracks memory conservatively, so a load that follows
+a store in the RTL has a dependence edge on it and stays below. Moving the
+single statement above `arg0->node.field_4 = 1;` — i.e. directly after the
+vector stores, giving the chain lower instruction uids than the four stores it
+must precede — reproduces the target's interleaving, absorbs the load delay
+into `move a0,s0`, and reaches 100.000%:
+
+```
+lw    v0,0x2c(s2)      # target: chain launches here
+move  a0,s0            # fills the lw delay
+lw    v1,8(v0)
+li    v0,1
+sb    v0,0x14(s1)      # node.field_4, scheduled inside the chain
+```
+
+The general rule: when the target launches a load *before* stores that the
+source lists earlier, no amount of register work helps — the statement must
+move above them. Statement order is not only a tie-breaker for equal-priority
+insns; for memory it is a hard ordering constraint.
+
+Two further notes from the same function, both about m2c's shape rather than the
+scheduler:
+
+* m2c's `s32 sp10; s32 sp14; s32 sp18; ... Gp_UpdateActorColor(arg0, (VECTOR*)&sp10, 0, 0)`
+  keeps only *one* of the three loads and stores. Each local is its own DECL and
+  only `sp10`'s address is taken, so GCC deletes the other two as dead stores.
+  One addressable aggregate — `VECTOR block; block.vx = coord->workm.t[0]; ...` —
+  reproduces the whole three-`lw`/three-`sw` run.
+* The calloc result is named twice on purpose, as
+  "Naming one `Mem_Calloc` result twice" describes: `idMap = Mem_Calloc(0x80, 0);
+  work = (Actor341700SubWork*)idMap; arg1->idMap = idMap; if (idMap == NULL)`
+  gives the target's `addu s3,v0` / `bnez v0` / `sw v0,0x1c(s2)`, where a single
+  variable puts all three in `$s3` (`regs=5`).
+
+Inputs: `base_4.i` (100.000%) SHA256
+`a2f51f3b1a84e8f80c2d27f7f580152b3fec786e0a50e3fcb4e2494ff9d49441`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_actor_341700_8016D130-vacuum`.
