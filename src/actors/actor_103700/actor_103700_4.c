@@ -8,7 +8,7 @@ s32       ActorsShared801326f0(Task* arg0);
 void      ActorsShared80134ff0(Task* arg0);
 void      ActorsShared80135210(Task* arg0);
 void      func_actor_103700_8013224C(Task* arg0, TmdObject* arg1, s32 arg2);
-void      func_actor_103700_80133D68(Task* arg0);
+void      ActorsShared80133d68(Task* arg0);
 void      ActorsShared8013503c(Task* arg0);
 void      func_actor_103700_8013537C(Task* arg0);
 extern u8 D_801153F4;
@@ -57,7 +57,7 @@ default_body:
         return;
     }
     if (work->field_254 != 0) {
-        func_actor_103700_80133D68(task);
+        ActorsShared80133d68(task);
     }
     if (work->field_252 != 0) {
         ActorsShared8013503c(task);
