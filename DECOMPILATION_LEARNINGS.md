@@ -120227,3 +120227,62 @@ shared object yet.
 Inputs: `base_3.i` `08c073323b9b602668a3192065b5dc3e177174cc5965001502c32d220a35fc2c`
 (99.792%, merged `andi`), `base_10.i`
 `b1af1e29bf8ed02078e4234a92e2e8f1371743d2df4aaf23a655027dd185ae60` (100%).
+
+## A case's compare constant and its `state = 2` store merge in `cse`, and the merged value crosses the case's calls — global-alloc then refuses `$v0` and every compare in the function homes elsewhere (func_dryfield_night_factory_80180DE8, 2026-09-17)
+
+The const-2 analogue of the `8017FBF4` signedness merge above, with the case
+selector rather than a field as the second use of the constant. A `switch (step)`
+whose arms end `task->state = 2`, and whose first statement compares
+`Game_Session->field_7 == 2` for the sound id, has two `(const_int 2)`s in the
+same extended basic block. `cse` unifies them: by `.lreg` the store's source is
+the compare's pseudo (`insn.py --reg 90` shows `used 3 times across 32 insns`),
+so it is live from the compare through `GameFlag_GetNibble`/`Gp_StartCapSlot` to
+the store. `global.c:find_reg` keys the allowed class on exactly that:
+
+```c
+  if (accept_call_clobbered)      COPY_HARD_REG_SET (used1, call_fixed_reg_set);
+  else if (allocno_calls_crossed[allocno] == 0)
+                                  COPY_HARD_REG_SET (used1, fixed_reg_set);      /* call-clobbered ok */
+  else                            COPY_HARD_REG_SET (used1, call_used_reg_set); /* forbidden */
+```
+
+so the merged value takes `$s0`, and *because the byte load now cannot reuse the
+pointer's `$v0` either*, the compare emits `lbu $v0,7($v0); li $s0,2; bne $v0,$s0`
+where the target has `lbu $v1,7($v0); li $v0,2; bne $v1,$v0` — the same three
+instructions, four registers. Worse, the `sw s0` that results no longer matches
+the tail's `sw v0`, so `jump2` cross-jumping cannot merge the arms' call+store
+tails and the overlay grows 16 bytes.
+
+**Fix: a case-local `state` variable, not a literal.** Assign it in each arm and
+store it once at the per-case join:
+
+```c
+            if (!(GameFlag_GetNibble(0x49) & 2)) { ... state = 6; }
+            else                                 { Gp_StartCapSlot(8, 0, 0); state = 2; }
+            task->state = state;
+```
+
+The value is now born after the arm's calls and dies at the store, so
+`allocno_calls_crossed` is 0 for every path, `$v0` is allowed, and the compare's
+constant stays block-local (`li $v0,2`, dying at the `bne`). 96.625% -> 100.00%,
+all penalties zero.
+
+**Diagnose it with a probe build, not with the diff.** Deleting the two offending
+stores outright and rescoring flipped *all six* compare sites in the function to
+`lbu $v1,7($v0)` — the sharing is an equivalence the whole function inherits from
+its first `(const_int 2)`, so one unshared producer fixes every consumer. If a
+probe that removes a store moves registers in blocks that do not contain it,
+the constants are merged; if only the store's own block changes, they are not.
+
+Same merge, second source: the `switch`'s *other* branch had the store after the
+`switch` rather than inside each arm, which put it in a join block with several
+predecessors — a new extended basic block, so no merge, and that half matched
+first. Two stores of one constant are only merged when `cse` walks into both
+from one entry, which is why the arm layout decides it.
+
+Inputs: `base_6.i` `7e6d6865ef08636085bdd56b1ffc8fc85168c5e26c3c8e87f2d075dc0b6288af`
+(96.625%, per-arm `task->state = 2`), `base_7.i`
+`b114c49747003aedf7445fb40683cebefc89e4b10e2ef93d6f8ad17d4c0ddb2c` (100.00%,
+case-local `state`). Overlay also needs the rodata cut moved
+(`overlays.toml`: the `0xD8` run from `_7` to `_8`) plus a 4-byte pad const,
+since the compiler-generated tables must start and end their unit's `.rodata`.

@@ -63,7 +63,3 @@ void func_dryfield_night_factory_80180A4C(Task* task)
         task->state = 5;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_7", jtbl_dryfield_night_factory_8017D698);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_7", jtbl_dryfield_night_factory_8017D6B0);
