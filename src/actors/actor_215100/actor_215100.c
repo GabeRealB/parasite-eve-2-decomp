@@ -69,11 +69,18 @@ extern s16                  D_actor_215100_8015E660;
 extern s16                  D_actor_215100_8015E662;
 extern s16                  D_actor_215100_8015E664;
 extern s16                  D_actor_215100_8015E666;
-extern s8                   D_actor_215100_8015E66C;
-extern s32                  D_actor_215100_8015E670;
-extern s16                  D_actor_215100_801544EC;
-extern s16                  D_actor_215100_801544EE;
-extern Actor215100CharRec   D_actor_215100_8015E678;
+/// Frames left before the caret starts drawing.
+extern u8 D_actor_215100_8015E66C;
+/// Caret grey level (pulses between 9 and 15) and its direction flag.
+extern s32 D_actor_215100_801545E4;
+extern s32 D_actor_215100_801545E8;
+/// Caret position.
+extern u16                D_actor_215100_8015E668;
+extern u16                D_actor_215100_8015E66A;
+extern s32                D_actor_215100_8015E670;
+extern s16                D_actor_215100_801544EC;
+extern s16                D_actor_215100_801544EE;
+extern Actor215100CharRec D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
 /// `field_0`.
 extern Actor215100CapWindow D_actor_215100_80154514[];
@@ -678,7 +685,48 @@ s16 func_actor_215100_8014BDFC(u16* arg0)
     return (s16)(D_actor_215100_8015E660 - total);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014BEE8);
+/// Draws the pulsing "more text" caret: a Gouraud triangle at
+/// (`D_actor_215100_8015E668`, `D_actor_215100_8015E66A`) whose grey level
+/// ramps up to 15 and back down to 9. Same body as gameplay's `Gp_DrawCapCaret`
+/// without the VRAM Y offset.
+void func_actor_215100_8014BEE8(void)
+{
+    POLY_G3* prim;
+    s32      c1;
+    s32      c2;
+
+    if (D_actor_215100_8015E66C != 0) {
+        D_actor_215100_8015E66C -= 1;
+        return;
+    }
+    prim           = (POLY_G3*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setPolyG3(prim);
+    c1 = (D_actor_215100_801545E4 << 7) / 15;
+    setRGB0(prim, c1, c1, c1);
+    c1 = (D_actor_215100_801545E4 * 192) / 15;
+    c2 = c1;
+    setRGB1(prim, c2, c2, c2);
+    setRGB2(prim, c2, c2, c2);
+    prim->x0 = D_actor_215100_8015E668 + 3;
+    prim->y0 = D_actor_215100_8015E66A;
+    prim->x1 = D_actor_215100_8015E668;
+    prim->x2 = D_actor_215100_8015E668 + 7;
+    prim->y1 = D_actor_215100_8015E66A - 7;
+    prim->y2 = D_actor_215100_8015E66A - 7;
+    addPrim(&Gpu_CurrentOt[2], prim);
+    if (D_actor_215100_801545E8 == 0) {
+        D_actor_215100_801545E4 += 1;
+        if (D_actor_215100_801545E4 >= 0xF) {
+            D_actor_215100_801545E8 = 1;
+        }
+    } else {
+        D_actor_215100_801545E4 -= 1;
+        if (D_actor_215100_801545E4 < 9) {
+            D_actor_215100_801545E8 = 0;
+        }
+    }
+}
 
 /// Horizontal centring offset of the caption line the text stream `arg0`
 /// starts with: the widest line's pixel width subtracted from the 0x140 screen
