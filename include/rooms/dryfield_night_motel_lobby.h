@@ -60,11 +60,11 @@ extern DnmlCapScript D_dryfield_night_motel_lobby_801844E0;
 /// clears every entry's `hit` flag on the way in.
 extern RoomHotspot D_dryfield_night_motel_lobby_80182820[];
 
-/// The seven digits of the lobby keypad code as entered so far, oldest first
-/// and most recent at index 6; `0xA` marks a slot the player has not filled.
-/// The room's init resets all seven to `0xA`,
-/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in (its own
-/// count of digits entered is bounded by 7) and
+/// The seven digits of the lobby keypad code as entered so far, most recent
+/// first at index 0; `0xA` marks a slot the player has not filled. The room's
+/// init resets all seven to `0xA`,
+/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in at index 0
+/// (its own count of digits entered is bounded by 7) and
 /// `func_dryfield_night_motel_lobby_80180734` tests the filled slots against
 /// the code. The datum's eighth byte is padding before the cap script.
 extern u8 D_dryfield_night_motel_lobby_801844D8[7];
@@ -88,6 +88,12 @@ void func_dryfield_night_motel_lobby_80180D58(Task* task);
 /// Draws the examine cursor over the room's hotspot table and, on a confirm,
 /// raises the phase flag cap slot 9 waits on.
 void func_dryfield_night_motel_lobby_801802A8(Task* task);
+
+/// Whether the keypad above holds the lobby's code: exactly four digits, the
+/// three older slots still `0xA`, and those four reading `3 0 3 3` in the
+/// order they were typed. `func_dryfield_night_motel_lobby_80180440` calls it
+/// on a confirm and sets its accept flag on a non-zero result.
+s32 func_dryfield_night_motel_lobby_80180734(void);
 
 /// Task callback of the descriptor at `D_dryfield_night_motel_lobby_80182814`:
 /// allocates the examine work at `Task::idMap`, spawns the examine child task,
