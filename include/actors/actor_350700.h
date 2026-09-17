@@ -19,7 +19,8 @@
 /// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C5 are set to -1, and the
 /// three words at 0x4A0..0x4A8 are cleared.
 typedef struct Actor350700Work {
-    /* 0x000 */ byte    pad_0[0x43D];
+    /* 0x000 */ byte    pad_0[0x43C];
+    /* 0x43C */ s8      field_43C; // animation-tick enable
     /* 0x43D */ s8      field_43D;
     /* 0x43E */ s8      field_43E;
     /* 0x43F */ byte    pad_43F[0x1];
@@ -105,6 +106,11 @@ STATIC_ASSERT_SIZEOF(Actor350700MainWork, 0x50C);
 /// offset body `ActorsShared80132920` uses. The overlay keeps its own copy in
 /// `.rodata`, so the address comes from the per-overlay symbol map.
 extern VECTOR D_actor_350700_80161E40;
+
+/// Ground-shadow quad, the gameplay function `func_actor_350700_80161E88`
+/// feeds the second part's world translation to; declared here the way the
+/// other actor headers that call it do.
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Installs an animation on the task's model: first argument is the preset
 /// `func_actor_350700_80162764` fills, second the anim id it plays (0x7D3).
