@@ -4,11 +4,13 @@
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "psyq/strings.h"
+#include "rooms/room_common.h"
 extern TaskDesc D_actor_143000_801350C8;
 
 extern s32              D_80070F6C;
@@ -78,7 +80,111 @@ void func_actor_143000_801324C8(Task* arg0)
     Gp_MsgPlayer3F3(0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801325F0);
+void func_actor_143000_801325F0(Actor143000* arg0)
+{
+    Actor143000Work*  work;
+    u8                u;
+    Actor143000Rect*  p;
+    POLY_FT4*         prim;
+    RoomActionPrompt* prompt;
+    s16               dx;
+    s16               dy;
+    s16               x;
+    s16               y;
+    s16               w;
+    s16               h;
+    u8                v;
+    u8                uw;
+    u8                vh;
+
+    work                   = arg0->field_1C;
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    p                      = D_actor_143000_80134580;
+    D_801153F4             = 2;
+    prompt                 = &D_80114D28;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (D_8007218B == 9) {
+        func_actor_143000_80133C2C();
+    }
+    work->field_2 = 0;
+    if (func_actor_143000_80133AE8(p, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if (prompt->buttons[0].state == 2) {
+            for (; p->field_8 != -1; p++) {
+                if (p->field_B != 0) {
+                    if (work->field_7 != 0 && p->field_8 == 5) {
+                        SndEvt_EnqueueType6(0x541F0013, 0, 0);
+                        prompt->mode     = 0;
+                        prompt->targetId = 0;
+                        work->field_8    = prompt->screen.xy.x;
+                        work->field_A    = prompt->screen.xy.y;
+                        arg0->field_30   = 8;
+                        return;
+                    }
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    work->field_2    = p->field_8;
+                    work->field_6    = p->field_A;
+                    arg0->field_30   = 3;
+                    return;
+                }
+            }
+        }
+        for (p = D_actor_143000_80134580; p->field_8 != -1; p++) {
+            if (p->field_B != 0) {
+                if (p->field_8 != 3) {
+                    if (p->field_8 == 5) {
+                        prim           = (POLY_FT4*)Gpu_PrimCursor;
+                        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                        SetPolyFT4(prim);
+                        setShadeTex(prim, 1);
+                        x  = (s16)(prompt->screen.xy.x - p->x) / 16 * 16;
+                        y  = (s16)(prompt->screen.xy.y - p->y) / 16 * 16;
+                        dx = p->x;
+                        dy = p->y;
+                        u  = x;
+                        v  = y + 0x70;
+                        x += dx;
+                        y += dy;
+                        setXYWH(prim, x, y, 16, 16);
+                        setUVWH(prim, u, v, 16, 16);
+                        prim->tpage = 0x16;
+                        prim->clut  = 0x3DC1;
+                        addPrim(&Gpu_CurrentOt[0x3FE], prim);
+                    }
+                } else {
+                    prim           = (POLY_FT4*)Gpu_PrimCursor;
+                    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+                    SetPolyFT4(prim);
+                    setShadeTex(prim, 1);
+                    u  = 0x30;
+                    x  = p->x;
+                    w  = p->w;
+                    y  = p->y;
+                    h  = p->h;
+                    uw = p->w;
+                    vh = p->h;
+                    setXY4(prim, x, y, x + w, y, x, y + h, x + w, y + h);
+                    setUV4(prim, u, 0xB8, uw + 0x30, 0xB8, u, vh - 0x48, uw + 0x30, vh - 0x48);
+                    prim->tpage = 0x16;
+                    prim->clut  = 0x3DC1;
+                    addPrim(&Gpu_CurrentOt[0x3FE], prim);
+                }
+            }
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->buttons[1].state == 2) {
+        arg0->field_30 = 5;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_143000/actor_143000", D_actor_143000_80131E54);
 

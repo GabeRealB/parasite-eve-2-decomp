@@ -9,7 +9,7 @@ typedef struct Actor143000Work {
     /* 0x00 */ byte pad_0[2];
     /* 0x02 */ u16  field_2;
     /* 0x04 */ s16  field_4;
-    /* 0x06 */ byte pad_6[1];
+    /* 0x06 */ u8   field_6;
     /* 0x07 */ s8   field_7;
     /* 0x08 */ s16  field_8;
     /* 0x0A */ s16  field_A;
@@ -65,6 +65,8 @@ extern TaskFuncTable11 D_actor_143000_80131E84;
 
 void func_actor_143000_80132A04(Actor143000* arg0);
 void func_actor_143000_80132D10(Actor143000* arg0);
+s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
+void func_actor_143000_80133C2C(void);
 void func_actor_143000_80133334(Actor143000Rect* arg0, u8 r, u8 g, u8 b);
 void func_actor_143000_80133EE4(Task* arg0);
 
