@@ -119346,3 +119346,36 @@ Inputs: `base_3.i`
 (96.626%), `base_5.i`
 `6b833d923fd833a5b00ea3610a3b2777f14d54780488e3311c8917cc703b4f05`
 (match, 100.000%).
+
+### Promoting a shared body renumbers the overlay's units - and `mv` hides it
+
+`overlay_dup_index.py promote` adds a `shared` span, and the generator names an
+overlay's overlay-local code units by *walk position* between shared spans
+(`<name>`, `_2`, `_3`, …). A promotion whose span swallows a whole local run
+therefore shifts every later unit down one name, and the bodies have to move
+with them. The `rodata` cut has to move too: the generator only *references*
+the unit a cut belongs to by name, and does not check that the name is still a
+local unit, so a stale name produces a rodata-only unit - the linker then
+discards the `.text` that cut's jump table points into, and the failure reads
+
+```
+`.text' referenced in section `.rodata' of ..._4.c.o: defined in discarded
+section `.text' of ..._4.c.o
+```
+
+rather than anything about rodata. `dryfield_night_water_tower` needed
+`rodata = [{ start = "0x28", unit = "<name>_4" }]` renamed to `<name>_3` when
+its one local run became the shared span.
+
+Two traps in doing the move by hand:
+
+* **`mv` preserves mtimes, so the build keeps a stale preprocessed `.i`.** The
+  files are renamed but their contents change, and since the mtime is the old
+  one the preprocessor rule does not re-run - the link then fails with
+  `multiple definition of <function>` for definitions the sources no longer
+  contain, which looks like a real error and is not. `touch` the files after a
+  content-changing `mv` (or write them rather than moving them).
+* Snapshot first. `bodies_of()` in `tools/land_overlay.py` lists every C
+  definition in a file, and `tools/check_lost_matches.py` is the backstop: it
+  fails when a function with a `matched` commit is `INCLUDE_ASM` while its
+  overlay still owns a `.s` under `nonmatchings/`.
