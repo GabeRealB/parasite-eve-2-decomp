@@ -27,11 +27,22 @@ typedef struct Actor103700Work {
     /* 0x24A */ byte pad_24A[0x4];
     /* 0x24E */ s16  field_24E;
     /* 0x250 */ s16  field_250;
-    /* 0x252 */ byte pad_252[0xC];
+    /* 0x252 */ s16  field_252;
+    /* 0x254 */ s16  field_254;
+    /* 0x256 */ byte pad_256[0x8];
     /* 0x25E */ u16  field_25E;
     /* 0x260 */ byte pad_260[0x2];
     /* 0x262 */ s16  field_262;
+    /* 0x264 */ byte pad_264[0x2];
+    /* 0x266 */ s16  field_266;
 } Actor103700Work;
+
+/// Pose context the `D_801153F4` mode switch in `func_actor_103700_80134E24`
+/// writes: `field_14` is cleared in mode 0 and set in mode 2.
+typedef struct Actor103700Ctx {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ u8   field_14;
+} Actor103700Ctx;
 
 /// Payload of the 0x3F8 query `func_actor_103700_80134F50` sends the player
 /// before it takes the hold; `field_14` is the range it asks for. The same

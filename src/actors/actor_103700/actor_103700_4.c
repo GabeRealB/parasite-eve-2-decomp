@@ -3,7 +3,74 @@
 #include "actors/actor_103700.h"
 #include "main/mem.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_4", func_actor_103700_80134E24);
+void      Gp_UpdateCoord(GsCOORDINATE2* arg0);
+s32       ActorsShared801326f0(Task* arg0);
+void      ActorsShared80134ff0(Task* arg0);
+void      ActorsShared80135210(Task* arg0);
+void      func_actor_103700_8013224C(Task* arg0, TmdObject* arg1, s32 arg2);
+void      func_actor_103700_80133D68(Task* arg0);
+void      func_actor_103700_8013503C(Task* arg0);
+void      func_actor_103700_8013537C(Task* arg0);
+extern u8 D_801153F4;
+
+void func_actor_103700_80134E24(Actor103700Ctx* arg0, Task* task)
+{
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    Actor103700Work* work;
+    s32              state;
+    s32              one;
+
+    obj   = (TmdObject*)task->extra;
+    state = D_801153F4;
+    work  = (Actor103700Work*)task->idMap;
+    coord = obj->field_8;
+    one   = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    obj->field_C   = 0;
+    arg0->field_14 = 0;
+    goto default_body;
+case2:
+    obj->field_C  |= 0x80;
+    arg0->field_14 = one;
+    return;
+default_body:
+    if (work->field_24E < 7) {
+        func_actor_103700_8013224C(task, obj, one);
+    }
+    if (ActorsShared801326f0(task) != 0) {
+        return;
+    }
+    if (work->field_254 != 0) {
+        func_actor_103700_80133D68(task);
+    }
+    if (work->field_252 != 0) {
+        func_actor_103700_8013503C(task);
+    }
+    if (work->field_266 != 0) {
+        func_actor_103700_8013537C(task);
+    }
+    ActorsShared80135210(task);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+case1:
+    ActorsShared80134ff0(task);
+}
 
 /// Asks the player for the melee hold (message 0x3F8, range 8) and, once it is
 /// accepted, starts the grab on the actor's animation slot (message 0x3FF) and
