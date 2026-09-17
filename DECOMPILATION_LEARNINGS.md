@@ -117981,3 +117981,73 @@ thing that decides which block owns the definition.
 `Room_Script02` (`src/rooms/lib/room_script02.c`) is the already-matched sibling
 carrying this idiom on its own copy of the same sub-computation - read it before
 re-deriving it.
+## A room handler's answer block is a shared `Room_ScriptNN` body — copy it, do not re-derive it
+
+`func_dryfield_night_parking_lot_8017D8D0` answers two status messages in
+`out->field_3` before it handles its events. Both blocks are the shared room
+scripts `Room_Script02` (message 2, nibble 0x7A) and `Room_Script04` (message
+0x1D, nibble 0x61) in `src/rooms/lib/`, and the room's copy is *the same body
+with different surroundings*, so the matched lib body is the C to write.
+
+The three plain spellings all stop at 97.675% (`branch=11 insert=2`), because
+the target materialises the arm's value **before** the branch and reorg puts it
+in the branch delay slot, and none of them do:
+
+```c
+out->field_3 = 3;                                     /* two sb, no delay slot   */
+if (GameFlag_GetNibble(0x7A) < 4) out->field_3 = ...;
+out->field_3 = (GameFlag_GetNibble(0x7A) < 4) ? GameFlag_GetNibble(0x61) + 1 : 3;
+val = 3;                                              /* def live across the call */
+if (GameFlag_GetNibble(0x7A) < 4) val = GameFlag_GetNibble(0x61) + 1;
+out->field_3 = val;
+```
+
+The middle row cannot be fixed by swapping the arms: `fold` canonicalises the
+ternary's condition, so `(c) ? a : b` and `(!c) ? b : a` expand to **identical
+RTL** (verified: the two `.rtl` dumps differ only in the source filename). What
+the target has is a *separate store* of the default that survives into the
+branch's block — jump.c's paired hoists (`if (c) { x = a; goto l; } x = b` and
+its mirror, two juggles around the same shape) move an arm's value in front of
+the branch and delete the `goto`; both demand that the moved value be a single
+`x = <reg|subreg|const>` and that the arm left behind end in a `goto`. So the
+default has to be its own statement, and it has to be kept alive:
+
+```c
+n = GameFlag_GetNibble(0x7A);          /* nibble first: the def then follows the call */
+if (n < 4) {
+    val = 3;
+    TOUCH_REG(val);                    /* the dead store is the delay-slot instruction */
+    val = GameFlag_GetNibble(0x61) + 1;
+} else {
+    val = 3;
+}
+out->field_3 = val;
+```
+
+`Room_Script02` is that body character for character, `TOUCH_REG` included (its
+comment there says the barrier is what keeps the store). Message 0x1D reuses
+**one** variable for the nibble and the answer, as `Room_Script04` does — that
+is what leaves the value in `$v0` instead of `$v1`:
+
+```c
+n = GameFlag_GetNibble(0x61);
+if (n == 0) n = 1; else n = 3;
+out->field_3 = n;
+```
+
+**Search order.** Before decompiling a room overlay's message handler, grep
+`src/rooms/lib/room_script*.c` for the message id it switches on; the
+`field_3` answer block for 2 / 0x1D / 0xF / 0x20 is already matched there, and
+the room's copy is that body. The brief's "similar matched bodies" list does not
+find them, because the copies sit in different overlays at different link
+offsets and only the *block* is shared, not the whole function.
+
+Inputs: `base_5.i` (100.000%) SHA256
+`29bb821616b4e4a66893f190fc1eb264a2b27c038d61cc630b4a2b51e99ba800`; `base_5.c`
+SHA256 `e96b677e47caf2cd275e9d79bc1a628a7067b4e3f85632b54f51c14e7d7265a5`;
+`base_3.i` (97.675%, the ternary form) SHA256
+`4eaa80ba81451950f9fdc6abb8c42d6a3fe53ad96208d9cb75dace97b3921246`;
+target.o SHA256
+`41e59e9c0ba34f06693ca44081b8e40a17fc1d10a5ea3b89dd93f5b2edd51853`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_dryfield_night_parking_lot_8017D8D0-vacuum`.
