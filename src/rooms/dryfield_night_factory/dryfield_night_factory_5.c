@@ -1,10 +1,13 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017d638.h"
 
 extern TaskDesc* D_dryfield_night_factory_8018A7E0;
 extern TaskDesc* D_dryfield_night_factory_8018A7E4;
@@ -71,7 +74,86 @@ void func_dryfield_night_factory_80180438(Task* arg0)
     arg0->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_5", func_dryfield_night_factory_80180574);
+/// Handler for the room's `0x16` / `0x18` / `0x19` messages -- the factory's
+/// progress gates. Like every room handler it copies the incoming record into
+/// `out` and answers by editing the copy's `field_3`; `field_5` non-zero means
+/// "just asking", so no prompt is started and the side effects are skipped.
+///
+/// `0x19` asks which visit to the factory this is: under the night session
+/// (`Game_Session::field_7 == 2`) it answers `2` once nibble `0x3A` has counted
+/// two, and otherwise `1`; every other session variant answers nibble `0x61`
+/// plus one. `0x19` also offers the gate a request that runs CAP command `0xE`
+/// under flag nibble `-0x30` (fire while the nibble is *clear*, no item
+/// prerequisite) and returns the gate's own answer. `0x18` answers `1` or `2`
+/// by whether nibble `0x7A` is under four and, unless nibble `0x4A` is already
+/// `2`, starts CAP slot 4 and sets nibble `field_6` to `2`. `0x16` does the
+/// same nibble write and runs CAP command `0xD` while nibble `0x37` is clear.
+/// A message it does not own answers `1`.
+///
+/// `dryfield_factory` carries this same body -- the body itself branches on the
+/// night session, so one source covers both rooms -- and it wants promoting to
+/// `src/rooms/lib/` once this overlay is not mid-sweep: the `shared` span
+/// renumbers the units of both carrying overlays.
+s32 func_dryfield_night_factory_80180574(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    RoomEventReq req;
+    u8           variant;
+
+    *out = *in;
+    if (in->msgId == 0x19) {
+        variant = Game_Session->field_7;
+        if (variant == 2) {
+            if (in->field_5 == 0) {
+                if (GameFlag_GetNibble(0x3A) >= 2) {
+                    out->field_3 = variant;
+                } else {
+                    out->field_3 = 1;
+                }
+            }
+        } else if (in->field_5 == 0) {
+            out->field_3 = GameFlag_GetNibble(0x61) + 1;
+        }
+    }
+    if (in->msgId == 0x18) {
+        if (in->field_5 == 0) {
+            if (GameFlag_GetNibble(0x7A) < 4) {
+                out->field_3 = 1;
+            } else {
+                out->field_3 = 2;
+            }
+        }
+        if (in->msgId == 0x18) {
+            if (GameFlag_GetNibble(0x4A) != 2) {
+                if (in->field_5 != 0) {
+                    return 0;
+                }
+                Gp_StartCapSlot(4, 1, 0);
+                Gp_SetNibbleIf(in->field_6, 2);
+                return 0;
+            }
+        }
+    }
+    if (in->msgId == 0x16) {
+        if (GameFlag_GetNibble(0x37) == 0) {
+            if (in->field_5 != 0) {
+                return 0;
+            }
+            Gp_SetNibbleIf(in->field_6, 2);
+            Gp_RunCapCmd1(0xD);
+            return 0;
+        }
+    }
+    if (in->msgId == 0x19) {
+        req.field_0 = 0xE;
+        req.field_4 = 0xE;
+        req.field_8 = 0x52170013;
+        req.field_C = 0x52170003;
+        req.flagId  = -0x30;
+        req.itemId  = 0;
+        return RoomsShared8017d638(&req, in);
+    }
+    return 1;
+}
 
 void func_dryfield_night_factory_8018076C(Task* task)
 {
