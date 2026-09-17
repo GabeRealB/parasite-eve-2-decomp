@@ -27,7 +27,7 @@ typedef struct Actor335800Work {
     /* 0x43C */ s8         field_43C;
     /* 0x43D */ s8         field_43D;
     /* 0x43E */ s8         field_43E;
-    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x43F */ u8         field_43F;
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
     /* 0x480 */ VECTOR3    target; // world position the shared turn-to-face body steers toward
@@ -38,8 +38,12 @@ typedef struct Actor335800Work {
     /* 0x4A4 */ s32        field_4A4;
     /* 0x4A8 */ s32        field_4A8;
     /* 0x4AC */ byte       pad_4AC[0x4];
-    /* 0x4B0 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4B8 */ byte       pad_4B8[0xA];
+    /* 0x4B0 */ SVECTOR    limit; // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4B8 */ s16        field_4B8;
+    /* 0x4BA */ s16        field_4BA;
+    /* 0x4BC */ s16        field_4BC;
+    /* 0x4BE */ byte       pad_4BE[0x2];
+    /* 0x4C0 */ s16        field_4C0;
     /* 0x4C2 */ u16        field_4C2; // index into the state-handler table `D_actor_335800_80161E68`
     /* 0x4C4 */ s16        field_4C4;
     /* 0x4C6 */ byte       pad_4C6[0x2];

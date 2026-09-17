@@ -163,7 +163,66 @@ INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_8016373C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_80163880);
+extern void* D_actor_335800_80172E98[];
+
+/// Placement handler for the child block, the twin of
+/// `func_actor_335800_80162C80`: stores the spawn position and rotation, then
+/// applies a start preset exactly as `func_actor_335800_80163E20` does
+/// (inlined here).
+s32 func_actor_335800_80163880(Task* task, s32 arg1, Actor335800Placement* place, Actor335800SpawnAnim* anim)
+{
+    Actor335800Work*       work;
+    Actor335800Work*       w;
+    Actor335800AnimPreset  preset;
+    Actor335800AnimPreset* msg;
+    s32                    i;
+    TmdObject*             ext;
+
+    w              = (Actor335800Work*)task->idMap;
+    w->field_4C0   = 1;
+    w->field_4C2   = 0;
+    w->target.vx   = place->pos.vx;
+    w->target.vy   = place->pos.vy;
+    w->target.vz   = place->pos.vz;
+    w->field_4B8   = place->rot.vx;
+    w->field_4BA   = place->rot.vy;
+    w->field_4BC   = place->rot.vz;
+    preset.field_0 = 0;
+    if (anim != NULL) {
+        preset.field_4 = anim->field_0;
+        w->field_43F   = anim->field_4;
+    } else {
+        preset.field_4 = 0xD;
+        w->field_43F   = 1;
+    }
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 1;
+
+    msg  = &preset;
+    work = (Actor335800Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        func_800B3F84(&work->anim, D_actor_335800_80172E98[work->field_43E], (GpAnimObj*)ext, work->field_30C,
+                      work->slots);
+    }
+    work->field_43D = msg->field_4;
+    if (msg->field_8 != 0 && work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+        }
+    }
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_43C = 1;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_80163A34);
 
