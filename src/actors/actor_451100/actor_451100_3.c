@@ -28,7 +28,7 @@ void func_actor_451100_801324B8(void)
 }
 
 /// Script opcode: start animation `args->animId` on this actor through
-/// `func_actor_451100_80131F84` rather than `func_actor_451100_80132A1C`.
+/// `func_actor_451100_80131F84` rather than `ActorsShared80132a1c`.
 ///
 /// The same argument block and the same two-way `withArg` start as
 /// `func_actor_451100_80132E98`; only the accepted id range (0x25 instead of

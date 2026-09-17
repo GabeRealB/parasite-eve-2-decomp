@@ -63,7 +63,7 @@ void func_actor_150400_80131FB8(void)
 
 /// Spawn handler shared with the other `ActorsShared80131f9c` overlays: builds
 /// the actor's work block, starts the animation and hands the state machine to
-/// `func_actor_150400_80132228`.
+/// `ActorsShared80132a1c`.
 ///
 /// Two codegen pins, both load-bearing. `key` lands at `vfp+0x10`, so `&key` is
 /// expensive enough that `expand_call` precomputes it; left alone CSE merges
@@ -148,10 +148,8 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     work->animId   = 1;
     work->state    = 2;
     task->field_24 = D_actor_150400_8013C8C4;
-    func_actor_150400_80132228(task);
+    ActorsShared80132a1c(task);
     task->state++;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_150400/actor_150400", func_actor_150400_80132228);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_150400/actor_150400", D_actor_150400_80131E20);

@@ -16,11 +16,15 @@
 /// twin - sit at 0x0 and 0x20 here too.
 ///
 /// `animId` is the clip to play, `animArg` the extra argument only the
-/// `withArg` start path forwards. `state` is what the starter
-/// `func_actor_451100_80132A1C` dispatches on: 1 runs the animation through
+/// `withArg` start path forwards. `state` is what the shared starter
+/// `ActorsShared80132a1c` dispatches on: 1 runs the animation through
 /// `ActorsShared80132640`, 2 through `ActorsShared801325c8`, and both then
 /// advance it to 3. Those are the same two shared steps, on the same offsets,
-/// as `func_actor_150400_80132228` takes.
+/// as this actor's twin `Actor150400Work` block takes.
+///
+/// `travel` counts the walk clip down: while `animId` is 4 and `travel` is
+/// non-zero the step body moves the actor 0x11 units along its coordinate and
+/// drops back to clip 1 when the count runs out.
 ///
 /// `field_47E` is `animId` as it was when the slots were last seeded: both
 /// walks over the slot array - this overlay's `func_actor_451100_801324B8` and
@@ -36,7 +40,8 @@ typedef struct Actor451100Work {
     /* 0x47E */ u16        field_47E;
     /* 0x480 */ u16        animId;
     /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x30];
+    /* 0x484 */ byte       pad_484[0x2E];
+    /* 0x4B2 */ s16        travel;
     /* 0x4B4 */ u16        animArg;
     /* 0x4B6 */ byte       pad_4B6[0xA];
 } Actor451100Work;
@@ -54,9 +59,9 @@ typedef struct Actor451100AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor451100AnimArgs;
 
-void func_actor_451100_80132A1C(Task* task);
+void ActorsShared80132a1c(Task* task);
 
-/// Drives the actor for one frame off the state `func_actor_451100_80132A1C`
+/// Drives the actor for one frame off the state `ActorsShared80132a1c`
 /// or `func_actor_451100_80132538` left in the work block.
 void func_actor_451100_80131F84(Task* task);
 

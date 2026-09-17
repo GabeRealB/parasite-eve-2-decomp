@@ -12,7 +12,7 @@
 /// which is not a `TaskIdMap` here. `ActorsShared80131e24Sub0` allocates it
 /// with `Mem_Calloc(0x4C0, 0)`, and the size below is that allocation.
 ///
-/// `state` drives `func_actor_150400_80132228`: 1 starts the animation through
+/// `state` drives `ActorsShared80132a1c`: 1 starts the animation through
 /// `ActorsShared80132640`, 2 through `ActorsShared801325c8`, and both then
 /// advance it to 3. `animId` is the clip to play and `animArg` the extra
 /// argument `ActorsShared80132640` forwards to `func_800B4114`; they are the
@@ -49,7 +49,7 @@ typedef struct Actor150400AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor150400AnimArgs;
 
-void func_actor_150400_80132228(Task* task);
+void ActorsShared80132a1c(Task* task);
 
 s32 func_actor_150400_801326A4(Task* task, s32 arg1, Actor150400AnimArgs* args);
 

@@ -4,7 +4,7 @@
 
 /// Script opcode: start animation `args->animId` on this actor.
 ///
-/// `withArg` selects between the two start paths `func_actor_150400_80132228`
+/// `withArg` selects between the two start paths `ActorsShared80132a1c`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
 /// touching the work block, when the clip id is out of range.
 ///
@@ -32,6 +32,6 @@ s32 func_actor_150400_801326A4(Task* task, s32 arg1, Actor150400AnimArgs* args)
         work->state = 2;
     }
     work->field_482 = 0;
-    func_actor_150400_80132228(task);
+    ActorsShared80132a1c(task);
     return 0;
 }

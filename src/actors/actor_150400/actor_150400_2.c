@@ -26,6 +26,6 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 800;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_150400_80132228(task);
+    ActorsShared80132a1c(task);
     ActorsShared8013242c(task);
 }
