@@ -622,7 +622,167 @@ void func_actor_105700_80133878(GpEnemy* arg0, Actor105700* arg1)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700_2", func_actor_105700_80133C48);
+/// `field_6A8` state machine that aims at the player: states 2 and 3 measure the
+/// player's root `workm` against this actor's in grid space, state 2 backs off
+/// inside 0x7D0 and turns (state 6) when the heading is off by more than 0x100,
+/// and state 4 spawns effect 0x6006E on frame 0x1A.
+void func_actor_105700_80133C48(Actor105700* arg0)
+{
+    s16              diff;
+    s32              mag;
+    s16              angle;
+    s32              dx;
+    s32              dz;
+    VECTOR*          delta;
+    VECTOR*          normal;
+    VECTOR*          normal2;
+    GsCOORDINATE2*   target;
+    Actor105700Work* work;
+    GsCOORDINATE2*   coord;
+
+    delta = (VECTOR*)(*(u8**)G_SCRATCH_HEAD -= 0x20);
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    switch (work->field_6A8) {
+        case 0:
+            if (work->field_698 >= 0x14) {
+                work->field_6A8 = 1;
+                work->field_694 = 0x1E;
+                work->field_6AE = 0;
+            }
+            break;
+        case 1:
+            work->field_69C = -0x16;
+            work->field_69E = 0x1E;
+            work->field_6CE = work->field_6D0 > 0;
+            delta->vx       = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            delta->vz       = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
+            func_actor_105700_80134374(arg0);
+            work->field_6AE++;
+            if (work->field_6AE >= 0x3C) {
+                work->field_6A8        = 2;
+                work->field_6AE        = 0;
+                work->field_61C.flags &= 0x3FFF;
+            }
+            break;
+        case 2:
+            work->field_6CE = work->field_6D0 > 0;
+            target          = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[2];
+            delta->vx       = target->workm.t[0] - coord->workm.t[0];
+            normal          = delta + 1;
+            delta->vy       = target->workm.t[1] - coord->workm.t[1];
+            delta->vz       = target->workm.t[2] - coord->workm.t[2];
+            VectorNormal(delta, normal);
+            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, delta);
+            dx = delta->vx;
+            dz = delta->vz;
+            if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
+                work->field_6A6 = 7;
+                work->field_6A8 = 0;
+                work->field_694 = 0x10;
+                work->field_6CE = 0;
+                break;
+            }
+            diff = (ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF) - work->field_6A2;
+            mag  = __builtin_abs(diff);
+            if (mag < 0x800) {
+                angle = mag;
+            } else if (diff > 0) {
+                angle = 0x1000 - diff;
+            } else {
+                angle = diff + 0x1000;
+            }
+            if (angle >= 0x101) {
+                work->field_6A8 = 6;
+                work->field_694 = 0xE;
+                work->field_6CE = 0;
+            } else {
+                work->field_6A8 = 3;
+                work->field_694 = 0xD;
+                work->field_6CC = 1;
+                work->field_6BA = 1;
+                work->field_6B6 = 0;
+                work->field_6BC++;
+                work->field_6BE++;
+            }
+            break;
+        case 3:
+            work->field_69C = 0;
+            work->field_6CE = work->field_6D0 > 0;
+            if (work->field_698 < 3) {
+                work->field_69E = 0;
+            } else {
+                target    = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[2];
+                delta->vx = target->workm.t[0] - coord->workm.t[0];
+                normal2   = delta + 1;
+                delta->vy = target->workm.t[1] - coord->workm.t[1];
+                delta->vz = target->workm.t[2] - coord->workm.t[2];
+                VectorNormal(delta, normal2);
+                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal2, delta);
+                work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
+                work->field_69E = 7;
+            }
+            if (work->field_6BE != 0 && work->field_698 == D_actor_105700_801372EC[13] - 1) {
+                work->field_6BA = 1;
+                work->field_6BC++;
+                work->field_6BE++;
+            }
+            if (work->field_6B6 >= 0x29) {
+                work->field_6A6        = 8;
+                work->field_6A8        = 0;
+                work->field_69C        = 0;
+                work->field_69E        = 0;
+                work->field_6CC        = 0;
+                work->field_6CE        = 0;
+                work->field_5E4.flags &= 0x7FFF;
+            } else if (work->field_6BC >= 6) {
+                if (work->field_698 >= D_actor_105700_801372EC[13] + 0x16) {
+                    work->field_6A8             = 4;
+                    work->field_694             = 0xF;
+                    work->field_6BC             = 0;
+                    work->field_6BE             = 0;
+                    D_actor_105700_801372EC[13] = 0;
+                    work->field_6CC             = 0;
+                }
+            } else if (work->field_6BE < 3) {
+                if (work->field_698 >= D_actor_105700_801372EC[13] + 3) {
+                    D_actor_105700_801372EC[13] = 3;
+                    work->field_694             = 0xD;
+                    work->field_696             = 0x1E;
+                }
+            } else if (work->field_698 >= D_actor_105700_801372EC[13] + 0x16) {
+                work->field_6A8             = 1;
+                work->field_6BE             = 0;
+                work->field_694             = 0x1E;
+                D_actor_105700_801372EC[13] = 0;
+                work->field_6CC             = 0;
+            }
+            break;
+        case 4:
+            if (work->field_698 == 0x1A) {
+                Gp_SpawnEff(0x6006E, &arg0->field_2C->field_8[7], 0x6000C, NULL);
+            }
+            work->field_6CE = 0;
+            if (work->field_698 >= 0x87) {
+                work->field_6A8 = 5;
+            }
+            break;
+        case 5:
+            work->field_6A6 = 2;
+            work->field_6A8 = 2;
+            work->field_694 = 4;
+            break;
+        case 6:
+            if (work->field_698 >= 0x19) {
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+                work->field_694 = 2;
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x20;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105700/actor_105700_2", D_actor_105700_80131EA0);
 

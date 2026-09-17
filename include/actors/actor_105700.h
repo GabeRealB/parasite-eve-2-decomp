@@ -87,7 +87,9 @@ typedef struct Actor105700Work {
     /// State-0 branch selector: 1 picks the short dwell and animation 1,
     /// 2 the long dwell and animation 2.
     /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ byte pad_6BA[6];
+    /* 0x6BA */ s16  field_6BA;
+    /* 0x6BC */ s16  field_6BC;
+    /* 0x6BE */ s16  field_6BE;
     /* 0x6C0 */ s16  field_6C0;
     /* 0x6C2 */ s16  field_6C2;
     /* 0x6C4 */ s16  field_6C4;
@@ -95,10 +97,10 @@ typedef struct Actor105700Work {
     /// Body variant select: `func_actor_105700_80133878` drops the fifth body
     /// object for the two values 0x38 / 0x39 and hands the halfword to
     /// `Gp_ReleaseStateF0Add`.
-    /* 0x6CA */ s16  field_6CA;
-    /* 0x6CC */ byte pad_6CC[2];
-    /* 0x6CE */ s16  field_6CE;
-    /* 0x6D0 */ s16  field_6D0;
+    /* 0x6CA */ s16 field_6CA;
+    /* 0x6CC */ s16 field_6CC;
+    /* 0x6CE */ s16 field_6CE;
+    /* 0x6D0 */ s16 field_6D0;
     /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
     /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
     /* 0x6D2 */ s16 field_6D2;
