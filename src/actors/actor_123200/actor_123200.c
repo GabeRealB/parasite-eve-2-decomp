@@ -81,7 +81,100 @@ s32 func_actor_123200_80133450(Actor123200Work* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_8013352C);
+/// Normalises `dir` in place and scales it to 0x3E8/0x1000 of unit length on
+/// the GTE. The pointer stays in one register across `VectorNormalSS` because
+/// the GTE loads read it back afterwards.
+static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
+{
+    VectorNormalSS(dir, dir);
+    gte_lddp(0x3E8);
+    gte_ldsv(dir);
+    gte_gpf12_real();
+    gte_stsv(dir);
+}
+
+/// Spawn state of this enemy: allocates the work block, publishes it as
+/// `Task::idMap`, reparents the model to `Gfx_ViewCoord`, seeds its animation
+/// slots from `D_actor_123200_80137154` and hangs the enemy's display node off
+/// part 2 of the model's coordinate array. The context's top `field_8` nibble
+/// biases the three timers in `field_176`, `field_198` and `field_19A` -- up by
+/// the nibble when its low bit is set, down by half of it otherwise.
+void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
+{
+    SVECTOR          dir;
+    Actor123200Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    u32              scale;
+    u32              flag;
+
+    obj         = (TmdObject*)task->extra;
+    coord       = obj->field_8;
+    work        = Mem_Calloc(sizeof(Actor123200Work), false);
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->field_24 = D_actor_123200_80137214;
+    coord->sub     = &Gfx_ViewCoord;
+    obj->field_C   = 0;
+    func_800B3F84(&work->anim, D_actor_123200_80137154, (GpAnimObj*)obj, work->poses, work->slots);
+
+    enemy->field_4     = &coord->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &((TmdObject*)task->extra)->field_8[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_50     = &D_actor_123200_80134208;
+    enemy->field_4C     = 0;
+    enemy->field_42     = 0;
+    enemy->field_40     = 0;
+    enemy->field_54     = 0;
+
+    work->field_174 = 1;
+    work->field_170 = 2;
+    work->field_176 = 0x10;
+    work->field_178 = 0;
+    func_actor_123200_801332E0(task);
+    work->field_17E = 0;
+    work->field_8   = 0;
+    obj->field_1C   = &work->field_1BC;
+    obj->field_20   = &work->field_1DC;
+    coord->flg      = 0;
+    work->field_198 = 5;
+    work->field_19A = 0x14;
+
+    scale = (u16)(enemy->field_8 >> 12);
+    flag  = scale & 1;
+    if (flag == 1) {
+        work->field_176 += enemy->field_8 >> 12;
+        work->field_19A += enemy->field_8 >> 12;
+        work->field_198 += enemy->field_8 >> 12;
+    } else {
+        work->field_176 -= scale >> 1;
+        work->field_19A -= enemy->field_8 >> 13;
+        work->field_198 -= enemy->field_8 >> 13;
+    }
+
+    work->field_1A8 = ((Actor123200CoordPos*)((TmdObject*)task->extra)->field_8)->x;
+    work->field_1AA = ((Actor123200CoordPos*)((TmdObject*)task->extra)->field_8)->y;
+    work->field_1AC = ((Actor123200CoordPos*)((TmdObject*)task->extra)->field_8)->z;
+
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, &dir);
+    dir.vy = 0;
+    Actor123200_ScaleForward(&dir);
+
+    work->field_0                   = 0;
+    work->field_2                   = -1;
+    D_actor_123200_80137248.coord   = ((TmdObject*)task->extra)->field_8;
+    D_actor_123200_80137248.field_4 = 0x100;
+    D_actor_123200_80137248.field_6 = 1;
+    task->state++;
+}
 
 /// Steps `coord` 5/0x1000 of the way along its own forward axis (column 2 of
 /// its rotation, normalised and GPF-scaled) and flags it for rebuild. The

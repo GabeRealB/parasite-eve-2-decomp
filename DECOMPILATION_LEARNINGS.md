@@ -127570,3 +127570,111 @@ them apart - 99.16% -> 99.98%, with the same body otherwise untouched. When a
 `regs`-only diff is a clean swap of two callee-saved homes for values of very
 different lifetime, read the greg order and compute both ratios before
 rewriting anything.
+## `(x & 1) == 1` always folds to `!= 0`; a `li 1` / `bne` compare needs the masked value in a variable (func_actor_123200_8013352C, 2026-09-17)
+
+**Symptom.** The target tests a nibble's low bit with an explicit comparison
+
+```
+andi $v1, $a0, 0x1
+addiu $v0, $zero, 0x1
+bne  $v1, $v0, .else
+```
+
+while `if ((nibble & 1) == 1)` compiles to a bare `beqz`, costing a branch and a
+delay slot.
+
+**Cause.** `fold` rewrites `(A & C) == C` to `(A & C) != 0` whenever `C` is a
+power of two (`fold-const.c`, "If we have (A & C) == C where C is a power of 2").
+The rule only fires when the comparison's operand is still a `BIT_AND_EXPR`, so
+it is defeated by storing the mask result first:
+
+```c
+flag = scale & 1;
+if (flag == 1) { ... }
+```
+
+`flag` is a `VAR_DECL`, `fold` cannot see the range, and the compare survives. A
+`switch (scale & 1)` with `case 1:` / `default:` emits the same two insns — the
+switch expression also goes through a temporary.
+
+## A `(u16)` cast into a `u32` local keeps a real `andi 0xffff`; casting into a `u16` local becomes a `move` (func_actor_123200_8013352C, 2026-09-17)
+
+**Symptom.** One instruction short of a match: the target masks the shifted
+nibble before testing it,
+
+```
+srl  $a1, $v0, 12
+andi $a0, $a1, 0xFFFF     <- a `move $a0, $a1` in every attempt
+andi $v1, $a0, 0x1
+```
+
+and the `andi 0x1` reads the *masked* register while the taken branch adds the
+*unmasked* one.
+
+**Cause.** The destination's mode decides which RTL the narrowing becomes, and
+that decides whether combine can see through it.
+
+- `u16 n = expr; u32 t = n;` gives `(set (reg:HI n) (subreg:HI A))` followed by
+  `(set t (zero_extend:SI (reg:HI n)))`. `n` dies at the second insn, so combine
+  merges them, and `nonzero_bits (reg:HI n)` is read in HImode where the recorded
+  value is the 4-bit shift — the extend is provably redundant and collapses to a
+  copy. combine then leaves the following `and` alone (it does not propagate
+  plain register copies), so the compare reads the copy.
+- `u32 t = (u16)(expr);` gives one insn whose operand is the *SImode* shift
+  pseudo. `nonzero_bits` of that reference falls back to
+  `reg_nonzero_bits` widened with "we don't know the upper bits", the mask is not
+  redundant, and the insn stays an `andi 0xffff`. Substituting it into the later
+  `and`-with-1 would need the mask insn kept as a second set, so that combine is
+  refused too, and the compare still reads the masked register.
+
+So write the cast into the wider local, not through a narrow one:
+
+```c
+scale = (u16)(enemy->field_8 >> 12);
+flag  = scale & 1;
+if (flag == 1) {
+    work->field_176 += enemy->field_8 >> 12;   /* CSEs to the raw srl */
+} else {
+    work->field_176 -= scale >> 1;             /* reads the masked value */
+}
+```
+
+`u16 m = A & 0xFFFF` and `u32 m = A & 0xFFFF` are both wrong here: the first
+folds to a `move`, the second keeps the `andi` but lets combine fold
+`(and (and A 0xffff) 1)` into `(and A 1)`, so the compare reads the wrong
+register.
+
+## An inline helper taking the scratch vector's address is what puts it in `$s0` — and reshuffles the other pointers (func_actor_123200_8013352C, 2026-09-17)
+
+**Symptom.** `regs=71` at 95%: the incoming `GpEnemy*` and the `Mem_Calloc`
+result had swapped `$s0` / `$s1` against the target, and the address of a stack
+`SVECTOR` was materialised twice — once for `VectorNormalSS`'s two arguments and
+again for the `gte_ldsv` / `gte_stsv` operands.
+
+**Cause.** Written inline, each `&vec` is its own cheap address expression, so no
+pseudo crosses the call and nothing needs a callee-saved register. The target
+instead keeps one pointer live across `VectorNormalSS`, which makes it a
+quantity confined to a single basic block — so **local-alloc** hands it `$s0`
+before global_alloc runs. `$s0` is then a hard conflict for the work pointer,
+which global_alloc allocates first (priority `floor_log2(n_refs) * n_refs /
+live_length`, 33 refs over 121 vs the enemy pointer's 20 over 178), so the work
+pointer takes `$s1` and the enemy pointer — dead by then — reuses `$s0`.
+
+**Fix.** Give the sequence its own `static __inline__` helper taking the pointer,
+the way the sibling `Actor123200_StepForward` / `Actor461800_MoveForward` are
+written:
+
+```c
+static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
+{
+    VectorNormalSS(dir, dir);
+    gte_lddp(0x3E8);
+    gte_ldsv(dir);
+    gte_gpf12_real();
+    gte_stsv(dir);
+}
+```
+
+The parameter is one pseudo used by the call and by all three asm blocks, so the
+address is computed once. 93.9% -> 98.2%, with `regs` dropping from 71 to 6 —
+none of which was addressable by touching the registers themselves.

@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/task.h"
 
 #include <psyq/libgte.h>
@@ -13,19 +15,37 @@
 /// `field_0` is the display mode's recorded state, written by
 /// `func_actor_123200_80133E30`.
 typedef struct Actor123200Work {
-    /* 0x000 */ s16    field_0;
-    /* 0x002 */ s16    field_2;
-    /* 0x004 */ s16    field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
-    /* 0x006 */ u16    field_6; // frames since the restart branch last ran
-    /* 0x008 */ byte   pad_8[0x42];
-    /* 0x04A */ u16    field_4A;
-    /* 0x04C */ byte   pad_4C[0xC];
-    /* 0x058 */ u16    field_58;
-    /* 0x05A */ byte   pad_5A[0x116];
-    /* 0x170 */ s16    field_170; // motion state `func_actor_123200_801332E0` switches on
-    /* 0x172 */ s16    field_172;
-    /* 0x174 */ s16    field_174;
-    /* 0x176 */ byte   pad_176[0x3A];
+    /* 0x000 */ s16        field_0;
+    /* 0x002 */ s16        field_2;
+    /* 0x004 */ s16        field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
+    /* 0x006 */ u16        field_6; // frames since the restart branch last ran
+    /* 0x008 */ s16        field_8;
+    /* 0x00A */ byte       pad_A[0x2];
+    /* 0x00C */ GpAnimCtx  anim;     // `func_800B3F84` arg0
+    /* 0x020 */ GpAnimSlot slots[1]; // slots 1..5 continue past here, overlapping the fields below
+    /* 0x048 */ byte       pad_48[0x2];
+    /* 0x04A */ u16        field_4A; // low ten bits: animation id (`slots[1].field_2`)
+    /* 0x04C */ byte       pad_4C[0xC];
+    /* 0x058 */ u16        field_58;
+    /* 0x05A */ byte       pad_5A[0xB6];
+    /* 0x110 */ byte       poses[0x60]; // `func_800B3F84` arg3
+    /* 0x170 */ s16        field_170;   // motion state `func_actor_123200_801332E0` switches on
+    /* 0x172 */ s16        field_172;
+    /* 0x174 */ s16        field_174;
+    /* 0x176 */ u16        field_176;
+    /* 0x178 */ s16        field_178;
+    /* 0x17A */ byte       pad_17A[0x4];
+    /* 0x17E */ s16        field_17E;
+    /* 0x180 */ byte       pad_180[0x18];
+    /* 0x198 */ u16        field_198;
+    /* 0x19A */ u16        field_19A;
+    /* 0x19C */ byte       pad_19C[0xC];
+    /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
+    /// handler samples them through `Actor123200CoordPos`.
+    /* 0x1A8 */ u16    field_1A8;
+    /* 0x1AA */ u16    field_1AA;
+    /* 0x1AC */ u16    field_1AC;
+    /* 0x1AE */ byte   pad_1AE[0x2];
     /* 0x1B0 */ s16    field_1B0;
     /* 0x1B2 */ s16    field_1B2;
     /* 0x1B4 */ s16    field_1B4;
@@ -39,7 +59,44 @@ typedef struct Actor123200Work {
     /* 0x21C */ s16  field_21C;
     /* 0x21E */ byte pad_21E[0x2];
     /* 0x220 */ u16  field_220;
+    /* 0x222 */ byte pad_222[0xA];
 } Actor123200Work;
+STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
+
+/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so
+/// `func_actor_123200_8013352C` samples each world coordinate with `lhu`. The
+/// same narrowing `GpCoordXZ` does for X and Z, extended to Y.
+typedef struct Actor123200CoordPos {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ u16  x;
+    /* 0x1A */ byte pad_1A[2];
+    /* 0x1C */ u16  y;
+    /* 0x1E */ byte pad_1E[2];
+    /* 0x20 */ u16  z;
+    /* 0x22 */ byte pad_22[2];
+} Actor123200CoordPos;
+STATIC_ASSERT_SIZEOF(Actor123200CoordPos, 0x24);
+
+/// Overlay-wide record the spawn handler points at the instance's coordinate,
+/// tagging it with a 0x100 weight and a mode of 1. Nothing matched reads it
+/// back yet.
+typedef struct Actor123200Anchor {
+    /* 0x0 */ GsCOORDINATE2* coord;
+    /* 0x4 */ s16            field_4;
+    /* 0x6 */ s16            field_6;
+} Actor123200Anchor;
+STATIC_ASSERT_SIZEOF(Actor123200Anchor, 0x8);
+
+extern Actor123200Anchor D_actor_123200_80137248;
+
+/// Pair source the spawn handler installs at `GpEnemy::field_50`.
+extern GpPairSrcE D_actor_123200_80134208;
+
+/// Animation source `func_800B3F84` seeds the work block's slots from.
+extern u8 D_actor_123200_80137154[];
+
+/// Message table the spawn handler publishes as `Task::field_24`.
+extern u8 D_actor_123200_80137214[];
 
 /// Caller-owned context the actor also keeps a pointer to; `field_8` carries
 /// the hard-mode nibble its sound id is tagged with, and `field_14` is the flag
@@ -76,6 +133,14 @@ void func_actor_123200_80133BA0(Actor123200Ctx* arg0, Task* arg1);
 /// in state 5, 0x400C0005 while bit 2 of `field_58` is set. Returns 0
 /// otherwise.
 s32 func_actor_123200_80133450(Actor123200Work* arg0);
+
+/// Spawn state: allocates the 0x22C work block, publishes it as `Task::idMap`,
+/// reparents the model to `Gfx_ViewCoord`, seeds its animation slots and hangs
+/// the enemy's display node off part 2 of the model's coordinate array. The
+/// context's top `field_8` nibble biases the three timers in `field_176`,
+/// `field_198` and `field_19A` -- up when its low bit is set, down by half of
+/// it otherwise.
+void func_actor_123200_8013352C(GpEnemy* enemy, Task* task);
 
 /// Display handler in the same message-table family as the shared
 /// `ActorsShared80164844` / `ActorsShared8013d268` bodies. `arg2` selects the
