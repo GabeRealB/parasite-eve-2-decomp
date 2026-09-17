@@ -208,7 +208,87 @@ void func_dryfield_water_tower_8017FBD8(Task* task)
     ((DryfieldWaterTowerState*)task->idMap)->field_6E = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", func_dryfield_water_tower_8017FBE8);
+/// The `RoomPlacement` run the room's 0x7D4 messages step the props through:
+/// the 0x18-byte records from 0x801823A8 up to 0x80182408. `D_..._801823C0`,
+/// the second of them, is case 1's pair -- `[0]` to `field_4` and `[3]`
+/// (0x80182408) to `field_8`; `D_..._801823F0`, the run's element 2, is case
+/// 2's, and the same record the script opcode
+/// `func_dryfield_water_tower_80180220` sends as element 1 of the pair it
+/// declares `D_..._801823D8[]`; and `D_..._801823A8`, the first, is the player
+/// move both that opcode and case 4 send with 0x3E9.
+extern RoomPlacement D_dryfield_water_tower_801823C0[];
+extern RoomPlacement D_dryfield_water_tower_801823F0;
+extern RoomPlacement D_dryfield_water_tower_801823A8;
+
+/// The `GpAnimArg` (0x14-byte) run the 0x7D3 animation messages send: `field_4`
+/// carries the animation index -- 0x0D / 0x0E / 0x0F for the three records --
+/// and every other field, `field_8` included, is zero. Element 1 and element 2
+/// are also named by address, and the code below uses both spellings: element 1
+/// is `D_..._80182420[1]` in case 1 and `D_..._80182434` in case 6.
+extern GpAnimArg D_dryfield_water_tower_80182420[];
+extern GpAnimArg D_dryfield_water_tower_80182434[];
+extern GpAnimArg D_dryfield_water_tower_80182448[];
+
+/// The task table `Task_SpawnFromTable`'s `2` below indexes: entry 0 is the
+/// room task `func_dryfield_water_tower_8017FD64` itself, entry 1 the private
+/// fade-out task `func_dryfield_water_tower_80180038` and entry 2 the shared
+/// fade-*up* body `RoomsShared8017ff5c`, the one state 1 starts here with the
+/// fade rate 8.
+extern TaskDesc D_dryfield_water_tower_8018277C[];
+
+/// The room's per-frame body, run by `func_dryfield_water_tower_8017FD64`
+/// after its state machine has stepped the task on. It dispatches on the
+/// `DwtwWork::field_C` the room's script writes through
+/// `func_dryfield_water_tower_80180174` and clears it again on every path, so
+/// each command runs for the single frame the latch holds.
+///
+/// State 1 installs the room's machinery: animation 0x0D to the prop task at
+/// `field_4`, the two 0x7D4 placements (base and base+0x48) to `field_4` and
+/// `field_8`, animation 0x0E to `field_8`, the slot-3 command 0x3F3 with its
+/// `2`, and the fade-up. The cap script sends that same command as `1`
+/// (`func_dryfield_water_tower_8017E93C` commands 1 and 4) -- the value state 4
+/// below pairs with the 0x3E9 player move, as that script's command 4 does.
+/// States 2, 5 and 6 are the single messages the props receive when the script
+/// moves them: animation 0x0F with case 2's placement, and animations 0x0D and
+/// 0x0E to `field_4` and `field_8` on their own. States 0 and 3 are the idle
+/// ones -- every path, including theirs, clears the latch.
+///
+/// The halfword is read unsigned, so the state arrives as `lhu`; state 0 is a
+/// real case, which is why the switch spans 0..6 and indexes its jump table
+/// with the state itself rather than with `state - 1`.
+void func_dryfield_water_tower_8017FBE8(Task* task)
+{
+    DwtwWork* work  = (DwtwWork*)task->idMap;
+    u16       state = work->field_C;
+
+    switch (state) {
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(work->field_4, 0x7D3, (s32)&D_dryfield_water_tower_80182420[0], 0);
+            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823C0[0], 0);
+            Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823C0[3], 0);
+            Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&D_dryfield_water_tower_80182420[1], 0);
+            Gp_DispatchMsg(work->field_0, 0x3F3, 2, 0);
+            Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 2, 8, 0);
+            break;
+        case 2:
+            Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823F0, 0);
+            Gp_DispatchMsg(work->field_4, 0x7D3, (s32)&D_dryfield_water_tower_80182448, 0);
+            break;
+        case 4:
+            Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
+            Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_water_tower_801823A8, 0);
+            break;
+        case 5:
+            Gp_DispatchMsg(work->field_4, 0x7D3, (s32)&D_dryfield_water_tower_80182420[0], 0);
+            break;
+        case 6:
+            Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&D_dryfield_water_tower_80182434, 0);
+            break;
+    }
+    work->field_C = 0;
+}
 
 /// Main-executable globals with no room-side header: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on and
@@ -225,10 +305,6 @@ extern u8 D_80071075;
 /// `D_801156D0` for the task that follows it.
 extern s32 D_dryfield_water_tower_80182464;
 extern s32 D_dryfield_water_tower_80182674;
-
-/// The room's per-frame body, run by `func_dryfield_water_tower_8017FD64`
-/// after its state machine has stepped the task on.
-void func_dryfield_water_tower_8017FBE8(Task* task);
 
 /// Room entry point: install the player's weapon animation set on slot 3
 /// (message 0x3E8) unless `Gp_StateC08.field_A` says a battle is running or

@@ -119442,3 +119442,34 @@ sibling usually settles the spelling, and here
 `insert=1 delete=1`, diff the object dumps — `lb` vs `lbu` is a load *type*, not
 a register or scheduling leftover, so no penalty other than those two counts
 points at it.
+
+## A `switch` on a signed field loads `lh`; the target's `lhu` needs the value widened at the load, not cast at the use (func_dryfield_water_tower_8017FBE8, 2026-09-17)
+
+Same signature as the `(s8)`/`lb` entry above, and the opposite fix. The target
+reads the state with `lhu` and the struct declared the field `s16`, so the seed
+emitted `lh`. That one opcode was the entire remainder - 97.895%, `insert=1
+delete=1`, with blocks, predicates, calls, delay slots and the whole register
+allocation already matching.
+
+A cast at the use site does not reach it here, because the switch's operand *is*
+the value: `switch ((u16)work->field_C)` still moves the HImode load into a
+register and folds the extension, so the `lh` stands. The widening has to be a
+read of its own:
+
+```c
+u16 state = work->field_C;   /* lhu 0xC(s2) - zero_extend:SI (mem:HI) */
+switch (state) {             /* lh without the local */
+```
+
+which is what a state number wants anyway. Retyping the field in its own header
+works too, and here it is safe - the field's only other user stores it, and a
+store carries no signedness - but the local keeps a room- wide header untouched.
+
+**The penalty counts point the wrong way.** This reads as
+`opcode_delta {33:0:+1, 37:0:-1}`, i.e. "one more `addu`, one fewer `or`", and
+it is tempting to go looking for an arithmetic or a `move` difference. The
+scorer counts *primary opcode fields*, and `lh`'s field is 0x21 (ADDU) while
+`lhu`'s is 0x25 (OR), so any load-opcode swap between those pairs reports as an
+addu/or pair with one insert and one delete. Neither `regs` nor `reorder` moves,
+nothing else in the object differs, and the CFG diagnostics say `match`: that
+combination is a load *type*, and the object dumps name it in one line.

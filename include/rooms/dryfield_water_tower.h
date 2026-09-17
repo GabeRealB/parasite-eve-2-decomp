@@ -19,8 +19,11 @@
 ///
 /// `field_C` / `field_E` are written together as a pair -- `field_E` always
 /// cleared -- by `func_dryfield_water_tower_80180174`, a body the breezeway
-/// room carries as `func_dryfield_breezeway_8017E370`; their meaning is not yet
-/// known. `field_14` is a 0/1 latch that lets
+/// room carries as `func_dryfield_breezeway_8017E370`. `field_C` is the
+/// per-frame command latch `func_dryfield_water_tower_8017FBE8` switches on and
+/// every one of its paths clears: the states it dispatches are the room's
+/// animations and the two prop placements, and its idle states are 0 and 3.
+/// `field_E`'s meaning is not yet known. `field_14` is a 0/1 latch that lets
 /// `func_dryfield_water_tower_80180194` dispatch its one-shot message once.
 typedef struct DwtwWork {
     /* 0x00 */ Task* field_0; // Game_GetPtrSlot(3), Gp_DispatchMsg target
