@@ -1,12 +1,71 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
+#include "main/sound.h"
+#include "rooms/mine_mesa.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa", D_mine_mesa_8017D5C0);
+extern u8         D_801153F4;
+extern u8         D_80115690;
+extern s16        D_80071076;
+extern GpStateBD8 D_mine_mesa_80189B38;
+extern u32        D_mine_mesa_80189B64;
+extern u8         D_mine_mesa_80189B6A;
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa", func_mine_mesa_8017D670);
+/// Runs this room's pending event once the request for it has been accepted.
+/// State 0 plays the caption command recorded in `D_mine_mesa_80189B60` and
+/// saves a point; state 1 spawns the helper task 0x31 the request asked for;
+/// state 2 queues the stage sound and state 3 waits for that voice to end,
+/// either of which falls through to state 4 - the commit, which plays the
+/// event's sound, copies the saved location into `Mc_SaveData` and loads it.
+void func_mine_mesa_8017D670(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_mine_mesa_80189B60.field_0, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_mine_mesa_80189B6A != 0) {
+                    D_mine_mesa_80189B38.field_0 = 0;
+                    D_mine_mesa_80189B38.field_1 = 0;
+                    D_mine_mesa_80189B38.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_mine_mesa_80189B38);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_mine_mesa_80189B64 != 0) {
+                Gp_EnqueueStageSnd6(D_mine_mesa_80189B64, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_mine_mesa_80189B64)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076          = 1;
+            Mc_SaveData.field_6 = D_mine_mesa_80189B40.field_0;
+            Mc_SaveData.field_8 = D_mine_mesa_80189B40.field_2;
+            Mc_SaveData.field_5 = D_mine_mesa_80189B40.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 extern s8 D_80114C12;
 
