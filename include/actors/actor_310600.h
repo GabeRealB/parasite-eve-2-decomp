@@ -105,6 +105,6 @@ void func_actor_310600_80162A58(Task* arg0);
 
 s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 arg3);
 
-void func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
+s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
 
 #endif

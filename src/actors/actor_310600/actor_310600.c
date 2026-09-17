@@ -106,7 +106,81 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 ar
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600", func_actor_310600_801625F0);
+/// Mode handler for the actor's display object, called by the setup path
+/// (`func_actor_310600_80161E64` with message 0x7D5 and mode 0) with the mode in
+/// `arg2`. Modes 0 and 2 hide the model: bit 0x80 of `TmdObject.field_C` goes on,
+/// the 0x8000 flag comes off the actor's own object, and 0x4 is cleared. Modes 1
+/// and 3 show it: 0x80 comes off, 0x8000 goes on, the buffers are reinstated
+/// through `Tmd_AllocBuffers`, and 0x4 is set. Mode 2 additionally latches
+/// `field_477` to 2. Returns 1 for a mode outside 0..3.
+///
+/// `work` and `w` are the same block on purpose. cse turns the second load of
+/// `task->idMap` into a copy of the first and keeps the copy's register for the
+/// mode 0..2 walks, because the only later use of the first load's register is
+/// the `obj` assignment in the entry block -- so mode 3's walk reads the first
+/// load's register and the other three read the copy's, the split the target
+/// has. Writing `&work->obj` inside case 3 instead leaves cse canonicalizing the
+/// walks the other way, and the overlay comes out three instructions short.
+s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
+{
+    Actor310600Work* work;
+    Actor310600Work* w;
+    TmdObject*       ext;
+    GpObj*           p;
+    GpObj*           obj;
+    s32              i;
+    s32              ret;
+
+    work = (Actor310600Work*)task->idMap;
+    ext  = task->extra;
+    w    = (Actor310600Work*)task->idMap;
+    obj  = &work->obj;
+    ret  = 0;
+    switch (arg2) {
+        case 0:
+            ext->field_C |= 0x80;
+            p             = &w->obj;
+            for (i = 0; i <= 0; i++) {
+                p->flags &= 0x7FFF;
+                p++;
+            }
+            ext->field_C &= ~4;
+            break;
+        case 1:
+            ext->field_C &= ~0x80;
+            p             = &w->obj;
+            for (i = 0; i <= 0; i++) {
+                p->flags |= 0x8000;
+                p++;
+            }
+            Tmd_AllocBuffers(ext);
+            ext->field_C &= ~4;
+            break;
+        case 2:
+            ext->field_C |= 0x80;
+            p             = &w->obj;
+            for (i = 0; i <= 0; i++) {
+                p->flags &= 0x7FFF;
+                p++;
+            }
+            w->field_477  = 2;
+            ext->field_C |= 4;
+            break;
+        case 3:
+            ext->field_C &= ~0x80;
+            p             = obj;
+            for (i = 0; i <= 0; i++) {
+                p->flags |= 0x8000;
+                p++;
+            }
+            ext->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_310600/actor_310600", D_actor_310600_80161E20);
 

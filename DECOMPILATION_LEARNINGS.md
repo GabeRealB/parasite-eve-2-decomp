@@ -1050,6 +1050,53 @@ of a `TaskFuncTable11` local picked up `$a0`/`$v1`/`$a2` instead of
 so a "regs everywhere" prologue is worth checking for a single missing copy
 before touching anything else.
 
+## cse's copy survivor is the class *canonical*, and it rewrites the *other* register's uses: a third consumer of the first read decides which home the case bodies get
+
+`func_actor_310600_801625F0` is the twin of `func_actor_113100_80132790`: same
+four-mode switch, same walk, and the same `lw v1` / `move a1,v1` prologue, with
+the walks of modes 0..2 taking `$a1` (the copy) and mode 3's taking `$v1` (the
+load). Two reads of `task->idMap` reproduce that prologue exactly - but the three
+mode 0..2 walks came out on `$v1` and the score stopped at 99.83%:
+
+```
+case 0:  lhu v0,0xc(s0)
+         addiu v1,v1,0x4de     <- wants a1
+```
+
+The `.cse` dump says why. Both reads are loads to begin with; cse collapses the
+second into `(set (reg 85) (reg 84))`, then rewrites the SET_SRC of every later
+pointer computation from reg 85 to reg 84. `canon_reg` substitutes the
+*non-canonical* register of a quantity with the canonical one, and
+`make_regs_eqv` only promotes the copy's destination (`new`) when its last use is
+later than the current canonical's *and* beyond the current basic block. With the
+load's pseudo (`old`) still used by mode 3's walk - the last case - it stays
+canonical and eats the copy's uses. Uses inside a MEM address are not rewritten
+(`canon_reg` is called on `SET_SRC` only), which is what keeps the copy alive at
+all: mode 2's `sb` base is the copy's register in every version.
+
+The lever is therefore not which variable is assigned last (see the entry above)
+but which register is left with the *latest* use. Consuming the load's pseudo in
+the entry block flips it:
+
+```c
+work = (Actor310600Work*)task->idMap;
+ext  = task->extra;
+w    = (Actor310600Work*)task->idMap;   /* the second read: cse -> copy of work */
+obj  = &work->obj;                      /* takes work's last use back to block 0 */
+...
+    p = &w->obj;                        /* modes 0..2: keep the copy's register */
+...
+    p = obj;                            /* mode 3: reads the copy's home too, now */
+```
+
+`&work->obj` written inside case 3 instead (i.e. no `obj` local) leaves the load's
+pseudo canonical, and the overlay comes out three instructions short - a `regs`
+penalty of 3 with `branch 0`: every instruction present and in order, only the
+`addiu` base register of three preheaders wrong. When a two-read CSE copy is
+already there and only the *base register of a loop preheader* differs, look for
+a use of the first read that can be sunk or hoisted to change the class canonical
+before touching anything else.
+
 ## One shared `ret` decides which arm is the entry fall-through; m2c's early returns do not
 
 A two-arm global guard whose target is:
