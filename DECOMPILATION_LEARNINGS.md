@@ -126698,3 +126698,62 @@ copy (the bodies are not byte-equal), and the brief's "similar matched bodies"
 listed none above 0.80. `grep -rn D_801153F4 src/` in the actors tree does, so
 start an actor tick by finding the other ticks that switch on the same global
 before writing one from the assembly.
+## A `switch` on an unsigned halfword field loads `lhu`; the `(s16)` cast on the operand is what makes it `lh` (ActorsShared80131f9cSub1, 2026-09-17)
+
+The dispatcher switches on the work block's `u16 animId` and the target's switch
+value arrives sign-extended:
+
+```asm
+lw    v1,%lo(ActorsShared80131f9cWork)(s0)
+lh    a0,0x478(v1)      # <- lh, for a u16 field
+li    v0,4
+```
+
+`switch (work->animId)` gives `lhu 0x478(v1)` and costs a `regs=1` penalty plus
+every branch target shifting, which reads like an allocation problem. The fix is
+the cast on the *operand*:
+
+```c
+switch ((s16)ActorsShared80131f9cWork->animId) {
+```
+
+`extendhisi2` on a memory operand is forced through `force_not_mem` (see the
+entry above), so the sign-extend reaches the load as `extendhisi2_internal` and
+prints `lh`. This is per *use*, not per field: the same field in the same family
+decides both ways in one object. `src/actors/lib/actors_shared_80132208.c`, the
+shared slot-reseed of the identical work block, already carries the cast for
+this reason - `func_800B4114(..., (s16)ActorsShared80131f9cWork->animId, 0, 8)`
+loads `lh 0x478(a0)` while the `field_476 = animId;` store below it reads
+`lhu 0x478(v1)`. So reach for the cast whenever a matched sibling of the same
+field shows `lh` and the plain read gives `lhu`.
+
+The prologue's `move` is the same "field read twice" mechanism as
+"Reading the same field through the same pointer twice ... (func_actor_342100_80162F54)",
+reached from the other side - here it is the *assignment order* that selects it:
+
+```c
+coord = ((TmdObject*)task->extra)->field_8;
+obj   = (TmdObject*)task->extra;      /* cse folds this load into a copy */
+```
+
+which emits `lw v0,0x2C(a0)` / `addu s2,v0,zero` / `lw s1,8(s2)`. Writing the
+pair the way m2c and the sibling carriers order it - `obj` first, then
+`coord = obj->field_8` - loads straight into `obj`'s home and is missing exactly
+that one instruction (`insert=1 delete=2`, 98.337%).
+
+The dumps name the pass, as in the 342100 entry: `.rtl` holds the field twice
+(`insn 13` `(set (reg:SI 84) (mem (plus (reg/v:SI 81) (const_int 44))))` and
+`insn 18` the same load into `reg/v:SI 83`), and `.cse` holds `insn 13` plus
+`insn 18 (set (reg/v:SI 83) (reg:SI 84))` - one load and a copy. The copy is
+what survives because `reg 84` is also the base of the coordinate load right
+after it, so the two pseudos cannot coalesce; after allocation that base is
+rewritten to `obj`'s register and the copy moves ahead of the load it feeds.
+
+Inputs: scratch `nonmatchings/ActorsShared80131f9cSub1-vacuum`, `base.c` (m2c,
+84.409%) and `base_2.c` 100.000% (preprocessed `base_2.i` sha256
+`4eb6774a2b8dfe958818a76db32a3eb70258df3a9fb7089c64ce55b5fee8e239`; the
+intermediate `base_1.i` is `05ec8da215be264e6d0093ff0b78ea74486576510197d8df1ba0395198d56947`,
+98.337%). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, `expr.c`
+(`expand_expr` / `store_expr`), `config/mips/mips.md` (`extendhisi2`).
+
