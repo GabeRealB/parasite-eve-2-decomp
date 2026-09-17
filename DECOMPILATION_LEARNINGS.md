@@ -125111,3 +125111,73 @@ Inputs: `base_1.c` source `4c2bdd79…`, preprocessed `a12e1450…` (97.819%),
 `base_2.c` source `0b947826…`, preprocessed `b4ce2c26…` (100.000%), target
 `9ede8929…`, compiler `60d886cd…`; scratch
 `nonmatchings/func_actor_210600_8014B2C0-vacuum/`.
+## Any struct-member store evicts every struct memory entry from CSE, not just its neighbours (func_actor_323400_80164974, 2026-09-17)
+
+`func_actor_323400_80164974` is the message handler sibling of
+`func_actor_323000_80164A54`: it copies three payload bytes into the work block
+and then selects on the message. The target loads the mode **once** and carries
+it into the case body:
+
+```
+    lhu        $a2, 0x2($a2)      /* dispatch: the index overwrites msg, which dies here */
+    ...
+  .Lactor_323400_801649E4:
+    sw         $a2, 0x1C($v0)     /* the same register stores it */
+```
+
+Writing the body the sibling's way — `switch (msg->mode) { case 1: ...
+coord.t[1] = msg->mode; ... }` — scores 97.4% with a **second `lhu`** in the
+case block, and the reload takes `$v0` while the dispatch value takes `$v1`
+(`regs=8 branch=3 insert=1`). The two loads are one opcode apart in
+`.diagnosis.json` (`opcode_delta {"37:0": 1}` — `lhu`); the rest is allocation
+noise that follows from it.
+
+**Cause, from `cse.c`.** CSE has no chance to merge them, and it is not the
+block boundary — it is the first coordinate store in between.
+`note_mem_written` sees `(mem/s:SI (plus:SI (reg) (const_int 24)))`, whose
+address `cse_rtx_addr_varies_p` reports as varying because the base is a pseudo
+and not a known constant, and sets **`writes_ptr->nonscalar = 1`** (`all` stays
+0: the `MEM_IN_STRUCT_P` plus non-QImode guard exempts it).
+`invalidate_from_clobbers` then runs `invalidate_memory`, whose test is
+
+```c
+	if (p->in_memory
+	    && (all || (nonscalar && p->in_struct) || cse_rtx_addr_varies_p (p->exp)))
+	  remove_from_table (p, i);
+```
+
+so **every** `in_struct` entry goes, not merely one at a neighbouring offset.
+`p->in_struct` is set from `MEM_IN_STRUCT_P` when the entry is inserted, so any
+`p->field = x` store — the ordinary shape of this codebase — flushes the whole
+struct-member table for the rest of the extended basic block. A member loaded
+before it cannot be reused after it; the second read is a second load.
+
+**Reading it.** When the target has fewer loads of the same member than your
+source's statement order implies, the store between them is the reason, and the
+fix is a source local, not a pin or a scheduler barrier:
+
+```c
+    if (msg->code == 0x1602) {
+        mode = msg->mode;           /* one pseudo, live into the case body */
+        switch (mode) {
+            case 1:
+                ((TmdObject*)task->extra)->field_8->coord.t[1] = mode;
+```
+
+100.000%, and the merged pseudo takes `$a2` for free: its defining load has the
+message pointer dying as its input, and global.c's `find_reg` prefers a dying
+input's register. `base_1.c` 97.4% -> `base_2.c` 100.000% is that one change.
+
+**It also explains the reloads you should *not* remove.** The same rule is why
+the target re-loads `task->extra` (`lw $v0, 0x2C($a0)`) once per coordinate
+store: each store through `field_8` evicts the entry for the previous one. Four
+written-out `((TmdObject*)task->extra)->field_8->...` expressions are the
+matching form; a cached `TmdObject* obj` local would hold one home and change
+the four loads into one.
+
+This subsumes "A store to a neighbouring field kills CSE's memory equivalence":
+the neighbour is not special, and the eviction is not a failed disjointness
+proof at a constant offset. It is the `nonscalar` flag, and it takes out
+unrelated bases too. The sibling `func_actor_323000_80164A54` keeps the
+one-load shape without a local only because nothing is stored between its
+dispatch and its `msg->mode` read.
