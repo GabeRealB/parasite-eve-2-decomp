@@ -2,6 +2,7 @@
 #define ACTOR_101500_H
 
 #include "common.h"
+#include "gameplay/1BC.h"
 
 /// The actor's animation work area. `field_352` is the pose the actor asks
 /// for, `field_354` the pose its slots were last re-queued for and
@@ -34,6 +35,7 @@ typedef struct Actor101500Work {
 typedef struct Actor101500 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor101500Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
 } Actor101500;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
@@ -44,5 +46,7 @@ extern s16 D_actor_101500_8013BE70[];
 extern u16 D_actor_101500_8013BDE8[];
 
 extern u32 Gp_LcgState;
+
+void func_actor_101500_8013291C(Actor101500* actor, s32 damage);
 
 #endif
