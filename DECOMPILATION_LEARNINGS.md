@@ -484,6 +484,21 @@ Inputs: `base.i` (one `void *arg2`, 87.184%)
 `base_1.i` (three parameters, 100.000%)
 `b95e05a308e10b675fb3d9e49f546c8b273ba01ec5b6661051afa43924f9d366`.
 
+The severity is a property of the function, not of the mistake, so the same
+one-parameter seed can land at 99.963% and read as nothing but `regs=1`:
+`func_neo_ark_submarine_tunnel_8017F064` had all 24 blocks, all 134 instructions
+and every call matching, with a single differing line -
+`addu $s2,$a0,$zero` where the target has `addu $s2,$a2,$zero` - because the
+seed's first use of the pointer is a copy to a callee-saved register, which
+names the parameter's home without disturbing anything downstream. Check the
+arity of every seed whose only leftover is a register, however small the
+penalty: three parameters made it 100.000% with every penalty zero.
+
+Inputs: `base.i` (one `void *arg2`, 99.963%)
+`a33876f612cda84bfdbf2c5b05c7b0faf6d9b1e5a81452e2126da60b1d81cc5a`,
+`base_2.i` (three parameters, 100.000%)
+`e66f75462ecf621c60f94bba5a9a0796fabaedf7cfc650424bd36e9703d8a034`.
+
 ## m2c's parameter *names* are registers, so a seed can name `arg2` and place it in `$a1`
 
 A parameter list is positional; m2c's names are not. When m2c drops a parameter
