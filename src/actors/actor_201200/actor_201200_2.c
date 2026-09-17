@@ -33,7 +33,166 @@ extern u8  D_801153F4;
 extern s32 D_actor_201200_8014DE64;
 extern s32 D_actor_201200_8014DE70;
 
-INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_2", func_actor_201200_8014A88C);
+extern GpPairSrcE D_actor_201200_8014DE54;
+extern u8         D_actor_201200_80150DB8[]; // animation bank handed to `func_800B3F84`
+extern u8         D_actor_201200_80150E78[];
+
+void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
+{
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   part;
+    Actor201200Work* work;
+    GpRec18*         hits;
+    SVECTOR          sv;
+    VECTOR           pos;
+    SVECTOR*         p;
+    SVECTOR*         q;
+    GpObj*           o1;
+    GpObj*           o2;
+    GpObj*           o3;
+    GpObj*           o4;
+
+    obj            = arg1->field_2C;
+    coord          = obj->field_8;
+    work           = Mem_Calloc(sizeof(Actor201200Work), 0);
+    arg1->field_1C = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, (Task*)arg1);
+        return;
+    }
+    arg1->field_24 = D_actor_201200_80150E78;
+    coord->sub     = &Gfx_ViewCoord;
+    obj->field_C   = 0;
+    func_800B3F84(&work->anim, D_actor_201200_80150DB8, (GpAnimObj*)obj, work->poses, work->slots);
+
+    o1           = &work->obj230;
+    o1->field_C  = &work->rec1B8;
+    o1->field_12 = -0x34;
+    o1->field_8  = coord;
+    o1->field_10 = 0;
+    o1->field_14 = 0;
+    o1->field_18 = 0x3000C;
+    o1->field_1C = 0xB4;
+    o1->flags    = 1;
+    Gp_LinkObj(2, o1);
+    o1->flags |= 0x4000;
+    Gp_InitRec18Table(o1->field_C, 5, 0);
+
+    o2           = &work->obj2C8;
+    sv.vx        = 0;
+    sv.vy        = -0x168;
+    sv.vz        = 0;
+    p            = &sv;
+    hits         = &work->rec250;
+    o2->field_8  = arg1->field_2C->field_8 + 2;
+    o2->field_C  = hits;
+    o2->field_10 = p->vx;
+    o2->field_12 = p->vy;
+    o2->field_14 = p->vz;
+    o2->field_18 = 0x3000C;
+    o2->field_1C = 0x168;
+    o2->flags    = 1;
+    Gp_LinkObj(2, o2);
+    o2->flags |= 0x8000;
+    Gp_InitRec18Table(o2->field_C, 5, 0);
+
+    o3           = &work->obj300;
+    sv.vx        = 0;
+    sv.vy        = 0;
+    sv.vz        = 0;
+    o3->field_8  = &Gfx_ViewCoord;
+    o3->field_C  = &work->rec2E8;
+    o3->field_10 = p->vx;
+    o3->field_12 = p->vy;
+    o3->field_14 = p->vz;
+    o3->field_1C = 0x500;
+    o3->flags    = 1;
+    Gp_LinkObj(3, o3);
+    Gp_InitRec18Table(o3->field_C, 1, 0);
+
+    o4           = &work->obj338;
+    o4->field_8  = &Gfx_ViewCoord;
+    o4->field_C  = (GpRec18*)work->pad_320;
+    o4->field_10 = p->vx;
+    o4->field_12 = p->vy;
+    o4->field_14 = p->vz;
+    o4->field_1C = 0x80;
+    o4->flags    = 1;
+    Gp_LinkObj(8, o4);
+    Gp_InitRec18Table(o4->field_C, 1, 0);
+
+    arg0->field_4     = &coord->coord;
+    arg0->field_48    = 0;
+    arg0->field_1C.vx = 0;
+    arg0->field_1C.vy = 0;
+    arg0->field_1C.vz = 0;
+    arg0->field_18    = arg1->field_2C->field_8 + 2;
+    Gp_LinkNode(&arg0->node);
+    arg0->node.field_4 = 1;
+    arg0->field_40 = arg0->field_42 = 1;
+    arg0->field_4C                  = 0;
+    arg0->field_40 = arg0->field_42 = D_actor_201200_8014DE54.field_4;
+    arg0->field_50                  = &D_actor_201200_8014DE54;
+    arg0->field_54                  = (s32)hits;
+    work->field_170                 = 2;
+    work->field_174                 = 1;
+    work->field_176                 = 0x10;
+    work->field_178                 = 0;
+    func_actor_201200_8014A640(arg1);
+    work->field_17E = 0;
+    work->field_8   = 0;
+    obj->field_1C   = &work->lightMtx;
+    obj->field_20   = &work->colorMtx;
+    coord->flg      = 0;
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    work->field_198 = 5;
+    work->field_19A = 0x14;
+    if ((u16)(arg0->field_8 >> 12) % 2 == 1) {
+        work->field_176 += arg0->field_8 >> 12;
+        work->field_19A += arg0->field_8 >> 12;
+        work->field_198 += arg0->field_8 >> 12;
+    } else {
+        work->field_176 -= (u16)(arg0->field_8 >> 12) / 2;
+        work->field_19A -= arg0->field_8 >> 13;
+        work->field_198 -= arg0->field_8 >> 13;
+    }
+    work->origin.vx = arg1->field_2C->field_8->coord.t[0];
+    work->origin.vy = arg1->field_2C->field_8->coord.t[1];
+    work->origin.vz = arg1->field_2C->field_8->coord.t[2];
+    Gfx_MatrixCol2(&arg1->field_2C->field_8->coord, &sv);
+    sv.vy = 0;
+    q     = &sv;
+    VectorNormalSS(q, q);
+    gte_lddp(1000);
+    gte_ldsv(q);
+    gte_gpf12_real();
+    gte_stsv(q);
+    work->patrol[0].vx = arg1->field_2C->field_8->coord.t[0] + sv.vx;
+    work->patrol[0].vy = arg1->field_2C->field_8->coord.t[1];
+    work->patrol[0].vz = arg1->field_2C->field_8->coord.t[2] + sv.vz;
+    work->patrol[1].vx = arg1->field_2C->field_8->coord.t[0] - sv.vx;
+    work->patrol[1].vy = arg1->field_2C->field_8->coord.t[1];
+    work->patrol[1].vz = arg1->field_2C->field_8->coord.t[2] - sv.vz;
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    if (arg1->field_36 == 0) {
+        work->field_0 = 7;
+    } else if (arg1->field_36 == 1) {
+        work->field_0 = 2;
+    } else {
+        work->field_0 = 7;
+    }
+    work->field_2        = -1;
+    part                 = arg1->field_2C->field_8;
+    work->eff1A8.field_4 = 0x80;
+    work->eff1A8.field_6 = 2;
+    work->eff1A8.field_0 = part + 1;
+    arg1->state++;
+}
 
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor201200_OutOfRange(SVECTOR* d, s16 r)

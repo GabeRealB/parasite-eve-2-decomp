@@ -2,6 +2,7 @@
 #define ACTOR_201200_H
 
 #include "common.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
 
@@ -9,43 +10,57 @@
 /// substate the message handler below switches on; the three bytes at 0x194
 /// are the message echo the dispatcher copies in for every 0xB02 message.
 typedef struct Actor201200Work {
-    /* 0x000 */ s16      field_0;
-    /* 0x002 */ s16      field_2;
-    /* 0x004 */ s16      field_4;
-    /* 0x006 */ s16      field_6; // frame counter within the substate
-    /* 0x008 */ byte     pad_8[0x50];
-    /* 0x058 */ u16      field_58;
-    /* 0x05A */ byte     pad_5A[0x116];
-    /* 0x170 */ s16      field_170;
-    /* 0x172 */ s16      field_172;
-    /* 0x174 */ s16      field_174;
-    /* 0x176 */ s16      field_176;
-    /* 0x178 */ s16      field_178;
-    /* 0x17A */ s16      field_17A;
-    /* 0x17C */ s16      field_17C;
-    /* 0x17E */ byte     pad_17E[0x16];
-    /* 0x194 */ u8       field_194;
-    /* 0x195 */ u8       field_195;
-    /* 0x196 */ u8       field_196;
-    /* 0x197 */ byte     pad_197[0x11];
-    /* 0x1A8 */ GpEffArg eff1A8; // `func_800FDB18`'s argument record
-    /* 0x1B0 */ SVECTOR  effOfs; // offset handed to `func_800FDB18`; `pad` picks the coordinate
-    /* 0x1B8 */ GpRec18  rec1B8;
-    /* 0x1D0 */ byte     pad_1D0[0x60];
-    /* 0x230 */ GpObj    obj230;
-    /* 0x250 */ GpRec18  rec250;
-    /* 0x268 */ byte     pad_268[0x60];
-    /* 0x2C8 */ GpObj    obj2C8;
-    /* 0x2E8 */ GpRec18  rec2E8;
-    /* 0x300 */ GpObj    obj300;
-    /* 0x320 */ byte     pad_320[0x18];
-    /* 0x338 */ GpObj    obj338;
-    /* 0x358 */ byte     pad_358[0x3C];
-    /* 0x394 */ MATRIX   colorMtx;
-    /* 0x3B4 */ MATRIX   savedColorMtx; // colorMtx as it was on entering the death state
-    /* 0x3D4 */ byte     pad_3D4[0x4];
-    /* 0x3D8 */ s8       field_3D8;     // nonzero rebuilds the color matrix each tick
+    /* 0x000 */ s16        field_0;
+    /* 0x002 */ s16        field_2;
+    /* 0x004 */ s16        field_4;
+    /* 0x006 */ s16        field_6; // frame counter within the substate
+    /* 0x008 */ s16        field_8;
+    /* 0x00A */ byte       pad_A[2];
+    /* 0x00C */ GpAnimCtx  anim;
+    /* 0x020 */ GpAnimSlot slots[1]; // `func_800B3F84` arg4; later slots overlap the fields below
+    /* 0x048 */ byte       pad_48[0x10];
+    /* 0x058 */ u16        field_58;
+    /* 0x05A */ byte       pad_5A[0xB6];
+    /* 0x110 */ byte       poses[0x60]; // `func_800B3F84` arg3
+    /* 0x170 */ s16        field_170;
+    /* 0x172 */ s16        field_172;
+    /* 0x174 */ s16        field_174;
+    /* 0x176 */ s16        field_176;
+    /* 0x178 */ s16        field_178;
+    /* 0x17A */ s16        field_17A;
+    /* 0x17C */ s16        field_17C;
+    /* 0x17E */ s16        field_17E;
+    /* 0x180 */ byte       pad_180[0x14];
+    /* 0x194 */ u8         field_194;
+    /* 0x195 */ u8         field_195;
+    /* 0x196 */ u8         field_196;
+    /* 0x197 */ byte       pad_197[1];
+    /* 0x198 */ u16        field_198;
+    /* 0x19A */ u16        field_19A;
+    /* 0x19C */ byte       pad_19C[0xC];
+    /* 0x1A8 */ GpEffArg   eff1A8; // `func_800FDB18`'s argument record
+    /* 0x1B0 */ SVECTOR    effOfs; // offset handed to `func_800FDB18`; `pad` picks the coordinate
+    /* 0x1B8 */ GpRec18    rec1B8;
+    /* 0x1D0 */ byte       pad_1D0[0x60];
+    /* 0x230 */ GpObj      obj230;
+    /* 0x250 */ GpRec18    rec250;
+    /* 0x268 */ byte       pad_268[0x60];
+    /* 0x2C8 */ GpObj      obj2C8;
+    /* 0x2E8 */ GpRec18    rec2E8;
+    /* 0x300 */ GpObj      obj300;
+    /* 0x320 */ byte       pad_320[0x18];
+    /* 0x338 */ GpObj      obj338;
+    /* 0x358 */ SVECTOR    origin;        // model position at spawn
+    /* 0x360 */ SVECTOR    patrol[2];     // spawn position plus (0) / minus (1) 1000 units along the facing (XZ)
+    /* 0x370 */ byte       pad_370[4];
+    /* 0x374 */ MATRIX     lightMtx;      // installed at `TmdObject.field_1C`
+    /* 0x394 */ MATRIX     colorMtx;
+    /* 0x3B4 */ MATRIX     savedColorMtx; // colorMtx as it was on entering the death state
+    /* 0x3D4 */ byte       pad_3D4[0x4];
+    /* 0x3D8 */ s8         field_3D8;     // nonzero rebuilds the color matrix each tick
+    /* 0x3D9 */ byte       pad_3D9[7];
 } Actor201200Work;
+STATIC_ASSERT_SIZEOF(Actor201200Work, 0x3E0);
 
 /// Context block at `Actor201200::field_20`; `field_40` is the counter the
 /// message handler tests before raising the substate.
@@ -95,8 +110,12 @@ typedef struct Actor201200 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor201200Work* field_1C;
     /* 0x20 */ Actor201200Ctx*  field_20;
-    /* 0x24 */ byte             pad_24[0x8];
+    /* 0x24 */ void*            field_24;
+    /* 0x28 */ byte             pad_28[0x4];
     /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ s32              state;
+    /* 0x34 */ s16              field_34;
+    /* 0x36 */ s16              field_36; // 1 starts in state 2, otherwise 7
 } Actor201200;
 
 /// Message handed to the handler: a type word that selects the actor and a
