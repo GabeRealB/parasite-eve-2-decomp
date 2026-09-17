@@ -39,7 +39,10 @@ typedef struct Actor120300Work {
     /* 0x4CA */ s16        field_4CA;
     /* 0x4CC */ byte       pad_4CC[0x8];
     /* 0x4D4 */ s16        field_4D4; // written by func_actor_120300_80133330
-    /* 0x4D6 */ byte       pad_4D6[0x8];
+    /* 0x4D6 */ u16        field_4D6;
+    /* 0x4D8 */ u16        field_4D8;
+    /* 0x4DA */ u16        field_4DA;
+    /* 0x4DC */ byte       pad_4DC[0x2];
     /* 0x4DE */ s16        field_4DE; // player-eff flag: Gp_SpawnWeaponEff
     /* 0x4E0 */ s16        field_4E0; // uniform scale: broadcast to all three axes of a ScaleMatrix vector, so 0x1000 is 1.0
     /* 0x4E2 */ byte       pad_4E2[0x2];

@@ -16,6 +16,10 @@ extern s32 D_actor_120300_80140A44;
 extern s32 D_actor_120300_80140ACC;
 extern s32 D_actor_120300_80140B2C;
 extern s32 D_actor_120300_80140B5C;
+extern s32 D_actor_120300_801416D4;
+extern s32 D_actor_120300_801417AC;
+extern s32 D_actor_120300_80141884;
+extern s32 D_actor_120300_80141A34;
 
 extern TaskDesc ActorsShared80134898Desc;
 
@@ -145,7 +149,59 @@ void func_actor_120300_80133330(s32 arg0)
     work->field_4C8 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_801334A4);
+/// Tick for the two overlay-load phases the work block arms at 0x4DA: phase 0
+/// walks the three-entry request list through 0x4D6 (0x416D4, then 0x417AC,
+/// then 0x41884) before leaving through 0x4D8, while phase 1 issues the last
+/// record 0x41A34 once and then only counts 0x4D8.  Each of the two phases
+/// returns 1 while the session at `Game_Session->field_1` is still 0, so the
+/// task that calls this keeps the actor alive until play starts.
+s32 func_actor_120300_801334A4(Actor120300* arg0)
+{
+    Actor120300Work* work;
+
+    work = arg0->field_1C;
+    switch (work->field_4DA) {
+        case 0:
+            switch (work->field_4D8) {
+                case 0:
+                    switch (work->field_4D6) {
+                        case 0:
+                            func_800E8614((s32)&D_actor_120300_801416D4, 0);
+                            work->field_4D6++;
+                            break;
+                        case 1:
+                            func_800E8614((s32)&D_actor_120300_801417AC, 0);
+                            work->field_4D6++;
+                            break;
+                        default:
+                            func_800E8614((s32)&D_actor_120300_80141884, 0);
+                            break;
+                    }
+                    work->field_4D8++;
+                    break;
+                case 1:
+                    if (Game_Session->field_1 == 0) {
+                        return 1;
+                    }
+                    break;
+            }
+            break;
+        case 1:
+            switch (work->field_4D8) {
+                case 0:
+                    func_800E8614((s32)&D_actor_120300_80141A34, 0);
+                    work->field_4D8++;
+                    break;
+                case 1:
+                    if (Game_Session->field_1 == 0) {
+                        return 1;
+                    }
+                    break;
+            }
+            break;
+    }
+    return 0;
+}
 
 /// Spawn tick: allocates the 0x4E4-byte `Actor120300Work` block, zeroes it and
 /// parks it in `Task::idMap`, then wires the model object up -- `Tmd_AllocBuffers`,

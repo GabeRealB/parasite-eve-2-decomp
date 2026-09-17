@@ -121032,3 +121032,45 @@ Inputs: scratch `nonmatchings/func_actor_120300_801335D8-vacuum`, `base.c`
 82.780% (`branch=3 regs=43 insert=8 delete=11`), `base_1.c` 99.423%
 (`branch=1 regs=2 reorder=1`), `base_2.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A `return` written per path cross-jumps away; one shared `return` behind `break` is the block the target has
+
+m2c renders every `break` out of a `switch` as its own `return K`. When the arms
+of a state dispatch each end in the same `return 0`, that gives the RTL several
+*identical* one-instruction blocks, and the post-reload `jump_optimize` (`.jump2`,
+cross_jump = 1) merges them - so the 100%-correct C for the dispatch comes out
+eleven instructions short with `delete=12` and the block count off by three.
+The `Game_Session->field_1 == 0` predicate made it worse: both arms collapsed
+into one block that GCC then folded to a branchless `sltiu v0,v0,1`.
+
+The target keeps two separate copies of that predicate with *different registers*
+(`lb v0` / `bnez` in one, `lb v1` / `beqz` in the other), which is the tell: they
+were never identical blocks, so the source never duplicated them. Write the
+dispatch with `break` and a single `return 0` after the outer `switch`:
+
+```c
+switch (work->field_4DA) {
+case 0:
+    switch (work->field_4D8) {
+    case 0:
+        switch (work->field_4D6) { ... }
+        work->field_4D8++;
+        break;
+    case 1:
+        if (Game_Session->field_1 == 0) { return 1; }
+        break;
+    }
+    break;
+...
+}
+return 0;
+```
+
+`func_actor_120300_801334A4`: m2c `base.c` 68.714%, nested-`switch` with a
+`return 0` per path `base_1.c` 80.403% (`delete=12 branch=4 regs=5 reorder=3`),
+the `break` form `base_2.c` 100.000% with every penalty zero. The `break` form
+also gives the target's shared `return 0` blob (`move v0,zero` reached by `j`) as
+a real block instead of one copy per path, which is what the missing eleven
+instructions were. Distinct from the "shared tail reached by a fall-through" case
+above: nothing here needed an explicit label, only the absence of duplicated
+tails.
