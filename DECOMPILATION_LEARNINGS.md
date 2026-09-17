@@ -116831,3 +116831,79 @@ already use `ABS()` (`src/gameplay/1BC.c`, `src/rooms/acropolis_bridge/
 acropolis_bridge_12.c`, `src/rooms/acropolis_helicopter_landing_pad/*`) show
 `move` + self-`negu` in their `.s`. `grep -rn "ABS(" src/` plus the target's
 `negu` operand is the quickest way to tell which form a function wants.
+## A *duplicated* shared tail raises its allocno's refcount: flow runs before jump2's cross-jumping (func_dryfield_dilapidated_house_8017E2B0, 2026-09-17)
+
+The function is a state switch in which cases 0..6 all do `state += 1; return;`.
+Written the way the corpus recommends for a shared tail - one copy at the join
+point with `goto` from the earlier cases - the body scores 100.000% with every
+penalty zero, and the overlay still does not match: the task pointer comes out in
+`$s1` where retail has `$s0`, and the `Mc_SaveData` base it conflicts with takes
+`$s0` where retail has `$s1`. `.greg` has the whole story:
+
+```
+;; 3 regs to allocate: 132 103 80
+r103  7 refs / 100 insns  -> $s0     (Mc_SaveData base)
+r80   5 refs / 190 insns  -> $s1     (the task pointer)
+```
+
+`global.c` places allocnos in decreasing `floor_log2(refs) * refs /
+live_length`, and `allocno_live_length` is the max `REG_LIVE_LENGTH` over the
+allocno's pseudos. 5 refs over 190 insns is 10/190 = 0.053 against 14/100 = 0.14,
+so the base is placed first and no rearrangement at *equal* refcounts closes it -
+the lever has to change the count.
+
+`flow.c` counts the references it sees, and the pass that merges the tail runs
+later: `toplev.c` calls `flow_analysis` at :3375 and `global_alloc` at :3477, but
+the cross-jumping `jump_optimize (insns, 1, 1, 0)` - "Also do cross-jumping this
+time" - only at :3548, after reload and sched2. So a source that **duplicates**
+the increment in each case gives the task pointer one ref pair per copy, the
+allocator sees all of them, and the post-regalloc cross-jump merges the identical
+copies back into a single block. Four copies take it to 11 refs / 204 insns =
+33/204 = 0.162 > 0.14 and the two homes land as retail has them; three copies
+(9 refs / 200 insns = 27/200 = 0.135) fall just short and change nothing. The
+merged block survives at the *last* copy's position - which is where retail's is,
+state 6 - and the jump table's entries for cases 2..5 are retargeted onto it by
+`tension_vector_labels` once their now-empty `j` blocks are deleted.
+
+Two details that cost a build each. A case whose body reaches the increment
+through `goto` contributes no refs, so the count is per *statement*, not per
+case. And a copy that lands inside a case body that has its own locals disturbs
+those locals: with the increment inside case 1's `if`, `sched1` hoists its load
+above the `li`/`sb` of that block, the address temp takes `$v0` and the constant
+`$a0` instead of `$v1`/`$v0`, and the post-regalloc cross-jump can no longer
+merge that copy. Keep such a case on `goto`, or give it a separate block.
+
+When the count still lands either side of a threshold, the corpus' other lever
+applies: a constant-false `do { } while (0)` around the shared increment adds 2
+weighted refs (see "`do{}while(0)` flips an allocno tie", `REG_N_REFS` is
+weighted by loop depth) without moving a byte of the instruction stream.
+
+## `rodata_head` is the lever for *any* `.align 3` inside the unit's `.rodata`, not only a table at offset 0 (func_dryfield_dilapidated_house_8017E2B0, 2026-09-17)
+
+The `rodata_head` entry above covers a jump table that has to *start* its unit's
+`.rodata`. The same fix is right when the table sits in the middle of that run.
+`func_dryfield_dilapidated_house_8017E2B0`'s table follows the `AUNT`/`Player`
+words and `func_dryfield_dilapidated_house_8017E144`'s table at image offset
+0x3C, and the overlay had no `rodata_head`, so the unit's `.rodata` began at 0x0
+and GCC's `.align 3` padded the table out to 0x40. Every symptom points away from
+rodata: the function scores 100.000% with all penalties zero, `rodata_triage.py`
+reports nothing to do, and the checksum fails with all the `.text` addresses in
+the image 4 bytes high - the id word's pointer read `0x8017EAB8` against retail's
+`0x8017EAB4`, and both functions' table entries were 4 high, which reads like a
+code-layout problem and is not.
+
+What the `.align 3` is measured from is the unit's `.rodata` base, not the
+table's address, so shifting that base by 4 removes the pad: with
+`rodata_head = "0x4"` the table sits at relative 0x38 instead of 0x3C and needs
+no padding, and every address after the unit's rodata is untouched. Do the
+arithmetic before editing - the table's offset from the head, `0x3C - 0x4`, must
+be a multiple of 8 - and note the two facts that make this cheap here:
+
+* The `INCLUDE_RODATA` to delete is the *id word's* (`D_..._8017D5C0`), not a
+  table's. 0x0..0x4 becomes the `<name>_hdr` rodatabin subsegment the generator
+  emits for `rodata_head`, and the unit's own run starts at `D_..._8017D5C4`.
+* No `.text` cut (`units`) is needed, and the unit's other matched bodies are
+  safe: splat never rewrites a `.c` that exists, so editing the file in place
+  and letting the changed config re-split the asm leaves its seven other bodies
+  where they are. The re-split does delete `nonmatchings/<unit>` and
+  `matchings/<unit>`, which are regenerated.

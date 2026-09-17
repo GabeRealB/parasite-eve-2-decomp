@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/task.h"
@@ -14,18 +15,22 @@ extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 extern u8  D_80071075;
 extern s16 D_8007107A;
 extern s8  D_80114C12;
+extern s16 D_80071076;
+extern s8  D_801153F1;
 
-extern s32      D_dryfield_dilapidated_house_80189B6C;
-extern s32      D_dryfield_dilapidated_house_80183EFC;
-extern s32      D_dryfield_dilapidated_house_80184408;
-extern s32      D_dryfield_dilapidated_house_80184C60;
-extern TaskDesc D_dryfield_dilapidated_house_80183EB4;
+extern s32            D_dryfield_dilapidated_house_80189B6C;
+extern s32            D_dryfield_dilapidated_house_80183EFC;
+extern s32            D_dryfield_dilapidated_house_80184408;
+extern s32            D_dryfield_dilapidated_house_80184C60;
+extern TaskDesc       D_dryfield_dilapidated_house_80183EB4;
+extern s32            D_dryfield_dilapidated_house_80184EA0;
+extern s32            D_dryfield_dilapidated_house_801855F0;
+extern GpAreaApplyRec D_dryfield_dilapidated_house_80189AA0;
+extern GpAreaApplyRec D_dryfield_dilapidated_house_80189B24;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017DE88);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D5C0);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D5C4);
 
@@ -75,7 +80,76 @@ void func_dryfield_dilapidated_house_8017E014(void)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E144);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E2B0);
+/// Scene-clear task: the room's hand-off to the rest of the game. State 0
+/// starts the streamed scene named by the two blocks `func_800E8634` takes,
+/// state 1 fires when the session is back in play (`Game_Session->field_1`
+/// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
+/// message (`Game_Session->field_126`), and state 7 -- reached once the save
+/// has not already banked this clear (`Mc_SaveData.field_23`) -- applies the
+/// room's two area records, raises the progression flags, refills the party
+/// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
+/// States 0..6 share the `advance` tail that walks the task one state on;
+/// `goto advance` from state 1 is the `acropolis_patio` idiom, and the
+/// `do/while (0)` around the shared increment is this project's allocation
+/// lever, not a loop: it weights the task pointer's references by loop depth
+/// so it outranks the `Mc_SaveData` base and takes `$s0` instead of `$s1`.
+void func_dryfield_dilapidated_house_8017E2B0(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            func_800E8634((s32)&D_dryfield_dilapidated_house_80184EA0, 0, (s32)&D_dryfield_dilapidated_house_801855F0);
+            task->state += 1;
+            return;
+        case 1:
+            if (Game_Session->field_1 == 2) {
+                Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
+                D_801153F1 = 3;
+                goto advance;
+            }
+            return;
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            task->state += 1;
+            return;
+        case 6:
+            if (Game_Session->field_126 == 0) {
+                return;
+            }
+        advance:
+            do {
+                task->state += 1;
+            } while (0);
+            return;
+        case 7:
+            if (Mc_SaveData.field_23 != 9) {
+                Gp_ApplyAreaRecs(&D_dryfield_dilapidated_house_80189AA0);
+                if (GameFlag_GetNibble(0xCE) != 0) {
+                    Gp_ApplyAreaRecs(&D_dryfield_dilapidated_house_80189B24);
+                }
+                GameFlag_SetNibble(0x4B, 6);
+                GameFlag_SetNibble(0x4C, 1);
+                GameFlag_SetNibble(0x45, 1);
+                GameFlag_SetNibble(0x62, 1);
+                GameFlag_SetNibble(0x59, 1);
+                GameFlag_SetNibble(0x5A, 2);
+                GameFlag_SetNibble(3, 0);
+                GameFlag_SetNibble(0x155, 0);
+                Gp_FillPlayerHpMp();
+                Gp_FillAllyHp();
+                Mc_SaveData.field_5C5 = 1;
+                Mc_SaveData.field_7   = 2;
+                Mc_SaveData.field_8   = 1;
+                Mc_SaveData.field_5   = 1;
+                Mc_SaveData.field_6   = 8;
+                D_80071076            = 1;
+                Task_Spawn(0, 0x11, 0, 0);
+            }
+            Task_Kill(task);
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E48C);
 
