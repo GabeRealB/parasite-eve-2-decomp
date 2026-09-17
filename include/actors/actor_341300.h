@@ -26,6 +26,9 @@ STATIC_ASSERT_SIZEOF(Actor341300Shard, 0x30);
 /// Spawn positions the shards start from, indexed by `Task::spawnArg1`.
 extern SVECTOR D_actor_341300_80165A38[];
 
+/// Spawn positions for `func_actor_341300_801631D4`'s shards, indexed by `Task::spawnArg1`.
+extern SVECTOR D_actor_341300_80165A58[];
+
 extern u32 Gp_LcgState;
 
 #endif
