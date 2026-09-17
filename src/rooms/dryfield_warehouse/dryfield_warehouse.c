@@ -20,7 +20,61 @@ extern TaskDesc   D_dryfield_warehouse_8017FB08;
 /// killed along with its parent in state 2.
 extern Task* D_dryfield_warehouse_801821B4;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D5E8);
+/// Volume last asked of the warehouse's ambient track, or 0 when none is
+/// playing. Written by `func_dryfield_warehouse_8017D5E8` and cleared by state 0
+/// of the same task.
+extern s32 D_dryfield_warehouse_801821B8;
+
+/// Warehouse ambience: state 0 clears the recorded volume and advances, state 1
+/// maps `Game_Session->field_4` (the area id) to a target volume - 0x32/0x3C/0x64
+/// for areas 2/3/4, 0 elsewhere - and, whenever that differs from the recorded
+/// one, enqueues the matching fade event: type 6 to start the track, type 7 to
+/// stop it, type A to retune it, then records the new volume.
+void func_dryfield_warehouse_8017D5E8(Task* task)
+{
+    s32 vol;
+
+    switch (task->state) {
+        case 0:
+            D_dryfield_warehouse_801821B8 = 0;
+            task->state                   = task->state + 1;
+            return;
+        case 1:
+            break;
+        default:
+            return;
+    }
+
+    vol = 0;
+    if (Game_Session->field_1 == 0) {
+        switch (Game_Session->field_4) {
+            case 4:
+                vol = 0x64;
+                break;
+            case 3:
+                vol = 0x3C;
+                break;
+            case 2:
+                vol = 0x32;
+                break;
+            default:
+                vol = 0;
+                break;
+        }
+    }
+
+    if (vol == D_dryfield_warehouse_801821B8) {
+        return;
+    }
+    if (D_dryfield_warehouse_801821B8 == 0) {
+        SndEvt_EnqueueType6(0x52070005, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
+    } else if (vol == 0) {
+        SndEvt_EnqueueType7(0x52070005, 0x1E);
+    } else {
+        SndEvt_EnqueueTypeA(0x52070005, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
+    }
+    D_dryfield_warehouse_801821B8 = vol;
+}
 
 /// Message handler: on msg 0x111, walks the `Gp_PendingObj4C` list looking for
 /// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and

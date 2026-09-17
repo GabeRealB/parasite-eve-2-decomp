@@ -115837,3 +115837,72 @@ scalars for the payload let GCC delete the four stores whose address never
 escapes (`base.c` 89.31%, frame 0x28); `GpRec14 rec;` with `&rec` escaping
 restores them and the 0x38 frame. `overlay_dup_index.py find` reports the body
 as its own only copy.
+
+### A decision-tree switch lays its case bodies out in source order, and the last one falls through (func_dryfield_warehouse_8017D5E8, 2026-09-17)
+
+**Problem.** `func_dryfield_warehouse_8017D5E8` (rooms/USA/dryfield_warehouse)
+switches on a `u8` area id and maps it to a volume. Written the obvious way, the
+dispatch tree comes out right:
+
+```c
+switch (Game_Session->field_4) {
+    case 2: vol = 0x32; break;
+    case 3: vol = 0x3C; break;
+    case 4: vol = 0x64; break;
+    default: vol = 0; break;
+}
+```
+
+`beq $v1,$zero,3` / `slti $v0,$v1,4` / `beq $v1,$v0,2` / `bne` on 4 with the
+default's `addu $s0,$zero,$zero` in its delay slot - exactly the target's tree -
+but the *bodies* land 2,3,4, so case 4 falls through into the merge and cases 2
+and 3 jump to it. The target has them 4,3,2 with case 2 falling through. Score
+95.71%, `branch=6 regs=2 insert=3 delete=1`; nothing in the penalty mix points
+at body order.
+
+**Fix.** List the cases in the order the target lays the bodies out - here
+descending, case 2 last:
+
+```c
+switch (Game_Session->field_4) {
+    case 4: vol = 0x64; break;
+    case 3: vol = 0x3C; break;
+    case 2: vol = 0x32; break;
+    default: vol = 0; break;
+}
+```
+
+100.00%, all penalties zero. `expand_end_case`/`emit_case_nodes` build the tree
+of comparisons from the *sorted* case values, so the dispatch is identical
+either way; what follows the source is the order the bodies are emitted in, and
+therefore which one becomes the fall-through into the break target. Read the
+target's leaf order off the object - two leaves ending in `j <merge>` plus one
+that runs into it - and write the cases to match. The same rule explains the
+`if/else` form: in the matched `func_acropolis_roof_garden_8017D5D4` the `else`
+arm is last in the source and is the arm that falls through.
+
+**Two more things this function needed**, both worth checking on any small
+switch:
+
+- The explicit `default: vol = 0;` is not decoration. Without it GCC tests the
+  top of the range with `beq` and falls through to the break; the target's
+  `bne $v1,$v0,<merge>` with the default's assignment in its delay slot is the
+  shape you get *with* the label. The `vol = 0` before the `if` is a separate,
+  earlier assignment - it is what fills the outer `bnez`'s delay slot.
+- Case 0's block only matched once the argument was typed `Task*` and the field
+  read `task->state` instead of m2c's `M2C_FIELD(arg0, s32*, 0x30)`: the
+  non-struct `MEM` after the store to the room global takes a true dependence
+  from it in `sched_analyze_2` (`true_dependence` -> `memrefs_conflict_p`), so
+  the load could not be hoisted and sched emitted `sw; lw; nop; addiu` where the
+  target has `lw; lui; sw; addiu` with the address `lui` filling the load-delay
+  slot. This is the documented struct-typing/aliasing rule above, in the
+  load-hoisting direction.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `3e3dc04cf769dd87192a1e778d5f1fbbf420462fc2c8df09dc2729cbb25afc6f`
+(93.60%), base_2.i `21b4fa1ab97dd5892f82bbd2a38238d3fbebeaca3228309667705a0e14a131a7`
+(95.71%, ascending cases with default), base_3.i
+`a0cc4e95e157fc52040df7fb923ed5d36a5d60d184861a8a1a911f1c7df5dd42` (exact).
+Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017D5E8-vacuum/`,
+`base_2_diff` vs `base_3_diff`, and the two object dumps' leaf order. No pins,
+no permuter. `overlay_dup_index.py find` reports the body as its own only copy.
