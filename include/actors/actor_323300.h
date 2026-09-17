@@ -103,6 +103,24 @@ typedef union Actor323300Matrix {
 } Actor323300Matrix;
 STATIC_ASSERT_SIZEOF(Actor323300Matrix, 0x20);
 
+/// Vertex-morph source `func_actor_323300_80162A6C` blends the model with.
+/// `field_8` and `field_C` are the key vertex and key normal arrays -- 8-byte
+/// `SVECTOR`s, the stride `gteMIMefunc` itself takes -- which that function
+/// copies into the model's own vertex and normal arrays starting at part index
+/// `field_14`, `field_16` and `field_12` entries apiece; `field_0` is the second
+/// key-vertex array it interpolates the model's vertices against, and `field_4`
+/// gates the normal pass the way `field_8` gates the vertex one.
+typedef struct {
+    /* 0x00 */ SVECTOR* field_0;
+    /* 0x04 */ s32      field_4;
+    /* 0x08 */ SVECTOR* field_8;
+    /* 0x0C */ SVECTOR* field_C;
+    /* 0x10 */ s16      field_10;
+    /* 0x12 */ s16      field_12;
+    /* 0x14 */ s16      field_14;
+    /* 0x16 */ s16      field_16;
+} GpMimeSrc;
+
 /// The larger of the two work blocks this overlay parks in `Task::idMap`: the
 /// `Mem_Calloc(0x6B0)` that `func_actor_323300_80162BE4` allocates, as opposed
 /// to the 0x504 `Actor323300Work` `func_actor_323300_80161E78` allocates. The
@@ -129,7 +147,12 @@ typedef struct Actor323300MtxWork {
     /* 0x444 */ s32               field_444; // animation id the slots were seeded with
     /* 0x448 */ byte              pad_448[0x4];
     /* 0x44C */ s32               field_44C;
-    /* 0x450 */ byte              pad_450[0x220];
+    /* 0x450 */ GsCOORDINATE2     shadow[3]; // unsquashed copies of parts 3..5, re-parented onto 4..6
+    /* 0x540 */ byte              pad_540[0x44];
+    /* 0x584 */ s32               field_584; // part 4's Y translation, shrunk by the squash
+    /* 0x588 */ byte              pad_588[0xC];
+    /* 0x594 */ s32               field_594; // part 5's
+    /* 0x598 */ byte              pad_598[0xD8];
     /* 0x670 */ Actor323300Matrix light;
     /* 0x690 */ Actor323300Matrix color;
 } Actor323300MtxWork;
@@ -156,6 +179,16 @@ extern Actor323300AnimPreset D_actor_323300_801725DC;
 /// indexes `D_actor_335800_8016EAD8`. `func_actor_323300_80162BE4` applies the
 /// preset `D_actor_323300_80174A74` through it on the block's first anim start.
 extern void* D_actor_323300_80174A70[];
+
+/// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
+/// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
+extern GpMimeSrc D_801865D0;
+
+/// Blends `arg1`'s key vertex and normal arrays into the model parts starting at
+/// `arg1->field_14`, `arg2` being the 0..0x1000 ramp: the vertex pass runs
+/// through `gteMIMefunc` against `arg1->field_0`, the normal pass only while
+/// `arg1->field_4` is set.
+void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2);
 
 void func_actor_323300_801626D0(Task* arg0);
 void func_actor_323300_8016269C(Task* arg0);

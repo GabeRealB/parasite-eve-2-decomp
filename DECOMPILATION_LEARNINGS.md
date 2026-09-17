@@ -123318,3 +123318,116 @@ Inputs: scratch `nonmatchings/func_actor_323300_80163718-vacuum`, `base_3.c`
 `b7d5e247b7ceaaab...`, `base_4.i` `e809f34408bacfbc...`, assembly
 `6293e8e00353066b...` / `a52cd79b2144077e...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A `li`+`lui` double constant is read off the high word's *bits*, not its digits: `0x3F300000` is 2^-12, not 1.1875 * 2^-12 (func_actor_323300_80162DF0, 2026-09-17)
+
+A soft-float expression the target materialises as `li a2,0` / `lui a3,0x3f30`
+is the double `0x3F30000000000000`. The `lui` holds the high word, i.e. sign,
+exponent and the top 20 mantissa bits packed together: the third hex digit of
+`0x3f30` is the exponent's low nibble (bits 23..20 of `0x3F3`, biased 2^-12) and
+everything after it is mantissa, so the constant is exactly 1/4096. Reading the
+digits as "exponent `0x3F3`, mantissa `0x3`" gives 1.1875 * 2^-12 = 19/65536 and
+sends you hunting a literal that does not exist.
+
+What the source wrote is a division by a power of two, which GCC folds at the
+tree level (exact, so no `flag_unsafe_math_optimizations` needed):
+
+```c
+coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
+```
+
+Three `__muldf3` calls in a row with the constant applied last do not mean the
+source ended in a multiply - `x * 0.8 * blend / 4096.0` and
+`... * 0.000244140625` compile identically. The wrong constant cost one `lui`
+(`0x3f33` vs `0x3f30`) while every surrounding instruction matched, so a
+soft-float tail differing by one constant nibble is a constant-decoding error,
+not an allocation one.
+
+The same nibble arithmetic decides which side of the constant a `lui` even
+belongs to: `0x3FE99999` / `0x9999999A` is 0.8 with the high word in the *second*
+half of the pair, so an operand that looks like two unrelated `lui`/`ori` pairs
+is usually one double's low and high word in memory order (little-endian MIPS
+puts the low word in the lower-numbered register).
+
+Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_4.c`
+90.739% (`lui a3,0x3f33`), `base_5.c` 100.000%. Preprocessed `base_4.i`
+`8554e6abc3ac27bc...`, `base_5.i` `4b72a01ea866e3db...`. Assembly
+`bde2f8b32e10e8e2...` / `d94b8b542c67924d...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A coordinate used on both sides of a call wants one local element pointer (func_actor_323300_80162DF0, 2026-09-17)
+
+Three uses of `extra->field_8[k]` in one block - the copy `shadow[i] = ...`, the
+`ScaleMatrix(&...->coord, ...)` and a `coord.t[1]` store on the far side of that
+same call - do not compile the way the target does when each use spells the whole
+chain. CSE folds the store to `base + 0x10C` and the ScaleMatrix argument to
+`base + 0xF4`, neither shares the copy's source address `base + 0xF0`, `base`
+dies at the call, and every later use re-derives it from a fresh
+`lw extra->field_8` into whatever register global-alloc picked that round:
+
+```c
+coord           = &((TmdObject*)arg0->extra)->field_8[4];   /* addiu s4,v0,0x140 */
+work->shadow[1] = *coord;                                   /* move v1,s4; 5x16B loop */
+coord->sub      = &work->shadow[0];                         /* sw v0,0x4C(s4)       */
+vec.vx = 0x1000; vec.vy = 0x333; vec.vz = 0x1000;
+ScaleMatrix(&coord->coord, &vec);                           /* addiu a0,s4,4        */
+coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
+```
+
+The local makes the element address one value used four ways: the copy cursor
+becomes a copy of it, every later address is `s4 + displacement`, and the pointer
+survives the call in a callee-saved register. Before the local the function was
+at 83.961% with `regs=28`, after it 90.739% with `regs=6`, and the remaining
+difference was block order alone - the register home of the *work* pointer
+followed for free.
+
+The per-block `lw extra->field_8` reloads are real and stay: CSE drops the
+`(mem (reg s7) 0x2C)` entry at each call, so a fresh `extra->field_8[k]` per block
+is what the source does, and the reload is not a sign that the local is wrong.
+
+Pair the fields by offset before placing the math: `field_584` / `field_594` sit
+at `0x540 + 4 * 0x10 + 4` and `+ 5 * 0x10 + 4`, so they belong to parts 4 and 5,
+and each `t[1]` store follows the *second* and *third* ScaleMatrix. Putting the
+first store after the first ScaleMatrix scored 90.739% with the two middle blocks
+swapped in the object and nothing else different.
+
+Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_2.c`
+79.242%, `base_3.c` 83.961%, `base_4.c` 90.739%, `base_5.c` 100.000%.
+Preprocessed `base_2.i` `49cfdd3f42eed24e...`, `base_4.i` `8554e6abc3ac27bc...`,
+`base_5.i` `4b72a01ea866e3db...`. Assembly `a51302cbc942eb12...`,
+`bde2f8b32e10e8e2...`, `d94b8b542c67924d...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## The comparison direction, not the nesting, picks which arm falls through (func_actor_323300_80162DF0, 2026-09-17)
+
+`beqz v0, .L` with `slti v0, x, N` in front of it is a source test spelled
+`x < N`; `bnez v0, .L` on the same `slti` is `x >= N`. The two spellings of one
+three-way clamp are not interchangeable, even though they describe the same
+values:
+
+```c
+if (blend < 0x2000) {                       /* slti + beqz, else arm first */
+    if (blend < 0x1001) blend = 0;
+    else blend -= 0x1000;
+} else blend = 0xFFF;
+```
+
+```c
+if (blend >= 0x2000) {                      /* slti + bnez, then arm first */
+    blend = 0xFFF;
+} else if (blend > 0x1000) {
+    blend -= 0x1000;
+} else blend = 0;
+```
+
+m2c renders the first, the target was the second (`slti v0,s6,0x2000` /
+`bnez v0,...` with `li s6,0xfff` on the fall-through), and the only tell in the
+object is the polarity of the first branch. The second form also settles the
+compare constant: `x > 0x1000` and `x >= 0x1001` both come out as
+`slti v0,x,0x1001`, so that immediate says nothing about which of the two the
+source used - only the branch polarity above it is evidence.
+
+Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_1.c`
+75.687% (`beqz v0,...` with everything else already right), `base_5.c` 100.000%.
+Preprocessed `base_5.i` `4b72a01ea866e3db...`. Assembly `d94b8b542c67924d...`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

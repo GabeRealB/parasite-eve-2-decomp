@@ -299,7 +299,93 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162BE4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162DF0);
+/// Per-frame squash driver for the 0x6B0 `Actor323300MtxWork` block, and the
+/// runner the model-display path calls once the block's animation has been
+/// started: it ticks the 18 slots like `func_actor_323300_80163718` does, folds
+/// `field_44C` -- the 0x3000 countdown `func_actor_323300_80162BE4` seeds, 0x40
+/// per frame -- into the 0..0xFFF ramp `func_actor_323300_80162A6C` blends the
+/// model's vertices with, and republishes that ramp onto `TmdObject::field_2C`,
+/// the intensity the shading path scales its RGB by. While the countdown is
+/// still above 0x1000 the turn angle handed to `func_actor_323300_8016359C` is
+/// `(0x1000 - field_44C) / 4`, i.e. the ramp read the other way round.
+///
+/// The three coordinate nodes at parts 3..5 are then flattened: each is copied
+/// off into `shadow[0..2]` first, then squashed in place through
+/// `ScaleMatrix` -- parts 3 and 4 to 0.2 on Y, part 5 to identity -- and the
+/// *copies* become the parents of parts 4, 5 and 6, so the squash does not
+/// compound down the part chain. The Y translation the squash removes from
+/// parts 4 and 5 is folded out of their own `coord.t[1]` by the same 0.8 and
+/// the same ramp. Part 6's shading is rebound to the third copy's translation
+/// before the countdown drops, so the whole ramp runs out exactly when it
+/// reaches zero.
+void func_actor_323300_80162DF0(Task* arg0)
+{
+    Actor323300MtxWork* work;
+    TmdObject*          extra;
+    GsCOORDINATE2*      coord;
+    VECTOR              vec;
+    s32                 blend;
+    s32                 i;
+
+    work  = (Actor323300MtxWork*)arg0->idMap;
+    extra = (TmdObject*)arg0->extra;
+
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+
+    blend = work->field_44C;
+    if (blend >= 0x2000) {
+        blend = 0xFFF;
+    } else if (blend > 0x1000) {
+        blend -= 0x1000;
+    } else {
+        blend = 0;
+    }
+
+    func_actor_323300_80162A6C(arg0, &D_801865D0, blend);
+    extra->field_2C = blend;
+
+    if (work->field_44C < 0x1000) {
+        func_actor_323300_8016359C(arg0, (s16)(((0x1000 - work->field_44C) << 14) >> 16));
+    }
+
+    coord           = &((TmdObject*)arg0->extra)->field_8[3];
+    work->shadow[0] = *coord;
+    vec.vx          = 0x1000;
+    vec.vy          = 0x333;
+    vec.vz          = 0x1000;
+    ScaleMatrix(&coord->coord, &vec);
+
+    coord           = &((TmdObject*)arg0->extra)->field_8[4];
+    work->shadow[1] = *coord;
+    coord->sub      = &work->shadow[0];
+    vec.vx          = 0x1000;
+    vec.vy          = 0x333;
+    vec.vz          = 0x1000;
+    ScaleMatrix(&coord->coord, &vec);
+    coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
+
+    coord           = &((TmdObject*)arg0->extra)->field_8[5];
+    work->shadow[2] = *coord;
+    coord->sub      = &work->shadow[1];
+    vec.vx          = 0x1000;
+    vec.vy          = 0x1000;
+    vec.vz          = 0x1000;
+    ScaleMatrix(&coord->coord, &vec);
+    coord->coord.t[1] = work->field_594 - work->field_594 * 0.8 * blend / 4096.0;
+
+    coord      = &((TmdObject*)arg0->extra)->field_8[6];
+    coord->sub = &work->shadow[2];
+    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+
+    work->field_44C -= 0x40;
+    if (work->field_44C < 0) {
+        work->field_44C = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163188);
 
