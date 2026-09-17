@@ -2,6 +2,8 @@
 
 #include "actors/actor_335800.h"
 
+#include "actors/actors_shared_801327f8.h"
+
 #include "gameplay/1A8.h"
 
 #include "gameplay/1BC.h"
@@ -330,7 +332,74 @@ void func_actor_335800_80162640(Task* arg0)
     arg0->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_2", func_actor_335800_80162844);
+void func_actor_335800_80162FF4(void);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+void func_actor_335800_80162844(Task* task)
+{
+    TmdObject*           ext      = task->extra;
+    Actor335800MainWork* work     = (Actor335800MainWork*)task->idMap;
+    TaskFunc             funcs[2] = { (TaskFunc)func_actor_335800_80162FF4, ActorsShared801327f8 };
+    VECTOR3              pos;
+    GsCOORDINATE2*       coord;
+    GpAnimRec*           rec;
+    s32                  i;
+    s32                  j;
+
+    funcs[work->field_4F8](task);
+    coord              = ((TmdObject*)task->extra)->field_8;
+    work->field_4D8   += work->field_4C8;
+    work->field_4DC   += work->field_4CC;
+    work->field_4E0   += work->field_4D0;
+    coord->coord.t[0] += (s16)(work->field_4D8 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4DC >> 16);
+    coord->coord.t[2] += (s16)(work->field_4E0 >> 16);
+    coord->flg         = 0;
+    work->field_4D8    = (u16)work->field_4D8;
+    work->field_4DC    = (u16)work->field_4DC;
+    work->field_4E0    = (u16)work->field_4E0;
+    if (!(ext->field_C & 0x80)) {
+        if (work->field_474 != 0) {
+            for (i = 1; i < 0x14; i++) {
+                Gp_AnimTickIndex(&work->anim, i);
+            }
+            rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+            if (rec != NULL) {
+                if (!(rec->field_3 & 0x20) && (work->field_508 & 0x20)) {
+                    Gp_SpawnEff(0x600A1, &((TmdObject*)task->extra)->field_8[8], 0xD, NULL);
+                }
+                work->field_508 = rec->field_3 & 0x30;
+            }
+        }
+        if (work->field_504 == 0) {
+            for (i = 0; i < 3; i++) {
+                for (j = 0; j < 3; j++) {
+                    work->color.m[i][j] >>= 1;
+                    work->light.m[i][j] >>= 1;
+                }
+                work->color.t[i] >>= 1;
+                work->light.t[i] >>= 1;
+            }
+            work->field_504 = -1;
+        }
+        if (work->field_504 > 0) {
+            if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+                Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+            }
+        }
+    }
+    if (Game_Session->field_4D != 0) {
+        work->field_504 = 1;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_506 >= 0) {
+        if (work->field_506 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_506--;
+    }
+}
 
 s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3);
 
