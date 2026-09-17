@@ -74,13 +74,18 @@ typedef struct Actor335800MainWork {
     /* 0x477 */ s8         field_477; // preset byte the turn-to-face body passes as `field_4`
     /* 0x478 */ MATRIX     light;
     /* 0x498 */ MATRIX     color;
-    /* 0x4B8 */ byte       pad_4B8[0x20];
+    /* 0x4B8 */ s32        field_4B8;
+    /* 0x4BC */ s32        field_4BC;
+    /* 0x4C0 */ s32        field_4C0;
+    /* 0x4C4 */ byte       pad_4C4[0x14];
     /* 0x4D8 */ s32        field_4D8;
     /* 0x4DC */ s32        field_4DC;
     /* 0x4E0 */ s32        field_4E0;
-    /* 0x4E4 */ byte       pad_4E4[0xE];
+    /* 0x4E4 */ byte       pad_4E4[0xC];
+    /* 0x4F0 */ u16        field_4F0;
     /* 0x4F2 */ u16        field_4F2; // target yaw the turn-to-face body steers toward
-    /* 0x4F4 */ byte       pad_4F4[0x4];
+    /* 0x4F4 */ u16        field_4F4;
+    /* 0x4F6 */ byte       pad_4F6[0x2];
     /* 0x4F8 */ s16        field_4F8; // body counters the turn-to-face body clears on arrival
     /* 0x4FA */ s16        field_4FA;
     /* 0x4FC */ Task*      field_4FC;
@@ -137,6 +142,21 @@ typedef struct Actor335800AnimPreset {
     /* 0x10 */ s32 field_10;
 } Actor335800AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor335800AnimPreset, 0x14);
+
+/// Spawn placement `func_actor_335800_80162C80` copies into the parent block:
+/// the position into `field_4B8..field_4C0`, the rotation into
+/// `field_4F0..field_4F4`.
+typedef struct Actor335800Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor335800Placement;
+
+/// Optional start animation for `func_actor_335800_80162C80`: the preset's
+/// `field_4` and the `field_477` byte. Absent, the defaults are 0xD and 1.
+typedef struct Actor335800SpawnAnim {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  field_4;
+} Actor335800SpawnAnim;
 
 /// A `MATRIX`'s word-wise view, for the identity splat `func_actor_335800_801631A4`
 /// writes over the root coordinate before `RotMatrix` overwrites the 3x3: five
