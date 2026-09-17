@@ -123103,3 +123103,98 @@ Inputs: scratch `nonmatchings/func_actor_323300_8016359C-vacuum`, `base.c` (m2c)
 `ba6475a6987f2dcf...`, `base_3.i` `f3ad0714aec5e589...`, assembly
 `d47e45f71fddb317...` / `7b0ea0bc1dcddb97...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## The `-2` reset store's position decides whether the target's one load is reloaded: a store through one pointer kills the CSE entry for a load through another (func_actor_323300_80163718, 2026-09-17)
+
+The shape is the starting preset every actor family writes:
+
+```c
+if (msg->field_0 != work->field_440) {
+    work->field_440 = msg->field_0;
+    work->field_444 = -1;
+    func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], ext, work->pad_30C, work->slots);
+}
+```
+
+The target loads `msg->field_0` once into `$v1` and uses that register three
+times - the compare, the store to `field_440` and the `sll $v1,$v1,2` of the
+table index. `work` and `msg` are both pointers-to-struct, so a store through
+either may alias the other, and the CSE entry for `msg->field_0` is killed by
+any store that precedes the next read of it. Writing the two stores in the
+order m2c infers from the assembly (`field_444 = -1` first) puts a store
+between the compare and the store's own right-hand side, so that read is a
+second `lw 0(s2)`:
+
+```asm
+lw    v1,0(s2)          ; compare
+beq   v1,v0,...
+li    v0,-0x1
+sw    v0,0x444(s1)      ; kills the entry
+lw    v1,0(s2)          ; the store's RHS, re-loaded
+sw    v1,0x440(s1)
+```
+
+Storing `field_440` first - before any store can intervene - keeps the RHS
+read tied to the register already holding the value, and the later index read
+of `work->field_440` is then store-to-load forwarded from it. 92.377% ->
+94.579% (`reorder` 1 -> 0, `regs` 4 -> 1), and the emitted store order came
+out `sw -1,0x444` first anyway: sched reorders the two independent stores, so
+the source order of the stores is free to be the one CSE wants and still match.
+
+Two consequences worth carrying forward. A target with a *single* load feeding
+a compare, a store and a later read of the stored field is telling you the
+source stored that value first; the same body in `func_actor_323300_801628B8`
+(and `func_actor_335800_80162C80`) does show the reload, so the difference is
+real and source-level, not a compiler version artefact. And writing the index
+as `table[arg2->field_0]` re-derives it from memory, which is the same extra
+load by another route.
+
+Inputs: scratch `nonmatchings/func_actor_323300_80163718-vacuum`, `base_2.c`
+92.377%, `base_3.c` 94.579%, `base_4.c` 100.000%. Preprocessed `base_3.i`
+`b7d5e247b7ceaaab...`, `base_4.i` `e809f34408bacfbc...`, assembly
+`6293e8e00353066b...` / `a52cd79b2144077e...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A call argument that is a load through a parameter keeps that parameter live into the call sequence: hoist it to a local (func_actor_323300_80163718, 2026-09-17)
+
+Passing `(GpAnimObj*)arg0->extra` inline as the third argument of a call inside
+the `if` body made `arg0` live until the call sequence, where `$a0` is
+reassigned for the callee's own first argument. Global-alloc then gave `arg0` a
+different home and the function opened with a copy:
+
+```asm
+move  a1,a0            ; arg0's home is $a1
+lw    s1,0x1c(a1)
+lw    v0,0x440(s1)
+nop                    ; load delay, nothing to fill it
+beq   v1,v0,...
+...
+lw    a2,0x2c(a1)      ; the extra load, inside the call sequence
+```
+
+One local assignment before the `if` - `ext = arg0->extra;` - ends `arg0`'s
+live range before `$a0` is needed, so it keeps its incoming register, the
+copy disappears, and the `ext` load is free to be scheduled up into the load
+delay slot of the compare's branch:
+
+```asm
+lw    s1,0x1c(a0)
+lw    v1,0(s2)
+lw    v0,0x440(s1)
+lw    a2,0x2c(a0)      ; fills the delay slot
+beq   v1,v0,60
+move  a0,s1
+```
+
+94.579% -> 100.000% (`regs` 1 -> 0, `insert` 3 -> 0, `branch` 7 -> 0). The
+matched twin `func_actor_335800_80162C80` is written the same way - `ext =
+task->extra;` above its `if` - which is what makes the shape legible as the
+source's spelling rather than a scheduling preference. A `move aN,a0` at the
+top of a function is the signature: it says some parameter's live range
+overlaps the point where its own argument register is reused.
+
+Inputs: scratch `nonmatchings/func_actor_323300_80163718-vacuum`, `base_3.c`
+94.579%, `base_4.c` 100.000%. Preprocessed `base_3.i`
+`b7d5e247b7ceaaab...`, `base_4.i` `e809f34408bacfbc...`, assembly
+`6293e8e00353066b...` / `a52cd79b2144077e...`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
