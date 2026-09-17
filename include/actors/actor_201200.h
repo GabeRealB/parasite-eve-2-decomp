@@ -51,12 +51,27 @@ typedef struct Actor201200Work {
 /// message handler tests before raising the substate.
 typedef struct Actor201200Ctx {
     /* 0x00 */ byte pad_0[0x8];
-    /* 0x08 */ u16  field_8;  // top nibble selects the sound bank
-    /* 0x0A */ byte pad_A[0xA];
-    /* 0x14 */ s8   field_14; // cleared by the state handlers
+    /* 0x08 */ u16  field_8;   // top nibble selects the sound bank
+    /* 0x0A */ byte pad_A[0x6];
+    /* 0x10 */ byte node[0x4]; // bound by `func_800DA6E8` on a hit
+    /* 0x14 */ s8   field_14;  // cleared by the state handlers
     /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ s16  field_40;
+    /* 0x40 */ s16  field_40;  // hit points
+    /* 0x42 */ byte pad_42[0x9];
+    /* 0x4B */ s8   field_4B;  // cleared when the hit points run out
 } Actor201200Ctx;
+
+/// 0x18-byte scratch taken from `0x1F8003FC` by the hit check: the first
+/// type-2 record's position, its offset from the model origin, the attack id,
+/// the computed damage and the hit's yaw relative to the model's facing.
+typedef struct Actor201200HitScratch {
+    /* 0x00 */ SVECTOR d;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     id;
+    /* 0x14 */ u16     dmg;
+    /* 0x16 */ s16     angle;
+} Actor201200HitScratch;
+STATIC_ASSERT_SIZEOF(Actor201200HitScratch, 0x18);
 
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
 /// rebuild: the rotation, the uniform scale applied to it and the yaw.

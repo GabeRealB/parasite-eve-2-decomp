@@ -17,7 +17,7 @@ extern u32     Gp_LcgState;
 void Gp_ArmStateF0(s32 active);
 void func_actor_201200_8014A640(Actor201200* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void func_actor_201200_8014C738(Actor201200Ctx* arg0, Actor201200* arg1);
+void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1);
 void ActorsShared8014db78(Actor201200Ctx* arg0, Actor201200* arg1);
 void func_actor_201200_8014DBE0(Actor201200Ctx* arg0, Actor201200* arg1);
 void func_actor_201200_8014AE60(Actor201200Ctx* arg0, Actor201200* arg1);
@@ -32,8 +32,6 @@ void func_actor_201200_8014DD50(Actor201200Ctx* arg0, Actor201200* arg1);
 extern u8  D_801153F4;
 extern s32 D_actor_201200_8014DE64;
 extern s32 D_actor_201200_8014DE70;
-
-INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_3", func_actor_201200_8014C738);
 
 INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_3", func_actor_201200_8014CA08);
 
@@ -104,7 +102,7 @@ void func_actor_201200_8014D4D0(Actor201200Ctx* arg0, Actor201200* arg1)
     work->field_2 = work->field_0;
     table.fn[work->field_0](arg0, arg1);
     if (arg0->field_40 > 0) {
-        func_actor_201200_8014C738(arg0, arg1);
+        ActorsShared8014c738(arg0, arg1);
         if (arg0->field_40 <= 0) {
             work->field_0 = 6;
         }
