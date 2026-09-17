@@ -125003,3 +125003,45 @@ Inputs: scratch `nonmatchings/func_actor_450900_80131E38-vacuum`, `base_2.c`
 SHA256 `30f4e6e2cbde1adb2f31d908cc1e25b33aeb6d8fedca89ab162c7e5e7eaaee00`,
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## The same inlined rotation block without the doubled close-out: the caller's guard is what follows it (func_actor_210600_8014B434, 2026-09-17)
+
+The entry above reads a tail that clears `flg` twice and re-fetches
+`task->extra->field_8` as the tell that the rescale is an inlined helper. This
+overlay's update body is the same `ActorShared80135a60` block at scale `0xC00`
+with a *single* close-out -- `m22`, one `coord->flg = 0`, the `m[2][2]` store,
+then the scratch pop -- because the caller keeps going afterwards instead of
+ending there. Read the target literally either way: `lw $a0,0x2C($s4)` /
+`lw $a1,0x8($v0)` reloaded at the effect call rather than reusing the `coord`
+that was live for the matrix copy is the same "the inline re-derives
+`task->extra->field_8`" evidence, from the other end of the body.
+
+The pick-up after the inline is an effect guarded on an animation clip, and the
+two halves of that guard read **different slots** -- do not assume symmetry:
+
+```c
+id = work->slots[1].field_2 & 0x3FF;                  /* 0x3E, `lhu` + `andi` */
+if (id == 7 && work->field_896 != id) {
+    memset(&vec, 0, 8);                               /* SVECTOR, not NULL */
+    eff.field_0 = ((TmdObject*)task->extra)->field_8;  /* part 0, no addiu */
+    eff.field_4 = 0x100;
+    eff.field_6 = 2;
+    func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->field_8 + 1, &vec, &eff);
+}
+work->field_896 = work->slots[0].field_2 & 0x3FF;     /* 0x16 -- slot 0, not 1 */
+```
+
+Slot 1 is what is watched (`0x3E`), slot 0 is what is remembered (`0x16`, stored
+to `field_896` as an `s16` but loaded `lhu` before the mask). The `+ 1` on the
+coordinate argument is one `GsCOORDINATE2`, i.e. `+ 0x50`; `func_actor_401000_8013922C`
+is the same guard one actor over (`field_5A` / `field_8B4`, `field_8 + 5` =
+`0x190`) and is the body to read first. `Actor110600_ScaleRotation` in
+`actor_110600.c` already spells the inlined rescale, so the whole function is a
+typed transcription rather than a search: m2c's `void*` locals scaled the
+scratch pointer by `sizeof(MATRIX)` (`addiu s0,s2,-0x680`) and burned an extra
+`$s` on the unused first argument, which the two-parameter signature
+(`void* spawnArg2, Task* task`) and `ActorShared80135a60Scratch` remove --
+82.652% to 100.000% with every penalty zero on the first typed build.
+
+Inputs: `base_1.c` source `e46795b5…`, preprocessed `dd76ada1…`, target
+`f7bd92eb…`, compiler `60d886cd…`; scratch
+`nonmatchings/func_actor_210600_8014B434-vacuum/`.

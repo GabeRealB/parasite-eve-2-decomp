@@ -29,7 +29,11 @@ typedef struct Actor210600Work {
     /* 0x886 */ s16        field_886;
     /* 0x888 */ byte       pad_888[0x8];
     /* 0x890 */ s16        field_890;
-    /* 0x892 */ byte       pad_892[0x6];
+    /* 0x892 */ byte       pad_892[0x4];
+    /// Clip id of slot 0 the update body last saw, masked to 12 bits and kept
+    /// so the once-per-clip effect is not respawned while it is held; the same
+    /// slot `Actor110600AnimWork::field_8AC` remembers its cue in.
+    /* 0x896 */ s16 field_896;
     /// The light / colour matrices the spawn body stores into
     /// `TmdObject::field_1C` / `field_20`. They sit at the top of the block
     /// rather than at its head, so the overlay's actor keeps its animation
