@@ -30,7 +30,22 @@ typedef struct Actor403900Work {
     /// Hit-pending flags, raised together with `field_494`; bit 0x8000 is the
     /// flag the hit handler clears when it consumes the descriptor.
     /* 0x49A */ u16  field_49A;
-    /* 0x49C */ byte pad_49C[0x220];
+    /* 0x49C */ byte pad_49C[0x11E];
+    /// Flag word the settle states 3 and 4 clear bit 0x4000 of, beside the
+    /// matching word at 0x5DA.
+    /* 0x5BA */ u16  field_5BA;
+    /* 0x5BC */ byte pad_5BC[0x1E];
+    /// Second flag word, cleared by state 3 only.
+    /* 0x5DA */ u16  field_5DA;
+    /* 0x5DC */ byte pad_5DC[0x18];
+    /// Head of the actor's first collision-record table; the settle states
+    /// branch on its `field_4` before handing the table to
+    /// `Gp_ClearRec18Occupied`.
+    /* 0x5F4 */ GpRec18 field_5F4;
+    /* 0x60C */ byte    pad_60C[0x38];
+    /// Head of a second collision-record table, cleared by state 5.
+    /* 0x644 */ GpRec18 field_644;
+    /* 0x65C */ byte    pad_65C[0x60];
     /// Sound event id the cue body queues: the overlay's cue word
     /// `D_actor_403900_8013846C` with the `GpEnemy` work id's high nibble in
     /// bits 8-11. Stored back to the block and re-read from there as the first
@@ -41,8 +56,10 @@ typedef struct Actor403900Work {
     /* 0x6C2 */ byte pad_6C2[4];
     /// Flinch countdown, armed by the hit handler and ticked down a frame at a
     /// time; see the block comment.
-    /* 0x6C6 */ s16  field_6C6;
-    /* 0x6C8 */ byte pad_6C8[4];
+    /* 0x6C6 */ s16 field_6C6;
+    /// Cleared on the frame the wait state rolls a new countdown.
+    /* 0x6C8 */ s16  field_6C8;
+    /* 0x6CA */ byte pad_6CA[2];
     /// Cleared when the cue expires.
     /* 0x6CC */ s16 field_6CC;
     /// Cue state: 0 arms the animation and the countdown, 1 waits the
@@ -64,7 +81,32 @@ typedef struct Actor403900Work {
     /// Fourth timer, cleared alongside the trio above when the countdown runs
     /// out.
     /* 0x6E0 */ s16  field_6E0;
-    /* 0x6E2 */ byte pad_6E2[0x34];
+    /* 0x6E2 */ byte pad_6E2[2];
+    /// Latch that sends the wait state straight to state 2 with no countdown;
+    /// cleared again on the frame it is taken.
+    /* 0x6E4 */ s16  field_6E4;
+    /* 0x6E6 */ byte pad_6E6[2];
+    /// Latch that sends the wait state to an LCG-drawn state 3-5 offset and
+    /// reposts the actor's target instead of rolling a countdown.
+    /* 0x6E8 */ s16  field_6E8;
+    /* 0x6EA */ byte pad_6EA[2];
+    /// Sequence mode, cleared by the wait state.
+    /* 0x6EC */ s16 field_6EC;
+    /// Set by the wait state when it takes the `field_6E8` branch, cleared
+    /// otherwise.
+    /* 0x6EE */ s16  field_6EE;
+    /* 0x6F0 */ byte pad_6F0[0x1C];
+    /// Escalation counter the settle states walk up to 8; the wait state's
+    /// countdown is scaled by `16 - field_70C`, so a higher count is a
+    /// shorter wait.
+    /* 0x70C */ s16 field_70C;
+    /// Which settle state last ran (1, 2 or 3); state 2 picks the next state
+    /// from it.
+    /* 0x70E */ s16 field_70E;
+    /// Run length of repeats of the same settle state; state 2 biases its LCG
+    /// draw by it and the settle states walk it back down.
+    /* 0x710 */ s16  field_710;
+    /* 0x712 */ byte pad_712[4];
     /// Damage amount the hit handlers OR into `field_494`.
     /* 0x716 */ s16  field_716;
     /* 0x718 */ byte pad_718[4];
@@ -95,5 +137,8 @@ typedef struct Actor403900 {
 /// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
 /// with the caller taking the bits it wants out of the high half.
 extern u32 Gp_LcgState;
+
+/// Parks the actor's target position off the player; see its definition.
+void func_actor_403900_80132E34(Actor403900* arg0);
 
 #endif /* ACTOR_403900_H */

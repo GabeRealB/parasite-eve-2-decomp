@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_403900/actor_403900_4", ActorsShared80135df4Table);
+
 INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_80135A24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_80135BE0);

@@ -43871,6 +43871,39 @@ is safe: the tables still owned by assembly functions are folded back into
 those functions' `.s` files by `migrate_rodata_to_functions`, in address order,
 and need no `INCLUDE_RODATA` edit.
 
+## A `lib/`-referenced rodata table does not migrate across a new `rodata` cut
+
+`migrate_rodata_to_functions` folds a rodata symbol into the `.s` of the
+function that references it, which is why most `rodata` cuts in a generated
+overlay need no `INCLUDE_RODATA` edit. It can only do that when the
+referencing function lives in the *same* unit as the span. A table reached only
+from a `lib/<unit>` shared object has its reference in a different unit
+entirely, so it migrates nowhere and no `INCLUDE_RODATA` is emitted for it
+either — the span's owning `.c` simply does not mention it.
+
+The symptom is a link error naming the shared object, not the overlay unit you
+just cut:
+
+```
+build/USA/src/actors/lib/actors_shared_80135df4.i:(.text+0x8):
+    undefined reference to `ActorsShared80135df4Table'
+```
+
+Hand-add the include to the unit that now owns the span. Cutting
+`actor_403900`'s leading rodata for a decompiled `actor_403900_2` switch gave
+`0xF8..0x104` to `actor_403900_4`, so that table's include belongs in
+`actor_403900_4.c`:
+
+```c
+INCLUDE_RODATA("actors/nonmatchings/actor_403900/actor_403900_4", ActorsShared80135df4Table);
+```
+
+Position inside the file is free while the table is alone in its subsegment.
+Where a sibling overlay in the same family already carries the body matched,
+copy its cut layout wholesale — `actor_402200`'s `rodata` list mapped offset
+for offset onto `actor_403900` (0x4C/0x64/0xF8), including which unit takes the
+shared table, and that is cheaper than re-deriving ownership per symbol.
+
 ## The cross-jump merge label says how much of the tail lives in each case
 
 When several `switch` cases end in the same call sequence, GCC 2.8.1's
