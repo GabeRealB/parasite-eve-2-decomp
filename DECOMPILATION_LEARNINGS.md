@@ -117659,3 +117659,77 @@ SECTION(".rodata") = 0;`) after the generated table - the `actor_401000` shape
 above, the pad being the one the target keeps ahead of
 `func_dryfield_r08_8017D8B4`'s still-asm table. Scratch
 `nonmatchings/func_dryfield_r08_8017D5F8-vacuum`.
+## A per-arm memory store is what keeps a conditional's value in `$v0` - if-conversion rewrites the if/else that uses a local (func_dryfield_night_water_hole_8017DADC, 2026-09-17)
+
+The handler picks a command byte from a `GameFlag_GetNibble` result and stores
+it into the outgoing record, and retail keeps *every* one of the values in
+`$v0` - the same register the call returned in, written again in the branch's
+delay slot:
+
+```
+jal    GameFlag_GetNibble
+li     a0,0x53
+bnez   v0,.LDBD4        /* branch on the call result ... */
+  li   v0,2             /* ... which the delay slot overwrites */
+li     v0,1
+.LDBD4:
+sb     v0,3(s0)
+```
+
+Both obvious spellings put the value in `$v1` instead, at 88-94%:
+
+```c
+out->field_3 = (GameFlag_GetNibble(0x53) == 0) ? 1 : 2;   /* 93.88% */
+```
+
+```c
+v = (GameFlag_GetNibble(0x53) == 0) ? 1 : 2;   /* or:  */
+out->field_3 = v;                              /* v = 2; if (...) v = 1; */
+```
+
+`.flow` says why. Both expand to `result = else_value;` *before* the branch,
+so the value is born in the block that the branch is in and stays live across
+it - `global_conflicts` marks it against `$v0`, which the call result still
+holds, and the allocator hands it `$v1`. The same thing that made the ternary
+win in the `func_actor_341900_801635A4` entry is what loses here.
+
+Rewriting it as an `if`/`else` that assigns a local does *not* help, because
+if-conversion converts the diamond straight back into that shape:
+
+```c
+if (GameFlag_GetNibble(0x53) != 0) { v = 2; } else { v = 1; }
+out->field_3 = v;                                 /* 84.78% - worse */
+```
+
+The fix is to give each arm its own **store to memory**, which if-conversion
+refuses (its `if_convertible_insn_p` requires a pseudo-register destination).
+Each arm then keeps a short-lived value in its own block, born after the
+branch where `$v0` is already dead:
+
+```c
+if (GameFlag_GetNibble(0x53) != 0) {
+    out->field_3 = 2;
+} else {
+    out->field_3 = 1;
+}
+```
+
+100%, every penalty zero. Two consequences come with it. The per-arm values all
+land in `$v0`, so the arms' stores are byte-identical after reload and the
+shared `sb` the target has - one instruction reached from both arms - is where
+the merge the source never wrote comes from. And `out->field_3 += 2` in the
+sibling arm keeps its `lbu` result as well (`lbu $v0,3(s0)` / `addiu
+$v0,$v0,2`), for the same reason.
+
+Read this with the `func_actor_341900_801635A4` entry: the aim is the same
+(value born after the branch, where the condition's register is free), but the
+route differs - there the arms compute the value from a local loaded once
+before the branch, here the arms store to memory, and the deciding pass is
+if-conversion rather than the ternary expansion.
+
+Inputs: `base_5.i` (100%) SHA256
+`d5132f0eb12bc1449b8ec982a6c2cb2b6d82b18ce545055819f9a6339632725e`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. The body is shared with
+`dryfield_water_hole` and now lives in `src/rooms/lib/rooms_shared_8017dadc.c`.
+Scratch `nonmatchings/func_dryfield_night_water_hole_8017DADC-vacuum`.

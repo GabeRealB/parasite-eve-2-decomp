@@ -8,3 +8,4 @@ RoomsShared8017e690 = 0x8017E000; // shared body, see src/rooms/lib/
 RoomsShared8017d878 = 0x8017D840; // shared body, see src/rooms/lib/
 RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/
 RoomsShared8017f4a0 = 0x8017EC90; // shared body, see src/rooms/lib/
+RoomsShared8017dadc = 0x8017D5F0; // shared body, see src/rooms/lib/
