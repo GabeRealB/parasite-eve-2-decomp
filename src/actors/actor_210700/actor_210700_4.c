@@ -9,7 +9,54 @@ extern GpImgRec D_actor_210700_80157F4C;
 extern GpImgRec D_actor_210700_8015826C;
 extern GpImgRec D_actor_210700_8015858C;
 
-INCLUDE_ASM("actors/nonmatchings/actor_210700/actor_210700_4", func_actor_210700_8014A3D4);
+/// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
+/// mode word, run against the `TmdObject` parked in `Task::extra`. `field_C`
+/// bit 0x80 marks the model hidden -- its `Tmd_Create` initial value, and the
+/// bit `Task_Kill`'s type-1 path sets -- while bit 0x4 is the one modes 2 and 3
+/// raise. Mode 0 hides the model and drops 0x4, 1 shows it, reinstates the aux
+/// buffers through `Tmd_AllocBuffers` and drops 0x4, 2 hides it and latches the
+/// mode into the work block's `field_53E`, and 3 shows it while raising 0x4.
+/// Anything else returns 1 and leaves the object alone; the handled modes
+/// return 0.
+/// The handler reads the `Task::actor` pointer before the switch even though
+/// mode 2 is its only use, so retail's `lw $v1,0x1C($a0)` sits in the entry
+/// block. The same body shape as `ActorsShared80162bc4` and
+/// `func_actor_511000_801327A0`.
+s32 func_actor_210700_8014A3D4(GpActorWork* arg0, s32 arg1, s32 mode)
+{
+    TmdObject*       obj;
+    Actor210700Work* work;
+    s32              ret;
+
+    obj  = arg0->extra;
+    work = (Actor210700Work*)arg0->actor;
+    ret  = 0;
+
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C   |= 0x80;
+            work->field_53E = mode;
+            obj->field_C   |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 /// Message-0x7E0 handler: uploads one of the actor's three texture records over
 /// the 0x18x0x10 rect at y 0x28 -- `D_actor_210700_8015858C` for mode 1,
