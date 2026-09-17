@@ -1,4 +1,5 @@
 #include "common.h"
+#include <psyq/abs.h>
 
 #include "main/mem.h"
 #include "main/sound.h"
@@ -10,6 +11,7 @@
 
 #include "actors/actor_207200.h"
 #include "actors/actors_shared_80134700.h"
+#include "actors/actors_shared_80136614.h"
 #include "actors/actors_shared_8013851c.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
@@ -26,6 +28,8 @@ extern s32        D_actor_207200_80153ED4;
 
 extern u8  D_801153F2[2];
 extern u32 Gp_LcgState;
+/// `field_492` value for frames 20..39 of helper stage 1, indexed by frame - 20.
+extern s16 D_actor_207200_80153F20[];
 
 void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {
@@ -216,7 +220,209 @@ void func_actor_207200_8014B628(Task* arg0)
     *(u8**)G_SCRATCH_HEAD += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014B87C);
+/// Helper-slot state 1 of the enemy, stepped by `field_49A`. Stage 0 waits out
+/// the random delay in `field_4AA`; stage 1 moves to stage 4 once the player is
+/// within 0x385 and inside +/-0x200 of the facing angle, otherwise picks a turn
+/// direction; stages 2/3 turn the model by `field_484` (+/-25) on frames
+/// 30..50 and re-check the angle every 60 frames; stages 4-6 play the
+/// room-tagged sounds and toggle the display flags of two render nodes, stage 4
+/// rolling a 40% chance of stage 6 before returning to stage 1.
+void func_actor_207200_8014B87C(Task* arg0)
+{
+    Actor207200Work* work;
+    GsCOORDINATE2*   coord;
+    s32              angle;
+    u32              dist;
+    s32              id;
+    s16              state;
+
+    work  = (Actor207200Work*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    switch (work->field_49A) {
+        case 0:
+            work->field_48C = 1;
+            if ((s16)work->field_490 > work->field_4AA) {
+                work->field_49A = 1;
+            }
+            break;
+        case 1:
+            angle = ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &dist);
+            if (work->field_4A6 == 0 && dist < 0x385 && ABS(angle) < 0x200) {
+                work->field_492            = 0;
+                work->field_49A            = 4;
+                work->field_2C4.obj.flags &= 0xBFFF;
+                break;
+            }
+            work->field_48C            = 2;
+            work->field_498            = 0;
+            work->field_2C4.obj.flags |= 0x4000;
+            if ((u32)(work->field_490 - 20) < 20) {
+                work->field_492 = D_actor_207200_80153F20[(s16)work->field_490 - 20];
+            } else {
+                work->field_492 = 0;
+            }
+            if ((s16)work->field_490 >= 75) {
+                work->field_490 = 0;
+                if (work->field_4A6 == 0) {
+                    if (ABS(angle) > 0x200 || work->field_494 != 0) {
+                        if (angle < 0) {
+                            work->field_484 = -25;
+                            work->field_49A = 3;
+                            work->field_48C = 4;
+                        } else {
+                            work->field_484 = 25;
+                            work->field_49A = 2;
+                            work->field_48C = 3;
+                        }
+                    }
+                }
+            }
+            break;
+        case 2:
+            state           = 3;
+            work->field_492 = 0;
+            work->field_48C = state;
+            if ((u32)(work->field_490 - 30) < 21) {
+                work->field_44C.vx  = 0;
+                work->field_44C.vz  = 0;
+                work->field_44C.vy += work->field_484;
+                RotMatrix(&work->field_44C, &coord->coord);
+            }
+            if ((s16)work->field_490 >= 60) {
+                if (work->field_4A6 != 0) {
+                    work->field_486 = 0;
+                    work->field_48C = 1;
+                } else {
+                    angle = ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &dist);
+                    if (ABS(angle) < 0x200 || work->field_494 != 0) {
+                        work->field_49A = 1;
+                        work->field_494 = 0;
+                        work->field_490 = 0;
+                        work->field_48C = 2;
+                    } else if (angle < 0) {
+                        work->field_484 = -25;
+                        work->field_490 = 0;
+                        work->field_49A = 3;
+                        work->field_48C = 4;
+                    } else {
+                        work->field_484 = 25;
+                        work->field_490 = 0;
+                        work->field_49A = 2;
+                        work->field_48C = state;
+                    }
+                }
+            }
+            break;
+        case 3:
+            state           = 4;
+            work->field_492 = 0;
+            work->field_48C = state;
+            if ((u32)(work->field_490 - 30) < 21) {
+                work->field_44C.vx  = 0;
+                work->field_44C.vz  = 0;
+                work->field_44C.vy += work->field_484;
+                RotMatrix(&work->field_44C, &coord->coord);
+            }
+            if ((s16)work->field_490 >= 60) {
+                if (work->field_4A6 != 0) {
+                    work->field_486 = 0;
+                    work->field_48C = 1;
+                } else {
+                    angle = ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &dist);
+                    if (ABS(angle) < 0x200 || work->field_494 != 0) {
+                        work->field_49A = 1;
+                        work->field_494 = 0;
+                        work->field_490 = 0;
+                        work->field_48C = 2;
+                    } else if (angle < 0) {
+                        work->field_484 = -25;
+                        work->field_490 = 0;
+                        work->field_49A = 3;
+                        work->field_48C = state;
+                    } else {
+                        work->field_484 = 25;
+                        work->field_49A = 2;
+                        work->field_490 = 0;
+                        work->field_48C = 3;
+                    }
+                }
+            }
+            break;
+        case 4:
+            work->field_492 = 0;
+            if ((s16)work->field_490 == 30) {
+                work->field_4A0 = 0;
+                id              = ((((Actor207200Ctx*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40480002;
+                SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if ((s16)work->field_490 == 42) {
+                work->field_374.obj.flags |= 0x8000;
+            }
+            if ((s16)work->field_490 == 45) {
+                work->field_374.obj.flags &= 0x7FFF;
+            }
+            if (work->field_4A0 != 0 && (s16)work->field_490 == 45) {
+                id = ((((Actor207200Ctx*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40480005;
+                SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if (work->field_48C == 8 && (s16)work->field_490 >= 60) {
+                if (work->field_4A6 != 0) {
+                    work->field_486 = 0;
+                    work->field_48C = 1;
+                } else {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    if ((u16)((Gp_LcgState >> 16) % 100) < 40) {
+                        work->field_49A = 6;
+                        work->field_48C = 10;
+                    } else {
+                        work->field_49A = 1;
+                        work->field_48C = 2;
+                    }
+                    work->field_490 = 0;
+                }
+            } else {
+                work->field_48C = 8;
+            }
+            break;
+        case 5:
+            work->field_492 = 0;
+            if ((s16)work->field_490 == 30) {
+                work->field_3AC.obj.flags |= 0x8000;
+            }
+            if ((s16)work->field_490 == 60) {
+                work->field_3AC.obj.flags &= 0x7FFF;
+            }
+            if ((s16)work->field_490 >= 90) {
+                if (work->field_4A6 != 0) {
+                    work->field_486 = 0;
+                    work->field_48C = 1;
+                } else {
+                    work->field_49A = 1;
+                    work->field_490 = 0;
+                    work->field_48C = 2;
+                }
+            }
+            break;
+        case 6:
+            work->field_48C = 10;
+            work->field_492 = 0;
+            if ((s16)work->field_490 == 10) {
+                id = ((((Actor207200Ctx*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x40480006;
+                SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            if ((s16)work->field_490 >= 90) {
+                if (work->field_4A6 != 0) {
+                    work->field_486 = 0;
+                    work->field_48C = 1;
+                } else {
+                    work->field_49A = 1;
+                    work->field_490 = 0;
+                    work->field_48C = 2;
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014BEF4);
 

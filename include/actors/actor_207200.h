@@ -46,13 +46,14 @@ typedef struct Actor207200Work {
     /* 0x3AC */ Actor207200Obj field_3AC;
     /* 0x3E4 */ byte           pad_3E4[0x10];
     /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
-    /* 0x3FC */ byte           pad_3FC[0x58];
+    /* 0x3FC */ byte           pad_3FC[0x50];
+    /* 0x44C */ SVECTOR        field_44C; // rotation `field_484` turns about y
     /* 0x454 */ s32            field_454; // model position while the actor idles
     /* 0x458 */ s32            field_458;
     /* 0x45C */ s32            field_45C;
     /* 0x460 */ byte           pad_460[4];
     /* 0x464 */ MATRIX         field_464; // last transform folded onto the model
-    /* 0x484 */ byte           pad_484[2];
+    /* 0x484 */ s16            field_484; // turn step, +/-25 per frame
     /* 0x486 */ s16            field_486; // state the six helper slots are running
     /* 0x488 */ s16            field_488; // frames spent in `field_486`
     /* 0x48A */ u16            field_48A; // frames the current helper stage has run
@@ -60,11 +61,13 @@ typedef struct Actor207200Work {
     /* 0x48E */ u16            field_48E; // id the six helper slots last saw
     /* 0x490 */ u16            field_490; // frames spent on the current id
     /* 0x492 */ s16            field_492;
-    /* 0x494 */ byte           pad_494[4];
+    /* 0x494 */ s16            field_494;
+    /* 0x496 */ byte           pad_496[2];
     /* 0x498 */ s16            field_498;
     /* 0x49A */ s16            field_49A;
     /* 0x49C */ s16            field_49C;
-    /* 0x49E */ byte           pad_49E[4];
+    /* 0x49E */ byte           pad_49E[2];
+    /* 0x4A0 */ s16            field_4A0;
     /* 0x4A2 */ s16            field_4A2;
     /* 0x4A4 */ s16            field_4A4;
     /* 0x4A6 */ s16            field_4A6;
