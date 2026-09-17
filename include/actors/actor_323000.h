@@ -122,6 +122,17 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task);
 /// slots are set up.
 void func_actor_323000_80163A30(Task* task);
 
+/// State handler of the same table as the re-init handler below. When the work
+/// block's `field_4` flag is set it clears the enemy's link flag (the re-init
+/// handler sets it), drops the model root's `field_C` and rebuilds its buffers,
+/// then seeds the animation-state slots before the tick. Otherwise it ticks,
+/// re-seeds `field_82E` once the flag in `slot[1]`'s `field_10` - the same slot
+/// actor 01900 names `field_68` - reports the 0xF step, and once `field_82E`
+/// reads 0xE it spawns the actor's effect 0x60054 at the model root's eighth
+/// coordinate: the jump vector (-0x3E8, 0x28A, 0xC8) for the step `slot[1]`'s
+/// `field_2` (actor 01900's `field_5A`) reads as 7 or 9, and 0x80003400 for 8.
+void func_actor_323000_8016409C(GpEnemy* enemy, Task* task);
+
 /// Re-init handler (table `D_actor_323000_80161E24`, index 2): when the work
 /// block's `field_4` flag is set, flags the enemy's link node, drops the
 /// model's root `field_C` and reallocates its buffers, then writes the

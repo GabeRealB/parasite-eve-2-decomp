@@ -85050,6 +85050,54 @@ those gave the whole source shape, which is the fast path for a `calls`-class
 Inputs: `base.i` `3b85f84be47bccc4d77de3f1b295cfb21ee418038f0d8bda6459c7a151b7ba16`,
 `base_1.i` `f0e9c92e15799d13cd3a249b72ddf3e4e16730bbd28174741adb546045ee4dcd`.
 
+## The same pile of scalars without a frame change: the missing-store count is the tell, and the sibling's field order is the store order (func_actor_323000_8016409C, 2026-09-17)
+
+The case above is one instance of m2c splitting an address-taken aggregate into
+scalars; `func_actor_323000_8016409C` is the same trap with two differences
+worth knowing, since the frame check would have missed it.
+
+Here the three fields are `s16`s of an `SVECTOR` handed to
+`Gp_SpawnEff(..., s16*)`, and the surviving local is 2 bytes - so the aggregate
+slot is *already* reserved and the frame stays 0x28 either way. The tell is the
+count instead: the target stores six halfwords (three per spawn block) and the
+candidate two, and `.diagnosis.json` reports it as an opcode delta of the
+instructions whose operands went away - `9:0` (`addiu`, the `li` pairs) and
+`41:0` (`sh`) each `-4`, 88.4% with `Penalties: regs=4 reorder=4 delete=8` and
+`structure "match"`. Read the opcode delta before the frame: when a candidate is
+N instructions short and every missing opcode is a store or the constant load
+that feeds it, the C is one aggregate.
+
+The second difference is that the *field order inside the aggregate* is
+observable, so it cannot be invented. The target emits
+`li/sh` pairs for `vx` (0x10), then `vz` (0x14), then `vy` (0x12) - SVECTOR
+declaration order is `vx, vy, vz`, so source order here was `vx, vz, vy`. The
+already-matched sibling `func_actor_323000_80164B40` in the same overlay, doing
+the same spawn for the same actor, is written in exactly that order:
+
+```c
+        case 7:
+            sp10.vx = -0x3E8;
+            sp10.vz = 0xC8;
+            sp10.vy = 0x28A;
+            break;
+```
+
+Fix: declare `SVECTOR sp10;` and assign `vx`, `vz`, `vy` - 99.946% on that
+change alone (`regs=1`, one wrong `lhu` displacement), 100% once the two reads
+m2c kept separate are kept separate (below).
+
+The `regs=1` leftover was not an allocation problem: the first `if` tests
+`work + 0x68 & 1` and the two spawn blocks test `work + 0x5A & 0x3FF`, and
+m2c had them as distinct fields. Folding the pair into one member because they
+share an access shape leaves the object dump with a single `lhu` at the wrong
+displacement and nothing else wrong - a 5-difference, 99.95% score. When a seed
+reads two offsets of one object with the same opcode pattern, check whether the
+target really is one field before unifying them.
+
+Inputs: `base.i` `5530d1a052123f45a3a374f80f584ad5b1de658a6801d4d36476bf9dfa514986`,
+`base_1.i` `6ed8c845d12741477a0eb213b9dafcf4cb5d33971c4d01cf7ff3870c5516acc1`,
+`base_2.i` `c4d07d60bac36d9fc3ebab0ab6d279680db23fafe2336a79931e66a818db3123`.
+
 ## A `jal` that loads the argument register before calling a helper the rest of the TU calls with none (func_neo_ark_shrine_8017F320, 2026-09-15)
 
 `func_neo_ark_shrine_8017F320` is 30 insns. Its second call has an explicit
