@@ -1,12 +1,63 @@
 #include "common.h"
 
 #include "actors/actor_103700.h"
+#include "actors/actors_shared_80133c1c.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/sound.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_801328DC);
+void func_actor_103700_801328DC(Task* task)
+{
+    Actor103700Work* work;
+    GsCOORDINATE2*   coord;
+    void*            head;
+    SVECTOR*         vec;
+    s16              angle;
+    s32              dist;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    vec                     = (SVECTOR*)((u8*)head - sizeof(SVECTOR));
+    *(void**)G_SCRATCH_HEAD = vec;
+    work                    = (Actor103700Work*)task->idMap;
+    coord                   = ((TmdObject*)task->extra)->field_8;
+
+    switch (work->field_250) {
+        case 0:
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_252    = ((Gp_LcgState >> 16) & 0xF) + 20;
+            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            angle              = (Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            dist               = (Gp_LcgState >> 16) & 0x1FF;
+            work->field_23C.vx = work->field_234.vx + ((dist * rsin(angle)) >> 12);
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_23C.vy = work->field_234.vy + ((Gp_LcgState >> 16) & 0x1FF);
+            work->field_23C.vz = work->field_234.vz + ((dist * rcos(angle)) >> 12);
+            vec->vx            = work->field_23C.vx - coord->coord.t[0];
+            vec->vy            = 0;
+            vec->vz            = work->field_23C.vz - coord->coord.t[2];
+            work->field_244    = ratan2(vec->vx, vec->vz) & 0xFFF;
+            work->field_250    = 1;
+            break;
+        case 1:
+            vec->vx = work->field_23C.vx - coord->coord.t[0];
+            vec->vz = work->field_23C.vz - coord->coord.t[2];
+            if ((s16)SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz) < 120) {
+                work->field_250 = 0;
+            }
+            break;
+    }
+    func_actor_103700_801350DC(task, 0, 14);
+    func_actor_103700_80135140(task, 20);
+    if (ActorsShared80133c1c((ActorShared80133c1c*)task) != 0) {
+        work->field_24E      = 3;
+        work->field_250      = 0;
+        Gp_StateF0.field_19 |= 1;
+    }
+    *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_80132B7C);
 

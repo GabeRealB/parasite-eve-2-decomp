@@ -22,21 +22,25 @@
 /// state 1, and then either flags `field_250` or steps `field_24E` to 5 with the
 /// state copied into `field_248`.
 typedef struct Actor103700Work {
-    /* 0x000 */ byte pad_0[0x248];
-    /* 0x248 */ s16  field_248;
-    /* 0x24A */ byte pad_24A[0x4];
-    /* 0x24E */ s16  field_24E;
-    /* 0x250 */ s16  field_250;
-    /* 0x252 */ s16  field_252;
-    /* 0x254 */ s16  field_254;
-    /* 0x256 */ byte pad_256[0x4];
-    /* 0x25A */ s16  field_25A;
-    /* 0x25C */ u16  field_25C;
-    /* 0x25E */ u16  field_25E;
-    /* 0x260 */ byte pad_260[0x2];
-    /* 0x262 */ s16  field_262;
-    /* 0x264 */ byte pad_264[0x2];
-    /* 0x266 */ s16  field_266;
+    /* 0x000 */ byte    pad_0[0x234];
+    /* 0x234 */ SVECTOR field_234;
+    /* 0x23C */ SVECTOR field_23C;
+    /* 0x244 */ s16     field_244;
+    /* 0x246 */ byte    pad_246[0x2];
+    /* 0x248 */ s16     field_248;
+    /* 0x24A */ byte    pad_24A[0x4];
+    /* 0x24E */ s16     field_24E;
+    /* 0x250 */ s16     field_250;
+    /* 0x252 */ s16     field_252;
+    /* 0x254 */ s16     field_254;
+    /* 0x256 */ byte    pad_256[0x4];
+    /* 0x25A */ s16     field_25A;
+    /* 0x25C */ u16     field_25C;
+    /* 0x25E */ u16     field_25E;
+    /* 0x260 */ byte    pad_260[0x2];
+    /* 0x262 */ s16     field_262;
+    /* 0x264 */ byte    pad_264[0x2];
+    /* 0x266 */ s16     field_266;
 } Actor103700Work;
 
 /// Pose context the `D_801153F4` mode switch in `func_actor_103700_80134E24`
@@ -66,9 +70,20 @@ STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 /// Spawn argument reached through `Task::spawnArg2`: the high nibble of
 /// `field_8` selects the sound bank `func_actor_103700_80133AB4` plays from.
 typedef struct Actor103700Spawn {
-    /* 0x0 */ byte pad_0[0x8];
-    /* 0x8 */ u16  field_8;
+    /* 0x00 */ byte                    pad_0[0x8];
+    /* 0x08 */ u16                     field_8;
+    /* 0x0A */ byte                    pad_A[0x32];
+    /* 0x3C */ struct Actor103700Kind* field_3C;
 } Actor103700Spawn;
+
+/// Record `Actor103700Spawn::field_3C` points at; `field_F` indexes the
+/// halfword table `D_actor_103700_80139D9C`.
+typedef struct Actor103700Kind {
+    /* 0x0 */ byte pad_0[0xF];
+    /* 0xF */ u8   field_F;
+} Actor103700Kind;
+
+extern u16 D_actor_103700_80139D9C[];
 
 /// Halfword bob table, one row of 15 per `arg1`: the row runs
 /// 0, 10, 19, 24, 25, 22, 15, 5, -5, -15, -22, -25 before returning to 0.
@@ -80,6 +95,9 @@ extern s16 D_actor_103700_80139DB8[];
 extern s16 D_actor_103700_80139DF4[];
 
 extern u32 Gp_LcgState;
+
+void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2);
+void func_actor_103700_80135140(Task* task, s32 arg1);
 
 /// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
 extern GpAnimSet* D_actor_103700_80139F1C[];
