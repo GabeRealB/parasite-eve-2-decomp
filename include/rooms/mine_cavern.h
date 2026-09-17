@@ -56,4 +56,58 @@ STATIC_ASSERT_SIZEOF(MineCavernTint, 0x4);
 /// (0x07,0x0F,0x10) and (0x00,0x09,0x0B).
 extern MineCavernTint D_mine_cavern_8018E3E0[5];
 
+/// One of the per-view objects the cavern's sprite-table record points at,
+/// carrying the byte this room's `func_mine_cavern_8017E3A0` writes. The
+/// room's five pointers sit at 0x28 / 0x34 / 0x100 / 0x10C / 0x118 and the byte
+/// is at a different offset in each of the objects they name -- 0x2C, 0x34,
+/// 0x2C, 0x1C and 0x24 -- because the views are different-sized blocks. That
+/// byte is the same flag the sibling rooms carrying this sprite table write
+/// (`MineForkedTunnelViewA.field_1C` / `ViewB.field_2C`, `DwtwSprtViewState`):
+/// non-zero leaves the view's sprites out of the ordering table, zero draws
+/// them. All five are written to one value at a time, 1 by the cap-event flag
+/// nibble 0xC7 and 0 otherwise (`func_mine_cavern_8017DDFC`).
+typedef struct MineCavernSprtView1C {
+    /* 0x00 */ byte pad_0[0x1C];
+    /* 0x1C */ u8   field_1C;
+} MineCavernSprtView1C;
+STATIC_ASSERT_SIZEOF(MineCavernSprtView1C, 0x1D);
+
+typedef struct MineCavernSprtView24 {
+    /* 0x00 */ byte pad_0[0x24];
+    /* 0x24 */ u8   field_24;
+} MineCavernSprtView24;
+STATIC_ASSERT_SIZEOF(MineCavernSprtView24, 0x25);
+
+typedef struct MineCavernSprtView2C {
+    /* 0x00 */ byte pad_0[0x2C];
+    /* 0x2C */ u8   field_2C;
+} MineCavernSprtView2C;
+STATIC_ASSERT_SIZEOF(MineCavernSprtView2C, 0x2D);
+
+typedef struct MineCavernSprtView34 {
+    /* 0x00 */ byte pad_0[0x34];
+    /* 0x34 */ u8   field_34;
+} MineCavernSprtView34;
+STATIC_ASSERT_SIZEOF(MineCavernSprtView34, 0x35);
+
+/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at: a
+/// room-sized block, far larger than the 0xC-byte `GpSprtRec` the table's
+/// element type declares, so the room reaches its tail through a cast (as the
+/// water tower's `DwtwSprtRec` and the forked tunnel's `MineForkedTunnelSprtRec`
+/// do). The tail is a run of per-view pointers; this room's five sit at 0x28,
+/// 0x34, 0x100, 0x10C and 0x118.
+typedef struct MineCavernSprtRec {
+    /* 0x000 */ byte                  pad_0[0x28];
+    /* 0x028 */ MineCavernSprtView2C* field_28;
+    /* 0x02C */ byte                  pad_2C[0x8];
+    /* 0x034 */ MineCavernSprtView34* field_34;
+    /* 0x038 */ byte                  pad_38[0xC8];
+    /* 0x100 */ MineCavernSprtView2C* field_100;
+    /* 0x104 */ byte                  pad_104[0x8];
+    /* 0x10C */ MineCavernSprtView1C* field_10C;
+    /* 0x110 */ byte                  pad_110[0x8];
+    /* 0x118 */ MineCavernSprtView24* field_118;
+} MineCavernSprtRec;
+STATIC_ASSERT_SIZEOF(MineCavernSprtRec, 0x11C);
+
 #endif

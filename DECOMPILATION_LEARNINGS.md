@@ -116128,3 +116128,41 @@ both blobs — a checksum failure with a 100% scratch score. The map is the chec
 `D_mine_cavern_8017D7E8`, `D_mine_cavern_8017D7F0`, `D_mine_cavern_8017D7F8`,
 `RoomsShared80183c10Table` came back at 0x8017D7E8 / 0x8017D7F0 / 0x8017D7F8 /
 0x8017D80C with the unit's `.rodata` still 0x2D8 long.
+
+## A masked byte argument: an `s8` / `u8` local cannot carry the mask into the stores
+
+`func_mine_cavern_8017E3A0(s32 arg0)` masks its argument (`arg0 & 0xFF`),
+compares it against 1 and 0, and writes the value it compared into five byte
+fields. The target masks once, in place, and *both* the comparison and every
+store read that one register:
+
+```
+andi  a0,a0,0xff      # the only mask
+...
+bne   a0,v1,.L428
+sb    a0,0x2C(v0)     # the stored value is the masked one
+```
+
+Typing the local as the field's own type loses that. With `u8 v = arg0;` the
+comparison still gets its `andi` (comparing a QI value promotes it to SI), but
+the store does not: `sb` takes the low byte of whatever register holds the
+value, so GCC keeps the *unmasked* argument register for the stores and spends a
+second register on the zero-extended copy that the comparison reads. The build
+lands at 96.5% with `regs` and `branch` penalties and one extra instruction — a
+`move` of the raw argument in the prologue, `sb` of one register, `bne` of
+another. Declaring the local `s8` instead (what m2c emits for `arg0 & 0xFF`) is
+worse: the comparison becomes `sll/sra 0x18`, sign-extending a value the target
+zero-extends.
+
+Keep the masked quantity 32-bit and let the truncation happen at the store:
+
+```c
+s32 v = arg0 & 0xFF;
+if (v == 1) { rec->field_28->field_2C = v; ... }
+```
+
+That gives one `andi` into the argument's own register, shared by the compare
+and all five `sb`s — 100.000% on the next build, no permuter time. General rule:
+when the target's byte stores reuse the register a comparison was masked into,
+the source's masked value has to be an `int`, because a `u8` local is only "the
+low byte" and the store never needs to materialise that.
