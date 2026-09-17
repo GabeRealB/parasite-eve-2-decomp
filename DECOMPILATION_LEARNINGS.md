@@ -119473,3 +119473,65 @@ scorer counts *primary opcode fields*, and `lh`'s field is 0x21 (ADDU) while
 addu/or pair with one insert and one delete. Neither `regs` nor `reorder` moves,
 nothing else in the object differs, and the CFG diagnostics say `match`: that
 combination is a load *type*, and the object dumps name it in one line.
+
+## A block the ROM left in source order can be re-scheduled by a *dead* local — the extra pseudo is a scheduling sink, not decoration
+
+`func_dryfield_water_tower_8017E1DC` sat at 93.469% with `topology: match`, every
+call, predicate and block edge agreeing, and `opcounts` differing in exactly one
+entry: `0:0`, the nops (24 in the target, 20 in the candidate). The same
+instruction *set* in a different order is a scheduler leftover, and the penalty
+line said so (`branch=11 regs=6 reorder=2 insert=2 delete=6`) — but the fix was
+in neither the branch nor the registers.
+
+The block in question is a `field &= mask;` followed by a global byte load:
+
+```
+    lhu  v0,0xc(v1)          lhu  v1,0xc(a0)     <- ours: the lui moved up
+    nop                      lb   v0,%lo(D_80114C11)(v0)
+    andi v0,v0,0xff7f        andi v1,v1,0xff7f
+    sh   v0,0xc(v1)          bnez v0,...
+    lui  v0,%hi(D_80114C11)  sh   v1,0xc(a0)
+    lb   v0,%lo(D_80114C11)(v0)
+    nop
+    bnez v0,...
+```
+
+`-msplit-addresses` is on (it is in the `# options enabled:` header of every
+`.s`), so the global load is two RTL insns: `high:SI (symbol_ref)` and the
+`mem:QI` that consumes it through a `lo_sum`. The `high` carries no memory
+access, so sched1 hoists it to the head of the block — and that is enough to
+move the block's two load-delay nops and the following branch's delay slot.
+sched1 emits backwards and calls `rank_for_schedule` on the ready list: priority
+first, then the *class* of each candidate against `last_scheduled_insn` (data
+dependent = 1, anti/output dependent = 2, independent = 3), then source order.
+The `lhu` and the `sh` address the same halfword, so `sched_analyze` gives the
+`sh` a `REG_DEP_ANTI` back to the `lhu` and the `lhu` ends up with `ref_count =
+2`; who is ready when therefore depends on which of the two chains was emitted
+last, and the block cascades from there. A `volatile` on the loaded global does
+**not** restrain the hoist (it only turns `lb` into `lbu`); the dependency graph
+is the only lever.
+
+The lever that worked was adding a local that does nothing:
+
+```c
+    int new_var;                       /* dead: folded to 0 */
+    ...
+    new_var = 0;
+    obj->field_C &= 0xFF7F;
+    if (D_80114C11 == 0) { ... }
+    if (state->field_70 != new_var) {  /* ... instead of `!= 0` */
+```
+
+together with storing a pointer field in two steps rather than one
+(`p->f = m; p->f = p->f + 1;` in place of `p->f = m + 1;`). Both fold away in
+the final assembly — the result is instruction-for-instruction identical — but
+they exist as pseudos while sched1 and local-alloc run, and that is what
+reproduces the ROM's block order (`base_perm_e0a01f1fe64f4533.c`, input hash
+`c9abd4d97a2ba355c5e9e7898da1c469f67ff7c0bf3efffa90b4952b10a1405e`, 100.000%
+with all penalties zero).
+
+Read this as the general rule for a structure-exact, register/nop-only leftover:
+when a block is in source order in the ROM and reordered in yours, do not look
+for the missing dependency in the C's control flow — the ROM's own scheduling
+was decided by pseudos the final code no longer contains, and a dead local in
+the right block is a legitimate way to put them back.

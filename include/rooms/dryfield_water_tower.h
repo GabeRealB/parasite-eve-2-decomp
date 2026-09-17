@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// Work block of the water tower's script task, allocated as 0x18 zeroed bytes
@@ -65,6 +67,15 @@ typedef struct DwtwFadeWork {
     /* 0x6 */ u16  b;
 } DwtwFadeWork;
 STATIC_ASSERT_SIZEOF(DwtwFadeWork, 0x8);
+
+/// Scratch the raise-prop body `func_dryfield_water_tower_8017E1DC` stages its
+/// two vectors in. The spawn tick's `vec` -- the model translation it hands to
+/// `func_800D7A9C` -- is overwritten before the cap is drawn, so it and the
+/// `rot` the floor quad takes never overlap and the two share one frame slot.
+typedef union DwtwVec {
+    /* 0x0 */ VECTOR  vec; // cap translation, handed to func_800D7A9C
+    /* 0x0 */ SVECTOR rot; // floor-quad offset, handed to Gp_DrawFloorQuad
+} DwtwVec;
 
 /// Payload `Gp_DispatchMsg` carries for message 0x7DB, the record this room's
 /// script table `D_dryfield_water_tower_80181B00` pairs with
