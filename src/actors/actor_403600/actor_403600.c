@@ -206,7 +206,18 @@ extern Task*            D_actor_403600_801606A8;
 extern GpU16Pair        D_actor_403600_80150EB0;
 extern const SVECTOR    D_actor_403600_80131E2C;
 extern CVECTOR          D_actor_403600_80131E34;
+extern GpPairSrcE       D_actor_403600_80150EC8;
+extern GpU16Pair        D_actor_403600_80150E9C;
+extern s32              D_actor_403600_80160504[4];
+extern Actor403600Pair  D_actor_403600_801606B8;
+extern Task*            D_actor_403600_801606AC;
+extern s32              D_actor_403600_801606BC;
 
+// Typed accesses change GCC 2.8.1's alias/CSE decisions in this initializer.
+#define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
+
+void func_actor_403600_80141598(Task* arg0);
+void func_actor_403600_8014174C(Task* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -2050,7 +2061,174 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
     return restore;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", ActorsShared80131e24Sub0);
+/// Spawns this actor. `enemy` is the task's spawn argument and the 0x7B8-byte
+/// work block is parked in `task->idMap`; on allocation failure the enemy is
+/// destroyed. The coordinate at `((TmdObject*)task->extra)->field_8` takes the
+/// work block's `field_4B8` as its `sub`, both are reset to the identity with
+/// the coordinate's translation raised to 0x744, and the coordinate's three
+/// s32 at 0x18 are copied into the work block's 0x4D0 vector. The enemy is
+/// then linked on its 0x10 node and three `GpObj` nodes are linked with
+/// `Gp_LinkObj` (kinds 2 and 3) over the 0x508 / 0x588 / 0x5C0 records, each
+/// seeded through `Gp_InitRec18Table` from the 0x528 / 0x5A8 / 0x5F8 tables.
+/// `enemy->field_40` and `field_78A` take the HP from `D_actor_403600_80150EC8`
+/// scaled by the spawn multiplier in `Game_Session`, slots 1..0x13 are reset,
+/// the model is faced along the world coordinate through `Gfx_MatrixCol2` /
+/// `ratan2` / `RotMatrix`, and the display task is spawned from
+/// `D_actor_403600_801421A0` and reparented.
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    SVECTOR rot;
+    s16     temp_a0_2;
+    s16     temp_s0_5;
+    s32     temp_s5;
+    Task*   temp_v0_4;
+    s32     var_s0;
+    void*   temp_a0;
+    void*   temp_s0;
+    void*   temp_s0_2;
+    void*   temp_s0_3;
+    void*   temp_s0_4;
+    void*   temp_s2;
+    void*   temp_v0;
+    void*   temp_v0_2;
+    void*   temp_v0_3;
+    void*   gpSess;
+
+    temp_s2 = task->extra;
+    temp_s0 = ACTOR_FIELD(temp_s2, void**, 8);
+    temp_v0 = Mem_Calloc(0x7B8, 0);
+    temp_s5 = temp_s0 + 0x50;
+    if (temp_v0 == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->idMap                                  = (TaskIdMap*)temp_v0;
+    ACTOR_FIELD(temp_v0, GsCOORDINATE2**, 0x504) = &Gfx_ViewCoord;
+    temp_v0_2                                    = temp_v0 + 0x4BC;
+    ACTOR_FIELD(temp_v0, s32*, 0x4BC)            = 0x1000;
+    ACTOR_FIELD(temp_v0_2, s32*, 4)              = 0;
+    ACTOR_FIELD(temp_v0_2, s32*, 8)              = 0x1000;
+    ACTOR_FIELD(temp_v0_2, s32*, 0xC)            = 0;
+    ACTOR_FIELD(temp_v0_2, s16*, 0x10)           = 0x1000;
+    ACTOR_FIELD(temp_v0, s32*, 0x4D0)            = (s32)ACTOR_FIELD(temp_s0, s32*, 0x18);
+    ACTOR_FIELD(temp_v0, s32*, 0x4D4)            = (s32)ACTOR_FIELD(temp_s0, s32*, 0x1C);
+    temp_a0                                      = temp_v0 + 0x4B8;
+    ACTOR_FIELD(temp_v0, s32*, 0x4D8)            = (s32)ACTOR_FIELD(temp_s0, s32*, 0x20);
+    temp_v0_3                                    = temp_s0 + 4;
+    ACTOR_FIELD(temp_s0, void**, 0x4C)           = temp_a0;
+    ACTOR_FIELD(temp_s0, s32*, 4)                = 0x1000;
+    ACTOR_FIELD(temp_v0_3, s32*, 4)              = 0;
+    ACTOR_FIELD(temp_v0_3, s32*, 8)              = 0x1000;
+    ACTOR_FIELD(temp_v0_3, s32*, 0xC)            = 0;
+    ACTOR_FIELD(temp_v0_3, s16*, 0x10)           = 0x1000;
+    ACTOR_FIELD(temp_s0, s32*, 0x18)             = 0;
+    ACTOR_FIELD(temp_s0, s32*, 0x1C)             = 0x744;
+    ACTOR_FIELD(temp_s0, s32*, 0x20)             = 0;
+    ACTOR_FIELD(temp_v0, s32*, 0x4B8)            = 0;
+    Gp_UpdateCoord((GsCOORDINATE2*)temp_a0);
+    ACTOR_FIELD(temp_s0, s32*, 0) = 0;
+    Gp_UpdateCoord((GsCOORDINATE2*)temp_s0);
+    ACTOR_FIELD(temp_s2, s16*, 0xC)    = 0x80;
+    ACTOR_FIELD(temp_s0, s32*, 0)      = 0;
+    ACTOR_FIELD(temp_s2, void**, 0x1C) = (void*)(temp_v0 + 0x494);
+    ACTOR_FIELD(temp_s2, void**, 0x20) = (void*)(temp_v0 + 0x474);
+    enemy->field_4                     = (MATRIX*)(temp_s0 + 0x54);
+    enemy->field_48                    = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4               = 1;
+    enemy->field_1C.vy                = -0x1F4;
+    gpSess                            = Game_Session;
+    enemy->field_18                   = (GsCOORDINATE2*)temp_s5;
+    enemy->field_1C.vx                = 0;
+    enemy->field_1C.vz                = 0;
+    enemy->field_50                   = &D_actor_403600_80150EC8;
+    enemy->field_54                   = (s32)(temp_v0 + 0x528);
+    temp_a0_2                         = ACTOR_FIELD(&D_actor_403600_80150EC8, u16*, 4) + ((ACTOR_FIELD(gpSess, u16*, 0x12A) * 0x4B) / 100);
+    enemy->field_40                   = temp_a0_2;
+    ACTOR_FIELD(temp_v0, s16*, 0x78A) = temp_a0_2;
+    var_s0                            = 1;
+    ACTOR_FIELD(temp_v0, s16*, 0x798) = (s16)((temp_a0_2 * 0x3C) / 100);
+    ACTOR_FIELD(temp_v0, s16*, 0x79A) = (s16)((ACTOR_FIELD(temp_v0, s16*, 0x78A) * 0x23) / 100);
+    func_800B3F84((GpAnimCtx*)temp_v0, D_actor_403600_8016057C, (GpAnimObj*)temp_s2,
+                  temp_v0 + 0x334, (GpAnimSlot*)(temp_v0 + 0x14));
+    do {
+        Gp_AnimResetSlot(temp_v0, var_s0, 1);
+        var_s0 += 1;
+    } while (var_s0 < 0x14);
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    ACTOR_FIELD(temp_v0, s16*, 0x736)   = 1;
+    ACTOR_FIELD(temp_v0, void**, 0x658) = (void*)(temp_v0 + 0x4B8);
+    ACTOR_FIELD(temp_v0, s16*, 0x65C)   = 0x600;
+    ACTOR_FIELD(temp_v0, s16*, 0x65E)   = 2;
+    ACTOR_FIELD(temp_v0, s16*, 0x6EA)   = -0x1F4;
+    temp_s0_2                           = temp_v0 + 0x528;
+    ACTOR_FIELD(temp_v0, s16*, 0x738)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x744)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x6E8)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x6EC)   = 0xC8;
+    ACTOR_FIELD(temp_v0, s32*, 0x510)   = temp_s5;
+    ACTOR_FIELD(temp_v0, void**, 0x514) = temp_s0_2;
+    ACTOR_FIELD(temp_v0, s16*, 0x518)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x51A)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x51C)   = 0;
+    ACTOR_FIELD(temp_v0, s32*, 0x520)   = 0x30024;
+    ACTOR_FIELD(temp_v0, s16*, 0x524)   = 0x3E8;
+    ACTOR_FIELD(temp_v0, u16*, 0x526)   = 1U;
+    Gp_LinkObj(2, (GpObj*)((u8*)temp_v0 + 0x508));
+    Gp_InitRec18Table((GpRec18*)temp_s0_2, 4, 0);
+    temp_s0_3                           = temp_v0 + 0x5A8;
+    ACTOR_FIELD(temp_v0, s32*, 0x590)   = temp_s5;
+    ACTOR_FIELD(temp_v0, void**, 0x594) = temp_s0_3;
+    ACTOR_FIELD(temp_v0, s16*, 0x598)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x59A)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x59C)   = 0x3E8;
+    ACTOR_FIELD(temp_v0, u16*, 0x526)   = (u16)(ACTOR_FIELD(temp_v0, u16*, 0x526) | 0xC200);
+    ACTOR_FIELD(temp_v0, s32*, 0x5A0)   = Gp_PackPair(&D_actor_403600_80150E9C, 1);
+    ACTOR_FIELD(temp_v0, s16*, 0x5A4)   = 0x5DC;
+    ACTOR_FIELD(temp_v0, u16*, 0x5A6)   = 1U;
+    Gp_LinkObj(3, (GpObj*)((u8*)temp_v0 + 0x588));
+    Gp_InitRec18Table((GpRec18*)temp_s0_3, 1, 0);
+    temp_s0_4                           = temp_v0 + 0x5F8;
+    ACTOR_FIELD(temp_v0, s32*, 0x5C8)   = temp_s5;
+    ACTOR_FIELD(temp_v0, void**, 0x5CC) = temp_s0_4;
+    ACTOR_FIELD(temp_v0, s16*, 0x5D0)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x5D4)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x5D2)   = 0x7D0;
+    ACTOR_FIELD(temp_v0, s32*, 0x5D8)   = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x5DC)   = 0x64;
+    ACTOR_FIELD(temp_v0, u16*, 0x5DE)   = 1U;
+    ACTOR_FIELD(temp_v0, u16*, 0x5A6)   = (u16)(ACTOR_FIELD(temp_v0, u16*, 0x5A6) & 0x7FFF);
+    Gp_LinkObj(3, (GpObj*)((u8*)temp_v0 + 0x5C0));
+    Gp_InitRec18Table((GpRec18*)temp_s0_4, 4, 0);
+    ACTOR_FIELD(temp_v0, u16*, 0x5DE) = (u16)(ACTOR_FIELD(temp_v0, u16*, 0x5DE) & 0x3FFF);
+    Gfx_MatrixCol2((SVECTOR*)(ACTOR_FIELD(ACTOR_FIELD(task, void**, 0x2C), void**, 8) + 4), &rot);
+    temp_s0_5 = ratan2(rot.vx, rot.vz);
+    rot.vx    = 0;
+    rot.vy    = temp_s0_5;
+    rot.vz    = 0;
+    RotMatrix(&rot, (MATRIX*)(temp_v0 + 0x4BC));
+    ACTOR_FIELD(temp_v0, s16*, 0x748) = temp_s0_5;
+    temp_v0_4                         = Task_SpawnFromTable(&D_actor_403600_801421A0, 0, 0, 0);
+    D_actor_403600_801606AC           = temp_v0_4;
+    if (temp_v0_4 != 0) {
+        Task_Reparent(task, temp_v0_4);
+    }
+    ACTOR_FIELD(temp_v0, s32*, 0x4B4) = 0;
+    D_actor_403600_801606A8           = task;
+    ACTOR_FIELD(temp_v0, s16*, 0x78C) = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x796) = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x7A0) = 0;
+    ACTOR_FIELD(temp_v0, s16*, 0x7AE) = 0;
+    func_actor_403600_8014174C(task);
+    D_actor_403600_8016056C           = 0;
+    D_actor_403600_801606B8.field_2   = 0;
+    D_actor_403600_801606B8.field_0   = 0;
+    task->field_24                    = D_actor_403600_80160504;
+    task->exitCallback                = func_actor_403600_80141598;
+    ACTOR_FIELD(temp_v0, s16*, 0x730) = 0;
+    D_actor_403600_801606BC           = 0;
+    task->state                       = (s32)(task->state + 1);
+}
 
 void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1)
 {

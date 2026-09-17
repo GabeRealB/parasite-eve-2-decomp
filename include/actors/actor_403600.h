@@ -187,6 +187,14 @@ typedef struct Actor403600Point {
 } Actor403600Point;
 STATIC_ASSERT_SIZEOF(Actor403600Point, 0x8);
 
+/// The two `s16` halves of `D_actor_403600_801606B8`, zeroed together when the
+/// actor is spawned. Kept as one object so the accesses stay member accesses.
+typedef struct {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+} Actor403600Pair;
+STATIC_ASSERT_SIZEOF(Actor403600Pair, 0x4);
+
 typedef struct Actor403600Ctx {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ u8   field_14;
