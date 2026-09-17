@@ -125648,3 +125648,79 @@ Inputs: `base_7.i`
 `b7e781cb43e051e900cd15e0736e4316884d0959621faeeb1139ffd4671f6b75` (100.000%, the match). Compiler source: `global.c:597`
 (`allocno_compare`), `global.c:423` (`REG_LIVE_LENGTH`), `sched.c:5035`
 (`REG_LIVE_LENGTH` replaced by `sched_reg_live_length`).
+
+## Landing a 100.000% function that leaves the overlay 4 bytes long: the `rodata_head` pad, and why `rodata_cut.py` says "no change needed" (func_actor_342100_80162C88, 2026-09-17)
+
+A function that scores 100.000% in the scratch with every penalty zero, and
+still fails the overlay checksum, is the `.align 3` pad in front of a
+compiler-generated jump table. The tell is exact and worth memorizing:
+
+    build/USA/out/<overlay> is 4 bytes longer than the package, and
+    every word of every table in the leading rodata is +4 (so is every code
+    address those tables point at), while the bytes *before* the table -- the
+    id word, the earlier `INCLUDE_ASM` jump tables -- are unchanged.
+
+`actor_342100`'s leading rodata is `[id 0x0][jtbl 0x4 (INCLUDE_ASM fn)][jtbl
+0x1C (this function)][jtbl 0x3C (later INCLUDE_ASM fn)]`, one unit, one
+`.rodata`, so the compiler emits the table at relative offset 0x1C, `.align 3`
+pads it to 0x20, and the linker script puts `.text` straight after `.rodata`:
+the pad shifts the whole overlay, not just the rodata.
+
+`tools/rodata_cut.py actor_342100` answers "no change needed" and is *right* by
+its own rule -- the table's referencing unit already owns the block it sits in,
+and the tool only cuts where ownership *changes*. The pad is a property of the
+table's offset within its object's `.rodata`, which the cut rule cannot see.
+The fix is the manifest's other knob: `rodata_head = "0x1C"`, the table's own
+offset. That moves `[0x0, 0x1C)` (id + the earlier asm table) into an
+`actor_342100_hdr` asm subsegment so the first code unit's `.rodata` *starts* at
+the table, where `.align 3` costs nothing. No `.text` cut, no unit renumbering,
+no `src/` file rebuild.
+
+Two consequences, both mechanical:
+
+* The unit's `.c` must drop the `INCLUDE_RODATA` line for any symbol the header
+  subsegment took over (here `D_actor_342100_80161E20`). splat never rewrites an
+  existing `.c`, so the stale line would emit those bytes twice, or fail to find
+  the now-missing `<unit>/<sym>.s`.
+* The tables that move out of a *still-`INCLUDE_ASM`* function's `.s` bring
+  their branch targets with them: splat re-emits those `.L` labels as `jlabel`
+  (global) so the header object can reference them across objects. Nothing to do
+  by hand, but it is why the link still resolves.
+
+Unlike the `rodata` + `units` cut pair, `rodata_head` needs no `rodata` cut of
+its own when the table belongs to the overlay's only (or first) unit: the
+generator's default `lead` is already `<name>/<name>`.
+
+Verified: `actor_342100.pe2pkg` is byte-identical to the built overlay, the
+table lands at 0x1C, and `func_actor_342100_80162C88` goes in at 100.000% on the
+first struct-based attempt (`base_1.c`, sha256
+`3f379c50ad9ed1d9bc8a057dba13d9f935dc2ba240fa238aef25c62c5e93171d`).
+
+## Two single-use givs of *different* fields combine -- so an asm with two walking pointers 4 bytes apart needs one pointer in C (func_actor_342100_80162C88, 2026-09-17)
+
+The companion case to "A walked pointer's second field becomes a second
+induction variable": there, one field read *and written* merges with itself and
+the extra register displaces the allocation. Here the target walks an
+`SVECTOR[]` (`while (pos->vx != 0)`) and carries `s0 = s1 + 4`, reading `vx` off
+`s1` and `vy`/`vz` off `-2(s0)`/`0(s0)` -- which reads like two source pointers.
+It is not: a single `pos` pointer reproduces it, because `combine_givs` merges
+the two *different* single-use givs.
+
+    Insn 160: dest address src reg 82 benefit 2 used 1 lifetime 1 replaceable mult 1 add 2
+    Insn 167: dest address src reg 82 benefit 2 used 1 lifetime 1 replaceable mult 1 add 4
+    giv at 160 combined with giv at 167
+    giv at 167 reduced to (reg:SI 135)
+    giv at 160 reduced to (plus:SI (reg:SI 135) (const_int -2))
+
+Each use on its own loses the worth-while test (`used 1 lifetime 1`), which is
+what makes a single field read safe; two of them sum, one survives as a real
+register (the `add 4` one, so the `add 2` access becomes its `-2`
+displacement), and the emitted `addiu s0,s1,4` in the loop preheader with both
+registers incremented by 8 is the target's shape rather than a mismatch. The
+`.loop` dump is where this is visible; there is nothing to do in the source.
+
+Inputs: scratch `nonmatchings/func_actor_342100_80162C88-vacuum`, `base.c` (m2c,
+97.529%) and `base_1.c` 100.000% (preprocessed `base_1.i` sha256
+`d6498c504d4b8c8e6c87075916c8fc8f65fbc9a4d2565e8226aa5dacc3702508`). Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
+`loop.c` (`find_mem_givs` / `combine_givs`).

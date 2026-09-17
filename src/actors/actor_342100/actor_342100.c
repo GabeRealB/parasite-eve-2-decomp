@@ -38,6 +38,18 @@ extern s32 D_actor_342100_80164900[];
 /// have started at, so splat cut it out as a symbol of its own.
 extern s16 D_actor_342100_80164910[];
 
+/// Placement tables the overlay's spawn task picks between by
+/// `Game_Session->field_4`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
+/// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
+/// the values in between select none. Each is a zero-`vx`-terminated `SVECTOR`
+/// list of two to three placements -- the terminator is an all-zero entry -- and
+/// `func_actor_342100_80162C88` drops one effect task on every live entry.
+extern SVECTOR D_actor_342100_80164918[];
+extern SVECTOR D_actor_342100_80164930[];
+extern SVECTOR D_actor_342100_80164948[];
+extern SVECTOR D_actor_342100_80164960[];
+extern SVECTOR D_actor_342100_80164980[];
+
 /// Model/animation set `func_actor_342100_80162F54` installs with
 /// `func_800E8614` on the same arm; a byte address is all the installer sees.
 extern u8 D_actor_342100_801649C8[];
@@ -66,8 +78,6 @@ extern s32 D_80070F70;
 extern u32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342100/actor_342100", D_actor_342100_80161E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162748);
 
@@ -204,7 +214,67 @@ void func_actor_342100_80162AB0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162C88);
+/// Spawn the encounter's effect tasks: `Game_Session->field_4` selects one of
+/// the overlay's placement tables, and every entry in it rolls the LCG once,
+/// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
+/// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
+/// -- and lays the entry onto the model the new task displays: identity rotation
+/// at scale 0x1000 through the `GpMtxWords` view of `coord`, the entry's `vx` /
+/// `vy` / `vz` written to `coord.t[0..2]`. The walk is `while (pos->vx != 0)`,
+/// so a table is as many entries as it has non-zero `vx`s and a table whose
+/// first entry is zero spawns nothing.
+///
+/// The table pointer is deliberately uninitialised: `Game_Session->field_4`
+/// values 0x20..0x22 -- and anything outside the jump table -- leave it holding
+/// whatever the caller left in `$s1`, which is the target's shape.
+///
+/// Referenced from the `0x0D` entry of the command table in
+/// `D_actor_342100_801649C8` (+0x90), next to the same-shaped entries naming
+/// `func_actor_342100_8016334C` / `func_actor_342100_801633D0` /
+/// `func_actor_342100_80163408` / `func_actor_342100_80163454`. That entry
+/// passes it no arguments, which is why the declaration is `(void)`.
+void func_actor_342100_80162C88(void)
+{
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    SVECTOR*       pos;
+    Task*          task;
+    u32            rng;
+
+    switch (Game_Session->field_4) {
+        case 29:
+            pos = D_actor_342100_80164930;
+            break;
+        case 30:
+            pos = D_actor_342100_80164918;
+            break;
+        case 31:
+            pos = D_actor_342100_80164948;
+            break;
+        case 35:
+            pos = D_actor_342100_80164960;
+            break;
+        case 36:
+            pos = D_actor_342100_80164980;
+            break;
+    }
+    while (pos->vx != 0) {
+        rng               = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState       = rng;
+        task              = Task_SpawnFromTable(&D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
+        coord             = ((TmdObject*)task->extra)->field_8;
+        rot               = (GpMtxWords*)&coord->coord;
+        rot->w0           = 0x1000;
+        rot->w1           = 0;
+        rot->w2           = 0x1000;
+        rot->w3           = 0;
+        rot->h4           = 0x1000;
+        coord->coord.t[0] = pos->vx;
+        coord->coord.t[1] = pos->vy;
+        coord->coord.t[2] = pos->vz;
+        pos++;
+    }
+}
 
 /// Spawn task of the overlay's spawn table (`func_actor_342100_80162748`'s
 /// neighbour entry, started with the encounter): each tick rolls the LCG and
