@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "actors/actors_shared_80135b58.h"
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// 0x40-byte `G_SCRATCH_HEAD` block used by `Actor02400_Fn0208C`: an identity
@@ -37,16 +38,24 @@ typedef struct Actor02400ScaleWork {
     /* 0x12C */ s16    field_12C;
     /* 0x12E */ byte   pad_12E[2];
     /* 0x130 */ Task** field_130;
-    /* 0x134 */ byte   pad_134[8];
+    /* 0x134 */ byte   pad_134[4];
+    /* 0x138 */ s16    field_138;
+    /* 0x13A */ s16    field_13A;
     /* 0x13C */ s16    field_13C;
     /* 0x13E */ s16    field_13E;
     /* 0x140 */ s16    field_140;
+    /* 0x142 */ s16    field_142;
+    /* 0x144 */ byte   pad_144[2];
+    /* 0x146 */ s16    field_146;
+    /* 0x148 */ byte   pad_148[6];
+    /* 0x14E */ s16    field_14E;
 } Actor02400ScaleWork;
 
 typedef struct Actor02400Scale {
     /* 0x00 */ byte                      pad_0[0x1C];
     /* 0x1C */ Actor02400ScaleWork*      field_1C;
-    /* 0x20 */ byte                      pad_20[0xC];
+    /* 0x20 */ GpEnemy*                  field_20;
+    /* 0x24 */ byte                      pad_24[8];
     /* 0x2C */ ActorShared80135b58Obj2C* field_2C;
 } Actor02400Scale;
 
