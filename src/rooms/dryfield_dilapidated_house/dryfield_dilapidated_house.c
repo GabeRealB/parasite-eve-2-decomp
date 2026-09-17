@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/stage.h"
@@ -153,7 +154,82 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E48C);
+/// Inverts the grey of the whole image buffer in place, two 16-bit texels per
+/// step. Each packed pair is averaged with weights 3:4:1 over its R, G and B
+/// fields, the average is complemented against the 5-bit field mask, and the
+/// result is spread back over 15 bits. The 0x4B00 passes cover the buffer's
+/// 38400 words exactly.
+void func_dryfield_dilapidated_house_8017E48C(void)
+{
+    s32          i;
+    u32          maskR;
+    u32          maskG;
+    u32          maskB;
+    u32          maskAll;
+    u32*         p0;
+    u32*         p1;
+    u32          a0;
+    u32          a2;
+    u32          a1;
+    register u32 v0 asm("v0");
+    register u32 v1 asm("v1");
+
+    p0      = Fs_ImgBuffers->buffers[0];
+    i       = 0;
+    maskR   = 0x001F001F;
+    maskG   = 0x03E003E0;
+    maskB   = 0x1F001F00;
+    maskAll = 0x1F1F1F1F;
+    p1      = p0 + 1;
+
+    do {
+        i += 1;
+        a0 = *p1;
+        a2 = *p0;
+
+        v1 = (a0 & maskR) << 8;
+        v0 = a2 & maskR;
+        v1 = v1 | v0;
+        v0 = v1 << 1;
+        a1 = v0 + v1;
+
+        v1 = (a0 & maskG) << 3;
+        a2 = a2 >> 5;
+        v0 = a2 & maskR;
+        v1 = v1 | v0;
+        v0 = v1 << 2;
+        a1 = a1 + v0;
+
+        a0 = a0 >> 2;
+        v1 = a0 & maskB;
+        a2 = a2 >> 5;
+        v0 = a2 & maskR;
+        v1 = v1 | v0;
+        a1 = a1 + v1;
+
+        v0 = a1 >> 3;
+        a1 = v0 & maskAll;
+        a1 = maskAll - a1;
+
+        a2 = a1 & maskR;
+        v0 = a2 << 10;
+        v1 = a2 << 5;
+        v0 = v0 | v1;
+        a2 = a2 | v0;
+
+        a0 = a1 & maskB;
+        a0 = a0 >> 8;
+        v0 = a0 << 10;
+        v1 = a0 << 5;
+        v0 = v0 | v1;
+        a0 = a0 | v0;
+
+        *p0 = a2;
+        *p1 = a0;
+        p1 += 2;
+        p0 += 2;
+    } while (i < 0x4B00);
+}
 
 s32 func_dryfield_dilapidated_house_8017E56C(void)
 {
