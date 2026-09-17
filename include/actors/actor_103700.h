@@ -43,7 +43,7 @@ typedef struct Actor103700Work {
     /* 0x252 */ s16        field_252;
     /* 0x254 */ s16        field_254;
     /* 0x256 */ u16        field_256;
-    /* 0x258 */ byte       pad_258[0x2];
+    /* 0x258 */ u16        field_258;
     /* 0x25A */ s16        field_25A;
     /* 0x25C */ u16        field_25C;
     /* 0x25E */ u16        field_25E;
@@ -51,7 +51,8 @@ typedef struct Actor103700Work {
     /* 0x262 */ s16        field_262;
     /* 0x264 */ s16        field_264;
     /* 0x266 */ s16        field_266;
-    /* 0x268 */ byte       pad_268[0x4];
+    /* 0x268 */ s16        field_268;
+    /* 0x26A */ byte       pad_26A[0x2];
     /* 0x26C */ u16        field_26C;
 } Actor103700Work;
 
@@ -141,6 +142,7 @@ extern u32 Gp_LcgState;
 
 void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2);
 void func_actor_103700_80135140(Task* task, s32 arg1);
+void func_actor_103700_8013537C(Task* task);
 
 /// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
 extern GpAnimSet* D_actor_103700_80139F1C[];

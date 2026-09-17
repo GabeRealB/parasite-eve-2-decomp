@@ -114366,3 +114366,34 @@ first instructions before theorising about reorg's live sets. A `lui` or `li`
 at a branch target can fill a slot; a load cannot. Check whether a `D_8007xxxx`
 extern is really a field of a known struct (see the "scalar global does not
 alias a struct" entries).
+
+## `lw $v0,P; ...; move $sN,$v0; lw $sM,F($sN)` at entry: the child pointer was read through the parent expression first (func_actor_103700_80133EF4, 2026-09-17)
+
+The prologue of `func_actor_103700_80133EF4` loads `task->extra` into `$v0`,
+loads `task->idMap` into `$s2`, then copies `$v0` into `$s0` and reads
+`field_8` off `$s0`. Writing `model = task->extra; obj = model->field_8;` (in
+either order around `work`) loads straight into `$s0` and drops the `move`;
+with `$s0` gone, global alloc also swapped `work` and `obj` (`$s3`/`$s2`),
+scoring 99.23%.
+
+The copy is what CSE leaves when the *child* comes first and the parent
+variable second:
+
+```c
+work  = (Actor103700Work*)task->idMap;
+obj   = ((TmdObject*)task->extra)->field_8;
+model = (TmdObject*)task->extra;
+```
+
+The second `task->extra` becomes a copy of the first load's pseudo, which
+stays in `$v0`, while the `model` pseudo takes `$s0`. That fixed the copy and
+the `$s2`/`$s3` swap together (99.23% -> 99.62%, penalties down to one reorder).
+
+The same function also combined three documented fixes: a `union { VECTOR;
+GpAreaKey; }` for the one 12-byte frame slot, separate `sound`/`sound2` locals
+so each sound id stays block-local and takes `$s0` ahead of the pan value, and
+`keyPtr = &key; TOUCH_REG(keyPtr);` placed right after the `field_1` store with
+no `SOFT_BARRIER` - that order puts `addiu $a0,$sp,0x28` before the `sb` of
+`field_1`, as in the target. Its 5-entry jump table also needed a trailing
+`const u32 ... = 0;` pad word after the function (see "A trailing `.rodata` pad
+word goes in C").
