@@ -241,6 +241,48 @@ instruction sits in the target, and write the source that puts it there.** A
 merge that ate one store or one `jal` too many is one inline literal away from
 being right, and the fix is never a scheduling barrier.
 
+## m2c's `block_N:` label before a `goto` is an *empty* block - jump.c deletes it and the shared tail merges one instruction too far
+
+`func_mine_mesa_8017D670` (102 insns) is a switch whose cases 0, 1, 2 and 3 all
+end in `arg0->state++`, and the target merges the four tails *partially*: the
+`lw $v0,0x30($s1)` stays in case 0's own block, so case 0's `j` lands on the
+`addiu` below it (`block 10 = {lw}` falls through to `block 11 =
+{nop,addiu,j,sw}` in `.diagnosis.json` - two loads of `state` in the target, not
+one).
+
+m2c reads the two labels off the asm and renders them as
+
+```c
+case 0: ... D_80115690 = 1;
+block_11:
+        arg0->state += 1;
+        return;
+case 1: if (Gp_CapBusy() == 0) { ... }
+block_10:
+        goto block_11;
+```
+
+`block_10:` is immediately followed by the `goto`, so it is an *empty* basic
+block; jump.c's pass 1 deletes it (`.jump` no longer has `code_label 105`) and
+cases 1-3 reach `block_11` directly. Case 0 falls into it, so the whole
+increment - load included - becomes one block sitting right after case 0. That
+is one `lw` where the target has two, the tail in the wrong place, and
+`branch=2 regs=12 insert=3 delete=3`, **91.157%**.
+
+Writing the natural form - no labels, each case spelling out `arg0->state++` -
+scores **99.706%** with `blocks=14/14 predicates_match=True calls_match=True`.
+The `.jump2` dump shows why: sched1 has already hoisted case 0's `lw` above
+`lui`/`sb D_80115690`, so the cross-jump walk (which stops at the first
+difference, walking backwards pairwise) matches `sw` and `addiu`, then hits
+`sb` against the tail's `lw` and stops. The merge point lands below the load,
+exactly where the target has it. Nothing else was needed - the remaining
+`regs=6` was `%hi`/`%lo` symbol naming, not allocation.
+
+Rule: a shared tail's label that sits *inside* a block rather than at its head
+is not something to transcribe from m2c. `block_N:` labels are block boundaries
+only where the asm has one, and an empty one disappears into its successor; the
+statement written in each case reproduces the target's merge point.
+
 ## `rodata_head` on the overlay that owns the leading jump table, and the `INCLUDE_RODATA` that must go with it
 
 `func_actor_421600_80132A00`'s switch is the first table in the leading rodata,
