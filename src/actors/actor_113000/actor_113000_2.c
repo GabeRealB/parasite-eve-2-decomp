@@ -71,4 +71,45 @@ void func_actor_113000_801321A8(Task* task)
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113000/actor_113000_2", func_actor_113000_80132208);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Start-preset handler of the `Actor113000Work` block `func_actor_113000_80131F90`
+/// parks in `Task::idMap`, and the twin of `func_actor_323300_80163718`: a preset
+/// bank the block is not already on re-seeds it -- the animation id is reset to
+/// -1, the bank is stored and the bank's animation source goes to `func_800B3F84`
+/// with the block's context, its matrix table and its slots. The preset's
+/// animation id is then latched, every slot 1..0x13 restarted -- through
+/// `func_800B4114` when the preset asks for it, through `Gp_AnimResetSlot`
+/// otherwise -- ticked once, and `field_474` raised.
+s32 func_actor_113000_80132208(Task* task, s32 msgId, Actor113000AnimPreset* msg, s32 arg3)
+{
+    Actor113000Work* work;
+    GpAnimObj*       ext;
+    s32              i;
+
+    work = (Actor113000Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_47C) {
+        work->field_47C = msg->field_0;
+        work->field_478 = -1;
+        func_800B3F84(&work->anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->field_334,
+                      work->slots);
+    }
+    work->field_478 = msg->field_4;
+    if (msg->field_8 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114(&work->anim, i, work->field_478, 0, 6);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_478);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_474 = 1;
+    return 0;
+}

@@ -125230,3 +125230,57 @@ Inputs: scratch `nonmatchings/func_actor_113000_80131E30-vacuum`, `base.c`
 59.030% (m2c), `base_1.c` 100.000%. Preprocessed `base_1.i`
 `05ba8b7e306371bc...`. Assembly `base_1.s` `30f2b1c2cc27fcae...`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## The same source form that stops a reload also re-homes the index: a store-fed quantity is born at the *store*, and its longer span is what frees `$v0` (func_actor_113000_80132208, 2026-09-17)
+
+The body is the actor family's start-preset handler -- the one the previous
+entry covers from the CSE side. This overlay's target has the single-register
+signature: `lw $v1,0(s0)` once, feeding the compare, the store to `0x47C` and
+the `sll $v1,$v1,2` of the table index, with the table address (`lui`/`addiu`)
+in `$v0` and the index chain in `$v1`.
+
+Indexing a **local** is not enough. `bank = msg->field_0;` used for the compare,
+the store and the index gives the right load count and the right instruction
+sequence -- 95.435%, `regs=11`, `opcode_delta` empty, only three registers
+wrong -- because it reshapes local-alloc's quantities. From `trace_gcc.py`:
+
+| quantity | block 1 members | refs | span | priority | got |
+|---|---|---|---|---|---|
+| table address (`high`/`lo_sum`) | `[90, 91]` | 4 | 6 | 13333 | `$v1` |
+| index chain (`shift`, `add`) | `[94, 93]` | 4 | 4 | 20000 | `$v0` |
+
+The index chain wins `$v0` and dies at the load; the table pair is pushed to
+`$v1`. The global allocno holding `bank` is live across that `$v1` range, so
+`global.c` marks `$v1` as a hard conflict and drops it to `$a1` -- a register
+choice three steps downstream of the source.
+
+Writing the index as the stored field instead -- `D_actor_113000_8013ABB0[work->field_47C]`,
+with the bank store written before the `-1` store, as the previous entry
+requires -- is the whole fix (100.000%). `cse` forwards the store into the
+index, so the value still lives in one register, and *because the store and the
+index are now the same pseudo* the index quantity is born at the store, which
+sits near the top of the block:
+
+| quantity | block 1 members | refs | span | priority | got |
+|---|---|---|---|---|---|
+| table address | `[91, 92]` | 4 | 6 | 13333 | `$v0` |
+| store + index chain | `[96, 95, 93]` | 6 | 14 | **8571** | `$v1` |
+
+The table pair is now allocated first and takes `$v0`; the store/index chain
+falls to `$v1`, and `bank` -- which is that same value -- keeps `$v1` for free
+because it dies exactly at the shift (`global.c` processes deaths before sets,
+so the range does not conflict).
+
+So the "one load, three uses" signature is two findings in one: it means the
+source stored the value and read it back through the same field, and that form
+also moves the index quantity's birth to the store, lengthening its span and
+lowering its `QTY_CMP_PRI` below the table address's. Reading it as a
+register-allocation problem and hunting for a pin or a scheduler lever is the
+wrong end: the quantity to lengthen is the one the local already created.
+
+Inputs: scratch `nonmatchings/func_actor_113000_80132208-vacuum`, `base.c`
+78.239% (m2c), `base_1.c` 89.932%, `base_3.c` 95.435% (local `bank`), `base_5.c`
+100.000%. Preprocessed `base_3.i`
+`98793c85dabc69a80ab3cbdf06b195574b795eb32bd1e05f571732cbbc3af533`, `base_5.i`
+`947d821b88829e962e156a932d9ccad2bc8dab7372cf2ffa17196a9c9fba3a22`. Compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
