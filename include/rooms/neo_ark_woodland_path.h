@@ -55,7 +55,21 @@ typedef struct NeoArkWoodlandPathObj {
 } NeoArkWoodlandPathObj;
 
 extern NeoArkWoodlandPathMsg7DB D_neo_ark_woodland_path_80184A5C;
-extern u16                      D_neo_ark_woodland_path_80184A60;
+
+/// The room's five spawn slots: `func_neo_ark_woodland_path_8018046C` fills the
+/// first free one with a countdown and `func_neo_ark_woodland_path_80180B18`
+/// hands slot 0 to the spawn it triggers and clears it. Read as `lhu` by the
+/// handler and as `lh` by the slot filler, so each site names the view it uses
+/// (`[0]` here, an `s16*` cast there).
+extern u16 D_neo_ark_woodland_path_80184A60[5];
+
+/// Ceiling `func_neo_ark_woodland_path_8018046C` clamps a spawn slot to
+/// (0x1A4, 420 frames). Only the first halfword is this unit's; the run
+/// continues into the room's parameter block, so the extent is splat's.
+extern u16 D_neo_ark_woodland_path_8018494C[18];
+
+/// Set once a spawn slot has been armed, read by the room's other states.
+extern s16 D_neo_ark_woodland_path_80184996;
 
 s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPathMsg* msg);
 

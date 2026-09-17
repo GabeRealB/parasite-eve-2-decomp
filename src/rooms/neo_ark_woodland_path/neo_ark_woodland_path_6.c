@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gfx.h"
@@ -9,7 +10,34 @@
 
 #include <psyq/libgs.h>
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_8018046C);
+extern u16 D_801153F6;
+
+void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
+{
+    s16 i;
+    s16 v;
+
+    if (arg2 > 0) {
+        for (i = 0; i < 5; i++) {
+            if (((s16*)D_neo_ark_woodland_path_80184A60)[i] == 0) {
+                v                                           = arg2 * 0x6E / 100;
+                ((s16*)D_neo_ark_woodland_path_80184A60)[i] = v;
+                if (D_neo_ark_woodland_path_8018494C[0] < v) {
+                    ((s16*)D_neo_ark_woodland_path_80184A60)[i] = D_neo_ark_woodland_path_8018494C[0];
+                }
+                if (D_801153F6 >= 2) {
+                    Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+                } else {
+                    D_neo_ark_woodland_path_80184996 = 1;
+                }
+                D_neo_ark_woodland_path_8018498E.u += 0x5A;
+                return;
+            }
+        }
+        return;
+    }
+    D_neo_ark_woodland_path_8018498E.u += 0x5A;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80180568);
 
@@ -42,9 +70,9 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPath
                     ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord.t[1] = 0;
                     ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord.t[2] = -0x320;
                     if (obj != 0) {
-                        *(u16*)((u8*)obj + 0x40)         = D_neo_ark_woodland_path_80184A60;
-                        D_neo_ark_woodland_path_80184A60 = 0;
-                        obj->field_4C                    = 0;
+                        *(u16*)((u8*)obj + 0x40)            = D_neo_ark_woodland_path_80184A60[0];
+                        D_neo_ark_woodland_path_80184A60[0] = 0;
+                        obj->field_4C                       = 0;
                     }
                     Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord,
                                    0x400, 1);

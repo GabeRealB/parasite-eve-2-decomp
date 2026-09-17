@@ -71079,6 +71079,47 @@ substitutes fresh pseudos per call site. Differing registers between two
 otherwise identical blocks is the general signal that the original had separate
 variables (or an inlined helper) rather than one reused name.
 
+### The other rescue: keep the real loop and spell the shared tail out twice
+
+`func_neo_ark_woodland_path_8018046C` is the same relocation, solved the other
+way round. It needs the loop's invariants hoisted - the `mult`/`mfhi` division by
+100 and its magic constant must stay in the body while the numerator and the
+sign sit in the preheader, which only happens with a real `NOTE_INSN_LOOP_BEG`
+loop - so the `goto` form above is not available. Instead the tail is written out
+in *both* arms of the loop's if/else, so no block of the body ends in a jump out
+of the loop and `find_and_verify_loops` has nothing to relocate; the pre-regalloc
+cross-jump merges the two copies back into one:
+
+```c
+    if (D_801153F6 >= 2) {
+        Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+    } else {
+        D_neo_ark_woodland_path_80184996 = 1;
+    }
+    D_neo_ark_woodland_path_8018498E.u += 0x5A;   /* on both paths */
+    return;
+```
+
+Two details are decided by the arm order, and the target shows both. The call
+arm is the *then* and the flag store the *else*, so the test comes out
+`sltiu v0,v0,2` + `bnez v0,<else>` - the polarity that lets the branch fall into
+the call arm - and the cross-jump keeps the later copy, which is why the store
+block ends up between the call arm and the loop's increment block. Swapping the
+arms keeps every instruction but lands that block past the increment:
+`reorder=1 delete=1`, 99.048%.
+
+Reaching 100% from 99.048% also needs the ceiling load pinned after the slot
+store: `D_neo_ark_woodland_path_8018494C` is a halfword table in the overlay's
+data, and declaring it `extern u16 ...[18]` (not a scalar) is what makes its
+load a struct MEM, restoring the dependence the scheduler was exempting it from
+- see "The same heuristic runs the other way" above.
+
+Inputs: `base_11.i`
+`f057f1d55d2e736379cfdf65f81a7c1ebe963ba44bd0bea7193378c5051fbf7b`,
+landed form `base_13.i`
+`b2e061f4698cc52b47cd1d821714690dd8ce3711de982942afc204d2df0613f2`
+(both 100.000% with all-zero penalties).
+
 ## `addu` operand order: a MEM address puts the multiply first
 
 `&recs[i]` and `recs[i].field` produce the *same* address arithmetic in a

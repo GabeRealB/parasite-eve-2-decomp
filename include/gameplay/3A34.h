@@ -1476,7 +1476,7 @@ void            Gp_SetStateF0Byte3(s32 arg0);
 void            Gp_IncStateF0Ref(void);
 void            Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1);
 void            Gp_ReleaseStateF0Clear(void);
-void            Gp_ReleaseStateF0(void);
+void            Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1);
 void            Gp_TickWorldCollision(void);
 void            Gp_RunPairHandler(GpObj* node);
 void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);

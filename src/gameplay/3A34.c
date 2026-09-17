@@ -3676,7 +3676,7 @@ void Gp_ReleaseStateF0Clear(void)
     }
 }
 
-void Gp_ReleaseStateF0(void)
+void Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1)
 {
     GpStateF0* p;
 
