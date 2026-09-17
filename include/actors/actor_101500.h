@@ -30,7 +30,7 @@ typedef struct Actor101500Work {
     /* 0x328 */ byte           pad_328[4];
     /* 0x32C */ MATRIX         field_32C;
     /* 0x34C */ s32            field_34C;
-    /* 0x350 */ byte           pad_350[2];
+    /* 0x350 */ s16            field_350; // hit cooldown, reloaded from `Gp_GetIdParam2`
     /* 0x352 */ u16            field_352;
     /* 0x354 */ s16            field_354;
     /* 0x356 */ u16            field_356;
@@ -43,7 +43,7 @@ typedef struct Actor101500Work {
     /* 0x364 */ s16            field_364;
     /* 0x366 */ s16            field_366;
     /* 0x368 */ s16            field_368;
-    /* 0x36A */ byte           pad_36A[2];
+    /* 0x36A */ s16            field_36A;
     /* 0x36C */ s16            field_36C;
     /* 0x36E */ s16            field_36E;
     /* 0x370 */ s16            field_370;
@@ -57,6 +57,20 @@ typedef struct Actor101500Work {
     /* 0x380 */ s16            field_380;
     /* 0x382 */ s16            field_382; // spawn variant, `GpAreaPlace.field_1`
 } Actor101500Work;
+
+/// 0x58-byte frame allocated on the scratchpad stack by
+/// `func_actor_101500_8013230C`.
+typedef struct Actor101500ContactFrame {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ VECTOR         normal;
+    /* 0x40 */ VECTOR         push;
+    /* 0x50 */ s16            dx;
+    /* 0x52 */ byte           pad_52[2];
+    /* 0x54 */ s16            dz;
+    /* 0x56 */ byte           pad_56[2];
+} Actor101500ContactFrame;
+STATIC_ASSERT_SIZEOF(Actor101500ContactFrame, 0x58);
 
 typedef struct Actor101500 {
     /* 0x00 */ byte             pad_0[0x1C];

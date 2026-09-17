@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_101500.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -136,11 +137,178 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     arg1->field_30         = 1;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_101500/actor_101500", D_actor_101500_80131E20);
+/// Per-frame contact pass: applies the collision step, reacts to the three
+/// contact records (damage from actors, push-out from walls) and clears them.
+void func_actor_101500_8013230C(Actor101500* actor)
+{
+    Actor101500Work*         work;
+    Actor101500ContactFrame* frame;
+    s32                      push;
+    VECTOR*                  normal;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           sourceCoord;
+    GpRec18*                 effectRec;
+    s16                      cooldown;
+    s32                      result;
+    s32                      i;
+    s32                      depth;
+    s32                      boundedDepth;
+    s32                      dx;
+    s32                      dy;
+    s32                      dz;
+    s32                      wallDx;
+    s32                      wallDy;
+    s32                      wallDz;
+    u32                      lastId;
+    u32                      id;
+    u32                      hitId;
+    u32                      damage;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_101500/actor_101500", ActorsShared80135df4Table);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500", func_actor_101500_8013230C);
+    push                                    = 0;
+    lastId                                  = 0;
+    work                                    = actor->field_1C;
+    *(Actor101500ContactFrame**)0x1F8003FC -= 1;
+    frame                                   = *(Actor101500ContactFrame**)0x1F8003FC;
+    coord                                   = actor->field_2C->field_8;
+    result                                  = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
+    if (result != 0) {
+        if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.w == 0) {
+            work->field_35A          = 6;
+            work->field_358          = 0;
+            work->field_244.field_12 = 0;
+            work->field_244.field_14 = -300;
+            Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
+            work->field_362          = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+            for (i = 0; i < 5; i++) {
+                if ((work->field_264[i].field_4 & 0xFFFF0000) == 0x100000) {
+                    frame->dx       = work->field_264[i].field_10;
+                    frame->dz       = work->field_264[i].field_14;
+                    work->field_372 = (ratan2(frame->dx, frame->dz) + 0x800) & 0xFFF;
+                    break;
+                }
+            }
+        }
+        if (work->field_35A == 4 && frame->delta.vy.w < -0xDDA) {
+            work->field_35A = 5;
+            work->field_362 = 0;
+        }
+        switch (result) {
+            case 0:
+                break;
+            case 1:
+                coord->coord.t[0] += frame->delta.vx.h.hi;
+                coord->coord.t[1] += frame->delta.vy.h.hi;
+                coord->coord.t[2] += frame->delta.vz.h.hi;
+                break;
+            case 2:
+                if (work->field_35A != 4) {
+                    coord->coord.t[0] = work->field_31C.vx;
+                    coord->coord.t[1] = work->field_31C.vy;
+                    coord->coord.t[2] = work->field_31C.vz;
+                }
+                break;
+        }
+    }
+    Gp_ClearRec18Occupied(work->field_264);
+    if (work->field_350 != 0) {
+        cooldown        = (u16)work->field_350 - 1;
+        work->field_350 = cooldown;
+        if ((cooldown << 0x10) <= 0) {
+            work->field_350 = 0;
+        }
+    }
+    normal = &frame->normal;
+    for (i = 0; i < 3; i++) {
+        id = work->field_1FC[i].field_4;
+        switch (id >> 0x10) {
+            case 0:
+            case 1:
+                break;
+            case 2:
+                if (work->field_350 == 0) {
+                    sourceCoord       = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+                    dx                = sourceCoord->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vx.w = dx;
+                    dy                = sourceCoord->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vy.w = dy;
+                    dz                = sourceCoord->coord.t[2] - coord->coord.t[2];
+                    frame->delta.vz.w = dz;
+                    damage            = Gp_ComputeDamage(work->field_1FC[i].field_4, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    if (Gp_RollEnemyChance(actor->field_20, work->field_1FC[i].field_4, 0) != 0) {
+                        damage *= 4;
+                        Gp_SpawnEff(0x6009C, actor->field_2C->field_8, 0, NULL);
+                    }
+                    func_800DA6E8(&actor->field_20->node, damage, 0);
+                    func_800E2C78((GpObj40*)actor->field_20, work->field_1FC[i].field_4, damage, 0);
+                    func_actor_101500_8013291C(actor, damage);
+                    switch (Gp_GetIdParam0(work->field_1FC[i].field_4) & 0xFFFF) {
+                        case 0:
+                        case 5:
+                        case 7:
+                            break;
+                        case 1:
+                            Gp_SetObjFlag1((GpObj4C*)actor->field_20);
+                            break;
+                        case 3:
+                            Gp_SetObjFlag4((GpObj5C*)actor->field_20, work->field_1FC[i].field_4, 0);
+                            break;
+                        case 4:
+                        case 6:
+                            if (actor->field_20->field_40 <= 0) {
+                                work->field_37E = 1;
+                            }
+                            break;
+                        case 2:
+                        case 8:
+                        case 9:
+                            Gp_SetObjFlag2((GpObj5D*)actor->field_20, work->field_1FC[i].field_4, 0);
+                            break;
+                    }
+                    hitId = work->field_1FC[i].field_4;
+                    if (lastId != hitId) {
+                        lastId = hitId;
+                        func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, (GpEffArg*)&work->field_314);
+                    }
+                    damage = Gp_GetIdParam2(work->field_1FC[i].field_4);
+                    if ((s32)damage > 0) {
+                        work->field_350 = damage;
+                    }
+                }
+                break;
+            case 3:
+                wallDx            = coord->workm.t[0] - work->field_1FC[i].field_8;
+                frame->delta.vx.w = wallDx;
+                wallDy            = coord->workm.t[1] - work->field_1FC[i].field_A;
+                frame->delta.vy.w = wallDy;
+                wallDz            = coord->workm.t[2] - work->field_1FC[i].field_C;
+                frame->delta.vz.w = wallDz;
+                depth             = work->field_1FC[i].field_2 - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
+                boundedDepth      = depth;
+                if (depth <= 0) {
+                    boundedDepth = 0;
+                }
+                depth = boundedDepth;
+                if (push < depth) {
+                    push = depth;
+                    VectorNormal((VECTOR*)&frame->delta, normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->push);
+                }
+                break;
+        }
+    }
+    if (push > 0) {
+        coord->coord.t[0] += (s32)(push * frame->push.vx) >> 0xC;
+        coord->coord.t[2] += (s32)(push * frame->push.vz) >> 0xC;
+    }
+    Gp_ClearRec18Occupied(work->field_1FC);
+    effectRec = work->field_2FC;
+    if (Gp_FindRec18(effectRec, 0) != 0) {
+        work->field_2DC.flags &= 0x7FFF;
+        Gp_ClearRec18Occupied(effectRec);
+        work->field_36A = 1;
+    }
+    *(Actor101500ContactFrame**)0x1F8003FC += 1;
+}
 
 void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
 {

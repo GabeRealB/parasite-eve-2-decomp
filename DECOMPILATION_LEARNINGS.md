@@ -114574,3 +114574,26 @@ after them) moved that load to the front while the stores kept their order:
 99.59% -> 100%. The two `Gp_LcgState` stores also needed the `field_362` store
 between them, or flow deletes the first one (see "Back-to-back writes to the
 same global").
+
+### A symbol address loaded into `$t2` right before its use, inside a loop, means loop.c hoisted it: write a real indexed loop (func_actor_101500_8013230C, 2026-09-17)
+
+**Symptom.** The goto-shaped port of a matched sibling (`func_actor_300700_801637E4`,
+walking `contactWork += 0x18` with labels) reached 99.64% with one leftover:
+the target builds `Gp_ActorSlots` as `lui t2` / `addiu t2` *after* the
+`srl`/`andi` index, where the candidate used `$v1` before it.
+
+**Cause.** `$t2` is the reload spill register (the same one the `mflo t2` of a
+later `mult` uses). The address was a loop invariant that loop.c moved out of a
+real loop; the moved pseudo, `REG_EQUIV` to the symbol, got no hard register, so
+reload rematerialised the constant at its use. A goto loop has no
+`NOTE_INSN_LOOP_BEG`, so nothing is moved and local-alloc gives the address a
+normal register.
+
+**Fix.** A `do/while` over the same walking pointer then strength-reduced a
+second giv (`s1 = work + 0x1FE`). The shape that matches is an *index* loop,
+`for (i = 0; i < 3; i++) switch (work->field_1FC[i].field_4 >> 16) {...}`:
+the giv `work + i*0x18` becomes `move s1,s2`, loads keep the `0x200(s1)`
+displacement, and biv elimination rewrites the exit test to
+`addiu v0,s2,0x48` / `slt v0,s1,v0` - the signature to read as an index loop.
+With the loop real, every `USE_REG` priority hack the goto form needed became
+unnecessary; the match is plain C apart from the two-variable depth clamp.
