@@ -229,7 +229,33 @@ void func_actor_205200_8014C67C(Actor205200* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C748);
+/// Charge handler, sub-state 1 of `func_actor_205200_8014C67C`. On entry it
+/// switches the animation to id 3 and raises bit 3 of `Gp_StateF0.field_1D`;
+/// once the frame counter reaches 35 it plays id 1, parks the charge sub-state
+/// at 3, drops back to the idle handler and loads 600 into `field_590`.
+void func_actor_205200_8014C748(Actor205200* arg0)
+{
+    Actor205200Work* work;
+    s16              state;
+
+    work  = arg0->field_1C;
+    state = work->field_586;
+    switch (state) {
+        case 0:
+            work->field_57E      = 3;
+            work->field_586      = 1;
+            Gp_StateF0.field_1D |= 8;
+            return;
+        case 1:
+            if ((s16)work->field_582 >= 0x23) {
+                work->field_586 = 3;
+                work->field_57E = 1;
+                work->field_584 = 0;
+                work->field_590 = 0x258;
+            }
+            return;
+    }
+}
 
 /// Keeps the work's animation id bound to its helper slots. When the id has
 /// changed since the last tick the remembered id follows it, the frame counter
