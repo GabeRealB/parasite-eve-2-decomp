@@ -14,13 +14,16 @@
 /// walks starts the block, and `light` / `color` are the matrices the TMD
 /// object's `field_1C` / `field_20` are republished from. `field_4BC` /
 /// `field_4C0` hold the two model tasks the visibility switch picks between;
-/// the TMD object is then reached through their `Task::extra`.
+/// the TMD object is then reached through their `Task::extra`. The spawn
+/// handler seeds the three `s8` bytes at 0x475/0x476/0x477 to -1 and clears
+/// the word beside them.
 typedef struct Actor213000Work {
     /* 0x000 */ byte   pad_0[0x474];
     /* 0x474 */ s8     field_474; // nonzero while the animation context is live
-    /* 0x475 */ byte   pad_475[0x2];
+    /* 0x475 */ s8     field_475;
+    /* 0x476 */ s8     field_476;
     /* 0x477 */ s8     field_477; // counts down to the buffer teardown
-    /* 0x478 */ byte   pad_478[0x4];
+    /* 0x478 */ s32    field_478;
     /* 0x47C */ MATRIX light;
     /* 0x49C */ MATRIX color;
     /* 0x4BC */ Task*  field_4BC; // model task modes 0 / 1 act on

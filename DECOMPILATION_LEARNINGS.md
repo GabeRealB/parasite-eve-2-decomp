@@ -125284,3 +125284,75 @@ Inputs: scratch `nonmatchings/func_actor_113000_80132208-vacuum`, `base.c`
 `98793c85dabc69a80ab3cbdf06b195574b795eb32bd1e05f571732cbbc3af533`, `base_5.i`
 `947d821b88829e962e156a932d9ccad2bc8dab7372cf2ffa17196a9c9fba3a22`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## One statement moved inside an `if` body takes a *block-local* quantity's hard register into a global allocno's conflict set, and the allocno moves one register up (func_actor_213000_80149E54, 2026-09-17)
+
+**Problem.** The seed reached 99.893%: `Structure: match`, every penalty zero
+except `regs=3`, and the whole 140-instruction object identical but for one
+register in three instructions -
+
+    jal Task_SpawnFromTable / move s1,v0 / beqz s1,... / move s3,v0 / lw s1,0x2c(s1)   (target)
+    jal Task_SpawnFromTable / move s0,v0 / beqz s0,... / move s3,v0 / lw s1,0x2c(s0)   (mine)
+
+`spawned1` is pseudo 83; the `.greg` header of the 99.893% build reads
+
+    ;; 7 regs to allocate: 81 100 122 83 80 82 84
+    ;; 83 conflicts: 80 83 84 2 3 4 5 6 7 29
+    83 in 16
+
+with `16` = `$s0` missing from the conflict set, and `83 in 16` = `$s0` in the
+dispositions.
+
+**Why `$s0` wins when nothing conflicts.** `find_reg` (`global.c:944-975`) runs
+two passes: pass 0 considers only registers already in `regs_used_so_far`, pass
+1 any free one, and both scan `regno` 0 upward. `regs_used_so_far` is seeded
+(`global.c:358-361`) with the call-used set, with `regs_ever_live`, *and with
+every hard register local-alloc assigned* (`if (reg_renumber[i] >= 0)`). In this
+function `$s0` is there because the first `if` body's `idx` is a block-local
+quantity that local-alloc homes in `$s0` (it must survive the two area-key
+calls, so it cannot take a caller-saved register). With `allocno_calls_crossed
+> 0`, `used1` is the call-used set, so the pass-0 candidates are `$s0`-`$s3`
+minus conflicts: `$s0` (16) beats `$s1` (17) unless it is *in* the conflict set.
+
+**What changes it.** One statement: in the first `if` body, write
+
+```c
+        idx   = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
+        model = (TmdObject*)spawned1->extra;
+```
+
+instead of `model` first. The emitted assembly order does not change - both
+versions emit `lw v0,0x20(s2)` / `lw s1,0x2c(s1)` / `lhu s0,8(v0)` - but sched1
+orders the RTL differently: `.lreg` block 3 has the `lhu`+`srl` pair (idx) at
+index 6 instead of 7, i.e. *before* the model load, which is `spawned1`'s last
+use. `idx`'s quantity is born inside `spawned1`'s live range, so
+`global_conflicts` records `$s0` against it, and the same dump now prints
+
+    ;; 83 conflicts: 80 83 84 2 3 4 5 6 7 16 29
+    83 in 17
+
+100.000%, all penalties zero. The reorder is the whole fix: it was found by the
+permuter, whose winning source also carried a `do { } while (0);` in the second
+body and an extra temp for the `place` address - rebuilding without either is
+still exact, so isolate the reorder before porting the hacks beside it.
+
+**The general lesson.** This is the same rule as the `$v0`/`$v1` entries above -
+a def born inside another value's live range hard-conflicts with its register -
+with the ingredient that makes it easy to misread: the register that enters the
+set here belongs to a **local-alloc quantity**, not to the allocno's own data,
+and it enters because local-alloc runs *first* while the conflict sets are built
+*after* it (`.greg`'s `;; N conflicts:` line is where to look). The lever is a
+statement reorder that leaves the final asm byte-identical, so the target's
+object cannot tell you which order the original source had: when the leftover is
+three instructions carrying one register, and `.greg` shows that register absent
+from - or present in - an allocno's conflict set, reorder the statements that
+compute the block-local quantities in the preceding body until the set matches.
+
+Inputs: `base_2.i` (99.893%) SHA256
+`0a299f460f0aa417b4f343b9fb865fa962a4d487b09f0b774f33bcceb4b79823`;
+`base_3.i` (100.000%) SHA256
+`e514117694e382bba16bd424beb18322c2aad7d986423d40f249b58388cc31d1`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm. Scratch
+`nonmatchings/func_actor_213000_80149E54-vacuum`; permuter evidence
+`PERMUTER_EVIDENCE/c7b2001a645c47ab/`.
