@@ -23,7 +23,76 @@ INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014A588);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200", func_actor_207200_8014AA74);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void ActorsShared8014b128(Task* arg0, GsCOORDINATE2* arg1);
+
+/// Per-frame body under the shared `D_801153F4` mode byte: 1 does nothing and
+/// 2 hides the model. Otherwise the root part's matrix is copied into the work
+/// area and the model helper ticks. Once dying (`work->field_288`), the enemy
+/// is destroyed after 0x3D frames; before that, the kill countdown expiring
+/// releases the actor, starts the dying state and unlinks its node and three
+/// objects, and the two animation slots are rebound or advanced.
+void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
+{
+    Actor207200Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    s32              i;
+    Actor207200Work* anim;
+
+    work  = arg1->idMap;
+    obj   = arg1->extra;
+    coord = obj->field_8;
+    switch (D_801153F4) {
+        case 0:
+            break;
+        case 1:
+            return;
+        case 2:
+            obj->field_C      |= 0x80;
+            arg0->node.field_4 = 1;
+            return;
+    }
+    if (work->field_288 != 0) {
+        work->field_264 = coord->coord;
+        ActorsShared8014b128(arg1, coord);
+        work->field_28A++;
+        if (work->field_28A >= 0x3D) {
+            Gp_DestroyEnemy(arg0, arg1);
+        }
+        return;
+    }
+    work->field_264 = coord->coord;
+    ActorsShared8014b128(arg1, coord);
+    arg1->killCountdown--;
+    if (arg1->killCountdown <= 0) {
+        Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2F);
+        work->field_288 = 1;
+        work->field_28A = 0;
+        arg0->field_54  = 0;
+        Gp_UnlinkNode(&arg0->node);
+        Gp_UnlinkObj(&work->field_14C.obj);
+        Gp_UnlinkObj(&work->field_FC.obj);
+        Gp_UnlinkObj(&work->field_184.obj);
+    }
+    anim = arg1->idMap;
+    i    = 1;
+    if (anim->field_28C != (s16)anim->field_28E) {
+        anim->field_28E = anim->field_28C;
+        anim->field_290 = 0;
+        do {
+            func_800B4114((GpAnimCtx*)anim, i, anim->field_28C, 0, 8);
+            i++;
+        } while (i < 3);
+        return;
+    }
+    TOUCH_REG(i);
+    anim->field_290 = (u16)(anim->field_290 + i);
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)anim, i);
+        i++;
+    } while (i < 3);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_207200/actor_207200", D_actor_207200_80149E20);
 

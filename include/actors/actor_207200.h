@@ -20,14 +20,19 @@ typedef struct Actor207200Obj {
 STATIC_ASSERT_SIZEOF(Actor207200Obj, 0x38);
 
 typedef struct Actor207200Work {
-    /* 0x000 */ byte           pad_0[0x1DC];
+    /* 0x000 */ byte           pad_0[0xFC];
+    /* 0x0FC */ Actor207200Obj field_FC;
+    /* 0x134 */ byte           pad_134[0x18];
+    /* 0x14C */ Actor207200Obj field_14C;
+    /* 0x184 */ Actor207200Obj field_184;
+    /* 0x1BC */ byte           pad_1BC[0x20];
     /* 0x1DC */ Actor207200Obj field_1DC;
     /* 0x214 */ Actor207200Obj field_214;
     /* 0x24C */ byte           pad_24C[0x18];
     /* 0x264 */ MATRIX         field_264; // transform folded onto the model part
     /* 0x284 */ byte           pad_284[2];
     /* 0x286 */ s16            field_286; // state the enemy work is running
-    /* 0x288 */ byte           pad_288[2];
+    /* 0x288 */ s16            field_288;
     /* 0x28A */ s16            field_28A; // frames spent in the current state
     /* 0x28C */ s16            field_28C; // animation id the work is playing
     /* 0x28E */ u16            field_28E; // id the three helper slots last saw
