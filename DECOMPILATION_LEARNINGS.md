@@ -123626,3 +123626,41 @@ The one prologue instruction the two carriers do not share is
 two constant-`1` stores. The identical C produces both, so it is allocation,
 not a source-level value: do not introduce a variable or a pin for a constant
 parked in a dead incoming argument register.
+## A matched body has to keep the slot its `INCLUDE_ASM` held: a unit's `.text` is emitted in source order (func_actor_105300_80132BAC, 2026-09-17)
+
+The body scored 100.000% in its scratch env, but pasting it in at the top of the
+unit's `.c` failed the overlay checksum with the *whole overlay* shifted, not
+one function. In the built image the body's `addiu $sp,$sp,-0x30` sat at overlay
+offset 0x1C, where the target has `func_actor_105300_80131E3C`; the pointer table
+in the leading rodata resolved its first entry to 0x80131E3C instead of
+0x80132BAC; and the target's own bytes at 0xD8C were unrelated code.
+
+GCC emits a translation unit's functions in source order, and the linker script
+places a unit's `.text` as one block, so a body defined above the `INCLUDE_ASM`
+stubs renumbers every function after it. The function itself still byte-matches
+its own target, so a per-function diff (`asm-differ`, an object dump, the
+scratch score) shows nothing at all — only the linked image moves. Put the body
+back in the slot the `INCLUDE_ASM` line occupied; that is why every unit under
+`src/` keeps its definitions and its stubs interleaved in address order.
+
+## Re-deriving a pointer expression can be load-bearing when a call sits between it and the local (func_actor_105300_80132BAC, 2026-09-17)
+
+m2c rendered the part object's `0x18` store as a fresh
+`arg1->parent->idMap->field_29C` while the rest of the function keeps that same
+pointer in a local (`$s4`), and the target's three loads — `lw $v0,8($s5)`,
+`lw $v0,0x1C($v0)`, `lw $v1,0x29C($v0)` — are exactly that re-derivation. The
+chain crosses the `Mem_Calloc` call, so it cannot be CSEd into the live local:
+the reload is real code, not a scheduling artefact. Writing the natural
+`part->field_18 = work->field_29C;` scored 95.109% (`delete=4`, the three loads
+gone and every later store re-scheduled around the gap); the re-derived form is
+100.000%. When a landed body loses instructions at the port stage, check whether
+m2c re-evaluated an expression the readable version reuses as a local.
+
+Inputs: scratch `nonmatchings/func_actor_105300_80132BAC-vacuum`. `base.c` (m2c)
+93.086% (`regs=13 reorder=7 insert=2 delete=2`); `base_1.c` typed 3x`s16` table,
+95.000%; `base_2.c` `0x18` store moved above the `0x1C`/`0x1E` stores, 98.742%;
+`base_3.c` `flg = 0` moved after the three `coord.t[]` stores, 100.000%;
+`base_4.c` plain `== 0` instead of `(type << 0x10) == 0`, 98.438% — the shift is
+the original's, not an artefact. Ported as struct field access: `base_land.c`
+(the natural local) 95.109%, `base_land2.c` (re-derived) 100.000%, which is what
+`src/actors/actor_105300/actor_105300.c` now holds.
