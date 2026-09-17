@@ -9,41 +9,57 @@
 /// substate the message handler below switches on; the three bytes at 0x194
 /// are the message echo the dispatcher copies in for every 0xB02 message.
 typedef struct Actor201200Work {
-    /* 0x000 */ s16   field_0;
-    /* 0x002 */ s16   field_2;
-    /* 0x004 */ s16   field_4;
-    /* 0x006 */ byte  pad_6[0x52];
-    /* 0x058 */ u16   field_58;
-    /* 0x05A */ byte  pad_5A[0x116];
-    /* 0x170 */ s16   field_170;
-    /* 0x172 */ s16   field_172;
-    /* 0x174 */ s16   field_174;
-    /* 0x176 */ s16   field_176;
-    /* 0x178 */ s16   field_178;
-    /* 0x17A */ s16   field_17A;
-    /* 0x17C */ s16   field_17C;
-    /* 0x17E */ byte  pad_17E[0x16];
-    /* 0x194 */ u8    field_194;
-    /* 0x195 */ u8    field_195;
-    /* 0x196 */ u8    field_196;
-    /* 0x197 */ byte  pad_197[0x99];
-    /* 0x230 */ GpObj obj230;
-    /* 0x250 */ byte  pad_250[0x78];
-    /* 0x2C8 */ GpObj obj2C8;
-    /* 0x2E8 */ byte  pad_2E8[0x18];
-    /* 0x300 */ GpObj obj300;
-    /* 0x320 */ byte  pad_320[0x18];
-    /* 0x338 */ GpObj obj338;
+    /* 0x000 */ s16     field_0;
+    /* 0x002 */ s16     field_2;
+    /* 0x004 */ s16     field_4;
+    /* 0x006 */ byte    pad_6[0x52];
+    /* 0x058 */ u16     field_58;
+    /* 0x05A */ byte    pad_5A[0x116];
+    /* 0x170 */ s16     field_170;
+    /* 0x172 */ s16     field_172;
+    /* 0x174 */ s16     field_174;
+    /* 0x176 */ s16     field_176;
+    /* 0x178 */ s16     field_178;
+    /* 0x17A */ s16     field_17A;
+    /* 0x17C */ s16     field_17C;
+    /* 0x17E */ byte    pad_17E[0x16];
+    /* 0x194 */ u8      field_194;
+    /* 0x195 */ u8      field_195;
+    /* 0x196 */ u8      field_196;
+    /* 0x197 */ byte    pad_197[0x21];
+    /* 0x1B8 */ GpRec18 rec1B8;
+    /* 0x1D0 */ byte    pad_1D0[0x60];
+    /* 0x230 */ GpObj   obj230;
+    /* 0x250 */ GpRec18 rec250;
+    /* 0x268 */ byte    pad_268[0x60];
+    /* 0x2C8 */ GpObj   obj2C8;
+    /* 0x2E8 */ GpRec18 rec2E8;
+    /* 0x300 */ GpObj   obj300;
+    /* 0x320 */ byte    pad_320[0x18];
+    /* 0x338 */ GpObj   obj338;
+    /* 0x358 */ byte    pad_358[0x80];
+    /* 0x3D8 */ s8      field_3D8; // nonzero rebuilds the color matrix each tick
 } Actor201200Work;
 
 /// Context block at `Actor201200::field_20`; `field_40` is the counter the
 /// message handler tests before raising the substate.
 typedef struct Actor201200Ctx {
-    /* 0x00 */ byte pad_0[0x14];
+    /* 0x00 */ byte pad_0[0x8];
+    /* 0x08 */ u16  field_8;  // top nibble selects the sound bank
+    /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ s8   field_14; // cleared by the state handlers
     /* 0x15 */ byte pad_15[0x2B];
     /* 0x40 */ s16  field_40;
 } Actor201200Ctx;
+
+struct Actor201200;
+
+typedef void (*Actor201200StateFn)(Actor201200Ctx* arg0, struct Actor201200* arg1);
+
+/// The ten substate handlers the tick copies onto its stack before dispatching.
+typedef struct Actor201200StateTable {
+    /* 0x00 */ Actor201200StateFn fn[10];
+} Actor201200StateTable;
 
 typedef struct Actor201200 {
     /* 0x00 */ byte             pad_0[0x1C];
