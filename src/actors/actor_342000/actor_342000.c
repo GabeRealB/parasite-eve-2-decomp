@@ -117,7 +117,124 @@ void func_actor_342000_8016201C(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162158);
+void              func_actor_342000_80163F88(Task* arg0);
+extern GpAnimSet* D_actor_342000_801647F8[];
+extern GpAnimSet* D_actor_342000_80164800[];
+extern GpAnimSet* D_actor_342000_80164808[];
+extern GpMsgEntry D_actor_342000_801648E8[];
+
+/// Parents the work block's own coordinate to `Actor342000Work::field_2A4`,
+/// hangs the model's part coordinate off it and resets it to an identity
+/// matrix with no translation. Every `func_actor_342000_80162158` case repeats
+/// it; as a function its address pseudos are born at their first use instead
+/// of being hoisted to the top of each case.
+static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
+{
+    GsCOORDINATE2*       coord;
+    Actor342000MatWords* mtx;
+
+    coord                                   = &w->coord;
+    coord->sub                              = ((Actor342000Work*)arg0->idMap)->field_2A4;
+    ((TmdObject*)arg0->extra)->field_8->sub = coord;
+    coord->coord.t[0]                       = 0;
+    coord->coord.t[1]                       = 0;
+    coord->coord.t[2]                       = 0;
+    mtx                                     = (Actor342000MatWords*)&w->coord.coord;
+    mtx->ident.m00_m01                      = 0x1000;
+    mtx->ident.m02_m10                      = 0;
+    mtx->ident.m11_m12                      = 0x1000;
+    mtx->ident.m20_m21                      = 0;
+    mtx->ident.m22                          = 0x1000;
+    w->coord.flg                            = 0;
+    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+}
+
+/// Spawn tick shared by the actor and its child model tasks: allocates and
+/// zeroes the work block, republishes its light/colour matrices onto the model,
+/// applies the area record 0x20's TMD bytes and, per `Task::spawnArg1`, parents
+/// the coordinate (view, parent model, or the parent part
+/// `D_actor_342000_80164900` names) and binds the animation bank. Cases 1 and 2
+/// register themselves on the parent as `field_29C` / `field_2A0`.
+///
+/// The empty loops before `case 1:` / `case 2:` make reorg fill the dispatch
+/// delay slots from those arms; one `ctx` per case keeps each short-lived so
+/// the work pointer outranks it for `$s1`.
+void func_actor_342000_80162158(Task* arg0)
+{
+    TmdObject*       extra;
+    Actor342000Work* work;
+    Actor342000Work* ctx;
+    Actor342000Work* ctx2;
+    Actor342000Work* ctx3;
+    Actor342000Work* w;
+    GpCdRec10*       rec;
+    u16              i;
+
+    extra       = (TmdObject*)arg0->extra;
+    work        = (Actor342000Work*)Mem_Malloc(0x2AC, 0);
+    arg0->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    w = work;
+    Mem_Set(w, 0, 0x2AC);
+    w->field_298    = (Task*)arg0->spawnArg2;
+    extra->field_1C = &w->light;
+    extra->field_20 = &w->color;
+    arg0->field_24  = D_actor_342000_801648E8;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4))->field_0;
+    for (; rec->field_0 != 0xFF; rec++) {
+        if (rec->field_0 == 0x20) {
+            break;
+        }
+    }
+    Gp_SetTmdBytes(extra, (s8)rec->field_D, (s8)rec->field_E);
+    switch (arg0->spawnArg1) {
+        case 0:
+            w->field_2A4 = &Gfx_ViewCoord;
+            Actor342000_InitCoord(arg0, w);
+            func_800B3F84(&w->ctx, D_actor_342000_801647F8, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            ctx = (Actor342000Work*)arg0->idMap;
+            for (i = 1; i < 8; i++) {
+                ctx->slots[i].field_9 = 0x10;
+                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+            }
+            break;
+            do {
+            } while (0);
+        case 1:
+            w->field_2A4 = ((TmdObject*)w->field_298->extra)->field_8;
+            Actor342000_InitCoord(arg0, w);
+            ((Actor342000Work*)w->field_298->idMap)->field_29C = arg0;
+            func_800B3F84(&w->ctx, D_actor_342000_80164800, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            ctx2 = (Actor342000Work*)arg0->idMap;
+            for (i = 0; i < 4; i++) {
+                ctx2->slots[i].field_9 = 0x10;
+                Gp_AnimResetSlot(&ctx2->ctx, i, 0);
+            }
+            break;
+            do {
+            } while (0);
+        case 2:
+            w->field_2A4 = ((TmdObject*)w->field_298->extra)->field_8;
+            Actor342000_InitCoord(arg0, w);
+            ((Actor342000Work*)w->field_298->idMap)->field_2A0 = arg0;
+            func_800B3F84(&w->ctx, D_actor_342000_80164808, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            ctx3 = (Actor342000Work*)arg0->idMap;
+            for (i = 0; i < 4; i++) {
+                ctx3->slots[i].field_9 = 0x10;
+                Gp_AnimResetSlot(&ctx3->ctx, i, 0);
+            }
+            break;
+        default:
+            w->field_2A4 = &((TmdObject*)w->field_298->extra)->field_8[D_actor_342000_80164900[arg0->spawnArg1].pad];
+            Actor342000_InitCoord(arg0, w);
+            break;
+    }
+    Task_Reparent(w->field_298, arg0);
+    arg0->exitCallback = func_actor_342000_80163F88;
+}
 
 /// Display handler of the actor's child model. The spawn tick seeds the
 /// model's part coordinate translation from the `D_actor_342000_80164900` entry

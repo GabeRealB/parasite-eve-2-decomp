@@ -126978,3 +126978,19 @@ stores (the `"+r"` output kills the equivalence); the first store keeps its
 `0x218($a2)` form as in retail. In the same function the identity's `0x1000`
 had to be a named local (`one = 0x1000;` at the top of the case) so its load
 leads the block and fills the dispatch `beq`'s delay slot in `$a0`.
+
+### A block repeated verbatim in every `switch` arm may be a `static inline` helper: its address locals are born at first use, not hoisted (func_actor_342000_80162158, 2026-09-17)
+
+The spawn tick repeats one coordinate-reset block (parent link, zero
+translation, identity matrix through a word-wise union) in all four arms. As a
+macro with `coord = &w->coord; mtx = (…*)&w->coord.coord;` pointer locals,
+sched1 hoisted both `addiu` births to the top of each arm, where they took
+`$v1`/`$t0` for the whole block and pushed the `0x1000` constant into `$v0`
+(85.5%). Folding the locals away addressed every store off `w` (87.3%). The
+same body as a `static inline void helper(Task* arg0, Actor* w)` placed each
+`addiu` right before its first use and reused `$v0` for both, as retail does
+(97.0%). The remaining gap was two known idioms: `do { } while (0);` before
+`case 1:` and `case 2:` to fill the dispatch delay slots from those arms, and one
+short-lived `ctx = (Work*)arg0->idMap` local *per case* instead of one shared
+across three loops, which dropped its global-alloc priority below the work
+pointer so the work pointer took `$s1` (100%).
