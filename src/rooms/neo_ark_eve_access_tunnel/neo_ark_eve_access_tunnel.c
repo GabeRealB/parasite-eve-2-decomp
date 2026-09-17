@@ -5,6 +5,7 @@
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/neo_ark_eve_access_tunnel.h"
 
 /// Staging save location the room commits when the tunnel's save is taken.
 extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
@@ -21,7 +22,66 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tun
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D980);
+/// Tunnel departure sequence, advanced one step per call: step 0 raises CAP
+/// command 3, step 1 waits for the CAP system to go idle, step 2 arms the CAP
+/// countdown at 0xA and waits for the event key it answers with - 0xC kills the
+/// sequence and messages the player weapon - and step 3 falls through to the
+/// shared advance. Step 4 stages `D_neo_ark_eve_access_tunnel_801807A8` (the
+/// message halfword 0x800 and the code in the task's `spawnArg1`, run once more
+/// through the room's resolver, and no sound) and spawns the tunnel's outgoing
+/// task, whose callback is `func_neo_ark_eve_access_tunnel_8017D810`.
+void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_RunCapCmd1(3);
+            goto L_advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            goto L_advance;
+        case 2:
+            D_80114D08 = 0xA;
+            if (Gp_GetCapEventKey() == 0xC) {
+                Task_Kill(task);
+                Gp_MsgPlayerWeapon(1);
+                return;
+            }
+            goto L_advance;
+        case 3:
+        L_advance:
+            task->state++;
+            return;
+        case 4: {
+            NaetEventDesc  work;
+            NaetUtilParam  param;
+            NaetEventDesc* wp;
+            void           (*resolve)(NaetUtilParam*, NaetUtilParam*) = func_neo_ark_eve_access_tunnel_8017D6D4;
+
+            work.field_0 = 4;
+            work.field_1 = (u8)task->spawnArg1;
+            work.field_3 = 1;
+            work.field_2 = 2;
+            work.field_8 = 0;
+            work.field_4 = 0x800;
+            Gp_MsgPlayerWeapon(0);
+            wp            = &work;
+            param.field_0 = wp->field_1;
+            param.field_2 = wp->field_2;
+            param.field_3 = wp->field_3;
+            param.field_5 = 0;
+            resolve(&param, &param);
+            wp->field_1                          = param.field_0;
+            wp->field_2                          = param.field_2;
+            wp->field_3                          = param.field_3;
+            D_neo_ark_eve_access_tunnel_801807A8 = work;
+            Task_SpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
+            Task_Kill(task);
+            break;
+        }
+    }
+}
 
 /// Tunnel save sequence, advanced one step per call: step 0 raises CAP command
 /// 2, step 1 waits for the CAP system to go idle, step 2 latches the save flag
