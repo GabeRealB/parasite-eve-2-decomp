@@ -80,7 +80,7 @@ extern Actor215100CapWindow D_actor_215100_80154514[];
 extern u8                   D_801153F4;
 extern u8                   D_80115690;
 void                        func_actor_215100_8014B0D4(void);
-void                        func_actor_215100_8014B1B0(s32 arg0);
+s32                         func_actor_215100_8014B1B0(GpCapFile* file);
 s32                         func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
 s16                         func_actor_215100_8014BDFC(u16* arg0);
 s16                         func_actor_215100_8014C06C(u16* arg0);
@@ -537,7 +537,62 @@ void func_actor_215100_8014B0D4(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B1B0);
+/// Relocates a caption file in place, the counterpart of gameplay's
+/// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
+/// when the "CAP" magic is missing.
+s32 func_actor_215100_8014B1B0(GpCapFile* file)
+{
+    s32            i;
+    s32            count;
+    s32            flag;
+    GpEvt12*       rec;
+    s32*           ptr;
+    GpCapEvtTable* evts;
+    GpCapPtrTable* ptrs;
+
+    if (strncmp(file->magic, "CAP", 3) != 0) {
+        return 0;
+    }
+
+    i = 0;
+    if (file->field_8 > 0) {
+        file->field_8  += (s32)file;
+        file->field_C  += (s32)file;
+        file->field_10 += (s32)file;
+        evts            = (GpCapEvtTable*)file->field_C;
+        rec             = (GpEvt12*)(evts + 1);
+        count           = evts->count;
+        if (count > 0) {
+            flag = -1;
+            do {
+                if (rec->field_8 != flag) {
+                    rec->field_8 += (s32)file;
+                } else {
+                    rec++;
+                }
+                i++;
+                rec++;
+            } while (i < count);
+        }
+        ptrs  = (GpCapPtrTable*)file->field_10;
+        i     = 0;
+        count = ptrs->count;
+        ptr   = (s32*)(ptrs + 1);
+        if (count > 0) {
+            do {
+                if (*ptr != 0) {
+                    *ptr += (s32)file;
+                }
+                i++;
+                ptr++;
+            } while (i < count);
+        }
+    }
+
+    D_actor_215100_8015E654 = (GlyphUvwh*)file->field_8;
+    D_actor_215100_8015E650 = (Actor215100Caption**)((GpCapPtrTable*)file->field_10 + 1);
+    return 1;
+}
 
 /// Starts playing the caption script `arg0` picks out of
 /// `D_actor_215100_8015E650`, keyed on `arg1`, and parks its per-line metrics in
@@ -989,7 +1044,7 @@ void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
     for (i = 0; i < 0x32; i++) {
         if (D_8006C338[i].field_0 == 3) {
             if (count == arg2) {
-                func_actor_215100_8014B1B0(D_8006C338[i].field_4);
+                func_actor_215100_8014B1B0((GpCapFile*)D_8006C338[i].field_4);
                 break;
             }
             count++;
