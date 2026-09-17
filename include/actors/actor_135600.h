@@ -92,10 +92,11 @@ extern GsCOORDINATE2 Gfx_ViewCoord;
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// Recomputes `coord`'s world matrix (`Gp_UpdateCoord`) and then projects a
-/// rotating pair of offsets through it, returning the signed `ratan2` of the
-/// difference between the two projections - the actor's screen-space angle.
-/// `arg1` selects how far the pair is rotated: it scales by 70/4096 of a
-/// revolution, so the 0x800 the tick handler latches on a hit is 35 degrees.
-s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s16 arg1);
+/// pair of offsets along the actor's local Z, returning the signed `ratan2` of
+/// the difference between the two projections - the actor's screen-space angle.
+/// `arg1` sets how far the far offset sits down that axis, at 70/4096 of a unit
+/// per count, so the 0x800 the tick handler latches once the angle reaches
+/// 0x1F5 is 35 units.
+s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1);
 
 #endif // ACTOR_135600_H

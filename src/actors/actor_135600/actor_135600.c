@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
 
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -39,7 +40,125 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, Actor135600AnimPreset* pre
 /// switched on the word `mode` rather than on a pointer.
 s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135600/actor_135600", func_actor_135600_80131E68);
+/// Composes `coord`'s parent chain into `mtx` and its world position into
+/// `vec`, the two halves of the projection this unit's marker effect needs.
+/// Defined in `actor_135600_2.c`.
+void func_actor_135600_80132C80(GsCOORDINATE2* coord, MATRIX* mtx, SVECTOR* vec);
+
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+
+/// The marker quad's two vertex pairs, in the actor's local frame: `-4/+4`
+/// and `-3/+3` along X, all coplanar in Z.
+extern SVECTOR D_actor_135600_8013B060[4];
+
+/// Projects the two offsets along the actor's local Z - the near one 10 units
+/// out and the far one `arg1 * 0x46 / 0x1000 + 10`, so the pair opens by 70
+/// 4096ths of a unit per tick - and returns the signed `ratan2` of the
+/// difference between the two projections, the actor's screen-space angle.
+/// The pair is drawn as the quad `D_actor_135600_8013B060` describes: the wide
+/// vertex pair rotated about the screen origin by that angle and anchored on
+/// the near projection, the narrow pair unrotated on the far one, as a
+/// semi-transparent `POLY_F4` followed by its texture page, both linked into
+/// the ordering table at the far point's depth. Nothing is drawn when that
+/// depth is behind the camera.
+s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1)
+{
+    SVECTOR           v0;
+    SVECTOR           v1;
+    SVECTOR           pos;
+    SVECTOR           quad[4];
+    Actor135600Matrix m;
+    MATRIX*           mtx;
+    s32               sxy0;
+    s32               p;
+    s32               flag;
+    s32               sxy1;
+    s16               y0;
+    s16               y1;
+    s32               rot;
+    u16               x0;
+    u16               x1;
+    s32               depth;
+    POLY_F4*          poly;
+    DR_TPAGE*         tpage;
+    s32               i;
+
+    Gp_UpdateCoord(coord);
+    mtx = &m.mat;
+    func_actor_135600_80132C80(coord, &m.mat, &pos);
+
+    v0.vx = 0;
+    v0.vy = 0;
+    v0.vz = 0xA;
+    ApplyMatrixSV(&m.mat, &v0, &v0);
+
+    v1.vx = 0;
+    v1.vy = 0;
+    v1.vz = arg1 * 0x46 / 0x1000 + 0xA;
+    ApplyMatrixSV(&m.mat, &v1, &v1);
+
+    v0.vx += pos.vx;
+    v0.vy += pos.vy;
+    v0.vz += pos.vz;
+    v1.vx += pos.vx;
+    v1.vy += pos.vy;
+    v1.vz += pos.vz;
+
+    SetRotMatrix(&Gfx_ViewWorldMtx);
+    SetTransMatrix(&Gfx_ViewWorldMtx);
+
+    RotTransPers(&v0, &sxy0, &p, &flag);
+    depth = RotTransPers(&v1, &sxy1, &p, &flag);
+
+    x0  = *(u16*)&sxy0;
+    x1  = *(u16*)&sxy1;
+    y0  = sxy0 >> 16;
+    y1  = sxy1 >> 16;
+    rot = ratan2(*(s16*)&sxy1 - *(s16*)&sxy0, y0 - y1);
+
+    /* Only the middle diagonal and the last entry go through `mtx`: a store
+     * written that way keeps its address in the register `RotMatrixZ` is
+     * handed, where the ones naming `m` directly fold to a frame-relative
+     * address, and the target has both. */
+    m.ident.m00_m01       = 0x1000;
+    *(s32*)&m.mat.m[0][2] = 0;
+    *(s32*)&mtx->m[1][1]  = 0x1000;
+    *(s32*)&m.mat.m[2][0] = 0;
+    mtx->m[2][2]          = 0x1000;
+    RotMatrixZ(rot, &m.mat);
+
+    for (i = 0; i < 2; i++) {
+        ApplyMatrixSV(&m.mat, &D_actor_135600_8013B060[i], &quad[i]);
+        quad[i].vx    += x0;
+        quad[i].vy    += y0;
+        quad[i + 2].vx = D_actor_135600_8013B060[i + 2].vx + x1;
+        quad[i + 2].vy = D_actor_135600_8013B060[i + 2].vy + y1;
+    }
+
+    if (p >= 0) {
+        poly           = (POLY_F4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        setlen(poly, 5);
+        setcode(poly, 0x2A);
+        setRGB0(poly, 0xFF, 0x40, 0);
+        poly->x0 = quad[0].vx;
+        poly->y0 = quad[0].vy;
+        poly->x1 = quad[1].vx;
+        poly->y1 = quad[1].vy;
+        poly->x2 = quad[2].vx;
+        poly->y2 = quad[2].vy;
+        poly->x3 = quad[3].vx;
+        poly->y3 = quad[3].vy;
+        addPrim((u_long*)(((((u32)depth << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) - 2, poly);
+
+        tpage          = Gpu_PrimCursor;
+        Gpu_PrimCursor = tpage + 1;
+        setlen(tpage, 1);
+        tpage->code[0] = 0xE1000465;
+        addPrim((u_long*)(((((u32)depth << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) - 2, tpage);
+    }
+    return rot;
+}
 
 void func_actor_135600_80132234(Task* task)
 {

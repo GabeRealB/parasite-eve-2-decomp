@@ -125868,3 +125868,74 @@ Inputs: scratch `nonmatchings/func_actor_135600_80133240-vacuum`, `base.c`
 (`8215259b0a728cfc3d45f37f742aa68504f2a1e093bb9a8712d46ac75c7cb500`,
 preprocessed `519733a8f6be48d8987ebb4bd60f60b31c4402ef6f1e084212388e1fb9b8cff8`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A store's address is a register or `$sp` depending on how the C names it — mixed in one block means mixed in the source
+
+The identity-matrix splat in `func_actor_135600_80131E68` writes five words into one
+`MATRIX` local, and the target mixes two addressing forms *inside a single straight-line
+block*:
+
+```
+sw    v0, 0x48($sp)     # m.ident.m00_m01
+sw    zero, 0x4C($sp)   # m02_m10
+sw    v0, 8(a1)         # m11_m12   <- a1 = &m.mat, the RotMatrixZ argument
+sw    zero, 0x54($sp)   # m20_m21
+jal   RotMatrixZ
+ sh   v0, 0x10(a1)      # m22
+```
+
+`8(a1)` / `0x10(a1)` are the same two addresses as `0x50($sp)` / `0x58($sp)`; only the
+base register differs, so no amount of register shuffling fixes it. Which form a store
+takes is decided by how the C spells the address: a store written *through a live local
+pointer* (`*(s32*)&mtx->m[1][1] = 0x1000;`, `mtx->m[2][2] = 0x1000;`) keeps the pointer's
+register and renders `disp($sN)`, while the same store written against the object
+(`m.ident.m00_m01 = 0x1000;`, `*(s32*)&m.mat.m[0][2] = 0;`) folds to the frame pointer.
+A target that mixes the two forms mixed the two spellings — reproduce the mix store by
+store. Writing the two pointer stores by object name as well (`base_4.c`) leaves both as
+`disp($sp)` and stalls at 99.918% (`regs=4`); the mixed spelling is 100.000%.
+
+The unmixed direction has its own worked example two functions away:
+`func_actor_135600_80132B14`'s splat is `m.ident.m00_m01` plus four `mtx->` stores, and
+comes out as one `0x10($sp)` followed by four `disp($s2)`.
+
+Do not therefore reach for a pointer everywhere. In the same function the *loop* block
+names the object (`ApplyMatrixSV(&m.mat, ...)`) where the target rematerializes
+`addiu a0,sp,0x48`; keeping an `mtx` pointer live into the loop costs a callee-saved
+register and spills the `RotTransPers` depth to the frame (`base_2.c`, 96.574%, and the
+spill shows up as `lw t5,0x8c(sp)` before each `sllv`).
+
+## A callee that uses its parameter raw takes `s32`; an `s16` parameter is re-extended at every use
+
+`func_actor_135600_80131E68` scales its argument with the target's bare
+`sll v0,s1,3 / addu / sll v0,v0,2 / subu / sll v0,v0,1` chain and no extension prologue.
+MIPS defines no `PROMOTE_MODE`, so a `short` parameter is sign-extended at each int use
+— `s16 arg1` emits `sll s0,s0,16; sra s0,s0,16` first, `u16 arg1` emits `andi 0xffff`,
+and only `s32` reproduces the target. Relaxing the prototype is free for the caller:
+`func_actor_135600_80132C18` loads the countdown with `lh`, which *is* the s16→s32
+conversion, so its matched body does not move.
+
+The mirror question — which mode do the *uses* force — is readable straight off the frame
+layout. The target stores its two screen-space Y values into HImode slots at `0x78` and
+`0x80`, eight bytes apart, with the `s32` `rot` at `0x88`:
+
+```c
+s16 y0 = sxy0 >> 16;   /* lh 0x6A -> sh 0x78 */
+s16 y1 = sxy1 >> 16;   /* lh 0x76 -> sh 0x80 */
+rot = ratan2(*(s16*)&sxy1 - *(s16*)&sxy0, y0 - y1);
+```
+
+`sxy0 >> 16` is an SImode expression truncated into a HImode variable, so GCC narrows it
+to a sign-extending halfword load (`lh`, where an HImode load would be `lhu` plus a
+separate extend), and the SImode reference sets the pseudo's `reg_max_ref_width` to 4.
+`alter_reg` then allocates that spill slot with `align = -1`, which `assign_stack_local`
+rounds to 8-byte alignment and 8-byte size (`reload1.c`, `function.c`). So two HImode
+locals eight bytes apart, each stored with one `sh`, are a *signature* of variables also
+referenced in SImode — not of 8-byte objects. Spelling the read as
+`*(s16*)((u8*)&sxy0 + 2)` drops that SImode reference, packs the slots four bytes apart
+and shifts every later offset and the frame size (`stack` penalties); the `>>` spelling
+is what yields the `lh` load and the 8-byte stride together.
+
+Inputs: scratch `nonmatchings/func_actor_135600_80131E68-vacuum`; `base_6.c` 100.000%
+(`c97b559658fb8615355255fac13dc61ad862c439f8b29db02328484d97356de3`,
+preprocessed `7924354fb01fcbfb8b57d6837b8f6b760993e258c9fb0bbf4cb16417a503b6ce`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
