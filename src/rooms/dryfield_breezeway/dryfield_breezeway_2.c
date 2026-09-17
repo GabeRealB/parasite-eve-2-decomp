@@ -17,10 +17,14 @@
 /// `Gp_FindViewIndex` returns and the view gate reads back next to
 /// `GameSession.field_52`; `D_80073BA9` is the equipped-weapon index the slot-3
 /// msg 0x3E8 record is keyed on; and `D_8007218A` picks which of the two
-/// weapon-id bases that record uses.
+/// weapon-id bases that record uses. `D_80071075` gates the "everything is
+/// dead" message and `D_80114C12` the cutscene/among-us mode flag: the second
+/// arming state machine below waits for both to be clear.
 extern s8 D_8007216C;
 extern s8 D_8007218A;
 extern u8 D_80073BA9;
+extern u8 D_80071075;
+extern s8 D_80114C12;
 
 /// The one state machine that arms the breezeway, switched on the room task's
 /// `DbwWork.field_C`:
@@ -112,7 +116,75 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017E114);
+/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
+/// type 7): the table the spawned task starts from and the event-command
+/// stream it parks in `D_801156D0` for the task that follows it. Both live in
+/// the room's trailing data blob.
+extern s32 D_dryfield_breezeway_80181E70;
+extern s32 D_dryfield_breezeway_80181F90;
+
+/// The long-lived half of the arming pair: `func_dryfield_breezeway_8017E010`
+/// is the same state 0 with no sequencer and no cutscene behind it, and is the
+/// one `dryfield_night_water_tank` spawns. This one arms the room and then
+/// stays resident to run `func_dryfield_breezeway_8017DEC0` every frame.
+///
+/// State 0 arms the room, but only while no cutscene is running
+/// (`D_80114C12 != 1`) and the area is not cleared (`D_80071075 == 0`) --
+/// otherwise it returns having done nothing, which retires the task on the
+/// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
+/// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
+/// slot-3 msg 0x3E8 (`GpRec14`, the record `Gp_MsgPlayerWeapon` also builds:
+/// `field_0` off the equipped-weapon index in `D_80073BA9`, `field_4` and
+/// `field_8` both 1, `field_C` 0xA and `field_10` zero) and starts the room's
+/// opening cutscene through `func_800E8634`, which is what raises
+/// `Game_Session::field_1`. It then advances to state 1.
+///
+/// State 1 runs the sequencer every frame until the cutscene clears
+/// `Game_Session::field_1`, at which point the task kills itself. Any other
+/// state goes straight to the sequencer.
+void func_dryfield_breezeway_8017E114(Task* arg0)
+{
+    GpRec14  buf;
+    DbwWork* work;
+    s32      id;
+
+    switch (arg0->state) {
+        case 0:
+            if (D_80114C12 == 1 || D_80071075 != 0) {
+                return;
+            }
+            work        = (DbwWork*)Mem_Malloc(0x14, 0);
+            arg0->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x14);
+                work->field_0                 = (void*)Game_GetPtrSlot(3);
+                D_dryfield_breezeway_801843C0 = arg0;
+                id                            = Game_Session->field_6 | (Game_Session->field_7 << 8);
+                work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
+                id                            = ((Game_Session->field_7 << 8) | 0x1000) | Game_Session->field_6;
+                work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
+            }
+            id           = D_80073BA9;
+            buf.field_0  = (D_8007218A == 1) ? id + 1 : id + 0x22;
+            buf.field_4  = 1;
+            buf.field_8  = 1;
+            buf.field_C  = 0xA;
+            buf.field_10 = 0;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&buf, 0);
+            func_800E8634((s32)&D_dryfield_breezeway_80181E70, 0, (s32)&D_dryfield_breezeway_80181F90);
+            arg0->state += 1;
+            break;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                Task_Kill(arg0);
+                return;
+            }
+            break;
+    }
+    func_dryfield_breezeway_8017DEC0(arg0);
+}
 
 void func_dryfield_breezeway_8017E2D4(void)
 {

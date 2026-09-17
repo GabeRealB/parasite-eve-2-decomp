@@ -116615,3 +116615,59 @@ store two-message handler in the same family - spent `.rtl` through `.lreg` with
 cross-jumping merging the identical `sb` tails, not a front-end if-conversion.
 So the two-stores form is the original writing here, and `m2c`'s single-store
 `var_v0` shape - like the ternary that replaces it - is an artefact.
+
+## A `default:` label nested inside a case means those guards `return`, and the tail is shared (func_dryfield_breezeway_8017E114, 2026-09-17)
+
+m2c's seed for this function printed its shared tail as `default:` / `block_13:`
+*inside* case 0's body, with case 0 falling into it and case 1 reaching it by
+`goto block_13`. That nesting is the tell: m2c had to hang a shared block off
+one of the cases, picked the one whose last statement precedes it, and in doing
+so made that case's guard fall *through* into the body instead of leaving.
+The target's dispatch is two guards that both leave for the epilogue:
+
+```
+case0:  beq  v1,v0,.Lepilogue     # cutscene running
+        bnez v0,.Lepilogue        # area cleared
+        ... malloc, msg 0x3E8, func_800E8634, state += 1 ...
+        j    .Ltail
+case1:  bnez v0,.Ltail            # sequence still running
+        jal  Task_Kill
+        j    .Lepilogue
+Ltail:  jal  func_..._8017DEC0
+```
+
+Both case-0 guards go to the epilogue, not to the tail, so the tail is only
+reached after `state += 1` — and the default (`state` past 1) reaches it too.
+That is one `return` per guard and one call after the switch:
+
+```c
+switch (arg0->state) {
+    case 0:
+        if (D_80114C12 == 1 || D_80071075 != 0) {
+            return;
+        }
+        ...
+        arg0->state += 1;
+        break;
+    case 1:
+        if (Game_Session->field_1 == 0) {
+            Task_Kill(arg0);
+            return;
+        }
+        break;
+}
+func_dryfield_breezeway_8017DEC0(arg0);
+```
+
+100.000%, no other change. m2c's shape scores 84.5625% with
+`delete=10 insert=3 branch=4 reorder=5`, 105 instructions against the target's
+112, while the block count still reads 15/15 — nothing is missing, only
+reconnected, and the tail call comes out duplicated inside case 0 instead of
+jumped to. A `default:` label m2c nested inside a case, with a `delete` penalty
+and a frame shorter than the target's, is this.
+
+The same seed also demonstrates the already-documented scalar-locals cause:
+m2c declared the 5-word msg payload as `s32 sp10 … sp20`, only `&sp10` is
+passed to `Gp_DispatchMsg`, so the other four stores were never generated at
+all. `GpRec14 buf;` with `buf.field_4 = 1; …` brings them back. See "m2c's
+scalar stack locals for an address-taken struct lose their dead stores".
