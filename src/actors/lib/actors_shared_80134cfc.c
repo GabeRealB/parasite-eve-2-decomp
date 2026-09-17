@@ -5,7 +5,7 @@
 #include "actors/actors_shared_80134db4.h"
 
 void ActorsShared80133240(ActorShared80134cfc* arg0);
-void ActorsShared80134cfc_Fn333B0(ActorShared80134cfc* arg0);
+void ActorsShared801333b0(ActorShared80134cfc* arg0);
 void ActorsShared80133830(ActorShared80134cfc* arg0);
 void ActorsShared80134cfc_Fn339B0(ActorShared80134cfc* arg0);
 void ActorsShared80133d94(ActorShared80134cfc* arg0);
@@ -17,7 +17,7 @@ void ActorsShared80134cfc(ActorShared80134cfc* arg0)
             ActorsShared80133240(arg0);
             break;
         case 1:
-            ActorsShared80134cfc_Fn333B0(arg0);
+            ActorsShared801333b0(arg0);
             ActorsShared801341d4((ActorShared801341d4*)arg0);
             break;
         case 2:

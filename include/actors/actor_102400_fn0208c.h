@@ -17,6 +17,15 @@ typedef struct Actor02400ScaleScratch {
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
+/// 0x18-byte `G_SCRATCH_HEAD` block used by `func_actor_102400_801333B0`:
+/// the planar player offset handed to `ratan2`, then the random roll angle
+/// the effect spawn orientation is built from.
+typedef struct Actor02400FacingScratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR rot;
+} Actor02400FacingScratch;
+STATIC_ASSERT_SIZEOF(Actor02400FacingScratch, 0x18);
+
 /// Work block behind the actor's 0x1C slot. `field_100` is the unscaled
 /// rotation the model coordinate is rebuilt from each frame and
 /// `field_128..field_12C` the per-axis scale; `field_52` and `field_D4` are
@@ -47,7 +56,9 @@ typedef struct Actor02400ScaleWork {
     /* 0x142 */ s16    field_142;
     /* 0x144 */ byte   pad_144[2];
     /* 0x146 */ s16    field_146;
-    /* 0x148 */ byte   pad_148[6];
+    /* 0x148 */ s16    field_148;
+    /* 0x14A */ byte   pad_14A[2];
+    /* 0x14C */ s16    field_14C;
     /* 0x14E */ s16    field_14E;
 } Actor02400ScaleWork;
 
@@ -60,6 +71,7 @@ typedef struct Actor02400Scale {
 } Actor02400Scale;
 
 void Actor02400_Fn0208C(Actor02400Scale* arg0);
+void ActorsShared801333b0(Actor02400Scale* arg0);
 void ActorsShared80133d94(Actor02400Scale* arg0);
 
 #endif
