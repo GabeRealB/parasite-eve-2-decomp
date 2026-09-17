@@ -37,6 +37,11 @@ extern TaskDesc   D_actor_215100_8014CF6C;
 extern s16        D_80071076;
 extern s8         D_80073BAE;
 extern TaskDesc   D_actor_215100_8014E13C;
+extern s32        D_actor_215100_8014E370;
+extern s32        D_actor_215100_8014E8F8;
+extern s32        D_actor_215100_8014EA90;
+extern s32        D_actor_215100_8014EB08;
+extern s32        D_actor_215100_8014EBE0;
 extern TaskDesc   D_actor_215100_801544FC;
 extern TaskDesc   D_actor_215100_80154508;
 extern Task*      D_actor_215100_8015E64C;
@@ -355,7 +360,57 @@ void func_actor_215100_8014AB6C(void)
     Gp_SpawnIfCapIdle(0x11, 1);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014ABAC);
+void func_actor_215100_8014ABAC(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            Game_Session->field_68 = 1;
+            if (GameFlag_GetNibble(0x121) == 0) {
+                GameFlag_SetNibble(0x121, 1);
+                func_800E3FAC(0xA2, 0x3A);
+                func_800E8634((s32)&D_actor_215100_8014E370, 1, (s32)&D_actor_215100_8014E8F8);
+                arg0->state++;
+            } else {
+                Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 0, 0);
+                Task_Kill(arg0);
+            }
+            break;
+        case 1:
+            if (Game_Session->field_1 == 0) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            func_800E8614((s32)&D_actor_215100_8014EA90, 1);
+            arg0->state++;
+            break;
+        case 3:
+            if (Game_Session->field_1 == 0) {
+                if (Gp_GetCapEventKey() != 0) {
+                    arg0->state = 10;
+                } else {
+                    arg0->state++;
+                }
+            }
+            break;
+        case 4:
+            Gp_StartCapSlot(8, 0, 0);
+            func_800E8614((s32)&D_actor_215100_8014EBE0, 1);
+            Task_Kill(arg0);
+            break;
+        case 10:
+            Gp_StartCapSlot(7, 0, 0);
+            func_800E8614((s32)&D_actor_215100_8014EB08, 1);
+            arg0->state++;
+            break;
+        case 11:
+            if (Game_Session->field_1 == 0) {
+                Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 0, 0);
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 void func_actor_215100_8014AD50(Task* arg0)
 {
