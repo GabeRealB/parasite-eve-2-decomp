@@ -114975,3 +114975,79 @@ Two lessons, and the second is the general one:
   Renaming a variable is free, but reordering arguments, changing a literal's
   spelling that alters its type, or re-associating an expression is a new
   source and needs a fresh score. Re-score the exact landed text.
+
+## Splitting one variable into an m2c temp pair also splits its *preferences* (func_mine_mesa_8017E15C, 2026-09-17)
+
+`func_mine_mesa_8017E15C` keeps a `MineMesaHeadAim*` in `$a2` from the moment
+`Mem_Calloc` returns it (`move a2,v0`), through the two clamp stores, until the
+record is handed to `func_800B17D4` as its `arg2`; the case-1 re-read
+`aim = (MineMesaHeadAim*)arg0->idMap;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
+that one source variable as two -- `temp_v0` for the allocation, `temp_a2` for
+the re-read -- and the object came out `move v1,v0` / `sw v1,0x1C(s0)` /
+`sh v0,0(v1)`: 94.817%, `regs=5 insert=2 delete=2`, structure already matching
+17/17 blocks and 82/82 instructions. Writing the single variable the sibling
+`func_mine_mesa_8017E2A4` (and the 1.00-shape twin `func_actor_361100_801627D4`)
+uses is the whole register fix.
+
+**Mechanism.** A named C variable is one pseudo (the rule in "One variable is
+one pseudo"), and `global_alloc`'s copy-preference set is keyed on the
+*allocno*. `set_preference` (global.c:1538) records a preference whenever an
+insn copies a pseudo to or from a hard register, which is exactly what call
+argument setup is: `(set (reg:SI 6 a2) (reg/v:SI N))` gives that allocno a
+preference for `$a2`. `find_reg` picks `best_reg` in numeric order first
+(`used1` has `$v0` in it here, so `$v1` -- 3 -- wins), then re-scans
+`hard_reg_copy_preferences[allocno]` and *moves* `best_reg` to the preferred
+register when it is free and in the same class (global.c:1000-1035).
+
+So the split costs twice: the allocation pseudo has no preference of its own
+and settles on `$v1`, and only the second pseudo -- the one that is the call
+argument -- carries the preference. The `.greg` header shows it directly:
+
+    ;; 6 regs to allocate: 82 81 85 80 83 84      (m2c's two temps)
+    ;; 82 conflicts: 80 82 83 84 2 29
+    ;; 81 preferences: 6
+    80 in 16  81 in 6  82 in 3  83 in 17  84 in 18  85 in 3
+
+against five allocnos once merged, the surviving one carrying the preference
+and *landing on it*:
+
+    ;; 5 regs to allocate: 83 84 80 82 81
+    ;; 83 preferences: 6
+    80 in 16  81 in 18  82 in 17  83 in 6  84 in 3
+
+**Reading it.** A `preferences: N` line in the `.greg` header is a fact about
+the target's *variable count*, not a hint to pin: it says some insn copies that
+pseudo to or from hard register N, and for `N` in `$a0`-`$a3` the usual source
+is a call argument. When the target homes a value in an argument register that
+a later call also takes it in, and m2c's `temp_` naming shows the value written
+in two statements, check whether one variable spans both assignments before
+reaching for a pin -- the pin is what a split pseudo looks like when the
+preference has already been lost. The allocno count itself is the cross-check:
+the two headers differ by exactly the one dropped pointer temp (6 -> 5), and
+everything else is renumbered by one, the `arg0->state` dispatch moving from
+`85 in 3` to `84 in 3` unchanged.
+
+Inputs: `base_2.c` SHA256 `51d165ed2de6bf61827cf209111ec8790e42aeaf42758d32d9db078a62f784f6`;
+target `.o` SHA256 `0e31eee4a036e5daae39d25dd68dcfe9ee3a16f1effa16ae826d27a1893459b4`.
+
+## The same signed-narrow compare recurs as `bgez`
+
+The `x & 0x8000` -> signed-compare rule above ("An m2c `x & 0x8000` test is the
+original's signed compare") also covers the *inverted* polarity, which is worth
+naming because the branch mnemonic differs and the pattern is easy to read as
+unrelated. In `func_mine_mesa_8017E15C` the ramp-down arm is
+
+    rateDown  = aim->rate - 0x100;
+    aim->rate = rateDown;
+    if ((s16)rateDown < 0) {
+
+and the target is `lhu v0,4(a2)` / `addiu v0,v0,-0x100` / `sh v0,4(a2)` /
+`sll v0,v0,0x10` / `bgez v0,.Lmine_mesa_8017E26C` -- `bgez`, not `bltz`, because
+the body (`sh zero,4(a2)`) is on the fall-through and the branch skips it. m2c's
+`if (temp_v0_3 & 0x8000)` gave `andi v0,v0,0x8000` / `beqz`: same two
+instructions, same count, so this cost no `insert`/`delete` penalty and showed
+up only as two changed lines in `base_object_dump_normalized.s`. Both fixes for
+this function were one-line source edits on a 94.817% baseline whose block and
+instruction counts already matched exactly -- when `Structure: match` and
+`insert`/`delete` are small, read the two-line diffs as variable-count and
+type-shape problems, not as allocation or scheduling ones.

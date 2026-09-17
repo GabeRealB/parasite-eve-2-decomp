@@ -15,6 +15,7 @@ extern TaskDesc D_mine_mesa_80181990;
 extern SVECTOR D_mine_mesa_80184184[];
 
 extern Task* D_mine_mesa_80189B58;
+extern Task* RoomsShared8018459cTask;
 
 /// Head-aim record `func_mine_mesa_8017E2A4` allocates and parks in
 /// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
@@ -75,7 +76,67 @@ void func_mine_mesa_8017E074(Task* arg0)
     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&rec, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_4", func_mine_mesa_8017E15C);
+/// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:
+/// a missing slot-3 or slot-0xA task parks the state machine on -1. State 0
+/// allocates the `MineMesaHeadAim` record into `Task::idMap` and seeds its
+/// clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up toward
+/// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
+/// not, then hands the record to `func_800B17D4` between the slot-3 task whose
+/// head turns and the slot-0xA task it turns toward -- the mirror of
+/// `func_mine_mesa_8017E2A4`, which looks from slot 0xA. Every other state
+/// kills the task and clears `RoomsShared8018459cTask`, and a state-0 NULL
+/// allocation falls out of its own `if` into that same kill.
+void func_mine_mesa_8017E15C(Task* arg0)
+{
+    Task*            turner;
+    Task*            looker;
+    MineMesaHeadAim* aim;
+    s32              state;
+    u16              rateUp;
+    u16              rateDown;
+
+    turner = Game_GetPtrSlot(3);
+    looker = Game_GetPtrSlot(0xA);
+    if (D_801156F9 == 0) {
+        if ((turner == NULL) || (looker == NULL)) {
+            arg0->state = -1;
+        }
+        state = arg0->state;
+        switch (state) {
+            case 0:
+                aim = Mem_Calloc(sizeof(MineMesaHeadAim), false);
+                if (aim != NULL) {
+                    arg0->idMap     = (TaskIdMap*)aim;
+                    aim->yawLimit   = 0x300;
+                    aim->pitchLimit = 0x200;
+                    arg0->state++;
+                        /* fallthrough */
+                    case 1:
+                        aim = (MineMesaHeadAim*)arg0->idMap;
+                        if (arg0->spawnArg1 != 0) {
+                            rateUp    = aim->rate + 0x100;
+                            aim->rate = rateUp;
+                            if ((s16)rateUp >= 0x1001) {
+                                aim->rate = 0x1000;
+                            }
+                        } else {
+                            rateDown  = aim->rate - 0x100;
+                            aim->rate = rateDown;
+                            if ((s16)rateDown < 0) {
+                                aim->rate = 0;
+                            }
+                        }
+                        func_800B17D4(turner, looker, (GpHeadAim*)aim);
+                        return;
+                }
+                /* fallthrough */
+            default:
+                Task_Kill(arg0);
+                RoomsShared8018459cTask = NULL;
+                break;
+        }
+    }
+}
 
 /// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
 /// clear: a missing `Game_GetPtrSlot(0xA)` task parks the state machine on -1.
