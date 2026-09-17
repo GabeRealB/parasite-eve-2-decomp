@@ -94411,6 +94411,76 @@ and it has the shape above; its `.s` under
 `asm/USA/actors/matchings/lib/actor_101900_text_tail/` shows the hoisted
 `lw $a1,0x20($a0)` directly, in a body that is already verified.
 
+## A hoisted *call argument* is read into a local before the preceding `if` -- and a coordinate that is `+=`d, not reloaded (func_dryfield_water_tower_8017E5B0, 2026-09-17)
+
+Two independent source shapes in one body, both of which the m2c rendering gets
+wrong in a way that costs instructions rather than blocks. The seed scored
+40.52%; proper structs 80.81%; the `+=` below 90.31%, at the target's exact
+instruction count; the call-argument local 100.00%.
+
+The first is the rule above in its call-argument form. The body's case 0 ends
+
+```c
+            if (arg0->killCountdown >= 0xA) { arg0->killCountdown = 0; }
+            else { arg0->killCountdown = (u16)arg0->killCountdown + 1; }
+            pos.vy = 0;
+            pos.vz = 0;
+            pos.vx = D_..._80181C60[arg0->killCountdown];
+            Gp_SpawnEff(0x60054, ((TmdObject*)arg0->extra)->field_8, 0x80002300, &pos);
+```
+
+and the target has that argument's two loads *inside the counter-test block*,
+interleaved with the test:
+
+```
+lh    v0,0x2a(s2)          lh    v0,0x2a(s2)
+lhu   v1,0x2a(s2)          lw    v1,0x2c(s2)
+slti  v0,v0,0xa      vs    slti  v0,v0,0xa
+bnez  v0,dc                lw    a1,8(v1)
+                           lhu   v1,0x2a(s2)
+                           bnez  v0,e4
+```
+
+Call arguments are expanded in the call's own block and no pass moves them out
+of it, so the original read the coordinate into a local *before* the counter
+`if` and passed the local -- one function-scope temp, no other change:
+
+```c
+GsCOORDINATE2* effCoord;
+...
+effCoord = ((TmdObject*)arg0->extra)->field_8;   /* before the counter if */
+Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+```
+
+Passing the expression at the call site costs 8 instructions (117 against the
+target's 109) and leaves `insert`/`delete` penalties behind, with the loads'
+registers differing too (`$v0`/`$v1` against the target's `$v1`/`$a1`). The same
+hoist is visible in the sibling `func_dryfield_water_tower_8017E428`, so a
+neighbour in the same unit is worth reading before writing the body.
+
+The second shape is why the flag branch must re-read the *coordinate*. The
+record read is a struct member, so `MEM_IN_STRUCT_P` is set on its `MEM`, and
+`cse`'s `invalidate_memory` removes such an entry from the table as soon as a
+store sets `nonscalar` -- which `note_mem_written` does for any varying address
+that is not a plain scalar. A second textual read of `D_..._80181A40.pos.vy`
+therefore becomes a second `lw`, while the target's `addiu $v0,$v1,5` shows the
+first load's *register* carrying into the branch:
+
+```c
+coord->coord.t[1] = D_..._80181A40.pos.vy;
+if (D_80070F6C[0] & 4) {
+    coord->coord.t[1] += 5;        /* not: = D_..._80181A40.pos.vy + 5; */
+}
+```
+
+Reading the coordinate lets `cse` forward the value its own store just put
+there, so one load serves both uses. The contrast is `func_dryfield_water_tower_8017DFAC`
+in the same file, whose record is reached as a declared scalar (`s32 D_x[]`
+rather than a `RoomPlacement`): not `in_struct`, so its second load *is* merged
+and the m2c shape matches there. A jump to the target's exact instruction count
+with only `regs`/`reorder` left is the tell that the RTL is right and allocation
+is all that remains.
+
 ## The pad on the far side of a compiler-generated table puts the cut *and* the word in the table's own unit (func_actor_401800_8013DCBC, 2026-09-16)
 
 A run in the package can end with the `.align 3` pad for the table *after* it

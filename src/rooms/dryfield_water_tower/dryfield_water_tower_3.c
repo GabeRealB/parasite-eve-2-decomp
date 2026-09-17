@@ -71,6 +71,21 @@ extern TaskDesc D_dryfield_water_tower_80182384;
 /// so the split names only the first.
 extern RoomPlacement D_dryfield_water_tower_80181A70[];
 
+/// The first record of that same placement run, at 0x80181A40, and the one
+/// `func_dryfield_water_tower_8017E5B0` drives the cap from: its `pos.vz` is the
+/// Z the cap has to sink past, its `pos.vy` the Y it is snapped to while
+/// lowering and its `pos.vx` the X state 1 pulls it to. The sibling
+/// `func_dryfield_water_tower_8017E428` reaches the record two steps down the
+/// same run through `D_..._80181A58[]` instead, so the run is named from its
+/// head here.
+extern RoomPlacement D_dryfield_water_tower_80181A40;
+
+/// The effect offsets `func_dryfield_water_tower_8017E5B0` spawns 0x60054
+/// with, at 0x80181C60: twelve halfwords, indexed by the 0..9 `killCountdown`
+/// counter the same block wraps, so only the first ten -- 0x190, 0x3E8, 0xFE70,
+/// 0xFF38, 0, 0xFDA8, 0xC8, 0x320, 0xFC18 and 0xFCE0 -- are ever read.
+extern u16 D_dryfield_water_tower_80181C60[];
+
 /// The room's 4A object -- the list node `Gp_LinkObj4A` chains into
 /// `Gp_Obj4ALists` and `Gp_UnlinkObj4A` takes out again. Command 3 of
 /// `func_dryfield_water_tower_8017E93C` raises its `field_4A` bit 0x40, the
@@ -365,7 +380,77 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E428);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E5B0);
+/// A third cap-arrival body, the sibling of `func_dryfield_water_tower_8017DFAC`
+/// and `func_dryfield_water_tower_8017E428`: its `Task::idMap` is the same
+/// 0x7C-byte `DryfieldWaterTowerState` the cap script allocates and its
+/// `extra->field_8` the cap's own coordinate, and it reports arrival the same
+/// way the cap-arrival test does, by returning 1.
+///
+/// State 0 is the lowering tick: it queues `SndEvt_EnqueueTypeB(0x5214000C,
+/// 0x7F)` once, sinks the cap's Z by 0x14 a frame and snaps its Y to the
+/// placement record's `pos.vy`, nudged by 5 while the `D_80070F6C` flag bit 2 is
+/// raised; once the cap's Z has sunk past that record's `pos.vz` it queues the
+/// same event again as 0x5214000C/0xA and steps to state 1. Every frame of the
+/// state also spawns effect 0x60054 at the cap, offset in X by the room's
+/// per-frame table entry `D_..._80181C60[killCountdown]`, and wraps that 0..9
+/// counter. State 1 counts `field_5A`; on its 0x3D-th tick it publishes the
+/// 0x7D4 record at 0x80181A40 and returns 1, and until then mirrors that
+/// record's `pos.vx` into the cap's X, nudged by the same flag. Every path
+/// clears `coord->flg`, leaving the coordinate dirty for the next
+/// `Gp_UpdateCoord` pass.
+///
+/// Two shapes here are the original's rather than stylistic, and folding either
+/// away moves the two loads `Gp_SpawnEff` takes as its coordinate argument:
+/// `effCoord` is filled from `arg0->extra` *before* the counter update, which is
+/// what puts them in that block instead of the join block, and the two flag
+/// branches re-read the coordinate (`+= 5`) rather than reloading the record, so
+/// CSE forwards the stored value and one load serves both uses.
+s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
+{
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->idMap;
+    GsCOORDINATE2*           coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*           effCoord;
+    SVECTOR                  pos;
+
+    switch (state->field_58) {
+        case 0:
+            SndEvt_EnqueueTypeB(0x5214000C, 0x7F);
+            coord->coord.t[2] -= 0x14;
+            coord->coord.t[1]  = D_dryfield_water_tower_80181A40.pos.vy;
+            if (D_80070F6C[0] & 4) {
+                coord->coord.t[1] += 5;
+            }
+            if (coord->coord.t[2] < D_dryfield_water_tower_80181A40.pos.vz) {
+                SndEvt_EnqueueType7(0x5214000C, 0xA);
+                state->field_58++;
+            }
+            effCoord = ((TmdObject*)arg0->extra)->field_8;
+            if (arg0->killCountdown >= 0xA) {
+                arg0->killCountdown = 0;
+            } else {
+                arg0->killCountdown = (u16)arg0->killCountdown + 1;
+            }
+            pos.vy = 0;
+            pos.vz = 0;
+            pos.vx = D_dryfield_water_tower_80181C60[arg0->killCountdown];
+            Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+            break;
+
+        case 1:
+            state->field_5A++;
+            if ((s16)state->field_5A >= 0x3D) {
+                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_dryfield_water_tower_80181A40, 0);
+                return 1;
+            }
+            coord->coord.t[0] = D_dryfield_water_tower_80181A40.pos.vx;
+            if (D_80070F6C[0] & 4) {
+                coord->coord.t[0] += 5;
+            }
+            break;
+    }
+    coord->flg = 0;
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E764);
 
