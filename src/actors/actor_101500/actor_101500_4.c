@@ -261,7 +261,96 @@ update:
     Gp_UpdateActorColor(arg1->field_20, &pos, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500_4", func_actor_101500_80133EF8);
+extern u16     D_actor_101500_8013BE08[];
+extern SVECTOR D_actor_101500_8013BEB0;
+extern s16     D_actor_101500_8013BEB2;
+extern SVECTOR D_actor_101500_8013BEB8;
+
+void func_actor_101500_80133EF8(Actor101500* arg0)
+{
+    u8*              head;
+    VECTOR3*         stk;
+    VECTOR3*         vec;
+    Actor101500Work* work;
+    GsCOORDINATE2*   coord;
+    s32              dy;
+    s32              ady;
+    u16              val;
+    u16              val2;
+    u16*             tbl;
+    s32              off;
+    s32              delay;
+
+    head              = *(u8**)0x1F8003FC;
+    stk               = (VECTOR3*)(head - 0x10);
+    *(u8**)0x1F8003FC = (u8*)stk;
+    vec               = stk;
+    work              = arg0->field_1C;
+    coord             = arg0->field_2C->field_8;
+    switch (work->field_35C) {
+        case 0:
+            off = work->field_364 + 800;
+            dy  = D_actor_101500_8013BEB2 - off - coord->coord.t[1];
+            ady = abs(dy);
+            if (ady < 30 || --work->field_362 <= 0) {
+                work->field_35C = 1;
+            } else {
+                work->field_366 = dy > 0 ? 30 : -30;
+            }
+            vec->vx                  = D_actor_101500_8013BEB0.vx - coord->coord.t[0];
+            vec->vy                  = 0;
+            vec->vz                  = D_actor_101500_8013BEB0.vz - coord->coord.t[2];
+            work->field_372          = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
+            work->field_376          = 100;
+            work->field_244.field_12 = -300;
+            work->field_244.field_14 = 0;
+            break;
+        case 1:
+            work->field_366 = 0;
+            work->field_360 = 0;
+            work->field_36C = 0;
+            if (--work->field_362 < 0) {
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                val             = D_actor_101500_8013BE08[(Gp_LcgState >> 16) & 0xF];
+                work->field_352 = 6;
+                work->field_35C = 2;
+                work->field_35E = val;
+            }
+            ((VECTOR3*)(head - 0x10))->vx = D_actor_101500_8013BEB0.vx - coord->coord.t[0];
+            stk->vy                       = 0;
+            stk->vz                       = D_actor_101500_8013BEB0.vz - coord->coord.t[2];
+            work->field_372               = ratan2((s16)((VECTOR3*)(head - 0x10))->vx, (s16)stk->vz) & 0xFFF;
+            work->field_376               = 100;
+            break;
+        case 2:
+            work->field_360  = 200;
+            work->field_35E -= 200;
+            if ((s16)work->field_35E < 0) {
+                tbl             = D_actor_101500_8013BDE8;
+                work->field_352 = 5;
+                val2            = tbl[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                work->field_34C = 0x400F0002;
+                work->field_380 = 15;
+                work->field_35C = 1;
+                work->field_362 = val2;
+            }
+            break;
+    }
+    if (D_80073B8C->t[0] > D_actor_101500_8013BEB8.vx && D_80073B8C->t[2] < D_actor_101500_8013BEB8.vz) {
+        work->field_35A = 3;
+        delay           = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F) + 60;
+        work->field_352 = 5;
+        work->field_380 = 15;
+        work->field_35C = 0;
+        work->field_34C = 0x400F0002;
+        work->field_358 = 1;
+        work->field_37A = 1;
+        work->field_362 = delay;
+        work->field_364 = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF;
+        Gp_ArmStateF0(1);
+    }
+    *(u8**)0x1F8003FC += 0x10;
+}
 
 /// Closes this unit's `.rodata` after the jump table above so
 /// `actors_shared_801344f8`'s rodata starts at 0x80131E8C. Nothing reads it.
