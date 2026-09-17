@@ -1,6 +1,9 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
 #include "actors/actor_461800.h"
+#include "actors/actors_shared_801324fc.h"
 #include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_8013411c.h"
 #include "actors/actors_shared_801366fc.h"
@@ -251,7 +254,86 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_801331E4);
+extern u8  D_80072729;
+extern s16 D_actor_461800_801437B8;
+extern s16 D_actor_461800_801438A8;
+
+/// Steps the task's model `amount` units along its facing (the coordinate
+/// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
+/// vector; skipped while `D_80072729` is 1.
+static __inline__ void Actor461800_MoveForward(Task* task, s16 amount)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR*       head;
+    SVECTOR*       vec;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+/// Per-frame update of the second variant: modes 1 and 2 run their one-shot
+/// setup and switch to mode 3 for the next frame; mode 3 walks the model while `field_4B2` counts
+/// down (distance picked by `D_actor_461800_801438A8`), turns it while
+/// `field_4B4` counts down in animation 3, then ticks the animation.
+void func_actor_461800_801331E4(Task* task)
+{
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->field_8;
+    Actor461800Work2* work  = (Actor461800Work2*)task->idMap;
+
+    if (D_actor_461800_801438A0->field_47C == 1) {
+        func_actor_461800_8013380C();
+        D_actor_461800_801438A0->field_47C = 3;
+    } else if (D_actor_461800_801438A0->field_47C == 2) {
+        func_actor_461800_80133770();
+        D_actor_461800_801438A0->field_47C = 3;
+    } else if (D_actor_461800_801438A0->field_47C == 3) {
+        if (work->field_480 == 0xE || work->field_480 == 2 || work->field_480 == 0xF) {
+            if (work->field_4B2 != 0) {
+                switch (D_actor_461800_801438A8) {
+                    case 0:
+                        Actor461800_MoveForward(task, 0x3C);
+                        break;
+                    case 1:
+                        Actor461800_MoveForward(task, -0xF);
+                        break;
+                    case 2:
+                        Actor461800_MoveForward(task, 0x19);
+                        break;
+                }
+                if (--work->field_4B2 == 0) {
+                    work->field_47C         = 1;
+                    D_actor_461800_801437B8 = 10;
+                    work->field_480         = 0xD;
+                }
+            }
+        }
+        if (work->field_480 == 3 && work->field_4B4 != 0) {
+            work->field_4AE += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->field_4AE, 1);
+            coord->flg = 0;
+            work->field_4B4--;
+        }
+        func_actor_461800_80133724();
+        if (work->field_4BC != 0) {
+            ActorsShared801324fc(task);
+        }
+    }
+}
 
 /// Two-state dispatcher whose handler table is built on the stack, publishing
 /// the task's work block in `D_actor_461800_801438A0` on the way through so the
