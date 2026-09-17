@@ -110,7 +110,40 @@ INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162878);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80163028);
+void func_actor_341300_80163028(Task* arg0)
+{
+    u16 count;
+
+    switch (arg0->state) {
+        case 0:
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            break;
+        case 1:
+            count               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = count;
+            if ((s16)count % 3 == 0) {
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, (s32)arg0);
+                arg0->state = arg0->state + 1;
+            }
+            break;
+        case 2:
+            count               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = count;
+            if ((s16)count % 3 == 0) {
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 0, (s32)arg0);
+                Task_SpawnFromTable(&D_actor_341300_80165A68, 3, 1, (s32)arg0);
+                arg0->state = arg0->state - 1;
+            }
+            break;
+    }
+    if (arg0->killCountdown >= 0x1F) {
+        arg0->state = 3;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_801631D4);
 
