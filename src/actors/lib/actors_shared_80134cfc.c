@@ -4,7 +4,7 @@
 #include "actors/actors_shared_80134cfc.h"
 #include "actors/actors_shared_80134db4.h"
 
-void ActorsShared80134cfc_Fn33240(ActorShared80134cfc* arg0);
+void ActorsShared80133240(ActorShared80134cfc* arg0);
 void ActorsShared80134cfc_Fn333B0(ActorShared80134cfc* arg0);
 void ActorsShared80134cfc_Fn33830(ActorShared80134cfc* arg0);
 void ActorsShared80134cfc_Fn339B0(ActorShared80134cfc* arg0);
@@ -14,7 +14,7 @@ void ActorsShared80134cfc(ActorShared80134cfc* arg0)
 {
     switch (arg0->field_1C->field_13C) {
         case 0:
-            ActorsShared80134cfc_Fn33240(arg0);
+            ActorsShared80133240(arg0);
             break;
         case 1:
             ActorsShared80134cfc_Fn333B0(arg0);
