@@ -141,7 +141,10 @@ STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 /// `field_58` / `field_5A` / `field_60`, the three
 /// `func_dryfield_water_tower_8017F808` clears on message 0x7DB, and
 /// `field_5C` / `field_5E`, which `func_dryfield_water_tower_8017F8E8` writes
-/// together. `field_6C` / `field_6E` are 0/1 latches set by
+/// together, and `field_6A`, the cap props' displacement accumulator: the prop
+/// task `func_dryfield_water_tower_8017DE30` advances it by 4 a frame and adds
+/// the result to the cap coordinate's Y, so the cap accelerates downwards.
+/// `field_6C` / `field_6E` are 0/1 latches set by
 /// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`; `field_70` is a third,
 /// set by script opcode `func_dryfield_water_tower_8017FA5C` and read back by
 /// the prop task `func_dryfield_water_tower_8017E1DC`. `field_72` is the
@@ -161,7 +164,7 @@ typedef struct DryfieldWaterTowerState {
     /* 0x48 */ Task* field_48;
     /* 0x4C */ Task* field_4C;
     /* 0x50 */ u8    pad_50[0x8];
-    /* 0x58 */ s16   field_58;
+    /* 0x58 */ u16   field_58;
     /* 0x5A */ s16   field_5A;
     /* 0x5C */ s16   field_5C;
     /* 0x5E */ s16   field_5E;
@@ -169,7 +172,8 @@ typedef struct DryfieldWaterTowerState {
     /* 0x62 */ u8    pad_62[0x4];
     /* 0x66 */ u16   field_66;
     /* 0x68 */ u8    field_68;
-    /* 0x69 */ u8    pad_69[0x3];
+    /* 0x69 */ u8    pad_69[0x1];
+    /* 0x6A */ u16   field_6A;
     /* 0x6C */ s16   field_6C;
     /* 0x6E */ s16   field_6E;
     /* 0x70 */ u16   field_70;
