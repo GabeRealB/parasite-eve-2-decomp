@@ -115451,3 +115451,65 @@ dereference. Why sched1's tie-break works this way was not traced. Evidence:
 
 Integrating the match also needed `rodata_head = "0x4"`: the function's jump
 table sits at `0x14` in unit 1 (see "The prepended package id…").
+## m2c spells a loop with a label and `goto`, and that loop carries no `NOTE_INSN_LOOP_BEG` — so neither `jump.c`'s loop conversion nor `loop.c`'s optimizations touch it (func_dryfield_night_gas_station_8017F7E0, 2026-09-17)
+
+m2c renders a `while` as an `if` whose body holds a label and a `goto`:
+
+```c
+if (var_v1 != NULL) {
+loop_3:
+    if ((var_v1->field_46 != 5) || (var_v1->field_48 != 0xFF)
+        || (var_v0 = 1, (var_v1->field_4B == 0))) {
+        var_v1 = var_v1->next;
+        var_v0 = 0;
+        if (var_v1 != NULL) goto loop_3;
+    }
+}
+```
+
+`NOTE_INSN_LOOP_BEG` comes from `expand_start_loop` (`stmt.c`), which the front
+end calls only for a loop *statement*, and both `jump.c`'s loop conversion
+("See if this is a NOTE_INSN_LOOP_BEG followed by an unconditional jump") and
+`loop.c`'s `find_and_verify_loops` — which reads loops exclusively off those
+notes — key on it. The goto form is therefore an ordinary branch graph to the
+optimizer: no rotation, no invariant hoisting, no strength reduction.
+
+The symptom is a block count and a register mix, with nothing pointing at a loop.
+`func_dryfield_night_gas_station_8017F7E0` scored 85.064% (`branch=7 regs=19
+insert=2 delete=4`) at 45 instructions in 10 blocks against the target's 47 in
+11: the two constants the loop compares against stayed in pseudos *inside* the
+body, each `li` at the head of its own block, so the constants' block became part
+of the compare chain instead of a preheader. Written as a real `while`, the same
+body is 100.000% on the first build — `loop.c` hoists both constants out, where
+they take `$a1`/`$a0`, the loop body shrinks to the three compares, and the
+walked pointer moves from `$a0` to `$v1`.
+
+The `.loop` dump states it directly. Goto form: no `NOTE_INSN_LOOP_*` note of any
+kind, and both `li`s sit *after* the loop label.
+
+```
+(insn 37 35 38 (set (reg:SI 90) (const_int 5)) 172 {movsi_internal2} (nil) ...)
+(code_label 31 30 32 4 ("loop_3"))
+```
+
+While form: a full `LOOP_BEG`/`LOOP_CONT`/`VTOP`/`END` set, and the two constants
+are fresh insns *before* `NOTE_INSN_LOOP_BEG`, each with a `REG_EQUAL` note.
+
+```
+(insn 142 134 144 (set (reg:SI 90) (const_int 5)) -1 (nil) (expr_list:REG_EQUAL ...))
+(insn 144 142 27 (set (reg:SI 93) (const_int 255)) -1 (nil) ...)
+(note 27 144 33 "" NOTE_INSN_LOOP_BEG)
+```
+
+This is the loop-shaped case of "GOTOs are usually decomp artefacts", and gives
+it a compiler reason: a goto loop is not merely stylistically worse, it is
+invisible to the loop optimizer. It is also *not* the arity defect this seed
+looked like — restoring only the signature ("A lone `arg2` in the seed is an
+arity undercount", two unused parameters in front) moved 85.064% to 85.170% and
+left the same 10-block shape, so the loop form was the whole difference. Where a
+matched sibling carries the same idiom, its loop spelling is the one to port.
+
+Inputs: `base_3.i` (correct arity, goto loop, 85.170%)
+`c2c5e0bd1ab0c5476bf6d62a5df0499f685701f2d237b3f607a7056178ef0ba8`,
+`base_1.i` (while loop, 100.000%)
+`6d2d1789ed9ccd0773aab336042958cb6406d15905001d6aa45fefcb0ac043a6`.

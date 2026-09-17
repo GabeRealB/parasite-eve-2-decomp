@@ -27,6 +27,8 @@ extern s32 D_dryfield_night_gas_station_8018920C;
 extern s32 D_dryfield_night_gas_station_801892E4;
 extern s32 D_dryfield_night_gas_station_80189A7C;
 
+extern TaskDesc D_dryfield_night_gas_station_8018406C[];
+
 extern GpAreaApplyRec D_dryfield_night_gas_station_801907A0;
 
 /// Maps a cap (cutscene) script event key to the stage sound it should play in
@@ -75,7 +77,36 @@ s32 func_dryfield_night_gas_station_8017F6B8(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_2", func_dryfield_night_gas_station_8017F7E0);
+/// Message handler for msg 0x117: walks the `Gp_PendingObj4C` list looking for
+/// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
+/// on a hit flips `Game_Session->field_1` / `field_68` and spawns the night gas
+/// station cutscene task. Answers 1 only when it found one.
+s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
+{
+    GpObj4C* node;
+    s32      found;
+
+    if (arg2 == 0x117) {
+        found = 0;
+        node  = Gp_PendingObj4C;
+        while (node != NULL) {
+            if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                found = 1;
+                break;
+            }
+            node  = node->next;
+            found = 0;
+        }
+
+        if (found != 0) {
+            Game_Session->field_1  = 1;
+            Game_Session->field_68 = 1;
+            Task_SpawnOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
+            return 1;
+        }
+    }
+    return 0;
+}
 
 s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
 {
