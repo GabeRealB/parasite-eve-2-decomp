@@ -23,10 +23,19 @@ extern SVECTOR D_actor_450800_80131E24;
 /// The three tasks at +0x4F0 .. +0x4F8 are the helper tasks this actor spawns;
 /// the exit callback `func_actor_450800_80132868` kills all three on teardown.
 ///
+/// The leading `light` / `color` pair and the `anim` / `slots` / `pad_374` run
+/// are the same prefix `Actor450800SpawnWork` carries, and the spawn handler
+/// `func_actor_450800_80132160` fills them the same way: `&light` and `&color`
+/// go to the model's `TmdObject::field_1C` / `field_20`, and `func_800B3F84`
+/// gets `&anim`, `slots` and `pad_374` as poses.
+///
 /// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
 /// the heading it applied to the root coordinate and the distance left to
 /// cover, in twelfths. That opcode is the shared body `ActorsShared80133678`,
 /// which reaches the same two fields through `ActorsShared80133678Work`.
+///
+/// `field_4EA` / `field_4EC` are the pair `Actor461800Work` keeps at the
+/// same offsets; the spawn handler zeroes both.
 ///
 /// `anim` is the animation context `func_800B4114` walks. `field_4B8` is the
 /// current animation id; `func_actor_450800_80132AE0` starts slots 1..0x13 of
@@ -38,28 +47,31 @@ extern SVECTOR D_actor_450800_80131E24;
 /// through `ActorsShared80132514`, the same pair `func_actor_460200_80132B2C`
 /// selects between.
 typedef struct Actor450800Work {
-    /* 0x000 */ byte      pad_0[0x40];
-    /* 0x040 */ GpAnimCtx anim;
-    /* 0x054 */ byte      pad_54[0x45A];
-    /* 0x4AE */ u16       yaw;
-    /* 0x4B0 */ byte      pad_4B0[0x2];
-    /* 0x4B2 */ s16       travel;
-    /* 0x4B4 */ s16       state;
-    /* 0x4B6 */ s16       field_4B6;
-    /* 0x4B8 */ s16       field_4B8;
-    /* 0x4BA */ s16       field_4BA;
-    /* 0x4BC */ byte      pad_4BC[0x2A];
-    /* 0x4E6 */ s16       field_4E6; // yaw seeding the root coordinate
-    /* 0x4E8 */ byte      pad_4E8[0x2];
-    /* 0x4EA */ s16       field_4EA; // distance to the target over the step count
-    /* 0x4EC */ byte      pad_4EC[0x4];
-    /* 0x4F0 */ Task*     field_4F0;
-    /* 0x4F4 */ Task*     field_4F4;
-    /* 0x4F8 */ Task*     field_4F8;
-    /* 0x4FC */ s16       field_4FC;
-    /* 0x4FE */ s16       field_4FE; // approach mode the last call selected
-    /* 0x500 */ u8        field_500; // 0x7DB mode 1 latches the copied flags here, 2 the 0x84 state
-    /* 0x501 */ byte      pad_501[0x3];
+    /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::field_1C`)
+    /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::field_20`)
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x13A];
+    /* 0x4AE */ u16        yaw;
+    /* 0x4B0 */ byte       pad_4B0[0x2];
+    /* 0x4B2 */ s16        travel;
+    /* 0x4B4 */ s16        state;
+    /* 0x4B6 */ s16        field_4B6;
+    /* 0x4B8 */ s16        field_4B8;
+    /* 0x4BA */ s16        field_4BA;
+    /* 0x4BC */ byte       pad_4BC[0x2A];
+    /* 0x4E6 */ s16        field_4E6; // yaw seeding the root coordinate
+    /* 0x4E8 */ byte       pad_4E8[0x2];
+    /* 0x4EA */ s16        field_4EA; // distance to the target over the step count
+    /* 0x4EC */ s16        field_4EC;
+    /* 0x4EE */ byte       pad_4EE[0x2];
+    /* 0x4F0 */ Task*      field_4F0;
+    /* 0x4F4 */ Task*      field_4F4;
+    /* 0x4F8 */ Task*      field_4F8;
+    /* 0x4FC */ s16        field_4FC;
+    /* 0x4FE */ s16        field_4FE; // approach mode the last call selected
+    /* 0x500 */ u8         field_500; // 0x7DB mode 1 latches the copied flags here, 2 the 0x84 state
+    /* 0x501 */ byte       pad_501[0x3];
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
 

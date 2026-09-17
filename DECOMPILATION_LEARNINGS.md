@@ -122207,3 +122207,68 @@ Inputs: scratch `nonmatchings/func_actor_450800_80132D74-vacuum`, `base.c`
 74.067% (m2c seed), `base_1.c` 93.773% (`regs=20`), `base_3.c` 100.000%.
 Source SHA256 `9922fe240af2f61d798981be2fe3b67923488cbd2c6362f06660e71f9b1e337d`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A `do { } while (0)` around one of two identical calls adds its `REF` back, lifting that value's allocation priority past a longer-lived one (func_actor_450800_80132160, 2026-09-17)
+
+**Problem.** The last leftover was one register: `work` (a pointer live across
+the whole function) sat in `$s1` where the ROM has `$s2`, and `coord` sat in
+`$s2` where the ROM has `$s1`. Everything else about the function matched,
+`branch`/`insert`/`delete`/`reorder` were all zero, and the penalties were a
+clean `regs=35`.
+
+**What the two candidates are.** Both `work` and `coord` are allocnos that
+cross calls, so each needs a callee-saved register, and both can live in `$s1`.
+Their order in `global_alloc` is decided by `allocno_compare`:
+`floor_log2(n_refs) * n_refs / live_length`. The tracer reports them directly:
+
+```
+base_11 (work in $s1, 99.06%)      base_16 (work in $s2, 100%)
+  work   refs=17 span=152 pri 4473    work   refs=17 span=152 pri 4473
+  model  refs= 6 span= 29 pri 4137    model  refs= 7 span= 29 pri 4827
+```
+
+`model` is the `TmdObject*` the spawn block reads from `spawned->extra` and
+then keeps across the key calls. It beats nothing at 6 refs, but one more
+reference pushes `floor_log2` from 2 to 3 and its priority from 4137 to 4827,
+past `work`'s 4473. `model` is then allocated first, takes `$s1` (its conflicts
+already contain `$s0` through `obj`), and `work` falls to `$s2` — the ROM's
+layout.
+
+**Where the seventh reference comes from.** The block calls `Tmd_ProcessStream`
+twice on the same pointer:
+
+```c
+        if (model1->field_18 != NULL) {
+            Tmd_ProcessStream(model1);
+            do {                        /* <- this wrapper is load-bearing */
+                Tmd_ProcessStream(model1);
+            } while (0);
+        }
+```
+
+Without the loop body the second call's argument reuses the first call's
+quantity and registers as no new reference; with it the loop is a separate
+statement, the argument is materialized again, and `REG_N_REFS` goes to 7.
+The wrapper emits nothing — the object is byte-identical apart from the
+registers the extra reference moves.
+
+**Scope.** This is a reference-count knob, not a scheduling one: it changes
+`allocno_compare`'s inputs, so it only matters when two allocnos of *different*
+priority order swap. Predict it by reading the two `pri` values off the tracer
+(`tools/trace_gcc.py`) for the allocnos in question before touching the source;
+if the gap is not crossed by one `floor_log2` step of the shorter-lived one,
+the wrapper will do nothing.
+
+A second wrapper on the first call, or a `do/while` around both, is not
+equivalent — the first call's operand is already live over the `if` and gets
+its reference counted anyway.
+
+**Evidence.** `base_14.c` (split of `vec.vy` into two statements, plus nothing
+else) stays at 99.059% `regs=35`; `base_16.c` = `base_11.c` + the wrapper is
+100.000% with every penalty zero. Found by `tools/vacuum_permute.py`'s search
+over `base_11.c` (`PERMUTER_HIT=base_perm_7c4e7121f4f34b51.c`), which also
+carried an inert `vec.vy` split.
+
+Scratch input `base_16.c` SHA256
+`464d7aac04826ba6a7fd3a999031236738a99ee9212e79a6e5ae55292de37f10`. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

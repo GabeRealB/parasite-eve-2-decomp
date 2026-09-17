@@ -8,7 +8,17 @@
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/session.h"
+
+/// Message table `func_actor_450800_80132160` hangs off `Task::field_24`, and
+/// the `TaskDesc` table its three helper tasks come from - the same two roles
+/// `D_actor_461800_80139F5C` / `D_actor_461800_80139F8C` play for that overlay.
+extern GpMsgEntry D_actor_450800_8014AC58[];
+extern TaskDesc   D_actor_450800_8014AC88[];
+
+/// Animation data `func_800B3F84` seeds the work block's slots from.
+extern u8 D_actor_450800_8014ACC4[];
 
 extern s32  D_actor_450800_8013930C;
 extern s32  D_actor_450800_801397A4;
@@ -22,6 +32,9 @@ extern s32  D_actor_450800_8013ACFC;
 extern s16  D_80071076;
 extern void func_80180038(s32);
 extern void func_80182D14(s32, s32);
+
+void func_actor_450800_80132448(Task* task);
+void func_actor_450800_80132868(Task* task);
 
 void func_actor_450800_80131E34(void)
 {
@@ -131,11 +144,150 @@ void func_actor_450800_80132108(void)
     Gp_SpawnEff(0x6003B, NULL, 0x200, &pos);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132160);
+/// Spawn handler of the actor's own task, state 0 of the `fns` table
+/// `func_actor_450800_80132790` dispatches through. Builds the actor's
+/// `Actor450800Work` block, hangs its leading matrices off the model's
+/// `field_1C` / `field_20`, and starts the animation.
+///
+/// The three helper tasks come out of `D_actor_450800_8014AC88`: 1 and 2 are
+/// the actor's own model parts, and each is placed by the area key its
+/// `Task::spawnArg2` carries. Task 4 is spawned but not placed.
+///
+/// The `do { } while (0)` around the second `Tmd_ProcessStream` is
+/// load-bearing: the loop body is a statement of its own, so the model pointer
+/// gains a reference that the bare second call does not. That reference is
+/// what lifts the pointer's global-alloc priority (refs 7, not 6) past
+/// `work`'s, so it takes `$s1` and pushes `work` into `$s2`, which is the
+/// ROM's split. See DECOMPILATION_LEARNINGS.md, "A `do { } while (0)` around
+/// one of two identical calls adds its `REF` back".
+void func_actor_450800_80132160(void* enemyArg, Task* task)
+{
+    GpEnemy* enemy = (GpEnemy*)enemyArg;
+
+    VECTOR           vec;
+    GpAreaKey        key;
+    GpAreaKey*       keyp;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    Actor450800Work* work;
+    u8               areaByte0;
+    u8               areaByte1;
+    u32              raw1;
+    u32              raw2;
+    u32              index1;
+    u32              index2;
+    Task*            spawned;
+    TmdObject*       model1;
+    GpCdRec10*       entry1;
+    GpAreaKey*       sessionKey1;
+    TmdObject*       model2;
+    GpCdRec10*       entry2;
+    GpAreaKey*       sessionKey2;
+
+    obj         = task->extra;
+    coord       = obj->field_8;
+    work        = Mem_Calloc(0x504, 0);
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback  = func_actor_450800_80132868;
+    coord->sub          = &Gfx_ViewCoord;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    enemy->node.field_5 = 0;
+    enemy->node.field_4 = 1;
+    if ((s16)(task->spawnArg1 >> 16) == 1) {
+        obj->field_C = 0;
+    }
+    obj->field_E  = 1;
+    obj->field_1C = &work->light;
+    obj->field_20 = &work->color;
+    vec.vx        = coord->workm.t[0];
+    vec.vy        = coord->workm.t[1] - 0x320;
+    vec.vz        = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, D_actor_450800_8014ACC4, (GpAnimObj*)obj, work->pad_374,
+                  work->slots);
+    work->field_4B8 = 1;
+    work->state     = 2;
+
+    spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 1, 8, 0);
+    if (spawned != NULL) {
+        work->field_4F0 = spawned;
+        spawned->parent = task;
+        model1          = spawned->extra;
+        sessionKey1     = (GpAreaKey*)&Game_Session->field_4;
+        raw1            = ((GpEnemy*)task->spawnArg2)->field_8;
+        key.field_3     = sessionKey1->field_3;
+        key.field_2     = sessionKey1->field_2;
+        areaByte1       = sessionKey1->field_1;
+        SOFT_BARRIER();
+        keyp = &key;
+        TOUCH_REG(keyp);
+        key.field_1 = areaByte1;
+        areaByte0   = Game_Session->field_4;
+        index1      = raw1 >> 12;
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyp);
+        entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->field_24 = entry1->field_D;
+        model1->field_25 = entry1->field_E;
+        if (model1->field_18 != NULL) {
+            Tmd_ProcessStream(model1);
+            do {
+                Tmd_ProcessStream(model1);
+            } while (0);
+        }
+    }
+
+    spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 2, 0xC, 0);
+    if (spawned != NULL) {
+        work->field_4F4 = spawned;
+        spawned->parent = task;
+        model2          = spawned->extra;
+        sessionKey2     = (GpAreaKey*)&Game_Session->field_4;
+        raw2            = ((GpEnemy*)task->spawnArg2)->field_8;
+        key.field_3     = sessionKey2->field_3;
+        key.field_2     = sessionKey2->field_2;
+        areaByte1       = sessionKey2->field_1;
+        SOFT_BARRIER();
+        keyp = &key;
+        TOUCH_REG(keyp);
+        key.field_1 = areaByte1;
+        areaByte0   = Game_Session->field_4;
+        index2      = raw2 >> 12;
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyp);
+        entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->field_24 = entry2->field_D;
+        model2->field_25 = entry2->field_E;
+        if (model2->field_18 != NULL) {
+            Tmd_ProcessStream(model2);
+            do {
+                Tmd_ProcessStream(model2);
+            } while (0);
+        }
+    }
+
+    spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 4, 8, 0);
+    if (spawned != NULL) {
+        spawned->parent = task;
+        work->field_4F8 = spawned;
+    }
+
+    work->field_4FC = 8;
+    work->field_4EA = 0;
+    work->field_4EC = 0;
+    work->field_500 = 0;
+    task->field_24  = D_actor_450800_8014AC58;
+    func_actor_450800_80132448(task);
+    task->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132448);
 
-void func_actor_450800_80132160(void* enemy, Task* task);
 void func_actor_450800_801327E4(void* enemy, Task* task);
 
 void func_actor_450800_80132790(Task* task)
