@@ -115513,3 +115513,62 @@ Inputs: `base_3.i` (correct arity, goto loop, 85.170%)
 `c2c5e0bd1ab0c5476bf6d62a5df0499f685701f2d237b3f607a7056178ef0ba8`,
 `base_1.i` (while loop, 100.000%)
 `6d2d1789ed9ccd0773aab336042958cb6406d15905001d6aa45fefcb0ac043a6`.
+
+## A 4-byte `struct` local takes an 8-byte frame slot; a scalar or a union does not (func_dryfield_night_gas_station_801802EC, 2026-09-17)
+
+**Symptom.** A `RotTransPers` `sxy` word wants `lhu 0x50($sp)` for its low half and
+`lh 0x52($sp)` for its high half (the `s32 >> 16` rule below). The `DVECTOR` field reads that
+give both loads are right, but every later stack local then moves 4 bytes and the frame grows
+by 8: the `p` output at `0x58` instead of `0x54`, the saved registers at `0x68`,
+`addiu sp,sp,-0x80` against the target's `-0x78`. Every `stack` penalty stays 0, so the frame
+size (and the `0x54`/`0x58` displacements) is the only tell, and `diff.py` reads it as a plain
+register difference.
+
+**Cause.** `expand_decl` gives a fixed-size automatic a slot from
+`assign_stack_temp (DECL_MODE (decl), size, 1)`, and the slot is created by
+`assign_stack_local (mode, size, -1)` (`stmt.c`, `function.c`). With `align == -1` that
+function does `size = CEIL_ROUND (size, BIGGEST_ALIGNMENT / 8)` — 8 bytes here — so any
+4-byte struct whose `DECL_MODE` is `BLKmode` occupies 8. A scalar keeps its own mode and
+alignment, and a *union* takes the mode of its widest member (`layout_union`), so a 4-byte
+union also stays 4 bytes.
+
+**Fix.** Keep the slot a scalar and reach the halves as a word plus a shift: `s32 sxy` with
+`x0 = sxy;` (a truncating HImode copy stays `lhu`) and `y0 = sxy >> 16;` (combine folds the
+shift of the loaded word into `lh`). The field-split spellings do not work: both
+`*(s16*)((u8*)&sxy + 2)` and `((DVECTOR*)&sxy)->vy` put the address in a register, and
+`extendhisi2`'s expand `force_not_mem`s it, so the sign-extend becomes `lhu` + `ashl`/`ashr`
+(93.1% and 90.8%); the `DVECTOR sxy` declaration that *does* give `lh` costs the 4 frame bytes
+above (95.6%). Only `sxy >> 16` gives both, at 100.000%.
+
+Inputs: `base_5.i` (scalar `sxy` + shift, 100.000%)
+`ecb6a7bb2e2cb0f4`, `base_3.i` (`DVECTOR sxy`, right loads, frame 0x80, 95.596%)
+`e0f2acd62a3e1c64`, `base_4.i` (`(DVECTOR*)&sxy)->vy`, 90.782%) `6b1ba7d7911407d9`.
+
+## The identity-matrix block keeps a `MATRIX *` local, with its first store spelled on the variable (func_dryfield_night_gas_station_801802EC, 2026-09-17)
+
+**Symptom.** `Gp_ComposeParentWorld`'s first arm (`*(s32*)m = ONE; *(s32*)&m->m[0][2] = 0; …`,
+`src/gameplay/1BC.c`) hand-expanded onto a local `MATRIX mtx` compiles to five
+frame-relative stores (`sw v0,0x10(sp)`, `sw zero,0x14(sp)`, …) and a fresh
+`addiu a1,sp,0x10` at the call. The target materialises the address once
+(`addiu s0,sp,0x10`), stores through it from the second store on (`sw zero,4(s0)`,
+`sw v0,8(s0)`, `sw zero,0xc(s0)`, `sh v0,0x10(s0)`), passes `move a1,s0`, and keeps that
+register live for the two `ApplyMatrixSV` calls that follow. Five instructions and
+`regs=17` — 96.0% against 100.000%.
+
+**Fix.** Declare `MATRIX* m;`, write `m = &mtx;`, and address the block through `m` — but
+leave the *first* store spelled on the variable, which is what the retail body does:
+
+```c
+    m                  = &mtx;
+    *(s32*)&mtx        = one;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = one;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = one;
+```
+
+`m` is the matrix argument to the `Gp_ComposeParentWorld` call; the `ApplyMatrixSV` calls
+after it keep `&mtx`, as the target does.
+
+Inputs: `base_6.i` (100.000%) `db58f1bd357d142b`, `base_5.i` (`&mtx` everywhere, 96.025%)
+`ecb6a7bb2e2cb0f4`.
