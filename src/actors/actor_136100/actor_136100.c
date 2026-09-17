@@ -3,6 +3,7 @@
 #include "actors/actor_136100.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflow.h"
@@ -14,11 +15,15 @@
 extern s8    D_8007218A;
 extern u8    D_80073BA9;
 extern s32   D_actor_136100_8013F1A0;
+extern s32   D_actor_136100_8013F1D4;
+extern s16   D_actor_136100_8013F218[];
 extern s32   D_actor_136100_8013F2F4;
 extern s32   D_actor_136100_8013F31C;
 extern s32   D_actor_136100_8013F334;
 extern s32   D_actor_136100_8013F3AC;
 extern s32   D_actor_136100_8013F40C;
+extern s32   D_actor_136100_8013F424;
+extern s32   D_actor_136100_8013F43C;
 extern Task* D_actor_136100_8014078C;
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131EC4);
@@ -141,7 +146,50 @@ INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133238);
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80133558);
+/// Advance the cutscene actor's animation chain and send its pending placement.
+///
+/// Once the `field_4C0` task reports its current animation done (message
+/// 0x3ED), steps `field_4E2` to the next entry of the `D_actor_136100_8013F218`
+/// chain (negative ends it) and plays it with 0x3F4.  Then sends the 0x3E9
+/// placement selected by `field_4D4` (1..3) and clears the request.
+void func_actor_136100_80133558(Task* arg0)
+{
+    Actor136100Work* work;
+    Actor136100Work* msgWork;
+    GpAnimArg        msg;
+    u16              anim;
+
+    work = (Actor136100Work*)arg0->idMap;
+    if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
+        anim = D_actor_136100_8013F218[work->field_4E2];
+        if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
+            msgWork = (Actor136100Work*)arg0->idMap;
+            if (msgWork->field_4C0 != NULL) {
+                msg.field_0        = &D_actor_136100_8013F1D4;
+                msgWork->field_4E2 = anim;
+                msg.field_4        = anim;
+                msg.field_8        = 1;
+                msg.field_C        = 0xA;
+                msg.field_10       = 0;
+                Gp_DispatchMsg(msgWork->field_4C0, 0x3F4, (s32)&msg, 0);
+            }
+        }
+    }
+    switch ((u16)work->field_4D4) {
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F424, 0);
+            break;
+        case 2:
+            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F43C, 0);
+            break;
+        case 3:
+            Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
+            break;
+    }
+    work->field_4D4 = 0;
+}
 
 /// Reset the cutscene actor's animation state and re-send the weapon record.
 ///

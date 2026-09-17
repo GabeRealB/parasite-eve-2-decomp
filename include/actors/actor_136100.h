@@ -43,7 +43,8 @@ typedef struct Actor136100Work {
     /* 0x4D8 */ byte       pad_4D8[0x6];
     /* 0x4DE */ s16        field_4DE; // set by func_actor_136100_80133690
     /* 0x4E0 */ s16        field_4E0; // animation slot count reset by func_actor_136100_801347B8
-    /* 0x4E2 */ byte       pad_4E2[0xA];
+    /* 0x4E2 */ u16        field_4E2; // index into the D_actor_136100_8013F218 animation chain
+    /* 0x4E4 */ byte       pad_4E4[0x8];
     /* 0x4EC */ s16        field_4EC; // player-eff flag: Gp_KillPlayerEffs / Gp_SpawnWeaponEff
     /* 0x4EE */ byte       pad_4EE[0x2];
 } Actor136100Work;
