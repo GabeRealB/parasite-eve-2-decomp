@@ -128,26 +128,38 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
 typedef struct Actor342000EventWork {
-    /* 0x00 */ byte  pad_0[0x48];
-    /* 0x48 */ Task* field_48;
-    /* 0x4C */ s32   field_4C;
-    /* 0x50 */ Task* field_50;
-    /* 0x54 */ byte  pad_54[0x8];
-    /* 0x5C */ Task* field_5C;
-    /* 0x60 */ Task* field_60;
-    /* 0x64 */ Task* field_64;
-    /* 0x68 */ u16   field_68;
-    /* 0x6A */ u16   field_6A;
-    /* 0x6C */ u16   field_6C;
-    /* 0x6E */ byte  pad_6E[0x2];
-    /* 0x70 */ s16   field_70;
-    /* 0x72 */ s16   field_72;
-    /* 0x74 */ byte  pad_74[0x6];
-    /* 0x7A */ u16   field_7A;
-    /* 0x7C */ u16   field_7C;
-    /* 0x7E */ byte  pad_7E[0x2];
+    /* 0x00 */ Actor342000Move field_0[2];
+    /* 0x30 */ byte            pad_30[0x18];
+    /* 0x48 */ Task*           field_48;
+    /* 0x4C */ s32             field_4C;
+    /* 0x50 */ Task*           field_50;
+    /* 0x54 */ Task*           field_54;
+    /* 0x58 */ Task*           field_58;
+    /* 0x5C */ Task*           field_5C;
+    /* 0x60 */ Task*           field_60;
+    /* 0x64 */ Task*           field_64;
+    /* 0x68 */ u16             field_68;
+    /* 0x6A */ u16             field_6A;
+    /* 0x6C */ u16             field_6C;
+    /* 0x6E */ byte            pad_6E[0x2];
+    /* 0x70 */ s16             field_70;
+    /* 0x72 */ s16             field_72;
+    /* 0x74 */ byte            pad_74[0x4];
+    /* 0x78 */ s16             field_78;
+    /* 0x7A */ u16             field_7A;
+    /* 0x7C */ u16             field_7C;
+    /* 0x7E */ u16             field_7E;
 } Actor342000EventWork;
 STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
+
+/// Session id payload of message 0x7DA, sent to the `Game_GetPtrSlot(4)` task
+/// by `func_actor_342000_8016382C`: `GameSession::field_7`, then `field_6`.
+typedef struct Actor342000Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor342000Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor342000Msg7DA, 0x4);
 
 /// Colour-matrix work block of the overlay's model actor:
 /// `func_actor_342000_8016201C` `Mem_Malloc`s 0x44 bytes for it and parks it in

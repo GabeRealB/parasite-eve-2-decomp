@@ -623,4 +623,237 @@ void func_actor_342000_80162BBC(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_80162F28);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342000/actor_342000", func_actor_342000_8016382C);
+/// Spawn table of the event task's children: entry 2 is the script parent,
+/// 3..7 its five script tasks and 8/9 the two effect actors.
+extern TaskDesc D_actor_342000_80164FF8;
+
+/// The two placements the event task seeds its work block with in state 4.
+extern Actor342000Move D_actor_342000_80164818[2];
+extern u8              D_actor_342000_80164968;
+extern u8              D_actor_342000_80164E30;
+extern u8              D_8007216C;
+extern s8              D_8007216D;
+extern s8              D_80114C11;
+extern u8              D_801153F4;
+extern u16             D_801855DE;
+extern TaskDesc        D_80187150;
+extern GpAreaApplyRec  D_8018FB6C[];
+extern u16             D_8018FBC8;
+
+void func_80180FE4(s32 arg0, s32 arg1, s32 arg2);
+void func_8018507C(void);
+void func_actor_342000_80162F28(Task* arg0);
+
+/// The event task's leaf steps, inlined here; `actor_342000_3.c` carries the
+/// same bodies as out-of-line functions (`func_actor_342000_801641FC`,
+/// `801642B4`, `801642D4`, `80164154`).
+static inline void Actor342000_CopyMove(Actor342000Move* dst, Actor342000Move* src)
+{
+    dst->field_0  = src->field_0;
+    dst->field_4  = src->field_4;
+    dst->field_8  = src->field_8;
+    dst->field_10 = src->field_10;
+    dst->field_12 = src->field_12;
+    dst->field_14 = src->field_14;
+}
+
+static inline void Actor342000_KillFx(void)
+{
+    Actor342000EventWork* work;
+
+    work = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    if (work->field_5C != NULL) {
+        Task_Kill(work->field_5C);
+    }
+    if (work->field_60 != NULL) {
+        Task_Kill(work->field_60);
+    }
+    work->field_5C = NULL;
+    work->field_60 = NULL;
+}
+
+static inline void Actor342000_SetAction(s16 arg0)
+{
+    Actor342000EventWork* work;
+
+    work           = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work->field_68 = arg0;
+    work->field_6A = 0;
+}
+
+static inline void Actor342000_SetMode(s16 arg0)
+{
+    Actor342000EventWork* work;
+
+    work           = (Actor342000EventWork*)D_actor_342000_80165070->idMap;
+    work->field_70 = arg0;
+    work->field_72 = 0;
+}
+
+static inline void Actor342000_EnterArea(void)
+{
+    Game_Session->field_5        = 7;
+    D_8007216D                   = 7;
+    Game_Session->unknown_133[1] = 6;
+    Game_Session->unknown_133[0] = 1;
+    Game_Session->field_76       = 1;
+    Gp_ApplyAreaRecs(D_8018FB6C);
+}
+
+/// Event/sequence task body, idle while a cutscene, pause or mode switch is up.
+/// State 0 allocates the `Actor342000EventWork` block and spawns the effect
+/// actors (a spawn with `GameSession::unknown_137[0]` set skips to state 4);
+/// states 1..10 spawn the script tasks, seed the placements and run the timed
+/// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
+/// state 7's `D_8007216C` store ahead of the state load, as in retail.
+void func_actor_342000_8016382C(Task* arg0)
+{
+    Actor342000Msg7DA     msg;
+    Actor342000EventWork* work;
+    Actor342000EventWork* ev;
+    Actor342000EventWork* alloc;
+    Actor342000EventWork* seq;
+    Actor342000Move*      src;
+    Actor342000Move*      dst;
+    Task*                 child;
+    u16                   i;
+    s16                   timer;
+
+    work = (Actor342000EventWork*)arg0->idMap;
+    if (D_801855DE != 0 || Game_Session->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0) {
+        return;
+    }
+    if (Game_Session->field_136 != 0) {
+        if (work->field_7E != 0) {
+            SndEvt_EnqueueType7(0x5428000B, 0xA);
+            work->field_7E = 0;
+        }
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor342000EventWork*)Mem_Calloc(0x80U, false);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(alloc, 0U, 0x80U);
+                alloc->field_48         = (Task*)Game_GetPtrSlot(3);
+                D_actor_342000_80165070 = arg0;
+                alloc->field_4C         = (s32)Gp_FindWorkById(Game_Session->field_6 | (Game_Session->field_7 << 8))->field_0;
+            }
+            work = (Actor342000EventWork*)arg0->idMap;
+            if ((u8)Game_Session->unknown_137[0] == 0) {
+                msg.field_0 = Game_Session->field_7;
+                msg.field_1 = Game_Session->field_6;
+                msg.field_2 = 0;
+                Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, (s32)arg0);
+                work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 0, (s32)arg0);
+                goto next;
+            }
+            work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 1, (s32)arg0);
+            work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 1, (s32)arg0);
+            func_80180FE4(0x17, 0, 0x3C);
+            arg0->state = 4;
+            break;
+        case 1:
+            work->field_50 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 2, 0, (s32)arg0);
+            for (i = 0; i < 5; i++) {
+                child = Task_SpawnFromTable(&D_actor_342000_80164FF8, i + 3, i + 1, (s32)work->field_50);
+                if (i == 0) {
+                    work->field_54 = child;
+                }
+                if (i == 1) {
+                    work->field_58 = child;
+                }
+            }
+            goto next;
+        case 2:
+            Gp_MsgPlayerWeapon(0);
+            func_800E8634((s32)&D_actor_342000_80164968, 0, (s32)&D_actor_342000_80164E30);
+            goto next;
+        case 3:
+            if (Game_Session->field_1 == 0) {
+                Game_Session->field_120 = D_8018FBC8;
+                Task_SpawnFromTable(&D_80187150, 0, 1, 0);
+                Game_Session->field_135 = 2;
+                Task_RequestKill(arg0, 0);
+                return;
+            }
+            func_actor_342000_80162BBC(arg0);
+            func_actor_342000_80162F28(arg0);
+            break;
+        case 4:
+            Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164818[0]);
+            Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164818[1]);
+            work->field_70      = 6;
+            arg0->killCountdown = 0;
+            arg0->state++;
+            break;
+        case 5:
+            timer               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = timer;
+            if (timer >= 0x1A5) {
+                work->field_78 = Game_Session->field_4;
+                Actor342000_SetAction(7);
+                Actor342000_SetMode(6);
+                arg0->killCountdown = 0;
+                arg0->state++;
+            }
+            func_actor_342000_80162F28(arg0);
+            break;
+        case 6:
+            timer               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = timer;
+            if (timer >= 2) {
+                D_8007216C = 0x21;
+                goto next;
+            }
+            break;
+        case 7:
+            D_8007216C = 0x21;
+            SOFT_BARRIER();
+            arg0->killCountdown = 0;
+            arg0->state++;
+            break;
+        case 8:
+            timer               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = timer;
+            if (timer >= 0x3C) {
+                Actor342000_KillFx();
+                Actor342000_SetMode(7);
+                Actor342000_EnterArea();
+                msg.field_0 = Game_Session->field_7;
+                msg.field_1 = Game_Session->field_6;
+                msg.field_2 = 0;
+                Gp_DispatchMsg((Task*)Game_GetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                arg0->killCountdown = 0;
+                arg0->state++;
+                break;
+            }
+            break;
+        case 9:
+            timer               = (u16)arg0->killCountdown + 1;
+            arg0->killCountdown = timer;
+            if (timer >= 2) {
+                Actor342000_SetMode(9);
+                func_8018507C();
+                Gp_DispatchMsg(work->field_48, 0x3F1, 0, 0);
+                Game_Session->field_135 = 2;
+                goto next;
+            }
+            break;
+        case 10:
+        next:
+            arg0->state++;
+            break;
+        case 11:
+            Task_RequestKill(arg0, 0);
+            return;
+    }
+    if ((u32)(arg0->state - 6) < 5U) {
+        func_actor_342000_80162BBC(arg0);
+        func_actor_342000_80162F28(arg0);
+    }
+}
