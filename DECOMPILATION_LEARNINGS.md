@@ -119871,3 +119871,40 @@ zero - but not why the earlier arm won in the `separate` builds.
 `f4826e397c8d352cabf7436615d24f02a5a3ad1177d6d4e11ac6b73b7d62b27e`, its
 preprocessed input `6d74e83250d788e393c459a2ef5d31053f34f7879fd485b0fd926cd9cdd85b77`.
 Scratch `nonmatchings/func_dryfield_night_driveway_8017D7A0-vacuum`.
+## Chaining a store into the assignment lengthens its address quantity past the call and drops its `QTY_CMP_PRI` below a load's (func_dryfield_night_factory_80180438, 2026-09-17)
+
+Target block 0: `lui v1,%hi(Game_Session); lw v1,%lo(Game_Session)(v1); lui a0,%hi(D_..._A7E8); sw v0,%lo(D_..._A7E8)(a0); sw v0,0x1c(s1); lbu v1,7(v1)`.
+Everything else matched - 99.747%, one hunk, `blocks=10/10`, predicates and
+calls equal - but `$v1`/`$a0` were swapped between the `Game_Session` load and
+the `%hi` of the global stored to.
+
+Both quantities are "2 refs, SImode"; the load's life is one insn longer, so
+local-alloc ranks them with `QTY_CMP_PRI`
+(`local-alloc.c`: `log2(n_refs) * n_refs * size / (death - birth)`), ties broken
+by quantity number, and allocates in that order. Written as two statements
+
+```c
+    slot = Mem_Calloc(4, 0);
+    D_..._A7E8 = slot;
+```
+
+the RTL is `reg81 = v0`, then the global's `hi`/`lo_sum`, and the address
+quantity spans 4 insns - it outranks the load's 5, takes `$v1` (which its
+predecessor has just freed), and pushes the load to `$a0`. Chaining the store
+into the assignment
+
+```c
+    slot = (D_..._A7E8 = Mem_Calloc(4, 0));
+```
+
+makes GCC materialise the destination address *before* the call (`.rtl`: `hi` at
+insn 23, `lo_sum` 24, the `Mem_Calloc` call at 30), so that quantity spans 10
+insns and `.lreg` reports it as `used 2 times across 10 insns` instead of 4. Its
+priority now sits below the load's, so the load takes `$v1` and the address
+falls to `$a0` - the target. Lengthening one quantity's live range past a call
+is a register-allocation lever that needs no pin; the emitted instruction order
+is unchanged, so the object dump alone cannot show it.
+
+Inputs: `base_2.i` `5875a9651f9dc9cc7a36f05756c7667983db5b480ea181330def041191094f8b`
+(99.747%), `base_4.i` `b1ca9760b4705024c71afaade0aad84cbd41e1e3e7091b7bca41fc319363ab8b`
+(100%), archived with the function's permuter findings.
