@@ -66,6 +66,31 @@ typedef struct Actor460200AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor460200AnimArgs;
 
+/// Work block of the paired variant whose spawn routine allocates it with
+/// `Mem_Calloc(0x4FC, 0)`: `light` / `color` go to the sub-model's
+/// `TmdObject::field_1C` / `field_20`, and `anim`, `slots` and `pose` are what
+/// `func_800B3F84` fills in. When `Task::spawnArg1` is set the routine spawns a
+/// partner enemy, reparents its own task under the partner's and parks that task
+/// in `field_4F4`; `animId` is then 2 rather than 1. `enemy` is the actor's own
+/// `GpEnemy`, handed back to `Gp_DestroyEnemy` on exit.
+typedef struct Actor460200PairWork {
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pose[0x140];
+    /* 0x4B4 */ s16        state;
+    /* 0x4B6 */ s16        field_4B6;
+    /* 0x4B8 */ u16        animId;
+    /* 0x4BA */ byte       pad_4BA[0x34];
+    /* 0x4EE */ s16        field_4EE;
+    /* 0x4F0 */ s16        field_4F0;
+    /* 0x4F2 */ byte       pad_4F2[0x2];
+    /* 0x4F4 */ Task*      field_4F4;
+    /* 0x4F8 */ GpEnemy*   enemy;
+} Actor460200PairWork;
+STATIC_ASSERT_SIZEOF(Actor460200PairWork, 0x4FC);
+
 void func_actor_460200_801325FC(Task* task);
 
 s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args);
