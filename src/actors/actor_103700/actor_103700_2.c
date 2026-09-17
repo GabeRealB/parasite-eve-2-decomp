@@ -3,9 +3,11 @@
 #include "actors/actor_103700.h"
 #include "actors/actors_shared_80133c1c.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 void func_actor_103700_801328DC(Task* task)
 {
@@ -153,7 +155,79 @@ void func_actor_103700_80132DA8(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_80132FD4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_80133370);
+void func_actor_103700_80133370(Task* task)
+{
+    Actor103700Work* work;
+    GpObj38*         obj;
+    Task*            player;
+    void*            head;
+    GpAnimArg*       arg;
+    s32              sound;
+
+    work                    = (Actor103700Work*)task->idMap;
+    obj                     = (GpObj38*)((TmdObject*)task->extra)->field_8;
+    player                  = Game_GetPtrSlot(3);
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - 0x1C;
+    arg                     = (GpAnimArg*)*(void**)G_SCRATCH_HEAD;
+
+    switch (work->field_250) {
+        case 0:
+            Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_103700_80139D28, 0), 0);
+            func_800FDB18(1, (GsCOORDINATE2*)obj, NULL, &work->field_224);
+            Gp_SpawnPadLerp(5, 0xC0, 8);
+            sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250004;
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
+            if ((s16)++work->field_26C >= 6) {
+                work->field_26C      = 0;
+                work->field_250      = 3;
+                Gp_StateF0.field_19 |= 2;
+            } else {
+                work->field_250 = 1;
+                work->field_256 = 20;
+            }
+            break;
+        case 1:
+            work->field_252 = -20;
+            if ((s16)--work->field_256 <= 0) {
+                work->field_250 = 2;
+            }
+            break;
+        case 2:
+            work->field_23C.vx = Wip_SysConfig.field_4->t[0];
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_23C.vy = Wip_SysConfig.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Wip_SysConfig.field_4->t[2];
+            work->field_252    = D_actor_103700_80139D3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            if (work->field_264 != 0) {
+                work->field_250 = 0;
+            }
+            break;
+        case 3:
+            arg->field_0  = D_actor_103700_80139F1C;
+            arg->field_4  = 2;
+            arg->field_8  = 0;
+            arg->field_C  = 0;
+            arg->field_10 = 1;
+            Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
+            sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 6;
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)Gp_GetObjDepth(obj));
+            work->field_250 = 4;
+            break;
+        case 4:
+            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+                Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                work->field_262      = 0;
+                work->field_24E      = 5;
+                work->field_250      = 0;
+                Gp_StateF0.field_19 &= 1;
+            }
+            break;
+    }
+    func_actor_103700_801350DC(task, 1, 14);
+    *(u32*)G_SCRATCH_HEAD += 0x1C;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_801336E8);
 

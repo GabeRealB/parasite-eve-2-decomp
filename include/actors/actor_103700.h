@@ -22,27 +22,31 @@
 /// state 1, and then either flags `field_250` or steps `field_24E` to 5 with the
 /// state copied into `field_248`.
 typedef struct Actor103700Work {
-    /* 0x000 */ byte    pad_0[0x234];
-    /* 0x234 */ SVECTOR field_234;
-    /* 0x23C */ SVECTOR field_23C;
-    /* 0x244 */ s16     field_244;
-    /* 0x246 */ s16     field_246;
-    /* 0x248 */ s16     field_248;
-    /* 0x24A */ byte    pad_24A[0x2];
-    /* 0x24C */ s16     field_24C;
-    /* 0x24E */ s16     field_24E;
-    /* 0x250 */ s16     field_250;
-    /* 0x252 */ s16     field_252;
-    /* 0x254 */ s16     field_254;
-    /* 0x256 */ u16     field_256;
-    /* 0x258 */ byte    pad_258[0x2];
-    /* 0x25A */ s16     field_25A;
-    /* 0x25C */ u16     field_25C;
-    /* 0x25E */ u16     field_25E;
-    /* 0x260 */ byte    pad_260[0x2];
-    /* 0x262 */ s16     field_262;
-    /* 0x264 */ byte    pad_264[0x2];
-    /* 0x266 */ s16     field_266;
+    /* 0x000 */ byte     pad_0[0x224];
+    /* 0x224 */ GpEffArg field_224; // hit-spark record for `func_800FDB18`
+    /* 0x22C */ byte     pad_22C[0x8];
+    /* 0x234 */ SVECTOR  field_234;
+    /* 0x23C */ SVECTOR  field_23C;
+    /* 0x244 */ s16      field_244;
+    /* 0x246 */ s16      field_246;
+    /* 0x248 */ s16      field_248;
+    /* 0x24A */ byte     pad_24A[0x2];
+    /* 0x24C */ s16      field_24C;
+    /* 0x24E */ s16      field_24E;
+    /* 0x250 */ s16      field_250;
+    /* 0x252 */ s16      field_252;
+    /* 0x254 */ s16      field_254;
+    /* 0x256 */ u16      field_256;
+    /* 0x258 */ byte     pad_258[0x2];
+    /* 0x25A */ s16      field_25A;
+    /* 0x25C */ u16      field_25C;
+    /* 0x25E */ u16      field_25E;
+    /* 0x260 */ byte     pad_260[0x2];
+    /* 0x262 */ s16      field_262;
+    /* 0x264 */ s16      field_264;
+    /* 0x266 */ s16      field_266;
+    /* 0x268 */ byte     pad_268[0x4];
+    /* 0x26C */ u16      field_26C;
 } Actor103700Work;
 
 /// Pose context the `D_801153F4` mode switch in `func_actor_103700_80134E24`
@@ -86,6 +90,12 @@ typedef struct Actor103700Kind {
 } Actor103700Kind;
 
 extern u16 D_actor_103700_80139D9C[];
+
+/// Pair `func_actor_103700_80133370` packs with `Gp_PackPair` for message 0x3F9.
+extern GpU16Pair D_actor_103700_80139D28;
+
+/// Halfword table `func_actor_103700_80133370` indexes by a 4-bit LCG draw.
+extern s16 D_actor_103700_80139D3C[];
 
 /// Halfword bob table, one row of 15 per `arg1`: the row runs
 /// 0, 10, 19, 24, 25, 22, 15, 5, -5, -15, -22, -25 before returning to 0.
