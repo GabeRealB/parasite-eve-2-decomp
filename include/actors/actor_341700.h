@@ -33,11 +33,15 @@ STATIC_ASSERT_SIZEOF(Actor341700Flags, 0x4);
 /// table walks; `field_412` is the per-state frame counter. `field_414` ..
 /// `field_426` are the animation request the actor hands to its player.
 typedef struct Actor341700Work {
-    /* 0x000 */ byte             pad_0[0x7A];
+    /* 0x000 */ byte             pad_0[0x70];
+    /* 0x070 */ SVECTOR          field_70; // origin of slot 4 entry 0's coords[3], carried into view space by func_actor_341700_8016A2CC
+    /* 0x078 */ byte             pad_78[0x2];
     /* 0x07A */ s16              field_7A; // heading fed to rsin / rcos
-    /* 0x07C */ byte             pad_7C[0x16];
+    /* 0x07C */ byte             pad_7C[0x14];
+    /* 0x090 */ u16              field_90; // root coord.t[0], snapshotted by func_actor_341700_8016A2CC
     /* 0x092 */ u16              field_92; // low half of root coord.t[1]
-    /* 0x094 */ byte             pad_94[0x58];
+    /* 0x094 */ u16              field_94; // root coord.t[2]
+    /* 0x096 */ byte             pad_96[0x56];
     /* 0x0EC */ Actor341700Flags flags_EC;
     /* 0x0F0 */ byte             pad_F0[0x1BC];
     /* 0x2AC */ GpObj            obj_2AC;

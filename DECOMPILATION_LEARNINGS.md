@@ -82009,6 +82009,18 @@ whose name is a bare `func_<addr>` is a symbol-map borrow, not a second entry -
 strip it before concluding the bodies differ, and check the imports file before
 believing a `j` somewhere targets it.
 
+The borrowed symbol is not always a `func_`: `func_actor_341700_8016A2CC`
+(0x8016A2CC, 101 instructions) carries `alabel D_8016A408`, the imports file's
+line 470 `D_8016A408 = 0x8016A408`. Its instruction stream is byte-identical to
+both `Actor04400_Fn0847C` and `func_actor_342400_8016B5B0`, and `find` reported
+no copies for it for exactly the reasons above - the `alabel` line in the hash,
+plus the sibling's undotted `Actor04400_L…` labels. Retyping
+`func_actor_342400_8016B5B0`'s C body onto `Actor341700Work` (adding
+`field_70`/`field_90`/`field_94`, all inside existing pad) was the whole match:
+100.000% with every penalty zero on the first build, against an m2c seed of
+24.644% (`regs=50 delete=56 insert=17`). So a `D_`-named `alabel` in the
+imports file is the same borrow as a `func_`-named one.
+
 ## m2c's separate `s32 spN` locals for one aggregate lose every store but the address-taken one
 
 **Problem.** `func_actor_205200_8014C8D4` seeded at 67.750% with
