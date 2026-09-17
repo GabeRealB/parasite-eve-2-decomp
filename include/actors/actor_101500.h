@@ -10,7 +10,10 @@
 /// `func_actor_101500_80134778` re-seeds the slots from the per-state id table
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
-    /* 0x000 */ byte pad_0[0x34C];
+    /* 0x000 */ byte pad_0[0x256];
+    /* 0x256 */ s16  field_256;
+    /* 0x258 */ s16  field_258;
+    /* 0x25A */ byte pad_25A[0xF2];
     /* 0x34C */ s32  field_34C;
     /* 0x350 */ byte pad_350[2];
     /* 0x352 */ u16  field_352;
@@ -69,5 +72,8 @@ STATIC_ASSERT_SIZEOF(Actor101500RotScratch, 0x18);
 extern u32 Gp_LcgState;
 
 void func_actor_101500_8013291C(Actor101500* actor, s32 damage);
+
+/// Maximum hit points; `func_actor_101500_8013291C` staggers below 60%.
+extern u16 D_actor_101500_8013BDDC;
 
 #endif
