@@ -117715,11 +117715,15 @@ if (GameFlag_GetNibble(0x53) != 0) {
 ```
 
 100%, every penalty zero. Two consequences come with it. The per-arm values all
-land in `$v0`, so the arms' stores are byte-identical after reload and the
-shared `sb` the target has - one instruction reached from both arms - is where
-the merge the source never wrote comes from. And `out->field_3 += 2` in the
-sibling arm keeps its `lbu` result as well (`lbu $v0,3(s0)` / `addiu
-$v0,$v0,2`), for the same reason.
+land in `$v0`, so the arms' stores come out byte-identical - and `jump2`, the
+post-reload `jump_optimize_1`, cross-jumps them into the one `sb` the target
+has, reached from both arms by a `j` the source never wrote. The tell is the
+dump sequence: `(set (mem/s:QI ...))` counts 8/8/8/8/8/8/8 through `.flow`,
+`.cse2`, `.jump`, `.sched`, `.lreg`, `.greg` and `.sched2`, then 4 at `.jump2`.
+Cross-jumping is what needs reload: before it the two stores name different
+value pseudos and are not identical, so only the post-reload run can merge
+them. And `out->field_3 += 2` in the sibling arm keeps its `lbu` result as well
+(`lbu $v0,3(s0)` / `addiu $v0,$v0,2`), for the same reason.
 
 Read this with the `func_actor_341900_801635A4` entry: the aim is the same
 (value born after the branch, where the condition's register is free), but the
