@@ -127115,3 +127115,129 @@ on it can no longer float above them. 100%.
 The call itself takes no argument here (`jalr` with `$a0` never set), so the
 array's type has to be `void (*[2])(void)` even though entry 1 is really a
 `Task*` handler reached through the incoming `$a0`.
+
+## Where a loop-exit value is initialized decides its live range -- and with it every register in the function (func_actor_311500_80162DDC, 2026-09-17)
+
+The merged value a loop produces was worth 3 registers and 5% here, and the
+whole difference was *which statement initializes it*. The loop searches a
+1-entry `GpRec18` table and ends in one of two ways: the entry is empty
+(`field_4 == 0`, `break`) or the table runs out. Both land on the same exit
+block, which stores the result:
+
+```
+	blez	$v0,.Lloop        # (s16)(i+1) <= 0 -> next iteration
+	...
+.Lexit:
+	addu	$v0,$zero,$zero   # fresh zero, materialized here
+	sw	$v0,0x4CC($s1)
+.Lafter:
+	beqz	$v0,.Lend
+```
+
+Initializing `v` *before* the loop (`v = 0;`) is the obvious reading of the
+store and gives 94.9%: `v` is live from the entry through the loop, so global.c
+sees it conflict with the loop's own temporaries and gives it `$a0`; the counter
+is pushed to `$a1`, the `SVECTOR*` to `$a2`, the record base to `$a3`, and the
+two masks spill out to `$t0`/`$t1`. Five registers wrong from one hoisted
+initializer.
+
+The target has `v` defined *at the exit* instead. A single statement after the
+loop is reached by both the `break` and the fall-out, so it serves both paths;
+the found path skips it, which in C needs an early exit:
+
+```c
+    for (i = 0; i < 1; i++) {
+        if (recs[i].field_4 == 0) {
+            break;
+        }
+        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+            ...
+            v = recs[i].field_4;
+            goto done;              /* skips the v = 0 below */
+        }
+    }
+    v = 0;
+done:
+    work->field_4CC = v;
+```
+
+Now `v`'s live range covers only the exit blocks, which do not overlap the loop
+temporaries' -- so global.c hands it the *same* `$v0` the loop's own loaded tag
+used, and the counter, the pointer and the base all take the registers the
+target wants. `goto` is not decoration here: without it the found value cannot
+skip the "not found" initializer, and a `break`-only shape puts a definition in
+each branch instead, which un-shifts the whole allocation the other way.
+
+Symptom to recognize: a `%` penalty that is almost entirely `regs`, with the
+target's exit block materializing a constant (`addu $v0,$zero,$zero`) where
+yours loads or keeps a live register. m2c renders the merged value as a single
+`var_v0` and cannot say which path defined it.
+
+Inputs: `base_2.c` 94.903%, `base_3.c` (goto shape, pointer-indexed) 99.880%,
+`base_4.c` (same, `recs[i]` in place of a `rec` local) 100.000%; `.greg` of
+`base_2` (`86 preferences: 4`) shows the preference that pulls the pre-loop form
+onto an argument register.
+
+## A pointer to a local keeps the address in a register, so the stores use `offs(base)` (func_actor_311500_80162DDC, 2026-09-17)
+
+Three halfword copies into a stack `SVECTOR` came out of the target with a
+register base and small offsets:
+
+```
+	lhu	$v0,0x8($v1)
+	sh	$v0,0x0($a1)
+	lhu	$v0,0xA($v1)
+	sh	$v0,0x2($a1)
+```
+
+Writing the obvious field assignments (`pos.vx = rec->field_8;` with a local
+`SVECTOR pos`) gets `sh $2,16($sp)` / `18($sp)` / `20($sp)` instead: combine
+folds the frame address into the store's own addressing mode, so no register is
+ever live and nothing else changes. The target's base register means the source
+held the address in a variable that is live across the loop body -- a pointer to
+the local:
+
+```c
+    SVECTOR  pos;
+    SVECTOR* pp = &pos;
+    ...
+    pp->vx = rec->field_8;
+```
+
+Combine cannot fold `(reg pp)` inside the loop (its definition is in the
+preheader, outside the extended basic block it can see), so all three stores
+keep the register form with offsets 0/2/4. Same rule applies to any local whose
+target code addresses through a register rather than `sp+const`: give the source
+a pointer and combine stops seeing the definition.
+
+Inputs: `base_1.c` 92.808% (field form, `sh $2,16($sp)`), `base_2.c` 94.903%
+(pointer form).
+
+## `for (i = 0; i < 1; i++)` over a 1-entry table, and how m2c renders its test (func_actor_311500_80162DDC, 2026-09-17)
+
+A table set up as `Gp_InitRec18Table(recs, 1, 0)` (`addiu $a1,$zero,0x1` at the
+init site is the only place the count appears) searches with a one-iteration
+loop. GCC's codegen for an `s16` counter bound by a constant looks like a
+runaway guard rather than a loop:
+
+```
+	sll	$v1,$a0,16        # preheader: i << 16
+.Lloop:
+	sra	$v1,$v1,16        # per-iteration sign extension of the index
+	...
+	sll	$v0,$v0,16        # (s16)(i+1) <= 0 ?
+	blez	$v0,.Lloop
+```
+
+m2c prints the bottom as `if ((i+1) << 16 > 0) goto exit`, which reads as a loop
+that can never iterate; it is an ordinary rotated `for` whose body always runs
+once, with the bound constant folded into `(s16)(i+1) <= 0`. Reading the array
+size off the init site (`1`, matching `rec18[1]` in the header) is what makes
+the `1` in `i < 1` provable -- a bound of `0x8000` or more would fold away
+entirely rather than emit that `blez`.
+
+The address `addu` for `recs[i]` in the same loop is the operand-order rule
+already recorded above ("`addu` operand order: a MEM address puts the multiply
+first"): the target's `addu $v1,$v0,$a2` needs the indexing written in place,
+not through a `rec = &recs[i]` local, which gives `addu $v1,$a2,$v0` and
+99.880%.
