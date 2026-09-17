@@ -9,6 +9,7 @@
 
 #include "rooms/dryfield_breezeway.h"
 #include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017d638.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -30,7 +31,44 @@ s32 func_dryfield_breezeway_8017D90C(void)
     return ret;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017D940);
+/// `GpMsgEntry` handler for message 0x13EE, the room's own progress gate. It
+/// answers message 0x17 by writing 1 or 2 into the outgoing record's `field_3`
+/// from the room's progress nibble 0x47, and - when the message id still reads
+/// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
+/// item 0x15) to the shared gate `RoomsShared8017d638`, returning its answer.
+/// A gate that latched the request is followed by the room's own follow-up:
+/// progress nibble 0x56 set to 4 and effect 0xA2. Everything else answers 1.
+s32 func_dryfield_breezeway_8017D940(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    RoomEventReq req;
+    s32          ret;
+
+    *out = *in;
+    if (in->msgId == 0x17) {
+        if (in->field_5 == 0) {
+            if (GameFlag_GetNibble(0x47) == 0) {
+                out->field_3 = 1;
+            } else {
+                out->field_3 = 2;
+            }
+        }
+        if (in->msgId == 0x17) {
+            req.field_0 = 4;
+            req.field_4 = 2;
+            req.field_8 = 0x52160006;
+            req.field_C = 0x52160003;
+            req.flagId  = 0x37;
+            req.itemId  = 0x15;
+            ret         = RoomsShared8017d638(&req, out);
+            if (RoomsShared8017d638Flag != 0) {
+                GameFlag_SetNibble(0x56, 4);
+                func_800E3FAC(0xA2, 0x38);
+            }
+            return ret;
+        }
+    }
+    return 1;
+}
 
 s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {

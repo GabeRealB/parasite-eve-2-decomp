@@ -116575,3 +116575,43 @@ and the empty case's `break` is what the range test jumps to. Writing
 `default:` first then fixes the block order - dispatch, default body, then the
 case bodies in source order - which is the target's `[dispatch][default]
 [case1][case2][tail]` layout.
+
+## The 99.8% near-miss of the two-valued `if`/`else`: only the value's register is wrong, and the ternary is a *flipped* branch (func_dryfield_breezeway_8017D940, 2026-09-17)
+
+The rooms-family instance of "A two-valued `if`/`else` needs its store *inside*
+each arm" above, with a signature worth recognising on its own: the shared-local
+and ternary writings both land at 99.773%, differing from the target by exactly
+the value's register and nothing else.
+
+```c
+out->field_3 = GameFlag_GetNibble(0x47) == 0 ? 1 : 2;   /* 99.773%, li $v1 */
+if (GameFlag_GetNibble(0x47) == 0) {
+    out->field_3 = 1;
+} else {
+    out->field_3 = 2;
+}                                                        /* 100.000%, li $v0 */
+```
+
+The ternary is not merely a worse-allocated form of the same object: it is the
+mirror image. `jumpifnot` on a `== 0` condition emits `bnez` with the *then*
+constant as the fall-through, and jump.c's arm-collapse then hoists the *else*
+constant to before the branch, so the delay slot and the fall-through swap roles
+against what the target has - and because that hoisted `li` sits between the
+call and the branch, inside the call result's live range, the value pseudo can
+never take `$v0` (`build.sh` reports `regs`, no `branch`/`insert`/`delete`, which
+is what makes it look like a pin candidate). The store-in-each-arm form blocks
+both transforms at jump.c's `single_set`-of-REG guard, the two constants are then
+born in arm blocks where `$v0` is already dead, and reorg moves the else arm's
+`li` into the `bnez` delay slot exactly as retail has it.
+
+**Diagnostic that settled it.** When a near-100% diff is only a register, compile
+a *matched* body from the same repo that uses the same idiom and read its pass
+trail rather than theorising about allocation: `./dump.sh` on the sibling's
+source gives `.rtl`/`.jump`/`.cse`/`.lreg` for a body whose result is known
+correct. Here `func_acropolis_fire_escape_8017FD98` - a matched if/else-double-
+store two-message handler in the same family - spent `.rtl` through `.lreg` with
+*two* stores and two `reg:QI` temps, then printed the target's single `sb` with
+`# 74` (the else block's store) after the then block's `li`: that is jump.c's
+cross-jumping merging the identical `sb` tails, not a front-end if-conversion.
+So the two-stores form is the original writing here, and `m2c`'s single-store
+`var_v0` shape - like the ternary that replaces it - is an artefact.
