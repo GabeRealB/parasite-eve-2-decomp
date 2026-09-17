@@ -77,6 +77,18 @@ typedef struct Actor303600LightMats {
 } Actor303600LightMats;
 STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
 
+/// The rig's 16.16 angle accumulator, `Actor303600RigWork::field_18`: the rig
+/// code ramps it and folds the whole word back into +/-4000, while the
+/// coordinate's Y takes its integer half.  Same union shape as
+/// `Actor100400SpawnArg`.
+typedef union Actor303600RigAngle {
+    /* 0x0 */ s32 w;
+    struct {
+        /* 0x0 */ u16 lo;
+        /* 0x2 */ s16 hi;
+    } half;
+} Actor303600RigAngle;
+
 /// Work block of the task `func_actor_303600_80162A7C` dispatches through
 /// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
 /// `Mem_Calloc(0x3C, 0)`, parks it in `Task::idMap` (0x1C, again not a
@@ -87,23 +99,22 @@ STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
 /// table in `Task::field_24`.  `func_actor_303600_801627B8` then moves the rig
 /// each frame: `field_28` (a 16.16 speed) ramps toward `field_38` at `field_34`
 /// a frame and stops once it passes it, and `field_18` accumulates `field_28`
-/// and is folded back into +/-4000 before its integer part becomes the task
-/// coordinate's `t[1]`.  Reading `field_18`'s upper halfword is what `lh` from
-/// 0x1A in that function does; the words this block does not yet name are the
-/// same shape, so `field_28`/`field_34`/`field_38` are the three the 0x7DB
-/// handler below arms.
+/// and is folded back into +/-4000 before its integer half becomes the task
+/// coordinate's `t[1]` (the `lh` from 0x1A).  The words this block does not yet
+/// name are the same shape, so `field_28`/`field_34`/`field_38` are the three
+/// the 0x7DB handler below arms.
 typedef struct Actor303600RigWork {
-    /* 0x00 */ Task* children[5];
-    /* 0x14 */ s32   field_14;
-    /* 0x18 */ s32   field_18;
-    /* 0x1C */ s32   field_1C;
-    /* 0x20 */ s32   field_20;
-    /* 0x24 */ s32   field_24;
-    /* 0x28 */ s32   field_28;
-    /* 0x2C */ s32   field_2C;
-    /* 0x30 */ s32   field_30;
-    /* 0x34 */ s32   field_34;
-    /* 0x38 */ s32   field_38;
+    /* 0x00 */ Task*               children[5];
+    /* 0x14 */ s32                 field_14;
+    /* 0x18 */ Actor303600RigAngle field_18;
+    /* 0x1C */ s32                 field_1C;
+    /* 0x20 */ s32                 field_20;
+    /* 0x24 */ s32                 field_24;
+    /* 0x28 */ s32                 field_28;
+    /* 0x2C */ s32                 field_2C;
+    /* 0x30 */ s32                 field_30;
+    /* 0x34 */ s32                 field_34;
+    /* 0x38 */ s32                 field_38;
 } Actor303600RigWork;
 STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
 

@@ -51500,6 +51500,45 @@ pseudo-splitting problem. Try the duplicated read first, then a second local in
 the branch arms, and only reach for `SOFT_TOUCH_REG` when the split has to
 happen inside one basic block.
 
+## The same-block `move aN, vN` before an add is the same double read, and a sibling field's store does not kill the equivalence (func_actor_303600_801627B8, 2026-09-17)
+
+The copy in "A stray `move sN, aN` after a load" need not cross a call, and it
+can be caller-saved to caller-saved. The rig update ramps a 16.16 speed and then
+tests the ramp's sign; the target loads the accel once and copies it for the
+branch:
+
+```asm
+lw    v0, 0x34(a1)      /* accel */
+lw    v1, 0x28(a1)      /* speed */
+move  a0, v0            /* <- the second read of 0x34 */
+addu  v1, v1, v0
+blez  a0, ...
+```
+
+One read in the C (`speed = work->field_28 + work->field_34;` then
+`if (work->field_34 > 0)`) keeps the accel in a single register and emits no
+`move`: 94.1%, `insert=0 delete=1`, and every later branch four bytes short.
+Reading the field a second time, once for the sum and once for the test, is what
+puts the `move` there - `cse` inserts `(set p2 p1)` for the second load and
+`reload_cse_regs` emits the copy - for 100%.
+
+The store to `work->field_28` between the two reads does **not** stop this. cse's
+`invalidate` walks the store's own address range
+(`set_nonvarying_address_components` + `refers_to_mem_p`) and removes only the
+entries that overlap it, so a store to another field of the same base leaves the
+load's equivalence in the table; only a *varying* address, a non-scalar or
+`BLKmode` store calls `invalidate_memory`. Expect the second read to survive
+across sibling-field stores rather than assuming `cse` merged it.
+
+The fold at the end of the same function is the documented cross-jump shape in
+`if`/`else if` form: both arms are `field_18 = angle +/- 0x1F400000`, and jump
+optimization merges the identical `addu` + `sw` into one shared tail with each
+arm's constant left as a `lui` in the delay slot of the `j`/`beqz` that enters
+it. Write both arms out; the shared `addu v0,v1,v0` is not a `goto` in the C.
+
+Inputs: `base_1.i` (94.1%, one read), `base_2.i` (98.4%, two reads, tail
+statement order still wrong), `base_3.i` (100%).
+
 ## Forcing `li -mask` + `and` instead of `andi`: hold the mask in a local
 
 The inverse of "Same byte mask across a call: `andi` vs CSE'd `and`". When the
