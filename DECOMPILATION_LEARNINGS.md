@@ -120097,3 +120097,60 @@ back into, the return register.
 Inputs: `base_1.i` `3301634ccf558a2daf39e4080faa4e982166bc3d77fe23b88390418615a3d5e0`
 (98.375%, shared result local), `base_2.i`
 `1b022746950a6da15d366e51d85ae581d0999d2e93499d7ca6202d2fa3187d39` (100%, two returns).
+
+## The same RTL insn uid twice is one statement `dbr` copied into two delay slots, not two source statements (func_dryfield_night_factory_8017F00C, 2026-09-17)
+
+A three-case `switch (step)` with a `default` that assigns the return local
+compiles to:
+
+```
+beq   a0,v1,CASE1              ; the pivot, the *middle* case
+slti  v0,a0,2 ; beqz v0,RIGHT  ; index > 1
+beqz  a0,CASE0                 ; left leaf
+j     END     ; li ret,1       ; <- one copy of the default body
+RIGHT:
+beq   a0,v0,CASE2              ; right leaf
+j     END     ; li ret,1       ; <- and another
+```
+
+Two `j END` + `li ret,1` pairs read as two source-level `ret = 1` statements
+and an if/else chain, which is exactly how m2c renders it — that scored 33.3%
+(`branch=5 regs=42 reorder=7 insert=34 delete=37`). It is a `switch`: with
+`count` 3 below `CASE_VALUES_THRESHOLD`, `expand_end_case` takes the
+`emit_case_nodes` path, whose every childless leaf ends with
+`emit_jump_if_reachable (default_label)` — one jump to the default per leaf,
+two for a three-case pivot tree. The default body is a single insn falling into
+the switch's end label, and `dbr` fills each leaf jump's delay slot from it and
+deletes the original: the final `.s` carries the *same* `# <uid>` comment on
+both copies (`# 225 movsi_internal2/3` on each `li $19,1`), and
+`./insn.py 225` prints `dbr  GONE (deleted by this pass)`.
+
+So when two instructions in different blocks carry the same uid, the compiler
+copied one RTL insn — count source statements by uid, not by occurrence. The
+fix is the plain switch, one statement:
+
+```c
+switch (work->step) {
+case 0:
+    ...
+    break;
+case 1:
+    ...
+    break;
+case 2:
+    ...
+    break;
+default:
+    ret = 1;
+    break;
+}
+```
+
+100% on the first attempt, 116 instructions, every penalty zero. Related
+sections: "A three-arm `switch` whose last arm is empty is what emits
+`bnez CASE0`" (same pivot tree, where the trailing jump fuses instead) and
+"Empty switch case as binary-search pivot to shared default".
+
+Inputs: `base.i` `c0d8b900b9f4adff3241240083d4e576690f51b65eb8e7e10080872310fdbc06`
+(33.319%, the m2c if/else chain), `base_1.i`
+`b690abd6e97ea3e9ef9f73b0a01de6e8deaf67e2e9b6b112e1ee40c1a1aecade` (100%).

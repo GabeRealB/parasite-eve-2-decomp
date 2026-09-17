@@ -15,8 +15,22 @@
 /// `step` is the counter the room's own handlers advance, and `prevFlag` is the
 /// nibble of game flag 0x4E the shared state-0 handler `RoomsShared8017fdc8`
 /// last saw. That handler reads the same three bytes.
+///
+/// `field_0` is the angular velocity the two handlers accelerate towards their
+/// own limit and `field_4` is the 16.16 angle it drives: each handler adds the
+/// first to the second, clamps it at its limit, and rotates the model by the
+/// integer part. Both views of `field_4` live in one union, the way
+/// `NightFactoryWork::field_C` does -- the whole 32 bits go in and the high half
+/// alone comes back out.
 typedef struct NightFactoryCutsceneWork {
-    /* 0x0 */ byte pad_0[0x8];
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ union {
+        /* 0x4 */ s32 value;
+        struct {
+            /* 0x4 */ s16 frac;
+            /* 0x6 */ s16 whole;
+        } part;
+    } field_4;
     /* 0x8 */ u8   state;
     /* 0x9 */ u8   step;
     /* 0xA */ u8   prevFlag;
