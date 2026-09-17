@@ -51,6 +51,4 @@ void func_dryfield_night_motel_loft_8017D8B0(void)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_3", jtbl_dryfield_night_motel_loft_8017D5D0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_3", D_dryfield_night_motel_loft_8017D5F8);

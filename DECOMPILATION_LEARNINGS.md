@@ -118623,3 +118623,53 @@ both spell it the wider way.
 Inputs: `base_1.c` (82.382%, `regs=7 branch=2`), `base_2.c` (100.000%).
 Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Consecutive splat labels are one array; indexing it changes the relocation, not the code (func_dryfield_night_motel_loft_8017DB64, 2026-09-17)
+
+Seven consecutive 8-byte `SVECTOR`s at `8017ED78`: splat named `…ED80`, `…ED88`,
+`…ED90`, `…ED98`, `…EDA0` because the ROM's code loads each address directly.
+Writing the draws as indices of the one array - `&D_…ED78[0]`, `[1]`, `[3]`,
+`[5]`, and the effect loops' `&p[-1]` + `[6]` - compiles to exactly the retail
+instruction stream, because the base is CSE'd into a register and every use is
+a displacement off it. It is also the only source form found that produces the
+target's two shapes at once:
+
+- the pointer stays a *local* quantity, so `local-alloc` ties the `high` temp
+  to it and the definition reads `lui $s0,%hi(X); addiu $s0,$s0,%lo(X)` with
+  the call taking `addu $a0,$s0,$zero`. A label or jump between the definition
+  and that copy makes the pointer global instead, the temp takes `$v0`, and the
+  form degrades to `lui $v0,%hi(X); addiu $s0,$v0,%lo(X)`. **A call does not end
+  a basic block** - the proof is `base_3`, where the pointer is used both before
+  and after a `Room_Draw20` call and `local-alloc` still owns it (it never
+  appears in the `.greg` home list);
+- the second draw's address is a compile-time constant, so it emits the
+  two-instruction `lui $a0,%hi(X+0x28); addiu $a0,$a0,%lo(X+0x28)`. A `p[K]`
+  through a *variable* always emits the one-instruction `addiu $a0,$s0,0x28`
+  instead (`reload1.c`'s `reg_equiv_address`, the only thing that turns such an
+  address back into a constant, is guarded by `reg_renumber[i] < 0`, i.e. the
+  pseudo must be spilled - a pointer living in `$s0` never is).
+
+**The scorer compares relocation text, the build compares bytes.** The scratch
+scorer diffs the object's disassembly, so it reports `%lo(D_…ED78+0x28)`
+against the target's `%lo(D_…EDA0)` and stalls at 99.66% (`branch` and `regs`
+penalties, no `insert`/`delete`) - while the two relocations resolve to the same
+address in the same generated data object, so the linked overlay is
+byte-identical and `tools/build-and-verify.sh` passes. When a candidate stalls
+just under 100% with every instruction *shape* right and every remaining diff a
+`sym+k` versus `sym` spelling, check whether the symbols are consecutive labels
+on one run, and link it before hunting further.
+
+**A matched switch in a later unit takes its unit's rodata.** The jump table
+lived in the leading rodata block owned by unit `_3`, so matching the function
+in unit `_4` left the ROM table referencing the `.L` labels the asm function
+used to define (`undefined reference to '.Ldryfield_night_motel_loft_8017DB8'`
+at link time). `rodata = [{ start = "0x10", unit = "…_4" }, { start = "0x38",
+unit = "…_3" }]` in `configs/USA/overlays.toml` hands the 0x28-byte table to
+the unit whose compiler now generates it and leaves the rest with `_3`; the
+`INCLUDE_RODATA` line for the table is then dropped from `_3`'s `.c` and the
+`_3`/`_4` sources are rebuilt from a snapshot taken before the re-split (two
+matched bodies in `_3` were preserved this way, and the unscoped build's
+`check_lost_matches.py` confirmed none were lost).
+
+Inputs: `base_7.i` (the goto/tail variant, 99.84%) and `base_9.i` (the
+array-index form, 99.66% by the scorer, byte-identical by the build).
