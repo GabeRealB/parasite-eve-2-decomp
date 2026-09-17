@@ -25,10 +25,71 @@ extern u8       D_actor_461800_80139FB0[];
 
 extern s16 D_80071076;
 extern s8  D_8007218B;
+extern s32 D_8017DC54;
+extern s32 D_actor_461800_80143884;
+extern s32 D_actor_461800_80143888;
+extern s32 D_actor_461800_8014388C;
+extern s32 D_actor_461800_80143890;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_461800/actor_461800", D_actor_461800_80131E20);
-
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80131E38);
+void func_actor_461800_80131E38(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            D_actor_461800_80143884 = 0x10;
+            break;
+        case 1:
+            if (D_actor_461800_80143888 != 0) {
+                if (D_actor_461800_80143884 < 0x10) {
+                    D_actor_461800_80143884++;
+                } else {
+                    D_actor_461800_80143888 = 0;
+                }
+            } else if (D_actor_461800_80143884 > 0) {
+                D_actor_461800_80143884--;
+            } else {
+                D_actor_461800_80143888 = 1;
+            }
+            if (D_actor_461800_8014388C != 0) {
+                if (D_actor_461800_80143890 < 0x13) {
+                    D_actor_461800_80143890++;
+                } else {
+                    D_actor_461800_8014388C = 0;
+                }
+            } else if (D_actor_461800_80143890 > 0) {
+                D_actor_461800_80143890--;
+            } else {
+                D_actor_461800_8014388C = 1;
+            }
+            break;
+        case 2:
+            if (D_actor_461800_80143884 < 0x10) {
+                D_actor_461800_80143884++;
+            }
+            if (D_actor_461800_80143890 < 0x13) {
+                D_actor_461800_80143890++;
+            }
+            if (D_actor_461800_80143884 == 0x10 && D_actor_461800_80143890 == 0x13) {
+                task->state = 3;
+            }
+            break;
+        case 3:
+            if (!(task->killCountdown & 3)) {
+                if (D_actor_461800_80143884 > 0) {
+                    D_actor_461800_80143884--;
+                }
+                if (D_actor_461800_80143890 > 0) {
+                    D_actor_461800_80143890--;
+                }
+            }
+            break;
+        case 4:
+            Display_ClampField126(0);
+            D_8017DC54 = -1;
+            return;
+    }
+    task->killCountdown++;
+    D_8017DC54 = D_actor_461800_80143884 / 3 + 3;
+}
 
 /// Full-screen fade overlay: `Task::state` picks the ramp (0 snaps it to 90,
 /// 1 clears it, 2 counts down, 3 counts up) held in `Task::killCountdown`, which
