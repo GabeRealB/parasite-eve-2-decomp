@@ -126590,3 +126590,76 @@ Inputs: scratch `nonmatchings/func_actor_304000_80162DFC-vacuum`; `base.c` (m2c)
 48.519%; `base_1.c`, the shared body with an inline work struct, 100.000% with
 all-zero penalties on its first build. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A scratch `-= 0xC` around an inlined step absorbs the step's head load unless the carve is the `SCRATCH_SP` shape (func_actor_123200_80133820, 2026-09-17)
+
+The per-frame handler reserves 0xC off the scratch head, then carves an `SVECTOR`
+inside an `if`. Written with the pointer macro —
+
+```c
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0xC;
+...
+if (D_80072729 != 1) {
+    head = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec  = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    ...
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+}
+```
+
+— it scores 88.655% with `delete=8`. Every scratch site is a `(const_int
+0x1F8003FC)` MEM at rtl-gen behind a one-use address temp, so cse gives them all
+one quantity: the step's head load is *forwarded* the value the outer RMW stored
+(`addu $s0,$a1,-0x14`, no load at all), the step's head store is sunk past
+`Gfx_MatrixCol2`, and one `lui`/`ori` pair feeds all three sites from a
+callee-saved register. The target instead re-reads the head as a **split
+constant address** and spends two extra `lui`s on it:
+
+```
+lui   $s1,(0x1F8003FC >> 16)
+lw    $s1,(0x1F8003FC & 0xFFFF)($s1)
+nop
+addiu $s0,$s1,-0x8
+lui   $at,(0x1F8003FC >> 16)
+sw    $s0,(0x1F8003FC & 0xFFFF)($at)
+```
+
+The whole gap is that addressing: with it, 116/116 instructions and 100.000%.
+
+The fix is to mirror the already-matched sibling `func_actor_403200_80134D40` /
+`Actor403200_StepForward`, which has this exact shape and the exact split form:
+define the head as a *u32 lvalue at the numeric address* and put the carve in a
+`static __inline__` helper that loads the head and stores the carved pointer
+back.
+
+```c
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+static __inline__ void Actor123200_StepForward(GsCOORDINATE2* coord)
+{
+    u8*      head;
+    SVECTOR* dir;
+
+    head       = (u8*)SCRATCH_SP;
+    dir        = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_SP = (u32)dir;
+    ...
+    SCRATCH_SP = (u32)((u8*)SCRATCH_SP + sizeof(SVECTOR));
+}
+```
+
+with `SCRATCH_SP -= 0xC;` / `SCRATCH_SP += 0xC;` in the caller. The u32
+arithmetic is what makes the reservation 0xC rather than a pointer scale, and
+the sibling proves the same macro yields both forms in one function — the
+caller's two RMWs keep the address in a register (`lui`/`ori`, `lw $v1,0($s3)`),
+the helper's three accesses go through the bare constant.
+
+Three cheaper interventions were measured and are **not** the lever: marking the
+outer access `volatile` (gcc 2.8.1 drops the qualifier — the `.rtl` MEM comes out
+as `(mem:SI (reg 100))`, no `/v`), spelling the outer RMW `*(s32*)` vs `*(void*)`,
+and giving only the middle a raw `0x1F8003FC` cast. All three reproduce the
+88.655% object byte for byte. So when a scratch reservation and an inlined carve
+share a function, take the sibling's `SCRATCH_SP` + `__inline__` shape as a whole
+before probing pieces of it; cse's `find_best_addr` bails out on
+`CONSTANT_ADDRESS_P (addr)`, which is why the carve's address survives as a
+constant only in the shape that never puts it in a register.
