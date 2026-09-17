@@ -15,7 +15,7 @@
 /// `func_actor_335800_80163AA0`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_335800_80172EA8[];
 
-void func_actor_335800_801632A4(Task* arg0, s32 arg1, Actor335800AnimPreset* arg2, s32 arg3);
+s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3);
 
 /// Turn-to-face handler: Euler-extracts the root coordinate into `vec`, and
 /// while the yaw gap to `work->field_4F2` is at least 0x41 it steps `vec.vy`
@@ -68,7 +68,42 @@ void func_actor_335800_801631A4(Task* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_801632A4);
+void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern void* D_actor_335800_8016EAD8[];
+
+/// Animation preset handler for the parent block, the 20-slot twin of
+/// `func_actor_335800_80163E20`: re-seeds the slot array off bank table
+/// `D_actor_335800_8016EAD8` when the preset's bank index changes, then
+/// restarts or resets every slot and ticks them.
+s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3)
+{
+    Actor335800MainWork* work;
+    TmdObject*           ext;
+    s32                  i;
+
+    work = (Actor335800MainWork*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_476) {
+        work->field_476 = msg->field_0;
+        func_800B3F84(&work->anim, D_actor_335800_8016EAD8[work->field_476], (GpAnimObj*)ext, work->field_334,
+                      work->slots);
+    }
+    work->field_475 = msg->field_4;
+    if (msg->field_8 != 0 && work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114(&work->anim, i, work->field_475, 0, msg->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_474 = 1;
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_801633C0);
 

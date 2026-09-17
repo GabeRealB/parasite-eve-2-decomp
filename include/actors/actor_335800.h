@@ -65,26 +65,29 @@ extern VECTOR D_actor_335800_80161E78;
 /// The size is the allocation; the fields below are the ones the init and the
 /// message handlers touch.
 typedef struct Actor335800MainWork {
-    /* 0x000 */ byte   pad_0[0x475];
-    /* 0x475 */ s8     field_475;
-    /* 0x476 */ s8     field_476;
-    /* 0x477 */ s8     field_477; // preset byte the turn-to-face body passes as `field_4`
-    /* 0x478 */ MATRIX light;
-    /* 0x498 */ MATRIX color;
-    /* 0x4B8 */ byte   pad_4B8[0x20];
-    /* 0x4D8 */ s32    field_4D8;
-    /* 0x4DC */ s32    field_4DC;
-    /* 0x4E0 */ s32    field_4E0;
-    /* 0x4E4 */ byte   pad_4E4[0xE];
-    /* 0x4F2 */ u16    field_4F2; // target yaw the turn-to-face body steers toward
-    /* 0x4F4 */ byte   pad_4F4[0x4];
-    /* 0x4F8 */ s16    field_4F8; // body counters the turn-to-face body clears on arrival
-    /* 0x4FA */ s16    field_4FA;
-    /* 0x4FC */ Task*  field_4FC;
-    /* 0x500 */ Task*  field_500;
-    /* 0x504 */ s16    field_504;
-    /* 0x506 */ s16    field_506;
-    /* 0x508 */ s32    field_508;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       field_334[0x140];
+    /* 0x474 */ s8         field_474;
+    /* 0x475 */ s8         field_475;
+    /* 0x476 */ s8         field_476;
+    /* 0x477 */ s8         field_477; // preset byte the turn-to-face body passes as `field_4`
+    /* 0x478 */ MATRIX     light;
+    /* 0x498 */ MATRIX     color;
+    /* 0x4B8 */ byte       pad_4B8[0x20];
+    /* 0x4D8 */ s32        field_4D8;
+    /* 0x4DC */ s32        field_4DC;
+    /* 0x4E0 */ s32        field_4E0;
+    /* 0x4E4 */ byte       pad_4E4[0xE];
+    /* 0x4F2 */ u16        field_4F2; // target yaw the turn-to-face body steers toward
+    /* 0x4F4 */ byte       pad_4F4[0x4];
+    /* 0x4F8 */ s16        field_4F8; // body counters the turn-to-face body clears on arrival
+    /* 0x4FA */ s16        field_4FA;
+    /* 0x4FC */ Task*      field_4FC;
+    /* 0x500 */ Task*      field_500;
+    /* 0x504 */ s16        field_504;
+    /* 0x506 */ s16        field_506;
+    /* 0x508 */ s32        field_508;
 } Actor335800MainWork;
 STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
 
