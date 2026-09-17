@@ -18,4 +18,8 @@ typedef struct DnsgrMsg7DA {
 } DnsgrMsg7DA;
 STATIC_ASSERT_SIZEOF(DnsgrMsg7DA, 0x4);
 
+/// Builds the room's display mode object and reports success. Its argument is
+/// unused; `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
+s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
+
 #endif // ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H

@@ -5,7 +5,7 @@
 
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
-s32 func_dryfield_night_saloon_g_r_8017E698(void)
+s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 {
     Display_InitModeObj(&D_dryfield_night_saloon_g_r_80185068, 0, 0, 0);
     return 1;
