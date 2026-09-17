@@ -8,6 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 
 /// 0x14-byte animation preset `func_actor_113000_80132208` reads: `field_0` is
@@ -58,5 +59,11 @@ typedef struct Actor113000Work {
     /* 0x4CA */ byte   pad_4CA[0x2];
 } Actor113000Work;
 STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
+
+/// Texture-upload state the per-frame tick runs at the end of its body: steps
+/// the countdown at `field_4C2` down while `field_4C4` names the upload step
+/// in progress, and on underflow posts that step's image, reloading the
+/// countdown for steps 1 and 2 or clearing the step for step 3.
+void func_actor_113000_80131E30(GpActorWork* arg0);
 
 #endif // ACTOR_113000_H

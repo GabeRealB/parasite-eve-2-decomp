@@ -5,6 +5,8 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 
 #include "main/mem.h"
 #include "main/task.h"
@@ -50,7 +52,45 @@ void func_actor_113000_80131F90(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113000/actor_113000_2", func_actor_113000_80132070);
+/// Per-frame tick, run after the model has been published: ticks the animation
+/// slots while the preset bank `field_474` marks live, draws the ground shadow
+/// under model part 1 while the model is not deferred, rebuilds that part's
+/// world matrix while the session's 0x4D is set, runs the texture-upload
+/// state, and counts the buffer free at `field_4C8` down to zero.
+void func_actor_113000_80132070(Task* task)
+{
+    Actor113000Work* work;
+    TmdObject*       extra;
+    GsCOORDINATE2*   coords;
+    VECTOR3          pos;
+    s32              i;
+
+    work  = (Actor113000Work*)task->idMap;
+    extra = (TmdObject*)task->extra;
+    if (work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(extra->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+        }
+    }
+    if (Game_Session->field_4D != 0) {
+        coords        = ((TmdObject*)task->extra)->field_8;
+        coords[1].flg = 0;
+        Gp_UpdateCoord(&coords[1]);
+        func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
+    }
+    func_actor_113000_80131E30((GpActorWork*)task);
+    if (work->field_4C8 >= 0) {
+        if (work->field_4C8 == 0) {
+            Tmd_FreeBuffers(extra);
+        }
+        work->field_4C8--;
+    }
+}
 
 /// Republishes the work block's light/color matrices onto the TMD object and
 /// rebuilds model part 1's world matrix from it, then hands that part's
