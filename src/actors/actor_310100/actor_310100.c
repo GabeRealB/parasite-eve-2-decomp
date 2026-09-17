@@ -3,6 +3,7 @@
 
 #include "actors/actor_310100.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gfx.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -357,7 +358,78 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     Gp_SetTmdBytes(obj, (s8)place->field_D, (s8)place->field_E);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_801627BC);
+/// Controller for the display model spawned from `D_actor_310100_801798FC`.
+/// Plaza ambience state 3 (`CdCmd_Queue.field_1F8`) forces the task into state
+/// 3, where it idles. Otherwise state 0 allocates the 0x50C work block, and
+/// states 1 and 2 toggle the model on the plaza stream slot: it is shown while
+/// the ambience state is 0/1 with slot `field_1EE` at 0xE6 or above, or state 2
+/// with the slot outside 7..0x6B. State 1 spawns it at the area place with
+/// id 0x6C; state 2 kills it again once that condition drops.
+void func_actor_310100_801627BC(Task* task)
+{
+    Actor310100Work* work;
+    Actor310100Work* work2;
+    GpAreaPlace*     place;
+    GsCOORDINATE2*   coord;
+    Task*            child;
+    u16              st;
+    u16              on;
+
+    st = CdCmd_Queue.field_1F8;
+    if (st == 3) {
+        task->state = st;
+    }
+    switch (task->state) {
+        case 0:
+            task->idMap = (TaskIdMap*)Mem_Malloc(0x50C, false);
+            if (task->idMap == NULL) {
+                Gp_DestroyEnemy(task->spawnArg2, task);
+                return;
+            }
+            task->field_24 = &D_actor_310100_801798B4;
+            task->state++;
+            break;
+        case 1:
+            on = 1;
+            if (CdCmd_Queue.field_1F8 < 2U) {
+                on = CdCmd_Queue.field_1EE >= 0xE6U;
+            }
+            if (CdCmd_Queue.field_1F8 == 2 && (u32)(CdCmd_Queue.field_1EE - 7) < 0x65U) {
+                on = 0;
+            }
+            if (on) {
+                work  = (Actor310100Work*)task->idMap;
+                place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+                while (place->field_0 != 0xFF && place->field_0 != 0x6C) {
+                    place++;
+                }
+                child             = Task_SpawnFromTable(&D_actor_310100_801798FC, 2, 1, 0);
+                work->field_4E4   = child;
+                coord             = ((TmdObject*)child->extra)->field_8;
+                coord->coord.t[0] = place->field_4;
+                coord->coord.t[1] = place->field_6;
+                coord->coord.t[2] = place->field_8;
+                Gfx_RotMatrixY(&coord->coord, place->field_A, 0);
+                task->state++;
+            }
+            break;
+        case 2:
+            on = 1;
+            if (CdCmd_Queue.field_1F8 < 2U) {
+                on = CdCmd_Queue.field_1EE >= 0xE6U;
+            }
+            if (CdCmd_Queue.field_1F8 == 2 && (u32)(CdCmd_Queue.field_1EE - 7) < 0x65U) {
+                on = 0;
+            }
+            if (!on) {
+                work2 = (Actor310100Work*)task->idMap;
+                task->state--;
+                Task_Kill(work2->field_4E4);
+                work2->field_4E4 = NULL;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_310100/actor_310100", func_actor_310100_801629FC);
 

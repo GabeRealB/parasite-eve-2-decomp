@@ -120408,3 +120408,24 @@ Inputs: scratch `nonmatchings/func_dryfield_saloon_g_r_8017DA70-vacuum`,
 98.519% (`reorder=2`, every other penalty zero), `base_10.c` 90.437%
 (`insert=7`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A predicate repeated in two switch cases can be one function-level local, not an inline: the shared pseudo outranks the switch value (func_actor_310100_801627BC, 2026-09-17)
+
+Cases 1 and 2 of a `switch (task->state)` compute the same `u16` flag from
+`CdCmd_Queue` (`on = 1; if (..<2) on = ..>=0xE6; if (..==2 && ..) on = 0;`).
+Written as a `static inline u16` helper called from both cases, the build is
+99.58% with a `regs`-only residue: the switch value gets `$v1` and the case-2
+flag `$a0`, the target has them the other way round.
+
+Each inline expansion is its own short pseudo, so the switch value (live into
+case 2, where CSE reuses it for `field_1F8 == 2`) is allocated first in
+`global_alloc` and takes the first free register. Declaring one function-level
+`u16 on;` and writing the computation out in both cases makes the flag a
+single pseudo with twice the refs and a live range spanning both cases; it
+now sorts ahead of the switch value, takes `$v1`, and the switch value falls
+to `$a0` - 100%.
+
+Also in this function: `if (q.field_1F8 == 3) task->state = q.field_1F8;`
+reloads the field into a second register (`move v0,v1`); the target's direct
+`sw v1` comes from a `u16 st = q.field_1F8;` local used for both the test and
+the store.
