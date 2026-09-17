@@ -116389,3 +116389,86 @@ Inputs: `base.i` (96.686%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_neo_ark_altar_8017E148-vacuum`.
+
+## A loop's RTL insn count decides whether its constant is hoisted (func_neo_ark_altar_8017DF0C, 2026-09-17)
+
+The loop `if (grow == 1 && (work->field_8 - 1) == i)` tests a flag against the
+literal `1`. The target materialises that `1` **inside** the loop -- `li $v0,1`
+sits in the back-edge delay slot, and the loop head re-tests `$v0` -- while the
+same C compiled by us put the `li` in the preheader and homed it in `$s3`: the
+frame grew from 0x20 to 0x28 (an extra saved register) and every branch in the
+function shifted by 8 bytes. Everything else, including the whole loop body, was
+byte-identical.
+
+**Cause, from `loop.c`'s own dump.** `move_movables` moves a set out of a loop
+when `threshold * savings * lifetime >= insn_count`, with
+`threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` -- **29** here
+(one call in the loop), and `savings`/`lifetime` both 1 for a constant set
+immediately before its use. The `.loop` dump states the decision outright:
+
+```
+Loop from 214 to 287: 28 real insns.
+Insn 225: regno 134 (life 1), move-insn savings 1  moved to 352
+Insn 245: regno 143 (life 1), move-insn savings 1 not desirable
+```
+
+At 28 insns the constant is hoisted, and a hoisted set is live across the call,
+so `global_alloc` gives it a callee-saved register (`find_reg` excludes
+call-used registers for an allocno whose `allocno_calls_crossed` is nonzero).
+One that stays in the loop is set and used inside one iteration -- the value is
+`REG_DEAD` at the loop's comparison -- so it is block-local, takes `$v0`, and
+`reorg` duplicates it into the back-edge delay slot. Raising the count to 30
+(`Insn 225 ... not desirable`) reproduces the target exactly.
+
+**`insn_count` counts RTL insns, so a source statement whose insns a later pass
+deletes still counts.** Two dead stores to a local raise it from 28 to 30:
+
+```c
+            work->field_C = i;
+            level         = 0;
+            level         = 1;
+            level         = (u16)work->field_A + ((0xBB8 - work->field_A) >> 1);
+```
+
+The second must differ from the first: `cse` deletes a repeated
+`(set (reg) (const))` as redundant, so `level = 0; level = 0;` adds only one.
+`flow.c` then removes both, leaving no trace in the object. The lever is
+general: to keep a loop-invariant constant in a caller-saved register, count the
+loop's insns in `.loop` and pad to `threshold + 1` before looking for a source
+difference.
+
+## Splitting a pointer chain around a store is what lets the scheduler reach into a load-delay slot (func_neo_ark_altar_8017DF0C, 2026-09-17)
+
+The entry block's `lw $s1, 0x1C($s0)` is followed in the target by the
+`lw $v0, %lo(Gp_ActorSlots)($v0)` of the *next* statement, filling the load-delay
+slot, and only then by `lhu $v1, 8($s1)`. Written as one expression --
+`coord = (*Gp_ActorSlots)->extra->field_8;` after `work->field_6 =
+work->field_8;` -- sched1 cannot do that: **the scheduler will not move a load
+above a store** (no aliasing information), so the `%hi`/`%lo` pair stays behind
+the `sh` and the delay slot keeps its `nop`. The store's value also gets `$v0`,
+which then forces the address chain to stay after it.
+
+Reading the first link into a local splits the chain around the store, and the
+target's schedule follows:
+
+```c
+    actor         = *Gp_ActorSlots;
+    work->field_6 = work->field_8;
+    coord         = actor->extra->field_8;
+```
+
+100.000%, all penalties zero. The tell is a `nop` in a load-delay slot the
+target fills, plus the delay-slot value's register: whichever of two
+non-overlapping quantities `local_alloc` sees first takes `$v0`, and the source
+order of a load and a store is what fixes that order.
+
+Inputs: `base_8.i` (95.192%) SHA256
+`fed0f3b7cf72745049a630bdb2e26cf488662daf111258667d819ac4abea28c4`, `base_20.i`
+(97.641%, the loop fixed) SHA256
+`4768b39eda5c6d29cabdeb6cd00eda533a8c13919626de3c8cd03d88950de684`, `base_24.i`
+(100%) SHA256
+`5dafe02a20f1b45cfa6c4cabb92d8b4395e80e1c788b92b0664b9bfdc3e9742e`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run (the router skipped: the frame difference
+made the block connections differ). Scratch
+`nonmatchings/func_neo_ark_altar_8017DF0C-vacuum`.
