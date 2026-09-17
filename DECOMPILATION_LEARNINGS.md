@@ -8482,6 +8482,28 @@ to 100.000% with every penalty zero, the loop's schedule included. Port every
 `static __inline__` the body calls into the candidate before reading a
 scheduling difference as a scheduling story.
 
+**A lone register swap in the sibling diff names the constant that changed.**
+The twin is often *almost* the same body, and the leftover diff lines are the
+evidence for what the source delta is - including lines that look like an
+allocation difference. `func_actor_403900_80134194` against
+`func_actor_402200_80134194` came back as five `D_` symbol renames, one `slti`
+immediate, and this:
+
+```
+< addiu $s1,$zero,0x14 ; addiu $v0,$zero,0xA   -> sh $s1,0x6DC ; sh $v0,0x6DE
+> addiu $v0,$zero,0x14 ; addiu $s1,$zero,0xA   -> sh $v0,0x6DC ; sh $s1,0x6DE
+```
+
+Same values into the same fields, opposite registers - which reads as a
+regalloc difference and is not one. Further down, both bodies do `sh $s1,
+0x6D6($s2)` across two `jal`s, so `$s1` is the constant that is *used twice*
+and has to survive the calls; the once-used one gets `$v0`. In the sibling
+`field_6D6 = 0x14`, so `0x14` earned `$s1`; here `$s1` holds `0xA`, so the
+source says `field_6D6 = 0xA`. Changing that one constant (plus the symbols and
+the `slti` immediate) took the verbatim port to 100.000% with every penalty
+zero. Read the swap as a question about which value is reused before reading it
+as an allocation leftover.
+
 ## `% N` then `andi rd,rd,0xffff` + `slti` is not `switch ((u16)rem)`
 
 A `% 5` remainder in `$a0` followed by `andi a0,a0,0xffff` / `beq a0,a2` /

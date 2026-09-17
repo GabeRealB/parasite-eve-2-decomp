@@ -300,6 +300,16 @@ typedef struct Actor403900HitScratch {
 } Actor403900HitScratch;
 STATIC_ASSERT_SIZEOF(Actor403900HitScratch, 0x30);
 
+/// 0x18-byte block `func_actor_403900_80134194` takes from `G_SCRATCH_HEAD`
+/// to place the actor relative to the box it is working off: `in` is the box
+/// heading rotated into the attach coordinate, and `out` holds the offset to
+/// the player the range and aim checks then measure.
+typedef struct Actor403900OffsetScratch {
+    /* 0x00 */ VECTOR  out;
+    /* 0x10 */ SVECTOR in;
+} Actor403900OffsetScratch;
+STATIC_ASSERT_SIZEOF(Actor403900OffsetScratch, 0x18);
+
 /// 0x48-byte block `func_actor_403900_80135D5C` takes from `G_SCRATCH_HEAD`
 /// to aim the actor: `m` is the root's world matrix brought local to the
 /// fourth part, `out` the GTE's rotated offset, and `pts` the two world points
@@ -335,8 +345,22 @@ typedef struct Actor403900 {
 /// with the caller taking the bits it wants out of the high half.
 extern u32 Gp_LcgState;
 
+/// One 4-byte entry of `D_actor_403900_801383DC`: the first entry whose
+/// `frame` is not below the animation frame `Actor403900Work::field_6C4`
+/// supplies `value` for `field_6C8`.
+typedef struct Actor403900FrameStep {
+    /* 0x0 */ s16 frame;
+    /* 0x2 */ u16 value;
+} Actor403900FrameStep;
+STATIC_ASSERT_SIZEOF(Actor403900FrameStep, 4);
+
+extern Actor403900FrameStep D_actor_403900_801383DC[];
+
 /// Parks the actor's target position off the player; see its definition.
 void func_actor_403900_80132E34(Actor403900* arg0);
+
+/// Aims the actor at the player; see its definition.
+void func_actor_403900_80135D5C(Actor403900* arg0);
 
 /// Reacts to the damage just taken; see its definition.
 void func_actor_403900_801324E8(Actor403900* arg0, s32 arg1);
