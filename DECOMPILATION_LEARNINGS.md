@@ -120429,3 +120429,88 @@ Also in this function: `if (q.field_1F8 == 3) task->state = q.field_1F8;`
 reloads the field into a second register (`move v0,v1`); the target's direct
 `sw v1` comes from a `u16 st = q.field_1F8;` local used for both the test and
 the store.
+
+## A redundant-looking `move $sN,$vN` after a computation is `cse` keeping two pseudos: put the store *before* the variable assignment (func_actor_800300_80162D74, 2026-09-17)
+
+The target opened with a scratch-vector push:
+
+```
+lui    a0,0x1f80
+ori    a0,a0,0x3fc
+lw     a1,0(a0)
+addiu  v1,a1,-0x10
+move   s1,v1        <- looks redundant: s1 and v1 hold the same value
+sw     v1,0(a0)
+```
+
+Writing the natural order
+
+```c
+    head = *(u8**)0x1F8003FC;
+    vec  = (VECTOR3*)(head - 0x10);      /* assign first */
+    *(u8**)0x1F8003FC = head - 0x10;     /* then store */
+```
+
+gives one pseudo and one instruction fewer (`addiu s1,a1,-0x10` / `sw s1,0(v1)`).
+Because the miss is 4 bytes *before* every later branch, the penalty line reads
+`branch=5 regs=8` and the object diff shows one hunk per branch - which looks
+like a register-allocation problem and is not. Swapping the two statements
+
+```c
+    head = *(u8**)0x1F8003FC;
+    *(u8**)0x1F8003FC = head - 0x10;     /* store first */
+    vec  = (VECTOR3*)(head - 0x10);      /* recomputed expression */
+```
+
+produced the target exactly (`branch=1 regs=0`, then 100% of the object).
+
+Mechanism: the expander materialises a register for an expression stored to
+memory, so the store-first order defines a pseudo *before* the variable's. CSE
+then finds that already-available expression when it reaches the second
+occurrence and substitutes the register, leaving `(set (reg_vec) (reg_store))`
+- a copy. The store's pseudo is used only inside the block, so `local-alloc` can
+take a caller-saved register for it (`$v1`); the variable's pseudo crosses the
+calls and is `global_alloc`'s, so it becomes `$s1`. Assign-first reaches CSE
+with the variable's pseudo already defined, folds the store into it, and the
+copy never exists. Two ways to tell the two orders apart: the redundant `move`
+whose source is the value just stored, and a `.lreg` line for the variable that
+says `crosses N calls` (global) while the addiu writes a register whose pseudo
+was never born. Neither order changes what the C computes.
+
+Inputs: `base_1.i` `6a7f51fd2c9466b977088bbde88914c8ffb771521cb48b1a7e88a25339049aca`
+(98.511%, assign-first), `base_2.i` `d103a518aeedf93a830a2f391fa0ba8517e8d0bf00b899ce6ab869dac1e17c81`
+(99.989% by the scorer, matching object).
+
+Also in this function: m2c's `temp_v1 = temp_a1 - 0x10;` with `VECTOR3 *temp_a1`
+scales by `sizeof(VECTOR3)` and emits `addiu s1,a1,-0xc0`. The scratch pointer
+is byte-addressed - the target's `-0x10` is raw - so the decrement has to be
+written `(VECTOR3*)((u8*)head - 0x10)`, or with the family's own idiom
+`u8* head = *(u8**)0x1F8003FC; vec = (VECTOR3*)(head - 0x10);`
+(`actor_800200_2.c`, `actor_300700.c`). Off by 0xc0 versus 0x10 the whole
+function still looked structurally right at `branch=5`, which is worth knowing
+before hunting registers.
+
+## A scratch score just under 100% whose only hunk is a branch/j operand is the *target* object's relocation, not a mismatch (func_actor_800300_80162D74, 2026-09-17)
+
+`dist.py` compares the built object against `target.o`, and `target.o` is
+assembled from splat's listing. A mid-function `alabel` in that listing (here
+`D_80162E98`, a branch target splat names as an alternate entry) makes gas emit
+a `R_MIPS_PC16`/`R_MIPS_26` relocation against a *global* symbol and leave a
+placeholder in the word, while the compiled object resolves the same branch
+locally. The score reports `branch=1` and one hunk whose two sides are
+
+```
+beqz    v0,D_80162E98+110        beqz    v0,124
+```
+
+- the same destination through a symbol the C cannot define. Four words differed
+here, all of them `j`/branch operands, and every one resolved to the same
+relative target (0xB4, 0x128, 0x124, 0x10); `addiu`/`sw`/`lui` and the other 90
+instructions were byte-identical.
+
+Confirm it before spending a permuter run: `objcopy -O binary --only-section=.text`
+both objects and compare, then checksum the overlay -
+`sha256sum -c <(grep <overlay> configs/USA/checksum.sha)` from `build/USA/out`,
+or just `./tools/build-and-verify.sh`. Here the overlay came back `OK`, so the
+0.011% was the listing, not the code. The mirror image is already recorded: a
+genuine `j`-target miss can score a perfect 100.000%.
