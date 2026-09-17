@@ -178,7 +178,13 @@ typedef struct Actor403900Work {
     /* 0x664 */ s32  field_664;
     /* 0x668 */ s32  field_668;
     /* 0x66C */ s32  field_66C;
-    /* 0x670 */ byte pad_670[0x44];
+    /* 0x670 */ byte pad_670[0x34];
+    /// World position the grab places the player at, written by
+    /// `func_actor_403900_80132E34` and read back by the 0x3E9 message.
+    /* 0x6A4 */ s32  field_6A4;
+    /* 0x6A8 */ s32  field_6A8;
+    /* 0x6AC */ s32  field_6AC;
+    /* 0x6B0 */ byte pad_6B0[4];
     /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
     /// entries of 0x10 bytes each.
     /* 0x6B4 */ Actor403900Region* field_6B4;
@@ -355,6 +361,38 @@ typedef struct Actor403900FrameStep {
 STATIC_ASSERT_SIZEOF(Actor403900FrameStep, 4);
 
 extern Actor403900FrameStep D_actor_403900_801383DC[];
+
+/// Payload of the 0x3F8 query `func_actor_403900_8013314C` sends the player
+/// before it grabs; `field_14` is the range it asks for.
+typedef struct Actor403900Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor403900Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor403900Msg3F8, 0x18);
+
+/// Payload of message 0x3E9: the world position and rotation the player is
+/// placed at.
+typedef struct Actor403900Msg3E9 {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor403900Msg3E9;
+STATIC_ASSERT_SIZEOF(Actor403900Msg3E9, 0x18);
+
+/// 0x5C-byte block `func_actor_403900_8013314C` takes from `G_SCRATCH_HEAD`:
+/// the 0x3F8 query, the `GpAnimArg` sent as message 0x3FF, the 0x3E9
+/// placement, and the offset `in` rotated through the actor's root into `out`
+/// (`in` is also the rotation handed to `RotMatrix` and `func_800FDB18`).
+typedef struct Actor403900GrabScratch {
+    /* 0x00 */ Actor403900Msg3F8 query;
+    /* 0x18 */ GpAnimArg         anim;
+    /* 0x2C */ Actor403900Msg3E9 place;
+    /* 0x44 */ VECTOR            out;
+    /* 0x54 */ SVECTOR           in;
+} Actor403900GrabScratch;
+STATIC_ASSERT_SIZEOF(Actor403900GrabScratch, 0x5C);
+
+/// Runs the one-shot vocal cue armed by `field_718`; see its definition.
+void func_actor_403900_801380DC(Actor403900* arg0);
 
 /// Parks the actor's target position off the player; see its definition.
 void func_actor_403900_80132E34(Actor403900* arg0);
