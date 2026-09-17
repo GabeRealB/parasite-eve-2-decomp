@@ -116031,3 +116031,50 @@ makes the table index `sll 16`/`sra 14` (a `short` scaled by 4) rather than
 
 All three in one rewrite: 62.684% with `regs=57 insert=17 delete=15` to
 100.000% with every penalty zero, first build, no pins.
+
+## A nested `if`'s comparison lands in the outer branch's delay slot: read the branch as testing the *earlier* value
+
+`func_mine_cavern_80180320` gates on `Gp_State1C`'s `field_4` the way the whole
+room-effect family does - 1-3 parks the effect, 4 or more tears the work block
+down - and the target tests it twice off one load:
+
+```
+lh     v0,0x4(v0)
+beqz   v0, .Lthen        /* outer: field_4 == 0 -> run the effect */
+slti   v0,v0,0x4         /* delay slot: the inner test, on the same register */
+bnez   v0, .Ldone
+move   a0,s0
+j      .Lrelease
+```
+
+The delay slot *overwrites the register the branch tested*, so the listing reads
+as if the `beqz` were branching on the `slti` result - it is not. MIPS resolves a
+branch before its delay slot's write-back takes effect, so `beqz` still sees the
+loaded `field_4`; the `slti` is simply the nested `if`'s comparison, sitting
+where reorg put it because it is the first thing the fall-through path needs and
+the taken path reloads `v0` anyway.
+
+Nothing special is needed in the C to get this - write the nesting plainly and
+let CSE merge the two reads into one load and one pseudo:
+
+```c
+if (Gp_State1C->field_4 != 0) {
+    if (Gp_State1C->field_4 >= 4) {
+        Gp_ReleaseState1CMem(work, task);
+    }
+} else {
+    ...body...
+}
+```
+
+Matching this pattern by hand instead - hoisting the comparison into a temp, or
+writing the two tests as one `switch` - is what costs the delay slot. When a
+listing shows a branch and its delay slot both writing one register, check which
+value each reads before restructuring: the branch is the outer test.
+
+The same body recurs across `dryfield_night_main_street`, `mine_secret_passage`
+and `shelter_b3_elevator_hall`, instruction-identical apart from the per-overlay
+`func_<room>_80XXXXXX` ring call - so `overlay_dup_index.py promote` refuses it
+("references its own overlay's code"), and the cheap path is to port the matched
+sibling's C verbatim with the callees swapped. `func_mine_cavern_80180320` went
+in at 100.000% on the first build that way.
