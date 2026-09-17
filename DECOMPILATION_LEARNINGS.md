@@ -120024,3 +120024,54 @@ Inputs: `base.i` `e838b95b5b5663a825f9927bd8feabbcc567e6a14a1ed2facf9dba73b51045
 (92.934%, `M2C_FIELD(temp_v0, s8 *, 8) = 0xFF`), `base_1.i`
 `a293989628499be5bd682010b1539b5712d9869b496c4d4e813575ff7f5d6937` (100%, `u8`
 field).
+
+## A result local that receives the call's return is live across that call and gets a callee-saved home; two separate `return`s leave each answer in `$v0` (func_dryfield_night_factory_80180574, 2026-09-17)
+
+The last arm of a handler that offers a request to a gate reads naturally as one
+result local: `var_v0 = 1; if (msgId == 0x19) { ...; var_v0 = f(&req, in); }
+return var_v0;`. That shape scored 98.375% (`regs=1 insert=2`) and the object
+diff is two instructions:
+
+```
+target                                    candidate
+bne   v1,v0,.Lepilogue                    bne   v1,v0,.Lepilogue
+li    v0,1              /* delay */       li    a0,1          /* delay */
+...call setup...                          ...call setup...
+jal   RoomsShared8017d638                 jal   RoomsShared8017d638
+sh    zero,0x22(sp)                       sh    zero,0x22(sp)
+                                          move  a0,v0
+.Lepilogue:                               move  v0,a0
+```
+
+The pseudo holding the answer is *set* on the fall-through arm and *receives the
+call's return* on the other, so its live range spans the call. `$v0` is
+call-clobbered, so global-alloc cannot home it there (`CODEGEN_MODEL.md` §10: a
+pseudo live across a call takes a callee-saved register or a spill); it went to
+`$a0`, and reload then has to move the call's result out of `$v0` into that home
+and back into `$v0` at the return - the two extra instructions.
+
+Writing the arms as two returns removes the shared quantity:
+
+```c
+    if (in->msgId == 0x19) {
+        ...
+        return RoomsShared8017d638(&req, in);
+    }
+    return 1;
+```
+
+Each block now computes its own return value, which `$v0` holds by construction,
+so the `1` is materialised straight into `$v0` (into the `bne`'s delay slot) and
+the call result falls through to the epilogue untouched. 100%, 126 instructions,
+all penalties zero.
+
+So a target that materialises a constant into `$v0` in a branch delay slot and
+then lets a `jal`'s result fall through to the same epilogue is evidence of two
+`return` statements, not of one result local coalesced into `$v0`. The tell for
+the wrong shape is a `move $aN,$v0` immediately after the call, paired with a
+`move $v0,$aN` before the epilogue - a pseudo that has to be copied out of, and
+back into, the return register.
+
+Inputs: `base_1.i` `3301634ccf558a2daf39e4080faa4e982166bc3d77fe23b88390418615a3d5e0`
+(98.375%, shared result local), `base_2.i`
+`1b022746950a6da15d366e51d85ae581d0999d2e93499d7ca6202d2fa3187d39` (100%, two returns).
