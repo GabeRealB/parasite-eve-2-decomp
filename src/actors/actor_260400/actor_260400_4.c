@@ -29,7 +29,34 @@ s32 func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* pres
     return -1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400_8014A998);
+/// Step handler: bit 0 of the step mask parks both models' state field at zero
+/// when set and at 0x80 when clear, bit 1 ORs in the 0x4 running flag. While
+/// the work block's case selector is still 0 the helper task's model is forced
+/// to 0x84, which is the animation the actor holds until a message moves it.
+s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* obj;
+    TmdObject* helperObj;
+
+    obj       = (TmdObject*)D_actor_260400_80154C74->extra;
+    helperObj = (TmdObject*)ActorsShared80131f9cWork->field_4F0->extra;
+
+    if (arg2 & 1) {
+        obj->field_C       = 0;
+        helperObj->field_C = 0;
+    } else {
+        obj->field_C       = 0x80;
+        helperObj->field_C = 0x80;
+    }
+    if (arg2 & 2) {
+        obj->field_C       |= 4;
+        helperObj->field_C |= 4;
+    }
+    if ((u8)ActorsShared80131f9cWork->field_4F4 == 0) {
+        helperObj->field_C = 0x84;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400_8014AA28);
 
