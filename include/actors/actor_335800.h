@@ -186,4 +186,30 @@ STATIC_ASSERT_SIZEOF(Actor335800MatWords, 0x14);
 void func_actor_335800_80163B34(Task* arg0);
 void func_actor_335800_80163B54(Task* arg0);
 
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::field_8`, the actor's root
+/// part. Offset 0x44 (libgs `param`) holds the Euler angles
+/// `func_actor_335800_80161E88` seeds and hands straight to `RotMatrix`.
+typedef struct Actor335800Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor335800Coord;
+STATIC_ASSERT_SIZEOF(Actor335800Coord, 0x4C);
+
+/// Start pose `func_actor_335800_80161E88` places its root part at: a
+/// translation plus the Euler angles for `RotMatrix`.
+typedef struct Actor335800Pose {
+    /* 0x00 */ s32     x;
+    /* 0x04 */ s32     y;
+    /* 0x08 */ s32     z;
+    /* 0x0C */ byte    pad_C[0x4];
+    /* 0x10 */ SVECTOR rot;
+} Actor335800Pose;
+
+extern Actor335800Pose D_actor_335800_80164F80;
+/// Second label on `D_actor_335800_80164F80.z`: the height the rising part
+/// starts decelerating past.
+extern s32 D_actor_335800_80164F88;
+
 #endif
