@@ -50,7 +50,34 @@ INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_min
 
 INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017D8EC);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017DAB8);
+void func_mine_forked_tunnel_8017DAB8(Task* arg0)
+{
+    RoomPlacement  placement;
+    RoomPlacement* place;
+    RoomCoord*     coord;
+
+    if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x36) {
+        placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
+        placement.pos.vy = D_mine_forked_tunnel_80181BA4.pos.vy;
+        placement.pos.vz = D_mine_forked_tunnel_80181BA4.pos.vz;
+        placement.rot.vx = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vx;
+        placement.rot.vy = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vy;
+        placement.rot.vz = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vz;
+
+        place             = &placement;
+        coord             = (RoomCoord*)((TmdObject*)arg0->extra)->field_8;
+        coord->coord.t[0] = place->pos.vx;
+        coord->coord.t[1] = place->pos.vy;
+        coord->coord.t[2] = place->pos.vz;
+        coord->rot.vx     = place->rot.vx;
+        coord->rot.vy     = place->rot.vy;
+        coord->rot.vz     = place->rot.vz;
+        RotMatrixZYX(&coord->rot, &coord->coord);
+        coord->flg = 0;
+
+        arg0->killCountdown++;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5C0);
 

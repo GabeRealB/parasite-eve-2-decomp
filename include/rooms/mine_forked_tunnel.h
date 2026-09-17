@@ -19,6 +19,21 @@ extern SVECTOR D_mine_forked_tunnel_80180AC4;
 /// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
 extern RoomPlacement D_mine_forked_tunnel_80181BBC;
 
+/// The `RoomPlacement` the tunnel's pitch-animated object adopts: state 0
+/// (`func_mine_forked_tunnel_8017DE54`) copies it onto the task's coordinate
+/// whole, and state 1 (`func_mine_forked_tunnel_8017DAB8`) then keeps its `pos`
+/// while taking the `rot` from the pitch table below. Position
+/// (0xB4, -0xEB, -0x30C), rotation zero.
+extern RoomPlacement D_mine_forked_tunnel_80181BA4;
+
+/// The pitch curve `func_mine_forked_tunnel_8017DAB8` walks that object
+/// through, one `SVECTOR` per step of the counter it runs while
+/// `Task::spawnArg1` is 1: entries 0-15 are zero, then `vx` falls to -8 and
+/// climbs to 175 before settling at 173 (4096 is a full turn), so the object
+/// rises over the sequence and holds. The table is 54 entries, the counter's
+/// limit, so the last step lands on the settling value.
+extern SVECTOR D_mine_forked_tunnel_801819C4[54];
+
 /// Two-entry `TaskDesc` table `func_mine_forked_tunnel_8017D5E8` spawns the
 /// child enemy from; `Task_SpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74;

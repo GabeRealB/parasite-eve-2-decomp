@@ -117504,3 +117504,54 @@ psyq primitive").
 Inputs: `base_2.i` (100.000%) `0b99abadd8c2ccc8`, `base_1.i` (99.624%, same
 loop with the `0x14B4` written in the body and a `DR_TPAGE`-typed cursor)
 `163ec4787dd2231b`.
+
+## A pointer to a stack local used only on the read side: every write stays sp-relative, every read goes through the base register (func_mine_forked_tunnel_8017DAB8, 2026-09-17)
+
+The `addiu aN, sp, off` entry above reads the base register off the *stores* -
+the offset-0 store folds back to sp-relative and the rest keep the register.
+The mirror case is a local that the source fills with direct field writes and
+then reads back through a pointer, and there the split falls between the two
+directions instead:
+
+```
+addiu v1,sp,0x10        /* v1 = &placement */
+sw    a0,0x18(s0)       /* the offset-0 read, CSE'd away entirely */
+lw    v0,4(v1)          /* placement.pos.vy */
+lw    v0,8(v1)          /* placement.pos.vz */
+lhu   v0,0x10(v1)       /* placement.rot.vx */
+lhu   v0,0x12(v1)
+lhu   v0,0x14(v1)
+```
+
+All six writes to the local are `0x10(sp)`..`0x24(sp)`, and all five surviving
+reads are off `v1`. The same rule explains both: a direct member write is
+`(mem (plus (reg ap) (const)))` from the start and never sees the pointer, and
+of the reads only `place->pos.vx` (offset 0) is a bare `(mem (reg place))`, the
+one shape `fold_rtx` may substitute - and here cse had already replaced it with
+the register that loaded the source word, so the base register's first use is
+the `+4` read. Reads base-relative with every write sp-relative therefore means
+the pointer exists but covers the reads only; it is not the "all sp-relative =
+plain local" case, and it is not the inlined-helper case above either, since
+the sequence is straight-line, call-free code.
+
+Found by subtraction: the direct `placement.pos.vy` spelling scored 96.667%
+with the addressing as the *only* difference (`regs=10 insert=1 delete=1`,
+75/75 instructions, structure matching), and `.rtl` after expand showed no
+address pseudo at all - `(mem/s:SI (plus:SI (reg:SI 77 virtual_stack_vars)
+(const_int 20)))` per access. Adding `place = &placement;` and reading the six
+fields through `place->` moved the reads onto `$v1` and scored 100.000% with
+every penalty zero, in one build. The writes stayed direct.
+
+A related trap in the same function: `D_mine_forked_tunnel_80181BA4` is a
+`RoomPlacement` in the overlay's sibling unit and was declared a `VECTOR` here,
+which is a `conflicting types for` error at build time and *identical bytes* if
+you fix it by spelling the reads `.pos.vx` - a symbol can be legitimately viewed
+two ways as long as both views agree on the offsets actually read.
+
+Inputs: `base_1.c` SHA256 `e99a82a721484ab5900a917569451863601554f1a74af7535a6815ee8f9561df`
+(96.667%); `base_2.c` SHA256 `f08d382a80db1bd0fb8be9a3fd09a99b878a159aa8c813f74cd63c656a4dc85b`
+(100.000%, all penalties zero); `base_3.c` SHA256
+`a8a2f2b2c3cb3a1e2226ed455bada726b43f2faebfad277f466b6ea538c9a8c4` is the same
+source against the header's `RoomPlacement` type, byte-identical object.
+`target.s` SHA256 `0f92b81219939223dbf73c67681009c22f709dda4035d62d368ef067060fa655`.
+Scratch `nonmatchings/func_mine_forked_tunnel_8017DAB8-vacuum`.

@@ -6,8 +6,6 @@
 #include "rooms/room_common.h"
 #include "rooms/mine_forked_tunnel.h"
 
-extern RoomPlacement D_mine_forked_tunnel_80181BA4;
-
 /// `Task::field_24` handler for message id 0x7D5: switches the draw and
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
 /// clear bit 0x80 - hiding and showing the model - and leave bit 0x4 clear so
