@@ -26,7 +26,6 @@ extern TaskDesc D_actor_443500_8015873C;
 extern s32 D_actor_443500_80158754;
 
 void func_actor_443500_8013297C(Task* task, s32 anim, s32 arg2, s32 arg3);
-void func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
 
 void func_actor_443500_8013206C(s8 arg0)
 {
