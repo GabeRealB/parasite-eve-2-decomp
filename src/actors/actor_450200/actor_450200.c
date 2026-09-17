@@ -6,10 +6,16 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
+
+#include <psyq/rand.h>
+
 extern TaskDesc D_actor_450200_8013FB40;
 
 extern void func_8017FA98(s32);
 
+extern u8       D_actor_450200_8013885C[];
+extern SVECTOR  D_actor_450200_80138868;
 extern s32      D_actor_450200_80138870;
 extern s32      D_actor_450200_80138A68;
 extern s32      D_actor_450200_80138C60;
@@ -19,7 +25,54 @@ extern TaskDesc D_actor_450200_80137A60;
 extern Task*    D_actor_450200_801401E0;
 extern Task*    D_actor_450200_801401E4;
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200", func_actor_450200_80131E24);
+/// Effect state machine of this actor's first sub-task: state 0 arms the
+/// self-destruct countdown at 0x64 and state 2 re-arms it at 0x80, both then
+/// stepping the state on; state 1 throws effect 0x60080 on every other frame,
+/// state 3 splits into an odd branch that bursts 0x60080 with the countdown
+/// scaled into the spawn argument while it is still positive and an even
+/// branch that spawns a 0x60070 only every eighth frame -- the other two bits
+/// of the odd/even split the two effects see. The part the effects hang off is
+/// picked at random from the model's coordinate array: the 11-entry byte table
+/// holds indices into it, which is why the load is unsigned and the stride is
+/// `GsCOORDINATE2`.
+void func_actor_450200_80131E24(Task* task)
+{
+    Task*          slot;
+    GsCOORDINATE2* coord;
+    s16            countdown;
+
+    slot  = Game_GetPtrSlot(0xA);
+    coord = &((TmdObject*)slot->extra)->field_8[D_actor_450200_8013885C[(rand() * 11) >> 15]];
+    switch (task->state) {
+        case 0:
+            task->killCountdown = 0x64;
+            task->state++;
+            return;
+        case 1:
+            countdown           = (u16)task->killCountdown - 1;
+            task->killCountdown = countdown;
+            if ((countdown & 1) == 0) {
+                Gp_SpawnEff(0x60080, coord, 0x80000300, NULL);
+            }
+            return;
+        case 2:
+            task->killCountdown = 0x80;
+            task->state++;
+            return;
+        case 3:
+            countdown           = (u16)task->killCountdown - 1;
+            task->killCountdown = countdown;
+            if (countdown & 1) {
+                if (countdown > 0) {
+                    Gp_SpawnEff(0x60080, coord, countdown * 2 + 0x80000080,
+                                &D_actor_450200_80138868);
+                }
+            } else if (countdown >= -0x1F && (countdown & 7) == 0) {
+                Gp_SpawnEff(0x60070, coord, 0xF0010100, &D_actor_450200_80138868);
+            }
+            return;
+    }
+}
 
 /// Head-aim record `func_actor_450200_80131FA8` allocates and parks in
 /// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw

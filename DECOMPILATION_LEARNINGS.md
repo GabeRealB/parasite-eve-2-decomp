@@ -124914,3 +124914,44 @@ and the two overlays' data tables are overlay-local (each names its own
 `D_actor_1056xx_80147FDC` placement table and sound id), so `promote` is right
 to decline. Inputs: `base.c` 63.860% (`regs=50 reorder=3 insert=14 delete=80`);
 `base_1.c` 100.000% all-zero penalties on its first build.
+
+## A scalar an m2c temporary holds across a call costs a callee-saved register (func_actor_450200_80131E24, 2026-09-17)
+
+m2c emits each field read it needs as a named temporary assigned near the top of
+the body, so a value the ROM computes at the `switch` is born early enough to be
+live across the calls in between. Here `Task::state` was read into `temp_a0`
+*before* `rand()`, so it had to survive that call -- and only `$sN` survives a
+call. The target's `$a0` is therefore not an allocation preference that a
+different allocator would have made differently; it is a statement about where
+the source reads the field:
+
+```c
+    temp_s0 = Game_GetPtrSlot(0xA);             /* call */
+    temp_a0 = M2C_FIELD(arg0, s32 *, 0x30);     /* live across call 2 -> $s1 */
+    temp_a1 = ... rand() ...;                   /* call */
+    switch (temp_a0) {
+```
+
+Reading it at its use site instead puts the load after the last call, where the
+short range fits a caller-saved register and the prologue loses a save/restore:
+
+```c
+    slot  = Game_GetPtrSlot(0xA);
+    coord = &((TmdObject*)slot->extra)->field_8[table[(rand() * 11) >> 15]];
+    switch (task->state) {                      /* load lands here -> $a0 */
+```
+
+The controlled variation keeps the hoist and changes nothing else: 94.141%
+(`regs=22 insert=3 delete=1 branch=10`) with `lw $s1, 0x30($s2)` before
+`jal rand` and the extra `sw/lw $s1, 0x14($sp)`. Removing it is part of the
+72.900% -> 100.000% move, whose other half is the m2c table type: the read of a
+byte table m2c typed `s32*` cost an `sll` plus an `lw` where the ROM has `lbu`
+and no shift. So read a mismatching `$sN` as a question about *where the source
+reads the field*, not about which register the allocator picked.
+
+Same family as "A load written after a call cannot be scheduled before it", but
+that one is the memory-dependency edge; this one is the live range, so it shows
+up even when the load and its call are in different blocks.
+
+Inputs: `base_2.c` 94.141%, `base_1.c` 100.000%; `base_2_object_dump.s` of the
+former.
