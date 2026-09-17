@@ -224,7 +224,135 @@ void func_actor_160900_80132C08(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132E80);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80133238);
+static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
+{
+    Actor160900Work* work;
+    GpAnimArg        msg;
+    GpAnimArg*       p;
+
+    work = (Actor160900Work*)task->idMap;
+    p    = &msg;
+    if (work->field_34 != NULL) {
+        p->field_0     = D_actor_160900_8013F198;
+        work->field_64 = anim;
+        p->field_4     = anim;
+        p->field_8     = 1;
+        p->field_C     = 10;
+        p->field_10    = 1;
+        Gp_DispatchMsg(work->field_34, 0x3F4, (s32)p, 0);
+        work->field_66 = 0;
+    }
+}
+
+static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
+{
+    Actor160900Work* work;
+    GpAnimArg        msg;
+    GpAnimArg*       p;
+
+    work = (Actor160900Work*)task->idMap;
+    p    = &msg;
+    if (work->field_34 != NULL) {
+        p->field_0     = D_actor_160900_8013F198;
+        work->field_64 = anim;
+        p->field_4     = anim;
+        p->field_8     = 0;
+        p->field_C     = 0;
+        p->field_10    = 1;
+        Gp_DispatchMsg(work->field_34, 0x3F4, (s32)p, 0);
+        work->field_66 = 0;
+    }
+}
+
+void func_actor_160900_80133238(Task* arg0)
+{
+    Actor160900Work* work;
+    GpAnimArg        msg;
+    Actor160900Work* w;
+    s32              v;
+    s32              x;
+
+    work = (Actor160900Work*)arg0->idMap;
+    func_actor_160900_801326EC(arg0);
+    switch ((u16)work->field_4C) {
+        case 0:
+            break;
+        case 1:
+            Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F210, 0);
+            w = (Actor160900Work*)arg0->idMap;
+            if (w->field_34 != NULL) {
+                msg.field_0  = D_actor_160900_8013F198;
+                w->field_64  = 10;
+                msg.field_4  = 10;
+                msg.field_8  = 0;
+                msg.field_C  = 0;
+                msg.field_10 = 1;
+                Gp_DispatchMsg(w->field_34, 0x3F4, (s32)&msg, 0);
+                w->field_66 = 0;
+            }
+            break;
+        case 2:
+            w = (Actor160900Work*)arg0->idMap;
+            if (w->field_34 != NULL) {
+                msg.field_0  = D_actor_160900_8013F198;
+                w->field_64  = 1;
+                msg.field_4  = 1;
+                msg.field_8  = 0;
+                msg.field_C  = 0;
+                msg.field_10 = 1;
+                Gp_DispatchMsg(w->field_34, 0x3F4, (s32)&msg, 0);
+                w->field_66 = 0;
+            }
+            break;
+        case 3:
+            if ((u16)work->field_4E == 0) {
+                x = D_80073BA9;
+                if (D_8007218A == 1) {
+                    v = x + 1;
+                } else {
+                    v = x + 0x22;
+                }
+                msg.field_0  = (u8*)v;
+                msg.field_4  = 1;
+                msg.field_8  = 0;
+                msg.field_C  = 0;
+                msg.field_10 = 0;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+                Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F228, 0);
+                msg.field_0 = (u8*)-0x7D0;
+                msg.field_4 = 0;
+                msg.field_8 = 0xC80;
+                Gp_DispatchMsg(work->field_34, 0x3FB, (s32)&msg, 0);
+                work->field_4E++;
+            }
+            return;
+        case 4:
+            work->field_0 = 8;
+            work->field_2 = 0x80;
+            Task_SpawnFromTable(&D_actor_160900_8013F17C, 0, 0, (s32)work);
+            work->field_4C = 0;
+            return;
+        case 5:
+            work->field_4 = 2;
+            break;
+        case 6:
+            func_actor_160900_SetAnimZ(arg0, 2);
+            break;
+        case 7:
+            func_actor_160900_SetAnim(arg0, 6);
+            break;
+        case 8:
+            func_actor_160900_SetAnim(arg0, 7);
+            break;
+        case 9:
+            func_actor_160900_SetAnim(arg0, 8);
+            break;
+        case 10:
+            func_actor_160900_SetAnim(arg0, 9);
+            break;
+    }
+    work->field_4C = 0;
+}
 
 void func_actor_160900_8013358C(Task* arg0)
 {

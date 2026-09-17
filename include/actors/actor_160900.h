@@ -41,7 +41,10 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// `field_64` indexes `D_actor_160900_8013F1CC` and `field_66` counts frames
 /// against the step's `field_0`.
 typedef struct Actor160900Work {
-    /* 0x00 */ byte  pad_0[0xC];
+    /* 0x00 */ s16   field_0;     // set to 8 before the 0x4C == 4 spawn
+    /* 0x02 */ s16   field_2;     // set to 0x80 alongside field_0
+    /* 0x04 */ s16   field_4;     // set to 2 by 0x4C == 5
+    /* 0x06 */ byte  pad_6[6];
     /* 0x0C */ Task* field_C[10]; // child tasks, killed on death
     /* 0x34 */ Task* field_34;    // Game_GetPtrSlot(3), Gp_DispatchMsg target
     /* 0x38 */ Task* field_38;    // ActorsShared80136280Desc[3]
@@ -113,10 +116,15 @@ extern Task* D_actor_160900_8013FBB4;
 extern Actor160900AnimStep D_actor_160900_8013F1CC[];
 extern u8                  D_actor_160900_8013F198[];
 
-extern s32 D_80070F70;
-extern u8  D_80071075;
-extern s8  D_8007272D;
-extern s8  D_80114C12;
+extern s32      D_80070F70;
+extern s8       D_8007218A;
+extern u8       D_80073BA9;
+extern u8       D_actor_160900_8013F210[];
+extern u8       D_actor_160900_8013F228[];
+extern TaskDesc D_actor_160900_8013F17C;
+extern u8       D_80071075;
+extern s8       D_8007272D;
+extern s8       D_80114C12;
 
 /// Point lists `func_actor_160900_8013418C` hands `func_actor_160900_80133758`
 /// for `Actor160900Work::field_5C` values 1-5.
@@ -131,10 +139,12 @@ extern u8  D_actor_160900_8013F538[];
 extern u8  D_actor_160900_8013FAA8[];
 extern u32 Gp_LcgState;
 
-/// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
-/// jittered by up to +-700; runs one frame in eight.
+/// Runs the one-shot request in `Actor160900Work::field_4C` (animation
+/// changes on the player task, a spawn, a flag) and clears it.
 void func_actor_160900_80133238(Task* arg0);
 void func_actor_160900_8013358C(Task* arg0);
+/// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
+/// jittered by up to +-700; runs one frame in eight.
 void func_actor_160900_80133758(SVECTOR* pts);
 
 void func_actor_160900_80134710(void);
