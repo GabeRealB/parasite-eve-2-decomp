@@ -20,7 +20,133 @@ extern GpEnemyTaskFuncTable3 D_actor_207200_80149E30;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014B278);
+extern GpU16Pair  D_actor_207200_8014E7CC;
+extern GpPairSrcE D_actor_207200_8014E7D4;
+extern s32        D_actor_207200_80153ED4;
+
+void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
+{
+    Actor207200SpawnWork* work;
+    TmdObject*            obj;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        part6;
+    GsCOORDINATE2*        part3;
+    s32                   i;
+
+    obj   = (TmdObject*)arg1->extra;
+    coord = obj->field_8;
+    work  = Mem_Calloc(0x4ACU, false);
+    part6 = coord + 6;
+    part3 = coord + 3;
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->idMap    = (TaskIdMap*)work;
+    obj->field_C   = 0;
+    coord->flg     = 0;
+    obj->field_1C  = &work->field_1BC;
+    obj->field_20  = &work->field_19C;
+    arg0->field_4  = &coord->coord;
+    arg0->field_48 = 0;
+    Gp_LinkNode(&arg0->node);
+    arg0->field_18     = coord;
+    arg0->node.field_4 = 0;
+    arg0->field_1C.vx  = 0;
+    arg0->field_1C.vy  = 0;
+    arg0->field_1C.vz  = 0;
+    arg0->field_50     = &D_actor_207200_8014E7D4;
+    arg0->field_54     = (s32)work->rec3;
+    arg0->field_40     = (u16)D_actor_207200_8014E7D4.field_4;
+    work->field_44E    = ((GpCoordPose*)coord)->field_46;
+    func_800B3F84((GpAnimCtx*)work, &D_actor_207200_80153ED4, (GpAnimObj*)obj,
+                  work->field_12C, (GpAnimSlot*)work->field_14);
+    for (i = 1; i < 7; i++) {
+        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+    }
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+
+    work->field_48C = 1;
+    work->field_48E = 1;
+    work->field_4A4 = 0;
+    work->field_4A6 = 0;
+    work->field_488 = 0;
+    work->field_494 = 0;
+    work->field_49E = 0;
+
+    work->obj1.field_8  = coord;
+    work->obj1.field_C  = work->rec1;
+    work->obj1.field_10 = 0;
+    work->obj1.field_12 = 0;
+    work->obj1.field_14 = 0;
+    work->obj1.field_18 = 0;
+    work->obj1.field_1C = 0x7D0;
+    work->obj1.flags    = 1;
+    Gp_LinkObj(3, &work->obj1);
+    Gp_InitRec18Table(work->rec1, 1, 0);
+
+    work->obj2.field_12 = -0x12C;
+    work->obj2.field_14 = -0xB4;
+    work->obj2.field_8  = coord;
+    work->obj2.field_C  = work->rec2;
+    work->obj2.field_10 = 0;
+    work->obj2.field_18 = 0x3002B;
+    work->obj2.field_1C = 0x12C;
+    work->obj2.flags    = 1;
+    work->obj1.flags   |= 0x8000;
+    Gp_LinkObj(2, &work->obj2);
+    Gp_InitRec18Table(work->rec2, 6, 0);
+
+    work->obj3.field_8  = part3;
+    work->obj3.field_C  = work->rec3;
+    work->obj3.field_10 = 0;
+    work->obj3.field_12 = 0;
+    work->obj3.field_14 = 0;
+    work->obj3.field_18 = 0x3002B;
+    work->obj3.field_1C = 0x96;
+    work->obj3.flags    = 1;
+    work->obj2.flags   |= 0xC200;
+    Gp_LinkObj(2, &work->obj3);
+    Gp_InitRec18Table(work->rec3, 6, 0);
+
+    work->obj4.field_8  = part3;
+    work->obj4.field_C  = work->rec4;
+    work->obj4.field_10 = 0;
+    work->obj4.field_12 = 0x50;
+    work->obj4.field_14 = 0x8C;
+    work->obj3.flags   |= 0xC000;
+    work->obj4.field_18 = Gp_PackPair(&D_actor_207200_8014E7CC, 0);
+    work->obj4.field_1C = 0x12C;
+    work->obj4.flags    = 1;
+    Gp_LinkObj(3, &work->obj4);
+    Gp_InitRec18Table(work->rec4, 1, 0);
+
+    work->obj5.field_8  = part6;
+    work->obj5.field_C  = work->rec5;
+    work->obj5.field_10 = 0xFA;
+    work->obj5.field_12 = 0;
+    work->obj5.field_14 = 0;
+    work->obj4.flags   &= 0x7FFF;
+    work->obj5.field_18 = Gp_PackPair(&D_actor_207200_8014E7CC, 1);
+    work->obj5.field_1C = 0x12C;
+    work->obj5.flags    = 1;
+    Gp_LinkObj(3, &work->obj5);
+    Gp_InitRec18Table(work->rec5, 1, 0);
+    work->obj5.flags &= 0x7FFF;
+
+    work->eff0.field_0 = ((TmdObject*)arg1->extra)->field_8 + 3;
+    work->eff0.field_4 = 0x100;
+    work->eff0.field_6 = 1;
+    work->eff2.field_0 = ((TmdObject*)arg1->extra)->field_8 + 3;
+    work->eff2.field_4 = 0x400;
+    work->eff2.field_6 = 3;
+    work->eff1.field_0 = ((TmdObject*)arg1->extra)->field_8 + 1;
+    work->eff1.field_4 = 0x100;
+    work->eff1.field_6 = 1;
+    work->field_4A8    = 0;
+    arg1->exitCallback = (void (*)(Task*))func_actor_207200_8014DB4C;
+    arg1->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_207200/actor_207200_4", func_actor_207200_8014B628);
 

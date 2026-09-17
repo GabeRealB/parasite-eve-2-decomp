@@ -68,6 +68,49 @@ typedef struct Actor207200Work {
     /* 0x4A6 */ s16            field_4A6;
 } Actor207200Work;
 
+/// The 0x4AC-byte allocation `func_actor_207200_8014B278` makes with
+/// `Mem_Calloc` and stores in `Task::idMap`: the animation context
+/// `func_800B3F84` fills in, five `GpObj` render nodes with their `GpRec18`
+/// tables (`Gp_LinkObj` shapes 3/2/2/3/3) and three `func_800FDB18` argument
+/// records. `Actor207200Work` is the tick handlers' view of the same block and
+/// does not yet agree with this layout over 0x234..0x2C4.
+typedef struct Actor207200SpawnWork {
+    /* 0x000 */ byte     pad_0[0x14];
+    /* 0x014 */ byte     field_14[0x118];
+    /* 0x12C */ byte     field_12C[0x70];
+    /* 0x19C */ MATRIX   field_19C;
+    /* 0x1BC */ MATRIX   field_1BC;
+    /* 0x1DC */ GpObj    obj1;
+    /* 0x1FC */ GpRec18  rec1[1];
+    /* 0x214 */ GpObj    obj2;
+    /* 0x234 */ GpRec18  rec2[6];
+    /* 0x2C4 */ GpObj    obj3;
+    /* 0x2E4 */ GpRec18  rec3[6];
+    /* 0x374 */ GpObj    obj4;
+    /* 0x394 */ GpRec18  rec4[1];
+    /* 0x3AC */ GpObj    obj5;
+    /* 0x3CC */ GpRec18  rec5[1];
+    /* 0x3E4 */ GpEffArg eff0;
+    /* 0x3EC */ GpEffArg eff1;
+    /* 0x3F4 */ GpEffArg eff2;
+    /* 0x3FC */ byte     pad_3FC[0x52];
+    /* 0x44E */ u16      field_44E;
+    /* 0x450 */ byte     pad_450[0x38];
+    /* 0x488 */ s16      field_488;
+    /* 0x48A */ byte     pad_48A[2];
+    /* 0x48C */ s16      field_48C;
+    /* 0x48E */ s16      field_48E;
+    /* 0x490 */ byte     pad_490[4];
+    /* 0x494 */ s16      field_494;
+    /* 0x496 */ byte     pad_496[8];
+    /* 0x49E */ s16      field_49E;
+    /* 0x4A0 */ byte     pad_4A0[4];
+    /* 0x4A4 */ s16      field_4A4;
+    /* 0x4A6 */ s16      field_4A6;
+    /* 0x4A8 */ s16      field_4A8;
+} Actor207200SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor207200SpawnWork, 0x4AC);
+
 /// Owning context. The leading part holds the `Gp_UnlinkNode` list entry at
 /// +0x10, as for the gameplay `GpEnemy`, so `field_40` is its HP and
 /// `field_54` a model pointer. `field_18` is the model part the context is
