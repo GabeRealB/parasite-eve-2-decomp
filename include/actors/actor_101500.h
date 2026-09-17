@@ -26,7 +26,11 @@ typedef struct Actor101500Work {
     /* 0x366 */ s16  field_366;
     /* 0x368 */ byte pad_368[6];
     /* 0x36E */ s16  field_36E;
-    /* 0x370 */ byte pad_370[0xA];
+    /* 0x370 */ byte pad_370[2];
+    /* 0x372 */ u16  field_372;
+    /* 0x374 */ s16  field_374;
+    /* 0x376 */ s16  field_376;
+    /* 0x378 */ byte pad_378[2];
     /* 0x37A */ s16  field_37A;
     /* 0x37C */ byte pad_37C[4];
     /* 0x380 */ s16  field_380;
@@ -53,6 +57,14 @@ extern s16 D_actor_101500_8013BE70[];
 /// Sixteen frame counts `func_actor_101500_801345D0` and `func_actor_101500_801346D0` reload `field_362` from,
 /// picked by a `Gp_LcgState` draw.
 extern u16 D_actor_101500_8013BDE8[];
+
+/// 0x18-byte frame allocated on the scratchpad stack; only the `SVECTOR` at
+/// +0x10 is used, as the rotation `ActorsShared80133658` hands `RotMatrix`.
+typedef struct Actor101500RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor101500RotScratch;
+STATIC_ASSERT_SIZEOF(Actor101500RotScratch, 0x18);
 
 extern u32 Gp_LcgState;
 
