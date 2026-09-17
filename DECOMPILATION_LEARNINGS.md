@@ -86167,6 +86167,60 @@ Inputs: `base.i`
 `regs=2 reorder=1 insert=2 delete=2`), `base_1.i`
 `9931434c9d0527d7444bf5aa904e32c0ea17ea4365ba8e83f0ce3a3d9edb558a` (100%).
 
+## The same reorder shows up as a *register* swap: the `lui`s carry the source order, the stores do not (func_dryfield_general_store_8017DAC0, 2026-09-17)
+
+`func_dryfield_general_store_8017DAC0`, state 5, is a run of four independent
+stores plus the task spawn they feed:
+
+```c
+SndEvt_EnqueueType7(0x80000000, 0);
+Mc_SaveData.field_6 = 0x26;
+Mc_SaveData.field_8 = D_dryfield_general_store_80185709;
+Mc_SaveData.field_5 = D_dryfield_general_store_8018570A;
+D_80071076          = 1;              /* last in the source */
+Task_Spawn(0, 0x11, 0, 0);
+```
+
+m2c read the emitted order off the target - `field_6`, `D_80071076`, `field_8`,
+`field_5` - and scored 99.045% with `regs=9 reorder=1`, the whole leftover being
+two `$t` registers swapped and one `lui` position:
+
+```
+m2c order (99.045%)          target (100.000%)
+  li    v0,0x26                li    v0,0x26
+  lui   t2,%hi(D_80071076)     sb    v0,6(v1)
+  sb    v0,6(v1)               lui   v0,%hi(D_85709)
+  lui   v0,%hi(D_85709)        lui   t0,%hi(D_8570A)
+  lui   t0,%hi(D_8570A)        lui   t1,%hi(D_80071076)
+  lbu   t1,%lo(D_85709)(v0)    lbu   t2,%lo(D_85709)(v0)
+  lbu   t0,%lo(D_8570A)(t0)    lbu   t0,%lo(D_8570A)(t0)
+  li    v0,0x1                 li    v0,0x1
+  sh    v0,%lo(D_80071076)(t2) sh    v0,%lo(D_80071076)(t1)
+  sb    t1,8(v1)               sb    t2,8(v1)
+```
+
+Moving that one store to the end of the source is the whole fix (100.000%,
+every penalty 0). The store *order* does not reveal the source order the way it
+did in the forked-tunnel case above: here the emitted order is
+`field_6`, `sh`, `field_8`, `field_5` in both - sched2 issues the `sh`, whose
+chain is `lui`+`li` only, ahead of the two `sb`s waiting on loads. What carries
+the source order is the *address setup*: the three `lui`s are emitted in source
+order (`85709`, `8570A`, `80071076`), so they are the field to read the original
+statement order off. And the swap is not a scheduling artefact at all - both
+pseudos are global allocnos here (they come out of `.lreg` still numbered), and
+`global.c`'s `allocno_compare` ranks by
+`floor_log2(n_refs) * n_refs / live_length`, so a source order that shortens the
+`lui`-to-`sh` span promotes that address pseudo above the `lbu` result and hands
+it the better register. In the wrong order the `lui` was born *first* in the
+block and still allocated the worse of the two (`lreg` insn 203 -> `$t2` while
+insn 215 -> `$t1`), which is the tell that a `regs` leftover on a run of
+independent stores is worth a source-order experiment before any dump reading.
+
+Inputs: `base_1.i`
+`30589d5f8aedd58a12f80a0864ff5094d4c3b3d56460efdb8cf6d3eae509f24b` (99.045%,
+`regs=9 reorder=1`), `base_2.i`
+`4f421621507de7114422ba5ab782a3c1bd22fabc5d0a3476dff5b0b6e91d79fe` (100%).
+
 ## m2c's third argument to a two-argument function was a value living in `$a2` (func_mine_forked_tunnel_8017DE54, 2026-09-15)
 
 m2c read the target's `lw a2,8(v1)` / `move a1,s1` / `jal` triple as a three
