@@ -115634,3 +115634,65 @@ work.
 
 Inputs: `base_3.i` (100.000%) `cde9982b06b559d9`, `base_2.i` (98.962%, m2c's three
 temps per case) `52265102113fd4bd`, `base_1.i` (66.465%, no temps) `455a347ea08533d7`.
+## Several arms entering one block at *different* offsets: the block is the last-written arm's body (func_mine_refuge_8017FA08, 2026-09-17)
+
+`func_mine_refuge_8017FA08` is a six-state room task. Its `switch (task->state)`
+increments `task->state` in four of the states, and the target's jump table
+sends cases 1 and 4 to `.LFAE0`, where case 0 arrives by `j .LFAE0` and case 3
+by `j .LFAE4` - four bytes *into* that block, past its `lw`. One block, two
+entry offsets, two different arms jumping in.
+
+That is post-reload cross-jumping, and the two offsets are the whole message.
+Each arm that duplicates the increment has its own copy in the RTL; jump.c
+walks backwards from each arm's `j return_label` comparing insns, keeps the
+copy of the arm *emitted last*, and puts a label where the walk stopped:
+
+```
+case 0's walk:  sw, addiu, lw, [if's join label stops it]   -> label at the lw
+case 3's walk:  sw, addiu, [D = NULL store differs]         -> label at the addiu
+```
+
+Case 0's walk is long because nothing separates its `lw` from the addiu; case
+3's stops one insn earlier because its `D_mine_refuge_80182AD8 = NULL;` sits
+between its load and its `addiu`. So the target is case 0 and case 3 both
+keeping their own `lw`, and only the `[addiu, sw, j]` tail shared.
+
+Which arm's copy survives follows the *emitted* order, so the source order is
+the lever: the bodies must be written 0, 2, 3, 1/4, 5 - not the 0, 1/4, 2, 3, 5
+a plain "case 0 falls through into case 1" reading produces - and case 0 needs
+its own inline `task->state = task->state + 1;` rather than falling through.
+
+```c
+    case 0:
+        if (GameFlag_GetNibble(0x166) == 1) { ... }
+        task->state = task->state + 1;   /* its own copy; merged into case 1/4's */
+        return;
+    case 2: ...
+    case 3: ...; task->state = task->state + 1; ...   /* merged at the addiu */
+    case 1:
+    case 4:
+        task->state = task->state + 1;   /* written last: this copy is kept */
+        return;
+```
+
+Progress along that line: 88.056% for m2c's reading (a single `block_8:` label
+plus `goto block_8` from case 3 - correct control flow, one shared statement,
+so case 3's jump lands on the `lw` and case 0's arm keeps its own `lw`/`addiu`
+in the jump's delay slot); 93.479% once every arm carries its own statement but
+the cases are still in value order; 100% with the two changes above, `blocks
+11/11 instructions 71/71` and all penalties zero.
+
+Diagnostic to reuse: when arms enter a shared block at different offsets, the
+earlier entry is the arm whose walk went furthest and the block is the
+last-emitted arm's body - read the offsets back into the source order before
+touching anything else.
+
+Inputs: `base_2.i` SHA256
+`d36a340162b3a27fa719d085422a86aec72b8fc1890cc53ba611c4234c93ddb3`;
+`base_2.c` SHA256
+`e135c32e117c27d4e6a0ec920fa56ffe358d6dcba885b1ea1cfe492e634c2ba0`;
+target.o SHA256
+`71e611ad02c369e7f55f94f40dada98c381a51db350c157b0584fada3c310601`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Scratch `nonmatchings/func_mine_refuge_8017FA08-vacuum`.
