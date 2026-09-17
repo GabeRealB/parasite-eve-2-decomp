@@ -85,10 +85,40 @@ typedef struct DwtColorMtx {
 } DwtColorMtx;
 STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 
-/// Toggle the room's cutscene-“played” state: `arg0 != 0` marks the task the
-/// script driver points at as watched and clears the sibling flag, `arg0 == 0`
-/// does the opposite. `func_dryfield_water_tank_8017DB48` passes the game-flag
-/// `0x55` nibble through it, one way per value.
+/// One of the per-view objects the room's record points at. The record's tail
+/// is a run of pointers to these; this room's pair sits at 0x1C / 0x58 and both
+/// objects carry a byte at 0x1C with the skip-OT-link byte beside it at 0xC
+/// (the same two roles the water tower's `DwtwSprtViewState` splits between its
+/// `field_C` and `field_14`). `field_C` non-zero leaves the view's sprites out
+/// of the ordering table, zero draws them.
+typedef struct _DwtSprtView {
+    /* 0x00 */ byte pad_0[0xC];
+    /* 0x0C */ u8   field_C; // skip-OT-link; 0 draws the view's sprites
+    /* 0x0D */ byte pad_D[0xF];
+    /* 0x1C */ u8   field_1C;
+} DwtSprtView;
+STATIC_ASSERT_SIZEOF(DwtSprtView, 0x1D);
+
+/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at: a
+/// room-sized block, far larger than the 0xC-byte `GpSprtRec` the table's
+/// element type declares, so the room reaches its tail through a cast (as the
+/// water tower's `DwtwSprtRec` and the mine's `MineForkedTunnelSprtRec` do).
+/// The tail is a run of per-view pointers; this room's pair sits at 0x1C / 0x58.
+typedef struct _DwtSprtRec {
+    /* 0x00 */ byte         pad_0[0x1C];
+    /* 0x1C */ DwtSprtView* field_1C;
+    /* 0x20 */ byte         pad_20[0x38];
+    /* 0x58 */ DwtSprtView* field_58;
+} DwtSprtRec;
+STATIC_ASSERT_SIZEOF(DwtSprtRec, 0x5C);
+
+/// Toggle the room's cutscene-“watched” state over the view's two per-view
+/// objects: `arg0 != 0` sets the first object's `field_1C` and clears the
+/// second's `field_C` (so the view's sprites draw), `arg0 == 0` does the
+/// opposite. No-op unless `GameSession.field_7` is 2, i.e. only for the stage
+/// whose sprite table has a record for the current room.
+/// `func_dryfield_water_tank_8017DB48` passes the game-flag `0x55` nibble
+/// through it, one way per value.
 void func_dryfield_water_tank_8017EFF4(s32 arg0);
 
 /// Per-frame model update `func_dryfield_water_tank_8017DD20` runs while its

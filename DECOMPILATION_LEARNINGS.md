@@ -118095,3 +118095,66 @@ it next to the other dumps, so no extra flags are needed.
 
 Input hash: `base_2.c` `68639f02c31cbab3415297aee8a215926a4d8ba7650f1b07e87987923cd1d046`,
 match at `base_v1.c` (same source with the two store lines transposed).
+
+### A one-constant toggle: literals stay block-local and win `$v0`, a pointer variable is global and takes `$v1`
+
+`func_dryfield_water_tank_8017EFF4` stores a `1` and a `0` in each arm of an
+`if (!(arg0 & 0xFF))`, and the ROM materialises the `1` **once**, in the branch
+delay slot (`addiu $v0,$zero,1`), with both arms' pointer temps in `$v1`:
+
+```c
+    if (sess->field_3 == 2) {
+        rec = (DwtSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+        if (!(arg0 & 0xFF)) { rec->field_1C->field_1C = 0; rec->field_58->field_C = 1; return; }
+        rec->field_1C->field_1C = 1;  rec->field_58->field_C = 0;
+    }
+```
+
+Written that way (direct field expressions) the build stops at 96%: each `1`
+becomes its own `li`, one per arm, and the temps take `$v0`, pushing the
+constants to `$v1`/`$a1`. Holding the value in a variable (`on = 1;` before the
+branches) does share one `li`, but the constant still lands in `$a1` — 98.4%.
+
+The split is *which pass allocates each pseudo*. A stored literal is expanded
+into a per-store register pseudo (the QI store pattern wants a register; the
+`= 0` store keeps `const_int 0` and reload gives it `$zero`). Those pseudos are
+used in one block only, so `local_alloc` allocates them, and it runs **before**
+`global_alloc` and takes the first free register in class order — `$v0`. A
+pointer written as a direct expression is equally block-local, so it competes
+for `$v0` and wins by birth order; that is what evicts the constant.
+
+Writing every use through **one** variable fixes it:
+
+```c
+    DwtSprtView* view;
+    ...
+        if (!(arg0 & 0xFF)) {
+            view = rec->field_1C; view->field_1C = 0;
+            view = rec->field_58; view->field_C  = 1;
+            return;
+        }
+        view = rec->field_1C; view->field_1C = 1;
+        view = rec->field_58; view->field_C  = 0;
+```
+
+The variable is set and used in two blocks, so `REG_BASIC_BLOCK` is -1 and it
+becomes a global allocno — allocated after the locals, and forced off `$v0`
+because the literals hold it in both arms. The dumps show the split directly:
+`.lreg` lists the literals as `Register 105 ... in block 2; 1 bytes` and the
+pointer as `Register 83 used 8 times across 10 insns; dies in 4 places` (no
+`in block N` line), and `.greg` disposes `105 in 2 106 in 2 83 in 3`. The two
+per-arm `li`s both get `$v0` (their live ranges never overlap), and `reorg`
+leaves exactly one, in the branch delay slot, so the scheduling side needs no
+help.
+
+**Oracle trick.** The matched sibling `func_mine_forked_tunnel_8017E48C` carries
+the same idiom (its `.L` arm stores `1` twice). Compiling that matched C in a
+scratch env reproduced its ROM assembly byte for byte, and its `.lreg` showed
+the same split — local constant in `$v0`, global pointers in `$v1` — which
+identified the mechanism far faster than reading `local-alloc.c`. When a
+sibling's C is known-good, compile it and read *its* dumps.
+
+Input hash: `base_4.c`
+`99aef3994fd0315579cd95b7f5c003ed3b14a5381e04612baa6747228a128474`.
+The give-up seed `base_2.c` (98.43%, shared-constant variable) is archived at
+`tools/giveups/func_dryfield_water_tank_8017EFF4/`.

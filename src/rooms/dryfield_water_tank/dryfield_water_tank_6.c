@@ -6,8 +6,10 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
+#include "main/session.h"
 #include "main/task.h"
 
+#include "rooms/dryfield_water_tank.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80180b2c.h"
 
@@ -113,7 +115,32 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017EDF4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_6", func_dryfield_water_tank_8017EFF4);
+/// Toggle the room's cutscene-“watched” state over the view's two per-view
+/// objects. Every use goes through one pointer variable: the compiler keeps it
+/// in a global allocno, which is what pushes the two literals' constant into
+/// `$v0` (see DECOMPILATION_LEARNINGS.md, "A one-constant toggle…").
+void func_dryfield_water_tank_8017EFF4(s32 arg0)
+{
+    GameSessionFrom4* sess;
+    DwtSprtRec*       rec;
+    DwtSprtView*      view;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    if (sess->field_3 == 2) {
+        rec = (DwtSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+        if (!(arg0 & 0xFF)) {
+            view           = rec->field_1C;
+            view->field_1C = 0;
+            view           = rec->field_58;
+            view->field_C  = 1;
+            return;
+        }
+        view           = rec->field_1C;
+        view->field_1C = 1;
+        view           = rec->field_58;
+        view->field_C  = 0;
+    }
+}
 
 /// Publishes the variant index the current camera view maps to: reads the view
 /// index back and stores `D_dryfield_water_tank_801868CC[view - 1]` into the
