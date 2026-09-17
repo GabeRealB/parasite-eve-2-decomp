@@ -118428,3 +118428,19 @@ only by `matchings/...` is a compiler-generated table the C body already emits.
 Inputs: scratch `nonmatchings/func_neo_ark_island_8017EB68-vacuum`, `base_1.c`
 (copy of `src/rooms/lib/rooms_shared_8017f4a0.c` minus `Gp_UpdateCoord(coord)`),
 0 differences.
+
+### A signed LCG jitter written as a ternary, not if/else, keeps the draw's shift chain in one register (func_actor_160900_80133758, 2026-09-17)
+
+**Symptom.** `r = ±((next >> 16) & 7)` drawn in both arms of an `if/else`, then
+`pos.vx = pts->vx + r * 100`: target keeps `seed` in `a0` and runs each arm as
+`sll v1,a0 / addu v1 / addu v1,s2 / sw / srl v1,v1 / andi v1,v1 / (negu v1,v1)`.
+Every if/else spelling (named `r`, reused `r`, separate `next`) put `seed` in
+`v1` and the arm temps in `v0` (regs 21-27).
+
+**Fix.** Write the arms as one ternary inside the expression:
+`x = pts->vx + (((seed >> 16) & 1) ? ((Gp_LcgState = seed * 5 + C) >> 16) & 7 : -(((Gp_LcgState = seed * 5 + C) >> 16) & 7)) * 100;`
+That took regs to 0. Two more things were needed: the loop-invariant `0x81203400`
+argument only hoists to `s4` from a local assigned before the loop (a literal is
+built into `a2` in the loop), and the `sh` of `pos.vx` only lands after the
+argument setup when the sum goes into an `s32` temp first (`pos.vx = x;`), which
+the permuter found; writing `pos.vx = ...` directly schedules the store too early.

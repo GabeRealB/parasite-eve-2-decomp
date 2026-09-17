@@ -93,6 +93,13 @@ extern Task* D_actor_160900_8013FBB4;
 extern Actor160900AnimStep D_actor_160900_8013F1CC[];
 extern u8                  D_actor_160900_8013F198[];
 
+extern s32 D_80070F70;
+extern u32 Gp_LcgState;
+
+/// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
+/// jittered by up to +-700; runs one frame in eight.
+void func_actor_160900_80133758(SVECTOR* pts);
+
 void func_actor_160900_80134710(void);
 
 void func_actor_160900_80134790(s16 arg0);

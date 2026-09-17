@@ -12,6 +12,7 @@
 
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/3CD8.h"
 
 extern TaskDesc ActorsShared80136280Desc;
 
@@ -85,7 +86,29 @@ INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8013358C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80133758);
+void func_actor_160900_80133758(SVECTOR* pts)
+{
+    SVECTOR pos;
+    s32     x;
+    u32     seed;
+    s32     flags;
+
+    if (!(D_80070F70 & 7) && pts->pad != -1) {
+        flags = 0x81203400;
+        do {
+            seed        = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = seed;
+            x           = pts->vx + (((seed >> 16) & 1) ? ((Gp_LcgState = seed * 5 + 0x71357911) >> 16) & 7
+                                                        : -(((Gp_LcgState = seed * 5 + 0x71357911) >> 16) & 7)) *
+                              100;
+            pos.vx = x;
+            pos.vy = pts->vy;
+            pos.vz = pts->vz;
+            Gp_SpawnEff(0x601B4, NULL, flags, &pos);
+            pts++;
+        } while (pts->pad != -1);
+    }
+}
 
 void func_actor_160900_80133880(void)
 {
