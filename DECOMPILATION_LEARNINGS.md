@@ -121579,3 +121579,39 @@ link with `undefined reference to 'jtbl_...'` from the unit holding the function
 rodata run into four chunks (`D_…E20`, `D_…E24`, `ActorsShared80135df4Table`,
 `jtbl_…E44`) where the old object's 0x24 bytes had come from two, so the seed
 `.c` named only two of them.
+
+## Constant stores in address order still emit their `li`s in *source* order (func_actor_323000_80163EA0, 2026-09-17)
+
+The tail of this spawn handler seeds a run of halfwords in the work block and
+the ROM stores them in *address* order -- `sh $v0,0x82E` before `sh $s0,0x828`
+-- while materialising their constants the other way round: `li $s0,2` first,
+then `li $v0,1`. Reading the store order as the C order (m2c's
+`field_82E = 1; field_828 = 2;`) leaves exactly those two `li`s swapped, one
+instruction of `regs` at 99.843%, and swapping the two statements is the whole
+fix:
+
+```c
+    work->field_828 = 2;
+    work->field_82E = 1;
+```
+
+The stores move because the scheduler ranks them apart: the one whose register
+`$v0` is reused by the following `li $v0,0x10` sits on the longer dependence
+chain, so `rank_for_schedule` picks it first even though it is later in address
+order. The two `li`s tie on priority and fall through to `INSN_LUID`, so they
+keep the C order. **The `li` sequence is the reliable read of the original
+statement order; the store sequence is not** -- which matters because the
+disassembly shows only the stores.
+
+The matched sibling `func_actor_356100_8016382C` writes the same eight halfwords
+(`0x978`..`0x982` there, `0x828`..`0x832` here) in exactly this order, and its
+assembly has `li $s1,2` ahead of `li $v0,1` with the same swapped stores, so a
+matched twin settles an otherwise ambiguous block. This is the distinct-constant
+complement of "Two stores of the same value are independent, so the emitted
+order is the source's" above: there the values are equal and *both* the `li` and
+the store follow the source; here the values differ and only the `li` does.
+
+Inputs: `base_5.i` (99.843%)
+`0ac45e1fb4758a396d43b93286a8ad601d86eea5fdb460d55bb26b00ae481d0b`;
+`base_6.i` (100.000%)
+`8704734d8298a0ae3d7ec4f96626798a0b40efeffd98be57ebf2e7b96e4334af`.
