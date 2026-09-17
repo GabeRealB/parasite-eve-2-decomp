@@ -5,17 +5,17 @@
 
 #include "main/task.h"
 
-/// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`, seen
-/// with both signs: `func_neo_ark_woodland_path_8018154C` adds to it as an
-/// unsigned halfword (`lhu`) while the 0x7DB handler clears it to -1 as a
-/// signed one (`addiu $v0,$zero,-1`). The two reads compile differently, so
-/// each site names the view it uses.
-typedef union NeoArkWoodlandPathTimer {
-    /* 0x0 */ u16 u;
-    /* 0x0 */ s16 s;
-} NeoArkWoodlandPathTimer;
-
-extern NeoArkWoodlandPathTimer D_neo_ark_woodland_path_8018498E;
+/// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
+/// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
+/// it, `func_...80180DDC` counts it down): a load whose result is truncated by
+/// the following `sh` only has to supply the low half, so GCC picks the
+/// unsigned form by itself, while the `lh` comparisons and the -1 the 0x7DB
+/// handler stores need the signed declaration. A union offering both views
+/// compiles the same instructions but marks every access `in_struct`, and that
+/// flag decides the scheduler's dependence analysis - it pinned a load after a
+/// store in `func_neo_ark_woodland_path_80180C6C`. See
+/// `DECOMPILATION_LEARNINGS.md`, "Scalar memory references".
+extern s16 D_neo_ark_woodland_path_8018498E;
 
 /// Payload the 0x7DB handlers take as `Gp_DispatchMsg`'s `arg2`: the two-byte
 /// sender id `0xB05` followed by the command the switch dispatches on.
@@ -67,6 +67,31 @@ extern u16 D_neo_ark_woodland_path_80184A60[5];
 /// (0x1A4, 420 frames). Only the first halfword is this unit's; the run
 /// continues into the room's parameter block, so the extent is splat's.
 extern u16 D_neo_ark_woodland_path_8018494C[18];
+
+/// The same run reached through its leading label, which is how
+/// `func_neo_ark_woodland_path_80180C6C` reads the ceiling: element 2 lands on
+/// the halfword above (`D_...8494C[0]`, 420 frames). splat names both addresses
+/// because the compiled code names both, and the two are different code - an
+/// index emits the array's address plus 8, naming one emits its own.
+extern u16 D_neo_ark_woodland_path_80184948[];
+
+/// The room's arming count, packed into game flag 0x10A as a nibble:
+/// `func_neo_ark_woodland_path_80180C6C` adds the slot's spawn count to it and
+/// then caps it at 5, the number of slots `D_...84A60` has. Signed, though the
+/// add reads it as `lhu` - the result is truncated by the following `sh`, so
+/// only the low half matters and GCC picks the unsigned load by itself.
+extern s16 D_neo_ark_woodland_path_80184990;
+
+/// How many spawns each slot arms, indexed by `Game_Session->field_9` (the
+/// slot the session is in): the byte `func_...80180C6C` adds to
+/// `D_...80184990`, and the gate `func_...80180DDC` tests against zero.
+extern u8 D_neo_ark_woodland_path_80184970[];
+
+/// The room's 0x7DB message-handler table - id/handler pairs, 0x7FFFFFFF
+/// terminated - which `func_neo_ark_woodland_path_80180C6C` parks in
+/// `Task::field_24` for the task's message dispatch to walk. Same shape, and
+/// the same three handlers, as the table in `D_...84998` next to it.
+extern s32 D_neo_ark_woodland_path_801849F4[];
 
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 D_neo_ark_woodland_path_80184996;

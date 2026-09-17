@@ -115325,3 +115325,90 @@ Inputs: `base_1.c` SHA256
 `f83cf91342fed7abcaae2a10a6ff2769fcaef05db2777560012423b2f48f0001`; `target.s` SHA256
 `1d65775104896e8bc9c3ace0c8778138212e70ed05639dda3a81c9c86e4872dc`. Scratch
 `nonmatchings/func_mine_mesa_8017E3E0-vacuum`.
+## A union that only names a view costs `in_struct`: `lhu` from a truncated `s16` needs no union (func_neo_ark_woodland_path_80180C6C, 2026-09-17)
+
+The room's arming count `D_neo_ark_woodland_path_80184990` is read two ways:
+`count = count + slotBytes;` in the target is `lhu`, the two `if` tests over it
+are `lh; slti`. The header carried a `union { u16 u; s16 s; }` so each site
+could name its view, following "An `s16` local that is both compared and stored
+back emits `lh` *and* `lhu`" and "A global read at two widths belongs in a
+union, not a second `extern`". Both loads came out right, and the function
+scored 90.4% - with `insert=4 delete=4 branch=5`, which read as structure.
+
+It was not structure. A union (or struct) member access is
+`MEM_IN_STRUCT_P`, printed `mem/s:HI` in the `.cse`/`.loop` dumps, while a
+scalar declaration of the same address is `mem:HI`. That single flag is what
+`true_dependence`'s two suppression clauses and `loop.c`'s `invariant_p` read,
+and it decided two things here:
+
+* The loop's limit load stayed inside the loop. `invariant_p` walks
+  `loop_store_mems` and rejects a load that `true_dependence`s any store, and
+  `rtx_addr_varies_p` treats a `(lo_sum (reg) (symbol))` address as *constant*
+  (`case LO_SUM: return rtx_varies_p (XEXP (x, 1))`, rtlanal.c), so the store
+  to `D_...84A60[i]` was the in-struct, varying side and the load the in-struct,
+  fixed side: clause 1 needs `!MEM_IN_STRUCT_P (load)` and clause 2 needs
+  `!MEM_IN_STRUCT_P (store)`, so neither fired. With a scalar load (clause 1:
+  in-struct varying store, non-struct fixed load) there is no dependence and
+  loop.c hoists it to the preheader, exactly as in the seed.
+* A `task->state` load was pinned after the `D_...8498E` store in sched1, with
+  `insn_list:REG_DEP_OUTPUT 226 (insn_list 228 ...)` on the load in `.sched2`.
+  That store was a union member too (`mem/s:HI (lo_sum (reg) (symbol))`,
+  in-struct *and* fixed); clause 2 needs the store non-in-struct, so the
+  dependence stood. A scalar store of the same address drops it and the load
+  schedules first - the same `output_dependence` clause as the
+  `func_neo_ark_altar_8017EF00` note above, in the opposite direction: there
+  the struct form was the fix, here it was the defect.
+
+The union was never needed. **A signed halfword accumulator whose result is
+truncated by the following store loads `lhu` by itself**: `s16 x; x = x + y;`
+and `x += 0x5A;` both read `lhu`, because only the low half survives the `sh`.
+So `lhu` in a dump is not evidence of an unsigned declaration, and the `lh`
+comparisons want the signed one - declare the global `s16` and both views come
+out right, with no union and no cast. This is the global-scale version of
+"An `s16` compared and stored into `u16` is `lh`+`lhu`"; the union is only
+required when the two views differ in *width* (`lhu` vs `lw`), not in sign.
+
+One knock-on worth knowing when the fix looks like it changed structure: the
+same `s16` store let the main path's `state++` allocate `$v1` instead of reusing
+`$v0`, and jump2's `find_cross_jump` compares hard registers with
+`rtx_renumbered_equal_p` (`REGNO`-exact for hard regs, jump.c:2528), so the
+early return's identical `state++` stopped being merged into the tail. Two
+`insert`/`delete` pairs and the extra `j` disappeared without touching control
+flow.
+
+Inputs: `base_1.i`
+`b82fb6d5f2506a97aaa0f4bab2a1d29eae373769afd6c7544586c4e7b9977d7d` (90.370%),
+`base_2.i` `044794b49963bc3ce4d847bf2d84cb356c63a32ac2875b9b1d793be748b28bb1`
+(94.022%), `base_3.i`
+`9ad1197101b9c4bba4d8c9b93e6af38e08de640d336e9cc0fdcae456bb5ae1e5`
+(100.000%), target
+`38d8fd9425b7a6456e56ccdd9b24ff0df456db3b46f44be8b3b445e830b31df4`.
+
+## The same halfword at two labels: the array form keeps the symbol in a register (func_neo_ark_woodland_path_80180C6C, 2026-09-17)
+
+`func_neo_ark_woodland_path_80180C6C` writes the room's spawn ceiling into each
+armed slot. The halfword is `D_...8494C[0]` (0x1A4 = 420 frames), which the
+sibling `func_neo_ark_woodland_path_8018046C` names exactly that way, but the
+target reaches it as element **2 of the earlier label** - `lui %hi(D_...84948);
+addiu $a3,$v0,%lo(D_...84948); lhu $v1,0x4($a3)` - and splat names both
+addresses because the compiled code names both, so both declarations are
+needed in the header.
+
+The two spellings are different code even though the bytes are the same:
+
+```c
+    D_...84A60[i] = D_...84948[2];                  /* addiu reg,%lo(sym); lhu 4(reg)   */
+    D_...84A60[i] = *(u16*)((u8*)&D_...84948 + 4);   /* lui %hi(sym+4); lhu %lo(sym+4)(reg) */
+```
+
+An array index leaves the symbol as a *value* that reload materialises into a
+register, with the +4 as the load's displacement (`mips_check_split` rejects a
+bare symbol address only for the `HIGH`/`LO_SUM` split; a plain
+`(plus (symbol_ref) (const_int 4))` is not a `CONSTANT_ADDRESS_P`, so reload
+breaks it into reg+offset). Folding the address in C instead produces a symbol
+constant, which is also why the second form is loop-invariant and gets hoisted
+while the first stays in the loop. Both match `loop.c`'s reason for the first
+one to stay: `rtx_addr_varies_p` is false for a `lo_sum` symbol but true for a
+register.
+
+Inputs: as above (`base_1.i` through `base_3.i`).

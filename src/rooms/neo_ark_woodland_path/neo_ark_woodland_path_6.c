@@ -3,6 +3,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -30,13 +31,13 @@ void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
                 } else {
                     D_neo_ark_woodland_path_80184996 = 1;
                 }
-                D_neo_ark_woodland_path_8018498E.u += 0x5A;
+                D_neo_ark_woodland_path_8018498E += 0x5A;
                 return;
             }
         }
         return;
     }
-    D_neo_ark_woodland_path_8018498E.u += 0x5A;
+    D_neo_ark_woodland_path_8018498E += 0x5A;
 }
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80180568);
@@ -54,8 +55,8 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPath
         cmd = msg->field_2;
         switch (cmd) {
             case 0:
-                D_neo_ark_woodland_path_8018498E.s = -1;
-                result                             = 0;
+                D_neo_ark_woodland_path_8018498E = -1;
+                result                           = 0;
                 return result;
             case 2:
                 D_neo_ark_woodland_path_80184A5C.field_0 = 5;
@@ -76,7 +77,7 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPath
                     }
                     Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord,
                                    0x400, 1);
-                    D_neo_ark_woodland_path_8018498E.s = 0x5A;
+                    D_neo_ark_woodland_path_8018498E = 0x5A;
                 }
                 return result;
             default:
@@ -87,7 +88,41 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPath
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80180C6C);
+/// Arming state: with no spawns to arm for the session's slot it only advances;
+/// otherwise it parks this room's 0x7DB handler table in the task, folds the
+/// slot's spawn count into game flag 0x10A (remembering the slot in 0x10B), and
+/// fills the five spawn slots with the room's ceiling - or zero.
+void func_neo_ark_woodland_path_80180C6C(Task* task)
+{
+    s16 i;
+    s16 nib;
+
+    if (D_neo_ark_woodland_path_80184970[Game_Session->field_9] == 0) {
+        task->field_24 = NULL;
+        task->state    = task->state + 1;
+        return;
+    }
+    task->field_24                   = D_neo_ark_woodland_path_801849F4;
+    D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10A);
+    nib                              = GameFlag_GetNibble(0x10B);
+    if (Game_Session->field_9 != nib) {
+        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184970[Game_Session->field_9];
+        GameFlag_SetNibble(0x10A, D_neo_ark_woodland_path_80184990);
+        GameFlag_SetNibble(0x10B, Game_Session->field_9);
+    }
+    if (D_neo_ark_woodland_path_80184990 >= 6) {
+        D_neo_ark_woodland_path_80184990 = 5;
+    }
+    for (i = 0; i < 5; i++) {
+        if (i < D_neo_ark_woodland_path_80184990) {
+            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948[2];
+        } else {
+            D_neo_ark_woodland_path_80184A60[i] = 0;
+        }
+    }
+    D_neo_ark_woodland_path_8018498E = 0x5A;
+    task->state                      = task->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80180DDC);
 
@@ -107,7 +142,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", 
 
 s32 func_neo_ark_woodland_path_8018154C(void)
 {
-    D_neo_ark_woodland_path_8018498E.u += 0x5A;
+    D_neo_ark_woodland_path_8018498E += 0x5A;
     return 1;
 }
 
