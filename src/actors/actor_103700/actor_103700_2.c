@@ -9,6 +9,8 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
+extern u8 D_80115408[];
+
 void func_actor_103700_801328DC(Task* task)
 {
     Actor103700Work* work;
@@ -153,7 +155,79 @@ void func_actor_103700_80132DA8(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_103700/actor_103700_2", func_actor_103700_80132FD4);
+void func_actor_103700_80132FD4(Task* task)
+{
+    Actor103700Work* work;
+    GsCOORDINATE2*   coord;
+    void*            head;
+    SVECTOR*         vec;
+    s32              i;
+    s32              sound;
+    s8               slot;
+
+    coord                   = ((TmdObject*)task->extra)->field_8;
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(SVECTOR);
+    work                    = (Actor103700Work*)task->idMap;
+    vec                     = *(void**)G_SCRATCH_HEAD;
+
+    switch (work->field_250) {
+        case 0:
+            work->field_23C.vx = Wip_SysConfig.field_4->t[0];
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_23C.vy = Wip_SysConfig.field_4->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = Wip_SysConfig.field_4->t[2];
+            if (work->field_26A == 0) {
+                work->field_252 = 5;
+            } else {
+                work->field_252 = 0;
+                work->field_26A = 0;
+            }
+            work->field_254 = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->field_F];
+            func_actor_103700_80135140(task, 20);
+            if (work->field_246 == work->field_244) {
+                work->field_250 = 1;
+                work->field_252 = D_actor_103700_80139D3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                coord           = ((TmdObject*)task->extra)->field_8;
+                vec->vx         = work->field_23C.vx - coord->coord.t[0];
+                vec->vy         = work->field_23C.vy - coord->coord.t[1];
+                vec->vz         = work->field_23C.vz - coord->coord.t[2];
+                work->field_256 = SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz) / work->field_252;
+                slot            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 17;
+                for (i = 1; i < 6; i++) {
+                    work->slots[i].field_9 = slot;
+                }
+                coord = ((TmdObject*)task->extra)->field_8;
+                sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250002;
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+            break;
+        case 1:
+            func_actor_103700_80135140(task, 40);
+            if ((s16)--work->field_256 <= 0) {
+                work->field_250 = 0;
+                work->field_256 = 0;
+                work->field_26A = 1;
+            }
+            if (work->field_264 != 0) {
+                if (func_actor_103700_80134F50(task) == 0) {
+                    func_800FDB18(1, coord, NULL, &work->field_224);
+                    work->field_24E = 5;
+                } else {
+                    work->field_24E = 4;
+                }
+                work->field_250 = 0;
+            }
+            if (D_80115408[1] & 2) {
+                work->field_24E = 5;
+                work->field_248 = 1;
+                work->field_250 = 0;
+            }
+            break;
+    }
+    func_actor_103700_801350DC(task, 0, 14);
+    *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
+}
 
 void func_actor_103700_80133370(Task* task)
 {
