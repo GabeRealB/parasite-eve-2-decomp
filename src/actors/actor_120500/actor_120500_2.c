@@ -7,6 +7,7 @@
 #include "gameplay/D4.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Animation-set table this overlay hands the task at `field_4B4` as message
 /// 0x3F4's `GpAnimArg::field_0`: three sets, the same shape
@@ -80,4 +81,28 @@ void func_actor_120500_80132920(void)
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_120500_801380A8, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120500/actor_120500_2", func_actor_120500_80132A04);
+/// Draw/alloc bits of the actor's `TmdObject` extra (`field_C`): mode 0 hides
+/// the model (set 0x80) and leaves the alloc bit alone, mode 1 shows it and
+/// allows alloc (clear 0x80 and 0x4), mode 2 hides it and skips alloc (set
+/// 0x80 and 0x4). Mode 2 is written as a set of 0x4 that falls into mode 0,
+/// not as one `| 0x84`, and that fallthrough is what its branch layout is
+/// built from. Same handler shape as `ActorsShared80163224` / `Room_Util19`,
+/// but this copy is not shared: it is reached from this overlay's trailing
+/// dispatch table, which is the only reference to it.
+void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* extra;
+
+    extra = (TmdObject*)task->extra;
+    switch (arg2) {
+        case 2:
+            extra->field_C = extra->field_C | 4;
+            /* fallthrough */
+        case 0:
+            extra->field_C = extra->field_C | 0x80;
+            return;
+        case 1:
+            extra->field_C = extra->field_C & 0xFF7B;
+            return;
+    }
+}
