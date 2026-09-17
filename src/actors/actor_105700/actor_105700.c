@@ -930,7 +930,98 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
     *(u8**)G_SCRATCH_HEAD += 0x28;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80135750);
+extern s32 D_80115758;
+extern s32 D_actor_105700_80149050;
+extern s32 D_actor_105700_80149054;
+
+/// Four-step burst sequence driven by `field_6A8`: 0 spawns the effect and cue
+/// on entry, rumbles every tenth frame and either ends after `field_6B6` passes
+/// 0x28 or times out at 0x96 frames; 1 counts `field_6AE` down into 2; 2
+/// triggers the PE state and plays the second cue; 3 spawns random-offset
+/// sparks every fourth frame until `field_6AE` runs out.
+void func_actor_105700_80135750(Actor105700* arg0)
+{
+    Actor105700Work* work;
+    GsCOORDINATE2*   self;
+    SVECTOR*         scratch;
+    s32              sound;
+    u32              random;
+
+    scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+    work    = arg0->field_1C;
+    self    = arg0->field_2C->field_8;
+    switch (work->field_6A8) {
+        case 0:
+            if (work->field_6AE == 0) {
+                scratch->vx     = 0;
+                scratch->vy     = 0;
+                scratch->vz     = 0;
+                work->field_690 = Gp_SpawnEff(D_80115758, &arg0->field_2C->field_8[4], 0x96, scratch);
+                sound           = D_actor_105700_80149050 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+            }
+            work->field_6CE = work->field_6D0 > 0;
+            if ((s16)(work->field_6AE % 10) == 0) {
+                Gp_SpawnPadLerp(5, 0x80, 8);
+            }
+            if (work->field_6B6 >= 0x29) {
+                work->field_6C2 = 0;
+                if (--work->field_6C4 <= 0) {
+                    work->field_6A6 = 9;
+                    work->field_6A8 = 0;
+                } else {
+                    work->field_6A6 = 5;
+                    work->field_6A8 = 3;
+                    work->field_694 = 0x15;
+                    work->field_6AE = 0x4F;
+                }
+                work->field_6CE = 0;
+                if (work->field_690 != NULL) {
+                    work->field_690->field_0->state = 3;
+                }
+                work->field_690 = NULL;
+            } else if (++work->field_6AE >= 0x96) {
+                work->field_6AE = 8;
+                work->field_6A8 = 1;
+                work->field_694 = 0xB;
+                work->field_6C2 = 0;
+                work->field_6CE = 0;
+                work->field_690 = NULL;
+                Gp_SpawnPadLerp(0xF, 0xFF, 8);
+            }
+            break;
+        case 1:
+            if (--work->field_6AE <= 0) {
+                work->field_6A8 = 2;
+                work->field_6AE = 0;
+            }
+            break;
+        case 2:
+            Gp_TriggerPeState(0, 0x10);
+            work->field_6A6 = 2;
+            work->field_6A8 = 0;
+            work->field_694 = 2;
+            sound           = D_actor_105700_80149054 | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)self), (s8)Gp_GetObjDepth((GpObj38*)self));
+            break;
+        case 3:
+            if (!(work->field_698 & 3)) {
+                scratch->vx = 0;
+                scratch->vz = 0;
+                random      = Gp_LcgState * 5 + 0x71357911;
+                scratch->vy = -((random >> 16) & 0x1FF);
+                Gp_LcgState = random;
+                Gp_SpawnEff(0x600E0, &arg0->field_2C->field_8[3], 0x100, scratch);
+            }
+            if (--work->field_6AE <= 0) {
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+                work->field_694 = 2;
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += 8;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105700/actor_105700", func_actor_105700_80135AE4);
 

@@ -42,17 +42,18 @@ typedef struct Actor105700Work {
     /* 0x5E4 */ GpObj field_5E4;
     /* 0x604 */ byte  pad_604[0x18];
     /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
-    /* 0x61C */ GpObj   field_61C;
-    /* 0x63C */ s16     field_63C;
-    /* 0x63E */ s16     field_63E;
-    /* 0x640 */ s16     field_640;
-    /* 0x642 */ byte    pad_642[2];
-    /* 0x644 */ s16     field_644;
-    /* 0x646 */ s16     field_646;
-    /* 0x648 */ s16     field_648;
-    /* 0x64A */ byte    pad_64A[0xA];
-    /* 0x654 */ GpRec18 field_654[1];
-    /* 0x66C */ byte    pad_66C[0x28];
+    /* 0x61C */ GpObj              field_61C;
+    /* 0x63C */ s16                field_63C;
+    /* 0x63E */ s16                field_63E;
+    /* 0x640 */ s16                field_640;
+    /* 0x642 */ byte               pad_642[2];
+    /* 0x644 */ s16                field_644;
+    /* 0x646 */ s16                field_646;
+    /* 0x648 */ s16                field_648;
+    /* 0x64A */ byte               pad_64A[0xA];
+    /* 0x654 */ GpRec18            field_654[1];
+    /* 0x66C */ byte               pad_66C[0x24];
+    /* 0x690 */ struct _GpEffWork* field_690;
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `func_actor_105700_80136AE0`'s state 0.
     /* 0x694 */ s16 field_694;
@@ -75,16 +76,22 @@ typedef struct Actor105700Work {
     /* 0x6AE */ s16  field_6AE; ///< state-0 frame budget
     /* 0x6B0 */ byte pad_6B0[2];
     /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
-    /* 0x6B4 */ byte pad_6B4[4];
+    /* 0x6B4 */ byte pad_6B4[2];
+    /* 0x6B6 */ s16  field_6B6;
     /// State-0 branch selector: 1 picks the short dwell and animation 1,
     /// 2 the long dwell and animation 2.
     /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ byte pad_6BA[0x10];
+    /* 0x6BA */ byte pad_6BA[8];
+    /* 0x6C2 */ s16  field_6C2;
+    /* 0x6C4 */ s16  field_6C4;
+    /* 0x6C6 */ byte pad_6C6[4];
     /// Body variant select: `func_actor_105700_80133878` drops the fifth body
     /// object for the two values 0x38 / 0x39 and hands the halfword to
     /// `Gp_ReleaseStateF0Add`.
     /* 0x6CA */ s16  field_6CA;
-    /* 0x6CC */ byte pad_6CC[6];
+    /* 0x6CC */ byte pad_6CC[2];
+    /* 0x6CE */ s16  field_6CE;
+    /* 0x6D0 */ s16  field_6D0;
     /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
     /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
     /* 0x6D2 */ s16 field_6D2;
