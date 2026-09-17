@@ -8987,6 +8987,47 @@ ActorsShared80134cfc((ActorShared80134cfc*) arg1);
 Two shared units viewing one actor keep separate partial structs, so the cast is
 the seam between them, not a smell.
 
+**A `shared` span renumbers every unit after the body, and the `rodata` key is
+left naming one that no longer exists.** The `rodata` key's `unit` is always the
+overlay's *last* text unit (`neo_ark_bridge_4`, `shelter_b4_water_supply_5`),
+because that is the object the leading table block was compiled into. Carving a
+shared span out below it pushes that unit one number down and nothing in the
+promotion writes the key. Only the carriers whose body sat at the *end* of its
+unit escape, so which ones shift is not predictable from the listing: of the
+eleven rooms carrying `RoomsShared8017f4a0`, eight were untouched and three
+(`dryfield_night_water_hole`, `dryfield_water_hole`, `shelter_b4_lower_sewer`)
+moved.
+
+The symptom comes before any compilation, naming the retired number's `.c` as a
+missing prerequisite:
+
+```
+ninja: error: 'src/rooms/dryfield_night_water_hole/dryfield_night_water_hole_6.c',
+needed by 'build/USA/src/rooms/dryfield_night_water_hole/dryfield_night_water_hole_6.i',
+missing and no known rule to make it
+```
+
+Repoint the key at the new last unit (`dryfield_night_water_hole_6` -> `_5`,
+`dryfield_water_hole_6` -> `_5`, `shelter_b4_lower_sewer_5` -> `_4`) as part of
+the promotion, before deleting and re-splitting. Left alone it also costs the
+`INCLUDE_RODATA` lines: the tables splat migrates into the *text* unit are the
+ones the last unit owns, so with the key stale the linker reports
+`undefined reference to 'jtbl_<overlay>_<addr>'` from the text unit's `.i`.
+
+**Snapshot the whole `.c` files, not `bodies_of()`.** The repair is the usual
+one - delete the overlay's `.c`, re-split, put each body back in whichever unit
+now owns its address - and `bodies_of()` in `tools/land_overlay.py` is not
+enough to drive it. It matches from the definition line down to the closing
+brace, so it drops the `///` block above each body and every `extern` that block
+carries; restoring only its output loses the documentation and then fails to
+compile on the externs. The file-level `extern`s that sit between the includes
+and the first item are missed for the same reason. A forward declaration
+(`void func_x(Task*);`) can go too, and only shows up at link or on a
+`TaskFunc states[2] = {..., func_x}` initializer. Save the whole file, then
+restore per function: body, then its leading comment-and-extern block, then the
+loose externs. `tools/check_lost_matches.py` and the checksum are what say the
+redistribution is right.
+
 ### A body that loads its own overlay's table *can* be shared, via a per-carrier alias
 
 `overlay_dup_index.py promote` refuses such a body with "cannot be shared - the
