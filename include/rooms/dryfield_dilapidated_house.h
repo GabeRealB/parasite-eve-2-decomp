@@ -71,19 +71,25 @@ typedef struct DdhAngleStep {
 } DdhAngleStep;
 STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 
-/// Work block of the two effect handlers `func_dryfield_dilapidated_house_80183C8C`
-/// and `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2`
+/// Work block of the three effect handlers `func_dryfield_dilapidated_house_80182744`,
+/// `func_dryfield_dilapidated_house_80183C8C` and
+/// `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2`
 /// and handed to `Gp_ReleaseState1CMem` when their ramp runs out. `field_24` is a
 /// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
 /// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one
-/// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is a
-/// frame counter only `func_dryfield_dilapidated_house_80183C8C` touches.
+/// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is the
+/// per-frame tick the task rolls back while the `Gp_State1C` fade is armed;
+/// `field_20` and `field_28` are a third ramp value the two `80182744` states
+/// seed from one `Gp_LcgState` draw and hand to the same draw routine.
 typedef struct DdhEffWork {
-    /* 0x00 */ byte pad_00[0x22];
+    /* 0x00 */ byte pad_00[0x20];
+    /* 0x20 */ u16  field_20;
     /* 0x22 */ u16  field_22;
     /* 0x24 */ s16  field_24;
     /* 0x26 */ s16  field_26;
+    /* 0x28 */ s16  field_28;
 } DdhEffWork;
+STATIC_ASSERT_SIZEOF(DdhEffWork, 0x2A);
 
 /// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
 /// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -8,7 +9,13 @@
 #include "rooms/dryfield_dilapidated_house.h"
 #include "main/tmd.h"
 
+/// Unsigned: the original shifts the register right and then masks, so the
+/// shift has to compile to `srl` rather than `sra`.
+extern u32 Gp_LcgState;
+
 void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
+void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
 void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* coord, s16 arg1, s32 arg2, s16 arg3);
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
@@ -216,7 +223,107 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801823B8);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80182744);
+/// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
+/// handler: state 0 seeds the work block (0xC0 / 0x500 scale and angle, a
+/// 12-bit `Gp_LcgState` draw as the third ramp value, a `Gp_SpawnEff` and a
+/// fade quad), maps the placed model's own coordinate onto
+/// `Gp_RoomCoords[0]` and spawns the ring of `0x60275` flame effects, then
+/// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
+/// and runs two more draws against the same coordinate. While the
+/// `Gp_State1C` fade is armed the frame counter is rolled back and the work
+/// block is released as soon as the fade reaches 4 or the angle passes
+/// 0x580.
+void func_dryfield_dilapidated_house_80182744(Task* task)
+{
+    DdhEffWork*    work;
+    GsCOORDINATE2* coord;
+    GpCoord64*     rc;
+    GpCoordTail*   tail;
+    GpEffWork*     eff;
+    u16            tick;
+    u16            tick1;
+    s16            size;
+    s32            angle;
+    s32            keep;
+    s32            i;
+    u8             rgb[3];
+
+    work           = task->spawnArg2;
+    coord          = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    tick           = work->field_22;
+    tick1          = tick + 1;
+    work->field_22 = tick1;
+    rc             = &Gp_RoomCoords[0];
+    tail           = (GpCoordTail*)&rc->coord;
+
+    switch (task->state) {
+        case 0:
+            if (Gp_State1C->field_4 != 0) {
+                s32 fade;
+
+                work->field_22 = tick;
+                fade           = Gp_State1C->field_4;
+                SOFT_USE_REG(fade);
+                keep = fade < 4;
+                break;
+            }
+            work->field_24 = 0xC0;
+            work->field_26 = 0x500;
+            work->field_20 = 0;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_28 = (Gp_LcgState >> 16) & 0xFFF;
+            Gp_SpawnEff(0x60274, coord, 0, NULL);
+            rgb[0] = 0xFF;
+            rgb[1] = 0x7F;
+            rgb[2] = 0x3F;
+            Gp_DrawFadeQuad(rgb, 1);
+            Gp_RoomCoords[0].field_0 = 4;
+            tail->field_58           = 0x200;
+            tail->field_5C           = 0x2000;
+            Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
+            size                     = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->field_50           = size;
+            tail->field_52           = size >> 1;
+            tail->field_54           = size >> 2;
+            tail->coord.coord.t[0]   = coord->coord.t[0];
+            tail->coord.coord.t[1]   = coord->coord.t[1];
+            tail->coord.coord.t[2]   = coord->coord.t[2];
+            rc->coord.flg            = 0;
+            i                        = 0;
+            func_dryfield_dilapidated_house_801832A8(coord, (s16)work->field_22, work->field_26, work->field_28);
+            func_dryfield_dilapidated_house_80182F14(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
+            work->field_26 = 0x380;
+            do {
+                eff = Gp_SpawnEff(0x60275, coord, i, NULL);
+                if (eff != NULL) {
+                    Task_Reparent(task, eff->field_0);
+                }
+                i += 0x2AA;
+            } while (i < 0x556);
+            task->state = 1;
+            return;
+        case 1:
+            if (Gp_State1C->field_4 != 0) {
+                work->field_22 = tick;
+                keep           = Gp_State1C->field_4 < 4;
+                break;
+            }
+            func_dryfield_dilapidated_house_801832A8(coord, (s16)tick1, work->field_26, work->field_28);
+            func_dryfield_dilapidated_house_80182F14(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
+            func_dryfield_dilapidated_house_80182F14(coord, (s16)((u16)work->field_26 * 2), (s16)(u16)work->field_24 >> 1);
+            angle          = (u16)work->field_26;
+            angle         += 0x40;
+            work->field_26 = angle;
+            SOFT_USE_REG(angle);
+            keep = (s16)angle < 0x581;
+            break;
+        default:
+            return;
+    }
+    if (!keep) {
+        Gp_ReleaseState1CMem(work, task);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80182A18);
 

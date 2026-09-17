@@ -117095,3 +117095,68 @@ the include differs - the carrier's TU has to add `#include "main/fs.h"`.
 `promote` refuses this shape for the same family-scoped reason as above ("only
 one copy in rooms, nothing to share"); the two actor copies are a separate
 promotion and are already matched in their own overlay.
+
+## Identical early-exit blocks the target *keeps*: jump2's chain loop only runs when the first comparison fails (func_dryfield_dilapidated_house_80182744, 2026-09-17)
+
+The mirror image of the entry above. Two switch cases each open with
+`if (Gp_State1C->field_4 != 0) { work->field_22 = tick; keep = Gp_State1C->field_4 < 4;
+break; }` and both `break` to one shared `if (!keep) Gp_ReleaseState1CMem(...)`.
+Written that way the two then-blocks are byte-identical and the target keeps
+*both*: the case-0 test is `beqz $v0, <main body>` with the early block as its
+fall-through. My build merged them into one copy at case 1's position and
+inverted case 0's test to `bnez`, which is the tell - a merged tail moves the
+block out of line, so the surviving test branch flips.
+
+`jump.c`'s cross-jumping of an unconditional jump has two call sites and the
+second only runs when the first finds nothing:
+
+```
+find_cross_jump (insn, JUMP_LABEL (insn), 1, &newjpos, &newlpos);   /* code before the label */
+if (INSN_UID (JUMP_LABEL (insn)) < max_uid)
+  for (target = jump_chain[INSN_UID (JUMP_LABEL (insn))];
+       target != 0 && newjpos == 0;                                  /* <- only if the first failed */
+       target = jump_chain[INSN_UID (target)])
+    ... find_cross_jump (insn, target, 2, &newjpos, &newlpos);       /* other jumps to the label */
+```
+
+`find_cross_jump` walks back from both jumps, `--minimum` per matching insn, and
+takes the cross-jump when `minimum <= 0`. So comparing against the *label's*
+predecessor (minimum 1) needs only **one** matching insn, and a success there
+suppresses the whole-vs-whole comparison that would otherwise merge two
+identical blocks. In this function the label's predecessor is the other path's
+`slti $v0,$v0,0x581` against the early block's `slti $v0,$v0,0x4` - different
+constants, so the first call fails and the minimum-2 loop merges the copies.
+
+To keep both copies the two blocks have to differ somewhere in the **last two
+insns before the jump** (1 match + 1 mismatch leaves minimum at 1). An
+input-only asm compiles to an `ASM_OPERANDS` insn that emits nothing, so it is
+the cheapest RTL-only difference:
+
+```c
+        s32 fade;
+        work->field_22 = tick;
+        fade           = Gp_State1C->field_4;   /* the reload the target has anyway */
+        SOFT_USE_REG(fade);                     /* between the `lh` and the `slti` */
+        keep = fade < 4;
+```
+
+The walk matches the `slti` (minimum 2 -> 1), then sees `ASM_OPERANDS` against
+the other copy's `set` and stops with minimum 1. `fade` has to be `s32` - a
+`s16` local loads with `lhu` and sign-extends with two shifts, an instruction
+the target does not have - and the store stays *before* the reload, since the
+store is what forces the reload in the first place.
+
+Two smaller findings from the same function, both about keeping a source order
+the scheduler wants to change:
+
+* The switch's `default` went to the shared tail in my build and to the
+  epilogue in the target. A switch with no `default` sends its default path to
+  the break label, which here *is* the shared tail; retail's `j .L...9EC` is the
+  epilogue, so the source carries an explicit `default: return;`.
+* `sched1` moved `work->field_26 = angle;` past the `sll`/`sra`/`slti` that sign
+  extends `angle`: the shift chain has dependents and so a higher priority (3
+  against the store's 1), which left the store after the `slti` and forced the
+  post-reload allocator to keep the angle in `$v1`. Retail keeps the whole chain
+  in `$v0`, with the store between the `addiu` and the `sll`.
+  `SOFT_USE_REG(angle)` between the store and the comparison pins the order the
+  source already has; the angle then dies at the shift and ties to `$v0`.
