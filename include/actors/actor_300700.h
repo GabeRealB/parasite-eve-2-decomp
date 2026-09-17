@@ -28,7 +28,9 @@ typedef struct Actor300700Work {
     /* 0x154 */ Actor300700HitRecord field_154;
     /* 0x16C */ byte                 pad_16C[0x20];
     /* 0x18C */ GpRec18              field_18C;
-    /* 0x1A4 */ byte                 pad_1A4[0x80];
+    /* 0x1A4 */ byte                 pad_1A4[0x56];
+    /* 0x1FA */ u16                  field_1FA;
+    /* 0x1FC */ byte                 pad_1FC[0x28];
     /* 0x224 */ GpEffArg             field_224;
     /* 0x22C */ MATRIX               field_22C;
     /* 0x24C */ byte                 pad_24C[0x70];
@@ -61,7 +63,7 @@ typedef struct Actor300700Work {
     /* 0x388 */ s16                  field_388;
     /* 0x38A */ u16                  field_38A;
     /* 0x38C */ u16                  field_38C;
-    /* 0x38E */ byte                 pad_38E[2];
+    /* 0x38E */ u16                  field_38E;
     /* 0x390 */ s16                  field_390;
     /* 0x392 */ u16                  field_392;
     /* 0x394 */ s16                  field_394;
@@ -83,6 +85,8 @@ STATIC_ASSERT_SIZEOF(Actor300700RotScratch, 0x18);
 typedef struct Actor300700Params {
     /* 0x0 */ byte pad_0[0xA];
     /* 0xA */ u16  field_A;
+    /* 0xC */ byte pad_C[3];
+    /* 0xF */ u8   field_F;
 } Actor300700Params;
 
 /// Damage record the actor pushes hits into. Same object family as
