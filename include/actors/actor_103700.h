@@ -29,7 +29,9 @@ typedef struct Actor103700Work {
     /* 0x250 */ s16  field_250;
     /* 0x252 */ s16  field_252;
     /* 0x254 */ s16  field_254;
-    /* 0x256 */ byte pad_256[0x8];
+    /* 0x256 */ byte pad_256[0x4];
+    /* 0x25A */ s16  field_25A;
+    /* 0x25C */ u16  field_25C;
     /* 0x25E */ u16  field_25E;
     /* 0x260 */ byte pad_260[0x2];
     /* 0x262 */ s16  field_262;
@@ -73,6 +75,11 @@ typedef struct Actor103700Spawn {
 /// Every use reads it as a signed halfword through `lh` and adds it to a
 /// coordinate's Y translation, so it is the amplitude of an idle bob.
 extern s16 D_actor_103700_80139DB8[];
+
+/// Halfword wave table `func_actor_103700_80135140` indexes by `field_25C`.
+extern s16 D_actor_103700_80139DF4[];
+
+extern u32 Gp_LcgState;
 
 /// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
 extern GpAnimSet* D_actor_103700_80139F1C[];
