@@ -171,4 +171,13 @@ extern s16 D_actor_103700_80139E94[];
 
 void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2);
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_103700_801347E0`:
+/// the offset to the target and its `VectorNormalS`. That function never gives
+/// the scratch back.
+typedef struct Actor103700SteerScratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR normal;
+} Actor103700SteerScratch;
+STATIC_ASSERT_SIZEOF(Actor103700SteerScratch, 0x18);
+
 #endif // ACTOR_103700_H
