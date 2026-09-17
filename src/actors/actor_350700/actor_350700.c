@@ -70,7 +70,74 @@ void func_actor_350700_80161E88(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162070);
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_801621B4);
+void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern void* D_actor_350700_80169D0C[];
+
+/// Spawn-placement message handler: seeds the work block's position and
+/// rotation from `place`, picks the start animation from `anim` (or anim 3,
+/// 2 once `field_4C4` is set) and installs it through the same preset body as
+/// `func_actor_141000_801336DC`. Returns 0.
+s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place, Actor350700SpawnAnim* anim)
+{
+    Actor350700Work*       work;
+    Actor350700Work*       w;
+    Actor350700AnimPreset  preset;
+    Actor350700AnimPreset* msg;
+    s32                    i;
+    TmdObject*             ext;
+
+    w              = (Actor350700Work*)task->idMap;
+    w->field_4C0   = 1;
+    w->field_4C2   = 0;
+    w->target.vx   = place->pos.vx;
+    w->target.vy   = place->pos.vy;
+    w->target.vz   = place->pos.vz;
+    w->field_4B8   = place->rot.vx;
+    w->field_4BA   = place->rot.vy;
+    w->field_4BC   = place->rot.vz;
+    preset.field_0 = 0;
+    if (anim != NULL) {
+        preset.field_4 = anim->field_0;
+        w->field_43F   = anim->field_4;
+    } else {
+        if (w->field_4C4 != 0) {
+            preset.field_4 = 2;
+        } else {
+            preset.field_4 = 3;
+        }
+        w->field_43F = 1;
+    }
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 1;
+
+    msg  = &preset;
+    work = (Actor350700Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84((GpAnimCtx*)work, D_actor_350700_80169D0C[work->field_43E], (GpAnimObj*)ext, work->poses,
+                      work->slots);
+    }
+    if (msg->field_4 != work->field_43D) {
+        work->field_43D = msg->field_4;
+        if (msg->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114((GpAnimCtx*)work, i, work->field_43D, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_43D);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700", D_actor_350700_80161E20);
 
