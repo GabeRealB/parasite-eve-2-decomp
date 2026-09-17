@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -17,6 +18,24 @@ extern Task*    D_neo_ark_forest_zone_80181E68;
 extern u8       D_neo_ark_forest_zone_80181E6C[];
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
+/// Event parameters copied to the room's pending event `D_..._80182E48`: the
+/// cap command the room's event state machine runs, the stage sound, the game
+/// flag checked and set when the event starts, and the helper-spawn switch.
+typedef struct NeoArkForestZoneEvent {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s16 field_8;
+    /* 0xA */ u8  field_A;
+} NeoArkForestZoneEvent;
+STATIC_ASSERT_SIZEOF(NeoArkForestZoneEvent, 0xC);
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+extern TaskDesc              D_neo_ark_forest_zone_80181DBC;
+extern GpSaveLoc             D_neo_ark_forest_zone_80182E38;
+extern s8                    D_neo_ark_forest_zone_80182E40;
+extern NeoArkForestZoneEvent D_neo_ark_forest_zone_80182E48;
+
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", D_neo_ark_forest_zone_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017D644);
@@ -26,7 +45,55 @@ s32 func_neo_ark_forest_zone_8017D7DC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017D7E4);
+/// Latches the room's pending event and starts the controller that runs it:
+/// clears the "event running" flag, and once the event's flag nibble is clear
+/// (or the event carries no flag) and `dst->field_5` does not ask for the side
+/// effects to be suppressed, commits `dst` and the event and spawns the
+/// controller task. Answers 2 for a started event, 1 when `field_5` held it
+/// back.
+static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, NeoArkForestZoneEvent* event)
+{
+    D_neo_ark_forest_zone_80182E40 = 0;
+    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+        if (dst->field_5 == 0) {
+            D_neo_ark_forest_zone_80182E38 = *dst;
+            D_neo_ark_forest_zone_80182E48 = *event;
+            if (event->field_8 != 0) {
+                GameFlag_SetNibble(event->field_8, 1);
+            }
+            Task_SpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
+            D_neo_ark_forest_zone_80182E40 = 1;
+        }
+        return 2;
+    }
+    return 1;
+}
+
+/// Room handler for the save-location message: copies the incoming record onto
+/// the outgoing one and forwards both to `func_80179B14`. On a first pass
+/// (`field_5` clear, the flag that asks a handler to only report what *would*
+/// happen) it also restarts the room's ambience sound. Message 0x1D builds the
+/// room's event record - cap command 2, the stage sound, flag 0x140 - and hands
+/// it to `NeoArkForestZone_StartEvent`; every other message is not consumed and
+/// answers 1.
+s32 func_neo_ark_forest_zone_8017D7E4(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    NeoArkForestZoneEvent event;
+
+    *out = *in;
+    func_80179B14(in, out);
+    if (in->field_5 == 0) {
+        SndEvt_EnqueueType7(0x550B0006, 0x3C);
+    }
+    if (*(u16*)in != 0x1D) {
+        return 1;
+    }
+    event.field_0 = 2;
+    event.field_4 = 0x550B0003;
+    event.field_8 = 0x140;
+    event.field_A = 0;
+    return NeoArkForestZone_StartEvent(out, &event);
+}
 
 s32 func_neo_ark_forest_zone_8017D950(void)
 {
