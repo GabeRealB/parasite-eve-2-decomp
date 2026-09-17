@@ -121305,3 +121305,67 @@ Three smaller ones from the same function:
   materialise those bases in `$s1`/`$v1` instead of folding them onto the work
   pointer, and `sc = &work->field_264;` has to sit between the scratch load and
   its `-8` adjust for `addiu v1,s2,0x264` to land in the load-delay slot.
+## A two-case `switch`'s decision tree is a linear list, so the emitted branch order is fixed by *case count*, not by source order - give the switch a third label (func_actor_341700_8016CEB4, 2026-09-17)
+
+`func_actor_341700_8016CEB4` dispatches on a `u16` sub-command with bodies for
+0, 1 and everything else. Written as the obvious two-case switch,
+
+```c
+switch (cmd->halfs[1]) {
+    case 0: work->field_0 = 0; return 1;
+    case 1: ...;               work->field_0 = 2; break;
+    default: work->field_0 = 0; task->state = 1; break;
+}
+```
+
+it scores 73.32% and the dispatch comes out as `beqz a2,case0` /
+`beq a2,v0,case1` / `j default`, where the target is
+
+```
+beq  a2,v0,case1          # == 1
+slti v0,a2,2
+beqz v0,default           # >= 2
+bnez a2,default_body      # == 0, inverted over the case-0 body
+```
+
+`balance_case_nodes` (`stmt.c`) only splits the case list when it holds more
+than two nodes; with two it leaves one level and the *lowest* value is the
+root, so `case 0` is always tested first. The target's shape is the
+three-node tree: root `case 1`, left `case 0`, right the rest. Giving the
+switch a third label that shares the default body restores it:
+
+```c
+    case 2:
+    default:
+        work->field_0 = 0;
+        task->state = 1;
+        break;
+```
+
+That alone takes it to 97.34%, with a matching tree but one `jr ra` too many.
+The remaining two instructions are the outer guard: `if (cmd->halfs[0] !=
+0x2704) return 1;` before the switch is its own `(return)` insn, and the
+target's `bne` reaches the *same* epilogue as the switch's `break` tails. Write
+the guard as the enclosing condition and leave one trailing return - every tail
+then cross-jumps to it:
+
+```c
+    if (cmd->halfs[0] == 0x2704) {
+        switch (...) { ... }
+    }
+    return 1;
+```
+
+Two more notes from the same function. The switch index has to be a signed
+`s32` copy of the `u16` field (`s32 sel = cmd->halfs[1];`): the load stays
+`lhu`, but `shorten_compare` makes a direct `u16 > 1` unsigned and the tree
+then emits `sltiu` where the target has `slti`. And an `if/else` chain over the
+same values (`==1`, `>1`, `==0`) reproduces the test sequence too, but places
+the `==1` arm inline and inverts its branch; the switch is what puts it
+out-of-line behind `beq`.
+
+Inputs: `base_5.i` (100%) SHA256
+`5e0b9926d73bb2fa67310bb87bfe33bba060b98d495e7af2f0ce4729fd20da4e`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. Scratch
+`nonmatchings/func_actor_341700_8016CEB4-vacuum`.

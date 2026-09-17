@@ -78,19 +78,48 @@ STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 /// The overlay's *other* work block, for the task `func_actor_341700_8016D130`
 /// starts: that function calls `Mem_Calloc(0x80, 0)` and stores the result in
 /// the same `Task::idMap` slot, so the two blocks never coexist on one task.
-/// Only the leading halfwords are reached from decompiled code so far.
+///
+/// `field_0` is the state index `func_actor_341700_8016CC9C` dispatches
+/// through its three-entry handler table; `field_2` holds the previous value
+/// and `field_4` the state-change flag. `func_actor_341700_8016CEB4` copies
+/// the three leading bytes of an incoming command over `field_18` .. `field_1A`.
 typedef struct Actor341700SubWork {
     /* 0x00 */ s16  field_0;
     /* 0x02 */ s16  field_2;
     /* 0x04 */ s16  field_4;
-    /* 0x06 */ byte pad_6[0x7A];
+    /* 0x06 */ byte pad_6[0x12];
+    /* 0x18 */ u8   field_18;
+    /* 0x19 */ u8   field_19;
+    /* 0x1A */ u8   field_1A;
+    /* 0x1B */ byte pad_1B[0x65];
 } Actor341700SubWork;
 STATIC_ASSERT_SIZEOF(Actor341700SubWork, 0x80);
+
+/// The three leading bytes of a command packet, as `func_actor_341700_8016CEB4`
+/// copies them into the work block.
+typedef struct Actor341700CmdBytes {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+} Actor341700CmdBytes;
+
+/// A command packet an actor task receives. The same four bytes are read both
+/// byte-wise (the copy above) and as halfwords — offset 0 is the opcode the
+/// handler tests against 0x2704 and offset 2 the sub-command it switches on —
+/// so the two views are modelled here rather than cast at the use sites.
+typedef union Actor341700Cmd {
+    /* 0x0 */ Actor341700CmdBytes bytes;
+    /* 0x0 */ u16                 halfs[2];
+} Actor341700Cmd;
+STATIC_ASSERT_SIZEOF(Actor341700Cmd, 0x4);
 
 /// `field_41C * arg1`, fixed point `<< 0xC >> 0x10` — the per-frame walk step
 /// the turning states add to the root coord through `rsin` / `rcos`.
 s32 func_actor_341700_80168444(Task* arg0, s16 arg1);
 
 s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2);
+
+s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, Actor341700Cmd* cmd);
 
 #endif
