@@ -117160,3 +117160,69 @@ the scheduler wants to change:
   in `$v0`, with the store between the `addiu` and the `sll`.
   `SOFT_USE_REG(angle)` between the store and the comparison pins the order the
   source already has; the angle then dies at the shift and ties to `$v0`.
+
+## Indexed or walked: the `.loop` giv list says which spelling the target's induction variables need (func_dryfield_dilapidated_house_80180738, 2026-09-17)
+
+The mirror image of "A walked pointer's second field becomes a second induction
+variable". `func_dryfield_dilapidated_house_80180738` fills two 16-entry vertex
+rings per iteration and the target carries **four** induction variables, all
+incremented by 8 in the loop body - `$s3`/`$s1` (`verts`, `verts+4`) and
+`$s4`/`$s2` (`verts+16`, `verts+20`) - each increment placed just after its
+register's last read. Each half is therefore a biv plus a giv at `+4`, and only
+the *walked* spelling produces that:
+
+```c
+    v0 = verts;                       /* bivs: $s3 = verts, $s4 = verts + 16 */
+    v1 = &verts[16];
+        v0->vx = ...; v0->vy = ...; v0->vz = ...;      /* 0($s3), -2($s1), 0($s1) */
+        ...
+        v0++;                                           /* emits $s1 = $s3 + 4 */
+```
+
+Indexed (`verts[i].vx` / `verts[16 + i].vz`) scores 76.514% here: every vertex
+address is a `DEST_ADDR` giv of the single biv `i`, and `combine_givs` merges
+them all into one per half, so the target's `$s1`/`$s2` never exist and the
+fields read `2($s2)`/`4($s2)` off one base:
+
+```
+giv at 188 combined with giv at 192
+giv at 174 combined with giv at 192
+giv at 165 combined with giv at 192
+giv at 126 combined with giv at 192
+```
+
+The walked form scores 91.956% with everything else already correct. Which
+direction is right is decided by counting the target's increments, and
+`python3 tools/learn.py`/the `.loop` dump's `giv at N combined with giv at M`
+lines confirm it: one increment per half means indexed, two (base and base+4)
+means walked.
+
+Two smaller ordering findings from the same function, both about the preheader
+and the latch:
+
+* Setting the walking pointers up as the **first** statements (`v0 = verts;`
+  before `work = task->idMap;` and the frame-local copies) kills the argument
+  pseudo at the top of the function, which is what frees `$a1` for the
+  constant-pool `lui`/`lo_sum` of the vertex-offset table. The tell is retail's
+  second and third instructions: `move $s3,$a1` right after the frame
+  adjustment, then `lui $a1,%hi(D_..._80186844)`. With the pointers set up last
+  the `$a1` pool register becomes `$v1` and the same move sinks behind the
+  reverse-matrix `ctc2` block: 91.956% -> 96.680% for that one move alone.
+* `v0++` belongs immediately after the low half's last use, not with `v1++` at
+  the bottom of the body. Both spellings are the same C after loop.c, but the
+  position in the RTL is what the scheduler's ready list sees, and the target's
+  `addiu $s3,$s3,8` (mid-body, between the `lw` of the `rsin` argument and the
+  `jal`) and `addiu $s1,$s1,8` (after the step update) only appear when the
+  source puts them there: 97.868% -> 99.083%.
+
+Reading the two-entry offset table through **two** pointers - `ofs = D844;
+ofs2 = D844 + 1; pos[1].vx = ofs2->vx;` - is what materialises the second base
+(`addiu $a2,$v0,8`) that the target has, and it is one instruction more than the
+six flat displacements off one base: 99.083% -> 100.000%. The first use of
+`ofs2` folds back onto the base (`lhu $v0,8($v0)`, the `find_best_addr` first-use
+fold documented under "A pointer local is what makes a *local* struct's stores
+register-relative"); the two after it stay on the register (`2($a2)`, `4($a2)`).
+The same rule in this function's shape is why the source task's matrix needs a
+`MATRIX* mtx = &src->mtx;` local: `src->mtx.t[0]` is `0x20($v1)` off the work
+pointer, `mtx->t[0]` is `0x14($v1)` off the materialised `$v1 = $v1 + 0xC` the
+`gte_SetRotMatrix` operand already needs (96.680% -> 97.868%).
