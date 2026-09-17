@@ -121686,3 +121686,35 @@ Also seen in the same function (`func_actor_143000_801325F0`): the load order
 with `dx = p->x` written afterwards (CSE reuses the load). And a `u8 v = dy + 0x70`
 variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
 gave `-0x80`.
+## The fade-task family: `Mem_Malloc(8, 0)` + `switch (Task::state)` + `Fade_DrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
+
+`func_actor_121300_801326EC` is `func_actor_160900_801344D8`,
+`func_actor_560800_80136094` and its own TU sibling `func_actor_121300_8013400C`
+with the state numbers moved: an 8-byte RGB block allocated into `Task::idMap`
+(0x1C), three `s16` channels at 0x2/0x4/0x6, and a `switch (arg0->state)` in
+which one `case` seeds the channels and another holds `SetDispMask(1)` and
+falls through into the delay cases. `grep -rn 'Mem_Malloc(8, 0)' src/` lists the
+family. Adopting the nearest matched twin's source verbatim scored 100.00% on
+the first build here, where m2c's `switch`-free goto soup had reached 60.72%.
+
+The members differ in exactly two places, and both are read off the target's
+block layout, not off the sibling:
+
+- **Where `arg0->state += 1;` sits relative to the `Fade_DrawOverlay` call.**
+  160900 and 560800 put the increment first, as `state_inc: arg0->state += 1;`
+  followed by a fallthrough `case` holding the draw; this one draws first and
+  puts the label after the call. The sibling supplies the idiom, not this
+  function's ordering.
+- **Whether the seeding case calls `Fade_DrawOverlay` itself or jumps to a
+  shared tail.** When the dispatch's `beq state, N` lands in the *middle* of
+  another case's block, the source duplicated the call and `jump2`'s cross
+  jumping folded the tails - same pass and same tell as "A `goto` to a shared
+  tail call is not the source of a merged call pad" above. The abandoned
+  prefix is what to read: the seeding case kept its own `lbu` of channels 0
+  and 1 (the stores sit between them, so the common suffix starts only at
+  channel 2) and lost channel 2 and the `jal` to the surviving copy.
+
+Also: the small block is the TU's own struct (`Actor121300FadeWork` here,
+`Actor160900FadeWork`, `Actor560800FadeWork` there) with `s16` channels and
+`(u8)` casts at the call; the decrement reads back through the `(u16)` casts
+the siblings use, `fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);`.

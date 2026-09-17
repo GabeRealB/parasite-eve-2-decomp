@@ -8,7 +8,44 @@
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80131EB0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_801326EC);
+void func_actor_121300_801326EC(Task* arg0)
+{
+    Actor121300FadeWork* fade;
+    Actor121300FadeWork* alloc;
+
+    fade = (Actor121300FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor121300FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            fade    = alloc;
+            fade->r = 0xFF;
+            fade->g = 0xFF;
+            fade->b = 0xFF;
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
+            goto state_inc;
+        case 2:
+            SetDispMask(1);
+        case 1:
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
+        state_inc:
+            arg0->state += 1;
+            break;
+        case 3:
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, 2);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            if ((s16)fade->r < 0) {
+                Task_Kill(arg0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80132818);
 

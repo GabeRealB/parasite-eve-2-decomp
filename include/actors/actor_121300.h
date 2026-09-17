@@ -26,14 +26,19 @@ typedef struct Actor121300Work {
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
 
-/// 8-byte fade block `func_actor_121300_8013400C` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::idMap` -- a second, smaller idMap
-/// block in this overlay, distinct from `Actor121300Work`.
+/// 8-byte fade block `func_actor_121300_8013400C` and
+/// `func_actor_121300_801326EC` each allocate with `Mem_Malloc(8, 0)` and park
+/// in `Task::idMap` -- a second, smaller idMap block in this overlay, distinct
+/// from `Actor121300Work`.
 ///
-/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
-/// seeds all three to 0 and raises them by `Task::spawnArg1` every frame, then
-/// once the red channel has reached 0x100 it blanks the display and kills
-/// itself.  The blue channel is advanced but never read back.
+/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws.  The
+/// task seeded by `func_actor_121300_8013400C` seeds all three to 0 and raises
+/// them by `Task::spawnArg1` every frame, then once the red channel has reached
+/// 0x100 it blanks the display and kills itself; the blue channel is advanced
+/// but never read back.  The task seeded by `func_actor_121300_801326EC` is the
+/// mirror image: it seeds all three to 0xFF, unblanks the display one state
+/// before it starts drawing, and lowers them by `Task::spawnArg1` per frame
+/// until the red channel goes negative, reading all three channels back.
 typedef struct Actor121300FadeWork {
     /* 0x0 */ u8  pad_0[0x2];
     /* 0x2 */ s16 r;
