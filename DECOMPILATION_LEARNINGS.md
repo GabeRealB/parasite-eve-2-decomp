@@ -117602,3 +117602,60 @@ Inputs: `base_4.i` SHA256 `f0b9e7eda1392817d7ec48d7a3644c15db0edb150b46e6b5bff00
 (96.629%), `base_6.i` SHA256 `2aa329fd9d3044830a2a735caf5275e1ffca77258a5ff86a0555b3632becfaae`
 (0 differences); `target.s` SHA256 `51ce14d617120b89c2cc71bb2287ab0c2b5381ccabb7074baa682d1721ad9f7c`.
 Scratch `nonmatchings/func_mine_forked_tunnel_8017D8EC-vacuum`.
+## A field re-read keeps `+ 1` a computation only when a store invalidates the tested load (func_dryfield_r08_8017D5F8, 2026-09-17)
+
+The `x == 0` jump-equivalence fold above (`func_actor_341300_80163A10`) has a
+narrow escape that the task-init idiom lands on by accident. `if (task->state ==
+0) { D = 0; task->state = task->state + 1; }` is expected to fold to `li $v0,1`
+- and it does - *unless* the store to `D` sits between the test and the re-read.
+A store through a `symbol_ref` invalidates cse's memory entries for
+variable-address references, so the second `task->state` load is not merged with
+the first, its register carries no `qty_const`, and the increment survives as
+`addiu $v0,$v0,1`. In the `.cse` dump the re-read is a second `(mem/s:SI (plus
+(reg …) (const_int 48)))` insn; post-reload CSE removes the duplicate load later,
+so the final code has one `lw` and the target's `lui $v1` (the address register
+the increment's live value forces off `$v0`). Writing `task->state = 1` gives
+`li $v0,1` instead, and `m2c`'s local-copy form (`t = task->state; … t + 1`)
+folds in every ordering. Two siblings in the same family use the literal form and
+match with it (`func_neo_ark_observatory_80180124`), so the tell is which
+register the address of `D` lands in: `$v1` means the incremented value is live
+across the store.
+
+## A loop's address biv is emitted index-first unless the index stays in the loop
+
+`p = D_dryfield_r08_8017F464 + i;` (or `&D[i]` outside the loop) followed by a
+walking-pointer loop prints
+
+```
+sll  $v1,$s0,3        /* index first … */
+lui  $v0,%hi(D)       /* … base second */
+addiu $v0,$v0,%lo(D)
+addu $s1,$v1,$v0
+```
+
+while the target has `lui`/`addiu` before the `sll`. The front end expands
+`PLUS(ADDR(arr), index)` with the index materialised first for a *runtime* start
+value, and sched1 keeps that order (all priorities equal in the block). Move the
+index into the loop and let `loop.c` build the biv's initial value instead:
+
+```c
+for (i = D_dryfield_r08_80180C24; i < 12; i++) {
+    func_dryfield_r08_8017EB68(&D_dryfield_r08_8017F464[i], 0xA0, 0x3888);
+}
+```
+
+which emits base-then-shift and matches, 98.11% -> 100.00%. Same rule as "Base
+before index without a second pseudo" above, applied to the loop-entry
+computation rather than a single lookup.
+
+Inputs: `base_3.i` (99.314%) SHA256
+`9fa8ba066f9b4518a3a63434beba00516afaabed25aec539d65ec2bea670044c`; `base_4.i`
+(100.000%) SHA256
+`6972c6304111694d9e189067cf3f8ce55ea35c34930ff9be44f9ac602898b0ff`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run. The overlay needed `rodata_head = "0x4"`
+plus an explicit zero word (`const u32 D_dryfield_r08_8017D5D8
+SECTION(".rodata") = 0;`) after the generated table - the `actor_401000` shape
+above, the pad being the one the target keeps ahead of
+`func_dryfield_r08_8017D8B4`'s still-asm table. Scratch
+`nonmatchings/func_dryfield_r08_8017D5F8-vacuum`.
