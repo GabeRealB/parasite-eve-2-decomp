@@ -124764,3 +124764,40 @@ places above a call in the same basic block was written there in the source.
 Reordering the C is the fix; there is no scheduling knob that lifts it back.
 
 Inputs: `base_1.c` 97.972%, `base_2.c` 100.000%; `.sched2` of the former.
+## A near-duplicate sibling overlay is found by diffing the two `.s`, not by `overlay_dup_index.py find` (func_actor_403900_801347F4, 2026-09-17)
+
+`overlay_dup_index.py find` decides equality on splat's disassembly *text*, so a
+body that differs from a matched sibling by one immediate and one `D_` symbol
+reports `same body: 1 copies` - itself - and looks like a body nobody has
+written yet. For the actors family that is the wrong conclusion about 40% of the
+time: whole overlays are copies of other overlays (`USA/actors/actor_403900`
+mirrors `USA/actors/actor_402200`), and the differences are the few constants the
+stage retuned. When `find` shows no copies but `similar` puts a same-family
+sibling at 1.00 in all three classes, mask the addresses, the local labels and
+the overlay id out of both disassemblies and diff those:
+
+```
+diff <(sed 's|/\* [0-9A-F]* [0-9A-F]*||; s/\.L<this>/.L/g;   s/<this>_/X_/g; s/<this>/X/g'   <target>.s) \
+     <(sed 's|/\* [0-9A-F]* [0-9A-F]*||; s/\.L<sibling>/.L/g; s/<sibling>_/X_/g; s/<sibling>/X/g' asm/<ver>/<family>/matchings/<sibling>/<unit>/<fn>.s)
+```
+
+If the only surviving lines are the immediates and the `D_` symbols, the
+sibling's matched C body is the answer with those two edits - it is not a
+starting point to improve on. `func_actor_403900_801347F4` differed from
+`func_actor_402200_801347F4` in exactly two lines (the rolled countdown base
+`0x2D` against `0x4B`, and `D_actor_403900_8013846C` against
+`D_actor_402200_80138468`), and the port scored 100.000% with all-zero penalties
+on its first build, from the sibling's body with those two constants changed.
+
+Do not reach for `promote` on such a pair: `find` is right that it is not a
+shared body, and the differing `D_` symbol is overlay-local data.
+
+Inputs: scratch `nonmatchings/func_actor_403900_801347F4-vacuum`. `base.c` (m2c)
+93.011% (`regs=2 reorder=4 insert=2 delete=2`, structure already matching);
+`base_1.c` the ported `actor_402200` body with this overlay's two constants,
+100.000%, which is what `src/actors/actor_403900/actor_403900_3.c` now holds.
+It needs `include/actors/actor_403900.h`, whose work-block fields are the same
+shapes the `actor_402200` header names - per-overlay work structs with matching
+layouts are the family's existing pattern (`actor_105700` carries its own
+`field_6CE`). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
