@@ -3,6 +3,7 @@
 #include <psyq/inline_c.h>
 
 #include "actors/actor_461800.h"
+#include "actors/actor_461800_move.h"
 #include "actors/actors_shared_801324fc.h"
 #include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_8013411c.h"
@@ -254,37 +255,8 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-extern u8  D_80072729;
 extern s16 D_actor_461800_801437B8;
 extern s16 D_actor_461800_801438A8;
-
-/// Steps the task's model `amount` units along its facing (the coordinate
-/// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
-/// vector; skipped while `D_80072729` is 1.
-static __inline__ void Actor461800_MoveForward(Task* task, s16 amount)
-{
-    GsCOORDINATE2* coord;
-    SVECTOR*       head;
-    SVECTOR*       vec;
-
-    coord = ((TmdObject*)task->extra)->field_8;
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
 
 /// Per-frame update of the second variant: modes 1 and 2 run their one-shot
 /// setup and switch to mode 3 for the next frame; mode 3 walks the model while `field_4B2` counts

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_461800.h"
+#include "actors/actor_461800_move.h"
 #include "actors/actors_shared_80132ecc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -304,7 +305,54 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132660);
+extern s16 D_actor_461800_80139F58;
+extern s16 D_actor_461800_8014389C;
+
+/// Per-frame update of the first variant: modes 1 and 2 run their one-shot
+/// setup and switch to mode 3; mode 3 walks the model while `field_4EA` counts
+/// down (distance picked by `D_actor_461800_8014389C`), turns it while
+/// `field_4EC` counts down in animation 3, then ticks the animation.
+void func_actor_461800_80132660(Task* task)
+{
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
+    Actor461800Work* work  = (Actor461800Work*)task->idMap;
+
+    if (D_actor_461800_80143894->field_4B4 == 1) {
+        func_actor_461800_80132D04();
+        D_actor_461800_80143894->field_4B4 = 3;
+    } else if (D_actor_461800_80143894->field_4B4 == 2) {
+        func_actor_461800_80132C74();
+        D_actor_461800_80143894->field_4B4 = 3;
+    } else if (D_actor_461800_80143894->field_4B4 == 3) {
+        if (work->field_4B8 == 0xE || work->field_4B8 == 2 || work->field_4B8 == 0xF) {
+            if (work->field_4EA != 0) {
+                switch (D_actor_461800_8014389C) {
+                    case 0:
+                        Actor461800_MoveForward(task, 0x3C);
+                        break;
+                    case 1:
+                        Actor461800_MoveForward(task, -0xF);
+                        break;
+                    case 2:
+                        Actor461800_MoveForward(task, 0x19);
+                        break;
+                }
+                if (--work->field_4EA == 0) {
+                    work->field_4B4         = 1;
+                    D_actor_461800_80139F58 = 10;
+                    work->field_4B8         = 0xD;
+                }
+            }
+        }
+        if (work->field_4B8 == 3 && work->field_4EC != 0) {
+            work->field_4E6 += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+            coord->flg = 0;
+            work->field_4EC--;
+        }
+        func_actor_461800_80132C28();
+    }
+}
 
 /// Two-state dispatcher: publishes the task's work block in
 /// `D_actor_461800_80143894` on the way through, then calls the handler its
