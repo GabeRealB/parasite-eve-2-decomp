@@ -115745,3 +115745,95 @@ Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017DA58-vacuum/`,
 permuter, no tracer. The record-payload and ternary halves of this function are
 sections 25 and 28 above, and were already documented. `overlay_dup_index.py
 find` reports the body as its own only copy.
+
+## The ternary's `j` over the else arm is also a cse1 EBB boundary: two `force_reg` constants stay in two registers (func_dryfield_warehouse_8017E090, 2026-09-17)
+
+`func_dryfield_warehouse_8017E090` builds the same 0x3E8 `GpRec14` payload as its
+sibling `func_dryfield_warehouse_8017DA58` (section 29 above), and retail keeps
+the conditional's `1` and the record's `1` in *different* registers:
+
+```
+li     $v1, 1              /* the compare */
+lb     $v0, %lo(D_8007218A)($v0)
+lbu    $a0, %lo(D_80073BA9)($a0)
+bne    $v0, $v1, .L16C
+  addiu $v0, $a0, 0x22     /* delay slot: else arm */
+addu    $v0, $a0, $v1      /* then arm */
+...
+li     $s0, 1              /* a second 1, for the payload */
+sw     $s0, 0x14($sp)
+sb     $s0, %lo(D_80115768)($v1)
+addu    $v0, $v0, $s0      /* state += 1 takes the register form */
+```
+
+Writing the selection the way m2c renders its CFG -- a default before an `if` --
+scores 93.58% with `regs=12`, and the `1`s read wrong in a specific way: the
+compare, the `+1` and the payload's `sw` all take *one* register, so the target's
+`bne $v0,$s0` / `li $s0,1` / `addu $v0,$v0,$s0` come out as `bne $v0,$s0`,
+`li $s0,1` (one `li`), and `addiu $v0,$v0,1`:
+
+```c
+anim = D_80073BA9 + 0x22;             /* 93.58%, regs=12 */
+if (D_8007218A == 1) {
+    anim = D_80073BA9 + 1;
+}
+```
+
+The ternary form (with the global bound to a local first, section 29's rule)
+is 100%:
+
+```c
+weaponId = D_80073BA9;
+anim     = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+```
+
+**Cause.** The two forms differ in the RTL block shape, not in the arithmetic.
+The `if` form compiles to a conditional branch whose *fallthrough* is the then
+arm, with the join block following in the linear instruction chain -- no
+unconditional jump anywhere:
+
+```
+(insn 96 (set (reg:SI 104) (const_int 1)))            /* the compare's 1 */
+(jump_insn 97 (if_then_else (ne (reg 102) (reg 104)) (label_ref 106) (pc)))
+(insn 104 (set (reg 82) (plus (reg 98) (const_int 1))))
+(code_label 106)                                      /* join, no barrier */
+(insn 112 (set (reg:SI 108) (const_int 1)))           /* the payload's 1 */
+```
+
+The ternary instead emits `j .Lmerge` + `barrier` over the else arm (section
+29's four-block form). `cse_end_of_basic_block` stops at that unconditional
+jump, so the join label becomes a *new* extended basic block with an empty hash
+table: the constant entry made by insn 96 is flushed before the payload's
+`force_reg` constant is seen, and insn 112's `1` stays its own pseudo -- which
+is the second register retail has. Without the jump, both `(set (reg) (const_int
+1))` insns land in one EBB, `merge_equiv_classes` puts them in one same-value
+class, and the later store is rewritten to the first register, deleting the
+second `li`.
+
+The two `force_reg`s themselves are not source-controllable: `movsi`'s
+`define_expand` (`config/mips/mips.md`) forces a nonzero constant into a register
+whenever the destination is not one at expansion time, so `rec.field_4 = 1`
+always costs a pseudo. What the source chooses is only whether the *jump* sits
+between that pseudo's definition and its use.
+
+**Tell.** Two `li $rN,1` in the target with one in the conditional and one in the
+payload, where the candidate has one -- and a `state += 1` that is `addu
+$v0,$v0,$sN` in the target but `addiu $v0,$v0,1` in the candidate. The second
+falls out of cse2: a hard register is cheaper than a constant (`COST`, cse.c),
+so once a register *does* hold the 1 the increment is folded onto it. That the
+increment's form flips with the constant's home is the confirmation that the
+difference is the constant's liveness, not the payload's layout.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Inputs: base.i `5e171a2ccc85608489c20b6557c4bd419910cfe69266009827db53d97a6f5a6a`,
+base_1.i `12b78655e34e3e377a613db2e87314904e302db8023b5c1ded8f55369e3a2204`,
+base_2.i `373a8286f3d5d1b40fd4972ec7de16923990437ec38efb83a3696039a958e15f`.
+Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017E090-vacuum/`,
+`base_1_diff` (the `li s0,1` / `bne v0,s0` / `addiu v0,v0,1` block),
+`base_2.score.json`, and the `(insn 94)` / `(insn 109)` pair in `base_2.i.cse`
+against `(insn 96)` / `(insn 112)` in `base_1.i.cse`. No pins, no permuter, no
+tracer. A second seed defect in the same family: m2c's five separate `s32`
+scalars for the payload let GCC delete the four stores whose address never
+escapes (`base.c` 89.31%, frame 0x28); `GpRec14 rec;` with `&rec` escaping
+restores them and the 0x38 frame. `overlay_dup_index.py find` reports the body
+as its own only copy.
