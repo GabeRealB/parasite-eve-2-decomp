@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actors_shared_801326f0.h"
+#include "actors/actors_shared_801345fc.h"
 
 void Gp_ClearRec18Occupied(void*);
 s32  Gp_GetObjDepth(s32);
@@ -14,7 +15,6 @@ void ActorsShared801326f0_Fn33370(ActorShared801326f0*);
 void ActorsShared801326f0_Fn336E8(ActorShared801326f0*);
 void ActorsShared801326f0_Fn33AB4(ActorShared801326f0*);
 void ActorsShared801326f0_Fn343E8(ActorShared801326f0*);
-void ActorsShared801326f0_Fn345FC(ActorShared801326f0*);
 void ActorsShared801326f0_Fn347E0(ActorShared801326f0*);
 void ActorsShared801326f0_Fn3537C(ActorShared801326f0*);
 
@@ -138,7 +138,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
             if (work->field_266 != 0) {
                 ActorsShared801326f0_Fn3537C(arg0);
             }
-            ActorsShared801326f0_Fn345FC(arg0);
+            ActorsShared801345fc((ActorShared801345fc*)arg0);
             soundWork            = arg0->field_1C;
             object               = arg0->field_2C->field_8;
             timer                = soundWork->field_260 + 1;
@@ -159,7 +159,7 @@ s32 ActorsShared801326f0(ActorShared801326f0* arg0)
             }
             return ret;
         case 9:
-            ActorsShared801326f0_Fn345FC(arg0);
+            ActorsShared801345fc((ActorShared801345fc*)arg0);
             soundWork            = arg0->field_1C;
             object               = arg0->field_2C->field_8;
             timer                = soundWork->field_260 + 1;
