@@ -6,6 +6,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/stage.h"
@@ -34,7 +35,57 @@ extern s32 D_actor_460200_80137FE0;
 extern s32 D_actor_460200_80138028;
 extern s32 D_actor_460200_80138070;
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80131E2C);
+extern RECT D_actor_460200_80135E0C;
+extern RECT D_actor_460200_80135E14;
+
+void func_actor_460200_80131E2C(Task* task)
+{
+    Actor460200CaptureArgs* args;
+    s32                     hoisted; /* $v0: a byte load GCC hoisted above the prologue */
+    s32                     i;
+    u32*                    strip;
+
+    args = task->spawnArg2;
+    if (hoisted == 0) {
+        switch (task->state) {
+            case 0:
+                args->done          = 0;
+                task->killCountdown = args->duration;
+                if (Display_State.field_1f != 0) {
+                    D_actor_460200_80135E14.y = 0;
+                } else {
+                    D_actor_460200_80135E14.y = 0x110;
+                }
+                if (Display_State.field_112 < 0) {
+                    StoreImage(&D_actor_460200_80135E0C, Fs_ImgBuffers->buffers[0]);
+                } else {
+                    strip = Fs_ImgBuffers->buffers[0];
+                    for (i = 0; i < 20; i++) {
+                        D_actor_460200_80135E14.x = i * 16;
+                        StoreImage(&D_actor_460200_80135E14, strip);
+                        strip += 1920;
+                    }
+                }
+                Display_State.field_104 = 1;
+                goto advance;
+            case 1:
+                DrawSync(0);
+                func_actor_460200_80131FB0();
+            advance:
+                task->state++;
+                break;
+            case 2:
+                if (--task->killCountdown <= 0) {
+                    args->done = 1;
+                }
+                if (args->done != 0) {
+                    Task_Kill(task);
+                    Display_State.field_104 = 0;
+                }
+                break;
+        }
+    }
+}
 
 void func_actor_460200_80131FB0(void)
 {

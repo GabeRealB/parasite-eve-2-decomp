@@ -114342,3 +114342,27 @@ Jump optimization cross-jumps the else tail's `sw; return` into the first block'
 copy. Same function: a random value that looks shared between two `switch` cases
 had to be a separate variable in each case (the target had it in `$v1` in one case
 and `$a1` in the other). One pseudo spanning both cases conflicts with both registers.
+
+## Unfilled switch-dispatch delay slots can be a case body's first insn, not reorg liveness (func_actor_460200_80131E2C, 2026-09-17)
+
+`func_actor_460200_80131E2C` sat at 92.8% (`branch=9`) with the target's dispatch
+branches (`beqz $v1, case0`, `beq $v1,$v0, case2`) carrying `nop` slots where the
+build put `lui $v0` / `li $v0,2`. It looks like reorg thinks `$v0` is live at
+the exit, and a return-value experiment (`return flag;` at the end) does
+reproduce the nops - but by pinning `$v0` live across the whole switch and
+wrecking allocation. That was the wrong path.
+
+The real cause was the case-0 body order. `extern u8 D_80070F87;` is a fixed
+scalar, so sched1 hoisted its `lui`/`lbu` above the struct stores that open the
+case, and that `lui` (non-trapping) was eligible for the slot. In the target the
+case opens with `lhu $v0, 0($a0)` - a memory load, which `may_trap_p` keeps out
+of an unannulled slot - so the slot stays empty. Naming the globals as the
+struct fields they are (`Display_State.field_1f` / `field_104` / `field_112`)
+restores the aliasing edge and took the function straight to a match; the other
+slot differences followed from the layout.
+
+Rule: when a slot-fill mismatch sits in front of a case body, diff that body's
+first instructions before theorising about reorg's live sets. A `lui` or `li`
+at a branch target can fill a slot; a load cannot. Check whether a `D_8007xxxx`
+extern is really a field of a known struct (see the "scalar global does not
+alias a struct" entries).
