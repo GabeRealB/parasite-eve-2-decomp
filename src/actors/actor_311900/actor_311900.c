@@ -19,9 +19,64 @@ void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
 void func_actor_311900_80161E3C(Task* task, s32 arg1, s32 arg2);
 void func_actor_311900_80162100(Task* task);
 
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 INCLUDE_ASM("actors/nonmatchings/actor_311900/actor_311900", func_actor_311900_80161E3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_311900/actor_311900", func_actor_311900_80162100);
+/// Applies the animation request in the work block's `field_474` to slots 1..19
+/// of its context, which is where the block itself begins. Step 1 seeks every
+/// slot to the id in `field_478` through `func_800B4114`, step 2 resets them to
+/// it; each first marks the slot reset-pending with the rate byte at `field_47C`,
+/// and both then latch that id as the one now playing in `field_476`, settle on
+/// step 3 and clear the frame counter at `field_47A`. Step 3 only ticks the slots
+/// and counts frames.
+///
+/// The two advances are one block in the ROM: jump.c cross-jumps them because
+/// both branches name the same local. Step 3 reads the block again into an alias
+/// of its own -- keeping `start` dead before `work` there is what leaves the
+/// slot walk on the `work` register cse2 picks for it.
+void func_actor_311900_80162100(Task* task)
+{
+    Actor311900Work* work;
+    Actor311900Work* start;
+    Actor311900Work* tick;
+    s32              i;
+    s32              j;
+    s32              k;
+
+    work = (Actor311900Work*)task->idMap;
+    if (work->field_474 == 1) {
+        start = (Actor311900Work*)task->idMap;
+        for (i = 1; i < 0x14; i++) {
+            start->anim.slots[i].field_9 = start->field_47C;
+            func_800B4114(&start->anim.context, i, (s16)start->field_478, 0, 0);
+        }
+        start->field_476 = start->field_478;
+        work->field_474  = 3;
+        work->field_47A  = 0;
+        return;
+    }
+    if (work->field_474 == 2) {
+        start = (Actor311900Work*)task->idMap;
+        for (j = 1; j < 0x14; j++) {
+            start->anim.slots[j].field_9 = start->field_47C;
+            Gp_AnimResetSlot(&start->anim.context, j, (s16)start->field_478);
+        }
+        start->field_476 = start->field_478;
+        work->field_474  = 3;
+        work->field_47A  = 0;
+        return;
+    }
+    if (work->field_474 == 3) {
+        work->field_47A++;
+        tick = (Actor311900Work*)task->idMap;
+        for (k = 1; k < 0x14; k++) {
+            Gp_AnimTickIndex(&tick->anim.context, k);
+        }
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E20);
 

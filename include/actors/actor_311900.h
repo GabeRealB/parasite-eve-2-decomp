@@ -46,13 +46,21 @@ STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 ///
 /// The size is the allocation, and the fields below are the ones the spawn
 /// state seeds: 2 into the halfword at 0x474, 1 into the one at 0x478, and
-/// zero into 0x4C4 / 0x4C6.
+/// zero into 0x4C4 / 0x4C6. `func_actor_311900_80162100` turns that pair into
+/// the animation request `field_474` and the two ids beside it: `field_478` is
+/// the id the slots are seeded with, `field_476` latches it as the one now
+/// playing once the slots have been seeded, `field_47C` is the rate byte every
+/// seeding writes into `GpAnimSlot::field_9`, and `field_47A` counts frames
+/// while `field_474` is 3 -- the running step, which is where both seeding
+/// steps leave it.
 typedef struct Actor311900Work {
     /* 0x000 */ Actor311900Anim anim;
-    /* 0x474 */ u16             field_474;
-    /* 0x476 */ byte            pad_476[0x2];
+    /* 0x474 */ s16             field_474;
+    /* 0x476 */ s16             field_476;
     /* 0x478 */ u16             field_478;
-    /* 0x47A */ byte            pad_47A[0xA];
+    /* 0x47A */ u16             field_47A;
+    /* 0x47C */ u8              field_47C;
+    /* 0x47D */ byte            pad_47D[0x7];
     /* 0x484 */ MATRIX          light;
     /* 0x4A4 */ MATRIX          color;
     /* 0x4C4 */ u16             field_4C4;

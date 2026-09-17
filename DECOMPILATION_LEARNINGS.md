@@ -122585,3 +122585,67 @@ GTE round trip uses *second*.
 
 Inputs: `base_2.i` (99.935%)
 `6a79fd929317a1e0f3b8a9eaf621f04447f11b675ba08d4f5a10c289b4ce34d9`.
+
+## cse2 re-canonicalises a pointer's equivalence class by *last use*, so which alias a strength-reduced walk names is decided after loop.c (func_actor_311900_80162100, 2026-09-17)
+
+Three animation steps over one work block, each walking `slots[1..0x13]` at a
+0x28 stride, and the only mismatch left after the obvious source is the **base
+register** of the slot walk's induction pointer:
+
+```
+addiu s2,s3,0x28     /* target: built from `work`, the alias the step word uses */
+addiu s2,s1,0x28     /* ours:   built from `start`, the alias the fields use */
+```
+
+Two instructions, `99.867%`, `regs=2`. Everything else - the frame, the saved
+`$s3`, the cross-jumped advance, the step-3 reload - already matched, so this is
+one decision, not a shape problem.
+
+Both aliases hold `task->idMap`, so cse1 turns the second read into
+`(set start work)` and loop.c builds the giv on the pseudo the *address* names,
+i.e. `work` (pseudo 81) - what the target has. `./insn.py 274` shows the next
+pass undoing it:
+
+```
+loop    (set (reg:SI 134) (plus:SI (reg/v:SI 81) (const_int 40)))
+cse2    (set (reg:SI 134) (plus:SI (reg/v:SI 82) (const_int 40)))
+```
+
+cse2 folds the two registers into one equivalence class and rewrites the class's
+members to its canonical. `make_regs_eqv` in `cse.c` picks that canonical as the
+member whose **last use is latest** - "if NEW will live longer than any other reg
+of the same qty ... make it the new canonical" - and in the obvious source
+`start` is the one that lives on, because step 3 re-reads `task->idMap` into it.
+
+So the lever is the *relative last-use order of the two aliases*, not the
+expression the walk is written with. Indexing the array through `work`
+explicitly changes nothing (`base_2.c`, same two instructions): cse1 already had
+the address on `work`, and cse2 rewrites it anyway. Giving step 3 an alias of its
+own -
+
+```c
+    if (work->field_474 == 3) {
+        work->field_47A++;
+        tick = (Actor311900Work*)task->idMap;     /* was: start = ... */
+        for (k = 1; k < 0x14; k++) { Gp_AnimTickIndex(&tick->anim.context, k); }
+    }
+```
+
+- ends `start` at the shared advance, leaves `work` with the later last use, and
+  100.000% with nothing else moved. `tick` is still allocated `$s1`, the register
+  `start` frees, so the step-3 loop is untouched. The three-alias shape is the
+  one this family already writes (`func_acropolis_bridge_8018581C`'s
+  `start`/`reset`/`tick`, `actor_110300`'s step machine), and the reason to keep
+  it is this allocation, not style.
+
+**Reading it.** A leftover that is only the *base register* of a walking pointer
+is a cse2 question, not a loop.c one, and the diagnostic is cheap: `insn.py
+<uid>` on the `addiu` prints `loop` and then `cse2` as the pass that changed the
+operand. Retargeting the walk's C expression does not move it; shortening the
+other alias's live range does. Two pointers holding the same value are only free
+while their live ranges do not decide an equivalence class.
+
+Inputs: scratch `nonmatchings/func_actor_311900_80162100-vacuum`, `base.c`
+81.920% (`branch=6 regs=38 reorder=1 insert=3 delete=8`), `base_1.c` 99.867%
+(`regs=2`), `base_2.c` 99.867%, `base_3.c` 100.000%, compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

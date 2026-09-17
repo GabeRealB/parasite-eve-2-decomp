@@ -168,6 +168,13 @@ agreed.
 - **CSE** can reuse a repeated subexpression, changing pressure and lifetimes.
   A shared constant can occupy a saved register or be rematerialized by reload.
   Inspect the equivalence and allocation before deciding whether to split it.
+- **Register equivalences are canonicalised, by last use.** Two pseudos holding
+  one value are folded into a class whose canonical member is the one with the
+  **latest last use** (`make_regs_eqv`, `cse.c`), and class members are rewritten
+  to it. cse2 runs *after* loop.c, so adding an alias in a later branch can move
+  the base register a strength-reduced walk was built from without touching the
+  loop's C. See `DECOMPILATION_LEARNINGS.md`, "cse2 re-canonicalises a pointer's
+  equivalence class by *last use*".
 
 C spelling alone does not determine reuse: different temporaries can collapse,
 and identical expressions can require separate loads after invalidation. Read
