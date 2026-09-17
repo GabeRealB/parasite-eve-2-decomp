@@ -119115,3 +119115,63 @@ half (`or v0,v0,v1` instead of `ori`).
 
 Inputs: `base_5.i` (100%, all penalties zero), `base_3.i` (`goto` guard with the
 stores before `cmd`, 98.71%) and `base_2.i` (`else if`, 86.83%).
+
+## A leading rodata that runs past its own last `dlabel` is the tell for a late `.text` span - and the C can hide it (dryfield_night_back_street, 2026-09-17)
+
+"A hoisted global load above the prologue starts the overlay `.text` too late"
+gives the two original tells. This is a third, and the reason the first two can
+be missed.
+
+`dryfield_night_back_street` opens with the same shape: the package's bytes at
+0x10 are `lui $v0,%hi(Game_Session)` / `lw $v0,%lo(Game_Session)($v0)` and the
+`addiu $sp` prologue follows at 0x18, so the span detector started `.text` at
+0x18 and the function split as `func_dryfield_night_back_street_8017D5D8`, whose
+ninth instruction reads the `$v0` those two set.
+
+The third tell is in the leading rodata, not the code. `RoomsShared8017d878Table`
+is a `TaskFuncTable3` - twelve bytes - and 143 of the 145 rooms carrying it dump
+exactly three `.word`s. This room and `mist_r18` are the two that dump five and
+six: the `.rodata` subsegment's last `dlabel` swallows whatever the span detector
+left behind it, so a table symbol that is longer than its type says is a late
+`.text` start. Check the type's length against the dump before believing the code
+is really a live-in read.
+
+**The decisive test is one build, and it is not the checksum.** Write the natural
+form - the local declared *with* its initialiser, `GameSession* session =
+Game_Session;` - and compile it. Here that emits
+
+```
+lui    v0,%hi(Game_Session)
+lw     v0,%lo(Game_Session)(v0)
+addiu  sp,sp,-0x20
+```
+
+byte-for-byte the target from 0x10 on, with the same allocation and no pin. The
+hoist is what put those two instructions above the prologue in the original too.
+
+**The trap:** the same `.s` is also satisfiable with the span left alone. Declare
+the local *uninitialised* and `lbu $s1,0x7($v0)` becomes a genuine live-in read
+of a pointer the caller left in `$v0`; the stray words are then supplied as data
+by the `INCLUDE_RODATA` of the table whose dump swallowed them. That builds to
+the same image, so `✅ BUILD SUCCEEDED` cannot choose between the readings - and
+against the mis-split target only the pin reaches 100%, so the wrong reading is
+the *easier* one to land. `mist_r18` carries it today
+(`func_mist_r18_8017D5F4` reads an uninitialised `GameSession* session` at
+`field_1`, its rodata running 8 bytes past `RoomsShared80181e70Table`); it is a
+candidate for the same `text` cut.
+
+The win beyond fidelity is that the natural form needs no `register ... asm("")`
+pin: the mis-split leaves `out` (REG_N_REFS 4 / REG_LIVE_LENGTH 30 -> 2666) and
+the response byte (3/12 -> 2500) adjacent in `allocno_compare`, and a 6% gap
+there cannot be argued closed from C, which is what pushes a hand to the pin.
+Fixing the span removes the pin along with the 8-byte prefix.
+
+Landed form: `text = [0x10, 0x2D64]` on the manifest entry, `RoomsShared8017d878Table`
+back to three words, one `src/rooms/dryfield_night_back_street/dryfield_night_back_street.c`
+body renamed to `func_dryfield_night_back_street_8017D5D0`; no `src/` file had to
+be deleted, because the unit's `INCLUDE_RODATA` symbols and addresses do not move.
+
+Inputs: `base_3.i` SHA256
+`e084f4d9b81135a0f783953897a820400875bbc21f5e7918bdaaf287653c3192`; landed source
+SHA256 `4d72540c7789c37a49a4a22685751c69d0f72b1248b25bb1bc0cacdd95a1eec3`;
+compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
