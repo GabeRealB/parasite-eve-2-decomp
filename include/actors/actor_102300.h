@@ -19,22 +19,66 @@
 /// `D_actor_102300_80135D64`, and `field_6A8` the state the frame dispatcher
 /// switches on.
 typedef struct Actor102300Work {
-    /* 0x000 */ byte pad_0[0x5E4];
+    /// Animation context `func_800B3F84` fills in, followed by the nineteen
+    /// slots and the pose buffer it is handed.
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       poses[0x130];
+    /// Light and colour matrices the model object is pointed at, in place of
+    /// the defaults `Tmd_SetupDraw` would otherwise load.
+    /* 0x43C */ MATRIX field_43C;
+    /* 0x45C */ MATRIX field_45C;
+    /// The four list nodes the spawn handler links, each with its own
+    /// `GpRec18` table. `field_47C` goes on list 3 through the bounding-box
+    /// record at `field_49C`; the other three point straight at their tables.
+    /* 0x47C */ GpObj        field_47C;
+    /* 0x49C */ GpActorD4Rec field_49C;
+    /* 0x4B4 */ GpRec18      field_4B4[1];
+    /* 0x4CC */ GpObj        field_4CC;
+    /* 0x4EC */ GpRec18      field_4EC[5];
+    /* 0x564 */ GpObj        field_564;
+    /* 0x584 */ GpRec18      field_584[4];
     /// Collision/proximity list node, the slot the lunge raises bit 0x8000 of
     /// and parks its `Gp_PackPair` entry in.
-    /* 0x5E4 */ GpObj field_5E4;
-    /* 0x604 */ byte  pad_604[0x90];
-    /* 0x694 */ s16   field_694;
-    /* 0x696 */ byte  pad_696[2];
-    /* 0x698 */ s16   field_698;
-    /* 0x69A */ byte  pad_69A[2];
-    /* 0x69C */ s16   field_69C;
-    /* 0x69E */ s16   field_69E;
-    /* 0x6A0 */ byte  pad_6A0[4];
-    /* 0x6A4 */ s16   field_6A4;
-    /* 0x6A6 */ s16   field_6A6;
-    /* 0x6A8 */ s16   field_6A8;
-    /* 0x6AA */ byte  pad_6AA[0x3A];
+    /* 0x5E4 */ GpObj   field_5E4;
+    /* 0x604 */ GpRec18 field_604[1];
+    /* 0x61C */ byte    pad_61C[0x50];
+    /// The spawn table this overlay's enemies come from, kept for the state
+    /// handlers to respawn through.
+    /* 0x66C */ TaskDesc*      field_66C;
+    /* 0x670 */ GsCOORDINATE2* field_670;
+    /* 0x674 */ s16            field_674;
+    /* 0x676 */ s16            field_676;
+    /* 0x678 */ byte           pad_678[0x1C];
+    /* 0x694 */ s16            field_694;
+    /* 0x696 */ byte           pad_696[2];
+    /* 0x698 */ s16            field_698;
+    /* 0x69A */ byte           pad_69A[2];
+    /* 0x69C */ s16            field_69C;
+    /* 0x69E */ s16            field_69E;
+    /* 0x6A0 */ byte           pad_6A0[4];
+    /* 0x6A4 */ s16            field_6A4;
+    /* 0x6A6 */ s16            field_6A6;
+    /* 0x6A8 */ s16            field_6A8;
+    /* 0x6AA */ byte           pad_6AA[2];
+    /// Awake variant this enemy starts in, taken from bit 0 of the spawn
+    /// record's `field_2`.
+    /* 0x6AC */ s16  field_6AC;
+    /* 0x6AE */ byte pad_6AE[0x16];
+    /// 1 or 2, picked from bit 16 of the next LCG draw.
+    /* 0x6C4 */ s16  field_6C4;
+    /* 0x6C6 */ byte pad_6C6[4];
+    /* 0x6CA */ s16  field_6CA;
+    /* 0x6CC */ byte pad_6CC[4];
+    /* 0x6D0 */ s16  field_6D0;
+    /* 0x6D2 */ byte pad_6D2[4];
+    /// Sector id of the enemy's voice stream, looked up per room from
+    /// `D_actor_102300_80147AA0` and queued with `CdCmd_Enqueue(0x21, ...)`.
+    /* 0x6D6 */ s16  field_6D6;
+    /* 0x6D8 */ byte pad_6D8[2];
+    /// Dwell budget in thousandths, scaled by the spawn record's byte 1.
+    /* 0x6DA */ s16  field_6DA;
+    /* 0x6DC */ byte pad_6DC[8];
 } Actor102300Work;
 STATIC_ASSERT_SIZEOF(Actor102300Work, 0x6E4);
 

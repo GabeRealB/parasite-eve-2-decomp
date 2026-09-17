@@ -128097,3 +128097,64 @@ every save slot). The target materialises the address twice, in `$v0` and in
 `$a0` - two short-lived pseudos, which means two *variables*, not one reused.
 Reassigning a single variable does not work either: a pseudo with two sets still
 gets one hard register. Declare one pointer per use site.
+
+## Rematerialising `&local` per call: kill the CSE class *after* the call with an output-only asm, not before it with `TOUCH_REG` (func_actor_102300_801346CC, 2026-09-18)
+
+**Problem.** A stack struct passed to two calls in a row,
+
+```c
+Gp_SyncAreaKeyIndex(&key);
+rec = Gp_GetNestedAreaRec(&key);
+```
+
+is one CSE value (`fp + const`), so GCC 2.8.1 keeps it in a single pseudo that
+is live across the first call and therefore needs a callee-saved register. The
+ROM instead recomputes `addiu $a0, $sp, key` for each call. When the same block
+appears **twice** in a function the class also survives the intervening
+conditional, so the address is hoisted into `$s4` for the whole span and every
+later allocation shifts - here it cost a ninth callee-saved register (`$s8`),
+pushing `coord` out of `$s7`.
+
+**Symptom.** An extra `sw $s8` in the prologue and a `move $a0, $s4` where the
+target has `addiu $a0, $sp, X`.
+
+**The usual fix does not scale to two blocks.** `keyPtr = &key; TOUCH_REG(keyPtr);`
+before the first call (the `Actor02000_Fn0251C` recipe) breaks the pair *inside*
+one block, but the second block's plain `&key` still CSEs with the first
+block's. Touching again between the calls fixes that and costs a delay slot: the
+`asm` insn sits between the `addiu` and the `jal`, so `dbr` cannot fill the slot
+and emits a `nop`.
+
+**Fix.** Put an output-only asm *after* each call instead. `SOFT_DEF_REG(x)` is
+`__asm__("" : "=r"(x))`: it reads nothing, so the pointer does not have to
+survive the call, and CSE sees the pseudo redefined by an unknown value and
+drops `fp + const` from the available set. Because it precedes the next
+`addiu` rather than following it, `dbr` still pulls that `addiu` into the delay
+slot. One kill after each call, plus one at the end of the first block so the
+second block rematerialises too:
+
+```c
+keyPtr      = &key;
+key.field_0 = areaByte0;
+Gp_SyncAreaKeyIndex(keyPtr);
+SOFT_DEF_REG(keyPtr);          /* emits nothing; &key is no longer available */
+keyPtr = &key;                 /* fresh addiu, free to enter the delay slot */
+rec    = Gp_GetNestedAreaRec(keyPtr);
+...
+SOFT_DEF_REG(keyPtr);          /* so the *next* block recomputes it as well */
+```
+
+Dropping the last of the three drops the score from 100% to 97.1%, so each one
+is load-bearing. The asm is deleted by `flow` once its output is overwritten -
+the kill has already happened in `cse`, which runs first - so nothing is
+emitted.
+
+**Second half of the same match: split the per-block locals.** With the address
+fixed, the two spawn blocks still allocated differently from the target because
+`idx` / `rec` / `entry` / `sessionKey` shared one variable each across both
+blocks. One variable is one pseudo and gets one hard register, so `entry` could
+not reuse `idx`'s `$s0` the way the target does (`sll $s0,$s0,4; addu $s0,$s0,$v0`),
+and the early `lw $v1, 0x18($s1)` never got scheduled. Declaring a second copy of
+every per-block local - `idx2`, `rec2`, `entry2`, `sessionKey2`, `keyPtr2` -
+matched exactly. Same rule as "one variable per use site" above: repeated code
+means repeated *variables*, not a reused one.
