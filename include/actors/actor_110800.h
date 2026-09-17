@@ -27,8 +27,9 @@ typedef struct Actor110800Work {
     /* 0x476 */ s16        field_476;   // copy of `animId`, kept for change detection
     /* 0x478 */ u16        animId;      // animation id the slots are seeded with
     /* 0x47A */ u16        field_47A;   // bumped once per entry into step 0
+    /* 0x47C */ s16        field_47C;   // slot animation id `ActorsShared80131f9cSub1` last cued a sound for
 } Actor110800Work;
-STATIC_ASSERT_SIZEOF(Actor110800Work, 0x47C);
+STATIC_ASSERT_SIZEOF(Actor110800Work, 0x480);
 
 /// The block above, published by `ActorsShared80131f9c` from the task's
 /// `Task::idMap`. Declared here with the type the overlay reads it through,

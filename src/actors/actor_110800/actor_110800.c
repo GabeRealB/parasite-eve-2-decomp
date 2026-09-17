@@ -8,6 +8,7 @@
 #include "gameplay/D4.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -61,6 +62,74 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110800/actor_110800", ActorsShared80131f9cSub1);
+/// Step 1 of the `ActorsShared80131f9c` dispatcher, the walk/run footstep cue:
+/// for the two seeded animations it tests the frame the model's slots are on
+/// and plays that animation's sound when a slot reaches a cue frame, latching
+/// the id in `field_47C` so a frame held for several ticks does not retrigger
+/// it. Afterwards the model root is refreshed as step 0 did.
+void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         pos;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    obj   = (TmdObject*)task->extra;
+    func_actor_110800_80132368(task);
+
+    switch ((s16)ActorsShared80131f9cWork->animId) {
+        case 4:
+            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0xC8) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D0011, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+            }
+            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0xCA) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D000D, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+            }
+            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0xCD) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D000E, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+            }
+            break;
+        case 5:
+            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0x115) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D000F, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+            }
+            if ((ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF) == 0x11F) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D000F, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].field_2 & 0x3FF;
+            }
+            if ((ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF) == 0xCE) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D0010, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF;
+            }
+            if ((ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF) == 0xD8) {
+                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF)) {
+                    SndEvt_EnqueueType6(0x510D0010, 0, 0);
+                }
+                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].field_2 & 0x3FF;
+            }
+            break;
+    }
+
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &pos, 0, 3);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_110800/actor_110800", D_actor_110800_80131E20);
