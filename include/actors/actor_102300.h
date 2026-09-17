@@ -67,11 +67,20 @@ typedef struct Actor102300Work {
     /// Awake variant this enemy starts in, taken from bit 0 of the spawn
     /// record's `field_2`.
     /* 0x6AC */ s16  field_6AC;
-    /* 0x6AE */ byte pad_6AE[8];
+    /* 0x6AE */ s16  field_6AE;
+    /* 0x6B0 */ byte pad_6B0[2];
+    /// Raised by the collision node once the lunge connects; the state
+    /// handlers check it to break out of the approach cycle.
+    /* 0x6B2 */ s16  field_6B2;
+    /* 0x6B4 */ byte pad_6B4[2];
     /// Frames spent in the current lunge cycle; at 0x4C the tick gives up and
     /// falls back to animation 8.
     /* 0x6B6 */ s16  field_6B6;
-    /* 0x6B8 */ byte pad_6B8[0xC];
+    /* 0x6B8 */ byte pad_6B8[8];
+    /// Shift count for the idle-to-lunge draw: each cycle widens the LCG mask
+    /// by one bit, so the enemy grows less likely to lunge again.
+    /* 0x6C0 */ s16 field_6C0;
+    /* 0x6C2 */ s16 field_6C2;
     /// 1 or 2, picked from bit 16 of the next LCG draw.
     /* 0x6C4 */ s16  field_6C4;
     /* 0x6C6 */ byte pad_6C6[4];
@@ -86,7 +95,8 @@ typedef struct Actor102300Work {
     /* 0x6D8 */ byte pad_6D8[2];
     /// Dwell budget in thousandths, scaled by the spawn record's byte 1.
     /* 0x6DA */ s16  field_6DA;
-    /* 0x6DC */ byte pad_6DC[8];
+    /* 0x6DC */ s16  field_6DC;
+    /* 0x6DE */ byte pad_6DE[6];
 } Actor102300Work;
 STATIC_ASSERT_SIZEOF(Actor102300Work, 0x6E4);
 
