@@ -14,6 +14,11 @@
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
+#include "psyq/inline_c.h"
+
+/// `rtps` from `inline_c.h` assembles to a different word; spell it out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern TaskDesc ActorsShared80136280Desc;
 
@@ -222,7 +227,150 @@ void func_actor_160900_80132C08(Task* task)
     func_800D7A9C(obj2, &pos, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_80132E80);
+void func_actor_160900_80132E80(Task* task)
+{
+    s16            xs[4];
+    s16            ys[4];
+    SVECTOR        origin;
+    s32            sxy;
+    s32            otz;
+    GsCOORDINATE2* coord;
+    SVECTOR*       verts;
+    POLY_G4*       poly;
+    DR_TPAGE*      tp;
+    s16            i;
+
+    coord = ((TmdObject*)task->extra)->field_8;
+    verts = &((Actor160900ChildWork*)task->idMap)->field_0;
+    Gp_UpdateCoord(coord);
+    gte_SetTransMatrix(&coord->workm);
+    gte_SetRotMatrix(&coord->workm);
+    origin.vz = 0;
+    origin.vy = 0;
+    origin.vx = 0;
+    gte_ldv0(&origin);
+    gte_rtps_real();
+    gte_stsxy(&sxy);
+    gte_stszotz(&otz);
+    for (i = 0; i < 4; i++) {
+        gte_ldv0(&verts[i]);
+        gte_rtps_real();
+        gte_stsxy(&sxy);
+        xs[i] = sxy;
+        ys[i] = sxy >> 16;
+    }
+
+    poly           = (POLY_G4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    setlen(poly, 8);
+    setcode(poly, 0x3A);
+    poly->r0 = 0;
+    poly->g0 = 0;
+    poly->b0 = 0;
+    poly->r1 = 0;
+    poly->g1 = 0;
+    poly->b1 = 0;
+    switch (task->spawnArg1) {
+        case 0:
+            poly->r0 = 0;
+            poly->g0 = 0;
+            poly->b0 = 0;
+            poly->r1 = 0;
+            poly->g1 = 0;
+            poly->b1 = 0;
+            poly->r2 = 0;
+            poly->g2 = 0;
+            poly->b2 = 0;
+            poly->r3 = 0xFF;
+            poly->g3 = 0xFF;
+            poly->b3 = 0xFF;
+            break;
+        case 1:
+            poly->r0 = 0;
+            poly->g0 = 0;
+            poly->b0 = 0;
+            poly->r1 = 0;
+            poly->g1 = 0;
+            poly->b1 = 0;
+            poly->r3 = 0;
+            poly->g3 = 0;
+            poly->b3 = 0;
+            poly->r2 = 0xFF;
+            poly->g2 = 0xFF;
+            poly->b2 = 0xFF;
+            break;
+        case 2:
+            poly->r0 = 0;
+            poly->g0 = 0;
+            poly->b0 = 0;
+            poly->r1 = 0xFF;
+            poly->g1 = 0xFF;
+            poly->b1 = 0xFF;
+            poly->r2 = 0;
+            poly->g2 = 0;
+            poly->b2 = 0;
+            poly->r3 = 0xFF;
+            poly->g3 = 0xFF;
+            poly->b3 = 0xFF;
+            break;
+        case 3:
+            poly->r0 = 0xFF;
+            poly->g0 = 0xFF;
+            poly->b0 = 0xFF;
+            poly->r1 = 0;
+            poly->g1 = 0;
+            poly->b1 = 0;
+            poly->r2 = 0xFF;
+            poly->g2 = 0xFF;
+            poly->b2 = 0xFF;
+            poly->r3 = 0;
+            poly->g3 = 0;
+            poly->b3 = 0;
+            break;
+        case 4:
+            poly->r0 = 0;
+            poly->g0 = 0;
+            poly->b0 = 0;
+            poly->r1 = 0;
+            poly->g1 = 0;
+            poly->b1 = 0;
+            poly->r2 = 0xFF;
+            poly->g2 = 0xFF;
+            poly->b2 = 0xFF;
+            poly->r3 = 0xFF;
+            poly->g3 = 0xFF;
+            poly->b3 = 0xFF;
+            break;
+        case 5:
+            poly->r0 = 0xFF;
+            poly->g0 = 0xFF;
+            poly->b0 = 0xFF;
+            poly->r1 = 0xFF;
+            poly->g1 = 0xFF;
+            poly->b1 = 0xFF;
+            poly->r2 = 0xFF;
+            poly->g2 = 0xFF;
+            poly->b2 = 0xFF;
+            poly->r3 = 0xFF;
+            poly->g3 = 0xFF;
+            poly->b3 = 0xFF;
+            break;
+    }
+    poly->x0 = xs[0];
+    poly->y0 = ys[0];
+    poly->x1 = xs[1];
+    poly->y1 = ys[1];
+    poly->x2 = xs[2];
+    poly->y2 = ys[2];
+    poly->x3 = xs[3];
+    poly->y3 = ys[3];
+    addPrim(&Gpu_CurrentOt[otz >> 4], poly);
+    tp             = Gpu_PrimCursor;
+    Gpu_PrimCursor = tp + 1;
+    setlen(tp, 1);
+    tp->code[0] = 0xE1000220;
+    addPrim(&Gpu_CurrentOt[otz >> 4], tp);
+}
 
 static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
 {
