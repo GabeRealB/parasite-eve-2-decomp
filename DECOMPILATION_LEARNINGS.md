@@ -116502,3 +116502,26 @@ jump1 cannot if-convert a MEM destination, so the if/else keeps its join label
 (two uses), the cse path ends there, and the constant is rematerialised. Cross
 jumping and dbr later fold the two stores to the same `bnez; li 2 (slot); li 10;
 sw` shape the ternary produced. Either arm order matches.
+
+### Mixed sp/pointer identity stores: only the pointer-written fields go register-relative (func_actor_141000_801323F0, 2026-09-17)
+
+Target splats an identity rotation as `sw v0,0x20(sp)` / `sw zero,0x24(sp)` / `sw v0,8(s0)` /
+`sw zero,0x2c(sp)` / `sh v0,0x10(s0)`, with `s0 = &rot` also the `RotMatrixZ` argument.
+`cse.c` `find_best_addr` returns early for any `fp + const` address, so a store written on
+`rot` directly is never rewritten into the pointer register; only stores written through a
+pointer are. Reproduce the mix field by field:
+
+```c
+((Actor141000MatWords*)&rot)->m00_m01 = 0x1000;
+((Actor141000MatWords*)&rot)->m02_m10 = 0;
+words          = (Actor141000MatWords*)&rot;
+words->m11_m12 = 0x1000;
+((Actor141000MatWords*)&rot)->m20_m21 = 0;
+words->m22     = 0x1000;
+RotMatrixZ(angle, &rot);
+```
+
+A `MATRIX* m = &rot` variable used for the call instead lets sched hoist its `addiu` above an
+earlier call. Same function: `{sxy0, dp, sxy1, otz}` packed at 0x40..0x50 needs a local
+`struct { DVECTOR sxy; s32 z; } proj[2]` — separate `DVECTOR` locals round to 8 bytes each and
+push the addressable scalars after them.
