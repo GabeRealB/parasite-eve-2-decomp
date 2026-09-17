@@ -1,10 +1,18 @@
 #include "common.h"
 
 #include "actors/actor_461800.h"
+#include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_8013411c.h"
+#include "actors/actors_shared_801366fc.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+extern u8 D_actor_461800_801437BC[];
+extern u8 D_actor_461800_801437F8[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132AD8);
 
@@ -162,7 +170,45 @@ s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, Actor461800Msg* arg2, s32 a
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132F44);
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_8013307C);
+void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
+{
+    VECTOR         vec;
+    GsCOORDINATE2* coord;
+    TmdObject*     obj;
+
+    obj         = task->extra;
+    coord       = obj->field_8;
+    task->idMap = (TaskIdMap*)(D_actor_461800_801438A0 = Mem_Calloc(0x4C0, false));
+    if (D_actor_461800_801438A0 == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback       = ActorsShared801366fc;
+    coord->sub               = &Gfx_ViewCoord;
+    enemy->field_4           = &coord->coord;
+    enemy->field_48          = 0;
+    enemy->node.field_5      = 0;
+    enemy->node.field_4      = 1;
+    obj->field_E             = 1;
+    obj->field_1C            = &D_actor_461800_801438A0->light;
+    obj->field_20            = &D_actor_461800_801438A0->color;
+    vec.vx                   = coord->workm.t[0];
+    vec.vy                   = coord->workm.t[1] - 0x320;
+    ActorsShared801326b4Task = task;
+    vec.vz                   = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&D_actor_461800_801438A0->anim, D_actor_461800_801437F8, (GpAnimObj*)obj,
+                  &D_actor_461800_801438A0->slots[0x13], D_actor_461800_801438A0->slots);
+    D_actor_461800_801438A0->field_480 = 1;
+    D_actor_461800_801438A0->field_47C = 2;
+    D_actor_461800_801438A0->field_4B2 = 0;
+    D_actor_461800_801438A0->field_4B4 = 0;
+    D_actor_461800_801438A0->field_4B8 = 0;
+    D_actor_461800_801438A0->field_4BC = 0;
+    task->field_24                     = D_actor_461800_801437BC;
+    func_actor_461800_801331E4(task);
+    task->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_801331E4);
 

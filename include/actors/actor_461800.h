@@ -58,7 +58,8 @@ void func_actor_461800_80132660(Task* task);
 /// this variant keeps its change-detection pair at 0x47E / 0x480 where
 /// `Actor461800Work` has 0x4B6 / 0x4B8.
 typedef struct Actor461800Work2 {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pad_374[0x108];
@@ -68,7 +69,8 @@ typedef struct Actor461800Work2 {
     /* 0x482 */ s16        field_482;
     /* 0x484 */ byte       pad_484[0x2A];
     /* 0x4AE */ s16        field_4AE;
-    /* 0x4B0 */ byte       pad_4B0[0x4];
+    /* 0x4B0 */ byte       pad_4B0[0x2];
+    /* 0x4B2 */ s16        field_4B2;
     /* 0x4B4 */ s16        field_4B4; // reset argument the message handler writes
     /* 0x4B6 */ byte       pad_4B6[0x2];
     /* 0x4B8 */ s32        field_4B8; // only ever cleared, before the seeding loop
@@ -103,6 +105,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
 void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task);
 void func_actor_461800_8013307C(GpEnemy* enemy, Task* task);
 void func_actor_461800_801335B0(GpEnemy* enemy, Task* task);
+void func_actor_461800_801331E4(Task* task);
 
 s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);

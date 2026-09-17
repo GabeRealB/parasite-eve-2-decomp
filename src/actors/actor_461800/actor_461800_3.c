@@ -5,10 +5,7 @@
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-void func_actor_461800_801331E4(Task* task);
-
+void       func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern s16 D_actor_461800_801437B8;
 
 /// Ticks animation slots 1..0x13 of the second variant's animation context.
