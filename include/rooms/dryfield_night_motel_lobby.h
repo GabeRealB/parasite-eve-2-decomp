@@ -19,12 +19,14 @@
 /// `func_dryfield_night_motel_lobby_801802A8` tests to decide which of its two
 /// cursor draws to run this frame.
 typedef struct DnmlExamineWork {
-    /* 0x00 */ byte pad_0[0x4];
-    /* 0x04 */ s8   promptKind;
-    /* 0x05 */ s8   promptBusy;
-    /* 0x06 */ s8   field_6;
-    /* 0x07 */ s8   field_7;
-    /* 0x08 */ byte pad_8[0x2];
+    /* 0x00 */ s16 field_0;
+    /* 0x02 */ s16 field_2;
+    /* 0x04 */ s8  promptKind;
+    /* 0x05 */ s8  promptBusy;
+    /* 0x06 */ s8  field_6;
+    /* 0x07 */ s8  field_7;
+    /* 0x08 */ s8  field_8;
+    /* 0x09 */ u8  pad_9;
 } DnmlExamineWork;
 STATIC_ASSERT_SIZEOF(DnmlExamineWork, 0xA);
 

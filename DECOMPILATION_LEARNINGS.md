@@ -114919,3 +114919,28 @@ insert=3 delete=5 branch=4: each `||` needs its own merge block. Seven sequentia
 and score 100%. The tail `if (p[1] != p[3]) return 0; return p[0] == 3;` has to
 stay split the same way -- the trailing `return 0` is its own block in the
 target, not merged with the first guard's.
+
+## A `goto` to a shared tail call is not the source of a merged call pad: duplicate the call and `return` (func_dryfield_night_motel_lobby_8017FE90, 2026-09-17)
+
+**Symptom:** 93.6%, `branch=8 delete=5 reorder=4`. Everything matches except the
+tail, where retail has the call's argument setup as a block of its own:
+`.L…38: addu a0,s4,zero` / `.L…3C: jal func_…802A8` / `nop`, with the three
+exits landing on `.L…3C` and only the `Gp_CapBusy` arm landing on `.L…38`. A
+`goto done;` to a single `done: func_…802A8(task);` compiles to one block
+`{addu a0,s4; jal}` and dbr moves the `addu` into the `jal`'s own delay slot, so
+no exit can land on the `jal` and the extra label has no source.
+
+**Cause:** the original wrote the call at each early-exit site and `return`ed.
+jump2's cross jumping (`jump_optimize (insns, 1, 1, 0)` in toplev.c) folds the
+identical call-and-epilogue tails into one shared pad; the new label lands at
+the `jal`, and dbr's `fill_slots_from_thread` then steals the pad's argument
+setup into the delay slots of the branches that jump past it
+(`get_label_before`), which is what leaves the setup standing before the merged
+call. With a single `goto` there is no repeated tail to fold, so none of it
+happens.
+
+**Fix:** in the early-exit paths, call the tail function and `return` instead of
+jumping to a shared label. Semantics are identical (both skip the code in
+between) and the build goes to 100.00% with every penalty zero. Same pass and
+same tell as "A call's `a0` setup in the delay slot of the *preceding* `if`
+branch means the call is duplicated in both arms" above.
