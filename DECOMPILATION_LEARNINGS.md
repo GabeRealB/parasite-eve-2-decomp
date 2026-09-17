@@ -126663,3 +126663,38 @@ share a function, take the sibling's `SCRATCH_SP` + `__inline__` shape as a whol
 before probing pieces of it; cse's `find_best_addr` bails out on
 `CONSTANT_ADDRESS_P (addr)`, which is why the carve's address survives as a
 constant only in the shape that never puts it in a register.
+
+## A header that names `MATRIX` must include `<psyq/libgte.h>` itself (func_actor_123200_80133BA0, 2026-09-17)
+
+Adding a matrix-typed field to an overlay header fails to compile with
+
+```
+actor_123200.h:33: parse error before `MATRIX'
+```
+
+`common.h` and `main/task.h` do not pull libgte in, and `include/psyq/libgs.h`
+uses `MATRIX` in `GsCOORDINATE2` without including `libgte.h` itself — it expects
+its caller to have included gte first. A header that only declares task and work
+types never notices; the first `MATRIX`/`VECTOR`/`SVECTOR` member is what brings
+the error, and it points at the header line, not at the missing include.
+`#include <psyq/libgte.h>` next to the other includes fixes it. The same applies
+to any psyq struct a newly added field names.
+
+## The actors family's render-mode tick recurs across overlays; read a sibling, `similar` does not rank it (func_actor_123200_80133BA0, 2026-09-17)
+
+`func_actor_123200_80133BA0` is a per-frame tick whose body is the same shape as
+`func_actor_201200_8014D4D0` in `src/actors/actor_201200/actor_201200_3.c`:
+refresh the part coordinate and colour, scale the light matrix from a work-block
+scale field, switch on the render mode `D_801153F4`, then re-record the display
+mode and dispatch a stack-copied state table by it. Copying that sibling's
+statement order — the table copy in the declaration list, the chained
+`pos.vx = pos.vy = pos.vz = work->field_21C;`, the `id | ((arg0->field_8 >> 12) << 8)`
+sound tag and the `(GpObj38*)` pan/depth pair — produced 100.000% on the first
+attempt, where the m2c seed scored 65.189% with a structurally different 164-vs-148
+instructions.
+
+The tooling does not point at it: `overlay_dup_index.py find` reports a single
+copy (the bodies are not byte-equal), and the brief's "similar matched bodies"
+listed none above 0.80. `grep -rn D_801153F4 src/` in the actors tree does, so
+start an actor tick by finding the other ticks that switch on the same global
+before writing one from the assembly.
