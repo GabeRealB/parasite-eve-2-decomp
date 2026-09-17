@@ -77,7 +77,7 @@ extern u8                   D_80115690;
 void                        func_actor_215100_8014B0D4(void);
 void                        func_actor_215100_8014B1B0(s32 arg0);
 s32                         func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-s16                         func_actor_215100_8014BDFC(s32 arg0);
+s16                         func_actor_215100_8014BDFC(u16* arg0);
 s16                         func_actor_215100_8014C06C(u16* arg0);
 s16                         func_actor_215100_8014C298(s32 arg0);
 s32                         func_actor_215100_8014C418(s32 arg0);
@@ -503,7 +503,7 @@ s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
     D_actor_215100_8015E662 = entry;
     D_actor_215100_8015E660 = arg2;
     D_actor_215100_8015E65C = func_actor_215100_8014C06C((u16*)D_actor_215100_8015E658[entry].field_8);
-    D_actor_215100_8015E65E = func_actor_215100_8014BDFC(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
+    D_actor_215100_8015E65E = func_actor_215100_8014BDFC((u16*)D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
     D_actor_215100_8015E664 = func_actor_215100_8014C298(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8);
     D_actor_215100_8015E66C = 0x1E;
     return 0;
@@ -511,7 +511,62 @@ s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014B3C8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014BDFC);
+/// Top Y of the caption block the text stream `arg0` holds: every line after
+/// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
+/// and the total is subtracted from `D_actor_215100_8015E660`. Gameplay's
+/// `Gp_CapTextTopY` is the same walk against a fixed 0xD0, and the two pins are
+/// what that twin carries; unpinned the body lands at 92%.
+s16 func_actor_215100_8014BDFC(u16* arg0)
+{
+    s32                 lineH;
+    s32                 total;
+    s32                 i;
+    s32                 seenBreak;
+    u16                 code;
+    s32                 shifted;
+    register s32        next asm("v1");
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+
+    lineH     = 0;
+    total     = lineH;
+    i         = lineH;
+    code      = arg0[0];
+    shifted   = code << 16;
+    seenBreak = lineH;
+    v0tmp     = -1;
+    if (shifted >> 16 != v0tmp) {
+        do {
+            v0tmp = seenBreak;
+            if (shifted >> 16 == -2) {
+                if (v0tmp != 0) {
+                    if (lineH == 0) {
+                        lineH = 2;
+                    }
+                    total += lineH;
+                } else {
+                    seenBreak = 1;
+                }
+                lineH = 0;
+            } else if (shifted >> 16 != -3) {
+                if (shifted >> 16 >= 0) {
+                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)D_actor_215100_8015E654);
+                    if (lineH < glyph->h + 2) {
+                        v0tmp = glyph->h;
+                        TOUCH_REG(v0tmp);
+                        lineH = v0tmp + 2;
+                    }
+                }
+            }
+            next    = i + 1;
+            code    = arg0[(s16)next];
+            i       = next;
+            shifted = code << 16;
+            v0tmp   = -1;
+        } while (shifted >> 16 != v0tmp);
+    }
+    return (s16)(D_actor_215100_8015E660 - total);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014BEE8);
 
