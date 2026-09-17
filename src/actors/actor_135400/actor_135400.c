@@ -2,6 +2,7 @@
 
 #include "actors/actor_135400.h"
 #include "actors/actors_shared_80132f24.h"
+#include "actors/actors_shared_8016a538.h"
 
 #include "main/gameflag.h"
 #include "main/mem.h"
@@ -18,7 +19,57 @@
 extern TaskFuncTable3 D_actor_135400_80131E24;
 extern TaskFuncTable3 D_actor_135400_80131E30;
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80131EB4);
+/// Second state handler of the actor's part-2 table (`D_actor_135400_80131E30`,
+/// dispatched by `func_actor_135400_801324D4`): a three-phase machine run off
+/// `Task::spawnArg1`, the slot the part's state-0 handler read as the part
+/// index and sets to 2 for the second part. Phase 1 bakes the part's
+/// parent-relative coordinate into world space with `Gp_ComposeParentWorld` and
+/// reparents it to `Gfx_ViewCoord`. Phases 2 and 3 share a body -- 2 only
+/// reaches it while the session's `field_1` is clear -- which resets the
+/// coordinate to a `-0x38E` yaw (`func_8004BFF8`, `RotMatrixY`) at the fixed
+/// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
+void func_actor_135400_80131EB4(Task* task)
+{
+    ActorsShared8016a538Mat  rot;
+    ActorsShared8016a538Mat* src;
+    SVECTOR                  sv;
+    GsCOORDINATE2*           coord;
+
+    switch (task->spawnArg1) {
+        case 1:
+            coord = ((TmdObject*)task->extra)->field_8;
+            Gp_ComposeParentWorld(coord, &rot.mat, &sv);
+            coord->coord      = rot.mat;
+            coord->coord.t[0] = sv.vx;
+            coord->coord.t[1] = sv.vy;
+            coord->coord.t[2] = sv.vz;
+            coord->sub        = &Gfx_ViewCoord;
+            coord->flg        = 0;
+            task->spawnArg1  += 1;
+            break;
+        case 2:
+            if (Game_Session->field_1 != 0) {
+                break;
+            }
+        case 3:
+            coord              = ((TmdObject*)task->extra)->field_8;
+            src                = &rot;
+            src->ident.m00_m01 = 0x1000;
+            src->ident.m02_m10 = 0;
+            src->ident.m11_m12 = 0x1000;
+            src->ident.m20_m21 = 0;
+            src->ident.m22     = 0x1000;
+            func_8004BFF8(-0x38E, &rot.mat);
+            coord->coord      = rot.mat;
+            coord->coord.t[0] = 0x12FE;
+            coord->coord.t[1] = -0x1B3;
+            coord->coord.t[2] = 0x157C;
+            coord->sub        = &Gfx_ViewCoord;
+            coord->flg        = 0;
+            task->spawnArg1   = 0;
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E20);
 

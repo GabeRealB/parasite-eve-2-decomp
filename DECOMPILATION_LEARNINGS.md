@@ -124727,3 +124727,40 @@ instruction count, same everything else: 99.228% -> 100.000%.
 The reverse of the usual advice to split a reused variable: when the target has
 a copy that the source's second use does not need, check whether the *conflict
 set* is the thing being matched, and merge rather than split.
+
+## A load written after a call cannot be scheduled before it -- calls clobber memory, so the ROM's order is the source's order (func_actor_135400_80131EB4, 2026-09-17)
+
+The target opens the shared body of a `switch` with the coordinate load, then the
+identity splat, then the `func_8004BFF8` call:
+
+```
+	lw	$v0,0x2C($s1)      # TmdObject* = task->extra
+	addiu	$a1,$sp,0x10
+	lw	$s0,0x8($v0)       # coord = ((TmdObject*)task->extra)->field_8
+	li	$v0,0x1000
+	sw	$v0,0x10($sp)
+	...
+	jal	func_8004BFF8
+```
+
+Writing `coord = ((TmdObject*)task->extra)->field_8;` *after* the identity
+splat and the call gave 97.972% -- instruction for instruction the same code,
+except the two loads sat after the `jal` (108 -> 109 instructions, `branch=1
+reorder=2 insert=1`). They are not merely mis-scheduled; sched2 cannot move
+them:
+
+```
+(insn 127 ... (set (reg:SI 2 v0) (mem/s:SI (plus:SI (reg/v:SI 17 s1) (const_int 44))))
+    {movsi_internal2} (insn_list 124 (nil)) )     # 124 is the call_insn
+```
+
+`(insn_list 124 ...)` is a memory-dependency edge -- a `call_insn` clobbers
+memory, so any load that follows it in the RTL stays after it, however idle the
+scheduler is. Moving the assignment above the splat in the C put the loads back
+at the block head and gave an all-zero 100.000%.
+
+So treat this like the block-membership rule for an early-out: a load the target
+places above a call in the same basic block was written there in the source.
+Reordering the C is the fix; there is no scheduling knob that lifts it back.
+
+Inputs: `base_1.c` 97.972%, `base_2.c` 100.000%; `.sched2` of the former.
