@@ -128195,3 +128195,51 @@ canonicalisation trying to explain `negu a0,a0` vs `negu a0,v1`; the answer is
 already in "`abs()` and a hand-written absolute value differ by one `move`" -
 `abssi2` is one `multi` insn and nothing can reach inside it. Search the corpus
 for `abs` before modelling the allocator.
+
+## A `u16` field divided by a power of two is shortened to an unsigned `srl`; route it through an `s32` local to get the signed bias (func_actor_102300_80131EA4, 2026-09-18)
+
+The low-HP threshold in the actor hit tick is
+`enemy->field_40 < enemy->field_50->field_4 / 4`, where `GpPairSrcE.field_4` is
+`u16`. The target divides it *signed*, keeping the bias even though the `lhu`
+makes the `bgez` unconditionally true:
+
+```
+lhu   $v0, 0x4($v0)
+bgez  $v0, .L
+addiu $v0, $v0, 0x3
+sra   $v0, $v0, 2
+```
+
+Written the obvious way the candidate emits a single `srl $v0,$v0,0x2`
+(`delete: 4`, the rest of the diff being the address shift that follows). The
+decision is in the C front end, not in `combine` or `expmed`: `c-typeck.c`'s
+`build_binary_op` sets `shorten` for `TRUNC_DIV_EXPR` whenever the divisor is a
+constant other than `-1`, and the third arm of the shortening block then narrows
+the whole division to the operand's own type when the other operand is an
+integer constant that fits it:
+
+```c
+	  else if (TREE_CODE (arg1) == INTEGER_CST
+		   && (unsigned0 || !uns)
+		   && … int_fits_type_p (arg1, type))
+	    result_type = type;
+```
+
+`arg0` is the zero-extended `u16` (`unsigned0 == 1`), so `result_type` becomes
+`unsigned short` and the division is unsigned. Assigning the field to an `s32`
+first makes `orig_op0` a signed `int`, `get_narrower` finds nothing to narrow
+to, and the signed expansion returns:
+
+```c
+} else if (max = enemy->field_50->field_4, enemy->field_40 < max / 4) {
+```
+
+This is the same idiom already in `func_actor_402200_801324E8` (`max / 10`), and
+it is why the sibling body `func_actor_105700_80131ED0` needs no local for
+`field_4 * 15 / 100`: the multiply makes the dividend a full `int`, so there is
+nothing for `shorten_binary_op` to narrow. Reach for the local whenever a `u16`
+or `u8` field is divided directly by a constant and the target keeps a sign
+correction.
+
+Inputs: base_1.i (unsigned `srl`) vs base_2.i (100%),
+`nonmatchings/func_actor_102300_80131EA4-vacuum/`.
