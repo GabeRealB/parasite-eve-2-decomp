@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 
 /// Work block of the `actor_113100` enemy task. `func_actor_113100_80131E58`
 /// (state 0) `Mem_Calloc`s 0x540 bytes and parks the pointer in the task's
@@ -24,15 +25,27 @@
 /// within 0x41, and `field_477` is the animation id that body puts in the
 /// preset it sends when it snaps. Both reset `field_530` / `field_532` there.
 typedef struct Actor113100Work {
-    /* 0x000 */ byte  pad_0[0x477];
+    /* 0x000 */ byte pad_0[0x475];
+    /// Cleared to -1 by the setup handler, next to `field_476` and `field_53D`;
+    /// `field_477` is the animation id that body puts in the preset it sends,
+    /// so the three sentinels are the same "no id yet" default.
+    /* 0x475 */ s8    field_475;
+    /* 0x476 */ s8    field_476;
     /* 0x477 */ s8    field_477;
     /* 0x478 */ byte  pad_478[0x40];
     /* 0x4B8 */ GpObj obj;
-    /* 0x4D8 */ byte  pad_4D8[0x18];
-    /* 0x4F0 */ s32   field_4F0;
-    /* 0x4F4 */ s32   field_4F4;
-    /* 0x4F8 */ s32   field_4F8;
-    /* 0x4FC */ byte  pad_4FC[0x2E];
+    /// The `GpRec18` table `GpObj::field_C` points at (`Gp_InitRec18Table` is
+    /// called on it right after `Gp_LinkObj`).
+    /* 0x4D8 */ GpRec18 field_4D8;
+    /* 0x4F0 */ s32     field_4F0;
+    /* 0x4F4 */ s32     field_4F4;
+    /* 0x4F8 */ s32     field_4F8;
+    /* 0x4FC */ byte    pad_4FC[0x14];
+    /// Zeroed by the setup handler next to `field_514` / `field_518`.
+    /* 0x510 */ s32   field_510;
+    /* 0x514 */ s32   field_514;
+    /* 0x518 */ s32   field_518;
+    /* 0x51C */ byte  pad_51C[0xE];
     /* 0x52A */ u16   field_52A;
     /* 0x52C */ byte  pad_52C[0x4];
     /* 0x530 */ s16   field_530;
@@ -41,9 +54,10 @@ typedef struct Actor113100Work {
     /* 0x538 */ s16   field_538;
     /* 0x53A */ s16   field_53A;
     /* 0x53C */ u8    field_53C;
-    /* 0x53D */ byte  pad_53D[1];
-    /* 0x53E */ s8    field_53E;
-    /* 0x53F */ byte  pad_53F[1];
+    /// -1 sentinel written with `field_475` / `field_476`.
+    /* 0x53D */ s8   field_53D;
+    /* 0x53E */ s8   field_53E;
+    /* 0x53F */ byte pad_53F[1];
 } Actor113100Work;
 STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
 
@@ -97,5 +111,31 @@ STATIC_ASSERT_SIZEOF(Actor113100MatWords, 0x14);
 
 /// The four main-body handlers, dispatched by `Actor113100Work::field_532`.
 extern TaskFuncTable4 D_actor_113100_80131E48;
+
+/// Child task table the setup handler `func_actor_113100_80131E58` spawns
+/// from, four `TaskDesc` entries. Index 1 is spawned only when
+/// `Game_Session->field_9 == 2` and its task lands in
+/// `Actor113100Work::field_534`; indices 2 and 3 are the two modelled parts the
+/// handler re-dresses from the area record.
+extern TaskDesc D_actor_113100_80144308;
+
+/// The actor's message table, stored in `Task::field_24`: 0x7D3
+/// (`func_actor_113100_801331E8`), 0x7D4 (`ActorsShared8013231c`), 0x7D5
+/// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
+/// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
+extern GpMsgEntry D_actor_113100_80144338[];
+
+/// The task's exit callback: it unlinks the work block's display node and
+/// destroys the task.
+void func_actor_113100_80132EF0(Task* task);
+
+/// Overlay-local function, also the 0x7D5 entry of `D_actor_113100_80144338`.
+/// The setup handler calls it with zeroes, `func_actor_113100_80132F40` with
+/// (task, 0, 1, 0) next to `func_80183BAC(0)`.
+void func_actor_113100_80132790(Task* task, s32 arg1, s32 arg2, s32 arg3);
+
+/// Gameplay import (`actors.imports.txt`), called with 1 by the setup handler
+/// and with 0 by `func_actor_113100_80132F40`.
+void func_80183BAC(s32 arg0);
 
 #endif

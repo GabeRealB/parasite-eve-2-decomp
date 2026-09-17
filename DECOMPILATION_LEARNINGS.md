@@ -122649,3 +122649,46 @@ Inputs: scratch `nonmatchings/func_actor_311900_80162100-vacuum`, `base.c`
 81.920% (`branch=6 regs=38 reorder=1 insert=3 delete=8`), `base_1.c` 99.867%
 (`regs=2`), `base_2.c` 99.867%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A load chain sched2 will not interleave: move its store statement to the front (func_actor_113100_80131E58, 2026-09-17)
+
+`func_actor_113100_80131E58` sat at 97.690% with `regs=3 reorder=3 insert=1
+delete=1` while everything structural was already exact: same instruction count,
+same opcode histogram, same block edges, same predicates, same calls, same
+condition registers, `stack=0`. The whole diff was one tail block, where the ROM
+interleaves the `lw`/`lw`/`addiu` chain behind `obj->field_8 =
+&((TmdObject*)task->extra)->field_8[1]` with the seven independent stores that
+precede it, and the candidate ran the chain after all of them:
+
+```
+    ROM                        candidate
+    lw    v0,0x2c(s3)          ... seven stores ...
+    move  a1,s0                lw    v0,0x2c(s3)
+    lw    v1,8(v0)             li    a0,2
+    ...stores...               lw    v0,8(v0)     <- same $v0 as the stores
+    addiu v1,v1,0x50           move  a1,s0
+    jal   Gp_LinkObj           addiu v0,v0,0x50
+    sw    v1,8(s0)             jal   Gp_LinkObj
+                               sw    v0,8(s0)
+```
+
+The chain's result pseudo and the `0x30000` / `0x100` / `1` constants all lived
+in `$v0` with disjoint live ranges, so sched2 saw a false register dependency: it
+cannot place a load between two stores that both write `$v0`, and queued the
+whole chain behind them. Writing the `field_8` store *first* in the tail -- the
+order the matched sibling `func_actor_323300_80161F08` gives the same seven-store
+block -- keeps the pseudo alive across the constants, so local-alloc cannot reuse
+`$v0`, hands it `$v1`, and the chain schedules around the stores. 100%.
+
+This is the load-chain form of the constant-store rule recorded for
+`func_actor_403200_80134D40`: a store statement's position picks its register (by
+interference with the values it could otherwise share), and that register decides
+whether sched2 can treat it as a free leaf. The tell is a `reorder` diff that
+displaces a *whole dependent chain* past independent stores rather than swapping
+a pair, with `regs` non-zero beside it: check whether the chain and the stores
+share a scratch register before permuting anything.
+
+Inputs: scratch `nonmatchings/func_actor_113100_80131E58-vacuum`, `base_1.c`
+97.690% (`regs=3 reorder=3 insert=1 delete=1`, preprocessed SHA256
+`73d1de416306f08f1b99eaf7bb20f6864c410cf69bc1bfcab86ff0cde19525b2`), `base_2.c`
+100.000% (`86d80f5a56e94d4ee159e577b8d015cf84377b9fc4711f4c234d8703962d624e`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
