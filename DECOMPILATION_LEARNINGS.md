@@ -115979,3 +115979,55 @@ already had the block topology right (score 81.049%, `branch=13 insert=6 delete=
 and the single rewrite that fixed the copy and the returns scored 100.000% with all
 penalties zero - so check `tools/overlay_dup_index.py find <fn>` too, since these
 handlers repeat across rooms.
+
+## m2c types a GPU packet as `DR_TPAGE*`, so the cursor bump scales by 8 - retype it to the psyq packet (func_mine_cavern_80182454, 2026-09-17)
+
+A function that carves a primitive out of `Gpu_PrimCursor` comes back from m2c
+with the seed's pointer typed `DR_TPAGE*` (8 bytes, the project's
+`Gpu_PrimCursor` declaration) and every field written as a raw byte offset:
+`M2C_FIELD(temp_t3, s8 *, 3) = 5`, `M2C_FIELD(temp_t3, s16 *, 0xC) = 0xA0`.
+The packet is then advanced by the *element count* the asm shows -
+`Gpu_PrimCursor = temp_t3 + 0x18` - which the DR_TPAGE base type multiplies by
+8, so the cursor lands 0xC0 on where the target's lands 0x18:
+
+```
+target                              seed, DR_TPAGE* base (62.684%)
+    addiu v0, t3, 0x18                  addiu v0, t3, 0xc0
+    sw    v0, %lo(Gpu_PrimCursor)(v1)   sw    v0, %lo(Gpu_PrimCursor)(v1)
+    li    v0, 5                         move  a2, zero       # M2C_FIELD(...,s8*,3)
+    sb    v0, 3(t3)                     move  a1, a2
+    li    v0, 0x2A                      move  a3, v0
+    sb    v0, 7(t3)                     ...
+```
+
+Same tell as the `M2C_UNK` base-pointer entry above: one bump scaled by the
+seed's own element size. Here it is 8, and the byte layout of what the function
+writes *is* the psyq type - identify the packet from the offsets and use it:
+
+| bytes written by the target | psyq type | as C |
+|---|---|---|
+| `sb 3` + `sb 7` | any packet | `setlen(p, 5)` + `setcode(p, 0x2A)` |
+| `sb 4/5/6` + shorts at 8/0xA/0xC/0xE/0x10/0x12/0x14/0x16 | `POLY_F4` (0x18) | `p->r0/g0/b0`, `p->x0..y3` |
+| shorts at 8/0xA/0xC/0xE/0x10/0x12/0x14/0x16, one word at 4 | `DR_MODE` (0xC) | `dr->code[0] = 0xE100004A` |
+| `lw`/`sw` at 0 with both `& 0xFFFFFF` and `& 0xFF000000` masks | any packet | `addPrim(Gpu_CurrentOt, p)` |
+
+`setlen`/`setcode` are byte-aligned `P_TAG` bitfields, so they emit exactly the
+two `sb`s, and `addPrim` is `setaddr(p, getaddr(ot)), setaddr(ot, p)` - the
+masked read-modify-write of both tags. The whole family is already written this
+way in matched code: `func_acropolis_security_room_8017E0C4`
+(`src/rooms/acropolis_security_room/acropolis_security_room_2.c`) is the same
+semi-transparent `POLY_F4` + `0xE100004A` drawing-mode pair over a different
+rect, so read it before writing the seed by hand.
+
+Two more tells in the same seed. A shift whose amount reaches a register - `srav
+$v0, $a2, $a0` with `$a0` a live variable - is not `x >> 0`: m2c wrote `temp_a2
+>> 0` off a `srav` whose `$a0` happened to hold zero, and that constant shift
+folds to a copy, dropping the loop's entry-edge `srav` (93 instructions against
+the target's 95). Write the loop the way it is meant - `for (i = 0; i < 4; i++)
+if ((flags >> i) & 1) count++;` - and GCC's `sll 16`/`sra 16` before the `slti`
+comes back. That pair is also the tell for a `short` counter, which is what
+makes the table index `sll 16`/`sra 14` (a `short` scaled by 4) rather than
+`sll 2`; type the counter `s16` and the table as 4-byte records.
+
+All three in one rewrite: 62.684% with `regs=57 insert=17 delete=15` to
+100.000% with every penalty zero, first build, no pins.

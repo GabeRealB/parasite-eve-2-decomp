@@ -11,6 +11,8 @@
 #include "main/sound.h"
 #include "rooms/mine_cavern.h"
 
+extern void func_mine_cavern_80181864(void);
+extern void func_mine_cavern_80182184(void);
 extern void func_mine_cavern_80182454(void);
 
 /// Current screen id at 0x8007218B.
@@ -45,7 +47,56 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182184);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182454);
+/// Queues the cavern's darkness overlay: a semi-transparent flat quad filling
+/// the screen with the tint `D_mine_cavern_8018E3E0` holds for the number of
+/// `GameFlag_GetNibble(0xE2)` bits set, followed by the drawing-mode packet
+/// that restores the room's texture page (`0xE100004A`). Both go into the head
+/// of the current OT, and the cavern's own two passes are run afterwards.
+void func_mine_cavern_80182454(void)
+{
+    POLY_F4* poly;
+    DR_MODE* dr;
+    s32      flags;
+    s16      i;
+    s16      count;
+
+    flags = GameFlag_GetNibble(0xE2);
+    count = 0;
+
+    poly           = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+    setlen(poly, 5);
+    setcode(poly, 0x2A);
+
+    for (i = 0; i < 4; i++) {
+        if ((flags >> i) & 1) {
+            count++;
+        }
+    }
+
+    poly->r0 = D_mine_cavern_8018E3E0[count].r;
+    poly->g0 = D_mine_cavern_8018E3E0[count].g;
+    poly->b0 = D_mine_cavern_8018E3E0[count].b;
+
+    poly->x0 = -0xA0;
+    poly->y0 = -0x78;
+    poly->x1 = 0xA0;
+    poly->y1 = -0x78;
+    poly->x2 = -0xA0;
+    poly->y2 = 0x78;
+    poly->x3 = 0xA0;
+    poly->y3 = 0x78;
+    addPrim(Gpu_CurrentOt, poly);
+
+    dr             = (DR_MODE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(dr + 1);
+    setlen(dr, 1);
+    dr->code[0] = 0xE100004A;
+    addPrim(Gpu_CurrentOt, dr);
+
+    func_mine_cavern_80181864();
+    func_mine_cavern_80182184();
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", D_mine_cavern_8017D65C);
 

@@ -40,4 +40,20 @@ typedef struct MineCavernWork {
 } MineCavernWork;
 STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
 
+/// One tint of the cavern's darkness overlay: a `u8` RGB triple plus a zero
+/// fourth byte. `func_mine_cavern_80182454` picks the entry by the number of
+/// `GameFlag_GetNibble(0xE2)` bits set, so the rows run light to dark and the
+/// full-screen wash deepens as that nibble fills in.
+typedef struct MineCavernTint {
+    /* 0x0 */ u8 r;
+    /* 0x1 */ u8 g;
+    /* 0x2 */ u8 b;
+    /* 0x3 */ u8 pad;
+} MineCavernTint;
+STATIC_ASSERT_SIZEOF(MineCavernTint, 0x4);
+
+/// The cavern's five tints: (0x1E,0x1E,0x1E), (0x19,0x19,0x19), (0x11,0x15,0x16),
+/// (0x07,0x0F,0x10) and (0x00,0x09,0x0B).
+extern MineCavernTint D_mine_cavern_8018E3E0[5];
+
 #endif
