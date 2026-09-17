@@ -63,6 +63,16 @@ extern u8 D_dryfield_water_tower_80182F44[];
 extern u8 D_dryfield_water_tower_80181B20[];
 extern u8 D_dryfield_water_tower_801829F4[];
 
+/// The room's four-step rotation schedule: `{0,25}`, `{1,30}`, `{2,35}` and the
+/// `{0xFFFF,40}` terminator `func_dryfield_water_tower_8017FB4C` selects from by
+/// `DryfieldWaterTowerState::field_72` and returns the step's 30-fold. The
+/// thresholds are the step numbers themselves, so the entry the walk lands on
+/// is the counter's own step, and the terminator is what holds the last step
+/// once the counter runs past it. `func_dryfield_water_tower_8017EB7C` advances
+/// that counter and walks the same table inline, storing the duration into the
+/// halfword at 0x801876AA its 0x801876A8 frame counter is compared against.
+extern DwtwStep D_dryfield_water_tower_8018767C[];
+
 void func_dryfield_water_tower_8017F8E8(s16 arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->idMap;
@@ -165,7 +175,25 @@ void func_dryfield_water_tower_8017FA5C(void)
     ((DryfieldWaterTowerState*)state->field_48->idMap)->field_70 = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", func_dryfield_water_tower_8017FB4C);
+/// The `DwtwStep` the rotation's step counter is on: the last entry of
+/// `D_dryfield_water_tower_8018767C` whose threshold is below
+/// `DryfieldWaterTowerState::field_72`, walked from the second entry -- a
+/// counter of 0 fails the entry-0 test and takes the first entry without
+/// walking -- and capped by the `0xFFFF` terminator. The step's duration comes
+/// back 30-fold with its low bit cleared.
+s32 func_dryfield_water_tower_8017FB4C(Task* task)
+{
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->idMap;
+    u16                      i;
+
+    i = 0;
+    if (D_dryfield_water_tower_8018767C[0].field_0 < state->field_72) {
+        do {
+            i += 1;
+        } while (D_dryfield_water_tower_8018767C[i].field_0 < state->field_72);
+    }
+    return (D_dryfield_water_tower_8018767C[i].field_2 * 30) & 0xFFFE;
+}
 
 void func_dryfield_water_tower_8017FBC8(Task* task)
 {

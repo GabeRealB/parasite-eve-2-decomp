@@ -106,6 +106,24 @@ typedef struct DwtwSprtRec {
 } DwtwSprtRec;
 STATIC_ASSERT_SIZEOF(DwtwSprtRec, 0xE0);
 
+/// One step of the room's rotation schedule, the table
+/// `func_dryfield_water_tower_8017FB4C` walks: `field_0` is the step's
+/// threshold and `field_2` its duration. Four of them sit at 0x8018767C --
+/// `{0, 25}`, `{1, 30}`, `{2, 35}` and the `{0xFFFF, 40}` terminator, so the
+/// thresholds ascend and the last entry is the cap the walk can never pass --
+/// and the duration is read out as `field_2 * 30` with the low bit cleared.
+///
+/// `func_dryfield_water_tower_8017EB7C` counts the step up in
+/// `DryfieldWaterTowerState::field_72` and walks the same table inline,
+/// handing the duration to the accumulator `D_dryfield_water_tower_801876AA`
+/// at 0x801876AA, the halfword its 0x801876A8 frame counter is compared
+/// against.
+typedef struct DwtwStep {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} DwtwStep;
+STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
+
 /// Scratch state of the room's cap script, stored at `Task::idMap`: the
 /// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
 /// task before it runs. Every task the room spawns off `D_..._80182384`
@@ -126,7 +144,10 @@ STATIC_ASSERT_SIZEOF(DwtwSprtRec, 0xE0);
 /// together. `field_6C` / `field_6E` are 0/1 latches set by
 /// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`; `field_70` is a third,
 /// set by script opcode `func_dryfield_water_tower_8017FA5C` and read back by
-/// the prop task `func_dryfield_water_tower_8017E1DC`. `field_76` is also a
+/// the prop task `func_dryfield_water_tower_8017E1DC`. `field_72` is the
+/// rotation's step, advanced by `func_dryfield_water_tower_8017EB7C` and the
+/// index `func_dryfield_water_tower_8017FB4C` reads its `DwtwStep` with.
+/// `field_76` is also a
 /// 0/1 latch, set once by `func_dryfield_water_tower_8017F82C`, the 0x0D
 /// handler both of the room's script tables carry. `field_78` is a fourth:
 /// `func_dryfield_water_tower_8017E93C` sets it as it spawns
@@ -152,7 +173,8 @@ typedef struct DryfieldWaterTowerState {
     /* 0x6C */ s16   field_6C;
     /* 0x6E */ s16   field_6E;
     /* 0x70 */ u16   field_70;
-    /* 0x72 */ u8    pad_72[0x4];
+    /* 0x72 */ u16   field_72;
+    /* 0x74 */ u8    pad_74[0x2];
     /* 0x76 */ u16   field_76;
     /* 0x78 */ u16   field_78;
     /* 0x7A */ u8    pad_7A[0x2];
