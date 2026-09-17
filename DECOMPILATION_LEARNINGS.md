@@ -127043,3 +127043,75 @@ Three separate symptoms, each from a different source choice:
   `u0 = u2 = 0x23` style assignments do not do it. **Fix:** `setUV4(prim, u0, v0, u1,
   v1, u2, v2, u3, v3)` *before* `setRGB0`, then clut, then tpage (94% -> 100%);
   `setRGB0` first scores 99.05%.
+
+## All the dispatch tests adjacent, case bodies after them: that is a `switch`, not an if/else chain (func_actor_310600_80161FA0, 2026-09-17)
+
+**Symptom.** An animation-id dispatch compiled to three adjacent tests followed
+by an unconditional jump, with the bodies laid out after all of them:
+
+```
+blez  v1, out          # id <= 0
+addiu a2,v0,0x280
+slti  v0,v1,3
+bnez  v0, A            # id 1 or 2
+li    v0,3
+beq   v1,v0, B         # id 3
+move  a1,a2
+j     out
+nop
+A: ...   j out
+B: ...   j out
+```
+
+Every predicate reproduces from an if/else chain, but the *layout* does not. An
+`if (id < 3) { A } else if (id == 3) { B }` emits `A` in the fallthrough right
+after the first branch, and the nested `if (id >= 3) { if (id == 3) B } else A`
+emits `B` there; either way one body sits between the two tests, and the object
+is 3-4 instructions and a dozen branch targets off (95.7% here).
+
+**Fix.** Write it as the `switch` it was:
+
+```c
+switch (work->field_475) {
+    case 1:
+    case 2:  ... break;
+    case 3:  ... break;
+}
+```
+
+`expand_end_case` emits the whole decision tree first and then the case bodies in
+source order, which is exactly that shape (95.7% -> 99.2%). The recognisable
+signature is the `j default` with *no* preceding body: a range test for the low
+end (`blez`), a range test closing the first group (`slti 3`), an equality test
+for the singleton, then the fallthrough jump. Contiguous cases sharing a label
+come out as the `slti` range rather than two `beq`s.
+
+## An aggregate initializer's `(clobber (mem:BLK))` pins a local table's address loads below the register saves (func_actor_310600_80161FA0, 2026-09-17)
+
+**Symptom.** A two-entry function-pointer table built on the stack and called
+through, `funcs[work->field_47C]()`. Writing it as element assignments
+
+```c
+funcs[0] = func_A;
+funcs[1] = func_B;
+```
+
+let sched1 hoist the first `lui %hi(func_A)` up into the prologue, ahead of
+`sw ra` / `sw s3` / `sw s1` / `sw s0`, leaving a lone `reorder=1` at 99.73%. The
+`lui` has no dependencies at all, so nothing holds it down.
+
+**Fix.** Use the aggregate initializer, as the declaration in the original did:
+
+```c
+void (*funcs[2])(void) = { func_A, func_B };
+```
+
+That form emits `(clobber (mem/s:BLK (reg 77)))` for the whole array before the
+two stores (visible in `.rtl`; the assignment form has no such insn). The clobber
+is a `BLK` memory write, so sched1 orders it against the prologue stores and the
+`task->extra` / `task->idMap` loads, and the address materialisation that depends
+on it can no longer float above them. 100%.
+
+The call itself takes no argument here (`jalr` with `$a0` never set), so the
+array's type has to be `void (*[2])(void)` even though entry 1 is really a
+`Task*` handler reached through the incoming `$a0`.

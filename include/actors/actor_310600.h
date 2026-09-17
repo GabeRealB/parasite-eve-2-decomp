@@ -103,6 +103,14 @@ void func_actor_310600_80162A24(Task* arg0);
 
 void func_actor_310600_80162A58(Task* arg0);
 
+/// Entry 0 of the second state table dispatch in `func_actor_310600_80161FA0`:
+/// the idle handler, which does nothing. Entry 1 is
+/// `func_actor_310600_80162A7C`, and the tick handler calls both through a
+/// two-entry stack array that passes no argument.
+void func_actor_310600_80162A74(void);
+
+void func_actor_310600_80162A7C(Task* task);
+
 s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 arg3);
 
 s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);

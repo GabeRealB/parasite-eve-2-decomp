@@ -2,6 +2,7 @@
 
 #include "actors/actor_310600.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -9,6 +10,16 @@
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_310600_80161E24;
+
+/// Per-animation cue lists: `D_actor_310600_80179660[field_475]` is a
+/// zero-terminated list of the frames at which that animation fires its effect.
+extern s16*    D_actor_310600_80179660[];
+extern SVECTOR D_actor_310600_80179694;
+extern s32     D_actor_310600_8017969C;
+extern s32     D_actor_310600_801796A0;
+
+/// Spawn table of the follow-up task queued once the cue has fired five times.
+extern TaskDesc D_80182AD8[];
 
 void func_actor_310600_80161E64(Task* task)
 {
@@ -49,7 +60,105 @@ void func_actor_310600_80161E64(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600", func_actor_310600_80161FA0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// The actor's per-frame handler. Runs the entry of its second state table that
+/// `field_47C` selects, then advances the root part by `step`: each axis'
+/// accumulator carries a 16.16 offset whose whole part is added to the world
+/// translation and whose fraction is kept, and clearing `flg` makes
+/// `Gp_UpdateCoordTree` rebuild the world matrix from it.
+///
+/// Once the slots have been started (`field_474`) every animation slot is
+/// ticked, and the frame counter `field_478` is walked against the cue list
+/// `D_actor_310600_80179660[field_475]` -- a zero-terminated list of frames at
+/// which the animation currently playing fires an effect. The effect is chosen
+/// by the animation id: ids 1 and 2 spawn 0x6006A and ask slot 4 for the
+/// follow-up message, but only for the first five of them, after which the
+/// other payload is sent and `D_80182AD8` is spawned instead; id 3 spawns
+/// 0x6006D. The remaining ids have no cue.
+///
+/// While the model is visible its ground shadow is drawn at the root part's
+/// world position and the occupancy table is cleared, and while the session
+/// flag at `field_4D` is set the second part is re-derived and re-lit.
+/// `field_477` is the teardown countdown: it frees the model buffers on the
+/// tick it reaches zero and then stops at -1.
+void func_actor_310600_80161FA0(Task* task)
+{
+    TmdObject*       ext               = task->extra;
+    Actor310600Work* work              = (Actor310600Work*)task->idMap;
+    void             (*funcs[2])(void) = { func_actor_310600_80162A74, (void (*)(void))func_actor_310600_80162A7C };
+    VECTOR3          pos;
+    GsCOORDINATE2*   coord;
+    s16*             cues;
+    s16*             cue;
+    s32              i;
+
+    funcs[work->field_47C]();
+    coord              = ((TmdObject*)task->extra)->field_8;
+    work->field_518   += work->step.vx;
+    work->field_51C   += work->step.vy;
+    work->field_520   += work->step.vz;
+    coord->coord.t[0] += (s16)(work->field_518 >> 16);
+    coord->coord.t[1] += (s16)(work->field_51C >> 16);
+    coord->coord.t[2] += (s16)(work->field_520 >> 16);
+    coord->flg         = 0;
+    work->field_518    = (u16)work->field_518;
+    work->field_51C    = (u16)work->field_51C;
+    work->field_520    = (u16)work->field_520;
+    if (work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (work->field_475 > 0) {
+        cues = D_actor_310600_80179660[work->field_475];
+        if (cues != NULL) {
+            if (*cues != 0) {
+                cue = cues;
+                do {
+                    if (*cue == work->field_478) {
+                        coord = &((TmdObject*)task->extra)->field_8[8];
+                        switch (work->field_475) {
+                            case 1:
+                            case 2:
+                                if ((s16)work->field_47A++ < 5) {
+                                    Gp_SpawnEff(0x6006A, coord, 9, NULL);
+                                    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_actor_310600_8017969C, 0);
+                                } else {
+                                    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&D_actor_310600_801796A0, 0);
+                                    Task_SpawnFromTable(D_80182AD8, 2, 0, 0);
+                                }
+                                break;
+                            case 3:
+                                Gp_SpawnEff(0x6006D, coord, 6, &D_actor_310600_80179694);
+                                break;
+                        }
+                        break;
+                    }
+                    cue++;
+                } while (*cue != 0);
+            }
+            work->field_478++;
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
+        }
+        Gp_ClearRec18Occupied(&work->rec);
+    }
+    if (Game_Session->field_4D != 0) {
+        ((TmdObject*)task->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    if (work->field_477 >= 0) {
+        if (work->field_477 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_477--;
+    }
+}
 
 /// Arrival handler of the actor's second state table (`field_47E`), reached once
 /// `func_actor_310600_80162B98` has laid down the per-frame `step` offset: takes
