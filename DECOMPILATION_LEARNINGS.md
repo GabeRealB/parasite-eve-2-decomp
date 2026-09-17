@@ -114750,3 +114750,84 @@ constant. Read the dump before believing the penalty category.
 Corpus note: the same class of seed defect as entry 27's "parameters m2c could
 not see used" — m2c's inferred *types* are the first thing to distrust in a
 near-miss seed, ahead of any pass-level mechanism.
+
+## A `goto` loop carries no `NOTE_INSN_LOOP_BEG`, so loop.c never runs: write the walk as a `for` (func_neo_ark_shrine_8017DB10, 2026-09-17)
+
+Symptom: the seed's loop body recomputes both table addresses every iteration
+(`lui`/`addiu` pairs inside the body, one of them parked in the loop's
+back-edge delay slot), while the target materializes each once in the
+preheader. The penalty mix reads `insert=3 delete=4 regs=33` at 93%; adding
+pointer locals that hoisted the addresses by hand reached only 96.9%, because
+the hoist is a *symptom*, not the fix.
+
+Cause: GCC 2.8.1's loop.c finds loops **only** through the front end's
+`NOTE_INSN_LOOP_BEG` / `LOOP_END` notes (`loop_optimize` scans for the notes;
+there is no CFG-based loop discovery in this version). m2c emits every loop as
+`label: ... if (cond) goto label;`, and a `goto` never gets a note. So
+`scan_loop`, `move_movables` and strength reduction are never entered at all -
+`grep -c LOOP_BEG` on the `.rtl` dump returning 0 is the whole diagnosis.
+
+Fix: write the walk as a real `for` (or `while`), keeping the same body:
+
+```c
+    for (i = 0; i < 5; i++) {
+        state = D_neo_ark_shrine_801825EC[st->field_C][i];
+        if (state == 0xFF) break;          /* m2c's `if (x != 0xFF) { ... }` */
+        ...
+    }
+```
+
+One edit: 96.9% -> 97.7%, with the count 138/137 and every table address hoisted
+in the target's order. Everything else here was downstream of that pass having
+run.
+
+Two things that ride along with the same rewrite:
+
+* **The `for` rotation reproduces m2c's shape.** The increment lands at the
+  bottom of the `!= 0xFF` path and the `slti` after it - the same block
+  structure the seed's rotated `do/while` gave - so the rewrite costs nothing
+  structurally.
+* **Index the tables as arrays, not through a pointer local.** `D_[row][i]`
+  builds `(plus (reg idx) (symbol))` and cse keeps the symbol second
+  (`cse_gen_binary` orders a `CONSTANT_P` operand last), so the emitted chain is
+  `(i*2 + row*10) + base`. A pointer local makes the base operand 0 and the
+  chain comes out `i*2 + (row*10 + base)` - a different two-instruction order in
+  three places. The hoist needs the array form's *symbol* base, which reload
+  materializes into the saved register the target holds it in.
+
+## A 0/1 flag has to be `u8`, tested as `if ((v = flag != 0))`: reload CSE matches constants by mode, combine folds the pair into a copy (func_neo_ark_shrine_8017DB10, 2026-09-17)
+
+With the loop fixed, the last three instructions of the function were all about
+one `s32` flag set to 0 and 1 and tested after the loop:
+
+| target | `s32` flag | `u8` flag | `u8` + assignment-in-condition |
+|---|---|---|---|
+| `addu $s1,$zero,$zero` (`i = 0`) | `move $s1,$s4` | `move $s1,$zero` | `move $s1,$zero` |
+| `sll $v0,$v0,1` (`state * 2`) | `sllv $v0,$v0,$s4` | `sll $v0,$v0,1` | `sll $v0,$v0,1` |
+| `addu $v0,$s4,$zero` `beqz $v0` | `beqz $s4` | `andi $v0,$s4,0xff` | `addu $v0,$s4,$zero` `beqz $v0` |
+
+Rows one and two: the post-reload CSE (`reload_cse_simplify_set` /
+`reload_cse_simplify_operands`) substitutes a constant operand with a hard
+register holding it, but `reload_cse_regno_equal_p` requires the recorded entry
+to have **the same mode** as the operand for a `CONST_INT`. A `s32` flag's
+`(set (reg:SI) (const_int 0/1))` is recorded in SImode and steals the `i = 0`
+constant and the `state * 2` shift amount; a `u8` flag's stores are recorded in
+QImode, match nothing in SImode, and both stay constants. (`-funsigned-char`
+means a plain `char` behaves the same.)
+
+Row three: what the `u8` flag left behind was `andi $v0,$s4,0xff`, the
+`zero_extendqisi2` widening for the branch - and the target has a plain copy
+there. The two instructions that fix it (the `u8` store and the widening are
+`(set (reg:QI v) (subreg:QI (reg:SI P) 0))` followed by `(zero_extend:SI (reg:QI v))`)
+must be in one basic block, which is what `if ((v = flag != 0))` gives:
+combine's `expand_compound_operation` folds
+`(zero_extend:SI (subreg:QI (reg:SI P) 0))` to `(reg:SI P)` when P's
+`nonzero_bits` fit the byte (here 0/1, from the 0 and 1 stores), and the QI
+variable disappears. Writing the test next to the loop instead of next to the
+assignment gives `andi` and no copy - one instruction short of the target.
+
+Finding the idiom: a scan of the matched tree for `addu $v0,$sN,$zero` followed
+by `beqz $v0` turned up `func_actor_403100_8013AC04`, whose C is
+`if ((completed = finished != 0))`. That function's dumps show the three-insn
+RTL the fold eats, and name the mechanism. Reach for the matched corpus before
+guessing at a one-instruction shape like this.
