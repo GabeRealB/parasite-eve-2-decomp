@@ -92,7 +92,45 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162998);
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162A14);
+/// `Gp_DispatchMsg` handler, the four-way visibility/mode switch of
+/// `func_actor_141000_80133E8C` run against the `TmdObject` parked in
+/// `Task::extra`. Mode 0 shows the model and clears the 4 flag, 1 hides it,
+/// frees the aux buffers and clears the flag, 2 does both plus latching the
+/// mode into the work block's `field_4C5`, and 3 hides it while setting the
+/// flag. Anything else returns 1 and leaves the object alone; the handled
+/// modes return 0.
+s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
+{
+    TmdObject* obj;
+    s32        ret;
+
+    obj = task->extra;
+    ret = 0;
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C                              |= 0x80;
+            ((Actor350700Work*)task->idMap)->field_4C5 = mode;
+            obj->field_C                              |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162AF4);
 
