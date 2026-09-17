@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "main/display.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -9,7 +11,55 @@ extern s32 Gp_LcgState;
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017F6C8);
+/// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
+/// screen position `arg0` (x in the low half, y in the high half). `arg1` is
+/// the ordering-table index, `arg2` the panel width and `arg3` the animation
+/// step, which walks frames 2..11 of `D_80111E48`. The quad is `2 * d` wide and
+/// `4 * d` tall, anchored three quarters of the way down, and both `d` and the
+/// rounded weight `3 * d` are the one reused local the ROM keeps for them.
+void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    POLY_FT4* prim;
+    GpEffUv8* rec;
+    s16       idx;
+    GpEffUv8* tbl;
+    s32       d;
+    s32       y;
+
+    prim           = (POLY_FT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2F);
+    prim->tpage = 0x29;
+
+    idx        = arg3 % 10 + 2;
+    tbl        = D_80111E48;
+    rec        = &tbl[idx];
+    prim->clut = (rec->clutY << 6) | ((rec->clutX >> 4) & 0x3F);
+    prim->u0   = rec->u;
+    prim->v0   = rec->v;
+    prim->u1   = rec->u + 0x27;
+    prim->v1   = rec->v;
+    prim->u2   = rec->u;
+    prim->v2   = rec->v + 0x27;
+    prim->u3   = rec->u + 0x27;
+    prim->v3   = rec->v + 0x27;
+
+    d        = (arg2 * 0x1F) >> 12;
+    prim->x2 = arg0 - d;
+    prim->x0 = arg0 - d;
+    prim->x3 = arg0 + d;
+    prim->x1 = arg0 + d;
+
+    d        = (arg2 * 0x1F) >> 13;
+    y        = arg0 >> 16;
+    prim->y1 = y - d * 3;
+    prim->y0 = y - d * 3;
+    prim->y3 = y + d;
+    prim->y2 = y + d;
+
+    addPrim(&Gpu_CurrentOt[arg1], prim);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017F84C);
 

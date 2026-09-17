@@ -3,6 +3,94 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## One local assigned twice is one quantity: the reused definition cannot tie to its source, and that is what keeps both halves in one register
+
+`func_dryfield_night_motel_balcony_8017F6C8` builds a quad's half-width and
+half-height from the same product, one shift apart, and the ROM keeps both in
+`$t3`:
+
+```
+sra    t3,v1,0xc      /* half-width  = (w * 0x1F) >> 12 */
+...
+sra    t3,v1,0xd      /* half-height = (w * 0x1F) >> 13 */
+```
+
+Two locals, `dx` and `dy`, score 68% with `dy` in `$v1` — the register holding
+`w * 0x1F`. `combine_regs` (`local-alloc.c`) ties a *newly born* pseudo to a
+register that dies in the same insn, and `w * 0x1F` dies at the `>> 13`.
+Assigning the *same* variable twice instead makes both definitions one
+quantity: the second finds `reg_qty[sreg] >= 0` ("already born"), the tie is
+refused, and the allocator is free to give the pair a single home — `$t3`,
+whose live range the first shift ends. One change, 68.04% → 98.25%, and with it
+every later register home and the whole schedule:
+
+```c
+    d = (arg2 * 0x1F) >> 12;   /* half-width */
+    prim->x2 = arg0 - d;  prim->x0 = arg0 - d;
+    prim->x3 = arg0 + d;  prim->x1 = arg0 + d;
+    d = (arg2 * 0x1F) >> 13;   /* half-height, same local */
+    y = arg0 >> 16;
+    prim->y1 = y - d * 3;  prim->y0 = y - d * 3;
+    prim->y3 = y + d;      prim->y2 = y + d;
+```
+
+`y - d * 3` expands to `(d << 1) + d` taken off `y`, and the shared local also
+forces the x statements ahead of the y ones (the second assignment is a
+statement between them), which the target's schedule shows. When a value used
+twice lands in the register that its own source owns, try one reused local
+before touching the allocator.
+
+## `&table[i]` scales the index before it materializes the base; a separate `T* p = table;` statement moves the base ahead of it
+
+For a narrow (here `s16`) index into an 8-byte-element table, GCC's MEM path
+(`get_inner_reference`, then `expand_expr` of the offset, then
+`change_address`) emits the index's conversion and scale — fused by `combine`
+into `sll ...,16` / `sra ...,13` — *before* the base's `lui`/`lo_sum`, which
+the later address legitimization emits. Giving the table address a local of its
+own
+
+```c
+    s16       idx;
+    GpEffUv8* tbl;
+    ...
+    idx        = arg3 % 10 + 2;
+    tbl        = D_80111E48;      /* the base is materialized here ... */
+    rec        = &tbl[idx];       /* ... and the scale follows it */
+```
+
+reorders the RTL to `[lui][addiu][sll 16][sra 13][addu]`, which is the target's
+order. `sched2` breaks ties between equal-priority insns by `INSN_LUID` (the
+RTL order), so nothing else is needed: 98.76% → 100%.
+
+The statement has to sit *after* the index is computed and immediately before
+the use. Ahead of `idx = ...` it scores 95.57%: the base is materialized at the
+top, gets a different home (`$t2`), and the division chain loses the
+anti-dependency on `$v0` that pins the address in the target — the magic-
+constant division holds `$v0` and the address's `lui` writes it, so it cannot
+be scheduled before the division's last `$v0` read.
+
+## Two stores of the same value are independent, so the emitted order is the source's
+
+`func_dryfield_night_motel_balcony_8017F6C8` writes four pairs of `POLY_FT4`
+coordinates where both members of a pair hold one value (`x0`/`x2` are both
+`arg0 - d`, `y0`/`y1` both `y - d * 3`, …). Duplicating the expression CSEs it
+and the two stores then depend only on that value, so `rank_for_schedule` finds
+them equal in priority and class and falls through to `INSN_LUID`: they are
+emitted in RTL order. The target stores the *higher* offset of every pair first
+(`y1`,`y0`; `y3`,`y2`; `x2`,`x0`; `x3`,`x1`), so the source wrote:
+
+```c
+    prim->y1 = y - d * 3;  prim->y0 = y - d * 3;
+    prim->y3 = y + d;      prim->y2 = y + d;
+    prim->x2 = arg0 - d;   prim->x0 = arg0 - d;
+    prim->x3 = arg0 + d;   prim->x1 = arg0 + d;
+```
+
+Corner-major order (`x0`,`y0`,`x1`,`y1`,…) also emits each pair in RTL order but
+with the lower offset first, which costs four reorderings (98.25% vs 98.76%).
+The paired values must be the same expression for the stores to collapse; two
+different expressions that happen to be equal are two pseudos.
+
 ## A local's declared *width* decides how many pseudos a `switch (x = expr)` operand costs — and with them the callee-saved home
 
 `func_actor_800200_80165104` sat at 97.951% with the whole structure matching and
