@@ -9641,6 +9641,38 @@ functions, so the message table's handler words resolve to them rather than to
 a `D_...` rodata symbol - and the function is 8 bytes longer than before, which
 is the whole reason it could not be written as C.
 
+**A generated overlay whose tables all belong to its first unit wants
+`rodata_head` shrunk to the id word.** `actor_342100` carried
+`rodata_head = "0x1C"`, so the head (0x0..0x1C) was one splat-emitted object
+holding the id word *and* `func_actor_342100_80162748`'s six-entry jump table as
+a `jlabel` table whose `.word .Lactor_342100_8016278C` entries name case labels
+of an `INCLUDE_ASM` body. Replacing that body with C moves the labels into the
+compiler, and the head object then fails to link, naming the head rather than a
+numbered unit:
+
+```
+actor_342100_hdr.rodata.s.o:(.rodata+0x4): undefined reference to `.Lactor_342100_8016278C'
+```
+
+The fix is not a `rodata` cut but one word, `rodata_head = "0x4"`, which hands
+the whole run from the id word on to the unit's compiler-owned `.rodata`.
+
+That is right exactly when the object's `.rodata` is the package's
+`[head..first_text)` run byte for byte, and it is worth checking before the
+edit: `mips-linux-gnu-objdump -s -j .rodata build/USA/src/<family>/<name>/<name>.c.o`
+against the package bytes. GCC emits each unit's jump tables in the order the
+switches appear in the `.c`, followed by any table an `INCLUDE_ASM`ed
+function's `.s` still defines, at its include point - which is the order the
+original build laid them out in. Here 0x4..0x50 came back as the 6-entry table
+of the function being decompiled (0x18), the 8-entry table of an already-matched
+neighbour (0x20, `func_actor_342100_80162C88`) and the 5-entry table of the one
+still-`INCLUDE_ASM` neighbour (0x14, `func_actor_342100_801630A4`, whose `.s`
+carries it in a `.section .rodata` block): 0x4C bytes, the whole run, and the
+overlay and `SLUS_010.42` checksums both matched unscoped. The generator's own
+comment says the same ("It cannot simply be folded into the main unit's
+`.rodata`: ... giving the unit the run from 0x0 reorders both"), which is why
+the id word has to stay the head.
+
 ## Shared `task->state++` is per-case stores, not a `next` phi
 
 A long task switch whose every advancing arm is `lw v0, 0x30(s1) / j store /

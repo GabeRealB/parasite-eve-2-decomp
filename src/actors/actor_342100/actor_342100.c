@@ -5,6 +5,9 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/session.h"
 #include "main/sound.h"
 
@@ -79,7 +82,94 @@ extern u32 Gp_LcgState;
 
 INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80161E70);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_80162748);
+/// Fade-to-white driver of the encounter, six states over the eight-byte
+/// channel block it allocates into its own `Task::idMap` and hands the parent
+/// work block through `Task::spawnArg2`.
+///
+/// State 0 allocates the ramp, zeroes the three channels and parks the
+/// message record `D_actor_342100_801648F8` in `Task::field_24`. States 2 and
+/// 3 step `field_2` -- the first by 0xA up to 0x50, the second by 1 up to
+/// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
+/// two ramps run back to back. State 4 steps `field_4` / `field_6` by 8; once
+/// `field_4` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
+/// filled white, the parent work block's `field_24` is raised, and state 5
+/// draws the full-screen white `TILE` + `DR_TPAGE` packed into
+/// `Gpu_PrimCursor` before returning without the fade call. Every other state
+/// -- 1, 6 and up -- only draws the fade.
+void func_actor_342100_80162748(Task* arg0)
+{
+    Actor342100FadeWork* work;
+    Actor342100FadeWork* alloc;
+    Actor342100Work*     parent;
+    TILE*                tile;
+    DR_TPAGE*            dr;
+
+    work = (Actor342100FadeWork*)arg0->idMap;
+    switch (arg0->state) {
+        case 0:
+            alloc       = (Actor342100FadeWork*)Mem_Malloc(8, 0);
+            arg0->idMap = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                Task_Kill(arg0);
+                return;
+            }
+            work           = alloc;
+            work->field_6  = 0;
+            work->field_4  = 0;
+            work->field_2  = 0;
+            arg0->field_24 = &D_actor_342100_801648F8;
+            arg0->state   += 1;
+            break;
+        case 2:
+            work->field_2 += 0xA;
+            if ((s16)work->field_2 >= 0x51) {
+                work->field_2 = 0x50;
+                arg0->state   = 1;
+            }
+            break;
+        case 3:
+            work->field_2 += 1;
+            if ((s16)work->field_2 >= 0x100) {
+                work->field_2 = 0xFF;
+                arg0->state   = 1;
+            }
+            break;
+        case 4:
+            work->field_4 += 8;
+            work->field_6 += 8;
+            if ((s16)work->field_4 >= 0x100) {
+                parent           = (Actor342100Work*)((Task*)arg0->spawnArg2)->idMap;
+                parent->field_24 = 2;
+                Display_SetMode(0xD010);
+                Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
+                work->field_6 = 0xFF;
+                work->field_4 = 0xFF;
+                arg0->state   = 5;
+            }
+            break;
+        case 5:
+            tile           = (TILE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            setlen(tile, 3);
+            setcode(tile, 0x60);
+            tile->r0 = 0xFF;
+            tile->g0 = 0xFF;
+            tile->b0 = 0xFF;
+            tile->x0 = -0xA0;
+            tile->y0 = -0x78;
+            tile->w  = 0x140;
+            tile->h  = 0xF0;
+            addPrim(Gpu_CurrentOt - 16, tile);
+
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
+            setlen(dr, 1);
+            dr->code[0] = 0xE1000200;
+            addPrim(Gpu_CurrentOt - 16, dr);
+            return;
+    }
+    Fade_DrawOverlay((u8)work->field_2, (u8)work->field_4, (u8)work->field_6, 1);
+}
 
 /// Advance the encounter's animation one step: the work block's `field_2C` is
 /// queried with 0x3ED and a non-zero answer stops the chain with 0; `field_3C`

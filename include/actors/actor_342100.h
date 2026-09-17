@@ -28,11 +28,18 @@ typedef struct Actor342100 {
 /// `Task_SpawnFromTable` as the fourth argument, and `field_3C` takes
 /// `arg0 + 0x2F` from `func_actor_342100_8016334C`'s integer argument, the
 /// same value that function forwards as the animation message's second word.
+///
+/// `field_24` is raised to 2 by the fade task `func_actor_342100_80162748`,
+/// which reaches this block through `Task::spawnArg2` (that task is spawned
+/// with the task owning this block as its fourth `Task_SpawnFromTable`
+/// argument), at the moment the screen has been blanked white. Nothing in the
+/// decompiled overlay reads it back yet.
 typedef struct Actor342100Work {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ s16   field_20;
     /* 0x22 */ s16   field_22;
-    /* 0x24 */ byte  pad_24[0x8];
+    /* 0x24 */ s16   field_24;
+    /* 0x26 */ byte  pad_26[0x6];
     /* 0x2C */ Task* field_2C; // Game_GetPtrSlot(3)
     /* 0x30 */ Task* field_30;
     /* 0x34 */ Task* field_34;
@@ -42,6 +49,25 @@ typedef struct Actor342100Work {
     /* 0x40 */ byte  pad_40[0x4];
 } Actor342100Work;
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
+
+/// Eight-byte block the overlay's fade task (`func_actor_342100_80162748`)
+/// allocates with `Mem_Malloc(8, 0)` and parks in its own `Task::idMap` slot
+/// (0x1C, not a `TaskIdMap` here), so reach it with
+/// `(Actor342100FadeWork*)task->idMap`.
+///
+/// The three halfwords are the channels `Fade_DrawOverlay` draws, read as
+/// bytes at that call and as halfwords by the state machine that ramps them:
+/// state 2 steps `field_2` by 0xA until it passes 0x50, state 3 by 1 until it
+/// passes 0xFF, and state 4 steps `field_4` / `field_6` by 8 until `field_4`
+/// passes 0xFF, at which point the screen is blanked and state 5 draws the
+/// white overlay. `pad_0` is never touched.
+typedef struct Actor342100FadeWork {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ u16  field_2;
+    /* 0x4 */ u16  field_4;
+    /* 0x6 */ u16  field_6;
+} Actor342100FadeWork;
+STATIC_ASSERT_SIZEOF(Actor342100FadeWork, 0x8);
 
 /// Payload `func_actor_342100_80162F54` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x3F7: the null-terminated pointer table at
@@ -71,6 +97,12 @@ extern Task* D_actor_342100_80164BB8;
 
 /// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
 extern TaskDesc D_actor_342100_80164B78;
+
+/// Record the fade task `func_actor_342100_80162748` parks in its own
+/// `Task::field_24`: the message id `0x7DB` followed by the handler
+/// `func_actor_342100_80163344`. The same shape `src/gameplay/4CC.c` stores
+/// there, and all this overlay does with it is take its address.
+extern u8 D_actor_342100_801648F8[];
 
 void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2);
 void func_actor_342100_8016334C(s32 arg0);
