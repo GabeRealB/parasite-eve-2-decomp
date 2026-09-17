@@ -27,7 +27,7 @@ typedef struct Actor210700Work {
     /* 0x4A0 */ MATRIX color;
     /* 0x4C0 */ byte   pad_4C0[0x78];
     /* 0x538 */ s16    field_538; // set to 1 by the 0x7E0 image handler's mode 3
-    /* 0x53A */ byte   pad_53A[2];
+    /* 0x53A */ u16    field_53A; // upload countdown the state handler at 0x80149E30 runs down, reloaded from `field_538` on underflow
     /* 0x53C */ s16    field_53C; // set to 1 by the 0x7E0 image handler's mode 3
     /* 0x53E */ s16    field_53E; // init'd to -1
 } Actor210700Work;
