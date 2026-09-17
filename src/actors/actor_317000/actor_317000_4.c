@@ -6,7 +6,55 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_4", func_actor_317000_80162BC4);
+/// Display handler for the `GpMsgEntry` table `func_actor_317000_8016267C`
+/// installs, message id 0x7D5 -- the same four-mode protocol on
+/// `TmdObject::field_C` that `func_actor_335800_80163FB8` and
+/// `func_actor_503500_801466E0` run for their own actors. Bit 0x80 marks the
+/// actor hidden (the sibling tick bodies stop drawing the ground shadow while
+/// it is set) and bit 0x4 the display buffers being live:
+///
+///   mode 0  hide, drop 0x4
+///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
+///   mode 2  hide, latch the frame countdown `Actor317000Work::field_4C8` that
+///           ends in `Tmd_FreeBuffers`, raise 0x4
+///   mode 3  show, raise 0x4
+///
+/// The spawn state opens with mode 0 and seeds `field_4C8` to -1. Any other
+/// mode returns 1; the four known ones return 0.
+s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
+{
+    TmdObject*       obj;
+    Actor317000Work* work;
+    s32              ret;
+
+    obj  = task->extra;
+    work = (Actor317000Work*)task->idMap;
+    ret  = 0;
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C   |= 0x80;
+            work->field_4C8 = mode;
+            obj->field_C   |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 /// Message 0x7DB handler of the table `func_actor_317000_8016267C` installs:
 /// latches the payload's halfword at 0x2 into `Actor317000Work::field_4C5` --

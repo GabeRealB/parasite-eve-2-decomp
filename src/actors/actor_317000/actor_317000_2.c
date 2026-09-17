@@ -13,8 +13,6 @@
 /// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_317000_8016CF50[];
 
-void func_actor_317000_80162BC4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-
 /// Spawn state of the enemy actor: allocates the 0x4CC-byte work block every
 /// later handler reads through `Task::idMap`, seeds the three -1 fields and the
 /// three cleared words the work's own init expects, republishes the light and
