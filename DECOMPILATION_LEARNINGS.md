@@ -121663,3 +121663,26 @@ Inputs: `base_5.i` (99.843%)
 `0ac45e1fb4758a396d43b93286a8ad601d86eea5fdb460d55bb26b00ae481d0b`;
 `base_6.i` (100.000%)
 `8704734d8298a0ae3d7ec4f96626798a0b40efeffd98be57ebf2e7b96e4334af`.
+## Keeping a `u8 u = x` copy alive: reassign the source after the copy
+
+**Problem:** target has `move t1,a0` / `move t0,t1` and then stores/uses `t0`
+(a `u8` UV offset), but C written as `u = x; setUVWH(prim, u, ...)` stores
+`t1` directly and the copy vanishes (cse2 replaces `u` in the `sb` stores with
+`(subreg:QI x)`, leaving one use, which combine then folds).
+
+**Fix:** reassign `x` after the copy, so `u` and `x` are no longer equivalent
+in CSE's table:
+
+```c
+x = (s16)(prompt->screen.xy.x - p->x) / 16 * 16;
+u = x;
+x += dx;                 /* breaks the u == x equivalence */
+setXYWH(prim, x, y, 16, 16);
+setUVWH(prim, u, v, 16, 16);
+```
+
+Also seen in the same function (`func_actor_143000_801325F0`): the load order
+`lhu screen.x` before `lhu p->x` needed `p->x` read *inside* the subtraction,
+with `dx = p->x` written afterwards (CSE reuses the load). And a `u8 v = dy + 0x70`
+variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
+gave `-0x80`.
