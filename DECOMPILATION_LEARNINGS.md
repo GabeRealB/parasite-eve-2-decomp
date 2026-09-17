@@ -114152,3 +114152,23 @@ in/out operand, so the pseudo gains a second set and block-0 dependencies change
 (`2*7/166 = 0.084`), no new set - gave 100%. Non-volatile `SOFT_USE_REG` after the
 last call had no effect (dropped). When a ref is the only lever, try the
 input-only form before `TOUCH_REG`.
+
+### A lone intermediate in the "wrong" scratch register: reuse a multi-set local so global-alloc places it (func_actor_105700_80131ED0, 2026-09-17)
+
+The facing test `work->field_6AA = dot >= 0` over a three-term dot product scored
+99.985% with one exchange: retail `addu v1,v0,t2; nor v0,zero,v1`, ours
+`addu v0,v0,t2; nor v0,zero,v0`. Every expression shape (`>= 0`, `(u32)~x >> 31`,
+`!(x < 0)`, ternary, reordered terms, a fresh block-local `dot`) kept the sum tied
+to `$v0`: as a single-set pseudo it is local-alloc's, which ties it to the dying
+`x+y` sum and to the `not` output. Retail's sum is in neither quantity, i.e. it was
+allocated by global-alloc. Storing the sum in a local *already set elsewhere* —
+here the second tilt roll of the same function, whose other life overlaps a `$v0`
+use — makes it multi-set, so local-alloc skips it and global-alloc, seeing the
+`$v0` conflict, picks `$v1`. A reused local that is set elsewhere but never
+conflicts with `$v0` (the push-out `x`) stays `$v0`, so choose the donor by its
+conflicts, not just by being multi-set.
+
+Same function, for the overlay: its two tables sit in the first unit's leading
+rodata, so it needed `rodata_head = "0x4"` (dropping unit 1's `INCLUDE_RODATA` of
+the id), and the 7-entry second table's trailing zero word written after the
+function as `const s32 D_actor_105700_80131E68 = 0;`.

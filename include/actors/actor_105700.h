@@ -25,38 +25,40 @@ typedef struct Actor105700Work {
     /// `func_actor_105700_80133878`; its `field_14` is the pose the state-0
     /// branch of `func_actor_105700_80133138` parks (-0xA7 or 0x109) and its
     /// `field_1C` the frame count parked alongside it.
-    /* 0x47C */ GpObj field_47C;
-    /* 0x49C */ byte  pad_49C[0x30];
+    /* 0x47C */ GpObj   field_47C;
+    /* 0x49C */ byte    pad_49C[0x18];
+    /* 0x4B4 */ GpRec18 field_4B4[1];
     /// Second body object; `field_14` is the pose the state-0 branch parks
     /// (0x15E) and `flags` the bits whose 0x4000 it raises.
-    /* 0x4CC */ GpObj field_4CC;
-    /* 0x4EC */ byte  pad_4EC[0x78];
+    /* 0x4CC */ GpObj   field_4CC;
+    /* 0x4EC */ GpRec18 field_4EC[5];
     /// Third body object; `flags` is the field whose bit 0x4000 the state-0
     /// branch clears.
-    /* 0x564 */ GpObj field_564;
-    /* 0x584 */ byte  pad_584[0x60];
+    /* 0x564 */ GpObj   field_564;
+    /* 0x584 */ GpRec18 field_584[4];
     /// Fourth body object: `field_18` is the object `Gp_PackPair` hands it when
     /// `field_698` first reaches the animation's 0x1C mark and `flags` the
     /// bits whose 0x8000 is raised with it and dropped at the 0x28 mark
     /// (`func_actor_105700_801341CC`).
-    /* 0x5E4 */ GpObj field_5E4;
-    /* 0x604 */ byte  pad_604[0x18];
+    /* 0x5E4 */ GpObj   field_5E4;
+    /* 0x604 */ GpRec18 field_604[1];
     /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
-    /* 0x61C */ GpObj   field_61C;
-    /* 0x63C */ s16     field_63C;
-    /* 0x63E */ s16     field_63E;
-    /* 0x640 */ s16     field_640;
-    /* 0x642 */ byte    pad_642[2];
-    /* 0x644 */ s16     field_644;
-    /* 0x646 */ s16     field_646;
-    /* 0x648 */ s16     field_648;
-    /* 0x64A */ byte    pad_64A[0xA];
-    /* 0x654 */ GpRec18 field_654[1];
-    /* 0x66C */ byte    pad_66C[0xC];
-    /* 0x678 */ s32     field_678;
-    /* 0x67C */ s32     field_67C;
-    /* 0x680 */ s32     field_680;
-    /* 0x684 */ byte    pad_684[4];
+    /* 0x61C */ GpObj    field_61C;
+    /* 0x63C */ s16      field_63C;
+    /* 0x63E */ s16      field_63E;
+    /* 0x640 */ s16      field_640;
+    /* 0x642 */ byte     pad_642[2];
+    /* 0x644 */ s16      field_644;
+    /* 0x646 */ s16      field_646;
+    /* 0x648 */ s16      field_648;
+    /* 0x64A */ byte     pad_64A[0xA];
+    /* 0x654 */ GpRec18  field_654[1];
+    /* 0x66C */ byte     pad_66C[4];
+    /* 0x670 */ GpEffArg field_670;
+    /* 0x678 */ s32      field_678;
+    /* 0x67C */ s32      field_67C;
+    /* 0x680 */ s32      field_680;
+    /* 0x684 */ byte     pad_684[4];
     /// Tilt angles decayed toward zero by `func_actor_105700_801334F0`.
     /* 0x688 */ SVECTOR            field_688;
     /* 0x690 */ struct _GpEffWork* field_690;
@@ -65,12 +67,12 @@ typedef struct Actor105700Work {
     /* 0x694 */ s16 field_694;
     /// Animation the playing clip was started from; when it differs from
     /// `field_694` the frame counter is reset and the slots reseeded.
-    /* 0x696 */ s16  field_696;
-    /* 0x698 */ s16  field_698; ///< current frame of the playing clip
-    /* 0x69A */ byte pad_69A[2];
-    /* 0x69C */ s16  field_69C; ///< dwell counter, cleared on state 0 entry
-    /* 0x69E */ s16  field_69E; ///< dwell counter, cleared on state 0 entry
-    /* 0x6A0 */ u16  field_6A0; ///< sound flags; bit 5/4 gate the two cues
+    /* 0x696 */ s16 field_696;
+    /* 0x698 */ s16 field_698;  ///< current frame of the playing clip
+    /* 0x69A */ s16 field_69A;
+    /* 0x69C */ s16 field_69C;  ///< dwell counter, cleared on state 0 entry
+    /* 0x69E */ s16 field_69E;  ///< dwell counter, cleared on state 0 entry
+    /* 0x6A0 */ u16 field_6A0;  ///< sound flags; bit 5/4 gate the two cues
                                 /// Current yaw, walked toward `field_6A4` by
                                 /// `func_actor_105700_80133364`, using `field_69E` as the per-frame step.
     /* 0x6A2 */ s16  field_6A2;
@@ -151,6 +153,16 @@ typedef struct Actor105700Obj {
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ u16            field_C;
 } Actor105700Obj;
+
+/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `func_actor_105700_80131ED0`.
+typedef struct Actor105700HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ VECTOR         normal;
+    /* 0x20 */ VECTOR         push;
+    /* 0x30 */ SVECTOR        effOfs;
+    /* 0x38 */ SVECTOR        target;
+} Actor105700HitScratch;
+STATIC_ASSERT_SIZEOF(Actor105700HitScratch, 0x40);
 
 typedef struct Actor105700 {
     /* 0x00 */ byte             pad_0[0x1C];
