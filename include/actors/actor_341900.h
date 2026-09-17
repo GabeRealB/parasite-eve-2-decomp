@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+#include "gameplay/1BC.h"
+
 #include <psyq/libgte.h>
 
 /// Work block of the overlay's sequence/event task -- the one
@@ -136,6 +138,25 @@ typedef struct Actor341900TaskWork {
     /* 0x256 */ byte  pad_256[0x2];
 } Actor341900TaskWork;
 STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
+
+/// The same 0x258-byte block as `Actor341900TaskWork`, seen from
+/// `func_actor_341900_80162330`, which fills it: an animation context over
+/// eight slots (`func_800B3F84` gets `pad_154` as its scratch area) and the
+/// light/colour matrix pair the model draws with.
+typedef struct Actor341900AnimWork {
+    /* 0x000 */ GpAnimCtx  ctx;
+    /* 0x014 */ GpAnimSlot slots[8];
+    /* 0x154 */ byte       pad_154[0x80];
+    /* 0x1D4 */ MATRIX     light;
+    /* 0x1F4 */ MATRIX     color;
+    /* 0x214 */ byte       pad_214[0x34];
+    /* 0x248 */ Task*      field_248;
+    /* 0x24C */ Task*      field_24C;
+    /* 0x250 */ Task*      field_250;
+    /* 0x254 */ u16        field_254;
+    /* 0x256 */ byte       pad_256[0x2];
+} Actor341900AnimWork;
+STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
 
 void func_actor_341900_80162330(Task* arg0);
 

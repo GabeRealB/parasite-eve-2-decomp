@@ -69,7 +69,74 @@ void func_actor_341900_80162200(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341900/actor_341900", func_actor_341900_80162330);
+extern u8         D_actor_341900_801639AC[];
+extern u8         D_actor_341900_801639B8[];
+extern u8         D_actor_341900_801639C4[];
+extern GpMsgEntry D_actor_341900_80163A78[];
+
+void func_actor_341900_80162330(Task* arg0)
+{
+    TmdObject*           extra;
+    Actor341900AnimWork* work;
+    Actor341900AnimWork* ctx;
+    Actor341900AnimWork* w;
+    GpCdRec10*           rec;
+    u16                  i;
+
+    extra       = (TmdObject*)arg0->extra;
+    work        = (Actor341900AnimWork*)Mem_Malloc(0x258, 0);
+    arg0->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    w = work;
+    Mem_Set(w, 0, 0x258);
+    w->field_248    = (Task*)arg0->spawnArg2;
+    extra->field_1C = &w->light;
+    extra->field_20 = &w->color;
+    arg0->field_24  = D_actor_341900_80163A78;
+    rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4))->field_0;
+    for (; rec->field_0 != 0xFF; rec++) {
+        if (rec->field_0 == 0x20) {
+            break;
+        }
+    }
+    Gp_SetTmdBytes(extra, (s8)rec->field_D, (s8)rec->field_E);
+    switch (arg0->spawnArg1) {
+        case 0:
+            func_800B3F84(&w->ctx, D_actor_341900_801639AC, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            ctx = (Actor341900AnimWork*)arg0->idMap;
+            for (i = 1; i < 8; i++) {
+                ctx->slots[i].field_9 = 0x10;
+                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+            }
+            break;
+            /* The empty loop's notes before `case 1:` make reorg predict the
+             * dispatch branch taken and fill its delay slot from that arm. */
+            do {
+            } while (0);
+        case 1:
+            ((Actor341900AnimWork*)w->field_248->idMap)->field_24C = arg0;
+            func_800B3F84(&w->ctx, D_actor_341900_801639B8, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            ctx = (Actor341900AnimWork*)arg0->idMap;
+            for (i = 0; i < 4; i++) {
+                ctx->slots[i].field_9 = 0x10;
+                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+            }
+            break;
+        case 2:
+            ((Actor341900AnimWork*)w->field_248->idMap)->field_250 = arg0;
+            func_800B3F84(&w->ctx, D_actor_341900_801639C4, (GpAnimObj*)extra, &w->pad_154, w->slots);
+            ctx = (Actor341900AnimWork*)arg0->idMap;
+            for (i = 0; i < 4; i++) {
+                ctx->slots[i].field_9 = 0x10;
+                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+            }
+            break;
+    }
+    Task_Reparent(w->field_248, arg0);
+}
 
 /// Attaches the actor to the bone its spawn record names, copies that record's
 /// offset onto the part's coordinate, inherits the spawner's colour flag and

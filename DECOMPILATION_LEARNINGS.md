@@ -114499,3 +114499,35 @@ Same function: `x->rot = (f ? ratan2(..) + 0x800 : ratan2(..)) & 0xFFF` through 
 shared `angle` local schedules the `andi`/stores after the next call's argument
 setup; writing the full `& 0xFFF` store in each arm lets cross-jumping merge
 them and keeps the stores ahead of the arguments.
+
+### An empty `do { } while (0)` right before a `case` label makes the dispatch branch predict taken, so its delay slot comes from that case
+
+`func_actor_341900_80162330` switches on `spawnArg1`. The ROM fills the
+`beq v1,1,case1` slot with case 1's `lui a1,%hi(table)`, skipping past the
+`move a0,s2` in front of it; our build put the fall-through's `slti` there
+(99.60%). RTL was identical through `.sched2`; the first divergence is `.dbr`.
+
+`mostly_true_jump` (reorg.c) walks backwards from the target label over notes
+and returns "very likely" if it reaches a `NOTE_INSN_LOOP_BEG` first.
+`fill_eager_delay_slots` then tries the target thread before the fall-through,
+and `fill_slots_from_thread` can take a later insn once it has scanned past the
+ones it cannot move. An empty loop keeps its LOOP_BEG/CONT/END notes after
+jump deletes the always-false back edge, so placing it after the previous
+arm's `break` puts the notes directly before the label:
+
+```c
+        break;
+        do {
+        } while (0);
+    case 1:
+```
+
+Move the loop above the `break` and the jump sits between the notes and the
+label, so the scan stops early and the build goes back to `slti` in the slot.
+Built and predicted: 64 -> 64, identical asm. This is the target-thread
+counterpart of the `LABEL_OUTSIDE_LOOP_P` entry above (that one makes the
+prediction -1).
+
+Inputs: `base_11.i` `741c10dd8b6c451ce19c4ec6d378fbaacb1231ba90442042463c7d62e0a84db6`
+(exact), `base_12.i` `440b56937eba4f1e7f4c832e129163e783a8ca5a1fb7bb6069423cca0f48dfbb`
+(control); archived with the function's permuter findings.
