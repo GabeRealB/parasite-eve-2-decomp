@@ -118673,3 +118673,48 @@ matched bodies in `_3` were preserved this way, and the unscoped build's
 
 Inputs: `base_7.i` (the goto/tail variant, 99.84%) and `base_9.i` (the
 array-index form, 99.66% by the scorer, byte-identical by the build).
+## An address the target reaches *by name* must be declared as its own object even when indexing it is byte-identical (func_dryfield_night_motel_room_3_8017D9B4, 2026-09-17)
+
+Three consecutive `SVECTOR`s at `0x8017DA84` / `0x8017DA8C` / `0x8017DA94`, one
+visit each, and the target materialises every one of them whole into `$a0`:
+
+```
+lui   a0,%hi(D_dryfield_night_motel_room_3_8017DA8C)
+addiu a0,a0,%lo(D_dryfield_night_motel_room_3_8017DA8C)
+```
+
+Declaring a single base array and indexing it (`&D_..._8017DA84[1]`,
+`&D_..._8017DA84[2]`) compiles to the *same instruction bytes* - 2.8.1 keeps
+`%hi` on the base symbol and folds only the offset into `%lo`:
+
+```
+lui   a0,%hi(D_dryfield_night_motel_room_3_8017DA84)
+addiu a0,a0,%lo(D_dryfield_night_motel_room_3_8017DA84+8)
+```
+
+Both forms link to the same address, so the overlay checksum passes either way -
+but `diff.py` and the scratch scorer compare the object's reloc **text**, and the
+indexed form scores 99.286% (`regs=6`) with a diff that is nothing but those
+reloc lines. The fix is to declare each named address as its own object:
+
+```c
+extern SVECTOR D_dryfield_night_motel_room_3_8017DA84;
+extern SVECTOR D_dryfield_night_motel_room_3_8017DA8C;
+extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
+```
+
+The *variable*-pointer spelling of the same thing (`SVECTOR* p = D_...DA84;`
+then `&p[1]`) is much worse here - 78.780%, `insert=9 regs=12`, 50 instructions
+against 42 - because a pointer that is not a constant index keeps
+`(plus (reg) (const_int 8))`, so the address is materialised into a register and
+then offset (`&arr[1]` as a pointer, not an index). The named form is the one
+that folds, and it is the one whose reloc text the target has.
+
+Like "A second label on the same run is a second object" in CLAUDE.md, but
+reached from the other side: there the two spellings differ in *instructions*
+(`addiu v0,v0,0xe704` vs `addiu v1,v0,0xe70c`), here they differ in the reloc
+alone, which is enough to fail the scorer while the ROM matches.
+
+Inputs: `base_1.c` (100.000%, all penalties zero), `base_3.c` (99.286%,
+`regs=6`). Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
