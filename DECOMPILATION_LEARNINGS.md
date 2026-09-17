@@ -124664,3 +124664,66 @@ and after the reload is the signal that the value's live range ends at the
 decrement.
 
 Inputs: as above; `base_3.c` and `base_4.c` both 100.000%.
+
+## A stack local whose address goes to two calls gets one pseudo live across the first, unless the address is `TOUCH_REG`'d (func_actor_135400_80132064, 2026-09-17)
+
+Passing `&local` to two calls that are separated by the first call's clobber puts
+the address in a single pseudo that is live across the first call, which costs a
+callee-saved register. Three lines reproduce it -- both `key` at `vfp+0` and at
+`vfp+4` do it, and the second call does not recompute:
+
+```c
+void f(void) { int key; g(&key); h(&key); }
+```
+
+```
+	addu	$16,$sp,16      # $s0 holds &key
+	move	$4,$16
+	jal	g
+	jal	h
+	move	$4,$16
+```
+
+The ROM shape for the same source is two direct materialisations --
+`addiu $a0,$sp,0x68` at each call and no `move` -- as `func_actor_302600_80165A6C`
+and `func_actor_443500_80132078` show. What buys it back is making the pointer
+both a use and a definition:
+
+```c
+    keyPtr = &key;
+    TOUCH_REG(keyPtr);
+    Gp_SyncAreaKeyIndex(keyPtr);
+    rec = Gp_GetNestedAreaRec(&key);
+```
+
+`"+r"` makes `cse` invalidate the variable and not re-record it, so the
+equivalence class of the address holds no register and the second `&key` is
+computed afresh. Two direct materialisations follow, and every other `$sN` home
+shifts back one. This is `actor_150400`'s documented recipe; what that note does
+not say is that `SOFT_BARRIER()` is *not* load-bearing here -- it blocks the
+pointer from crossing the preceding load and leaves a `nop` the target does not
+have, so drop it when the `addiu` wants to fill a load-delay slot.
+
+Scored: 92.267% with the merged pseudo, 98.331% with the touch.
+
+## One C variable for two call results inherits both conflict sets, so global-alloc refuses the call's return register (func_actor_135400_80132064, 2026-09-17)
+
+Two `Task_SpawnFromTable` calls whose results were separate variables came out
+as `move $a2,$v0` for the first and a bare `beqz $v0` for the second, where the
+target has the copy in both. `.greg` explains it:
+
+```
+;; 89 conflicts: 80 81 89 29
+;; 89 preferences: 2
+```
+
+allocno 88 (first result) conflicts with `$v0` -- it is live across the call
+block -- so it copies to `$a2`; allocno 89 (second result) has no `$v0`
+conflict and a preference *for* `$v0`, so nothing is copied. Writing both
+results to one variable makes them one allocno whose conflict set is the union,
+`$v0` is excluded for the second use too, and both copies appear. Same
+instruction count, same everything else: 99.228% -> 100.000%.
+
+The reverse of the usual advice to split a reused variable: when the target has
+a copy that the source's second use does not need, check whether the *conflict
+set* is the thing being matched, and merge rather than split.

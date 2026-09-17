@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "actors/actors_shared_8013231c.h"
+
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
@@ -109,5 +111,51 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
 /// and `arg2` the shade, negative to skip the draw. Declared per overlay, as
 /// the sibling packages do.
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// The two placements `func_actor_135400_80132064` starts the actor from, in
+/// the `.rodata` at `D_actor_135400_80131E48`: a world translation followed by
+/// the Euler angles handed to `RotMatrix`, the same block the 0x7D4 opcode
+/// takes. The spawn copies the pair in one go and then hands the branch picked
+/// by game flag 0x6C to `func_actor_135400_8013276C`.
+typedef struct Actor135400Places {
+    /* 0x00 */ ActorsShared8013231cArgs field_0;
+    /* 0x18 */ ActorsShared8013231cArgs field_18;
+} Actor135400Places;
+STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
+
+/// The two placements, defined in `actor_135400.c` so they land in that unit's
+/// `.rodata` right after the state tables.
+extern const Actor135400Places D_actor_135400_80131E48;
+
+/// The actor's two-entry `TaskDesc` table, indexed by `Task_SpawnFromTable`:
+/// entry 1 is the model-bearing part task `func_actor_135400_80132450`
+/// reparents, entry 2 its second part.
+extern TaskDesc D_actor_135400_8013A4AC;
+
+/// The handler table `func_actor_135400_80132064` parks in `Task::field_24`
+/// (0x24): the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB bodies of `actor_135400_2`.
+extern s32 D_actor_135400_8013A4D0;
+
+/// Per-frame animation setter for the 0x7D3 opcode: plays the animation the
+/// `GpAnimArg` names across the work block's twenty slots and latches
+/// `field_474`. Built by `actor_135400_2`.
+s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+
+/// The 0x7D4 opcode's body: installs its argument block's translation and
+/// Euler angles onto the root part's coordinate. Byte-identical to
+/// `ActorsShared8013231c`, which the other packages link; built by
+/// `actor_135400_2`.
+s32 func_actor_135400_8013276C(Task* task, s32 anim, ActorsShared8013231cArgs* args, s32 arg3);
+
+/// `Gp_DispatchMsg` handler for message 0x7D5: the 4-way model-mode switch
+/// that keeps the part task's model in step. Built by `actor_135400_2`.
+s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
+
+/// The main task's exit callback; runs the actor's teardown.
+void func_actor_135400_80132614(Task* task);
+
+/// Main-executable helper the spawn runs on the flag-clear path, once the
+/// actor is placed. Unmatched, so declared here as the sibling packages do.
+void func_80180414(s32 arg0);
 
 #endif

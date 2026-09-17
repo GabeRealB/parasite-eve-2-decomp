@@ -1,7 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_135400.h"
+#include "actors/actors_shared_80132f24.h"
 
+#include "main/gameflag.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -25,7 +28,103 @@ INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E3C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_80132064);
+/// The spawn handler of the actor's main task: carves the 0x4C8-byte work
+/// block, seeds its two `-1` latches, starts the two part tasks and copies the
+/// area record's texture page / CLUT onto part 1's model. It then installs the
+/// handler table, the 0x7D5 model mode and the exit callback, and finally hands
+/// the 0x7D4 placement and the 0x7D3 animation the game flag 0x6C selects.
+///
+/// `keyPtr` / `TOUCH_REG` are load-bearing: the `&key` argument comes out of
+/// `expand_call` in a fresh pseudo, and left alone `cse` folds the second call
+/// site into it, so the address lives across the first call and costs a
+/// callee-saved register. The touch makes the second call materialise it afresh
+/// -- the ROM's two `addiu $a0,$sp,0x68`.
+void func_actor_135400_80132064(Task* arg0)
+{
+    Actor135400MainWork* work;
+    Actor135400Places    places;
+    GpAnimArg            anim[2];
+    GpAreaKey            key;
+    GpAreaKey*           sessionKey;
+    GpAreaKey*           keyPtr;
+    u8                   areaByte0;
+    GpAreaRec*           rec;
+    GpAreaPlace*         place;
+    TmdObject*           model;
+    Task*                spawned;
+    u32                  raw;
+    s32                  idx;
+
+    places = D_actor_135400_80131E48;
+    memset(anim, 0, sizeof(anim));
+    anim[0].field_4 = 1;
+    anim[1].field_4 = 4;
+    work            = (Actor135400MainWork*)Mem_Calloc(0x4C8, 0);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+    arg0->idMap     = (TaskIdMap*)work;
+    work->field_475 = -1;
+    work->field_476 = -1;
+    spawned         = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
+    if (spawned != NULL) {
+        work->field_4B8 = spawned;
+        model           = (TmdObject*)spawned->extra;
+        sessionKey      = (GpAreaKey*)&Game_Session->field_4;
+        raw             = ((GpEnemy*)arg0->spawnArg2)->field_8;
+        key.field_3     = sessionKey->field_3;
+        key.field_2     = sessionKey->field_2;
+        key.field_1     = sessionKey->field_1;
+        areaByte0       = sessionKey->field_0;
+        keyPtr          = &key;
+        TOUCH_REG(keyPtr);
+        key.field_0 = areaByte0;
+        idx         = raw >> 12;
+        Gp_SyncAreaKeyIndex(keyPtr);
+        rec             = Gp_GetNestedAreaRec(&key);
+        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->field_24 = place->field_D;
+        model->field_25 = place->field_E;
+        if (model->field_18 != NULL) {
+            Tmd_ProcessStream(model);
+            Tmd_ProcessStream(model);
+        }
+    }
+    spawned = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 2, 8, (s32)arg0);
+    if (spawned != NULL) {
+        work->field_4BC = spawned;
+    }
+    ActorsShared80132f24(arg0);
+    arg0->field_24 = &D_actor_135400_8013A4D0;
+    func_actor_135400_801327E8(arg0, 0x7D5, 1, 0);
+    if (GameFlag_GetNibble(0x6C) <= 0) {
+        func_actor_135400_8013276C(arg0, 0x7D4, &places.field_0, 0);
+        func_actor_135400_80132650(arg0, 0x7D3, &anim[0], 0);
+        func_80180414(0);
+    } else {
+        func_actor_135400_8013276C(arg0, 0x7D4, &places.field_18, 0);
+        func_actor_135400_80132650(arg0, 0x7D3, &anim[1], 0);
+    }
+    arg0->exitCallback = func_actor_135400_80132614;
+    arg0->state       += 1;
+}
+
+/// The two spawn placements `func_actor_135400_80132064` copies as a whole:
+/// the flag-clear branch's is the one at 0x0, the other is 0x18. Defined here,
+/// after the four state tables' `INCLUDE_RODATA` lines, so `.rodata` follows
+/// source order and closes the unit's `D_actor_135400_80131E48`.
+const Actor135400Places D_actor_135400_80131E48 = {
+    { { 5700, -150, 5900, 0 }, { 1024, 0, -1024, 0 } },
+    { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } },
+};
+
+/// The word the split's `.rodata` run ends with, past the two records the copy
+/// reads: it is what puts this unit's `.rodata` at 0x5C and so keeps the next
+/// unit's at 0x80131E7C, where its switch table opens on an `.align 3` that
+/// pads to 0x80131E80. Written out as the word of data it is, the same way
+/// `actor_401800` writes its own trailing pad.
+const s32 D_actor_135400_80131E78 = 0;
 
 /// Per-frame tick of the actor's main task: ticks the twenty animation slots
 /// once `field_474` has latched, and while the model is not flagged killed
