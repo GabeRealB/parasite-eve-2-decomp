@@ -126543,3 +126543,50 @@ typedef union Actor120500Args {
 
 The union's size is the larger member's, so the frame comes out exactly as
 retail's, where two separate locals add 0x10 and a saved register with it.
+## An `alabel` on an absolute import hides the last carrier of an already-shared body from `find` (func_actor_304000_80162DFC, 2026-09-17)
+
+`overlay_dup_index.py find func_actor_304000_80162DFC` reports `same body: 1
+copies` - itself - and `promote` refuses it as "only one copy in actors", so the
+obvious reading is that this body is not shared and wants matching here. It is
+shared: all 55 instructions are the ones `src/actors/lib/actors_shared_8014adfc.c`
+already compiles, at the same in-overlay span (`0xFDC..0x10B8`) that
+`actor_104000` and `actor_204000` carry it at.
+
+The index groups on the canonicalised disassembly *text*, and one line of this
+copy is not an instruction.
+
+`configs/USA/sym/actors.imports.txt` defines `D_80162E98 = 0x80162E98; //
+absolute:True`. Every actor slot loading at `0x80161E20` spans that address, so
+splat emits `alabel D_80162E98` inside whichever function covers it - 29 overlays
+carry that label, here at offset `0x1078`, the delay slot holding
+`addiu $v0,$zero,0x12`. The sibling slots at `0x80131E20` and `0x80149E20` do
+not reach it, so their copies have no such line and a different `text` hash. The
+index is right about the bytes; it is the label, not the code, that differs.
+
+Tell it from the near-duplicate case above by what survives the mask: mask
+addresses and local labels out of the target `.s` and the lib's, and if the diff
+holds *only* `alabel` lines it is one body, not two. The index's `disp` list is
+the cheap confirmation - both copies are
+`['0x174','0x4A','0x474','0x474','0x474','0x4A','0x474','0x474','0x58']`.
+
+Promotion is then the two lines the brief describes - the `0xFDC..0x10B8` span in
+actor_304000's `configs/USA/overlays.toml` entry and
+`ActorsShared8014adfc = 0x80162DFC;` in its sym map - plus the redistribution. The
+span starts inside the first unit, so every later unit renumbers: all five of
+actor_304000's unit `.c` files were pure `INCLUDE_ASM`, and deleting them for
+splat to rewrite produced the six the new layout wants (`_2` takes the tail from
+`0x10B8`, old `_2`..`_5` become `_3`..`_6`). The rewrite also names the leading
+rodata's jump tables (`jtbl_actor_304000_80161E54`, …) and adds their
+`INCLUDE_RODATA` lines, which the committed ones predate. The image does not
+move: `SLUS_010.42` and all 449 `checksum.sha` entries pass.
+
+The carrier's split rewrites the family-wide
+`asm/USA/actors/{matchings,nonmatchings}/lib/actors_shared_8014adfc/ActorsShared8014adfc.s`
+as well, taking the last carrier's label prefix and gaining the `alabel`. That is
+harmless - other `matchings/lib` disassemblies already carry one - and the file is
+only a record of a body that is compiled from `src/`.
+
+Inputs: scratch `nonmatchings/func_actor_304000_80162DFC-vacuum`; `base.c` (m2c)
+48.519%; `base_1.c`, the shared body with an inline work struct, 100.000% with
+all-zero penalties on its first build. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

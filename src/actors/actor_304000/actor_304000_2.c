@@ -1,3 +1,35 @@
 #include "common.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80168524);
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80162ED8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_801634AC);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80163C3C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_8016451C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80164710);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80164D68);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_801655B8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80165B50);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80165DD4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_8016614C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_801667E0);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80166DC4);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_8016704C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_801673E8);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80167908);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_80167D2C);
+
+INCLUDE_ASM("actors/nonmatchings/actor_304000/actor_304000_2", func_actor_304000_801681A0);
