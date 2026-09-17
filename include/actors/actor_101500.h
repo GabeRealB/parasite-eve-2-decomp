@@ -72,7 +72,7 @@ extern s16 D_actor_101500_8013BE70[];
 /// Fifteen vertical bob offsets cycled by `field_37C` while `field_352` is 5.
 extern s16 D_actor_101500_8013BE90[];
 
-/// Sixteen frame counts `func_actor_101500_801345D0` and `func_actor_101500_801346D0` reload `field_362` from,
+/// Sixteen frame counts `func_actor_101500_80133528`, `func_actor_101500_801345D0` and `func_actor_101500_801346D0` reload `field_362` from,
 /// picked by a `Gp_LcgState` draw.
 extern u16 D_actor_101500_8013BDE8[];
 
