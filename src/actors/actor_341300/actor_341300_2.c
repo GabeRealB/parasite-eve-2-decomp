@@ -1,6 +1,11 @@
 #include "common.h"
 
+#include "actors/actor_341300.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -169,7 +174,133 @@ void func_actor_341300_80162698(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341300/actor_341300_2", func_actor_341300_80162878);
+/// Falling debris shard. State 0 allocates the `Actor341300Shard`, parents the
+/// actor's coordinate to the view, places it at `D_actor_341300_80165A38
+/// [spawnArg1]` and rolls a random velocity, spin and triangle shape. State 1
+/// applies gravity and velocity, draws the triangle as a POLY_G3 and advances
+/// the spin, killing the task once the shard falls below y 0.
+void func_actor_341300_80162878(Task* arg0)
+{
+    Actor341300Shard* work;
+    GsCOORDINATE2*    coord;
+    POLY_G3*          prim;
+    s16               x[3];
+    s16               y[3];
+    s32               sxy;
+    s32               otz;
+    s16               i;
+    s32               v0;
+    s32               v1;
+    s32               v2;
+    s32               v3;
+
+    work  = (Actor341300Shard*)arg0->idMap;
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    switch (arg0->state) {
+        case 0:
+            arg0->idMap = Mem_Calloc(0x30, 0);
+            if (arg0->idMap == NULL) {
+                goto kill;
+            }
+            work       = (Actor341300Shard*)arg0->idMap;
+            coord->sub = &Gfx_ViewCoord;
+            Mem_Set(arg0->idMap, 0, 0x30);
+            Task_Reparent(arg0->spawnArg2, arg0);
+            coord->coord.t[0] = D_actor_341300_80165A38[arg0->spawnArg1].vx;
+            coord->coord.t[1] = D_actor_341300_80165A38[arg0->spawnArg1].vy;
+            coord->coord.t[2] = D_actor_341300_80165A38[arg0->spawnArg1].vz;
+            work->vel.vx      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
+            work->vel.vy      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
+            work->vel.vz      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
+            work->rotSpeed.vx = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            work->rotSpeed.vy = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            work->rotSpeed.vz = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            if (work->rotSpeed.vx > 0) {
+                work->rotSpeed.vx += 100;
+            } else {
+                work->rotSpeed.vx -= 100;
+            }
+            if (work->rotSpeed.vy > 0) {
+                work->rotSpeed.vy += 100;
+            } else {
+                work->rotSpeed.vy -= 100;
+            }
+            if (work->rotSpeed.vz > 0) {
+                work->rotSpeed.vz += 100;
+            } else {
+                work->rotSpeed.vz -= 100;
+            }
+            work->verts[0].vx = 0;
+            work->verts[0].vy = (ACTOR_341300_RAND() & 1) ? 0x16 : 0x14;
+            work->verts[0].vz = 0;
+            v0                = rsin(0x2AA) * 20 / 4096;
+            if (ACTOR_341300_RAND() & 1) {
+                v0 += 2;
+            }
+            work->verts[1].vx = v0;
+            v1                = -(rsin(0x155) * 20 / 4096);
+            if (ACTOR_341300_RAND() & 1) {
+                v1 -= 2;
+            }
+            work->verts[1].vy = v1;
+            work->verts[1].vz = 0;
+            v2                = -(rsin(0x2AA) * 20 / 4096);
+            if (ACTOR_341300_RAND() & 1) {
+                v2 -= 2;
+            }
+            work->verts[2].vx = v2;
+            v3                = -(rsin(0x155) * 20 / 4096);
+            if (ACTOR_341300_RAND() & 1) {
+                v3 -= 2;
+            }
+            work->verts[2].vy = v3;
+            work->verts[2].vz = 0;
+            arg0->state++;
+            break;
+        case 1:
+            if (coord->coord.t[1] > 0) {
+            kill:
+                Task_Kill(arg0);
+                break;
+            }
+            work->vel.vy      += 8;
+            coord->coord.t[0] += work->vel.vx;
+            coord->coord.t[1] += work->vel.vy;
+            coord->coord.t[2] += work->vel.vz;
+            Gp_UpdateCoord(coord);
+            gte_SetTransMatrix(&coord->workm);
+            gte_SetRotMatrix(&coord->workm);
+            for (i = 0; i < 3; i++) {
+                gte_ldv0(&work->verts[i]);
+                gte_rtps_real();
+                gte_stsxy(&sxy);
+                gte_stszotz(&otz);
+                x[i] = sxy;
+                y[i] = sxy >> 16;
+            }
+            prim           = (POLY_G3*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
+            setPolyG3(prim);
+            prim->r0 = prim->g0 = prim->b0 = 0x10;
+            prim->r1 = prim->g1 = prim->b1 = 0x40;
+            prim->r2 = prim->g2 = prim->b2 = 0x80;
+            prim->x0                       = x[0];
+            prim->y0                       = y[0];
+            prim->x1                       = x[1];
+            prim->y1                       = y[1];
+            prim->x2                       = x[2];
+            prim->y2                       = y[2];
+            addPrim(&Gpu_CurrentOt[otz >> 4], prim);
+            work->rot.vx += work->rotSpeed.vx;
+            work->rot.vy += work->rotSpeed.vy;
+            work->rot.vz += work->rotSpeed.vz;
+            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
+            Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
+            coord->flg = 0;
+            break;
+    }
+}
 
 void func_actor_341300_80163028(Task* arg0)
 {
