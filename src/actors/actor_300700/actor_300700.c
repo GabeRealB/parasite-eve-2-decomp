@@ -43,6 +43,7 @@ void func_actor_300700_8016252C(Actor300700* arg0);
 void func_actor_300700_801626C0(Actor300700* arg0);
 void func_actor_300700_801628C8(Actor300700* arg0);
 void func_actor_300700_801633B8(Actor300700* arg0);
+void func_actor_300700_80162EFC(Actor300700* arg0);
 
 extern u8  D_801153F4;
 extern s8  D_80115408;
@@ -507,7 +508,90 @@ void func_actor_300700_801628C8(Actor300700* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80162BC8);
+void func_actor_300700_80162BC8(GpEnemy* arg0, Actor300700* arg1)
+{
+    Actor300700Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         head;
+    SVECTOR*         rot;
+    s32              angle;
+    u32              rnd;
+    u32              seed;
+    s32              id;
+    s32              pan;
+
+    coord = arg1->field_2C->field_8;
+    work  = arg1->field_1C;
+    switch (D_801153F4) {
+        case 1:
+            break;
+        case 2:
+            arg1->field_2C->field_C = 0x80;
+            break;
+        case 0:
+        default:
+            head                   = *(SVECTOR**)0x1F8003FC;
+            rot                    = head - 1;
+            *(SVECTOR**)0x1F8003FC = rot;
+            switch (work->field_2DE) {
+                case 0:
+                    D_80115408              = 1;
+                    seed                    = Gp_LcgState * 5 + 0x71357911;
+                    rnd                     = seed >> 16;
+                    angle                   = rnd & 0xFF;
+                    arg1->field_2C->field_C = 2;
+                    Gp_LcgState             = seed;
+                    work->field_2E2         = 0x1000;
+                    work->field_22C.matrix  = coord->coord;
+                    if (!(rnd & 0x100)) {
+                        angle = -angle;
+                    }
+                    work->field_2E4                             = angle;
+                    arg0->field_54                              = 0;
+                    ((Actor300700SpawnWork*)work)->obj134.flags = ((Actor300700SpawnWork*)work)->obj134.flags & 0x7FFF;
+                    ((Actor300700SpawnWork*)work)->obj16C.flags = ((Actor300700SpawnWork*)work)->obj16C.flags & 0xBFFF;
+                    ((Actor300700SpawnWork*)work)->obj1EC.flags = ((Actor300700SpawnWork*)work)->obj1EC.flags | 0x8000;
+                    id                                          = ((arg0->field_8 >> 12) << 8) | 0x40070006;
+                    pan                                         = (s8)Gp_GetObjPan((GpObj38*)coord);
+                    SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+                    Gp_UnlinkNode(&arg0->node);
+                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 8);
+                    work->field_2E0 = 1;
+                    work->field_2DE = 1;
+                    break;
+                case 1:
+                    func_actor_300700_80163410(arg1);
+                    work->field_2DA = (work->field_2DA + work->field_2E4) & 0xFFF;
+                    work->field_2DC = (work->field_2DC + work->field_2E4) & 0xFFF;
+                    rot->vx         = work->field_2DA;
+                    rot->vy         = work->field_2DC;
+                    rot->vz         = 0;
+                    RotMatrix(rot, &coord->coord);
+                    work->field_22C.matrix.t[1] += 0x18;
+                    if ((s16)(work->field_2E0 / 3) < 8) {
+                        func_actor_300700_80162EFC(arg1);
+                    } else {
+                        arg1->field_2C->field_C = 0x80;
+                    }
+                    work->field_2E0++;
+                    if (work->field_2E0 >= 0x1E) {
+                        Gp_UnlinkObj(&((Actor300700SpawnWork*)work)->obj134);
+                        Gp_UnlinkObj(&((Actor300700SpawnWork*)work)->obj16C);
+                        Gp_UnlinkObj(&((Actor300700SpawnWork*)work)->obj1EC);
+                        work->field_2DE = 2;
+                    }
+                    break;
+                case 2:
+                    work->field_2E0--;
+                    if (work->field_2E0 <= 0) {
+                        Gp_DestroyEnemy(arg0, (Task*)arg1);
+                    }
+                    break;
+            }
+            *(SVECTOR**)0x1F8003FC += 1;
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80162EFC);
 
