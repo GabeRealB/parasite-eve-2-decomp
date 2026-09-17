@@ -113,6 +113,32 @@ typedef struct Actor361100Coord {
 } Actor361100Coord;
 STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
 
+/// State block `func_actor_361100_80161E3C` allocates with `Mem_Calloc(0xE8)`
+/// and parks in `Task::idMap` -- that slot is not a `TaskIdMap` here. The body
+/// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
+/// to the shared state tick and its coordinate upload, which this package calls
+/// as the absolute imports at 0x80138C9C and 0x801353D0. Those are the same two
+/// functions `actor_403600` decompiles as `func_actor_403600_80138C9C` /
+/// `func_actor_403600_801353D0` (its own packages sit lower in the family's
+/// load window, so it names them in-package and calls them directly), and their
+/// `Actor403600EffectState` is this record: the same 0xE8 total, the two
+/// 0x20-entry `s16` arrays, the ramp scalars at 0x80..0x8E, the coordinate at
+/// 0x90 and the pair of words above it. The fields this body does not touch are
+/// named from that twin.
+typedef struct Actor361100EffectState {
+    /* 0x00 */ s16           field_0[0x20];
+    /* 0x40 */ s16           field_40[0x20];
+    /* 0x80 */ s32           field_80;
+    /* 0x84 */ s32           field_84;
+    /* 0x88 */ s32           field_88;
+    /* 0x8C */ s16           field_8C;
+    /* 0x8E */ s16           field_8E;
+    /* 0x90 */ GsCOORDINATE2 field_90;
+    /* 0xE0 */ s32           field_E0;
+    /* 0xE4 */ s32           field_E4;
+} Actor361100EffectState;
+STATIC_ASSERT_SIZEOF(Actor361100EffectState, 0xE8);
+
 /// Head-aim record `func_actor_361100_801627D4` allocates and parks in
 /// `Task::idMap`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
 /// pitch clamps that function widens against the head's current pose, and the

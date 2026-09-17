@@ -120685,3 +120685,64 @@ scheduled in source order instead of the target's order.
 Scope: this is about a value used as a whole `int` afterwards. When the
 truncated value is consumed unsigned by a signed comparison the plain `s8` local
 is what the target wants, so read the target's shift placement before choosing.
+## `combine` drops the sign-bias from a `/2` when the dividend is provably even: keep the mask out of the dividend's statement
+
+`func_actor_361100_80161E3C` divides `(0x18000 - D_8006D868) & ~7` by two, and
+the target keeps the full signed-division bias:
+
+```
+srl   $v0, $s4, 31
+addu  $v0, $s4, $v0
+sra   $v0, $v0, 1
+```
+
+Written the way m2c renders it -- `u32 t = (0x18000 - D_8006D868) & ~7;` and
+`(s32)(t + (t >> 0x1F)) >> 1` -- the candidate loses both the `srl` and the
+`addu` (`delete: 2`), and its frame grows by 8 bytes, shifting every spill slot.
+The pass responsible is `combine`, in `simplify_shift_const`'s `case PLUS:`:
+
+```c
+	  if ((code == ASHIFTRT || code == LSHIFTRT)
+	      && count < HOST_BITS_PER_WIDE_INT
+	      && nonzero_bits (XEXP (varop, 1), result_mode) >> count == 0
+	      && (nonzero_bits (XEXP (varop, 1), result_mode)
+		  & nonzero_bits (XEXP (varop, 0), result_mode)) == 0)
+	    {
+	      varop = XEXP (varop, 0);
+	      continue;
+	    }
+```
+
+The added term is the sign bit (`(x >>s 31) >>u 31`, `nonzero_bits` = 1, so it
+shifts out entirely), and the rule also needs the bits it lands on to be known
+zero *in the dividend* -- that is, the dividend must be known **even**, which is
+exactly what `& ~7` proves. The fold therefore hinges on whether `nonzero_bits`
+can still see the mask. Give the mask its own statement and it cannot:
+
+```c
+    t = (0x18000 - D_8006D868) & ~7;   /* one statement: the AND is the pseudo's
+                                          value, combine proves bit 0 clear */
+```
+```c
+    t = 0x18000 - D_8006D868;          /* two SETs of one pseudo: 100% */
+    t &= ~7;
+```
+
+`t` is now a `reg/v` with two sets and the use sits in another basic block, so
+`nonzero_bits` gets neither `reg_last_set_nonzero_bits` (`REG_N_SETS != 1` and
+`reg_last_set_label != label_tick`) nor `get_last_value`; it falls back to
+`reg_nonzero_bits[regno]`, which `record_value_for_reg` accumulates with `|=`
+over every set of the pseudo. The subtract's full mask is in that union, bit 0
+is no longer known clear, and the bias survives. Elsewhere the same `|=` makes a
+two-set pseudo a general way to keep a value's shape out of `combine`'s reach.
+
+Two things to carry forward: `.combine` shows this as two `NOTE_INSN_DELETED`
+insns and the shift rewritten to `(ashiftrt (reg) 1)`, and `./insn.py <uid>`
+prints `combine GONE` in a single step -- so a two-instruction deficit plus a
+frame delta is worth tracing to `combine` before hunting for a spill; and the
+8-byte frame growth was a symptom of the same RTL difference, not an allocation
+problem, and it disappeared with the fold restored.
+
+Inputs: base_4.i `b42dd0cf77ba8dae052d497d700dbd98818252b633f0d0b913c9eee0f27070e5`
+(98.15%, `delete=2`), base_6.i
+`9764bfe0afe744f38d7ea24e934a64bae9b6c088b55b872fa99dc34047464a4a` (100%).
