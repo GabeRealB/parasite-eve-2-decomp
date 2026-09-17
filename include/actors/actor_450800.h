@@ -98,7 +98,8 @@ typedef struct Actor450800SpawnWork {
     /* 0x47C */ s16        state;
     /* 0x47E */ byte       pad_47E[0x2];
     /* 0x480 */ u16        animId;
-    /* 0x482 */ byte       pad_482[0x30];
+    /* 0x482 */ s16        field_482;
+    /* 0x484 */ byte       pad_484[0x2E];
     /* 0x4B2 */ s16        travel;
     /* 0x4B4 */ s16        animArg;
     /* 0x4B6 */ byte       pad_4B6[0x2];
