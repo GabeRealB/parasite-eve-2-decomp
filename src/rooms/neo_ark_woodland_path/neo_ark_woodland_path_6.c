@@ -40,7 +40,43 @@ void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
     D_neo_ark_woodland_path_8018498E += 0x5A;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80180568);
+/// Arming state, the sibling of `func_neo_ark_woodland_path_80180C6C` one step
+/// earlier in the sequence: it parks its own 0x7DB handler table in the task,
+/// folds the slot's spawn count into game flag 0x10C (remembering the slot in
+/// 0x10D) and fills the five spawn slots with the room's ceiling - or zero.
+/// Same shape as its sibling; only the flags, the slot-count array and the
+/// handler table differ.
+void func_neo_ark_woodland_path_80180568(Task* task)
+{
+    s16 i;
+    s16 nib;
+
+    if (D_neo_ark_woodland_path_80184980[Game_Session->field_9] == 0) {
+        task->field_24 = NULL;
+        task->state    = task->state + 1;
+        return;
+    }
+    task->field_24                   = D_neo_ark_woodland_path_80184998;
+    D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10C);
+    nib                              = GameFlag_GetNibble(0x10D);
+    if (Game_Session->field_9 != nib) {
+        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184980[Game_Session->field_9];
+        GameFlag_SetNibble(0x10C, D_neo_ark_woodland_path_80184990);
+        GameFlag_SetNibble(0x10D, Game_Session->field_9);
+    }
+    if (D_neo_ark_woodland_path_80184990 >= 6) {
+        D_neo_ark_woodland_path_80184990 = 5;
+    }
+    for (i = 0; i < 5; i++) {
+        if (i < D_neo_ark_woodland_path_80184990) {
+            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948[2];
+        } else {
+            D_neo_ark_woodland_path_80184A60[i] = 0;
+        }
+    }
+    D_neo_ark_woodland_path_8018498E = 0x5A;
+    task->state                      = task->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_801806D8);
 

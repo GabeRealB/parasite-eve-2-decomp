@@ -95,6 +95,16 @@ extern u8 D_neo_ark_woodland_path_80184970[];
 /// the same three handlers, as the table in `D_...84998` next to it.
 extern s32 D_neo_ark_woodland_path_801849F4[];
 
+/// The same gate for the arm-state one step earlier: `func_...80180568` tests
+/// it against zero and `func_...801806D8` reads the slot's count from it. One
+/// byte per session slot, indexed by `Game_Session->field_9`, like
+/// `D_...84970` above.
+extern u8 D_neo_ark_woodland_path_80184980[];
+
+/// `func_...80180568`'s own 0x7DB handler table, parked in `Task::field_24`
+/// exactly as `D_...849F4` is by `func_...80180C6C`.
+extern s32 D_neo_ark_woodland_path_80184998[];
+
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 D_neo_ark_woodland_path_80184996;
 
