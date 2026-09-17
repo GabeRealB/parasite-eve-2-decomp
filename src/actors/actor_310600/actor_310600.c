@@ -51,7 +51,60 @@ void func_actor_310600_80161E64(Task* task)
 
 INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600", func_actor_310600_80161FA0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_310600/actor_310600", func_actor_310600_8016231C);
+/// Arrival handler of the actor's second state table (`field_47E`), reached once
+/// `func_actor_310600_80162B98` has laid down the per-frame `step` offset: takes
+/// each horizontal axis' gap between the target point `field_4F8` / `field_500`
+/// and the root part's world translation -- the low 16 bits of the signed
+/// difference, as in `func_actor_310600_80162AD8` -- and compares it against the
+/// axis' stop threshold in `limit`, which starts at 0x7FFF. Both gaps past their
+/// threshold means the actor has stopped closing in: the arrival preset of
+/// message 0x7D3 is queued (animation bank 0, id 0xD, path 1, param 0xA), but
+/// only while `field_475` still holds 0xC, and then `step` and the two counters
+/// are cleared and the handler returns without re-arming. Otherwise each
+/// threshold is pulled down to the gap just measured, so the next tick that
+/// fails to shrink it is the one that fires.
+void func_actor_310600_8016231C(Task* arg0)
+{
+    Actor310600Work*  work;
+    Actor310600Coord* coord;
+    SVECTOR           d;
+    s32               dx;
+    s32               dz;
+    Actor310600Cmd    cmd;
+
+    work  = (Actor310600Work*)arg0->idMap;
+    coord = (Actor310600Coord*)((TmdObject*)arg0->extra)->field_8;
+    if (work->field_4F8 - coord->coord.t[0] >= 0) {
+        dx = (u16)work->field_4F8 - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->field_4F8;
+    }
+    d.vx = dx;
+    if (work->field_500 - coord->coord.t[2] >= 0) {
+        dz = (u16)work->field_500 - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->field_500;
+    }
+    d.vz = dz;
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+        if (work->field_475 == 0xC) {
+            cmd.animId = 0;
+            cmd.state  = 0xD;
+            cmd.path   = 1;
+            cmd.param  = 0xA;
+            cmd.unk10  = 0;
+            func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
+        }
+        work->step.vx   = 0;
+        work->step.vy   = 0;
+        work->step.vz   = 0;
+        work->field_47C = 0;
+        work->field_47E = 0;
+        return;
+    }
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+}
 
 void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void* D_actor_310600_80179640[]; // animation bank table `work->field_476` indexes
