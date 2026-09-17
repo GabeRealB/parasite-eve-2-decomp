@@ -1,7 +1,11 @@
 #include "common.h"
 
 #include "actors/actor_161500.h"
+#include "actors/actors_shared_80132404.h"
+#include "actors/actors_shared_801324c8.h"
+#include "actors/actors_shared_80132514.h"
 #include "actors/actors_shared_801366fc.h"
+#include "actors/actors_shared_8014c874.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
@@ -256,4 +260,40 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_161500/actor_161500", func_actor_161500_8013252C);
+/// The actor's step body, the same shape `ActorsShared8014c874` runs: state 1
+/// and state 2 reseed the animation slots and advance to 3, the step state
+/// walks the attach coordinate 0x1E units per frame while the walk clip has
+/// `travel` left, then ticks the slots.
+void func_actor_161500_8013252C(Task* task)
+{
+    Actor161500Work* work;
+    s16              animId;
+
+    work = (Actor161500Work*)task->idMap;
+    if (work->state == 1) {
+        ActorsShared801324c8(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 2) {
+        ActorsShared80132514(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 3) {
+        do {
+        } while (0);
+        animId = work->animId;
+        if (animId == 4 && work->travel != 0) {
+            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->field_8, 0x1E);
+            work->travel = (u16)work->travel - 1;
+            if (work->travel == 0) {
+                work->state   = 1;
+                work->animArg = 0xA;
+                work->animId  = 1;
+            }
+        }
+        ActorsShared80132404(task);
+        return;
+    }
+}

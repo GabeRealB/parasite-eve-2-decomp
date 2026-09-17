@@ -28,7 +28,9 @@ typedef struct Actor161500Work {
     /* 0x4B4 */ s16        state;
     /* 0x4B6 */ byte       pad_4B6[0x2];
     /* 0x4B8 */ u16        animId;
-    /* 0x4BA */ byte       pad_4BA[0x34];
+    /* 0x4BA */ byte       pad_4BA[0x30];
+    /* 0x4EA */ s16        travel;
+    /* 0x4EC */ s16        animArg;
     /* 0x4EE */ s16        field_4EE;
     /* 0x4F0 */ s16        field_4F0;
     /* 0x4F2 */ byte       pad_4F2[0x2];

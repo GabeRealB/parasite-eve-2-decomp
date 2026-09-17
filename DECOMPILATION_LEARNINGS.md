@@ -121998,3 +121998,53 @@ The same applies to any first search that contradicts something already known to
 be true - in this session, `include/gameplay/gameplay.h` referencing `VECTOR`
 with no definition anywhere, and `libgs.h` using `VECTOR` while `libgte.h`
 appeared not to declare it, were both wrapper artefacts rather than facts.
+
+## An inlined GTE block is usually a `static __inline__` in a shared actors header - call it (func_actor_161500_8013252C, 2026-09-17)
+
+m2c renders the block below as a wall of `M2C_ERROR`, and it is opaque enough that
+re-deriving it by hand is the obvious (wrong) move:
+
+```
+    addiu $a2, $zero, 0x1E
+    mtc2  $a2, $8
+    lhu   $t4, 0x0($s0) ; lhu $t5, 0x2($s0) ; lhu $t6, 0x4($s0)
+    mtc2  $t4, $9 ; mtc2 $t5, $10 ; mtc2 $t6, $11
+    nop ; nop
+    gpf   1
+    mfc2  $t4, $9 ; mfc2 $t5, $10 ; mfc2 $t6, $11
+```
+
+It is `ActorsShared8014c874_MoveForward`, already a `static __inline__` in
+`include/actors/actors_shared_8014c874.h` (which names it as the same body as
+`Actor521100_MoveForward`), and the call reproduces the inline exactly - the
+`gte_lddp(amount)` / `gte_ldsv(vec)` / `.word 0x4B98003D` / `gte_stsv(vec)`
+sequence, the two scratch-pad bumps around `Gfx_MatrixCol2` + `VectorNormalSS`,
+and the `coord->flg = 0` between the `t[1]` and `t[2]` adds. `gpf 1` is the
+RTPS-style op with `sf=1` and bit 19 set, which gas spells that way; there is no
+need to model it.
+
+Where the twin is a whole *body* rather than a fragment, transcribe the matched
+C the way entry [38] describes. `func_actor_161500_8013252C` is the
+`ActorsShared8014c874` step body with `amount` 0x1E instead of 0xC and one extra
+`work->state = 1` in the travel-exhausted branch, and copying that body plus
+calling the helper scored 100.000% with every penalty zero on the first
+candidate (`base_1.c`). The brief's similarity classes pick the twin out: this
+one scored 1.00 in `shape`, `calls` and `cflow` together, which for a body whose
+callees are all `ActorsShared*` means "same body", not merely "similar".
+
+**A field's signedness is not what selects the load.** The twin's
+`ActorsShared8014c874Work` declares `s16 animId` while this overlay's
+`Actor161500Work` declares `u16 animId`, and the target loads it with `lh`. That
+looks like a retype, but it is not: a controlled variant (`base_2.c`) with the
+field left `u16` compiled to a byte-identical object, 100.000%. The
+sign-extending load comes from the *local* the value is assigned to
+(`s16 animId = work->animId;`), not from the field, so the shared struct's field
+types are not part of the template to copy. Prefer the smaller diff.
+
+Inputs: `base_1.i` (100.000%) SHA256
+`02e252b961e757f8bf4d4ad037ac0adba82d3126d78232d2913ae078034e3381`; control
+`base_2.i` (100.000%, byte-identical) SHA256
+`77aeab7ee8bbe9f927cbf524d729e074119c1c32ec5fc81f5e6fda52a142b484`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
+pins, no empty asm, no permuter run (matched on the first candidate). Scratch
+`nonmatchings/func_actor_161500_8013252C-vacuum`.
