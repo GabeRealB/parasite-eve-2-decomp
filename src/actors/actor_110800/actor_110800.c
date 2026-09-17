@@ -1,9 +1,14 @@
 #include "common.h"
 
 #include "actors/actor_110800.h"
+
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "main/gfx.h"
 #include "main/mem.h"
+#include "main/task.h"
 #include "main/tmd.h"
 
 /// Step 0 of the `ActorsShared80131f9c` dispatcher: allocate the work block,
@@ -13,6 +18,9 @@
 /// than the `Mem_Calloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register. `task->field_24` takes
 /// the message table the step-1 handler leaves behind.
+///
+/// Instruction-for-instruction the `actor_110300` copy of this body; only the
+/// data symbols it relocates against are this overlay's own.
 void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 {
     VECTOR         vec;
