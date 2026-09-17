@@ -43,7 +43,10 @@ typedef struct Actor160900Work {
     /* 0x00 */ byte  pad_0[0xC];
     /* 0x0C */ Task* field_C[10]; // child tasks, killed on death
     /* 0x34 */ Task* field_34;    // Game_GetPtrSlot(3), Gp_DispatchMsg target
-    /* 0x38 */ byte  pad_38[0x14];
+    /* 0x38 */ Task* field_38;    // ActorsShared80136280Desc[3]
+    /* 0x3C */ Task* field_3C;    // ActorsShared80136280Desc[5]
+    /* 0x40 */ Task* field_40;    // ActorsShared80136280Desc[6]
+    /* 0x44 */ byte  pad_44[8];
     /* 0x4C */ s16   field_4C;
     /* 0x4E */ s16   field_4E;
     /* 0x50 */ byte  pad_50[4];
@@ -94,10 +97,27 @@ extern Actor160900AnimStep D_actor_160900_8013F1CC[];
 extern u8                  D_actor_160900_8013F198[];
 
 extern s32 D_80070F70;
+extern u8  D_80071075;
+extern s8  D_8007272D;
+extern s8  D_80114C12;
+
+/// Point lists `func_actor_160900_8013418C` hands `func_actor_160900_80133758`
+/// for `Actor160900Work::field_5C` values 1-5.
+extern SVECTOR D_actor_160900_8013F258[];
+extern SVECTOR D_actor_160900_8013F2E0[];
+extern SVECTOR D_actor_160900_8013F3B0[];
+extern SVECTOR D_actor_160900_8013F400[];
+extern SVECTOR D_actor_160900_8013F458[];
+
+/// Pair of blocks `func_actor_160900_8013418C` passes to `func_800E8634`.
+extern u8  D_actor_160900_8013F538[];
+extern u8  D_actor_160900_8013FAA8[];
 extern u32 Gp_LcgState;
 
 /// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
 /// jittered by up to +-700; runs one frame in eight.
+void func_actor_160900_80133238(Task* arg0);
+void func_actor_160900_8013358C(Task* arg0);
 void func_actor_160900_80133758(SVECTOR* pts);
 
 void func_actor_160900_80134710(void);

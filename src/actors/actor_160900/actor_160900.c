@@ -427,7 +427,69 @@ void func_actor_160900_80133F90(void)
     work->field_18.vy                              = 0;
     work->field_18.vz                              = -0x3E8;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_8013418C);
+void func_actor_160900_8013418C(Task* arg0)
+{
+    Actor160900Work* work;
+    Actor160900Work* data;
+
+    switch (arg0->state) {
+        case 0:
+            if (D_80114C12 == 1 || D_80071075 != 0) {
+                return;
+            }
+            work        = (Actor160900Work*)Mem_Malloc(0x68, 0);
+            arg0->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x68);
+                work->field_34          = Game_GetPtrSlot(3);
+                D_actor_160900_8013FBB4 = arg0;
+                work->field_38          = Task_SpawnFromTable(&ActorsShared80136280Desc, 3, 0, (s32)arg0);
+                work->field_3C          = Task_SpawnFromTable(&ActorsShared80136280Desc, 5, 1, (s32)work->field_38);
+                work->field_40          = Task_SpawnFromTable(&ActorsShared80136280Desc, 6, 0, (s32)work->field_38);
+            }
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(3);
+            func_800E6D4C(0x180, 0);
+            arg0->state += 1;
+            return;
+        case 1:
+            func_800E8634((s32)D_actor_160900_8013F538, 0, (s32)D_actor_160900_8013FAA8);
+            arg0->state += 1;
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                D_8007272D = 0x1E;
+                Task_RequestKill(arg0, 0);
+            }
+            break;
+    }
+    func_actor_160900_80133238(arg0);
+    func_actor_160900_8013358C(arg0);
+    data = (Actor160900Work*)arg0->idMap;
+    switch ((u16)data->field_5C) {
+        case 1:
+            func_actor_160900_80133758(D_actor_160900_8013F258);
+            break;
+        case 2:
+            func_actor_160900_80133758(D_actor_160900_8013F2E0);
+            break;
+        case 3:
+            func_actor_160900_80133758(D_actor_160900_8013F3B0);
+            break;
+        case 4:
+            func_actor_160900_80133758(D_actor_160900_8013F400);
+            break;
+        case 5:
+            func_actor_160900_80133758(D_actor_160900_8013F458);
+            break;
+        case 0:
+        default:
+            data->field_5C = 0;
+            break;
+    }
+}
 
 void func_actor_160900_801343E4(Task* arg0)
 {
