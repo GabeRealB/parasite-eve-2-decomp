@@ -8,6 +8,18 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017ecb4.h"
+
+/// Scratch state of the shrine's cap script, stored at `Task::idMap`
+/// (`Mem_Calloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
+typedef struct {
+    /* 0x00 */ u8  pad_0[8];
+    /* 0x08 */ u16 timer; ///< frames the current script step has run
+    /* 0x0A */ u8  pad_A[2];
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ s8  field_E;
+    /* 0x0F */ s8  field_F;
+} NeoArkShrineScript;
 
 void func_neo_ark_shrine_8017F448(void);
 
@@ -114,7 +126,78 @@ INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shr
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D948);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D9A0);
+/// Argument-less helper, called by this room's cap script every frame. Declared
+/// without a parameter list because this state passes `task` to it: the extra
+/// `$a0` set makes the hotspot scan's argument setup *not* a "birthing insn" in
+/// sched1's `adjust_priority`, so it is not launched at `LAUNCH_PRIORITY` and
+/// the scan block keeps `hs` in the branch delay slot. At entry `$a0` still
+/// holds the caller's `task`, so the copy is redundant and the allocator drops
+/// it - the emitted code is the same either way.
+void func_neo_ark_shrine_8017EAC0();
+
+extern RoomHotspot D_neo_ark_shrine_80182430[];
+
+/// Idle state of the shrine's cap script: the hotspot the cursor sits on is
+/// confirm-tested (`buttons[0].state == 2`) and its `id` / `promptKind` are
+/// latched into the script state, with the 3-vs-6 split decided by hotspot id
+/// 0x10 and the script's own `field_F`. The scan walks the hotspot table the
+/// shared `RoomsShared8017ecb4` just marked, and `buttons[1].state == 2` leaves
+/// the scan by advancing the task to state 5.
+///
+/// Both oddities below are allocator levers, not logic. The `do { } while (0)`
+/// around the last state store folds away, but flow counts the reference at
+/// loop depth 2, which is what lifts the parameter above the hotspot pointer in
+/// global-alloc's rank; without it the two swap `$s2`/`$s4`. Passing `task` to
+/// the helper above is the sched1 counterpart.
+void func_neo_ark_shrine_8017D9A0(Task* task)
+{
+    RoomHotspot*        hs     = D_neo_ark_shrine_80182430;
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->idMap;
+    u16                 id;
+
+    func_neo_ark_shrine_8017EAC0(task);
+    Game_Session->field_68 = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if (prompt->buttons[0].state == 2) {
+            id = hs->id;
+            if (hs->id != -1) {
+                do {
+                    if (hs->hit != 0) {
+                        if ((s16)id == 0x10 || st->field_F == 0) {
+                            prompt->mode     = 0;
+                            prompt->targetId = 0;
+                            st->field_C      = hs->id;
+                            st->field_E      = hs->promptKind;
+                            task->state      = 3;
+                            return;
+                        }
+                        st->field_C = id;
+                        st->field_E = hs->promptKind;
+                        task->state = 6;
+                        return;
+                    }
+                    hs++;
+                    id = hs->id;
+                } while (hs->id != -1);
+            }
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->buttons[1].state == 2) {
+        do {
+            task->state = 5;
+        } while (0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017DB10);
 

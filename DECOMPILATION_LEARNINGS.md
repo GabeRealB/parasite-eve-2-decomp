@@ -69128,6 +69128,36 @@ logs. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290
 - base_25.c preprocessed SHA256: `89737430e2e6d5e901a779b4b5d6ebd76a5a158d058935fe7564f0b9b5ceadeb`.
 - base_27.c preprocessed SHA256: `1291f2f06ac4cdde7f9e55a96ce21b2b96b427df0818c11d45d20a2343023035`.
 
+## A lone argument-taking call makes the next call's setup birthing; an argument the callee ignores fixes it for free (func_neo_ark_shrine_8017D9A0, 2026-09-17)
+
+**Symptom.** Everything matched but the two instructions around a call: the
+target puts the argument setup `addu a0,s4,zero` in the preceding `beqz`'s
+delay slot and leaves `li v0,0x80` beside the `jal`, while the build did the
+opposite (`reorder=2`, one line of diff).
+
+**Cause.** `sched.c`'s `adjust_priority` raises a newly-ready insn to
+`LAUNCH_PRIORITY` when `birthing_insn_p` holds, i.e. when its destination is
+live at that point and `REG_N_SETS` is 1. That count is per *function* and
+covers **hard** registers: when the function's only argument-taking call is the
+one being scheduled, `$a0`/`$a1`/`$a2` each have exactly one set, so the
+argument-setup moves are birthing, jump the ready list, and the `li`/store pair
+is scheduled after them. With any second arg-taking call they are not, and the
+store wins the `schedule_select` hazard comparison instead - the target's order.
+
+**Diagnosis.** `-dS` writes the scheduler's ready list, per-insn static
+priority and every pick into the `<file>.i.sched` dump (overwriting that pass's
+RTL dump), which is what identified the boost: `;; ready list at T-3: 52 (1) 63
+(7f000001)` next to the same line in a sibling that had plain `(1)`s.
+
+**Fix.** Give the register a second set that emits no code. Here the
+argument-less helper is declared K&R (`void func_neo_ark_shrine_8017EAC0();`),
+so calling it the way `neo_ark_shrine_6.c` documents - `(task)` - adds an
+`$a0` set at sched1 while the copy itself is redundant (`$a0` still holds
+`task` at entry) and is dropped by the allocator: 100% with no instruction
+change. A *pseudo* keeps the same lever, see "A dead copy `w = work;` ..." and
+"An implicit-`int` callee makes a later call lose sched1's birthing boost"
+(`REG_N_SETS($v0)` there).
+
 ## Separate pan locals let coordinates reuse s0 across sound calls (Actor03800_Fn0166C)
 
 A pan variable reused in two switch arms was global (four refs/ten insns, two deaths), allocated in s0 before the coordinate pointer, which then landed in s3. Splitting only the second pan into pan2 made both pan values block-local (two refs/four insns, one call each). Their narrowing chains occupy s0 only after the coordinate argument copy dies. The global coordinate conflict with the old shared pan disappears, allowing coord in s0, scratch in s2 and actor in s3. Sound ID stays shared. Controlled base_3 predicted these homes and preserved matching topology, improving 96.339% to 100%; base_4 preserved it with normal overlay headers. This is an eligibility/conflict change, not a per-pseudo local priority ranking claim. The permuter originally inlined the second pan call; separate locals preserve explicit call order.
