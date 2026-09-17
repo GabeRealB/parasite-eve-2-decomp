@@ -12350,6 +12350,31 @@ return ret;
 `CdAudio_RequestStop` is the example. Pair with `if (x != K)` so the branch is
 `beq` to the else arm and the `!=` arm is fall-through (failure-first layout).
 
+The same rule covers a default that is not a return value. In
+`func_dryfield_back_street_8017D748` a CAP command is 9, or 2 while the session
+is in the room:
+
+```
+bnez   v0, L_ret0          # if (in->field_5 != 0) return 0
+ ...
+lbu    v1, 0x7(v0)         # Game_Session->field_7
+li     v0, 2
+bne    v1, v0, L_join
+ li    a0, 9               # the default, in the bne's delay slot
+move   a0, v0              # a0 = 2
+L_join:
+jal    Gp_RunCapCmd1
+```
+
+Written at the top of the enclosing block -- `s32 cmd = 9;` ahead of
+`if (in->field_5 == 0)` -- that `li a0,9` precedes the guard's test in RTL, so
+reorg sinks it into the *guard's* delay slot and leaves the `bne` with a `nop`
+(96.9%, `branch=1 insert=1 delete=1 reorder=1`). Moving the declaration inside
+the guarded block puts it in the else-block of the `field_7` test -- the block
+the `bne` targets -- and reorg fills that delay slot from it instead: 100%. The
+constant belongs in the block that holds the test it is the default for, even
+when the value is only read after a later join.
+
 ## `register … asm("v1")` for `lui v1; addiu v1, v1, %lo`
 
 When a local is assigned an address-of-global in one arm and a small constant
