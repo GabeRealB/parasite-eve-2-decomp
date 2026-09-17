@@ -127833,3 +127833,41 @@ store available for the `jal`'s delay slot. 92.09% -> 98.79%.
 
 Watch the cost: those two asm insns lengthen every live range they sit inside,
 which is how this function then needed the `.greg` priority analysis above.
+
+## A `void*` intermediate splits the call result off its typed variable (ActorsShared80131e24Sub0, 2026-09-17)
+
+**Symptom.** An allocate-or-bail prologue, where the ROM stores and tests the
+raw return value while a callee-saved copy carries it past the branch:
+
+```
+jal   Mem_Calloc
+move  $s1, $v0
+bnez  $v0, .Lok
+ sw   $v0, 0x1C($s4)
+```
+
+The natural C - `work = (T*)Mem_Calloc(size, 0); task->idMap = (TaskIdMap*)work;
+if (work == NULL)` - gives one pseudo for all three uses, so the store and the
+`bnez` read `$s1` too, and the function sits at 99.89% on a 2-instruction `regs`
+penalty. The sibling body in `actor_161500` really is written that way and
+really does emit `$s1` in all three places, so the shapes are not interchangeable.
+
+**Fix.** Give the call result its own untyped variable and copy the typed one out
+of it:
+
+```c
+block       = Mem_Calloc(0x4C0, false);
+work        = (Actor451100Work*)block;
+task->idMap = (TaskIdMap*)block;
+if (block == NULL) {
+```
+
+`block` is then a short local quantity that local-alloc leaves in `$v0` (it is
+copied straight from the return register and dies at the branch), while `work`
+takes the global `$s1` home it needs across the later calls. The copy
+`move $s1, $v0` is the `work = block` assignment, not the return-value copy -
+that one is deleted because `block` already lives in `$v0`.
+
+The general rule: the number of *variables* decides how many pseudos compete,
+and a cast alone does not create one. When the ROM uses two registers for one
+value across a bail-out branch, look for a second variable rather than for a pin.

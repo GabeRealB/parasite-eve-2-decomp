@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -32,7 +34,8 @@
 /// they have re-aimed every slot, so it records the set now playing. `anim` is
 /// the animation context those walks reseed.
 typedef struct Actor451100Work {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pad_374[0x108];
@@ -43,7 +46,9 @@ typedef struct Actor451100Work {
     /* 0x484 */ byte       pad_484[0x2E];
     /* 0x4B2 */ s16        travel;
     /* 0x4B4 */ u16        animArg;
-    /* 0x4B6 */ byte       pad_4B6[0xA];
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ Task*      pairTask;
+    /* 0x4BC */ GpEnemy*   enemy;
 } Actor451100Work;
 STATIC_ASSERT_SIZEOF(Actor451100Work, 0x4C0);
 
@@ -60,6 +65,9 @@ typedef struct Actor451100AnimArgs {
 } Actor451100AnimArgs;
 
 void ActorsShared80132a1c(Task* task);
+
+/// Task exit callback this overlay installs on spawn.
+void func_actor_451100_80132CAC(Task* task);
 
 /// Drives the actor for one frame off the state `ActorsShared80132a1c`
 /// or `func_actor_451100_80132538` left in the work block.

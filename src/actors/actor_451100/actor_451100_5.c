@@ -1,10 +1,72 @@
 #include "common.h"
 
+#include "actors/actor_451100.h"
 #include "gameplay/1BC.h"
+#include "gameplay/268.h"
+#include "gameplay/3A34.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
+#include "main/tmd.h"
+
+extern TaskDesc D_actor_451100_8014E6E4[];
+extern u8       D_actor_451100_8014E6B4[];
+extern u8       D_actor_451100_8014E6FC[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_5", func_actor_451100_801326B0);
 
 INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_5", func_actor_451100_8013280C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_5", ActorsShared80131e24Sub0);
+/// State-0 spawn handler: allocates the actor's `Actor451100Work` block, hangs
+/// it off the task, spawns the paired enemy and reparents this task under it,
+/// then seeds the animation.
+///
+/// `Mem_Calloc`'s result goes through an untyped `block` that `work` is copied
+/// from: the raw pointer is what the `Task::idMap` store and the null test read,
+/// so it stays a short-lived `$v0` quantity while the typed copy takes the
+/// callee-saved home it needs across the calls below. Assigning the call result
+/// straight to `work` - the shape the twin in `actor_161500` uses - collapses
+/// the two into one pseudo and puts `$s1` in all three places.
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    VECTOR           vec;
+    Actor451100Work* work;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    GpEnemy*         spawned;
+    void*            block;
+
+    obj         = task->extra;
+    coord       = obj->field_8;
+    block       = Mem_Calloc(0x4C0, false);
+    work        = (Actor451100Work*)block;
+    task->idMap = (TaskIdMap*)block;
+    if (block == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback  = func_actor_451100_80132CAC;
+    coord->sub          = &Gfx_ViewCoord;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    enemy->node.field_5 = 0;
+    enemy->node.field_4 = 1;
+    obj->field_E        = 1;
+    work->enemy         = enemy;
+    spawned             = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
+    Task_Reparent(task, spawned->task);
+    work->pairTask = spawned->task;
+    obj->field_1C  = &work->light;
+    obj->field_20  = &work->color;
+    vec.vx         = coord->workm.t[0];
+    vec.vy         = coord->workm.t[1] - 0x320;
+    vec.vz         = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, D_actor_451100_8014E6FC, (GpAnimObj*)obj, &work->slots[0x13],
+                  work->slots);
+    work->animId   = 1;
+    work->state    = 2;
+    task->field_24 = D_actor_451100_8014E6B4;
+    ActorsShared80132a1c(task);
+    task->state += 1;
+}
