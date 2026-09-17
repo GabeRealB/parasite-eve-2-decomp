@@ -118923,6 +118923,38 @@ below the second `work = task->idMap` reload raised its luid and gave the target
 order, 100%. When a whole block of a function looks like it was built from
 parameters (the `failed` 0/1 + `andi 0xFFFF` shape is another inline tell), try an
 inline parameter before scheduler barriers.
+
+### A spliced-in `shared` span *adds* a unit where a removed one only renames: the new unit is regenerated empty and a matched body in the shifted tail comes back as `INCLUDE_ASM` (func_actor_450800_801330AC, 2026-09-17)
+
+The entry above removes a run, so the units *rename* and `git mv` carries the
+bodies across. Inserting a span instead does not have that escape. When the
+span's end does not land on the next unit's start, the leftover run between them
+becomes a **new** unit, every unit after it shifts up by one, and splat creates
+the new unit's `.c` from scratch - so the matched body that used to be at the
+front of the shifted tail is written out as a fresh `INCLUDE_ASM` stub and its C
+is gone from the build, which the checksum cannot see.
+
+Here `actor_450800`'s `func_actor_450800_801330AC` occupies file 0x128C..0x1444
+and the next unit began at 0x1544, so 0x1444..0x1544 became new unit `_4` (over
+`func_actor_450800_80133264`, a matched C body still sitting in `_3`) and the old
+`_4`/`_5`/`_6` became `_5`/`_6`/`_7`. `_7` did not exist, so splat created it
+holding `INCLUDE_ASM(func_actor_450800_80133670)` - a function already matched in
+the file that had just been renumbered away from it.
+
+Unlike the `git mv` staleness this one is *loud*: `tools/check_lost_matches.py`
+runs on every unscoped build and fails on the `matched`-commit/`INCLUDE_ASM`/`.s`
+signature. Reconstructing by hand is still the fix, and it is four files, not
+one: move each shifted unit's content up a number (rewriting the `INCLUDE_ASM`
+folder string, since the directory follows the unit name), author the new unit
+from the bodies the old file held for that address range, and give the last unit
+the body splat just stubbed out. After such a promotion the *shared* carrier also
+needs no edit beyond the `INCLUDE_ASM` line the span replaced - the shared object
+is linked in by the generated config, and the carrier's `.c` must not mention it.
+
+Inputs: scratch `nonmatchings/func_actor_450800_801330AC-vacuum`, `base_1.c`
+(the matched `ActorsShared8014c874` body at this overlay's offsets), 0
+differences; promoted to `src/actors/lib/actors_shared_801330ac.c`.
+
 ## A halfword table field loads `lhu` into an `s16` local and `lh` into an `s32` one - the local's width picks the load, not the field (func_neo_ark_substation_8017D608, 2026-09-17)
 
 `func_neo_ark_substation_8017D608` reads a `(pan, vol)` pair out of an `s16` table

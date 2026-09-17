@@ -14,6 +14,7 @@
 #include "gameplay/D4.h"
 
 #include "actors/actor_450800.h"
+#include "actors/actors_shared_801330ac.h"
 #include "actors/actors_shared_801366fc.h"
 
 extern GpMsgEntry D_actor_450800_801539AC[];
@@ -102,15 +103,13 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
     return 0;
 }
 
-void func_actor_450800_801330AC(Task* task);
-
 /// Spawn handler of the enemy this actor's model task carries: state 0 of
 /// `func_actor_450800_80133264`'s `fns` table, and the twin of
 /// `ActorsShared80131e24Sub0` - the same body, minus that variant's
 /// `obj->field_C` store. Builds the enemy's `Actor450800SpawnWork` block,
 /// spawns its own model task out of the same `D_actor_450800_801539DC` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
-/// machine to `func_actor_450800_801330AC`.
+/// machine to `ActorsShared801330ac`.
 ///
 /// Two codegen pins, both load-bearing. `key` lands at `vfp+0x28`, and left
 /// alone CSE merges the two call-site copies of `&key` into one pseudo live
@@ -191,20 +190,6 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     work->animId   = 1;
     work->state    = 2;
     task->field_24 = D_actor_450800_801539AC;
-    func_actor_450800_801330AC(task);
+    ActorsShared801330ac(task);
     task->state++;
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_3", func_actor_450800_801330AC);
-
-void func_actor_450800_80132E9C(void* enemy, Task* task);
-void func_actor_450800_801332B8(void* enemy, Task* task);
-
-void func_actor_450800_80133264(Task* task)
-{
-    void (*fns[2])(void*, Task*) = { func_actor_450800_80132E9C, func_actor_450800_801332B8 };
-
-    fns[task->state](task->spawnArg2, task);
-}
-
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_3", func_actor_450800_801332B8);
