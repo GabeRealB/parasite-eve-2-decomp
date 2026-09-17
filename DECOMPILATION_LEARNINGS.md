@@ -121527,3 +121527,55 @@ Inputs: `base_2.i` (100.000%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_actor_341700_8016CC9C-vacuum`.
+## An m2c seed's stack locals are 4-byte `M2C_UNK`, so passing a 0x10-byte struct to a callee costs the frame and a saved register (func_actor_323000_8016331C, 2026-09-17)
+
+`m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
+function passes two 0x10-byte `GpAnimPose` locals to `func_800B3448` and
+`Gp_AnimWritePoseCopy`, the seed's frame comes out one pose short
+(`addiu sp,sp,-0x48` against a target `-0x58`) and the two poses sit at
+`sp+0x18` / `sp+0x1c` instead of the target's `sp+0x18` / `sp+0x28`.
+
+Allocation then pays for it. With `&pose` and `&blendPose` only 4 bytes apart the
+seed hoisted *both* addresses into registers and needed 8 saved registers
+(`$s0`-`$s7`) where the target uses 7 — the target rematerializes `&pose` as
+`addiu $a2,$sp,0x18` at each of its two uses and keeps only `&blendPose` in `$s4`.
+The reported penalties were `regs=36 insert=6 delete=2` on a 87.57% score whose
+topology, predicates and call targets all already matched; `stack` was 0 despite
+the frame being wrong.
+
+Spelling the locals as the types the callees take converted it to 100.00% on the
+first rebuild, with no pin and no permuter. When a seed's frame is not the
+target's but `stack` reads 0, count the struct-typed locals (and the sibling
+bodies in the same family) before reading the register dumps.
+
+## A promotion renumbers every later unit, and the rodata cut is *not* renumbered with it (func_actor_323000_8016331C, 2026-09-17)
+
+`overlay_dup_index.py promote` inserts the new `shared` span into the manifest and
+updates the two sym files. The re-split then cuts the old unit 0 in two: the tail
+becomes a *new* unit and every later unit index shifts by one, so
+`actor_323000_2.c` names what is now unit `_3`, `_3.c` what is now `_4`, and so
+on. splat creates the single missing `.c` and rewrites nothing else, and
+`asm/nonmatchings/<unit>/` is deleted and refilled under the *new* names, so the
+build fails with `can't open asm/.../<old unit>/<func>.s` for every function past
+the span.
+
+The fix is to rotate the bodies: each unit `.c` must name exactly its address
+range, with the `INCLUDE_ASM` folder equal to the unit's own name. Move the C
+bodies verbatim from the pre-promotion sources — the four files in
+`src/actors/actor_323000/` needed 7 bodies between them, two of which were
+matched C.
+
+The manifest's `rodata` cut survives unchanged, which is the second half: it
+still names unit `_3` while the function that reads the jump table has moved to
+`_4`, so `migrate_rodata_to_functions` can no longer fold the table into that
+function's `.s`. splat emits it standalone under the *rodata owner's* directory
+instead, and the `INCLUDE_RODATA` that brings it back belongs in `_3.c` — a
+different file from the function that references it. That still links, because
+splat writes a jump table's entries with `jlabel`, which is `.global`, so the
+`.L` labels resolve from the other object. Dropping the line instead fails the
+link with `undefined reference to 'jtbl_...'` from the unit holding the function.
+
+`D_actor_323000_80161E24` came back the same way: the split divided the leading
+rodata run into four chunks (`D_…E20`, `D_…E24`, `ActorsShared80135df4Table`,
+`jtbl_…E44`) where the old object's 0x24 bytes had come from two, so the seed
+`.c` named only two of them.
