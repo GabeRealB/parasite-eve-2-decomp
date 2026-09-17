@@ -160,12 +160,23 @@ extern DbwPlacement D_dryfield_breezeway_80181E28;
 /// third record is reached as `[1]` rather than by a symbol of its own.
 extern DbwPlacement D_dryfield_breezeway_80181E40[];
 
-/// This room's hotspot table, the 0xFFFF-terminated `RoomHotspot` run
+/// The key-item prompt's own hotspot table: the one-entry 0xFFFF-terminated
+/// `RoomHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the
+/// prompt's own screen position and walks for the entry the cursor landed on,
+/// where the prop table below is hit-tested at the cursor itself. Its `id` is
+/// the script variant the prompt confirms, which the scan parks in the event
+/// work block (`DbwEventWork.field_4C`, with `promptKind` at 0x5C) before state
+/// 3. `func_dryfield_breezeway_8017E464` clears its `hit` along with the other
+/// table's.
+extern RoomHotspot D_dryfield_breezeway_80182E00[];
+
+/// This room's prop hotspot table, the 0xFFFF-terminated `RoomHotspot` run
 /// `RoomsShared8017ecb4` hit-tests the action cursor against. Its entries are
 /// the room's interactive props: `func_dryfield_breezeway_8017E464` clears
-/// every entry's `hit` through it before the first frame, and the scans in
-/// `func_dryfield_breezeway_8017E65C` and `func_dryfield_breezeway_8017E81C`
-/// walk it for the entry the cursor landed on.
+/// every entry's `hit` through it before the first frame -- both tables', so
+/// the key-item prompt above starts clean too -- and the scan in
+/// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
+/// on.
 extern RoomHotspot D_dryfield_breezeway_80182DDC[];
 
 /// Secondary task spawned from the room data table by

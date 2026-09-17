@@ -237,17 +237,98 @@ void func_dryfield_breezeway_8017E390(void)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017E464);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_2", func_dryfield_breezeway_8017E65C);
-
 /// Main-executable symbols with no module header yet: `D_80070F70` is the
 /// frame counter the prop's swing angle is derived from, and `func_8004BFF8`
 /// is the Y rotation builder `ActorsShared80139948` also reaches.
 ///
 /// Its `angle` parameter is declared `s32` rather than the `s16` the actor
-/// headers use because the call below feeds it `rsin`'s `int` result, which
+/// headers use because the calls below feed it `rsin`'s `int` result, which
 /// the target passes through untruncated.
 extern s32 D_80070F70;
 void       func_8004BFF8(s32 angle, MATRIX* matrix);
+
+/// The two image records the key-item prompt's scan uploads the first time it
+/// runs, taken from the room's trailing data blob: the confirm and cancel
+/// artwork `Gp_LoadImages` stages into VRAM.
+extern GpImgRec D_dryfield_breezeway_80182F24;
+extern GpImgRec D_dryfield_breezeway_80183144;
+
+/// Runs the key-item prompt's scan state: uploads this room's two prompt
+/// `GpImgRec`s the first time it runs (`Task::killCountdown` is zero, and the
+/// increment latches it so a later frame never reloads them), rebuilds the
+/// event task's display object matrix as the same pure Y rotation of
+/// `rsin(D_80070F70 * 16)` the prop's swing builds -- one full turn every 256
+/// frames -- and re-seeds `func_dryfield_breezeway_8017EB8C` at the reset
+/// position (0, 0x20) rather than at the cursor the prop's scan passes.
+///
+/// Highlighting the cursor (`mode` 1) is the state the scan runs in; landing on
+/// `D_dryfield_breezeway_80182E00` -- the key-item prompt's own one-entry table,
+/// where `func_dryfield_breezeway_8017E81C` reaches the two-entry prop table --
+/// confirms it (`mode` 2) and walks that table for the entry whose `hit` is
+/// raised. The entry's `id` and `promptKind` go to the event work block
+/// (`DbwEventWork.field_4C` / `promptKind`), which
+/// `func_dryfield_breezeway_8017FD9C` re-spawns the prompt from, and the task
+/// advances to state 3. A cancel press (`buttons[1].state` 2) ends the script
+/// in state 5, and a busy cap abandons the scan with the prompt cleared.
+void func_dryfield_breezeway_8017E65C(Task* task)
+{
+    DbwEventWork*     work;
+    RoomHotspot*      hs;
+    RoomActionPrompt* prompt;
+    GsCOORDINATE2*    coord;
+    MATRIX*           m;
+
+    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    work   = (DbwEventWork*)task->idMap;
+    hs     = D_dryfield_breezeway_80182E00;
+    prompt = &D_80114D28;
+
+    if (task->killCountdown == 0) {
+        Gp_LoadImages(&D_dryfield_breezeway_80182F24);
+        Gp_LoadImages(&D_dryfield_breezeway_80183144);
+        task->killCountdown = (u16)task->killCountdown + 1;
+    }
+
+    m                  = &coord->coord;
+    *(s32*)&m->m[0][0] = 0x1000;
+    *(s32*)&m->m[1][1] = 0x1000;
+    *(s16*)&m->m[2][2] = 0x1000;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[2][0] = 0;
+
+    func_8004BFF8(rsin(D_80070F70 * 0x10), m);
+    coord->flg = 0;
+    func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
+    Game_Session->field_68 = 1;
+    Game_Session->field_1  = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
+            do {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    work->field_4C   = hs->id;
+                    work->promptKind = hs->promptKind;
+                    task->state      = 3;
+                    return;
+                }
+                hs++;
+            } while (hs->id != -1);
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->buttons[1].state == 2) {
+        task->state = 5;
+    }
+}
 
 /// Breathes the room's hanging prop: rebuilds the display object's coordinate
 /// matrix as a pure Y rotation of `rsin(D_80070F70 * 16)` -- one full turn

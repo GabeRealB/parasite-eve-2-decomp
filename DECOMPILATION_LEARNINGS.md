@@ -116671,3 +116671,42 @@ m2c declared the 5-word msg payload as `s32 sp10 … sp20`, only `&sp10` is
 passed to `Gp_DispatchMsg`, so the other four stores were never generated at
 all. `GpRec14 buf;` with `buf.field_4 = 1; …` brings them back. See "m2c's
 scalar stack locals for an address-taken struct lose their dead stores".
+
+## A transposed pair of prologue loads is the written order of the two assignments (func_dryfield_breezeway_8017E65C, 2026-09-17)
+
+A structurally correct rewrite stalled at 97.947% on four instructions: the
+prologue's four loads came out `lw work / lw extra / lh killCountdown /
+lw coord` against the target's `lw extra / lh killCountdown / lw work /
+lw coord`, with `extra` and `killCountdown` transposed in `$v0`/`$v1` to match
+(`regs=6 insert=1 delete=1 stack=0`, blocks and predicates already matching).
+
+The first two of those loads are the results of the function's first two
+statements, and swapping which statement is written first swapped both halves
+at once:
+
+```c
+work  = (DbwEventWork*)task->idMap;                            /* 97.947% */
+coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+
+coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;    /* 100.000% */
+work  = (DbwEventWork*)task->idMap;
+```
+
+112 instructions, nothing else moved. Two things to take from it:
+
+* A `regs` penalty *plus* an equal-sized `insert`/`delete` pair confined to the
+  prologue is the tell for this shape: the `regs` half is the `$v0`/`$v1` pair,
+  the `insert`/`delete` half the transposition itself. Neither a pin nor a
+  `TOUCH_REG` addresses it; the two statements' order does.
+* Do not expect the *first* written load to take `$v0`. In the 97.947% build
+  the second-born local took `$v0`; in the 100% build the second-born local
+  still took `$v0`. It is the pair that swaps together, so read the hunk as one
+  difference, not two.
+
+The lever is the one already documented in "Room effect task prologue: read
+`extra->field_8` before `spawnArg2`, and both before `state`" (three loads) and
+"Reordering two equal-priority stores in the C moves a pointer's local-alloc
+birth, and the register with it" (stores); this is the same freedom for two
+loads whose consumers are equidistant. Note it is not the load-delay rule from
+the first of those: the dependent `lw 8(v1)` is the *last* of the four in both
+builds, so the delay-slot argument does not order this pair.
