@@ -125756,3 +125756,66 @@ Inputs: scratch `nonmatchings/func_actor_342100_80162C88-vacuum`, `base.c` (m2c,
 `d6498c504d4b8c8e6c87075916c8fc8f65fbc9a4d2565e8226aa5dacc3702508`). Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
 `loop.c` (`find_mem_givs` / `combine_givs`).
+
+## A stack object passed twice in one block: global CSE costs a saved register unless the address is re-derived (func_actor_135600_80132234, 2026-09-17)
+
+The setup handler builds an area key on the stack and hands it to two calls in
+one block, `Gp_SyncAreaKeyIndex(&key)` then `Gp_GetNestedAreaRec(&key)`. Take the
+whole block at face value and each `&key` expands to its own address pseudo
+(`force_operand` on `vsv + 0x30`), but cse merges them into one pseudo whose live
+range crosses the first call, so it demands a callee-saved register. The frame is
+budgeted for four (`$s0`..`$s3` = work, model, index, task); the fifth arrives as
+`$s4` and every long-lived value shifts up one register -- `regs=56`, and the
+whole function falls to 89%. The target instead recomputes the address at each
+call:
+
+```asm
+addiu $a0, $sp, 0x40        /* before the first jal */
+...
+jal   Gp_SyncAreaKeyIndex
+jal   Gp_GetNestedAreaRec
+addiu $a0, $sp, 0x40        /* in the second jal's delay slot */
+```
+
+The trap is that the same key also has to sit *third* in the frame -- the two
+other temps (`VECTOR`+`SVECTOR` args, then a 5-word anim preset) own sp+0x10 and
+sp+0x28, and the declaration order is what puts them there. So the offsets need
+one declaration order and the address wants no pseudo, and only the second is
+negotiable. `actors_shared_8013231c.h`'s key block and the offset arithmetic are
+in `Actor135600Work`'s header; the fix is the corpus's usual barrier idiom, used
+in `Actor401300_TintEffect` and `func_actor_450800_80132160` for this same call
+pair:
+
+```c
+key.field_2 = sessionKey->field_2;
+SOFT_BARRIER();                 /* after the middle store, not after the last */
+keyp        = &key;
+key.field_1 = sessionKey->field_1;
+TOUCH_REG(keyp);
+...
+Gp_SyncAreaKeyIndex(keyp);      /* first call through the pointer */
+entry = (GpCdRec10*)((idx * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+```
+
+Placement is load-bearing. With the barrier one statement later -- after
+`key.field_1` -- the address computation is ordered behind that store and lands
+one slot too late, leaving a `nop` where the target has the `addiu` (97.35%,
+`reorder=2 insert=2`). With it before the store the block matches exactly.
+
+Two smaller scheduling levers on the same block: split the index into
+`raw = ((GpEnemy*)spawnArg2)->field_8;` and a late `index = raw >> 12;` so the
+`srl` is free to be scheduled *after* the `addiu $a0` rather than before it; and
+drive all three `Task_SpawnFromTable` results through one `spawned` variable.
+The third spawn uses its result only twice, so with a variable of its own the
+call result stays in `$v0` (`beqz $v0` / `sw $v0`) where the target copies it to
+`$a2` first; assigning the same variable in all three blocks is what keeps it in
+a register.
+
+Inputs: scratch `nonmatchings/func_actor_135600_80132234-vacuum`, `base.c`
+64.425% (`stack=0 branch=6 regs=79 reorder=4 insert=15 delete=38`), `base_9.c`
+99.335%
+(`fee90af89cbfc4c4a4cf84e5ff7ac18c5868d92c7b935c6ebcc6465758871f5e`),
+`base_10.c` 100.000%
+(`c86db82a96aa297c8b00566010e4beceda1aacfd924cbc25e9be7e4e07fa24b3`,
+preprocessed `4657de0c5406af8d12a8a55c74436c633d1af2825be9934f378a71a14159235c`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
