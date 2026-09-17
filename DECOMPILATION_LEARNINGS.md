@@ -120891,3 +120891,55 @@ Inputs: scratch `nonmatchings/func_actor_303600_801626C0-vacuum`, `base_2.c`
 98.065% (`reorder=2`), `base_3.c` 98.065% (same penalties), `base_4.c` 92.419%
 (`regs=2 insert=2 delete=2`), `base_5.c` 100%. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A phantom argument can present as `insert`/`delete`/`branch`, not as argument traffic
+
+The fourth variant of the "m2c invents callee arguments" family, and the one
+whose diff does not look like a call-site problem at all. In
+`func_actor_303600_8016216C` the callee `func_actor_303600_80161F40` is
+`INCLUDE_ASM` in the same overlay and its own `.s` never reads `$a1` — all six
+mentions are `addiu $a1, $zero, <call argument>`, none a source operand. m2c
+typed it `(Task *, ?)` and passed a second argument anyway:
+
+```c
+func_actor_303600_80161F40(arg0, 1);   /* m2c */
+func_actor_303600_80161F40(arg0);      /* real */
+```
+
+The seed scored 95.705% with `branch=3 insert=2 delete=2` and a diff that reads
+as pure scheduling — the phantom argument's `li a1,1` is in the call's delay
+slot, where the target has the `move a0,s1` the delay-slot filler had threaded
+into the *earlier* branch instead:
+
+```
+target                              seed (95.705%)
+bnez   v0,168                       bnez   v0,168
+nop                                 li     a0,0x10      ; slot filled from fall-through
+...
+bnez   v0,160                       bnez   v0,160
+move   a0,zero                      move   a0,s1       ; threaded from $L9 instead
+...
+jal    func_actor_303600_80161F40   jal    func_actor_303600_80161F40
+move   a0,s1                        li     a1,1         ; the phantom argument
+```
+
+Dropping the argument scored 100.000% with every penalty zero, and the two
+delay-slot lines moved with it: the branch whose slot had been filled from the
+fall-through now gets a `nop`, and the other now fills from the fall-through
+(`move a0,zero`, the target's own choice) rather than threading the branch
+target's first insn through the slot. One instruction of block length is enough
+to flip both decisions, so when `insert`/`delete`/`branch` are non-zero and the
+diff is nothing but delay slots, open the `.s` of every `INCLUDE_ASM` callee and
+count the argument registers it actually reads before touching the scheduler.
+
+Inputs: scratch `nonmatchings/func_actor_303600_8016216C-vacuum`. `base.c`
+95.705% (`branch=3 regs=1 insert=2 delete=2`) SHA256
+`0c30575984e02555dd92ba3a45c3d99a0fa9c5bc0de47b03c68a033cd40fdb40`;
+`base_1.c` one-arg call, 100.000% SHA256
+`5df61138698ac637368644181411426e7371fb9dd5331ead4613bf12984b046d`;
+`base_2.c` flat switch, 100.000% SHA256
+`0321271ff7c944966d106aeada750103fc581d238a897a4909b4f13685b10151`,
+which settles the other half: the m2c nesting (`case 1` inside the case-0 `if`
+body, `return` where the source breaks) is not load-bearing and the flat switch
+compiles to the same 95 instructions and 17 blocks. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

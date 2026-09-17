@@ -3,8 +3,10 @@
 #include "actors/actor_303600.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflow.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -14,9 +16,74 @@ extern Task*    D_actor_303600_8016E4C4;
 extern TaskDesc D_actor_303600_80162E98;
 INCLUDE_RODATA("actors/nonmatchings/actor_303600/actor_303600", D_actor_303600_80161E20);
 
+/// The cutscene's two script blocks, handed to `func_800E8634` together when the
+/// controller below arms the cutscene.
+extern u8 D_actor_303600_80162AF0[];
+extern u8 D_actor_303600_80162DD8[];
+
+/// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
+/// live `D_80071075` both mean a cutscene is already up, and `D_80071076` is the
+/// latch state 2 below sets alongside `Mc_SaveData`.
+extern u8  D_80071075;
+extern s16 D_80071076;
+extern s8  D_80114C12;
+
+void func_actor_303600_80161F40(Task* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_80161F40);
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_8016216C);
+/// Cutscene controller for the overlay. State 0 arms it once: a `D_80114C12` of
+/// 1 or a live `D_80071075` both mean a cutscene is already up, so the state is
+/// left where it is and the task returns; otherwise it allocates the
+/// `Actor303600Work` block, zeroes it, parks the `Game_GetPtrSlot(3)` task in
+/// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with
+/// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
+/// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
+/// the session's `field_1` to clear -- the cutscene having finished -- and then
+/// arms the four `Mc_SaveData` bytes and the `D_80071076` latch the way
+/// `func_actor_150400_80131ECC` does, starts the stage-0 type-0x11 task and
+/// kills itself; while the cutscene is still up it steps the state machine
+/// instead.
+void func_actor_303600_8016216C(Task* arg0)
+{
+    Actor303600Work* work;
+
+    switch (arg0->state) {
+        case 0:
+            if (D_80114C12 == 1 || D_80071075 != 0) {
+                return;
+            }
+            work        = (Actor303600Work*)Mem_Malloc(0x10, 0);
+            arg0->idMap = (TaskIdMap*)work;
+            if (work == NULL) {
+                Task_Kill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x10);
+                work->field_0           = (Task*)Game_GetPtrSlot(3);
+                D_actor_303600_8016E4C0 = arg0;
+                D_actor_303600_8016E4C4 = NULL;
+            }
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            func_800E8634((s32)D_actor_303600_80162AF0, 0, (s32)D_actor_303600_80162DD8);
+            arg0->state += 1;
+            break;
+        case 2:
+            if (Game_Session->field_1 == 0) {
+                Mc_SaveData.field_7 = 5;
+                Mc_SaveData.field_6 = 0x1F;
+                Mc_SaveData.field_8 = 1;
+                Mc_SaveData.field_5 = 1;
+                D_80071076          = 1;
+                Task_Spawn(0, 0x11, 0x10, 0);
+                Task_Kill(arg0);
+                break;
+            }
+            func_actor_303600_80161F40(arg0);
+            break;
+    }
+}
 
 /// Fade-out driver: the same eight-byte channel block `func_actor_303600_801623CC`
 /// walks up, walked the other way.  State 0 allocates it and fills all three
