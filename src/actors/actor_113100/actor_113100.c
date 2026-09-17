@@ -212,7 +212,56 @@ void func_actor_113100_801324DC(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_8013264C);
+/// One of the four main-body handlers `Actor113100Work::field_532` dispatches
+/// through `D_actor_113100_80131E48`. It measures how far the work block's
+/// `field_4F0` / `field_4F8` have drifted from the root coordinate's
+/// translation -- each axis as the 16-bit magnitude of the difference, the
+/// signed 32-bit subtraction only picking the direction -- and once both
+/// magnitudes reach the thresholds `field_520.vx` / `.vz` it publishes the
+/// 0x7D3 preset (`field_4` the animation id, `field_C` 5) and clears the
+/// `field_500` vector, bumping `field_532` on to the next handler. Below the
+/// thresholds it latches the magnitudes back into `field_520`, so the pair
+/// tracks the last distance that was too small. `func_actor_335800_80162B3C`
+/// is the same body over its own work block.
+void func_actor_113100_8013264C(Task* task)
+{
+    Actor113100Work*      work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor113100AnimPreset preset;
+
+    work  = (Actor113100Work*)task->idMap;
+    coord = ((TmdObject*)task->extra)->field_8;
+    if (work->field_4F0 - coord->coord.t[0] >= 0) {
+        dx = (u16)work->field_4F0 - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->field_4F0;
+    }
+    d.vx = dx;
+    if (work->field_4F8 - coord->coord.t[2] >= 0) {
+        dz = (u16)work->field_4F8 - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->field_4F8;
+    }
+    d.vz = dz;
+    if (d.vx >= work->field_520.vx && d.vz >= work->field_520.vz) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_477;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_113100_801331E8(task, 0x7D3, &preset, 0);
+        work->field_500.vx = 0;
+        work->field_500.vy = 0;
+        work->field_500.vz = 0;
+        work->field_532++;
+        return;
+    }
+    work->field_520.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->field_520.vz = d.vz < 0 ? -d.vz : d.vz;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132790);
 

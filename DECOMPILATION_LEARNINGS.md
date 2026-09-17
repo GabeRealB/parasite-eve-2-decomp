@@ -122796,3 +122796,36 @@ Inputs: scratch `nonmatchings/func_actor_113100_801331E8-vacuum`, `base_1.c`
 as `base_1.c`), `base_3.c` 92.235% with the two stores swapped
 (`8a1664c5491640a2ff7a05fc4e1b8fbed79f7791a5a6da6088350ac9eefbd2c5`). Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## BRIEF's "Similar matched bodies" fuzzy hit can be the *same body* at different struct offsets — `overlay_dup_index find` cannot see it
+
+`python3 tools/overlay_dup_index.py find <fn>` (and `solved`, which the vacuum
+uses to skip work) decides equality on splat's disassembly *text*, so two bodies
+that differ only in a struct field displacement -- `lw $v1, 0x18($a1)` vs
+`lw $v1, 0x20($a1)` -- are different functions to it. `func_actor_113100_8013264C`
+and the already-matched `func_actor_335800_80162B3C` are the same 81
+instructions in the same order with only immediates, offsets and jump targets
+differing; `find` reports one copy (itself), while the brief's `shape` and
+`cflow` tiers both score the pair 1.00 and star it for agreeing in two classes.
+
+So the fuzzy tiers are the lookup for "has someone already matched this body
+under a different work block", and a starred multi-class hit is worth reading
+before writing any C. Porting it is mechanical: same declarations, same
+statement order, swapped field names. Here it went 65.94% (m2c plus the dropped
+first `if` arm restored) to 100.000% in one attempt, with the only edits being
+the four work-block offsets, the two `SVECTOR` halves `field_520.vx` / `.vz` in
+place of the sibling's `field_4E8` / `field_4EC`, and `work->field_500.vx/vy/vz`
+for its `field_4C8` / `field_4CC` / `field_4D0`.
+
+Two details worth copying with the body. The magnitude pair is written to an
+`SVECTOR d` local and read back out of it (`d.vx = dx;` then `d.vx >= ...`),
+which is what puts the two halves on the frame at `sp+0x10` / `sp+0x14`; two
+separate `s16` locals score the same but the ternary abs at the end
+(`work->field_4E8 = d.vx < 0 ? -d.vx : d.vx;`) is spelled over the struct member,
+not the `s32` the difference was computed in.
+
+Inputs: scratch `nonmatchings/func_actor_113100_8013264C-vacuum`, `base.c`
+65.938% with m2c's dropped first arm restored
+(`6f16643aa9c13c90474ba05864c02a639863d1663147223e351e4d7ba2e1bd91`), `base_1.c`
+100.000% (`101b4219bf7d268836e9ec37bb802eb4b9ea5dd99f72a7e53f18a78740454b9b`).
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
