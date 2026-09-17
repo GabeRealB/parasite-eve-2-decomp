@@ -4,7 +4,10 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/task.h"
+
+#include <psyq/libgte.h>
 
 /// The actor's per-instance work block, reached through `Task::idMap`. Only
 /// the fields the decompiled message handlers touch are modelled so far: the
@@ -13,24 +16,82 @@
 /// bytes at 0x180 that a handler copies out of the event packet and the flag
 /// at 0x20C the tick latches while the model is parked.
 typedef struct Actor223600Work {
-    /* 0x000 */ s16  field_0;  ///< state
-    /* 0x002 */ s16  field_2;  ///< state at the previous dispatch
-    /* 0x004 */ s16  field_4;  ///< set when `field_0` moved away from `field_2`
-    /* 0x006 */ byte pad_6[0x44];
-    /* 0x04A */ u16  field_4A; ///< low ten bits: current animation id
-    /* 0x04C */ byte pad_4C[0xC];
-    /* 0x058 */ u16  field_58;
-    /* 0x05A */ byte pad_5A[0x11A];
-    /* 0x174 */ s16  field_174; ///< motion state
-    /* 0x176 */ byte pad_176[0xA];
-    /* 0x180 */ u8   field_180;
-    /* 0x181 */ u8   field_181;
-    /* 0x182 */ u8   field_182;
-    /* 0x183 */ byte pad_183[0x85];
-    /* 0x208 */ u16  field_208; ///< animation id that last raised the reaction
-    /* 0x20A */ byte pad_20A[0x2];
-    /* 0x20C */ s8   field_20C; ///< 1 while the model's coordinate is zeroed
+    /* 0x000 */ s16        field_0; ///< state
+    /* 0x002 */ s16        field_2; ///< state at the previous dispatch
+    /* 0x004 */ s16        field_4; ///< set when `field_0` moved away from `field_2`
+    /* 0x006 */ byte       pad_6[0x2];
+    /* 0x008 */ s16        field_8;
+    /* 0x00A */ byte       pad_A[0x2];
+    /* 0x00C */ GpAnimCtx  anim;     ///< `func_800B3F84` arg0
+    /* 0x020 */ GpAnimSlot slots[1]; ///< slots 1.. continue past here, overlapping the fields below
+    /* 0x048 */ byte       pad_48[0x2];
+    /* 0x04A */ u16        field_4A; ///< low ten bits: current animation id
+    /* 0x04C */ byte       pad_4C[0xC];
+    /* 0x058 */ u16        field_58;
+    /* 0x05A */ byte       pad_5A[0xB6];
+    /* 0x110 */ byte       poses[0x60]; ///< `func_800B3F84` arg3
+    /* 0x170 */ s16        field_170;
+    /* 0x172 */ s16        field_172;
+    /* 0x174 */ s16        field_174; ///< motion state
+    /* 0x176 */ u16        field_176;
+    /* 0x178 */ s16        field_178;
+    /* 0x17A */ byte       pad_17A[0x4];
+    /* 0x17E */ s16        field_17E;
+    /* 0x180 */ u8         field_180;
+    /* 0x181 */ u8         field_181;
+    /* 0x182 */ u8         field_182;
+    /* 0x183 */ byte       pad_183[0x1];
+    /* 0x184 */ u16        field_184;
+    /* 0x186 */ u16        field_186;
+    /* 0x188 */ byte       pad_188[0xC];
+    /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
+    /// handler samples them through `Actor223600CoordPos`.
+    /* 0x194 */ u16    field_194;
+    /* 0x196 */ u16    field_196;
+    /* 0x198 */ u16    field_198;
+    /* 0x19A */ byte   pad_19A[0xE];
+    /* 0x1A8 */ MATRIX field_1A8; ///< installed at `TmdObject.field_1C`
+    /* 0x1C8 */ MATRIX field_1C8; ///< installed at `TmdObject.field_20`
+    /* 0x1E8 */ byte   pad_1E8[0x20];
+    /* 0x208 */ u16    field_208; ///< animation id that last raised the reaction
+    /* 0x20A */ byte   pad_20A[0x2];
+    /* 0x20C */ s8     field_20C; ///< 1 while the model's coordinate is zeroed
+    /* 0x20D */ byte   pad_20D[0x7];
 } Actor223600Work;
+STATIC_ASSERT_SIZEOF(Actor223600Work, 0x214);
+
+/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so
+/// `func_actor_223600_8014B540` samples each world coordinate with `lhu`.
+typedef struct Actor223600CoordPos {
+    /* 0x00 */ byte pad_0[0x18];
+    /* 0x18 */ u16  x;
+    /* 0x1A */ byte pad_1A[2];
+    /* 0x1C */ u16  y;
+    /* 0x1E */ byte pad_1E[2];
+    /* 0x20 */ u16  z;
+    /* 0x22 */ byte pad_22[2];
+} Actor223600CoordPos;
+STATIC_ASSERT_SIZEOF(Actor223600CoordPos, 0x24);
+
+/// Overlay-wide record the spawn handler points at the instance's coordinate,
+/// tagging it with a 0x100 weight and a mode of 1.
+typedef struct Actor223600Anchor {
+    /* 0x0 */ GsCOORDINATE2* coord;
+    /* 0x4 */ s16            field_4;
+    /* 0x6 */ s16            field_6;
+} Actor223600Anchor;
+STATIC_ASSERT_SIZEOF(Actor223600Anchor, 0x8);
+
+extern Actor223600Anchor D_actor_223600_80150B5C;
+
+/// Pair source the spawn handler installs at `GpEnemy::field_50`.
+extern GpPairSrcE D_actor_223600_8014CFCC;
+
+/// Animation source `func_800B3F84` seeds the work block's slots from.
+extern u8 D_actor_223600_801509C0[];
+
+/// Message table the spawn handler publishes as `Task::field_24`.
+extern u8 D_actor_223600_80150B28[];
 
 /// Event packet handed to this actor's message handlers. Its first three bytes
 /// are copied into the work block, and its first four are then re-read as two
@@ -53,7 +114,9 @@ extern u8 D_801153F4;
 /// `ActorsShared80135df4Table`.
 extern const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C;
 
+void func_actor_223600_8014B2F4(Task* task, s32 arg1);
 s32  func_actor_223600_8014B464(Actor223600Work* arg0);
+void func_actor_223600_8014B540(GpEnemy* enemy, Task* task);
 void func_actor_223600_8014B840(GpEnemy* enemy, Task* task);
 void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task);
 void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task);

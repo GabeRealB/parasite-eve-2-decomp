@@ -127871,3 +127871,39 @@ that one is deleted because `block` already lives in `$v0`.
 The general rule: the number of *variables* decides how many pseudos compete,
 and a cast alone does not create one. When the ROM uses two registers for one
 value across a bail-out branch, look for a second variable rather than for a pin.
+
+## A global's field read repeatedly across pointer stores emits one load per read, and the cached local's statement position is fixed (func_actor_223600_8014B540, 2026-09-17)
+
+**Symptom.** The spawn handler writes the same constant table field into two
+`GpEnemy` halfwords and then passes it to a call:
+
+```c
+enemy->field_4C = 0;
+enemy->field_50 = &D_actor_223600_8014CFCC;
+enemy->field_54 = 0;
+enemy->field_42 = D_actor_223600_8014CFCC.field_4;
+enemy->field_40 = D_actor_223600_8014CFCC.field_4;
+...
+func_actor_223600_8014B2F4(task, D_actor_223600_8014CFCC.field_4);
+```
+
+compiles to three `lhu`s, each with its own load-delay `nop`, where the ROM has
+one. cse2 will not reuse the first load: every read is separated from the last
+by a store through `enemy`, and GCC 2.8.1 cannot prove a fixed-address symbol
+load does not alias a varying-address store, so each read starts a new
+equivalence class.
+
+**Fix.** Read it once into a local. Two details then decide the last two
+instructions:
+
+- **Width.** A `u16` local is re-truncated when it feeds the call, adding a
+  standalone `andi $a1, $v0, 0xffff`. The ROM's `a1` is the `lhu` result
+  itself, so the local must be `s32` (and the callee's prototype must take
+  `s32`, or the conversion comes back at the call site).
+- **Position.** The same dependence that blocked cse2 also blocks sched1 from
+  hoisting the load, so the one `lhu` lands exactly where the read sits in the
+  source, relative to the surrounding stores. Here the ROM's load is between
+  `sb zero, 0x4C` and `sw v0, 0x50`, which means the assignment belongs
+  *between* `enemy->field_4C = 0;` and `enemy->field_50 = ...;` - one statement
+  earlier than where the values are used. Put it where the target's load is,
+  not where it reads naturally.

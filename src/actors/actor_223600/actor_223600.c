@@ -3,9 +3,15 @@
 #include "actors/actor_223600.h"
 #include "actors/actors_shared_80134178.h"
 #include "gameplay/3A34.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+
+#include <psyq/inline_c.h>
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014A170);
 
@@ -65,7 +71,110 @@ s32 func_actor_223600_8014B464(Actor223600Work* arg0)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014B540);
+/// Normalises `dir` in place and scales it to 0x3E8/0x1000 of unit length on
+/// the GTE. The pointer stays in one register across `VectorNormalSS` because
+/// the GTE loads read it back afterwards.
+static __inline__ void Actor223600_ScaleForward(SVECTOR* dir)
+{
+    VectorNormalSS(dir, dir);
+    gte_lddp(0x3E8);
+    gte_ldsv(dir);
+    gte_gpf12_real();
+    gte_stsv(dir);
+}
+
+/// Spawn state of this enemy: allocates the 0x214 work block, publishes it as
+/// `Task::idMap`, reparents the model to `Gfx_ViewCoord`, seeds its animation
+/// slots from `D_actor_223600_801509C0` and hangs the enemy's display node off
+/// part 2 of the model's coordinate array. HP and max HP both come from
+/// `D_actor_223600_8014CFCC`, which also picks the opening motion through
+/// `func_actor_223600_8014B2F4`. The context's top `field_8` nibble biases the
+/// three timers in `field_176`, `field_184` and `field_186` -- up by the nibble
+/// when its low bit is set, down by half of it otherwise. The model's world
+/// position is sampled into `field_194`..`field_198` and its facing is
+/// normalised and scaled on the GTE, and the instance is published as the
+/// overlay's anchor `D_actor_223600_80150B5C`.
+void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
+{
+    SVECTOR          dir;
+    Actor223600Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    u32              scale;
+    u32              flag;
+    s32              hp;
+
+    obj         = (TmdObject*)task->extra;
+    coord       = obj->field_8;
+    work        = Mem_Calloc(sizeof(Actor223600Work), false);
+    task->idMap = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    coord->sub     = &Gfx_ViewCoord;
+    task->field_24 = D_actor_223600_80150B28;
+    obj->field_C   = 0;
+    func_800B3F84(&work->anim, D_actor_223600_801509C0, (GpAnimObj*)obj, work->poses, work->slots);
+
+    enemy->field_4     = &coord->coord;
+    enemy->field_48    = 0;
+    enemy->field_1C.vx = 0;
+    enemy->field_1C.vy = 0;
+    enemy->field_1C.vz = 0;
+    enemy->field_18    = &((TmdObject*)task->extra)->field_8[2];
+    Gp_LinkNode(&enemy->node);
+    enemy->node.field_4 = 1;
+    enemy->field_42     = 1;
+    enemy->field_40     = 1;
+    enemy->field_4C     = 0;
+    hp                  = D_actor_223600_8014CFCC.field_4;
+    enemy->field_50     = &D_actor_223600_8014CFCC;
+    enemy->field_54     = 0;
+    enemy->field_42     = hp;
+    enemy->field_40     = hp;
+
+    work->field_170 = 2;
+    work->field_174 = 1;
+    work->field_176 = 0x10;
+    work->field_178 = 0;
+    func_actor_223600_8014B2F4(task, hp);
+    work->field_17E = 0;
+    work->field_8   = 0;
+    obj->field_1C   = &work->field_1A8;
+    obj->field_20   = &work->field_1C8;
+    coord->flg      = 0;
+    work->field_184 = 5;
+    work->field_186 = 0x14;
+
+    scale = (u16)(enemy->field_8 >> 12);
+    flag  = scale & 1;
+    if (flag == 1) {
+        work->field_176 += enemy->field_8 >> 12;
+        work->field_186 += enemy->field_8 >> 12;
+        work->field_184 += enemy->field_8 >> 12;
+    } else {
+        work->field_176 -= scale >> 1;
+        work->field_186 -= enemy->field_8 >> 13;
+        work->field_184 -= enemy->field_8 >> 13;
+    }
+
+    work->field_194 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->field_8)->x;
+    work->field_196 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->field_8)->y;
+    work->field_198 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->field_8)->z;
+
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, &dir);
+    dir.vy = 0;
+    Actor223600_ScaleForward(&dir);
+
+    work->field_0 = 0;
+    work->field_2 = -1;
+
+    D_actor_223600_80150B5C.coord   = ((TmdObject*)task->extra)->field_8;
+    D_actor_223600_80150B5C.field_4 = 0x100;
+    D_actor_223600_80150B5C.field_6 = 1;
+    task->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014B840);
 
