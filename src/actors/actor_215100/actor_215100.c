@@ -1,43 +1,53 @@
 #include "common.h"
 
 #include "actors/actor_215100.h"
+#include "actors/actors_shared_801366fc.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Imports from the 0x80180000 overlay; no header names them yet.
-void            func_80180390(s32 arg0);
-void            func_801811C0(s16 arg0);
-void            func_801848B4(void);
-void            func_80184954(void);
-extern TaskDesc D_80185384;
-extern TaskDesc D_801856B8;
-extern s8       D_8007216C;
-extern u8       D_80071085;
-extern u8       D_80071075;
-extern Task*    D_8018E0C4;
-extern TaskDesc D_actor_215100_8014CF6C;
-extern s16      D_80071076;
-extern s8       D_80073BAE;
-extern TaskDesc D_actor_215100_8014E13C;
-extern TaskDesc D_actor_215100_801544FC;
-extern TaskDesc D_actor_215100_80154508;
-extern Task*    D_actor_215100_8015E64C;
-extern s32      D_actor_215100_8014D038;
-extern s32      D_actor_215100_8014D03C;
-extern s32      D_actor_215100_8014D044;
-extern s32      D_actor_215100_80153ED4;
-extern s32      D_actor_215100_80153FDC;
-extern s32      D_actor_215100_801543E4;
+void              func_80180390(s32 arg0);
+void              func_801811C0(s16 arg0);
+void              func_801848B4(void);
+void              func_80184954(void);
+extern TaskDesc   D_80185384;
+extern TaskDesc   D_801856B8;
+extern s8         D_8007216C;
+extern u8         D_80071085;
+extern u8         D_80071075;
+extern Task*      D_8018E0C4;
+extern TaskDesc   D_actor_215100_8014CF6C;
+extern s16        D_80071076;
+extern s8         D_80073BAE;
+extern TaskDesc   D_actor_215100_8014E13C;
+extern TaskDesc   D_actor_215100_801544FC;
+extern TaskDesc   D_actor_215100_80154508;
+extern Task*      D_actor_215100_8015E64C;
+extern s32        D_actor_215100_8014D038;
+extern s32        D_actor_215100_8014D03C;
+extern s32        D_actor_215100_8014D044;
+extern s32        D_actor_215100_80153ED4;
+extern s32        D_actor_215100_80153FDC;
+extern s32        D_actor_215100_801543E4;
+extern TaskDesc   D_actor_215100_8015E5D0[];
+extern u8         D_actor_215100_8015E5E8[];
+extern GpMsgEntry D_actor_215100_8015E5A0[];
 /// Glyph metrics table this overlay's caption metrics are read out of, the
 /// counterpart of gameplay's `Gp_CapGlyphs`. `func_actor_215100_8014B1B0`
 /// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
@@ -745,6 +755,82 @@ void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", ActorsShared80131e24Sub0);
+/// Spawn handler (state 0) of the shared two-state dispatcher: the same body
+/// as `actor_150400`'s, over this overlay's larger work block. See that copy
+/// for why `mem`/`work`, `SOFT_BARRIER()` and `TOUCH_REG` are there.
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    VECTOR           vec;
+    GpAreaKey        key;
+    Actor215100Work* work;
+    Actor215100Work* mem;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    GpEnemy*         spawned;
+    TmdObject*       model;
+    GpAreaKey*       sessionKey;
+    GpAreaKey*       keyPtr;
+    u8               areaByte0;
+    GpAreaRec*       rec;
+    GpAreaPlace*     place;
+    s32              idx;
+    u32              raw;
+
+    obj         = task->extra;
+    coord       = obj->field_8;
+    mem         = (Actor215100Work*)Mem_Calloc(0x4F8, false);
+    work        = (Actor215100Work*)mem;
+    task->idMap = (TaskIdMap*)mem;
+    if (mem == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback  = ActorsShared801366fc;
+    coord->sub          = &Gfx_ViewCoord;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    enemy->node.field_5 = 0;
+    enemy->node.field_4 = 1;
+    obj->field_C        = 0;
+    obj->field_E        = 1;
+    mem->enemy          = enemy;
+    spawned             = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
+    model               = (TmdObject*)spawned->task->extra;
+    raw                 = enemy->field_8;
+    sessionKey          = (GpAreaKey*)&Game_Session->field_4;
+    key.field_3         = sessionKey->field_3;
+    key.field_2         = sessionKey->field_2;
+    key.field_1         = sessionKey->field_1;
+    idx                 = raw >> 12;
+    areaByte0           = sessionKey->field_0;
+    SOFT_BARRIER();
+    keyPtr = &key;
+    TOUCH_REG(keyPtr);
+    key.field_0 = areaByte0;
+    Gp_SyncAreaKeyIndex(keyPtr);
+    rec             = Gp_GetNestedAreaRec(&key);
+    place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->field_24 = place->field_D;
+    model->field_25 = place->field_E;
+    if (model->field_18 != NULL) {
+        Tmd_ProcessStream(model);
+        Tmd_ProcessStream(model);
+    }
+    Task_Reparent(task, spawned->task);
+    work->field_4F0 = spawned->task;
+    work->animId    = 0xC;
+    obj->field_1C   = &work->light;
+    obj->field_20   = &work->color;
+    vec.vx          = coord->workm.t[0];
+    vec.vy          = coord->workm.t[1] - 0x320;
+    vec.vz          = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, D_actor_215100_8015E5E8, (GpAnimObj*)obj,
+                  &work->field_374, work->slots);
+    work->state    = 2;
+    task->field_24 = D_actor_215100_8015E5A0;
+    func_actor_215100_8014C874(task);
+    task->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014C874);

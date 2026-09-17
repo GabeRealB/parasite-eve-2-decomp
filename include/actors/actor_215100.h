@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// One entry of the caption script the `actor_215100` overlay plays back.
@@ -38,14 +41,23 @@ STATIC_ASSERT_SIZEOF(Actor215100Caption, 0xC);
 /// `Actor150400Work` thirty-six bytes lower (`state` at 0x47C there), so the two
 /// overlays carry separate structs.
 typedef struct Actor215100Work {
-    /* 0x000 */ byte pad_0[0x4B4];
-    /* 0x4B4 */ s16  state;
-    /* 0x4B6 */ byte pad_4B6[0x2];
-    /* 0x4B8 */ u16  animId;
-    /* 0x4BA */ s16  field_4BA;
-    /* 0x4BC */ byte pad_4BC[0x30];
-    /* 0x4EC */ u16  animArg;
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       field_374;
+    /* 0x375 */ byte       pad_375[0x13F];
+    /* 0x4B4 */ s16        state;
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ u16        animId;
+    /* 0x4BA */ s16        field_4BA;
+    /* 0x4BC */ byte       pad_4BC[0x30];
+    /* 0x4EC */ u16        animArg;
+    /* 0x4EE */ byte       pad_4EE[0x2];
+    /* 0x4F0 */ Task*      field_4F0;
+    /* 0x4F4 */ GpEnemy*   enemy;
 } Actor215100Work;
+STATIC_ASSERT_SIZEOF(Actor215100Work, 0x4F8);
 
 /// Argument block of the script opcode `func_actor_215100_8014CCE0`
 /// implements: which animation to play, and how.
