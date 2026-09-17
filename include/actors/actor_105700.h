@@ -42,8 +42,17 @@ typedef struct Actor105700Work {
     /* 0x5E4 */ GpObj field_5E4;
     /* 0x604 */ byte  pad_604[0x18];
     /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
-    /* 0x61C */ GpObj field_61C;
-    /* 0x63C */ byte  pad_63C[0x58];
+    /* 0x61C */ GpObj   field_61C;
+    /* 0x63C */ s16     field_63C;
+    /* 0x63E */ s16     field_63E;
+    /* 0x640 */ s16     field_640;
+    /* 0x642 */ byte    pad_642[2];
+    /* 0x644 */ s16     field_644;
+    /* 0x646 */ s16     field_646;
+    /* 0x648 */ s16     field_648;
+    /* 0x64A */ byte    pad_64A[0xA];
+    /* 0x654 */ GpRec18 field_654[1];
+    /* 0x66C */ byte    pad_66C[0x28];
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `func_actor_105700_80136AE0`'s state 0.
     /* 0x694 */ s16 field_694;
@@ -166,6 +175,18 @@ typedef struct Actor105700PlaceScratch {
 } Actor105700PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor105700PlaceScratch, 0x38);
 
+/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by
+/// `func_actor_105700_80134374`: the converted matrix, the `gte_rtv0` output
+/// and the two vectors fed through it (`rot` and `vec` are also the pair
+/// handed to `func_actor_105700_8013477C`).
+typedef struct Actor105700AimScratch {
+    /* 0x00 */ MATRIX  mtx;
+    /* 0x20 */ VECTOR  pos;
+    /* 0x30 */ SVECTOR rot;
+    /* 0x38 */ SVECTOR vec;
+} Actor105700AimScratch;
+STATIC_ASSERT_SIZEOF(Actor105700AimScratch, 0x40);
+
 /// 0xF0-byte body block `func_actor_105700_80134FDC` parks at `Task::idMap`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
@@ -188,5 +209,6 @@ typedef struct Actor105700FxWork {
 STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);
 
 void func_actor_105700_801336FC(Actor105700* arg0);
+void func_actor_105700_8013477C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2);
 
 #endif
