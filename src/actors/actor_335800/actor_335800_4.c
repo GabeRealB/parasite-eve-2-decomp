@@ -107,7 +107,46 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg,
 
 INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_801633C0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_8016343C);
+s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
+{
+    Actor335800MainWork* work;
+    TmdObject*           obj;
+    TmdObject*           objA;
+    TmdObject*           objB;
+    s32                  ret;
+
+    work = (Actor335800MainWork*)task->idMap;
+    obj  = task->extra;
+    objA = work->field_4FC->extra;
+    objB = work->field_500->extra;
+    ret  = 0;
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C   |= 0x80;
+            work->field_506 = mode;
+            obj->field_C   |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    objA->field_C = obj->field_C;
+    objB->field_C = obj->field_C;
+    return ret;
+}
 
 s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, Actor335800Msg* arg2, s32 arg3)
 {
