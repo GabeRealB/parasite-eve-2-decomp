@@ -16,11 +16,13 @@ void func_actor_110300_80131FF8(GpActorWork* arg0)
     coord->sub = parent + 8;
 }
 
-/// The step-3 handler of the shared two-state dispatcher: runs the actor's own
-/// step body - the shared dispatcher `func_actor_110300_801320C4`, which reads
-/// the work block from the global rather than from the task - and then hands
-/// the model root coordinate's world translation to the per-frame light probe
-/// `func_800D7A9C`.
+/// Step 1 of the `ActorsShared80131f9c` dispatcher: run the body the actor's
+/// step selects, then feed the model root's world translation to
+/// `func_800D7A9C` (the light solve) against the model object itself.
+///
+/// The `t[]` values go in unmodified, unlike `ActorsShared80131e24Sub1`, which
+/// refreshes the coordinate and lifts `t[1]` by 800 first: the step body does
+/// that here, so nothing between the two calls touches the coordinate.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
 /// is copied into `$a0` (the first, unused, is the `GpEnemy*`): that copy is
@@ -30,15 +32,15 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
-    VECTOR         pos;
+    VECTOR         vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra;
     coord = obj->field_8;
     func_actor_110300_801320C4((GpActorWork*)task);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &pos, 0, 3);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
 }
 
 void func_actor_110300_80132088(Task* arg0)
