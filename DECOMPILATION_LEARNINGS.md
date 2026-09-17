@@ -118352,3 +118352,64 @@ first, 99.125%), `base_4.c`
 the same body over its own four room words, so `overlay_dup_index promote`
 refuses it: "cannot be shared - the body references its own overlay's code or
 data".
+
+## Promotion renumbers every later unit, and `git mv` hands ninja a stale `.c.s`: touch the sources and delete `build/USA/src/<family>/<overlay>/` (func_neo_ark_island_8017EB68, 2026-09-17)
+
+`overlay_dup_index.py promote` inserts a `shared` span mid-`.text`. Unit names are
+**positional over overlay-local runs** (`gen_overlay_configs.py`, `emit_run`): the
+counter advances once per run between shared spans, and a run keeps its address
+span while its number shifts down by one. So removing the run at 0x15A8 made the
+old `_3` the new `_2` and the old `_4` the new `_3`; `_4` ceased to exist. Only
+the unit *numbers* move, so `git mv _4.c _3.c` preserves each body's validity —
+but the `INCLUDE_ASM(FOLDER, ...)` string embeds the unit name and must be
+rewritten in the moved files, and the `nonmatchings/<overlay>/<unit>/` directory
+follows the name, so a stale path fails loudly at assembly time.
+
+The quiet half is the `.c` rename. `git mv` is `mv` plus `git add`, and `mv`
+preserves the source's mtime, so the renamed `.c` looks **older** than the
+`build/USA/src/.../<unit>.i` left over from the pre-rename unit. ninja then
+skips `cpp`/`cc` for it and runs maspsx over the *stale* `.c.s`, which still
+holds the old unit's contents: the assembler reports
+
+```
+can't open asm/USA/rooms/nonmatchings/neo_ark_island/neo_ark_island_3/func_neo_ark_island_8017EFE8.s
+```
+
+for a `.c` that no longer mentions `_3` at all, and the link then reports the
+`.c.o` it could not build. Only the files whose content actually changed (a
+`sed` rewrites the file and refreshes the mtime) recompile, so the two edits
+that *were* pure renames are exactly the two that break.
+
+**Fix.** `touch` the renamed sources and drop the unit's build directory so the
+stale objects cannot be reused:
+
+```
+git mv <overlay>_4.c <overlay>_3.c && touch src/rooms/<overlay>/*.c
+rm -rf build/USA/src/rooms/<overlay>
+```
+
+**The same staleness hides a missing `INCLUDE_RODATA`.** A `shared` span is not
+the only thing that moves a unit's number; a `rodata` cut names its owner
+explicitly in the manifest, so its owner does *not* renumber while the
+positional code units around it do. When the two disagree the cut's table is
+left with no definition — `undefined reference to jtbl_...` — but only once the
+stale object that used to define it is gone. Here `507fb531c` moved two cuts
+from the first unit to `_3` and removed the old owner's `INCLUDE_RODATA` without
+adding one to the new owner; the tree linked for two weeks on a leftover `.o`.
+After any promotion, check that every `nonmatchings/**/jtbl_*.s` referenced by an
+`INCLUDE_ASM`'d function has an `INCLUDE_RODATA` in the unit whose `.c.o(.rodata)`
+the linker script places at that address:
+
+```
+for f in $(find asm/USA/rooms/nonmatchings -name 'jtbl_*.s'); do
+    n=$(basename "$f" .s)
+    grep -rqw "$n" src/ || echo "no definition: $n"
+done
+```
+
+A hit is only real when a `nonmatchings/.../func_*.s` references it; one named
+only by `matchings/...` is a compiler-generated table the C body already emits.
+
+Inputs: scratch `nonmatchings/func_neo_ark_island_8017EB68-vacuum`, `base_1.c`
+(copy of `src/rooms/lib/rooms_shared_8017f4a0.c` minus `Gp_UpdateCoord(coord)`),
+0 differences.
