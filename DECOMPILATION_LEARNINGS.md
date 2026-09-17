@@ -114478,3 +114478,24 @@ switch (Gp_GetIdParam0(work->field_49C[i].field_4) & 0xFFFF) {
 leave code: a `beqz` survives. So do a bare single `case 1` and `default: break;`,
 which are no different from the `if`. If you see the kept counter, check the
 `.loop` dump for `giv of insn N not worth while, 0 vs M` on a `mult 2 add 0` giv.
+
+## A flag-selected threshold with two separate branch tests is `(f && n >= A) || (!f && n >= B)` (func_actor_205200_8014C0C0, 2026-09-17)
+
+**Symptom.** Retail increments a counter, sign-extends it *before* testing a flag,
+then runs two independent tests: `slti 0x1E; beqz fire; j end` on one arm and
+`slti 0x20; bnez end` falling into `fire` on the other. Nested
+`if (f) { if (n < 0x1E) break; } else if (n < 0x20) break;`, the ternary
+`f ? n < 0x1E : n < 0x20`, and duplicating the fire block all give the same wrong
+shape: jump2 cross-jumps the two `bnez end` tails, so the 0x1E arm becomes
+`j <shared bnez>` with the `slti` in its delay slot.
+
+**Fix.** `if ((f != 0 && n >= 0x1E) || (f == 0 && n >= 0x20)) { fire }`. `do_jump`
+emits the first disjunct as "true -> fire", and jump threading folds the
+re-test of `f` into the `j end`, which is exactly retail. The `sll/sra` before
+the branch also needs a real pseudo: `s32 n = (s16)++work->field;` - an `s16 n`
+(or casting at each use) re-sign-extends in each arm.
+
+Same function: `x->rot = (f ? ratan2(..) + 0x800 : ratan2(..)) & 0xFFF` through a
+shared `angle` local schedules the `andi`/stores after the next call's argument
+setup; writing the full `& 0xFFF` store in each arm lets cross-jumping merge
+them and keeps the stores ahead of the arguments.

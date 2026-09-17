@@ -65,7 +65,9 @@ typedef struct Actor205200Work {
     /* 0x584 */ s16            field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
     /* 0x586 */ s16            field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
     /* 0x588 */ s16            field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
-    /* 0x58A */ byte           pad_58A[0x6];
+    /* 0x58A */ s16            field_58A; // state of the attack body `func_actor_205200_8014C0C0`
+    /* 0x58C */ u16            field_58C; // its frame counter
+    /* 0x58E */ s16            field_58E; // sign of the player offset dotted with the player's facing axis
     /* 0x590 */ s16            field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
     /* 0x592 */ s16            field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
     /* 0x594 */ s16            field_594;
@@ -122,6 +124,18 @@ typedef struct Actor205200SpawnRec {
 } Actor205200SpawnRec;
 
 void func_actor_205200_8014AB98(Actor205200* arg0);
+
+/// 0x44 bytes `func_actor_205200_8014C0C0` carves from `G_SCRATCH_HEAD`: the
+/// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the
+/// player delta with its normalised direction.
+typedef struct Actor205200AttackScratch {
+    /* 0x00 */ GpAnimArg anim;
+    /* 0x14 */ VECTOR    pos;
+    /* 0x24 */ SVECTOR   rot;
+    /* 0x2C */ VECTOR    delta;
+    /* 0x3C */ SVECTOR   dir;
+} Actor205200AttackScratch;
+STATIC_ASSERT_SIZEOF(Actor205200AttackScratch, 0x44);
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor342400Msg7DB`, whose halfword at 0x2 is the

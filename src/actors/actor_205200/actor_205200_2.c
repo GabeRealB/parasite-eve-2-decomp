@@ -14,6 +14,8 @@
 /// and teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_205200_80149E24;
 extern GpEnemyTaskFuncTable3 D_actor_205200_80149E30;
+/// Animation block the attack body hands the player with message 0x3F4.
+extern void* D_actor_205200_80156800;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -322,7 +324,115 @@ void func_actor_205200_8014BF28(Actor205200* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200_2", func_actor_205200_8014C0C0);
+/// The attack body, run while `field_588` is set. It carves an
+/// `Actor205200AttackScratch` from `G_SCRATCH_HEAD` and steps `field_58A`:
+/// state 0 records which side of the player it is on (`field_58E`), plays its grab
+/// animation and spawns the effect; state 1 drags the player towards the actor
+/// for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the
+/// animation to finish and clears `field_588`. The duplicated calls in the
+/// `field_596` arms are what the target's shared tails need: jump2's
+/// cross-jumping merges them, where a variable or ternary is hoisted instead.
+void func_actor_205200_8014C0C0(Actor205200* arg0)
+{
+    Actor205200Work*          work;
+    GsCOORDINATE2*            coord;
+    Task*                     player;
+    GsCOORDINATE2*            target;
+    Actor205200AttackScratch* scratch;
+    void*                     head;
+    s32                       sound;
+    s32                       count;
+
+    work                    = arg0->field_1C;
+    player                  = Game_GetPtrSlot(3);
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor205200AttackScratch);
+    scratch                 = *(Actor205200AttackScratch**)G_SCRATCH_HEAD;
+    coord                   = arg0->field_2C->field_8;
+    target                  = ((TmdObject*)player->extra)->field_8;
+
+    switch (work->field_58A) {
+        case 0:
+            if (((GameActor*)player->idMap)->field_954 != 2) {
+                scratch->delta.vx      = target->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vy      = 0;
+                scratch->delta.vz      = target->coord.t[2] - coord->coord.t[2];
+                work->field_58E        = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
+                scratch->anim.field_0  = &D_actor_205200_80156800;
+                scratch->anim.field_4  = work->field_58E + 1;
+                scratch->anim.field_8  = 0;
+                scratch->anim.field_C  = 0;
+                scratch->anim.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
+                work->field_58A = 1;
+                work->field_58C = 0;
+                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+                sound = ((arg0->field_20->field_8 >> 12) << 8) | 7;
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                scratch->dir.vx = 0;
+                scratch->dir.vy = -1000;
+                scratch->dir.vz = 0;
+                if (work->field_596 == 0) {
+                    Gp_SpawnEff(0x60299, ((TmdObject*)player->extra)->field_8, 0, &scratch->dir);
+                } else {
+                    Gp_SpawnEff(0x601AC, ((TmdObject*)player->extra)->field_8, 0, &scratch->dir);
+                }
+            } else {
+                work->field_588 = 0;
+            }
+            break;
+        case 1:
+            if ((s16)work->field_58C < 0x10) {
+                scratch->delta.vx = target->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vy = target->coord.t[1] - coord->coord.t[1];
+                scratch->delta.vz = target->coord.t[2] - coord->coord.t[2];
+                VectorNormalS(&scratch->delta, &scratch->dir);
+                scratch->pos.vx = target->coord.t[0] + ((scratch->dir.vx * 25) >> 10);
+                scratch->pos.vy = 0;
+                scratch->pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
+                scratch->rot.vx = 0;
+                if (work->field_58E == 0) {
+                    scratch->rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + 0x800) & 0xFFF;
+                } else {
+                    scratch->rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
+                }
+                scratch->rot.vz = 0;
+                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->pos, 0);
+            }
+            if ((s16)work->field_58C == 0x10) {
+                if (work->field_596 == 0) {
+                    sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x55180002;
+                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                } else {
+                    sound = ((arg0->field_20->field_8 >> 12) << 8) | 0x55190003;
+                    SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+                }
+            }
+            count = (s16)++work->field_58C;
+            if ((work->field_58E != 0 && count >= 0x1E) || (work->field_58E == 0 && count >= 0x20)) {
+                scratch->anim.field_0  = &D_actor_205200_80156800;
+                scratch->anim.field_4  = work->field_58E + 3;
+                scratch->anim.field_8  = 0;
+                scratch->anim.field_C  = 0;
+                scratch->anim.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
+                work->field_58A = 2;
+                work->field_58C = 0;
+            }
+            break;
+        case 2:
+            if ((s16)++work->field_58C >= 0x25) {
+                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                    work->field_58A = 0;
+                    work->field_58C = 0;
+                    work->field_588 = 0;
+                }
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor205200AttackScratch);
+}
 
 void func_actor_205200_8014C540(Task* arg0)
 {
