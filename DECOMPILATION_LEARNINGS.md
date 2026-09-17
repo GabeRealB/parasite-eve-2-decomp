@@ -121236,3 +121236,61 @@ part of the target's shape, not a side effect. And the opposite of the entry
 that has a dead store *fix* cse canonicalisation (section 28): there the store
 had to stay live long enough to be seen by `reg_scan`; here the store exists
 only if its destination is a real object.
+
+## The scratchpad pointer must be spelled `lui` + `0x3FC`, and CSE folds its first access onto the head unless a touch keeps it out of the address table (func_actor_342000_801628C8, 2026-09-17)
+
+`func_actor_342000_801628C8` scales a rotation matrix by a per-axis vector
+through a scratchpad `SVECTOR`, and the ROM reaches `G_SCRATCH_HEAD` four times
+as a `lui` plus a `0x3FC` displacement:
+
+```
+lui    v0,0x1f80
+lw     v0,0x3fc(v0)      /* the head */
+addiu  v0,v0,-8
+lui    at,0x1f80
+sw     v0,0x3fc(at)      /* the adjusted pointer goes back */
+lhu    t4,0(s0)          /* the column gather ... */
+sh     t4,0(v0)          /* ... lands at 0(v0), not -8(head) */
+```
+
+`G_SCRATCH_HEAD` is a constant expression in this project, so
+`*(SVECTOR**)G_SCRATCH_HEAD` materialises `0x1F8003FC` into a register
+(`lui a0,0x1f80; ori a0,a0,0x3fc; lw v0,0(a0)`), and `update_equiv_regs`
+(`local-alloc.c`) only rematerialises a constant address when its register is
+referenced exactly twice *and* lives in more than one basic block. `actor_401800`
+had already matched the same shape by spelling the halves out; that is what
+reproduces it here:
+
+```c
+    __asm__ volatile("lui %0, 0x1F80" : "=r"(head));   /* head = 0x1F800000 */
+    scratch = *(u32*)(head + 0x3FC);                   /* lw, 0x3FC(head) */
+    sv      = (SVECTOR*)(scratch - 8);
+    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+```
+
+The other half is the `sh t4,0(v0)`: with a plain `sv = *(SVECTOR**)G_SCRATCH_HEAD - 1;`
+the pseudo's value sits in CSE's table as `(plus head -8)`, and `find_best_addr`
+(`cse.c`) picks the *dearest* form on an `ADDRESS_COST` tie - "for two addresses
+of equal cost, choose the one with the highest `rtx_cost` value as that has the
+potential of eliminating the most insns". So the first `sh`/`lhu` through the
+pointer comes out as `-8(head)`, which keeps `head` alive in a second register
+and takes the schedule with it. `TOUCH_REG(sv)` right after the pointer is
+stored stops the fold - an empty asm with a `"+r"` operand gives the pseudo a
+new, unknown value - exactly as `coordToRoot` / `Gp_SetViewFromCoord` do with
+`TOUCH_REG3(tmp, rootm, head)`. That one line was 75.50% -> 91.16%.
+
+Three smaller ones from the same function:
+
+* the three per-column gathers must not interleave with the previous column's
+  scatter - both are `s0`-relative and provably disjoint, so nothing stops the
+  scheduler from alternating them, and a `COMPILER_BARRIER()` at the head of
+  each column block restores the ROM's phase grouping (91.27% -> 99.92%);
+* the shared tail re-loads `Task::idMap` into `$s0`, not the `$s2` the case-1
+  body used, so it cannot be the same C variable assigned twice: a pseudo live
+  across basic blocks keeps its global home, while a fresh variable is
+  local-alloc's to place (99.92% -> 100.00%). The converse of the entry at the
+  top of this file;
+* `ang` (`s32*` over `field_274`) and `sc` (`VECTOR*` over `field_264`) are what
+  materialise those bases in `$s1`/`$v1` instead of folding them onto the work
+  pointer, and `sc = &work->field_264;` has to sit between the scratch load and
+  its `-8` adjust for `addiu v1,s2,0x264` to land in the load-delay slot.

@@ -32,6 +32,21 @@ typedef struct _Actor342000Cmd {
 } Actor342000Cmd;
 STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
 
+/// A `MATRIX` plus the word-wise view `func_actor_342000_801628C8` splats the
+/// actor coordinate's identity rotation through: five aligned stores rather
+/// than nine halfword ones (the same idiom as `Actor311900MatWords`).
+typedef union Actor342000MatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor342000MatWords;
+STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
+
 /// Per-instance work block for the overlay's model actor.
 ///
 /// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
@@ -47,9 +62,17 @@ STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
 ///
 /// `coord` is the actor's own rotation node. `func_actor_342000_801628C8`
 /// builds `coord.coord` from the euler angles below it (`Gfx_RotMatrixY` of
-/// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads)
-/// and clears `coord.flg`; `func_actor_342000_801640C0` writes all of it from
-/// an `Actor342000Move`.
+/// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
+/// scales each of its columns by the matching `field_264` component through
+/// `gpf 12` and clears `coord.flg`; `func_actor_342000_801640C0` writes all of
+/// it from an `Actor342000Move`.
+///
+/// `field_264` holds that per-axis scale, 1.12 fixed point like the matrix it
+/// multiplies: each column `j` is gathered into a scratchpad `SVECTOR`, run
+/// through `GPF` against `field_264[j]` and written back.
+///
+/// `field_29C` / `field_2A0` are the actor's two child tasks; the per-frame tail
+/// of `func_actor_342000_801628C8` ticks them with `func_actor_342000_80161EA4`.
 ///
 /// `field_2AA` latches the `Actor342000Cmd::field_2` the id 0x7DB handler was
 /// last called with; command 0xA additionally refills `field_264` from the
@@ -61,7 +84,9 @@ typedef struct Actor342000Work {
     /* 0x274 */ s32            field_274;
     /* 0x278 */ s32            field_278;
     /* 0x27C */ s32            field_27C;
-    /* 0x280 */ byte           pad_280[0x24];
+    /* 0x280 */ byte           pad_280[0x1C];
+    /* 0x29C */ Task*          field_29C;
+    /* 0x2A0 */ Task*          field_2A0;
     /* 0x2A4 */ GsCOORDINATE2* field_2A4;
     /* 0x2A8 */ byte           pad_2A8[0x2];
     /* 0x2AA */ u16            field_2AA;
@@ -121,5 +146,20 @@ STATIC_ASSERT_SIZEOF(Actor342000ColorMtx, 0x44);
 /// The task owning the `Actor342000EventWork` block, published by
 /// `func_actor_342000_8016382C`.
 extern Task* D_actor_342000_80165070;
+
+/// Message 0x7D4's static payload, handed to `Gp_DispatchMsg` by the actor's
+/// spawn tick. Same shape as the `Actor342000Move` the handler takes.
+extern Actor342000Move D_actor_342000_801648B8;
+
+/// Spawns the actor's work block (`Mem_Malloc(0x2AC, 0)`, zeroed over the same
+/// size), parks it in `Task::idMap`, seeds `field_2A4` and the model's part
+/// coordinate, then bumps the task's state.
+void func_actor_342000_80162158(Task* arg0);
+
+/// Advances the animation banks hanging off `arg0`'s work block by `arg1`
+/// ticks, one `Gp_AnimTickIndex` per bank, and reports whether a bank needed a
+/// re-scan. `arg1` is the overlay's tick count -- 8 for the actor's own model
+/// and 4 for the two child tasks at `Actor342000Work::field_29C`/`field_2A0`.
+s32 func_actor_342000_80161EA4(Task* arg0, s32 arg1);
 
 #endif
