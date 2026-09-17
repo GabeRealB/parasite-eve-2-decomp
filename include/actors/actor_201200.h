@@ -29,7 +29,7 @@ typedef struct Actor201200Work {
     /* 0x196 */ u8       field_196;
     /* 0x197 */ byte     pad_197[0x11];
     /* 0x1A8 */ GpEffArg eff1A8; // `func_800FDB18`'s argument record
-    /* 0x1B0 */ byte     pad_1B0[0x8];
+    /* 0x1B0 */ SVECTOR  effOfs; // offset handed to `func_800FDB18`; `pad` picks the coordinate
     /* 0x1B8 */ GpRec18  rec1B8;
     /* 0x1D0 */ byte     pad_1D0[0x60];
     /* 0x230 */ GpObj    obj230;
