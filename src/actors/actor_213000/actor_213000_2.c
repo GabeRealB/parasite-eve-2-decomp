@@ -104,4 +104,47 @@ void func_actor_213000_8014A6AC(Task* task)
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A70C);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+extern void* D_actor_213000_80157DDC[];
+
+/// Animation-preset handler: while the preset's bank index differs from the
+/// one the work block latched, clears the animation id to -1, latches the new
+/// index and re-seeds the animation context from that bank
+/// (`D_actor_213000_80157DDC`). The preset's `field_4` then replaces the id,
+/// and `field_8` picks the slot walk -- the blended `func_800B4114` reseed with
+/// a literal count of 6, or the plain `Gp_AnimResetSlot` -- before every slot
+/// is ticked once and the `field_474` latch is set. The same body as
+/// `func_actor_335800_801632A4` and `func_actor_361100_801634D0`.
+s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg)
+{
+    Actor213000Work* work;
+    TmdObject*       ext;
+    s32              i;
+
+    work = (Actor213000Work*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_476) {
+        work->field_476 = msg->field_0;
+        work->field_475 = -1;
+        func_800B3F84(&work->anim, D_actor_213000_80157DDC[work->field_476], (GpAnimObj*)ext, work->field_334,
+                      work->slots);
+    }
+    work->field_475 = msg->field_4;
+    if (msg->field_8 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114(&work->anim, i, work->field_475, 0, 6);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_474 = 1;
+    return 0;
+}
