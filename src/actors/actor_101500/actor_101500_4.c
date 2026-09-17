@@ -7,7 +7,37 @@
 #include "gameplay/D4.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_101500/actor_101500_4", func_actor_101500_801337A8);
+extern MATRIX* D_80073B8C;
+
+void func_actor_101500_801337A8(Actor101500* arg0)
+{
+    Actor101500Work* work;
+    GsCOORDINATE2*   coord;
+    s16              bob;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    bob   = 0;
+    if ((s16)work->field_352 == 5) {
+        work->field_37C++;
+        if (work->field_37C >= 15) {
+            work->field_37C = 0;
+        }
+        bob = D_actor_101500_8013BE90[work->field_37C];
+    }
+    work->field_31C.vx = coord->coord.t[0];
+    work->field_31C.vy = coord->coord.t[1];
+    work->field_31C.vz = coord->coord.t[2];
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_360) >> 12;
+    coord->coord.t[1] += work->field_366 + bob;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_360) >> 12;
+    if (coord->coord.t[1] - D_80073B8C->t[1] > 5000) {
+        arg0->field_30  = 2;
+        work->field_35A = 8;
+        work->field_35C = 4;
+        work->field_362 = 0;
+    }
+}
 
 extern u8    D_actor_101500_801363AC[];
 extern u8    D_actor_101500_801364F0[];

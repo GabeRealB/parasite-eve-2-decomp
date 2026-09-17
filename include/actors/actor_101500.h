@@ -12,39 +12,41 @@
 /// `func_actor_101500_80134778` re-seeds the slots from the per-state id table
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
-    /* 0x000 */ byte   pad_0[0x1DC];
-    /* 0x1DC */ GpObj  field_1DC;
-    /* 0x1FC */ byte   pad_1FC[0x48];
-    /* 0x244 */ GpObj  field_244;
-    /* 0x264 */ byte   pad_264[0x78];
-    /* 0x2DC */ GpObj  field_2DC;
-    /* 0x2FC */ byte   pad_2FC[0x30];
-    /* 0x32C */ MATRIX field_32C;
-    /* 0x34C */ s32    field_34C;
-    /* 0x350 */ byte   pad_350[2];
-    /* 0x352 */ u16    field_352;
-    /* 0x354 */ s16    field_354;
-    /* 0x356 */ u16    field_356;
-    /* 0x358 */ s16    field_358;
-    /* 0x35A */ s16    field_35A;
-    /* 0x35C */ s16    field_35C;
-    /* 0x35E */ byte   pad_35E[2];
-    /* 0x360 */ s16    field_360;
-    /* 0x362 */ s16    field_362;
-    /* 0x364 */ s16    field_364;
-    /* 0x366 */ s16    field_366;
-    /* 0x368 */ s16    field_368;
-    /* 0x36A */ byte   pad_36A[4];
-    /* 0x36E */ s16    field_36E;
-    /* 0x370 */ byte   pad_370[2];
-    /* 0x372 */ u16    field_372;
-    /* 0x374 */ s16    field_374;
-    /* 0x376 */ s16    field_376;
-    /* 0x378 */ s16    field_378;
-    /* 0x37A */ s16    field_37A;
-    /* 0x37C */ byte   pad_37C[2];
-    /* 0x37E */ s16    field_37E;
-    /* 0x380 */ s16    field_380;
+    /* 0x000 */ byte    pad_0[0x1DC];
+    /* 0x1DC */ GpObj   field_1DC;
+    /* 0x1FC */ byte    pad_1FC[0x48];
+    /* 0x244 */ GpObj   field_244;
+    /* 0x264 */ byte    pad_264[0x78];
+    /* 0x2DC */ GpObj   field_2DC;
+    /* 0x2FC */ byte    pad_2FC[0x20];
+    /* 0x31C */ VECTOR3 field_31C; // position before this frame's step
+    /* 0x328 */ byte    pad_328[4];
+    /* 0x32C */ MATRIX  field_32C;
+    /* 0x34C */ s32     field_34C;
+    /* 0x350 */ byte    pad_350[2];
+    /* 0x352 */ u16     field_352;
+    /* 0x354 */ s16     field_354;
+    /* 0x356 */ u16     field_356;
+    /* 0x358 */ s16     field_358;
+    /* 0x35A */ s16     field_35A;
+    /* 0x35C */ s16     field_35C;
+    /* 0x35E */ byte    pad_35E[2];
+    /* 0x360 */ s16     field_360;
+    /* 0x362 */ s16     field_362;
+    /* 0x364 */ s16     field_364;
+    /* 0x366 */ s16     field_366;
+    /* 0x368 */ s16     field_368;
+    /* 0x36A */ byte    pad_36A[4];
+    /* 0x36E */ s16     field_36E;
+    /* 0x370 */ byte    pad_370[2];
+    /* 0x372 */ u16     field_372;
+    /* 0x374 */ s16     field_374;
+    /* 0x376 */ s16     field_376;
+    /* 0x378 */ s16     field_378;
+    /* 0x37A */ s16     field_37A;
+    /* 0x37C */ s16     field_37C;
+    /* 0x37E */ s16     field_37E;
+    /* 0x380 */ s16     field_380;
 } Actor101500Work;
 
 typedef struct Actor101500 {
@@ -53,10 +55,14 @@ typedef struct Actor101500 {
     /* 0x20 */ GpEnemy*         field_20;
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C; // model; `field_8` is the coordinate array effects spawn against
+    /* 0x30 */ s32              field_30;
 } Actor101500;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
 extern s16 D_actor_101500_8013BE70[];
+
+/// Fifteen vertical bob offsets cycled by `field_37C` while `field_352` is 5.
+extern s16 D_actor_101500_8013BE90[];
 
 /// Sixteen frame counts `func_actor_101500_801345D0` and `func_actor_101500_801346D0` reload `field_362` from,
 /// picked by a `Gp_LcgState` draw.
