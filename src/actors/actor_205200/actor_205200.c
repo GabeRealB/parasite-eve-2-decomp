@@ -48,7 +48,32 @@ void func_actor_205200_8014AB98(Actor205200* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014ACD4);
+void func_actor_205200_8014ACD4(Actor205200* arg0)
+{
+    Actor205200Work* work = arg0->field_1C;
+    GpViewRec*       view;
+    VECTOR           d;
+    u32              dist;
+    s32              i;
+
+    work->field_C  = NULL;
+    work->field_10 = -1;
+    view           = Gp_GetStageView(&Game_Session->field_4);
+    for (i = 0; i < 3; i++) {
+        if (work->field_18[i] == 1) {
+            work->field_0[i]->flg = 0;
+            Gp_UpdateCoord(work->field_0[i]);
+            d.vx = view->mtx.t[0] + work->field_0[i]->coord.t[0];
+            d.vy = view->mtx.t[1] + work->field_0[i]->coord.t[1];
+            d.vz = view->mtx.t[2] + work->field_0[i]->coord.t[2];
+            dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
+            if (dist < work->field_10) {
+                work->field_C  = work->field_0[i];
+                work->field_10 = dist;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", func_actor_205200_8014AE0C);
 

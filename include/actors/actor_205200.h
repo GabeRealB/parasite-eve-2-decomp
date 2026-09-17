@@ -23,33 +23,38 @@ typedef struct Actor205200Obj2C {
 /// halfword it is, while `func_actor_205200_8014BA94` counts it down through the
 /// family's unsigned `(u16)` view.
 typedef struct Actor205200Work {
-    /* 0x000 */ byte     pad_0[0x20];
-    /* 0x020 */ s16      field_20; // index into the timer reload table `D_actor_205200_8014C9CC`
-    /* 0x022 */ u16      field_22; // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
-    /* 0x024 */ byte     pad_24[2];
-    /* 0x026 */ s16      field_26; // sub-state of `func_actor_205200_8014AB98`
-    /* 0x028 */ s16      field_28;
-    /* 0x02A */ byte     pad_2A[4];
-    /* 0x02E */ s16      field_2E;
-    /* 0x030 */ byte     pad_30[0x38];
-    /* 0x068 */ GpEffArg field_68; // `func_800FDB18` argument record
-    /* 0x070 */ byte     pad_70[0x2];
-    /* 0x072 */ s16      field_72; // raised to 2 with `Task::state` when the parent's 0x7DB flag is set
-    /* 0x074 */ s16      field_74; // effect timer, reloaded every 0x40 ticks
-    /* 0x076 */ byte     pad_76[0x406];
-    /* 0x47C */ GpObj    field_47C;
-    /* 0x49C */ byte     pad_49C[0x48];
-    /* 0x4E4 */ GpObj    field_4E4;
-    /* 0x504 */ byte     pad_504[0x7A];
-    /* 0x57E */ s16      field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
-    /* 0x580 */ u16      field_580; // id the three helper slots last saw
-    /* 0x582 */ u16      field_582; // frames spent on the current id
-    /* 0x584 */ s16      field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
-    /* 0x586 */ s16      field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
-    /* 0x588 */ s16      field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
-    /* 0x58A */ byte     pad_58A[0xA];
-    /* 0x594 */ s16      field_594;
-    /* 0x596 */ s16      field_596; // selects the shared tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
+    /* 0x000 */ GsCOORDINATE2* field_0[3];  // candidate coords `func_actor_205200_8014ACD4` measures
+    /* 0x00C */ GsCOORDINATE2* field_C;     // nearest of `field_0` to the stage view
+    /* 0x010 */ u32            field_10;    // its distance
+    /* 0x014 */ byte           pad_14[4];
+    /* 0x018 */ s16            field_18[3]; // 1 marks the matching `field_0` slot active
+    /* 0x01E */ byte           pad_1E[2];
+    /* 0x020 */ s16            field_20;    // index into the timer reload table `D_actor_205200_8014C9CC`
+    /* 0x022 */ u16            field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
+    /* 0x024 */ byte           pad_24[2];
+    /* 0x026 */ s16            field_26;    // sub-state of `func_actor_205200_8014AB98`
+    /* 0x028 */ s16            field_28;
+    /* 0x02A */ byte           pad_2A[4];
+    /* 0x02E */ s16            field_2E;
+    /* 0x030 */ byte           pad_30[0x38];
+    /* 0x068 */ GpEffArg       field_68; // `func_800FDB18` argument record
+    /* 0x070 */ byte           pad_70[0x2];
+    /* 0x072 */ s16            field_72; // raised to 2 with `Task::state` when the parent's 0x7DB flag is set
+    /* 0x074 */ s16            field_74; // effect timer, reloaded every 0x40 ticks
+    /* 0x076 */ byte           pad_76[0x406];
+    /* 0x47C */ GpObj          field_47C;
+    /* 0x49C */ byte           pad_49C[0x48];
+    /* 0x4E4 */ GpObj          field_4E4;
+    /* 0x504 */ byte           pad_504[0x7A];
+    /* 0x57E */ s16            field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
+    /* 0x580 */ u16            field_580; // id the three helper slots last saw
+    /* 0x582 */ u16            field_582; // frames spent on the current id
+    /* 0x584 */ s16            field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
+    /* 0x586 */ s16            field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
+    /* 0x588 */ s16            field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
+    /* 0x58A */ byte           pad_58A[0xA];
+    /* 0x594 */ s16            field_594;
+    /* 0x596 */ s16            field_596; // selects the shared tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
 
 /// Owning context. The update entry point does not touch it, but the exit
