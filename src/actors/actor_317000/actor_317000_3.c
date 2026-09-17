@@ -1,7 +1,10 @@
 #include "common.h"
 
+#include <psyq/abs.h>
+
 #include "actors/actor_317000.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
 #include "main/sound.h"
@@ -27,7 +30,58 @@ void func_actor_317000_80162760(void)
 
 INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_3", func_actor_317000_80162768);
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_3", func_actor_317000_801627D0);
+/// State handler at index 1 of `D_actor_317000_80161E30`: Euler-extracts the
+/// root coordinate into `vec`, and while the yaw gap to the target
+/// `work->field_4BA` is at least 0x41 it steps `vec.vy` toward it by 0x40 --
+/// the step is taken on an `s32` widening of the extracted yaw -- and
+/// otherwise snaps the yaw to the target and plays anim 0x7D3 with a preset
+/// whose `field_4` is the literal 2, clearing the `field_4C4` flag and
+/// advancing `field_4C2`. Either way the root coordinate is rebuilt as the
+/// identity matrix rotated by `vec`. The threshold variant of
+/// `func_actor_350700_80162764` / `ActorsShared80132920`, which step by 0x60.
+void func_actor_317000_801627D0(Task* arg0)
+{
+    Actor317000Work*      work;
+    Actor317000MatWords*  words;
+    GsCOORDINATE2*        coord;
+    SVECTOR               vec;
+    Actor317000AnimPreset preset;
+    s32                   vy;
+    s16                   diff;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = (Actor317000Work*)arg0->idMap;
+
+    Gp_ExtractEuler(&vec, &coord->coord);
+    diff = (u16)work->field_4BA - (u16)vec.vy;
+    if (ABS(diff) >= 0x41) {
+        vy = vec.vy;
+        if (diff < 0) {
+            vec.vy = vy - 0x40;
+        } else {
+            vec.vy = vy + 0x40;
+        }
+    } else {
+        vec.vy          = work->field_4BA;
+        preset.field_0  = 0;
+        preset.field_4  = 2;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
+        work->field_4C4 = 0;
+        work->field_4C2++;
+    }
+
+    words          = (Actor317000MatWords*)&coord->coord;
+    words->m00_m01 = ONE;
+    words->m02_m10 = 0;
+    words->m11_m12 = ONE;
+    words->m20_m21 = 0;
+    words->m22     = ONE;
+    RotMatrix(&vec, &coord->coord);
+    coord->flg = 0;
+}
 
 /// State handler at index 1 of `D_actor_317000_80161E30`, reached by the
 /// `field_4C2` advance this body ends with: rotates the constant local-space

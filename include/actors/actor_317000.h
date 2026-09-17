@@ -36,7 +36,9 @@ typedef struct Actor317000Work {
     /* 0x4A0 */ s32     field_4A0;
     /* 0x4A4 */ s32     field_4A4;
     /* 0x4A8 */ s32     field_4A8;
-    /* 0x4AC */ byte    pad_4AC[0x14];
+    /* 0x4AC */ byte    pad_4AC[0xE];
+    /* 0x4BA */ u16     field_4BA; // target yaw `func_actor_317000_801627D0` steers toward
+    /* 0x4BC */ byte    pad_4BC[0x4];
     /* 0x4C0 */ u16     field_4C0;
     /* 0x4C2 */ u16     field_4C2;
     /* 0x4C4 */ u8      field_4C4;
@@ -64,6 +66,20 @@ typedef struct Actor317000AnimPreset {
     /* 0x10 */ s32 field_10;
 } Actor317000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor317000AnimPreset, 0x14);
+
+/// A `MATRIX`'s word-wise view, for the identity splat
+/// `func_actor_317000_801627D0` writes over the root coordinate before
+/// `RotMatrix` overwrites the 3x3: five aligned stores rather than nine
+/// halfword ones (the same shape as `Actor141000MatWords` and
+/// `Actor350700MatWords`).
+typedef struct Actor317000MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor317000MatWords;
+STATIC_ASSERT_SIZEOF(Actor317000MatWords, 0x14);
 
 /// The constant local-space offset `func_actor_317000_801628D8` rotates,
 /// `{ 0, 0xFF800000, 0x400000, 0 }`. The overlay keeps its own copy in

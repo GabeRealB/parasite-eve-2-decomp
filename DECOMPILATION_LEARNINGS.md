@@ -123431,3 +123431,50 @@ Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_1.c`
 75.687% (`beqz v0,...` with everything else already right), `base_5.c` 100.000%.
 Preprocessed `base_5.i` `4b72a01ea866e3db...`. Assembly `d94b8b542c67924d...`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A `MATRIX` identity written element-wise stays nine `sh`; GCC 2.8.1 does not merge adjacent constant halfword stores (func_actor_317000_801627D0, 2026-09-17)
+
+The actor turn-to-face bodies splat an identity over the root `GsCOORDINATE2::coord`
+before `RotMatrix` overwrites the 3x3, and retail emits five aligned stores:
+
+```asm
+li    v0,0x1000
+sw    v0,4(s0)      # m[0][0..1]
+sw    zero,4(a1)    # m[0][2] + m[1][0]
+sw    v0,8(a1)      # m[1][1] + m[1][2]
+sw    zero,0xc(a1)  # m[2][0] + m[2][1]
+sh    v0,0x10(a1)   # m[2][2]
+```
+
+Writing it the obvious way, `coord->coord.m[i][j] = 0/ONE`, does **not** produce
+that: the compiler keeps nine separate `sh` and the scratch scores 81.5%
+(`base_2.c`, 70 insns against the target's 66, `insert=8 delete=4`).  GCC 2.8.1
+has no adjacent-store merging pass, so each constant halfword store reaches
+`maspsx` on its own.  The five-store shape has to be written in the source, as a
+word-wise view of the `MATRIX` -- four `s32` over the first 0x10 bytes plus the
+`s16` at 0x10:
+
+```c
+typedef struct Actor317000MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor317000MatWords;
+STATIC_ASSERT_SIZEOF(Actor317000MatWords, 0x14);
+
+    words          = (Actor317000MatWords*)&coord->coord;
+    words->m00_m01 = ONE;   /* ONE is libgte.h's 4096 */
+    words->m02_m10 = 0;
+    words->m11_m12 = ONE;
+    words->m20_m21 = 0;
+    words->m22     = ONE;
+```
+
+Each `s32` write covers two halfwords, which is what makes the zero pairs
+(`m[0][2]+m[1][0]`, `m[2][0]+m[2][1]`) and the `ONE`-plus-zero pair
+(`m[1][1]+m[1][2]`) single instructions.  The same type recurs as
+`Actor141000MatWords` / `Actor350700MatWords` / `Actor335800MatWords`, whose
+headers assert the shape; `base_2.c` is the experiment behind it.  Reach for it
+whenever a `MATRIX` (or any 3x3-plus-halfword region) is splatted with constants
+and the target shows fewer stores than elements.
