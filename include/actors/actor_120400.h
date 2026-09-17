@@ -33,4 +33,19 @@ typedef struct Actor120400MainWork {
 } Actor120400MainWork;
 STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 
+/// `Gp_DispatchMsg` handler for message 0x7D5, the entry after 0x7D4 in the
+/// actor's handler table `D_actor_120400_8013E76C`: the same four-way model
+/// switch `ActorsShared80162bc4` performs, over this overlay's own work block.
+/// `mode` drives the `TmdObject` parked in `Task::extra` -- bit 0x80 marks the
+/// actor hidden and bit 0x4 the display buffers being live:
+///
+///   mode 0  hide, drop 0x4
+///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
+///   mode 2  hide, latch `mode` into `Actor120400MainWork::field_500`, raise 0x4
+///   mode 3  show, raise 0x4
+///
+/// Any other mode returns 1; the four known ones return 0. `arg1` is unused --
+/// the dispatch passes four arguments. Built by `actor_120400_6`.
+s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3);
+
 #endif

@@ -692,6 +692,29 @@ Inputs: `base.i` (switch operand at slot 1, 77.607%)
 `base_1.i` (four parameters, 100.000%)
 `d7042fad5532df59b80171ce284223c9be6d8c4f7259bc772a41a1dc1d34e097`.
 
+The mis-slotted parameter is also *typed* from its one use: m2c saw the target
+store it with `sh $a2,0x500($v1)` and declared it `s16`, so the seed carries an
+entry sign-extension the target does not have -
+
+```
+sll     $2,$5,0x10
+sra     $3,$2,0x10
+```
+
+Those two instructions shift every later address and arrive as `insert` /
+`delete` penalties on top of the arity error. A parameter written only through a
+halfword store is a full `s32` whose store truncates. `func_actor_120400_80132C38`
+scored 59.655% (`stack=0 branch=4 regs=7 reorder=8 insert=8 delete=9`) as m2c's
+`(void *arg0, s16 arg2)` seed, and 100.000% with every penalty zero once the body
+was taken from the shaped sibling `ActorsShared80162bc4` - byte-identical apart
+from that one work-block field offset (0x500 against 0x4C8), so no promotion -
+as `(Task* task, s32 arg1, s32 mode, s32 arg3)`.
+
+Inputs: `base.i` (two parameters, `s16` mode, 59.655%)
+`a72dcad9025ff92a43941dca8ab3a172e2b470db9c0610bfcbc43b7a359704a8`,
+`base_1.i` (four parameters, 100.000%)
+`717145565dd4d7766d5e952b32178b2e52a1b38b0ee490932d51acd941599514`.
+
 ## One `jr ra` shared by every arm is one `return` statement, not one per arm
 
 `HAVE_return` is defined for this target, so `stmt.c`'s `expand_null_return_1`
