@@ -3,12 +3,15 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
 extern u8         D_80115598;
 extern GpMsgEntry D_neo_ark_island_80181B48[];
+extern s16        D_80071076;
+extern s8         D_801153F4;
 
 /// Staging save location the island commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
@@ -20,15 +23,52 @@ extern TaskDesc D_neo_ark_island_80181B78;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", D_neo_ark_island_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017D650);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E2A4);
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E844);
+/// Island arrival sequence, advanced one step per call: step 0 asks for the
+/// caption, step 1 waits for the CAP system to go idle, step 2 clears the mode
+/// flag and waits for the event key it answers with - anything but 0xA kills
+/// the task and messages the player weapon - step 3 is the shared advance, and
+/// step 4 raises the outgoing sound, commits the staged save location to
+/// `Mc_SaveData` and spawns the task's successor.
+void func_neo_ark_island_8017E844(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            Gp_SpawnIfCapIdle(1, 0);
+            goto L_advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            goto L_advance;
+        case 2:
+            if (Gp_GetCapEventKey() != 0xA) {
+                Task_Kill(arg0);
+                Gp_MsgPlayerWeapon(1);
+                return;
+            }
+            D_801153F4 = 0;
+            goto L_advance;
+        case 3:
+        L_advance:
+            arg0->state++;
+            return;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076          = 1;
+            Mc_SaveData.field_6 = D_neo_ark_island_80184008.field_2;
+            Mc_SaveData.field_8 = D_neo_ark_island_80184008.field_4;
+            Mc_SaveData.field_5 = D_neo_ark_island_80184008.field_1;
+            Task_Spawn(0, 0x11, 0, 0);
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 s32 func_neo_ark_island_8017E960(void)
 {
