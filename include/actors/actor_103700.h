@@ -61,6 +61,13 @@ typedef struct Actor103700HoldScratch {
 } Actor103700HoldScratch;
 STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 
+/// Spawn argument reached through `Task::spawnArg2`: the high nibble of
+/// `field_8` selects the sound bank `func_actor_103700_80133AB4` plays from.
+typedef struct Actor103700Spawn {
+    /* 0x0 */ byte pad_0[0x8];
+    /* 0x8 */ u16  field_8;
+} Actor103700Spawn;
+
 /// Halfword bob table, one row of 15 per `arg1`: the row runs
 /// 0, 10, 19, 24, 25, 22, 15, 5, -5, -15, -22, -25 before returning to 0.
 /// Every use reads it as a signed halfword through `lh` and adds it to a
