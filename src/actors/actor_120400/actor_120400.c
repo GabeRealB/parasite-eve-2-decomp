@@ -108,7 +108,72 @@ INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132254);
 
-INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132398);
+/// The parent's placement handler, the same body `func_actor_335800_80162C80`
+/// and `func_actor_317000_80162458` run: the spawn position and rotation are
+/// copied straight into `Actor120400MainWork` at 0x4B8..0x4C0 / 0x4F0..0x4F4,
+/// and a start preset is built on the stack -- bank id 0, the optional start
+/// animation's id and companion byte (0x10 and 1 when absent), 1, 5 and 1 --
+/// and then applied in-line. A changed bank id latches `field_476` and reseeds
+/// the animation through `func_800B3F84` with the bank this overlay's
+/// `D_actor_120400_8013E744` selects; `field_475` takes the preset's animation
+/// id, and a preset asking for slots while `field_474` says the slots are
+/// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
+/// the `Gp_AnimResetSlot` one, followed by a `Gp_AnimTickIndex` pass over the
+/// same 0x14 slots and `field_474` raised. Returns 0 either way.
+s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place, Actor120400SpawnAnim* anim)
+{
+    Actor120400MainWork*   work;
+    Actor120400MainWork*   w;
+    Actor120400AnimPreset  preset;
+    Actor120400AnimPreset* msg;
+    s32                    i;
+    TmdObject*             ext;
+
+    w              = (Actor120400MainWork*)task->idMap;
+    w->field_4F8   = 1;
+    w->field_4FA   = 0;
+    w->field_4B8   = place->pos.vx;
+    w->field_4BC   = place->pos.vy;
+    w->field_4C0   = place->pos.vz;
+    w->field_4F0   = place->rot.vx;
+    w->field_4F2   = place->rot.vy;
+    w->field_4F4   = place->rot.vz;
+    preset.field_0 = 0;
+    if (anim != NULL) {
+        preset.field_4 = anim->field_0;
+        w->field_477   = anim->field_4;
+    } else {
+        preset.field_4 = 0x10;
+        w->field_477   = 1;
+    }
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 1;
+
+    msg  = &preset;
+    work = (Actor120400MainWork*)task->idMap;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_476) {
+        work->field_476 = msg->field_0;
+        func_800B3F84(&work->anim, D_actor_120400_8013E744[work->field_476], (GpAnimObj*)ext, work->poses,
+                      work->slots);
+    }
+    work->field_475 = msg->field_4;
+    if (msg->field_8 != 0 && work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114(&work->anim, i, work->field_475, 0, msg->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_474 = 1;
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", D_actor_120400_80131E20);
 
