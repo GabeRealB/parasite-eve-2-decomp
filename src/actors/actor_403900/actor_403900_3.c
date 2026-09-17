@@ -25,12 +25,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_3", func_actor_403900
 /// and depth-attenuated from the display object.
 void func_actor_403900_801347F4(Actor403900* arg0)
 {
-    Actor403900Work* work;
-    GpObj38*         coord;
-    s32              state;
-    s32              pan;
-    u32              random;
-    s16              timer;
+    Actor403900Work*  work;
+    Actor403900Coord* coord;
+    s32               state;
+    s32               pan;
+    u32               random;
+    s16               timer;
 
     *(u32*)0x1F8003FC -= 8;
     work               = arg0->field_1C;
@@ -59,8 +59,8 @@ void func_actor_403900_801347F4(Actor403900* arg0)
                 work->field_6DE = 5;
                 work->field_6E0 = 0;
                 work->field_6BC = D_actor_403900_8013846C | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
-                pan             = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)Gp_GetObjDepth(coord));
+                pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
             break;
     }
