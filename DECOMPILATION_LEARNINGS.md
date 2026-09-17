@@ -127724,3 +127724,30 @@ identical, and cross-jumping cannot fire. 91.0% -> 100.000%. The extra copies
 are also what makes the ROM hold `task` in a fifth saved register across the
 whole body, so the frame grows from 0x30 to 0x38 — a stack penalty of 0 at 91%
 was itself evidence the missing value was a pointer the source never spelled.
+
+## An `ActorsShared*` brief can name two different overlays — check the ASM path, not the C-file line
+
+**Problem.** The scratch brief for `ActorsShared80131e24Sub1` listed
+`ASM: asm/USA/actors/nonmatchings/actor_161500/actor_161500_2/...` but
+`C file: src/actors/actor_535700/actor_535700_7.c`, and quoted the latter's
+INCLUDE_ASM site. Those are two *different* functions: actor_161500's body is
+0x110 bytes (extra `func_actor_161500_8013252C` call plus a `field_4F0` ramp
+feeding `func_800B0928`), actor_535700's is 0x84.
+
+**Why.** The generated per-overlay `symbol_name_format` guarantees that
+`func_<overlay>_<addr>` identifies one overlay, but the hand-given
+`ActorsShared<addr>` names deliberately do not — the same name is defined
+independently in many actor overlays, and the bodies need not be copies of one
+another. The bootstrap resolves the function name across every overlay and the
+brief's ASM and C-file lines can land on different ones.
+
+**Fix.** `target.s` in the scratch is authoritative: it is the body `build.sh`
+scores against, so read its first instructions and find the overlay whose
+`.s` they come from, rather than trusting the brief's `C file:` line. Porting
+into the wrong overlay's `.c` does not silently pass — the overlay checksum
+fails — but it wastes a build and misreads the diff.
+
+Note also that `overlay_dup_index.py find` correctly reported "1 copies" here,
+covering only actor_161500: it compares bodies, so the same-named actor_535700
+function is not a copy and does not show up. A `find` that lists fewer overlays
+than `grep -rn <name> src/` is the same signal.
