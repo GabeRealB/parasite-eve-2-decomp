@@ -116537,3 +116537,41 @@ A `MATRIX* m = &rot` variable used for the call instead lets sched hoist its `ad
 earlier call. Same function: `{sxy0, dp, sxy1, otz}` packed at 0x40..0x50 needs a local
 `struct { DVECTOR sxy; s32 z; } proj[2]` — separate `DVECTOR` locals round to 8 bytes each and
 push the addressable scalars after them.
+## A register-relative struct fill needs its pointer to die before the next call (func_dryfield_breezeway_8017DEC0, 2026-09-17)
+
+"A pointer local is what makes a *local* struct's stores register-relative"
+has the mechanism; this is the constraint on the other end of it. The record
+fill in `func_dryfield_breezeway_8017DEC0`'s state 2 has the split
+(`0x18(sp)` and `0x28(sp)` for `field_0`/`field_10`, `4/8/0xc($a1)` for the
+middle three, `addiu $a1,$sp,0x18` in the case's first delay slot), and adding
+`rec = &buf.rec;` for the middle three is what produces it.
+
+Where the pointer's *last use* sits decides the register. The message call
+passes `&buf`, which reload rematerialises from the frame pointer - so the
+pointer is dead before `Game_GetPtrSlot` and local-alloc keeps it in `$a1`.
+Passing the pointer itself there (`(s32)rec` for `(s32)&buf`) keeps it live
+across that call, and the base becomes callee-saved instead of `$a1`: 97.1%.
+Same for moving the assignment after the first store it serves - CSE has no
+register yet when it folds that store, and the base ends up in `$s0`: 93.7%.
+Both differences are one line of source each, and both are invisible in the
+object diff beyond the register column, so check the pointer's live range
+before suspecting reload.
+
+## `lhu` + `slti` in a dispatch means a `u16` field compared through an `s32` local (func_dryfield_breezeway_8017DEC0, 2026-09-17)
+
+The same function's state dispatch loads `lhu $v1,0xC($s1)` and then tests
+`slti $v0,$v1,2` - unsigned load, signed compare. m2c's transcription (a `u16`
+local switched directly) gives `sltiu`, and an `s16` field would have loaded
+`lh`. The pair fixes both halves: the field is `u16` so the load is `lhu`, and
+it is read into an `s32` local first, so both operands of the compare are `int`
+and `shorten_compare` cannot narrow it back to HImode.
+
+The tree shape around it is the other half. A two-case `switch` lays its
+dispatch out as `beq case1 / li case2 / beq case2 / j default`; the target has
+a range test between the equalities (`slti $v0,$v1,2; bnez` to the post-switch
+store). That is `emit_case_nodes` walking a three-node tree: an explicit empty
+`case 0:` below case 1 makes case 1 the root, the empty case its left child,
+and the empty case's `break` is what the range test jumps to. Writing
+`default:` first then fixes the block order - dispatch, default body, then the
+case bodies in source order - which is the target's `[dispatch][default]
+[case1][case2][tail]` layout.
