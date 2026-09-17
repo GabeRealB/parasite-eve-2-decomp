@@ -17,7 +17,55 @@ void func_dryfield_night_gas_station_80180C20(void)
     D_dryfield_night_gas_station_801907AC = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_7", func_dryfield_night_gas_station_80180C3C);
+/// Gates the room's flag views on its own argument: the flags at 0x34 / 0x3C
+/// of the five views the current room's sprite record points at are cleared for
+/// a 0 argument and set to the argument for a 1, and any other argument changes
+/// nothing. Each view takes only the flag it carries -- the first at 0x34
+/// alone, the last two at 0x3C alone -- and
+/// `func_dryfield_night_gas_station_80180DC8` drives the 0x44 / 0x4C / 0x54
+/// flags of the 0xA0 / 0xAC / 0xC4 three instead.
+void func_dryfield_night_gas_station_80180C3C(s32 arg0)
+{
+    GameSessionFrom4*                sess;
+    DryfieldNightGasStationSprtRec*  rec;
+    DryfieldNightGasStationSprtView* view;
+    s32                              flag;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    rec  = (DryfieldNightGasStationSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    flag = arg0 & 0xFF;
+
+    switch (flag) {
+        case 0:
+            view           = rec->field_34;
+            view->field_34 = 0;
+            view           = rec->field_94;
+            view->field_34 = 0;
+            view->field_3C = 0;
+            view           = rec->field_A0;
+            view->field_34 = 0;
+            view->field_3C = 0;
+            view           = rec->field_AC;
+            view->field_3C = 0;
+            view           = rec->field_C4;
+            view->field_3C = 0;
+            break;
+        case 1:
+            view           = rec->field_34;
+            view->field_34 = flag;
+            view           = rec->field_94;
+            view->field_34 = flag;
+            view->field_3C = flag;
+            view           = rec->field_A0;
+            view->field_34 = flag;
+            view->field_3C = flag;
+            view           = rec->field_AC;
+            view->field_3C = flag;
+            view           = rec->field_C4;
+            view->field_3C = flag;
+            break;
+    }
+}
 
 /// Gates the room's two sprite command records on game flag nibble 0x8D: a
 /// zero nibble clears both commands' skip-link flag, a one sets it. The two
