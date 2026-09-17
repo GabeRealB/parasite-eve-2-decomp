@@ -1,13 +1,19 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/neo_ark_observatory.h"
 
 extern SVECTOR D_neo_ark_observatory_80181368;
 extern s16     D_neo_ark_observatory_8018136A; // D_neo_ark_observatory_80181368.vy
+extern s16     D_80071076;
 
 void func_neo_ark_observatory_8017FE34(GsCOORDINATE2* coord, SVECTOR* offset);
 
@@ -106,7 +112,62 @@ s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory_2", func_neo_ark_observatory_8017F588);
+/// Departure task. State 0 stages the descriptor's halfword into a `GpMsg3EE`
+/// record and sends it to the slot-3 game pointer as message 0x3EE - the
+/// all-ones halfword is the "nothing staged" marker, and the task skips to
+/// state 2 rather than sending it. State 1 polls that same pointer with 0x3F0,
+/// states 2 and 3 queue the descriptor's sound event and wait for the voice to
+/// go quiet, and each of them advances the state once its call reports 0.
+/// State 4 commits the save location the descriptor names, re-spawns the
+/// player task as type 0x11 and kills itself.
+void func_neo_ark_observatory_8017F588(Task* arg0)
+{
+    GpMsg3EE msg;
+    void*    slot;
+
+    slot = Game_GetPtrSlot(3);
+    switch (arg0->state) {
+        case 0:
+            msg.field_12 = D_neo_ark_observatory_80187A34;
+            if (msg.field_12 == -1) {
+                arg0->state = 2;
+                break;
+            }
+            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            arg0->state = (s32)(arg0->state + 1);
+            break;
+        case 1:
+            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
+                arg0->state = (s32)(arg0->state + 1);
+            }
+            break;
+        case 2:
+            if (D_neo_ark_observatory_80187A38 == 0) {
+                arg0->state = 4;
+                break;
+            }
+            SndEvt_EnqueueType6(D_neo_ark_observatory_80187A38, 0, 0);
+            arg0->state = (s32)(arg0->state + 1);
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(D_neo_ark_observatory_80187A38) == 0) {
+                arg0->state = (s32)(arg0->state + 1);
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7((s32)0x80000000, 0);
+            D_80071076          = 1;
+            Mc_SaveData.field_7 = D_neo_ark_observatory_80187A30.field_0;
+            Mc_SaveData.field_6 = D_neo_ark_observatory_80187A30.field_1;
+            Mc_SaveData.field_8 = D_neo_ark_observatory_80187A30.field_2;
+            Mc_SaveData.field_5 = D_neo_ark_observatory_80187A30.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            Task_Kill(arg0);
+            break;
+        default:
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory_2", func_neo_ark_observatory_8017F6F8);
 
