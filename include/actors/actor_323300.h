@@ -49,7 +49,10 @@ typedef struct Actor323300Work {
     /* 0x4CC */ s32        field_4CC;
     /* 0x4D0 */ s32        field_4D0;
     /* 0x4D4 */ s32        field_4D4;
-    /* 0x4D8 */ byte       pad_4D8[0x26];
+    /* 0x4D8 */ byte       pad_4D8[0x1E];
+    /* 0x4F6 */ u16        field_4F6; // target yaw the turn-to-face body steers toward
+    /* 0x4F8 */ byte       pad_4F8[0x4];
+    /* 0x4FC */ s16        field_4FC;
     /* 0x4FE */ s16        field_4FE;
     /* 0x500 */ s16        field_500;
     /* 0x502 */ s16        field_502;
@@ -129,6 +132,7 @@ extern Actor323300Placement D_actor_323300_8017259C;
 /// `func_actor_323300_801628B8`.
 extern Actor323300AnimPreset D_actor_323300_801725B4;
 extern Actor323300AnimPreset D_actor_323300_801725C8;
+extern Actor323300AnimPreset D_actor_323300_801725DC;
 
 void func_actor_323300_801626D0(Task* arg0);
 void func_actor_323300_8016269C(Task* arg0);

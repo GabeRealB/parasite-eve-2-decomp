@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/abs.h>
+
 #include "actors/actor_323300.h"
 
 #include "gameplay/gameplay.h"
@@ -107,7 +109,58 @@ void func_actor_323300_80162748(Task* arg0)
     work->field_4FE++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801627B4);
+/// State handler at index 1 of the two-entry table `func_actor_323300_801626F4`
+/// dispatches, the turn-to-face body whose twins are
+/// `func_actor_335800_801631A4`, `func_actor_113100_801330E8` and
+/// `func_actor_350700_80162764`. Euler-extracts the root coordinate into `vec`
+/// and, while the yaw gap to the target `work->field_4F6` stays under 0x41,
+/// snaps `vec.vy` to that target, plays anim 0x7D3 through
+/// `func_actor_323300_801628B8` and parks all 18 animation slots at 0x16 --
+/// `field_4FC` and `field_4FE` go back to zero, so the handler re-runs. A wider
+/// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
+/// coordinate is rebuilt as the identity matrix rotated by `vec`, with `flg`
+/// cleared so the next `Gp_UpdateCoord` recomputes it.
+void func_actor_323300_801627B4(Task* arg0)
+{
+    Actor323300Work*   work;
+    Actor323300Matrix* words;
+    GsCOORDINATE2*     coord;
+    SVECTOR            vec;
+    s16                diff;
+    s32                vy;
+    s32                i;
+
+    coord = ((TmdObject*)arg0->extra)->field_8;
+    work  = (Actor323300Work*)arg0->idMap;
+
+    Gp_ExtractEuler(&vec, &coord->coord);
+    diff = (u16)work->field_4F6 - (u16)vec.vy;
+    if (ABS(diff) >= 0x41) {
+        vy = vec.vy;
+        if (diff < 0) {
+            vec.vy = vy - 0x40;
+        } else {
+            vec.vy = vy + 0x40;
+        }
+    } else {
+        vec.vy = work->field_4F6;
+        func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725DC, 0);
+        for (i = 1; i < 0x13; i++) {
+            work->slots[i].field_9 = 0x16;
+        }
+        work->field_4FC = 0;
+        work->field_4FE = 0;
+    }
+
+    words                = (Actor323300Matrix*)&coord->coord;
+    words->ident.m00_m01 = 0x1000;
+    words->ident.m02_m10 = 0;
+    words->ident.m11_m12 = 0x1000;
+    words->ident.m20_m21 = 0;
+    words->ident.m22     = 0x1000;
+    RotMatrix(&vec, &coord->coord);
+    coord->flg = 0;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801628B8);
 
