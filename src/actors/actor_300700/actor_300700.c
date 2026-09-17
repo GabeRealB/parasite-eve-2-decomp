@@ -66,6 +66,7 @@ extern s16 D_actor_300700_8016933C[];
 extern u16 D_actor_300700_8016934C[];
 extern s16 D_actor_300700_8016936C[];
 extern u16 D_actor_300700_8016937C[];
+extern s16 D_actor_300700_8016939C[];
 
 void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
 {
@@ -691,7 +692,130 @@ post:
     func_actor_300700_80165000(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_80164070);
+void func_actor_300700_80164070(Actor300700* arg0)
+{
+    VECTOR*           vec;
+    Actor300700Work*  work;
+    Actor300700Obj2C* obj;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    target;
+    s32               state;
+    s32               one;
+    s32               dist;
+    s32               raw;
+    s16               diff;
+    s32               adiff;
+    s32               ang;
+    s32               vel;
+    s32               pan;
+    s32               snd;
+
+    one   = 1;
+    vec   = (VECTOR*)(SCRATCH_SP -= 0x10);
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    state = work->field_37C;
+    coord = obj->field_8;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto pop;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto pop;
+case0:
+    Gp_ArmStateF0(1);
+    if (work->field_33C == 0) {
+        work->field_33C = ((Actor300700*)Game_GetPtrSlot(3))->field_2C->field_8;
+    }
+    target          = work->field_33C;
+    vec->vx         = target->coord.t[0] - coord->coord.t[0];
+    vec->vy         = 0;
+    vec->vz         = target->coord.t[2] - coord->coord.t[2];
+    work->field_38A = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
+    work->field_386 = 0x19;
+    work->field_38C = work->field_38C - 1;
+    if ((s16)work->field_38C > 0) {
+        goto dist;
+    }
+    work->field_37A = 0;
+    work->field_37C = 0;
+    work->field_37E = one;
+    work->field_38C = 0;
+dist:
+    dist = SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz);
+    if (dist < 0x2BC) {
+        raw   = work->field_38A - (u16)work->field_388;
+        diff  = raw;
+        adiff = diff >= 0 ? diff : -diff;
+        if (adiff < 0x800) {
+            ang = adiff;
+            goto wrap_done;
+        }
+        if (diff > 0) {
+            ang = 0x1000 - raw;
+            goto wrap_done;
+        }
+        ang = raw + 0x1000;
+    wrap_done:
+        if ((s16)ang < 0x32) {
+            work->field_37E = 4;
+            work->field_384 = 0;
+            work->field_386 = 0;
+            work->field_37C = 1;
+            goto pop;
+        }
+        work->field_384 = 0;
+        goto pop;
+    }
+    work->field_384 = 0x32;
+    goto pop;
+case1:
+    if ((s16)work->field_382 == 0x14) {
+        work->field_31A |= 0x8000;
+    }
+    if ((s16)work->field_382 < 0x20) {
+        goto pop;
+    }
+    work->field_37E  = 3;
+    work->field_37C  = 2;
+    work->field_31A &= 0x7FFF;
+    goto pop;
+case2:
+    vel = 0;
+    if ((s16)work->field_382 < 0xB) {
+        vel = -0x78;
+    }
+    work->field_384 = vel;
+    if ((s16)work->field_382 < 0x1F) {
+        goto pop;
+    }
+    snd = ((arg0->field_20->field_8 >> 12) << 8) | 0x40070004;
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(coord));
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[arg0->field_20->field_3C->field_F]) {
+        work->field_37C = 0;
+        work->field_37E = state;
+        goto pop;
+    }
+    work->field_37A = 0;
+    work->field_37C = 0;
+    work->field_37E = one;
+    work->field_38C = 0;
+    work->field_38E = 0;
+    work->field_394 = 0;
+pop:
+    SCRATCH_SP += 0x10;
+}
 
 /// `D_80073B8C` is the camera-target matrix the vector below is measured from.
 extern MATRIX* D_80073B8C;
