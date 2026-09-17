@@ -27,6 +27,7 @@ extern u8  D_801156F9;
 extern RECT D_dryfield_dilapidated_house_80183E7C;
 extern RECT D_dryfield_dilapidated_house_80183E84;
 
+extern s32            D_dryfield_dilapidated_house_80189B70;
 extern s32            D_dryfield_dilapidated_house_80189B6C;
 extern s32            D_dryfield_dilapidated_house_80183EFC;
 extern s32            D_dryfield_dilapidated_house_80184408;
@@ -148,7 +149,67 @@ void func_dryfield_dilapidated_house_8017E014(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E144);
+/// Screen-blackout timer of task-table entry 2: `func_dryfield_dilapidated_house_8017E970`
+/// arms it by writing state 2 and a frame count into `spawnArg1` (a 0 arg resets
+/// it to state 0 instead). State 2 copies that count into the shared countdown
+/// `D_dryfield_dilapidated_house_80189B70` and falls through to state 3, whose
+/// `var_s1` is the shared "paint the screen black" flag; state 4 runs the
+/// countdown and at 0 calls `func_dryfield_dilapidated_house_8017E9A4(0xF)`,
+/// which starts the room's captured-image scene, then raises the flag again once
+/// the count is 15 frames past that hand-off, keeping the screen black over it.
+/// The flag paints the whole frame with a zeroed `TILE` carved out of
+/// `Gpu_PrimCursor` and links it into `Gpu_CurrentOt`. When `D_801156F9` is set
+/// the task does nothing at all.
+void func_dryfield_dilapidated_house_8017E144(Task* task)
+{
+    TILE* tile;
+    s32   var_s1;
+    s32   temp_v0;
+    s32   temp_v1;
+
+    var_s1 = 0;
+    if (D_801156F9 == 0) {
+        temp_v1 = task->state;
+        switch (temp_v1) {
+            case 0:
+                task->state = task->state + 1;
+                break;
+            case 1:
+                break;
+            case 2:
+                D_dryfield_dilapidated_house_80189B70 = task->spawnArg1;
+                task->state                           = task->state + 1;
+                /* fallthrough */
+            case 3:
+                var_s1      = 1;
+                task->state = task->state + var_s1;
+                break;
+            case 4:
+                temp_v0                               = D_dryfield_dilapidated_house_80189B70 - 1;
+                D_dryfield_dilapidated_house_80189B70 = temp_v0;
+                if (temp_v0 == 0) {
+                    func_dryfield_dilapidated_house_8017E9A4(0xF);
+                }
+                if (D_dryfield_dilapidated_house_80189B70 < -0xF) {
+                    var_s1 = 1;
+                }
+                break;
+        }
+        if (var_s1 != 0) {
+            tile           = (TILE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            SetTile(tile);
+            tile->x0 = -0xA0;
+            tile->y0 = -0x80;
+            tile->w  = 0x140;
+            tile->h  = 0x100;
+            tile->r0 = 0;
+            tile->g0 = 0;
+            tile->b0 = 0;
+            addPrim(Gpu_CurrentOt, tile);
+        }
+    }
+}
 
 /// Scene-clear task: the room's hand-off to the rest of the game. State 0
 /// starts the streamed scene named by the two blocks `func_800E8634` takes,

@@ -100,6 +100,7 @@ STATIC_ASSERT_SIZEOF(DdhCaptureArgs, 0x4);
 
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
+void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
 void func_dryfield_dilapidated_house_8017EBB8(Task* task);
 void func_dryfield_dilapidated_house_8017EE58(Task* task);
 void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);

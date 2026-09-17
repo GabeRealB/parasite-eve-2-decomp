@@ -44520,6 +44520,37 @@ So follow the `(id, handler)` table to the function that installs it whenever th
 handler is not adjacent to the allocator; the offsets are then read against that
 task's block alone.
 
+## `Gpu_PrimCursor` is a `DR_TPAGE*` (8 bytes) while the packet carved out of it is a 0x10 `TILE`, so m2c's cursor bump comes out 8x
+
+`func_dryfield_dilapidated_house_8017E144`'s seed reached 90.87% with exactly one
+structural line in the diff: `addiu v0,s0,0x80` where the target has
+`addiu v0,s0,0x10`. m2c had typed the packet `DR_TPAGE *temp_s0` and written
+`Gpu_PrimCursor = temp_s0 + 0x10;`, scaling by `sizeof(DR_TPAGE)`. The cursor
+global really is `DR_TPAGE*` (`main/display.h`), but that is a decoy: the packets
+carved out of it are not `DR_TPAGE`s, the 0x10 is a `TILE`, and the rest of the
+diff - `regs=15` over the two tag-mask constants, a load-delay `nop` in the
+switch - was allocation and scheduling noise that followed from the wrong element
+size, not separate defects.
+
+The fix is the form every matched drawing body in the tree already uses:
+
+```c
+tile           = (TILE *)Gpu_PrimCursor;
+Gpu_PrimCursor = (DR_TPAGE *)(tile + 1);
+SetTile(tile);
+/* ...field writes... */
+addPrim(Gpu_CurrentOt, tile);
+```
+
+with the tag written by the `libgpu.h` macro rather than m2c's hand-rolled
+`(tag & 0xFF000000) | (*ot & 0xFFFFFF)`: `P_TAG.addr` is a 24-bit bitfield, so
+the macro's two `setaddr`s compile to exactly that `and`/`and`/`or` pair, in the
+target's operand order. 100.00% on the first rebuild (`base_1.c`, 1 attempt), and
+the same body shape is in `acropolis_plaza_4.c`, `actor_151000` and `font.c`, so
+read one of those before planning a prim-building body rather than reasoning from
+the seed. A wrong `addiu` on `Gpu_PrimCursor` is a *type* question: read the
+target immediate as the packet's size, never as the cursor pointee's.
+
 ## Prove a struct-typing pass with `bulk_m2c`'s own scorer, before taking the lock
 
 Retyping an m2c seed is not codegen-neutral (see "Struct-typing a body changes
