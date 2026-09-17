@@ -28,10 +28,16 @@ typedef struct ActorShared8014df20Work {
     /* 0x16C */ GpRec18      field_16C[1];
     /* 0x184 */ GpObj        field_184;
     /* 0x1A4 */ GpRec18      field_1A4[4];
-    /* 0x204 */ byte         pad_204[0x88];
+    /* 0x204 */ byte         pad_204[0x50];
+    /* 0x254 */ s32          field_254; // position restored when the push-back conflicts
+    /* 0x258 */ s32          field_258;
+    /* 0x25C */ s32          field_25C;
+    /* 0x260 */ byte         pad_260[0x2C];
     /* 0x28C */ s16          field_28C;
     /* 0x28E */ s16          field_28E;
-    /* 0x290 */ byte         pad_290[0x14];
+    /* 0x290 */ byte         pad_290[0x10];
+    /* 0x2A0 */ s16          field_2A0;
+    /* 0x2A2 */ byte         pad_2A2[2];
     /* 0x2A4 */ s16          field_2A4;
     /* 0x2A6 */ s16          field_2A6;
     /* 0x2A8 */ s16          field_2A8;

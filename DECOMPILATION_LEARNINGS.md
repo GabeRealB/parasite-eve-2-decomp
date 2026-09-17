@@ -114192,3 +114192,23 @@ and keep the copies after the draw too. Cross-jumping merges the two tails after
 sched1, so the merged block's order comes from a different schedule and lands on
 the target exactly. When a single-block reorder is priority-locked, suspect a
 duplicated source tail rather than statement order.
+
+## A call's `a0` setup in the delay slot of the *preceding* `if` branch means the call is duplicated in both arms (func_actor_207200_8014A588)
+
+**Symptom:** 96.7%, `regs=64`. Retail: `beqz v0, else` with `move a0,s2` in its
+delay slot, then per-arm `lhu`/`srl` for a sound id, and at the join
+`sll; jal Gp_GetObjPan` with `or s1,v0,t0` in the call's delay slot. Writing the
+if/else to pick `snd` and one shared `SndEvt_EnqueueType6(snd, (s8)Pan(c), (s8)Depth(c))`
+after it puts `move a0` in `jal`'s slot instead, and shifts global-alloc
+priorities enough to swap two pairs of callee-saved registers.
+
+**Cause:** with the call written in each arm, each arm's sched2 orders the
+`a0` load before the `or`; jump2 then cross-jumps the identical tails, dbr fills
+`jal` with the `or`, and `fill_eager_delay_slots` steals the now-free `a0` load
+across the join label into the branch's slot. The per-arm refs also restored
+the retail allocation order (`regs` went to 0 in the same build).
+
+**Fix:** put the full call (`snd = ...; SndEvt_EnqueueType6(...)`) in both
+arms. The remaining stack-store order of spilled constants (`sw zero,0x14(sp)`
+before `sw t0,0x1c(sp)`) followed from writing `i = 0;` ahead of the two
+constant assignments with a `do/while`.

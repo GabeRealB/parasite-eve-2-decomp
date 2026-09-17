@@ -140,6 +140,16 @@ typedef struct Actor207200 {
     /* 0x2C */ void*            field_2C; // `Task::extra`: the actor's TmdObject
 } Actor207200;
 
+/// 0x38-byte block `func_actor_207200_8014A588` takes from `G_SCRATCH_HEAD`:
+/// `delta` receives the `func_800E0C10` push-back and is then reused for the
+/// offset to the player.
+typedef struct Actor207200HitScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ byte           pad_30[8];
+} Actor207200HitScratch;
+STATIC_ASSERT_SIZEOF(Actor207200HitScratch, 0x38);
+
 /// Effect-setup record handed to the spawned task through `D_80062730`.
 extern u8      D_actor_207200_801517F8[];
 extern SVECTOR D_actor_207200_80153F18;
