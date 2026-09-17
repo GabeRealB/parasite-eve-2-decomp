@@ -7,6 +7,17 @@
 
 #include "gameplay/1BC.h"
 
+/// Dual-width view of the animation rate at 0x886. The message handler
+/// `func_actor_210600_8014B770` arms the pair as one halfword, while the
+/// seeding body copies the low byte into every slot's `GpAnimSlot::field_9`,
+/// the rate `Gp_AnimResetSlot` otherwise writes 0x10 into; the same
+/// `word` / `half` overlap `ActorsShared80168d3cFlags` describes.
+typedef union Actor210600Rate {
+    /* 0x0 */ u16 half;
+    /* 0x0 */ u8  byte;
+} Actor210600Rate;
+STATIC_ASSERT_SIZEOF(Actor210600Rate, 0x2);
+
 /// Per-actor state block for the `actor_210600` overlay. `func_actor_210600_8014B8C8`
 /// is the overlay's allocator: it calls `Mem_Calloc(0x8D8, 0)` and stores the
 /// result in `Task::idMap` (0x1C), which an enemy actor reuses for its own work
@@ -22,14 +33,24 @@ typedef struct Actor210600Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[0x13];
     /* 0x30C */ byte       field_30C[0x570];
-    /* 0x87C */ s16        field_87C;
-    /* 0x87E */ byte       pad_87E[0x4];
-    /* 0x882 */ u16        field_882;
-    /* 0x884 */ byte       pad_884[0x2];
-    /* 0x886 */ s16        field_886;
-    /* 0x888 */ byte       pad_888[0x8];
-    /* 0x890 */ s16        field_890;
-    /* 0x892 */ byte       pad_892[0x4];
+    /// Animation request state. `field_87C` is the step the seeding body
+    /// `func_actor_210600_8014B2C0` dispatches on -- 1 seeks every slot to
+    /// `field_882`, 2 resets them, and both settle on 3 and clear the frame
+    /// counter at `field_884`, which the running step then counts in.
+    /// `field_882` is the requested clip, `field_880` the clip the previous
+    /// request latched (the row `D_actor_210600_8015A498` is indexed with);
+    /// `field_88A` steps 2 to 3 on the first update that sees it at 2.
+    /* 0x87C */ s16             field_87C;
+    /* 0x87E */ byte            pad_87E[0x2];
+    /* 0x880 */ s16             field_880;
+    /* 0x882 */ u16             field_882;
+    /* 0x884 */ u16             field_884;
+    /* 0x886 */ Actor210600Rate field_886;
+    /* 0x888 */ byte            pad_888[0x2];
+    /* 0x88A */ s16             field_88A;
+    /* 0x88C */ byte            pad_88C[0x4];
+    /* 0x890 */ s16             field_890;
+    /* 0x892 */ byte            pad_892[0x4];
     /// Clip id of slot 0 the update body last saw, masked to 12 bits and kept
     /// so the once-per-clip effect is not respawned while it is held; the same
     /// slot `Actor110600AnimWork::field_8AC` remembers its cue in.
@@ -61,6 +82,12 @@ typedef struct Actor210600StateFuncTable3 {
 STATIC_ASSERT_SIZEOF(Actor210600StateFuncTable3, 0xC);
 
 extern Actor210600StateFuncTable3 D_actor_210600_80149E24;
+
+/// Step table the seeding body `func_actor_210600_8014B2C0` walks: one 5-byte
+/// row per clip the previous request latched in `Actor210600Work::field_880`,
+/// addressed by the requested clip in `field_882`. The byte it reads is handed
+/// to `func_800B4114` as the request's fifth argument.
+extern s8 D_actor_210600_8015A498[][5];
 
 /// Stack copy `func_actor_210600_8014BA3C` makes before the indirect call.
 /// The copy itself moves only the 3 words of `D_actor_210600_80149E24`, but

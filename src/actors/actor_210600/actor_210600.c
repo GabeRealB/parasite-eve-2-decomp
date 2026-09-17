@@ -20,11 +20,61 @@ INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8014AB74);
 
-INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8014B2C0);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Animation request handler: step 1 of the work block's `field_87C` seeks
+/// every slot 1..18 to the clip in `field_882` through `func_800B4114`,
+/// passing `field_886`'s rate byte into the slot and the step `field_880`'s row
+/// of `D_actor_210600_8015A498` as the request's fifth argument, then latches
+/// the clip into `field_880`; step 2 does the same through
+/// `Gp_AnimResetSlot`. Both settle on step 3 and clear the frame counter at
+/// `field_884`, which is counted from here on while every slot is ticked.
+void func_actor_210600_8014B2C0(Task* task)
+{
+    Actor210600Work* work;
+    Actor210600Work* start;
+    Actor210600Work* reset;
+    Actor210600Work* tick;
+    s32              i;
+    s32              j;
+    s32              k;
+
+    work = (Actor210600Work*)task->idMap;
+    if (work->field_87C == 1) {
+        start = (Actor210600Work*)task->idMap;
+        for (i = 1; i < 0x13; i++) {
+            start->slots[i].field_9 = start->field_886.byte;
+            func_800B4114(&start->anim, i, (s16)start->field_882, 0,
+                          D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
+        }
+        start->field_880 = start->field_882;
+        goto advance;
+    }
+    if (work->field_87C == 2) {
+        reset = (Actor210600Work*)task->idMap;
+        for (j = 1; j < 0x13; j++) {
+            reset->slots[j].field_9 = reset->field_886.byte;
+            Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_882);
+        }
+        reset->field_880 = reset->field_882;
+    advance:
+        work->field_87C = 3;
+        work->field_884 = 0;
+    }
+    if (work->field_88A == 2) {
+        work->field_88A = 3;
+    }
+    work->field_884++;
+    tick = (Actor210600Work*)task->idMap;
+    for (k = 1; k < 0x13; k++) {
+        tick->slots[k].field_9 = tick->field_886.byte;
+        Gp_AnimTickIndex(&tick->anim, k);
+    }
+}
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
-
-void func_actor_210600_8014B2C0(Task* task);
 
 /// Rebuilds the model's root part rotation around the yaw it already faces and
 /// rescales it uniformly through a 0x34-byte block borrowed from

@@ -125045,3 +125045,69 @@ scratch pointer by `sizeof(MATRIX)` (`addiu s0,s2,-0x680`) and burned an extra
 Inputs: `base_1.c` source `e46795b5…`, preprocessed `dd76ada1…`, target
 `f7bd92eb…`, compiler `60d886cd…`; scratch
 `nonmatchings/func_actor_210600_8014B434-vacuum/`.
+
+## A `u16` field that feeds a call argument *and* an array index needs the `(s16)` cast at both uses
+
+`func_actor_210600_8014B2C0` reads one clip id twice per slot:
+
+```
+lh      v1,0x880(s0)      /* row   */
+lh      a2,0x882(s0)      /* clip: one signed load ...      */
+sll     v0,v1,2
+addu    v0,v0,v1
+addu    v0,a2,v0          /* ... used as the column  ...    */
+addu    v0,v0,s4
+lb      v0,0(v0)
+...
+jal     func_800B4114     /* ... and as the third argument  */
+```
+
+The field is `u16`, and that is right: the tail's `field_880 = field_882` is
+`lhu` + `sh`. But `(zero_extend:SI (mem:HI))` and `(sign_extend:SI (mem:HI))`
+are *different expressions* to cse, so a plain `D_actor_...498[row][clip]`
+index gets its own `lhu` and the loop runs one instruction long, with the row
+product re-homed into `$v1` behind it:
+
+```
+lh      a2,0x880(s0)
+lhu     v1,0x882(s0)      /* second load, zero-extended */
+sll     v0,a2,0x2
+addu    v0,v0,a2
+addu    v1,v1,v0
+addu    v1,v1,s4
+lh      a2,0x882(s0)      /* the argument's, sign-extended */
+lb      v0,0(v1)
+```
+
+97.819%, `regs=8 branch=5 insert=1` — a penalty shape that reads as an
+allocation problem ("one register is one off") and is not one. Spelling the
+cast at both uses collapses the two loads into the single `lh` the target has
+and the object becomes byte-identical:
+
+```c
+func_800B4114(&start->anim, i, (s16)start->field_882, 0,
+              D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
+```
+
+The rule is the mirror of "A `u16` parameter masked twice: hoist it into a
+`u32` local": there the fix is one value with a single extension, here it is
+one *signed* value shared by a call and an index, and a cast at only one of
+them silently buys a second load. `s16 start->field_880` needs no cast — its
+only use is the row, and the target's signed load comes from the declaration.
+
+Two things about the same function worth carrying forward. The 0x886 rate byte
+is a dual-width field (the matched message handler stores it with `sh`, this
+body reads it with `lbu`), so it wants the union from "Same-offset `lhu` vs
+`lbu` needs a union, not a cast" — and the union member rename costs exactly
+one line of the matched handler. And the body is one of a family
+(`func_actor_311900_80162100`, `func_acropolis_bridge_8018581C`) whose C is
+written out: `work` plus a per-branch `start`/`reset`/`tick` alias, each
+re-loading `task->idMap`, the `for (i = 1; i < N; i++)` seeding loop, and the
+`advance:` label sitting *inside* the second branch. Copying that shape rather
+than m2c's `goto`-ified version is what took the baseline's 76.441% to 97.819%
+in one build; the remaining gap was the cast above.
+
+Inputs: `base_1.c` source `4c2bdd79…`, preprocessed `a12e1450…` (97.819%),
+`base_2.c` source `0b947826…`, preprocessed `b4ce2c26…` (100.000%), target
+`9ede8929…`, compiler `60d886cd…`; scratch
+`nonmatchings/func_actor_210600_8014B2C0-vacuum/`.

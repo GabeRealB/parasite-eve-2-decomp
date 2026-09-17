@@ -15,10 +15,10 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg)
     if (msg->field_0 == 0x401) {
         selector = msg->field_2;
         if (selector == 1) {
-            work->field_886 = 0x10;
-            work->field_882 = selector;
-            work->field_890 = 0;
-            work->field_87C = 2;
+            work->field_886.half = 0x10;
+            work->field_882      = selector;
+            work->field_890      = 0;
+            work->field_87C      = 2;
         }
     }
     return 1;
