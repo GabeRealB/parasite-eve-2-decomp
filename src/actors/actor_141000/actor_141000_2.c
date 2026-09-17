@@ -11,6 +11,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -223,7 +224,57 @@ void func_actor_141000_80133260(Actor141000* arg0)
     func_actor_141000_80131E94(arg0, sp10, spD0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801332A0);
+void func_actor_141000_801339F8(void);
+void func_actor_141000_80133A00(Task* arg0);
+void func_actor_141000_801335D4(GpActorWork* arg0);
+
+/// Per-frame tick of the model actor, the twin of `func_actor_335800_80163568`:
+/// runs the motion handler `field_4C0` selects, steps the 16.16 accumulators
+/// by `step` and moves the coordinate by their integer part, ticks the
+/// animation slots and ground shadow while visible, runs the texture-upload
+/// state, and counts `field_4C9` down to the buffer free.
+void func_actor_141000_801332A0(Task* task)
+{
+    TmdObject*       ext      = task->extra;
+    Actor141000Work* work     = (Actor141000Work*)task->idMap;
+    TaskFunc         funcs[2] = { (TaskFunc)func_actor_141000_801339F8, func_actor_141000_80133A00 };
+    VECTOR3          pos;
+    GsCOORDINATE2*   coord;
+    s32              i;
+
+    funcs[(s16)work->field_4C0](task);
+    coord              = ((TmdObject*)task->extra)->field_8;
+    work->field_4A0   += work->step.vx;
+    work->field_4A4   += work->step.vy;
+    work->field_4A8   += work->step.vz;
+    coord->coord.t[0] += (s16)(work->field_4A0 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4A4 >> 16);
+    coord->coord.t[2] += (s16)(work->field_4A8 >> 16);
+    coord->flg         = 0;
+    work->field_4A0    = (u16)work->field_4A0;
+    work->field_4A4    = (u16)work->field_4A4;
+    work->field_4A8    = (u16)work->field_4A8;
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
+        }
+        ((TmdObject*)task->extra)->field_8[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+    }
+    func_actor_141000_801335D4((GpActorWork*)task);
+    if (work->field_4C9 >= 0) {
+        if (work->field_4C9 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4C9--;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80133490);
 
