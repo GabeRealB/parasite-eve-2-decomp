@@ -9,6 +9,7 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 extern GpPairSrcE         D_actor_105300_8013D3A0;
 extern Actor05300SpawnPos D_actor_105300_80133A20[2];
@@ -16,6 +17,9 @@ extern Actor05300Clip     D_actor_105300_8013D3E0[];
 extern Actor05300Clip     D_actor_105300_8013D3EC[];
 extern Actor05300SndRow   D_actor_105300_8013D3C4[];
 extern u32                D_actor_105300_8013D3BC;
+extern u8                 D_801153F4;
+extern s32                D_actor_105300_8013D3B0;
+extern s32                D_actor_105300_8013D3B4;
 
 void func_8017E524(s32 arg0);
 void func_8017FD88(s32 arg0);
@@ -160,7 +164,81 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     arg1->state = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105300/actor_105300", func_actor_105300_80132DAC);
+void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
+{
+    VECTOR*         vec;
+    Actor05300Part* part;
+    GsCOORDINATE2*  coord;
+    s32             damage;
+    s32             snd;
+    s32             hitTime;
+
+    coord = ((Actor05300Obj2C*)arg1->extra)->field_8;
+    part  = (Actor05300Part*)arg1->idMap;
+    switch (D_801153F4) {
+        case 1:
+            return;
+        case 0:
+            arg0->node.field_4 = 8;
+            break;
+        case 2:
+            arg0->node.field_4 = 1;
+            return;
+    }
+    vec = --*(VECTOR**)0x1F8003FC;
+    if (part->field_40 != 0) {
+        part->field_40--;
+        if (part->field_40 <= 0) {
+            part->field_40 = 0;
+        }
+    }
+    if (part->field_44 != 0) {
+        part->field_44--;
+    }
+    if (part->field_40 == 0 && (part->rec18[0].field_4 & 0xFFFF0000) == 0x20000) {
+        if (part->rec18[0].field_4 & 0x8000) {
+            func_800DA6E8(&arg0->node, 0, 0);
+        } else {
+            vec->vx = Wip_SysConfig.field_4->t[0] - coord->coord.t[0];
+            vec->vy = Wip_SysConfig.field_4->t[1] - coord->coord.t[1];
+            vec->vz = Wip_SysConfig.field_4->t[2] - coord->coord.t[2];
+            damage  = Gp_ComputeDamage(part->rec18[0].field_4, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(arg0, part->rec18[0].field_4, 0) != 0) {
+                damage *= 4;
+                Gp_SpawnEff(0x6009C, coord, 0, NULL);
+            }
+            func_800DA6E8(&arg0->node, damage, 0);
+            arg0->field_40 -= damage;
+            if (arg0->field_40 <= 0) {
+                arg1->state                                       = 2;
+                part->field_42                                    = 0;
+                ((Actor05300Work*)arg1->parent->idMap)->field_336 = 1;
+                Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
+                Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
+                snd  = D_actor_105300_8013D3B4;
+                snd |= (arg0->field_8 >> 12) << 8;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            } else if (damage > 0) {
+                if (part->field_44 == 0) {
+                    if ((Gp_GetIdParam0(part->rec18[0].field_4) & 0xFFFF) == 7) {
+                        func_800FDB18(3, coord, NULL, (GpEffArg*)&part->field_38);
+                    }
+                    func_800FDB18(7, coord, NULL, (GpEffArg*)&part->field_38);
+                    part->field_44 = 10;
+                }
+                hitTime = Gp_GetIdParam2(part->rec18[0].field_4);
+                if (hitTime > 0) {
+                    part->field_40 = hitTime;
+                }
+                snd  = D_actor_105300_8013D3B0;
+                snd |= (arg0->field_8 >> 12) << 8;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
+            }
+        }
+    }
+    Gp_ClearRec18Occupied(part->rec18);
+    *(VECTOR**)0x1F8003FC += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105300/actor_105300", func_actor_105300_8013310C);
 

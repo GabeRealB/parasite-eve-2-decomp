@@ -53,7 +53,7 @@ typedef struct Actor05300Work {
     /* 0x330 */ u16    field_330;
     /* 0x332 */ byte   pad_332[2];
     /* 0x334 */ s16    field_334;
-    /* 0x336 */ byte   pad_336[2];
+    /* 0x336 */ s16    field_336;
     /* 0x338 */ s16    field_338;
 } Actor05300Work;
 
@@ -70,9 +70,9 @@ typedef struct Actor05300Part {
     /* 0x38 */ GsCOORDINATE2* field_38;
     /* 0x3C */ s16            field_3C;
     /* 0x3E */ s16            field_3E;
-    /* 0x40 */ byte           pad_40[2];
+    /* 0x40 */ s16            field_40;
     /* 0x42 */ u16            field_42;
-    /* 0x44 */ byte           pad_44[2];
+    /* 0x44 */ s16            field_44;
     /* 0x46 */ u16            field_46;
 } Actor05300Part;
 STATIC_ASSERT_SIZEOF(Actor05300Part, 0x48);
