@@ -120851,3 +120851,43 @@ and the scheduler reproduces the target's stores on its own.
 Worked example: `func_actor_361100_80162B18`, whose matched twin
 `func_actor_361100_801631C4` has the identical body with the two accumulator
 groups swapped -- 88.79% -> 100.00% in one edit, `stack` never penalised.
+## A ramp stored from the loop index is a giv, not an accumulator: its init lands after the hoisted `lui` (func_actor_303600_801626C0, 2026-09-17)
+
+The rig controller spawns five child models and spreads them 8000 apart in Y,
+`-16000 + 8000 * i` into the child coordinate. Keeping that value in a source
+accumulator (`y = -0x3E80;` … `childCoord->coord.t[1] = y;` … `y += 0x1F40;`)
+reproduces every instruction but leaves the preheader's first three rotated:
+`li s1,-0x3e80` / `lw v0,0x2c(s3)` / `lui s4,%hi(tbl)` against the target's
+`lui` / `lw` / `li`, `reorder=2` and every other penalty zero.
+
+A biv *found in the source* keeps its initialiser where the statement sits, and
+loop-invariant motion appends the hoisted `%hi` before `loop_start`, i.e. after
+it — so the accumulator's init carries the lower LUID and, in sched2's
+descending-LUID tie-break among equal-priority constants, launches last and so
+lands first in the block. Written as the giv it is —
+
+```c
+childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
+```
+
+— strength reduction creates the accumulator during the loop pass and emits its
+initialiser *after* the invariants, which is exactly the target's order: `lui`,
+`lw`, `li`, 100%. Same rule as "A hoisted invariant sits *before* a giv init,
+but *after* an explicit pointer" above, reached from the store side rather than
+the address side: when the only misplaced insn is a constant the loop already
+computes from its own index, stop writing the accumulator out longhand.
+
+Two turns that did not move it, for the record: the order of `i = 0;` and the
+accumulator's init relative to the coord stores (`.rtl` follows the source
+order, but both orders schedule to the identical block), and an explicit
+`Task**` walk instead of `children[i]` (binds the walker's init at its source
+position, merges `work` into the walker's register and costs the idMap store —
+92.4%). The init-order experiment was not wasted: it is what fixed the
+callee-saved pair (`i` in `$s2`, the ramp in `$s1`) before the giv version made
+the question moot, so a future reader hitting the same swap should still reach
+for "born first, allocated second".
+
+Inputs: scratch `nonmatchings/func_actor_303600_801626C0-vacuum`, `base_2.c`
+98.065% (`reorder=2`), `base_3.c` 98.065% (same penalties), `base_4.c` 92.419%
+(`regs=2 insert=2 delete=2`), `base_5.c` 100%. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

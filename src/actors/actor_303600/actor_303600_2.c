@@ -1,10 +1,59 @@
 #include "common.h"
 
 #include "actors/actor_303600.h"
+#include "actors/actors_shared_80162850.h"
+#include "gameplay/D4.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600_2", func_actor_303600_801626C0);
+extern TaskDesc   D_actor_303600_8016E468[];
+extern GpMsgEntry D_actor_303600_8016E480[];
+
+/// Spawn state of the overlay's rig controller: allocates the work block the
+/// later states read through `Task::idMap` (`Mem_Calloc(0x3C, 0)`, the struct's
+/// own size), clears the task's own root coordinate, then spawns the five child
+/// models -- one `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1
+/// each, parked in `children` and spread 8000 apart in Y.  The spread reaches
+/// the coordinate through the strength-reduced `i * 8000 - 16000` loop.c folds
+/// into an accumulator, so its initialiser is scheduled at the loop head beside
+/// the hoisted `%hi` of the spawn table.  A failed spawn stops the loop early, a
+/// failed allocation kills the task instead of leaving a half-built controller,
+/// and the last three statements install the 0x7DB handler table at
+/// `Task::field_24`, the shared kill callback and the next state.
+void func_actor_303600_801626C0(Task* task)
+{
+    Actor303600RigWork* work;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      childCoord;
+    Task*               child;
+    s32                 i;
+
+    work = Mem_Calloc(0x3C, 0);
+    if (work == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    task->idMap       = (TaskIdMap*)work;
+    coord             = ((TmdObject*)task->extra)->field_8;
+    coord->coord.t[0] = 0;
+    coord->coord.t[1] = 0;
+    coord->coord.t[2] = 0;
+    for (i = 0; i < 5; i++) {
+        child = Task_SpawnFromTable(D_actor_303600_8016E468, 1, 0, (s32)task);
+        if (child == NULL) {
+            break;
+        }
+        work->children[i]      = child;
+        childCoord             = ((TmdObject*)child->extra)->field_8;
+        childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
+        childCoord->coord.t[0] = 0;
+        childCoord->coord.t[2] = 0;
+    }
+    task->field_24     = D_actor_303600_8016E480;
+    task->exitCallback = ActorsShared80162850;
+    task->state       += 1;
+}
 
 /// Per-frame rig motion, run on the work block `func_actor_303600_801626C0`
 /// fills in: ramp the 16.16 speed `field_28` toward the limit `field_38` at
