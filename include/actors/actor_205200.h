@@ -23,7 +23,13 @@ typedef struct Actor205200Obj2C {
 /// halfword it is, while `func_actor_205200_8014BA94` counts it down through the
 /// family's unsigned `(u16)` view.
 typedef struct Actor205200Work {
-    /* 0x000 */ byte     pad_0[0x2E];
+    /* 0x000 */ byte     pad_0[0x20];
+    /* 0x020 */ s16      field_20; // index into the timer reload table `D_actor_205200_8014C9CC`
+    /* 0x022 */ u16      field_22; // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
+    /* 0x024 */ byte     pad_24[2];
+    /* 0x026 */ s16      field_26; // sub-state of `func_actor_205200_8014AB98`
+    /* 0x028 */ s16      field_28;
+    /* 0x02A */ byte     pad_2A[4];
     /* 0x02E */ s16      field_2E;
     /* 0x030 */ byte     pad_30[0x38];
     /* 0x068 */ GpEffArg field_68; // `func_800FDB18` argument record
@@ -46,6 +52,15 @@ typedef struct Actor205200Work {
     /* 0x596 */ s16      field_596; // selects the shared tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
 
+/// Owning context. The update entry point does not touch it, but the exit
+/// callback `func_actor_205200_8014C924` unlinks the `GpLinkNode` at +0x10.
+typedef struct Actor205200Ctx {
+    /* 0x00 */ byte       pad_0[0x8];
+    /* 0x08 */ u16        field_8; // high nibble selects the sound bank
+    /* 0x0A */ byte       pad_A[6];
+    /* 0x10 */ GpLinkNode node;
+} Actor205200Ctx;
+
 /// The task itself, named for the actor it drives. `field_8` is `Task::parent`
 /// - the actor whose work block keeps the 0x7DB flag `field_2E`.
 typedef struct Actor205200 {
@@ -53,17 +68,22 @@ typedef struct Actor205200 {
     /* 0x08 */ struct _Task*     field_8;
     /* 0x0C */ byte              pad_C[0x10];
     /* 0x1C */ Actor205200Work*  field_1C;
-    /* 0x20 */ byte              pad_20[0xC];
+    /* 0x20 */ Actor205200Ctx*   field_20;
+    /* 0x24 */ byte              pad_24[0x8];
     /* 0x2C */ Actor205200Obj2C* field_2C;
     /* 0x30 */ s32               field_30;
 } Actor205200;
 
-/// Owning context. The update entry point does not touch it, but the exit
-/// callback `func_actor_205200_8014C924` unlinks the `GpLinkNode` at +0x10.
-typedef struct Actor205200Ctx {
-    /* 0x00 */ byte       pad_0[0x10];
-    /* 0x10 */ GpLinkNode node;
-} Actor205200Ctx;
+/// Spawn record `func_actor_205200_8014AB98` hands `Task_SpawnFromTable` once
+/// `field_4` reaches 2. `field_4` is also written directly by that function and
+/// by the shared `ActorsShared80131e24Sub0`/`Sub1` bodies.
+typedef struct Actor205200SpawnRec {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+} Actor205200SpawnRec;
+
+void func_actor_205200_8014AB98(Actor205200* arg0);
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the same 4-byte record as `Actor342400Msg7DB`, whose halfword at 0x2 is the
