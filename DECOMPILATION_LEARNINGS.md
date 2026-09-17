@@ -119756,3 +119756,118 @@ Preprocessed input `base_6.i` SHA256
 `base_4.i` `e700b7247e3b5bda…` (99.419% without the named `D0`), `target.s`
 SHA256 `f8b8889a6793df3e27a3cd46e5ff15a00b5eeb849c7da700cb100814092650bf`.
 Scratch `nonmatchings/func_dryfield_night_driveway_8017E5CC-vacuum`.
+
+## A 100.000% scratch score is blind to a `j` target: the scorer exempts any operand field containing a dot (func_dryfield_night_driveway_8017D7A0, 2026-09-17)
+
+The permuter router reported this function as `score zero on rebuild` (100.000%,
+every penalty zero) and asked for a port. The port compiled, and failed the
+overlay checksum: the two objects differ in exactly one of 213 instructions,
+
+```
+< j    .text+114      (candidate object)
+> j    .text+258      (target)
+```
+
+and `dist.py` scores that pair as equal. Two rules in `diff_sameline` do it:
+
+* the branch-target rule (`old_target != new_target` -> one branch penalty)
+  only fires for mnemonics in `branch_instructions` /
+  `branch_likely_instructions`, which are the *conditional* branches; `j` and
+  `jal` appear in neither list;
+* the field loop then compares `.text+114` against `.text+258`, but
+  `field_matches_any_symbol(field, mips)` is `"." in field` and
+  `Line._detect_symbol(row)` is `".text" in row or ".data" in row or
+  ".rodata" in row`, so a mismatching field is skipped whenever it contains a
+  dot and the other line names a section. objdump prints a jump to a local
+  label as `.text+NNN`, which is exactly that shape.
+
+The penalties are copied from decomp-permuter's `scorer.py`, so a permuter
+search is blind to the same class: a mutation that rewrites one `j` target
+scores as a zero-distance "improvement", which is how this candidate reached
+the follow-up queue as a hit.
+
+What does catch it is `diff.py`, the normalized object-dump diff, which
+compares the dumped lines as text - this function's dump differed at line 205
+in every build that reported 100.000%. So treat a 100.000% score as a
+necessary condition only: diff the dump before believing a match, and let
+`./tools/build-and-verify.sh` decide. For the router, "score zero on rebuild"
+is not a verification.
+
+Preprocessed input `base_8.i` SHA256
+`99c8eae122262572ca67ae9db7e7b02fc9763fddf7f26b638900a5c4d86fb2ab` (100.000%
+with the `j` target wrong), `target.s` SHA256
+`029a6107a6431e17ae216afcc7910a2e49e292cfdc489bb7563c458b097860cb`. Scratch
+`nonmatchings/func_dryfield_night_driveway_8017D7A0-vacuum`.
+
+## Two `return 2`s in one arm make a duplicate `(set v0,2)(j exit)` block whose merge decides a later `j` target (func_dryfield_night_driveway_8017D7A0, 2026-09-17)
+
+`func_dryfield_night_driveway_8017D7A0` ends with five `return 2`s. Four are
+visible as `j .L<epilogue>` with `li $v0,2` in the delay slot, but the last
+one - the spawn path's - is `j .text+258`, a jump *back* to the block belonging
+to the `msgId == 0x17` arm, with the storing `sb` in its delay slot. That is
+jump2 cross-jumping two identical
+`(set (reg/i:SI 2 v0) (const_int 2))` + `(jump (label_ref <exit>))` tails and
+deleting one copy; the survivor's position is what the remaining jump shows.
+
+How many such tails exist depends on how each arm is spelled. An arm written
+
+```c
+        if (in->field_5 == 0) {
+            Gp_RunCapCmd1(6);
+            Gp_SetNibbleIf(in->field_6, 2);
+            return 2;      /* tail A */
+        }
+        return 2;          /* tail B */
+```
+
+has two identical tails, and the scan merges the second into the first: the
+`.jump` -> `.jump2` dumps show a new label 589 placed before the first arm's
+`set v0,2`, the deletion of the second arm's `set v0,2`, and jumps 147, 369,
+388, 454 and 517 all redirected to 589. The spawn path's jump then lands on
+that first survivor (`.text+114`, wrong). Sharing one return instead -
+
+```c
+        if (in->field_5 == 0) {
+            Gp_RunCapCmd1(6);
+            Gp_SetNibbleIf(in->field_6, 2);
+        }
+        return 2;
+```
+
+- leaves the `msgId == 0x17` arm's tail as the survivor, and the spawn path's
+`j` lands there, which is what the target has. The arm's *own* early return
+compiles to the same `bnez $v0,<exit>` with `li $v0,2` in the delay slot under
+either spelling, so this is an RTL-only difference decided in jump2, before the
+delay slots are filled: it shows up nowhere in the C and only in the tail jump
+of a much later block.
+
+Controlled sweep (three arms, each `shared` or `separate` - the `msgId == 2`
+arm, the `msgId == 0x17` flag arm, the spawn arm), object dumps compared
+against the target:
+
+| `msgId==2` | flag arm | spawn arm | result |
+|---|---|---|---|
+| separate | separate | separate | `j .text+114` |
+| separate | separate | shared | `j .text+114` |
+| shared | shared | separate | falls through, no `j` (99.061%) |
+| shared | shared | shared | falls through, no `j` (99.061%) |
+| shared | separate | separate | **matches - 213/213, `j .text+258`** |
+
+Only the `msgId == 2` arm moves this jump; the other two spellings are
+indistinguishable in the emitted code, so a wrong guess there costs nothing but
+also fixes nothing. Note the two `shared`/`shared` rows: sharing a return the
+target *wants* separate is equally invisible from the C and shows up as a lost
+block, not as a register or branch difference.
+
+Still unresolved: which survivor `find_cross_jump` keeps is not predicted by
+the chain walk as read. The `--minimum` accounting (see "Identical early-exit
+blocks the target *keeps*") explains the merges that did happen - a matched
+`set $v0` pair followed by a `CODE_LABEL` on the walked side drops minimum to
+zero - but not why the earlier arm won in the `separate` builds.
+
+`base_8.c` (wrong jump) SHA256
+`dd4b1f0715d2a63d9e8d06883ac9525158cd5a83729665bb0a7f5fdea74a4ff7`; `base_19.c`
+(213/213) SHA256
+`f4826e397c8d352cabf7436615d24f02a5a3ad1177d6d4e11ac6b73b7d62b27e`, its
+preprocessed input `6d74e83250d788e393c459a2ef5d31053f34f7879fd485b0fd926cd9cdd85b77`.
+Scratch `nonmatchings/func_dryfield_night_driveway_8017D7A0-vacuum`.
