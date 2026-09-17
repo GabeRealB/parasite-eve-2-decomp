@@ -23,8 +23,6 @@ s32  func_800E1B24(s32 arg0);
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_102400_80131E24;
 
-INCLUDE_ASM("actors/nonmatchings/actor_102400/actor_102400_3", func_actor_102400_80134318);
-
 INCLUDE_ASM("actors/nonmatchings/actor_102400/actor_102400_3", func_actor_102400_801345B0);
 
 /// Per-frame tick of the state-1 handler: it walks the enemy along the step
