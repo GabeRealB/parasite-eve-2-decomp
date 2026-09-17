@@ -59,6 +59,42 @@ typedef struct Actor450800Work {
 } Actor450800Work;
 STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
 
+/// The overlay's *second* work block, hung off the `Task::idMap` slot exactly
+/// as `Actor450800Work` is but never on the same task: this one is the enemy's,
+/// allocated by the spawn handler `func_actor_450800_80132E9C` with
+/// `Mem_Calloc(0x4C0, 0)` and driven by the state `func_actor_450800_801330AC`
+/// reads at 0x47C, while `Actor450800Work` (0x504) belongs to the actor's own
+/// handler `func_actor_450800_80132160`. The overlay's two `fns` dispatchers
+/// (`func_actor_450800_80133264` and `func_actor_450800_80132790`) are what keep
+/// them apart, and both sizes are the allocations, not a guess.
+///
+/// `state` drives `func_actor_450800_801330AC` the way `field_4B4` drives
+/// `func_actor_450800_80132448` for the actor: 1 starts the animation through
+/// `ActorsShared80132640` and 2 reseeds the slots through `ActorsShared801325c8`,
+/// both then advancing it to 3. `animId` is the clip now playing - the spawn
+/// handler sets it to 1 and the state machine tests it against 4. `anim` /
+/// `slots` are what `func_800B3F84` fills in.
+///
+/// The leading matrices are the ones the enemy renders through - the spawn
+/// handler hands `&light` and `&color` to the object's `field_1C` / `field_20` -
+/// and `field_4B8` / `field_4BC` are the task and the `GpEnemy` of the model
+/// that handler spawns, the same two roles `Actor150400Work` gives them.
+typedef struct Actor450800SpawnWork {
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x13];
+    /* 0x34C */ byte       field_34C;
+    /* 0x34D */ byte       pad_34D[0x12F];
+    /* 0x47C */ s16        state;
+    /* 0x47E */ byte       pad_47E[0x2];
+    /* 0x480 */ u16        animId;
+    /* 0x482 */ byte       pad_482[0x36];
+    /* 0x4B8 */ Task*      field_4B8;
+    /* 0x4BC */ GpEnemy*   field_4BC;
+} Actor450800SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor450800SpawnWork, 0x4C0);
+
 /// Message payload the overlay's message handlers take as `Gp_DispatchMsg`'s
 /// `arg2`, the shape `Actor461800Msg` and `Actor560800Msg` share: only the
 /// halfword at 0x2 is read.

@@ -122074,3 +122074,40 @@ clip; ...; return; } work->last = old;` (98.2% -> the rest was register assignme
 **Also.** The eleven copies of this block in one switch shared one `clip`/`old` pair, making them
 cross-case globals that pushed the switch value off `$v1` and the flag off `$a0`. Declaring
 `s32 clip`/`s32 old` in a `{ }` block per copy (the shape a macro expansion gives) matched 100%.
+## An m2c seed's pointer arithmetic carries the pointee's size into the offset (func_actor_450800_80132E9C, 2026-09-17)
+
+**Symptom.** The m2c seed compiles and the topology match is clean, but every
+offset that came out of arithmetic grows by a factor of 8: `addiu v0,s3,0x100`
+where the target has `addiu v0,s2,0x20`, `addiu a3,s3,0x1a60` where the target
+has `0x34c`, and an index the target shifts left by 4 arriving as
+`sll s0,s0,0x7`. The extra scale is not a codegen effect and no pass explains it.
+
+**Cause.** m2c writes a field reached through a `T*` as `M2C_FIELD(p, T*, off)`
+*and* its own address arithmetic as `(T*)(p + n)`, both scaled by `sizeof(T)`.
+The seed here spelled the work block as `TaskIdMap*` (8 bytes), so `p + 0x20`
+compiled to `p + 0x100`, and a table index added to `GpAreaRec::field_0` - a
+`GpAreaRec*`, also 8 bytes - was multiplied by another 8 on top of the source's
+own `* 16`.
+
+**Fix.** Take the offset from the target and write the arithmetic the way the
+matched sibling does, casting the base so no element size is applied:
+
+```c
+place = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+```
+
+`src/actors/actor_150400/actor_150400.c` is the worked example - same body, same
+table. The general rule is the one in CLAUDE.md (structs, never pointer
+arithmetic), but the *diagnostic* is worth keeping: when an m2c seed's offsets
+are off by a clean power of two, check which pointee m2c invented before
+suspecting the allocation.
+
+The body itself is a duplicate of the shared `ActorsShared80131e24Sub0` spawn
+handler carried by 150400 / 160700 / 215100 and others, minus that variant's
+`obj->field_C` store; recognising it and porting the sibling's body moved the
+seed from 71.36% to 91.66% in one edit.
+
+Inputs: scratch `nonmatchings/func_actor_450800_80132E9C-vacuum`, `base.c`
+71.356% (`regs=88`), `base_1.c` 91.664% (`regs=63`, one extra callee-saved
+register), `base_2.c` 100.000%. Compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
