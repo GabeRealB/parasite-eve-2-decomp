@@ -1,18 +1,27 @@
 #include "common.h"
 
 #include "actors/actor_461800.h"
+#include "actors/actors_shared_80132ecc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/D4.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern Task* D_actor_461800_80133EB8;
 
 extern Task*    D_actor_461800_80133EB4;
 extern TaskDesc D_actor_461800_80133EBC;
+
+extern u8       D_actor_461800_80139F5C[];
+extern TaskDesc D_actor_461800_80139F8C;
+extern u8       D_actor_461800_80139FB0[];
 
 extern s16 D_80071076;
 extern s8  D_8007218B;
@@ -76,7 +85,116 @@ void func_actor_461800_8013229C(void)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132390);
+/// Spawn tick of the first actor variant: allocates the work block, hangs the
+/// model off the view, seeds the animation context and starts the two helper
+/// tasks. Each helper takes its texture page and CLUT row from the nested area
+/// record the actor's spawn index selects, and is streamed twice once its aux
+/// buffer exists.
+void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
+{
+    VECTOR         vec;
+    GpAreaKey      key;
+    GpAreaKey*     keyp;
+    GsCOORDINATE2* coord;
+    TmdObject*     obj;
+    u8             areaByte0;
+    u8             areaByte1;
+    u32            raw1, index1;
+    Task*          spawned1;
+    TmdObject*     model1;
+    GpCdRec10*     entry1;
+    GpAreaKey*     sessionKey1;
+    u32            raw2, index2;
+    Task*          spawned2;
+    TmdObject*     model2;
+    GpCdRec10*     entry2;
+    GpAreaKey*     sessionKey2;
+
+    obj         = task->extra;
+    coord       = obj->field_8;
+    task->idMap = (TaskIdMap*)(D_actor_461800_80143894 = Mem_Calloc(0x4F8, false));
+    if (D_actor_461800_80143894 == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback      = ActorsShared80132ecc;
+    coord->sub              = &Gfx_ViewCoord;
+    enemy->field_4          = &coord->coord;
+    enemy->field_48         = 0;
+    enemy->node.field_5     = 0;
+    enemy->node.field_4     = 1;
+    obj->field_E            = 1;
+    obj->field_C            = 0;
+    obj->field_1C           = &D_actor_461800_80143894->light;
+    obj->field_20           = &D_actor_461800_80143894->color;
+    vec.vx                  = coord->workm.t[0];
+    vec.vy                  = coord->workm.t[1] - 0x320;
+    D_actor_461800_80143898 = task;
+    vec.vz                  = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&D_actor_461800_80143894->anim, D_actor_461800_80139FB0, (GpAnimObj*)obj,
+                  D_actor_461800_80143894->pad_374, D_actor_461800_80143894->slots);
+    D_actor_461800_80143894->field_4B8 = 1;
+    D_actor_461800_80143894->field_4B4 = 2;
+
+    spawned1 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 1, 8, 0);
+    if (spawned1 != NULL) {
+        D_actor_461800_80143894->field_4F0 = spawned1;
+        sessionKey1                        = (GpAreaKey*)&Game_Session->field_4;
+        raw1                               = ((GpEnemy*)task->spawnArg2)->field_8;
+        model1                             = spawned1->extra;
+        key.field_3                        = sessionKey1->field_3;
+        key.field_2                        = sessionKey1->field_2;
+        areaByte1                          = sessionKey1->field_1;
+        SOFT_BARRIER();
+        keyp = &key;
+        TOUCH_REG(keyp);
+        key.field_1 = areaByte1;
+        areaByte0   = Game_Session->field_4;
+        index1      = raw1 >> 12;
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyp);
+        entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->field_24 = entry1->field_D;
+        model1->field_25 = entry1->field_E;
+        if (model1->field_18 != NULL) {
+            Tmd_ProcessStream(model1);
+            Tmd_ProcessStream(model1);
+        }
+    }
+
+    spawned2 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 2, 0xC, 0);
+    if (spawned2 != NULL) {
+        D_actor_461800_80143894->field_4F4 = spawned2;
+        sessionKey2                        = (GpAreaKey*)&Game_Session->field_4;
+        raw2                               = ((GpEnemy*)task->spawnArg2)->field_8;
+        model2                             = spawned2->extra;
+        key.field_3                        = sessionKey2->field_3;
+        key.field_2                        = sessionKey2->field_2;
+        areaByte1                          = sessionKey2->field_1;
+        SOFT_BARRIER();
+        keyp = &key;
+        TOUCH_REG(keyp);
+        key.field_1 = areaByte1;
+        areaByte0   = Game_Session->field_4;
+        index2      = raw2 >> 12;
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyp);
+        entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->field_24 = entry2->field_D;
+        model2->field_25 = entry2->field_E;
+        if (model2->field_18 != NULL) {
+            Tmd_ProcessStream(model2);
+            Tmd_ProcessStream(model2);
+        }
+    }
+
+    D_actor_461800_80143894->field_4EA = 0;
+    D_actor_461800_80143894->field_4EC = 0;
+    task->field_24                     = D_actor_461800_80139F5C;
+    func_actor_461800_80132660(task);
+    task->state++;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132660);
 

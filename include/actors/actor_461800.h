@@ -22,7 +22,8 @@
 /// and `field_4EC` the reset argument handed to `func_800B4114`. The tail
 /// holds the two helper tasks `ActorsShared80132ecc` kills on teardown.
 typedef struct Actor461800Work {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::field_1C`)
+    /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::field_20`)
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pad_374[0x140];
