@@ -2,6 +2,7 @@
 
 #include "actors/actor_460200.h"
 #include "actors/actors_shared_80132514.h"
+#include "actors/actors_shared_8014c874.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -375,7 +376,44 @@ void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801325FC);
+void func_actor_460200_80132AC8(Task* task);
+void func_actor_460200_80132A50(Task* task);
+void func_actor_460200_80132A04(Task* task);
+
+void func_actor_460200_801325FC(Task* task)
+{
+    ActorsShared8014c874Work* work;
+    s16                       animId;
+
+    work = (ActorsShared8014c874Work*)task->idMap;
+    if (work->state == 1) {
+        func_actor_460200_80132AC8(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 2) {
+        func_actor_460200_80132A50(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 3) {
+        // The loop-end note ends cse's first block here, so the pause check
+        // loads its own 1 instead of reusing the state test's.
+        do {
+        } while (0);
+        animId = work->animId;
+        if (animId == 4 && work->travel != 0) {
+            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->field_8, 0xC);
+            work->travel = (u16)work->travel - 1;
+            if (work->travel == 0) {
+                work->animArg = 0xA;
+                work->animId  = 1;
+            }
+        }
+        func_actor_460200_80132A04(task);
+        return;
+    }
+}
 
 void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
 s32  func_actor_460200_80132978(Task* task);
