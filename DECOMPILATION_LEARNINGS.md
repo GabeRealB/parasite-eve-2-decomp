@@ -118836,3 +118836,69 @@ and 100%. The initializer is the right spelling only when the target *also*
 copies from `.rodata` — and then the template is a `.rodata`-cut problem, as in
 "A stack array initializer is rodata, so a later code unit needs a `rodata`
 cut".
+
+## A plain `u8` store is not `MEM_IN_STRUCT_P`, so sched1 hoists a later struct load - and that moves where jump2 merges a shared tail (func_neo_ark_pyramid_8017D600, 2026-09-17)
+
+Every arm of this cutscene driver's state switch ends in `task->state++`, so
+`jump.c`'s cross-jumping (which runs only after reload, `jump.c:2528`
+`find_cross_jump`) merges the arms' `lw`/`addu`/`sw` into one shared tail block
+and points each arm's jump at it. That merge is greedy *backwards from the
+jump*: it walks the two blocks' tails in lockstep and stops at the first
+non-matching pair, so **the block's last instruction before its `j` decides how
+much of the tail merges**. An arm whose own copy is adjacent to its `lw` merges
+the whole thing and jumps to the `lw`; an arm with anything between the `lw` and
+the `addu` (a `sh` of a countdown, a call) merges only the `addu`/`sw` and jumps
+one instruction later - the same two entry points the matched
+`func_neo_ark_altar_8017D668` shows at `.L8017D844` / `.L8017D848`.
+
+Case 0 is `D_8007216C = 8; Game_Session->field_68 = 1; Game_Session->field_1 = 1;
+D_801153F4 = 2; task->state++;`. Written with `D_801153F4` as a plain
+`extern u8`, the store is `(mem:QI (lo_sum ...))` - **not** in-struct - while
+the state load is `(mem/s:SI (plus (reg) (const_int 48)))`. `true_dependence`
+records no edge between the two (`base_1.i.sched` shows the load's deps are only
+the two `Game_Session` stores), so the load inherits priority 2 through them
+(`sched.c`'s `priority()` adds `insn_cost` of the *dependency*, and the r3000
+load unit has READY-DELAY 2) and `schedule_block` fires it ahead of the `li 2` /
+`sb` that the source puts in front of it. The tail then reads
+`lw / li / sb / addu / sw`, the cross-jump walk stops at `sb` vs the tail's `lw`,
+and case 0 keeps a duplicate load plus a jump to the tail's *second* entry - and
+the address of `D_801153F4` lands in `$a0` instead of `$v1`, which is what lets
+it fill a load-delay slot and delete a `nop`. 125 instructions either way; the
+three penalties (insert/delete 1, reorder 1, regs 4) all come from that one
+hoist.
+
+`D_801153F4` is `Gp_StateF0.field_4`, so the original's store was in-struct and
+the scheduler kept the load where the source wrote it. The fix has to keep the
+*symbol name* as well as the attribute: `Gp_StateF0.field_4 = 2;` restores the
+schedule but renames the relocation to `%hi(Gp_StateF0)` + `%lo(Gp_StateF0+4)`
+and stalls at 99.92%, because the target's disassembly names `D_801153F4`.
+Declaring the byte as a one-element array does both - `expr.c`'s `INDIRECT_REF`
+rule sets `MEM_IN_STRUCT_P` when the address is a `PLUS_EXPR` or an `ADDR_EXPR`
+of an aggregate, which is what an array decay gives:
+
+```c
+extern u8 D_801153F4[1];   /* Gp_StateF0.field_4 (0x801153F4) */
+...
+D_801153F4[0] = 2;         /* mem/s:QI, symbol still D_801153F4 */
+```
+
+Scores, all with the same host file otherwise: m2c baseline 86.094%; the rewrite
+to a natural `switch` (dropping m2c's gotos and the phantom second argument to
+`Gp_MsgPlayerWeapon`, which is `void Gp_MsgPlayerWeapon(s32)` - see
+`include/gameplay/3CD8.h:442`) 97.760%; `Gp_StateF0.field_4 = 2;` 99.920%;
+`D_801153F4[0] = 2;` 100.000%. Contrast this with the store-side entries above
+(`func_neo_ark_altar_8017EF00`, `actor_107600`): those match a *store* against a
+later *load*; here the missing edge is what lets a load hoist, and the observable
+consequence is a cross-jump boundary rather than a delay slot.
+
+Sources: `base_1.c` SHA256
+`7c1a540c0fb58f215b4f51a9234d563dc9c867aecaf52c62e5a9a651f4171407`, `base_2.c`
+`1c1f36698cb9442e8acc95b1d2556712bc5139bbecd84a318bfb9d245c40d9ec`, `base_3.c`
+`9eb9a9ce287babda840a2f1dfa7153eaebeff0fc7b78af85fac99d7552cc463b`; target.o
+SHA256 `349b06aa42650f6dc8c685fbcbd2d5409117d2a17af872ac32c8a19a759a977a`;
+compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
+`nonmatchings/func_neo_ark_pyramid_8017D600-vacuum`. Landing it also needed the
+`rodata_head = "0x14"` cut and the deleted `INCLUDE_RODATA` lines from the
+`rodata_head` section above - the compiler's table has to start this unit's
+`.rodata`, and the 0x14-byte header is `4 mod 8`.
