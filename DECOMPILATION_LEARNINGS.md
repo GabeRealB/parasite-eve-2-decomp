@@ -124460,3 +124460,44 @@ nothing to promote.
 Inputs: scratch `nonmatchings/func_actor_135400_80132EBC-vacuum`, `base.c`
 71.375%, `base_1.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A switch's identical case tails are one block the compiler made: keep the two statements separate (func_actor_135400_801327E8, 2026-09-17)
+
+The 4-way `TmdObject::field_C` switch this body shares with
+`func_actor_135400_80132EBC` / `func_actor_141000_80133E8C` writes case 0 as
+
+```c
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+```
+
+and the target's case 0 is only `lhu $v0,0xC($s0)` / `j` with the `ori` in the
+delay slot: the `andi $v0,$v0,0xFFFB` and the `sh` it feeds sit in a *shared*
+block that case 1 also reaches, i.e. the two cases' identical tails are one
+block. That block is GCC's, not the source's — cross-jumping merges the equal
+tail of the two case blocks, so case 0's store is emitted once, after the join,
+and case 0 jumps into what reads like case 1's code.
+
+Two traps follow. Fusing case 0 into one expression
+(`field_C = (field_C | 0x80) & ~4;`) keeps `andi`/`sh` inside case 0's own block
+and loses the shape. And reading the target backwards as a source-level
+fall-through (`case 0:` with no `break`, falling into case 1) is wrong for a
+different reason: case 0 would then run case 1's `Tmd_AllocBuffers`. Only the
+tail is shared. The `nop` at the merge label is a scheduling artifact, not an
+instruction to write.
+
+The same family generalises as a port: this is the fourth member, and only
+case 2's middle statement (a `Tmd_FreeBuffers` here, a mode latch in the twins)
+plus the trailing copy onto `idMap->field_4B8->extra` distinguishes it — one
+build from the sibling's C, against an m2c seed at 74.279%.
+
+Inputs: scratch `nonmatchings/func_actor_135400_801327E8-vacuum`, `base.c`
+74.279%, `base_1.c` 100.000%, compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

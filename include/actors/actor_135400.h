@@ -40,4 +40,23 @@ typedef struct Actor135400Work {
 } Actor135400Work;
 STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 
+/// Work block the actor's main task hangs off its `Task::idMap` slot (0x1C):
+/// `func_actor_135400_80132064` allocates it (`Mem_Calloc(0x4C8, 0)`) for its
+/// own spawn path, unlike the 0x498-byte `Actor135400Work` the sibling path
+/// `func_actor_135400_80132B60` carves for the task it sets up. The same
+/// function parks the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB handler table
+/// `D_actor_135400_8013A4D0` in that task's `field_24`.
+///
+/// `field_4B8` / `field_4BC` are the two part tasks the same spawn creates
+/// through `Task_SpawnFromTable` (part 1 and part 2), each of which reparents
+/// itself onto this task in `func_actor_135400_80132450`. Only the fields
+/// decompiled bodies reach are described.
+typedef struct Actor135400MainWork {
+    /* 0x000 */ byte  pad_0[0x4B8];
+    /* 0x4B8 */ Task* field_4B8;
+    /* 0x4BC */ Task* field_4BC;
+    /* 0x4C0 */ byte  pad_4C0[0x8];
+} Actor135400MainWork;
+STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
+
 #endif

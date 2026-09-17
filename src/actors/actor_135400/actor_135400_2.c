@@ -33,7 +33,50 @@ INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_8013276C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_801327E8);
+/// `Gp_DispatchMsg` handler for message 0x7D5, run against the `TmdObject`
+/// parked in `Task::extra` -- the same four-way model switch
+/// `func_actor_135400_80132EBC` performs. Mode 0 shows the model (bit 0x80) and
+/// clears the 4 flag, 1 hides it, frees the aux buffers and clears the flag, 2
+/// shows it, frees those buffers and sets the flag, and 3 hides it while
+/// setting the flag. Anything else returns 1 and leaves the object alone; the
+/// handled modes return 0. Either way the resulting `field_C` is copied onto
+/// the part task's model (`Actor135400MainWork::field_4B8`), keeping the pair in
+/// step.
+s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
+{
+    TmdObject* obj;
+    TmdObject* other;
+    s32        ret;
+
+    obj   = (TmdObject*)task->extra;
+    other = (TmdObject*)((Actor135400MainWork*)task->idMap)->field_4B8->extra;
+    ret   = 0;
+    switch (mode) {
+        case 0:
+            obj->field_C |= 0x80;
+            obj->field_C &= ~4;
+            break;
+        case 1:
+            obj->field_C &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->field_C &= ~4;
+            break;
+        case 2:
+            obj->field_C |= 0x80;
+            Tmd_FreeBuffers(obj);
+            obj->field_C |= 4;
+            break;
+        case 3:
+            obj->field_C &= ~0x80;
+            obj->field_C |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    other->field_C = obj->field_C;
+    return ret;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_801328DC);
 
