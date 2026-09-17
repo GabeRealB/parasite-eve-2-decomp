@@ -15,6 +15,8 @@ extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
 
 void Gp_ArmStateF0(s32 active);
+s16  func_actor_201200_80149F50(GsCOORDINATE2* coord, GpRec18* rec, s32 n, SVECTOR* d);
+void func_actor_201200_8014A49C(GsCOORDINATE2* coord, GpRec18* rec, s32 n);
 void func_actor_201200_8014A640(Actor201200* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1);
@@ -29,13 +31,119 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1);
 void func_actor_201200_8014D0B4(Actor201200Ctx* arg0, Actor201200* arg1);
 void func_actor_201200_8014DD50(Actor201200Ctx* arg0, Actor201200* arg1);
 
+extern u8  D_80072729;
 extern u8  D_801153F4;
 extern s32 D_actor_201200_8014DE64;
 extern s32 D_actor_201200_8014DE70;
 
+/// Yaw wrapped into [-0x800, 0x800].
+static __inline__ s16 Actor201200_NormalizeYaw(s16 input)
+{
+    s16 value = input;
+    if (input < 0) {
+        while (1) {
+            if (value >= -0x800)
+                break;
+            value += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (value <= 0x800)
+                break;
+            value -= 0x1000;
+        }
+    }
+    return value;
+}
+
+/// Step `coord` `amount` units along its local Z unless movement is frozen.
+static __inline__ void Actor201200_StepForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        if (amount != 0) {
+            SOFT_TOUCH_REG(vec);
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(vec);
+            gte_gpf12_real();
+            gte_stsv(vec);
+            coord->coord.t[0] += head[-1].vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
 INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_3", func_actor_201200_8014CA08);
 
-INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200_3", func_actor_201200_8014D0B4);
+/// Walk back toward the spawn point: turn at most 0x10 toward it, step 8 units,
+/// and hand over to state 7 once within 0x50 or after 0xDD frames (state 6 when
+/// `func_actor_201200_80149F50` reports 1).
+void func_actor_201200_8014D0B4(Actor201200Ctx* arg0, Actor201200* arg1)
+{
+    Actor201200Work*        work;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          facing;
+    TmdObject*              obj;
+    Actor201200TurnScratch* head;
+    Actor201200TurnScratch* s;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        obj                 = arg1->field_2C;
+        arg0->field_14      = 0;
+        obj->field_C        = 0;
+        work->field_174     = 2;
+        work->field_170     = 1;
+        work->field_178     = 0;
+        work->obj2C8.flags |= 0x8000;
+        work->obj300.flags &= 0x7FFF;
+        work->obj338.flags &= 0x7FFF;
+        work->obj230.flags |= 0x4000;
+        func_actor_201200_8014A640(arg1);
+        work->field_3DC = 0;
+        work->field_6   = 0;
+        return;
+    }
+    head                                      = *(Actor201200TurnScratch**)G_SCRATCH_HEAD;
+    *(Actor201200TurnScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                         = head - 1;
+    func_actor_201200_8014A640(arg1);
+    arg1->field_2C->field_8->flg = 0;
+    head[-1].d.vx                = work->origin.vx - arg1->field_2C->field_8->coord.t[0];
+    s->d.vy                      = 0;
+    s->d.vz                      = work->origin.vz - arg1->field_2C->field_8->coord.t[2];
+    coord                        = arg1->field_2C->field_8;
+    s->angle                     = Actor201200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    if (s->angle > 0x10) {
+        s->angle = 0x10;
+    }
+    if (s->angle < -0x10) {
+        s->angle = -0x10;
+    }
+    facing    = arg1->field_2C->field_8;
+    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, s->angle, 1);
+    Actor201200_StepForward(arg1->field_2C->field_8, 8);
+    func_actor_201200_8014A49C(arg1->field_2C->field_8, &work->rec1B8, 5);
+    work->field_6++;
+    if (!Actor201200_OutOfRange(&s->d, 0x50) || work->field_6 >= 0xDD) {
+        work->field_0 = 7;
+    }
+    if (func_actor_201200_80149F50(arg1->field_2C->field_8, &work->rec250, 5, &s->d) == 1) {
+        work->field_0 = 6;
+    }
+    *(Actor201200TurnScratch**)G_SCRATCH_HEAD += 1;
+}
 
 const Actor201200StateTable D_actor_201200_80149F04 = {
     {

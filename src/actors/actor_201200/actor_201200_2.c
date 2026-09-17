@@ -194,27 +194,6 @@ void func_actor_201200_8014A88C(GpEnemy* arg0, Actor201200* arg1)
     arg1->state++;
 }
 
-/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
-static __inline__ s32 Actor201200_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                      head;
-    Actor201200RangeScratch* blk;
-    s32                      ret;
-
-    head                                          = *(u8**)0x1F8003FC;
-    ((Actor201200RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                           = (Actor201200RangeScratch*)(head - 0xC);
-    blk->dz                                       = d->vz;
-    blk->r                                        = r;
-    ((Actor201200RangeScratch*)(head - 0xC))->dx *= ((Actor201200RangeScratch*)(head - 0xC))->dx;
-    *(Actor201200RangeScratch**)0x1F8003FC        = blk;
-    blk->dz                                      *= blk->dz;
-    blk->r                                       *= blk->r;
-    *(u8**)0x1F8003FC                             = head;
-    ret                                           = ((Actor201200RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
-}
-
 void func_actor_201200_8014AE60(Actor201200Ctx* arg0, Actor201200* arg1)
 {
     Actor201200Work* work;

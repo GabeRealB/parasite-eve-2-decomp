@@ -58,7 +58,9 @@ typedef struct Actor201200Work {
     /* 0x3B4 */ MATRIX     savedColorMtx; // colorMtx as it was on entering the death state
     /* 0x3D4 */ byte       pad_3D4[0x4];
     /* 0x3D8 */ s8         field_3D8;     // nonzero rebuilds the color matrix each tick
-    /* 0x3D9 */ byte       pad_3D9[7];
+    /* 0x3D9 */ byte       pad_3D9[3];
+    /* 0x3DC */ s16        field_3DC;
+    /* 0x3DE */ byte       pad_3DE[2];
 } Actor201200Work;
 STATIC_ASSERT_SIZEOF(Actor201200Work, 0x3E0);
 
@@ -141,6 +143,36 @@ typedef struct Actor201200RangeScratch {
     /* 0x4 */ s32 dz;
     /* 0x8 */ s32 r;
 } Actor201200RangeScratch;
+
+/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
+static __inline__ s32 Actor201200_OutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    Actor201200RangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)0x1F8003FC;
+    ((Actor201200RangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (Actor201200RangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((Actor201200RangeScratch*)(head - 0xC))->dx *= ((Actor201200RangeScratch*)(head - 0xC))->dx;
+    *(Actor201200RangeScratch**)0x1F8003FC        = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)0x1F8003FC                             = head;
+    ret                                           = ((Actor201200RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
+/// 0xC-byte scratch taken from `0x1F8003FC` by the return-to-spawn walk: the
+/// offset to the spawn point and the clamped new yaw.
+typedef struct Actor201200TurnScratch {
+    /* 0x0 */ SVECTOR d;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad;
+} Actor201200TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor201200TurnScratch, 0xC);
 
 s32 func_actor_201200_8014D8DC(Actor201200* arg0, s32 arg1, Actor201200Msg* arg2);
 
