@@ -35,5 +35,3 @@ s32 func_actor_201200_8014D8DC(Actor201200* arg0, s32 arg1, Actor201200Msg* arg2
     }
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_201200/actor_201200_4", func_actor_201200_80149F50);
