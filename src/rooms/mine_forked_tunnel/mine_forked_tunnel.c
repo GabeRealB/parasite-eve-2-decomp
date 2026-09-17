@@ -3,8 +3,12 @@
 #include "main/task.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 
 #include "rooms/mine_forked_tunnel.h"
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern void func_mine_forked_tunnel_8017DC50(Task* arg0);
 extern void func_mine_forked_tunnel_8017DC70(Task* arg0);
@@ -26,12 +30,12 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     work->field_44 = -1;
 
     if (GameFlag_GetNibble(0x75) == 0) {
-        placement.pos.vx = D_mine_forked_tunnel_80181244.vx;
-        placement.pos.vy = D_mine_forked_tunnel_80181244.vy;
-        placement.pos.vz = D_mine_forked_tunnel_80181244.vz;
-        placement.rot.vx = D_mine_forked_tunnel_80180AC4.vx;
-        placement.rot.vy = D_mine_forked_tunnel_80180AC4.vy;
-        placement.rot.vz = D_mine_forked_tunnel_80180AC4.vz;
+        placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
+        placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
+        placement.pos.vz = D_mine_forked_tunnel_80181244[0].vz;
+        placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
+        placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
+        placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
         Room_Util18(arg0, 0x7D4, &placement, 0);
     } else {
         Room_Util18(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
@@ -46,7 +50,41 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     arg0->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017D724);
+void func_mine_forked_tunnel_8017D724(Task* arg0)
+{
+    TmdObject*    ext;
+    RoomPlacement placement;
+    VECTOR3       vec;
+
+    ext = arg0->extra;
+
+    if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x6E) {
+        placement.pos.vx = D_mine_forked_tunnel_80181244[arg0->killCountdown].vx;
+        placement.pos.vy = D_mine_forked_tunnel_80181244[arg0->killCountdown].vy;
+        placement.pos.vz = D_mine_forked_tunnel_80181244[arg0->killCountdown].vz;
+        placement.rot.vx = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vx;
+        placement.rot.vy = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vy;
+        placement.rot.vz = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vz;
+
+        Room_Util18(arg0, 0x7D4, &placement, 0);
+        arg0->killCountdown++;
+    }
+
+    if (!(ext->field_C & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8->workm.t, &vec) != 0) {
+            Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->field_8);
+        }
+        Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8->workm.t, 0, 3);
+    }
+
+    if (((MineForkedTunnelWork*)arg0->idMap)->field_44 >= 0) {
+        if (((MineForkedTunnelWork*)arg0->idMap)->field_44 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        ((MineForkedTunnelWork*)arg0->idMap)->field_44--;
+    }
+}
 
 s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7DB* msg)
 {
@@ -65,12 +103,12 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
                 ((Task*)work->field_40)->spawnArg1     = 0;
                 ((Task*)work->field_40)->killCountdown = 0;
             }
-            placement.pos.vx = D_mine_forked_tunnel_80181244.vx;
-            placement.pos.vy = D_mine_forked_tunnel_80181244.vy;
-            placement.pos.vz = D_mine_forked_tunnel_80181244.vz;
-            placement.rot.vx = D_mine_forked_tunnel_80180AC4.vx;
-            placement.rot.vy = D_mine_forked_tunnel_80180AC4.vy;
-            placement.rot.vz = D_mine_forked_tunnel_80180AC4.vz;
+            placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
+            placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
+            placement.pos.vz = D_mine_forked_tunnel_80181244[0].vz;
+            placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
+            placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
+            placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
 
             place             = &placement;
             coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;

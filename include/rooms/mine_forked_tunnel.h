@@ -6,13 +6,16 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-/// Position / rotation pair `func_mine_forked_tunnel_8017D5E8` and
+/// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
+/// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
 /// `func_mine_forked_tunnel_8017D8EC` compose into the `RoomPlacement` they
-/// hand `Room_Util18`: the first holds the placement's `pos`, the second its
-/// `rot`. The two live in different areas of the room's `.data`, so they are
-/// separate symbols rather than one `RoomPlacement`.
-extern SVECTOR D_mine_forked_tunnel_80181244;
-extern SVECTOR D_mine_forked_tunnel_80180AC4;
+/// hand `Room_Util18` (entry 0 of each) and that
+/// `func_mine_forked_tunnel_8017D724` walks one entry per step of
+/// `Task::killCountdown`, which it clamps at 0x6E. Both are 240 entries - the
+/// position table starts where the rotation table ends, and the pitch table
+/// below starts where the position table ends.
+extern SVECTOR D_mine_forked_tunnel_80181244[240];
+extern SVECTOR D_mine_forked_tunnel_80180AC4[240];
 
 /// The placement `func_mine_forked_tunnel_8017D5E8` uses instead when the
 /// `0x75` game flag is set: a complete `RoomPlacement` sitting in the room's
