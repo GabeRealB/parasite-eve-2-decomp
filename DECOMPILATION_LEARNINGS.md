@@ -121718,3 +121718,81 @@ Also: the small block is the TU's own struct (`Actor121300FadeWork` here,
 `Actor160900FadeWork`, `Actor560800FadeWork` there) with `s16` channels and
 `(u8)` casts at the call; the decrement reads back through the `(u16)` casts
 the siblings use, `fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);`.
+
+## One C variable is one pseudo for the whole function: a reload must be a *second* local variable, or it cannot leave the register the first value died in (func_actor_121300_80133BFC, 2026-09-17)
+
+`func_actor_121300_80133BFC` allocates a work block, wires the model up through
+a call, and then re-reads `arg0->idMap` for the slot loop. Writing that re-read
+back into the variable that already held the block is the natural C, and it
+scores 99.223% with `regs=4`: the reload comes out as
+
+```
+lw    s2,0x1c(s4)      ; retail: lw s0,0x1c(s4)
+sh    v0,0x4a0(s2)
+addu  v0,s2,v0
+move  a0,s2
+```
+
+where retail reloads into `$s0` — the register the search loop's `place`
+pointer has just freed. The `.rtl` dump says why. A local variable gets one
+pseudo for the entire function (`DECL_RTL`), so the second assignment is a
+*redefinition of the same pseudo*, not a new one:
+
+```
+(insn 43  ... (set (reg/v:SI 81) (reg:SI 2 v0)))     ; work = Mem_Malloc(...)
+(insn 186 ... (set (reg/v:SI 81)                     ; work = arg0->idMap
+        (mem/s:SI (plus:SI (reg/v:SI 80) (const_int 28)))))
+```
+
+Pseudo 81 is one allocno covering both live ranges, so it must keep **one**
+register that survives the call in between: it inherits `$s2`, and the address
+computation, the store and the call's `arg0` all follow it. Declaring a second
+local for the reload makes it a fresh allocno — `(set (reg/v:SI 82) ...)` — whose
+live range *starts* where the pointer's ends, so `global.c`'s `find_reg` picks
+`$s0` and every penalty goes to zero:
+
+```c
+    work  = (Actor121300Work*)map;      /* setup half */
+    ...
+    slotsWork            = (Actor121300Work*)arg0->idMap;   /* loop half */
+    slotsWork->field_4A0 = 1;
+```
+
+Read the `.rtl` dump for this, not `.lreg`/`.greg`: the greg dump is written
+after allocation, so the two spellings are indistinguishable there. Same family
+as "Which pseudo gets which saved register", but the lever is the *number of
+variables*, not the live-length of one.
+
+## A constant store is `sh $sN,field(reg)` or `addu $v0,$sN,$zero; sh $v0,field(reg)` depending on where the loop counter's init sits (func_actor_121300_80133BFC, 2026-09-17)
+
+The slot count is stored before the loop that re-arms the slots, and the same
+`1` initialises the counter:
+
+```c
+    work->field_4A0 = 1;
+    i = 1;
+    do { work->slots[(u16)i].field_9 = 0x10; ... } while ((u16)i < 0x13U);
+```
+
+Written in that order retail's `addu v0,$s1,$zero` + `sh v0,0x4a0($s0)` comes
+out — the store reads a *copy* of the counter's register. With the `i = 1;`
+hoisted above the two intervening calls (99.4% otherwise, `regs=0`) the same
+store is a plain `sh $s1,0x4a0(...)`: `cse` folds the constant straight into the
+store operand, `(set (mem:HI ...) (const_int 1184))` becomes
+`(set (mem:HI ...) (subreg:HI (reg/v:SI 86) 0))`, and no HImode pseudo survives.
+With the init *after* the store the `.lreg` dump still shows the store's own
+HImode pseudo, `(set (reg:HI 117) (const_int 1))` with `REG_EQUIV`, and the
+equivalence is what leaves the `movhi`-sized register-to-register copy in place.
+
+So the copy is not an extra temp in the source: it is a constant store whose
+value `cse` has to reach through a value already in a register. The matched
+`func_actor_136100_801347B8` and `func_actor_136100_80133690` show the identical
+`addu v0,$s0,$zero` / `sh v0,0x4e0($s1)` pair, both from
+`work->field_4E0 = <the counter's constant>; i = 1;` in that order.
+
+Two smaller order fixes in the same function, both read off the target's
+scheduling rather than guessed: `tmd->field_1C`, `tmd->field_C = 0`,
+`tmd->field_20` is the source order that yields retail's `sh $zero,0xc($s3)`
+between the two `sw`s (`func_actor_105100_801327B4` shows this compiler keeps
+adjacent TmdObject stores in source order), and the search loop's early exit
+adds `0x84` to the `0xFF` terminator scan of `func_actor_136100_80133A88`.

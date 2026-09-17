@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Work block for the `actor_121300` overlay's cutscene actor.
@@ -14,21 +15,35 @@
 /// itself in `D_actor_121300_8013D418` and stores the
 /// `Game_GetPtrSlot(3)` task in `field_488`, which is the target of every
 /// `Gp_DispatchMsg` the overlay sends.
+///
+/// The block opens with the animation prefix `actor_105100` and `actor_136100`
+/// also carry: the 0x14-byte `GpAnimCtx` `func_800B3F84` is handed as its
+/// `arg0`, the nineteen 0x28-byte `GpAnimSlot`s `Gp_AnimResetSlot` walks, and
+/// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
+/// model's light and colour matrices, published through `TmdObject::field_1C`
+/// / `field_20`.
 typedef struct Actor121300Work {
-    /* 0x000 */ byte  pad_0[0x480];
-    /* 0x480 */ s16   field_480; // state index driven by func_actor_121300_80133854
-    /* 0x482 */ byte  pad_482[0x6];
-    /* 0x488 */ Task* field_488; // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
-    /* 0x48C */ byte  pad_48C[0xC];
-    /* 0x498 */ s16   field_498; // set by func_actor_121300_80134250
-    /* 0x49A */ s16   field_49A; // cleared alongside field_498
-    /* 0x49C */ byte  pad_49C[0x2];
-    /* 0x49E */ s16   field_49E; // waypoint cursor: index into D_actor_121300_8013CC20
-    /* 0x4A0 */ byte  pad_4A0[0x2];
-    /* 0x4A2 */ u16   field_4A2; // state of the waypoint walker func_actor_121300_80133730
-    /* 0x4A4 */ u16   field_4A4; // frames spent on the current waypoint
-    /* 0x4A6 */ s16   field_4A6; // waypoint index handed to func_8017F334 / Task_SpawnFromTable
-    /* 0x4A8 */ byte  pad_4A8[0x8];
+    /* 0x000 */ GpAnimCtx  anim;             // `func_800B3F84` arg0
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       field_30C[0x130]; // pose buffer, `func_800B3F84` arg3
+    /* 0x43C */ MATRIX     field_43C;        // light matrix, into TmdObject::field_1C
+    /* 0x45C */ MATRIX     field_45C;        // colour matrix, into TmdObject::field_20
+    /* 0x47C */ byte       pad_47C[0x4];
+    /* 0x480 */ s16        field_480;        // state index driven by func_actor_121300_80133854
+    /* 0x482 */ byte       pad_482[0x6];
+    /* 0x488 */ Task*      field_488;        // Game_GetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x48C */ byte       pad_48C[0xC];
+    /* 0x498 */ s16        field_498;        // set by func_actor_121300_80134250
+    /* 0x49A */ s16        field_49A;        // cleared alongside field_498
+    /* 0x49C */ byte       pad_49C[0x2];
+    /* 0x49E */ s16        field_49E;        // waypoint cursor: index into D_actor_121300_8013CC20
+    /* 0x4A0 */ s16        field_4A0;        // animation slot count, set by func_actor_121300_80133BFC
+    /* 0x4A2 */ u16        field_4A2;        // state of the waypoint walker func_actor_121300_80133730
+    /* 0x4A4 */ u16        field_4A4;        // frames spent on the current waypoint
+    /* 0x4A6 */ s16        field_4A6;        // waypoint index handed to func_8017F334 / Task_SpawnFromTable
+    /* 0x4A8 */ byte       pad_4A8[0x4];
+    /* 0x4AC */ s16        field_4AC;        // GpAreaPlace::field_D, the TmdObject texture page
+    /* 0x4AE */ byte       pad_4AE[0x2];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
 

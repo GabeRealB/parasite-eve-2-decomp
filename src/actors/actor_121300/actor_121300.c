@@ -1,10 +1,14 @@
 #include "common.h"
 
 #include "actors/actor_121300.h"
+#include "gameplay/1BC.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80131EB0);
 
@@ -102,7 +106,73 @@ void func_actor_121300_80133730(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133854);
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133BFC);
+extern s32   D_actor_121300_8013CC08;
+extern s32   D_actor_121300_8013CC88;
+extern Task* D_actor_121300_8013D418;
+
+/// First tick of the cutscene actor: allocates the 0x4B0-byte
+/// `Actor121300Work` block, zeroes it and parks it in `Task::idMap`, then wires
+/// the model object up -- the work block's light and colour matrices into
+/// `TmdObject::field_1C` / `field_20`, `field_C` cleared and the animation
+/// context handed to `func_800B3F84`, and slots 1..18 re-armed through
+/// `Gp_AnimResetSlot`.  The texture page / CLUT row come from the placement
+/// record at the nested area table's `field_0` list whose id matches neither
+/// 0xFF (end) nor 0x84 (the skip marker).
+///
+/// The slot loop reaches the work block through `Task::idMap` again rather than
+/// through the pointer the setup above uses: the compiler cannot prove
+/// `Gp_AnimResetSlot` leaves the task alone, so it reloads, and the reload must
+/// stay a separate local for the reload to land in `$s0` as retail does.
+void func_actor_121300_80133BFC(Task* arg0)
+{
+    Actor121300Work* work;
+    Actor121300Work* slotsWork;
+    TaskIdMap*       map;
+    TmdObject*       tmd;
+    GsCOORDINATE2*   coord;
+    GpAreaPlace*     place;
+    s32              i;
+    u8               id;
+
+    tmd         = arg0->extra;
+    coord       = tmd->field_8;
+    map         = Mem_Malloc(0x4B0, 0);
+    arg0->idMap = map;
+    if (map == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    work = (Actor121300Work*)map;
+    Mem_Set(work, 0, 0x4B0);
+    work->field_488         = Game_GetPtrSlot(3);
+    D_actor_121300_8013D418 = arg0;
+    coord->sub              = &Gfx_ViewCoord;
+    tmd->field_1C           = &work->field_43C;
+    tmd->field_C            = 0;
+    tmd->field_20           = &work->field_45C;
+    place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&Game_Session->field_4)->field_0;
+    id                      = place->field_0;
+    while (id != 0xFF) {
+        if (id == 0x84) {
+            break;
+        }
+        place++;
+        id = place->field_0;
+    }
+    Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+    work->field_4AC = (s16)(s8)place->field_D;
+    func_800B3F84(&work->anim, &D_actor_121300_8013CC08, (GpAnimObj*)tmd, work->field_30C,
+                  work->slots);
+    slotsWork            = (Actor121300Work*)arg0->idMap;
+    slotsWork->field_4A0 = 1;
+    i                    = 1;
+    do {
+        slotsWork->slots[(u16)i].field_9 = 0x10;
+        Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+        i++;
+    } while ((u16)i < 0x13U);
+    arg0->field_24 = &D_actor_121300_8013CC88;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300", func_actor_121300_80133D98);
 
