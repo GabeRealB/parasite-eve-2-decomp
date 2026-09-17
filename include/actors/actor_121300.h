@@ -22,9 +22,31 @@ typedef struct Actor121300Work {
     /* 0x48C */ byte  pad_48C[0xC];
     /* 0x498 */ s16   field_498; // set by func_actor_121300_80134250
     /* 0x49A */ s16   field_49A; // cleared alongside field_498
-    /* 0x49C */ byte  pad_49C[0x14];
+    /* 0x49C */ byte  pad_49C[0x2];
+    /* 0x49E */ s16   field_49E; // waypoint cursor: index into D_actor_121300_8013CC20
+    /* 0x4A0 */ byte  pad_4A0[0x2];
+    /* 0x4A2 */ u16   field_4A2; // state of the waypoint walker func_actor_121300_80133730
+    /* 0x4A4 */ u16   field_4A4; // frames spent on the current waypoint
+    /* 0x4A6 */ s16   field_4A6; // waypoint index handed to func_8017F334 / Task_SpawnFromTable
+    /* 0x4A8 */ byte  pad_4A8[0x8];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
+
+/// One record of the cutscene's waypoint table `D_actor_121300_8013CC20`: a
+/// position plus a fourth halfword `func_actor_121300_80133730` reads as a
+/// liveness flag.  The table is 0xD records long and its last record is
+/// `{0, 0, 0, -1}`, so the `!= -1` guard keeps the walker on the 0xC real
+/// entries; `func_actor_121300_8013293C` reads the x/y/z of entry
+/// `someWork->field_34` off the same table.
+typedef struct Actor121300Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 field_6;
+} Actor121300Waypoint;
+STATIC_ASSERT_SIZEOF(Actor121300Waypoint, 0x8);
+
+extern Actor121300Waypoint D_actor_121300_8013CC20[];
 
 /// 8-byte fade block `func_actor_121300_8013400C` and
 /// `func_actor_121300_801326EC` each allocate with `Mem_Malloc(8, 0)` and park
