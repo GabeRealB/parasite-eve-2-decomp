@@ -128860,3 +128860,70 @@ allocation two hundred instructions away, and changing the source shape fixed
 both at once. When `regs` and a stray delay slot trade off against each other
 across two seeds, look for the third source form rather than for the reorg
 decision.
+
+## A matched sibling body beats reasoning about sched1's ready list
+
+**Problem.** `Actor02000_Fn00078` (actors/lib) sat at 99.45% across two sessions
+and 40+ builds with a single leftover instruction: a `nop` in the entry block,
+which shifted every later branch target by 4 and cost 371 units of distance.
+
+```
+target                          ours
+lw    s1,0x1c(a0)               lw    s0,0(v1)
+lw    s0,0(v1)                  lw    s1,0x1c(a0)
+lw    t0,0x40(sp)   <- reload   addiu v0,s0,-0x40
+addiu a0,s1,0x584               move  s2,v0
+addiu v0,s0,-0x40               addiu a0,s1,0x584
+move  s2,v0                     sw    s2,0(v1)     <- scratch store
+lw    v0,0x2c(t0)               lw    t0,0x40(sp)  <- reload
+sw    s2,0(v1)                  nop
+lw    s7,0x20(t0)               lw    v0,0x2c(t0)
+lw    s4,8(v0)                  lw    s7,0x20(t0)
+```
+
+**Why statement order did not fix it.** Three different orderings of the five
+entry statements produced *byte-identical* assembly: sched1 normalises the whole
+block, so the source order is erased. The `.sched2` dump shows why the store can
+never follow the reload once sched1 has run - the store to the scratch-pointer
+MEM and the load from the argument's stack slot are a real dependency there
+(`37 -> 1730`), so only the pre-reload order decides which comes first, and
+reload emits its load immediately before the first spilled use.
+
+The sched1 dump then shows why that use is always last. `adjust_priority` in
+`gcc/sched.c` raises an insn to `LAUNCH_PRIORITY` (0x7f000001) when
+`birthing_insn_p` holds - the insn sets a register that is live and has
+`REG_N_SETS == 1`. `lw pseudo,0x2c(arg0)` is exactly that, so it outranks the
+priority-2 store in every ready list it appears in, and the store is emitted
+first no matter how the statements are written.
+
+**What worked.** `overlay_dup_index.py similar` had already put
+`func_actor_102300_80131EA4` at the top of every class (shape, fields, calls and
+cflow, all starred). Diffing the two `.s` files opcode-by-opcode showed 674 vs
+671 instructions differing in exactly one region. Porting that matched body -
+which reads `self = arg0->field_2C->field_8` *before* decrementing
+`G_SCRATCH_HEAD` and the enemy pointer *after* - put the spilled use ahead of
+the store in the RTL stream, and the entry matched on the first build.
+
+**Rule of thumb.** When the brief lists a starred `similar` candidate, diff the
+two disassemblies before spending builds on the compiler. If the opcode streams
+agree except for a handful of lines, port the sibling's C body and translate the
+differing region; that is one build, against dozens spent trying to steer a
+scheduler whose decision the source cannot reach. The corollary for the
+`similar` index itself: a starred candidate is worth reading even when the
+function is already at 99%, because the leftover is exactly the kind of thing
+statement-level edits cannot move.
+
+**Two residual differences worth naming**, both visible only after the port:
+
+- `extern s32 Gp_LcgState;` makes `rng = Gp_LcgState >> 16` an arithmetic shift,
+  and combine then folds the following `(s16)rng >> 8` into a single `sra`. The
+  symbol is `u32`; with the right declaration the `srl` plus the `sll`/`sra`
+  sign-extension pair come back. Declaring an LCG or hash state signed is a
+  standing source of one-instruction misses.
+- Promoting the function's two switches from `INCLUDE_ASM` to C moved their jump
+  tables from the leading rodata blob into the unit's own `.rodata`, which the
+  manifest cut placed at 0x4C - so the overlay came out 0x48 bytes long with the
+  old tables still in the blob. The fix is the `rodata` cut from CLAUDE.md: move
+  the unit's `.rodata` start to the first table (0x4 here), so GCC's tables own
+  and start the object's section and its `.align 3` reproduces the 4-byte gap
+  before the next table.

@@ -2,12 +2,15 @@
 #define ACTOR_102000_H
 
 #include "common.h"
+#include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 extern u8 D_801153F2;
+
+typedef struct Actor02000Eff Actor02000Eff;
 
 typedef struct {
     u32 sp;
@@ -22,7 +25,13 @@ STATIC_ASSERT_SIZEOF(Actor02000AnimRec, 4);
 
 /// 0x18-byte slot record; `Gp_InitRec18Table` zeroes `count` of them.
 typedef struct Actor02000Rec18 {
-    /* 0x00 */ byte pad_0[0x18];
+    /* 0x00 */ u16  flags;
+    /* 0x02 */ s16  radius;
+    /* 0x04 */ u32  id;
+    /* 0x08 */ s16  x;
+    /* 0x0A */ s16  y;
+    /* 0x0C */ s16  z;
+    /* 0x0E */ byte pad_E[10];
 } Actor02000Rec18;
 STATIC_ASSERT_SIZEOF(Actor02000Rec18, 0x18);
 
@@ -102,11 +111,11 @@ typedef struct Actor02000Work {
     /* 0x680 */ s32                 field_680;
     /* 0x684 */ byte                pad_684[4];
     /* 0x688 */ SVECTOR             field_688;
-    /* 0x690 */ byte                pad_690[4];
+    /* 0x690 */ Actor02000Eff*      field_690;
     /* 0x694 */ s16                 field_694;
     /* 0x696 */ s16                 field_696;
     /* 0x698 */ s16                 field_698;
-    /* 0x69A */ byte                pad_69A[2];
+    /* 0x69A */ s16                 field_69A;
     /* 0x69C */ s16                 field_69C;
     /* 0x69E */ s16                 field_69E;
     /* 0x6A0 */ u16                 field_6A0;
@@ -122,12 +131,15 @@ typedef struct Actor02000Work {
     /* 0x6B4 */ s16                 field_6B4;
     /* 0x6B6 */ s16                 field_6B6;
     /* 0x6B8 */ s16                 field_6B8;
-    /* 0x6BA */ byte                pad_6BA[0x10];
+    /* 0x6BA */ byte                pad_6BA[8];
+    /* 0x6C2 */ s16                 field_6C2;
+    /* 0x6C4 */ s16                 field_6C4;
+    /* 0x6C6 */ byte                pad_6C6[4];
     /* 0x6CA */ s16                 field_6CA;
     /* 0x6CC */ s16                 field_6CC;
     /* 0x6CE */ s16                 field_6CE;
     /* 0x6D0 */ s16                 field_6D0;
-    /* 0x6D2 */ byte                pad_6D2[2];
+    /* 0x6D2 */ s16                 field_6D2;
     /* 0x6D4 */ s16                 field_6D4;
     /* 0x6D6 */ s16                 field_6D6;
     /* 0x6D8 */ s16                 field_6D8;
@@ -237,9 +249,30 @@ typedef struct Actor02000AreaTable {
 
 /// Handle `Gp_SpawnEnemyFromTable` returns, seen here only through its owning
 /// task pointer.
-typedef struct Actor02000Eff {
+struct Actor02000Eff {
     /* 0x0 */ Actor02000* task;
-} Actor02000Eff;
+};
+
+/// 0x40-byte scratch block the hit/push tick carves off `G_SCRATCH_HEAD`: the
+/// collision delta `func_800E0C10` fills in, the normalised push-out vector
+/// and its grid-space form, then the two `SVECTOR`s handed to the hit effect
+/// and to the player visibility test.
+typedef struct Actor02000HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ VECTOR         normal;
+    /* 0x20 */ VECTOR         push;
+    /* 0x30 */ SVECTOR        effOfs;
+    /* 0x38 */ SVECTOR        target;
+} Actor02000HitScratch;
+STATIC_ASSERT_SIZEOF(Actor02000HitScratch, 0x40);
+
+/// Overlay view of the grid conversion params (the gameplay `GpGridParams`);
+/// only the root coordinate is reached from here.
+typedef struct Actor02000GridParams {
+    /* 0x0 */ GsCOORDINATE2* field_0;
+} Actor02000GridParams;
+
+extern Actor02000GridParams* Gp_GridParams;
 
 /// Overlay view of the GpObj3A collision-face list, matching gameplay/3A34.h.
 typedef struct Actor02000CollisionFace {
