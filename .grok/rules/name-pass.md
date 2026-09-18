@@ -43,6 +43,34 @@ the code says otherwise.
 - **The comments** are last, and are rewritten from your own reading, never
   edited in place.
 
+## Finish what you find
+
+Noticing something is not the deliverable; the change it implies is. Every step
+so far has been sent back for stopping one move short, so treat each of these as
+part of the acceptance test rather than as advice.
+
+- **Leave no field both described and unnamed.** A comment stating what
+  `field_14` does contradicts the name beside it, because the offset spelling is
+  what says the role is unknown. Name it from that same reading, or drop the
+  claim and say the role is unproven. Finishing with most of a struct still
+  spelled `field_XX` is an unfinished step, not a conservative one.
+- **Follow an alias to its source.** When a field turns out to cache, mirror or
+  index another object's field, that other field is the thing to go and read;
+  the name and the comment come from what the value *is*, not from where it was
+  copied. "A cached copy of another struct's `field_22`" is a lead you stopped
+  on.
+- **Enumerate every overlay and duplicate before merging any of them.** There is
+  rarely only one, and the first one found is often not the most used. Before
+  deciding, list them:
+
+      grep -rhoE '\(\s*[A-Za-z_][A-Za-z0-9_]*\s*\*\s*\)\s*&?\s*gOwner(->member)?' src include | sort | uniq -c | sort -rn
+
+  Types describing the same run *are* one type. The member takes that single
+  type, the duplicates go, and the surviving name is chosen on the evidence -
+  usually the one with the most uses, not the one you happened to open first. A
+  duplicate left in place keeps its own `field_0..field_N` and its own half of
+  the documentation, which is the state this pass exists to remove.
+
 ## Names
 
 lowerCamelCase, one identifier, no separators, opening with the module or
@@ -92,7 +120,10 @@ worked example.
 Say **what** something is and **why** it exists. Not how you worked it out —
 that belongs in the commit message, not in a header that outlives it. Keep it as
 general as the subject allows and only as specific as it needs: naming the
-mechanism is the usual mistake, and it dates the comment. "Frames left before
+mechanism is the usual mistake, and it dates the comment. A field comment
+naming a generated symbol - `func_800AD5B8`, `D_8010EB94` - is that mistake in
+its sharpest form: it explains the field by pointing at something the reader has
+to decode as well. "Frames left before
 the body is released" is the field; "counted down by `Task_CountdownCallback`"
 adds a function name the reader can find and that will not survive a
 reorganisation. The test: would the sentence still be true and useful if a
