@@ -46,15 +46,13 @@ typedef struct _PlayerStatus {
     s16       mpMax;          // Maximum Parasite Energy (capped at 250)
     u8        field_20;       // Zeroed when a new game starts, role unproven
     u8        weapon;         // Equipped weapon (itemId - 0x7F, 0=none)
-    u8        weaponSlotItem; // Item loaded in the equipped weapon's slot (item + 0x61),
-                              // packed with weapon into the player's model descriptor
-    u8 armor;                 // Equipped armour (itemId - 0x5F, 0=none), contributes to hpMax
-    u8 field_24;              // Cleared when the actor is moved, role unproven
-    u8 peStateFlags;          // Timed player states, one per bit; a bit clears when its
-                              // countdown on the player actor expires
-    u8   field_26;            // Selects the animation, model and file set (1..4), meanings unproven
-    byte unknown_27[0x19];
-    u8   field_40[0x40];      // Filled with 0xFF when a new game starts, role unproven
+    u8        weaponSlotItem; // Item in the equipped weapon's slot (item + 0x61, 0=empty)
+    u8        armor;          // Equipped armour (itemId - 0x5F, 0=none), contributes to hpMax
+    u8        field_24;       // Cleared when the actor is moved, role unproven
+    u8        peStateFlags;   // Eight independent timed states, one per bit, each with its own countdown
+    u8        field_26;       // Selects the animation, model and file set (1..4), meanings unproven
+    byte      unknown_27[0x19];
+    u8        field_40[0x40]; // Filled with 0xFF when a new game starts, role unproven
 } PlayerStatus;
 STATIC_ASSERT_SIZEOF(PlayerStatus, 0x80);
 

@@ -251,9 +251,20 @@ typedef struct _PlayerStatus {
 ```
 
 Where a field takes a small set of values, enumerate them in parentheses rather
-than describing them in prose — `(0=Off, 1=On)`, `(0=4bit, 1=8bit, 2=15bit)`. A
-comment too long for one line continues on the next, aligned under the comment
-column.
+than describing them in prose — `(0=Off, 1=On)`, `(0=4bit, 1=8bit, 2=15bit)`.
+Keep a comment to one line where the struct mixes field widths: clang-format
+aligns a run of trailing comments, and a two-line comment ends the run, so the
+fields after it align to a different column.
+
+**Bitfields are for layouts whose bits have proven meanings**, as in `GPUSTAT`
+and `GpPackedSvec` — a hardware register and a packed 11-10-11 vector, where
+every component is named. A byte that is merely a bitmask of unidentified flags
+stays a plain integer with a comment; unnamed bitfields add structure without
+adding information, and rewriting a multi-bit test such as `& 0x84` as two
+boolean reads changes the generated code. When bits do acquire names, the form
+to reach for is `GPUSTAT`'s: a union of the whole value with an anonymous
+bitfield struct, which lets existing whole-value accesses keep compiling as they
+did.
 
 **Fields carry no offset annotations.** The layout is already expressed by the
 field types and fixed by `STATIC_ASSERT_SIZEOF`, nothing parses the annotations,
