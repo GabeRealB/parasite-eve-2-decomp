@@ -1,0 +1,2 @@
+// Overlay-local symbols for plasma.
+gPlasmaId = 0x8012ef30;

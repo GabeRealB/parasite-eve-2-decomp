@@ -87,6 +87,53 @@ def rename_header(root: str, old_rel: str, new_arg: str, dry_run: bool, guard: b
     return 0
 
 
+# A name the splitter derived from an address rather than one anybody stored.
+_GENERATED = re.compile(r"^(?:func|D|jtbl)_(?:[A-Za-z0-9_]+_)?([0-9A-Fa-f]{6,})$")
+
+
+def sym_file_for(root: str, source: str, version: str) -> str | None:
+    """The symbol map that should carry a name for a symbol defined in `source`."""
+    parts = os.path.normpath(source).split(os.sep)
+    if len(parts) < 2 or parts[0] != "src":
+        return None
+    unit = parts[1]
+    if unit in ("main", "gameplay", "title"):
+        return os.path.join("configs", version, f"sym.{unit}.txt")
+    if len(parts) >= 3:
+        return os.path.join("configs", version, "sym", unit, f"{parts[2]}.txt")
+    return None
+
+
+def record_generated_name(root: str, spec_name: str, new_name: str, source: str,
+                          version: str, kind: str, dry_run: bool) -> str | None:
+    """Give a splitter-generated symbol a stored name.
+
+    A generated name exists only as a function of the address, so there is
+    nothing in a symbol map to substitute: the rename has to *add* an entry.
+    Without it the C carries the new name while the regenerated assembly keeps
+    deriving the old one, and the two drift apart silently - the build stays
+    green either way, because the assembly under asm/ is an artifact.
+    """
+    m = _GENERATED.match(spec_name)
+    if not m:
+        return None
+    rel = sym_file_for(root, source, version)
+    if rel is None:
+        return None
+    addr = int(m.group(1), 16)
+    path = os.path.join(root, rel)
+    line = f"{new_name} = {addr:#010x};" + (" // type:func" if kind == "function" else "")
+    if not dry_run:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        existing = open(path).read() if os.path.exists(path) else ""
+        if not existing:
+            pkg = os.path.splitext(os.path.basename(rel))[0]
+            existing = f"// Overlay-local symbols for {pkg}.\n"
+        if f"{addr:#010x}" not in existing:
+            open(path, "w").write(existing.rstrip("\n") + "\n" + line + "\n")
+    return rel
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("spec", help="<path>/<Name>, <path>/<Type>::<member>, <path>/<fn>::<param>, or a header path")
@@ -161,6 +208,9 @@ def main() -> int:
             print(f"    {c}")
 
     if args.dry_run:
+        rel = sym_file_for(root, decl_file, args.version)
+        if _GENERATED.match(spec.name) and rel:
+            print(f"\nwould record the new name in {rel}")
         print("\ndry run: nothing written")
         return 0
 
@@ -169,6 +219,11 @@ def main() -> int:
     if args.sidecars:
         for c in cars:
             _apply_word(os.path.join(root, c), spec.name, args.new_name)
+    added = record_generated_name(root, spec.name, args.new_name, decl_file,
+                                  args.version, kind, args.dry_run)
+    if added:
+        print(f"recorded the new name in {added} "
+              f"(a generated name has nothing to substitute)")
 
     print("\ndone; rebuild to verify")
     return 0
