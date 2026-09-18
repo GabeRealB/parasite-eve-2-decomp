@@ -237,26 +237,29 @@ rename can find them.
 
 ### Struct fields
 
-Fields are documented the same way, with `///` above the field. There is room
-for a real sentence there, which is the point:
+[`include/main/gpuext.h`](include/main/gpuext.h) is the example. The type carries
+a `///` block; the fields carry **aligned trailing `//`**, which keeps the
+declaration readable as a table:
 
 ```c
-typedef struct {
-    /// Current health. Recomputing the maximum clamps this down to it.
-    s16 hp;
-    /// Maximum health: the level's base value plus bonuses from equipment,
-    /// capped at 250.
-    s16 hpMax;
-    /// Equipped weapon, or 0 when nothing is equipped.
-    u8  weapon;
+/// The player character: position, health, energy and equipment.
+typedef struct _PlayerStatus {
+    s16 hp;       // Current health (clamped to hpMax)
+    s16 hpMax;    // Maximum health (level base + training + armour, capped at 250)
+    u8  weapon;   // Equipped weapon (itemId - 0x7F, 0=none)
 } PlayerStatus;
 ```
 
-**Do not annotate fields with their offsets.** The layout is already expressed
-by the field types and fixed by `STATIC_ASSERT_SIZEOF`, nothing reads the
-annotations, and a trailing `/* 0x1A */` crowds out the sentence that would
-actually help. Unproven fields keep their `field_XX` name, which carries the
-offset in the only place it is still needed.
+Where a field takes a small set of values, enumerate them in parentheses rather
+than describing them in prose — `(0=Off, 1=On)`, `(0=4bit, 1=8bit, 2=15bit)`. A
+comment too long for one line continues on the next, aligned under the comment
+column.
+
+**Fields carry no offset annotations.** The layout is already expressed by the
+field types and fixed by `STATIC_ASSERT_SIZEOF`, nothing parses the annotations,
+and a trailing `/* 0x1A */` sits in exactly the column the documentation needs.
+An unproven field keeps its `field_XX` name, which carries the offset in the one
+place it is still wanted.
 
 ### What not to write
 
