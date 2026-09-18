@@ -73,16 +73,16 @@ void Mem_Free(void* ptr);
 /// @param auxHeap Controlls from which heap the pointer must be freed.
 void Mem_Free2(void* ptr, bool auxHeap);
 
-/// Switches between the primary heap and the auxilary heap.
+/// Switches between the primary heap and the auxiliary heap.
 ///
-/// A pointer to the axuilary heap is stored in `GActiveAuxHeap` and
-/// has a capacity of `GActiveAuxHeapSize` bytes. This function either
-/// enables the primary heap, pointed to by `GHeap`, or the auxilary
-/// heap. After calling this function, the memory management utilities,
-/// like `malloc3` and `free3`, will operate on one of the two heaps.
-/// Only version 3 utilities are affected.
+/// A pointer to the auxiliary heap is stored in `GActiveAuxHeap` and its
+/// capacity in `GActiveAuxHeapSize`. This function either enables the
+/// primary heap, pointed to by `gMemHeap`, or the auxiliary heap. After
+/// calling this function, the memory management utilities, like `malloc3`
+/// and `free3`, will operate on one of the two heaps. Only version 3
+/// utilities are affected.
 ///
-/// @param auxHeap If `true`, the auxilary heap will be set as active.
+/// @param auxHeap If `true`, the auxiliary heap will be set as active.
 ///                Otherwise the primary one.
 void Mem_SetActiveHeap(bool auxHeap);
 
@@ -102,8 +102,12 @@ void Mem_CopyUnaligned(void* src, void* dest, u32 count);
 // Globals — primary / aux heaps
 // =============================================================================
 
-/// Pointer to the start of the game heap.
-extern u8* GHeap;
+/// Base address of the primary heap, the region the game allocates from
+/// while no aux heap is active.
+///
+/// The region is fixed, so its extent is the `G_HEAP_SIZE` constant rather
+/// than a size variable of the kind the aux heaps carry.
+extern u8* gMemHeap;
 
 /// Pointer to the auxilary heap.
 extern u8* GAuxHeap;

@@ -169,7 +169,7 @@ the old style as not yet converted rather than as a second convention.
 | `boot` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `title` | Title / demo / main-menu overlay | `src/title/title.c` | `include/main/title.h` |
 | `gp` | Resident in-game overlay (actors, view, TMD attach, …) | `src/gameplay/` | `include/gameplay/` (per-TU, e.g. `gameplay.h`, `1BC.h`) |
-| `mem` / `GHeap` | Main / aux heaps | `src/main/mem.c` | `include/main/mem.h` |
+| `mem` / `gMemHeap` | Main / aux heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `sndHeap` | Dedicated 0x3D00 first-fit sound heap | `src/main/sndbank.c` | `include/main/sound.h` |
 | `task` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
 | `pad` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |

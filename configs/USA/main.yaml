@@ -420,7 +420,7 @@ segments:
       # .data section
       - [0x4cb30, data, psyq/libsn/snmain]
       - [0x4cb54, o, libsn/sndef, .data]
-      - [0x4cb5c, .data, main] # GStackBase, GHeap
+      - [0x4cb5c, .data, main] # GStackBase, gMemHeap
       - [0x4cb64, data, boot_loadbuf] # Fs_ImgBuffers, overlay/load region bases
       - [0x4cb94, o, libetc/vsync, .data]
       - [0x4cbb4, o, libetc/intr_vb, .data] # Vcount

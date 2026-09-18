@@ -60,11 +60,13 @@ void Mem_Set(void* dest, u32 ch, u32 count)
     }
 }
 
-// `_freep` is exported by libapi, and points to the start of the heap.
-// It is initialized by a call to `InitHeap3`, after which it is utilized
-// by `malloc3`, `free3`, etc.. The developers decided to repurpose the
-// existing heap utilities instead of writing a custom implementation.
-// By writing to `_freep`, we can change the active heap.
+// `_freep` is exported by libapi: the block within a heap that `malloc3`
+// and `free3` begin their search from. `InitHeap3` sets it to the heap it
+// initializes, and the two routines move it as that heap's blocks are taken
+// and released. Each heap is an independent ring of blocks, so writing
+// `_freep` is what selects the active heap. The developers decided to
+// repurpose the existing heap utilities instead of writing a custom
+// implementation.
 //
 // NOLINTNEXTLINE
 extern u8* _freep;
@@ -136,7 +138,7 @@ void Mem_SetActiveHeap(bool auxHeap)
     if (auxHeap == true) {
         _freep = GActiveAuxHeap;
     } else {
-        _freep = GHeap;
+        _freep = gMemHeap;
     }
 }
 
@@ -147,7 +149,7 @@ void* Mem_Malloc(size_t size, bool auxHeap)
     if (auxHeap == true) {
         _freep = GActiveAuxHeap;
     } else {
-        _freep = GHeap;
+        _freep = gMemHeap;
     }
 
     ptr = malloc3(size);
@@ -159,7 +161,7 @@ void* Mem_Malloc(size_t size, bool auxHeap)
 
 void Mem_Free(void* ptr)
 {
-    _freep = GHeap;
+    _freep = gMemHeap;
     free3(ptr);
 }
 
@@ -168,7 +170,7 @@ void Mem_Free2(void* ptr, bool auxHeap)
     if (auxHeap == true) {
         _freep = GActiveAuxHeap;
     } else {
-        _freep = GHeap;
+        _freep = gMemHeap;
     }
     free3(ptr);
 }
@@ -181,7 +183,7 @@ void Mem_InitAux(void)
 void Mem_Init()
 {
     InitHeap3((ulong*)GActiveAuxHeap, GActiveAuxHeapSize);
-    InitHeap3((ulong*)GHeap, G_HEAP_SIZE);
+    InitHeap3((ulong*)gMemHeap, G_HEAP_SIZE);
 }
 
 // The rom contains an empty function that is never called.

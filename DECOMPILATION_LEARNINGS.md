@@ -130417,3 +130417,27 @@ reported one; those sites are the ones the pass has to fix by hand afterwards
 (299 of them here). And a mention of the form `` `gDisplayState.field_1f` /
 `field_104` `` has only the first spelling qualified, so the rest survive every
 substitution and are found only by grepping the notes for the retired names.
+
+## The heap wrappers are libapi `heap3`, and writing `_freep` is what selects a heap
+
+`Mem_Malloc`, `Mem_Calloc`, `Mem_Free` and `Mem_Free2` own no allocator: each
+points libapi's `_freep` at a heap and calls `malloc3` / `free3`. In libapi,
+`_freep` is the block that those two routines begin their search from inside
+one heap's free-block ring. `InitHeap3` sets it to the heap it initializes, and
+the pair move it as that heap's blocks are taken and released — so each heap is
+a ring of its own, and pointing `_freep` at one is what makes it the active
+heap. The wrappers' `auxHeap` flag is that assignment and nothing else.
+
+The base it is pointed at is storage rather than an immediate, so the target
+loads it:
+
+```
+lui  $v0, %hi(gMemHeap)
+lw   $v1, %lo(gMemHeap)($v0)
+sw   $v1, %lo(_freep)($v0)
+```
+
+The primary base is a `.data` word holding a fixed address; the aux bases are
+`.bss` words the game sets from a Gfx image slot as that slot is loaded. A body
+re-derived with either address written as a literal emits `lui`/`addiu` and
+stops matching.

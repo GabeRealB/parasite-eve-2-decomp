@@ -10,9 +10,10 @@
 // seem to be inserted by the linker.
 u32 GStackBase = 0x801fff00;
 
-// Apparently, it seems that the heap is not located on the heap, but rather
-// after the main heap defined by the entry point.
-u8* GHeap = (u8*)0x80083800;
+// `gMemHeap` is defined here, and not beside its users in mem.c, because the
+// link order puts this object's .data where the heap pointer's address has to
+// be.
+u8* gMemHeap = (u8*)0x80083800;
 
 // BSS symbols (GAuxHeap … CdCmd_Queue … D_800691F8) live in the `main` bss
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.
