@@ -31,7 +31,7 @@ of function pointers, not a cast list.
 ### 1.1 `Task` (0x48)
 
 Allocated with `Mem_Calloc(0x48, 0)`. Inserted into the **active list**
-(`Task_ActiveList`, usually `Task_DefaultList`) in **priority order**: lower
+(`gTaskActiveList`, usually `Task_DefaultList`) in **priority order**: lower
 `priority` runs earlier. Typical values:
 
 | Priority | Who |
@@ -124,11 +124,11 @@ Type 1 often swaps `callback` to `Task_CountdownCallback` with
 | List | Role |
 |------|------|
 | `Task_DefaultList` | Main frame list. `Task_ResetDefaultList` on boot / world reset |
-| `Task_ActiveList` | Where new spawns insert. Almost always the default list |
-| `D_8007A110` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `Task_ActiveList` |
+| `gTaskActiveList` | Where new spawns insert. Almost always the default list |
+| `D_8007A110` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `gTaskActiveList` |
 
 `Task_SpawnOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
-`Task_ActiveList` to the default list so a spawn from inside another list
+`gTaskActiveList` to the default list so a spawn from inside another list
 still lands on the main frame walk.
 
 ---

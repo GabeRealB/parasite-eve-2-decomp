@@ -178,9 +178,19 @@ s32       TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
 // =============================================================================
 
 extern TaskDesc* Task_DescBanks[];
-extern TaskNode* Task_ActiveList;
-extern TaskNode  Task_DefaultList;
-extern TaskNode  D_8007A110;
+
+/// The task list the running code is working on: the list a spawned task joins
+/// and the list an unlinked node is taken out of.
+///
+/// It points at `Task_DefaultList` unless something has switched it, and the
+/// default frame walk switches it back. A walk over another list points this
+/// at that list, so a task spawned from inside a callback joins the list its
+/// callback is running on rather than the main one; callers that must leave
+/// the value as they found it save it first and put it back afterwards.
+extern TaskNode* gTaskActiveList;
+
+extern TaskNode Task_DefaultList;
+extern TaskNode D_8007A110;
 
 extern TaskFuncTable5       GameFlow_States5;
 extern TaskFuncTable3       GameFlow_States3;
