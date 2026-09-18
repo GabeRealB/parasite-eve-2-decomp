@@ -136,11 +136,17 @@ typedef struct Actor105600Work {
     /* 0x6B0 */ byte pad_6B0[2];
     /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
     /* 0x6B4 */ s16  field_6B4; ///< non-zero runs the tilt helper
-    /* 0x6B6 */ byte pad_6B6[2];
+    /* 0x6B6 */ s16  field_6B6;
     /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ byte pad_6BA[0x10];
+    /* 0x6BA */ s16  field_6BA;
+    /* 0x6BC */ s16  field_6BC;
+    /* 0x6BE */ s16  field_6BE;
+    /* 0x6C0 */ byte pad_6C0[0xA];
     /* 0x6CA */ s16  field_6CA;
-    /* 0x6CC */ byte pad_6CC[0xA];
+    /* 0x6CC */ s16  field_6CC;
+    /* 0x6CE */ s16  field_6CE;
+    /* 0x6D0 */ s16  field_6D0;
+    /* 0x6D2 */ byte pad_6D2[4];
     /// Streaming cue id for this room, looked up in `D_actor_105600_80148298`.
     /* 0x6D6 */ s16  field_6D6;
     /* 0x6D8 */ byte pad_6D8[2];

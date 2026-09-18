@@ -128328,3 +128328,39 @@ where its register is reused, and the cost is a whole callee-saved slot.
 
 Inputs: base_1.c (99.042%) vs base_2.c (100%),
 `nonmatchings/func_actor_105600_80135744-vacuum/`.
+
+## A residual scratch score of 99.97% can be two relocation *names* for one address (func_actor_105600_80133C3C, 2026-09-18)
+
+**Problem.** A sibling-ported body scored 99.972% with `regs=2` and
+`Structure: match` (45/45 blocks, 353/353 instructions, predicates and calls
+matching). There is no register to chase: `regs` was counting operand text, not
+allocation.
+
+**Symptom.** The object diff against `target.o` showed only two hunks, both in
+relocation operands:
+
+```
+-lui  v0,%hi(jtbl_actor_105600_80131E84)
++lui  v0,%hi(.rodata)
+-lh   v0,%lo(D_actor_105600_80136B36)(v0)
++lh   v0,%lo(D_actor_105600_80136B1C+0x1a)(v0)
+```
+
+Both name the same address. splat invents a symbol for every address the
+assembly references, so a constant-index array read — `arr[13]` on an `s16`
+array at `0x80136B1C` — is disassembled as a standalone `D_..._80136B36`, while
+the C form emits `D_..._80136B1C+0x1a`. The compiler-generated jump table is
+anonymous in a `.o` (`%hi(.rodata)` plus an addend) and only acquires the
+`jtbl_` name after the link.
+
+**Fix.** Nothing in the C. Write the natural `arr[13]` and let the scratch score
+sit below 100%; the two differ only after relocation, so the linked overlay is
+byte-identical. Before adding a pin or a cast, diff the two `.o`s and check
+whether each hunk is a different *address* or the same address under a different
+*name* — `objdump.py base_N.o` against `target.o` answers it in one look.
+
+**What did fail** was unrelated and real: the switch's jump table landed
+mid-`.rodata` and GCC padded it with `.align 3`, making the object's `.rodata`
+0x90 instead of 0x8C and pushing `.text` four bytes down (`.rodata` precedes
+`.text` in a `pe2pkg` overlay, so *every* later address shifted). That is the
+`units` + `rodata` cut described above, not a codegen problem.
