@@ -266,6 +266,12 @@ to reach for is `GPUSTAT`'s: a union of the whole value with an anonymous
 bitfield struct, which lets existing whole-value accesses keep compiling as they
 did.
 
+Doxygen's trailing form `///<` is used by a handful of headers and would make
+field comments machine-extractable. It was considered and deferred: plain `//`
+is what the overwhelming majority of the tree already uses, and switching later
+is a mechanical change. Do not reopen it per-file — either the whole tree moves
+or none of it does.
+
 **Fields carry no offset annotations.** The layout is already expressed by the
 field types and fixed by `STATIC_ASSERT_SIZEOF`, nothing parses the annotations,
 and a trailing `/* 0x1A */` sits in exactly the column the documentation needs.
