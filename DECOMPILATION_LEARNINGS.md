@@ -128423,3 +128423,30 @@ CSE's block now ends at the `else` label, the two constants stay distinct, and
 `func_actor_160900_80133238` and `func_actor_341900_801628B8` are matched
 examples of the two-variable form; `func_actor_120500_8013241C` is a matched
 example of the one-variable form and does emit the `j`.
+
+**Confirmed by controlled variation (func_actor_120500_80132028, permuter
+follow-up, 2026-09-18).** Rebuilding the four corners of the shape in one
+scratch separates the two requirements, which look like one:
+
+| `case 6` shape | score | distance |
+|---|---|---|
+| `anim = G + 0x22; if (c) anim = G + 1;` (`a052d671…`) | 97.146% | 451 |
+| `if (c) anim = G + 1; else anim = G + 0x22;` (`247b7037…`) | 92.932% | 1138 |
+| `base = G; anim = base + 0x22; if (c) anim = base + 1;` (`8ccc758d…`) | 97.146% | 451 |
+| `base = G; if (c) anim = base + 1; else anim = base + 0x22;` (`bc164fe3…`) | 100% | 0 |
+| `base = G; anim = c ? base + 1 : base + 0x22;` (`ad88893d…`) | 100% | 0 |
+
+So the separate load variable and the `else` are each necessary and neither is
+sufficient. The `if`/`else` **without** the hoist is the worst of the four: the
+two reads sit in sibling arms, neither dominating the other, so CSE cannot merge
+them at all and the object grows a second `lui`/`lbu` and an extra `j`
+(`insert=7 delete=4 branch=3`). The hoist **without** the `else` is not merely
+close to the plain form — its object dump is byte-identical to it, so naming the
+load buys nothing while one add still executes above the test. `.lreg` locates
+the difference precisely: pre-computing `base + 0x22` before the branch leaves
+the constant-1 pseudo `used 3 times across 14 insns`, whereas the matching form
+reports `used 2 times across 8 insns in block 17` and `base` `dies in 2 places`.
+A ternary is the same RTL as the `if`/`else` and matches identically — the
+deciding property is that both adds are emitted *inside the arms*, not the
+statement syntax. Evidence:
+`tools/permuter_findings/func_actor_120500_80132028/`.
