@@ -34,7 +34,6 @@ MATCH_LAND_PATHS=(
   configs
   DECOMPILATION_LEARNINGS.md
   CODEGEN_MODEL.md
-  include/ headers (field roles are documented at the declaration)
   NAMING.md
 )
 CLI="${VACUUM_CLI:-claude}"
@@ -655,7 +654,18 @@ run_agent() {
         if [[ -n "$grok_rules" ]]; then
           extra+=(--rules "$grok_rules")
         fi
-        "${LAUNCH_CMD[@]}" --always-approve "${extra[@]}" -p "$prompt"
+        # grok emits the same NDJSON wire format on request, so the formatter
+        # written for the other arm renders it too, and a grok lane reports its
+        # cost and turn count instead of a wall of prose. VACUUM_STREAM=0
+        # restores the plain output, as it does for claude.
+        if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+          "${LAUNCH_CMD[@]}" --always-approve "${extra[@]}" \
+            --output-format streaming-messages-json --include-partial-messages \
+            -p "$prompt" \
+            | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
+        else
+          "${LAUNCH_CMD[@]}" --always-approve "${extra[@]}" -p "$prompt"
+        fi
         ;;
       codex)
         # codex exec is the headless form. Three defaults have to be overridden
