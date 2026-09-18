@@ -129169,3 +129169,73 @@ The same lever works wherever a value is wanted out of local-alloc's greedy
 first choice: any dead write in another block that `combine` can fold - a
 comparison consumed by a branch is the reliable one - reclassifies the pseudo
 without costing an instruction.
+
+## An asm that emits the instruction anyway can name a pointer twice, buying a reference with no insn (Actor01600_Fn045A8, 2026-09-18)
+
+`Actor01600_Fn045A8` allocates a block below the scratchpad head, writes a
+direction vector at negative offsets from the *head*, and writes a horizontal
+delta through the *allocated* pointer. Two callee-saved registers came out
+swapped: the coordinate the head reads from took `$s4` and the scratch pointer
+`$s5`, where the ROM has them the other way round.
+
+global-alloc ranks by `floor_log2(refs) * refs / live_length`. The coordinate
+scores `2*7/47 = 2978`; the scratch pointer `2*4/32 = 2500`, and it must land
+between the coordinate's `2*8/47 = 5106` and that 2978 to take the next free
+callee-saved register. Shortening its live range cannot get there: `sched1`
+recomputes `REG_LIVE_LENGTH` from its own output, and the components are fixed -
+the copy has to be scheduled before the call that follows it, or the value it
+copies could not stay in a call-clobbered register, which pins 13 insns of the
+first block, and the intervening blocks plus the tail add a further 5 + 14. 32
+is the floor, so only the reference count can move.
+
+The reference has to cost nothing. A `do { } while (0)` doubles a reference by
+loop depth but leaves `NOTE_INSN_LOOP_BEG`/`_END` that split the block for
+sched2, and an empty `asm` is an extra insn (below). What works is writing one
+of the stores the function already performs as an asm, and naming the pointer a
+second time as an unused input:
+
+```c
+__asm__("sw\t%1, %0" : "=m"(scratch->delta.vx) : "r"(x), "r"(scratch));
+```
+
+The template uses only `%0` and `%1`, so this emits exactly the `sw` the C
+statement emitted; `%2` allocates nothing new, because it is the same pseudo the
+`"=m"` address already holds. `mark_used_regs` walks both, so the pointer gains
+one reference: `2*5/32 = 3125`, and the allocation lands. An output operand also
+keeps the asm out of the implicitly-volatile class that GCC 2.8.1 puts
+no-output asm in, so it is not a scheduling barrier.
+
+## An empty asm inserted into a block absorbs a load-delay slot and shifts every free insn by one (Actor01600_Fn045A8, 2026-09-18)
+
+The obvious way to add that reference is `__asm__("" : "+r"(p))`, which emits
+nothing and adds two. It flips the allocation exactly as predicted - and costs
+two instruction positions. Insns with no in-block dependents (a pointer copy, an
+address `addiu`) all carry the same low priority, so sched1's reverse scan packs
+them into the same few slots in LUID order; the empty asm joins that queue, and
+because its own dependency chain runs through the copy it ranks *after* it.
+Every free insn then lands one slot early, the last of them no longer fills a
+load-delay slot, and a `nop` appears. Moving the asm's source position does not
+help - two placements inside the same block produced byte-identical output -
+and giving it a late operand to raise its priority moves the copy instead.
+Judge an empty asm by what its slot displaces, not by the instructions it emits.
+
+## Two stores keep their RTL order, so a statement split decides where the second one lands (Actor01600_Fn045A8, 2026-09-18)
+
+sched will not reorder two stores it cannot prove independent, so their emitted
+order is their source order - but *how far apart* they land is decided by
+priority. With the scratchpad store written after the vector store it was
+emitted two slots late, and with it written before the whole vector-store
+statement it was emitted seven slots early, ahead of the loads. The ROM has it
+between the loads and the subtraction that uses them. Computing the difference
+into a temp first,
+
+```c
+dx = other->workm.t[0] - coord->workm.t[0];
+allocated = (*(void**)0x1F8003FC = head - 0x7C);
+*(s16*)((s8*)head - 0x40) = (s16)dx;
+```
+
+puts the scratchpad store between the loads and the `sh` in RTL order. The
+subtraction outranks it on priority and is placed after it, which is the ROM's
+order. A statement split is the lever whenever a store has to sit inside another
+statement's expansion.

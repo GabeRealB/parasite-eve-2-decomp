@@ -351,6 +351,23 @@ typedef struct Actor01600RotScratch {
 } Actor01600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
 
+/// 0x7C-byte scratch from `G_SCRATCH_HEAD` that `Actor01600_Fn045A8` aims from:
+/// `delta` takes the world-space offset from the actor to the player, `dir` the
+/// same offset written as an `SVECTOR` and then replaced by that offset turned
+/// into the actor's own frame, and `mat` the transpose of the actor's rotation
+/// the turn multiplies by. Only `delta` is reached through the allocated
+/// pointer; the two above it are written at negative offsets from the scratchpad
+/// head, which is what keeps the head in a register of its own.
+typedef struct Actor01600AimScratch {
+    /* 0x00 */ byte    pad_0[0x20];
+    /* 0x20 */ VECTOR  delta;
+    /* 0x30 */ byte    pad_30[0xC];
+    /* 0x3C */ SVECTOR dir;
+    /* 0x44 */ byte    pad_44[0x18];
+    /* 0x5C */ MATRIX  mat;
+} Actor01600AimScratch;
+STATIC_ASSERT_SIZEOF(Actor01600AimScratch, 0x7C);
+
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Actor01600_Fn04C64`: `vec`
 /// takes (0, 0, `distance`), `mat` the yaw rotation `func_8004BFF8` builds from
 /// the work block's `field_4EC`, and `out` the `vec` turned by it - the
