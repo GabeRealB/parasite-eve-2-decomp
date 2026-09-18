@@ -378,6 +378,29 @@ known.
 Coverage today is about 17% of declarations, so most modules are below this bar.
 Bring a module up to it when working in it rather than as a separate sweep.
 
+### Working order
+
+Naming an item well means knowing what it is made of, so the work is ordered: a
+function cannot be described honestly before the functions it calls, the globals
+it touches and the types it passes around have been, because until then its
+summary can only restate the assembly.
+
+`tools/refactor/dep_graph.py` keeps that order. `ready <spec>` says whether
+everything an item uses has been processed and names what is missing; `next`
+gives the next leaf, optionally within one item's dependency closure; `stats`
+reports progress. The graph is cached under the gitignored local directory and
+should be rebuilt after landing a batch.
+
+A cycle is collapsed into a single unit of work rather than treated as a
+deadlock — the items in it have to be understood together. The real ones here
+are small: a task and its list node, a TMD object and its list head, a sound
+voice and its owner, and several actor structs paired with their work structs.
+
+**Merging duplicate types is a separate, later pass.** A shared layout is not a
+reason to combine two types; the test is whether they mean the same thing, and
+that can only be judged once the code using both has been processed. The
+information needed to answer it is produced by the naming pass itself.
+
 ### Planned: resolve immediate values
 
 A later pass should replace literal sizes with `sizeof(T)` where a type is the
