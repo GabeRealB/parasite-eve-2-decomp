@@ -523,10 +523,21 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
             state = name_index.classify(name, kind, vendor)
             refs = referrers.get(usr, set())
             outside = {r for r in refs if nodes.get(r, {}).get("file") != where}
-            if kind == "type":
-                vis = "public" if where.startswith("include") else "private"
-            elif name in used_in_asm:
+            # Visibility is decided against the file that *defines* the item.
+            # Where that is unknown the comparison is meaningless - every
+            # referrer differs from "" - and the old rule silently called such
+            # an item public, which covered every data symbol still living in
+            # assembly. Say so instead of guessing.
+            homes = {nodes.get(r, {}).get("file") for r in refs}
+            homes.discard(None)
+            if name in used_in_asm:
                 vis = "public (asm)"
+            elif not where:
+                vis = "unknown (no C definition)"
+            elif kind == "type":
+                # A type is declared in a header but owned by whatever uses it:
+                # if that is a single translation unit, the type belongs there.
+                vis = "private" if len(homes) == 1 else "public"
             elif outside:
                 vis = "public"
             else:
