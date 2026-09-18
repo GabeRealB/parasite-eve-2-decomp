@@ -118,7 +118,32 @@ def scan_tu(job):
             if cur.spelling:
                 out.append(((t_usr, cur.spelling, where, loc.line), sorted(uses)))
             continue
-        if cur.kind not in _DEF_KINDS or not cur.is_definition():
+        if cur.kind not in _DEF_KINDS:
+            continue
+        if not cur.is_definition():
+            # A symbol defined in assembly is only ever declared in C, so
+            # skipping declarations leaves it with no edges at all - and a
+            # variable with no edges looks like a leaf even though it plainly
+            # depends on its own type. Record the type, which is all a
+            # declaration carries.
+            loc = cur.location
+            if loc.file is None or cur.kind != ci.CursorKind.VAR_DECL:
+                continue
+            d_usr = cur.get_usr()
+            if not d_usr or _is_local(d_usr):
+                continue
+            uses = set()
+            for r in cur.walk_preorder():
+                if r.kind != ci.CursorKind.TYPE_REF:
+                    continue
+                d = r.referenced
+                if d is None or d.spelling in _PRIMITIVE:
+                    continue
+                u = d.get_usr()
+                if u and u != d_usr:
+                    uses.add((u, d.spelling))
+            if uses:
+                out.append(((d_usr, cur.spelling, "", loc.line), sorted(uses)))
             continue
         loc = cur.location
         if loc.file is None:

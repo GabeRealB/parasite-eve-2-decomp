@@ -25,6 +25,7 @@ which case the first matching declaration found is used.
 
 from __future__ import annotations
 
+import glob
 import json
 import os
 import re
@@ -544,11 +545,26 @@ def comment_refs(root: str, token: str, owner: str | None = None,
     # `arg2` occurs in the prose of hundreds of unrelated symbols, so those
     # count only in files that really reference this one.
     scope = ["src", "include"]
+    # Prose outside the sources names symbols too - the learnings file, the
+    # format notes - and a rename that stops at the code leaves those citing a
+    # name that no longer exists.
+    docs = sorted(glob.glob(os.path.join(root, "*.md"))
+                  + glob.glob(os.path.join(root, "doc", "*.md")))
+    doc_scope = [os.path.relpath(d, root) for d in docs]
     try:
         out = subprocess.run(
             ["grep", "-rnw", "--include=*.c", "--include=*.h", token] + scope,
             cwd=root, capture_output=True, text=True, timeout=300,
         ).stdout.splitlines()
+        if doc_scope:
+            # A markdown file is prose throughout, so the comment test below
+            # would reject every line; they are handled as their own pass and
+            # must be cited the way this project cites a symbol, in backticks
+            # or qualified, so a common word is not caught.
+            out += [f"{r}" for r in subprocess.run(
+                ["grep", "-nw", token] + doc_scope,
+                cwd=root, capture_output=True, text=True, timeout=300,
+            ).stdout.splitlines()]
     except Exception:
         return []
     # A bare word in prose is not evidence that the symbol is meant: renaming
@@ -575,6 +591,19 @@ def comment_refs(root: str, token: str, owner: str | None = None,
             continue
         stripped = text.lstrip()
         line_comment = text.find("//")
+        if path.endswith(".md"):
+            # A distinctive name - one carrying an underscore or several
+            # capitals - means the symbol wherever it appears, including inside
+            # a fenced code block. A short common word does not, so it still has
+            # to be cited in backticks.
+            distinctive = "_" in token or sum(c.isupper() for c in token) >= 2
+            m = (qual_re.search(text)
+                 or re.search(rf"`[^`]*\b{t}\b[^`]*`", text)
+                 or (re.search(rf"\b{t}\b", text) if distinctive else None))
+            if m:
+                col = text.index(token, m.start()) + 1
+                refs.append(Ref(path, int(lineno), col, "doc", text.strip(), "", token))
+            continue
         # An unqualified mention only counts where the symbol is really used.
         here = qual_re if (only_files is not None
                            and os.path.normpath(path) not in scoped) else None

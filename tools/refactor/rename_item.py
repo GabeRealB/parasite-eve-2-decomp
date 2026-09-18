@@ -22,6 +22,7 @@ maps and linker scripts. Those are reported, and rewritten only with --sidecars.
 
 import argparse
 import collections
+import datetime
 import os
 import re
 import subprocess
@@ -134,6 +135,30 @@ def record_generated_name(root: str, spec_name: str, new_name: str, source: str,
     return rel
 
 
+DEFAULT_LEDGER = os.path.join("local", "renames.tsv")
+
+
+def record_rename(root: str, ledger: str, kind: str, old: str, new: str,
+                  where: str, edits: int) -> None:
+    """Append one rename to the ledger.
+
+    Functions, globals and types only. A field is skipped: its old name means
+    nothing without the type that owned it, and that type's own entry is what a
+    reader needs to follow the trail back.
+    """
+    if kind not in ("function", "global", "typedef", "struct", "union", "enum",
+                    "enum-constant"):
+        return
+    path = ledger if os.path.isabs(ledger) else os.path.join(root, ledger)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fresh = not os.path.exists(path)
+    with open(path, "a") as fh:
+        if fresh:
+            fh.write("when\tkind\told\tnew\tdeclared_in\tedits\n")
+        fh.write(f"{datetime.datetime.now().isoformat(timespec='seconds')}\t"
+                 f"{kind}\t{old}\t{new}\t{where}\t{edits}\n")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("spec", help="<path>/<Name>, <path>/<Type>::<member>, <path>/<fn>::<param>, or a header path")
@@ -148,6 +173,8 @@ def main() -> int:
                     help="also rewrite whole-word hits in symbol maps and linker scripts")
     ap.add_argument("--no-comments", action="store_true",
                     help="leave mentions of the name in comments alone")
+    ap.add_argument("--ledger", default=DEFAULT_LEDGER,
+                    help=f"where renames are recorded (default: {DEFAULT_LEDGER})")
     ap.add_argument("-q", "--quiet", action="store_true")
     ap.add_argument("--guard", action="store_true",
                     help="header rename: also rewrite the include guard macro")
@@ -256,6 +283,8 @@ def main() -> int:
         print(f"recorded the new name in {added} "
               f"(a generated name has nothing to substitute)")
 
+    record_rename(root, args.ledger, kind, spec.name, args.new_name,
+                  decl_file or where, total)
     print("\ndone; rebuild to verify")
     return 0
 
