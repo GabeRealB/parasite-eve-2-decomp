@@ -8,22 +8,24 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// This overlay's id. Every package opens with one: a u16 in a u32
-/// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 D_ofuda_8012EF30 = 60;
+/// This overlay's id, the `u16` every package opens with.
+const u32 gOfudaId = 60;
 
-/// Ofuda PE flash. `Task::spawnArg2` is the `GpEffWork` block (`field_24`
-/// brightness, `field_26` ring radius, `field_2A` per-frame step);
-/// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`
-/// or a non-zero `Gp_State1C->field_E`) stops the 0xE03D0001 cue and
-/// releases the pool block.
+/// Draws the expanding flash the ofuda produces, over three states.
 ///
-/// State 0 seeds a 30-frame grow, a 0x100 ring, and the step `0x100 /
-/// spawnArg1`, then plays the cue at the object's pan/depth. State 1 grows
-/// the ring and draws it twice plus two arcs; at frame 0 it snaps
-/// brightness to 0xFF, sets `field_6` bit 3, and goes to state 2. State 2
-/// shrinks until brightness drops below 9, then releases.
-void func_ofuda_8012EF34(Task* arg0)
+/// Spawned with a `GpEffWork` block in `Task::spawnArg2` holding the effect's
+/// brightness, ring radius and per-frame step, and a coordinate reached through
+/// `Task::extra`. `Task::spawnArg1` counts the frames of the growing phase down
+/// to zero.
+///
+/// State 0 arms a 30-frame growth and starts the sound cue panned to where the
+/// object is. State 1 brightens and widens the ring each frame, drawing it at
+/// two radii plus two arcs, and on the last frame snaps to full brightness and
+/// hands over to state 2. State 2 shrinks and dims until the brightness falls
+/// below 9, then releases the block.
+///
+/// A cancelled or interrupted cast stops the cue and releases immediately.
+void ofudaEffectTask(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
