@@ -21,7 +21,7 @@ void func_dryfield_underpass_8017DE30(Task* task)
     SVECTOR*       vec;
     s16*           flags;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     mask  = 1 << gGameSession->at4.loc.view;
     if (GameFlag_GetNibble(0x53) == 0) {
         i     = 0;

@@ -965,21 +965,21 @@ void Actor00700_Fn01FE0(Actor00700Ctx* ctx, Actor00700* actor)
     Actor00700SpawnWork* work;
 
     obj   = (TmdObject*)actor->field_2C;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x2F4U, false);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
     actor->field_1C = (Actor00700Work*)work;
-    obj->field_C    = 0;
+    obj->flags      = 0;
     coord->flg      = 0;
-    obj->field_24  += 1;
-    obj->field_25  += 1;
+    obj->tpage     += 1;
+    obj->clut      += 1;
     Tmd_ProcessStream(obj);
     Tmd_ProcessStream(obj);
-    obj->field_1C = &work->field_114;
-    obj->field_20 = &work->field_F4;
+    obj->lightMtx = &work->field_114;
+    obj->colorMtx = &work->field_F4;
     ctx->field_4  = (void*)(&coord->coord);
     ctx->field_48 = 0;
     Gp_LinkNode(&ctx->node);
@@ -1169,7 +1169,7 @@ void Actor00700_Fn02414(Actor00700* arg0)
             break;
         case 2:
             arg0->field_30 = (s32)state;
-            target         = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->field_8;
+            target         = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->coords;
             dx             = target->coord.t[0] - coord->coord.t[0];
             delta->vx.w    = dx;
             dy             = target->coord.t[1] - coord->coord.t[1];

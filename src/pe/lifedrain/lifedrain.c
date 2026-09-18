@@ -80,7 +80,7 @@ void func_lifedrain_8012EF48(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->field_E >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + D_80115404;

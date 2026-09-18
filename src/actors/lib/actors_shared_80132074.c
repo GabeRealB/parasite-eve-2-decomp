@@ -7,7 +7,7 @@
 s32 ActorsShared80132074(Task* task, s32 arg1, ActorsShared80132074Args* args)
 {
     TmdObject*     ext   = task->extra;
-    GsCOORDINATE2* coord = ext->field_8;
+    GsCOORDINATE2* coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
     coord->coord.t[0] = args->pos.vx;

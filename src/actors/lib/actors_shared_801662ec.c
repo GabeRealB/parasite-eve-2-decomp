@@ -19,19 +19,19 @@ void ActorsShared801662ec(Task* arg0)
     s32                       dist2;
 
     work              = (ActorsShared80168d3cWork*)arg0->work;
-    coord             = ((TmdObject*)arg0->extra)->field_8;
+    coord             = ((TmdObject*)arg0->extra)->coords;
     player            = Gp_ActorSlots[0];
     work->field_60.vx = coord->coord.t[0];
     work->field_60.vy = coord->coord.t[1];
     work->field_60.vz = coord->coord.t[2];
     if (player != NULL) {
-        other = player->extra->field_8;
+        other = player->extra->coords;
         d0.vx = other->coord.t[0] - coord->coord.t[0];
         d0.vy = other->coord.t[1] - coord->coord.t[1];
         d0.vz = other->coord.t[2] - coord->coord.t[2];
         dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
         if (Gp_ActorSlots[1] != NULL) {
-            other = Gp_ActorSlots[1]->extra->field_8;
+            other = Gp_ActorSlots[1]->extra->coords;
             d1.vx = other->coord.t[0] - coord->coord.t[0];
             d1.vy = other->coord.t[1] - coord->coord.t[1];
             d1.vz = other->coord.t[2] - coord->coord.t[2];

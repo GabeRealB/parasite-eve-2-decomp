@@ -49,8 +49,8 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     *(void**)0x1F8003FC = scratch;
     offset              = &scratch->offset;
     parent              = arg1->parent;
-    coord               = ((TmdObject*)arg1->extra)->field_8;
-    parentCoord         = ((TmdObject*)parent->extra)->field_8;
+    coord               = ((TmdObject*)arg1->extra)->coords;
+    parentCoord         = ((TmdObject*)parent->extra)->coords;
     parentWork          = (ActorsShared801351d4Parent*)parent->work;
     work                = Mem_Calloc(0xB4, 0);
     if (work == NULL) {
@@ -75,7 +75,7 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     work->field_AA    = parentCoord->coord.m[1][2];
     work->field_AC    = parentCoord->coord.m[2][2];
 
-    objCoord             = ((TmdObject*)arg1->extra)->field_8;
+    objCoord             = ((TmdObject*)arg1->extra)->coords;
     work->obj_0.field_C  = &work->rec_40;
     work->obj_0.field_10 = 0;
     work->obj_0.field_12 = 0;
@@ -87,7 +87,7 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(3, &work->obj_0);
     Gp_InitRec18Table(&work->rec_40, 1, 0);
     work->obj_0.flags    |= 0x8000;
-    objCoord2             = ((TmdObject*)arg1->extra)->field_8;
+    objCoord2             = ((TmdObject*)arg1->extra)->coords;
     work->obj_20.field_C  = &work->rec_40;
     work->obj_20.field_10 = 0;
     work->obj_20.field_12 = 0;
@@ -112,7 +112,7 @@ void func_actor_102400_801345B0(GpEnemy* arg0, Task* arg1)
     work->pose_78.field_A  = 0;
     work->pose_78.field_14 = &work->field_90;
     work->obj_20.flags    |= 0x8000;
-    objCoord3              = ((TmdObject*)arg1->extra)->field_8;
+    objCoord3              = ((TmdObject*)arg1->extra)->coords;
     work->obj_58.field_C   = (GpRec18*)&work->pose_78;
     work->obj_58.field_10  = 0;
     work->obj_58.field_12  = 0;
@@ -146,7 +146,7 @@ void func_actor_102400_80134910(GpEnemy* arg0, Task* arg1)
     s32                       spawn;
     u16                       timer;
 
-    coord = ((TmdObject*)arg1->extra)->field_8;
+    coord = ((TmdObject*)arg1->extra)->coords;
     work  = (ActorsShared801351d4Work*)arg1->work;
     spawn = 0;
     switch (D_801153F4) {

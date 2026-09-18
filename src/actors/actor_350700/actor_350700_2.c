@@ -35,7 +35,7 @@ void func_actor_350700_8016261C(Task* arg0)
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor350700Work*)arg0->work;
 
     vec = D_actor_350700_80161E40;
@@ -69,7 +69,7 @@ void func_actor_350700_80162764(Task* arg0)
     s32                   vy;
     s16                   diff;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor350700Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
@@ -123,22 +123,22 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C                             |= 0x80;
+            obj->flags                               |= 0x80;
             ((Actor350700Work*)task->work)->field_4C5 = mode;
-            obj->field_C                             |= 4;
+            obj->flags                               |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
@@ -153,7 +153,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700
 /// Allocates the 0x50C `Actor350700MainWork` block, seeds it, and spawns the
 /// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
 /// parking them at `field_4FC` / `field_500` / `field_504`. The first two are
-/// models: each has `TmdObject::field_24` / `field_25` loaded with the texture
+/// models: each has `TmdObject::tpage` / `field_25` loaded with the texture
 /// page and CLUT row of the `GpAreaPlace` that entry selects, reached through
 /// the area key `&gGameSession->at4.loc.view` and indexed by the model id the child's
 /// own `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
@@ -197,11 +197,11 @@ void func_actor_350700_80162B30(Task* arg0)
         key.room        = sessionKey->room;
         key.view        = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -226,11 +226,11 @@ void func_actor_350700_80162B30(Task* arg0)
         key.room   = ((GpAreaKey*)keyAddr)->room;
         key.view   = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
         Gp_SyncAreaKeyIndex(&key);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -269,7 +269,7 @@ void func_actor_350700_80162D5C(Task* arg0)
     s32                  i;
 
     funcs[work->field_4F8](arg0);
-    coord              = ((TmdObject*)arg0->extra)->field_8;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     work->field_4D8   += work->field_4C8;
     work->field_4DC   += work->field_4CC;
     work->field_4E0   += work->field_4D0;
@@ -285,17 +285,17 @@ void func_actor_350700_80162D5C(Task* arg0)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)arg0->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     }
-    func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     if (work->field_508 >= 0) {
         if (work->field_508 == 0) {
             Tmd_FreeBuffers(ext);

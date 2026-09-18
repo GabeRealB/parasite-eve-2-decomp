@@ -16,7 +16,7 @@ static inline void Actor103700_BobInline(Task* task, s32 arg1, s32 arg2)
     u16              frame;
 
     work  = (Actor103700Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     frame           = work->field_25E + 1;
     work->field_25E = frame;
@@ -35,7 +35,7 @@ static inline void Actor103700_SwayInline(Task* task, s32 arg1)
     s32              amp;
 
     work  = (Actor103700Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     frame           = work->field_25C + 1;
     work->field_25C = frame;
@@ -61,7 +61,7 @@ void func_actor_103700_801347E0(Task* task)
     scratch                                    = *(Actor103700SteerScratch**)G_SCRATCH_HEAD - 1;
     *(Actor103700SteerScratch**)G_SCRATCH_HEAD = scratch;
     obj                                        = (TmdObject*)task->extra;
-    coord                                      = obj->field_8;
+    coord                                      = obj->coords;
     work                                       = (Actor103700Work*)task->work;
     mode                                       = work->field_250;
     ctx                                        = (Actor103700Ctx*)task->spawnArg2;
@@ -69,7 +69,7 @@ void func_actor_103700_801347E0(Task* task)
     switch (mode) {
         case 0:
             work->obj.flags &= 0x3FFF;
-            obj->field_C    |= 0x84;
+            obj->flags      |= 0x84;
             ctx->field_14    = 1;
             if (D_8011540A == 0) {
                 work->field_250    = 1;
@@ -83,7 +83,7 @@ void func_actor_103700_801347E0(Task* task)
                 Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
                 work->field_256    = (Gp_LcgState >> 16) & 0x1F;
                 Tmd_AllocBuffers(obj);
-                obj->field_C &= ~4;
+                obj->flags &= ~4;
             }
             break;
         case 1:

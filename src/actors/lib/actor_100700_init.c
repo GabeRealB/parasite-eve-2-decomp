@@ -27,17 +27,17 @@ void Actor00700_Fn00060(Actor00700Ctx* ctx, Actor00700* actor)
     s32                 i;
 
     obj   = (TmdObject*)actor->field_2C;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x39CU, false);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
     actor->field_1C = (Actor00700Work*)work;
-    obj->field_C    = 0;
+    obj->flags      = 0;
     coord->flg      = 0;
-    obj->field_1C   = &work->field_1BC;
-    obj->field_20   = &work->field_19C;
+    obj->lightMtx   = &work->field_1BC;
+    obj->colorMtx   = &work->field_19C;
     ctx->field_4    = (void*)(&coord->coord);
     ctx->field_48   = 0;
     Gp_LinkNode(&ctx->node);

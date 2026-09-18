@@ -27,7 +27,7 @@ typedef struct {
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`Mem_Calloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
 /// `color` / `light` are the prop's own matrices, republished onto
-/// `TmdObject::field_1C` / `field_20` by the two spawn handlers; `speed` /
+/// `TmdObject::lightMtx` / `field_20` by the two spawn handlers; `speed` /
 /// `delta` / `ticks` are the fall itself, stepped by `func_neo_ark_shrine_8017F578`.
 typedef struct {
     /* 0x00 */ MATRIX color;
@@ -312,16 +312,16 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
     NeoArkShrineFall* st;
 
     extra      = (TmdObject*)task->extra;
-    coord      = extra->field_8;
+    coord      = extra->coords;
     st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
     if (st == NULL) {
         Task_Kill(task);
         return;
     }
-    extra->field_1C   = &st->light;
-    extra->field_C    = 0;
-    extra->field_20   = &st->color;
+    extra->lightMtx   = &st->light;
+    extra->flags      = 0;
+    extra->colorMtx   = &st->color;
     coord->sub        = &Gfx_ViewCoord;
     coord->coord.t[0] = 0x1B58;
     coord->coord.t[1] = -0xBB8;
@@ -340,7 +340,7 @@ void func_neo_ark_shrine_8017F578(Task* task)
     s32               y;
 
     st        = (NeoArkShrineFall*)task->work;
-    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     ticks     = st->ticks + 1;
     st->ticks = ticks;
     if ((s16)ticks == 4) {
@@ -377,16 +377,16 @@ void func_neo_ark_shrine_8017F688(Task* task)
     NeoArkShrineFall* st;
 
     extra      = (TmdObject*)task->extra;
-    coord      = extra->field_8;
+    coord      = extra->coords;
     st         = (NeoArkShrineFall*)Mem_Calloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
     if (st == NULL) {
         Task_Kill(task);
         return;
     }
-    extra->field_1C   = &st->light;
-    extra->field_C    = 0;
-    extra->field_20   = &st->color;
+    extra->lightMtx   = &st->light;
+    extra->flags      = 0;
+    extra->colorMtx   = &st->color;
     coord->sub        = &Gfx_ViewCoord;
     coord->coord.t[0] = 0x222E;
     coord->coord.t[1] = -0xBB8;
@@ -405,7 +405,7 @@ void func_neo_ark_shrine_8017F738(Task* task)
     s32               y;
 
     st        = (NeoArkShrineFall*)task->work;
-    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     ticks     = st->ticks + 1;
     st->ticks = ticks;
     if ((s16)ticks == 2) {

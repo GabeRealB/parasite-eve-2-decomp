@@ -41,7 +41,7 @@ void func_sp12_8011D1DC(GpActorWork* arg0)
         *(void**)G_SCRATCH_HEAD = tmp;
     }
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -76,10 +76,10 @@ void func_sp12_8011D1DC(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8D, 1);
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                           ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200E0005, 1);
             Gp_SpawnEff(0x600A1,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                         (Player_Status.weaponSlotItem << 0x10) | 0xE, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             break;
@@ -104,7 +104,7 @@ void func_sp12_8011D1DC(GpActorWork* arg0)
         case 4:
             if (--actor->field_934 == 0) {
                 actor->field_95E++;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                               ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200E0002, 0);
             }
             /* fallthrough */

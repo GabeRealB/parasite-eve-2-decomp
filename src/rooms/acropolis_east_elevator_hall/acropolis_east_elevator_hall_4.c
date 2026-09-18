@@ -27,7 +27,7 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     u16                       vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    coord   = ((TmdObject*)arg0->extra)->field_8;
+    coord   = ((TmdObject*)arg0->extra)->coords;
     mem     = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     head          = *scratch;

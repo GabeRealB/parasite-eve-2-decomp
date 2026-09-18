@@ -72,7 +72,7 @@ void func_actor_800200_80163044(GpActorWork* arg0)
     s32            flag;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -115,7 +115,7 @@ void func_actor_800200_80163180(GpActorWork* arg0)
     s32            delay;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -176,7 +176,7 @@ void func_actor_800200_8016337C(GpActorWork* arg0)
     s32            delay;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -241,7 +241,7 @@ void func_actor_800200_80163584(GpActorWork* arg0)
     s32            delay;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -310,7 +310,7 @@ void func_actor_800200_801637B4(GpActorWork* arg0)
     s32            mode;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -358,7 +358,7 @@ void func_actor_800200_8016390C(GpActorWork* arg0)
     s32            flag;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -404,7 +404,7 @@ void func_actor_800200_80163B90(GpActorWork* arg0)
     s32            flag;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -450,7 +450,7 @@ void func_actor_800200_80163CCC(GpActorWork* arg0)
     s32            flag;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -495,7 +495,7 @@ void func_actor_800200_80163E14(GpActorWork* arg0)
     s32            mode;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -546,8 +546,8 @@ void func_actor_800200_80163F5C(GpActorWork* arg0)
     s32            dist;
     s32            angle;
 
-    coord  = arg0->extra->field_8;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     dist   = func_actor_800200_801660E8(coord, &actor->field_910->field_A0, NULL);
     if (dist != 0 && dist < 0x301) {
@@ -639,7 +639,7 @@ void func_actor_800200_80164180(GpActorWork* arg0)
 
     actor             = arg0->actor;
     d4                = actor->field_910;
-    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     tmp               = head - 0x10;
     *(u8**)0x1F8003FC = tmp;
@@ -718,12 +718,12 @@ void func_actor_800200_8016436C(GpActorWork* arg0)
 
     actor             = arg0->actor;
     d4                = actor->field_910;
-    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    target            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     tmp               = head - 0x10;
     *(u8**)0x1F8003FC = tmp;
     vec               = (VECTOR3*)tmp;
-    coord             = arg0->extra->field_8;
+    coord             = arg0->extra->coords;
     if (actor->field_90C != NULL) {
         node             = Gp_FindLockNode(arg0);
         actor->field_90C = node;
@@ -796,7 +796,7 @@ void func_actor_800200_80164598(GpActorWork* arg0)
     extra                                        = arg0->extra;
     actor                                        = arg0->actor;
     tmp                                          = head - 0x14;
-    coord                                        = extra->field_8;
+    coord                                        = extra->coords;
     block                                        = (GpApproachScratch*)tmp;
     block->vec.vx                                = actor->field_20 - coord->coord.t[0];
     *scratch                                     = block;
@@ -872,7 +872,7 @@ void func_actor_800200_80164C54(GpActorWork* arg0)
     extra                                        = arg0->extra;
     actor                                        = arg0->actor;
     tmp                                          = head - 0x14;
-    coord                                        = extra->field_8;
+    coord                                        = extra->coords;
     block                                        = (GpApproachScratch*)tmp;
     block->vec.vx                                = actor->field_20 - coord->coord.t[0];
     *scratch                                     = block;
@@ -970,7 +970,7 @@ void func_actor_800200_80164EBC(GpActorWork* arg0)
     extra                                        = arg0->extra;
     actor                                        = arg0->actor;
     tmp                                          = head - 0x14;
-    coord                                        = extra->field_8;
+    coord                                        = extra->coords;
     block                                        = (GpApproachScratch*)tmp;
     block->vec.vx                                = actor->field_20 - coord->coord.t[0];
     *scratch                                     = block;
@@ -1066,7 +1066,7 @@ s32 func_actor_800200_80165104(GpActorWork* arg0)
     ret   = 0;
     sound = 0;
     actor = arg0->actor;
-    obj   = (GpObj38*)arg0->extra->field_8;
+    obj   = (GpObj38*)arg0->extra->coords;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
@@ -1339,7 +1339,7 @@ void func_actor_800200_80165814(GpActorWork* arg0)
     s32            arg;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     d4    = actor->field_910;
     if (actor->field_960 == 0) {
         actor->field_20 = D_actor_800200_8016A018[d4->field_CE].field_0;
@@ -1365,7 +1365,7 @@ void func_actor_800200_801658E0(GpActorWork* arg0)
     GsCOORDINATE2* coord;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     d4    = actor->field_910;
     if (actor->field_960 == 0) {
         actor->field_20 = D_actor_800200_8016A040[d4->field_CE].field_0;
@@ -1394,7 +1394,7 @@ void func_actor_800200_801659CC(GpActorWork* arg0)
     u32            state;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = actor->field_960;
     d4    = actor->field_910;
     switch (state) {
@@ -1425,7 +1425,7 @@ void func_actor_800200_80165ACC(GpActorWork* arg0)
     GsCOORDINATE2* coord;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     d4    = actor->field_910;
     if (actor->field_960 == 0) {
         actor->field_20 = D_actor_800200_8016A128[d4->field_CE].field_0;
@@ -1451,7 +1451,7 @@ void func_actor_800200_80165B84(GpActorWork* arg0)
     sp    = D_actor_800200_80161E5C;
     actor = arg0->actor;
     d4    = actor->field_910;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     if (d4->field_C4 > 0) {
         d4->field_C4--;
     }
@@ -1484,8 +1484,8 @@ void func_actor_800200_80165D44(GpActorWork* arg0)
     GsCOORDINATE2* coord;
     GsCOORDINATE2* target;
 
-    coord  = arg0->extra->field_8;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     switch (actor->field_95E) {
         case 1:
@@ -1552,7 +1552,7 @@ void func_actor_800200_80165F50(GpActorWork* arg0)
 
     sp    = D_actor_800200_80161EC8;
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     sp.funcs[actor->field_956](arg0);
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
 }

@@ -185,7 +185,7 @@ Task* Display_SpawnFromMode(void)
         slot                = Game_GetPtrSlot(3);
         obj                 = (GameActor*)slot->work;
         flag                = obj->field_984 & 1;
-        ptr                 = ((TmdObject*)slot->extra)->field_8;
+        ptr                 = ((TmdObject*)slot->extra)->coords;
         if (flag) {
             func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
         }
@@ -218,7 +218,7 @@ block_default:
     slot                                  = Game_GetPtrSlot(3);
     obj                                   = (GameActor*)slot->work;
     flag                                  = obj->field_984 & 1;
-    ptr                                   = ((TmdObject*)slot->extra)->field_8;
+    ptr                                   = ((TmdObject*)slot->extra)->coords;
     if (flag) {
         func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
     }

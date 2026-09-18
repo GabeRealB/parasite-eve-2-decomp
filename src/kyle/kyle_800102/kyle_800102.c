@@ -44,7 +44,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     *scratch = blk;
     extra    = arg0->extra;
     idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
-    coord    = extra->field_8;
+    coord    = extra->coords;
     muzzle   = coord->sub;
     work     = Mem_Calloc(sizeof(Kyle800102Work), 0);
     vec      = blk;
@@ -70,9 +70,9 @@ void func_kyle_800102_80167A84(Task* arg0)
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
     Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, mtx);
-    coord->sub     = &Gfx_ViewCoord;
-    coord->flg     = 0;
-    extra->field_C = 0;
+    coord->sub   = &Gfx_ViewCoord;
+    coord->flg   = 0;
+    extra->flags = 0;
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
@@ -145,7 +145,7 @@ void func_kyle_800102_80167DE0(Task* arg0)
     s32                sfxbase;
 
     work                    = (Kyle800102Work*)arg0->work;
-    coord                   = ((TmdObject*)arg0->extra)->field_8;
+    coord                   = ((TmdObject*)arg0->extra)->coords;
     head                    = *(u8**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = head - sizeof(Kyle800102Scratch);
     blk                     = (Kyle800102Scratch*)(head - sizeof(Kyle800102Scratch));

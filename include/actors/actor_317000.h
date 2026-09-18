@@ -21,7 +21,7 @@ typedef union Actor317000Fixed {
 /// Work block allocated by `func_actor_317000_8016267C` (`Mem_Calloc(0x4CC)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_317000_80162744` republishes the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
 ///
@@ -145,7 +145,7 @@ extern char D_actor_317000_80161E50[];
 extern char D_actor_317000_80161E60[];
 extern char D_actor_317000_80161E64[];
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
 /// `param`) holds the facing `func_actor_317000_801620BC` derives from the
 /// actor's own and the slot 3 task's translation, the rotation `RotMatrix` is
 /// later rebuilt from -- the same reuse `ActorsShared80132860Coord`,

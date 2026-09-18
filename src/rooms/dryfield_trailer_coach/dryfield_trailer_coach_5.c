@@ -26,7 +26,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     GsCOORDINATE2* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (mask & 0x104) {
         Room_Draw37(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
         return;

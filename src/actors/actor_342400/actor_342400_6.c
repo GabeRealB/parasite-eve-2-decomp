@@ -47,7 +47,7 @@ static __inline__ void calc_push(Task* arg0, GsCOORDINATE2* coord, GpRec18* rec,
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    c2     = ((TmdObject*)arg0->extra)->field_8;
+    c2     = ((TmdObject*)arg0->extra)->coords;
     d.vx   = pos.vx - rec->field_8;
     d.vy   = 0;
     d.vz   = pos.vz - rec->field_C;
@@ -100,7 +100,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
     stepX                  = 0;
     blocked                = 0;
     work                   = (Actor342400Work*)arg0->work;
-    coord                  = ((TmdObject*)arg0->extra)->field_8;
+    coord                  = ((TmdObject*)arg0->extra)->coords;
     enemy                  = arg0->spawnArg2;
     *(u8**)G_SCRATCH_HEAD -= 8;
     work->field_41E        = 0;
@@ -127,7 +127,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
                     work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].field_4);
                     if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].field_4, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
-                        Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->field_8[3], 0, NULL);
+                        Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
                     }
                     func_800E2C78((GpObj40*)enemy, work->rec_2EC[i].field_4, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
@@ -136,7 +136,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
                         enemy->field_40 = 0;
                     }
                     func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].field_4) & 0xFFFF,
-                                  &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+                                  &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
                     if (amount >= 0x28) {
                         work->field_448 = 2;
                     } else {
@@ -174,7 +174,7 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
                             break;
                     }
                 } else if ((Gp_GetIdParam1(work->rec_2EC[i].field_4) & 0xFFFF) == 0xD) {
-                    func_800FDB18(0xD, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+                    func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
                 }
                 break;
         }

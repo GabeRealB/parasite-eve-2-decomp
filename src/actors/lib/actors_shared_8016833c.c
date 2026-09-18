@@ -11,7 +11,7 @@ void ActorsShared8016833c(Task* task, s16 part, VECTOR3* pos)
 {
     GsCOORDINATE2* coord;
 
-    coord             = ((TmdObject*)task->extra)->field_8;
+    coord             = ((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = pos->vx;
     coord->coord.t[1] = pos->vy;
     coord->coord.t[2] = pos->vz;

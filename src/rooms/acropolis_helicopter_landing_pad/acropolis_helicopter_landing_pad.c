@@ -84,8 +84,8 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
         return;
     }
     task->work    = mem;
-    obj->field_E  = 8;
-    obj->field_C &= 0xFF7F;
+    obj->otOffset = 8;
+    obj->flags   &= 0xFF7F;
     func_acropolis_helicopter_landing_pad_8017D7B0(task);
     task->msgTable      = D_acropolis_helicopter_landing_pad_80182328;
     task->killCountdown = 0;
@@ -101,7 +101,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
     AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
-    RoomCoord*     coord = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+    RoomCoord*     coord = (RoomCoord*)((TmdObject*)task->extra)->coords;
     TmdObject*     obj   = task->extra;
     s16            n;
 
@@ -116,9 +116,9 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
     }
     if (gGameSession->viewReady != 0) {
         if (D_acropolis_helicopter_landing_pad_80182370[(u8)gGameSession->at4.loc.view] != 0) {
-            obj->field_C &= 0xFF7F;
+            obj->flags &= 0xFF7F;
         } else {
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
         }
     }
 }
@@ -132,8 +132,8 @@ void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
     GsF_LIGHT*     light;
     s32            i;
 
-    obj->field_1C = &work->lightMtx;
-    obj->field_20 = &work->colorMtx;
+    obj->lightMtx = &work->lightMtx;
+    obj->colorMtx = &work->colorMtx;
     for (i = 0, light = D_acropolis_helicopter_landing_pad_80182340; i < 3; i++, light++) {
         Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
     }
@@ -178,7 +178,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPl
 {
     RoomCoord* coord;
 
-    coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
@@ -283,7 +283,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             D_acropolis_helicopter_landing_pad_80184E3C.field_4 = 9;
             D_acropolis_helicopter_landing_pad_80184E3C.field_0 = D_80073BA9 + 1;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
-            coord = ((TmdObject*)spawned->extra)->field_8;
+            coord = ((TmdObject*)spawned->extra)->coords;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F5, (s32)coord, 0);
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
             Gp_DispatchMsg(Game_GetPtrSlot(6), 0xFA4, 0, 0);
@@ -489,7 +489,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
     MATRIX         unusedM;
     SVECTOR        unusedC;
 
-    coord  = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4];
+    coord  = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4];
     dir.vx = -0x249;
     dir.vy = 0;
     dir.vz = 0xB8;

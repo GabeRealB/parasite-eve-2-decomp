@@ -234,7 +234,7 @@ typedef struct Actor403200Work {
     /// `Actor444000Work::field_ECA`.
     /* 0xECA */ s16 field_ECA;
     /// The escorts the state-change reset walks to push the host's
-    /// `TmdObject::field_C` onto each escort's own model object; the same
+    /// `TmdObject::flags` onto each escort's own model object; the same
     /// seven-slot run as `Actor444000Work::field_ECC`.
     /* 0xECC */ GpEnemy* field_ECC[7];
     /// The two escorts the upkeep tick drops once their HP has run out, by
@@ -311,7 +311,7 @@ STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 /// The state drops the model onto the view coordinate and hangs two `GpObj`
 /// display nodes off it. `rec0` is the table the first node carries, `rec1`
 /// the second's; the two matrices are handed back out through the task's
-/// `TmdObject::field_1C` / `field_20`, as the sibling spawn states do.
+/// `TmdObject::lightMtx` / `field_20`, as the sibling spawn states do.
 /// `field_1AA` is a ninth of the model's height and `field_1AC` the step
 /// counter, both re-read by the states that follow this one.
 typedef struct Actor403200GrabWork {

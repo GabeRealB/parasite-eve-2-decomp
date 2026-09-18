@@ -57,11 +57,11 @@ s32 func_actor_403200_801411A8(void)
     view = Gp_GetViewIndex() & 0xFF;
     task = (Task*)Game_GetPtrSlot(3);
     if (view == 0x1E) {
-        flag  = ((TmdObject*)task->extra)->field_8->coord.t[0];
+        flag  = ((TmdObject*)task->extra)->coords->coord.t[0];
         flag  = flag < 0x3A98;
         value = 0x25;
     } else {
-        flag  = ((TmdObject*)task->extra)->field_8->coord.t[0];
+        flag  = ((TmdObject*)task->extra)->coords->coord.t[0];
         flag  = flag < 0x3E80;
         value = 0x25;
     }

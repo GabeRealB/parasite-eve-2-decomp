@@ -244,7 +244,7 @@ extern Task* D_actor_121300_8013D418;
 /// First tick of the cutscene actor: allocates the 0x4B0-byte
 /// `Actor121300Work` block, zeroes it and parks it in `Task::work`, then wires
 /// the model object up -- the work block's light and colour matrices into
-/// `TmdObject::field_1C` / `field_20`, `field_C` cleared and the animation
+/// `TmdObject::lightMtx` / `field_20`, `field_C` cleared and the animation
 /// context handed to `func_800B3F84`, and slots 1..18 re-armed through
 /// `Gp_AnimResetSlot`.  The texture page / CLUT row come from the placement
 /// record at the nested area table's `field_0` list whose id matches neither
@@ -266,7 +266,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     u8               id;
 
     tmd        = arg0->extra;
-    coord      = tmd->field_8;
+    coord      = tmd->coords;
     map        = Mem_Malloc(0x4B0, 0);
     arg0->work = map;
     if (map == NULL) {
@@ -278,9 +278,9 @@ void func_actor_121300_80133BFC(Task* arg0)
     work->field_488         = Game_GetPtrSlot(3);
     D_actor_121300_8013D418 = arg0;
     coord->sub              = &Gfx_ViewCoord;
-    tmd->field_1C           = &work->field_43C;
-    tmd->field_C            = 0;
-    tmd->field_20           = &work->field_45C;
+    tmd->lightMtx           = &work->field_43C;
+    tmd->flags              = 0;
+    tmd->colorMtx           = &work->field_45C;
     place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     id                      = place->field_0;
     while (id != 0xFF) {
@@ -391,9 +391,9 @@ void func_actor_121300_80133D98(Task* arg0)
     }
     func_actor_121300_80133854(arg0);
     extra          = (TmdObject*)arg0->extra;
-    scratch.vec.vx = extra->field_8[1].workm.t[0];
-    scratch.vec.vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
-    scratch.vec.vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    scratch.vec.vx = extra->coords[1].workm.t[0];
+    scratch.vec.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
+    scratch.vec.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
     func_800D7A9C(extra, &scratch.vec, 0, 3);
     D_actor_121300_8013CC00 += 1;
 }

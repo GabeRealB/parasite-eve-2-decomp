@@ -632,10 +632,10 @@ void func_actor_510900_801373B8(Actor510900* arg0)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = entry->field_D;
-        model->field_25 = entry->field_E;
-        if (model->field_18 != NULL) {
+        entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->field_D;
+        model->clut  = entry->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -879,8 +879,8 @@ void func_actor_510900_80137868(Actor510900* arg0)
             work->field_59C++;
             if (work->field_59C >= 6) {
                 work->field_59C                 = 0;
-                D_actor_510900_80167B7C.field_0 = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
-                func_800FDB18(5, &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4], NULL,
+                D_actor_510900_80167B7C.field_0 = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
+                func_800FDB18(5, &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4], NULL,
                               &D_actor_510900_80167B7C);
             }
             switch (work->field_5B6) {
@@ -892,7 +892,7 @@ void func_actor_510900_80137868(Actor510900* arg0)
                     break;
                 case 2:
                     if (CdCmd_IsIdle() == 1) {
-                        coord = (Actor510900Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                        coord = (Actor510900Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
                         SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan((GpObj38*)coord),
                                             (s8)Gp_GetObjDepth((GpObj38*)coord));
                         work->field_5B6 = 0;
@@ -1546,30 +1546,30 @@ s32 func_actor_510900_801391B8(Actor510900* arg0, s32 arg1, s32 arg2)
     switch (arg2) {
         case 0:
             ((void (*)(s32))Gp_IncStateF0Ref)(0x1B);
-            obj->field_C                                  = 0;
-            ((TmdObject*)work->field_568->extra)->field_C = 0;
-            ((TmdObject*)work->field_56C->extra)->field_C = 0;
-            work->field_5A4                               = 1;
+            obj->field_C                                = 0;
+            ((TmdObject*)work->field_568->extra)->flags = 0;
+            ((TmdObject*)work->field_56C->extra)->flags = 0;
+            work->field_5A4                             = 1;
             break;
         case 1:
-            obj->field_C                                  = 0;
-            ((TmdObject*)work->field_568->extra)->field_C = 0;
-            ((TmdObject*)work->field_56C->extra)->field_C = 0;
-            work->field_5A4                               = 2;
-            work->field_5A6                               = 0x11F8;
-            vec                                           = rot;
-            work->field_586                               = 0x1A;
-            work->field_588                               = 0x1A;
-            work->field_5A0                               = 0x400;
-            work->field_58E                               = 0;
-            work->field_590                               = 0;
-            work->field_5A2                               = 0;
-            work->field_58A                               = 0;
-            work->obj47C.flags                           |= 0x8000;
-            enemy->node.field_4                           = 8;
-            vec->vx                                       = 0;
-            vec->vy                                       = work->field_5A0;
-            vec->vz                                       = 0;
+            obj->field_C                                = 0;
+            ((TmdObject*)work->field_568->extra)->flags = 0;
+            ((TmdObject*)work->field_56C->extra)->flags = 0;
+            work->field_5A4                             = 2;
+            work->field_5A6                             = 0x11F8;
+            vec                                         = rot;
+            work->field_586                             = 0x1A;
+            work->field_588                             = 0x1A;
+            work->field_5A0                             = 0x400;
+            work->field_58E                             = 0;
+            work->field_590                             = 0;
+            work->field_5A2                             = 0;
+            work->field_58A                             = 0;
+            work->obj47C.flags                         |= 0x8000;
+            enemy->node.field_4                         = 8;
+            vec->vx                                     = 0;
+            vec->vy                                     = work->field_5A0;
+            vec->vz                                     = 0;
             RotMatrix(vec, &coord->field_0.coord);
             coord->field_0.coord.t[0] = 0;
             coord->field_0.coord.t[1] = 0;
@@ -1594,10 +1594,10 @@ s32 func_actor_510900_801391B8(Actor510900* arg0, s32 arg1, s32 arg2)
             }
             break;
         case 2:
-            obj->field_C                                  = 0x80;
-            ((TmdObject*)work->field_568->extra)->field_C = 0x80;
-            ((TmdObject*)work->field_56C->extra)->field_C = 0x80;
-            work->field_5A4                               = 0;
+            obj->field_C                                = 0x80;
+            ((TmdObject*)work->field_568->extra)->flags = 0x80;
+            ((TmdObject*)work->field_56C->extra)->flags = 0x80;
+            work->field_5A4                             = 0;
             if (work->field_564 != NULL) {
                 work->field_564[0xD] = 4;
             }
@@ -1659,9 +1659,9 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
 
     work  = (Actor510900Work*)task->parent->work;
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     if (work->field_586 < 0x1C) {
-        obj->field_C = 0x80;
+        obj->flags = 0x80;
         return;
     }
     *(u8**)G_SCRATCH_HEAD -= 0x20;
@@ -1672,12 +1672,12 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
 
         case 0x1E:
             if (work->field_58A == 0xC8) {
-                obj->field_C = 0;
+                obj->flags = 0;
             }
             break;
 
         case 0x1F:
-            parentCoord = &((TmdObject*)task->parent->extra)->field_8[12];
+            parentCoord = &((TmdObject*)task->parent->extra)->coords[12];
             blend       = work->field_58A;
             if (blend < 0x50) {
                 r = blend % 40;
@@ -1741,8 +1741,8 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     s32                        idx;
 
     tmd          = arg1->extra;
-    coord        = tmd->field_8;
-    parentCoords = ((TmdObject*)arg1->parent->extra)->field_8;
+    coord        = tmd->coords;
+    parentCoords = ((TmdObject*)arg1->parent->extra)->coords;
     parentCoord  = &parentCoords[3];
     work         = Mem_Calloc(sizeof(Actor510900ChildFx), false);
     if (work == NULL) {
@@ -1750,10 +1750,10 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
         return;
     }
     arg1->work    = (TaskIdMap*)work;
-    tmd->field_C  = 0;
+    tmd->flags    = 0;
     scratch       = (Actor510900ChildFxScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor510900ChildFxScratch));
-    tmd->field_1C = &work->lightMtx;
-    tmd->field_20 = &work->colorMtx;
+    tmd->lightMtx = &work->lightMtx;
+    tmd->colorMtx = &work->colorMtx;
 
     Gfx_ViewCoord.flg = 0;
     Gp_UpdateCoord(&Gfx_ViewCoord);
@@ -1860,12 +1860,12 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
 
     tmd    = task->extra;
     work   = (Actor510900ChildFx*)task->work;
-    coord  = tmd->field_8;
+    coord  = tmd->coords;
     parent = (Actor510900Work*)task->parent->work;
     done   = 0;
     switch (D_801153F4) {
         case 0:
-            tmd->field_C = 0;
+            tmd->flags = 0;
             break;
         case 1:
             pos.vx = coord->workm.t[0];
@@ -1874,7 +1874,7 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
             Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
             return;
         case 2:
-            tmd->field_C = 0x80;
+            tmd->flags = 0x80;
             return;
     }
 
@@ -1934,9 +1934,9 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         work->obj40.flags &= 0x7FFF;
         Gp_ClearRec18Occupied(&work->rec60);
         Gp_UnlinkObj(&work->obj78);
-        work->field_C8                     = 0;
-        ((TmdObject*)task->extra)->field_C = 0x80;
-        snd                                = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x51100009;
+        work->field_C8                   = 0;
+        ((TmdObject*)task->extra)->flags = 0x80;
+        snd                              = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x51100009;
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
         task->state = 2;
     }
@@ -1944,10 +1944,10 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     if (parent->field_592 == 0) {
         work->obj40.flags &= 0x7FFF;
         Gp_UnlinkObj(&work->obj78);
-        work->field_C8                     = 0;
-        ((TmdObject*)task->extra)->field_C = 0x80;
-        task->state                        = 2;
-        work->field_CA                     = 3;
+        work->field_C8                   = 0;
+        ((TmdObject*)task->extra)->flags = 0x80;
+        task->state                      = 2;
+        work->field_CA                   = 3;
     }
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor510900ChildFxTickScratch);
 }
@@ -2068,7 +2068,7 @@ void func_actor_510900_8013A310(Task* task)
                 Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
                 work->field_CC = 1;
                 work->field_CE = 0;
-                obj            = (GpObj38*)((TmdObject*)player->extra)->field_8;
+                obj            = (GpObj38*)((TmdObject*)player->extra)->coords;
                 snd            = (((u16)((GpEnemy*)task->spawnArg2)->field_8 >> 0xC) << 8) | 0x5110000A;
                 pan            = (s8)Gp_GetObjPan(obj);
                 SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth(obj));
@@ -2118,7 +2118,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     s32                   i;
 
     tmd    = task->extra;
-    coords = tmd->field_8;
+    coords = tmd->coords;
     work   = Mem_Calloc(sizeof(Actor510900ChildAnim), 0);
     coord  = &coords[10];
     if (work == NULL) {
@@ -2126,10 +2126,10 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         return;
     }
     task->work          = (TaskIdMap*)work;
-    tmd->field_C        = 0x80;
+    tmd->flags          = 0x80;
     coords->flg         = 0;
-    tmd->field_1C       = &work->lightMtx;
-    tmd->field_20       = &work->colorMtx;
+    tmd->lightMtx       = &work->lightMtx;
+    tmd->colorMtx       = &work->colorMtx;
     head                = *(void**)0x1F8003FC;
     enemy->field_4      = &coords->coord;
     rot                 = (SVECTOR*)(head - 8);
@@ -2286,7 +2286,7 @@ void func_actor_510900_8013A9BC(Task* task)
 
     grabbed             = 0;
     head                = *(void**)0x1F8003FC;
-    coord               = &((TmdObject*)task->extra)->field_8[10];
+    coord               = &((TmdObject*)task->extra)->coords[10];
     *(void**)0x1F8003FC = (u8*)head - 0x18;
     scratch             = (Actor510900GrabScratch*)((u8*)head - 0x18);
     work                = (Actor510900ChildAnim*)task->work;
@@ -2358,10 +2358,10 @@ case1:
         work->obj2F4.flags &= 0x7FFF;
     }
     Gp_ClearRec18Occupied(&work->rec314);
-    func_80180A64(&((TmdObject*)task->extra)->field_8[9]);
-    func_80180A64(&((TmdObject*)task->extra)->field_8[8]);
-    func_80180A64(&((TmdObject*)task->extra)->field_8[7]);
-    func_80180A64(&((TmdObject*)task->extra)->field_8[6]);
+    func_80180A64(&((TmdObject*)task->extra)->coords[9]);
+    func_80180A64(&((TmdObject*)task->extra)->coords[8]);
+    func_80180A64(&((TmdObject*)task->extra)->coords[7]);
+    func_80180A64(&((TmdObject*)task->extra)->coords[6]);
     work->field_332--;
     next = 2;
     if (work->field_332 <= 0) {

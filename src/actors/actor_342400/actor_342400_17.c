@@ -161,11 +161,11 @@ void func_actor_342400_80169F30(Task* arg0)
     s16              speed;
 
     ActorsShared801698d4(arg0, 0x10);
-    speed                                           = func_actor_342400_80169728(arg0, -0x10);
-    angle                                           = work->field_7A;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    speed                                          = func_actor_342400_80169728(arg0, -0x10);
+    angle                                          = work->field_7A;
+    ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->coords->flg         = 0;
     if (ActorsShared8016974c(arg0)) {
         Actor342400Work* next = (Actor342400Work*)arg0->work;
 

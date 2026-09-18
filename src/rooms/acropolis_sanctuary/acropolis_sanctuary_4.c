@@ -97,9 +97,9 @@ void func_acropolis_sanctuary_80180264(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     view = Gp_GetViewIndex();
     if (view == 0xB || view == 0xD || flag == 2) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
     }
 }

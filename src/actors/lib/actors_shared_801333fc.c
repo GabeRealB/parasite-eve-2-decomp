@@ -15,7 +15,7 @@ void ActorsShared801333fc(Actor101500* actor)
     VECTOR*          blk;
 
     work                      = actor->field_1C;
-    coord                     = actor->field_2C->field_8;
+    coord                     = actor->field_2C->coords;
     work->field_352           = 0xE;
     work->field_360           = 5;
     work->field_376           = 5;

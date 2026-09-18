@@ -31,7 +31,7 @@ s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     vec      = (SVECTOR*)(head - 8);
-    coord    = arg0->field_2C->field_8;
+    coord    = arg0->field_2C->coords;
     vec->vx  = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
     dz       = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
     *scratch = vec;

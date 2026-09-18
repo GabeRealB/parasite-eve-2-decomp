@@ -86,7 +86,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
 
     enemy                   = (GpEnemy*)spawnArg2;
     obj                     = task->extra;
-    coord                   = obj->field_8;
+    coord                   = obj->coords;
     mem                     = Mem_Calloc(0x4B4, 0);
     D_actor_521100_8016A3D8 = mem;
     task->work              = (TaskIdMap*)mem;
@@ -100,9 +100,9 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     enemy->field_48          = 0;
     enemy->node.field_5      = 0;
     enemy->node.field_4      = 1;
-    obj->field_E             = 1;
-    obj->field_1C            = (MATRIX*)D_actor_521100_8016A3D8;
-    obj->field_20            = (MATRIX*)D_actor_521100_8016A3D8 + 1;
+    obj->otOffset            = 1;
+    obj->lightMtx            = (MATRIX*)D_actor_521100_8016A3D8;
+    obj->colorMtx            = (MATRIX*)D_actor_521100_8016A3D8 + 1;
     vec.vx                   = coord->workm.t[0];
     vec.vy                   = coord->workm.t[1] - 0x320;
     ActorsShared801326b4Task = task;
@@ -145,7 +145,7 @@ void func_actor_521100_80135F2C(Task* task)
     if (work->field_47C == 3) {
         animId = work->animId;
         if (animId == 1 && work->travel != 0) {
-            Actor521100_MoveForward(((TmdObject*)task->extra)->field_8, 0x14);
+            Actor521100_MoveForward(((TmdObject*)task->extra)->coords, 0x14);
             D_actor_521100_8016A3D8->travel = (u16)D_actor_521100_8016A3D8->travel - 1;
         }
         func_actor_521100_80136724();
@@ -169,7 +169,7 @@ void func_actor_521100_801360C4(void* spawnArg2, Task* task)
     s32              i;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = (Actor521100Work*)task->work;
     sp10  = *coord;
 
@@ -186,7 +186,7 @@ void func_actor_521100_801360C4(void* spawnArg2, Task* task)
             func_actor_521100_801368B0((Actor521100*)task);
             work->field_486++;
             if ((s16)work->field_486 == 0xA) {
-                obj->field_C = 2;
+                obj->flags = 2;
             }
             if ((s16)work->field_486 == 0xF) {
                 sp10.coord.t[0] -= 0x1F4;
@@ -225,7 +225,7 @@ void func_actor_521100_80136290(void* arg0, Task* task)
     u8*              head;
     VECTOR*          block;
 
-    coord    = &((TmdObject*)task->extra)->field_8[1];
+    coord    = &((TmdObject*)task->extra)->coords[1];
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     block    = (VECTOR*)(head - 0x10);
@@ -331,7 +331,7 @@ void func_actor_521100_80136680(void* arg0, Task* task)
     VECTOR         vec;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;

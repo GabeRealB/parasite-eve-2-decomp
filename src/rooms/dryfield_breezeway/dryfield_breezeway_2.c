@@ -246,7 +246,7 @@ void func_dryfield_breezeway_8017E390(void)
 ///
 /// The event object then draws with the room's lighting rather than the shared
 /// defaults: the work block's `light` / `color` pair is splatted onto
-/// `TmdObject::field_1C` / `field_20` (the slots `Gp_BindDefaultMtx` otherwise
+/// `TmdObject::lightMtx` / `field_20` (the slots `Gp_BindDefaultMtx` otherwise
 /// points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`), the 0x800 translation goes
 /// into the colour matrix, and the hotspot scan's cursor is seeded with the
 /// reset pair (0, 0x20). Both hotspot tables are walked to clear `hit`, so the
@@ -273,7 +273,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     RoomHotspot*   hs;
 
     ext   = arg0->extra;
-    coord = ext->field_8;
+    coord = ext->coords;
 
     work = (DbwEventWork*)Mem_Calloc(0x60, false);
     if (work == NULL) {
@@ -303,9 +303,9 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
         hs++;
     }
 
-    ext->field_20 = &work->color;
-    ext->field_C  = 0;
-    ext->field_1C = &work->light;
+    ext->colorMtx = &work->color;
+    ext->flags    = 0;
+    ext->lightMtx = &work->light;
     coord->sub    = NULL;
 
     gGameSession->eventState   = 1;
@@ -332,7 +332,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
         color->ident.m20_m21 = 0;
         color->ident.m22     = 0x1000;
 
-        eventObj->field_1C = &eventWork->light;
+        eventObj->lightMtx = &eventWork->light;
 
         eventWork->color.m[0][0] = 0x1000;
         eventWork->color.m[0][1] = 0x1000;
@@ -354,7 +354,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
         eventWork->light.m[2][1] = 0x1000;
         eventWork->light.m[2][2] = 0;
 
-        eventObj->field_20 = &eventWork->color;
+        eventObj->colorMtx = &eventWork->color;
         Gp_SetObjTrans((GpObj20*)eventObj, 0x800, 0x800, 0x800);
     }
 }
@@ -400,7 +400,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     GsCOORDINATE2*    coord;
     MATRIX*           m;
 
-    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     work   = (DbwEventWork*)task->work;
     hs     = D_dryfield_breezeway_80182E00;
     prompt = &D_80114D28;
@@ -467,7 +467,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
 void func_dryfield_breezeway_8017E81C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    GsCOORDINATE2*    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
     RoomHotspot*      hs     = D_dryfield_breezeway_80182DDC;
     MATRIX*           m;

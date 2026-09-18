@@ -61,28 +61,28 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
     ret   = 0;
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
             Tmd_FreeBuffers(obj);
-            obj->field_C |= 4;
+            obj->flags |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
             break;
     }
-    other->field_C = obj->field_C;
+    other->flags = obj->flags;
     return ret;
 }
 
@@ -95,14 +95,14 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
     switch (msg->field_2) {
         case 0:
             if (work->field_4BC != NULL) {
-                model           = (TmdObject*)work->field_4BC->extra;
-                model->field_C &= 0xFF7F;
+                model         = (TmdObject*)work->field_4BC->extra;
+                model->flags &= 0xFF7F;
             }
             break;
         case 1:
             if (work->field_4BC != NULL) {
-                model           = (TmdObject*)work->field_4BC->extra;
-                model->field_C |= 0x80;
+                model         = (TmdObject*)work->field_4BC->extra;
+                model->flags |= 0x80;
             }
             break;
         case 2:
@@ -120,7 +120,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
             if (work->field_4BC != NULL) {
                 work->field_4BC->spawnArg1 = 3;
                 model                      = (TmdObject*)work->field_4BC->extra;
-                model->field_C            &= 0xFF7F;
+                model->flags              &= 0xFF7F;
             }
             break;
     }
@@ -130,7 +130,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
 /// The actor's per-frame tick. Once `func_actor_135400_80132D24` has raised
 /// `field_43C` it ticks the work block's twenty animation slots through
 /// `Gp_AnimTickIndex`; while the model is drawn (bit 0x80 of
-/// `TmdObject::field_C` clear) it draws the ground shadow under the model's
+/// `TmdObject::flags` clear) it draws the ground shadow under the model's
 /// root part, as `func_actor_135400_801322A8` does for the main task. It then
 /// steps the 0x7D3 animation on the `D_actor_135400_8013F8C4` frame counts, and
 /// finally runs `field_494` down -- at zero the model's aux buffers are freed
@@ -151,7 +151,7 @@ void func_actor_135400_801329B0(Task* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80) && (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[0].workm.t, &pos) != 0)) {
+    if (!(ext->flags & 0x80) && (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[0].workm.t, &pos) != 0)) {
         Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->field_8);
     }
     count               = task->killCountdown + 1;
@@ -215,8 +215,8 @@ void func_actor_135400_80132CB0(Task* task)
     GsF_LIGHT*       light;
     s32              i;
 
-    obj->field_1C = &work->lightMtx;
-    obj->field_20 = &work->colorMtx;
+    obj->lightMtx = &work->lightMtx;
+    obj->colorMtx = &work->colorMtx;
     for (i = 0, light = D_actor_135400_8013F904; i < 3; i++, light++) {
         Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
     }
@@ -242,22 +242,22 @@ s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
     ret = 0;
     switch (arg2) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C                             |= 0x80;
+            obj->flags                               |= 0x80;
             ((Actor135400Work*)task->work)->field_494 = arg2;
-            obj->field_C                             |= 4;
+            obj->flags                               |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;

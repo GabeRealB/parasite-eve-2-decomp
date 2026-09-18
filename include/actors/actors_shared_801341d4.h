@@ -19,7 +19,7 @@ typedef struct ActorShared801341d4Work {
 } ActorShared801341d4Work;
 
 /// `field_8` is the first of the actor's part coordinates, the one the pan and
-/// depth are measured from (same slot as `TmdObject.field_8`).
+/// depth are measured from (same slot as `TmdObject.coords`).
 typedef struct ActorShared801341d4Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;

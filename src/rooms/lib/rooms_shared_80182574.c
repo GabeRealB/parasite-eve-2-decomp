@@ -18,9 +18,9 @@ void RoomsShared80182574(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
     }
 }

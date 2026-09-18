@@ -9,11 +9,11 @@ void ActorsShared8013851c(Task* dst, Task* src)
     TmdObject* to;
     TmdObject* from;
 
-    from         = (TmdObject*)src->extra;
-    to           = (TmdObject*)dst->extra;
-    to->field_24 = from->field_24;
-    to->field_25 = from->field_25;
-    if (to->field_18 != NULL) {
+    from      = (TmdObject*)src->extra;
+    to        = (TmdObject*)dst->extra;
+    to->tpage = from->tpage;
+    to->clut  = from->clut;
+    if (to->buffer != NULL) {
         Tmd_ProcessStream(to);
         Tmd_ProcessStream(to);
     }

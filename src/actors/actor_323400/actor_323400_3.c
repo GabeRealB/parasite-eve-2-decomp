@@ -19,11 +19,11 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
         mode = msg->mode;
         switch (mode) {
             case 1:
-                ((TmdObject*)task->extra)->field_8->coord.t[0] = 0x4330;
-                ((TmdObject*)task->extra)->field_8->coord.t[1] = mode;
-                ((TmdObject*)task->extra)->field_8->coord.t[2] = 0xA8C;
-                ((TmdObject*)task->extra)->field_8->flg        = 0;
-                work->field_0                                  = 2;
+                ((TmdObject*)task->extra)->coords->coord.t[0] = 0x4330;
+                ((TmdObject*)task->extra)->coords->coord.t[1] = mode;
+                ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
+                ((TmdObject*)task->extra)->coords->flg        = 0;
+                work->field_0                                 = 2;
                 break;
             case 0:
             case 2:

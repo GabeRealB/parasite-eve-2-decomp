@@ -13,7 +13,7 @@
 /// Work block allocated by `func_actor_335800_80163AA0` (`Mem_Calloc(0x4C8)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_335800_80163B54` republishes the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_213100_8014A23C` does for `Actor213100Work`.
 ///
@@ -63,7 +63,7 @@ extern VECTOR D_actor_335800_80161E78;
 /// `sh` at 0x506 to -1, clears the three words at 0x4D8..0x4E0, and stores the
 /// two child tasks it spawns from `D_actor_335800_8016EADC` at 0x4FC/0x500.
 /// `func_actor_335800_80162F9C` republishes the light/colour matrix pair onto
-/// the parent's `TmdObject::field_1C` / `field_20`, exactly as
+/// the parent's `TmdObject::lightMtx` / `field_20`, exactly as
 /// `func_actor_335800_80163B54` does for `Actor335800Work`.
 ///
 /// The size is the allocation; the fields below are the ones the init and the
@@ -186,7 +186,7 @@ STATIC_ASSERT_SIZEOF(Actor335800MatWords, 0x14);
 void func_actor_335800_80163B34(Task* arg0);
 void func_actor_335800_80163B54(Task* arg0);
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::field_8`, the actor's root
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`) holds the Euler angles
 /// `func_actor_335800_80161E88` seeds and hands straight to `RotMatrix`.
 typedef struct Actor335800Coord {

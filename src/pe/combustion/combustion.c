@@ -56,7 +56,7 @@ void func_combustion_8012EF34(Task* arg0)
     u8             rgb[3];
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     switch (arg0->state) {
         case 0:
@@ -65,7 +65,7 @@ void func_combustion_8012EF34(Task* arg0)
             }
             D_combustion_801309A4 = coord->workm.t[1];
             rot                   = (GpMtxWords*)&coord->coord;
-            coord->sub            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            coord->sub            = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
             rot->w0               = 0x1000;
             rot->w2               = 0x1000;
             rot->h4               = 0x1000;
@@ -146,7 +146,7 @@ void func_combustion_8012F2BC(Task* arg0)
     s32            last;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     switch (arg0->state) {
         case 0:
@@ -323,7 +323,7 @@ void func_combustion_8012F888(Task* arg0)
     s32            tmp2;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     state         = arg0->state;
     switch (state) {

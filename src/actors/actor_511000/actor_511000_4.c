@@ -60,22 +60,22 @@ s32 func_actor_511000_801327A0(GpActorWork* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C        |= 0x80;
+            obj->flags          |= 0x80;
             work->field_480.word = mode;
-            obj->field_C        |= 4;
+            obj->flags          |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
@@ -109,7 +109,7 @@ s32 func_actor_511000_8013287C(GpActorWork* arg0, s32 arg1, Actor511000Msg* msg)
         case 1:
             child = work->field_4C4;
             if (child != NULL) {
-                ((TmdObject*)child->extra)->field_C |= 0x80;
+                ((TmdObject*)child->extra)->flags |= 0x80;
             }
             child = work->field_4C8;
             break;
@@ -118,7 +118,7 @@ s32 func_actor_511000_8013287C(GpActorWork* arg0, s32 arg1, Actor511000Msg* msg)
     }
 
     if (child != NULL) {
-        ((TmdObject*)child->extra)->field_C &= 0xFF7F;
+        ((TmdObject*)child->extra)->flags &= 0xFF7F;
     }
 out:
     return 0;
@@ -188,12 +188,12 @@ void func_actor_511000_801329C4(Task* task)
 
     parent = (Task*)task->spawnArg2;
     extra  = (TmdObject*)task->extra;
-    coord  = (Actor511000Coord*)extra->field_8;
+    coord  = (Actor511000Coord*)extra->coords;
 
-    if (!(((TmdObject*)parent->extra)->field_C & 0x80)) {
-        extra->field_C &= 0xFF7F;
+    if (!(((TmdObject*)parent->extra)->flags & 0x80)) {
+        extra->flags &= 0xFF7F;
     } else {
-        extra->field_C |= 0x80;
+        extra->flags |= 0x80;
     }
 
     if (gGameSession->at4.loc.view == 0x18) {
@@ -244,7 +244,7 @@ void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     DVECTOR*  pt;
     DVECTOR*  src;
 
-    Gp_ComposeParentWorld(((TmdObject*)task->extra)->field_8, &mtx, &pos);
+    Gp_ComposeParentWorld(((TmdObject*)task->extra)->coords, &mtx, &pos);
     SetRotMatrix(&Gfx_ViewWorldMtx);
     SetTransMatrix(&Gfx_ViewWorldMtx);
     otz   = RotTransPers(&pos, &sxy, (long*)&p, (long*)&flag);
@@ -385,9 +385,9 @@ void func_actor_511000_80133034(Task* task)
         Task_Kill(task);
         return;
     }
-    task->work      = (TaskIdMap*)work;
-    work->field_8   = -1;
-    extra->field_C |= 0x80;
+    task->work    = (TaskIdMap*)work;
+    work->field_8 = -1;
+    extra->flags |= 0x80;
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     func_actor_511000_801337F0(task);
     do {
@@ -415,9 +415,9 @@ void func_actor_511000_801330F0(Task* task)
 
     obj   = (TmdObject*)task->extra;
     work  = (Actor511000Work*)task->work;
-    coord = obj->field_8;
+    coord = obj->coords;
 
-    if (!(obj->field_C & 0x80)) {
+    if (!(obj->flags & 0x80)) {
         Gp_UpdateCoord(coord);
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
         func_actor_511000_80132E6C((Actor511000Work*)task->work);
@@ -461,13 +461,13 @@ void func_actor_511000_80133240(Task* task)
     parent          = (Task*)task->spawnArg2;
     parentExtra     = (TmdObject*)parent->extra;
     extra           = (TmdObject*)task->extra;
-    dest            = parentExtra->field_8;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
-    extra->field_C  = 0x80;
-    coord           = extra->field_8;
-    if (!(parentExtra->field_C & 0x80)) {
-        extra->field_C = 0;
+    dest            = parentExtra->coords;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
+    extra->flags    = 0x80;
+    coord           = extra->coords;
+    if (!(parentExtra->flags & 0x80)) {
+        extra->flags = 0;
     }
     func_actor_511000_80133760(task);
     coord->sub = dest;
@@ -488,11 +488,11 @@ void func_actor_511000_801332E4(Task* task)
     Actor511000Coord* coord;
 
     extra       = (TmdObject*)task->extra;
-    coord       = (Actor511000Coord*)extra->field_8;
+    coord       = (Actor511000Coord*)extra->coords;
     parentExtra = (TmdObject*)((Task*)task->spawnArg2)->extra;
 
-    if (!(parentExtra->field_C & 0x80)) {
-        extra->field_C &= 0xFF7F;
+    if (!(parentExtra->flags & 0x80)) {
+        extra->flags &= 0xFF7F;
 
         switch (task->spawnArg1) {
             case 1:
@@ -507,7 +507,7 @@ void func_actor_511000_801332E4(Task* task)
         coord->flg = 0;
         return;
     }
-    extra->field_C |= 0x80;
+    extra->flags |= 0x80;
 }
 
 void func_actor_511000_801333A4(Task* task)
@@ -530,13 +530,13 @@ void func_actor_511000_801333C4(Task* task)
     parent          = (Task*)task->spawnArg2;
     parentExtra     = (TmdObject*)parent->extra;
     extra           = (TmdObject*)task->extra;
-    dest            = parentExtra->field_8;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
-    extra->field_C  = 0x80;
-    coord           = (Actor511000Coord*)extra->field_8;
-    if (!(parentExtra->field_C & 0x80)) {
-        extra->field_C = 0;
+    dest            = parentExtra->coords;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
+    extra->flags    = 0x80;
+    coord           = (Actor511000Coord*)extra->coords;
+    if (!(parentExtra->flags & 0x80)) {
+        extra->flags = 0;
     }
     func_actor_511000_80133760(task);
     ((GsCOORDINATE2*)coord)->sub = dest;

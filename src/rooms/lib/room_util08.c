@@ -11,7 +11,7 @@ void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->field_8;
+    coord             = ((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;

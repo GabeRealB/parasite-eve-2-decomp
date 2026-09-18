@@ -125,7 +125,7 @@ typedef struct Actor401000Work {
     /// The single obstacle record the `field_B50` node is registered against.
     /* 0xB70 */ GpRec18 field_B70;
     /// Light matrix `func_actor_401000_80133274` binds to the model's
-    /// `TmdObject::field_1C` (the color matrix is `field_BA8`, which is the
+    /// `TmdObject::lightMtx` (the color matrix is `field_BA8`, which is the
     /// same pair `Actor401300Work` keeps at +0xC28 / +0xC48).
     /* 0xB88 */ MATRIX field_B88;
     /// Saved at 0xBA8 and copied over 0xBC8 when

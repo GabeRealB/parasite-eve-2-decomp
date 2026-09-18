@@ -24,7 +24,7 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
     MATRIX*         matrix;
 
     obj        = actor->field_2C;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     work       = Mem_Calloc(0x558U, false);
     next_coord = coord + 1;
     if (work == NULL) {
@@ -32,10 +32,10 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
         return;
     }
     actor->field_1C                       = work;
-    obj->field_C                          = 0;
+    obj->flags                            = 0;
     coord->flg                            = 0;
-    obj->field_1C                         = &work->field_22C;
-    obj->field_20                         = &work->field_20C;
+    obj->lightMtx                         = &work->field_22C;
+    obj->colorMtx                         = &work->field_20C;
     work->field_24C.sub                   = &Gfx_ViewCoord;
     matrix                                = &work->field_24C.coord;
     *(s32*)&work->field_24C.coord.m[0][0] = 0x1000;
@@ -93,7 +93,7 @@ void Actor01600_Fn001F4(Actor01600Ctx* ctx, Actor01600* actor)
     random          = (Gp_LcgState * 5) + 0x71357911;
     work->field_536 = (s16)(((random >> 0x10) & 0x1F) + 1);
     Gp_LcgState     = (s32)random;
-    Gfx_MatrixCol2(&actor->field_2C->field_8->coord, &sp18);
+    Gfx_MatrixCol2(&actor->field_2C->coords->coord, &sp18);
     work->field_4FC = ratan2((s32)sp18.vx, (s32)sp18.vz);
     Actor01600_Fn05400(actor);
     actor->field_18 = &Actor01600_Fn06EA4;
@@ -111,7 +111,7 @@ void Actor01600_Fn00480(Actor01600* actor)
     s8*             table4;
 
     work            = actor->field_1C;
-    coord           = actor->field_2C->field_8;
+    coord           = actor->field_2C->coords;
     work->field_2C0 = 0xFA0;
     work->field_2CC = 0x384;
     table1          = &work->field_2D4;
@@ -201,19 +201,19 @@ void Actor01600_Fn00674(Actor01600Ctx* arg0, Actor01600* arg1)
     u16             count;
 
     work  = arg1->field_1C;
-    coord = arg1->field_2C->field_8;
+    coord = arg1->field_2C->coords;
     if (!(Actor01600_Fn05558(arg1) & 0xFF)) {
         switch (D_801153F4) {
             case 0:
-                arg1->field_2C->field_C = 0;
-                arg0->node.field_4      = 0;
+                arg1->field_2C->flags = 0;
+                arg0->node.field_4    = 0;
                 break;
             case 1:
                 Actor01600_Fn06810(arg0, arg1);
                 goto update;
             case 2:
                 obj                = arg1->field_2C;
-                obj->field_C      |= 0x80;
+                obj->flags        |= 0x80;
                 arg0->node.field_4 = 1;
                 return;
             default:
@@ -363,7 +363,7 @@ void Actor01600_Fn00BAC(Actor01600* actor)
     old     = *(void**)0x1F8003FC;
     scratch = (*(void**)0x1F8003FC = old - 0x4C);
     ctx     = actor->field_20;
-    coord   = actor->field_2C->field_8;
+    coord   = actor->field_2C->coords;
     mode    = func_800E0C10(&work->collision.field_2EC[0x20], old - 0x2C, 8, old - 4);
     world   = (void*)coord + 0x50;
     if (mode == 1)
@@ -395,7 +395,7 @@ next_record: {
     switch (rec->collision.named.hit.parts.kind) {
         case 2:
             if (work->field_51C == 0) {
-                other               = slots[rec->collision.named.hit.parts.byte0 >> 7]->field_2C->field_8;
+                other               = slots[rec->collision.named.hit.parts.byte0 >> 7]->field_2C->coords;
                 x                   = other->coord.t[0] - coord->coord.t[0];
                 scratch->delta.v.vx = x;
                 y                   = other->coord.t[1] - coord->coord.t[1];
@@ -405,11 +405,11 @@ next_record: {
                 damage              = Gp_ComputeDamage(rec->collision.named.hit.id, SquareRoot0(x * x + y * y + z * z), 0, 0);
                 if (Gp_RollEnemyChance(actor->field_20, rec->collision.named.hit.id, 0)) {
                     damage *= 4;
-                    Gp_SpawnEff(0x6009C, (void*)actor->field_2C->field_8 + 0x50, 0, 0);
+                    Gp_SpawnEff(0x6009C, (void*)actor->field_2C->coords + 0x50, 0, 0);
                 }
                 if (work->field_4FE == 1 && work->field_528 != 0 && work->field_51E < 0) {
                     damage *= 2;
-                    Gp_SpawnEff(0x6009C, (void*)actor->field_2C->field_8 + 0x50, 3, 0);
+                    Gp_SpawnEff(0x6009C, (void*)actor->field_2C->coords + 0x50, 3, 0);
                 }
                 func_800E2C78(ctx, rec->collision.named.hit.id, damage, 0);
                 Actor01600_Fn0131C(actor, damage);
@@ -577,7 +577,7 @@ void Actor01600_Fn0131C(Actor01600* arg0, s32 damage)
 
     ctx           = arg0->field_20;
     work          = arg0->field_1C;
-    coord         = arg0->field_2C->field_8;
+    coord         = arg0->field_2C->coords;
     ctx->field_40 = (u16)(ctx->field_40 - damage);
     func_800DA6E8(&ctx->node, damage, 0);
     work->field_536 = 1;
@@ -636,7 +636,7 @@ void Actor01600_Fn01420(Actor01600* arg0)
     s16             count;
 
     work  = arg0->field_1C;
-    coord = arg0->field_2C->field_8;
+    coord = arg0->field_2C->coords;
 
     switch (work->field_4FE) {
         case 0:
@@ -771,7 +771,7 @@ void Actor01600_Fn017BC(Actor01600* actor)
     rec                 = &work->field_2D4;
     *(void**)0x1F8003FC = old - 8;
     model               = actor->field_2C;
-    coord               = model->field_8;
+    coord               = model->coords;
     ctx                 = actor->field_20;
     if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
         work->field_51A = 1;
@@ -1136,9 +1136,9 @@ void Actor01600_Fn020F8(Actor01600* actor)
 
     ctx         = actor->field_20;
     work        = actor->field_1C;
-    coord       = actor->field_2C->field_8;
+    coord       = actor->field_2C->coords;
     flags       = Actor01600_Fn052C4(actor) & 0xFF;
-    effectCoord = &actor->field_2C->field_8[2];
+    effectCoord = &actor->field_2C->coords[2];
     memset(&offset, 0, 8);
     offset.vy = 0x32;
     temp_v1   = work->field_516;
@@ -1609,7 +1609,7 @@ void Actor01600_Fn020F8(Actor01600* actor)
                     }
                     break;
                 case 20:
-                    attachedCoord     = ((TmdObject*)work->field_4D4->extra)->field_8;
+                    attachedCoord     = ((TmdObject*)work->field_4D4->extra)->coords;
                     attachedOffset    = &attachedCoord[17];
                     coord->coord.t[0] = attachedCoord->coord.t[0] + attachedOffset->coord.t[0];
                     coord->coord.t[2] = attachedCoord->coord.t[2] + attachedOffset->coord.t[2];
@@ -1698,7 +1698,7 @@ void Actor01600_Fn020F8(Actor01600* actor)
                             work->field_50E = -0x28;
                         }
                     } else {
-                        attachedCoord2    = ((TmdObject*)work->field_4D4->extra)->field_8;
+                        attachedCoord2    = ((TmdObject*)work->field_4D4->extra)->coords;
                         attachedOffset2   = &attachedCoord2[17];
                         coord->coord.t[0] = attachedCoord2->coord.t[0] + attachedOffset2->coord.t[0];
                         coord->coord.t[2] = attachedCoord2->coord.t[2] + attachedOffset2->coord.t[2];

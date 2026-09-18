@@ -64,7 +64,7 @@ extern void* D_actor_443500_80158724[];
 s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
 
 /// Message-0x7D5 handler: the four-way switch on `mode` over the `TmdObject`
-/// parked in `Task::extra`. `mode` drives `TmdObject::field_C`: bit 0x80 marks
+/// parked in `Task::extra`. `mode` drives `TmdObject::flags`: bit 0x80 marks
 /// the actor hidden and bit 0x4 the display buffers being live.
 ///
 ///   mode 0  hide, drop 0x4

@@ -307,7 +307,7 @@ typedef struct _GpAreaObj {
 /// `GpAreaTmdRec.field_0`. `field_1` / `field_2` pack into `Gp_SpawnEnemyFromTable`
 /// arg2. `field_4` / `field_6` / `field_8` are default world XYZ;
 /// `field_A` is yaw (`GpCoordPlace.field_46` / `Gfx_RotMatrixY`).
-/// `field_D` / `field_E` are copied to `TmdObject.field_24` / `field_25`
+/// `field_D` / `field_E` are copied to `TmdObject.tpage` / `field_25`
 /// when `Task::spawnType == 1`.
 typedef struct _GpAreaPlace {
     /* 0x00 */ u8  field_0;
@@ -343,7 +343,7 @@ STATIC_ASSERT_SIZEOF(GpCoordPose, 0x4C);
 /// (`Gp_ApplyAreaTmdFlags` / `Gp_SpawnArea`). `field_0` is compared with the byte at
 /// `GpWorkObj.field_3C` / `GpAreaPlace.field_0`. `field_5` is the
 /// `Gp_SpawnEnemyFromTable` table index. `field_8` points at a halfword whose value 1
-/// clears `TmdObject.field_C` bit 2 and 0x101 sets it (`Gp_ApplyAreaTmdFlags`), or
+/// clears `TmdObject.flags` bit 2 and 0x101 sets it (`Gp_ApplyAreaTmdFlags`), or
 /// at a `TaskDesc` table (`Gp_SpawnArea`).
 typedef struct _GpAreaTmdRec {
     /* 0x00 */ u16  field_0;

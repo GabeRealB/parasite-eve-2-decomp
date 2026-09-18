@@ -46,10 +46,10 @@ void func_mm1_8011D1D4(GpActorWork* arg0)
             actor->field_95E = 3;
             actor->field_981 = 0;
             actor->field_940 = 0x28;
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                           ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x200C0004, 1);
             Gp_SpawnEff(0x6006C,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 0xC,
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0xC,
                         NULL);
             Gp_ConsumeSlotQty(0x8B, 1);
             func_80104490(arg0, 0, 2, Player_Status.weaponSlotItem | 0x10C00);

@@ -8,7 +8,7 @@ s32 ActorsShared8013231c(Task* task, s32 arg1, ActorsShared8013231cArgs* args)
 {
     ActorsShared8013231cCoord* coord;
 
-    coord             = (ActorsShared8013231cCoord*)((TmdObject*)task->extra)->field_8;
+    coord             = (ActorsShared8013231cCoord*)((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = args->pos.vx;
     coord->coord.t[1] = args->pos.vy;
     coord->coord.t[2] = args->pos.vz;

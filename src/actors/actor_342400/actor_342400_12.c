@@ -29,37 +29,37 @@ void func_actor_342400_80168B74(Task* arg0)
     obj   = arg0->extra;
     work  = (Actor342400Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
-    coord = obj->field_8;
+    coord = obj->coords;
     work->field_412++;
     work->field_428++;
     work->field_42A += work->field_428;
     if ((s16)work->field_412 < 0x5A) {
         s32 step = work->field_42A >> 6;
 
-        c      = ((TmdObject*)arg0->extra)->field_8;
+        c      = ((TmdObject*)arg0->extra)->coords;
         dir.vx = work->field_70.vx - c->coord.t[0];
         dir.vy = 0;
         dir.vz = work->field_70.vz - c->coord.t[2];
         VectorNormalSS(&dir, &dir);
-        angle                                           = ratan2(dir.vx, dir.vz);
-        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
-        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
-        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+        angle                                          = ratan2(dir.vx, dir.vz);
+        ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->coords->flg         = 0;
     } else {
         s32 step;
 
         work->field_438 = 1;
         step            = work->field_42A >> 5;
-        c               = ((TmdObject*)arg0->extra)->field_8;
+        c               = ((TmdObject*)arg0->extra)->coords;
         dir.vx          = work->field_70.vx - c->coord.t[0];
         dir.vy          = 0;
         dir.vz          = work->field_70.vz - c->coord.t[2];
         VectorNormalSS(&dir, &dir);
-        angle                                           = ratan2(dir.vx, dir.vz);
-        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
-        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
-        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
-        coord->coord.t[1]                              += (work->field_70.vy - coord->coord.t[1]) >> 4;
+        angle                                          = ratan2(dir.vx, dir.vz);
+        ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
+        ((TmdObject*)arg0->extra)->coords->flg         = 0;
+        coord->coord.t[1]                             += (work->field_70.vy - coord->coord.t[1]) >> 4;
     }
     d.vx = coord->coord.t[0] - work->field_70.vx;
     d.vy = coord->coord.t[1] - work->field_70.vy;
@@ -137,28 +137,28 @@ void func_actor_342400_80168F14(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
     Actor342400Work* work  = (Actor342400Work*)arg0->work;
-    GsCOORDINATE2*   coord = obj->field_8;
+    GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_342400_80162028;
 
     switch (D_801153F4) {
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
             return;
         case 0:
             work->field_442++;
             sp.funcs[(s16)work->field_420](arg0);
             if (!(work->field_442 & 0x1F)) {
-                func_800FDB18(3, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+                func_800FDB18(3, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
             }
             coord->flg = 0;
         case 1:
-            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
                 ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
                 ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
                 ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
             }
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             return;
     }
 }
@@ -170,22 +170,22 @@ void func_actor_342400_801690FC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
     Actor342400Work* work  = (Actor342400Work*)arg0->work;
-    GsCOORDINATE2*   coord = obj->field_8;
+    GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable7   sp    = D_actor_342400_8016203C;
 
     switch (D_801153F4) {
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
             return;
         case 0:
             work->field_442++;
             sp.funcs[(s16)work->field_420](arg0);
             if (!(work->field_442 & 0x1F)) {
-                func_800FDB18(3, &((TmdObject*)arg0->extra)->field_8[1], NULL, &work->eff_3FC);
+                func_800FDB18(3, &((TmdObject*)arg0->extra)->coords[1], NULL, &work->eff_3FC);
             }
             coord->flg = 0;
         case 1:
-            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
                 ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
                 ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);

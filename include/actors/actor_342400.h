@@ -30,8 +30,8 @@ STATIC_ASSERT_SIZEOF(Actor342400Flags, 0x4);
 /// is the per-state frame counter.
 typedef struct Actor342400Work {
     /* 0x000 */ byte      pad_0[0x20];
-    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
-    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
+    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::colorMtx`
+    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::lightMtx`
     /* 0x060 */ VECTOR    field_60; // position func_actor_342400_801653DC snaps the root back to when blocked
     /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by func_actor_342400_8016B5B0
     /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX by func_actor_342400_801670C0

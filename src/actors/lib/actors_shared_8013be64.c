@@ -10,9 +10,9 @@ s32 ActorsShared8013be64(Task* task, s32 msgId, s32 arg2)
 
     tmd = (TmdObject*)task->extra;
     if (arg2 == 0) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     } else {
-        tmd->field_C = 0;
+        tmd->flags = 0;
     }
     return 0;
 }

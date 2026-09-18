@@ -24,7 +24,7 @@ void RoomsShared8017f9e4(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->field_8;
+    objCoord = ((TmdObject*)task->extra)->coords;
 
     if (Gp_State1C->field_4 < 2) {
         work->field_22++;

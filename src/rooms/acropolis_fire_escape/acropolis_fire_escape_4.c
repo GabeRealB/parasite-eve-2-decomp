@@ -31,7 +31,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     switch (task->state) {
         case 0:
             work->field_10.vx = 0xB58;

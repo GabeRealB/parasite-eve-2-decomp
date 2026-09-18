@@ -25,7 +25,7 @@ void func_actor_341700_8016966C(Task* arg0)
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x18) {
-        model->field_C  = model->field_C | 2;
+        model->flags    = model->flags | 2;
         work->field_412 = 0U;
         work->field_451 = 1;
         work->field_420 = work->field_420 + 1;

@@ -27,7 +27,7 @@ void func_mongoose_8011D1D8(GpActorWork* arg0)
         *(void**)G_SCRATCH_HEAD = tmp;
     }
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -55,9 +55,9 @@ void func_mongoose_8011D1D8(GpActorWork* arg0)
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0xCC00;
             Gp_ConsumeSlotQty(0x88, 1);
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20090004, 1);
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20090004, 1);
             Gp_SpawnEff(0x6006A,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 9, NULL);
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 9, NULL);
             Gp_AnimResetChildSlots(arg0, 0xA);
             break;
         case 3:

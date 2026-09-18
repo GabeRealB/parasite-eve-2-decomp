@@ -29,7 +29,7 @@ void ActorsShared8013777c(Task* arg0)
 
     work     = (ActorsShared8013777cWork*)arg0->work;
     scratch  = (ActorsShared8013777cScratch*)(SCRATCH_SP -= 0x38);
-    coord    = ((TmdObject*)arg0->extra)->field_8;
+    coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->field_24C[0], &scratch->delta, 4, NULL);
     switch (movement) {
         case 0:

@@ -60,19 +60,19 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
     switch (arg0->state) {
         case 0:
             extra      = (TmdObject*)arg0->extra;
-            coord      = extra->field_8;
+            coord      = extra->coords;
             mtx        = (DwtColorMtx*)Mem_Malloc(0x58, 0);
             arg0->work = (TaskIdMap*)mtx;
             if (mtx == NULL) {
                 Task_Kill(arg0);
             } else {
                 Mem_Set(mtx, 0, 0x58);
-                mtx->owner     = (Task*)Game_GetPtrSlot(3);
-                coord->sub     = &Gfx_ViewCoord;
-                extra->field_C = 0x80;
+                mtx->owner   = (Task*)Game_GetPtrSlot(3);
+                coord->sub   = &Gfx_ViewCoord;
+                extra->flags = 0x80;
                 Tmd_AllocBuffers(extra);
-                extra->field_1C = &mtx->light;
-                extra->field_20 = &mtx->color;
+                extra->lightMtx = &mtx->light;
+                extra->colorMtx = &mtx->color;
                 arg0->msgTable  = D_dryfield_water_tank_8017FD90;
                 Task_Reparent(D_dryfield_water_tank_80188D4C, arg0);
             }
@@ -88,9 +88,9 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
     }
 
     mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -179,8 +179,8 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 
     obj = (TmdObject*)task->extra;
     if (arg2 != 0) {
-        obj->field_C = obj->field_C & 0xFF7F;
+        obj->flags = obj->flags & 0xFF7F;
         return;
     }
-    obj->field_C = obj->field_C | 0x80;
+    obj->flags = obj->flags | 0x80;
 }

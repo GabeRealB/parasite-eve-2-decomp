@@ -11,7 +11,7 @@
 /// Work block allocated by `func_actor_213100_8014A118` (`Mem_Calloc(0x488)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_213100_8014A23C` republishes the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
 ///

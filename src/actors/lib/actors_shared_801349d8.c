@@ -32,7 +32,7 @@ void ActorsShared801349d8(Task* arg0)
     work                = arg0->work;
     scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->extra)->field_8;
+    coord               = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }

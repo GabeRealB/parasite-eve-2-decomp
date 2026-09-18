@@ -36,7 +36,7 @@ void func_actor_335800_801631A4(Task* arg0)
     s32                   vy;
     s16                   diff;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor335800MainWork*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
@@ -124,29 +124,29 @@ s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C   |= 0x80;
+            obj->flags     |= 0x80;
             work->field_506 = mode;
-            obj->field_C   |= 4;
+            obj->flags     |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
             break;
     }
-    objA->field_C = obj->field_C;
-    objB->field_C = obj->field_C;
+    objA->flags = obj->flags;
+    objB->flags = obj->flags;
     return ret;
 }
 
@@ -180,7 +180,7 @@ void func_actor_335800_80163568(Task* task)
     s32              i;
 
     funcs[work->field_4C0](task);
-    coord              = ((TmdObject*)task->extra)->field_8;
+    coord              = ((TmdObject*)task->extra)->coords;
     work->field_4A0   += work->step.vx;
     work->field_4A4   += work->step.vy;
     work->field_4A8   += work->step.vz;
@@ -196,12 +196,12 @@ void func_actor_335800_80163568(Task* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
         }
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_4C4 >= 0) {
         if (work->field_4C4 == 0) {
@@ -226,7 +226,7 @@ void func_actor_335800_8016373C(Task* arg0)
     Actor335800AnimPreset preset;
 
     work  = (Actor335800Work*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (work->target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->target.vx - (u16)coord->coord.t[0];
     } else {
@@ -362,8 +362,8 @@ void func_actor_335800_80163B54(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor335800Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_335800_80163B70(Task* arg0)

@@ -18,7 +18,7 @@ s32 ActorsShared801326ac(Task* task, s32 arg1, ActorsShared801326acTarget* targe
     s32                       dz;
     u16                       yaw;
 
-    coord     = ((TmdObject*)task->extra)->field_8;
+    coord     = ((TmdObject*)task->extra)->coords;
     work      = (ActorsShared801326acWork*)task->work;
     dx        = target->pos.vx - coord->coord.t[0];
     dz        = target->pos.vz - coord->coord.t[2];

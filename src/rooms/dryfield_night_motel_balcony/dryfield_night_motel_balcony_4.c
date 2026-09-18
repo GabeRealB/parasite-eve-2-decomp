@@ -94,7 +94,7 @@ void func_dryfield_night_motel_balcony_8018257C(void)
     s32            i;
 
     task  = Game_GetPtrSlot(4);
-    coord = ((TmdObject*)task->firstChild->extra)->field_8 + 3;
+    coord = ((TmdObject*)task->firstChild->extra)->coords + 3;
 
     for (i = 0; i < 8; i++) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -130,7 +130,7 @@ void func_dryfield_night_motel_balcony_80182730(void)
     if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
         task        = Game_GetPtrSlot(4);
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_SpawnEff(0x6007E, ((TmdObject*)task->firstChild->extra)->field_8 + 3,
+        Gp_SpawnEff(0x6007E, ((TmdObject*)task->firstChild->extra)->coords + 3,
                     (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x80000100,
                     &D_dryfield_night_motel_balcony_80182D20);
     }

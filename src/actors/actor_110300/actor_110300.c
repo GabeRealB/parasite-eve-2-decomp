@@ -24,7 +24,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
 
     obj                      = task->extra;
-    coord                    = obj->field_8;
+    coord                    = obj->coords;
     work                     = Mem_Calloc(0x55C, 0);
     ActorsShared80131f9cWork = work;
     task->work               = work;
@@ -38,7 +38,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     enemy->node.field_4     = 1;
     enemy->field_48         = 0;
     enemy->node.field_5     = 0;
-    obj->field_E            = 0;
+    obj->otOffset           = 0;
     coord->flg              = 0;
     D_actor_110300_8013A0A4 = (GpActorWork*)task;
     D_actor_110300_8013A0A8 = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);

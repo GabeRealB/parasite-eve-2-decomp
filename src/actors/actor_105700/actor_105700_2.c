@@ -669,7 +669,7 @@ void func_actor_105700_80133C48(Actor105700* arg0)
             break;
         case 2:
             work->field_6CE = work->field_6D0 > 0;
-            target          = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[2];
+            target          = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[2];
             delta->vx       = target->workm.t[0] - coord->workm.t[0];
             normal          = delta + 1;
             delta->vy       = target->workm.t[1] - coord->workm.t[1];
@@ -714,7 +714,7 @@ void func_actor_105700_80133C48(Actor105700* arg0)
             if (work->field_698 < 3) {
                 work->field_69E = 0;
             } else {
-                target    = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[2];
+                target    = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[2];
                 delta->vx = target->workm.t[0] - coord->workm.t[0];
                 normal2   = delta + 1;
                 delta->vy = target->workm.t[1] - coord->workm.t[1];
@@ -1060,19 +1060,19 @@ void func_actor_105700_80134FDC(GpEnemy* arg0, Task* arg1)
     s32                      pan;
 
     tmd         = arg1->extra;
-    coord       = tmd->field_8;
+    coord       = tmd->coords;
     parent      = arg1->parent;
-    parentCoord = ((TmdObject*)parent->extra)->field_8;
+    parentCoord = ((TmdObject*)parent->extra)->coords;
     work        = Mem_Calloc(0xF0, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
     arg1->work    = (TaskIdMap*)work;
-    tmd->field_C  = 0;
+    tmd->flags    = 0;
     scratch       = (Actor105700PlaceScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x38);
-    tmd->field_1C = &work->lightMtx;
-    tmd->field_20 = &work->colorMtx;
+    tmd->lightMtx = &work->lightMtx;
+    tmd->colorMtx = &work->colorMtx;
 
     Gfx_ViewCoord.flg = 0;
     Gp_UpdateCoord(&Gfx_ViewCoord);
@@ -1191,12 +1191,12 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
     VECTOR             pos;
 
     tmd   = arg1->extra;
-    coord = tmd->field_8;
+    coord = tmd->coords;
     work  = (Actor105700FxWork*)arg1->work;
     found = 0;
     switch (D_801153F4) {
         case 0:
-            tmd->field_C = 0;
+            tmd->flags = 0;
             break;
         case 1:
             pos.vx = coord->workm.t[0];
@@ -1205,7 +1205,7 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2, &pos, 0, 0);
             return;
         case 2:
-            tmd->field_C = 0x80;
+            tmd->flags = 0x80;
             return;
     }
 
@@ -1236,10 +1236,10 @@ void func_actor_105700_8013541C(GpEnemy* arg0, Task* arg1)
     }
     if (work->rec60[0].field_4 != 0 || found || ++work->field_EA >= 0x5A) {
         Gp_SpawnEff(D_80115750, coord, work->field_EE, NULL);
-        ((TmdObject*)arg1->extra)->field_C = 0x80;
-        ctx                                = arg1->spawnArg2;
-        sound                              = D_actor_105700_8014904C | (((u16)ctx->field_8 >> 0xC) << 8);
-        pan                                = (s8)Gp_GetObjPan((GpObj38*)coord);
+        ((TmdObject*)arg1->extra)->flags = 0x80;
+        ctx                              = arg1->spawnArg2;
+        sound                            = D_actor_105700_8014904C | (((u16)ctx->field_8 >> 0xC) << 8);
+        pan                              = (s8)Gp_GetObjPan((GpObj38*)coord);
         SndEvt_EnqueueType6(sound, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
         arg1->state = 2;
         if ((work->rec60[0].field_4 & 0xFFFF0080) == 0x10000) {

@@ -40,7 +40,7 @@ void RoomsShared8017f77c(Task* arg0)
     s32               pulse;
     s32               level;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     head = *(void**)G_SCRATCH_HEAD;

@@ -33,12 +33,12 @@ void func_actor_335800_80162E8C(Task* task)
     part            = task->spawnArg1;
     extra           = (TmdObject*)task->extra;
     parentExtra     = (TmdObject*)parent->extra;
-    coord           = extra->field_8;
-    dest            = &parentExtra->field_8[part];
+    coord           = extra->coords;
+    dest            = &parentExtra->coords[part];
     coord->flg      = 0;
     coord->sub      = dest;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
     Task_Reparent(parent, task);
     task->state += 1;
 }
@@ -61,9 +61,9 @@ void func_actor_335800_80162F9C(Task* arg0)
 
     work          = (Actor335800MainWork*)arg0->work;
     ext           = arg0->extra;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
-    func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
+    func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     work->field_504 = 1;
 }
 

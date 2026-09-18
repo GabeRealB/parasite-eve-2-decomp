@@ -16,23 +16,23 @@ s32 Actor01900_Fn0A38C(Actor01900* arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->field_C = 0x80;
+            obj->flags = 0x80;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
         case 1:
-            obj->field_C = 0;
+            obj->flags = 0;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0x18;
             break;
         case 2:
-            obj->field_C |= 4;
+            obj->flags   |= 4;
             work->field_0 = 0;
             break;
         case 3:
-            obj->field_C  = 0;
+            obj->flags    = 0;
             work->field_0 = 0;
-            obj->field_C |= 4;
+            obj->flags   |= 4;
             break;
     }
     return 0;
@@ -49,7 +49,7 @@ s32 Actor01900_Fn0A44C(Task* task)
         return 1;
     }
 
-    flags   = ((TmdObject*)task->extra)->field_C;
+    flags   = ((TmdObject*)task->extra)->flags;
     mask80  = flags;
     mask80 &= 0x80;
     mask2   = flags & 2;
@@ -72,18 +72,18 @@ s32 Actor01900_Fn0A49C(Task* task, s32 arg1, ActorShared80169f74Placement* place
     s32                       mz;
     ActorsShared80169f74Work* work;
 
-    work                                           = (ActorsShared80169f74Work*)task->work;
-    ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vz, 0);
-    ((TmdObject*)task->extra)->field_8->flg = 0;
-    coord                                   = ((TmdObject*)task->extra)->field_8;
-    mx                                      = coord->coord.m[2][0];
-    mz                                      = coord->coord.m[2][2];
-    work->yaw                               = ratan2(-mx, mz);
+    work                                          = (ActorsShared80169f74Work*)task->work;
+    ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, placement->rot.vx, 1);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, placement->rot.vy, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, placement->rot.vz, 0);
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    coord                                  = ((TmdObject*)task->extra)->coords;
+    mx                                     = coord->coord.m[2][0];
+    mz                                     = coord->coord.m[2][2];
+    work->yaw                              = ratan2(-mx, mz);
     return 1;
 }
 
@@ -123,12 +123,12 @@ s32 Actor01900_Fn0A5A4(Actor01900* arg0, s32 arg1, u16* arg2)
                 work->field_0 = 0;
                 return 1;
             case 2:
-                work->field_0                       = 0x1C;
-                arg0->field_2C->field_8->coord.t[0] = -0x595;
-                arg0->field_2C->field_8->coord.t[1] = 0;
-                arg0->field_2C->field_8->coord.t[2] = -0x5B1;
-                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x400, 1);
-                arg0->field_2C->field_8->flg = 0;
+                work->field_0                      = 0x1C;
+                arg0->field_2C->coords->coord.t[0] = -0x595;
+                arg0->field_2C->coords->coord.t[1] = 0;
+                arg0->field_2C->coords->coord.t[2] = -0x5B1;
+                Gfx_RotMatrixY(&arg0->field_2C->coords->coord, -0x400, 1);
+                arg0->field_2C->coords->flg = 0;
                 return 1;
             default:
                 return 0;
@@ -169,7 +169,7 @@ void Actor01900_Fn0A764(Actor01900* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 1;
-        obj->field_C                 = (u16)(obj->field_C | 0x80);
+        obj->flags                   = (u16)(obj->flags | 0x80);
         work->field_B48.flags        = (u16)(work->field_B48.flags & 0x7FFF);
         work->field_A08.flags        = (u16)(work->field_A08.flags & 0xBFFF);
     }
@@ -184,7 +184,7 @@ void Actor01900_Fn0A7C0(Actor01900* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -194,7 +194,7 @@ void Actor01900_Fn0A7C0(Actor01900* arg0)
         work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
         Actor01900_Fn01C94(arg0);
     } else {
-        arg0->field_2C->field_8->flg = 0;
+        arg0->field_2C->coords->flg = 0;
         Actor01900_Fn01C94(arg0);
     }
 }
@@ -208,7 +208,7 @@ void Actor01900_Fn0A868(Actor01900* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -218,7 +218,7 @@ void Actor01900_Fn0A868(Actor01900* arg0)
         work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
         Actor01900_Fn01C94(arg0);
     } else {
-        arg0->field_2C->field_8->flg = 0;
+        arg0->field_2C->coords->flg = 0;
         Actor01900_Fn01C94(arg0);
     }
 }
@@ -232,7 +232,7 @@ void Actor01900_Fn0A914(Actor01900* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -242,7 +242,7 @@ void Actor01900_Fn0A914(Actor01900* arg0)
         work->field_A08.flags = (u16)(work->field_A08.flags & 0xBFFF);
         Actor01900_Fn01C94(arg0);
     } else {
-        arg0->field_2C->field_8->flg = 0;
+        arg0->field_2C->coords->flg = 0;
         Actor01900_Fn01C94(arg0);
     }
 }
@@ -256,7 +256,7 @@ void Actor01900_Fn0A9C0(Actor01900* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898        = 2;
         work->field_8A2        = 0x12;
@@ -265,7 +265,7 @@ void Actor01900_Fn0A9C0(Actor01900* arg0)
         work->field_B48.flags &= 0x7FFF;
         work->field_A08.flags &= 0xBFFF;
     }
-    arg0->field_2C->field_8->flg = 0;
+    arg0->field_2C->coords->flg = 0;
     Actor01900_Fn01C94(arg0);
     if (work->field_68 & 0x100) {
         work->field_0 = 7;
@@ -280,7 +280,7 @@ void Actor01900_Fn0AA78(Actor01900* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C  = 0;
+        arg0->field_2C->flags    = 0;
         work->field_8C8.field_1C = 0x180;
         work->field_B48.flags   &= 0x7FFF;
         work->field_A08.flags   |= 0x4000;

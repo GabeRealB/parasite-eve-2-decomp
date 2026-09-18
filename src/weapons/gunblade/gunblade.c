@@ -41,7 +41,7 @@ void func_gunblade_8011D1E4(Task* task)
     s32            i;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 != 0) {
         keep = Gp_State1C->field_4 < 4;
     } else {
@@ -220,7 +220,7 @@ void func_gunblade_8011DAA4(Task* task)
     u8             rgb[3];
     s32            i;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
 
     if (Gp_State1C->field_4 != 0) {

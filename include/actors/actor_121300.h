@@ -20,14 +20,14 @@
 /// also carry: the 0x14-byte `GpAnimCtx` `func_800B3F84` is handed as its
 /// `arg0`, the nineteen 0x28-byte `GpAnimSlot`s `Gp_AnimResetSlot` walks, and
 /// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
-/// model's light and colour matrices, published through `TmdObject::field_1C`
+/// model's light and colour matrices, published through `TmdObject::lightMtx`
 /// / `field_20`.
 typedef struct Actor121300Work {
     /* 0x000 */ GpAnimCtx  anim;             // `func_800B3F84` arg0
     /* 0x014 */ GpAnimSlot slots[0x13];
     /* 0x30C */ byte       field_30C[0x130]; // pose buffer, `func_800B3F84` arg3
-    /* 0x43C */ MATRIX     field_43C;        // light matrix, into TmdObject::field_1C
-    /* 0x45C */ MATRIX     field_45C;        // colour matrix, into TmdObject::field_20
+    /* 0x43C */ MATRIX     field_43C;        // light matrix, into TmdObject::lightMtx
+    /* 0x45C */ MATRIX     field_45C;        // colour matrix, into TmdObject::colorMtx
     /* 0x47C */ byte       pad_47C[0x4];
     /* 0x480 */ s16        field_480;        // state index driven by func_actor_121300_80133854
     /* 0x482 */ byte       pad_482[0x6];
@@ -125,12 +125,12 @@ extern SVECTOR D_actor_121300_8013CDC8[];
 
 /// 0x5C work block of the debris task `func_actor_121300_8013293C`, allocated
 /// into `Task::work`.  The two matrices are published as the model's light
-/// and colour matrices (`TmdObject::field_1C` / `field_20`); the rest is a
+/// and colour matrices (`TmdObject::lightMtx` / `field_20`); the rest is a
 /// per-frame spin and velocity, all rolled from `Gp_LcgState` on spawn, and a
 /// short random delay before the model's buffers are allocated.
 typedef struct Actor121300DebrisWork {
-    /* 0x00 */ MATRIX lightMtx; // TmdObject::field_1C
-    /* 0x20 */ MATRIX colorMtx; // TmdObject::field_20
+    /* 0x00 */ MATRIX lightMtx; // TmdObject::lightMtx
+    /* 0x20 */ MATRIX colorMtx; // TmdObject::colorMtx
     /* 0x40 */ s16    rotX;
     /* 0x42 */ s16    rotY;
     /* 0x44 */ s16    rotZ;

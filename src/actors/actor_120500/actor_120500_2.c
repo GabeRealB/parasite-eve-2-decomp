@@ -87,13 +87,13 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
     extra = (TmdObject*)task->extra;
     switch (arg2) {
         case 2:
-            extra->field_C = extra->field_C | 4;
+            extra->flags = extra->flags | 4;
             /* fallthrough */
         case 0:
-            extra->field_C = extra->field_C | 0x80;
+            extra->flags = extra->flags | 0x80;
             return;
         case 1:
-            extra->field_C = extra->field_C & 0xFF7B;
+            extra->flags = extra->flags & 0xFF7B;
             return;
     }
 }

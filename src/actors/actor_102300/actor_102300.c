@@ -90,7 +90,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
     lastId                                    = 0;
     work                                      = arg0->field_1C;
     head                                      = *(GpDeltaScratch**)G_SCRATCH_HEAD;
-    self                                      = arg0->field_2C->field_8;
+    self                                      = arg0->field_2C->coords;
     *(Actor102300HitScratch**)G_SCRATCH_HEAD -= 1;
     scratch                                   = *(Actor102300HitScratch**)G_SCRATCH_HEAD;
     enemy                                     = (GpEnemy*)arg0->field_20;
@@ -141,7 +141,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].field_4 >> 7) & 1]->extra->field_8;
+                other               = Gp_ActorSlots[((u32)work->field_4EC[i].field_4 >> 7) & 1]->extra->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
@@ -185,13 +185,13 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                     work->field_6CE = 0;
                     if ((kind & 0xFFFF) == 5) {
                         damage *= 2;
-                        Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[3], 2, NULL);
+                        Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[3], 2, NULL);
                     }
                 }
                 if (Gp_RollEnemyChance(enemy, work->field_4EC[i].field_4, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
-                        Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[3], 0, NULL);
+                        Gp_SpawnEff(0x6009C, &arg0->field_2C->coords[3], 0, NULL);
                     }
                     if (work->field_6E0 == 0) {
                         result = 1;
@@ -246,7 +246,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                     scratch->effOfs.vx = 0;
                     scratch->effOfs.vy = 0;
                     scratch->effOfs.vz = (work->field_6AA == 1) ? 0x12C : -0x96;
-                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].field_4) & 0xFFFF, &arg0->field_2C->field_8[3],
+                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].field_4) & 0xFFFF, &arg0->field_2C->coords[3],
                                   &scratch->effOfs, &work->field_670);
                 }
                 cooldown = Gp_GetIdParam2(work->field_4EC[i].field_4);
@@ -314,7 +314,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
                 }
                 break;
             case 3:
-                part                = &arg0->field_2C->field_8[3];
+                part                = &arg0->field_2C->coords[3];
                 x                   = part->workm.t[0] - work->field_4EC[i].field_8;
                 scratch->delta.vx.w = x;
                 y                   = part->workm.t[1] - work->field_4EC[i].field_A;
@@ -347,7 +347,7 @@ void func_actor_102300_80131EA4(Actor102300* arg0)
     }
     work->field_6B2 = 0;
     if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
-        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4];
+        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
         scratch->effOfs.vz = part->workm.t[2];
@@ -421,7 +421,7 @@ void func_actor_102300_80133C10(Actor102300* arg0)
     delta                 = (VECTOR*)(head - 0x10);
     work                  = arg0->field_1C;
     state                 = work->field_6A8;
-    self                  = arg0->field_2C->field_8;
+    self                  = arg0->field_2C->coords;
     switch (state) {
         case 0:
             if ((work->field_698 >= 0x47) && (work->field_6CE              = (s16)(work->field_6D0 > 0),
@@ -556,7 +556,7 @@ void func_actor_102300_801340B0(Actor102300* arg0)
     delta                 = (VECTOR*)(head - 0x10);
     work                  = arg0->field_1C;
     state                 = work->field_6A8;
-    self                  = arg0->field_2C->field_8;
+    self                  = arg0->field_2C->coords;
     switch (state) {
         case 0:
             ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
@@ -650,20 +650,20 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     u32              lcg;
 
     obj   = actor->field_2C;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x6E4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, (Task*)actor);
         return;
     }
     actor->field_1C         = work;
-    obj->field_C            = 0;
+    obj->flags              = 0;
     coord->flg              = 0;
-    obj->field_1C           = &work->field_45C;
-    obj->field_20           = &work->field_43C;
+    obj->lightMtx           = &work->field_45C;
+    obj->colorMtx           = &work->field_43C;
     work->field_6CA         = 0x17;
     work->field_66C         = &D_actor_102300_80147AB8;
-    work->field_670.field_0 = &actor->field_2C->field_8[3];
+    work->field_670.field_0 = &actor->field_2C->coords[3];
     work->field_670.field_4 = 0x500;
     work->field_670.field_6 = 2;
     func_800B3F84(&work->anim, D_actor_102300_80147ADC, (GpAnimObj*)obj, work->poses, work->slots);
@@ -688,12 +688,12 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     SOFT_DEF_REG(keyPtr);
-    keyPtr          = &key;
-    rec             = Gp_GetNestedAreaRec(keyPtr);
-    entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->field_24 = entry->field_D;
-    model->field_25 = entry->field_E;
-    if (model->field_18 != NULL) {
+    keyPtr       = &key;
+    rec          = Gp_GetNestedAreaRec(keyPtr);
+    entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->field_D;
+    model->clut  = entry->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }
@@ -711,12 +711,12 @@ void func_actor_102300_801346CC(GpEnemy* enemy, Actor102300* actor)
     key.view    = areaByte02;
     Gp_SyncAreaKeyIndex(keyPtr2);
     SOFT_DEF_REG(keyPtr2);
-    keyPtr2          = &key;
-    rec2             = Gp_GetNestedAreaRec(keyPtr2);
-    entry2           = (GpCdRec10*)((idx2 << 4) + (s32)rec2->field_0);
-    model2->field_24 = entry2->field_D;
-    model2->field_25 = entry2->field_E;
-    if (model2->field_18 != NULL) {
+    keyPtr2       = &key;
+    rec2          = Gp_GetNestedAreaRec(keyPtr2);
+    entry2        = (GpCdRec10*)((idx2 << 4) + (s32)rec2->field_0);
+    model2->tpage = entry2->field_D;
+    model2->clut  = entry2->field_E;
+    if (model2->buffer != NULL) {
         Tmd_ProcessStream(model2);
         Tmd_ProcessStream(model2);
     }
@@ -743,7 +743,7 @@ case0:
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    parts              = actor->field_2C->field_8;
+    parts              = actor->field_2C->coords;
     enemy->field_1C.vx = 0;
     enemy->field_1C.vy = 0;
     enemy->field_1C.vz = 0;
@@ -791,7 +791,7 @@ case0:
     lcg                      = (Gp_LcgState * 5) + 0x71357911;
     work->field_6C4          = ((lcg >> 16) & 1) + 1;
     Gp_LcgState              = lcg;
-    partsA                   = actor->field_2C->field_8;
+    partsA                   = actor->field_2C->coords;
     work->field_47C.field_C  = (GpRec18*)&work->field_49C;
     work->field_47C.field_10 = 0;
     work->field_47C.field_12 = 0;
@@ -804,7 +804,7 @@ case0:
     Gp_InitRec18Table(work->field_4B4, 1, 0);
     work->field_47C.flags |= 0xCC00;
 
-    partsB                   = actor->field_2C->field_8;
+    partsB                   = actor->field_2C->coords;
     work->field_4CC.field_C  = work->field_4EC;
     work->field_4CC.field_10 = 0;
     work->field_4CC.field_12 = 0;
@@ -817,7 +817,7 @@ case0:
     Gp_InitRec18Table(work->field_4EC, 5, 0);
     work->field_4CC.flags |= 0x8000;
 
-    partsC                   = actor->field_2C->field_8;
+    partsC                   = actor->field_2C->coords;
     work->field_564.field_12 = -0x226;
     work->field_564.field_C  = work->field_584;
     work->field_564.field_10 = 0;
@@ -830,7 +830,7 @@ case0:
     Gp_InitRec18Table(work->field_584, 4, 0);
     work->field_564.flags |= 0x4200;
 
-    effParts                 = ((TmdObject*)eff2->task->extra)->field_8;
+    effParts                 = ((TmdObject*)eff2->task->extra)->coords;
     work->field_5E4.field_C  = work->field_604;
     work->field_5E4.field_10 = 0;
     work->field_5E4.field_12 = 0x1F4;
@@ -898,7 +898,7 @@ void func_actor_102300_8013509C(Actor102300* actor)
     *(u8**)G_SCRATCH_HEAD = (u8*)delta;
     work                  = actor->field_1C;
     state                 = work->field_6A8;
-    coord                 = actor->field_2C->field_8;
+    coord                 = actor->field_2C->coords;
     switch (state) {
         case 0:
             speed = 0;

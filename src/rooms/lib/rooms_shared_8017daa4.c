@@ -25,7 +25,7 @@ void RoomsShared8017daa4(Task* task)
     RoomsShared8017daa4Work* work;
 
     extra = (TmdObject*)task->extra;
-    coord = extra->field_8;
+    coord = extra->coords;
     work  = (RoomsShared8017daa4Work*)Mem_Calloc(sizeof(RoomsShared8017daa4Work), 0);
     if (work == NULL) {
         Task_Kill(task);
@@ -33,7 +33,7 @@ void RoomsShared8017daa4(Task* task)
     }
     task->work        = (TaskIdMap*)work;
     work->field_0     = 0;
-    extra->field_C    = 0;
+    extra->flags      = 0;
     coord->sub        = &Gfx_ViewCoord;
     coord->coord.t[0] = -0x23F0;
     coord->coord.t[1] = 0x12C;

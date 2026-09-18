@@ -13,7 +13,7 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// Coordinate node of a room prop's model (`TmdObject::field_8`). Same 0x50
+/// Coordinate node of a room prop's model (`TmdObject::coords`). Same 0x50
 /// layout as `GsCOORDINATE2`, except +0x44 (libgs `param`) holds an inline
 /// `SVECTOR` of Euler angles that `RotMatrixZYX` composes into `mtx`.
 /// `GpDisp2dCoord` (gameplay) is the same shape for a different object.
@@ -43,7 +43,7 @@ void func_mist_r18_8017EA98(Task* task)
     TmdObject*    obj;
 
     if (task->state == 0) {
-        coord           = (MistR18Coord*)((TmdObject*)task->extra)->field_8;
+        coord           = (MistR18Coord*)((TmdObject*)task->extra)->coords;
         coord->mtx.t[0] = -0x1496;
         coord->mtx.t[1] = -0x2DA;
         coord->mtx.t[2] = 0xB90;
@@ -53,8 +53,8 @@ void func_mist_r18_8017EA98(Task* task)
         RotMatrixZYX(&coord->rot, &coord->mtx);
         coord->flg    = 0;
         obj           = (TmdObject*)task->extra;
-        obj->field_E  = -8;
-        obj->field_C &= 0xFF7F;
+        obj->otOffset = -8;
+        obj->flags   &= 0xFF7F;
         task->state++;
     }
 }

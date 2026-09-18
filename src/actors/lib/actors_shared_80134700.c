@@ -16,7 +16,7 @@ void ActorsShared80134700(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    coord   = ((TmdObject*)task->extra)->field_8;
+    coord   = ((TmdObject*)task->extra)->coords;
     vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];

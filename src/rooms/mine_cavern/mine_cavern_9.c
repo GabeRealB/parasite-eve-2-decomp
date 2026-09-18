@@ -373,18 +373,18 @@ void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    ((TmdObject*)arg1->extra)->field_8->sub        = &Gfx_ViewCoord;
-    ((TmdObject*)arg1->extra)->field_C             = 0;
-    ((TmdObject*)arg1->extra)->field_1C            = &work->light;
-    ((TmdObject*)arg1->extra)->field_20            = &work->color;
-    ((TmdObject*)arg1->extra)->field_8->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
-    ((TmdObject*)arg1->extra)->field_8->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
-    ((TmdObject*)arg1->extra)->field_8->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
-    ((TmdObject*)arg1->extra)->field_8->flg        = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
-    vec.vx = ((TmdObject*)arg1->extra)->field_8->workm.t[0];
-    vec.vy = ((TmdObject*)arg1->extra)->field_8->workm.t[1];
-    vec.vz = ((TmdObject*)arg1->extra)->field_8->workm.t[2];
+    ((TmdObject*)arg1->extra)->coords->sub        = &Gfx_ViewCoord;
+    ((TmdObject*)arg1->extra)->flags              = 0;
+    ((TmdObject*)arg1->extra)->lightMtx           = &work->light;
+    ((TmdObject*)arg1->extra)->colorMtx           = &work->color;
+    ((TmdObject*)arg1->extra)->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
+    ((TmdObject*)arg1->extra)->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
+    ((TmdObject*)arg1->extra)->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
+    ((TmdObject*)arg1->extra)->coords->flg        = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
+    vec.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
+    vec.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
+    vec.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
     func_800D7A9C(arg1->extra, &vec, 0, 3);
     arg1->state++;
 }
@@ -440,7 +440,7 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
     work = (MineCavernWork*)arg1->work;
 
-    ((TmdObject*)arg1->extra)->field_C = 0x80;
+    ((TmdObject*)arg1->extra)->flags = 0x80;
 
     state           = work->field_148;
     work->field_148 = state + 1;
@@ -448,15 +448,15 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
     switch ((s16)state) {
         case 0:
             printf(D_mine_cavern_8017D7E8);
-            ((TmdObject*)arg1->extra)->field_8->coord.t[1] = -0x258;
-            ((TmdObject*)arg1->extra)->field_8->flg        = 0;
-            Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
-            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->field_8, 0x01001200, NULL);
+            ((TmdObject*)arg1->extra)->coords->coord.t[1] = -0x258;
+            ((TmdObject*)arg1->extra)->coords->flg        = 0;
+            Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
+            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01001200, NULL);
             return;
 
         case 1:
             printf(D_mine_cavern_8017D7F0);
-            eff = Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->field_8, 0x01000580, NULL);
+            eff = Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01000580, NULL);
             if (eff != NULL) {
                 eff->field_10 = 0;
                 eff->field_12 = -0xA;
@@ -466,7 +466,7 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
         case 2:
         case 4:
-            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->field_8, 0x01002500, NULL);
+            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01002500, NULL);
             return;
 
         case 3:
@@ -515,15 +515,15 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
 
     work = (MineCavernWork*)task->work;
 
-    ((TmdObject*)task->extra)->field_8->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
-    vec.vx = ((TmdObject*)task->extra)->field_8->workm.t[0];
-    vec.vy = ((TmdObject*)task->extra)->field_8->workm.t[1];
-    vec.vz = ((TmdObject*)task->extra)->field_8->workm.t[2];
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
+    vec.vx = ((TmdObject*)task->extra)->coords->workm.t[0];
+    vec.vy = ((TmdObject*)task->extra)->coords->workm.t[1];
+    vec.vz = ((TmdObject*)task->extra)->coords->workm.t[2];
     func_800D7A9C(task->extra, &vec, 0, 3);
 
     if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1) & 1)) {
-        ((TmdObject*)task->extra)->field_C = 0x80;
+        ((TmdObject*)task->extra)->flags = 0x80;
     } else {
         m                         = &work->coord.coord;
         *(s32*)&work->coord.coord = 0x1000;
@@ -531,13 +531,13 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
         *(s32*)&m->m[1][1]        = 0x1000;
         *(s32*)&m->m[2][0]        = 0;
         m->m[2][2]                = 0x1000;
-        work->coord.sub           = ((TmdObject*)task->extra)->field_8;
+        work->coord.sub           = ((TmdObject*)task->extra)->coords;
         work->coord.coord.t[2]    = 0;
         work->coord.coord.t[0]    = 0;
         work->coord.coord.t[1]    = -0x320;
         work->coord.flg           = 0;
         Gp_UpdateCoord(&work->coord);
         work->field_148++;
-        ((TmdObject*)task->extra)->field_C = 0;
+        ((TmdObject*)task->extra)->flags = 0;
     }
 }

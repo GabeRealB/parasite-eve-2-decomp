@@ -54,7 +54,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     s32                    i;
 
     obj   = (TmdObject*)arg1->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     part  = &coord[6];
     one   = 1;
     if ((s16)(arg1->spawnArg1 >> 16) == one) {
@@ -69,10 +69,10 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     arg1->work      = (TaskIdMap*)work;
     work->field_366 = (u16)arg1->spawnArg1;
     work->field_364 = (s16)(arg1->spawnArg1 >> 16);
-    obj->field_C   |= 0x80;
+    obj->flags     |= 0x80;
     coord->flg      = 0;
-    obj->field_1C   = &work->field_1BC;
-    obj->field_20   = &work->field_19C;
+    obj->lightMtx   = &work->field_1BC;
+    obj->colorMtx   = &work->field_19C;
     arg0->field_4   = &coord->coord;
     arg0->field_48  = 0;
     Gp_LinkNode(&arg0->node);
@@ -84,7 +84,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     arg0->field_50     = &D_actor_107000_80139EA0;
     arg0->field_40     = D_actor_107000_80139EA0.field_4;
     arg0->field_54     = (s32)&work->field_24C[0];
-    work->field_35C    = &((TmdObject*)arg1->extra)->field_8[1];
+    work->field_35C    = &((TmdObject*)arg1->extra)->coords[1];
     work->field_360    = 0x100;
     work->field_362    = one;
     func_800B3F84((GpAnimCtx*)work, D_actor_107000_8013F59C, (GpAnimObj*)obj, work->field_12C,

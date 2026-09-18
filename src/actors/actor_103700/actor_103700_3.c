@@ -48,20 +48,20 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
 
     work   = (Actor103700Work*)task->work;
-    obj    = ((TmdObject*)task->extra)->field_8;
+    obj    = ((TmdObject*)task->extra)->coords;
     model  = (TmdObject*)task->extra;
     player = Game_GetPtrSlot(3);
 
     switch (D_801153F4) {
         case 1:
-            coord        = ((TmdObject*)task->extra)->field_8;
+            coord        = ((TmdObject*)task->extra)->coords;
             buf.color.vx = coord->workm.t[0];
             buf.color.vy = coord->workm.t[1];
             buf.color.vz = coord->workm.t[2];
             Gp_UpdateActorColor((GpEnemy*)task->spawnArg2, &buf.color, 0, 0);
             return;
         case 2:
-            ((TmdObject*)task->extra)->field_C |= 0x80;
+            ((TmdObject*)task->extra)->flags |= 0x80;
             return;
         case 0:
         default:
@@ -74,8 +74,8 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                     Gp_UnlinkObj(&work->obj);
                     Gp_UnlinkNode(&enemy->node);
                     Gp_ReleaseStateF0Add((GpObj20E*)task, 0x25);
-                    model->field_C = 0x80;
-                    sound          = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250003;
+                    model->flags = 0x80;
+                    sound        = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)obj), (s8)Gp_GetObjDepth((GpObj38*)obj));
                     if (work->field_262 != 0) {
                         arg.field_0  = D_actor_103700_80139F1C;
@@ -97,14 +97,14 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                     switch (work->field_268) {
                         case 0:
                             Tmd_FreeBuffers(model);
-                            model->field_C |= 4;
-                            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                            model->flags |= 4;
+                            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                             if ((Gp_LcgState >> 16) & 1) {
                                 D_80067704[0] = D_actor_103700_8013621C;
                             } else {
                                 D_80067704[0] = D_actor_103700_80136420;
                             }
-                            eff = Gp_SpawnEff(0x40007, &((TmdObject*)task->extra)->field_8[4], 0x80, NULL);
+                            eff = Gp_SpawnEff(0x40007, &((TmdObject*)task->extra)->coords[4], 0x80, NULL);
                             if (eff != NULL) {
                                 sessionKey    = (GpAreaKey*)&gGameSession->at4.loc;
                                 raw           = ((Actor103700Spawn*)task->spawnArg2)->field_8;
@@ -118,11 +118,11 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                                 idx          = raw >> 12;
                                 buf.key.view = areaByte0;
                                 Gp_SyncAreaKeyIndex(keyPtr);
-                                rec                = Gp_GetNestedAreaRec(&buf.key);
-                                entry              = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-                                effModel->field_24 = entry->field_D;
-                                effModel->field_25 = entry->field_E;
-                                if (effModel->field_18 != NULL) {
+                                rec             = Gp_GetNestedAreaRec(&buf.key);
+                                entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+                                effModel->tpage = entry->field_D;
+                                effModel->clut  = entry->field_E;
+                                if (effModel->buffer != NULL) {
                                     Tmd_ProcessStream(effModel);
                                     Tmd_ProcessStream(effModel);
                                 }

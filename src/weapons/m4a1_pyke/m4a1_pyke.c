@@ -68,11 +68,11 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     u32            ang;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[1];
     light = &base->coord;
     slot  = (GpCoordTail*)light;
-    if ((((GpActorWork*)Game_GetPtrSlot(3))->extra->field_C & 0x80) != 0) {
+    if ((((GpActorWork*)Game_GetPtrSlot(3))->extra->flags & 0x80) != 0) {
         return;
     }
     if (Gp_State1C->field_4 >= 2) {
@@ -274,7 +274,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     beam  = (M4a1PykeBeam*)task->work;
     work  = task->spawnArg2;
     fade  = Gp_State1C->field_4;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (fade >= 4) {
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);

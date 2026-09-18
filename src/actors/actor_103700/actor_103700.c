@@ -20,17 +20,17 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     s32              i;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x270, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, task);
         return;
     }
     task->work     = (TaskIdMap*)work;
-    obj->field_C   = 0;
+    obj->flags     = 0;
     coord->flg     = 0;
-    obj->field_1C  = &work->lightMtx;
-    obj->field_20  = &work->colorMtx;
+    obj->lightMtx  = &work->lightMtx;
+    obj->colorMtx  = &work->colorMtx;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
@@ -41,7 +41,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     arg0->field_1C.vy       = 0;
     arg0->field_1C.vz       = 0;
     arg0->field_54          = (s32)work->records;
-    work->field_224.field_0 = &((TmdObject*)task->extra)->field_8[1];
+    work->field_224.field_0 = &((TmdObject*)task->extra)->coords[1];
     work->field_224.field_4 = 0x100;
     work->field_224.field_6 = 1;
     work->field_246         = ((Actor103700Kind*)arg0->field_3C)->field_A;
@@ -71,7 +71,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
             break;
         case 1:
         case 2:
-            obj->field_C   |= 4;
+            obj->flags     |= 4;
             work->field_24E = 7;
             work->field_248 = 1;
             if (kind == 10) {
@@ -79,7 +79,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
             }
             break;
         case 3:
-            obj->field_C   |= 4;
+            obj->flags     |= 4;
             work->field_24E = 10;
             work->field_248 = 1;
             break;
@@ -142,7 +142,7 @@ void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2)
     broke   = 0;
     work    = (Actor103700Work*)task->work;
     scratch = (Actor103700PushScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
-    coord   = ((TmdObject*)task->extra)->field_8;
+    coord   = ((TmdObject*)task->extra)->coords;
     res     = func_800E0C10(work->records, &scratch->delta, 4, NULL);
     if (res == 1)
         goto move_delta;
@@ -188,7 +188,7 @@ move_done:
                 }
                 break;
             case 2:
-                src                 = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+                src                 = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
                 ex                  = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vx.w = ex;
                 ey                  = src->coord.t[1] - coord->coord.t[1];

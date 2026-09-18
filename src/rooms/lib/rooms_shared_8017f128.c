@@ -32,26 +32,26 @@ void RoomsShared8017f128(Task* task)
         Task_CallExit(task);
     }
     mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &((TmdObject*)mirror->extra)->field_8[RoomsShared8017f128Parts[task->spawnArg1]];
+    mirrorPart  = &((TmdObject*)mirror->extra)->coords[RoomsShared8017f128Parts[task->spawnArg1]];
     work        = (RoomMirrorWork*)mirror->work;
     mirrorExtra = mirror->extra;
     if (task->state == 0) {
         src      = task->parent->extra;
-        srcParts = src->field_8;
-        if (Gp_AttachTmd(task, src->field_10) == NULL) {
+        srcParts = src->coords;
+        if (Gp_AttachTmd(task, src->source) == NULL) {
             Task_CallExit(task);
             return;
         }
-        extra           = task->extra;
-        parts           = extra->field_8;
-        extra->field_24 = src->field_24;
+        extra        = task->extra;
+        parts        = extra->coords;
+        extra->tpage = src->tpage;
         Tmd_ProcessStream(extra);
         Tmd_ProcessStream(extra);
-        extra->field_C  = 0x10;
-        extra->field_E  = 0x1F;
+        extra->flags    = 0x10;
+        extra->otOffset = 0x1F;
         parts->sub      = mirrorPart;
-        extra->field_1C = &work->light;
-        extra->field_20 = &work->color;
+        extra->lightMtx = &work->light;
+        extra->colorMtx = &work->color;
         if (task->spawnArg1 >= 2) {
             scale = RoomsShared8017f128Scale;
             ScaleMatrix(&parts->coord, &scale);
@@ -62,10 +62,10 @@ void RoomsShared8017f128(Task* task)
         parts->flg        = 0;
         task->state++;
     }
-    extra          = task->extra;
-    flags          = mirrorExtra->field_C;
-    extra->field_C = flags;
+    extra        = task->extra;
+    flags        = mirrorExtra->flags;
+    extra->flags = flags;
     if (task->spawnArg1 >= 2) {
-        extra->field_C = flags & 0xFFEF;
+        extra->flags = flags & 0xFFEF;
     }
 }

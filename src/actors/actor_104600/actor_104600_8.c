@@ -19,7 +19,7 @@ void func_actor_104600_80135CE0(void* arg0, Task* task)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)task->extra)->field_8[1];
+    coord     = &((TmdObject*)task->extra)->coords[1];
     scratch   = (void**)G_SCRATCH_HEAD;
     head      = *scratch;
     block     = (VECTOR*)(head - 0x10);

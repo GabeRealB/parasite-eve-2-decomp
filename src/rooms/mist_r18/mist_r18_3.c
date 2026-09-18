@@ -138,7 +138,7 @@ void func_mist_r18_8017E6D8(s32 idx)
         task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, idx, 8, (s32)Game_GetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
-            ((TmdObject*)task->extra)->field_C &= 0xFF7F;
+            ((TmdObject*)task->extra)->flags &= 0xFF7F;
         }
     }
 }

@@ -50,8 +50,8 @@ typedef struct Actor123200Work {
     /* 0x1B2 */ s16    field_1B2;
     /* 0x1B4 */ s16    field_1B4;
     /* 0x1B6 */ byte   pad_1B6[0x6];
-    /* 0x1BC */ MATRIX field_1BC; // installed at `TmdObject.field_1C` by `func_actor_123200_8013352C`
-    /* 0x1DC */ MATRIX field_1DC; // installed at `TmdObject.field_20`
+    /* 0x1BC */ MATRIX field_1BC; // installed at `TmdObject.lightMtx` by `func_actor_123200_8013352C`
+    /* 0x1DC */ MATRIX field_1DC; // installed at `TmdObject.colorMtx`
     /* 0x1FC */ byte   pad_1FC[0x20];
     /// Model scale `func_actor_123200_80133BA0` puts on `field_1BC` through
     /// `ScaleMatrix`; 0x1000 is 1.0 and skips the scale entirely. Picked from
@@ -144,7 +144,7 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task);
 
 /// Display handler in the same message-table family as the shared
 /// `ActorsShared80164844` / `ActorsShared8013d268` bodies. `arg2` selects the
-/// mode: 0 hides the display object (`TmdObject.field_C` bit 0x80), 1 clears
+/// mode: 0 hides the display object (`TmdObject.flags` bit 0x80), 1 clears
 /// `field_C` and so shows it, 2 sets bit 0x4, and 3 and 4 both clear `field_C`
 /// and then set bit 0x4. Modes 0 and 1 reinstate the object's buffers through
 /// `Tmd_AllocBuffers` and restart the work block's `field_0` at 1; modes 2, 3

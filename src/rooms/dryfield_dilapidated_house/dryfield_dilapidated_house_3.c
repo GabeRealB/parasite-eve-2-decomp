@@ -254,8 +254,8 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     parent      = (Task*)task->spawnArg2;
     obj         = (TmdObject*)task->extra;
     parentObj   = (TmdObject*)parent->extra;
-    coord       = obj->field_8;
-    parentCoord = parentObj->field_8;
+    coord       = obj->coords;
+    parentCoord = parentObj->coords;
     work        = (DdhCoordWork*)Mem_Malloc(0x6C, false);
     if (work == NULL) {
         Task_Kill(task);
@@ -263,22 +263,22 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     }
     task->work    = (TaskIdMap*)work;
     work->field_0 = 0;
-    flags         = obj->field_C | 0x80;
-    obj->field_C  = flags;
-    if (!(parentObj->field_C & 0x80)) {
-        obj->field_C = flags & 0xFF7F;
+    flags         = obj->flags | 0x80;
+    obj->flags    = flags;
+    if (!(parentObj->flags & 0x80)) {
+        obj->flags = flags & 0xFF7F;
     }
-    obj->field_E  = 4;
-    obj->field_C |= 2;
+    obj->otOffset = 4;
+    obj->flags   |= 2;
     parentCoord  += task->spawnArg1;
     coord->flg    = 0;
     coord->sub    = parentCoord;
-    obj->field_1C = parentObj->field_1C;
-    obj->field_20 = parentObj->field_20;
+    obj->lightMtx = parentObj->lightMtx;
+    obj->colorMtx = parentObj->colorMtx;
     Task_Reparent(parent, task);
 
     rec    = &D_dryfield_dilapidated_house_8018669C;
-    source = ((TmdObject*)task->extra)->field_10;
+    source = ((TmdObject*)task->extra)->source;
     dst    = rec->field_8;
     dst2   = (SVECTOR*)rec->field_C;
     verts  = source->verts;
@@ -301,22 +301,22 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     table   = &D_dryfield_dilapidated_house_80186854;
     spawned = Task_SpawnFromTable(table, 3, 9, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord        = ((TmdObject*)spawned->extra)->coords;
         childCoord->coord = work->mtx;
     }
     spawned = Task_SpawnFromTable(table, 3, 0x11, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord        = ((TmdObject*)spawned->extra)->coords;
         childCoord->coord = work->mtx;
     }
     spawned = Task_SpawnFromTable(table, 2, 0, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord        = ((TmdObject*)spawned->extra)->coords;
         childCoord->coord = work->mtx;
     }
     spawned = Task_SpawnFromTable(table, 2, 1, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->field_8;
+        childCoord        = ((TmdObject*)spawned->extra)->coords;
         childCoord->coord = work->mtx;
     }
 

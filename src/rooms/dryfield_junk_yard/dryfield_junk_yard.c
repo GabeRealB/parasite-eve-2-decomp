@@ -38,14 +38,14 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
     TmdObject*  tmd;
     s32         flag;
 
-    obj          = (GpItemObj8*)task->spawnArg2;
-    tmd          = (TmdObject*)task->extra;
-    flag         = Gp_GetCurBit2Flag(obj->field_8);
-    tmd->field_C = 0;
+    obj        = (GpItemObj8*)task->spawnArg2;
+    tmd        = (TmdObject*)task->extra;
+    flag       = Gp_GetCurBit2Flag(obj->field_8);
+    tmd->flags = 0;
     if (flag == 2) {
-        tmd->field_C = 0x84;
+        tmd->flags = 0x84;
     } else {
-        tmd->field_E = 0;
+        tmd->otOffset = 0;
     }
     func_dryfield_junk_yard_8017D658(task);
 }
@@ -65,8 +65,8 @@ void func_dryfield_junk_yard_8017D658(Task* task)
     TmdObject*            tmd;
 
     tmd   = (TmdObject*)task->extra;
-    coord = tmd->field_8;
-    if ((tmd->field_C & 0x80) == 0 && tmd->field_18 != 0) {
+    coord = tmd->coords;
+    if ((tmd->flags & 0x80) == 0 && tmd->buffer != 0) {
         scratch                             = *(DjyGroundQuadScratch**)0x1F8003FC - 1;
         *(DjyGroundQuadScratch**)0x1F8003FC = scratch;
         Gp_UpdateCoord(coord);

@@ -157,7 +157,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     u16                                     vz;
     s32                                     level;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
@@ -229,7 +229,7 @@ void func_acropolis_fountain_8017E014(Task* task)
     s32                      bit;
     s16                      id;
 
-    coord  = ((TmdObject*)task->extra)->field_8;
+    coord  = ((TmdObject*)task->extra)->coords;
     splash = task->spawnArg2;
     view   = Gp_GetViewIndex();
     switch (task->state) {

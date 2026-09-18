@@ -166,7 +166,7 @@ typedef struct _GpActorD4 {
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject.field_8`. `flg` is the same
+/// Overlay of `GsCOORDINATE2` at `TmdObject.coords`. `flg` is the same
 /// word cleared by `field_8->flg = 0`. Offset 0x44 (`param` in libgs) is an s16
 /// flag (`lh`/`sh`) in `func_8010B590` / `func_80104364`. `sub` is the parent
 /// coordinate pointer (`GsCOORDINATE2.sub` at 0x4C).
@@ -360,7 +360,7 @@ extern s32 D_80112A50[];
 extern s32 D_80112B94[];
 
 /// `GsCOORDINATE2` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
-/// it onto `TmdObject.field_8` when `field_3 == 1`.
+/// it onto `TmdObject.coords` when `field_3 == 1`.
 extern u16 D_80112B28[];
 
 /// 4 packed RGB-nibble colors. `Gp_EffCtlTaskC1` indexes with

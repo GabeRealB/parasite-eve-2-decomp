@@ -14,7 +14,7 @@ s32 ActorsShared80132774(Task* task, s32 arg1, ActorsShared80132774Placement* pl
     ActorsShared80132774Work* work;
     u16                       yaw;
 
-    coord     = ((TmdObject*)task->extra)->field_8;
+    coord     = ((TmdObject*)task->extra)->coords;
     work      = (ActorsShared80132774Work*)task->work;
     yaw       = placement->rot.vy;
     work->yaw = yaw;

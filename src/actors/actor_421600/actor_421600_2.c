@@ -78,7 +78,7 @@ void func_actor_421600_8013E700(Actor421600* arg0, s16 arg1, s16 arg2)
     }
 
     if (Gp_State1C->field_A == 2 && spawn == 1) {
-        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[arg1], arg2 | 0x80000000, &sp10);
+        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[arg1], arg2 | 0x80000000, &sp10);
     }
 }
 
@@ -112,7 +112,7 @@ void func_actor_421600_8013E858(Actor421600* arg0)
         obj                    = arg0->field_2C;
         enemy                  = arg0->field_20;
         enemy->node.field_4    = 1;
-        obj->field_C          |= 0x80;
+        obj->flags            |= 0x80;
         work->field_B6C.flags &= 0xBFFF;
         enemy->field_40        = 0;
     }
@@ -131,7 +131,7 @@ void func_actor_421600_8013E8AC(Actor421600* arg0)
     if (work->field_4 != 0) {
         obj                 = arg0->field_2C;
         enemy->node.field_4 = 0;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         Tmd_AllocBuffers(obj);
         work->field_82E        = 0x18;
         work->field_828        = 2;
@@ -143,10 +143,10 @@ void func_actor_421600_8013E8AC(Actor421600* arg0)
         work->field_832 = 0x20;
         return;
     }
-    arg0->field_2C->field_8->flg = 0;
-    value                        = (s16)work->field_832 / 2;
-    work->field_832              = (u16)value;
-    magnitude                    = 0x10U;
+    arg0->field_2C->coords->flg = 0;
+    value                       = (s16)work->field_832 / 2;
+    work->field_832             = (u16)value;
+    magnitude                   = 0x10U;
     if (value == 1) {
         work->field_832 = -magnitude;
     }
@@ -170,7 +170,7 @@ void func_actor_421600_8013E9D8(Actor421600* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.field_1C = 0x19C;
         work->field_828          = 1;
@@ -202,7 +202,7 @@ void func_actor_421600_8013EAAC(Actor421600* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.field_1C = 0x19C;
         work->field_828          = 1;
@@ -212,8 +212,8 @@ void func_actor_421600_8013EAAC(Actor421600* arg0)
         work->field_B6C.flags   |= 0x4000;
         func_actor_421600_80134604(arg0);
     }
-    func_actor_421600_8013285C(arg0->field_2C->field_8, &work->field_B8C, 0xC);
-    arg0->field_2C->field_8->flg = 0;
+    func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC);
+    arg0->field_2C->coords->flg = 0;
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
@@ -229,7 +229,7 @@ void func_actor_421600_8013EB7C(Actor421600* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_8EC.field_1C = 0x19C;
         work->field_828          = 1;
@@ -253,7 +253,7 @@ void func_actor_421600_8013EC28(Actor421600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C  = 0;
+        arg0->field_2C->flags    = 0;
         work->field_8EC.field_1C = 0x19C;
         work->field_B6C.flags   |= 0x4000;
         enemy->node.field_4      = 0;
@@ -291,7 +291,7 @@ void func_actor_421600_8013ED24(Actor421600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C  = 0;
+        arg0->field_2C->flags    = 0;
         work->field_8EC.field_1C = 0x19C;
         work->field_B6C.flags   |= 0x4000;
         enemy->node.field_4      = 0;
@@ -328,7 +328,7 @@ void func_actor_421600_8013EE0C(Actor421600* arg0)
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
         obj                      = arg0->field_2C;
-        obj->field_C             = 0;
+        obj->flags               = 0;
         work->field_8EC.field_1C = 0x19C;
         work->field_B6C.flags   |= 0x4000;
         enemy->node.field_4      = 1;

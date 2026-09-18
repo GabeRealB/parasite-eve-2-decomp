@@ -48,7 +48,7 @@ void flareEffectTask(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 == -2) || (Gp_State1C->field_E != 0)) {
         SndEvt_EnqueueType7(0xE03E0001, 1);
         Gp_ReleaseState1CMem(mem, arg0);
@@ -102,10 +102,10 @@ void flareSparkTask(Task* arg0)
     s32            rsin_arg;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     if (arg0->state == 0) {
-        player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+        player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
         dstm       = (GpMtxWords*)&coord->coord;
         srcm       = (GpMtxWords*)&player->coord;
         dstm->w0   = srcm->w0;

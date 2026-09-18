@@ -45,22 +45,22 @@ void func_actor_213100_80149E3C(Task* task)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
     }
-    if (!(extra->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(extra->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)task->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
         child = (TmdObject*)work->field_480->extra;
         if (D_actor_213100_801521E0[gGameSession->at4.loc.view] != 0) {
-            extra->field_C &= ~0x80;
-            child->field_C &= ~0x80;
+            extra->flags &= ~0x80;
+            child->flags &= ~0x80;
         } else {
-            extra->field_C |= 0x80;
-            child->field_C |= 0x80;
+            extra->flags |= 0x80;
+            child->flags |= 0x80;
         }
     }
     if (work->field_484 >= 0) {

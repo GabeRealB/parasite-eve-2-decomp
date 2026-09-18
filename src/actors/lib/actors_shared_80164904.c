@@ -16,7 +16,7 @@ s32 ActorsShared80164904(Task* task)
         return 1;
     }
 
-    flags   = ((TmdObject*)task->extra)->field_C;
+    flags   = ((TmdObject*)task->extra)->flags;
     mask80  = flags;
     mask80 &= 0x80;
     mask2   = flags & 2;

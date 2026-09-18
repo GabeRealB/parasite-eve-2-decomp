@@ -33,7 +33,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, Actor450800Msg* msg, s32 ar
 {
     Actor450800Work* work  = (Actor450800Work*)task->work;
     TmdObject*       obj   = (TmdObject*)work->field_4F8->extra;
-    GsCOORDINATE2*   coord = obj->field_8;
+    GsCOORDINATE2*   coord = obj->coords;
     TmdObject*       self  = (TmdObject*)task->extra;
     s32              mode  = msg->field_2;
 
@@ -43,11 +43,11 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, Actor450800Msg* msg, s32 ar
             break;
         case 1:
             work->field_500 = mode;
-            obj->field_C    = self->field_C;
+            obj->flags      = self->flags;
             break;
         case 2:
             work->field_500 = 0;
-            obj->field_C    = 0x84;
+            obj->flags      = 0x84;
             break;
     }
     return 0;
@@ -76,7 +76,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              dist;
     s32              angle;
 
-    coord           = ((TmdObject*)task->extra)->field_8;
+    coord           = ((TmdObject*)task->extra)->coords;
     work            = (Actor450800Work*)task->work;
     dx              = target->vx - coord->coord.t[0];
     dz              = target->vz - coord->coord.t[2];
@@ -139,7 +139,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     u32                   raw;
 
     obj        = task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     mem        = (Actor450800SpawnWork*)Mem_Calloc(0x4C0, false);
     work       = mem;
     task->work = (TaskIdMap*)mem;
@@ -153,7 +153,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;
     enemy->node.field_4 = 1;
-    obj->field_E        = 1;
+    obj->otOffset       = 1;
     mem->field_4BC      = enemy;
     spawned             = Gp_SpawnEnemyFromTable(D_actor_450800_801539DC, 1, 0, enemy);
     model               = (TmdObject*)spawned->task->extra;
@@ -169,18 +169,18 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     TOUCH_REG(keyPtr);
     key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
-    rec             = Gp_GetNestedAreaRec(&key);
-    place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->field_24 = place->field_D;
-    model->field_25 = place->field_E;
-    if (model->field_18 != NULL) {
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->field_D;
+    model->clut  = place->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }
     Task_Reparent(task, spawned->task);
     work->field_4B8 = spawned->task;
-    obj->field_1C   = &work->light;
-    obj->field_20   = &work->color;
+    obj->lightMtx   = &work->light;
+    obj->colorMtx   = &work->color;
     vec.vx          = coord->workm.t[0];
     vec.vy          = coord->workm.t[1] - 0x320;
     vec.vz          = coord->workm.t[2];

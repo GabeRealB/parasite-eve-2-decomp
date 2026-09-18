@@ -18,7 +18,7 @@ void func_actor_301200_80162E60(Actor301200Ctx* arg0, Actor301200* arg1)
     if (work->field_4 != 0) {
         obj                 = arg1->field_2C;
         arg0->field_14      = 0;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         work->field_174     = 5;
         work->field_170     = 1;
         work->field_178     = 0;
@@ -36,7 +36,7 @@ void func_actor_301200_80162E60(Actor301200Ctx* arg0, Actor301200* arg1)
             work->field_0 = 3;
         }
     }
-    coord    = arg1->field_2C->field_8;
+    coord    = arg1->field_2C->coords;
     d        = &delta;
     delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy    = D_80073B8C->t[1] - coord->coord.t[1];

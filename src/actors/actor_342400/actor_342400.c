@@ -33,8 +33,8 @@ void func_actor_342400_80162084(Task* arg0)
         D_actor_342400_80173AAC++;
         task            = enemy->task;
         obj             = task->extra;
-        obj->field_24   = 3;
-        obj->field_25   = 5;
+        obj->tpage      = 3;
+        obj->clut       = 5;
         enemy->field_40 = 1;
     }
     if (work->enemy1 != NULL) {
@@ -43,8 +43,8 @@ void func_actor_342400_80162084(Task* arg0)
         D_actor_342400_80173AAC++;
         task            = enemy->task;
         obj             = task->extra;
-        obj->field_24   = 3;
-        obj->field_25   = 5;
+        obj->tpage      = 3;
+        obj->clut       = 5;
         enemy->field_40 = 1;
     }
     D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
@@ -62,7 +62,7 @@ void func_actor_342400_801621D8(Task* arg0)
     if (work->enemy0 != NULL) {
         enemy = work->enemy0;
         task  = enemy->task;
-        coord = ((TmdObject*)task->extra)->field_8;
+        coord = ((TmdObject*)task->extra)->coords;
         if (enemy->field_40 <= 0) {
             work->enemy0 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
@@ -78,7 +78,7 @@ void func_actor_342400_801621D8(Task* arg0)
     if (work->enemy1 != NULL) {
         enemy = work->enemy1;
         task  = enemy->task;
-        coord = ((TmdObject*)task->extra)->field_8;
+        coord = ((TmdObject*)task->extra)->coords;
         if (enemy->field_40 <= 0) {
             work->enemy1 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
@@ -131,7 +131,7 @@ void func_actor_342400_80162324(Task* arg0)
 
 s16 func_actor_342400_801624A4(void)
 {
-    GsCOORDINATE2* coord = (*Gp_ActorSlots)->extra->field_8;
+    GsCOORDINATE2* coord = (*Gp_ActorSlots)->extra->coords;
     s16            x     = coord->coord.t[0];
     s16            z     = coord->coord.t[2];
 
@@ -333,8 +333,8 @@ void func_actor_342400_80162C10(Task* arg0)
     task  = enemy->task;
     if (++work->field_4 > 60) {
         obj            = task->extra;
-        obj->field_25  = 2;
-        obj->field_24  = 0;
+        obj->clut      = 2;
+        obj->tpage     = 0;
         enemy->field_A = 0x900;
         msg.field_0    = 0;
         msg.field_1    = 0x2C;
@@ -359,7 +359,7 @@ void func_actor_342400_80162CBC(Task* arg0)
 
     enemy = work->enemy;
     task  = enemy->task;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (enemy->field_40 <= 0) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
         Task_Kill(arg0);
@@ -390,9 +390,9 @@ void func_actor_342400_80162DA0(Task* arg0)
             work->enemy                                                   = enemy;
             enemy->field_8                                                = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
-            obj           = enemy->task->extra;
-            obj->field_24 = 2;
-            obj->field_25 = 4;
+            obj        = enemy->task->extra;
+            obj->tpage = 2;
+            obj->clut  = 4;
             arg0->state++;
             return;
         }
@@ -412,8 +412,8 @@ void func_actor_342400_80162E6C(Task* arg0)
     task  = enemy->task;
     if (++work->field_4 > 60) {
         obj            = task->extra;
-        obj->field_24  = 2;
-        obj->field_25  = 4;
+        obj->tpage     = 2;
+        obj->clut      = 4;
         enemy->field_A = 0x900;
         msg.field_0    = 0;
         msg.field_1    = 0x2A;
@@ -438,7 +438,7 @@ void func_actor_342400_80162F1C(Task* arg0)
 
     enemy = work->enemy;
     task  = enemy->task;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (enemy->field_40 <= 0) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
         Task_Kill(arg0);
@@ -471,8 +471,8 @@ void func_actor_342400_80163010(Task* arg0)
     if (enemy != NULL) {
         task           = enemy->task;
         obj            = task->extra;
-        obj->field_24  = 3;
-        obj->field_25  = 5;
+        obj->tpage     = 3;
+        obj->clut      = 5;
         enemy->field_A = 0x900;
         msg.field_0    = 0;
         msg.field_1    = 0x2E;
@@ -499,8 +499,8 @@ void func_actor_342400_801630A4(Task* arg0)
         }
         task           = work->enemy1->task;
         obj            = task->extra;
-        obj->field_24  = 3;
-        obj->field_25  = 5;
+        obj->tpage     = 3;
+        obj->clut      = 5;
         enemy->field_A = 0x900;
         msg.field_0    = 0;
         msg.field_1    = 0x2E;

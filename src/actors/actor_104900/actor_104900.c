@@ -58,7 +58,7 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
     if (CdCmd_IsIdle() & 0xFFFF) {
         Gp_LinkNode(&enemy->node);
         obj           = &work->field_9A8[0];
-        obj->field_8  = ((TmdObject*)task->extra)->field_8;
+        obj->field_8  = ((TmdObject*)task->extra)->coords;
         obj->field_C  = &work->field_A28[0][0];
         obj->field_10 = 0;
         obj->field_12 = -0x1D8;
@@ -71,7 +71,7 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
         Gp_InitRec18Table(obj->field_C, 3, 0);
 
         obj           = &work->field_9A8[3];
-        obj->field_8  = &((TmdObject*)task->extra)->field_8[3];
+        obj->field_8  = &((TmdObject*)task->extra)->coords[3];
         obj->field_C  = &work->field_A28[3][0];
         obj->field_10 = 0;
         obj->field_12 = 0;
@@ -95,7 +95,7 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
             if (i == 0) {
                 idx = 0xC;
             }
-            obj->field_8 = &((TmdObject*)task->extra)->field_8[idx];
+            obj->field_8 = &((TmdObject*)task->extra)->coords[idx];
             obj->field_C = (GpRec18*)((u8*)work + recOff);
             do {
                 if (i == 0) {
@@ -117,10 +117,10 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
             } while (0);
         } while (i < 2);
 
-        enemy->field_54                    = (s32)&work->field_A28[3][0];
-        task->exitCallback                 = ActorsShared801384ac;
-        ((TmdObject*)task->extra)->field_C = (u16)(((TmdObject*)task->extra)->field_C & 0xFF7F);
-        task->msgTable                     = &D_actor_104900_80147480;
+        enemy->field_54                  = (s32)&work->field_A28[3][0];
+        task->exitCallback               = ActorsShared801384ac;
+        ((TmdObject*)task->extra)->flags = (u16)(((TmdObject*)task->extra)->flags & 0xFF7F);
+        task->msgTable                   = &D_actor_104900_80147480;
         task->state++;
         enemy->field_4C = 0;
     }
@@ -140,7 +140,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_8
 /// player's `GameActor::field_958` reads 3 and 0xF423F otherwise; the 0x20000
 /// case also closes in whenever the player flag at `D_801153F2` reads 1
 /// without measuring at all. Either way the link transform is re-armed exactly
-/// as its siblings arm it - model part 3 through `TmdObject::field_8[3]`, the
+/// as its siblings arm it - model part 3 through `TmdObject::coords[3]`, the
 /// 0xC8-box local offset through `src` - and the state machine at 0x80132D78
 /// runs last; its nonzero answer also closes the actor in.
 ///
@@ -168,7 +168,7 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
     s16          walk;
 
     flag = 0;
-    dist = ActorsShared801388e8(((TmdObject*)task->extra)->field_8);
+    dist = ActorsShared801388e8(((TmdObject*)task->extra)->coords);
     walk = work->field_B8E;
     if (walk >= 0x11) {
         work->field_B8E = (s16)((u16)work->field_B8E - 0x10);
@@ -207,7 +207,7 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
 
     xform               = (GpLinkXform*)&enemy->node;
     enemy->node.field_4 = 0;
-    xform->coord        = &((TmdObject*)task->extra)->field_8[3];
+    xform->coord        = &((TmdObject*)task->extra)->coords[3];
     xform->src.vx       = 0;
     xform->src.vy       = -0xC8;
     xform->src.vz       = 0xC8;
@@ -253,7 +253,7 @@ void func_actor_104900_801356BC(GpEnemy* enemy, Task* task, ActorsShared80138efc
     u32          rng;
     u16          angle;
 
-    pose = (GpCoordPose*)((TmdObject*)task->extra)->field_8;
+    pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
     if (work->field_BA8 == 0) {
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
@@ -412,7 +412,7 @@ void func_actor_104900_80137C88(Task* task)
     u8*              head;
     s32              angle;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = Mem_Calloc(0x58, 0);
     if (work == NULL) {
         Task_CallExit(task);

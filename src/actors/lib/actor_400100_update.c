@@ -71,23 +71,23 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
     void*                  message;
     void*                  nextMessage;
 
-    work                          = actor->field_1C;
-    player                        = Game_GetPtrSlot(3);
-    config                        = &Player_Status;
-    states                        = Actor00100_D000F0;
-    actor->field_2C->field_8->flg = 0;
-    Gp_UpdateCoord(actor->field_2C->field_8);
-    pos.vx = actor->field_2C->field_8->workm.t[0];
-    pos.vy = actor->field_2C->field_8->workm.t[1];
-    pos.vz = actor->field_2C->field_8->workm.t[2];
+    work                         = actor->field_1C;
+    player                       = Game_GetPtrSlot(3);
+    config                       = &Player_Status;
+    states                       = Actor00100_D000F0;
+    actor->field_2C->coords->flg = 0;
+    Gp_UpdateCoord(actor->field_2C->coords);
+    pos.vx = actor->field_2C->coords->workm.t[0];
+    pos.vy = actor->field_2C->coords->workm.t[1];
+    pos.vz = actor->field_2C->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    actor->field_2C->field_8->flg = 0;
+    actor->field_2C->coords->flg = 0;
     switch (D_801153F4) {
         case 0:
             initialState = work->field_0;
             if (initialState != 21 && initialState != 0 && initialState != 6 && initialState != 3) {
-                actor->field_2C->field_C = 0;
-                height                   = actor->field_2C->field_8->coord.t[1];
+                actor->field_2C->flags = 0;
+                height                 = actor->field_2C->coords->coord.t[1];
                 Actor00100_Fn01900(actor, 1, 3, 0x12C, (s32)height, 0xFF);
                 Actor00100_Fn01900(actor, 3, 4, 0xC8, (s32)height, 0xFF);
                 Actor00100_Fn01900(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
@@ -96,15 +96,15 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
         case 1:
             modeState = work->field_0;
             if ((modeState != 0x15) && (modeState != 0) && (modeState != 6) && (modeState != 3)) {
-                actor->field_2C->field_C = 0;
-                modeHeight               = actor->field_2C->field_8->coord.t[1];
+                actor->field_2C->flags = 0;
+                modeHeight             = actor->field_2C->coords->coord.t[1];
                 Actor00100_Fn01900(actor, 1, 3, 0x12C, (s32)modeHeight, 0xFF);
                 Actor00100_Fn01900(actor, 3, 4, 0xC8, (s32)modeHeight, 0xFF);
                 Actor00100_Fn01900(actor, 1, 0xB, 0xFA, (s32)modeHeight, 0xFF);
             }
             return;
         case 2:
-            actor->field_2C->field_C = 0x80;
+            actor->field_2C->flags = 0x80;
             return;
     }
     scratchHead = (SVECTOR**)G_SCRATCH_HEAD;
@@ -127,11 +127,11 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
             actorWork = actor->field_1C;
             slot      = Game_GetPtrSlot(3);
             if ((slot != NULL) && (actorWork->field_8E8 == 7)) {
-                playerCoord = slot->field_2C->field_8;
-                actorcoord  = actor->field_2C->field_8;
+                playerCoord = slot->field_2C->coords;
+                actorcoord  = actor->field_2C->coords;
                 if (abs(playerCoord->coord.t[1] - actorcoord->coord.t[1]) >= 0x321) {
-                    playerCoord->coord.t[1]      = actorcoord->coord.t[1];
-                    slot->field_2C->field_8->flg = 0;
+                    playerCoord->coord.t[1]     = actorcoord->coord.t[1];
+                    slot->field_2C->coords->flg = 0;
                 }
             }
         }
@@ -146,17 +146,17 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                     if ((s16)work->field_C28 == 0xF) {
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
                             sound = (((u16)enemy->field_8 >> 0xC) << 8) | 0x54010004;
-                            pan   = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->field_8);
-                            depth = Gp_GetObjDepth((GpObj38*)actor->field_2C->field_8);
-                            SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan((GpObj38*)actor->field_2C->field_8)) / 2));
+                            pan   = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->coords);
+                            depth = Gp_GetObjDepth((GpObj38*)actor->field_2C->coords);
+                            SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan((GpObj38*)actor->field_2C->coords)) / 2));
                         } else {
                             sound2 = (((u16)enemy->field_8 >> 0xC) << 8) | 0x54010004;
-                            pan2   = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->field_8);
-                            SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)actor->field_2C->field_8));
+                            pan2   = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->coords);
+                            SndEvt_EnqueueType6(sound2, pan2, (s8)Gp_GetObjDepth((GpObj38*)actor->field_2C->coords));
                         }
                     }
                     if ((s16)work->field_C28 >= 0xF) {
-                        coord = player->field_2C->field_8;
+                        coord = player->field_2C->coords;
                         if (coord->coord.t[1] < 0x1770) {
                             work->field_8DC = (s32)(work->field_8DC + 0x21);
                         } else {
@@ -166,7 +166,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                             work->field_8E0   = 0;
                         }
                     }
-                    if (player->field_2C->field_8->coord.t[1] >= 0x1770) {
+                    if (player->field_2C->coords->coord.t[1] >= 0x1770) {
                         if (config->hp > 0) {
                             for (i = 0; i < 10; i++) {
                                 gGameSession->areaBgmCountdown = 0x7F;
@@ -321,7 +321,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
     scratch->vx = 0;
     scratch->vy = 0;
     scratch->vz = 0;
-    Actor00100_TransformToView(actor->field_2C->field_8 + 2, scratch);
+    Actor00100_TransformToView(actor->field_2C->coords + 2, scratch);
     enemy->field_1C.vx     = (s32)(s16)scratch->vx;
     enemy->field_1C.vy     = (s32)scratch->vy;
     enemy->field_1C.vz     = (s32)scratch->vz;

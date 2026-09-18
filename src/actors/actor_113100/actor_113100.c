@@ -84,10 +84,10 @@ void func_actor_113100_80131E58(Task* task)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->field_24 = entry2->field_D;
-        model2->field_25 = entry2->field_E;
-        if (model2->field_18 != NULL) {
+        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->field_D;
+        model2->clut  = entry2->field_E;
+        if (model2->buffer != NULL) {
             Tmd_ProcessStream(model2);
             Tmd_ProcessStream(model2);
         }
@@ -105,10 +105,10 @@ void func_actor_113100_80131E58(Task* task)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3           = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model3->field_24 = entry3->field_D;
-        model3->field_25 = entry3->field_E;
-        if (model3->field_18 != NULL) {
+        entry3        = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model3->tpage = entry3->field_D;
+        model3->clut  = entry3->field_E;
+        if (model3->buffer != NULL) {
             Tmd_ProcessStream(model3);
             Tmd_ProcessStream(model3);
         }
@@ -117,7 +117,7 @@ void func_actor_113100_80131E58(Task* task)
     ActorsShared80132f24(task);
 
     obj           = &work->obj;
-    obj->field_8  = &((TmdObject*)task->extra)->field_8[1];
+    obj->field_8  = &((TmdObject*)task->extra)->coords[1];
     obj->field_C  = &work->field_4D8;
     obj->field_18 = 0x30000;
     obj->field_1C = 0x100;
@@ -170,7 +170,7 @@ void func_actor_113100_801324DC(Task* task)
     u16                   yaw;
     s16                   diff;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (Actor113100Work*)task->work;
     angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     yaw   = (u16)work->field_53A;
@@ -237,7 +237,7 @@ void func_actor_113100_8013264C(Task* task)
     Actor113100AnimPreset preset;
 
     work  = (Actor113100Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (work->field_4F0 - coord->coord.t[0] >= 0) {
         dx = (u16)work->field_4F0 - (u16)coord->coord.t[0];
     } else {
@@ -273,7 +273,7 @@ void func_actor_113100_8013264C(Task* task)
 /// literal, and a mode outside 0..3 is answered with 1, the "not handled"
 /// return the dispatch expects. All four modes lift the 0x8000 bit the setup
 /// handler raised on the work block's display node and then rewrite the
-/// actor's own `TmdObject::field_C`, whose bit 0x80 is `Task_Kill`'s type-1
+/// actor's own `TmdObject::flags`, whose bit 0x80 is `Task_Kill`'s type-1
 /// deferred kill and whose 0x4 is the flag `Tmd_Create` seeds from `flags & 1`:
 /// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
 /// `Tmd_AllocBuffers` and clears 0x4; mode 2 hides it, latches 2 into
@@ -304,42 +304,42 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            node          = head;
+            obj->flags |= 0x80;
+            node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
-            node          = head;
+            obj->flags &= ~0x80;
+            node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C |= 0x80;
-            node          = head;
+            obj->flags |= 0x80;
+            node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
             work2->field_53D = 2;
-            obj->field_C    |= 4;
+            obj->flags      |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            node          = &work->obj;
+            obj->flags &= ~0x80;
+            node        = &work->obj;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
-            obj->field_C |= 4;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
@@ -441,8 +441,8 @@ void func_actor_113100_80132B30(Task* task)
     SOFT_BARRIER();
     parent = (Task*)task->spawnArg2;
     index  = task->spawnArg1;
-    node   = model->field_8;
-    part   = ((TmdObject*)parent->extra)->field_8;
+    node   = model->coords;
+    part   = ((TmdObject*)parent->extra)->coords;
 
     node->coord.t[1] = 0x64;
     node->coord.t[0] = 0;
@@ -452,9 +452,9 @@ void func_actor_113100_80132B30(Task* task)
 
     Task_Reparent(parent, task);
     if (GameFlag_GetNibble(0xF1) == 0) {
-        model->field_C &= 0xFF7F;
+        model->flags &= 0xFF7F;
     } else {
-        model->field_C |= 0x80;
+        model->flags |= 0x80;
     }
     task->state += 1;
 }
@@ -475,8 +475,8 @@ void func_actor_113100_80132BDC(Task* task)
     s32            index;
 
     index = task->spawnArg1;
-    node  = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
-    part  = &((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8[index];
+    node  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    part  = &((TmdObject*)((Task*)task->spawnArg2)->extra)->coords[index];
     view  = Gp_GetStageView(&gGameSession->at4.loc.view, index, task);
     coord = &node->coord;
     TransposeMatrix(&part->workm, coord);

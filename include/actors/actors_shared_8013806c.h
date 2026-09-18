@@ -8,7 +8,7 @@
 #include <psyq/libgs.h>
 
 /// The actor's per-part attach coordinates, 0x50 apart, hanging off the
-/// display object's 0x08 slot (`TmdObject::field_8`, the trailing per-part
+/// display object's 0x08 slot (`TmdObject::coords`, the trailing per-part
 /// `GsCOORDINATE2` array). This body reaches the root and the fourth part, so
 /// only those two are named.
 typedef struct ActorShared8013806cCoord {

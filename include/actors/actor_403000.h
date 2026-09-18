@@ -100,7 +100,7 @@ typedef struct Actor403000Work {
     /* 0xF10 */ MATRIX       field_F10;
     /// The second of the two default matrices the spawn handler binds to the
     /// display object -- `&work->field_F10` and this one are what it writes to
-    /// `TmdObject::field_1C` / `field_20` -- so it is a `MATRIX` whether or not
+    /// `TmdObject::lightMtx` / `field_20` -- so it is a `MATRIX` whether or not
     /// the animation that drives it is running. `func_actor_403000_8013D72C`
     /// zeroes this one field by field, last element first.
     /* 0xF30 */ MATRIX field_F30;

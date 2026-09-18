@@ -217,7 +217,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     u32                 idx;
 
     obj                      = task->extra;
-    coord                    = obj->field_8;
+    coord                    = obj->coords;
     work                     = Mem_Calloc(0x4EC, 0);
     ActorsShared80131f9cWork = work;
     task->work               = (TaskIdMap*)work;
@@ -231,8 +231,8 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     enemy->field_48         = 0;
     enemy->node.field_5     = 0;
     enemy->node.field_4     = 1;
-    obj->field_E            = 1;
-    obj->field_C            = 0;
+    obj->otOffset           = 1;
+    obj->flags              = 0;
     D_actor_146300_8014282C = task;
     helper                  = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     sessionKey              = (GpAreaKey*)&gGameSession->at4.loc;
@@ -255,16 +255,16 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     Gp_SyncAreaKeyIndex(keyPtr);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry           = (Actor146300AreaRec*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model->field_24 = entry->field_D;
-    model->field_25 = entry->field_E;
-    if (model->field_18 != NULL) {
+    entry        = (Actor146300AreaRec*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model->tpage = entry->field_D;
+    model->clut  = entry->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }
     Task_Reparent(task, D_actor_146300_80142830);
-    obj->field_1C = &ActorsShared80131f9cWork->light;
-    obj->field_20 = &ActorsShared80131f9cWork->color;
+    obj->lightMtx = &ActorsShared80131f9cWork->light;
+    obj->colorMtx = &ActorsShared80131f9cWork->color;
     vec.vx        = coord->workm.t[0];
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];

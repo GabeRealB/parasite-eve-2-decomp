@@ -65,9 +65,9 @@ void func_actor_213100_8014A118(Task* arg0)
     }
     func_actor_213100_8014A23C(arg0);
     ext             = arg0->extra;
-    ext->field_C   |= 0x80;
+    ext->flags     |= 0x80;
     ext             = work->field_480->extra;
-    ext->field_C   |= 0x80;
+    ext->flags     |= 0x80;
     preset.field_0  = 0;
     preset.field_4  = 5;
     preset.field_8  = 0;

@@ -18,8 +18,8 @@ void func_actor_503500_80146508(Task* arg0)
 
     work          = (Actor503500Effect4CC*)arg0->work;
     ext           = arg0->extra;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_503500_80146524(Task* arg0)
@@ -70,20 +70,20 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->field_C = (ext->field_C | 0x80) & ~4;
+            ext->flags = (ext->flags | 0x80) & ~4;
             break;
         case 1:
-            ext->field_C &= ~0x80;
+            ext->flags &= ~0x80;
             Tmd_AllocBuffers(ext);
-            ext->field_C &= ~4;
+            ext->flags &= ~4;
             break;
         case 2:
-            ext->field_C                                  |= 0x80;
+            ext->flags                                    |= 0x80;
             ((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
-            ext->field_C                                  |= 4;
+            ext->flags                                    |= 4;
             break;
         case 3:
-            ext->field_C = (ext->field_C & ~0x80) | 4;
+            ext->flags = (ext->flags & ~0x80) | 4;
             break;
         default:
             ret = 1;

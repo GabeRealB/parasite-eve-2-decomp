@@ -20,7 +20,7 @@ typedef struct ActorsShared80133a68Work {
     /* 0x4C2 */ u16     state;
 } ActorsShared80133a68Work;
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::field_8`, the actor's root
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`, `super` at 0x48) holds the Euler angles
 /// this body writes and then hands straight to `RotMatrix`, the same reuse
 /// `ActorsShared80132860Coord` and `HyperCoord` document for their own overlays.

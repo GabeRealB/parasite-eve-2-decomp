@@ -16,17 +16,17 @@ s32 ActorsShared80169f74(Task* task, s32 arg1, ActorShared80169f74Placement* pla
     s32                       mz;
     ActorsShared80169f74Work* work;
 
-    work                                           = (ActorsShared80169f74Work*)task->work;
-    ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vz, 0);
-    ((TmdObject*)task->extra)->field_8->flg = 0;
-    coord                                   = ((TmdObject*)task->extra)->field_8;
-    mx                                      = coord->coord.m[2][0];
-    mz                                      = coord->coord.m[2][2];
-    work->yaw                               = ratan2(-mx, mz);
+    work                                          = (ActorsShared80169f74Work*)task->work;
+    ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, placement->rot.vx, 1);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, placement->rot.vy, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, placement->rot.vz, 0);
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    coord                                  = ((TmdObject*)task->extra)->coords;
+    mx                                     = coord->coord.m[2][0];
+    mz                                     = coord->coord.m[2][2];
+    work->yaw                              = ratan2(-mx, mz);
     return 1;
 }

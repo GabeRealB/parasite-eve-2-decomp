@@ -117,7 +117,7 @@ void func_actor_121300_8013293C(Task* arg0)
 
     work  = (Actor121300DebrisWork*)arg0->work;
     obj   = arg0->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     if (D_actor_121300_8013D41C == 0) {
         Task_Kill(arg0);
         return;
@@ -189,8 +189,8 @@ void func_actor_121300_8013293C(Task* arg0)
                     coord->coord.t[1] -= 120;
                     break;
             }
-            obj->field_1C = &work->lightMtx;
-            obj->field_20 = &work->colorMtx;
+            obj->lightMtx = &work->lightMtx;
+            obj->colorMtx = &work->colorMtx;
 
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((Gp_LcgState >> 16) & 1) {
@@ -248,7 +248,7 @@ void func_actor_121300_8013293C(Task* arg0)
         case 1:
             if (work->delay == 0) {
                 Tmd_AllocBuffers(obj);
-                obj->field_C = 0;
+                obj->flags = 0;
                 arg0->state++;
             } else {
                 work->delay--;
@@ -272,9 +272,9 @@ void func_actor_121300_8013293C(Task* arg0)
             break;
     }
     tail   = arg0->extra;
-    pos.vx = tail->field_8->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    pos.vx = tail->coords->workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(tail, &pos, 0, 3);
 }
 

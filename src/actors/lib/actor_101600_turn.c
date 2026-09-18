@@ -37,7 +37,7 @@ u8 Actor01600_Fn04EB0(Actor01600* arg0)
             callAngle       = Actor01600_Fn045A8(arg0, &distance);
             work->field_4E0 = callAngle;
             if (Actor01600_Fn04C64(arg0, distance, callAngle) & 0xFF) {
-                Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, &dir);
+                Gfx_MatrixCol2(&arg0->field_2C->coords->coord, &dir);
                 ratan2(dir.vx, dir.vz);
                 mag   = __builtin_abs(work->field_4E0);
                 other = 0x1000 - mag;
@@ -139,7 +139,7 @@ u8 Actor01600_Fn04EB0(Actor01600* arg0)
                 work->field_4E0 -= 0x1000;
             else if (work->field_4E0 < -0x800)
                 work->field_4E0 += 0x1000;
-            Gfx_MatrixCol2(&arg0->field_2C->field_8->coord, &dir);
+            Gfx_MatrixCol2(&arg0->field_2C->coords->coord, &dir);
             ratan2(dir.vx, dir.vz);
             angle = __builtin_abs(work->field_4E0);
             if (angle > 0x800)

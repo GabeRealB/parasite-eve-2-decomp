@@ -32,8 +32,8 @@ void func_actor_141000_801339DC(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor141000Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_141000_801339F8(Task* arg0)

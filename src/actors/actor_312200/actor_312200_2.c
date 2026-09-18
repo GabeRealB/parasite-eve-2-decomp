@@ -14,18 +14,18 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placemen
     s32              mz;
     Actor312200Work* work;
 
-    work                                           = (Actor312200Work*)task->work;
-    ((TmdObject*)task->extra)->field_8->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)task->extra)->field_8->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)task->extra)->field_8->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->field_8->coord, placement->rot.vz, 0);
-    ((TmdObject*)task->extra)->field_8->flg = 0;
-    coord                                   = ((TmdObject*)task->extra)->field_8;
-    mx                                      = coord->coord.m[2][0];
-    mz                                      = coord->coord.m[2][2];
-    work->yaw                               = ratan2(-mx, mz);
+    work                                          = (Actor312200Work*)task->work;
+    ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, placement->rot.vx, 1);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, placement->rot.vy, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, placement->rot.vz, 0);
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    coord                                  = ((TmdObject*)task->extra)->coords;
+    mx                                     = coord->coord.m[2][0];
+    mz                                     = coord->coord.m[2][2];
+    work->yaw                              = ratan2(-mx, mz);
     return 1;
 }
 
@@ -87,7 +87,7 @@ void func_actor_312200_80163778(Task* task)
         obj                    = (TmdObject*)task->extra;
         enemy                  = (GpEnemy*)task->spawnArg2;
         enemy->node.field_4    = 1;
-        obj->field_C          |= 0x80;
+        obj->flags            |= 0x80;
         enemy->field_4D        = 0;
         work->field_8BC.flags &= 0x7FFF;
     }

@@ -120,7 +120,7 @@ void func_energyshot_8012FFB8(Task* arg0)
     s32            y;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     if (arg0->state == 0) {
         mem->field_10 = 0;

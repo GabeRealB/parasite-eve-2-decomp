@@ -91,7 +91,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     u32            rand2;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     if (Gp_State1C->field_4 != 0) {
         func_mist_shooting_gallery_80182294(coord, work->field_20, 0x600, work->field_26);
@@ -1353,12 +1353,12 @@ void func_mist_shooting_gallery_801848B4(void)
 
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, 0x200D, NULL);
     if (enemy != NULL) {
-        obj           = (TmdObject*)enemy->task->extra;
-        obj->field_24 = 0;
-        obj->field_25 = 2;
+        obj        = (TmdObject*)enemy->task->extra;
+        obj->tpage = 0;
+        obj->clut  = 2;
         Tmd_ProcessStream(obj);
         Tmd_ProcessStream(obj);
-        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->field_8;
+        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->coords;
         coord->coord.t[0] = 0x1770;
         coord->coord.t[2] = 0xBB8;
         coord->coord.t[1] = 0;
@@ -1489,12 +1489,12 @@ GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpaw
     if (enemy != NULL) {
         enemy->task->parent = arg0;
         Task_Reparent(arg0, enemy->task);
-        obj           = (TmdObject*)enemy->task->extra;
-        obj->field_24 = 0;
-        obj->field_25 = 2;
+        obj        = (TmdObject*)enemy->task->extra;
+        obj->tpage = 0;
+        obj->clut  = 2;
         Tmd_ProcessStream(obj);
         Tmd_ProcessStream(obj);
-        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->field_8;
+        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->coords;
         coord->coord.t[0] = arg1->x;
         coord->coord.t[1] = arg1->y;
         coord->coord.t[2] = arg1->z;

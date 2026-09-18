@@ -14,7 +14,7 @@ void ActorsShared80139c00(Task* arg0, SVECTOR* target, s32 step)
     s32                       yaw;
     u16                       angle;
 
-    coords      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coords      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     coords->flg = 0;
     vec.vx      = target->vx - coords->coord.t[0];
     vec.vy      = 0;

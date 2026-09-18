@@ -49,11 +49,11 @@ void Actor05500_Fn03C54(Actor105500* actor)
     idx        = raw >> 12;
     key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    rec             = Gp_GetNestedAreaRec(&key);
-    entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->field_24 = entry->field_D;
-    model->field_25 = entry->field_E;
-    if (model->field_18 != NULL) {
+    rec          = Gp_GetNestedAreaRec(&key);
+    entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->field_D;
+    model->clut  = entry->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }
@@ -111,9 +111,9 @@ void Actor05500_Fn03E34(GpEnemy* enemy, Task* task)
 
     parent      = task->parent;
     parentObj   = parent->extra;
-    coord       = ((TmdObject*)task->extra)->field_8;
+    coord       = ((TmdObject*)task->extra)->coords;
     parentWork  = (ActorsShared80135c4cParentWork*)parent->work;
-    parentCoord = &parentObj->field_8[4];
+    parentCoord = &parentObj->coords[4];
     work        = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

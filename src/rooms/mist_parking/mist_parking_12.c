@@ -11,7 +11,7 @@ void func_mist_parking_801839CC(Task* task)
 {
     TmdObject* obj = task->extra;
 
-    obj->field_C       &= 0xFF7F;
+    obj->flags         &= 0xFF7F;
     task->killCountdown = -0x78;
     Room_Util18(task, 0, &D_mist_parking_8018FC3C, 0);
     task->state = task->state + 1;

@@ -27,7 +27,7 @@ s32 func_actor_110300_80132280(Task* task, s32 arg1, Actor110300AnimArgs* args)
 }
 
 /// Message 0x7D5 handler: the visibility control this actor pair takes. Bit 0
-/// of `flags` zeroes both models' `TmdObject::field_C` and its absence restores
+/// of `flags` zeroes both models' `TmdObject::flags` and its absence restores
 /// the 0x80 default; bit 1 additionally ORs in 0x4, the same bit `Tmd_Create`
 /// sets for its own `flags & 1`.
 ///
@@ -45,16 +45,16 @@ s32 func_actor_110300_801322E0(Task* task, s32 arg1, s32 flags)
     other = (TmdObject*)D_actor_110300_8013A0A8->extra;
 
     if (flags & 1) {
-        self->field_C  = 0;
-        other->field_C = 0;
+        self->flags  = 0;
+        other->flags = 0;
     } else {
-        self->field_C  = 0x80;
-        other->field_C = 0x80;
+        self->flags  = 0x80;
+        other->flags = 0x80;
     }
 
     if (flags & 2) {
-        self->field_C  |= 4;
-        other->field_C |= 4;
+        self->flags  |= 4;
+        other->flags |= 4;
     }
     return 0;
 }

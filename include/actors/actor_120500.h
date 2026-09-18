@@ -17,14 +17,14 @@
 /// model actors carry: the 0x14-byte `GpAnimCtx` `func_800B3F84` is handed as
 /// its `arg0`, the twenty 0x28-byte `GpAnimSlot`s `Gp_AnimResetSlot` walks,
 /// and the pose buffer at 0x334.  The two `MATRIX`es at 0x474 / 0x494 are the
-/// model's light and colour matrices, published through `TmdObject::field_1C`
+/// model's light and colour matrices, published through `TmdObject::lightMtx`
 /// / `field_20`.
 typedef struct Actor120500Work {
     /* 0x000 */ GpAnimCtx  anim;             // `func_800B3F84` arg0
     /* 0x014 */ GpAnimSlot slots[0x14];
     /* 0x334 */ byte       field_334[0x140]; // pose buffer, `func_800B3F84` arg3
-    /* 0x474 */ MATRIX     field_474;        // light matrix, into TmdObject::field_1C
-    /* 0x494 */ MATRIX     field_494;        // colour matrix, into TmdObject::field_20
+    /* 0x474 */ MATRIX     field_474;        // light matrix, into TmdObject::lightMtx
+    /* 0x494 */ MATRIX     field_494;        // colour matrix, into TmdObject::colorMtx
     /* 0x4B4 */ Task*      field_4B4;        // Gp_DispatchMsg target for msgs 0x3F4/0x3F3/0x3E9
     /* 0x4B8 */ s16        field_4B8;
     /* 0x4BA */ s16        field_4BA;

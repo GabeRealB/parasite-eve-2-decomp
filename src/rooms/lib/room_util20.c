@@ -8,7 +8,7 @@
 
 /// Work block parked at `Task::work` by the factory rooms that link this
 /// body. `light` / `color` are the model's own matrices, republished onto
-/// `TmdObject::field_1C` / `field_20`. Prefix fields are unreferenced here.
+/// `TmdObject::lightMtx` / `field_20`. Prefix fields are unreferenced here.
 typedef struct RoomUtil20Work {
     /* 0x00 */ byte   pad_0[0x18];
     /* 0x18 */ MATRIX light;
@@ -25,9 +25,9 @@ void Room_Util20(Task* task)
 
     work            = (RoomUtil20Work*)task->work;
     extra           = (TmdObject*)task->extra;
-    coord           = extra->field_8;
-    extra->field_1C = &work->light;
-    extra->field_20 = &work->color;
+    coord           = extra->coords;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
     coord->flg      = 0;
     Gp_UpdateCoord(coord);
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);

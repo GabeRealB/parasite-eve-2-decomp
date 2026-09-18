@@ -21,7 +21,7 @@ typedef struct Actor141000Point {
 /// Work block allocated by `func_actor_141000_8013392C` (`Mem_Calloc(0x4CC)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_141000_801339DC` republishes the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
 ///

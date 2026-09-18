@@ -130,20 +130,20 @@ void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
     object = arg0->extra;
     switch (arg2) {
         case 0:
-            object->field_C = (object->field_C | 0x80) & 0xFFFB;
+            object->flags = (object->flags | 0x80) & 0xFFFB;
             return;
         case 1:
-            object->field_C = object->field_C & 0xFF7B;
+            object->flags = object->flags & 0xFF7B;
             return;
         case 2:
-            object->field_C                    = object->field_C | 0x80;
+            object->flags                      = object->flags | 0x80;
             D_actor_403100_80155808->field_658 = arg2;
-            flags                              = object->field_C | 4;
-            object->field_C                    = flags;
+            flags                              = object->flags | 4;
+            object->flags                      = flags;
             return;
         case 3:
-            flags           = (object->field_C & 0xFF7F) | 4;
-            object->field_C = flags;
+            flags         = (object->flags & 0xFF7F) | 4;
+            object->flags = flags;
             return;
     }
 }
@@ -151,7 +151,7 @@ void func_actor_403100_8013D6B4(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord                              = ((TmdObject*)arg0->extra)->field_8;
+    coord                              = ((TmdObject*)arg0->extra)->coords;
     D_actor_403100_80155808->field_606 = D_actor_403100_80155808->field_604;
     D_actor_403100_80155808->field_60A = D_actor_403100_80155808->field_608;
     D_actor_403100_80155808->field_A8  = D_actor_403100_80155808->field_A0;
@@ -164,7 +164,7 @@ void func_actor_403100_8013D700(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord                              = ((TmdObject*)arg0->extra)->field_8;
+    coord                              = ((TmdObject*)arg0->extra)->coords;
     D_actor_403100_80155808->field_604 = D_actor_403100_80155808->field_606;
     D_actor_403100_80155808->field_608 = D_actor_403100_80155808->field_60A;
     D_actor_403100_80155808->field_A0  = D_actor_403100_80155808->field_A8;
@@ -189,7 +189,7 @@ void func_actor_403100_8013D770(Task* arg0)
     GsCOORDINATE2*    coords;
     GsCOORDINATE2*    updated;
 
-    coords               = ((TmdObject*)arg0->extra)->field_8;
+    coords               = ((TmdObject*)arg0->extra)->coords;
     dest                 = &coords[6].coord;
     coords[6].flg        = 0;
     mtx                  = &matrix.mat;
@@ -507,7 +507,7 @@ void func_actor_403100_8013E6A0(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     arg0->killCountdown = 0x5A;
     coord->sub          = &Gfx_ViewCoord;
     coord->flg          = 0;
@@ -520,7 +520,7 @@ void func_actor_403100_8013E6F0(Task* arg0)
     GsCOORDINATE2* coord;
     u16            countdown;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (D_801153F4 == 0) {
         coord->flg = 0;
         if (!(arg0->killCountdown & 7)) {
@@ -553,12 +553,12 @@ void func_actor_403100_8013E7C8(Task* arg0)
     GsCOORDINATE2* coord2;
     u16            countdown;
 
-    coord2              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord2              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     arg0->killCountdown = 0x5A;
     coord2->sub         = &Gfx_ViewCoord;
     coord2->flg         = 0;
     arg0->state        += 1;
-    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (D_801153F4 == 0) {
         coord->flg = 0;
         if (!(arg0->killCountdown & 7)) {
@@ -579,7 +579,7 @@ void func_actor_403100_8013E88C(Task* arg0)
     GsCOORDINATE2* coord;
     u16            countdown;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (D_801153F4 == 0) {
         coord->flg = 0;
         if (!(arg0->killCountdown & 7)) {
@@ -631,9 +631,9 @@ void func_actor_403100_8013EA60(Task* arg0)
     TaskFuncTable4 sp;
     TmdObject*     obj;
 
-    obj          = arg0->extra;
-    sp           = D_actor_403100_80131EC8;
-    obj->field_C = 0;
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131EC8;
+    obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
 void func_actor_403100_8013EAD4(Task* arg0)
@@ -641,9 +641,9 @@ void func_actor_403100_8013EAD4(Task* arg0)
     TaskFuncTable3 sp;
     TmdObject*     obj;
 
-    obj          = arg0->extra;
-    sp           = D_actor_403100_80131ED8;
-    obj->field_C = 0;
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131ED8;
+    obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
     func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
@@ -660,9 +660,9 @@ void func_actor_403100_8013EBC8(Task* arg0)
     TaskFuncTable4 sp;
     TmdObject*     obj;
 
-    obj          = arg0->extra;
-    sp           = D_actor_403100_80131EF0;
-    obj->field_C = 0;
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131EF0;
+    obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
@@ -671,9 +671,9 @@ void func_actor_403100_8013EC4C(Task* arg0)
     TaskFuncTable4 sp;
     TmdObject*     obj;
 
-    obj          = arg0->extra;
-    sp           = D_actor_403100_80131F00;
-    obj->field_C = 0;
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131F00;
+    obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
@@ -682,9 +682,9 @@ void func_actor_403100_8013ECD0(Task* arg0)
     TaskFuncTable3 sp;
     TmdObject*     obj;
 
-    obj          = arg0->extra;
-    sp           = D_actor_403100_80131F10;
-    obj->field_C = 0;
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131F10;
+    obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
@@ -696,7 +696,7 @@ void func_actor_403100_8013ED50(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     D_actor_403100_80155808->field_618 = 0x1400;
     D_actor_403100_80155808->field_5E2 = 0x10;
     D_actor_403100_80155808->field_5DE = 3;
@@ -726,7 +726,7 @@ void func_actor_403100_8013EE28(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     D_actor_403100_80155808->field_5E2 = 0x10;
     D_actor_403100_80155808->field_61C = 2;
     D_actor_403100_80155808->field_5DE = 3;
@@ -748,7 +748,7 @@ void func_actor_403100_8013EEB8(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord                               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord                               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     D_actor_403100_80155808->field_5EC += 1;
     coord->coord.t[2]                  += 0x64;
     if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
@@ -796,8 +796,8 @@ void func_actor_403100_8013EFC8(Task* arg0)
     GsCOORDINATE2* coord;
 
     obj               = (TmdObject*)arg0->extra;
-    obj->field_E      = 0x10;
-    coord             = (GsCOORDINATE2*)obj->field_8;
+    obj->otOffset     = 0x10;
+    coord             = (GsCOORDINATE2*)obj->coords;
     coord->coord.t[0] = -0x49C;
     coord->coord.t[2] = 0x1130;
     coord->coord.t[1] = 0;
@@ -815,7 +815,7 @@ void func_actor_403100_8013F034(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     coord->coord.t[0] = -0xAF0;
     coord->coord.t[1] = 0x300;
     coord->coord.t[2] = -0xE74;
@@ -836,7 +836,7 @@ void func_actor_403100_8013F0A8(Task* arg0)
     TmdObject* obj;
 
     obj                               = (TmdObject*)arg0->extra;
-    obj->field_C                     |= 0x80;
+    obj->flags                       |= 0x80;
     D_actor_403100_8014762C.field_8   = 0;
     D_actor_403100_8014762C.field_A   = 0;
     D_actor_403100_8014762C.field_6 >>= 1;
@@ -944,7 +944,7 @@ void func_actor_403100_8013F3EC(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord                              = ((TmdObject*)arg0->extra)->field_8;
+    coord                              = ((TmdObject*)arg0->extra)->coords;
     D_actor_403100_80155808->field_5F6 = 5;
     coord->coord.t[0]                  = -0x44C;
     coord->coord.t[1]                  = -0x1388;

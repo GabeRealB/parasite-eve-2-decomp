@@ -19,12 +19,12 @@ void ActorsShared80166f54(Task* arg0)
     work = (ActorsShared80168d3cWork*)arg0->work;
     if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
         if ((u16)(work->field_412++ - 0x17) < 0xD) {
-            scale                                           = -0x1E;
-            angle                                           = work->field_7A + 0x400;
-            speed                                           = (((ActorsShared80168d3cWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-            ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-            ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-            ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+            scale                                          = -0x1E;
+            angle                                          = work->field_7A + 0x400;
+            speed                                          = (((ActorsShared80168d3cWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+            ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+            ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+            ((TmdObject*)arg0->extra)->coords->flg         = 0;
         }
         work2 = (ActorsShared80168d3cWork*)arg0->work;
         if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {

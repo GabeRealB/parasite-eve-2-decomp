@@ -43,7 +43,7 @@ void func_actor_310600_80161E64(Task* task)
     Task_SpawnFromTable(D_actor_310600_801796A4, 1, 8, (s32)task);
     func_actor_310600_80162A58(task);
     obj           = &work->obj;
-    obj->field_8  = &((TmdObject*)task->extra)->field_8[1];
+    obj->field_8  = &((TmdObject*)task->extra)->coords[1];
     obj->field_C  = &work->rec;
     obj->field_18 = 0x30000;
     obj->field_1C = 0x100;
@@ -94,7 +94,7 @@ void func_actor_310600_80161FA0(Task* task)
     s32              i;
 
     funcs[work->field_47C]();
-    coord              = ((TmdObject*)task->extra)->field_8;
+    coord              = ((TmdObject*)task->extra)->coords;
     work->field_518   += work->step.vx;
     work->field_51C   += work->step.vy;
     work->field_520   += work->step.vz;
@@ -117,7 +117,7 @@ void func_actor_310600_80161FA0(Task* task)
                 cue = cues;
                 do {
                     if (*cue == work->field_478) {
-                        coord = &((TmdObject*)task->extra)->field_8[8];
+                        coord = &((TmdObject*)task->extra)->coords[8];
                         switch (work->field_475) {
                             case 1:
                             case 2:
@@ -141,16 +141,16 @@ void func_actor_310600_80161FA0(Task* task)
             work->field_478++;
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
         Gp_ClearRec18Occupied(&work->rec);
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)task->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_477 >= 0) {
         if (work->field_477 == 0) {
@@ -182,7 +182,7 @@ void func_actor_310600_8016231C(Task* arg0)
     Actor310600Cmd    cmd;
 
     work  = (Actor310600Work*)arg0->work;
-    coord = (Actor310600Coord*)((TmdObject*)arg0->extra)->field_8;
+    coord = (Actor310600Coord*)((TmdObject*)arg0->extra)->coords;
     if (work->field_4F8 - coord->coord.t[0] >= 0) {
         dx = (u16)work->field_4F8 - (u16)coord->coord.t[0];
     } else {
@@ -270,7 +270,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 ar
 
 /// Mode handler for the actor's display object, called by the setup path
 /// (`func_actor_310600_80161E64` with message 0x7D5 and mode 0) with the mode in
-/// `arg2`. Modes 0 and 2 hide the model: bit 0x80 of `TmdObject.field_C` goes on,
+/// `arg2`. Modes 0 and 2 hide the model: bit 0x80 of `TmdObject.flags` goes on,
 /// the 0x8000 flag comes off the actor's own object, and 0x4 is cleared. Modes 1
 /// and 3 show it: 0x80 comes off, 0x8000 goes on, the buffers are reinstated
 /// through `Tmd_AllocBuffers`, and 0x4 is set. Mode 2 additionally latches
@@ -300,42 +300,42 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
     ret  = 0;
     switch (arg2) {
         case 0:
-            ext->field_C |= 0x80;
-            p             = &w->obj;
+            ext->flags |= 0x80;
+            p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags &= 0x7FFF;
                 p++;
             }
-            ext->field_C &= ~4;
+            ext->flags &= ~4;
             break;
         case 1:
-            ext->field_C &= ~0x80;
-            p             = &w->obj;
+            ext->flags &= ~0x80;
+            p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags |= 0x8000;
                 p++;
             }
             Tmd_AllocBuffers(ext);
-            ext->field_C &= ~4;
+            ext->flags &= ~4;
             break;
         case 2:
-            ext->field_C |= 0x80;
-            p             = &w->obj;
+            ext->flags |= 0x80;
+            p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags &= 0x7FFF;
                 p++;
             }
-            w->field_477  = 2;
-            ext->field_C |= 4;
+            w->field_477 = 2;
+            ext->flags  |= 4;
             break;
         case 3:
-            ext->field_C &= ~0x80;
-            p             = obj;
+            ext->flags &= ~0x80;
+            p           = obj;
             for (i = 0; i <= 0; i++) {
                 p->flags |= 0x8000;
                 p++;
             }
-            ext->field_C |= 4;
+            ext->flags |= 4;
             break;
         default:
             ret = 1;

@@ -13,7 +13,7 @@ s32 func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* place
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                         = ((TmdObject*)task->extra)->field_8;
+    coord                         = ((TmdObject*)task->extra)->coords;
     ActorsShared80131f9cWork->yaw = yaw = placement->yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;

@@ -31,12 +31,12 @@ void func_actor_342400_80164F3C(Task* arg0)
     TmdObject*       obj   = arg0->extra;
     Actor342400Work* work  = (Actor342400Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
-    GsCOORDINATE2*   coord = obj->field_8;
+    GsCOORDINATE2*   coord = obj->coords;
     TaskFunc         sp[1] = { func_actor_342400_8016A494 };
 
     switch (D_801153F4) {
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
             return;
         case 0:
             work->field_442++;
@@ -55,11 +55,11 @@ void func_actor_342400_80164F3C(Task* arg0)
             }
             coord->flg = 0;
         case 1:
-            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
             ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
             ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             return;
     }
 }

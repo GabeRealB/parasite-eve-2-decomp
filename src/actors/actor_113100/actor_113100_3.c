@@ -60,7 +60,7 @@ void func_actor_113100_8013301C(Task* arg0)
     SVECTOR               dir;
 
     work  = (Actor113100Work*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
 
     delta.vx = work->field_4F0 - coord->coord.t[0];
     delta.vy = work->field_4F4 - coord->coord.t[1];
@@ -87,7 +87,7 @@ void func_actor_113100_801330E8(Task* arg0)
     s32                   vy;
     s16                   diff;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor113100Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);

@@ -163,8 +163,8 @@ void func_actor_161500_80132210(void)
     GsCOORDINATE2* target;
     GsCOORDINATE2* player;
 
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
-    player = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
+    player = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(player);
     D_actor_161500_801376F2 =
@@ -220,7 +220,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     GpEnemy*         spawned;
 
-    coord      = ((TmdObject*)task->extra)->field_8;
+    coord      = ((TmdObject*)task->extra)->coords;
     obj        = task->extra;
     work       = (Actor161500Work*)Mem_Calloc(0x4FC, false);
     task->work = (TaskIdMap*)work;
@@ -234,7 +234,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;
     enemy->node.field_4 = 1;
-    obj->field_E        = 1;
+    obj->otOffset       = 1;
     work->enemy         = enemy;
     if (task->spawnArg1 != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
@@ -246,8 +246,8 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     }
     work->field_4EE = 0;
     work->field_4F0 = 0;
-    obj->field_1C   = &work->light;
-    obj->field_20   = &work->color;
+    obj->lightMtx   = &work->light;
+    obj->colorMtx   = &work->color;
     vec.vx          = coord->workm.t[0];
     vec.vy          = coord->workm.t[1] - 0x320;
     vec.vz          = coord->workm.t[2];
@@ -285,7 +285,7 @@ void func_actor_161500_8013252C(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->field_8, 0x1E);
+            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->state   = 1;

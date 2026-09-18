@@ -19,7 +19,7 @@ void RoomsShared8017f10c(Task* task)
     s32            vz;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     Gp_UpdateCoord(coord);
     work->field_22++;
     switch (task->state) {

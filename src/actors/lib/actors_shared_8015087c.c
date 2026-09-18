@@ -22,7 +22,7 @@ void ActorsShared8015087c(GpEnemy* enemy, Task* task)
     if (work->field_4 != 0) {
         obj                 = task->extra;
         enemy->node.field_4 = 1;
-        obj->field_C        = (u16)(obj->field_C | 0x80);
+        obj->flags          = (u16)(obj->flags | 0x80);
         work->obj350.flags  = (u16)(work->obj350.flags & 0x7FFF);
         work->obj388.flags  = (u16)(work->obj388.flags & 0x7FFF);
         work->obj3C0.flags  = (u16)(work->obj3C0.flags & 0x7FFF);

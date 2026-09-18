@@ -30,7 +30,7 @@
 /// switches on it.
 typedef struct Actor107600Work {
     /// Colour / light matrix pair `func_actor_107600_80132ED0` hangs off the
-    /// display object's `TmdObject.field_20` / `field_1C` so the actor draws
+    /// display object's `TmdObject.colorMtx` / `field_1C` so the actor draws
     /// with its own light instead of `Gp_BindDefaultMtx`'s.
     /* 0x000 */ MATRIX  matrix_0;  // color matrix for the child models
     /* 0x020 */ MATRIX  matrix_20; // light matrix for the child models
@@ -132,7 +132,7 @@ typedef struct Actor107600 {
 extern u32 Gp_LcgState;
 
 /// Global scene mode the actor updates switch on: 0 runs the full update, 1 only
-/// refreshes the colour, 2 hides the model (`TmdObject.field_C` bit 0x80).
+/// refreshes the colour, 2 hides the model (`TmdObject.flags` bit 0x80).
 extern u8 D_801153F4;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).

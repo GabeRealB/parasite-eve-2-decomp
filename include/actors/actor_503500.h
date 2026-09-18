@@ -18,7 +18,7 @@
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`Mem_Calloc(0x48)`) and parked in that task's `Task::work` slot.
 /// `func_actor_503500_801324EC` republishes the two matrices onto
-/// `TmdObject::field_1C` / `field_20` -- the colour/light matrix pair
+/// `TmdObject::lightMtx` / `field_20` -- the colour/light matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
 /// -- so the allocation is exactly two `MATRIX`es plus a small tail.
 /// `func_actor_503500_80132664` sets `field_45` / `field_40` from the message
@@ -42,7 +42,7 @@ typedef struct Actor503500ModeMsg {
 } Actor503500ModeMsg;
 STATIC_ASSERT_SIZEOF(Actor503500ModeMsg, 0x4);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`, as this overlay places
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`, as this overlay places
 /// its parts: offset 0x44 (libgs's `param`, with `super` at 0x48) holds the
 /// Euler angles the code writes and hands straight to `RotMatrix`, the same
 /// reuse `ActorsShared8013231cCoord` and `RoomCoord` document.
@@ -64,7 +64,7 @@ STATIC_ASSERT_SIZEOF(Actor503500PlaceArgs, 0x18);
 
 /// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
 /// fills it from the player actor: the three words are the translation of the
-/// `GsCOORDINATE2` at `TmdObject::field_8` (`MATRIX.t`), the three
+/// `GsCOORDINATE2` at `TmdObject::coords` (`MATRIX.t`), the three
 /// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `work`
 /// block. `func_actor_503500_80132DD4` clears the position;
 /// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
@@ -185,7 +185,7 @@ typedef struct Actor503500Work {
     /* 0x080 */ byte    pad_80[0x60];
     /// Coordinate the 0xF4 block at `D_actor_503500_80177A6C` republishes
     /// alongside its display node: `func_actor_503500_8013ECBC` stores the
-    /// task's own `TmdObject::field_8` here together with the 0xE4 / 0xE6
+    /// task's own `TmdObject::coords` here together with the 0xE4 / 0xE6
     /// pair it seeds to 0x600 and 3.
     /* 0x0E0 */ GsCOORDINATE2* field_E0;
     /* 0x0E4 */ s16            field_E4;
@@ -201,7 +201,7 @@ typedef struct Actor503500Work {
     /* 0x0F2 */ byte           pad_F2[0x2E];
     /// The same coordinate / 0x124 / 0x126 trio as `field_E0`, at the 0x160
     /// block's own offsets: `func_actor_503500_801372C8` republishes the task's
-    /// `TmdObject::field_8` here alongside the 0x400 / 3 pair it seeds.
+    /// `TmdObject::coords` here alongside the 0x400 / 3 pair it seeds.
     /* 0x120 */ GsCOORDINATE2* field_120;
     /* 0x124 */ s16            field_124;
     /* 0x126 */ s16            field_126;
@@ -293,7 +293,7 @@ typedef struct Actor503500Work {
     /* 0x3D7 */ s8     field_3D7; // TMD buffer countdown, 0x3D8 block
     /* 0x3D8 */ byte   pad_3D8[0x9C];
     /// The boss's own light / colour matrix pair: `func_actor_503500_80132F64`
-    /// points the model's `TmdObject::field_1C` / `field_20` at these.
+    /// points the model's `TmdObject::lightMtx` / `field_20` at these.
     /* 0x474 */ MATRIX lightMtx;
     /* 0x494 */ MATRIX colorMtx;
     /// Saved copy of model part 0's coordinate: `func_actor_503500_80135B74`
@@ -436,7 +436,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
 /// stride; the task's `field_1C` still points here through the shared view,
 /// and `Actor503500Work3D8Mtx` / `Actor503500Work3D8Chain` are narrower views
 /// of the same bytes. It opens with the light / colour matrices the init
-/// republishes on `TmdObject::field_1C` / `field_20`, then a private copy of
+/// republishes on `TmdObject::lightMtx` / `field_20`, then a private copy of
 /// model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work3D8 {
     /* 0x000 */ MATRIX    light;
@@ -509,7 +509,7 @@ static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
 /// 0x3D8 block's `obj240`, so the array gets its own type; the task's
 /// `field_1C` still points at the block through the shared view, whose
 /// 0x2D4..0x2EB fields agree with the ones below. It opens with the light and
-/// colour matrices the init republishes on `TmdObject::field_1C` / `field_20`,
+/// colour matrices the init republishes on `TmdObject::lightMtx` / `field_20`,
 /// then a private copy of model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work2EC {
     /* 0x000 */ MATRIX         light;
@@ -903,7 +903,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 /// `Actor503500ObjWork` this one exits through `ActorsShared801327b4`, which
 /// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
 /// `func_actor_503500_80146508` republishes the two matrices onto
-/// `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
 ///

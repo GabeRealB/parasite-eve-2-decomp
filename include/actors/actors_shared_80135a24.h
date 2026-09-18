@@ -14,8 +14,8 @@
 /// (`include/actors/actor_102000.h`), which describes the rest of the block.
 typedef struct ActorsShared80135a24Work {
     /* 0x000 */ byte   pad_0[0x43C];
-    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
-    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::colorMtx
+    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ byte   pad_47C[0x25C];
     /* 0x6D8 */ s16    field_6D8;
 } ActorsShared80135a24Work;

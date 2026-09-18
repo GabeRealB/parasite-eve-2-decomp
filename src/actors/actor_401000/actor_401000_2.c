@@ -30,12 +30,12 @@ s32 func_actor_401000_8013D958(Actor401000* arg0, s32 arg1, u16* arg2)
                 work->field_0 = 0;
                 return 1;
             case 2:
-                work->field_0                       = 0x1C;
-                arg0->field_2C->field_8->coord.t[0] = -0x595;
-                arg0->field_2C->field_8->coord.t[1] = 0;
-                arg0->field_2C->field_8->coord.t[2] = -0x5B1;
-                Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x400, 1);
-                arg0->field_2C->field_8->flg = 0;
+                work->field_0                      = 0x1C;
+                arg0->field_2C->coords->coord.t[0] = -0x595;
+                arg0->field_2C->coords->coord.t[1] = 0;
+                arg0->field_2C->coords->coord.t[2] = -0x5B1;
+                Gfx_RotMatrixY(&arg0->field_2C->coords->coord, -0x400, 1);
+                arg0->field_2C->coords->flg = 0;
                 return 1;
             default:
                 return 0;
@@ -76,7 +76,7 @@ void func_actor_401000_8013DB10(Actor401000* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 1;
-        obj->field_C                 = (u16)(obj->field_C | 0x80);
+        obj->flags                   = (u16)(obj->flags | 0x80);
         work->field_B50.flags        = (u16)(work->field_B50.flags & 0x7FFF);
         work->field_A10.flags        = (u16)(work->field_A10.flags | 0x4000);
     }
@@ -91,7 +91,7 @@ void func_actor_401000_8013DB6C(Actor401000* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -101,7 +101,7 @@ void func_actor_401000_8013DB6C(Actor401000* arg0)
         work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
         func_actor_401000_80132EF0(arg0);
     } else {
-        arg0->field_2C->field_8->flg = 0;
+        arg0->field_2C->coords->flg = 0;
         func_actor_401000_80132EF0(arg0);
     }
 }
@@ -115,7 +115,7 @@ void func_actor_401000_8013DC14(Actor401000* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -125,7 +125,7 @@ void func_actor_401000_8013DC14(Actor401000* arg0)
         work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
         func_actor_401000_80132EF0(arg0);
     } else {
-        arg0->field_2C->field_8->flg = 0;
+        arg0->field_2C->coords->flg = 0;
         func_actor_401000_80132EF0(arg0);
     }
 }
@@ -139,7 +139,7 @@ void func_actor_401000_8013DCC0(Actor401000* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -149,7 +149,7 @@ void func_actor_401000_8013DCC0(Actor401000* arg0)
         work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
         func_actor_401000_80132EF0(arg0);
     } else {
-        arg0->field_2C->field_8->flg = 0;
+        arg0->field_2C->coords->flg = 0;
         func_actor_401000_80132EF0(arg0);
     }
 }
@@ -163,7 +163,7 @@ void func_actor_401000_8013DD6C(Actor401000* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 0;
-        obj->field_C                 = 0;
+        obj->flags                   = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x12;
@@ -172,7 +172,7 @@ void func_actor_401000_8013DD6C(Actor401000* arg0)
         work->field_B50.flags = (u16)(work->field_B50.flags & 0x7FFF);
         work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
     }
-    arg0->field_2C->field_8->flg = 0;
+    arg0->field_2C->coords->flg = 0;
     func_actor_401000_80132EF0(arg0);
     if (work->flags_68.half & 1) {
         work->field_0 = 7;
@@ -187,7 +187,7 @@ void func_actor_401000_8013DE24(Actor401000* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C  = 0;
+        arg0->field_2C->flags    = 0;
         work->field_8D0.field_1C = 0x1AE;
         work->field_B50.flags   &= 0x7FFF;
         work->field_A10.flags   |= 0x4000;
@@ -212,7 +212,7 @@ void func_actor_401000_8013DEC8(Actor401000* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C  = 0;
+        arg0->field_2C->flags    = 0;
         work->field_8D0.field_1C = 0x1AE;
         work->field_B50.flags   &= 0x7FFF;
         work->field_A10.flags   |= 0x4000;

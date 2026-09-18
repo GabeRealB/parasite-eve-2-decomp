@@ -41,7 +41,7 @@ void func_grenade_pistol_8011D6FC(Task* arg0)
     s32                   sfxbase;
 
     work  = (M4a1GrenadeWork*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     head  = *(u8**)G_SCRATCH_HEAD;
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`

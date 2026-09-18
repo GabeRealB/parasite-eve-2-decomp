@@ -10,7 +10,7 @@ void ActorsShared80132920(Task* task)
     GsCOORDINATE2*            coord;
     VECTOR                    vec;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (ActorsShared80132920Work*)task->work;
 
     vec = ActorsShared80132920Offset;

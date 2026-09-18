@@ -12,8 +12,8 @@
 /// describes the rest of the block.
 typedef struct ActorsShared801368ecWork {
     /* 0x000 */ byte   pad_0[0x43C];
-    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
-    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::colorMtx
+    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::lightMtx
 } ActorsShared801368ecWork;
 
 void ActorsShared801368ec(void* arg0, Task* task);

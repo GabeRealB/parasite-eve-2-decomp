@@ -30,7 +30,7 @@ void func_m4a1_p2_8011D1C4(GpActorWork* arg0)
     tmp                              = (GsCOORDINATE2*)(*(u8**)G_SCRATCH_HEAD - 0x50);
     *(GsCOORDINATE2**)G_SCRATCH_HEAD = tmp;
     actor                            = arg0->actor;
-    coord                            = (GsCOORDINATE2*)arg0->extra->field_8;
+    coord                            = (GsCOORDINATE2*)arg0->extra->coords;
 
     state = actor->field_95E;
 
@@ -75,9 +75,9 @@ void func_m4a1_p2_8011D1C4(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20150004, 1);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20150004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x15, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;

@@ -56,7 +56,7 @@ typedef struct Actor210600Work {
     /// slot `Actor110600AnimWork::field_8AC` remembers its cue in.
     /* 0x896 */ s16 field_896;
     /// The light / colour matrices the spawn body stores into
-    /// `TmdObject::field_1C` / `field_20`. They sit at the top of the block
+    /// `TmdObject::lightMtx` / `field_20`. They sit at the top of the block
     /// rather than at its head, so the overlay's actor keeps its animation
     /// state in the first half of the allocation.
     /* 0x898 */ MATRIX light;

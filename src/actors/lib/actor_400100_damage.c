@@ -35,14 +35,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80002280, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80002280, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80002120, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80002120, &work->field_898);
                     }
                     return 0x40010002;
                 }
@@ -58,14 +58,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80002220, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80002220, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80002120, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80002120, &work->field_898);
                     }
                     return 0x40010001;
                 }
@@ -83,7 +83,7 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[0], 0x80004A00, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[0], 0x80004A00, &work->field_898);
                     }
                     return 0x40010005;
                 }
@@ -121,14 +121,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     return 0x40010004;
                 }
@@ -144,14 +144,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80004480, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80004480, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80004480, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80004480, &work->field_898);
                     }
                     return 0x40010011;
                 }
@@ -169,14 +169,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
                 }
@@ -192,14 +192,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
                 }
@@ -215,14 +215,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &work->field_898);
                     }
                     return 0x40010002;
                 }
@@ -240,14 +240,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[9], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
                 }
@@ -263,14 +263,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x2BC;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[7], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &work->field_898);
                     }
                     return 0x40010001;
                 }
@@ -286,14 +286,14 @@ s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[14], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &work->field_898);
                     }
                     work               = arg0->field_1C;
                     work->field_898.vz = 0;
                     work->field_898.vx = 0;
                     work->field_898.vy = 0x258;
                     if (Gp_State1C->field_A == 2) {
-                        Gp_SpawnEff(0x60054, &arg0->field_2C->field_8[17], 0x80003200, &work->field_898);
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &work->field_898);
                     }
                     return 0x40010002;
                 }
@@ -465,17 +465,17 @@ void Actor00100_Fn02788(Actor00100* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        Actor00100_Fn001FC(&arg0->field_2C->field_8[2], thirdAngle);
-        arg0->field_2C->field_8[2].flg = 0;
-        Actor00100_Fn001FC(&arg0->field_2C->field_8[3], thirdAngle);
-        arg0->field_2C->field_8[3].flg = 0;
-        Actor00100_Fn001FC(&arg0->field_2C->field_8[4], (s16)clampedAngle / 2);
-        arg0->field_2C->field_8[4].flg = 0;
+        Actor00100_Fn001FC(&arg0->field_2C->coords[2], thirdAngle);
+        arg0->field_2C->coords[2].flg = 0;
+        Actor00100_Fn001FC(&arg0->field_2C->coords[3], thirdAngle);
+        arg0->field_2C->coords[3].flg = 0;
+        Actor00100_Fn001FC(&arg0->field_2C->coords[4], (s16)clampedAngle / 2);
+        arg0->field_2C->coords[4].flg = 0;
     }
     if (((s16)work->field_82E == 0) && (work->field_0 == 0x26)) {
-        Gfx_RotMatrixX(&arg0->field_2C->field_8[4].coord, 0x280, 0);
-        arg0->field_2C->field_8[4].flg = 0;
-        Gp_UpdateCoord(&arg0->field_2C->field_8[4]);
+        Gfx_RotMatrixX(&arg0->field_2C->coords[4].coord, 0x280, 0);
+        arg0->field_2C->coords[4].flg = 0;
+        Gp_UpdateCoord(&arg0->field_2C->coords[4]);
     }
     turnWork     = arg0->field_1C;
     targetTurn   = turnWork->field_83E;
@@ -508,13 +508,13 @@ void Actor00100_Fn02788(Actor00100* arg0)
             turnWork->field_842 = (s16)targetTurn;
         }
     }
-    Actor00100_Fn001FC(&arg0->field_2C->field_8[10], (s16)((s32)(u16)turnWork->field_842 * -1));
-    arg0->field_2C->field_8[10].flg = 0;
-    sound                           = Actor00100_Fn01EEC(arg0, work);
+    Actor00100_Fn001FC(&arg0->field_2C->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    arg0->field_2C->coords[10].flg = 0;
+    sound                          = Actor00100_Fn01EEC(arg0, work);
     if (sound != 0) {
         soundId = sound | (((u16)arg0->field_20->field_8 >> 0xC) << 8);
-        pan     = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
-        SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+        SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
     }
 }
 
@@ -812,11 +812,11 @@ void Actor00100_Fn03340(Actor00100* arg0, s16 arg1, s32 arg2)
             *sc = Actor00100_D1B9F4[11];
         }
     }
-    work->field_890.field_0 = &arg0->field_2C->field_8[sc->pad];
+    work->field_890.field_0 = &arg0->field_2C->coords[sc->pad];
     work->field_890.field_4 = 0x100;
     work->field_890.field_6 = 2;
     work->field_8A0         = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->field_8[sc->pad], &work->field_8A0, &work->field_890);
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], &work->field_8A0, &work->field_890);
     *(u32*)G_SCRATCH_HEAD += 8;
 }
 
@@ -875,17 +875,17 @@ void Actor00100_Fn0375C(Actor00100* arg0)
             scratch->field_20 = Actor00100_FindDamageHit(work->secondaryHits, (SVECTOR*)hitPos);
         }
         if (scratch->field_20 != 0) {
-            work->field_BE4              = 1;
-            scratch->field_2E            = -1;
-            work->field_BE0              = Gp_GetIdParam2(scratch->field_20);
-            arg0->field_2C->field_8->flg = 0;
-            Gp_UpdateCoord(arg0->field_2C->field_8);
-            scratch->field_10 = (s16)(scratch->field_18 - arg0->field_2C->field_8->workm.t[0]);
-            scratch->field_12 = (s16)(scratch->field_1A - arg0->field_2C->field_8->workm.t[1]);
-            z                 = scratch->field_1C - arg0->field_2C->field_8->workm.t[2];
+            work->field_BE4             = 1;
+            scratch->field_2E           = -1;
+            work->field_BE0             = Gp_GetIdParam2(scratch->field_20);
+            arg0->field_2C->coords->flg = 0;
+            Gp_UpdateCoord(arg0->field_2C->coords);
+            scratch->field_10 = (s16)(scratch->field_18 - arg0->field_2C->coords->workm.t[0]);
+            scratch->field_12 = (s16)(scratch->field_1A - arg0->field_2C->coords->workm.t[1]);
+            z                 = scratch->field_1C - arg0->field_2C->coords->workm.t[2];
             scratch->field_14 = z;
             yaw               = ratan2((s32)scratch->field_10, (s32)z);
-            coord             = arg0->field_2C->field_8;
+            coord             = arg0->field_2C->coords;
             delta             = yaw - ratan2((s32)-coord->workm.m[2][0], (s32)coord->workm.m[2][2]);
             wrapped           = delta;
             scratch->field_2C = delta;
@@ -970,11 +970,11 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                     }
                     break;
             }
-            dx                = config->coordMtx->t[0] - arg0->field_2C->field_8->coord.t[0];
+            dx                = config->coordMtx->t[0] - arg0->field_2C->coords->coord.t[0];
             scratch->field_0  = dx;
-            dy                = config->coordMtx->t[1] - arg0->field_2C->field_8->coord.t[1];
+            dy                = config->coordMtx->t[1] - arg0->field_2C->coords->coord.t[1];
             scratch->field_4  = dy;
-            dz                = config->coordMtx->t[2] - arg0->field_2C->field_8->coord.t[2];
+            dz                = config->coordMtx->t[2] - arg0->field_2C->coords->coord.t[2];
             scratch->field_8  = dz;
             distance          = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
             scratch->field_28 = distance;
@@ -997,7 +997,7 @@ void Actor00100_Fn0375C(Actor00100* arg0)
             func_800E2C78((GpObj40*)ctx, scratch->field_20, (s32)scratch->field_24, 0);
             effect = scratch->field_2E;
             if (effect != -1) {
-                Gp_SpawnEff(0x6009C, arg0->field_2C->field_8 + 2, (s32)effect, NULL);
+                Gp_SpawnEff(0x6009C, arg0->field_2C->coords + 2, (s32)effect, NULL);
             }
             ctx->field_40 = (s16)((u16)((s16)ctx->field_40) - (u16)scratch->field_24);
             func_800DA6E8(ctx->field_10, (s32)scratch->field_24, 0);
@@ -1019,16 +1019,16 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                         goto playHitSound;
                     }
                     deathSound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010008;
-                    deathPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
-                    SndEvt_EnqueueType6(deathSound, (s32)deathPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+                    deathPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+                    SndEvt_EnqueueType6(deathSound, (s32)deathPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
                     work->field_0 = 0x14;
                 }
             } else if ((s16)totalDamage >= 0x47) {
                 hurtState = work->field_0;
                 if ((hurtState != 4) && (hurtState != 0x14) && (hurtState != 7) && (hurtState != 0xB) && (hurtState != 0x11)) {
                     hurtSound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x40010008;
-                    hurtPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
-                    SndEvt_EnqueueType6(hurtSound, (s32)hurtPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+                    hurtPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+                    SndEvt_EnqueueType6(hurtSound, (s32)hurtPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
                     work->field_0 = 0x14;
                 } else {
                     goto normalHitSound;
@@ -1038,8 +1038,8 @@ void Actor00100_Fn0375C(Actor00100* arg0)
                 soundBase = 0x40010007;
             playHitSound:
                 hitSound = (((u16)ctx->field_8 >> 0xC) << 8) | soundBase;
-                hitPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
-                SndEvt_EnqueueType6(hitSound, (s32)hitPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+                hitPan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+                SndEvt_EnqueueType6(hitSound, (s32)hitPan, (s32)(s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
             }
         }
         if (ctx->field_4C & 0xC) {

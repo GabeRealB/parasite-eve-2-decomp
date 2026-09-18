@@ -86,7 +86,7 @@ void func_actor_110600_801388A4(Actor110600* arg0)
     if (work->field_4 != 0) {
         obj                          = arg0->field_2C;
         arg0->field_20->node.field_4 = 1;
-        obj->field_C                 = (u16)(obj->field_C | 0x80);
+        obj->flags                   = (u16)(obj->flags | 0x80);
         work->field_A90.flags        = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags        = (u16)(work->field_950.flags & 0xBFFF);
     }
@@ -127,22 +127,22 @@ void func_actor_110600_80138980(Actor110600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C = 0;
-        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
-        work->field_950.flags   = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4     = 8;
-        work->field_88C         = 2;
-        work->field_892         = 0xC;
-        work->field_896         = 0x10;
-        ramp                    = work->field_B86;
-        walker                  = (Actor110600Walker*)((u8*)work + 0xB28);
-        work->field_B90         = 0;
-        walker->field_5C        = 2;
-        walker->field_5E        = ramp;
-        walker->field_60        = 8;
-        work->field_B82         = 0;
-        work->field_8A4         = 0;
-        work->field_8A2         = 0;
+        arg0->field_2C->flags = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_88C       = 2;
+        work->field_892       = 0xC;
+        work->field_896       = 0x10;
+        ramp                  = work->field_B86;
+        walker                = (Actor110600Walker*)((u8*)work + 0xB28);
+        work->field_B90       = 0;
+        walker->field_5C      = 2;
+        walker->field_5E      = ramp;
+        walker->field_60      = 8;
+        work->field_B82       = 0;
+        work->field_8A4       = 0;
+        work->field_8A2       = 0;
     }
     func_actor_110600_80133A94((Actor110600Walker*)((u8*)work + 0xB28));
     func_actor_110600_80134728(arg0);
@@ -191,22 +191,22 @@ void func_actor_110600_80138AFC(Actor110600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C = 0;
-        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
-        work->field_950.flags   = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4     = 8;
-        work->field_88C         = 2;
-        work->field_892         = 0xF;
-        work->field_896         = work->field_898;
-        ramp                    = work->field_B86;
-        walker                  = (Actor110600Walker*)((u8*)work + 0xB28);
-        work->field_B90         = 0;
-        walker->field_5C        = 0;
-        walker->field_5E        = ramp;
-        walker->field_60        = 8;
-        work->field_B82         = 0;
-        work->field_8A4         = 0;
-        work->field_8A2         = 0;
+        arg0->field_2C->flags = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_88C       = 2;
+        work->field_892       = 0xF;
+        work->field_896       = work->field_898;
+        ramp                  = work->field_B86;
+        walker                = (Actor110600Walker*)((u8*)work + 0xB28);
+        work->field_B90       = 0;
+        walker->field_5C      = 0;
+        walker->field_5E      = ramp;
+        walker->field_60      = 8;
+        work->field_B82       = 0;
+        work->field_8A4       = 0;
+        work->field_8A2       = 0;
     }
     func_actor_110600_80133A94((Actor110600Walker*)((u8*)work + 0xB28));
     func_actor_110600_80134728(arg0);
@@ -225,22 +225,22 @@ void func_actor_110600_80138BD0(Actor110600* arg0)
     work  = arg0->field_1C;
     enemy = arg0->field_20;
     if (work->field_4 != 0) {
-        arg0->field_2C->field_C = 0;
-        work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
-        work->field_950.flags   = (u16)(work->field_950.flags | 0x4000);
-        enemy->node.field_4     = 8;
-        work->field_88C         = 2;
-        work->field_892         = 0x10;
-        work->field_896         = work->field_898;
-        ramp                    = work->field_B86;
-        walker                  = (Actor110600Walker*)((u8*)work + 0xB28);
-        work->field_B90         = 0;
-        walker->field_5C        = 0;
-        walker->field_5E        = ramp;
-        walker->field_60        = 8;
-        work->field_B82         = 0;
-        work->field_8A4         = 0;
-        work->field_8A2         = 0;
+        arg0->field_2C->flags = 0;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
+        enemy->node.field_4   = 8;
+        work->field_88C       = 2;
+        work->field_892       = 0x10;
+        work->field_896       = work->field_898;
+        ramp                  = work->field_B86;
+        walker                = (Actor110600Walker*)((u8*)work + 0xB28);
+        work->field_B90       = 0;
+        walker->field_5C      = 0;
+        walker->field_5E      = ramp;
+        walker->field_60      = 8;
+        work->field_B82       = 0;
+        work->field_8A4       = 0;
+        work->field_8A2       = 0;
     }
     func_actor_110600_80133A94((Actor110600Walker*)((u8*)work + 0xB28));
     func_actor_110600_80134728(arg0);
@@ -261,7 +261,7 @@ void func_actor_110600_80138CA4(Actor110600* arg0)
     if (work->field_4 != 0) {
         enemy                 = arg0->field_20;
         obj                   = arg0->field_2C;
-        obj->field_C          = 0;
+        obj->flags            = 0;
         work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags = (u16)(work->field_950.flags | 0x4000);
         enemy->node.field_4   = 1;
@@ -293,7 +293,7 @@ void func_actor_110600_80138D7C(Actor110600* arg0)
     if (work->field_4 != 0) {
         obj                 = arg0->field_2C;
         enemy->node.field_4 = 8;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         Tmd_AllocBuffers(obj);
         work->field_88C        = 2;
         work->field_892        = 5;
@@ -304,9 +304,9 @@ void func_actor_110600_80138D7C(Actor110600* arg0)
         func_actor_110600_80134728(arg0);
         return;
     }
-    arg0->field_2C->field_8->flg = 0;
-    step                         = (s16)work->field_896 / 2;
-    work->field_896              = step;
+    arg0->field_2C->coords->flg = 0;
+    step                        = (s16)work->field_896 / 2;
+    work->field_896             = step;
     if (step == 1) {
         work->field_896 = -0x10;
     }

@@ -15,6 +15,6 @@ void ActorsShared80164c20(GpEnemy* arg0, Task* arg1)
     if (work->field_4 != 0) {
         obj                = (TmdObject*)arg1->extra;
         arg0->node.field_4 = 1;
-        obj->field_C      |= 0x80;
+        obj->flags        |= 0x80;
     }
 }

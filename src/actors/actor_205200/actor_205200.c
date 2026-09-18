@@ -154,7 +154,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     MATRIX*          mat;
     u16*             tbl;
 
-    coord = ((TmdObject*)arg1->extra)->field_8;
+    coord = ((TmdObject*)arg1->extra)->coords;
     pwork = (Actor205200Work*)arg1->parent->work;
     part  = Mem_Calloc(0x7CU, false);
     if (part == NULL) {
@@ -304,7 +304,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
     s32              vol;
 
     part  = (Actor205200Part*)arg1->work;
-    coord = ((TmdObject*)arg1->extra)->field_8;
+    coord = ((TmdObject*)arg1->extra)->coords;
     work  = (Actor205200Work*)arg1->parent->work;
     if (Gp_StateF0.field_4 != 0) {
         return;

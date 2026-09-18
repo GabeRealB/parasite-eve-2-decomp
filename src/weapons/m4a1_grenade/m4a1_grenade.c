@@ -47,7 +47,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
     s32            sfx;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
     /* Reloaded rather than reused: the store leaves the block address in a
        caller-saved register and the copy into `spot` is a second read of
@@ -93,10 +93,10 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                 actor->field_940 = 0x28;
                 actor->field_979 = 0x22;
                 Gp_ConsumeSlotQty(0x9A, 0x101);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                               ((sfx - 0xA) << 24) | 0x201B0006, 1);
                 Gp_SpawnEff(0x6006C,
-                            (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8, 0x1B,
+                            (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0x1B,
                             NULL);
                 func_80104490(arg0, 0, 0, sfx | 0x1B00);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
@@ -115,10 +115,10 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                                   ((sfx - 0xA) << 24) | 0x201B0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1B, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                 } else {
@@ -146,7 +146,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->field_3 & 0x30) == 0x30) {
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8,
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords,
                                   (actor->field_93E + 0x201B0008) | ((sfx - 0xA) << 24), 0);
                     actor->field_93E++;
                 }
@@ -182,7 +182,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     scratch  = (void**)G_SCRATCH_HEAD;
     extra    = arg0->extra;
     head     = *scratch;
-    coord    = extra->field_8;
+    coord    = extra->coords;
     blk      = (SVECTOR*)(head - 0x28);
     *scratch = blk;
     muzzle   = coord->sub;
@@ -209,11 +209,11 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     gte_rtv0tr_real();
     gte_stlvnl(coord->workm.t);
     Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, &coord->coord);
-    mtx            = (MATRIX*)(head - 0x20);
-    coord->sub     = &Gfx_ViewCoord;
-    coord->flg     = 0;
-    extra->field_C = 0;
-    *mtx           = coord->coord;
+    mtx          = (MATRIX*)(head - 0x20);
+    coord->sub   = &Gfx_ViewCoord;
+    coord->flg   = 0;
+    extra->flags = 0;
+    *mtx         = coord->coord;
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
@@ -279,7 +279,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
     s32                 sfxarg;
 
     work  = (M4a1GrenadeWork*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
     head  = *(u8**)G_SCRATCH_HEAD;
     /* Pushed and then re-derived rather than stored from `blk`: the scratch

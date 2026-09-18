@@ -40,7 +40,7 @@ STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`Mem_Calloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
-/// two matrices onto `TmdObject::field_1C` / `field_20`, the light / colour pair
+/// two matrices onto `TmdObject::lightMtx` / `field_20`, the light / colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
 ///

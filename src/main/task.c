@@ -151,11 +151,11 @@ void Task_Kill(Task* arg0)
         goto def_case;
 
     case1:
-        ((TmdObject*)arg0->extra)->field_C |= 0x80;
-        arg0->killCountdown                 = 2;
-        arg0->callback                      = Task_CountdownCallback;
-        arg0->state                         = 0;
-        arg0->exitCallback                  = textNoopCallback;
+        ((TmdObject*)arg0->extra)->flags |= 0x80;
+        arg0->killCountdown               = 2;
+        arg0->callback                    = Task_CountdownCallback;
+        arg0->state                       = 0;
+        arg0->exitCallback                = textNoopCallback;
         return;
 
     case2:

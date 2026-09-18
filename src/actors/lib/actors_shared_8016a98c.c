@@ -12,7 +12,7 @@ void ActorsShared8016a98c(Task* task)
 {
     GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
     ActorsShared8016a98cWork* work  = (ActorsShared8016a98cWork*)task->work;
-    GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->coords;
     ActorsShared8016a98cWork* objWork;
 
     enemy->field_54 = 0;

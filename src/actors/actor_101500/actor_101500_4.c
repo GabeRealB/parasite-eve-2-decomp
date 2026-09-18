@@ -16,7 +16,7 @@ void func_actor_101500_801337A8(Actor101500* arg0)
     s16              bob;
 
     work  = arg0->field_1C;
-    coord = arg0->field_2C->field_8;
+    coord = arg0->field_2C->coords;
     bob   = 0;
     if ((s16)work->field_352 == 5) {
         work->field_37C++;
@@ -72,7 +72,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     GpAreaKey* sessionKey4;
 
     D_80067704[0] = D_actor_101500_801363AC;
-    effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
+    effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
         sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
         raw1        = (u16)arg0->field_20->field_8;
@@ -84,17 +84,17 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->field_24 = entry1->field_D;
-        model1->field_25 = entry1->field_E;
-        if (model1->field_18 != NULL) {
+        entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->tpage = entry1->field_D;
+        model1->clut  = entry1->field_E;
+        if (model1->buffer != NULL) {
             Tmd_ProcessStream(model1);
             Tmd_ProcessStream(model1);
         }
     }
 
     D_80067704[0] = D_actor_101500_801364F0;
-    effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
+    effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
         sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
         raw2        = (u16)arg0->field_20->field_8;
@@ -106,17 +106,17 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->field_24 = entry2->field_D;
-        model2->field_25 = entry2->field_E;
-        if (model2->field_18 != NULL) {
+        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->field_D;
+        model2->clut  = entry2->field_E;
+        if (model2->buffer != NULL) {
             Tmd_ProcessStream(model2);
             Tmd_ProcessStream(model2);
         }
     }
 
     D_80067704[0] = D_actor_101500_801366DC;
-    effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
+    effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
         sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
         raw3        = (u16)arg0->field_20->field_8;
@@ -128,17 +128,17 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3           = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model3->field_24 = entry3->field_D;
-        model3->field_25 = entry3->field_E;
-        if (model3->field_18 != NULL) {
+        entry3        = (GpCdRec10*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model3->tpage = entry3->field_D;
+        model3->clut  = entry3->field_E;
+        if (model3->buffer != NULL) {
             Tmd_ProcessStream(model3);
             Tmd_ProcessStream(model3);
         }
     }
 
     D_80067704[0] = D_actor_101500_801368B4;
-    effect4       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
+    effect4       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
         sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
         raw4        = (u16)arg0->field_20->field_8;
@@ -150,10 +150,10 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         index4      = raw4 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry4           = (GpCdRec10*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model4->field_24 = entry4->field_D;
-        model4->field_25 = entry4->field_E;
-        if (model4->field_18 != NULL) {
+        entry4        = (GpCdRec10*)((index4 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model4->tpage = entry4->field_D;
+        model4->clut  = entry4->field_E;
+        if (model4->buffer != NULL) {
             Tmd_ProcessStream(model4);
             Tmd_ProcessStream(model4);
         }
@@ -176,7 +176,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
 
     model = arg1->field_2C;
     work  = arg1->field_1C;
-    coord = model->field_8;
+    coord = model->coords;
     switch (D_801153F4) {
         case 0:
             break;
@@ -184,7 +184,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
             sub = &coord[1];
             goto update;
         case 2:
-            model->field_C     = 0x80;
+            model->flags       = 0x80;
             arg0->node.field_4 = 1;
             return;
     }
@@ -202,7 +202,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
             work->field_362 = 0;
             work->field_35C = 1;
             if (work->field_37E != 0) {
-                model->field_C  = 0x80;
+                model->flags    = 0x80;
                 work->field_35C = 3;
             }
             break;
@@ -210,7 +210,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
             ActorsShared80134a54((ActorShared80134a54*)arg1);
             work->field_362++;
             if (work->field_362 == 10) {
-                model->field_C = 2;
+                model->flags = 2;
             }
             if (work->field_362 == 15) {
                 Gp_SpawnEff(0x600A5, coord, 2, NULL);
@@ -227,7 +227,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
                 if (work->field_37E >= 2) {
                     work->field_37E = 0;
                     Tmd_FreeBuffers(model);
-                    model->field_C |= 4;
+                    model->flags |= 4;
                     func_actor_101500_801338D0(arg1);
                 } else {
                     work->field_37E++;
@@ -252,7 +252,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
             }
             break;
     }
-    sub = arg1->field_2C->field_8;
+    sub = arg1->field_2C->coords;
     sub = &sub[1];
 update:
     pos.vx = sub->workm.t[0];
@@ -286,7 +286,7 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
     *(u8**)0x1F8003FC = (u8*)stk;
     vec               = stk;
     work              = arg0->field_1C;
-    coord             = arg0->field_2C->field_8;
+    coord             = arg0->field_2C->coords;
     switch (work->field_35C) {
         case 0:
             off = work->field_364 + 800;

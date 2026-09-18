@@ -80,7 +80,7 @@ void func_actor_107600_80134D9C(Task* arg0)
     s32              dist;
 
     work     = (Actor107600Work*)arg0->work;
-    self     = ((TmdObject*)arg0->extra)->field_8;
+    self     = ((TmdObject*)arg0->extra)->coords;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     block    = (VECTOR*)(head - 0x10);
@@ -89,7 +89,7 @@ void func_actor_107600_80134D9C(Task* arg0)
         *scratch = head;
         return;
     }
-    target          = ((TmdObject*)Gp_ActorSlots[0]->extra)->field_8;
+    target          = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     block->vx       = target->coord.t[0] - self->coord.t[0];
     block->vy       = target->coord.t[1] - self->coord.t[1];
     block->vz       = target->coord.t[2] - self->coord.t[2];
@@ -131,7 +131,7 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
 void func_actor_107600_80134EF4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     u16              x     = coord->coord.m[0][0];
     u16              y     = coord->coord.m[2][1];
 

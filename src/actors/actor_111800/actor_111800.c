@@ -32,7 +32,7 @@ void func_actor_111800_80132390(Task* task)
     GpAreaPlace*     place;
     s32              i;
 
-    coord      = ((TmdObject*)task->extra)->field_8;
+    coord      = ((TmdObject*)task->extra)->coords;
     obj        = (TmdObject*)task->extra;
     task->work = (TaskIdMap*)Mem_Calloc(0x498, false);
     if (task->work == NULL) {
@@ -43,9 +43,9 @@ void func_actor_111800_80132390(Task* task)
     Mem_Set(work, 0U, 0x498U);
     coord->sub = &Gfx_ViewCoord;
     Tmd_AllocBuffers(obj);
-    obj->field_1C = &work->field_43C;
-    obj->field_20 = &work->field_45C;
-    obj->field_C  = 0;
+    obj->lightMtx = &work->field_43C;
+    obj->colorMtx = &work->field_45C;
+    obj->flags    = 0;
     func_800B3F84(&work->anim, D_actor_111800_8013A448, (GpAnimObj*)obj, work->field_30C,
                   &work->slots[0]);
     work->field_47C  = Game_GetPtrSlot(3);

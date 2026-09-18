@@ -19,15 +19,15 @@ void ActorsShared80135a24(void* arg0, Task* task)
 
     parent       = task->parent;
     obj          = (TmdObject*)task->extra;
-    parentCoords = ((TmdObject*)parent->extra)->field_8;
-    coord        = obj->field_8;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
     work         = (ActorsShared80135a24Work*)parent->work;
 
     coord->flg      = 0;
     coord->sub      = &parentCoords[7];
-    obj->field_1C   = &work->field_45C;
-    obj->field_20   = &work->field_43C;
-    obj->field_C    = 0;
+    obj->lightMtx   = &work->field_45C;
+    obj->colorMtx   = &work->field_43C;
+    obj->flags      = 0;
     task->state     = 1;
     work->field_6D8 = 0xA;
 }

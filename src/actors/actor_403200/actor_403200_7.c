@@ -59,13 +59,13 @@ void func_actor_403200_80141B40(Task* arg0)
 
     work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
-        escorts                            = (Actor403200Work*)arg0->work;
-        work->field_7F3                    = 0;
-        ((TmdObject*)arg0->extra)->field_C = 0;
+        escorts                          = (Actor403200Work*)arg0->work;
+        work->field_7F3                  = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
         for (i = 0; i < 7; i++) {
             if (escorts->field_ECC[i] != NULL) {
-                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C =
-                    ((TmdObject*)arg0->extra)->field_C;
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =
+                    ((TmdObject*)arg0->extra)->flags;
             }
         }
         work->field_EF4 = 0;

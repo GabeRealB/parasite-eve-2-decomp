@@ -34,7 +34,7 @@ void func_actor_800300_80162658(GpActorWork* arg0)
     sp    = D_actor_800300_80161E40;
     actor = arg0->actor;
     d4    = actor->field_910;
-    obj   = (GpObj38*)arg0->extra->field_8;
+    obj   = (GpObj38*)arg0->extra->coords;
     if (d4->field_C4 > 0) {
         d4->field_C4 = (u16)d4->field_C4 - 1;
     }
@@ -100,8 +100,8 @@ void func_actor_800300_801628D0(GpActorWork* arg0)
     s32            angle;
     s32            arg;
 
-    coord  = arg0->extra->field_8;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     actor  = arg0->actor;
     switch (actor->field_95E) {
         case 0:
@@ -184,7 +184,7 @@ void func_actor_800300_80162A98(GpActorWork* arg0)
     *(u8**)0x1F8003FC = head - 0x10;
     vec               = (VECTOR3*)(head - 0x10);
     node              = actor->field_90C;
-    src               = extra->field_8;
+    src               = extra->coords;
     if (node != NULL) {
         if (!(node->field_4 & 1)) {
             Gp_GetLockPos((GpLockPos*)node, vec);
@@ -255,8 +255,8 @@ void func_actor_800300_80162C98(GpActorWork* arg0)
     s32            val;
 
     actor  = arg0->actor;
-    coord  = arg0->extra->field_8;
-    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     if (arg0->actor->field_910->field_C4 <= 0) {
         func_8010BF7C(arg0, 0x14, 0x3F);
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
@@ -285,8 +285,8 @@ void func_actor_800300_80162D74(GpActorWork* arg0)
     VECTOR3*       vec;
     u16            state;
 
-    coord             = arg0->extra->field_8;
-    target            = (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord             = arg0->extra->coords;
+    target            = (GsCOORDINATE2*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     *(u8**)0x1F8003FC = head - 0x10;
     vec               = (VECTOR3*)(head - 0x10);
@@ -338,7 +338,7 @@ void func_actor_800300_80162F24(GpActorWork* arg0)
     s32            flag;
 
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (actor->field_95E) {
         case 0:
             flag               = 1;

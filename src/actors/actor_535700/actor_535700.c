@@ -60,7 +60,7 @@ void ActorsShared80132610(void);
 /// as `func_actor_461800_801331E4`.
 void func_actor_535700_80132108(Task* task)
 {
-    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor535700Work* work  = (Actor535700Work*)task->work;
 
     if (ActorsShared80131f9cWork->state == 1) {

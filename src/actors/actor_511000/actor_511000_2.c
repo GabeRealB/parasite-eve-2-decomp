@@ -48,27 +48,27 @@ void func_actor_511000_80132284(Task* task)
     GsCOORDINATE2* coords;
     GsCOORDINATE2* root;
 
-    parent        = task->spawnArg2;
-    obj           = task->extra;
-    parentObj     = parent->extra;
-    coords        = parentObj->field_8;
-    obj->field_C |= 0x80;
-    root          = obj->field_8;
-    if (!(parentObj->field_C & 0x80)) {
-        obj->field_C &= 0xFF7F;
+    parent      = task->spawnArg2;
+    obj         = task->extra;
+    parentObj   = parent->extra;
+    coords      = parentObj->coords;
+    obj->flags |= 0x80;
+    root        = obj->coords;
+    if (!(parentObj->flags & 0x80)) {
+        obj->flags &= 0xFF7F;
     }
-    if (!(parentObj->field_C & 4)) {
-        obj->field_C &= 0xFFFB;
+    if (!(parentObj->flags & 4)) {
+        obj->flags &= 0xFFFB;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->field_C |= 4;
+        obj->flags |= 4;
     }
-    obj->field_E  = -2;
+    obj->otOffset = -2;
     coords       += task->spawnArg1;
     root->flg     = 0;
     root->sub     = coords;
-    obj->field_1C = parentObj->field_1C;
-    obj->field_20 = parentObj->field_20;
+    obj->lightMtx = parentObj->lightMtx;
+    obj->colorMtx = parentObj->colorMtx;
     Task_Reparent(parent, task);
     task->state++;
 }

@@ -15,7 +15,7 @@
 /// Work block allocated by `func_actor_323300_80161E78` (`Mem_Calloc(0x504)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_323300_801626D0` republishes the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350500_8016247C` does for `Actor350500Work`.
 ///
@@ -125,7 +125,7 @@ typedef struct {
 /// `Mem_Calloc(0x6B0)` that `func_actor_323300_80162BE4` allocates, as opposed
 /// to the 0x504 `Actor323300Work` `func_actor_323300_80161E78` allocates. The
 /// two are different allocations of different sizes, but both carry a
-/// light/colour `MATRIX` pair republished onto `TmdObject::field_1C` /
+/// light/colour `MATRIX` pair republished onto `TmdObject::lightMtx` /
 /// `field_20` by the display path -- here at 0x670/0x690, so the trailing
 /// `color` ends flush with the allocation.
 ///

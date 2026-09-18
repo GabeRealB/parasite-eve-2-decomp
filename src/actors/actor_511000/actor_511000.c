@@ -51,22 +51,22 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
 
     extra = arg0->extra;
     work  = (Actor511000Work2*)arg0->actor;
-    coord = &extra->field_8[1];
+    coord = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
         if (work->field_478 == 1) {
             if (++work->field_4D2 == 0x10) {
-                obj = ((TmdObject*)work->field_4C4->extra)->field_8;
+                obj = ((TmdObject*)work->field_4C4->extra)->coords;
                 pan = (s8)Gp_GetObjPan((GpObj38*)obj);
                 SndEvt_EnqueueType6(0x313A0003, pan, (s8)Gp_GetObjDepth((GpObj38*)obj));
                 Gp_SpawnEff(0x6006A, obj, 0, &D_actor_511000_8014733C);
             }
         }
     }
-    if (!(extra->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)arg0->extra->field_8[1].workm.t, (VECTOR3*)&pos) != 0) {
+    if (!(extra->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)arg0->extra->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->field_8);
         }
     }

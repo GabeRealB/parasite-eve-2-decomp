@@ -34,7 +34,7 @@ void func_actor_317000_80161E68(Task* task)
 
     states[(s16)work->field_4C0](task);
 
-    coord           = ((TmdObject*)task->extra)->field_8;
+    coord           = ((TmdObject*)task->extra)->coords;
     work->pos[0].v += work->step.vx;
     work->pos[1].v += work->step.vy;
     work->pos[2].v += work->step.vz;
@@ -54,9 +54,9 @@ void func_actor_317000_80161E68(Task* task)
         }
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)&((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)task->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)&((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_4C5 != 0) {
         work->field_4C6 += 0x40;
@@ -102,8 +102,8 @@ void func_actor_317000_801620BC(Task* task)
     s32               absDiff;
     s32               y;
 
-    coord  = (Actor317000Coord*)((TmdObject*)task->extra)->field_8;
-    target = (Actor317000Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord  = (Actor317000Coord*)((TmdObject*)task->extra)->coords;
+    target = (Actor317000Coord*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     work   = (Actor317000Work*)task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
@@ -170,8 +170,8 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask)
     SVECTOR              vec;
     SVECTOR              rot;
 
-    coord  = ((TmdObject*)task->extra)->field_8;
-    target = ((TmdObject*)targetTask->extra)->field_8;
+    coord  = ((TmdObject*)task->extra)->coords;
+    target = ((TmdObject*)targetTask->extra)->coords;
     head   = &coord[5];
     aim    = &target[4];
 
@@ -179,7 +179,7 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask)
     delta.vy = aim->workm.t[1] - head->workm.t[1];
     delta.vz = aim->workm.t[2] - head->workm.t[2];
     VectorNormal(&delta, &delta);
-    ApplyTransposeMatrixLV(&((TmdObject*)task->extra)->field_8[2].workm, &delta, &delta);
+    ApplyTransposeMatrixLV(&((TmdObject*)task->extra)->coords[2].workm, &delta, &delta);
     VectorNormal(&delta, &dir);
 
     rot.vx = ratan2(dir.vz, dir.vy);
@@ -193,7 +193,7 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask)
     RotMatrix(&ang, &coord[5].coord);
 
     Gp_ExtractEuler(&rot, &coord[5].coord);
-    arm = &((TmdObject*)task->extra)->field_8[3].coord;
+    arm = &((TmdObject*)task->extra)->coords[3].coord;
     Gp_ExtractEuler(&vec, arm);
     vec.vx = (u16)vec.vx + rot.vx / 8;
     vec.vy = (u16)vec.vy + rot.vy / 8;

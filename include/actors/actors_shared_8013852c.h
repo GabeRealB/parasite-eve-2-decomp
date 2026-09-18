@@ -29,7 +29,7 @@ typedef struct ActorShared8013852cWork {
 /// Message 0x7D5 handler: switches the enemy's model and display nodes between
 /// hidden and shown. `flags ^ 1` is the requested mode, latched in `field_BA0`
 /// so only a change acts. Mode 1 hides the model (bit 0x80 of
-/// `TmdObject::field_C`), saves the enemy link node's `field_4` into
+/// `TmdObject::flags`), saves the enemy link node's `field_4` into
 /// `field_BA1` and releases that node slot, and clears the 0xC000 pair off all
 /// four display nodes' flags; mode 0 puts the saved `field_4` back, lifts the
 /// hidden bit, and sets those two bits on the first and last display node.

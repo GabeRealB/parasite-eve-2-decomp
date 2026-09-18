@@ -96,7 +96,7 @@ STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 ///
 /// `light` / `color` are the matrices this block is allocated for:
 /// `func_actor_341700_8016D130` stores their addresses into the model's
-/// `TmdObject.field_1C` / `field_20` light and colour matrix slots, so the
+/// `TmdObject.lightMtx` / `field_20` light and colour matrix slots, so the
 /// actor rasterises through its own work block rather than a separate
 /// `MATRIX` allocation.
 typedef struct Actor341700SubWork {

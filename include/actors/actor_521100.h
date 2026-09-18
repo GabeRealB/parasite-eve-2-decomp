@@ -14,7 +14,7 @@ extern u8 D_80072729;
 /// Sparse view of the actor's `TmdObject` (`Actor521100::field_2C`): the two
 /// pointers `TmdObject::next` / `prev` are padded over and the display object's
 /// own fields are read through it. `field_8` is the model's coordinate array
-/// `TmdObject::field_8` - the same `GsCOORDINATE2*` every other actor overlay
+/// `TmdObject::coords` - the same `GsCOORDINATE2*` every other actor overlay
 /// indexes, with the update body `func_actor_521100_80136290` reading the
 /// second entry and the walk body `func_actor_521100_801358D4` the first.
 typedef struct Actor521100Obj2C {
@@ -112,7 +112,7 @@ typedef struct Actor521100 {
 /// scaled by 20. Same offsets as `ActorsShared80133678Work`.
 typedef struct Actor521100Work {
     /// The block opens with the two matrices the spawn body hands to
-    /// `TmdObject::field_1C` / `field_20` (a `light` / `color` pair, as in the
+    /// `TmdObject::lightMtx` / `field_20` (a `light` / `color` pair, as in the
     /// family's other work blocks), but the overlay's own step bodies view the
     /// same bytes as their animation context plus slots, so the region stays
     /// byte-addressed.

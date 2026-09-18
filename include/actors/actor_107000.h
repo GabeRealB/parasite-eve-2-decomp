@@ -13,7 +13,7 @@
 ///
 /// `field_14` is the pose flag the `D_801153F4` mode switch writes together
 /// with the model part's flag word: mode 0 zeroes both, mode 2 pairs a 1 here
-/// with `TmdObject::field_C = 0x80` for the hidden pose.
+/// with `TmdObject::flags = 0x80` for the hidden pose.
 ///
 /// This is the same object the spawn handler takes as `GpEnemy*`, seen from the
 /// side that needs only that one flag: `field_14` is `GpEnemy::node.field_4`,
@@ -111,8 +111,8 @@ typedef struct Actor107000SpawnWork {
     /* 0x000 */ GpAnimCtx  context;
     /* 0x014 */ GpAnimSlot slots[3];
     /* 0x08C */ byte       field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX     field_BC;       // colour matrix, TmdObject::field_20
-    /* 0x0DC */ MATRIX     field_DC;       // light matrix, TmdObject::field_1C
+    /* 0x0BC */ MATRIX     field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX     field_DC;       // light matrix, TmdObject::lightMtx
     /* 0x0FC */ GpObj      objFC;
     /* 0x11C */ GpRec18    rec11C;
     /* 0x134 */ GpObj      obj134;
@@ -165,8 +165,8 @@ typedef struct Actor107000Spawn2Work {
     /* 0x000 */ GpAnimCtx      context;
     /* 0x014 */ GpAnimSlot     slots[7];        // six helper slots + slot 0
     /* 0x12C */ byte           field_12C[0x70]; // pose buffer, func_800B3F84 arg3
-    /* 0x19C */ MATRIX         field_19C;       // colour matrix, TmdObject::field_20
-    /* 0x1BC */ MATRIX         field_1BC;       // light matrix, TmdObject::field_1C
+    /* 0x19C */ MATRIX         field_19C;       // colour matrix, TmdObject::colorMtx
+    /* 0x1BC */ MATRIX         field_1BC;       // light matrix, TmdObject::lightMtx
     /* 0x1DC */ GpObj          obj1;
     /* 0x1FC */ GpActorD4Rec   field_1FC;
     /* 0x214 */ GpRec18        field_214[1]; // the table `field_1FC` names

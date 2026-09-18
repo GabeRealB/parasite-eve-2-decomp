@@ -44,7 +44,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
     s32            flags;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 != 0) {
         if (Gp_State1C->field_4 >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -202,11 +202,11 @@ void func_tonfa_baton_8011DA48(Task* arg0)
     s32*       ptr;
 
     extra              = (TmdObject*)arg0->extra;
-    ptr                = extra->field_8;
+    ptr                = extra->coords;
     arg0->state        = arg0->state + 1;
     arg0->exitCallback = WeaponsShared8011db78;
     *ptr               = 0;
-    extra->field_C     = 0;
+    extra->flags       = 0;
 }
 
 void func_tonfa_baton_8011DA74(Task* arg0)
@@ -216,11 +216,11 @@ void func_tonfa_baton_8011DA74(Task* arg0)
     GameActor*  actor;
     s32         mode;
 
-    extra          = (TmdObject*)arg0->extra;
-    coord          = (TonfaCoord*)extra->field_8;
-    actor          = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
-    coord->flg     = 0;
-    extra->field_C = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_C;
+    extra        = (TmdObject*)arg0->extra;
+    coord        = (TonfaCoord*)extra->coords;
+    actor        = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    coord->flg   = 0;
+    extra->flags = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->flags;
 
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0x60;

@@ -73,8 +73,8 @@ typedef struct Actor160900Child3Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[0x14]; // the slot array `func_800B3F84` is handed
     /* 0x334 */ byte       aux[0x140];  // `func_800B3F84` arg3
-    /* 0x474 */ MATRIX     light;       // `TmdObject::field_1C`
-    /* 0x494 */ MATRIX     color;       // `TmdObject::field_20`
+    /* 0x474 */ MATRIX     light;       // `TmdObject::lightMtx`
+    /* 0x494 */ MATRIX     color;       // `TmdObject::colorMtx`
     /* 0x4B4 */ void*      field_4B4;
     /* 0x4B8 */ s16        field_4B8;
     /* 0x4BA */ s16        field_4BA;

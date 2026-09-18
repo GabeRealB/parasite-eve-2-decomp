@@ -71,7 +71,7 @@ void func_antibody_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 != -2) && (Gp_State1C->field_E < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
@@ -268,7 +268,7 @@ void func_antibody_8012F734(Task* arg0)
     s16            idx;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     coord->flg    = 0;
     switch (arg0->state) {
@@ -533,7 +533,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32                 ang2;
     u16                 vz;
 
-    player                                      = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1];
+    player                                      = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1];
     scratch                                     = (void**)G_SCRATCH_HEAD;
     head                                        = *scratch;
     ((AntibodyArcScratch*)(head - 0x28))->v0.vx = *(u16*)&arg0->workm.t[0];

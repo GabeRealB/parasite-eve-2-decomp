@@ -20,7 +20,7 @@ void ActorsShared8016bd98(Task* arg0)
     work             = (ActorsShared80168d3cWork*)arg0->work;
     ident            = &m.ident;
     obj              = arg0->extra;
-    coord            = obj->field_8;
+    coord            = obj->coords;
     work->field_430 -= 0x40;
     scale.vx         = 0x1000;
     scale.vy         = (s16)work->field_430;
@@ -37,7 +37,7 @@ void ActorsShared8016bd98(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2, 2);
     }
     if ((s16)work->field_412 > 0x20) {
-        obj->field_C   |= 0x80;
+        obj->flags     |= 0x80;
         work->field_412 = 0;
         work->field_420++;
     }

@@ -22,7 +22,7 @@ void func_actor_444000_80133010(Actor444000* task)
     Actor444000Work* work = task->field_1C;
     s16              i;
 
-    if (((TmdObject*)work->field_ECC[4]->task->extra)->field_18 == NULL) {
+    if (((TmdObject*)work->field_ECC[4]->task->extra)->buffer == NULL) {
         return;
     }
 
@@ -31,13 +31,13 @@ void func_actor_444000_80133010(Actor444000* task)
     }
 
     for (i = 0; i < 7; i++) {
-        ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].coord.t[0]     = ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].coord.t[1] =
-            ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].coord.t[2] = 0;
+        ((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].coord.t[0]     = ((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].coord.t[1] =
+            ((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].coord.t[2] = 0;
         if ((u16)i >= 2) {
-            ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].coord.t[2] = (s16)(D_actor_444000_80144A70 / 5);
+            ((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].coord.t[2] = (s16)(D_actor_444000_80144A70 / 5);
         }
-        ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i]);
+        ((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)work->field_ECC[4]->task->extra)->coords[i]);
     }
 
     switch (work->field_7A4) {
@@ -254,8 +254,8 @@ void func_actor_444000_80133010(Actor444000* task)
         } else {
             work->field_794[i] = work->field_794[i] - work->field_7A6;
         }
-        Gfx_RotMatrixX(&((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].coord, work->field_794[i], 1);
-        ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[i].flg = 0;
+        Gfx_RotMatrixX(&((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].coord, work->field_794[i], 1);
+        ((TmdObject*)work->field_ECC[4]->task->extra)->coords[i].flg = 0;
     }
 }
 
@@ -290,13 +290,13 @@ void func_actor_444000_80133C58(Actor444000* task, s16 arg1)
         }
     }
 
-    ((TmdObject*)task->extra)->field_8[3].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[3]);
-    ActorsShared80132808(&((TmdObject*)task->extra)->field_8[3], work->field_7C8);
-    ((TmdObject*)task->extra)->field_8[3].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[3]);
-    ((TmdObject*)work->field_ECC[4]->task->extra)->field_8[0].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)work->field_ECC[4]->task->extra)->field_8[0]);
-    ((TmdObject*)task->extra)->field_8[4].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[4]);
+    ((TmdObject*)task->extra)->coords[3].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
+    ActorsShared80132808(&((TmdObject*)task->extra)->coords[3], work->field_7C8);
+    ((TmdObject*)task->extra)->coords[3].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
+    ((TmdObject*)work->field_ECC[4]->task->extra)->coords[0].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)work->field_ECC[4]->task->extra)->coords[0]);
+    ((TmdObject*)task->extra)->coords[4].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[4]);
 }

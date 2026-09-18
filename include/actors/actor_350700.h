@@ -12,7 +12,7 @@
 /// Work block allocated by `func_actor_350700_80162404` (`Mem_Calloc(0x4C8)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_350700_801624B4` republishes the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350500_8016247C` does for `Actor350500Work`.
 ///
@@ -102,7 +102,7 @@ STATIC_ASSERT_SIZEOF(Actor350700MatWords, 0x14);
 /// three words at 0x4D8..0x4E0, and stores the three child tasks it spawns
 /// from `D_actor_350700_801708DC` at 0x4FC/0x500/0x504. `ActorsShared80132f24`
 /// then republishes the light/colour matrix pair onto the parent's
-/// `TmdObject::field_1C` / `field_20`, exactly as `func_actor_350700_801624B4`
+/// `TmdObject::lightMtx` / `field_20`, exactly as `func_actor_350700_801624B4`
 /// does for `Actor350700Work`.
 ///
 /// The size is the allocation; the fields below are the ones the init, the

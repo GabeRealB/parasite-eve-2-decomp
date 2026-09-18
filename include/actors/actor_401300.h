@@ -95,7 +95,7 @@ typedef struct Actor401300Work {
     /* 0xBF0 */ GpObj         field_BF0;
     /* 0xC10 */ byte          pad_C10[0x18];
     /// Light matrix `func_actor_401300_80134454` binds to the model's
-    /// `TmdObject::field_1C` (the color matrix is `field_C48`).
+    /// `TmdObject::lightMtx` (the color matrix is `field_C48`).
     /* 0xC28 */ MATRIX field_C28;
     /// Saved at 0xC48 and copied over 0xC68 when
     /// `func_actor_401300_80139520` enters its state.

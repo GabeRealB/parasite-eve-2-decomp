@@ -51,7 +51,7 @@ void func_actor_361100_80162B18(Task* task)
     VECTOR           pos;
     s32              i;
 
-    coord              = ext->field_8;
+    coord              = ext->coords;
     work->field_480   += work->field_490;
     work->field_484   += work->field_494;
     work->field_488   += work->field_498;
@@ -75,7 +75,7 @@ void func_actor_361100_80162B18(Task* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
+    if (!(ext->flags & 0x80)) {
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         pos.vx = coord->workm.t[0];
@@ -100,7 +100,7 @@ void func_actor_361100_80162D28(Task* arg0)
     GpEnemy*          enemy;
 
     enemy = arg0->spawnArg2;
-    coord = (Actor361100Coord*)((TmdObject*)arg0->extra)->field_8;
+    coord = (Actor361100Coord*)((TmdObject*)arg0->extra)->coords;
 
     work = (Actor361100Work*)Mem_Calloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
@@ -140,8 +140,8 @@ void func_actor_361100_80162E04(Task* arg0)
 
     work          = (Actor361100Work*)arg0->work;
     ext           = arg0->extra;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
@@ -183,7 +183,7 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* place
     Actor361100Work*  work;
 
     work              = (Actor361100Work*)task->work;
-    coord             = (Actor361100Coord*)((TmdObject*)task->extra)->field_8;
+    coord             = (Actor361100Coord*)((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
@@ -210,22 +210,22 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C                             |= 0x80;
+            obj->flags                               |= 0x80;
             ((Actor361100Work*)task->work)->field_4A2 = mode;
-            obj->field_C                             |= 4;
+            obj->flags                               |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
@@ -289,7 +289,7 @@ void func_actor_361100_801631C4(Task* task)
     VECTOR3          pos;
     s32              i;
 
-    coord              = ext->field_8;
+    coord              = ext->coords;
     work->field_490   += work->field_480;
     work->field_494   += work->field_484;
     work->field_498   += work->field_488;
@@ -313,13 +313,13 @@ void func_actor_361100_801631C4(Task* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
         }
-        ((TmdObject*)task->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)task->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_4A2 >= 0) {
         if (work->field_4A2 == 0) {
@@ -365,8 +365,8 @@ void func_actor_361100_801634B4(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor361100Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 extern void* D_actor_361100_80171BA8[];

@@ -56,7 +56,7 @@ void func_actor_443500_80132078(Task* task)
     work->field_475 = -1;
     work->field_476 = -1;
     work->field_4BC = -1;
-    work->field_4C0 = ((TmdObject*)task->extra)->field_C;
+    work->field_4C0 = ((TmdObject*)task->extra)->flags;
     spawned         = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
     if (spawned != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
@@ -72,10 +72,10 @@ void func_actor_443500_80132078(Task* task)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = entry->field_D;
-        model->field_25 = entry->field_E;
-        if (model->field_18 != NULL) {
+        entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = entry->field_D;
+        model->clut  = entry->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }

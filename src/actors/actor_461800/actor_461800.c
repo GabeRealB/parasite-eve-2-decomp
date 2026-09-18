@@ -220,7 +220,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     GpAreaKey*     sessionKey2;
 
     obj        = task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     task->work = (TaskIdMap*)(D_actor_461800_80143894 = Mem_Calloc(0x4F8, false));
     if (D_actor_461800_80143894 == NULL) {
         Gp_DestroyEnemy(enemy, task);
@@ -232,10 +232,10 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     enemy->field_48         = 0;
     enemy->node.field_5     = 0;
     enemy->node.field_4     = 1;
-    obj->field_E            = 1;
-    obj->field_C            = 0;
-    obj->field_1C           = &D_actor_461800_80143894->light;
-    obj->field_20           = &D_actor_461800_80143894->color;
+    obj->otOffset           = 1;
+    obj->flags              = 0;
+    obj->lightMtx           = &D_actor_461800_80143894->light;
+    obj->colorMtx           = &D_actor_461800_80143894->color;
     vec.vx                  = coord->workm.t[0];
     vec.vy                  = coord->workm.t[1] - 0x320;
     D_actor_461800_80143898 = task;
@@ -263,10 +263,10 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         index1    = raw1 >> 12;
         key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
-        entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->field_24 = entry1->field_D;
-        model1->field_25 = entry1->field_E;
-        if (model1->field_18 != NULL) {
+        entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->tpage = entry1->field_D;
+        model1->clut  = entry1->field_E;
+        if (model1->buffer != NULL) {
             Tmd_ProcessStream(model1);
             Tmd_ProcessStream(model1);
         }
@@ -289,10 +289,10 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         index2    = raw2 >> 12;
         key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp);
-        entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->field_24 = entry2->field_D;
-        model2->field_25 = entry2->field_E;
-        if (model2->field_18 != NULL) {
+        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->field_D;
+        model2->clut  = entry2->field_E;
+        if (model2->buffer != NULL) {
             Tmd_ProcessStream(model2);
             Tmd_ProcessStream(model2);
         }
@@ -314,7 +314,7 @@ extern s16 D_actor_461800_8014389C;
 /// `field_4EC` counts down in animation 3, then ticks the animation.
 void func_actor_461800_80132660(Task* task)
 {
-    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor461800Work* work  = (Actor461800Work*)task->work;
 
     if (D_actor_461800_80143894->field_4B4 == 1) {

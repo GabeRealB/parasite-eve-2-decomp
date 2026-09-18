@@ -142,10 +142,10 @@ void Actor02500_Fn0184C(Actor02500* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry1           = (Actor02500AreaRec*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->field_24 = entry1->field_D;
-        model1->field_25 = entry1->field_E;
-        if (model1->field_18 != NULL) {
+        entry1        = (Actor02500AreaRec*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->tpage = entry1->field_D;
+        model1->clut  = entry1->field_E;
+        if (model1->buffer != NULL) {
             Tmd_ProcessStream(model1);
             Tmd_ProcessStream(model1);
         }
@@ -163,10 +163,10 @@ void Actor02500_Fn0184C(Actor02500* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry2           = (Actor02500AreaRec*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->field_24 = entry2->field_D;
-        model2->field_25 = entry2->field_E;
-        if (model2->field_18 != NULL) {
+        entry2        = (Actor02500AreaRec*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->field_D;
+        model2->clut  = entry2->field_E;
+        if (model2->buffer != NULL) {
             Tmd_ProcessStream(model2);
             Tmd_ProcessStream(model2);
         }
@@ -184,10 +184,10 @@ void Actor02500_Fn0184C(Actor02500* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
-        entry3           = (Actor02500AreaRec*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model3->field_24 = entry3->field_D;
-        model3->field_25 = entry3->field_E;
-        if (model3->field_18 != NULL) {
+        entry3        = (Actor02500AreaRec*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model3->tpage = entry3->field_D;
+        model3->clut  = entry3->field_E;
+        if (model3->buffer != NULL) {
             Tmd_ProcessStream(model3);
             Tmd_ProcessStream(model3);
         }

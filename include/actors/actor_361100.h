@@ -15,7 +15,7 @@
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_361100_80162E04` and
 /// `func_actor_361100_801634B4` republish the two matrices
-/// onto `TmdObject::field_1C` / `field_20`, the light/colour pair
+/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
 ///
@@ -101,7 +101,7 @@ typedef struct Actor361100AnimPreset {
 } Actor361100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor361100AnimPreset, 0x10);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs's
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs's
 /// `param`, with `super` at 0x48) holds the Euler angles the code writes and
 /// then hands straight to `RotMatrixZYX`, the same reuse `RoomCoord` and
 /// `ActorsShared8013231cCoord` document.

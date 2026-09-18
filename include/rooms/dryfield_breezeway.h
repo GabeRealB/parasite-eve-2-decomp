@@ -71,7 +71,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 ///
 /// `light` / `color` are the room's own lighting pair, the block's whole first
 /// 0x40 bytes: `func_dryfield_breezeway_8017E464` publishes them onto
-/// `TmdObject::field_1C` / `field_20` -- the slots `Gp_BindDefaultMtx` otherwise
+/// `TmdObject::lightMtx` / `field_20` -- the slots `Gp_BindDefaultMtx` otherwise
 /// points at `Gp_DefaultMtx` / `Gp_DefaultMtx2` -- so the event object draws
 /// with this lighting rather than the shared defaults, and
 /// `Gp_SetObjTrans` writes the 0x800 translation into `color.t`.

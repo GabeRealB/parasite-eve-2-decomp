@@ -119,7 +119,7 @@ static __inline__ void Actor04400_UpdateRotation(Task* arg0)
 {
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*          dst;
 
     work->field_78           &= 0xFFF;
@@ -170,12 +170,12 @@ void Actor04400_Fn03538(Task* arg0)
     TmdObject*       obj   = arg0->extra;
     GpEnemy*         enemy = arg0->spawnArg2;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GsCOORDINATE2*   coord = obj->field_8;
+    GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D00128;
 
     switch (D_801153F4) {
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
             return;
         case 0:
             work->field_442++;
@@ -199,11 +199,11 @@ void Actor04400_Fn03538(Task* arg0)
             }
             coord->flg = 0;
         case 1:
-            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            Actor04400_UpdateColor(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
             Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
             Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             return;
     }
 }

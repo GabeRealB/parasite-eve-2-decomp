@@ -99,7 +99,7 @@ typedef struct Actor401800Work {
     /* 0xB48 */ GpObj   field_B48;
     /* 0xB68 */ GpRec18 field_B68;
     /// Light and color matrices the init body binds onto the model object
-    /// (`TmdObject.field_1C` / `field_20`). Same pair `Actor01900Work` keeps
+    /// (`TmdObject.lightMtx` / `field_20`). Same pair `Actor01900Work` keeps
     /// at `field_BB0` / `field_BD0`.
     /* 0xB80 */ MATRIX field_B80;
     /// Root-coordinate matrix the live-actor block of the walking body copies

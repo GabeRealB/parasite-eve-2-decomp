@@ -49,7 +49,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
     VECTOR              vec;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     switch (task->state) {
         case 0:
             car = Mem_Calloc(4, 0);
@@ -59,8 +59,8 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             }
             task->work        = (TaskIdMap*)car;
             car->field_0      = 0;
-            obj->field_E      = 0x64;
-            obj->field_C      = 0;
+            obj->otOffset     = 0x64;
+            obj->flags        = 0;
             coord->sub        = &Gfx_ViewCoord;
             coord->coord.t[0] = 0x2A94;
             coord->coord.t[1] = 0;
@@ -79,9 +79,9 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             }
             coord->coord.t[2] = car->field_0 * (s32)task->spawnArg2 - 0x1F4;
             if (gGameSession->at4.loc.view == 2) {
-                obj->field_C = 0;
+                obj->flags = 0;
             } else {
-                obj->field_C = 0x80;
+                obj->flags = 0x80;
             }
             coord->flg = 0;
             Gp_UpdateCoord(coord);

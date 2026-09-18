@@ -28,7 +28,7 @@ void func_actor_213000_8014A6AC(Task* task);
 /// model's 0x80 flag, then spawns the four children the actor's `TaskDesc`
 /// table holds -- table entries 1 and 2 parked at `field_4BC` / `field_4C0`,
 /// entries 3 and 4 kept here. Each of the two model tasks has
-/// `TmdObject::field_24` / `field_25` loaded with the texture page and CLUT row
+/// `TmdObject::tpage` / `field_25` loaded with the texture page and CLUT row
 /// of the `GpAreaPlace` that entry selects, reached through the area key
 /// `&gGameSession->at4.loc.view` and indexed by the model id the parent's
 /// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and has its texture stream
@@ -54,7 +54,7 @@ void func_actor_213000_80149E54(Task* task)
     work->field_476 = -1;
     work->field_478 = 0;
     work->field_477 = -1;
-    obj->field_C   |= 0x80;
+    obj->flags     |= 0x80;
     work->field_4BC = Task_SpawnFromTable(&D_actor_213000_80157DE0, 1, 8, (s32)task);
     work->field_4C0 = Task_SpawnFromTable(&D_actor_213000_80157DE0, 2, 8, (s32)task);
     spawned1        = Task_SpawnFromTable(&D_actor_213000_80157DE0, 3, 9, (s32)task);
@@ -74,11 +74,11 @@ void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -98,11 +98,11 @@ void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }

@@ -19,8 +19,8 @@ typedef struct ActorShared8014df20Work {
     /* 0x000 */ GpAnimCtx    context;
     /* 0x014 */ GpAnimSlot   slots[3];
     /* 0x08C */ byte         field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX       field_BC;       // colour matrix, TmdObject::field_20
-    /* 0x0DC */ MATRIX       field_DC;       // light matrix, TmdObject::field_1C
+    /* 0x0BC */ MATRIX       field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX       field_DC;       // light matrix, TmdObject::lightMtx
     /* 0x0FC */ GpObj        field_FC;
     /* 0x11C */ GpActorD4Rec field_11C;
     /* 0x134 */ GpRec18      field_134[1];

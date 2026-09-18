@@ -113,7 +113,7 @@ typedef struct RoomRect {
 } RoomRect;
 STATIC_ASSERT_SIZEOF(RoomRect, 0x8);
 
-/// The `GsCOORDINATE2` at `TmdObject::field_8` as the room overlays see it: the
+/// The `GsCOORDINATE2` at `TmdObject::coords` as the room overlays see it: the
 /// game stores the placed object's Euler angles in the `SVECTOR` that overlays
 /// libgs's `param` / `super` slots (0x44-0x4B) and rebuilds `coord` from it
 /// with `RotMatrix`. `sub` is the parent coordinate (`GsCOORDINATE2::sub`).

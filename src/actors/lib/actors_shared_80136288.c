@@ -25,7 +25,7 @@ void ActorsShared80136288(GpEnemy* arg0, Task* arg1)
     obj   = (TmdObject*)arg1->extra;
     state = D_801153F4;
     work  = (ActorShared80136288Work*)arg1->work;
-    coord = obj->field_8;
+    coord = obj->coords;
     part  = &coord[1];
     one   = 1;
     if (state == one) {
@@ -41,7 +41,7 @@ ge2:
     }
     goto default_body;
 case2:
-    obj->field_C       = obj->field_C | 0x80;
+    obj->flags         = obj->flags | 0x80;
     arg0->node.field_4 = one;
     return;
 default_body:
@@ -49,7 +49,7 @@ default_body:
         case 0:
             if (work->field_394 == 0) {
                 SndEvt_EnqueueType6(0xD, 0, 0);
-                obj->field_C = 2;
+                obj->flags = 2;
                 ActorsShared80137e18((ActorShared80137e18*)arg1);
             }
             arg0->field_54 = 0;
@@ -66,7 +66,7 @@ default_body:
             if (work->field_394 == 0) {
                 ActorsShared80137ea8((ActorShared80137ea8*)arg1);
             } else {
-                obj->field_C = 0x80;
+                obj->flags = 0x80;
             }
             ticks           = work->field_36E + 1;
             work->field_36E = ticks;
@@ -76,9 +76,9 @@ default_body:
             break;
         case 2:
             SndEvt_EnqueueType7(0xD, 1);
-            obj->field_C = 0x80;
-            part->sub    = coord;
-            arg1->state  = 3;
+            obj->flags  = 0x80;
+            part->sub   = coord;
+            arg1->state = 3;
             break;
     }
     Gp_SetLightMode((GpObj4C*)arg0, 1);

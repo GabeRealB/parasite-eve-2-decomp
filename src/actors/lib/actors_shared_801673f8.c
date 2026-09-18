@@ -28,7 +28,7 @@ void ActorsShared801673f8(Task* arg0)
     ActorsShared80168d3cWork* work  = (ActorsShared80168d3cWork*)arg0->work;
     TmdObject*                obj   = arg0->extra;
     GpEnemy*                  enemy = arg0->spawnArg2;
-    GsCOORDINATE2*            coord = obj->field_8;
+    GsCOORDINATE2*            coord = obj->coords;
     ActorsShared80168d3cWork* w2;
     s32                       id;
     s32                       pan;
@@ -38,10 +38,10 @@ void ActorsShared801673f8(Task* arg0)
         work->field_451      = 1;
         work->obj_2AC.flags |= 0x8000;
         work->obj_2CC.flags &= 0xBFFF;
-        obj->field_C        &= 0xFF7F;
+        obj->flags          &= 0xFF7F;
         if ((arg0->spawnArg1 & 0xF) != 2) {
             Tmd_AllocBuffers(obj);
-            obj->field_C &= 0xFFFB;
+            obj->flags &= 0xFFFB;
         }
         enemy->node.field_4 = 0;
         map                 = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
@@ -55,8 +55,8 @@ void ActorsShared801673f8(Task* arg0)
             coord->coord.t[1] = D_8018B74C[(work->field_44C >> 8) & 0xF].y;
             coord->coord.t[2] = D_8018B74C[(work->field_44C >> 8) & 0xF].z;
             id                = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 12) << 8) | 0x54270006;
-            pan               = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+            pan               = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+            SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         } else if (map == 0x4280000) {
             work->field_78    = 0;
             work->field_7A    = (D_801874C4[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;

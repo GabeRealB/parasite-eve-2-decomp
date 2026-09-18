@@ -17,7 +17,7 @@ void func_mine_mesa_8017EAC0(void)
 
     slot = (Task*)Game_GetPtrSlot(0xA);
     if (slot != NULL) {
-        Gp_SpawnEff(0x6002B, &((TmdObject*)slot->extra)->field_8[8], 0x21, NULL);
+        Gp_SpawnEff(0x6002B, &((TmdObject*)slot->extra)->coords[8], 0x21, NULL);
         SndEvt_EnqueueType6(0x40650001, 0, 0);
     }
 }

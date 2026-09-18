@@ -42,18 +42,18 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
     helperObj = (TmdObject*)ActorsShared80131f9cWork->field_4F0->extra;
 
     if (arg2 & 1) {
-        obj->field_C       = 0;
-        helperObj->field_C = 0;
+        obj->flags       = 0;
+        helperObj->flags = 0;
     } else {
-        obj->field_C       = 0x80;
-        helperObj->field_C = 0x80;
+        obj->flags       = 0x80;
+        helperObj->flags = 0x80;
     }
     if (arg2 & 2) {
-        obj->field_C       |= 4;
-        helperObj->field_C |= 4;
+        obj->flags       |= 4;
+        helperObj->flags |= 4;
     }
     if ((u8)ActorsShared80131f9cWork->field_4F4 == 0) {
-        helperObj->field_C = 0x84;
+        helperObj->flags = 0x84;
     }
     return 0;
 }
@@ -80,12 +80,12 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg)
         case 1:
             if (func_800B7420(0x88) == 0) {
                 ActorsShared80131f9cWork->field_4F4 = mode;
-                obj->field_C                        = 0;
+                obj->flags                          = 0;
             }
             break;
         case 2:
             ActorsShared80131f9cWork->field_4F4 = 0;
-            obj->field_C                        = 0x84;
+            obj->flags                          = 0x84;
             break;
     }
     return 0;

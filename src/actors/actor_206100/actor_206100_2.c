@@ -11,7 +11,7 @@ void func_actor_206100_8014F18C(Task* task)
 
     work = (Actor206100Work*)task->work;
 
-    work->obj_364.field_8  = &((TmdObject*)task->extra)->field_8[1];
+    work->obj_364.field_8  = &((TmdObject*)task->extra)->coords[1];
     work->obj_364.field_C  = work->rec_384;
     work->obj_364.field_10 = 0;
     work->obj_364.field_12 = 0;
@@ -23,7 +23,7 @@ void func_actor_206100_8014F18C(Task* task)
     Gp_InitRec18Table(work->rec_384, 6, 0);
     work->obj_364.flags &= 0x7FFF;
 
-    work->obj_414.field_8  = &((TmdObject*)task->extra)->field_8[4];
+    work->obj_414.field_8  = &((TmdObject*)task->extra)->coords[4];
     work->obj_414.field_C  = work->rec_384;
     work->obj_414.field_10 = 0;
     work->obj_414.field_12 = 0;

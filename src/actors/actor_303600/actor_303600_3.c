@@ -44,9 +44,9 @@ void func_actor_303600_80162950(Task* task)
 {
     Task*                 parent      = task->spawnArg2;
     TmdObject*            obj         = task->extra;
-    GsCOORDINATE2*        coord       = obj->field_8;
+    GsCOORDINATE2*        coord       = obj->coords;
     TmdObject*            parentObj   = parent->extra;
-    GsCOORDINATE2*        parentCoord = parentObj->field_8;
+    GsCOORDINATE2*        parentCoord = parentObj->coords;
     Actor303600LightMats* mats;
 
     mats = Mem_Calloc(0x44, 0);
@@ -60,8 +60,8 @@ void func_actor_303600_80162950(Task* task)
     coord->flg = 0;
     func_actor_303600_80162A0C(task);
     Task_Reparent(parent, task);
-    obj->field_C &= 0xFF7F;
-    task->state  += 1;
+    obj->flags  &= 0xFF7F;
+    task->state += 1;
 }
 
 void func_actor_303600_80162A04(void)
@@ -77,8 +77,8 @@ void func_actor_303600_80162A0C(Task* task)
     GsF_LIGHT*            light;
     s32                   i;
 
-    obj->field_1C = &mats->lightMtx;
-    obj->field_20 = &mats->colorMtx;
+    obj->lightMtx = &mats->lightMtx;
+    obj->colorMtx = &mats->colorMtx;
     for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
         Gfx_SetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
     }

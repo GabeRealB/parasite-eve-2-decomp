@@ -35,7 +35,7 @@ void func_actor_303600_801626C0(Task* task)
         return;
     }
     task->work        = (TaskIdMap*)work;
-    coord             = ((TmdObject*)task->extra)->field_8;
+    coord             = ((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
@@ -45,7 +45,7 @@ void func_actor_303600_801626C0(Task* task)
             break;
         }
         work->children[i]      = child;
-        childCoord             = ((TmdObject*)child->extra)->field_8;
+        childCoord             = ((TmdObject*)child->extra)->coords;
         childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
         childCoord->coord.t[0] = 0;
         childCoord->coord.t[2] = 0;
@@ -65,7 +65,7 @@ void func_actor_303600_801626C0(Task* task)
 void func_actor_303600_801627B8(Task* task)
 {
     Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
-    GsCOORDINATE2*      coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*      coord = ((TmdObject*)task->extra)->coords;
     s32                 speed;
     s32                 angle;
     s32                 var;

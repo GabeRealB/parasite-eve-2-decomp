@@ -16,7 +16,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Spawn handler: allocates the 0x540-byte work block and parks it in the
 /// task's `work` slot, seeds its head, shows the model by setting
-/// `TmdObject::field_C` bit 0x80, sends the two script commands that place the
+/// `TmdObject::flags` bit 0x80, sends the two script commands that place the
 /// actor (0x7D4 at the origin) and start its animation (0x7D3), draws the
 /// ground shadow under the model's second part, republishes the light/colour
 /// pair from the work block, installs the overlay's command table and the
@@ -42,7 +42,7 @@ void func_actor_210700_80149F90(Task* task)
     work->field_478 = -1;
     work->field_47C = -1;
     work->field_53E = -1;
-    extra->field_C  = 0x80;
+    extra->flags    = 0x80;
     args.pos.vx     = 0;
     args.pos.vy     = 0;
     args.pos.vz     = 0;
@@ -54,7 +54,7 @@ void func_actor_210700_80149F90(Task* task)
     anim.field_4 = 1;
     anim.field_8 = 0;
     func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
-    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->field_8);
     }
     func_actor_210700_8014A208(task);
@@ -87,13 +87,13 @@ void func_actor_210700_8014A0AC(Task* task)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
     }
-    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->field_8);
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)task->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
     func_actor_210700_80149E30((GpActorWork*)task);
     count = work->field_53E;

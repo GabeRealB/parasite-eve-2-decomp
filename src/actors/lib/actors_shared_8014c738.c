@@ -72,17 +72,17 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        sc->dmg                      = Gp_ComputeDamage(sc->id, 0, 0, 0x1000);
-        arg1->field_2C->field_8->flg = 0;
-        Gp_UpdateCoord(arg1->field_2C->field_8);
-        sc->d.vx = arg1->field_2C->field_8->workm.t[0];
-        sc->d.vy = arg1->field_2C->field_8->workm.t[1];
-        sc->d.vz = arg1->field_2C->field_8->workm.t[2];
-        sc->d.vx = sc->pos.vx - arg1->field_2C->field_8->workm.t[0];
-        sc->d.vy = sc->pos.vy - arg1->field_2C->field_8->workm.t[1];
-        sc->d.vz = sc->pos.vz - arg1->field_2C->field_8->workm.t[2];
+        sc->dmg                     = Gp_ComputeDamage(sc->id, 0, 0, 0x1000);
+        arg1->field_2C->coords->flg = 0;
+        Gp_UpdateCoord(arg1->field_2C->coords);
+        sc->d.vx = arg1->field_2C->coords->workm.t[0];
+        sc->d.vy = arg1->field_2C->coords->workm.t[1];
+        sc->d.vz = arg1->field_2C->coords->workm.t[2];
+        sc->d.vx = sc->pos.vx - arg1->field_2C->coords->workm.t[0];
+        sc->d.vy = sc->pos.vy - arg1->field_2C->coords->workm.t[1];
+        sc->d.vz = sc->pos.vz - arg1->field_2C->coords->workm.t[2];
         angle    = ratan2(sc->d.vx, sc->d.vz) -
-                ratan2(-arg1->field_2C->field_8->workm.m[2][0], arg1->field_2C->field_8->workm.m[2][2]);
+                ratan2(-arg1->field_2C->coords->workm.m[2][0], arg1->field_2C->coords->workm.m[2][2]);
         sc->angle = angle;
         sc->angle = Actor201200_WrapAngle(angle);
         ActorsShared8014c4c0(arg1, sc->angle, sc->id);

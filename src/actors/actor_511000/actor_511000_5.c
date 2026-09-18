@@ -45,22 +45,22 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
     ret  = 0;
     switch (msg) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags   |= 0x80;
             work->field_8 = msg;
-            obj->field_C |= 4;
+            obj->flags   |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
@@ -70,7 +70,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
         for (i = 1; i < 4; i++) {
             child = Task_SpawnFromTable(&D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, (s32)task);
             if (child != NULL) {
-                ((TmdObject*)child->extra)->field_C &= ~0x84;
+                ((TmdObject*)child->extra)->flags &= ~0x84;
             }
         }
         work->field_2F = 1;
@@ -91,7 +91,7 @@ void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 i
 
     off               = (index << 16) >> 13;
     rot               = (SVECTOR*)(off + (s32)rots);
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
+    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->coords;
     coord->rot.vx     = rot->vx;
     coord->rot.vy     = rot->vy;
     pos               = (SVECTOR*)(off + (s32)trans);
@@ -111,7 +111,7 @@ void func_actor_511000_80133760(Task* task)
 {
     Actor511000Coord* coord;
 
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->field_8;
+    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = D_actor_511000_80148FE4[task->spawnArg1].vx;
     coord->coord.t[1] = D_actor_511000_80148FE4[task->spawnArg1].vy;
     coord->coord.t[2] = D_actor_511000_80148FE4[task->spawnArg1].vz;
@@ -132,9 +132,9 @@ void func_actor_511000_801337F0(Task* task)
 
     work            = (Actor511000Work*)task->work;
     extra           = (TmdObject*)task->extra;
-    coord           = extra->field_8;
-    extra->field_1C = &work->light;
-    extra->field_20 = &work->color;
+    coord           = extra->coords;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
     coord->flg      = 0;
     Gp_UpdateCoord(coord);
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
@@ -185,16 +185,16 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     GameSession*           session;
 
     model = task->extra;
-    coord = model->field_8;
+    coord = model->coords;
     work  = Mem_Calloc(0x488, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
     task->work      = (TaskIdMap*)work;
-    model->field_C  = 0x80;
-    model->field_1C = &work->field_45C;
-    model->field_20 = &work->field_43C;
+    model->flags    = 0x80;
+    model->lightMtx = &work->field_45C;
+    model->colorMtx = &work->field_43C;
     func_800B3F84(&work->anim, &D_actor_511000_801550C0, (GpAnimObj*)model, work->field_30C, work->slots);
     work->field_47C = 0;
     task->msgTable  = &D_actor_511000_801550A0;
@@ -217,12 +217,12 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     idx        = idx >> 12;
     key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    rec             = Gp_GetNestedAreaRec(&key);
-    idx           <<= 4;
-    idx            += (s32)rec->field_0;
-    model->field_24 = ((GpCdRec10*)idx)->field_D;
-    model->field_25 = ((GpCdRec10*)idx)->field_E;
-    if (model->field_18 != NULL) {
+    rec          = Gp_GetNestedAreaRec(&key);
+    idx        <<= 4;
+    idx         += (s32)rec->field_0;
+    model->tpage = ((GpCdRec10*)idx)->field_D;
+    model->clut  = ((GpCdRec10*)idx)->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }
@@ -240,12 +240,12 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     idx        = idx >> 12;
     key.view   = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    rec             = Gp_GetNestedAreaRec(&key);
-    idx           <<= 4;
-    idx            += (s32)rec->field_0;
-    model->field_24 = ((GpCdRec10*)idx)->field_D;
-    model->field_25 = ((GpCdRec10*)idx)->field_E;
-    if (model->field_18 != NULL) {
+    rec          = Gp_GetNestedAreaRec(&key);
+    idx        <<= 4;
+    idx         += (s32)rec->field_0;
+    model->tpage = ((GpCdRec10*)idx)->field_D;
+    model->clut  = ((GpCdRec10*)idx)->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }

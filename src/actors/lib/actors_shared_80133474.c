@@ -21,15 +21,15 @@ s32 ActorsShared80133474(Task* task, s32 arg1, s32 flags)
         other = self;
     }
     if (flags & 1) {
-        self->field_C  = 0;
-        other->field_C = 0;
+        self->flags  = 0;
+        other->flags = 0;
     } else {
-        self->field_C  = 0x80;
-        other->field_C = 0x80;
+        self->flags  = 0x80;
+        other->flags = 0x80;
     }
     if (flags & 2) {
-        self->field_C  |= 4;
-        other->field_C |= 4;
+        self->flags  |= 4;
+        other->flags |= 4;
     }
     return 0;
 }

@@ -22,8 +22,8 @@ void ActorsShared8013242c(Task* task)
     VECTOR3*       vec;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
-    if (!(obj->field_C & 0x80) && obj->field_18 != NULL) {
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];

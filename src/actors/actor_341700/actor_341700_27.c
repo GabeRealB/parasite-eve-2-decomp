@@ -71,15 +71,15 @@ void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
     Actor341700SubWork*   work = (Actor341700SubWork*)arg1->work;
     GpEnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
 
-    ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->field_8[1]);
-    block.vx = ((TmdObject*)arg1->extra)->field_8[1].workm.t[0];
-    block.vy = ((TmdObject*)arg1->extra)->field_8[1].workm.t[1];
-    block.vz = ((TmdObject*)arg1->extra)->field_8[1].workm.t[2];
+    ((TmdObject*)arg1->extra)->coords[1].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
+    block.vx = ((TmdObject*)arg1->extra)->coords[1].workm.t[0];
+    block.vy = ((TmdObject*)arg1->extra)->coords[1].workm.t[1];
+    block.vz = ((TmdObject*)arg1->extra)->coords[1].workm.t[2];
     Gp_UpdateActorColor(arg0, &block, 0, 0);
     switch (D_801153F4) {
         case 2:
-            ((TmdObject*)arg1->extra)->field_C |= 0x80;
+            ((TmdObject*)arg1->extra)->flags |= 0x80;
             return;
         case 1:
             return;
@@ -93,7 +93,7 @@ void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
             work->field_2 = work->field_0;
             sp.funcs[work->field_0](arg0, arg1);
             if (gGameSession->viewReady != 0) {
-                ((TmdObject*)arg1->extra)->field_8->flg = 0;
+                ((TmdObject*)arg1->extra)->coords->flg = 0;
             }
             return;
     }
@@ -107,18 +107,18 @@ s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->field_C = 0x80;
+            obj->flags = 0x80;
             Tmd_AllocBuffers(obj);
             break;
         case 1:
-            obj->field_C = 0;
+            obj->flags = 0;
             Tmd_AllocBuffers(obj);
             break;
         case 2:
-            obj->field_C |= 4;
+            obj->flags |= 4;
             break;
         case 3:
-            obj->field_C = 4;
+            obj->flags = 4;
             break;
     }
     return 0;
@@ -147,8 +147,8 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, Actor341700Cmd* cmd)
                 work->field_0 = 0;
                 return 1;
             case 1:
-                ((TmdObject*)task->extra)->field_8->flg = 0;
-                work->field_0                           = 2;
+                ((TmdObject*)task->extra)->coords->flg = 0;
+                work->field_0                          = 2;
                 break;
             case 2:
             default:

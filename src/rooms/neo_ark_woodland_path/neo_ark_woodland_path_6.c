@@ -102,16 +102,16 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPath
                 if (Gp_LookupSlot4(0) != 0) {
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB,
                                    (s32)&D_neo_ark_woodland_path_80184A5C, 0);
-                    obj                                                                  = ((Task*)Gp_LookupSlot4(0))->spawnArg2;
-                    ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord.t[0] = 5;
-                    ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord.t[1] = 0;
-                    ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord.t[2] = -0x320;
+                    obj                                                                 = ((Task*)Gp_LookupSlot4(0))->spawnArg2;
+                    ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[0] = 5;
+                    ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[1] = 0;
+                    ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[2] = -0x320;
                     if (obj != 0) {
                         *(u16*)((u8*)obj + 0x40)            = D_neo_ark_woodland_path_80184A60[0];
                         D_neo_ark_woodland_path_80184A60[0] = 0;
                         obj->field_4C                       = 0;
                     }
-                    Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8->coord,
+                    Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord,
                                    0x400, 1);
                     D_neo_ark_woodland_path_8018498E = 0x5A;
                 }

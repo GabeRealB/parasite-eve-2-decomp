@@ -51,7 +51,7 @@ s32 func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target)
     s32            dz;
     u16            yaw;
 
-    coord                        = ((TmdObject*)task->extra)->field_8;
+    coord                        = ((TmdObject*)task->extra)->coords;
     dx                           = target->pos.vx - coord->coord.t[0];
     dz                           = target->pos.vz - coord->coord.t[2];
     yaw                          = ratan2(dx, dz);

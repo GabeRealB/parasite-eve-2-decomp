@@ -23,7 +23,7 @@ void func_actor_103700_80134E24(Actor103700Ctx* arg0, Task* task)
     obj   = (TmdObject*)task->extra;
     state = D_801153F4;
     work  = (Actor103700Work*)task->work;
-    coord = obj->field_8;
+    coord = obj->coords;
     one   = 1;
     if (state == one) {
         goto case1;
@@ -41,11 +41,11 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C   = 0;
+    obj->flags     = 0;
     arg0->field_14 = 0;
     goto default_body;
 case2:
-    obj->field_C  |= 0x80;
+    obj->flags    |= 0x80;
     arg0->field_14 = one;
     return;
 default_body:

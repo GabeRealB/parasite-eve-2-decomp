@@ -74,8 +74,8 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
             actor->field_914->spawnArg1 = 1;
             actor->field_934            = 0;
             eff->spawnArg1             |= 0x10;
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20160003, 0);
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20160005, 0);
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20160003, 0);
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20160005, 0);
             Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
             /* fallthrough */
         case 1:
@@ -89,12 +89,12 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
                     actor->field_934 = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     SndEvt_EnqueueType7(0x20160005, 1);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20160007, 1);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20160007, 1);
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
                     eff->spawnArg1 |= 0x20;
                     SndEvt_EnqueueType7(0x20160003, 1);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20160002, 0);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20160002, 0);
                 }
                 SndEvt_EnqueueType7(0x20160004, 1);
             } else {
@@ -103,7 +103,7 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
                 eff->spawnArg1              = 0;
                 SndEvt_EnqueueType7(0x20160003, 1);
                 SndEvt_EnqueueType7(0x20160005, 1);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20160004, 0);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20160004, 0);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 3);
             }
             break;
@@ -112,7 +112,7 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
             actor->field_934 = step;
             if (step != 0) {
                 if (step < 0x13) {
-                    coord = (GsCOORDINATE2*)arg0->extra->field_8;
+                    coord = (GsCOORDINATE2*)arg0->extra->coords;
                     div   = 0x17A;
                     if (step == 0x12) {
                         div = 0xF4;

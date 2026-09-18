@@ -65,7 +65,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B != -2) && (Gp_State1C->field_E < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
@@ -108,7 +108,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->workm.t[1] -= 0x400;
                 mem->field_24      = (u16)mem->field_24 + D_apobiosis_80130B5C[mem->field_20].field_4;
                 func_apobiosis_8013017C(
-                    &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1], mem->field_22,
+                    &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1], mem->field_22,
                     D_apobiosis_80130B5C[mem->field_20].field_2, 0);
                 func_apobiosis_8012F9D0(coord, mem->field_24, 0x80, rgb);
                 if (mem->field_22 & 1) {
@@ -370,7 +370,7 @@ void func_apobiosis_8012FE10(Task* arg0)
     GsCOORDINATE2* coord;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B != -2) && (Gp_State1C->field_E < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {

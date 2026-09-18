@@ -389,7 +389,7 @@ void Actor00400_Fn00C84(Actor100400* arg0)
         work->pad_65C[0]++;
     }
     if (work->field_62A >= 0 && frame >= work->field_62A) {
-        pc          = player->extra->field_8;
+        pc          = player->extra->coords;
         pos.field_0 = pc->coord.t[0];
         pos.field_2 = pc->coord.t[1];
         pos.field_4 = pc->coord.t[2];
@@ -452,7 +452,7 @@ void Actor00400_Fn01454(Actor100400* arg0)
     work->field_54E = coord->coord.t[1];
     work->field_550 = coord->coord.t[2];
     if (player != NULL) {
-        c0      = player->extra->field_8;
+        c0      = player->extra->coords;
         view.vx = 0;
         view.vy = 0;
         view.vz = 0;
@@ -467,7 +467,7 @@ void Actor00400_Fn01454(Actor100400* arg0)
             work->field_5E4.vz = c0->coord.t[2];
             work->field_640    = dist0;
         } else {
-            c1        = Gp_ActorSlots[1]->extra->field_8;
+            c1        = Gp_ActorSlots[1]->extra->coords;
             delta1.vx = c1->coord.t[0] - view.vx;
             delta1.vy = c1->coord.t[1] - view.vy;
             delta1.vz = c1->coord.t[2] - view.vz;
@@ -926,37 +926,37 @@ void Actor00400_Fn0237C(Actor100400* arg0)
     TmdObject* dst5;
 
     D_800678F0[0] = Actor00400_D0E5B8;
-    eff1          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[4], 0x200, NULL);
+    eff1          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->coords[4], 0x200, NULL);
     if (eff1 != NULL) {
-        src1           = (TmdObject*)arg0->field_2C;
-        dst1           = (TmdObject*)eff1->field_0->extra;
-        dst1->field_24 = src1->field_24;
-        dst1->field_25 = src1->field_25;
-        if (dst1->field_18 != NULL) {
+        src1        = (TmdObject*)arg0->field_2C;
+        dst1        = (TmdObject*)eff1->field_0->extra;
+        dst1->tpage = src1->tpage;
+        dst1->clut  = src1->clut;
+        if (dst1->buffer != NULL) {
             Tmd_ProcessStream(dst1);
             Tmd_ProcessStream(dst1);
         }
     }
     D_800678F0[0] = Actor00400_D0E970;
-    eff2          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[11], 0x200, NULL);
+    eff2          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->coords[11], 0x200, NULL);
     if (eff2 != NULL) {
-        src2           = (TmdObject*)arg0->field_2C;
-        dst2           = (TmdObject*)eff2->field_0->extra;
-        dst2->field_24 = src2->field_24;
-        dst2->field_25 = src2->field_25;
-        if (dst2->field_18 != NULL) {
+        src2        = (TmdObject*)arg0->field_2C;
+        dst2        = (TmdObject*)eff2->field_0->extra;
+        dst2->tpage = src2->tpage;
+        dst2->clut  = src2->clut;
+        if (dst2->buffer != NULL) {
             Tmd_ProcessStream(dst2);
             Tmd_ProcessStream(dst2);
         }
     }
     D_800678F0[0] = Actor00400_D0ED28;
-    eff3          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[14], 0x200, NULL);
+    eff3          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->coords[14], 0x200, NULL);
     if (eff3 != NULL) {
-        src3           = (TmdObject*)arg0->field_2C;
-        dst3           = (TmdObject*)eff3->field_0->extra;
-        dst3->field_24 = src3->field_24;
-        dst3->field_25 = src3->field_25;
-        if (dst3->field_18 != NULL) {
+        src3        = (TmdObject*)arg0->field_2C;
+        dst3        = (TmdObject*)eff3->field_0->extra;
+        dst3->tpage = src3->tpage;
+        dst3->clut  = src3->clut;
+        if (dst3->buffer != NULL) {
             Tmd_ProcessStream(dst3);
             Tmd_ProcessStream(dst3);
         }
@@ -964,34 +964,34 @@ void Actor00400_Fn0237C(Actor100400* arg0)
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((Gp_LcgState >> 16) & 1) {
         D_800678F0[0] = Actor00400_D0F25C;
-        eff4          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[8], 0x200, NULL);
+        eff4          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->coords[8], 0x200, NULL);
     } else {
         D_800678F0[0] = Actor00400_D0F790;
-        eff4          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[8], 0x200, NULL);
+        eff4          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->coords[8], 0x200, NULL);
     }
     if (eff4 != NULL) {
-        src4           = (TmdObject*)arg0->field_2C;
-        dst4           = (TmdObject*)eff4->field_0->extra;
-        dst4->field_24 = src4->field_24;
-        dst4->field_25 = src4->field_25;
-        if (dst4->field_18 != NULL) {
+        src4        = (TmdObject*)arg0->field_2C;
+        dst4        = (TmdObject*)eff4->field_0->extra;
+        dst4->tpage = src4->tpage;
+        dst4->clut  = src4->clut;
+        if (dst4->buffer != NULL) {
             Tmd_ProcessStream(dst4);
             Tmd_ProcessStream(dst4);
         }
     }
     D_800678F0[0] = Actor00400_D0FD9C;
-    eff5          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->field_8[1], 0x200, NULL);
+    eff5          = Gp_SpawnEff(0x20010, &((TmdObject*)arg0->field_2C)->coords[1], 0x200, NULL);
     if (eff5 != NULL) {
-        src5           = (TmdObject*)arg0->field_2C;
-        dst5           = (TmdObject*)eff5->field_0->extra;
-        dst5->field_24 = src5->field_24;
-        dst5->field_25 = src5->field_25;
-        if (dst5->field_18 != NULL) {
+        src5        = (TmdObject*)arg0->field_2C;
+        dst5        = (TmdObject*)eff5->field_0->extra;
+        dst5->tpage = src5->tpage;
+        dst5->clut  = src5->clut;
+        if (dst5->buffer != NULL) {
             Tmd_ProcessStream(dst5);
             Tmd_ProcessStream(dst5);
         }
     }
-    Gp_SpawnEff(0x60030, &((TmdObject*)arg0->field_2C)->field_8[1], 0x200, NULL);
+    Gp_SpawnEff(0x60030, &((TmdObject*)arg0->field_2C)->coords[1], 0x200, NULL);
 }
 
 /// Drives the two head/neck coordinates (`base[2]`, `base[3]`) and the aim
@@ -3599,7 +3599,7 @@ void Actor00400_Fn07F88(Actor100400* arg0)
     model = (TmdObject*)arg0->field_2C;
     work  = arg0->field_1C;
     Tmd_FreeBuffers(model);
-    model->field_C |= 4;
+    model->flags |= 4;
     Actor00400_Fn0237C(arg0);
     work->field_638 = (u16)work->field_638 + 1;
 }

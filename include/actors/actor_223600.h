@@ -56,8 +56,8 @@ typedef struct Actor223600Work {
     /* 0x19E */ s16    field_19E;
     /* 0x1A0 */ u16    field_1A0;
     /* 0x1A2 */ byte   pad_1A2[0x6];
-    /* 0x1A8 */ MATRIX field_1A8; ///< installed at `TmdObject.field_1C`
-    /* 0x1C8 */ MATRIX field_1C8; ///< installed at `TmdObject.field_20`
+    /* 0x1A8 */ MATRIX field_1A8; ///< installed at `TmdObject.lightMtx`
+    /* 0x1C8 */ MATRIX field_1C8; ///< installed at `TmdObject.colorMtx`
     /* 0x1E8 */ byte   pad_1E8[0x20];
     /* 0x208 */ u16    field_208; ///< animation id that last raised the reaction
     /* 0x20A */ byte   pad_20A[0x2];

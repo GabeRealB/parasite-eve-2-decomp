@@ -104,7 +104,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 != 0) {
         func_acropolis_bridge_80182F8C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
         if (Gp_State1C->field_4 >= 4) {

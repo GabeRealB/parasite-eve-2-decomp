@@ -19,7 +19,7 @@ typedef struct ActorsShared80132860Work {
     /* 0x4FA */ u16     turnCount;
 } ActorsShared80132860Work;
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
 /// `param`, and `super` at 0x48) holds the Euler angles this body writes and
 /// then hands straight to `RotMatrix`, the same reuse `HyperCoord` and
 /// `GpCoordExt` document for their own overlays.

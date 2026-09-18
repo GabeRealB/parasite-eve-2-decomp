@@ -353,8 +353,8 @@ STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 /// `"new_disp_2d ----> NULL"`). Linked onto `gTmdDisp2dList`. `field_8` points at
 /// the embedded coord; `field_C` is stored as a word 1.
 typedef struct _GpDisp2d {
-    /* 0x00 */ TmdObject*     next;
-    /* 0x04 */ TmdListHead*   prev;
+    TmdListHead*              next; // Following node of the list, or NULL past the last
+    TmdListHead*              prev; // Preceding node, or the head at the front
     /* 0x08 */ GpDisp2dCoord* field_8;
     /* 0x0C */ s32            field_C;
     /* 0x10 */ GpDisp2dCoord  coord;
@@ -383,10 +383,10 @@ void       Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
 void*      Gp_AttachTmd(Task* task, TmdSource* src);
 void*      Gp_AttachDisp2d(Task* task);
 void*      Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
-void       Gp_UnlinkTmd(TmdListHead* arg0);
-void       Gp_FreeTmd(TmdObject* arg0);
-void       Gp_UnlinkDisp2d(TmdListHead* arg0);
-void       Gp_FreeDisp2d(void* arg0);
+void       Gp_UnlinkTmd(TmdListHead* node);
+void       Gp_FreeTmd(TmdObject* obj);
+void       Gp_UnlinkDisp2d(TmdListHead* node);
+void       Gp_FreeDisp2d(void* node);
 void       Gp_StashTmdLists(void);
 void       Gp_RestoreTmdLists(void);
 Task*      Gp_FindTaskByCoord(GsCOORDINATE2* arg0);

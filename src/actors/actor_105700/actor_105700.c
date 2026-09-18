@@ -141,7 +141,7 @@ void func_actor_105700_80131ED0(Actor105700* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].field_4 >> 7) & 1]->extra->field_8;
+                other               = Gp_ActorSlots[((u32)work->field_4EC[i].field_4 >> 7) & 1]->extra->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
@@ -347,7 +347,7 @@ void func_actor_105700_80131ED0(Actor105700* arg0)
     }
     work->field_6B2 = 0;
     if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
-        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[4];
+        part               = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
         scratch->effOfs.vz = part->workm.t[2];

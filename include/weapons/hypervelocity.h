@@ -24,7 +24,7 @@ typedef union HyperMat {
 STATIC_ASSERT_SIZEOF(HyperMat, 0x20);
 
 /// The hypervelocity muzzle/recoil coordinate node, reached through
-/// `TmdObject.field_8`. It is the game's `GsCOORDINATE2` variant: `sub`
+/// `TmdObject.coords`. It is the game's `GsCOORDINATE2` variant: `sub`
 /// (0x4C) is the parent link, the same convention as `GpCoordExt` in
 /// gameplay. This overlay keeps the barrel's pitch in the 16-bit slot at
 /// 0x44 (libgs `param`, unused here) and feeds it to `RotMatrixX`.

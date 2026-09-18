@@ -47,7 +47,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     s32              i;
 
     work                    = (Actor110700Work*)task->work;
-    coord                   = &((TmdObject*)task->extra)->field_8[1];
+    coord                   = &((TmdObject*)task->extra)->coords[1];
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x10;
     block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
     if (work->field_47C != 0) {

@@ -34,13 +34,13 @@ void ActorsShared80133de4(Task* task, s16 arg1)
         }
     }
 
-    pitch4 = -ratan2(((TmdObject*)task->extra)->field_8[4].coord.m[1][2],
-                     ((TmdObject*)task->extra)->field_8[4].coord.m[2][2]);
-    pitch3 = -ratan2(((TmdObject*)task->extra)->field_8[3].coord.m[1][2],
-                     ((TmdObject*)task->extra)->field_8[3].coord.m[2][2]);
+    pitch4 = -ratan2(((TmdObject*)task->extra)->coords[4].coord.m[1][2],
+                     ((TmdObject*)task->extra)->coords[4].coord.m[2][2]);
+    pitch3 = -ratan2(((TmdObject*)task->extra)->coords[3].coord.m[1][2],
+                     ((TmdObject*)task->extra)->coords[3].coord.m[2][2]);
 
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8[3].coord, work->field_F00 / 2 - pitch3, 0);
-    ((TmdObject*)task->extra)->field_8[3].flg = 0;
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8[4].coord, -work->field_F00 - pitch4, 0);
-    ((TmdObject*)task->extra)->field_8[4].flg = 0;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[3].coord, work->field_F00 / 2 - pitch3, 0);
+    ((TmdObject*)task->extra)->coords[3].flg = 0;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[4].coord, -work->field_F00 - pitch4, 0);
+    ((TmdObject*)task->extra)->coords[4].flg = 0;
 }

@@ -53,7 +53,7 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1)
     if (work->field_4 != 0) {
         obj                 = arg1->field_2C;
         arg0->field_14      = 0;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         work->field_174     = 2;
         work->field_170     = 1;
         work->field_178     = 0;
@@ -69,10 +69,10 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1)
     head                                      = *(Actor201200TurnScratch**)G_SCRATCH_HEAD;
     *(Actor201200TurnScratch**)G_SCRATCH_HEAD = head - 1;
     sc                                        = head - 1;
-    head[-1].d.vx                             = work->patrol[work->patrolIdx].vx - arg1->field_2C->field_8->coord.t[0];
+    head[-1].d.vx                             = work->patrol[work->patrolIdx].vx - arg1->field_2C->coords->coord.t[0];
     sc->d.vy                                  = 0;
-    sc->d.vz                                  = work->patrol[work->patrolIdx].vz - arg1->field_2C->field_8->coord.t[2];
-    coord                                     = arg1->field_2C->field_8;
+    sc->d.vz                                  = work->patrol[work->patrolIdx].vz - arg1->field_2C->coords->coord.t[2];
+    coord                                     = arg1->field_2C->coords;
     angle                                     = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle                                 = Actor201200_NormalizeYaw(angle);
     if (sc->angle > 0x20) {
@@ -81,10 +81,10 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1)
     if (sc->angle < -0x20) {
         sc->angle = -0x20;
     }
-    sc->angle += ratan2(-arg1->field_2C->field_8->coord.m[2][0], arg1->field_2C->field_8->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, sc->angle, 1);
-    Actor201200_StepForward(arg1->field_2C->field_8, 5);
-    if (func_actor_201200_8014A49C(arg1->field_2C->field_8, &work->rec1B8, 5)) {
+    sc->angle += ratan2(-arg1->field_2C->coords->coord.m[2][0], arg1->field_2C->coords->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg1->field_2C->coords->coord, sc->angle, 1);
+    Actor201200_StepForward(arg1->field_2C->coords, 5);
+    if (func_actor_201200_8014A49C(arg1->field_2C->coords, &work->rec1B8, 5)) {
         work->field_6++;
     }
     if (!Actor201200_OutOfRange(&sc->d, 400) || work->field_6 > 0x60) {
@@ -95,22 +95,22 @@ void func_actor_201200_8014CA08(Actor201200Ctx* arg0, Actor201200* arg1)
         }
         work->field_6 = 0;
     }
-    if (func_actor_201200_80149F50(arg1->field_2C->field_8, &work->rec250, 5, &sc->d) == 1) {
+    if (func_actor_201200_80149F50(arg1->field_2C->coords, &work->rec250, 5, &sc->d) == 1) {
         work->field_0 = 6;
     }
-    target   = arg1->field_2C->field_8;
+    target   = arg1->field_2C->coords;
     sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
     sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
     if (!Actor201200_OutOfRange(&sc->d, 2000)) {
-        coord = arg1->field_2C->field_8;
+        coord = arg1->field_2C->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
         if (Actor201200_NormalizeYaw(angle) < 0x400 || !Actor201200_OutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }
     func_actor_201200_8014A640(arg1);
-    arg1->field_2C->field_8->flg = 0;
+    arg1->field_2C->coords->flg = 0;
     if ((work->field_58 & 2) && work->field_17C > 0x14) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if (!((Gp_LcgState >> 0x10) & 7)) {
@@ -136,7 +136,7 @@ void func_actor_201200_8014D0B4(Actor201200Ctx* arg0, Actor201200* arg1)
     if (work->field_4 != 0) {
         obj                 = arg1->field_2C;
         arg0->field_14      = 0;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         work->field_174     = 2;
         work->field_170     = 1;
         work->field_178     = 0;
@@ -153,28 +153,28 @@ void func_actor_201200_8014D0B4(Actor201200Ctx* arg0, Actor201200* arg1)
     *(Actor201200TurnScratch**)G_SCRATCH_HEAD = head - 1;
     s                                         = head - 1;
     func_actor_201200_8014A640(arg1);
-    arg1->field_2C->field_8->flg = 0;
-    head[-1].d.vx                = work->origin.vx - arg1->field_2C->field_8->coord.t[0];
-    s->d.vy                      = 0;
-    s->d.vz                      = work->origin.vz - arg1->field_2C->field_8->coord.t[2];
-    coord                        = arg1->field_2C->field_8;
-    s->angle                     = Actor201200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    arg1->field_2C->coords->flg = 0;
+    head[-1].d.vx               = work->origin.vx - arg1->field_2C->coords->coord.t[0];
+    s->d.vy                     = 0;
+    s->d.vz                     = work->origin.vz - arg1->field_2C->coords->coord.t[2];
+    coord                       = arg1->field_2C->coords;
+    s->angle                    = Actor201200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     if (s->angle > 0x10) {
         s->angle = 0x10;
     }
     if (s->angle < -0x10) {
         s->angle = -0x10;
     }
-    facing    = arg1->field_2C->field_8;
+    facing    = arg1->field_2C->coords;
     s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, s->angle, 1);
-    Actor201200_StepForward(arg1->field_2C->field_8, 8);
-    func_actor_201200_8014A49C(arg1->field_2C->field_8, &work->rec1B8, 5);
+    Gfx_RotMatrixY(&arg1->field_2C->coords->coord, s->angle, 1);
+    Actor201200_StepForward(arg1->field_2C->coords, 8);
+    func_actor_201200_8014A49C(arg1->field_2C->coords, &work->rec1B8, 5);
     work->field_6++;
     if (!Actor201200_OutOfRange(&s->d, 0x50) || work->field_6 >= 0xDD) {
         work->field_0 = 7;
     }
-    if (func_actor_201200_80149F50(arg1->field_2C->field_8, &work->rec250, 5, &s->d) == 1) {
+    if (func_actor_201200_80149F50(arg1->field_2C->coords, &work->rec250, 5, &s->d) == 1) {
         work->field_0 = 6;
     }
     *(Actor201200TurnScratch**)G_SCRATCH_HEAD += 1;
@@ -206,32 +206,32 @@ void func_actor_201200_8014D4D0(Actor201200Ctx* arg0, Actor201200* arg1)
     s32                   pan;
     s32                   id;
 
-    work                         = arg1->field_1C;
-    table                        = D_actor_201200_80149F04;
-    arg1->field_2C->field_8->flg = 0;
-    Gp_UpdateCoord(arg1->field_2C->field_8);
-    pos.vx = arg1->field_2C->field_8->workm.t[0];
-    pos.vy = arg1->field_2C->field_8->workm.t[1];
-    pos.vz = arg1->field_2C->field_8->workm.t[2];
+    work                        = arg1->field_1C;
+    table                       = D_actor_201200_80149F04;
+    arg1->field_2C->coords->flg = 0;
+    Gp_UpdateCoord(arg1->field_2C->coords);
+    pos.vx = arg1->field_2C->coords->workm.t[0];
+    pos.vy = arg1->field_2C->coords->workm.t[1];
+    pos.vz = arg1->field_2C->coords->workm.t[2];
     Gp_UpdateActorColor((struct _GpEnemy*)arg0, &pos, 0, 0);
     switch (D_801153F4) {
         case 0:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
-                arg1->field_2C->field_C = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+                arg1->field_2C->flags = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->field_8);
             }
             break;
         case 1:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
-                arg1->field_2C->field_C = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->field_8->workm.t, 0x180, Gp_State1C->field_8);
+                arg1->field_2C->flags = 0;
+                Gp_DrawEffGroundQuad((VECTOR3*)arg1->field_2C->coords->workm.t, 0x180, Gp_State1C->field_8);
             }
             Gp_ClearRec18Occupied(&work->rec1B8);
             Gp_ClearRec18Occupied(&work->rec250);
             Gp_ClearRec18Occupied(&work->rec2E8);
             return;
         case 2:
-            arg1->field_2C->field_C = 0x80;
+            arg1->field_2C->flags = 0x80;
             Gp_ClearRec18Occupied(&work->rec1B8);
             Gp_ClearRec18Occupied(&work->rec250);
             Gp_ClearRec18Occupied(&work->rec2E8);
@@ -256,14 +256,14 @@ void func_actor_201200_8014D4D0(Actor201200Ctx* arg0, Actor201200* arg1)
     id = ActorsShared8014a7b0((ActorsShared8014a7b0Work*)work);
     if (id != 0) {
         snd = id | ((arg0->field_8 >> 12) << 8);
-        pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->field_8);
-        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->field_8));
+        pan = (s8)Gp_GetObjPan((GpObj38*)arg1->field_2C->coords);
+        SndEvt_EnqueueType6(snd, pan, (s8)Gp_GetObjDepth((GpObj38*)arg1->field_2C->coords));
     }
     if (work->field_3D8 != 0) {
-        func_800D7A9C(arg1->field_2C, (VECTOR*)arg1->field_2C->field_8->workm.t, 0, 3);
+        func_800D7A9C(arg1->field_2C, (VECTOR*)arg1->field_2C->coords->workm.t, 0, 3);
     }
     if (gGameSession->viewReady != 0) {
-        arg1->field_2C->field_8->flg = 0;
+        arg1->field_2C->coords->flg = 0;
     }
 }
 

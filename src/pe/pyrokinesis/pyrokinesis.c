@@ -84,7 +84,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     work          = (PyroWork*)arg0->work;
     mem           = arg0->spawnArg2;
     tmdo          = arg0->extra;
-    coord         = tmdo->field_8;
+    coord         = tmdo->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     base          = Gp_RoomCoords;
     slotc         = &base->coord;
@@ -109,7 +109,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->field_22 = 0;
                 return;
             }
-            player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
             dstm       = (GpMtxWords*)&coord->coord;
             srcm       = (GpMtxWords*)&player->coord;
             dstm->w0   = srcm->w0;
@@ -394,7 +394,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
     s32            state;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
         scene = Gp_State1C->field_16;
         if (scene == 1) {
@@ -787,7 +787,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
     s32            y;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->field_E;
         if (flag < 4) {

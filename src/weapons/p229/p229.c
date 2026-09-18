@@ -41,7 +41,7 @@ void func_p229_8011D1DC(Task* task)
     s32            i;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[0];
     slot  = (GpCoordTail*)&base->coord;
 

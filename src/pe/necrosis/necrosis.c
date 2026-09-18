@@ -67,7 +67,7 @@ void func_necrosis_8012EF34(Task* arg0)
 
     work          = (NecrosisWork*)arg0->work;
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     old           = mem->field_22;
     tick          = old + 1;
     mem->field_22 = tick;
@@ -90,7 +90,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->field_22 = 0;
                 return;
             }
-            player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            player     = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
             dstm       = (GpMtxWords*)&coord->coord;
             srcm       = (GpMtxWords*)&player->coord;
             dstm->w0   = srcm->w0;
@@ -198,7 +198,7 @@ void func_necrosis_8012F52C(Task* arg0)
     GpEffWork*     spawned;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->field_E != 0) {
         return;
     }
@@ -312,7 +312,7 @@ void func_necrosis_8012FAF8(Task* arg0)
     u16            temp_v0;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->field_E != 0) {
         return;
     }

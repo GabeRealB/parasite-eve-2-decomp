@@ -208,7 +208,7 @@ void func_actor_120500_801322A0(Task* arg0)
     u8               id;
 
     tmd        = arg0->extra;
-    coord      = tmd->field_8;
+    coord      = tmd->coords;
     map        = Mem_Malloc(0x4CC, 0);
     arg0->work = map;
     if (map == NULL) {
@@ -220,9 +220,9 @@ void func_actor_120500_801322A0(Task* arg0)
     work->field_4B4         = Game_GetPtrSlot(3);
     D_actor_120500_80138454 = (Actor120500*)arg0;
     coord->sub              = &Gfx_ViewCoord;
-    tmd->field_1C           = &work->field_474;
-    tmd->field_C            = 0;
-    tmd->field_20           = &work->field_494;
+    tmd->lightMtx           = &work->field_474;
+    tmd->flags              = 0;
+    tmd->colorMtx           = &work->field_494;
     place                   = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     id                      = place->field_0;
     while (id != 0xFF) {
@@ -359,8 +359,8 @@ clear_4C8:
 done_4C8:
 
     mdl         = (TmdObject*)arg0->extra;
-    args.pos.vx = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
-    args.pos.vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
-    args.pos.vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    args.pos.vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
+    args.pos.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
+    args.pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
     func_800D7A9C(mdl, &args.pos, 0, 3);
 }

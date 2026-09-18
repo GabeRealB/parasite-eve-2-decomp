@@ -11,7 +11,7 @@ void ActorsShared80134af4(Task* task)
     GsCOORDINATE2*            coord;
     ActorsShared8013454cWork* work;
 
-    coord              = ((TmdObject*)task->extra)->field_8;
+    coord              = ((TmdObject*)task->extra)->coords;
     work               = (ActorsShared8013454cWork*)task->work;
     work->field_274    = coord->coord.t[0];
     work->field_278    = coord->coord.t[1];

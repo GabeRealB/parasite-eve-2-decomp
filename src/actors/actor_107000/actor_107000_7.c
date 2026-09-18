@@ -32,7 +32,7 @@ void func_actor_107000_801364D8(Task* arg0)
     s16              branch;
 
     work = (Actor107000Work*)arg0->work;
-    ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &sp10);
+    ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &sp10);
     if (Gp_CountRec18Hi(&work->field_214, 0x10000) == 0 || sp10 >= 0xBB8U) {
         work->field_382 = 0;
         work->field_36E = 0;

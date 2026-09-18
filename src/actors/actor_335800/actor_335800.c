@@ -24,7 +24,7 @@ void func_actor_335800_80161E88(Task* task)
     VECTOR3           pos;
     SVECTOR*          rot;
 
-    coord = (Actor335800Coord*)((TmdObject*)task->extra)->field_8;
+    coord = (Actor335800Coord*)((TmdObject*)task->extra)->coords;
     switch (task->state) {
         case 0:
             coord->coord.t[0] = D_actor_335800_80164F80.x;
@@ -64,7 +64,7 @@ void func_actor_335800_80161E88(Task* task)
             Task_Kill(task);
             break;
     }
-    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8->workm.t, &pos) != 0) {
+    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords->workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x800, Gp_State1C->field_8);
     }
 }

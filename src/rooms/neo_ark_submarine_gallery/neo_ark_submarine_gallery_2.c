@@ -29,7 +29,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
     GsCOORDINATE2* coord;
     s32            view;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (arg0->state == 0) {
         D_8011574C  = 0x60193;
         D_80115738  = 0x60194;

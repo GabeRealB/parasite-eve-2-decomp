@@ -55,22 +55,22 @@ ge2:
     }
     goto default_body;
 case0:
-    ((TmdObject*)arg1->extra)->field_C = 0;
-    arg0->field_14                     = 0;
+    ((TmdObject*)arg1->extra)->flags = 0;
+    arg0->field_14                   = 0;
     goto default_body;
 case2:
-    ((TmdObject*)arg1->extra)->field_C = 0x80;
-    arg0->field_14                     = one;
+    ((TmdObject*)arg1->extra)->flags = 0x80;
+    arg0->field_14                   = one;
     return;
 default_body:
     func_actor_104600_801321F4(arg1);
     func_actor_104600_80134438(arg1);
     func_actor_104600_80132798(arg1);
     ActorsShared80134680(arg1);
-    func_actor_104600_8013476C(arg1, &((TmdObject*)arg1->extra)->field_8[1]);
-    ((TmdObject*)arg1->extra)->field_8[0].flg = 0;
-    ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->field_8[1]);
+    func_actor_104600_8013476C(arg1, &((TmdObject*)arg1->extra)->coords[1]);
+    ((TmdObject*)arg1->extra)->coords[0].flg = 0;
+    ((TmdObject*)arg1->extra)->coords[1].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
     func_actor_104600_80134690(arg0, arg1);
     ActorsShared80134700(arg1);

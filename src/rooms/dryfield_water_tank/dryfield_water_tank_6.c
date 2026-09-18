@@ -150,11 +150,11 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     obj   = (TmdObject*)arg0->extra;
     switch (arg0->state) {
         case 0:
-            obj->field_C      = 0;
+            obj->flags        = 0;
             coord->sub        = &Gfx_ViewCoord;
             coord->coord.t[0] = 0xBB8;
             coord->coord.t[1] = -0x34A8;
@@ -180,9 +180,9 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
             break;
     }
     if (gGameSession->at4.loc.view == 7) {
-        obj->field_C = 0x80;
+        obj->flags = 0x80;
     } else {
-        obj->field_C = 0;
+        obj->flags = 0;
     }
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];

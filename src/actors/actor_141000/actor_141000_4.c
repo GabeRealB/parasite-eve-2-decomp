@@ -22,7 +22,7 @@ void func_actor_141000_80133B28(Task* arg0)
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor141000Work*)arg0->work;
 
     vec = D_actor_141000_80131E68;
@@ -56,7 +56,7 @@ void func_actor_141000_80133BD8(Task* arg0)
     s32                   vy;
     s16                   diff;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor141000Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);

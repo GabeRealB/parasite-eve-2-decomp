@@ -19,7 +19,7 @@
 ///
 /// `light` / `color` are the actor's own lighting and colour matrices;
 /// `func_actor_310600_80162A58` republishes them onto the model's
-/// `TmdObject::field_1C` / `field_20` in place of the shared defaults
+/// `TmdObject::lightMtx` / `field_20` in place of the shared defaults
 /// `Gp_BindDefaultMtx` installs.
 ///
 /// The block is fronted by the animation context `func_actor_310600_8016246C`
@@ -61,7 +61,7 @@ typedef struct Actor310600Work {
 } Actor310600Work;
 STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::field_8`, the actor's root
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`, `super` at 0x48) holds the Euler angles
 /// `func_actor_310600_80162AD8` writes and then hands straight to `RotMatrix`,
 /// the same reuse `ActorsShared80132860Coord` documents for its own overlay.

@@ -21,7 +21,7 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              angle;
 
     steps                   = 0;
-    coord                   = ((TmdObject*)task->extra)->field_8;
+    coord                   = ((TmdObject*)task->extra)->coords;
     work                    = (Actor260500Work*)task->work;
     D_actor_260500_80159E54 = mode;
     dx                      = target->vx - coord->coord.t[0];

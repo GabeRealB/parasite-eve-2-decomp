@@ -27,16 +27,16 @@ INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800
 void func_actor_461800_80132B74(Task* task)
 {
     TmdObject*     extra = task->extra;
-    GsCOORDINATE2* coord = extra->field_8;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_461800_80143898->extra)->field_8;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_461800_80143898->extra)->coords;
     GsCOORDINATE2* part  = parts + task->spawnArg1;
     VECTOR         vec;
 
     switch (task->state) {
         case 0:
-            coord->flg     = 0;
-            extra->field_C = 0;
-            coord->sub     = part;
+            coord->flg   = 0;
+            extra->flags = 0;
+            coord->sub   = part;
             task->state++;
             break;
         case 1:
@@ -130,18 +130,18 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
     TmdObject* second = D_actor_461800_80143894->field_4F4->extra;
 
     if (arg2 & 1) {
-        own->field_C    = 0;
-        first->field_C  = 0;
-        second->field_C = 0;
+        own->flags    = 0;
+        first->flags  = 0;
+        second->flags = 0;
     } else {
-        own->field_C    = 0x80;
-        first->field_C  = 0x80;
-        second->field_C = 0x80;
+        own->flags    = 0x80;
+        first->flags  = 0x80;
+        second->flags = 0x80;
     }
     if (arg2 & 2) {
-        own->field_C    |= 4;
-        first->field_C  |= 4;
-        second->field_C |= 4;
+        own->flags    |= 4;
+        first->flags  |= 4;
+        second->flags |= 4;
     }
     return 0;
 }
@@ -154,7 +154,7 @@ s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacemen
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                              = ((TmdObject*)task->extra)->field_8;
+    coord                              = ((TmdObject*)task->extra)->coords;
     D_actor_461800_80143894->field_4E6 = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
@@ -188,7 +188,7 @@ s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              dist;
     s32              angle;
 
-    coord                   = ((TmdObject*)task->extra)->field_8;
+    coord                   = ((TmdObject*)task->extra)->coords;
     work                    = (Actor461800Work*)task->work;
     D_actor_461800_8014389C = mode;
     dx                      = target->vx - coord->coord.t[0];
@@ -222,7 +222,7 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     TmdObject*     obj;
 
     obj        = task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     task->work = (TaskIdMap*)(D_actor_461800_801438A0 = Mem_Calloc(0x4C0, false));
     if (D_actor_461800_801438A0 == NULL) {
         Gp_DestroyEnemy(enemy, task);
@@ -234,9 +234,9 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     enemy->field_48          = 0;
     enemy->node.field_5      = 0;
     enemy->node.field_4      = 1;
-    obj->field_E             = 1;
-    obj->field_1C            = &D_actor_461800_801438A0->light;
-    obj->field_20            = &D_actor_461800_801438A0->color;
+    obj->otOffset            = 1;
+    obj->lightMtx            = &D_actor_461800_801438A0->light;
+    obj->colorMtx            = &D_actor_461800_801438A0->color;
     vec.vx                   = coord->workm.t[0];
     vec.vy                   = coord->workm.t[1] - 0x320;
     ActorsShared801326b4Task = task;
@@ -264,7 +264,7 @@ extern s16 D_actor_461800_801438A8;
 /// `field_4B4` counts down in animation 3, then ticks the animation.
 void func_actor_461800_801331E4(Task* task)
 {
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
     Actor461800Work2* work  = (Actor461800Work2*)task->work;
 
     if (D_actor_461800_801438A0->field_47C == 1) {

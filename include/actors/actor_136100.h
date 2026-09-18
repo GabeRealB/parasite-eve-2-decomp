@@ -27,8 +27,8 @@ typedef struct Actor136100Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[20];
     /* 0x334 */ byte       pad_334[0x140];
-    /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::field_1C
-    /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::field_20
+    /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::lightMtx
+    /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::colorMtx
     /* 0x4B4 */ Task*      field_4B4; // Game_GetPtrSlot(3) task
     /* 0x4B8 */ Task*      field_4B8; // Task_SpawnFromTable(ActorsShared80134898Desc, 2) task
     /* 0x4BC */ Task*      field_4BC; // Task_SpawnFromTable(ActorsShared80134898Desc, 3) task

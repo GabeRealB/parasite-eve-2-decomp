@@ -36,8 +36,8 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// `obj_2CC` share `rec_2EC`; `obj_3AC` has its own table at `rec_3CC`.
 typedef struct Actor104400Work {
     /* 0x000 */ MATRIX    matrix_0; // model root coord, copied out on the kill path
-    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::field_20`
-    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::field_1C`
+    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::colorMtx`
+    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::lightMtx`
     /* 0x060 */ VECTOR    field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
     /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by Actor04400_Fn05B08
     /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX

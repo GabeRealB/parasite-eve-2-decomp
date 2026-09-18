@@ -20,9 +20,9 @@ void ActorsShared80135c4c(GpEnemy* enemy, Task* task)
 
     parent      = task->parent;
     parentObj   = parent->extra;
-    coord       = ((TmdObject*)task->extra)->field_8;
+    coord       = ((TmdObject*)task->extra)->coords;
     parentWork  = (ActorsShared80135c4cParentWork*)parent->work;
-    parentCoord = &parentObj->field_8[4];
+    parentCoord = &parentObj->coords[4];
     work        = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

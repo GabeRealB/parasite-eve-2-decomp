@@ -190,7 +190,7 @@ void func_neo_ark_observatory_8017FA98(void)
     } else {
         D_neo_ark_observatory_8018136A = 0x2710;
     }
-    func_neo_ark_observatory_8017FE34(((TmdObject*)task->extra)->field_8, &D_neo_ark_observatory_80181368);
+    func_neo_ark_observatory_8017FE34(((TmdObject*)task->extra)->coords, &D_neo_ark_observatory_80181368);
 }
 
 void func_neo_ark_observatory_8017FB1C(Task* task)

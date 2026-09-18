@@ -230,7 +230,7 @@ void func_acropolis_security_room_801805A4(Task* task)
     s32            i;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
 
     switch (task->state) {
         case 0: {
@@ -331,7 +331,7 @@ void func_acropolis_security_room_80180A78(Task* task)
     GsCOORDINATE2*  coord;
     LINE_F2*        prim;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     if ((0xC >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
         scratch   = (void**)G_SCRATCH_HEAD;
         head      = *scratch;
@@ -397,7 +397,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     u16            cx;
     u16            cy;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -451,7 +451,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrQuadScratch);
     blk                     = (AsrQuadScratch*)*(void**)G_SCRATCH_HEAD;
-    coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem                     = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
 
@@ -604,7 +604,7 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
     AsrFlashScratch* scratch;
 
     task  = taskArg;
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
     head = *(u8**)G_SCRATCH_HEAD;

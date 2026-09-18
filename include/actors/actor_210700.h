@@ -14,7 +14,7 @@
 /// 0x540-byte work block allocated by `func_actor_210700_80149F90`
 /// (`Mem_Calloc(0x540, 0)`) and parked in that task's `Task::work` slot.
 /// `func_actor_210700_8014A208` republishes the two matrices onto the model's
-/// `TmdObject::field_1C` / `field_20` -- the light/colour matrix pair
+/// `TmdObject::lightMtx` / `field_20` -- the light/colour matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
 /// -- so this actor lights itself out of its own block.
 ///

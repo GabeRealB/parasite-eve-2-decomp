@@ -31,8 +31,8 @@ void RoomsShared8017fbf4(Task* task)
     Task*                    cap      = task->spawnArg2;
     TmdObject*               model    = task->extra;
     TmdObject*               capModel = cap->extra;
-    GsCOORDINATE2*           coord    = model->field_8;
-    GsCOORDINATE2*           capCoord = capModel->field_8;
+    GsCOORDINATE2*           coord    = model->coords;
+    GsCOORDINATE2*           capCoord = capModel->coords;
     RoomsShared8017fbf4Work* work     = Mem_Calloc(0xC, 0);
     u16                      flags;
 
@@ -40,19 +40,19 @@ void RoomsShared8017fbf4(Task* task)
         Task_Kill(task);
         return;
     }
-    task->work     = (TaskIdMap*)work;
-    flags          = model->field_C | 0x80;
-    model->field_C = flags;
-    if (!(capModel->field_C & 0x80)) {
-        model->field_C = flags & 0xFF7F;
+    task->work   = (TaskIdMap*)work;
+    flags        = model->flags | 0x80;
+    model->flags = flags;
+    if (!(capModel->flags & 0x80)) {
+        model->flags = flags & 0xFF7F;
     }
-    if (!(capModel->field_C & 4)) {
-        model->field_C &= 0xFFFB;
+    if (!(capModel->flags & 4)) {
+        model->flags &= 0xFFFB;
         Tmd_AllocBuffers(model);
     } else {
-        model->field_C |= 4;
+        model->flags |= 4;
     }
-    model->field_E    = -1;
+    model->otOffset   = -1;
     coord->coord.t[1] = -0x316;
     coord->sub        = capCoord;
     coord->coord.t[0] = 0;
@@ -62,8 +62,8 @@ void RoomsShared8017fbf4(Task* task)
         RotMatrixX(-0x300, &coord->coord);
     }
     coord->flg      = 0;
-    model->field_1C = capModel->field_1C;
-    model->field_20 = capModel->field_20;
+    model->lightMtx = capModel->lightMtx;
+    model->colorMtx = capModel->colorMtx;
     Task_Reparent(cap, task);
     task->state += 1;
 }

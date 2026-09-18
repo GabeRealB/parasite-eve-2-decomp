@@ -22,16 +22,16 @@ void func_acropolis_hallway_8017E120(Task* task)
     tmd  = (TmdObject*)task->extra;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if (task->state == 0) {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
         task->state++;
     }
     if (Gp_GetViewIndex() == 5) {
-        tmd->field_C = 8;
+        tmd->flags = 8;
     } else {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     }
     if (flag == 2) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     }
 }

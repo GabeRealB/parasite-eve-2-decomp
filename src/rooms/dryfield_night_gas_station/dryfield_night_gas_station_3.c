@@ -66,7 +66,7 @@ void func_dryfield_night_gas_station_801802EC(void)
     *(s32*)&m->m[1][1] = one;
     *(s32*)&m->m[2][0] = 0;
     m->m[2][2]         = one;
-    coord              = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+    coord              = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
     Gp_ComposeParentWorld((GsCOORDINATE2*)((u8*)coord + 0x280), m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;
@@ -116,7 +116,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
 
     work = Gp_FindWorkById(gGameSession->at4.loc.area | ((gGameSession->at4.loc.stage << 8) | 0x2000));
     if (work != NULL) {
-        coord = ((TmdObject*)((Task*)work->field_0)->extra)->field_8;
+        coord = ((TmdObject*)((Task*)work->field_0)->extra)->coords;
         switch (arg0) {
             case 0:
                 offset.vx = 0;

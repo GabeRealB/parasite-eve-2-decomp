@@ -9,16 +9,16 @@ void ActorsShared8014cef8(Task* task)
     char           pad[0x10];
     Task*          parent = task->parent;
     TmdObject*     obj    = task->extra;
-    GsCOORDINATE2* coord  = obj->field_8;
-    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->field_8[4];
+    GsCOORDINATE2* coord  = obj->coords;
+    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->coords[4];
     MATRIX*        work   = (MATRIX*)parent->work;
 
     switch (task->state) {
         case 0:
             coord->flg    = 0;
-            obj->field_1C = work;
-            obj->field_C  = 0;
-            obj->field_20 = work + 1;
+            obj->lightMtx = work;
+            obj->flags    = 0;
+            obj->colorMtx = work + 1;
             coord->sub    = sub;
             task->state++;
             break;

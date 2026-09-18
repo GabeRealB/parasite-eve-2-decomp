@@ -26,27 +26,27 @@ void ActorsShared80135d50(Task* task)
     if (work->field_2A6 != 0) {
         if (work->field_2A4 == 0) {
             work->field_2A4++;
-            obj->field_C = 2;
+            obj->flags = 2;
             Gp_SetLightMode(task->spawnArg2, 2);
         } else {
             work->field_2A4++;
             if (work->field_2A4 >= 0x12) {
                 work->field_2A4 = 0x12;
                 ctx->field_14   = 1;
-                obj->field_C    = 0x80;
+                obj->flags      = 0x80;
             }
         }
     } else {
         if (work->field_2A4 == 0x12) {
             work->field_2A4--;
             ctx->field_14 = 0;
-            obj->field_C  = 2;
+            obj->flags    = 2;
             Gp_SetLightMode(task->spawnArg2, 0);
         } else {
             work->field_2A4--;
             if (work->field_2A4 <= 0) {
                 work->field_2A4 = 0;
-                obj->field_C    = 0;
+                obj->flags      = 0;
             }
         }
     }

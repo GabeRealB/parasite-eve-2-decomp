@@ -380,7 +380,7 @@ void func_actor_510900_801332EC(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                    = (void**)G_SCRATCH_HEAD;
@@ -487,7 +487,7 @@ void func_actor_510900_8013371C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                    = (void**)G_SCRATCH_HEAD;
@@ -598,7 +598,7 @@ void func_actor_510900_80133C84(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                    = (void**)G_SCRATCH_HEAD;
@@ -1108,14 +1108,14 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     arg0->field_4      = &coord->field_0.coord;
     arg0->field_48     = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18  = &((TmdObject*)arg1->field_2C)->field_8[3];
+    arg0->field_18  = &((TmdObject*)arg1->field_2C)->coords[3];
     arg0->field_1C  = 0;
     arg0->field_20  = 0;
     arg0->field_24  = 0;
     arg0->field_50  = &D_actor_510900_80167980;
     arg0->field_54  = (s32)work->rec49C;
     arg0->field_40  = D_actor_510900_80167980.field_4;
-    work->field_53C = &((TmdObject*)arg1->field_2C)->field_8[3];
+    work->field_53C = &((TmdObject*)arg1->field_2C)->coords[3];
     work->field_540 = 0x400;
     work->field_542 = 2;
     func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (GpAnimObj*)obj,
@@ -1136,15 +1136,15 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model1->field_24 = entry1->field_D;
-    model1->field_25 = entry1->field_E;
-    if (model1->field_18 != NULL) {
+    entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model1->tpage = entry1->field_D;
+    model1->clut  = entry1->field_E;
+    if (model1->buffer != NULL) {
         Tmd_ProcessStream(model1);
         Tmd_ProcessStream(model1);
     }
     work->field_568 = spawned->task;
-    eff             = Gp_SpawnEff(0x80060043, ((TmdObject*)spawned->task->extra)->field_8, 0, NULL);
+    eff             = Gp_SpawnEff(0x80060043, ((TmdObject*)spawned->task->extra)->coords, 0, NULL);
     if (eff != NULL) {
         work->field_564 = (s32*)eff->field_0;
         Task_Reparent((Task*)arg1, eff->field_0);
@@ -1163,10 +1163,10 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     Gp_SyncAreaKeyIndex(&key);
-    entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model2->field_24 = entry2->field_D;
-    model2->field_25 = entry2->field_E;
-    if (model2->field_18 != NULL) {
+    entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model2->tpage = entry2->field_D;
+    model2->clut  = entry2->field_E;
+    if (model2->buffer != NULL) {
         Tmd_ProcessStream(model2);
         Tmd_ProcessStream(model2);
     }
@@ -1175,7 +1175,7 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 1, (GpEnemy*)arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 2, (GpEnemy*)arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 6, 0, (GpEnemy*)arg0);
-    work->obj47C.field_8  = &((TmdObject*)arg1->field_2C)->field_8[3];
+    work->obj47C.field_8  = &((TmdObject*)arg1->field_2C)->coords[3];
     records1              = work->rec49C;
     work->obj47C.field_C  = records1;
     work->obj47C.field_10 = 0;
@@ -1188,7 +1188,7 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     Gp_InitRec18Table(records1, 3, 0);
     records2              = work->rec524;
     work->obj47C.flags   |= 0x8000;
-    work->obj4E4.field_8  = ((TmdObject*)work->field_568->extra)->field_8;
+    work->obj4E4.field_8  = ((TmdObject*)work->field_568->extra)->coords;
     work->obj4E4.field_C  = records2;
     work->obj4E4.field_10 = -0x140;
     work->obj4E4.field_12 = 0x80;
@@ -1199,7 +1199,7 @@ void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1)
     Gp_LinkObj(3, &work->obj4E4);
     Gp_InitRec18Table(records2, 1, 0);
     work->obj4E4.flags   &= 0x7FFF;
-    work->obj504.field_8  = &((TmdObject*)arg1->field_2C)->field_8[7];
+    work->obj504.field_8  = &((TmdObject*)arg1->field_2C)->coords[7];
     work->obj504.field_C  = records2;
     work->obj504.field_10 = 0;
     work->obj504.field_12 = 0;

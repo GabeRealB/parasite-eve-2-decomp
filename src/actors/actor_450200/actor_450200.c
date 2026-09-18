@@ -42,7 +42,7 @@ void func_actor_450200_80131E24(Task* task)
     s16            countdown;
 
     slot  = Game_GetPtrSlot(0xA);
-    coord = &((TmdObject*)slot->extra)->field_8[D_actor_450200_8013885C[(rand() * 11) >> 15]];
+    coord = &((TmdObject*)slot->extra)->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
     switch (task->state) {
         case 0:
             task->killCountdown = 0x64;

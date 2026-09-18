@@ -60,7 +60,7 @@ void func_energyball_8012EF48(Task* arg0)
     s32            rng;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     switch (arg0->state) {
         case 0:
@@ -131,7 +131,7 @@ void func_energyball_8012F180(Task* arg0)
     slot  = &Gp_RoomCoords[arg0->spawnArg1 + 4];
     sc    = &slot->coord;
     tail  = (GpCoordTail*)sc;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     fade  = Gp_State1C->field_E;
     work  = (EnergyBallWork*)arg0->work;
     mem   = arg0->spawnArg2;
@@ -253,7 +253,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 2:
             if (((u16)mem->field_22 & 7) == 0) {
-                player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1];
+                player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];
@@ -760,7 +760,7 @@ void func_energyball_8013107C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_E;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         return;
     }

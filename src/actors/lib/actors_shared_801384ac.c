@@ -20,7 +20,7 @@ void ActorsShared801384ac(Task* task)
     for (i = 0; i < 4; i++) {
         Gp_UnlinkObj(&work->field_9A8[i]);
     }
-    coord        = ((TmdObject*)task->extra)->field_8;
+    coord        = ((TmdObject*)task->extra)->coords;
     coord[1].sub = coord;
     Gp_DestroyEnemy(enemy, task);
 }

@@ -11,7 +11,7 @@
 #include "gameplay/3FB8.h"
 
 /// The actor's per-part attach coordinates, 0x50 apart, hanging off the
-/// display object's 0x08 slot (`TmdObject::field_8`, the trailing per-part
+/// display object's 0x08 slot (`TmdObject::coords`, the trailing per-part
 /// `GsCOORDINATE2` array). This overlay's code reaches the root and the fourth
 /// part: `func_actor_402200_80137444` parks `&field_F0` in the work block's
 /// 0x65C slot, and the shared ground-quad body `ActorsShared8013806c` takes the

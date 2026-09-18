@@ -22,7 +22,7 @@ s16  func_actor_405800_8013836C(Task* arg0, s16 arg1);
 static __inline__ void Actor405800_RebuildRotation(Task* arg0)
 {
     Actor405800Work* work  = (Actor405800Work*)arg0->work;
-    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*          m;
     MATRIX*          dst;
 
@@ -91,7 +91,7 @@ static __inline__ void Actor405800_UpdateColor(Task* arg0)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)arg0->extra)->field_8[1];
+    coord     = &((TmdObject*)arg0->extra)->coords[1];
     scratch   = (void**)G_SCRATCH_HEAD;
     head      = *scratch;
     block     = (VECTOR*)(head - 0x10);

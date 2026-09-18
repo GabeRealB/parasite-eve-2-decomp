@@ -14,18 +14,18 @@ void ActorsShared80168010(Task* arg0)
     s32                       speed;
     s32                       dx;
 
-    work                                            = (ActorsShared80168d3cWork*)arg0->work;
-    angle                                           = work->field_7A;
-    coord                                           = ((TmdObject*)arg0->extra)->field_8;
-    dx                                              = rsin(angle) << 4;
-    speed                                           = -0x8C;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += (dx * speed) >> 16;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
-    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
-    work->field_78                                 += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                              += work->field_42A;
-    work->field_428                                += 2;
-    work->field_42A                                += work->field_428;
+    work                                           = (ActorsShared80168d3cWork*)arg0->work;
+    angle                                          = work->field_7A;
+    coord                                          = ((TmdObject*)arg0->extra)->coords;
+    dx                                             = rsin(angle) << 4;
+    speed                                          = -0x8C;
+    ((TmdObject*)arg0->extra)->coords->coord.t[0] += (dx * speed) >> 16;
+    ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
+    ((TmdObject*)arg0->extra)->coords->flg         = 0;
+    work->field_78                                += (0x200 - work->field_78) >> 5;
+    coord->coord.t[1]                             += work->field_42A;
+    work->field_428                               += 2;
+    work->field_42A                               += work->field_428;
     if (coord->coord.t[1] > 0) {
         work->field_451   = 0;
         work->field_412   = 0;

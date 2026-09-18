@@ -40,8 +40,8 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     u32              high;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
-    part  = &((TmdObject*)task->extra)->field_8[D_actor_160600_8013DFEC[(rand() * 11) >> 15]];
+    coord = obj->coords;
+    part  = &((TmdObject*)task->extra)->coords[D_actor_160600_8013DFEC[(rand() * 11) >> 15]];
     work  = (Actor160600Work*)task->work;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
@@ -50,7 +50,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     func_800D7A9C(obj, &pos, 0, 3);
     ActorsShared8014c874(task);
     ActorsShared80132378(task);
-    if (work->field_4EE != 0 && !(obj->field_C & 0x80) && obj->field_18 != NULL) {
+    if (work->field_4EE != 0 && !(obj->flags & 0x80) && obj->buffer != NULL) {
         if (task->killCountdown & 1) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             low         = (Gp_LcgState >> 16) & 0x10FF;

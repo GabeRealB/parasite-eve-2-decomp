@@ -23,15 +23,15 @@ void ActorsShared8014da70(void* arg0, Task* task)
     ActorsShared80135a24Work* work;
     s16                       count;
 
-    parent                             = task->parent;
-    work                               = (ActorsShared80135a24Work*)parent->work;
-    ((TmdObject*)task->extra)->field_C = (u16)((TmdObject*)parent->extra)->field_C;
+    parent                           = task->parent;
+    work                             = (ActorsShared80135a24Work*)parent->work;
+    ((TmdObject*)task->extra)->flags = (u16)((TmdObject*)parent->extra)->flags;
     if (work->field_6D8 > 0) {
         count           = (u16)work->field_6D8 - 1;
         work->field_6D8 = count;
         if (count == 0) {
             effect = Gp_SpawnEff(D_8011572C | 0x80000000,
-                                 &((TmdObject*)task->parent->extra)->field_8[7], 0, NULL);
+                                 &((TmdObject*)task->parent->extra)->coords[7], 0, NULL);
             if (effect != NULL) {
                 Task_Reparent(task, effect->field_0);
             }

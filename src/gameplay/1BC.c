@@ -659,7 +659,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
     world                   = &Gfx_ViewCoord;
     extra                   = (TmdObject*)arg0->extra;
-    dest                    = (GsCOORDINATE2*)extra->field_8;
+    dest                    = (GsCOORDINATE2*)extra->coords;
     if (arg1->sub == world) {
         dest->coord = arg1->coord;
         gte_SetRotMatrix(&arg1->coord);
@@ -876,14 +876,14 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     acc0.vy              = 0;
     acc0.vz              = 0;
     for (i = 0; i < 4; i++) {
-        rec = &((TmdObject*)arg0->extra)->field_8[i];
+        rec = &((TmdObject*)arg0->extra)->coords[i];
         ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
         acc0.vx += tmp.vx;
         acc0.vy += tmp.vy;
         acc0.vz += tmp.vz;
         MulMatrix0(&rec->coord, &mtx0, &mtx0);
     }
-    rec = &((TmdObject*)arg0->extra)->field_8[i];
+    rec = &((TmdObject*)arg0->extra)->coords[i];
     ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
     i                    = 0;
     m1                   = &mtx1;
@@ -896,14 +896,14 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     acc1.vy              = 0;
     acc1.vz              = 0;
     for (i = 0; i < 4; i++) {
-        rec1 = &((TmdObject*)arg1->extra)->field_8[i];
+        rec1 = &((TmdObject*)arg1->extra)->coords[i];
         ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
         acc1.vx += tmp.vx;
         acc1.vy += tmp.vy;
         acc1.vz += tmp.vz;
         MulMatrix0(&rec1->coord, &mtx1, &mtx1);
     }
-    rec1 = &((TmdObject*)arg1->extra)->field_8[i];
+    rec1 = &((TmdObject*)arg1->extra)->coords[i];
     ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
 
     delta.vx = (u16)acc1.vx - (u16)acc0.vx;
@@ -916,7 +916,7 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     ang.vy = ratan2(acc0.vx, acc0.vz);
     ang.vz = 0;
 
-    base = ((TmdObject*)arg0->extra)->field_8;
+    base = ((TmdObject*)arg0->extra)->coords;
     rec  = base + 4;
     Gp_MtxToEuler(&base[4].coord, &euler);
 
@@ -979,7 +979,7 @@ void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4
     position.vy           = 0;
     position.vz           = 0;
     for (i = 0; i < 5; i++) {
-        part = &((TmdObject*)arg0->extra)->field_8[i];
+        part = &((TmdObject*)arg0->extra)->coords[i];
         ApplyMatrixLV(&world, (VECTOR*)part->coord.t, &transformed);
         position.vx += transformed.vx;
         position.vy += transformed.vy;
@@ -997,7 +997,7 @@ void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4
     angles.vx = -ratan2(position.vy, position.vz);
     angles.vy = ratan2(position.vx, position.vz);
     angles.vz = 0;
-    part      = &((TmdObject*)arg0->extra)->field_8[4];
+    part      = &((TmdObject*)arg0->extra)->coords[4];
     Gp_MtxToEuler(&part->coord, &current);
     angles.vx  = current.vx + (angles.vx - current.vx) * arg4 / 4096;
     angles.vy  = current.vy + (angles.vy - current.vy) * arg4 / 4096;
@@ -1287,7 +1287,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     acc0.vy              = 0;
     acc0.vz              = 0;
     for (i = 0; i < 5; i++) {
-        rec = &((TmdObject*)arg0->extra)->field_8[i];
+        rec = &((TmdObject*)arg0->extra)->coords[i];
         ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
         acc0.vx += tmp.vx;
         acc0.vy += tmp.vy;
@@ -1310,7 +1310,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     acc1.vy              = 0;
     acc1.vz              = 0;
     for (i = 0; i < 5; i++) {
-        rec1 = &((TmdObject*)arg1->extra)->field_8[i];
+        rec1 = &((TmdObject*)arg1->extra)->coords[i];
         ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
         acc1.vx += tmp.vx;
         acc1.vy += tmp.vy;
@@ -1353,7 +1353,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     }
     arg2->lastPitch = ang.vx;
 
-    base = ((TmdObject*)arg0->extra)->field_8;
+    base = ((TmdObject*)arg0->extra)->coords;
     rec  = base + 4;
     Gp_ExtractEuler(&euler, &base[4].coord);
 
@@ -2646,7 +2646,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     rec   = Mc_SaveData.field_28;
     loc   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
     extra = (TmdObject*)arg0->task->extra;
-    coord = (GsCOORDINATE2*)extra->field_8;
+    coord = (GsCOORDINATE2*)extra->coords;
     if (arg0->field_4B == 0) {
         arg0->field_4B = 1;
     }
@@ -2795,11 +2795,11 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         enemy->field_8  = f2;
                         if (task->spawnType != 0) {
                             extra = (TmdObject*)task->extra;
-                            coord = (GpCoordPose*)extra->field_8;
+                            coord = (GpCoordPose*)extra->coords;
                             if (task->spawnType == 1) {
-                                extra->field_24 = place->field_D;
-                                extra->field_25 = place->field_E;
-                                if (extra->field_18 != NULL) {
+                                extra->tpage = place->field_D;
+                                extra->clut  = place->field_E;
+                                if (extra->buffer != NULL) {
                                     Tmd_ProcessStream(extra);
                                     Tmd_ProcessStream(extra);
                                 }
@@ -3124,9 +3124,9 @@ void Gp_ApplyAreaTmdFlags(void)
                         if (id == *bytes) {
                             flags = *entry->field_8;
                             if (flags == 1) {
-                                extra->field_C &= 0xFFFB;
+                                extra->flags &= 0xFFFB;
                             } else if (flags == 0x101) {
-                                extra->field_C |= 4;
+                                extra->flags |= 4;
                             }
                             break;
                         }
@@ -3184,9 +3184,9 @@ GpWorkObj* Gp_FindWorkById(u16 arg0)
 
 void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
 {
-    arg0->field_24 = arg1;
-    arg0->field_25 = arg2;
-    if (arg0->field_18 != NULL) {
+    arg0->tpage = arg1;
+    arg0->clut  = arg2;
+    if (arg0->buffer != NULL) {
         Tmd_ProcessStream(arg0);
         Tmd_ProcessStream(arg0);
     }
@@ -3586,8 +3586,8 @@ void Gp_FreeSlot4TmdBuffers(void)
         iter = child;
         do {
             if (iter->spawnType == 1) {
-                obj           = iter->extra;
-                obj->field_C |= 4;
+                obj         = iter->extra;
+                obj->flags |= 4;
                 Tmd_FreeBuffers(obj);
             }
             iter = iter->nextSibling;
@@ -3724,7 +3724,7 @@ void func_800B65B0(Task* task)
                 desc = &D_8010F010;
                 break;
             case 8:
-                coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+                coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
                 temp   = coord->field_18;
                 p      = &Player_Status.pos;
                 p->x   = temp;
@@ -3879,7 +3879,7 @@ void Gp_SpawnPlaceById(u16 arg0)
                             task = enemy->task;
                             if (task->spawnType != 0) {
                                 extra             = (TmdObject*)task->extra;
-                                coord             = (GpCoordPlace*)extra->field_8;
+                                coord             = (GpCoordPlace*)extra->coords;
                                 enemy->field_8    = place->field_0 | (place->field_4 << 8);
                                 enemy->field_A    = place->field_2;
                                 coord->coord.t[0] = place->field_8;
@@ -3940,7 +3940,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
                         task = enemy->task;
                         if (task->spawnType != 0) {
                             extra             = (TmdObject*)task->extra;
-                            coord             = (GpCoordPlace*)extra->field_8;
+                            coord             = (GpCoordPlace*)extra->coords;
                             enemy->field_8    = place->field_0 | (place->field_4 << 8);
                             enemy->field_A    = place->field_2;
                             coord->coord.t[0] = place->field_8;

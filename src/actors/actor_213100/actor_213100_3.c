@@ -8,8 +8,8 @@ void func_actor_213100_8014A23C(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor213100Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_213100/actor_213100_3", func_actor_213100_8014A258);

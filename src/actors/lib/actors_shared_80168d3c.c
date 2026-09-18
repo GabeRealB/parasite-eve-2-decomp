@@ -12,7 +12,7 @@ void ActorsShared80168d3c(Task* arg0)
     s16                       tmp;
 
     work             = (ActorsShared80168d3cWork*)arg0->work;
-    work->field_92   = *(u16*)&((TmdObject*)arg0->extra)->field_8->coord.t[1];
+    work->field_92   = *(u16*)&((TmdObject*)arg0->extra)->coords->coord.t[1];
     work2            = (ActorsShared80168d3cWork*)arg0->work;
     tmp              = 8;
     work2->field_426 = tmp;

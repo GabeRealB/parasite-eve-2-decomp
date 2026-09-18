@@ -34,22 +34,22 @@ s32 func_actor_210700_8014A3D4(GpActorWork* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C   |= 0x80;
+            obj->flags     |= 0x80;
             work->field_53E = mode;
-            obj->field_C   |= 4;
+            obj->flags     |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;

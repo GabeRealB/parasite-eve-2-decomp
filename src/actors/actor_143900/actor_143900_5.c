@@ -16,7 +16,7 @@ s32 func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacemen
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                         = ((TmdObject*)task->extra)->field_8;
+    coord                         = ((TmdObject*)task->extra)->coords;
     ActorsShared80131f9cWork->yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
@@ -54,7 +54,7 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
     Task*                     helper;
 
     obj                     = task->extra;
-    coord                   = obj->field_8;
+    coord                   = obj->coords;
     work                    = Mem_Calloc(0x4F8, false);
     D_actor_143900_801496C4 = work;
     task->work              = (TaskIdMap*)work;
@@ -68,10 +68,10 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
     enemy->node.field_4     = 1;
     enemy->field_48         = 0;
     enemy->node.field_5     = 0;
-    obj->field_E            = 0x10;
-    obj->field_1C           = &D_actor_143900_801496C4->light;
-    obj->field_20           = &D_actor_143900_801496C4->color;
-    obj->field_C            = 0;
+    obj->otOffset           = 0x10;
+    obj->lightMtx           = &D_actor_143900_801496C4->light;
+    obj->colorMtx           = &D_actor_143900_801496C4->color;
+    obj->flags              = 0;
     vec.vx                  = coord->workm.t[0];
     vec.vy                  = coord->workm.t[1] - 0x320;
     vec.vz                  = coord->workm.t[2];

@@ -93,7 +93,7 @@ typedef struct Actor312200Work {
     /* 0x8DC */ GpRec18 recs[3];
     /* 0x924 */ byte    pad_924[0x20];
     /// The light / colour matrices the spawn handler stores into
-    /// `TmdObject::field_1C` / `field_20`, at the top of the block.
+    /// `TmdObject::lightMtx` / `field_20`, at the top of the block.
     /* 0x944 */ MATRIX light;
     /* 0x964 */ MATRIX color;
 } Actor312200Work;
@@ -160,7 +160,7 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
 void func_actor_312200_801637CC(Task* task);
 
 /// Show handler: on a live actor it sets the enemy's `node.field_4`, raises the
-/// 0x80 draw bit of the model's `TmdObject::field_C`, clears
+/// 0x80 draw bit of the model's `TmdObject::flags`, clears
 /// `GpEnemy::field_4D` and drops bit 0x8000 of the display node's `flags`.
 void func_actor_312200_80163778(Task* task);
 

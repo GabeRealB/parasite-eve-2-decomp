@@ -91,10 +91,10 @@ STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
 typedef struct Actor510900Obj2C {
     /* 0x00 */ byte              pad_0[8];
     /* 0x08 */ Actor510900Coord* field_8;
-    /* 0x0C */ s16               field_C;  // model flag word, as TmdObject::field_C
+    /* 0x0C */ s16               field_C;  // model flag word, as TmdObject::flags
     /* 0x0E */ byte              pad_E[0xE];
-    /* 0x1C */ MATRIX*           field_1C; // light matrix, as TmdObject::field_1C
-    /* 0x20 */ MATRIX*           field_20; // colour matrix, as TmdObject::field_20
+    /* 0x1C */ MATRIX*           field_1C; // light matrix, as TmdObject::lightMtx
+    /* 0x20 */ MATRIX*           field_20; // colour matrix, as TmdObject::colorMtx
 } Actor510900Obj2C;
 
 typedef struct Actor510900Work {
@@ -106,8 +106,8 @@ typedef struct Actor510900Work {
     /* 0x2DC */ byte   pad_2DC[0x18];
     /* 0x2F4 */ GpObj  obj2F4;
     /* 0x314 */ byte   pad_314[0x128];
-    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::field_20
-    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::colorMtx
+    /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ GpObj  obj47C;
     /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records) and the
     /// byte address the context's `field_54` points at.
@@ -226,8 +226,8 @@ typedef struct Actor510900ChildAnim {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[11];   ///< `func_800B3F84` arg4, reset 1..10
     /* 0x1CC */ byte       poses[0xB0]; ///< `func_800B3F84` arg3
-    /* 0x27C */ MATRIX     colorMtx;    ///< handed to `TmdObject::field_20`
-    /* 0x29C */ MATRIX     lightMtx;    ///< handed to `TmdObject::field_1C`
+    /* 0x27C */ MATRIX     colorMtx;    ///< handed to `TmdObject::colorMtx`
+    /* 0x29C */ MATRIX     lightMtx;    ///< handed to `TmdObject::lightMtx`
     /* 0x2BC */ GpObj      obj2BC;
     /* 0x2DC */ GpRec18    rec2DC;
     /* 0x2F4 */ GpObj      obj2F4;
@@ -255,7 +255,7 @@ STATIC_ASSERT_SIZEOF(Actor510900GrabScratch, 0x18);
 
 /// 0xD0-byte `Task::work` block `func_actor_510900_801397F0` allocates for its
 /// child task: the child's colour and light matrices (handed to
-/// `TmdObject::field_20` / `field_1C`), two linked `GpObj`s with their `GpRec18`
+/// `TmdObject::colorMtx` / `field_1C`), two linked `GpObj`s with their `GpRec18`
 /// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
 /// teardown state machine on.
 typedef struct Actor510900ChildFx {

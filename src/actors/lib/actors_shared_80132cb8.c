@@ -33,8 +33,8 @@ void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
     face.field_8  = index;
     face.field_A  = 3;
 
-    Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, normal);
-    Gfx_MatrixCol0(&((TmdObject*)task->extra)->field_8->coord, &dir);
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, normal);
+    Gfx_MatrixCol0(&((TmdObject*)task->extra)->coords->coord, &dir);
     d = &dir;
     VectorNormalSS(d, d);
     VectorNormalSS(normal, normal);
@@ -48,21 +48,21 @@ void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
     gte_stsv(d);
 
     verts[index * 4].vx = verts[index * 4 + 2].vx =
-        ((TmdObject*)task->extra)->field_8->coord.t[0] + dir.vx + normal->vx;
+        ((TmdObject*)task->extra)->coords->coord.t[0] + dir.vx + normal->vx;
     verts[index * 4].vy = verts[index * 4 + 2].vy = dir.vy + normal->vy;
     verts[index * 4].vz                           = verts[index * 4 + 2].vz =
-        ((TmdObject*)task->extra)->field_8->coord.t[2] + dir.vz + normal->vz;
+        ((TmdObject*)task->extra)->coords->coord.t[2] + dir.vz + normal->vz;
 
     verts[index * 4 + 1].vx = verts[index * 4 + 3].vx =
-        ((TmdObject*)task->extra)->field_8->coord.t[0] - dir.vx + normal->vx;
+        ((TmdObject*)task->extra)->coords->coord.t[0] - dir.vx + normal->vx;
     verts[index * 4 + 1].vy = verts[index * 4 + 3].vy = -dir.vy + normal->vy;
     verts[index * 4 + 1].vz                           = verts[index * 4 + 3].vz =
-        ((TmdObject*)task->extra)->field_8->coord.t[2] - dir.vz + normal->vz;
+        ((TmdObject*)task->extra)->coords->coord.t[2] - dir.vz + normal->vz;
 
     verts[index * 4].vy     -= drop;
     verts[index * 4 + 1].vy -= drop;
 
-    Gfx_MatrixCol2(&((TmdObject*)task->extra)->field_8->coord, normal);
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, normal);
     VectorNormalSS(normal, normal);
     gte_lddp(0x1000);
     gte_ldsv(normal);

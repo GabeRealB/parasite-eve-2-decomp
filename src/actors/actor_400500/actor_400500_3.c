@@ -94,7 +94,7 @@ void func_actor_400500_8013BB18(Task* arg0)
     s32              y;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
     accum             = (u16)work->field_A12 + step;
@@ -126,8 +126,8 @@ void func_actor_400500_8013BBB0(Task* arg0)
     work = (Actor400500Work*)arg0->work;
     if ((s16)work->field_A04 == 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050006;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
@@ -163,7 +163,7 @@ void func_actor_400500_8013BCCC(Task* arg0)
     s32              y;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
     accum             = (u16)work->field_A12 + step;
@@ -195,8 +195,8 @@ void func_actor_400500_8013BD64(Task* arg0)
     work = (Actor400500Work*)arg0->work;
     if ((s16)work->field_A04 == 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050006;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
@@ -245,19 +245,19 @@ void func_actor_400500_8013BEC4(Task* arg0)
     Actor400500Work*   work2;
     s32                angle;
 
-    work                                = (Actor400500Work*)arg0->work;
-    src                                 = &rot;
-    work->field_A26                     = work->field_A26 + 0x80;
-    work->field_A04                     = work->field_A04 + 1;
-    child                               = ((Actor400500Work*)arg0->work)->field_9F0[1];
-    angle                               = work->field_A26;
-    ((TmdObject*)child->extra)->field_C = 0;
-    coord                               = ((TmdObject*)child->extra)->field_8;
-    rot.ident.m00_m01                   = 0x1000;
-    rot.ident.m02_m10                   = 0;
-    src->ident.m11_m12                  = 0x1000;
-    rot.ident.m20_m21                   = 0;
-    src->ident.m22                      = 0x1000;
+    work                              = (Actor400500Work*)arg0->work;
+    src                               = &rot;
+    work->field_A26                   = work->field_A26 + 0x80;
+    work->field_A04                   = work->field_A04 + 1;
+    child                             = ((Actor400500Work*)arg0->work)->field_9F0[1];
+    angle                             = work->field_A26;
+    ((TmdObject*)child->extra)->flags = 0;
+    coord                             = ((TmdObject*)child->extra)->coords;
+    rot.ident.m00_m01                 = 0x1000;
+    rot.ident.m02_m10                 = 0;
+    src->ident.m11_m12                = 0x1000;
+    rot.ident.m20_m21                 = 0;
+    src->ident.m22                    = 0x1000;
     func_8004BFF8(angle, &src->mat);
     ActorsShared80132c4c(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
@@ -303,19 +303,19 @@ void func_actor_400500_8013C018(Task* arg0)
     Actor400500Work*   work2;
     s32                angle;
 
-    work                                = (Actor400500Work*)arg0->work;
-    src                                 = &rot;
-    work->field_A26                     = work->field_A26 + 0x80;
-    work->field_A04                     = work->field_A04 + 1;
-    child                               = ((Actor400500Work*)arg0->work)->field_9F0[0];
-    angle                               = work->field_A26;
-    ((TmdObject*)child->extra)->field_C = 0;
-    coord                               = ((TmdObject*)child->extra)->field_8;
-    rot.ident.m00_m01                   = 0x1000;
-    rot.ident.m02_m10                   = 0;
-    src->ident.m11_m12                  = 0x1000;
-    rot.ident.m20_m21                   = 0;
-    src->ident.m22                      = 0x1000;
+    work                              = (Actor400500Work*)arg0->work;
+    src                               = &rot;
+    work->field_A26                   = work->field_A26 + 0x80;
+    work->field_A04                   = work->field_A04 + 1;
+    child                             = ((Actor400500Work*)arg0->work)->field_9F0[0];
+    angle                             = work->field_A26;
+    ((TmdObject*)child->extra)->flags = 0;
+    coord                             = ((TmdObject*)child->extra)->coords;
+    rot.ident.m00_m01                 = 0x1000;
+    rot.ident.m02_m10                 = 0;
+    src->ident.m11_m12                = 0x1000;
+    rot.ident.m20_m21                 = 0;
+    src->ident.m22                    = 0x1000;
     func_8004BFF8(-angle, &src->mat);
     ActorsShared80132c4c(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
@@ -362,7 +362,7 @@ void func_actor_400500_8013C174(Task* arg0)
     s32              y;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
     accum             = (u16)work->field_A12 + step;
@@ -398,8 +398,8 @@ void func_actor_400500_8013C218(Task* arg0)
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((s16)work->field_A04 == 0) {
         soundId = ((enemy->field_8 >> 0xC) << 8) | 0x40050006;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
@@ -553,7 +553,7 @@ void func_actor_400500_8013C578(Task* arg0)
     s32              y;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
     accum             = (u16)work->field_A12 + step;
@@ -589,8 +589,8 @@ void func_actor_400500_8013C61C(Task* arg0)
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((s16)work->field_A04 == 0) {
         soundId = ((enemy->field_8 >> 0xC) << 8) | 0x40050006;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
@@ -662,11 +662,11 @@ void func_actor_400500_8013C818(Task* arg0)
     s32                soundId;
     s32                pan;
 
-    coord   = (Actor400500RootXZ*)((TmdObject*)arg0->extra)->field_8;
+    coord   = (Actor400500RootXZ*)((TmdObject*)arg0->extra)->coords;
     soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
     work    = (Actor400500Work*)arg0->work;
     pan     = (s8)Gp_GetObjPan((GpObj38*)coord);
-    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 0x20;
@@ -690,8 +690,8 @@ void func_actor_400500_8013C908(Task* arg0)
 
     work    = (Actor400500Work*)arg0->work;
     soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
-    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+    pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+    SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     work2            = (Actor400500Work*)arg0->work;
     work2->field_9F8 = 0x10;
     work2->field_9FE = 0x15;
@@ -748,7 +748,7 @@ void func_actor_400500_8013CA38(Task* arg0)
         neg             = -1;
         work->field_A04 = neg;
         pos2            = &work->field_9A0;
-        coords          = ((TmdObject*)arg0->extra)->field_8;
+        coords          = ((TmdObject*)arg0->extra)->coords;
         Gp_UpdateCoord(&coords[0xE]);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
         pos             = pos2;
@@ -800,7 +800,7 @@ void func_actor_400500_8013CBD8(Task* arg0)
     s32              a1a;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -870,7 +870,7 @@ void func_actor_400500_8013CDA8(Task* arg0)
     s32              flag;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -937,7 +937,7 @@ void func_actor_400500_8013CF68(Task* arg0)
     s32              flag;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -1039,7 +1039,7 @@ void func_actor_400500_8013D210(Task* arg0)
     GsCOORDINATE2*   coord;
 
     work              = (Actor400500Work*)arg0->work;
-    coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     work->field_94C   = 0x800;
     work->field_94A   = 0;
     coord->coord.t[0] = 0x4074;
@@ -1082,7 +1082,7 @@ void func_actor_400500_8013D2D8(Task* arg0)
     s32              flag;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if ((s16)++work->field_A04 == 1) {
         work2 = (Actor400500Work*)arg0->work;
         if (((work2->field_A46 >= 0) || ((u8)work2->field_A46 & 0x7F)) && (work2->field_A30 == 0)) {
@@ -1132,8 +1132,8 @@ void func_actor_400500_8013D420(Task* arg0)
     work = (Actor400500Work*)arg0->work;
     if ((s16)++work->field_A04 == 0x1E) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x40050004;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
     if ((u8)work->field_A4B == 4) {
         work->field_A4C  = 0;
@@ -1241,7 +1241,7 @@ void func_actor_400500_8013D6A0(Task* arg0)
     s32              y;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SCHED_BARRIER();
     step              = (u16)work->field_A10 + 2;
     accum             = (u16)work->field_A12 + step;
@@ -1277,8 +1277,8 @@ void func_actor_400500_8013D744(Task* arg0)
     enemy = (GpEnemy*)arg0->spawnArg2;
     if ((s16)work->field_A04 == 0) {
         soundId = ((enemy->field_8 >> 0xC) << 8) | 0x40050006;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
@@ -1328,7 +1328,7 @@ void func_actor_400500_8013D8CC(Task* arg0)
 
     model            = (TmdObject*)arg0->extra;
     work             = (Actor400500Work*)arg0->work;
-    coord            = model->field_8;
+    coord            = model->coords;
     work->field_A02  = 0x1000;
     work->matrix_808 = coord->coord;
     Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
@@ -1351,9 +1351,9 @@ void func_actor_400500_8013D958(Task* arg0)
         work->field_A24 = 0x1000;
         work->field_A28 = 0xFF;
         func_8009EA50(work->field_A20);
-        model->field_2C = work->field_A24;
-        work->field_A04 = 0;
-        work->field_A06 = work->field_A06 + 1;
+        model->lightLevel = work->field_A24;
+        work->field_A04   = 0;
+        work->field_A06   = work->field_A06 + 1;
     }
 }
 
@@ -1373,7 +1373,7 @@ void func_actor_400500_8013D9F4(Task* arg0)
 
     model           = (TmdObject*)arg0->extra;
     work            = (Actor400500Work*)arg0->work;
-    model->field_C |= 0x80;
+    model->flags   |= 0x80;
     work->field_A04 = 0;
     work->field_A28 = 0;
     work->field_A06 = work->field_A06 + 1;
@@ -1400,7 +1400,7 @@ void func_actor_400500_8013DA68(Task* arg0)
     model = (TmdObject*)arg0->extra;
     work  = (Actor400500Work*)arg0->work;
     Tmd_FreeBuffers(model);
-    model->field_C |= 4;
+    model->flags |= 4;
     func_actor_400500_80134B88(arg0);
     work->field_A06 = work->field_A06 + 1;
 }
@@ -1465,7 +1465,7 @@ void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
     MATRIX         local;
     GsCOORDINATE2* coord;
 
-    coord = &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[arg1];
+    coord = &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[arg1];
     Gp_UpdateCoord(coord);
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
     arg2->x    = local.t[0];

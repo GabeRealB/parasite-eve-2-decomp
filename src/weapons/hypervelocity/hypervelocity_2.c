@@ -28,7 +28,7 @@ void func_hypervelocity_8011F168(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -66,7 +66,7 @@ void func_hypervelocity_8011F270(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -108,12 +108,12 @@ void func_hypervelocity_8011F374(Task* arg0)
     work        = (GpActorWork*)Game_GetPtrSlot(3);
     extra       = (TmdObject*)arg0->extra;
     playerExtra = work->extra;
-    coord       = (HyperCoord*)extra->field_8;
+    coord       = (HyperCoord*)extra->coords;
 
     coord->flg      = 0;
-    extra->field_C  = playerExtra->field_C;
-    extra->field_20 = playerExtra->field_20;
-    extra->field_1C = playerExtra->field_1C;
+    extra->flags    = playerExtra->flags;
+    extra->colorMtx = playerExtra->colorMtx;
+    extra->lightMtx = playerExtra->lightMtx;
 
     SCRATCH_SP -= 0x10;
     switch (arg0->spawnArg1 & 0xF) {
@@ -170,27 +170,27 @@ void func_hypervelocity_8011F570(Task* arg0)
     GsCOORDINATE2* coord;
 
     extra               = (TmdObject*)arg0->extra;
-    coord               = (GsCOORDINATE2*)extra->field_8;
+    coord               = (GsCOORDINATE2*)extra->coords;
     arg0->state        += 1;
     arg0->exitCallback  = WeaponsShared8011db78;
     arg0->killCountdown = 0;
     coord->flg          = 0;
-    extra->field_C      = 0;
+    extra->flags        = 0;
     if (!(arg0->spawnArg1 & 0xF)) {
         child = Task_Spawn(7, 0x70, 1, 0);
         if (child != NULL) {
-            ((GsCOORDINATE2*)((TmdObject*)child->extra)->field_8)->sub = coord;
-            childExtra                                                 = (TmdObject*)child->extra;
-            childExtra->field_20                                       = extra->field_20;
-            childExtra->field_1C                                       = extra->field_1C;
+            ((GsCOORDINATE2*)((TmdObject*)child->extra)->coords)->sub = coord;
+            childExtra                                                = (TmdObject*)child->extra;
+            childExtra->colorMtx                                      = extra->colorMtx;
+            childExtra->lightMtx                                      = extra->lightMtx;
             Task_Reparent(arg0, child);
         }
         child = Task_Spawn(7, 0x74, 2, 0);
         if (child != NULL) {
-            ((GsCOORDINATE2*)((TmdObject*)child->extra)->field_8)->sub = coord;
-            childExtra                                                 = (TmdObject*)child->extra;
-            childExtra->field_20                                       = extra->field_20;
-            childExtra->field_1C                                       = extra->field_1C;
+            ((GsCOORDINATE2*)((TmdObject*)child->extra)->coords)->sub = coord;
+            childExtra                                                = (TmdObject*)child->extra;
+            childExtra->colorMtx                                      = extra->colorMtx;
+            childExtra->lightMtx                                      = extra->lightMtx;
             Task_Reparent(arg0, child);
             coord->coord.t[0] = -6;
             coord->coord.t[1] = -0x3C;

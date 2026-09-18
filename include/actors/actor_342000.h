@@ -89,7 +89,7 @@ STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
 /// `func_actor_342000_80161EA4` ticks it and passes the id bank
 /// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
 /// `color` at 0x1D4 / 0x1F4 are the pair `func_actor_342000_80162158`
-/// republishes onto the model's `TmdObject::field_1C` / `field_20`, exactly as
+/// republishes onto the model's `TmdObject::lightMtx` / `field_20`, exactly as
 /// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
     /* 0x000 */ GpAnimCtx      ctx;

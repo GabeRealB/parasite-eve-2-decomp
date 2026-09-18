@@ -68,7 +68,7 @@ typedef struct Actor460200AnimArgs {
 
 /// Work block of the paired variant whose spawn routine allocates it with
 /// `Mem_Calloc(0x4FC, 0)`: `light` / `color` go to the sub-model's
-/// `TmdObject::field_1C` / `field_20`, and `anim`, `slots` and `pose` are what
+/// `TmdObject::lightMtx` / `field_20`, and `anim`, `slots` and `pose` are what
 /// `func_800B3F84` fills in. When `Task::spawnArg1` is set the routine spawns a
 /// partner enemy, reparents its own task under the partner's and parks that task
 /// in `field_4F4`; `animId` is then 2 rather than 1. `enemy` is the actor's own

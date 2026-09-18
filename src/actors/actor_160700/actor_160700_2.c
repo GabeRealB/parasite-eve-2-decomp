@@ -20,7 +20,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     VECTOR         vec;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 800;

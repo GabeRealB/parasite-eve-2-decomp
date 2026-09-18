@@ -61,8 +61,8 @@ void func_mist_parking_801831F0(s32 arg0)
         task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, arg0, 0, 0);
         *slot = task;
         if (task != NULL) {
-            obj           = (TmdObject*)task->extra;
-            obj->field_C &= ~0x80;
+            obj         = (TmdObject*)task->extra;
+            obj->flags &= ~0x80;
         }
     }
 }

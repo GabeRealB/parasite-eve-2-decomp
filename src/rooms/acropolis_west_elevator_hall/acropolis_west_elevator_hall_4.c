@@ -58,7 +58,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
     AwehElevatorState* work;
 
     extra = (TmdObject*)task->extra;
-    coord = extra->field_8;
+    coord = extra->coords;
     work  = (AwehElevatorState*)Mem_Calloc(sizeof(AwehElevatorState), 0);
     if (work == NULL) {
         Task_Kill(task);
@@ -66,7 +66,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
     }
     task->work        = (TaskIdMap*)work;
     work->field_0     = 0;
-    extra->field_C    = 0;
+    extra->flags      = 0;
     coord->sub        = &Gfx_ViewCoord;
     coord->coord.t[0] = -1000;
     coord->coord.t[1] = -20;
@@ -87,7 +87,7 @@ void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
 
     work  = (AwehElevatorState*)task->work;
     extra = (TmdObject*)task->extra;
-    coord = extra->field_8;
+    coord = extra->coords;
 
     work->field_0 += task->spawnArg1 * 0x14;
     if (work->field_0 < 0) {
@@ -98,9 +98,9 @@ void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
     }
     coord->coord.t[0] = (work->field_0 * (s32)task->spawnArg2) - 1000;
     if ((u8)gGameSession->at4.loc.view == 5) {
-        extra->field_C = 0;
+        extra->flags = 0;
     } else {
-        extra->field_C = 0x80;
+        extra->flags = 0x80;
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
@@ -118,7 +118,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     SVECTOR        altPos;
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     switch (task->state) {
         case 0:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;

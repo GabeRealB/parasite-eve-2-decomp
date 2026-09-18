@@ -27,7 +27,7 @@ void func_m950_8011D1DC(GpActorWork* arg0)
         *(void**)G_SCRATCH_HEAD = tmp;
     }
     actor = arg0->actor;
-    coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956  = 4;
@@ -62,7 +62,7 @@ void func_m950_8011D1DC(GpActorWork* arg0)
                 actor->field_95E++;
                 actor->field_12A |= 0xC000;
                 Gp_ConsumeSlotQty(0x82, 1);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x20030004, 1);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x20030004, 1);
                 Gp_SpawnEff(0x6002B, coord, 3, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
             }

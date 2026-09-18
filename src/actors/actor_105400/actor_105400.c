@@ -75,17 +75,17 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     s32             i;
 
     obj   = arg1->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x340, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
     arg1->work     = (TaskIdMap*)work;
-    obj->field_C   = 0;
+    obj->flags     = 0;
     coord->flg     = 0;
-    obj->field_1C  = &work->field_264;
-    obj->field_20  = &work->field_244;
+    obj->lightMtx  = &work->field_264;
+    obj->colorMtx  = &work->field_244;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
@@ -141,11 +141,11 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     key.room          = sessionKey->room;
     key.view          = sessionKey->view;
     Gp_SyncAreaKeyIndex(&key);
-    rec             = Gp_GetNestedAreaRec(&key);
-    place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->field_24 = place->field_D;
-    model->field_25 = place->field_E;
-    if (model->field_18 != NULL) {
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->field_D;
+    model->clut  = place->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }

@@ -75,7 +75,7 @@ s32 func_acropolis_bridge_801820A0(Task* task)
     SVECTOR        pos;
     s32            i;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     i = 0;
     do {
@@ -133,7 +133,7 @@ void func_acropolis_bridge_80182394(Task* task)
     RoomEffWork*                work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
-    coord    = ((TmdObject*)task->extra)->field_8;
+    coord    = ((TmdObject*)task->extra)->coords;
     head     = *scratch;
     block    = (AcropolisBridgeMoteScratch*)(head - 0xC);
     *scratch = block;
@@ -188,7 +188,7 @@ void func_acropolis_bridge_80182694(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 != 0) {
         func_acropolis_bridge_801827EC(coord, (s16)work->field_26, (s16)work->field_24);
         if (Gp_State1C->field_4 >= 4) {

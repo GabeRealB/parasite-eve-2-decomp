@@ -15,7 +15,7 @@ void func_actor_405800_80138514(Task* arg0, s16 arg1, Actor405800ViewPos* arg2)
     GsCOORDINATE2* coord;
     GsCOORDINATE2* coords;
 
-    coords            = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coords            = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     Gfx_ViewCoord.flg = 0;
     coord             = &coords[arg1];
     Gp_UpdateCoord(&Gfx_ViewCoord);

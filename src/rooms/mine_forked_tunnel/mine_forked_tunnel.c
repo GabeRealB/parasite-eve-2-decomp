@@ -70,12 +70,12 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
         arg0->killCountdown++;
     }
 
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8->workm.t, &vec) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords->workm.t, &vec) != 0) {
             Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->field_8);
         }
-        Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8->workm.t, 0, 3);
+        Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords->workm.t, 0, 3);
     }
 
     if (((MineForkedTunnelWork*)arg0->work)->field_44 >= 0) {
@@ -111,7 +111,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
             placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
 
             place             = &placement;
-            coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+            coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
             coord->coord.t[0] = place->pos.vx;
             coord->coord.t[1] = place->pos.vy;
             coord->coord.t[2] = place->pos.vz;
@@ -133,7 +133,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
             do {
                 case 3:
                     src               = &D_mine_forked_tunnel_80181BBC;
-                    coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+                    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
                     coord->coord.t[0] = src->pos.vx;
                     coord->coord.t[1] = src->pos.vy;
                     coord->coord.t[2] = src->pos.vz;
@@ -166,7 +166,7 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
         placement.rot.vz = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vz;
 
         place             = &placement;
-        coord             = (RoomCoord*)((TmdObject*)arg0->extra)->field_8;
+        coord             = (RoomCoord*)((TmdObject*)arg0->extra)->coords;
         coord->coord.t[0] = place->pos.vx;
         coord->coord.t[1] = place->pos.vy;
         coord->coord.t[2] = place->pos.vz;
@@ -196,8 +196,8 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
 
     ext           = arg0->extra;
     work          = (MineForkedTunnelWork*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5D0);

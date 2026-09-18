@@ -127,7 +127,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* plac
 
 /// Message 0x7DB handler, listed in `D_actor_113100_80144338` after the 0x7D3 /
 /// 0x7D5 / 0x7DD ones. The payload halfword selects one of four actions: 0 and
-/// 1 clear and raise bit 0x80 of the child task's `TmdObject::field_C`, the
+/// 1 clear and raise bit 0x80 of the child task's `TmdObject::flags`, the
 /// deferred-kill flag that decides whether the model is drawn; 2 and 3 set the
 /// work block's `field_53C` mode byte to 1 and 0. Nothing reads the opcode
 /// itself, hence `msgId`.
@@ -209,7 +209,7 @@ void func_actor_113100_80132EF0(Task* task);
 /// handler with (task, 0, 0, 0) and `func_actor_113100_80132F40` with
 /// (task, 0, 1, 0) next to `func_80183BAC(0)`. Modes 0..3 are handled and
 /// return 0; anything else returns 1. Its body documents what each mode does to
-/// `TmdObject::field_C`, the display node and `field_53D`.
+/// `TmdObject::flags`, the display node and `field_53D`.
 s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// Gameplay import (`actors.imports.txt`), called with 1 by the setup handler

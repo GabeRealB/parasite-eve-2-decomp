@@ -287,56 +287,56 @@ void func_actor_405800_80136E14(Task* task)
     TmdObject* src4;
 
     D_800678F0[0] = D_actor_405800_8013FB18;
-    eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[5], 0x200, NULL);
+    eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[5], 0x200, NULL);
     if (eff != NULL) {
-        src           = (TmdObject*)task->extra;
-        dst           = (TmdObject*)eff->field_0->extra;
-        dst->field_24 = src->field_24;
-        dst->field_25 = src->field_25;
-        if (dst->field_18 != NULL) {
+        src        = (TmdObject*)task->extra;
+        dst        = (TmdObject*)eff->field_0->extra;
+        dst->tpage = src->tpage;
+        dst->clut  = src->clut;
+        if (dst->buffer != NULL) {
             Tmd_ProcessStream(dst);
             Tmd_ProcessStream(dst);
         }
     }
     D_800678F0[0] = D_actor_405800_8014086C;
-    eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[13], 0x200, NULL);
+    eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[13], 0x200, NULL);
     if (eff2 != NULL) {
-        src2           = (TmdObject*)task->extra;
-        dst2           = (TmdObject*)eff2->field_0->extra;
-        dst2->field_24 = src2->field_24;
-        dst2->field_25 = src2->field_25;
-        if (dst2->field_18 != NULL) {
+        src2        = (TmdObject*)task->extra;
+        dst2        = (TmdObject*)eff2->field_0->extra;
+        dst2->tpage = src2->tpage;
+        dst2->clut  = src2->clut;
+        if (dst2->buffer != NULL) {
             Tmd_ProcessStream(dst2);
             Tmd_ProcessStream(dst2);
         }
     }
     D_800678F0[0] = D_actor_405800_80140F10;
-    eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[16], 0x200, NULL);
+    eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[16], 0x200, NULL);
     if (eff3 != NULL) {
-        src3           = (TmdObject*)task->extra;
-        dst3           = (TmdObject*)eff3->field_0->extra;
-        dst3->field_24 = src3->field_24;
-        dst3->field_25 = src3->field_25;
-        if (dst3->field_18 != NULL) {
+        src3        = (TmdObject*)task->extra;
+        dst3        = (TmdObject*)eff3->field_0->extra;
+        dst3->tpage = src3->tpage;
+        dst3->clut  = src3->clut;
+        if (dst3->buffer != NULL) {
             Tmd_ProcessStream(dst3);
             Tmd_ProcessStream(dst3);
         }
     }
     D_800678F0[0] = D_actor_405800_80141430;
-    eff4          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[10], 0x200, NULL);
+    eff4          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[10], 0x200, NULL);
     if (eff4 != NULL) {
-        src4           = (TmdObject*)task->extra;
-        dst4           = (TmdObject*)eff4->field_0->extra;
-        dst4->field_24 = src4->field_24;
-        dst4->field_25 = src4->field_25;
-        if (dst4->field_18 != NULL) {
+        src4        = (TmdObject*)task->extra;
+        dst4        = (TmdObject*)eff4->field_0->extra;
+        dst4->tpage = src4->tpage;
+        dst4->clut  = src4->clut;
+        if (dst4->buffer != NULL) {
             Tmd_ProcessStream(dst4);
             Tmd_ProcessStream(dst4);
         }
     }
-    Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[1], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[2], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)[3], 0x200, NULL);
+    Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[1], 0x200, NULL);
+    Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[2], 0x200, NULL);
+    Gp_SpawnEff(0x60030, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[3], 0x200, NULL);
 }
 
 void func_actor_405800_8013706C(Task* arg0, s16 arg1)
@@ -353,9 +353,9 @@ void func_actor_405800_8013706C(Task* arg0, s16 arg1)
             if (work->field_890 == 0) {
                 ActorsShared8016a538Mat* m = &rot;
 
-                v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
-                v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->field_8->coord.t[1] - 0x384;
-                v.vz              = work->field_A8.vz - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+                v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->coords->coord.t[0];
+                v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x384;
+                v.vz              = work->field_A8.vz - ((TmdObject*)arg0->extra)->coords->coord.t[2];
                 rot.ident.m00_m01 = 0x1000;
                 rot.ident.m02_m10 = 0;
                 m->ident.m11_m12  = 0x1000;
@@ -369,9 +369,9 @@ void func_actor_405800_8013706C(Task* arg0, s16 arg1)
             } else {
                 ActorsShared8016a538Mat* m = &rot;
 
-                v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->field_8->coord.t[0];
-                v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->field_8->coord.t[1] - 0x640;
-                v.vz              = work->field_A8.vz - ((TmdObject*)arg0->extra)->field_8->coord.t[2];
+                v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->coords->coord.t[0];
+                v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x640;
+                v.vz              = work->field_A8.vz - ((TmdObject*)arg0->extra)->coords->coord.t[2];
                 rot.ident.m00_m01 = 0x1000;
                 rot.ident.m02_m10 = 0;
                 m->ident.m11_m12  = 0x1000;
@@ -417,7 +417,7 @@ s32 func_actor_405800_8013728C(Task* arg0)
 
     dist  = 0;
     work  = (Actor405800Work*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     for (i = 0; i < 8; i++) {
         if ((work->rec_75C[i].field_4 & 0xFFFF0000) != 0x100000) {
             dist = 0;
@@ -468,7 +468,7 @@ s32 func_actor_405800_801373E0(Task* arg0)
     bits        = rnd >> 0x10;
     Gp_LcgState = rnd;
     work        = (Actor405800Work*)arg0->work;
-    coord       = ((TmdObject*)arg0->extra)->field_8;
+    coord       = ((TmdObject*)arg0->extra)->coords;
     if (work->field_85C == 0) {
         if (work->field_890 == 0) {
             if ((bits & 0xF) == 0) {
@@ -642,7 +642,7 @@ void func_actor_405800_80137A60(Task* task)
     func_actor_405800_80137948(task);
     if ((s16)func_actor_405800_80136A1C(task) == 0 && (s16)func_actor_405800_801373E0(task) == 0) {
         states[(s16)work->field_848](task);
-        if (work->field_890 != 0 && ((TmdObject*)task->extra)->field_8->coord.t[0] > 10000) {
+        if (work->field_890 != 0 && ((TmdObject*)task->extra)->coords->coord.t[0] > 10000) {
             Actor405800Work* cur = (Actor405800Work*)task->work;
 
             cur->field_846 = 0xD;

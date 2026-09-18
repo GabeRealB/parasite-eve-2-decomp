@@ -23,7 +23,7 @@ void ActorsShared801639a8(Task* arg0)
 
     work   = (ActorsShared80168d3cWork*)arg0->work;
     ident  = &mtx.ident;
-    coords = ((TmdObject*)arg0->extra)->field_8;
+    coords = ((TmdObject*)arg0->extra)->coords;
 
     mtx.ident.m00_m01 = 0x1000;
     mtx.ident.m02_m10 = 0;

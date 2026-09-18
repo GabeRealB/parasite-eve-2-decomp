@@ -132,7 +132,7 @@ STATIC_ASSERT_SIZEOF(GpGiveRec, 0xC);
 /// 16-byte VRAM upload record walked by `Gp_LoadImages`. `field_0 == 0`
 /// uploads `rect` / `data` via `LoadImage`; non-zero ends the walk.
 /// `Gp_LoadActorImage` fills `rect` from a source RECT plus the TMD tpage at
-/// `TmdObject.field_24` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
+/// `TmdObject.tpage` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
 /// `y = src.y + 0x100`).
 typedef struct _GpImgRec {
     /* 0x0 */ u16     field_0;
@@ -1199,14 +1199,14 @@ extern GpRoomParamRec*** Gp_RoomParamTables[];
 /// pointer returned by `Gp_GetRoomBound` when a table lookup fails.
 extern GBytes8 Gp_RoomBoundDefault;
 
-/// Default `MATRIX` installed at `TmdObject.field_1C` by `Gp_BindDefaultMtx`.
+/// Default `MATRIX` installed at `TmdObject.lightMtx` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx;
 
-/// Default `MATRIX` installed at `TmdObject.field_20` by `Gp_BindDefaultMtx`.
+/// Default `MATRIX` installed at `TmdObject.colorMtx` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx2;
 
 /// Light/color `MATRIX` pair `Gp_DebugPanTask` installs at
-/// `TmdObject.field_1C` / `field_20` for the `Gp_ActorSlots[1]` actor and
+/// `TmdObject.lightMtx` / `field_20` for the `Gp_ActorSlots[1]` actor and
 /// its `field_918` / `field_920` child tasks (the second actor uses its own
 /// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
 extern MATRIX D_80114ED8;
@@ -1424,7 +1424,7 @@ void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
-/// when `gGameSession->field_65 == 1` unless `TmdObject.field_C` bit
+/// when `gGameSession->field_65 == 1` unless `TmdObject.flags` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void            Gp_LightFalloff(GpObj44* arg0);

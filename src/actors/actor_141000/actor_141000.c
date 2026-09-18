@@ -166,7 +166,7 @@ void func_actor_141000_80132C7C(Task* task)
     GsCOORDINATE2*       coord;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x10, 0);
     if (work == NULL) {
         Task_Kill(task);
@@ -174,7 +174,7 @@ void func_actor_141000_80132C7C(Task* task)
     }
     task->work    = (TaskIdMap*)work;
     work->field_0 = 0xFFF;
-    obj->field_C &= 0xFF7F;
+    obj->flags   &= 0xFF7F;
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
     Task_SpawnFromTable(&D_actor_141000_801348D8, 1, 0, (s32)task);
@@ -196,7 +196,7 @@ void func_actor_141000_80132D3C(Task* task)
     sp   = D_actor_141000_80131E3C;
     sp.funcs[(s16)work->state](task);
     if (D_80070F70 & 1) {
-        Gp_SpawnEff(0x60070, (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8, 0x24200, NULL);
+        Gp_SpawnEff(0x60070, (GsCOORDINATE2*)((TmdObject*)task->extra)->coords, 0x24200, NULL);
     }
     if (gGameSession->viewReady != 0) {
         Task_Kill(task);

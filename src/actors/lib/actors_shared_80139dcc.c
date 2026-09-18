@@ -17,7 +17,7 @@ void ActorsShared80139dcc(Task* task, s16 index, ActorsShared80139dccPos* out)
     GsCOORDINATE2* coord;
     GsCOORDINATE2* coords;
 
-    coords            = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coords            = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     Gfx_ViewCoord.flg = 0;
     coord             = &coords[index];
     Gp_UpdateCoord(&Gfx_ViewCoord);

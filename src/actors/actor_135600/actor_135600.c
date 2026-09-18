@@ -223,10 +223,10 @@ void func_actor_135600_80132234(Task* task)
         index1    = raw1 >> 12;
         key.view  = areaByte0;
         Gp_SyncAreaKeyIndex(keyp1);
-        entry1           = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model1->field_24 = entry1->field_D;
-        model1->field_25 = entry1->field_E;
-        if (model1->field_18 != NULL) {
+        entry1        = (GpCdRec10*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model1->tpage = entry1->field_D;
+        model1->clut  = entry1->field_E;
+        if (model1->buffer != NULL) {
             Tmd_ProcessStream(model1);
             Tmd_ProcessStream(model1);
         }
@@ -248,10 +248,10 @@ void func_actor_135600_80132234(Task* task)
         index2    = raw2 >> 12;
         key.view  = areaByte1;
         Gp_SyncAreaKeyIndex(keyp2);
-        entry2           = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-        model2->field_24 = entry2->field_D;
-        model2->field_25 = entry2->field_E;
-        if (model2->field_18 != NULL) {
+        entry2        = (GpCdRec10*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        model2->tpage = entry2->field_D;
+        model2->clut  = entry2->field_E;
+        if (model2->buffer != NULL) {
             Tmd_ProcessStream(model2);
             Tmd_ProcessStream(model2);
         }
@@ -293,14 +293,14 @@ void func_actor_135600_801324D0(Task* arg0)
     GsCOORDINATE2*   coord;
     s32              i;
 
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
     if (D_801153F4 == 0) {
         funcs[work->field_4F8](arg0);
-        coord              = ((TmdObject*)arg0->extra)->field_8;
+        coord              = ((TmdObject*)arg0->extra)->coords;
         work->field_4D8   += work->field_4C8;
         work->field_4DC   += work->field_4CC;
         work->field_4E0   += work->field_4D0;
@@ -317,9 +317,9 @@ void func_actor_135600_801324D0(Task* arg0)
             }
         }
         if (gGameSession->viewReady != 0) {
-            ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
-            Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
-            func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+            ((TmdObject*)arg0->extra)->coords[1].flg = 0;
+            Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
+            func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
         }
         if (work->field_508 >= 0) {
             if (work->field_508 == 0) {

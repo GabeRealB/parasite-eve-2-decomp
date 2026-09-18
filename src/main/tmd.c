@@ -74,7 +74,7 @@ u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-void Tmd_InitSourceStream(TmdSource* arg0)
+void Tmd_InitSourceStream(TmdSource* src)
 {
     u32*                  stream;
     u32                   id;
@@ -83,8 +83,8 @@ void Tmd_InitSourceStream(TmdSource* arg0)
     s32                   flag;
     u32                   tmp;
 
-    stream = arg0->stream;
-    if (arg0->handlersResolved == 0) {
+    stream = src->stream;
+    if (src->handlersResolved == 0) {
         tmp  = *(u32*)&gGameSession->at4.loc;
         tmp  = (tmp & 0xFFFF0000) ^ 0x02100000;
         flag = tmp < 1;
@@ -301,11 +301,11 @@ void Tmd_InitSourceStream(TmdSource* arg0)
             }
         }
     done:
-        arg0->handlersResolved = 1;
+        src->handlersResolved = 1;
     }
 }
 
-void Tmd_ProcessStream(TmdObject* arg0)
+void Tmd_ProcessStream(TmdObject* obj)
 {
     TmdScratchModelBlock* ws;
     TmdSource*            src;
@@ -321,7 +321,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
 
     flag     = 0;
     scratch  = (void**)G_SCRATCH_HEAD;
-    src      = arg0->field_10;
+    src      = obj->source;
     tmp      = *scratch;
     stream   = src->stream;
     hi       = *(u32*)&gGameSession->at4.loc;
@@ -333,19 +333,19 @@ void Tmd_ProcessStream(TmdObject* arg0)
     }
     ws = head;
 
-    ws->field_80 = arg0;
-    buf          = arg0->field_18;
+    ws->field_80 = obj;
+    buf          = obj->buffer;
     ws->field_0  = buf;
-    if (arg0->field_14 != 0) {
-        ws->field_0 = (u8*)buf + arg0->field_16;
+    if (obj->bufferIndex != 0) {
+        ws->field_0 = (u8*)buf + obj->halfSize;
     }
-    ws->field_4     = ws->field_0;
-    ws->field_0     = (u8*)ws->field_0 + src->firstRegionSize;
-    arg0->field_14 ^= 1;
-    ws->field_8     = (s32)arg0->field_10->verts;
-    ws->field_C     = (s32)arg0->field_10->normals;
-    ws->field_70    = (s8)arg0->field_24;
-    ws->field_72    = (s8)arg0->field_25 << 6;
+    ws->field_4       = ws->field_0;
+    ws->field_0       = (u8*)ws->field_0 + src->firstRegionSize;
+    obj->bufferIndex ^= 1;
+    ws->field_8       = (s32)obj->source->verts;
+    ws->field_C       = (s32)obj->source->normals;
+    ws->field_70      = (s8)obj->tpage;
+    ws->field_72      = (s8)obj->clut << 6;
     goto read_id;
 
     for (;;) {
@@ -502,22 +502,22 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
     Tmd_InitSourceStream(src);
     obj = Mem_Calloc((src->partCount * sizeof(GsCOORDINATE2)) + sizeof(TmdObject), 0);
     if (obj != NULL) {
-        obj->field_C  = 0x80;
-        obj->field_30 = src->partCount;
-        obj->field_8  = (GsCOORDINATE2*)(obj + 1);
-        obj->field_14 = 0;
-        coord         = obj->field_8;
-        obj->field_16 = src->halfSize;
-        obj->field_1C = &GsLIGHTWSMATRIX;
-        obj->field_20 = &D_80074080;
-        obj->field_24 = 0;
-        obj->field_25 = 0;
-        obj->field_10 = src;
-        bone          = src->skeleton;
-        for (i = 0; i < (u32)obj->field_30; i++) {
+        obj->flags       = 0x80;
+        obj->partCount   = src->partCount;
+        obj->coords      = (GsCOORDINATE2*)(obj + 1);
+        obj->bufferIndex = 0;
+        coord            = obj->coords;
+        obj->halfSize    = src->halfSize;
+        obj->lightMtx    = &GsLIGHTWSMATRIX;
+        obj->colorMtx    = &D_80074080;
+        obj->tpage       = 0;
+        obj->clut        = 0;
+        obj->source      = src;
+        bone             = src->skeleton;
+        for (i = 0; i < (u32)obj->partCount; i++) {
             coord->coord = bone->local;
             if (bone->parent != i) {
-                coord->sub = &obj->field_8[bone->parent];
+                coord->sub = &obj->coords[bone->parent];
             } else {
                 coord->sub = &Gfx_ViewCoord;
             }
@@ -525,22 +525,22 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
             coord++;
             bone++;
         }
-        obj->field_18 = NULL;
+        obj->buffer = NULL;
         if (flags == 0) {
             mem = Mem_Calloc(src->halfSize * 2, 1);
             if (mem != NULL) {
-                obj->field_18 = mem;
+                obj->buffer = mem;
                 Tmd_ProcessStream(obj);
                 Tmd_ProcessStream(obj);
             }
         } else if (flags & 1) {
-            obj->field_C |= 4;
+            obj->flags |= 4;
         }
     }
     return obj;
 }
 
-void Tmd_SetupDraw(TmdObject* arg0)
+void Tmd_SetupDraw(TmdObject* obj)
 {
     u8                   buf[0x1000];
     void**               scratch;
@@ -564,36 +564,36 @@ void Tmd_SetupDraw(TmdObject* arg0)
     {
         TmdSource* p;
 
-        p            = arg0->field_10;
+        p            = obj->source;
         tmp          = *scratch;
         stream       = p->stream;
         disp         = gDisplayState.otDepthShift;
         ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
-        ws->field_80 = arg0;
+        ws->field_80 = obj;
         ws->field_84 = disp;
     }
-    bufptr      = arg0->field_18;
+    bufptr      = obj->buffer;
     ws->field_0 = bufptr;
     *scratch    = ws;
-    if (arg0->field_14 != 0) {
-        ws->field_0 = (u8*)bufptr + arg0->field_16;
+    if (obj->bufferIndex != 0) {
+        ws->field_0 = (u8*)bufptr + obj->halfSize;
     }
-    ws->field_4     = ws->field_0;
-    ws->field_0     = (u8*)ws->field_0 + arg0->field_10->firstRegionSize;
-    arg0->field_14 ^= 1;
-    ws->field_8     = (s32)arg0->field_10->verts;
+    ws->field_4       = ws->field_0;
+    ws->field_0       = (u8*)ws->field_0 + obj->source->firstRegionSize;
+    obj->bufferIndex ^= 1;
+    ws->field_8       = (s32)obj->source->verts;
     COMPILER_BARRIER();
     ot           = Gpu_CurrentOt;
-    p            = arg0->field_10;
+    p            = obj->source;
     field18      = (s32)p->normals;
     ws->field_14 = ot;
     ws->field_C  = field18;
-    e            = arg0->field_E;
+    e            = obj->otOffset;
     b            = buf;
     ws->field_10 = b;
     ws->field_14 = ot + e;
 
-    colorMtx = (MATRIX*)arg0->field_20;
+    colorMtx = (MATRIX*)obj->colorMtx;
     gte_SetColorMatrix(colorMtx);
     {
         register MATRIX* m asm("v0");
@@ -616,7 +616,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         TOUCH_REG(m);
         src = &Gfx_ViewWorldMtx;
         TOUCH_REG(src);
-        flags = arg0->field_C;
+        flags = obj->flags;
         TOUCH_REG(flags);
 
         t4         = src->m[0][0];
@@ -640,7 +640,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         m->m[2][1] = t5;
         m->m[2][2] = t6;
 
-        light = (MATRIX*)arg0->field_1C;
+        light = (MATRIX*)obj->lightMtx;
         gte_SetRotMatrix(light);
 
         gte_ldclmv(m);
@@ -658,32 +658,32 @@ void Tmd_SetupDraw(TmdObject* arg0)
         gte_stclmv(m);
     }
 
-    Tmd_SetupGteMatrices(ws, flags, stream, arg0);
+    Tmd_SetupGteMatrices(ws, flags, stream, obj);
 
     *scratch = (u8*)*scratch + 0x98;
 }
 
-void Tmd_FreeBuffers(TmdObject* arg0)
+void Tmd_FreeBuffers(TmdObject* obj)
 {
-    if (arg0->field_18 != NULL) {
-        memFreeFromHeap(arg0->field_18, 1);
-        arg0->field_18 = NULL;
+    if (obj->buffer != NULL) {
+        memFreeFromHeap(obj->buffer, 1);
+        obj->buffer = NULL;
     }
 }
 
-s32 Tmd_AllocBuffers(TmdObject* arg0)
+s32 Tmd_AllocBuffers(TmdObject* obj)
 {
     s32   result;
     void* mem;
 
     result = 0;
-    if (arg0->field_18 == NULL) {
-        mem            = Mem_Calloc(arg0->field_10->halfSize * 2, 1);
-        arg0->field_18 = mem;
+    if (obj->buffer == NULL) {
+        mem         = Mem_Calloc(obj->source->halfSize * 2, 1);
+        obj->buffer = mem;
         if (mem != NULL) {
-            arg0->field_14 = 0;
-            Tmd_ProcessStream(arg0);
-            Tmd_ProcessStream(arg0);
+            obj->bufferIndex = 0;
+            Tmd_ProcessStream(obj);
+            Tmd_ProcessStream(obj);
             result = 1;
         }
     }
@@ -696,17 +696,17 @@ s32 Tmd_SumBufferBytes(void)
     s32        result;
 
     result = 0;
-    node   = gTmdList.next;
+    node   = (TmdObject*)gTmdList.next;
     while (node != NULL) {
-        if (node->field_18 != NULL) {
-            result += node->field_10->halfSize * 2;
+        if (node->buffer != NULL) {
+            result += node->source->halfSize * 2;
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
     return result;
 }
 
-void Tmd_RewriteOpcodes(TmdSource* arg0)
+void Tmd_RewriteOpcodes(TmdSource* src)
 {
     u32* stream;
     u32  id;
@@ -714,7 +714,7 @@ void Tmd_RewriteOpcodes(TmdSource* arg0)
     u32  lo;
     u32  stop;
 
-    stream = arg0->stream;
+    stream = src->stream;
     if (*stream != -1U) {
         stop = -2;
         do {
@@ -763,54 +763,54 @@ void Tmd_RewriteOpcodes(TmdSource* arg0)
     }
 }
 
-void Tmd_FlagAllNodes(TmdObject* arg0)
+void Tmd_FlagAllNodes(Task* task)
 {
     TmdObject* node;
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     while (node != NULL) {
-        node->field_C |= 0x80;
-        node           = node->next;
+        node->flags |= 0x80;
+        node         = (TmdObject*)node->next;
     }
-    arg0->field_30++;
+    task->state++;
 }
 
-void Tmd_FreeNodeBuffers(TmdObject* arg0)
+void Tmd_FreeNodeBuffers(Task* task)
 {
     TmdObject* node;
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     while (node != NULL) {
-        if (node->field_18 != NULL) {
-            memFreeFromHeap(node->field_18, 1);
-            node->field_18 = NULL;
+        if (node->buffer != NULL) {
+            memFreeFromHeap(node->buffer, 1);
+            node->buffer = NULL;
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
-    arg0->field_30++;
+    task->state++;
 }
 
-void Tmd_DispatchTask(Task* arg0)
+void Tmd_DispatchTask(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = Tmd_TaskStates;
-    sp.funcs[arg0->state](arg0);
+    sp.funcs[task->state](task);
 }
 
 void Gpu_ResetGraphAndOt(void)
 {
     TmdObject* node;
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
     while (node != NULL) {
-        if (node->field_18 != NULL) {
-            node->field_18 = NULL;
+        if (node->buffer != NULL) {
+            node->buffer = NULL;
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
 }
 
@@ -819,67 +819,67 @@ void Tmd_AllocMissingBuffers(void)
     TmdObject* node;
     void*      mem;
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     Mem_InitAux();
     CdCmd_SetupMdecBuffers();
     while (node != NULL) {
-        if (node->field_18 == NULL) {
-            if (!(node->field_C & 4)) {
-                mem = Mem_Calloc(node->field_10->halfSize * 2, 1);
+        if (node->buffer == NULL) {
+            if (!(node->flags & 4)) {
+                mem = Mem_Calloc(node->source->halfSize * 2, 1);
                 if (mem != NULL) {
-                    node->field_18 = mem;
-                    node->field_14 = 0;
+                    node->buffer      = mem;
+                    node->bufferIndex = 0;
                     Tmd_ProcessStream(node);
                     Tmd_ProcessStream(node);
                 }
             }
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
 }
 
-void Tmd_AllocNodeBuffers(Task* arg0)
+void Tmd_AllocNodeBuffers(Task* task)
 {
     TmdObject* node;
     void*      mem;
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     while (node != NULL) {
-        if (node->field_18 == NULL) {
-            mem = Mem_Calloc(node->field_10->halfSize * 2, 1);
+        if (node->buffer == NULL) {
+            mem = Mem_Calloc(node->source->halfSize * 2, 1);
             if (mem != NULL) {
-                node->field_18 = mem;
-                node->field_14 = 0;
-                node->field_C &= ~0x80;
+                node->buffer      = mem;
+                node->bufferIndex = 0;
+                node->flags      &= ~0x80;
                 Tmd_ProcessStream(node);
                 Tmd_ProcessStream(node);
             }
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
-    Task_Kill(arg0);
+    Task_Kill(task);
 }
 
 void Tmd_DrawFlaggedNodes(TmdObject* node)
 {
     while (node != NULL) {
-        if (node->field_C & 8) {
-            if (node->field_18 != NULL) {
+        if (node->flags & 8) {
+            if (node->buffer != NULL) {
                 Tmd_SetupDraw(node);
             }
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
 }
 
 void Tmd_DrawActiveNodes(TmdObject* node)
 {
     while (node != NULL) {
-        if (!(node->field_C & 0x80)) {
-            if (node->field_18 != NULL) {
+        if (!(node->flags & 0x80)) {
+            if (node->buffer != NULL) {
                 Tmd_SetupDraw(node);
             }
         }
-        node = node->next;
+        node = (TmdObject*)node->next;
     }
 }

@@ -29,7 +29,7 @@ void RoomsShared8017eb68(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 != 0) {
         Room_Draw16(coord, (s16)work->field_26, (s16)work->field_24);
         if (Gp_State1C->field_4 >= 4) {

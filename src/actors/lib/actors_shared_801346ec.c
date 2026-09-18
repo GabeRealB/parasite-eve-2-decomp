@@ -10,8 +10,8 @@ void ActorsShared801346ec(Task* task, s32 arg1, s32 arg2)
 
     obj = (TmdObject*)task->extra;
     if (arg2 != 0) {
-        obj->field_C = obj->field_C & 0xFF7F;
+        obj->flags = obj->flags & 0xFF7F;
         return;
     }
-    obj->field_C = obj->field_C | 0x80;
+    obj->flags = obj->flags | 0x80;
 }

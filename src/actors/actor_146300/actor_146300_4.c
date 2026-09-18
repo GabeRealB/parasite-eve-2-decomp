@@ -49,16 +49,16 @@ s32 func_actor_146300_80132B14(void)
 void func_actor_146300_80132B1C(Task* task)
 {
     TmdObject*     extra = task->extra;
-    GsCOORDINATE2* coord = extra->field_8;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_146300_8014282C->extra)->field_8;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_146300_8014282C->extra)->coords;
     GsCOORDINATE2* part  = parts + 4;
     VECTOR         vec;
 
     switch (task->state) {
         case 0:
-            coord->flg     = 0;
-            extra->field_C = 0;
-            coord->sub     = part;
+            coord->flg   = 0;
+            extra->flags = 0;
+            coord->sub   = part;
             task->state++;
             break;
         case 1:

@@ -55,7 +55,7 @@ void func_acropolis_square_801823DC(Task* task)
     RoomEffWork*   work;
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     switch (task->state) { /* irregular */
         case 0:
@@ -118,7 +118,7 @@ void func_acropolis_square_801825DC(Task* task)
     u32                         tag;
     u_long*                     ot;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
     head = *(void**)G_SCRATCH_HEAD;

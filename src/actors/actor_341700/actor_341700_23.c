@@ -27,7 +27,7 @@ void func_actor_341700_8016A2CC(Task* arg0)
     s32              flag;
 
     work   = (Actor341700Work*)arg0->work;
-    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SndEvt_EnqueueType7(0x402C0002, 1);
     work->field_90  = coords->coord.t[0];
     work->field_92  = coords->coord.t[1];
@@ -38,7 +38,7 @@ void func_actor_341700_8016A2CC(Task* arg0)
     work->field_422++;
     pos     = &work->field_70;
     pos->vx = pos->vy = pos->vz = 0;
-    current                     = &((GsCOORDINATE2*)((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8)[3];
+    current                     = &((GsCOORDINATE2*)((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords)[3];
     local.vx                    = pos->vx;
     local.vy                    = pos->vy;
     local.vz                    = pos->vz;
@@ -88,7 +88,7 @@ void func_actor_341700_8016A568(Task* arg0)
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);
-    model->field_C  = model->field_C | 0x80;
+    model->flags    = model->flags | 0x80;
     work->field_420 = work->field_420 + 1;
 }
 
@@ -104,7 +104,7 @@ void func_actor_341700_8016A630(Task* arg0)
     work->field_412 = ticks;
     if ((s16)ticks == 3) {
         Tmd_FreeBuffers(model);
-        model->field_C |= 4;
+        model->flags |= 4;
     }
     if ((s16)work->field_412 >= 0x24) {
         Gp_DestroyEnemy(arg0->spawnArg2, arg0);

@@ -8,7 +8,7 @@ void ActorsShared80164b68(Task* task)
 {
     ActorsShared80164b68Work* work = (ActorsShared80164b68Work*)task->work;
 
-    work->obj_2AC.field_8  = &((TmdObject*)task->extra)->field_8[1];
+    work->obj_2AC.field_8  = &((TmdObject*)task->extra)->coords[1];
     work->obj_2AC.field_C  = work->rec_2EC;
     work->obj_2AC.field_10 = 0;
     work->obj_2AC.field_12 = 0;
@@ -20,7 +20,7 @@ void ActorsShared80164b68(Task* task)
     Gp_InitRec18Table(work->rec_2EC, 8, 0);
     work->obj_2AC.flags |= 0x8000;
 
-    work->obj_3AC.field_8  = &((TmdObject*)task->extra)->field_8[1];
+    work->obj_3AC.field_8  = &((TmdObject*)task->extra)->coords[1];
     work->obj_3AC.field_C  = work->rec_3CC;
     work->obj_3AC.field_10 = 0;
     work->obj_3AC.field_12 = 0;
@@ -32,7 +32,7 @@ void ActorsShared80164b68(Task* task)
     Gp_InitRec18Table(work->rec_3CC, 2, 0);
     work->obj_3AC.flags &= 0x7FFF;
 
-    work->obj_2CC.field_8  = &((TmdObject*)task->extra)->field_8[1];
+    work->obj_2CC.field_8  = &((TmdObject*)task->extra)->coords[1];
     work->obj_2CC.field_C  = work->rec_2EC;
     work->obj_2CC.field_10 = 0;
     work->obj_2CC.field_12 = 0;

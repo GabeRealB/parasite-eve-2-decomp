@@ -33,16 +33,16 @@ void func_actor_207200_8014CFEC(Actor207200* arg0)
     work = arg0->field_1C;
     ctx  = arg0->field_20;
 
-    Gp_SpawnEff(0x6009C, (*(TmdObject**)&arg0->field_2C)->field_8, 0, NULL);
+    Gp_SpawnEff(0x6009C, (*(TmdObject**)&arg0->field_2C)->coords, 0, NULL);
     func_800DA6E8(&ctx->node, ctx->field_40 - 1, 0);
     D_80062730 = (s32)&D_actor_207200_801517F8;
-    effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->field_8 + 3, 0, NULL);
+    effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 3, 0, NULL);
     if (effect != NULL) {
         ActorsShared8013851c(effect->field_0, (Task*)arg0);
     }
     effArg = &work->field_3F4;
-    func_800FDB18(5, (*(TmdObject**)&arg0->field_2C)->field_8 + 3, &D_actor_207200_80153F18, effArg);
-    func_800FDB18(5, (*(TmdObject**)&arg0->field_2C)->field_8 + 3, &D_actor_207200_80153F18, effArg);
+    func_800FDB18(5, (*(TmdObject**)&arg0->field_2C)->coords + 3, &D_actor_207200_80153F18, effArg);
+    func_800FDB18(5, (*(TmdObject**)&arg0->field_2C)->coords + 3, &D_actor_207200_80153F18, effArg);
     work->field_4A4            = 1;
     work->field_48C            = 5;
     work->field_4A6            = 1;
@@ -111,12 +111,12 @@ ge2:
     }
     goto default_body;
 case0:
-    ((TmdObject*)arg1->extra)->field_C = 0;
-    arg0->node.field_4                 = 0;
+    ((TmdObject*)arg1->extra)->flags = 0;
+    arg0->node.field_4               = 0;
     goto default_body;
 case2:
-    ((TmdObject*)arg1->extra)->field_C = 0x80;
-    arg0->node.field_4                 = one;
+    ((TmdObject*)arg1->extra)->flags = 0x80;
+    arg0->node.field_4               = one;
     return;
 default_body:
     func_actor_207200_8014D41C(arg1);
@@ -125,11 +125,11 @@ default_body:
     func_actor_207200_8014D49C(arg1);
     func_actor_207200_8014D5C4(arg1);
     func_actor_207200_8014D65C(arg1);
-    func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->extra)->field_8[2]);
-    func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->extra)->field_8[3]);
-    ((TmdObject*)arg1->extra)->field_8[0].flg = 0;
-    ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->field_8[1]);
+    func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->extra)->coords[2]);
+    func_actor_207200_8014D97C(arg1, &((TmdObject*)arg1->extra)->coords[3]);
+    ((TmdObject*)arg1->extra)->coords[0].flg = 0;
+    ((TmdObject*)arg1->extra)->coords[1].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
     func_actor_207200_8014D70C(arg0, arg1);
     ActorsShared80134700(arg1);
@@ -233,7 +233,7 @@ void func_actor_207200_8014D5C4(Task* arg0)
     GsCOORDINATE2*   coord;
 
     work  = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (work->field_4A6 == 0) {
         work->field_454 = coord->coord.t[0];
         work->field_458 = coord->coord.t[1];
@@ -283,7 +283,7 @@ void func_actor_207200_8014D70C(void* arg0, Task* task)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)task->extra)->field_8[1];
+    coord     = &((TmdObject*)task->extra)->coords[1];
     scratch   = (void**)G_SCRATCH_HEAD;
     head      = *scratch;
     block     = (VECTOR*)(head - 0x10);

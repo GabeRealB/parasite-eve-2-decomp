@@ -34,11 +34,11 @@ void func_acropolis_promenade_8017DB48(Task* task)
     GsCOORDINATE2* coord;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     if (Gp_GetViewIndex() == 5) {
-        obj->field_C = 0x80;
+        obj->flags = 0x80;
     } else {
-        obj->field_C = 0;
+        obj->flags = 0;
     }
     coord->flg = 0;
 }

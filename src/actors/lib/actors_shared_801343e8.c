@@ -24,11 +24,11 @@ void ActorsShared801343e8(Task* task)
 
     ext              = (TmdObject*)task->extra;
     work             = (ActorShared801343e8Work*)task->work;
-    coord            = ext->field_8;
+    coord            = ext->coords;
     spawn            = (ActorShared801343e8Spawn*)task->spawnArg2;
     obj              = ext;
     work->field_1C2 &= 0x3FFF;
-    obj->field_C    |= 0x84;
+    obj->flags      |= 0x84;
     spawn->field_14  = 1;
 
     switch (work->field_250) {
@@ -64,7 +64,7 @@ void ActorsShared801343e8(Task* task)
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                 work->field_256 = (Gp_LcgState >> 16) & 0x1F;
                 Tmd_AllocBuffers(obj);
-                obj->field_C &= ~4;
+                obj->flags &= ~4;
             }
             break;
     }

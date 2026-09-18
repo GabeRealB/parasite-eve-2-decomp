@@ -240,10 +240,10 @@ s32 Actor00100_Fn00BF8(Actor00100* arg0)
     head                  = *(u8**)G_SCRATCH_HEAD;
     local                 = (SVECTOR*)(head - 0xC);
     s                     = (Actor00100SightScratch*)(head - 0x1C);
-    s->local.vx           = ((Actor00100*)player)->field_2C->field_8->coord.t[0];
-    s->local.vy           = ((Actor00100*)player)->field_2C->field_8->coord.t[1] - 1000;
+    s->local.vx           = ((Actor00100*)player)->field_2C->coords->coord.t[0];
+    s->local.vy           = ((Actor00100*)player)->field_2C->coords->coord.t[1] - 1000;
     *(u8**)G_SCRATCH_HEAD = (u8*)s;
-    s->local.vz           = ((Actor00100*)player)->field_2C->field_8->coord.t[2];
+    s->local.vz           = ((Actor00100*)player)->field_2C->coords->coord.t[2];
     Gp_UpdateCoord(&Gfx_ViewCoord);
     v = local;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -254,9 +254,9 @@ s32 Actor00100_Fn00BF8(Actor00100* arg0)
     s->out.vy += Gfx_ViewCoord.workm.t[1];
     s->out.vz += Gfx_ViewCoord.workm.t[2];
 
-    s->local.vx = arg0->field_2C->field_8->coord.t[0];
-    s->local.vy = arg0->field_2C->field_8->coord.t[1] - 1000;
-    s->local.vz = arg0->field_2C->field_8->coord.t[2];
+    s->local.vx = arg0->field_2C->coords->coord.t[0];
+    s->local.vy = arg0->field_2C->coords->coord.t[1] - 1000;
+    s->local.vz = arg0->field_2C->coords->coord.t[2];
     Gp_UpdateCoord(&Gfx_ViewCoord);
     out = (SVECTOR*)(head - 0x14);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -370,13 +370,13 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
                             rnd          = (valueDefault >> 0x10) & 3;
                             Gp_LcgState  = valueDefault;
                     }
-                    row                                 = &table.rows[rnd];
-                    arg0->field_2C->field_8->coord.t[0] = row->vx;
-                    arg0->field_2C->field_8->coord.t[1] = (s16)row->vy;
-                    arg0->field_2C->field_8->coord.t[2] = (s16)row->vz;
-                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, (s16)row->yaw, 1);
-                    arg0->field_2C->field_8->flg = 0;
-                    work->field_0                = 5;
+                    row                                = &table.rows[rnd];
+                    arg0->field_2C->coords->coord.t[0] = row->vx;
+                    arg0->field_2C->coords->coord.t[1] = (s16)row->vy;
+                    arg0->field_2C->coords->coord.t[2] = (s16)row->vz;
+                    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, (s16)row->yaw, 1);
+                    arg0->field_2C->coords->flg = 0;
+                    work->field_0               = 5;
                     break;
             }
         }
@@ -388,9 +388,9 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
                     break;
                 case 2:
                     sound = (((u16)ctx->field_8 >> 0xC) << 8) | 0x52160009;
-                    pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
+                    pan   = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
                     SndEvt_EnqueueType6(sound, pan,
-                                        (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
                     work->field_82E = sub;
                     work->field_828 = sub;
                     Actor00100_Fn02788(arg0);
@@ -411,11 +411,11 @@ s32 Actor00100_Fn00E58(Actor00100* arg0, s32 arg1, Actor00100Msg* arg2)
                 block_46:
                     return 0;
                 case 2:
-                    work->field_0                       = 0x26;
-                    arg0->field_2C->field_8->coord.t[0] = -0x896;
-                    arg0->field_2C->field_8->coord.t[1] = 0;
-                    arg0->field_2C->field_8->coord.t[2] = 0x5AF;
-                    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x3F4, 1);
+                    work->field_0                      = 0x26;
+                    arg0->field_2C->coords->coord.t[0] = -0x896;
+                    arg0->field_2C->coords->coord.t[1] = 0;
+                    arg0->field_2C->coords->coord.t[2] = 0x5AF;
+                    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, -0x3F4, 1);
                     goto block_46;
                 default:
                     return 0;
@@ -563,7 +563,7 @@ void Actor00100_Fn01900(Actor00100* actor, s16 firstJoint, s16 secondJoint, s16 
     GsCOORDINATE2*         view;
     POLY_FT4*              poly;
 
-    coords      = actor->field_2C->field_8;
+    coords      = actor->field_2C->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {

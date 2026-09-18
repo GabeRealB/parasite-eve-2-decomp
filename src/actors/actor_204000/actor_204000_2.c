@@ -328,7 +328,7 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
             if (actor->field_954 != 2) {
                 work->field_490 = 0xC;
                 if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
-                    coord     = player->extra->field_8;
+                    coord     = player->extra->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = Actor204000_WrapAngle(angle);
                     if (sc->angle < 0) {
@@ -340,7 +340,7 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
                     Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FF, (s32)&D_actor_204000_80156350, 0);
                     work->field_0   = 0xB;
                     work->field_496 = 1;
-                    Gfx_MatrixCol0(&player->extra->field_8->coord, &sc->d);
+                    Gfx_MatrixCol0(&player->extra->coords->coord, &sc->d);
                     sc->d.vy = 0;
                     VectorNormalSS(&sc->d, &sc->d);
                     if (sc->angle < 0) {
@@ -354,9 +354,9 @@ void func_actor_204000_8014B4AC(Actor104000Ctx* arg0, Actor104000* arg1)
                         gte_gpf12_real();
                         gte_stsv(&sc->d);
                     }
-                    arg1->field_2C->field_8->coord.t[0] = player->extra->field_8->coord.t[0] + sc->d.vx;
-                    arg1->field_2C->field_8->coord.t[1] = player->extra->field_8->coord.t[1];
-                    arg1->field_2C->field_8->coord.t[2] = player->extra->field_8->coord.t[2] + sc->d.vz;
+                    arg1->field_2C->field_8->coord.t[0] = player->extra->coords->coord.t[0] + sc->d.vx;
+                    arg1->field_2C->field_8->coord.t[1] = player->extra->coords->coord.t[1];
+                    arg1->field_2C->field_8->coord.t[2] = player->extra->coords->coord.t[2] + sc->d.vz;
                     sc->d.vy                            = 0;
                     VectorNormalSS(&sc->d, &sc->d);
                     gte_lddp(-0x258);

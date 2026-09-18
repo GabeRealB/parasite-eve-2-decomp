@@ -18,16 +18,16 @@ void ActorsShared80136930(GpEnemy* enemy, Task* task)
     TmdObject*                src;
     TmdObject*                dst;
 
-    work                               = (ActorsShared80136930Work*)task->parent->work;
-    ((TmdObject*)task->extra)->field_C = ((TmdObject*)task->parent->extra)->field_C;
+    work                             = (ActorsShared80136930Work*)task->parent->work;
+    ((TmdObject*)task->extra)->flags = ((TmdObject*)task->parent->extra)->flags;
     if (work->field_6BA != 0) {
         work->field_6BA = 0;
         spawned         = Gp_SpawnEnemyFromTable(work->field_66C, 2, 0, enemy);
         src             = (TmdObject*)task->extra;
         dst             = (TmdObject*)spawned->task->extra;
-        dst->field_24   = src->field_24;
-        dst->field_25   = src->field_25;
-        if (dst->field_18 != NULL) {
+        dst->tpage      = src->tpage;
+        dst->clut       = src->clut;
+        if (dst->buffer != NULL) {
             Tmd_ProcessStream(dst);
             Tmd_ProcessStream(dst);
         }

@@ -40,7 +40,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
     GsCOORDINATE2* coord;
     s32            i;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (task->state == 0) {
         for (i = 0; i < 2; i++) {
             Gp_SpawnEff(0x60089, coord, i + 0x2000000, &D_acropolis_forked_road_80182178[i]);
@@ -89,7 +89,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     s16               xy;
 
     work  = (AfrLampWork*)task->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 < 4 &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);

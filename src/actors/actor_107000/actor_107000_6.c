@@ -51,7 +51,7 @@ void func_actor_107000_80134F84(Actor107000Ctx* arg0, Task* arg1)
     obj   = (TmdObject*)arg1->extra;
     state = D_801153F4;
     work  = (Actor107000Work*)arg1->work;
-    coord = obj->field_8;
+    coord = obj->coords;
     one   = 1;
     if (state == one) {
         goto case1;
@@ -69,11 +69,11 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C   = 0;
+    obj->flags     = 0;
     arg0->field_14 = 0;
     goto default_body;
 case2:
-    obj->field_C   = 0x80;
+    obj->flags     = 0x80;
     arg0->field_14 = one;
     return;
 default_body:
@@ -125,7 +125,7 @@ default_body:
         block_21:
             work->field_390 += 1;
             if ((u32)work->field_390 >= 0x10U) {
-                Gp_SpawnEff(0x60080, ((TmdObject*)arg1->extra)->field_8, 0x400, &D_actor_107000_8013F5D8);
+                Gp_SpawnEff(0x60080, ((TmdObject*)arg1->extra)->coords, 0x400, &D_actor_107000_8013F5D8);
                 work->field_390 = 0;
             }
             break;
@@ -136,9 +136,9 @@ default_body:
     ActorsShared80137cf4(arg1);
     func_actor_107000_80137F1C(arg1);
     func_actor_107000_801381B0(arg1);
-    ((TmdObject*)arg1->extra)->field_8[0].flg = 0;
-    ((TmdObject*)arg1->extra)->field_8[1].flg = 0;
-    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->field_8[1]);
+    ((TmdObject*)arg1->extra)->coords[0].flg = 0;
+    ((TmdObject*)arg1->extra)->coords[1].flg = 0;
+    Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
     ActorsShared8014fda4(arg1);
 }
@@ -181,7 +181,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
 
     enemy            = arg0->spawnArg2;
     obj              = arg0->extra;
-    coord            = obj->field_8;
+    coord            = obj->coords;
     work             = (Actor107000Work*)arg0->work;
     enemy->field_40 -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
@@ -214,7 +214,7 @@ void func_actor_107000_80136094(Task* arg0, s32 arg1)
             return;
         }
         if (state == 0 || work->field_382 == 0) {
-            ActorsShared80136614(((TmdObject*)arg0->extra)->field_8, &sp10);
+            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &sp10);
             work->field_36A = 1;
             work->field_36E = 0;
             if (sp10 >= 0x9C4) {

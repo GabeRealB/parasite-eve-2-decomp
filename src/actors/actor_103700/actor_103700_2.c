@@ -24,7 +24,7 @@ void func_actor_103700_801328DC(Task* task)
     vec                     = (SVECTOR*)((u8*)head - sizeof(SVECTOR));
     *(void**)G_SCRATCH_HEAD = vec;
     work                    = (Actor103700Work*)task->work;
-    coord                   = ((TmdObject*)task->extra)->field_8;
+    coord                   = ((TmdObject*)task->extra)->coords;
 
     switch (work->field_250) {
         case 0:
@@ -71,7 +71,7 @@ void func_actor_103700_80132B7C(Task* task)
     s32              i;
 
     work  = (Actor103700Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     switch (work->field_250) {
         case 0:
@@ -117,7 +117,7 @@ void func_actor_103700_80132DA8(Task* task)
     s32              i;
 
     work  = (Actor103700Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     switch (work->field_250) {
         case 0:
@@ -165,7 +165,7 @@ void func_actor_103700_80132FD4(Task* task)
     s32              sound;
     s8               slot;
 
-    coord                   = ((TmdObject*)task->extra)->field_8;
+    coord                   = ((TmdObject*)task->extra)->coords;
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(SVECTOR);
     work                    = (Actor103700Work*)task->work;
@@ -188,7 +188,7 @@ void func_actor_103700_80132FD4(Task* task)
             if (work->field_246 == work->field_244) {
                 work->field_250 = 1;
                 work->field_252 = D_actor_103700_80139D3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-                coord           = ((TmdObject*)task->extra)->field_8;
+                coord           = ((TmdObject*)task->extra)->coords;
                 vec->vx         = work->field_23C.vx - coord->coord.t[0];
                 vec->vy         = work->field_23C.vy - coord->coord.t[1];
                 vec->vz         = work->field_23C.vz - coord->coord.t[2];
@@ -197,7 +197,7 @@ void func_actor_103700_80132FD4(Task* task)
                 for (i = 1; i < 6; i++) {
                     work->slots[i].field_9 = slot;
                 }
-                coord = ((TmdObject*)task->extra)->field_8;
+                coord = ((TmdObject*)task->extra)->coords;
                 sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250002;
                 SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan((GpObj38*)coord), (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
@@ -239,7 +239,7 @@ void func_actor_103700_80133370(Task* task)
     s32              sound;
 
     work                    = (Actor103700Work*)task->work;
-    obj                     = (GpObj38*)((TmdObject*)task->extra)->field_8;
+    obj                     = (GpObj38*)((TmdObject*)task->extra)->coords;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - 0x1C;
@@ -313,7 +313,7 @@ void func_actor_103700_801336E8(Task* task)
     s32              sound;
 
     work   = (Actor103700Work*)task->work;
-    obj    = (GpObj38*)((TmdObject*)task->extra)->field_8;
+    obj    = (GpObj38*)((TmdObject*)task->extra)->coords;
     period = 14;
 
     switch (work->field_250) {
@@ -400,7 +400,7 @@ void func_actor_103700_80133AB4(Task* task)
     s32              pan;
 
     work                    = (Actor103700Work*)task->work;
-    obj                     = (GpObj38*)((TmdObject*)task->extra)->field_8;
+    obj                     = (GpObj38*)((TmdObject*)task->extra)->coords;
     player                  = Game_GetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(GpAnimArg);

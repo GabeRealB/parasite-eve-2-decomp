@@ -34,7 +34,7 @@ void func_mine_cavern_80180320(Task* task)
     u16            temp;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 != 0) {
         if (Gp_State1C->field_4 >= 4) {
             Gp_ReleaseState1CMem(work, task);

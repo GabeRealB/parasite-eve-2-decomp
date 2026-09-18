@@ -47,8 +47,8 @@ typedef struct Actor205200Work {
     /* 0x074 */ s16            field_74;         // effect timer, reloaded every 0x40 ticks
     /* 0x076 */ byte           pad_76[0x296];
     /* 0x30C */ byte           field_30C[0x130]; // pose buffer `func_actor_205200_8014BAE8` hands `func_800B3F84`
-    /* 0x43C */ MATRIX         field_43C;        // color matrix, `TmdObject.field_20`
-    /* 0x45C */ MATRIX         field_45C;        // light matrix, `TmdObject.field_1C`
+    /* 0x43C */ MATRIX         field_43C;        // color matrix, `TmdObject.colorMtx`
+    /* 0x45C */ MATRIX         field_45C;        // light matrix, `TmdObject.lightMtx`
     /* 0x47C */ GpObj          field_47C;
     /* 0x49C */ GpRec18        field_49C[3];
     /* 0x4E4 */ GpObj          field_4E4;

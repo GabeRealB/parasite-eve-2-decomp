@@ -38,7 +38,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     GsCOORDINATE2*            player;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0xD8, 0);
     if (work == NULL) {
         Task_Kill(task);
@@ -48,12 +48,12 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     task->exitCallback = func_acropolis_cafeteria_80181E3C;
     task->state        = task->state + 1;
     Mem_Set(work, 0, 0xD8);
-    coord->sub   = &Gfx_ViewCoord;
-    coord->flg   = 0;
-    obj->field_C = 0;
+    coord->sub = &Gfx_ViewCoord;
+    coord->flg = 0;
+    obj->flags = 0;
     RotMatrix(&work->field_C4, &coord->coord);
     work->field_B0     = (rand() & 0xFFF) + 0x3000;
-    player             = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    player             = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     coord->coord.t[0]  = player->coord.t[0];
     coord->coord.t[1]  = player->coord.t[1] - 0x800;
     coord->coord.t[2]  = player->coord.t[2] + 0x800;
@@ -81,7 +81,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
     head                      = *(MATRIX**)G_SCRATCH_HEAD;
     *(MATRIX**)G_SCRATCH_HEAD = head - 1;
     work                      = (AcropolisCafeteriaDebris*)task->work;
-    coord                     = ((TmdObject*)task->extra)->field_8;
+    coord                     = ((TmdObject*)task->extra)->coords;
     work->field_B0--;
     coord->flg         = 0;
     coord->coord.t[1] += 0x80;

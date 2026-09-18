@@ -90,7 +90,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
     u16                         m22;
 
     head                                          = *(u8**)G_SCRATCH_HEAD;
-    coord                                         = ((TmdObject*)task->extra)->field_8;
+    coord                                         = ((TmdObject*)task->extra)->coords;
     blk                                           = (ActorShared80135a60Scratch*)(head - 0x34);
     *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
 
@@ -137,17 +137,17 @@ void func_actor_210600_8014B434(void* spawnArg2, Task* task)
         id = work->slots[1].field_2 & 0x3FF;
         if (id == 7 && work->field_896 != id) {
             memset(&vec, 0, 8);
-            eff.field_0 = ((TmdObject*)task->extra)->field_8;
+            eff.field_0 = ((TmdObject*)task->extra)->coords;
             eff.field_4 = 0x100;
             eff.field_6 = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->field_8 + 1, &vec, &eff);
+            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
         }
         work->field_896 = work->slots[0].field_2 & 0x3FF;
     }
 }
 
 /// Display-object mode handler. `arg2` selects the mode: 0 hides the display
-/// object by setting bit 0x80 of `TmdObject.field_C`, 1 clears `field_C` and so
+/// object by setting bit 0x80 of `TmdObject.flags`, 1 clears `field_C` and so
 /// shows it, 2 sets bit 0x4, and any other value clears the field and then sets
 /// bit 0x4. Modes 0 and 1 reinstate the object's buffers through
 /// `Tmd_AllocBuffers`; modes 0 and 2 arm the work block's 0x890 flag where the
@@ -162,21 +162,21 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
     work = (Actor210600Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->field_C = 0x80;
+            obj->flags = 0x80;
             Tmd_AllocBuffers(obj);
             work->field_890 = 1;
             break;
         case 1:
-            obj->field_C = 0;
+            obj->flags = 0;
             Tmd_AllocBuffers(obj);
             work->field_890 = 0;
             break;
         case 2:
-            obj->field_C   |= 4;
+            obj->flags     |= 4;
             work->field_890 = 1;
             break;
         default:
-            obj->field_C    = 4;
+            obj->flags      = 4;
             work->field_890 = 0;
             break;
     }

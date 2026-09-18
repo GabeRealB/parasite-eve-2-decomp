@@ -10,8 +10,8 @@ void func_actor_110300_80131FF8(GpActorWork* arg0)
     GsCOORDINATE2* parent;
     GsCOORDINATE2* coord;
 
-    parent     = D_actor_110300_8013A0A4->extra->field_8;
-    coord      = arg0->extra->field_8;
+    parent     = D_actor_110300_8013A0A4->extra->coords;
+    coord      = arg0->extra->coords;
     coord->flg = 0;
     coord->sub = parent + 8;
 }
@@ -35,7 +35,7 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     VECTOR         vec;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     func_actor_110300_801320C4((GpActorWork*)task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];

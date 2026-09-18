@@ -39,7 +39,7 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         extra = task->extra;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
         head  = *(u8**)(head + 0x3FC);
-        coord = extra->field_8;
+        coord = extra->coords;
         __asm__ volatile("addiu %0, %1, -0x34\n\tsw %0, 0x1F8003FC"
                          : "=r"(blk)
                          : "r"(head)
@@ -78,7 +78,7 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         extra = task->extra;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
         head  = *(u8**)(head + 0x3FC);
-        coord = extra->field_8;
+        coord = extra->coords;
         __asm__ volatile("addiu %0, %1, -0x34\n\tsw %0, 0x1F8003FC"
                          : "=r"(blk)
                          : "r"(head)
@@ -116,9 +116,9 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         task->state++;
     }
 
-    work->coord.coord.t[0] = task->extra->field_8->coord.t[0];
-    work->coord.coord.t[1] = task->extra->field_8->coord.t[1];
-    work->coord.coord.t[2] = task->extra->field_8->coord.t[2];
+    work->coord.coord.t[0] = task->extra->coords->coord.t[0];
+    work->coord.coord.t[1] = task->extra->coords->coord.t[1];
+    work->coord.coord.t[2] = task->extra->coords->coord.t[2];
     work->coord.flg        = 0;
     Gp_UpdateCoord(&work->coord);
 }

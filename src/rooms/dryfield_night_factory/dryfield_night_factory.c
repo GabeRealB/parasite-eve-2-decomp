@@ -31,7 +31,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     TmdObject*        obj;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x58, 0);
     if (work == NULL) {
         Task_Kill(task);
@@ -41,7 +41,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     work->field_0  = GameFlag_GetNibble(0x49);
     work->field_16 = -1;
     work->field_17 = -1;
-    obj->field_C  &= 0xFF7F;
+    obj->flags    &= 0xFF7F;
     if (work->field_0 & 1) {
         work->field_10 = 0x4000000;
         func_8004BFF8(0x4000000, &coord->coord);
@@ -98,7 +98,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", 
 s32 func_dryfield_night_factory_8017F00C(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
-    GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->coords;
     MATRIX*                   m;
     s32                       ret = 0;
 

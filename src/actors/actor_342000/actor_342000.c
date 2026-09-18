@@ -96,24 +96,24 @@ void func_actor_342000_8016201C(Task* arg0)
             Task_Kill(arg0);
         } else {
             Mem_Set(mtx, 0, 0x44);
-            mtx->field_40  = (Task*)arg0->spawnArg2;
-            extra->field_C = 0;
+            mtx->field_40 = (Task*)arg0->spawnArg2;
+            extra->flags  = 0;
             if (arg0->spawnArg1 != 0) {
-                extra->field_E = 0x1F;
+                extra->otOffset = 0x1F;
             }
-            ((TmdObject*)arg0->extra)->field_8->sub = &Gfx_ViewCoord;
-            extra->field_20                         = &mtx->color;
-            extra->field_1C                         = &mtx->light;
-            arg0->msgTable                          = D_actor_342000_801648A8;
+            ((TmdObject*)arg0->extra)->coords->sub = &Gfx_ViewCoord;
+            extra->colorMtx                        = &mtx->color;
+            extra->lightMtx                        = &mtx->light;
+            arg0->msgTable                         = D_actor_342000_801648A8;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state += 1;
     }
 
     mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -133,20 +133,20 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
     GsCOORDINATE2*       coord;
     Actor342000MatWords* mtx;
 
-    coord                                   = &w->coord;
-    coord->sub                              = ((Actor342000Work*)arg0->work)->field_2A4;
-    ((TmdObject*)arg0->extra)->field_8->sub = coord;
-    coord->coord.t[0]                       = 0;
-    coord->coord.t[1]                       = 0;
-    coord->coord.t[2]                       = 0;
-    mtx                                     = (Actor342000MatWords*)&w->coord.coord;
-    mtx->ident.m00_m01                      = 0x1000;
-    mtx->ident.m02_m10                      = 0;
-    mtx->ident.m11_m12                      = 0x1000;
-    mtx->ident.m20_m21                      = 0;
-    mtx->ident.m22                          = 0x1000;
-    w->coord.flg                            = 0;
-    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    coord                                  = &w->coord;
+    coord->sub                             = ((Actor342000Work*)arg0->work)->field_2A4;
+    ((TmdObject*)arg0->extra)->coords->sub = coord;
+    coord->coord.t[0]                      = 0;
+    coord->coord.t[1]                      = 0;
+    coord->coord.t[2]                      = 0;
+    mtx                                    = (Actor342000MatWords*)&w->coord.coord;
+    mtx->ident.m00_m01                     = 0x1000;
+    mtx->ident.m02_m10                     = 0;
+    mtx->ident.m11_m12                     = 0x1000;
+    mtx->ident.m20_m21                     = 0;
+    mtx->ident.m22                         = 0x1000;
+    w->coord.flg                           = 0;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
 }
 
 /// Spawn tick shared by the actor and its child model tasks: allocates and
@@ -180,8 +180,8 @@ void func_actor_342000_80162158(Task* arg0)
     w = work;
     Mem_Set(w, 0, 0x2AC);
     w->field_298    = (Task*)arg0->spawnArg2;
-    extra->field_1C = &w->light;
-    extra->field_20 = &w->color;
+    extra->lightMtx = &w->light;
+    extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_342000_801648E8;
     rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
@@ -204,7 +204,7 @@ void func_actor_342000_80162158(Task* arg0)
             do {
             } while (0);
         case 1:
-            w->field_2A4 = ((TmdObject*)w->field_298->extra)->field_8;
+            w->field_2A4 = ((TmdObject*)w->field_298->extra)->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_29C = arg0;
             func_800B3F84(&w->ctx, D_actor_342000_80164800, (GpAnimObj*)extra, &w->pad_154, w->slots);
@@ -217,7 +217,7 @@ void func_actor_342000_80162158(Task* arg0)
             do {
             } while (0);
         case 2:
-            w->field_2A4 = ((TmdObject*)w->field_298->extra)->field_8;
+            w->field_2A4 = ((TmdObject*)w->field_298->extra)->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_2A0 = arg0;
             func_800B3F84(&w->ctx, D_actor_342000_80164808, (GpAnimObj*)extra, &w->pad_154, w->slots);
@@ -228,7 +228,7 @@ void func_actor_342000_80162158(Task* arg0)
             }
             break;
         default:
-            w->field_2A4 = &((TmdObject*)w->field_298->extra)->field_8[D_actor_342000_80164900[arg0->spawnArg1].pad];
+            w->field_2A4 = &((TmdObject*)w->field_298->extra)->coords[D_actor_342000_80164900[arg0->spawnArg1].pad];
             Actor342000_InitCoord(arg0, w);
             break;
     }
@@ -241,7 +241,7 @@ void func_actor_342000_80162158(Task* arg0)
 /// `Task::spawnArg1` selects; state 1 resets the work block's coordinate to
 /// identity and scales each column by the parent's `Actor342000Work::field_264`
 /// through `gpf 12` (the same scratchpad idiom as `func_actor_342000_801628C8`).
-/// Every tick then mirrors the parent model's `TmdObject::field_C` flags and
+/// Every tick then mirrors the parent model's `TmdObject::flags` flags and
 /// hands the second part translation to `func_800D7A9C`.
 ///
 /// `one` is a named pseudo so the 0x1000 load leads state 1 (it fills the
@@ -270,7 +270,7 @@ void func_actor_342000_801625D8(Task* arg0)
         case 0:
             func_actor_342000_80162158(arg0);
             work              = (Actor342000Work*)arg0->work;
-            coord             = ((TmdObject*)arg0->extra)->field_8;
+            coord             = ((TmdObject*)arg0->extra)->coords;
             coord->coord.t[0] = D_actor_342000_80164900[arg0->spawnArg1].vx;
             coord->coord.t[1] = D_actor_342000_80164900[arg0->spawnArg1].vy;
             coord->coord.t[2] = D_actor_342000_80164900[arg0->spawnArg1].vz;
@@ -355,11 +355,11 @@ void func_actor_342000_801625D8(Task* arg0)
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
             break;
     }
-    ((TmdObject*)arg0->extra)->field_C = ((TmdObject*)work->field_298->extra)->field_C;
-    extra                              = (TmdObject*)arg0->extra;
-    pos.vx                             = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
-    pos.vy                             = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
-    pos.vz                             = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+    ((TmdObject*)arg0->extra)->flags = ((TmdObject*)work->field_298->extra)->flags;
+    extra                            = (TmdObject*)arg0->extra;
+    pos.vx                           = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
+    pos.vy                           = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
+    pos.vz                           = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
     func_800D7A9C(extra, &pos, 0, 3);
 }
 
@@ -484,9 +484,9 @@ void func_actor_342000_801628C8(Task* arg0)
             func_actor_342000_80161EA4(data->field_29C, 4);
             func_actor_342000_80161EA4(data->field_2A0, 4);
             extra  = (TmdObject*)arg0->extra;
-            pos.vx = ((TmdObject*)arg0->extra)->field_8[1].workm.t[0];
-            pos.vy = ((TmdObject*)arg0->extra)->field_8[1].workm.t[1];
-            pos.vz = ((TmdObject*)arg0->extra)->field_8[1].workm.t[2];
+            pos.vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
+            pos.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
+            pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
             func_800D7A9C(extra, &pos, 0, 3);
     }
 }

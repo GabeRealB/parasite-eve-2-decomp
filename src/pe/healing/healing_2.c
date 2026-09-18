@@ -39,7 +39,7 @@ void func_healing_8012F5E4(Task* arg0)
     GpEffWork*     spawned;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     if (arg0->state == 0) {
         coord->sub        = mem->field_8;

@@ -39,7 +39,7 @@ typedef struct Actor213000Work {
 } Actor213000Work;
 STATIC_ASSERT_SIZEOF(Actor213000Work, 0x4C4);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`, one slot per model part.
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`, one slot per model part.
 /// `func_actor_213000_8014A35C` clears three of them and links each to the
 /// spawner's slot nine higher, which is what puts the extra `sub` field at
 /// 0x4C past the four bytes `Actor511000Coord` stops at: offsets 0x44 and 0x48

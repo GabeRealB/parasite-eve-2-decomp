@@ -486,10 +486,10 @@ void Actor03800_Fn03008(Actor103800* actor, u32 variant)
     Gp_SyncAreaKeyIndex(&key);
     rec = Gp_GetNestedAreaRec(&key);
 
-    entry           = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
-    model->field_24 = entry->field_D;
-    model->field_25 = entry->field_E;
-    if (model->field_18 != NULL) {
+    entry        = (GpCdRec10*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->field_D;
+    model->clut  = entry->field_E;
+    if (model->buffer != NULL) {
         Tmd_ProcessStream(model);
         Tmd_ProcessStream(model);
     }

@@ -84,7 +84,7 @@ void func_actor_450900_80131E38(Task* task)
             if (D_actor_450900_80135E74 == 0 && (s16)Mc_SaveData.field_6C8 > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
-                    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+                    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
                     pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
                     depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
                     if (rand() & 1) {
@@ -267,7 +267,7 @@ void func_actor_450900_80132684(s32 arg0)
     s8             pan;
     s8             depth;
 
-    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
     pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
     depth = (s8)Gp_GetObjDepth((GpObj38*)coord);
     if (arg0 != 0) {
@@ -315,7 +315,7 @@ void func_actor_450900_80132834(void)
 {
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->field_8;
+    coord = ((TmdObject*)((Task*)Game_GetPtrSlot(0xA))->extra)->coords;
     if (coord->coord.t[2] < -0x76C) {
         Task_SpawnFromTable(&D_actor_450900_80135E78, 4, 0, 0);
     } else {

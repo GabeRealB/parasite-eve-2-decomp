@@ -17,7 +17,7 @@ typedef struct ActorsShared8013231cArgs {
 } ActorsShared8013231cArgs;
 STATIC_ASSERT_SIZEOF(ActorsShared8013231cArgs, 0x18);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
 /// `param`, and `super` at 0x48) holds the Euler angles this body writes and
 /// then hands straight to `RotMatrix`, the same reuse `ActorsShared80132860Coord`,
 /// `HyperCoord` and `GpCoordExt` document for their own overlays.

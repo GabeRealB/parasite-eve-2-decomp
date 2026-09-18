@@ -33,7 +33,7 @@ s32 ActorsShared80138774(GsCOORDINATE2* arg0, s32 arg1)
     if (actor == NULL) {
         return 0;
     }
-    coord = actor->extra->field_8;
+    coord = actor->extra->coords;
     head  = *(void**)0x1F8003FC;
     vec   = head - 0x40;
 

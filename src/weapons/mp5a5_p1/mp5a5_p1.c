@@ -41,7 +41,7 @@ void func_mp5a5_p1_8011D1E0(Task* task)
     s32            i;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[0];
     slot  = (GpCoordTail*)&base->coord;
 

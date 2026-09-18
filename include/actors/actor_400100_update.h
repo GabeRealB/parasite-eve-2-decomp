@@ -41,7 +41,7 @@ void                         Actor00100_Fn0375C(Actor00100*);
 
 static __inline__ s16 Actor00100_InRegion(Actor00100* actor)
 {
-    GsCOORDINATE2* coord = actor->field_2C->field_8;
+    GsCOORDINATE2* coord = actor->field_2C->coords;
     if ((u32)(coord->coord.t[0] - 0x1541) < 0x196DU) {
         if (coord->coord.t[2] < 0x5B4)
             return 1;
@@ -50,7 +50,7 @@ static __inline__ s16 Actor00100_InRegion(Actor00100* actor)
 }
 static __inline__ s16 Actor00100_InDirection(Actor00100* actor, VECTOR* motion)
 {
-    GsCOORDINATE2* coord = actor->field_2C->field_8;
+    GsCOORDINATE2* coord = actor->field_2C->coords;
     if (abs((s16)ratan2(motion->vx, motion->vz)) >= 0x501) {
         if (coord->coord.t[0] < 0x2AF9)
             return 1;

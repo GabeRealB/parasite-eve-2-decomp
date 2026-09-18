@@ -21,21 +21,21 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     s32              r;
 
     obj   = arg1->field_2C;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x384U, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, (Task*)arg1);
         return;
     }
     arg1->field_1C = work;
-    obj->field_C   = 0;
+    obj->flags     = 0;
     coord->flg     = 0;
-    obj->field_1C  = &work->field_1BC;
-    obj->field_20  = &work->field_19C;
+    obj->lightMtx  = &work->field_1BC;
+    obj->colorMtx  = &work->field_19C;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = &arg1->field_2C->field_8[2];
+    arg0->field_18     = &arg1->field_2C->coords[2];
     arg0->node.field_4 = 0;
     arg0->field_1C.vx  = 0;
     arg0->field_1C.vy  = 0;
@@ -95,7 +95,7 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
             func_800B4114(work, i, work->field_352, 0, r);
         }
     }
-    work->field_1DC.field_8  = &arg1->field_2C->field_8[2];
+    work->field_1DC.field_8  = &arg1->field_2C->coords[2];
     work->field_1DC.field_C  = work->field_1FC;
     work->field_1DC.field_10 = 0;
     work->field_1DC.field_12 = 0;
@@ -169,7 +169,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
     work                                    = actor->field_1C;
     *(Actor101500ContactFrame**)0x1F8003FC -= 1;
     frame                                   = *(Actor101500ContactFrame**)0x1F8003FC;
-    coord                                   = actor->field_2C->field_8;
+    coord                                   = actor->field_2C->coords;
     result                                  = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
         if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.w == 0) {
@@ -226,7 +226,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
                 break;
             case 2:
                 if (work->field_350 == 0) {
-                    sourceCoord       = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+                    sourceCoord       = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
                     dx                = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vx.w = dx;
                     dy                = sourceCoord->coord.t[1] - coord->coord.t[1];
@@ -236,7 +236,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
                     damage            = Gp_ComputeDamage(work->field_1FC[i].field_4, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(actor->field_20, work->field_1FC[i].field_4, 0) != 0) {
                         damage *= 4;
-                        Gp_SpawnEff(0x6009C, actor->field_2C->field_8, 0, NULL);
+                        Gp_SpawnEff(0x6009C, actor->field_2C->coords, 0, NULL);
                     }
                     func_800DA6E8(&actor->field_20->node, damage, 0);
                     func_800E2C78((GpObj40*)actor->field_20, work->field_1FC[i].field_4, damage, 0);
@@ -319,7 +319,7 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
 
     enemy            = actor->field_20;
     work             = actor->field_1C;
-    coord            = actor->field_2C->field_8;
+    coord            = actor->field_2C->coords;
     enemy->field_40 -= damage;
     if (enemy->field_40 <= 0) {
         work->field_378 = 1;

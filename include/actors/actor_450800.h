@@ -26,7 +26,7 @@ extern SVECTOR D_actor_450800_80131E24;
 /// The leading `light` / `color` pair and the `anim` / `slots` / `pad_374` run
 /// are the same prefix `Actor450800SpawnWork` carries, and the spawn handler
 /// `func_actor_450800_80132160` fills them the same way: `&light` and `&color`
-/// go to the model's `TmdObject::field_1C` / `field_20`, and `func_800B3F84`
+/// go to the model's `TmdObject::lightMtx` / `field_20`, and `func_800B3F84`
 /// gets `&anim`, `slots` and `pad_374` as poses.
 ///
 /// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
@@ -47,8 +47,8 @@ extern SVECTOR D_actor_450800_80131E24;
 /// through `ActorsShared80132514`, the same pair `func_actor_460200_80132B2C`
 /// selects between.
 typedef struct Actor450800Work {
-    /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::field_1C`)
-    /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::field_20`)
+    /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::lightMtx`)
+    /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::colorMtx`)
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pad_374[0x13A];

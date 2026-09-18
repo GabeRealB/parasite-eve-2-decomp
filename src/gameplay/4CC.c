@@ -1171,18 +1171,18 @@ void Gp_ItemPickupTilt(Task* arg0)
     session = gGameSession;
     mapId   = *(u32*)&session->at4.loc & 0xFFFF00FF;
     item    = obj->field_A;
-    coord   = (GsCOORDINATE2*)extra->field_8;
+    coord   = (GsCOORDINATE2*)extra->coords;
     rot     = coord + 2;
     room    = *(u8*)&session->at4.loc.view;
     if (Gp_StateF0.field_4 == 2) {
-        extra->field_C |= 0x80;
+        extra->flags |= 0x80;
     } else {
-        extra->field_C &= 0xFF7F;
+        extra->flags &= 0xFF7F;
     }
     mapId &= 0xFFFF0000;
     if (mapId == 0x4100000) {
         if ((u32)(room - 8) >= 2) {
-            extra->field_C |= 0x80;
+            extra->flags |= 0x80;
         }
     } else if (mapId == 0x41F0000) {
         check = 3;
@@ -1191,22 +1191,22 @@ void Gp_ItemPickupTilt(Task* arg0)
         check = 0x11;
     compare_room:
         if (room != check) {
-            extra->field_C |= 0x80;
+            extra->flags |= 0x80;
         }
     }
     if (arg0->state == 0) {
         mem = (MATRIX*)Mem_Calloc(0x40, 0);
         if (mem != NULL) {
             vec             = D_80093DB0;
-            extra->field_1C = mem;
-            extra->field_20 = mem + 1;
-            Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8);
+            extra->lightMtx = mem;
+            extra->colorMtx = mem + 1;
+            Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords);
             func_800D7A9C(extra, &vec, 0, 3);
             arg0->work = (TaskIdMap*)mem;
         }
         arg0->msgTable = D_8010D828;
         arg0->status   = 0;
-        extra->field_C = 0;
+        extra->flags   = 0;
         arg0->state++;
     } else if (arg0->state == 1) {
         if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
@@ -1215,50 +1215,50 @@ void Gp_ItemPickupTilt(Task* arg0)
                 switch (mapId) {
                     case 0x1060000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x51060009, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x10C0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x510C0005, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     }
                     case 0x21B0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x521B000B, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x31B0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x531B000B, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x4100000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x54100012, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x41F0000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x541F0015, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                     case 0x4270000: {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                         SndEvt_EnqueueType6(0x54270008, temp,
-                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                         break;
                     }
                 }
@@ -1278,46 +1278,46 @@ void Gp_ItemPickupTilt(Task* arg0)
             switch (mapId) {
                 case 0x1060000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x5106000A, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x10C0000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x510C0006, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x21B0000:
                     break;
                 case 0x31B0000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x531B000C, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x4100000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x54100013, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x41F0000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x541F0016, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     break;
                 }
                 case 0x4270000: {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
                     SndEvt_EnqueueType6(0x54270009, temp,
-                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
                     break;
                 }
             }
@@ -1340,7 +1340,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     }
     vec2 = D_80093DB0;
-    Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8);
+    Gp_UpdateCoord((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords);
     func_800D7A9C(extra, &vec2, 0, 3);
     USE_REG(item);
 }

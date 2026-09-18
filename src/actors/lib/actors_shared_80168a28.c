@@ -25,8 +25,8 @@ void ActorsShared80168a28(Task* arg0)
     work->field_438 = 1;
     if (enemy->field_40 >= 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0003;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
     if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC)) {
         Gp_StateF0.field_1F = 0;
@@ -40,5 +40,5 @@ void ActorsShared80168a28(Task* arg0)
     Gp_UnlinkObj(&objs->obj_3AC);
     ActorsShared_SetTaskState(arg0, 5);
     Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 0, 0);
-    tmd->field_C |= 0x80;
+    tmd->flags |= 0x80;
 }

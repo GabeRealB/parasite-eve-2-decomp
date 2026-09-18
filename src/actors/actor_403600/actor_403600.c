@@ -475,12 +475,12 @@ void func_actor_403600_80135C28(Task* arg0)
 
     temp_a0 = arg0->spawnArg2;
     temp_v1 = temp_a0->field_1C;
-    temp_s4 = ((TmdObject*)arg0->extra)->field_8;
+    temp_s4 = ((TmdObject*)arg0->extra)->coords;
     temp_s2 = temp_v1->field_710;
     if (temp_v1->field_742 == 1) {
         temp_v0                 = temp_a0->field_2C;
         D_actor_403600_801606A0 = NULL;
-        temp_v0->field_C        = (u16)(temp_v0->field_C & 0xFF7F);
+        temp_v0->flags          = (u16)(temp_v0->flags & 0xFF7F);
         Task_CallExit(arg0);
         return;
     }
@@ -490,7 +490,7 @@ void func_actor_403600_80135C28(Task* arg0)
             arg0->work          = (TaskIdMap*)temp_v0_2;
             temp_v0_2->field_E0 = 0;
             sp10                = D_actor_403600_80131E2C;
-            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_s2->parent->extra)->field_8[1], &sp10);
+            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_s2->parent->extra)->coords[1], &sp10);
             temp_a0_2                      = &temp_v0_2->field_90.coord.m[0][0];
             *(s32*)&temp_a0_2[0]           = 0x1000;
             *(s32*)&temp_a0_2[2]           = 0;
@@ -621,7 +621,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v0_9 == 0) {
                     temp_a0_5               = ((Actor403600*)arg0->spawnArg2)->field_2C;
                     D_actor_403600_801606A0 = NULL;
-                    temp_a0_5->field_C      = (u16)(temp_a0_5->field_C | 0x80);
+                    temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
                     goto block_57;
                 } else if (temp_v0_9 > 0) {
                     D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
@@ -638,7 +638,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_a1                 = ((Actor403600*)arg0->spawnArg2)->field_2C;
                 temp_a0_6               = (s16*)&temp_s0->field_90;
                 D_actor_403600_801606A0 = temp_a0_6;
-                temp_a1->field_C        = (u16)(temp_a1->field_C & 0xFF7F);
+                temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
                 Gp_UpdateCoord((GsCOORDINATE2*)temp_a0_6);
                 goto block_57;
             block_52:
@@ -749,7 +749,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     poly  = (POLY_GT3*)arg0->field_0;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
@@ -850,7 +850,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s16           lower_y;
 
     poly  = (POLY_GT3*)arg0->field_4;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         clip_mask   = 0x80000000;
@@ -955,7 +955,7 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     poly  = (POLY_GT4*)arg0->field_0;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     gte_ldrgb(&col);
     if (arg0->field_1C-- > 0) {
         flg         = &arg0->field_24;
@@ -1076,7 +1076,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s16           lower_y;
 
     poly  = (POLY_GT4*)arg0->field_4;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         clip_mask   = 0x80000000;
@@ -1194,7 +1194,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     poly  = (POLY_GT3*)arg0->field_0;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
@@ -1295,7 +1295,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     poly  = (POLY_GT3*)arg0->field_0;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     if (arg0->field_1C-- > 0) {
         opz         = &arg0->field_28;
         upper_limit = 0x168 - light;
@@ -1398,7 +1398,7 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
     poly  = (POLY_GT4*)arg0->field_0;
     col   = D_actor_403600_80131E34;
-    light = arg0->field_80->field_2C;
+    light = arg0->field_80->lightLevel;
     gte_ldrgb(&col);
     if (arg0->field_1C-- > 0) {
         flg         = &arg0->field_24;
@@ -2033,7 +2033,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
 
     object = arg0->field_2C;
     actor_403600_load_scratch_head(head);
-    coord = object->field_8;
+    coord = object->coords;
     SOFT_BARRIER();
     block = (Actor403600ProjectScratch*)(head - sizeof(Actor403600ProjectScratch));
     actor_403600_store_scratch_head(block);
@@ -2270,8 +2270,8 @@ case1:
     }
     return;
 case2:
-    arg1->field_2C->field_C = 0x80;
-    arg0->field_14          = 9;
+    arg1->field_2C->flags = 0x80;
+    arg0->field_14        = 9;
     return;
 default_body:
     if (((D_80071075 & 0xF0) == 0x40) && (work->field_7AC == 0)) {
@@ -2870,7 +2870,7 @@ void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
     void*          scratch;
 
     head                      = *(void**)0x1F8003FC;
-    coord                     = (*Gp_ActorSlots)->extra->field_8;
+    coord                     = (*Gp_ActorSlots)->extra->coords;
     *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     vec                       = head - 0x40;
     *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
@@ -2909,7 +2909,7 @@ s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
     void*          head;
 
     head                      = *(void**)0x1F8003FC;
-    coord                     = (*Gp_ActorSlots)->extra->field_8;
+    coord                     = (*Gp_ActorSlots)->extra->coords;
     *(void**)0x1F8003FC       = head - 0x7C;
     *(s16*)((s8*)head - 0x40) = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
     vec                       = head - 0x40;
@@ -2945,7 +2945,7 @@ s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
     s32            var_v1;
 
     temp_s7 = *Gp_ActorSlots;
-    temp_s3 = temp_s7->extra->field_8;
+    temp_s3 = temp_s7->extra->coords;
     temp_s1 = D_actor_403600_801605E4.vx - temp_s3->coord.t[0];
     temp_s0 = D_actor_403600_801605E4.vz - temp_s3->coord.t[2];
     var_s4  = 0;
@@ -3060,13 +3060,13 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
     Actor403600Work* temp_a1_3;
     Actor403600Work* temp_s3;
 
-    temp_s4 = (s32)Gp_ActorSlots[0]->extra->field_8;
+    temp_s4 = (s32)Gp_ActorSlots[0]->extra->coords;
     temp_s3 = arg0->field_1C;
     switch (D_actor_403600_8016056C) {
         case 1:
             temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
             temp_a1            = arg0->field_1C;
-            temp_a0            = Gp_ActorSlots[0]->extra->field_8;
+            temp_a0            = Gp_ActorSlots[0]->extra->coords;
             temp_a0->coord.t[0] =
                 (s32)(temp_a0->coord.t[0] +
                       ((s32)(temp_a0->coord.m[0][2] * temp_a1->field_762) >> 0xC));
@@ -3117,7 +3117,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 temp_s3->field_762 = 0;
             }
             temp_a1_2 = arg0->field_1C;
-            temp_a0_2 = Gp_ActorSlots[0]->extra->field_8;
+            temp_a0_2 = Gp_ActorSlots[0]->extra->coords;
             temp_a0_2->coord.t[0] =
                 (s32)(temp_a0_2->coord.t[0] +
                       ((s32)(temp_a0_2->coord.m[0][2] * temp_a1_2->field_762) >> 0xC));
@@ -3150,7 +3150,7 @@ void func_actor_403600_8013F0C0(Actor403600* arg0)
                 temp_s3->field_762 = 0;
             }
             temp_a1_3 = arg0->field_1C;
-            temp_a0_3 = Gp_ActorSlots[0]->extra->field_8;
+            temp_a0_3 = Gp_ActorSlots[0]->extra->coords;
             temp_a0_3->coord.t[0] =
                 (s32)(temp_a0_3->coord.t[0] +
                       ((s32)(temp_a0_3->coord.m[0][2] * temp_a1_3->field_762) >> 0xC));
@@ -3221,7 +3221,7 @@ void func_actor_403600_8013F608(Actor403600* arg0)
             var_s1          = 1;
             work->field_768 = 0;
             do {
-                Gp_SpawnEff(0x60080, (*Gp_ActorSlots)->extra->field_8 + var_s1, 0x400, NULL);
+                Gp_SpawnEff(0x60080, (*Gp_ActorSlots)->extra->coords + var_s1, 0x400, NULL);
                 var_s1 += 1;
             } while (var_s1 < 0x13);
         }
@@ -3247,7 +3247,7 @@ void func_actor_403600_8013F608(Actor403600* arg0)
             temp_arg2   = work->field_76A;
             Gp_LcgState = temp_v0_5;
             Gp_SpawnEff(0x60080,
-                        (u8*)(*Gp_ActorSlots)->extra->field_8 + (((temp_t0 % 19) & 0xFFFF) * 0x50),
+                        (u8*)(*Gp_ActorSlots)->extra->coords + (((temp_t0 % 19) & 0xFFFF) * 0x50),
                         temp_arg2, NULL);
             work->field_768 = 0;
         }
@@ -3325,8 +3325,8 @@ case1:
     goto end;
 
 case2:
-    temp_s7->field_C = 0x80;
-    arg0->field_14   = 9;
+    temp_s7->flags = 0x80;
+    arg0->field_14 = 9;
     goto end;
 
 default_body:
@@ -3426,10 +3426,10 @@ default_body:
         }
     }
     if (((s16)temp_s4->field_74E >= temp_s4->field_754) || (temp_s4->field_742 != 0)) {
-        arg0->field_14    = 1;
-        temp_s7->field_2C = 0x12C;
-        arg1->field_2A    = 0x3C;
-        arg1->field_30    = (s32)(arg1->field_30 + 1);
+        arg0->field_14      = 1;
+        temp_s7->lightLevel = 0x12C;
+        arg1->field_2A      = 0x3C;
+        arg1->field_30      = (s32)(arg1->field_30 + 1);
     }
 
 end:
@@ -3616,8 +3616,8 @@ case1:
     }
     goto default_body;
 case2:
-    object->field_C |= 0x80;
-    arg0->field_14   = 1;
+    object->flags |= 0x80;
+    arg0->field_14 = 1;
     return;
 default_body:
     if (initialWork->field_732 == 0) {
@@ -3628,10 +3628,10 @@ default_body:
     }
     goto common;
 inner0:
-    object->field_2C       += 3;
-    arg1->field_2C->field_C = 0;
-    countdown               = (u16)arg1->field_2A - 1;
-    arg1->field_2A          = countdown;
+    object->lightLevel   += 3;
+    arg1->field_2C->flags = 0;
+    countdown             = (u16)arg1->field_2A - 1;
+    arg1->field_2A        = countdown;
     if ((countdown << 0x10) <= 0) {
         initialWork->field_732 = 1;
         initialWork->field_734 = 0;
@@ -3639,11 +3639,11 @@ inner0:
     goto common;
 inner1:
     Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x24);
-    globalWork->field_4B4        = NULL;
-    enemy                        = arg1->field_20;
-    cleanupWork                  = arg1->field_1C;
-    arg1->field_2C->field_8->sub = &Gfx_ViewCoord;
-    enemy->field_54              = 0;
+    globalWork->field_4B4       = NULL;
+    enemy                       = arg1->field_20;
+    cleanupWork                 = arg1->field_1C;
+    arg1->field_2C->coords->sub = &Gfx_ViewCoord;
+    enemy->field_54             = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&cleanupWork->field_508);
     Gp_UnlinkObj(&cleanupWork->field_588);

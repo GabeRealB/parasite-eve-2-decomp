@@ -242,7 +242,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     GpObj*           node;
 
     obj        = (TmdObject*)task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     mem        = (Actor312200Work*)Mem_Calloc(sizeof(Actor312200Work), 0);
     work       = mem;
     task->work = (TaskIdMap*)mem;
@@ -251,14 +251,14 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
         return;
     }
     tmd                = (TmdObject*)task->extra;
-    tmd->field_1C      = &work->light;
-    tmd->field_20      = &work->color;
+    tmd->lightMtx      = &work->light;
+    tmd->colorMtx      = &work->color;
     enemy->field_4     = &coord->coord;
     enemy->field_48    = 0;
     enemy->field_1C.vx = 0;
     enemy->field_1C.vy = 0;
     enemy->field_1C.vz = 0;
-    enemy->field_18    = &((TmdObject*)task->extra)->field_8[2];
+    enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
     enemy->node.field_4 = 1;
     enemy->field_4D     = 0;
@@ -270,7 +270,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     work->field_896.half = 0x10;
     func_actor_312200_80162FB4(task);
     node           = &work->field_8BC;
-    node->field_8  = &((TmdObject*)task->extra)->field_8[3];
+    node->field_8  = &((TmdObject*)task->extra)->coords[3];
     node->field_C  = work->recs;
     node->field_10 = 0;
     node->field_12 = 0;
@@ -337,17 +337,17 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
         }
         if (work->field_8AD != 0) {
             obj = (TmdObject*)task->extra;
-            func_800D7A9C(obj, (VECTOR*)obj->field_8->workm.t, 0, 3);
+            func_800D7A9C(obj, (VECTOR*)obj->coords->workm.t, 0, 3);
         }
         if (gGameSession->viewReady != 0) {
-            ((TmdObject*)task->extra)->field_8->flg = 0;
+            ((TmdObject*)task->extra)->coords->flg = 0;
             if ((Gp_GetViewIndex() == 0x10) && (work->field_8B8 == 1)) {
-                pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
+                pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
                 SndEvt_EnqueueType6(0x51030008, pan,
-                                    (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+                                    (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
             }
         }
-        if (((TmdObject*)task->extra)->field_8->flg == 0) {
+        if (((TmdObject*)task->extra)->coords->flg == 0) {
             work->field_8AD = 1;
         } else {
             work->field_8AD = 0;

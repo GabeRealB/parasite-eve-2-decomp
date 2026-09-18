@@ -19,7 +19,7 @@ void RoomsShared801802cc(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->field_8;
+    objCoord = ((TmdObject*)task->extra)->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->field_4 != 0) {

@@ -41,8 +41,8 @@ typedef struct Actor135400Work {
     /* 0x43D */ s8         field_43D;
     /* 0x43E */ s8         field_43E;
     /* 0x43F */ byte       pad_43F[0x1];
-    /* 0x440 */ MATRIX     lightMtx; // the model's `TmdObject::field_1C`
-    /* 0x460 */ MATRIX     colorMtx; // the model's `TmdObject::field_20`
+    /* 0x440 */ MATRIX     lightMtx; // the model's `TmdObject::lightMtx`
+    /* 0x460 */ MATRIX     colorMtx; // the model's `TmdObject::colorMtx`
     /* 0x480 */ GpAnimArg  params;
     /* 0x494 */ s32        field_494;
 } Actor135400Work;

@@ -61,7 +61,7 @@ void func_neo_ark_altar_8017DF0C(Task* task)
     actor         = *Gp_ActorSlots;
     work->field_6 = work->field_8;
     grow          = 0;
-    coord         = actor->extra->field_8;
+    coord         = actor->extra->coords;
     cur           = func_neo_ark_altar_8017EC34(D_neo_ark_altar_8017EFD8, (s16)coord->coord.t[0], (s16)coord->coord.t[2]);
     prev          = work->field_6;
     work->field_8 = cur;

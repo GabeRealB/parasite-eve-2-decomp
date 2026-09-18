@@ -25,7 +25,7 @@ void ActorsShared80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width
     GsCOORDINATE2*               coords;
     POLY_FT4*                    poly;
 
-    coords      = ((TmdObject*)task->extra)->field_8;
+    coords      = ((TmdObject*)task->extra)->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {

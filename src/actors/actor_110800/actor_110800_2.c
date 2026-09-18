@@ -11,8 +11,8 @@ void func_actor_110800_801322FC(GpActorWork* arg0)
     GsCOORDINATE2* parent;
     GsCOORDINATE2* coord;
 
-    parent            = D_actor_110800_80139F14->extra->field_8;
-    coord             = arg0->extra->field_8;
+    parent            = D_actor_110800_80139F14->extra->coords;
+    coord             = arg0->extra->coords;
     coord->flg        = 0;
     coord->coord.t[0] = -50;
     coord->sub        = parent + 8;

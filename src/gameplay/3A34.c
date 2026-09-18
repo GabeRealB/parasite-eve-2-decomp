@@ -1307,8 +1307,8 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2
     block    = (GpLightScratch*)(head - 0x1C);
     dir      = (SVECTOR*)(head - 0xC);
     *scratch = block;
-    dirMtx   = arg3->field_1C;
-    colorMtx = arg3->field_20;
+    dirMtx   = arg3->lightMtx;
+    colorMtx = arg3->colorMtx;
     Gfx_NormalizeLightDir((VECTOR*)((GpObj38*)arg1)->field_24.t, dir);
     SOFT_USE_REG(block);
     SOFT_USE_REG(block);
@@ -1345,8 +1345,8 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2
     head         = *scratch;
     block        = (GpLightScratch*)(head - 0x1C);
     dir          = (SVECTOR*)(head - 0xC);
-    dirMtx       = arg3->field_1C;
-    colorMtx     = arg3->field_20;
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
     block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
     *scratch     = block;
@@ -1392,8 +1392,8 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2
     head         = *scratch;
     block        = (GpLightScratch*)(head - 0x1C);
     dir          = (SVECTOR*)(head - 0xC);
-    dirMtx       = arg3->field_1C;
-    colorMtx     = arg3->field_20;
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
     block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
     *scratch     = block;
@@ -1494,7 +1494,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 
     startr   = start;
     set      = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->at4.loc);
-    colorMtx = extra->field_20;
+    colorMtx = extra->colorMtx;
     nOcc     = 0;
     if (set == NULL) {
         return;
@@ -1760,7 +1760,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 
         ov  = (u16*)&Gp_OverrideVec2;
         j   = 0;
-        row = (SVECTOR3*)extra->field_20;
+        row = (SVECTOR3*)extra->colorMtx;
         do {
             block->local.vx = row[j].vx;
             block->local.vy = row[j].vy;
@@ -1823,7 +1823,7 @@ void Gp_DebugPanTask(Task* arg0)
     }
 
     extra = slot->extra;
-    coord = &((GsCOORDINATE2*)extra->field_8)[1];
+    coord = &((GsCOORDINATE2*)extra->coords)[1];
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x64;
@@ -1864,7 +1864,7 @@ void Gp_DebugPanTask(Task* arg0)
     } else {
         func_800D7A9C(extra, &vec, 0, 3);
         if (D_80114F28 != 0) {
-            mtx = extra->field_20;
+            mtx = extra->colorMtx;
             val = rsin(gDisplayState.loopCount << 6) + 0x1800;
             if ((gDisplayState.loopCount & 1) == 0) {
                 val >>= 1;
@@ -1877,23 +1877,23 @@ void Gp_DebugPanTask(Task* arg0)
             {
                 register MATRIX* colorMtx asm("v0");
                 if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
-                    colorMtx          = extra->field_20;
+                    colorMtx          = extra->colorMtx;
                     colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x400;
                     colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
                     colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x2000;
                 } else if (Gp_StateC08.field_16 != 0) {
-                    colorMtx          = extra->field_20;
+                    colorMtx          = extra->colorMtx;
                     colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x400;
                     colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
                     colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x2000;
                 } else if ((s8)Gp_StateC08.field_17 != 0) {
-                    colorMtx          = extra->field_20;
+                    colorMtx          = extra->colorMtx;
                     colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
                     colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
                     colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
                 }
                 if (cfg->peStateFlags & 0x80) {
-                    colorMtx          = extra->field_20;
+                    colorMtx          = extra->colorMtx;
                     colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
                     colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
                     colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
@@ -1910,8 +1910,8 @@ void Gp_DebugPanTask(Task* arg0)
             task = (&actor->field_920)[i];
             if (task != NULL) {
                 extra           = task->extra;
-                extra->field_1C = &Gp_DefaultMtx;
-                extra->field_20 = &Gp_DefaultMtx2;
+                extra->lightMtx = &Gp_DefaultMtx;
+                extra->colorMtx = &Gp_DefaultMtx2;
             }
             i++;
         } while (i < 2);
@@ -1920,8 +1920,8 @@ void Gp_DebugPanTask(Task* arg0)
             task = (&actor->field_918)[i];
             if (task != NULL) {
                 extra           = task->extra;
-                extra->field_1C = &Gp_DefaultMtx;
-                extra->field_20 = &Gp_DefaultMtx2;
+                extra->lightMtx = &Gp_DefaultMtx;
+                extra->colorMtx = &Gp_DefaultMtx2;
             }
             i++;
         } while (i < 2);
@@ -1939,9 +1939,9 @@ void Gp_DebugPanTask(Task* arg0)
             SOFT_TOUCH_REG(e);
             extra = e;
         }
-        coord           = &((GsCOORDINATE2*)extra->field_8)[1];
-        extra->field_20 = &D_80114EF8;
-        extra->field_1C = &D_80114ED8;
+        coord           = &((GsCOORDINATE2*)extra->coords)[1];
+        extra->colorMtx = &D_80114EF8;
+        extra->lightMtx = &D_80114ED8;
         Gp_UpdateCoord(coord);
         vec.vx = coord->workm.t[0];
         vec.vy = coord->workm.t[1] - 0x64;
@@ -1954,8 +1954,8 @@ void Gp_DebugPanTask(Task* arg0)
                 task = (&actor2->field_920)[i];
                 if (task != NULL) {
                     extra           = task->extra;
-                    extra->field_1C = &D_80114ED8;
-                    extra->field_20 = &D_80114EF8;
+                    extra->lightMtx = &D_80114ED8;
+                    extra->colorMtx = &D_80114EF8;
                 }
                 i++;
             } while (i < 2);
@@ -1964,8 +1964,8 @@ void Gp_DebugPanTask(Task* arg0)
                 task = (&actor2->field_918)[i];
                 if (task != NULL) {
                     extra           = task->extra;
-                    extra->field_1C = &D_80114ED8;
-                    extra->field_20 = &D_80114EF8;
+                    extra->lightMtx = &D_80114ED8;
+                    extra->colorMtx = &D_80114EF8;
                 }
                 i++;
             } while (i < 2);
@@ -2063,9 +2063,9 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     s32             w1;
 
     extra    = (TmdObject*)arg0->task->extra;
-    colorMtx = extra->field_20;
+    colorMtx = extra->colorMtx;
     mode     = arg0->field_4E & 3;
-    if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (gGameSession->field_65 != 1)) {
+    if ((!(extra->flags & 0x80) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
         {
             void**                   scratch;
             register GpColorScratch* tmp asm("v0");
@@ -2594,16 +2594,16 @@ void Gp_BindDefaultMtx(Task* arg0)
         TOUCH_REG(addr);
         mtxB                = (MATRIX*)addr;
         arg0->spawnArg2     = (void*)result;
-        extra->field_1C     = mtxA;
-        extra->field_20     = mtxB;
+        extra->lightMtx     = mtxA;
+        extra->colorMtx     = mtxB;
         actor               = slot->actor;
         Gp_OverrideVecFlag  = 0;
         Gp_OverrideVec2Flag = 0;
         D_80114F28          = 0;
         do {
             extra           = (&actor->field_920)[i]->extra;
-            extra->field_1C = mtxA;
-            extra->field_20 = mtxB;
+            extra->lightMtx = mtxA;
+            extra->colorMtx = mtxB;
             i++;
         } while (i < 2);
         arg0->state++;
@@ -2808,7 +2808,7 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
         block   = (GpLockScanScratch*)newhead;
     }
     actor         = arg0->actor;
-    coord         = (GsCOORDINATE2*)arg0->extra->field_8;
+    coord         = (GsCOORDINATE2*)arg0->extra->coords;
     block->src.vx = *(u16*)&coord->coord.t[0];
     block->src.vy = *(u16*)&coord->coord.t[1] - 1000;
     block->src.vz = *(u16*)&coord->coord.t[2];
@@ -3504,7 +3504,7 @@ s32 Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
     extra = (TmdObject*)arg0->extra;
     ret   = 0;
     if (arg1 != NULL) {
-        arg1->rect.x = ((s8)extra->field_24 << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+        arg1->rect.x = ((s8)extra->tpage << 6) + (x = (arg2->x + 1) / 2 + 0x180);
         arg1->rect.y = arg2->y + 0x100;
         arg1->rect.w = arg2->w;
         arg1->rect.h = arg2->h;
@@ -6863,7 +6863,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     blk->world.vy = arg0->field_18->workm.t[1] + blk->world.vy;
     blk->world.vz = arg0->field_18->workm.t[2] + blk->world.vz;
 
-    pcoord                        = (GsCOORDINATE2*)slot->extra->field_8;
+    pcoord                        = (GsCOORDINATE2*)slot->extra->coords;
     ((VECTOR3*)(head - 0x20))->vx = blk->world.vx - pcoord->workm.t[0];
     blk->local.vy                 = blk->world.vy - pcoord->workm.t[1];
     blk->local.vz                 = blk->world.vz - pcoord->workm.t[2];

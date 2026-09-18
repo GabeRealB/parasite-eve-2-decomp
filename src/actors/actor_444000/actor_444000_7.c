@@ -42,15 +42,15 @@ void func_actor_444000_801434C4(Actor444000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        work->field_EF4                                        = 1;
-        work->field_EF6                                        = 1;
-        work->field_EFA                                        = 0;
-        work->field_7B3                                        = 1;
-        work->field_7B0                                        = 1;
-        work->field_EFE                                        = 0;
-        work->field_F1A                                        = 0;
-        ((TmdObject*)work->field_ECC[0]->task->extra)->field_E = 2;
-        ((TmdObject*)work->field_ECC[1]->task->extra)->field_E = 2;
+        work->field_EF4                                         = 1;
+        work->field_EF6                                         = 1;
+        work->field_EFA                                         = 0;
+        work->field_7B3                                         = 1;
+        work->field_7B0                                         = 1;
+        work->field_EFE                                         = 0;
+        work->field_F1A                                         = 0;
+        ((TmdObject*)work->field_ECC[0]->task->extra)->otOffset = 2;
+        ((TmdObject*)work->field_ECC[1]->task->extra)->otOffset = 2;
         func_80185220();
     }
     func_actor_444000_8013441C(arg0);
@@ -77,7 +77,7 @@ void func_actor_444000_801435CC(Actor444000* arg0)
     if (work->field_4 != 0) {
         tmd               = (TmdObject*)arg0->extra;
         obj->node.field_4 = 0;
-        tmd->field_C      = 0;
+        tmd->flags        = 0;
         work->field_7B3   = 0xC;
         work->field_7B0   = 2;
         work->field_EF4   = 0;
@@ -89,8 +89,8 @@ void func_actor_444000_801435CC(Actor444000* arg0)
     }
     if (work->field_6 == 0xA) {
         id  = ((obj->field_8 >> 12) << 8) | 0x40200017;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
     func_actor_444000_8013441C(arg0);
     if (work->slots0[1].field_10 & 1) {

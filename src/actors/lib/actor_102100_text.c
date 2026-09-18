@@ -56,7 +56,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
             if (work->field_60.field_4 & 0x8000) {
                 func_800DA6E8(&enemy->field_10, 0, 0);
             } else if ((((u32)work->field_60.field_4 >> 8) & 0x3F) < 0x21U) {
-                src             = Gp_ActorSlots[((u32)work->field_60.field_4 >> 7) & 1]->extra->field_8;
+                src             = Gp_ActorSlots[((u32)work->field_60.field_4 >> 7) & 1]->extra->coords;
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
                 scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
                 scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];

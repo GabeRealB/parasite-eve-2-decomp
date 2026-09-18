@@ -63,7 +63,7 @@ void func_gunblade_8011E040(GpActorWork* arg0)
     rec                   = (GpActorD4Rec*)actor->field_14C;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - sizeof(GunbladeScratch);
     blk                   = (GunbladeScratch*)*(u8**)G_SCRATCH_HEAD;
-    coord                 = arg0->extra->field_8;
+    coord                 = arg0->extra->coords;
     if (sfx < 0) {
         sfx = 0;
     }
@@ -122,8 +122,8 @@ void func_gunblade_8011E040(GpActorWork* arg0)
             }
             Gp_ConsumeSlotQty(0x96, 1);
             actor->field_12A |= 0xC000;
-            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, sfx | 0x20170005, 1);
-            Gp_SpawnEff(0x600A1, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+            Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, sfx | 0x20170005, 1);
+            Gp_SpawnEff(0x600A1, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                         (D_80073BAA << 16) | 0x17, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
             break;
@@ -136,9 +136,9 @@ void func_gunblade_8011E040(GpActorWork* arg0)
                     actor->field_95E  = 4;
                     actor->field_934  = 8;
                     actor->field_12A |= 0xC000;
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, sfx | 0x20170006, 0);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, sfx | 0x20170006, 0);
                     eff = Gp_SpawnEff(0x60186,
-                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0x17, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->field_0);
@@ -157,15 +157,15 @@ void func_gunblade_8011E040(GpActorWork* arg0)
                     }
                     actor->field_124 = lvl | 0x21700;
                     Gp_ConsumeSlotQty(0x96, 1);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, sfx | 0x20170008, 1);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, sfx | 0x20170008, 1);
                     func_gunblade_8011E008(D_80073BAA);
                 } else {
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, sfx | 0x20170001, 0);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, sfx | 0x20170001, 0);
                 }
             }
             if (actor->field_93E != 1 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 1;
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, sfx | 0x20170007, 0);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, sfx | 0x20170007, 0);
             }
             if (actor->field_952 != 0) {
                 shake             = 1;

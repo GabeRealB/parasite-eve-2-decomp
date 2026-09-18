@@ -15,7 +15,7 @@ void func_neo_ark_shrine_8017F86C(Task* task)
     VECTOR         vec;
 
     obj        = task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     coord->flg = 0;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];

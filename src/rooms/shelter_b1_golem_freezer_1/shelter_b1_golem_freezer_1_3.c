@@ -17,7 +17,7 @@ void func_shelter_b1_golem_freezer_1_8017E254(GsCOORDINATE2* coord, u16 arg1, s1
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
     RoomEffWork*   work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
     s32            vz;
     s16            f2a;
     u32            rng2;

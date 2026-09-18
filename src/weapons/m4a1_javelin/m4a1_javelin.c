@@ -90,7 +90,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     slot  = (GpCoordTail*)&base->coord;
     light = &base->coord;
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     if (Gp_State1C->field_4 != 0) {
         if (Gp_State1C->field_4 >= 4) {
@@ -702,7 +702,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_4;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -756,7 +756,7 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
     u16            count;
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x58;
-    coord                   = arg0->extra->field_8;
+    coord                   = arg0->extra->coords;
     actor                   = arg0->actor;
     spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
     spot->sub               = NULL;
@@ -802,12 +802,12 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x9C, 0x101);
                 eff = Gp_SpawnEff(0x6002F,
-                                  (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                  (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                   0x1D, NULL);
                 if (eff != NULL) {
                     Task_Reparent(actor->field_91C, eff->field_0);
                 }
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201D0005, 1);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201D0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
                 break;
             }
@@ -825,9 +825,9 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201D0004, 1);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201D0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1D, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                 } else {

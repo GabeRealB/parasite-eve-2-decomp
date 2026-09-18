@@ -22,11 +22,11 @@ void func_acropolis_bridge_8017DB08(Task* task)
     GsCOORDINATE2* coord;
 
     extra = (TmdObject*)task->extra;
-    coord = extra->field_8;
+    coord = extra->coords;
     if ((u32)(Gp_GetViewIndex() - 8) < 3U) {
-        extra->field_C = 0x80;
+        extra->flags = 0x80;
     } else {
-        extra->field_C = 0;
+        extra->flags = 0;
     }
     coord->flg = 0;
 }

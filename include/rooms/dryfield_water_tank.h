@@ -67,7 +67,7 @@ typedef struct DwtScriptWork {
 STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 
 /// Light/colour matrix pair `func_dryfield_water_tank_8017DD20` allocates for
-/// its `TmdObject` and republishes onto `TmdObject::field_1C` / `field_20` —
+/// its `TmdObject` and republishes onto `TmdObject::lightMtx` / `field_20` —
 /// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
 /// `Gp_DefaultMtx2`. The task parks the block in `Task::work` (0x1C), which is
 /// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
@@ -78,8 +78,8 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 /// stops at `owner`, and its 0x44 tail is left unknown rather than folded into
 /// the driver's script fields.
 typedef struct DwtColorMtx {
-    /* 0x00 */ MATRIX light; // TmdObject::field_1C
-    /* 0x20 */ MATRIX color; // TmdObject::field_20
+    /* 0x00 */ MATRIX light; // TmdObject::lightMtx
+    /* 0x20 */ MATRIX color; // TmdObject::colorMtx
     /* 0x40 */ Task*  owner; // Game_GetPtrSlot(3)
     /* 0x44 */ byte   pad_44[0x14];
 } DwtColorMtx;

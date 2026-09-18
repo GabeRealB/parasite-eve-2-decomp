@@ -23,7 +23,7 @@ extern GpMsgEntry D_actor_120400_8013E76C[];
 /// `func_actor_350700_80162B30` run, with two children instead of two or three.
 /// Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
-/// has `TmdObject::field_24` / `field_25` loaded with the texture page and CLUT
+/// has `TmdObject::tpage` / `field_25` loaded with the texture page and CLUT
 /// row of the `GpAreaPlace` that entry selects, reached through the area key
 /// `&gGameSession->at4.loc.view` and indexed by the model id the child's own
 /// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
@@ -65,11 +65,11 @@ void func_actor_120400_80131E5C(Task* arg0)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         Gp_SyncAreaKeyIndex(&key);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -93,11 +93,11 @@ void func_actor_120400_80131E5C(Task* arg0)
         key.room   = ((GpAreaKey*)keyAddr)->room;
         key.view   = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
         Gp_SyncAreaKeyIndex(&key);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -116,7 +116,7 @@ void func_actor_120400_80131E5C(Task* arg0)
 /// their integer halves are added onto the root coordinate's translation and
 /// the fraction is dropped, and `flg` is cleared so the tree rebuilds. With
 /// `field_474` set every animation slot is ticked. Unless the model is hidden
-/// (bit 0x80 of `TmdObject::field_C`), the second coordinate's work matrix
+/// (bit 0x80 of `TmdObject::flags`), the second coordinate's work matrix
 /// feeds `func_800EA1A8` and a non-zero result draws the ground-effect quad;
 /// when `gGameSession->viewReady` is set the same coordinate is flagged stale,
 /// updated and re-ranked through `func_800D7A9C`. The body ends decrementing
@@ -132,7 +132,7 @@ void func_actor_120400_80132050(Task* arg0)
     s32                  i;
 
     funcs[work->field_4F8](arg0);
-    coord              = ((TmdObject*)arg0->extra)->field_8;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     work->field_4D8   += work->step.vx;
     work->field_4DC   += work->step.vy;
     work->field_4E0   += work->step.vz;
@@ -148,15 +148,15 @@ void func_actor_120400_80132050(Task* arg0)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)arg0->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_500 >= 0) {
         if (work->field_500 == 0) {

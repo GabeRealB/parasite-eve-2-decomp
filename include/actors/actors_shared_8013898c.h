@@ -8,7 +8,7 @@
 /// Movement freeze flag: the body skips its whole step while this is set.
 extern u8 D_80072729;
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8` - the `flg` at 0 /
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords` - the `flg` at 0 /
 /// local matrix at 4 shape `ActorsShared8013231cCoord` and
 /// `ActorsShared801334c4Coord` document for their own bodies. Only `flg` and
 /// the rotation are touched here: the body reads column 2 of that rotation

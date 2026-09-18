@@ -21,7 +21,7 @@ void PeShared8012f9a8(Task* arg0)
     u16            spawn;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     state         = arg0->state;
     switch (state) {

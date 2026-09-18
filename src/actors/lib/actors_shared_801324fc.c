@@ -18,7 +18,7 @@ void ActorsShared801324fc(Task* task)
     s32                       pan;
 
     work = (ActorsShared801324fcWork*)task->work;
-    obj  = (GpObj38*)(((TmdObject*)task->extra)->field_8 + 1);
+    obj  = (GpObj38*)(((TmdObject*)task->extra)->coords + 1);
     rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec == NULL || rec == work->field_4B8) {
         return;

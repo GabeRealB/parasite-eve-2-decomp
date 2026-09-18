@@ -39,7 +39,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     scratch                                   = (void**)G_SCRATCH_HEAD;
     extra                                     = arg0->extra;
     head                                      = *scratch;
-    coord                                     = (GsCOORDINATE2*)extra->field_8;
+    coord                                     = (GsCOORDINATE2*)extra->coords;
     mem                                       = arg0->spawnArg2;
     ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
     {
@@ -199,7 +199,7 @@ void Gp_EffSprTask81(Task* arg0)
     extra  = arg0->extra;
     mem    = arg0->spawnArg2;
     flag   = Gp_State1C->field_4;
-    coord  = (GsCOORDINATE2*)extra->field_8;
+    coord  = (GsCOORDINATE2*)extra->coords;
     parent = mem->field_8;
     if (flag >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);

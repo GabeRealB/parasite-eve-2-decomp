@@ -79,24 +79,24 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
     third  = (TmdObject*)work->field_4F8->extra;
 
     if (arg2 & 1) {
-        self->field_C   = 0;
-        first->field_C  = 0;
-        second->field_C = 0;
-        third->field_C  = 0;
+        self->flags   = 0;
+        first->flags  = 0;
+        second->flags = 0;
+        third->flags  = 0;
     } else {
-        self->field_C   = 0x80;
-        first->field_C  = 0x80;
-        second->field_C = 0x80;
-        third->field_C  = 0x80;
+        self->flags   = 0x80;
+        first->flags  = 0x80;
+        second->flags = 0x80;
+        third->flags  = 0x80;
     }
     if (arg2 & 2) {
-        self->field_C   |= 4;
-        first->field_C  |= 4;
-        second->field_C |= 4;
-        third->field_C  |= 4;
+        self->flags   |= 4;
+        first->flags  |= 4;
+        second->flags |= 4;
+        third->flags  |= 4;
     }
     if (work->field_500 == 0) {
-        third->field_C = 0x84;
+        third->flags = 0x84;
     }
     return 0;
 }

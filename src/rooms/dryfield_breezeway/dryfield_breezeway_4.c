@@ -26,7 +26,7 @@ s32 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 /// from the new translation. The scan calls this once, as it leaves its loop.
 void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 {
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
 
     coord->coord.t[2] = 0x5DC;
     coord->flg        = 0;

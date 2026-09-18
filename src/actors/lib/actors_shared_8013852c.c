@@ -30,7 +30,7 @@ s32 ActorsShared8013852c(Task* task, s32 arg1, s32 flags)
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
         if ((mode << 0x18) == 0) {
-            model->field_C      = (u16)(model->field_C & 0xFF7F);
+            model->flags        = (u16)(model->flags & 0xFF7F);
             enemy->node.field_4 = work->field_BA1;
             obj                 = &work->field_9A8[0];
             obj->flags          = (u16)(obj->flags | 0xC000);
@@ -39,7 +39,7 @@ s32 ActorsShared8013852c(Task* task, s32 arg1, s32 flags)
         } else {
             register s32 value asm("v0");
 
-            model->field_C      = (u16)(model->field_C | 0x80);
+            model->flags        = (u16)(model->flags | 0x80);
             work->field_BA1     = enemy->node.field_4;
             enemy->node.field_4 = 1;
             for (i = 0; i < 4; i++) {

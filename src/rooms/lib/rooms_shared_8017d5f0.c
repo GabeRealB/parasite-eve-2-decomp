@@ -32,12 +32,12 @@ void RoomsShared8017d5f0(Task* task)
     s32             i;
 
     owner = Game_GetPtrSlot(3);
-    if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->field_10) == NULL) {
+    if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
         Task_Kill(task);
         return;
     }
     extra = task->extra;
-    parts = extra->field_8;
+    parts = extra->coords;
     if ((u32)task->spawnArg1 >= 2U) {
         Task_Kill(task);
         return;
@@ -47,24 +47,24 @@ void RoomsShared8017d5f0(Task* task)
         Task_Kill(task);
         return;
     }
-    task->work      = (TaskIdMap*)work;
-    extra->field_24 = 6;
+    task->work   = (TaskIdMap*)work;
+    extra->tpage = 6;
     Tmd_ProcessStream(extra);
     Tmd_ProcessStream(extra);
-    extra->field_C = 0x10;
-    extra->field_E = 0x1F;
+    extra->flags    = 0x10;
+    extra->otOffset = 0x1F;
     if (task->spawnArg1 == 0) {
         gGameSession->field_4E = 1;
     }
     parts->sub      = &work->coord;
-    extra->field_1C = &work->light;
-    extra->field_20 = &work->color;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
     Task_Reparent(owner, task);
     task->state++;
     work->viewFlg   = Gfx_ViewCoord.flg & 0x7FFFFFFF;
     work->field_4   = 1;
     work->configRev = -1;
-    extra->field_C |= 0x80;
+    extra->flags   |= 0x80;
     work->field_4   = 0;
     work->viewFlg   = -1;
     actor           = (GameActor*)owner->work;

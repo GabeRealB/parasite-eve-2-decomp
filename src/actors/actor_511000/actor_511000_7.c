@@ -24,21 +24,21 @@ void func_actor_511000_80133F48(void* enemy, Task* task)
 
     parent       = task->parent;
     obj          = (TmdObject*)task->extra;
-    parentCoords = ((TmdObject*)parent->extra)->field_8;
-    coord        = obj->field_8;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
     work         = (Actor511000ParentWork*)parent->work;
 
     coord->sub    = &parentCoords[8];
-    obj->field_1C = &work->field_45C;
-    obj->field_C  = 0;
-    obj->field_20 = &work->field_43C;
+    obj->lightMtx = &work->field_45C;
+    obj->flags    = 0;
+    obj->colorMtx = &work->field_43C;
     task->state   = 1;
 }
 
 void func_actor_511000_80133F88(void* arg0, Task* arg1)
 {
-    ((TmdObject*)arg1->extra)->field_8->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+    ((TmdObject*)arg1->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
 }
 
 void func_actor_511000_8013401C(void* enemy, Task* task);
@@ -61,21 +61,21 @@ void func_actor_511000_8013401C(void* enemy, Task* task)
 
     parent       = task->parent;
     obj          = (TmdObject*)task->extra;
-    parentCoords = ((TmdObject*)parent->extra)->field_8;
-    coord        = obj->field_8;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
     work         = (Actor511000ParentWork*)parent->work;
 
     coord->sub    = &parentCoords[3];
-    obj->field_1C = &work->field_45C;
-    obj->field_C  = 0;
-    obj->field_20 = &work->field_43C;
+    obj->lightMtx = &work->field_45C;
+    obj->flags    = 0;
+    obj->colorMtx = &work->field_43C;
     task->state   = 1;
 }
 
 void func_actor_511000_8013405C(void* arg0, Task* arg1)
 {
-    ((TmdObject*)arg1->extra)->field_8->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+    ((TmdObject*)arg1->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
 }
 
 void func_actor_511000_801340F0(void* enemy, Task* task);
@@ -98,19 +98,19 @@ void func_actor_511000_801340F0(void* enemy, Task* task)
 
     parent       = task->parent;
     obj          = (TmdObject*)task->extra;
-    parentCoords = ((TmdObject*)parent->extra)->field_8;
-    coord        = obj->field_8;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
     work         = (Actor511000ParentWork*)parent->work;
 
     coord->sub    = &parentCoords[12];
-    obj->field_1C = &work->field_45C;
-    obj->field_C  = 0;
-    obj->field_20 = &work->field_43C;
+    obj->lightMtx = &work->field_45C;
+    obj->flags    = 0;
+    obj->colorMtx = &work->field_43C;
     task->state   = 1;
 }
 
 void func_actor_511000_80134130(void* arg0, Task* arg1)
 {
-    ((TmdObject*)arg1->extra)->field_8->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
+    ((TmdObject*)arg1->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
 }

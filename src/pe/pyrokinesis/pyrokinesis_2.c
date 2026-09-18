@@ -34,7 +34,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->field_E;
         if (flag < 4) {
@@ -266,7 +266,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->field_E;
         if (flag < 4) {
@@ -280,7 +280,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
                 arg0->state   = 1;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_8012FC34(((TmdObject*)arg0->extra)->field_8, mem->field_26, mem->field_24);
+            func_pyrokinesis_8012FC34(((TmdObject*)arg0->extra)->coords, mem->field_26, mem->field_24);
             angle         = (u16)mem->field_26;
             scale         = (u16)mem->field_24;
             angle        += 0x40;

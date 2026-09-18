@@ -19,7 +19,7 @@ typedef struct ActorsShared80133474Work {
 
 /// Script opcode: set the visibility flags of the actor's model and of the
 /// model owned by the task its spawn routine paired it with. `flags` bit 0
-/// hides both models (`TmdObject::field_C` = 0) and its absence restores the
+/// hides both models (`TmdObject::flags` = 0) and its absence restores the
 /// default 0x80; bit 1 additionally ORs in 0x4, the same bit `Tmd_Create` sets
 /// for its own `flags & 1`. With no enemy paired (`Task::spawnArg1` == 0) the
 /// actor drives its own model twice.

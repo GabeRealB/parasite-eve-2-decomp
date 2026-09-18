@@ -11,7 +11,7 @@ void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 0;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_828 = 2;
@@ -32,7 +32,7 @@ void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
     if (work->field_4 != 0) {
         obj                 = (TmdObject*)task->extra;
         enemy->node.field_4 = 1;
-        obj->field_C        = 0;
+        obj->flags          = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_82E = 2;
@@ -42,6 +42,6 @@ void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
         func_actor_323400_80163B58(task);
     } else {
         func_actor_323400_80163B58(task);
-        ((TmdObject*)task->extra)->field_8->flg = 0;
+        ((TmdObject*)task->extra)->coords->flg = 0;
     }
 }

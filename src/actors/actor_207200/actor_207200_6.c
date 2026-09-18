@@ -27,7 +27,7 @@ void func_actor_207200_8014D7E8(Actor207200* arg0)
     work                = arg0->field_1C;
     scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->field_2C)->field_8;
+    coord               = (*(TmdObject**)&arg0->field_2C)->coords;
     if (work->field_49C >= 0x201) {
         work->field_49C = (u16)work->field_49C - 0x50;
     }
@@ -61,16 +61,16 @@ void func_actor_207200_8014D8DC(Actor207200* arg0)
     work = arg0->field_1C;
     ctx  = arg0->field_20;
     if (work->field_4A6 != 0) {
-        coord = (*(TmdObject**)&arg0->field_2C)->field_8 + 1;
+        coord = (*(TmdObject**)&arg0->field_2C)->coords + 1;
     } else {
-        angle = ActorsShared80136614((*(TmdObject**)&arg0->field_2C)->field_8, &dist);
+        angle = ActorsShared80136614((*(TmdObject**)&arg0->field_2C)->coords, &dist);
         if (angle < 0) {
             angle = -angle;
         }
         if (angle < 0x400) {
-            coord = (*(TmdObject**)&arg0->field_2C)->field_8 + 3;
+            coord = (*(TmdObject**)&arg0->field_2C)->coords + 3;
         } else {
-            coord = (*(TmdObject**)&arg0->field_2C)->field_8 + 1;
+            coord = (*(TmdObject**)&arg0->field_2C)->coords + 1;
         }
     }
     ctx->field_18 = coord;

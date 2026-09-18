@@ -291,13 +291,13 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 
         mask = 0x7FFFFFFF;
         tmp  = D_80071210;
-        node = gTmdDisp2dList.next;
+        node = (TmdObject*)gTmdDisp2dList.next;
         flag = tmp & mask;
         bit  = tmp & 1;
     }
     if (node != NULL) {
         do {
-            coord      = (GsCOORDINATE2*)node->field_8;
+            coord      = (GsCOORDINATE2*)node->coords;
             parent     = coord->sub;
             coord->flg = (coord->flg << 1) >> 1;
             if (parent == NULL) {
@@ -456,16 +456,16 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
             if (bit != 0) {
                 coord->flg |= 0x80000000;
             }
-            node = node->next;
+            node = (TmdObject*)node->next;
         } while (node != NULL);
     }
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     if (node != NULL) {
         do {
-            coord = (GsCOORDINATE2*)node->field_8;
+            coord = node->coords;
             i     = 0;
-            if (node->field_30 != 0) {
+            if (node->partCount != 0) {
                 tail = (GpCoordFromT*)coord->workm.t;
                 do {
                     parent     = tail->sub;
@@ -628,14 +628,14 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                     }
                     tail++;
                     coord++;
-                } while (++i < (u32)node->field_30);
+                } while (++i < (u32)node->partCount);
             }
-            node = node->next;
+            node = (TmdObject*)node->next;
         } while (node != NULL);
     }
 
     D_80071210 += 1;
-    Tmd_DrawFlaggedNodes(gTmdList.next);
+    Tmd_DrawFlaggedNodes((TmdObject*)gTmdList.next);
 }
 
 void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
@@ -655,13 +655,13 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 
         mask = 0x7FFFFFFF;
         tmp  = D_80071210;
-        node = gTmdDisp2dList.next;
+        node = (TmdObject*)gTmdDisp2dList.next;
         flag = tmp & mask;
         bit  = tmp & 1;
     }
     if (node != NULL) {
         do {
-            coord      = (GsCOORDINATE2*)node->field_8;
+            coord      = (GsCOORDINATE2*)node->coords;
             parent     = coord->sub;
             coord->flg = (coord->flg << 1) >> 1;
             if (parent == NULL) {
@@ -820,16 +820,16 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
             if (bit != 0) {
                 coord->flg |= 0x80000000;
             }
-            node = node->next;
+            node = (TmdObject*)node->next;
         } while (node != NULL);
     }
 
-    node = gTmdList.next;
+    node = (TmdObject*)gTmdList.next;
     if (node != NULL) {
         do {
-            coord = (GsCOORDINATE2*)node->field_8;
+            coord = node->coords;
             i     = 0;
-            if (node->field_30 != 0) {
+            if (node->partCount != 0) {
                 tail = (GpCoordFromT*)coord->workm.t;
                 do {
                     parent     = tail->sub;
@@ -992,14 +992,14 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                     }
                     tail++;
                     coord++;
-                } while (++i < (u32)node->field_30);
+                } while (++i < (u32)node->partCount);
             }
-            node = node->next;
+            node = (TmdObject*)node->next;
         } while (node != NULL);
     }
 
     D_80071210 += 1;
-    Tmd_DrawActiveNodes(gTmdList.next);
+    Tmd_DrawActiveNodes((TmdObject*)gTmdList.next);
 }
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0)
@@ -1030,7 +1030,7 @@ void* Gp_AttachTmd(Task* task, TmdSource* src)
         list            = &gTmdList;
         last            = list->prev;
         node->next      = last->next;
-        last->next      = (TmdObject*)node;
+        last->next      = node;
         node->prev      = last;
         list->prev      = node;
         task->extra     = node;
@@ -1071,7 +1071,7 @@ void* Gp_AttachDisp2d(Task* task)
         coord->flg              = 0;
         last                    = list->prev;
         node->next              = last->next;
-        last->next              = (TmdObject*)node;
+        last->next              = (TmdListHead*)node;
         node->prev              = last;
         list->prev              = (TmdListHead*)node;
         task->extra             = node;
@@ -1093,7 +1093,7 @@ void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
         list            = &gTmdList;
         last            = list->prev;
         node->next      = last->next;
-        last->next      = (TmdObject*)node;
+        last->next      = node;
         node->prev      = last;
         list->prev      = node;
         task->extra     = node;
@@ -1102,52 +1102,52 @@ void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
     return node;
 }
 
-void Gp_UnlinkTmd(TmdListHead* arg0)
+void Gp_UnlinkTmd(TmdListHead* node)
 {
     TmdListHead*  next;
     TmdListHead** pp;
     TmdListHead*  prev;
 
-    next = (TmdListHead*)arg0->next;
+    next = node->next;
     if (next == NULL) {
         pp = &gTmdList.prev;
     } else {
         pp = &next->prev;
     }
-    prev       = arg0->prev;
+    prev       = node->prev;
     *pp        = prev;
-    prev->next = arg0->next;
+    prev->next = node->next;
 }
 
-void Gp_FreeTmd(TmdObject* arg0)
+void Gp_FreeTmd(TmdObject* obj)
 {
-    if (arg0->field_18 != NULL) {
-        memFreeFromHeap(arg0->field_18, 1);
-        arg0->field_18 = NULL;
+    if (obj->buffer != NULL) {
+        memFreeFromHeap(obj->buffer, 1);
+        obj->buffer = NULL;
     }
-    memFree(arg0);
+    memFree(obj);
 }
 
-void Gp_UnlinkDisp2d(TmdListHead* arg0)
+void Gp_UnlinkDisp2d(TmdListHead* node)
 {
     TmdListHead*  next;
     TmdListHead** pp;
     TmdListHead*  prev;
 
-    next = (TmdListHead*)arg0->next;
+    next = node->next;
     if (next == NULL) {
         pp = &gTmdDisp2dList.prev;
     } else {
         pp = &next->prev;
     }
-    prev       = arg0->prev;
+    prev       = node->prev;
     *pp        = prev;
-    prev->next = arg0->next;
+    prev->next = node->next;
 }
 
-void Gp_FreeDisp2d(void* arg0)
+void Gp_FreeDisp2d(void* node)
 {
-    memFree(arg0);
+    memFree(node);
 }
 
 void Gp_StashTmdLists(void)
@@ -1358,8 +1358,8 @@ Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0)
             switch (task->spawnType) {
                 case 1:
                     extra = task->extra;
-                    count = extra->field_30;
-                    coord = extra->field_8;
+                    count = extra->partCount;
+                    coord = extra->coords;
                     for (i = 0; i < count; i++) {
                         if (coord == arg0) {
                             found = 1;
@@ -1370,7 +1370,7 @@ Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0)
                     break;
                 case 2:
                     extra = task->extra;
-                    coord = extra->field_8;
+                    coord = extra->coords;
                     if (coord == arg0) {
                         found = 1;
                     }
@@ -2099,12 +2099,12 @@ u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             gte_stsv(&ws->field_74);
             arg2 += ws->field_18;
             gte_strgb(ws->field_4 + rec[3]);
-            if (ws->field_80->field_2C < 0x1000) {
-                gte_lddp(ws->field_80->field_2C);
+            if (ws->field_80->lightLevel < 0x1000) {
+                gte_lddp(ws->field_80->lightLevel);
                 cptr = ws->field_4 + rec[3];
                 gte_ldcv(cptr);
                 gte_gpf12_real();
-                gte_lddp(0x1000 - ws->field_80->field_2C);
+                gte_lddp(0x1000 - ws->field_80->lightLevel);
                 gte_ldcv(&col2);
                 gte_gpl12_real();
                 gte_stcv(cptr);
@@ -2114,7 +2114,7 @@ u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             page = 0;
             dest = ws->field_4 + rec[2] + 4;
             sv   = (SVECTOR*)&ws->field_74;
-            gte_lddp(ws->field_80->field_2C >> 9);
+            gte_lddp(ws->field_80->lightLevel >> 9);
             gte_ldsv(sv);
             gte_gpf12_real();
             gte_stsv(sv);
@@ -2197,7 +2197,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             arg2 += ws->field_18;
             // Blend the primitive colour towards the grey reference by the
             // object's light level when the level is below 1.0 (0x1000).
-            dp = ws->field_80->field_2C;
+            dp = ws->field_80->lightLevel;
             if (dp < 0x1000) {
                 gte_lddp(dp);
                 rgb = ws->field_4 + rec[2];
@@ -2213,7 +2213,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             flag = 0;
             dest = ws->field_4 + rec[2] + 8;
             sv   = (SVECTOR*)&ws->field_74;
-            gte_lddp(ws->field_80->field_2C >> 9);
+            gte_lddp(ws->field_80->lightLevel >> 9);
             gte_ldsv(sv);
             gte_gpf12_real();
             gte_stsv(sv);
@@ -2264,7 +2264,7 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     TOUCH_REG(ws);
     col    = Gp_ColorWhite;
     col2   = Gp_ColorGrey;
-    val    = ws->field_80->field_2C >> 5;
+    val    = ws->field_80->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -2371,28 +2371,28 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_ldrgb(&D_80114BA8);
                     gte_ncct_real();
                     gte_strgb3_gt3(&poly[1]);
-                    if (ws->field_80->field_2C < 0x1000) {
-                        gte_lddp(ws->field_80->field_2C);
+                    if (ws->field_80->lightLevel < 0x1000) {
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb = (u8*)&poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(scale - ws->field_80->field_2C);
+                        gte_lddp(scale - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
-                        gte_lddp(ws->field_80->field_2C);
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb = (u8*)&poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(scale - ws->field_80->field_2C);
+                        gte_lddp(scale - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
-                        gte_lddp(ws->field_80->field_2C);
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb = (u8*)&poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(scale - ws->field_80->field_2C);
+                        gte_lddp(scale - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
@@ -2405,7 +2405,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest = (u8*)&poly[0].u0;
                     flag = combined;
                     sv   = svBase;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2440,7 +2440,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest = (u8*)&poly[0].u1;
                     flag = 0;
                     sv   = svBase;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2475,7 +2475,7 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     dest = (u8*)&poly[0].u2;
                     flag = 0;
                     sv   = svBase;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2575,7 +2575,7 @@ u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     poly   = (POLY_GT3*)ws->field_0;
     col    = Gp_ColorGrey;
     col2   = Gp_ColorGrey;
-    val    = ws->field_80->field_2C >> 5;
+    val    = ws->field_80->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -2657,7 +2657,7 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     poly   = (POLY_GT4*)ws->field_0;
     col    = Gp_ColorGrey;
     col2   = Gp_ColorGrey;
-    val    = ws->field_80->field_2C >> 5;
+    val    = ws->field_80->lightLevel >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -2815,7 +2815,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest    = &poly[0].u0;
                     flag    = 0;
                     sv      = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2852,7 +2852,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u1;
                     flag = 0;
                     sv   = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2889,7 +2889,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u2;
                     flag = 0;
                     sv   = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2934,7 +2934,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u3;
                     flag = 0;
                     sv   = (SVECTOR*)&ws->field_74;
-                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_lddp(ws->field_80->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12_real();
                     gte_stsv(sv);
@@ -2964,39 +2964,39 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest[-6] = flag;
 
                     anyflag |= flag;
-                    if (ws->field_80->field_2C < 0x1000) {
-                        gte_lddp(ws->field_80->field_2C);
+                    if (ws->field_80->lightLevel < 0x1000) {
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb = &poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_lddp(0x1000 - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->field_80->field_2C);
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb = &poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_lddp(0x1000 - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->field_80->field_2C);
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb = &poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_lddp(0x1000 - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->field_80->field_2C);
+                        gte_lddp(ws->field_80->lightLevel);
                         rgb3 = &poly[0].r3;
                         gte_ldcv(rgb3);
                         gte_gpf12_real();
-                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_lddp(0x1000 - ws->field_80->lightLevel);
                         gte_ldcv(&col);
                         gte_gpl12_real();
                         gte_stcv(rgb3);
@@ -3080,7 +3080,7 @@ u32* func_8009CED0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_strgb3_gt3(poly);
                     setlen(poly, 9);
                     setcode(poly, 0x34);
-                    if (ws->field_80->field_C & 2) {
+                    if (ws->field_80->flags & 2) {
                         setcode(poly, 0x36);
                     }
                     gte_stotz(opz);
@@ -3153,7 +3153,7 @@ u32* func_8009D0DC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         gte_strgb(&poly->r3);
                         setlen(poly, 0xC);
                         setcode(poly, 0x3C);
-                        if (ws->field_80->field_C & 2) {
+                        if (ws->field_80->flags & 2) {
                             setcode(poly, 0x3E);
                         }
                         gte_stotz(opz);
@@ -4258,8 +4258,8 @@ u32* func_8009F56C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u0 = arg2[3];
             *(s32*)&poly->u1 = arg2[4];
             *(u16*)&poly->u2 = *(u16*)&arg2[5];
-            poly->tpage     += (s8)arg0->field_80->field_26;
-            tmp              = arg0->field_80->field_27;
+            poly->tpage     += (s8)arg0->field_80->tpageOffset;
+            tmp              = arg0->field_80->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4312,8 +4312,8 @@ u32* func_8009F708(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u1 = arg2[5];
             *(u16*)&poly->u2 = *(u16*)&arg2[6];
             *(u16*)&poly->u3 = ((u16*)&arg2[6])[1];
-            poly->tpage     += (s8)arg0->field_80->field_26;
-            tmp              = arg0->field_80->field_27;
+            poly->tpage     += (s8)arg0->field_80->tpageOffset;
+            tmp              = arg0->field_80->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4414,8 +4414,8 @@ u32* func_8009FA24(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u0 = arg2[2];
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
-            poly->tpage     += (s8)arg0->field_80->field_26;
-            tmp              = arg0->field_80->field_27;
+            poly->tpage     += (s8)arg0->field_80->tpageOffset;
+            tmp              = arg0->field_80->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -4447,8 +4447,8 @@ u32* func_8009FB28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             *(s32*)&poly->u1 = arg2[3];
             *(u16*)&poly->u2 = *(u16*)&arg2[4];
             *(u16*)&poly->u3 = ((u16*)&arg2[4])[1];
-            poly->tpage     += (s8)arg0->field_80->field_26;
-            tmp              = arg0->field_80->field_27;
+            poly->tpage     += (s8)arg0->field_80->tpageOffset;
+            tmp              = arg0->field_80->clutOffset;
             tpage            = poly->tpage;
             tpage           |= 0x20;
             poly->tpage      = tpage;
@@ -7366,7 +7366,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         head     = *scratch;
         newhead  = head - 0x60;
         sc       = (GpCircleScratch*)newhead;
-        coord    = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8;
+        coord    = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
         sc->rx   = arg1;
         sc->ry   = arg2;
         base     = gDisplayState.animFrame << 4;
@@ -7374,7 +7374,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     if (arg3 & 4) {
-        other      = (GsCOORDINATE2*)((TmdObject*)slot->extra)->field_8 + 4;
+        other      = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords + 4;
         sc->vec.vx = 0;
         sc->vec.vy = 0x12C;
         sc->vec.vz = 0;
@@ -8471,7 +8471,7 @@ void Gp_UpdateLinkXforms(void)
         scratch = (void**)G_SCRATCH_HEAD;
         extra   = (TmdObject*)slot->extra;
         head    = *scratch;
-        player  = (GsCOORDINATE2*)extra->field_8;
+        player  = (GsCOORDINATE2*)extra->coords;
         newhead = head - 0x48;
         block   = (GpXformScratch*)newhead;
         TOUCH_REG(block);
@@ -9146,7 +9146,7 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
         return 0;
     }
     task->work = (TaskIdMap*)pos;
-    coord      = ((TmdObject*)task->extra)->field_8;
+    coord      = ((TmdObject*)task->extra)->coords;
     if (arg1 != NULL) {
         pos->vx = arg1->vx;
         pos->vy = arg1->vy;
@@ -9201,7 +9201,7 @@ void func_800A8654(Task* task)
     c1             = &Gfx_ViewOffsetCoord;
     extra          = task->extra;
     vec            = (VECTOR*)task->work;
-    src            = extra->field_8;
+    src            = extra->coords;
     c1->coord.t[0] = vec->vx;
     c2             = &D_80070E40;
     c1->coord.t[1] = vec->vy;

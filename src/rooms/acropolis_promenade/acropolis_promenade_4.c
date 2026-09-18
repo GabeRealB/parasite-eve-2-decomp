@@ -46,7 +46,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
     s32            mask;
     s16            prev;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     view  = Gp_GetViewIndex();
     if (Gp_State1C->field_4 >= 4) {
@@ -188,7 +188,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     POLY_FT4*          prim;
     s32                grey;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     work->field_22 = task->spawnArg1;
@@ -301,7 +301,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
     s32             i;
     s32             grey;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch        = (void**)G_SCRATCH_HEAD;

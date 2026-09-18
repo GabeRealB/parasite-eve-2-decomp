@@ -50,7 +50,7 @@ void func_actor_361100_80161E3C(Task* arg0)
 
     state   = (Actor361100EffectState*)arg0->work;
     modePtr = &gGameSession->at4.loc.view;
-    coord   = ((TmdObject*)arg0->extra)->field_8;
+    coord   = ((TmdObject*)arg0->extra)->coords;
     if (D_8006D868 != -1) {
         streamLeft  = 0x18000 - D_8006D868;
         streamLeft &= ~7;

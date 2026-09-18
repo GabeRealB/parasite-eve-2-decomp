@@ -24,7 +24,7 @@ void func_actor_341700_8016AA58(Task* arg0)
 
     work->field_412++;
     if ((s16)work->field_412 >= 0x18) {
-        model->field_C |= 2;
+        model->flags   |= 2;
         work->field_412 = 0;
         work->field_451 = 1;
         work->field_420++;

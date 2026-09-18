@@ -20,8 +20,8 @@ void func_actor_317000_80162744(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor317000Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_317000_80162760(void)
@@ -49,7 +49,7 @@ void func_actor_317000_801627D0(Task* arg0)
     s32                   vy;
     s16                   diff;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor317000Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
@@ -95,7 +95,7 @@ void func_actor_317000_801628D8(Task* task)
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (Actor317000Work*)task->work;
 
     vec = D_actor_317000_80161E40;
@@ -119,7 +119,7 @@ void func_actor_317000_80162950(Task* arg0)
     Actor317000AnimPreset preset;
     s32                   pan;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor317000Work*)arg0->work;
     if (coord->coord.t[1] < -0x30) {
         return;

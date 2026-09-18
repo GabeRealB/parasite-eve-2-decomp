@@ -35,7 +35,7 @@ void func_actor_450800_801332B8(void* enemy, Task* task)
     VECTOR         pos;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 800;

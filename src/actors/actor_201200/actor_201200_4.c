@@ -22,8 +22,8 @@ s32 func_actor_201200_8014D8DC(Actor201200* arg0, s32 arg1, Actor201200Msg* arg2
                 break;
             case 3:
                 if (ctx->field_40 > 0) {
-                    work->field_0                = 4;
-                    arg0->field_2C->field_8->flg = 0;
+                    work->field_0               = 4;
+                    arg0->field_2C->coords->flg = 0;
                 }
                 break;
             case 4:

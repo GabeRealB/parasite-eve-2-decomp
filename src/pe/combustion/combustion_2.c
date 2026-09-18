@@ -270,7 +270,7 @@ void func_combustion_801308E0(Task* arg0)
         Gp_ReleaseState1CMem(arg0->spawnArg2, arg0);
         return;
     }
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     Gp_UpdateCoord(coord);
     Gp_SpawnEff(0x8006001B, coord, 1, 0);
     Gp_SpawnEff(0x8006001B, coord, -1, 0);

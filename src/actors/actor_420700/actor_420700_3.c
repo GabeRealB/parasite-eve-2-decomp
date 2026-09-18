@@ -38,18 +38,18 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
     TmdObject* twin  = D_actor_420700_8013EFEC->extra;
 
     if (arg2 & 1) {
-        actor->field_C = 0;
-        model->field_C = 0;
-        twin->field_C  = 0;
+        actor->flags = 0;
+        model->flags = 0;
+        twin->flags  = 0;
     } else {
-        actor->field_C = 0x80;
-        model->field_C = 0x80;
-        twin->field_C  = 0x80;
+        actor->flags = 0x80;
+        model->flags = 0x80;
+        twin->flags  = 0x80;
     }
     if (arg2 & 2) {
-        actor->field_C |= 4;
-        model->field_C |= 4;
-        twin->field_C  |= 4;
+        actor->flags |= 4;
+        model->flags |= 4;
+        twin->flags  |= 4;
     }
     return 0;
 }
@@ -94,17 +94,17 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args)
 void func_actor_420700_801327EC(Task* task)
 {
     TmdObject*     extra = task->extra;
-    GsCOORDINATE2* coord = extra->field_8;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->field_8;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
     GsCOORDINATE2* part  = parts + 8;
     VECTOR         vec;
 
     switch (task->state) {
         case 0:
-            coord->flg     = 0;
-            extra->field_C = 0;
-            extra->field_E = -2;
-            coord->sub     = part;
+            coord->flg      = 0;
+            extra->flags    = 0;
+            extra->otOffset = -2;
+            coord->sub      = part;
             task->state++;
             break;
         case 1:

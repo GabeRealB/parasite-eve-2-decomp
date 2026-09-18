@@ -150,7 +150,7 @@ typedef struct Actor444000Work {
     /* 0xD6C */ GpActorD4Rec d4rec;
     /* 0xD84 */ GpRec18      recs2[5];
     /// The light and colour matrices the spawn state points the host model and
-    /// every escort model at (`TmdObject::field_1C` / `field_20`).
+    /// every escort model at (`TmdObject::lightMtx` / `field_20`).
     /* 0xDFC */ MATRIX lightMtx;
     /* 0xE1C */ MATRIX colorMtx;
     /// Free coordinate the arena tick rebuilds from `field_7C8` every step and
@@ -195,7 +195,7 @@ typedef struct Actor444000Work {
     /* 0xECA */ s16 field_ECA;
     /// The seven escorts `func_actor_444000_8013AFF8` spawns with
     /// `Gp_SpawnEnemyFromTable`; the resets walk them to push the host's
-    /// `TmdObject::field_C` onto each escort's own model object.
+    /// `TmdObject::flags` onto each escort's own model object.
     /* 0xECC */ GpEnemy* field_ECC[7];
     /// Two nearby-enemy slots, each dropped once its HP runs out; the spawn
     /// state clears them in a loop, which is what makes them an array.

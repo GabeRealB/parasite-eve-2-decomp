@@ -32,7 +32,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     actor = arg0->actor;
     extra = arg0->extra;
     d4    = actor->field_910;
-    addr  = &extra->field_8;
+    addr  = &extra->coords;
     coord = *addr;
     arg0->state++;
     arg0->field_24   = &D_actor_800300_80168880;
@@ -41,7 +41,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     D_80115764       = arg0;
     coord->sub       = &Gfx_ViewCoord;
     coord->flg       = 0;
-    extra->field_C   = 0;
+    extra->flags     = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     func_8010BFCC(arg0);
     actor->field_985 = 0x10;
@@ -71,7 +71,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
     obj->flags     |= 0xC200;
     obj             = (GpObj*)actor->field_CC;
-    next            = arg0->extra->field_8;
+    next            = arg0->extra->coords;
     obj->field_C    = (GpRec18*)actor->field_94;
     obj->field_8    = next + 4;
     actor->field_9C = (s32)recs;

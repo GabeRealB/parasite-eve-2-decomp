@@ -13,7 +13,7 @@ void ActorsShared80133a68(Task* task)
     SVECTOR                    rot;
 
     work  = (ActorsShared80133a68Work*)task->work;
-    coord = (ActorsShared80133a68Coord*)((TmdObject*)task->extra)->field_8;
+    coord = (ActorsShared80133a68Coord*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];

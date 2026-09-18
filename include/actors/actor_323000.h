@@ -22,7 +22,7 @@
 /// and its 18-slot array at 0x1C, the 0x120-byte pose buffer `func_800B3F84`
 /// is handed as its arg3 (one 0x10-byte record per slot), and the same pair
 /// again at 0x420 for the blend context. The light / colour matrices
-/// `func_actor_323000_80163EA0` binds to `TmdObject::field_1C` / `field_20`
+/// `func_actor_323000_80163EA0` binds to `TmdObject::lightMtx` / `field_20`
 /// sit between the animation block and the tail.
 typedef struct Actor323000Work {
     /// Animation state, the same slot `ActorShared80164af0Work` names
@@ -177,7 +177,7 @@ void func_actor_323000_80164C58(GpEnemy* enemy, Task* task);
 /// and z zero for the pair that shares a tail (14/17); and zero for the idle
 /// pair (0/1). The switch has no `default`, so the other states reach the
 /// spawn with the vector as the frame left it. The coordinate is
-/// `TmdObject::field_8[arg1]`, the same `TmdObject` the re-init handler above
+/// `TmdObject::coords[arg1]`, the same `TmdObject` the re-init handler above
 /// clears `field_C` of, and the vector is a local rather than the work-block
 /// slot actor 00100 keeps at 0x898 - the same body as actor 421600's
 /// `func_actor_421600_8013E700`, with different offsets.

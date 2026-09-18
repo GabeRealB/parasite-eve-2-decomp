@@ -3185,7 +3185,7 @@ s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
 
 void func_800BB7B4(Task* arg0)
 {
-    ((TmdObject*)arg0->extra)->field_C = 0;
+    ((TmdObject*)arg0->extra)->flags = 0;
 }
 
 void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
@@ -3322,7 +3322,7 @@ void Gp_SavePlayerPos(void)
     PlayerStatus* cfg;
     McSaveData*   save;
 
-    coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    coord  = (GpCoordYaw*)((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     temp   = coord->field_18;
     p      = &Player_Status.pos;
     p->x   = temp;
@@ -3353,7 +3353,7 @@ GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
         task = enemy->task;
         if (task->spawnType != 0) {
             extra             = (TmdObject*)task->extra;
-            coord             = (GpCoordPlace*)extra->field_8;
+            coord             = (GpCoordPlace*)extra->coords;
             enemy->field_8    = arg1->field_0 | (arg1->field_4 << 8);
             enemy->field_A    = arg1->field_2;
             coord->coord.t[0] = arg1->field_8;
@@ -3375,8 +3375,8 @@ void func_800BBB54(Task* arg0)
 
     extra = arg0->extra;
     if (arg0->state == 0) {
-        extra->field_C = 0x88;
-        arg0->state   += 1;
+        extra->flags = 0x88;
+        arg0->state += 1;
     }
     if (arg0->state == 1) {
         GpBit2Bank*  banks;
@@ -3395,7 +3395,7 @@ void func_800BBB54(Task* arg0)
         shift   = (id & 0xF) * 2;
         word    = *indexed;
         if (((word & (3 << shift)) >> shift) == 2) {
-            extra->field_C &= 0xFFF7;
+            extra->flags &= 0xFFF7;
             Task_CallExit(arg0);
         }
     }
@@ -3407,8 +3407,8 @@ void Gp_WaitItemFlag2(Task* arg0)
 
     extra = arg0->extra;
     if (arg0->state == 0) {
-        extra->field_C = 8;
-        arg0->state   += 1;
+        extra->flags = 8;
+        arg0->state += 1;
     }
     if (arg0->state == 1) {
         GpBit2Bank*   banks;
@@ -3426,7 +3426,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         shift = (id & 0xF) * 2;
         word  = *p;
         if (((word & (3 << shift)) >> shift) == 2) {
-            extra->field_C &= 0xFFF7;
+            extra->flags &= 0xFFF7;
             Task_CallExit(arg0);
         }
     }

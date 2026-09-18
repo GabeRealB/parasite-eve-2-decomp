@@ -21,7 +21,7 @@ void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2)
     GsCOORDINATE2* coord;
     GsCOORDINATE2* coords;
 
-    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);

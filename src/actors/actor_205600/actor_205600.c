@@ -74,19 +74,19 @@ void func_actor_205600_8014CFD0(GpEnemy* arg0, Task* arg1)
     s32                      pan;
 
     tmd         = arg1->extra;
-    coord       = tmd->field_8;
+    coord       = tmd->coords;
     parent      = arg1->parent;
-    parentCoord = ((TmdObject*)parent->extra)->field_8;
+    parentCoord = ((TmdObject*)parent->extra)->coords;
     work        = Mem_Calloc(0xF0, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
     arg1->work    = (TaskIdMap*)work;
-    tmd->field_C  = 0;
+    tmd->flags    = 0;
     scratch       = (Actor205600PlaceScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x38);
-    tmd->field_1C = &work->lightMtx;
-    tmd->field_20 = &work->colorMtx;
+    tmd->lightMtx = &work->lightMtx;
+    tmd->colorMtx = &work->colorMtx;
 
     Gfx_ViewCoord.flg = 0;
     Gp_UpdateCoord(&Gfx_ViewCoord);

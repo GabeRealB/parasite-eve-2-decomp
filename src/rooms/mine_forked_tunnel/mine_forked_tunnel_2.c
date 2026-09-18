@@ -24,22 +24,22 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->field_C |= 0x80;
-            ext->field_C &= ~4;
+            ext->flags |= 0x80;
+            ext->flags &= ~4;
             break;
         case 1:
-            ext->field_C &= ~0x80;
+            ext->flags &= ~0x80;
             Tmd_AllocBuffers(ext);
-            ext->field_C &= ~4;
+            ext->flags &= ~4;
             break;
         case 2:
-            ext->field_C                                 |= 0x80;
+            ext->flags                                   |= 0x80;
             ((MineForkedTunnelWork*)task->work)->field_44 = mode;
-            ext->field_C                                 |= 4;
+            ext->flags                                   |= 4;
             break;
         case 3:
-            ext->field_C &= ~0x80;
-            ext->field_C |= 4;
+            ext->flags &= ~0x80;
+            ext->flags |= 4;
             break;
         default:
             ret = 1;
@@ -67,18 +67,18 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
     parent      = task->spawnArg2;
     ext         = task->extra;
     parentExt   = parent->extra;
-    coord       = (RoomCoord*)ext->field_8;
-    parentCoord = parentExt->field_8;
+    coord       = (RoomCoord*)ext->coords;
+    parentCoord = parentExt->coords;
 
     coord->flg    = 0;
     coord->sub    = parentCoord;
-    ext->field_1C = parentExt->field_1C;
-    ext->field_20 = parentExt->field_20;
-    ext->field_E  = -1;
+    ext->lightMtx = parentExt->lightMtx;
+    ext->colorMtx = parentExt->colorMtx;
+    ext->otOffset = -1;
     Task_Reparent(parent, task);
-    ext->field_C = ext->field_C & 0xFF7F;
+    ext->flags = ext->flags & 0xFF7F;
 
-    dst             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+    dst             = (RoomCoord*)((TmdObject*)task->extra)->coords;
     dst->coord.t[0] = D_mine_forked_tunnel_80181BA4.pos.vx;
     dst->coord.t[1] = D_mine_forked_tunnel_80181BA4.pos.vy;
     dst->coord.t[2] = D_mine_forked_tunnel_80181BA4.pos.vz;

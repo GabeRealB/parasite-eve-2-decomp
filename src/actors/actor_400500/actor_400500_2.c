@@ -37,7 +37,7 @@ void func_actor_400500_8013AF44(Task* arg0)
 
     work    = (Actor400500Work*)arg0->work;
     heading = (u16)work->field_94A & 0xFFF;
-    coord   = ((TmdObject*)arg0->extra)->field_8;
+    coord   = ((TmdObject*)arg0->extra)->coords;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);
@@ -128,7 +128,7 @@ void func_actor_400500_8013AF44(Task* arg0)
                 break;
         }
         pos2   = &work->field_9A0;
-        coords = ((TmdObject*)arg0->extra)->field_8;
+        coords = ((TmdObject*)arg0->extra)->coords;
         Gp_UpdateCoord(&coords[8]);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[8].workm, &local);
         pos           = pos2;
@@ -149,7 +149,7 @@ void func_actor_400500_8013B228(Task* arg0)
     u16              a1c;
 
     work  = (Actor400500Work*)arg0->work;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (work->field_A4A != 0) {
         work->field_A4A = 0;
         func_actor_400500_8013DB64(arg0, 5);

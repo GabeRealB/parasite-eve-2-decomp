@@ -57,7 +57,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     GsCOORDINATE2*   coord;
 
     obj                      = task->extra;
-    coord                    = obj->field_8;
+    coord                    = obj->coords;
     work                     = Mem_Calloc(0x4F0, 0);
     ActorsShared80131f9cWork = work;
     task->work               = (TaskIdMap*)work;
@@ -71,10 +71,10 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     enemy->field_48          = 0;
     enemy->node.field_5      = 0;
     enemy->node.field_4      = 1;
-    obj->field_E             = 1;
-    obj->field_C             = 0;
-    obj->field_1C            = &ActorsShared80131f9cWork->light;
-    obj->field_20            = &ActorsShared80131f9cWork->color;
+    obj->otOffset            = 1;
+    obj->flags               = 0;
+    obj->lightMtx            = &ActorsShared80131f9cWork->light;
+    obj->colorMtx            = &ActorsShared80131f9cWork->color;
     vec.vx                   = coord->workm.t[0];
     vec.vy                   = coord->workm.t[1] - 0x320;
     ActorsShared801326b4Task = task;
@@ -103,7 +103,7 @@ extern s16 D_actor_143900_801496C0;
 /// as `func_actor_461800_80132660`.
 void func_actor_143900_80131FD4(Task* task)
 {
-    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor143900Work* work  = (Actor143900Work*)task->work;
 
     if (ActorsShared80131f9cWork->field_4B4 == 1) {

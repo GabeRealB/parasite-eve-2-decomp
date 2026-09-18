@@ -42,8 +42,8 @@ void func_actor_135600_80132B14(Task* task)
     extra       = (TmdObject*)task->extra;
     part        = task->spawnArg1;
     parentExtra = (TmdObject*)parent->extra;
-    coord       = extra->field_8;
-    dest        = &parentExtra->field_8[part];
+    coord       = extra->coords;
+    dest        = &parentExtra->coords[part];
 
     coord->coord.t[0] = -0x96;
     coord->coord.t[1] = 0x50;
@@ -61,9 +61,9 @@ void func_actor_135600_80132B14(Task* task)
 
     coord->sub      = dest;
     coord->flg      = 0;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
-    extra->field_E  = 0;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
+    extra->otOffset = 0;
     Task_Reparent(parent, task);
     task->killCountdown = 0x1000;
     task->state        += 1;
@@ -75,7 +75,7 @@ void func_actor_135600_80132C18(Task* task)
 
     if (gGameSession->eventState != 0) {
         countdown = task->killCountdown;
-        if (countdown > 0 && func_actor_135600_80131E68(((TmdObject*)task->extra)->field_8, countdown) >= 0x1F5) {
+        if (countdown > 0 && func_actor_135600_80131E68(((TmdObject*)task->extra)->coords, countdown) >= 0x1F5) {
             task->killCountdown = 0x800;
         }
     }

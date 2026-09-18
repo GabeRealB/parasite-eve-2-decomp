@@ -62,14 +62,14 @@ void Actor01600_Fn03A60(Actor01600* arg0)
     Actor01600RotScratch*  scratch;
 
     work                                = arg0->field_1C;
-    coord                               = arg0->field_2C->field_8;
+    coord                               = arg0->field_2C->coords;
     slots                               = Gp_ActorSlots;
     slot                                = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
     allocated                           = *(Actor01600RotScratch**)0x1F8003FC;
     allocated                          -= 1;
     *(Actor01600RotScratch**)0x1F8003FC = allocated;
     mode                                = work->field_510;
-    playerCoord                         = (*slot)->field_2C->field_8;
+    playerCoord                         = (*slot)->field_2C->coords;
     scratch                             = allocated;
     switch (mode) {
         case 0:
@@ -186,15 +186,15 @@ void Actor01600_Fn03D48(Actor01600* arg0)
         }
         anim = work->field_506;
         if (anim == 28 || anim == 30 || anim == 9 || anim == 21 || anim == 22 || anim == 5 || anim == 6 || anim == 27) {
-            arg0->field_2C->field_8[1].coord.t[0] = 0;
-            arg0->field_2C->field_8[1].coord.t[2] = 0;
-            arg0->field_2C->field_8[1].coord.t[0] = 0;
-            arg0->field_2C->field_8[1].coord.t[2] = 0;
+            arg0->field_2C->coords[1].coord.t[0] = 0;
+            arg0->field_2C->coords[1].coord.t[2] = 0;
+            arg0->field_2C->coords[1].coord.t[0] = 0;
+            arg0->field_2C->coords[1].coord.t[2] = 0;
             return;
         } else if (anim == 29) {
-            arg0->field_2C->field_8[1].coord.t[0] = 0;
-            coord                                 = arg0->field_2C->field_8;
-            coord[1].coord.t[2]                   = (s32)(coord[1].coord.t[2] - 0x2BC);
+            arg0->field_2C->coords[1].coord.t[0] = 0;
+            coord                                = arg0->field_2C->coords;
+            coord[1].coord.t[2]                  = (s32)(coord[1].coord.t[2] - 0x2BC);
         }
     }
 }
@@ -213,7 +213,7 @@ void Actor01600_Fn03EEC(Actor01600* arg0)
     Actor01600GroundScratch* allocated;
 
     work  = arg0->field_1C;
-    coord = arg0->field_2C->field_8;
+    coord = arg0->field_2C->coords;
     if (work->field_526 == 0) {
         head                                   = *(Actor01600GroundScratch**)0x1F8003FC;
         allocated                              = head - 1;
@@ -314,14 +314,14 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
 
     obj    = arg1->field_2C;
     work   = arg1->field_1C;
-    coords = obj->field_8;
+    coords = obj->coords;
     mode   = Gp_StateF0.field_4;
     if (mode == 1) {
         return;
     }
     if (mode > 1) {
         if (mode == 2) {
-            obj->field_C      |= 0x80;
+            obj->flags        |= 0x80;
             arg0->node.field_4 = 1;
             return;
         }
@@ -369,13 +369,13 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
             work->field_504 = phase;
             if (work->field_540 != 2) {
                 if (phase == 0xA) {
-                    obj->field_C = 2;
+                    obj->flags = 2;
                 }
                 if (work->field_504 == 0xF) {
                     Gp_SpawnEff(0x600A5, coords, 1, NULL);
                 }
                 if (work->field_504 < 0x10) {
-                    body = arg1->field_2C->field_8;
+                    body = arg1->field_2C->coords;
                     w    = arg1->field_1C;
 
                     w->field_4BC = body->coord.t[0];
@@ -410,18 +410,18 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
                     pad->field_6 |= 1;
                     Gp_PulseState1C();
                     Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F4, arg1, 0);
-                    work->field_502          = 0xFF;
-                    arg1->field_2C->field_C |= 0x80;
-                    arg1->field_2C->field_C |= 4;
+                    work->field_502        = 0xFF;
+                    arg1->field_2C->flags |= 0x80;
+                    arg1->field_2C->flags |= 4;
                     break;
                 }
                 Gp_ReleaseStateF0Add(arg1, 0x10);
             }
-            work->field_54E          = 0x3C;
-            arg1->field_2C->field_C |= 0x80;
+            work->field_54E        = 0x3C;
+            arg1->field_2C->flags |= 0x80;
             Actor01600_D12874--;
-            arg1->field_2C->field_C |= 4;
-            work->field_502          = 3;
+            arg1->field_2C->flags |= 4;
+            work->field_502        = 3;
             break;
         case 3:
             timer           = work->field_54E - 1;
@@ -444,7 +444,7 @@ void Actor01600_Fn04054(Actor01600Ctx* arg0, Actor01600* arg1)
     }
     work->field_550 = 0;
 
-    attach = &arg1->field_2C->field_8[1];
+    attach = &arg1->field_2C->coords[1];
     update_actor_color(arg0, attach);
 }
 
@@ -530,8 +530,8 @@ s32 Actor01600_Fn047A0(Actor01600* arg0)
 
     work  = arg0->field_1C;
     task  = work->field_4D4;
-    other = ((TmdObject*)task->extra)->field_8;
-    coord = arg0->field_2C->field_8;
+    other = ((TmdObject*)task->extra)->coords;
+    coord = arg0->field_2C->coords;
     if (Gp_ActorSlots[work->field_53E]->actor->field_954 != 2) {
         if (Actor01600_D12870 != 1) {
             difference = Actor01600_Fn045A8(arg0, &distance);
@@ -652,7 +652,7 @@ void Actor01600_Fn04AD8(Actor01600* arg0)
     work  = arg0->field_1C;
     ctx   = arg0->field_20;
     state = work->field_4F2;
-    body  = arg0->field_2C->field_8;
+    body  = arg0->field_2C->coords;
     switch (state) {
         case 0:
             work->field_24C.coord.t[0] = body->coord.t[0];

@@ -48,7 +48,7 @@ void RoomsShared80181d28(Task* task)
     s32                                  grey;
     s32                                  clut;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch     = (void**)G_SCRATCH_HEAD;

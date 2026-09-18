@@ -31,7 +31,7 @@ extern u32 Gp_LcgState;
 /// `Gp_State1C` work block, `Task::extra` reaches the coordinate the flare
 /// hangs on, and `Task::spawnArg1` is the charge phase the firing code drives.
 /// Any room fade of 2 or more, and the player being in the state flagged by
-/// `TmdObject::field_C & 0x80`, freeze the task outright.
+/// `TmdObject::flags & 0x80`, freeze the task outright.
 ///
 /// - State 0 hangs the coordinate off `GpEffWork::field_8` at the fixed offset
 ///   `D_m4a1_hammer_8011EB60` with an identity rotation, publishes the task as
@@ -58,12 +58,12 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     s32            j;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[1];
     light = &base->coord;
     slot  = (GpCoordTail*)light;
 
-    if ((((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80) == 0 && Gp_State1C->field_4 < 2) {
+    if ((((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->field_4 < 2) {
         work->field_22 = (u16)work->field_22 + 1;
         switch (task->state) {
             case 0:
@@ -266,7 +266,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     GsCOORDINATE2* parent;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem->field_22++;
     switch (arg0->state) {
         case 0:

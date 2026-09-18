@@ -73,7 +73,7 @@ check:
 /// Spawn tick of a child actor that keeps the model facing the player: state 0
 /// allocates the 0x4E4-byte `Actor120300Work` block, parks it in
 /// `Task::work`, points the model's light and colour matrices at the block's
-/// `field_474` / `field_494`, clears `TmdObject::field_C` and anchors the root
+/// `field_474` / `field_494`, clears `TmdObject::flags` and anchors the root
 /// coordinate `sub` under part 4 of the spawning task's model
 /// (`Task::spawnArg2->extra`); a failed allocation kills the task instead of
 /// stepping to state 1. The texture page / CLUT row then come from the
@@ -100,7 +100,7 @@ void func_actor_120300_80132004(Task* arg0)
 
     if (arg0->state == 0) {
         tmd        = arg0->extra;
-        coord      = tmd->field_8;
+        coord      = tmd->coords;
         map        = Mem_Malloc(0x4E4, 0);
         arg0->work = map;
         if (map == NULL) {
@@ -108,12 +108,12 @@ void func_actor_120300_80132004(Task* arg0)
         } else {
             work = (Actor120300Work*)map;
             Mem_Set(map, 0, 0x4E4);
-            coord->sub                         = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8 + 4;
-            ((TmdObject*)arg0->extra)->field_C = 0;
+            coord->sub                       = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords + 4;
+            ((TmdObject*)arg0->extra)->flags = 0;
             Tmd_AllocBuffers(tmd);
             kill           = 0;
-            tmd->field_1C  = &work->field_474;
-            tmd->field_20  = &work->field_494;
+            tmd->lightMtx  = &work->field_474;
+            tmd->colorMtx  = &work->field_494;
             arg0->msgTable = &D_actor_120300_80140A44;
         }
         killCopy = kill;
@@ -136,21 +136,21 @@ void func_actor_120300_80132004(Task* arg0)
     }
     tmd2     = arg0->extra;
     scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
-    vec.vx   = tmd2->field_8->workm.t[0];
-    vec.vy   = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-    vec.vz   = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    vec.vx   = tmd2->coords->workm.t[0];
+    vec.vy   = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    vec.vz   = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
     scale  = scaleRaw & 0xFFFF;
     vec.vz = scale;
     vec.vy = scale;
     vec.vx = scale;
-    ScaleMatrix(tmd2->field_20, &vec);
+    ScaleMatrix(tmd2->colorMtx, &vec);
 }
 
 /// Spawn tick of a child actor. State 0 allocates the 0x4E4-byte
 /// `Actor120300Work` block, parks it in `Task::work`, points the model's
 /// light and colour matrices at the block's `field_474` / `field_494`, clears
-/// `TmdObject::field_C` and anchors the root coordinate `sub` under part 8 of
+/// `TmdObject::flags` and anchors the root coordinate `sub` under part 8 of
 /// the spawning task's model (`Task::spawnArg2->extra`). A failed allocation
 /// kills the task rather than stepping to state 1.
 /// Every later tick reads the parent work block's `field_4E0` and primes the
@@ -172,7 +172,7 @@ void func_actor_120300_801321C8(Task* arg0)
 
     if (arg0->state == 0) {
         tmd        = arg0->extra;
-        coord      = tmd->field_8;
+        coord      = tmd->coords;
         map        = Mem_Malloc(0x4E4, 0);
         arg0->work = map;
         if (map == NULL) {
@@ -180,12 +180,12 @@ void func_actor_120300_801321C8(Task* arg0)
         } else {
             work = (Actor120300Work*)map;
             Mem_Set(map, 0, 0x4E4);
-            coord->sub                         = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8 + 8;
-            ((TmdObject*)arg0->extra)->field_C = 0;
+            coord->sub                       = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords + 8;
+            ((TmdObject*)arg0->extra)->flags = 0;
             Tmd_AllocBuffers(tmd);
             kill           = 0;
-            tmd->field_1C  = &work->field_474;
-            tmd->field_20  = &work->field_494;
+            tmd->lightMtx  = &work->field_474;
+            tmd->colorMtx  = &work->field_494;
             arg0->msgTable = &D_actor_120300_80140A44;
         }
         killCopy = kill;
@@ -198,15 +198,15 @@ void func_actor_120300_801321C8(Task* arg0)
     }
     tmd2     = arg0->extra;
     scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
-    vec.vx   = tmd2->field_8->workm.t[0];
-    vec.vy   = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-    vec.vz   = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    vec.vx   = tmd2->coords->workm.t[0];
+    vec.vy   = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    vec.vz   = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
     scale  = scaleRaw & 0xFFFF;
     vec.vz = scale;
     vec.vy = scale;
     vec.vx = scale;
-    ScaleMatrix(tmd2->field_20, &vec);
+    ScaleMatrix(tmd2->colorMtx, &vec);
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_120300/actor_120300", D_actor_120300_80131E20);
@@ -235,9 +235,9 @@ void func_actor_120300_80133330(s32 arg0)
     s32              weaponId;
     s32              id;
 
-    task                               = (Task*)D_actor_120300_80141BA8;
-    work                               = (Actor120300Work*)task->work;
-    ((TmdObject*)task->extra)->field_C = 0;
+    task                             = (Task*)D_actor_120300_80141BA8;
+    work                             = (Actor120300Work*)task->work;
+    ((TmdObject*)task->extra)->flags = 0;
     Gp_DispatchMsg(task, 0x7D4, (s32)&D_actor_120300_80140B2C, 0);
 
     animWork            = (Actor120300Work*)task->work;
@@ -325,8 +325,8 @@ s32 func_actor_120300_801334A4(Actor120300* arg0)
 
 /// Spawn tick: allocates the 0x4E4-byte `Actor120300Work` block, zeroes it and
 /// parks it in `Task::work`, then wires the model object up -- `Tmd_AllocBuffers`,
-/// the work block's light/colour matrices into `TmdObject::field_1C` / `field_20`,
-/// bit 2 of `TmdObject::field_C` cleared and the animation context handed to
+/// the work block's light/colour matrices into `TmdObject::lightMtx` / `field_20`,
+/// bit 2 of `TmdObject::flags` cleared and the animation context handed to
 /// `func_800B3F84` along with the work block's slot array.
 /// The texture page / CLUT row come from the placement record at the nested
 /// area table's `field_0` list whose id matches neither 0xFF (end) nor 0x6A
@@ -345,7 +345,7 @@ void func_actor_120300_801335D8(Task* arg0)
     s32              i;
 
     tmd        = arg0->extra;
-    coord      = tmd->field_8;
+    coord      = tmd->coords;
     map        = Mem_Malloc(0x4E4, 0);
     arg0->work = map;
     if (map == NULL) {
@@ -358,9 +358,9 @@ void func_actor_120300_801335D8(Task* arg0)
     D_actor_120300_80141BA8 = (Actor120300*)arg0;
     coord->sub              = &Gfx_ViewCoord;
     Tmd_AllocBuffers(tmd);
-    tmd->field_1C = &work->field_474;
-    tmd->field_20 = &work->field_494;
-    tmd->field_C &= 0xFFFB;
+    tmd->lightMtx = &work->field_474;
+    tmd->colorMtx = &work->field_494;
+    tmd->flags   &= 0xFFFB;
     place         = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     id            = place->field_0;
     while (id != 0xFF) {

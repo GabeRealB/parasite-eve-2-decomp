@@ -30,7 +30,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
 
     obj                      = task->extra;
-    coord                    = obj->field_8;
+    coord                    = obj->coords;
     work                     = Mem_Calloc(0x55C, 0);
     ActorsShared80131f9cWork = work;
     task->work               = work;
@@ -44,7 +44,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     enemy->node.field_4     = 1;
     enemy->field_48         = 0;
     enemy->node.field_5     = 0;
-    obj->field_E            = 0;
+    obj->otOffset           = 0;
     coord->flg              = 0;
     D_actor_110800_80139F14 = (GpActorWork*)task;
     D_actor_110800_80139F18 = Task_SpawnFromTable(D_actor_110800_80139EDC, 1, 0, 0);
@@ -90,7 +90,7 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     TmdObject*     obj;
     VECTOR         vec;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     obj   = (TmdObject*)task->extra;
     func_actor_110800_80132368(task);
     switch ((s16)ActorsShared80131f9cWork->animId) {

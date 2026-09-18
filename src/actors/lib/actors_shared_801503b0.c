@@ -24,21 +24,21 @@ s32 ActorsShared801503b0(Task* task, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->field_C  = 0x80;
+            obj->flags    = 0x80;
             work->field_0 = 7;
             break;
         case 1:
-            obj->field_C  = 0;
+            obj->flags    = 0;
             work->field_0 = 7;
             break;
         case 2:
-            obj->field_C  = (u16)(obj->field_C | 4);
+            obj->flags    = (u16)(obj->flags | 4);
             work->field_0 = 0;
             break;
         case 3:
-            obj->field_C  = 0;
+            obj->flags    = 0;
             work->field_0 = 0;
-            obj->field_C  = (u16)(obj->field_C | 4);
+            obj->flags    = (u16)(obj->flags | 4);
             break;
         default:
             return 0;

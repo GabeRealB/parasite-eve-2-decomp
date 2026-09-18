@@ -54,7 +54,7 @@ void func_energyshot_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 != -2) && (Gp_State1C->field_E < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {

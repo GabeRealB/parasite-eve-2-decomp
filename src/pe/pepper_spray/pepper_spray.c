@@ -58,7 +58,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     base  = Gp_RoomCoords;
     slot  = (GpCoordTail*)&base->coord;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->field_E != 0)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);
         Gp_ReleaseState1CMem(mem, arg0);

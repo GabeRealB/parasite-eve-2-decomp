@@ -32,7 +32,7 @@ STATIC_ASSERT_SIZEOF(Actor05400SndRow, 4);
 /// `Task::work` (the same slot `Actor05400::field_1C` names). Its 0x14 prefix
 /// is the `GpAnimCtx` handed to `func_800B3F84`; `slots`/`poses` are that
 /// call's last two arguments. The two `MATRIX`es at 0x244 / 0x264 are the
-/// model's colour and light matrices (`TmdObject::field_20` / `field_1C`),
+/// model's colour and light matrices (`TmdObject::colorMtx` / `field_1C`),
 /// `node0` / `node1` the `GpObj` list nodes linked onto list 2 with their two
 /// `GpRec18` records, and `field_2FC` the working copy of the coordinate
 /// matrix.

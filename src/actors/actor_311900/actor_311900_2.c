@@ -48,7 +48,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     if (GameFlag_GetNibble(1) >= 3 ||
         (work = Mem_Calloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
@@ -57,7 +57,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     func_actor_311900_8016281C(task);
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
-    obj->field_C    = 0;
+    obj->flags      = 0;
     func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBF4, (GpAnimObj*)obj, work->anim.poses,
                   work->anim.slots);
     coord->sub      = &Gfx_ViewCoord;
@@ -74,9 +74,9 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
     obj = (TmdObject*)task->extra;
     func_actor_311900_80161E3C(task, 4, 2);
     if ((Gp_GetViewIndex() & 0xFF) == 0xB) {
-        obj->field_C = 0;
+        obj->flags = 0;
     } else {
-        obj->field_C = 0x80;
+        obj->flags = 0x80;
     }
     func_actor_311900_80162100(task);
 }
@@ -87,7 +87,7 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
 /// touched nothing while the game is paused (`D_80072729 == 1`) or when the
 /// step is zero. `arg0` is the per-part `GsCOORDINATE2` the caller takes from
-/// `TmdObject::field_8`.
+/// `TmdObject::coords`.
 ///
 /// The scratch-pad vector is carved out under two names: `vec`, which the
 /// frame update stores and the calls normalize, and `gte`, which the GTE round
@@ -125,7 +125,7 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
 
 /// Splats an identity light / colour matrix pair into the work block the spawn
 /// state carved out of `Task::work`, republishes both onto the
-/// `TmdObject::field_1C` / `field_20` slots that the renderer otherwise reads
+/// `TmdObject::lightMtx` / `field_20` slots that the renderer otherwise reads
 /// from `Gp_DefaultMtx` / `Gp_DefaultMtx2`, and then overwrites each 3x3 with
 /// the values the actor lights its model with -- the light matrix flat except
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
@@ -153,7 +153,7 @@ void func_actor_311900_8016278C(Task* task)
     color->ident.m20_m21 = 0;
     color->ident.m22     = 0x1000;
 
-    ext->field_1C = &work->light;
+    ext->lightMtx = &work->light;
 
     work->color.m[0][0] = 0x1000;
     work->color.m[0][1] = 0x1000;
@@ -175,11 +175,11 @@ void func_actor_311900_8016278C(Task* task)
     work->light.m[2][1] = 0x1000;
     work->light.m[2][2] = 0;
 
-    ext->field_20 = &work->color;
+    ext->colorMtx = &work->color;
 }
 
 /// Same splat as `func_actor_311900_8016278C`, republishing the light / colour
-/// pair onto `TmdObject::field_1C` / `field_20` between the identity seed and
+/// pair onto `TmdObject::lightMtx` / `field_20` between the identity seed and
 /// the per-actor values: the colour matrix goes fully pass-through, the light
 /// matrix flat except for a negated `m[0][0]`.
 void func_actor_311900_8016281C(Task* task)
@@ -206,7 +206,7 @@ void func_actor_311900_8016281C(Task* task)
     color->ident.m20_m21 = 0;
     color->ident.m22     = 0x1000;
 
-    ext->field_1C = &work->light;
+    ext->lightMtx = &work->light;
 
     work->color.m[0][0] = 0x1000;
     work->color.m[0][1] = 0x1000;
@@ -228,5 +228,5 @@ void func_actor_311900_8016281C(Task* task)
     work->light.m[2][1] = 0x1000;
     work->light.m[2][2] = 0x1000;
 
-    ext->field_20 = &work->color;
+    ext->colorMtx = &work->color;
 }

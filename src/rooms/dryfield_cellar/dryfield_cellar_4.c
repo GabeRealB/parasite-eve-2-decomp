@@ -18,7 +18,7 @@ void func_dryfield_cellar_8017DAEC(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (GameFlag_GetNibble(0x52) == 1) {
         if (gGameSession->at4.loc.view == 2) {
             Room_Draw35(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);

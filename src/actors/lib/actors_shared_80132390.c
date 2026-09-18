@@ -12,15 +12,15 @@ void ActorsShared80132390(Task* task)
     parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
     object       = (TmdObject*)task->extra;
 
-    if (!(parentObject->field_C & 0x80)) {
-        object->field_C &= 0xFF7F;
+    if (!(parentObject->flags & 0x80)) {
+        object->flags &= 0xFF7F;
     } else {
-        object->field_C |= 0x80;
+        object->flags |= 0x80;
     }
-    if (!(parentObject->field_C & 4)) {
-        object->field_C &= 0xFFFB;
+    if (!(parentObject->flags & 4)) {
+        object->flags &= 0xFFFB;
         Tmd_AllocBuffers(object);
         return;
     }
-    object->field_C |= 4;
+    object->flags |= 4;
 }

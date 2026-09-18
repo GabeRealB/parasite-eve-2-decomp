@@ -16,7 +16,7 @@
 /// 0x475/0x476 and the `sh` at 0x500 to -1 and clears the three words at
 /// 0x4D8..0x4E0, then spawns its two children from `D_actor_120400_8013E748`.
 /// `ActorsShared80132f24` republishes the light/colour matrix pair onto the
-/// parent's `TmdObject::field_1C` / `field_20` from 0x478 / 0x498, exactly as it
+/// parent's `TmdObject::lightMtx` / `field_20` from 0x478 / 0x498, exactly as it
 /// does for those two.
 ///
 /// The size is the allocation, and the fields below are the ones the init and

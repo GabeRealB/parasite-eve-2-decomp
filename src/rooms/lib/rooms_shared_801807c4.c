@@ -17,7 +17,7 @@ void RoomsShared801807c4(Task* task)
     VECTOR         delta;
 
     work   = task->spawnArg2;
-    coord  = ((TmdObject*)task->extra)->field_8;
+    coord  = ((TmdObject*)task->extra)->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->field_4 == 0) {
         work->field_22++;

@@ -38,7 +38,7 @@ void WeaponsShared8011d3a0(Task* arg0)
     *scratch = blk;
     extra    = arg0->extra;
     idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
-    coord    = extra->field_8;
+    coord    = extra->coords;
     muzzle   = coord->sub;
     work     = Mem_Calloc(sizeof(M4a1GrenadeWork), 0);
     vec      = blk;
@@ -64,9 +64,9 @@ void WeaponsShared8011d3a0(Task* arg0)
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
     Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, mtx);
-    coord->sub     = &Gfx_ViewCoord;
-    coord->flg     = 0;
-    extra->field_C = 0;
+    coord->sub   = &Gfx_ViewCoord;
+    coord->flg   = 0;
+    extra->flags = 0;
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);

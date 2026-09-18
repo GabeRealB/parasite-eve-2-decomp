@@ -21,7 +21,7 @@ s32 func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg)
     s32              mode;
 
     work  = (Actor317000Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     mode  = msg->field_2;
     switch (mode) {
         case 0:

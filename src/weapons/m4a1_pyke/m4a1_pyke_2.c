@@ -38,7 +38,7 @@ void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
     s32            spent;
 
     actor                 = arg0->actor;
-    coord                 = arg0->extra->field_8;
+    coord                 = arg0->extra->coords;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
     spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
     switch (actor->field_95E) {
@@ -82,7 +82,7 @@ void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
                     beam->spawnArg1 = 2;
                 }
                 Gp_ConsumeSlotQty(0x9B, 0x101);
-                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201C0005, 1);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201C0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
                 break;
             }
@@ -99,9 +99,9 @@ void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201C0004, 1);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201C0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1C, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;

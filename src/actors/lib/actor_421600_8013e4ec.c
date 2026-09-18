@@ -10,7 +10,7 @@ s32 func_actor_421600_8013E4EC(Task* task)
         goto return_one;
     }
 
-    if ((((TmdObject*)task->extra)->field_C & 0x80) != 0) {
+    if ((((TmdObject*)task->extra)->flags & 0x80) != 0) {
         return 0;
     }
 

@@ -86,9 +86,9 @@ void func_acropolis_bridge_8017F868(Task* task)
     u16            rnd;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     owner = Game_GetPtrSlot(3);
-    part  = ((TmdObject*)owner->extra)->field_8;
+    part  = ((TmdObject*)owner->extra)->coords;
     view  = Gp_GetViewIndex();
     if (Gp_State1C->field_4 >= 4) {
         return;
@@ -102,7 +102,7 @@ void func_acropolis_bridge_8017F868(Task* task)
         D_80115738  = 0x600BA;
         task->state = task->state + 1;
         for (i = 0; i < 2; i++) {
-            part                              = &((TmdObject*)owner->extra)->field_8[14 + i * 3];
+            part                              = &((TmdObject*)owner->extra)->coords[14 + i * 3];
             D_acropolis_bridge_80189A34[i].vx = part->workm.t[0];
             D_acropolis_bridge_80189A34[i].vy = part->workm.t[1];
             D_acropolis_bridge_80189A34[i].vz = part->workm.t[2];
@@ -165,7 +165,7 @@ void func_acropolis_bridge_8017F868(Task* task)
 
     if ((bit & 0x62) && Gp_State1C->field_4 == 0 && part->coord.t[1] >= 0x201) {
         for (i = 0; i < 2; i++) {
-            part  = &((TmdObject*)owner->extra)->field_8[14 + i * 3];
+            part  = &((TmdObject*)owner->extra)->coords[14 + i * 3];
             delta = D_acropolis_bridge_80189A34[i].vx - part->workm.t[0];
             dist  = delta < 0;
             if (dist) {
@@ -679,7 +679,7 @@ void func_acropolis_bridge_801812F4(Task* task)
     POLY_FT4*                      prim;
     s32                            grey;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     work->field_22 = task->spawnArg1;
@@ -785,7 +785,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     s32                         i;
     u8                          col;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
 

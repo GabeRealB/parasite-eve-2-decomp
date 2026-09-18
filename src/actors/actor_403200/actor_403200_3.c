@@ -74,7 +74,7 @@ s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
 
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
-    coords = ((TmdObject*)arg0->extra)->field_8;
+    coords = ((TmdObject*)arg0->extra)->coords;
     vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
     vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
@@ -140,7 +140,7 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
 
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
-    coords = ((TmdObject*)arg0->extra)->field_8;
+    coords = ((TmdObject*)arg0->extra)->coords;
     vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
     vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
@@ -194,7 +194,7 @@ s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
 
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
-    coords = ((TmdObject*)arg0->extra)->field_8;
+    coords = ((TmdObject*)arg0->extra)->coords;
     vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
     vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
@@ -302,9 +302,9 @@ void func_actor_403200_80134D40(Task* arg0)
         work->field_EAC = 3;
         Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
         id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200001;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(id, pan,
-                            (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8) / 2));
+                            (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords) / 2));
     }
 
     frame = work->field_72 & 0x3FF;
@@ -315,28 +315,28 @@ void func_actor_403200_80134D40(Task* arg0)
         work->field_EAC = 3;
         Gp_SpawnScript18((s32)&D_actor_403200_80141C5C, (s32)&D_actor_403200_80141C64);
         id  = (((u16)enemy->field_8 >> 12) << 8) | 0x40200001;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(id, pan,
-                            (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8) / 2));
+                            (s8)(Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords) / 2));
     }
 
     work->field_7D8 = work->field_72 & 0x3FF;
 
-    model = ((TmdObject*)arg0->extra)->field_8;
+    model = ((TmdObject*)arg0->extra)->coords;
     if (D_80072729 != 1) {
         Actor403200_StepForward(model);
     }
-    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
 
     switch (work->field_F08) {
         case 0:
-            if (((TmdObject*)arg0->extra)->field_8->coord.t[0] >= 0x1CCA) {
+            if (((TmdObject*)arg0->extra)->coords->coord.t[0] >= 0x1CCA) {
                 work->field_F08++;
                 work->field_0 = 3;
             }
             break;
         case 1:
-            if (((TmdObject*)arg0->extra)->field_8->coord.t[0] >= 0x2882) {
+            if (((TmdObject*)arg0->extra)->coords->coord.t[0] >= 0x2882) {
                 work->field_F08++;
                 work->field_0 = 3;
             }
@@ -400,26 +400,26 @@ void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    work->field_1AC                         = 0;
-    ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
-    ((TmdObject*)task->extra)->field_C      = 0;
+    work->field_1AC                        = 0;
+    ((TmdObject*)task->extra)->coords->sub = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->flags       = 0;
 
-    Actor403200_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->field_8[1],
-                                   &((TmdObject*)task->extra)->field_8->coord);
+    Actor403200_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1],
+                                   &((TmdObject*)task->extra)->coords->coord);
 
     vec.vx = vec.vy = vec.vz = 0;
-    Actor403200_LocalToView(&((TmdObject*)host->field_ECC[0]->task->extra)->field_8[1], &vec);
+    Actor403200_LocalToView(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1], &vec);
 
-    ((TmdObject*)task->extra)->field_8->coord.t[0] = vec.vx;
-    ((TmdObject*)task->extra)->field_8->coord.t[1] = vec.vy;
-    ((TmdObject*)task->extra)->field_8->coord.t[2] = vec.vz;
-    ((TmdObject*)task->extra)->field_8->flg        = 0;
+    ((TmdObject*)task->extra)->coords->coord.t[0] = vec.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] = vec.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] = vec.vz;
+    ((TmdObject*)task->extra)->coords->flg        = 0;
 
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, 0x80, 0);
-    Gp_UpdateCoord(((TmdObject*)task->extra)->field_8);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, 0x80, 0);
+    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
-    Actor403200_LinkWorkObj(((TmdObject*)task->extra)->field_8, &work->obj0, &work->rec0, &pos, 0x394, 3,
+    Actor403200_LinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &pos, 0x394, 3,
                             1);
 
     work->obj0.flags   &= 0x7FFF;
@@ -467,38 +467,38 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
-    ((TmdObject*)task->extra)->field_C      = 0;
+    ((TmdObject*)task->extra)->coords->sub = &Gfx_ViewCoord;
+    ((TmdObject*)task->extra)->flags       = 0;
 
     vec.vx = vec.vy = vec.vz = 0;
-    Actor403200_LocalToView(&((TmdObject*)owner->task->extra)->field_8[3], &vec);
+    Actor403200_LocalToView(&((TmdObject*)owner->task->extra)->coords[3], &vec);
 
-    ((TmdObject*)task->extra)->field_8->coord.t[0] = vec.vx;
-    ((TmdObject*)task->extra)->field_8->coord.t[1] = vec.vy;
-    ((TmdObject*)task->extra)->field_8->coord.t[2] = vec.vz;
-    ((TmdObject*)task->extra)->field_8->flg        = 0;
+    ((TmdObject*)task->extra)->coords->coord.t[0] = vec.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] = vec.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] = vec.vz;
+    ((TmdObject*)task->extra)->coords->flg        = 0;
 
-    work->field_1AA = ((TmdObject*)task->extra)->field_8->coord.t[1] / 9;
+    work->field_1AA = ((TmdObject*)task->extra)->coords->coord.t[1] / 9;
     work->vel.vx =
-        ((TmdObject*)player->extra)->field_8->coord.t[0] - ((TmdObject*)task->extra)->field_8->coord.t[0];
+        ((TmdObject*)player->extra)->coords->coord.t[0] - ((TmdObject*)task->extra)->coords->coord.t[0];
     work->vel.vy = 0;
     work->vel.vz =
-        ((TmdObject*)player->extra)->field_8->coord.t[2] - ((TmdObject*)task->extra)->field_8->coord.t[2];
+        ((TmdObject*)player->extra)->coords->coord.t[2] - ((TmdObject*)task->extra)->coords->coord.t[2];
     work->field_1AC = 0;
     task->state++;
 
     sfx = ((owner->field_8 >> 0xC) << 8) | 0x4020000B;
-    pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->field_8);
-    SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->field_8));
+    pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)task->extra)->coords);
+    SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)task->extra)->coords));
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->field_8->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
 
     vec.vx = vec.vy = vec.vz = 0;
 
-    Actor403200_LinkWorkObj(((TmdObject*)task->extra)->field_8, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
+    Actor403200_LinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
 
-    work->obj1.field_8  = ((TmdObject*)task->extra)->field_8;
+    work->obj1.field_8  = ((TmdObject*)task->extra)->coords;
     work->obj1.field_C  = &work->rec1;
     work->obj1.field_10 = 0;
     work->obj1.field_12 = 0;
@@ -513,8 +513,8 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
     work->obj1.flags   |= 0x4000;
     work->obj0.field_18 = Gp_PackObjPair((GpObj50*)owner, 5);
 
-    ((TmdObject*)task->extra)->field_1C = &work->lightMtx;
-    ((TmdObject*)task->extra)->field_20 = &work->colorMtx;
+    ((TmdObject*)task->extra)->lightMtx = &work->lightMtx;
+    ((TmdObject*)task->extra)->colorMtx = &work->colorMtx;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_80136ACC);

@@ -151,21 +151,21 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     s32              i;
 
     tmd    = task->extra;
-    coords = tmd->field_8;
+    coords = tmd->coords;
     work   = Mem_Calloc(sizeof(Actor205200Work), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
     task->work      = (TaskIdMap*)work;
-    tmd->field_C    = 0;
+    tmd->flags      = 0;
     coords->flg     = 0;
-    tmd->field_1C   = &work->field_45C;
-    tmd->field_20   = &work->field_43C;
+    tmd->lightMtx   = &work->field_45C;
+    tmd->colorMtx   = &work->field_43C;
     enemy->field_4  = &coords->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->field_18     = &((TmdObject*)task->extra)->field_8[3];
+    enemy->field_18     = &((TmdObject*)task->extra)->coords[3];
     enemy->node.field_4 = 5;
     enemy->field_1C.vx  = 0;
     enemy->field_1C.vy  = 0;
@@ -173,7 +173,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     enemy->field_54     = (s32)work->field_49C;
     enemy->field_50     = NULL;
     enemy->field_40     = 0;
-    work->field_554     = &((TmdObject*)task->extra)->field_8[3];
+    work->field_554     = &((TmdObject*)task->extra)->coords[3];
     work->field_558     = 0x200;
     work->field_55A     = 1;
     func_800B3F84((GpAnimCtx*)work, &D_actor_205200_801567E8, (GpAnimObj*)tmd, work->field_30C,
@@ -349,7 +349,7 @@ void func_actor_205200_8014C0C0(Actor205200* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor205200AttackScratch);
     scratch                 = *(Actor205200AttackScratch**)G_SCRATCH_HEAD;
     coord                   = arg0->field_2C->field_8;
-    target                  = ((TmdObject*)player->extra)->field_8;
+    target                  = ((TmdObject*)player->extra)->coords;
 
     switch (work->field_58A) {
         case 0:
@@ -373,9 +373,9 @@ void func_actor_205200_8014C0C0(Actor205200* arg0)
                 scratch->dir.vy = -1000;
                 scratch->dir.vz = 0;
                 if (work->field_596 == 0) {
-                    Gp_SpawnEff(0x60299, ((TmdObject*)player->extra)->field_8, 0, &scratch->dir);
+                    Gp_SpawnEff(0x60299, ((TmdObject*)player->extra)->coords, 0, &scratch->dir);
                 } else {
-                    Gp_SpawnEff(0x601AC, ((TmdObject*)player->extra)->field_8, 0, &scratch->dir);
+                    Gp_SpawnEff(0x601AC, ((TmdObject*)player->extra)->coords, 0, &scratch->dir);
                 }
             } else {
                 work->field_588 = 0;

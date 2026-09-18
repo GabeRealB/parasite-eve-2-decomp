@@ -624,7 +624,7 @@ void Actor00400_Fn09038(Actor100400* arg0)
     model = (TmdObject*)arg0->field_2C;
     work  = arg0->field_1C;
     Tmd_FreeBuffers(model);
-    model->field_C |= 4;
+    model->flags |= 4;
     Actor00400_Fn0237C(arg0);
     work->field_638 = (u16)work->field_638 + 1;
 }

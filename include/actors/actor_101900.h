@@ -63,8 +63,8 @@ typedef struct Actor01900Work {
     /* 0xB48 */ GpObj              field_B48;
     /* 0xB68 */ GpRec18            field_B68;
     /* 0xB80 */ byte               pad_B80[0x30];
-    /* 0xBB0 */ MATRIX             field_BB0; // `TmdObject.field_1C` light matrix
-    /* 0xBD0 */ MATRIX             field_BD0; // `TmdObject.field_20` color matrix
+    /* 0xBB0 */ MATRIX             field_BB0; // `TmdObject.lightMtx` light matrix
+    /* 0xBD0 */ MATRIX             field_BD0; // `TmdObject.colorMtx` color matrix
     /* 0xBF0 */ byte               pad_BF0[0x20];
     /* 0xC10 */ s16                field_C10;
     /* 0xC12 */ s16                field_C12;

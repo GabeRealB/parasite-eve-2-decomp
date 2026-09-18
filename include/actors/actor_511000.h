@@ -30,7 +30,7 @@ typedef struct Actor511000Work {
 } Actor511000Work;
 STATIC_ASSERT_SIZEOF(Actor511000Work, 0x70);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::field_8`. Offset 0x44 (libgs
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
 /// `param`, and `super` at 0x48) holds the Euler angles
 /// `func_actor_511000_801336E0` writes and then hands straight to `RotMatrix`,
 /// the same reuse `ActorsShared8013231cCoord` documents for its own overlay.
@@ -54,8 +54,8 @@ typedef struct Actor511000ParentWork {
     /* 0x014 */ GpAnimSlot slots[1];
     /* 0x03C */ byte       pad_3C[0x2D0];
     /* 0x30C */ byte       field_30C[0x130];
-    /* 0x43C */ MATRIX     field_43C; ///< colour matrix, handed to TmdObject::field_20
-    /* 0x45C */ MATRIX     field_45C; ///< light matrix, handed to TmdObject::field_1C
+    /* 0x43C */ MATRIX     field_43C; ///< colour matrix, handed to TmdObject::colorMtx
+    /* 0x45C */ MATRIX     field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ s32        field_47C; ///< cleared by the spawn handler
     /* 0x480 */ byte       pad_480[8];
 } Actor511000ParentWork;

@@ -115,7 +115,7 @@ void func_actor_503500_8013223C(Task* arg0)
     ext   = arg0->extra;
     work  = (Actor503500ColorMtx*)arg0->work;
     enemy = arg0->spawnArg2;
-    coord = ext->field_8;
+    coord = ext->coords;
     if (work->field_45 != 0) {
         if (work->field_40 < 360) {
             if (work->field_45 == 1) {
@@ -152,7 +152,7 @@ void func_actor_503500_8013223C(Task* arg0)
         }
         work->field_40--;
     }
-    if (!(ext->field_C & 0x80)) {
+    if (!(ext->flags & 0x80)) {
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         // Filled and never read: the original passes the matrix's own
@@ -183,7 +183,7 @@ void func_actor_503500_80132430(Task* arg0)
     }
 
     arg0->work     = (TaskIdMap*)work;
-    ext->field_C  |= 0x84;
+    ext->flags    |= 0x84;
     work->field_44 = 0;
     func_actor_503500_801324EC(arg0);
     arg0->msgTable     = D_actor_503500_80146888;

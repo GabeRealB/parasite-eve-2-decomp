@@ -13,7 +13,7 @@ void ActorsShared8013411c(Task* task, s32 arg1, ActorShared8013411cPlacement* pl
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->field_8;
+    coord             = ((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;

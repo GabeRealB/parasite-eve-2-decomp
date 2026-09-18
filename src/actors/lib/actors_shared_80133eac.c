@@ -10,13 +10,13 @@ s32 ActorsShared80133eac(Task* task, s32 arg1, s32 arg2)
 
     obj = (TmdObject*)task->extra;
     if (!(arg2 & 1)) {
-        obj->field_C = 0x80;
+        obj->flags = 0x80;
     } else {
-        obj->field_C = 0;
+        obj->flags = 0;
     }
     if (arg2 & 2) {
-        obj           = (TmdObject*)task->extra;
-        obj->field_C |= 4;
+        obj         = (TmdObject*)task->extra;
+        obj->flags |= 4;
     }
     return 0;
 }

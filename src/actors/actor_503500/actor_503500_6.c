@@ -658,9 +658,9 @@ void func_actor_503500_80136AEC(Actor503500* arg0)
 {
     VECTOR vec;
 
-    vec.vx = arg0->extra->field_8->workm.t[0];
-    vec.vy = arg0->extra->field_8->workm.t[1];
-    vec.vz = arg0->extra->field_8->workm.t[2];
+    vec.vx = arg0->extra->coords->workm.t[0];
+    vec.vy = arg0->extra->coords->workm.t[1];
+    vec.vz = arg0->extra->coords->workm.t[2];
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
 
@@ -685,7 +685,7 @@ void func_actor_503500_80136B64(Actor503500* arg0, s32 arg1, s32 arg2)
             out->field_C[i] = in->field_C[i];
         }
     }
-    Gp_ComposeParentWorld(&arg0->extra->field_8[1], &mtx, &ofs);
+    Gp_ComposeParentWorld(&arg0->extra->coords[1], &mtx, &ofs);
     if (arg2 != 0) {
         ofs.vy += 0x1F40;
     }
@@ -743,15 +743,15 @@ void func_actor_503500_80136DDC(Actor503500* arg0)
 
     work = arg0->field_1C;
     if (work->field_7AC & 0x20) {
-        work->coord504 = arg0->extra->field_8[4];
+        work->coord504 = arg0->extra->coords[4];
         ScaleMatrix(&work->coord504.coord, &work->field_5A4);
     }
     if (work->field_7AC & 0x800) {
-        work->coord554 = arg0->extra->field_8[10];
+        work->coord554 = arg0->extra->coords[10];
         ScaleMatrix(&work->coord554.coord, &work->field_5B4);
     }
     if (work->field_7AC & 0x10000) {
-        ScaleMatrix(&arg0->extra->field_8[16].coord, &work->field_5C4);
+        ScaleMatrix(&arg0->extra->coords[16].coord, &work->field_5C4);
     }
 }
 
@@ -870,7 +870,7 @@ s32 func_actor_503500_80137088(Actor503500* arg0, s32 arg1, Actor503500PlaceArgs
     Actor503500Coord* coord;
 
     work              = arg0->field_1C;
-    coord             = (Actor503500Coord*)arg0->extra->field_8;
+    coord             = (Actor503500Coord*)arg0->extra->coords;
     coord->coord.t[0] = args->pos.vx;
     coord->coord.t[1] = args->pos.vy;
     coord->coord.t[2] = args->pos.vz;
@@ -894,20 +894,20 @@ s32 func_actor_503500_80137158(Actor503500* arg0, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->field_C = (ext->field_C | 0x80) & ~4;
+            ext->flags = (ext->flags | 0x80) & ~4;
             break;
         case 1:
-            ext->field_C &= ~0x80;
+            ext->flags &= ~0x80;
             Tmd_AllocBuffers(ext);
-            ext->field_C &= ~4;
+            ext->flags &= ~4;
             break;
         case 2:
-            ext->field_C             |= 0x80;
+            ext->flags               |= 0x80;
             arg0->field_1C->field_7D9 = mode;
-            ext->field_C             |= 4;
+            ext->flags               |= 4;
             break;
         case 3:
-            ext->field_C = (ext->field_C & ~0x80) | 4;
+            ext->flags = (ext->flags & ~0x80) | 4;
             break;
         default:
             ret = 1;
@@ -951,18 +951,18 @@ void func_actor_503500_801372C8(Actor503500* arg0)
     enemy     = arg0->field_20;
     tmd       = arg0->extra;
     parent    = arg0->parent;
-    coord     = tmd->field_8;
+    coord     = tmd->coords;
     parentTmd = parent->extra;
     Mem_Set(&D_actor_503500_80176D88, 0, 0x160);
     arg0->field_1C = &D_actor_503500_80176D88;
 
-    coord->sub        = &((TmdObject*)parent->extra)->field_8[8];
+    coord->sub        = &((TmdObject*)parent->extra)->coords[8];
     coord->coord.t[0] = D_actor_503500_8016F060.vx;
     coord->coord.t[1] = D_actor_503500_8016F060.vy;
     coord->coord.t[2] = D_actor_503500_8016F060.vz;
-    tmd->field_1C     = parentTmd->field_1C;
-    tmd->field_20     = parentTmd->field_20;
-    tmd->field_E      = 0x13;
+    tmd->lightMtx     = parentTmd->lightMtx;
+    tmd->colorMtx     = parentTmd->colorMtx;
+    tmd->otOffset     = 0x13;
     coord->flg        = 0;
 
     D_actor_503500_80176D88.field_15E = -1;
@@ -1025,8 +1025,8 @@ void func_actor_503500_801374BC(Actor503500* arg0)
                 for (i = 0; i < 2; i++) {
                     task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 2, i, 0);
                     if (task != NULL) {
-                        coord             = ((TmdObject*)task->extra)->field_8;
-                        coord->sub        = arg0->extra->field_8;
+                        coord             = ((TmdObject*)task->extra)->coords;
+                        coord->sub        = arg0->extra->coords;
                         coord->coord.t[0] = D_actor_503500_8016F070.vx;
                         coord->coord.t[1] = D_actor_503500_8016F070.vy;
                         coord->coord.t[2] = D_actor_503500_8016F070.vz;
@@ -1077,7 +1077,7 @@ void func_actor_503500_80137678(Actor503500* arg0)
 
     work  = arg0->field_1C;
     enemy = arg0->field_20;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (work->field_15D) {
         case 0:
             work->slot40.obj.flags &= 0x7FFF;
@@ -1107,7 +1107,7 @@ void func_actor_503500_80137678(Actor503500* arg0)
             work->rot.vx.w -= 0x4000;
             if ((s16)++work->field_15A >= 0x1F) {
                 src   = (s32*)&m;
-                coord = arg0->extra->field_8;
+                coord = arg0->extra->coords;
                 Gp_ComposeParentWorld(coord, &m.mat, &rot);
                 out = (s32*)&coord->coord;
                 for (i = 0; i < 4; i++) {
@@ -1141,7 +1141,7 @@ void func_actor_503500_80137678(Actor503500* arg0)
             work->vel.vy.w += 0x8000;
             switch ((s16)work->field_15A) {
                 case 10:
-                    arg0->extra->field_C |= 2;
+                    arg0->extra->flags |= 2;
                     Gp_SetLightMode((GpObj4C*)enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
                                         (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
@@ -1232,7 +1232,7 @@ void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 
     enemy = arg0->field_20;
     work  = arg0->field_1C;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     for (i = 0; i < arg3; i++) {
         id = arg2[i].field_4;
         for (j = 0; j < i; j++) {
@@ -1249,7 +1249,7 @@ void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
         if (work->field_158 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -1335,12 +1335,12 @@ void func_actor_503500_8013815C(Actor503500* arg0)
 
     switch (D_801153F4) {
         case 1:
-            if (!(tmd->field_C & 0x80)) {
+            if (!(tmd->flags & 0x80)) {
                 func_actor_503500_801382F4(arg0);
             }
             break;
         case 2:
-            tmd->field_C        |= 0x80;
+            tmd->flags          |= 0x80;
             enemy->node.field_4 |= 1;
             break;
         default:
@@ -1360,7 +1360,7 @@ void func_actor_503500_80138288(Actor503500* arg0)
 
     enemy = arg0->field_20;
     func_actor_503500_8013611C(arg0->spawnArg1);
-    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->slot40.obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -1483,12 +1483,12 @@ void func_actor_503500_8013852C(Actor503500* arg0)
     idx   = arg0->spawnArg1 - 2;
     enemy = arg0->field_20;
     work  = &D_actor_503500_80176EE8[idx];
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     tmd   = arg0->extra;
     Mem_Set(work, 0, 0x2EC);
     arg0->field_1C = (Actor503500Work*)work;
 
-    coord->sub        = &((TmdObject*)arg0->parent->extra)->field_8[1];
+    coord->sub        = &((TmdObject*)arg0->parent->extra)->coords[1];
     part              = &coord[8];
     coord->coord.t[0] = D_actor_503500_8016F090[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F090[idx].vy;
@@ -1506,9 +1506,9 @@ void func_actor_503500_8013852C(Actor503500* arg0)
         work->mats[i] = coord[i].coord;
     }
     work->field_2E2 = 0x1000;
-    tmd->field_20   = &work->color;
-    tmd->field_E    = 0x12;
-    tmd->field_1C   = &work->light;
+    tmd->colorMtx   = &work->color;
+    tmd->otOffset   = 0x12;
+    tmd->lightMtx   = &work->light;
     coord->flg      = 0;
 
     work->field_2EB = -1;
@@ -1577,7 +1577,7 @@ void func_actor_503500_80138898(Actor503500* arg0)
             slot = 0xA;
         }
         if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
-            tmd->field_C |= 4;
+            tmd->flags |= 4;
         } else {
             goto tick;
         }
@@ -1588,12 +1588,12 @@ void func_actor_503500_80138898(Actor503500* arg0)
 
     switch (D_801153F4) {
         case 1:
-            if (!(tmd->field_C & 0x80)) {
+            if (!(tmd->flags & 0x80)) {
                 func_actor_503500_8013AAC0(arg0);
             }
             break;
         case 2:
-            tmd->field_C        |= 0x80;
+            tmd->flags          |= 0x80;
             enemy->node.field_4 |= 1;
             break;
         default:
@@ -1685,7 +1685,7 @@ void func_actor_503500_80138C08(Actor503500* arg0)
     s32                 i;
 
     work  = (Actor503500Work2EC*)arg0->field_1C;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
         func_actor_503500_8013ACC4(arg0, 0);
         func_actor_503500_8013611C(arg0->spawnArg1);
@@ -1726,7 +1726,7 @@ void func_actor_503500_80138C08(Actor503500* arg0)
                     if (task != NULL) {
                         Gp_ComposeParentWorld(&coord[8], &m, &pos);
                         src    = (s32*)&m;
-                        dst    = ((TmdObject*)task->extra)->field_8;
+                        dst    = ((TmdObject*)task->extra)->coords;
                         ofs.vx = 0;
                         ofs.vy = 0;
                         ofs.vz = 0x640;
@@ -1780,7 +1780,7 @@ void func_actor_503500_80139014(Actor503500* arg0)
     work  = (Actor503500Work2EC*)arg0->field_1C;
     enemy = arg0->field_20;
     phase = work->field_2E4;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (phase) {
         case 0:
             work->obj.flags &= 0x7FFF;
@@ -1857,7 +1857,7 @@ void func_actor_503500_80139014(Actor503500* arg0)
             coord->flg = 0;
             switch (work->field_2DE) {
                 case 10:
-                    arg0->extra->field_C |= 2;
+                    arg0->extra->flags |= 2;
                     Gp_SetLightMode((GpObj4C*)enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan((GpObj38*)coord),
                                         (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
@@ -1879,7 +1879,7 @@ void func_actor_503500_80139014(Actor503500* arg0)
     if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0 && work->field_2E4 < 3 &&
         (u32)D_80070F70 % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
-            Gp_SpawnEff(0x60070, &arg0->extra->field_8[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
+            Gp_SpawnEff(0x60070, &arg0->extra->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
             j++;
             j = (j < 3) ? j : 0;
         }
@@ -1926,7 +1926,7 @@ void func_actor_503500_801395BC(Actor503500* arg0)
             break;
         case 2:
             if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0) {
-                coord  = &arg0->extra->field_8[(s16)(work->field_2DE / 3)];
+                coord  = &arg0->extra->coords[(s16)(work->field_2DE / 3)];
                 vec.vx = 0;
                 vec.vy = -700;
                 vec.vx = (s16)(work->field_2DE % 3) * 33;
@@ -1960,7 +1960,7 @@ void func_actor_503500_801395BC(Actor503500* arg0)
             }
             break;
         case 3:
-            arg0->extra->field_C |= 0x84;
+            arg0->extra->flags |= 0x84;
             work->field_2DE++;
             if (work->field_2DE >= 0x5B) {
                 func_actor_503500_8013611C(arg0->spawnArg1);
@@ -2041,7 +2041,7 @@ void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
 
     enemy = arg0->field_20;
     work  = arg0->field_1C;
-    coord = &arg0->extra->field_8[8];
+    coord = &arg0->extra->coords[8];
     for (i = 0; i < arg3; i++) {
         id = arg2[i].field_4;
         for (j = 0; j < i; j++) {
@@ -2059,7 +2059,7 @@ void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
             continue;
         }
         Gp_ComposeParentWorld(coord, &mtx, &pos);
-        src  = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        src  = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -2200,7 +2200,7 @@ void func_actor_503500_8013A0D0(Actor503500* arg0)
     Actor503500Work2EC* work;
     s32                 i;
 
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     work  = (Actor503500Work2EC*)arg0->field_1C;
     Gp_ComposeParentWorld(coord, &m, &ctrl[0]);
     work->pts[0].vx = ctrl[0].vx;
@@ -2265,7 +2265,7 @@ void func_actor_503500_8013A0D0(Actor503500* arg0)
         func_actor_503500_8013A7B0(ctrl, &ctrl[3], 16, i + 12, &v.vx);
         copyVector(&work->pts[8 - i], &v);
     }
-    func_actor_503500_8013A470(work->pts, arg0->extra->field_8, work->phase);
+    func_actor_503500_8013A470(work->pts, arg0->extra->coords, work->phase);
     work->phase = (work->phase + 0x80) & 0xFFF;
 }
 
@@ -2351,7 +2351,7 @@ void func_actor_503500_8013A900(Actor503500* arg0)
 
     enemy = arg0->field_20;
     func_actor_503500_8013611C(arg0->spawnArg1);
-    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj160);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -2416,9 +2416,9 @@ void func_actor_503500_8013AAC0(Actor503500* arg0)
 {
     VECTOR vec;
 
-    vec.vx = arg0->extra->field_8->workm.t[0];
-    vec.vy = arg0->extra->field_8->workm.t[1];
-    vec.vz = arg0->extra->field_8->workm.t[2];
+    vec.vx = arg0->extra->coords->workm.t[0];
+    vec.vy = arg0->extra->coords->workm.t[1];
+    vec.vz = arg0->extra->coords->workm.t[2];
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
 /// Blends model parts 1..8 toward the 0x2EC block's private copies in `mats`:
@@ -2435,7 +2435,7 @@ void func_actor_503500_8013AB38(Actor503500* arg0)
     s32                 i;
 
     work  = (Actor503500Work2EC*)arg0->field_1C;
-    coord = arg0->extra->field_8 + 1;
+    coord = arg0->extra->coords + 1;
     if (work->field_2E2 < 0x1000) {
         mat = &work->mats[1];
         t   = work->field_2E2;
@@ -2504,12 +2504,12 @@ void func_actor_503500_8013AD64(Actor503500* arg0)
     enemy  = arg0->field_20;
     parent = arg0->parent;
     work   = &D_actor_503500_801774C0[idx];
-    coord  = arg0->extra->field_8;
+    coord  = arg0->extra->coords;
     Mem_Set(work, 0, 0xF0);
     arg0->field_1C = (Actor503500Work*)work;
     work->field_EC = idx;
 
-    coord->sub                   = &((TmdObject*)parent->extra)->field_8[D_actor_503500_8016F0E8[idx]];
+    coord->sub                   = &((TmdObject*)parent->extra)->coords[D_actor_503500_8016F0E8[idx]];
     *(s32*)&coord->coord.m[0][0] = 0x1000;
     mtx                          = &coord->coord;
     *(s32*)&mtx->m[0][2]         = 0;

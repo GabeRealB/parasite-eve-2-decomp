@@ -168,7 +168,7 @@ void func_actor_105100_801327B4(Actor105100Ctx* arg0, Actor105100* arg1)
     Gp_LinkObj(2, (GpObj*)work->field_51C);
     Gp_InitRec18Table(records2, 1, 0);
     work->field_53A = (u16)(work->field_53A | 0x8000);
-    work->field_4EC = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    work->field_4EC = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     records3        = work->field_504;
     work->field_4F0 = records3;
     work->field_4F4 = 0;

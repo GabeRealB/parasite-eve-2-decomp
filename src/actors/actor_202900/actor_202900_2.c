@@ -12,12 +12,12 @@ void func_actor_202900_8014A088(GpActorWork* arg0)
     GsCOORDINATE2* coord;
     TmdObject*     extra;
 
-    extra          = arg0->extra;
-    parent         = D_actor_202900_80156E58->extra->field_8;
-    coord          = extra->field_8;
-    coord->flg     = 0;
-    extra->field_C = 0;
-    coord->sub     = parent + 4;
+    extra        = arg0->extra;
+    parent       = D_actor_202900_80156E58->extra->coords;
+    coord        = extra->coords;
+    coord->flg   = 0;
+    extra->flags = 0;
+    coord->sub   = parent + 4;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", ActorsShared80131f9cSub1);
@@ -167,15 +167,15 @@ s32 func_actor_202900_8014A440(Task* task, s32 arg1, s32 flags)
     actorModel = D_actor_202900_80156E58->extra;
     taskModel  = (TmdObject*)D_actor_202900_80156E5C->extra;
     if (flags & 1) {
-        actorModel->field_C = 0;
-        taskModel->field_C  = 0;
+        actorModel->flags = 0;
+        taskModel->flags  = 0;
     } else {
-        actorModel->field_C = 0x80;
-        taskModel->field_C  = 0x80;
+        actorModel->flags = 0x80;
+        taskModel->flags  = 0x80;
     }
     if (flags & 2) {
-        actorModel->field_C |= 4;
-        taskModel->field_C  |= 4;
+        actorModel->flags |= 4;
+        taskModel->flags  |= 4;
     }
     return 0;
 }

@@ -86,7 +86,7 @@ void func_acropolis_patio_8017E100(Task* task)
     s32            j;
 
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->field_8;
+    objCoord = ((TmdObject*)task->extra)->coords;
 
     if (task->state == 0) {
         for (i = 0; i < 3; i++) {
@@ -148,7 +148,7 @@ void func_acropolis_patio_8017E730(Task* task)
     u32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->field_4 < 4 &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         sc = (ApMistScratch*)(SCRATCH_SP -= 0xC);

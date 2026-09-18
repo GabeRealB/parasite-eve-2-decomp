@@ -17,7 +17,7 @@ void ActorsShared80132de4(Actor101500* actor)
     u32              rnd2;
 
     work  = actor->field_1C;
-    coord = actor->field_2C->field_8;
+    coord = actor->field_2C->coords;
     if ((s16)work->field_356 >= 0x1E) {
         work->field_374 = angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
         switch (work->field_36E) {

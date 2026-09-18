@@ -318,7 +318,7 @@ void func_actor_503500_801450A0(Actor503500* arg0)
                 if (arg0->spawnArg1 == 0) {
                     work->head.obj.flags |= 0x8000;
                 }
-                coord = arg0->extra->field_8;
+                coord = arg0->extra->coords;
                 pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(0x4023000B, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
                 work->field_C6 = 0;
@@ -428,7 +428,7 @@ void func_actor_503500_80145428(Actor503500* arg0)
             return;
         }
     }
-    coord      = arg0->extra->field_8;
+    coord      = arg0->extra->coords;
     coord->flg = 0;
     func_actor_503500_801454E0(arg0);
     func_actor_503500_801450A0(arg0);
@@ -439,8 +439,8 @@ void func_actor_503500_80145480(Task* arg0)
 
     func_actor_503500_801372AC(6);
     SndEvt_EnqueueType7(0x4023000B, 1);
-    ext                                 = arg0->extra;
-    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
+    ext                                = arg0->extra;
+    ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
@@ -478,7 +478,7 @@ void func_actor_503500_801455A4(Task* arg0)
     Task*              child;
     s32                pan;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
         Task_Kill(arg0);
@@ -493,7 +493,7 @@ void func_actor_503500_801455A4(Task* arg0)
     m->w3 = 0;
     m->h4 = 0x1000;
 
-    work->head.obj.field_8  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    work->head.obj.field_8  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
     work->head.obj.field_C  = &work->head.rec;
     work->head.obj.field_10 = D_actor_503500_801715D4.vx;
     work->head.obj.field_12 = D_actor_503500_801715D4.vy;
@@ -542,11 +542,11 @@ void func_actor_503500_80145754(Actor503500* arg0)
                     work->field_3C = 0;
                     work->field_40++;
                 } else if (work->field_3C == 0x3E) {
-                    coord = arg0->extra->field_8;
+                    coord = arg0->extra->coords;
                     pan   = (s8)Gp_GetObjPan((GpObj38*)coord);
                     SndEvt_EnqueueType6(0x40230014, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
                 } else if (work->field_3C == 0x5A) {
-                    coord2 = arg0->extra->field_8;
+                    coord2 = arg0->extra->coords;
                     pan2   = (s8)Gp_GetObjPan((GpObj38*)coord2);
                     SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(Gp_GetObjDepth((GpObj38*)coord2) / 2));
                 }
@@ -569,7 +569,7 @@ void func_actor_503500_801458F8(Actor503500* arg0)
     GsCOORDINATE2* coord;
     s32            state;
 
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = D_801153F4;
     if (state < 3) {
         if (state != 0) {
@@ -586,8 +586,8 @@ void func_actor_503500_80145950(Task* arg0)
 
     SndEvt_EnqueueType7(0x4023000C, 1);
     func_actor_503500_801372AC(6);
-    ext                                 = arg0->extra;
-    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
+    ext                                = arg0->extra;
+    ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
@@ -617,7 +617,7 @@ void func_actor_503500_80145A2C(Task* arg0)
     s32                pan;
     s32                pan2;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
         Task_Kill(arg0);
@@ -695,7 +695,7 @@ void func_actor_503500_80145C50(Actor503500* arg0)
             }
             if (gGameSession->eventState == 0) {
                 work->head.obj.flags |= 0x8000;
-                coord                 = arg0->extra->field_8;
+                coord                 = arg0->extra->coords;
                 pan                   = (s8)Gp_GetObjPan((GpObj38*)coord);
                 SndEvt_EnqueueType6(0x4023000F, pan, (s8)(Gp_GetObjDepth((GpObj38*)coord) / 2));
             }
@@ -728,7 +728,7 @@ void func_actor_503500_80145E1C(Actor503500* arg0)
     GsCOORDINATE2* coord;
     s32            state;
 
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     state = D_801153F4;
     if (state < 3) {
         if (state != 0) {
@@ -750,8 +750,8 @@ void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(0x4023000E, 1);
     SndEvt_EnqueueType7(0x40230013, 1);
     SndEvt_EnqueueType7(0x4023000F, 1);
-    ext                                 = arg0->extra;
-    ((GsCOORDINATE2*)ext->field_8)->sub = &Gfx_ViewCoord;
+    ext                                = arg0->extra;
+    ((GsCOORDINATE2*)ext->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     Task_Kill(arg0);
 }
@@ -793,7 +793,7 @@ void func_actor_503500_80145FDC(Actor503500* task)
     s32                   i;
 
     funcs[work->field_4C0]((Task*)task);
-    coord              = task->extra->field_8;
+    coord              = task->extra->coords;
     work->field_4A0   += work->field_4B0;
     work->field_4A4   += work->field_4B4;
     work->field_4A8   += work->field_4B8;
@@ -809,7 +809,7 @@ void func_actor_503500_80145FDC(Actor503500* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
+    if (!(ext->flags & 0x80)) {
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         pos.vx = coord->workm.t[0];
@@ -844,7 +844,7 @@ void func_actor_503500_8014618C(Task* arg0)
 
     // `extra` is read twice on purpose: the second read is what leaves the
     // target's `move s2, v0` copy.
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor503500Effect4CC*)arg0->work;
     enemy = arg0->spawnArg2;
     ext   = arg0->extra;
@@ -885,7 +885,7 @@ void func_actor_503500_8014618C(Task* arg0)
             work->field_4C4++;
             switch (work->field_4C4) {
                 case 0x14:
-                    ext->field_C |= 2;
+                    ext->flags |= 2;
                     Gp_SetLightMode(enemy, 1);
                     break;
                 case 0x1E:
@@ -919,7 +919,7 @@ void func_actor_503500_8014642C(Actor503500* arg0)
     GpEnemy*              enemy;
 
     enemy = arg0->field_20;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
 
     work = Mem_Calloc(sizeof(Actor503500Effect4CC), false);
     if (work == NULL) {

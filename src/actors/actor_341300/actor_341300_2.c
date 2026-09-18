@@ -93,7 +93,7 @@ const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 void func_actor_341300_801625AC(void)
 {
     SVECTOR        vec   = D_actor_341300_80161E64;
-    GsCOORDINATE2* coord = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[2];
+    GsCOORDINATE2* coord = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[2];
 
     Gp_SpawnEff(0x60055, coord, 0x10013300, &vec);
     Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);
@@ -195,7 +195,7 @@ void func_actor_341300_80162878(Task* arg0)
     s32               v3;
 
     work  = (Actor341300Shard*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (arg0->state) {
         case 0:
             arg0->work = Mem_Calloc(0x30, 0);
@@ -353,7 +353,7 @@ void func_actor_341300_801631D4(Task* arg0)
     s32               v3;
 
     work  = (Actor341300Shard*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (arg0->state) {
         case 0:
             arg0->work = Mem_Calloc(0x30, 0);

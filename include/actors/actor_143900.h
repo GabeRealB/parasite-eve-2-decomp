@@ -18,7 +18,7 @@
 ///
 /// `light` and `color` are the two matrices the block itself supplies to the
 /// model: `ActorsShared80131f9cSub0` publishes `&work->light` / `&work->color`
-/// into `TmdObject::field_1C` / `field_20`, which is what `Tmd_SetupDraw` loads
+/// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
 /// in place of `GsLIGHTWSMATRIX` and `D_80074080` - the same pair
 /// `Actor161500Work` and `Actor160600Work` hand over. `anim` is the animation
 /// context `Gp_AnimTickIndex` and friends walk, and `slots` and `pad_374` are

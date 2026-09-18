@@ -87,13 +87,13 @@ void func_actor_444000_80143960(Actor444000Grab* arg0)
 
     switch (D_801153F4) {
         case 0:
-            arg0->extra->field_C = 0;
+            arg0->extra->flags = 0;
             break;
         case 1:
-            arg0->extra->field_C = 0;
+            arg0->extra->flags = 0;
             return;
         case 2:
-            arg0->extra->field_C = 0x80;
+            arg0->extra->flags = 0x80;
             return;
     }
 
@@ -122,13 +122,13 @@ void func_actor_444000_80143A6C(Actor444000F0C* arg0)
 
     switch (D_801153F4) {
         case 0:
-            arg0->extra->field_C = 2;
+            arg0->extra->flags = 2;
             break;
         case 1:
-            arg0->extra->field_C = 2;
+            arg0->extra->flags = 2;
             return;
         case 2:
-            arg0->extra->field_C = 0x80;
+            arg0->extra->flags = 0x80;
             return;
     }
 
@@ -177,7 +177,7 @@ void func_actor_444000_80143BFC(GpEnemy* arg0, Task* arg1)
         arg1->state++;
     }
 
-    ((TmdObject*)arg1->extra)->field_C = 0;
+    ((TmdObject*)arg1->extra)->flags = 0;
 }
 
 /// Dispatcher of the spinner enemy `D_actor_444000_80131F30` drives: park the
@@ -193,13 +193,13 @@ void func_actor_444000_80143C64(Actor444000Spinner* arg0)
 
     switch (D_801153F4) {
         case 0:
-            arg0->extra->field_C = 0;
+            arg0->extra->flags = 0;
             break;
         case 1:
-            arg0->extra->field_C = 0;
+            arg0->extra->flags = 0;
             return;
         case 2:
-            arg0->extra->field_C = 0x80;
+            arg0->extra->flags = 0x80;
             return;
     }
 
@@ -228,15 +228,15 @@ s32 func_actor_444000_80143D7C(Actor444000* arg0, s32 arg1, ActorShared80135990P
 {
     Actor444000Work* work = arg0->field_1C;
 
-    ((TmdObject*)arg0->extra)->field_8->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[2] = placement->pos.vz;
+    ((TmdObject*)arg0->extra)->coords->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)arg0->extra)->coords->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)arg0->extra)->coords->coord.t[2] = placement->pos.vz;
     if ((u32)(work->field_0 - 0x12) >= 2U) {
-        Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->field_8->coord, placement->rot.vx, 1);
-        Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->field_8->coord, placement->rot.vy, 0);
-        Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->field_8->coord, placement->rot.vz, 0);
+        Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->coords->coord, placement->rot.vx, 1);
+        Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, placement->rot.vy, 0);
+        Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->coords->coord, placement->rot.vz, 0);
     }
-    ((TmdObject*)arg0->extra)->field_8->flg = 0;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
     return 1;
 }
 
@@ -292,13 +292,13 @@ void func_actor_444000_80143F4C(Actor444000* arg0)
 
     work = arg0->field_1C;
     if (work->field_4 != 0) {
-        ((TmdObject*)arg0->extra)->field_C = 0;
-        escorts                            = arg0->field_1C;
-        escorts->field_7F3                 = 0;
-        ((TmdObject*)arg0->extra)->field_C = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
+        escorts                          = arg0->field_1C;
+        escorts->field_7F3               = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
         for (i = 0; i < 7; i++) {
             if (escorts->field_ECC[i] != NULL) {
-                ((TmdObject*)escorts->field_ECC[i]->task->extra)->field_C = ((TmdObject*)arg0->extra)->field_C;
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags = ((TmdObject*)arg0->extra)->flags;
             }
         }
         work->field_EF4 = 0;

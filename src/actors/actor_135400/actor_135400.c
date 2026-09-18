@@ -37,7 +37,7 @@ void func_actor_135400_80131EB4(Task* task)
 
     switch (task->spawnArg1) {
         case 1:
-            coord = ((TmdObject*)task->extra)->field_8;
+            coord = ((TmdObject*)task->extra)->coords;
             Gp_ComposeParentWorld(coord, &rot.mat, &sv);
             coord->coord      = rot.mat;
             coord->coord.t[0] = sv.vx;
@@ -52,7 +52,7 @@ void func_actor_135400_80131EB4(Task* task)
                 break;
             }
         case 3:
-            coord              = ((TmdObject*)task->extra)->field_8;
+            coord              = ((TmdObject*)task->extra)->coords;
             src                = &rot;
             src->ident.m00_m01 = 0x1000;
             src->ident.m02_m10 = 0;
@@ -133,11 +133,11 @@ void func_actor_135400_80132064(Task* arg0)
         key.view = areaByte0;
         idx      = raw >> 12;
         Gp_SyncAreaKeyIndex(keyPtr);
-        rec             = Gp_GetNestedAreaRec(&key);
-        place           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->field_24 = place->field_D;
-        model->field_25 = place->field_E;
-        if (model->field_18 != NULL) {
+        rec          = Gp_GetNestedAreaRec(&key);
+        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+        model->tpage = place->field_D;
+        model->clut  = place->field_E;
+        if (model->buffer != NULL) {
             Tmd_ProcessStream(model);
             Tmd_ProcessStream(model);
         }
@@ -179,7 +179,7 @@ const s32 D_actor_135400_80131E78 = 0;
 
 /// Per-frame tick of the actor's main task: ticks the twenty animation slots
 /// once `field_474` has latched, and while the model is not flagged killed
-/// (bit 0x80 of `TmdObject::field_C`) draws its ground shadow from the second
+/// (bit 0x80 of `TmdObject::flags`) draws its ground shadow from the second
 /// part's translation, recomputes that part's world matrix, re-ranks it
 /// through `func_800D7A9C`, ramps the head-tracking rate `headRate` and finally
 /// turns the head toward the slot-3 skeleton with `func_800B0928`.
@@ -198,12 +198,12 @@ void func_actor_135400_801322A8(Task* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->field_8[1].workm.t, 0, 3);
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
         if (work->headAim != 0) {
             rate           = work->headRate + 0x100;
             work->headRate = rate;
@@ -242,12 +242,12 @@ void func_actor_135400_80132450(Task* task)
     part            = task->spawnArg1;
     extra           = (TmdObject*)task->extra;
     parentExtra     = (TmdObject*)parent->extra;
-    coord           = extra->field_8;
-    dest            = &parentExtra->field_8[part];
+    coord           = extra->coords;
+    dest            = &parentExtra->coords[part];
     coord->flg      = 0;
     coord->sub      = dest;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
     Task_Reparent(parent, task);
     task->state += 1;
 }

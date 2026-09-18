@@ -46,8 +46,8 @@ void func_actor_213000_8014A35C(Task* task)
     obj       = task->extra;
     parentObj = parent->extra;
     for (i = 0; i < 3; i++) {
-        coords           = &((Actor213000Coord*)((TmdObject*)parent->extra)->field_8)[i + 9];
-        root             = &((Actor213000Coord*)((TmdObject*)task->extra)->field_8)[i];
+        coords           = &((Actor213000Coord*)((TmdObject*)parent->extra)->coords)[i + 9];
+        root             = &((Actor213000Coord*)((TmdObject*)task->extra)->coords)[i];
         root->sub        = (GsCOORDINATE2*)coords;
         root->coord.t[0] = 0;
         root->coord.t[1] = 0;
@@ -57,20 +57,20 @@ void func_actor_213000_8014A35C(Task* task)
         root->rot.vz     = 0;
         root->flg        = 0;
     }
-    obj->field_1C = parentObj->field_1C;
-    obj->field_20 = parentObj->field_20;
-    flags         = obj->field_C | 0x80;
-    obj->field_C  = flags;
-    if (!(parentObj->field_C & 0x80)) {
-        obj->field_C = flags & 0xFF7F;
+    obj->lightMtx = parentObj->lightMtx;
+    obj->colorMtx = parentObj->colorMtx;
+    flags         = obj->flags | 0x80;
+    obj->flags    = flags;
+    if (!(parentObj->flags & 0x80)) {
+        obj->flags = flags & 0xFF7F;
     }
-    if (!(parentObj->field_C & 4)) {
-        obj->field_C &= 0xFFFB;
+    if (!(parentObj->flags & 4)) {
+        obj->flags &= 0xFFFB;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->field_C |= 4;
+        obj->flags |= 4;
     }
-    obj->field_E = -4;
+    obj->otOffset = -4;
     Task_Reparent(parent, task);
     task->state += 1;
 }
@@ -107,7 +107,7 @@ void func_actor_213000_8014A5D0(Task* task)
 
     extra  = (TmdObject*)task->extra;
     work   = (Actor213000Work*)task->work;
-    coords = &extra->field_8[1];
+    coords = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
@@ -137,9 +137,9 @@ void func_actor_213000_8014A6AC(Task* task)
 
     work            = (Actor213000Work*)task->work;
     extra           = (TmdObject*)task->extra;
-    coords          = extra->field_8;
-    extra->field_1C = &work->light;
-    extra->field_20 = &work->color;
+    coords          = extra->coords;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
     coords[1].flg   = 0;
     Gp_UpdateCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);

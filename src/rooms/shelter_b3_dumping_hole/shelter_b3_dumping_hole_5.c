@@ -63,7 +63,7 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
 void func_shelter_b3_dumping_hole_80181B04(s16 arg0)
 {
     func_shelter_b3_dumping_hole_8017FD9C(
-        (s32) & ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1], arg0);
+        (s32) & ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1], arg0);
 }
 
 void func_shelter_b3_dumping_hole_80181B44(void)

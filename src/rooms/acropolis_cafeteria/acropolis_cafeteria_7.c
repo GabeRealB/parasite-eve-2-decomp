@@ -37,7 +37,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     SVECTOR*       vec;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (task->state != 0) {
         return;
     }
@@ -82,7 +82,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     u16            rnd;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (D_acropolis_cafeteria_80184CFC == 0) {
         Gp_ReleaseState1CMem(work, task);
         return;
@@ -123,7 +123,7 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     GsCOORDINATE2* coord;
 
-    coord                          = ((TmdObject*)task->extra)->field_8;
+    coord                          = ((TmdObject*)task->extra)->coords;
     D_acropolis_cafeteria_80184CFC = arg2;
     if (arg2 != 0) {
         Gp_SpawnEff(0x6009D, coord, 0, NULL);

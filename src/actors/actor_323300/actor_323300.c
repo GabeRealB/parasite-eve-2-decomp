@@ -31,7 +31,7 @@ void func_actor_323300_80161E78(Task* arg0)
     func_actor_323300_801626D0(arg0);
     extra         = arg0->extra;
     obj           = &work->obj;
-    obj->field_8  = extra->field_8 + 1;
+    obj->field_8  = extra->coords + 1;
     obj->field_C  = &work->rec;
     obj->field_18 = 0x30000;
     obj->field_10 = 0;
@@ -56,7 +56,7 @@ void func_actor_323300_80161E78(Task* arg0)
 /// walks the 18 animation slots and, while `field_500` is set, posts one of the
 /// two sound cues -- the pan/depth pair the session's `at4.loc.view` picks between
 /// is built twice so the two calls cross-jump into a shared `jal`. Then, unless
-/// `TmdObject::field_C` says the model is hidden, draws the ground shadow under
+/// `TmdObject::flags` says the model is hidden, draws the ground shadow under
 /// coordinate 1, refreshes that coordinate's matrix and colour, and ticks the
 /// `field_502` countdown that frees the model's buffers when it reaches zero.
 void func_actor_323300_80161FE8(Task* arg0)
@@ -91,14 +91,14 @@ void func_actor_323300_80161FE8(Task* arg0)
             }
         }
     }
-    if (!(extra->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, (VECTOR3*)&vec) != 0) {
+    if (!(extra->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, (VECTOR3*)&vec) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->field_8);
         }
         Gp_ClearRec18Occupied(&work->rec);
-        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
-        func_800D7A9C(extra, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)arg0->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
+        func_800D7A9C(extra, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_502 >= 0) {
         if (work->field_502 == 0) {
@@ -113,7 +113,7 @@ void func_actor_323300_80161FE8(Task* arg0)
 /// `func_actor_503500_80132584` and `func_actor_511000_801327A0` are, plus the
 /// display-node toggles the 0x504 work block's own `GpObj` needs.
 ///
-/// Mode 0 hides the model -- `TmdObject::field_C` bit 0x80, the bit
+/// Mode 0 hides the model -- `TmdObject::flags` bit 0x80, the bit
 /// `func_actor_323300_80161FE8` tests before drawing the ground shadow -- and
 /// clears bit 4 so the buffers get reallocated; 1 shows it, puts the node back
 /// in the pair walk and allocates the aux buffers; 2 hides it and arms the
@@ -141,38 +141,38 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 
     switch (mode) {
         case 0:
-            extra->field_C |= 0x80;
-            flags           = &work->obj.flags;
+            extra->flags |= 0x80;
+            flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
             }
-            extra->field_C &= ~4;
+            extra->flags &= ~4;
             break;
         case 1:
-            extra->field_C &= ~0x80;
-            flags           = &work->obj.flags;
+            extra->flags &= ~0x80;
+            flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
             }
             Tmd_AllocBuffers(extra);
-            extra->field_C &= ~4;
+            extra->flags &= ~4;
             break;
         case 2:
-            extra->field_C |= 0x80;
-            flags           = &work->obj.flags;
+            extra->flags |= 0x80;
+            flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
             }
             work->field_502 = 2;
-            extra->field_C |= 4;
+            extra->flags   |= 4;
             break;
         case 3:
-            extra->field_C &= ~0x80;
-            flags           = &work->obj.flags;
+            extra->flags &= ~0x80;
+            flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
             }
-            extra->field_C |= 4;
+            extra->flags |= 4;
             break;
         default:
             ret = 1;
@@ -203,8 +203,8 @@ void func_actor_323300_801626D0(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor323300Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_323300_801626EC(Task* arg0)
@@ -259,7 +259,7 @@ void func_actor_323300_801627B4(Task* arg0)
     s32                vy;
     s32                i;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor323300Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
@@ -304,7 +304,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 /// started: it ticks the 18 slots like `func_actor_323300_80163718` does, folds
 /// `field_44C` -- the 0x3000 countdown `func_actor_323300_80162BE4` seeds, 0x40
 /// per frame -- into the 0..0xFFF ramp `func_actor_323300_80162A6C` blends the
-/// model's vertices with, and republishes that ramp onto `TmdObject::field_2C`,
+/// model's vertices with, and republishes that ramp onto `TmdObject::lightLevel`,
 /// the intensity the shading path scales its RGB by. While the countdown is
 /// still above 0x1000 the turn angle handed to `func_actor_323300_8016359C` is
 /// `(0x1000 - field_44C) / 4`, i.e. the ramp read the other way round.
@@ -346,20 +346,20 @@ void func_actor_323300_80162DF0(Task* arg0)
     }
 
     func_actor_323300_80162A6C(arg0, &D_801865D0, blend);
-    extra->field_2C = blend;
+    extra->lightLevel = blend;
 
     if (work->field_44C < 0x1000) {
         func_actor_323300_8016359C(arg0, (s16)(((0x1000 - work->field_44C) << 14) >> 16));
     }
 
-    coord           = &((TmdObject*)arg0->extra)->field_8[3];
+    coord           = &((TmdObject*)arg0->extra)->coords[3];
     work->shadow[0] = *coord;
     vec.vx          = 0x1000;
     vec.vy          = 0x333;
     vec.vz          = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
 
-    coord           = &((TmdObject*)arg0->extra)->field_8[4];
+    coord           = &((TmdObject*)arg0->extra)->coords[4];
     work->shadow[1] = *coord;
     coord->sub      = &work->shadow[0];
     vec.vx          = 0x1000;
@@ -368,7 +368,7 @@ void func_actor_323300_80162DF0(Task* arg0)
     ScaleMatrix(&coord->coord, &vec);
     coord->coord.t[1] = work->field_584 - work->field_584 * 0.8 * blend / 4096.0;
 
-    coord           = &((TmdObject*)arg0->extra)->field_8[5];
+    coord           = &((TmdObject*)arg0->extra)->coords[5];
     work->shadow[2] = *coord;
     coord->sub      = &work->shadow[1];
     vec.vx          = 0x1000;
@@ -377,7 +377,7 @@ void func_actor_323300_80162DF0(Task* arg0)
     ScaleMatrix(&coord->coord, &vec);
     coord->coord.t[1] = work->field_594 - work->field_594 * 0.8 * blend / 4096.0;
 
-    coord      = &((TmdObject*)arg0->extra)->field_8[6];
+    coord      = &((TmdObject*)arg0->extra)->coords[6];
     coord->sub = &work->shadow[2];
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 
@@ -396,20 +396,20 @@ void func_actor_323300_801634B0(Task* arg0)
     GsCOORDINATE2* sub;
 
     do {
-        base      = ((TmdObject*)arg0->extra)->field_8;
+        base      = ((TmdObject*)arg0->extra)->coords;
         sub       = base + 3;
         node      = base + 4;
         node->sub = sub;
     } while (0);
-    sub                                       = ((TmdObject*)arg0->extra)->field_8 + 5;
-    sub->sub                                  = node;
-    ((TmdObject*)arg0->extra)->field_8[6].sub = sub;
+    sub                                      = ((TmdObject*)arg0->extra)->coords + 5;
+    sub->sub                                 = node;
+    ((TmdObject*)arg0->extra)->coords[6].sub = sub;
     Task_Kill(arg0);
 }
 
 /// Splats an identity light/colour pair into the `Mem_Calloc(0x6B0)` work block
 /// `func_actor_323300_80162BE4` parked in `Task::work`, republishes them onto
-/// `TmdObject::field_1C` / `field_20`, then re-derives model part 1's world
+/// `TmdObject::lightMtx` / `field_20`, then re-derives model part 1's world
 /// matrix -- clearing its dirty flag, rebuilding it from its parent and
 /// rebinding the actor's shading to the part's translation.
 void func_actor_323300_80163510(Task* arg0)
@@ -422,7 +422,7 @@ void func_actor_323300_80163510(Task* arg0)
 
     extra  = arg0->extra;
     work   = (Actor323300MtxWork*)arg0->work;
-    coords = extra->field_8;
+    coords = extra->coords;
 
     work->light.ident.m00_m01 = 0x1000;
     light                     = &work->light;
@@ -438,8 +438,8 @@ void func_actor_323300_80163510(Task* arg0)
     color->ident.m20_m21      = 0;
     color->ident.m22          = 0x1000;
 
-    extra->field_1C = &light->mat;
-    extra->field_20 = &color->mat;
+    extra->lightMtx = &light->mat;
+    extra->colorMtx = &color->mat;
 
     coords[1].flg = 0;
     Gp_UpdateCoord(&coords[1]);
@@ -465,13 +465,13 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
         var = -0x400;
     }
 
-    func_actor_323300_80163188(&((TmdObject*)arg0->extra)->field_8[5], (var * 2) / 3);
-    func_actor_323300_80163188(&((TmdObject*)arg0->extra)->field_8[2], var / 2);
+    func_actor_323300_80163188(&((TmdObject*)arg0->extra)->coords[5], (var * 2) / 3);
+    func_actor_323300_80163188(&((TmdObject*)arg0->extra)->coords[2], var / 2);
 
-    ((TmdObject*)arg0->extra)->field_8[5].flg = 0;
-    ((TmdObject*)arg0->extra)->field_8[4].flg = 0;
-    ((TmdObject*)arg0->extra)->field_8[3].flg = 0;
-    ((TmdObject*)arg0->extra)->field_8[2].flg = 0;
+    ((TmdObject*)arg0->extra)->coords[5].flg = 0;
+    ((TmdObject*)arg0->extra)->coords[4].flg = 0;
+    ((TmdObject*)arg0->extra)->coords[3].flg = 0;
+    ((TmdObject*)arg0->extra)->coords[2].flg = 0;
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8016369C);

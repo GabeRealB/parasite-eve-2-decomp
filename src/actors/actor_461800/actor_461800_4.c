@@ -14,7 +14,7 @@ s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacemen
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                              = ((TmdObject*)task->extra)->field_8;
+    coord                              = ((TmdObject*)task->extra)->coords;
     D_actor_461800_801438A0->field_4AE = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
@@ -59,7 +59,7 @@ s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32               dist;
     s32               angle;
 
-    coord                   = ((TmdObject*)task->extra)->field_8;
+    coord                   = ((TmdObject*)task->extra)->coords;
     work                    = (Actor461800Work2*)task->work;
     D_actor_461800_801438A8 = mode;
     dx                      = target->vx - coord->coord.t[0];

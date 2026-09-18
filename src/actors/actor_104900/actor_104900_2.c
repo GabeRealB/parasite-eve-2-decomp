@@ -11,7 +11,7 @@ void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void
 s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 
 /// Points the enemy's link transform at the model's fourth part coordinate -
-/// the same `TmdObject::field_8[3]` that `Gp_UpdateLinkXforms` reads back
+/// the same `TmdObject::coords[3]` that `Gp_UpdateLinkXforms` reads back
 /// through `GpEnemy.field_18` - and arms the 0xC8-box local offset the actor
 /// spawns inside. `GpLinkXform::field_4` clears the node's slot byte.
 ///
@@ -31,14 +31,14 @@ void func_actor_104900_80138A2C(GpEnemy* enemy, Task* task, ActorsShared80138efc
 
     xform               = (GpLinkXform*)&enemy->node;
     enemy->node.field_4 = 0;
-    xform->coord        = &((TmdObject*)task->extra)->field_8[3];
+    xform->coord        = &((TmdObject*)task->extra)->coords[3];
     xform->src.vx       = 0;
     xform->src.vy       = -0xC8;
     xform->src.vz       = 0xC8;
     if ((func_actor_104900_80132D78(enemy, task, work, scratch) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
-            if (ActorsShared801388e8(((TmdObject*)task->extra)->field_8) > 0xA62B10) {
+            if (ActorsShared801388e8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
                 i   = 0;
                 off = 0x9C8;
                 do {
@@ -66,7 +66,7 @@ void func_actor_104900_80138A2C(GpEnemy* enemy, Task* task, ActorsShared80138efc
 /// locals read signed for the test and unsigned for the step.
 ///
 /// Either way the link transform is re-armed exactly as `func_actor_104900_80138A2C`
-/// arms it - model part 3 through `TmdObject::field_8[3]` as `coord`, the
+/// arms it - model part 3 through `TmdObject::coords[3]` as `coord`, the
 /// 0xC8-box local offset through `src` - and the state machine at 0x80132D78
 /// runs last.
 void func_actor_104900_80138B5C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, void* scratch)
@@ -105,7 +105,7 @@ void func_actor_104900_80138B5C(GpEnemy* enemy, Task* task, ActorsShared80138efc
         }
     }
     xform         = (GpLinkXform*)&enemy->node;
-    xform->coord  = &((TmdObject*)task->extra)->field_8[3];
+    xform->coord  = &((TmdObject*)task->extra)->coords[3];
     xform->src.vx = 0;
     xform->src.vy = -0xC8;
     xform->src.vz = 0xC8;

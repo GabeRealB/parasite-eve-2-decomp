@@ -69,7 +69,7 @@ void func_metabolism_8012EF34(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->field_E >= 4)) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -79,7 +79,7 @@ void func_metabolism_8012EF34(Task* arg0)
     switch (arg0->state) {
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
-            coord->sub        = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            coord->sub        = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
             rot->w0           = 0x1000;
             rot->w1           = 0;
             rot->w2           = 0x1000;
@@ -239,7 +239,7 @@ void func_metabolism_8012F5A0(Task* arg0)
     u16            roll;
 
     mem           = arg0->spawnArg2;
-    coord         = ((TmdObject*)arg0->extra)->field_8;
+    coord         = ((TmdObject*)arg0->extra)->coords;
     mem->field_22 = (u16)mem->field_22 + 1;
     switch (arg0->state) {
         case 0:

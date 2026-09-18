@@ -34,13 +34,13 @@ void func_acropolis_roof_garden_80180160(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     view = Gp_GetViewIndex();
     if (view >= 8) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     } else if (view < 5) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     } else if (flag == 2) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
     } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
     }
 }

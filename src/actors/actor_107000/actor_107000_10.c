@@ -49,7 +49,7 @@ s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
     ctx   = arg0->spawnArg2;
     work  = (Actor107000Spawn2Work*)arg0->work;
     mode  = word & 0xFFFF;
-    coord = obj->field_8;
+    coord = obj->coords;
     if (mode == 4) {
         Gp_SpawnEff(0x60080, coord, 0x400, &D_actor_107000_8013F5D8);
         work->field_390 = 0;
@@ -84,36 +84,36 @@ s32 func_actor_107000_801378D8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
                 coord->coord.t[2] = D_801874C4[arg2->field_2 >> 8].z;
             }
             Tmd_AllocBuffers((TmdObject*)arg0->extra);
-            ((TmdObject*)arg0->extra)->field_C &= 0xFF7F;
-            ((TmdObject*)arg0->extra)->field_C &= 0xFFFB;
-            ctx->field_14                       = 0;
-            work->obj1.flags                   |= 0x8000;
-            work->obj2.flags                   |= 0xC200;
+            ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
+            ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
+            ctx->field_14                     = 0;
+            work->obj1.flags                 |= 0x8000;
+            work->obj2.flags                 |= 0xC200;
             RotMatrix(&rot, &coord->coord);
-            work->field_378                         = 0xC8;
-            work->field_396                         = 1;
-            work->field_398                         = 0x64;
-            work->field_39A                         = 0;
-            ((TmdObject*)arg0->extra)->field_8->flg = 0;
-            Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
+            work->field_378                        = 0xC8;
+            work->field_396                        = 1;
+            work->field_398                        = 0x64;
+            work->field_39A                        = 0;
+            ((TmdObject*)arg0->extra)->coords->flg = 0;
+            Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
         }
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        ((TmdObject*)arg0->extra)->field_C |= 0x80;
-        ((TmdObject*)arg0->extra)->field_C |= 4;
-        ctx->field_14                       = 1;
-        work->obj1.flags                   &= 0x7FFF;
-        work->obj2.flags                   &= 0x3DFF;
-        rot.vz                              = 0;
-        rot.vy                              = 0;
-        rot.vx                              = 0;
+        ((TmdObject*)arg0->extra)->flags |= 0x80;
+        ((TmdObject*)arg0->extra)->flags |= 4;
+        ctx->field_14                     = 1;
+        work->obj1.flags                 &= 0x7FFF;
+        work->obj2.flags                 &= 0x3DFF;
+        rot.vz                            = 0;
+        rot.vy                            = 0;
+        rot.vx                            = 0;
         RotMatrix(&rot, &coord->coord);
-        coord->coord.t[2]                       = 0;
-        coord->coord.t[1]                       = 0;
-        coord->coord.t[0]                       = 0;
-        ((TmdObject*)arg0->extra)->field_8->flg = 0;
-        Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
+        coord->coord.t[2]                      = 0;
+        coord->coord.t[1]                      = 0;
+        coord->coord.t[0]                      = 0;
+        ((TmdObject*)arg0->extra)->coords->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
         arg0->state     = 4;
         work->field_396 = 0;
     }

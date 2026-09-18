@@ -263,7 +263,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             work->field_5EE  = 0x1F4;
             records4         = &work->field_5F4;
             work->field_5F0  = records4;
-            work->field_5A4  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            work->field_5A4  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
             work->field_5A8  = &work->field_5DC;
             work->field_5AC  = 0;
             work->field_5AE  = 0;
@@ -274,7 +274,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Actor403900* arg1)
             Gp_LinkObj(3, (GpObj*)work->field_59C);
             Gp_InitRec18Table(records4, 1, 0);
             work->field_5BA &= 0xBFFF;
-            work->field_5C4  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            work->field_5C4  = ((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords;
             work->field_5C8  = records4;
             work->field_5CC  = 0;
             work->field_5CE  = -0x320;

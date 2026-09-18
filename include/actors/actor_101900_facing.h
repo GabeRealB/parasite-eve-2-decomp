@@ -267,8 +267,8 @@ static __inline__ s16 Actor01900_PositionYaw(Actor01900* actor, SVECTOR* pos, Pl
 {
     GsCOORDINATE2* coord;
     s32            angle;
-    Actor01900_ConfigPositionDelta(config, actor->field_2C->field_8, pos);
-    coord = actor->field_2C->field_8;
+    Actor01900_ConfigPositionDelta(config, actor->field_2C->coords, pos);
+    coord = actor->field_2C->coords;
     angle = ratan2(pos->vx, pos->vz);
     return Actor01900_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }

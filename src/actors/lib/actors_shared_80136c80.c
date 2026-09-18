@@ -42,7 +42,7 @@ void ActorsShared80136c80(Task* arg0)
     state = D_801153F4;
     child = arg0->firstChild;
     rec   = &work->recs[0];
-    coord = part->field_8;
+    coord = part->coords;
     hit   = &work->recs[1];
     one   = 1;
 
@@ -62,12 +62,12 @@ ge2:
     }
     goto default_body;
 case0:
-    part->field_C = 0;
+    part->flags = 0;
     goto default_body;
 case1:
     return;
 case2:
-    part->field_C = 0x80;
+    part->flags = 0x80;
     return;
 default_body:
     rec->field_8      = -work->field_0;

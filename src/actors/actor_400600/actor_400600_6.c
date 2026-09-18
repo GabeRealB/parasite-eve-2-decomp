@@ -35,7 +35,7 @@ void func_actor_400600_8013A170(Task* arg0)
 
     switch (D_801153F4) {
         case 2:
-            model->field_C |= 0x80;
+            model->flags |= 0x80;
             func_actor_400600_801387DC(arg0, -1);
             break;
         case 0:

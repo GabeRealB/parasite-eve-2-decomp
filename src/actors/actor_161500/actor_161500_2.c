@@ -24,7 +24,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     VECTOR           pos;
 
     obj   = (TmdObject*)task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = (Actor161500Work*)task->work;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];

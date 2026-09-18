@@ -18,7 +18,7 @@ void func_actor_210600_8014B2C0(Task* task);
 /// Spawn body: allocates the actor's 0x8D8-byte `Actor210600Work`, stores it in
 /// `Task::work`, and hands the task's `TmdObject` its light / colour matrices
 /// from the block's tail. The enemy object then takes the model's root
-/// coordinate (`TmdObject::field_8`) as `field_4` and its third part coordinate
+/// coordinate (`TmdObject::coords`) as `field_4` and its third part coordinate
 /// (`field_8[2]`, used by `Gp_UpdateLinkXforms`) as `field_18`; `field_1C` is
 /// zeroed because `Gp_UpdateLinkXforms` fills it.
 ///
@@ -36,7 +36,7 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
     TmdObject*       tmd;
 
     obj        = task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     mem        = (Actor210600Work*)Mem_Calloc(0x8D8, false);
     work       = mem;
     task->work = (TaskIdMap*)mem;
@@ -45,14 +45,14 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
         return;
     }
     tmd                = task->extra;
-    tmd->field_1C      = &work->light;
-    tmd->field_20      = &work->color;
+    tmd->lightMtx      = &work->light;
+    tmd->colorMtx      = &work->color;
     enemy->field_4     = &coord->coord;
     enemy->field_48    = 0;
     enemy->field_1C.vx = 0;
     enemy->field_1C.vy = 0;
     enemy->field_1C.vz = 0;
-    enemy->field_18    = &((TmdObject*)task->extra)->field_8[2];
+    enemy->field_18    = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
     enemy->node.field_4 = 1;
     enemy->field_4D     = 0;

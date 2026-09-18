@@ -367,7 +367,7 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* arg1, GpRec1
 
     enemy = arg0->field_20;
     work  = arg0->field_1C;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     for (i = 0; i < count; i++) {
         id = rec[i].field_4;
         for (j = 0; j < i; j++) {
@@ -384,7 +384,7 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         if (work->field_E8 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -520,11 +520,11 @@ void func_actor_503500_8013B60C(Actor503500* arg0, s32 side, s32 arg2)
     u16            vx;
     u16            vy;
 
-    src  = arg0->extra->field_8;
+    src  = arg0->extra->coords;
     task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 1, 0, 0xA00000);
     if (task != NULL) {
         Gp_ComposeParentWorld(src, &m, &pos);
-        coord  = ((TmdObject*)task->extra)->field_8;
+        coord  = ((TmdObject*)task->extra)->coords;
         ofs.vx = vx = D_actor_503500_8016F108[arg2].vx;
         ofs.vy      = D_actor_503500_8016F108[arg2].vy;
         ofs.vz      = D_actor_503500_8016F108[arg2].vz;
@@ -584,7 +584,7 @@ void func_actor_503500_8013B8D0(Actor503500* arg0)
 
     enemy = arg0->field_20;
     work  = arg0->field_1C;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (work->field_EE) {
         case 0:
             work->obj.flags &= 0x7FFF;
@@ -646,7 +646,7 @@ void func_actor_503500_8013BBCC(Actor503500* arg0)
     GsCOORDINATE2* coord;
 
     enemy = arg0->field_20;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     if (D_801153F4 == 1) {
         return;
     }
@@ -666,8 +666,8 @@ void func_actor_503500_8013BC54(Actor503500* arg0)
 {
     GpEnemy* enemy;
 
-    enemy                                       = arg0->field_20;
-    ((GsCOORDINATE2*)arg0->extra->field_8)->sub = &Gfx_ViewCoord;
+    enemy                                      = arg0->field_20;
+    ((GsCOORDINATE2*)arg0->extra->coords)->sub = &Gfx_ViewCoord;
     Gp_UnlinkObj(&arg0->field_1C->obj);
     enemy->field_54 = 0;
     arg0->field_1C  = NULL;
@@ -769,13 +769,13 @@ void func_actor_503500_8013BEE4(Actor503500* arg0)
     MATRIX*        mtx;
     GpRec18*       rec;
 
-    coord  = arg0->extra->field_8;
+    coord  = arg0->extra->coords;
     enemy  = arg0->field_20;
     parent = arg0->parent;
     Mem_Set(&D_actor_503500_801776A0, 0, 0xF4);
     arg0->field_1C = &D_actor_503500_801776A0;
 
-    parts                        = ((TmdObject*)parent->extra)->field_8;
+    parts                        = ((TmdObject*)parent->extra)->coords;
     *(s32*)&coord->coord.m[0][0] = 0x1000;
     coord->sub                   = &parts[16];
     mtx                          = &coord->coord;

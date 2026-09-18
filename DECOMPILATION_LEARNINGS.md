@@ -350,7 +350,7 @@ work        = mem;
 arg1->idMap = (TaskIdMap*)mem;
 if (mem == NULL) { Gp_DestroyEnemy(arg0, arg1); return; }
 ...
-((TmdObject*)arg1->extra)->field_1C = &work->light;
+((TmdObject*)arg1->extra)->lightMtx = &work->light;
 ```
 
 gives `mem` a block-0-only range, so `local-alloc` keeps it in `$v0` and drops
@@ -1285,7 +1285,7 @@ that should send you here: `insert=0 delete=1 branch=16 regs=1` with the score
 near 99.4%. One missing `move` in the prologue shifts every branch destination
 in the function by 4 bytes, so a single deleted instruction is reported as a
 pile of branch penalties — the branch count is the shift, not N bad
-comparisons. There the two reads were `((TmdObject*)task->extra)->field_8`
+comparisons. There the two reads were `((TmdObject*)task->extra)->coords`
 (first, its base dead after) and `task->extra` (second, the surviving `obj`);
 the reverse order scores the same 99.373% with the copy missing entirely, and
 `git grep`-ing the matched corpus for the target's `lw $v0,N($r)` + `nop` +
@@ -1984,7 +1984,7 @@ must win — here the four that define `base`/`node` and store through `node`:
 
 ```c
 do {
-    base      = ((TmdObject*)arg0->extra)->field_8;
+    base      = ((TmdObject*)arg0->extra)->coords;
     sub       = base + 3;
     node      = base + 4;
     node->sub = sub;
@@ -2177,7 +2177,7 @@ undefined, and `GsCOORDINATE2` ends up undeclared even though its typedef is
 right there in the file. Including the three in the order `libgte.h`,
 `libgpu.h`, `libgs.h` works - but any project header that mentions a coordinate
 already does exactly that, so include one of those instead: `main/tmd.h` pulls
-the trio in that order and is what a `TmdObject::field_8` candidate wants
+the trio in that order and is what a `TmdObject::coords` candidate wants
 anyway. Two builds, both ending in `parse error before 'VECTOR'`, is what it
 costs to find out the other way.
 ## A temp local for a value re-read across stores collapses the reloads
@@ -2223,12 +2223,12 @@ had to sit *between* two reads, here the reads must not be merged into one.
 The same inline-the-expression rule applies when the cached value is a pointer
 that later loads go through, and there the damage is not just the reload count.
 `func_actor_403200_8013669C` is written like its matched sibling
-`func_actor_444000_80138B94`, which dereferences `task->extra->field_8` at each
+`func_actor_444000_80138B94`, which dereferences `task->extra->coords` at each
 of about fourteen use sites. Caching the head of that chain in a local:
 
 ```c
 TmdObject* extra = task->extra;
-extra->field_8->sub = &Gfx_ViewCoord;
+extra->coords->sub = &Gfx_ViewCoord;
 ```
 
 scored 85.59% with `stack=0 branch=2 regs=60 reorder=6 insert=6 delete=26`,
@@ -3055,9 +3055,9 @@ Inputs: `base_1.i`
 The `-dg` order prints `82 81` against `81 82`, and the `-dl` header prints
 `Register 81 used 36 times across 298 insns` against `37 times across 298`.
 
-## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
+## `SCHED_BARRIER` after `extra->coords` so extra dies in `$v0` and `$a0` stays the task
 
-A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does
+A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->coords`, then does
 unsigned halfword math on the work block, wants
 
 ```
@@ -3069,7 +3069,7 @@ lhu   v0, field_A12
 ```
 
 Independent `lhu`s on work are ready while extra is still live, so sched1
-parks them between the extra load and `coord = extra->field_8`. Extra's local
+parks them between the extra load and `coord = extra->coords`. Extra's local
 quantity then overlaps the A12 temp in `$v0` and takes `$a0`. Incoming `$a0`
 is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
 function (regs + an extra `addu`).
@@ -3085,7 +3085,7 @@ copy is coalesced:
 
 ```c
 work  = (Actor400500Work*)arg0->idMap;
-coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
 SCHED_BARRIER();
 step  = (u16)work->field_A10 + 2;
 accum = (u16)work->field_A12 + step;
@@ -3636,7 +3636,7 @@ pointer chase needs an `s32` temporary:
 ```c
 child = work->child;
 angle = work->heading; /* lhu, before any store through child */
-((TmdObject*)child->extra)->field_C = 0;
+((TmdObject*)child->extra)->flags = 0;
 func_8004BFF8(angle, &src->mat); /* sll/sra of the s32 */
 ```
 
@@ -5690,7 +5690,7 @@ the extra shift pairs).
 ## Name the indexed dest before an independent store through the same coord
 
 `coord->flg = 0; coord->sub = &parent->field_8[part];` lets sched1 issue the
-flg store as soon as `coord` is loaded. That pulls `extra->field_8` to the
+flg store as soon as `coord` is loaded. That pulls `extra->coords` to the
 top, loads `part` late into `$v1`, and hands `$a1` to `coord` instead of
 `part` — so the `* 0x50` is `sll v1` / `addu v0,v1` with `coord` in `$a1`,
 not the target's `lw a1, spawnArg1` / `sll v0,a1,2` / `coord` in `$t0`.
@@ -6911,7 +6911,7 @@ A 0x50-byte struct copy that the target does as five aligned 16-byte
 `u8 data[0x50]` has alignment 1, so GCC emits an `or`/`andi 3` check plus
 an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
-`Gp_BindActorD4` is the example (`GpActorD4.coord = *extra->field_8`).
+`Gp_BindActorD4` is the example (`GpActorD4.coord = *extra->coords`).
 
 ## A 0x20-byte MATRIX assign is two groups of four `lw`/`sw`
 
@@ -7023,7 +7023,7 @@ comes out first and the argument setup after, which cost 5 `reorder` and a
 
 ```c
 SVECTOR vec = D_acropolis_sanctuary_8017D5D0;
-Gp_SpawnEff(0x60078, ((TmdObject*)task->extra)->field_8, 0, &vec);
+Gp_SpawnEff(0x60078, ((TmdObject*)task->extra)->coords, 0, &vec);
 ```
 
 The target loads `0x2C(a0)` and `0x8(v0)` *before* the `lwl`/`lwr` quad. GCC
@@ -7032,7 +7032,7 @@ schedule an argument load into the middle of it, so the pointer chase has to
 already be a separate statement ahead of the copy:
 
 ```c
-GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
 SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
 
 Gp_SpawnEff(0x60078, coord, 0, &vec);
@@ -7194,7 +7194,7 @@ with an extra load and the wrong `lui` register.
 
 ## Reuse the extra pointer so `lw v0,8(v0)` feeds the `+ N` delay slot
 
-`bone = (T*)extra->field_8; f(bone + N, ...)` allocates `bone` to `$a0`
+`bone = (T*)extra->coords; f(bone + N, ...)` allocates `bone` to `$a0`
 (the first-arg dest), so the target's
 
 ```
@@ -7212,7 +7212,7 @@ Overwrite the same local, then add through that pointer:
 ```c
 extra = arg0->extra;
 ...
-extra = (GameActorExt*)extra->field_8;
+extra = (GameActorExt*)extra->coords;
 Gp_PlaceCoordOffset((GsCOORDINATE2*)extra + 4, coord, rot);
 ```
 
@@ -7452,7 +7452,7 @@ Assign the `(div + K)` term inside the add. That forces `lbu/sll/sra` for
 the tpage and pins K onto the divide result:
 
 ```c
-arg1->x = ((s8)extra->field_24 << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+arg1->x = ((s8)extra->tpage << 6) + (x = (arg2->x + 1) / 2 + 0x180);
 ```
 
 `Gp_LoadActorImage` is the example. The natural
@@ -10878,7 +10878,7 @@ switch (mode) {
         goto out;          /* not `return 0;` */
 }
 if (child != NULL) {
-    ((TmdObject*)child->extra)->field_C &= 0xFF7F;
+    ((TmdObject*)child->extra)->flags &= 0xFF7F;
 }
 out:
     return 0;              /* the only return in the function */
@@ -20452,7 +20452,7 @@ two objects are otherwise instruction-identical — every opcode, immediate and
 operand the same bar that one register pair, so `diff.py` shows one column.
 
 `func_actor_215100_8014CD4C` is `ActorsShared80132710`'s body (bit 0 of `flags`
-hides both models by zeroing `TmdObject::field_C`, its absence restores 0x80,
+hides both models by zeroing `TmdObject::flags`, its absence restores 0x80,
 bit 1 ORs in 0x4) over a work block whose paired task sits 0x38 higher:
 
 ```c
@@ -23569,14 +23569,14 @@ GpEffArg*      params;
 
 params          = &D_80113358;          /* before the call — pins $s0 */
 slot            = Game_GetPtrSlot(3);
-raw             = extra->field_8;       /* extra local is required */
+raw             = extra->coords;       /* extra local is required */
 params->field_4 = 0xC0;
 coords          = &((GsCOORDINATE2*)raw)[3];
 params->field_0 = coords;               /* sw %lo(Global)(s0) */
 func_800FDB18(2, coords, 0, params);
 ```
 
-Dropping `raw` and writing `coords = &((GsCOORDINATE2*)extra->field_8)[3]` in
+Dropping `raw` and writing `coords = &((GsCOORDINATE2*)extra->coords)[3]` in
 one go completes `$s0` to the full address and mismatches. `func_8010B520` is
 the pure example.
 
@@ -25388,12 +25388,12 @@ explicit `<< k` is the way to keep a power-of-two factor where you wrote it.
 ## A field lhs whose rhs calls: walk the pointer chain again per statement
 
 Same function. Two statements add into the coordinate and a third clears `flg`,
-each reached through `task->extra->field_8`. The target loads that chain
+each reached through `task->extra->coords`. The target loads that chain
 *after* each call — `lw v0,0x2c(s2); lw a1,8(v0)` between `jal rsin` and
 `jal rcos`, and again after it. Caching it,
 
 ```c
-GsCOORDINATE2* coord = ((TmdObject*)task->extra)->field_8;
+GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
 coord->t[0] += ...; coord->t[2] += ...; coord->flg = 0;
 ```
 
@@ -26064,19 +26064,19 @@ uses. That pins the load in `$v1` instead of overwriting `$v0`:
 ```c
 case 1:
     extra = task->extra;
-    coord = extra->field_8; /* lw v1, 8(v0) */
+    coord = extra->coords; /* lw v1, 8(v0) */
     /* walk coord */
     break;
 case 2:
     extra = task->extra;
-    coord = extra->field_8; /* lw v1, 8(v0) — not lw v0 */
+    coord = extra->coords; /* lw v1, 8(v0) — not lw v0 */
     if (coord == arg0) {
         found = 1;
     }
     break;
 ```
 
-`Gp_FindTaskByCoord` is the example. `if ((GsCOORDINATE2*)extra->field_8 == arg0)`
+`Gp_FindTaskByCoord` is the example. `if ((GsCOORDINATE2*)extra->coords == arg0)`
 stuck at 99.8% with only that load dest different.
 
 ## Assign `one = 1` after the first global so LIM emits `lui t4` then `li t3`
@@ -28395,7 +28395,7 @@ with the case-9 `sh` after the teardown `jal`.
 
 ## Start the dest-arg local at `extra` and reload between the two loads
 
-`extra = slot->extra; raw = extra->field_8; f(..., &((T*)raw)[i], ...)`
+`extra = slot->extra; raw = extra->coords; f(..., &((T*)raw)[i], ...)`
 puts extra in `$v1` and `field_8` in `$a1`:
 
 ```
@@ -32846,9 +32846,9 @@ register void (*func)(TmdObject*) asm("s2");
 u16 flags;
 
 asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
-flags = extra->field_C;
+flags = extra->flags;
 asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
-extra->field_C = (flags | 0x80) & 0xFFFB;
+extra->flags = (flags | 0x80) & 0xFFFB;
 ```
 
 `func_80104684` is the example.
@@ -36002,7 +36002,7 @@ addiu  s0, s0, 0xA4
 Overwrite the same pointer with the field address so they coalesce:
 
 ```c
-coord = (GsCOORDINATE2*)extra->field_8;
+coord = (GsCOORDINATE2*)extra->coords;
 coord[2].flg = 0;
 coord = (GsCOORDINATE2*)&coord[2].coord;
 RotMatrixX(angle, (MATRIX*)coord);
@@ -40993,7 +40993,7 @@ Both halves need their own local, and the shift must be assigned *first*:
 ```c
 base = Wip_SysConfig.field_21 << 16;
 val  = variant | 0x20000001;
-Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | val, 0);
+Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, base | val, 0);
 ```
 
 `val`-then-`base` scores 98.2% with the two `or` sources swapped; `val |=
@@ -41051,6 +41051,35 @@ and exits 0, which keeps re-running it harmless.
 Cross-overlay reuse is not a clash: `0x80093830` is `Title_DemoCardRestoreMsg`
 in `sym.title.txt` and `Gp_PlayClockStates` in `sym.gameplay.txt`, because
 each overlay carries its own map.
+
+## `rename_item.py`'s comment pass is a token match, so a placeholder name takes unrelated prose with it
+
+`cref.comment_refs` qualifies a mention by its owner (`Type::field`) and,
+failing that, by reach: a bare `` `field_C` `` counts only inside files that
+really reference that field. It has to guess, because C comments carry no
+resolution, and for the generated `field_XX` placeholders the guess is wrong
+often enough to matter. Renaming one struct's `field_C` rewrote a sentence
+about a *different* struct's state index in the same file, a `rec->field_10`
+in the learnings file, and the illustrative `field_14` in `NAMING.md`.
+
+The blast radius is proportional to how common the placeholder is, and all of
+`field_8`, `field_C`, `field_10`, `field_2C`, `field_18`, `field_1C`,
+`field_20`, `field_24` are shared by dozens of unrelated structs. A struct
+whose fields are all still `field_XX` is therefore the one case where the pass
+has to be told to keep its hands off:
+
+```
+venv/bin/python3 tools/refactor/rename_item.py --sidecars --no-comments \
+    include/main/tmd.h/TmdObject::field_8 coords
+```
+
+The code edits stay parser-resolved and correct either way; what is skipped is
+only the prose, which then has to be updated by hand — and there are two
+spellings to search, since the pass that was skipped is the one that would
+have found them: the owner-qualified `Type::field` / `Type.field`, and the
+access path in a snippet (`extra->field_8`). Both are safe to rewrite
+textually *because* they name what they mean; a bare `field_8` is not, and
+searching for one finds hundreds of lines about other types.
 
 ## Name a cross-overlay import after the overlay that defines it
 
@@ -44719,7 +44748,7 @@ Writing the field as a typed member - `arg0->field_2C->field_8 + 3` - scores
 store scores 96.582% and is *not* the fix here, because it also pins the
 `lui a0,0x8; ori a0,a0,0x5` argument constant that the target floats four slots
 above the store. Reading the pointer through a differently-typed cast deref
-instead - `(*(TmdObject**)&arg0->field_2C)->field_8` - scores 100%, and the only
+instead - `(*(TmdObject**)&arg0->lightLevel)->coords` - scores 100%, and the only
 RTL change at the moved site is the flag:
 
 ```
@@ -44766,14 +44795,14 @@ not only scheduling.
 
 `func_actor_107000_801367E0` is the same body as `func_actor_207200_8014CFEC`
 under a `switch`, and measures the same remedy on a second schedule. Written
-with the plain cast, `((TmdObject*)arg0->extra)->field_8 + 1`, it scores 81.512%
+with the plain cast, `((TmdObject*)arg0->extra)->coords + 1`, it scores 81.512%
 with the block's structure already perfect (13/13 blocks, 86/86 insns,
 predicates and calls matching): both coords loads float above the `sw` to
 `D_80062730`, and because the store is then scheduled early its `adjust_priority`
 promotion carries them and the `lui`/`addiu` of the store's value to the top of
 the ready list, so the `a2`/`a3` argument moves that the target puts between the
 loads are instead scheduled first and land at the head of the block. Reading the
-pointer as `(*(TmdObject**)&arg0->extra)->field_8` - the form the matched sibling
+pointer as `(*(TmdObject**)&arg0->extra)->coords` - the form the matched sibling
 uses - is 100.000% with every penalty zero, and the only change is that first
 load's `MEM_IN_STRUCT_P`. Two of the three case bodies differ by 0x50-scaled
 offsets only, so the whole defect is one expression spelled three times.
@@ -45122,12 +45151,12 @@ and `param`, so `super` lands at 0x48 and `sub` at 0x4C. The idiom
 `coord->sub = &Gfx_ViewCoord`, not `->super`.
 
 That also fixes `sizeof(GsCOORDINATE2)` at **0x50**, which is what turns the
-other common m2c shape into an index. `TmdObject::field_8` is an *array* of
+other common m2c shape into an index. `TmdObject::coords` is an *array* of
 coordinate nodes, so a raw byte offset onto it divides by 0x50:
 
 ```c
 /* m2c */ Gp_SpawnEff(0x20010, M2C_FIELD(M2C_FIELD(arg0, void**, 0x2C), s32*, 8) + 0xF0, ...)
-/* C   */ Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8)[3], ...)
+/* C   */ Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[3], ...)
 ```
 
 and a scaled one is already an index - `+ (arg1 * 0x50)` is `[arg1]`. Inside a
@@ -45150,7 +45179,7 @@ splits the padding - `pad_314[0x128]`, `MATRIX field_43C`, `MATRIX field_45C` -
 and the body becomes `obj->field_1C = &work->field_45C;`. Every later field keeps
 its offset and the two `addiu`s become the target's. This is the same pair the
 sibling types carry (`ActorsShared80135b64Work`, `Actor02000Work`): the colour
-matrix at 0x43C is handed to `TmdObject::field_20`, the light matrix at 0x45C to
+matrix at 0x43C is handed to `TmdObject::colorMtx`, the light matrix at 0x45C to
 `field_1C`.
 
 Read a suspicious whole-immediate as `n * sizeof(base type)` before touching the
@@ -45159,7 +45188,7 @@ C: `0x22E0 / 8 = 0x45C`. Function
 
 The handler next door, `func_actor_510900_8013BFE4`, is that body exactly - same
 work-block pair, same `field_C = 0x80`, same `task->state = 1` - except its
-`addiu` on `TmdObject::field_8` is `0x280`, i.e. `field_8[8]`, where the sibling
+`addiu` on `TmdObject::coords` is `0x280`, i.e. `field_8[8]`, where the sibling
 has `field_8[3]` / `0xF0`. So a matched sibling one immediate away is a reason to
 recompute that immediate for *this* target (`0x280 / 0x50 = 8`), not to copy the
 sibling's index: pasting the sibling body scores 99.5% with a `regs` penalty of
@@ -45190,7 +45219,7 @@ One `addiu` alone is enough. `func_actor_213000_8014A5D0`'s seed wrote
 `temp_s3->field_8 + 0x50` against a `GsCOORDINATE2*` (0x50 bytes, so the
 immediate came out `0x1900`), scoring 99.909% with `regs=1` over 55 instructions
 - one wrong constant, wearing an allocation penalty. `0x1900 / 0x50 = 0x50`
-recovers it, and `&extra->field_8[1]` is the C that emits the target's
+recovers it, and `&extra->coords[1]` is the C that emits the target's
 `addiu s1,v0,0x50`; the round's `field_8` walk is a per-part index, so the
 operand is `[n]`, never a byte offset. `func_actor_213000_8014A5D0 1 attempt,
 base_1.c 100.00%`.
@@ -45783,7 +45812,7 @@ The structure that *is* universal, and the better anchor:
   (162/168).
 * `Task::extra` is a `GameActorExt` and `GameActorExt::field_8` is a
   `GsCOORDINATE2` (0x50 bytes). Parenting a child to the room is
-  `child->extra->field_8->sub = parent->extra->field_8` (`sub` is +0x4C) and
+  `child->extra->coords->sub = parent->extra->coords` (`sub` is +0x4C) and
   unparenting is `... = &Gfx_ViewCoord`. 126/168 rooms do this.
 
 So read a room's `.rodata` state tables first: each `TaskFuncTable*` names one
@@ -46063,7 +46092,7 @@ Corollaries worth reusing:
   was `GsCOORDINATE2*`; `ptr->flg = 0` emits the same `sw`.
 - GCC 2.8.1 with `-w` silently accepts assigning between unrelated pointer
   types, so a wrong pointer type in a struct never fails the build. Only a
-  *struct* assignment (`*extra->field_8 = 0` once `field_8` is a struct pointer)
+  *struct* assignment (`*extra->coords = 0` once `field_8` is a struct pointer)
   errors, which is what finally surfaced this one.
 - Widening a field's type from `void*` / `s32*` to the real pointer type changes
   codegen anywhere the raw field is used in pointer arithmetic. Grep
@@ -46075,13 +46104,13 @@ Two spots resisted the tidy-up, both because the original C kept a value alive i
 one register:
 
 ```c
-raw             = extra->field_8;   // keep the temp: dropping it let GCC
+raw             = extra->coords;   // keep the temp: dropping it let GCC
 params->field_4 = 0xC0;             // sink the load past the store (+3 insns)
 coords          = &raw[3];
 ```
 
 ```c
-extra = (TmdObject*)extra->field_8; // self-assignment keeps v0; splitting it
+extra = (TmdObject*)extra->coords; // self-assignment keeps v0; splitting it
 ...                                 // into a second variable reloads from a0
 Gp_PlaceCoordOffset((GsCOORDINATE2*)extra + 4, coord, rot);
 ```
@@ -46701,7 +46730,7 @@ them: the tail unit keeps its number, its `.c` file keeps its name and its
 This is the common case for the small `Task` callbacks, because a family's
 actors tend to carry them as a contiguous run. Promoting
 `func_actor_113100_80132F24` (republishes the work block's light/colour matrix
-pair onto `TmdObject::field_1C`/`field_20`) into `actors_shared_80132f24`
+pair onto `TmdObject::lightMtx`/`field_20`) into `actors_shared_80132f24`
 covered six overlays, and in three of them it sat immediately after the already
 promoted `actors_shared_801327b4`:
 
@@ -48293,7 +48322,7 @@ the offsets are right; only the names lie:
 /* m2c output - offsets correct, names swapped */
 *M2C_FIELD(task->extra, s32 **, 8) = 0;
 /* correct - task->extra is 0x2C, task->parent is 0x8 */
-((TmdObject*)task->extra)->field_8->flg = 0;
+((TmdObject*)task->extra)->coords->flg = 0;
 ```
 
 Resolve every `Task*` field by the offset in the `.s` before porting, never by
@@ -51322,7 +51351,7 @@ task->extra;` local used for both accesses keeps the pointer in one register
 inline chained deref and the *second* is a named local:
 
 ```c
-RoomCoord* coord = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+RoomCoord* coord = (RoomCoord*)((TmdObject*)task->extra)->coords;
 TmdObject* obj   = task->extra;
 ```
 
@@ -52088,7 +52117,7 @@ mirrorExtra = mirror->extra;
 mirrorPart  = &mirrorExtra->field_8[tbl[task->spawnArg1]];
 
 /* two reads: CSE emits the copy */
-mirrorPart  = &((TmdObject*)mirror->extra)->field_8[tbl[task->spawnArg1]];
+mirrorPart  = &((TmdObject*)mirror->extra)->coords[tbl[task->spawnArg1]];
 mirrorExtra = mirror->extra;
 ```
 
@@ -53242,7 +53271,7 @@ The mirror work block in the acropolis elevator halls writes offset `0xC` as a
 word and reads it back as a halfword:
 
 ```
-lhu   v1, 0xC(s6)      # extra->field_C, a u16
+lhu   v1, 0xC(s6)      # extra->flags, a u16
 sw    v1, 0xC(s7)      # work->field_C
 ...
 lhu   v0, 0xC(s7)      # read back
@@ -53259,9 +53288,9 @@ and every later use is 16-bit:
 /* RoomMirrorWork */
 /* 0x0C */ s32 field_C;
 ...
-work->field_C  = extra->field_C;   /* lhu (u16 source) + sw */
+work->field_C  = extra->flags;   /* lhu (u16 source) + sw */
 flags          = work->field_C;    /* u16 flags -> lw+andi, combined into lhu */
-extra->field_C = flags;
+extra->flags = flags;
 ```
 
 So a width mismatch between the store and the load of the *same* field is not a
@@ -53561,7 +53590,7 @@ Fix is to delete m2c's goto and write each arm's call inline with its own
 constant, exactly as above. Ignore the `/* irregular */` comment — it is m2c
 reporting its own lowering, not evidence about the source.
 
-## Room effect task prologue: read `extra->field_8` before `spawnArg2`, and both before `state`
+## Room effect task prologue: read `extra->coords` before `spawnArg2`, and both before `state`
 
 A room's `Gp_State1C` effect task opens by unpacking three `Task` fields, and
 m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
@@ -53570,14 +53599,14 @@ m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
 lw v0, 0x2C(s1)     # task->extra
 lw v1, 0x30(s1)     # task->state
 lw s0, 0x20(s1)     # task->spawnArg2
-lw s2, 0x8(v0)      # ((TmdObject*)extra)->field_8
+lw s2, 0x8(v0)      # ((TmdObject*)extra)->coords
 ```
 
 m2c emits its temporaries in the order the *values are used*, so `state` comes
 first and the object dump opens `0x30, 0x2C, 0x20, 0x8(v0)`. The source order is
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 work  = task->spawnArg2;
 switch (task->state) { ... }
 ```
@@ -54433,7 +54462,7 @@ where the source and the target both put it. Every register was already
 correct.
 
 **Cause.** The store is a scalar global, the function's first statements load a
-struct member (`coord = extra->field_8;`), and that load carried `mem/s`. GCC
+struct member (`coord = extra->coords;`), and that load carried `mem/s`. GCC
 2.8.1's scheduler drops the memory dependence between exactly that pair — see
 the rule quoted above `anti_dependence` in `sched.c` ("A MEM_IN_STRUCT
 reference at a non-QImode non-AND varying address can never conflict with a
@@ -54441,8 +54470,8 @@ non-MEM_IN_STRUCT reference at a fixed address"). Reaching the same field
 through a pointer loses the flag:
 
 ```c
--    coord = extra->field_8;          /* mem/s: no dependence, store keeps priority 1 */
-+    addr  = &extra->field_8;
+-    coord = extra->coords;          /* mem/s: no dependence, store keeps priority 1 */
++    addr  = &extra->coords;
 +    coord = *addr;                   /* plain mem: REG_DEP_ANTI, store priority 2   */
 ```
 
@@ -54489,11 +54518,11 @@ the guard clauses, instead of after them:
 
 ```c
 work  = task->spawnArg2;
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 base  = &Gp_RoomCoords[1];
 light = &base->coord;                 /* not after the two `return`s */
 slot  = (GpCoordTail*)light;
-if ((((GpActorWork*)Game_GetPtrSlot(3))->extra->field_C & 0x80) != 0) {
+if ((((GpActorWork*)Game_GetPtrSlot(3))->extra->flags & 0x80) != 0) {
     return;
 }
 if (Gp_State1C->field_4 >= 2) {
@@ -54641,7 +54670,7 @@ scratch load's delay slot:
 
 ```c
 actor = arg0->actor;
-coord = arg0->extra->field_8;
+coord = arg0->extra->coords;
 rec   = (GpActorD4Rec*)actor->field_14C;
 { /* scratch borrow, as above */ }
 switch (actor->field_95E) {
@@ -56090,7 +56119,7 @@ delay slot.
 pointer inline in the assignment that uses it, after the store:
 
 ```c
-extra->field_C = 0x80;
+extra->flags = 0x80;
 M2C_FIELD(M2C_FIELD(task, void**, 0x20), s8*, 0x14) = 1;
 ```
 
@@ -56112,7 +56141,7 @@ Declaring the pointer as a block-scope local *above* the store is the whole fix
 if (work->field_4 != 0) {
     GpEnemy* enemy = (GpEnemy*)task->spawnArg2;
 
-    extra->field_C      = 0x80;
+    extra->flags      = 0x80;
     enemy->node.field_4 = 1;
 ```
 
@@ -56288,7 +56317,7 @@ branch=6`, 93.8%):
 ```c
 u16 step = work->field_290;
 switch (step) {
-case 2: ((TmdObject*)task->extra)->field_C = step; break;  /* forces HImode */
+case 2: ((TmdObject*)task->extra)->flags = step; break;  /* forces HImode */
 ...
 }
 /* lhu a3,0x290(s1); andi v1,a3,0xffff; beq v1,v0,... */
@@ -56438,7 +56467,7 @@ case 1:
     goto hide;
 …
 hide:
-    ((TmdObject*)task->extra)->field_C = 0x80;
+    ((TmdObject*)task->extra)->flags = 0x80;
 ```
 
 `jump2` cross-jumps the copies back into one block *after* register allocation,
@@ -56459,7 +56488,7 @@ case 2:
 reset:
     work->field_0 = 0;                /* … that falls into `hide:` */
 hide:
-    ((TmdObject*)task->extra)->field_C = 0x80;
+    ((TmdObject*)task->extra)->flags = 0x80;
 ```
 
 Writing case 2's store inline like cases 0 and 1 merged it backwards into an
@@ -56796,7 +56825,7 @@ Use the non-volatile form with the value that must precede it as a dummy
 input, the same shape `src/gameplay/3A34.c` already uses:
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 __asm__("lui %0, 0x1F80" : "=r"(h) : "r"(coord));
 h   = *(u8**)(h + 0x3FC);
 vec = (VECTOR*)h;
@@ -57806,7 +57835,7 @@ processed before the store in the same insn, so it clears `$v0` and nothing
 re-arms it:
 
 ```c
-    flag  = ((TmdObject*)task->extra)->field_8->coord.t[0];  /* the last load writes flag itself */
+    flag  = ((TmdObject*)task->extra)->coords->coord.t[0];  /* the last load writes flag itself */
     flag  = flag < 0x3A98;
     value = 0x25;
 ```
@@ -62771,7 +62800,7 @@ assignment of that exact size.
 Eight words moved out of offset `+4` of a pointer is almost always
 `dest->matrix = coord->coord` on a `GsCOORDINATE2` (`flg` at 0x0, `MATRIX
 coord` at 0x4, `MATRIX` is 0x20). `ActorsShared8016a98c` (the promoted body of
-`func_actor_341700_8016A98C`) copies `((TmdObject*)task->extra)->field_8->coord`
+`func_actor_341700_8016A98C`) copies `((TmdObject*)task->extra)->coords->coord`
 into a `MATRIX` at offset 0 of the actor's work block; declaring that field as
 `MATRIX` instead of leaving it inside a `pad_0[...]` is what turns m2c's eight
 assignments into one.
@@ -62856,7 +62885,7 @@ picked up a load-delay `nop` each, for 19 instructions and 66%:
 
 ```c
 coord->flg = 0;
-coord->sub = &((TmdObject*)parent->extra)->field_8[11];  /* two chained lw, scheduled late */
+coord->sub = &((TmdObject*)parent->extra)->coords[11];  /* two chained lw, scheduled late */
 ```
 
 `lw v0,0x2c(v0)` / `lw v0,8(v0)` are a dependent pair, so the scheduler needs
@@ -62866,7 +62895,7 @@ Giving the chase its own statement ahead of the stores puts both loads in the
 opening run, where the other four loads separate them:
 
 ```c
-parentCoords = ((TmdObject*)parent->extra)->field_8;
+parentCoords = ((TmdObject*)parent->extra)->coords;
 coord        = obj->field_8;
 work         = (ActorsShared80135b64Work*)parent->idMap;
 
@@ -63026,7 +63055,7 @@ preceding pointer chase, leaving the global's `%lo` load one slot too late
 (98%, `reorder=1`):
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 yaw   = placement->yaw;             /* lhu scheduled into the delay slot */
 D_actor_151000_8013D37C->yaw = yaw; /* lui/lw %lo pushed after it */
 ```
@@ -63040,7 +63069,7 @@ global deref lands between the chase and the value load and fills the delay
 slot itself.
 
 ```c
-coord                        = ((TmdObject*)task->extra)->field_8;
+coord                        = ((TmdObject*)task->extra)->coords;
 D_actor_151000_8013D37C->yaw = yaw = placement->yaw;
 Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
 ```
@@ -63124,7 +63153,7 @@ step loses it silently.
 uses one of them to build the first argument of a call:
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;   /* -> a0 = coord + 4 */
+coord = ((TmdObject*)task->extra)->coords;   /* -> a0 = coord + 4 */
 work  = (ActorsShared80132920Work*)task->work;
 ```
 
@@ -63563,7 +63592,7 @@ does not.
 `ActorsShared80164b68` (matched as `func_actor_341700_80164B68`) initialises
 three `GpObj`s in a row, each a block of eight constant stores plus one field
 whose value walks a pointer chain:
-`obj.field_8 = &((TmdObject*)task->extra)->field_8[1]`. Writing that assignment
+`obj.field_8 = &((TmdObject*)task->extra)->coords[1]`. Writing that assignment
 last in each block - the position m2c emits it in, because the store is the
 last one the target executes - scored 78% with `reorder=12 insert=6 delete=6`.
 
@@ -64473,7 +64502,7 @@ calls use `&mtx0` / `&mtx1`, while the identity stores also use their
 local matrix pointers; this preserves the target's address copies.
 
 The same result survived removing unused declarations, flattening scopes,
-and using the existing `TmdObject.field_8` / `GsCOORDINATE2.coord` types.
+and using the existing `TmdObject.coords` / `GsCOORDINATE2.coord` types.
 
 ## Keep an address live across a load without changing the loaded values
 
@@ -65301,7 +65330,7 @@ Check `.lreg` and `.greg` before introducing a pinned comparison temporary.
 
 `func_actor_207000_8014FDA4` is the same body as the already-matched
 `ActorsShared8013a2c0` — a 0x10-byte `VECTOR` off `G_SCRATCH_HEAD` filled from
-`((TmdObject*)task->extra)->field_8[1]` and handed to `Gp_UpdateActorColor` — and
+`((TmdObject*)task->extra)->coords[1]` and handed to `Gp_UpdateActorColor` — and
 transcribing the sibling's C verbatim scored 76.8% with `regs=15 reorder=2`. The
 offsets were all correct; what was wrong was the allocation of the *whole* body,
 not of one register.
@@ -66095,7 +66124,7 @@ them in source order, the third being the pointer behind a store:
 
 ```
 lw   s0, 0x1C(s1)     ; work  = task->work
-lw   v0, 0x2C(s1)     ; coord = ((TmdObject*)task->extra)->field_8
+lw   v0, 0x2C(s1)     ; coord = ((TmdObject*)task->extra)->coords
 lw   v1, 0x20(s1)     ; the GpEnemy* the sb below stores through
 lw   a0, 0x8(v0)
 li   v0, 1
@@ -66107,7 +66136,7 @@ target —
 
 ```c
 work                                      = (Actor206100Work*)task->work;
-coord                                     = ((TmdObject*)task->extra)->field_8;
+coord                                     = ((TmdObject*)task->extra)->coords;
 ((GpEnemy*)task->spawnArg2)->node.field_4 = 1;
 ```
 
@@ -66122,7 +66151,7 @@ restores the target order and scores 100.000% with every penalty zero:
 ```c
 work                = (Actor206100Work*)task->work;
 enemy               = (GpEnemy*)task->spawnArg2;   /* lw 0x20, ranked alone */
-coord               = ((TmdObject*)task->extra)->field_8;
+coord               = ((TmdObject*)task->extra)->coords;
 enemy->node.field_4 = 1;
 ```
 
@@ -66150,7 +66179,7 @@ store and two halfword counter stores precede it:
 ```c
 work->field_51E = work->field_51E + 1;
 work->field_526 = work->field_526 + 0x10;
-((TmdObject*)task->extra)->field_8->flg = 0;
+((TmdObject*)task->extra)->coords->flg = 0;
 ```
 
 That is 82.5% (`insert=5`), and the whole difference is that the
@@ -66162,7 +66191,7 @@ three load-delay `nop`s instead of the target's 38 instructions. Binding the
 pointer above the counters is the whole fix:
 
 ```c
-coord           = ((TmdObject*)task->extra)->field_8;
+coord           = ((TmdObject*)task->extra)->coords;
 work            = (Actor206100Work*)task->work;
 work->field_51E = work->field_51E + 1;
 work->field_526 = work->field_526 + 0x10;
@@ -67001,7 +67030,7 @@ vec.vz = coord->workm.t[2];
 Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 ```
 
-This also restores the *reloads*: the target re-walks `arg0->extra->field_8`
+This also restores the *reloads*: the target re-walks `arg0->extra->coords`
 before each of the three stores, because `vec`'s address escapes into the call
 and every store to it invalidates CSE's memory table. m2c's version had one
 surviving store and so only one chain, which reads like CSE working correctly
@@ -67239,7 +67268,7 @@ sw    v0,0x4c(s4)      ; coord->sub
 ```
 
 Written in the order the two statements read most naturally — matrix first, then
-`coord->sub = &((TmdObject*)parent->extra)->field_8[8]` — the loads land *after*
+`coord->sub = &((TmdObject*)parent->extra)->coords[8]` — the loads land *after*
 `sw v1,4(s4)`, with a `nop` in the load-delay slot, and the whole tail of the
 block shifts (89.63%, `reorder=7`).
 
@@ -67251,7 +67280,7 @@ is always. The `.sched` dump states it outright: the `lw` carries
 source must read before it writes. Hoisting the chain into its own local,
 
 ```c
-parts = ((TmdObject*)parent->extra)->field_8;
+parts = ((TmdObject*)parent->extra)->coords;
 *(s32*)&coord->coord.m[0][0] = 0x1000;
 coord->sub = &parts[8];
 ```
@@ -68073,22 +68102,22 @@ fixed, so which of the two moved the allocation was not isolated.
 ## A call between deriving `p = a->b` and re-using `a->b` reloads the expression: reference it inline post-call
 
 `func_shelter_b3_dumping_hole_8017E7DC` caches `extra = arg0->extra` (a saved
-reg `s2`) for `coord = extra->field_8` and `Tmd_AllocBuffers(extra)`, but the
-`extra->field_C = 0` store *after* an intervening `Mem_Set(work,…)` call comes
+reg `s2`) for `coord = extra->coords` and `Tmd_AllocBuffers(extra)`, but the
+`extra->flags = 0` store *after* an intervening `Mem_Set(work,…)` call comes
 out as a fresh `lw v0,0x2C(s4)` reload, not `sh zero,0xC(s2)`. GCC 2.8.1's CSE
 does not carry a memory load across a call: `arg0->extra` read before `Mem_Set`
 is invalidated, so a later reference reloads — even though the pointer is still
 sitting in a saved register. Match it by referencing the chain inline at that
-one use, `((TmdObject*)arg0->extra)->field_C = 0;`, and keeping the cached
+one use, `((TmdObject*)arg0->extra)->flags = 0;`, and keeping the cached
 `extra` local for the uses that *do* reuse `s2`.
 
 The same function's `func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3)` tail
 is not a direct pass: retail copies `coord->workm.t[0..2]` into a stack `VECTOR`
-and passes `&v`, reloading `arg0->extra->field_8` for each element (each stack
+and passes `&v`, reloading `arg0->extra->coords` for each element (each stack
 store kills the CSE of the next load) while the *first* reload's `a0` is shared
 with the call's first argument. Reproduce with an explicit `VECTOR v;`, a local
 `e2 = (TmdObject*)arg0->extra;` used for both `v.vx` and the call, and inline
-`((TmdObject*)arg0->extra)->field_8->workm.t[i]` for `v.vy`/`v.vz`. Passing
+`((TmdObject*)arg0->extra)->coords->workm.t[i]` for `v.vy`/`v.vz`. Passing
 `(VECTOR*)coord->workm.t` directly (the `room_util20` form) instead emits no
 stack copy and no reloads.
 
@@ -68098,8 +68127,8 @@ ext->field_8` and using it for the tail made the tail's four `field_8` reads a
 single CSE'd base held in `$s0`/`$s2`; that both killed the re-derivation the
 target has and let `task` die at the top, so the target's `$s3 = task` / `$s2 =
 ext` pair came out as `$s3 = ext` with no `task` at all (83.9%, 15 instructions
-short). Spelling the chain out — `((TmdObject*)task->extra)->field_8[1].flg`,
-`Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1])` — while keeping the
+short). Spelling the chain out — `((TmdObject*)task->extra)->coords[1].flg`,
+`Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1])` — while keeping the
 `ext` local for `ext->field_C` and the two calls that pass it reproduces the
 target exactly. The tell is which pointer the reload chain walks: when the tail
 does `lw v0,0x2C(sX)` + `lw a0,8(v0)` with `sX` the *task*, the source re-read
@@ -68194,11 +68223,11 @@ home rather than being loaded there directly. The natural
 the plain one matched outright:
 
 ```c
-coord = arg0->extra->field_8;
+coord = arg0->extra->coords;
 obj   = arg0->extra;          /* CSE'd into a copy of the first load */
 ```
 
-`obj = arg0->extra; coord = arg0->extra->field_8;` builds the same object as
+`obj = arg0->extra; coord = arg0->extra->coords;` builds the same object as
 the natural form - the order is what matters. The copy's extra instruction
 also shifts `li v0, 1` for the first `switch` compare below the `move`.
 
@@ -68945,7 +68974,7 @@ uses. The same function also shows that separate `s16` locals (m2c's
 t[1] += field_724` on a work block, with `field_724` stored before `field_722`.
 The sibling form in the same TU (`u16 step = field_722 + 2; u16 accum = field_724
 + step;` then two stores) gives identical instructions but 93.8%: sched1
-interleaves the `extra->field_8` pointer load with both `lhu`s, so its temp
+interleaves the `extra->coords` pointer load with both `lhu`s, so its temp
 overlaps them and local-alloc puts it in `$a0`. Clobbering `$a0` costs an extra
 `move $a0,$s2` before the first call, which reload_cse would otherwise have
 deleted. Writing the three statements as compound assignments on the fields
@@ -69143,8 +69172,8 @@ bias, and the target subtracts the constant first (`addiu $v0, $v0, -0x1F4` /
 `subu $v0, $v0, $v1`). Written as one expression:
 
 ```c
-task->extra->field_8->coord.t[1] =
-    task->extra->field_8->coord.t[1] - 0x1F4 - work->field_1AE;
+task->extra->coords->coord.t[1] =
+    task->extra->coords->coord.t[1] - 0x1F4 - work->field_1AE;
 ```
 
 the left operand splits as `VAR = t1`, `CON = -0x1F4`, so fold builds
@@ -69154,8 +69183,8 @@ the left operand splits as `VAR = t1`, `CON = -0x1F4`, so fold builds
 leaves fold nothing to split and gives 100%:
 
 ```c
-y                                = task->extra->field_8->coord.t[1] - 0x1F4;
-task->extra->field_8->coord.t[1] = y - work->field_1AE;
+y                                = task->extra->coords->coord.t[1] - 0x1F4;
+task->extra->coords->coord.t[1] = y - work->field_1AE;
 ```
 
 RTL combine does not put it back: `(minus (plus a -C) b)` is not a single MIPS
@@ -69943,9 +69972,9 @@ allocation. Inputs: `base_1.i`
 `base_5.i` `d08384d08514d9bc7ca4a5e54c77e16792133d49505e94daa3db7dfe98601f6d`,
 `base_6.i` `76a841798330fe18ab10b003e7d8928217f63ab3281dbe3695735614264ab241`.
 
-## `SCHED_BARRIER` after `extra->field_8` so extra dies in `$v0` and `$a0` stays the task
+## `SCHED_BARRIER` after `extra->coords` so extra dies in `$v0` and `$a0` stays the task
 
-A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->field_8`, then does
+A leaf that loads `arg0->extra`, `arg0->idMap` and `extra->coords`, then does
 unsigned halfword math on the work block, wants
 
 ```
@@ -69957,7 +69986,7 @@ lhu   v0, field_A12
 ```
 
 Independent `lhu`s on work are ready while extra is still live, so sched1
-parks them between the extra load and `coord = extra->field_8`. Extra's local
+parks them between the extra load and `coord = extra->coords`. Extra's local
 quantity then overlaps the A12 temp in `$v0` and takes `$a0`. Incoming `$a0`
 is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
 function (regs + an extra `addu`).
@@ -69973,7 +70002,7 @@ copy is coalesced:
 
 ```c
 work  = (Actor400500Work*)arg0->idMap;
-coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
 SCHED_BARRIER();
 step  = (u16)work->field_A10 + 2;
 accum = (u16)work->field_A12 + step;
@@ -70227,7 +70256,7 @@ pointer chase needs an `s32` temporary:
 ```c
 child = work->child;
 angle = work->heading; /* lhu, before any store through child */
-((TmdObject*)child->extra)->field_C = 0;
+((TmdObject*)child->extra)->flags = 0;
 func_8004BFF8(angle, &src->mat); /* sll/sra of the s32 */
 ```
 
@@ -70550,11 +70579,11 @@ or obvious clobber.
 ```c
 VECTOR sp10;
 
-((TmdObject*)arg1->extra)->field_8->flg = 0;
-Gp_UpdateCoord(((TmdObject*)arg1->extra)->field_8);
-sp10.vx = ((TmdObject*)arg1->extra)->field_8->workm.t[0];
-sp10.vy = ((TmdObject*)arg1->extra)->field_8->workm.t[1];
-sp10.vz = ((TmdObject*)arg1->extra)->field_8->workm.t[2];
+((TmdObject*)arg1->extra)->coords->flg = 0;
+Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
+sp10.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
+sp10.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
+sp10.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
 ```
 
 100% first try. Two 2.8.1 behaviours combine here and are worth remembering
@@ -70643,8 +70672,8 @@ assignment, which is what the target shows:
 ```c
 s32 pan;
 
-pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+SndEvt_EnqueueType6(id, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
 ```
 
 The third argument stays an inline `(s8)` cast, and *there* the extension does
@@ -70665,7 +70694,7 @@ sh      $zero, 0xC($v0)
 ```
 
 — the unrelated `sb` fills the load's delay slot. Neither source ordering of the
-two stores reproduces it. Writing `((TmdObject*)arg0->extra)->field_C = 0;`
+two stores reproduces it. Writing `((TmdObject*)arg0->extra)->flags = 0;`
 first gives `lw / nop / sh / li / sb`; writing `obj->field_14 = 0;` first gives
 `sb / lw / nop / sh`. The scheduler cannot fix either, because it will not move
 a store across a load or another store whose base pointers it cannot
@@ -72463,12 +72492,12 @@ before the expression containing the call. Written inline as part of the
 expression -
 
 ```c
-angle = ratan2(d->vx, d->vz) - ratan2(-((TmdObject*)arg0->extra)->field_8->coord.m[2][0], ...);
+angle = ratan2(d->vx, d->vz) - ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ...);
 ```
 
 - the chain is evaluated after the first call returns and lands in a
 caller-saved register (`lw v1,8(v1)` / `lh a0,0x10(v1)`). Hoisting it to
-`facing = ((TmdObject*)arg0->extra)->field_8;` above the assignment moves the
+`facing = ((TmdObject*)arg0->extra)->coords;` above the assignment moves the
 load ahead of the call and forces the allocator to pick a callee-saved home.
 
 Re-reading a pointer the function already loaded earlier is normal here rather
@@ -73029,7 +73058,7 @@ the guarded call needs:
 ```c
 {
     s32            paused = D_80072729;                        /* lui/lbu first */
-    GsCOORDINATE2* c      = ((TmdObject*)task->extra)->field_8; /* then lw/lw   */
+    GsCOORDINATE2* c      = ((TmdObject*)task->extra)->coords; /* then lw/lw   */
 
     if (paused != 1) {
         Actor444000_StepForward(c);
@@ -73186,9 +73215,9 @@ address is computed once and the stores run right to left.
 `func_actor_444000_8013AFF8` writes three statements:
 
 ```c
-((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[0] = 0;
-((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[1] = 0;
-((TmdObject*)work->field_ECC[4]->task->extra)->field_8->coord.t[2] = 0x14;
+((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[0] = 0;
+((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[1] = 0;
+((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[2] = 0x14;
 ```
 
 and gets the four loads plus their load-delay `nop`s three times over, ascending
@@ -73453,7 +73482,7 @@ Evidence: `tools/permuter_findings/Actor01600_Fn06D74/` retained session notes, 
 
 A fixed scalar global store followed by `arg0->field_2C` has no store/load
 dependence under GCC 2.8.1's fixed-scalar/varying-structure exemption. The
-permuter introduced `TmdObject **p = &arg0->field_2C` and used `(*p)->field_8`
+permuter introduced `TmdObject **p = &arg0->lightLevel` and used `(*p)->coords`
 in three switch arms. Expansion clears MEM_IN_STRUCT on the model-pointer
 load, restoring the dependence without changing its address. Paired score:
 90% to 100%. Normalization alone preserved 90%.
@@ -73744,7 +73773,7 @@ wants it in.
 
 ```c
 coord->flg = 0;
-coord->sub = &((TmdObject*)task->parent->extra)->field_8[12];
+coord->sub = &((TmdObject*)task->parent->extra)->coords[12];
 ```
 
 96.19% (`regs=0 reorder=1 insert=1`): `sw zero,0(s3)` is emitted ahead of the
@@ -73755,7 +73784,7 @@ picked at T-20 instead (priority 3, chosen the moment the priority-6 chain
 drains), landing in that load's delay slot: 100%.
 
 ```c
-coord->sub = &((TmdObject*)task->parent->extra)->field_8[12];
+coord->sub = &((TmdObject*)task->parent->extra)->coords[12];
 coord->flg = 0;
 ```
 
@@ -74284,9 +74313,9 @@ register:
     TmdObject* mdl;     /* tail */
 
     mdl    = (TmdObject*)arg0->extra;   /* lw a0,0x2c(s2) */
-    pos.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
+    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);     /* a0 already holds it: no copy */
 ```
 
@@ -74598,7 +74627,7 @@ Inputs: `base_1.i`
 ## A pointer derived between the last pre-loop load and a block move takes its delay slot
 
 `func_actor_800100_80166514` copies a 0x50-byte `GsCOORDINATE2` into a stack local
-(`sp10 = *((TmdObject*)actor->field_91C->extra)->field_8;`), which is the
+(`sp10 = *((TmdObject*)actor->field_91C->extra)->coords;`), which is the
 `movstrsi` 5x16-byte loop of the entry above, and then uses a *second* pointer
 taken from the same actor (`obj = (GpObj*)actor->field_12C;`). Both the copy's
 destination `&sp10` and that pointer are register-only computations with no
@@ -74621,7 +74650,7 @@ the copy's end pointer), and `$a1`/`$a0` swap roles throughout the tail - 96.09%
 load and the copy is the 100%:
 
 ```c
-src  = ((TmdObject*)actor->field_91C->extra)->field_8;
+src  = ((TmdObject*)actor->field_91C->extra)->coords;
 obj  = (GpObj*)actor->field_12C;   /* here: last pre-loop def, second delay slot */
 sp10 = *src;
 obj->flags |= 0xC000;              /* stays after the copy */
@@ -74746,7 +74775,7 @@ Hoisting the callee's first argument into a local assigned *first*
 
 ```c
 obj       = arg0->spawnArg2;   /* was: f(arg0->spawnArg2, block, 0, 0); */
-coord     = ((TmdObject*)arg0->extra)->field_8;
+coord     = ((TmdObject*)arg0->extra)->coords;
 ```
 
 gives that load the block's lowest LUID, and sched1 then has the independent
@@ -75141,7 +75170,7 @@ others take the larger LUIDs:
 ```c
 GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;        /* LUID min */
 Actor104400Work* work  = (Actor104400Work*)arg0->idMap;    /* before coord */
-GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
 ```
 
 RTL chain `0x20, 0x1C, 0x2C, 8(v0)`; launch `8(v0)`, `0x1C`, `0x2C`, `0x20`;
@@ -75441,7 +75470,7 @@ the rest of the overlay stores it with.
 
 `func_actor_206100_8014F18C` initializes two `GpObj` collision records and m2c
 recovered the statement order from the final asm, so each record's
-`field_8 = &((TmdObject*)task->extra)->field_8[n]` was written last, right
+`field_8 = &((TmdObject*)task->extra)->coords[n]` was written last, right
 before `Gp_LinkObj(2, &work->obj_n)`. The seed scored 74.44% with
 `regs=17 reorder=5 insert=6 delete=6` and *identical* opcode counts
 (62/62 instructions, same histogram, `topology: match`) — with equal counts the
@@ -75461,7 +75490,7 @@ which is also what changes its home (`$v0` -> `$v1`, so it stops sharing `$v0`
 with the `0x400` constant):
 
 ```c
-work->obj_364.field_8  = &((TmdObject*)task->extra)->field_8[1];  /* base_1: 87.88% */
+work->obj_364.field_8  = &((TmdObject*)task->extra)->coords[1];  /* base_1: 87.88% */
 work->obj_364.field_C  = (GpRec18*)work->pad_384;
 ...
 work->obj_364.flags    = 1;
@@ -75502,7 +75531,7 @@ exactly the load's position — the stores already there are a wall.
 
 Verified on `func_actor_312200_80163178` (2026-09-17), which is the same shape
 at 126/126 instructions and zero insert/delete: with
-`node->field_8 = &((TmdObject*)task->extra)->field_8[3]` written last the score
+`node->coords = &((TmdObject*)task->extra)->coords[3]` written last the score
 was 96.71% with `regs=7 reorder=3`, the two `lw`s sitting at the bottom of the
 block; moving that one statement to the top of the block — before
 `node->field_C`, with the store still landing in the `jal` delay slot — is an
@@ -75522,7 +75551,7 @@ the pointer chain is a *second* walk of `task->extra`:
 coord                 = tmd->field_8;
 work->eff_4C0.field_4 = 0x580;
 work->eff_4C0.field_6 = 3;
-work->eff_4C0.field_0 = &((TmdObject*)task->extra)->field_8[1];
+work->eff_4C0.field_0 = &((TmdObject*)task->extra)->coords[1];
 ```
 
 That last statement is `lw $2,44($19)` / `lw $2,8($2)` / `addiu $2,$2,80` /
@@ -75538,7 +75567,7 @@ Writing the block pointer-first fixes all three hunks at once (100.000%,
 
 ```c
 coord                 = tmd->field_8;
-work->eff_4C0.field_0 = &((TmdObject*)task->extra)->field_8[1];  /* to the head */
+work->eff_4C0.field_0 = &((TmdObject*)task->extra)->coords[1];  /* to the head */
 work->eff_4C0.field_4 = 0x580;
 work->eff_4C0.field_6 = 3;
 ```
@@ -75571,7 +75600,7 @@ produce it" and pointed at live ranges instead.
 
 ## A bare `0x50*n + 4` offset on `field_8` is `coords[n].coord`
 
-`func_actor_206100_8014EB60` loads `((TmdObject*)task->extra)->field_8` into
+`func_actor_206100_8014EB60` loads `((TmdObject*)task->extra)->coords` into
 `$s2` and then does `addiu $s0, $s2, 0x194`. That is not a field of some
 larger object: `GsCOORDINATE2` leads with `flg` and puts `coord` at +4 inside
 the 0x50 element, so `0x194` is `5 * 0x50 + 4` and the pointer is
@@ -76298,7 +76327,7 @@ cleanly on the same body:
 
 Both early placements put those stores in the ready list ahead of the next
 node's independent field stores. That is what decides the home of the reloaded
-`&((TmdObject*)arg1->extra)->field_8[4]` — `$a2` when the stores come late,
+`&((TmdObject*)arg1->extra)->coords[4]` — `$a2` when the stores come late,
 `$v1` as in the target — and the placement of `li s1,1` / `sh s1,0x37E`. The two
 edits are worth ~4.7 and ~2.6 points and are not substitutes: each alone leaves
 register penalties behind.
@@ -79591,7 +79620,7 @@ block's `coord` has 2 and the `spawnArg1` block's 4 -- so the tail and the
         GsCOORDINATE2* coord = tmd->field_8;
         ...
         if (arg0->spawnArg1 != 0) {
-            GsCOORDINATE2* reset = ((TmdObject*)arg0->extra)->field_8;
+            GsCOORDINATE2* reset = ((TmdObject*)arg0->extra)->coords;
             ...
         }
     }
@@ -79962,7 +79991,7 @@ twice** reads as a source-shape difference, not a scheduling one: the fix is to
 write the read out again where it is used, keeping the expression inline.
 
 ```c
-((TmdObject*)task->extra)->field_8->sub = ((TmdObject*)((Task*)task->spawnArg2)->extra)->field_8;
+((TmdObject*)task->extra)->coords->sub = ((TmdObject*)((Task*)task->spawnArg2)->extra)->coords;
 Task_Reparent((Task*)task->spawnArg2, task);
 ```
 
@@ -80053,7 +80082,7 @@ takes the callee-saved register and its load is scheduled to the top of the
 function. Keeping the read inline leaves the **base pointer** live instead.
 
 `func_actor_141000_80132E24` calls two helpers with
-`((TmdObject*)arg0->extra)->field_8`. Written with `tmd = (TmdObject*)arg0->extra;`
+`((TmdObject*)arg0->extra)->coords`. Written with `tmd = (TmdObject*)arg0->extra;`
 first, the object opens
 
 ```
@@ -80149,7 +80178,7 @@ independent load in the `lhu` delay slot. 100% on that one edit.
 Two boundaries worth checking before concluding "scheduler":
 
 - **The hoisted load must die at the call.** The copy block here re-reads
-  `((TmdObject*)arg0->extra)->field_8`, so nothing lives across the `jal` - the
+  `((TmdObject*)arg0->extra)->coords`, so nothing lives across the `jal` - the
   frame is `sp-0x20` saving `$ra`/`$s0`/`$s1` and has no spill slot. A local
   kept live across the call is the opposite move (see the
   `func_actor_141000_80132E24` entry above, where a `tmd` local broke the
@@ -80284,11 +80313,11 @@ grepping the *sub-expression* found a matched function doing the same object
 walk, `src/rooms/dryfield_dilapidated_house/dryfield_dilapidated_house_4.c:62`:
 
 ```c
-coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->field_8;
+coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords;
 ```
 
 That fixes every type at once. `Task::extra` is the display task's `TmdObject`;
-`TmdObject::field_8` is a `GsCOORDINATE2*`, so `+4` is `GsCOORDINATE2::coord`
+`TmdObject::coords` is a `GsCOORDINATE2*`, so `+4` is `GsCOORDINATE2::coord`
 and `+0x24` is `workm`; and the `0x50` stride is `sizeof(GsCOORDINATE2)`.
 Rewriting the seed with those types reached 100.000% with every penalty zero and
 the same allocation. `Task::spawnArg2` here is a *model task* (`Task*`), not the
@@ -80531,11 +80560,11 @@ no separate argument load is emitted.
 other two in the long form:
 
 ```c
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->field_8[1]);
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
         extra      = (TmdObject*)task->extra;
-        pos.vec.vx = extra->field_8[1].workm.t[0];
-        pos.vec.vy = ((TmdObject*)task->extra)->field_8[1].workm.t[1];
-        pos.vec.vz = ((TmdObject*)task->extra)->field_8[1].workm.t[2];
+        pos.vec.vx = extra->coords[1].workm.t[0];
+        pos.vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
+        pos.vec.vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
         func_800D7A9C(extra, &pos.vec, 0, 3);
 ```
 
@@ -80833,7 +80862,7 @@ control flow, is usually what they are measuring.**
 only difference two `addiu` immediates: the target had `addiu a0,s1,0x50` and
 `addiu a1,s1,0x88`, m2c had produced `addiu a0,s1,0x1900` and `addiu a1,s1,0x2A80`.
 
-m2c typed the local from `TmdObject::field_8`, which is a `GsCOORDINATE2*`, and
+m2c typed the local from `TmdObject::coords`, which is a `GsCOORDINATE2*`, and
 then rendered the byte offsets the disassembly showed as *element* arithmetic:
 
 ```c
@@ -80999,7 +81028,7 @@ obj->field_18 = 0x30000;
 ...
 obj->flags    = 1;
 extra         = arg0->extra;                 /* lw v0, 0x2c(s3) */
-obj->field_8  = extra->field_8 + 1;          /* lw v1, 8(v0) */
+obj->field_8  = extra->coords + 1;          /* lw v1, 8(v0) */
 Gp_LinkObj(2, obj);
 ```
 
@@ -81041,7 +81070,7 @@ same block topology, which is exactly what the 95.7% form showed.
 ```c
 extra         = arg0->extra;
 obj           = &work->obj;
-obj->field_8  = extra->field_8 + 1;   /* the two loads precede every store */
+obj->field_8  = extra->coords + 1;   /* the two loads precede every store */
 obj->field_C  = &work->rec;
 obj->field_18 = 0x30000;
 ...
@@ -81190,7 +81219,7 @@ sh    zero,0xc(v0)
 ```
 
 Writing the second read where the target's stores suggest it lands — after
-`work->field_7F3 = 0;` and the `extra->field_C` store — scores 92.72% and gives
+`work->field_7F3 = 0;` and the `extra->flags` store — scores 92.72% and gives
 a third instruction, a real `lw t0,0x1c(a3)` plus the `nop` that load delay
 forces. Assigning it *before* both stores scores 100% and turns it into the
 copy:
@@ -81198,7 +81227,7 @@ copy:
 ```c
 escorts = (Actor403200Work*)arg0->idMap;
 work->field_7F3 = 0;
-((TmdObject*)arg0->extra)->field_C = 0;
+((TmdObject*)arg0->extra)->flags = 0;
 ```
 
 **Cause, from the dumps.** With the read after the byte store, `.greg` still
@@ -82590,7 +82619,7 @@ goes with the reload. Three builds isolate the cause:
 
 | second read | stores between | `lw 0x2C($a0)` |
 |---|---|---|
-| `((TmdObject*)arg0->extra)->field_8[1].workm.t` (target shape) | 2 x `sw` | 2 |
+| `((TmdObject*)arg0->extra)->coords[1].workm.t` (target shape) | 2 x `sw` | 2 |
 | `ext->field_8[1].workm.t` (hoisted into the local) | 2 x `sw` | 1 |
 | target shape, stores deleted | none | 1 |
 
@@ -82708,7 +82737,7 @@ inherit `field_1C`/`field_20`, `Task_Reparent`, `state += 1`). Written with m2c'
 `void *` temps and `M2C_FIELD` it scored 75.875% (`regs=14 insert=4 delete=3`),
 because the compiler kept `task->extra` in `$a2` and its `field_8` in `$a3`;
 written with `TmdObject*` / `GsCOORDINATE2*` locals it puts
-`$a3 = extra`, `$t0 = extra->field_8`, `$a2 = parentExtra` and matches exactly.
+`$a3 = extra`, `$t0 = extra->coords`, `$a2 = parentExtra` and matches exactly.
 
 The tier does not need to be starred, and the twin does not need to be an
 equality. `func_actor_335800_80163CA0` (32 instructions, same overlay) has no
@@ -83239,7 +83268,7 @@ The promoted body itself is ordinary: m2c had dropped the copy entirely (a
 `lwr` it could not pair) and typed the coordinate chain as raw pointer
 arithmetic, which is `delete=10 reorder=2` and 78.868%. `extern SVECTOR` plus a
 wholesale struct assignment restores the 8-byte `lwl/lwr` + `swl/swr` move, and
-the coordinate is `&((TmdObject*)slot->extra)->field_8[2]` - `GsCOORDINATE2` is
+the coordinate is `&((TmdObject*)slot->extra)->coords[2]` - `GsCOORDINATE2` is
 0x50, so the target's `+0xA0` is the array index, not a field.
 
 Example: `func_actor_341300_801625AC` (78.868% -> 100.000%, one build).
@@ -83368,7 +83397,7 @@ scalar stack locals for an address-taken struct lose their dead stores", which
 is worth recognising before spending attempts on the seed.
 
 ```c
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (Actor310600Work*)task->work;
 
     vec = D_actor_310600_80161E54;
@@ -84374,15 +84403,15 @@ Inputs: `base.i` (m2c seed, 73.333%)
 ## A store between two `a->b` references reloads it and extends `a`'s live range: cache the field in a local
 
 `func_actor_202900_8014A088` (actors/actor_202900) writes
-`((TmdObject*)arg0->extra)->field_C = 0` after `coord->flg = 0`, and the m2c
+`((TmdObject*)arg0->extra)->flags = 0` after `coord->flg = 0`, and the m2c
 seed that spells both references out reloads the chain:
 
 ```c
 /* 72.417%: lw v1,0x2c(a0) ... lw v0,0x2c(a0)  - arg0 never dies */
-parent = D_actor_202900_80156E58->extra->field_8;
-coord  = arg0->extra->field_8;
+parent = D_actor_202900_80156E58->extra->coords;
+coord  = arg0->extra->coords;
 coord->flg = 0;
-arg0->extra->field_C = 0;        /* reload: $v1 now holds parent */
+arg0->extra->flags = 0;        /* reload: $v1 now holds parent */
 coord->sub = parent + 4;
 ```
 
@@ -84399,10 +84428,10 @@ entirely - the pseudo is never reloaded - and the allocation falls out
 
 ```c
 extra  = arg0->extra;
-parent = D_actor_202900_80156E58->extra->field_8;
-coord  = extra->field_8;
+parent = D_actor_202900_80156E58->extra->coords;
+coord  = extra->coords;
 coord->flg = 0;
-extra->field_C = 0;
+extra->flags = 0;
 coord->sub = parent + 4;
 ```
 
@@ -85923,7 +85952,7 @@ arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `TaskIdMap*` (8 bytes) emits
 `addiu v0,v1,0x100` and leaves the rest of the function matching at 99.886%.
 The block is `{ MATRIX color; MATRIX light; u16 speed, delta, ticks; }` - the
 0x48 allocation and the `light` / `color` republished onto
-`TmdObject::field_1C` / `field_20` say so, as in `MineForkedTunnelWork` - so the
+`TmdObject::lightMtx` / `field_20` say so, as in `MineForkedTunnelWork` - so the
 offset is the member, not a byte count. Note this struct has colour at 0x00 and
 light at 0x20, the reverse of every other room's work block.
 
@@ -90588,7 +90617,7 @@ array out of `Task::extra`, take the stage-visit byte as a bit index, refresh th
 world matrix, and re-pose the parts whose visit set the current visit falls in.
 
 ```c
-coord = ((TmdObject*)arg0->extra)->field_8;
+coord = ((TmdObject*)arg0->extra)->coords;
 mask  = 1 << gGameSession->at4.loc.view;
 Gp_UpdateCoord(coord);
 if (mask & 0x99C) {
@@ -90600,7 +90629,7 @@ if (mask & 0x998) {
 ```
 
 m2c seeds this body correctly - `M2C_FIELD(M2C_FIELD(arg0, void **, 0x2C), s32 *, 8)`
-is `((TmdObject*)arg0->extra)->field_8` - so the retype to project structs is the
+is `((TmdObject*)arg0->extra)->coords` - so the retype to project structs is the
 whole job and it matches on the first build. The one thing to preserve while
 retyping is the **local**: the `coord` in a `GsCOORDINATE2*` local is what keeps
 the pointer in `$s1` across the four calls.
@@ -90608,9 +90637,9 @@ the pointer in `$s1` across the four calls.
 Writing the same expression inline at each call site is not equivalent:
 
 ```c
-Gp_UpdateCoord(((TmdObject*)arg0->extra)->field_8);
+Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
 if (mask & 0x99C) {
-    pose(((TmdObject*)arg0->extra)->field_8, 0);
+    pose(((TmdObject*)arg0->extra)->coords, 0);
 }
 /* ... */
 ```
@@ -92152,7 +92181,7 @@ Actor100400Ctx*  ctx    = arg0->field_2C;            /* CSE -> move s6, v0 */
 
 The later `->field_8` reference is rewritten onto the copy's destination, which
 is why the load reads `0x8($s6)` and not `0x8($v0)`. `func_actor_310100_801625E4`
-(`coord = ((TmdObject*)task->extra)->field_8; obj = (TmdObject*)task->extra;`)
+(`coord = ((TmdObject*)task->extra)->coords; obj = (TmdObject*)task->extra;`)
 is the already-matched worked example of the same shape.
 
 **Finding these.** When an unexplained `addu $sN, $vM, $zero` follows a pointer
@@ -92565,7 +92594,7 @@ reads `task->extra` twice in the *same basic block*: once inline as the base of
 a member access, once into the pointer variable that survives the frame.
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;   /* the load lands here */
+coord = ((TmdObject*)task->extra)->coords;   /* the load lands here */
 work  = (NightFactoryWork*)task->work;
 obj   = (TmdObject*)task->extra;              /* cse -> move s4, v0 */
 ```
@@ -94051,7 +94080,7 @@ and that local used for every access) all produced byte-identical assembly.
 Hoisting the assignment *above* the allocation it is unrelated to is what works:
 
 ```c
-parentCoords = ((TmdObject*)arg1->parent->extra)->field_8;
+parentCoords = ((TmdObject*)arg1->parent->extra)->coords;
 parentCoord  = &parentCoords[3];          /* block 1 */
 work         = Mem_Calloc(sizeof(Actor510900ChildFx), false);
 if (work == NULL) { ... return; }
@@ -95412,7 +95441,7 @@ The first is the rule above in its call-argument form. The body's case 0 ends
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_..._80181C60[arg0->killCountdown];
-            Gp_SpawnEff(0x60054, ((TmdObject*)arg0->extra)->field_8, 0x80002300, &pos);
+            Gp_SpawnEff(0x60054, ((TmdObject*)arg0->extra)->coords, 0x80002300, &pos);
 ```
 
 and the target has that argument's two loads *inside the counter-test block*,
@@ -95434,7 +95463,7 @@ of it, so the original read the coordinate into a local *before* the counter
 ```c
 GsCOORDINATE2* effCoord;
 ...
-effCoord = ((TmdObject*)arg0->extra)->field_8;   /* before the counter if */
+effCoord = ((TmdObject*)arg0->extra)->coords;   /* before the counter if */
 Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
 ```
 
@@ -95762,18 +95791,18 @@ entry block, above the switch:
 ```
 lw     a0,0x2c(a2)        /* task->extra */
 addu   a3,v1,v0           /* parts + spawnArg1 * 0x50 */
-lw     v0,8(a0)           /* extra->field_8  -- one load, above the branch */
+lw     v0,8(a0)           /* extra->coords  -- one load, above the branch */
 beqz   a1,Lcase0
 nop
 ...
 Lcase0:
 sw     zero,0(v0)         /* coord->flg  */
-sh     zero,0xc(a0)       /* extra->field_C */
+sh     zero,0xc(a0)       /* extra->flags */
 sw     a3,0x4c(v0)        /* coord->sub  -- same register, no reload */
 ```
 
-Spelling the same body as two dereferences of the field — `extra->field_8->flg = 0;`
-… `extra->field_8->sub = part;` — reads 93.87% and puts *two* loads in the case
+Spelling the same body as two dereferences of the field — `extra->coords->flg = 0;`
+… `extra->coords->sub = part;` — reads 93.87% and puts *two* loads in the case
 block, because `sw zero,0(v0)` is a store through the same base and nothing proves
 it cannot alias `extra + 8`. That is CSE doing its job, not a codegen failure, and
 no scheduler knob recovers it: the reference's single load sits above the branch,
@@ -95784,14 +95813,14 @@ reference's entry block as well:
 
 ```c
     TmdObject*     extra = task->extra;
-    GsCOORDINATE2* coord = extra->field_8;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_461800_80143898->extra)->field_8;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_461800_80143898->extra)->coords;
     GsCOORDINATE2* part  = parts + task->spawnArg1;
 
     switch (task->state) {
     case 0:
         coord->flg     = 0;
-        extra->field_C = 0;
+        extra->flags = 0;
         coord->sub     = part;
 ```
 
@@ -95952,9 +95981,9 @@ lui  $v0,0x1F80 ; lw $v0,0x3FC($v0) ; addiu $v0,$v0,0x34 ; sw $v0,0x3FC($at)
 
 That double clear plus the re-fetch is not something a straight-line body would
 write; it is what an **inlined** helper looks like when the helper takes the
-`task` and re-derives `task->extra->field_8` for its own tail. `Actor444000_RebuildRotation`
+`task` and re-derives `task->extra->coords` for its own tail. `Actor444000_RebuildRotation`
 (`src/actors/actor_444000/actor_444000_6.c`) ends with exactly
-`coord->flg = 0; ((TmdObject*)task->extra)->field_8->flg = 0; *scratch += sizeof(...); Gp_UpdateCoord(...)`,
+`coord->flg = 0; ((TmdObject*)task->extra)->coords->flg = 0; *scratch += sizeof(...); Gp_UpdateCoord(...)`,
 and `Actor444000_ShrinkRotation` in `actor_444000_5.c` is the same body without
 the placement half. So the original source called an inline, and the fix is to
 reconstruct one:
@@ -95963,14 +95992,14 @@ reconstruct one:
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 {
     head  = *(u8**)G_SCRATCH_HEAD;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     blk   = (ActorShared80135a60Scratch*)(head - 0x34);
     *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
     ... ratan2 / Gfx_RotMatrixY / ScaleMatrix / nine matrix shorts ...
     m22 = *(u16*)&blk->m.m[2][2];
     coord->flg = 0;
     coord->coord.m[2][2] = m22;
-    ((TmdObject*)task->extra)->field_8->flg = 0;
+    ((TmdObject*)task->extra)->coords->flg = 0;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;
 }
 ```
@@ -96961,10 +96990,10 @@ is too small, and therefore addressof-able, rather than a register problem -- no
 pin is involved or wanted here.
 
 The same function also shows the other half: a local loaded *before* the call
-(`coords = extra->field_8;`) is kept in a fresh callee-saved register across it
+(`coords = extra->coords;`) is kept in a fresh callee-saved register across it
 (frame 0x38, `$s3`, 90.865%), because the target re-reads `task->extra` at the
 use point. The host file therefore writes the coordinate expression inline as
-`((TmdObject*)task->extra)->field_8[1].workm.t`.
+`((TmdObject*)task->extra)->coords[1].workm.t`.
 
 Inputs: `base.c` (92.945%)
 `6932929cb0f7b786499b3ee2216a8aa9982a531b02893692135b3abec49c999e`,
@@ -96993,10 +97022,10 @@ variable, then dereference it:
 
     GsCOORDINATE2** addr;
     ...
-    addr  = &extra->field_8;
+    addr  = &extra->coords;
     coord = *addr;
 
-Over the direct `coord = extra->field_8;` this adds two RTL insns (`.rtl` 20:
+Over the direct `coord = extra->coords;` this adds two RTL insns (`.rtl` 20:
 `r85 = r82 + 8`, 23: `r83 = [r85]`) instead of one load `r83 = [r82 + 8]`.
 `combine` folds the address back into the load before assembly, so the object is
 still exactly 121 instructions and the diff is empty - but the extra chain
@@ -97786,7 +97815,7 @@ Inputs: `base.c` (79.245%)
 
 Most enemy actors share one per-frame handler, a three-state machine on the
 global mode byte `D_801153F4`: mode 0 clears the model part's flag word and the
-ctx flag, mode 2 sets the hidden pose (`TmdObject::field_C = 0x80`) with ctx
+ctx flag, mode 2 sets the hidden pose (`TmdObject::flags = 0x80`) with ctx
 flag 1 and returns, mode 1 runs only the tail, and any other mode runs the
 update body. The dispatch is a comparison tree (`beq` on 1, `slti 2`, `beq` on
 0, `beq` on 2), which m2c reproduces faithfully -- but it renders the shape as
@@ -97828,7 +97857,7 @@ The mode switch itself is the part to copy, not the callees.
 field, and compiles to `addiu $a1, $a1, 0x140`: the outer `+` is ordinary
 pointer arithmetic on `s32**`, so it scales by 4. The diff shows only the
 immediate, which reads like a struct-layout error. Type the pointer instead --
-`((TmdObject*)arg1->extra)->field_8` is a `GsCOORDINATE2*`, so
+`((TmdObject*)arg1->extra)->coords` is a `GsCOORDINATE2*`, so
 `&...->field_8[1]` emits the `addiu a1, a1, 0x50` the target has, and the same
 expression serves the `Gp_UpdateCoord` call. Any m2c `+ N` on a
 non-`char`-pointer is suspect before the first build, not after the first diff.
@@ -98446,7 +98475,7 @@ once in a `j`'s delay slot on the switch's default exit - because reorg filled
 that slot from the latch block, which both paths reach. And a `case 0: break;`
 written ahead of `case 1`/`case 2` never gets its own test: the tree is
 `beq ==1` / `slti <2` / `beq ==2`, so 0 lands in the default arm. The matched
-sibling `func_actor_560800_801393EC` (same overlay, same `TmdObject::field_C`
+sibling `func_actor_560800_801393EC` (same overlay, same `TmdObject::flags`
 0xFF7B / 0x84 edit, `return` where this one has `break`) compiles to exactly
 that tree, which is the cheapest source of the shape for a message handler in
 this family.
@@ -99162,7 +99191,7 @@ Moving the assignment before the stores in the C is the whole fix:
 
 ```c
     obj           = &work->obj;
-    obj->field_8  = &((TmdObject*)task->extra)->field_8[1];  /* was written last */
+    obj->coords  = &((TmdObject*)task->extra)->coords[1];  /* was written last */
     obj->field_C  = &work->rec;
 ```
 
@@ -99367,7 +99396,7 @@ target asm before choosing - the store bases say which form each line used.
 
 Two orderings were the rest of the delta (`base_2.i` 98.769% -> `base_3.i`
 100%): the load of `extra` comes before `part`, so assign `extra` before
-`part`; and `extra->field_E = 0;` is written *after* `extra->field_20 = ...`,
+`part`; and `extra->otOffset = 0;` is written *after* `extra->colorMtx = ...`,
 which puts the `sb` after the `field_20` load rather than before the
 `field_1C` store. Both are the statement-order lever the entry above describes,
 one level down: a `regs` penalty on the loads of two independent locals is their
@@ -99484,7 +99513,7 @@ Two things about the shape are worth carrying to the sibling overlays. The block
 is not a `TaskIdMap`: the spawn state `Mem_Calloc`s it (0x4CC here) into
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
-onto `TmdObject::field_1C` / `field_20` - the pair `Gp_BindDefaultMtx` otherwise
+onto `TmdObject::lightMtx` / `field_20` - the pair `Gp_BindDefaultMtx` otherwise
 points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
 `func_actor_350700_801624B4` are the same republish in their own overlays.
 `func_actor_311900_8016281C`, the very next unmatched function in this unit, is
@@ -100088,7 +100117,7 @@ The seed kept the extra pointer in a local `extra` and passed `&pos` from it:
 ```c
 extra = (TmdObject*)task->extra;
 ...
-if (func_800EA1A8((VECTOR3*)extra->field_8[1].workm.t, &pos) != 0) {
+if (func_800EA1A8((VECTOR3*)extra->coords[1].workm.t, &pos) != 0) {
 ```
 
 Writing the same access the way the target reads it — a fresh load of
@@ -100096,7 +100125,7 @@ Writing the same access the way the target reads it — a fresh load of
 clobbered memory:
 
 ```c
-if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
 ```
 
 is the whole fix, 93.912% -> 100.000%.
@@ -100863,7 +100892,7 @@ with blocks, predicates and counts all matching.
 
 ```c
     if (work->field_4 != 0) { obj = (TmdObject*)task->extra; … }
-    else                    { tick(task); obj = (TmdObject*)task->extra; obj->field_8->flg = 0; }
+    else                    { tick(task); obj = (TmdObject*)task->extra; obj->coords->flg = 0; }
 ```
 
 A C variable is one RTL pseudo, and one pseudo defined in two basic blocks is
@@ -100879,7 +100908,7 @@ re-derive it there:
 ```c
     } else {
         tick(task);
-        ((TmdObject*)task->extra)->field_8->flg = 0;
+        ((TmdObject*)task->extra)->coords->flg = 0;
     }
 ```
 
@@ -101188,15 +101217,15 @@ the actor model's root translation, y dropped by 0x320, to `func_800D7A9C`:
 void func_actor_420700_801323D8(Task* task)
 {
     TmdObject*     extra = task->extra;
-    GsCOORDINATE2* coord = extra->field_8;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->field_8;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
     GsCOORDINATE2* part  = parts + 4;
     VECTOR         vec;
 
     switch (task->state) {
         case 0:
             coord->flg     = 0;
-            extra->field_C = 0;
+            extra->flags = 0;
             coord->sub     = part;
             task->state++;
             break;
@@ -102414,7 +102443,7 @@ right that a byte is sign-extended, but the local is not a byte: the *store*
 matched sibling in the same TU does
 
 ```c
-s32 pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+s32 pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
 SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth(...));
 ```
 
@@ -103750,7 +103779,7 @@ builds a compare chain; and an unexplained extra 8 bytes of frame was an unused
 ### Two switch cases repeating one inline block: give each case its own pointer local so sched1 sees a birthing set (func_actor_560800_80138D04, 2026-09-16)
 
 **Symptom.** A switch has two cases that each repeat the same written-out block
-(`w = task->work; c = task->extra->field_8; m = &c[1].coord; stores via m`).
+(`w = task->work; c = task->extra->coords; m = &c[1].coord; stores via m`).
 With one `m` shared by both cases, the target's `lw a1,0x1C(a0)` / `lw a0,0x8(v0)`
 come out swapped. `task` then stays live across the `c` set, conflicts with it,
 and moves to `$a2` for the whole function (98%, regs/branch penalties everywhere).
@@ -103810,7 +103839,7 @@ arm reached from three places scored 99.75% with `goto hide` (s5/s6/s7 rotated);
 writing the store inline in each arm (cross-jumping re-merges them) raised the
 pseudo's ref count enough for global alloc to rank it above a hoisted loop
 constant, giving 100%. The obj pseudo also had to be a copy of the loaded
-`extra` (`coord = extra->field_8; obj = extra;`) to keep the `move s5,v0`.
+`extra` (`coord = extra->coords; obj = extra;`) to keep the `move s5,v0`.
 
 ### An unwanted cross-jump into another path's tail: the shared store is last in source (func_actor_560800_80137F58)
 
@@ -105492,7 +105521,7 @@ leaving no copy and swapping which of the two gets the lower register
 `task->extra`, *before* the line that defines `obj`, restores the target exactly:
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 obj   = task->extra;
 ```
 
@@ -106846,7 +106875,7 @@ the same shape `Actor01900_Fn0A5A4`, the matching sibling, already had.
 `+0x10`, and the object dump showed `addiu a0,a0,0x10` against the target's `addiu a0,a0,4`.
 `GsCOORDINATE2` is `{ u_long flg; MATRIX coord; ... }`, so `coord` is at **+4** — the offset is a
 struct member, not arithmetic on a pointer of m2c's invention. Writing the real type
-(`TmdObject::field_8` is already `GsCOORDINATE2*` in `include/main/tmd.h`) gives the `+4` back, and
+(`TmdObject::coords` is already `GsCOORDINATE2*` in `include/main/tmd.h`) gives the `+4` back, and
 `->flg = 0` / `->coord.t[0]` land on the same object m2c split into two expressions.
 
 The lesson generalises past these two: when a seed is in the 90s with a *uniform* penalty spread and
@@ -106933,7 +106962,7 @@ payload type"). Declare it in the overlay header and reach it through a pointer:
 GpMsg3EE* msg;
 ...
 msg          = &D_actor_401000_80155018;
-msg->field_0 = ((TmdObject*)player->extra)->field_8->coord.t[0];
+msg->field_0 = ((TmdObject*)player->extra)->coords->coord.t[0];
 ```
 
 The struct supplies the mixed `sw`/`sh` widths on its own, so the position triple
@@ -108181,7 +108210,7 @@ dump (`func_actor_800100_80164E60`):
 - A `sll $v0, $v0, 2` before the `addu` that the target does not have means the
   indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
   scalar m2c invents for `*(idx + &sym)`, and the scale disappears.
-- `coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8;`
+- `coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords;`
   sits in the entry block although only `case 12` calls `Gp_SpawnEff` with it.
   sched1 cannot have moved it there: `schedule_insns` schedules per basic block
   ("Schedule each basic block, block by block", `sched.c`, one
@@ -109748,7 +109777,7 @@ source `base_1.c` `fac96ecef6e0d3c08d6dd8d81dafc0096a66cdf1e068c40f2f88eeca3c291
 ### The same function's two address legs: derive them from the types, not the m2c casts
 
 The seed also carried both classic m2c type errors, each worth ~2 instructions
-of the 76: `TmdObject::field_8` is a `GsCOORDINATE2*`, so
+of the 76: `TmdObject::coords` is a `GsCOORDINATE2*`, so
 `func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3)` gives `addiu a1,s2,0x38`
 (the seed's `s32*` plus `0x38` gave `+0xE0`), and the view table
 `D_actor_511000_80147EE4` is a `GpViewRec[]`, so
@@ -109821,7 +109850,7 @@ li $v0,0x80          li $v0,0x80
 sh $v0,0xC($v1)      sh $v0,0xC($v1)
 ```
 
-while the natural source (`tmd->field_C = 0x80;` ... `((TmdObject*)arg0->extra)->field_C = 0x80;`)
+while the natural source (`tmd->flags = 0x80;` ... `((TmdObject*)arg0->extra)->flags = 0x80;`)
 compiles to a single `li` reused by both stores. The `.rtl` dump shows why: the front end emits
 **one constant pseudo per store** (`(set (reg:HI 90) (const_int 128))` and
 `(set (reg:HI 92) (const_int 128))`), and cse1 merges them, because `cse.c` keys the equivalence
@@ -109839,7 +109868,7 @@ same class. **Give the later store a wider-typed value and the classes differ**,
     s32 flag;
     ...
     flag = 0x80;
-    ((TmdObject*)arg0->extra)->field_C = flag;     /* (set (reg:SI) (const_int 128)) + subreg store */
+    ((TmdObject*)arg0->extra)->flags = flag;     /* (set (reg:SI) (const_int 128)) + subreg store */
 ```
 
 which leaves both `li`s in place. The *order* matters as well, because `reload_cse_regno_equal_p`
@@ -110032,7 +110061,7 @@ frame:
 
 ```c
         sfx = (((u16)enemy->field_8 >> 12) << 8) | 0x40200013;
-        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
+        pan = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)Gp_GetObjDepth(...));
 ```
 
@@ -110426,14 +110455,14 @@ into a named local for the yaw is enough:
 
 ```c
     posp    = &view;
-    coord   = ((TmdObject*)arg0->extra)->field_8;
+    coord   = ((TmdObject*)arg0->extra)->coords;
     yaw     = ratan2(posp->vx, posp->vz) -
           ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 ```
 
 `coord` is the second half of the same fix: the matrix read has to be bound to a
 named local so its live range crosses the `ratan2` call, which puts the
-`arg0->extra->field_8` load in `$s0` *before* the call (the target has
+`arg0->extra->coords` load in `$s0` *before* the call (the target has
 `lw $s0,8($v0)` there) instead of rematerializing it afterwards in `$v1`. Note the
 two halves are not the same mechanism as the `func_actor_403200_8013DC3C` entry
 above: there a pointer local was needed so the address survived calls; here it is
@@ -113410,16 +113439,16 @@ lw  v0,0x2c(s4)    # arg0->extra
 lw  s1,0x1c(s4)    # arg0->idMap
 lw  s2,0x20(s4)    # arg0->spawnArg2
 lh  s0,0x2c8(s1)   # work->field_2C8
-lw  s3,8(v0)       # extra->field_8
+lw  s3,8(v0)       # extra->coords
 ```
 
 Spelling the statements `work = arg0->idMap; enemy = arg0->spawnArg2; mode = work->field_2C8;
-coord = ((TmdObject*)arg0->extra)->field_8;` emitted `idMap, spawnArg2, extra, mode, field_8` - the
+coord = ((TmdObject*)arg0->extra)->coords;` emitted `idMap, spawnArg2, extra, mode, field_8` - the
 three *independent* loads in source order, and the pointer-chasing one last, even though the
 `extra` statement was written third. `sched1` hoists an independent load above the dependent `lh`
 that precedes it and sinks the dependent load to the end of the block.
 
-Moving the whole `coord = ((TmdObject*)arg0->extra)->field_8;` statement to the top of the function
+Moving the whole `coord = ((TmdObject*)arg0->extra)->coords;` statement to the top of the function
 gave the target order exactly (99.74% -> 100%), because only the *base* load moves with the
 statement: `extra` then reads first and its `field_8` load still lands last. So when a prologue's
 load order is wrong, the lever is where each defining statement sits, and a two-load compound
@@ -113608,7 +113637,7 @@ and `global-alloc` run before `sched2`, the register the chain ends up in is
 decided from that same early layout.
 
 **Fix:** write the statement where the target's instruction actually fires.
-Moving `work->field_284 = &((TmdObject*)arg1->extra)->field_8[1];` up to just
+Moving `work->field_284 = &((TmdObject*)arg1->extra)->coords[1];` up to just
 after the `field_2CC` store took `regs` 19 → 9 and 94.0% → 96.3%. The permuter
 then found the last slot by moving the neighbouring `arg1->killCountdown = 0;`
 store, and writing that move by hand - `work->field_2CC = 0;` then
@@ -113751,7 +113780,7 @@ flow are unaffected, so the seed still scores 91.220% (`regs=38`) and looks like
 a register problem.
 
 The fix is to name what each address belongs to instead of adding to a temp -
-`(TmdObject*)arg1->extra`, `GsCOORDINATE2* coord = obj->field_8` with
+`(TmdObject*)arg1->extra`, `GsCOORDINATE2* coord = obj->coords` with
 `&coord[1].coord` for `+0x54`, `&work->field_DC`, `&work->rec154[0]`,
 `&work->objFC` - and to take the field set, the declaration order and the
 compound-literal forms from the matched sibling `func_actor_107000_80133690` in
@@ -113865,7 +113894,7 @@ because it is then live across every call in the function the allocator spends a
 callee-saved register on it: the frame grows, `s6` appears, and the two long-lived
 locals swap homes (`s2`/`s3`), which the differ reports as `regs=65` against half
 the function's instructions. Writing the chain out at each use - `((TmdObject*)
-arg0->extra)->field_C &= 0xFF7F;`, `Gp_UpdateCoord(((TmdObject*)arg0->extra)->
+arg0->extra)->flags &= 0xFF7F;`, `Gp_UpdateCoord(((TmdObject*)arg0->extra)->
 field_8);`, with no local - is what matches (`regs=6`, then 100% once the two
 orderings below were fixed).
 
@@ -113876,7 +113905,7 @@ the `coord->flg = 0` statement loading `v0` for itself, never `flg = 0` on a liv
 immediately before the `jal` is a reload, not a `move a0,sN`.
 
 A local that *dies* before the next call is fine, and is what this target shows:
-the entry's `obj = (TmdObject*)arg0->extra` survives only to `coord = obj->field_8`,
+the entry's `obj = (TmdObject*)arg0->extra` survives only to `coord = obj->coords`,
 so it lands in `$a0`, which the case-3 arm then reuses for `obj->field_C |= 0x80`
 on its call-free path. The rule is about locals that outlive a call, not about
 locals as such.
@@ -113973,7 +114002,7 @@ the entry block, above the `bnez` on the flag:
 lw   $s1,0x1c($s0)       ; work
 lw   $v1,0x2c($s0)       ; task->extra
 lbu  $v0,%lo(D_801153F4)($v0)
-lw   $a1,8($v1)          ; ((TmdObject*)task->extra)->field_8
+lw   $a1,8($v1)          ; ((TmdObject*)task->extra)->coords
 bnez $v0,.Lend
 ```
 
@@ -113984,7 +114013,7 @@ where the C first reads the value. So the source assigned it at function scope:
 
 ```c
 work  = (Actor101100Work*)task->work;
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 ```
 
 **Fix.** Hoist the expression into a local ahead of the guard. The value lands
@@ -114587,7 +114616,7 @@ kept `enemy` in `$a0`, because it wrote the transform pointer as
 
 **Fix.** Write the block the way the sibling `func_actor_104900_80138A2C` in the
 same unit writes it - `xform = (GpLinkXform*)&enemy->node;` then
-`xform->coord = &((TmdObject*)task->extra)->field_8[3];` and the three `src`
+`xform->coord = &((TmdObject*)task->extra)->coords[3];` and the three `src`
 halfwords. One edit, no pin, 100.000% with every penalty zero: the byte offset
 and the allocation come out together.
 
@@ -114743,7 +114772,7 @@ the loop's tail assignment and the table's is the mid-body `field_C` store, so t
 table giv is emitted first and the node giv second: node `97` against table `100`,
 and the node takes `$s3`. Reordering statements so the node's expression is found
 first (the m2c order, `field_C` before `field_8`) inverts it and also moves the
-`extra->field_8` loads out of the block head, costing the scheduler match - the
+`extra->coords` loads out of the block head, costing the scheduler match - the
 two objectives pull on the same lever, which is why the barrier was needed for the
 refs and a variable was needed for the init order.
 
@@ -115580,7 +115609,7 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)task->extra)->field_8[1];
+    coord     = &((TmdObject*)task->extra)->coords[1];
     scratch   = (void**)G_SCRATCH_HEAD;
     head      = *scratch;
     block     = (VECTOR*)(head - 0x10);
@@ -116218,7 +116247,7 @@ variable second:
 
 ```c
 work  = (Actor103700Work*)task->work;
-obj   = ((TmdObject*)task->extra)->field_8;
+obj   = ((TmdObject*)task->extra)->coords;
 model = (TmdObject*)task->extra;
 ```
 
@@ -118000,7 +118029,7 @@ difference.
 The entry block's `lw $s1, 0x1C($s0)` is followed in the target by the
 `lw $v0, %lo(Gp_ActorSlots)($v0)` of the *next* statement, filling the load-delay
 slot, and only then by `lhu $v1, 8($s1)`. Written as one expression --
-`coord = (*Gp_ActorSlots)->extra->field_8;` after `work->field_6 =
+`coord = (*Gp_ActorSlots)->extra->coords;` after `work->field_6 =
 work->field_8;` -- sched1 cannot do that: **the scheduler will not move a load
 above a store** (no aliasing information), so the `%hi`/`%lo` pair stays behind
 the `sh` and the delay slot keeps its `nop`. The store's value also gets `$v0`,
@@ -118012,7 +118041,7 @@ target's schedule follows:
 ```c
     actor         = *Gp_ActorSlots;
     work->field_6 = work->field_8;
-    coord         = actor->extra->field_8;
+    coord         = actor->extra->coords;
 ```
 
 100.000%, all penalties zero. The tell is a `nop` in a load-delay slot the
@@ -118232,9 +118261,9 @@ at once:
 
 ```c
 work  = (DbwEventWork*)task->work;                            /* 97.947% */
-coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;
+coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
 
-coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->field_8;    /* 100.000% */
+coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;    /* 100.000% */
 work  = (DbwEventWork*)task->work;
 ```
 
@@ -118250,7 +118279,7 @@ work  = (DbwEventWork*)task->work;
   difference, not two.
 
 The lever is the one already documented in "Room effect task prologue: read
-`extra->field_8` before `spawnArg2`, and both before `state`" (three loads) and
+`extra->coords` before `spawnArg2`, and both before `state`" (three loads) and
 "Reordering two equal-priority stores in the C moves a pointer's local-alloc
 birth, and the register with it" (stores); this is the same freedom for two
 loads whose consumers are equidistant. Note it is not the load-delay rule from
@@ -119391,8 +119420,8 @@ LUIDs are sched1's output order.
 
 Fix, and the point of the entry: do not argue with the comparator, move the
 pair's *timing*. Swapping the source order of two adjacent statements in the
-same block - here `extra->field_1C = &mtx->light;` before
-`extra->field_20 = &mtx->color;`, the order the actor sibling uses - changed
+same block - here `extra->lightMtx = &mtx->light;` before
+`extra->colorMtx = &mtx->color;`, the order the actor sibling uses - changed
 which insns are scheduled in the cycles before, and the `lw` was then blocked
 for one cycle by a function-unit hazard (`;; blocking insn 97 for 1 cycles`).
 The arg copy issued first, the `lw` released the `lui` one cycle later, and
@@ -119625,7 +119654,7 @@ Put the *use* of the loaded pointer first, through the cast expression, and the
 variable's own assignment second:
 
 ```c
-    coord = ((TmdObject*)arg0->extra)->field_8;   /* the load, kept in a temp */
+    coord = ((TmdObject*)arg0->extra)->coords;   /* the load, kept in a temp */
     obj   = (TmdObject*)arg0->extra;              /* now a register copy */
 ```
 
@@ -122211,9 +122240,9 @@ one's address escapes:
 
 ```c
 s32 sp10, sp14, sp18;
-sp10 = extra->field_8->workm.t[0];    /* 0x10(sp) */
-sp14 = extra->field_8->workm.t[1];    /* 0x14(sp) */
-sp18 = extra->field_8->workm.t[2];    /* 0x18(sp) */
+sp10 = extra->coords->workm.t[0];    /* 0x10(sp) */
+sp14 = extra->coords->workm.t[1];    /* 0x14(sp) */
+sp18 = extra->coords->workm.t[2];    /* 0x18(sp) */
 func_800D7A9C(extra, &sp10, 0, 3);
 ```
 
@@ -122236,9 +122265,9 @@ the neighbouring matched body does (`func_actor_341900_80162200`):
 
 ```c
 VECTOR pos;
-pos.vx = ((TmdObject*)arg0->extra)->field_8->workm.t[0];
-pos.vy = ((TmdObject*)arg0->extra)->field_8->workm.t[1];
-pos.vz = ((TmdObject*)arg0->extra)->field_8->workm.t[2];
+pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
+pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
 func_800D7A9C(mdl, &pos, 0, 3);
 ```
 
@@ -122382,7 +122411,7 @@ pins, no empty asm, no permuter run. Scratch
 ## A load cannot be scheduled above the stores that precede it in the source
 
 `func_actor_341700_8016D130` stores `arg0->field_18` from a reload chain —
-`lw v0,0x2c(s2)` (`Task::extra`), `lw v1,8(v0)` (`TmdObject::field_8`),
+`lw v0,0x2c(s2)` (`Task::extra`), `lw v1,8(v0)` (`TmdObject::coords`),
 `addiu v1,v1,0xa0`, `sw v1,0x18(s1)` — that the target interleaves starting
 immediately after the three `sw zero,0x2c/0x30/0x34` vector stores. m2c emits
 statements in the order the final asm shows them, which there is *after*
@@ -123082,7 +123111,7 @@ uid decides, and the uid is set by *where the statement sits in the source*.
 load - to *after* the two difference computations:
 
 ```c
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (Actor450800Work*)task->work;
     dx    = target->vx - coord->coord.t[0];
     dz    = target->vz - coord->coord.t[2];
@@ -123209,7 +123238,7 @@ and diffing `md5sum` is the slower equivalent.
 ## Sibling `p->child->field` chains emit in the *reverse* of their statement order
 
 `func_actor_350700_80163840` is the `func_actor_335800_8016343C` body shape with
-one more child: a four-way switch over `TmdObject::field_C`, then a republish of
+one more child: a four-way switch over `TmdObject::flags`, then a republish of
 the result onto the objects of the three child tasks at `field_4FC` / `field_500`
 / `field_504`. The target emits the three child loads `0x4FC`, `0x504`, `0x500`:
 
@@ -123492,7 +123521,7 @@ delete=1` while everything structural was already exact: same instruction count,
 same opcode histogram, same block edges, same predicates, same calls, same
 condition registers, `stack=0`. The whole diff was one tail block, where the ROM
 interleaves the `lw`/`lw`/`addiu` chain behind `obj->field_8 =
-&((TmdObject*)task->extra)->field_8[1]` with the seven independent stores that
+&((TmdObject*)task->extra)->coords[1]` with the seven independent stores that
 precede it, and the candidate ran the chain after all of them:
 
 ```
@@ -124073,16 +124102,16 @@ Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_4.c`
 
 ## A coordinate used on both sides of a call wants one local element pointer (func_actor_323300_80162DF0, 2026-09-17)
 
-Three uses of `extra->field_8[k]` in one block - the copy `shadow[i] = ...`, the
+Three uses of `extra->coords[k]` in one block - the copy `shadow[i] = ...`, the
 `ScaleMatrix(&...->coord, ...)` and a `coord.t[1]` store on the far side of that
 same call - do not compile the way the target does when each use spells the whole
 chain. CSE folds the store to `base + 0x10C` and the ScaleMatrix argument to
 `base + 0xF4`, neither shares the copy's source address `base + 0xF0`, `base`
 dies at the call, and every later use re-derives it from a fresh
-`lw extra->field_8` into whatever register global-alloc picked that round:
+`lw extra->coords` into whatever register global-alloc picked that round:
 
 ```c
-coord           = &((TmdObject*)arg0->extra)->field_8[4];   /* addiu s4,v0,0x140 */
+coord           = &((TmdObject*)arg0->extra)->coords[4];   /* addiu s4,v0,0x140 */
 work->shadow[1] = *coord;                                   /* move v1,s4; 5x16B loop */
 coord->sub      = &work->shadow[0];                         /* sw v0,0x4C(s4)       */
 vec.vx = 0x1000; vec.vy = 0x333; vec.vz = 0x1000;
@@ -124097,8 +124126,8 @@ at 83.961% with `regs=28`, after it 90.739% with `regs=6`, and the remaining
 difference was block order alone - the register home of the *work* pointer
 followed for free.
 
-The per-block `lw extra->field_8` reloads are real and stay: CSE drops the
-`(mem (reg s7) 0x2C)` entry at each call, so a fresh `extra->field_8[k]` per block
+The per-block `lw extra->coords` reloads are real and stay: CSE drops the
+`(mem (reg s7) 0x2C)` entry at each call, so a fresh `extra->coords[k]` per block
 is what the source does, and the reload is not a sign that the local is wrong.
 
 Pair the fields by offset before placing the math: `field_584` / `field_594` sit
@@ -124265,15 +124294,15 @@ block the load sits in.
 ## The same pointer is cached for one use and re-derived for the next two (func_actor_317000_801621F4, 2026-09-17)
 
 The rule "inline the memory expression instead of caching it in a local" has a
-mixed form, and this function is written that way. `arg0->extra->field_8` -- the
+mixed form, and this function is written that way. `arg0->extra->coords` -- the
 `GsCOORDINATE2*` array at the end of the task's `TmdObject` -- is loaded once
 into `$s3` and used for the `coord[5]` accesses at both ends of the function, but
 is *re-derived from the parameter* at two sites in the middle:
 
 ```c
-ApplyTransposeMatrixLV(&((TmdObject*)task->extra)->field_8[2].workm, &delta, &delta);
+ApplyTransposeMatrixLV(&((TmdObject*)task->extra)->coords[2].workm, &delta, &delta);
 ...
-arm = &((TmdObject*)task->extra)->field_8[3].coord;
+arm = &((TmdObject*)task->extra)->coords[3].coord;
 ```
 
 Caching both pointers once each (`coord` and `target`, m2c's shape) scored
@@ -124283,7 +124312,7 @@ saving the task argument, one `addiu` per pointer local, and two three-instructi
 reloads.
 
 **Cause.** The reloads are not about instruction count, they are what keeps the
-**parameter** live. Reloading `task->extra->field_8` across a call needs `task`
+**parameter** live. Reloading `task->extra->coords` across a call needs `task`
 itself, so `task` sits in `$s1` from the `move s1,a0` in the prologue to the last
 reload; the target's `$s3` is the coord base, and `$s1` is reused for the second
 reload's result once the parameter dies. Cache the pointer instead and the
@@ -125055,7 +125084,7 @@ pins, no empty asm, no permuter run; `.cse` dumps retained in the scratch.
 four-class `1.00`/asterisk signal, but the method needs no asterisk: a sibling at
 `shape 0.98 / fields 0.90 / cflow 1.00` is one instruction away.
 `func_actor_141000_80133E8C` (matched) is this actor's 4-way model-mode switch on
-`TmdObject::field_C`; diffing its `matchings/` `.s` against the target's left
+`TmdObject::flags`; diffing its `matchings/` `.s` against the target's left
 one differing instruction out of 56:
 
 ```
@@ -125082,7 +125111,7 @@ Inputs: scratch `nonmatchings/func_actor_135400_80132EBC-vacuum`, `base.c`
 
 ## A switch's identical case tails are one block the compiler made: keep the two statements separate (func_actor_135400_801327E8, 2026-09-17)
 
-The 4-way `TmdObject::field_C` switch this body shares with
+The 4-way `TmdObject::flags` switch this body shares with
 `func_actor_135400_80132EBC` / `func_actor_141000_80133E8C` writes case 0 as
 
 ```c
@@ -125301,14 +125330,14 @@ identity splat, then the `func_8004BFF8` call:
 ```
 	lw	$v0,0x2C($s1)      # TmdObject* = task->extra
 	addiu	$a1,$sp,0x10
-	lw	$s0,0x8($v0)       # coord = ((TmdObject*)task->extra)->field_8
+	lw	$s0,0x8($v0)       # coord = ((TmdObject*)task->extra)->coords
 	li	$v0,0x1000
 	sw	$v0,0x10($sp)
 	...
 	jal	func_8004BFF8
 ```
 
-Writing `coord = ((TmdObject*)task->extra)->field_8;` *after* the identity
+Writing `coord = ((TmdObject*)task->extra)->coords;` *after* the identity
 splat and the call gave 97.972% -- instruction for instruction the same code,
 except the two loads sat after the `jal` (108 -> 109 instructions, `branch=1
 reorder=2 insert=1`). They are not merely mis-scheduled; sched2 cannot move
@@ -125475,7 +125504,7 @@ short range fits a caller-saved register and the prologue loses a save/restore:
 
 ```c
     slot  = Game_GetPtrSlot(0xA);
-    coord = &((TmdObject*)slot->extra)->field_8[table[(rand() * 11) >> 15]];
+    coord = &((TmdObject*)slot->extra)->coords[table[(rand() * 11) >> 15]];
     switch (task->state) {                      /* load lands here -> $a0 */
 ```
 
@@ -125544,14 +125573,14 @@ compiler SHA256
 ## The same inlined rotation block without the doubled close-out: the caller's guard is what follows it (func_actor_210600_8014B434, 2026-09-17)
 
 The entry above reads a tail that clears `flg` twice and re-fetches
-`task->extra->field_8` as the tell that the rescale is an inlined helper. This
+`task->extra->coords` as the tell that the rescale is an inlined helper. This
 overlay's update body is the same `ActorShared80135a60` block at scale `0xC00`
 with a *single* close-out -- `m22`, one `coord->flg = 0`, the `m[2][2]` store,
 then the scratch pop -- because the caller keeps going afterwards instead of
 ending there. Read the target literally either way: `lw $a0,0x2C($s4)` /
 `lw $a1,0x8($v0)` reloaded at the effect call rather than reusing the `coord`
 that was live for the matrix copy is the same "the inline re-derives
-`task->extra->field_8`" evidence, from the other end of the body.
+`task->extra->coords`" evidence, from the other end of the body.
 
 The pick-up after the inline is an effect guarded on an animation clip, and the
 two halves of that guard read **different slots** -- do not assume symmetry:
@@ -125560,10 +125589,10 @@ two halves of that guard read **different slots** -- do not assume symmetry:
 id = work->slots[1].field_2 & 0x3FF;                  /* 0x3E, `lhu` + `andi` */
 if (id == 7 && work->field_896 != id) {
     memset(&vec, 0, 8);                               /* SVECTOR, not NULL */
-    eff.field_0 = ((TmdObject*)task->extra)->field_8;  /* part 0, no addiu */
+    eff.field_0 = ((TmdObject*)task->extra)->coords;  /* part 0, no addiu */
     eff.field_4 = 0x100;
     eff.field_6 = 2;
-    func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->field_8 + 1, &vec, &eff);
+    func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
 }
 work->field_896 = work->slots[0].field_2 & 0x3FF;     /* 0x16 -- slot 0, not 1 */
 ```
@@ -125699,7 +125728,7 @@ fix is a source local, not a pin or a scheduler barrier:
         mode = msg->mode;           /* one pseudo, live into the case body */
         switch (mode) {
             case 1:
-                ((TmdObject*)task->extra)->field_8->coord.t[1] = mode;
+                ((TmdObject*)task->extra)->coords->coord.t[1] = mode;
 ```
 
 100.000%, and the merged pseudo takes `$a2` for free: its defining load has the
@@ -125709,7 +125738,7 @@ input's register. `base_1.c` 97.4% -> `base_2.c` 100.000% is that one change.
 **It also explains the reloads you should *not* remove.** The same rule is why
 the target re-loads `task->extra` (`lw $v0, 0x2C($a0)`) once per coordinate
 store: each store through `field_8` evicts the entry for the previous one. Four
-written-out `((TmdObject*)task->extra)->field_8->...` expressions are the
+written-out `((TmdObject*)task->extra)->coords->...` expressions are the
 matching form; a cached `TmdObject* obj` local would hold one home and change
 the four loads into one.
 
@@ -126299,7 +126328,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 `func_actor_135600_80133240` is `func_actor_350700_80163840`'s body over one
 more child: `work->field_4FC` / `field_500` / `field_504` are read into three
-`TmdObject*` locals, and the tail republishes `obj->field_C` onto all three. The
+`TmdObject*` locals, and the tail republishes `obj->flags` onto all three. The
 first attempt matched everything except which of `$s2` / `$s3` / `$s4` holds
 which pointer (`regs=7`, 99.533%); the tail's store order was already right, so
 the only freedom left was the order of the three loads at the top.
@@ -127069,7 +127098,7 @@ The prologue's `move` is the same "field read twice" mechanism as
 reached from the other side - here it is the *assignment order* that selects it:
 
 ```c
-coord = ((TmdObject*)task->extra)->field_8;
+coord = ((TmdObject*)task->extra)->coords;
 obj   = (TmdObject*)task->extra;      /* cse folds this load into a copy */
 ```
 

@@ -37,8 +37,8 @@ void func_actor_310600_80162A58(Task* arg0)
 
     work          = (Actor310600Work*)arg0->work;
     ext           = arg0->extra;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_310600_80162A74(void)
@@ -75,7 +75,7 @@ void func_actor_310600_80162AD8(Task* task)
     SVECTOR           rot;
 
     work  = (Actor310600Work*)task->work;
-    coord = (Actor310600Coord*)((TmdObject*)task->extra)->field_8;
+    coord = (Actor310600Coord*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->field_4F8 - coord->coord.t[0];
     delta.vy = work->field_4FC - coord->coord.t[1];
@@ -107,7 +107,7 @@ void func_actor_310600_80162B98(Task* task)
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (Actor310600Work*)task->work;
 
     vec = D_actor_310600_80161E54;

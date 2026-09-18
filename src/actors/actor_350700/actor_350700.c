@@ -36,7 +36,7 @@ void func_actor_350700_80161E88(Task* arg0)
     s32              i;
 
     funcs[(s16)work->field_4C0](arg0);
-    coord              = ((TmdObject*)arg0->extra)->field_8;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     work->field_4A0   += work->step.vx;
     work->field_4A4   += work->step.vy;
     work->field_4A8   += work->step.vz;
@@ -52,13 +52,13 @@ void func_actor_350700_80161E88(Task* arg0)
             Gp_AnimTickIndex((GpAnimCtx*)work, i);
         }
     }
-    if (!(ext->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(ext->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
         }
-        ((TmdObject*)arg0->extra)->field_8[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->field_8[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->field_8[1].workm.t, 0, 3);
+        ((TmdObject*)arg0->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     }
     if (work->field_4C5 >= 0) {
         if (work->field_4C5 == 0) {
@@ -186,8 +186,8 @@ void func_actor_350700_801624B4(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor350700Work*)arg0->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }
 
 void func_actor_350700_801624D0(Task* arg0)

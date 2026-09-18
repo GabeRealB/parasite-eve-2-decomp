@@ -82,21 +82,21 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     s32                   i;
 
     obj   = (TmdObject*)arg1->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x2F4U, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work     = (TaskIdMap*)work;
-    obj->field_C   = 0;
-    coord->flg     = 0;
-    obj->field_24 += 1;
-    obj->field_25 += 1;
+    arg1->work  = (TaskIdMap*)work;
+    obj->flags  = 0;
+    coord->flg  = 0;
+    obj->tpage += 1;
+    obj->clut  += 1;
     Tmd_ProcessStream(obj);
     Tmd_ProcessStream(obj);
-    obj->field_1C  = &work->field_114;
-    obj->field_20  = &work->field_F4;
+    obj->lightMtx  = &work->field_114;
+    obj->colorMtx  = &work->field_F4;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
@@ -274,7 +274,7 @@ void func_actor_300700_801622B4(Actor300700* arg0)
             break;
         case 2:
             arg0->field_30 = (s32)state;
-            target         = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->field_8;
+            target         = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->coords;
             dx             = target->coord.t[0] - coord->coord.t[0];
             delta->vx.w    = dx;
             dy             = target->coord.t[1] - coord->coord.t[1];
@@ -737,21 +737,21 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     s32                    i;
 
     obj   = (TmdObject*)arg1->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     work  = Mem_Calloc(0x39CU, false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
     arg1->work     = (TaskIdMap*)work;
-    obj->field_C   = 0;
+    obj->flags     = 0;
     coord->flg     = 0;
-    obj->field_1C  = &work->field_1BC;
-    obj->field_20  = &work->field_19C;
+    obj->lightMtx  = &work->field_1BC;
+    obj->colorMtx  = &work->field_19C;
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->field_18     = &((TmdObject*)arg1->extra)->field_8[4];
+    arg0->field_18     = &((TmdObject*)arg1->extra)->coords[4];
     arg0->node.field_4 = 0;
     arg0->field_1C.vx  = 0;
     arg0->field_1C.vy  = 0;
@@ -783,7 +783,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     Gp_InitRec18Table(work->rec1, 1, 0);
     work->obj1.flags |= 0x8000;
 
-    work->obj2.field_8  = &((TmdObject*)arg1->extra)->field_8[4];
+    work->obj2.field_8  = &((TmdObject*)arg1->extra)->coords[4];
     work->obj2.field_C  = work->rec2;
     work->obj2.field_10 = 0;
     work->obj2.field_12 = 0;
@@ -921,7 +921,7 @@ contact_loop: {
     goto contact_test;
 damage_contact:
     if (work->field_378 == 0) {
-        sourceCoord   = Gp_ActorSlots[(id >> 7) & 1]->extra->field_8;
+        sourceCoord   = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
         dx            = sourceCoord->coord.t[0] - coord->coord.t[0];
         scratch->vx.w = dx;
         dy            = sourceCoord->coord.t[1] - coord->coord.t[1];
@@ -1015,7 +1015,7 @@ contact_test:
     }
     contactRec = work->field_1FC;
     if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
-        sourceCoord      = Gp_ActorSlots[(u8)work->field_1FC[4] >> 7]->extra->field_8;
+        sourceCoord      = Gp_ActorSlots[(u8)work->field_1FC[4] >> 7]->extra->coords;
         work->field_394  = 1;
         work->field_1FA &= 0x7FFF;
         work->field_33C  = sourceCoord;

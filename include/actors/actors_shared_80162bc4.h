@@ -17,7 +17,7 @@ typedef struct ActorsShared80162bc4Work {
 
 /// Display handler for the `GpMsgEntry` table each carrier installs -- message
 /// 0x7D5 in `actor_317000`, byte-identical in `actor_113000`. `mode` drives
-/// `TmdObject::field_C`: bit 0x80 marks the actor hidden and bit 0x4 the
+/// `TmdObject::flags`: bit 0x80 marks the actor hidden and bit 0x4 the
 /// display buffers being live.
 ///
 ///   mode 0  hide, drop 0x4

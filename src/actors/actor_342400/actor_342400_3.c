@@ -40,7 +40,7 @@ void func_actor_342400_80163C58(Task* task)
     s32              one;
 
     enemy      = task->spawnArg2;
-    root       = ((TmdObject*)task->extra)->field_8;
+    root       = ((TmdObject*)task->extra)->coords;
     task->work = Mem_Calloc(0x454, 0);
     work       = (Actor342400Work*)task->work;
     if (work == NULL) {
@@ -51,13 +51,13 @@ void func_actor_342400_80163C58(Task* task)
     obj                = task->extra;
     w                  = (Actor342400Work*)task->work;
     e                  = task->spawnArg2;
-    coord              = obj->field_8;
+    coord              = obj->coords;
     task->msgTable     = D_actor_342400_80173A3C;
-    obj->field_1C      = &w->lightMtx;
-    obj->field_20      = &w->colorMtx;
+    obj->lightMtx      = &w->lightMtx;
+    obj->colorMtx      = &w->colorMtx;
     e->field_50        = &D_actor_342400_80170588;
     e->field_54        = (s32)w->rec_2EC;
-    w->eff_3FC.field_0 = &((TmdObject*)task->extra)->field_8[1];
+    w->eff_3FC.field_0 = &((TmdObject*)task->extra)->coords[1];
     w->eff_3FC.field_4 = 0x140;
     w->eff_3FC.field_6 = 2;
     e->field_40 = e->field_42 = D_actor_342400_80170588.field_4;
@@ -72,12 +72,12 @@ void func_actor_342400_80163C58(Task* task)
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = task->spawnArg2;
     Gp_LinkNode(&enemy->node);
-    enemy->field_4      = &((TmdObject*)task->extra)->field_8->coord;
+    enemy->field_4      = &((TmdObject*)task->extra)->coords->coord;
     enemy->field_48     = 0;
     enemy->field_1C.vx  = 0;
     enemy->field_1C.vy  = 0;
     enemy->field_1C.vz  = 0;
-    enemy->field_18     = &((TmdObject*)task->extra)->field_8[1];
+    enemy->field_18     = &((TmdObject*)task->extra)->coords[1];
     enemy->node.field_4 = 4;
     one                 = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
@@ -126,7 +126,7 @@ void func_actor_342400_80163E70(Task* task)
 
     model      = task->extra;
     enemy      = task->spawnArg2;
-    root       = model->field_8;
+    root       = model->coords;
     task->work = Mem_Calloc(0x454, 0);
     work       = (Actor342400Work*)task->work;
     if (work == NULL) {
@@ -142,18 +142,18 @@ void func_actor_342400_80163E70(Task* task)
     kind = flags & 0xF;
     two  = 2;
     if (kind == two) {
-        model->field_C |= 0x80;
+        model->flags |= 0x80;
     }
     obj                = task->extra;
     w                  = (Actor342400Work*)task->work;
     e                  = task->spawnArg2;
-    coord              = obj->field_8;
+    coord              = obj->coords;
     task->msgTable     = D_actor_342400_80173A3C;
-    obj->field_1C      = &w->lightMtx;
-    obj->field_20      = &w->colorMtx;
+    obj->lightMtx      = &w->lightMtx;
+    obj->colorMtx      = &w->colorMtx;
     e->field_50        = &D_actor_342400_80170588;
     e->field_54        = (s32)w->rec_2EC;
-    w->eff_3FC.field_0 = &((TmdObject*)task->extra)->field_8[1];
+    w->eff_3FC.field_0 = &((TmdObject*)task->extra)->coords[1];
     w->eff_3FC.field_4 = 0x140;
     w->eff_3FC.field_6 = two;
     e->field_40 = e->field_42 = D_actor_342400_80170588.field_4;
@@ -169,12 +169,12 @@ void func_actor_342400_80163E70(Task* task)
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     e2 = task->spawnArg2;
     Gp_LinkNode(&e2->node);
-    e2->field_4          = &((TmdObject*)task->extra)->field_8->coord;
+    e2->field_4          = &((TmdObject*)task->extra)->coords->coord;
     e2->field_48         = 0;
     e2->field_1C.vx      = 0;
     e2->field_1C.vy      = 0;
     e2->field_1C.vz      = 0;
-    e2->field_18         = &((TmdObject*)task->extra)->field_8[1];
+    e2->field_18         = &((TmdObject*)task->extra)->coords[1];
     e2->node.field_4     = 1;
     work->field_80       = root->coord.t[0];
     root->coord.t[1]    -= 0x3C;
@@ -252,7 +252,7 @@ static __inline__ void update_rotation(Task* arg0)
 {
     Actor342400Work* work  = (Actor342400Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*          dst;
 
     work->field_78           &= 0xFFF;
@@ -291,13 +291,13 @@ void func_actor_342400_801640B0(Task* arg0)
     GpEnemy*         enemy = arg0->spawnArg2;
     TmdObject*       obj   = arg0->extra;
     Actor342400Work* work  = (Actor342400Work*)arg0->work;
-    GsCOORDINATE2*   coord = obj->field_8;
+    GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable11  sp    = D_actor_342400_80161EA8;
     s32              cur;
 
     switch (D_801153F4) {
         case 2:
-            obj->field_C |= 0x80;
+            obj->flags |= 0x80;
             return;
         case 0:
             work->field_442++;
@@ -329,7 +329,7 @@ void func_actor_342400_801640B0(Task* arg0)
             }
             coord->flg = 0;
         case 1:
-            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->field_8[1]);
+            update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
             ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
             ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);

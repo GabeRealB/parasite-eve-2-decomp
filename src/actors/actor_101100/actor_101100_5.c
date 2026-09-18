@@ -23,7 +23,7 @@ void ActorsShared8013845cSub1(Task* task)
     s16                countdown;
 
     work  = (Actor101100Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     if (D_801153F4 == 0) {
         if (task->killCountdown >= 0x15) {

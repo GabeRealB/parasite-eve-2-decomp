@@ -47,7 +47,7 @@ void func_shelter_b1_golem_freezer_1_8017D744(void)
     } else {
         D_shelter_b1_golem_freezer_1_8017E6D2 = 0x2710;
     }
-    func_shelter_b1_golem_freezer_1_8017D7CC(((TmdObject*)task->extra)->field_8, &D_shelter_b1_golem_freezer_1_8017E6D0);
+    func_shelter_b1_golem_freezer_1_8017D7CC(((TmdObject*)task->extra)->coords, &D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
 void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* coord, s16* arg1)

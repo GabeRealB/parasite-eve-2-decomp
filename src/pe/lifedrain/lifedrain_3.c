@@ -20,7 +20,7 @@ void func_lifedrain_801308C0(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->field_E;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

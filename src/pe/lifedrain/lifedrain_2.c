@@ -51,7 +51,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
     VECTOR         vec;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->field_E < 4)) {
         mem->field_22 = (u16)mem->field_22 + 1;
         switch (arg0->state) {
@@ -88,7 +88,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     }
                 }
                 if (mem->field_22 == 0xF) {
-                    player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1];
+                    player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1];
                     vec.vx = player->workm.t[0] - coord->workm.t[0];
                     vec.vy = player->workm.t[1] - coord->workm.t[1];
                     vec.vz = player->workm.t[2] - coord->workm.t[2];
@@ -134,7 +134,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                         }
                     }
                 }
-                player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->field_8[1];
+                player = &((TmdObject*)((Task*)Game_GetPtrSlot(3))->extra)->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];

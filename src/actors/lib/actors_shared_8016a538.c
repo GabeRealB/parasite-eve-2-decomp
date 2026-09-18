@@ -15,7 +15,7 @@ void ActorsShared8016a538(Task* arg0)
     s16                       pitch;
 
     work               = (ActorsShared80168d3cWork*)arg0->work;
-    coord              = ((TmdObject*)arg0->extra)->field_8;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     src                = &rot;
     src->ident.m00_m01 = 0x1000;
     src->ident.m02_m10 = 0;

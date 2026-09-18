@@ -17,15 +17,15 @@ s32 func_actor_113100_801333B8(Task* task, s32 msgId, Actor113100Msg7DB* msg)
     switch (msg->field_2) {
         case 0:
             if (work->field_534 != NULL) {
-                model           = (TmdObject*)work->field_534->extra;
-                model->field_C &= 0xFF7F;
+                model         = (TmdObject*)work->field_534->extra;
+                model->flags &= 0xFF7F;
             }
             break;
 
         case 1:
             if (work->field_534 != NULL) {
-                model           = (TmdObject*)work->field_534->extra;
-                model->field_C |= 0x80;
+                model         = (TmdObject*)work->field_534->extra;
+                model->flags |= 0x80;
             }
             break;
 

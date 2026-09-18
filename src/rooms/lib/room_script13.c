@@ -16,12 +16,12 @@ void Room_Script13(Task* task)
     part            = task->spawnArg1;
     extra           = (TmdObject*)task->extra;
     parentExtra     = (TmdObject*)parent->extra;
-    coord           = extra->field_8;
-    dest            = &parentExtra->field_8[part];
+    coord           = extra->coords;
+    dest            = &parentExtra->coords[part];
     coord->flg      = 0;
     coord->sub      = dest;
-    extra->field_1C = parentExtra->field_1C;
-    extra->field_20 = parentExtra->field_20;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
     Task_Reparent(parent, task);
     task->state += 1;
 }

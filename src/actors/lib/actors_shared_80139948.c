@@ -10,7 +10,7 @@
 void ActorsShared80139948(Task* arg0)
 {
     ActorsShared80139948Work* work  = (ActorsShared80139948Work*)arg0->work;
-    GsCOORDINATE2*            coord = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*            coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*                   m;
     MATRIX*                   dst;
 

@@ -27,7 +27,7 @@ void func_actor_405800_80138698(Task* arg0)
 
     switch (D_801153F4) {
         case 2:
-            model->field_C |= 0x80;
+            model->flags |= 0x80;
             break;
         case 0:
             fns.funcs[(s16)work->field_846](arg0);

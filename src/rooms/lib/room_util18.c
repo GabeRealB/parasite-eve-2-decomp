@@ -10,7 +10,7 @@ s32 Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3)
 {
     RoomCoord* coord;
 
-    coord             = (RoomCoord*)((TmdObject*)task->extra)->field_8;
+    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;

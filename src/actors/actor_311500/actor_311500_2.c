@@ -52,7 +52,7 @@ done:
         damage          = Gp_ComputeDamage(work->field_4CC, 0, 0, 0x1000);
         if (Gp_RollEnemyChance(enemy, work->field_4CC, 0) != 0) {
             damage *= 5;
-            Gp_SpawnEff(0x6009C, arg0->field_2C->field_8, 0, 0);
+            Gp_SpawnEff(0x6009C, arg0->field_2C->coords, 0, 0);
         }
         enemy->field_40 -= damage;
         Gp_ClearRec18Occupied(work->rec18);
@@ -90,13 +90,13 @@ s32 func_actor_311500_80162F28(Actor311500 *arg0)
     }
     while (((u32) (i & 0xFFFF)) < 0x13U);
       anim2 = arg0->field_1C;
-      eff.field_0 = &arg0->field_2C->field_8[2];
+      eff.field_0 = &arg0->field_2C->coords[2];
       eff.field_4 = 0x100;
       eff.field_6 = 2;
       pos.vx = 0x3C;
       pos.vy = -0xC;
       pos.vz = 0x1E;
-      func_800FDB18(Gp_GetIdParam1(anim2->field_4D0) & 0xFFFF, &arg0->field_2C->field_8[2], &pos, &eff);
+      func_800FDB18(Gp_GetIdParam1(anim2->field_4D0) & 0xFFFF, &arg0->field_2C->coords[2], &pos, &eff);
       if (enemy->field_40 > 0)
     {
       work->field_4C0 = ((u16) work->field_4C0) + 1;
@@ -153,8 +153,8 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
 
     switch (state) {
         case 0:
-            pan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->field_8);
-            SndEvt_EnqueueType6(0x400A0008, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->field_8));
+            pan = (s8)Gp_GetObjPan((GpObj38*)arg0->field_2C->coords);
+            SndEvt_EnqueueType6(0x400A0008, pan, (s8)Gp_GetObjDepth((GpObj38*)arg0->field_2C->coords));
             work->field_4C4 = 0;
             work->field_4C0 = ((u16)work->field_4C0) + 1;
             break;
@@ -169,7 +169,7 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
                     break;
 
                 case 0xA:
-                    Gp_SpawnEff(0x600A5, &arg0->field_2C->field_8[2], 3, NULL);
+                    Gp_SpawnEff(0x600A5, &arg0->field_2C->coords[2], 3, NULL);
                     Gp_SetLightMode((GpObj4C*)enemy, 1);
                     break;
 
@@ -178,11 +178,11 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
                     break;
 
                 case 0x1C:
-                    arg0->field_2C->field_C = 2;
+                    arg0->field_2C->flags = 2;
                     break;
 
                 case 0x50:
-                    arg0->field_2C->field_C = 0x80;
+                    arg0->field_2C->flags = 0x80;
                     break;
 
                 case 0x104:
@@ -191,7 +191,7 @@ s32 func_actor_311500_801630A4(Actor311500* arg0)
 
             cur = work->field_4C4;
             if (cur >= 6) {
-                coord = arg0->field_2C->field_8;
+                coord = arg0->field_2C->coords;
                 sy    = 0x1000 - (cur - 0x14) * 0xA;
                 ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                 Gfx_RotMatrixY(&mtx, ang, 1);
@@ -263,7 +263,7 @@ ge2:
 
 case0:
     if (work->field_4D6 != 0) {
-        obj->field_C = work->field_4BC;
+        obj->flags = work->field_4BC;
     }
     switch (actor->field_30) {
         case 0:
@@ -284,9 +284,9 @@ case0:
         case 1:
             func_actor_311500_80162C34(actor, obj);
             if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
-                pan = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->field_8);
+                pan = (s8)Gp_GetObjPan((GpObj38*)actor->field_2C->coords);
                 SndEvt_EnqueueType6(0x400A0007, pan,
-                                    (s8)Gp_GetObjDepth((GpObj38*)actor->field_2C->field_8));
+                                    (s8)Gp_GetObjDepth((GpObj38*)actor->field_2C->coords));
                 work->field_4C0  = 0;
                 actor->field_30 += 1;
             }
@@ -326,21 +326,21 @@ case0:
 
 case2:
     if (work->field_4D6 != state) {
-        work->field_4BC = obj->field_C;
+        work->field_4BC = obj->flags;
     }
-    actor->field_2C->field_C |= 0x80;
+    actor->field_2C->flags |= 0x80;
     goto case1;
 
 case1:
     work->field_4D6 = D_801153F4;
 tail:
     enemy = actor->field_20;
-    Gp_UpdateCoord(&actor->field_2C->field_8[1]);
-    pos.vx = actor->field_2C->field_8->workm.t[0];
-    pos.vy = actor->field_2C->field_8->workm.t[1];
-    pos.vz = actor->field_2C->field_8->workm.t[2];
+    Gp_UpdateCoord(&actor->field_2C->coords[1]);
+    pos.vx = actor->field_2C->coords->workm.t[0];
+    pos.vy = actor->field_2C->coords->workm.t[1];
+    pos.vz = actor->field_2C->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    actor->field_2C->field_8->flg = 0;
+    actor->field_2C->coords->flg = 0;
 }
 
 void func_actor_311500_801636A0(Actor311500* arg0, s32 arg1, s32 arg2, u32* arg3)

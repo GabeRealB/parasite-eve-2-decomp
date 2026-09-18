@@ -37,7 +37,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     void*            block;
 
     obj        = task->extra;
-    coord      = obj->field_8;
+    coord      = obj->coords;
     block      = Mem_Calloc(0x4C0, false);
     work       = (Actor451100Work*)block;
     task->work = (TaskIdMap*)block;
@@ -51,13 +51,13 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;
     enemy->node.field_4 = 1;
-    obj->field_E        = 1;
+    obj->otOffset       = 1;
     work->enemy         = enemy;
     spawned             = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask = spawned->task;
-    obj->field_1C  = &work->light;
-    obj->field_20  = &work->color;
+    obj->lightMtx  = &work->light;
+    obj->colorMtx  = &work->color;
     vec.vx         = coord->workm.t[0];
     vec.vy         = coord->workm.t[1] - 0x320;
     vec.vz         = coord->workm.t[2];

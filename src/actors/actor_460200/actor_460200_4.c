@@ -24,15 +24,15 @@ void func_actor_460200_8013364C(Task* task)
 {
     Task*          parent = task->parent;
     TmdObject*     obj    = task->extra;
-    GsCOORDINATE2* coord  = obj->field_8;
-    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->field_8[7];
+    GsCOORDINATE2* coord  = obj->coords;
+    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->coords[7];
     MATRIX*        work   = (MATRIX*)parent->work;
 
     switch (task->state) {
         case 0:
             coord->flg    = 0;
-            obj->field_1C = work;
-            obj->field_20 = work + 1;
+            obj->lightMtx = work;
+            obj->colorMtx = work + 1;
             coord->sub    = sub;
             task->state++;
             break;
@@ -71,7 +71,7 @@ void func_actor_460200_801336B4(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->field_8, 0xC);
+            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->coords, 0xC);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->animArg = 0xA;
@@ -95,7 +95,7 @@ void func_actor_460200_8013386C(Task* task)
 
 /// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
 /// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
-/// matrix pair its sub-model reads through `TmdObject::field_1C`/`field_20`
+/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`field_20`
 /// plus the animation state below), parks the enemy in `Actor460200Work::enemy`
 /// and starts state 2, the visibility opcode `func_actor_460200_801325FC` runs.
 void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
@@ -108,7 +108,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     VECTOR           vec;
 
     obj     = task->extra;
-    coord   = obj->field_8;
+    coord   = obj->coords;
     workMem = Mem_Calloc(0x4F8, 0);
     work    = (Actor460200Work*)workMem;
     if ((task->work = (TaskIdMap*)work) == NULL) {
@@ -121,13 +121,13 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     enemy->field_48     = 0;
     enemy->node.field_5 = 0;
     enemy->node.field_4 = 1;
-    obj->field_C        = 0;
-    obj->field_E        = 1;
+    obj->flags          = 0;
+    obj->otOffset       = 1;
     work->enemy         = enemy;
     work->animId        = 2;
     mtx                 = (MATRIX*)work;
-    obj->field_1C       = mtx;
-    obj->field_20       = mtx + 1;
+    obj->lightMtx       = mtx;
+    obj->colorMtx       = mtx + 1;
     vec.vx              = coord->workm.t[0];
     vec.vy              = coord->workm.t[1] - 0x320;
     vec.vz              = coord->workm.t[2];
@@ -146,7 +146,7 @@ void func_actor_460200_80133A04(void* arg0, Task* task)
     VECTOR         vec;
 
     obj   = task->extra;
-    coord = obj->field_8;
+    coord = obj->coords;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
@@ -206,7 +206,7 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args)
 
 /// Script opcode: set the visibility flags of this actor's model and of the
 /// model owned by the enemy task it was paired with. `flags` bit 0 hides both
-/// models (`TmdObject::field_C` = 0) and its absence restores the default
+/// models (`TmdObject::flags` = 0) and its absence restores the default
 /// 0x80; bit 1 additionally ORs in 0x4. With no enemy paired
 /// (`Task::spawnArg1` == 0) the actor drives its own model twice.
 ///
@@ -226,15 +226,15 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
         other = self;
     }
     if (flags & 1) {
-        self->field_C  = 0;
-        other->field_C = 0;
+        self->flags  = 0;
+        other->flags = 0;
     } else {
-        self->field_C  = 0x80;
-        other->field_C = 0x80;
+        self->flags  = 0x80;
+        other->flags = 0x80;
     }
     if (flags & 2) {
-        self->field_C  |= 4;
-        other->field_C |= 4;
+        self->flags  |= 4;
+        other->flags |= 4;
     }
     return 0;
 }

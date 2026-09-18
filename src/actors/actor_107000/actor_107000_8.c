@@ -45,28 +45,28 @@ void func_actor_107000_801367E0(Task* arg0)
         case 0:
         case 1:
             D_80062730 = (s32)&D_actor_107000_8013D550;
-            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->field_8 + 1, 0, NULL);
+            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 1, 0, NULL);
             if (effect != NULL) {
                 ActorsShared8013851c(effect->field_0, arg0);
             }
             break;
         case 2:
             D_80062730 = (s32)&D_actor_107000_8013CFB4;
-            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->field_8 + 5, 0, NULL);
+            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 5, 0, NULL);
             if (effect != NULL) {
                 ActorsShared8013851c(effect->field_0, arg0);
             }
             break;
         case 3:
             D_80062730 = (s32)&D_actor_107000_8013C960;
-            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->field_8 + 4, 0, NULL);
+            effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 4, 0, NULL);
             if (effect != NULL) {
                 ActorsShared8013851c(effect->field_0, arg0);
             }
             break;
     }
-    Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->extra)->field_8 + 1, 0x300, NULL);
-    Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->extra)->field_8 + 4, 0x300, NULL);
+    Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->extra)->coords + 1, 0x300, NULL);
+    Gp_SpawnEff(0x60030, (*(TmdObject**)&arg0->extra)->coords + 4, 0x300, NULL);
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_8", func_actor_107000_80136938);

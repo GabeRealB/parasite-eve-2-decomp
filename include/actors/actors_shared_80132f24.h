@@ -21,7 +21,7 @@ typedef struct ActorsShared80132f24Work {
 } ActorsShared80132f24Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80132f24Work, 0x4B8);
 
-/// Republishes the work block's two matrices onto `TmdObject::field_1C` /
+/// Republishes the work block's two matrices onto `TmdObject::lightMtx` /
 /// `field_20`, the light/colour pair `Gp_BindDefaultMtx` otherwise points at
 /// `Gp_DefaultMtx` / `Gp_DefaultMtx2`, so the actor draws with its own
 /// lighting. `func_actor_213100_8014A23C` and `func_actor_503500_801324EC` are

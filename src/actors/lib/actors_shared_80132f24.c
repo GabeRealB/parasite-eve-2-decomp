@@ -11,6 +11,6 @@ void ActorsShared80132f24(Task* task)
 
     ext           = task->extra;
     work          = (ActorsShared80132f24Work*)task->work;
-    ext->field_1C = &work->light;
-    ext->field_20 = &work->color;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
 }

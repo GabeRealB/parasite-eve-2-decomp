@@ -105,7 +105,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     POLY_FT4*          prim;
     u16                vz;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch       = (void**)G_SCRATCH_HEAD;

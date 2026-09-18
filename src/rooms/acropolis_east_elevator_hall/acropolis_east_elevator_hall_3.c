@@ -30,7 +30,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 {
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     switch (task->state) {
         case 0:
             Task_Spawn(1, 0x25, 0, 0);

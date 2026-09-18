@@ -10,7 +10,7 @@
 ///
 /// `field_14` is the pose flag the `D_801153F4` mode switch writes together
 /// with the model part's flag word: mode 0 zeroes both, mode 2 pairs a 1 here
-/// with `TmdObject::field_C = 0x80` for the hidden pose. `Actor107000Ctx` is
+/// with `TmdObject::flags = 0x80` for the hidden pose. `Actor107000Ctx` is
 /// the same type for the sibling carrier.
 typedef struct Actor104600Ctx {
     /* 0x00 */ byte pad_0[0x14];

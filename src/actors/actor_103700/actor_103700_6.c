@@ -9,7 +9,7 @@ void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2)
     u16              frame;
 
     work  = (Actor103700Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     frame           = work->field_25E + 1;
     work->field_25E = frame;
@@ -27,7 +27,7 @@ void func_actor_103700_80135140(Task* task, s32 arg1)
     s32              amp;
 
     work  = (Actor103700Work*)task->work;
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
 
     frame           = work->field_25C + 1;
     work->field_25C = frame;

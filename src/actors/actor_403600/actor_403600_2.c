@@ -135,7 +135,7 @@ void func_actor_403600_80141338(Actor403600* arg0)
     actor                     = arg0;
     SOFT_USE_REG2(block, block);
     work  = actor->field_1C;
-    coord = actor->field_2C->field_8;
+    coord = actor->field_2C->coords;
     RotMatrix((SVECTOR*)&work->field_700, matrixArg);
 
     gte_SetRotMatrix((u8*)coord + 0xA4);
@@ -202,10 +202,10 @@ void func_actor_403600_80141598(Task* task)
     Actor403600Work* work;
     GpEnemy*         enemy;
 
-    enemy                                   = task->spawnArg2;
-    work                                    = (Actor403600Work*)task->work;
-    ((TmdObject*)task->extra)->field_8->sub = &Gfx_ViewCoord;
-    enemy->field_54                         = 0;
+    enemy                                  = task->spawnArg2;
+    work                                   = (Actor403600Work*)task->work;
+    ((TmdObject*)task->extra)->coords->sub = &Gfx_ViewCoord;
+    enemy->field_54                        = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->field_508);
     Gp_UnlinkObj(&work->field_588);
@@ -225,7 +225,7 @@ void func_actor_403600_8014161C(Actor403600* arg0)
     if (*(s16*)((u8*)work + 0x78C) == 1) {
         if (((*(u16*)((u8*)work + 0x79E) & 3) == 3) &&
             ((work->field_73E != 0x28) || (work->field_732 != 5))) {
-            Gp_SpawnEff(0x60055, arg0->field_2C->field_8 + 1, 0x12800, NULL);
+            Gp_SpawnEff(0x60055, arg0->field_2C->coords + 1, 0x12800, NULL);
         }
         *(u16*)((u8*)work + 0x79E)  = (u16)(*(u16*)((u8*)work + 0x79E) + 1);
         work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
@@ -383,10 +383,10 @@ void func_actor_403600_801419E8(Actor403600* arg0)
 {
     TmdObject* obj;
 
-    obj                  = arg0->field_2C;
-    *(s8*)&obj->field_24 = -0xF;
-    obj->field_25        = 2;
-    if (obj->field_18 != NULL) {
+    obj               = arg0->field_2C;
+    *(s8*)&obj->tpage = -0xF;
+    obj->clut         = 2;
+    if (obj->buffer != NULL) {
         Tmd_ProcessStream(obj);
         Tmd_ProcessStream(obj);
     }
@@ -522,7 +522,7 @@ void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
     MATRIX*          matrix;
     MATRIX*          matrix2;
 
-    coord = ((TmdObject*)arg1->extra)->field_8;
+    coord = ((TmdObject*)arg1->extra)->coords;
     work  = Mem_Calloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
@@ -578,10 +578,10 @@ void func_actor_403600_80141E78(Actor403600Ctx* arg0, Actor403600* arg1)
     work->field_744 = value;
     if ((s16)value >= 2) {
         Tmd_AllocBuffers(arg1->field_2C);
-        obj            = arg1->field_2C;
-        obj->field_C  &= 0xFFFB;
-        obj2           = arg1->field_2C;
-        obj2->field_C &= 0xFF7F;
+        obj          = arg1->field_2C;
+        obj->flags  &= 0xFFFB;
+        obj2         = arg1->field_2C;
+        obj2->flags &= 0xFF7F;
         arg1->field_30++;
         work->field_73A = 0;
         work->field_77C = 0;
@@ -591,7 +591,7 @@ void func_actor_403600_80141E78(Actor403600Ctx* arg0, Actor403600* arg1)
 
 void func_actor_403600_80141F28(Actor403600* arg0)
 {
-    arg0->field_2C->field_8->sub = &Gfx_ViewCoord;
+    arg0->field_2C->coords->sub = &Gfx_ViewCoord;
     Gp_EnemyTaskExit((Task*)arg0);
 }
 

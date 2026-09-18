@@ -17,7 +17,7 @@ typedef struct ActorShared80134178Work {
 
 /// Tears the actor's model down once the work block's flag is set: `node.field_4`
 /// is the `GpLinkNode` slot byte `Gp_ClearNodeSlots` sets to release the node,
-/// and `TmdObject.field_C` carries the deferred-kill bit `Task_Kill` uses.
+/// and `TmdObject.flags` carries the deferred-kill bit `Task_Kill` uses.
 ///
 /// Shared by `actor_123200` and `actor_223600`.
 void ActorsShared80134178(GpEnemy* arg0, Task* arg1);

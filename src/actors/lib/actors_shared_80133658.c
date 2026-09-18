@@ -22,7 +22,7 @@ void ActorsShared80133658(Actor101500* arg0)
     s32                    wrapStep;
 
     sc    = (Actor101500RotScratch*)(SCRATCH_SP -= 0x18);
-    coord = arg0->field_2C->field_8;
+    coord = arg0->field_2C->coords;
     work  = arg0->field_1C;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
     want  = work->field_372;

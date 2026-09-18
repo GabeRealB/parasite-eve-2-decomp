@@ -45,15 +45,15 @@ void func_actor_342400_801646B8(Task* arg0)
         work->field_436 = step;
     }
     ActorsShared801698d4(arg0, work->field_436);
-    speed                                           = func_actor_342400_80169728(arg0, -0x10);
-    angle                                           = work->field_7A;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    ((TmdObject*)arg0->extra)->field_8->flg         = 0;
+    speed                                          = func_actor_342400_80169728(arg0, -0x10);
+    angle                                          = work->field_7A;
+    ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->coords->flg         = 0;
     if (ActorsShared8016974c(arg0)) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0001;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_43A < work->field_410 + 2000 && (work->field_43A < 1500 || work->field_44A == 0) &&
         (u16)(((work->field_444 + 0x800) & 0xFFF) - 0x200) > 0xC00) {
@@ -64,7 +64,7 @@ void func_actor_342400_801646B8(Task* arg0)
 void func_actor_342400_801648E4(Task* arg0)
 {
     Actor342400Work* work = (Actor342400Work*)arg0->work;
-    GsCOORDINATE2*   root = ((TmdObject*)arg0->extra)->field_8;
+    GsCOORDINATE2*   root = ((TmdObject*)arg0->extra)->coords;
     MATRIX           local;
     s16              angle;
     s32              soundId;
@@ -80,7 +80,7 @@ void func_actor_342400_801648E4(Task* arg0)
         work->field_438 = 1;
     }
     if ((s16)work->field_412 == 43) {
-        GsCOORDINATE2* coords = ((TmdObject*)arg0->extra)->field_8;
+        GsCOORDINATE2* coords = ((TmdObject*)arg0->extra)->coords;
         SVECTOR*       v;
 
         Gfx_ViewCoord.flg = 0;
@@ -101,8 +101,8 @@ void func_actor_342400_801648E4(Task* arg0)
     }
     if ((s16)work->field_412 == 46) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0005;
-        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan     = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
     }
     if ((s16)work->field_412 == 45) {
         facing = (work->field_444 + 0x800) & 0xFFF;
@@ -115,12 +115,12 @@ void func_actor_342400_801648E4(Task* arg0)
         }
     }
     if (work->field_412 >= 45 && work->field_412 <= 53) {
-        angle                                           = work->field_40C;
-        speed                                           = -250;
-        ((TmdObject*)arg0->extra)->field_8->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-        ((TmdObject*)arg0->extra)->field_8->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-        ((TmdObject*)arg0->extra)->field_8->flg         = 0;
-        work->obj_3AC.flags                            |= 0x8000;
+        angle                                          = work->field_40C;
+        speed                                          = -250;
+        ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->flg         = 0;
+        work->obj_3AC.flags                           |= 0x8000;
     } else {
         work->obj_3AC.flags &= 0x7FFF;
     }

@@ -34,7 +34,7 @@ void func_actor_800200_80162088(GpActorWork* arg0)
     *(void**)0x1F8003FC = head - 8;
     scratch             = (SVECTOR3*)(head - 8);
     extra               = arg0->extra;
-    addr                = &extra->field_8;
+    addr                = &extra->coords;
     coord               = *addr;
     arg0->state++;
     arg0->field_24   = &D_actor_800200_80169EF0;
@@ -43,7 +43,7 @@ void func_actor_800200_80162088(GpActorWork* arg0)
     D_80115764       = arg0;
     coord->sub       = &Gfx_ViewCoord;
     coord->flg       = 0;
-    extra->field_C   = 0;
+    extra->flags     = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     func_8010BFCC(arg0);
     actor->field_985 = 0x10;
@@ -74,7 +74,7 @@ void func_actor_800200_80162088(GpActorWork* arg0)
     Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
     obj->flags     |= 0xC200;
     obj             = (GpObj*)actor->field_CC;
-    next            = arg0->extra->field_8;
+    next            = arg0->extra->coords;
     obj->field_C    = (GpRec18*)actor->field_94;
     obj->field_8    = next + 4;
     actor->field_9C = (s32)recs;
@@ -120,7 +120,7 @@ void func_actor_800200_801622B0(GpActorWork* arg0)
     *scratch = head - 0x18;
     extra    = obj;
     sc       = (Actor800200VecScratch*)(head - 0x18);
-    coord    = extra->field_8;
+    coord    = extra->coords;
     actor    = arg0->actor;
     d4       = actor->field_910;
     if (actor->field_954 != 2 &&
@@ -143,7 +143,7 @@ void func_actor_800200_801622B0(GpActorWork* arg0)
         actor->field_14 = coord->coord.t[1];
         actor->field_18 = coord->coord.t[2];
     }
-    *(GsCOORDINATE2*)d4->field_18 = *arg0->extra->field_8;
+    *(GsCOORDINATE2*)d4->field_18 = *arg0->extra->coords;
     objs[0]                       = (GpObj*)actor->field_AC;
     objs[1]                       = (GpObj*)actor->field_CC;
     for (i = 0; i < 2; i++) {
@@ -185,7 +185,7 @@ void func_actor_800200_801622B0(GpActorWork* arg0)
     ((SVECTOR*)actor->field_A0)->vx = sc->vec.vx;
     ((SVECTOR*)actor->field_A0)->vy = sc->vec.vy;
     ((SVECTOR*)actor->field_A0)->vz = sc->vec.vz;
-    if (!(extra->field_C & 0x80)) {
+    if (!(extra->flags & 0x80)) {
         Gp_DrawEffGroundQuad((VECTOR3*)coord->workm.t, 0x200, Gp_State1C->field_8);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;

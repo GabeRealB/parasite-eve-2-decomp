@@ -34,5 +34,5 @@ void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2)
     }
 
     obj = (TmdObject*)task->extra;
-    Gp_SpawnEff(0x60054, &obj->field_8[arg1], arg2 | 0x80000000, &sp10);
+    Gp_SpawnEff(0x60054, &obj->coords[arg1], arg2 | 0x80000000, &sp10);
 }

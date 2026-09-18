@@ -22,7 +22,7 @@ void func_actor_335800_80163CA0(Task* task)
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     work  = (Actor335800Work*)task->work;
 
     vec = D_actor_335800_80161E78;
@@ -81,22 +81,22 @@ s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C                             |= 0x80;
+            obj->flags                               |= 0x80;
             ((Actor335800Work*)task->work)->field_4C4 = mode;
-            obj->field_C                             |= 4;
+            obj->flags                               |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;

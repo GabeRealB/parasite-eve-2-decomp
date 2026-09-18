@@ -33,7 +33,7 @@ void func_actor_341700_80169380(Task* arg0)
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {
         work->field_412  = 0;
-        model->field_C   = model->field_C | 0x80;
+        model->flags     = model->flags | 0x80;
         work2            = (Actor341700Work*)arg0->work;
         work2->field_420 = 7;
         work2->field_422 = 0;

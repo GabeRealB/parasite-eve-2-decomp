@@ -27,8 +27,8 @@ typedef struct Actor120300Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[20];
     /* 0x334 */ byte       pad_334[0x140];
-    /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::field_1C
-    /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::field_20
+    /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::lightMtx
+    /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::colorMtx
     /* 0x4B4 */ Task*      field_4B4; // Gp_DispatchMsg target for msgs 0x3E8/0x3E9
     /* 0x4B8 */ Task*      field_4B8;
     /* 0x4BC */ Task*      field_4BC;

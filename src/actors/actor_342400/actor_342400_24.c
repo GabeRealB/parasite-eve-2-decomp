@@ -21,7 +21,7 @@ void func_actor_342400_8016B5B0(Task* arg0)
     s32              flag;
 
     work   = (Actor342400Work*)arg0->work;
-    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->field_8;
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     SndEvt_EnqueueType7(0x402C0002, 1);
     work->field_90  = coords->coord.t[0];
     work->field_92  = coords->coord.t[1];
@@ -32,7 +32,7 @@ void func_actor_342400_8016B5B0(Task* arg0)
     work->field_422++;
     pos     = &work->field_70;
     pos->vx = pos->vy = pos->vz = 0;
-    current                     = &((GsCOORDINATE2*)((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->field_8)[3];
+    current                     = &((GsCOORDINATE2*)((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords)[3];
     local.vx                    = pos->vx;
     local.vy                    = pos->vy;
     local.vz                    = pos->vz;
@@ -72,8 +72,8 @@ void func_actor_342400_8016B744(Task* arg0)
         work->field_418 = 9;
         work->field_414 = 1;
         soundId         = ((((GpEnemy*)arg0->spawnArg2)->field_8 >> 0xC) << 8) | 0x402C0002;
-        pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->field_8);
-        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->field_8));
+        pan             = (s8)Gp_GetObjPan((GpObj38*)((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)Gp_GetObjDepth((GpObj38*)((TmdObject*)arg0->extra)->coords));
         work->field_422 = 4;
         return;
     }

@@ -22,7 +22,7 @@ void func_dryfield_night_warehouse_8017E778(Task* arg0)
     GsCOORDINATE2* coord;
     s32            mask;
 
-    coord = ((TmdObject*)arg0->extra)->field_8;
+    coord = ((TmdObject*)arg0->extra)->coords;
     mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x24C) {

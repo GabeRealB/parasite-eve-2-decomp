@@ -39,10 +39,10 @@ void func_actor_113000_80131F90(Task* task)
     work->field_47C = -1;
     work->field_4C6 = 0;
     work->field_4C8 = -1;
-    flags           = extra->field_C | 0x80;
-    extra->field_C  = flags;
+    flags           = extra->flags | 0x80;
+    extra->flags    = flags;
     if (!(flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->field_8);
         }
     }
@@ -72,13 +72,13 @@ void func_actor_113000_80132070(Task* task)
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
-    if (!(extra->field_C & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->field_8[1].workm.t, &pos) != 0) {
+    if (!(extra->flags & 0x80)) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->field_8);
         }
     }
     if (gGameSession->viewReady != 0) {
-        coords        = ((TmdObject*)task->extra)->field_8;
+        coords        = ((TmdObject*)task->extra)->coords;
         coords[1].flg = 0;
         Gp_UpdateCoord(&coords[1]);
         func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
@@ -103,9 +103,9 @@ void func_actor_113000_801321A8(Task* task)
 
     work            = (Actor113000Work*)task->work;
     extra           = (TmdObject*)task->extra;
-    coords          = extra->field_8;
-    extra->field_1C = &work->light;
-    extra->field_20 = &work->color;
+    coords          = extra->coords;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
     coords[1].flg   = 0;
     Gp_UpdateCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);

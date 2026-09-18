@@ -122,9 +122,9 @@ typedef struct Actor356100Work {
     /* 0xA58 */ GpRec18 field_A58;
     /* 0xA70 */ byte    pad_A70[0x68];
     /// Light matrix `func_actor_356100_8016382C` binds to the model's
-    /// `TmdObject::field_1C` (the color matrix is `field_AF8`).
+    /// `TmdObject::lightMtx` (the color matrix is `field_AF8`).
     /* 0xAD8 */ MATRIX field_AD8;
-    /// Color matrix bound to the model's `TmdObject::field_20`.
+    /// Color matrix bound to the model's `TmdObject::colorMtx`.
     /* 0xAF8 */ MATRIX field_AF8;
     /// Copy `func_actor_356100_80167584` saves `field_AF8` into when it enters
     /// its state; same role as `Actor401300Work.field_C68` has for `field_C48`.
@@ -241,8 +241,8 @@ static __inline__ void Actor356100_BindMatrices(Actor356100* actor)
 
     work          = actor->field_1C;
     obj           = actor->field_2C;
-    obj->field_1C = &work->field_AD8;
-    obj->field_20 = &work->field_AF8;
+    obj->lightMtx = &work->field_AD8;
+    obj->colorMtx = &work->field_AF8;
 }
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
@@ -488,8 +488,8 @@ static __inline__ s16 Actor356100_PositionYaw(Actor356100* actor, SVECTOR* pos, 
     GsCOORDINATE2* coord;
     s32            angle;
 
-    Actor356100_ConfigPositionDelta(config, actor->field_2C->field_8, pos);
-    coord = actor->field_2C->field_8;
+    Actor356100_ConfigPositionDelta(config, actor->field_2C->coords, pos);
+    coord = actor->field_2C->coords;
     angle = ratan2(pos->vx, pos->vz);
     return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
@@ -510,8 +510,8 @@ static __inline__ s16 Actor356100_MatrixPositionYaw(Actor356100* actor, SVECTOR*
     GsCOORDINATE2* coord;
     s32            angle;
 
-    Actor356100_MatrixPositionDelta(m, actor->field_2C->field_8, pos);
-    coord = actor->field_2C->field_8;
+    Actor356100_MatrixPositionDelta(m, actor->field_2C->coords, pos);
+    coord = actor->field_2C->coords;
     angle = ratan2(pos->vx, pos->vz);
     return Actor356100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }

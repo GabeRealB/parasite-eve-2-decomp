@@ -31,30 +31,30 @@ s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
+            obj->flags &= ~0x80;
             Tmd_AllocBuffers(obj);
-            obj->field_C &= ~4;
+            obj->flags &= ~4;
             break;
         case 2:
-            obj->field_C   |= 0x80;
+            obj->flags     |= 0x80;
             work->field_508 = mode;
-            obj->field_C   |= 4;
+            obj->flags     |= 4;
             break;
         case 3:
-            obj->field_C &= ~0x80;
-            obj->field_C |= 4;
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
             break;
         default:
             ret = 1;
             break;
     }
-    objB->field_C = obj->field_C;
-    objA->field_C = obj->field_C;
-    objC->field_C = obj->field_C;
+    objB->flags = obj->flags;
+    objA->flags = obj->flags;
+    objC->flags = obj->flags;
     return ret;
 }
 

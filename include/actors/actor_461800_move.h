@@ -18,7 +18,7 @@ static __inline__ void Actor461800_MoveForward(Task* task, s16 amount)
     SVECTOR*       head;
     SVECTOR*       vec;
 
-    coord = ((TmdObject*)task->extra)->field_8;
+    coord = ((TmdObject*)task->extra)->coords;
     if (D_80072729 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;

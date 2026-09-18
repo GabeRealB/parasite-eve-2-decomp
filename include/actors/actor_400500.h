@@ -36,7 +36,7 @@ typedef struct Actor400500ViewPos {
 } Actor400500ViewPos;
 STATIC_ASSERT_SIZEOF(Actor400500ViewPos, 0x6);
 
-/// Overlay of the model-root `GsCOORDINATE2` at `TmdObject::field_8`.
+/// Overlay of the model-root `GsCOORDINATE2` at `TmdObject::coords`.
 /// `x` / `z` are the low halfwords of `coord.t[0]` / `coord.t[2]`.
 typedef struct Actor400500RootXZ {
     /* 0x00 */ byte pad_0[0x18];
@@ -115,8 +115,8 @@ typedef struct Actor400500Work {
     /* 0x952 */ byte               pad_952[2];
     /* 0x954 */ u16                field_954; // low half of root coord.t[2]
     /* 0x956 */ byte               pad_956[6];
-    /* 0x95C */ MATRIX             colorMtx;  // TmdObject::field_20
-    /* 0x97C */ MATRIX             lightMtx;  // TmdObject::field_1C
+    /* 0x95C */ MATRIX             colorMtx;  // TmdObject::colorMtx
+    /* 0x97C */ MATRIX             lightMtx;  // TmdObject::lightMtx
     /* 0x99C */ byte               pad_99C[4];
     /* 0x9A0 */ Actor400500ViewPos field_9A0;
     /* 0x9A6 */ byte               pad_9A6[0x16];
@@ -152,7 +152,7 @@ typedef struct Actor400500Work {
     /* 0xA1E */ u16                field_A1E; // flags; bit 0x1 and bit 0x2 gate animations
     /* 0xA20 */ s16                field_A20;
     /* 0xA22 */ u16                field_A22; // frame counter used when field_A1C == 5
-    /* 0xA24 */ s16                field_A24; // copied to TmdObject::field_2C
+    /* 0xA24 */ s16                field_A24; // copied to TmdObject::lightLevel
     /* 0xA26 */ u16                field_A26; // heading countdown, decremented by 0x80
     /* 0xA28 */ s16                field_A28;
     /* 0xA2A */ s16                field_A2A; // fade sub-state timer

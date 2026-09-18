@@ -17,16 +17,16 @@ void func_actor_420700_8013239C(Task* arg0)
 void func_actor_420700_801323D8(Task* task)
 {
     TmdObject*     extra = task->extra;
-    GsCOORDINATE2* coord = extra->field_8;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->field_8;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
     GsCOORDINATE2* part  = parts + 4;
     VECTOR         vec;
 
     switch (task->state) {
         case 0:
-            coord->flg     = 0;
-            extra->field_C = 0;
-            coord->sub     = part;
+            coord->flg   = 0;
+            extra->flags = 0;
+            coord->sub   = part;
             task->state++;
             break;
         case 1:

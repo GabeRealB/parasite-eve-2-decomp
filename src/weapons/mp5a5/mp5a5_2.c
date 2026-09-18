@@ -44,7 +44,7 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
         *(void**)G_SCRATCH_HEAD = tmp;
     }
     actor = arg0->actor;
-    coord = arg0->extra->field_8;
+    coord = arg0->extra->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956  = 4;
@@ -83,9 +83,9 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
                     rec->field_10     = rec->field_12;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201E0004, 1);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201E0004, 1);
                     Gp_SpawnEff(0x6002B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1E, NULL);
                     Gp_ConsumeSlotQty(0x9D, 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
@@ -97,10 +97,10 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
                     rec->field_10     = 0xC00;
                     actor->field_12A &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, 0x201E0005, 0);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->coords, 0x201E0005, 0);
                     Gp_ConsumeSlotQty(0x9D, 0x101);
                     eff = Gp_SpawnEff(0x60041,
-                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->field_8,
+                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0x1E, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->field_0);

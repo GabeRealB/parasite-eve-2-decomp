@@ -37,21 +37,21 @@ void func_acropolis_cafeteria_801827C4(Task* task)
     obj = (GpItemObj8*)task->spawnArg2;
     tmd = (TmdObject*)task->extra;
     if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
-        tmd->field_1C = &D_acropolis_cafeteria_8018D5C0;
-        tmd->field_20 = &D_acropolis_cafeteria_8018D5A0;
-        tmd->field_C  = 0;
+        tmd->lightMtx = &D_acropolis_cafeteria_8018D5C0;
+        tmd->colorMtx = &D_acropolis_cafeteria_8018D5A0;
+        tmd->flags    = 0;
     } else {
-        tmd->field_C |= 0x80;
+        tmd->flags |= 0x80;
     }
     switch (Gp_GetViewIndex() & 0xFF) {
         case 0xC:
-            tmd->field_E = 7;
+            tmd->otOffset = 7;
             break;
         case 0x18:
-            tmd->field_E = 4;
+            tmd->otOffset = 4;
             break;
         default:
-            tmd->field_E = -2;
+            tmd->otOffset = -2;
             break;
     }
 }
@@ -65,20 +65,20 @@ void func_acropolis_cafeteria_8018286C(Task* task)
     tmd  = (TmdObject*)task->extra;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
         return;
     }
     if (obj->field_8 == 0xA) {
-        Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, 0x400, 1);
+        Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, 0x400, 1);
     }
-    tmd->field_1C = &D_acropolis_cafeteria_8018D600;
-    tmd->field_20 = &D_acropolis_cafeteria_8018D5E0;
+    tmd->lightMtx = &D_acropolis_cafeteria_8018D600;
+    tmd->colorMtx = &D_acropolis_cafeteria_8018D5E0;
     if (flag == 2) {
-        tmd->field_C &= 0xFFF7;
+        tmd->flags &= 0xFFF7;
         Task_CallExit(task);
     } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }
 }
@@ -88,19 +88,19 @@ void func_acropolis_cafeteria_80182954(Task* task)
 
     tmd = (TmdObject*)task->extra;
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
-        tmd->field_C = 0x80;
+        tmd->flags = 0x80;
         return;
     }
-    tmd->field_1C = &D_acropolis_cafeteria_8018D640;
-    tmd->field_20 = &D_acropolis_cafeteria_8018D620;
+    tmd->lightMtx = &D_acropolis_cafeteria_8018D640;
+    tmd->colorMtx = &D_acropolis_cafeteria_8018D620;
     if (Gp_GetCurBit2Flag(0xA) == 2) {
-        tmd->field_C |= 0x80;
+        tmd->flags |= 0x80;
     } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->field_8->coord, 0x400, 1);
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, 0x400, 1);
 }
 void func_acropolis_cafeteria_80182A08(Task* task)
 {
@@ -111,19 +111,19 @@ void func_acropolis_cafeteria_80182A08(Task* task)
         case 6:
         case 7:
         case 0xA:
-            tmd->field_C  = 8;
-            tmd->field_1C = &D_acropolis_cafeteria_8018D680;
-            tmd->field_20 = &D_acropolis_cafeteria_8018D660;
+            tmd->flags    = 8;
+            tmd->lightMtx = &D_acropolis_cafeteria_8018D680;
+            tmd->colorMtx = &D_acropolis_cafeteria_8018D660;
             break;
         default:
-            tmd->field_C |= 0x80;
+            tmd->flags |= 0x80;
             return;
     }
     if (Gp_GetCurBit2Flag(0xB) == 2) {
-        tmd->field_C |= 0x80;
+        tmd->flags |= 0x80;
     } else {
-        tmd->field_C = 8;
-        tmd->field_E = 0;
+        tmd->flags    = 8;
+        tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }
 }
