@@ -25,17 +25,27 @@ typedef struct _TmdBone {
 } TmdBone;
 STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 
+/// One model as its package ships it: its vertices, normals, bone rest pose and
+/// packet stream.
+///
+/// A package lays a model out as `[vertices][normals][packet stream][record]`
+/// with the record last, and every pointer here is an address into that same
+/// package, so a model stays whole at whatever address its package loads. A
+/// `TmdObject` points here, and the two divide the work between them: the
+/// record is the shipped, constant description, while the buffer a model is
+/// decoded into and the per-part coordinate array belong to the object.
 typedef struct _TmdSource {
-    /* 0x00 */ s32   field_0;   // one-shot init flag (set 1)
-    /* 0x04 */ s32   field_4;   // byte count for aux alloc (calloc size * 2)
-    /* 0x08 */ s32   field_8;   // offset into half-buffer base
-    /* 0x0C */ s32   partCount; // parts (bones); copied to TmdObject.field_30
-    /* 0x10 */ u8*   partVerts; // partCount x u32, vertices owned by each part
-    /* 0x14 */ s32   field_14;  // vertex array; copied to scratch ws
-    /* 0x18 */ s32   field_18;  // normal array; copied to scratch ws
-    /* 0x1C */ void* skeleton;  // partCount x TmdBone, the rest pose
-    /* 0x20 */ u32*  field_20;  // [id, handler_slot, dims, data…] stream
+    s32      field_0;   // One-shot flag: 0 as shipped, set once the stream's opcodes have been resolved to handlers
+    s32      field_4;   // Size of one half of the decode buffer in bytes; the object allocates twice this
+    s32      field_8;   // Size of the first of a half's two prim regions, i.e. the offset the second starts at
+    s32      partCount; // Parts the model is divided into; one bone each
+    u32*     partVerts; // Vertex count per part, summing to the vertex array's length
+    SVECTOR* field_14;  // Vertices, grouped by part
+    SVECTOR* field_18;  // Normals, indexed independently of the vertices
+    TmdBone* skeleton;  // Rest pose: one bone per part, carrying its parent index
+    u32*     field_20;  // Packet stream, the drawing instructions for the model's parts
 } TmdSource;
+STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
 struct _TmdListHead;
 

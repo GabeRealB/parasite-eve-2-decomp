@@ -342,8 +342,8 @@ void Tmd_ProcessStream(TmdObject* arg0)
     ws->field_4     = ws->field_0;
     ws->field_0     = (u8*)ws->field_0 + src->field_8;
     arg0->field_14 ^= 1;
-    ws->field_8     = arg0->field_10->field_14;
-    ws->field_C     = arg0->field_10->field_18;
+    ws->field_8     = (s32)arg0->field_10->field_14;
+    ws->field_C     = (s32)arg0->field_10->field_18;
     ws->field_70    = (s8)arg0->field_24;
     ws->field_72    = (s8)arg0->field_25 << 6;
     goto read_id;
@@ -581,11 +581,11 @@ void Tmd_SetupDraw(TmdObject* arg0)
     ws->field_4     = ws->field_0;
     ws->field_0     = (u8*)ws->field_0 + arg0->field_10->field_8;
     arg0->field_14 ^= 1;
-    ws->field_8     = arg0->field_10->field_14;
+    ws->field_8     = (s32)arg0->field_10->field_14;
     COMPILER_BARRIER();
     ot           = Gpu_CurrentOt;
     p            = arg0->field_10;
-    field18      = p->field_18;
+    field18      = (s32)p->field_18;
     ws->field_14 = ot;
     ws->field_C  = field18;
     e            = arg0->field_E;
