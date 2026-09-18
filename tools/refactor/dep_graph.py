@@ -58,6 +58,7 @@ _PRIMITIVE = {
     "size_t", "bool", "byte", "void", "char", "int", "short", "long",
     "unsigned", "signed", "float", "double", "va_list", "ptrdiff_t",
     "u_char", "u_short", "u_int", "u_long", "s_char", "s_short", "s_int", "s_long",
+    "true", "false", "NULL", "bool_t",
 }
 
 
@@ -109,7 +110,7 @@ def scan_tu(job):
                     if d_usr and d_usr != t_usr:
                         uses.add((d_usr, d.spelling))
             if cur.spelling:
-                out.append(((t_usr, cur.spelling, where), sorted(uses)))
+                out.append(((t_usr, cur.spelling, where, loc.line), sorted(uses)))
             continue
         if cur.kind not in _DEF_KINDS or not cur.is_definition():
             continue
@@ -145,7 +146,7 @@ def scan_tu(job):
             if not r_usr or r_usr == usr or _is_local(r_usr):
                 continue
             uses.add((r_usr, ref.spelling))
-        out.append(((usr, cur.spelling, where), sorted(uses)))
+        out.append(((usr, cur.spelling, where, loc.line), sorted(uses)))
     return out
 
 
@@ -161,8 +162,8 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
             done += 1
             if done % 50 == 0 or done == len(files):
                 print(f"\r  parsed {done}/{len(files)} TUs", end="", file=sys.stderr, flush=True)
-            for (usr, spelling, where), uses in res:
-                nodes[usr] = {"name": spelling, "file": where}
+            for (usr, spelling, where, line), uses in res:
+                nodes[usr] = {"name": spelling, "file": where, "line": line}
                 edges.setdefault(usr, set()).update(u for u, _ in uses)
                 for u, s in uses:
                     nodes.setdefault(u, {"name": s, "file": ""})
@@ -230,10 +231,44 @@ def processed_set(root: str, nodes: dict) -> set:
         if name in vendor or name in _PRIMITIVE:
             out.add(usr)
             continue
-        kind = "func" if "@F@" in usr else "data"
-        if name_index.classify(name, kind, vendor) == "current":
-            out.add(usr)
+        kind = _node_kind(usr)
+        if name_index.classify(name, kind, vendor) != "current":
+            continue
+        # A convention-shaped name is not the whole job: an item is processed
+        # once it is also documented, which is what the pass is for.
+        if meta.get("file") and not _has_doc(root, meta):
+            continue
+        out.add(usr)
     return out
+
+
+def _node_kind(usr: str) -> str:
+    if "@F@" in usr:
+        return "func"
+    if any(t in usr for t in ("@S@", "@SA@", "@U@", "@UA@", "@E@", "@EA@", "@T@")):
+        return "type"
+    return "data"
+
+
+_DOC_CACHE = {}
+
+
+def _has_doc(root: str, meta: dict) -> bool:
+    """Is there a /// comment immediately above the declaration?"""
+    path, line = meta.get("file"), meta.get("line")
+    if not path or not line:
+        return False
+    lines = _DOC_CACHE.get(path)
+    if lines is None:
+        try:
+            lines = open(os.path.join(root, path), errors="replace").read().splitlines()
+        except OSError:
+            lines = []
+        _DOC_CACHE[path] = lines
+    i = line - 2
+    while i >= 0 and not lines[i].strip():
+        i -= 1
+    return i >= 0 and lines[i].lstrip().startswith("///")
 
 
 def components(nodes, edges):
@@ -451,11 +486,8 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
         for usr in sorted(pending, key=lambda u: nodes[u]["name"]):
             meta = nodes[usr]
             name, where = meta["name"], meta.get("file", "")
-            kind = ("func" if "@F@" in usr else
-                    "type" if any(t in usr for t in ("@S@", "@SA@", "@U@", "@UA@",
-                                                     "@E@", "@EA@", "@T@"))
-                    else "data")
-            state = name_index.classify(name, "func" if kind == "func" else "data", vendor)
+            kind = _node_kind(usr)
+            state = name_index.classify(name, kind, vendor)
             refs = referrers.get(usr, set())
             outside = {r for r in refs if nodes.get(r, {}).get("file") != where}
             if kind == "type":

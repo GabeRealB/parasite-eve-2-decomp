@@ -293,6 +293,10 @@ def classify(name: str, kind: str, vendor: set) -> str:
     # A PascalCase function is the older style too, just without a separator.
     if kind == "func" and re.match(r"^[A-Z][A-Za-z0-9]*$", name):
         return "legacy"
+    # A type already in PascalCase follows the convention; only functions and
+    # data carry the lowerCamelCase and marker rules.
+    if kind == "type":
+        return "current" if _CUR_TYPE.match(name) else "other"
     if kind == "func" and _CUR_FUNC.match(name):
         return "current"
     if kind == "data":
