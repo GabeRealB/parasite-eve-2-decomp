@@ -128364,3 +128364,62 @@ mid-`.rodata` and GCC padded it with `.align 3`, making the object's `.rodata`
 0x90 instead of 0x8C and pushing `.text` four bytes down (`.rodata` precedes
 `.text` in a `pe2pkg` overlay, so *every* later address shifted). That is the
 `units` + `rodata` cut described above, not a codegen problem.
+
+## "Default then override" vs `if`/`else`: a later constant store merges with the compare constant
+
+**Problem.** `func_actor_120500_80132028` picks an animation index from a byte
+and then fills a `GpAnimArg` whose `field_4` is `1`:
+
+```
+bne   $v0, $v1, .L258     # $v1 = 1
+ addiu $v0, $a0, 0x22
+addu  $v0, $a0, $v1
+.L258:
+...
+sw    $v0, 0x18($sp)
+addiu $v0, $zero, 0x1     # a *second* materialisation of 1
+sw    $v0, 0x1C($sp)
+```
+
+The obvious source — compute the default, then override it — reproduces the
+branch and both delay slots exactly, but emits only **one** `li 1`, reusing the
+compare's register for the store:
+
+```c
+anim = D_80073BA9 + 0x22;
+if (D_8007218A == 1) {
+    anim = D_80073BA9 + 1;
+}
+```
+
+**Why.** With no `else`, the branch jumps *around a single block*, so
+`cse_end_of_basic_block` takes its `AROUND` extension (`-fcse-skip-blocks`,
+on at `-O2`, needs `LABEL_NUSES(merge) == 1`) and keeps scanning past the merge
+label in the same extended block. `invalidate_skipped_block` only invalidates
+what the skipped block *sets*, so the compare's constant is still in the table
+when the store's `1` is expanded, and `canon_reg` folds the two pseudos into
+one. That one pseudo now spans three basic blocks: it takes a high register
+(`$a3` here), pushes the result value out of `$v0`, and the `%hi` register reuse
+that follows costs the load-delay slot — a three-instruction window that looks
+like four unrelated problems.
+
+**Fix.** Write it as an `if`/`else` with the load in its **own** variable and
+the result in another:
+
+```c
+base = D_80073BA9;
+if (D_8007218A == 1) {
+    anim = base + 1;
+} else {
+    anim = base + 0x22;
+}
+```
+
+CSE's block now ends at the `else` label, the two constants stay distinct, and
+`dbr` still folds the whole thing back to `bne` + `addiu` in the delay slot +
+`addu`. Reusing *one* variable for both the load and the result
+(`anim = D_80073BA9; if (...) anim = anim + 1; else anim = anim + 0x22;`) does
+**not** work — that emits the `j`-over-`else` shape instead.
+`func_actor_160900_80133238` and `func_actor_341900_801628B8` are matched
+examples of the two-variable form; `func_actor_120500_8013241C` is a matched
+example of the one-variable form and does emit the `j`.

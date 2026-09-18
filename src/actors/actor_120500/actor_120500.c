@@ -79,7 +79,111 @@ void func_actor_120500_80131E58(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120500/actor_120500", func_actor_120500_80132028);
+/// Per-frame request handler for the pair at `field_4B8` / `field_4BA`, stepped
+/// by the tick body and armed by `func_actor_120500_801328C0`. Every request
+/// first tells the task at `field_4B4` to stop (message 0x3ED), then dispatches
+/// on the code: 2 raises the override vector and installs animation set 0 once
+/// before sending placement record `D_actor_120500_80138090` on every tick --
+/// the only code that does not clear itself; 3 spawns table entry 1, drops the
+/// override and installs set 1 with `D_actor_120500_801380A8`; 4 installs set 2
+/// with the 8-frame blend; 5 broadcasts the actor's own visibility message
+/// 0x7D5; and 6 sends the player the equipped-weapon animation set, picked the
+/// same way `func_actor_120500_8013241C` picks it. Every other code, 0 and 1
+/// included, just clears the request.
+void func_actor_120500_80132028(Task* arg0)
+{
+    Actor120500Work* work;
+    Actor120500Work* w;
+    Actor120500Work* w2;
+    Actor120500Work* w3;
+    SVECTOR          vec;
+    GpAnimArg        msg;
+    GpAnimArg*       p;
+    s32              anim;
+    s32              base;
+
+    work = (Actor120500Work*)arg0->idMap;
+    if (work->field_4B4 != NULL) {
+        Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0);
+    }
+    switch ((u16)work->field_4B8) {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            switch ((u16)work->field_4BA) {
+                case 0:
+                    vec.vx = 0x960;
+                    vec.vy = 0x960;
+                    vec.vz = 0x960;
+                    Gp_SetOverrideVec(&vec);
+                    w3 = (Actor120500Work*)arg0->idMap;
+                    p  = &msg;
+                    if (w3->field_4B4 != NULL) {
+                        msg.field_0 = D_actor_120500_8013807C;
+                        msg.field_4 = 0;
+                        msg.field_8 = 0;
+                        msg.field_C = 0;
+                        p->field_10 = 1;
+                        Gp_DispatchMsg(w3->field_4B4, 0x3F4, (s32)p, 0);
+                    }
+                    work->field_4BA = work->field_4BA + 1;
+                    /* fallthrough */
+                case 1:
+                    Gp_DispatchMsg(((Actor120500Work*)arg0->idMap)->field_4B4, 0x3E9,
+                                   (s32)&D_actor_120500_80138090, 0);
+                    return;
+            }
+            return;
+        case 3:
+            Task_SpawnFromTable(&D_actor_120500_80138418, 1, 8, 0);
+            w = (Actor120500Work*)arg0->idMap;
+            Gp_SetOverrideVec(NULL);
+            Gp_DispatchMsg(w->field_4B4, 0x3F3, 1, 0);
+            Gp_DispatchMsg(w->field_4B4, 0x3E9, (s32)&D_actor_120500_801380A8, 0);
+            w2 = (Actor120500Work*)arg0->idMap;
+            p  = &msg;
+            if (w2->field_4B4 != NULL) {
+                msg.field_0 = D_actor_120500_8013807C;
+                p->field_4  = 1;
+                msg.field_8 = 0;
+                msg.field_C = 0;
+                p->field_10 = 1;
+                Gp_DispatchMsg(w2->field_4B4, 0x3F4, (s32)p, 0);
+            }
+            break;
+        case 4:
+            w2 = (Actor120500Work*)arg0->idMap;
+            p  = &msg;
+            if (w2->field_4B4 != NULL) {
+                msg.field_0 = D_actor_120500_8013807C;
+                p->field_4  = 2;
+                p->field_8  = 1;
+                p->field_C  = 8;
+                p->field_10 = 1;
+                Gp_DispatchMsg(w2->field_4B4, 0x3F4, (s32)p, 0);
+            }
+            break;
+        case 5:
+            Gp_DispatchMsg(arg0, 0x7D5, 2, 0);
+            break;
+        case 6:
+            base = D_80073BA9;
+            if (D_8007218A == 1) {
+                anim = base + 1;
+            } else {
+                anim = base + 0x22;
+            }
+            msg.field_0  = (void*)anim;
+            msg.field_4  = 1;
+            msg.field_8  = 0;
+            msg.field_C  = 0;
+            msg.field_10 = 0;
+            Gp_DispatchMsg(work->field_4B4, 0x3E8, (s32)&msg, 0);
+            break;
+    }
+    work->field_4B8 = 0;
+}
 
 /// Builds the actor's work block for its scene: `Mem_Malloc(0x4CC, 0)`, and
 /// on failure it kills the task and returns.  The allocation's `Game_GetPtrSlot(3)`

@@ -9,15 +9,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Animation-set table this overlay hands the task at `field_4B4` as message
-/// 0x3F4's `GpAnimArg::field_0`: three sets, the same shape
-/// `D_actor_444000_8014430C` has.
-extern GpAnimSet* D_actor_120500_8013807C[];
-
-/// Placement record message 0x3E9 hands that same task, taken as a raw
-/// address the way `D_actor_120300_80140ACC` is.
-extern s32 D_actor_120500_801380A8;
-
 void func_actor_120500_801328C0(s16 arg0)
 {
     Actor120500Work* work = D_actor_120500_80138454->field_1C;

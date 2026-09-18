@@ -68,6 +68,16 @@ extern s8 D_80114C12;
 extern u8 D_80071075;
 extern s8 D_8007106B;
 
+/// Animation-set table this overlay hands the task at `field_4B4` as message
+/// 0x3F4's `GpAnimArg::field_0`: three sets, the same shape
+/// `D_actor_444000_8014430C` has.
+extern GpAnimSet* D_actor_120500_8013807C[];
+
+/// Placement records message 0x3E9 hands that same task, taken as raw
+/// addresses the way `D_actor_120300_80140ACC` is.
+extern s32 D_actor_120500_80138090;
+extern s32 D_actor_120500_801380A8;
+
 /// Pair of blocks `func_actor_120500_8013241C` passes to `func_800E8634`.
 extern u8 D_actor_120500_801380D8[];
 extern u8 D_actor_120500_80138318[];
