@@ -80,6 +80,12 @@ def scan_tu(job):
         # no type-to-type edges at all, every type looks like a leaf, and the
         # cycles that types form with each other disappear.
         if cur.kind in _TYPE_KINDS:
+            # Only the definition, never a forward declaration. `struct _Task;`
+            # in a header that is included first would otherwise be recorded as
+            # the type's location, and the documentation check would look at
+            # the forward declaration rather than at the fields.
+            if cur.kind != ci.CursorKind.TYPEDEF_DECL and not cur.is_definition():
+                continue
             t_usr = cur.get_usr()
             loc = cur.location
             if not t_usr or loc.file is None:
