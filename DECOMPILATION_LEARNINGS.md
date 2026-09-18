@@ -128555,3 +128555,49 @@ register allocation by shortening a live range". That entry is about
 `global.c` ranking an allocno that spans arms. When duplicated `case` bodies
 match instruction-for-instruction but permute `$sN`, split the locals per arm
 before looking at the schedule.
+
+## The same `li` in a delay slot *and* at the join block is one assignment duplicated by `dbr`, not two in the source (Actor00400_Fn08C54, 2026-09-18)
+
+`Actor00400_Fn08C54` runs a three-way dispatch on `work->field_624`, then ticks
+14 animation slots from a loop counter that starts at 1. The ROM sets that
+counter twice:
+
+```
+    bne   $v1, $v0, .L80152B38     # v1 != 3: skip the increment
+     addiu $s0, $zero, 0x1         #   delay slot
+    lhu   $v0, 0x62A($s1)
+    addiu $v0, $v0, 0x1
+    sh    $v0, 0x62A($s1)
+.L80152B34:
+    addiu $s0, $zero, 0x1
+.L80152B38:
+```
+
+m2c reads that as a redundant source-level assignment and emits `var_s0 = 1;`
+before the `if` plus a `block_9: var_s0 = 1;` label inside it. That compiles to
+the right 71 instructions and scores 97.18%, leftover `insert = delete = 1`:
+
+```
+-addiu  v0,v0,1
++addu   v0,v0,s0
+```
+
+The pre-branch `li $s0, 1` puts the constant 1 in a register *before* the
+`field_62A++`, so `cse` finds a register equivalent for the literal and folds
+the `addiu` into an `addu`. The duplicate assignment is the whole cause.
+
+The counter is assigned **once**, after the whole `if`/`else if` chain, and
+`reorg.c`'s `fill_simple_delay_slots` produced the second copy: for a
+conditional branch whose target is a single insn that does not set the
+condition, it copies that insn into the delay slot and retargets the branch past
+it. `.L80152B34` is the join block, holding exactly one `li $s0, 1`, so the
+`bne` gets a copy and jumps to `.L80152B38`. The two `j` arms above still land
+on `.L80152B34` and execute the original.
+
+Plain `if` / `else if` / `else if` with a single `for (i = 1; i < 15; i++)`
+after it matches 100% with no other change.
+
+Generally: when a constant load appears both in a branch delay slot and at the
+block the branch skips, do not write it twice. One assignment at the join point
+is the source; `dbr` makes the copy, and writing the copy yourself hands `cse` a
+register it will substitute for the literal somewhere in between.
