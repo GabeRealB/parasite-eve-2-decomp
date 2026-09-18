@@ -6,15 +6,11 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// 0x1C-byte scratch block `func_flare_8012F304` takes from `G_SCRATCH_HEAD`.
-/// `vec` is the effect coordinate's `workm.t[]` truncated to s16 and projected
-/// through `GsWSMATRIX` with one `RTPS`: `flag` is the `gte_stflg` of that
-/// projection (a negative value drops the sprite), `otz` its `gte_stszotz` and
-/// `sx` / `sy` its `gte_stsxy`. `dx` / `dy` hold the current
-/// `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` offsets that are added to and
-/// subtracted from `sx` / `sy` to build the four quad corners; only their low
-/// halves are read back. Same layout as the gameplay `GpFxQuadScratch`, which
-/// `Gp_DrawFxQuad` builds the same way.
+/// Working space for projecting one spark and building its quad.
+///
+/// Taken from the scratchpad for the duration of a single draw. The same shape
+/// as the gameplay `GpFxQuadScratch`; whether the two are one type is an open
+/// question.
 typedef struct FlareQuadScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
@@ -26,14 +22,12 @@ typedef struct FlareQuadScratch {
 } FlareQuadScratch;
 STATIC_ASSERT_SIZEOF(FlareQuadScratch, 0x1C);
 
-/// Links one frame of the flare sprite at `arg0`'s world position. The
-/// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
-/// is dropped when that sets a negative `gte_stflg`. `arg1` picks one of the
-/// 0x20-wide texture frames on tpage 0x2A, `arg3` spins the quad and `arg2`
-/// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre along
-/// `arg3` and `arg3 + 0x400`, so the sprite shrinks with depth. Same shape as
-/// the gameplay `Gp_DrawFxQuad`, with the CLUT fixed at 0x4311 instead of
-/// picked from `Gp_QuadClutX`.
-void func_flare_8012F304(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+/// Draws one frame of a spark's sprite at a world position.
+///
+/// The position is projected to the screen and the quad dropped if it lands
+/// behind the camera. `arg1` picks one of the eight texture frames, `arg3`
+/// spins the quad and `arg2` sizes it, with the size divided by depth so the
+/// sprite shrinks into the distance.
+void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 #endif /* PE_FLARE_H */

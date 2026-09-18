@@ -13,9 +13,8 @@
 #include "main/tmd.h"
 #include "pe/flare.h"
 
-/// This overlay's id. Every package opens with one: a u16 in a u32
-/// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 D_flare_8012EF30 = 61;
+/// This overlay's id, the `u16` every package opens with.
+const u32 gFlareId = 61;
 
 extern s32 Gp_LcgState;
 
@@ -27,7 +26,15 @@ extern s32 Gp_LcgState;
 /// `rtps`: project V0 through the loaded rotation and translation matrices.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-void func_flare_8012EF34(Task* arg0)
+/// Emits the flare's shower of sparks.
+///
+/// Starts the sound cue panned to the object, then spawns one spark a frame for
+/// the first 20 frames, each in a random direction, reparenting itself to the
+/// last one spawned. Releases at frame 36, by which time the sparks it created
+/// are running on their own.
+///
+/// A cancelled or interrupted cast stops the cue and releases immediately.
+void flareEffectTask(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -69,7 +76,14 @@ void func_flare_8012EF34(Task* arg0)
     }
 }
 
-void func_flare_8012F0B8(Task* arg0)
+/// Flies one spark away from the player and draws it.
+///
+/// On the first frame it starts from the player's position, picks a random
+/// heading and pitch, and turns those into a velocity in the player's frame of
+/// reference. Every frame after that it advances by that velocity and draws the
+/// next sprite frame, stepping the frame on every second tick. Releases once
+/// all eight frames have been drawn.
+void flareSparkTask(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -134,13 +148,13 @@ void func_flare_8012F0B8(Task* arg0)
         mem->field_20 = (u16)mem->field_20 + 1;
     }
     if (mem->field_20 < 8) {
-        func_flare_8012F304(coord, mem->field_20, mem->field_28, mem->field_24);
+        flareDrawSparkQuad(coord, mem->field_20, mem->field_28, mem->field_24);
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_flare_8012F304(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**            scratch;
     u8*               head;
