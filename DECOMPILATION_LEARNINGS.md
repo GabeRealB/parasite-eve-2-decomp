@@ -128739,3 +128739,13 @@ are unchanged, and the checksum still passes.
 first real attempt matched. Before spending a session on a function whose score
 is stuck implausibly low, grep its overlay's data for `\.word 0x801[0-9A-F]{5}`:
 an unresolved code address there is a missing symbol, not a matching problem.
+
+**A merged span also silences the tools that would have solved it.** The brief
+for this function said "Similar matched bodies: (none above 0.80)". Against the
+repaired span, `overlay_dup_index.py similar` returns the already-matched
+`func_actor_300700_801628C8` at 1.00 in three classes at once - `shape`,
+`fields` and `cflow` - with the path to its C body, which ported verbatim for
+the match. Every similarity class is computed over the instruction stream, so a
+third of it belonging to some other function drags all of them below the
+threshold together. Treat a suspiciously empty `similar` on a large function as
+one more reason to check the boundary.
