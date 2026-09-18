@@ -291,6 +291,15 @@ proves nothing about:
   contradict each other about their own fields — `inner` / `outer` against
   `rOuter` / `rInner`, in the opposite order. One of them is wrong, and nothing
   in the build can say which.
+- **The size of a type only ever reached through a pointer.** If the code just
+  reads fields at offsets from a `T*`, nothing fixes where `T` ends. The
+  declaration may be a window onto a larger object, or a sub-struct embedded in
+  something defined elsewhere, and the decomp will have invented a boundary that
+  is not there. A size is pinned only where the match depends on it — a
+  `sizeof`, an array stride, pointer arithmetic, or the type embedded by value
+  somewhere. A `STATIC_ASSERT_SIZEOF` is the decomp asserting its own guess, not
+  evidence from the ROM. Most types are in this position: about 1460 of 2320
+  never appear except as `T*`, `Task` and `GameActor` among them.
 - **Any name.** A name is an earlier reader's hypothesis and carries no more
   authority than a comment.
 
