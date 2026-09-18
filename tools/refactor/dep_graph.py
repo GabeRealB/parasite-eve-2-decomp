@@ -296,7 +296,9 @@ def _has_doc(root: str, meta: dict) -> bool:
         except OSError:
             lines = []
         _DOC_CACHE[path] = lines
-    i = line - 2
+    # The cached graph records the line an item was declared on when it was
+    # built; naming work shortens files, so that line can now be past the end.
+    i = min(line - 2, len(lines) - 1)
     while i >= 0 and not lines[i].strip():
         i -= 1
     return i >= 0 and lines[i].lstrip().startswith("///")
