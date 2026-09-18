@@ -24,6 +24,25 @@
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_105600_80131EA0;
 
+/// Nonzero parks the actor instead of running its state machine: 1 draws the
+/// body where it stands and 2 fades it out.
+extern u8 D_801153F4;
+
+/// Frame counts of the actor's animations, indexed by `Actor105600Work.field_694`.
+extern s16 D_actor_105600_80136B1C[];
+
+/// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
+extern void (*D_actor_105600_80148360[])(Task*);
+
+void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+void func_actor_105600_80131EC4(Task* arg0);
+void func_actor_105600_80133358(Task* arg0);
+void func_actor_105600_801334E4(Task* arg0);
+void func_actor_105600_801336F0(Task* arg0);
+
 INCLUDE_RODATA("actors/nonmatchings/actor_105600/actor_105600", D_actor_105600_80131E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80131EC4);
@@ -187,6 +206,108 @@ INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80135744);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80135CDC);
+/// Per-frame tick of the approach cycle: runs the collision and state handlers,
+/// drifts the root coordinate forward along its Z axis (and upward while
+/// `field_6DE` is below 2), reseeds or ticks the nineteen animation slots, then
+/// publishes the body's colour and its ground shadow. `D_801153F4` overrides
+/// the whole state machine - 1 draws the body without advancing it and 2 parks
+/// it faded out. The same body as `Actor02000_Fn02A34` of `actor_102000`.
+void func_actor_105600_80135CDC(GpEnemy* ctx, Task* actor)
+{
+    VECTOR3          pos;
+    Actor105600Ctx*  spawn;
+    TmdObject*       model;
+    Actor105600Work* moveWork;
+    Actor105600Work* animWork;
+    Actor105600Work* work;
+    Actor105600Work* flagWork;
+    GsCOORDINATE2*   moveCoord;
+    GsCOORDINATE2*   part;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    s16              duration;
+    s32              i;
+    u8               flags;
+
+    work  = (Actor105600Work*)actor->idMap;
+    model = (TmdObject*)actor->extra;
+    coord = model->field_8;
+    switch (D_801153F4) {
+        case 0:
+            model->field_C    = 0;
+            ctx->node.field_4 = 0;
+            break;
+        case 1:
+            goto draw;
+        case 2:
+            model->field_C    = 0x80;
+            ctx->node.field_4 = 1;
+            return;
+    }
+
+    if (ctx->field_4C != 0) {
+        spawn    = (Actor105600Ctx*)actor->spawnArg2;
+        flags    = spawn->field_4C;
+        flagWork = (Actor105600Work*)actor->idMap;
+        if ((flags & 2) && (flagWork->field_6B8 == 0)) {
+            spawn->field_4C     = flags & 0xFD;
+            flagWork->field_6A6 = 0xA;
+            flagWork->field_694 = 0x14;
+            flagWork->field_6A8 = 0;
+            flagWork->field_6E0 = 1;
+        }
+    }
+    func_actor_105600_80131EC4(actor);
+    D_actor_105600_80148360[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        func_actor_105600_80133358(actor);
+    }
+    moveCoord              = ((TmdObject*)actor->extra)->field_8;
+    moveWork               = (Actor105600Work*)actor->idMap;
+    moveWork->field_678    = moveCoord->coord.t[0];
+    moveWork->field_67C    = moveCoord->coord.t[1];
+    moveWork->field_680    = moveCoord->coord.t[2];
+    moveCoord->coord.t[0] += (s32)(moveCoord->coord.m[0][2] * moveWork->field_69C) >> 0xC;
+    if (moveWork->field_6DE < 2) {
+        moveCoord->coord.t[1] += 0x80;
+    }
+    moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
+    animWork               = (Actor105600Work*)actor->idMap;
+    i                      = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0;
+        duration            = D_actor_105600_80136B1C[animWork->field_694];
+        do {
+            func_800B4114(&animWork->ctx, i, animWork->field_694, 0, duration);
+            i += 1;
+        } while (i < 0x13);
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)animWork->field_698 + i;
+        do {
+            Gp_AnimTickIndex(&animWork->ctx, i);
+            i += 1;
+        } while (i < 0x13);
+    }
+    if (work->field_6B4 != 0) {
+        func_actor_105600_801334E4(actor);
+    }
+    func_actor_105600_801336F0(actor);
+    coord->flg                                 = 0;
+    ((TmdObject*)actor->extra)->field_8[3].flg = 0;
+    Gp_UpdateCoord(coord);
+draw:
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)actor->spawnArg2, (VECTOR*)&pos, 0, 0);
+    root   = ((TmdObject*)actor->extra)->field_8;
+    part   = root + 3;
+    pos.vx = part->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105600/actor_105600", func_actor_105600_80136004);

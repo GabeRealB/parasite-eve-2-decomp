@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/3CD8.h"
@@ -67,7 +68,50 @@ STATIC_ASSERT_SIZEOF(Actor105600PlaceScratch, 0x38);
 typedef struct Actor105600Ctx {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u16  field_8;
+    /* 0x0A */ byte pad_A[0x42];
+    /// Request bits the per-frame handler acts on: bit 1 asks the approach
+    /// cycle to switch to its handover animation and is cleared once taken.
+    /* 0x4C */ u8   field_4C;
+    /* 0x4D */ byte pad_4D[3];
 } Actor105600Ctx;
+
+/// 0x6E4-byte animation/state work block hung off the approach-cycle task's
+/// `Task::idMap`. It opens with the animation context and its nineteen
+/// 0x28-byte slots, exactly like the `Actor105700Work` block of `actor_105700`
+/// and the `Actor02000Work` block of `actor_102000`; the halfwords around
+/// 0x694-0x6E0 keep those blocks' offsets and meaning.
+typedef struct Actor105600Work {
+    /* 0x000 */ GpAnimCtx ctx;
+    /* 0x014 */ byte      slots[19][0x28];
+    /* 0x30C */ byte      pad_30C[0x36C];
+    /// World position of the root coordinate as of the previous frame, saved
+    /// before the per-frame drift below is applied.
+    /* 0x678 */ s32  field_678;
+    /* 0x67C */ s32  field_67C;
+    /* 0x680 */ s32  field_680;
+    /* 0x684 */ byte pad_684[0x10];
+    /// Animation index selected by the state machine.
+    /* 0x694 */ s16 field_694;
+    /// Animation the playing clip was started from; when it differs from
+    /// `field_694` the frame counter is reset and the slots reseeded.
+    /* 0x696 */ s16  field_696;
+    /* 0x698 */ s16  field_698; ///< current frame of the playing clip
+    /* 0x69A */ byte pad_69A[2];
+    /* 0x69C */ s16  field_69C; ///< forward speed, applied along the root Z axis
+    /* 0x69E */ s16  field_69E; ///< non-zero runs the turn helper
+    /* 0x6A0 */ byte pad_6A0[6];
+    /* 0x6A6 */ s16  field_6A6; ///< state-machine step, indexes the handler table
+    /* 0x6A8 */ s16  field_6A8;
+    /* 0x6AA */ byte pad_6AA[0xA];
+    /* 0x6B4 */ s16  field_6B4; ///< non-zero runs the tilt helper
+    /* 0x6B6 */ byte pad_6B6[2];
+    /* 0x6B8 */ s16  field_6B8;
+    /* 0x6BA */ byte pad_6BA[0x24];
+    /* 0x6DE */ s16  field_6DE; ///< below 2 the actor also drifts upward
+    /* 0x6E0 */ s16  field_6E0;
+    /* 0x6E2 */ byte pad_6E2[2];
+} Actor105600Work;
+STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
 
 /// Placement descriptor for this actor.
 extern Actor105600PlaceSrc D_actor_105600_80147FDC;
