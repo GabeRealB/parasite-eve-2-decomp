@@ -170,6 +170,14 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
    signatures. \`rename_item.py <file>/<function>::<param> <newName>\` matches
    by position and rewrites both.
 
+   **A type that overlays another is an artifact.** If this item describes
+   bytes belonging to a different type at an offset into it - the giveaway is a
+   name like \`XFromN\`, or fields whose comments map onto another type's -
+   then what it really means is that a run of the owning struct gets passed
+   around as a unit. Make it a member of that struct, with a union if the bytes
+   are also read individually, so callers stop casting. The address does not
+   change, so the checksum confirms it.
+
    **A field you can describe is a field you can name.** Leaving a field called
    \`field_14\` while writing a comment stating its role contradicts itself:
    the offset name means the role is unknown. Rename it from the same reading -

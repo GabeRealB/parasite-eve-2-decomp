@@ -365,6 +365,35 @@ HP" invites confirming that rather than establishing it independently. The
 failure is quiet: a plausible but wrong claim gets copied into a better-formatted
 comment and now looks freshly verified.
 
+### Struct overlays are an artifact
+
+A type that describes bytes belonging to another type, at an offset into it, is
+something decompilation produces and real code does not. `GameSessionFrom4`
+covers `GameSession`'s `field_4`..`field_9` and exists only because the compiler
+kept `&gGameSession->field_4` in a register; thirty-five types in the tree are
+documented as an overlay of something else.
+
+What such a type usually means is that a **run of the owning struct is passed
+around as a unit**, which the owning struct should say. Make it a member. Where
+the same bytes are also read individually - and they usually are, since
+`GameSession::field_4` alone has a thousand references against the overlay's
+hundred and fifty - a union carries both views:
+
+```c
+union {
+    struct {
+        u8 field_4;
+        u8 field_5;
+    };
+    SessionLocation loc;   // the same bytes, as the thing that is passed
+};
+```
+
+Callers then write `&gGameSession->loc` instead of casting, the relationship is
+stated where the layout is, and the phantom type goes away. The address is
+unchanged, so the build confirms it: if the member sits at the wrong offset or
+the union alters alignment, the checksum says so.
+
 ### As general as the subject allows
 
 A comment states what something is and why it exists. Keep it at that level, and
