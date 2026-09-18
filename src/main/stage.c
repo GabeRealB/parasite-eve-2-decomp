@@ -490,7 +490,7 @@ s32 Stage_BeginTransition(s32 arg0, s32 arg1)
     return (u8)Game_Session->field_4;
 }
 
-s32 Display_BeginMode7(s32 arg0)
+s32 Stage_BeginTransitionKind7(s32 arg0)
 {
     StageCtx* temp;
     s32       mask;
@@ -512,13 +512,13 @@ s32 Display_BeginMode7(s32 arg0)
     return ret;
 }
 
-s32 Display_SetFlag20000000(void)
+s32 Stage_RequestImageCapture(void)
 {
     Stage_Ctx->field_1c |= 0x20000000;
     return 0;
 }
 
-s32 Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0) {
         Stage_Ctx->field_18 = 0x20;
@@ -554,7 +554,7 @@ s32 Stage_GetFadeStatus(void)
     return -1;
 }
 
-s32 Display_HasTransitionFlags(void)
+s32 Stage_HasTransitionFlags(void)
 {
     return (Stage_Ctx->field_1c & 0x48000000) != 0;
 }
@@ -567,7 +567,7 @@ void Stage_InitOtOnce(void)
     }
 }
 
-void Display_InitPrimBufOnce(void)
+void Stage_InitPrimBufOnce(void)
 {
     if (Stage_Ctx->field_14 == 0) {
         Display_SetPrimBufLarge();
@@ -583,7 +583,7 @@ void Stage_ReleasePrimBuf(void)
     }
 }
 
-void Display_SetFadeMax(u8 arg0)
+void Stage_SetFadeMax(u8 arg0)
 {
     Stage_Ctx->field_1a = arg0;
 }
@@ -612,7 +612,7 @@ void Display_SetDrawMode(s32 arg0)
     }
 }
 
-s32 Display_BeginTransition(void)
+s32 Stage_BeginTransitionKind3(void)
 {
     StageCtx* temp;
     u32       flags;
@@ -661,7 +661,7 @@ s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-u8 Display_GetModeByte12(void)
+u8 Stage_GetModeByte12(void)
 {
     return Stage_Ctx->field_12;
 }

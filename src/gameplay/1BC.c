@@ -3743,11 +3743,11 @@ void func_800B65B0(Task* task)
                 save->field_14          = cfg->field_8;
                 save->field_18          = cfg->field_C;
                 save->field_12          = Gp_PubItemLoc;
-                Display_InitPrimBufOnce();
+                Stage_InitPrimBufOnce();
                 desc = &D_8010D348;
                 break;
             default:
-                Display_InitPrimBufOnce();
+                Stage_InitPrimBufOnce();
                 desc = &D_8010D6D8;
                 break;
         }

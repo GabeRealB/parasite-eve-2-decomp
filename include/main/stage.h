@@ -54,6 +54,17 @@ void Stage_ReleasePrimBuf(void);
 /// Overlay callers pass 1; the argument is unused.
 void Stage_RequestSpecialFlag(s32 arg0);
 s32  Stage_BeginTransition(s32 arg0, s32 arg1);
+/// Transition kinds 3 and 7: same field_1c 0x40000000 handshake as
+/// Stage_BeginTransition, with StageCtx::field_11 fixed to 3 and 7.
+s32  Stage_BeginTransitionKind3(void);
+s32  Stage_BeginTransitionKind7(s32 arg0);
+s32  Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void Stage_SetFadeMax(u8 arg0);
+void Stage_InitPrimBufOnce(void);
+s32  Stage_HasTransitionFlags(void);
+/// Sets StageCtx::field_1c 0x20000000; Display_TransitionTask services it
+/// with Gfx_StoreImageSlot and clears the bit.
+s32  Stage_RequestImageCapture(void);
 void Stage_RequestFromAreaTable(s32 arg0);
 void Stage_RequestMidiFromMap(s32 arg0);
 

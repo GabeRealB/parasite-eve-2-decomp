@@ -5149,7 +5149,7 @@ void Gp_AreaEnterTask(Task* arg0)
         work = arg0->spawnArg2;
         key  = *(u32*)&Game_Session->field_4;
         key &= 0xFFFF0000;
-        Display_InitPrimBufOnce();
+        Stage_InitPrimBufOnce();
         i = 0;
         p = Gp_ActorSlots;
         do {

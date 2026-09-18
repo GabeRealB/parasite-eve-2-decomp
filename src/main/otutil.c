@@ -261,15 +261,15 @@ s32 Display_DispatchModeId(s32 arg0)
             }
             Display_State.field_10d = arg0;
             if (Display_State.field_12c != 0) {
-                Display_SetFadeMax(0xFF);
-                Display_SetFadeRate(0, 0, 0x10, 1);
+                Stage_SetFadeMax(0xFF);
+                Stage_SetFadeRate(0, 0, 0x10, 1);
             } else if (arg0 != 0x42) {
                 if (arg0 == 0x43) {
-                    Display_SetFadeMax(0xFF);
-                    Display_SetFadeRate(0, 0, 0x20, 1);
+                    Stage_SetFadeMax(0xFF);
+                    Stage_SetFadeRate(0, 0, 0x20, 1);
                 } else {
-                    Display_SetFadeMax(0x20);
-                    Display_SetFadeRate(0, 0, 8, 1);
+                    Stage_SetFadeMax(0x20);
+                    Stage_SetFadeRate(0, 0, 8, 1);
                 }
             }
         }

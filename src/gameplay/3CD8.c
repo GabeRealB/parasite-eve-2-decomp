@@ -103,8 +103,8 @@ extern s16            D_801156BC;
 extern GpOverlayIds*  D_801156F4;
 extern u8             D_801156F9;
 
-s32  Display_HasTransitionFlags(void);
-s32  Display_SetFlag20000000(void);
+s32  Stage_HasTransitionFlags(void);
+s32  Stage_RequestImageCapture(void);
 void func_8001D5C4(void);
 u16  func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3);
 void func_800E62C0(void);
@@ -471,7 +471,7 @@ void func_800E44A0(Task* task)
         return;
     }
     if (D_801155BC == 2) {
-        if (Display_HasTransitionFlags() != 0) {
+        if (Stage_HasTransitionFlags() != 0) {
             return;
         }
         D_801155BC = 1;
@@ -488,7 +488,7 @@ void func_800E44A0(Task* task)
         D_8011566D          = Mc_SaveData.field_4;
         Mc_SaveData.field_4 = D_80115694;
         Gp_DispatchMsg(Game_GetPtrSlot(5), 0xBB8, 0, 0);
-        Display_SetFlag20000000();
+        Stage_RequestImageCapture();
         Task_Spawn(1, 0x2C, 0, (s32)&D_801155A0);
     }
     eventIndex = Gp_FindCapEvt((s32)(s16)D_801155AE);
@@ -1235,7 +1235,7 @@ void Gp_CapExit(Task* arg0)
             Stage_SetEndingFlag();
         } else {
             queue->field_22A = D_8011565C;
-            Display_BeginMode7(D_8011566C);
+            Stage_BeginTransitionKind7(D_8011566C);
         }
         goto block_11;
     }

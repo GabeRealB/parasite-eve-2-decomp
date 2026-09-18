@@ -6,13 +6,10 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/gameplay.h"
-#define Display_SetFadeMax Display_SetFadeMax_u8
 #include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
-#undef Display_SetFadeMax
-void Display_SetFadeMax(s32 arg0);
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
@@ -21,7 +18,10 @@ void Display_SetFadeMax(s32 arg0);
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#define Stage_SetFadeMax Stage_SetFadeMax_u8
 #include "main/stage.h"
+#undef Stage_SetFadeMax
+void Stage_SetFadeMax(s32 arg0);
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
@@ -270,11 +270,11 @@ void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 void       Gp_CheckItemInfoButton(UiObject* arg0);
 void       func_800CF090(UiList* arg0, UiObject* arg1);
 GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2);
-s32        Display_SetFlag20000000(void);
+s32        Stage_RequestImageCapture(void);
 s32        Stage_GetFadeStatus(void);
 void       Stage_InitOtOnce(void);
 void       Stage_ResetFade(void);
-s32        Display_GetModeByte12(void);
+s32        Stage_GetModeByte12(void);
 Task*      Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       Gp_ClearPreviewItems(void);
 void       Gp_AgeFlag119Void(void);
@@ -319,7 +319,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (Stage_GetFadeStatus() != 1) {
                 return;
             }
-            Display_SetFlag20000000();
+            Stage_RequestImageCapture();
             Stage_ResetFade();
             arg0->killCountdown = 2;
             arg0->state        += 5;
@@ -331,7 +331,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             Display_State.field_103 = 2;
             Stage_InitOtOnce();
-            Display_InitPrimBufOnce();
+            Stage_InitPrimBufOnce();
             arg0->state += 5;
             return;
         case 0x14: {
@@ -444,8 +444,8 @@ void Gp_MenuRootTask(Task* arg0)
             fade = 0xFF;
             SOFT_TOUCH_REG(fade);
             arg0->killCountdown = 0xC;
-            Display_SetFadeMax(fade);
-            Display_SetFadeRate(0, 0, 0, 1);
+            Stage_SetFadeMax(fade);
+            Stage_SetFadeRate(0, 0, 0, 1);
             break;
         }
         case 0x32: {
@@ -542,10 +542,10 @@ void Gp_MenuRootTask(Task* arg0)
             Display_State.field_122 = 0;
             Game_Session->field_2   = 0;
             Gpu_ResetGraphAndOt();
-            if (Display_GetModeByte12() == 0) {
+            if (Stage_GetModeByte12() == 0) {
                 Stage_SetEndingFlag();
             } else {
-                Display_BeginMode7((u8)Game_Session->field_4);
+                Stage_BeginTransitionKind7((u8)Game_Session->field_4);
             }
             Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
             if (Task_SpawnOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {

@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "main/display.h"
+#include "main/stage.h"
 #include "main/fs.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -174,7 +175,7 @@ void func_map_akropolis_80179E8C(Task* task)
     s16       result;
 
     if (task->state == 0) {
-        Display_InitPrimBufOnce();
+        Stage_InitPrimBufOnce();
         Gp_ClearPreviewItems();
         obj = Ui_SpawnFromDesc(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {

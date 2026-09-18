@@ -14,7 +14,7 @@ void RoomsShared8017ff9c(Task* task)
     UiObject* obj;
 
     if (task->state == 0) {
-        Display_InitPrimBufOnce();
+        Stage_InitPrimBufOnce();
         obj = Ui_SpawnFromDesc(&RoomsShared8017ff9cDesc, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
