@@ -19,7 +19,14 @@
 # Usage:
 #   tools/vacuum_overlay.sh [--overlay NAME] [--profile NAME] [--times N]
 #                           [--cli claude|grok|codex] [--keep] [--dry-run]
-#                           [--no-land] [--max-difficulty 0..1]
+#                           [--no-land] [--max-difficulty 0..1] [--difficult]
+#
+# --difficult sweeps only the overlay's give-ups - the names in
+# tools/difficult_functions - instead of skipping them, the whole-overlay form
+# of tools/vacuum.sh --difficult. The lease, the denominator in the progress
+# line and the inner vacuum's pick all draw from that list, so a retry pass
+# leases nothing where an overlay has no parked work rather than sweeping it
+# normally. With --max-difficulty it is the intersection, as in vacuum.sh.
 #
 # --max-difficulty bounds score_functions.py's P(does not match first try), so
 # the sweep takes an overlay's easy work and stops rather than grinding into its
@@ -46,6 +53,7 @@ TIMES=""
 # Upper bound on score_functions.py's difficulty, handed to the inner vacuum.
 # Empty means no bound.
 MAX_DIFFICULTY=""
+ONLY_DIFFICULT=false
 KEEP=false
 DRY_RUN=false
 NO_LAND=false
@@ -54,7 +62,7 @@ NO_LAND=false
 # shellcheck source=tools/vacuum_profile.sh
 . "$ROOT/tools/vacuum_profile.sh"
 
-usage() { sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -73,6 +81,7 @@ while [[ $# -gt 0 ]]; do
         --list-profiles) list_profiles; exit 0 ;;
         --times)   TIMES="$2"; shift 2 ;;
         --max-difficulty) MAX_DIFFICULTY="$2"; shift 2 ;;
+        --difficult|--only-difficult) ONLY_DIFFICULT=true; shift ;;
         --keep)    KEEP=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         --no-land) NO_LAND=true; shift ;;
@@ -100,10 +109,13 @@ LOG_FILE="$(vacuum_log_dir)/vacuum-overlay-${OVERLAY_SLUG}-$$.log"
 : >"$LOG_FILE"
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
-log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE}, log $LOG_FILE"
+DIFFICULT_NOTE=""
+[[ "$ONLY_DIFFICULT" == true ]] && DIFFICULT_NOTE=", difficult only"
+log "session $SESSION, cli $CLI, model ${VACUUM_MODEL:-default}${PROFILE:+, profile $PROFILE}${DIFFICULT_NOTE}, log $LOG_FILE"
 
 prep_args=(--session "$SESSION" --bootstrap 0)
 [[ "$PRE_CLAIMED" == true ]] && prep_args+=(--pre-claimed)
+[[ "$ONLY_DIFFICULT" == true ]] && prep_args+=(--difficult)
 [[ -n "$OVERLAY" ]] && prep_args+=(--overlay "$OVERLAY")
 if ! "$ROOT/tools/overlay_batch.sh" "${prep_args[@]}" >>"$LOG_FILE" 2>&1; then
     log "could not lease an overlay (see $LOG_FILE)"
@@ -216,10 +228,12 @@ trap 'kill $LEASE_REFRESHER 2>/dev/null || true; release_all' EXIT
 # every attemptable function while the sweep will only ever pick those under the
 # bound, so "[1 of 49]" describes work it is not going to do and disagrees with
 # what the monitor reports.
-VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" "$MAX_DIFFICULTY" <<'PYEOF' 2>/dev/null || echo ""
+VACUUM_TOTAL=$(python3 - "$WT" "$OVERLAY" "$MAX_DIFFICULTY" "$ONLY_DIFFICULT" <<'PYEOF' 2>/dev/null || echo ""
 import os, re, subprocess, sys, pathlib
 wt, ov = sys.argv[1], sys.argv[2]
 bound = sys.argv[3] if len(sys.argv) > 3 else ""
+# A retry pass attempts only the parked names, so they are the denominator too.
+only_difficult = (sys.argv[4] if len(sys.argv) > 4 else "") == "true"
 inc = []
 src = pathlib.Path(wt, "src")
 # "<family>/lib/<unit>" is one .c file; every other overlay is a directory of them.
@@ -247,6 +261,14 @@ if owner_list and os.path.isfile(owner_list):
     except Exception:
         pass
 keep = [f for f in inc if f not in solved]
+if only_difficult:
+    try:
+        parked = {l.split()[0] for l in
+                  pathlib.Path(wt, "tools", "difficult_functions").read_text().splitlines()
+                  if l.strip()}
+    except OSError:
+        parked = set()
+    keep = [f for f in keep if f in parked]
 if bound and keep:
     base = pathlib.Path(wt, "asm", "USA")
     if "/lib/" in ov:
@@ -259,8 +281,13 @@ if bound and keep:
         # --scores, not --max-score: a bounded run exits non-zero both when
         # nothing meets the bound and when it failed, and those need opposite
         # handling. Unfiltered, non-zero means only "could not score".
-        r = subprocess.run(["python3", "tools/score_functions.py",
-                            "--scores", str(d)],
+        # --only-difficult with it, or the table has no row for anything a
+        # retry pass holds: score_functions.py drops the parked names from its
+        # default table, and every function would then fall outside the bound.
+        cmd = ["python3", "tools/score_functions.py", "--scores"]
+        if only_difficult:
+            cmd.append("--only-difficult")
+        r = subprocess.run(cmd + [str(d)],
                            cwd=wt, capture_output=True, text=True, timeout=900)
         if r.returncode == 0 and r.stdout.strip():
             lim = float(bound)
@@ -280,6 +307,7 @@ INNER_OVERLAY="$OVERLAY"
 [[ "$OVERLAY" == */lib/* ]] && INNER_OVERLAY="lib/${OVERLAY##*/}"
 inner=(./tools/vacuum.sh --cli "$CLI" --overlay "$INNER_OVERLAY")
 [[ -n "$TIMES" ]] && inner+=(--times "$TIMES")
+[[ "$ONLY_DIFFICULT" == true ]] && inner+=(--difficult)
 [[ -n "$MAX_DIFFICULTY" ]] && inner+=(--max-difficulty "$MAX_DIFFICULTY")
 [[ "$DRY_RUN" == true ]] && inner+=(--dry-run)
 
@@ -344,16 +372,16 @@ import subprocess, sys
 from pathlib import Path
 wt, root, base = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
 sys.path.insert(0, str(root / "tools"))
-from land_overlay import merge_sections
+from land_overlay import merge_difficult, merge_sections
 for f in sys.argv[4:]:
     src, dst = wt / f, root / f
     if f.endswith("difficult_functions"):
-        # Same union land_overlay.py applies: keyed by name, latest line wins.
-        have = {l.split()[0]: l for l in dst.read_text().splitlines() if l.strip()}
-        for l in src.read_text().splitlines():
-            if l.strip():
-                have[l.split()[0]] = l
-        dst.write_text("\n".join(have[k] for k in sorted(have)) + "\n")
+        # The same three-way merge land_overlay.py applies: keyed by name,
+        # latest line wins, and a line this branch removed stays removed.
+        r = subprocess.run(["git", "-C", str(root), "show", f"{base}:{f}"],
+                           capture_output=True, text=True)
+        dst.write_text(merge_difficult(dst.read_text(), src.read_text(),
+                                       r.stdout if r.returncode == 0 else ""))
     else:
         r = subprocess.run(["git", "-C", str(root), "show", f"{base}:{f}"],
                            capture_output=True, text=True)

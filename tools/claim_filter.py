@@ -99,10 +99,12 @@ def difficult_names() -> set:
     table does not cover this overlay" and so fell through the fail-open. Read
     the list directly; absence is not evidence.
     """
+    raw = os.environ.get("VACUUM_DIFFICULT_FILE") or "tools/difficult_functions"
+    path = pathlib.Path(raw)
+    if not path.is_absolute():
+        path = ROOT / path
     try:
-        return {l.split()[0]
-                for l in (ROOT / "tools/difficult_functions").read_text().splitlines()
-                if l.strip()}
+        return {l.split()[0] for l in path.read_text().splitlines() if l.strip()}
     except OSError:
         return set()
 
@@ -167,12 +169,17 @@ def _locked_cache(name: str, ttl: float, produce) -> str | None:
         return text
 
 
-def scores() -> tuple[dict, set]:
+def scores(only_difficult: bool = False) -> tuple[dict, set]:
     """(function -> difficulty, overlays present), from one cached run.
 
     This used to be a score_functions.py invocation per claimed overlay. That is
     a fresh interpreter, a numpy import and a directory walk each time, and with
     workers claiming continuously they piled up faster than they finished.
+
+    The two modes need two tables, and two caches: score_functions.py drops the
+    parked functions from its default table, so a difficult-only pass scored
+    against it finds no row for anything it holds - which under_bound reads as
+    "nothing scorable here" and skips every overlay in the list.
     """
     def produce():
         dirs = subprocess.run(
@@ -180,11 +187,16 @@ def scores() -> tuple[dict, set]:
             cwd=ROOT, capture_output=True, text=True).stdout.split()
         if not dirs:
             return None
-        r = subprocess.run([sys.executable, "tools/score_functions.py", "--scores", *dirs],
+        cmd = [sys.executable, "tools/score_functions.py", "--scores"]
+        if only_difficult:
+            cmd.append("--only-difficult")
+        r = subprocess.run(cmd + dirs,
                            cwd=ROOT, capture_output=True, text=True, timeout=900)
         return r.stdout if r.returncode == 0 and r.stdout.strip() else None
 
-    text = _locked_cache("vacuum-scores-cache.tsv", 600.0, produce)
+    text = _locked_cache(
+        "vacuum-scores-difficult-cache.tsv" if only_difficult
+        else "vacuum-scores-cache.tsv", 600.0, produce)
     if not text:
         return {}, set()
     out, seen = {}, set()
@@ -199,13 +211,14 @@ def scores() -> tuple[dict, set]:
     return out, seen
 
 
-def under_bound(overlay: str, funcs: list[str], bound: str) -> list[str]:
+def under_bound(overlay: str, funcs: list[str], bound: str,
+                only_difficult: bool = False) -> list[str]:
     """Those of `funcs` at or below `bound`. Fails open on any trouble."""
     try:
         lim = float(bound)
     except ValueError:
         return funcs
-    sc, _covered = scores()
+    sc, _covered = scores(only_difficult)
     if not sc:
         return funcs                        # no table at all - fail open
     known = [f for f in funcs if f in sc]
@@ -225,10 +238,18 @@ def under_bound(overlay: str, funcs: list[str], bound: str) -> list[str]:
 
 
 def main() -> int:
-    overlay, session, pid = sys.argv[1], sys.argv[2], sys.argv[3]
-    bound = sys.argv[4] if len(sys.argv) > 4 else ""
-    rc, out = orch("claim-overlay", "--session", session, "--pid", pid,
-                   "--cli", "agent", "--overlay", overlay)
+    # --difficult is a flag among positional arguments on purpose: the driver
+    # passes an empty bound as a missing argument, so anything optional has to
+    # be recognisable wherever it lands.
+    argv = [a for a in sys.argv[1:] if a not in ("--difficult", "--only-difficult")]
+    only_difficult = len(argv) != len(sys.argv[1:])
+    overlay, session, pid = argv[0], argv[1], argv[2]
+    bound = argv[3] if len(argv) > 3 else ""
+    claim_cmd = ["claim-overlay", "--session", session, "--pid", pid,
+                 "--cli", "agent", "--overlay", overlay]
+    if only_difficult:
+        claim_cmd.append("--only-difficult")
+    rc, out = orch(*claim_cmd)
     if rc != 0:
         print(f"{overlay}: claim refused", file=sys.stderr)
         return 1
@@ -244,7 +265,13 @@ def main() -> int:
     why = "landable here (shared or promoted bodies)"
     if keep:
         hard = difficult_names()
-        if hard:
+        if only_difficult:
+            # The retry pass wants exactly the parked ones. The lease is already
+            # filtered this way; re-applying it here is what keeps the skip
+            # decision on one list rather than trusting two.
+            keep = [f for f in keep if f in hard]
+            why = "parked in difficult_functions and landable here"
+        elif hard:
             keep = [f for f in keep if f not in hard]
             why = "left that is not already parked in difficult_functions"
     if keep:
@@ -258,7 +285,7 @@ def main() -> int:
             keep = [f for f in keep if f not in ceded]
             why = "left after duplicates owned by another overlay in the list"
     if keep and bound:
-        keep = under_bound(overlay, keep, bound)
+        keep = under_bound(overlay, keep, bound, only_difficult)
         why = f"under the {bound} difficulty bound"
     if not keep:
         orch("relinquish-overlay", "--session", session)

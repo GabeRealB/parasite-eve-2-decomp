@@ -128,6 +128,26 @@ def attempts_from_worktree(wt: Path, func: str) -> int | None:
     return None
 
 
+def merge_difficult(current: str, incoming: str, base: str = "") -> str:
+    """Three-way merge of tools/difficult_functions, keyed by function name.
+
+    Union alone is wrong as soon as a sweep retries parked work: matching a
+    difficult function *removes* its line in the worktree, and unioning that
+    with trunk's copy puts the give-up straight back, so the list keeps
+    advertising a give-up for a function that is now matched - which is exactly
+    what vacuum.sh's forget_difficult_entry exists to prevent. Take trunk's
+    lines, apply the worktree's additions and better scores, and honour the ones
+    the worktree deleted since `base`.
+    """
+    keyed = lambda text: {l.split()[0]: l for l in text.splitlines() if l.strip()}
+    have, mine, was = keyed(current), keyed(incoming), keyed(base)
+    have.update(mine)
+    for name in was:
+        if name not in mine:
+            have.pop(name, None)
+    return "\n".join(have[k] for k in sorted(have)) + "\n"
+
+
 def git(*args: str) -> str:
     r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
@@ -265,16 +285,17 @@ def _apply(args, wt: Path, funcs: list[str]) -> int:
                 "vacuum_overlay.sh.")
         dst.parent.mkdir(parents=True, exist_ok=True)
         if dst.is_file() and e.endswith("difficult_functions"):
-            # Line-based and append-only, like the learnings file: two overlay
-            # worktrees cut from the same commit both add entries, and copying
-            # the second one's file over trunk drops the first one's give-ups.
-            # Keyed by function name so a re-run's better score replaces an
-            # older line rather than duplicating it.
-            have = {l.split()[0]: l for l in dst.read_text().splitlines() if l.strip()}
-            for l in src.read_text().splitlines():
-                if l.strip():
-                    have[l.split()[0]] = l
-            dst.write_text("\n".join(have[k] for k in sorted(have)) + "\n")
+            # Line-based, like the learnings file: two overlay worktrees cut
+            # from the same commit both add entries, and copying the second
+            # one's file over trunk drops the first one's give-ups. Keyed by
+            # function name so a re-run's better score replaces an older line
+            # rather than duplicating it, and three-way against the commit the
+            # worktree was cut from so a retry pass's removals survive.
+            r = subprocess.run(["git", "-C", str(ROOT), "show", f"{base_rev}:{e}"],
+                               capture_output=True, text=True) if base_rev else None
+            base_txt = r.stdout if r is not None and r.returncode == 0 else ""
+            dst.write_text(
+                merge_difficult(dst.read_text(), src.read_text(), base_txt))
         elif dst.is_file() and e.endswith("overlays.toml"):
             # One line per overlay, so merge by key and take only the entries the
             # worktree actually changed relative to the commit it was cut from.

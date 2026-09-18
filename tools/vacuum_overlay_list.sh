@@ -7,6 +7,12 @@
 #   tools/vacuum_overlay_list.sh --list FILE [--profile NAME] [--jobs N]
 #                                [--stagger SECONDS] [--max-difficulty 0..1]
 #                                [--cli claude|grok|codex] [--times N] [--keep]
+#                                [--difficult]
+#
+# --difficult walks the same list but sweeps only the give-ups in
+# tools/difficult_functions, passing through to vacuum_overlay.sh and to the
+# claim filter - so an overlay with no parked work is skipped before it costs a
+# worktree, exactly as an overlay with nothing under --max-difficulty is.
 #
 # Why a list rather than the built-in order: vacuum_orch.rank_overlays sorts by
 # unmatched-function count alone, which knows nothing about duplication. In
@@ -31,9 +37,10 @@ cd "$ROOT"
 LIST=""
 JOBS=1
 PROFILE_ARG=""
+DIFFICULT=false
 PASSTHRU=()
 
-usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -43,6 +50,9 @@ while [[ $# -gt 0 ]]; do
         --profile) PROFILE_ARG="$2"; PASSTHRU+=(--profile "$2"); shift 2 ;;
         --cli|--times|--max-difficulty) PASSTHRU+=("$1" "$2"); shift 2 ;;
         --claude|--grok|--codex|--keep|--no-land) PASSTHRU+=("$1"); shift ;;
+        # Both halves need it: the sweep picks difficult functions, and the
+        # claim filter has to keep them rather than drop them as parked.
+        --difficult|--only-difficult) DIFFICULT=true; PASSTHRU+=(--difficult); shift ;;
         -h|--help) usage ;;
         *) echo "unknown argument: $1" >&2; usage ;;
     esac
@@ -198,7 +208,9 @@ worker() {
             # $BASHPID, not $$: in this subshell $$ is the driver's pid, so a
             # lease taken here outlived the worker that took it and the
             # orchestrator's liveness sweep could never reclaim it.
-            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $BASHPID $bound 2>>"$RUN/worker-$id.log")
+            dflag=""
+            [[ "$DIFFICULT" == true ]] && dflag="--difficult"
+            claim=$("$ROOT/tools/claim_filter.py" "$name" "$sess" $BASHPID $bound $dflag 2>>"$RUN/worker-$id.log")
             crc=$?
             if [[ $crc -eq 1 ]]; then
                 skipped=$((skipped + 1))

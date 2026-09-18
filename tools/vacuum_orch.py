@@ -206,6 +206,25 @@ def ranked_functions(
     return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
 
 
+def difficult_pool(root: Path) -> set[str]:
+    """The names tools/difficult_functions has parked - the --difficult pool.
+
+    An overlay lease taken for a retry pass has to agree with the picker that
+    will run inside it: score_functions.py --only-difficult draws from this
+    file, so leasing anything else hands the sweep functions its own pick then
+    refuses. VACUUM_DIFFICULT_FILE redirects it exactly as tools/vacuum.sh
+    honours it, so a subset pass leases the subset.
+    """
+    raw = os.environ.get("VACUUM_DIFFICULT_FILE") or "tools/difficult_functions"
+    path = Path(raw)
+    if not path.is_absolute():
+        path = root / path
+    try:
+        return {l.split()[0] for l in path.read_text().splitlines() if l.strip()}
+    except OSError:
+        return set()
+
+
 def blocked_names(state: dict, *, only_difficult: bool = False) -> set[str]:
     names = set(state["claims"])
     names.update(state.get("matched") or [])
@@ -438,8 +457,13 @@ def function_overlays(root: Path, func: str) -> set[str]:
     return out
 
 
-def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
+def rank_overlays(root: Path, state: dict,
+                  *, only_difficult: bool = False) -> list[tuple[str, int]]:
     """Overlays by unmatched-function count, most first.
+
+    With only_difficult the count is of parked functions instead, because that
+    is all such a sweep will attempt: ranked on the full count, the largest
+    overlay wins the pick and then has nothing for the retry to do.
 
     Most first because a whole-overlay session pays its cost once - working out
     that overlay's work struct - and then spends it across every function in the
@@ -449,11 +473,14 @@ def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
     mechanical path not because they are complex but because they share one
     untyped state struct, which is exactly what a whole-overlay pass resolves.
     """
-    blocked = blocked_names(state)
+    blocked = blocked_names(state, only_difficult=only_difficult)
+    pool = difficult_pool(root) if only_difficult else None
     counts: dict[str, int] = {}
     for d in list_nonmatching_dirs(root):
         for p in Path(d).rglob("*.s"):
             if p.name.startswith(("D_", "jtbl_")) or p.stem in blocked:
+                continue
+            if pool is not None and p.stem not in pool:
                 continue
             rel = str(p)
             ov = overlay_of_asm(rel)
@@ -468,6 +495,7 @@ def rank_overlays(root: Path, state: dict) -> list[tuple[str, int]]:
 def cmd_claim_overlay(
     store: Store, *, session: str, pid: int, cli: str,
     overlay: Optional[str], root: Path, lease_minutes: int = 240,
+    only_difficult: bool = False,
 ) -> tuple[int, dict]:
     """Lease every unmatched function in one overlay at once.
 
@@ -491,14 +519,23 @@ def cmd_claim_overlay(
     if overlay:
         candidates = [(overlay, 0)]
     else:
-        candidates = rank_overlays(root, store.data)
+        candidates = rank_overlays(root, store.data, only_difficult=only_difficult)
         if not candidates:
-            return EXIT_EMPTY, result(False, error="no overlay has unmatched work",
-                                      code="empty")
+            return EXIT_EMPTY, result(
+                False, code="empty",
+                error="no overlay has difficult work" if only_difficult
+                      else "no overlay has unmatched work")
 
-    blocked = set(store.data.get("matched") or []) | set(store.data.get("difficult") or [])
+    # A retry pass leases *from* the give-up list rather than around it, so the
+    # difficult names are the pool, not the block list.
+    blocked = set(store.data.get("matched") or [])
+    if not only_difficult:
+        blocked |= set(store.data.get("difficult") or [])
+    pool = difficult_pool(root) if only_difficult else None
     for name, _n in candidates:
         funcs = [f for f in overlay_functions(root, name) if f not in blocked]
+        if pool is not None:
+            funcs = [f for f in funcs if f in pool]
         if not funcs:
             continue
         # A claim this same session already holds is not a conflict: it is
@@ -534,6 +571,14 @@ def cmd_claim_overlay(
                     error=f"{name}: {first} is held by {held[first]} "
                           f"({len(held)} of {len(funcs)} claimed)")
             continue         # ranked pick: try the next overlay
+        if only_difficult:
+            # Same rule cmd_claim applies to a single retry: a name being
+            # claimed for another attempt must leave the orch skip list, or a
+            # concurrent worker sees a stale "difficult" for work in flight.
+            hard = store.data.setdefault("difficult", [])
+            for f in funcs:
+                if f in hard:
+                    hard.remove(f)
         now = _now()
         expires = (datetime.now(timezone.utc)
                    + timedelta(minutes=lease_minutes)
@@ -546,6 +591,11 @@ def cmd_claim_overlay(
         return EXIT_OK, result(True, overlay=name, count=len(funcs),
                                functions=funcs, expires=expires)
 
+    if only_difficult:
+        return EXIT_EMPTY, result(
+            False, code="empty",
+            error=(f"no free difficult work in overlay {overlay}" if overlay else
+                   "no overlay has difficult work free"))
     return EXIT_EMPTY, result(
         False, code="empty",
         error="every overlay with work has a function claimed by another session")
@@ -723,7 +773,8 @@ def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dic
         return cmd_claim_overlay(
             store, session=args.session, pid=args.pid, cli=args.cli,
             overlay=getattr(args, "overlay", None) or None, root=Path(args.root),
-            lease_minutes=int(getattr(args, "lease_minutes", 240)))
+            lease_minutes=int(getattr(args, "lease_minutes", 240)),
+            only_difficult=bool(getattr(args, "only_difficult", False)))
     if cmd == "adopt-overlay":
         return cmd_adopt_overlay(
             store, session=args.session, pid=args.pid,
@@ -916,6 +967,12 @@ def build_parser() -> argparse.ArgumentParser:
                         help="how long the lease outlives the claiming process")
     p_covl.add_argument("--overlay", default="",
                         help="specific overlay; omit to take the largest free one")
+    p_covl.add_argument(
+        "--only-difficult",
+        action="store_true",
+        help="Lease only the overlay's functions listed in "
+             "tools/difficult_functions, for a retry pass",
+    )
     p_aovl = sub.add_parser("adopt-overlay",
                             help="Re-bind a lease to the live process doing the work")
     add_session(p_aovl)

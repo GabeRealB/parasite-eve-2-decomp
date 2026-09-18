@@ -19,13 +19,17 @@
 #   overlay: agents doing exactly this landed 155 of 156 attempted, no reverts.
 #
 # Usage:
-#   tools/overlay_batch.sh [--overlay NAME] [--session S] [--keep]
+#   tools/overlay_batch.sh [--overlay NAME] [--session S] [--keep] [--difficult]
 #   tools/overlay_batch.sh --release --session S
 #   tools/overlay_batch.sh --cleanup --overlay NAME [--session S]
 #
 # --bootstrap N pre-builds N scratch envs (default 5); the agent makes the rest
 # on demand. They are directories inside the worktree, not checkouts: ~160 KB
 # each, half of it symlinks.
+#
+# --difficult leases only the functions tools/difficult_functions has parked,
+# for a retry pass. Without it those names are blocked, so an overlay whose
+# remaining work is all give-ups leases nothing at all.
 #
 set -euo pipefail
 
@@ -37,6 +41,7 @@ SESSION=""
 RELEASE=false
 KEEP=false
 CLEANUP=false
+DIFFICULT=false
 WARM=5
 
 usage() {
@@ -52,6 +57,8 @@ while [[ $# -gt 0 ]]; do
         --cleanup) CLEANUP=true; shift ;;
         --bootstrap) WARM="$2"; shift 2 ;;
         --keep)    KEEP=true; shift ;;
+        # Retry pass: lease the overlay's give-ups instead of skipping them.
+        --difficult|--only-difficult) DIFFICULT=true; shift ;;
         # The caller already claimed this overlay under --session and has
         # applied its own filters; adopt that claim instead of taking one.
         --pre-claimed) PRE_CLAIMED=true; shift ;;
@@ -123,6 +130,7 @@ SESSION="${SESSION:-overlay-batch-$$}"
 # which know nothing about overlays - skip these when they pick work.
 claim_args=(claim-overlay --session "$SESSION" --pid $$ --cli agent)
 [[ -n "$OVERLAY" ]] && claim_args+=(--overlay "$OVERLAY")
+[[ "$DIFFICULT" == true ]] && claim_args+=(--only-difficult)
 
 if [[ "$PRE_CLAIMED" == true ]]; then
     # Read back what the caller claimed under this session. Claims are held by
