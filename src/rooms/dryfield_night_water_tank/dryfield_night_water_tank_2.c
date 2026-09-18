@@ -68,7 +68,7 @@ s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in
 
 /// Room entry task tick, the shape the other dryfield rooms' entry tasks have:
 /// publish the message table the room's handlers hang off (0x13EE..0x13F1) in
-/// `Task::field_24`, claim game pointer slot 7, spawn the task entry 0 of
+/// `Task::msgTable`, claim game pointer slot 7, spawn the task entry 0 of
 /// `8017EE28` describes, then branch on the visit sub-id
 /// (`gGameSession::at4.loc.place`).
 ///
@@ -79,7 +79,7 @@ s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in
 /// on every path.
 void func_dryfield_night_water_tank_8017D870(Task* task)
 {
-    task->field_24 = D_dryfield_night_water_tank_8017DFE8;
+    task->msgTable = D_dryfield_night_water_tank_8017DFE8;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(&D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
     if ((u32)(gGameSession->at4.loc.place - 0xA) < 2U) {

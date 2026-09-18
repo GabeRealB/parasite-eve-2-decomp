@@ -79,7 +79,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
     return 0;
 }
 
-/// Room entry task tick: park the room's hotspot table in `Task::field_24` -
+/// Room entry task tick: park the room's hotspot table in `Task::msgTable` -
 /// the table whose 0x13EE entry is the room's own script task - register the
 /// task in pointer slot 7, then, on the phase-2 visit whose nibble 0xB0 is
 /// still clear, announce the room to the slot-4 task with message 0x7DA
@@ -88,7 +88,7 @@ void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 {
     DnsgrMsg7DA msg;
 
-    task->field_24 = D_dryfield_night_saloon_g_r_8017F918;
+    task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.place == 2 && GameFlag_GetNibble(0xB0) == 0) {
         msg.field_0 = gGameSession->at4.loc.stage;

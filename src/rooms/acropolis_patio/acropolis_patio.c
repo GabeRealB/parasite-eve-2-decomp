@@ -47,7 +47,7 @@ extern s32      D_acropolis_patio_8018280C;
 extern s32      D_acropolis_patio_80182BE4;
 
 /// Room entry task tick. Publishes the room's own record at
-/// `Task::field_24` / pointer slot 7, then re-issues the messages the room's
+/// `Task::msgTable` / pointer slot 7, then re-issues the messages the room's
 /// actors need for the current point in the story: the first visit
 /// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
@@ -57,7 +57,7 @@ void func_acropolis_patio_8017D5EC(Task* arg0)
     AcropolisPatioSlotMsg msg;
     s32                   temp;
 
-    arg0->field_24 = &D_acropolis_patio_8018028C;
+    arg0->msgTable = &D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
         if (D_8007216D == 1) {

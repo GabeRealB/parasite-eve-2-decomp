@@ -206,7 +206,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     Gp_LinkObj(2, &work->field_4E4);
     Gp_InitRec18Table(&work->field_504, 1, 0);
     work->field_4E4.flags |= 0x8000;
-    task->field_24         = &D_actor_205200_801567D0;
+    task->msgTable         = &D_actor_205200_801567D0;
     task->state            = 1;
 }
 

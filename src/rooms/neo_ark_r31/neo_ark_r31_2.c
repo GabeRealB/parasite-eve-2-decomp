@@ -28,7 +28,7 @@ void func_neo_ark_r31_8017D90C(Task* arg0)
     CdCmdQueue* queue;
 
     queue          = &CdCmd_Queue;
-    arg0->field_24 = D_neo_ark_r31_8017D9F4;
+    arg0->msgTable = D_neo_ark_r31_8017D9F4;
     Game_SetPtrSlot(arg0, 7);
     queue->field_22A = 2;
     func_800E8634((s32)&D_80133F90, 0, (s32)&D_80134470);

@@ -57,7 +57,7 @@ s32 func_dryfield_night_dilapidated_house_8017D968(void)
 
 void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_night_dilapidated_house_8017E700;
+    arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
     Game_SetPtrSlot(arg0, 7);
     arg0->state = (s32)(arg0->state + 1);
     if (GameFlag_GetNibble(0x92) == 0) {

@@ -84,7 +84,7 @@ void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 /// sound event, then hands over to the next state.
 void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_submarine_tunnel_80181A50;
+    arg0->msgTable = D_neo_ark_submarine_tunnel_80181A50;
     Game_SetPtrSlot(arg0, 7);
     SndEvt_EnqueueType6(0x550C0003, 0, 0);
     arg0->state = arg0->state + 1;

@@ -32,7 +32,7 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     saved          = Gpu_CurrentOt;
     Gpu_CurrentOt  = ot[temp->frameBuffer].org;
     Gpu_PrimCursor = (DR_TPAGE*)((s32)Gpu_PrimBufBase + temp->frameBuffer * size);
-    Task_ExecList(&D_8007A110);
+    Task_ExecList(&gTaskDisplayList);
     Boot_DispatchCdCmd();
     if (temp->mdecActive == 0) {
         DrawSync(0);
@@ -88,7 +88,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         D_8007A0E4        = 0x6000;
         temp->frameBuffer = temp->drawBuffer ^ 1;
         saved             = Task_GetActiveList();
-        Task_InitList(&D_8007A110);
+        Task_InitList(&gTaskDisplayList);
         ret = Task_Spawn(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
             temp->pendingMode          = 0xFF;
@@ -119,7 +119,7 @@ Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
         D_8007A0E4        = 0x6000;
         temp->frameBuffer = temp->drawBuffer ^ 1;
         saved             = Task_GetActiveList();
-        Task_InitList(&D_8007A110);
+        Task_InitList(&gTaskDisplayList);
         ret = Task_SpawnFromTable(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
             temp->pendingMode          = 0xFF;

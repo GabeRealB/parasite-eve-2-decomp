@@ -111,7 +111,7 @@ extern GpPairSrcE D_actor_223600_8014CFCC;
 /// Animation source `func_800B3F84` seeds the work block's slots from.
 extern u8 D_actor_223600_801509C0[];
 
-/// Message table the spawn handler publishes as `Task::field_24`.
+/// Message table the spawn handler publishes as `Task::msgTable`.
 extern u8 D_actor_223600_80150B28[];
 
 /// Event packet handed to this actor's message handlers. Its first three bytes

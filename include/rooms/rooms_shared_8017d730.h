@@ -12,7 +12,7 @@ extern s32 RoomsShared8017d730Msgs;
 
 /// State 0 of a room's message-driven task family, in the variant that also
 /// raises the `D_80115598` flag: park the room's message table in
-/// `Task::field_24`, publish the task in pointer slot 7, advance to state 1.
+/// `Task::msgTable`, publish the task in pointer slot 7, advance to state 1.
 /// Five rooms open their event family this way.
 void RoomsShared8017d730(Task* task);
 

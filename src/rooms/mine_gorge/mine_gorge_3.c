@@ -18,7 +18,7 @@ extern u8  D_80062735;
 /// arm the "among us" byte and advance state.
 void func_mine_gorge_8017D8D4(Task* arg0)
 {
-    arg0->field_24 = &D_mine_gorge_8017E280;
+    arg0->msgTable = &D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
         D_8011540A = 0x15;

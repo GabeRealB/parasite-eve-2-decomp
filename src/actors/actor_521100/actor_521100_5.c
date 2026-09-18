@@ -111,7 +111,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, (GpAnimObj*)obj, D_actor_521100_8016A3D8->pad_34C);
     D_actor_521100_8016A3D8->animId    = 1;
     D_actor_521100_8016A3D8->field_47C = 2;
-    task->field_24                     = &D_actor_521100_8016A358;
+    task->msgTable                     = &D_actor_521100_8016A358;
     func_actor_521100_80135F2C(task);
     task->state += 1;
 }

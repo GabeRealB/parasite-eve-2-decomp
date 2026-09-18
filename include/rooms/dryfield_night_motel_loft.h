@@ -17,7 +17,7 @@ typedef struct DryfieldNightMotelLoftMsg7DB {
 STATIC_ASSERT_SIZEOF(DryfieldNightMotelLoftMsg7DB, 0x4);
 
 /// First state of the room's script task: publishes the room's message table at
-/// `Task::field_24` and claims pointer slot 7, then -- once the slot-4 task
+/// `Task::msgTable` and claims pointer slot 7, then -- once the slot-4 task
 /// exists and the room's night flag (`GameFlag_GetNibble(0x96)`) is up --
 /// raises the 0x7DB payload's halfword and hands it to that task. Every state
 /// ends by running the shared flag-0xA body `func_dryfield_night_motel_loft_8017D9BC`

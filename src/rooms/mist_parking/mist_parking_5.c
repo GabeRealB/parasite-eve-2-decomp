@@ -49,7 +49,7 @@ void func_mist_parking_801827A0(s32 arg0)
 
 void func_mist_parking_801827C0(Task* arg0)
 {
-    arg0->field_24 = &D_mist_parking_80186BB8;
+    arg0->msgTable = &D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
         if (D_80072170 == 3) {

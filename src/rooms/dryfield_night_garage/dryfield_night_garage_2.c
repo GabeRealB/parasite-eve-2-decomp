@@ -34,7 +34,7 @@ extern s32                    D_dryfield_night_garage_801831B8;
 extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
 
 /// The room's own `GpMsgEntry[]` - the message table `func_dryfield_night_garage_8017FF2C`
-/// publishes in `Task::field_24`. It terminates with id 0x7FFFFFFF.
+/// publishes in `Task::msgTable`. It terminates with id 0x7FFFFFFF.
 extern GpMsgEntry D_dryfield_night_garage_80181C38[];
 
 /// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
@@ -56,7 +56,7 @@ s32 func_dryfield_night_garage_80180A64(s32 arg0);
 s32 func_dryfield_night_garage_80180604(s32 arg0);
 
 /// State 0 of this room's message task, run when the garage scene starts.
-/// Publishes the room's message table in `Task::field_24` and the task itself
+/// Publishes the room's message table in `Task::msgTable` and the task itself
 /// in pointer slot 7, clears the display bit on the first object entry, then
 /// hands off to the player actor through messages 0x3E9 / 0x3E8.
 void func_dryfield_night_garage_8017FF2C(Task* task)
@@ -65,7 +65,7 @@ void func_dryfield_night_garage_8017FF2C(Task* task)
     DryfieldNightGarageObj* obj;
     Task*                   player;
 
-    task->field_24 = D_dryfield_night_garage_80181C38;
+    task->msgTable = D_dryfield_night_garage_80181C38;
     Game_SetPtrSlot(task, 7);
     D_dryfield_night_garage_80186E60->field_4A &= 0xBF;
     player                                      = Game_GetPtrSlot(0xA);

@@ -16,7 +16,7 @@ extern GpPairSrcE D_actor_107000_80139EA0;
 /// Animation bank `func_800B3F84` seeds the work block's seven slots from.
 extern u8 D_actor_107000_8013F59C[];
 
-/// Message dispatch table this spawn parks in `Task::field_24`.
+/// Message dispatch table this spawn parks in `Task::msgTable`.
 extern u8 D_actor_107000_8013F5E0[];
 
 // actor_207000 (func_actor_207000_8014EE88) carries the same body, refused
@@ -30,7 +30,7 @@ extern u8 D_actor_107000_8013F5E0[];
 /// The variant's spawn handler: allocate the `Actor107000Spawn2Work` block,
 /// rebind the model's light and colour matrices into it, link its three `GpObj`
 /// render nodes and their collision tables, and hand the task over to the state
-/// table in `Task::field_24`.
+/// table in `Task::msgTable`.
 ///
 /// Node 1 is the odd one: it points `field_C` at the `GpActorD4Rec` at 0x1FC
 /// rather than at a record table, and the record's own `field_14` names the one
@@ -145,7 +145,7 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     work->field_390    = (u16)(((u32)draw >> 16) % 20U + 0x50);
     draw = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     work->field_392    = (u16)(((u32)draw >> 16) % 50U + 0x32);
-    arg1->field_24     = D_actor_107000_8013F5E0;
+    arg1->msgTable     = D_actor_107000_8013F5E0;
     arg1->state        = 4;
 }
 

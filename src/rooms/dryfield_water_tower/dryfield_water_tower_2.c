@@ -67,7 +67,7 @@ void func_dryfield_water_tower_8017DD6C(Task* arg0)
 {
     Task* temp_v0;
 
-    arg0->field_24 = D_dryfield_water_tower_801803A0;
+    arg0->msgTable = D_dryfield_water_tower_801803A0;
     Game_SetPtrSlot(arg0, 7);
     temp_v0                         = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
     arg0->state                     = (s32)(arg0->state + 1);

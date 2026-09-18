@@ -1032,7 +1032,7 @@ void func_actor_400500_80135414(Task* arg0)
         i++;
         stride++;
     } while (i < 0x12);
-    arg0->field_24 = D_actor_400500_80153CA0;
+    arg0->msgTable = D_actor_400500_80153CA0;
     func_actor_400500_80132C54(arg0);
     work4 = (Actor400500Work*)arg0->work;
     if (Gp_ActorSlots[0] != NULL) {

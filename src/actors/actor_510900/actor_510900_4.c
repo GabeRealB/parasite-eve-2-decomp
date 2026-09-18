@@ -51,7 +51,7 @@ extern MATRIX* D_80073B8C;
 /// enemy's HP.
 extern GpPairSrcE D_actor_510900_80167980;
 
-/// The block the tick handler reaches through `Task::field_24`.
+/// The block the tick handler reaches through `Task::msgTable`.
 extern u32 D_actor_510900_80167A6C;
 
 /// The animation data `func_800B3F84` builds the work block's clip context

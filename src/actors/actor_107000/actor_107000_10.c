@@ -16,7 +16,7 @@ extern GpEnemyTaskFuncTable4 D_actor_107000_80131E5C;
 extern SVECTOR D_actor_107000_8013F5D8;
 
 /// Message 0x7DB handler of the second form's table (`D_actor_107000_8013F5E0`,
-/// parked in `Task::field_24` by `func_actor_107000_80136E88`). The payload's
+/// parked in `Task::msgTable` by `func_actor_107000_80136E88`). The payload's
 /// halfword at 0x2 is a command word.
 ///
 /// 4 and 5 are the collapse arms: both spawn the 0x60080 effect on the model's

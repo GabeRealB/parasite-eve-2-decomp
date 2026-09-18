@@ -14,7 +14,7 @@
 ///
 /// Every access to the block goes through `ActorsShared80131f9cWork` rather
 /// than the `Mem_Calloc` result, which is why the pointer is reloaded at each
-/// use instead of staying in a callee-saved register. `task->field_24` takes
+/// use instead of staying in a callee-saved register. `task->msgTable` takes
 /// the message table the step-1 handler leaves behind.
 void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 {
@@ -52,7 +52,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     ActorsShared80131f9cWork->field_47A++;
-    task->field_24 = D_actor_110300_8013A054;
+    task->msgTable = D_actor_110300_8013A054;
     task->state++;
 }
 

@@ -61,7 +61,7 @@ typedef struct _Actor210700Anim {
 } Actor210700Anim;
 STATIC_ASSERT_SIZEOF(Actor210700Anim, 0x18);
 
-/// The overlay's script-command table, parked in `Task::field_24`: 0x7D3
+/// The overlay's script-command table, parked in `Task::msgTable`: 0x7D3
 /// `func_actor_210700_8014A224`, 0x7D4 `ActorsShared801334c4`, 0x7D5
 /// `func_actor_210700_8014A3D4`, 0x7E0 `func_actor_210700_8014A4B0`.
 extern GpMsgEntry D_actor_210700_801585D8[];

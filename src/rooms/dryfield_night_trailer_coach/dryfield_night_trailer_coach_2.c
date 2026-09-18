@@ -33,7 +33,7 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_t
 
 void func_dryfield_night_trailer_coach_8018231C(Task* task)
 {
-    task->field_24 = &D_dryfield_night_trailer_coach_8018794C;
+    task->msgTable = &D_dryfield_night_trailer_coach_8018794C;
     Game_SetPtrSlot(task, 7);
     if (Game_GetPtrSlot(0xA) != NULL) {
         Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_trailer_coach_801879B8, 0);

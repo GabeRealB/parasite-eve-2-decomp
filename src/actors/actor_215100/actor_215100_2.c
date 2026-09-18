@@ -1169,7 +1169,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     func_800B3F84(&work->anim, D_actor_215100_8015E5E8, (GpAnimObj*)obj,
                   &work->field_374, work->slots);
     work->state    = 2;
-    task->field_24 = D_actor_215100_8015E5A0;
+    task->msgTable = D_actor_215100_8015E5A0;
     ActorsShared8014c874(task);
     task->state++;
 }

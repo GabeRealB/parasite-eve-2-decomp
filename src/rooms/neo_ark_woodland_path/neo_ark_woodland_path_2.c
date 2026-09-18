@@ -46,7 +46,7 @@ s32 func_neo_ark_woodland_path_8017E910(void)
 
 void func_neo_ark_woodland_path_8017E944(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_woodland_path_80181650;
+    arg0->msgTable = D_neo_ark_woodland_path_80181650;
     Game_SetPtrSlot(arg0, 7);
     D_neo_ark_woodland_path_80181680 = Task_SpawnFromTable(D_neo_ark_woodland_path_80184A44, 1, 0, 0);
     arg0->state                      = (s32)(arg0->state + 1);

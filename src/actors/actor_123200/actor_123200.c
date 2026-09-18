@@ -116,7 +116,7 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->field_24 = D_actor_123200_80137214;
+    task->msgTable = D_actor_123200_80137214;
     coord->sub     = &Gfx_ViewCoord;
     obj->field_C   = 0;
     func_800B3F84(&work->anim, D_actor_123200_80137154, (GpAnimObj*)obj, work->poses, work->slots);

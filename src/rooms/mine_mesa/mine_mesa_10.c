@@ -52,7 +52,7 @@ void func_mine_mesa_80181848(Task* arg0)
     D_mine_mesa_80189B6C    = 10;
     D_mine_mesa_80189B74[1] = 0;
     D_mine_mesa_80189B74[0] = 0;
-    arg0->field_24          = &D_mine_mesa_80189B1C;
+    arg0->msgTable          = &D_mine_mesa_80189B1C;
     arg0->state++;
 }
 

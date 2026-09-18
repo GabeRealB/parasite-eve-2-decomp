@@ -14,13 +14,13 @@
 extern GpMsgEntry D_mine_tunnel_8017DFC4[];
 
 /// State 0 of the tunnel's message-driven task family: park the room's
-/// `GpMsgEntry` table in `Task::field_24`, publish the task in pointer slot 7,
+/// `GpMsgEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
 /// and -- when the session is in the stage that owns this tunnel and flag 0xA1
 /// is set -- hand `Room_Util36` the script argument 2. Then arm the
 /// message flag and step the task on one state.
 void func_mine_tunnel_8017D6EC(Task* arg0)
 {
-    arg0->field_24 = D_mine_tunnel_8017DFC4;
+    arg0->msgTable = D_mine_tunnel_8017DFC4;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
         Room_Util36(2);

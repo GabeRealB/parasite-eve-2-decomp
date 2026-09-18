@@ -28,7 +28,7 @@ extern void Room_Util16(s32);
 /// parked in. Both are read as values here, which is why the target loads
 /// them (`lw $a0, %lo(...)`) rather than forming `&symbol`.
 ///
-/// Room entry task tick: publish the room's message table in `Task::field_24`
+/// Room entry task tick: publish the room's message table in `Task::msgTable`
 /// and claim game pointer slot 7, then park the `Mem_Calloc` slot the poller
 /// `func_dryfield_night_factory_8018076C` watches in it. Session variant
 /// `gGameSession::at4.loc.stage == 2` (the night factory) picks the larger spawn
@@ -49,7 +49,7 @@ void func_dryfield_night_factory_80180438(Task* arg0)
 {
     Task** slot;
 
-    arg0->field_24 = D_dryfield_night_factory_80186E64;
+    arg0->msgTable = D_dryfield_night_factory_80186E64;
     Game_SetPtrSlot(arg0, 7);
     slot       = (D_dryfield_night_factory_8018A7E8 = Mem_Calloc(4, 0));
     arg0->work = (TaskIdMap*)slot;

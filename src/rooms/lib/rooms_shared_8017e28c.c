@@ -50,14 +50,14 @@ void RoomsShared8017e28c(Task* task)
         obj->field_C = -((s16)obj->field_10 / 2);
         obj->field_E = -((s16)obj->field_12 / 2);
         if (Gp_IsDebugAttachRoom() == 0) {
-            task->flags = 0xFF;
+            task->status = 0xFF;
         } else {
-            task->flags = 0xFE;
+            task->status = 0xFE;
         }
         task->state += 1;
     }
     Ui_UpdateListNoAnim(menu, obj);
-    flags = task->flags;
+    flags = task->status;
     if (flags < 0xF1) {
         state = task->state;
         if (state == 1) {
@@ -87,8 +87,8 @@ void RoomsShared8017e28c(Task* task)
                 ready = 0;
             }
             if (ready == 1) {
-                task->state = 1;
-                task->flags = 0xFF;
+                task->state  = 1;
+                task->status = 0xFF;
                 if (Gp_IsDebugAttachRoom() == 0) {
                     gGameSession->flowFlags |= 3;
                 }
@@ -101,8 +101,8 @@ void RoomsShared8017e28c(Task* task)
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
-            if (task->flags != 0xFE) {
-                if (task->flags == 0xFF) {
+            if (task->status != 0xFE) {
+                if (task->status == 0xFF) {
                     obj->field_2E = 6;
                 } else {
                     Ui_SetState4((Task*)obj, obj->owner);

@@ -49,7 +49,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, GpMsg13EF* msg, s32 
 
 void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 {
-    arg0->field_24 = &D_shelter_b6_nursery_8018500C;
+    arg0->msgTable = &D_shelter_b6_nursery_8018500C;
     Game_SetPtrSlot(arg0, 7);
     Gp_FillAllyHp();
     if (GameFlag_GetNibble(0xC7) == 0) {

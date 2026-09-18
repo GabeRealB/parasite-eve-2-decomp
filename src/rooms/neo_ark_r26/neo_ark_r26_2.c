@@ -14,7 +14,7 @@ extern s32 D_neo_ark_r26_8017DA74;
 /// Cutscene script blob argument of `func_800E8634`.
 extern s32 D_neo_ark_r26_8017DFCC;
 
-/// Room message handler table installed into `Task::field_24`.
+/// Room message handler table installed into `Task::msgTable`.
 extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
 
 s32 func_neo_ark_r26_8017D694(void)
@@ -31,7 +31,7 @@ s32 func_neo_ark_r26_8017D69C(void)
 /// starts the room script unless the screen is 9. Advances to state 1.
 void func_neo_ark_r26_8017D6A4(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_r26_8017E0A4;
+    arg0->msgTable = D_neo_ark_r26_8017E0A4;
     Game_SetPtrSlot(arg0, 7);
     if (D_8007218B != 9) {
         func_800E8634((s32)&D_neo_ark_r26_8017DA74, 0, (s32)&D_neo_ark_r26_8017DFCC);

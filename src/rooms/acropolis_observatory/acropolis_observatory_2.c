@@ -51,7 +51,7 @@ s32 func_acropolis_observatory_8017D7C4(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 /// the task on to its next state.
 void func_acropolis_observatory_8017D834(Task* task)
 {
-    task->field_24 = D_acropolis_observatory_8017E7B8;
+    task->msgTable = D_acropolis_observatory_8017E7B8;
     Game_SetPtrSlot(task, 7);
     if ((gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         D_8011540A = 1;

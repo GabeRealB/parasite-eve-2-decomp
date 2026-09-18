@@ -18,7 +18,7 @@ extern GsF_LIGHT D_actor_135400_8013F904[3];
 
 /// The actor's animation table: `(anim id, handler)` pairs for 0x7D3 / 0x7D4 /
 /// 0x7D5, ended by `0x7FFFFFFF`. `func_actor_135400_80132B60` parks its address
-/// in `Task::field_24` (0x24).
+/// in `Task::msgTable` (0x24).
 extern s32 D_actor_135400_8013F8E4;
 
 /// Per-step frame counts of the actor's 0x7D3 animation: eight `s16` entries
@@ -198,7 +198,7 @@ void func_actor_135400_80132B60(Task* arg0)
     func_actor_135400_80132D24(arg0, 0x7D3, &params, 0);
     func_actor_135400_80132EBC(arg0, 0x7D5, 1, 0);
     func_actor_135400_80132CB0(arg0);
-    arg0->field_24     = &D_actor_135400_8013F8E4;
+    arg0->msgTable     = &D_actor_135400_8013F8E4;
     arg0->exitCallback = func_actor_135400_80132C90;
     arg0->state       += 1;
 }

@@ -37,7 +37,7 @@ s32 func_shelter_b1_north_maintenance_walkway_8017DA44(void)
 
 void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
-    arg0->field_24 = D_shelter_b1_north_maintenance_walkway_80184A84;
+    arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);

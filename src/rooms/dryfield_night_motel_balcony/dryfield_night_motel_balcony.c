@@ -23,7 +23,7 @@ extern s32 D_80165060;
 extern s32 D_80165798;
 
 /// This room's own `GpMsgEntry[]` message table, the one the balcony task parks
-/// in `Task::field_24` (0x24) for `Gp_DispatchMsg` to walk. Ids 0x13EE-0x13F2;
+/// in `Task::msgTable` (0x24) for `Gp_DispatchMsg` to walk. Ids 0x13EE-0x13F2;
 /// the `0x7FFFFFFF` terminator is the last record.
 extern GpMsgEntry D_dryfield_night_motel_balcony_80182804[];
 
@@ -44,7 +44,7 @@ s32 func_dryfield_night_motel_balcony_8017DC28(void)
     return 0;
 }
 
-/// Balcony event entry: park the room's message table in `Task::field_24`,
+/// Balcony event entry: park the room's message table in `Task::msgTable`,
 /// publish the task in pointer slot 7, re-run the room's nine-entry per-object
 /// flag pass, and on the one qualifying pass start the motel cutscene and
 /// advance the story byte. Always ticks the task's state counter (0x30).
@@ -52,7 +52,7 @@ void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 {
     u8 field9;
 
-    task->field_24 = D_dryfield_night_motel_balcony_80182804;
+    task->msgTable = D_dryfield_night_motel_balcony_80182804;
     Game_SetPtrSlot(task, 7);
     func_dryfield_night_motel_balcony_8017E3C8();
     field9 = gGameSession->at4.loc.place;

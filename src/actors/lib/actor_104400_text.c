@@ -287,7 +287,7 @@ void Actor04400_Fn00B24(Task* arg0)
     w                  = (Actor104400Work*)arg0->work;
     e                  = arg0->spawnArg2;
     coord              = obj->field_8;
-    arg0->field_24     = Actor04400_D107CC;
+    arg0->msgTable     = Actor04400_D107CC;
     obj->field_1C      = &w->lightMtx;
     obj->field_20      = &w->colorMtx;
     e->field_50        = &Actor04400_D0D318;
@@ -384,7 +384,7 @@ void Actor04400_Fn00D3C(Task* arg0)
     w                  = (Actor104400Work*)arg0->work;
     e                  = arg0->spawnArg2;
     coord              = obj->field_8;
-    arg0->field_24     = Actor04400_D107CC;
+    arg0->msgTable     = Actor04400_D107CC;
     obj->field_1C      = &w->lightMtx;
     obj->field_20      = &w->colorMtx;
     e->field_50        = &Actor04400_D0D318;

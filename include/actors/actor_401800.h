@@ -505,7 +505,7 @@ extern GpPairSrcE D_actor_401800_8013E6F0;
 /// otherwise. Same table shape as `Actor01900_D0AC64`.
 extern Actor401800TintRow D_actor_401800_8013E700[];
 
-/// Handler table the actor's task receives in `Task::field_24`; same role
+/// Handler table the actor's task receives in `Task::msgTable`; same role
 /// `Actor01900_D1728C` plays for actor 01900.
 extern void* D_actor_401800_80155A80;
 

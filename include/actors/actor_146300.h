@@ -88,7 +88,7 @@ extern TaskDesc D_actor_146300_801427C8[];
 /// context with `func_800B3F84`.
 extern u8 D_actor_146300_801427E0[];
 
-/// Message handler table the state-0 handler publishes as `Task::field_24`.
+/// Message handler table the state-0 handler publishes as `Task::msgTable`.
 extern GpMsgEntry D_actor_146300_801427A0[];
 
 void func_actor_146300_801327CC(Task* task);

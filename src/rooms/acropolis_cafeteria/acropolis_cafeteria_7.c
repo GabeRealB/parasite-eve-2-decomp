@@ -41,7 +41,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     if (task->state != 0) {
         return;
     }
-    task->field_24 = D_acropolis_cafeteria_80184CEC;
+    task->msgTable = D_acropolis_cafeteria_80184CEC;
     Game_SetPtrSlot(task, 5);
     vec                            = (SVECTOR*)&work->field_10;
     D_acropolis_cafeteria_80184CFC = 0;

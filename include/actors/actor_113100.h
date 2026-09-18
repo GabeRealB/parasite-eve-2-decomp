@@ -173,7 +173,7 @@ extern TaskFuncTable4 D_actor_113100_80131E48;
 /// handler re-dresses from the area record.
 extern TaskDesc D_actor_113100_80144308;
 
-/// The actor's message table, stored in `Task::field_24`: 0x7D3
+/// The actor's message table, stored in `Task::msgTable`: 0x7D3
 /// (`func_actor_113100_801331E8`), 0x7D4 (`ActorsShared8013231c`), 0x7D5
 /// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
 /// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.

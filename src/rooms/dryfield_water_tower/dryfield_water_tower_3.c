@@ -129,7 +129,7 @@ extern s32 D_dryfield_water_tower_80187678;
 /// alone" gate -- the cap stops moving the moment it goes non-zero.
 extern s8 D_80114C11;
 
-/// The room's script table, the `Task::field_24` block `Tmd_ProcessStream`
+/// The room's script table, the `Task::msgTable` block `Tmd_ProcessStream`
 /// reads: the raise prop `func_dryfield_water_tower_8017E1DC` hangs it off its
 /// own task in state 0, the same slot the cap script publishes a table into.
 extern u32 D_dryfield_water_tower_80181B00;
@@ -289,7 +289,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 /// rebuilds the model's buffers and points its light and colour matrices
 /// (`field_1C` / `field_20`) at the block, so the cap is lit by the room's own
 /// state rather than by the default pair a `Tmd_Create` model starts with. It
-/// then hangs the room's script table off `Task::field_24`.
+/// then hangs the room's script table off `Task::msgTable`.
 ///
 /// State 1 kills the prop `field_48` holds -- the lowering prop the script
 /// spawned -- and states 2 and 3 hand the frame to that prop's body,
@@ -353,7 +353,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                     model->field_20 = mem;
                     model->field_20 = model->field_20 + 1;
                     model->field_1C = mem;
-                    arg0->field_24  = &D_dryfield_water_tower_80181B00;
+                    arg0->msgTable  = &D_dryfield_water_tower_80181B00;
                 }
                 arg0->state++;
                 break;

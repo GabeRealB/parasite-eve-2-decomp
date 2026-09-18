@@ -391,7 +391,7 @@ void func_actor_511000_80133034(Task* task)
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     func_actor_511000_801337F0(task);
     do {
-        task->field_24          = D_actor_511000_80148FC4;
+        task->msgTable          = D_actor_511000_80148FC4;
         D_actor_511000_80147EB0 = (u16*)work->field_C;
     } while (0);
     task->state += 1;

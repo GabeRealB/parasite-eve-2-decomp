@@ -141,7 +141,7 @@ s32 func_dryfield_back_street_8017D8AC(void)
 
 void func_dryfield_back_street_8017D8B4(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_back_street_8017F964;
+    arg0->msgTable = D_dryfield_back_street_8017F964;
     Game_SetPtrSlot(arg0, 7);
     Task_SpawnFromTable(D_dryfield_back_street_8017F98C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

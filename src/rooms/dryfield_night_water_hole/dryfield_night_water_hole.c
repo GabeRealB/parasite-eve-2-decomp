@@ -19,7 +19,7 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_h
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole", func_dryfield_night_water_hole_8017D7E8);
 
 /// The room's message table, the `GpMsgEntry` list the room task publishes in
-/// `Task::field_24` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and
+/// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0, whose handler is `func_dryfield_night_water_hole_8017DC28`.
 extern GpMsgEntry D_dryfield_night_water_hole_801805F8[];
 /// The two four-byte records this room hands the slot-4 task as the message
@@ -35,7 +35,7 @@ extern DnwhParamOverride D_dryfield_night_water_hole_801835D8[];
 /// Resident task table the ending task is spawned from, descriptor 1.
 extern TaskDesc D_801351FC[];
 
-/// Room entry task tick: publish the message table above in `Task::field_24`
+/// Room entry task tick: publish the message table above in `Task::msgTable`
 /// and claim game pointer slot 7. Progress nibble 0xB8 then picks the opening
 /// move: while it is clear the room's event task is spawned from
 /// `D_dryfield_night_water_hole_80180964`, and once it is set the parameter
@@ -49,7 +49,7 @@ extern TaskDesc D_801351FC[];
 /// `func_800E3FAC(0xA2, 0x25)` and spawns the ending task. Then advances state.
 void func_dryfield_night_water_hole_8017D958(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_night_water_hole_801805F8;
+    arg0->msgTable = D_dryfield_night_water_hole_801805F8;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0xB8) == 0) {
         Task_SpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);

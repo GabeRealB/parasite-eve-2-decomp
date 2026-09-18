@@ -86,7 +86,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     }
     arg0->field_40  = D_actor_103700_80139D30;
     work->field_24A = work->field_248;
-    task->field_24  = &D_actor_103700_80139F28;
+    task->msgTable  = &D_actor_103700_80139F28;
     func_800B3F84(&work->anim, D_actor_103700_80139F04, (GpAnimObj*)obj, work->poses, work->slots);
     for (i = 1; i < 6; i++) {
         Gp_AnimResetSlot(&work->anim, i, work->field_248);

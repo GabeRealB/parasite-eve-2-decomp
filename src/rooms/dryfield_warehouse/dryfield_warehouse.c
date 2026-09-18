@@ -157,7 +157,7 @@ void func_dryfield_warehouse_8017D8D4(Task* arg0)
 
 void func_dryfield_warehouse_8017D99C(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_warehouse_8017F554;
+    arg0->msgTable = D_dryfield_warehouse_8017F554;
     Game_SetPtrSlot(arg0, 7);
     Task_SpawnFromTable(D_dryfield_warehouse_8017F56C, 1, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

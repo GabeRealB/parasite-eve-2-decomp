@@ -80,7 +80,9 @@ typedef struct {
 /// The link is the task's first member, so a pointer to one is also the task
 /// that carries it. A head is a bare node belonging to no task: its `next` is
 /// the first task on the list, and its `prev` the last, which is the head
-/// itself while the list is empty.
+/// itself while the list is empty. The head is the only node that is not a task,
+/// and a walk reaches it through `prev` alone, so `next` names a task while
+/// `prev` names a node.
 typedef struct TaskNode {
     struct Task*     next; // Following task, or NULL past the last
     struct TaskNode* prev; // Preceding node, or the head at the front
@@ -113,6 +115,11 @@ STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 /// one from a `TaskDesc`, which supplies its `callback` and `priority`;
 /// `spawnArg1`, `spawnArg2` and `extra` carry whatever the spawned type needs.
 ///
+/// Several further slots are the task's own storage that the task system borrows
+/// to run its protocol, so they hold whatever the spawned type puts there between
+/// those uses: `status` carries a stop request, `extraState` the word that
+/// request hands back, and `killCountdown` the delay before the body goes.
+///
 /// Killing a task that owns a body is spread over two steps, so nothing frees it
 /// while its callback is still running: `Task_Kill` releases the body (for a TMD
 /// model, from `Task_CountdownCallback` once `killCountdown` runs out) and marks
@@ -125,18 +132,18 @@ typedef struct Task {
     struct Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
     TaskFunc     callback;      // Per-frame entry point, called by the exec passes
     TaskFunc     exitCallback;  // Runs as the task is torn down
-    void*        work;          // The per-task work block, allocated by the spawner and freed on kill
+    void*        work;          // Per-task work block, freed on kill; whatever the spawned type needs
     void*        spawnArg2;     // Second spawn argument; its meaning is the spawned type's
-    void*        field_24;      // The task's `GpMsgEntry` id/handler table, walked by `Gp_DispatchMsg`
+    void*        msgTable;      // Table of id/handler records the task answers messages with
     u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect
     u8           priority;      // List position; lower runs earlier, and selects which pass picks the task up
-    s16          killCountdown; // Frames left before the body is released
+    s16          killCountdown; // Frames left before the body is released; the task's own timer otherwise
     void*        extra;         // The body the task owns, attached and released according to `spawnType`
     s32          state;         // Index a handler dispatches on to pick its per-state function
     s32          spawnArg1;     // First spawn argument; its meaning is the spawned type's
-    u8           flags;         // Set to 0xFF to request a kill, cleared when the request is taken
+    u8           status;        // The task's own byte; the task system records a stop request in it as 0xFF
     byte         unknown_39[3];
-    s32          extraState;    // Payload carried alongside a kill request
+    s32          extraState;    // Word handed back with a stop request; the task's own payload otherwise
     byte         unknown_40[8];
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
@@ -154,19 +161,21 @@ STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 // Functions — src/main/task.c
 // =============================================================================
 
-Task*     Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list);
-Task*     Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-Task*     Task_Spawn(s32 bank, s32 type, s32 arg2, s32 arg3);
-Task*     Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-Task*     Task_SpawnOnDefaultListA(s32 bank, s32 type, s32 arg2, s32 arg3);
-void      Task_Kill(Task* task);
-void      Task_KillChildren(Task* task);
-void      Task_CallExit(Task* task);
-void      Task_DetachFromParent(Task* task);
-void      Task_Reparent(Task* parent, Task* task);
-void      Task_InitList(TaskNode* node);
-void      Task_ExecList(TaskNode* node);
-void      Task_ExecDefaultList(TaskNode* node);
+Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list);
+Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
+Task* Task_Spawn(s32 bank, s32 type, s32 arg2, s32 arg3);
+Task* Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
+Task* Task_SpawnOnDefaultListA(s32 bank, s32 type, s32 arg2, s32 arg3);
+void  Task_Kill(Task* task);
+void  Task_KillChildren(Task* task);
+void  Task_CallExit(Task* task);
+void  Task_DetachFromParent(Task* task);
+void  Task_Reparent(Task* parent, Task* task);
+void  Task_InitList(TaskNode* node);
+void  Task_ExecList(TaskNode* node);
+/// Runs the default frame list. The body reloads `gTaskDefaultList` itself, so
+/// the argument is not read.
+void      Task_ExecDefaultList(TaskNode* unused);
 void      Task_ExecListFiltered(TaskNode* node, s32 filter);
 void      Task_CallExitFiltered(TaskNode* node, s32 filter);
 TaskDesc* Task_GetDesc(u32 bank, u32 type);
@@ -208,7 +217,10 @@ extern TaskNode* gTaskActiveList;
 /// they came from.
 extern TaskNode gTaskDefaultList;
 
-extern TaskNode D_8007A110;
+/// Head of the side list the display code runs on. A display mode makes it the
+/// active list, so the tasks spawned for that mode land here rather than on the
+/// main list, and the display frame walks it.
+extern TaskNode gTaskDisplayList;
 
 extern TaskFuncTable5       GameFlow_States5;
 extern TaskFuncTable3       GameFlow_States3;

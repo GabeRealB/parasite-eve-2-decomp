@@ -9734,7 +9734,7 @@ already the thing that binds *one name* to *one address* per link, so aliasing
 the data under a shared name lets a single object serve every carrier.
 
 Take the 19-instruction message-task opener, which parks the room's own
-`GpMsgEntry` table in `Task::field_24`:
+`GpMsgEntry` table in `Task::msgTable`:
 
 ```c
 void RoomsShared8017d8c8(Task* arg0)
@@ -33530,7 +33530,7 @@ A 3-way title pick compiled as
 
 ```c
 if (arg0->spawnArg1 == 0) {
-    if (arg0->flags == 1) {
+    if (arg0->status == 1) {
         Ui_DrawText((UiPanel*)obj, Gp_StrBattleField);
     } else {
         Ui_DrawText((UiPanel*)obj, Gp_StrItemBox);
@@ -45335,7 +45335,7 @@ Here the handler and the allocator are in different units of the overlay, so the
 the handler's own address: it is a `.word` in the overlay's data, paired with an
 id in a `GpMsgEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
 `actor_303600_data_2.data.s`). Read the function that stores *that* table into
-`Task::field_24` (`func_actor_303600_801626C0`) — that is the handler's task, and
+`Task::msgTable` (`func_actor_303600_801626C0`) — that is the handler's task, and
 it is also where its `Mem_Calloc(0x3C, 0)` names the block the handler sees.
 
 So follow the `(id, handler)` table to the function that installs it whenever the
@@ -45773,7 +45773,7 @@ What is different:
 
 The structure that *is* universal, and the better anchor:
 
-* `Task::field_24` holds a `GpMsgEntry[]` -- `{s32 id; GpMsgHandler handler;}`,
+* `Task::msgTable` holds a `GpMsgEntry[]` -- `{s32 id; GpMsgHandler handler;}`,
   already defined in `include/gameplay/D4.h` -- terminated by `0x7FFFFFFF` with
   one zero word after it. `Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
@@ -48078,7 +48078,7 @@ costs two instructions the target does not have.
 ## The same invention at a `jalr` also costs the extending load its fold
 
 A second cost, and the one that does not look like a call-site problem. The
-message handlers are reached through `Task::field_24`, a table of `GpMsgHandler`
+message handlers are reached through `Task::msgTable`, a table of `GpMsgHandler`
 — four slots — so the third argument is a message record pointer, not a value.
 In `func_actor_361100_80163750` m2c saw the halfword the handler had just loaded
 still sitting in `$a1` at the `jalr` and passed it as an argument:
@@ -64208,12 +64208,12 @@ in `s0`, while the list survives the selection-clamp branch in `s1`. The later
 jump pass still merges the identical horizontal tails.
 
 The entry needs two loads of `Task::spawnArg1`. Snapshot the caption index
-before clearing `Task::flags`, then calculate the list from a fresh field read:
+before clearing `Task::status`, then calculate the list from a fresh field read:
 
 ```c
 obj = task->spawnArg2;
 textIndex = task->spawnArg1;
-task->flags = 0;
+task->status = 0;
 menu = &lists[task->spawnArg1];
 Ui_DrawText((UiPanel*)obj, captions[textIndex]);
 ```
@@ -73509,7 +73509,7 @@ topology and predicates all already match.
 **Cause.** m2c reconstructs the smallest signature the body uses, so a handler
 that never reads its own opcode id comes back as two parameters and the tested
 value is the *second* one. The real caller is `Gp_DispatchMsg` in gameplay,
-which walks the `GpMsgEntry` table at `Task::field_24` and calls
+which walks the `GpMsgEntry` table at `Task::msgTable` and calls
 
 ```c
 typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
@@ -84630,9 +84630,9 @@ file, needs it for the aliasing of that store with its `state->field_48` read.
 Prefer whichever name the target relocates against, and when a body's schedule
 needs the other one, say so at both sites.
 
-## `Task::field_24` tables are 8-byte `GpMsgEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
+## `Task::msgTable` tables are 8-byte `GpMsgEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
 
-A room's state-0 opener parks its message table in `Task::field_24` and the C
+A room's state-0 opener parks its message table in `Task::msgTable` and the C
 body shows nothing but the address, so the `D_<room>_<vram>` label it names has
 no type of its own. Several matched rooms declare it `extern s32 D_x;` and take
 `&D_x`; that compiles and matches (the store is a 32-bit immediate either way)
@@ -84660,7 +84660,7 @@ neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
 `0x7FFFFFFF` after it: that is the `GpMsgEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
 it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
-(the record's id half) into `Task::field_24` and a `Mem_Calloc(0x60, 0)` block
+(the record's id half) into `Task::msgTable` and a `Mem_Calloc(0x60, 0)` block
 into `Task::work`, and the handler reaches its work as `task->work`.
 
 The trap is the argument split. `GpMsgHandler` is
@@ -85616,7 +85616,7 @@ first when the dup index rates it 1.00.
 ## m2c drops a leading call argument that is already in `$a0` on entry
 
 `func_neo_ark_woodland_path_8017E944` opens the way every room's state 0 does -
-park the room's message table in `Task::field_24`, publish the task in pointer
+park the room's message table in `Task::msgTable`, publish the task in pointer
 slot 7 - and m2c seeded it as `Game_SetPtrSlot(7)`, one argument. The real call
 takes two, `Game_SetPtrSlot(arg0, 7)` (`include/main/session.h`), and the seed
 is not a wild miss: it scores 99.4% with `regs=3`, because the instruction
@@ -86590,7 +86590,7 @@ reference count and no other spelling adds a use.
 ## A store of a small constant before an arithmetic use of it makes that use `addu`, not `addiu`
 
 `func_dryfield_night_motel_lobby_8017FD9C` is the room state-0 opener - park the
-message table in `Task::field_24`, publish the task in slot 7, raise a flag,
+message table in `Task::msgTable`, publish the task in slot 7, raise a flag,
 `state++` - and the m2c baseline scored 67.9% (`regs=2 insert=3 delete=3`) with
 only the increment and the flag store wrong:
 
@@ -100754,7 +100754,7 @@ Inputs: `base.i`
 
 Every enemy actor's spawn handler is the same shape — `Mem_Calloc` a work block,
 seed its head, `Task_SpawnFromTable` a child, copy the location out of the
-session area key onto the child's `TmdObject`, install `Task::field_24` (the
+session area key onto the child's `TmdObject`, install `Task::msgTable` (the
 `(anim id, handler)` table), `Task::exitCallback` and `Task::state++`. Because
 the shape repeats, a *matched* sibling of your function usually already exists
 in the family, and typing the m2c seed the way that sibling is written is worth
@@ -118283,7 +118283,7 @@ sb   v0,%lo(D_8007216C)(v1); lw v0,0x30(s1); nop; addiu v0,v0,1; sw v0,0x30(s1)
 while the build hoisted `lw v0,0x30(s1)` above the `li`/`sb` pair and put the 6
 in `$v1`.
 
-**Chain.** With the three descriptor stores (`Task::field_24`, `Task::work`,
+**Chain.** With the three descriptor stores (`Task::msgTable`, `Task::work`,
 the global) as plain statements, the state reload's only dependence is the
 `Mem_Calloc` call insn, so sched1 is free to hoist it; its live range then
 covers the `6`'s position, local-alloc hands the reload `$v0` first, and the
@@ -130599,3 +130599,54 @@ How much of `Task` a window names varies: `Mm1Task`'s is one field
 work slot), and `Actor503500`'s the whole layout with three slots retyped. The
 smaller the window, the fewer the uses, and the closer its step is to just
 deleting it and letting `Task` and its own work type say the same thing.
+
+## A `Task` slot belongs to the spawned type; the task system reserves one value in it
+
+Several of `Task`'s trailing slots are not single-purpose, and taking a field's
+name for its whole role gets the documentation wrong. The byte now called
+`status` is the example: `Task_RequestKill` records `0xFF` in it and
+`Task_PollKill` tests for that, but not one of the ~20 other writes is a bitwise
+operation — the item panels put a notice id there, the ammo split a transfer
+result, part-swap code a course id, and a parent hands its value down to its
+children. A name claiming a bitmask on a byte every caller compares for equality
+is the one kind of wrong name a naming step cannot leave alone, and the honest
+replacement is the task's own status with the reserved value spelled out in the
+comment.
+
+`killCountdown` and `extraState` are the same arrangement under better names:
+the system writes them only as the teardown delay and as the word a stop request
+hands back, while actor overlays keep their own frame timer and payload there.
+So when a slot's comment reads like one mechanism, count the writes from outside
+the task code before believing it. The field comment should state the system's
+contract *and* say the task owns the value between those uses, which is what
+keeps a name like `work`, `spawnArg1` or `extra` honest for all of its users.
+
+## An argument the callee never reads is still part of the signature
+
+`Task_ExecDefaultList` walks `gTaskDefaultList` with the address baked into the
+body, and its target loads `$a0` and never reads it — the argument is dead. It
+cannot simply be dropped: the caller's `lui` / `addiu $a0, %hi(gTaskDefaultList)`
+before the `jal` belongs to the target's codegen, and removing the parameter
+removes those two instructions with it. At the other call site `$a0` holds the OT
+buffer index, which that caller computes anyway and the callee ignores.
+
+So the parameter stays, and its *name* is the only thing that can carry the
+finding. A signature reading `(TaskNode* node)` claims the function walks the
+list it is handed — the reading its sibling `Task_ExecList` teaches, whose
+parameter really is read — while this body does the opposite. Name it for the
+fact (`unused`) and put the reason in the header's one-line comment. This is the
+definition's-side view of the dummy-extra-arg entry above: there the caller had
+to supply an argument the source had no use for, here the callee ignores one its
+callers still pay for.
+
+## A generated data symbol needs its symbol-map row added by hand
+
+`sym.<unit>.txt` is what gives a splitter-generated label its stored name, so
+renaming one is two edits: the C and the map. `tools/refactor/rename_item.py`
+writes the row itself, but it derives the map's path from the file the
+declaration resolved to and only knows the `src/<unit>/…` shape — a `D_<VRAM>`
+that is only ever *declared* in a header resolves to `include/…`, and no row is
+written. Without it the extracted assembly keeps the generated label and the
+link fails on the name the C now uses, so add
+`<name> = <addr>; // type:<T>` to the unit's map yourself, in the block for the
+subsegment the address falls in.

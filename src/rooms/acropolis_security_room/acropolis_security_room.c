@@ -128,7 +128,7 @@ void func_acropolis_security_room_8017D834(Task* arg0)
 
 void func_acropolis_security_room_8017D930(Task* arg0)
 {
-    arg0->field_24 = D_acropolis_security_room_801825DC;
+    arg0->msgTable = D_acropolis_security_room_801825DC;
     Game_SetPtrSlot(arg0, 7);
     arg0->state                        = arg0->state + 1;
     D_acropolis_security_room_801855AC = NULL;

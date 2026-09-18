@@ -300,7 +300,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 
     D_actor_461800_80143894->field_4EA = 0;
     D_actor_461800_80143894->field_4EC = 0;
-    task->field_24                     = D_actor_461800_80139F5C;
+    task->msgTable                     = D_actor_461800_80139F5C;
     func_actor_461800_80132660(task);
     task->state++;
 }

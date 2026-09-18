@@ -273,7 +273,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
                   &ActorsShared80131f9cWork->pad_374[0], ActorsShared80131f9cWork->slots);
     ActorsShared80131f9cWork->field_4B8 = 0xB;
     ActorsShared80131f9cWork->field_4B4 = 2;
-    task->field_24                      = D_actor_146300_801427A0;
+    task->msgTable                      = D_actor_146300_801427A0;
     func_actor_146300_801327CC(task);
     SOFT_BARRIER();
     task->state++;

@@ -462,7 +462,7 @@ void Stage_InitOtAndSpawn(void)
     temp->displayOwner         = 1;
     temp->at100.flags.flipMode = 2;
     temp->frameBuffer          = temp->otBuffer ^ 1;
-    Task_InitList(&D_8007A110);
+    Task_InitList(&gTaskDisplayList);
     Task_SpawnFromTable(&D_8006269C, 0, 0, 0);
 }
 

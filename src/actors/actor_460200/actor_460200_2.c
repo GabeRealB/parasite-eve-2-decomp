@@ -62,7 +62,7 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
     func_800B3F84(&work->anim, D_actor_460200_80148130, (GpAnimObj*)obj,
                   work->pose, work->slots);
     work->state    = 2;
-    task->field_24 = D_actor_460200_801480E8;
+    task->msgTable = D_actor_460200_801480E8;
     func_actor_460200_80132F0C(task);
     task->state += 1;
 }

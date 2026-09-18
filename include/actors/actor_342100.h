@@ -99,7 +99,7 @@ extern Task* D_actor_342100_80164BB8;
 extern TaskDesc D_actor_342100_80164B78;
 
 /// Record the fade task `func_actor_342100_80162748` parks in its own
-/// `Task::field_24`: the message id `0x7DB` followed by the handler
+/// `Task::msgTable`: the message id `0x7DB` followed by the handler
 /// `func_actor_342100_80163344`. The same shape `src/gameplay/4CC.c` stores
 /// there, and all this overlay does with it is take its address.
 extern u8 D_actor_342100_801648F8[];

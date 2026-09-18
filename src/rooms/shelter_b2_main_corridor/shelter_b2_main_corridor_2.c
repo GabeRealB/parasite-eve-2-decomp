@@ -12,7 +12,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corrido
 
 void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
 {
-    arg0->field_24 = D_shelter_b2_main_corridor_80182C14;
+    arg0->msgTable = D_shelter_b2_main_corridor_80182C14;
     Game_SetPtrSlot(arg0, 7);
     Task_SpawnFromTable(D_shelter_b2_main_corridor_80182DE0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

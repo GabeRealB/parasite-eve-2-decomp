@@ -68,7 +68,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply"
 
 void func_shelter_b4_water_supply_8017DD40(Task* arg0)
 {
-    arg0->field_24 = D_shelter_b4_water_supply_801825F0;
+    arg0->msgTable = D_shelter_b4_water_supply_801825F0;
     Game_SetPtrSlot(arg0, 7);
     Task_SpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

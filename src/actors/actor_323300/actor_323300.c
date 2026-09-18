@@ -42,7 +42,7 @@ void func_actor_323300_80161E78(Task* arg0)
     Gp_LinkObj(2, obj);
     obj->flags |= 0x8000;
     Gp_InitRec18Table(obj->field_C, 1, 0);
-    arg0->field_24 = &D_actor_323300_80172574;
+    arg0->msgTable = &D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, 0x7D5, 0, 0);
     func_actor_323300_801629F0(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
     func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725B4, 0);

@@ -189,7 +189,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
                   &work->field_34C, work->slots);
     work->animId   = 1;
     work->state    = 2;
-    task->field_24 = D_actor_450800_801539AC;
+    task->msgTable = D_actor_450800_801539AC;
     ActorsShared801330ac(task);
     task->state++;
 }

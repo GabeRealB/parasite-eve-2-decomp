@@ -197,7 +197,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     model->field_20 = &work->field_43C;
     func_800B3F84(&work->anim, &D_actor_511000_801550C0, (GpAnimObj*)model, work->field_30C, work->slots);
     work->field_47C = 0;
-    task->field_24  = &D_actor_511000_801550A0;
+    task->msgTable  = &D_actor_511000_801550A0;
     coord->flg      = 0;
 
     table   = D_actor_511000_80155070;

@@ -80,7 +80,7 @@ void func_dryfield_junk_yard_8017D658(Task* task)
 
 void func_dryfield_junk_yard_8017D708(Task* arg0)
 {
-    arg0->field_24 = &D_dryfield_junk_yard_8017DD20;
+    arg0->msgTable = &D_dryfield_junk_yard_8017DD20;
     Game_SetPtrSlot(arg0, 7);
     if (Game_GetPtrSlot(0xA) != 0) {
         if (GameFlag_GetNibble(0x38) == 0) {

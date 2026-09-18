@@ -147,7 +147,7 @@ void func_actor_135400_80132064(Task* arg0)
         work->field_4BC = spawned;
     }
     ActorsShared80132f24(arg0);
-    arg0->field_24 = &D_actor_135400_8013A4D0;
+    arg0->msgTable = &D_actor_135400_8013A4D0;
     func_actor_135400_801327E8(arg0, 0x7D5, 1, 0);
     if (GameFlag_GetNibble(0x6C) <= 0) {
         func_actor_135400_8013276C(arg0, 0x7D4, &places.field_0, 0);

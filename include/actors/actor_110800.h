@@ -53,7 +53,7 @@ extern TaskDesc D_actor_110800_80139EDC[];
 /// Animation source `func_800B3F84` seeds the work block's slots from.
 extern u8 D_actor_110800_80139EF4[];
 
-/// Message table published as `Task::field_24`, 0x18 bytes below
+/// Message table published as `Task::msgTable`, 0x18 bytes below
 /// `D_actor_110800_80139EDC` in the same trailing data blob - three
 /// `GpMsgEntry` records.
 extern GpMsgEntry D_actor_110800_80139EC4[];

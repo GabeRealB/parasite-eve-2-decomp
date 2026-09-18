@@ -1862,7 +1862,7 @@ void Gp_InitCapTask(Task* task)
     }
     Gp_ResetCap();
     D_801156B8     = NULL;
-    task->field_24 = D_8010FB90;
+    task->msgTable = D_8010FB90;
     Game_SetPtrSlot(task, 6);
     task->work = mem;
     D_801156B0 = 0;

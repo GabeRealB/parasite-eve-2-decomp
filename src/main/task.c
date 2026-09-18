@@ -420,7 +420,7 @@ void Task_RequestKill(Task* arg0, s32 arg1)
     Task* cur;
     Task* temp;
 
-    arg0->flags      = 0xFF;
+    arg0->status     = 0xFF;
     arg0->extraState = arg1;
     arg0->callback   = textNoopCallback;
 
@@ -442,7 +442,7 @@ s32 Task_PollKill(Task* arg0, s32* arg1)
     s32 result;
 
     result = 0;
-    if (arg0->flags == 0xFF) {
+    if (arg0->status == 0xFF) {
         if (arg1 != NULL) {
             *arg1 = arg0->extraState;
         }
@@ -494,7 +494,7 @@ void Task_Free(Task* state)
     memFree(state);
 }
 
-void Task_ExecDefaultList(TaskNode* node)
+void Task_ExecDefaultList(TaskNode* unused)
 {
     Task*         next;
     Task*         curr;

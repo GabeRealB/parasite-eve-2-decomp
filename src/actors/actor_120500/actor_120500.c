@@ -194,7 +194,7 @@ void func_actor_120500_80132028(Task* arg0)
 /// is 0x65 -- as in the sibling actors, the search stops on either that id or
 /// the 0xFF terminator -- and its two texture bytes are handed to
 /// `Gp_SetTmdBytes` before the animation banks seed the work block.
-/// Finally `Task::field_24` takes the message table and all twenty animation
+/// Finally `Task::msgTable` takes the message table and all twenty animation
 /// slots are armed, slot 0 excepted.
 void func_actor_120500_801322A0(Task* arg0)
 {
@@ -235,7 +235,7 @@ void func_actor_120500_801322A0(Task* arg0)
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     func_800B3F84(&work->anim, D_actor_120500_80138088, (GpAnimObj*)tmd, work->field_334, work->slots);
     slotsWork      = (Actor120500Work*)arg0->work;
-    arg0->field_24 = &D_actor_120500_80138408;
+    arg0->msgTable = &D_actor_120500_80138408;
     i              = 1;
     do {
         slotsWork->slots[(u16)i].field_9 = 0x10;

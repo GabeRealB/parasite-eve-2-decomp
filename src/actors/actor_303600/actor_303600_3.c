@@ -5,7 +5,7 @@
 #include "main/tmd.h"
 
 /// Message 0x7DB handler, listed in `D_actor_303600_8016E480` -- the table
-/// `func_actor_303600_801626C0` installs at `Task::field_24`.  The payload is
+/// `func_actor_303600_801626C0` installs at `Task::msgTable`.  The payload is
 /// the 0x7DA record `Gp_SendMsgType9` forwards back to the slot-4 task's
 /// type-9 children, so the halfword switched on here is the sender's selector:
 /// 0 arms the rig's speed at 384.0 (16.16) with a positive ramp, 1 with a

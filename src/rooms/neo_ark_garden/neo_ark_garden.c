@@ -70,7 +70,7 @@ s32 func_neo_ark_garden_8017E9AC(void)
 
 void func_neo_ark_garden_8017E9B4(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_garden_801813B0;
+    arg0->msgTable = D_neo_ark_garden_801813B0;
     Game_SetPtrSlot(arg0, 7);
     if (*(u16*)&gGameSession->at4.loc.warp == 0x203) {
         func_800E8634((s32)&D_801334EC, 0, (s32)&D_80133954);

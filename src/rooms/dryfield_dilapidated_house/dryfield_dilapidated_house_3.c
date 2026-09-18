@@ -31,7 +31,7 @@ extern void       Room_Script16(Task* task);
 
 void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_dilapidated_house_80183E8C;
+    arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(1) != 0) {
         RoomsShared8017e8a8Task =

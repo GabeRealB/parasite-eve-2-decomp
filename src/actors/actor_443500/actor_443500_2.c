@@ -22,7 +22,7 @@ extern TaskDesc D_actor_443500_8015873C;
 
 /// The actor's animation table: `(anim id, handler)` pairs for 0x7D3 / 0x7D4 /
 /// 0x7D5, ended by `0x7FFFFFFF`. The spawn handler parks its address in
-/// `Task::field_24` (0x24).
+/// `Task::msgTable` (0x24).
 extern s32 D_actor_443500_80158754;
 
 void func_actor_443500_8013206C(s8 arg0)
@@ -83,7 +83,7 @@ void func_actor_443500_80132078(Task* task)
     func_actor_443500_8013297C(task, 0x7D5, 0, 0);
     func_actor_443500_801327E0(task, 0x7D3, &D_actor_443500_80158728, 0);
     ActorsShared80132f24(task);
-    task->field_24     = &D_actor_443500_80158754;
+    task->msgTable     = &D_actor_443500_80158754;
     task->exitCallback = ActorsShared801327b4;
     task->state++;
 }

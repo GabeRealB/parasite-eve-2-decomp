@@ -20,7 +20,7 @@ extern s32        D_acropolis_cafeteria_80182DDC;
 
 void func_acropolis_cafeteria_8017E348(Task* task)
 {
-    task->field_24 = D_acropolis_cafeteria_80182AA8;
+    task->msgTable = D_acropolis_cafeteria_80182AA8;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0) == 1) {
         Gp_MsgSlot4Chain(0, 0);

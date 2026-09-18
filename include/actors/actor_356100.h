@@ -218,7 +218,7 @@ typedef struct Actor356100 {
     /* 0x1C */ Actor356100Work* field_1C;
     /* 0x20 */ GpEnemy*         field_20;
     /// Event-handler table installed on entry; same slot as
-    /// `Task::field_24` / `Actor01900.field_24`.
+    /// `Task::msgTable` / `Actor01900.field_24`.
     /* 0x24 */ void*      field_24;
     /* 0x28 */ byte       pad_28[4];
     /* 0x2C */ TmdObject* field_2C;
@@ -622,7 +622,7 @@ extern GpPairSrcE D_actor_356100_8016A984;
 extern Actor356100TintRow D_actor_356100_8016A994[];
 
 /// Event-handler table `func_actor_356100_8016382C` hands the task as
-/// `Task::field_24`. Same shape and role as `Actor01900_D1728C`.
+/// `Task::msgTable`. Same shape and role as `Actor01900_D1728C`.
 extern void* D_actor_356100_80173258;
 
 /// Initialisation for the state-0x10 clip run: allocates the work block, binds

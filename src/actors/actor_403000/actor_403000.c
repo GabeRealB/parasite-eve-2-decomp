@@ -998,7 +998,7 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     work->field_F98 = 0;
     work->field_FA0 = 1;
     work->field_F8C = 0;
-    arg1->field_24  = &D_actor_403000_80158CA8;
+    arg1->msgTable  = &D_actor_403000_80158CA8;
     coord->sub      = &Gfx_ViewCoord;
     coord->flg      = 0;
     Gp_UpdateCoord(coord);

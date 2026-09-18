@@ -11,7 +11,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 
-/// Message table `func_actor_450800_80132160` hangs off `Task::field_24`, and
+/// Message table `func_actor_450800_80132160` hangs off `Task::msgTable`, and
 /// the `TaskDesc` table its three helper tasks come from - the same two roles
 /// `D_actor_461800_80139F5C` / `D_actor_461800_80139F8C` play for that overlay.
 extern GpMsgEntry D_actor_450800_8014AC58[];
@@ -281,7 +281,7 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
     work->field_4EA = 0;
     work->field_4EC = 0;
     work->field_500 = 0;
-    task->field_24  = D_actor_450800_8014AC58;
+    task->msgTable  = D_actor_450800_8014AC58;
     func_actor_450800_80132448(task);
     task->state++;
 }

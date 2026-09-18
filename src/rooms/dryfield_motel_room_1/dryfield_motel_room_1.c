@@ -40,7 +40,7 @@ s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     return 0;
 }
 
-/// Room entry task tick: park the room's hotspot table in `Task::field_24` -
+/// Room entry task tick: park the room's hotspot table in `Task::msgTable` -
 /// the table whose 0x13EF entry is the gate `func_dryfield_motel_room_1_8017D624`
 /// matches - register the task in pointer slot 7, then, on the phase-3 visit
 /// whose nibble 0x5C is still clear, announce the room to the slot-4 task with
@@ -50,7 +50,7 @@ void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 {
     Dmr1Msg7DA msg;
 
-    arg0->field_24 = D_dryfield_motel_room_1_8017E0A8;
+    arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 3 && GameFlag_GetNibble(0x5C) == 0) {
         msg.field_0 = gGameSession->at4.loc.stage;

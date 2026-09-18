@@ -83,7 +83,7 @@ s32 func_neo_ark_pavilion_8017EB78(void)
 /// `0x550D0006`, then advances state.
 void func_neo_ark_pavilion_8017EB80(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_pavilion_80183870;
+    arg0->msgTable = D_neo_ark_pavilion_80183870;
     Game_SetPtrSlot(arg0, 7);
     SndEvt_EnqueueType6(0x550D0005, 0, 0);
     SndEvt_EnqueueType6(0x550D0006, 0, 0);

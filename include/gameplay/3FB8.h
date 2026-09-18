@@ -52,7 +52,7 @@ typedef struct _GpActorWork {
     /* 0x18 */ void*      field_18; // Task::exitCallback; cleared before self-kill
     /* 0x1C */ GameActor* actor;
     /* 0x20 */ byte       pad_20[4];
-    /* 0x24 */ void*      field_24; // Task::field_24; GpMsgEntry table
+    /* 0x24 */ void*      field_24; // Task::msgTable; GpMsgEntry table
     /* 0x28 */ byte       pad_28[4];
     /* 0x2C */ TmdObject* extra;    // Task::extra
     /* 0x30 */ s32        state;    // Task::state
@@ -367,7 +367,7 @@ extern u16 D_80112B28[];
 /// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.field_28`.
 extern u16 D_80112C6C[];
 
-/// Message-handler table stored in `Task::field_24` by `Gp_InitPlayerWork`.
+/// Message-handler table stored in `Task::msgTable` by `Gp_InitPlayerWork`.
 extern s32 Gp_PlayerMsgTable[];
 
 /// Overlay of `Task::spawnArg1` for `Gp_EffSprTask46` / `Gp_EffCtlTaskC1` /

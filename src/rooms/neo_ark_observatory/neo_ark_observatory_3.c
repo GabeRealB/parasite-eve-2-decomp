@@ -62,7 +62,7 @@ s32 func_neo_ark_observatory_8017FCA0(s32 arg0, s32 arg1, s32 arg2)
 /// slot 7, then advances state.
 void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
-    arg0->field_24 = &D_neo_ark_observatory_801811B8;
+    arg0->msgTable = &D_neo_ark_observatory_801811B8;
     Game_SetPtrSlot(arg0, 7);
     if ((Game_GetPtrSlot(0xA) != NULL) && (gGameSession->at4.loc.place == 1)) {
         func_801322F8();

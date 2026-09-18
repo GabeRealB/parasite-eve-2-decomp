@@ -37,11 +37,11 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, GpMsg13EF* arg2)
 }
 
 /// State 0 of the room's message-driven task family: park the room's
-/// `GpMsgEntry` table in `Task::field_24`, publish the task in pointer slot 7,
+/// `GpMsgEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
 /// arm the message flag, then hand off to `func_mine_forked_tunnel_8017E48C`.
 void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {
-    arg0->field_24 = D_mine_forked_tunnel_80181C80;
+    arg0->msgTable = D_mine_forked_tunnel_80181C80;
     Game_SetPtrSlot(arg0, 7);
     D_80062735 = 1;
     func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);

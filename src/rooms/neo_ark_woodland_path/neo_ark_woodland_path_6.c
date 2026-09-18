@@ -52,11 +52,11 @@ void func_neo_ark_woodland_path_80180568(Task* task)
     s16 nib;
 
     if (D_neo_ark_woodland_path_80184980[gGameSession->at4.loc.place] == 0) {
-        task->field_24 = NULL;
+        task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
     }
-    task->field_24                   = D_neo_ark_woodland_path_80184998;
+    task->msgTable                   = D_neo_ark_woodland_path_80184998;
     D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10C);
     nib                              = GameFlag_GetNibble(0x10D);
     if (gGameSession->at4.loc.place != nib) {
@@ -134,11 +134,11 @@ void func_neo_ark_woodland_path_80180C6C(Task* task)
     s16 nib;
 
     if (D_neo_ark_woodland_path_80184970[gGameSession->at4.loc.place] == 0) {
-        task->field_24 = NULL;
+        task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
     }
-    task->field_24                   = D_neo_ark_woodland_path_801849F4;
+    task->msgTable                   = D_neo_ark_woodland_path_801849F4;
     D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10A);
     nib                              = GameFlag_GetNibble(0x10B);
     if (gGameSession->at4.loc.place != nib) {

@@ -118,7 +118,7 @@ void func_acropolis_sanctuary_8017D930(Task* arg0)
 {
     Task* slot;
 
-    arg0->field_24 = D_acropolis_sanctuary_8018081C;
+    arg0->msgTable = D_acropolis_sanctuary_8018081C;
     Game_SetPtrSlot(arg0, 7);
     arg0->state = arg0->state + 1;
     if (GameFlag_GetNibble(6) != 1) {

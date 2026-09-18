@@ -45,7 +45,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// `Task::work` (0x1C): `func_dryfield_breezeway_8017E464` allocates it with
 /// `Mem_Calloc(0x60, 0)` and parks the family's `GpMsgEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, a single 0x13F1 entry) in
-/// `Task::field_24`, which is what makes `Gp_DispatchMsg` route messages into
+/// `Task::msgTable`, which is what makes `Gp_DispatchMsg` route messages into
 /// this family at all. Reach the block with `(DbwEventWork*)task->work`.
 ///
 /// `field_40` is the answer latch the message handler
@@ -108,7 +108,7 @@ typedef union DbwMatWords {
 STATIC_ASSERT_SIZEOF(DbwMatWords, 0x20);
 
 /// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns from as the room's
-/// event task, and the single-entry `GpMsgEntry[]` it parks in `Task::field_24`
+/// event task, and the single-entry `GpMsgEntry[]` it parks in `Task::msgTable`
 /// so `Gp_DispatchMsg` routes the family's messages (the 0x13F1 "can this key
 /// item be used here?" query) into it. Both sit in the room's trailing data
 /// blob, the table immediately after the descriptor.
@@ -141,7 +141,7 @@ typedef union DbwMsgBuf {
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
 /// This room's `GpMsgEntry` id/handler table, the one
-/// `func_dryfield_breezeway_8017DDB0` parks in `Task::field_24` so
+/// `func_dryfield_breezeway_8017DDB0` parks in `Task::msgTable` so
 /// `Gp_DispatchMsg` routes messages into the room at all: 0x13EE ->
 /// `func_dryfield_breezeway_8017D940`, 0x13EF ->
 /// `func_dryfield_breezeway_8017DBD8` (the hotspot gate, whose sub-id 1 arms

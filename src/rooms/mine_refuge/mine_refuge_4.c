@@ -143,7 +143,7 @@ void func_mine_refuge_8017FE78(s32 arg0)
 
 void func_mine_refuge_8017FF4C(Task* arg0)
 {
-    arg0->field_24 = D_mine_refuge_80181884;
+    arg0->msgTable = D_mine_refuge_80181884;
     Game_SetPtrSlot(arg0, 7);
     D_mine_refuge_80182AD8 = 0;
     D_80062735             = 1;

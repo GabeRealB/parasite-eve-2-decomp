@@ -25,7 +25,7 @@ void func_neo_ark_shrine_8017F448(void);
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
-/// Message table installed at `Task::field_24` by the room task's state 0.
+/// Message table installed at `Task::msgTable` by the room task's state 0.
 extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C;
@@ -124,7 +124,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
 
 void func_neo_ark_shrine_8017D8F4(Task* task)
 {
-    task->field_24 = D_neo_ark_shrine_80181E34;
+    task->msgTable = D_neo_ark_shrine_80181E34;
     Game_SetPtrSlot(task, 7);
     func_neo_ark_shrine_8017F448();
     task->state++;

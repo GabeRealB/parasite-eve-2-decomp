@@ -25,7 +25,7 @@ s32 func_dryfield_underpass_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
 
 void func_dryfield_underpass_8017D970(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_underpass_8017E830;
+    arg0->msgTable = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_underpass_8017E89C, 0x7DB);

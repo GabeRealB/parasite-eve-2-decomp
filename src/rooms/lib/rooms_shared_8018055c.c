@@ -46,10 +46,10 @@ void RoomsShared8018055c(DialogPrompt* prompt, UiObject* obj)
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1 != prompt->field_8) {
                 SndEvt_EnqueueType6(0x16, 0, 0);
-                if (obj->owner->flags != course->id) {
+                if (obj->owner->status != course->id) {
                     SndEvt_EnqueueType2(0, 0x3C);
-                    obj->owner->state = mode;
-                    obj->owner->flags = course->id;
+                    obj->owner->state  = mode;
+                    obj->owner->status = course->id;
                     CdCmd_DropPending();
                 }
                 obj->owner->spawnArg1 = prompt->field_8;

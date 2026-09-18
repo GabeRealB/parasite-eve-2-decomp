@@ -73,7 +73,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 Tmd_AllocBuffers(extra);
                 extra->field_1C = &mtx->light;
                 extra->field_20 = &mtx->color;
-                arg0->field_24  = D_dryfield_water_tank_8017FD90;
+                arg0->msgTable  = D_dryfield_water_tank_8017FD90;
                 Task_Reparent(D_dryfield_water_tank_80188D4C, arg0);
             }
             arg0->state += 1;

@@ -1669,9 +1669,9 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     task = arg1;
     item = sel + 0x5F;
     if (task->state == 0) {
-        task->flags = 0xFF;
-        sel         = sel - 1;
-        level       = 0;
+        task->status = 0xFF;
+        sel          = sel - 1;
+        level        = 0;
         if ((u32)sel < 0x20U) {
             p      = &Gp_ItemAttrs[item];
             level  = p->field_5;
@@ -1689,9 +1689,9 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             idx                         = item - 0x60;
             *(u8*)&save->field_908[idx] = *(u8*)&save->field_908[idx] + 1;
         } else {
-            task->flags = 0x1A;
+            task->status = 0x1A;
         }
-        if (task->flags != 0xFF) {
+        if (task->status != 0xFF) {
             goto error;
         }
         width = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + Text_MeasureWidth(Gp_StrMore) + 4;
@@ -1713,10 +1713,10 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         task->killCountdown = 0xBC;
         task->state         = task->state + 1;
     }
-    if (task->flags != 0xFF) {
+    if (task->status != 0xFF) {
     error:
         saved           = task->spawnArg1;
-        task->spawnArg1 = task->flags;
+        task->spawnArg1 = task->status;
         Gp_NoticePanelTask(task);
         task->spawnArg1 = saved;
         return;

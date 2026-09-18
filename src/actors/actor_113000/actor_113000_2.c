@@ -14,7 +14,7 @@
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// Message dispatch table the spawn handler parks in `Task::field_24`:
+/// Message dispatch table the spawn handler parks in `Task::msgTable`:
 /// message id / handler pairs, terminated by 0x7FFFFFFF and a null word.
 extern u8 D_actor_113000_8013ABC0[];
 
@@ -47,7 +47,7 @@ void func_actor_113000_80131F90(Task* task)
         }
     }
     func_actor_113000_801321A8(task);
-    task->field_24     = D_actor_113000_8013ABC0;
+    task->msgTable     = D_actor_113000_8013ABC0;
     task->exitCallback = Gp_EnemyTaskExit;
     task->state++;
 }

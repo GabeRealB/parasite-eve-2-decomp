@@ -87,7 +87,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
 /// `func_dryfield_water_tank_8017DB48`, then advance.
 void func_dryfield_water_tank_8017D9D4(Task* task)
 {
-    task->field_24 = D_dryfield_water_tank_8017F324;
+    task->msgTable = D_dryfield_water_tank_8017F324;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
     SndEvt_EnqueueType6(0x52150009, 0, 0);

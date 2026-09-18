@@ -248,7 +248,7 @@ void func_actor_342400_801628F0(Task* arg0)
     }
     D_actor_342400_80173AAC = 0;
     arg0->work              = (TaskIdMap*)work;
-    arg0->field_24          = D_actor_342400_8016BF48;
+    arg0->msgTable          = D_actor_342400_8016BF48;
     arg0->state++;
 }
 

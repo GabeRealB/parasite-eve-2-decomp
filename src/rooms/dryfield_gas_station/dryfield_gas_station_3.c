@@ -85,7 +85,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 /// it advances to state 1 and raises the `D_80115598` flag.
 void func_dryfield_gas_station_8017FEDC(Task* arg0)
 {
-    arg0->field_24 = &D_dryfield_gas_station_80181E54;
+    arg0->msgTable = &D_dryfield_gas_station_80181E54;
     Game_SetPtrSlot(arg0, 7);
     if (D_80072170 == 1) {
         Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);

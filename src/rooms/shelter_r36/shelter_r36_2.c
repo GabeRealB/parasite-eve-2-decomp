@@ -19,7 +19,7 @@ s32 func_shelter_r36_8017D91C(void)
 
 void func_shelter_r36_8017D924(Task* task)
 {
-    task->field_24 = D_shelter_r36_8017E97C;
+    task->msgTable = D_shelter_r36_8017E97C;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.warp == 1) {
         Task_SpawnFromTable(&D_shelter_r36_8017DF14, 0, 0, 0);

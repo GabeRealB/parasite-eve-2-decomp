@@ -3598,7 +3598,7 @@ void Gp_FreeSlot4TmdBuffers(void)
 void Gp_BindSlot4(Task* task)
 {
     Game_SetPtrSlot(task, 4);
-    task->field_24 = Gp_Slot4MsgTable;
+    task->msgTable = Gp_Slot4MsgTable;
     task->state++;
 }
 

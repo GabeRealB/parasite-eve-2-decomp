@@ -79,7 +79,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         case 0:
             break;
     }
-    task->field_24 = D_actor_205200_8014CA78;
+    task->msgTable = D_actor_205200_8014CA78;
     task->state    = 1;
 }
 

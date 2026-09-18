@@ -28,7 +28,7 @@ void func_shelter_1f_tent_8017F9F0(Task* task)
     s32 idx;
     s32 val;
 
-    task->field_24 = D_shelter_1f_tent_80181CDC;
+    task->msgTable = D_shelter_1f_tent_80181CDC;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.place == 1) {
         func_80132210();

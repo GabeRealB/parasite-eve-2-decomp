@@ -45,7 +45,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_8
 /// with a `Gp_PackObjPair` payload, the first of the two taking pose 0xC and
 /// the second pose 8 of the model's 0x50-byte coordinate records. The task then
 /// takes `ActorsShared801384ac` as its
-/// exit callback, the model's hidden bit is lifted, `field_24` is pointed at
+/// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
 /// this overlay's message table and the state advances.
 void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acWork* work)
 {
@@ -120,7 +120,7 @@ void func_actor_104900_80132B10(GpEnemy* enemy, Task* task, ActorShared801384acW
         enemy->field_54                    = (s32)&work->field_A28[3][0];
         task->exitCallback                 = ActorsShared801384ac;
         ((TmdObject*)task->extra)->field_C = (u16)(((TmdObject*)task->extra)->field_C & 0xFF7F);
-        task->field_24                     = &D_actor_104900_80147480;
+        task->msgTable                     = &D_actor_104900_80147480;
         task->state++;
         enemy->field_4C = 0;
     }

@@ -26,14 +26,14 @@ s32 func_dryfield_night_toilet_8017D688(void)
     return 0;
 }
 
-/// Room entry task tick: park the room's hotspot table in `Task::field_24`,
+/// Room entry task tick: park the room's hotspot table in `Task::msgTable`,
 /// register the task in pointer slot 7, then - on the visit whose session
 /// sub-id (`gGameSession::at4.loc.place`) is 1 and that has not yet latched nibble
 /// 0xAF - latch the nibble and start the follow-up task. Advances to state 1
 /// either way.
 void func_dryfield_night_toilet_8017D690(Task* task)
 {
-    task->field_24 = D_dryfield_night_toilet_8017DA70;
+    task->msgTable = D_dryfield_night_toilet_8017DA70;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->at4.loc.place == 1) {
         GameFlag_SetNibble(0xAF, 1);

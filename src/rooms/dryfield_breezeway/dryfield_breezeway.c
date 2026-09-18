@@ -186,7 +186,7 @@ void func_dryfield_breezeway_8017DDB0(Task* task)
 {
     DbwMsg7DA msg;
 
-    task->field_24 = D_dryfield_breezeway_80181DE0;
+    task->msgTable = D_dryfield_breezeway_80181DE0;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0x5D) == 0) {
         msg.field_0 = gGameSession->at4.loc.stage;

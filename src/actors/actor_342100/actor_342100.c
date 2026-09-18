@@ -90,7 +90,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_342100/actor_342100", func_actor_342100_8
 /// work block through `Task::spawnArg2`.
 ///
 /// State 0 allocates the ramp, zeroes the three channels and parks the
-/// message record `D_actor_342100_801648F8` in `Task::field_24`. States 2 and
+/// message record `D_actor_342100_801648F8` in `Task::msgTable`. States 2 and
 /// 3 step `field_2` -- the first by 0xA up to 0x50, the second by 1 up to
 /// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
 /// two ramps run back to back. State 4 steps `field_4` / `field_6` by 8; once
@@ -120,7 +120,7 @@ void func_actor_342100_80162748(Task* arg0)
             work->field_6  = 0;
             work->field_4  = 0;
             work->field_2  = 0;
-            arg0->field_24 = &D_actor_342100_801648F8;
+            arg0->msgTable = &D_actor_342100_801648F8;
             arg0->state   += 1;
             break;
         case 2:

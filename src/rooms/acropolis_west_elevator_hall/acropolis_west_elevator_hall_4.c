@@ -37,7 +37,7 @@ typedef struct {
 
 void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 {
-    arg0->field_24 = D_acropolis_west_elevator_hall_801849CC;
+    arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
     Game_SetPtrSlot(arg0, 7);
     RoomsShared8017f470Cars[0] =
         Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
@@ -121,7 +121,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     coord = ((TmdObject*)task->extra)->field_8;
     switch (task->state) {
         case 0:
-            task->field_24 = D_acropolis_west_elevator_hall_801849F4;
+            task->msgTable = D_acropolis_west_elevator_hall_801849F4;
             Game_SetPtrSlot(task, 5);
             Task_Spawn(1, 0x25, 0, 0);
             Task_Spawn(1, 0x25, 1, 0);

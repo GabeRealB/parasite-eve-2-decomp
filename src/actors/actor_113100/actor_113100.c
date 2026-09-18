@@ -129,7 +129,7 @@ void func_actor_113100_80131E58(Task* task)
     obj->flags |= 0x8000;
     Gp_InitRec18Table(obj->field_C, 1, 0);
 
-    task->field_24 = &D_actor_113100_80144338;
+    task->msgTable = &D_actor_113100_80144338;
     func_80183BAC(1);
     func_actor_113100_80132790(task, 0, 0, 0);
     task->exitCallback = func_actor_113100_80132EF0;

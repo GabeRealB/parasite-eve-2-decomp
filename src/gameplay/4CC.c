@@ -83,7 +83,7 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             /* fallthrough */
         case -1:
             flag = 0;
-            if (mem->objs[0]->owner->flags != 0) {
+            if (mem->objs[0]->owner->status != 0) {
                 flag = Gp_CountScanItems(&Gp_MoveScanSrc) > 0;
             }
             mem->objs[mem->field_8]->owner->state     = 1;
@@ -339,7 +339,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
             owner = arg1->owner;
             item  = -1;
             if (Gp_ItemMoveWork->field_10 != owner->spawnArg1) {
-                flags = owner->flags;
+                flags = owner->status;
                 flag  = 0;
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
@@ -349,7 +349,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                 }
                 if (flag) {
                     item = 0x20;
-                } else if (((u32)(item2 - 0xA0) < 0x20U) && (arg1->owner->flags == 0)) {
+                } else if (((u32)(item2 - 0xA0) < 0x20U) && (arg1->owner->status == 0)) {
                     item = 8;
                 } else if (arg1->owner->spawnArg1 == 1) {
                     cfg = &Player_Status;
@@ -389,9 +389,9 @@ void Gp_ItemPaneTask(Task* arg0)
     if (arg0->state == 0) {
         if (arg0->spawnArg1 >= 0x100) {
             arg0->spawnArg1 = arg0->spawnArg1 & 0xFF;
-            arg0->flags     = 1;
+            arg0->status    = 1;
         } else {
-            arg0->flags = 0;
+            arg0->status = 0;
         }
         {
             s32                  val;
@@ -413,7 +413,7 @@ void Gp_ItemPaneTask(Task* arg0)
     }
 
     if (arg0->spawnArg1 == 0) {
-        if (arg0->flags == 1) {
+        if (arg0->status == 1) {
             Ui_DrawText((UiPanel*)obj, Gp_StrBattleField);
         } else {
             Ui_DrawText((UiPanel*)obj, Gp_StrItemBox);
@@ -545,7 +545,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
         SndEvt_EnqueueType6(3, 0, 0);
         if ((u32)(item - 0xA0) < 0x20U) {
             scanOwner = arg1->owner;
-            if (scanOwner->flags != 0) {
+            if (scanOwner->status != 0) {
                 if ((Gp_FindItemInScan(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1 ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) == 0)) {
                     prompt = 6;
                 }
@@ -556,7 +556,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
             }
         } else if (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1 ^ 1)), item) != 0) {
             owner      = arg1->owner;
-            flags      = owner->parent->flags;
+            flags      = owner->parent->status;
             restricted = 0;
             if (Gp_ItemDescs[item].field_3 & 1) {
                 restricted = flags == 1;
@@ -627,7 +627,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
             SndEvt_EnqueueType6(3, 0, 0);
 
             owner = arg1->owner;
-            flags = owner->parent->flags;
+            flags = owner->parent->status;
             flag  = 0;
             if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
@@ -678,7 +678,7 @@ void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
         Gp_ItemActionFns[0] = func_800BD6DC;
         table               = Gp_ItemActionFns;
         count               = 1;
-        if (((u32)(item - 0xA0) >= 0x20U) || (arg1->owner->flags != 0)) {
+        if (((u32)(item - 0xA0) >= 0x20U) || (arg1->owner->status != 0)) {
             table[1] = Gp_ItemActionConfirm;
             count    = 2;
         }
@@ -705,7 +705,7 @@ void Gp_ItemActionListTask(Task* arg0)
     if (arg0->state == 0) {
         parent = arg0->parent;
         if (parent != NULL) {
-            arg0->flags = parent->flags;
+            arg0->status = parent->status;
         }
         if (((s16)obj->field_E + (s16)obj->field_12) >= 0x65) {
             obj->field_E = 0x64 - obj->field_12;
@@ -717,7 +717,7 @@ void Gp_ItemActionListTask(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            if (obj->owner->flags != 0) {
+            if (obj->owner->status != 0) {
                 obj->field_2E = 6;
             } else {
                 obj->status   = 0;
@@ -826,9 +826,9 @@ void func_800BDF6C(Task* task)
     }
     state = (GpAmmoSplitState*)task->work;
     Gp_DrawItemLabel(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, task->spawnArg1, 0x606060, 0);
-    task->flags = 0;
-    totalQty    = state->srcQty + state->dstQty;
-    color       = 0x606060;
+    task->status = 0;
+    totalQty     = state->srcQty + state->dstQty;
+    color        = 0x606060;
     if (width < totalQty) {
         repeatStep = totalQty / width;
     } else {
@@ -867,7 +867,7 @@ void func_800BDF6C(Task* task)
                         goto step_at_capacity;
                     }
                 } else if (equipped > 0) {
-                    task->flags = (u8)status;
+                    task->status = (u8)status;
                 }
             } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
                 {
@@ -892,7 +892,7 @@ void func_800BDF6C(Task* task)
                     state->dstQty = dstLimit;
                     state->srcQty = state->srcQty + (destAfterClamp - dstLimit);
                 step_at_capacity:
-                    task->flags = 2U;
+                    task->status = 2U;
                 }
             }
         }
@@ -921,10 +921,10 @@ void func_800BDF6C(Task* task)
                             excess        = total - state->limit;
                             equippedQty   = equippedQty + excess;
                             state->dstQty = equippedQty;
-                            task->flags   = 2;
+                            task->status  = 2;
                         }
                     } else if (equippedQty > 0) {
-                        task->flags = 1U;
+                        task->status = 1U;
                     }
                 }
             } else if (Pad_CheckButtons(0, 1, 0x400A) != 0) {
@@ -938,7 +938,7 @@ void func_800BDF6C(Task* task)
                     } else {
                         state->dstQty = moveAllLimit;
                         state->srcQty = combinedQty - state->limit;
-                        task->flags   = 2U;
+                        task->status  = 2U;
                     }
                 }
             }
@@ -1018,7 +1018,7 @@ void func_800BDF6C(Task* task)
     }
     Ui_LayoutWithMode0(obj, (void*)((s32)-width / 2), (void*)(textY - 0xA), (void*)width, (void*)8,
                        (void*)0x102010);
-    message = task->flags;
+    message = task->status;
     if (message == 1) {
         task->killCountdown = 0xBC;
         Ui_SetHolderParam((s32)Gp_StrAmmoLocked, 0, 0);
@@ -1204,13 +1204,13 @@ void Gp_ItemPickupTilt(Task* arg0)
             func_800D7A9C(extra, &vec, 0, 3);
             arg0->work = (TaskIdMap*)mem;
         }
-        arg0->field_24 = D_8010D828;
-        arg0->flags    = 0;
+        arg0->msgTable = D_8010D828;
+        arg0->status   = 0;
         extra->field_C = 0;
         arg0->state++;
     } else if (arg0->state == 1) {
         if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
-            if (arg0->flags != 0) {
+            if (arg0->status != 0) {
                 arg0->killCountdown = 0;
                 switch (mapId) {
                     case 0x1060000: {
@@ -1330,8 +1330,8 @@ void Gp_ItemPickupTilt(Task* arg0)
         Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
         rot->flg = 0;
         if (arg0->killCountdown == 0) {
-            arg0->flags = 0;
-            done        = (GpItemObj2*)arg0->extraState;
+            arg0->status = 0;
+            done         = (GpItemObj2*)arg0->extraState;
             if (done != NULL) {
                 done->field_2    = 1;
                 arg0->extraState = 0;
@@ -1388,7 +1388,7 @@ void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
     parent = arg1->parent->spawnArg2;
     switch (arg0->field_2E) {
         case -1:
-            if (parent->owner->flags) {
+            if (parent->owner->status) {
                 parent->status = 1;
                 Ui_TeardownTree(arg0, arg0->owner);
             } else {
@@ -1464,7 +1464,7 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpItemObj2* arg2)
 
     obj              = arg0->spawnArg2;
     flag             = 1;
-    arg0->flags      = flag;
+    arg0->status     = flag;
     arg0->extraState = (s32)arg2;
     if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
         arg2->field_2 = flag;

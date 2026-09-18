@@ -87,7 +87,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
     obj->field_E  = 8;
     obj->field_C &= 0xFF7F;
     func_acropolis_helicopter_landing_pad_8017D7B0(task);
-    task->field_24      = D_acropolis_helicopter_landing_pad_80182328;
+    task->msgTable      = D_acropolis_helicopter_landing_pad_80182328;
     task->killCountdown = 0;
     task->state         = task->state + 1;
 }

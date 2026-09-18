@@ -7230,7 +7230,7 @@ loop:
     TOUCH_REG(slotTask);
     slot = 7;
     TOUCH_REG(slot);
-    arg0->field_24 = D_8010FAD4;
+    arg0->msgTable = D_8010FAD4;
     Game_SetPtrSlot(slotTask, slot);
 done:
     arg0->state++;

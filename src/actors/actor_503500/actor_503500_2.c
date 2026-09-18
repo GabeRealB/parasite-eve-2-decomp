@@ -13,7 +13,7 @@
 #include "main/tmd.h"
 #include "main/gameflag.h"
 
-/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_503500_80146888[];
 /// State handlers `func_actor_503500_8013270C` dispatches through by

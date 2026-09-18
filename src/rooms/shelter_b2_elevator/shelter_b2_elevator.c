@@ -22,7 +22,7 @@ extern TaskDesc   D_shelter_b2_elevator_8017DF70;
 
 void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
-    task->field_24 = D_shelter_b2_elevator_8017DFA0;
+    task->msgTable = D_shelter_b2_elevator_8017DFA0;
     Game_SetPtrSlot(task, 7);
     RoomsShared8017f470Cars[0] = Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 0, 0, -1);
     RoomsShared8017f470Cars[1] = Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 1, 0, 1);

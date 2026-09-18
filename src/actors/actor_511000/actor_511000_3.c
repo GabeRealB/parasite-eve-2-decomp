@@ -19,7 +19,7 @@ extern TaskFuncTable3 D_actor_511000_80131E30;
 extern TaskFuncTable3 D_actor_511000_80131E3C;
 
 /// Spawn table `func_actor_511000_80132480` starts its two child tasks from,
-/// and the per-frame handler it parks in `Task::field_24`.
+/// and the per-frame handler it parks in `Task::msgTable`.
 extern TaskDesc D_actor_511000_801472E8;
 extern u8       D_actor_511000_8014730C[];
 
@@ -63,7 +63,7 @@ void func_actor_511000_80132480(Task* task)
     work->field_4C4 = Task_SpawnFromTable(&D_actor_511000_801472E8, 1, 8, (s32)task);
     work->field_4C8 = Task_SpawnFromTable(&D_actor_511000_801472E8, 2, 0xC, (s32)task);
     func_actor_511000_801325A4(task);
-    task->field_24     = D_actor_511000_8014730C;
+    task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = Gp_EnemyTaskExit;
     task->state++;
 }

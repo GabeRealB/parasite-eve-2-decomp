@@ -19,7 +19,7 @@ extern TaskDesc D_actor_213000_80157DE0;
 
 /// The actor's message table: `(message id, handler)` pairs for 0x7D3 / 0x7D4 /
 /// 0x7D5 / 0x7DB, ended by `0x7FFFFFFF`. The spawn handler parks its address in
-/// `Task::field_24`.
+/// `Task::msgTable`.
 extern GpMsgEntry D_actor_213000_80157E1C[];
 
 void func_actor_213000_8014A6AC(Task* task);
@@ -33,7 +33,7 @@ void func_actor_213000_8014A6AC(Task* task);
 /// `&gGameSession->at4.loc.view` and indexed by the model id the parent's
 /// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and has its texture stream
 /// processed twice when it has an aux buffer. The body ends by handing the
-/// parent to `func_actor_213000_8014A6AC`, pointing `field_24` at the message
+/// parent to `func_actor_213000_8014A6AC`, pointing `msgTable` at the message
 /// table and installing `Gp_EnemyTaskExit` as its exit callback.
 void func_actor_213000_80149E54(Task* task)
 {
@@ -108,7 +108,7 @@ void func_actor_213000_80149E54(Task* task)
         }
     }
     func_actor_213000_8014A6AC(task);
-    task->field_24     = D_actor_213000_80157E1C;
+    task->msgTable     = D_actor_213000_80157E1C;
     task->exitCallback = Gp_EnemyTaskExit;
     task->state++;
 }

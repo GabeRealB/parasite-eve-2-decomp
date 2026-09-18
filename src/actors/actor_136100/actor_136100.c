@@ -100,7 +100,7 @@ void func_actor_136100_801320E0(Task* arg0)
             Tmd_AllocBuffers(tmd);
             tmd->field_1C  = &work->field_474;
             tmd->field_20  = &work->field_494;
-            arg0->field_24 = &D_actor_136100_8013F2F4;
+            arg0->msgTable = &D_actor_136100_8013F2F4;
             Task_Reparent(D_actor_136100_8014078C, arg0);
         }
         place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
@@ -146,7 +146,7 @@ void func_actor_136100_80132284(Task* arg0)
             Tmd_AllocBuffers(tmd);
             tmd->field_1C  = &work->field_474;
             tmd->field_20  = &work->field_494;
-            arg0->field_24 = &D_actor_136100_8013F2F4;
+            arg0->msgTable = &D_actor_136100_8013F2F4;
             Task_Reparent(D_actor_136100_8014078C, arg0);
         }
         arg0->state += 1;
@@ -648,7 +648,7 @@ void func_actor_136100_80133A88(Task* arg0)
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     func_800B3F84(&work->anim, &D_actor_136100_8013F1A0, (GpAnimObj*)tmd, work->pad_334, work->slots);
-    arg0->field_24 = &D_actor_136100_8013F2F4;
+    arg0->msgTable = &D_actor_136100_8013F2F4;
 }
 
 /// Classify the pending `Gp_TakePendingObj4C` event for the cutscene's start

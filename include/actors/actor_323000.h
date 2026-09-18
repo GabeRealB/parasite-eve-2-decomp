@@ -124,7 +124,7 @@ extern u8 D_actor_323000_8017387C[];
 /// `Actor356100Work`'s `D_actor_356100_801732A8`.
 extern GpEffArg D_actor_323000_80173A24;
 
-/// Message table published as `Task::field_24` by the spawn handler.
+/// Message table published as `Task::msgTable` by the spawn handler.
 extern void* D_actor_323000_801739D0;
 
 /// Enemy pair source `GpEnemy::field_50` is pointed at by the spawn handler.

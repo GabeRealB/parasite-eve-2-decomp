@@ -350,7 +350,7 @@ typedef struct Actor444000 {
     /* 0x18 */ TaskFunc         exitCallback;
     /* 0x1C */ Actor444000Work* field_1C;
     /* 0x20 */ GpEnemy*         field_20;
-    /* 0x24 */ void*            field_24; // Task::field_24, the message handler table
+    /* 0x24 */ void*            field_24; // Task::msgTable, the message handler table
     /* 0x28 */ byte             pad_28[0x4];
     /* 0x2C */ void*            extra;    // Task::extra, a TmdObject
     /* 0x30 */ s32              state;    // Task::state, the dispatcher index

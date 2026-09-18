@@ -73,7 +73,7 @@ STATIC_ASSERT_SIZEOF(MineForkedTunnelMsg7DB, 0x4);
 s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7DB* msg);
 
 /// The `{id, TaskFunc}` pairs the tunnel's enemy restores through
-/// `Task::field_24` - `0x7D5` maps to `func_mine_forked_tunnel_8017DD08` and
+/// `Task::msgTable` - `0x7D5` maps to `func_mine_forked_tunnel_8017DD08` and
 /// `0x7DB` to `func_mine_forked_tunnel_8017D8EC`, the two ids
 /// `func_mine_forked_tunnel_8017D5E8` registers.
 extern s32 D_mine_forked_tunnel_80181B8C;

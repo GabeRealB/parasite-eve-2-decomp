@@ -22,7 +22,7 @@ s32 func_neo_ark_bridge_8017E880(void)
 /// `0x551B0004`, then advances state.
 void func_neo_ark_bridge_8017E888(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_bridge_80181F30;
+    arg0->msgTable = D_neo_ark_bridge_80181F30;
     Game_SetPtrSlot(arg0, 7);
     SndEvt_EnqueueType6(0x551B0003, 0, 0);
     SndEvt_EnqueueType6(0x551B0004, 0, 0);

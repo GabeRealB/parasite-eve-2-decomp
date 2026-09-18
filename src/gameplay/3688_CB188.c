@@ -478,17 +478,17 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     PlayerStatus*             cfg;
 
     if (arg1->state == 0) {
-        src         = 0;
-        result      = 0;
-        bonus       = 0;
-        item        = arg1->spawnArg1;
-        arg1->flags = 0xFF;
-        extra       = src;
+        src          = 0;
+        result       = 0;
+        bonus        = 0;
+        item         = arg1->spawnArg1;
+        arg1->status = 0xFF;
+        extra        = src;
         switch (item) {
             case 9:
                 scan = &Mc_SaveData.field_5BC;
                 if (Gp_SumScanQty(scan, 0x9F) != 0) {
-                    arg1->flags = 0x1A;
+                    arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x9E) != 0) {
                     src    = 0x9E;
                     result = 0x9F;
@@ -496,18 +496,18 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                     src    = 0x9D;
                     result = 0x9E;
                 } else {
-                    arg1->flags = 0x16;
+                    arg1->status = 0x16;
                 }
                 break;
             case 0xC:
                 scan = &Mc_SaveData.field_5BC;
                 if (Gp_SumScanQty(scan, 0x80) != 0) {
-                    arg1->flags = 0x1A;
+                    arg1->status = 0x1A;
                 } else if (Gp_SumScanQty(scan, 0x83) != 0) {
                     src    = 0x83;
                     result = 0x80;
                 } else {
-                    arg1->flags = 0x19;
+                    arg1->status = 0x19;
                 }
                 break;
             case 0xA:
@@ -519,19 +519,19 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 scan = &Mc_SaveData.field_5BC;
                 if (Gp_SumScanQty(scan, 0x94) != 0) {
                     if (item == 0xA) {
-                        arg1->flags = 0x1A;
+                        arg1->status = 0x1A;
                     } else if (Gp_CanAddItem(scan, 0xA) != 0) {
                         bonus = 0xA;
                     } else {
-                        arg1->flags = 0x1B;
+                        arg1->status = 0x1B;
                     }
                 }
-                if (arg1->flags == 0xFF) {
+                if (arg1->status == 0xFF) {
                     ten            = 0xA;
                     start          = sp20.u.recipes.pairs;
                     sp20.u.recipes = D_80097184;
                     p              = start;
-                    arg1->flags    = 0x17;
+                    arg1->status   = 0x17;
                     do {
                         if (Gp_SumScanQty(&Mc_SaveData.field_5BC, p->src) != 0) {
                             extra = p->dst;
@@ -539,13 +539,13 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                                 extra = 0;
                             }
                             if (extra != ten && extra == item) {
-                                arg1->flags = 0x1A;
+                                arg1->status = 0x1A;
                             } else {
                                 src = p->src;
                                 for (i = 0, q = start; i < 8; i++, q++) {
                                     if (item == q->dst && src != q->src) {
-                                        arg1->flags = 0xFF;
-                                        result      = q->src;
+                                        arg1->status = 0xFF;
+                                        result       = q->src;
                                         break;
                                     }
                                 }
@@ -557,7 +557,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 }
                 break;
         }
-        if (arg1->flags == 0xFF) {
+        if (arg1->status == 0xFF) {
             cfg        = &Player_Status;
             slotSrc    = Gp_GetItemSlot(src);
             slotDst    = Gp_GetItemSlot(result);
@@ -604,9 +604,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             arg1->state                 = arg1->state + 1;
         }
     }
-    if (arg1->flags != 0xFF) {
+    if (arg1->status != 0xFF) {
         saved           = arg1->spawnArg1;
-        arg1->spawnArg1 = arg1->flags;
+        arg1->spawnArg1 = arg1->status;
         Gp_NoticePanelTask(arg1);
         arg1->spawnArg1 = saved;
         return;
@@ -3918,10 +3918,10 @@ void func_800D29B0(Task* arg0)
     s32       last;
     s32       textIndex;
 
-    obj         = arg0->spawnArg2;
-    textIndex   = arg0->spawnArg1;
-    arg0->flags = 0;
-    menu        = &D_80114DF8[arg0->spawnArg1];
+    obj          = arg0->spawnArg2;
+    textIndex    = arg0->spawnArg1;
+    arg0->status = 0;
+    menu         = &D_80114DF8[arg0->spawnArg1];
     Ui_DrawText((UiPanel*)obj, D_8010F644[textIndex]);
     if (arg0->state == 0) {
         menu->funcs     = D_8010F620;

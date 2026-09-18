@@ -9,7 +9,7 @@
 /// The room's own `GpMsgEntry[]` - the message table this task publishes.
 extern GpMsgEntry D_neo_ark_power_plant_1_8017EB18[];
 
-/// Power plant task entry: parks the room's message table in `Task::field_24`
+/// Power plant task entry: parks the room's message table in `Task::msgTable`
 /// and registers it as the room's slot-7 pointer. On the first visit - while
 /// no save flag for the plant is up yet - it also raises `field_69` (the
 /// bank-load skip bits) and, unless nibble 0xFB says the plant has already
@@ -17,7 +17,7 @@ extern GpMsgEntry D_neo_ark_power_plant_1_8017EB18[];
 /// stepping the task on to its next state.
 void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
-    task->field_24 = D_neo_ark_power_plant_1_8017EB18;
+    task->msgTable = D_neo_ark_power_plant_1_8017EB18;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.place == 1) {
         gGameSession->flowFlags = 1;

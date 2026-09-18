@@ -146,7 +146,7 @@ void func_actor_341900_80162200(Task* arg0)
             extra->field_1C                         = &mtx->light;
             extra->field_20                         = &mtx->color;
             extra->field_E                          = 0x1F;
-            arg0->field_24                          = D_actor_341900_80163A38;
+            arg0->msgTable                          = D_actor_341900_80163A38;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state++;
@@ -185,7 +185,7 @@ void func_actor_341900_80162330(Task* arg0)
     w->field_248    = (Task*)arg0->spawnArg2;
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
-    arg0->field_24  = D_actor_341900_80163A78;
+    arg0->msgTable  = D_actor_341900_80163A78;
     rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {

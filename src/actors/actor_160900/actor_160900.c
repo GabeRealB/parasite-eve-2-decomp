@@ -89,7 +89,7 @@ void func_actor_160900_80132844(Task* arg0);
 
 /// Animation source `func_800B3F84` seeds the child's slots from, the table
 /// published as `Actor160900Child3Work::field_4B4`, and the message table
-/// published as `Task::field_24`.
+/// published as `Task::msgTable`.
 extern u8 D_actor_160900_8013F1C4[];
 extern u8 D_actor_160900_8013F1F8[];
 extern u8 D_actor_160900_8013F200[];
@@ -141,7 +141,7 @@ void func_actor_160900_80132A14(Task* arg0)
             Gp_SetTmdBytes((TmdObject*)arg0->extra, 0, 0);
         }
         Task_Reparent(parent, arg0);
-        arg0->field_24 = D_actor_160900_8013F200;
+        arg0->msgTable = D_actor_160900_8013F200;
         arg0->state   += 1;
         return;
     } else {
@@ -198,7 +198,7 @@ void func_actor_160900_80132C08(Task* task)
             obj->field_1C  = &work->light;
             obj->field_20  = &work->color;
             obj->field_C  |= 0x84;
-            task->field_24 = D_actor_160900_8013F200;
+            task->msgTable = D_actor_160900_8013F200;
             place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
             while (place->field_0 != 0xFF && place->field_0 != 0x65) {
                 place++;

@@ -30,7 +30,7 @@ extern TaskDesc D_actor_105400_8013CEA0[];
 /// Animation bank `func_800B3F84` builds the work block's clip context from.
 extern u8 D_actor_105400_8013CEB8[];
 
-/// The message table the task is put on (`Task::field_24`).
+/// The message table the task is put on (`Task::msgTable`).
 extern u8 D_actor_105400_80133A00[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400", func_actor_105400_80131E3C);
@@ -153,7 +153,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     work->field_31C = sound;
     SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
                         D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
-    arg1->field_24 = D_actor_105400_80133A00;
+    arg1->msgTable = D_actor_105400_80133A00;
     arg1->state    = 1;
 }
 

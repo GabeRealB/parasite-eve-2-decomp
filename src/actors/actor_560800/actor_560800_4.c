@@ -721,7 +721,7 @@ void func_actor_560800_801386D4(Task* task)
                 i                 = 0;
                 spawned           = w;
                 spawned->field_40 = (Task*)task->spawnArg2;
-                task->field_24    = &D_actor_560800_801756D4;
+                task->msgTable    = &D_actor_560800_801756D4;
                 Task_Reparent(spawned->field_40, task);
                 do {
                     spawned->parts[i & 0xFFFF] =
@@ -1033,7 +1033,7 @@ void func_actor_560800_80138FC8(Task* task)
                 obj->field_1C  = &mem->light;
                 obj->field_20  = &mem->color;
                 Task_Reparent((Task*)task->spawnArg2, task);
-                task->field_24          = &D_actor_560800_80175744;
+                task->msgTable          = &D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
                 m0                      = &root->coord;
                 *(s32*)&m0->m[0][0]     = 0x1000;

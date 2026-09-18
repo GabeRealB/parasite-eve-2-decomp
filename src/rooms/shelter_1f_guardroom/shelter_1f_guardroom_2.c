@@ -41,7 +41,7 @@ s32 func_shelter_1f_guardroom_8017D7F0(s32 arg0, s32 arg1, s32 arg2)
 
 void func_shelter_1f_guardroom_8017D824(Task* arg0)
 {
-    arg0->field_24 = D_shelter_1f_guardroom_8017DA30;
+    arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
     Game_SetPtrSlot(arg0, 7);
     func_shelter_1f_guardroom_8017D9CC(GameFlag_GetNibble(0xB2) & 0xFF);
     arg0->state = (s32)(arg0->state + 1);

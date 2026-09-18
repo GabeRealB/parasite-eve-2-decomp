@@ -96,7 +96,7 @@ typedef union Actor303600RigAngle {
 /// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
 /// 8000 units apart in y and spliced under this task's own coordinate, so
 /// `children[i]` owns the light matrices -- and installs the 0x7DB handler
-/// table in `Task::field_24`.  `func_actor_303600_801627B8` then moves the rig
+/// table in `Task::msgTable`.  `func_actor_303600_801627B8` then moves the rig
 /// each frame: `field_28` (a 16.16 speed) ramps toward `field_38` at `field_34`
 /// a frame and stops once it passes it, and `field_18` accumulates `field_28`
 /// and is folded back into +/-4000 before its integer half becomes the task

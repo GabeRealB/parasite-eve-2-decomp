@@ -1248,7 +1248,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     enemy->field_1C.vz = 0;
     Gp_LinkNode(&enemy->node);
     enemy->node.field_4 = 1;
-    task->field_24      = &D_acropolis_bridge_80191744;
+    task->msgTable      = &D_acropolis_bridge_80191744;
     work->field_2       = -1;
     work->field_0       = 1;
     work->field_1F8     = 0x5DC;

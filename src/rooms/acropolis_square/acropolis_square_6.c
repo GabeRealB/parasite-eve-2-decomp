@@ -59,7 +59,7 @@ void func_acropolis_square_801823DC(Task* task)
     work  = task->spawnArg2;
     switch (task->state) { /* irregular */
         case 0:
-            task->field_24 = &D_acropolis_square_80183B58;
+            task->msgTable = &D_acropolis_square_80183B58;
             Game_SetPtrSlot(task, 5);
             D_acropolis_square_80183B98 = 0;
             Task_Spawn(1, 0x25, 0, 0);

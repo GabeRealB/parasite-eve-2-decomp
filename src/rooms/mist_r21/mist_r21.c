@@ -10,7 +10,7 @@ extern TaskDesc   D_mist_r21_8017D798[];
 
 void func_mist_r21_8017D61C(Task* arg0)
 {
-    arg0->field_24 = D_mist_r21_8017D770;
+    arg0->msgTable = D_mist_r21_8017D770;
     Game_SetPtrSlot(arg0, 7);
     Task_SpawnFromTable(D_mist_r21_8017D798, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

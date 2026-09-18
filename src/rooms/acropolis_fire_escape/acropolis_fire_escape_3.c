@@ -58,7 +58,7 @@ s32 func_acropolis_fire_escape_8017FE48(void)
 
 void func_acropolis_fire_escape_8017FE50(Task* task)
 {
-    task->field_24 = D_acropolis_fire_escape_80181D3C;
+    task->msgTable = D_acropolis_fire_escape_80181D3C;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(&D_acropolis_fire_escape_80181D64, 0, 0, 0);
     if (D_8007272D == 5) {

@@ -397,7 +397,7 @@ s32  func_actor_521100_801369B8(Task* task, s32 arg1, Actor521100AnimArgs* args)
 
 /// Message 0x7DB handler, listed in `D_actor_521100_8016A358` -- the
 /// `{id, handler}` table the create body `func_actor_521100_80135DDC` installs
-/// at `Task::field_24`. `msg->field_2` picks the sub-command: 0 puts the task
+/// at `Task::msgTable`. `msg->field_2` picks the sub-command: 0 puts the task
 /// back on its update state; 1 and 4 spawn one of the two companion tasks out
 /// of the `D_actor_521100_8016A388` desc table into `D_actor_521100_8016A3E0` /
 /// `D_actor_521100_8016A3E4`, leaving the state alone; 2 clears the scale-in

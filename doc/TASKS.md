@@ -116,7 +116,7 @@ Type 1 often swaps `callback` to `Task_CountdownCallback` with
 `killCountdown = 2` instead of freeing immediately. Type 0/2 typically park
 `callback` on the empty stub `textNoopCallback` for one frame.
 
-`Task_RequestKill` marks `flags = 0xFF` and stashes a result in `extraState`;
+`Task_RequestKill` marks `status = 0xFF` and stashes a result in `extraState`;
 `Task_PollKill` reads that and then calls `exitCallback`.
 
 ### 1.5 Lists
@@ -125,7 +125,7 @@ Type 1 often swaps `callback` to `Task_CountdownCallback` with
 |------|------|
 | `gTaskDefaultList` | Main frame list. `Task_ResetDefaultList` on boot / world reset |
 | `gTaskActiveList` | Where new spawns insert. Almost always the default list |
-| `D_8007A110` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `gTaskActiveList` |
+| `gTaskDisplayList` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `gTaskActiveList` |
 
 `Task_SpawnOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
 `gTaskActiveList` to the default list so a spawn from inside another list
@@ -324,8 +324,11 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | `extra` | `TmdObject*` / TMD object (type 1) or Disp2d (type 2) |
 | `spawnArg2` | `GpEnemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
 | `work` | Real `TaskIdMap*`, or abused as `TitleWork*` / script work / pad-lerp state |
-| `field_24` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |
+| `msgTable` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |
+| `status` | The task's own byte: a notice id, a course id, a parent's value copied down. `0xFF` is the stop request |
+| `killCountdown` | The task's own frame timer; the teardown delay while the task is being freed |
+| `extraState` | A payload the task carries; `Task_PollKill` hands it back with the stop request |
 
 `Game_SetPtrSlot` / `Game_GetPtrSlot` (`GameSession::ptrSlots`) is a parallel
 pointer table some tasks publish into; it is not the task list.

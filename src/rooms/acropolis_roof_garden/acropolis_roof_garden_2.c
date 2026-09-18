@@ -133,7 +133,7 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
 
 void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
-    arg0->field_24 = &D_acropolis_roof_garden_80183BDC;
+    arg0->msgTable = &D_acropolis_roof_garden_80183BDC;
     Game_SetPtrSlot(arg0, 7);
     if (Mc_SaveData.field_5C5 == 6) {
         Mc_SaveData.field_5C5 = 5;

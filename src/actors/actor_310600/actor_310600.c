@@ -54,7 +54,7 @@ void func_actor_310600_80161E64(Task* task)
     Gp_LinkObj(2, obj);
     obj->flags |= 0x8000;
     Gp_InitRec18Table(obj->field_C, 1, 0);
-    task->field_24 = D_actor_310600_801796BC;
+    task->msgTable = D_actor_310600_801796BC;
     func_actor_310600_801625F0(task, 0x7D5, 0, 0);
     task->exitCallback = func_actor_310600_80162A24;
     task->state++;

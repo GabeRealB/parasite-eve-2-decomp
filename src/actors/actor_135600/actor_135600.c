@@ -26,7 +26,7 @@ extern TaskFuncTable3 D_actor_135600_80131E24;
 /// walking model, index 2 the collision one and index 3 a model-less helper.
 extern TaskDesc D_actor_135600_8013B0C4;
 
-/// The actor's message table, stored in `Task::field_24`: 0x7D3, 0x7D4 and
+/// The actor's message table, stored in `Task::msgTable`: 0x7D3, 0x7D4 and
 /// 0x7D5 against the handlers below.
 extern GpMsgEntry D_actor_135600_8013B0F4[];
 
@@ -279,7 +279,7 @@ void func_actor_135600_80132234(Task* task)
 
     func_actor_135600_80133240(task, 0x7D5, 1, 0);
 
-    task->field_24     = D_actor_135600_8013B0F4;
+    task->msgTable     = D_actor_135600_8013B0F4;
     task->exitCallback = ActorsShared801327b4;
     task->state       += 1;
 }

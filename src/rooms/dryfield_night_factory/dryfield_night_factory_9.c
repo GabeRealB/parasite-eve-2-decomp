@@ -22,7 +22,7 @@ void func_dryfield_night_factory_8018182C(Task* task)
     }
     task->spawnArg2 = Task_SpawnFromTable(D_dryfield_night_factory_80186E94, 0, 1, 0);
     task->work      = (TaskIdMap*)work;
-    task->field_24  = D_dryfield_night_factory_80186EAC;
+    task->msgTable  = D_dryfield_night_factory_80186EAC;
     if (GameFlag_GetNibble(0x48) == 0) {
         D_8007216C = 0xC;
     } else {

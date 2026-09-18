@@ -88,7 +88,7 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task)
 
 void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
 {
-    task->field_24 = &D_dryfield_night_motel_lobby_801827CC;
+    task->msgTable = &D_dryfield_night_motel_lobby_801827CC;
     Game_SetPtrSlot(task, 7);
     D_dryfield_night_motel_lobby_801844D4 = 1;
     task->state                           = (s32)(task->state + 1);

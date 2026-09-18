@@ -25,7 +25,7 @@ extern TaskFuncTable3 D_actor_141000_80131E24;
 /// actor the state at 0x80132EF4 spawns every eighth frame.
 extern TaskDesc D_actor_141000_801348D8[];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_141000_8013D788[];
 
@@ -431,7 +431,7 @@ void func_actor_141000_8013392C(Task* arg0)
 
     func_actor_141000_801339DC(arg0);
 
-    arg0->field_24     = D_actor_141000_8013D788;
+    arg0->msgTable     = D_actor_141000_8013D788;
     arg0->exitCallback = ActorsShared801327b4;
     arg0->state++;
 }

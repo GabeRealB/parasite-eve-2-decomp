@@ -633,7 +633,7 @@ void func_actor_400600_80133434(Task* arg0)
     model->field_1C    = &work->matrix_40;
     model->field_20    = &work->matrix_20;
     model->field_C     = 0;
-    arg0->field_24     = D_actor_400600_80151AE0;
+    arg0->msgTable     = D_actor_400600_80151AE0;
     enemy->field_4     = &coord->coord;
     enemy->field_48    = 0;
     enemy->field_1C.vx = 0;

@@ -178,7 +178,7 @@ STATIC_ASSERT_SIZEOF(Actor361100HeadAim, 0xC);
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement);
 
 /// Message 0x7DB handler, listed in `D_actor_361100_8016BAF0` -- the table
-/// `func_actor_361100_80162D28` installs at `Task::field_24`, and the twin of
+/// `func_actor_361100_80162D28` installs at `Task::msgTable`, and the twin of
 /// `D_actor_361100_80171BB8` where `func_actor_361100_80163750` serves the same
 /// id. 0 parks the actor, clearing the work block's second vector accumulator;
 /// 1, 2 and 3 arm it with one of three preset vectors and the halfword at
@@ -187,14 +187,14 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* place
 s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg);
 
 /// Message 0x7DB handler, listed in `D_actor_361100_80171BB8`, the table the
-/// task installs at `Task::field_24`. 0 parks the actor, clearing the work
+/// task installs at `Task::msgTable`. 0 parks the actor, clearing the work
 /// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
 /// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
 /// exits the task through its own `Task::exitCallback`.
 s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg);
 
 /// Message 0x7D3 handler, listed in `D_actor_361100_8016BAF0` -- the table
-/// `func_actor_361100_80162D28` installs at `Task::field_24`, and the twin of
+/// `func_actor_361100_80162D28` installs at `Task::msgTable`, and the twin of
 /// `D_actor_361100_80171BB8` where `func_actor_361100_801634D0` serves the same
 /// id. Re-seeds the whole animation slot array through `func_800B3F84` -- off
 /// this variant's bank table, `D_actor_361100_8016BAE0` -- whenever the
@@ -232,7 +232,7 @@ void func_actor_361100_801627D4(Task* task);
 /// three -1 bytes, clears the first vector accumulator and arms the spawn
 /// argument `GpEnemy` with the coordinate's root matrix, then enters the
 /// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
-/// installed at `Task::field_24`. The task exits through
+/// installed at `Task::msgTable`. The task exits through
 /// `func_actor_361100_80162DE4` if the allocation fails.
 void func_actor_361100_80162D28(Task* arg0);
 void func_actor_361100_80162DE4(Task* arg0);

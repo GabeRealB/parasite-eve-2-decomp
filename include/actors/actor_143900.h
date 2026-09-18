@@ -88,7 +88,7 @@ extern u8 D_actor_143900_80149688[];
 /// stream above instead.
 extern u8 D_actor_143900_801413F8[];
 
-/// Message table `ActorsShared80131f9cSub0` publishes as `Task::field_24`,
+/// Message table `ActorsShared80131f9cSub0` publishes as `Task::msgTable`,
 /// the same role `D_actor_143900_80149634` plays in the overlay's own spawn
 /// routine. Three `GpMsgEntry` records, the same 8-byte shape the
 /// 110300/110800 carriers park there.

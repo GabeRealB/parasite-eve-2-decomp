@@ -157,7 +157,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
         return;
     }
     coord->sub     = &Gfx_ViewCoord;
-    task->field_24 = D_actor_223600_80150B28;
+    task->msgTable = D_actor_223600_80150B28;
     obj->field_C   = 0;
     func_800B3F84(&work->anim, D_actor_223600_801509C0, (GpAnimObj*)obj, work->poses, work->slots);
 

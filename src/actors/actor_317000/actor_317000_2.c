@@ -10,7 +10,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 
-/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_317000_8016CF50[];
 
@@ -42,7 +42,7 @@ void func_actor_317000_8016267C(Task* arg0)
     func_actor_317000_80162744(arg0);
     ActorsShared80162bc4(arg0, 0x7D5, 0, 0);
 
-    arg0->field_24     = D_actor_317000_8016CF50;
+    arg0->msgTable     = D_actor_317000_8016CF50;
     arg0->exitCallback = ActorsShared801327b4;
     arg0->state++;
 }

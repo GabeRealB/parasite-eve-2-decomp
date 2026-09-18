@@ -21,7 +21,7 @@ void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
 {
     u8 temp_v1;
 
-    arg0->field_24 = D_neo_ark_power_plant_2_801801F8;
+    arg0->msgTable = D_neo_ark_power_plant_2_801801F8;
     Game_SetPtrSlot(arg0, 7);
     temp_v1 = gGameSession->at4.loc.place;
     if (temp_v1 == 1) {

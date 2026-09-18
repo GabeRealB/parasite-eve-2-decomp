@@ -1628,7 +1628,7 @@ s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     GpMsgEntry* temp;
     GpMsgEntry* entry;
 
-    temp = arg0->field_24;
+    temp = arg0->msgTable;
     if (temp == NULL) {
         return 0;
     }

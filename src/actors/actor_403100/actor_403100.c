@@ -1460,7 +1460,7 @@ void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_8015580C              = enemy;
     D_actor_403100_80155808              = work;
     obj->field_20                        = &work->field_0.matrices.color;
-    arg0->field_24                       = &D_actor_403100_801556EC;
+    arg0->msgTable                       = &D_actor_403100_801556EC;
     work->field_622                      = (s16)gGameSession->at4.loc.view;
     enemy->field_48                      = 0;
     enemy->field_4                       = &coord->coord;

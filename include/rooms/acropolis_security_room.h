@@ -61,7 +61,7 @@ STATIC_ASSERT_SIZEOF(AsrRect, 0x8);
 /// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
 /// `Mem_Calloc(0x10, 0)` and stores it straight into the `Task::work` slot,
 /// so the size below is the allocation and not a guess; the same function
-/// parks the family's `GpMsgEntry[]` in `Task::field_24`. The overlay's other
+/// parks the family's `GpMsgEntry[]` in `Task::msgTable`. The overlay's other
 /// two allocators (`Mem_Calloc(0xA)` in `func_acropolis_security_room_8017D9DC`
 /// and `Mem_Calloc(4)` in `func_acropolis_security_room_80180368`) belong to
 /// other task families and to a different block.

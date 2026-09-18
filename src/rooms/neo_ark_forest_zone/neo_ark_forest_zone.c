@@ -139,7 +139,7 @@ void func_neo_ark_forest_zone_8017DA48(void)
 /// first payload record. Then advance state.
 void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 {
-    arg0->field_24 = &D_neo_ark_forest_zone_80181DC8;
+    arg0->msgTable = &D_neo_ark_forest_zone_80181DC8;
     Game_SetPtrSlot(arg0, 7);
     SndEvt_EnqueueType6(0x550B0006, 0, 0);
     D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);

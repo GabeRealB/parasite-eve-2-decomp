@@ -24,7 +24,7 @@ s32 func_shelter_r49_8017D640(void)
 
 void func_shelter_r49_8017D648(Task* arg0)
 {
-    arg0->field_24 = D_shelter_r49_8017D9D8;
+    arg0->msgTable = D_shelter_r49_8017D9D8;
     Game_SetPtrSlot(arg0, 7);
     if (D_8007218B != 9) {
         func_800E8634((s32)&D_80133560, 0, (s32)&D_80133860);

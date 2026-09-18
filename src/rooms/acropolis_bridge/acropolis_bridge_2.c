@@ -14,7 +14,7 @@ void func_acropolis_bridge_8017F2D0(s32 arg0);
 
 void func_acropolis_bridge_8017D98C(Task* arg0)
 {
-    arg0->field_24 = D_acropolis_bridge_80188E4C;
+    arg0->msgTable = D_acropolis_bridge_80188E4C;
     Game_SetPtrSlot(arg0, 7);
     D_acropolis_bridge_80191794 = Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);

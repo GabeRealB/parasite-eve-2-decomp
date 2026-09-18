@@ -462,7 +462,7 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     work->field_834 = 0x10;
     work->field_832 = 0x10;
     func_actor_323000_80163A30(task);
-    task->field_24 = &D_actor_323000_801739D0;
+    task->msgTable = &D_actor_323000_801739D0;
     coord->sub     = &Gfx_ViewCoord;
     coord->flg     = 0;
     Gp_UpdateCoord(coord);

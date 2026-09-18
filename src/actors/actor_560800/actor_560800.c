@@ -285,7 +285,7 @@ void func_actor_560800_801326C4(Task* arg0)
                     Mem_Set(arg0->work, 0, 0x4CC);
                     tmd->field_1C  = &block->light;
                     tmd->field_20  = &block->color;
-                    arg0->field_24 = &D_actor_560800_8016F34C;
+                    arg0->msgTable = &D_actor_560800_8016F34C;
                     place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
                     id             = place->field_0;
                     while (id != 0xFF) {
@@ -425,7 +425,7 @@ void func_actor_560800_80132A14(Task* arg0)
             Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->field_D, (s8)place->field_E);
         }
         Task_Reparent(parent, arg0);
-        arg0->field_24 = &D_actor_560800_8016F34C;
+        arg0->msgTable = &D_actor_560800_8016F34C;
         arg0->state   += 1;
         return;
     }
@@ -462,7 +462,7 @@ void func_actor_560800_80132C60(Task* arg0)
                 Mem_Set(arg0->work, 0, 0x4CC);
                 tmd->field_1C  = &block->light;
                 tmd->field_20  = &block->color;
-                arg0->field_24 = &D_actor_560800_8016F34C;
+                arg0->msgTable = &D_actor_560800_8016F34C;
                 place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
                 id             = place->field_0;
                 while (id != 0xFF) {
@@ -552,7 +552,7 @@ void func_actor_560800_80132F64(Task* arg0)
                 Mem_Set(arg0->work, 0, 0x4CC);
                 tmd->field_1C  = &block->light;
                 tmd->field_20  = &block->color;
-                arg0->field_24 = &D_actor_560800_8016F34C;
+                arg0->msgTable = &D_actor_560800_8016F34C;
                 place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
                 id             = place->field_0;
                 while (id != 0xFF) {

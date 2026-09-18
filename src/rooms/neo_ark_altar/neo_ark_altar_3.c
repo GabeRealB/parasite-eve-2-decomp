@@ -47,12 +47,12 @@ s32 func_neo_ark_altar_8017D910(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 }
 
 /// State 0 of the altar's message task: park the room's message table in
-/// `Task::field_24`, publish the task in pointer slot 7, record the choice made
+/// `Task::msgTable`, publish the task in pointer slot 7, record the choice made
 /// at the altar (game flag 0xD9) through the cutscene driver, then start the
 /// follow-up task and advance to state 1.
 void func_neo_ark_altar_8017D974(Task* task)
 {
-    task->field_24 = D_neo_ark_altar_8017EF98;
+    task->msgTable = D_neo_ark_altar_8017EF98;
     Game_SetPtrSlot(task, 7);
     func_neo_ark_altar_8017DC40(GameFlag_GetNibble(0xD9) & 0xFF);
     Task_SpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);

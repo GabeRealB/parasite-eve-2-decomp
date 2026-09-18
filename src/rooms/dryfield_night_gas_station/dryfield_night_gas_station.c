@@ -43,7 +43,7 @@ void func_dryfield_night_gas_station_80180C20(void);
 
 void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 {
-    arg0->field_24 = &D_dryfield_night_gas_station_80184034;
+    arg0->msgTable = &D_dryfield_night_gas_station_80184034;
     Game_SetPtrSlot(arg0, 7);
     if ((GameFlag_GetNibble(0x63) >= 2) && (Game_GetPtrSlot(0xA) != 0)) {
         Gp_DispatchMsg(Game_GetPtrSlot(0xA), 0x3E9, (s32)&D_dryfield_night_gas_station_80188B0C, 0);

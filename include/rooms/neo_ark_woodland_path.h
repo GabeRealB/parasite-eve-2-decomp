@@ -91,7 +91,7 @@ extern u8 D_neo_ark_woodland_path_80184970[];
 
 /// The room's 0x7DB message-handler table - id/handler pairs, 0x7FFFFFFF
 /// terminated - which `func_neo_ark_woodland_path_80180C6C` parks in
-/// `Task::field_24` for the task's message dispatch to walk. Same shape, and
+/// `Task::msgTable` for the task's message dispatch to walk. Same shape, and
 /// the same three handlers, as the table in `D_...84998` next to it.
 extern s32 D_neo_ark_woodland_path_801849F4[];
 
@@ -101,7 +101,7 @@ extern s32 D_neo_ark_woodland_path_801849F4[];
 /// `D_...84970` above.
 extern u8 D_neo_ark_woodland_path_80184980[];
 
-/// `func_...80180568`'s own 0x7DB handler table, parked in `Task::field_24`
+/// `func_...80180568`'s own 0x7DB handler table, parked in `Task::msgTable`
 /// exactly as `D_...849F4` is by `func_...80180C6C`.
 extern s32 D_neo_ark_woodland_path_80184998[];
 

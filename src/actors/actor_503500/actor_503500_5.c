@@ -13,7 +13,7 @@
 #include "main/tmd.h"
 #include <psyq/abs.h>
 
-/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_503500_80146888[];
 void              func_actor_503500_801324EC(Task* arg0);
@@ -234,7 +234,7 @@ extern TaskDesc D_actor_503500_8016E924;
 extern SVECTOR  D_actor_503500_8016EC50;
 extern SVECTOR  D_actor_503500_8016EF58[];
 extern TaskDesc D_actor_503500_8016E9F0;
-/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132F64`.
 extern GpMsgEntry D_actor_503500_8016EA2C[];
 extern GpPairSrcE D_actor_503500_8016E7EC[];

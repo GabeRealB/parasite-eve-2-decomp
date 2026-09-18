@@ -22,7 +22,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* m
 
 void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
 {
-    arg0->field_24 = D_shelter_b1_golem_freezer_1_8017E6A8;
+    arg0->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 0x15) {
         func_80131E24();

@@ -281,7 +281,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     Gp_LinkObj(2, node);
     node->flags |= 0x8000;
     Gp_InitRec18Table(node->field_C, 3, 0);
-    task->field_24  = D_actor_312200_80169F5C;
+    task->msgTable  = D_actor_312200_80169F5C;
     work->field_8AC = 0;
     work->field_8AD = 1;
     coord->sub      = &Gfx_ViewCoord;

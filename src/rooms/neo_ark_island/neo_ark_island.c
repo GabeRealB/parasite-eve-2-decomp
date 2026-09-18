@@ -135,7 +135,7 @@ s32 func_neo_ark_island_8017EA34(s32 arg0, s32 arg1, s32 arg2)
 /// the two island cues, then advances state and raises the `D_80115598` flag.
 void func_neo_ark_island_8017EA94(Task* arg0)
 {
-    arg0->field_24 = D_neo_ark_island_80181B48;
+    arg0->msgTable = D_neo_ark_island_80181B48;
     Game_SetPtrSlot(arg0, 7);
     SndEvt_EnqueueType6(0x550E0005, 0, 0);
     SndEvt_EnqueueType6(0x550E0006, 0, 0);

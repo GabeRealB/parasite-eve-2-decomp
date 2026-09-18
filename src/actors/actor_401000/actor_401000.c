@@ -274,7 +274,7 @@ void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
     work->field_C[1].x = actor->field_2C->field_8->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->field_8->coord.t[2] + dir.vz;
 
-    ((Task*)actor)->field_24 = &D_actor_401000_80154F90;
+    ((Task*)actor)->msgTable = &D_actor_401000_80154F90;
     root->sub                = &Gfx_ViewCoord;
     root->flg                = 0;
     Gp_UpdateCoord(root);

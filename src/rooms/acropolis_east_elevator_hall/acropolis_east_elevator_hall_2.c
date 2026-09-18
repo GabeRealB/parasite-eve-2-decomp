@@ -55,7 +55,7 @@ void func_acropolis_east_elevator_hall_8017F450(void)
 
 void func_acropolis_east_elevator_hall_8017F478(Task* task)
 {
-    task->field_24 = &D_acropolis_east_elevator_hall_801862F4;
+    task->msgTable = &D_acropolis_east_elevator_hall_801862F4;
     Game_SetPtrSlot(task, 7);
     Gp_MsgSlot4Chain(0, 1);
     Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_acropolis_east_elevator_hall_80185C8C, 0);

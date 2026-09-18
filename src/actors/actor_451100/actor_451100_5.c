@@ -66,7 +66,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   work->slots);
     work->animId   = 1;
     work->state    = 2;
-    task->field_24 = D_actor_451100_8014E6B4;
+    task->msgTable = D_actor_451100_8014E6B4;
     ActorsShared80132a1c(task);
     task->state += 1;
 }

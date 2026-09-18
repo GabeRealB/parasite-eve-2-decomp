@@ -22,7 +22,7 @@ STATIC_ASSERT_SIZEOF(GpDirActionTable, 0x1C);
 
 extern GpDirActionTable Gp_DirActionFns;
 
-/// 8-byte id/handler record. `Task::field_24` points at a table of these
+/// 8-byte id/handler record. `Task::msgTable` points at a table of these
 /// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
 /// matching handler with the same four arguments. Terminator id is
 /// `0x7FFFFFFF`.

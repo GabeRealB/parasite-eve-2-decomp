@@ -40,7 +40,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
 
 void func_dryfield_general_store_8017DEAC(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_general_store_8017E188;
+    arg0->msgTable = D_dryfield_general_store_8017E188;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x5E) == 0) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_general_store_8017E1B8, 0x7DB);

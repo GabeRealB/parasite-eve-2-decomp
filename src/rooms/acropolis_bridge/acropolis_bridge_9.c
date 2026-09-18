@@ -96,7 +96,7 @@ void func_acropolis_bridge_8017F868(Task* task)
 
     if (task->state == 0) {
         gGameSession->field_80 = 0;
-        task->field_24         = D_acropolis_bridge_801898FC;
+        task->msgTable         = D_acropolis_bridge_801898FC;
         Game_SetPtrSlot(task, 5);
         D_8011574C  = 0x600B9;
         D_80115738  = 0x600BA;

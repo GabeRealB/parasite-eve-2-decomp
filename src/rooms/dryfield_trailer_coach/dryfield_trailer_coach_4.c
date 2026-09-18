@@ -30,7 +30,7 @@ void func_dryfield_trailer_coach_80182850(void)
 /// for area 1, and advances to state 1.
 void func_dryfield_trailer_coach_80182888(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_trailer_coach_80184FA0;
+    arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
     Game_SetPtrSlot(arg0, 7);
     if (D_80072170 == 2) {
         func_800E8634((s32)&D_dryfield_trailer_coach_801853F4, 0, (s32)&D_dryfield_trailer_coach_80185964);

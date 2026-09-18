@@ -138,7 +138,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 void func_mine_mesa_8017DC80(Task* arg0)
 {
-    arg0->field_24 = D_mine_mesa_80181904;
+    arg0->msgTable = D_mine_mesa_80181904;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
         if (Game_GetPtrSlot(0xA) != NULL) {

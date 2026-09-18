@@ -986,7 +986,7 @@ void func_mist_shooting_gallery_8017FC2C(Task* arg0)
 {
     s32 var_a0;
 
-    arg0->field_24 = D_mist_shooting_gallery_801850E8;
+    arg0->msgTable = D_mist_shooting_gallery_801850E8;
     Game_SetPtrSlot(arg0, 7);
     func_8014C5E0(0x340, 0, 2);
     if (GameFlag_GetNibble(0xED) != 0) {

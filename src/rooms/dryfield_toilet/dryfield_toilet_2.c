@@ -14,7 +14,7 @@
 extern s32 D_dryfield_toilet_80180C58;
 extern s32 D_dryfield_toilet_80180F40;
 
-/// The room task's message table (published in `Task::field_24` for
+/// The room task's message table (published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
 /// hands that call as `arg2`.
 extern s32 D_dryfield_toilet_801802A4;
@@ -56,7 +56,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
 /// the next state either way.
 void func_dryfield_toilet_8017D940(Task* arg0)
 {
-    arg0->field_24 = &D_dryfield_toilet_801802A4;
+    arg0->msgTable = &D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == 1) {
         Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, (s32)&D_dryfield_toilet_801802D4, 0x7DB);

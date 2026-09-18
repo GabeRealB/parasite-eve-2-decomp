@@ -115,7 +115,7 @@ STATIC_ASSERT_SIZEOF(NightFactoryScriptWork, 0x10);
 /// The single-entry `TaskDesc` table the room's script task spawns its child
 /// task from: the shared state machine `RoomsShared8017f280`.
 extern TaskDesc D_dryfield_night_factory_80186E94[];
-/// The script's message table, parked in `Task::field_24`.
+/// The script's message table, parked in `Task::msgTable`.
 extern GpMsgEntry D_dryfield_night_factory_80186EAC[];
 /// The room's 0xFFFF-terminated hotspot table.
 extern RoomHotspot D_dryfield_night_factory_80186EBC[];

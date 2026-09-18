@@ -241,7 +241,7 @@ void func_actor_310100_80161F80(Task* task);
 /// Spawns the display model for `D_actor_310100_801798FC`: allocates the 0x50C
 /// work block into `task->work`, hands it the view coordinate and the two TMD
 /// buffers, binds the animation set selected by the display id (0x6C or 0x6D),
-/// seeds its 18 slots, points `task->field_24` at `D_actor_310100_801798B4` and
+/// seeds its 18 slots, points `task->msgTable` at `D_actor_310100_801798B4` and
 /// applies the nested area record matching that id through `Gp_SetTmdBytes`.
 void func_actor_310100_80162414(Task* task, s32 arg1)
 {
@@ -288,7 +288,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     func_actor_310100_80161F80(task);
-    task->field_24 = &D_actor_310100_801798B4;
+    task->msgTable = &D_actor_310100_801798B4;
     id             = mode;
     place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     while (place->field_0 != 0xFF && place->field_0 != id) {
@@ -349,7 +349,7 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     func_actor_310100_80161F80(task);
-    task->field_24 = &D_actor_310100_801798B4;
+    task->msgTable = &D_actor_310100_801798B4;
     id             = mode;
     place          = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc)->field_0;
     while (place->field_0 != 0xFF && place->field_0 != id) {
@@ -386,7 +386,7 @@ void func_actor_310100_801627BC(Task* task)
                 Gp_DestroyEnemy(task->spawnArg2, task);
                 return;
             }
-            task->field_24 = &D_actor_310100_801798B4;
+            task->msgTable = &D_actor_310100_801798B4;
             task->state++;
             break;
         case 1:
@@ -458,7 +458,7 @@ void func_actor_310100_801629FC(Task* task)
                 Gp_DestroyEnemy(task->spawnArg2, task);
                 return;
             }
-            task->field_24  = &D_actor_310100_801798B4;
+            task->msgTable  = &D_actor_310100_801798B4;
             work->field_504 = 0x18;
             task->state++;
             break;

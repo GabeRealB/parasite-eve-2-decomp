@@ -22,7 +22,7 @@ void func_actor_107000_80132E9C(Task* arg0);
 extern GpU16Pair  D_actor_107000_80138744;
 extern GpPairSrcE D_actor_107000_80138748;
 
-/// Message dispatch table the spawn parks in `Task::field_24`.
+/// Message dispatch table the spawn parks in `Task::msgTable`.
 extern u8 D_actor_107000_80139E50[];
 
 /// The animation data `func_800B3F84` seeds the work block's slots from.
@@ -661,7 +661,7 @@ void func_actor_107000_80133690(GpEnemy* arg0, Task* arg1)
     Gp_InitRec18Table(&work->rec20C, 1, 0);
     work->field_2E2    = 0;
     work->obj1EC.flags = (u16)(work->obj1EC.flags & 0x7FFF);
-    arg1->field_24     = D_actor_107000_80139E50;
+    arg1->msgTable     = D_actor_107000_80139E50;
     arg1->state        = 3;
 }
 

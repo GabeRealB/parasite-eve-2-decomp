@@ -301,7 +301,7 @@ typedef struct Actor100400 {
     /* 0x00 */ byte                pad_0[0x1C];
     /* 0x1C */ Actor100400Work*    field_1C;
     /* 0x20 */ Actor100400Obj*     field_20;
-    /* 0x24 */ void*               field_24; // Task::field_24, the message handler table
+    /* 0x24 */ void*               field_24; // Task::msgTable, the message handler table
     /* 0x28 */ byte                pad_28[4];
     /* 0x2C */ Actor100400Ctx*     field_2C;
     /* 0x30 */ s32                 field_30;

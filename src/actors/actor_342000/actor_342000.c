@@ -104,7 +104,7 @@ void func_actor_342000_8016201C(Task* arg0)
             ((TmdObject*)arg0->extra)->field_8->sub = &Gfx_ViewCoord;
             extra->field_20                         = &mtx->color;
             extra->field_1C                         = &mtx->light;
-            arg0->field_24                          = D_actor_342000_801648A8;
+            arg0->msgTable                          = D_actor_342000_801648A8;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state += 1;
@@ -182,7 +182,7 @@ void func_actor_342000_80162158(Task* arg0)
     w->field_298    = (Task*)arg0->spawnArg2;
     extra->field_1C = &w->light;
     extra->field_20 = &w->color;
-    arg0->field_24  = D_actor_342000_801648E8;
+    arg0->msgTable  = D_actor_342000_801648E8;
     rec             = ((GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc))->field_0;
     for (; rec->field_0 != 0xFF; rec++) {
         if (rec->field_0 == 0x20) {

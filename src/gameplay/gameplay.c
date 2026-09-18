@@ -5183,10 +5183,10 @@ void Gp_AreaEnterTask(Task* arg0)
             skip_count:
                 scan = &D_8010CA2C;
                 Gp_ClearScanItems(scan);
-                arg0->flags = Gp_GrantLocationItems(scan);
-                if (arg0->flags != 0) {
+                arg0->status = Gp_GrantLocationItems(scan);
+                if (arg0->status != 0) {
                     Ui_SpawnFromDesc(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2);
-                    if (arg0->flags == 2) {
+                    if (arg0->status == 2) {
                         Ui_SpawnFromDesc(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2);
                     }
                 }
@@ -5196,7 +5196,7 @@ void Gp_AreaEnterTask(Task* arg0)
 
                 asm("lui %0, %%hi(Mc_SaveData)" : "=r"(hi));
                 asm("addiu %0, %1, %%lo(Mc_SaveData)" : "=r"(save2) : "r"(hi));
-                arg0->flags = 0;
+                arg0->status = 0;
                 if (save2->field_6CE < 0x270FU) {
                     save2->field_6CE++;
                 }
@@ -5234,7 +5234,7 @@ void Gp_AreaEnterTask(Task* arg0)
             if (CdCmd_IsIdle() & 0xFFFF) {
                 if (obj->field_2E == 6) {
                     Ui_TeardownTree(obj, obj->owner);
-                    if (arg0->flags != 0) {
+                    if (arg0->status != 0) {
                         Gp_PubItemLoc   = 0x700;
                         arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
                         arg0->state++;

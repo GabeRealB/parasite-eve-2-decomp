@@ -184,7 +184,7 @@ typedef struct Actor560800FadeWork {
 } Actor560800FadeWork;
 STATIC_ASSERT_SIZEOF(Actor560800FadeWork, 0x8);
 
-/// Work block of the message-handler task whose `Task::field_24` table is
+/// Work block of the message-handler task whose `Task::msgTable` table is
 /// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
 /// `Mem_Malloc(0x4C, 0)`, `Mem_Set`s the same 0x4C bytes and stores it in that
 /// task's `Task::work` (0x1C), so the size below is the allocation, not a

@@ -559,7 +559,7 @@ void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
     work->field_4B8.coord.t[1] = 0;
     work->field_4B8.coord.t[2] = 0;
     work->field_730            = 0;
-    arg1->field_24             = D_actor_403600_80160504;
+    arg1->msgTable             = D_actor_403600_80160504;
     arg1->exitCallback         = (TaskFunc)func_actor_403600_80141F28;
     work->field_77A            = 0x2328;
     work->field_744            = 0;

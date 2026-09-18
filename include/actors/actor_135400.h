@@ -132,7 +132,7 @@ extern const Actor135400Places D_actor_135400_80131E48;
 /// reparents, entry 2 its second part.
 extern TaskDesc D_actor_135400_8013A4AC;
 
-/// The handler table `func_actor_135400_80132064` parks in `Task::field_24`
+/// The handler table `func_actor_135400_80132064` parks in `Task::msgTable`
 /// (0x24): the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB bodies of `actor_135400_2`.
 extern s32 D_actor_135400_8013A4D0;
 

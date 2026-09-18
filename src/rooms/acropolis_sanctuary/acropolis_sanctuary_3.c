@@ -280,7 +280,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
         for (i = 6; i < 12; i++) {
             Gp_SpawnEff(0x6008B, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
         }
-        task->field_24 = D_acropolis_sanctuary_80182310;
+        task->msgTable = D_acropolis_sanctuary_80182310;
         Game_SetPtrSlot(task, 5);
         D_acropolis_sanctuary_80182770 = 0;
         task->state                    = task->state + 1;

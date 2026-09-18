@@ -123,7 +123,7 @@ void func_actor_361100_80162D28(Task* arg0)
     func_actor_361100_80162E04(arg0);
     TOUCH_REG(enemy);
 
-    arg0->field_24     = D_actor_361100_8016BAF0;
+    arg0->msgTable     = D_actor_361100_8016BAF0;
     arg0->exitCallback = func_actor_361100_80162DE4;
     arg0->state       += 1;
 }
@@ -348,7 +348,7 @@ void func_actor_361100_80163410(Task* arg0)
     work->field_43E = -1;
     work->field_4A2 = -1;
     func_actor_361100_801634B4(arg0);
-    arg0->field_24     = D_actor_361100_80171BB8;
+    arg0->msgTable     = D_actor_361100_80171BB8;
     arg0->exitCallback = func_actor_361100_80163494;
     arg0->state       += 1;
 }

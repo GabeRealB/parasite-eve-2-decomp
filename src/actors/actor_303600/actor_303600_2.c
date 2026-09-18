@@ -20,7 +20,7 @@ extern GpMsgEntry D_actor_303600_8016E480[];
 /// the hoisted `%hi` of the spawn table.  A failed spawn stops the loop early, a
 /// failed allocation kills the task instead of leaving a half-built controller,
 /// and the last three statements install the 0x7DB handler table at
-/// `Task::field_24`, the shared kill callback and the next state.
+/// `Task::msgTable`, the shared kill callback and the next state.
 void func_actor_303600_801626C0(Task* task)
 {
     Actor303600RigWork* work;
@@ -50,7 +50,7 @@ void func_actor_303600_801626C0(Task* task)
         childCoord->coord.t[0] = 0;
         childCoord->coord.t[2] = 0;
     }
-    task->field_24     = D_actor_303600_8016E480;
+    task->msgTable     = D_actor_303600_8016E480;
     task->exitCallback = ActorsShared80162850;
     task->state       += 1;
 }

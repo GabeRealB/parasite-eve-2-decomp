@@ -124,7 +124,7 @@ s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// The `0x2704` command handler, reached through the task's `Task::field_24`
+/// The `0x2704` command handler, reached through the task's `Task::msgTable`
 /// table (`D_actor_341700_80175F5C`): the three leading bytes of `cmd` are
 /// copied over `Actor341700SubWork::field_18` .. `field_1A` and the second
 /// halfword, when the opcode matches, picks the state the work block moves to.

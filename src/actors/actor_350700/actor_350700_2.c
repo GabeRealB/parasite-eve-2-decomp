@@ -16,7 +16,7 @@
 #include "gameplay/gameplay.h"
 
 /// The four `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks
-/// from, and the message table it points the parent's `Task::field_24` at:
+/// from, and the message table it points the parent's `Task::msgTable` at:
 /// ids 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
 /// `func_actor_350700_801636A8`, terminated by 0x7FFFFFFF.
 extern TaskDesc   D_actor_350700_801708DC;
@@ -158,7 +158,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700
 /// the area key `&gGameSession->at4.loc.view` and indexed by the model id the child's
 /// own `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
-/// handing the parent to `ActorsShared80132f24`, pointing `field_24` at the
+/// handing the parent to `ActorsShared80132f24`, pointing `msgTable` at the
 /// message table and installing `func_actor_350700_801633BC` as its exit
 /// callback.
 void func_actor_350700_80162B30(Task* arg0)
@@ -240,7 +240,7 @@ void func_actor_350700_80162B30(Task* arg0)
         work->field_504 = spawned;
     }
     ActorsShared80132f24(arg0);
-    arg0->field_24     = D_actor_350700_8017090C;
+    arg0->msgTable     = D_actor_350700_8017090C;
     arg0->exitCallback = func_actor_350700_801633BC;
     arg0->state       += 1;
 }

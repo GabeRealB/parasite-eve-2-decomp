@@ -5,7 +5,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// The room task's message table, published in `Task::field_24` for
+/// The room task's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk (`func_dryfield_night_junk_yard_8017D82C` is its
 /// 0x13EF entry) and the four-byte payload the announcement below carries.
 extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
@@ -22,7 +22,7 @@ void func_dryfield_night_junk_yard_8017D8B0(Task* task)
 {
     u8 subId;
 
-    task->field_24 = &D_dryfield_night_junk_yard_8018055C;
+    task->msgTable = &D_dryfield_night_junk_yard_8018055C;
     Game_SetPtrSlot(task, 7);
     subId = gGameSession->at4.loc.place;
     if (subId == 1 && GameFlag_GetNibble(0x9F) == subId) {

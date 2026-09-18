@@ -2223,7 +2223,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     D_actor_403600_8016056C           = 0;
     D_actor_403600_801606B8.field_2   = 0;
     D_actor_403600_801606B8.field_0   = 0;
-    task->field_24                    = D_actor_403600_80160504;
+    task->msgTable                    = D_actor_403600_80160504;
     task->exitCallback                = func_actor_403600_80141598;
     ACTOR_FIELD(temp_v0, s16*, 0x730) = 0;
     D_actor_403600_801606BC           = 0;

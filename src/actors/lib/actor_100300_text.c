@@ -433,7 +433,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     Gp_InitRec18Table(rec5D8, 1, 0);
     D_80062735         = 0xA;
     work->obj5B8.flags = (u16)(work->obj5B8.flags & 0x7FFF);
-    task->field_24     = &Actor00300_D16314;
+    task->msgTable     = &Actor00300_D16314;
     task->state        = 1;
 }
 

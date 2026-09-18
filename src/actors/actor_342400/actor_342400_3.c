@@ -52,7 +52,7 @@ void func_actor_342400_80163C58(Task* task)
     w                  = (Actor342400Work*)task->work;
     e                  = task->spawnArg2;
     coord              = obj->field_8;
-    task->field_24     = D_actor_342400_80173A3C;
+    task->msgTable     = D_actor_342400_80173A3C;
     obj->field_1C      = &w->lightMtx;
     obj->field_20      = &w->colorMtx;
     e->field_50        = &D_actor_342400_80170588;
@@ -148,7 +148,7 @@ void func_actor_342400_80163E70(Task* task)
     w                  = (Actor342400Work*)task->work;
     e                  = task->spawnArg2;
     coord              = obj->field_8;
-    task->field_24     = D_actor_342400_80173A3C;
+    task->msgTable     = D_actor_342400_80173A3C;
     obj->field_1C      = &w->lightMtx;
     obj->field_20      = &w->colorMtx;
     e->field_50        = &D_actor_342400_80170588;

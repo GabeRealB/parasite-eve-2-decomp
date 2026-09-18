@@ -58,7 +58,7 @@ void func_actor_210700_80149F90(Task* task)
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->field_8);
     }
     func_actor_210700_8014A208(task);
-    task->field_24     = D_actor_210700_801585D8;
+    task->msgTable     = D_actor_210700_801585D8;
     task->exitCallback = ActorsShared801327b4;
     task->state++;
 }

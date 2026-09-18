@@ -47,7 +47,7 @@ extern s32 D_actor_335800_80164EBC;
 extern s32 D_actor_335800_80164ED4;
 
 /// The two child tasks the parent actor spawns, and the message table its
-/// `field_24` is pointed at; both live in this overlay's trailing data.
+/// `msgTable` is pointed at; both live in this overlay's trailing data.
 extern TaskDesc D_actor_335800_8016EADC;
 
 extern GpMsgEntry D_actor_335800_8016EB00[];
@@ -327,7 +327,7 @@ void func_actor_335800_80162640(Task* arg0)
         }
     }
     func_actor_335800_80162F9C(arg0);
-    arg0->field_24     = D_actor_335800_8016EB00;
+    arg0->msgTable     = D_actor_335800_8016EB00;
     arg0->exitCallback = func_actor_335800_80162F7C;
     arg0->state       += 1;
 }

@@ -134,7 +134,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&work->anim, &D_actor_460200_80151538, obj, &work->slots[0x14], work->slots);
     work->state    = 2;
-    task->field_24 = &D_actor_460200_801514FC;
+    task->msgTable = &D_actor_460200_801514FC;
     func_actor_460200_801336B4(task);
     task->state += 1;
 }

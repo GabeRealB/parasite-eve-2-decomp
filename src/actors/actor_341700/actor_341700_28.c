@@ -38,7 +38,7 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     ((TmdObject*)arg1->extra)->field_8->coord.t[0] = 0x1388;
     ((TmdObject*)arg1->extra)->field_8->coord.t[2] = -0x1770;
     ((TmdObject*)arg1->extra)->field_8->flg        = 0;
-    arg1->field_24                                 = D_actor_341700_80175F5C;
+    arg1->msgTable                                 = D_actor_341700_80175F5C;
     arg0->field_4                                  = &coord->coord;
     arg0->field_48                                 = 0;
     arg0->field_1C.vx                              = 0;

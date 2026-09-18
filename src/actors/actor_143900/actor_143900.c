@@ -42,7 +42,7 @@ void func_actor_143900_80131E24(void)
 /// than the `Mem_Calloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register; the same two loads
 /// publish the block's matrices, which go to the object's `field_1C` /
-/// `field_20`. `task->field_24` takes the message table
+/// `field_20`. `task->msgTable` takes the message table
 /// `D_actor_143900_801413BC`.
 ///
 /// The position it forwards to `func_800D7A9C` is the model root's translation
@@ -86,7 +86,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     ActorsShared80131f9cWork->field_4B4 = 2;
     ActorsShared80131f9cWork->field_4EA = 0;
     ActorsShared80131f9cWork->field_4EC = 0;
-    task->field_24                      = D_actor_143900_801413BC;
+    task->msgTable                      = D_actor_143900_801413BC;
     func_actor_143900_80131FD4(task);
     task->state += 1;
 }

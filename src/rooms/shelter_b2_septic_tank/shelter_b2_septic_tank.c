@@ -35,7 +35,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", 
 
 void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
 {
-    arg0->field_24 = D_shelter_b2_septic_tank_80182F4C;
+    arg0->msgTable = D_shelter_b2_septic_tank_80182F4C;
     Game_SetPtrSlot(arg0, 7);
     Task_SpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
     arg0->state = (s32)(arg0->state + 1);

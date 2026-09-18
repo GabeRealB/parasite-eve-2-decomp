@@ -54,7 +54,7 @@ extern GpPairSrcE D_actor_444000_80144A58;
 extern GpAnimSet* D_actor_444000_80161448[];
 extern GpAnimSet* D_actor_444000_80161500[];
 extern GpAnimSet* D_actor_444000_801615B8[];
-/// The enemy task's message-handler table, parked in `Task::field_24`.
+/// The enemy task's message-handler table, parked in `Task::msgTable`.
 extern void* D_actor_444000_80161818;
 /// Spawn table of the seven escorts, indexed 0..6.
 extern TaskDesc D_actor_444000_801616B0;

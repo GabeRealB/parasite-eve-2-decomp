@@ -52,7 +52,7 @@ extern TaskDesc D_acropolis_security_room_80182700[];
 /// The single-entry `TaskDesc` table the script spawns its child task from:
 /// `func_acropolis_security_room_8017F9C8`.
 extern TaskDesc D_acropolis_security_room_801826C0[];
-/// The script's message table, parked in `Task::field_24`.
+/// The script's message table, parked in `Task::msgTable`.
 extern GpMsgEntry D_acropolis_security_room_801826CC[];
 extern s8         D_8007216C;
 extern s16        D_80114D08;

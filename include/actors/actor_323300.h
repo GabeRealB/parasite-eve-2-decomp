@@ -158,7 +158,7 @@ typedef struct Actor323300MtxWork {
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
-/// Message table `func_actor_323300_80161E78` parks in `Task::field_24`:
+/// Message table `func_actor_323300_80161E78` parks in `Task::msgTable`:
 /// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
 /// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `func_actor_323300_801628B8`,
 /// `func_actor_323300_801629F0`, `func_actor_323300_80162208` and

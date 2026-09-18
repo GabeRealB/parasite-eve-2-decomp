@@ -302,7 +302,7 @@ void func_actor_121300_80133BFC(Task* arg0)
         Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x13U);
-    arg0->field_24 = &D_actor_121300_8013CC88;
+    arg0->msgTable = &D_actor_121300_8013CC88;
 }
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the

@@ -239,7 +239,7 @@ void func_dryfield_breezeway_8017E390(void)
 /// `func_dryfield_breezeway_8017E65C` rides on. The 0x60 `DbwEventWork` block
 /// is allocated and published in `Task::work`, the family's own `GpMsgEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
-/// `Task::field_24` -- which is what routes the key-item query into this room
+/// `Task::msgTable` -- which is what routes the key-item query into this room
 /// at all -- and the room's own event task is spawned from
 /// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `D_8007216C` is
 /// stamped with 6, the area-record index the view gate reads back.
@@ -283,7 +283,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
 
     arg0->spawnArg2 = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
-        arg0->field_24 = D_dryfield_breezeway_80182DCC;
+        arg0->msgTable = D_dryfield_breezeway_80182DCC;
         arg0->work     = (TaskIdMap*)work;
         D_8007216C     = 6;
     } while (0);

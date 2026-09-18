@@ -12,7 +12,7 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 
-/// `Gp_DispatchMsg` handler table installed at `Task::field_24` by
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_503500_80146888[];
 void              func_actor_503500_801324EC(Task* arg0);
@@ -186,7 +186,7 @@ void func_actor_503500_80132430(Task* arg0)
     ext->field_C  |= 0x84;
     work->field_44 = 0;
     func_actor_503500_801324EC(arg0);
-    arg0->field_24     = D_actor_503500_80146888;
+    arg0->msgTable     = D_actor_503500_80146888;
     arg0->exitCallback = ActorsShared801366fc;
     arg0->state       += 1;
 }

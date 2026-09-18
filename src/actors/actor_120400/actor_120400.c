@@ -15,7 +15,7 @@
 #include "main/tmd.h"
 
 /// The two child tasks the parent actor spawns, and the message table it points
-/// its `Task::field_24` at; both live in this overlay's trailing data.
+/// its `Task::msgTable` at; both live in this overlay's trailing data.
 extern TaskDesc   D_actor_120400_8013E748;
 extern GpMsgEntry D_actor_120400_8013E76C[];
 
@@ -28,7 +28,7 @@ extern GpMsgEntry D_actor_120400_8013E76C[];
 /// `&gGameSession->at4.loc.view` and indexed by the model id the child's own
 /// `spawnArg2` carries at `GpEnemy::field_8 >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
-/// handing the parent to `ActorsShared80132f24`, pointing `field_24` at the
+/// handing the parent to `ActorsShared80132f24`, pointing `msgTable` at the
 /// message table and installing `ActorsShared801327b4` as its exit callback.
 void func_actor_120400_80131E5C(Task* arg0)
 {
@@ -103,7 +103,7 @@ void func_actor_120400_80131E5C(Task* arg0)
         }
     }
     ActorsShared80132f24(arg0);
-    arg0->field_24     = D_actor_120400_8013E76C;
+    arg0->msgTable     = D_actor_120400_8013E76C;
     arg0->exitCallback = ActorsShared801327b4;
     arg0->state       += 1;
 }

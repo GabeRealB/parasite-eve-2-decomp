@@ -44,7 +44,7 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     func_mine_forked_tunnel_8017DD08(arg0, 0x7D5, 1, 0);
     func_mine_forked_tunnel_8017DC70(arg0);
     work->field_40 = Task_SpawnFromTable(&D_mine_forked_tunnel_80181B74, 1, 0, (s32)arg0);
-    arg0->field_24 = &D_mine_forked_tunnel_80181B8C;
+    arg0->msgTable = &D_mine_forked_tunnel_80181B8C;
     func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
     arg0->exitCallback = func_mine_forked_tunnel_8017DC50;
     arg0->state++;

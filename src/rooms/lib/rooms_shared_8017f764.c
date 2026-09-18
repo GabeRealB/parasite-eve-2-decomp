@@ -44,9 +44,9 @@ void RoomsShared8017f764(Task* task)
     s32         n;
     GpItemRec*  rec;
 
-    item        = RoomsShared8017df68Selected;
-    obj         = task->spawnArg2;
-    task->flags = 0;
+    item         = RoomsShared8017df68Selected;
+    obj          = task->spawnArg2;
+    task->status = 0;
     if ((CdCmd_IsIdle() & 0xFFFF) && RoomsShared8017df68Selected == Gp_GetPreviewItem()) {
         func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, 0x20);
     } else {

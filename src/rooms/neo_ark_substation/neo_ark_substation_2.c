@@ -23,12 +23,12 @@ s32 func_neo_ark_substation_8017D7A4(void)
 }
 
 /// State 0 of the neo_ark_substation message task: park the room's message
-/// table in `Task::field_24`, publish the task in pointer slot 7, then - only
+/// table in `Task::msgTable`, publish the task in pointer slot 7, then - only
 /// while game flag 0xDF is clear - start the follow-up task and advance to
 /// state 1.
 void func_neo_ark_substation_8017D7AC(Task* task)
 {
-    task->field_24 = D_neo_ark_substation_8017E294;
+    task->msgTable = D_neo_ark_substation_8017E294;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0xDF) == 0) {
         Task_SpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);

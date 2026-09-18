@@ -13,7 +13,7 @@ extern GpMsgEntry RoomsShared8017d8c8Msgs[];
 
 /// State 0 of a room's message-driven task family, in the variant that also
 /// arms the stage-3 `D_80062735` mode byte: park the room's message table in
-/// `Task::field_24`, publish the task in pointer slot 7, advance to state 1.
+/// `Task::msgTable`, publish the task in pointer slot 7, advance to state 1.
 /// The mine tunnels open their event family this way.
 void RoomsShared8017d8c8(Task* task);
 

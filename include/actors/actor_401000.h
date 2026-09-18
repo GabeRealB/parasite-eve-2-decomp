@@ -375,7 +375,7 @@ extern GpPairSrcE D_actor_401000_8013E09C;
 /// with `Task::spawnArg1 & 0xF`.
 extern Actor401000SeedRec D_actor_401000_8013E0AC[3];
 
-/// Animation table `func_actor_401000_80133274` writes to `Task::field_24`.
+/// Animation table `func_actor_401000_80133274` writes to `Task::msgTable`.
 extern s32 D_actor_401000_80154F90;
 
 /// Linear congruential generator state `func_actor_401000_8013DF6C` advances

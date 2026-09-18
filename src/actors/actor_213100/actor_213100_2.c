@@ -15,7 +15,7 @@ extern TaskFuncTable3 D_actor_213100_80149E30;
 /// own body is `func_actor_213100_80149FE4`.
 extern TaskDesc D_actor_213100_801521A8;
 
-/// Message dispatch table parked in `Task::field_24` - message 0x7D3 is the
+/// Message dispatch table parked in `Task::msgTable` - message 0x7D3 is the
 /// animation handler `func_actor_213100_8014A258`, which the init calls
 /// directly with a preset of its own.
 extern u8 D_actor_213100_801521C0[];
@@ -74,7 +74,7 @@ void func_actor_213100_8014A118(Task* arg0)
     preset.field_C  = 0;
     preset.field_10 = 0;
     func_actor_213100_8014A258(arg0, 0, &preset, 0);
-    arg0->field_24     = D_actor_213100_801521C0;
+    arg0->msgTable     = D_actor_213100_801521C0;
     arg0->exitCallback = ActorsShared801327b4;
     arg0->state++;
 }

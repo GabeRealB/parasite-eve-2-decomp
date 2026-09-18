@@ -147,7 +147,7 @@ extern u8             Actor04400_D10828[]; // per animation id (1-based): the an
 extern u8             D_801153F4;          // absolute; nonzero skips the controller's state handler
 extern GpPairSrcE     Actor04400_D0D318;   // the main enemy's `GpEnemy::field_50` record
 extern u8             Actor04400_D10778[]; // animation bank handed to `func_800B3F84`
-extern u8             Actor04400_D107CC[]; // stored into `Task::field_24` by Actor04400_Fn00B24
+extern u8             Actor04400_D107CC[]; // stored into `Task::msgTable` by Actor04400_Fn00B24
 extern TaskFuncTable3 Actor04400_D00070;   // dispatcher table Actor04400_Fn06ACC copies onto its stack
 extern TaskFuncTable3 Actor04400_D0007C;   // dispatcher table Actor04400_Fn06870 copies onto its stack
 extern TaskFuncTable5 Actor04400_D00088;   // dispatcher table Actor04400_Fn068F8 copies onto its stack

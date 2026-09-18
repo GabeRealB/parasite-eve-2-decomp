@@ -114,7 +114,7 @@ void func_actor_120300_80132004(Task* arg0)
             kill           = 0;
             tmd->field_1C  = &work->field_474;
             tmd->field_20  = &work->field_494;
-            arg0->field_24 = &D_actor_120300_80140A44;
+            arg0->msgTable = &D_actor_120300_80140A44;
         }
         killCopy = kill;
         TOUCH_REG(killCopy);
@@ -186,7 +186,7 @@ void func_actor_120300_801321C8(Task* arg0)
             kill           = 0;
             tmd->field_1C  = &work->field_474;
             tmd->field_20  = &work->field_494;
-            arg0->field_24 = &D_actor_120300_80140A44;
+            arg0->msgTable = &D_actor_120300_80140A44;
         }
         killCopy = kill;
         TOUCH_REG(killCopy);
@@ -382,7 +382,7 @@ void func_actor_120300_801335D8(Task* arg0)
     } while ((u16)i < 0x14U);
     work->field_4B8 = Task_SpawnFromTable(&ActorsShared80134898Desc, 2, 0, (s32)arg0);
     work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 0, (s32)arg0);
-    arg0->field_24  = &D_actor_120300_80140A44;
+    arg0->msgTable  = &D_actor_120300_80140A44;
     work->field_4E0 = 0x1000;
     Task_Reparent(arg0, work->field_4B8);
     Task_Reparent(arg0, work->field_4BC);

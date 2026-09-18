@@ -6,7 +6,7 @@
 #include "rooms/room_common.h"
 #include "rooms/mine_forked_tunnel.h"
 
-/// `Task::field_24` handler for message id 0x7D5: switches the draw and
+/// `Task::msgTable` handler for message id 0x7D5: switches the draw and
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
 /// clear bit 0x80 - hiding and showing the model - and leave bit 0x4 clear so
 /// the model keeps its buffers, mode 1 reinstating them through

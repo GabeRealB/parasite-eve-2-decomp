@@ -28,7 +28,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s3
 
 void func_dryfield_main_street_8017E0D8(Task* task)
 {
-    task->field_24 = D_dryfield_main_street_80180EA0;
+    task->msgTable = D_dryfield_main_street_80180EA0;
     Game_SetPtrSlot(task, 7);
     D_80115598 = 1;
     if (GameFlag_GetNibble(0x5F) == 0) {

@@ -8,7 +8,7 @@ extern u8 D_80062735;
 
 void RoomsShared8017d8c8(Task* arg0)
 {
-    arg0->field_24 = &RoomsShared8017d8c8Msgs;
+    arg0->msgTable = &RoomsShared8017d8c8Msgs;
     Game_SetPtrSlot(arg0, 7);
     arg0->state = (s32)(arg0->state + 1);
     D_80062735  = 1;

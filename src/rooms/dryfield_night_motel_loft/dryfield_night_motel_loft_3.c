@@ -27,7 +27,7 @@ void func_dryfield_night_motel_loft_8017D9BC(s32 arg0);
 
 void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 {
-    arg0->field_24 = D_dryfield_night_motel_loft_8017EB1C;
+    arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x96) != 0) {
         D_dryfield_night_motel_loft_8018092C.field_2 = 1;

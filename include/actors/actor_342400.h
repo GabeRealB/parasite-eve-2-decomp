@@ -174,7 +174,7 @@ typedef struct Actor342400SpawnWork {
 } Actor342400SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 
-extern u8               D_actor_342400_8016BF48[]; // stored into `Task::field_24` by func_actor_342400_801628F0
+extern u8               D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
 extern Actor342400Slot  D_actor_342400_8016BF58[];
 extern Actor342400Limit D_actor_342400_8016C010[];
 extern TaskDesc         D_actor_342400_80173A54;
@@ -187,7 +187,7 @@ extern u8               D_actor_342400_80173A98[];    // per animation id (1-bas
 extern u8               D_801153F4;                   // absolute; nonzero skips the controller's state handler
 extern GpPairSrcE       D_actor_342400_80170588;      // the main enemy's `GpEnemy::field_50` record
 extern u8               D_actor_342400_801739E8[];    // animation bank handed to `func_800B3F84`
-extern u8               D_actor_342400_80173A3C[];    // stored into `Task::field_24` by func_actor_342400_80163C58
+extern u8               D_actor_342400_80173A3C[];    // stored into `Task::msgTable` by func_actor_342400_80163C58
 extern s16              D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
 
 void func_actor_342400_80162084(Task* arg0);
