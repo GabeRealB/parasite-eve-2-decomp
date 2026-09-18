@@ -170,13 +170,15 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
    signatures. \`rename_item.py <file>/<function>::<param> <newName>\` matches
    by position and rewrites both.
 
-   **A type that overlays another is an artifact.** If this item describes
-   bytes belonging to a different type at an offset into it - the giveaway is a
-   name like \`XFromN\`, or fields whose comments map onto another type's -
-   then what it really means is that a run of the owning struct gets passed
-   around as a unit. Make it a member of that struct, with a union if the bytes
-   are also read individually, so callers stop casting. The address does not
-   change, so the checksum confirms it.
+   **Watch for nested types.** If this item describes bytes belonging to a
+   different type at an offset into it - the giveaway is a name like
+   \`XFromN\`, or fields whose comments map onto another type's - then a run
+   of that other struct is really one thing, and it belongs inside it as a
+   nested type. A plain nested struct where the run is only used as a group,
+   anonymous if nothing takes its address; a union of an anonymous struct with
+   the named aggregate where the bytes are also read field by field. Either way
+   callers stop casting, and since the address does not change the checksum
+   confirms it.
 
    **A field you can describe is a field you can name.** Leaving a field called
    \`field_14\` while writing a comment stating its role contradicts itself:

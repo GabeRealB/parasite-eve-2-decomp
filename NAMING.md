@@ -373,11 +373,18 @@ covers `GameSession`'s `field_4`..`field_9` and exists only because the compiler
 kept `&gGameSession->field_4` in a register; thirty-five types in the tree are
 documented as an overlay of something else.
 
-What such a type usually means is that a **run of the owning struct is passed
-around as a unit**, which the owning struct should say. Make it a member. Where
-the same bytes are also read individually - and they usually are, since
-`GameSession::field_4` alone has a thousand references against the overlay's
-hundred and fifty - a union carries both views:
+What such a type usually means is that a **run of the owning struct is one
+thing**, which the owning struct should say. Express it there, as a nested type,
+and pick the form from how the bytes are used:
+
+- Only ever used as a group — a **nested struct member**, named if callers take
+  its address, anonymous if it is only ever reached through the parent.
+- Used as a group *and* read field by field — a **union** of an anonymous struct
+  of the individual fields with the named aggregate. `GameSession` is this case:
+  `field_4` alone has a thousand references against the overlay's hundred and
+  fifty.
+- A fixed set of bits rather than fields — see the bitfield rule above, which is
+  the same idea one level down.
 
 ```c
 union {
@@ -389,10 +396,10 @@ union {
 };
 ```
 
-Callers then write `&gGameSession->loc` instead of casting, the relationship is
-stated where the layout is, and the phantom type goes away. The address is
-unchanged, so the build confirms it: if the member sits at the wrong offset or
-the union alters alignment, the checksum says so.
+Either way the phantom type goes away, callers stop casting, and the
+relationship is stated where the layout is. The address is unchanged, so the
+build confirms it: if the member sits at the wrong offset or the nesting alters
+alignment, the checksum says so.
 
 ### As general as the subject allows
 
