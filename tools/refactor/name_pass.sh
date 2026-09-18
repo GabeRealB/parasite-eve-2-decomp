@@ -202,12 +202,39 @@ echo "logging to $LOG"
 
 done_count=0
 fail_count=0
+barrier=
 i=0
 while (( TIMES == 0 || i < TIMES )); do
   i=$((i + 1))
   order="$(next_step)" || { echo "worklist exhausted"; break; }
   mapfile -t items < <(awk -F'\t' -v o="$order" '$1==o{print $3}' "$WORKLIST")
   echo "=== step $order: ${items[*]}  ($(date +%H:%M:%S))"
+
+  # A placeholder whose body is still assembly is a barrier, not a step. There
+  # is nothing to read, so any name given to it would be a guess - and because
+  # the worklist is a dependency order, everything after it is something that
+  # uses it, so the guess would be the evidence the next steps reason from.
+  # Stop and let the matching vacuum turn it into C first.
+  mapfile -t states < <(awk -F'\t' -v o="$order" '$1==o{print $6}' "$WORKLIST")
+  for idx in "${!states[@]}"; do
+    if [[ "${states[$idx]}" == "generated" ]]; then
+      cat >&2 <<BARRIER
+=== stopping at step $order: ${items[$idx]} is still assembly
+
+It has no C body, so this pass cannot establish what it is, and every later
+step depends on it. Decompile it first, for example:
+
+  ./tools/vacuum.sh --overlay <its overlay>
+
+then rebuild the graph and resume:
+
+  venv/bin/python3 tools/refactor/dep_graph.py --build
+  venv/bin/python3 tools/refactor/dep_graph.py worklist
+BARRIER
+      barrier=1
+      break 2
+    fi
+  done
 
   brief="$(build_brief "$order")"
   if (( DRY )); then printf '%s\n' "$brief"; exit 0; fi
@@ -281,4 +308,4 @@ while (( TIMES == 0 || i < TIMES )); do
   echo "=== step $order committed"
 done
 
-echo "completed $done_count step(s), $fail_count failed"
+echo "completed $done_count step(s), $fail_count failed${barrier:+, stopped at a barrier}"
