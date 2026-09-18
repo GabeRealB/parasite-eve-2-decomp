@@ -154,11 +154,14 @@ matched-function count must not drop. Do not commit; the driver commits.
 EOF
 }
 
+LOG="$(vacuum_log_dir)/name_pass-$$.log"
+echo "logging to $LOG"
+
 done_count=0
 for ((i = 0; i < TIMES; i++)); do
   order="$(next_step)" || { echo "worklist exhausted"; break; }
   mapfile -t items < <(awk -F'\t' -v o="$order" '$1==o{print $3}' "$WORKLIST")
-  echo "=== step $order: ${items[*]}"
+  echo "=== step $order: ${items[*]}  ($(date +%H:%M:%S))"
 
   brief="$(build_brief "$order")"
   if (( DRY )); then printf '%s\n' "$brief"; exit 0; fi
@@ -170,16 +173,28 @@ for ((i = 0; i < TIMES; i++)); do
 
   case "$CLI" in
     claude)
-      "${LAUNCH_CMD[@]}" -p ${MODEL:+--model "$MODEL"} ${EFFORT:+--effort "$EFFORT"} \
-        --dangerously-skip-permissions "$brief"
+      # Plain `claude -p` prints only the final result, so a step looks frozen
+      # for as long as it runs - which at high effort on a widely-used item is
+      # many minutes of silence. Stream the events and format them, the way the
+      # matching vacuum does. VACUUM_STREAM=0 restores the quiet form.
+      if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+        "${LAUNCH_CMD[@]}" -p ${MODEL:+--model "$MODEL"} ${EFFORT:+--effort "$EFFORT"} \
+          --verbose --output-format stream-json \
+          --dangerously-skip-permissions "$brief" \
+          | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text} \
+          | tee -a "$LOG"
+      else
+        "${LAUNCH_CMD[@]}" -p ${MODEL:+--model "$MODEL"} ${EFFORT:+--effort "$EFFORT"} \
+          --dangerously-skip-permissions "$brief" | tee -a "$LOG"
+      fi
       ;;
     grok)
       "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
-        --cwd "$ROOT" -p "$brief"
+        --cwd "$ROOT" -p "$brief" | tee -a "$LOG"
       ;;
     codex)
       "${LAUNCH_CMD[@]}" exec --dangerously-bypass-approvals-and-sandbox \
-        ${MODEL:+--model "$MODEL"} --cd "$ROOT" "$brief"
+        ${MODEL:+--model "$MODEL"} --cd "$ROOT" "$brief" | tee -a "$LOG"
       ;;
     *) echo "unknown api: $CLI" >&2; exit 2 ;;
   esac
