@@ -27,6 +27,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
 WORKLIST="local/worklist.tsv"
+# The standing job description. grok takes it as a system prompt via --rules,
+# where it frames the whole session; the other arms get the same text inlined at
+# the head of the brief. One source either way, so the two cannot drift.
+RULES=".grok/rules/name-pass.md"
 CLI="${VACUUM_CLI:-claude}"
 CLI_EXPLICIT=0
 PROFILE="${PROFILE-${VACUUM_PROFILE:-}}"
@@ -116,6 +120,8 @@ $(timeout 300 venv/bin/python3 tools/refactor/find_references.py "$file/$name" -
   done < <(rows)
 
   cat <<EOF
+$( [[ "$CLI" != "grok" && -f "$RULES" ]] && cat "$RULES" )
+
 # Naming pass, step $order
 
 Process ${#names[@]} item(s) together: ${names[*]}
@@ -174,11 +180,12 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
    different type at an offset into it - the giveaway is a name like
    \`XFromN\`, or fields whose comments map onto another type's - then a run
    of that other struct is really one thing, and it belongs inside it as a
-   nested type. A plain nested struct where the run is only used as a group,
-   anonymous if nothing takes its address; a union of an anonymous struct with
-   the named aggregate where the bytes are also read field by field. Either way
-   callers stop casting, and since the address does not change the checksum
-   confirms it.
+   nested type. A named nested struct where the run is only used as a group; a
+   named union member holding the aggregate beside a struct of the individual
+   fields where the bytes are also read field by field. **Every member must be
+   named** - this compiler accepts an anonymous struct or union member and then
+   rejects every access to it, so the path is \`owner->at4.loc\`. Callers stop
+   casting, and since the address does not change the checksum confirms it.
 
    **A field you can describe is a field you can name.** Leaving a field called
    \`field_14\` while writing a comment stating its role contradicts itself:
@@ -201,7 +208,12 @@ Everything below is specified in NAMING.md; read it if anything here is unclear.
 ## Finishing
 
 Run \`./tools/build-and-verify.sh\`. It must end with BUILD SUCCEEDED and the
-matched-function count must not drop. Do not commit; the driver commits.
+matched-function count must not drop. If your change broke the match, fixing it
+is the remaining work - not grounds to revert the change. Do not commit; the
+driver commits.
+
+Report what the item turned out to be, what you changed beyond the name, and
+anything you could not make match.
 EOF
 }
 
@@ -245,13 +257,14 @@ for ((i = 0; i < TIMES; i++)); do
       # way a claude step does.
       if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
         "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
-          --cwd "$ROOT" --output-format streaming-messages-json \
+          --cwd "$ROOT" ${RULES:+--rules "$RULES"} \
+          --output-format streaming-messages-json \
           --include-partial-messages -p "$brief" \
           | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text} \
           | tee -a "$LOG"
       else
         "${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"} \
-          --cwd "$ROOT" -p "$brief" | tee -a "$LOG"
+          --cwd "$ROOT" ${RULES:+--rules "$RULES"} -p "$brief" | tee -a "$LOG"
       fi
       ;;
     codex)

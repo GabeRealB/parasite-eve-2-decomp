@@ -377,24 +377,31 @@ What such a type usually means is that a **run of the owning struct is one
 thing**, which the owning struct should say. Express it there, as a nested type,
 and pick the form from how the bytes are used:
 
-- Only ever used as a group — a **nested struct member**, named if callers take
-  its address, anonymous if it is only ever reached through the parent.
-- Used as a group *and* read field by field — a **union** of an anonymous struct
-  of the individual fields with the named aggregate. `GameSession` is this case:
-  `field_4` alone has a thousand references against the overlay's hundred and
-  fifty.
+- Only ever used as a group — a **named nested struct member**.
+- Used as a group *and* read field by field — a **named union member** holding
+  the aggregate beside a struct of the individual fields. `GameSession` is this
+  case: `field_4` alone has a thousand references against the overlay's hundred
+  and fifty.
 - A fixed set of bits rather than fields — see the bitfield rule above, which is
   the same idea one level down.
 
 ```c
-union {
-    struct {
-        u8 field_4;
-        u8 field_5;
-    };
-    SessionLocation loc;   // the same bytes, as the thing that is passed
-};
+typedef struct GameSession {
+    s32 field_0;
+    union {
+        SessionLocation loc;                    /* the thing that is passed */
+        struct { u8 f4, f5, f6, f7, f8, f9; } b; /* the same bytes, field by field */
+    } at4;
+    ...
 ```
+
+**Every member has to be named.** This compiler does not support anonymous
+struct or union members: it accepts the declaration and then rejects every
+access to it. `include/main/gpuext.h` looks like a counter-example, but the one
+line that reads through its anonymous struct is commented out in
+`src/main/gpuext.c` — someone met this already. So the access path is
+`session->at4.loc`, not `session->loc`, and the extra name is the price of the
+construct rather than a choice.
 
 Either way the phantom type goes away, callers stop casting, and the
 relationship is stated where the layout is. The address is unchanged, so the
