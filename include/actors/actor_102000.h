@@ -2,6 +2,7 @@
 #define ACTOR_102000_H
 
 #include "common.h"
+#include "main/session.h"
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include <psyq/libgte.h>
@@ -217,18 +218,6 @@ typedef struct {
 
 extern Actor02000StateFuncTable3 Actor02000_D00060;
 extern Actor02000StateFuncTable3 Actor02000_D0006C;
-
-/// Location key `Actor02000_Fn0251C` copies out of the session block before
-/// looking up the spawned model's texture page and CLUT row (the gameplay
-/// `GpAreaKey`; `Gp_SyncAreaKeyIndex` fills in `field_5`).
-typedef struct Actor02000AreaKey {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-    /* 0x4 */ u8 field_4;
-    /* 0x5 */ u8 field_5;
-} Actor02000AreaKey;
 
 /// 0x10-byte per-room record in the list `Gp_GetNestedAreaRec` reaches
 /// (the gameplay `GpCdRec10`). `field_D` / `field_E` are the texture page and

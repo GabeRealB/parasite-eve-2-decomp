@@ -105,12 +105,12 @@ extern char  Actor02500_D04AD0;
 extern void* D_80067704[1];
 
 void*                Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, void* arg3);
-Actor02500AreaTable* Gp_GetNestedAreaRec(Actor02500AreaKey* key);
-void                 Gp_SyncAreaKeyIndex(Actor02500AreaKey* key);
+Actor02500AreaTable* Gp_GetNestedAreaRec(GpAreaKey* key);
+void                 Gp_SyncAreaKeyIndex(GpAreaKey* key);
 
 void Actor02500_Fn0184C(Actor02500* arg0)
 {
-    Actor02500AreaKey  key;
+    GpAreaKey          key;
     u32                raw1, raw2, raw3;
     u8                 areaByte0;
     TmdObject*         model1;
@@ -125,22 +125,22 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     Actor02500AreaRec* entry1;
     Actor02500AreaRec* entry2;
     Actor02500AreaRec* entry3;
-    Actor02500AreaKey* sessionKey1;
-    Actor02500AreaKey* sessionKey2;
-    Actor02500AreaKey* sessionKey3;
+    GpAreaKey*         sessionKey1;
+    GpAreaKey*         sessionKey2;
+    GpAreaKey*         sessionKey3;
 
     D_80067704[0] = &Actor02500_D04448;
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = (Actor02500AreaKey*)&gGameSession->at4.loc.view;
+        sessionKey1 = &gGameSession->at4.loc;
         raw1        = arg0->field_20->field_8;
         model1      = (TmdObject*)effect1->task->field_2C;
-        key.field_3 = sessionKey1->field_3;
-        key.field_2 = sessionKey1->field_2;
-        key.field_1 = sessionKey1->field_1;
+        key.stage   = sessionKey1->stage;
+        key.area    = sessionKey1->area;
+        key.room    = sessionKey1->room;
         areaByte0   = gGameSession->at4.loc.view;
         index1      = raw1 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry1           = (Actor02500AreaRec*)((index1 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model1->field_24 = entry1->field_D;
@@ -153,15 +153,15 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     D_80067704[0] = &Actor02500_D0478C;
     effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = (Actor02500AreaKey*)&gGameSession->at4.loc.view;
+        sessionKey2 = &gGameSession->at4.loc;
         raw2        = arg0->field_20->field_8;
         model2      = (TmdObject*)effect2->task->field_2C;
-        key.field_3 = sessionKey2->field_3;
-        key.field_2 = sessionKey2->field_2;
-        key.field_1 = sessionKey2->field_1;
+        key.stage   = sessionKey2->stage;
+        key.area    = sessionKey2->area;
+        key.room    = sessionKey2->room;
         areaByte0   = gGameSession->at4.loc.view;
         index2      = raw2 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry2           = (Actor02500AreaRec*)((index2 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model2->field_24 = entry2->field_D;
@@ -174,15 +174,15 @@ void Actor02500_Fn0184C(Actor02500* arg0)
     D_80067704[0] = &Actor02500_D04AD0;
     effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->field_8[1], 0x100, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = (Actor02500AreaKey*)&gGameSession->at4.loc.view;
+        sessionKey3 = &gGameSession->at4.loc;
         raw3        = arg0->field_20->field_8;
         model3      = (TmdObject*)effect3->task->field_2C;
-        key.field_3 = sessionKey3->field_3;
-        key.field_2 = sessionKey3->field_2;
-        key.field_1 = sessionKey3->field_1;
+        key.stage   = sessionKey3->stage;
+        key.area    = sessionKey3->area;
+        key.room    = sessionKey3->room;
         areaByte0   = gGameSession->at4.loc.view;
         index3      = raw3 >> 12;
-        key.field_0 = areaByte0;
+        key.view    = areaByte0;
         Gp_SyncAreaKeyIndex(&key);
         entry3           = (Actor02500AreaRec*)((index3 * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
         model3->field_24 = entry3->field_D;

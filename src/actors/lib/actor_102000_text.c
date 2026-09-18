@@ -1241,8 +1241,8 @@ void                 Gp_IncStateF0Ref(s32 arg0);
 void                 Gp_LinkObj(s32 arg0, Actor02000Obj* arg1);
 void                 Gp_InitRec18Table(Actor02000Rec18* arg0, s32 arg1, s32 arg2);
 Actor02000Eff*       Gp_SpawnEnemyFromTable(void* table, s32 idx, s32 arg2, void* parent);
-void                 Gp_SyncAreaKeyIndex(Actor02000AreaKey* arg0);
-Actor02000AreaTable* Gp_GetNestedAreaRec(Actor02000AreaKey* arg0);
+void                 Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
+Actor02000AreaTable* Gp_GetNestedAreaRec(GpAreaKey* arg0);
 
 extern void           Actor02000_D15FE8;
 extern s16            Actor02000_D15FD0[];
@@ -1268,8 +1268,8 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     GsCOORDINATE2*       partsB;
     GsCOORDINATE2*       partsC;
     GsCOORDINATE2*       effParts;
-    Actor02000AreaKey*   sessionKey;
-    Actor02000AreaKey*   keyPtr;
+    GpAreaKey*           sessionKey;
+    GpAreaKey*           keyPtr;
     u8                   areaByte0;
     Actor02000AreaTable* rec;
     Actor02000AreaRec*   entry;
@@ -1277,7 +1277,7 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     u16*                 tbl;
     u8                   param1[8];
     u8                   param2[8];
-    Actor02000AreaKey    key;
+    GpAreaKey            key;
     s32                  i;
     s32                  one;
     s32                  kind;
@@ -1305,14 +1305,14 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(work, i, 1);
     }
-    eff         = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
-    sessionKey  = (Actor02000AreaKey*)&gGameSession->at4.loc.view;
-    model       = eff->task->field_2C;
-    idx         = ctx->field_8 >> 12;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
+    eff        = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
+    sessionKey = &gGameSession->at4.loc;
+    model      = eff->task->field_2C;
+    idx        = ctx->field_8 >> 12;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = sessionKey->view;
     /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
        pseudo that is live across the first call, costing a callee-saved
        register; the ROM rematerializes `addiu a0, sp, key` for each call. The
@@ -1321,7 +1321,7 @@ void Actor02000_Fn0251C(Actor02000Ctx* ctx, Actor02000* actor)
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    key.field_0 = areaByte0;
+    key.view = areaByte0;
     Gp_SyncAreaKeyIndex(keyPtr);
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index

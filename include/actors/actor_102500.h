@@ -2,6 +2,7 @@
 #define ACTOR_102500_H
 
 #include "common.h"
+#include "main/session.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -267,16 +268,6 @@ void Actor02500_Fn00078(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01AC8(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01E60(Actor02500Ctx* arg0, Actor02500* arg1);
 void Actor02500_Fn01F8C(Actor02500* actor);
-
-/// Six-byte area lookup key; the first four bytes are copied from the session.
-typedef struct Actor02500AreaKey {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-    /* 0x4 */ u8 field_4;
-    /* 0x5 */ u8 field_5;
-} Actor02500AreaKey;
 
 /// Per-room texture-page and CLUT record returned by the area lookup.
 typedef struct Actor02500AreaRec {
